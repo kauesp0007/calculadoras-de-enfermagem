@@ -2,111 +2,66 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <title>Cálculo de Gotejamento</title>
+  <title>Calculadora de Gotejamento</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Calculadora de gotejamento de medicamentos (macro e microgotas) com resultado e cálculo passo a passo.">
-  <meta name="keywords" content="cálculo de gotejamento, gotas por minuto, macrogotas, microgotas, enfermagem, cálculo de infusão, medicamento intravenoso">
+  <meta name="description" content="Calculadora de gotejamento para macrogotas e microgotas. Fácil, rápida e confiável.">
+  <meta name="keywords" content="gotejamento, cálculo de gotejamento, macrogotas, microgotas, enfermagem, gotas por minuto">
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #f9f9f9;
-      padding: 20px;
-    }
-    h1 {
-      text-align: center;
-      color: #007bff;
-    }
-    .container {
-      max-width: 600px;
-      margin: auto;
-      background: #fff;
-      padding: 20px;
-      border-radius: 12px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
-    }
-    label {
-      font-weight: bold;
-      display: block;
-      margin-top: 15px;
-    }
-    input, select {
-      width: 100%;
-      padding: 10px;
-      margin-top: 5px;
-      border-radius: 8px;
-      border: 1px solid #ccc;
-      font-size: 16px;
-    }
-    button {
-      width: 100%;
-      margin-top: 20px;
-      padding: 12px;
-      background: #007bff;
-      color: white;
-      font-size: 18px;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-    }
-    button:hover {
-      background: #0056b3;
-    }
-    .result {
-      margin-top: 20px;
-      background: #e9f7fe;
-      border: 1px solid #bee5eb;
-      padding: 15px;
-      border-radius: 10px;
-      font-size: 16px;
-    }
+    body { font-family: Arial, sans-serif; background: #f4f4f4; padding: 20px; max-width: 700px; margin: auto; }
+    h1 { color: #007bff; text-align: center; }
+    label, input, select { display: block; width: 100%; margin-top: 15px; padding: 10px; font-size: 16px; }
+    button { background-color: #007bff; color: white; padding: 12px; margin-top: 20px; width: 100%; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; }
+    .resultado { margin-top: 20px; background: #e0f7fa; padding: 15px; border-radius: 8px; font-size: 16px; }
+    footer { background-color: #f1f1f1; padding: 20px; text-align: center; font-size: 14px; color: #555; margin-top: 40px; border-top: 1px solid #ddd; }
+    footer a { color: #007bff; text-decoration: none; }
   </style>
 </head>
 <body>
   <h1>💧 Cálculo de Gotejamento</h1>
-  <div class="container">
-    <label for="volume">Volume a ser infundido (mL):</label>
-    <input type="number" id="volume" placeholder="Ex: 500" step="any">
 
-    <label for="tempo">Tempo de infusão (horas):</label>
-    <input type="number" id="tempo" placeholder="Ex: 4" step="any">
+  <label for="volume">Volume a ser infundido (ml):</label>
+  <input type="number" id="volume" />
 
-    <label for="tipo">Tipo de gotejamento:</label>
-    <select id="tipo">
-      <option value="20">Macrogotas (20 gotas/mL)</option>
-      <option value="60">Microgotas (60 gotas/mL)</option>
-    </select>
+  <label for="tempo">Tempo de infusão (minutos):</label>
+  <input type="number" id="tempo" />
 
-    <button onclick="calcularGotejamento()">Calcular</button>
+  <label for="tipo">Tipo de equipo:</label>
+  <select id="tipo">
+    <option value="20">Macrogotas (20 gotas/ml)</option>
+    <option value="60">Microgotas (60 gotas/ml)</option>
+  </select>
 
-    <div id="resultado" class="result" style="display:none;"></div>
-  </div>
+  <button onclick="calcular()">Calcular</button>
+
+  <div id="resultado" class="resultado" style="display:none;"></div>
+
+  <footer>
+    <p>© 2025 Calculadoras de Enfermagem</p>
+    <p><a href="politica.html">Política de Privacidade</a></p>
+  </footer>
 
   <script>
-    function calcularGotejamento() {
-      const volume = parseFloat(document.getElementById("volume").value);
-      const tempo = parseFloat(document.getElementById("tempo").value);
-      const fator = parseInt(document.getElementById("tipo").value);
-      const resultado = document.getElementById("resultado");
+    function calcular() {
+      const volume = parseFloat(document.getElementById('volume').value);
+      const tempo = parseFloat(document.getElementById('tempo').value);
+      const fator = parseFloat(document.getElementById('tipo').value);
+      const resultado = document.getElementById('resultado');
 
-      if (isNaN(volume) || isNaN(tempo) || isNaN(fator) || volume <= 0 || tempo <= 0) {
-        resultado.innerHTML = "⚠️ Preencha todos os campos corretamente.";
-        resultado.style.display = "block";
+      if (!volume || !tempo || !fator) {
+        resultado.style.display = 'block';
+        resultado.innerHTML = \"Preencha todos os campos corretamente.\";
         return;
       }
 
-      const tempoMin = tempo * 60;
-      const gotasPorMinuto = (volume * fator) / tempoMin;
+      const gotasPorMinuto = (volume * fator) / tempo;
 
+      resultado.style.display = 'block';
       resultado.innerHTML = `
-        💡 <strong>Resultado:</strong><br>
-        Gotejamento = <strong>${gotasPorMinuto.toFixed(0)} gotas por minuto</strong><br><br>
-
-        📝 <strong>Cálculo:</strong><br>
-        Gotas/min = (Volume × Fator de Gotejamento) ÷ Tempo (em minutos)<br>
-        = (${volume} × ${fator}) ÷ (${tempoMin})<br>
-        = <strong>${gotasPorMinuto.toFixed(0)} gotas/min</strong>
+        <strong>Resultado:</strong><br><br>
+        ${gotasPorMinuto.toFixed(2)} gotas/minuto<br><br>
+        <strong>Cálculo:</strong><br>
+        (${volume} ml × ${fator} gotas/ml) ÷ ${tempo} min = <strong>${gotasPorMinuto.toFixed(2)}</strong> gotas/min
       `;
-      resultado.style.display = "block";
     }
   </script>
 </body>
