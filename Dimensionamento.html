@@ -1,0 +1,139 @@
+<!DOCTYPE html><html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Calculadora de Dimensionamento de Enfermagem</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Calculadora de dimensionamento de enfermagem conforme COFEN 543/2017. Classificação de pacientes, horas de assistência, índice de segurança e quantitativo de profissionais.">
+  <meta name="keywords" content="dimensionamento de enfermagem, cálculo de enfermeiros, COFEN 543/2017, jornada 36h, jornada 44h, classificação de pacientes, carga horária enfermagem">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f8f9fa;
+      padding: 20px;
+    }
+    h1 {
+      text-align: center;
+      color: #007bff;
+    }
+    .container {
+      max-width: 700px;
+      margin: auto;
+      background: #fff;
+      padding: 25px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    label {
+      font-weight: bold;
+      margin-top: 15px;
+      display: block;
+    }
+    input, select {
+      width: 100%;
+      padding: 10px;
+      margin-top: 5px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+    }
+    button {
+      width: 100%;
+      margin-top: 20px;
+      padding: 12px;
+      background-color: #007bff;
+      color: white;
+      font-size: 16px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    .result {
+      margin-top: 20px;
+      background: #e9f7ef;
+      border: 1px solid #c3e6cb;
+      padding: 15px;
+      border-radius: 8px;
+    }
+    .footer {
+      margin-top: 40px;
+      background: #f1f1f1;
+      padding: 20px;
+      border-radius: 10px;
+      font-size: 15px;
+      line-height: 1.6;
+    }
+  </style>
+</head>
+<body>
+  <h1>📊 Dimensionamento de Enfermagem</h1>
+  <div class="container">
+    <label for="minimo">Pacientes Mínimo (3,8h):</label>
+    <input type="number" id="minimo" min="0" value="0"><label for="intermediario">Pacientes Intermediário (5,6h):</label>
+<input type="number" id="intermediario" min="0" value="0">
+
+<label for="alta">Alta Dependência (9,4h):</label>
+<input type="number" id="alta" min="0" value="0">
+
+<label for="semi">Semi-intensivo (10,8h):</label>
+<input type="number" id="semi" min="0" value="0">
+
+<label for="intensivo">Intensivo (17,9h):</label>
+<input type="number" id="intensivo" min="0" value="0">
+
+<label for="jornada">Jornada semanal de trabalho (h):</label>
+<select id="jornada">
+  <option value="36">36 horas</option>
+  <option value="44">44 horas</option>
+</select>
+
+<button onclick="calcular()">Calcular Dimensionamento</button>
+
+<div id="resultado" class="result" style="display:none"></div>
+
+<div class="footer">
+  <h3>📘 Instruções de uso</h3>
+  <p>Para utilizar corretamente esta calculadora, informe o número de pacientes em cada categoria conforme o Sistema de Classificação de Pacientes (SCP). Cada nível representa um grau de complexidade de cuidado, que influencia diretamente na carga horária necessária.</p>
+  <p>Após isso, escolha a jornada semanal de trabalho dos profissionais da unidade (geralmente 36h ou 44h semanais) e clique em "Calcular Dimensionamento". O sistema calculará automaticamente as horas de assistência necessárias, aplicará o Índice de Segurança Técnica (IST) de 15% e informará a quantidade mínima de profissionais necessários por dia.</p>
+
+  <h3>📑 Referências e Legislação</h3>
+  <ul>
+    <li>Resolução COFEN n° 543/2017 - Estabelece parâmetros para o dimensionamento do quadro de profissionais de enfermagem nos serviços de saúde.</li>
+    <li>Conselho Regional de Enfermagem de São Paulo (COREN-SP) - Orientações e planilhas de apoio ao dimensionamento.</li>
+    <li>Sistema e-Dimensionamento (COFEN) - Ferramenta online oficial para cálculo automatizado.</li>
+  </ul>
+  <p>O dimensionamento adequado de pessoal é essencial para a segurança do paciente, qualidade da assistência e saúde ocupacional da equipe.</p>
+</div>
+
+  </div>  <script>
+    function calcular() {
+      const min = parseInt(document.getElementById('minimo').value) || 0;
+      const inter = parseInt(document.getElementById('intermediario').value) || 0;
+      const alta = parseInt(document.getElementById('alta').value) || 0;
+      const semi = parseInt(document.getElementById('semi').value) || 0;
+      const inten = parseInt(document.getElementById('intensivo').value) || 0;
+      const jornada = parseInt(document.getElementById('jornada').value);
+
+      const horasMin = min * 3.8;
+      const horasInter = inter * 5.6;
+      const horasAlta = alta * 9.4;
+      const horasSemi = semi * 10.8;
+      const horasInten = inten * 17.9;
+
+      const totalHoras = horasMin + horasInter + horasAlta + horasSemi + horasInten;
+      const ist = totalHoras * 0.15;
+      const totalComIST = totalHoras + ist;
+
+      const profissionaisNecessarios = totalComIST / (jornada / 7);
+
+      const resultado = document.getElementById('resultado');
+      resultado.innerHTML = `
+        <strong>Resumo do Dimensionamento:</strong><br><br>
+        Horas totais sem IST: <strong>${totalHoras.toFixed(2)} h</strong><br>
+        Índice de Segurança Técnica (15%): <strong>${ist.toFixed(2)} h</strong><br>
+        <strong>Horas totais com IST: ${totalComIST.toFixed(2)} h</strong><br><br>
+        <strong>Quantidade mínima de profissionais por dia: ${Math.ceil(profissionaisNecessarios)}</strong><br><br>
+        <em>Baseado na Resolução COFEN n° 543/2017</em>
+      `;
+      resultado.style.display = 'block';
+    }
+  </script></body>
+</html>
