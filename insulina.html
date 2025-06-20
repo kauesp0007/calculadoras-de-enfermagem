@@ -1,45 +1,46 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <title>Calculadora de Insulina (Regra de Três)</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Cálculo de insulina com base em regra de três. Descubra quantos ml aspirar a partir da prescrição em UI.">
-  <meta name="keywords" content="cálculo de insulina, UI, seringa de insulina, enfermagem, regra de três, medicação, dosagem">
+  <meta charset="UTF-8" />
+  <title>Calculadora de Insulina</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Cálculo de insulina com regra de três, explicação detalhada e arredondamento." />
+  <meta name="keywords" content="insulina, cálculo de insulina, enfermagem, regra de três, UI, unidade internacional, seringas" />
   <style>
-    body { font-family: Arial, sans-serif; background: #f4f4f4; padding: 20px; max-width: 750px; margin: auto; }
-    h1 { text-align: center; color: #007bff; }
-    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-    td, th { border: 1px solid #ccc; padding: 12px; text-align: center; background-color: white; }
-    label { font-weight: bold; margin-top: 20px; display: block; }
+    body { font-family: Arial, sans-serif; max-width: 700px; margin: auto; padding: 20px; background: #f4f4f4; }
+    h1 { text-align: center; color: #007bff; margin-bottom: 0; }
+    label { font-weight: bold; display: block; margin-top: 15px; }
     input { width: 100%; padding: 10px; font-size: 16px; margin-top: 5px; }
-    button { margin-top: 20px; width: 100%; padding: 12px; background-color: #007bff; color: white; font-size: 16px; border: none; border-radius: 6px; cursor: pointer; }
-    .resultado { margin-top: 25px; padding: 15px; background: #e0f7fa; border-radius: 8px; font-size: 16px; }
+    button { width: 100%; padding: 12px; margin-top: 20px; font-size: 16px; background-color: #007bff; color: white; border: none; border-radius: 6px; cursor: pointer; }
+    .resultado { margin-top: 25px; padding: 15px; background: #e0f7fa; border-radius: 8px; font-size: 16px; white-space: pre-line; }
     footer { background-color: #f1f1f1; padding: 20px; text-align: center; font-size: 14px; color: #555; margin-top: 40px; border-top: 1px solid #ddd; }
-    footer a { color: #007bff; text-decoration: none; }
+    footer a { color: #007bff; text-decoration: none; margin: 0 5px; }
   </style>
 </head>
 <body>
 
-  <h1>🩺 Cálculo de Insulina - Regra de Três</h1>
+  <h1>💉 Cálculo de Insulina</h1>
 
-  <label>Frasco disponível (UI):</label>
-  <input type="number" id="frasco" placeholder="Ex: 100">
+  <label for="frasco">Frasco disponível (UI):</label>
+  <input type="number" id="frasco" placeholder="Ex: 100" />
 
-  <label>Seringa disponível (ml):</label>
-  <input type="number" id="seringa" placeholder="Ex: 1">
+  <label for="seringa">Seringa (ml):</label>
+  <input type="number" id="seringa" placeholder="Ex: 1" />
 
-  <label>Prescrição médica (UI):</label>
-  <input type="number" id="prescricao" placeholder="Ex: 30">
+  <label for="prescricao">Prescrição médica (UI):</label>
+  <input type="number" id="prescricao" placeholder="Ex: 15" />
 
   <button onclick="calcular()">Calcular</button>
 
-  <div id="tabela" style="margin-top:20px;"></div>
   <div id="resultado" class="resultado" style="display:none;"></div>
 
   <footer>
     <p>© 2025 Calculadoras de Enfermagem</p>
-    <p><a href="politica.html">Política de Privacidade</a></p>
+    <p>
+      <a href="index.html">Início</a> |
+      <a href="politica.html">Política de Privacidade</a> |
+      <a href="termos.html">Termos de Uso</a>
+    </p>
   </footer>
 
   <script>
@@ -47,44 +48,34 @@
       const frasco = parseFloat(document.getElementById('frasco').value);
       const seringa = parseFloat(document.getElementById('seringa').value);
       const prescricao = parseFloat(document.getElementById('prescricao').value);
-      const tabela = document.getElementById('tabela');
       const resultado = document.getElementById('resultado');
 
-      if (isNaN(frasco) || isNaN(seringa) || isNaN(prescricao) || frasco === 0) {
-        tabela.innerHTML = "";
-        resultado.style.display = "block";
-        resultado.innerHTML = "Preencha todos os campos corretamente.";
+      if (isNaN(frasco) || isNaN(seringa) || isNaN(prescricao) ||
+          frasco <= 0 || seringa <= 0 || prescricao <= 0) {
+        resultado.style.display = 'block';
+        resultado.textContent = "Preencha todos os campos com valores válidos e maiores que zero.";
         return;
       }
 
-      const aspirar = (prescricao * seringa) / frasco;
+      // Regra de 3: frasco UI ----------- seringa ml
+      //             prescricao UI --------- x ml (a aspirar)
 
-      // Monta tabela
-      tabela.innerHTML = `
-        <h2>Regra de Três:</h2>
-        <table>
-          <tr>
-            <th>${frasco} UI</th>
-            <th>${seringa} ml</th>
-          </tr>
-          <tr>
-            <th>${prescricao} UI</th>
-            <th><strong>${aspirar.toFixed(2)} ml</strong></th>
-          </tr>
-        </table>
-      `;
+      const x = (prescricao * seringa) / frasco;
+      const xArredondado = Math.round(x * 100) / 100; // arredonda 2 casas decimais
 
-      // Detalhamento matemático
+      let explicacao = `Regra de três para cálculo da insulina:\n\n` +
+                       `${frasco} UI ----------- ${seringa} ml\n` +
+                       `${prescricao} UI ----------- x ml\n\n` +
+                       `100% x = (prescrição × seringa) ÷ frasco\n` +
+                       `x = (${prescricao} × ${seringa}) ÷ ${frasco}\n` +
+                       `x = ${x.toFixed(4)} ml\n\n` +
+                       `Arredondado para: ${xArredondado} ml\n\n` +
+                       `Deve-se aspirar ${xArredondado} ml do frasco para administrar a dose prescrita.`;
+
       resultado.style.display = 'block';
-      resultado.innerHTML = `
-        <strong>Cálculo matemático:</strong><br><br>
-        ${frasco}x = ${prescricao * seringa}<br>
-        x = ${prescricao * seringa} ÷ ${frasco}<br>
-        x = <strong>${aspirar.toFixed(2)} ml</strong><br><br>
-        <strong>Você deve aspirar ${aspirar.toFixed(2)} ml do frasco,</strong> que equivale a <strong>${prescricao} UI</strong> na seringa.<br>
-        A graduação da seringa deve marcar até <strong>${aspirar.toFixed(2)} ml</strong>.
-      `;
+      resultado.textContent = explicacao;
     }
   </script>
+
 </body>
 </html>
