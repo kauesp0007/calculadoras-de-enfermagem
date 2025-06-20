@@ -1,154 +1,146 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>Dimensionamento de Enfermagem</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Calculadora de dimensionamento de enfermagem conforme COFEN 543/2017. Classifique pacientes e descubra a quantidade ideal de profissionais.">
-  <meta name="keywords" content="dimensionamento de enfermagem, cálculo de enfermeiros, COFEN 543/2017, jornada 36h, jornada 44h, classificação de pacientes, carga horária enfermagem">
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Calculadora de dimensionamento de enfermagem conforme Resolução COFEN n° 543/2017." />
+  <meta name="keywords" content="dimensionamento, enfermagem, COFEN, cálculo, horas de enfermagem, IST, profissionais" />
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #f8f9fa;
-      padding: 20px;
-      max-width: 800px;
-      margin: auto;
-    }
-    h1 {
-      text-align: center;
-      color: #007bff;
-    }
-    label {
-      display: block;
-      margin-top: 15px;
-      font-weight: bold;
-    }
-    input, select {
-      width: 100%;
-      padding: 10px;
-      margin-top: 5px;
-      border-radius: 5px;
-      border: 1px solid #ccc;
-    }
-    button {
-      width: 100%;
-      margin-top: 20px;
-      padding: 12px;
-      background-color: #007bff;
-      color: white;
-      font-size: 16px;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-    }
-    .result {
-      margin-top: 20px;
-      background: #e9f7ef;
-      border: 1px solid #c3e6cb;
-      padding: 15px;
-      border-radius: 8px;
-    }
-    .footer {
-      margin-top: 40px;
-      background: #f1f1f1;
-      padding: 20px;
-      border-radius: 10px;
-      font-size: 15px;
-      line-height: 1.6;
-    }
-    footer {
-      background-color: #f1f1f1;
-      padding: 20px;
-      text-align: center;
-      font-size: 14px;
-      color: #555;
-      margin-top: 40px;
-      border-top: 1px solid #ddd;
-    }
-    footer a {
-      color: #007bff;
-      text-decoration: none;
-    }
+    body { font-family: Arial, sans-serif; max-width: 800px; margin: auto; padding: 20px; background: #f4f4f4; }
+    h1 { text-align: center; color: #007bff; }
+    label { font-weight: bold; display: block; margin-top: 15px; }
+    input { width: 100%; padding: 10px; font-size: 16px; margin-top: 5px; }
+    button { width: 100%; padding: 12px; margin-top: 20px; font-size: 16px; background-color: #007bff; color: white; border: none; border-radius: 6px; cursor: pointer; }
+    .resultado { margin-top: 25px; padding: 15px; background: #e0f7fa; border-radius: 8px; font-size: 16px; white-space: pre-line; }
+    footer { background-color: #f1f1f1; padding: 20px; text-align: center; font-size: 14px; color: #555; margin-top: 40px; border-top: 1px solid #ddd; }
+    footer a { color: #007bff; text-decoration: none; margin: 0 5px; }
   </style>
 </head>
 <body>
-  <h1>📊 Dimensionamento de Enfermagem</h1>
 
-  <label for="minimo">Pacientes Mínimo (3,8h):</label>
-  <input type="number" id="minimo" min="0" value="0">
+  <h1>Dimensionamento de Enfermagem</h1>
 
-  <label for="intermediario">Pacientes Intermediário (5,6h):</label>
-  <input type="number" id="intermediario" min="0" value="0">
+  <label for="numPacientesMin">Número de pacientes com cuidado mínimo:</label>
+  <input type="number" id="numPacientesMin" placeholder="Ex: 10" min="0" />
 
-  <label for="alta">Alta Dependência (9,4h):</label>
-  <input type="number" id="alta" min="0" value="0">
+  <label for="numPacientesInt">Número de pacientes com cuidado intermediário:</label>
+  <input type="number" id="numPacientesInt" placeholder="Ex: 5" min="0" />
 
-  <label for="semi">Semi-intensivo (10,8h):</label>
-  <input type="number" id="semi" min="0" value="0">
+  <label for="numPacientesSemiInt">Número de pacientes com cuidado semi-intensivo:</label>
+  <input type="number" id="numPacientesSemiInt" placeholder="Ex: 3" min="0" />
 
-  <label for="intensivo">Intensivo (17,9h):</label>
-  <input type="number" id="intensivo" min="0" value="0">
+  <label for="numPacientesAltaDep">Número de pacientes com alta dependência:</label>
+  <input type="number" id="numPacientesAltaDep" placeholder="Ex: 2" min="0" />
 
-  <label for="jornada">Jornada semanal de trabalho:</label>
-  <select id="jornada">
-    <option value="36">36 horas</option>
-    <option value="44">44 horas</option>
-  </select>
+  <label for="numPacientesIntensivo">Número de pacientes com cuidado intensivo:</label>
+  <input type="number" id="numPacientesIntensivo" placeholder="Ex: 1" min="0" />
 
-  <button onclick="calcular()">Calcular Dimensionamento</button>
+  <label for="horasJornada">Horas da jornada de trabalho por profissional:</label>
+  <input type="number" id="horasJornada" placeholder="Ex: 36" min="1" />
 
-  <div id="resultado" class="result" style="display:none"></div>
+  <button onclick="calcular()">Calcular</button>
 
-  <div class="footer">
-    <h3>📘 Instruções</h3>
-    <p>Informe o número de pacientes por categoria de cuidado e a jornada semanal de trabalho da equipe de enfermagem. O sistema calculará a carga horária total, incluirá 15% de IST e mostrará a quantidade ideal de profissionais.</p>
-
-    <h3>📑 Referências</h3>
-    <ul>
-      <li>Resolução COFEN nº 543/2017 – Parâmetros mínimos de dimensionamento.</li>
-      <li>COREN-SP – Planilhas e orientações técnicas.</li>
-      <li>Sistema e-Dimensionamento – Plataforma oficial do COFEN.</li>
-    </ul>
-    <p>Dimensionamento adequado garante segurança ao paciente e à equipe, além de evitar sobrecarga e falhas na assistência.</p>
-  </div>
+  <div id="resultado" class="resultado" style="display:none;"></div>
 
   <footer>
     <p>© 2025 Calculadoras de Enfermagem</p>
-    <p><a href="politica.html">Política de Privacidade</a></p>
+    <p>
+      <a href="index.html">Início</a> |
+      <a href="politica.html">Política de Privacidade</a> |
+      <a href="termos.html">Termos de Uso</a>
+    </p>
   </footer>
 
   <script>
     function calcular() {
-      const min = parseInt(document.getElementById('minimo').value) || 0;
-      const inter = parseInt(document.getElementById('intermediario').value) || 0;
-      const alta = parseInt(document.getElementById('alta').value) || 0;
-      const semi = parseInt(document.getElementById('semi').value) || 0;
-      const inten = parseInt(document.getElementById('intensivo').value) || 0;
-      const jornada = parseInt(document.getElementById('jornada').value);
+      const pacientesMin = Number(document.getElementById('numPacientesMin').value) || 0;
+      const pacientesInt = Number(document.getElementById('numPacientesInt').value) || 0;
+      const pacientesSemiInt = Number(document.getElementById('numPacientesSemiInt').value) || 0;
+      const pacientesAltaDep = Number(document.getElementById('numPacientesAltaDep').value) || 0;
+      const pacientesIntensivo = Number(document.getElementById('numPacientesIntensivo').value) || 0;
+      const jornada = Number(document.getElementById('horasJornada').value);
 
-      const horasMin = min * 3.8;
-      const horasInter = inter * 5.6;
-      const horasAlta = alta * 9.4;
-      const horasSemi = semi * 10.8;
-      const horasInten = inten * 17.9;
+      const resultadoDiv = document.getElementById('resultado');
 
-      const totalHoras = horasMin + horasInter + horasAlta + horasSemi + horasInten;
-      const ist = totalHoras * 0.15;
-      const totalComIST = totalHoras + ist;
+      if (jornada <= 0) {
+        resultadoDiv.style.display = 'block';
+        resultadoDiv.textContent = "Por favor, informe um valor válido para a jornada de trabalho.";
+        return;
+      }
 
-      const profissionais = totalComIST / (jornada / 7);
+      // Horas de cuidado por paciente por dia (baseado na Resolução COFEN 543/2017)
+      const horasMin = 4;      // cuidado mínimo
+      const horasInt = 6;      // cuidado intermediário
+      const horasSemiInt = 8;  // semi-intensivo
+      const horasAltaDep = 10; // alta dependência
+      const horasIntensivo = 12; // intensivo
 
-      const resultado = document.getElementById('resultado');
-      resultado.innerHTML = `
-        <strong>Resultado:</strong><br><br>
-        Horas sem IST: <strong>${totalHoras.toFixed(2)} h</strong><br>
-        IST (15%): <strong>${ist.toFixed(2)} h</strong><br>
-        Horas com IST: <strong>${totalComIST.toFixed(2)} h</strong><br><br>
-        <strong>Profissionais por dia: ${Math.ceil(profissionais)}</strong><br><br>
-        <em>Baseado na Resolução COFEN n° 543/2017</em>
+      // Soma total de horas necessárias para os pacientes
+      const totalHoras = 
+        pacientesMin * horasMin +
+        pacientesInt * horasInt +
+        pacientesSemiInt * horasSemiInt +
+        pacientesAltaDep * horasAltaDep +
+        pacientesIntensivo * horasIntensivo;
+
+      // Índice de Segurança Técnica (IST) 15%
+      const ist = 0.15;
+      const totalHorasComIst = totalHoras * (1 + ist);
+
+      // Número total de profissionais necessários na jornada informada
+      const numProfissionais = totalHorasComIst / jornada;
+
+      // Distribuição entre enfermeiros (1/3) e técnicos (2/3)
+      const enfermeiros = numProfissionais / 3;
+      const tecnicos = numProfissionais * 2 / 3;
+
+      // Para jornada de 12 horas
+      const profissionais12h = totalHorasComIst / 12;
+      const enfermeiros12h = profissionais12h / 3;
+      const tecnicos12h = profissionais12h * 2 / 3;
+
+      // Arredondar para cima
+      function arredondar(valor) {
+        return Math.ceil(valor);
+      }
+
+      const texto = `
+Total de horas de cuidado (com IST 15%): ${totalHorasComIst.toFixed(2)} h
+
+Jornada profissional informada: ${jornada} h
+
+Número total de profissionais necessários na jornada informada: ${numProfissionais.toFixed(2)}
+
+Distribuição dos profissionais (jornada informada):
+  - Enfermeiros: ${enfermeiros.toFixed(2)}
+  - Técnicos de Enfermagem: ${tecnicos.toFixed(2)}
+
+Para 12 horas de jornada:
+
+Número total de profissionais necessários (12h): ${arredondar(profissionais12h)}
+Distribuição para 12 horas (arredondada para cima):
+  - Enfermeiros necessários: ${arredondar(enfermeiros12h)}
+  - Técnicos de Enfermagem necessários: ${arredondar(tecnicos12h)}
+
+Explicação:
+
+1. Calculamos a carga horária total necessária multiplicando o número de pacientes por categoria e suas respectivas horas de cuidado.
+2. Aplicamos o Índice de Segurança Técnica (IST) para cobrir afastamentos e faltas.
+3. Dividimos o total pela jornada de trabalho para obter o número total de profissionais.
+4. Distribuímos os profissionais em duas categorias: Enfermeiros (1/3) e Técnicos de Enfermagem (2/3), conforme a Resolução COFEN nº 543/2017.
+5. Finalmente, recalculamos para jornada de 12 horas e arredondamos para cima para garantir segurança e cobertura.
+
+Obs.: Valores arredondados para garantir escala adequada.
+
+Fonte Bibliográfica:
+Conselho Federal de Enfermagem (COFEN). Resolução COFEN nº 543, de 12 de agosto de 2017. Estabelece parâmetros para o dimensionamento de pessoal de enfermagem nos estabelecimentos de saúde, visando garantir a qualidade da assistência. Brasília, DF, 2017. Disponível em: https://www.cofen.gov.br/resoluo-cofen-n-5432017_58204.html. Acesso em: 20 jun. 2025.
       `;
-      resultado.style.display = 'block';
+
+      resultadoDiv.style.display = 'block';
+      resultadoDiv.textContent = texto;
     }
   </script>
+
 </body>
 </html>
