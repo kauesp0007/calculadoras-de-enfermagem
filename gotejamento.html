@@ -2,48 +2,39 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
-  <title>Calculadora de Gotejamento</title>
+  <title>Cálculo de Gotejamento - Macro e Microgotas</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="description" content="Cálculo de gotejamento em macrogotas, microgotas e ml/h com explicação detalhada e arredondamento para cima." />
-  <meta name="keywords" content="gotejamento, enfermagem, gotas por minuto, macrogotas, microgotas, cálculo de soro, infusão, ml/h, enfermeiro, prescrição" />
+  <meta name="description" content="Calculadora de gotejamento para macrogotas e microgotas com cálculo detalhado e arredondamento para cima." />
+  <meta name="keywords" content="gotejamento, macrogotas, microgotas, cálculo, enfermagem, gotas por minuto" />
   <style>
-    body { font-family: Arial, sans-serif; max-width: 700px; margin: auto; padding: 20px; background: #f4f4f4; }
-    h1 { text-align: center; color: #007bff; margin-bottom: 0; }
-    h2.subtitulo { text-align: center; color: #555; font-size: 16px; margin-top: 4px; margin-bottom: 25px; font-weight: normal; }
-    label { font-weight: bold; display: block; margin-top: 15px; }
-    input { width: 100%; padding: 10px; font-size: 16px; margin-top: 5px; }
-    button { width: 100%; padding: 12px; margin-top: 20px; font-size: 16px; background-color: #007bff; color: white; border: none; border-radius: 6px; cursor: pointer; }
-    .resultado { margin-top: 25px; padding: 15px; background: #e0f7fa; border-radius: 8px; font-size: 16px; white-space: pre-line; }
-    .referencia { margin-top: 30px; padding: 15px; background: #fff8e1; border-left: 4px solid #ffc107; border-radius: 6px; font-size: 14px; }
+    body { font-family: Arial, sans-serif; max-width: 700px; margin: auto; padding: 20px; background: #f7f9fc; }
+    h1 { text-align: center; color: #007bff; }
+    p.subtitle { text-align: center; font-size: 0.9rem; color: #444; margin-top: -10px; margin-bottom: 25px; }
+    label { display: block; margin-top: 12px; font-weight: bold; }
+    input[type=number] { width: 100%; padding: 10px; font-size: 16px; margin-top: 5px; }
+    button { width: 100%; padding: 14px; font-size: 18px; margin-top: 25px; background-color: #007bff; color: white; border: none; border-radius: 6px; cursor: pointer; }
+    .resultado { margin-top: 25px; padding: 20px; background: #e1f5fe; border-radius: 8px; font-size: 16px; white-space: pre-line; }
     footer { background-color: #f1f1f1; padding: 20px; text-align: center; font-size: 14px; color: #555; margin-top: 40px; border-top: 1px solid #ddd; }
-    footer a { color: #007bff; text-decoration: none; margin: 0 5px; }
+    footer a { color: #007bff; text-decoration: none; margin: 0 6px; }
   </style>
 </head>
 <body>
 
-  <h1>💧 Cálculo de Gotejamento</h1>
-  <h2 class="subtitulo">Ao calcular será apresentado os valores de gotejamento em Macro e Microgotas. Preencha apenas Horas ou Minutos conforme é prescrito.</h2>
+  <h1>Cálculo de Gotejamento</h1>
+  <p class="subtitle">Ao calcular será apresentado os valores de gotejamento em Macro e Microgotas. Preencha apenas Horas ou Minutos conforme é prescrito.</p>
 
-  <label for="volume">Volume a ser infundido (ml):</label>
-  <input type="number" id="volume" placeholder="Ex: 500" />
+  <label for="volume">Volume (mL):</label>
+  <input type="number" id="volume" min="0" step="any" placeholder="Ex: 1000" />
 
-  <label for="horas">Tempo (horas):</label>
-  <input type="number" id="horas" placeholder="Ex: 2" />
+  <label for="tempoHoras">Tempo (horas):</label>
+  <input type="number" id="tempoHoras" min="0" step="any" placeholder="Ex: 12" />
 
-  <label for="minutos">Tempo (minutos):</label>
-  <input type="number" id="minutos" placeholder="Ex: 30" />
+  <label for="tempoMinutos">Tempo (minutos):</label>
+  <input type="number" id="tempoMinutos" min="0" step="any" placeholder="Ex: 720" />
 
-  <button onclick="calcular()">Calcular</button>
+  <button onclick="calcularGotejamento()">Calcular</button>
 
   <div id="resultado" class="resultado" style="display:none;"></div>
-
-  <div class="referencia">
-    <strong>Referência Bibliográfica (ABNT):</strong><br>
-    CONSELHO REGIONAL DE ENFERMAGEM DE SÃO PAULO (COREN-SP). <strong>Boas práticas no cálculo seguro de medicamentos: volume 1 - revisão das operações básicas.</strong> São Paulo: COREN-SP, 2013. Disponível em:  
-    <a href="https://portal.coren-sp.gov.br/wp-content/uploads/2013/03/boas-praticas-calculo-seguro-volume-1-revisao-das-operacoes-basicas_0.pdf" target="_blank" rel="noopener noreferrer">
-      https://portal.coren-sp.gov.br/...
-    </a>
-  </div>
 
   <footer>
     <p>© 2025 Calculadoras de Enfermagem</p>
@@ -54,61 +45,101 @@
     </p>
   </footer>
 
-  <script>
-    function calcular() {
-      const volume = parseFloat(document.getElementById('volume').value);
-      const horas = parseFloat(document.getElementById('horas').value) || 0;
-      const minutos = parseFloat(document.getElementById('minutos').value) || 0;
-      const resultado = document.getElementById('resultado');
+<script>
+  function arredondarPraCima(valor) {
+    return Math.ceil(valor);
+  }
 
-      if (isNaN(volume) || (horas === 0 && minutos === 0)) {
-        resultado.style.display = 'block';
-        resultado.textContent = "Preencha todos os campos corretamente.";
-        return;
-      }
-      if (horas > 0 && minutos > 0) {
-        resultado.style.display = 'block';
-        resultado.textContent = "Por favor, preencha apenas horas ou minutos, não ambos.";
-        return;
-      }
+  function calcularGotejamento() {
+    const volume = parseFloat(document.getElementById('volume').value);
+    const tempoHoras = parseFloat(document.getElementById('tempoHoras').value);
+    const tempoMinutos = parseFloat(document.getElementById('tempoMinutos').value);
+    const resultadoDiv = document.getElementById('resultado');
 
-      let textoExplicativo = "Nota: Todos os resultados são arredondados para cima para garantir segurança e eficiência no controle de infusão.\n\n";
-
-      if (horas > 0) {
-        const mlPorHora = volume / horas;
-        const microgotasPorMinuto = Math.ceil(mlPorHora * 3);
-
-        textoExplicativo += 
-          `Mililitros por hora: ${Math.ceil(mlPorHora)} ml/h\n` +
-          `Microgotas por minuto: ${microgotasPorMinuto} microgotas/min\n\n` +
-          `Explicação matemática:\n` +
-          `${volume} dividido por ${horas} horas = ${mlPorHora.toFixed(2)}\n` +
-          `${mlPorHora.toFixed(2)} vezes 3 = ${microgotasPorMinuto} microgotas/min (arredondado)\n`;
-      }
-
-      if (minutos > 0) {
-        const base = volume / minutos;
-        const macro = Math.ceil(base * 20);
-        const micro = Math.ceil(base * 60);
-
-        textoExplicativo +=
-          `Macrogotas: ${macro} gotas/min\n` +
-          `Microgotas: ${micro} microgotas/min\n\n` +
-          `Explicação matemática:\n\n` +
-
-          `Macrogotas:\n` +
-          `${volume} dividido por ${minutos} minutos = ${base.toFixed(2)}\n` +
-          `${base.toFixed(2)} vezes 20 = ${macro} gotas/min (arredondado)\n\n` +
-
-          `Microgotas:\n` +
-          `${volume} dividido por ${minutos} minutos = ${base.toFixed(2)}\n` +
-          `${base.toFixed(2)} vezes 60 = ${micro} microgotas/min (arredondado)\n`;
-      }
-
-      resultado.style.display = 'block';
-      resultado.textContent = textoExplicativo;
+    if (isNaN(volume) || volume <= 0) {
+      resultadoDiv.style.display = 'block';
+      resultadoDiv.textContent = "Por favor, informe um volume válido maior que zero.";
+      return;
     }
-  </script>
+
+    // Validar tempo
+    if ((isNaN(tempoHoras) || tempoHoras <= 0) && (isNaN(tempoMinutos) || tempoMinutos <= 0)) {
+      resultadoDiv.style.display = 'block';
+      resultadoDiv.textContent = "Informe o tempo em horas ou minutos (um dos dois deve ser maior que zero).";
+      return;
+    }
+
+    let textoResultado = "";
+
+    // Se tempo em horas informado (considera fórmula com x3)
+    if (!isNaN(tempoHoras) && tempoHoras > 0) {
+      // Cálculo gotas por minuto (considerando microgotas = 3 gotas por ml por hora)
+      // Fórmula: (volume / tempoHoras) * 3
+      const primeiroCalculo = volume / tempoHoras;
+      const gotasPorMinuto = primeiroCalculo * 3;
+      const gotasPorMinutoArredondado = arredondarPraCima(gotasPorMinuto);
+
+      textoResultado +=
+`Gotejamento por hora (base 3 gotas por ml por hora):
+
+volume dividido por tempo em horas vezes 3
+
+${volume} ml ÷ ${tempoHoras} horas = ${primeiroCalculo.toFixed(2)}
+
+${primeiroCalculo.toFixed(2)} × 3 = ${gotasPorMinuto.toFixed(2)}
+
+Resultado arredondado para cima: ${gotasPorMinutoArredondado} gotas/minuto
+
+--------------------------------------------------
+
+`;
+    }
+
+    // Se tempo em minutos informado, calcular macrogotas e microgotas
+    if (!isNaN(tempoMinutos) && tempoMinutos > 0) {
+      // Macrogotas (20 gotas/ml)
+      // Fórmula: (volume / tempoMinutos) * 20
+      const macrogotasCalc1 = volume / tempoMinutos;
+      const macrogotasCalc2 = macrogotasCalc1 * 20;
+      const macrogotasArredondado = arredondarPraCima(macrogotasCalc2);
+
+      // Microgotas (60 gotas/ml)
+      // Fórmula: (volume / tempoMinutos) * 60
+      const microgotasCalc1 = volume / tempoMinutos;
+      const microgotasCalc2 = microgotasCalc1 * 60;
+      const microgotasArredondado = arredondarPraCima(microgotasCalc2);
+
+      textoResultado +=
+`Gotejamento em minutos:
+
+MACROGOTAS (20 gotas/mL)
+
+volume dividido por tempo em minutos vezes 20
+
+${volume} ml ÷ ${tempoMinutos} minutos = ${macrogotasCalc1.toFixed(2)}
+
+${macrogotasCalc1.toFixed(2)} × 20 = ${macrogotasCalc2.toFixed(2)}
+
+Resultado arredondado para cima: ${macrogotasArredondado} gotas/minuto
+
+--------------------------------------------------
+
+MICROGOTAS (60 gotas/mL)
+
+volume dividido por tempo em minutos vezes 60
+
+${volume} ml ÷ ${tempoMinutos} minutos = ${microgotasCalc1.toFixed(2)}
+
+${microgotasCalc1.toFixed(2)} × 60 = ${microgotasCalc2.toFixed(2)}
+
+Resultado arredondado para cima: ${microgotasArredondado} gotas/minuto
+`;
+    }
+
+    resultadoDiv.style.display = 'block';
+    resultadoDiv.textContent = textoResultado;
+  }
+</script>
 
 </body>
 </html>
