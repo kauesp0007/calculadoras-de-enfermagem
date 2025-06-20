@@ -4,11 +4,12 @@
   <meta charset="UTF-8">
   <title>Calculadora de Gotejamento</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Cálculo de gotejamento em macrogotas, microgotas e ml/h com explicação detalhada.">
+  <meta name="description" content="Cálculo de gotejamento em macrogotas, microgotas e ml/h com explicação detalhada e arredondamento para cima.">
   <meta name="keywords" content="gotejamento, enfermagem, gotas por minuto, macrogotas, microgotas, cálculo de soro, infusão, ml/h, enfermeiro, prescrição">
   <style>
     body { font-family: Arial, sans-serif; max-width: 700px; margin: auto; padding: 20px; background: #f4f4f4; }
-    h1 { text-align: center; color: #007bff; }
+    h1 { text-align: center; color: #007bff; margin-bottom: 0; }
+    h2.subtitulo { text-align: center; color: #555; font-size: 16px; margin-top: 4px; margin-bottom: 25px; font-weight: normal; }
     label { font-weight: bold; display: block; margin-top: 15px; }
     input { width: 100%; padding: 10px; font-size: 16px; margin-top: 5px; }
     button { width: 100%; padding: 12px; margin-top: 20px; font-size: 16px; background-color: #007bff; color: white; border: none; border-radius: 6px; cursor: pointer; }
@@ -21,6 +22,7 @@
 <body>
 
   <h1>💧 Cálculo de Gotejamento</h1>
+  <h2 class="subtitulo">Ao calcular será apresentado os valores de gotejamento em Macro e Microgotas. Preencha apenas Horas ou Minutos conforme é prescrito.</h2>
 
   <label for="volume">Volume a ser infundido (ml):</label>
   <input type="number" id="volume" placeholder="Ex: 500" />
@@ -55,40 +57,54 @@
       const minutos = parseFloat(document.getElementById('minutos').value) || 0;
       const resultado = document.getElementById('resultado');
 
-      const totalMin = (horas * 60) + minutos;
-
-      if (isNaN(volume) || totalMin === 0) {
+      if (isNaN(volume) || (horas === 0 && minutos === 0)) {
         resultado.style.display = 'block';
         resultado.innerHTML = "Preencha todos os campos corretamente.";
         return;
       }
 
-      const mlPorHora = volume / (totalMin / 60);
-      const gotasMacro = (volume * 20) / totalMin;
-      const gotasMicro = (volume * 60) / totalMin;
+      let textoExplicativo = "<strong>Nota:</strong> Todos os resultados são <strong>arredondados para cima</strong> para garantir segurança e eficiência no controle de infusão.<br><br>";
+
+      if (horas > 0 && minutos === 0) {
+        const mlPorHora = volume / horas;
+        const microgotasPorMinuto = Math.ceil(mlPorHora * 3);
+
+        textoExplicativo += `
+          💧 <strong>Mililitros por hora:</strong> ${Math.ceil(mlPorHora)} ml/h<br>
+          💧 <strong>Microgotas por minuto:</strong> ${microgotasPorMinuto} microgotas/min<br><br>
+
+          <strong>Explicação matemática:</strong><br><br>
+          Volume dividido por tempo em horas:<br>
+          ${volume} ÷ ${horas} = ${mlPorHora.toFixed(2)}<br>
+          ${mlPorHora.toFixed(2)} × 3 = ${microgotasPorMinuto} microgotas/min (arredondado)<br><br>
+        `;
+      }
+
+      if (minutos > 0 && horas === 0) {
+        const base = volume / minutos;
+        const macro = Math.ceil(base * 20);
+        const micro = Math.ceil(base * 60);
+
+        textoExplicativo += `
+          💧 <strong>Macrogotas:</strong> ${macro} gotas/min<br>
+          💧 <strong>Microgotas:</strong> ${micro} microgotas/min<br><br>
+
+          <strong>Explicação matemática:</strong><br><br>
+
+          Macrogotas:<br>
+          ${volume} ÷ ${minutos} = ${base.toFixed(2)}<br>
+          ${base.toFixed(2)} × 20 = ${macro} gotas/min (arredondado)<br><br>
+
+          Microgotas:<br>
+          ${volume} ÷ ${minutos} = ${base.toFixed(2)}<br>
+          ${base.toFixed(2)} × 60 = ${micro} microgotas/min (arredondado)<br><br>
+        `;
+      }
 
       resultado.style.display = 'block';
-      resultado.innerHTML = `
-        <strong>Resultado:</strong><br><br>
-
-        💧 <strong>Macrogotas:</strong> ${gotasMacro.toFixed(2)} gotas/min<br>
-        💧 <strong>Microgotas:</strong> ${gotasMicro.toFixed(2)} gotas/min<br>
-        💧 <strong>Mililitros por hora:</strong> ${mlPorHora.toFixed(2)} ml/h<br><br>
-
-        <strong>Explicações Matemáticas:</strong><br><br>
-
-        <u>Macrogotas (20 gts/ml):</u><br>
-        (${volume} × 20) ÷ ${totalMin} = <strong>${gotasMacro.toFixed(2)}</strong> gotas/min<br><br>
-
-        <u>Microgotas (60 gts/ml):</u><br>
-        (${volume} × 60) ÷ ${totalMin} = <strong>${gotasMicro.toFixed(2)}</strong> gotas/min<br><br>
-
-        <u>Mililitros por hora (ml/h):</u><br>
-        ${volume} ÷ (${totalMin} ÷ 60) = <strong>${mlPorHora.toFixed(2)}</strong> ml/h<br><br>
-
-        <em>Nota:</em> 1 ml = 20 macrogotas ou 60 microgotas. Uma gota equivale a 3 microgotas.
-      `;
+      resultado.innerHTML = textoExplicativo;
     }
   </script>
+
 </body>
 </html>
