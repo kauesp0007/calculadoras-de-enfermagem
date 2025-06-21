@@ -2,35 +2,89 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
-  <title>Cálculo de Gotejamento - Macro e Microgotas</title>
+  <title>Cálculo de Gotejamento</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="description" content="Calculadora de gotejamento para macrogotas e microgotas com cálculo detalhado e arredondamento para cima." />
-  <meta name="keywords" content="gotejamento, macrogotas, microgotas, cálculo, enfermagem, gotas por minuto" />
+  <meta name="description" content="Calculadora de gotejamento para macrogotas e microgotas com cálculo detalhado e arredondamento." />
+  <meta name="keywords" content="gotejamento, macrogotas, microgotas, cálculo, enfermagem" />
   <style>
-    body { font-family: Arial, sans-serif; max-width: 700px; margin: auto; padding: 20px; background: #f7f9fc; }
-    h1 { text-align: center; color: #007bff; }
-    p.subtitle { text-align: center; font-size: 0.9rem; color: #444; margin-top: -10px; margin-bottom: 25px; }
-    label { display: block; margin-top: 12px; font-weight: bold; }
-    input[type=number] { width: 100%; padding: 10px; font-size: 16px; margin-top: 5px; }
-    button { width: 100%; padding: 14px; font-size: 18px; margin-top: 25px; background-color: #007bff; color: white; border: none; border-radius: 6px; cursor: pointer; }
-    .resultado { margin-top: 25px; padding: 20px; background: #e1f5fe; border-radius: 8px; font-size: 16px; white-space: pre-line; }
-    footer { background-color: #f1f1f1; padding: 20px; text-align: center; font-size: 14px; color: #555; margin-top: 40px; border-top: 1px solid #ddd; }
-    footer a { color: #007bff; text-decoration: none; margin: 0 6px; }
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 700px;
+      margin: auto;
+      padding: 20px;
+      background: #f7f9fc;
+    }
+    h1 {
+      text-align: center;
+      color: #007bff;
+    }
+    label {
+      display: block;
+      margin-top: 15px;
+      font-weight: bold;
+    }
+    input[type=number], select {
+      width: 100%;
+      padding: 10px;
+      font-size: 16px;
+      margin-top: 5px;
+    }
+    button {
+      width: 100%;
+      padding: 14px;
+      font-size: 18px;
+      margin-top: 25px;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    .resultado {
+      margin-top: 30px;
+      padding: 20px;
+      background: #e1f5fe;
+      border-radius: 8px;
+      font-size: 16px;
+      white-space: pre-line;
+    }
+    footer {
+      background-color: #f1f1f1;
+      padding: 20px;
+      text-align: center;
+      font-size: 14px;
+      color: #555;
+      margin-top: 40px;
+      border-top: 1px solid #ddd;
+    }
+    footer a {
+      color: #007bff;
+      text-decoration: none;
+      margin: 0 6px;
+    }
   </style>
 </head>
 <body>
 
   <h1>Cálculo de Gotejamento</h1>
-  <p class="subtitle">Ao calcular será apresentado os valores de gotejamento em Macro e Microgotas. Preencha apenas Horas ou Minutos conforme é prescrito.</p>
 
   <label for="volume">Volume (mL):</label>
   <input type="number" id="volume" min="0" step="any" placeholder="Ex: 1000" />
 
-  <label for="tempoHoras">Tempo (horas):</label>
-  <input type="number" id="tempoHoras" min="0" step="any" placeholder="Ex: 12" />
+  <label for="tempo">Precisa correr em:</label>
+  <div style="display:flex; gap:10px;">
+    <input type="number" id="tempo" min="0" step="any" placeholder="Ex: 12" style="flex:1;" />
+    <select id="unidadeTempo" style="flex:1;">
+      <option value="horas">Horas</option>
+      <option value="minutos">Minutos</option>
+    </select>
+  </div>
 
-  <label for="tempoMinutos">Tempo (minutos):</label>
-  <input type="number" id="tempoMinutos" min="0" step="any" placeholder="Ex: 720" />
+  <label for="equipo">Com equipo de:</label>
+  <select id="equipo" >
+    <option value="macrogotas">Macrogotas</option>
+    <option value="microgotas">Microgotas</option>
+  </select>
 
   <button onclick="calcularGotejamento()">Calcular</button>
 
@@ -52,8 +106,9 @@
 
   function calcularGotejamento() {
     const volume = parseFloat(document.getElementById('volume').value);
-    const tempoHoras = parseFloat(document.getElementById('tempoHoras').value);
-    const tempoMinutos = parseFloat(document.getElementById('tempoMinutos').value);
+    const tempo = parseFloat(document.getElementById('tempo').value);
+    const unidadeTempo = document.getElementById('unidadeTempo').value;
+    const equipo = document.getElementById('equipo').value;
     const resultadoDiv = document.getElementById('resultado');
 
     if (isNaN(volume) || volume <= 0) {
@@ -61,83 +116,62 @@
       resultadoDiv.textContent = "Por favor, informe um volume válido maior que zero.";
       return;
     }
-
-    // Validar tempo
-    if ((isNaN(tempoHoras) || tempoHoras <= 0) && (isNaN(tempoMinutos) || tempoMinutos <= 0)) {
+    if (isNaN(tempo) || tempo <= 0) {
       resultadoDiv.style.display = 'block';
-      resultadoDiv.textContent = "Informe o tempo em horas ou minutos (um dos dois deve ser maior que zero).";
+      resultadoDiv.textContent = "Por favor, informe um tempo válido maior que zero.";
       return;
     }
 
-    let textoResultado = "";
+    let calculoDetalhado = "";
+    let gotasPorMinuto;
 
-    // Se tempo em horas informado (considera fórmula com x3)
-    if (!isNaN(tempoHoras) && tempoHoras > 0) {
-      // Cálculo gotas por minuto (considerando microgotas = 3 gotas por ml por hora)
-      // Fórmula: (volume / tempoHoras) * 3
-      const primeiroCalculo = volume / tempoHoras;
-      const gotasPorMinuto = primeiroCalculo * 3;
-      const gotasPorMinutoArredondado = arredondarPraCima(gotasPorMinuto);
+    if (unidadeTempo === "horas") {
+      // cálculo para tempo em horas: volume dividido por tempo (horas)
+      const divisao = volume / tempo;
+      calculoDetalhado +=
+`Cálculo para tempo em horas:
 
-      textoResultado +=
-`Gotejamento por hora (base 3 gotas por ml por hora):
+volume dividido por tempo (em horas):
 
-volume dividido por tempo em horas vezes 3
-
-${volume} ml ÷ ${tempoHoras} horas = ${primeiroCalculo.toFixed(2)}
-
-${primeiroCalculo.toFixed(2)} × 3 = ${gotasPorMinuto.toFixed(2)}
-
-Resultado arredondado para cima: ${gotasPorMinutoArredondado} gotas/minuto
-
---------------------------------------------------
-
+${volume} ÷ ${tempo} = ${divisao.toFixed(2)}
 `;
+      gotasPorMinuto = divisao; // Apenas volume / horas; o enunciado só pede isso para hora, não multiplicar por 3 aqui.
+    } else if (unidadeTempo === "minutos") {
+      // cálculo para tempo em minutos multiplicado por 3, 20 ou 60 dependendo do equipo
+      const divisao = volume / tempo;
+      let multiplicador;
+      if (equipo === "macrogotas") {
+        multiplicador = 20;
+      } else {
+        multiplicador = 60;
+      }
+      const multiplicacao = divisao * multiplicador;
+      calculoDetalhado +=
+`Cálculo para tempo em minutos e equipo ${equipo}:
+
+volume dividido por tempo (em minutos) vezes ${multiplicador}:
+
+${volume} ÷ ${tempo} = ${divisao.toFixed(2)}
+
+${divisao.toFixed(2)} × ${multiplicador} = ${multiplicacao.toFixed(2)}
+`;
+      gotasPorMinuto = multiplicacao;
     }
 
-    // Se tempo em minutos informado, calcular macrogotas e microgotas
-    if (!isNaN(tempoMinutos) && tempoMinutos > 0) {
-      // Macrogotas (20 gotas/ml)
-      // Fórmula: (volume / tempoMinutos) * 20
-      const macrogotasCalc1 = volume / tempoMinutos;
-      const macrogotasCalc2 = macrogotasCalc1 * 20;
-      const macrogotasArredondado = arredondarPraCima(macrogotasCalc2);
+    const gotasArredondadas = arredondarPraCima(gotasPorMinuto);
 
-      // Microgotas (60 gotas/ml)
-      // Fórmula: (volume / tempoMinutos) * 60
-      const microgotasCalc1 = volume / tempoMinutos;
-      const microgotasCalc2 = microgotasCalc1 * 60;
-      const microgotasArredondado = arredondarPraCima(microgotasCalc2);
+    const unidadeTempoTexto = unidadeTempo === "horas" ? "hora(s)" : "minuto(s)";
+    const equipoTexto = equipo === "macrogotas" ? "Macrogotas" : "Microgotas";
 
-      textoResultado +=
-`Gotejamento em minutos:
+    const resultadoTexto = 
+`Para correr ${volume} mL em ${tempo} ${unidadeTempoTexto} com equipo de ${equipoTexto}, o gotejamento por minuto deve ser:
 
-MACROGOTAS (20 gotas/mL)
+${gotasArredondadas} gotas/minuto
 
-volume dividido por tempo em minutos vezes 20
-
-${volume} ml ÷ ${tempoMinutos} minutos = ${macrogotasCalc1.toFixed(2)}
-
-${macrogotasCalc1.toFixed(2)} × 20 = ${macrogotasCalc2.toFixed(2)}
-
-Resultado arredondado para cima: ${macrogotasArredondado} gotas/minuto
-
---------------------------------------------------
-
-MICROGOTAS (60 gotas/mL)
-
-volume dividido por tempo em minutos vezes 60
-
-${volume} ml ÷ ${tempoMinutos} minutos = ${microgotasCalc1.toFixed(2)}
-
-${microgotasCalc1.toFixed(2)} × 60 = ${microgotasCalc2.toFixed(2)}
-
-Resultado arredondado para cima: ${microgotasArredondado} gotas/minuto
-`;
-    }
+(Os valores foram arredondados para cima para garantir a segurança do cálculo.)`;
 
     resultadoDiv.style.display = 'block';
-    resultadoDiv.textContent = textoResultado;
+    resultadoDiv.textContent = calculoDetalhado + "\n" + resultadoTexto;
   }
 </script>
 
