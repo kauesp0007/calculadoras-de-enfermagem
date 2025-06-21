@@ -1,179 +1,183 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8" />
-  <title>Cálculo de Gotejamento</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="description" content="Calculadora de gotejamento para macrogotas e microgotas com cálculo detalhado e arredondamento." />
-  <meta name="keywords" content="gotejamento, macrogotas, microgotas, cálculo, enfermagem" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>💧 Cálculo de Gotejamento</title>
+  <meta name="description" content="Calculadora de gotejamento com explicação detalhada das fórmulas para macrogotas, microgotas e ml/h.">
+  <meta name="keywords" content="gotejamento, enfermagem, cálculo, macrogotas, microgotas, ml por hora">
   <style>
     body {
       font-family: Arial, sans-serif;
-      max-width: 700px;
-      margin: auto;
+      background-color: #f7f9fc;
+      margin: 0;
+      padding: 0;
+      display: flex;
+    }
+    .sidebar {
+      background-color: #cce5ff;
+      width: 220px;
+      height: 100vh;
       padding: 20px;
-      background: #f7f9fc;
+      box-sizing: border-box;
+    }
+    .sidebar h3 {
+      margin-top: 0;
+      color: #004085;
+      font-size: 18px;
+      text-align: center;
+    }
+    .sidebar a {
+      display: block;
+      color: #0056b3;
+      text-decoration: none;
+      margin: 10px auto;
+      font-weight: bold;
+      text-align: center;
+      font-size: 14px;
+    }
+    .sidebar a:hover {
+      text-decoration: underline;
+    }
+    .content {
+      flex-grow: 1;
+      padding: 20px;
+      max-width: 800px;
+      margin: auto;
+      box-sizing: border-box;
     }
     h1 {
       text-align: center;
       color: #007bff;
     }
-    label {
+    label, select {
       display: block;
       margin-top: 15px;
-      font-weight: bold;
     }
-    input[type=number], select {
+    input[type="number"] {
       width: 100%;
       padding: 10px;
-      font-size: 16px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      margin-top: 5px;
+    }
+    select {
+      width: 100%;
+      padding: 10px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
       margin-top: 5px;
     }
     button {
-      width: 100%;
-      padding: 14px;
-      font-size: 18px;
-      margin-top: 25px;
+      margin-top: 20px;
+      padding: 12px 20px;
       background-color: #007bff;
       color: white;
       border: none;
       border-radius: 6px;
       cursor: pointer;
+      font-size: 16px;
+    }
+    button:hover {
+      background-color: #0056b3;
     }
     .resultado {
       margin-top: 30px;
+      background-color: #e6f0ff;
       padding: 20px;
-      background: #e1f5fe;
-      border-radius: 8px;
-      font-size: 16px;
+      border-radius: 10px;
       white-space: pre-line;
     }
     footer {
+      margin-top: 50px;
       background-color: #f1f1f1;
       padding: 20px;
       text-align: center;
       font-size: 14px;
       color: #555;
-      margin-top: 40px;
       border-top: 1px solid #ddd;
     }
     footer a {
       color: #007bff;
       text-decoration: none;
-      margin: 0 6px;
+      margin: 0 8px;
     }
   </style>
 </head>
 <body>
+  <div class="sidebar">
+    <h3>Calculadoras</h3>
+    <a href="gotejamento.html">Calculadora de Gotejamento</a>
+    <a href="insulina.html">Cálculo de Aspiração de Insulina</a>
+    <a href="dimensionamento.html">Cálculo de Dimensionamento</a>
+    <a href="medicamentos.html">Cálculo de Medicamentos</a>
+  </div>
 
-  <h1>Cálculo de Gotejamento</h1>
+  <div class="content">
+    <h1>💧 Cálculo de Gotejamento</h1>
 
-  <label for="volume">Volume (mL):</label>
-  <input type="number" id="volume" min="0" step="any" placeholder="Ex: 1000" />
+    <label>Volume (ml):</label>
+    <input type="number" id="volume" placeholder="Ex: 500">
 
-  <label for="tempo">Precisa correr em:</label>
-  <div style="display:flex; gap:10px;">
-    <input type="number" id="tempo" min="0" step="any" placeholder="Ex: 12" style="flex:1;" />
-    <select id="unidadeTempo" style="flex:1;">
+    <label>Precisa correr em:</label>
+    <select id="tipoTempo">
       <option value="horas">Horas</option>
       <option value="minutos">Minutos</option>
     </select>
+    <input type="number" id="tempo" placeholder="Ex: 2">
+
+    <label>Com equipo de:</label>
+    <select id="equipo">
+      <option value="macro">Macrogotas</option>
+      <option value="micro">Microgotas</option>
+    </select>
+
+    <button onclick="calcular()">Calcular</button>
+
+    <div class="resultado" id="resultado"></div>
+
+    <footer>
+      <p>© 2025 Calculadoras de Enfermagem</p>
+      <p>
+        <a href="index.html">Início</a> |
+        <a href="politica.html">Política de Privacidade</a> |
+        <a href="termos.html">Termos de Uso</a>
+      </p>
+    </footer>
   </div>
 
-  <label for="equipo">Com equipo de:</label>
-  <select id="equipo" >
-    <option value="macrogotas">Macrogotas</option>
-    <option value="microgotas">Microgotas</option>
-  </select>
+  <script>
+    function calcular() {
+      const volume = parseFloat(document.getElementById("volume").value);
+      const tempo = parseFloat(document.getElementById("tempo").value);
+      const tipoTempo = document.getElementById("tipoTempo").value;
+      const equipo = document.getElementById("equipo").value;
+      const resultado = document.getElementById("resultado");
 
-  <button onclick="calcularGotejamento()">Calcular</button>
-
-  <div id="resultado" class="resultado" style="display:none;"></div>
-
-  <footer>
-    <p>© 2025 Calculadoras de Enfermagem</p>
-    <p>
-      <a href="index.html">Início</a> |
-      <a href="politica.html">Política de Privacidade</a> |
-      <a href="termos.html">Termos de Uso</a>
-    </p>
-  </footer>
-
-<script>
-  function arredondarPraCima(valor) {
-    return Math.ceil(valor);
-  }
-
-  function calcularGotejamento() {
-    const volume = parseFloat(document.getElementById('volume').value);
-    const tempo = parseFloat(document.getElementById('tempo').value);
-    const unidadeTempo = document.getElementById('unidadeTempo').value;
-    const equipo = document.getElementById('equipo').value;
-    const resultadoDiv = document.getElementById('resultado');
-
-    if (isNaN(volume) || volume <= 0) {
-      resultadoDiv.style.display = 'block';
-      resultadoDiv.textContent = "Por favor, informe um volume válido maior que zero.";
-      return;
-    }
-    if (isNaN(tempo) || tempo <= 0) {
-      resultadoDiv.style.display = 'block';
-      resultadoDiv.textContent = "Por favor, informe um tempo válido maior que zero.";
-      return;
-    }
-
-    let calculoDetalhado = "";
-    let gotasPorMinuto;
-
-    if (unidadeTempo === "horas") {
-      // cálculo para tempo em horas: volume dividido por tempo (horas)
-      const divisao = volume / tempo;
-      calculoDetalhado +=
-`Cálculo para tempo em horas:
-
-volume dividido por tempo (em horas):
-
-${volume} ÷ ${tempo} = ${divisao.toFixed(2)}
-`;
-      gotasPorMinuto = divisao; // Apenas volume / horas; o enunciado só pede isso para hora, não multiplicar por 3 aqui.
-    } else if (unidadeTempo === "minutos") {
-      // cálculo para tempo em minutos multiplicado por 3, 20 ou 60 dependendo do equipo
-      const divisao = volume / tempo;
-      let multiplicador;
-      if (equipo === "macrogotas") {
-        multiplicador = 20;
-      } else {
-        multiplicador = 60;
+      if (!volume || !tempo) {
+        resultado.innerText = "Por favor, preencha todos os campos.";
+        return;
       }
-      const multiplicacao = divisao * multiplicador;
-      calculoDetalhado +=
-`Cálculo para tempo em minutos e equipo ${equipo}:
 
-volume dividido por tempo (em minutos) vezes ${multiplicador}:
+      let calc, explicacao;
 
-${volume} ÷ ${tempo} = ${divisao.toFixed(2)}
+      if (tipoTempo === "horas") {
+        const intermed = volume / tempo;
+        calc = intermed * 3;
+        explicacao = `volume dividido por tempo é igual a: ${intermed.toFixed(2)}\n` +
+                     `${intermed.toFixed(2)} x 3 = ${calc.toFixed(2)} microgotas/min`;
+      } else {
+        const intermed = volume / tempo;
+        let fator = equipo === "macro" ? 20 : 60;
+        calc = intermed * fator;
+        explicacao = `volume dividido por tempo é igual a: ${intermed.toFixed(2)}\n` +
+                     `${intermed.toFixed(2)} x ${fator} = ${calc.toFixed(2)} gotas/min (${equipo})`;
+      }
 
-${divisao.toFixed(2)} × ${multiplicador} = ${multiplicacao.toFixed(2)}
-`;
-      gotasPorMinuto = multiplicacao;
+      const final = Math.ceil(calc);
+      resultado.innerHTML = `Para correr ${volume}ml em ${tempo} ${tipoTempo}, o gotejamento por minuto deve ser <strong>${final} gotas/min</strong>.<br><br>` +
+                            `<strong>Explicação matemática:</strong><br>${explicacao}<br><br><em>O valor foi arredondado para mais conforme boas práticas de enfermagem.</em>`;
     }
-
-    const gotasArredondadas = arredondarPraCima(gotasPorMinuto);
-
-    const unidadeTempoTexto = unidadeTempo === "horas" ? "hora(s)" : "minuto(s)";
-    const equipoTexto = equipo === "macrogotas" ? "Macrogotas" : "Microgotas";
-
-    const resultadoTexto = 
-`Para correr ${volume} mL em ${tempo} ${unidadeTempoTexto} com equipo de ${equipoTexto}, o gotejamento por minuto deve ser:
-
-${gotasArredondadas} gotas/minuto
-
-(Os valores foram arredondados para cima para garantir a segurança do cálculo.)`;
-
-    resultadoDiv.style.display = 'block';
-    resultadoDiv.textContent = calculoDetalhado + "\n" + resultadoTexto;
-  }
-</script>
-
+  </script>
 </body>
 </html>
