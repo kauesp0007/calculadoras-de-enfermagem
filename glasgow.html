@@ -105,7 +105,7 @@
     <a href="medicamentos.html">Cálculo de Medicamentos</a>
     <a href="braden.html">Escala de Braden</a>
   </div>
-  <div class="content">
+  <div class="content" id="pdfContent">
     <h1>🚑 Calculadora de Escala de Coma de Glasgow</h1>
     <p>A Escala de Coma de Glasgow avalia o nível de consciência de um paciente com base em respostas oculares, verbais, motoras e pupilares.</p>
     <form id="formulario">
@@ -188,6 +188,7 @@
         </tbody>
       </table>
       <button type="button" onclick="calcularEscala()">Calcular Escore</button>
+      <button type="button" onclick="gerarPDF()">Gerar PDF</button>
     </form>
     <div class="resultado" id="resultado" style="display:none;"></div>
     <footer>
@@ -228,6 +229,23 @@
         <strong>${interpretacao}</strong>
       `;
     }
+
+    function gerarPDF() {
+      const content = document.getElementById('pdfContent').cloneNode(true);
+      const sidebar = content.querySelector('.sidebar');
+      const footer = content.querySelector('footer');
+      if (sidebar) sidebar.remove();
+      if (footer) footer.remove();
+      const opt = {
+        margin: 0,
+        filename: 'glasgow.pdf',
+        image: { type: 'jpeg', quality: 1 },
+        html2canvas: { scale: 3, scrollY: 0 },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+      };
+      html2pdf().set(opt).from(content).save();
+    }
   </script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 </body>
 </html>
