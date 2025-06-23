@@ -220,73 +220,28 @@ ${gotasArredondadas} gotas/minuto
     resultadoDiv.textContent = calculoDetalhado + "\n" + resultadoTexto;
   }
   <script>
-  async function gerarPDF() {
-    const { jsPDF } = window.jspdf;
-
-    const resultado = document.getElementById("resultado");
-    if (!resultado || resultado.style.display === "none") {
-      alert("Por favor, realize o cálculo primeiro para gerar o PDF.");
-      return;
-    }
-
-    const tempDiv = document.createElement("div");
-    tempDiv.style.padding = "20px";
-    tempDiv.style.fontFamily = "Arial, sans-serif";
-    tempDiv.innerHTML = `
-      <h2 style="text-align:center;">Cálculo de Gotejamento</h2>
-      <h4 style="text-align:center;">Resultado do Cálculo</h4>
-      <pre style="white-space:pre-wrap;">${resultado.textContent}</pre>
-    `;
-
-    document.body.appendChild(tempDiv);
-    const canvas = await html2canvas(tempDiv, { scale: 2 });
-    const imgData = canvas.toDataURL("image/png");
-
-    const pdf = new jsPDF("p", "mm", "a4");
-    const width = pdf.internal.pageSize.getWidth();
-    const height = (canvas.height * width) / canvas.width;
-    pdf.addImage(imgData, "PNG", 0, 0, width, height);
-    pdf.save("calculo_gotejamento.pdf");
-
-    document.body.removeChild(tempDiv);
+   function gerarPDF() {
+    const content = document.getElementById('pdfContent').cloneNode(true);
+    const sidebar = content.querySelector('.sidebar');
+    const footer = content.querySelector('footer');
+    if (sidebar) sidebar.remove();
+    if (footer) footer.remove();
+    const opt = {
+      margin: 0,
+      filename: 'gotejamento.pdf',
+      image: { type: 'jpeg', quality: 1 },
+      html2canvas: { scale: 3, scrollY: 0 },
+      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+    };
+    html2pdf().set(opt).from(content).save();
   }
 </script>
 
 </script>
-    <script>
-  async function gerarPDF() {
-    const { jsPDF } = window.jspdf;
-
-    const resultado = document.getElementById("resultado");
-    if (!resultado || resultado.style.display === "none") {
-      alert("Por favor, realize o cálculo primeiro para gerar o PDF.");
-      return;
-    }
-
-    const tempDiv = document.createElement("div");
-    tempDiv.style.padding = "20px";
-    tempDiv.style.fontFamily = "Arial, sans-serif";
-    tempDiv.innerHTML = `
-      <h2 style="text-align:center;">Cálculo de Gotejamento</h2>
-      <h4 style="text-align:center;">Resultado do Cálculo</h4>
-      <pre style="white-space:pre-wrap;">${resultado.textContent}</pre>
-    `;
-
-    document.body.appendChild(tempDiv);
-    const canvas = await html2canvas(tempDiv, { scale: 2 });
-    const imgData = canvas.toDataURL("image/png");
-
-    const pdf = new jsPDF("p", "mm", "a4");
-    const width = pdf.internal.pageSize.getWidth();
-    const height = (canvas.height * width) / canvas.width;
-    pdf.addImage(imgData, "PNG", 0, 0, width, height);
-    pdf.save("calculo_gotejamento.pdf");
-
-    document.body.removeChild(tempDiv);
+    <script> 
   }
 </script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 </body>
   
 </html>
