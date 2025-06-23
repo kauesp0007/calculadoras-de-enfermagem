@@ -133,6 +133,7 @@
     <button onclick="calcularGotejamento()">Calcular</button>
 
     <div id="resultado" class="resultado" style="display:none;"></div>
+    <button onclick="gerarPDF()">📄 Gerar PDF</button>
 
     <footer>
       <p>© 2025 Calculadoras de Enfermagem</p>
@@ -218,7 +219,74 @@ ${gotasArredondadas} gotas/minuto
     resultadoDiv.style.display = 'block';
     resultadoDiv.textContent = calculoDetalhado + "\n" + resultadoTexto;
   }
+  <script>
+  async function gerarPDF() {
+    const { jsPDF } = window.jspdf;
+
+    const resultado = document.getElementById("resultado");
+    if (!resultado || resultado.style.display === "none") {
+      alert("Por favor, realize o cálculo primeiro para gerar o PDF.");
+      return;
+    }
+
+    const tempDiv = document.createElement("div");
+    tempDiv.style.padding = "20px";
+    tempDiv.style.fontFamily = "Arial, sans-serif";
+    tempDiv.innerHTML = `
+      <h2 style="text-align:center;">Cálculo de Gotejamento</h2>
+      <h4 style="text-align:center;">Resultado do Cálculo</h4>
+      <pre style="white-space:pre-wrap;">${resultado.textContent}</pre>
+    `;
+
+    document.body.appendChild(tempDiv);
+    const canvas = await html2canvas(tempDiv, { scale: 2 });
+    const imgData = canvas.toDataURL("image/png");
+
+    const pdf = new jsPDF("p", "mm", "a4");
+    const width = pdf.internal.pageSize.getWidth();
+    const height = (canvas.height * width) / canvas.width;
+    pdf.addImage(imgData, "PNG", 0, 0, width, height);
+    pdf.save("calculo_gotejamento.pdf");
+
+    document.body.removeChild(tempDiv);
+  }
 </script>
 
+</script>
+    <script>
+  async function gerarPDF() {
+    const { jsPDF } = window.jspdf;
+
+    const resultado = document.getElementById("resultado");
+    if (!resultado || resultado.style.display === "none") {
+      alert("Por favor, realize o cálculo primeiro para gerar o PDF.");
+      return;
+    }
+
+    const tempDiv = document.createElement("div");
+    tempDiv.style.padding = "20px";
+    tempDiv.style.fontFamily = "Arial, sans-serif";
+    tempDiv.innerHTML = `
+      <h2 style="text-align:center;">Cálculo de Gotejamento</h2>
+      <h4 style="text-align:center;">Resultado do Cálculo</h4>
+      <pre style="white-space:pre-wrap;">${resultado.textContent}</pre>
+    `;
+
+    document.body.appendChild(tempDiv);
+    const canvas = await html2canvas(tempDiv, { scale: 2 });
+    const imgData = canvas.toDataURL("image/png");
+
+    const pdf = new jsPDF("p", "mm", "a4");
+    const width = pdf.internal.pageSize.getWidth();
+    const height = (canvas.height * width) / canvas.width;
+    pdf.addImage(imgData, "PNG", 0, 0, width, height);
+    pdf.save("calculo_gotejamento.pdf");
+
+    document.body.removeChild(tempDiv);
+  }
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 </body>
+  
 </html>
