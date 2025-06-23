@@ -138,7 +138,7 @@
     <a href="news.html">Protocolo NEWS</a>
   </div>
 
-  <div class="content">
+  <div class="content" id="pdfContent">
     <h1>🧠 Escala de Cincinnati</h1>
     <p>Avaliação rápida para suspeita de AVC (Acidente Vascular Cerebral)</p>
 
@@ -182,6 +182,7 @@
       </table>
 
       <button type="button" onclick="calcularCincinnati()">Calcular Resultado</button>
+      <button type="button" onclick="gerarPDF()">Gerar PDF</button>
     </form>
 
     <div class="resultado" id="resultado" style="display:none;"></div>
@@ -207,7 +208,6 @@
       }
     });
 
-    // Permitir seleção via teclado com Enter ou Espaço
     tabela.addEventListener("keydown", function(e) {
       if ((e.key === "Enter" || e.key === " ") && e.target.tagName === "TD" && e.target.hasAttribute("data-value")) {
         e.preventDefault();
@@ -249,6 +249,25 @@
       }
       resultado.style.display = "block";
     }
+
+    function gerarPDF() {
+      const content = document.getElementById('pdfContent').cloneNode(true);
+
+      const sidebar = content.querySelector('.sidebar');
+      const footer = content.querySelector('footer');
+      if (sidebar) sidebar.remove();
+      if (footer) footer.remove();
+
+      const opt = {
+        margin: 0,
+        filename: 'cincinnati.pdf',
+        image: { type: 'jpeg', quality: 1 },
+        html2canvas: { scale: 3, scrollY: 0 },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+      };
+      html2pdf().set(opt).from(content).save();
+    }
   </script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 </body>
 </html>
