@@ -2,16 +2,17 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
-  <title>📈 Calculadora de Protocolo NEWS (National Early Warning Score)</title>
+  <title>Cálculo de Gotejamento</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="description" content="Calculadora do protocolo NEWS para detecção precoce de deterioração clínica em pacientes." />
-  <meta name="keywords" content="protocolo NEWS, deterioração clínica, enfermagem, escore precoce, risco hospitalar" />
+  <meta name="description" content="Calculadora de gotejamento para macrogotas e microgotas com cálculo detalhado e arredondamento." />
+  <meta name="keywords" content="gotejamento, macrogotas, microgotas, cálculo, enfermagem, calculadora, enfermagem, medicamento" />
   <style>
     body {
       font-family: Arial, sans-serif;
       margin: 0;
       display: flex;
       background-color: #f7f9fc;
+      color: #333;
     }
     .sidebar {
       width: 220px;
@@ -37,64 +38,46 @@
     .content {
       flex: 1;
       padding: 30px;
-      max-width: 1000px;
+      max-width: 700px;
       margin: auto;
     }
     h1 {
       text-align: center;
       color: #007bff;
-      margin-bottom: 0;
     }
-    h1 + p {
-      text-align: center;
-      font-size: 18px;
-      margin: 5px 0;
-      color: red;
+    label {
+      display: block;
+      margin-top: 15px;
+      font-weight: bold;
     }
-    .alerta {
-      background-color: #fff3cd;
-      border: 1px solid #ffeeba;
-      padding: 15px;
-      border-radius: 6px;
-      margin-top: 25px;
-      color: #856404;
-      font-size: 1em;
-    }
-    table {
+    input[type=number], select {
       width: 100%;
-      border-collapse: collapse;
-      margin-top: 20px;
-      font-size: 14px;
-    }
-    th, td {
-      border: 1px solid #ddd;
       padding: 10px;
-      vertical-align: middle;
-      text-align: center;
-      cursor: pointer;
-    }
-    th {
-      background-color: #e3f2fd;
-    }
-    td.selected {
-      background-color: #90caf9;
-    }
-    .resultado {
-      margin-top: 25px;
-      padding: 20px;
-      background-color: #e1f5fe;
-      border-radius: 6px;
       font-size: 16px;
+      margin-top: 5px;
     }
     button {
+      width: 100%;
+      padding: 14px;
+      font-size: 18px;
+      margin-top: 25px;
       background-color: #007bff;
       color: white;
       border: none;
-      padding: 12px 20px;
-      font-size: 16px;
-      margin-top: 20px;
-      cursor: pointer;
       border-radius: 6px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+    button:hover {
+      background-color: #0056b3;
+    }
+    .resultado {
+      margin-top: 30px;
+      padding: 20px;
+      background: #e1f5fe;
+      border-radius: 8px;
+      font-size: 16px;
+      white-space: pre-line;
     }
     footer {
       background-color: #f1f1f1;
@@ -102,8 +85,8 @@
       text-align: center;
       font-size: 14px;
       color: #555;
-      border-top: 1px solid #ddd;
       margin-top: 40px;
+      border-top: 1px solid #ddd;
     }
     footer a {
       color: #007bff;
@@ -113,6 +96,7 @@
   </style>
 </head>
 <body>
+
   <div class="sidebar">
     <h2>Calculadoras</h2>
     <a href="gotejamento.html">Calculadora de Gotejamento</a>
@@ -121,40 +105,34 @@
     <a href="medicamentos.html">Medicamentos</a>
     <a href="braden.html">Escala de Braden</a>
     <a href="glasgow.html">Escala de Glasgow</a>
+    <a href="news.html">Protocolo NEWS</a>
+    <a href="cincinnati.html">Escala de Cincinnati</a>
   </div>
-  <div class="content">
-    <h1>📈 Calculadora de Protocolo NEWS</h1>
-    <p>(National Early Warning Score)</p>
-    <p><strong style="color:red">Escala nacional de alerta precoce</strong></p>
 
-    <div class="alerta">
-      <strong>Atenção:</strong> sempre aplique a <strong>Meta Internacional de Segurança do Paciente nº 2</strong>: <em>“Melhorar a comunicação efetiva entre os profissionais de saúde”</em>, assegurando que as informações críticas dos pacientes sejam transmitidas de forma clara, objetiva e no momento adequado.
+  <div class="content">
+    <h1>Cálculo de Gotejamento</h1>
+
+    <label for="volume">Volume (mL):</label>
+    <input type="number" id="volume" min="0" step="any" placeholder="Ex: 1000" />
+
+    <label for="tempo">Precisa correr em:</label>
+    <div style="display:flex; gap:10px;">
+      <input type="number" id="tempo" min="0" step="any" placeholder="Ex: 12" style="flex:1;" />
+      <select id="unidadeTempo" style="flex:1;">
+        <option value="horas">Horas</option>
+        <option value="minutos">Minutos</option>
+      </select>
     </div>
 
-    <p style="margin-top: 35px;">Selecione na tabela os parâmetros do paciente e clique em calcular para verificar o risco</p>
+    <label for="equipo">Com equipo de:</label>
+    <select id="equipo" >
+      <option value="macrogotas">Macrogotas</option>
+      <option value="microgotas">Microgotas</option>
+    </select>
 
-    <form>
-      <table id="newsTable">
-        <thead>
-          <tr>
-            <th>Parâmetros</th>
-            <th>3</th>
-            <th>2</th>
-            <th>1</th>
-            <th>0</th>
-            <th>1</th>
-            <th>2</th>
-            <th>3</th>
-          </tr>
-        </thead>
-        <tbody>
-          <!-- A tabela permanece exatamente como está, sem alteração nas células e escores -->
-        </tbody>
-      </table>
-      <button type="button" onclick="calcularNews()">Calcular Escore NEWS</button>
-    </form>
+    <button onclick="calcularGotejamento()">Calcular</button>
 
-    <div class="resultado" id="resultado" style="display:none;"></div>
+    <div id="resultado" class="resultado" style="display:none;"></div>
 
     <footer>
       <p>© 2025 Calculadoras de Enfermagem</p>
@@ -166,34 +144,81 @@
     </footer>
   </div>
 
-  <script>
-    const tabela = document.getElementById("newsTable");
+<script>
+  function arredondarPraCima(valor) {
+    return Math.ceil(valor);
+  }
 
-    tabela.addEventListener("click", function(e) {
-      if (e.target.tagName === "TD" && e.target.hasAttribute("data-score")) {
-        const linha = e.target.parentElement;
-        [...linha.children].forEach(td => td.classList.remove("selected"));
-        e.target.classList.add("selected");
-      }
-    });
+  function calcularGotejamento() {
+    const volume = parseFloat(document.getElementById('volume').value);
+    const tempo = parseFloat(document.getElementById('tempo').value);
+    const unidadeTempo = document.getElementById('unidadeTempo').value;
+    const equipo = document.getElementById('equipo').value;
+    const resultadoDiv = document.getElementById('resultado');
 
-    function calcularNews() {
-      let total = 0;
-      const linhas = tabela.querySelectorAll("tbody tr");
-      linhas.forEach(tr => {
-        const selecionado = tr.querySelector(".selected");
-        if (selecionado) total += parseInt(selecionado.dataset.score);
-      });
-
-      let interpretacao = "";
-      if (total >= 7) interpretacao = "Risco Alto – Acionar equipe médica imediatamente.";
-      else if (total >= 5) interpretacao = "Risco Moderado – Reavaliar frequentemente e considerar apoio médico.";
-      else interpretacao = "Risco Baixo – Monitoramento regular.";
-
-      const resultado = document.getElementById("resultado");
-      resultado.style.display = "block";
-      resultado.innerHTML = `<strong>Pontuação Total NEWS:</strong> ${total}<br><strong>${interpretacao}</strong>`;
+    if (isNaN(volume) || volume <= 0) {
+      resultadoDiv.style.display = 'block';
+      resultadoDiv.textContent = "Por favor, informe um volume válido maior que zero.";
+      return;
     }
-  </script>
+    if (isNaN(tempo) || tempo <= 0) {
+      resultadoDiv.style.display = 'block';
+      resultadoDiv.textContent = "Por favor, informe um tempo válido maior que zero.";
+      return;
+    }
+
+    let calculoDetalhado = "";
+    let gotasPorMinuto;
+
+    if (unidadeTempo === "horas") {
+      // cálculo para tempo em horas: volume dividido por tempo (horas)
+      const divisao = volume / tempo;
+      calculoDetalhado +=
+`Cálculo para tempo em horas:
+
+volume dividido por tempo (em horas):
+
+${volume} ÷ ${tempo} = ${divisao.toFixed(2)}
+`;
+      gotasPorMinuto = divisao; // Apenas volume / horas; o enunciado só pede isso para hora, não multiplicar por 3 aqui.
+    } else if (unidadeTempo === "minutos") {
+      // cálculo para tempo em minutos multiplicado por 3, 20 ou 60 dependendo do equipo
+      const divisao = volume / tempo;
+      let multiplicador;
+      if (equipo === "macrogotas") {
+        multiplicador = 20;
+      } else {
+        multiplicador = 60;
+      }
+      const multiplicacao = divisao * multiplicador;
+      calculoDetalhado +=
+`Cálculo para tempo em minutos e equipo ${equipo}:
+
+volume dividido por tempo (em minutos) vezes ${multiplicador}:
+
+${volume} ÷ ${tempo} = ${divisao.toFixed(2)}
+
+${divisao.toFixed(2)} × ${multiplicador} = ${multiplicacao.toFixed(2)}
+`;
+      gotasPorMinuto = multiplicacao;
+    }
+
+    const gotasArredondadas = arredondarPraCima(gotasPorMinuto);
+
+    const unidadeTempoTexto = unidadeTempo === "horas" ? "hora(s)" : "minuto(s)";
+    const equipoTexto = equipo === "macrogotas" ? "Macrogotas" : "Microgotas";
+
+    const resultadoTexto = 
+`Para correr ${volume} mL em ${tempo} ${unidadeTempoTexto} com equipo de ${equipoTexto}, o gotejamento por minuto deve ser:
+
+${gotasArredondadas} gotas/minuto
+
+(Os valores foram arredondados para cima para garantir a segurança do cálculo.)`;
+
+    resultadoDiv.style.display = 'block';
+    resultadoDiv.textContent = calculoDetalhado + "\n" + resultadoTexto;
+  }
+</script>
+
 </body>
 </html>
