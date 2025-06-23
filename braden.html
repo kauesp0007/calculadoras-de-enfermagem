@@ -45,9 +45,10 @@
     th { background: #007bff; color: white; }
     td:first-child { text-align: left; }
     select { width: 100%; padding: 8px; font-size: 14px; }
-    .resultado { margin-top: 20px; padding: 15px; background: #e1f5fe; border-radius: 8px; font-weight: bold; font-size: 16px; }
+    .resultado { margin-top: 20px; padding: 15px; background: #e1f5fe; border-radius: 8px; font-weight: bold; font-size: 16px; white-space: pre-line; }
     footer { background-color: #f1f1f1; padding: 20px; text-align: center; font-size: 14px; color: #555; margin-top: 40px; border-top: 1px solid #ddd; }
     footer a { color: #007bff; text-decoration: none; margin: 0 6px; }
+    button { background-color: #007bff; color: white; border: none; padding: 10px 20px; font-size: 16px; cursor: pointer; margin-top: 15px; border-radius: 5px; }
   </style>
 </head>
 <body>
@@ -129,10 +130,9 @@
         </tr>
       </table>
       <button type="button" onclick="calcularBraden()">Calcular Pontuação</button>
-          </form>
+      <button type="button" onclick="gerarPDF()">Gerar PDF</button>
+    </form>
     <div id="resultado" class="resultado" style="display:none;"></div>
-    <div class="content" id="pdfContent">
-    <button type="button" onclick="gerarPDF()">Gerar PDF</button>
 
     <footer>
       <p>© 2025 Calculadoras de Enfermagem</p>
@@ -167,20 +167,19 @@
       resultadoDiv.style.display = 'block';
       resultadoDiv.innerText = resultadoTexto;
     }
+
+    function gerarPDF() {
+      const content = document.getElementById('pdfContent');
+      const opt = {
+        margin: 0,
+        filename: 'braden.pdf',
+        image: { type: 'jpeg', quality: 1 },
+        html2canvas: { scale: 3, scrollY: 0 },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+      };
+      html2pdf().set(opt).from(content).save();
+    }
   </script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-<script>
-  function gerarPDF() {
-    const content = document.getElementById('pdfContent');
-    const opt = {
-      margin:       0.5,
-      filename:     'nome-do-repositorio.pdf',
-      image:        { type: 'jpeg', quality: 0.98 },
-      html2canvas:  { scale: 2 },
-      jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
-    };
-    html2pdf().set(opt).from(content).save();
-  }
-</script>
 </body>
 </html>
