@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Escala de Richmond (RASS)</title>
+  <meta name="description" content="Calculadora da Escala de Agitação e Sedação de Richmond (RASS) com pontuação e interpretação clínica." />
+  <meta name="keywords" content="escala RASS, sedação, agitação, enfermagem, uti, richmond">
+  <style>
+    body { font-family: Arial, sans-serif; margin: 0; padding: 0; display: flex; background-color: #f7f9fc; }
+    .sidebar {
+      background-color: #cce5ff;
+      width: 220px;
+      height: 100vh;
+      padding: 20px;
+      box-sizing: border-box;
+    }
+    .sidebar h3 {
+      margin-top: 0;
+      color: #004085;
+      font-size: 18px;
+      text-align: center;
+    }
+    .sidebar a {
+      display: block;
+      color: #0056b3;
+      text-decoration: none;
+      margin: 10px auto;
+      font-weight: bold;
+      text-align: center;
+      font-size: 14px;
+    }
+    .sidebar a:hover {
+      text-decoration: underline;
+    }
+    .content {
+      flex-grow: 1;
+      padding: 20px;
+      max-width: 900px;
+      margin: auto;
+    }
+    h1 {
+      text-align: center;
+      color: #007bff;
+    }
+    p, label {
+      font-size: 16px;
+      margin-bottom: 10px;
+    }
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      margin-top: 20px;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 10px;
+      text-align: left;
+    }
+    tr:hover {
+      background-color: #e0f7fa;
+      cursor: pointer;
+    }
+    .selected {
+      background-color: #b3e5fc !important;
+    }
+    button {
+      margin-top: 20px;
+      padding: 12px 20px;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+    .resultado {
+      margin-top: 20px;
+      padding: 15px;
+      background-color: #e1f5fe;
+      border-radius: 8px;
+      font-weight: bold;
+      font-size: 16px;
+      white-space: pre-line;
+    }
+    footer {
+      background-color: #f1f1f1;
+      padding: 20px;
+      text-align: center;
+      font-size: 14px;
+      color: #555;
+      margin-top: 40px;
+      border-top: 1px solid #ddd;
+    }
+    footer a {
+      color: #007bff;
+      text-decoration: none;
+      margin: 0 6px;
+    }
+  </style>
+</head>
+<body>
+  <div class="sidebar">
+    <h3>Calculadoras</h3>
+    <a href="gotejamento.html">🚰 Cálculo de Gotejamento</a>
+    <a href="insulina.html">💉 Cálculo de Insulina</a>
+    <a href="dimensionamento.html">👥 Dimensionamento</a>
+    <a href="medicamentos.html">💊 Cálculo de Medicamentos</a>
+    <a href="braden.html">🛎 Escala de Braden</a>
+    <a href="glasgow.html">🧠 Escala de Glasgow</a>
+    <a href="cincinnati.html">🚑 Escala de Cincinnati</a>
+    <a href="news.html">📰 Protocolo NEWS</a>
+    <a href="richmond.html">😴 Escala de Richmond (RASS)</a>
+  </div>
+  <div class="content">
+    <h1>😴 Escala de Richmond (RASS)</h1>
+    <p>A Escala RASS é usada para avaliar o nível de sedação ou agitação em pacientes críticos. Escolha o nível que mais representa o estado atual do paciente:</p>
+    <table id="tabelaRASS">
+      <tr><th>Pontuação</th><th>Descrição</th></tr>
+      <tr data-score="4"><td>+4</td><td>Muito agitado: Agressivo, perigoso para si e para os outros.</td></tr>
+      <tr data-score="3"><td>+3</td><td>Agitado: Puxa ou remove tubos/cateteres, comportamento combativo.</td></tr>
+      <tr data-score="2"><td>+2</td><td>Muito inquieto: Movimentos frequentes e descoordenados, sem agressividade.</td></tr>
+      <tr data-score="1"><td>+1</td><td>Inquieto: Ansioso, com movimentos não agressivos.</td></tr>
+      <tr data-score="0"><td>0</td><td>Alerta e calmo: Estado ideal.</td></tr>
+      <tr data-score="-1"><td>-1</td><td>Sonolento: Acorda por >10s, contato visual sustentado.</td></tr>
+      <tr data-score="-2"><td>-2</td><td>Sedação leve: Contato visual breve.</td></tr>
+      <tr data-score="-3"><td>-3</td><td>Sedação moderada: Movimenta-se sem contato visual.</td></tr>
+      <tr data-score="-4"><td>-4</td><td>Sedação profunda: Reage a estímulo doloroso.</td></tr>
+      <tr data-score="-5"><td>-5</td><td>Sem resposta: Nenhuma resposta a estímulos.</td></tr>
+    </table>
+
+    <button onclick="calcularRASS()">Mostrar Resultado</button>
+    <div id="resultado" class="resultado" style="display:none;"></div>
+
+    <footer>
+      <p>© 2025 Calculadoras de Enfermagem</p>
+      <p>
+        <a href="index.html">Início</a> |
+        <a href="politica.html">Política de Privacidade</a> |
+        <a href="termos.html">Termos de Uso</a>
+      </p>
+    </footer>
+  </div>
+
+  <script>
+    const linhas = document.querySelectorAll('#tabelaRASS tr[data-score]');
+    let scoreSelecionado = null;
+
+    linhas.forEach(linha => {
+      linha.addEventListener('click', () => {
+        linhas.forEach(l => l.classList.remove('selected'));
+        linha.classList.add('selected');
+        scoreSelecionado = linha.getAttribute('data-score');
+      });
+    });
+
+    function calcularRASS() {
+      const resultado = document.getElementById('resultado');
+      if (scoreSelecionado === null) {
+        resultado.textContent = 'Por favor, selecione um nível da escala antes de continuar.';
+        resultado.style.display = 'block';
+        return;
+      }
+
+      let mensagem = `Pontuação RASS selecionada: ${scoreSelecionado}\n\n`;
+
+      if (scoreSelecionado > 0) {
+        mensagem += 'Paciente agitado. Monitorar risco de agressividade e ajustar sedação conforme necessário.';
+      } else if (scoreSelecionado == 0) {
+        mensagem += 'Paciente em estado ideal: alerta e calmo. Manter acompanhamento.';
+      } else if (scoreSelecionado >= -2) {
+        mensagem += 'Sedação leve. Verificar conforto do paciente e manter monitoramento.';
+      } else if (scoreSelecionado >= -4) {
+        mensagem += 'Sedação profunda. Avaliar necessidade de ajustar dose sedativa.';
+      } else {
+        mensagem += 'Paciente sem resposta. Considerar reavaliação imediata e suporte intensivo.';
+      }
+
+      resultado.textContent = mensagem;
+      resultado.style.display = 'block';
+    }
+  </script>
+</body>
+</html>
