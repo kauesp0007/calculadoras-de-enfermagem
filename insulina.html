@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
-  <title>Calculadora de Insulina</title>
+  <title>Cálculo de Aspiração de Insulina</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="description" content="Cálculo de insulina com regra de três, explicação detalhada e arredondamento." />
   <meta name="keywords" content="insulina, cálculo de insulina, enfermagem, regra de três, UI, unidade internacional, seringas" />
@@ -58,10 +58,14 @@
       font-size: 16px;
       margin-top: 5px;
     }
-    button {
-      width: 100%;
-      padding: 12px;
+    .botoes {
+      display: flex;
+      gap: 10px;
       margin-top: 20px;
+    }
+    button {
+      flex: 1;
+      padding: 12px;
       font-size: 16px;
       background-color: #007bff;
       color: white;
@@ -76,6 +80,14 @@
       border-radius: 8px;
       font-size: 16px;
       white-space: pre-line;
+    }
+    .meta {
+      font-size: 13px;
+      color: #333;
+      margin-top: 20px;
+      font-style: italic;
+      border-top: 1px solid #ccc;
+      padding-top: 10px;
     }
     footer {
       background-color: #f1f1f1;
@@ -110,8 +122,8 @@
     <a href="cincinnati.html">Escala de Cincinnati</a>
   </div>
 
-  <div class="content">
-    <h1>💉 Cálculo de Insulina</h1>
+  <div class="content" id="pdfContent">
+    <h1>💉 Cálculo de Aspiração de Insulina</h1>
 
     <label for="frasco">Frasco disponível (UI):</label>
     <input type="number" id="frasco" placeholder="Ex: 100" />
@@ -122,7 +134,14 @@
     <label for="prescricao">Prescrição médica (UI):</label>
     <input type="number" id="prescricao" placeholder="Ex: 15" />
 
-    <button onclick="calcular()">Calcular</button>
+    <div class="botoes">
+      <button onclick="calcular()">Calcular</button>
+      <button onclick="gerarPDF()">Gerar PDF</button>
+    </div>
+
+    <div class="meta">
+      <strong>Meta 3 de Segurança do Paciente:</strong> Melhorar a segurança na prescrição, no uso e na administração de medicamentos. Em caso de dúvida, revise a prescrição médica junto ao enfermeiro responsável ou com o médico. Na dúvida de quanto aspirar, não faça! Fale com seu enfermeiro.
+    </div>
 
     <div id="resultado" class="resultado" style="display:none;"></div>
 
@@ -150,11 +169,8 @@
         return;
       }
 
-      // Regra de 3: frasco UI ----------- seringa ml
-      //             prescricao UI --------- x ml (a aspirar)
-
       const x = (prescricao * seringa) / frasco;
-      const xArredondado = Math.round(x * 100) / 100; // arredonda 2 casas decimais
+      const xArredondado = Math.round(x * 100) / 100;
 
       let explicacao = `Regra de três para cálculo da insulina:\n\n` +
                        `${frasco} UI ----------- ${seringa} ml\n` +
@@ -168,7 +184,20 @@
       resultado.style.display = 'block';
       resultado.textContent = explicacao;
     }
+
+    function gerarPDF() {
+      const content = document.getElementById('pdfContent');
+      const opt = {
+        margin: 0,
+        filename: 'calculo_insulina.pdf',
+        image: { type: 'jpeg', quality: 1 },
+        html2canvas: { scale: 3, scrollY: 0 },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+      };
+      html2pdf().set(opt).from(content).save();
+    }
   </script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
 </body>
 </html>
