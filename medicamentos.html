@@ -34,7 +34,7 @@
     }
     .sidebar a {
       display: block;
-      color: #0056b3;
+      color: #2a7abf;
       text-decoration: none;
       margin: 8px 0;
       font-weight: bold;
@@ -85,8 +85,12 @@
       border: 1px solid #ccc;
       margin-top: 5px;
     }
-    button {
+    .botoes {
+      display: flex;
+      gap: 10px;
       margin-top: 20px;
+    }
+    button {
       padding: 12px 20px;
       background-color: #007bff;
       color: white;
@@ -94,6 +98,7 @@
       border-radius: 6px;
       cursor: pointer;
       font-size: 16px;
+      flex: 1;
     }
     button:hover {
       background-color: #0056b3;
@@ -124,17 +129,17 @@
 <body>
   <div class="sidebar">
     <h3>Calculadoras</h3>
-    <a href="gotejamento.html">💧 Cálculo de Gotejamento</a>
-    <a href="insulina.html">💉 Cálculo de aspiração de Insulina</a>
-    <a href="dimensionamento.html">👥 Calcular Dimensionamento</a>
-    <a href="medicamentos.html">💊 Cálculo de Medicamentos</a>
-    <a href="braden.html">🛏️ Calcular Escala de Braden</a>
-    <a href="glasgow.html">🚑 Calcular Escala de Glasgow</a>
-    <a href="news.html">📈 Calcular Protocolo NEWS</a>
-    <a href="cincinnati.html">🏥 Calcular Escala de Cincinnati</a>
+    <a href="gotejamento.html">Cálculo de Gotejamento</a>
+    <a href="insulina.html">Cálculo de aspiração de Insulina</a>
+    <a href="dimensionamento.html">Calcular Dimensionamento</a>
+    <a href="medicamentos.html">Cálculo de Medicamentos</a>
+    <a href="braden.html">Calcular Escala de Braden</a>
+    <a href="glasgow.html">Calcular Escala de Glasgow</a>
+    <a href="news.html">Calcular Protocolo NEWS</a>
+    <a href="cincinnati.html">Calcular Escala de Cincinnati</a>
   </div>
 
-  <div class="content">
+  <div class="content" id="pdfContent">
     <h1>💊 Calculadora de Medicamentos</h1>
     <h2>Quanto eu devo aspirar do medicamento prescrito?</h2>
 
@@ -151,7 +156,10 @@
     <label>Volume do frasco/ampola (mg/ml):</label>
     <input type="number" id="volume" placeholder="Ex: 2">
 
-    <button onclick="calcular()">Calcular</button>
+    <div class="botoes">
+      <button onclick="calcular()">Calcular</button>
+      <button onclick="gerarPDF()">Gerar PDF</button>
+    </div>
 
     <div class="resultado" id="resultado"></div>
 
@@ -191,6 +199,20 @@
         `x = ${x.toFixed(2)} ml\n\n` +
         `<strong>Deve-se aspirar <mark>${x.toFixed(2)} ml</mark> do frasco/ampola para administrar a dose prescrita.</strong>`;
     }
+
+    function gerarPDF() {
+      const content = document.getElementById("pdfContent");
+      const opt = {
+        margin: 0,
+        filename: 'medicamento.pdf',
+        image: { type: 'jpeg', quality: 1 },
+        html2canvas: { scale: 3, scrollY: 0 },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+      };
+      html2pdf().set(opt).from(content).save();
+    }
   </script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
 </body>
 </html>
