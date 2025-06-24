@@ -44,6 +44,17 @@
     h1 {
       text-align: center;
       color: #007bff;
+      margin-bottom: 0.2em;
+    }
+    .subtitulo {
+      text-align: center;
+      font-size: 14px;
+      color: #000000;
+      margin-bottom: 20px;
+      font-weight: normal;
+      font-style: italic;
+      white-space: pre-line;
+      line-height: 1.3em;
     }
     label {
       display: block;
@@ -56,11 +67,16 @@
       font-size: 16px;
       margin-top: 5px;
     }
-    button {
-      width: 100%;
-      padding: 14px;
-      font-size: 18px;
+    .botoes-container {
+      display: flex;
+      gap: 10px;
       margin-top: 25px;
+      margin-bottom: 10px;
+    }
+    button {
+      flex: 1;
+      padding: 10px 0;
+      font-size: 14px;
       background-color: #007bff;
       color: white;
       border: none;
@@ -78,6 +94,14 @@
       border-radius: 8px;
       font-size: 16px;
       white-space: pre-line;
+    }
+    .meta-seguranca {
+      font-size: 13px;
+      color: #333;
+      margin-top: 10px;
+      font-style: italic;
+      border-top: 1px solid #ccc;
+      padding-top: 10px;
     }
     footer {
       background-color: #f1f1f1;
@@ -109,8 +133,15 @@
     <a href="cincinnati.html">Escala de Cincinnati</a>
   </div>
 
-  <div class="content">
+  <div class="content" id="pdfContent">
     <h1>Cálculo de Gotejamento</h1>
+    <div class="subtitulo">
+Regras básicas:  
+Gotejamento macrogotas em horas= volume dividido por tempo vezes (x) 3.
+Gotejamento microgotas em horas= volume dividido por tempo.
+Gotejamento macrogotas por minutos= volume x (vezes) 20 dividido por tempo.
+Gotejamento microgotas por minutos= volume x (vezes) 60 dividido por tempo.
+    </div>
 
     <label for="volume">Volume (mL):</label>
     <input type="number" id="volume" min="0" step="any" placeholder="Ex: 1000" />
@@ -130,7 +161,14 @@
       <option value="microgotas">Microgotas</option>
     </select>
 
-    <button onclick="calcularGotejamento()">Calcular</button>
+    <div class="botoes-container">
+      <button onclick="calcularGotejamento()">Calcular</button>
+      <button onclick="gerarPDF()">Gerar PDF</button>
+    </div>
+
+    <div class="meta-seguranca">
+      <strong>Meta Internacional de Segurança do Paciente nº 3:</strong> Melhorar a segurança na prescrição, no uso e na administração de medicamentos.
+    </div>
 
     <div id="resultado" class="resultado" style="display:none;"></div>
 
@@ -171,7 +209,6 @@
     let gotasPorMinuto;
 
     if (unidadeTempo === "horas") {
-      // cálculo para tempo em horas: volume dividido por tempo (horas)
       const divisao = volume / tempo;
       calculoDetalhado +=
 `Cálculo para tempo em horas:
@@ -180,9 +217,8 @@ volume dividido por tempo (em horas):
 
 ${volume} ÷ ${tempo} = ${divisao.toFixed(2)}
 `;
-      gotasPorMinuto = divisao; // Apenas volume / horas; o enunciado só pede isso para hora, não multiplicar por 3 aqui.
+      gotasPorMinuto = divisao;
     } else if (unidadeTempo === "minutos") {
-      // cálculo para tempo em minutos multiplicado por 3, 20 ou 60 dependendo do equipo
       const divisao = volume / tempo;
       let multiplicador;
       if (equipo === "macrogotas") {
@@ -218,7 +254,20 @@ ${gotasArredondadas} gotas/minuto
     resultadoDiv.style.display = 'block';
     resultadoDiv.textContent = calculoDetalhado + "\n" + resultadoTexto;
   }
+
+  function gerarPDF() {
+    const content = document.getElementById('pdfContent');
+    const opt = {
+      margin: 0,
+      filename: 'gotejamento.pdf',
+      image: { type: 'jpeg', quality: 1 },
+      html2canvas: { scale: 3, scrollY: 0 },
+      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+    };
+    html2pdf().set(opt).from(content).save();
+  }
 </script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
 </body>
 </html>
