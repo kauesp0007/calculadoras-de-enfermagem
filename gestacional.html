@@ -122,6 +122,10 @@
       </p>
     </footer>
   </div>
+
+  <!-- Importa a biblioteca jsPDF -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
   <script>
     function calcularGestacional() {
       const dum = document.getElementById('dum').value;
@@ -131,40 +135,3 @@
       }
 
       const [semanas, dias, dpp] = calcularIdadeGestacionalEDPP(dum);
-      const resultado = document.getElementById('resultado');
-      resultado.innerHTML = `<strong>Idade Gestacional:</strong> ${semanas} semanas e ${dias} dias<br>
-                             <strong>Data Provável do Parto (DPP):</strong> ${dpp}<br><br><br>
-                             Bibliografia: https://www.sogesp.com.br/residente/calculadora-gestacional/`;
-      resultado.style.display = 'block';
-    }
-
-    function calcularIdadeGestacionalEDPP(dum) {
-      const dataAtual = new Date();
-      const dumDate = new Date(dum);
-      const diasPassados = Math.floor((dataAtual - dumDate) / (1000 * 60 * 60 * 24));
-      const semanas = Math.floor(diasPassados / 7);
-      const dias = diasPassados % 7;
-      const dpp = new Date(dumDate.getTime() + 280 * 24 * 60 * 60 * 1000); // 40 semanas
-
-      return [semanas, dias, dpp.toLocaleDateString('pt-BR')];
-    }
-
-    function gerarPDF() {
-      const dum = document.getElementById('dum').value;
-      if (!dum) {
-        alert('Por favor, insira a data da última menstruação (DUM).');
-        return;
-      }
-
-      const [semanas, dias, dpp] = calcularIdadeGestacionalEDPP(dum);
-      const pdf = new jsPDF();
-      pdf.text(20, 20, 'Calculadora de Idade Gestacional');
-      pdf.text(20, 30, `Data da Última Menstruação (DUM): ${dum}`);
-      pdf.text(20, 40, `Idade Gestacional: ${semanas} semanas e ${dias} dias`);
-      pdf.text(20, 50, `Data Provável do Parto (DPP): ${dpp}`);
-      pdf.text(20, 60, 'Bibliografia: https://www.sogesp.com.br/residente/calculadora-gestacional/');
-      pdf.save('resultado_gestacional.pdf');
-    }
-  </script>
-</body>
-</html>
