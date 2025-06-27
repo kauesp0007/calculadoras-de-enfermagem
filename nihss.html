@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Escala NIHSS</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body { font-family: Arial, sans-serif; display: flex; margin: 0; background: #f4f7fb; }
+    nav.sidebar {
+      width: 220px; background-color: #cce4f7; padding: 20px; box-sizing: border-box;
+      display: flex; flex-direction: column; align-items: center; height: 100vh;
+    }
+    nav.sidebar h2 { color: #007bff; font-size: 20px; margin-bottom: 25px; text-align: center; }
+    nav.sidebar a {
+      color: #3399cc; text-decoration: none; margin: 10px 0; font-size: 14px;
+      text-align: center; width: 100%; padding: 6px 0; border-radius: 5px;
+      transition: background-color 0.2s ease; display: block;
+    }
+    nav.sidebar a:hover {
+      background-color: #004080; color: #e0e7f1;
+    }
+    nav.sidebar a.active {
+      font-weight: bold; background-color: #004080; color: white;
+    }
+    main.content {
+      flex-grow: 1; max-width: 900px; margin: auto; padding: 30px 20px;
+      background: white; box-sizing: border-box; min-height: 100vh;
+    }
+    h1 {
+      text-align: center; color: #007bff; margin-bottom: 10px;
+    }
+    p.description {
+      font-size: 14px; text-align: center; margin-bottom: 25px;
+      max-width: 600px; margin-left: auto; margin-right: auto; color: #444;
+    }
+    table {
+      width: 100%; border-collapse: collapse; margin-bottom: 25px;
+    }
+    th, td {
+      border: 1px solid #ccc; padding: 10px 12px; text-align: left;
+      vertical-align: top; font-size: 14px;
+    }
+    th { background-color: #e0f0ff; text-align: center; }
+    td select {
+      width: 100%; padding: 6px; font-size: 14px;
+    }
+    .buttons {
+      display: flex; justify-content: center; gap: 15px; margin-bottom: 20px;
+    }
+    button {
+      background-color: #007bff; border: none; color: white;
+      padding: 10px 18px; font-size: 16px; border-radius: 6px;
+      cursor: pointer; transition: background-color 0.3s ease;
+    }
+    button:hover { background-color: #0056b3; }
+    .resultado {
+      background-color: #e1f5fe; border-radius: 8px; padding: 15px;
+      font-weight: bold; font-size: 16px; white-space: pre-line;
+      max-width: 600px; margin: 0 auto; text-align: center; display: none;
+    }
+    footer {
+      background-color: #f1f1f1; padding: 20px; text-align: center;
+      font-size: 14px; color: #555; margin-top: 40px; border-top: 1px solid #ddd;
+    }
+    footer a {
+      color: #007bff; text-decoration: none; margin: 0 8px;
+    }
+  </style>
+</head>
+<body>
+<nav class="sidebar">
+  <h2>Calculadoras</h2>
+  <a href="index.html">Início</a>
+  <a href="fugulin.html">Escala de Fugulin</a>
+  <a href="nihss.html" class="active">Escala NIHSS</a>
+</nav>
+<main class="content" id="pdfContent">
+  <h1>Escala NIHSS - Avaliação do Acidente Vascular Cerebral</h1>
+  <p class="description">A escala NIHSS é utilizada para quantificar déficits neurológicos em pacientes com suspeita de AVC. Esta ferramenta ajuda a medir a gravidade do evento e orientar condutas clínicas.</p>
+  <form id="formulario">
+    <table>
+      <thead><tr><th>Item</th><th>Pontuação</th></tr></thead>
+      <tbody id="tabelaPontuacoes"></tbody>
+    </table>
+    <div class="buttons">
+      <button type="button" onclick="calcularPontuacao()">Calcular</button>
+      <button type="button" onclick="gerarPDF()">Gerar PDF</button>
+    </div>
+    <div id="resultado" class="resultado"></div>
+    <p style="font-size:13px; max-width:700px; margin:20px auto; color:#444; text-align:center; line-height:1.4">
+      Referências bibliográficas:<br>
+      <a href="https://www.gov.br/conitec/pt-br/midias/protocolos/pcdt-cuidados-avc.pdf" target="_blank">https://www.gov.br/conitec/pt-br/midias/protocolos/pcdt-cuidados-avc.pdf</a><br>
+      <a href="https://www.hcor.com.br/wp-content/uploads/2024/05/hcor_protocolo_de_acidente_vascular_cerebral_isquemico.pdf" target="_blank">https://www.hcor.com.br/...avc_isquemico.pdf</a>
+    </p>
+    <footer>
+      <p>© 2025 Calculadoras de Enfermagem</p>
+      <p>
+        <a href="index.html">Início</a> |
+        <a href="politica.html">Política de Privacidade</a> |
+        <a href="termos.html">Termos de Uso</a>
+      </p>
+    </footer>
+  </form>
+</main>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<script>
+const dados = [
+  ["1.1 - Nível de consciência", ["Alerta",0,"Não alerta, necessita estímulo",1,"Responde com reflexo motor",2,"Coma",3]],
+  ["1.2 - Mês e idade", ["Responde ambas",0,"Responde uma",1,"Nenhuma",2]],
+  ["1.3 - Comando motor", ["Executa ambas tarefas",0,"Executa uma",1,"Nenhuma executada",2]],
+  ["2 - Melhor olhar conjugado", ["Normal",0,"Paralisia parcial",1,"Desvio forçado",2]],
+  ["3 - Campos visuais", ["Sem perda",0,"Hemianopsia parcial",1,"Hemianopsia completa",2,"Bilateral",3]],
+  ["4 - Paralisia facial", ["Simétrico",0,"Paralisia leve",1,"Parcial",2,"Completa",3]],
+  ["5.1 - Força MSE", ["Mantém 10s",0,"Queda",1,"Parcial",2,"Não vence gravidade",3,"Sem movimento",4]],
+  ["5.2 - Força MSD", ["Mantém 10s",0,"Queda",1,"Parcial",2,"Não vence gravidade",3,"Sem movimento",4]],
+  ["6.1 - Força MIE", ["Mantém 10s",0,"Cai <10s",1,"Algum esforço",2,"Cai sem esforço",3,"Sem movimento",4]],
+  ["6.2 - Força MID", ["Mantém 10s",0,"Cai <10s",1,"Algum esforço",2,"Cai sem esforço",3,"Sem movimento",4]],
+  ["7 - Ataxia", ["Ausente",0,"1 membro",1,"2 membros",2]],
+  ["8 - Sensibilidade", ["Normal",0,"Perda leve",1,"Perda severa",2]],
+  ["9 - Linguagem", ["Sem afasia",0,"Afasia leve/moderada",1,"Afasia severa",2]],
+  ["10 - Disartria", ["Normal",0,"Leve/moderada",1,"Severa",2]],
+  ["11 - Extinção e intenção", ["Sem anormalidade",0,"Extinção leve",1,"Negligência severa",2]]
+];
+
+const tabela = document.getElementById("tabelaPontuacoes");
+dados.forEach((item, i) => {
+  const tr = document.createElement("tr");
+  const td1 = document.createElement("td");
+  td1.innerText = item[0];
+  const td2 = document.createElement("td");
+  const select = document.createElement("select");
+  select.id = `q${i}`;
+  for (let j = 1; j < item[1].length; j += 2) {
+    const opt = document.createElement("option");
+    opt.value = item[1][j];
+    opt.text = `${item[1][j-1]} (${item[1][j]})`;
+    select.appendChild(opt);
+  }
+  td2.appendChild(select);
+  tr.appendChild(td1);
+  tr.appendChild(td2);
+  tabela.appendChild(tr);
+});
+
+function calcularPontuacao() {
+  let total = 0;
+  for (let i = 0; i < dados.length; i++) {
+    total += Number(document.getElementById(`q${i}`).value);
+  }
+  document.getElementById("resultado").style.display = "block";
+  document.getElementById("resultado").textContent = `Pontuação total NIHSS: ${total}`;
+}
+
+function gerarPDF() {
+  const content = document.getElementById("pdfContent").cloneNode(true);
+  const sidebar = content.querySelector("nav.sidebar");
+  if (sidebar) sidebar.remove();
+  const footer = content.querySelector("footer");
+  if (footer) footer.remove();
+  const opt = {
+    margin: 0,
+    filename: 'nihss.pdf',
+    image: { type: 'jpeg', quality: 1 },
+    html2canvas: { scale: 3, scrollY: 0 },
+    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+  };
+  html2pdf().set(opt).from(content).save();
+}
+</script>
+</body>
+</html>
