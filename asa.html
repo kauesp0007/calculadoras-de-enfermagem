@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <title>Classificação ASA</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      display: flex;
+    }
+    .sidebar {
+      width: 200px;
+      background-color: #007bff;
+      color: white;
+      padding: 15px;
+    }
+    .sidebar h2 {
+      font-size: 12px;
+      text-align: center;
+      font-weight: bold;
+    }
+    .sidebar a {
+      color: white;
+      text-decoration: none;
+      display: block;
+      margin: 10px 0;
+      font-size: 11px;
+    }
+    .content {
+      flex: 1;
+      padding: 20px;
+    }
+    h1 {
+      font-size: 16px;
+      color: #007bff;
+      font-weight: bold;
+    }
+    h2 {
+      font-size: 14px;
+      font-weight: normal;
+    }
+    button {
+      background-color: #007bff;
+      color: white;
+      padding: 8px 12px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 12px;
+      margin-right: 10px;
+    }
+    button:hover {
+      background-color: #0056b3;
+    }
+    .resultado {
+      margin-top: 20px;
+      font-size: 14px;
+      font-weight: bold;
+      color: black;
+    }
+    footer {
+      background-color: #f1f1f1;
+      text-align: center;
+      padding: 10px;
+      font-size: 12px;
+      position: fixed;
+      width: 100%;
+      bottom: 0;
+    }
+    .search-box {
+      text-align: right;
+      margin-bottom: 10px;
+    }
+    input[type="text"] {
+      padding: 5px;
+      font-size: 12px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 15px;
+    }
+    td {
+      padding: 10px;
+      border: 1px solid #ccc;
+      vertical-align: top;
+    }
+    label {
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <div class="sidebar">
+    <h2>Calculadoras</h2>
+    <a href="index.html">Início</a>
+    <a href="dimensionamento.html">Dimensionamento</a>
+    <a href="braden.html">Escala de Braden</a>
+    <a href="cincinnati.html">Escala de Cincinnati</a>
+    <a href="gotejamento.html">Cálculo de Gotejamento</a>
+    <a href="fugulin.html">Escala de Fugulin</a>
+    <a href="news.html">Escala NEWS</a>
+    <a href="glasgow.html">Escala de Glasgow</a>
+    <a href="asa.html">Classificação ASA</a>
+    <a href="nihss.html">Escala NIHSS</a>
+    <a href="idadegestacional.html">Idade Gestacional</a>
+  </div>
+
+  <div class="content">
+    <div class="search-box">
+      <input type="text" placeholder="Buscar...">
+    </div>
+
+    <div id="pdfContent">
+      <h1>Classificação de Estado Físico - ASA</h1>
+      <h2>Selecione o escore correspondente à condição do paciente:</h2>
+
+      <table>
+        <tr>
+          <td><input type="radio" name="asa" value="ASA I" id="asa1"><label for="asa1"><strong>ASA I</strong>: Paciente saudável, sem doença orgânica, fisiológica, bioquímica ou psiquiátrica.</label></td>
+        </tr>
+        <tr>
+          <td><input type="radio" name="asa" value="ASA II" id="asa2"><label for="asa2"><strong>ASA II</strong>: Paciente com doença sistêmica leve e controlada (ex: HAS controlada, DM controlado).</label></td>
+        </tr>
+        <tr>
+          <td><input type="radio" name="asa" value="ASA III" id="asa3"><label for="asa3"><strong>ASA III</strong>: Paciente com doença sistêmica moderada a grave, sem incapacidade total (ex: DPOC, angina).</label></td>
+        </tr>
+        <tr>
+          <td><input type="radio" name="asa" value="ASA IV" id="asa4"><label for="asa4"><strong>ASA IV</strong>: Paciente com doença sistêmica grave que representa ameaça constante à vida.</label></td>
+        </tr>
+        <tr>
+          <td><input type="radio" name="asa" value="ASA V" id="asa5"><label for="asa5"><strong>ASA V</strong>: Paciente moribundo que não se espera sobreviver sem a cirurgia.</label></td>
+        </tr>
+        <tr>
+          <td><input type="radio" name="asa" value="ASA VI" id="asa6"><label for="asa6"><strong>ASA VI</strong>: Paciente com morte cerebral, mantido para doação de órgãos.</label></td>
+        </tr>
+      </table>
+
+      <div class="resultado" id="resultado"></div>
+    </div>
+
+    <br>
+    <button onclick="calcular()">Calcular</button>
+    <button onclick="gerarPDF()">Gerar PDF</button>
+  </div>
+
+  <footer>
+    Estas calculadoras são de caráter consultivo e didático. Em caso de dúvidas, consulte um profissional de saúde qualificado.
+  </footer>
+
+  <script>
+    function calcular() {
+      const radios = document.getElementsByName("asa");
+      let resultado = "";
+      for (let i = 0; i < radios.length; i++) {
+        if (radios[i].checked) {
+          resultado = "Classificação selecionada: " + radios[i].value;
+          break;
+        }
+      }
+      if (resultado === "") {
+        resultado = "Por favor, selecione um escore.";
+      }
+      document.getElementById("resultado").innerText = resultado;
+    }
+
+    function gerarPDF() {
+      const elemento = document.getElementById("pdfContent");
+      const opt = {
+        margin: 0.5,
+        filename: 'classificacao_asa.pdf',
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 3 },
+        jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
+      };
+      html2pdf().from(elemento).set(opt).save();
+    }
+  </script>
+</body>
+</html>
