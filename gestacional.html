@@ -1,0 +1,170 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Calculadora de Idade Gestacional e Data Provável do Parto</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 0; padding: 0; display: flex; background-color: #f7f9fc; }
+    .sidebar {
+      background-color: #cce5ff;
+      width: 220px;
+      height: 100vh;
+      padding: 20px;
+      box-sizing: border-box;
+    }
+    .sidebar h3 {
+      margin-top: 0;
+      color: #004085;
+      font-size: 18px;
+      text-align: center;
+    }
+    .sidebar a {
+      display: block;
+      color: #0056b3;
+      text-decoration: none;
+      margin: 10px auto;
+      font-weight: bold;
+      text-align: center;
+      font-size: 14px;
+    }
+    .sidebar a:hover {
+      text-decoration: underline;
+    }
+    .content {
+      flex-grow: 1;
+      padding: 20px;
+      max-width: 900px;
+      margin: auto;
+    }
+    h1 {
+      text-align: center;
+      color: #007bff;
+    }
+    p, label {
+      font-size: 16px;
+      margin-bottom: 10px;
+    }
+    input[type="date"] {
+      padding: 10px;
+      font-size: 16px;
+      margin-bottom: 20px;
+      width: 100%;
+      box-sizing: border-box;
+    }
+    button {
+      margin-top: 20px;
+      padding: 12px 20px;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+    .resultado {
+      margin-top: 20px;
+      padding: 15px;
+      background-color: #e1f5fe;
+      border-radius: 8px;
+      font-weight: bold;
+      font-size: 16px;
+      white-space: pre-line;
+    }
+    footer {
+      background-color: #f1f1f1;
+      padding: 20px;
+      text-align: center;
+      font-size: 14px;
+      color: #555;
+      margin-top: 40px;
+      border-top: 1px solid #ddd;
+    }
+    footer a {
+      color: #007bff;
+      text-decoration: none;
+      margin: 0 6px;
+    }
+  </style>
+</head>
+<body>
+  <div class="sidebar">
+    <h3>Calculadoras</h3>
+    <a href="gotejamento.html"> Cálculo de Gotejamento</a>
+    <a href="insulina.html"> Cálculo de Insulina</a>
+    <a href="dimensionamento.html"> Calcular Dimensionamento</a>
+    <a href="medicamentos.html"> Cálculo de Medicamentos</a>
+    <a href="braden.html">🛎 Escala de Braden</a>
+    <a href="glasgow.html"> Escala de Glasgow</a>
+    <a href="cincinnati.html"> Escala de Cincinnati</a>
+    <a href="news.html"> Protocolo NEWS</a>
+    <a href="richmond.html"> Escala de Richmond (RASS)</a>
+    <a href="fugulin.html"> Escala de Fugulin </a>
+    <a href="nihss.html"> Escala de NIHSS </a>
+    <a href="morse.html"> Escala de Morse </a>
+  </div>
+  <div class="content">
+    <h1>Calculadora de Idade Gestacional e Data provável do parto</h1>
+    <p>Insira a data da última menstruação (DUM) para calcular a idade gestacional e a data provável do parto (DPP):</p>
+    <label for="dum">Data da Última Menstruação (DUM):</label>
+    <input type="date" id="dum" name="dum">
+    <button onclick="calcularGestacional()">Calcular Idade Gestacional e DPP</button>
+    <button onclick="gerarPDF()">Gerar PDF</button>
+    <div id="resultado" class="resultado" style="display:none;"></div>
+    <footer>
+      <p>© 2025 Calculadoras de Enfermagem</p>
+      <p>
+        <a href="index.html">Início</a> |
+        <a href="politica.html">Política de Privacidade</a> |
+        <a href="termos.html">Termos de Uso</a>
+      </p>
+    </footer>
+  </div>
+  <script>
+    function calcularGestacional() {
+      const dum = document.getElementById('dum').value;
+      if (!dum) {
+        alert('Por favor, insira a data da última menstruação (DUM).');
+        return;
+      }
+
+      const [semanas, dias, dpp] = calcularIdadeGestacionalEDPP(dum);
+      const resultado = document.getElementById('resultado');
+      resultado.textContent = `Idade Gestacional: ${semanas} semanas e ${dias} dias
+Data Provável do Parto (DPP): ${dpp}
+
+Bibliografia: https://www.sogesp.com.br/residente/calculadora-gestacional/`;
+      resultado.style.display = 'block';
+    }
+
+    function calcularIdadeGestacionalEDPP(dum) {
+      const dataAtual = new Date();
+      const dumDate = new Date(dum);
+      const diasPassados = Math.floor((dataAtual - dumDate) / (1000 * 60 * 60 * 24));
+      const semanas = Math.floor(diasPassados / 7);
+      const dias = diasPassados % 7;
+      const dpp = new Date(dumDate.getTime() + 280 * 24 * 60 * 60 * 1000); // 40 semanas
+
+      return [semanas, dias, dpp.toLocaleDateString('pt-BR')];
+    }
+
+    function gerarPDF() {
+      const dum = document.getElementById('dum').value;
+      if (!dum) {
+        alert('Por favor, insira a data da última menstruação (DUM).');
+        return;
+      }
+
+      const [semanas, dias, dpp] = calcularIdadeGestacionalEDPP(dum);
+      const pdf = new jsPDF();
+      pdf.text(20, 20, 'Calculadora de Idade Gestacional');
+      pdf.text(20, 30, `Data da Última Menstruação (DUM): ${dum}`);
+      pdf.text(20, 40, `Idade Gestacional: ${semanas} semanas e ${dias} dias`);
+      pdf.text(20, 50, `Data Provável do Parto (DPP): ${dpp}`);
+      pdf.text(20, 60, 'Bibliografia: https://www.sogesp.com.br/residente/calculadora-gestacional/');
+      pdf.save('resultado_gestacional.pdf');
+    }
+  </script>
+</body>
+</html>
