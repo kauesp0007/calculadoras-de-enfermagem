@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Calculadora de Idade Gestacional e Data Provável do Parto</title>
   <style>
     body {
@@ -31,10 +31,15 @@
       margin: 10px 0;
       text-decoration: none;
     }
+    .sidebar a:hover {
+      text-decoration: underline;
+    }
     .content {
       flex-grow: 1;
       padding: 20px;
       background: white;
+      max-width: 900px;
+      margin: auto;
     }
     h1 {
       font-size: 16px;
@@ -77,17 +82,21 @@
       font-size: 14px;
       font-weight: bold;
       color: black;
+      white-space: pre-line;
+    }
+    #bibliografia {
+      margin-top: 40px;
+      font-size: 11px;
+      color: black;
+      font-family: Arial, sans-serif;
+      line-height: 1.3;
     }
     #pdfContent {
       margin-top: 20px;
     }
-    .ref {
-      font-size: 12px;
-      color: black;
-      margin-top: 60px;
-    }
     .search-box {
       text-align: right;
+      margin-bottom: 10px;
     }
     .search-box input {
       padding: 5px;
@@ -101,19 +110,24 @@
       border-top: 1px solid #ccc;
       margin-top: 30px;
     }
+    footer a {
+      color: #007bff;
+      text-decoration: none;
+      margin: 0 6px;
+    }
   </style>
 </head>
 <body>
   <div class="sidebar">
     <h2>Calculadoras</h2>
     <a href="index.html">Início</a>
-    <a href="dimensionamento.html"> Cálculo de Dimensionamento</a>
+    <a href="dimensionamento.html">Cálculo de Dimensionamento</a>
     <a href="braden.html">Calcular risco de LPP (Escala de Braden)</a>
     <a href="elpo.html">Calcular risco de LPP por posição cirúrgica (ELPO)</a>
-    <a href="asa.html"> Calcular Riscos Anestésicos/perioperatórios (ASA)</a>
-    <a href="fugulin.html"> Calcular escore da Escala de Fugulin</a>
+    <a href="asa.html">Calcular Riscos Anestésicos/perioperatórios (ASA)</a>
+    <a href="fugulin.html">Calcular escore da Escala de Fugulin</a>
     <a href="gotejamento.html">Cálculo de Gotejamento</a>
-    <a href="gestacional.html"> Calcular Idade Gestacional e DPP</a>
+    <a href="gestacional.html">Calcular Idade Gestacional e DPP</a>
     <a href="cincinnati.html">Escala Cincinnati</a>
     <a href="nihss.html">Escala NIHSS</a>
     <a href="glasgow.html">Calcular escore da Escala de Glasgow</a>
@@ -121,18 +135,26 @@
     <a href="medicamentos.html">Calculadora de medicamentos</a>
     <a href="johns.html">Calcular risco de queda hospitalar (Johns Hopkins)</a>
   </div>
-  <div class="content">
+  <div class="content" id="pdfContent">
     <div class="search-box">
-      <input type="text" placeholder="Pesquisar...">
+      <input type="text" placeholder="Pesquisar..." oninput="filtrarLinks(this.value)" />
     </div>
     <h1>Calculadora de Idade Gestacional e Data provável do parto</h1>
     <p>Insira a data da última menstruação (DUM) para calcular a idade gestacional e a data provável do parto (DPP):</p>
     <label for="dum">Data da Última Menstruação (DUM):</label>
-    <input type="date" id="dum" name="dum">
-    <br>
+    <input type="date" id="dum" name="dum" />
     <button onclick="calcularGestacional()">Calcular Idade Gestacional e DPP</button>
     <button onclick="gerarPDF()">Gerar PDF</button>
-    <div id="resultado"></div>
+
+    <div id="resultado" style="display:none;"></div>
+
+    <div id="bibliografia" style="display:none;">
+      <strong>Bibliografia confiável:</strong><br />
+      Ministério da Saúde. Caderno de Atenção Básica: Pré-natal e Puerpério. Brasília: Ministério da Saúde, 2012.<br />
+      Sociedade Brasileira de Pediatria. Manual de Assistência à Gestante de Alto Risco. 6ª edição, 2018.<br />
+      Organização Mundial da Saúde (OMS). Cuidados durante a gravidez. Disponível em: https://www.who.int/reproductivehealth/publications/maternal_perinatal_health/en/
+    </div>
+
     <footer>
       <p>© 2025 Calculadoras de Enfermagem</p>
       <p>
@@ -143,8 +165,20 @@
     </footer>
   </div>
 
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   <script>
+    function filtrarLinks(texto) {
+      const sidebar = document.querySelector('.sidebar');
+      const links = sidebar.querySelectorAll('a');
+      const filtro = texto.toLowerCase();
+      links.forEach(link => {
+        if (link.textContent.toLowerCase().includes(filtro)) {
+          link.style.display = 'block';
+        } else {
+          link.style.display = 'none';
+        }
+      });
+    }
+
     function calcularGestacional() {
       const dumInput = document.getElementById('dum').value;
       if (!dumInput) {
@@ -167,21 +201,29 @@
       const divResultado = document.getElementById('resultado');
       divResultado.style.display = 'block';
       divResultado.textContent = resultado;
+
+      // Exibe bibliografia junto com resultado
+      document.getElementById('bibliografia').style.display = 'block';
     }
 
     function gerarPDF() {
-      const content = document.querySelector('.content').cloneNode(true);
+      const content = document.getElementById('pdfContent').cloneNode(true);
+      // Remove input de busca no PDF
+      const searchBox = content.querySelector('.search-box');
+      if (searchBox) searchBox.remove();
       const footer = content.querySelector('footer');
       if (footer) footer.remove();
+
       const opt = {
         margin: 0,
         filename: 'idade_gestacional.pdf',
         image: { type: 'jpeg', quality: 1 },
         html2canvas: { scale: 3, scrollY: 0 },
-        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
       };
       html2pdf().set(opt).from(content).save();
     }
   </script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 </body>
 </html>
