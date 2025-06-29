@@ -87,6 +87,9 @@
       border: 1px solid #ccc;
       vertical-align: top;
     }
+    label {
+      cursor: pointer;
+    }
   </style>
 </head>
 <body>
@@ -102,37 +105,46 @@
       <input type="text" placeholder="Buscar...">
     </div><div id="pdfContent">
   <h1>Protocolo de Manchester</h1>
-  <h2>Ferramenta utilizada para classificar a gravidade dos sintomas e organizar o atendimento no serviço de emergência com base na prioridade clínica.</h2>
-
+  <h2>Classifica a gravidade e prioridade de atendimento na urgência com base em critérios pontuados.</h2>
   <form id="formManchester">
     <table>
       <thead>
         <tr>
-          <th>Critério</th>
-          <th>Comprometimento</th>
+          <th>Variável</th>
+          <th>Escore</th>
+          <th>Selecionar</th>
         </tr>
       </thead>
       <tbody>
-        <tr><td>Comprometimento da via aérea</td><td><input type="radio" name="viaAerea" value="1"> Sim <input type="radio" name="viaAerea" value="0"> Não</td></tr>
-        <tr><td>Alteração do nível de consciência</td><td><input type="radio" name="nivelConsciencia" value="1"> Sim <input type="radio" name="nivelConsciencia" value="0"> Não</td></tr>
-        <tr><td>Dor intensa ou aguda</td><td><input type="radio" name="dor" value="1"> Sim <input type="radio" name="dor" value="0"> Não</td></tr>
-        <tr><td>Sinais de choque</td><td><input type="radio" name="choque" value="1"> Sim <input type="radio" name="choque" value="0"> Não</td></tr>
-        <tr><td>Sangramento ativo</td><td><input type="radio" name="sangramento" value="1"> Sim <input type="radio" name="sangramento" value="0"> Não</td></tr>
-        <tr><td>Temperatura corporal anormal</td><td><input type="radio" name="temperatura" value="1"> Sim <input type="radio" name="temperatura" value="0"> Não</td></tr>
-        <tr><td>Déficit neurológico</td><td><input type="radio" name="neurologico" value="1"> Sim <input type="radio" name="neurologico" value="0"> Não</td></tr>
+        <tr><td>Obstrução de via aérea</td><td>3</td><td><input type="checkbox" value="3"></td></tr>
+        <tr><td>Dificuldade respiratória grave</td><td>5</td><td><input type="checkbox" value="5"></td></tr>
+        <tr><td>Confusão/agitação</td><td>2</td><td><input type="checkbox" value="2"></td></tr>
+        <tr><td>Sonolência/desorientação</td><td>3</td><td><input type="checkbox" value="3"></td></tr>
+        <tr><td>Inconsciência</td><td>5</td><td><input type="checkbox" value="5"></td></tr>
+        <tr><td>Dor leve (1–3)</td><td>1</td><td><input type="checkbox" value="1"></td></tr>
+        <tr><td>Dor moderada (4–6)</td><td>2</td><td><input type="checkbox" value="2"></td></tr>
+        <tr><td>Dor intensa (7–10)</td><td>3</td><td><input type="checkbox" value="3"></td></tr>
+        <tr><td>PA &lt; 90 ou FC &gt; 130</td><td>3</td><td><input type="checkbox" value="3"></td></tr>
+        <tr><td>Extremidades frias/sudorese</td><td>2</td><td><input type="checkbox" value="2"></td></tr>
+        <tr><td>Sangramento leve</td><td>1</td><td><input type="checkbox" value="1"></td></tr>
+        <tr><td>Sangramento moderado</td><td>2</td><td><input type="checkbox" value="2"></td></tr>
+        <tr><td>Sangramento grave</td><td>3</td><td><input type="checkbox" value="3"></td></tr>
+        <tr><td>Febre moderada (38–39 °C)</td><td>1</td><td><input type="checkbox" value="1"></td></tr>
+        <tr><td>Febre alta (&gt;39 °C)</td><td>2</td><td><input type="checkbox" value="2"></td></tr>
+        <tr><td>Hipotermia (&lt;36 °C)</td><td>2</td><td><input type="checkbox" value="2"></td></tr>
+        <tr><td>Fraqueza/paralisia focal</td><td>3</td><td><input type="checkbox" value="3"></td></tr>
+        <tr><td>Convulsão recente</td><td>4</td><td><input type="checkbox" value="4"></td></tr>
+        <tr><td>Alteração visual/auditiva súbita</td><td>2</td><td><input type="checkbox" value="2"></td></tr>
       </tbody>
     </table>
   </form>
-
   <div class="resultado" id="resultado"></div>
-
   <br>
   <button onclick="calcularManchester()">Calcular</button>
   <button onclick="gerarPDF()">Gerar PDF</button>
-
   <div style="margin-top: 60px; font-size: 12px; color: black;">
     <strong>Referência bibliográfica:</strong><br><br><br>
-    Brasil. Ministério da Saúde. Protocolo de Acolhimento com Classificação de Risco em Serviços de Urgência – Adulto: versão completa. Brasília: Ministério da Saúde, 2014.<br>
+    Brasil. Ministério da Saúde. Protocolo de Acolhimento com Classificação de Risco em Serviços de Urgência – Adulto. Brasília: Ministério da Saúde, 2014.<br>
     Disponível em: <a href="https://www.gov.br/saude/pt-br/acesso-a-informacao/gestao-do-sus/atencao-especializada/urgencia-e-emergencia/acesso/protocolos" target="_blank">https://www.gov.br/saude/...</a>
   </div>
 </div>
@@ -141,27 +153,16 @@
     Estas calculadoras são de caráter consultivo e didático. Em caso de dúvidas, consulte um profissional de saúde qualificado.
   </footer>  <script>
     function calcularManchester() {
-      const radios = document.querySelectorAll('#formManchester input[type="radio"]:checked');
+      const checkboxes = document.querySelectorAll('#formManchester input[type="checkbox"]:checked');
       let total = 0;
-      radios.forEach(r => {
-        total += parseInt(r.value);
-      });
-
+      checkboxes.forEach(c => total += parseInt(c.value));
       let classificacao = '';
-      if (total >= 5) {
-        classificacao = "Vermelho – Atendimento Imediato";
-      } else if (total >= 4) {
-        classificacao = "Laranja – Atendimento em até 10 minutos";
-      } else if (total >= 3) {
-        classificacao = "Amarelo – Atendimento em até 60 minutos";
-      } else if (total >= 2) {
-        classificacao = "Verde – Atendimento em até 120 minutos";
-      } else {
-        classificacao = "Azul – Atendimento em até 240 minutos";
-      }
-
-      document.getElementById("resultado").innerText =
-        "Classificação final: " + classificacao + "\nComprometimentos marcados: " + total;
+      if (total >= 12) classificacao = "🔴 Vermelho – Imediato";
+      else if (total >= 9) classificacao = "🟠 Laranja – Até 10 min";
+      else if (total >= 6) classificacao = "🟡 Amarelo – Até 60 min";
+      else if (total >= 3) classificacao = "🟢 Verde – Até 120 min";
+      else classificacao = "🔵 Azul – Até 240 min";
+      document.getElementById("resultado").innerText = classificacao + "\nEscore total: " + total;
     }
 
     function gerarPDF() {
