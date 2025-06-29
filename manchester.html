@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <title>Protocolo de Manchester</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      display: flex;
+    }
+    .sidebar {
+      width: 200px;
+      background-color: #007bff;
+      color: white;
+      padding: 15px;
+    }
+    .sidebar h2 {
+      font-size: 12px;
+      text-align: center;
+      font-weight: bold;
+    }
+    .sidebar a {
+      color: white;
+      text-decoration: none;
+      display: block;
+      margin: 10px 0;
+      font-size: 11px;
+    }
+    .content {
+      flex: 1;
+      padding: 20px;
+    }
+    h1 {
+      font-size: 16px;
+      color: #007bff;
+      font-weight: bold;
+    }
+    h2 {
+      font-size: 14px;
+      font-weight: normal;
+    }
+    button {
+      background-color: #007bff;
+      color: white;
+      padding: 8px 12px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 12px;
+      margin-right: 10px;
+    }
+    button:hover {
+      background-color: #0056b3;
+    }
+    .resultado {
+      margin-top: 20px;
+      font-size: 14px;
+      font-weight: bold;
+      color: black;
+    }
+    footer {
+      background-color: #f1f1f1;
+      text-align: center;
+      padding: 10px;
+      font-size: 12px;
+      position: fixed;
+      width: 100%;
+      bottom: 0;
+    }
+    .search-box {
+      text-align: right;
+      margin-bottom: 10px;
+    }
+    input[type="text"] {
+      padding: 5px;
+      font-size: 12px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 15px;
+    }
+    td, th {
+      padding: 10px;
+      border: 1px solid #ccc;
+      vertical-align: top;
+    }
+    select {
+      width: 100%;
+      padding: 5px;
+    }
+  </style>
+</head>
+<body>
+  <div id="barra-lateral"></div>
+  <script>
+    fetch('sidebar.html')
+      .then(response => response.text())
+      .then(html => {
+        document.getElementById('barra-lateral').innerHTML = html;
+      });
+  </script>
+
+  <div class="content">
+    <div class="search-box">
+      <input type="text" placeholder="Buscar...">
+    </div>
+
+    <div id="pdfContent">
+      <h1>Protocolo de Manchester</h1>
+      <h2>Ferramenta utilizada para classificar a gravidade dos sintomas e organizar o atendimento no serviço de emergência com base na prioridade clínica.</h2>
+
+      <form id="formManchester">
+        <table>
+          <thead>
+            <tr>
+              <th>Sintoma</th>
+              <th>Classificação</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Comprometimento da via aérea</td>
+              <td>
+                <select name="viaAerea">
+                  <option value="5">Vermelho</option>
+                  <option value="4">Laranja</option>
+                  <option value="3">Amarelo</option>
+                  <option value="2">Verde</option>
+                  <option value="1">Azul</option>
+                </select>
+              </td>
+            </tr>
+            <tr>
+              <td>Alteração do nível de consciência</td>
+              <td>
+                <select name="consciencia">
+                  <option value="5">Vermelho</option>
+                  <option value="4">Laranja</option>
+                  <option value="3">Amarelo</option>
+                  <option value="2">Verde</option>
+                  <option value="1">Azul</option>
+                </select>
+              </td>
+            </tr>
+            <tr>
+              <td>Dor intensa ou aguda</td>
+              <td>
+                <select name="dor">
+                  <option value="5">Vermelho</option>
+                  <option value="4">Laranja</option>
+                  <option value="3">Amarelo</option>
+                  <option value="2">Verde</option>
+                  <option value="1">Azul</option>
+                </select>
+              </td>
+            </tr>
+            <tr>
+              <td>Sinais de choque</td>
+              <td>
+                <select name="choque">
+                  <option value="5">Vermelho</option>
+                  <option value="4">Laranja</option>
+                  <option value="3">Amarelo</option>
+                  <option value="2">Verde</option>
+                  <option value="1">Azul</option>
+                </select>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </form>
+
+      <div class="resultado" id="resultado"></div>
+
+      <br>
+      <button onclick="calcularManchester()">Calcular</button>
+      <button onclick="gerarPDF()">Gerar PDF</button>
+
+      <div style="margin-top: 60px; font-size: 12px; color: black;">
+        <strong>Referência bibliográfica:</strong><br><br><br>
+        Sistema Manchester de Classificação de Risco. Ministério da Saúde - Protocolo de Acolhimento com Classificação de Risco em Serviços de Urgência. Brasília: 2014. Disponível em:  
+        <a href="https://www.gov.br/saude/pt-br/acesso-a-informacao/gestao-do-sus/atencao-especializada/urgencia-e-emergencia/acesso/protocolos" target="_blank">
+          https://www.gov.br/saude/...
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    Estas calculadoras são de caráter consultivo e didático. Em caso de dúvidas, consulte um profissional de saúde qualificado.
+  </footer>
+
+  <script>
+    function calcularManchester() {
+      const selects = document.querySelectorAll('#formManchester select');
+      let maior = 0;
+      selects.forEach(s => {
+        const val = parseInt(s.value);
+        if (val > maior) maior = val;
+      });
+
+      const classificacoes = {
+        5: "Vermelho – Atendimento Imediato",
+        4: "Laranja – Atendimento em até 10 minutos",
+        3: "Amarelo – Atendimento em até 60 minutos",
+        2: "Verde – Atendimento em até 120 minutos",
+        1: "Azul – Atendimento em até 240 minutos"
+      };
+
+      document.getElementById("resultado").innerText = "Classificação: " + classificacoes[maior];
+    }
+
+    function gerarPDF() {
+      const elemento = document.getElementById("pdfContent");
+      const opt = {
+        margin: 0.5,
+        filename: 'protocolo_manchester.pdf',
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 3 },
+        jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
+      };
+      html2pdf().from(elemento).set(opt).save();
+    }
+  </script>
+</body>
+</html>
