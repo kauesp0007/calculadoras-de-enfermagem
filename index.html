@@ -6,7 +6,6 @@
   <title>Calculadoras de Enfermagem</title>
   <link rel="canonical" href="https://www.calculadorasdeenfermagem.com.br/index.html" />
   <style>
-    /* === NOVO: estilo da barra superior fixa === */
     body {
       font-family: Arial, sans-serif;
       background: #f7f9fc;
@@ -15,7 +14,7 @@
       text-align: center;
       max-width: 100%;
       box-sizing: border-box;
-      padding-top: 55px; /* espaço para a barra fixa */
+      padding-top: 55px;
     }
     .topbar {
       position: fixed;
@@ -58,13 +57,15 @@
       z-index: 2000;
       color: #333;
       text-align: left;
+      transition: opacity 0.3s ease;
+      opacity: 0;
+      pointer-events: none;
     }
-    /* Correção para manter dropdown aberto ao passar mouse sobre ele */
-    .menu-item:hover > .dropdown-content,
-    .dropdown-content:hover {
+    .menu-item.open > .dropdown-content {
       display: block;
+      opacity: 1;
+      pointer-events: auto;
     }
-    /* Colunas dentro do dropdown */
     .dropdown-columns {
       display: flex;
       gap: 20px;
@@ -92,7 +93,6 @@
       text-decoration: underline;
     }
 
-    /* Seu CSS original abaixo (sem alterações) */
     h1 {
       color: #007bff;
       margin-top: 40px;
@@ -170,7 +170,6 @@
       margin: 0 8px;
     }
 
-    /* Ajustes extras para dispositivos móveis */
     @media (max-width: 600px) {
       .search-box {
         position: static;
@@ -188,7 +187,6 @@
         flex: none;
         padding: 0 10px;
       }
-      /* Tornar a barra superior empilhada no mobile */
       .topbar {
         height: auto;
         flex-wrap: wrap;
@@ -208,10 +206,11 @@
         box-shadow: none;
         border-radius: 0;
       }
-      .menu-item:hover > .dropdown-content {
-        display: none; /* evitar dropdown hover no mobile */
+      .menu-item.open > .dropdown-content {
+        display: block;
+        opacity: 1;
+        pointer-events: auto;
       }
-      /* Dropdown toggle no click para mobile (opcional, para você implementar com JS) */
     }
   </style>
 </head>
@@ -220,7 +219,7 @@
   <!-- Barra Superior -->
   <div class="topbar">
     <nav class="menu">
-      <div class="menu-item">
+      <div class="menu-item" tabindex="0">
         Missão do Calculadoras de enfermagem
         <div class="dropdown-content">
           <div class="dropdown-columns">
@@ -231,7 +230,7 @@
           </div>
         </div>
       </div>
-      <div class="menu-item">
+      <div class="menu-item" tabindex="0">
         Explicações importantes
         <div class="dropdown-content">
           <div class="dropdown-columns">
@@ -244,7 +243,7 @@
           </div>
         </div>
       </div>
-      <div class="menu-item">
+      <div class="menu-item" tabindex="0">
         Escalas e Calculadoras
         <div class="dropdown-content">
           <div class="dropdown-columns">
@@ -258,12 +257,11 @@
               <a href="asa.html">Classificação Risco Anestésico</a>
               <a href="elpo.html">Escala ELPO</a>
               <a href="johns.html">Escala Johns-Hopkins</a>
-              <!-- Você pode adicionar mais links aqui -->
             </div>
           </div>
         </div>
       </div>
-      <div class="menu-item">
+      <div class="menu-item" tabindex="0">
         Ensinando a usar as calculadoras
         <div class="dropdown-content">
           <div class="dropdown-columns">
@@ -275,7 +273,7 @@
           </div>
         </div>
       </div>
-      <div class="menu-item">
+      <div class="menu-item" tabindex="0">
         Informações
         <div class="dropdown-content">
           <div class="dropdown-columns">
@@ -291,7 +289,6 @@
     </nav>
   </div>
 
-  <!-- Resto do conteúdo original -->
   <div class="search-box">
     <input type="text" id="procurar" placeholder="🔍 Procurar... ex: Glasgow" oninput="buscarCalculadora()">
   </div>
@@ -324,7 +321,7 @@
       <a class="botao" href="gestacional.html">🤰 Calcular Idade gestacional e Data provável do parto</a>
       <a class="botao" href="apgar.html">🤱 Calcular Apgar</a>
       <a class="botao" href="aldrete.html">👨‍⚕️ Calcular recuperação anestésica do paciente (Aldrete e Kroulik)</a>
-      <a class="botao" href="manchester.html"> Escala de classificação de risco dos pacientes nos serviços de pronto atendimento (Protocolo de Manchester)</a>
+      <a class="botao" href="manchester.html">Escala de classificação de risco dos pacientes nos serviços de pronto atendimento (Protocolo de Manchester)</a>
     </div>
   </div>
 
@@ -356,6 +353,17 @@
         botao.style.display = texto.includes(termo) ? "block" : "none";
       });
     }
+
+    // Mantém dropdown aberto enquanto mouse estiver no menu ou no dropdown
+    document.querySelectorAll('.menu-item').forEach(item => {
+      item.addEventListener('mouseenter', () => {
+        item.classList.add('open');
+      });
+      item.addEventListener('mouseleave', () => {
+        item.classList.remove('open');
+      });
+    });
   </script>
+
 </body>
 </html>
