@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Escala de Richmond (RASS)</title>
+  <link rel="canonical" href="https://www.calculadorasdeenfermagem.com.br/richmond.html" />
   <meta name="description" content="Calculadora da Escala de Agitação e Sedação de Richmond (RASS) com pontuação e interpretação clínica." />
   <meta name="keywords" content="escala RASS, sedação, agitação, enfermagem, uti, richmond">
   <style>
@@ -73,6 +74,7 @@
       border-radius: 6px;
       cursor: pointer;
       font-size: 16px;
+      margin-right: 10px;
     }
     .resultado {
       margin-top: 20px;
@@ -82,6 +84,12 @@
       font-weight: bold;
       font-size: 16px;
       white-space: pre-line;
+    }
+    .referencia {
+      font-family: Arial, sans-serif;
+      font-size: 12px;
+      color: #000;
+      margin-top: 45px;
     }
     footer {
       background-color: #f1f1f1;
@@ -108,7 +116,7 @@
       document.getElementById('barra-lateral').innerHTML = html;
     });
 </script>
-  <div class="content">
+  <div class="content" id="pdfContent">
     <h1>😴 Escala de Richmond (RASS)</h1>
     <p>A Escala RASS é usada para avaliar o nível de sedação ou agitação em pacientes críticos. Escolha o nível que mais representa o estado atual do paciente:</p>
     <table id="tabelaRASS">
@@ -126,7 +134,15 @@
     </table>
 
     <button onclick="calcularRASS()">Mostrar Resultado</button>
+    <button onclick="gerarPDF()">Gerar PDF</button>
+
     <div id="resultado" class="resultado" style="display:none;"></div>
+
+    <div class="referencia">
+      Referência: Sessler CN, Gosnell MS, Grap MJ et al. The Richmond Agitation-Sedation Scale (RASS): Validity and reliability in adult intensive care unit patients. Am J Respir Crit Care Med. 2002;166:1338-44.
+      <br><br><br>
+      Referência: Universidade Federal de Pelotas – UFPel. Escala de Agitação e Sedação de Richmond (RASS). Disponível em: <a href="https://dms.ufpel.edu.br/static/bib/apoio/escala_de_rass.pdf" target="_blank">https://dms.ufpel.edu.br/static/bib/apoio/escala_de_rass.pdf</a>
+    </div>
 
     <footer>
       <p>© 2025 Calculadoras de Enfermagem</p>
@@ -175,6 +191,23 @@
       resultado.textContent = mensagem;
       resultado.style.display = 'block';
     }
+
+    function gerarPDF() {
+      const content = document.getElementById("pdfContent").cloneNode(true);
+      const sidebar = content.querySelector(".sidebar");
+      const footer = content.querySelector("footer");
+      if (sidebar) sidebar.remove();
+      if (footer) footer.remove();
+      const opt = {
+        margin: 0,
+        filename: "escala-richmond.pdf",
+        image: { type: "jpeg", quality: 1 },
+        html2canvas: { scale: 3, scrollY: 0 },
+        jsPDF: { unit: "mm", format: "a4", orientation: "portrait" }
+      };
+      html2pdf().set(opt).from(content).save();
+    }
   </script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 </body>
 </html>
