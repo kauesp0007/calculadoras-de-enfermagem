@@ -129,13 +129,13 @@
 <body>
 
   <div id="barra-lateral"></div>
-<script>
-  fetch('sidebar.html')
-    .then(response => response.text())
-    .then(html => {
-      document.getElementById('barra-lateral').innerHTML = html;
-    });
-</script>
+  <script>
+    fetch('sidebar.html')
+      .then(response => response.text())
+      .then(html => {
+        document.getElementById('barra-lateral').innerHTML = html;
+      });
+  </script>
 
   <div class="content" id="pdfContent">
     <h1>Cálculo de Gotejamento</h1>
@@ -193,8 +193,9 @@
   </div>
 
 <script>
-  function arredondarPraCima(valor) {
-    return Math.ceil(valor);
+  function arredondar(valor) {
+    const parteDecimal = valor - Math.floor(valor);
+    return parteDecimal >= 0.5 ? Math.ceil(valor) : Math.floor(valor);
   }
 
   function calcularGotejamento() {
@@ -249,7 +250,7 @@ ${divisao.toFixed(2)} × ${multiplicador} = ${multiplicacao.toFixed(2)}
       gotasPorMinuto = multiplicacao;
     }
 
-    const gotasArredondadas = arredondarPraCima(gotasPorMinuto);
+    const gotasArredondadas = arredondar(gotasPorMinuto);
 
     const unidadeTempoTexto = unidadeTempo === "horas" ? "hora(s)" : "minuto(s)";
     const equipoTexto = equipo === "macrogotas" ? "Macrogotas" : "Microgotas";
@@ -259,7 +260,7 @@ ${divisao.toFixed(2)} × ${multiplicador} = ${multiplicacao.toFixed(2)}
 
 ${gotasArredondadas} gotas/minuto
 
-(Os valores foram arredondados para cima para garantir a segurança do cálculo.)`;
+(Os valores foram arredondados de acordo com a regra: a partir de 0,5 para cima, abaixo de 0,5 para baixo.)`;
 
     resultadoDiv.style.display = 'block';
     resultadoDiv.textContent = calculoDetalhado + "\n" + resultadoTexto;
