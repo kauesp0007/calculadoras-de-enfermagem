@@ -1,33 +1,46 @@
-// topbar.js
-
-// Função para abrir e fechar submenu no hover e no clique (para mobile)
 document.addEventListener('DOMContentLoaded', () => {
-  // Seleciona todos os menus que possuem submenu
-  const menus = document.querySelectorAll('.group');
+  fetch('topbar.html')
+    .then(response => response.text())
+    .then(data => {
+      const container = document.createElement('div');
+      container.innerHTML = data;
+      document.body.insertBefore(container, document.body.firstChild);
 
-  menus.forEach(menu => {
-    const submenu = menu.querySelector('ul'); // submenu é a lista dentro do menu
+      // Seleciona todos os menus com submenu
+      const menus = container.querySelectorAll('.relative.group');
 
-    if (!submenu) return;
+      menus.forEach(menu => {
+        const button = menu.querySelector('button');
+        const submenu = menu.querySelector('ul');
 
-    // Controle de hover via CSS já funciona, mas adicionamos clique para mobile
+        if (!button || !submenu) return;
 
-    // Para clique: alterna a exibição do submenu
-    menu.querySelector('button')?.addEventListener('click', e => {
-      e.preventDefault();
-      // Toggle display submenu
-      if (submenu.classList.contains('hidden')) {
-        submenu.classList.remove('hidden');
-      } else {
-        submenu.classList.add('hidden');
-      }
+        // Toggle submenu no clique
+        button.addEventListener('click', e => {
+          e.preventDefault();
+          const isHidden = submenu.classList.contains('hidden');
+          // Fecha todos os outros submenus
+          menus.forEach(m => m.querySelector('ul').classList.add('hidden'));
+          // Abre ou fecha submenu atual
+          if (isHidden) {
+            submenu.classList.remove('hidden');
+          } else {
+            submenu.classList.add('hidden');
+          }
+        });
+      });
+
+      // Fecha menus ao clicar fora
+      document.addEventListener('click', e => {
+        menus.forEach(menu => {
+          if (!menu.contains(e.target)) {
+            const submenu = menu.querySelector('ul');
+            if (submenu) submenu.classList.add('hidden');
+          }
+        });
+      });
+    })
+    .catch(error => {
+      console.error('Erro ao carregar a barra superior:', error);
     });
-
-    // Fecha submenu ao clicar fora
-    document.addEventListener('click', e => {
-      if (!menu.contains(e.target)) {
-        submenu.classList.add('hidden');
-      }
-    });
-  });
 });
