@@ -100,6 +100,7 @@
       font-weight: bold;
       font-size: 14px;
       color: black;
+      white-space: pre-line;
     }
 
     footer {
@@ -159,8 +160,8 @@
           <option value="h">horas</option>
         </select>
         <select id="tipoEquipo">
-          <option value="20">Equipo macro (20 gotas/mL)</option>
-          <option value="60">Equipo micro (60 gotas/mL)</option>
+          <option value="20">Macro (20 gotas/mL)</option>
+          <option value="60">Micro (60 gotas/mL)</option>
         </select>
         <button onclick="calcularGotejamento()">Calcular</button>
         <div class="resultado" id="resultadoGotejamento"></div>
@@ -174,11 +175,18 @@
         <div class="resultado" id="resultadoIdadeGestacional"></div>
       </div>
 
-      <!-- Conversão de Insulina -->
+      <!-- Aspiração de Insulina -->
       <div class="calculator">
         <h2>Aspiração de Insulina</h2>
-        <input type="number" id="uiPrescrita" placeholder="Unidades prescritas (UI)">
-        <input type="number" id="concentracao" placeholder="Concentração (UI/mL)">
+        <label for="frasco">Frasco disponível (UI):</label>
+        <input type="number" id="frasco" placeholder="Ex: 100" />
+
+        <label for="seringa">Seringa (ml):</label>
+        <input type="number" id="seringa" placeholder="Ex: 1" />
+
+        <label for="prescricao">Prescrição médica (UI):</label>
+        <input type="number" id="prescricao" placeholder="Ex: 15" />
+
         <button onclick="calcularInsulina()">Calcular</button>
         <div class="resultado" id="resultadoInsulina"></div>
       </div>
@@ -227,11 +235,32 @@
     }
 
     function calcularInsulina() {
-      const ui = parseFloat(document.getElementById('uiPrescrita').value);
-      const concentracao = parseFloat(document.getElementById('concentracao').value);
-      if (isNaN(ui) || isNaN(concentracao) || concentracao === 0) return;
-      const ml = ui / concentracao;
-      document.getElementById('resultadoInsulina').innerText = `Aspirar: ${ml.toFixed(2)} mL`;
+      const frasco = parseFloat(document.getElementById('frasco').value);
+      const seringa = parseFloat(document.getElementById('seringa').value);
+      const prescricao = parseFloat(document.getElementById('prescricao').value);
+      const resultado = document.getElementById('resultadoInsulina');
+
+      if (isNaN(frasco) || isNaN(seringa) || isNaN(prescricao) ||
+          frasco <= 0 || seringa <= 0 || prescricao <= 0) {
+        resultado.style.display = 'block';
+        resultado.textContent = "Preencha todos os campos com valores válidos e maiores que zero.";
+        return;
+      }
+
+      const x = (prescricao * seringa) / frasco;
+      const xArredondado = Math.round(x * 100) / 100;
+
+      let explicacao = `Regra de três para cálculo da insulina:\n\n` +
+                       `${frasco} UI ----------- ${seringa} ml\n` +
+                       `${prescricao} UI ----------- x ml\n\n` +
+                       `100% x = (prescrição × seringa) ÷ frasco\n` +
+                       `x = (${prescricao} × ${seringa}) ÷ ${frasco}\n` +
+                       `x = ${x.toFixed(4)} ml\n\n` +
+                       `Arredondado para: ${xArredondado} ml\n\n` +
+                       `Deve-se aspirar ${xArredondado} mL do frasco para administrar a dose prescrita.`;
+
+      resultado.style.display = 'block';
+      resultado.textContent = explicacao;
     }
   </script>
 </body>
