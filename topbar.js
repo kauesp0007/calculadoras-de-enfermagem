@@ -1,22 +1,33 @@
-document.addEventListener("DOMContentLoaded", function () {
-  fetch('topbar.html')
-    .then(response => response.text())
-    .then(data => {
-      // Cria um elemento temporário e insere o conteúdo do topbar.html
-      const temp = document.createElement('div');
-      temp.innerHTML = data.trim();
+// topbar.js
 
-      // Extrai o primeiro elemento real do HTML (o header da topbar)
-      const topbar = temp.querySelector('header');
+// Função para abrir e fechar submenu no hover e no clique (para mobile)
+document.addEventListener('DOMContentLoaded', () => {
+  // Seleciona todos os menus que possuem submenu
+  const menus = document.querySelectorAll('.group');
 
-      // Insere no topo do <body>
-      if (topbar) {
-        document.body.insertBefore(topbar, document.body.firstChild);
+  menus.forEach(menu => {
+    const submenu = menu.querySelector('ul'); // submenu é a lista dentro do menu
+
+    if (!submenu) return;
+
+    // Controle de hover via CSS já funciona, mas adicionamos clique para mobile
+
+    // Para clique: alterna a exibição do submenu
+    menu.querySelector('button')?.addEventListener('click', e => {
+      e.preventDefault();
+      // Toggle display submenu
+      if (submenu.classList.contains('hidden')) {
+        submenu.classList.remove('hidden');
       } else {
-        console.error("topbar.html não contém um <header>.");
+        submenu.classList.add('hidden');
       }
-    })
-    .catch(error => {
-      console.error('Erro ao carregar a barra superior:', error);
     });
+
+    // Fecha submenu ao clicar fora
+    document.addEventListener('click', e => {
+      if (!menu.contains(e.target)) {
+        submenu.classList.add('hidden');
+      }
+    });
+  });
 });
