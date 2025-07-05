@@ -1,45 +1,45 @@
-// topbar.js
+// topbar111.js
 
-fetch("topbar111.html")
-  .then(res => res.text())
-  .then(data => {
-    const header = document.createElement("header");
-    header.innerHTML = data;
-    document.body.prepend(header);
+// Espera o DOM estar pronto
+document.addEventListener('DOMContentLoaded', () => {
+  // 1) Carrega o HTML da topbar
+  fetch('topbar111.html')
+    .then(res => {
+      if (!res.ok) throw new Error(`Falha ao carregar topbar111.html: ${res.status}`);
+      return res.text();
+    })
+    .then(html => {
+      const header = document.createElement('header');
+      header.innerHTML = html;
+      document.body.prepend(header);
 
-    // Após carregar, inicializa os menus
-    initTopbarMenus();
-  });
+      // 2) Inicializa o comportamento dos menus
+      initTopbarMenus();
+    })
+    .catch(err => {
+      console.error(err);
+    });
+});
 
+// Função que adiciona os listeners aos botões e ao document
 function initTopbarMenus() {
-  // Abre/fecha o menu correspondente
-  function toggleMenu(menuId) {
-    const menus = document.querySelectorAll('.dropdown-menu');
-    menus.forEach(menu => {
-      if (menu.id === menuId) {
-        menu.classList.toggle('show');
-      } else {
-        menu.classList.remove('show');
-      }
+  // Ao clicar em um botão com data-menu-target, alterna seu dropdown
+  document.querySelectorAll('[data-menu-target]').forEach(btn => {
+    btn.addEventListener('click', e => {
+      e.preventDefault();
+      const menuId = btn.getAttribute('data-menu-target');
+      // Fecha todos
+      document.querySelectorAll('.dropdown-menu').forEach(m => m.classList.remove('show'));
+      // Abre o selecionado
+      const toOpen = document.getElementById(menuId);
+      if (toOpen) toOpen.classList.toggle('show');
     });
-  }
-
-  // Fecha os menus ao clicar fora
-  document.addEventListener('click', function (event) {
-    const isClickInside = event.target.closest('nav');
-    if (!isClickInside) {
-      document.querySelectorAll('.dropdown-menu').forEach(menu => {
-        menu.classList.remove('show');
-      });
-    }
   });
 
-  // Adiciona os eventos aos botões após o carregamento
-  document.querySelectorAll('nav button').forEach(button => {
-    button.addEventListener('click', e => {
-      e.preventDefault();
-      const menuId = button.getAttribute('onclick')?.match(/'([^']+)'/)?.[1];
-      if (menuId) toggleMenu(menuId);
-    });
+  // Fecha dropdowns ao clicar fora da nav
+  document.addEventListener('click', e => {
+    if (!e.target.closest('nav')) {
+      document.querySelectorAll('.dropdown-menu').forEach(m => m.classList.remove('show'));
+    }
   });
 }
