@@ -9,9 +9,12 @@ function gerarPDF() {
   clone.querySelectorAll('button, .no-print, .nao-imprimir').forEach(el => el.remove());
 
   const wrapper = document.createElement('div');
+  wrapper.style.width = '100%';
+  wrapper.style.maxWidth = '800px'; // ou 850px se quiser mais largura
+  wrapper.style.margin = '0 auto'; // centraliza
   wrapper.style.padding = '20px';
   wrapper.style.fontFamily = 'Inter, sans-serif';
-  wrapper.style.backgroundColor = 'white'; // fundo branco para PDF
+
 
   const etiqueta = document.createElement('div');
   etiqueta.style.width = '100mm';
