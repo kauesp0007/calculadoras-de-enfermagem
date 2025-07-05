@@ -45,9 +45,9 @@ function gerarPDF() {
     filename: 'documento.pdf',
     image: { type: 'jpeg', quality: 0.98 },
     html2canvas: {
-      scale: 3,                // aumenta a resolução — mantém boa qualidade, mas deixa arquivo maior
+      scale: 2,                // aumenta a resolução — mantém boa qualidade, mas deixa arquivo maior
       scrollY: 0,              // força renderizar a partir do topo da página
-      windowWidth: 800,       // largura da "janela" para capturar o conteúdo; ajuste para o tamanho do layout
+      windowWidth: 794,       // largura da "janela" para capturar o conteúdo; ajuste para o tamanho do layout
     },
     jsPDF: {
       unit: 'mm',
