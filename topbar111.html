@@ -113,23 +113,48 @@
 
 <div class="pt-20"></div>
 
+<!-- Importar Topbar -->
 <script>
-  function toggleMenu(menuId) {
-    const menu = document.getElementById(menuId);
-    const isVisible = menu.classList.contains('show');
-    document.querySelectorAll('.dropdown-menu').forEach(m => m.classList.remove('show'));
-    if (!isVisible) menu.classList.add('show');
-  }
+  fetch("topbar111.html")
+    .then(res => res.text())
+    .then(data => {
+      const header = document.createElement("header");
+      header.innerHTML = data;
+      document.body.prepend(header);
 
-  document.addEventListener('click', function(event) {
-    const isClickInside = event.target.closest('nav');
-    if (!isClickInside) {
-      document.querySelectorAll('.dropdown-menu').forEach(menu => {
-        menu.classList.remove('show');
+      // Agora que a topbar foi carregada, ativa o JS dos menus
+      function toggleMenu(menuId) {
+        const menus = document.querySelectorAll('.dropdown-menu');
+        menus.forEach(menu => {
+          if (menu.id === menuId) {
+            menu.classList.toggle('show');
+          } else {
+            menu.classList.remove('show');
+          }
+        });
+      }
+
+      // Adiciona evento para fechar os menus ao clicar fora
+      document.addEventListener('click', function (event) {
+        const isClickInside = event.target.closest('nav');
+        if (!isClickInside) {
+          document.querySelectorAll('.dropdown-menu').forEach(menu => {
+            menu.classList.remove('show');
+          });
+        }
       });
-    }
-  });
+
+      // Adiciona o evento aos botões para abrir os menus
+      header.querySelectorAll('nav button').forEach(button => {
+        button.addEventListener('click', e => {
+          e.preventDefault();
+          const menuId = button.getAttribute('onclick').match(/'([^']+)'/)[1];
+          toggleMenu(menuId);
+        });
+      });
+    });
 </script>
+
 
 </body>
 </html>
