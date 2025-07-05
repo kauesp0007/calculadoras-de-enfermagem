@@ -11,6 +11,7 @@ function gerarPDF() {
   const wrapper = document.createElement('div');
   wrapper.style.padding = '20px';
   wrapper.style.fontFamily = 'Inter, sans-serif';
+  wrapper.style.backgroundColor = 'white'; // fundo branco para PDF
 
   const etiqueta = document.createElement('div');
   etiqueta.style.width = '100mm';
@@ -40,21 +41,20 @@ function gerarPDF() {
   wrapper.appendChild(clone);
 
   html2pdf()
-  .set({
-    margin: 10,                // margem em mm — pode aumentar para espaçamento extra
-    filename: 'documento.pdf',
-    image: { type: 'jpeg', quality: 0.98 },
-    html2canvas: {
-      scale: 2,                // aumenta a resolução — mantém boa qualidade, mas deixa arquivo maior
-      scrollY: 0,              // força renderizar a partir do topo da página
-      windowWidth: 794,       // largura da "janela" para capturar o conteúdo; ajuste para o tamanho do layout
-    },
-    jsPDF: {
-      unit: 'mm',
-      format: 'a4',            // formato A4 padrão; pode trocar para 'letter' se preferir
-      orientation: 'portrait'  // retrato; pode ser 'landscape' para paisagem
-    }
-  })
-  .from(wrapper)
-  .save();
+    .set({
+      margin: 10,
+      filename: 'documento.pdf',
+      image: { type: 'jpeg', quality: 0.98 },
+      html2canvas: {
+        scale: 2,           // boa qualidade, mas não exagerada
+        useCORS: true
+      },
+      jsPDF: {
+        unit: 'mm',
+        orientation: 'portrait'
+        // format omitido → tamanho será automático baseado no conteúdo
+      }
+    })
+    .from(wrapper)
+    .save();
 }
