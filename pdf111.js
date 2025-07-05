@@ -6,14 +6,24 @@ function gerarPDF() {
   }
 
   const clone = original.cloneNode(true);
+  // Limpa margens e padding herdados do Tailwind
+  clone.style.margin = '0';
+  clone.style.padding = '0';
+  clone.style.width = '100%';
+  clone.style.maxWidth = 'none';
+  clone.style.boxSizing = 'border-box';
+
   clone.querySelectorAll('button, .no-print, .nao-imprimir').forEach(el => el.remove());
 
   const wrapper = document.createElement('div');
-  wrapper.style.width = '100%';
-  wrapper.style.maxWidth = '800px'; // ou 850px se quiser mais largura
-  wrapper.style.margin = '0 auto'; // centraliza
-  wrapper.style.padding = '20px';
+  wrapper.style.width = '210mm'; // largura exata da página A4
+  wrapper.style.minHeight = '297mm'; // altura mínima da página A4
+  wrapper.style.margin = '0 auto';
+  wrapper.style.padding = '10mm';
   wrapper.style.fontFamily = 'Inter, sans-serif';
+  wrapper.style.boxSizing = 'border-box';
+  wrapper.style.backgroundColor = 'white';
+
 
 
   const etiqueta = document.createElement('div');
