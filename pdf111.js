@@ -9,7 +9,7 @@ function gerarPDF() {
   clone.querySelectorAll('button, .no-print, .nao-imprimir').forEach(el => el.remove());
 
   const wrapper = document.createElement('div');
-  wrapper.style.padding = '20px';
+  wrapper.style.padding = '10px';
   wrapper.style.fontFamily = 'Inter, sans-serif';
 
   const etiqueta = document.createElement('div');
@@ -20,7 +20,7 @@ function gerarPDF() {
   etiqueta.style.display = 'flex';
   etiqueta.style.alignItems = 'center';
   etiqueta.style.justifyContent = 'center';
-  etiqueta.style.marginBottom = '20px';
+  etiqueta.style.marginBottom = '10px';
   etiqueta.innerText = 'Cole a etiqueta aqui';
 
   const h1 = clone.querySelector('h1');
@@ -45,7 +45,7 @@ function gerarPDF() {
     filename: 'documento.pdf',
     image: { type: 'jpeg', quality: 0.98 },
     html2canvas: {
-      scale: 3,                // aumenta a resolução — mantém boa qualidade, mas deixa arquivo maior
+      scale: 1,5,                // aumenta a resolução — mantém boa qualidade, mas deixa arquivo maior
       scrollY: 0,              // força renderizar a partir do topo da página
       windowWidth: 1200,       // largura da "janela" para capturar o conteúdo; ajuste para o tamanho do layout
     },
