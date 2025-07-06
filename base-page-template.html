@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Calculadora [Nome da Calculadora]</title>
+  <link rel="canonical" href="https://www.calculadorasdeenfermagem.com.br/[nome-da-calculadora].html" />
+  <meta name="keywords" content="palavras, chave, da, calculadora" />
+  <meta name="description" content="Descrição específica da calculadora." />
+
+  <link rel="icon" href="favicon.ico" type="image/x-icon" />
+
+  <script async src="https://www.googletagmanager.com/gtag/js?id=AW-952633102"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'AW-952633102');
+  </script>
+  
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
+  
+  <link rel="stylesheet" href="styles.css" />
+  
+  <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+  <script src="topbar111.js" defer></script>
+  <script src="site-index.js" defer></script>
+  <script src="pdf111.js" defer></script> 
+
+</head>
+<body class="bg-gray-50 text-gray-800 font-inter has-sidebar"> <div id="topbar-container"></div>
+
+  <button id="menuToggle">☰</button>
+  
+  <div id="mobileSidebar">
+    <button id="closeSidebar">✕</button>
+    <div class="text-lg font-semibold text-dark-blue mb-2">Calculadoras</div>
+    </div>
+
+  <aside id="sidebar-desktop">
+    <div class="text-lg font-semibold text-dark-blue mb-2">Calculadoras</div>
+    </aside>
+
+  <main class="calculator-main-content"> <div id="search-container" class="search-box-container"></div>
+    <div id="search-results"></div>
+
+    <div id="specific-calculator-content">
+        </div>
+  </main>
+
+  <div id="footer-container"></div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      // Carregamento da Topbar
+      fetch("topbar111.html")
+        .then(res => res.text())
+        .then(data => {
+          const topbarContainer = document.getElementById('topbar-container');
+          if (topbarContainer) {
+            topbarContainer.innerHTML = data;
+          }
+        })
+        .catch(err => console.error("Erro ao carregar topbar111.html:", err));
+
+      // Carregamento da Sidebar (Mobile e Desktop)
+      fetch("sidebar111.html")
+        .then(res => res.text())
+        .then(data => {
+          const tempDiv = document.createElement("div");
+          tempDiv.innerHTML = data;
+
+          const sidebarDesktopContent = tempDiv.querySelector('aside > ul') || tempDiv.querySelector('ul'); // Conteúdo dos links
+          const mobileSidebarContentDiv = document.getElementById('mobileSidebar'); // O div da sidebar mobile
+
+          const sidebarDesktop = document.getElementById('sidebar-desktop');
+          const mobileSidebarDiv = document.getElementById('mobileSidebar');
+          const menuToggleBtn = document.getElementById('menuToggle');
+          const closeBtn = document.getElementById('closeSidebar');
+
+          // Injeta conteúdo na sidebar desktop
+          if (sidebarDesktop && sidebarDesktopContent) {
+            sidebarDesktop.querySelector('.text-lg').insertAdjacentElement('afterend', sidebarDesktopContent.cloneNode(true));
+          }
+
+          // Injeta conteúdo na sidebar mobile
+          if (mobileSidebarDiv && sidebarDesktopContent) { // Reutiliza o mesmo conteúdo de links
+            // O botão fechar e o título já estão no HTML. Apenas adicione os links.
+            mobileSidebarDiv.querySelector('.text-lg').insertAdjacentElement('afterend', sidebarDesktopContent.cloneNode(true));
+          }
+
+          // Lógica de toggle para o menu mobile
+          if (menuToggleBtn) {
+            menuToggleBtn.addEventListener('click', () => {
+              if (mobileSidebarDiv) mobileSidebarDiv.style.display = 'block';
+            });
+          }
+          if (closeBtn) {
+            closeBtn.addEventListener('click', () => {
+              if (mobileSidebarDiv) mobileSidebarDiv.style.display = 'none';
+            });
+          }
+        })
+        .catch(err => console.error("Erro ao carregar sidebar111.html:", err));
+
+      // Carregamento da caixa de pesquisa (PADRONIZADO)
+      fetch("pesquisa.html")
+        .then(res => res.text())
+        .then(data => {
+          const searchContainer = document.getElementById('search-container');
+          if (searchContainer) {
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = data;
+            while (tempDiv.firstChild) {
+                searchContainer.appendChild(tempDiv.firstChild);
+            }
+
+            const searchInput = searchContainer.querySelector('#search-input');
+            const searchButton = searchContainer.querySelector('button[type="submit"]');
+            const searchResultsDiv = document.getElementById('search-results');
+
+            if (searchButton && searchInput && searchResultsDiv) {
+              const handleSearch = (e) => {
+                if (e) e.preventDefault();
+                performSearch(searchInput.value, searchResultsDiv);
+              };
+
+              searchButton.addEventListener('click', handleSearch);
+              searchInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  handleSearch(e);
+                }
+              });
+
+              searchInput.addEventListener('blur', () => {
+                  setTimeout(() => {
+                      searchResultsDiv.style.display = 'none';
+                      searchResultsDiv.innerHTML = '';
+                  }, 200);
+              });
+
+              searchInput.addEventListener('focus', () => {
+                  if (searchInput.value.trim() !== '') {
+                      performSearch(searchInput.value, searchResultsDiv);
+                  }
+              });
+            }
+          }
+        })
+        .catch(err => console.error("Erro ao carregar pesquisa.html:", err));
+
+      // Carregamento do Rodapé
+      fetch("rodape111.html")
+        .then(res => res.text())
+        .then(data => {
+          const footerContainer = document.getElementById('footer-container');
+          if (footerContainer) {
+            footerContainer.innerHTML = data;
+          }
+        })
+        .catch(err => console.error("Erro ao carregar rodape111.html:", err));
+      
+      // Lógica para carregar o conteúdo específico da calculadora (ex: apgar.html)
+      // Esta parte será feita pelo site-index.js, mas o shell existe aqui.
+    });
+
+    // Funções de pesquisa e PDF (devem vir de site-index.js e pdf111.js)
+  </script>
+</body>
+</html>
