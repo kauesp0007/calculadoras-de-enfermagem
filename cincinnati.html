@@ -22,6 +22,8 @@
     gtag('config', 'AW-952633102');
   </script>
 
+  <script src="topbar111.js" defer></script>
+
   <style>
     /* Reset básico e Box-sizing para consistência */
     *, *::before, *::after {
@@ -130,19 +132,20 @@
       color: #333; /* Tailwind text-gray-800 */
     }
 
-    /* Remova estes estilos se estiver usando topbar111.js e o HTML da topbar */
-    /* .dropdown-menu { display: none; }
+    /* ESTILOS DOS DROPDOWNS DA TOPBAR (MOVIDOS DE TOPBAR111.HTML) */
+    .dropdown-menu { display: none; }
     .dropdown-menu.show { display: block; }
     nav { justify-content: flex-end; } 
     nav button { cursor: pointer; }
-    nav .dropdown-menu a:hover { background-color: #bfdbfe; } */
+    nav .dropdown-menu a:hover { background-color: #bfdbfe; }
+    /* FIM DOS ESTILOS DA TOPBAR */
 
     /* Espaçamento para o conteúdo abaixo da topbar fixa */
     .main-content-wrapper { 
       display: flex;
       flex-direction: column;
       flex-grow: 1;
-      padding-top: 20px; /* Ajuste para espaçamento simples se não tiver topbar fixa */
+      padding-top: 64px; /* Garante que o conteúdo comece abaixo da topbar fixa (64px de altura) */
       width: 100%;
       max-width: 1280px; /* max-w-screen-xl */
       margin-left: auto;
@@ -284,13 +287,13 @@
     </form>
 
     <div class="flex flex-wrap justify-start gap-4 mt-6">
-      <button type="button" onclick="calcular()" class="btn-primary" aria-label="Calcular resultado">
+      <button id="btnCalcular" class="btn-primary" aria-label="Calcular resultado">
         Calcular Resultado
       </button>
-      <button type="button" onclick="limpar()" class="btn-primary" aria-label="Limpar seleção">
+      <button id="btnLimpar" class="btn-primary" aria-label="Limpar seleção">
         Limpar
       </button>
-      <button type="button" onclick="gerarPDF()" class="btn-secondary" aria-label="Gerar PDF">
+      <button id="btnGerarPDF" class="btn-secondary" aria-label="Gerar PDF">
         Gerar PDF
       </button>
     </div>
@@ -299,21 +302,10 @@
     Ajude-nos a manter o site gratuito
   </a>
 
+  <div id="footer-container"></div>
+
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-  <div id="footer-container">
-    <footer>
-      <p>© 2025 Calculadoras de Enfermagem</p>
-      <p>
-        <a href="index.html">Início</a> |
-        <a href="politica.html">Política de Privacidade</a> |
-        <a href="termos.html">Termos de Uso</a>
-      </p>
-    </footer>
-  </div>
-
-
   <script>
-    // Usa 'tabelaCincinnati' para ser consistente com o código completo que eu tinha te passado
     const tabelaCincinnati = document.getElementById("cincinnatiTable");
 
     // Event listener para seleção de células da tabela
@@ -333,7 +325,7 @@
     }
 
     // Função principal de cálculo
-    function calcular() { // Renomeada de calcularCincinnati() para calcular()
+    function calcular() {
       console.log('Função calcular() iniciada.');
       const linhas = tabelaCincinnati.querySelectorAll("tbody tr");
       let positivo = false;
@@ -353,8 +345,8 @@
         }
       });
 
-      const resultadoDiv = document.getElementById("resultado"); // Usei 'resultadoDiv' para clareza
-      const observacaoDiv = document.getElementById("observacao"); // Usei 'observacaoDiv' para clareza
+      const resultadoDiv = document.getElementById("resultado");
+      const observacaoDiv = document.getElementById("observacao");
 
       if (!resultadoDiv || !observacaoDiv) {
         console.error("Elementos 'resultado' ou 'observacao' não encontrados!");
@@ -368,21 +360,21 @@
       observacaoDiv.innerText = "";
       
       // Garante que a div de resultado esteja visível
-      resultadoDiv.style.display = "block"; // Define explicitamente display para block
+      resultadoDiv.style.display = "block";
       console.log('Conteúdo anterior do resultado/observação limpo e resultadoDiv visível.');
 
 
       if (incompleto) {
         resultadoDiv.innerText = "Por favor, selecione todas as opções.";
-        resultadoDiv.classList.add('error'); // Adiciona classe de erro para estilo
+        resultadoDiv.classList.add('error');
         console.log('Cálculo incompleto: faltam opções. Exibindo mensagem de erro.');
         return;
       }
 
       // Se não estiver incompleto, determina e exibe o resultado final
       resultadoDiv.innerText = positivo ?
-        "Resultado: POSITIVO para suspeita de AVE." :
-        "Resultado: NEGATIVO para suspeita de AVE.";
+        "Resultado: POSITIVO para suspeita de AVC." :
+        "Resultado: NEGATIVO para suspeita de AVC.";
       
       // Adiciona a classe de cor para o resultado
       resultadoDiv.classList.add('text-dark-blue'); 
@@ -415,7 +407,7 @@
         console.log('Campos limpos.');
     }
 
-    // Função gerarPDF (versão simplificada para evitar erro se não tiver html2pdf.js configurado)
+    // Função gerarPDF
     function gerarPDF() {
         console.log('Função gerarPDF() iniciada.');
         const element = document.getElementById('pdfContent');
@@ -434,23 +426,53 @@
         }
     }
 
-    // Se você tinha um carregamento de rodapé externo, mantenha-o aqui:
-    /*
+    // Carrega o rodapé e anexa eventos aos botões quando o DOM estiver completamente carregado
     document.addEventListener('DOMContentLoaded', () => {
-        fetch("rodape111.html")
-            .then(res => res.text())
-            .then(data => {
-                const footerContainer = document.getElementById("footer-container");
-                if (footerContainer) {
-                    footerContainer.innerHTML = data;
-                    console.log('Rodapé carregado com sucesso.');
-                } else {
-                    console.error('Elemento footer-container não encontrado.');
-                }
-            })
-            .catch(err => console.error("Erro ao carregar rodape111.html:", err));
+      console.log('DOM completamente carregado. Tentando anexar eventos e carregar rodapé.');
+      try {
+        const btnCalcular = document.getElementById('btnCalcular');
+        const btnLimpar = document.getElementById('btnLimpar');
+        const btnGerarPDF = document.getElementById('btnGerarPDF');
+
+        if (btnCalcular) {
+          btnCalcular.addEventListener('click', calcular);
+          console.log('Evento click anexado ao btnCalcular.');
+        } else {
+          console.error('Elemento btnCalcular não encontrado!');
+        }
+
+        if (btnLimpar) {
+          btnLimpar.addEventListener('click', limpar);
+          console.log('Evento click anexado ao btnLimpar.');
+        } else {
+          console.error('Elemento btnLimpar não encontrado!');
+        }
+
+        if (btnGerarPDF) {
+          btnGerarPDF.addEventListener('click', gerarPDF);
+          console.log('Evento click anexado ao btnGerarPDF.');
+        } else {
+          console.error('Elemento btnGerarPDF não encontrado!');
+        }
+
+      } catch (e) {
+        console.error("Erro ao anexar eventos aos botões:", e);
+      }
+
+      // Carrega o rodapé
+      fetch("rodape111.html")
+        .then(res => res.text())
+        .then(data => {
+          const footerContainer = document.getElementById("footer-container");
+          if (footerContainer) {
+            footerContainer.innerHTML = data;
+            console.log('Rodapé carregado com sucesso.');
+          } else {
+            console.error('Elemento footer-container não encontrado.');
+          }
+        })
+        .catch(err => console.error("Erro ao carregar rodape111.html:", err));
     });
-    */
   </script>
 </body>
 </html>
