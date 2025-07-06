@@ -29,84 +29,9 @@
       display: none !important;
     }
 
-    /* Estilos para a caixa de pesquisa */
-    .search-box-container {
-      position: absolute; /* Ou 'fixed' se quiser que ela role com a página */
-      top: 96px; /* Ajuste: 64px (topbar) + 32px (duas linhas, ~8px por linha) */
-      right: 1rem; /* Margem da direita */
-      z-index: 45; /* Acima do conteúdo principal, mas abaixo da topbar (z-50) */
-      max-width: 300px; /* Limita a largura da caixa de pesquisa para ser discreta */
-      width: 100%; /* Garante que ela se ajuste em telas menores */
-    }
-
-    /* Ajuste para mobile: posiciona a caixa de pesquisa abaixo do logo/título */
-    @media (max-width: 767px) {
-      .search-box-container {
-        position: static; /* Remove o posicionamento absoluto no mobile */
-        margin-top: 1rem; /* Espaçamento abaixo do logo/título */
-        margin-left: auto;
-        margin-right: auto;
-        padding-left: 1rem; /* Mantém o padding para alinhamento geral */
-        padding-right: 1rem;
-        max-width: 90%; /* Limita a largura em mobile para não ser muito grande */
-      }
-    }
-
-    /* Estilos para a área de resultados da pesquisa */
-    #search-results {
-        position: absolute; /* Ajusta conforme o search-box-container */
-        top: 150px; /* Ajuste para aparecer abaixo da caixa de pesquisa. Pode precisar de fine-tuning. */
-        right: 1rem;
-        z-index: 44; /* Abaixo da caixa de pesquisa, mas acima do conteúdo */
-        background-color: white;
-        border: 1px solid #e2e8f0; /* border-gray-200 */
-        border-radius: 0.5rem; /* rounded-lg */
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); /* shadow-lg */
-        padding: 1rem;
-        max-width: 300px; /* Mesma largura da caixa de pesquisa */
-        width: 100%;
-        display: none; /* Inicia oculto */
-        overflow-y: auto; /* Adiciona scroll se muitos resultados */
-        max-height: 400px; /* Limita a altura para não cobrir a página inteira */
-    }
-
-    #search-results ul {
-        list-style: none; /* Remove bolinhas da lista */
-        padding: 0;
-        margin: 0;
-    }
-
-    #search-results ul li {
-        margin-bottom: 0.5rem;
-    }
-
-    #search-results ul li a {
-        color: #3182ce; /* blue-600 */
-        text-decoration: none;
-        display: block;
-        padding: 0.25rem 0;
-    }
-
-    #search-results ul li a:hover {
-        text-decoration: underline;
-        color: #2b6cb0; /* blue-700 */
-    }
-
-    /* Ajuste responsivo para os resultados da pesquisa no mobile */
-    @media (max-width: 767px) {
-      #search-results {
-        position: static; /* Remove o posicionamento absoluto no mobile */
-        margin-top: 0.5rem; /* Espaçamento abaixo da caixa de pesquisa mobile */
-        margin-left: auto;
-        margin-right: auto;
-        max-width: 90%;
-        width: 100%;
-      }
-    }
-
   </style>
   <script src="topbar111.js" defer></script>
-  <script src="site-index.js" defer></script> </head>
+</head>
 <body class="bg-gray-50 text-gray-800 font-inter">
 
   <section class="pt-8 pb-4 header-with-logo">
@@ -120,10 +45,6 @@
       </div>
     </div>
   </section>
-
-  <div id="search-container" class="search-box-container"></div>
-
-  <div id="search-results"></div>
 
   <main class="max-w-7xl mx-auto px-4 py-12">
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 text-left">
@@ -163,90 +84,6 @@
         footer.innerHTML = data;
         document.body.appendChild(footer);
       });
-  </script>
-
-  <script>
-    document.addEventListener('DOMContentLoaded', () => {
-      fetch("pesquisa.html")
-        .then(res => res.text())
-        .then(data => {
-          const searchContainer = document.getElementById('search-container');
-          if (searchContainer) {
-            const tempDiv = document.createElement('div');
-            tempDiv.innerHTML = data;
-            while (tempDiv.firstChild) {
-                searchContainer.appendChild(tempDiv.firstChild);
-            }
-
-            const searchInput = searchContainer.querySelector('#search-input');
-            const searchButton = searchContainer.querySelector('button[type="submit"]');
-            const searchResultsDiv = document.getElementById('search-results'); // Referência à área de resultados
-
-            if (searchButton && searchInput && searchResultsDiv) {
-              // Função que lida com a pesquisa
-              const handleSearch = () => {
-                performSearch(searchInput.value, searchResultsDiv);
-              };
-
-              searchButton.addEventListener('click', handleSearch);
-              searchInput.addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') {
-                  handleSearch();
-                }
-              });
-
-              // Esconder resultados quando o input perde o foco, com pequeno atraso
-              searchInput.addEventListener('blur', () => {
-                  setTimeout(() => {
-                      searchResultsDiv.style.display = 'none';
-                      searchResultsDiv.innerHTML = ''; // Limpa os resultados ao esconder
-                  }, 200); // Pequeno atraso para permitir clique nos resultados
-              });
-
-              // Mostrar resultados novamente se o input for focado e houver texto
-              searchInput.addEventListener('focus', () => {
-                  if (searchInput.value.trim() !== '') {
-                      performSearch(searchInput.value, searchResultsDiv); // Refaz a busca
-                  }
-              });
-            }
-          }
-        })
-        .catch(err => {
-          console.error("Erro ao carregar pesquisa.html:", err);
-        });
-    });
-
-    // Função para realizar a pesquisa e exibir os resultados
-    // NOTA: 'sitePages' vem de site-index.js, que DEVE ser carregado antes deste script.
-    function performSearch(query, resultsDiv) {
-      const lowerCaseQuery = query.toLowerCase().trim();
-      resultsDiv.innerHTML = ''; // Limpa resultados anteriores
-      resultsDiv.style.display = 'none'; // Esconde se a busca for vazia
-
-      if (lowerCaseQuery === '') {
-        return; // Não faz nada se a busca for vazia
-      }
-
-      // Filtra as páginas que correspondem à consulta
-      const results = sitePages.filter(page =>
-        page.title.toLowerCase().includes(lowerCaseQuery) ||
-        (page.keywords && page.keywords.toLowerCase().includes(lowerCaseQuery))
-      );
-
-      if (results.length > 0) {
-        let resultsListHtml = '<ul>';
-        results.forEach(result => {
-          resultsListHtml += `<li><a href="${result.url}" class="text-blue-600 hover:underline">${result.title}</a></li>`;
-        });
-        resultsListHtml += '</ul>';
-        resultsDiv.innerHTML = resultsListHtml;
-        resultsDiv.style.display = 'block'; // Mostra a caixa de resultados
-      } else {
-        resultsDiv.innerHTML = '<p class="text-gray-600 text-sm">Nenhum resultado encontrado.</p>';
-        resultsDiv.style.display = 'block'; // Mostra a mensagem de nenhum resultado
-      }
-    }
   </script>
 
 </body>
