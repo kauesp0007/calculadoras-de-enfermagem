@@ -1,366 +1,500 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Calcular Escala de Fugulin</title>
-  <link rel="canonical" href="https://www.calculadorasdeenfermagem.com.br/fugulin.html" />
+  <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <title>Escala de Fugulin</title>
+
+  <link rel="canonical" href="https://www.calculadorasdeenfermagem.com.br/fugulin.html" />
+
+  <link rel="icon" href="favicon.ico" type="image/x-icon" />
+
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
+  
+  <meta name="keywords" content="Escala de Fugulin, Classificação de pacientes, Complexidade da assistência de enfermagem, Dimensionamento de pessoal de enfermagem, Carga de trabalho de enfermagem" />
+  <meta name="description" content="Calcule a Escala de Fugulin para classificar a complexidade da assistência de enfermagem e auxiliar no dimensionamento de pessoal." />
+
+  <script async src="https://www.googletagmanager.com/gtag/js?id=AW-952633102"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'AW-952633102');
+  </script>
+
+  <script src="topbar111.js" defer></script>
+
   <style>
-    body {
-      font-family: Arial, sans-serif;
+    /* Reset básico e Box-sizing para consistência */
+    *, *::before, *::after {
+      box-sizing: border-box;
       margin: 0;
-      display: flex;
-      background-color: #f4f4f4;
+      padding: 0;
     }
-    .sidebar {
-      width: 200px;
-      background-color: #007bff;
-      padding: 20px;
-      color: white;
-      height: 100vh;
-    }
-    .sidebar h2 {
-      font-size: 12px;
-      text-align: center;
-      font-weight: bold;
-      margin-bottom: 20px;
-    }
-    .sidebar a {
-      color: white;
-      display: block;
-      font-size: 11px;
-      margin: 10px 0;
-      text-decoration: none;
-    }
-    .content {
-      flex-grow: 1;
-      padding: 20px;
-      background: white;
-    }
-    h1 {
-      font-size: 26px;
-      color: #007bff;
-      font-weight: bold;
-    }
-    h2 {
-      font-size: 14px;
-      font-weight: normal;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 15px;
-    }
-    td {
-      padding: 8px;
-      border: 1px solid #ccc;
-    }
-    select {
-      width: 100%;
-      padding: 5px;
-    }
-    button {
-      margin-top: 20px;
-      margin-right: 10px;
-      padding: 8px 16px;
-      font-size: 12px;
-      background-color: #007bff;
-      color: white;
+
+    /* Fontes personalizadas */
+    @import url('https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@700&family=Inter:wght@300;400;500;600&display=swap');
+
+    /* Estilos das classes de fonte e cor personalizadas (para uso no HTML com Tailwind) */
+    .font-nunito { font-family: 'Nunito Sans', sans-serif; }
+    .font-inter { font-family: 'Inter', sans-serif; }
+    .text-dark-blue { color: #1A3E74; } /* Azul Escuro */
+    .text-light-blue { color: #1FA4E5; } /* Azul Claro */
+    .text-gray-custom { color: #666666; } /* Cinza */
+    .text-success-green { color: #1ED760; } /* Verde */
+    .text-black-custom { color: #333; } /* Cor para textos padrão */
+    .text-red-600 { color: #dc2626; } /* Tailwind red-600 para mensagens de erro */
+
+
+    /* Padrão de Botões (Componentes CSS para reuso) */
+    .btn-primary {
+      font-family: 'Inter', sans-serif;
+      font-weight: 600;
+      background-color: #1A3E74; /* Cor primária azul escuro */
+      color: #FFF;
+      padding: 12px 24px;
+      border-radius: 8px;
+      transition: background-color 0.3s ease;
       border: none;
-      border-radius: 5px;
       cursor: pointer;
+      text-align: center;
     }
-    button:hover {
-      background-color: #0056b3;
+    .btn-primary:hover { background-color: #122c54; } /* Tom mais escuro no hover */
+    .btn-secondary {
+      font-family: 'Inter', sans-serif;
+      font-weight: 600;
+      background-color: #1FA4E5; /* Cor secundária azul claro */
+      color: #FFF;
+      padding: 12px 24px;
+      border-radius: 8px;
+      transition: background-color 0.3s ease;
+      border: none;
+      cursor: pointer;
+      text-align: center;
     }
-    #resultado {
-      margin-top: 20px;
-      font-size: 14px;
-      font-weight: bold;
-      color: black;
+    .btn-secondary:hover { background-color: #178ac7; } /* Tom mais escuro no hover */
+    .btn-success {
+      font-family: 'Inter', sans-serif;
+      font-weight: 500;
+      background-color: #1ED760;
+      color: #FFF;
+      padding: 10px 20px;
+      border-radius: 8px;
+      transition: background-color 0.3s ease;
+      border: none;
+      cursor: pointer;
+      text-align: center;
     }
-    #pdfContent {
-      margin-top: 20px;
+    .btn-success:hover { background-color: #17b351; }
+
+    /* Estilos para a área de resultado da calculadora (Componente específico) */
+    .resultado {
+      margin-top: 1rem;
+      padding: 1rem;
+      background-color: #e0f2fe; /* Tailwind blue-50 */
+      border-radius: 0.5rem;
+      font-weight: 600;
+      color: #1A3E74; /* text-dark-blue */
+      text-align: left;
+      white-space: pre-wrap; /* Mantém quebras de linha no texto */
     }
+    .resultado.text-red-600 { /* Classe para mensagens de erro (fundo) */
+        background-color: #fee2e2; /* Tailwind red-100 */
+    }
+
+    /* Estilos para a referência/bibliografia (Componente específico) */
     .ref {
-      font-size: 12px;
-      color: black;
-      margin-top: 60px;
-      max-width: 800px;
+      margin-top: 2rem;
+      font-size: 14px;
+      color: #666666; /* text-gray-custom */
+      text-align: left;
+    }
+
+    /* Estilo para o botão "Ajude-nos" fixo (Componente de botão) */
+    .fixed-donation-button {
+      z-index: 30;
+    }
+    
+    /* Layout principal com Topbar fixa */
+    body {
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh; /* Garante que o body ocupe a altura total da viewport */
+      background-color: #f8fafc; /* Tailwind bg-gray-50 */
+      color: #333; /* Tailwind text-gray-800 */
+    }
+
+    /* ESTILOS DOS DROPDOWNS DA TOPBAR (MOVIDOS DE TOPBAR111.HTML) */
+    .dropdown-menu { display: none; }
+    .dropdown-menu.show { display: block; }
+    nav { justify-content: flex-end; } 
+    nav button { cursor: pointer; }
+    nav .dropdown-menu a:hover { background-color: #bfdbfe; }
+    /* FIM DOS ESTILOS DA TOPBAR */
+
+    /* Espaçamento para o conteúdo abaixo da topbar fixa */
+    .main-content-wrapper { 
+      display: flex;
+      flex-direction: column;
+      flex-grow: 1;
+      padding-top: 64px; /* Garante que o conteúdo comece abaixo da topbar fixa (64px de altura) */
+      width: 100%;
+      max-width: 1280px; /* max-w-screen-xl (Tailwind 7xl) */
       margin-left: auto;
       margin-right: auto;
+      padding: 2rem 1rem; /* p-8 px-4 */
     }
-    .search-box {
-      text-align: right;
-    }
-    .search-box input {
-      padding: 5px;
-      font-size: 12px;
-    }
-    footer {
-      background-color: #f4f4f4;
-      text-align: center;
-      padding: 10px;
-      font-size: 12px;
-      border-top: 1px solid #ccc;
-      margin-top: 30px;
+
+    /* Responsividade da tabela para mobile - Rótulos serão definidos no CSS específico de cada calculadora */
+    @media (max-width: 640px) {
+      table, thead, tbody, th, td, tr { display: block; }
+      thead tr { position: absolute; top: -9999px; left: -9999px; }
+      tr { border: 1px solid #e2e8f0; margin-bottom: 0.5rem; display: block; }
+      td {
+          border: none;
+          border-bottom: 1px solid #eee;
+          position: relative;
+          padding-left: 50%;
+          text-align: right;
+      }
+      td:before {
+          position: absolute;
+          top: 6px;
+          left: 6px;
+          width: 45%;
+          padding-right: 10px;
+          white-space: nowrap;
+          text-align: left;
+          font-weight: bold;
+      }
+      /* Estilos específicos para os rótulos da tabela em mobile para Fugulin */
+      #conteudo table td:nth-of-type(1):before { content: "1. Estado Mental:"; }
+      #conteudo table td:nth-of-type(2):before { content: "2. Oxigenação:"; }
+      #conteudo table td:nth-of-type(3):before { content: "3. Sinais Vitais:"; }
+      #conteudo table td:nth-of-type(4):before { content: "4. Motilidade:"; }
+      #conteudo table td:nth-of-type(5):before { content: "5. Deambulação:"; }
+      #conteudo table td:nth-of-type(6):before { content: "6. Alimentação:"; }
+      #conteudo table td:nth-of-type(7):before { content: "7. Cuidado Corporal:"; }
+      #conteudo table td:nth-of-type(8):before { content: "8. Eliminação:"; }
+      #conteudo table td:nth-of-type(9):before { content: "9. Terapêutica:"; }
+      #conteudo table td:nth-of-type(10):before { content: "10. Tempo Curativo:"; }
+      #conteudo table td:nth-of-type(11):before { content: "11. Curativo:"; }
+      #conteudo table td:nth-of-type(12):before { content: "12. Integridade Cutâneo-Mucosa:"; }
     }
   </style>
-
-  <!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=AW-952633102">
-</script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-
-  gtag('config', 'AW-952633102');
-  </script>
 </head>
-<body>
-  <div id="barra-lateral"></div>
-<script>
-  fetch('sidebar.html')
-    .then(response => response.text())
-    .then(html => {
-      document.getElementById('barra-lateral').innerHTML = html;
-    });
-</script>
+<body class="bg-gray-50 text-gray-800 font-inter">
 
-  <div class="content">
-    <div class="search-box">
-      <input type="text" placeholder="Buscar...">
-    </div>
+  <div id="topbar-container"></div> 
 
-    <div id="pdfContent">
-  <h1><br><br>Escala de Fugulin (Classificação da Complexidade da Assistência)</h1>
-  <p class="description">
-    Selecione uma opção para cada área de cuidado conforme a Escala de Fugulin e calcule o escore total para classificação do paciente.
-  </p>
+  <div class="main-content-wrapper">
+    <main class="flex flex-col flex-grow">
 
-  <table>
-    <thead>
-      <tr>
-        <th>Área de Cuidado</th>
-        <th>Opções / Pontuação</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td><b>1. Estado Mental</b></td>
-        <td>
-          <select id="estado_mental">
-            <option value="4">Inconsciente</option>
-            <option value="2">Confuso</option>
-            <option value="3">Desorientado</option>
-            <option value="1">Orientado</option>
-          </select>
-        </td>
-      </tr>
-      <tr>
-        <td><b>2. Oxigenação</b></td>
-        <td>
-          <select id="oxigenacao">
-            <option value="4">Ventilação mecânica</option>
-            <option value="3">Máscara de oxigênio</option>
-            <option value="2">Cateter nasal</option>
-            <option value="1">Ar ambiente</option>
-          </select>
-        </td>
-      </tr>
-      <tr>
-        <td><b>3. Sinais Vitais</b></td>
-        <td>
-          <select id="sinais_vitais">
-            <option value="4">Muito críticos</option>
-            <option value="3">Críticos</option>
-            <option value="2">Instáveis</option>
-            <option value="1">Estáveis</option>
-          </select>
-        </td>
-      </tr>
-      <tr>
-        <td><b>4. Motilidade</b></td>
-        <td>
-          <select id="motilidade">
-            <option value="4">Imobilizado</option>
-            <option value="3">Mobilização com ajuda</option>
-            <option value="2">Mobilização com supervisão</option>
-            <option value="1">Independente</option>
-          </select>
-        </td>
-      </tr>
-      <tr>
-        <td><b>5. Deambulação</b></td>
-        <td>
-          <select id="deambulacao">
-            <option value="4">Não deambula</option>
-            <option value="3">Deambula com ajuda</option>
-            <option value="2">Deambula com supervisão</option>
-            <option value="1">Independente</option>
-          </select>
-        </td>
-      </tr>
-      <tr>
-        <td><b>6. Alimentação</b></td>
-        <td>
-          <select id="alimentacao">
-            <option value="4">Jejum</option>
-            <option value="3">Parenteral</option>
-            <option value="2">Enteral</option>
-            <option value="1">Oral</option>
-          </select>
-        </td>
-      </tr>
-      <tr>
-        <td><b>7. Cuidado Corporal</b></td>
-        <td>
-          <select id="cuidado_corporal">
-            <option value="4">Totalmente dependente</option>
-            <option value="3">Dependente</option>
-            <option value="2">Auxílio parcial</option>
-            <option value="1">Independente</option>
-          </select>
-        </td>
-      </tr>
-      <tr>
-        <td><b>8. Eliminação</b></td>
-        <td>
-          <select id="eliminacao">
-            <option value="4">Incontinente</option>
-            <option value="3">SVD</option>
-            <option value="2">Auxílio parcial</option>
-            <option value="1">Independente</option>
-          </select>
-        </td>
-      </tr>
-      <tr>
-        <td><b>9. Terapêutica</b></td>
-        <td>
-          <select id="terapeutica">
-            <option value="4">Uso de drogas vasoativas</option>
-            <option value="3">EV contínua por cateter</option>
-            <option value="2">EV intermitente</option>
-            <option value="1">IM ou VO</option>
-          </select>
-        </td>
-      </tr>
-      <tr>
-        <td><b>10. Tempo de Troca de Curativo</b></td>
-        <td>
-          <select id="tempo_curativo">
-            <option value="2">Menos de 5 minutos</option>
-            <option value="3">De 5 a 15 minutos</option>
-            <option value="4">De 15 a 30 minutos</option>
-            <option value="1">Sem curativo</option>
-          </select>
-        </td>
-      </tr>
-      <tr>
-        <td><b>11. Curativo</b></td>
-        <td>
-          <select id="curativo">
-            <option value="4">Troca 3x ao dia</option>
-            <option value="3">Troca 2x ao dia</option>
-            <option value="2">Troca 1x ao dia</option>
-            <option value="1">Sem curativo</option>
-          </select>
-        </td>
-      </tr>
-      <tr>
-        <td><b>12. Integridade Cutâneo-Mucosa / Comprometimento Tecidual</b></td>
-        <td>
-          <select id="integridade">
-            <option value="4">Extenso</option>
-            <option value="3">Moderado</option>
-            <option value="2">Leve</option>
-            <option value="1">Nenhum</option>
-          </select>
-        </td>
-      </tr>
-    </tbody>
-  </table>
+      <div class="flex flex-wrap items-center justify-center gap-4 mb-3">
+        <img src="iconpages.png" alt="Ícone da Escala de Fugulin" class="w-32 h-auto" />
+        <h1 class="font-nunito font-extrabold text-dark-blue text-4xl lg:text-5xl text-center">
+          Escala de Fugulin (Classificação da Complexidade da Assistência)
+        </h1>
+      </div>
 
-  <div class="buttons">
-    <button onclick="calcularFugulin()">Calcular Escore</button>
-    <button onclick="gerarPDF()">Gerar PDF</button>
-  </div>
+      <p class="font-inter font-normal text-black-custom text-base lg:text-lg mb-6 text-left">
+        Selecione uma opção para cada área de cuidado conforme a Escala de Fugulin e calcule o escore total para classificação do paciente.
+      </p>
 
-  <div id="resultado" class="resultado"></div>
+      <div id="conteudo">
+        <table class="w-full border-collapse border border-gray-300 mb-6 text-left">
+          <thead>
+            <tr>
+              <th class="border border-gray-300 p-4 font-semibold text-light-blue w-1/2">Área de Cuidado</th>
+              <th class="border border-gray-300 p-4 font-semibold text-light-blue w-1/2">Opções / Pontuação</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="border border-gray-300 p-4 font-semibold w-1/2 align-top"><b>1. Estado Mental</b></td>
+              <td class="border border-gray-300 p-4 w-1/2">
+                <select id="estado_mental" class="w-full p-2 border border-gray-300 rounded">
+                  <option value="4">Inconsciente</option>
+                  <option value="3">Desorientado</option>
+                  <option value="2">Confuso</option>
+                  <option value="1">Orientado</option>
+                </select>
+              </td>
+            </tr>
+            <tr>
+              <td class="border border-gray-300 p-4 font-semibold align-top"><b>2. Oxigenação</b></td>
+              <td class="border border-gray-300 p-4">
+                <select id="oxigenacao" class="w-full p-2 border border-gray-300 rounded">
+                  <option value="4">Ventilação mecânica</option>
+                  <option value="3">Máscara de oxigênio</option>
+                  <option value="2">Cateter nasal</option>
+                  <option value="1">Ar ambiente</option>
+                </select>
+              </td>
+            </tr>
+            <tr>
+              <td class="border border-gray-300 p-4 font-semibold align-top"><b>3. Sinais Vitais</b></td>
+              <td class="border border-gray-300 p-4">
+                <select id="sinais_vitais" class="w-full p-2 border border-gray-300 rounded">
+                  <option value="4">Muito críticos</option>
+                  <option value="3">Críticos</option>
+                  <option value="2">Instáveis</option>
+                  <option value="1">Estáveis</option>
+                </select>
+              </td>
+            </tr>
+            <tr>
+              <td class="border border-gray-300 p-4 font-semibold align-top"><b>4. Motilidade</b></td>
+              <td class="border border-gray-300 p-4">
+                <select id="motilidade" class="w-full p-2 border border-gray-300 rounded">
+                  <option value="4">Imobilizado</option>
+                  <option value="3">Mobilização com ajuda</option>
+                  <option value="2">Mobilização com supervisão</option>
+                  <option value="1">Independente</option>
+                </select>
+              </td>
+            </tr>
+            <tr>
+              <td class="border border-gray-300 p-4 font-semibold align-top"><b>5. Deambulação</b></td>
+              <td class="border border-gray-300 p-4">
+                <select id="deambulacao" class="w-full p-2 border border-gray-300 rounded">
+                  <option value="4">Não deambula</option>
+                  <option value="3">Deambula com ajuda</option>
+                  <option value="2">Deambula com supervisão</option>
+                  <option value="1">Independente</option>
+                </select>
+              </td>
+            </tr>
+            <tr>
+              <td class="border border-gray-300 p-4 font-semibold align-top"><b>6. Alimentação</b></td>
+              <td class="border border-gray-300 p-4">
+                <select id="alimentacao" class="w-full p-2 border border-gray-300 rounded">
+                  <option value="4">Jejum</option>
+                  <option value="3">Parenteral</option>
+                  <option value="2">Enteral</option>
+                  <option value="1">Oral</option>
+                </select>
+              </td>
+            </tr>
+            <tr>
+              <td class="border border-gray-300 p-4 font-semibold align-top"><b>7. Cuidado Corporal</b></td>
+              <td class="border border-gray-300 p-4">
+                <select id="cuidado_corporal" class="w-full p-2 border border-gray-300 rounded">
+                  <option value="4">Totalmente dependente</option>
+                  <option value="3">Dependente</option>
+                  <option value="2">Auxílio parcial</option>
+                  <option value="1">Independente</option>
+                </select>
+              </td>
+            </tr>
+            <tr>
+              <td class="border border-gray-300 p-4 font-semibold align-top"><b>8. Eliminação</b></td>
+              <td class="border border-gray-300 p-4">
+                <select id="eliminacao" class="w-full p-2 border border-gray-300 rounded">
+                  <option value="4">Incontinente</option>
+                  <option value="3">SVD</option>
+                  <option value="2">Auxílio parcial</option>
+                  <option value="1">Independente</option>
+                </select>
+              </td>
+            </tr>
+            <tr>
+              <td class="border border-gray-300 p-4 font-semibold align-top"><b>9. Terapêutica</b></td>
+              <td class="border border-gray-300 p-4">
+                <select id="terapeutica" class="w-full p-2 border border-gray-300 rounded">
+                  <option value="4">Uso de drogas vasoativas</option>
+                  <option value="3">EV contínua por cateter</option>
+                  <option value="2">EV intermitente</option>
+                  <option value="1">IM ou VO</option>
+                </select>
+              </td>
+            </tr>
+            <tr>
+              <td class="border border-gray-300 p-4 font-semibold align-top"><b>10. Tempo de Troca de Curativo</b></td>
+              <td class="border border-gray-300 p-4">
+                <select id="tempo_curativo" class="w-full p-2 border border-gray-300 rounded">
+                  <option value="4">De 15 a 30 minutos</option>
+                  <option value="3">De 5 a 15 minutos</option>
+                  <option value="2">Menos de 5 minutos</option>
+                  <option value="1">Sem curativo</option>
+                </select>
+              </td>
+            </tr>
+            <tr>
+              <td class="border border-gray-300 p-4 font-semibold align-top"><b>11. Curativo</b></td>
+              <td class="border border-gray-300 p-4">
+                <select id="curativo" class="w-full p-2 border border-gray-300 rounded">
+                  <option value="4">Troca 3x ao dia</option>
+                  <option value="3">Troca 2x ao dia</option>
+                  <option value="2">Troca 1x ao dia</option>
+                  <option value="1">Sem curativo</option>
+                </select>
+              </td>
+            </tr>
+            <tr>
+              <td class="border border-gray-300 p-4 font-semibold align-top"><b>12. Integridade Cutâneo-Mucosa / Comprometimento Tecidual</b></td>
+              <td class="border border-gray-300 p-4">
+                <select id="integridade" class="w-full p-2 border border-gray-300 rounded">
+                  <option value="4">Extenso</option>
+                  <option value="3">Moderado</option>
+                  <option value="2">Leve</option>
+                  <option value="1">Nenhum</option>
+                </select>
+              </td>
+            </tr>
+          </tbody>
+        </table>
 
-  <p style="max-width:600px; margin: 20px auto; font-size: 13px; color: #444; line-height: 1.4;">
-    A Escala de Fugulin classifica a complexidade da assistência de enfermagem necessária para cada paciente. 
-    Quanto maior o escore, maior a complexidade e necessidade de cuidados especializados.
-  </p>
+        <div id="resultado" class="resultado" aria-live="polite"></div>
 
-  <div class="ref">
-    <br><br><br>
-    CONSELHO FEDERAL DE ENFERMAGEM. Aplicabilidade da Escala de Fugulin na Sistematização da Assistência de Enfermagem. In: <b>Congresso Brasileiro dos Conselhos de Enfermagem – CBCENF</b>, 20., 2017. Anais [...]. Disponível em: <a href="https://inscricoes-cbcenf.cofen.gov.br/anais/20/24190/trabalhoresumo" target="_blank">https://inscricoes-cbcenf.cofen.gov.br/anais/20/24190/trabalhoresumo</a>. Acesso em: 1 jul. 2025.
-  </div>
+        <p class="font-inter font-normal text-black-custom text-base lg:text-lg mt-6 mb-6 text-left">
+          A Escala de Fugulin classifica a complexidade da assistência de enfermagem necessária para cada paciente. Quanto maior o escore, maior a complexidade e necessidade de cuidados especializados.
+        </p>
 
-  <footer>
-    <p>© 2025 Calculadoras de Enfermagem</p>
-    <p>
-      <a href="index.html">Início</a> |
-      <a href="politica.html">Política de Privacidade</a> |
-      <a href="termos.html">Termos de Uso</a>
-    </p>
-  </footer>
-</main>
+        <div class="ref font-inter text-gray-custom text-left">
+          Referência:<br>
+          CONSELHO FEDERAL DE ENFERMAGEM. Aplicabilidade da Escala de Fugulin na Sistematização da Assistência de Enfermagem. In: **Congresso Brasileiro dos Conselhos de Enfermagem – CBCENF**, 20., 2017. Anais [...]. Disponível em: <a href="https://inscricoes-cbcenf.cofen.org.br/anais/20/24190/trabalhoresumo" target="_blank" class="text-light-blue hover:underline">https://inscricoes-cbcenf.cofen.org.br/anais/20/24190/trabalhoresumo</a>. Acesso em: 1 jul. 2025.
+        </div>
+      </div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-<script>
-  function calcularFugulin() {
-    const estado_mental = Number(document.getElementById('estado_mental').value);
-    const oxigenacao = Number(document.getElementById('oxigenacao').value);
-    const sinais_vitais = Number(document.getElementById('sinais_vitais').value);
-    const motilidade = Number(document.getElementById('motilidade').value);
-    const deambulacao = Number(document.getElementById('deambulacao').value);
-    const alimentacao = Number(document.getElementById('alimentacao').value);
-    const cuidado_corporal = Number(document.getElementById('cuidado_corporal').value);
-    const eliminacao = Number(document.getElementById('eliminacao').value);
-    const terapeutica = Number(document.getElementById('terapeutica').value);
-    const tempo_curativo = Number(document.getElementById('tempo_curativo').value);
-    const curativo = Number(document.getElementById('curativo').value);
-    const integridade = Number(document.getElementById('integridade').value);
+      <div class="flex flex-wrap justify-start gap-4 mt-6">
+        <button id="btnCalcular" class="btn-primary" aria-label="Calcular escore">
+          Calcular Escore
+        </button>
+        <button id="btnLimpar" class="btn-primary" aria-label="Limpar campos">
+          Limpar
+        </button>
+        <button id="btnGerarPDF" class="btn-secondary" aria-label="Gerar PDF">
+          Gerar PDF
+        </button>
+      </div>
 
-    const total = estado_mental + oxigenacao + sinais_vitais + motilidade + deambulacao + alimentacao + cuidado_corporal + eliminacao + terapeutica + tempo_curativo + curativo + integridade;
+    </main>
+  </div> 
 
-    let classificacao = '';
-    if (total >= 31) classificacao = 'Muito Alta Complexidade';
-    else if (total >= 24) classificacao = 'Alta Complexidade';
-    else if (total >= 17) classificacao = 'Média Complexidade';
-    else if (total >= 10) classificacao = 'Baixa Complexidade';
-    else classificacao = 'Muito Baixa Complexidade';
+  <a href="doacoes.html" class="fixed bottom-4 right-4 bg-dark-blue text-white text-sm px-4 py-2 rounded-full shadow hover:bg-blue-900 transition fixed-donation-button">
+    Ajude-nos a manter o site gratuito
+  </a>
 
-    const resultadoDiv = document.getElementById('resultado');
-    resultadoDiv.style.display = 'block';
-    resultadoDiv.textContent = `Escore total: ${total}
-Classificação: ${classificacao}`;
-  }
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  
+  <script src="pdf111.js"></script>
 
-  function gerarPDF() {
-    const content = document.getElementById('pdfContent').cloneNode(true);
-    const sidebar = content.querySelector('nav.sidebar');
-    if (sidebar) sidebar.remove();
-    const footer = content.querySelector('footer');
-    if (footer) footer.remove();
+  <div id="footer-container"></div>
 
-    const opt = {
-      margin: 0,
-      filename: 'fugulin.pdf',
-      image: { type: 'jpeg', quality: 1 },
-      html2canvas: { scale: 3, scrollY: 0 },
-      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-    };
-    html2pdf().set(opt).from(content).save();
-  }
-</script>
+  <script>
+    function calcularFugulin() {
+      const estado_mental = Number(document.getElementById('estado_mental').value);
+      const oxigenacao = Number(document.getElementById('oxigenacao').value);
+      const sinais_vitais = Number(document.getElementById('sinais_vitais').value);
+      const motilidade = Number(document.getElementById('motilidade').value);
+      const deambulacao = Number(document.getElementById('deambulacao').value);
+      const alimentacao = Number(document.getElementById('alimentacao').value);
+      const cuidado_corporal = Number(document.getElementById('cuidado_corporal').value);
+      const eliminacao = Number(document.getElementById('eliminacao').value);
+      const terapeutica = Number(document.getElementById('terapeutica').value);
+      const tempo_curativo = Number(document.getElementById('tempo_curativo').value);
+      const curativo = Number(document.getElementById('curativo').value);
+      const integridade = Number(document.getElementById('integridade').value);
+
+      const total = estado_mental + oxigenacao + sinais_vitais + motilidade + deambulacao + alimentacao + cuidado_corporal + eliminacao + terapeutica + tempo_curativo + curativo + integridade;
+
+      let classificacao = '';
+      let isRisky = false;
+
+      // Classificação Fugulin
+      if (total >= 31) {
+          classificacao = 'Muito Alta Complexidade';
+          isRisky = true; // Considerando "Muito Alta" como um estado que merece destaque
+      } else if (total >= 24) {
+          classificacao = 'Alta Complexidade';
+          isRisky = true; // Considerando "Alta" como um estado que merece destaque
+      } else if (total >= 17) {
+          classificacao = 'Média Complexidade';
+      } else if (total >= 10) {
+          classificacao = 'Baixa Complexidade';
+      } else {
+          classificacao = 'Mínima Complexidade'; // Nomeei "Muito Baixa" para "Mínima" por consistência e clareza
+      }
+
+      const resultadoDiv = document.getElementById('resultado');
+      resultadoDiv.innerHTML = `Escore total: <span class="font-bold">${total}</span><br>Classificação: <span class="font-bold">${classificacao}</span>`;
       
-<!-- Carrega a barra superior -->
-<script src="topbar.js"></script>
+      // Aplica classes de cor baseadas no risco
+      if (isRisky) {
+          resultadoDiv.classList.add('text-red-600'); 
+          resultadoDiv.classList.remove('text-dark-blue'); 
+          resultadoDiv.classList.remove('bg-blue-50'); // Remove background padrão
+          resultadoDiv.classList.add('bg-red-100'); // Adiciona background de alerta
+      } else {
+          resultadoDiv.classList.remove('text-red-600');
+          resultadoDiv.classList.add('text-dark-blue');
+          resultadoDiv.classList.remove('bg-red-100'); // Remove background de alerta
+          resultadoDiv.classList.add('bg-blue-50'); // Adiciona background padrão
+      }
+    }
+
+    function limparCampos() {
+      const selects = document.querySelectorAll('#conteudo select');
+      selects.forEach(select => {
+        select.selectedIndex = 0; // Reseta para a primeira opção (geralmente a de maior pontuação ou padrão)
+      });
+      const resultadoDiv = document.getElementById('resultado');
+      resultadoDiv.innerHTML = ''; // Limpa o conteúdo do resultado
+      resultadoDiv.classList.remove('text-red-600', 'text-dark-blue', 'bg-red-100', 'bg-blue-50');
+      resultadoDiv.classList.add('text-dark-blue', 'bg-blue-50'); // Retorna ao padrão para exibir cor azul
+    }
+
+    // A função gerarPDF() pode estar aqui ou em pdf111.js. 
+    // Se estiver em pdf111.js, remova esta função inline.
+    // Se não tiver pdf111.js, deixe esta função aqui.
+    function gerarPDF() {
+      // Clona o conteúdo que será incluído no PDF
+      const contentToPrint = document.getElementById('conteudo').cloneNode(true);
+      
+      // Remove o botão de Ajuda que pode estar fixo na tela para não ir no PDF
+      const fixedButton = document.querySelector('.fixed-donation-button');
+      if (fixedButton) {
+        fixedButton.style.display = 'none'; // Esconde temporariamente
+      }
+
+      const opt = {
+        margin:       0.5,
+        filename:     'escala-fugulin.pdf',
+        image:        { type: 'jpeg', quality: 0.98 },
+        html2canvas:  { scale: 3, scrollY: 0 }, // scrollY: 0 para evitar rolagem
+        jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }
+      };
+
+      html2pdf().set(opt).from(contentToPrint).save().then(() => {
+        // Mostra o botão novamente após a geração do PDF
+        if (fixedButton) {
+          fixedButton.style.display = ''; 
+        }
+      });
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      // Anexa eventos aos botões
+      document.getElementById('btnCalcular').addEventListener('click', calcularFugulin);
+      document.getElementById('btnLimpar').addEventListener('click', limparCampos);
+      
+      // O botão Gerar PDF usa html2pdf.js, que já foi importado
+      document.getElementById('btnGerarPDF').addEventListener('click', gerarPDF);
+
+      // Carrega o rodapé (rodape111.html)
+      fetch("rodape111.html")
+        .then(res => res.text())
+        .then(data => {
+          const footerContainer = document.getElementById("footer-container");
+          if (footerContainer) {
+            footerContainer.innerHTML = data;
+          } else {
+            console.error('Elemento footer-container não encontrado.');
+          }
+        })
+        .catch(err => console.error("Erro ao carregar rodape111.html:", err));
+    });
+  </script>
 </body>
 </html>
