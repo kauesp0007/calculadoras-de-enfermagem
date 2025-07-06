@@ -1,197 +1,363 @@
-<!DOCTYPE html><html lang="pt-BR">
+<!DOCTYPE html>
+<html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
-  <title>Protocolo de Manchester</title>
-  <link rel="canonical" href="https://www.calculadorasdeenfermagem.com.br/manchester.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="keywords" content="protocolo, Manchester, enfermagem, classificação de risco, pronto socorro, emergência, enfermagem, UPA" />
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <title>Protocolo de Manchester - Classificação de Risco</title>
+
+  <link rel="canonical" href="https://www.calculadorasdeenfermagem.com.br/manchester.html" />
+
+  <link rel="icon" href="favicon.ico" type="image/x-icon" />
+
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
+  
+  <meta name="keywords" content="protocolo, Manchester, enfermagem, classificação de risco, pronto socorro, emergência, UPA, triagem" />
+  <meta name="description" content="Calculadora online do Protocolo de Manchester para classificação de risco em serviços de urgência e emergência." />
+
+  <script async src="https://www.googletagmanager.com/gtag/js?id=AW-952633102"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'AW-952633102');
+  </script>
+
+  <script src="topbar111.js" defer></script>
+
   <style>
-    body {
+    /* Reset básico e Box-sizing para consistência */
+    *, *::before, *::after {
+      box-sizing: border-box;
       margin: 0;
-      font-family: Arial, sans-serif;
-      display: flex;
+      padding: 0;
     }
-    .sidebar {
-      width: 200px;
-      background-color: #007bff;
-      color: white;
-      padding: 15px;
-    }
-    .sidebar h2 {
-      font-size: 12px;
-      text-align: center;
-      font-weight: bold;
-    }
-    .sidebar a {
-      color: white;
-      text-decoration: none;
-      display: block;
-      margin: 10px 0;
-      font-size: 11px;
-    }
-    .content {
-      flex: 1;
-      padding: 20px;
-    }
-    h1 {
-      font-size: 26px;
-      color: #007bff;
-      font-weight: bold;
-    }
-    h2 {
-      font-size: 14px;
-      font-weight: normal;
-    }
-    button {
-      background-color: #007bff;
-      color: white;
-      padding: 8px 12px;
+
+    /* Fontes personalizadas */
+    @import url('https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@700&family=Inter:wght@300;400;500;600&display=swap');
+
+    /* Estilos das classes de fonte e cor personalizadas (para uso no HTML com Tailwind) */
+    .font-nunito { font-family: 'Nunito Sans', sans-serif; }
+    .font-inter { font-family: 'Inter', sans-serif; }
+    .text-dark-blue { color: #1A3E74; } /* Azul Escuro */
+    .text-light-blue { color: #1FA4E5; } /* Azul Claro */
+    .text-gray-custom { color: #666666; } /* Cinza */
+    .text-success-green { color: #1ED760; } /* Verde */
+    .text-black-custom { color: #333; } /* Cor para textos padrão */
+
+    /* Padrão de Botões (Componentes CSS para reuso) */
+    .btn-primary {
+      font-family: 'Inter', sans-serif;
+      font-weight: 600;
+      background-color: #1A3E74; /* Cor primária azul escuro */
+      color: #FFF;
+      padding: 12px 24px;
+      border-radius: 8px;
+      transition: background-color 0.3s ease;
       border: none;
-      border-radius: 4px;
       cursor: pointer;
-      font-size: 12px;
-      margin-right: 10px;
-    }
-    button:hover {
-      background-color: #0056b3;
-    }
-    .resultado {
-      margin-top: 20px;
-      font-size: 14px;
-      font-weight: bold;
-      color: black;
-    }
-    footer {
-      background-color: #f1f1f1;
       text-align: center;
-      padding: 10px;
-      font-size: 12px;
-      position: fixed;
+    }
+    .btn-primary:hover { background-color: #122c54; } /* Tom mais escuro no hover */
+    .btn-secondary {
+      font-family: 'Inter', sans-serif;
+      font-weight: 600;
+      background-color: #1FA4E5; /* Cor secundária azul claro */
+      color: #FFF;
+      padding: 12px 24px;
+      border-radius: 8px;
+      transition: background-color 0.3s ease;
+      border: none;
+      cursor: pointer;
+      text-align: center;
+    }
+    .btn-secondary:hover { background-color: #178ac7; } /* Tom mais escuro no hover */
+    .btn-success {
+      font-family: 'Inter', sans-serif;
+      font-weight: 500;
+      background-color: #1ED760;
+      color: #FFF;
+      padding: 10px 20px;
+      border-radius: 8px;
+      transition: background-color 0.3s ease;
+      border: none;
+      cursor: pointer;
+      text-align: center;
+    }
+    .btn-success:hover { background-color: #17b351; }
+
+    /* Estilos para a área de resultado da calculadora (Componente específico) */
+    .resultado {
+      margin-top: 1.5rem; /* mt-6 */
+      padding: 1.25rem; /* p-5 */
+      border-radius: 0.5rem;
+      font-weight: 600;
+      text-align: left;
+      white-space: pre-wrap; /* Mantém quebras de linha no texto */
+      font-size: 1.125rem; /* text-lg */
+    }
+    /* Cores específicas para o resultado do Manchester */
+    .resultado.bg-red { background-color: #fee2e2; color: #dc2626; } /* red-100, red-600 */
+    .resultado.bg-orange { background-color: #fff7ed; color: #ea580c; } /* orange-50, orange-700 */
+    .resultado.bg-yellow { background-color: #fefce8; color: #d97706; } /* yellow-50, yellow-700 */
+    .resultado.bg-green { background-color: #dcfce7; color: #15803d; } /* green-100, green-700 */
+    .resultado.bg-blue { background-color: #eff6ff; color: #2563eb; } /* blue-50, blue-700 */
+
+    /* Estilos para a referência/bibliografia (Componente específico) */
+    .ref {
+      margin-top: 2.5rem; /* mt-10 */
+      font-size: 0.875rem; /* text-sm */
+      color: #666666; /* text-gray-custom */
+      text-align: left;
+    }
+
+    /* Estilo para o botão "Ajude-nos" fixo (Componente de botão) */
+    .fixed-donation-button {
+      z-index: 30;
+    }
+    
+    /* Layout principal com Topbar fixa */
+    body {
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh; /* Garante que o body ocupe a altura total da viewport */
+      background-color: #f8fafc; /* Tailwind bg-gray-50 */
+      color: #333; /* Tailwind text-gray-800 */
+    }
+
+    /* ESTILOS DOS DROPDOWNS DA TOPBAR (MOVIDOS DE TOPBAR111.HTML) */
+    .dropdown-menu { display: none; }
+    .dropdown-menu.show { display: block; }
+    nav { justify-content: flex-end; } 
+    nav button { cursor: pointer; }
+    nav .dropdown-menu a:hover { background-color: #bfdbfe; }
+    /* FIM DOS ESTILOS DA TOPBAR */
+
+    /* Espaçamento para o conteúdo abaixo da topbar fixa */
+    .main-content-wrapper { 
+      display: flex;
+      flex-direction: column;
+      flex-grow: 1;
+      padding-top: 64px; /* Garante que o conteúdo comece abaixo da topbar fixa (64px de altura) */
       width: 100%;
-      bottom: 0;
+      max-width: 1280px; /* max-w-screen-xl (Tailwind 7xl) */
+      margin-left: auto;
+      margin-right: auto;
+      padding: 2rem 1rem; /* p-8 px-4 */
     }
-    .search-box {
-      text-align: right;
-      margin-bottom: 10px;
-    }
-    input[type="text"] {
-      padding: 5px;
-      font-size: 12px;
+    
+    /* Estilos específicos para este arquivo */
+    .descricao {
+      font-size: 1rem; /* Adjust to Tailwind base font size */
+      color: #333; /* Black-custom */
+      margin-top: 1rem; /* mt-4 */
+      margin-bottom: 1.5rem; /* mb-6 */
+      line-height: 1.6; /* leading-relaxed */
     }
     table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 15px;
+      @apply w-full border-collapse my-4 md:my-6; /* Tailwind classes for full width, collapse, margin-y */
     }
-    td, th {
-      padding: 10px;
-      border: 1px solid #ccc;
-      vertical-align: top;
+    th, td {
+      @apply p-3 border border-gray-300 align-top; /* Tailwind classes for padding, border, vertical-align */
+    }
+    thead th {
+      @apply bg-gray-100 text-left text-sm font-semibold text-gray-700 uppercase tracking-wider;
+    }
+    tbody td {
+      @apply font-medium text-black-custom;
+    }
+    input[type="checkbox"] {
+      @apply w-5 h-5 text-light-blue bg-gray-100 border-gray-300 rounded focus:ring-light-blue focus:ring-2;
     }
     label {
-      cursor: pointer;
+      @apply cursor-pointer block; /* Make label a block element for better click area */
     }
   </style>
-
-  <!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=AW-952633102">
-</script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-
-  gtag('config', 'AW-952633102');
-  </script>
 </head>
-<body>
-  <div id="barra-lateral"></div>
-  <script>
-    fetch('sidebar.html')
-      .then(response => response.text())
-      .then(html => {
-        document.getElementById('barra-lateral').innerHTML = html;
-      });
-  </script>  <div class="content">
-    <div class="search-box">
-      <input type="text" placeholder="Buscar...">
-    </div><div id="pdfContent">
-  <h1><br><br>Protocolo de Manchester</h1>
-  <h2>Classifica a gravidade e prioridade de atendimento do paciente na urgência com base em critérios pontuados.</h2>
-  <form id="formManchester">
-    <table>
-      <thead>
-        <tr>
-          <th>Variável</th>
-          <th>Escore</th>
-          <th>Selecionar</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr><td>Obstrução de via aérea</td><td>3</td><td><input type="checkbox" value="3"></td></tr>
-        <tr><td>Dificuldade respiratória grave</td><td>5</td><td><input type="checkbox" value="5"></td></tr>
-        <tr><td>Confusão/agitação</td><td>2</td><td><input type="checkbox" value="2"></td></tr>
-        <tr><td>Sonolência/desorientação</td><td>3</td><td><input type="checkbox" value="3"></td></tr>
-        <tr><td>Inconsciência</td><td>5</td><td><input type="checkbox" value="5"></td></tr>
-        <tr><td>Dor leve (1–3)</td><td>1</td><td><input type="checkbox" value="1"></td></tr>
-        <tr><td>Dor moderada (4–6)</td><td>2</td><td><input type="checkbox" value="2"></td></tr>
-        <tr><td>Dor intensa (7–10)</td><td>3</td><td><input type="checkbox" value="3"></td></tr>
-        <tr><td>PA &lt; 90 ou FC &gt; 130</td><td>3</td><td><input type="checkbox" value="3"></td></tr>
-        <tr><td>Extremidades frias/sudorese</td><td>2</td><td><input type="checkbox" value="2"></td></tr>
-        <tr><td>Sangramento leve</td><td>1</td><td><input type="checkbox" value="1"></td></tr>
-        <tr><td>Sangramento moderado</td><td>2</td><td><input type="checkbox" value="2"></td></tr>
-        <tr><td>Sangramento grave</td><td>3</td><td><input type="checkbox" value="3"></td></tr>
-        <tr><td>Febre moderada (38–39 °C)</td><td>1</td><td><input type="checkbox" value="1"></td></tr>
-        <tr><td>Febre alta (&gt;39 °C)</td><td>2</td><td><input type="checkbox" value="2"></td></tr>
-        <tr><td>Hipotermia (&lt;36 °C)</td><td>2</td><td><input type="checkbox" value="2"></td></tr>
-        <tr><td>Fraqueza/paralisia focal</td><td>3</td><td><input type="checkbox" value="3"></td></tr>
-        <tr><td>Convulsão recente</td><td>4</td><td><input type="checkbox" value="4"></td></tr>
-        <tr><td>Alteração visual/auditiva súbita</td><td>2</td><td><input type="checkbox" value="2"></td></tr>
-      </tbody>
-    </table>
-  </form>
-  <div class="resultado" id="resultado"></div>
-  <br>
-  <button onclick="calcularManchester()">Calcular</button>
-  <button onclick="gerarPDF()">Gerar PDF</button>
-  <div style="margin-top: 60px; font-size: 12px; color: black;">
-    <strong>Referência bibliográfica:</strong><br><br><br>
-    Brasil. Ministério da Saúde. Protocolo de Acolhimento com Classificação de Risco em Serviços de Urgência – Adulto. Brasília: Ministério da Saúde, 2014.<br>
-    Disponível em: <a href="https://www.gov.br/saude/pt-br/acesso-a-informacao/gestao-do-sus/atencao-especializada/urgencia-e-emergencia/acesso/protocolos" target="_blank">https://www.gov.br/saude/...</a>
-  </div>
-</div>
+<body class="bg-gray-50 text-gray-800 font-inter">
 
-  </div>  <footer>
-    Estas calculadoras são de caráter consultivo e didático. O protocolo de Manchester possui critérios especificos e dentro deles há diversas variáveis que cada instituição pontua em um escore maior ou menor. Essa calculadora não é absoluta quanto as variaveis aplicadas pelas instituições.
-  </footer>  <script>
+  <div id="topbar-container"></div> 
+
+  <div class="main-content-wrapper">
+    <main class="flex flex-col flex-grow">
+
+      <div class="flex flex-wrap items-center justify-center gap-4 mb-3">
+        <img src="iconpages.png" alt="Ícone do Protocolo de Manchester" class="w-32 h-auto" />
+        <h1 class="font-nunito font-extrabold text-dark-blue text-4xl lg:text-5xl text-center">
+          Protocolo de Manchester
+        </h1>
+      </div>
+
+      <div id="conteudo" class="w-full">
+        <div class="descricao font-inter text-black-custom">
+          Classifica a gravidade e prioridade de atendimento do paciente na urgência com base em critérios pontuados.
+        </div>
+
+        <h2 class="font-bold text-lg text-dark-blue mb-4">Selecione os escores correspondentes para cada sintoma/condição:</h2>
+        <form id="formManchester">
+          <div class="overflow-x-auto">
+            <table class="min-w-full bg-white shadow-md rounded-lg">
+              <thead>
+                <tr>
+                  <th>Variável</th>
+                  <th class="w-24">Escore</th>
+                  <th class="w-24">Selecionar</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr><td>Obstrução de via aérea</td><td>3</td><td><input type="checkbox" value="3"></td></tr>
+                <tr><td>Dificuldade respiratória grave</td><td>5</td><td><input type="checkbox" value="5"></td></tr>
+                <tr><td>Confusão/agitação</td><td>2</td><td><input type="checkbox" value="2"></td></tr>
+                <tr><td>Sonolência/desorientação</td><td>3</td><td><input type="checkbox" value="3"></td></tr>
+                <tr><td>Inconsciência</td><td>5</td><td><input type="checkbox" value="5"></td></tr>
+                <tr><td>Dor leve (1–3)</td><td>1</td><td><input type="checkbox" value="1"></td></tr>
+                <tr><td>Dor moderada (4–6)</td><td>2</td><td><input type="checkbox" value="2"></td></tr>
+                <tr><td>Dor intensa (7–10)</td><td>3</td><td><input type="checkbox" value="3"></td></tr>
+                <tr><td>PA &lt; 90 ou FC &gt; 130</td><td>3</td><td><input type="checkbox" value="3"></td></tr>
+                <tr><td>Extremidades frias/sudorese</td><td>2</td><td><input type="checkbox" value="2"></td></tr>
+                <tr><td>Sangramento leve</td><td>1</td><td><input type="checkbox" value="1"></td></tr>
+                <tr><td>Sangramento moderado</td><td>2</td><td><input type="checkbox" value="2"></td></tr>
+                <tr><td>Sangramento grave</td><td>3</td><td><input type="checkbox" value="3"></td></tr>
+                <tr><td>Febre moderada (38–39 °C)</td><td>1</td><td><input type="checkbox" value="1"></td></tr>
+                <tr><td>Febre alta (&gt;39 °C)</td><td>2</td><td><input type="checkbox" value="2"></td></tr>
+                <tr><td>Hipotermia (&lt;36 °C)</td><td>2</td><td><input type="checkbox" value="2"></td></tr>
+                <tr><td>Fraqueza/paralisia focal</td><td>3</td><td><input type="checkbox" value="3"></td></tr>
+                <tr><td>Convulsão recente</td><td>4</td><td><input type="checkbox" value="4"></td></tr>
+                <tr><td>Alteração visual/auditiva súbita</td><td>2</td><td><input type="checkbox" value="2"></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </form>
+
+        <div id="resultado" class="resultado" aria-live="polite"></div>
+
+        <div class="ref font-inter text-gray-custom">
+          <strong>Referência bibliográfica:</strong><br />
+          <p class="mt-2">
+            Brasil. Ministério da Saúde. Protocolo de Acolhimento com Classificação de Risco em Serviços de Urgência – Adulto. Brasília: Ministério da Saúde, 2014.<br>
+            Disponível em: <a href="https://www.gov.br/saude/pt-br/acesso-a-informacao/gestao-do-sus/atencao-especializada/urgencia-e-emergencia/acesso/protocolos" target="_blank" class="text-light-blue hover:underline">https://www.gov.br/saude/...</a>
+          </p>
+        </div>
+      </div>
+
+      <div class="flex flex-wrap justify-start gap-4 mt-6">
+        <button id="btnCalcular" class="btn-primary" aria-label="Calcular Classificação de Risco">
+          Calcular
+        </button>
+        <button id="btnLimpar" class="btn-primary" aria-label="Limpar seleções">
+          Limpar
+        </button>
+        <button id="btnGerarPDF" class="btn-secondary" aria-label="Gerar PDF">
+          Gerar PDF
+        </button>
+      </div>
+
+    </main>
+  </div> 
+
+  <a href="doacoes.html" class="fixed bottom-4 right-4 bg-dark-blue text-white text-sm px-4 py-2 rounded-full shadow hover:bg-blue-900 transition fixed-donation-button">
+    Ajude-nos a manter o site gratuito
+  </a>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  
+  <script src="pdf111.js"></script>
+
+  <div id="footer-container"></div>
+
+  <script>
     function calcularManchester() {
       const checkboxes = document.querySelectorAll('#formManchester input[type="checkbox"]:checked');
       let total = 0;
       checkboxes.forEach(c => total += parseInt(c.value));
+      
+      const resultadoDiv = document.getElementById("resultado");
       let classificacao = '';
-      if (total >= 12) classificacao = "🔴 Vermelho – Imediato";
-      else if (total >= 9) classificacao = "🟠 Laranja – Até 10 min";
-      else if (total >= 6) classificacao = "🟡 Amarelo – Até 60 min";
-      else if (total >= 3) classificacao = "🟢 Verde – Até 120 min";
-      else classificacao = "🔵 Azul – Até 240 min";
-      document.getElementById("resultado").innerText = classificacao + "\nEscore total: " + total;
+      let corClasse = '';
+
+      // Resetar classes de cor
+      resultadoDiv.classList.remove('bg-red', 'bg-orange', 'bg-yellow', 'bg-green', 'bg-blue', 'text-red-600', 'text-orange-700', 'text-yellow-700', 'text-green-700', 'text-blue-700');
+
+      if (total >= 12) {
+        classificacao = "🔴 Vermelho – Imediato";
+        corClasse = "bg-red";
+      } else if (total >= 9) {
+        classificacao = "🟠 Laranja – Até 10 min";
+        corClasse = "bg-orange";
+      } else if (total >= 6) {
+        classificacao = "🟡 Amarelo – Até 60 min";
+        corClasse = "bg-yellow";
+      } else if (total >= 3) {
+        classificacao = "🟢 Verde – Até 120 min";
+        corClasse = "bg-green";
+      } else {
+        classificacao = "🔵 Azul – Até 240 min";
+        corClasse = "bg-blue";
+      }
+      
+      resultadoDiv.style.display = 'block';
+      resultadoDiv.innerHTML = `<strong>${classificacao}</strong><br>Escore total: ${total}`;
+      resultadoDiv.classList.add(corClasse);
+    }
+
+    function limparCampos() {
+      const checkboxes = document.querySelectorAll('#formManchester input[type="checkbox"]');
+      checkboxes.forEach(c => c.checked = false);
+
+      const resultadoDiv = document.getElementById("resultado");
+      resultadoDiv.innerHTML = '';
+      resultadoDiv.style.display = 'none';
+      // Remover todas as classes de cor específicas
+      resultadoDiv.classList.remove('bg-red', 'bg-orange', 'bg-yellow', 'bg-green', 'bg-blue', 'text-red-600', 'text-orange-700', 'text-yellow-700', 'text-green-700', 'text-blue-700');
     }
 
     function gerarPDF() {
-      const elemento = document.getElementById("pdfContent");
+      const content = document.getElementById('conteudo').cloneNode(true); // Captura o conteúdo principal da calculadora
+
+      // Remove elementos que não devem ir no PDF (ex: botões)
+      const buttonsDiv = content.querySelector('.flex.flex-wrap.justify-start.gap-4.mt-6');
+      if (buttonsDiv) buttonsDiv.remove();
+      
+      // Esconde o botão de doação antes de gerar o PDF
+      const fixedButton = document.querySelector('.fixed-donation-button');
+      if (fixedButton) {
+        fixedButton.style.display = 'none';
+      }
+
       const opt = {
-        margin: 0.5,
-        filename: 'protocolo_manchester.pdf',
-        image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: { scale: 3 },
-        jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
+        margin:       0.5,
+        filename:     'protocolo_manchester.pdf',
+        image:        { type: 'jpeg', quality: 0.98 },
+        html2canvas:  { scale: 3, scrollY: 0 },
+        jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' },
       };
-      html2pdf().from(elemento).set(opt).save();
+      
+      html2pdf().set(opt).from(content).save().then(() => {
+        // Volta a exibir o botão de doação após a geração do PDF
+        if (fixedButton) {
+          fixedButton.style.display = '';
+        }
+      });
     }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      // Anexa eventos aos botões
+      document.getElementById('btnCalcular').addEventListener('click', calcularManchester);
+      document.getElementById('btnLimpar').addEventListener('click', limparCampos);
+      document.getElementById('btnGerarPDF').addEventListener('click', gerarPDF);
+
+      // Carrega o rodapé (rodape111.html)
+      fetch("rodape111.html")
+        .then(res => res.text())
+        .then(data => {
+          const footerContainer = document.getElementById("footer-container");
+          if (footerContainer) {
+            footerContainer.innerHTML = data;
+          } else {
+            console.error('Elemento footer-container não encontrado.');
+          }
+        })
+        .catch(err => console.error("Erro ao carregar rodape111.html:", err));
+    });
   </script>
-  
-<!-- Carrega a barra superior -->
-<script src="topbar.js"></script>
 </body>
 </html>
