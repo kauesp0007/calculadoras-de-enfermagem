@@ -1,227 +1,306 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <title> Escala de Cincinnati - Avaliação Rápida de AVE</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Escala de Cincinnati - Avaliação Rápida de AVE</title>
+  
   <link rel="canonical" href="https://www.calculadorasdeenfermagem.com.br/cincinnati.html" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Escala de Cincinnati para avaliação pré-hospitalar rápida de acidente vascular encefálico(AVE).">
+  
+  <link rel="icon" href="favicon.ico" type="image/x-icon" />
+  
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
+  
+  <meta name="keywords" content="Escala de Cincinnati, AVE, Acidente Vascular Encefálico, AVC, Enfermagem, Avaliação pré-hospitalar, Neurologia" />
+  <meta name="description" content="Escala de Cincinnati para avaliação pré-hospitalar rápida de acidente vascular encefálico (AVE), com cálculo e interpretação automáticos." />
+
+  <script async src="https://www.googletagmanager.com/gtag/js?id=AW-952633102"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'AW-952633102');
+  </script>
+
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 0;
-      display: flex;
-      background-color: #f7f9fc;
-      color: #333;
-    }
-    .sidebar {
-      width: 200px;
-      background-color: #007bff;
-      padding: 20px 10px;
+    /* Reset básico e Box-sizing para consistência */
+    *, *::before, *::after {
       box-sizing: border-box;
-      height: 100vh;
+      margin: 0;
+      padding: 0;
     }
-    .sidebar h3 {
-      color: white;
-      font-size: 12px;
-      font-weight: bold;
+
+    /* Fontes personalizadas */
+    @import url('https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@700&family=Inter:wght@300;400;500;600&display=swap');
+
+    /* Estilos das classes de fonte e cor personalizadas (para uso no HTML com Tailwind) */
+    .font-nunito { font-family: 'Nunito Sans', sans-serif; }
+    .font-inter { font-family: 'Inter', sans-serif; }
+    .text-dark-blue { color: #1A3E74; } /* Azul Escuro */
+    .text-light-blue { color: #1FA4E5; } /* Azul Claro */
+    .text-gray-custom { color: #666666; } /* Cinza */
+    .text-success-green { color: #1ED760; } /* Verde */
+    .text-red-custom { color: #dc2626; } /* Tailwind red-600, similar to error messages */
+
+    /* Padrão de Botões (Componentes CSS para reuso) */
+    .btn-primary {
+      font-family: 'Inter', sans-serif;
+      font-weight: 600;
+      background-color: #1A3E74; /* Cor primária azul escuro */
+      color: #FFF;
+      padding: 12px 24px;
+      border-radius: 8px;
+      transition: background-color 0.3s ease;
+      border: none;
+      cursor: pointer;
       text-align: center;
-      margin-top: 0;
     }
-    .sidebar a {
-      display: block;
-      color: white;
-      font-size: 11px;
-      text-decoration: none;
-      margin: 10px 0;
+    .btn-primary:hover { background-color: #122c54; } /* Tom mais escuro no hover */
+    .btn-secondary {
+      font-family: 'Inter', sans-serif;
+      font-weight: 600;
+      background-color: #1FA4E5; /* Cor secundária azul claro */
+      color: #FFF;
+      padding: 12px 24px;
+      border-radius: 8px;
+      transition: background-color 0.3s ease;
+      border: none;
+      cursor: pointer;
+      text-align: center;
+    }
+    .btn-secondary:hover { background-color: #178ac7; } /* Tom mais escuro no hover */
+    .btn-success {
+      font-family: 'Inter', sans-serif;
+      font-weight: 500;
+      background-color: #1ED760;
+      color: #FFF;
+      padding: 10px 20px;
+      border-radius: 8px;
+      transition: background-color 0.3s ease;
+      border: none;
+      cursor: pointer;
+      text-align: center;
+    }
+    .btn-success:hover { background-color: #17b351; }
+
+    /* Estilos para a área de resultado da calculadora (Componente específico) */
+    .resultado {
+      margin-top: 1rem;
+      padding: 1rem;
+      background-color: #e0f2fe; /* Tailwind blue-50 */
+      border-radius: 0.5rem;
+      font-weight: 600;
+      color: #1A3E74; /* text-dark-blue */
       text-align: left;
-      padding-left: 10px;
+      white-space: pre-wrap;
     }
-    .sidebar a:hover {
-      text-decoration: underline;
+    .resultado.error { /* For validation messages */
+        background-color: #fee2e2; /* Tailwind red-100 */
+        color: #dc2626; /* Tailwind red-600 */
     }
-    .content {
-      flex: 1;
-      padding: 30px;
-      max-width: 900px;
-      margin: auto;
+
+    /* Estilos para a observação (Componente específico) */
+    .observacao {
+      margin-top: 10px;
+      font-size: 14px; /* Increased from 12px for better readability */
+      color: #333; /* Darker than gray-custom for emphasis */
+      text-align: left;
+      padding: 0.5rem 0;
     }
-    h1 {
-      color: #007bff;
-      font-size: 26px;
-      font-weight: bold;
-      text-align: center;
-    }
-    .subtitulo {
-      text-align: center;
-      color: #000;
+
+    /* Estilos para a referência/bibliografia (Componente específico) */
+    .ref { /* Renamed from .referencia for consistency */
+      margin-top: 2rem;
       font-size: 14px;
-      margin-top: 5px;
-      margin-bottom: 15px;
+      color: #666666; /* text-gray-custom */
+      text-align: left;
     }
-    .descricao {
-      background: #f7f7f7;
-      border-radius: 6px;
-      padding: 15px 20px;
-      margin-bottom: 30px;
-      line-height: 1.5;
-      font-size: 12px;
-      color: #000;
+
+    /* Estilo para o botão "Ajude-nos" fixo (Componente de botão) */
+    .fixed-donation-button {
+      z-index: 30;
     }
-    table {
+    
+    /* Layout principal com Topbar fixa */
+    body {
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh; /* Garante que o body ocupe a altura total da viewport */
+      background-color: #f8fafc; /* Tailwind bg-gray-50 */
+      color: #333; /* Tailwind text-gray-800 */
+    }
+
+    /* Remova estes estilos se estiver usando topbar111.js e o HTML da topbar */
+    /* .dropdown-menu { display: none; }
+    .dropdown-menu.show { display: block; }
+    nav { justify-content: flex-end; } 
+    nav button { cursor: pointer; }
+    nav .dropdown-menu a:hover { background-color: #bfdbfe; } */
+
+    /* Espaçamento para o conteúdo abaixo da topbar fixa */
+    .main-content-wrapper { 
+      display: flex;
+      flex-direction: column;
+      flex-grow: 1;
+      padding-top: 20px; /* Ajuste para espaçamento simples se não tiver topbar fixa */
       width: 100%;
-      border-collapse: collapse;
-      font-size: 14px;
+      max-width: 1280px; /* max-w-screen-xl */
+      margin-left: auto;
+      margin-right: auto;
+      padding: 2rem 1rem; /* p-8 px-4 */
     }
-    th, td {
+
+    /* CINCINNATI SPECIFIC STYLES */
+    #cincinnatiTable th, #cincinnatiTable td {
       border: 1px solid #ccc;
       padding: 10px;
       text-align: center;
       cursor: pointer;
+      transition: background-color 0.2s ease;
     }
-    th {
-      background-color: #e3f2fd;
-    }
-    td.selected {
-      background-color: #90caf9;
-    }
-    button {
-      background-color: #007bff;
+    #cincinnatiTable th {
+      background-color: #1A3E74; /* dark-blue, consistent with other tables */
       color: white;
-      border: none;
-      padding: 10px 20px;
-      font-size: 12px;
-      margin-top: 20px;
-      border-radius: 5px;
-      cursor: pointer;
+      font-weight: 600;
     }
-    button:hover {
-      background-color: #0056b3;
+    #cincinnatiTable td:hover {
+        background-color: #eff6ff; /* blue-50 */
     }
-    .resultado {
-      margin-top: 30px;
-      font-size: 14px;
-      font-weight: bold;
-      color: #000;
-      text-align: center;
+    #cincinnatiTable td.selected {
+        background-color: #90caf9; /* light blue */
+        font-weight: 600;
+        color: #1A3E74;
     }
-    .observacao {
-      margin-top: 10px;
-      font-size: 12px;
-      color: #000;
-      text-align: left;
+    /* Description list styles */
+    .description-list ol {
+        list-style: decimal; /* Ensures numbered list */
+        margin-left: 1.5rem; /* Indent the list */
     }
-    .referencia {
-      margin-top: 60px;
-      font-size: 11px;
-      color: #000;
-      text-align: left;
+    .description-list li {
+        margin-bottom: 0.5rem;
     }
-    .search-box {
-      position: absolute;
-      top: 15px;
-      right: 20px;
-    }
-    .search-box input[type="text"] {
-      padding: 6px 10px;
-      font-size: 14px;
-      border-radius: 5px;
-      border: 1px solid #ccc;
-      width: 200px;
-    }
-    footer {
-      margin-top: 40px;
-      background-color: #f1f1f1;
-      padding: 20px;
-      font-size: 14px;
-      color: #555;
-      border-top: 1px solid #ddd;
-      text-align: center;
-    }
-    footer a {
-      color: #007bff;
-      text-decoration: none;
-      margin: 0 6px;
+
+    /* Responsividade da tabela para mobile */
+    @media (max-width: 640px) {
+        #cincinnatiTable, #cincinnatiTable thead, #cincinnatiTable tbody, #cincinnatiTable th, #cincinnatiTable td, #cincinnatiTable tr { 
+            display: block; 
+        }
+        #cincinnatiTable thead tr { 
+            position: absolute;
+            top: -9999px;
+            left: -9999px;
+        }
+        #cincinnatiTable tr { 
+            border: 1px solid #e2e8f0;
+            margin-bottom: 0.5rem;
+            display: block;
+        }
+        #cincinnatiTable td {
+            border: none;
+            border-bottom: 1px solid #eee;
+            position: relative;
+            padding-left: 50%; /* Espaço para o pseudo-elemento */
+            text-align: right;
+        }
+        #cincinnatiTable td:before {
+            position: absolute;
+            top: 6px;
+            left: 6px;
+            width: 45%;
+            padding-right: 10px;
+            white-space: nowrap;
+            text-align: left;
+            font-weight: bold;
+        }
+        /* Estilos específicos para os rótulos da tabela em mobile para Cincinnati */
+        #cincinnatiTable td:nth-of-type(1):before { content: "Sinal Clínico:"; }
+        #cincinnatiTable td:nth-of-type(2):before { content: "Status:"; } /* This applies to 'Normal' column */
+        #cincinnatiTable td:nth-of-type(3):before { content: "Status:"; } /* This applies to 'Anormal' column */
     }
   </style>
 
-  <!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=AW-952633102">
-</script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-
-  gtag('config', 'AW-952633102');
-  </script>
 </head>
-<body>
-  <div id="barra-lateral"></div>
-<script>
-  fetch('sidebar.html')
-    .then(response => response.text())
-    .then(html => {
-      document.getElementById('barra-lateral').innerHTML = html;
-    });
-</script>
+<body class="bg-gray-50 text-gray-800 font-inter">
 
-  <div class="content" id="pdfContent">
-    <div class="search-box">
-      <input type="text" placeholder="🔍 Procurar...">
+  <div id="topbar-container"></div> 
+
+  <div class="main-content-wrapper">
+    <h1 class="font-nunito font-extrabold text-dark-blue text-4xl lg:text-5xl mb-3 text-left">
+      Escala de Cincinnati
+    </h1>
+    <div class="subtitulo font-inter text-gray-custom text-base lg:text-lg mb-6 text-left">
+      Avaliação rápida para suspeita de AVE (Acidente Vascular Encefálico)
     </div>
 
-    <h1><br><br></b> Escala de Cincinnati</h1>
-    <div class="subtitulo">Avaliação rápida para suspeita de AVE (Acidente Vascular encefálico) </div>
-
-    <div class="descricao">
-      A Escala de Cincinnati é um instrumento pré-hospitalar que avalia rapidamente a probabilidade de AVE em pacientes, observando três sinais clínicos principais:
-      <ol>
-        <li><strong>Queda Facial:</strong> peça para o paciente sorrir. Assimetria indica anormalidade.</li>
-        <li><strong>Paralisia dos braços:</strong> peça para levantar ambos os braços. Queda indica anormalidade.</li>
-        <li><strong>Fala Anormal:</strong> peça para repetir uma frase. Dificuldade indica anormalidade.</li>
+    <div class="bg-gray-100 p-6 rounded-lg mb-8 text-base text-gray-800 description-list">
+      <p class="mb-4">
+        A Escala de Cincinnati é um instrumento pré-hospitalar que avalia rapidamente a probabilidade de AVE em pacientes, observando três sinais clínicos principais:
+      </p>
+      <ol class="list-decimal pl-6">
+        <li class="mb-2"><strong>Queda Facial:</strong> peça para o paciente sorrir. Assimetria indica anormalidade.</li>
+        <li class="mb-2"><strong>Paralisia dos braços:</strong> peça para levantar ambos os braços. Queda indica anormalidade.</li>
+        <li class="mb-2"><strong>Fala Anormal:</strong> peça para repetir uma frase. Dificuldade indica anormalidade.</li>
       </ol>
-      Se ao menos um sinal for anormal, há suspeita de AVE
+      <p class="mt-4">
+        Se ao menos um sinal for anormal, há suspeita de AVE.
+      </p>
     </div>
 
-    <form>
-      <table id="cincinnatiTable">
-        <thead>
-          <tr>
-            <th>Sinais Clínicos</th>
-            <th>Normal</th>
-            <th>Anormal</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td>Queda Facial</td>
-            <td data-value="0">Normal</td>
-            <td data-value="1">Anormal</td>
-          </tr>
-          <tr>
-            <td>Paralisia dos braços</td>
-            <td data-value="0">Normal</td>
-            <td data-value="1">Anormal</td>
-          </tr>
-          <tr>
-            <td>Fala Anormal</td>
-            <td data-value="0">Normal</td>
-            <td data-value="1">Anormal</td>
-          </tr>
-        </tbody>
-      </table>
+    <form id="formCincinnati">
+      <div id="pdfContent"> <table id="cincinnatiTable" class="w-full border-collapse border border-gray-300 mb-6 text-left">
+          <thead>
+            <tr>
+              <th>Sinais Clínicos</th>
+              <th>Normal</th>
+              <th>Anormal</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="font-semibold text-dark-blue">Queda Facial</td>
+              <td data-value="0">Normal</td>
+              <td data-value="1">Anormal</td>
+            </tr>
+            <tr>
+              <td class="font-semibold text-dark-blue">Paralisia dos braços</td>
+              <td data-value="0">Normal</td>
+              <td data-value="1">Anormal</td>
+            </tr>
+            <tr>
+              <td class="font-semibold text-dark-blue">Fala Anormal</td>
+              <td data-value="0">Normal</td>
+              <td data-value="1">Anormal</td>
+            </tr>
+          </tbody>
+        </table>
 
-      <button type="button" onclick="calcularCincinnati()">Calcular Resultado</button>
-      <button type="button" onclick="gerarPDF()">Gerar PDF</button>
+        <div id="resultado" class="resultado" aria-live="polite"></div>
+        <div id="observacao" class="observacao"></div>
+
+        <div class="ref font-inter text-gray-custom text-left">
+          Referência bibliográfica: https://www.gov.br/conitec/pt-br/midias/consultas/relatorios/2021/20211230_relatorio_recomendacao_avci_agudo_cp110.pdf
+        </div>
+      </div>
     </form>
 
-    <div id="resultado" class="resultado" style="display:none;"></div>
-    <div id="observacao" class="observacao"></div>
-    <div class="referencia">
-      Referência bibliográfica: https://www.gov.br/conitec/pt-br/midias/consultas/relatorios/2021/20211230_relatorio_recomendacao_avci_agudo_cp110.pdf
+    <div class="flex flex-wrap justify-start gap-4 mt-6">
+      <button type="button" onclick="calcular()" class="btn-primary" aria-label="Calcular resultado">
+        Calcular Resultado
+      </button>
+      <button type="button" onclick="limpar()" class="btn-primary" aria-label="Limpar seleção">
+        Limpar
+      </button>
+      <button type="button" onclick="gerarPDF()" class="btn-secondary" aria-label="Gerar PDF">
+        Gerar PDF
+      </button>
     </div>
 
+  </div> <a href="doacoes.html" class="fixed bottom-4 right-4 bg-dark-blue text-white text-sm px-4 py-2 rounded-full shadow hover:bg-blue-900 transition fixed-donation-button">
+    Ajude-nos a manter o site gratuito
+  </a>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <div id="footer-container">
     <footer>
       <p>© 2025 Calculadoras de Enfermagem</p>
       <p>
@@ -232,66 +311,146 @@
     </footer>
   </div>
 
-  <script>
-    const tabela = document.getElementById("cincinnatiTable");
-    tabela.addEventListener("click", function(e) {
-      if (e.target.tagName === "TD" && e.target.hasAttribute("data-value")) {
-        const linha = e.target.parentElement;
-        [...linha.children].forEach(td => td.classList.remove("selected"));
-        e.target.classList.add("selected");
-      }
-    });
 
-    function calcularCincinnati() {
-      const linhas = tabela.querySelectorAll("tbody tr");
+  <script>
+    // Usa 'tabelaCincinnati' para ser consistente com o código completo que eu tinha te passado
+    const tabelaCincinnati = document.getElementById("cincinnatiTable");
+
+    // Event listener para seleção de células da tabela
+    if (tabelaCincinnati) {
+      tabelaCincinnati.addEventListener("click", function(e) {
+        if (e.target.tagName === "TD" && e.target.hasAttribute("data-value")) {
+          const linha = e.target.parentElement;
+          // Remove 'selected' de todos os TDs na mesma linha
+          [...linha.children].forEach(td => td.classList.remove("selected"));
+          // Adiciona 'selected' ao TD clicado
+          e.target.classList.add("selected");
+          console.log(`Célula selecionada: ${e.target.innerText} (Valor: ${e.target.dataset.value})`);
+        }
+      });
+    } else {
+      console.error("Tabela 'cincinnatiTable' não encontrada!");
+    }
+
+    // Função principal de cálculo
+    function calcular() { // Renomeada de calcularCincinnati() para calcular()
+      console.log('Função calcular() iniciada.');
+      const linhas = tabelaCincinnati.querySelectorAll("tbody tr");
       let positivo = false;
       let incompleto = false;
 
-      linhas.forEach(tr => {
+      // Verifica as seleções
+      linhas.forEach((tr, index) => {
         const selecionado = tr.querySelector(".selected");
-        if (!selecionado) incompleto = true;
-        else if (selecionado.dataset.value === "1") positivo = true;
+        if (!selecionado) {
+          incompleto = true;
+          console.warn(`Linha ${index + 1} (Sinal Clínico: ${tr.querySelector('td:first-child').innerText}) não possui seleção.`);
+        } else if (selecionado.dataset.value === "1") {
+          positivo = true;
+          console.log(`Sinal anormal detectado na linha ${index + 1}: ${tr.querySelector('td:first-child').innerText}`);
+        } else {
+            console.log(`Sinal normal selecionado na linha ${index + 1}: ${tr.querySelector('td:first-child').innerText}`);
+        }
       });
 
-      const resultado = document.getElementById("resultado");
-      const observacao = document.getElementById("observacao");
+      const resultadoDiv = document.getElementById("resultado"); // Usei 'resultadoDiv' para clareza
+      const observacaoDiv = document.getElementById("observacao"); // Usei 'observacaoDiv' para clareza
+
+      if (!resultadoDiv || !observacaoDiv) {
+        console.error("Elementos 'resultado' ou 'observacao' não encontrados!");
+        return;
+      }
+      console.log('Divs de resultado e observação encontradas.');
+
+      // Limpa classes e texto anteriores
+      resultadoDiv.classList.remove('text-red-custom', 'text-dark-blue', 'error');
+      resultadoDiv.innerText = ""; // Limpa o texto existente
+      observacaoDiv.innerText = "";
+      
+      // Garante que a div de resultado esteja visível
+      resultadoDiv.style.display = "block"; // Define explicitamente display para block
+      console.log('Conteúdo anterior do resultado/observação limpo e resultadoDiv visível.');
+
 
       if (incompleto) {
-        resultado.style.display = "block";
-        resultado.innerText = "Por favor, selecione todas as opções.";
-        observacao.innerText = "";
+        resultadoDiv.innerText = "Por favor, selecione todas as opções.";
+        resultadoDiv.classList.add('error'); // Adiciona classe de erro para estilo
+        console.log('Cálculo incompleto: faltam opções. Exibindo mensagem de erro.');
         return;
       }
 
-      resultado.style.display = "block";
-      resultado.innerText = positivo ?
-        "Resultado: POSITIVO para suspeita de AVC." :
-        "Resultado: NEGATIVO para suspeita de AVC.";
+      // Se não estiver incompleto, determina e exibe o resultado final
+      resultadoDiv.innerText = positivo ?
+        "Resultado: POSITIVO para suspeita de AVE." :
+        "Resultado: NEGATIVO para suspeita de AVE.";
+      
+      // Adiciona a classe de cor para o resultado
+      resultadoDiv.classList.add('text-dark-blue'); 
+      console.log(`Resultado final: ${resultadoDiv.innerText}`);
 
-      observacao.innerText = positivo ?
-        "Encaminhe o paciente para avaliação médica, não esqueça de verificar se estes sinais de anormalidade são recentes (agudos) ou tardios (crônicos). Muitas vezes o paciente já possui estes sinais e já faz acompanhamento prévio." : "";
+      if (positivo) {
+        observacaoDiv.innerText = "Encaminhe o paciente para avaliação médica, não esqueça de verificar se estes sinais de anormalidade são recentes (agudos) ou tardios (crônicos). Muitas vezes o paciente já possui estes sinais e já faz acompanhamento prévio.";
+        console.log(`Observação para resultado POSITIVO: ${observacaoDiv.innerText}`);
+      }
+      console.log('Cálculo concluído. Resultado exibido.');
     }
 
+    // Função para limpar as seleções e o resultado
+    function limpar() {
+        console.log('Função limpar() iniciada.');
+        const cells = tabelaCincinnati.querySelectorAll("td.selected");
+        cells.forEach(cell => cell.classList.remove("selected"));
+
+        const resultadoDiv = document.getElementById("resultado");
+        const observacaoDiv = document.getElementById("observacao");
+
+        if (resultadoDiv) {
+            resultadoDiv.innerText = "";
+            resultadoDiv.classList.remove('text-red-custom', 'text-dark-blue', 'error');
+            //resultadoDiv.style.display = "none"; // Opcional: esconder a div de resultado ao limpar
+        }
+        if (observacaoDiv) {
+            observacaoDiv.innerText = "";
+        }
+        console.log('Campos limpos.');
+    }
+
+    // Função gerarPDF (versão simplificada para evitar erro se não tiver html2pdf.js configurado)
     function gerarPDF() {
-      const content = document.getElementById('pdfContent').cloneNode(true);
-      const sidebar = content.querySelector('.sidebar');
-      const footer = content.querySelector('footer');
-      if (sidebar) sidebar.remove();
-      if (footer) footer.remove();
-
-      const opt = {
-        margin: 0,
-        filename: 'cincinnati.pdf',
-        image: { type: 'jpeg', quality: 1 },
-        html2canvas: { scale: 3, scrollY: 0 },
-        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-      };
-      html2pdf().set(opt).from(content).save();
+        console.log('Função gerarPDF() iniciada.');
+        const element = document.getElementById('pdfContent');
+        if (element && typeof html2pdf !== 'undefined') {
+            html2pdf(element, {
+                margin: 10,
+                filename: 'Escala_Cincinnati.pdf',
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2 },
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            });
+            console.log('Tentativa de gerar PDF.');
+        } else {
+            console.warn('Conteúdo para PDF (pdfContent) não encontrado ou html2pdf.js não carregado/definido.');
+            alert('A função de gerar PDF não está completamente configurada ou os elementos necessários não foram encontrados.');
+        }
     }
+
+    // Se você tinha um carregamento de rodapé externo, mantenha-o aqui:
+    /*
+    document.addEventListener('DOMContentLoaded', () => {
+        fetch("rodape111.html")
+            .then(res => res.text())
+            .then(data => {
+                const footerContainer = document.getElementById("footer-container");
+                if (footerContainer) {
+                    footerContainer.innerHTML = data;
+                    console.log('Rodapé carregado com sucesso.');
+                } else {
+                    console.error('Elemento footer-container não encontrado.');
+                }
+            })
+            .catch(err => console.error("Erro ao carregar rodape111.html:", err));
+    });
+    */
   </script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-  
-  <!-- Carrega a barra superior -->
-<script src="topbar.js"></script>
 </body>
 </html>
