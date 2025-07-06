@@ -2,238 +2,333 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
-  <title>📈 Calculadora de Protocolo NEWS (National Early Warning Score)</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="description" content="Calculadora do protocolo NEWS para detecção precoce de deterioração clínica em pacientes." />
-  <meta name="keywords" content="protocolo NEWS, deterioração clínica, enfermagem, escore precoce, risco hospitalar" />
+  <title>📈 Calculadora Protocolo NEWS - National Early Warning Score</title>
+
+  <link rel="canonical" href="https://www.calculadorasdeenfermagem.com.br/news.html" />
+
+  <link rel="icon" href="favicon.ico" type="image/x-icon" />
+
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
+  
+  <meta name="description" content="Calculadora do Protocolo NEWS (National Early Warning Score) para detecção precoce de deterioração clínica em pacientes hospitalizados, promovendo segurança." />
+  <meta name="keywords" content="protocolo NEWS, deterioração clínica, enfermagem, escore precoce, risco hospitalar, segurança do paciente, sinais vitais" />
+
+  <script async src="https://www.googletagmanager.com/gtag/js?id=AW-952633102"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'AW-952633102');
+  </script>
+
+  <script src="topbar111.js" defer></script>
+
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 0;
-      display: flex;
-      background-color: #f7f9fc;
-    }
-    .sidebar {
-      width: 220px;
-      background-color: #cce4f7;
-      padding: 20px;
-      height: 100vh;
+    /* Reset básico e Box-sizing para consistência */
+    *, *::before, *::after {
       box-sizing: border-box;
+      margin: 0;
+      padding: 0;
     }
-    .sidebar h2 {
+
+    /* Fontes personalizadas */
+    @import url('https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@700&family=Inter:wght@300;400;500;600&display=swap');
+
+    /* Estilos das classes de fonte e cor personalizadas (para uso no HTML com Tailwind) */
+    .font-nunito { font-family: 'Nunito Sans', sans-serif; }
+    .font-inter { font-family: 'Inter', sans-serif; }
+    .text-dark-blue { color: #1A3E74; } /* Azul Escuro */
+    .text-light-blue { color: #1FA4E5; } /* Azul Claro */
+    .text-gray-custom { color: #666666; } /* Cinza */
+    .text-success-green { color: #1ED760; } /* Verde */
+    .text-black-custom { color: #333; } /* Cor para textos padrão */
+
+    /* Padrão de Botões (Componentes CSS para reuso) */
+    .btn-primary {
+      font-family: 'Inter', sans-serif;
+      font-weight: 600;
+      background-color: #1A3E74; /* Cor primária azul escuro */
+      color: #FFF;
+      padding: 12px 24px;
+      border-radius: 8px;
+      transition: background-color 0.3s ease;
+      border: none;
+      cursor: pointer;
       text-align: center;
-      color: #007bff;
-      font-size: 20px;
-      margin-bottom: 25px;
     }
-    .sidebar a {
-      display: block;
+    .btn-primary:hover { background-color: #122c54; } /* Tom mais escuro no hover */
+    .btn-secondary {
+      font-family: 'Inter', sans-serif;
+      font-weight: 600;
+      background-color: #1FA4E5; /* Cor secundária azul claro */
+      color: #FFF;
+      padding: 12px 24px;
+      border-radius: 8px;
+      transition: background-color 0.3s ease;
+      border: none;
+      cursor: pointer;
       text-align: center;
-      margin: 10px 0;
-      color: #3399cc;
-      text-decoration: none;
-      font-size: 14px;
     }
-    .content {
-      flex: 1;
-      padding: 30px;
-      max-width: 1000px;
-      margin: auto;
-    }
-    h1 {
+    .btn-secondary:hover { background-color: #178ac7; } /* Tom mais escuro no hover */
+    .btn-success {
+      font-family: 'Inter', sans-serif;
+      font-weight: 500;
+      background-color: #1ED760;
+      color: #FFF;
+      padding: 10px 20px;
+      border-radius: 8px;
+      transition: background-color 0.3s ease;
+      border: none;
+      cursor: pointer;
       text-align: center;
-      color: #007bff;
-      margin-bottom: 0;
     }
-    h1 + p {
+    .btn-success:hover { background-color: #17b351; }
+
+    /* Estilos para a área de resultado da calculadora (Componente específico) */
+    .resultado {
+      margin-top: 1.5rem; /* mt-6 */
+      padding: 1.25rem; /* p-5 */
+      border-radius: 0.5rem;
+      font-weight: 600;
       text-align: center;
-      font-size: 18px;
-      margin: 5px 0;
-      color: red;
+      font-size: 1.125rem; /* text-lg */
+      line-height: 1.6;
     }
-    .alerta {
-      background-color: #fff3cd;
-      border: 1px solid #ffeeba;
-      padding: 15px;
-      border-radius: 6px;
-      margin-top: 25px;
-      color: #856404;
-      font-size: 1em;
+    /* Cores específicas para o resultado do NEWS */
+    .resultado.bg-red-custom { background-color: #fee2e2; color: #dc2626; } /* red-100, red-600 */
+    .resultado.bg-yellow-custom { background-color: #fefce8; color: #d97706; } /* yellow-50, yellow-700 */
+    .resultado.bg-green-custom { background-color: #dcfce7; color: #15803d; } /* green-100, green-700 */
+
+    /* Estilos para a referência/bibliografia (Componente específico) */
+    .ref {
+      margin-top: 2.5rem; /* mt-10 */
+      font-size: 0.875rem; /* text-sm */
+      color: #666666; /* text-gray-custom */
+      text-align: left;
+    }
+
+    /* Estilo para o botão "Ajude-nos" fixo (Componente de botão) */
+    .fixed-donation-button {
+      z-index: 30;
+    }
+    
+    /* Layout principal com Topbar fixa */
+    body {
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh; /* Garante que o body ocupe a altura total da viewport */
+      background-color: #f8fafc; /* Tailwind bg-gray-50 */
+      color: #333; /* Tailwind text-gray-800 */
+    }
+
+    /* ESTILOS DOS DROPDOWNS DA TOPBAR (MOVIDOS DE TOPBAR111.HTML) */
+    .dropdown-menu { display: none; }
+    .dropdown-menu.show { display: block; }
+    nav { justify-content: flex-end; } 
+    nav button { cursor: pointer; }
+    nav .dropdown-menu a:hover { background-color: #bfdbfe; }
+    /* FIM DOS ESTILOS DA TOPBAR */
+
+    /* Espaçamento para o conteúdo abaixo da topbar fixa */
+    .main-content-wrapper { 
+      display: flex;
+      flex-direction: column;
+      flex-grow: 1;
+      padding-top: 64px; /* Garante que o conteúdo comece abaixo da topbar fixa (64px de altura) */
+      width: 100%;
+      max-width: 1280px; /* max-w-screen-xl (Tailwind 7xl) */
+      margin-left: auto;
+      margin-right: auto;
+      padding: 2rem 1rem; /* p-8 px-4 */
+    }
+    
+    /* Estilos específicos para este arquivo */
+    .alert-custom {
+      @apply bg-yellow-50 border border-yellow-200 p-4 rounded-lg my-6 text-yellow-800; /* Tailwind classes for alert */
     }
     table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 20px;
-      font-size: 14px;
+      @apply w-full border-collapse my-4 md:my-6 shadow-md rounded-lg overflow-hidden;
     }
     th, td {
-      border: 1px solid #ddd;
-      padding: 10px;
-      vertical-align: middle;
-      text-align: center;
-      cursor: pointer;
+      @apply p-3 border border-gray-300 align-middle text-center text-black-custom; /* Centraliza o texto nas células */
     }
     th {
-      background-color: #e3f2fd;
+      @apply bg-blue-100 text-left text-sm font-semibold text-dark-blue uppercase tracking-wider; /* Azul mais claro para th */
+    }
+    /* Adaptação para a primeira coluna TH */
+    th:first-child {
+      @apply text-left; /* Alinha o primeiro TH à esquerda */
     }
     td.selected {
-      background-color: #90caf9;
+      @apply bg-blue-200; /* Azul um pouco mais escuro para seleção */
     }
-    .resultado {
-      margin-top: 25px;
-      padding: 20px;
-      background-color: #e1f5fe;
-      border-radius: 6px;
-      font-size: 16px;
+    /* Estilo para células vazias */
+    td:empty {
+      background-color: transparent !important;
+      border: none !important;
     }
-    button {
-      background-color: #007bff;
-      color: white;
-      border: none;
-      padding: 12px 20px;
-      font-size: 16px;
-      margin-top: 20px;
-      cursor: pointer;
-      border-radius: 6px;
-    }
-    footer {
-      background-color: #f1f1f1;
-      padding: 20px;
-      text-align: center;
-      font-size: 14px;
-      color: #555;
-      border-top: 1px solid #ddd;
-      margin-top: 40px;
-    }
-    footer a {
-      color: #007bff;
-      text-decoration: none;
-      margin: 0 6px;
+    /* Ajuste para células com pontuação 0 que não são vazias, mas contêm texto */
+    td[data-score="0"]:not(:empty) {
+      /* Estilo padrão para células de pontuação 0 */
     }
   </style>
 </head>
-<body>
-  <div class="sidebar">
-    <h2>Calculadoras</h2>
-    <a href="gotejamento.html">Calculadora de Gotejamento</a>
-    <a href="insulina.html">Cálculo de Insulina</a>
-    <a href="dimensionamento.html">Dimensionamento</a>
-    <a href="medicamentos.html">Medicamentos</a>
-    <a href="braden.html">Escala de Braden</a>
-    <a href="glasgow.html">Escala de Glasgow</a>
-  </div>
-  <div class="content">
-    <h1>📈 Calculadora de Protocolo NEWS</h1>
-    <p>(National Early Warning Score)</p>
-    <p><strong style="color:red">Escala nacional de alerta precoce</strong></p>
+<body class="bg-gray-50 text-gray-800 font-inter">
 
-    <div class="alerta">
-      <strong>Atenção:</strong> sempre aplique a <strong>Meta Internacional de Segurança do Paciente nº 2</strong>: <em>“Melhorar a comunicação efetiva entre os profissionais de saúde”</em>, assegurando que as informações críticas dos pacientes sejam transmitidas de forma clara, objetiva e no momento adequado.
-    </div>
+  <div id="topbar-container"></div> 
 
-    <p style="margin-top: 35px;">Selecione na tabela os parâmetros do paciente e clique em calcular para verificar o risco</p>
+  <div class="main-content-wrapper">
+    <main class="flex flex-col flex-grow">
 
-    <form>
-      <table id="newsTable">
-        <thead>
-          <tr>
-            <th>Parâmetros</th>
-            <th>3</th>
-            <th>2</th>
-            <th>1</th>
-            <th>0</th>
-            <th>1</th>
-            <th>2</th>
-            <th>3</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td>Nível de Consciência</td>
-            <td data-score="3"></td>
-            <td data-score="2"></td>
-            <td data-score="1"></td>
-            <td data-score="0">Alerta</td>
-            <td data-score="1"></td>
-            <td data-score="2"></td>
-            <td data-score="3">À voz / dor / não responde</td>
-          </tr>
-          <tr>
-            <td>Temperatura</td>
-            <td data-score="3">&lt; 35,0 °C</td>
-            <td data-score="2"></td>
-            <td data-score="1">35,1–36,0 °C</td>
-            <td data-score="0">36,1–38,0 °C</td>
-            <td data-score="1">38,1–39,0 °C</td>
-            <td data-score="2">&gt; 39,1 °C</td>
-            <td data-score="3"></td>
-          </tr>
-          <tr>
-            <td>Frequência Cardíaca</td>
-            <td data-score="3">&lt; 40</td>
-            <td data-score="2"></td>
-            <td data-score="1">41–50</td>
-            <td data-score="0">51–90</td>
-            <td data-score="1">91–110</td>
-            <td data-score="2">111–130</td>
-            <td data-score="3">&gt; 131</td>
-          </tr>
-          <tr>
-            <td>PA Sistólica</td>
-            <td data-score="3">&lt; 90</td>
-            <td data-score="2">91–100</td>
-            <td data-score="1">101–110</td>
-            <td data-score="0">111–219</td>
-            <td data-score="1"></td>
-            <td data-score="2"></td>
-            <td data-score="3">&gt; 220</td>
-          </tr>
-          <tr>
-            <td>Frequência Respiratória</td>
-            <td data-score="3">&lt; 8</td>
-            <td data-score="2"></td>
-            <td data-score="1">9–11</td>
-            <td data-score="0">12–20</td>
-            <td data-score="1"></td>
-            <td data-score="2">21–24</td>
-            <td data-score="3">&gt; 25</td>
-          </tr>
-          <tr>
-            <td>Saturação de O²</td>
-            <td data-score="3">&lt; 91</td>
-            <td data-score="2">92–93</td>
-            <td data-score="1">94–95</td>
-            <td data-score="0">&gt; 96</td>
-            <td data-score="1"></td>
-            <td data-score="2"></td>
-            <td data-score="3"></td>
-          </tr>
-          <tr>
-            <td>Suplementação de O²</td>
-            <td data-score="3"></td>
-            <td data-score="2">Sim</td>
-            <td data-score="1"></td>
-            <td data-score="0">Não</td>
-            <td data-score="1"></td>
-            <td data-score="2"></td>
-            <td data-score="3"></td>
-          </tr>
-        </tbody>
-      </table>
-      <button type="button" onclick="calcularNews()">Calcular Escore NEWS</button>
-    </form>
-
-    <div class="resultado" id="resultado" style="display:none;"></div>
-
-    <footer>
-      <p>© 2025 Calculadoras de Enfermagem</p>
-      <p>
-        <a href="index.html">Início</a> |
-        <a href="politica.html">Política de Privacidade</a> |
-        <a href="termos.html">Termos de Uso</a>
+      <div class="flex flex-wrap items-center justify-center gap-4 mb-3">
+        <img src="iconpages.png" alt="Ícone do Protocolo NEWS" class="w-32 h-auto" />
+        <h1 class="font-nunito font-extrabold text-dark-blue text-4xl lg:text-5xl text-center">
+          Calculadora Protocolo NEWS
+        </h1>
+      </div>
+      <h2 class="font-inter font-normal text-lg text-gray-700 text-center mb-6">
+        (National Early Warning Score)
+      </h2>
+      <p class="font-inter font-medium text-red-600 text-center text-xl mb-6">
+        Escala nacional de alerta precoce
       </p>
-    </footer>
-  </div>
+
+      <div id="conteudo" class="w-full">
+        <div class="alert-custom">
+          <p class="font-bold mb-2">Atenção:</p>
+          <p>
+            Sempre aplique a **Meta Internacional de Segurança do Paciente nº 2**: *“Melhorar a comunicação efetiva entre os profissionais de saúde”*, assegurando que as informações críticas dos pacientes sejam transmitidas de forma clara, objetiva e no momento adequado.
+          </p>
+        </div>
+
+        <p class="font-inter font-medium text-gray-700 mb-4 text-center">
+          Selecione na tabela os parâmetros do paciente e clique em calcular para verificar o risco:
+        </p>
+
+        <div class="overflow-x-auto">
+          <table id="newsTable">
+            <thead>
+              <tr>
+                <th>Parâmetros</th>
+                <th>3</th>
+                <th>2</th>
+                <th>1</th>
+                <th>0</th>
+                <th>1</th>
+                <th>2</th>
+                <th>3</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Nível de Consciência</td>
+                <td data-score="3"></td>
+                <td data-score="2"></td>
+                <td data-score="1"></td>
+                <td data-score="0">Alerta</td>
+                <td data-score="1"></td>
+                <td data-score="2"></td>
+                <td data-score="3">À voz / dor / não responde</td>
+              </tr>
+              <tr>
+                <td>Temperatura (°C)</td>
+                <td data-score="3">&lt; 35,0</td>
+                <td data-score="2"></td>
+                <td data-score="1">35,1–36,0</td>
+                <td data-score="0">36,1–38,0</td>
+                <td data-score="1">38,1–39,0</td>
+                <td data-score="2">&gt; 39,1</td>
+                <td data-score="3"></td>
+              </tr>
+              <tr>
+                <td>Frequência Cardíaca (bpm)</td>
+                <td data-score="3">&lt; 40</td>
+                <td data-score="2"></td>
+                <td data-score="1">41–50</td>
+                <td data-score="0">51–90</td>
+                <td data-score="1">91–110</td>
+                <td data-score="2">111–130</td>
+                <td data-score="3">&gt; 131</td>
+              </tr>
+              <tr>
+                <td>PA Sistólica (mmHg)</td>
+                <td data-score="3">&lt; 90</td>
+                <td data-score="2">91–100</td>
+                <td data-score="1">101–110</td>
+                <td data-score="0">111–219</td>
+                <td data-score="1"></td>
+                <td data-score="2"></td>
+                <td data-score="3">&gt; 220</td>
+              </tr>
+              <tr>
+                <td>Frequência Respiratória (ipm)</td>
+                <td data-score="3">&lt; 8</td>
+                <td data-score="2"></td>
+                <td data-score="1">9–11</td>
+                <td data-score="0">12–20</td>
+                <td data-score="1"></td>
+                <td data-score="2">21–24</td>
+                <td data-score="3">&gt; 25</td>
+              </tr>
+              <tr>
+                <td>Saturação de O² (%)</td>
+                <td data-score="3">&lt; 91</td>
+                <td data-score="2">92–93</td>
+                <td data-score="1">94–95</td>
+                <td data-score="0">&gt; 96</td>
+                <td data-score="1"></td>
+                <td data-score="2"></td>
+                <td data-score="3"></td>
+              </tr>
+              <tr>
+                <td>Suplementação de O²</td>
+                <td data-score="3"></td>
+                <td data-score="2">Sim</td>
+                <td data-score="1"></td>
+                <td data-score="0">Não</td>
+                <td data-score="1"></td>
+                <td data-score="2"></td>
+                <td data-score="3"></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="flex flex-wrap justify-start gap-4 mt-6">
+          <button id="btnCalcular" class="btn-primary" aria-label="Calcular Escore NEWS">
+            Calcular Escore NEWS
+          </button>
+          <button id="btnLimpar" class="btn-primary" aria-label="Limpar seleções da escala">
+            Limpar
+          </button>
+          <button id="btnGerarPDF" class="btn-secondary" aria-label="Gerar PDF do resultado">
+            Gerar PDF
+          </button>
+        </div>
+
+        <div class="resultado" id="resultado" style="display:none;"></div>
+
+        <div class="ref font-inter text-gray-custom">
+          <strong>Referência bibliográfica:</strong><br />
+          <p class="mt-2">
+            Royal College of Physicians. <em class="font-semibold">National Early Warning Score (NEWS) 2: Standardising the assessment of acute illness and identifying patients at risk of clinical deterioration</em>. London: RCP; 2017. Disponível em: <a href="https://www.rcplondon.ac.uk/projects/outputs/national-early-warning-score-news-2" target="_blank" class="text-light-blue hover:underline">rcplondon.ac.uk</a>
+          </p>
+        </div>
+      </div>
+
+    </main>
+  </div> 
+
+  <a href="doacoes.html" class="fixed bottom-4 right-4 bg-dark-blue text-white text-sm px-4 py-2 rounded-full shadow hover:bg-blue-900 transition fixed-donation-button">
+    Ajude-nos a manter o site gratuito
+  </a>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  
+  <script src="pdf111.js"></script>
+
+  <div id="footer-container"></div>
 
   <script>
     const tabela = document.getElementById("newsTable");
@@ -241,7 +336,9 @@
     tabela.addEventListener("click", function(e) {
       if (e.target.tagName === "TD" && e.target.hasAttribute("data-score")) {
         const linha = e.target.parentElement;
+        // Remove a classe 'selected' de todas as células da mesma linha
         [...linha.children].forEach(td => td.classList.remove("selected"));
+        // Adiciona a classe 'selected' à célula clicada
         e.target.classList.add("selected");
       }
     });
@@ -249,21 +346,122 @@
     function calcularNews() {
       let total = 0;
       const linhas = tabela.querySelectorAll("tbody tr");
+      let todasLinhasSelecionadas = true;
+      const resultadoDiv = document.getElementById('resultado');
+
+      // Resetar classes de cor anteriores
+      resultadoDiv.classList.remove('bg-red-custom', 'bg-yellow-custom', 'bg-green-custom');
+
       linhas.forEach(tr => {
         const selecionado = tr.querySelector(".selected");
-        if (selecionado) total += parseInt(selecionado.dataset.score);
+        if (selecionado) {
+          total += parseInt(selecionado.dataset.score);
+        } else {
+          todasLinhasSelecionadas = false;
+        }
       });
 
-      let interpretacao = "";
-      if (total >= 7) interpretacao = "Risco Alto – Acionar equipe médica imediatamente.";
-      else if (total >= 5) interpretacao = "Risco Moderado – Reavaliar frequentemente e considerar apoio médico.";
-      else interpretacao = "Risco Baixo – Monitoramento regular.";
+      if (!todasLinhasSelecionadas) {
+        resultadoDiv.style.display = "block";
+        resultadoDiv.innerHTML = "⚠️ Por favor, selecione uma opção para **cada parâmetro** antes de calcular.";
+        resultadoDiv.classList.add('bg-red-custom'); // Usa cor de alerta para erro
+        return;
+      }
 
-      const resultado = document.getElementById("resultado");
-      resultado.style.display = "block";
-      resultado.innerHTML = `<strong>Pontuação Total NEWS:</strong> ${total}<br><strong>${interpretacao}</strong>`;
+      let interpretacao = "";
+      let corClasse = '';
+
+      if (total >= 7) {
+        interpretacao = "Risco Alto – Acionar equipe médica imediatamente. Necessita de avaliação urgente e monitoramento intensivo.";
+        corClasse = 'bg-red-custom';
+      } else if (total >= 5) {
+        interpretacao = "Risco Moderado – Reavaliar frequentemente (a cada 1-2 horas) e considerar apoio médico. Risco de deterioração clínica.";
+        corClasse = 'bg-yellow-custom';
+      } else if (total >= 1 && total <= 4) { // Se a pontuação for entre 1 e 4
+        interpretacao = "Risco Baixo – Monitoramento regular (a cada 4-6 horas).";
+        corClasse = 'bg-green-custom';
+      } else if (total === 0) { // Se a pontuação for 0
+        interpretacao = "Risco Muito Baixo – Monitoramento de rotina (a cada 12 horas).";
+        corClasse = 'bg-green-custom';
+      }
+
+      resultadoDiv.style.display = "block";
+      resultadoDiv.innerHTML = 
+        `<p class="font-bold">Pontuação Total NEWS: ${total}</p>` +
+        `<p class="font-bold text-lg mt-2 mb-1">Classificação: ${interpretacao}</p>`;
+      resultadoDiv.classList.add(corClasse);
     }
+
+    function limparCampos() {
+      document.querySelectorAll('#newsTable td.selected').forEach(td => {
+        td.classList.remove('selected');
+      });
+      const resultadoDiv = document.getElementById('resultado');
+      resultadoDiv.innerHTML = '';
+      resultadoDiv.style.display = 'none'; // Esconde o resultado ao limpar
+      resultadoDiv.classList.remove('bg-red-custom', 'bg-yellow-custom', 'bg-green-custom'); // Remove todas as classes de cor
+    }
+
+    function gerarPDF() {
+      // Cria uma cópia do conteúdo para o PDF
+      const content = document.getElementById('conteudo').cloneNode(true);
+
+      // Remove os botões da cópia antes de gerar o PDF
+      const buttonsDiv = content.querySelector('.flex.flex-wrap.justify-start.gap-4.mt-6');
+      if (buttonsDiv) buttonsDiv.remove();
+
+      // Esconde o botão de doação fixo antes de gerar o PDF
+      const fixedButton = document.querySelector('.fixed-donation-button');
+      if (fixedButton) {
+        fixedButton.style.display = 'none';
+      }
+
+      // Garante que o resultado esteja visível e formatado antes de gerar o PDF
+      const resultadoOriginal = document.getElementById('resultado');
+      const resultadoCopia = content.querySelector('#resultado');
+      if (resultadoOriginal.style.display === 'none' || resultadoOriginal.innerHTML.includes('Por favor, selecione')) {
+          // Se o resultado não estiver visível ou for uma mensagem de erro, mostra uma mensagem para o PDF
+          resultadoCopia.style.display = 'block';
+          resultadoCopia.classList.remove('bg-red-custom', 'bg-yellow-custom', 'bg-green-custom');
+          resultadoCopia.classList.add('bg-gray-100', 'text-gray-700');
+          resultadoCopia.innerHTML = "Resultado não calculado ou incompleto na página. Calcule antes de gerar o PDF.";
+      }
+
+      const opt = {
+        margin:       0.5,
+        filename:     'protocolo_news.pdf',
+        image:        { type: 'jpeg', quality: 0.98 },
+        html2canvas:  { scale: 3, scrollY: 0 },
+        jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' },
+      };
+      
+      html2pdf().set(opt).from(content).save().then(() => {
+        // Volta a exibir o botão de doação fixo após a geração do PDF
+        if (fixedButton) {
+          fixedButton.style.display = '';
+        }
+      });
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      // Anexa eventos aos botões
+      document.getElementById('btnCalcular').addEventListener('click', calcularNews);
+      document.getElementById('btnLimpar').addEventListener('click', limparCampos);
+      document.getElementById('btnGerarPDF').addEventListener('click', gerarPDF);
+
+      // Carrega o rodapé (rodape111.html)
+      fetch("rodape111.html")
+        .then(res => res.text())
+        .then(data => {
+          const footerContainer = document.getElementById("footer-container");
+          if (footerContainer) {
+            footerContainer.innerHTML = data;
+          } else {
+            console.error('Elemento footer-container não encontrado.');
+          }
+        })
+        .catch(err => console.error("Erro ao carregar rodape111.html:", err));
+    });
   </script>
 </body>
 </html>
-
