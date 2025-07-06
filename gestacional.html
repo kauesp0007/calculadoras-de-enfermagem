@@ -2,235 +2,342 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="keywords" content="dpp, dum, enfermagem, obstetricia, calculadora de enfermagem, parto, data provavel, gestação" />
-  <title>Calculadora de Idade Gestacional e Data Provável do Parto</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Calculadora de Idade Gestacional e DPP</title>
+
   <link rel="canonical" href="https://www.calculadorasdeenfermagem.com.br/gestacional.html" />
+
+  <link rel="icon" href="favicon.ico" type="image/x-icon" />
+
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
+  
+  <meta name="keywords" content="dpp, dum, enfermagem, obstetricia, calculadora de enfermagem, parto, data provavel, gestação, idade gestacional" />
+  <meta name="description" content="Calcule a idade gestacional e a data provável do parto (DPP) com base na Data da Última Menstruação (DUM)." />
+
+  <script async src="https://www.googletagmanager.com/gtag/js?id=AW-952633102"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'AW-952633102');
+  </script>
+
+  <script src="topbar111.js" defer></script>
+
   <style>
-    body {
-      font-family: Arial, sans-serif;
+    /* Reset básico e Box-sizing para consistência */
+    *, *::before, *::after {
+      box-sizing: border-box;
       margin: 0;
-      display: flex;
-      background-color: #f4f4f4;
+      padding: 0;
     }
-    .sidebar {
-      width: 200px;
-      background-color: #007bff;
-      padding: 20px;
-      color: white;
-      height: 100vh;
-    }
-    .sidebar h2 {
-      font-size: 12px;
-      text-align: center;
-      font-weight: bold;
-      margin-bottom: 20px;
-    }
-    .sidebar a {
-      color: white;
-      display: block;
-      font-size: 11px;
-      margin: 10px 0;
-      text-decoration: none;
-    }
-    .sidebar a:hover {
-      text-decoration: underline;
-    }
-    .content {
-      flex-grow: 1;
-      padding: 20px;
-      background: white;
-      max-width: 900px;
-      margin: auto;
-    }
-    h1 {
-      font-size: 26px;
-      color: #007bff;
-      font-weight: bold;
-    }
-    h2 {
-      font-size: 14px;
-      font-weight: normal;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 15px;
-    }
-    td {
-      padding: 8px;
-      border: 1px solid #ccc;
-    }
-    select {
-      width: 100%;
-      padding: 5px;
-    }
-    button {
-      margin-top: 20px;
-      margin-right: 10px;
-      padding: 8px 16px;
-      font-size: 12px;
-      background-color: #007bff;
-      color: white;
+
+    /* Fontes personalizadas */
+    @import url('https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@700&family=Inter:wght@300;400;500;600&display=swap');
+
+    /* Estilos das classes de fonte e cor personalizadas (para uso no HTML com Tailwind) */
+    .font-nunito { font-family: 'Nunito Sans', sans-serif; }
+    .font-inter { font-family: 'Inter', sans-serif; }
+    .text-dark-blue { color: #1A3E74; } /* Azul Escuro */
+    .text-light-blue { color: #1FA4E5; } /* Azul Claro */
+    .text-gray-custom { color: #666666; } /* Cinza */
+    .text-success-green { color: #1ED760; } /* Verde */
+    .text-black-custom { color: #333; } /* Cor para textos padrão */
+    .text-red-600 { color: #dc2626; } /* Tailwind red-600 para mensagens de erro */
+
+
+    /* Padrão de Botões (Componentes CSS para reuso) */
+    .btn-primary {
+      font-family: 'Inter', sans-serif;
+      font-weight: 600;
+      background-color: #1A3E74; /* Cor primária azul escuro */
+      color: #FFF;
+      padding: 12px 24px;
+      border-radius: 8px;
+      transition: background-color 0.3s ease;
       border: none;
-      border-radius: 5px;
       cursor: pointer;
-    }
-    button:hover {
-      background-color: #0056b3;
-    }
-    #resultado {
-      margin-top: 20px;
-      font-size: 14px;
-      font-weight: bold;
-      color: black;
-      white-space: pre-line;
-    }
-    #bibliografia {
-      margin-top: 40px;
-      font-size: 11px;
-      color: black;
-      font-family: Arial, sans-serif;
-      line-height: 1.3;
-    }
-    #pdfContent {
-      margin-top: 20px;
-    }
-    .search-box {
-      text-align: right;
-      margin-bottom: 10px;
-    }
-    .search-box input {
-      padding: 5px;
-      font-size: 12px;
-    }
-    footer {
-      background-color: #f4f4f4;
       text-align: center;
-      padding: 10px;
-      font-size: 12px;
-      border-top: 1px solid #ccc;
-      margin-top: 30px;
     }
-    footer a {
-      color: #007bff;
-      text-decoration: none;
-      margin: 0 6px;
+    .btn-primary:hover { background-color: #122c54; } /* Tom mais escuro no hover */
+    .btn-secondary {
+      font-family: 'Inter', sans-serif;
+      font-weight: 600;
+      background-color: #1FA4E5; /* Cor secundária azul claro */
+      color: #FFF;
+      padding: 12px 24px;
+      border-radius: 8px;
+      transition: background-color 0.3s ease;
+      border: none;
+      cursor: pointer;
+      text-align: center;
+    }
+    .btn-secondary:hover { background-color: #178ac7; } /* Tom mais escuro no hover */
+    .btn-success {
+      font-family: 'Inter', sans-serif;
+      font-weight: 500;
+      background-color: #1ED760;
+      color: #FFF;
+      padding: 10px 20px;
+      border-radius: 8px;
+      transition: background-color 0.3s ease;
+      border: none;
+      cursor: pointer;
+      text-align: center;
+    }
+    .btn-success:hover { background-color: #17b351; }
+
+    /* Estilos para a área de resultado da calculadora (Componente específico) */
+    .resultado {
+      margin-top: 1rem;
+      padding: 1rem;
+      background-color: #e0f2fe; /* Tailwind blue-50 */
+      border-radius: 0.5rem;
+      font-weight: 600;
+      color: #1A3E74; /* text-dark-blue */
+      text-align: left;
+      white-space: pre-wrap; /* Mantém quebras de linha no texto */
+    }
+    .resultado.text-red-600 { /* Classe para mensagens de erro (fundo) */
+        background-color: #fee2e2; /* Tailwind red-100 */
+    }
+
+    /* Estilos para a referência/bibliografia (Componente específico) */
+    .ref {
+      margin-top: 2rem;
+      font-size: 14px;
+      color: #666666; /* text-gray-custom */
+      text-align: left;
+    }
+
+    /* Estilo para o botão "Ajude-nos" fixo (Componente de botão) */
+    .fixed-donation-button {
+      z-index: 30;
+    }
+    
+    /* Layout principal com Topbar fixa */
+    body {
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh; /* Garante que o body ocupe a altura total da viewport */
+      background-color: #f8fafc; /* Tailwind bg-gray-50 */
+      color: #333; /* Tailwind text-gray-800 */
+    }
+
+    /* ESTILOS DOS DROPDOWNS DA TOPBAR (MOVIDOS DE TOPBAR111.HTML) */
+    .dropdown-menu { display: none; }
+    .dropdown-menu.show { display: block; }
+    nav { justify-content: flex-end; } 
+    nav button { cursor: pointer; }
+    nav .dropdown-menu a:hover { background-color: #bfdbfe; }
+    /* FIM DOS ESTILOS DA TOPBAR */
+
+    /* Espaçamento para o conteúdo abaixo da topbar fixa */
+    .main-content-wrapper { 
+      display: flex;
+      flex-direction: column;
+      flex-grow: 1;
+      padding-top: 64px; /* Garante que o conteúdo comece abaixo da topbar fixa (64px de altura) */
+      width: 100%;
+      max-width: 1280px; /* max-w-screen-xl (Tailwind 7xl) */
+      margin-left: auto;
+      margin-right: auto;
+      padding: 2rem 1rem; /* p-8 px-4 */
+    }
+
+    /* Responsividade específica para campos de formulário e bibliografia */
+    @media (max-width: 640px) {
+        /* Garante que inputs de data e rótulos se ajustem em telas pequenas */
+        label, input[type="date"] {
+            display: block;
+            width: 100%;
+            margin-bottom: 0.5rem;
+        }
+        input[type="date"] {
+            padding: 0.5rem;
+            border-radius: 0.375rem; /* rounded-md */
+            border: 1px solid #d1d5db; /* border-gray-300 */
+        }
     }
   </style>
-
-  <!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=AW-952633102">
-</script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-
-  gtag('config', 'AW-952633102');
-  </script>
 </head>
-<body>
-  <div id="barra-lateral"></div>
-<script>
-  fetch('sidebar.html')
-    .then(response => response.text())
-    .then(html => {
-      document.getElementById('barra-lateral').innerHTML = html;
-    });
-</script>
-  <div class="content" id="pdfContent">
-    <div class="search-box">
-      <input type="text" placeholder="Pesquisar..." oninput="filtrarLinks(this.value)" />
-    </div>
-    <h1><br><br>Calculadora de Idade Gestacional e Data provável do parto</h1>
-    <p>Insira a data da última menstruação (DUM) para calcular a idade gestacional e a data provável do parto (DPP):</p>
-    <label for="dum">Data da Última Menstruação (DUM):</label>
-    <input type="date" id="dum" name="dum" />
-    <button onclick="calcularGestacional()">Calcular Idade Gestacional e DPP</button>
-    <button onclick="gerarPDF()">Gerar PDF</button>
+<body class="bg-gray-50 text-gray-800 font-inter">
 
-    <div id="resultado" style="display:none;"></div>
+  <div id="topbar-container"></div> 
 
-    <div id="bibliografia" style="display:none;">
-      <strong>Bibliografia confiável:</strong><br />
-      Ministério da Saúde. Caderno de Atenção Básica: Pré-natal e Puerpério. Brasília: Ministério da Saúde, 2012.<br />
-      Sociedade Brasileira de Pediatria. Manual de Assistência à Gestante de Alto Risco. 6ª edição, 2018.<br />
-      Organização Mundial da Saúde (OMS). Cuidados durante a gravidez. Disponível em: https://www.who.int/reproductivehealth/publications/maternal_perinatal_health/en/
-    </div>
+  <div class="main-content-wrapper">
+    <main class="flex flex-col flex-grow">
 
-    <footer>
-      <p>© 2025 Calculadoras de Enfermagem</p>
-      <p>
-        <a href="index.html">Início</a> |
-        <a href="politica.html">Política de Privacidade</a> |
-        <a href="termos.html">Termos de Uso</a>
+      <div class="flex flex-wrap items-center justify-center gap-4 mb-3">
+        <img src="iconpages.png" alt="Ícone da Calculadora de Gestação" class="w-32 h-auto" />
+        <h1 class="font-nunito font-extrabold text-dark-blue text-4xl lg:text-5xl text-center">
+          Calculadora de Idade Gestacional e Data Provável do Parto (DPP)
+        </h1>
+      </div>
+
+      <p class="font-inter font-normal text-black-custom text-base lg:text-lg mb-6 text-left">
+        Insira a data da última menstruação (DUM) para calcular a idade gestacional e a data provável do parto (DPP).
       </p>
-    </footer>
-  </div>
+
+      <div id="conteudo" class="w-full"> <div class="mb-4">
+          <label for="dum" class="block text-black-custom text-lg font-medium mb-2">Data da Última Menstruação (DUM):</label>
+          <input type="date" id="dum" name="dum" class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-light-blue" />
+        </div>
+        
+        <div id="resultado" class="resultado" aria-live="polite"></div>
+
+        <div id="bibliografia" class="ref font-inter text-gray-custom text-left mt-10">
+          <strong>Bibliografia Confiável:</strong><br />
+          <p class="mt-2">
+            Ministério da Saúde. Caderno de Atenção Básica: Pré-natal e Puerpério. Brasília: Ministério da Saúde, 2012. <br>
+            Sociedade Brasileira de Pediatria. Manual de Assistência à Gestante de Alto Risco. 6ª edição, 2018. <br>
+            Organização Mundial da Saúde (OMS). Cuidados durante a gravidez. Disponível em: <a href="https://www.who.int/reproductivehealth/publications/maternal_perinatal_health/en/" target="_blank" class="text-light-blue hover:underline">https://www.who.int/reproductivehealth/publications/maternal_perinatal_health/en/</a>
+          </p>
+        </div>
+      </div>
+
+      <div class="flex flex-wrap justify-start gap-4 mt-6">
+        <button id="btnCalcular" class="btn-primary" aria-label="Calcular Idade Gestacional e DPP">
+          Calcular Idade Gestacional e DPP
+        </button>
+        <button id="btnLimpar" class="btn-primary" aria-label="Limpar campos">
+          Limpar
+        </button>
+        <button id="btnGerarPDF" class="btn-secondary" aria-label="Gerar PDF">
+          Gerar PDF
+        </button>
+      </div>
+
+    </main>
+  </div> 
+
+  <a href="doacoes.html" class="fixed bottom-4 right-4 bg-dark-blue text-white text-sm px-4 py-2 rounded-full shadow hover:bg-blue-900 transition fixed-donation-button">
+    Ajude-nos a manter o site gratuito
+  </a>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  
+  <script src="pdf111.js"></script>
+
+  <div id="footer-container"></div>
 
   <script>
-    function filtrarLinks(texto) {
-      const sidebar = document.querySelector('.sidebar');
-      const links = sidebar.querySelectorAll('a');
-      const filtro = texto.toLowerCase();
-      links.forEach(link => {
-        if (link.textContent.toLowerCase().includes(filtro)) {
-          link.style.display = 'block';
-        } else {
-          link.style.display = 'none';
-        }
-      });
-    }
+    // Remover a função filtrarLinks, pois a busca lateral não será mais usada
+    // function filtrarLinks(texto) { ... } 
 
     function calcularGestacional() {
       const dumInput = document.getElementById('dum').value;
+      const resultadoDiv = document.getElementById('resultado');
+      const bibliografiaDiv = document.getElementById('bibliografia');
+
       if (!dumInput) {
-        alert('Por favor, insira a data da última menstruação (DUM).');
+        resultadoDiv.innerHTML = '<span class="text-red-600">Por favor, insira a data da última menstruação (DUM).</span>';
+        resultadoDiv.classList.add('text-red-600', 'bg-red-100'); // Fundo vermelho para erro
+        resultadoDiv.classList.remove('text-dark-blue', 'bg-blue-50'); // Remove estilo padrão
+        resultadoDiv.style.display = 'block';
+        bibliografiaDiv.style.display = 'none'; // Esconde bibliografia se houver erro
         return;
       }
-      const dum = new Date(dumInput);
+      
+      const dum = new Date(dumInput + 'T00:00:00'); // Adiciona T00:00:00 para evitar problemas de fuso horário
       const hoje = new Date();
+      // Resetar horas, minutos, segundos e milissegundos para comparação exata de datas
+      hoje.setHours(0, 0, 0, 0); 
+      dum.setHours(0, 0, 0, 0);
+
+      // Validação: DUM não pode ser no futuro
+      if (dum > hoje) {
+          resultadoDiv.innerHTML = '<span class="text-red-600">A Data da Última Menstruação (DUM) não pode ser no futuro.</span>';
+          resultadoDiv.classList.add('text-red-600', 'bg-red-100');
+          resultadoDiv.classList.remove('text-dark-blue', 'bg-blue-50');
+          resultadoDiv.style.display = 'block';
+          bibliografiaDiv.style.display = 'none';
+          return;
+      }
+
       const diffMs = hoje - dum;
       const diffDias = Math.floor(diffMs / (1000 * 60 * 60 * 24));
       const semanas = Math.floor(diffDias / 7);
       const dias = diffDias % 7;
 
-      const dpp = new Date(dum);
-      dpp.setDate(dpp.getDate() + 280);
-      const dppFormatada = dpp.toLocaleDateString('pt-BR');
+      const dpp = new Date(dum.getTime()); // Cria uma nova data baseada na DUM
+      dpp.setDate(dpp.getDate() + 280); // Adiciona 280 dias para a DPP
+      const dppFormatada = dpp.toLocaleDateString('pt-BR'); // Formata para DD/MM/AAAA
 
-      const resultado = `Idade Gestacional: ${semanas} semanas e ${dias} dias\nData Provável do Parto (DPP): ${dppFormatada}`;
+      const resultadoTexto = `Idade Gestacional: ${semanas} semanas e ${dias} dias\nData Provável do Parto (DPP): ${dppFormatada}`;
 
-      const divResultado = document.getElementById('resultado');
-      divResultado.style.display = 'block';
-      divResultado.textContent = resultado;
+      resultadoDiv.innerHTML = resultadoTexto.replace(/\n/g, '<br>'); // Substitui \n por <br> para quebras de linha
+      resultadoDiv.classList.add('text-dark-blue', 'bg-blue-50'); // Estilo padrão para resultado
+      resultadoDiv.classList.remove('text-red-600', 'bg-red-100'); // Remove estilos de erro
+      resultadoDiv.style.display = 'block';
 
       // Exibe bibliografia junto com resultado
-      document.getElementById('bibliografia').style.display = 'block';
+      bibliografiaDiv.style.display = 'block';
     }
 
+    function limparCampos() {
+      document.getElementById('dum').value = ''; // Limpa o campo de data
+      const resultadoDiv = document.getElementById('resultado');
+      const bibliografiaDiv = document.getElementById('bibliografia');
+
+      resultadoDiv.innerHTML = '';
+      resultadoDiv.style.display = 'none'; // Esconde a div de resultado
+      resultadoDiv.classList.remove('text-red-600', 'text-dark-blue', 'bg-red-100', 'bg-blue-50');
+      
+      bibliografiaDiv.style.display = 'none'; // Esconde a bibliografia ao limpar
+    }
+
+    // A função gerarPDF() pode estar aqui ou em pdf111.js. 
+    // Se estiver em pdf111.js, remova esta função inline.
+    // Se não tiver pdf111.js, deixe esta função aqui.
     function gerarPDF() {
-      const content = document.getElementById('pdfContent').cloneNode(true);
-      // Remove input de busca no PDF
+      const content = document.getElementById('conteudo').cloneNode(true); // Captura o conteúdo principal da calculadora
+
+      // Remove elementos que não devem ir no PDF, se houver
       const searchBox = content.querySelector('.search-box');
       if (searchBox) searchBox.remove();
-      const footer = content.querySelector('footer');
-      if (footer) footer.remove();
+      
+      // Esconde o botão de doação antes de gerar o PDF
+      const fixedButton = document.querySelector('.fixed-donation-button');
+      if (fixedButton) {
+        fixedButton.style.display = 'none';
+      }
 
       const opt = {
-        margin: 0,
-        filename: 'idade_gestacional.pdf',
-        image: { type: 'jpeg', quality: 1 },
-        html2canvas: { scale: 3, scrollY: 0 },
-        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+        margin:       0.5,
+        filename:     'idade_gestacional.pdf',
+        image:        { type: 'jpeg', quality: 0.98 },
+        html2canvas:  { scale: 3, scrollY: 0 },
+        jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' },
       };
-      html2pdf().set(opt).from(content).save();
+      
+      html2pdf().set(opt).from(content).save().then(() => {
+        // Volta a exibir o botão de doação após a geração do PDF
+        if (fixedButton) {
+          fixedButton.style.display = '';
+        }
+      });
     }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      // Anexa eventos aos botões
+      document.getElementById('btnCalcular').addEventListener('click', calcularGestacional);
+      document.getElementById('btnLimpar').addEventListener('click', limparCampos);
+      document.getElementById('btnGerarPDF').addEventListener('click', gerarPDF);
+
+      // Carrega o rodapé (rodape111.html)
+      fetch("rodape111.html")
+        .then(res => res.text())
+        .then(data => {
+          const footerContainer = document.getElementById("footer-container");
+          if (footerContainer) {
+            footerContainer.innerHTML = data;
+          } else {
+            console.error('Elemento footer-container não encontrado.');
+          }
+        })
+        .catch(err => console.error("Erro ao carregar rodape111.html:", err));
+    });
   </script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-  
-<!-- Carrega a barra superior -->
-<script src="topbar.js"></script>
 </body>
 </html>
