@@ -167,10 +167,10 @@
     td.selected {
       @apply bg-blue-200; /* Azul um pouco mais escuro para seleção */
     }
-    /* Estilo para a pontuação 0 para não ocupar espaço visual desnecessário */
-    td[data-score="0"]:empty {
-        background-color: transparent !important;
-        border: none !important;
+    /* Estilo para células vazias */
+    td:empty {
+      background-color: transparent !important;
+      border: none !important;
     }
   </style>
 </head>
@@ -265,7 +265,6 @@
 
   <script>
     function calcularMeows() {
-      const selecionadas = document.querySelectorAll('#meowsTable td.selected');
       const resultadoDiv = document.getElementById('resultado');
       let total = 0;
 
@@ -278,6 +277,10 @@
       linhas.forEach(linha => {
         if (!linha.querySelector('td.selected')) {
           todasLinhasSelecionadas = false;
+        } else {
+          // Se uma linha tem seleção, adiciona o score da célula selecionada
+          const selectedCell = linha.querySelector('td.selected');
+          total += parseInt(selectedCell.getAttribute('data-score')) || 0;
         }
       });
 
@@ -287,8 +290,6 @@
         resultadoDiv.classList.add('bg-red-custom'); // Usa cor de alerta para erro
         return;
       }
-
-      selecionadas.forEach(td => total += parseInt(td.getAttribute('data-score')) || 0);
 
       let risco = "Baixo Risco";
       let corClasse = 'bg-green-custom';
@@ -339,14 +340,17 @@
       // Garante que o resultado esteja visível e formatado antes de gerar o PDF
       const resultadoOriginal = document.getElementById('resultado');
       const resultadoCopia = content.querySelector('#resultado');
-      if (resultadoOriginal.style.display === 'none') {
-          // Se o resultado não estiver visível na página, mostra uma mensagem para o PDF
+      if (resultadoOriginal.style.display === 'none' || resultadoOriginal.innerHTML.includes('Por favor, selecione')) {
+          // Se o resultado não estiver visível ou for uma mensagem de erro, mostra uma mensagem para o PDF
           resultadoCopia.style.display = 'block';
           resultadoCopia.classList.remove('bg-red-custom', 'bg-yellow-custom', 'bg-green-custom');
           resultadoCopia.classList.add('bg-gray-100', 'text-gray-700');
-          resultadoCopia.innerHTML = "Resultado não calculado na página. Calcule antes de gerar o PDF.";
+          resultadoCopia.innerHTML = "Resultado não calculado ou incompleto na página. Calcule antes de gerar o PDF.";
+      } else {
+        // Se o resultado já foi calculado, copia o conteúdo e as classes de estilo
+        resultadoCopia.innerHTML = resultadoOriginal.innerHTML;
+        resultadoCopia.className = resultadoOriginal.className; // Copia todas as classes de estilo
       }
-
 
       const opt = {
         margin:       0.5,
@@ -365,7 +369,7 @@
     }
 
     document.addEventListener('DOMContentLoaded', () => {
-      // Anexa eventos de clique às células da tabela
+      // Anexa eventos de clique às células da tabela (corrigido)
       document.querySelectorAll('#meowsTable tbody td[data-score]').forEach(td => {
         td.addEventListener('click', () => {
           const linha = td.parentElement;
