@@ -1,244 +1,364 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Cálculo de Aspiração de Insulina</title>
-  <link rel="canonical" href="https://www.calculadorasdeenfermagem.com.br/insulina.html" />
+  <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Cálculo de Aspiração de Insulina</title>
+
+  <link rel="canonical" href="https://www.calculadorasdeenfermagem.com.br/insulina.html" />
+
+  <link rel="icon" href="favicon.ico" type="image/x-icon" />
+
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
+  
   <meta name="description" content="Cálculo de insulina com regra de três, explicação detalhada e arredondamento." />
-  <meta name="keywords" content="insulina, cálculo de insulina, enfermagem, regra de três, UI, unidade internacional, seringas, aspiração" />
+  <meta name="keywords" content="insulina, cálculo de insulina, enfermagem, regra de três, UI, unidade internacional, seringas, aspiração, double check" />
+
+  <script async src="https://www.googletagmanager.com/gtag/js?id=AW-952633102"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'AW-952633102');
+  </script>
+
+  <script src="topbar111.js" defer></script>
+
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 0;
-      display: flex;
-      background-color: #f4f4f4;
-      color: #333;
-    }
-    .sidebar {
-      width: 220px;
-      background-color: #cce4f7;
-      padding: 20px;
-      height: 100vh;
+    /* Reset básico e Box-sizing para consistência */
+    *, *::before, *::after {
       box-sizing: border-box;
+      margin: 0;
+      padding: 0;
     }
-    .sidebar h2 {
-      text-align: center;
-      color: #007bff;
-      font-size: 20px;
-      margin-bottom: 25px;
-    }
-    .sidebar a {
-      display: block;
-      text-align: center;
-      margin: 10px 0;
-      color: #3399cc;
-      text-decoration: none;
-      font-size: 14px;
-    }
-    .content {
-      flex: 1;
-      max-width: 700px;
-      margin: auto;
-      padding: 20px;
-      background: #f4f4f4;
-    }
-    h1 {
-      text-align: center;
-      color: #007bff;
-      margin-bottom: 0;
-    }
-    .subtitulo {
-      text-align: left;
-      font-size: 14px;
-      color: #000000;
-      margin-bottom: 20px;
-      font-weight: normal;
-      white-space: pre-line;
-      line-height: 1.3em;
-    }
-    label {
-      font-weight: bold;
-      display: block;
-      margin-top: 15px;
-    }
-    input {
-      width: 100%;
-      padding: 10px;
-      font-size: 16px;
-      margin-top: 5px;
-    }
-    .botoes {
-      display: flex;
-      gap: 10px;
-      margin-top: 20px;
-    }
-    button {
-      flex: 1;
-      padding: 12px;
-      font-size: 16px;
-      background-color: #007bff;
-      color: white;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-    }
-    .resultado {
-      margin-top: 25px;
-      padding: 15px;
-      background: #e0f7fa;
+
+    /* Fontes personalizadas */
+    @import url('https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@700&family=Inter:wght@300;400;500;600&display=swap');
+
+    /* Estilos das classes de fonte e cor personalizadas (para uso no HTML com Tailwind) */
+    .font-nunito { font-family: 'Nunito Sans', sans-serif; }
+    .font-inter { font-family: 'Inter', sans-serif; }
+    .text-dark-blue { color: #1A3E74; } /* Azul Escuro */
+    .text-light-blue { color: #1FA4E5; } /* Azul Claro */
+    .text-gray-custom { color: #666666; } /* Cinza */
+    .text-success-green { color: #1ED760; } /* Verde */
+    .text-black-custom { color: #333; } /* Cor para textos padrão */
+    .text-red-600 { color: #dc2626; } /* Tailwind red-600 para mensagens de erro */
+
+
+    /* Padrão de Botões (Componentes CSS para reuso) */
+    .btn-primary {
+      font-family: 'Inter', sans-serif;
+      font-weight: 600;
+      background-color: #1A3E74; /* Cor primária azul escuro */
+      color: #FFF;
+      padding: 12px 24px;
       border-radius: 8px;
-      font-size: 16px;
-      white-space: pre-line;
-    }
-    .meta {
-      font-size: 13px;
-      color: #333;
-      margin-top: 20px;
-      font-style: italic;
-      border-top: 1px solid #ccc;
-      padding-top: 10px;
-    }
-    .referencia {
-      font-size: 12px;
-      color: black;
-      margin-top: 60px;
-      font-family: Arial, sans-serif;
-    }
-    footer {
-      background-color: #f1f1f1;
-      padding: 20px;
+      transition: background-color 0.3s ease;
+      border: none;
+      cursor: pointer;
       text-align: center;
+    }
+    .btn-primary:hover { background-color: #122c54; } /* Tom mais escuro no hover */
+    .btn-secondary {
+      font-family: 'Inter', sans-serif;
+      font-weight: 600;
+      background-color: #1FA4E5; /* Cor secundária azul claro */
+      color: #FFF;
+      padding: 12px 24px;
+      border-radius: 8px;
+      transition: background-color 0.3s ease;
+      border: none;
+      cursor: pointer;
+      text-align: center;
+    }
+    .btn-secondary:hover { background-color: #178ac7; } /* Tom mais escuro no hover */
+    .btn-success {
+      font-family: 'Inter', sans-serif;
+      font-weight: 500;
+      background-color: #1ED760;
+      color: #FFF;
+      padding: 10px 20px;
+      border-radius: 8px;
+      transition: background-color 0.3s ease;
+      border: none;
+      cursor: pointer;
+      text-align: center;
+    }
+    .btn-success:hover { background-color: #17b351; }
+
+    /* Estilos para a área de resultado da calculadora (Componente específico) */
+    .resultado {
+      margin-top: 1rem;
+      padding: 1rem;
+      background-color: #e0f2fe; /* Tailwind blue-50 */
+      border-radius: 0.5rem;
+      font-weight: 600;
+      color: #1A3E74; /* text-dark-blue */
+      text-align: left;
+      white-space: pre-wrap; /* Mantém quebras de linha no texto */
+    }
+    .resultado.text-red-600 { /* Classe para mensagens de erro (fundo) */
+        background-color: #fee2e2; /* Tailwind red-100 */
+    }
+
+    /* Estilos para a referência/bibliografia (Componente específico) */
+    .ref {
+      margin-top: 2rem;
       font-size: 14px;
-      color: #555;
-      margin-top: 40px;
-      border-top: 1px solid #ddd;
-      max-width: 700px;
+      color: #666666; /* text-gray-custom */
+      text-align: left;
+    }
+
+    /* Estilo para o botão "Ajude-nos" fixo (Componente de botão) */
+    .fixed-donation-button {
+      z-index: 30;
+    }
+    
+    /* Layout principal com Topbar fixa */
+    body {
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh; /* Garante que o body ocupe a altura total da viewport */
+      background-color: #f8fafc; /* Tailwind bg-gray-50 */
+      color: #333; /* Tailwind text-gray-800 */
+    }
+
+    /* ESTILOS DOS DROPDOWNS DA TOPBAR (MOVIDOS DE TOPBAR111.HTML) */
+    .dropdown-menu { display: none; }
+    .dropdown-menu.show { display: block; }
+    nav { justify-content: flex-end; } 
+    nav button { cursor: pointer; }
+    nav .dropdown-menu a:hover { background-color: #bfdbfe; }
+    /* FIM DOS ESTILOS DA TOPBAR */
+
+    /* Espaçamento para o conteúdo abaixo da topbar fixa */
+    .main-content-wrapper { 
+      display: flex;
+      flex-direction: column;
+      flex-grow: 1;
+      padding-top: 64px; /* Garante que o conteúdo comece abaixo da topbar fixa (64px de altura) */
+      width: 100%;
+      max-width: 1280px; /* max-w-screen-xl (Tailwind 7xl) */
       margin-left: auto;
       margin-right: auto;
+      padding: 2rem 1rem; /* p-8 px-4 */
     }
-    footer a {
-      color: #007bff;
-      text-decoration: none;
-      margin: 0 5px;
+    
+    /* Estilos específicos para este arquivo */
+    .subtitulo {
+      text-align: left;
+      font-size: 1rem; /* Adjust to Tailwind base font size */
+      color: #333; /* Black-custom */
+      margin-bottom: 1.25rem; /* Equivalent to mb-5 */
+      font-weight: normal;
+      white-space: pre-line;
+      line-height: 1.6; /* Equivalent to leading-relaxed */
+      background-color: #fefce8; /* yellow-50 */
+      border-left: 4px solid #fcd34d; /* yellow-400 */
+      padding: 1rem;
+      border-radius: 0.25rem;
+    }
+    .meta-seguranca {
+      font-size: 0.875rem; /* text-sm */
+      color: #333; /* text-black-custom */
+      margin-top: 1.5rem; /* mt-6 */
+      font-style: italic;
+      border-top: 1px solid #e5e7eb; /* border-gray-200 */
+      padding-top: 1rem; /* pt-4 */
     }
   </style>
-
-  <!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=AW-952633102">
-</script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-
-  gtag('config', 'AW-952633102');
-  </script>
 </head>
-<body>
+<body class="bg-gray-50 text-gray-800 font-inter">
 
-  <div id="barra-lateral"></div>
-<script>
-  fetch('sidebar.html')
-    .then(response => response.text())
-    .then(html => {
-      document.getElementById('barra-lateral').innerHTML = html;
-    });
-</script>
+  <div id="topbar-container"></div> 
 
-  <div class="content" id="pdfContent">
-    <h1><br><br> Cálculo de Aspiração de Insulina</h1>
-    <div class="subtitulo">Medidas de seringas para aplicação de medicamentos por via subcutânea - Seringa de insulina de 1 ml:
-Exemplos:
-100 UI equivale a 1 ml ou 1 cc (centímetros cúbicos)
-50 UI equivale a 0,5 ml ou O,5 cc
-30 UI equivale a 0,3 ml ou 0,3 cc
+  <div class="main-content-wrapper">
+    <main class="flex flex-col flex-grow">
 
-(Dê preferência a seringas de insulina com capacidade para 100 UI/equivalente a 1 ML) Atenção: 1 UI de insulina equivale a 0,01 ml &gt; 10 UI insulina equivale a 0,1 ml
-   ATENÇÃO: INSULINA É CONSIDERADO UMA MEDICAÇÃO DE ALTA VIGILÂNCIA, EM QUALQUER  SITUAÇÃO DE DÚVIDA REALIZE A DUPLA CHECAGEM (DOUBLE CHECK) JUNTO AO SEU ENFERMEIRO </div>
+      <div class="flex flex-wrap items-center justify-center gap-4 mb-3">
+        <img src="iconpages.png" alt="Ícone da Calculadora de Insulina" class="w-32 h-auto" />
+        <h1 class="font-nunito font-extrabold text-dark-blue text-4xl lg:text-5xl text-center">
+          Cálculo de Aspiração de Insulina
+        </h1>
+      </div>
 
-    <label for="frasco">Frasco disponível (UI):</label>
-    <input type="number" id="frasco" placeholder="Ex: 100" />
+      <div class="subtitulo font-inter text-black-custom">
+        <strong>Medidas de seringas para aplicação de medicamentos por via subcutânea - Seringa de insulina de 1 ml:</strong><br>
+        Exemplos:<br>
+        100 UI equivale a 1 ml ou 1 cc (centímetros cúbicos)<br>
+        50 UI equivale a 0,5 ml ou O,5 cc<br>
+        30 UI equivale a 0,3 ml ou 0,3 cc<br><br>
+        (Dê preferência a seringas de insulina com capacidade para 100 UI/equivalente a 1 ML) <br>
+        Atenção: 1 UI de insulina equivale a 0,01 ml &gt; 10 UI insulina equivale a 0,1 ml<br><br>
+        <span class="font-bold text-red-600">ATENÇÃO: INSULINA É CONSIDERADO UMA MEDICAÇÃO DE ALTA VIGILÂNCIA, EM QUALQUER SITUAÇÃO DE DÚVIDA REALIZE A DUPLA CHECAGEM (DOUBLE CHECK) JUNTO AO SEU ENFERMEIRO.</span>
+      </div>
 
-    <label for="seringa">Seringa (ml):</label>
-    <input type="number" id="seringa" placeholder="Ex: 1" />
+      <div id="conteudo" class="w-full">
+        <div class="mb-4">
+          <label for="frasco" class="block text-black-custom text-lg font-medium mb-2">Frasco disponível (UI):</label>
+          <input type="number" id="frasco" min="0" step="any" placeholder="Ex: 100" 
+                 class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-light-blue" />
+        </div>
 
-    <label for="prescricao">Prescrição médica (UI):</label>
-    <input type="number" id="prescricao" placeholder="Ex: 15" />
+        <div class="mb-4">
+          <label for="seringa" class="block text-black-custom text-lg font-medium mb-2">Seringa (ml):</label>
+          <input type="number" id="seringa" min="0" step="any" placeholder="Ex: 1" 
+                 class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-light-blue" />
+        </div>
 
-    <div class="botoes">
-      <button onclick="calcular()">Calcular</button>
-      <button onclick="gerarPDF()">Gerar PDF</button>
-    </div>
+        <div class="mb-4">
+          <label for="prescricao" class="block text-black-custom text-lg font-medium mb-2">Prescrição médica (UI):</label>
+          <input type="number" id="prescricao" min="0" step="any" placeholder="Ex: 15" 
+                 class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-light-blue" />
+        </div>
+        
+        <div class="meta-seguranca">
+          <strong>Meta 3 de Segurança do Paciente:</strong> Melhorar a segurança na prescrição, no uso e na administração de medicamentos. Em caso de dúvida, revise a prescrição médica junto ao enfermeiro responsável ou com o médico. Na dúvida de quanto aspirar, não faça! Fale com seu enfermeiro.
+        </div>
 
-    <div class="meta">
-      <strong>Meta 3 de Segurança do Paciente:</strong> Melhorar a segurança na prescrição, no uso e na administração de medicamentos. Em caso de dúvida, revise a prescrição médica junto ao enfermeiro responsável ou com o médico. Na dúvida de quanto aspirar, não faça! Fale com seu enfermeiro.
-    </div>
+        <div id="resultado" class="resultado" aria-live="polite"></div>
 
-    <div id="resultado" class="resultado" style="display:none;"></div>
+        <div class="ref font-inter text-gray-custom mt-10">
+          <strong>Referência bibliográfica:</strong><br />
+          <p class="mt-2">
+            AYRES, Ana Carolina. <strong>Cálculo de Medicamentos</strong>. Conselho Regional de Enfermagem da Bahia – Coren-BA. 2024. Disponível em: <br>
+            <a href="https://www.coren-ba.gov.br/wp-content/uploads/2024/07/CALCULO-DE-MEDICAMENTOS-Enfa.-Ana-Carolina-Ayres.pdf" target="_blank" class="text-light-blue hover:underline">https://www.coren-ba.gov.br/...</a>
+          </p>
+        </div>
+      </div>
 
-    <div class="referencia">
-      Referência bibliográfica:  
-      AYRES, Ana Carolina. <strong>Cálculo de Medicamentos</strong>. Conselho Regional de Enfermagem da Bahia – Coren-BA. 2024. Disponível em:  
-      <a href="https://www.coren-ba.gov.br/wp-content/uploads/2024/07/CALCULO-DE-MEDICAMENTOS-Enfa.-Ana-Carolina-Ayres.pdf" target="_blank">https://www.coren-ba.gov.br/...</a>
-    </div>
+      <div class="flex flex-wrap justify-start gap-4 mt-6">
+        <button id="btnCalcular" class="btn-primary" aria-label="Calcular Aspiração de Insulina">
+          Calcular
+        </button>
+        <button id="btnLimpar" class="btn-primary" aria-label="Limpar campos">
+          Limpar
+        </button>
+        <button id="btnGerarPDF" class="btn-secondary" aria-label="Gerar PDF">
+          Gerar PDF
+        </button>
+      </div>
 
-    <footer>
-      <p>© 2025 Calculadoras de Enfermagem</p>
-      <p>
-        <a href="index.html">Início</a> |
-        <a href="politica.html">Política de Privacidade</a> |
-        <a href="termos.html">Termos de Uso</a>
-      </p>
-    </footer>
-  </div>
+    </main>
+  </div> 
+
+  <a href="doacoes.html" class="fixed bottom-4 right-4 bg-dark-blue text-white text-sm px-4 py-2 rounded-full shadow hover:bg-blue-900 transition fixed-donation-button">
+    Ajude-nos a manter o site gratuito
+  </a>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  
+  <script src="pdf111.js"></script>
+
+  <div id="footer-container"></div>
 
   <script>
     function calcular() {
       const frasco = parseFloat(document.getElementById('frasco').value);
       const seringa = parseFloat(document.getElementById('seringa').value);
       const prescricao = parseFloat(document.getElementById('prescricao').value);
-      const resultado = document.getElementById('resultado');
+      const resultadoDiv = document.getElementById('resultado');
+
+      // Resetar estilos de erro
+      resultadoDiv.classList.remove('text-red-600', 'bg-red-100');
+      resultadoDiv.classList.add('text-dark-blue', 'bg-blue-50'); // Adiciona estilo padrão
 
       if (isNaN(frasco) || isNaN(seringa) || isNaN(prescricao) ||
           frasco <= 0 || seringa <= 0 || prescricao <= 0) {
-        resultado.style.display = 'block';
-        resultado.textContent = "Preencha todos os campos com valores válidos e maiores que zero.";
+        resultadoDiv.style.display = 'block';
+        resultadoDiv.textContent = "Preencha todos os campos com valores válidos e maiores que zero.";
+        resultadoDiv.classList.add('text-red-600', 'bg-red-100'); // Estilo de erro
+        resultadoDiv.classList.remove('text-dark-blue', 'bg-blue-50');
         return;
       }
 
+      // x = (prescrição * seringa) / frasco
       const x = (prescricao * seringa) / frasco;
+      // Arredonda para 2 casas decimais, mas mantém precisão para exibição detalhada
       const xArredondado = Math.round(x * 100) / 100;
 
       let explicacao = `Regra de três para cálculo da insulina:\n\n` +
                        `${frasco} UI ----------- ${seringa} ml\n` +
                        `${prescricao} UI ----------- x ml\n\n` +
-                       `100% x = (prescrição × seringa) ÷ frasco\n` +
+                       `Cálculo: (prescrição × seringa) ÷ frasco\n` +
                        `x = (${prescricao} × ${seringa}) ÷ ${frasco}\n` +
-                       `x = ${x.toFixed(4)} ml\n\n` +
-                       `Arredondado para: ${xArredondado} ml\n\n` +
-                       `Deve-se aspirar ${xArredondado} UI do frasco para administrar a dose prescrita.`;
+                       `x = ${x.toFixed(4)} ml\n\n` + // Exibe com mais casas para o cálculo detalhado
+                       `**Resultado:** Deve-se aspirar ${xArredondado} ml do frasco para administrar a dose prescrita.\n\n` +
+                       `(Valor arredondado para duas casas decimais.)`;
 
-      resultado.style.display = 'block';
-      resultado.textContent = explicacao;
+      resultadoDiv.style.display = 'block';
+      resultadoDiv.textContent = explicacao;
     }
 
+    function limparCampos() {
+      document.getElementById('frasco').value = '';
+      document.getElementById('seringa').value = '';
+      document.getElementById('prescricao').value = '';
+
+      const resultadoDiv = document.getElementById('resultado');
+      resultadoDiv.innerHTML = '';
+      resultadoDiv.style.display = 'none';
+      resultadoDiv.classList.remove('text-red-600', 'bg-red-100'); // Remove estilos de erro
+      resultadoDiv.classList.add('text-dark-blue', 'bg-blue-50'); // Adiciona estilos padrão
+    }
+
+    // A função gerarPDF() pode estar aqui ou em pdf111.js. 
+    // Se estiver em pdf111.js, remova esta função inline.
+    // Se não tiver pdf111.js, deixe esta função aqui.
     function gerarPDF() {
-      const content = document.getElementById('pdfContent');
+      const content = document.getElementById('conteudo').cloneNode(true); // Captura o conteúdo principal da calculadora
+
+      // Remove elementos que não devem ir no PDF (ex: botões)
+      const buttonsDiv = content.querySelector('.flex.flex-wrap.justify-start.gap-4.mt-6');
+      if (buttonsDiv) buttonsDiv.remove();
+
+      // Remove o subtítulo grande com avisos do PDF, se desejar.
+      // Ou mantenha se ele for relevante para o documento.
+      const subtitulo = content.querySelector('.subtitulo');
+      if (subtitulo) subtitulo.remove();
+      
+      // Esconde o botão de doação antes de gerar o PDF
+      const fixedButton = document.querySelector('.fixed-donation-button');
+      if (fixedButton) {
+        fixedButton.style.display = 'none';
+      }
+
       const opt = {
-        margin: 0,
-        filename: 'calculo_insulina.pdf',
-        image: { type: 'jpeg', quality: 1 },
-        html2canvas: { scale: 3, scrollY: 0 },
-        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        margin:       0.5,
+        filename:     'calculo_insulina.pdf',
+        image:        { type: 'jpeg', quality: 0.98 },
+        html2canvas:  { scale: 3, scrollY: 0 },
+        jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' },
       };
-      html2pdf().set(opt).from(content).save();
+      
+      html2pdf().set(opt).from(content).save().then(() => {
+        // Volta a exibir o botão de doação após a geração do PDF
+        if (fixedButton) {
+          fixedButton.style.display = '';
+        }
+      });
     }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      // Anexa eventos aos botões
+      document.getElementById('btnCalcular').addEventListener('click', calcular);
+      document.getElementById('btnLimpar').addEventListener('click', limparCampos);
+      document.getElementById('btnGerarPDF').addEventListener('click', gerarPDF);
+
+      // Carrega o rodapé (rodape111.html)
+      fetch("rodape111.html")
+        .then(res => res.text())
+        .then(data => {
+          const footerContainer = document.getElementById("footer-container");
+          if (footerContainer) {
+            footerContainer.innerHTML = data;
+          } else {
+            console.error('Elemento footer-container não encontrado.');
+          }
+        })
+        .catch(err => console.error("Erro ao carregar rodape111.html:", err));
+    });
   </script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-    
-<!-- Carrega a barra superior -->
-<script src="topbar.js"></script>
 </body>
 </html>
