@@ -91,8 +91,7 @@
       padding: 1.25rem; /* p-5 */
       border-radius: 0.5rem;
       font-weight: 600;
-      text-align: left;
-      white-space: pre-wrap; /* Mantém quebras de linha no texto */
+      text-align: center; /* Ajustado para centralizar como no NEWS */
       font-size: 1.125rem; /* text-lg */
       line-height: 1.6;
     }
@@ -146,31 +145,54 @@
     
     /* Estilos específicos para este arquivo */
     .alert-custom {
-      @apply bg-yellow-50 border border-yellow-200 p-4 rounded-lg my-6 text-yellow-800; /* Tailwind classes for alert */
+      background-color: #fefce8; /* yellow-50 */
+      border: 1px solid #fde68a; /* yellow-200 */
+      padding: 1rem;
+      border-radius: 0.5rem;
+      margin-top: 1.5rem;
+      margin-bottom: 1.5rem;
+      color: #b45309; /* yellow-800 */
     }
     table {
-      @apply w-full border-collapse my-4 md:my-6 shadow-md rounded-lg overflow-hidden;
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 1rem;
+      margin-bottom: 1.5rem;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+      border-radius: 0.5rem;
+      overflow: hidden; /* Garante que o rounded-lg funcione */
     }
     th, td {
-      @apply p-3 border border-gray-300 align-middle text-center text-black-custom; /* Centraliza o texto nas células */
+      padding: 0.75rem;
+      border: 1px solid #e5e7eb; /* gray-300 */
+      text-align: center;
+      vertical-align: middle; /* Alinha o texto no meio verticalmente */
+      color: #333; /* text-black-custom */
     }
     th {
-      @apply bg-blue-100 text-left text-sm font-semibold text-dark-blue uppercase tracking-wider; /* Azul mais claro para th */
+      background-color: #bfdbfe; /* blue-100 */
+      text-align: left;
+      font-size: 0.875rem; /* text-sm */
+      font-weight: 600; /* font-semibold */
+      color: #1A3E74; /* text-dark-blue */
+      text-transform: uppercase;
+      letter-spacing: 0.05em; /* tracking-wider */
     }
     /* Adaptação para a primeira coluna TH */
     th:first-child {
-      @apply text-left; /* Alinha o primeiro TH à esquerda */
+      text-align: left; /* Alinha o primeiro TH à esquerda */
     }
     tbody td:first-child {
-      @apply text-left font-medium; /* Alinha o primeiro TD à esquerda */
+      text-align: left; /* Alinha o primeiro TD do tbody à esquerda */
+      font-weight: 500; /* font-medium */
     }
     td.selected {
-      @apply bg-blue-200; /* Azul um pouco mais escuro para seleção */
+      background-color: #bfdbfe; /* blue-200 */
     }
     /* Estilo para células vazias */
     td:empty {
       background-color: transparent !important;
-      border: none !important;
+      border: none !important; /* Isso pode remover as bordas das células vazias */
     }
   </style>
 </head>
@@ -259,126 +281,129 @@
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   
-  <script src="pdf111.js"></script>
-
-  <div id="footer-container"></div>
+  <script src="pdf111.js"></script> <div id="footer-container"></div>
 
   <script>
-    function calcularMeows() {
-      const resultadoDiv = document.getElementById('resultado');
-      let total = 0;
-
-      // Resetar classes de cor anteriores
-      resultadoDiv.classList.remove('bg-red-custom', 'bg-yellow-custom', 'bg-green-custom');
-
-      // Verifica se todas as linhas têm uma seleção
-      const linhas = document.querySelectorAll('#meowsTable tbody tr');
-      let todasLinhasSelecionadas = true;
-      linhas.forEach(linha => {
-        const selectedCell = linha.querySelector('td.selected'); // Tenta encontrar a célula selecionada
-        if (!selectedCell) {
-          todasLinhasSelecionadas = false;
-        } else {
-          // Se uma linha tem seleção, adiciona o score da célula selecionada
-          total += parseInt(selectedCell.getAttribute('data-score')) || 0;
-        }
-      });
-
-      if (!todasLinhasSelecionadas) {
-        resultadoDiv.style.display = "block";
-        resultadoDiv.innerHTML = "⚠️ Por favor, selecione uma opção para **cada parâmetro** antes de calcular.";
-        resultadoDiv.classList.add('bg-red-custom'); // Usa cor de alerta para erro
-        return;
-      }
-
-      let risco = "Baixo Risco";
-      let corClasse = 'bg-green-custom';
-      let acaoRecomendada = "Continuar monitoramento de rotina conforme protocolo da instituição.";
-
-      if (total >= 5) {
-        risco = "⚠️ Risco Elevado";
-        corClasse = 'bg-red-custom';
-        acaoRecomendada = "Acionar equipe médica imediatamente e iniciar intervenções apropriadas. Monitoramento contínuo (Ex: a cada 5-15 min).";
-      } else if (total >= 3) {
-        risco = "Risco Moderado";
-        corClasse = 'bg-yellow-custom';
-        acaoRecomendada = "Monitoramento reforçado (Ex: a cada 30-60 min) e avaliação clínica detalhada. Considerar acionar equipe médica.";
-      }
-      
-      resultadoDiv.style.display = "block";
-      resultadoDiv.innerHTML = 
-        `<p class="font-bold">Pontuação total: ${total}</p>` +
-        `<p class="font-bold text-lg mt-2 mb-1">Classificação: ${risco}</p>` +
-        `<p>${acaoRecomendada}</p>`;
-      resultadoDiv.classList.add(corClasse);
-    }
-
-    function limparCampos() {
-      document.querySelectorAll('#meowsTable td.selected').forEach(td => {
-        td.classList.remove('selected');
-      });
-      const resultadoDiv = document.getElementById('resultado');
-      resultadoDiv.innerHTML = '';
-      resultadoDiv.style.display = 'none'; // Esconde o resultado ao limpar
-      resultadoDiv.classList.remove('bg-red-custom', 'bg-yellow-custom', 'bg-green-custom'); // Remove todas as classes de cor
-    }
-
-    function gerarPDF() {
-      // Cria uma cópia do conteúdo para o PDF
-      const content = document.getElementById('conteudo').cloneNode(true);
-
-      // Remove os botões da cópia antes de gerar o PDF
-      const buttonsDiv = content.querySelector('.flex.flex-wrap.justify-start.gap-4.mt-6');
-      if (buttonsDiv) buttonsDiv.remove();
-
-      // Esconde o botão de doação fixo antes de gerar o PDF
-      const fixedButton = document.querySelector('.fixed-donation-button');
-      if (fixedButton) {
-        fixedButton.style.display = 'none';
-      }
-
-      // Garante que o resultado esteja visível e formatado antes de gerar o PDF
-      const resultadoOriginal = document.getElementById('resultado');
-      const resultadoCopia = content.querySelector('#resultado');
-      if (resultadoOriginal.style.display === 'none' || resultadoOriginal.innerHTML.includes('Por favor, selecione')) {
-          // Se o resultado não estiver visível ou for uma mensagem de erro, mostra uma mensagem para o PDF
-          resultadoCopia.style.display = 'block';
-          resultadoCopia.classList.remove('bg-red-custom', 'bg-yellow-custom', 'bg-green-custom');
-          resultadoCopia.classList.add('bg-gray-100', 'text-gray-700');
-          resultadoCopia.innerHTML = "Resultado não calculado ou incompleto na página. Calcule antes de gerar o PDF.";
-      } else {
-        // Se o resultado já foi calculado, copia o conteúdo e as classes de estilo
-        resultadoCopia.innerHTML = resultadoOriginal.innerHTML;
-        resultadoCopia.className = resultadoOriginal.className; // Copia todas as classes de estilo
-      }
-
-      const opt = {
-        margin:       0.5,
-        filename:     'protocolo_meows.pdf',
-        image:        { type: 'jpeg', quality: 0.98 },
-        html2canvas:  { scale: 3, scrollY: 0 },
-        jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' },
-      };
-      
-      html2pdf().set(opt).from(content).save().then(() => {
-        // Volta a exibir o botão de doação fixo após a geração do PDF
-        if (fixedButton) {
-          fixedButton.style.display = '';
-        }
-      });
-    }
-
     document.addEventListener('DOMContentLoaded', () => {
-      // Anexa eventos de clique às células da tabela (corrigido para focar em células com data-score)
-      document.querySelectorAll('#meowsTable tbody td[data-score]').forEach(td => {
-        td.addEventListener('click', () => {
-          const linha = td.parentElement;
-          // Remove a classe 'selected' de todas as células DA MESMA LINHA
+      const tabela = document.getElementById("meowsTable");
+
+      // Anexa eventos de clique às células da tabela
+      tabela.addEventListener('click', function(e) {
+        if (e.target.tagName === 'TD' && e.target.hasAttribute('data-score')) {
+          const linha = e.target.parentElement;
+          // Remove a classe 'selected' de todas as células DA MESMA LINHA que possuem 'data-score'
           linha.querySelectorAll('td[data-score]').forEach(c => c.classList.remove('selected'));
           // Adiciona a classe 'selected' à célula clicada
-          td.classList.add('selected');
-        });
+          e.target.classList.add('selected');
+        }
       });
+
+      // Função para calcular o escore MEOWS
+      function calcularMeows() {
+        const resultadoDiv = document.getElementById('resultado');
+        let total = 0;
+
+        // Resetar classes de cor anteriores
+        resultadoDiv.classList.remove('bg-red-custom', 'bg-yellow-custom', 'bg-green-custom');
+
+        // Verifica se todas as linhas têm uma seleção
+        const linhas = document.querySelectorAll('#meowsTable tbody tr');
+        let todasLinhasSelecionadas = true;
+        linhas.forEach(linha => {
+          const selectedCell = linha.querySelector('td.selected'); // Tenta encontrar a célula selecionada
+          if (!selectedCell) {
+            todasLinhasSelecionadas = false;
+          } else {
+            // Se uma linha tem seleção, adiciona o score da célula selecionada
+            total += parseInt(selectedCell.getAttribute('data-score')) || 0;
+          }
+        });
+
+        if (!todasLinhasSelecionadas) {
+          resultadoDiv.style.display = "block";
+          resultadoDiv.innerHTML = "⚠️ Por favor, selecione uma opção para **cada parâmetro** antes de calcular.";
+          resultadoDiv.classList.add('bg-red-custom'); // Usa cor de alerta para erro
+          return;
+        }
+
+        let risco = "Baixo Risco";
+        let corClasse = 'bg-green-custom';
+        let acaoRecomendada = "Continuar monitoramento de rotina conforme protocolo da instituição.";
+
+        if (total >= 5) {
+          risco = "⚠️ Risco Elevado";
+          corClasse = 'bg-red-custom';
+          acaoRecomendada = "Acionar equipe médica imediatamente e iniciar intervenções apropriadas. Monitoramento contínuo (Ex: a cada 5-15 min).";
+        } else if (total >= 3) {
+          risco = "Risco Moderado";
+          corClasse = 'bg-yellow-custom';
+          acaoRecomendada = "Monitoramento reforçado (Ex: a cada 30-60 min) e avaliação clínica detalhada. Considerar acionar equipe médica.";
+        }
+        
+        resultadoDiv.style.display = "block";
+        resultadoDiv.innerHTML = 
+          `<p class="font-bold">Pontuação total: ${total}</p>` +
+          `<p class="font-bold text-lg mt-2 mb-1">Classificação: ${risco}</p>` +
+          `<p>${acaoRecomendada}</p>`;
+        resultadoDiv.classList.add(corClasse);
+      }
+
+      // Função para limpar as seleções
+      function limparCampos() {
+        document.querySelectorAll('#meowsTable td.selected').forEach(td => {
+          td.classList.remove('selected');
+        });
+        const resultadoDiv = document.getElementById('resultado');
+        resultadoDiv.innerHTML = '';
+        resultadoDiv.style.display = 'none'; // Esconde o resultado ao limpar
+        resultadoDiv.classList.remove('bg-red-custom', 'bg-yellow-custom', 'bg-green-custom'); // Remove todas as classes de cor
+      }
+
+      // Função para gerar PDF
+      function gerarPDF() {
+        // Cria uma cópia do conteúdo para o PDF
+        const content = document.getElementById('conteudo').cloneNode(true);
+
+        // Remove os botões da cópia antes de gerar o PDF
+        const buttonsDiv = content.querySelector('.flex.flex-wrap.justify-start.gap-4.mt-6');
+        if (buttonsDiv) buttonsDiv.remove();
+
+        // Esconde o botão de doação fixo antes de gerar o PDF
+        const fixedButton = document.querySelector('.fixed-donation-button');
+        if (fixedButton) {
+          fixedButton.style.display = 'none';
+        }
+
+        // Garante que o resultado esteja visível e formatado antes de gerar o PDF
+        const resultadoOriginal = document.getElementById('resultado');
+        const resultadoCopia = content.querySelector('#resultado');
+        if (resultadoOriginal.style.display === 'none' || resultadoOriginal.innerHTML.includes('Por favor, selecione')) {
+            // Se o resultado não estiver visível ou for uma mensagem de erro, mostra uma mensagem para o PDF
+            resultadoCopia.style.display = 'block';
+            resultadoCopia.classList.remove('bg-red-custom', 'bg-yellow-custom', 'bg-green-custom');
+            resultadoCopia.classList.add('bg-gray-100', 'text-gray-700');
+            resultadoCopia.innerHTML = "Resultado não calculado ou incompleto na página. Calcule antes de gerar o PDF.";
+        } else {
+          // Se o resultado já foi calculado, copia o conteúdo e as classes de estilo
+          resultadoCopia.innerHTML = resultadoOriginal.innerHTML;
+          resultadoCopia.className = resultadoOriginal.className; // Copia todas as classes de estilo
+        }
+
+        const opt = {
+          margin:       0.5,
+          filename:     'protocolo_meows.pdf',
+          image:        { type: 'jpeg', quality: 0.98 },
+          html2canvas:  { scale: 3, scrollY: 0 },
+          jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' },
+        };
+        
+        html2pdf().set(opt).from(content).save().then(() => {
+          // Volta a exibir o botão de doação fixo após a geração do PDF
+          if (fixedButton) {
+            fixedButton.style.display = '';
+          }
+        });
+      }
 
       // Anexa eventos aos botões
       document.getElementById('btnCalcular').addEventListener('click', calcularMeows);
