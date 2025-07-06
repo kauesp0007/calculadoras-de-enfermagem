@@ -2,229 +2,429 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
-  <title>Dimensionamento de Enfermagem</title>
-  <link rel="canonical" href="https://www.calculadorasdeenfermagem.com.br/dimensionamento.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="description" content="Calculadora de dimensionamento de enfermagem conforme Resolução COFEN n° 543/2017." />
-  <meta name="keywords" content="dimensionamento, enfermagem, COFEN, cálculo, horas de enfermagem, IST, profissionais" />
+  <title>Dimensionamento de Enfermagem</title>
+  
+  <link rel="canonical" href="https://www.calculadorasdeenfermagem.com.br/dimensionamento.html" />
+  
+  <link rel="icon" href="favicon.ico" type="image/x-icon" />
+  
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
+  
+  <meta name="description" content="Calculadora de dimensionamento de enfermagem conforme Resolução COFEN n° 543/2017, para alocação de profissionais em unidades de internação e terapia intensiva." />
+  <meta name="keywords" content="dimensionamento, enfermagem, COFEN, cálculo, horas de enfermagem, IST, profissionais, unidade de internação, terapia intensiva, UTI" />
+
+  <script async src="https://www.googletagmanager.com/gtag/js?id=AW-952633102"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'AW-952633102');
+  </script>
+
+  <script src="topbar111.js" defer></script>
+
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      max-width: 800px;
+    /* Reset básico e Box-sizing para consistência */
+    *, *::before, *::after {
+      box-sizing: border-box;
       margin: 0;
       padding: 0;
-      background: #f4f4f4;
-      display: flex;
-      min-height: 100vh;
     }
-    .sidebar {
-      width: 220px;
-      background-color: #add8e6;
-      padding: 20px;
-      box-sizing: border-box;
+
+    /* Fontes personalizadas */
+    @import url('https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@700&family=Inter:wght@300;400;500;600&display=swap');
+
+    /* Estilos das classes de fonte e cor personalizadas (para uso no HTML com Tailwind) */
+    .font-nunito { font-family: 'Nunito Sans', sans-serif; }
+    .font-inter { font-family: 'Inter', sans-serif; }
+    .text-dark-blue { color: #1A3E74; } /* Azul Escuro */
+    .text-light-blue { color: #1FA4E5; } /* Azul Claro */
+    .text-gray-custom { color: #666666; } /* Cinza */
+    .text-success-green { color: #1ED760; } /* Verde */
+    .text-red-custom { color: #dc2626; } /* Tailwind red-600, similar to error messages */
+
+    /* Padrão de Botões (Componentes CSS para reuso) */
+    .btn-primary {
+      font-family: 'Inter', sans-serif;
+      font-weight: 600;
+      background-color: #1A3E74; /* Cor primária azul escuro */
+      color: #FFF;
+      padding: 12px 24px;
+      border-radius: 8px;
+      transition: background-color 0.3s ease;
+      border: none;
+      cursor: pointer;
+      text-align: center;
+    }
+    .btn-primary:hover { background-color: #122c54; } /* Tom mais escuro no hover */
+    .btn-secondary {
+      font-family: 'Inter', sans-serif;
+      font-weight: 600;
+      background-color: #1FA4E5; /* Cor secundária azul claro */
+      color: #FFF;
+      padding: 12px 24px;
+      border-radius: 8px;
+      transition: background-color 0.3s ease;
+      border: none;
+      cursor: pointer;
+      text-align: center;
+    }
+    .btn-secondary:hover { background-color: #178ac7; } /* Tom mais escuro no hover */
+    .btn-success {
+      font-family: 'Inter', sans-serif;
+      font-weight: 500;
+      background-color: #1ED760;
+      color: #FFF;
+      padding: 10px 20px;
+      border-radius: 8px;
+      transition: background-color 0.3s ease;
+      border: none;
+      cursor: pointer;
+      text-align: center;
+    }
+    .btn-success:hover { background-color: #17b351; }
+
+    /* Estilos para a área de resultado da calculadora (Componente específico) */
+    .resultado {
+      margin-top: 1rem;
+      padding: 1rem;
+      background-color: #e0f2fe; /* Tailwind blue-50 */
+      border-radius: 0.5rem;
+      font-weight: 600;
+      color: #1A3E74; /* text-dark-blue */
+      text-align: left;
+      white-space: pre-wrap; /* Mantém quebras de linha no texto */
+    }
+    .resultado.error { /* For validation messages */
+        background-color: #fee2e2; /* Tailwind red-100 */
+        color: #dc2626; /* Tailwind red-600 */
+    }
+
+    /* Estilos para a observação (Componente específico - pode não ser usado aqui, mas manter para consistência) */
+    .observacao {
+      margin-top: 10px;
+      font-size: 14px; 
+      color: #333;
+      text-align: left;
+      padding: 0.5rem 0;
+    }
+
+    /* Estilos para a referência/bibliografia (Componente específico) */
+    .ref {
+      margin-top: 2rem;
+      font-size: 14px;
+      color: #666666; /* text-gray-custom */
+      text-align: left;
+    }
+
+    /* Estilo para o botão "Ajude-nos" fixo (Componente de botão) */
+    .fixed-donation-button {
+      z-index: 30;
+    }
+    
+    /* Layout principal com Topbar fixa */
+    body {
       display: flex;
       flex-direction: column;
-      align-items: center;
+      min-height: 100vh; /* Garante que o body ocupe a altura total da viewport */
+      background-color: #f8fafc; /* Tailwind bg-gray-50 */
+      color: #333; /* Tailwind text-gray-800 */
     }
-    .sidebar h2 {
-      color: #004080;
-      font-size: 1.6em;
-      margin-bottom: 20px;
-      text-align: center;
-    }
-    .sidebar a {
-      color: #0059b3;
-      text-decoration: none;
-      margin: 8px 0;
-      font-size: 1em;
-      text-align: center;
-      width: 100%;
-      padding: 6px 0;
-      border-radius: 5px;
-      transition: background-color 0.2s ease;
-      display: block;
-    }
-    .sidebar a:hover {
-      background-color: #004080;
-      color: #e0e7f1;
-    }
-    main.content {
+
+    /* ESTILOS DOS DROPDOWNS DA TOPBAR (MOVIDOS DE TOPBAR111.HTML) */
+    .dropdown-menu { display: none; }
+    .dropdown-menu.show { display: block; }
+    nav { justify-content: flex-end; } 
+    nav button { cursor: pointer; }
+    nav .dropdown-menu a:hover { background-color: #bfdbfe; }
+    /* FIM DOS ESTILOS DA TOPBAR */
+
+    /* Espaçamento para o conteúdo abaixo da topbar fixa */
+    .main-content-wrapper { 
+      display: flex;
+      flex-direction: column;
       flex-grow: 1;
-      max-width: 800px;
-      margin: auto;
-      padding: 20px;
-      background: #f4f4f4;
-      box-sizing: border-box;
-    }
-    h1 {
-      text-align: center;
-      color: #007bff;
-    }
-    label {
-      font-weight: bold;
-      display: block;
-      margin-top: 15px;
-    }
-    input {
+      padding-top: 64px; /* Garante que o conteúdo comece abaixo da topbar fixa (64px de altura) */
       width: 100%;
+      max-width: 1280px; /* max-w-screen-xl */
+      margin-left: auto;
+      margin-right: auto;
+      padding: 2rem 1rem; /* p-8 px-4 */
+    }
+
+    /* Estilos específicos para este formulário de dimensionamento */
+    input[type="number"] {
       padding: 10px;
-      font-size: 16px;
-      margin-top: 5px;
+      border: 1px solid #d1d5db; /* Tailwind gray-300 */
+      border-radius: 0.375rem; /* Tailwind rounded-md */
+      font-size: 1rem;
+      margin-top: 0.25rem; /* Tailwind mt-1 */
+      margin-bottom: 1rem; /* Tailwind mb-4 */
+      width: 100%; /* Ajusta para ser responsivo */
+      box-shadow: inset 0 1px 2px rgba(0,0,0,0.05);
     }
-    button {
-      width: 100%;
-      padding: 12px;
-      margin-top: 20px;
-      font-size: 16px;
-      background-color: #007bff;
-      color: white;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
+    input[type="number"]:focus {
+        outline: none;
+        border-color: #2563eb; /* Tailwind blue-600 */
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2); /* Tailwind ring-blue-300 */
     }
-    .resultado {
-      margin-top: 25px;
-      padding: 15px;
-      background: #e0f7fa;
-      border-radius: 8px;
-      font-size: 16px;
-      white-space: pre-line;
-    }
-    footer {
-      background-color: #f1f1f1;
-      padding: 20px;
+
+    /* Estilos para o paragrafo inicial */
+    .intro-paragraph {
+      font-size: 1.125rem; /* text-lg */
+      color: #374151; /* text-gray-700 */
+      margin-bottom: 1.5rem; /* mb-6 */
       text-align: center;
-      font-size: 14px;
-      color: #555;
-      margin-top: 40px;
-      border-top: 1px solid #ddd;
     }
-    footer a {
-      color: #007bff;
-      text-decoration: none;
-      margin: 0 5px;
+    
+    /* Layout dos botões em mobile e desktop */
+    .button-group {
+        display: flex;
+        flex-direction: column; /* Empilha em mobile */
+        gap: 1rem; /* Espaço entre os botões */
+        margin-top: 1.5rem; /* mt-6 */
+    }
+
+    @media (min-width: 640px) { /* Em telas maiores, os botões ficam lado a lado */
+        .button-group {
+            flex-direction: row;
+        }
+        .button-group button {
+            width: auto; /* Deixa o botão se ajustar ao conteúdo */
+        }
     }
   </style>
 
-  <!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=AW-952633102">
-</script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-
-  gtag('config', 'AW-952633102');
-  </script>
 </head>
-<body>
-<div id="barra-lateral"></div>
-<script>
-  fetch('sidebar.html')
-    .then(response => response.text())
-    .then(html => {
-      document.getElementById('barra-lateral').innerHTML = html;
-    });
-</script>
-<main class="content" id="pdfContent">
-  <h1><br><br>Calcular Dimensionamento de Enfermagem em UI E UTI</h1>
-  <p>Este dimensionamento de enfermagem é para alocação de profissionais suficientes para atender à demanda de enfermagem em Unidade de internação e Terapia intensiva </p>
+<body class="bg-gray-50 text-gray-800 font-inter">
 
-  <label for="numPacientesMin">Número de pacientes com cuidado mínimo:</label>
-  <input type="number" id="numPacientesMin" placeholder="Ex: 10" min="0" />
+  <div id="topbar-container"></div> 
 
-  <label for="numPacientesInt">Número de pacientes com cuidado intermediário:</label>
-  <input type="number" id="numPacientesInt" placeholder="Ex: 5" min="0" />
-
-  <label for="numPacientesSemiInt">Número de pacientes com cuidado semi-intensivo:</label>
-  <input type="number" id="numPacientesSemiInt" placeholder="Ex: 3" min="0" />
-
-  <label for="numPacientesAltaDep">Número de pacientes com alta dependência:</label>
-  <input type="number" id="numPacientesAltaDep" placeholder="Ex: 2" min="0" />
-
-  <label for="numPacientesIntensivo">Número de pacientes com cuidado intensivo:</label>
-  <input type="number" id="numPacientesIntensivo" placeholder="Ex: 1" min="0" />
-
-  <button onclick="calcular()">Calcular</button>
-  <button onclick="gerarPDF()">Gerar PDF</button>
-
-  <div id="resultado" class="resultado" style="display:none;"></div>
-
-  <footer>
-    <p>© 2025 Calculadoras de Enfermagem</p>
-    <p>
-      <a href="index.html">Início</a> |
-      <a href="politica.html">Política de Privacidade</a> |
-      <a href="termos.html">Termos de Uso</a>
+  <div class="main-content-wrapper">
+    <h1 class="font-nunito font-extrabold text-dark-blue text-4xl lg:text-5xl mb-3 text-center">
+      Dimensionamento de Enfermagem
+    </h1>
+    <p class="intro-paragraph">
+      Esta calculadora auxilia na alocação de profissionais de enfermagem para atender à demanda em Unidades de Internação e Terapia Intensiva, conforme a Resolução COFEN n° 543/2017.
     </p>
-  </footer>
-</main>
 
-<script>
-  function calcular() {
-    const pacientesMin = Number(document.getElementById('numPacientesMin').value) || 0;
-    const pacientesInt = Number(document.getElementById('numPacientesInt').value) || 0;
-    const pacientesSemiInt = Number(document.getElementById('numPacientesSemiInt').value) || 0;
-    const pacientesAltaDep = Number(document.getElementById('numPacientesAltaDep').value) || 0;
-    const pacientesIntensivo = Number(document.getElementById('numPacientesIntensivo').value) || 0;
+    <form id="formDimensionamento" class="bg-white p-6 rounded-lg shadow-md">
+      <div id="pdfContent"> <h2 class="text-2xl font-semibold text-dark-blue mb-6 text-center">Calcular Profissionais de Enfermagem</h2>
+        
+        <label for="numPacientesMin" class="block text-gray-700 text-sm font-bold mb-1">
+          Número de pacientes com cuidado mínimo (4h de enfermagem):
+        </label>
+        <input type="number" id="numPacientesMin" placeholder="Ex: 10" min="0" class="w-full" />
+        
+        <label for="numPacientesInt" class="block text-gray-700 text-sm font-bold mb-1">
+          Número de pacientes com cuidado intermediário (6h de enfermagem):
+        </label>
+        <input type="number" id="numPacientesInt" placeholder="Ex: 5" min="0" class="w-full" />
+        
+        <label for="numPacientesSemiInt" class="block text-gray-700 text-sm font-bold mb-1">
+          Número de pacientes com cuidado semi-intensivo (8h de enfermagem):
+        </label>
+        <input type="number" id="numPacientesSemiInt" placeholder="Ex: 3" min="0" class="w-full" />
+        
+        <label for="numPacientesAltaDep" class="block text-gray-700 text-sm font-bold mb-1">
+          Número de pacientes com alta dependência (10h de enfermagem):
+        </label>
+        <input type="number" id="numPacientesAltaDep" placeholder="Ex: 2" min="0" class="w-full" />
+        
+        <label for="numPacientesIntensivo" class="block text-gray-700 text-sm font-bold mb-1">
+          Número de pacientes com cuidado intensivo (12h de enfermagem):
+        </label>
+        <input type="number" id="numPacientesIntensivo" placeholder="Ex: 1" min="0" class="w-full" />
+        
+        <div id="resultado" class="resultado" aria-live="polite"></div>
+        <div id="observacao" class="observacao"></div> <div class="ref font-inter text-gray-custom text-left mt-6">
+          <h3 class="font-semibold text-dark-blue mb-2">Referência Bibliográfica:</h3>
+          <p>
+            Conselho Federal de Enfermagem (COFEN). Resolução COFEN nº 543, de 12 de agosto de 2017. Estabelece parâmetros para o dimensionamento de pessoal de enfermagem nos estabelecimentos de saúde, visando garantir a qualidade da assistência. Brasília, DF, 2017. Disponível em: <a href="https://www.cofen.gov.br/resoluo-cofen-n-5432017_58204.html" target="_blank" class="text-light-blue hover:underline">https://www.cofen.gov.br/resoluo-cofen-n-5432017_58204.html</a>. Acesso em: 20 jun. 2025.
+          </p>
+        </div>
 
-    const resultadoDiv = document.getElementById('resultado');
+      </div> <div class="button-group">
+        <button type="button" id="btnCalcular" class="btn-primary" aria-label="Calcular dimensionamento">
+          Calcular
+        </button>
+        <button type="button" id="btnLimpar" class="btn-primary" aria-label="Limpar campos">
+          Limpar
+        </button>
+        <button type="button" id="btnGerarPDF" class="btn-secondary" aria-label="Gerar PDF">
+          Gerar PDF
+        </button>
+      </div>
+    </form>
 
-    const horasMin = 4, horasInt = 6, horasSemiInt = 8, horasAltaDep = 10, horasIntensivo = 12;
+  </div> <a href="doacoes.html" class="fixed bottom-4 right-4 bg-dark-blue text-white text-sm px-4 py-2 rounded-full shadow hover:bg-blue-900 transition fixed-donation-button">
+    Ajude-nos a manter o site gratuito
+  </a>
 
-    const totalHoras =
-      pacientesMin * horasMin +
-      pacientesInt * horasInt +
-      pacientesSemiInt * horasSemiInt +
-      pacientesAltaDep * horasAltaDep +
-      pacientesIntensivo * horasIntensivo;
+  <div id="footer-container"></div>
 
-    if (totalHoras === 0) {
-      resultadoDiv.style.display = 'block';
-      resultadoDiv.textContent = "Informe a quantidade de pelo menos um paciente.";
-      return;
-    }
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
-    const ist = 0.15;
-    const totalHorasComIst = totalHoras * (1 + ist);
-    const profissionais12h = totalHorasComIst / 12;
+  <script>
+    // Define as horas de enfermagem por tipo de cuidado (usado nos cálculos)
+    const horasEnfermagem = {
+      minimo: 4,
+      intermediario: 6,
+      semiIntensivo: 8,
+      altaDependencia: 10,
+      intensivo: 12
+    };
 
-    const enfermeiros12h = Math.ceil(profissionais12h / 3);
-    const tecnicos12h = Math.ceil(profissionais12h * 2 / 3);
+    function calcular() {
+      console.log('Função calcular() iniciada.');
 
-    const texto = 
-`Dimensionamento para jornada de 12 horas:
+      const pacientesMin = Number(document.getElementById('numPacientesMin').value) || 0;
+      const pacientesInt = Number(document.getElementById('numPacientesInt').value) || 0;
+      const pacientesSemiInt = Number(document.getElementById('numPacientesSemiInt').value) || 0;
+      const pacientesAltaDep = Number(document.getElementById('numPacientesAltaDep').value) || 0;
+      const pacientesIntensivo = Number(document.getElementById('numPacientesIntensivo').value) || 0;
+
+      const resultadoDiv = document.getElementById('resultado');
+      const observacaoDiv = document.getElementById('observacao'); // Mantido para consistência
+
+      if (!resultadoDiv || !observacaoDiv) {
+        console.error("Elementos 'resultado' ou 'observacao' não encontrados!");
+        return;
+      }
+      console.log('Divs de resultado e observação encontradas.');
+
+      // Limpa classes e texto anteriores
+      resultadoDiv.classList.remove('text-red-custom', 'text-dark-blue', 'error');
+      resultadoDiv.innerText = "";
+      observacaoDiv.innerText = "";
+      resultadoDiv.style.display = "block"; // Garante que a div de resultado esteja visível
+      console.log('Conteúdo anterior do resultado/observação limpo e resultadoDiv visível.');
+
+      // Cálculo das horas totais com base na Resolução COFEN n° 543/2017
+      const totalHoras =
+        (pacientesMin * horasEnfermagem.minimo) +
+        (pacientesInt * horasEnfermagem.intermediario) +
+        (pacientesSemiInt * horasEnfermagem.semiIntensivo) +
+        (pacientesAltaDep * horasEnfermagem.altaDependencia) +
+        (pacientesIntensivo * horasEnfermagem.intensivo);
+
+      if (totalHoras === 0) {
+        resultadoDiv.classList.add('error');
+        resultadoDiv.textContent = "Informe a quantidade de pelo menos um paciente para realizar o cálculo.";
+        console.log('Cálculo incompleto: nenhum paciente informado.');
+        return;
+      }
+
+      const ist = 0.15; // Índice de Segurança Técnica (15%)
+      const totalHorasComIst = totalHoras * (1 + ist);
+      const profissionais12h = totalHorasComIst / 12; // Para jornada de 12 horas
+
+      // Proporção conforme COFEN: 33% Enfermeiros e 67% Técnicos/Auxiliares
+      // Para o cálculo, consideramos 1/3 para enfermeiros e 2/3 para técnicos
+      const enfermeiros12h = Math.ceil(profissionais12h / 3);
+      const tecnicos12h = Math.ceil(profissionais12h * 2 / 3);
+
+      const textoResultado = `
+Dimensionamento para jornada de 12 horas:
 
 - Enfermeiros necessários: ${enfermeiros12h}
 - Técnicos de Enfermagem necessários: ${tecnicos12h}
+      `;
 
-Fonte Bibliográfica:
-Conselho Federal de Enfermagem (COFEN). Resolução COFEN nº 543, de 12 de agosto de 2017. Estabelece parâmetros para o dimensionamento de pessoal de enfermagem nos estabelecimentos de saúde, visando garantir a qualidade da assistência. Brasília, DF, 2017. Disponível em: https://www.cofen.gov.br/resoluo-cofen-n-5432017_58204.html. Acesso em: 20 jun. 2025.
-`;
+      resultadoDiv.classList.add('text-dark-blue');
+      resultadoDiv.textContent = textoResultado;
+      console.log('Cálculo concluído. Resultado exibido.');
+    }
 
-    resultadoDiv.style.display = 'block';
-    resultadoDiv.textContent = texto;
-  }
+    function limpar() {
+      console.log('Função limpar() iniciada.');
+      document.getElementById('numPacientesMin').value = '';
+      document.getElementById('numPacientesInt').value = '';
+      document.getElementById('numPacientesSemiInt').value = '';
+      document.getElementById('numPacientesAltaDep').value = '';
+      document.getElementById('numPacientesIntensivo').value = '';
 
-  function gerarPDF() {
-    const content = document.getElementById('pdfContent').cloneNode(true);
-    const sidebar = content.querySelector('.sidebar');
-    const footer = content.querySelector('footer');
-    if (sidebar) sidebar.remove();
-    if (footer) footer.remove();
-    const opt = {
-      margin: 0,
-      filename: 'dimensionamento.pdf',
-      image: { type: 'jpeg', quality: 1 },
-      html2canvas: { scale: 3, scrollY: 0 },
-      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-    };
-    html2pdf().set(opt).from(content).save();
-  }
-</script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-  
-<!-- Carrega a barra superior -->
-<script src="topbar.js"></script>
+      const resultadoDiv = document.getElementById('resultado');
+      const observacaoDiv = document.getElementById('observacao');
+
+      if (resultadoDiv) {
+        resultadoDiv.innerText = "";
+        resultadoDiv.classList.remove('text-red-custom', 'text-dark-blue', 'error');
+        // resultadoDiv.style.display = "none"; // Opcional: esconder a div de resultado ao limpar
+      }
+      if (observacaoDiv) {
+        observacaoDiv.innerText = "";
+      }
+      console.log('Campos limpos.');
+    }
+
+    function gerarPDF() {
+      console.log('Função gerarPDF() iniciada.');
+      const element = document.getElementById('pdfContent'); // Conteúdo a ser gerado no PDF
+      if (element && typeof html2pdf !== 'undefined') {
+        const opt = {
+          margin: 10,
+          filename: 'dimensionamento_enfermagem.pdf',
+          image: { type: 'jpeg', quality: 0.98 },
+          html2canvas: { scale: 2, scrollY: 0 }, // scrollY: 0 é importante para evitar rolagem extra no PDF
+          jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        };
+        html2pdf().set(opt).from(element).save();
+        console.log('Tentativa de gerar PDF.');
+      } else {
+        console.warn('Conteúdo para PDF (pdfContent) não encontrado ou html2pdf.js não carregado/definido.');
+        alert('A função de gerar PDF não está completamente configurada ou os elementos necessários não foram encontrados. Certifique-se de que o html2pdf.js está carregado.');
+      }
+    }
+
+    // Carrega o rodapé e anexa eventos aos botões quando o DOM estiver completamente carregado
+    document.addEventListener('DOMContentLoaded', () => {
+      console.log('DOM completamente carregado. Tentando anexar eventos e carregar rodapé.');
+      try {
+        const btnCalcular = document.getElementById('btnCalcular');
+        const btnLimpar = document.getElementById('btnLimpar');
+        const btnGerarPDF = document.getElementById('btnGerarPDF');
+
+        if (btnCalcular) {
+          btnCalcular.addEventListener('click', calcular);
+          console.log('Evento click anexado ao btnCalcular.');
+        } else {
+          console.error('Elemento btnCalcular não encontrado!');
+        }
+
+        if (btnLimpar) {
+          btnLimpar.addEventListener('click', limpar);
+          console.log('Evento click anexado ao btnLimpar.');
+        } else {
+          console.error('Elemento btnLimpar não encontrado!');
+        }
+
+        if (btnGerarPDF) {
+          btnGerarPDF.addEventListener('click', gerarPDF);
+          console.log('Evento click anexado ao btnGerarPDF.');
+        } else {
+          console.error('Elemento btnGerarPDF não encontrado!');
+        }
+
+      } catch (e) {
+        console.error("Erro ao anexar eventos aos botões:", e);
+      }
+
+      // Carrega o rodapé (rodape111.html)
+      fetch("rodape111.html")
+        .then(res => res.text())
+        .then(data => {
+          const footerContainer = document.getElementById("footer-container");
+          if (footerContainer) {
+            footerContainer.innerHTML = data;
+            console.log('Rodapé carregado com sucesso.');
+          } else {
+            console.error('Elemento footer-container não encontrado.');
+          }
+        })
+        .catch(err => console.error("Erro ao carregar rodape111.html:", err));
+    });
+  </script>
 </body>
 </html>
