@@ -1,228 +1,312 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Escala Johns Hopkins - Risco de Queda</title>
+
   <link rel="canonical" href="https://www.calculadorasdeenfermagem.com.br/johns.html" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="keywords" content="queda, cair, enfermagem, indice, escala de queda, johns, hopkins, risco" />
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+  <link rel="icon" href="favicon.ico" type="image/x-icon" />
+
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
+  
+  <meta name="keywords" content="queda, cair, enfermagem, indice, escala de queda, johns, hopkins, risco, segurança do paciente" />
+  <meta name="description" content="Calculadora da Escala Johns Hopkins para avaliação do risco de queda em pacientes, com classificação e plano de cuidado." />
+
+  <script async src="https://www.googletagmanager.com/gtag/js?id=AW-952633102"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'AW-952633102');
+  </script>
+
+  <script src="topbar111.js" defer></script>
+
   <style>
-    body {
-      font-family: Arial, sans-serif;
+    /* Reset básico e Box-sizing para consistência */
+    *, *::before, *::after {
+      box-sizing: border-box;
       margin: 0;
-      display: flex;
-      background-color: #f4f4f4;
+      padding: 0;
     }
-    .sidebar {
-      background-color: #007bff;
-      color: white;
-      padding: 15px;
-      width: 200px;
-      min-height: 100vh;
-    }
-    .sidebar h2 {
-      font-size: 12px;
+
+    /* Fontes personalizadas */
+    @import url('https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@700&family=Inter:wght@300;400;500;600&display=swap');
+
+    /* Estilos das classes de fonte e cor personalizadas (para uso no HTML com Tailwind) */
+    .font-nunito { font-family: 'Nunito Sans', sans-serif; }
+    .font-inter { font-family: 'Inter', sans-serif; }
+    .text-dark-blue { color: #1A3E74; } /* Azul Escuro */
+    .text-light-blue { color: #1FA4E5; } /* Azul Claro */
+    .text-gray-custom { color: #666666; } /* Cinza */
+    .text-success-green { color: #1ED760; } /* Verde */
+    .text-black-custom { color: #333; } /* Cor para textos padrão */
+    .text-red-600 { color: #dc2626; } /* Tailwind red-600 para mensagens de erro */
+
+    /* Padrão de Botões (Componentes CSS para reuso) */
+    .btn-primary {
+      font-family: 'Inter', sans-serif;
+      font-weight: 600;
+      background-color: #1A3E74; /* Cor primária azul escuro */
+      color: #FFF;
+      padding: 12px 24px;
+      border-radius: 8px;
+      transition: background-color 0.3s ease;
+      border: none;
+      cursor: pointer;
       text-align: center;
-      font-weight: bold;
-      margin-bottom: 10px;
     }
-    .sidebar a {
-      display: block;
-      color: white;
-      font-size: 11px;
-      margin: 8px 0;
-      text-decoration: none;
+    .btn-primary:hover { background-color: #122c54; } /* Tom mais escuro no hover */
+    .btn-secondary {
+      font-family: 'Inter', sans-serif;
+      font-weight: 600;
+      background-color: #1FA4E5; /* Cor secundária azul claro */
+      color: #FFF;
+      padding: 12px 24px;
+      border-radius: 8px;
+      transition: background-color 0.3s ease;
+      border: none;
+      cursor: pointer;
+      text-align: center;
     }
-    .content {
-      flex: 1;
-      padding: 20px;
+    .btn-secondary:hover { background-color: #178ac7; } /* Tom mais escuro no hover */
+    .btn-success {
+      font-family: 'Inter', sans-serif;
+      font-weight: 500;
+      background-color: #1ED760;
+      color: #FFF;
+      padding: 10px 20px;
+      border-radius: 8px;
+      transition: background-color 0.3s ease;
+      border: none;
+      cursor: pointer;
+      text-align: center;
     }
-    h1 {
-      font-size: 26px;
-      color: #007bff;
-      font-weight: bold;
+    .btn-success:hover { background-color: #17b351; }
+
+    /* Estilos para a área de resultado da calculadora (Componente específico) */
+    .resultado {
+      margin-top: 1.5rem; /* mt-6 */
+      padding: 1.25rem; /* p-5 */
+      background-color: #e0f2fe; /* Tailwind blue-50 */
+      border-radius: 0.5rem;
+      font-weight: 600;
+      color: #1A3E74; /* text-dark-blue */
+      text-align: left;
+      white-space: pre-wrap; /* Mantém quebras de linha no texto */
     }
-    h2 {
-      font-size: 14px;
-      font-weight: normal;
+    .resultado.bg-red-100 { /* Classe para mensagens de erro (fundo) */
+        background-color: #fee2e2; /* Tailwind red-100 */
+        color: #dc2626; /* Tailwind red-600 */
+    }
+    .resultado.bg-yellow-100 { /* Para risco moderado */
+        background-color: #fefce8; /* Tailwind yellow-100 */
+        color: #d97706; /* Tailwind yellow-700 */
+    }
+    .resultado.bg-green-100 { /* Para baixo risco */
+        background-color: #dcfce7; /* Tailwind green-100 */
+        color: #15803d; /* Tailwind green-700 */
+    }
+
+    /* Estilos para a referência/bibliografia (Componente específico) */
+    .ref {
+      margin-top: 2.5rem; /* mt-10 */
+      font-size: 0.875rem; /* text-sm */
+      color: #666666; /* text-gray-custom */
+      text-align: left;
+    }
+
+    /* Estilo para o botão "Ajude-nos" fixo (Componente de botão) */
+    .fixed-donation-button {
+      z-index: 30;
+    }
+    
+    /* Layout principal com Topbar fixa */
+    body {
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh; /* Garante que o body ocupe a altura total da viewport */
+      background-color: #f8fafc; /* Tailwind bg-gray-50 */
+      color: #333; /* Tailwind text-gray-800 */
+    }
+
+    /* ESTILOS DOS DROPDOWNS DA TOPBAR (MOVIDOS DE TOPBAR111.HTML) */
+    .dropdown-menu { display: none; }
+    .dropdown-menu.show { display: block; }
+    nav { justify-content: flex-end; } 
+    nav button { cursor: pointer; }
+    nav .dropdown-menu a:hover { background-color: #bfdbfe; }
+    /* FIM DOS ESTILOS DA TOPBAR */
+
+    /* Espaçamento para o conteúdo abaixo da topbar fixa */
+    .main-content-wrapper { 
+      display: flex;
+      flex-direction: column;
+      flex-grow: 1;
+      padding-top: 64px; /* Garante que o conteúdo comece abaixo da topbar fixa (64px de altura) */
+      width: 100%;
+      max-width: 1280px; /* max-w-screen-xl (Tailwind 7xl) */
+      margin-left: auto;
+      margin-right: auto;
+      padding: 2rem 1rem; /* p-8 px-4 */
+    }
+    
+    /* Estilos específicos para este arquivo */
+    .descricao {
+      font-size: 1rem; /* Adjust to Tailwind base font size */
+      color: #333; /* Black-custom */
+      margin-top: 1rem; /* mt-4 */
+      margin-bottom: 1.5rem; /* mb-6 */
+      line-height: 1.6; /* leading-relaxed */
     }
     table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 15px;
-      margin-bottom: 15px;
+      @apply w-full border-collapse my-4 md:my-6; /* Tailwind classes for full width, collapse, margin-y */
     }
     td {
-      border: 1px solid #ccc;
-      padding: 8px;
+      @apply border border-gray-300 p-3; /* Tailwind classes for border, padding */
     }
     select {
-      width: 100%;
-    }
-    button {
-      font-family: Arial;
-      background-color: #007bff;
-      color: white;
-      padding: 10px 15px;
-      border: none;
-      border-radius: 5px;
-      font-size: 12px;
-      cursor: pointer;
-      margin-right: 10px;
-    }
-    button:hover {
-      background-color: #0056b3;
-    }
-    .resultado {
-      font-size: 14px;
-      font-weight: bold;
-      color: black;
-      margin-top: 20px;
-    }
-    .referencia {
-      margin-top: 60px;
-      font-size: 12px;
-      color: black;
-    }
-    footer {
-      background-color: #007bff;
-      color: white;
-      text-align: center;
-      padding: 10px;
-      position: relative;
-      bottom: 0;
-      width: 100%;
-    }
-    .search-box {
-      text-align: right;
-      margin-bottom: 20px;
-    }
-    .search-box input {
-      padding: 5px;
-      font-size: 12px;
-      width: 200px;
-    }
-    .descricao {
-      font-size: 14px;
-      margin-top: 10px;
-      margin-bottom: 20px;
+      @apply w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-light-blue;
     }
   </style>
-
-  <!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=AW-952633102">
-</script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-
-  gtag('config', 'AW-952633102');
-  </script>
 </head>
-<body>
-  <div id="barra-lateral"></div>
-<script>
-  fetch('sidebar.html')
-    .then(response => response.text())
-    .then(html => {
-      document.getElementById('barra-lateral').innerHTML = html;
-    });
-</script>
+<body class="bg-gray-50 text-gray-800 font-inter">
 
-  <div class="content">
-    <div class="search-box">
-      <input type="text" placeholder="Buscar...">
-    </div>
-    <div id="pdfContent">
-      <h1><br><br>Calcular Escala Johns Hopkins</h1>
-      <div class="descricao">
-        <strong>Meta 6 de Segurança do Paciente:</strong> Reduzir o risco de quedas e lesões decorrentes de quedas em ambientes de cuidados de saúde.<br><br>
-        Esta escala tem como objetivo identificar pacientes hospitalizados com risco de queda, classificando-os em baixo, moderado ou alto risco, a partir de fatores clínicos, cognitivos e funcionais. A aplicação permite adotar medidas preventivas eficazes e individualizadas.
+  <div id="topbar-container"></div> 
+
+  <div class="main-content-wrapper">
+    <main class="flex flex-col flex-grow">
+
+      <div class="flex flex-wrap items-center justify-center gap-4 mb-3">
+        <img src="iconpages.png" alt="Ícone da Escala Johns Hopkins" class="w-32 h-auto" />
+        <h1 class="font-nunito font-extrabold text-dark-blue text-4xl lg:text-5xl text-center">
+          Escala Johns Hopkins - Risco de Queda
+        </h1>
       </div>
 
-      <h2>Selecione o escore correspondente para cada categoria:</h2>
-      <table>
-        <tr>
-          <td>Idade</td>
-          <td>
-            <select id="idade">
-              <option value="0">Menor de 60 anos (0)</option>
-              <option value="5">60–69 anos (5)</option>
-              <option value="10">70–79 anos (10)</option>
-              <option value="15">80 anos ou mais (15)</option>
-            </select>
-          </td>
-        </tr>
-        <tr>
-          <td>Quedas anteriores</td>
-          <td>
-            <select id="quedas">
-              <option value="0">Nenhuma (0)</option>
-              <option value="15">Sim, nos últimos 6 meses (15)</option>
-            </select>
-          </td>
-        </tr>
-        <tr>
-          <td>Eliminação</td>
-          <td>
-            <select id="eliminacao">
-              <option value="0">Normal (0)</option>
-              <option value="5">Urgência ou frequência (5)</option>
-              <option value="10">Incontinência (10)</option>
-            </select>
-          </td>
-        </tr>
-        <tr>
-          <td>Medicação</td>
-          <td>
-            <select id="medicacao">
-              <option value="0">Nenhuma (0)</option>
-              <option value="10">Sedativos, diuréticos, laxantes, narcóticos (10)</option>
-            </select>
-          </td>
-        </tr>
-        <tr>
-          <td>Paciente em equipamentos auxiliares</td>
-          <td>
-            <select id="equipamentos">
-              <option value="0">Cama ou cadeira (0)</option>
-              <option value="5">Muleta, bengala, andador (5)</option>
-              <option value="10">Apoio de móveis (10)</option>
-            </select>
-          </td>
-        </tr>
-        <tr>
-          <td>Mobilidade</td>
-          <td>
-            <select id="mobilidade">
-              <option value="0">Completa (0)</option>
-              <option value="10">Restrita ou fraca (10)</option>
-            </select>
-          </td>
-        </tr>
-        <tr>
-          <td>Cognição</td>
-          <td>
-            <select id="cognicao">
-              <option value="0">Consciente da limitação (0)</option>
-              <option value="15">Esquece das limitações (15)</option>
-            </select>
-          </td>
-        </tr>
-      </table>
+      <div id="conteudo" class="w-full">
+        <div class="descricao font-inter text-black-custom">
+          <strong>Meta 6 de Segurança do Paciente:</strong> Reduzir o risco de quedas e lesões decorrentes de quedas em ambientes de cuidados de saúde.<br><br>
+          Esta escala tem como objetivo identificar pacientes hospitalizados com risco de queda, classificando-os em baixo, moderado ou alto risco, a partir de fatores clínicos, cognitivos e funcionais. A aplicação permite adotar medidas preventivas eficazes e individualizadas.
+        </div>
 
-      <button onclick="calcular()">Calcular</button>
-      <button onclick="gerarPDF()">Gerar PDF</button>
+        <h2 class="font-bold text-lg text-dark-blue mb-4">Selecione o escore correspondente para cada categoria:</h2>
+        <div class="overflow-x-auto">
+          <table class="min-w-full bg-white shadow-md rounded-lg">
+            <thead>
+              <tr>
+                <th class="py-3 px-4 bg-gray-100 text-left text-sm font-semibold text-gray-700 uppercase tracking-wider">Critério</th>
+                <th class="py-3 px-4 bg-gray-100 text-left text-sm font-semibold text-gray-700 uppercase tracking-wider">Seleção</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="font-medium text-black-custom">Idade</td>
+                <td>
+                  <select id="idade" class="select">
+                    <option value="0">Menor de 60 anos (0)</option>
+                    <option value="5">60–69 anos (5)</option>
+                    <option value="10">70–79 anos (10)</option>
+                    <option value="15">80 anos ou mais (15)</option>
+                  </select>
+                </td>
+              </tr>
+              <tr>
+                <td class="font-medium text-black-custom">Quedas anteriores</td>
+                <td>
+                  <select id="quedas" class="select">
+                    <option value="0">Nenhuma (0)</option>
+                    <option value="15">Sim, nos últimos 6 meses (15)</option>
+                  </select>
+                </td>
+              </tr>
+              <tr>
+                <td class="font-medium text-black-custom">Eliminação</td>
+                <td>
+                  <select id="eliminacao" class="select">
+                    <option value="0">Normal (0)</option>
+                    <option value="5">Urgência ou frequência (5)</option>
+                    <option value="10">Incontinência (10)</option>
+                  </select>
+                </td>
+              </tr>
+              <tr>
+                <td class="font-medium text-black-custom">Medicação</td>
+                <td>
+                  <select id="medicacao" class="select">
+                    <option value="0">Nenhuma (0)</option>
+                    <option value="10">Sedativos, diuréticos, laxantes, narcóticos (10)</option>
+                  </select>
+                </td>
+              </tr>
+              <tr>
+                <td class="font-medium text-black-custom">Paciente em equipamentos auxiliares</td>
+                <td>
+                  <select id="equipamentos" class="select">
+                    <option value="0">Cama ou cadeira (0)</option>
+                    <option value="5">Muleta, bengala, andador (5)</option>
+                    <option value="10">Apoio de móveis (10)</option>
+                  </select>
+                </td>
+              </tr>
+              <tr>
+                <td class="font-medium text-black-custom">Mobilidade</td>
+                <td>
+                  <select id="mobilidade" class="select">
+                    <option value="0">Completa (0)</option>
+                    <option value="10">Restrita ou fraca (10)</option>
+                  </select>
+                </td>
+              </tr>
+              <tr>
+                <td class="font-medium text-black-custom">Cognição</td>
+                <td>
+                  <select id="cognicao" class="select">
+                    <option value="0">Consciente da limitação (0)</option>
+                    <option value="15">Esquece das limitações (15)</option>
+                  </select>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
 
-      <div id="resultado" class="resultado"></div>
+        <div id="resultado" class="resultado" aria-live="polite"></div>
 
-      <div class="referencia">
-        Referência bibliográfica:<br>
-        JOHNS HOPKINS HOSPITAL FALL RISK ASSESSMENT TOOL. Disponível em: https://www.hopkinsmedicine.org/fall-risk
+        <div class="ref font-inter text-gray-custom">
+          <strong>Referência bibliográfica:</strong><br />
+          <p class="mt-2">
+            JOHNS HOPKINS HOSPITAL FALL RISK ASSESSMENT TOOL. Disponível em: <a href="https://www.hopkinsmedicine.org/fall-risk" target="_blank" class="text-light-blue hover:underline">https://www.hopkinsmedicine.org/fall-risk</a>
+          </p>
+        </div>
       </div>
-      
+
+      <div class="flex flex-wrap justify-start gap-4 mt-6">
+        <button id="btnCalcular" class="btn-primary" aria-label="Calcular Escala Johns Hopkins">
+          Calcular
+        </button>
+        <button id="btnLimpar" class="btn-primary" aria-label="Limpar campos">
+          Limpar
+        </button>
+        <button id="btnGerarPDF" class="btn-secondary" aria-label="Gerar PDF">
+          Gerar PDF
+        </button>
+      </div>
+
+    </main>
+  </div> 
+
+  <a href="doacoes.html" class="fixed bottom-4 right-4 bg-dark-blue text-white text-sm px-4 py-2 rounded-full shadow hover:bg-blue-900 transition fixed-donation-button">
+    Ajude-nos a manter o site gratuito
+  </a>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  
+  <script src="pdf111.js"></script>
+
+  <div id="footer-container"></div>
 
   <script>
     function calcular() {
@@ -234,49 +318,112 @@
       const mobilidade = parseInt(document.getElementById('mobilidade').value);
       const cognicao = parseInt(document.getElementById('cognicao').value);
 
-      const total = idade + quedas + eliminacao + medicacao + equipamentos + mobilidade + cognicao;
+      const resultadoDiv = document.getElementById('resultado');
+      let total = 0;
+
+      // Resetar classes de cor do resultado
+      resultadoDiv.classList.remove('bg-red-100', 'text-red-600', 'bg-yellow-100', 'text-yellow-700', 'bg-green-100', 'text-green-700');
+      resultadoDiv.classList.add('bg-blue-50', 'text-dark-blue'); // Padrão azul
+
+      // Validar se todas as opções foram selecionadas
+      const selects = [idade, quedas, eliminacao, medicacao, equipamentos, mobilidade, cognicao];
+      if (selects.some(isNaN)) {
+        resultadoDiv.style.display = 'block';
+        resultadoDiv.textContent = "Por favor, selecione uma opção para todas as categorias para calcular o risco.";
+        resultadoDiv.classList.remove('bg-blue-50', 'text-dark-blue');
+        resultadoDiv.classList.add('bg-red-100', 'text-red-600');
+        return;
+      }
+
+      total = idade + quedas + eliminacao + medicacao + equipamentos + mobilidade + cognicao;
 
       let risco = '';
       let plano = '';
+      let resultadoClass = '';
 
       if (total < 6) {
         risco = 'Baixo risco de queda.';
         plano = 'Manter vigilância padrão e orientar paciente quanto à mobilidade segura.';
+        resultadoClass = 'bg-green-100 text-green-700';
       } else if (total <= 13) {
         risco = 'Risco moderado de queda.';
         plano = 'Implementar medidas de precaução como sinalização e apoio na mobilidade.';
+        resultadoClass = 'bg-yellow-100 text-yellow-700';
       } else {
         risco = 'Alto risco de queda.';
         plano = 'Aplicar protocolo de prevenção de quedas com supervisão contínua e adaptações ambientais.';
+        resultadoClass = 'bg-red-100 text-red-600';
       }
 
-      document.getElementById('resultado').innerHTML = `Pontuação total: ${total}<br>${risco}<br>${plano}`;
+      resultadoDiv.style.display = 'block';
+      resultadoDiv.innerHTML = `<strong>Pontuação total: ${total}</strong><br><br><strong>${risco}</strong><br>${plano}`;
+      resultadoDiv.classList.add(resultadoClass);
+    }
+
+    function limparCampos() {
+      document.getElementById('idade').value = '0';
+      document.getElementById('quedas').value = '0';
+      document.getElementById('eliminacao').value = '0';
+      document.getElementById('medicacao').value = '0';
+      document.getElementById('equipamentos').value = '0';
+      document.getElementById('mobilidade').value = '0';
+      document.getElementById('cognicao').value = '0';
+
+      const resultadoDiv = document.getElementById('resultado');
+      resultadoDiv.innerHTML = '';
+      resultadoDiv.style.display = 'none';
+      resultadoDiv.classList.remove('bg-red-100', 'text-red-600', 'bg-yellow-100', 'text-yellow-700', 'bg-green-100', 'text-green-700');
+      resultadoDiv.classList.add('bg-blue-50', 'text-dark-blue'); // Reinicia para o padrão
     }
 
     function gerarPDF() {
-      const elemento = document.getElementById("pdfContent");
+      const content = document.getElementById('conteudo').cloneNode(true); // Captura o conteúdo principal da calculadora
+
+      // Remove elementos que não devem ir no PDF (ex: botões)
+      const buttonsDiv = content.querySelector('.flex.flex-wrap.justify-start.gap-4.mt-6');
+      if (buttonsDiv) buttonsDiv.remove();
+      
+      // Esconde o botão de doação antes de gerar o PDF
+      const fixedButton = document.querySelector('.fixed-donation-button');
+      if (fixedButton) {
+        fixedButton.style.display = 'none';
+      }
+
       const opt = {
         margin:       0.5,
         filename:     'johns-hopkins-risco-de-queda.pdf',
         image:        { type: 'jpeg', quality: 0.98 },
-        html2canvas:  { scale: 3 },
-        jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }
+        html2canvas:  { scale: 3, scrollY: 0 },
+        jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' },
       };
-      html2pdf().set(opt).from(elemento).save();
+      
+      html2pdf().set(opt).from(content).save().then(() => {
+        // Volta a exibir o botão de doação após a geração do PDF
+        if (fixedButton) {
+          fixedButton.style.display = '';
+        }
+      });
     }
-  </script>
-</div>
 
-<footer>
-  <p>© 2025 Calculadoras de Enfermagem</p>
-  <p>
-    <a href="index.html">Início</a> |
-    <a href="politica.html">Política de Privacidade</a> |
-    <a href="termos.html">Termos de Uso</a>
-  </p>
-</footer>
-    
-<!-- Carrega a barra superior -->
-<script src="topbar.js"></script>
-   </body>
+    document.addEventListener('DOMContentLoaded', () => {
+      // Anexa eventos aos botões
+      document.getElementById('btnCalcular').addEventListener('click', calcular);
+      document.getElementById('btnLimpar').addEventListener('click', limparCampos);
+      document.getElementById('btnGerarPDF').addEventListener('click', gerarPDF);
+
+      // Carrega o rodapé (rodape111.html)
+      fetch("rodape111.html")
+        .then(res => res.text())
+        .then(data => {
+          const footerContainer = document.getElementById("footer-container");
+          if (footerContainer) {
+            footerContainer.innerHTML = data;
+          } else {
+            console.error('Elemento footer-container não encontrado.');
+          }
+        })
+        .catch(err => console.error("Erro ao carregar rodape111.html:", err));
+    });
+  </script>
+</body>
 </html>
