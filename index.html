@@ -15,21 +15,43 @@
     /* Estilos base para o corpo da página */
     body {
       padding-top: 64px; /* Espaço para a topbar fixa (ajuste se a altura real for diferente) */
-      /* No index.html, não precisamos de padding-left para a sidebar */
     }
 
     /* Em telas maiores (desktop), não precisamos de ajustes para a sidebar aqui no index.html */
     @media (min-width: 768px) {
       .header-with-logo {
-        /* Garante que o logo/título comece mais à esquerda em desktop, já que não há sidebar */
         padding-left: 0;
       }
     }
 
     /* Oculta o botão de menu mobile para a sidebar, pois ela não existirá nesta página */
     #menuToggle {
-      display: none !important; /* Força a ocultação */
+      display: none !important;
     }
+
+    /* Estilos para a caixa de pesquisa */
+    .search-box-container {
+      position: absolute; /* Ou 'fixed' se quiser que ela role com a página */
+      top: 96px; /* Ajuste: 64px (topbar) + 32px (duas linhas, ~8px por linha) */
+      right: 1rem; /* Margem da direita */
+      z-index: 45; /* Acima do conteúdo principal, mas abaixo da topbar (z-50) */
+      max-width: 300px; /* Limita a largura da caixa de pesquisa para ser discreta */
+      width: 100%; /* Garante que ela se ajuste em telas menores */
+    }
+
+    /* Ajuste para mobile: posiciona a caixa de pesquisa abaixo do logo/título */
+    @media (max-width: 767px) {
+      .search-box-container {
+        position: static; /* Remove o posicionamento absoluto no mobile */
+        margin-top: 1rem; /* Espaçamento abaixo do logo/título */
+        margin-left: auto;
+        margin-right: auto;
+        padding-left: 1rem; /* Mantém o padding para alinhamento geral */
+        padding-right: 1rem;
+        max-width: 90%; /* Limita a largura em mobile para não ser muito grande */
+      }
+    }
+
   </style>
   <script src="topbar111.js" defer></script>
 </head>
@@ -46,6 +68,8 @@
       </div>
     </div>
   </section>
+
+  <div id="search-container" class="search-box-container"></div>
 
   <main class="max-w-7xl mx-auto px-4 py-12">
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 text-left">
@@ -87,5 +111,55 @@
       });
   </script>
 
-  </body>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      fetch("pesquisa.html")
+        .then(res => res.text())
+        .then(data => {
+          const searchContainer = document.getElementById('search-container');
+          if (searchContainer) {
+            // Cria um div temporário para garantir que scripts e outros elementos sejam carregados corretamente
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = data;
+            // O conteúdo da pesquisa.html é o div contendo input e button
+            // Basta anexar os children do body do pesquisa.html
+            while (tempDiv.firstChild) {
+                searchContainer.appendChild(tempDiv.firstChild);
+            }
+
+            // Opcional: Adicionar funcionalidade de pesquisa (explicado abaixo)
+            // const searchInput = searchContainer.querySelector('#search-input');
+            // const searchButton = searchContainer.querySelector('button[type="submit"]');
+
+            // if (searchButton && searchInput) {
+            //   searchButton.addEventListener('click', () => {
+            //     performSearch(searchInput.value);
+            //   });
+            //   searchInput.addEventListener('keypress', (e) => {
+            //     if (e.key === 'Enter') {
+            //       performSearch(searchInput.value);
+            //     }
+            //   });
+            // }
+          }
+        })
+        .catch(err => {
+          console.error("Erro ao carregar pesquisa.html:", err);
+        });
+    });
+
+    // Função de exemplo para pesquisa (você precisará implementar a lógica real)
+    function performSearch(query) {
+      if (query.trim() !== '') {
+        alert('Você pesquisou por: ' + query);
+        // Aqui você integraria com um motor de busca no site, como:
+        // window.location.href = `sua-pagina-de-busca.html?q=${encodeURIComponent(query)}`;
+        // Ou uma busca interna via JavaScript/algolia/etc.
+      } else {
+        alert('Por favor, digite algo para pesquisar.');
+      }
+    }
+  </script>
+
+</body>
 </html>
