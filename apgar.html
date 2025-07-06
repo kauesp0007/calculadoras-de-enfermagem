@@ -33,15 +33,15 @@
     */
 
     body {
-      display: flex;
-      flex-direction: column;
+      display: flex; /* Habilitar Flexbox */
+      flex-direction: column; /* Colunas para mobile */
       min-height: 100vh;
       font-family: 'Inter', sans-serif; /* Fallback caso as fontes externas falhem */
       color: #000000;
       background-color: #f8fafc; /* bg-gray-50 do Tailwind */
-      /* O padding-top e padding-left serão ajustados pelos scripts dos componentes */
       margin: 0; /* Garante que não haja margem padrão do body */
       padding: 0; /* Garante que não haja padding padrão do body */
+      padding-top: 64px; /* Espaço para a topbar em todos os casos */
     }
 
     /* Estilos para a Sidebar fixa em Desktop (controlados por sidebar111.js) */
@@ -86,16 +86,21 @@
       display: none; /* Inicia oculto, será exibido via JS */
     }
 
-    /* Ajustes de layout para desktop: oculta botão mobile e adiciona padding para sidebar */
+    /* Ajustes de layout para desktop: oculta botão mobile e ajusta main para sidebar */
     @media (min-width: 768px) {
+      body {
+        flex-direction: row; /* Layout em linha para desktop */
+        padding-top: 0; /* Remove o padding-top no desktop, pois a topbar se ajusta sozinha */
+      }
       #menuToggle {
         display: none !important;
       }
-      body {
-        padding-left: 256px; /* Adiciona padding para a sidebar fixa em desktop */
-      }
       .loaded-sidebar-desktop {
         display: block; /* Mostra a sidebar em desktop */
+      }
+      main {
+        margin-left: 256px; /* Empurra o conteúdo principal para o lado da sidebar */
+        width: calc(100% - 256px); /* Ocupa o restante da largura */
       }
     }
 
@@ -103,8 +108,8 @@
     main {
       flex-grow: 1; /* Faz o main ocupar o espaço restante */
       padding: 2rem 1rem; /* Espaçamento geral para o conteúdo */
-      max-width: 1280px; /* max-w-7xl */
-      margin-left: auto;
+      max-width: 1280px; /* max-w-7xl - Pode ser ajustado ou removido para 100% */
+      margin-left: auto; /* Centraliza em larguras menores que max-w-7xl */
       margin-right: auto;
       width: 100%; /* Garante que ocupe a largura disponível */
       text-align: left; /* PADRONIZADO: Alinhamento à esquerda */
@@ -400,7 +405,8 @@
     
     <div class="flex space-x-4 mt-6">
       <button onclick="calcular()" class="btn-primary">Calcular</button>
-      <button onclick="limpar()" class="btn-primary">Limpar</button> <button onclick="gerarPDFWrapper()" class="btn-secondary">Gerar PDF</button>
+      <button onclick="limpar()" class="btn-primary">Limpar</button>
+      <button onclick="gerarPDFWrapper()" class="btn-secondary">Gerar PDF</button>
     </div>
   </main>
 
@@ -420,11 +426,11 @@
 
       let conduta = "";
       if (total >= 8) {
-        conduta = "Recém-nascido com boa vitalidade. Cuidados de enfermagem ao rescem nascido: Meta 1 (dupla pulseira + check list verbalizado com a mãe), aquecimento, impressão digito podálico, pesagem, PC, PT,PA, comprimento, temperatura corporal, envolver na manta aquecida. Humanizar";
+        conduta = "Recém-nascido com boa vitalidade. Cuidados de enfermagem ao recém-nascido: Meta 1 (dupla pulseira + check list verbalizado com a mãe), aquecimento, impressão digito podálico, pesagem, PC, PT, PA, comprimento, temperatura corporal, envolver na manta aquecida. Humanizar.";
       } else if (total >= 4) {
-        conduta = "Moderada depressão. Conduta: suporte e reavaliação imediata: Monitorização contínua, oximetria de pulso, observação de mrpm, aletas nasais, manter material preparado para via aérea avançada";
+        conduta = "Moderada depressão. Conduta: suporte e reavaliação imediata: Monitorização contínua, oximetria de pulso, observação de MRPM, aletas nasais, manter material preparado para via aérea avançada.";
       } else {
-        conduta = "Grave depressão. Conduta: reanimação neonatal imediata: Suporte ao neonatologista> montar laringo, ter a disposição TOT sem cuff, realizar o preparo de rediluição da epinefrina, ter por perto isolet com cilindro de o2 cheio e AMBU; Outras assistencias de enfermagem";
+        conduta = "Grave depressão. Conduta: reanimação neonatal imediata: Suporte ao neonatologista > montar laringo, ter a disposição TOT sem cuff, realizar o preparo de rediluição da epinefrina, ter por perto isolet com cilindro de O2 cheio e AMBU; Outras assistências de enfermagem.";
       }
 
       document.getElementById("resultado").innerText = `Pontuação total: ${total}/10\n${conduta}`;
