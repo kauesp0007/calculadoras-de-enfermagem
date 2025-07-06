@@ -15,50 +15,20 @@
     /* Estilos base para o corpo da página */
     body {
       padding-top: 64px; /* Espaço para a topbar fixa (ajuste se a altura real for diferente) */
-      /* No mobile, a sidebar aparece por cima, então não adicionamos padding-left aqui */
+      /* No index.html, não precisamos de padding-left para a sidebar */
     }
 
-    /* Estilos para desktop (a partir de 768px de largura) */
+    /* Em telas maiores (desktop), não precisamos de ajustes para a sidebar aqui no index.html */
     @media (min-width: 768px) {
-      body {
-        padding-left: 256px; /* Espaço para a sidebar fixa à esquerda (w-64 = 256px) */
-      }
-      /* A sidebar em si será posicionada fixed via JS após ser carregada */
-      /* O logo e o conteúdo principal agora se ajustam automaticamente devido ao padding-left no body */
       .header-with-logo {
-        padding-left: 1rem; /* Pequeno padding interno para o logo/título não ficar colado na margem */
+        /* Garante que o logo/título comece mais à esquerda em desktop, já que não há sidebar */
+        padding-left: 0;
       }
     }
 
-    /* Garante que a sidebar fixe-se corretamente */
-    /* Estas classes serão aplicadas via JS após carregar sidebar111.html */
-    .loaded-sidebar-desktop {
-      position: fixed;
-      left: 0;
-      top: 64px; /* Começa abaixo da topbar */
-      height: calc(100% - 64px); /* Altura total da tela menos a topbar */
-      overflow-y: auto; /* Permite scroll se o conteúdo da sidebar for muito longo */
-      z-index: 40; /* Z-index menor que a topbar (z-50) mas maior que o conteúdo */
-      background-color: white; /* Cor de fundo para evitar transparência indesejada */
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1); /* Sombra para destacá-la */
-    }
-
-    /* Ajustes para o botão mobile da sidebar para não ser fixo */
+    /* Oculta o botão de menu mobile para a sidebar, pois ela não existirá nesta página */
     #menuToggle {
-      position: fixed; /* O botão de menu mobile precisa ser fixo */
-      top: 1rem; /* Posição do topo */
-      left: 1rem; /* Posição da esquerda */
-      z-index: 55; /* Acima da topbar e da sidebar */
-      background-color: white; /* Fundo para o botão */
-      padding: 0.5rem;
-      border-radius: 0.25rem;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-    }
-    /* Oculta o botão de menu mobile em telas maiores */
-    @media (min-width: 768px) {
-      #menuToggle {
-        display: none;
-      }
+      display: none !important; /* Força a ocultação */
     }
   </style>
   <script src="topbar111.js" defer></script>
@@ -117,56 +87,5 @@
       });
   </script>
 
-  <script>
-    fetch("sidebar111.html")
-      .then(res => res.text())
-      .then(data => {
-        const tempDiv = document.createElement("div");
-        tempDiv.innerHTML = data;
-
-        // Anexar os elementos da sidebar ao body
-        // Certifique-se de que o botão mobile e a sidebar desktop sejam inseridos corretamente
-        const sidebarDesktop = tempDiv.querySelector('aside');
-        const menuToggleBtn = tempDiv.querySelector('#menuToggle');
-        const mobileSidebarDiv = tempDiv.querySelector('#mobileSidebar');
-
-        if (menuToggleBtn) {
-          document.body.prepend(menuToggleBtn); // Insere o botão mobile no topo
-        }
-        if (sidebarDesktop) {
-          // Adiciona a classe para fixar a sidebar desktop
-          sidebarDesktop.classList.add('loaded-sidebar-desktop');
-          document.body.prepend(sidebarDesktop); // Insere a sidebar desktop no topo
-        }
-        if (mobileSidebarDiv) {
-          document.body.prepend(mobileSidebarDiv); // Insere a sidebar mobile no topo
-        }
-
-        // Reativa os listeners de eventos para a sidebar mobile (se necessário, pois o JS está inline)
-        // O script inline da sidebar111.html já deve lidar com isso, mas é bom ter em mente.
-        // Se o JavaScript no sidebar111.html usa document.getElementById diretamente,
-        // ele só encontrará os elementos se eles já estiverem no DOM.
-        // Como estamos inserindo eles, o JS inline deve funcionar.
-        const toggleBtn = document.getElementById('menuToggle');
-        const closeBtn = document.getElementById('closeSidebar');
-        const mobileSide = document.getElementById('mobileSidebar');
-
-        if (toggleBtn) {
-            toggleBtn.addEventListener('click', () => {
-                if (mobileSide) mobileSide.classList.remove('hidden');
-            });
-        }
-        if (closeBtn) {
-            closeBtn.addEventListener('click', () => {
-                if (mobileSide) mobileSide.classList.add('hidden');
-            });
-        }
-
-      })
-      .catch(err => {
-        console.error("Erro ao carregar sidebar111.html:", err);
-      });
-  </script>
-
-</body>
+  </body>
 </html>
