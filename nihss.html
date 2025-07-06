@@ -3,198 +3,443 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-   <title>Escala NIHSS</title>
-   <link rel="canonical" href="https://www.calculadorasdeenfermagem.com.br/nihss.html" />
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="keywords" content="AVC, AVE, acidente vescular cerebral, avaliação, escala de nihss, escala, prognóstico, escala de enfermagem" />
+  <title>Escala NIHSS - Avaliação do Acidente Vascular Encefálico</title>
+  <link rel="canonical" href="https://www.calculadorasdeenfermagem.com.br/nihss.html" />
+  <meta name="description" content="Calculadora da Escala NIHSS para quantificar déficits neurológicos em pacientes com suspeita de AVE." />
+  <meta name="keywords" content="AVC, AVE, acidente vascular cerebral, avaliação, escala de nihss, escala, prognóstico, enfermagem" />
+
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <script defer src="./topbar111.js"></script>
+
+  <script async src="https://www.googletagmanager.com/gtag/js?id=AW-952633102"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'AW-952633102');
+  </script>
+
   <style>
-    body { font-family: Arial, sans-serif; display: flex; margin: 0; background: #f4f7fb; }
-    nav.sidebar {
-      width: 220px; background-color: #cce4f7; padding: 20px; box-sizing: border-box;
-      display: flex; flex-direction: column; align-items: center; height: 100vh;
+    /* Reset básico e Box-sizing para consistência */
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
     }
-    nav.sidebar h2 { color: #007bff; font-size: 20px; margin-bottom: 25px; text-align: center; }
-    nav.sidebar a {
-      color: #3399cc; text-decoration: none; margin: 10px 0; font-size: 14px;
-      text-align: center; width: 100%; padding: 6px 0; border-radius: 5px;
-      transition: background-color 0.2s ease; display: block;
+
+    /* Fontes personalizadas */
+    @import url('https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@700&family=Inter:wght@300;400;500;600&display=swap');
+
+    /* Estilos das classes de fonte e cor personalizadas (para uso no HTML com Tailwind) */
+    .font-nunito { font-family: 'Nunito Sans', sans-serif; }
+    .font-inter { font-family: 'Inter', sans-serif; }
+    .text-dark-blue { color: #1A3E74; } /* Azul Escuro */
+    .text-light-blue { color: #1FA4E5; } /* Azul Claro */
+    .text-gray-custom { color: #666666; } /* Cinza */
+    .text-success-green { color: #1ED760; } /* Verde */
+
+    /* Padrão de Botões (Componentes CSS para reuso) */
+    .btn-primary {
+      font-family: 'Inter', sans-serif;
+      font-weight: 600;
+      background-color: #1A3E74; /* Cor primária azul escuro */
+      color: #FFF;
+      padding: 12px 24px;
+      border-radius: 8px;
+      transition: background-color 0.3s ease;
+      border: none;
+      cursor: pointer;
+      text-align: center;
     }
-    nav.sidebar a:hover {
-      background-color: #004080; color: #e0e7f1;
+    .btn-primary:hover { background-color: #122c54; } /* Tom mais escuro no hover */
+    .btn-secondary {
+      font-family: 'Inter', sans-serif;
+      font-weight: 600;
+      background-color: #1FA4E5; /* Cor secundária azul claro */
+      color: #FFF;
+      padding: 12px 24px;
+      border-radius: 8px;
+      transition: background-color 0.3s ease;
+      border: none;
+      cursor: pointer;
+      text-align: center;
     }
-    nav.sidebar a.active {
-      font-weight: bold; background-color: #004080; color: white;
+    .btn-secondary:hover { background-color: #178ac7; } /* Tom mais escuro no hover */
+    .btn-success { /* Adicionado para compatibilidade, embora não usado diretamente aqui */
+      font-family: 'Inter', sans-serif;
+      font-weight: 500;
+      background-color: #1ED760;
+      color: #FFF;
+      padding: 10px 20px;
+      border-radius: 8px;
+      transition: background-color 0.3s ease;
+      border: none;
+      cursor: pointer;
+      text-align: center;
     }
-    main.content {
-      flex-grow: 1; max-width: 900px; margin: auto; padding: 30px 20px;
-      background: white; box-sizing: border-box; min-height: 100vh;
+    .btn-success:hover { background-color: #17b351; }
+
+    /* Estilos para a área de resultado da calculadora (Componente específico) */
+    .resultado {
+      margin-top: 1rem;
+      padding: 1rem;
+      background-color: #e0f2fe; /* Tailwind blue-50 */
+      border-radius: 0.5rem;
+      font-weight: 600;
+      color: #1A3E74; /* text-dark-blue */
+      text-align: left;
+      white-space: pre-wrap;
     }
-    h1 {
-      text-align: center; color: #007bff; margin-bottom: 10px;
+    /* Cores de resultado ajustadas para as novas cores */
+    .resultado.bg-success-green-light { background-color: #D4EDDA; border-color: #C3E6CB; color: #155724; } /* Similar ao green-100 */
+    .resultado.bg-warning-yellow-light { background-color: #FFF3CD; border-color: #FFEEDA; color: #856404; } /* Similar ao yellow-100 */
+    .resultado.bg-danger-red-light { background-color: #F8D7DA; border-color: #F5C6CB; color: #721C24; } /* Similar ao red-100 */
+    .resultado.bg-info-orange-light { background-color: #ffeeba; border-color: #ffb366; color: #856404; } /* Para alertas */
+
+
+    /* Estilos para a referência/bibliografia (Componente específico) */
+    .ref {
+      margin-top: 2rem;
+      font-size: 14px;
+      color: #666666; /* text-gray-custom */
+      text-align: left;
     }
-    p.description {
-      font-size: 14px; text-align: center; margin-bottom: 25px;
-      max-width: 600px; margin-left: auto; margin-right: auto; color: #444;
+
+    /* Layout principal com Topbar fixa */
+    body {
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh; /* Garante que o body ocupe a altura total da viewport */
+      background-color: #f8fafc; /* Tailwind bg-gray-50 */
+      color: #333; /* Tailwind text-gray-800 */
+      font-family: 'Inter', sans-serif; /* Aplica a fonte Inter ao body */
     }
+
+    /* ESTILOS DOS DROPDOWNS DA TOPBAR (MOVIDOS DE TOPBAR111.HTML) */
+    .dropdown-menu { display: none; }
+    .dropdown-menu.show { display: block; }
+    nav { justify-content: flex-end; }
+    nav button { cursor: pointer; }
+    nav .dropdown-menu a:hover { background-color: #bfdbfe; }
+    /* FIM DOS ESTILOS DA TOPBAR */
+
+    /* Espaçamento para o conteúdo abaixo da topbar fixa */
+    .main-content-wrapper {
+      display: flex;
+      flex-direction: column;
+      flex-grow: 1;
+      padding-top: 64px; /* Garante que o conteúdo comece abaixo da topbar fixa (64px de altura) */
+      width: 100%;
+    }
+
+    /* Conteúdo principal (main) */
+    main {
+      flex-grow: 1;
+      max-width: 1280px; /* max-w-7xl */
+      margin-left: auto;
+      margin-right: auto;
+      padding: 2rem 1rem; /* Equivalente a p-8 px-4 */
+      width: 100%;
+    }
+
+    /* Estilos gerais da tabela */
     table {
-      width: 100%; border-collapse: collapse; margin-bottom: 25px;
+      border: 1px solid #e2e8f0; /* Borda da tabela */
     }
     th, td {
-      border: 1px solid #ccc; padding: 10px 12px; text-align: left;
-      vertical-align: top; font-size: 14px;
+      border: 1px solid #e2e8f0; /* Borda das células */
     }
-    th { background-color: #e0f0ff; text-align: center; }
+    th {
+      background-color: #f0f8ff; /* Fundo do cabeçalho da tabela */
+      color: #1A3E74; /* Cor do texto do cabeçalho */
+    }
     td select {
-      width: 100%; padding: 6px; font-size: 14px;
+      background-color: #ffffff; /* Fundo do select */
+      border: 1px solid #cbd5e0; /* Borda do select */
+      border-radius: 0.25rem; /* Borda arredondada do select */
+      padding: 0.5rem;
+      font-family: 'Inter', sans-serif;
     }
-    .buttons {
-      display: flex; justify-content: center; gap: 15px; margin-bottom: 20px;
-    }
-    button {
-      background-color: #007bff; border: none; color: white;
-      padding: 10px 18px; font-size: 16px; border-radius: 6px;
-      cursor: pointer; transition: background-color 0.3s ease;
-    }
-    button:hover { background-color: #0056b3; }
-    .resultado {
-      background-color: #e1f5fe; border-radius: 8px; padding: 15px;
-      font-weight: bold; font-size: 16px; white-space: pre-line;
-      max-width: 600px; margin: 0 auto; text-align: center; display: none;
-    }
-    footer {
-      background-color: #f1f1f1; padding: 20px; text-align: center;
-      font-size: 14px; color: #555; margin-top: 40px; border-top: 1px solid #ddd;
-    }
-    footer a {
-      color: #007bff; text-decoration: none; margin: 0 8px;
+
+    /* Responsividade da tabela para mobile */
+    @media (max-width: 640px) {
+      table, thead, tbody, th, td, tr { display: block; }
+      thead tr { position: absolute; top: -9999px; left: -9999px; }
+      tr { border: 1px solid #e2e8f0; margin-bottom: 0.5rem; }
+      td {
+        border: none;
+        border-bottom: 1px solid #eee;
+        position: relative;
+        padding-left: 50%;
+        text-align: right;
+      }
+      td:before {
+        position: absolute;
+        top: 6px;
+        left: 6px;
+        width: 45%;
+        padding-right: 10px;
+        white-space: nowrap;
+        text-align: left;
+        font-weight: bold;
+        color: #1A3E74; /* Cor para os rótulos em mobile */
+      }
+      /* Estilos específicos para os rótulos da tabela em mobile para NIHSS */
+      /* Usará o atributo data-label definido no JavaScript */
+      #tabelaPontuacoes td:nth-of-type(1):before { content: attr(data-label); }
+      #tabelaPontuacoes td:nth-of-type(2):before { content: "Pontuação:"; }
     }
   </style>
-
-  <!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=AW-952633102">
-</script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-
-  gtag('config', 'AW-952633102');
-  </script>
 </head>
-<body>
-<div id="barra-lateral"></div>
-<script>
-  fetch('sidebar.html')
-    .then(response => response.text())
-    .then(html => {
-      document.getElementById('barra-lateral').innerHTML = html;
-    });
-</script>
-<main class="content" id="pdfContent">
-  <h1><br><br>Escala NIHSS - Avaliação do Acidente Vascular Encefálico</h1>
-  <p class="description">A escala NIHSS é utilizada para quantificar déficits neurológicos em pacientes com suspeita de AVE. Esta ferramenta ajuda a medir a gravidade do evento e orientar condutas clínicas.</p>
-  <form id="formulario">
-    <table>
-      <thead><tr><th>Item</th><th>Pontuação</th></tr></thead>
-      <tbody id="tabelaPontuacoes"></tbody>
-    </table>
-    <div class="buttons">
-      <button type="button" onclick="calcularPontuacao()">Calcular</button>
-      <button type="button" onclick="gerarPDF()">Gerar PDF</button>
-    </div>
-    <div id="resultado" class="resultado"></div>
-    <p style="font-size:13px; max-width:700px; margin:20px auto; color:#444; text-align:center; line-height:1.4">
-      Referências bibliográficas:<br>
-      <a href="https://www.gov.br/conitec/pt-br/midias/protocolos/pcdt-cuidados-avc.pdf" target="_blank">https://www.gov.br/conitec/pt-br/midias/protocolos/pcdt-cuidados-avc.pdf</a><br>
-      <a href="https://www.hcor.com.br/wp-content/uploads/2024/05/hcor_protocolo_de_acidente_vascular_cerebral_isquemico.pdf" target="_blank">https://www.hcor.com.br/...avc_isquemico.pdf</a>
-    </p>
-    <footer>
-      <p>© 2025 Calculadoras de Enfermagem</p>
-      <p>
-        <a href="index.html">Início</a> |
-        <a href="politica.html">Política de Privacidade</a> |
-        <a href="termos.html">Termos de Uso</a>
-      </p>
-    </footer>
-  </form>
-</main>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-<script>
-const dados = [
-  ["1.1 - Nível de consciência", ["Alerta",0,"Não alerta, necessita estímulo",1,"Responde com reflexo motor",2,"Coma",3]],
-  ["1.2 - Mês e idade", ["Responde ambas",0,"Responde uma",1,"Nenhuma",2]],
-  ["1.3 - Comando motor", ["Executa ambas tarefas",0,"Executa uma",1,"Nenhuma executada",2]],
-  ["2 - Melhor olhar conjugado", ["Normal",0,"Paralisia parcial",1,"Desvio forçado",2]],
-  ["3 - Campos visuais", ["Sem perda",0,"Hemianopsia parcial",1,"Hemianopsia completa",2,"Bilateral",3]],
-  ["4 - Paralisia facial", ["Simétrico",0,"Paralisia leve",1,"Parcial",2,"Completa",3]],
-  ["5.1 - Força MSE", ["Mantém 10s",0,"Queda",1,"Parcial",2,"Não vence gravidade",3,"Sem movimento",4]],
-  ["5.2 - Força MSD", ["Mantém 10s",0,"Queda",1,"Parcial",2,"Não vence gravidade",3,"Sem movimento",4]],
-  ["6.1 - Força MIE", ["Mantém 10s",0,"Cai <10s",1,"Algum esforço",2,"Cai sem esforço",3,"Sem movimento",4]],
-  ["6.2 - Força MID", ["Mantém 10s",0,"Cai <10s",1,"Algum esforço",2,"Cai sem esforço",3,"Sem movimento",4]],
-  ["7 - Ataxia", ["Ausente",0,"1 membro",1,"2 membros",2]],
-  ["8 - Sensibilidade", ["Normal",0,"Perda leve",1,"Perda severa",2]],
-  ["9 - Linguagem", ["Sem afasia",0,"Afasia leve/moderada",1,"Afasia severa",2]],
-  ["10 - Disartria", ["Normal",0,"Leve/moderada",1,"Severa",2]],
-  ["11 - Extinção e intenção", ["Sem anormalidade",0,"Extinção leve",1,"Negligência severa",2]]
-];
+<body class="bg-gray-50 text-gray-800 font-inter">
 
-const tabela = document.getElementById("tabelaPontuacoes");
-dados.forEach((item, i) => {
-  const tr = document.createElement("tr");
-  const td1 = document.createElement("td");
-  td1.innerText = item[0];
-  const td2 = document.createElement("td");
-  const select = document.createElement("select");
-  select.id = `q${i}`;
-  for (let j = 1; j < item[1].length; j += 2) {
-    const opt = document.createElement("option");
-    opt.value = item[1][j];
-    opt.text = `${item[1][j-1]} (${item[1][j]})`;
-    select.appendChild(opt);
-  }
-  td2.appendChild(select);
-  tr.appendChild(td1);
-  tr.appendChild(td2);
-  tabela.appendChild(tr);
-});
+  <div id="topbar-container"></div>
 
-function calcularPontuacao() {
-  let total = 0;
-  for (let i = 0; i < dados.length; i++) {
-    total += Number(document.getElementById(`q${i}`).value);
-  }
-  let conduta = "";
+  <div class="flex flex-wrap items-center justify-center gap-4 mb-3">
+    <img src="iconpages.png" alt="Ícone da Página" class="w-32 h-auto" />
+    <h1 class="font-nunito font-extrabold text-dark-blue text-4xl lg:text-5xl text-center">
+      Escala NIHSS - Avaliação do Acidente Vascular Encefálico
+    </h1>
+  </div>
 
-  if (total <= 4) {
-    conduta = "Conduta: Monitoramento clínico e suporte básico. Risco baixo de complicações graves.";
-  } else if (total <= 14) {
-    conduta = "Conduta: Avaliação neurológica frequente e discutir encaminhamento para unidade de terapia intensiva.";
-  } else {
-    conduta = "Conduta: Assistência intensiva, possível indicação de trombólise ou intervenção neurocirúrgica.";
-  }
+  <h2 class="font-inter font-semibold text-light-blue text-2xl lg:text-3xl mb-3 text-left max-w-4xl mx-auto px-4">
+    Avaliação da gravidade do AVC para orientação clínica.
+  </h2>
+  <p class="font-inter font-normal text-gray-custom text-base lg:text-lg mb-6 text-left max-w-4xl mx-auto px-4">
+    A escala NIHSS é utilizada para quantificar déficits neurológicos em pacientes com suspeita de AVE. Esta ferramenta ajuda a medir a gravidade do evento e orientar condutas clínicas.
+  </p>
+  <p class="font-inter font-normal text-light-blue text-base lg:text-lg mb-6 text-left max-w-4xl mx-auto px-4">
+    Selecione a pontuação para cada critério:
+  </p>
 
-  document.getElementById("resultado").style.display = "block";
-  document.getElementById("resultado").textContent = `Pontuação total NIHSS: ${total}\n\n${conduta}`;
-}
+  <div class="main-content-wrapper">
+    <main class="mx-auto px-4 py-8 max-w-4xl">
+      <div id="conteudo"> <table class="w-full border-collapse border border-gray-300 mb-6 text-left">
+          <thead>
+            <tr>
+              <th class="border border-gray-300 p-4 font-semibold text-center">Item</th>
+              <th class="border border-gray-300 p-4 font-semibold text-center">Pontuação</th>
+            </tr>
+          </thead>
+          <tbody id="tabelaPontuacoes">
+            </tbody>
+        </table>
 
-function gerarPDF() {
-  const content = document.getElementById("pdfContent").cloneNode(true);
-  const sidebar = content.querySelector("nav.sidebar");
-  if (sidebar) sidebar.remove();
-  const footer = content.querySelector("footer");
-  if (footer) footer.remove();
-  const opt = {
-    margin: 0,
-    filename: 'nihss.pdf',
-    image: { type: 'jpeg', quality: 1 },
-    html2canvas: { scale: 3, scrollY: 0 },
-    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-  };
-  html2pdf().set(opt).from(content).save();
-}
-</script>
-  
-<!-- Carrega a barra superior -->
-<script src="topbar.js"></script>
+        <div id="resultado" class="resultado" aria-live="polite"></div>
+
+        <div class="ref font-inter text-gray-custom text-left">
+          <p class="font-bold mb-2">Referências bibliográficas:</p>
+          <p>
+            <a href="https://www.gov.br/conitec/pt-br/midias/protocolos/pcdt-cuidados-avc.pdf" target="_blank" class="text-light-blue hover:underline">
+              https://www.gov.br/conitec/pt-br/midias/protocolos/pcdt-cuidados-avc.pdf
+            </a>
+          </p>
+          <p>
+            <a href="https://www.hcor.com.br/wp-content/uploads/2024/05/hcor_protocolo_de_acidente_vascular_cerebral_isquemico.pdf" target="_blank" class="text-light-blue hover:underline">
+              https://www.hcor.com.br/...avc_isquemico.pdf
+            </a>
+          </p>
+        </div>
+      </div>
+      <div class="flex flex-wrap justify-start gap-4 mt-6">
+        <button id="btnCalcular" class="btn-primary" aria-label="Calcular pontuação">
+          Calcular
+        </button>
+        <button id="btnLimpar" class="btn-primary" aria-label="Limpar campos">
+          Limpar
+        </button>
+        <button id="btnGerarPDF" class="btn-secondary" aria-label="Gerar PDF">
+          Gerar PDF
+        </button>
+      </div>
+    </main>
+  </div>
+
+  <a href="doacoes.html" class="fixed bottom-4 right-4 bg-dark-blue text-white text-sm px-4 py-2 rounded-full shadow hover:bg-blue-900 transition fixed-donation-button z-30">
+    Ajude-nos a manter o site gratuito
+  </a>
+
+  <div id="footer-container"></div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+  <script>
+    // Dados da escala NIHSS (mantidos no escopo global para acesso pelas funções)
+    const dados = [
+      ["1.1 - Nível de consciência", ["Alerta", 0, "Não alerta, necessita estímulo", 1, "Responde com reflexo motor", 2, "Coma", 3]],
+      ["1.2 - Mês e idade", ["Responde ambas", 0, "Responde uma", 1, "Nenhuma", 2]],
+      ["1.3 - Comando motor", ["Executa ambas tarefas", 0, "Executa uma", 1, "Nenhuma executada", 2]],
+      ["2 - Melhor olhar conjugado", ["Normal", 0, "Paralisia parcial", 1, "Desvio forçado", 2]],
+      ["3 - Campos visuais", ["Sem perda", 0, "Hemianopsia parcial", 1, "Hemianopsia completa", 2, "Bilateral", 3]],
+      ["4 - Paralisia facial", ["Simétrico", 0, "Paralisia leve", 1, "Parcial", 2, "Completa", 3]],
+      ["5.1 - Força MSE", ["Mantém 10s", 0, "Queda", 1, "Parcial", 2, "Não vence gravidade", 3, "Sem movimento", 4]],
+      ["5.2 - Força MSD", ["Mantém 10s", 0, "Queda", 1, "Parcial", 2, "Não vence gravidade", 3, "Sem movimento", 4]],
+      ["6.1 - Força MIE", ["Mantém 10s", 0, "Cai <10s", 1, "Algum esforço", 2, "Cai sem esforço", 3, "Sem movimento", 4]],
+      ["6.2 - Força MID", ["Mantém 10s", 0, "Cai <10s", 1, "Algum esforço", 2, "Cai sem esforço", 3, "Sem movimento", 4]],
+      ["7 - Ataxia", ["Ausente", 0, "1 membro", 1, "2 membros", 2]],
+      ["8 - Sensibilidade", ["Normal", 0, "Perda leve", 1, "Perda severa", 2]],
+      ["9 - Linguagem", ["Sem afasia", 0, "Afasia leve/moderada", 1, "Afasia severa", 2]],
+      ["10 - Disartria", ["Normal", 0, "Leve/moderada", 1, "Severa", 2]],
+      ["11 - Extinção e intenção", ["Sem anormalidade", 0, "Extinção leve", 1, "Negligência severa", 2]]
+    ];
+
+    document.addEventListener('DOMContentLoaded', () => {
+      // Carrega o rodapé
+      fetch('rodape111.html')
+        .then(response => response.text())
+        .then(html => {
+          document.getElementById('footer-container').innerHTML = html;
+        })
+        .catch(error => console.error('Erro ao carregar o rodapé:', error));
+
+      // Popula a tabela NIHSS
+      const tabela = document.getElementById("tabelaPontuacoes");
+      dados.forEach((item, i) => {
+        const tr = document.createElement("tr");
+        const td1 = document.createElement("td");
+        // Adiciona um atributo data-label para uso em mobile
+        td1.setAttribute('data-label', item[0]);
+        td1.className = "border border-gray-300 p-4 font-semibold w-1/3 align-top";
+        td1.innerText = item[0];
+
+        const td2 = document.createElement("td");
+        td2.className = "border border-gray-300 p-4 w-2/3";
+        const select = document.createElement("select");
+        select.id = `q${i}`;
+        select.className = "w-full p-2 border rounded font-inter"; // Classes Tailwind para select
+
+        // Adiciona uma opção padrão "Selecione..."
+        const defaultOpt = document.createElement("option");
+        defaultOpt.value = "";
+        defaultOpt.text = "Selecione...";
+        defaultOpt.disabled = true;
+        defaultOpt.selected = true;
+        select.appendChild(defaultOpt);
+
+        for (let j = 1; j < item[1].length; j += 2) {
+          const opt = document.createElement("option");
+          opt.value = item[1][j];
+          opt.text = `${item[1][j-1]} (${item[1][j]} pontos)`;
+          select.appendChild(opt);
+        }
+        td2.appendChild(select);
+        tr.appendChild(td1);
+        tr.appendChild(td2);
+        tabela.appendChild(tr);
+      });
+
+      // Adiciona eventos aos botões
+      document.getElementById('btnCalcular').addEventListener('click', calcularPontuacao);
+      document.getElementById('btnLimpar').addEventListener('click', limparCampos);
+      document.getElementById('btnGerarPDF').addEventListener('click', gerarPDF);
+    }); // Fim do DOMContentLoaded
+
+    function calcularPontuacao() {
+      let total = 0;
+      let allSelected = true;
+      const resultadoDiv = document.getElementById("resultado");
+
+      // Limpa classes de resultado anteriores
+      resultadoDiv.className = 'resultado'; // Reseta para a classe base
+
+      for (let i = 0; i < dados.length; i++) {
+        const selectElement = document.getElementById(`q${i}`);
+        if (selectElement.value === "") { // Verifica se alguma opção não foi selecionada
+          allSelected = false;
+          break;
+        }
+        total += Number(selectElement.value);
+      }
+
+      if (!allSelected) {
+        resultadoDiv.style.display = "block";
+        resultadoDiv.innerHTML = '⚠️ <strong class="font-bold">Por favor, selecione uma opção para todos os itens</strong> antes de calcular.';
+        resultadoDiv.classList.add('bg-info-orange-light', 'text-orange-800'); // Usando classe de alerta personalizada
+        return;
+      }
+
+      let conduta = "";
+      let resultadoClasses = [];
+
+      if (total <= 4) {
+        conduta = "Risco baixo de complicações graves. Conduta: Monitoramento clínico e suporte básico.";
+        resultadoClasses = ['bg-success-green-light', 'text-green-800'];
+      } else if (total <= 14) {
+        conduta = "Risco moderado de complicações. Conduta: Avaliação neurológica frequente e discutir encaminhamento para unidade de terapia intensiva.";
+        resultadoClasses = ['bg-warning-yellow-light', 'text-yellow-800'];
+      } else { // total > 14
+        conduta = "Risco alto de complicações. Conduta: Assistência intensiva, possível indicação de trombólise ou intervenção neurocirúrgica.";
+        resultadoClasses = ['bg-danger-red-light', 'text-red-800'];
+      }
+
+      resultadoDiv.style.display = "block";
+      resultadoDiv.innerHTML = `Pontuação total NIHSS: <strong class="font-bold">${total}</strong><br><br>Conduta: ${conduta}`;
+      resultadoClasses.forEach(cls => resultadoDiv.classList.add(cls));
+    }
+
+    function limparCampos() {
+      const selects = document.querySelectorAll('select[id^="q"]');
+      selects.forEach(select => {
+        select.value = ""; // Reseta para a opção default (Selecione...)
+        select.selectedIndex = 0; // Garante que a primeira opção seja selecionada (Selecione...)
+      });
+      const resultadoDiv = document.getElementById('resultado');
+      resultadoDiv.style.display = 'none';
+      resultadoDiv.innerHTML = '';
+      resultadoDiv.className = 'resultado'; // Reseta as classes
+    }
+
+    function gerarPDF() {
+      // Clona apenas o conteúdo da calculadora que deve ser incluído no PDF
+      const contentToPrint = document.getElementById("conteudo").cloneNode(true);
+
+      // Remove os botões clonados para não aparecerem no PDF
+      const buttonsDiv = contentToPrint.querySelector('.flex.flex-wrap.justify-start.gap-4.mt-6');
+      if (buttonsDiv) {
+        buttonsDiv.remove();
+      }
+
+      // Garante que o resultado esteja visível e com o conteúdo correto para o PDF
+      const originalResultDiv = document.getElementById('resultado');
+      const resultDivInPdf = contentToPrint.querySelector('#resultado');
+
+      if (originalResultDiv.style.display !== 'none' && originalResultDiv.innerHTML.trim() !== '' && !originalResultDiv.innerHTML.includes('Por favor, selecione')) {
+        resultDivInPdf.style.display = 'block';
+        resultDivInPdf.innerHTML = originalResultDiv.innerHTML;
+        // Copia as classes de estilo para o resultado no PDF
+        originalResultDiv.classList.forEach(cls => {
+          if (cls.startsWith('bg-') || cls.startsWith('text-')) { // Copia apenas classes de cor relevantes
+            resultDivInPdf.classList.add(cls);
+          }
+        });
+      } else {
+        resultDivInPdf.style.display = 'block';
+        resultDivInPdf.innerHTML = "Resultado não calculado ou seleção incompleta na página. Calcule antes de gerar o PDF.";
+        resultDivInPdf.classList.add('bg-info-orange-light', 'text-orange-800'); // Alerta padrão no PDF
+      }
+
+      // Adiciona um cabeçalho ao PDF
+      const headerHtml = `
+        <div style="text-align: center; margin-bottom: 20px; font-family: 'Nunito Sans', sans-serif; color: #1A3E74;">
+            <h1 style="font-size: 24px; font-weight: bold; margin-bottom: 5px;">Escala NIHSS</h1>
+            <p style="font-size: 14px; color: #666666;">Relatório de Avaliação do Acidente Vascular Encefálico</p>
+            <p style="font-size: 12px; color: #777;">Gerado em: ${new Date().toLocaleDateString('pt-BR')} ${new Date().toLocaleTimeString('pt-BR')}</p>
+        </div>
+      `;
+      const tempDiv = document.createElement('div');
+      tempDiv.innerHTML = headerHtml;
+      contentToPrint.prepend(tempDiv.firstChild);
+
+      const opt = {
+        margin: 0.5,
+        filename: "escala-nihss.pdf",
+        image: { type: "jpeg", quality: 0.98 },
+        html2canvas: { scale: 3, scrollY: 0 },
+        jsPDF: { unit: "in", format: "a4", orientation: "portrait" }
+      };
+
+      html2pdf().set(opt).from(contentToPrint).save();
+    }
+  </script>
 </body>
 </html>
