@@ -243,7 +243,7 @@
         color: #FFF;
         padding: 1.5rem 1rem;
         text-align: center;
-        margin-top: auto; /* Empurra o rodapé para baixo */
+        /* margin-top: auto; Removido daqui, será no container principal */
     }
     footer .container {
         max-width: 1280px;
@@ -259,12 +259,10 @@
         text-decoration: underline;
     }
     
-    /* Estilos específicos para o layout da página de calculadora (mantidos) */
+    /* Estilos específicos para o layout da página de calculadora */
     body {
-      padding-top: 64px; /* Espaço para a topbar fixa */
-      /* No mobile, o body terá apenas padding-top, em desktop, teremos flex e padding-left para a sidebar */
-      display: flex;
-      flex-direction: column; /* Padrão para mobile e base */
+      padding-top: 64px; /* Espaço para a topbar fixa (mobile e base) */
+      /* display: flex; flex-direction: column; -> Já está no body acima */
     }
 
     /* Botão de menu mobile da sidebar */
@@ -351,10 +349,19 @@
         background-color: #f0f0f0;
     }
 
+    /* --- INÍCIO DA CORREÇÃO DO RODAPÉ --- */
+    /* Container principal que engloba tudo exceto o rodapé, para que ele ocupe o espaço */
+    .overall-content-wrapper {
+      display: flex;
+      flex-direction: column;
+      min-height: calc(100vh - 64px); /* Altura da tela menos a topbar, em mobile */
+      flex-grow: 1; /* Permite que este wrapper cresça e empurre o rodapé */
+    }
+
     /* Conteúdo principal para páginas de calculadora */
     .calculator-layout-container {
       display: flex;
-      flex-grow: 1; /* Ocupa o espaço restante entre topbar e footer */
+      flex-grow: 1; /* Permite que o container de layout cresça */
     }
 
     .calculator-main-content {
@@ -364,8 +371,7 @@
       margin-right: auto;
       width: 100%;
       text-align: left;
-      flex-grow: 1;
-      /* Por padrão, ocupa a largura total em mobile */
+      flex-grow: 1; /* Permite que o conteúdo principal cresça para empurrar o rodapé */
     }
 
     /* Estilos para os rótulos da tabela em mobile (específicos para Aldrete) */
@@ -396,12 +402,20 @@
       #sidebar-desktop {
         display: block; /* Exibe a sidebar desktop */
       }
-      .calculator-main-content {
+      .overall-content-wrapper {
+        flex-direction: row; /* Altera para row em desktop para sidebar e main */
+        min-height: calc(100vh - 0px); /* Ajusta para 100vh, topbar é fixa */
         margin-left: 256px; /* Desloca o conteúdo principal para o lado da sidebar */
-        padding-left: 1rem; /* Ajuste para não colar na sidebar */
         width: calc(100% - 256px); /* Ocupa o restante da largura */
       }
+      .calculator-main-content {
+        padding-left: 1rem; /* Ajuste para não colar na sidebar */
+        /* width: 100%; já definido antes e funcional com flex-grow */
+        margin-left: 0; /* Remove margem automática que não é necessária aqui */
+        margin-right: 0;
+      }
     }
+    /* --- FIM DA CORREÇÃO DO RODAPÉ --- */
   </style>
 
 </head>
@@ -420,105 +434,105 @@
     <div class="text-lg font-semibold text-dark-blue mb-2">Calculadoras</div>
     </aside>
 
-  <div class="calculator-layout-container">
-    <main class="calculator-main-content">
+  <div class="overall-content-wrapper">
+    <div class="calculator-layout-container">
+      <main class="calculator-main-content">
 
-      <h1 class="font-nunito font-extrabold text-[#1A3E74] text-4xl mb-6">
-        Escala de Aldrete e Kroulik
-      </h1>
+        <h1 class="font-nunito font-extrabold text-[#1A3E74] text-4xl mb-6">
+          Escala de Aldrete e Kroulik
+        </h1>
 
-      <h2 class="font-inter font-semibold text-[#1FA4E5] text-2xl mb-3">
-        Avalia a recuperação pós anestésica em pacientes em sala de SRPA;
-      </h2>
+        <h2 class="font-inter font-semibold text-[#1FA4E5] text-2xl mb-3">
+          Avalia a recuperação pós anestésica em pacientes em sala de SRPA;
+        </h2>
 
-      <p class="font-inter font-normal text-black mb-6">
-        A escala é realizada pela equipe de enfermagem e a decisão final sobre a alta é avaliada pelo médico anestesista.
-      </p>
+        <p class="font-inter font-normal text-black mb-6">
+          A escala é realizada pela equipe de enfermagem e a decisão final sobre a alta é avaliada pelo médico anestesista.
+        </p>
 
-      <p class="font-inter font-normal text-[#1FA4E5] text-1xl mb-6">
-        Selecione a pontuação para cada critério:
-      </p>
+        <p class="font-inter font-normal text-[#1FA4E5] text-1xl mb-6">
+          Selecione a pontuação para cada critério:
+        </p>
 
-      <div id="pdfContent">
-        <table class="w-full border-collapse border border-gray-300 mb-6">
-          <tbody>
-            <tr>
-              <td class="border border-gray-300 p-4 font-semibold w-1/3 align-top">Atividade</td>
-              <td class="border border-gray-300 p-4 w-2/3">
-                <label class="block mb-2 cursor-pointer"><input type="radio" name="atividade" value="2" class="mr-2">Movimenta 4 membros (2)</label>
-                <label class="block mb-2 cursor-pointer"><input type="radio" name="atividade" value="1" class="mr-2">Movimenta 2 membros (1)</label>
-                <label class="block cursor-pointer"><input type="radio" name="atividade" value="0" class="mr-2">Imóvel (0)</label>
-              </td>
-            </tr>
+        <div id="pdfContent">
+          <table class="w-full border-collapse border border-gray-300 mb-6">
+            <tbody>
+              <tr>
+                <td class="border border-gray-300 p-4 font-semibold w-1/3 align-top">Atividade</td>
+                <td class="border border-gray-300 p-4 w-2/3">
+                  <label class="block mb-2 cursor-pointer"><input type="radio" name="atividade" value="2" class="mr-2">Movimenta 4 membros (2)</label>
+                  <label class="block mb-2 cursor-pointer"><input type="radio" name="atividade" value="1" class="mr-2">Movimenta 2 membros (1)</label>
+                  <label class="block cursor-pointer"><input type="radio" name="atividade" value="0" class="mr-2">Imóvel (0)</label>
+                </td>
+              </tr>
 
-            <tr>
-              <td class="border border-gray-300 p-4 font-semibold align-top">Respiração</td>
-              <td class="border border-gray-300 p-4">
-                <label class="block mb-2 cursor-pointer"><input type="radio" name="respiracao" value="2" class="mr-2">Respira profundamente e tosse (2)</label>
-                <label class="block mb-2 cursor-pointer"><input type="radio" name="respiracao" value="1" class="mr-2">Dispneico, respira irregular (1)</label>
-                <label class="block cursor-pointer"><input type="radio" name="respiracao" value="0" class="mr-2">Apneia (0)</label>
-              </td>
-            </tr>
+              <tr>
+                <td class="border border-gray-300 p-4 font-semibold align-top">Respiração</td>
+                <td class="border border-gray-300 p-4">
+                  <label class="block mb-2 cursor-pointer"><input type="radio" name="respiracao" value="2" class="mr-2">Respira profundamente e tosse (2)</label>
+                  <label class="block mb-2 cursor-pointer"><input type="radio" name="respiracao" value="1" class="mr-2">Dispneico, respira irregular (1)</label>
+                  <label class="block cursor-pointer"><input type="radio" name="respiracao" value="0" class="mr-2">Apneia (0)</label>
+                </td>
+              </tr>
 
-            <tr>
-              <td class="border border-gray-300 p-4 font-semibold align-top">Circulação (PA ± 20% da basal)</td>
-              <td class="border border-gray-300 p-4">
-                <label class="block mb-2 cursor-pointer"><input type="radio" name="circulacao" value="2" class="mr-2">Pressão normal (2)</label>
-                <label class="block mb-2 cursor-pointer"><input type="radio" name="circulacao" value="1" class="mr-2">± 20% da PA basal (1)</label>
-                <label class="block cursor-pointer"><input type="radio" name="circulacao" value="0" class="mr-2">± 50% da PA basal (0)</label>
-              </td>
-            </tr>
+              <tr>
+                <td class="border border-gray-300 p-4 font-semibold align-top">Circulação (PA ± 20% da basal)</td>
+                <td class="border border-gray-300 p-4">
+                  <label class="block mb-2 cursor-pointer"><input type="radio" name="circulacao" value="2" class="mr-2">Pressão normal (2)</label>
+                  <label class="block mb-2 cursor-pointer"><input type="radio" name="circulacao" value="1" class="mr-2">± 20% da PA basal (1)</label>
+                  <label class="block cursor-pointer"><input type="radio" name="circulacao" value="0" class="mr-2">± 50% da PA basal (0)</label>
+                </td>
+              </tr>
 
-            <tr>
-              <td class="border border-gray-300 p-4 font-semibold align-top">Consciência</td>
-              <td class="border border-gray-300 p-4">
-                <label class="block mb-2 cursor-pointer"><input type="radio" name="consciencia" value="2" class="mr-2">Acordado e alerta (2)</label>
-                <label class="block mb-2 cursor-pointer"><input type="radio" name="consciencia" value="1" class="mr-2">Responsivo a estímulos (1)</label>
-                <label class="block cursor-pointer"><input type="radio" name="consciencia" value="0" class="mr-2">Não responde (0)</label>
-              </td>
-            </tr>
+              <tr>
+                <td class="border border-gray-300 p-4 font-semibold align-top">Consciência</td>
+                <td class="border border-gray-300 p-4">
+                  <label class="block mb-2 cursor-pointer"><input type="radio" name="consciencia" value="2" class="mr-2">Acordado e alerta (2)</label>
+                  <label class="block mb-2 cursor-pointer"><input type="radio" name="consciencia" value="1" class="mr-2">Responsivo a estímulos (1)</label>
+                  <label class="block cursor-pointer"><input type="radio" name="consciencia" value="0" class="mr-2">Não responde (0)</label>
+                </td>
+              </tr>
 
-            <tr>
-              <td class="border border-gray-300 p-4 font-semibold align-top">Saturação de O<sub>2</sub></td>
-              <td class="border border-gray-300 p-4">
-                <label class="block mb-2 cursor-pointer"><input type="radio" name="saturacao" value="2" class="mr-2">&gt; 92% em ar ambiente (2)</label>
-                <label class="block mb-2 cursor-pointer"><input type="radio" name="saturacao" value="1" class="mr-2">Precisa de O<sub>2</sub> para manter &gt; 90% (1)</label>
-                <label class="block cursor-pointer"><input type="radio" name="saturacao" value="0" class="mr-2">&lt; 90% com O<sub>2</sub> suplementar (0)</label>
-              </td>
-            </tr>
-          </tbody>
-        </table>
+              <tr>
+                <td class="border border-gray-300 p-4 font-semibold align-top">Saturação de O<sub>2</sub></td>
+                <td class="border border-gray-300 p-4">
+                  <label class="block mb-2 cursor-pointer"><input type="radio" name="saturacao" value="2" class="mr-2">&gt; 92% em ar ambiente (2)</label>
+                  <label class="block mb-2 cursor-pointer"><input type="radio" name="saturacao" value="1" class="mr-2">Precisa de O<sub>2</sub> para manter &gt; 90% (1)</label>
+                  <label class="block cursor-pointer"><input type="radio" name="saturacao" value="0" class="mr-2">&lt; 90% com O<sub>2</sub> suplementar (0)</label>
+                </td>
+              </tr>
+            </tbody>
+          </table>
 
-        <div id="resultado" class="resultado" aria-live="polite"></div>
+          <div id="resultado" class="resultado" aria-live="polite"></div>
 
-        <div class="ref">
-          Referência: COREN-SP. Escala de Aldrete e Kroulik. Disponível em: 
-          <a href="https://ouvidoria.cofen.gov.br/coren-sp/transparencia/55381/download/PDF" target="_blank" class="text-light-blue hover:underline">
-            https://ouvidoria.cofen.gov.br/coren-sp/transparencia/55381/download/PDF
-          </a>
+          <div class="ref">
+            Referência: COREN-SP. Escala de Aldrete e Kroulik. Disponível em: 
+            <a href="https://ouvidoria.cofen.gov.br/coren-sp/transparencia/55381/download/PDF" target="_blank" class="text-light-blue hover:underline">
+              https://ouvidoria.cofen.gov.br/coren-sp/transparencia/55381/download/PDF
+            </a>
+          </div>
         </div>
-      </div>
 
-      <div class="flex flex-wrap justify-start gap-4 mt-6">
-        <button id="btnCalcular" class="btn-primary" aria-label="Calcular pontuação">
-          Calcular
-        </button>
-        <button id="btnLimpar" class="btn-primary" aria-label="Limpar campos">
-          Limpar
-        </button>
-        <button id="btnGerarPDF" class="btn-secondary" aria-label="Gerar PDF">
-          Gerar PDF
-        </button>
-      </div>
+        <div class="flex flex-wrap justify-start gap-4 mt-6">
+          <button id="btnCalcular" class="btn-primary" aria-label="Calcular pontuação">
+            Calcular
+          </button>
+          <button id="btnLimpar" class="btn-primary" aria-label="Limpar campos">
+            Limpar
+          </button>
+          <button id="btnGerarPDF" class="btn-secondary" aria-label="Gerar PDF">
+            Gerar PDF
+          </button>
+        </div>
 
-    </main>
-  </div>
+      </main>
+    </div>
 
-  <a href="doacoes.html" class="fixed bottom-4 right-4 bg-dark-blue text-white text-sm px-4 py-2 rounded-full shadow hover:bg-blue-900 transition fixed-donation-button">
-    Ajude-nos a manter o site gratuito
-  </a>
-
-  <div id="footer-container"></div>
+    <a href="doacoes.html" class="fixed bottom-4 right-4 bg-dark-blue text-white text-sm px-4 py-2 rounded-full shadow hover:bg-blue-900 transition fixed-donation-button">
+      Ajude-nos a manter o site gratuito
+    </a>
+  </div> <div id="footer-container"></div>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   <script src="pdf111.js"></script>
