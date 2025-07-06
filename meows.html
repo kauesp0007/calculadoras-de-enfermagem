@@ -2,191 +2,398 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>📈 Protocolo MEOWS - Deterioração Clínica Obstétrica</title>
+
   <link rel="canonical" href="https://www.calculadorasdeenfermagem.com.br/meows.html" />
-  <meta name="description" content="Escala MEOWS para monitoramento e prevenção de deterioração clínica em pacientes obstétricas." />
-  <meta name="keywords" content="protocolo MEOWS, risco clínico, deterioração obstétrica, enfermagem, segurança do paciente, escala MEOWS obstetrícia" />
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+  <link rel="icon" href="favicon.ico" type="image/x-icon" />
+
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
+  
+  <meta name="description" content="Escala MEOWS (Modified Early Obstetric Warning Score) para monitoramento e prevenção de deterioração clínica em pacientes obstétricas, focando na segurança do paciente." />
+  <meta name="keywords" content="protocolo MEOWS, risco clínico, deterioração obstétrica, enfermagem, segurança do paciente, escala MEOWS obstetrícia, saúde da mulher" />
+
+  <script async src="https://www.googletagmanager.com/gtag/js?id=AW-952633102"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'AW-952633102');
+  </script>
+
+  <script src="topbar111.js" defer></script>
+
   <style>
-    body {
-      font-family: Arial, sans-serif;
+    /* Reset básico e Box-sizing para consistência */
+    *, *::before, *::after {
+      box-sizing: border-box;
       margin: 0;
-      display: flex;
-      background-color: #f7f9fc;
+      padding: 0;
     }
-    .content {
-      flex: 1;
-      padding: 30px;
-      max-width: 1000px;
-      margin: auto;
-    }
-    h1 {
+
+    /* Fontes personalizadas */
+    @import url('https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@700&family=Inter:wght@300;400;500;600&display=swap');
+
+    /* Estilos das classes de fonte e cor personalizadas (para uso no HTML com Tailwind) */
+    .font-nunito { font-family: 'Nunito Sans', sans-serif; }
+    .font-inter { font-family: 'Inter', sans-serif; }
+    .text-dark-blue { color: #1A3E74; } /* Azul Escuro */
+    .text-light-blue { color: #1FA4E5; } /* Azul Claro */
+    .text-gray-custom { color: #666666; } /* Cinza */
+    .text-success-green { color: #1ED760; } /* Verde */
+    .text-black-custom { color: #333; } /* Cor para textos padrão */
+
+    /* Padrão de Botões (Componentes CSS para reuso) */
+    .btn-primary {
+      font-family: 'Inter', sans-serif;
+      font-weight: 600;
+      background-color: #1A3E74; /* Cor primária azul escuro */
+      color: #FFF;
+      padding: 12px 24px;
+      border-radius: 8px;
+      transition: background-color 0.3s ease;
+      border: none;
+      cursor: pointer;
       text-align: center;
-      color: #007bff;
-      margin-bottom: 0;
     }
-    .alerta {
-      background-color: #fff3cd;
-      border: 1px solid #ffeeba;
-      padding: 15px;
-      border-radius: 6px;
-      margin-top: 25px;
-      color: #856404;
-      font-size: 1em;
+    .btn-primary:hover { background-color: #122c54; } /* Tom mais escuro no hover */
+    .btn-secondary {
+      font-family: 'Inter', sans-serif;
+      font-weight: 600;
+      background-color: #1FA4E5; /* Cor secundária azul claro */
+      color: #FFF;
+      padding: 12px 24px;
+      border-radius: 8px;
+      transition: background-color 0.3s ease;
+      border: none;
+      cursor: pointer;
+      text-align: center;
+    }
+    .btn-secondary:hover { background-color: #178ac7; } /* Tom mais escuro no hover */
+    .btn-success {
+      font-family: 'Inter', sans-serif;
+      font-weight: 500;
+      background-color: #1ED760;
+      color: #FFF;
+      padding: 10px 20px;
+      border-radius: 8px;
+      transition: background-color 0.3s ease;
+      border: none;
+      cursor: pointer;
+      text-align: center;
+    }
+    .btn-success:hover { background-color: #17b351; }
+
+    /* Estilos para a área de resultado da calculadora (Componente específico) */
+    .resultado {
+      margin-top: 1.5rem; /* mt-6 */
+      padding: 1.25rem; /* p-5 */
+      border-radius: 0.5rem;
+      font-weight: 600;
+      text-align: left;
+      white-space: pre-wrap; /* Mantém quebras de linha no texto */
+      font-size: 1.125rem; /* text-lg */
+      line-height: 1.6;
+    }
+    /* Cores específicas para o resultado do MEOWS */
+    .resultado.bg-red-custom { background-color: #fee2e2; color: #dc2626; } /* red-100, red-600 */
+    .resultado.bg-yellow-custom { background-color: #fefce8; color: #d97706; } /* yellow-50, yellow-700 */
+    .resultado.bg-green-custom { background-color: #dcfce7; color: #15803d; } /* green-100, green-700 */
+
+    /* Estilos para a referência/bibliografia (Componente específico) */
+    .ref {
+      margin-top: 2.5rem; /* mt-10 */
+      font-size: 0.875rem; /* text-sm */
+      color: #666666; /* text-gray-custom */
+      text-align: left;
+    }
+
+    /* Estilo para o botão "Ajude-nos" fixo (Componente de botão) */
+    .fixed-donation-button {
+      z-index: 30;
+    }
+    
+    /* Layout principal com Topbar fixa */
+    body {
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh; /* Garante que o body ocupe a altura total da viewport */
+      background-color: #f8fafc; /* Tailwind bg-gray-50 */
+      color: #333; /* Tailwind text-gray-800 */
+    }
+
+    /* ESTILOS DOS DROPDOWNS DA TOPBAR (MOVIDOS DE TOPBAR111.HTML) */
+    .dropdown-menu { display: none; }
+    .dropdown-menu.show { display: block; }
+    nav { justify-content: flex-end; } 
+    nav button { cursor: pointer; }
+    nav .dropdown-menu a:hover { background-color: #bfdbfe; }
+    /* FIM DOS ESTILOS DA TOPBAR */
+
+    /* Espaçamento para o conteúdo abaixo da topbar fixa */
+    .main-content-wrapper { 
+      display: flex;
+      flex-direction: column;
+      flex-grow: 1;
+      padding-top: 64px; /* Garante que o conteúdo comece abaixo da topbar fixa (64px de altura) */
+      width: 100%;
+      max-width: 1280px; /* max-w-screen-xl (Tailwind 7xl) */
+      margin-left: auto;
+      margin-right: auto;
+      padding: 2rem 1rem; /* p-8 px-4 */
+    }
+    
+    /* Estilos específicos para este arquivo */
+    .alert-custom {
+      @apply bg-yellow-50 border border-yellow-200 p-4 rounded-lg my-6 text-yellow-800; /* Tailwind classes for alert */
     }
     table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 20px;
-      font-size: 14px;
+      @apply w-full border-collapse my-4 md:my-6 shadow-md rounded-lg overflow-hidden;
     }
     th, td {
-      border: 1px solid #ddd;
-      padding: 10px;
-      text-align: center;
-      cursor: pointer;
+      @apply p-3 border border-gray-300 align-middle text-center text-black-custom; /* Centraliza o texto nas células */
     }
     th {
-      background-color: #e3f2fd;
+      @apply bg-blue-100 text-left text-sm font-semibold text-dark-blue uppercase tracking-wider; /* Azul mais claro para th */
+    }
+    /* Adaptação para a primeira coluna TH */
+    th:first-child {
+      @apply text-left; /* Alinha o primeiro TH à esquerda */
+    }
+    tbody td:first-child {
+      @apply text-left font-medium; /* Alinha o primeiro TD à esquerda */
     }
     td.selected {
-      background-color: #90caf9;
+      @apply bg-blue-200; /* Azul um pouco mais escuro para seleção */
     }
-    .resultado {
-      margin-top: 25px;
-      padding: 20px;
-      background-color: #e1f5fe;
-      border-radius: 6px;
-      font-size: 16px;
-    }
-    button {
-      background-color: #007bff;
-      color: white;
-      border: none;
-      padding: 12px 20px;
-      font-size: 16px;
-      margin-top: 20px;
-      cursor: pointer;
-      border-radius: 6px;
-      margin-right: 10px;
-    }
-    footer {
-      background-color: #f1f1f1;
-      padding: 20px;
-      text-align: center;
-      font-size: 14px;
-      color: #555;
-      border-top: 1px solid #ddd;
-      margin-top: 40px;
-    }
-    footer a {
-      color: #007bff;
-      text-decoration: none;
-      margin: 0 6px;
-    }
-    td:first-child {
-      text-align: left;
-      font-family: Arial;
-      font-size: 12px;
-      text-transform: capitalize;
+    /* Estilo para a pontuação 0 para não ocupar espaço visual desnecessário */
+    td[data-score="0"]:empty {
+        background-color: transparent !important;
+        border: none !important;
     }
   </style>
-
-  <!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=AW-952633102">
-</script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-
-  gtag('config', 'AW-952633102');
-  </script>
 </head>
-<body>
-  <div id="barra-lateral"></div>
-  <script>
-    fetch('sidebar.html')
-      .then(response => response.text())
-      .then(html => {
-        document.getElementById('barra-lateral').innerHTML = html;
-      });
-  </script>
-  <div class="content" id="pdfContent">
-    <h1><br><br>Escala MEOWS - Modified Early Obstetric Warning Score (Escore de Alerta Obstétrico Modificado)</h1>
-    <div class="alerta">
-      <strong>Atenção:</strong> aplique a <strong>Meta Internacional de Segurança do Paciente nº 2</strong>: “Melhorar a comunicação efetiva entre os profissionais de saúde, assegurando que as informações críticas dos pacientes sejam transmitidas de forma clara, objetiva e no momento adequado."
-    </div>
-    <table id="meowsTable">
-      <thead>
-        <tr>
-          <th>Variáveis</th>
-          <th>Escore 2</th>
-          <th>Escore 1</th>
-          <th>0 Escore</th>
-          <th>Escore 1</th>
-          <th>Escore 2</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr><td>Temperatura</td><td data-score="2">≤ 35ºC</td><td data-score="1">35,1ºC - 36ºC</td><td data-score="0">36,1ºC - 37,9ºC</td><td data-score="0"></td><td data-score="2">≥ 38ºC</td></tr>
-        <tr><td>Pressão arterial sistólica (PAS)</td><td data-score="2">≤ 90</td><td data-score="1">91-100</td><td data-score="0">101-149</td><td data-score="1">150-159</td><td data-score="2">≥ 160</td></tr>
-        <tr><td>Pressão arterial diastólica (PAD)</td><td data-score="0"></td><td data-score="0"></td><td data-score="0">≤ 89</td><td data-score="1">90-99</td><td data-score="2">≥ 100</td></tr>
-        <tr><td>Frequência cardíaca (FC)</td><td data-score="2">≤ 40</td><td data-score="1">41-50</td><td data-score="0">51-99</td><td data-score="1">100-119</td><td data-score="2">≥ 120</td></tr>
-        <tr><td>Frequência respiratória (FR)</td><td data-score="2">≤ 10</td><td data-score="0"></td><td data-score="0">11-20</td><td data-score="1">21-29</td><td data-score="2">≥ 30</td></tr>
-        <tr><td>Saturação de O2 %</td><td data-score="2">≤ 95%</td><td data-score="0"></td><td data-score="0">96-100%</td><td data-score="0"></td><td data-score="0"></td></tr>
-        <tr><td>Dor (escore)</td><td data-score="0"></td><td data-score="0"></td><td data-score="0">0-1</td><td data-score="1">2-3</td><td data-score="0"></td></tr>
-        <tr><td>Nível de consciência</td><td data-score="2">Doloroso ou inconsciente</td><td data-score="1">Verbal</td><td data-score="0">Alerta</td><td data-score="0"></td><td data-score="0"></td></tr>
-      </tbody>
-    </table>
-    <button type="button" onclick="calcularMeows()">Calcular</button>
-    <button type="button" onclick="gerarPDF()">Gerar PDF</button>
-    <div class="resultado" id="resultado" style="display:none;"></div>
-    <div style="margin-top: 60px; font-size: 12px;">
-      <strong>Referência bibliográfica:</strong><br><br><br>
-      GOMES, Rodrigo Silva. Protocolo MEOWS. Disponível em: <a href="https://www.cremeb.org.br/wp-content/uploads/2016/07/Mesa-02-Palestra-03-Rodrigo-Silva-Gomes.pdf" target="_blank">cremeb.org.br</a>
-    </div>
-    <footer>
-      <p>© 2025 Calculadoras de Enfermagem</p>
-      <p><a href="index.html">Início</a> | <a href="politica.html">Política de Privacidade</a> | <a href="termos.html">Termos de Uso</a></p>
-    </footer>
-  </div>
+<body class="bg-gray-50 text-gray-800 font-inter">
+
+  <div id="topbar-container"></div> 
+
+  <div class="main-content-wrapper">
+    <main class="flex flex-col flex-grow">
+
+      <div class="flex flex-wrap items-center justify-center gap-4 mb-3">
+        <img src="iconpages.png" alt="Ícone do Protocolo MEOWS" class="w-32 h-auto" />
+        <h1 class="font-nunito font-extrabold text-dark-blue text-4xl lg:text-5xl text-center">
+          Escala MEOWS
+        </h1>
+      </div>
+      <h2 class="font-inter font-normal text-lg text-gray-700 text-center mb-6">
+        Modified Early Obstetric Warning Score (Escore de Alerta Obstétrico Modificado)
+      </h2>
+
+      <div id="conteudo" class="w-full">
+        <div class="alert-custom">
+          <p class="font-bold mb-2">Atenção:</p>
+          <p>
+            Aplique a **Meta Internacional de Segurança do Paciente nº 2**: *“Melhorar a comunicação efetiva entre os profissionais de saúde, assegurando que as informações críticas dos pacientes sejam transmitidas de forma clara, objetiva e no momento adequado."*
+          </p>
+        </div>
+
+        <p class="font-inter font-medium text-gray-700 mb-4 text-center">
+          Clique na célula correspondente à condição da paciente para cada variável:
+        </p>
+
+        <div class="overflow-x-auto">
+          <table id="meowsTable">
+            <thead>
+              <tr>
+                <th>Variáveis</th>
+                <th class="w-24">Escore 2</th>
+                <th class="w-24">Escore 1</th>
+                <th class="w-24">0 Escore</th>
+                <th class="w-24">Escore 1</th>
+                <th class="w-24">Escore 2</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td>Temperatura (°C)</td><td data-score="2">≤ 35</td><td data-score="1">35.1 - 36</td><td data-score="0">36.1 - 37.9</td><td data-score="0"></td><td data-score="2">≥ 38</td></tr>
+              <tr><td>Pressão Arterial Sistólica (mmHg)</td><td data-score="2">≤ 90</td><td data-score="1">91 - 100</td><td data-score="0">101 - 149</td><td data-score="1">150 - 159</td><td data-score="2">≥ 160</td></tr>
+              <tr><td>Pressão Arterial Diastólica (mmHg)</td><td data-score="0"></td><td data-score="0"></td><td data-score="0">≤ 89</td><td data-score="1">90 - 99</td><td data-score="2">≥ 100</td></tr>
+              <tr><td>Frequência Cardíaca (bpm)</td><td data-score="2">≤ 40</td><td data-score="1">41 - 50</td><td data-score="0">51 - 99</td><td data-score="1">100 - 119</td><td data-score="2">≥ 120</td></tr>
+              <tr><td>Frequência Respiratória (ipm)</td><td data-score="2">≤ 10</td><td data-score="0"></td><td data-score="0">11 - 20</td><td data-score="1">21 - 29</td><td data-score="2">≥ 30</td></tr>
+              <tr><td>Saturação de O2 (%)</td><td data-score="2">≤ 95%</td><td data-score="0"></td><td data-score="0">96 - 100%</td><td data-score="0"></td><td data-score="0"></td></tr>
+              <tr><td>Dor (escore 0-10)</td><td data-score="0"></td><td data-score="0"></td><td data-score="0">0 - 1</td><td data-score="1">2 - 3</td><td data-score="0"></td></tr>
+              <tr><td>Nível de Consciência</td><td data-score="2">Doloroso ou Inconsciente</td><td data-score="1">Verbal</td><td data-score="0">Alerta</td><td data-score="0"></td><td data-score="0"></td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="flex flex-wrap justify-start gap-4 mt-6">
+          <button id="btnCalcular" class="btn-primary" aria-label="Calcular pontuação MEOWS">
+            Calcular
+          </button>
+          <button id="btnLimpar" class="btn-primary" aria-label="Limpar seleções da escala">
+            Limpar
+          </button>
+          <button id="btnGerarPDF" class="btn-secondary" aria-label="Gerar PDF do resultado">
+            Gerar PDF
+          </button>
+        </div>
+
+        <div class="resultado" id="resultado" style="display:none;"></div>
+
+        <div class="ref font-inter text-gray-custom">
+          <strong>Referência bibliográfica:</strong><br />
+          <p class="mt-2">
+            GOMES, Rodrigo Silva. Protocolo MEOWS. Disponível em: <a href="https://www.cremeb.org.br/wp-content/uploads/2016/07/Mesa-02-Palestra-03-Rodrigo-Silva-Gomes.pdf" target="_blank" class="text-light-blue hover:underline">cremeb.org.br</a>
+          </p>
+        </div>
+      </div>
+
+    </main>
+  </div> 
+
+  <a href="doacoes.html" class="fixed bottom-4 right-4 bg-dark-blue text-white text-sm px-4 py-2 rounded-full shadow hover:bg-blue-900 transition fixed-donation-button">
+    Ajude-nos a manter o site gratuito
+  </a>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  
+  <script src="pdf111.js"></script>
+
+  <div id="footer-container"></div>
+
   <script>
     function calcularMeows() {
-      const selecionadas = document.querySelectorAll('td.selected');
-      if (selecionadas.length < 8) {
-        document.getElementById('resultado').style.display = "block";
-        document.getElementById('resultado').innerText = "⚠️ Por favor, selecione uma opção para cada parâmetro.";
+      const selecionadas = document.querySelectorAll('#meowsTable td.selected');
+      const resultadoDiv = document.getElementById('resultado');
+      let total = 0;
+
+      // Resetar classes de cor anteriores
+      resultadoDiv.classList.remove('bg-red-custom', 'bg-yellow-custom', 'bg-green-custom');
+
+      // Verifica se todas as linhas têm uma seleção
+      const linhas = document.querySelectorAll('#meowsTable tbody tr');
+      let todasLinhasSelecionadas = true;
+      linhas.forEach(linha => {
+        if (!linha.querySelector('td.selected')) {
+          todasLinhasSelecionadas = false;
+        }
+      });
+
+      if (!todasLinhasSelecionadas) {
+        resultadoDiv.style.display = "block";
+        resultadoDiv.innerHTML = "⚠️ Por favor, selecione uma opção para **cada parâmetro** antes de calcular.";
+        resultadoDiv.classList.add('bg-red-custom'); // Usa cor de alerta para erro
         return;
       }
-      let total = 0;
+
       selecionadas.forEach(td => total += parseInt(td.getAttribute('data-score')) || 0);
-      let risco = "Baixo risco";
-      if (total >= 5) risco = "⚠️ Risco elevado. Acione equipe médica imediatamente!";
-      else if (total >= 3) risco = "Risco moderado. Monitoramento reforçado.";
-      document.getElementById('resultado').style.display = "block";
-      document.getElementById('resultado').innerText = `Pontuação total: ${total} - ${risco}`;
+
+      let risco = "Baixo Risco";
+      let corClasse = 'bg-green-custom';
+      let acaoRecomendada = "Continuar monitoramento de rotina conforme protocolo da instituição.";
+
+      if (total >= 5) {
+        risco = "⚠️ Risco Elevado";
+        corClasse = 'bg-red-custom';
+        acaoRecomendada = "Acionar equipe médica imediatamente e iniciar intervenções apropriadas. Monitoramento contínuo (Ex: a cada 5-15 min).";
+      } else if (total >= 3) {
+        risco = "Risco Moderado";
+        corClasse = 'bg-yellow-custom';
+        acaoRecomendada = "Monitoramento reforçado (Ex: a cada 30-60 min) e avaliação clínica detalhada. Considerar acionar equipe médica.";
+      }
+      
+      resultadoDiv.style.display = "block";
+      resultadoDiv.innerHTML = 
+        `<p class="font-bold">Pontuação total: ${total}</p>` +
+        `<p class="font-bold text-lg mt-2 mb-1">Classificação: ${risco}</p>` +
+        `<p>${acaoRecomendada}</p>`;
+      resultadoDiv.classList.add(corClasse);
     }
-    function gerarPDF() {
-      html2pdf().set({
-        margin: 10,
-        filename: 'meows.pdf',
-        image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: { scale: 3 },
-        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-      }).from(document.getElementById('pdfContent')).save();
-    }
-    document.querySelectorAll('td[data-score]').forEach(td => {
-      td.addEventListener('click', () => {
-        const linha = td.parentElement;
-        linha.querySelectorAll('td').forEach(c => c.classList.remove('selected'));
-        td.classList.add('selected');
+
+    function limparCampos() {
+      document.querySelectorAll('#meowsTable td.selected').forEach(td => {
+        td.classList.remove('selected');
       });
+      const resultadoDiv = document.getElementById('resultado');
+      resultadoDiv.innerHTML = '';
+      resultadoDiv.style.display = 'none'; // Esconde o resultado ao limpar
+      resultadoDiv.classList.remove('bg-red-custom', 'bg-yellow-custom', 'bg-green-custom'); // Remove todas as classes de cor
+    }
+
+    function gerarPDF() {
+      // Cria uma cópia do conteúdo para o PDF
+      const content = document.getElementById('conteudo').cloneNode(true);
+
+      // Remove os botões da cópia antes de gerar o PDF
+      const buttonsDiv = content.querySelector('.flex.flex-wrap.justify-start.gap-4.mt-6');
+      if (buttonsDiv) buttonsDiv.remove();
+
+      // Esconde o botão de doação fixo antes de gerar o PDF
+      const fixedButton = document.querySelector('.fixed-donation-button');
+      if (fixedButton) {
+        fixedButton.style.display = 'none';
+      }
+
+      // Garante que o resultado esteja visível e formatado antes de gerar o PDF
+      const resultadoOriginal = document.getElementById('resultado');
+      const resultadoCopia = content.querySelector('#resultado');
+      if (resultadoOriginal.style.display === 'none') {
+          // Se o resultado não estiver visível na página, mostra uma mensagem para o PDF
+          resultadoCopia.style.display = 'block';
+          resultadoCopia.classList.remove('bg-red-custom', 'bg-yellow-custom', 'bg-green-custom');
+          resultadoCopia.classList.add('bg-gray-100', 'text-gray-700');
+          resultadoCopia.innerHTML = "Resultado não calculado na página. Calcule antes de gerar o PDF.";
+      }
+
+
+      const opt = {
+        margin:       0.5,
+        filename:     'protocolo_meows.pdf',
+        image:        { type: 'jpeg', quality: 0.98 },
+        html2canvas:  { scale: 3, scrollY: 0 },
+        jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' },
+      };
+      
+      html2pdf().set(opt).from(content).save().then(() => {
+        // Volta a exibir o botão de doação fixo após a geração do PDF
+        if (fixedButton) {
+          fixedButton.style.display = '';
+        }
+      });
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      // Anexa eventos de clique às células da tabela
+      document.querySelectorAll('#meowsTable tbody td[data-score]').forEach(td => {
+        td.addEventListener('click', () => {
+          const linha = td.parentElement;
+          // Remove a classe 'selected' de todas as células da mesma linha
+          linha.querySelectorAll('td').forEach(c => c.classList.remove('selected'));
+          // Adiciona a classe 'selected' à célula clicada
+          td.classList.add('selected');
+        });
+      });
+
+      // Anexa eventos aos botões
+      document.getElementById('btnCalcular').addEventListener('click', calcularMeows);
+      document.getElementById('btnLimpar').addEventListener('click', limparCampos);
+      document.getElementById('btnGerarPDF').addEventListener('click', gerarPDF);
+
+      // Carrega o rodapé (rodape111.html)
+      fetch("rodape111.html")
+        .then(res => res.text())
+        .then(data => {
+          const footerContainer = document.getElementById("footer-container");
+          if (footerContainer) {
+            footerContainer.innerHTML = data;
+          } else {
+            console.error('Elemento footer-container não encontrado.');
+          }
+        })
+        .catch(err => console.error("Erro ao carregar rodape111.html:", err));
     });
   </script>
-    
-<!-- Carrega a barra superior -->
-<script src="topbar.js"></script>
 </body>
 </html>
