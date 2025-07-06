@@ -333,7 +333,7 @@
   <script>
     function calcularNews() {
       let total = 0;
-      const tabela = document.getElementById("newsTable"); // Garantir que a tabela é referenciada
+      const tabela = document.getElementById("newsTable"); 
       const linhas = tabela.querySelectorAll("tbody tr");
       let todasLinhasSelecionadas = true;
       const resultadoDiv = document.getElementById('resultado');
@@ -360,16 +360,17 @@
       let interpretacao = "";
       let corClasse = '';
 
+      // NEWS score interpretation based on Royal College of Physicians guidelines (2017)
       if (total >= 7) {
         interpretacao = "Risco Alto – Acionar equipe médica imediatamente. Necessita de avaliação urgente e monitoramento intensivo.";
         corClasse = 'bg-red-custom';
       } else if (total >= 5) {
         interpretacao = "Risco Moderado – Reavaliar frequentemente (a cada 1-2 horas) e considerar apoio médico. Risco de deterioração clínica.";
         corClasse = 'bg-yellow-custom';
-      } else if (total >= 1 && total <= 4) { // Se a pontuação for entre 1 e 4
+      } else if (total >= 1 && total <= 4) { // Modified range for low risk
         interpretacao = "Risco Baixo – Monitoramento regular (a cada 4-6 horas).";
         corClasse = 'bg-green-custom';
-      } else if (total === 0) { // Se a pontuação for 0
+      } else if (total === 0) { // Specific for 0 score
         interpretacao = "Risco Muito Baixo – Monitoramento de rotina (a cada 12 horas).";
         corClasse = 'bg-green-custom';
       }
@@ -392,32 +393,25 @@
     }
 
     function gerarPDF() {
-      // Cria uma cópia do conteúdo para o PDF
       const content = document.getElementById('conteudo').cloneNode(true);
-
-      // Remove os botões da cópia antes de gerar o PDF
       const buttonsDiv = content.querySelector('.flex.flex-wrap.justify-start.gap-4.mt-6');
       if (buttonsDiv) buttonsDiv.remove();
 
-      // Esconde o botão de doação fixo antes de gerar o PDF
       const fixedButton = document.querySelector('.fixed-donation-button');
       if (fixedButton) {
         fixedButton.style.display = 'none';
       }
 
-      // Garante que o resultado esteja visível e formatado antes de gerar o PDF
       const resultadoOriginal = document.getElementById('resultado');
       const resultadoCopia = content.querySelector('#resultado');
       if (resultadoOriginal.style.display === 'none' || resultadoOriginal.innerHTML.includes('Por favor, selecione')) {
-          // Se o resultado não estiver visível ou for uma mensagem de erro, mostra uma mensagem para o PDF
           resultadoCopia.style.display = 'block';
           resultadoCopia.classList.remove('bg-red-custom', 'bg-yellow-custom', 'bg-green-custom');
           resultadoCopia.classList.add('bg-gray-100', 'text-gray-700');
           resultadoCopia.innerHTML = "Resultado não calculado ou incompleto na página. Calcule antes de gerar o PDF.";
       } else {
-        // Se o resultado já foi calculado, copia o conteúdo e as classes de estilo
         resultadoCopia.innerHTML = resultadoOriginal.innerHTML;
-        resultadoCopia.className = resultadoOriginal.className; // Copia todas as classes de estilo
+        resultadoCopia.className = resultadoOriginal.className; 
       }
 
       const opt = {
@@ -429,7 +423,6 @@
       };
       
       html2pdf().set(opt).from(content).save().then(() => {
-        // Volta a exibir o botão de doação fixo após a geração do PDF
         if (fixedButton) {
           fixedButton.style.display = '';
         }
@@ -437,26 +430,22 @@
     }
 
     document.addEventListener('DOMContentLoaded', () => {
-      // Obtenha a referência da tabela após o DOM estar completamente carregado
       const tabela = document.getElementById("newsTable");
-
-      // Anexa eventos de clique às células da tabela
       tabela.addEventListener("click", function(e) {
+        // Altera para verificar se a célula clicada é uma célula de pontuação (tem data-score)
         if (e.target.tagName === "TD" && e.target.hasAttribute("data-score")) {
           const linha = e.target.parentElement;
-          // Remove a classe 'selected' de todas as células da mesma linha
-          [...linha.children].forEach(td => td.classList.remove("selected"));
+          // Remove a classe 'selected' de todas as células de pontuação na mesma linha
+          linha.querySelectorAll("td[data-score]").forEach(td => td.classList.remove("selected"));
           // Adiciona a classe 'selected' à célula clicada
           e.target.classList.add("selected");
         }
       });
 
-      // Anexa eventos aos botões
       document.getElementById('btnCalcular').addEventListener('click', calcularNews);
       document.getElementById('btnLimpar').addEventListener('click', limparCampos);
       document.getElementById('btnGerarPDF').addEventListener('click', gerarPDF);
 
-      // Carrega o rodapé (rodape111.html)
       fetch("rodape111.html")
         .then(res => res.text())
         .then(data => {
