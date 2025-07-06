@@ -33,8 +33,7 @@
     */
 
     body {
-      display: flex; /* Habilitar Flexbox */
-      flex-direction: column; /* Colunas para mobile */
+      display: block; /* Voltar para display block padrão para o body */
       min-height: 100vh;
       font-family: 'Inter', sans-serif; /* Fallback caso as fontes externas falhem */
       color: #000000;
@@ -46,7 +45,7 @@
 
     /* Estilos para a Sidebar fixa em Desktop (controlados por sidebar111.js) */
     .loaded-sidebar-desktop {
-      position: fixed;
+      position: fixed; /* Mantenha fixo */
       left: 0;
       top: 64px; /* Começa abaixo da topbar */
       height: calc(100% - 64px); /* Altura total da tela menos a topbar */
@@ -89,8 +88,8 @@
     /* Ajustes de layout para desktop: oculta botão mobile e ajusta main para sidebar */
     @media (min-width: 768px) {
       body {
-        flex-direction: row; /* Layout em linha para desktop */
-        padding-top: 0; /* Remove o padding-top no desktop, pois a topbar se ajusta sozinha */
+        /* Remove flex-direction: row; e padding-top aqui */
+        padding-top: 0; /* Remove o padding-top no desktop */
       }
       #menuToggle {
         display: none !important;
@@ -100,7 +99,8 @@
       }
       main {
         margin-left: 256px; /* Empurra o conteúdo principal para o lado da sidebar */
-        width: calc(100% - 256px); /* Ocupa o restante da largura */
+        /* Remova o width: calc(100% - 256px); se o max-width já estiver funcionando */
+        /* Ajuste a largura do main aqui se precisar, mas o margin-left é o crucial */
       }
     }
 
@@ -123,6 +123,19 @@
       z-index: 45;
       max-width: 300px;
       width: 100%;
+    }
+    @media (min-width: 768px) { /* Mude para min-width para alinhar com o main */
+      .search-box-container {
+        /* Calcule a posição direita em relação à margem esquerda do main + largura do main */
+        /* Isso é um pouco mais complexo se o main tiver max-width. */
+        /* Uma abordagem mais simples é posicionar relativo ao body e deixar a margem do main empurrar */
+        right: 1rem; /* Mantenha em relação ao edge da viewport */
+        left: calc(256px + 1rem); /* 256px da sidebar + 1rem de padding do main */
+        max-width: calc(1280px - 256px - 2rem); /* max-width do main - sidebar - padding lateral */
+        width: auto; /* Deixe a largura ser definida pelo max-width */
+        top: 96px; /* Mantenha o top fixo */
+        position: absolute; /* Mantenha absoluto */
+      }
     }
     @media (max-width: 767px) {
       .search-box-container {
@@ -154,10 +167,15 @@
         max-height: 400px;
         text-align: left;
     }
-    #search-results ul { list-style: none; padding: 0; margin: 0; }
-    #search-results ul li { margin-bottom: 0.5rem; }
-    #search-results ul li a { color: #1FA4E5; text-decoration: none; display: block; padding: 0.25rem 0; }
-    #search-results ul li a:hover { text-decoration: underline; color: #178ac7; }
+    @media (min-width: 768px) { /* Ajuste o posicionamento dos resultados da pesquisa também */
+      #search-results {
+        /* Alinhe com a caixa de pesquisa */
+        left: calc(256px + 1rem);
+        max-width: calc(1280px - 256px - 2rem);
+        width: auto;
+        right: auto; /* Remova o right para usar o left */
+      }
+    }
     @media (max-width: 767px) {
       #search-results {
         position: static;
