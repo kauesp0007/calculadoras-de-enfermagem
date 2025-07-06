@@ -275,11 +275,11 @@
       const linhas = document.querySelectorAll('#meowsTable tbody tr');
       let todasLinhasSelecionadas = true;
       linhas.forEach(linha => {
-        if (!linha.querySelector('td.selected')) {
+        const selectedCell = linha.querySelector('td.selected'); // Tenta encontrar a célula selecionada
+        if (!selectedCell) {
           todasLinhasSelecionadas = false;
         } else {
           // Se uma linha tem seleção, adiciona o score da célula selecionada
-          const selectedCell = linha.querySelector('td.selected');
           total += parseInt(selectedCell.getAttribute('data-score')) || 0;
         }
       });
@@ -369,12 +369,12 @@
     }
 
     document.addEventListener('DOMContentLoaded', () => {
-      // Anexa eventos de clique às células da tabela (corrigido)
+      // Anexa eventos de clique às células da tabela (corrigido para focar em células com data-score)
       document.querySelectorAll('#meowsTable tbody td[data-score]').forEach(td => {
         td.addEventListener('click', () => {
           const linha = td.parentElement;
-          // Remove a classe 'selected' de todas as células da mesma linha
-          linha.querySelectorAll('td').forEach(c => c.classList.remove('selected'));
+          // Remove a classe 'selected' de todas as células DA MESMA LINHA
+          linha.querySelectorAll('td[data-score]').forEach(c => c.classList.remove('selected'));
           // Adiciona a classe 'selected' à célula clicada
           td.classList.add('selected');
         });
