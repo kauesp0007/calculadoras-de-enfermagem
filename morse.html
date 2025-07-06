@@ -1,282 +1,433 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Escala de Morse (Avaliação de risco de queda)</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Escala de Morse - Avaliação de Risco de Queda</title>
+
   <link rel="canonical" href="https://www.calculadorasdeenfermagem.com.br/morse.html" />
-  <meta name="description" content="Calculadora da Escala de Morse para avaliação do risco de queda." />
-  <meta name="keywords" content="escala de morse, risco de queda, enfermagem, segurança do paciente" />
+
+  <link rel="icon" href="favicon.ico" type="image/x-icon" />
+
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
+  
+  <meta name="description" content="Calculadora da Escala de Morse para avaliação do risco de queda em pacientes, essencial para a segurança hospitalar." />
+  <meta name="keywords" content="escala de morse, risco de queda, enfermagem, segurança do paciente, prevenção de quedas, hospital, cuidados" />
+
+  <script async src="https://www.googletagmanager.com/gtag/js?id=AW-952633102"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'AW-952633102');
+  </script>
+
+  <script src="topbar111.js" defer></script>
+
   <style>
-    body {
-      font-family: Arial, sans-serif;
+    /* Reset básico e Box-sizing para consistência */
+    *, *::before, *::after {
+      box-sizing: border-box;
       margin: 0;
       padding: 0;
+    }
+
+    /* Fontes personalizadas */
+    @import url('https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@700&family=Inter:wght@300;400;500;600&display=swap');
+
+    /* Estilos das classes de fonte e cor personalizadas (para uso no HTML com Tailwind) */
+    .font-nunito { font-family: 'Nunito Sans', sans-serif; }
+    .font-inter { font-family: 'Inter', sans-serif; }
+    .text-dark-blue { color: #1A3E74; } /* Azul Escuro */
+    .text-light-blue { color: #1FA4E5; } /* Azul Claro */
+    .text-gray-custom { color: #666666; } /* Cinza */
+    .text-success-green { color: #1ED760; } /* Verde */
+    .text-black-custom { color: #333; } /* Cor para textos padrão */
+
+    /* Padrão de Botões (Componentes CSS para reuso) */
+    .btn-primary {
+      font-family: 'Inter', sans-serif;
+      font-weight: 600;
+      background-color: #1A3E74; /* Cor primária azul escuro */
+      color: #FFF;
+      padding: 12px 24px;
+      border-radius: 8px;
+      transition: background-color 0.3s ease;
+      border: none;
+      cursor: pointer;
+      text-align: center;
+    }
+    .btn-primary:hover { background-color: #122c54; } /* Tom mais escuro no hover */
+    .btn-secondary {
+      font-family: 'Inter', sans-serif;
+      font-weight: 600;
+      background-color: #1FA4E5; /* Cor secundária azul claro */
+      color: #FFF;
+      padding: 12px 24px;
+      border-radius: 8px;
+      transition: background-color 0.3s ease;
+      border: none;
+      cursor: pointer;
+      text-align: center;
+    }
+    .btn-secondary:hover { background-color: #178ac7; } /* Tom mais escuro no hover */
+    .btn-success {
+      font-family: 'Inter', sans-serif;
+      font-weight: 500;
+      background-color: #1ED760;
+      color: #FFF;
+      padding: 10px 20px;
+      border-radius: 8px;
+      transition: background-color 0.3s ease;
+      border: none;
+      cursor: pointer;
+      text-align: center;
+    }
+    .btn-success:hover { background-color: #17b351; }
+
+    /* Estilos para a área de resultado da calculadora (Componente específico) */
+    .resultado {
+      margin-top: 1.5rem; /* mt-6 */
+      padding: 1.25rem; /* p-5 */
+      border-radius: 0.5rem;
+      font-weight: 600;
+      text-align: center;
+      font-size: 1.125rem; /* text-lg */
+      line-height: 1.6;
+    }
+    /* Cores específicas para o resultado da Escala de Morse */
+    .resultado.bg-red-custom { background-color: #fee2e2; color: #dc2626; } /* red-100, red-600 */
+    .resultado.bg-yellow-custom { background-color: #fefce8; color: #d97706; } /* yellow-50, yellow-700 */
+    .resultado.bg-green-custom { background-color: #dcfce7; color: #15803d; } /* green-100, green-700 */
+
+    /* Estilos para a referência/bibliografia (Componente específico) */
+    .ref {
+      margin-top: 2.5rem; /* mt-10 */
+      font-size: 0.875rem; /* text-sm */
+      color: #666666; /* text-gray-custom */
+      text-align: left;
+    }
+
+    /* Estilo para o botão "Ajude-nos" fixo (Componente de botão) */
+    .fixed-donation-button {
+      z-index: 30;
+    }
+    
+    /* Layout principal com Topbar fixa */
+    body {
       display: flex;
-      background-color: #f7f9fc;
+      flex-direction: column;
+      min-height: 100vh; /* Garante que o body ocupe a altura total da viewport */
+      background-color: #f8fafc; /* Tailwind bg-gray-50 */
+      color: #333; /* Tailwind text-gray-800 */
     }
-    .sidebar {
-      background-color: #cce5ff;
-      width: 220px;
-      height: 100vh;
-      padding: 20px;
-      box-sizing: border-box;
-    }
-    .sidebar h3 {
-      margin-top: 0;
-      color: #004085;
-      font-size: 18px;
-      text-align: center;
-    }
-    .sidebar a {
-      display: block;
-      color: #004c99;
-      text-decoration: none;
-      margin: 8px 0;
-      font-weight: bold;
-      text-align: center;
-      font-size: 14px;
-      transition: background-color 0.3s;
-      border-radius: 4px;
-      padding: 6px 0;
-    }
-    .sidebar a:hover {
-      background-color: #b3d7ff;
-    }
-    .content {
+
+    /* ESTILOS DOS DROPDOWNS DA TOPBAR (MOVIDOS DE TOPBAR111.HTML) */
+    .dropdown-menu { display: none; }
+    .dropdown-menu.show { display: block; }
+    nav { justify-content: flex-end; } 
+    nav button { cursor: pointer; }
+    nav .dropdown-menu a:hover { background-color: #bfdbfe; }
+    /* FIM DOS ESTILOS DA TOPBAR */
+
+    /* Espaçamento para o conteúdo abaixo da topbar fixa */
+    .main-content-wrapper { 
+      display: flex;
+      flex-direction: column;
       flex-grow: 1;
-      padding: 20px 30px;
-      max-width: 900px;
-      margin: auto;
-      box-sizing: border-box;
+      padding-top: 64px; /* Garante que o conteúdo comece abaixo da topbar fixa (64px de altura) */
+      width: 100%;
+      max-width: 1280px; /* max-w-screen-xl (Tailwind 7xl) */
+      margin-left: auto;
+      margin-right: auto;
+      padding: 2rem 1rem; /* p-8 px-4 */
     }
-    h1 {
-      text-align: center;
-      color: #007bff;
-    }
-    h2 {
-      text-align: center;
-      color: #555;
-      font-weight: normal;
-      font-size: 14px;
-      margin: 30px auto;
-      max-width: 700px;
+    
+    /* Estilos específicos para este arquivo */
+    .alert-custom {
+      @apply bg-yellow-50 border border-yellow-200 p-4 rounded-lg my-6 text-yellow-800; /* Tailwind classes for alert */
     }
     table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 30px;
-      background-color: white;
+      @apply w-full border-collapse my-4 md:my-6 shadow-md rounded-lg overflow-hidden;
     }
     th, td {
-      border: 1px solid #ccc;
-      padding: 12px;
-      text-align: center;
-      vertical-align: middle;
+      @apply p-3 border border-gray-300 align-middle text-center text-black-custom; /* Centraliza o texto nas células */
     }
     th {
-      font-weight: bold;
-      font-size: 16px;
+      @apply bg-blue-100 text-left text-sm font-semibold text-dark-blue uppercase tracking-wider; /* Azul mais claro para th */
     }
-    td:first-child {
-      font-weight: bold;
-      font-size: 15px;
+    /* Adaptação para a primeira coluna TH */
+    th:first-child {
+      @apply text-left; /* Alinha o primeiro TH à esquerda */
+    }
+    tbody td:first-child {
+      @apply text-left font-medium; /* Alinha o primeiro TD à esquerda */
     }
     td.option {
-      text-align: left;
-      font-weight: normal;
-      font-size: 15px;
+      @apply text-left; /* Alinha o texto das opções à esquerda */
     }
     td.option label {
-      cursor: pointer;
-      display: block;
-      margin: 4px 0;
+      @apply block cursor-pointer my-1.5; /* Espaçamento para labels de radio */
     }
-    .resultado {
-      margin-top: 25px;
-      background-color: #e6f0ff;
-      padding: 20px;
-      border-radius: 10px;
-      font-size: 16px;
-      display: none;
-    }
-    button {
-      margin-top: 20px;
-      margin-right: 10px;
-      padding: 10px 16px;
-      background-color: #007bff;
-      color: white;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-      font-size: 15px;
-    }
-    button:hover {
-      background-color: #0056b3;
-    }
-    footer {
-      margin-top: 40px;
-      background-color: #f1f1f1;
-      padding: 20px;
-      text-align: center;
-      font-size: 14px;
-      color: #555;
-      border-top: 1px solid #ddd;
-    }
-    footer a {
-      color: #007bff;
-      text-decoration: none;
-      margin: 0 8px;
+    td.option input[type="radio"] {
+      @apply mr-2; /* Espaço entre o radio e o texto */
     }
   </style>
-
-  <!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=AW-952633102">
-</script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-
-  gtag('config', 'AW-952633102');
-  </script>
 </head>
-<body>
-  <div id="barra-lateral"></div>
-<script>
-  fetch('sidebar.html')
-    .then(response => response.text())
-    .then(html => {
-      document.getElementById('barra-lateral').innerHTML = html;
-    });
-</script>
+<body class="bg-gray-50 text-gray-800 font-inter">
 
-  <div class="content" id="pdfContent">
-    <h1><br><br>Escala de Morse (Avaliação de risco de queda)</h1>
-    <h2>A escala de Morse possui um detalhe peculiar: quanto maior o nível de dependência, quanto mais acamado for o paciente MENOR será seu risco de queda. A atenção esta voltada principalmente ao paciente que possui uma dependência parcial mas que exige uma atenção importante da equipe de enfermagem. Marcha lenta, uso de apoios para andar, acesso venoso periférico aumentam os riscos de queda destes pacientes.</h2>
+  <div id="topbar-container"></div> 
 
-    <table>
-      <tr>
-        <th><b>Fatores</b></th>
-        <th colspan="2"><b>Opção / Pontuação</b></th>
-      </tr>
-      <tr>
-        <td><b>1. Histórico de quedas</b></td>
-        <td class="option">
-          <label><input type="radio" name="f1" value="0"> Não<br>(0 pontos)</label>
-          <label><input type="radio" name="f1" value="25"> Sim - últimos 3 meses<br>(25 pontos)</label>
-        </td>
-      </tr>
-      <tr>
-        <td><b>2. Diagnóstico secundário</b></td>
-        <td class="option">
-          <label><input type="radio" name="f2" value="0"> Não<br>(0 pontos)</label>
-          <label><input type="radio" name="f2" value="15"> Sim<br>(15 pontos)</label>
-        </td>
-      </tr>
-      <tr>
-        <td><b>3. Auxílio na deambulação</b></td>
-        <td class="option">
-          <label><input type="radio" name="f3" value="0"> Nenhum/acamado/profissional<br>(0 pontos)</label>
-          <label><input type="radio" name="f3" value="15"> Muletas/bengala/andador<br>(15 pontos)</label>
-          <label><input type="radio" name="f3" value="30"> Mobiliário/parede<br>(30 pontos)</label>
-        </td>
-      </tr>
-      <tr>
-        <td><b>4. Acesso venoso / dispositivo EV</b></td>
-        <td class="option">
-          <label><input type="radio" name="f4" value="0"> Não<br>(0 pontos)</label>
-          <label><input type="radio" name="f4" value="20"> Sim<br>(20 pontos)</label>
-        </td>
-      </tr>
-      <tr>
-        <td><b>5. Marcha</b></td>
-        <td class="option">
-          <label><input type="radio" name="f5" value="0"> Normal/sem deambulação/acamado/cadeira<br>(0 pontos)</label>
-          <label><input type="radio" name="f5" value="10"> Fraca<br>(10 pontos)</label>
-          <label><input type="radio" name="f5" value="20"> Cambaleante/comprometida<br>(20 pontos)</label>
-        </td>
-      </tr>
-      <tr>
-        <td><b>6. Status mental</b></td>
-        <td class="option">
-          <label><input type="radio" name="f6" value="0"> Orientado/ciente de limitações<br>(0 pontos)</label>
-          <label><input type="radio" name="f6" value="15"> Superestima/esquece limitações<br>(15 pontos)</label>
-        </td>
-      </tr>
-    </table>
+  <div class="main-content-wrapper">
+    <main class="flex flex-col flex-grow">
 
-    <button onclick="calcular()">Calcular risco de queda</button>
-    <button onclick="gerarPDF()">Gerar PDF</button>
+      <div class="flex flex-wrap items-center justify-center gap-4 mb-3">
+        <img src="iconpages.png" alt="Ícone da Escala de Morse" class="w-32 h-auto" />
+        <h1 class="font-nunito font-extrabold text-dark-blue text-4xl lg:text-5xl text-center">
+          Escala de Morse
+        </h1>
+      </div>
+      <h2 class="font-inter font-normal text-lg text-gray-700 text-center mb-6 max-w-2xl mx-auto">
+        (Avaliação de risco de queda)
+      </h2>
 
-    <div id="resultado" class="resultado"></div>
-
-    <div style="margin-top:30px">
-      <strong>Meta 6 de Segurança do Paciente:</strong><br>
-      Reduzir o risco de quedas em ambientes hospitalares é uma prioridade. A Escala de Morse auxilia na identificação de pacientes com maior risco, promovendo ações preventivas eficazes.
-    </div>
-
-    <div style="margin-top: 60px; font-size: 12px; color: #000; font-family: Arial, sans-serif;">
-      <strong>Referência bibliográfica:</strong><br><br><br>
-      Protocolo Escala de Morse. Conselho Regional de Enfermagem de Santa Catarina (COREN-SC).<br>
-      Disponível em: 
-      <a href="https://www.corensc.gov.br/wp-content/uploads/2019/11/PT-017-2019-Escala-de-Morse-.pdf" target="_blank">
-        https://www.corensc.gov.br/wp-content/uploads/2019/11/PT-017-2019-Escala-de-Morse-.pdf
-      </a>
-    </div>
-
-    <footer>
-      <p>© 2025 Calculadoras de Enfermagem</p>
-      <p>
-        <a href="index.html">Início</a> |
-        <a href="politica.html">Política de Privacidade</a> |
-        <a href="termos.html">Termos de Uso</a>
+      <p class="font-inter text-gray-700 mb-6 text-center max-w-2xl mx-auto">
+        A escala de Morse possui um detalhe peculiar: **quanto maior o nível de dependência, quanto mais acamado for o paciente, MENOR será seu risco de queda**. A atenção está voltada principalmente ao paciente que possui uma dependência parcial, mas que exige uma atenção importante da equipe de enfermagem. Marcha lenta, uso de apoios para andar, e acesso venoso periférico aumentam os riscos de queda destes pacientes.
       </p>
-    </footer>
-  </div>
+
+      <div id="conteudo" class="w-full">
+        <p class="font-inter font-medium text-gray-700 mb-4 text-center">
+          Selecione a opção que melhor descreve cada fator:
+        </p>
+
+        <div class="overflow-x-auto">
+          <table id="morseTable">
+            <thead>
+              <tr>
+                <th class="w-1/3">Fatores</th>
+                <th class="w-2/3" colspan="2">Opção / Pontuação</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><b>1. Histórico de quedas</b></td>
+                <td class="option">
+                  <label><input type="radio" name="f1" value="0"> Não (0 pontos)</label>
+                  <label><input type="radio" name="f1" value="25"> Sim - últimos 3 meses (25 pontos)</label>
+                </td>
+              </tr>
+              <tr>
+                <td><b>2. Diagnóstico secundário</b></td>
+                <td class="option">
+                  <label><input type="radio" name="f2" value="0"> Não (0 pontos)</label>
+                  <label><input type="radio" name="f2" value="15"> Sim (15 pontos)</label>
+                </td>
+              </tr>
+              <tr>
+                <td><b>3. Auxílio na deambulação</b></td>
+                <td class="option">
+                  <label><input type="radio" name="f3" value="0"> Nenhum/acamado/profissional (0 pontos)</label>
+                  <label><input type="radio" name="f3" value="15"> Muletas/bengala/andador (15 pontos)</label>
+                  <label><input type="radio" name="f3" value="30"> Mobiliário/parede (30 pontos)</label>
+                </td>
+              </tr>
+              <tr>
+                <td><b>4. Acesso venoso / dispositivo EV</b></td>
+                <td class="option">
+                  <label><input type="radio" name="f4" value="0"> Não (0 pontos)</label>
+                  <label><input type="radio" name="f4" value="20"> Sim (20 pontos)</label>
+                </td>
+              </tr>
+              <tr>
+                <td><b>5. Marcha</b></td>
+                <td class="option">
+                  <label><input type="radio" name="f5" value="0"> Normal/sem deambulação/acamado/cadeira (0 pontos)</label>
+                  <label><input type="radio" name="f5" value="10"> Fraca (10 pontos)</label>
+                  <label><input type="radio" name="f5" value="20"> Cambaleante/comprometida (20 pontos)</label>
+                </td>
+              </tr>
+              <tr>
+                <td><b>6. Status mental</b></td>
+                <td class="option">
+                  <label><input type="radio" name="f6" value="0"> Orientado/ciente de limitações (0 pontos)</label>
+                  <label><input type="radio" name="f6" value="15"> Superestima/esquece limitações (15 pontos)</label>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="flex flex-wrap justify-start gap-4 mt-6">
+          <button id="btnCalcular" class="btn-primary" aria-label="Calcular risco de queda">
+            Calcular risco de queda
+          </button>
+          <button id="btnLimpar" class="btn-primary" aria-label="Limpar seleções">
+            Limpar
+          </button>
+          <button id="btnGerarPDF" class="btn-secondary" aria-label="Gerar PDF do resultado">
+            Gerar PDF
+          </button>
+        </div>
+
+        <div id="resultado" class="resultado"></div>
+
+        <div class="mt-8 font-inter text-gray-700 text-center max-w-2xl mx-auto">
+          <p class="font-bold mb-2">Meta 6 de Segurança do Paciente:</p>
+          <p>
+            Reduzir o risco de quedas em ambientes hospitalares é uma prioridade. A **Escala de Morse** auxilia na identificação de pacientes com maior risco, promovendo ações preventivas eficazes.
+          </p>
+        </div>
+
+        <div class="ref font-inter text-gray-custom">
+          <strong>Referência bibliográfica:</strong><br />
+          <p class="mt-2">
+            Protocolo Escala de Morse. Conselho Regional de Enfermagem de Santa Catarina (COREN-SC).<br>
+            Disponível em: <a href="https://www.corensc.gov.br/wp-content/uploads/2019/11/PT-017-2019-Escala-de-Morse-.pdf" target="_blank" class="text-light-blue hover:underline">
+              https://www.corensc.gov.br/wp-content/uploads/2019/11/PT-017-2019-Escala-de-Morse-.pdf
+            </a>
+          </p>
+        </div>
+      </div>
+
+    </main>
+  </div> 
+
+  <a href="doacoes.html" class="fixed bottom-4 right-4 bg-dark-blue text-white text-sm px-4 py-2 rounded-full shadow hover:bg-blue-900 transition fixed-donation-button">
+    Ajude-nos a manter o site gratuito
+  </a>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  
+  <script src="pdf111.js"></script>
+
+  <div id="footer-container"></div>
 
   <script>
     function calcular() {
-      const fatores = ['f1','f2','f3','f4','f5','f6'];
+      const fatores = ['f1', 'f2', 'f3', 'f4', 'f5', 'f6'];
       let total = 0;
+      let todasOpcoesSelecionadas = true;
+      const resultadoDiv = document.getElementById('resultado');
+
+      // Resetar classes de cor anteriores
+      resultadoDiv.classList.remove('bg-red-custom', 'bg-yellow-custom', 'bg-green-custom');
+
       for (let f of fatores) {
         const escolhido = document.querySelector(`input[name="${f}"]:checked`);
-        if (escolhido) total += parseInt(escolhido.value);
+        if (escolhido) {
+          total += parseInt(escolhido.value);
+        } else {
+          todasOpcoesSelecionadas = false;
+          break; // Sai do loop se uma opção não for selecionada
+        }
+      }
+
+      if (!todasOpcoesSelecionadas) {
+        resultadoDiv.style.display = 'block';
+        resultadoDiv.innerHTML = '⚠️ Por favor, selecione uma opção para **cada fator** antes de calcular.';
+        resultadoDiv.classList.add('bg-red-custom'); // Usa cor de alerta para erro
+        return;
       }
 
       let risco = '';
+      let corClasse = '';
+      let acaoRecomendada = '';
+
       if (total < 25) {
-        risco = "Baixo risco de queda";
+        risco = "Baixo Risco de Queda";
+        corClasse = 'bg-green-custom';
+        acaoRecomendada = "Manter o monitoramento de rotina e orientar o paciente sobre medidas simples de prevenção de quedas (ex: usar corrimão, evitar tapetes soltos).";
       } else if (total <= 44) {
-        risco = "Risco moderado de queda";
+        risco = "Risco Moderado de Queda";
+        corClasse = 'bg-yellow-custom';
+        acaoRecomendada = "Implementar intervenções básicas de prevenção de quedas (ex: cama na posição mais baixa, grades laterais elevadas, campainha de fácil acesso, auxílio na deambulação) e reavaliar periodicamente.";
       } else {
-        risco = "Alto risco de queda";
+        risco = "Alto Risco de Queda";
+        corClasse = 'bg-red-custom';
+        acaoRecomendada = "Implementar rigorosamente todas as intervenções de prevenção de quedas, incluindo monitoramento frequente, auxílio constante para mobilidade e ambiente seguro. Considerar uso de alarmes de cama, se apropriado.";
       }
 
-      const resultadoDiv = document.getElementById('resultado');
       resultadoDiv.style.display = 'block';
-      resultadoDiv.innerHTML = `Pontuação total: <strong>${total}</strong><br>${risco}`;
+      resultadoDiv.innerHTML = 
+        `<p class="font-bold">Pontuação total: ${total}</p>` +
+        `<p class="font-bold text-lg mt-2 mb-1">Classificação: ${risco}</p>` +
+        `<p class="text-sm mt-3">${acaoRecomendada}</p>`;
+      resultadoDiv.classList.add(corClasse);
+    }
+
+    function limparCampos() {
+      const radioButtons = document.querySelectorAll('#morseTable input[type="radio"]');
+      radioButtons.forEach(radio => {
+        radio.checked = false; // Desmarca o rádio button
+      });
+
+      const resultadoDiv = document.getElementById('resultado');
+      resultadoDiv.innerHTML = '';
+      resultadoDiv.style.display = 'none'; // Esconde o resultado ao limpar
+      resultadoDiv.classList.remove('bg-red-custom', 'bg-yellow-custom', 'bg-green-custom'); // Remove todas as classes de cor
     }
 
     function gerarPDF() {
-      const content = document.getElementById("pdfContent").cloneNode(true);
-      const sidebar = content.querySelector(".sidebar");
-      const footer = content.querySelector("footer");
-      if (sidebar) sidebar.remove();
-      if (footer) footer.remove();
+      // Cria uma cópia do conteúdo para o PDF
+      const content = document.getElementById('conteudo').cloneNode(true);
+
+      // Remove os botões da cópia antes de gerar o PDF
+      const buttonsDiv = content.querySelector('.flex.flex-wrap.justify-start.gap-4.mt-6');
+      if (buttonsDiv) buttonsDiv.remove();
+
+      // Esconde o botão de doação fixo antes de gerar o PDF
+      const fixedButton = document.querySelector('.fixed-donation-button');
+      if (fixedButton) {
+        fixedButton.style.display = 'none';
+      }
+
+      // Garante que o resultado esteja visível e formatado antes de gerar o PDF
+      const resultadoOriginal = document.getElementById('resultado');
+      const resultadoCopia = content.querySelector('#resultado');
+      if (resultadoOriginal.style.display === 'none' || resultadoOriginal.innerHTML.includes('Por favor, selecione')) {
+          // Se o resultado não estiver visível ou for uma mensagem de erro, mostra uma mensagem para o PDF
+          resultadoCopia.style.display = 'block';
+          resultadoCopia.classList.remove('bg-red-custom', 'bg-yellow-custom', 'bg-green-custom');
+          resultadoCopia.classList.add('bg-gray-100', 'text-gray-700');
+          resultadoCopia.innerHTML = "Resultado não calculado ou incompleto na página. Calcule antes de gerar o PDF.";
+      }
+
       const opt = {
-        margin: 0,
-        filename: "escala-morse.pdf",
-        image: { type: "jpeg", quality: 1 },
-        html2canvas: { scale: 3, scrollY: 0 },
-        jsPDF: { unit: "mm", format: "a4", orientation: "portrait" }
+        margin:       0.5,
+        filename:     'escala_morse.pdf',
+        image:        { type: 'jpeg', quality: 0.98 },
+        html2canvas:  { scale: 3, scrollY: 0 },
+        jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' },
       };
-      html2pdf().set(opt).from(content).save();
+      
+      html2pdf().set(opt).from(content).save().then(() => {
+        // Volta a exibir o botão de doação fixo após a geração do PDF
+        if (fixedButton) {
+          fixedButton.style.display = '';
+        }
+      });
     }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      // Anexa eventos aos botões
+      document.getElementById('btnCalcular').addEventListener('click', calcular);
+      document.getElementById('btnLimpar').addEventListener('click', limparCampos);
+      document.getElementById('btnGerarPDF').addEventListener('click', gerarPDF);
+
+      // Carrega o rodapé (rodape111.html)
+      fetch("rodape111.html")
+        .then(res => res.text())
+        .then(data => {
+          const footerContainer = document.getElementById("footer-container");
+          if (footerContainer) {
+            footerContainer.innerHTML = data;
+          } else {
+            console.error('Elemento footer-container não encontrado.');
+          }
+        })
+        })
+        .catch(err => console.error("Erro ao carregar rodape111.html:", err));
+    });
   </script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-    
-<!-- Carrega a barra superior -->
-<script src="topbar.js"></script>
 </body>
 </html>
