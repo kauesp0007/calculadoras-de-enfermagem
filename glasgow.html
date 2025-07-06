@@ -3,245 +3,334 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>🚑 Calculadora de Escala de Coma de Glasgow</title>
+  <title>Calculadora de Escala de Coma de Glasgow</title>
+
   <link rel="canonical" href="https://www.calculadorasdeenfermagem.com.br/glasgow.html" />
+
+  <link rel="icon" href="favicon.ico" type="image/x-icon" />
+
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
+  
   <meta name="description" content="Calculadora da escala de coma de Glasgow com seleção de critérios e resultado automático do escore." />
-  <meta name="keywords" content="Glasgow, escala de coma, enfermagem, avaliação neurológica, AVC, trauma craniano" />
+  <meta name="keywords" content="Glasgow, escala de coma, enfermagem, avaliação neurológica, AVC, trauma craniano, GCS, EGC" />
+
+  <script async src="https://www.googletagmanager.com/gtag/js?id=AW-952633102"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'AW-952633102');
+  </script>
+
+  <script src="topbar111.js" defer></script>
+
   <style>
-    body {
-      font-family: Arial, sans-serif;
+    /* Reset básico e Box-sizing para consistência */
+    *, *::before, *::after {
+      box-sizing: border-box;
       margin: 0;
-      display: flex;
-      background-color: #f7f9fc;
+      padding: 0;
     }
-    .sidebar {
-      width: 200px;
-      background-color: #007bff;
-      padding: 20px;
-      height: 100vh;
-      box-sizing: border-box;
-      color: white;
-      font-size: 11px;
-    }
-    .sidebar h2 {
-      font-weight: bold;
-      font-size: 12px;
-      text-align: center;
-      margin-bottom: 20px;
-      color: white;
-    }
-    .sidebar a {
-      display: block;
-      color: white;
-      text-decoration: none;
-      margin: 8px 0;
-      padding-left: 6px;
-      font-size: 11px;
-    }
-    .sidebar a:hover {
-      text-decoration: underline;
-    }
-    .search-box {
-      margin-bottom: 20px;
-      text-align: right;
-    }
-    .search-box input {
-      width: 100%;
-      padding: 6px 8px;
-      font-size: 11px;
-      border-radius: 4px;
+
+    /* Fontes personalizadas */
+    @import url('https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@700&family=Inter:wght@300;400;500;600&display=swap');
+
+    /* Estilos das classes de fonte e cor personalizadas (para uso no HTML com Tailwind) */
+    .font-nunito { font-family: 'Nunito Sans', sans-serif; }
+    .font-inter { font-family: 'Inter', sans-serif; }
+    .text-dark-blue { color: #1A3E74; } /* Azul Escuro */
+    .text-light-blue { color: #1FA4E5; } /* Azul Claro */
+    .text-gray-custom { color: #666666; } /* Cinza */
+    .text-success-green { color: #1ED760; } /* Verde */
+    .text-black-custom { color: #333; } /* Cor para textos padrão */
+    .text-red-600 { color: #dc2626; } /* Tailwind red-600 para mensagens de erro */
+
+
+    /* Padrão de Botões (Componentes CSS para reuso) */
+    .btn-primary {
+      font-family: 'Inter', sans-serif;
+      font-weight: 600;
+      background-color: #1A3E74; /* Cor primária azul escuro */
+      color: #FFF;
+      padding: 12px 24px;
+      border-radius: 8px;
+      transition: background-color 0.3s ease;
       border: none;
-      box-sizing: border-box;
-    }
-    .content {
-      flex: 1;
-      padding: 30px;
-      max-width: 800px;
-      margin: auto;
-      background: white;
-    }
-    h1 {
-      text-align: center;
-      color: #007bff;
-      font-weight: bold;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 20px;
-    }
-    th, td {
-      padding: 10px;
-      border: 1px solid #ddd;
-      vertical-align: top;
-    }
-    th {
-      background-color: #e3f2fd;
-      text-align: center;
-    }
-    select {
-      width: 100%;
-      padding: 8px;
-      font-size: 14px;
-    }
-    .resultado {
-      margin-top: 25px;
-      padding: 20px;
-      background-color: #e1f5fe;
-      border-radius: 6px;
-      font-size: 16px;
-    }
-    button {
-      background-color: #007bff;
-      color: white;
-      border: none;
-      padding: 12px 20px;
-      font-size: 16px;
-      margin-top: 20px;
       cursor: pointer;
-      border-radius: 6px;
-    }
-    button:hover {
-      background-color: #0056b3;
-    }
-    footer {
-      background-color: #f1f1f1;
-      padding: 20px;
       text-align: center;
-      font-size: 14px;
-      color: #555;
-      border-top: 1px solid #ddd;
-      margin-top: 40px;
     }
-    footer a {
-      color: #007bff;
-      text-decoration: none;
-      margin: 0 6px;
+    .btn-primary:hover { background-color: #122c54; } /* Tom mais escuro no hover */
+    .btn-secondary {
+      font-family: 'Inter', sans-serif;
+      font-weight: 600;
+      background-color: #1FA4E5; /* Cor secundária azul claro */
+      color: #FFF;
+      padding: 12px 24px;
+      border-radius: 8px;
+      transition: background-color 0.3s ease;
+      border: none;
+      cursor: pointer;
+      text-align: center;
+    }
+    .btn-secondary:hover { background-color: #178ac7; } /* Tom mais escuro no hover */
+    .btn-success {
+      font-family: 'Inter', sans-serif;
+      font-weight: 500;
+      background-color: #1ED760;
+      color: #FFF;
+      padding: 10px 20px;
+      border-radius: 8px;
+      transition: background-color 0.3s ease;
+      border: none;
+      cursor: pointer;
+      text-align: center;
+    }
+    .btn-success:hover { background-color: #17b351; }
+
+    /* Estilos para a área de resultado da calculadora (Componente específico) */
+    .resultado {
+      margin-top: 1rem;
+      padding: 1rem;
+      background-color: #e0f2fe; /* Tailwind blue-50 */
+      border-radius: 0.5rem;
+      font-weight: 600;
+      color: #1A3E74; /* text-dark-blue */
+      text-align: left;
+      white-space: pre-wrap; /* Mantém quebras de linha no texto */
+    }
+    .resultado.text-red-600 { /* Classe para mensagens de erro (fundo) */
+        background-color: #fee2e2; /* Tailwind red-100 */
+    }
+
+    /* Estilos para a referência/bibliografia (Componente específico) */
+    .ref {
+      margin-top: 2rem;
+      font-size: 14px;
+      color: #666666; /* text-gray-custom */
+      text-align: left;
+    }
+
+    /* Estilo para o botão "Ajude-nos" fixo (Componente de botão) */
+    .fixed-donation-button {
+      z-index: 30;
+    }
+    
+    /* Layout principal com Topbar fixa */
+    body {
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh; /* Garante que o body ocupe a altura total da viewport */
+      background-color: #f8fafc; /* Tailwind bg-gray-50 */
+      color: #333; /* Tailwind text-gray-800 */
+    }
+
+    /* ESTILOS DOS DROPDOWNS DA TOPBAR (MOVIDOS DE TOPBAR111.HTML) */
+    .dropdown-menu { display: none; }
+    .dropdown-menu.show { display: block; }
+    nav { justify-content: flex-end; } 
+    nav button { cursor: pointer; }
+    nav .dropdown-menu a:hover { background-color: #bfdbfe; }
+    /* FIM DOS ESTILOS DA TOPBAR */
+
+    /* Espaçamento para o conteúdo abaixo da topbar fixa */
+    .main-content-wrapper { 
+      display: flex;
+      flex-direction: column;
+      flex-grow: 1;
+      padding-top: 64px; /* Garante que o conteúdo comece abaixo da topbar fixa (64px de altura) */
+      width: 100%;
+      max-width: 1280px; /* max-w-screen-xl (Tailwind 7xl) */
+      margin-left: auto;
+      margin-right: auto;
+      padding: 2rem 1rem; /* p-8 px-4 */
+    }
+
+    /* Responsividade da tabela para mobile - Rótulos serão definidos no CSS específico de cada calculadora */
+    @media (max-width: 640px) {
+      table, thead, tbody, th, td, tr { display: block; }
+      thead tr { position: absolute; top: -9999px; left: -9999px; }
+      tr { border: 1px solid #e2e8f0; margin-bottom: 0.5rem; display: block; }
+      td {
+          border: none;
+          border-bottom: 1px solid #eee;
+          position: relative;
+          padding-left: 50%; /* Espaço para o pseudo-elemento */
+          text-align: right;
+      }
+      td:before {
+          position: absolute;
+          top: 6px;
+          left: 6px;
+          width: 45%;
+          padding-right: 10px;
+          white-space: nowrap;
+          text-align: left;
+          font-weight: bold;
+      }
+      /* Estilos específicos para os rótulos da tabela em mobile para Glasgow */
+      #conteudo table td:nth-of-type(1):before { content: "Critério:"; }
+      #conteudo table td:nth-of-type(2):before { content: "Descrição:"; }
+      #conteudo table td:nth-of-type(3):before { content: "Pontuação:"; }
     }
   </style>
-
-  <!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=AW-952633102">
-</script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-
-  gtag('config', 'AW-952633102');
-  </script>
 </head>
-<body>
-  <div id="barra-lateral"></div>
-<script>
-  fetch('sidebar.html')
-    .then(response => response.text())
-    .then(html => {
-      document.getElementById('barra-lateral').innerHTML = html;
-    });
-</script>
-  <div class="content" id="pdfContent">
-    <h1><br><br> Calculadora de Escala de Coma de Glasgow (Atualizada)</h1>
-    <p>A Escala de Coma de Glasgow avalia o nível de consciência de um paciente com base em respostas oculares, verbais, motoras e pupilares.</p>
-    <form id="formulario">
-      <table>
-        <thead>
-          <tr>
-            <th>Critério</th>
-            <th>Descrição</th>
-            <th>Pontuação</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td>Abertura Ocular</td>
-            <td>
-              <select id="ocular-texto" onchange="sincronizar('ocular-texto', 'ocular', {'Espontânea': 4, 'À voz': 3, 'À dor': 2, 'Nenhuma': 1})">
-                <option value="Espontânea">Espontânea</option>
-                <option value="À voz">À voz</option>
-                <option value="À dor">À dor</option>
-                <option value="Nenhuma">Nenhuma</option>
-              </select>
-            </td>
-            <td><input id="ocular" readonly value="4"></td>
-          </tr>
-          <tr>
-            <td>Resposta Verbal</td>
-            <td>
-              <select id="verbal-texto" onchange="sincronizar('verbal-texto', 'verbal', {
-                'Orientado': 5,
-                'Confuso': 4,
-                'Palavras inapropriadas': 3,
-                'Palavras incompreensíveis': 2,
-                'Nenhuma': 1
-              })">
-                <option value="Orientado">Orientado</option>
-                <option value="Confuso">Confuso</option>
-                <option value="Palavras inapropriadas">Palavras inapropriadas</option>
-                <option value="Palavras incompreensíveis">Palavras incompreensíveis</option>
-                <option value="Nenhuma">Nenhuma</option>
-              </select>
-            </td>
-            <td><input id="verbal" readonly value="5"></td>
-          </tr>
-          <tr>
-            <td>Resposta Motora</td>
-            <td>
-              <select id="motora-texto" onchange="sincronizar('motora-texto', 'motora', {
-                'Obedece comandos': 6,
-                'Localiza dor': 5,
-                'Movimento de retirada': 4,
-                'Flexão anormal': 3,
-                'Extensão anormal': 2,
-                'Nenhuma': 1
-              })">
-                <option value="Obedece comandos">Obedece comandos</option>
-                <option value="Localiza dor">Localiza dor</option>
-                <option value="Movimento de retirada">Movimento de retirada</option>
-                <option value="Flexão anormal">Flexão anormal</option>
-                <option value="Extensão anormal">Extensão anormal</option>
-                <option value="Nenhuma">Nenhuma</option>
-              </select>
-            </td>
-            <td><input id="motora" readonly value="6"></td>
-          </tr>
-          <tr>
-            <td>Resposta Pupilar</td>
-            <td>
-              <select id="pupilar-texto" onchange="sincronizar('pupilar-texto', 'pupilar', {
-                'Normal': 0,
-                'Anisocoria': -1,
-                'Midríase bilateral': -2
-              })">
-                <option value="Normal">Normal</option>
-                <option value="Anisocoria">Anisocoria</option>
-                <option value="Midríase bilateral">Midríase bilateral</option>
-              </select>
-            </td>
-            <td><input id="pupilar" readonly value="0"></td>
-          </tr>
-        </tbody>
-      </table>
-      <button type="button" onclick="calcularEscala()">Calcular Escore</button>
-      <button type="button" onclick="gerarPDF()">Gerar PDF</button>
-    </form>
-    <div class="resultado" id="resultado" style="display:none;"></div>
-    <footer>
-      <p>© 2025 Calculadoras de Enfermagem</p>
-      <p>
-        <a href="index.html">Início</a> |
-        <a href="politica.html">Política de Privacidade</a> |
-        <a href="termos.html">Termos de Uso</a>
+<body class="bg-gray-50 text-gray-800 font-inter">
+
+  <div id="topbar-container"></div> 
+
+  <div class="main-content-wrapper">
+    <main class="flex flex-col flex-grow">
+
+      <div class="flex flex-wrap items-center justify-center gap-4 mb-3">
+        <img src="iconpages.png" alt="Ícone da Escala de Glasgow" class="w-32 h-auto" />
+        <h1 class="font-nunito font-extrabold text-dark-blue text-4xl lg:text-5xl text-center">
+          Calculadora de Escala de Coma de Glasgow (Atualizada)
+        </h1>
+      </div>
+
+      <p class="font-inter font-normal text-black-custom text-base lg:text-lg mb-6 text-left">
+        A Escala de Coma de Glasgow avalia o nível de consciência de um paciente com base em respostas oculares, verbais, motoras e pupilares.
       </p>
-    </footer>
-  </div>
+
+      <div id="conteudo" class="w-full">
+        <form id="formulario" class="mb-6">
+          <table class="w-full border-collapse border border-gray-300 text-left">
+            <thead>
+              <tr>
+                <th class="border border-gray-300 p-4 font-semibold text-light-blue w-1/3">Critério</th>
+                <th class="border border-gray-300 p-4 font-semibold text-light-blue w-1/3">Descrição</th>
+                <th class="border border-gray-300 p-4 font-semibold text-light-blue w-1/3">Pontuação</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="border border-gray-300 p-4 font-semibold align-top">Abertura Ocular</td>
+                <td class="border border-gray-300 p-4">
+                  <select id="ocular-texto" onchange="sincronizar('ocular-texto', 'ocular', {'Espontânea': 4, 'À voz': 3, 'À dor': 2, 'Nenhuma': 1})"
+                          class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-light-blue">
+                    <option value="Espontânea">Espontânea</option>
+                    <option value="À voz">À voz</option>
+                    <option value="À dor">À dor</option>
+                    <option value="Nenhuma">Nenhuma</option>
+                  </select>
+                </td>
+                <td class="border border-gray-300 p-4">
+                  <input id="ocular" readonly value="4" class="w-full p-2 border border-gray-300 rounded-md bg-gray-100 text-center font-bold" />
+                </td>
+              </tr>
+              <tr>
+                <td class="border border-gray-300 p-4 font-semibold align-top">Resposta Verbal</td>
+                <td class="border border-gray-300 p-4">
+                  <select id="verbal-texto" onchange="sincronizar('verbal-texto', 'verbal', {
+                    'Orientado': 5,
+                    'Confuso': 4,
+                    'Palavras inapropriadas': 3,
+                    'Palavras incompreensíveis': 2,
+                    'Nenhuma': 1
+                  })"
+                          class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-light-blue">
+                    <option value="Orientado">Orientado</option>
+                    <option value="Confuso">Confuso</option>
+                    <option value="Palavras inapropriadas">Palavras inapropriadas</option>
+                    <option value="Palavras incompreensíveis">Palavras incompreensíveis</option>
+                    <option value="Nenhuma">Nenhuma</option>
+                  </select>
+                </td>
+                <td class="border border-gray-300 p-4">
+                  <input id="verbal" readonly value="5" class="w-full p-2 border border-gray-300 rounded-md bg-gray-100 text-center font-bold" />
+                </td>
+              </tr>
+              <tr>
+                <td class="border border-gray-300 p-4 font-semibold align-top">Resposta Motora</td>
+                <td class="border border-gray-300 p-4">
+                  <select id="motora-texto" onchange="sincronizar('motora-texto', 'motora', {
+                    'Obedece comandos': 6,
+                    'Localiza dor': 5,
+                    'Movimento de retirada': 4,
+                    'Flexão anormal': 3,
+                    'Extensão anormal': 2,
+                    'Nenhuma': 1
+                  })"
+                          class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-light-blue">
+                    <option value="Obedece comandos">Obedece comandos</option>
+                    <option value="Localiza dor">Localiza dor</option>
+                    <option value="Movimento de retirada">Movimento de retirada</option>
+                    <option value="Flexão anormal">Flexão anormal</option>
+                    <option value="Extensão anormal">Extensão anormal</option>
+                    <option value="Nenhuma">Nenhuma</option>
+                  </select>
+                </td>
+                <td class="border border-gray-300 p-4">
+                  <input id="motora" readonly value="6" class="w-full p-2 border border-gray-300 rounded-md bg-gray-100 text-center font-bold" />
+                </td>
+              </tr>
+              <tr>
+                <td class="border border-gray-300 p-4 font-semibold align-top">Resposta Pupilar</td>
+                <td class="border border-gray-300 p-4">
+                  <select id="pupilar-texto" onchange="sincronizar('pupilar-texto', 'pupilar', {
+                    'Normal': 0,
+                    'Anisocoria': -1,
+                    'Midríase bilateral': -2
+                  })"
+                          class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-light-blue">
+                    <option value="Normal">Normal</option>
+                    <option value="Anisocoria">Anisocoria</option>
+                    <option value="Midríase bilateral">Midríase bilateral</option>
+                  </select>
+                </td>
+                <td class="border border-gray-300 p-4">
+                  <input id="pupilar" readonly value="0" class="w-full p-2 border border-gray-300 rounded-md bg-gray-100 text-center font-bold" />
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </form>
+
+        <div id="resultado" class="resultado" aria-live="polite"></div>
+
+        <div class="ref font-inter text-gray-custom text-left mt-10">
+          <strong>Bibliografia Confiável:</strong><br />
+          <p class="mt-2">
+            Teasdale, G., & Jennett, B. (1974). Assessment of coma and impaired consciousness. A practical scale. *The Lancet*, 2(7872), 81-84. <br>
+            Murray, G. D., Teasdale, G. M., & Jennett, B. (2018). The Glasgow Coma Scale: What it is and is not. *Journal of Clinical Neuroscience*, 57, 1-3.
+          </p>
+        </div>
+      </div>
+
+      <div class="flex flex-wrap justify-start gap-4 mt-6">
+        <button id="btnCalcular" class="btn-primary" aria-label="Calcular Escore de Glasgow">
+          Calcular Escore
+        </button>
+        <button id="btnLimpar" class="btn-primary" aria-label="Limpar campos">
+          Limpar
+        </button>
+        <button id="btnGerarPDF" class="btn-secondary" aria-label="Gerar PDF">
+          Gerar PDF
+        </button>
+      </div>
+
+    </main>
+  </div> 
+
+  <a href="doacoes.html" class="fixed bottom-4 right-4 bg-dark-blue text-white text-sm px-4 py-2 rounded-full shadow hover:bg-blue-900 transition fixed-donation-button">
+    Ajude-nos a manter o site gratuito
+  </a>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  
+  <script src="pdf111.js"></script>
+
+  <div id="footer-container"></div>
 
   <script>
+    // Função para sincronizar o valor do select com o input de pontuação
     function sincronizar(descricaoId, escoreId, mapa) {
       const descricao = document.getElementById(descricaoId).value;
       document.getElementById(escoreId).value = mapa[descricao];
+      calcularEscala(); // Recalcula o escore total automaticamente ao mudar a seleção
     }
 
+    // Função para calcular o escore total de Glasgow
     function calcularEscala() {
       const ocular = parseInt(document.getElementById("ocular").value);
       const verbal = parseInt(document.getElementById("verbal").value);
@@ -249,57 +338,113 @@
       const pupilar = parseInt(document.getElementById("pupilar").value);
       const total = ocular + verbal + motora + pupilar;
       let interpretacao = "";
+      let isRisky = false;
 
+      // Classificação e destaque para o resultado
       if (total >= 13) {
         interpretacao = "Nível de consciência: Leve";
       } else if (total >= 9) {
         interpretacao = "Nível de consciência: Moderado";
+        isRisky = true; // Moderado pode indicar necessidade de atenção
       } else {
         interpretacao = "Nível de consciência: Grave";
+        isRisky = true; // Grave sempre merece destaque
       }
 
-      document.getElementById("resultado").style.display = "block";
-      document.getElementById("resultado").innerHTML = `
-        <strong>Escore Total:</strong> ${total} pontos<br>
+      const resultadoDiv = document.getElementById("resultado");
+      resultadoDiv.innerHTML = `
+        <strong>Escore Total:</strong> <span class="font-bold">${total}</span> pontos<br>
         <strong>${interpretacao}</strong>
       `;
-    }
+      resultadoDiv.style.display = "block"; // Garante que o resultado esteja visível
 
-    function gerarPDF() {
-      const content = document.getElementById('pdfContent').cloneNode(true);
-      const sidebar = content.querySelector('.sidebar');
-      const footer = content.querySelector('footer');
-      if (sidebar) sidebar.remove();
-      if (footer) footer.remove();
-      const opt = {
-        margin: 0,
-        filename: 'glasgow.pdf',
-        image: { type: 'jpeg', quality: 1 },
-        html2canvas: { scale: 3, scrollY: 0 },
-        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-      };
-      html2pdf().set(opt).from(content).save();
-    }
-
-    function filterLinks() {
-      const input = document.getElementById("searchInput");
-      const filter = input.value.toLowerCase();
-      const sidebar = document.querySelector(".sidebar");
-      const links = sidebar.getElementsByTagName("a");
-
-      for (let i = 0; i < links.length; i++) {
-        const textValue = links[i].textContent || links[i].innerText;
-        if (textValue.toLowerCase().indexOf(filter) > -1) {
-          links[i].style.display = "";
-        } else {
-          links[i].style.display = "none";
-        }
+      // Aplica classes de cor baseadas no risco
+      if (isRisky) {
+          resultadoDiv.classList.add('text-red-600'); 
+          resultadoDiv.classList.remove('text-dark-blue'); 
+          resultadoDiv.classList.remove('bg-blue-50'); // Remove background padrão
+          resultadoDiv.classList.add('bg-red-100'); // Adiciona background de alerta
+      } else {
+          resultadoDiv.classList.remove('text-red-600');
+          resultadoDiv.classList.add('text-dark-blue');
+          resultadoDiv.classList.remove('bg-red-100'); // Remove background de alerta
+          resultadoDiv.classList.add('bg-blue-50'); // Adiciona background padrão
       }
     }
+
+    // Função para limpar todos os campos e o resultado
+    function limparCampos() {
+      // Reseta todos os selects para a primeira opção (ou opção padrão)
+      document.getElementById('ocular-texto').selectedIndex = 0;
+      document.getElementById('verbal-texto').selectedIndex = 0;
+      document.getElementById('motora-texto').selectedIndex = 0;
+      document.getElementById('pupilar-texto').selectedIndex = 0;
+
+      // Sincroniza os inputs de pontuação com os valores iniciais dos selects
+      sincronizar('ocular-texto', 'ocular', {'Espontânea': 4, 'À voz': 3, 'À dor': 2, 'Nenhuma': 1});
+      sincronizar('verbal-texto', 'verbal', {'Orientado': 5, 'Confuso': 4, 'Palavras inapropriadas': 3, 'Palavras incompreensíveis': 2, 'Nenhuma': 1});
+      sincronizar('motora-texto', 'motora', {'Obedece comandos': 6, 'Localiza dor': 5, 'Movimento de retirada': 4, 'Flexão anormal': 3, 'Extensão anormal': 2, 'Nenhuma': 1});
+      sincronizar('pupilar-texto', 'pupilar', {'Normal': 0, 'Anisocoria': -1, 'Midríase bilateral': -2});
+
+      const resultadoDiv = document.getElementById('resultado');
+      resultadoDiv.innerHTML = ''; // Limpa o conteúdo do resultado
+      resultadoDiv.style.display = 'none'; // Esconde a div de resultado
+      resultadoDiv.classList.remove('text-red-600', 'text-dark-blue', 'bg-red-100', 'bg-blue-50');
+      // Adiciona as classes padrão caso o resultado seja exibido novamente sem um cálculo
+      resultadoDiv.classList.add('text-dark-blue', 'bg-blue-50');
+    }
+
+    // A função gerarPDF() pode estar aqui ou em pdf111.js. 
+    // Se estiver em pdf111.js, remova esta função inline.
+    // Se não tiver pdf111.js, deixe esta função aqui.
+    function gerarPDF() {
+      const content = document.getElementById('conteudo').cloneNode(true); // Captura o conteúdo principal da calculadora
+
+      // Remove elementos que não devem ir no PDF (ex: botões)
+      const buttonsDiv = content.querySelector('.flex.flex-wrap.justify-start.gap-4.mt-6');
+      if (buttonsDiv) buttonsDiv.remove();
+      
+      // Esconde o botão de doação antes de gerar o PDF
+      const fixedButton = document.querySelector('.fixed-donation-button');
+      if (fixedButton) {
+        fixedButton.style.display = 'none';
+      }
+
+      const opt = {
+        margin:       0.5,
+        filename:     'escala-glasgow.pdf',
+        image:        { type: 'jpeg', quality: 0.98 },
+        html2canvas:  { scale: 3, scrollY: 0 },
+        jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' },
+      };
+      
+      html2pdf().set(opt).from(content).save().then(() => {
+        // Volta a exibir o botão de doação após a geração do PDF
+        if (fixedButton) {
+          fixedButton.style.display = '';
+        }
+      });
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      // Anexa eventos aos botões
+      document.getElementById('btnCalcular').addEventListener('click', calcularEscala);
+      document.getElementById('btnLimpar').addEventListener('click', limparCampos);
+      document.getElementById('btnGerarPDF').addEventListener('click', gerarPDF);
+
+      // Carrega o rodapé (rodape111.html)
+      fetch("rodape111.html")
+        .then(res => res.text())
+        .then(data => {
+          const footerContainer = document.getElementById("footer-container");
+          if (footerContainer) {
+            footerContainer.innerHTML = data;
+          } else {
+            console.error('Elemento footer-container não encontrado.');
+          }
+        })
+        .catch(err => console.error("Erro ao carregar rodape111.html:", err));
+    });
   </script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-    
-<!-- Carrega a barra superior -->
-<script src="topbar.js"></script>
 </body>
 </html>
