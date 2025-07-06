@@ -1,620 +1,121 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Calculadora de Escala de Apgar - Calculadoras de Enfermagem</title>
-  <link rel="canonical" href="https://www.calculadorasdeenfermagem.com.br/apgar.html" />
-  <link rel="icon" href="favicon.ico" type="image/x-icon" />
-  <meta name="keywords" content="escala apgar, apgar recém-nascido, apgar bebê, calculadora apgar, pontuação apgar, saúde neonatal, avaliação bebê, enfermagem neonatal, parto, vitalidade recém-nascido">
-  <meta name="description" content="Calcule a Escala de Apgar de forma rápida e precisa para avaliar a vitalidade do recém-nascido ao nascimento, com informações detalhadas e referências.">
+<div class="flex items-center mb-6">
+    <img src="iconpages.png" alt="Logo Calculadoras de Enfermagem" class="w-16 h-auto mr-4" />
+    <h1 class="text-left">Escala de Apgar</h1>
+</div>
 
-  <script async src="https://www.googletagmanager.com/gtag/js?id=AW-952633102"></script>
-  <script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
-    gtag('config', 'AW-952633102');
-  </script>
-  
-  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
-  
-  <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
-  
-  <style>
-    /* Este bloco <style> contém APENAS estilos que são essenciais para o layout 
-    geral da página em relação aos componentes (topbar/sidebar) e estilos 
-    muito específicos do conteúdo da calculadora que não são facilmente 
-    abordados apenas com Tailwind ou classes de componentes.
+<div id="pdfContent" class="bg-white p-6 rounded-lg shadow-md mb-8 text-left">
+    <p class="mt-4 text-apoio text-left">A Escala de Apgar avalia a condição física do recém-nascido (RN) logo após o parto, em dois momentos cruciais: 1 e 5 minutos de vida. Ela avalia cinco critérios: frequência cardíaca, esforço respiratório, tônus muscular, irritabilidade reflexa e cor da pele. Cada critério recebe uma nota de 0 a 2, e a soma total pode variar de 0 a 10.</p>
+    <p class="mt-2 text-apoio text-left">Um escore de 7 a 10 é considerado normal. Escores abaixo de 7 indicam a necessidade de observação ou intervenção médica e de enfermagem.</p>
     
-    Os estilos de H1, H2, P, Links, e Botões SÃO PADRONIZADOS e devem ser 
-    definidos globalmente (em um main.css ou no index.html como referência) 
-    para evitar duplicação.
-    */
+    <p class="mt-4 text-apoio text-left">Selecione a pontuação para cada item e clique em "Calcular":</p>
 
-    body {
-      /* Remova display:flex do body para desktop. A sidebar é fixa, main usa margin-left. */
-      min-height: 100vh;
-      font-family: 'Inter', sans-serif;
-      color: #000000;
-      background-color: #f8fafc;
-      margin: 0;
-      padding: 0;
-      padding-top: 64px; /* Espaço para a topbar em todos os casos */
-      box-sizing: border-box; /* Garante que padding não adicione largura */
-    }
-
-    /* Estilos para a Sidebar fixa em Desktop (controlados por sidebar111.js) */
-    .loaded-sidebar-desktop {
-      position: fixed;
-      left: 0;
-      top: 64px; /* Começa abaixo da topbar */
-      height: calc(100% - 64px); /* Altura total da tela menos a topbar */
-      width: 256px; /* w-64 do Tailwind */
-      overflow-y: auto; /* Para rolagem se o conteúdo for longo */
-      z-index: 40; /* Abaixo da topbar (z-50), acima do conteúdo */
-      background-color: white;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-      display: none; /* Inicia oculto, será 'block' via JS em desktop */
-      padding: 1.5rem 1rem;
-    }
-
-    /* Estilos para o botão de menu mobile da sidebar */
-    #menuToggle {
-      position: fixed;
-      top: 1rem;
-      left: 1rem;
-      z-index: 55;
-      background-color: white;
-      padding: 0.5rem;
-      border-radius: 0.25rem;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-      display: block; /* Visível por padrão em mobile */
-    }
-
-    /* Sidebar Mobile (controlada por sidebar111.js) */
-    #mobileSidebar {
-      position: fixed;
-      top: 0;
-      left: 0;
-      height: 100%;
-      width: 256px;
-      background-color: white;
-      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-      padding: 1.5rem;
-      z-index: 50;
-      display: none; /* Inicia oculto, será exibido via JS */
-    }
-
-    /* Ajustes de layout para desktop: oculta botão mobile e ajusta main para sidebar */
-    @media (min-width: 768px) {
-      body {
-        padding-top: 0; /* Remove o padding-top no desktop */
-      }
-      #menuToggle {
-        display: none !important;
-      }
-      .loaded-sidebar-desktop {
-        display: block; /* Mostra a sidebar em desktop */
-      }
-      main {
-        margin-left: 256px; /* Empurra o conteúdo principal para o lado da sidebar */
-        /* Remova o width: calc se o max-width + auto margin já funcionar bem */
-        width: auto; /* Deixe o width se ajustar com o max-width e auto margins */
-      }
-    }
-
-    /* Conteúdo principal para ocupar o resto do espaço */
-    main {
-      padding: 2rem 1rem; /* Espaçamento geral para o conteúdo */
-      max-width: 1280px; /* Largura máxima do conteúdo */
-      margin-left: auto; /* Centraliza em larguras menores que max-w-7xl, mas será sobrescrito por 256px em desktop */
-      margin-right: auto;
-      width: 100%; /* Garante que ocupe a largura disponível antes do max-width */
-      text-align: left;
-      min-height: calc(100vh - 64px - 100px); /* Ajuste min-height para garantir que o footer não suba, 100px é um exemplo para o footer */
-      position: relative; /* Para que elementos absolutos dentro dele se posicionem corretamente */
-    }
-
-    /* Estilos para a caixa de pesquisa (posicionamento adaptativo) */
-    .search-box-container {
-      position: absolute; /* Padrão para desktop */
-      top: 96px; /* 64px (topbar) + 32px (margem) */
-      right: 1rem;
-      z-index: 45;
-      max-width: 300px; /* Largura máxima para a caixa de pesquisa */
-      width: 100%; /* Ocupa 100% da largura disponível até o max-width */
-    }
-    @media (min-width: 768px) {
-      .search-box-container {
-        /* Alinha a caixa de pesquisa ao canto superior direito do viewport,
-           mas fora do fluxo normal do main. Pode ser relativo ao body. */
-        top: 96px; /* Mantém a posição Y */
-        right: 1rem; /* Alinhado à direita da viewport */
-        left: auto; /* Garante que não haja interferência do left anterior */
-        max-width: 300px;
-        width: auto; /* Deixe o max-width controlar */
-      }
-    }
-    @media (max-width: 767px) {
-      .search-box-container {
-        position: static; /* Remove o posicionamento absoluto no mobile */
-        margin-top: 1rem;
-        margin-left: auto;
-        margin-right: auto;
-        padding-left: 1rem;
-        padding-right: 1rem;
-        max-width: 90%; /* Limita a largura em mobile */
-        width: 100%;
-      }
-    }
-
-    /* Estilos para a área de resultados da pesquisa */
-    #search-results {
-        position: absolute;
-        top: 150px; /* Ajuste para aparecer abaixo da caixa de pesquisa */
-        right: 1rem;
-        z-index: 44;
-        background-color: white;
-        border: 1px solid #e2e8f0;
-        border-radius: 0.5rem;
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-        padding: 1rem;
-        max-width: 300px; /* Mesma largura da caixa de pesquisa */
-        width: 100%;
-        display: none;
-        overflow-y: auto;
-        max-height: 400px;
-        text-align: left;
-    }
-    @media (min-width: 768px) {
-      #search-results {
-        top: 150px; /* Mantém o top */
-        right: 1rem; /* Alinhado à direita */
-        left: auto;
-        max-width: 300px;
-        width: auto;
-      }
-    }
-    @media (max-width: 767px) {
-      #search-results {
-        position: static;
-        margin-top: 0.5rem;
-        margin-left: auto;
-        margin-right: auto;
-        max-width: 90%;
-        width: 100%;
-      }
-    }
-
-    /* Estilos específicos da tabela Apgar */
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 1.5rem;
-      margin-bottom: 1.5rem;
-      text-align: left;
-    }
-    th, td {
-      padding: 0.75rem;
-      border: 1px solid #e2e8f0;
-      text-align: left;
-    }
-    /* Para garantir que as colunas da tabela tenham tamanhos relativos consistentes */
-    table td:first-child { width: 40%; }
-    table td:last-child { width: 60%; }
-    
-    /* Responsividade da tabela para mobile */
-    @media (max-width: 640px) {
-        table, thead, tbody, th, td, tr { display: block; }
-        thead tr { position: absolute; top: -9999px; left: -9999px; }
-        tr { border: 1px solid #e2e8f0; margin-bottom: 0.5rem; }
-        td {
-            border: none;
-            border-bottom: 1px solid #eee;
-            position: relative;
-            padding-left: 50%;
-            text-align: right;
-        }
-        td:before {
-            position: absolute;
-            top: 6px;
-            left: 6px;
-            width: 45%;
-            padding-right: 10px;
-            white-space: nowrap;
-            text-align: left;
-            font-weight: bold;
-        }
-        td:nth-of-type(1):before { content: "Frequência Cardíaca:"; }
-        td:nth-of-type(2):before { content: "Esforço Respiratório:"; }
-        td:nth-of-type(3):before { content: "Tônus Muscular:"; }
-        td:nth-of-type(4):before { content: "Irritabilidade Reflexa:"; }
-        td:nth-of-type(5):before { content: "Cor da Pele:"; }
-    }
-    
-    .resultado {
-      margin-top: 1rem;
-      padding: 1rem;
-      background-color: #e0f2fe;
-      border-radius: 0.5rem;
-      font-weight: 600;
-      color: #1A3E74;
-      text-align: left;
-      white-space: pre-wrap;
-    }
-    .ref {
-      margin-top: 2rem;
-      font-size: 14px;
-      color: #666666;
-      text-align: left;
-    }
-
-    /* Estilos das classes de fonte e cor (DEVE SER GLOBAL) */
-    .font-nunito { font-family: 'Nunito Sans', sans-serif; }
-    .font-inter { font-family: 'Inter', sans-serif; }
-    .text-dark-blue { color: #1A3E74; }
-    .text-light-blue { color: #1FA4E5; }
-    .text-gray { color: #666666; }
-    .text-success-green { color: #1ED760; }
-
-    /* Estilos dos botões (DEVE SER GLOBAL) */
-    .btn-primary {
-      font-family: 'Inter', sans-serif;
-      font-weight: 600;
-      background-color: #1A3E74;
-      color: #FFF;
-      padding: 12px 24px;
-      border-radius: 8px;
-      transition: background-color 0.3s ease;
-    }
-    .btn-primary:hover { background-color: #122c54; }
-    .btn-secondary {
-      font-family: 'Inter', sans-serif;
-      font-weight: 600;
-      background-color: #1FA4E5;
-      color: #FFF;
-      padding: 12px 24px;
-      border-radius: 8px;
-      transition: background-color 0.3s ease;
-    }
-    .btn-secondary:hover { background-color: #178ac7; }
-    .btn-success {
-      font-family: 'Inter', sans-serif;
-      font-weight: 500;
-      background-color: #1ED760;
-      color: #FFF;
-      padding: 10px 20px;
-      border-radius: 8px;
-      transition: background-color 0.3s ease;
-    }
-    .btn-success:hover { background-color: #17b351; }
-
-    /* Estilos de cabeçalho e parágrafo (DEVE SER GLOBAL) */
-    h1 {
-      font-family: 'Nunito Sans', sans-serif;
-      font-weight: 700;
-      color: #1A3E74;
-      font-size: 40px;
-      line-height: 1.2;
-      text-align: left;
-    }
-    h2 {
-      font-family: 'Inter', sans-serif;
-      font-weight: 600;
-      color: #1FA4E5;
-      font-size: 28px;
-      text-align: left;
-    }
-    p {
-      font-family: 'Inter', sans-serif;
-      font-weight: 400;
-      font-size: 18px;
-      line-height: 1.5;
-      text-align: left;
-    }
-    .text-apoio {
-      font-family: 'Inter', sans-serif;
-      font-weight: 300;
-      color: #666666;
-      text-align: left;
-    }
-    .text-small-note {
-      font-family: 'Inter', sans-serif;
-      font-weight: 400;
-      font-size: 14px;
-      text-align: left;
-    }
-    a {
-      font-family: 'Inter', sans-serif;
-      font-weight: 400;
-      color: #1FA4E5;
-      text-decoration: none;
-    }
-    a:hover {
-      text-decoration: underline;
-    }
-
-  </style>
-
-  <script src="topbar111.js" defer></script>
-  <script src="site-index.js" defer></script>
-  <script src="pdf111.js" defer></script> 
-
-</head>
-<body>
-  <button id="menuToggle" class="md:hidden p-4 text-blue-700 text-xl fixed top-0 left-0 z-55">☰</button>
-  
-  <div id="mobileSidebar" class="hidden fixed top-0 left-0 h-full w-64 bg-white shadow-md p-6 z-50 space-y-2 text-[16px] text-[#1A3E74]">
-    <button id="closeSidebar" class="text-right text-xl text-blue-700 mb-4 w-full">✕</button>
-    <div class="text-lg font-semibold text-[#1A3E74] mb-2">Calculadoras</div>
-    </div>
-
-  <aside id="sidebar" class="loaded-sidebar-desktop px-4 py-6 space-y-2 text-[16px] text-[#1A3E74]">
-    <div class="text-lg font-semibold text-[#1A3E74] mb-2">Calculadoras</div>
-    </aside>
-
-  <main>
-    <div class="flex items-center mb-6">
-        <img src="iconpages.png" alt="Logo Calculadoras de Enfermagem" class="w-16 h-auto mr-4" />
-        <h1 class="text-left">Escala de Apgar</h1>
-    </div>
-
-    <div id="search-container" class="search-box-container"></div>
-    <div id="search-results"></div>
-
-    <div id="pdfContent" class="bg-white p-6 rounded-lg shadow-md mb-8 text-left">
-      <p class="mt-4 text-apoio text-left">Avalia a condição física do recém-nascido logo após o parto, ela avalia cinco critérios, cada critério recebe uma nota de 0 a 2. A soma total pode variar de 0 a 10. Escore de 7 a 10 é considerado normal.</p>
-      
-      <p class="mt-4 text-apoio text-left">Selecione a pontuação para cada item e clique em calcular:</p>
-
-      <table class="w-full text-left text-sm mt-4 border-collapse">
+    <table class="w-full text-left text-sm mt-4 border-collapse">
+        <thead>
+            <tr>
+                <th class="py-2 px-3 border-b-2 border-gray-200 bg-gray-100 font-semibold text-gray-700">Critério</th>
+                <th class="py-2 px-3 border-b-2 border-gray-200 bg-gray-100 font-semibold text-gray-700">Pontuação</th>
+            </tr>
+        </thead>
         <tbody>
-          <tr>
-            <td class="font-semibold w-2/5">Frequência Cardíaca</td>
-            <td class="w-3/5">
-              <label class="block mb-1"><input type="radio" name="fc" value="0" class="mr-2"> Ausente (0)</label>
-              <label class="block mb-1"><input type="radio" name="fc" value="1" class="mr-2"> &lt; 100 bpm (1)</label>
-              <label class="block"><input type="radio" name="fc" value="2" class="mr-2"> ≥ 100 bpm (2)</label>
-            </td>
-          </tr>
-          <tr>
-            <td class="font-semibold">Esforço Respiratório</td>
-            <td>
-              <label class="block mb-1"><input type="radio" name="resp" value="0" class="mr-2"> Ausente (0)</label>
-              <label class="block mb-1"><input type="radio" name="resp" value="1" class="mr-2"> Respiração lenta/irregular (1)</label>
-              <label class="block"><input type="radio" name="resp" value="2" class="mr-2"> Choro vigoroso (2)</label>
-            </td>
-          </tr>
-          <tr>
-            <td class="font-semibold">Tônus Muscular</td>
-            <td>
-              <label class="block mb-1"><input type="radio" name="tonus" value="0" class="mr-2"> Flácido (0)</label>
-              <label class="block mb-1"><input type="radio" name="tonus" value="1" class="mr-2"> Flexão de extremidades (1)</label>
-              <label class="block"><input type="radio" name="tonus" value="2" class="mr-2"> Movimentos ativos (2)</label>
-            </td>
-          </tr>
-          <tr>
-            <td class="font-semibold">Irritabilidade Reflexa</td>
-            <td>
-              <label class="block mb-1"><input type="radio" name="reflexo" value="0" class="mr-2"> Ausente (0)</label>
-              <label class="block mb-1"><input type="radio" name="reflexo" value="1" class="mr-2"> Caretas (1)</label>
-              <label class="block"><input type="radio" name="reflexo" value="2" class="mr-2"> Choro, espirro ou tosse (2)</label>
-            </td>
-          </tr>
-          <tr>
-            <td class="font-semibold">Cor da Pele</td>
-            <td>
-              <label class="block mb-1"><input type="radio" name="cor" value="0" class="mr-2"> Pálido ou cianótico (0)</label>
-              <label class="block mb-1"><input type="radio" name="cor" value="1" class="mr-2"> Corpo rosado, extremidades azuladas (1)</label>
-              <label class="block"><input type="radio" name="cor" value="2" class="mr-2"> Rosado por completo (2)</label>
-            </td>
-          </tr>
+            <tr>
+                <td class="font-semibold w-2/5 py-2 px-3 border-b border-gray-200">Frequência Cardíaca</td>
+                <td class="w-3/5 py-2 px-3 border-b border-gray-200">
+                    <label class="block mb-1"><input type="radio" name="fc" value="0" class="mr-2"> Ausente (0)</label>
+                    <label class="block mb-1"><input type="radio" name="fc" value="1" class="mr-2"> &lt; 100 bpm (1)</label>
+                    <label class="block"><input type="radio" name="fc" value="2" class="mr-2"> ≥ 100 bpm (2)</label>
+                </td>
+            </tr>
+            <tr>
+                <td class="font-semibold py-2 px-3 border-b border-gray-200">Esforço Respiratório</td>
+                <td class="py-2 px-3 border-b border-gray-200">
+                    <label class="block mb-1"><input type="radio" name="resp" value="0" class="mr-2"> Ausente (0)</label>
+                    <label class="block mb-1"><input type="radio" name="resp" value="1" class="mr-2"> Respiração lenta/irregular (1)</label>
+                    <label class="block"><input type="radio" name="resp" value="2" class="mr-2"> Choro vigoroso (2)</label>
+                </td>
+            </tr>
+            <tr>
+                <td class="font-semibold py-2 px-3 border-b border-gray-200">Tônus Muscular</td>
+                <td class="py-2 px-3 border-b border-gray-200">
+                    <label class="block mb-1"><input type="radio" name="tonus" value="0" class="mr-2"> Flácido (0)</label>
+                    <label class="block mb-1"><input type="radio" name="tonus" value="1" class="mr-2"> Flexão de extremidades (1)</label>
+                    <label class="block"><input type="radio" name="tonus" value="2" class="mr-2"> Movimentos ativos (2)</label>
+                </td>
+            </tr>
+            <tr>
+                <td class="font-semibold py-2 px-3 border-b border-gray-200">Irritabilidade Reflexa</td>
+                <td class="py-2 px-3 border-b border-gray-200">
+                    <label class="block mb-1"><input type="radio" name="reflexo" value="0" class="mr-2"> Ausente (0)</label>
+                    <label class="block mb-1"><input type="radio" name="reflexo" value="1" class="mr-2"> Caretas (1)</label>
+                    <label class="block"><input type="radio" name="reflexo" value="2" class="mr-2"> Choro, espirro ou tosse (2)</label>
+                </td>
+            </tr>
+            <tr>
+                <td class="font-semibold py-2 px-3 border-b border-gray-200">Cor da Pele</td>
+                <td class="py-2 px-3 border-b border-gray-200">
+                    <label class="block mb-1"><input type="radio" name="cor" value="0" class="mr-2"> Pálido ou cianótico (0)</label>
+                    <label class="block mb-1"><input type="radio" name="cor" value="1" class="mr-2"> Corpo rosado, extremidades azuladas (1)</label>
+                    <label class="block"><input type="radio" name="cor" value="2" class="mr-2"> Rosado por completo (2)</label>
+                </td>
+            </tr>
         </tbody>
-      </table>
+    </table>
 
-      <div class="resultado" id="resultado"></div>
-      
-      <div class="ref text-small-note mt-8">
-        Referência: <a href="http://www.cofen.gov.br/resoluo-cofen-n-3282008_4807.html" target="_blank" class="text-light-blue hover:underline">Conselho Federal de Enfermagem - COFEN. Resolução Nº 328/2008 e protocolos de cuidado neonatal.</a>
-      </div>
-    </div>
+    <div class="resultado" id="resultado"></div>
     
-    <div class="flex space-x-4 mt-6">
-      <button onclick="calcular()" class="btn-primary">Calcular</button>
-      <button onclick="limpar()" class="btn-primary">Limpar</button>
-      <button onclick="gerarPDFWrapper()" class="btn-secondary">Gerar PDF</button>
+    <div class="ref text-small-note mt-8">
+        Referência: <a href="http://www.cofen.gov.br/resoluo-cofen-n-3282008_4807.html" target="_blank" rel="noopener noreferrer" class="text-light-blue hover:underline">Conselho Federal de Enfermagem - COFEN. Resolução Nº 328/2008 e protocolos de cuidado neonatal.</a>
     </div>
-  </main>
+</div>
 
-  <script>
-    // Código de cálculo da escala Apgar - MANTIDO INTACTO
-    function calcular() {
-      const campos = ["fc", "resp", "tonus", "reflexo", "cor"];
-      let total = 0;
-      for (let campo of campos) {
-        const selecionado = document.querySelector(`input[name="${campo}"]:checked`);
-        if (!selecionado) {
-          document.getElementById("resultado").innerText = "Por favor, selecione todas as opções.";
-          return;
-        }
-        total += parseInt(selecionado.value);
-      }
+<div class="flex flex-wrap justify-start gap-4 mt-6">
+    <button onclick="calcular()" class="btn-primary">Calcular</button>
+    <button onclick="limpar()" class="btn-primary">Limpar</button>
+    <button onclick="gerarPDFWrapper()" class="btn-secondary">Gerar PDF</button>
+</div>
 
-      let conduta = "";
-      if (total >= 8) {
-        conduta = "Recém-nascido com boa vitalidade. Cuidados de enfermagem ao recém-nascido: Meta 1 (dupla pulseira + check list verbalizado com a mãe), aquecimento, impressão digito podálico, pesagem, PC, PT, PA, comprimento, temperatura corporal, envolver na manta aquecida. Humanizar.";
-      } else if (total >= 4) {
-        conduta = "Moderada depressão. Conduta: suporte e reavaliação imediata: Monitorização contínua, oximetria de pulso, observação de MRPM, aletas nasais, manter material preparado para via aérea avançada.";
-      } else {
-        conduta = "Grave depressão. Conduta: reanimação neonatal imediata: Suporte ao neonatologista > montar laringo, ter a disposição TOT sem cuff, realizar o preparo de rediluição da epinefrina, ter por perto isolet com cilindro de O2 cheio e AMBU; Outras assistências de enfermagem.";
-      }
-
-      document.getElementById("resultado").innerText = `Pontuação total: ${total}/10\n${conduta}`;
+<script>
+// Código de cálculo da escala Apgar (mantido aqui para ser carregado junto com o conteúdo)
+function calcular() {
+  const campos = ["fc", "resp", "tonus", "reflexo", "cor"];
+  let total = 0;
+  for (let campo of campos) {
+    const selecionado = document.querySelector(`input[name="${campo}"]:checked`);
+    if (!selecionado) {
+      document.getElementById("resultado").innerText = "Por favor, selecione todas as opções para calcular.";
+      document.getElementById("resultado").classList.add('text-red-600'); // Adiciona cor de erro
+      document.getElementById("resultado").classList.remove('text-dark-blue'); // Remove cor normal
+      return;
     }
+    total += parseInt(selecionado.value);
+  }
 
-    // NOVA FUNÇÃO: Limpa os campos e o resultado
-    function limpar() {
-      const campos = ["fc", "resp", "tonus", "reflexo", "cor"];
-      for (let campo of campos) {
-        const radios = document.querySelectorAll(`input[name="${campo}"]`);
-        radios.forEach(radio => radio.checked = false);
-      }
-      document.getElementById("resultado").innerText = ""; // Limpa o texto do resultado
-    }
+  let conduta = "";
+  if (total >= 8) {
+    conduta = "Recém-nascido com boa vitalidade. Cuidados de enfermagem ao recém-nascido: Meta 1 (dupla pulseira + check list verbalizado com a mãe), aquecimento, impressão digito podálico, pesagem, PC, PT, PA, comprimento, temperatura corporal, envolver na manta aquecida. Humanizar.";
+  } else if (total >= 4) {
+    conduta = "Moderada depressão. Conduta: suporte e reavaliação imediata: Monitorização contínua, oximetria de pulso, observação de MRPM, aletas nasais, manter material preparado para via aérea avançada.";
+  } else {
+    conduta = "Grave depressão. Conduta: reanimação neonatal imediata: Suporte ao neonatologista > montar laringo, ter a disposição TOT sem cuff, realizar o preparo de rediluição da epinefrina, ter por perto isolet com cilindro de O2 cheio e AMBU; Outras assistências de enfermagem.";
+  }
 
-    // Carregamento da Sidebar via JS (PADRONIZADO)
-    document.addEventListener('DOMContentLoaded', () => {
-      // Carrega o conteúdo de sidebar111.html
-      fetch("sidebar111.html")
-        .then(res => res.text())
-        .then(data => {
-          const tempDiv = document.createElement("div");
-          tempDiv.innerHTML = data;
+  const resultadoDiv = document.getElementById("resultado");
+  resultadoDiv.innerText = `Pontuação total: ${total}/10\n\nConduta: ${conduta}`;
+  resultadoDiv.classList.remove('text-red-600'); // Remove cor de erro
+  resultadoDiv.classList.add('text-dark-blue'); // Adiciona cor normal
+}
 
-          const sidebarDesktop = tempDiv.querySelector('aside');
-          const mobileSidebarContent = tempDiv.querySelector('#mobile-sidebar-content'); // Assume que o conteúdo está dentro de um id para mobile
-          
-          const menuToggleBtn = document.getElementById('menuToggle');
-          const mobileSidebarDiv = document.getElementById('mobileSidebar');
-          const closeBtn = document.getElementById('closeSidebar');
+// Limpa os campos e o resultado
+function limpar() {
+  const campos = ["fc", "resp", "tonus", "reflexo", "cor"];
+  for (let campo of campos) {
+    const radios = document.querySelectorAll(`input[name="${campo}"]`);
+    radios.forEach(radio => radio.checked = false);
+  }
+  const resultadoDiv = document.getElementById("resultado");
+  resultadoDiv.innerText = ""; // Limpa o texto do resultado
+  resultadoDiv.classList.remove('text-red-600', 'text-dark-blue'); // Remove todas as cores de texto
+}
 
-          if (sidebarDesktop) {
-            document.body.prepend(sidebarDesktop); // Adiciona a sidebar desktop antes do body
-          }
-
-          // Injeta o conteúdo da sidebar mobile no div #mobileSidebar
-          if (mobileSidebarDiv && mobileSidebarContent) {
-              // Limpa o conteúdo existente e anexa o novo
-              mobileSidebarDiv.innerHTML = ''; 
-              while (mobileSidebarContent.firstChild) {
-                  mobileSidebarDiv.appendChild(mobileSidebarContent.firstChild);
-              }
-          }
-
-          // Lógica de toggle para o menu mobile
-          if (menuToggleBtn) {
-            menuToggleBtn.addEventListener('click', () => {
-              if (mobileSidebarDiv) mobileSidebarDiv.classList.remove('hidden');
-            });
-          }
-          if (closeBtn) {
-            closeBtn.addEventListener('click', () => {
-              if (mobileSidebarDiv) mobileSidebarDiv.classList.add('hidden');
-            });
-          }
-        })
-        .catch(err => {
-          console.error("Erro ao carregar sidebar111.html:", err);
-        });
-
-      // Carregamento da caixa de pesquisa e sua lógica - PADRONIZADO
-      fetch("pesquisa.html")
-        .then(res => res.text())
-        .then(data => {
-          const searchContainer = document.getElementById('search-container');
-          if (searchContainer) {
-            // Crie um div temporário para carregar o HTML da pesquisa
-            const tempDiv = document.createElement('div');
-            tempDiv.innerHTML = data;
-            
-            // Mova os filhos do tempDiv para o searchContainer
-            while (tempDiv.firstChild) {
-                searchContainer.appendChild(tempDiv.firstChild);
-            }
-
-            const searchInput = searchContainer.querySelector('#search-input');
-            const searchButton = searchContainer.querySelector('button[type="submit"]');
-            const searchResultsDiv = document.getElementById('search-results');
-
-            if (searchButton && searchInput && searchResultsDiv) {
-              const handleSearch = (e) => {
-                e.preventDefault(); // Evita o comportamento padrão do botão de submit
-                performSearch(searchInput.value, searchResultsDiv);
-              };
-
-              searchButton.addEventListener('click', handleSearch);
-              searchInput.addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') {
-                  e.preventDefault(); // Evita o submit padrão do formulário
-                  handleSearch(e);
-                }
-              });
-
-              // Fecha os resultados ao clicar fora ou perder o foco
-              searchInput.addEventListener('blur', () => {
-                  setTimeout(() => { // Pequeno delay para permitir clique nos resultados
-                      searchResultsDiv.style.display = 'none';
-                      searchResultsDiv.innerHTML = '';
-                  }, 200);
-              });
-
-              searchInput.addEventListener('focus', () => {
-                  if (searchInput.value.trim() !== '') {
-                      performSearch(searchInput.value, searchResultsDiv);
-                  }
-              });
-            }
-          }
-        })
-        .catch(err => {
-          console.error("Erro ao carregar pesquisa.html:", err);
-        });
-    });
-
-    // Carregamento do Rodapé via JS - PADRONIZADO
-    document.addEventListener('DOMContentLoaded', () => {
-      fetch("rodape111.html")
-        .then(res => res.text())
-        .then(data => {
-          const footer = document.createElement("footer");
-          footer.innerHTML = data;
-          document.body.appendChild(footer);
-        })
-        .catch(err => {
-            console.error("Erro ao carregar rodape111.html:", err);
-        });
-    });
-
-    // Função para realizar a pesquisa e exibir os resultados - PADRONIZADO
-    // NOTA: 'sitePages' vem de site-index.js, que DEVE ser carregado antes deste script.
-    function performSearch(query, resultsDiv) {
-      const lowerCaseQuery = query.toLowerCase().trim();
-      resultsDiv.innerHTML = '';
-      resultsDiv.style.display = 'none';
-
-      if (lowerCaseQuery === '') {
-        return;
-      }
-
-      const results = sitePages.filter(page =>
-        page.title.toLowerCase().includes(lowerCaseQuery) ||
-        (page.keywords && page.keywords.toLowerCase().includes(lowerCaseQuery))
-      );
-
-      if (results.length > 0) {
-        let resultsListHtml = '<ul>';
-        results.forEach(result => {
-          resultsListHtml += `<li><a href="${result.url}" class="text-blue-600 hover:underline">${result.title}</a></li>`;
-        });
-        resultsListHtml += '</ul>';
-        resultsDiv.innerHTML = resultsListHtml;
-        resultsDiv.style.display = 'block';
-      } else {
-        resultsDiv.innerHTML = '<p class="text-gray-600 text-sm">Nenhum resultado encontrado.</p>';
-        resultsDiv.style.display = 'block';
-      }
-    }
-    
-    // Função Wrapper para gerar PDF, que chama a função de pdf111.js
-    function gerarPDFWrapper() {
-        if (typeof gerarPDF === 'function') {
-            gerarPDF('pdfContent', 'escala_apgar'); // Passa o ID do conteúdo e o nome do arquivo
-        } else {
-            console.error('pdf111.js ou a função gerarPDF não foi carregada corretamente.');
-            alert('A funcionalidade de geração de PDF não está disponível no momento.');
-        }
-    }
-  </script>
-</body>
-</html>
+// A função gerarPDFWrapper() é definida em site-index.js e acessível globalmente.
+// Ela chamará a função gerarPDF do pdf111.js usando o ID 'pdfContent'.
+</script>
