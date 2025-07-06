@@ -1,227 +1,412 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Escala de Richmond (RASS)</title>
-  <link rel="canonical" href="https://www.calculadorasdeenfermagem.com.br/richmond.html" />
-  <meta name="description" content="Calculadora da Escala de Agitação e Sedação de Richmond (RASS) com pontuação e interpretação clínica." />
-  <meta name="keywords" content="escala RASS, sedação, agitação, enfermagem, uti, richmond">
-  <style>
-    body { font-family: Arial, sans-serif; margin: 0; padding: 0; display: flex; background-color: #f7f9fc; }
-    .sidebar {
-      background-color: #cce5ff;
-      width: 220px;
-      height: 100vh;
-      padding: 20px;
-      box-sizing: border-box;
-    }
-    .sidebar h3 {
-      margin-top: 0;
-      color: #004085;
-      font-size: 18px;
-      text-align: center;
-    }
-    .sidebar a {
-      display: block;
-      color: #0056b3;
-      text-decoration: none;
-      margin: 10px auto;
-      font-weight: bold;
-      text-align: center;
-      font-size: 14px;
-    }
-    .sidebar a:hover {
-      text-decoration: underline;
-    }
-    .content {
-      flex-grow: 1;
-      padding: 20px;
-      max-width: 900px;
-      margin: auto;
-    }
-    h1 {
-      text-align: center;
-      color: #007bff;
-    }
-    p, label {
-      font-size: 12px;
-      margin-bottom: 10px;
-    }
-    table {
-      border-collapse: collapse;
-      width: 100%;
-      margin-top: 20px;
-    }
-    th, td {
-      border: 1px solid #ccc;
-      padding: 10px;
-      text-align: left;
-    }
-    tr:hover {
-      background-color: #e0f7fa;
-      cursor: pointer;
-    }
-    .selected {
-      background-color: #b3e5fc !important;
-    }
-    button {
-      margin-top: 20px;
-      padding: 12px 20px;
-      background-color: #007bff;
-      color: white;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-      font-size: 16px;
-      margin-right: 10px;
-    }
-    .resultado {
-      margin-top: 20px;
-      padding: 15px;
-      background-color: #e1f5fe;
-      border-radius: 8px;
-      font-weight: bold;
-      font-size: 16px;
-      white-space: pre-line;
-    }
-    .referencia {
-      font-family: Arial, sans-serif;
-      font-size: 12px;
-      color: #000;
-      margin-top: 45px;
-    }
-    footer {
-      background-color: #f1f1f1;
-      padding: 20px;
-      text-align: center;
-      font-size: 14px;
-      color: #555;
-      margin-top: 40px;
-      border-top: 1px solid #ddd;
-    }
-    footer a {
-      color: #007bff;
-      text-decoration: none;
-      margin: 0 6px;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Escala de Richmond (RASS)</title>
+    <link rel="canonical" href="https://www.calculadorasdeenfermagem.com.br/richmond.html" />
+    <meta name="description" content="Calculadora da Escala de Agitação e Sedação de Richmond (RASS) com pontuação e interpretação clínica." />
+    <meta name="keywords" content="escala RASS, sedação, agitação, enfermagem, uti, richmond">
 
-  <!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=AW-952633102">
-</script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <script defer src="./topbar111.js"></script>
 
-  gtag('config', 'AW-952633102');
-  </script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=AW-952633102"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'AW-952633102');
+    </script>
+
+    <style>
+        /* Reset básico e Box-sizing para consistência */
+        *, *::before, *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* Fontes personalizadas */
+        @import url('https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@700&family=Inter:wght@300;400;500;600&display=swap');
+
+        /* Estilos das classes de fonte e cor personalizadas (para uso no HTML com Tailwind) */
+        .font-nunito { font-family: 'Nunito Sans', sans-serif; }
+        .font-inter { font-family: 'Inter', sans-serif; }
+        .text-dark-blue { color: #1A3E74; } /* Azul Escuro */
+        .text-light-blue { color: #1FA4E5; } /* Azul Claro */
+        .text-gray-custom { color: #666666; } /* Cinza */
+        .text-success-green { color: #1ED760; } /* Verde */
+
+        /* Padrão de Botões (Componentes CSS para reuso) */
+        .btn-primary {
+            font-family: 'Inter', sans-serif;
+            font-weight: 600;
+            background-color: #1A3E74; /* Cor primária azul escuro */
+            color: #FFF;
+            padding: 12px 24px;
+            border-radius: 8px;
+            transition: background-color 0.3s ease;
+            border: none;
+            cursor: pointer;
+            text-align: center;
+        }
+        .btn-primary:hover { background-color: #122c54; } /* Tom mais escuro no hover */
+        .btn-secondary {
+            font-family: 'Inter', sans-serif;
+            font-weight: 600;
+            background-color: #1FA4E5; /* Cor secundária azul claro */
+            color: #FFF;
+            padding: 12px 24px;
+            border-radius: 8px;
+            transition: background-color 0.3s ease;
+            border: none;
+            cursor: pointer;
+            text-align: center;
+        }
+        .btn-secondary:hover { background-color: #178ac7; } /* Tom mais escuro no hover */
+        .btn-success {
+            font-family: 'Inter', sans-serif;
+            font-weight: 500;
+            background-color: #1ED760;
+            color: #FFF;
+            padding: 10px 20px;
+            border-radius: 8px;
+            transition: background-color 0.3s ease;
+            border: none;
+            cursor: pointer;
+            text-align: center;
+        }
+        .btn-success:hover { background-color: #17b351; }
+
+        /* Estilos para a área de resultado da calculadora (Componente específico) */
+        .resultado {
+            margin-top: 1rem;
+            padding: 1rem;
+            background-color: #e0f2fe; /* Tailwind blue-50 */
+            border-radius: 0.5rem;
+            font-weight: 600;
+            color: #1A3E74; /* text-dark-blue */
+            text-align: left;
+            white-space: pre-wrap;
+        }
+        /* Cores de resultado ajustadas para as novas cores */
+        .resultado.bg-success-green-light { background-color: #D4EDDA; border-color: #C3E6CB; color: #155724; } /* Similar ao green-100 */
+        .resultado.bg-warning-yellow-light { background-color: #FFF3CD; border-color: #FFEEDA; color: #856404; } /* Similar ao yellow-100 */
+        .resultado.bg-danger-red-light { background-color: #F8D7DA; border-color: #F5C6CB; color: #721C24; } /* Similar ao red-100 */
+        .resultado.bg-info-orange-light { background-color: #ffeeba; border-color: #ffb366; color: #856404; } /* Para alertas */
+
+        /* Estilos para a referência/bibliografia (Componente específico) */
+        .ref {
+            margin-top: 2rem;
+            font-size: 14px;
+            color: #666666; /* text-gray-custom */
+            text-align: left;
+        }
+
+        /* Layout principal com Topbar fixa */
+        body {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh; /* Garante que o body ocupe a altura total da viewport */
+            background-color: #f8fafc; /* Tailwind bg-gray-50 */
+            color: #333; /* Tailwind text-gray-800 */
+            font-family: 'Inter', sans-serif; /* Aplica a fonte Inter ao body */
+        }
+
+        /* ESTILOS DOS DROPDOWNS DA TOPBAR (MOVIDOS DE TOPBAR111.HTML) */
+        .dropdown-menu { display: none; }
+        .dropdown-menu.show { display: block; }
+        nav { justify-content: flex-end; }
+        nav button { cursor: pointer; }
+        nav .dropdown-menu a:hover { background-color: #bfdbfe; }
+        /* FIM DOS ESTILOS DA TOPBAR */
+
+        /* Espaçamento para o conteúdo abaixo da topbar fixa */
+        .main-content-wrapper {
+            display: flex;
+            flex-direction: column;
+            flex-grow: 1;
+            padding-top: 64px; /* Garante que o conteúdo comece abaixo da topbar fixa (64px de altura) */
+            width: 100%;
+        }
+
+        /* Conteúdo principal (main) */
+        main {
+            flex-grow: 1;
+            max-width: 1280px; /* max-w-7xl */
+            margin-left: auto;
+            margin-right: auto;
+            padding: 2rem 1rem; /* Equivalente a p-8 px-4 */
+            width: 100%;
+        }
+
+        /* Estilos gerais da tabela */
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin-top: 20px;
+        }
+        th, td {
+            border: 1px solid #e2e8f0; /* Borda das células */
+            padding: 1rem; /* p-4 */
+            text-align: left;
+        }
+        th {
+            background-color: #f0f8ff; /* Fundo do cabeçalho da tabela */
+            color: #1A3E74; /* Cor do texto do cabeçalho */
+            font-weight: 600;
+            text-align: center;
+        }
+        tr:hover {
+            background-color: #e0f7fa; /* Tailwind blue-50 */
+            cursor: pointer;
+        }
+        .selected {
+            background-color: #bfdbfe !important; /* Tailwind blue-200 */
+        }
+
+        /* Responsividade da tabela para mobile */
+        @media (max-width: 640px) {
+            table, thead, tbody, th, td, tr { display: block; }
+            thead tr { position: absolute; top: -9999px; left: -9999px; }
+            tr { border: 1px solid #e2e8f0; margin-bottom: 0.5rem; display: block; }
+            td {
+                border: none;
+                border-bottom: 1px solid #eee;
+                position: relative;
+                padding-left: 50%;
+                text-align: right;
+            }
+            td:before {
+                position: absolute;
+                top: 6px;
+                left: 6px;
+                width: 45%;
+                padding-right: 10px;
+                white-space: nowrap;
+                text-align: left;
+                font-weight: bold;
+                color: #1A3E74; /* Cor para os rótulos em mobile */
+            }
+            /* Estilos específicos para os rótulos da tabela em mobile para RASS */
+            #tabelaRASS td:nth-of-type(1):before { content: "Pontuação:"; }
+            #tabelaRASS td:nth-of-type(2):before { content: "Descrição:"; }
+        }
+    </style>
 </head>
-<body>
-  <div id="barra-lateral"></div>
-<script>
-  fetch('sidebar.html')
-    .then(response => response.text())
-    .then(html => {
-      document.getElementById('barra-lateral').innerHTML = html;
-    });
-</script>
-  <div class="content" id="pdfContent">
-    <h1> <br><br>Escala de Richmond (RASS)</h1>
-    <p>A Escala RASS é usada para avaliar o nível de sedação ou agitação em pacientes críticos. Escolha o nível que mais representa o estado atual do paciente:</p>
-    <table id="tabelaRASS">
-      <tr><th>Pontuação</th><th>Descrição</th></tr>
-      <tr data-score="4"><td>+4</td><td>Muito agitado: Agressivo, perigoso para si e para os outros.</td></tr>
-      <tr data-score="3"><td>+3</td><td>Agitado: Puxa ou remove tubos/cateteres, comportamento combativo.</td></tr>
-      <tr data-score="2"><td>+2</td><td>Muito inquieto: Movimentos frequentes e descoordenados, sem agressividade.</td></tr>
-      <tr data-score="1"><td>+1</td><td>Inquieto: Ansioso, com movimentos não agressivos.</td></tr>
-      <tr data-score="0"><td>0</td><td>Alerta e calmo: Estado ideal.</td></tr>
-      <tr data-score="-1"><td>-1</td><td>Sonolento: Acorda por >10s, contato visual sustentado.</td></tr>
-      <tr data-score="-2"><td>-2</td><td>Sedação leve: Contato visual breve.</td></tr>
-      <tr data-score="-3"><td>-3</td><td>Sedação moderada: Movimenta-se sem contato visual.</td></tr>
-      <tr data-score="-4"><td>-4</td><td>Sedação profunda: Reage a estímulo doloroso.</td></tr>
-      <tr data-score="-5"><td>-5</td><td>Sem resposta: Nenhuma resposta a estímulos.</td></tr>
-    </table>
+<body class="bg-gray-50 text-gray-800 font-inter">
 
-    <button onclick="calcularRASS()">Mostrar Resultado</button>
-    <button onclick="gerarPDF()">Gerar PDF</button>
+    <div id="topbar-container"></div>
 
-    <div id="resultado" class="resultado" style="display:none;"></div>
-
-    <div class="referencia">
-      Referência: Sessler CN, Gosnell MS, Grap MJ et al. The Richmond Agitation-Sedation Scale (RASS): Validity and reliability in adult intensive care unit patients. Am J Respir Crit Care Med. 2002;166:1338-44.
-      <br><br><br>
-      Referência: Universidade Federal de Pelotas – UFPel. Escala de Agitação e Sedação de Richmond (RASS). Disponível em: <a href="https://dms.ufpel.edu.br/static/bib/apoio/escala_de_rass.pdf" target="_blank">https://dms.ufpel.edu.br/static/bib/apoio/escala_de_rass.pdf</a>
+    <div class="flex flex-wrap items-center justify-center gap-4 mb-3">
+        <img src="iconpages.png" alt="Ícone da Página" class="w-32 h-auto" />
+        <h1 class="font-nunito font-extrabold text-dark-blue text-4xl lg:text-5xl text-center">
+            Escala de Richmond (RASS)
+        </h1>
     </div>
 
-    <footer>
-      <p>© 2025 Calculadoras de Enfermagem</p>
-      <p>
-        <a href="index.html">Início</a> |
-        <a href="politica.html">Política de Privacidade</a> |
-        <a href="termos.html">Termos de Uso</a>
-      </p>
-    </footer>
-  </div>
+    <h2 class="font-inter font-semibold text-light-blue text-2xl lg:text-3xl mb-3 text-left max-w-4xl mx-auto px-4">
+        Avalia o nível de sedação ou agitação em pacientes críticos.
+    </h2>
+    <p class="font-inter font-normal text-gray-custom text-base lg:text-lg mb-6 text-left max-w-4xl mx-auto px-4">
+        Escolha o nível que melhor representa o estado atual do paciente:
+    </p>
 
-  <script>
-    const linhas = document.querySelectorAll('#tabelaRASS tr[data-score]');
-    let scoreSelecionado = null;
+    <div class="main-content-wrapper">
+        <main class="mx-auto px-4 py-8 max-w-4xl">
+            <div id="conteudo"> <table id="tabelaRASS" class="w-full border-collapse border border-gray-300 mb-6 text-left">
+                    <thead>
+                        <tr>
+                            <th class="border border-gray-300 p-4 font-semibold text-center">Pontuação</th>
+                            <th class="border border-gray-300 p-4 font-semibold text-center">Descrição</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr data-score="4"><td>+4</td><td>Muito agitado: Agressivo, perigoso para si e para os outros.</td></tr>
+                        <tr data-score="3"><td>+3</td><td>Agitado: Puxa ou remove tubos/cateteres, comportamento combativo.</td></tr>
+                        <tr data-score="2"><td>+2</td><td>Muito inquieto: Movimentos frequentes e descoordenados, sem agressividade.</td></tr>
+                        <tr data-score="1"><td>+1</td><td>Inquieto: Ansioso, com movimentos não agressivos.</td></tr>
+                        <tr data-score="0"><td>0</td><td>Alerta e calmo: Estado ideal.</td></tr>
+                        <tr data-score="-1"><td>-1</td><td>Sonolento: Acorda por >10s, contato visual sustentado.</td></tr>
+                        <tr data-score="-2"><td>-2</td><td>Sedação leve: Contato visual breve.</td></tr>
+                        <tr data-score="-3"><td>-3</td><td>Sedação moderada: Movimenta-se sem contato visual.</td></tr>
+                        <tr data-score="-4"><td>-4</td><td>Sedação profunda: Reage a estímulo doloroso.</td></tr>
+                        <tr data-score="-5"><td>-5</td><td>Sem resposta: Nenhuma resposta a estímulos.</td></tr>
+                    </tbody>
+                </table>
 
-    linhas.forEach(linha => {
-      linha.addEventListener('click', () => {
-        linhas.forEach(l => l.classList.remove('selected'));
-        linha.classList.add('selected');
-        scoreSelecionado = linha.getAttribute('data-score');
-      });
-    });
+                <div id="resultado" class="resultado" aria-live="polite" style="display:none;"></div>
 
-    function calcularRASS() {
-      const resultado = document.getElementById('resultado');
-      if (scoreSelecionado === null) {
-        resultado.textContent = 'Por favor, selecione um nível da escala antes de continuar.';
-        resultado.style.display = 'block';
-        return;
-      }
+                <div class="ref font-inter text-gray-custom text-left">
+                    <p class="font-bold mb-2">Referências bibliográficas:</p>
+                    <p>Sessler CN, Gosnell MS, Grap MJ et al. The Richmond Agitation-Sedation Scale (RASS): Validity and reliability in adult intensive care unit patients. Am J Respir Crit Care Med. 2002;166:1338-44.</p>
+                    <p class="mt-2">Universidade Federal de Pelotas – UFPel. Escala de Agitação e Sedação de Richmond (RASS). Disponível em:
+                        <a href="https://dms.ufpel.edu.br/static/bib/apoio/escala_de_rass.pdf" target="_blank" class="text-light-blue hover:underline">
+                            https://dms.ufpel.edu.br/static/bib/apoio/escala_de_rass.pdf
+                        </a>
+                    </p>
+                </div>
+            </div>
+            <div class="flex flex-wrap justify-start gap-4 mt-6">
+                <button id="btnCalcular" class="btn-primary" aria-label="Mostrar resultado">
+                    Mostrar Resultado
+                </button>
+                <button id="btnLimpar" class="btn-primary" aria-label="Limpar campos">
+                    Limpar
+                </button>
+                <button id="btnGerarPDF" class="btn-secondary" aria-label="Gerar PDF">
+                    Gerar PDF
+                </button>
+            </div>
+        </main>
+    </div>
 
-      let mensagem = `Pontuação RASS selecionada: ${scoreSelecionado}\n\n`;
+    <a href="doacoes.html" class="fixed bottom-4 right-4 bg-dark-blue text-white text-sm px-4 py-2 rounded-full shadow hover:bg-blue-900 transition fixed-donation-button z-30">
+        Ajude-nos a manter o site gratuito
+    </a>
 
-      if (scoreSelecionado > 0) {
-        mensagem += 'Paciente agitado. Monitorar risco de agressividade e ajustar sedação conforme necessário.';
-      } else if (scoreSelecionado == 0) {
-        mensagem += 'Paciente em estado ideal: alerta e calmo. Manter acompanhamento.';
-      } else if (scoreSelecionado >= -2) {
-        mensagem += 'Sedação leve. Verificar conforto do paciente e manter monitoramento.';
-      } else if (scoreSelecionado >= -4) {
-        mensagem += 'Sedação profunda. Avaliar necessidade de ajustar dose sedativa.';
-      } else {
-        mensagem += 'Paciente sem resposta. Considerar reavaliação imediata e suporte intensivo.';
-      }
+    <div id="footer-container"></div>
 
-      resultado.textContent = mensagem;
-      resultado.style.display = 'block';
-    }
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
-    function gerarPDF() {
-      const content = document.getElementById("pdfContent").cloneNode(true);
-      const sidebar = content.querySelector(".sidebar");
-      const footer = content.querySelector("footer");
-      if (sidebar) sidebar.remove();
-      if (footer) footer.remove();
-      const opt = {
-        margin: 0,
-        filename: "escala-richmond.pdf",
-        image: { type: "jpeg", quality: 1 },
-        html2canvas: { scale: 3, scrollY: 0 },
-        jsPDF: { unit: "mm", format: "a4", orientation: "portrait" }
-      };
-      html2pdf().set(opt).from(content).save();
-    }
-  </script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-    
-<!-- Carrega a barra superior -->
-<script src="topbar.js"></script>
+    <script>
+        let scoreSelecionado = null; // Variável global para armazenar a pontuação selecionada
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // Carrega o rodapé
+            fetch('rodape111.html')
+                .then(response => response.text())
+                .then(html => {
+                    document.getElementById('footer-container').innerHTML = html;
+                })
+                .catch(error => console.error('Erro ao carregar o rodapé:', error));
+
+            // Adiciona event listeners para a seleção das linhas da tabela
+            const linhas = document.querySelectorAll('#tabelaRASS tr[data-score]');
+            linhas.forEach(linha => {
+                linha.addEventListener('click', () => {
+                    linhas.forEach(l => l.classList.remove('selected')); // Remove seleção de todas as linhas
+                    linha.classList.add('selected'); // Adiciona seleção à linha clicada
+                    scoreSelecionado = parseInt(linha.getAttribute('data-score'), 10); // Atualiza o scoreSelecionado
+                });
+            });
+
+            // Adiciona event listeners aos botões
+            document.getElementById('btnCalcular').addEventListener('click', calcularRASS);
+            document.getElementById('btnLimpar').addEventListener('click', limparCamposRASS);
+            document.getElementById('btnGerarPDF').addEventListener('click', gerarPDFRASS);
+        });
+
+        function calcularRASS() {
+            const resultadoDiv = document.getElementById('resultado');
+            resultadoDiv.className = 'resultado'; // Reseta para a classe base
+
+            if (scoreSelecionado === null) {
+                resultadoDiv.style.display = 'block';
+                resultadoDiv.innerHTML = '⚠️ <strong class="font-bold">Por favor, selecione um nível da escala</strong> antes de continuar.';
+                resultadoDiv.classList.add('bg-info-orange-light', 'text-orange-800');
+                return;
+            }
+
+            let mensagem = `Pontuação RASS selecionada: <strong class="font-bold">${scoreSelecionado}</strong>\n\n`;
+            let resultadoClasses = [];
+
+            if (scoreSelecionado === 4) {
+                mensagem += 'Muito agitado: Paciente agressivo, perigoso para si e para os outros. Requer atenção imediata e intervenção para segurança.';
+                resultadoClasses = ['bg-danger-red-light', 'text-red-800'];
+            } else if (scoreSelecionado === 3) {
+                mensagem += 'Agitado: Paciente com comportamento combativo, puxa ou remove tubos/cateteres. Avaliar causa e considerar contenção ou sedação.';
+                resultadoClasses = ['bg-danger-red-light', 'text-red-800'];
+            } else if (scoreSelecionado === 2) {
+                mensagem += 'Muito inquieto: Paciente com movimentos frequentes e descoordenados, sem agressividade. Pode indicar desconforto ou agitação emergente.';
+                resultadoClasses = ['bg-warning-yellow-light', 'text-yellow-800'];
+            } else if (scoreSelecionado === 1) {
+                mensagem += 'Inquieto: Paciente ansioso, com movimentos não agressivos. Monitorar para piora e avaliar causas de ansiedade.';
+                resultadoClasses = ['bg-warning-yellow-light', 'text-yellow-800'];
+            } else if (scoreSelecionado === 0) {
+                mensagem += 'Alerta e calmo: Paciente em estado ideal. Manter acompanhamento e garantir conforto.';
+                resultadoClasses = ['bg-success-green-light', 'text-green-800'];
+            } else if (scoreSelecionado === -1) {
+                mensagem += 'Sonolento: Paciente acorda por >10s, com contato visual sustentado. Monitorar nível de sedação e desconforto.';
+                resultadoClasses = ['bg-success-green-light', 'text-green-800'];
+            } else if (scoreSelecionado === -2) {
+                mensagem += 'Sedação leve: Paciente com contato visual breve. Indica sedação adequada para procedimentos ou descanso.';
+                resultadoClasses = ['bg-warning-yellow-light', 'text-yellow-800'];
+            } else if (scoreSelecionado === -3) {
+                mensagem += 'Sedação moderada: Paciente movimenta-se sem contato visual. Avaliar necessidade de manter este nível de sedação ou aprofundar/diminuir.';
+                resultadoClasses = ['bg-warning-yellow-light', 'text-yellow-800'];
+            } else if (scoreSelecionado === -4) {
+                mensagem += 'Sedação profunda: Paciente reage apenas a estímulo doloroso. Avaliar necessidade de ajuste da dose sedativa para evitar sedação excessiva.';
+                resultadoClasses = ['bg-danger-red-light', 'text-red-800'];
+            } else if (scoreSelecionado === -5) {
+                mensagem += 'Sem resposta: Paciente sem nenhuma resposta a estímulos. Considerar reavaliação imediata, causas da inconsciência e suporte intensivo.';
+                resultadoClasses = ['bg-danger-red-light', 'text-red-800'];
+            }
+
+            resultadoDiv.textContent = mensagem;
+            resultadoDiv.style.display = 'block';
+            resultadoClasses.forEach(cls => resultadoDiv.classList.add(cls));
+        }
+
+        function limparCamposRASS() {
+            const linhas = document.querySelectorAll('#tabelaRASS tr[data-score]');
+            linhas.forEach(l => l.classList.remove('selected'));
+            scoreSelecionado = null; // Reseta a pontuação selecionada
+            const resultadoDiv = document.getElementById('resultado');
+            resultadoDiv.style.display = 'none';
+            resultadoDiv.innerHTML = '';
+            resultadoDiv.className = 'resultado'; // Reseta as classes
+        }
+
+        function gerarPDFRASS() {
+            const contentToPrint = document.getElementById("conteudo").cloneNode(true);
+
+            // Remove os botões clonados para não aparecerem no PDF
+            const buttonsDiv = contentToPrint.querySelector('.flex.flex-wrap.justify-start.gap-4.mt-6');
+            if (buttonsDiv) {
+                buttonsDiv.remove();
+            }
+
+            // Garante que o resultado esteja visível e com o conteúdo correto para o PDF
+            const originalResultDiv = document.getElementById('resultado');
+            const resultDivInPdf = contentToPrint.querySelector('#resultado');
+
+            if (originalResultDiv.style.display !== 'none' && originalResultDiv.innerHTML.trim() !== '' && !originalResultDiv.innerHTML.includes('Por favor, selecione')) {
+                resultDivInPdf.style.display = 'block';
+                resultDivInPdf.innerHTML = originalResultDiv.innerHTML;
+                originalResultDiv.classList.forEach(cls => {
+                    if (cls.startsWith('bg-') || cls.startsWith('text-')) {
+                        resultDivInPdf.classList.add(cls);
+                    }
+                });
+            } else {
+                resultDivInPdf.style.display = 'block';
+                resultDivInPdf.innerHTML = "Resultado não calculado ou seleção incompleta na página. Calcule antes de gerar o PDF.";
+                resultDivInPdf.classList.add('bg-info-orange-light', 'text-orange-800');
+            }
+
+            const headerHtml = `
+                <div style="text-align: center; margin-bottom: 20px; font-family: 'Nunito Sans', sans-serif; color: #1A3E74;">
+                    <h1 style="font-size: 24px; font-weight: bold; margin-bottom: 5px;">Escala de Richmond (RASS)</h1>
+                    <p style="font-size: 14px; color: #666666;">Relatório de Agitação e Sedação</p>
+                    <p style="font-size: 12px; color: #777;">Gerado em: ${new Date().toLocaleDateString('pt-BR')} ${new Date().toLocaleTimeString('pt-BR')}</p>
+                </div>
+            `;
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = headerHtml;
+            contentToPrint.prepend(tempDiv.firstChild);
+
+            const opt = {
+                margin: 0.5,
+                filename: "escala-richmond.pdf",
+                image: { type: "jpeg", quality: 0.98 },
+                html2canvas: { scale: 3, scrollY: 0 },
+                jsPDF: { unit: "in", format: "a4", orientation: "portrait" }
+            };
+
+            html2pdf().set(opt).from(contentToPrint).save();
+        }
+    </script>
 </body>
 </html>
