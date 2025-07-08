@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" /> <!-- Meta tag viewport atualizada para 1.0 -->
   <title>Escala ELPO</title>
 
   <link rel="canonical" href="https://www.calculadorasdeenfermagem.com.br/elpo.html" />
@@ -42,9 +42,7 @@
     .text-light-blue { color: #1FA4E5; } /* Azul Claro */
     .text-gray-custom { color: #666666; } /* Cinza */
     .text-success-green { color: #1ED760; } /* Verde */
-    /* Adicionado para consistência de cor de texto padrão */
-    .text-black-custom { color: #333; } 
-    /* Ajustado para a classe de erro do Tailwind */
+    .text-black-custom { color: #333; } /* Adicionado para consistência de cor de texto padrão */
     .text-red-custom { color: #dc2626; } /* Tailwind red-600, similar to error messages */
 
 
@@ -149,7 +147,68 @@
       padding: 2rem 1rem; /* p-8 px-4 */
     }
 
-    /* Responsividade da tabela para mobile - Rótulos serão definidos no CSS específico de cada calculadora */
+    /* --- NOVOS ESTILOS PARA RESPONSIVIDADE DO FORMULÁRIO (Substituem a lógica de tabela) --- */
+
+    /* Container de cada critério */
+    .criterion-section {
+        background-color: #fff;
+        border: 1px solid #e2e8f0; /* similar ao border-gray-300 */
+        border-radius: 8px; /* Cantos levemente arredondados */
+        padding: 1rem;
+        margin-bottom: 1rem;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.05); /* Sombra suave */
+        display: flex;
+        flex-direction: column; /* Empilha o título e o select em mobile */
+        gap: 0.75rem; /* Espaçamento entre o título e o select */
+    }
+
+    /* Título de cada critério */
+    .criterion-title {
+        font-size: 1.125rem; /* text-lg */
+        font-weight: 600; /* font-semibold */
+        color: #1A3E74; /* text-dark-blue */
+    }
+
+    /* Estilo para os selects */
+    .criterion-select {
+        width: 100%;
+        padding: 0.75rem;
+        border: 1px solid #ccc;
+        border-radius: 0.375rem; /* rounded-md */
+        font-size: 1rem;
+        color: #333;
+        background-color: #fff; /* Garante fundo branco para o select */
+        appearance: none; /* Remove estilo padrão do navegador para setas */
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='currentColor'%3E%3Cpath fill-rule='evenodd' d='M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z' clip-rule='evenodd'/%3E%3C/svg%3E"); /* Seta customizada */
+        background-repeat: no-repeat;
+        background-position: right 0.75rem center;
+        background-size: 1.5em 1.5em; /* Tamanho da seta */
+    }
+    .criterion-select:focus {
+        outline: none;
+        border-color: #1FA4E5; /* text-light-blue */
+        box-shadow: 0 0 0 3px rgba(31, 164, 229, 0.2);
+    }
+
+    /* Media query para telas médias (tablets e desktops pequenos) */
+    @media (min-width: 640px) { /* sm breakpoint */
+        .criterion-section {
+            flex-direction: row; /* Alinha o título e o select lado a lado */
+            align-items: center; /* Centraliza verticalmente */
+            justify-content: space-between; /* Distribui o espaço */
+            gap: 1rem; /* Aumenta o espaçamento */
+        }
+        .criterion-title {
+            flex-basis: 40%; /* Dá mais espaço para o título do critério */
+            margin-bottom: 0; /* Remove margem inferior em desktop */
+        }
+        .criterion-select {
+            flex-basis: 55%; /* Dá mais espaço para o select */
+        }
+    }
+
+    /* REMOVIDO: Antigos estilos de responsividade de tabela, pois a estrutura mudou */
+    /*
     @media (max-width: 640px) {
       table, thead, tbody, th, td, tr { display: block; }
       thead tr { position: absolute; top: -9999px; left: -9999px; }
@@ -171,7 +230,6 @@
           text-align: left;
           font-weight: bold;
       }
-      /* Estilos específicos para os rótulos da tabela em mobile para ELPO */
       #conteudo table td:nth-of-type(1):before { content: "Posição Cirúrgica:"; }
       #conteudo table td:nth-of-type(2):before { content: "Tempo de Cirurgia:"; }
       #conteudo table td:nth-of-type(3):before { content: "Tipo de Anestesia:"; }
@@ -180,6 +238,7 @@
       #conteudo table td:nth-of-type(6):before { content: "Comorbidades:"; }
       #conteudo table td:nth-of-type(7):before { content: "Estado Nutricional:"; }
     }
+    */
   </style>
 </head>
 <body class="bg-gray-50 text-gray-800 font-inter">
@@ -203,66 +262,89 @@
       </p>
 
       <div id="conteudo">
-        <table class="w-full border-collapse border border-gray-300 mb-6 text-left">
-          <tbody>
-            <tr>
-              <td class="border border-gray-300 p-4 font-semibold w-1/3 align-top">1. Posição Cirúrgica</td>
-              <td class="border border-gray-300 p-4 w-2/3">
-                <select id="item1" class="w-full p-2 border border-gray-300 rounded">
-                  <option value="5">5 - Mais risco</option><option value="4">4</option><option value="3">3</option><option value="2">2</option><option value="1">1 - Menos risco</option>
-                </select>
-              </td>
-            </tr>
-            <tr>
-              <td class="border border-gray-300 p-4 font-semibold align-top">2. Tempo de Cirurgia</td>
-              <td class="border border-gray-300 p-4">
-                <select id="item2" class="w-full p-2 border border-gray-300 rounded">
-                  <option value="5">5 - ≥ 5h</option><option value="4">4 - 4 a 4h59</option><option value="3">3 - 3 a 3h59</option><option value="2">2 - 2 a 2h59</option><option value="1">1 - ≤ 1h59</option>
-                </select>
-              </td>
-            </tr>
-            <tr>
-              <td class="border border-gray-300 p-4 font-semibold align-top">3. Tipo de Anestesia</td>
-              <td class="border border-gray-300 p-4">
-                <select id="item3" class="w-full p-2 border border-gray-300 rounded">
-                  <option value="5">5 - Geral + bloqueio</option><option value="4">4 - Geral</option><option value="3">3 - Raquidiana</option><option value="2">2 - Peridural</option><option value="1">1 - Local</option>
-                </select>
-              </td>
-            </tr>
-            <tr>
-              <td class="border border-gray-300 p-4 font-semibold align-top">4. Tipo de Apoio</td>
-              <td class="border border-gray-300 p-4">
-                <select id="item4" class="w-full p-2 border border-gray-300 rounded">
-                  <option value="5">5 - Nenhum</option><option value="4">4 - Mínimo</option><option value="3">3 - Parcial</option><option value="2">2 - Completo rígido</option><option value="1">1 - Completo anatômico</option>
-                </select>
-              </td>
-            </tr>
-            <tr>
-              <td class="border border-gray-300 p-4 font-semibold align-top">5. Condições da Pele</td>
-              <td class="border border-gray-300 p-4">
-                <select id="item5" class="w-full p-2 border border-gray-300 rounded">
-                  <option value="5">5 - Muito fina, frágil</option><option value="4">4 - Fina</option><option value="3">3 - Normal</option><option value="2">2 - Espessa</option><option value="1">1 - Íntegra e resistente</option>
-                </select>
-              </td>
-            </tr>
-            <tr>
-              <td class="border border-gray-300 p-4 font-semibold align-top">6. Comorbidades</td>
-              <td class="border border-gray-300 p-4">
-                <select id="item6" class="w-full p-2 border border-gray-300 rounded">
-                  <option value="5">5 - Múltiplas</option><option value="4">4 - 3 ou mais</option><option value="3">3 - 2</option><option value="2">2 - 1</option><option value="1">1 - Nenhuma</option>
-                </select>
-              </td>
-            </tr>
-            <tr>
-              <td class="border border-gray-300 p-4 font-semibold align-top">7. Estado Nutricional</td>
-              <td class="border border-gray-300 p-4">
-                <select id="item7" class="w-full p-2 border border-gray-300 rounded">
-                  <option value="5">5 - Grave desnutrição</option><option value="4">4 - Desnutrido</option><option value="3">3 - Leve desnutrição</option><option value="2">2 - Normal</option><option value="1">1 - Bem nutrido</option>
-                </select>
-              </td>
-            </tr>
-          </tbody>
-        </table>
+        <!-- Seção de Critério: Posição Cirúrgica -->
+        <div class="criterion-section">
+          <h3 class="criterion-title">1. Posição Cirúrgica</h3>
+          <select id="item1" class="criterion-select">
+            <option value="5">5 - Mais risco</option>
+            <option value="4">4</option>
+            <option value="3">3</option>
+            <option value="2">2</option>
+            <option value="1">1 - Menos risco</option>
+          </select>
+        </div>
+
+        <!-- Seção de Critério: Tempo de Cirurgia -->
+        <div class="criterion-section">
+          <h3 class="criterion-title">2. Tempo de Cirurgia</h3>
+          <select id="item2" class="criterion-select">
+            <option value="5">5 - ≥ 5h</option>
+            <option value="4">4 - 4 a 4h59</option>
+            <option value="3">3 - 3 a 3h59</option>
+            <option value="2">2 - 2 a 2h59</option>
+            <option value="1">1 - ≤ 1h59</option>
+          </select>
+        </div>
+
+        <!-- Seção de Critério: Tipo de Anestesia -->
+        <div class="criterion-section">
+          <h3 class="criterion-title">3. Tipo de Anestesia</h3>
+          <select id="item3" class="criterion-select">
+            <option value="5">5 - Geral + bloqueio</option>
+            <option value="4">4 - Geral</option>
+            <option value="3">3 - Raquidiana</option>
+            <option value="2">2 - Peridural</option>
+            <option value="1">1 - Local</option>
+          </select>
+        </div>
+
+        <!-- Seção de Critério: Tipo de Apoio -->
+        <div class="criterion-section">
+          <h3 class="criterion-title">4. Tipo de Apoio</h3>
+          <select id="item4" class="criterion-select">
+            <option value="5">5 - Nenhum</option>
+            <option value="4">4 - Mínimo</option>
+            <option value="3">3 - Parcial</option>
+            <option value="2">2 - Completo rígido</option>
+            <option value="1">1 - Completo anatômico</option>
+          </select>
+        </div>
+
+        <!-- Seção de Critério: Condições da Pele -->
+        <div class="criterion-section">
+          <h3 class="criterion-title">5. Condições da Pele</h3>
+          <select id="item5" class="criterion-select">
+            <option value="5">5 - Muito fina, frágil</option>
+            <option value="4">4 - Fina</option>
+            <option value="3">3 - Normal</option>
+            <option value="2">2 - Espessa</option>
+            <option value="1">1 - Íntegra e resistente</option>
+          </select>
+        </div>
+
+        <!-- Seção de Critério: Comorbidades -->
+        <div class="criterion-section">
+          <h3 class="criterion-title">6. Comorbidades</h3>
+          <select id="item6" class="criterion-select">
+            <option value="5">5 - Múltiplas</option>
+            <option value="4">4 - 3 ou mais</option>
+            <option value="3">3 - 2</option>
+            <option value="2">2 - 1</option>
+            <option value="1">1 - Nenhuma</option>
+          </select>
+        </div>
+
+        <!-- Seção de Critério: Estado Nutricional -->
+        <div class="criterion-section">
+          <h3 class="criterion-title">7. Estado Nutricional</h3>
+          <select id="item7" class="criterion-select">
+            <option value="5">5 - Grave desnutrição</option>
+            <option value="4">4 - Desnutrido</option>
+            <option value="3">3 - Leve desnutrição</option>
+            <option value="2">2 - Normal</option>
+            <option value="1">1 - Bem nutrido</option>
+          </select>
+        </div>
 
         <div id="resultado" class="resultado" aria-live="polite"></div>
 
@@ -346,7 +428,7 @@
         
         // Clona os elementos de cabeçalho e o conteúdo principal
         const mainTitle = document.getElementById('main-title');
-        const subtitle = document.getElementById('subtitle');
+        const subtitle = document.getElementById('subtitle'); // Mantido para referência, mas não usado diretamente no PDF header
         const introParagraph = document.getElementById('intro-paragraph');
         const contentToPrint = document.getElementById('conteudo'); // Conteúdo principal da calculadora
         
@@ -389,18 +471,6 @@
         if (contentToPrint) {
             const clonedContent = contentToPrint.cloneNode(true);
             
-            // Corrige estilos de tabela para PDF, se necessário (exemplo básico)
-            const table = clonedContent.querySelector('table');
-            if (table) {
-                table.style.width = '100%';
-                table.style.borderCollapse = 'collapse';
-                table.querySelectorAll('th, td').forEach(cell => {
-                    cell.style.border = '1px solid #ccc';
-                    cell.style.padding = '8px';
-                    cell.style.textAlign = 'left';
-                });
-            }
-            
             // Remove selects do conteúdo clonado e substitui pelos valores selecionados
             const selects = clonedContent.querySelectorAll('select');
             selects.forEach(select => {
@@ -410,6 +480,28 @@
                 valueDisplay.style.fontWeight = 'bold';
                 select.parentNode.replaceChild(valueDisplay, select);
             });
+
+            // Ajusta estilos dos novos divs de critério para o PDF
+            clonedContent.querySelectorAll('.criterion-section').forEach(section => {
+                section.style.display = 'flex';
+                section.style.flexDirection = 'column'; /* Força empilhamento no PDF para melhor legibilidade */
+                section.style.marginBottom = '10px';
+                section.style.padding = '10px';
+                section.style.border = '1px solid #e2e8f0';
+                section.style.borderRadius = '8px';
+                section.style.backgroundColor = '#fff';
+                section.style.boxShadow = 'none'; /* Remove sombra para o PDF */
+            });
+            clonedContent.querySelectorAll('.criterion-title').forEach(title => {
+                title.style.fontSize = '14px';
+                title.style.marginBottom = '5px';
+            });
+            clonedContent.querySelectorAll('.criterion-select + span').forEach(span => { /* O span que substitui o select */
+                span.style.fontSize = '14px';
+                span.style.padding = '5px';
+                span.style.display = 'block';
+            });
+
 
             // Adiciona o resultado atual se estiver visível
             const resultadoDiv = document.getElementById('resultado');
@@ -426,7 +518,7 @@
             pdfContentWrapper.appendChild(clonedContent);
         }
 
-        // Opcional: Esconder elementos fixos ou não desejados no PDF antes de gerar
+        // Esconder o botão de doação antes de gerar o PDF
         const fixedButton = document.querySelector('.fixed-donation-button');
         if (fixedButton) {
             fixedButton.style.display = 'none';
