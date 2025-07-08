@@ -22,7 +22,7 @@
     gtag('config', 'AW-952633102');
   </script>
 
-  <script src="topbar111.js" defer></script> 
+  <script src="topbar111.js" defer></script>  
   <script src="pdf111.js"></script>
 
   <style>
@@ -126,13 +126,13 @@
     /* ESTILOS DOS DROPDOWNS DA TOPBAR (MOVIDOS DE TOPBAR111.HTML) */
     .dropdown-menu { display: none; }
     .dropdown-menu.show { display: block; }
-    nav { justify-content: flex-end; } 
+    nav { justify-content: flex-end; }  
     nav button { cursor: pointer; }
     nav .dropdown-menu a:hover { background-color: #bfdbfe; }
     /* FIM DOS ESTILOS DA TOPBAR */
 
     /* Espaçamento para o conteúdo abaixo da topbar fixa */
-    .main-content-wrapper { 
+    .main-content-wrapper {  
       display: flex;
       flex-direction: column;
       flex-grow: 1;
@@ -195,7 +195,7 @@
 </head>
 <body class="bg-gray-50 text-gray-800 font-inter">
 
-  <div id="topbar-container"></div> 
+  <div id="topbar-container"></div>  
 
   <div class="main-content-wrapper">
     <main class="flex flex-col flex-grow">
@@ -337,7 +337,7 @@
       </div>
 
     </main>
-  </div> 
+  </div>  
 
   <a href="doacoes.html" class="fixed bottom-4 right-4 bg-dark-blue text-white text-sm px-4 py-2 rounded-full shadow hover:bg-blue-900 transition fixed-donation-button">
     Ajude-nos a manter o site gratuito
@@ -396,16 +396,16 @@
         } else if (total >= 5) {
           interpretacao = "Risco **Moderado** – Reavaliar frequentemente (a cada 1-2 horas) e considerar apoio médico. Risco de deterioração clínica.";
           corClasse = 'bg-yellow-custom';
-        } else if (total >= 1 && total <= 4) { 
+        } else if (total >= 1 && total <= 4) {  
           interpretacao = "Risco **Baixo** – Monitoramento regular (a cada 4-6 horas).";
           corClasse = 'bg-green-custom';
-        } else if (total === 0) { 
+        } else if (total === 0) {  
           interpretacao = "Risco **Muito Baixo** – Monitoramento de rotina (a cada 12 horas).";
           corClasse = 'bg-green-custom';
         }
 
         resultadoDiv.style.display = "block";
-        resultadoDiv.innerHTML = 
+        resultadoDiv.innerHTML =  
           `<p class="font-bold">Pontuação Total NEWS: ${total}</p>` +
           `<p class="font-bold text-lg mt-2 mb-1">Classificação: ${interpretacao}</p>`;
         resultadoDiv.classList.add(corClasse);
@@ -424,17 +424,19 @@
 
       // Função para gerar PDF (assumindo que pdf111.js cuida de html2pdf)
       function gerarPDF() {
+        const fixedButton = document.querySelector('.fixed-donation-button');
+        if (fixedButton) {
+          fixedButton.style.display = 'none'; // Esconde o botão de doação
+        }
+
         const content = document.getElementById('conteudo').cloneNode(true);
         const buttonsDiv = content.querySelector('.flex.flex-wrap.justify-start.gap-4.mt-6');
         if (buttonsDiv) buttonsDiv.remove(); // Remove os botões do conteúdo do PDF
 
-        const fixedButton = document.querySelector('.fixed-donation-button');
-        if (fixedButton) {
-          fixedButton.style.display = 'none'; // Esconde o botão de doação para o PDF
-        }
-
         const resultadoOriginal = document.getElementById('resultado');
         const resultadoCopia = content.querySelector('#resultado');
+        
+        // Ensure the result is displayed in the PDF, even if it was hidden or showed an error message
         if (resultadoOriginal.style.display === 'none' || resultadoOriginal.innerHTML.includes('Por favor, selecione')) {
             resultadoCopia.style.display = 'block';
             resultadoCopia.classList.remove('bg-red-custom', 'bg-yellow-custom', 'bg-green-custom');
@@ -442,15 +444,15 @@
             resultadoCopia.innerHTML = "Resultado não calculado ou incompleto na página. Calcule antes de gerar o PDF.";
         } else {
           resultadoCopia.innerHTML = resultadoOriginal.innerHTML;
-          resultadoCopia.className = resultadoOriginal.className; 
+          resultadoCopia.className = resultadoOriginal.className;  
         }
 
         const opt = {
-          margin:       0.5,
-          filename:     'protocolo_news.pdf',
-          image:        { type: 'jpeg', quality: 0.98 },
-          html2canvas:  { scale: 3, scrollY: 0 },
-          jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' },
+          margin:        0.5,
+          filename:      'protocolo_news.pdf',
+          image:         { type: 'jpeg', quality: 0.98 },
+          html2canvas:   { scale: 3, scrollY: 0 },
+          jsPDF:         { unit: 'in', format: 'a4', orientation: 'portrait' },
         };
         
         html2pdf().set(opt).from(content).save().then(() => {
