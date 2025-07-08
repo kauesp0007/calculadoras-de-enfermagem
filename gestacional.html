@@ -100,6 +100,7 @@
     }
     .resultado.text-red-600 { /* Classe para mensagens de erro (fundo) */
         background-color: #fee2e2; /* Tailwind red-100 */
+        color: #dc2626; /* Tailwind red-600 */
     }
 
     /* Estilos para a referência/bibliografia (Componente específico) */
@@ -127,13 +128,13 @@
     /* ESTILOS DOS DROPDOWNS DA TOPBAR (MOVIDOS DE TOPBAR111.HTML) */
     .dropdown-menu { display: none; }
     .dropdown-menu.show { display: block; }
-    nav { justify-content: flex-end; } 
+    nav { justify-content: flex-end; }  
     nav button { cursor: pointer; }
     nav .dropdown-menu a:hover { background-color: #bfdbfe; }
     /* FIM DOS ESTILOS DA TOPBAR */
 
     /* Espaçamento para o conteúdo abaixo da topbar fixa */
-    .main-content-wrapper { 
+    .main-content-wrapper {  
       display: flex;
       flex-direction: column;
       flex-grow: 1;
@@ -163,30 +164,31 @@
 </head>
 <body class="bg-gray-50 text-gray-800 font-inter">
 
-  <div id="topbar-container"></div> 
+  <div id="topbar-container"></div>  
 
   <div class="main-content-wrapper">
     <main class="flex flex-col flex-grow">
 
       <div class="flex flex-wrap items-center justify-center gap-4 mb-3">
         <img src="iconpages.png" alt="Ícone da Calculadora de Gestação" class="w-32 h-auto" />
-        <h1 class="font-nunito font-extrabold text-dark-blue text-4xl lg:text-5xl text-center">
+        <h1 id="main-title" class="font-nunito font-extrabold text-dark-blue text-4xl lg:text-5xl text-center">
           Calculadora de Idade Gestacional e Data Provável do Parto (DPP)
         </h1>
       </div>
 
-      <p class="font-inter font-normal text-black-custom text-base lg:text-lg mb-6 text-left">
+      <p id="intro-paragraph" class="font-inter font-normal text-black-custom text-base lg:text-lg mb-6 text-left">
         Insira a data da última menstruação (DUM) para calcular a idade gestacional e a data provável do parto (DPP).
       </p>
 
-      <div id="conteudo" class="w-full"> <div class="mb-4">
+      <div id="conteudo" class="w-full">
+        <div class="mb-4">
           <label for="dum" class="block text-black-custom text-lg font-medium mb-2">Data da Última Menstruação (DUM):</label>
           <input type="date" id="dum" name="dum" class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-light-blue" />
         </div>
         
-        <div id="resultado" class="resultado" aria-live="polite"></div>
+        <div id="resultado" class="resultado" aria-live="polite" style="display: none;"></div>
 
-        <div id="bibliografia" class="ref font-inter text-gray-custom text-left mt-10">
+        <div id="bibliografia" class="ref font-inter text-gray-custom text-left mt-10" style="display: none;">
           <strong>Bibliografia Confiável:</strong><br />
           <p class="mt-2">
             Ministério da Saúde. Caderno de Atenção Básica: Pré-natal e Puerpério. Brasília: Ministério da Saúde, 2012. <br>
@@ -209,7 +211,7 @@
       </div>
 
     </main>
-  </div> 
+  </div>  
 
   <a href="doacoes.html" class="fixed bottom-4 right-4 bg-dark-blue text-white text-sm px-4 py-2 rounded-full shadow hover:bg-blue-900 transition fixed-donation-button">
     Ajude-nos a manter o site gratuito
@@ -217,14 +219,9 @@
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   
-  <script src="pdf111.js"></script>
-
   <div id="footer-container"></div>
 
   <script>
-    // Remover a função filtrarLinks, pois a busca lateral não será mais usada
-    // function filtrarLinks(texto) { ... } 
-
     function calcularGestacional() {
       const dumInput = document.getElementById('dum').value;
       const resultadoDiv = document.getElementById('resultado');
@@ -242,7 +239,7 @@
       const dum = new Date(dumInput + 'T00:00:00'); // Adiciona T00:00:00 para evitar problemas de fuso horário
       const hoje = new Date();
       // Resetar horas, minutos, segundos e milissegundos para comparação exata de datas
-      hoje.setHours(0, 0, 0, 0); 
+      hoje.setHours(0, 0, 0, 0);  
       dum.setHours(0, 0, 0, 0);
 
       // Validação: DUM não pode ser no futuro
@@ -287,36 +284,115 @@
       bibliografiaDiv.style.display = 'none'; // Esconde a bibliografia ao limpar
     }
 
-    // A função gerarPDF() pode estar aqui ou em pdf111.js. 
-    // Se estiver em pdf111.js, remova esta função inline.
-    // Se não tiver pdf111.js, deixe esta função aqui.
+    // Função para gerar PDF (PADRÃO)
     function gerarPDF() {
-      const content = document.getElementById('conteudo').cloneNode(true); // Captura o conteúdo principal da calculadora
+        console.log('Função gerarPDF() iniciada.');
 
-      // Remove elementos que não devem ir no PDF, se houver
-      const searchBox = content.querySelector('.search-box');
-      if (searchBox) searchBox.remove();
-      
-      // Esconde o botão de doação antes de gerar o PDF
-      const fixedButton = document.querySelector('.fixed-donation-button');
-      if (fixedButton) {
-        fixedButton.style.display = 'none';
-      }
+        const mainTitle = document.getElementById('main-title');
+        const introParagraph = document.getElementById('intro-paragraph');
+        const dumInput = document.getElementById('dum');
+        const resultadoDiv = document.getElementById('resultado');
+        const bibliografiaDiv = document.getElementById('bibliografia');
 
-      const opt = {
-        margin:       0.5,
-        filename:     'idade_gestacional.pdf',
-        image:        { type: 'jpeg', quality: 0.98 },
-        html2canvas:  { scale: 3, scrollY: 0 },
-        jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' },
-      };
-      
-      html2pdf().set(opt).from(content).save().then(() => {
-        // Volta a exibir o botão de doação após a geração do PDF
-        if (fixedButton) {
-          fixedButton.style.display = '';
+        // Cria um container temporário para os elementos que irão para o PDF
+        const pdfContentWrapper = document.createElement('div');
+        pdfContentWrapper.style.padding = '20px'; // Adiciona um padding geral ao conteúdo do PDF
+        pdfContentWrapper.style.fontFamily = 'Inter, sans-serif'; // Garante a fonte no PDF
+        pdfContentWrapper.style.color = '#333'; // Cor do texto padrão no PDF
+
+        // Adiciona o título principal
+        if (mainTitle) {
+            const clonedMainTitle = mainTitle.cloneNode(true);
+            clonedMainTitle.style.fontSize = '28px'; // Ajustar tamanho para o PDF
+            clonedMainTitle.style.color = '#1A3E74';
+            clonedMainTitle.style.textAlign = 'center';
+            clonedMainTitle.style.marginBottom = '15px';
+            pdfContentWrapper.appendChild(clonedMainTitle);
         }
-      });
+
+        // Adiciona a introdução/descrição
+        if (introParagraph) {
+            const clonedIntroParagraph = introParagraph.cloneNode(true);
+            clonedIntroParagraph.style.fontSize = '14px';
+            clonedIntroParagraph.style.color = '#666';
+            clonedIntroParagraph.style.textAlign = 'center';
+            clonedIntroParagraph.style.marginBottom = '20px';
+            pdfContentWrapper.appendChild(clonedIntroParagraph);
+        }
+
+        // Adiciona a data de geração
+        const dateDiv = document.createElement('p');
+        dateDiv.style.fontSize = '10px';
+        dateDiv.style.color = '#777';
+        dateDiv.style.textAlign = 'right';
+        dateDiv.style.marginBottom = '10px';
+        dateDiv.innerText = `Gerado em: ${new Date().toLocaleDateString('pt-BR')} ${new Date().toLocaleTimeString('pt-BR')}`;
+        pdfContentWrapper.appendChild(dateDiv);
+
+        // Adiciona a DUM inserida
+        const dumValueP = document.createElement('p');
+        dumValueP.style.fontSize = '16px';
+        dumValueP.style.fontWeight = 'bold';
+        dumValueP.style.marginBottom = '10px';
+        dumValueP.innerHTML = `DUM informada: <span style="color: #1A3E74;">${dumInput.value ? new Date(dumInput.value + 'T00:00:00').toLocaleDateString('pt-BR') : 'Nenhuma data selecionada'}</span>`;
+        pdfContentWrapper.appendChild(dumValueP);
+
+        // Adiciona o resultado se estiver visível
+        if (resultadoDiv && resultadoDiv.innerHTML.trim() !== '' && resultadoDiv.style.display !== 'none') {
+            const clonedResultado = resultadoDiv.cloneNode(true);
+            clonedResultado.style.marginTop = '10px';
+            clonedResultado.style.padding = '15px';
+            // Garante que o fundo e a cor do texto do resultado sejam mantidos no PDF
+            clonedResultado.style.backgroundColor = resultadoDiv.classList.contains('bg-red-100') ? '#fee2e2' : '#e0f2fe';
+            clonedResultado.style.color = resultadoDiv.classList.contains('text-red-600') ? '#dc2626' : '#1A3E74';
+            clonedResultado.style.borderRadius = '8px';
+            clonedResultado.style.whiteSpace = 'pre-wrap'; // Garante quebras de linha
+            pdfContentWrapper.appendChild(clonedResultado);
+        } else {
+             // Adiciona uma mensagem de erro se a DUM não foi inserida ou o resultado não foi calculado
+            const noResultP = document.createElement('p');
+            noResultP.style.fontSize = '14px';
+            noResultP.style.color = '#dc2626';
+            noResultP.style.marginTop = '10px';
+            noResultP.innerText = 'Nenhum cálculo realizado. Por favor, insira a DUM e clique em "Calcular" antes de gerar o PDF.';
+            pdfContentWrapper.appendChild(noResultP);
+        }
+
+
+        // Adiciona a bibliografia se estiver visível
+        if (bibliografiaDiv && bibliografiaDiv.style.display !== 'none') {
+            const clonedBibliografia = bibliografiaDiv.cloneNode(true);
+            clonedBibliografia.style.marginTop = '25px';
+            clonedBibliografia.style.fontSize = '12px';
+            clonedBibliografia.style.color = '#666';
+            clonedBibliografia.querySelectorAll('a').forEach(a => {
+                a.style.color = '#1FA4E5'; // Cor dos links
+                a.style.textDecoration = 'underline';
+            });
+            pdfContentWrapper.appendChild(clonedBibliografia);
+        }
+
+
+        // Esconde o botão de doação antes de gerar o PDF
+        const fixedButton = document.querySelector('.fixed-donation-button');
+        if (fixedButton) {
+            fixedButton.style.display = 'none';
+        }
+
+        const opt = {
+            margin:       0.5,
+            filename:     'idade_gestacional_dpp.pdf', // Nome do arquivo mais específico
+            image:        { type: 'jpeg', quality: 0.98 },
+            html2canvas:  { scale: 3, scrollY: 0, useCORS: true }, // useCORS para imagens
+            jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' },
+        };
+        
+        html2pdf().set(opt).from(pdfContentWrapper).save().then(() => {
+            // Volta a exibir o botão de doação após a geração do PDF
+            if (fixedButton) {
+                fixedButton.style.display = '';
+            }
+        });
     }
 
     document.addEventListener('DOMContentLoaded', () => {
