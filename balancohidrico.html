@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Balanço Hídrico</title>
+
+  <link rel="canonical" href="https://www.calculadorasdeenfermagem.com.br/balancohidrico.html" />
+
+  <link rel="icon" href="favicon.ico" type="image/x-icon" />
+
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
+    
+  <meta name="keywords" content="Balanço Hídrico, Enfermagem, Líquidos, Entradas, Saídas, Monitoramento, Desidratação, Hiper-hidratação" />
+  <meta name="description" content="Calcule o balanço hídrico de pacientes, registrando entradas e saídas de líquidos para monitorar o equilíbrio hídrico." />
+
+  <script async src="https://www.googletagmanager.com/gtag/js?id=AW-952633102"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'AW-952633102');
+  </script>
+
+  <script src="topbar111.js" defer></script>
+
+  <style>
+    /* Reset básico e Box-sizing para consistência */
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    /* Fontes personalizadas */
+    @import url('https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@700&family=Inter:wght@300;400;500;600&display=swap');
+
+    /* Estilos das classes de fonte e cor personalizadas (para uso no HTML com Tailwind) */
+    .font-nunito { font-family: 'Nunito Sans', sans-serif; }
+    .font-inter { font-family: 'Inter', sans-serif; }
+    .text-dark-blue { color: #1A3E74; } /* Azul Escuro */
+    .text-light-blue { color: #1FA4E5; } /* Azul Claro */
+    .text-gray-custom { color: #666666; } /* Cinza */
+    .text-success-green { color: #1ED760; } /* Verde */
+
+    /* Padrão de Botões (Componentes CSS para reuso) */
+    .btn-primary {
+      font-family: 'Inter', sans-serif;
+      font-weight: 600;
+      background-color: #1A3E74; /* Cor primária azul escuro */
+      color: #FFF;
+      padding: 12px 24px;
+      border-radius: 8px;
+      transition: background-color 0.3s ease;
+      border: none;
+      cursor: pointer;
+      text-align: center;
+    }
+    .btn-primary:hover { background-color: #122c54; } /* Tom mais escuro no hover */
+    .btn-secondary {
+      font-family: 'Inter', sans-serif;
+      font-weight: 600;
+      background-color: #1FA4E5; /* Cor secundária azul claro */
+      color: #FFF;
+      padding: 12px 24px;
+      border-radius: 8px;
+      transition: background-color 0.3s ease;
+      border: none;
+      cursor: pointer;
+      text-align: center;
+    }
+    .btn-secondary:hover { background-color: #178ac7; } /* Tom mais escuro no hover */
+    .btn-success {
+      font-family: 'Inter', sans-serif;
+      font-weight: 500;
+      background-color: #1ED760;
+      color: #FFF;
+      padding: 10px 20px;
+      border-radius: 8px;
+      transition: background-color 0.3s ease;
+      border: none;
+      cursor: pointer;
+      text-align: center;
+    }
+    .btn-success:hover { background-color: #17b351; }
+
+    /* Estilos para a área de resultado da calculadora (Componente específico) */
+    .resultado {
+      margin-top: 1rem;
+      padding: 1rem;
+      background-color: #e0f2fe; /* Tailwind blue-50 */
+      border-radius: 0.5rem;
+      font-weight: 600;
+      color: #1A3E74; /* text-dark-blue */
+      text-align: left;
+      white-space: pre-wrap;
+    }
+
+    /* Estilos para a referência/bibliografia (Componente específico) */
+    .ref {
+      margin-top: 2rem;
+      font-size: 14px;
+      color: #666666; /* text-gray-custom */
+      text-align: left;
+    }
+
+    /* Estilo para o botão "Ajude-nos" fixo (Componente de botão) */
+    .fixed-donation-button {
+      z-index: 30;
+    }
+    
+    /* Layout principal com Topbar fixa */
+    body {
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh; /* Garante que o body ocupe a altura total da viewport */
+      background-color: #f8fafc; /* Tailwind bg-gray-50 */
+      color: #333; /* Tailwind text-gray-800 */
+    }
+
+    /* ESTILOS DOS DROPDOWNS DA TOPBAR (MOVIDOS DE TOPBAR111.HTML) */
+    .dropdown-menu { display: none; }
+    .dropdown-menu.show { display: block; }
+    nav { justify-content: flex-end; }  
+    nav button { cursor: pointer; }
+    nav .dropdown-menu a:hover { background-color: #bfdbfe; }
+    /* FIM DOS ESTILOS DA TOPBAR */
+
+    /* Espaçamento para o conteúdo abaixo da topbar fixa */
+    .main-content-wrapper {  
+      display: flex;
+      flex-direction: column;
+      flex-grow: 1;
+      padding-top: 64px; /* Garante que o conteúdo comece abaixo da topbar fixa (64px de altura) */
+      width: 100%;
+    }
+
+    /* Conteúdo principal (main) */
+    main {
+      flex-grow: 1;
+      max-width: 1280px; /* max-w-7xl */
+      margin-left: auto;
+      margin-right: auto;
+      padding: 2rem 1rem; /* Equivalente a p-8 px-4 */
+      width: 100%;
+    }
+
+    /* Estilos para os campos de entrada */
+    .input-group {
+        margin-bottom: 1rem;
+    }
+    .input-group label {
+        display: block;
+        font-weight: 500;
+        margin-bottom: 0.5rem;
+        color: #1A3E74; /* text-dark-blue */
+    }
+    .input-group input[type="number"] {
+        width: 100%;
+        padding: 0.75rem;
+        border: 1px solid #ccc;
+        border-radius: 0.375rem; /* rounded-md */
+        font-size: 1rem;
+        color: #333;
+    }
+    .input-group input[type="number"]:focus {
+        outline: none;
+        border-color: #1FA4E5; /* text-light-blue */
+        box-shadow: 0 0 0 3px rgba(31, 164, 229, 0.2);
+    }
+    .input-section h3 {
+        font-family: 'Nunito Sans', sans-serif;
+        font-weight: 700;
+        color: #1A3E74;
+        font-size: 1.5rem;
+        margin-bottom: 1rem;
+    }
+    /* Nova classe para texto menor - ajustada para 0.75rem (12px) */
+    .text-xs-custom {
+        font-size: 0.75rem; /* Equivalente a text-xs do Tailwind */
+    }
+  </style>
+</head>
+<body class="bg-gray-50 text-gray-800 font-inter">
+
+  <div id="topbar-container"></div>
+
+  <div class="main-content-wrapper">
+    <main>
+      <div class="flex flex-wrap items-center justify-center gap-4 mb-3">
+        <img src="iconpages.png" alt="Ícone da Página" class="w-32 h-auto" />
+        <h1 id="main-title" class="font-nunito font-extrabold text-dark-blue text-4xl lg:text-5xl text-center">
+          Balanço Hídrico
+        </h1>
+      </div>
+      <h2 id="main-subtitle" class="font-inter font-semibold text-light-blue text-2xl lg:text-3xl mb-3 text-left">
+        Relatório de Equilíbrio Hídrico
+      </h2>
+      <p id="intro-description" class="font-inter font-normal text-black mb-6 text-left text-xs-custom">
+        O Balanço Hídrico é essencial para monitorar o equilíbrio de líquidos do paciente. Os dados de entradas e saídas são **registrados pelo técnico de enfermagem** ao longo das suas 12 horas de plantão, com anotação cuidadosa em prontuário. O **cálculo e o fechamento do Balanço Hídrico, que abrange 24 horas**, são de **responsabilidade do enfermeiro plantonista**, fundamentais para a tomada de decisões clínicas precisas.
+        <br/><br/>
+        **Atenção, profissionais:**
+        <br/>**Técnico de Enfermagem:** Lembre-se de registrar **todos** os valores de entrada e saída de líquidos.
+        <br/>**Enfermeiro:** Não se esqueça de realizar o **fechamento** do balanço hídrico para a avaliação completa do paciente.
+        <br/><br/>
+        Esta prática está diretamente alinhada com a **Meta 02 de Segurança do Paciente: Melhorar a Segurança da Comunicação**. A acurácia na coleta e cálculo do balanço hídrico garante uma avaliação correta do estado do paciente e previne erros que possam comprometer seu bem-estar.
+      </p>
+      
+      <div id="conteudo">
+        <div class="input-section mb-8">
+            <h3>Entradas (mL)</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="input-group">
+                    <label for="ingestaoOral">Ingestão Oral (mL):</label>
+                    <input type="number" id="ingestaoOral" value="0" min="0" class="input-field" />
+                </div>
+                <div class="input-group">
+                    <label for="alimentosAgua">Alimentos com Água (mL):</label>
+                    <input type="number" id="alimentosAgua" value="0" min="0" class="input-field" />
+                </div>
+                <div class="input-group">
+                    <label for="medicacoesIV">Medicações (VO/EV/Enteral) (mL):</label>
+                    <input type="number" id="medicacoesIV" value="0" min="0" class="input-field" />
+                </div>
+                <div class="input-group">
+                    <label for="soroterapia">Soroterapia (mL):</label>
+                    <input type="number" id="soroterapia" value="0" min="0" class="input-field" />
+                </div>
+                <div class="input-group">
+                    <label for="outrasEntradas">Outras Entradas (mL):</label>
+                    <input type="number" id="outrasEntradas" value="0" min="0" class="input-field" />
+                </div>
+            </div>
+        </div>
+
+        <div class="input-section mb-8">
+            <h3>Saídas (mL)</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="input-group">
+                    <label for="urina">Urina (mL):</label>
+                    <input type="number" id="urina" value="0" min="0" class="input-field" />
+                </div>
+                <div class="input-group">
+                    <label for="vomito">Vômito (mL):</label>
+                    <input type="number" id="vomito" value="0" min="0" class="input-field" />
+                </div>
+                <div class="input-group">
+                    <label for="diarreia">Diarreia (mL):</label>
+                    <input type="number" id="diarreia" value="0" min="0" class="input-field" />
+                </div>
+                <div class="input-group">
+                    <label for="drenos">Drenos (mL):</label>
+                    <input type="number" id="drenos" value="0" min="0" class="input-field" />
+                </div>
+                <div class="input-group">
+                    <label for="outrasPerdas">Outras Perdas (mL):</label>
+                    <input type="number" id="outrasPerdas" value="0" min="0" class="input-field" />
+                </div>
+            </div>
+        </div>
+
+        <div id="resultado" class="resultado" aria-live="polite"></div>
+
+        <div class="ref font-inter text-gray-custom text-left">
+          <h3>Referências Bibliográficas:</h3>
+          <ul>
+            <li>
+              COFEN. Resolução COFEN nº 0509/2016. **Normatiza a atuação do Enfermeiro na Sistematização da Assistência de Enfermagem (SAE) e a implementação do Processo de Enfermagem em ambientes, onde ocorre o cuidado de enfermagem**. Disponível em:
+              <a href="http://www.cofen.gov.br/resoluo-cofen-n-05092016_41778.html" target="_blank" class="text-light-blue hover:underline">
+                http://www.cofen.gov.br/resoluo-cofen-n-05092016_41778.html
+              </a>
+            </li>
+            <li>
+              COREN-SP. **Balanço Hídrico**. Disponível em:
+              <a href="https://portal.coren-sp.gov.br/wp-content/uploads/2014/11/Balan%C3%A7o-H%C3%ADdrico.pdf" target="_blank" class="text-light-blue hover:underline">
+                https://portal.coren-sp.gov.br/wp-content/uploads/2014/11/Balan%C3%A7o-H%C3%ADdrico.pdf
+              </a>
+            </li>
+            <li>
+              COREN-SP. **Guia de Recomendações para a Prática Profissional do Técnico de Enfermagem**. Disponível em:
+              <a href="https://portal.coren-sp.gov.br/sites/default/files/guia_recomendacoes_tecnico_enfermagem_2019.pdf" target="_blank" class="text-light-blue hover:underline">
+                https://portal.coren-sp.gov.br/sites/default/files/guia_recomendacoes_tecnico_enfermagem_2019.pdf
+              </a>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="flex flex-wrap justify-start gap-4 mt-6">
+        <button id="btnCalcular" class="btn-primary" aria-label="Calcular Balanço Hídrico">
+          Calcular
+        </button>
+        <button id="btnLimpar" class="btn-primary" aria-label="Limpar campos">
+          Limpar
+        </button>
+        <button id="btnGerarPDF" class="btn-secondary" aria-label="Gerar PDF do Balanço Hídrico">
+          Gerar PDF
+        </button>
+      </div>
+    </main>
+  </div> 
+  <a href="doacoes.html" class="fixed bottom-4 right-4 bg-dark-blue text-white text-sm px-4 py-2 rounded-full shadow hover:bg-blue-900 transition fixed-donation-button">
+    Ajude-nos a manter o site gratuito
+  </a>
+
+  <div id="footer-container"></div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <script>
+    function calcularBalançoHidrico() {
+      const entradasIds = ['ingestaoOral', 'alimentosAgua', 'medicacoesIV', 'soroterapia', 'outrasEntradas'];
+      const saidasIds = ['urina', 'vomito', 'diarreia', 'drenos', 'outrasPerdas'];
+      
+      let totalEntradas = 0;
+      let detalheEntradas = [];
+      let totalSaidas = 0;
+      let detalheSaidas = [];
+
+      // Calcular total de entradas e coletar detalhes
+      entradasIds.forEach(id => {
+        const label = document.querySelector(`label[for="${id}"]`).innerText.replace('(mL):', '').trim();
+        const value = parseFloat(document.getElementById(id).value) || 0;
+        totalEntradas += value;
+        if (value > 0) {
+            detalheEntradas.push(`${label}: ${value} mL`);
+        }
+      });
+
+      // Calcular total de saídas e coletar detalhes
+      saidasIds.forEach(id => {
+        const label = document.querySelector(`label[for="${id}"]`).innerText.replace('(mL):', '').trim();
+        const value = parseFloat(document.getElementById(id).value) || 0;
+        totalSaidas += value;
+        if (value > 0) {
+            detalheSaidas.push(`${label}: ${value} mL`);
+        }
+      });
+
+      const balanco = totalEntradas - totalSaidas;
+      const resultadoDiv = document.getElementById('resultado');
+      let classificacao = '';
+      let resultadoCor = 'text-dark-blue'; // Padrão
+
+      if (balanco > 0) {
+        classificacao = 'positivo (ganho de líquidos)';
+        resultadoCor = 'text-dark-blue'; 
+      } else if (balanco < 0) {
+        classificacao = 'negativo (perda de líquidos)';
+        resultadoCor = 'text-red-600'; 
+      } else {
+        classificacao = 'neutro (equilíbrio hídrico)';
+        resultadoCor = 'text-success-green'; 
+      }
+
+      const conduta = `
+        <p><strong>Conduta:</strong> O Balanço Hídrico é uma ferramenta essencial para o monitoramento do paciente. Embora o registro dos dados e o cálculo parcial do balanço sejam realizados pelo profissional Técnico de Enfermagem a cada 12 horas de plantão, o **valor final do cálculo do balanço hídrico do paciente é fechado em 24 horas**, geralmente pelo Enfermeiro, para uma avaliação completa do estado de hidratação e tomada de decisão clínica.</p>
+        <p>Comunique o enfermeiro responsável sobre o resultado do balanço hídrico para avaliação e conduta adequada, especialmente em casos de balanço hídrico positivo ou negativo significativo.</p>
+      `;
+
+      resultadoDiv.innerHTML = `
+        <p><strong>Balanço Hídrico:</strong> O resultado indica que o balanço hídrico é **${classificacao}**.</p>
+        <p class="mt-4"><strong>Cálculo Detalhado:</strong></p>
+        <p class="ml-4"><strong>Total de Entradas:</strong></p>
+        <ul class="list-disc list-inside ml-8">
+            ${detalheEntradas.length > 0 ? detalheEntradas.map(item => `<li>${item}</li>`).join('') : '<li>Nenhuma entrada registrada</li>'}
+            <li><strong>Soma das Entradas:</strong> ${totalEntradas} mL</li>
+        </ul>
+        <p class="ml-4 mt-2"><strong>Total de Saídas:</strong></p>
+        <ul class="list-disc list-inside ml-8">
+            ${detalheSaidas.length > 0 ? detalheSaidas.map(item => `<li>${item}</li>`).join('') : '<li>Nenhuma saída registrada</li>'}
+            <li><strong>Soma das Saídas:</strong> ${totalSaidas} mL</li>
+        </ul>
+        <p class="mt-4"><strong>Balanço Hídrico Final:</strong></p>
+        <p class="ml-4">${totalEntradas} mL (Entradas) - ${totalSaidas} mL (Saídas) = **${balanco} mL**</p>
+        <p class="mt-6">${conduta}</p>
+      `;
+      resultadoDiv.className = `resultado ${resultadoCor}`; // Aplica a classe de cor
+
+      // Armazenar os valores e detalhes para a geração do PDF
+      resultadoDiv.dataset.totalEntradas = totalEntradas;
+      resultadoDiv.dataset.totalSaidas = totalSaidas;
+      resultadoDiv.dataset.balanco = balanco;
+      resultadoDiv.dataset.classificacao = classificacao;
+      resultadoDiv.dataset.detalheEntradas = JSON.stringify(detalheEntradas);
+      resultadoDiv.dataset.detalheSaidas = JSON.stringify(detalheSaidas);
+      resultadoDiv.dataset.conduta = conduta; // Armazena a conduta completa
+    }
+
+    function limparCampos() {
+      const inputFields = document.querySelectorAll('.input-field');
+      inputFields.forEach(input => {
+        input.value = 0;
+      });
+      const resultadoDiv = document.getElementById('resultado');
+      resultadoDiv.innerText = '';
+      resultadoDiv.classList.remove('text-red-600', 'text-dark-blue', 'text-success-green');
+    }
+
+    // Função para gerar PDF (PADRÃO OTIMIZADO)
+    function gerarPDF() {
+        // Cria um container temporário para agrupar o conteúdo do PDF
+        const pdfContentWrapper = document.createElement('div');
+        pdfContentWrapper.style.padding = '20px'; // Adiciona um padding para melhor visualização no PDF
+        pdfContentWrapper.style.fontFamily = "'Inter', sans-serif";
+        pdfContentWrapper.style.color = '#333';
+
+        // Título Principal (from remembered information)
+        const mainTitleText = "Escala NIHSS"; // Using NIHSS for consistency, as per remembered info
+        const mainSubtitleText = "Relatório de Avaliação do Acidente Vascular Encefálico"; // Using for consistency
+
+        const pdfMainTitle = document.createElement('h1');
+        pdfMainTitle.style.marginBottom = '5px';
+        pdfMainTitle.style.fontSize = '24px';
+        pdfMainTitle.style.color = '#1A3E74';
+        pdfMainTitle.style.textAlign = 'center';
+        pdfMainTitle.innerText = mainTitleText;
+        pdfContentWrapper.appendChild(pdfMainTitle);
+
+        const pdfMainSubtitle = document.createElement('h2');
+        pdfMainSubtitle.style.marginBottom = '15px';
+        pdfMainSubtitle.style.fontSize = '18px';
+        pdfMainSubtitle.style.color = '#1FA4E5';
+        pdfMainSubtitle.style.textAlign = 'center';
+        pdfMainSubtitle.innerText = mainSubtitleText;
+        pdfContentWrapper.appendChild(pdfMainSubtitle);
+        
+        // Data e Hora de Geração
+        const dateDiv = document.createElement('p');
+        dateDiv.style.fontSize = '12px';
+        dateDiv.style.color = '#777';
+        dateDiv.style.textAlign = 'center';
+        dateDiv.style.marginBottom = '20px';
+        dateDiv.innerText = `Gerado em: ${new Date().toLocaleDateString('pt-BR')} ${new Date().toLocaleTimeString('pt-BR')}`;
+        pdfContentWrapper.appendChild(dateDiv);
+
+        // Descrição Introdutória
+        const introDescription = document.getElementById('intro-description');
+        if (introDescription) {
+            const clonedDescription = introDescription.cloneNode(true);
+            clonedDescription.style.marginBottom = '20px';
+            clonedDescription.style.fontSize = '10px'; // Ajustado para ser menor no PDF (menos que 12px)
+            clonedDescription.style.color = '#333';
+            clonedDescription.style.textAlign = 'left';
+            pdfContentWrapper.appendChild(clonedDescription);
+        }
+
+        // Conteúdo da Calculadora (Entradas e Saídas) - Recriação textual para o PDF
+        const inputsSectionEntradas = document.createElement('div');
+        inputsSectionEntradas.style.marginBottom = '20px';
+        inputsSectionEntradas.innerHTML = `
+            <h4 style="font-family:'Nunito Sans', sans-serif; font-weight:700; color:#1A3E74; font-size:1.2rem; margin-bottom:10px;">Entradas (mL)</h4>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;"></div>
+        `;
+        const entradasGrid = inputsSectionEntradas.querySelector('div');
+        document.querySelectorAll('#conteudo .input-section:first-of-type .input-group').forEach(group => {
+            const label = group.querySelector('label').innerText.replace('(mL):', '').trim();
+            const value = document.getElementById(group.querySelector('input').id).value;
+            const p = document.createElement('p');
+            p.style.marginBottom = '5px';
+            p.style.fontSize = '13px';
+            p.style.color = '#333';
+            p.innerHTML = `<strong>${label}:</strong> ${value} mL`;
+            entradasGrid.appendChild(p);
+        });
+        pdfContentWrapper.appendChild(inputsSectionEntradas);
+
+
+        const inputsSectionSaidas = document.createElement('div');
+        inputsSectionSaidas.style.marginBottom = '20px';
+        inputsSectionSaidas.innerHTML = `
+            <h4 style="font-family:'Nunito Sans', sans-serif; font-weight:700; color:#1A3E74; font-size:1.2rem; margin-bottom:10px;">Saídas (mL)</h4>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;"></div>
+        `;
+        const saidasGrid = inputsSectionSaidas.querySelector('div');
+        document.querySelectorAll('#conteudo .input-section:last-of-type .input-group').forEach(group => {
+            const label = group.querySelector('label').innerText.replace('(mL):', '').trim();
+            const value = document.getElementById(group.querySelector('input').id).value;
+            const p = document.createElement('p');
+            p.style.marginBottom = '5px';
+            p.style.fontSize = '13px';
+            p.style.color = '#333';
+            p.innerHTML = `<strong>${label}:</strong> ${value} mL`;
+            saidasGrid.appendChild(p);
+        });
+        pdfContentWrapper.appendChild(inputsSectionSaidas);
+
+
+        // Resultado e Conduta
+        const resultadoDivOriginal = document.getElementById('resultado');
+        if (resultadoDivOriginal && resultadoDivOriginal.innerText) {
+            const totalEntradas = resultadoDivOriginal.dataset.totalEntradas;
+            const totalSaidas = resultadoDivOriginal.dataset.totalSaidas;
+            const balancoValue = resultadoDivOriginal.dataset.balanco;
+            const classificacao = resultadoDivOriginal.dataset.classificacao;
+            const detalheEntradas = JSON.parse(resultadoDivOriginal.dataset.detalheEntradas || '[]');
+            const detalheSaidas = JSON.parse(resultadoDivOriginal.dataset.detalheSaidas || '[]');
+            const conduta = resultadoDivOriginal.dataset.conduta; // Obtém a conduta completa
+
+            const resultadoContent = document.createElement('div');
+            resultadoContent.style.marginTop = '1rem';
+            resultadoContent.style.padding = '1rem';
+            resultadoContent.style.backgroundColor = '#e0f2fe';
+            resultadoContent.style.borderRadius = '0.5rem';
+            resultadoContent.style.fontWeight = '600';
+            resultadoContent.style.textAlign = 'left';
+            resultadoContent.style.whiteSpace = 'pre-wrap';
+            // Ajusta a cor para o PDF com base na classificação
+            if (parseFloat(balancoValue) > 0) {
+                resultadoContent.style.color = '#1A3E74'; // Azul escuro para positivo
+            } else if (parseFloat(balancoValue) < 0) {
+                resultadoContent.style.color = '#DC2626'; // Vermelho para negativo (Tailwind red-600)
+            } else {
+                resultadoContent.style.color = '#1ED760'; // Verde para neutro (text-success-green)
+            }
+            
+            resultadoContent.innerHTML = `
+                <p><strong>Balanço Hídrico:</strong> O resultado indica que o balanço hídrico é **${classificacao}**.</p>
+                <p style="margin-top:1rem;"><strong>Cálculo Detalhado:</strong></p>
+                <p style="margin-left:1rem;"><strong>Total de Entradas:</strong></p>
+                <ul style="list-style:disc; list-style-position:inside; margin-left:2rem;">
+                    ${detalheEntradas.length > 0 ? detalheEntradas.map(item => `<li>${item}</li>`).join('') : '<li>Nenhuma entrada registrada</li>'}
+                    <li><strong>Soma das Entradas:</strong> ${totalEntradas} mL</li>
+                </ul>
+                <p style="margin-left:1rem; margin-top:0.5rem;"><strong>Total de Saídas:</strong></p>
+                <ul style="list-style:disc; list-style-position:inside; margin-left:2rem;">
+                    ${detalheSaidas.length > 0 ? detalheSaidas.map(item => `<li>${item}</li>`).join('') : '<li>Nenhuma saída registrada</li>'}
+                    <li><strong>Soma das Saídas:</strong> ${totalSaidas} mL</li>
+                </ul>
+                <p style="margin-top:1rem;"><strong>Balanço Hídrico Final:</strong></p>
+                <p style="margin-left:1rem;">${totalEntradas} mL (Entradas) - ${totalSaidas} mL (Saídas) = **${balancoValue} mL**</p>
+                <div style="margin-top:1.5rem;">${conduta}</div>
+            `;
+            pdfContentWrapper.appendChild(resultadoContent);
+
+        } else {
+            const warningP = document.createElement('p');
+            warningP.innerText = 'Por favor, calcule o balanço hídrico antes de gerar o PDF.';
+            warningP.style.color = '#DC2626';
+            warningP.style.marginBottom = '15px';
+            pdfContentWrapper.appendChild(warningP);
+        }
+
+        // Referência Bibliográfica
+        const refSection = document.querySelector('.ref');
+        if (refSection) {
+            const clonedRef = refSection.cloneNode(true);
+            clonedRef.style.marginTop = '2rem';
+            clonedRef.style.fontSize = '10px'; // Ajuste para o PDF
+            clonedRef.style.color = '#666666';
+            clonedRef.style.textAlign = 'left';
+            clonedRef.querySelectorAll('a').forEach(a => {
+                a.style.color = '#1FA4E5'; // Mantém a cor do link no PDF
+                a.style.textDecoration = 'underline';
+            });
+            // Adicionar cabeçalho para as referências no PDF
+            const refHeader = document.createElement('h3');
+            refHeader.innerText = 'Referências Bibliográficas:';
+            refHeader.style.fontFamily = "'Nunito Sans', sans-serif";
+            refHeader.style.fontWeight = '700';
+            refHeader.style.color = '#1A3E74';
+            refHeader.style.fontSize = '1rem';
+            refHeader.style.marginBottom = '10px';
+            clonedRef.prepend(refHeader); // Adiciona o cabeçalho antes da lista
+            pdfContentWrapper.appendChild(clonedRef);
+        }
+
+        // Esconder o botão de doação antes de gerar o PDF
+        const fixedButton = document.querySelector('.fixed-donation-button');
+        if (fixedButton) {
+            fixedButton.style.display = 'none';
+        }
+
+        // Configurações do PDF
+        const opt = {
+            margin:       0.5,
+            filename:     'balanco-hidrico.pdf',
+            image:        { type: 'jpeg', quality: 0.98 },
+            html2canvas:  { scale: 3, scrollY: 0 },
+            jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }
+        };
+
+        html2pdf().set(opt).from(pdfContentWrapper).save().then(() => {
+            // Reexibir o botão após a geração (se foi escondido)
+            if (fixedButton) {
+                fixedButton.style.display = '';
+            }
+        });
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      document.getElementById('btnCalcular').addEventListener('click', calcularBalançoHidrico);
+      document.getElementById('btnLimpar').addEventListener('click', limparCampos);
+      document.getElementById('btnGerarPDF').addEventListener('click', gerarPDF);
+
+      fetch("rodape111.html")
+        .then(res => res.text())
+        .then(data => {
+          document.getElementById("footer-container").innerHTML = data;
+        })
+        .catch(err => console.error("Erro ao carregar rodape111.html:", err));
+    });
+  </script>
+</body>
+</html>
