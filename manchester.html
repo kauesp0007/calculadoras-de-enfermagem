@@ -94,6 +94,7 @@
       text-align: left;
       white-space: pre-wrap; /* Mantém quebras de linha no texto */
       font-size: 1.125rem; /* text-lg */
+      display: none; /* Inicia oculto */
     }
     /* Cores específicas para o resultado do Manchester */
     .resultado.bg-red { background-color: #fee2e2; color: #dc2626; } /* red-100, red-600 */
@@ -127,13 +128,13 @@
     /* ESTILOS DOS DROPDOWNS DA TOPBAR (MOVIDOS DE TOPBAR111.HTML) */
     .dropdown-menu { display: none; }
     .dropdown-menu.show { display: block; }
-    nav { justify-content: flex-end; } 
+    nav { justify-content: flex-end; }  
     nav button { cursor: pointer; }
     nav .dropdown-menu a:hover { background-color: #bfdbfe; }
     /* FIM DOS ESTILOS DA TOPBAR */
 
     /* Espaçamento para o conteúdo abaixo da topbar fixa */
-    .main-content-wrapper { 
+    .main-content-wrapper {  
       display: flex;
       flex-direction: column;
       flex-grow: 1;
@@ -175,27 +176,27 @@
 </head>
 <body class="bg-gray-50 text-gray-800 font-inter">
 
-  <div id="topbar-container"></div> 
+  <div id="topbar-container"></div>  
 
   <div class="main-content-wrapper">
     <main class="flex flex-col flex-grow">
 
       <div class="flex flex-wrap items-center justify-center gap-4 mb-3">
         <img src="iconpages.png" alt="Ícone do Protocolo de Manchester" class="w-32 h-auto" />
-        <h1 class="font-nunito font-extrabold text-dark-blue text-4xl lg:text-5xl text-center">
+        <h1 id="main-title" class="font-nunito font-extrabold text-dark-blue text-4xl lg:text-5xl text-center">
           Protocolo de Manchester
         </h1>
       </div>
 
-      <div id="conteudo" class="w-full">
-        <div class="descricao font-inter text-black-custom">
+      <div id="conteudo-principal" class="w-full">
+        <div id="descricao-header" class="descricao font-inter text-black-custom">
           Classifica a gravidade e prioridade de atendimento do paciente na urgência com base em critérios pontuados.
         </div>
 
         <h2 class="font-bold text-lg text-dark-blue mb-4">Selecione os escores correspondentes para cada sintoma/condição:</h2>
         <form id="formManchester">
           <div class="overflow-x-auto">
-            <table class="min-w-full bg-white shadow-md rounded-lg">
+            <table id="tabela-sintomas" class="min-w-full bg-white shadow-md rounded-lg">
               <thead>
                 <tr>
                   <th>Variável</th>
@@ -230,7 +231,7 @@
 
         <div id="resultado" class="resultado" aria-live="polite"></div>
 
-        <div class="ref font-inter text-gray-custom">
+        <div id="bibliografia" class="ref font-inter text-gray-custom">
           <strong>Referência bibliográfica:</strong><br />
           <p class="mt-2">
             Brasil. Ministério da Saúde. Protocolo de Acolhimento com Classificação de Risco em Serviços de Urgência – Adulto. Brasília: Ministério da Saúde, 2014.<br>
@@ -252,7 +253,7 @@
       </div>
 
     </main>
-  </div> 
+  </div>  
 
   <a href="doacoes.html" class="fixed bottom-4 right-4 bg-dark-blue text-white text-sm px-4 py-2 rounded-full shadow hover:bg-blue-900 transition fixed-donation-button">
     Ajude-nos a manter o site gratuito
@@ -260,8 +261,6 @@
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   
-  <script src="pdf111.js"></script>
-
   <div id="footer-container"></div>
 
   <script>
@@ -273,30 +272,39 @@
       const resultadoDiv = document.getElementById("resultado");
       let classificacao = '';
       let corClasse = '';
+      let corTextoClasse = ''; // Adicionado para controlar a cor do texto no Tailwind
 
       // Resetar classes de cor
-      resultadoDiv.classList.remove('bg-red', 'bg-orange', 'bg-yellow', 'bg-green', 'bg-blue', 'text-red-600', 'text-orange-700', 'text-yellow-700', 'text-green-700', 'text-blue-700');
+      resultadoDiv.classList.remove('bg-red', 'bg-orange', 'bg-yellow', 'bg-green', 'bg-blue', 
+                                    'text-red-600', 'text-orange-700', 'text-yellow-700', 
+                                    'text-green-700', 'text-blue-700');
+      resultadoDiv.style.display = 'none'; // Esconde o resultado ao iniciar novo cálculo ou limpar
 
       if (total >= 12) {
         classificacao = "🔴 Vermelho – Imediato";
         corClasse = "bg-red";
+        corTextoClasse = "text-red-600";
       } else if (total >= 9) {
         classificacao = "🟠 Laranja – Até 10 min";
         corClasse = "bg-orange";
+        corTextoClasse = "text-orange-700";
       } else if (total >= 6) {
         classificacao = "🟡 Amarelo – Até 60 min";
         corClasse = "bg-yellow";
+        corTextoClasse = "text-yellow-700";
       } else if (total >= 3) {
         classificacao = "🟢 Verde – Até 120 min";
         corClasse = "bg-green";
+        corTextoClasse = "text-green-700";
       } else {
         classificacao = "🔵 Azul – Até 240 min";
         corClasse = "bg-blue";
+        corTextoClasse = "text-blue-700";
       }
       
       resultadoDiv.style.display = 'block';
       resultadoDiv.innerHTML = `<strong>${classificacao}</strong><br>Escore total: ${total}`;
-      resultadoDiv.classList.add(corClasse);
+      resultadoDiv.classList.add(corClasse, corTextoClasse);
     }
 
     function limparCampos() {
@@ -307,36 +315,161 @@
       resultadoDiv.innerHTML = '';
       resultadoDiv.style.display = 'none';
       // Remover todas as classes de cor específicas
-      resultadoDiv.classList.remove('bg-red', 'bg-orange', 'bg-yellow', 'bg-green', 'bg-blue', 'text-red-600', 'text-orange-700', 'text-yellow-700', 'text-green-700', 'text-blue-700');
+      resultadoDiv.classList.remove('bg-red', 'bg-orange', 'bg-yellow', 'bg-green', 'bg-blue', 
+                                    'text-red-600', 'text-orange-700', 'text-yellow-700', 
+                                    'text-green-700', 'text-blue-700');
     }
 
+    // Função para gerar PDF (Aprimorada)
     function gerarPDF() {
-      const content = document.getElementById('conteudo').cloneNode(true); // Captura o conteúdo principal da calculadora
+        console.log('Função gerarPDF() iniciada.');
 
-      // Remove elementos que não devem ir no PDF (ex: botões)
-      const buttonsDiv = content.querySelector('.flex.flex-wrap.justify-start.gap-4.mt-6');
-      if (buttonsDiv) buttonsDiv.remove();
-      
-      // Esconde o botão de doação antes de gerar o PDF
-      const fixedButton = document.querySelector('.fixed-donation-button');
-      if (fixedButton) {
-        fixedButton.style.display = 'none';
-      }
+        const mainTitle = document.getElementById('main-title');
+        const descricaoHeader = document.getElementById('descricao-header');
+        const tabelaSintomas = document.getElementById('tabela-sintomas');
+        const resultadoDiv = document.getElementById('resultado');
+        const bibliografiaDiv = document.getElementById('bibliografia');
 
-      const opt = {
-        margin:       0.5,
-        filename:     'protocolo_manchester.pdf',
-        image:        { type: 'jpeg', quality: 0.98 },
-        html2canvas:  { scale: 3, scrollY: 0 },
-        jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' },
-      };
-      
-      html2pdf().set(opt).from(content).save().then(() => {
-        // Volta a exibir o botão de doação após a geração do PDF
-        if (fixedButton) {
-          fixedButton.style.display = '';
+        // Cria um container temporário para os elementos que irão para o PDF
+        const pdfContentWrapper = document.createElement('div');
+        pdfContentWrapper.style.padding = '20px'; // Adiciona um padding geral ao conteúdo do PDF
+        pdfContentWrapper.style.fontFamily = 'Inter, sans-serif'; // Garante a fonte no PDF
+        pdfContentWrapper.style.color = '#333'; // Cor do texto padrão no PDF
+
+        // Adiciona o título principal
+        if (mainTitle) {
+            const clonedMainTitle = mainTitle.cloneNode(true);
+            clonedMainTitle.style.fontSize = '28px'; // Ajustar tamanho para o PDF
+            clonedMainTitle.style.color = '#1A3E74';
+            clonedMainTitle.style.textAlign = 'center';
+            clonedMainTitle.style.marginBottom = '15px';
+            pdfContentWrapper.appendChild(clonedMainTitle);
         }
-      });
+
+        // Adiciona a data de geração
+        const dateDiv = document.createElement('p');
+        dateDiv.style.fontSize = '10px';
+        dateDiv.style.color = '#777';
+        dateDiv.style.textAlign = 'right';
+        dateDiv.style.marginBottom = '20px';
+        dateDiv.innerText = `Gerado em: ${new Date().toLocaleDateString('pt-BR')} ${new Date().toLocaleTimeString('pt-BR')}`;
+        pdfContentWrapper.appendChild(dateDiv);
+
+        // Adiciona a descrição
+        if (descricaoHeader) {
+            const clonedDescricao = descricaoHeader.cloneNode(true);
+            clonedDescricao.style.fontSize = '12px';
+            clonedDescricao.style.color = '#555';
+            clonedDescricao.style.marginBottom = '15px';
+            pdfContentWrapper.appendChild(clonedDescricao);
+        }
+
+        // Adiciona os sintomas selecionados e seus escores
+        if (tabelaSintomas) {
+            const selectedSymptomsDiv = document.createElement('div');
+            selectedSymptomsDiv.innerHTML = '<h3 style="font-size: 16px; font-weight: bold; color: #1A3E74; margin-bottom: 10px;">Sintomas Selecionados:</h3>';
+            
+            const symptomsList = document.createElement('ul');
+            symptomsList.style.listStyle = 'none';
+            symptomsList.style.paddingLeft = '0';
+            symptomsList.style.fontSize = '12px';
+
+            const checkboxes = document.querySelectorAll('#formManchester input[type="checkbox"]');
+            let hasSelectedSymptoms = false;
+            checkboxes.forEach(checkbox => {
+                if (checkbox.checked) {
+                    hasSelectedSymptoms = true;
+                    // Encontra a linha (<tr>) pai do checkbox
+                    const row = checkbox.closest('tr');
+                    if (row) {
+                        const variableName = row.cells[0].textContent.trim();
+                        const score = checkbox.value; // O valor do checkbox é o escore
+
+                        const listItem = document.createElement('li');
+                        listItem.style.marginBottom = '5px';
+                        listItem.innerHTML = `<strong>${variableName}:</strong> ${score} pontos`;
+                        symptomsList.appendChild(listItem);
+                    }
+                }
+            });
+
+            if (!hasSelectedSymptoms) {
+                const noSymptomsMessage = document.createElement('li');
+                noSymptomsMessage.innerHTML = 'Nenhum sintoma foi selecionado.';
+                noSymptomsMessage.style.fontStyle = 'italic';
+                noSymptomsMessage.style.color = '#777';
+                symptomsList.appendChild(noSymptomsMessage);
+            }
+            selectedSymptomsDiv.appendChild(symptomsList);
+            pdfContentWrapper.appendChild(selectedSymptomsDiv);
+        }
+
+        // Adiciona o resultado da classificação se estiver visível
+        if (resultadoDiv && resultadoDiv.style.display !== 'none' && resultadoDiv.innerHTML.trim() !== '') {
+            const clonedResultado = resultadoDiv.cloneNode(true);
+            clonedResultado.style.marginTop = '20px';
+            clonedResultado.style.padding = '15px';
+            clonedResultado.style.borderRadius = '8px';
+            clonedResultado.style.whiteSpace = 'pre-wrap';
+            clonedResultado.style.fontSize = '14px'; // Ajusta o tamanho da fonte para o PDF
+
+            // Ajusta cores de fundo e texto para o PDF conforme a classificação
+            const currentClasses = Array.from(resultadoDiv.classList);
+            if (currentClasses.includes('bg-red')) {
+                clonedResultado.style.backgroundColor = '#fee2e2'; clonedResultado.style.color = '#dc2626';
+            } else if (currentClasses.includes('bg-orange')) {
+                clonedResultado.style.backgroundColor = '#fff7ed'; clonedResultado.style.color = '#ea580c';
+            } else if (currentClasses.includes('bg-yellow')) {
+                clonedResultado.style.backgroundColor = '#fefce8'; clonedResultado.style.color = '#d97706';
+            } else if (currentClasses.includes('bg-green')) {
+                clonedResultado.style.backgroundColor = '#dcfce7'; clonedResultado.style.color = '#15803d';
+            } else if (currentClasses.includes('bg-blue')) {
+                clonedResultado.style.backgroundColor = '#eff6ff'; clonedResultado.style.color = '#2563eb';
+            }
+            pdfContentWrapper.appendChild(clonedResultado);
+        } else {
+            // Mensagem caso o cálculo não tenha sido feito
+            const noResultP = document.createElement('p');
+            noResultP.style.fontSize = '14px';
+            noResultP.style.color = '#dc2626';
+            noResultP.style.marginTop = '20px';
+            noResultP.innerText = 'Nenhuma classificação de risco foi calculada. Por favor, selecione os sintomas e clique em "Calcular" antes de gerar o PDF.';
+            pdfContentWrapper.appendChild(noResultP);
+        }
+
+        // Adiciona a bibliografia
+        if (bibliografiaDiv) {
+            const clonedBibliografia = bibliografiaDiv.cloneNode(true);
+            clonedBibliografia.style.marginTop = '25px';
+            clonedBibliografia.style.fontSize = '12px';
+            clonedBibliografia.style.color = '#666';
+            clonedBibliografia.querySelectorAll('a').forEach(a => {
+                a.style.color = '#1FA4E5';
+                a.style.textDecoration = 'underline';
+            });
+            pdfContentWrapper.appendChild(clonedBibliografia);
+        }
+
+        // Esconde o botão de doação antes de gerar o PDF
+        const fixedButton = document.querySelector('.fixed-donation-button');
+        if (fixedButton) {
+            fixedButton.style.display = 'none';
+        }
+
+        const opt = {
+            margin:       0.5,
+            filename:     'protocolo_manchester.pdf',
+            image:        { type: 'jpeg', quality: 0.98 },
+            html2canvas:  { scale: 3, scrollY: 0, useCORS: true },
+            jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' },
+        };
+        
+        html2pdf().set(opt).from(pdfContentWrapper).save().then(() => {
+            // Volta a exibir o botão de doação após a geração do PDF
+            if (fixedButton) {
+                fixedButton.style.display = '';
+            }
+        });
     }
 
     document.addEventListener('DOMContentLoaded', () => {
