@@ -15,6 +15,15 @@
     /* Estilos base para o corpo da página */
     body {
       padding-top: 64px; /* Espaço para a topbar fixa (ajuste se a altura real for diferente) */
+      position: relative; /* Necessário para posicionar o botão "Bem-vindo" em relação ao body */
+      min-height: 100vh; /* Garante que o body tenha altura suficiente para o rodapé ser 'bottom' */
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Ajuste para o main para empurrar o rodapé para baixo */
+    main {
+        flex-grow: 1; /* Permite que o conteúdo principal ocupe o espaço restante */
     }
 
     /* Em telas maiores (desktop), não precisamos de ajustes para a sidebar aqui no index.html */
@@ -29,10 +38,98 @@
       display: none !important;
     }
 
+    /* Estilo para o botão "Bem-vindo!" */
+    .btn-welcome {
+        font-family: 'Inter', sans-serif;
+        font-weight: 600;
+        background-color: #1A3E74; /* Cor primária azul escuro, igual aos botões dos repositórios */
+        color: #FFF;
+        padding: 12px 24px;
+        border-radius: 8px;
+        transition: background-color 0.3s ease;
+        border: none;
+        cursor: pointer;
+        text-align: center;
+        /* Posição fixa no canto inferior direito */
+        position: fixed;
+        right: 1rem; /* 16px da direita */
+        /* bottom: calc(4rem + 16px);  Ajustado via JS para maior precisão */
+        z-index: 20; /* Abaixo da topbar (z-index: 30) e do botão de doação (z-index: 30), mas acima do conteúdo */
+    }
+
+    .btn-welcome:hover {
+        background-color: #122c54; /* Tom mais escuro no hover */
+    }
+
+    /* Estilos para o Modal de Vídeo */
+    .video-modal {
+      display: none; /* Escondido por padrão */
+      position: fixed; /* Fixado na tela */
+      z-index: 100; /* Acima de tudo */
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      overflow: auto; /* Permite scroll se o conteúdo for grande */
+      background-color: rgba(0,0,0,0.8); /* Fundo escuro semi-transparente */
+      justify-content: center; /* Centraliza horizontalmente */
+      align-items: center; /* Centraliza verticalmente */
+    }
+
+    .video-modal-content {
+      background-color: #fefefe;
+      margin: auto; /* Centraliza o modal */
+      padding: 20px;
+      border: 1px solid #888;
+      width: 90%; /* Largura padrão */
+      max-width: 700px; /* Largura máxima, ajustada para "não muito grande nem muito pequeno" */
+      border-radius: 10px;
+      position: relative;
+      box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2), 0 6px 20px 0 rgba(0,0,0,0.19);
+    }
+
+    .video-modal-close {
+      color: #aaa;
+      position: absolute;
+      top: 10px;
+      right: 20px;
+      font-size: 28px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .video-modal-close:hover,
+    .video-modal-close:focus {
+      color: black;
+      text-decoration: none;
+    }
+
+    .video-modal-content video {
+      width: 100%;
+      height: auto;
+      display: block; /* Remove espaço extra abaixo do vídeo */
+      margin-top: 10px;
+    }
+
+    /* Ajustes para o botão de doação para não colidir com o novo botão */
+    .fixed-donation-button {
+        bottom: 1rem; /* Margem original do rodapé */
+        right: 1rem; /* Margem original da direita */
+        z-index: 30; /* Mantém acima */
+    }
+
+    /* Ajuste para o rodapé, garantindo que ele tenha um padding inferior adequado */
+    #footer-container {
+        /* Será ajustado via JS após o carregamento do rodapé para maior precisão */
+        padding-bottom: 5rem; /* Fallback caso o JS falhe, ou uma base para o cálculo JS */
+    }
+
   </style>
   <script src="topbar111.js" defer></script>
 </head>
 <body class="bg-gray-50 text-gray-800 font-inter">
+
+  <div id="topbar-container"></div>
 
   <section class="pt-8 pb-4 header-with-logo">
     <div class="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center sm:justify-start">
@@ -73,18 +170,92 @@
     </div>
   </main>
 
-  <a href="doacoes.html" class="fixed bottom-4 right-4 bg-[#1A3E74] text-white text-sm px-4 py-2 rounded-full shadow hover:bg-blue-900 transition">
+  <a href="doacoes.html" class="fixed bottom-4 right-4 bg-[#1A3E74] text-white text-sm px-4 py-2 rounded-full shadow hover:bg-blue-900 transition fixed-donation-button">
     Ajude-nos a manter o site gratuito
   </a>
 
+  <button id="btnWelcome" class="btn-welcome">
+    Bem-vindo!
+  </button>
+
+  <div id="videoModal" class="video-modal">
+    <div class="video-modal-content">
+      <span class="video-modal-close">&times;</span>
+      <video id="welcomeVideo" controls autoplay>
+        <source src="boasvindas.mp4" type="video/mp4">
+        Seu navegador não suporta a tag de vídeo.
+      </video>
+    </div>
+  </div>
+
+  <div id="footer-container"></div>
+
   <script>
-    fetch("rodape111.html")
-      .then(res => res.text())
-      .then(data => {
-        const footer = document.createElement("footer");
-        footer.innerHTML = data;
-        document.body.appendChild(footer);
+    document.addEventListener('DOMContentLoaded', () => {
+      const btnWelcome = document.getElementById('btnWelcome');
+      const videoModal = document.getElementById('videoModal');
+      const closeModal = document.querySelector('.video-modal-close');
+      const welcomeVideo = document.getElementById('welcomeVideo');
+      const footerContainer = document.getElementById('footer-container');
+      const donationButton = document.querySelector('.fixed-donation-button');
+
+      // Carrega o conteúdo do rodapé e ajusta a posição dos botões fixos
+      fetch("rodape111.html")
+        .then(res => res.text())
+        .then(data => {
+          const footer = document.createElement("footer");
+          footer.innerHTML = data;
+          document.body.appendChild(footer);
+
+          // Ajusta a posição do botão "Bem-vindo!" e do botão de doação
+          // após o rodapé ter sido carregado e renderizado.
+          // Isso garante que eles se posicionem corretamente em relação ao rodapé.
+          // Adicionamos um pequeno timeout para garantir que o DOM seja atualizado
+          // antes de ler a altura do footer.
+          setTimeout(() => {
+            const footerHeight = footer.offsetHeight;
+            const paddingBottomForBody = footerHeight + 20; // 20px extra para um respiro
+
+            // Ajusta o padding inferior do body para que o conteúdo não fique escondido sob o footer
+            document.body.style.paddingBottom = `${paddingBottomForBody}px`;
+
+            // Posição do botão de doação: 1rem (16px) acima do rodapé
+            if (donationButton) {
+                donationButton.style.bottom = `${16 + footerHeight}px`; // Ajusta based on footer height
+            }
+
+            // Posição do botão Bem-vindo: 16px acima do botão de doação
+            if (btnWelcome && donationButton) {
+                const donationButtonHeight = donationButton.offsetHeight;
+                btnWelcome.style.bottom = `${16 + donationButtonHeight + parseFloat(donationButton.style.bottom)}px`;
+            } else if (btnWelcome) { // Fallback if donation button doesn't exist
+                btnWelcome.style.bottom = `${16 + footerHeight + 16}px`; // Assumes a default height for donation button if not found
+            }
+          }, 100); // Pequeno atraso para o DOM atualizar
+        })
+        .catch(err => console.error("Erro ao carregar rodape111.html:", err));
+
+      // Lógica do botão "Bem-vindo!" e modal de vídeo
+      btnWelcome.addEventListener('click', () => {
+        videoModal.style.display = 'flex'; // Altera para flex para centralizar
+        welcomeVideo.play(); // Inicia o vídeo automaticamente
       });
+
+      closeModal.addEventListener('click', () => {
+        videoModal.style.display = 'none';
+        welcomeVideo.pause();
+        welcomeVideo.currentTime = 0; // Reinicia o vídeo ao fechar
+      });
+
+      // Fechar modal ao clicar fora do conteúdo do vídeo
+      videoModal.addEventListener('click', (event) => {
+        if (event.target === videoModal) {
+          videoModal.style.display = 'none';
+          welcomeVideo.pause();
+          welcomeVideo.currentTime = 0;
+        }
+      });
+    });
   </script>
 
 </body>
