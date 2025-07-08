@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" /> <!-- Atualizado para 1.0 -->
   <title>Calculadora de Escala de Coma de Glasgow</title>
 
   <link rel="canonical" href="https://www.calculadorasdeenfermagem.com.br/glasgow.html" />
@@ -146,7 +146,88 @@
       padding: 2rem 1rem; /* p-8 px-4 */
     }
 
-    /* Responsividade da tabela para mobile - Rótulos serão definidos no CSS específico de cada calculadora */
+    /* --- NOVOS ESTILOS PARA RESPONSIVIDADE DO FORMULÁRIO (Substituem a lógica de tabela) --- */
+
+    /* General container for all criterion cards */
+    .glasgow-criteria-container {
+        display: flex;
+        flex-direction: column; /* Stack vertically on mobile */
+        gap: 1rem; /* Space between cards */
+    }
+
+    /* Individual criterion card */
+    .glasgow-criterion-card {
+        background-color: #fff;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        padding: 1rem;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        display: flex;
+        flex-direction: column; /* Default: stack header and options */
+        gap: 0.75rem;
+    }
+
+    /* Header within each card (title + score) */
+    .glasgow-criterion-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 0.5rem; /* Space between header and select */
+    }
+
+    .glasgow-criterion-title {
+        font-size: 1.125rem; /* text-lg */
+        font-weight: 600; /* font-semibold */
+        color: #1A3E74; /* text-dark-blue */
+    }
+
+    .glasgow-score-display {
+        font-size: 1.125rem; /* text-lg */
+        font-weight: 700; /* font-bold */
+        color: #1FA4E5; /* text-light-blue */
+        min-width: 2rem; /* Ensure enough space for score */
+        text-align: right;
+    }
+
+    /* Select element styling */
+    .glasgow-select {
+        width: 100%;
+        padding: 0.75rem;
+        border: 1px solid #ccc;
+        border-radius: 0.375rem;
+        font-size: 1rem;
+        color: #333;
+        background-color: #fff;
+        appearance: none;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='currentColor'%3E%3Cpath fill-rule='evenodd' d='M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z' clip-rule='evenodd'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 0.75rem center;
+        background-size: 1.5em 1.5em;
+    }
+    .glasgow-select:focus {
+        outline: none;
+        border-color: #1FA4E5;
+        box-shadow: 0 0 0 3px rgba(31, 164, 229, 0.2);
+    }
+
+    /* Media query for larger screens (sm breakpoint and up) */
+    @media (min-width: 640px) {
+        .glasgow-criterion-card {
+            flex-direction: row; /* Align header and options side-by-side */
+            align-items: center;
+            justify-content: space-between;
+        }
+        .glasgow-criterion-header {
+            flex-basis: 45%; /* Adjust width for title and score */
+            margin-bottom: 0;
+        }
+        .glasgow-criterion-options {
+            flex-basis: 50%; /* Adjust width for select */
+        }
+    }
+
+    /* REMOVIDO: Antigos estilos de responsividade de tabela */
+    /*
     @media (max-width: 640px) {
       table, thead, tbody, th, td, tr { display: block; }
       thead tr { position: absolute; top: -9999px; left: -9999px; }
@@ -155,7 +236,7 @@
           border: none;
           border-bottom: 1px solid #eee;
           position: relative;
-          padding-left: 50%; /* Espaço para o pseudo-elemento */
+          padding-left: 50%;
           text-align: right;
       }
       td:before {
@@ -168,11 +249,11 @@
           text-align: left;
           font-weight: bold;
       }
-      /* Estilos específicos para os rótulos da tabela em mobile para Glasgow */
       #conteudo table td:nth-of-type(1):before { content: "Critério:"; }
       #conteudo table td:nth-of-type(2):before { content: "Descrição:"; }
       #conteudo table td:nth-of-type(3):before { content: "Pontuação:"; }
     }
+    */
   </style>
 </head>
 <body class="bg-gray-50 text-gray-800 font-inter">
@@ -195,96 +276,75 @@
 
       <div id="conteudo" class="w-full">
         <form id="formulario" class="mb-6">
-          <table class="w-full border-collapse border border-gray-300 text-left" id="glasgow-table">
-            <thead>
-              <tr>
-                <th class="border border-gray-300 p-4 font-semibold text-light-blue w-1/3">Critério</th>
-                <th class="border border-gray-300 p-4 font-semibold text-light-blue w-1/3">Descrição</th>
-                <th class="border border-gray-300 p-4 font-semibold text-light-blue w-1/3">Pontuação</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td class="border border-gray-300 p-4 font-semibold align-top">Abertura Ocular</td>
-                <td class="border border-gray-300 p-4">
-                  <select id="ocular-texto" onchange="sincronizar('ocular-texto', 'ocular', {'Espontânea': 4, 'À voz': 3, 'À dor': 2, 'Nenhuma': 1})"
-                                class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-light-blue">
-                    <option value="Espontânea">Espontânea</option>
-                    <option value="À voz">À voz</option>
-                    <option value="À dor">À dor</option>
-                    <option value="Nenhuma">Nenhuma</option>
-                  </select>
-                </td>
-                <td class="border border-gray-300 p-4">
-                  <input id="ocular" readonly value="4" class="w-full p-2 border border-gray-300 rounded-md bg-gray-100 text-center font-bold" />
-                </td>
-              </tr>
-              <tr>
-                <td class="border border-gray-300 p-4 font-semibold align-top">Resposta Verbal</td>
-                <td class="border border-gray-300 p-4">
-                  <select id="verbal-texto" onchange="sincronizar('verbal-texto', 'verbal', {
-                    'Orientado': 5,
-                    'Confuso': 4,
-                    'Palavras inapropriadas': 3,
-                    'Palavras incompreensíveis': 2,
-                    'Nenhuma': 1
-                  })"
-                                class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-light-blue">
-                    <option value="Orientado">Orientado</option>
-                    <option value="Confuso">Confuso</option>
-                    <option value="Palavras inapropriadas">Palavras inapropriadas</option>
-                    <option value="Palavras incompreensíveis">Palavras incompreensíveis</option>
-                    <option value="Nenhuma">Nenhuma</option>
-                  </select>
-                </td>
-                <td class="border border-gray-300 p-4">
-                  <input id="verbal" readonly value="5" class="w-full p-2 border border-gray-300 rounded-md bg-gray-100 text-center font-bold" />
-                </td>
-              </tr>
-              <tr>
-                <td class="border border-gray-300 p-4 font-semibold align-top">Resposta Motora</td>
-                <td class="border border-gray-300 p-4">
-                  <select id="motora-texto" onchange="sincronizar('motora-texto', 'motora', {
-                    'Obedece comandos': 6,
-                    'Localiza dor': 5,
-                    'Movimento de retirada': 4,
-                    'Flexão anormal': 3,
-                    'Extensão anormal': 2,
-                    'Nenhuma': 1
-                  })"
-                                class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-light-blue">
-                    <option value="Obedece comandos">Obedece comandos</option>
-                    <option value="Localiza dor">Localiza dor</option>
-                    <option value="Movimento de retirada">Movimento de retirada</option>
-                    <option value="Flexão anormal">Flexão anormal</option>
-                    <option value="Extensão anormal">Extensão anormal</option>
-                    <option value="Nenhuma">Nenhuma</option>
-                  </select>
-                </td>
-                <td class="border border-gray-300 p-4">
-                  <input id="motora" readonly value="6" class="w-full p-2 border border-gray-300 rounded-md bg-gray-100 text-center font-bold" />
-                </td>
-              </tr>
-              <tr>
-                <td class="border border-gray-300 p-4 font-semibold align-top">Resposta Pupilar</td>
-                <td class="border border-gray-300 p-4">
-                  <select id="pupilar-texto" onchange="sincronizar('pupilar-texto', 'pupilar', {
-                    'Normal': 0,
-                    'Anisocoria': -1,
-                    'Midríase bilateral': -2
-                  })"
-                                class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-light-blue">
-                    <option value="Normal">Normal</option>
-                    <option value="Anisocoria">Anisocoria</option>
-                    <option value="Midríase bilateral">Midríase bilateral</option>
-                  </select>
-                </td>
-                <td class="border border-gray-300 p-4">
-                  <input id="pupilar" readonly value="0" class="w-full p-2 border border-gray-300 rounded-md bg-gray-100 text-center font-bold" />
-                </td>
-              </tr>
-            </tbody>
-          </table>
+          <div id="glasgow-criteria-container" class="space-y-4"> <!-- Novo container para os critérios -->
+
+            <!-- Critério: Abertura Ocular -->
+            <div class="glasgow-criterion-card">
+              <div class="glasgow-criterion-header">
+                <h3 class="glasgow-criterion-title">Abertura Ocular</h3>
+                <span class="glasgow-score-display" id="ocular_score_display">4</span> <!-- Display da pontuação -->
+              </div>
+              <div class="glasgow-criterion-options">
+                <select id="ocular_select" class="glasgow-select" onchange="updateScoreAndCalculate('ocular')">
+                  <option value="4">Espontânea</option>
+                  <option value="3">À voz</option>
+                  <option value="2">À dor</option>
+                  <option value="1">Nenhuma</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Critério: Resposta Verbal -->
+            <div class="glasgow-criterion-card">
+              <div class="glasgow-criterion-header">
+                <h3 class="glasgow-criterion-title">Resposta Verbal</h3>
+                <span class="glasgow-score-display" id="verbal_score_display">5</span>
+              </div>
+              <div class="glasgow-criterion-options">
+                <select id="verbal_select" class="glasgow-select" onchange="updateScoreAndCalculate('verbal')">
+                  <option value="5">Orientado</option>
+                  <option value="4">Confuso</option>
+                  <option value="3">Palavras inapropriadas</option>
+                  <option value="2">Palavras incompreensíveis</option>
+                  <option value="1">Nenhuma</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Critério: Resposta Motora -->
+            <div class="glasgow-criterion-card">
+              <div class="glasgow-criterion-header">
+                <h3 class="glasgow-criterion-title">Resposta Motora</h3>
+                <span class="glasgow-score-display" id="motora_score_display">6</span>
+              </div>
+              <div class="glasgow-criterion-options">
+                <select id="motora_select" class="glasgow-select" onchange="updateScoreAndCalculate('motora')">
+                  <option value="6">Obedece comandos</option>
+                  <option value="5">Localiza dor</option>
+                  <option value="4">Movimento de retirada</option>
+                  <option value="3">Flexão anormal</option>
+                  <option value="2">Extensão anormal</option>
+                  <option value="1">Nenhuma</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Critério: Resposta Pupilar -->
+            <div class="glasgow-criterion-card">
+              <div class="glasgow-criterion-header">
+                <h3 class="glasgow-criterion-title">Resposta Pupilar</h3>
+                <span class="glasgow-score-display" id="pupilar_score_display">0</span>
+              </div>
+              <div class="glasgow-criterion-options">
+                <select id="pupilar_select" class="glasgow-select" onchange="updateScoreAndCalculate('pupilar')">
+                  <option value="0">Normal</option>
+                  <option value="-1">Anisocoria</option>
+                  <option value="-2">Midríase bilateral</option>
+                </select>
+              </div>
+            </div>
+
+          </div>
         </form>
 
         <div id="resultado" class="resultado" aria-live="polite" style="display: none;"></div>
@@ -322,19 +382,25 @@
   <div id="footer-container"></div>
 
   <script>
-    // Função para sincronizar o valor do select com o input de pontuação
-    function sincronizar(descricaoId, escoreId, mapa) {
-      const descricao = document.getElementById(descricaoId).value;
-      document.getElementById(escoreId).value = mapa[descricao];
+    // Função para atualizar o score exibido e recalcular o total de Glasgow
+    function updateScoreAndCalculate(criterionName) {
+      const selectElement = document.getElementById(`${criterionName}_select`);
+      const scoreDisplayElement = document.getElementById(`${criterionName}_score_display`);
+      
+      if (selectElement && scoreDisplayElement) {
+        scoreDisplayElement.innerText = selectElement.value; // Atualiza o score exibido
+      }
       calcularEscala(); // Recalcula o escore total automaticamente ao mudar a seleção
     }
 
     // Função para calcular o escore total de Glasgow
     function calcularEscala() {
-      const ocular = parseInt(document.getElementById("ocular").value);
-      const verbal = parseInt(document.getElementById("verbal").value);
-      const motora = parseInt(document.getElementById("motora").value);
-      const pupilar = parseInt(document.getElementById("pupilar").value);
+      // Obtém os valores dos selects e converte para número
+      const ocular = parseInt(document.getElementById("ocular_select").value);
+      const verbal = parseInt(document.getElementById("verbal_select").value);
+      const motora = parseInt(document.getElementById("motora_select").value);
+      const pupilar = parseInt(document.getElementById("pupilar_select").value);
+
       const total = ocular + verbal + motora + pupilar;
       let interpretacao = "";
       let isRisky = false;
@@ -359,49 +425,44 @@
 
       // Aplica classes de cor baseadas no risco
       if (isRisky) {
-          resultadoDiv.classList.add('text-red-600');  
-          resultadoDiv.classList.remove('text-dark-blue');  
-          resultadoDiv.classList.remove('bg-blue-50'); // Remove background padrão
-          resultadoDiv.classList.add('bg-red-100'); // Adiciona background de alerta
+          resultadoDiv.classList.add('text-red-600', 'bg-red-100');  
+          resultadoDiv.classList.remove('text-dark-blue', 'bg-blue-50');  
       } else {
-          resultadoDiv.classList.remove('text-red-600');
-          resultadoDiv.classList.add('text-dark-blue');
-          resultadoDiv.classList.remove('bg-red-100'); // Remove background de alerta
-          resultadoDiv.classList.add('bg-blue-50'); // Adiciona background padrão
+          resultadoDiv.classList.remove('text-red-600', 'bg-red-100');
+          resultadoDiv.classList.add('text-dark-blue', 'bg-blue-50');
       }
     }
 
     // Função para limpar todos os campos e o resultado
     function limparCampos() {
-      // Reseta todos os selects para a primeira opção (ou opção padrão)
-      document.getElementById('ocular-texto').selectedIndex = 0;
-      document.getElementById('verbal-texto').selectedIndex = 0;
-      document.getElementById('motora-texto').selectedIndex = 0;
-      document.getElementById('pupilar-texto').selectedIndex = 0;
+      // Reseta todos os selects para a primeira opção (valor padrão)
+      document.getElementById('ocular_select').selectedIndex = 0;
+      document.getElementById('verbal_select').selectedIndex = 0;
+      document.getElementById('motora_select').selectedIndex = 0;
+      document.getElementById('pupilar_select').selectedIndex = 0;
 
-      // Sincroniza os inputs de pontuação com os valores iniciais dos selects
-      sincronizar('ocular-texto', 'ocular', {'Espontânea': 4, 'À voz': 3, 'À dor': 2, 'Nenhuma': 1});
-      sincronizar('verbal-texto', 'verbal', {'Orientado': 5, 'Confuso': 4, 'Palavras inapropriadas': 3, 'Palavras incompreensíveis': 2, 'Nenhuma': 1});
-      sincronizar('motora-texto', 'motora', {'Obedece comandos': 6, 'Localiza dor': 5, 'Movimento de retirada': 4, 'Flexão anormal': 3, 'Extensão anormal': 2, 'Nenhuma': 1});
-      sincronizar('pupilar-texto', 'pupilar', {'Normal': 0, 'Anisocoria': -1, 'Midríase bilateral': -2});
+      // Atualiza os displays de pontuação para refletir os selects resetados
+      document.getElementById('ocular_score_display').innerText = document.getElementById('ocular_select').value;
+      document.getElementById('verbal_score_display').innerText = document.getElementById('verbal_select').value;
+      document.getElementById('motora_score_display').innerText = document.getElementById('motora_select').value;
+      document.getElementById('pupilar_score_display').innerText = document.getElementById('pupilar_select').value;
 
       const resultadoDiv = document.getElementById('resultado');
       resultadoDiv.innerHTML = ''; // Limpa o conteúdo do resultado
       resultadoDiv.style.display = 'none'; // Esconde a div de resultado
-      resultadoDiv.classList.remove('text-red-600', 'text-dark-blue', 'bg-red-100', 'bg-blue-50');
-      // Adiciona as classes padrão caso o resultado seja exibido novamente sem um cálculo
-      resultadoDiv.classList.add('text-dark-blue', 'bg-blue-50');
+      resultadoDiv.classList.remove('text-red-600', 'bg-red-100'); // Remove as classes de "risco"
+      resultadoDiv.classList.add('text-dark-blue', 'bg-blue-50'); // Garante as classes padrão para futuros cálculos
     }
 
-    // Função para gerar PDF (Aprimorada)
+    // Função para gerar PDF (Aprimorada para a nova estrutura)
     function gerarPDF() {
         console.log('Função gerarPDF() iniciada.');
 
         const mainTitle = document.getElementById('main-title');
         const introParagraph = document.getElementById('intro-paragraph');
-        const glasgowTable = document.getElementById('glasgow-table');
+        const glasgowCriteriaContainer = document.getElementById('glasgow-criteria-container'); // Novo container de critérios
         const resultadoDiv = document.getElementById('resultado');
-        const bibliografiaDiv = document.querySelector('.ref'); // Seleciona pela classe
+        const bibliografiaDiv = document.querySelector('.ref');
 
         // Cria um container temporário para os elementos que irão para o PDF
         const pdfContentWrapper = document.createElement('div');
@@ -438,26 +499,37 @@
         dateDiv.innerText = `Gerado em: ${new Date().toLocaleDateString('pt-BR')} ${new Date().toLocaleTimeString('pt-BR')}`;
         pdfContentWrapper.appendChild(dateDiv);
 
-        // Adiciona a tabela de Glasgow com os valores selecionados
-        if (glasgowTable) {
-            const clonedTable = glasgowTable.cloneNode(true);
-            clonedTable.style.width = '100%';
-            clonedTable.style.borderCollapse = 'collapse';
-            clonedTable.style.marginBottom = '20px';
+        // Adiciona os critérios de Glasgow com os valores selecionados
+        if (glasgowCriteriaContainer) {
+            const clonedCriteriaContainer = glasgowCriteriaContainer.cloneNode(true);
 
-            // Substituir selects pelos textos selecionados nos clones da tabela
-            clonedTable.querySelectorAll('select').forEach(select => {
-                const selectedText = select.options[select.selectedIndex].text;
-                const textNode = document.createTextNode(selectedText);
-                select.parentNode.replaceChild(textNode, select);
-            });
-            // Remover inputs de pontuação readonly, se preferir apenas o texto
-            clonedTable.querySelectorAll('input[readonly]').forEach(input => {
-                const textNode = document.createTextNode(input.value);
-                input.parentNode.replaceChild(textNode, input);
-            });
+            // Para cada cartão de critério clonado, extrai os valores e os formata para o PDF
+            clonedCriteriaContainer.querySelectorAll('.glasgow-criterion-card').forEach(card => {
+                const selectElement = card.querySelector('.glasgow-select');
+                const scoreDisplayElement = card.querySelector('.glasgow-score-display');
+                const criterionTitleElement = card.querySelector('.glasgow-criterion-title');
 
-            pdfContentWrapper.appendChild(clonedTable);
+                if (selectElement && scoreDisplayElement && criterionTitleElement) {
+                    const selectedText = selectElement.options[selectElement.selectedIndex].text;
+                    const score = scoreDisplayElement.innerText; // Pega a pontuação atualmente exibida
+
+                    // Cria um novo div para conter o critério, a opção selecionada e a pontuação para o PDF
+                    const pdfCriterionInfo = document.createElement('div');
+                    pdfCriterionInfo.style.marginBottom = '8px';
+                    pdfCriterionInfo.style.fontSize = '14px';
+                    pdfCriterionInfo.innerHTML = `<strong>${criterionTitleElement.innerText}:</strong> ${selectedText} (Pontuação: ${score})`;
+                    
+                    // Substitui o conteúdo original do cartão por esta nova informação formatada para o PDF
+                    card.innerHTML = ''; // Limpa o conteúdo original
+                    card.appendChild(pdfCriterionInfo);
+                    // Remove estilos de layout para uma apresentação mais limpa no PDF
+                    card.style.border = 'none';
+                    card.style.boxShadow = 'none';
+                    card.style.padding = '0';
+                    card.style.backgroundColor = 'transparent';
+                }
+            });
+            pdfContentWrapper.appendChild(clonedCriteriaContainer);
         }
 
         // Adiciona o resultado se estiver visível
@@ -472,7 +544,7 @@
             clonedResultado.style.whiteSpace = 'pre-wrap'; // Garante quebras de linha
             pdfContentWrapper.appendChild(clonedResultado);
         } else {
-             // Adiciona uma mensagem de erro se o cálculo não foi realizado
+            // Adiciona uma mensagem de erro se o cálculo não foi realizado
             const noResultP = document.createElement('p');
             noResultP.style.fontSize = '14px';
             noResultP.style.color = '#dc2626';
@@ -482,7 +554,7 @@
         }
 
         // Adiciona a bibliografia se estiver visível
-        if (bibliografiaDiv) { // Bibliografia está sempre visível na página
+        if (bibliografiaDiv) { // A bibliografia está sempre visível na página
             const clonedBibliografia = bibliografiaDiv.cloneNode(true);
             clonedBibliografia.style.marginTop = '25px';
             clonedBibliografia.style.fontSize = '12px';
@@ -535,8 +607,11 @@
         })
         .catch(err => console.error("Erro ao carregar rodape111.html:", err));
 
-        // Inicializa o cálculo da escala ao carregar a página para mostrar o valor padrão
-        calcularEscala();
+      // Inicializa os scores e calcula o total ao carregar a página
+      updateScoreAndCalculate('ocular');
+      updateScoreAndCalculate('verbal');
+      updateScoreAndCalculate('motora');
+      updateScoreAndCalculate('pupilar');
     });
   </script>
 </body>
