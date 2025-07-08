@@ -91,14 +91,16 @@
       padding: 1.25rem; /* p-5 */
       border-radius: 0.5rem;
       font-weight: 600;
-      text-align: center; /* Ajustado para centralizar como no NEWS */
+      text-align: center;
       font-size: 1.125rem; /* text-lg */
       line-height: 1.6;
+      display: none; /* Começa oculto */
     }
     /* Cores específicas para o resultado do MEOWS */
     .resultado.bg-red-custom { background-color: #fee2e2; color: #dc2626; } /* red-100, red-600 */
     .resultado.bg-yellow-custom { background-color: #fefce8; color: #d97706; } /* yellow-50, yellow-700 */
     .resultado.bg-green-custom { background-color: #dcfce7; color: #15803d; } /* green-100, green-700 */
+    .resultado.bg-gray-result { background-color: #f3f4f6; color: #4b5563; } /* gray-100, gray-600 */
 
     /* Estilos para a referência/bibliografia (Componente específico) */
     .ref {
@@ -125,13 +127,13 @@
     /* ESTILOS DOS DROPDOWNS DA TOPBAR (MOVIDOS DE TOPBAR111.HTML) */
     .dropdown-menu { display: none; }
     .dropdown-menu.show { display: block; }
-    nav { justify-content: flex-end; } 
+    nav { justify-content: flex-end; }  
     nav button { cursor: pointer; }
     nav .dropdown-menu a:hover { background-color: #bfdbfe; }
     /* FIM DOS ESTILOS DA TOPBAR */
 
     /* Espaçamento para o conteúdo abaixo da topbar fixa */
-    .main-content-wrapper { 
+    .main-content-wrapper {  
       display: flex;
       flex-direction: column;
       flex-grow: 1;
@@ -188,33 +190,72 @@
     }
     td.selected {
       background-color: #bfdbfe; /* blue-200 */
+      outline: 2px solid #1FA4E5; /* Adiciona um contorno azul mais claro para destaque */
+      outline-offset: -2px; /* Garante que o contorno fique dentro da célula */
     }
     /* Estilo para células vazias */
     td:empty {
       background-color: transparent !important;
       border: none !important; /* Isso pode remover as bordas das células vazias */
     }
+
+    /* Responsividade da tabela para telas pequenas */
+    @media (max-width: 768px) {
+      table {
+        display: block;
+        width: 100%;
+      }
+      thead {
+        display: block;
+        float: left; /* Força o thead a flutuar para a esquerda */
+      }
+      tbody {
+        display: block;
+        width: auto;
+        overflow-x: auto;
+      }
+      th, td {
+        display: block;
+        white-space: nowrap; /* Impede a quebra de linha do conteúdo */
+        text-align: right; /* Alinha o texto das células de dados à direita */
+        min-width: 120px; /* Largura mínima para as colunas de dados */
+        border: 1px solid #e5e7eb; /* Garante bordas */
+      }
+      tbody tr {
+        display: inline-block; /* Faz as linhas do tbody se comportarem como colunas */
+        vertical-align: top; /* Alinha o topo das "colunas" */
+        border: none;
+      }
+      th {
+        text-align: right !important; /* Alinha o título das variáveis à direita */
+        border-bottom: 1px solid #e5e7eb;
+        border-right: 1px solid #e5e7eb;
+      }
+      tbody td:first-child {
+        text-align: right !important; /* Alinha a variável no tbody à direita */
+      }
+    }
   </style>
 </head>
 <body class="bg-gray-50 text-gray-800 font-inter">
 
-  <div id="topbar-container"></div> 
+  <div id="topbar-container"></div>  
 
   <div class="main-content-wrapper">
     <main class="flex flex-col flex-grow">
 
       <div class="flex flex-wrap items-center justify-center gap-4 mb-3">
         <img src="iconpages.png" alt="Ícone do Protocolo MEOWS" class="w-32 h-auto" />
-        <h1 class="font-nunito font-extrabold text-dark-blue text-4xl lg:text-5xl text-center">
+        <h1 id="main-title" class="font-nunito font-extrabold text-dark-blue text-4xl lg:text-5xl text-center">
           Escala MEOWS
         </h1>
       </div>
-      <h2 class="font-inter font-normal text-lg text-gray-700 text-center mb-6">
+      <h2 id="subtitle" class="font-inter font-normal text-lg text-gray-700 text-center mb-6">
         Modified Early Obstetric Warning Score (Escore de Alerta Obstétrico Modificado)
       </h2>
 
-      <div id="conteudo" class="w-full">
-        <div class="alert-custom">
+      <div id="meows-content" class="w-full">
+        <div id="alert-section" class="alert-custom">
           <p class="font-bold mb-2">Atenção:</p>
           <p>
             Aplique a **Meta Internacional de Segurança do Paciente nº 2**: *“Melhorar a comunicação efetiva entre os profissionais de saúde, assegurando que as informações críticas dos pacientes sejam transmitidas de forma clara, objetiva e no momento adequado."*
@@ -262,9 +303,9 @@
           </button>
         </div>
 
-        <div class="resultado" id="resultado" style="display:none;"></div>
+        <div class="resultado" id="resultado"></div>
 
-        <div class="ref font-inter text-gray-custom">
+        <div id="bibliografia" class="ref font-inter text-gray-custom">
           <strong>Referência bibliográfica:</strong><br />
           <p class="mt-2">
             GOMES, Rodrigo Silva. Protocolo MEOWS. Disponível em: <a href="https://www.cremeb.org.br/wp-content/uploads/2016/07/Mesa-02-Palestra-03-Rodrigo-Silva-Gomes.pdf" target="_blank" class="text-light-blue hover:underline">cremeb.org.br</a>
@@ -273,7 +314,7 @@
       </div>
 
     </main>
-  </div> 
+  </div>  
 
   <a href="doacoes.html" class="fixed bottom-4 right-4 bg-dark-blue text-white text-sm px-4 py-2 rounded-full shadow hover:bg-blue-900 transition fixed-donation-button">
     Ajude-nos a manter o site gratuito
@@ -281,11 +322,12 @@
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   
-  <script src="pdf111.js"></script> <div id="footer-container"></div>
+  <div id="footer-container"></div>
 
   <script>
     document.addEventListener('DOMContentLoaded', () => {
       const tabela = document.getElementById("meowsTable");
+      const resultadoDiv = document.getElementById('resultado');
 
       // Anexa eventos de clique às células da tabela
       tabela.addEventListener('click', function(e) {
@@ -300,22 +342,27 @@
 
       // Função para calcular o escore MEOWS
       function calcularMeows() {
-        const resultadoDiv = document.getElementById('resultado');
         let total = 0;
+        let todasLinhasSelecionadas = true;
+        const acoesPorLinha = []; // Para armazenar as seleções para o PDF
 
         // Resetar classes de cor anteriores
-        resultadoDiv.classList.remove('bg-red-custom', 'bg-yellow-custom', 'bg-green-custom');
+        resultadoDiv.classList.remove('bg-red-custom', 'bg-yellow-custom', 'bg-green-custom', 'bg-gray-result');
 
-        // Verifica se todas as linhas têm uma seleção
         const linhas = document.querySelectorAll('#meowsTable tbody tr');
-        let todasLinhasSelecionadas = true;
         linhas.forEach(linha => {
-          const selectedCell = linha.querySelector('td.selected'); // Tenta encontrar a célula selecionada
+          const selectedCell = linha.querySelector('td.selected');
+          const variavelNome = linha.querySelector('td:first-child').innerText; // Pega o nome da variável (ex: Temperatura)
+
           if (!selectedCell) {
             todasLinhasSelecionadas = false;
+            // Adiciona um placeholder para a linha não selecionada
+            acoesPorLinha.push({ variavel: variavelNome, valor: 'Não selecionado', score: '-' });
           } else {
-            // Se uma linha tem seleção, adiciona o score da célula selecionada
-            total += parseInt(selectedCell.getAttribute('data-score')) || 0;
+            const score = parseInt(selectedCell.getAttribute('data-score')) || 0;
+            const valor = selectedCell.innerText;
+            total += score;
+            acoesPorLinha.push({ variavel: variavelNome, valor: valor, score: score });
           }
         });
 
@@ -323,6 +370,10 @@
           resultadoDiv.style.display = "block";
           resultadoDiv.innerHTML = "⚠️ Por favor, selecione uma opção para **cada parâmetro** antes de calcular.";
           resultadoDiv.classList.add('bg-red-custom'); // Usa cor de alerta para erro
+          // Armazena a mensagem de erro para o PDF
+          resultadoDiv.dataset.pdfContent = resultadoDiv.innerHTML;
+          resultadoDiv.dataset.pdfClass = 'bg-red-custom';
+          resultadoDiv.dataset.pdfSelections = JSON.stringify(acoesPorLinha);
           return;
         }
 
@@ -346,6 +397,11 @@
           `<p class="font-bold text-lg mt-2 mb-1">Classificação: ${risco}</p>` +
           `<p>${acaoRecomendada}</p>`;
         resultadoDiv.classList.add(corClasse);
+
+        // Armazena o conteúdo e classes para uso posterior no PDF
+        resultadoDiv.dataset.pdfContent = resultadoDiv.innerHTML;
+        resultadoDiv.dataset.pdfClass = corClasse;
+        resultadoDiv.dataset.pdfSelections = JSON.stringify(acoesPorLinha);
       }
 
       // Função para limpar as seleções
@@ -353,52 +409,162 @@
         document.querySelectorAll('#meowsTable td.selected').forEach(td => {
           td.classList.remove('selected');
         });
-        const resultadoDiv = document.getElementById('resultado');
         resultadoDiv.innerHTML = '';
         resultadoDiv.style.display = 'none'; // Esconde o resultado ao limpar
-        resultadoDiv.classList.remove('bg-red-custom', 'bg-yellow-custom', 'bg-green-custom'); // Remove todas as classes de cor
+        resultadoDiv.classList.remove('bg-red-custom', 'bg-yellow-custom', 'bg-green-custom', 'bg-gray-result'); // Remove todas as classes de cor
+        delete resultadoDiv.dataset.pdfContent;
+        delete resultadoDiv.dataset.pdfClass;
+        delete resultadoDiv.dataset.pdfSelections;
       }
 
-      // Função para gerar PDF
+      // Função para gerar PDF (Aprimorada)
       function gerarPDF() {
-        // Cria uma cópia do conteúdo para o PDF
-        const content = document.getElementById('conteudo').cloneNode(true);
+        const mainTitle = document.getElementById('main-title');
+        const subtitle = document.getElementById('subtitle');
+        const alertSection = document.getElementById('alert-section');
+        const bibliografiaDiv = document.getElementById('bibliografia');
 
-        // Remove os botões da cópia antes de gerar o PDF
-        const buttonsDiv = content.querySelector('.flex.flex-wrap.justify-start.gap-4.mt-6');
-        if (buttonsDiv) buttonsDiv.remove();
+        const pdfContentWrapper = document.createElement('div');
+        pdfContentWrapper.style.padding = '20px';
+        pdfContentWrapper.style.fontFamily = 'Inter, sans-serif';
+        pdfContentWrapper.style.color = '#333';
+        pdfContentWrapper.style.lineHeight = '1.6';
 
-        // Esconde o botão de doação fixo antes de gerar o PDF
-        const fixedButton = document.querySelector('.fixed-donation-button');
-        if (fixedButton) {
-          fixedButton.style.display = 'none';
+        // Título Principal
+        if (mainTitle) {
+          const clonedMainTitle = mainTitle.cloneNode(true);
+          clonedMainTitle.style.fontSize = '28px';
+          clonedMainTitle.style.color = '#1A3E74';
+          clonedMainTitle.style.textAlign = 'center';
+          clonedMainTitle.style.marginBottom = '10px';
+          pdfContentWrapper.appendChild(clonedMainTitle);
         }
 
-        // Garante que o resultado esteja visível e formatado antes de gerar o PDF
-        const resultadoOriginal = document.getElementById('resultado');
-        const resultadoCopia = content.querySelector('#resultado');
-        if (resultadoOriginal.style.display === 'none' || resultadoOriginal.innerHTML.includes('Por favor, selecione')) {
-            // Se o resultado não estiver visível ou for uma mensagem de erro, mostra uma mensagem para o PDF
-            resultadoCopia.style.display = 'block';
-            resultadoCopia.classList.remove('bg-red-custom', 'bg-yellow-custom', 'bg-green-custom');
-            resultadoCopia.classList.add('bg-gray-100', 'text-gray-700');
-            resultadoCopia.innerHTML = "Resultado não calculado ou incompleto na página. Calcule antes de gerar o PDF.";
+        // Subtítulo
+        if (subtitle) {
+          const clonedSubtitle = subtitle.cloneNode(true);
+          clonedSubtitle.style.fontSize = '18px';
+          clonedSubtitle.style.fontWeight = 'normal';
+          clonedSubtitle.style.textAlign = 'center';
+          clonedSubtitle.style.color = '#666';
+          clonedSubtitle.style.marginBottom = '15px';
+          pdfContentWrapper.appendChild(clonedSubtitle);
+        }
+
+        // Data de Geração
+        const dateDiv = document.createElement('p');
+        dateDiv.style.fontSize = '10px';
+        dateDiv.style.color = '#777';
+        dateDiv.style.textAlign = 'right';
+        dateDiv.style.marginBottom = '20px';
+        dateDiv.innerText = `Gerado em: ${new Date().toLocaleDateString('pt-BR')} ${new Date().toLocaleTimeString('pt-BR')}`;
+        pdfContentWrapper.appendChild(dateDiv);
+
+        // Seção de Alerta
+        if (alertSection) {
+            const clonedAlert = alertSection.cloneNode(true);
+            clonedAlert.style.backgroundColor = '#fefce8';
+            clonedAlert.style.borderColor = '#fde68a';
+            clonedAlert.style.color = '#b45309';
+            clonedAlert.style.padding = '15px';
+            clonedAlert.style.borderRadius = '8px';
+            clonedAlert.style.marginBottom = '20px';
+            clonedAlert.style.fontSize = '12px';
+            clonedAlert.querySelector('p:first-child').style.fontWeight = 'bold';
+            clonedAlert.querySelectorAll('p').forEach(p => p.style.marginBottom = '5px');
+            pdfContentWrapper.appendChild(clonedAlert);
+        }
+
+        // Tabela de Seleções no PDF
+        const selectionsTableDiv = document.createElement('div');
+        selectionsTableDiv.innerHTML = '<h3 style="font-size: 16px; font-weight: bold; color: #1A3E74; margin-bottom: 10px;">Parâmetros Avaliados:</h3>';
+        selectionsTableDiv.style.marginBottom = '20px';
+
+        const selectionsTable = document.createElement('table');
+        selectionsTable.style.width = '100%';
+        selectionsTable.style.borderCollapse = 'collapse';
+        selectionsTable.style.border = '1px solid #e5e7eb';
+        selectionsTable.style.fontSize = '12px';
+
+        const tableHeader = `<thead>
+                                <tr>
+                                    <th style="background-color: #bfdbfe; color: #1A3E74; padding: 8px; text-align: left;">Variável</th>
+                                    <th style="background-color: #bfdbfe; color: #1A3E74; padding: 8px;">Valor Selecionado</th>
+                                    <th style="background-color: #bfdbfe; color: #1A3E74; padding: 8px;">Escore</th>
+                                </tr>
+                            </thead>`;
+        selectionsTable.innerHTML = tableHeader;
+
+        const tableBody = document.createElement('tbody');
+        const storedSelections = JSON.parse(resultadoDiv.dataset.pdfSelections || '[]');
+        if (storedSelections.length > 0) {
+          storedSelections.forEach(item => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+              <td style="padding: 8px; border: 1px solid #e5e7eb; text-align: left;">${item.variavel}</td>
+              <td style="padding: 8px; border: 1px solid #e5e7eb; text-align: center;">${item.valor}</td>
+              <td style="padding: 8px; border: 1px solid #e5e7eb; text-align: center;">${item.score}</td>
+            `;
+            tableBody.appendChild(row);
+          });
         } else {
-          // Se o resultado já foi calculado, copia o conteúdo e as classes de estilo
-          resultadoCopia.innerHTML = resultadoOriginal.innerHTML;
-          resultadoCopia.className = resultadoOriginal.className; // Copia todas as classes de estilo
+            const row = document.createElement('tr');
+            row.innerHTML = `<td colspan="3" style="padding: 8px; border: 1px solid #e5e7eb; text-align: center; color: #ef4444;">Nenhuma seleção realizada para o cálculo.</td>`;
+            tableBody.appendChild(row);
+        }
+        selectionsTable.appendChild(tableBody);
+        selectionsTableDiv.appendChild(selectionsTable);
+        pdfContentWrapper.appendChild(selectionsTableDiv);
+
+
+        // Resultado do Cálculo
+        const pdfResultadoDiv = document.createElement('div');
+        pdfResultadoDiv.style.marginTop = '20px';
+        pdfResultadoDiv.style.padding = '15px';
+        pdfResultadoDiv.style.borderRadius = '8px';
+        pdfResultadoDiv.style.fontSize = '14px';
+        pdfResultadoDiv.style.textAlign = 'center';
+        pdfResultadoDiv.style.fontWeight = 'bold';
+        pdfResultadoDiv.style.lineHeight = '1.5';
+
+        if (resultadoDiv.dataset.pdfContent) {
+            pdfResultadoDiv.innerHTML = resultadoDiv.dataset.pdfContent;
+            pdfResultadoDiv.classList.add(resultadoDiv.dataset.pdfClass);
+        } else {
+            pdfResultadoDiv.innerHTML = "Resultado não calculado ou incompleto na página. Calcule antes de gerar o PDF.";
+            pdfResultadoDiv.classList.add('bg-gray-result');
+        }
+        pdfContentWrapper.appendChild(pdfResultadoDiv);
+
+        // Bibliografia
+        if (bibliografiaDiv) {
+            const clonedBibliografia = bibliografiaDiv.cloneNode(true);
+            clonedBibliografia.style.marginTop = '25px';
+            clonedBibliografia.style.fontSize = '12px';
+            clonedBibliografia.style.color = '#666';
+            clonedBibliografia.querySelectorAll('a').forEach(a => {
+                a.style.color = '#1FA4E5';
+                a.style.textDecoration = 'underline';
+            });
+            pdfContentWrapper.appendChild(clonedBibliografia);
+        }
+
+        // Esconde o botão de doação antes de gerar o PDF
+        const fixedButton = document.querySelector('.fixed-donation-button');
+        if (fixedButton) {
+            fixedButton.style.display = 'none';
         }
 
         const opt = {
           margin:       0.5,
           filename:     'protocolo_meows.pdf',
           image:        { type: 'jpeg', quality: 0.98 },
-          html2canvas:  { scale: 3, scrollY: 0 },
+          html2canvas:  { scale: 3, scrollY: 0, useCORS: true },
           jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' },
         };
         
-        html2pdf().set(opt).from(content).save().then(() => {
-          // Volta a exibir o botão de doação fixo após a geração do PDF
+        html2pdf().set(opt).from(pdfContentWrapper).save().then(() => {
+          // Volta a exibir o botão de doação após a geração do PDF
           if (fixedButton) {
             fixedButton.style.display = '';
           }
