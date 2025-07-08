@@ -14,16 +14,17 @@
 
     /* Estilos base para o corpo da página */
     body {
-      padding-top: 64px; /* Espaço para a topbar fixa (ajuste se a altura real for diferente) */
-      position: relative;
-      min-height: 100vh;
+      padding-top: 64px; /* Espaço para a topbar fixa */
+      min-height: 100vh; /* Garante que o body ocupe no mínimo 100% da altura da viewport */
       display: flex;
-      flex-direction: column;
+      flex-direction: column; /* Organiza os filhos em coluna */
+      /* Removido: position: relative; - não é necessário aqui para o sticky footer */
+      /* Removido: padding-bottom; - será gerenciado pelo margin-top: auto no footer */
     }
 
     /* Ajuste para o main para empurrar o rodapé para baixo */
     main {
-        flex-grow: 1;
+        flex-grow: 1; /* Permite que o conteúdo principal ocupe todo o espaço restante */
     }
 
     /* Oculta o botão de menu mobile para a sidebar, pois ela não existirá nesta página */
@@ -102,14 +103,28 @@
       margin-top: 10px;
     }
 
-    /* --- NOVOS ESTILOS E AJUSTES --- */
-
-    /* Removido: .fixed-donation-button */
-
-    /* Ajuste para o rodapé: agora o padding-bottom é definido pelo JS */
-    #footer-container {
-        /* Não precisa de padding-bottom fixo aqui, pois o JS irá calculá-lo */
+    /* Ajustes para o botão de doação */
+    .fixed-donation-button {
+        bottom: 1rem;
+        right: 1rem;
+        z-index: 30;
     }
+
+    /* --- NOVOS ESTILOS E AJUSTES PARA O RODAPÉ --- */
+
+    /* Estilo para o elemento <footer> que será criado dinamicamente */
+    footer {
+      background-color: #1A3E74; /* Cor azul do seu rodapé */
+      color: white; /* Cor do texto do rodapé */
+      padding: 1rem 0; /* Padding interno para o conteúdo do rodapé */
+      text-align: center;
+      width: 100%; /* Garante que o rodapé ocupe a largura total */
+      box-sizing: border-box; /* Inclui padding na largura */
+      margin-top: auto; /* ESSENCIAL: Empurra o rodapé para o final do container flexível */
+      flex-shrink: 0; /* Garante que o rodapé não encolha */
+    }
+
+    /* Removido: #footer-container { padding-bottom: 5rem; } - não é mais necessário */
 
     /* Posição do botão "Bem-vindo!" */
     .btn-welcome {
@@ -152,7 +167,6 @@
             align-items: center;
             justify-content: flex-start;
             padding-left: 1rem;
-            /* Padding ajustado para o botão "Bem-vindo!" */
             padding-right: calc(1rem + 16px + 100px);
         }
 
@@ -243,6 +257,8 @@
     Bem-vindo!
   </button>
 
+  <!-- O BOTÃO DE DOAÇÃO FOI REMOVIDO PERMANENTEMENTE -->
+
   <div id="videoModal" class="video-modal">
     <div class="video-modal-content">
       <span class="video-modal-close">&times;</span>
@@ -252,7 +268,8 @@
     </div>
   </div>
 
-  <div id="footer-container"></div>
+  <!-- O div footer-container não é mais necessário, pois o JS cria o elemento footer diretamente -->
+  <!-- <div id="footer-container"></div> -->
 
   <script>
     document.addEventListener('DOMContentLoaded', () => {
@@ -260,8 +277,8 @@
       const videoModal = document.getElementById('videoModal');
       const closeModal = document.querySelector('.video-modal-close');
       const welcomeVideo = document.getElementById('welcomeVideo');
-      const footerContainer = document.getElementById('footer-container');
-      // A referência ao donationButton não é mais necessária já que o botão foi removido
+      // A referência ao donationButton e footerContainer foram removidas, pois não são mais necessárias
+      // const footerContainer = document.getElementById('footer-container');
       // const donationButton = document.querySelector('.fixed-donation-button');
 
       // Carrega o conteúdo do rodapé
@@ -272,15 +289,9 @@
           footer.innerHTML = data;
           document.body.appendChild(footer);
 
-          // Ajusta o padding-bottom do body para que o rodapé esteja sempre visível
-          // e o conteúdo não seja cortado, sem espaço extra indesejado.
-          // Adicionamos um pequeno timeout para garantir que o DOM seja atualizado
-          // antes de ler a altura do footer.
-          setTimeout(() => {
-            const footerHeight = footer.offsetHeight;
-            // Define o padding-bottom do body igual à altura do rodapé + um pequeno respiro
-            document.body.style.paddingBottom = `${footerHeight + 20}px`;
-          }, 100);
+          // O ajuste de padding-bottom do body não é mais necessário aqui.
+          // O `margin-top: auto` no CSS do `footer` e o `flex-grow: 1` no `main`
+          // já garantem que o rodapé fique no final, sem lacunas.
         })
         .catch(err => console.error("Erro ao carregar rodape111.html:", err));
 
