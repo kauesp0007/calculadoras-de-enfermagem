@@ -390,6 +390,11 @@
     }
 
     function gerarPDF() {
+      const fixedButton = document.querySelector('.fixed-donation-button');
+      if (fixedButton) {
+        fixedButton.style.display = 'none'; // Esconde o botão de doação
+      }
+
       // Clona apenas o conteúdo da calculadora que deve ser incluído no PDF
       const contentToPrint = document.getElementById("conteudo").cloneNode(true);
 
@@ -438,7 +443,11 @@
         jsPDF: { unit: "in", format: "a4", orientation: "portrait" }
       };
 
-      html2pdf().set(opt).from(contentToPrint).save();
+      html2pdf().set(opt).from(contentToPrint).save().then(() => {
+        if (fixedButton) {
+          fixedButton.style.display = ''; // Volta a exibir o botão de doação
+        }
+      });
     }
   </script>
 </body>
