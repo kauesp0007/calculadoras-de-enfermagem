@@ -207,15 +207,15 @@
 
     <div class="flex flex-wrap items-center justify-center gap-4 mb-3">
         <img src="iconpages.png" alt="Ícone da Página" class="w-32 h-auto" />
-        <h1 class="font-nunito font-extrabold text-dark-blue text-4xl lg:text-5xl text-center">
+        <h1 id="main-title" class="font-nunito font-extrabold text-dark-blue text-4xl lg:text-5xl text-center">
             Escala de Queda de Morse
         </h1>
     </div>
 
-    <h2 class="font-inter font-semibold text-light-blue text-2xl lg:text-3xl mb-3 text-left max-w-4xl mx-auto px-4">
+    <h2 id="sub-title" class="font-inter font-semibold text-light-blue text-2xl lg:text-3xl mb-3 text-left max-w-4xl mx-auto px-4">
         Avalia o risco de quedas em pacientes hospitalizados.
     </h2>
-    <p class="font-inter font-normal text-gray-custom text-base lg:text-lg mb-6 text-left max-w-4xl mx-auto px-4">
+    <p id="description" class="font-inter font-normal text-gray-custom text-base lg:text-lg mb-6 text-left max-w-4xl mx-auto px-4">
         A Escala de Queda de Morse é uma ferramenta de avaliação de risco utilizada na enfermagem para identificar pacientes com maior probabilidade de sofrer quedas.
     </p>
     <p class="font-inter font-normal text-light-blue text-base lg:text-lg mb-6 text-left max-w-4xl mx-auto px-4">
@@ -224,7 +224,8 @@
 
     <div class="main-content-wrapper">
         <main class="mx-auto px-4 py-8 max-w-4xl">
-            <div id="conteudo"> <table class="w-full border-collapse border border-gray-300 mb-6 text-left">
+            <div id="conteudo">
+                <table class="w-full border-collapse border border-gray-300 mb-6 text-left">
                     <thead>
                         <tr>
                             <th class="border border-gray-300">Critério</th>
@@ -279,9 +280,9 @@
                     </tbody>
                 </table>
 
-                <div id="resultado" class="resultado" aria-live="polite"></div>
+                <div id="resultado" class="resultado" aria-live="polite" style="display: none;"></div>
 
-                <div class="ref font-inter text-gray-custom text-left">
+                <div id="references" class="ref font-inter text-gray-custom text-left">
                     <p class="font-bold mb-2">Referências bibliográficas:</p>
                     <p>
                         <a href="https://www.e-publicacoes.unigranrio.edu.br/index.php/reunigranrio/article/view/1782" target="_blank" class="text-light-blue hover:underline">
@@ -348,6 +349,7 @@
 
             // Limpa classes de resultado anteriores
             resultadoDiv.className = 'resultado'; // Reseta para a classe base
+            resultadoDiv.style.display = 'block'; // Garante que a div de resultado esteja visível ao calcular
 
             for (const campo of campos) {
                 const selecionado = document.querySelector(`input[name="${campo}"]:checked`);
@@ -359,7 +361,6 @@
             }
 
             if (!allSelected) {
-                resultadoDiv.style.display = "block";
                 resultadoDiv.innerHTML = '⚠️ <strong class="font-bold">Por favor, selecione uma opção para todos os itens</strong> antes de calcular.';
                 resultadoDiv.classList.add('bg-info-orange-light', 'text-orange-800');
                 return;
@@ -383,7 +384,6 @@
                 resultadoClasses = ['bg-success-green-light', 'text-green-800'];
             }
 
-            resultadoDiv.style.display = "block";
             resultadoDiv.innerHTML = `Pontuação total: <strong class="font-bold">${total}</strong><br><br>Risco de Queda: <strong class="font-bold">${risco}</strong><br><br>Conduta: ${conduta}`;
             resultadoClasses.forEach(cls => resultadoDiv.classList.add(cls));
         }
@@ -407,42 +407,140 @@
         }
 
         function gerarPDFMorse() {
-            const contentToPrint = document.getElementById("conteudo").cloneNode(true);
+            const pdfContentWrapper = document.createElement('div');
+            pdfContentWrapper.style.fontFamily = "'Inter', sans-serif";
+            pdfContentWrapper.style.color = '#333';
+            pdfContentWrapper.style.padding = '20px';
 
-            // Remove os botões clonados para não aparecerem no PDF
-            const buttonsDiv = contentToPrint.querySelector('.flex.flex-wrap.justify-start.gap-4.mt-6');
-            if (buttonsDiv) {
-                buttonsDiv.remove();
-            }
+            // Adiciona o título principal, subtítulo e descrição
+            const mainTitle = document.getElementById('main-title').cloneNode(true);
+            mainTitle.style.fontSize = '24px';
+            mainTitle.style.fontWeight = 'bold';
+            mainTitle.style.marginBottom = '5px';
+            mainTitle.style.textAlign = 'center';
+            mainTitle.style.color = '#1A3E74';
+            pdfContentWrapper.appendChild(mainTitle);
 
-            // Garante que o resultado esteja visível e com o conteúdo correto para o PDF
+            const subTitle = document.getElementById('sub-title').cloneNode(true);
+            subTitle.style.fontSize = '18px';
+            subTitle.style.marginBottom = '10px';
+            subTitle.style.textAlign = 'center';
+            subTitle.style.color = '#1FA4E5';
+            pdfContentWrapper.appendChild(subTitle);
+
+            const description = document.getElementById('description').cloneNode(true);
+            description.style.fontSize = '14px';
+            description.style.marginBottom = '15px';
+            description.style.textAlign = 'justify';
+            description.style.color = '#666666';
+            pdfContentWrapper.appendChild(description);
+
+            // Adiciona data e hora de geração
+            const dateTime = document.createElement('p');
+            dateTime.style.fontSize = '12px';
+            dateTime.style.color = '#777';
+            dateTime.style.textAlign = 'center';
+            dateTime.style.marginBottom = '20px';
+            dateTime.innerHTML = `Gerado em: ${new Date().toLocaleDateString('pt-BR')} ${new Date().toLocaleTimeString('pt-BR')}`;
+            pdfContentWrapper.appendChild(dateTime);
+
+            // Clonar e adaptar a tabela
+            const originalTable = document.querySelector('#conteudo table').cloneNode(true);
+            originalTable.style.width = '100%';
+            originalTable.style.borderCollapse = 'collapse';
+            originalTable.style.marginBottom = '20px';
+
+            // Remover os inputs de rádio e substituir por texto
+            originalTable.querySelectorAll('input[type="radio"]:checked').forEach(input => {
+                const td = input.closest('td');
+                if (td) {
+                    const labelText = input.nextSibling ? input.nextSibling.textContent.trim() : '';
+                    td.innerHTML = labelText;
+                    td.style.paddingLeft = '10px'; // Ajusta o padding se o rótulo móvel não for aplicado
+                    td.style.textAlign = 'left';
+                    td.style.verticalAlign = 'top';
+                }
+            });
+            // Remover inputs de rádio não selecionados para evitar lixo no PDF
+            originalTable.querySelectorAll('input[type="radio"]').forEach(input => {
+                input.remove();
+            });
+            originalTable.querySelectorAll('label').forEach(label => {
+                label.remove(); // Remove os labels que continham os inputs de rádio
+            });
+
+            // Ajustar estilos da tabela para PDF
+            originalTable.querySelectorAll('th, td').forEach(cell => {
+                cell.style.border = '1px solid #e2e8f0';
+                cell.style.padding = '10px';
+            });
+            originalTable.querySelectorAll('th').forEach(th => {
+                th.style.backgroundColor = '#f0f8ff';
+                th.style.color = '#1A3E74';
+                th.style.fontWeight = '600';
+                th.style.textAlign = 'center';
+            });
+
+            // Remover rótulos ":before" para mobile na versão PDF
+            const style = document.createElement('style');
+            style.innerHTML = `
+                @media (max-width: 640px) {
+                    #pdf-content-wrapper table td:before {
+                        content: none !important;
+                    }
+                    #pdf-content-wrapper table td {
+                        padding-left: 10px !important; /* Ajusta o padding após remover o content:before */
+                        text-align: left !important;
+                    }
+                }
+            `;
+            pdfContentWrapper.appendChild(style);
+
+
+            pdfContentWrapper.appendChild(originalTable);
+
+            // Clonar e adaptar o resultado
             const originalResultDiv = document.getElementById('resultado');
-            const resultDivInPdf = contentToPrint.querySelector('#resultado');
+            const resultDivForPdf = document.createElement('div');
+            resultDivForPdf.className = 'resultado'; // Mantém a classe base para estilos
+            resultDivForPdf.style.marginTop = '1rem';
+            resultDivForPdf.style.padding = '1rem';
+            resultDivForPdf.style.borderRadius = '0.5rem';
+            resultDivForPdf.style.fontWeight = '600';
+            resultDivForPdf.style.textAlign = 'left';
+            resultDivForPdf.style.whiteSpace = 'pre-wrap';
 
-            if (originalResultDiv.style.display !== 'none' && originalResultDiv.innerHTML.trim() !== '' && !originalResultDiv.innerHTML.includes('Por favor, selecione')) {
-                resultDivInPdf.style.display = 'block';
-                resultDivInPdf.innerHTML = originalResultDiv.innerHTML;
+
+            if (originalResultDiv.style.display !== 'none' && originalResultDiv.innerHTML.trim() !== '') {
+                resultDivForPdf.innerHTML = originalResultDiv.innerHTML;
+                // Copia as classes de estilo dinâmicas (cores de fundo/texto)
                 originalResultDiv.classList.forEach(cls => {
                     if (cls.startsWith('bg-') || cls.startsWith('text-')) {
-                        resultDivInPdf.classList.add(cls);
+                        resultDivForPdf.classList.add(cls);
                     }
                 });
-            } else {
-                resultDivInPdf.style.display = 'block';
-                resultDivInPdf.innerHTML = "Resultado não calculado ou seleção incompleta na página. Calcule antes de gerar o PDF.";
-                resultDivInPdf.classList.add('bg-info-orange-light', 'text-orange-800');
-            }
+                resultDivForPdf.style.backgroundColor = getComputedStyle(originalResultDiv).backgroundColor;
+                resultDivForPdf.style.color = getComputedStyle(originalResultDiv).color;
 
-            const headerHtml = `
-                <div style="text-align: center; margin-bottom: 20px; font-family: 'Nunito Sans', sans-serif; color: #1A3E74;">
-                    <h1 style="font-size: 24px; font-weight: bold; margin-bottom: 5px;">Escala de Queda de Morse</h1>
-                    <p style="font-size: 14px; color: #666666;">Relatório de Avaliação do Risco de Queda</p>
-                    <p style="font-size: 12px; color: #777;">Gerado em: ${new Date().toLocaleDateString('pt-BR')} ${new Date().toLocaleTimeString('pt-BR')}</p>
-                </div>
-            `;
-            const tempDiv = document.createElement('div');
-            tempDiv.innerHTML = headerHtml;
-            contentToPrint.prepend(tempDiv.firstChild);
+            } else {
+                resultDivForPdf.innerHTML = "Resultado não calculado ou seleção incompleta na página. Por favor, calcule antes de gerar o PDF.";
+                resultDivForPdf.classList.add('bg-info-orange-light', 'text-orange-800');
+                resultDivForPdf.style.backgroundColor = '#ffeeba';
+                resultDivForPdf.style.color = '#856404';
+            }
+            pdfContentWrapper.appendChild(resultDivForPdf);
+
+            // Clonar a referência bibliográfica
+            const references = document.getElementById('references').cloneNode(true);
+            references.style.marginTop = '2rem';
+            references.style.fontSize = '12px'; // Ajusta o tamanho da fonte para PDF
+            references.style.color = '#666666';
+            references.style.textAlign = 'left';
+            references.querySelectorAll('a').forEach(a => {
+                a.style.color = '#1FA4E5';
+                a.style.textDecoration = 'underline';
+            });
+            pdfContentWrapper.appendChild(references);
 
             const opt = {
                 margin: 0.5,
@@ -452,7 +550,7 @@
                 jsPDF: { unit: "in", format: "a4", orientation: "portrait" }
             };
 
-            html2pdf().set(opt).from(contentToPrint).save();
+            html2pdf().set(opt).from(pdfContentWrapper).save();
         }
     </script>
 </body>
