@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" /> <!-- Atualizado para 1.0 -->
   <title>Escala Johns Hopkins - Risco de Queda</title>
 
   <link rel="canonical" href="https://www.calculadorasdeenfermagem.com.br/johns.html" />
@@ -170,6 +170,52 @@
     select {
       @apply w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-light-blue;
     }
+
+    /* --- RESPONSIVIDADE DA TABELA PARA MOBILE --- */
+    @media (max-width: 640px) {
+      table, thead, tbody, th, td, tr { 
+        display: block; 
+      }
+      thead tr { 
+        position: absolute;
+        top: -9999px;
+        left: -9999px; 
+      }
+      tr { 
+        border: 1px solid #e2e8f0; /* border-gray-200 */
+        margin-bottom: 0.75rem; /* mb-3 */
+        display: block; 
+        border-radius: 0.5rem; /* rounded-md */
+        overflow: hidden; /* Ensures inner elements respect border-radius */
+      }
+      td {
+        border: none;
+        border-bottom: 1px solid #eee; /* border-gray-200 */
+        position: relative;
+        padding-left: 50%; /* Espaço para o pseudo-elemento */
+        text-align: right;
+        font-size: 0.875rem; /* text-sm */
+        padding-top: 0.75rem; /* py-3 */
+        padding-bottom: 0.75rem; /* py-3 */
+      }
+      td:last-child {
+        border-bottom: 0; /* Remove border from last cell in a row */
+      }
+      td:before {
+        position: absolute;
+        top: 0.75rem; /* Alinha com o padding-top do td */
+        left: 0.75rem; /* px-3 */
+        width: 45%;
+        padding-right: 0.5rem; /* pr-2 */
+        white-space: nowrap;
+        text-align: left;
+        font-weight: bold;
+        color: #1A3E74; /* text-dark-blue */
+      }
+      /* Estilos específicos para os rótulos da tabela em mobile para Johns Hopkins */
+      #tabela-escala td:nth-of-type(1):before { content: "Critério:"; }
+      #tabela-escala td:nth-of-type(2):before { content: "Seleção:"; }
+    }
   </style>
 </head>
 <body class="bg-gray-50 text-gray-800 font-inter">
@@ -205,7 +251,7 @@
               <tr>
                 <td class="font-medium text-black-custom">Idade</td>
                 <td>
-                  <select id="idade" class="select">
+                  <select id="idade" class="select py-2"> <!-- Adicionado py-2 para touch target -->
                     <option value="" disabled selected>Selecione</option>
                     <option value="0">Menor de 60 anos (0)</option>
                     <option value="5">60–69 anos (5)</option>
@@ -217,7 +263,7 @@
               <tr>
                 <td class="font-medium text-black-custom">Quedas anteriores</td>
                 <td>
-                  <select id="quedas" class="select">
+                  <select id="quedas" class="select py-2"> <!-- Adicionado py-2 para touch target -->
                     <option value="" disabled selected>Selecione</option>
                     <option value="0">Nenhuma (0)</option>
                     <option value="15">Sim, nos últimos 6 meses (15)</option>
@@ -227,7 +273,7 @@
               <tr>
                 <td class="font-medium text-black-custom">Eliminação</td>
                 <td>
-                  <select id="eliminacao" class="select">
+                  <select id="eliminacao" class="select py-2"> <!-- Adicionado py-2 para touch target -->
                     <option value="" disabled selected>Selecione</option>
                     <option value="0">Normal (0)</option>
                     <option value="5">Urgência ou frequência (5)</option>
@@ -238,7 +284,7 @@
               <tr>
                 <td class="font-medium text-black-custom">Medicação</td>
                 <td>
-                  <select id="medicacao" class="select">
+                  <select id="medicacao" class="select py-2"> <!-- Adicionado py-2 para touch target -->
                     <option value="" disabled selected>Selecione</option>
                     <option value="0">Nenhuma (0)</option>
                     <option value="10">Sedativos, diuréticos, laxantes, narcóticos (10)</option>
@@ -248,7 +294,7 @@
               <tr>
                 <td class="font-medium text-black-custom">Paciente em equipamentos auxiliares</td>
                 <td>
-                  <select id="equipamentos" class="select">
+                  <select id="equipamentos" class="select py-2"> <!-- Adicionado py-2 para touch target -->
                     <option value="" disabled selected>Selecione</option>
                     <option value="0">Cama ou cadeira (0)</option>
                     <option value="5">Muleta, bengala, andador (5)</option>
@@ -259,7 +305,7 @@
               <tr>
                 <td class="font-medium text-black-custom">Mobilidade</td>
                 <td>
-                  <select id="mobilidade" class="select">
+                  <select id="mobilidade" class="select py-2"> <!-- Adicionado py-2 para touch target -->
                     <option value="" disabled selected>Selecione</option>
                     <option value="0">Completa (0)</option>
                     <option value="10">Restrita ou fraca (10)</option>
@@ -269,7 +315,7 @@
               <tr>
                 <td class="font-medium text-black-custom">Cognição</td>
                 <td>
-                  <select id="cognicao" class="select">
+                  <select id="cognicao" class="select py-2"> <!-- Adicionado py-2 para touch target -->
                     <option value="" disabled selected>Selecione</option>
                     <option value="0">Consciente da limitação (0)</option>
                     <option value="15">Esquece das limitações (15)</option>
@@ -327,10 +373,8 @@
       let total = 0;
 
       // Resetar classes de cor do resultado e esconder
-      resultadoDiv.classList.remove('bg-red-100', 'text-red-600', 'bg-yellow-100', 'text-yellow-700', 'bg-green-100', 'text-green-700');
-      resultadoDiv.classList.add('bg-blue-50', 'text-dark-blue'); // Padrão azul
-      resultadoDiv.style.display = 'none'; // Esconde o resultado ao iniciar novo cálculo
-
+      resultadoDiv.classList.remove('bg-red-100', 'text-red-600', 'bg-yellow-100', 'text-yellow-700', 'bg-green-100', 'text-green-700', 'bg-blue-50', 'text-dark-blue'); // Remove todas as classes de cor e fundo
+      
       // Validar se todas as opções foram selecionadas
       const selects = [document.getElementById('idade'), document.getElementById('quedas'), document.getElementById('eliminacao'),
                        document.getElementById('medicacao'), document.getElementById('equipamentos'), document.getElementById('mobilidade'),
@@ -341,8 +385,7 @@
       if (!allSelected) {
         resultadoDiv.style.display = 'block';
         resultadoDiv.textContent = "Por favor, selecione uma opção para todas as categorias para calcular o risco.";
-        resultadoDiv.classList.remove('bg-blue-50', 'text-dark-blue');
-        resultadoDiv.classList.add('bg-red-100', 'text-red-600');
+        resultadoDiv.classList.add('bg-red-100', 'text-red-600'); // Estilo de erro
         return;
       }
 
@@ -384,8 +427,10 @@
       const resultadoDiv = document.getElementById('resultado');
       resultadoDiv.innerHTML = '';
       resultadoDiv.style.display = 'none'; // Esconde a div de resultado
-      resultadoDiv.classList.remove('bg-red-100', 'text-red-600', 'bg-yellow-100', 'text-yellow-700', 'bg-green-100', 'text-green-700');
-      resultadoDiv.classList.add('bg-blue-50', 'text-dark-blue'); // Reinicia para o padrão
+      // Remove todas as classes de cor e fundo ao limpar
+      resultadoDiv.classList.remove('bg-red-100', 'text-red-600', 'bg-yellow-100', 'text-yellow-700', 'bg-green-100', 'text-green-700', 'bg-blue-50', 'text-dark-blue');
+      // Adiciona as classes padrão caso o resultado seja exibido novamente sem um cálculo
+      resultadoDiv.classList.add('bg-blue-50', 'text-dark-blue');
     }
 
     // Função para gerar PDF (Aprimorada)
@@ -433,53 +478,62 @@
         }
 
         // Adiciona os valores selecionados dos critérios
-        if (tabelaEscala) {
-            const selectedCriteriaDiv = document.createElement('div');
-            selectedCriteriaDiv.innerHTML = '<h3 style="font-size: 16px; font-weight: bold; color: #1A3E74; margin-bottom: 10px;">Critérios Avaliados:</h3>';
-            
-            const criteriaList = document.createElement('ul');
-            criteriaList.style.listStyle = 'none';
-            criteriaList.style.paddingLeft = '0';
+        // Criar uma tabela HTML simples para o PDF para exibir os critérios selecionados e suas pontuações
+        const selectedCriteriaTable = document.createElement('table');
+        selectedCriteriaTable.style.width = '100%';
+        selectedCriteriaTable.style.borderCollapse = 'collapse';
+        selectedCriteriaTable.style.marginBottom = '20px';
+        selectedCriteriaTable.innerHTML = `
+            <thead>
+                <tr>
+                    <th style="padding: 8px; border: 1px solid #ddd; background-color: #f2f2f2; text-align: left; font-size: 14px; color: #1A3E74;">Critério</th>
+                    <th style="padding: 8px; border: 1px solid #ddd; background-color: #f2f2f2; text-align: left; font-size: 14px; color: #1A3E74;">Seleção</th>
+                </tr>
+            </thead>
+            <tbody>
+            </tbody>
+        `;
+        const tbody = selectedCriteriaTable.querySelector('tbody');
 
-            const criteria = [
-                { id: 'idade', label: 'Idade' },
-                { id: 'quedas', label: 'Quedas anteriores' },
-                { id: 'eliminacao', label: 'Eliminação' },
-                { id: 'medicacao', label: 'Medicação' },
-                { id: 'equipamentos', label: 'Paciente em equipamentos auxiliares' },
-                { id: 'mobilidade', label: 'Mobilidade' },
-                { id: 'cognicao', label: 'Cognição' }
-            ];
+        const criteria = [
+            { id: 'idade', label: 'Idade' },
+            { id: 'quedas', label: 'Quedas anteriores' },
+            { id: 'eliminacao', label: 'Eliminação' },
+            { id: 'medicacao', label: 'Medicação' },
+            { id: 'equipamentos', label: 'Paciente em equipamentos auxiliares' },
+            { id: 'mobilidade', label: 'Mobilidade' },
+            { id: 'cognicao', label: 'Cognição' }
+        ];
 
-            let allOptionsSelected = true;
-            criteria.forEach(c => {
-                const selectElement = document.getElementById(c.id);
-                const selectedOptionText = selectElement.options[selectElement.selectedIndex].text;
-                const selectedOptionValue = selectElement.value;
+        let allOptionsSelected = true;
+        criteria.forEach(c => {
+            const selectElement = document.getElementById(c.id);
+            const selectedOptionText = selectElement.options[selectElement.selectedIndex].text;
+            const selectedOptionValue = selectElement.value;
 
-                if (selectedOptionValue === "") {
-                    allOptionsSelected = false;
-                }
-
-                const listItem = document.createElement('li');
-                listItem.style.marginBottom = '5px';
-                listItem.style.fontSize = '12px';
-                listItem.innerHTML = `<strong>${c.label}:</strong> ${selectedOptionText}`;
-                criteriaList.appendChild(listItem);
-            });
-
-            selectedCriteriaDiv.appendChild(criteriaList);
-            pdfContentWrapper.appendChild(selectedCriteriaDiv);
-
-            if (!allOptionsSelected) {
-                 const warningDiv = document.createElement('p');
-                 warningDiv.style.fontSize = '12px';
-                 warningDiv.style.color = '#dc2626';
-                 warningDiv.style.marginTop = '10px';
-                 warningDiv.innerHTML = '<strong>Atenção:</strong> Nem todos os critérios foram selecionados antes da geração do PDF. O resultado pode estar incompleto.';
-                 pdfContentWrapper.appendChild(warningDiv);
+            if (selectedOptionValue === "") {
+                allOptionsSelected = false;
             }
+
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td style="padding: 8px; border: 1px solid #ddd; font-size: 12px; color: #333;">${c.label}</td>
+                <td style="padding: 8px; border: 1px solid #ddd; font-size: 12px; color: #333;">${selectedOptionText}</td>
+            `;
+            tbody.appendChild(row);
+        });
+
+        pdfContentWrapper.appendChild(selectedCriteriaTable);
+
+        if (!allOptionsSelected) {
+            const warningDiv = document.createElement('p');
+            warningDiv.style.fontSize = '12px';
+            warningDiv.style.color = '#dc2626';
+            warningDiv.style.marginTop = '10px';
+            warningDiv.innerHTML = '<strong>Atenção:</strong> Nem todos os critérios foram selecionados antes da geração do PDF. O resultado pode estar incompleto.';
+            pdfContentWrapper.appendChild(warningDiv);
         }
+
 
         // Adiciona o resultado se estiver visível e não for uma mensagem de erro genérica
         if (resultadoDiv && resultadoDiv.innerHTML.trim() !== '' && resultadoDiv.style.display !== 'none' && !resultadoDiv.classList.contains('bg-red-100')) {
@@ -491,14 +545,14 @@
 
             // Ajusta cores de fundo e texto para o PDF conforme o risco
             if (resultadoDiv.classList.contains('bg-green-100')) {
-                clonedResultado.style.backgroundColor = '#dcfce7'; // green-100
-                clonedResultado.style.color = '#15803d'; // green-700
+                clonedResultado.style.backgroundColor = '#dcfce7'; /* green-100 */
+                clonedResultado.style.color = '#15803d'; /* green-700 */
             } else if (resultadoDiv.classList.contains('bg-yellow-100')) {
-                clonedResultado.style.backgroundColor = '#fefce8'; // yellow-100
-                clonedResultado.style.color = '#d97706'; // yellow-700
+                clonedResultado.style.backgroundColor = '#fefce8'; /* yellow-100 */
+                clonedResultado.style.color = '#d97706'; /* yellow-700 */
             } else if (resultadoDiv.classList.contains('bg-red-100')) {
-                clonedResultado.style.backgroundColor = '#fee2e2'; // red-100
-                clonedResultado.style.color = '#dc2626'; // red-600
+                clonedResultado.style.backgroundColor = '#fee2e2'; /* red-100 */
+                clonedResultado.style.color = '#dc2626'; /* red-600 */
             } else { // Fallback para azul padrão
                 clonedResultado.style.backgroundColor = '#e0f2fe';
                 clonedResultado.style.color = '#1A3E74';
