@@ -102,27 +102,20 @@
       margin-top: 10px;
     }
 
-    /* Ajustes para o botão de doação */
-    .fixed-donation-button {
-        bottom: 1rem;
-        right: 1rem;
-        z-index: 30;
-    }
+    /* --- NOVOS ESTILOS E AJUSTES --- */
 
-    /* Ajuste para o rodapé */
+    /* Removido: .fixed-donation-button */
+
+    /* Ajuste para o rodapé: agora o padding-bottom é definido pelo JS */
     #footer-container {
-        padding-bottom: 5rem; /* Fallback ou base */
+        /* Não precisa de padding-bottom fixo aqui, pois o JS irá calculá-lo */
     }
-
-    /* --- NOVOS ESTILOS PARA MOBILE --- */
 
     /* Posição do botão "Bem-vindo!" */
     .btn-welcome {
-        /* Padrão para mobile: Escondido por padrão ou reposicionado */
         display: none; /* Esconde em telas pequenas por padrão */
     }
 
-    /* Para telas maiores que mobile (sm, md, lg), reaparece e posiciona */
     @media (min-width: 640px) { /* sm */
         .btn-welcome {
             display: block; /* Mostra o botão em telas maiores que mobile */
@@ -133,73 +126,70 @@
 
     /* Ajuste para o cabeçalho principal - Logo e Título */
     .header-with-logo .max-w-7xl {
-        /* Em mobile, alinha ao centro e ocupa toda largura */
         flex-direction: column;
         align-items: center;
         text-align: center;
-        padding-left: 1rem; /* Padding padrão para não colar nas bordas */
+        padding-left: 1rem;
         padding-right: 1rem;
     }
 
     .header-with-logo img {
-        margin-right: 0; /* Remove margem direita em mobile */
-        margin-bottom: 1rem; /* Adiciona margem inferior para separar do texto */
+        margin-right: 0;
+        margin-bottom: 1rem;
     }
 
     .header-with-logo h1 {
-        font-size: 2.25rem; /* Tamanho de fonte um pouco menor para mobile (text-3xl ao invés de text-4xl) */
+        font-size: 2.25rem;
     }
 
     .header-with-logo p {
-        font-size: 1rem; /* Tamanho de fonte padrão para mobile (text-base ao invés de text-lg) */
+        font-size: 1rem;
     }
 
-    /* Para telas maiores (sm e acima) - reverte ou ajusta estilos do cabeçalho */
     @media (min-width: 640px) { /* sm */
         .header-with-logo .max-w-7xl {
-            flex-direction: row; /* Volta para linha */
-            align-items: center; /* Alinha no centro vertical */
-            justify-content: flex-start; /* Alinha à esquerda */
-            padding-left: 1rem; /* Mantém padding */
-            padding-right: calc(1rem + 16px + 100px); /* Espaço para o botão "Bem-vindo!" */
+            flex-direction: row;
+            align-items: center;
+            justify-content: flex-start;
+            padding-left: 1rem;
+            /* Padding ajustado para o botão "Bem-vindo!" */
+            padding-right: calc(1rem + 16px + 100px);
         }
 
         .header-with-logo img {
-            margin-right: 1.5rem; /* Volta a margem direita para separar do texto */
-            margin-bottom: 0; /* Remove margem inferior */
+            margin-right: 1.5rem;
+            margin-bottom: 0;
         }
 
         .header-with-logo h1 {
-            font-size: 2.5rem; /* text-4xl */
+            font-size: 2.5rem;
         }
 
         .header-with-logo p {
-            font-size: 1.125rem; /* text-lg */
+            font-size: 1.125rem;
         }
 
         .header-with-logo .text-center.sm\:text-left {
-            /* No Tailwind, sm:text-left já está aplicado.
-               Ajustamos a margem para evitar colisão com o botão "Bem-vindo!". */
-            margin-right: 120px; /* Adiciona margem à direita para o texto não colidir com o botão */
+            margin-right: 120px;
         }
     }
 
     /* Layout das Calculadoras (Grid) */
     .grid {
-        grid-template-columns: repeat(1, minmax(0, 1fr)); /* 1 coluna em mobile */
-        gap: 1rem; /* Espaçamento menor em mobile */
+        grid-template-columns: repeat(1, minmax(0, 1fr));
+        gap: 1rem;
     }
 
     @media (min-width: 640px) { /* sm */
         .grid {
-            grid-template-columns: repeat(2, minmax(0, 1fr)); /* 2 colunas em sm (tablets retrato, etc) */
-            gap: 1.5rem; /* Volta ao espaçamento padrão */
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 1.5rem;
         }
     }
 
     @media (min-width: 1024px) { /* lg */
         .grid {
-            grid-template-columns: repeat(3, minmax(0, 1fr)); /* 3 colunas em lg (desktops) */
+            grid-template-columns: repeat(3, minmax(0, 1fr));
         }
     }
 
@@ -253,10 +243,6 @@
     Bem-vindo!
   </button>
 
-  <a href="doacoes.html" class="fixed bottom-4 right-4 bg-[#1A3E74] text-white text-sm px-4 py-2 rounded-full shadow hover:bg-blue-900 transition fixed-donation-button">
-    Ajude-nos a manter o site gratuito
-  </a>
-
   <div id="videoModal" class="video-modal">
     <div class="video-modal-content">
       <span class="video-modal-close">&times;</span>
@@ -275,7 +261,8 @@
       const closeModal = document.querySelector('.video-modal-close');
       const welcomeVideo = document.getElementById('welcomeVideo');
       const footerContainer = document.getElementById('footer-container');
-      const donationButton = document.querySelector('.fixed-donation-button');
+      // A referência ao donationButton não é mais necessária já que o botão foi removido
+      // const donationButton = document.querySelector('.fixed-donation-button');
 
       // Carrega o conteúdo do rodapé
       fetch("rodape111.html")
@@ -285,14 +272,14 @@
           footer.innerHTML = data;
           document.body.appendChild(footer);
 
+          // Ajusta o padding-bottom do body para que o rodapé esteja sempre visível
+          // e o conteúdo não seja cortado, sem espaço extra indesejado.
+          // Adicionamos um pequeno timeout para garantir que o DOM seja atualizado
+          // antes de ler a altura do footer.
           setTimeout(() => {
             const footerHeight = footer.offsetHeight;
-            const paddingBottomForBody = footerHeight + 20;
-            document.body.style.paddingBottom = `${paddingBottomForBody}px`;
-
-            if (donationButton) {
-                donationButton.style.bottom = `${16 + footerHeight}px`;
-            }
+            // Define o padding-bottom do body igual à altura do rodapé + um pequeno respiro
+            document.body.style.paddingBottom = `${footerHeight + 20}px`;
           }, 100);
         })
         .catch(err => console.error("Erro ao carregar rodape111.html:", err));
