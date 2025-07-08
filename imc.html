@@ -2,8 +2,7 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Calculadora de Índice de Massa Corporal</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" /> <title>Calculadora de Índice de Massa Corporal</title>
 
   <link rel="canonical" href="https://www.calculadorasdeenfermagem.com.br/imc.html" />
 
@@ -42,6 +41,12 @@
     .text-light-blue { color: #1FA4E5; } /* Azul Claro */
     .text-gray-custom { color: #666666; } /* Cinza */
     .text-success-green { color: #1ED760; } /* Verde */
+    .text-black-custom { color: #333; } /* Cor para textos padrão (adicionado para consistência) */
+    .text-red-600 { color: #dc2626; } /* Tailwind red-600 para mensagens de erro */
+    .text-yellow-600 { color: #eab308; } /* Tailwind yellow-600 para Sobrepeso */
+    .text-orange-600 { color: #ea580c; } /* Tailwind orange-600 para Obesidade Grau I/II */
+    .text-red-800 { color: #b91c1c; } /* Tailwind red-800 para Obesidade Grau III */
+
 
     /* Padrão de Botões (Componentes CSS para reuso) */
     .btn-primary {
@@ -88,13 +93,32 @@
     .resultado {
       margin-top: 1rem;
       padding: 1rem;
-      background-color: #e0f2fe; /* Tailwind blue-50 */
       border-radius: 0.5rem;
       font-weight: 600;
-      color: #1A3E74; /* text-dark-blue */
       text-align: left;
-      white-space: pre-wrap;
+      white-space: pre-wrap; /* Mantém quebras de linha no texto */
+
+      /* Cores de fundo padrão e para cada classificação */
+      background-color: #e0f2fe; /* Tailwind blue-50, padrão */
+      color: #1A3E74; /* text-dark-blue, padrão */
     }
+    .resultado.text-red-600, .resultado.text-red-800 { /* Para erro, Abaixo do peso, Obesidade III */
+        background-color: #fee2e2; /* Tailwind red-100 */
+        color: #dc2626; /* Tailwind red-600, usado para erro e casos críticos */
+    }
+    .resultado.text-success-green { /* Peso normal */
+        background-color: #d1fae5; /* Tailwind green-100 */
+        color: #1ED760; /* text-success-green */
+    }
+    .resultado.text-yellow-600 { /* Sobrepeso */
+        background-color: #fffbeb; /* Tailwind yellow-100 */
+        color: #eab308; /* Tailwind yellow-600 */
+    }
+    .resultado.text-orange-600 { /* Obesidade I, Obesidade II */
+        background-color: #fff7ed; /* Tailwind orange-100 */
+        color: #ea580c; /* Tailwind orange-600 */
+    }
+
 
     /* Estilos para a referência/bibliografia (Componente específico) */
     .ref {
@@ -154,6 +178,9 @@
         font-weight: 500;
         margin-bottom: 0.5rem;
         color: #1A3E74; /* text-dark-blue */
+        padding-top: 0.5rem; /* Adicionado para melhor touch target */
+        padding-bottom: 0.5rem; /* Adicionado para melhor touch target */
+        cursor: pointer; /* Indica que a label pode ser clicada */
     }
     .input-group input[type="number"] {
         width: 100%;
@@ -189,7 +216,7 @@
       <h2 id="main-subtitle" class="font-inter font-semibold text-light-blue text-2xl lg:text-3xl mb-3 text-left">
         O IMC é reconhecido como padrão internacional para avaliar o grau de sobrepeso e obesidade. É calculado dividindo o peso (em kg) pela altura ao quadrado (em metros).
       </h2>
-      <p id="intro-description" class="font-inter font-normal text-black mb-6 text-left text-xs-custom">
+      <p id="intro-description" class="font-inter font-normal text-black-custom mb-6 text-left text-xs-custom">
         O IMC é uma avaliação importante para o enfermeiro no paciente recém-admitido em uma unidade de internação hospitalar durante a anamnese e exame físico e na Atenção primária, pois através dele o enfermeiro e a equipe multidisciplinar podem definir com mais efetividade condutas nutricionais, medicamentosas e assistenciais ao paciente.
       </p>
       
@@ -213,7 +240,7 @@
           <h3>Referência Bibliográfica:</h3>
           <ul>
             <li>
-              Ministério da Saúde. Obesidade. **BVS MS**. Disponível em:
+              Ministério da Saúde. Obesidade. <strong>BVS MS</strong>. Disponível em:
               <a href="https://bvsms.saude.gov.br/bvs/dicas/215_obesidade.html" target="_blank" class="text-light-blue hover:underline">
                 https://bvsms.saude.gov.br/bvs/dicas/215_obesidade.html
               </a>
@@ -234,7 +261,7 @@
         </button>
       </div>
     </main>
-  </div> 
+  </div>  
   <a href="doacoes.html" class="fixed bottom-4 right-4 bg-dark-blue text-white text-sm px-4 py-2 rounded-full shadow hover:bg-blue-900 transition fixed-donation-button">
     Ajude-nos a manter o site gratuito
   </a>
@@ -249,42 +276,52 @@
 
       const resultadoDiv = document.getElementById('resultado');
 
+      // Remover todas as classes de cor e fundo antes de adicionar as novas
+      resultadoDiv.classList.remove('text-red-600', 'text-dark-blue', 'text-success-green', 'text-yellow-600', 'text-orange-600', 'text-red-800', 'bg-red-100', 'bg-blue-50', 'bg-green-100', 'bg-yellow-100', 'bg-orange-100', 'bg-red-200');
+
+
       if (isNaN(peso) || isNaN(altura) || peso <= 0 || altura <= 0) {
         resultadoDiv.innerText = 'Por favor, insira valores válidos para peso e altura.';
-        resultadoDiv.classList.add('text-red-600');
-        resultadoDiv.classList.remove('text-dark-blue', 'text-success-green');
+        resultadoDiv.classList.add('text-red-600', 'bg-red-100'); // Estilo de erro
         return;
       }
 
       const imc = peso / (altura * altura);
       let classificacao = '';
       let conduta = '';
-      let resultadoCor = 'text-dark-blue'; // Cor padrão
+      let resultadoCorClass = 'text-dark-blue'; // Cor de texto padrão
+      let resultadoBgClass = 'bg-blue-50'; // Cor de fundo padrão
 
       if (imc < 18.5) {
         classificacao = 'Abaixo do peso';
         conduta = 'Risco de desnutrição. Avaliação e acompanhamento nutricional são recomendados.';
-        resultadoCor = 'text-red-600'; // Vermelho para alerta
+        resultadoCorClass = 'text-red-600'; // Vermelho para alerta
+        resultadoBgClass = 'bg-red-100';
       } else if (imc >= 18.5 && imc < 24.9) {
         classificacao = 'Peso normal';
         conduta = 'Manter hábitos de vida saudáveis. Bom estado nutricional.';
-        resultadoCor = 'text-success-green'; // Verde para normal
+        resultadoCorClass = 'text-success-green'; // Verde para normal
+        resultadoBgClass = 'bg-green-100';
       } else if (imc >= 25 && imc < 29.9) {
         classificacao = 'Sobrepeso';
         conduta = 'Atenção para mudanças no estilo de vida e alimentação. Avaliação nutricional pode ser indicada.';
-        resultadoCor = 'text-yellow-600'; // Amarelo para atenção (adicione essa classe no CSS se ainda não tiver)
+        resultadoCorClass = 'text-yellow-600'; // Amarelo para atenção
+        resultadoBgClass = 'bg-yellow-100';
       } else if (imc >= 30 && imc < 34.9) {
         classificacao = 'Obesidade Grau I';
         conduta = 'Necessidade de intervenção nutricional e acompanhamento médico. Risco aumentado para comorbidades.';
-        resultadoCor = 'text-orange-600'; // Laranja para alerta maior
+        resultadoCorClass = 'text-orange-600'; // Laranja para alerta maior
+        resultadoBgClass = 'bg-orange-100';
       } else if (imc >= 35 && imc < 39.9) {
         classificacao = 'Obesidade Grau II';
         conduta = 'Intervenção urgente e acompanhamento multidisciplinar. Alto risco para comorbidades graves.';
-        resultadoCor = 'text-red-600'; // Vermelho para alerta crítico
+        resultadoCorClass = 'text-red-600'; // Vermelho para alerta crítico
+        resultadoBgClass = 'bg-red-100'; // Mesma cor de fundo do Grau I/II para distinção leve
       } else {
         classificacao = 'Obesidade Grau III (Obesidade Mórbida)';
         conduta = 'Cuidado intensivo e abordagem multidisciplinar. Risco muito elevado para a saúde.';
-        resultadoCor = 'text-red-800'; // Vermelho escuro para risco extremo
+        resultadoCorClass = 'text-red-800'; // Vermelho escuro para risco extremo
+        resultadoBgClass = 'bg-red-100'; // Mesma cor de fundo do Grau I/II para distinção leve
       }
       
       resultadoDiv.innerHTML = `
@@ -292,7 +329,8 @@
         <p><strong>Classificação:</strong> ${classificacao}</p>
         <p class="mt-2"><strong>Conduta de Enfermagem:</strong> ${conduta}</p>
       `;
-      resultadoDiv.className = `resultado ${resultadoCor}`;
+      // Adicionar as classes de cor de texto e fundo
+      resultadoDiv.classList.add(resultadoCorClass, resultadoBgClass);
 
       // Armazenar os valores e detalhes para a geração do PDF
       resultadoDiv.dataset.imc = imc.toFixed(2);
@@ -307,12 +345,17 @@
       document.getElementById('altura').value = '';
       const resultadoDiv = document.getElementById('resultado');
       resultadoDiv.innerText = '';
-      resultadoDiv.classList.remove('text-red-600', 'text-dark-blue', 'text-success-green', 'text-yellow-600', 'text-orange-600', 'text-red-800');
+      // Remover todas as classes de cor e fundo ao limpar
+      resultadoDiv.classList.remove('text-red-600', 'text-dark-blue', 'text-success-green', 'text-yellow-600', 'text-orange-600', 'text-red-800', 'bg-red-100', 'bg-blue-50', 'bg-green-100', 'bg-yellow-100', 'bg-orange-100', 'bg-red-200');
     }
 
     // Função para gerar PDF (seguindo o padrão Aldrete.html)
     function gerarPDF() {
         const contentToPrint = document.createElement('div'); // Criamos um novo div para o conteúdo do PDF
+        contentToPrint.style.padding = '20px'; // Adiciona padding geral ao PDF
+        contentToPrint.style.fontFamily = 'Inter, sans-serif'; // Garante a fonte
+        contentToPrint.style.color = '#333'; // Cor do texto padrão
+
 
         // Adiciona a data de geração
         const dateDiv = document.createElement('p');
@@ -323,7 +366,7 @@
         dateDiv.innerText = `Gerado em: ${new Date().toLocaleDateString('pt-BR')} ${new Date().toLocaleTimeString('pt-BR')}`;
         contentToPrint.appendChild(dateDiv);
 
-        // --- NOVO TRECHO PARA INCLUIR OS TÍTULOS DA PÁGINA NO PDF ---
+        // --- TRECHO PARA INCLUIR OS TÍTULOS E DESCRIÇÃO DA PÁGINA NO PDF ---
         const mainTitle = document.getElementById('main-title'); // Obter o <h1> principal
         const mainSubtitle = document.getElementById('main-subtitle'); // Obter o <h2> secundário
         const introDescription = document.getElementById('intro-description'); // Obter o parágrafo de descrição
@@ -354,7 +397,7 @@
             clonedDescription.style.textAlign = 'left';
             contentToPrint.appendChild(clonedDescription);
         }
-        // --- FIM DO NOVO TRECHO DE TÍTULOS E DESCRIÇÃO ---
+        // --- FIM DO TRECHO DE TÍTULOS E DESCRIÇÃO ---
 
         // Adiciona os valores de entrada ao PDF
         const inputValuesSection = document.createElement('div');
@@ -364,15 +407,15 @@
         inputValuesSection.style.borderRadius = '5px';
         inputValuesSection.innerHTML = `
             <h4 style="font-family:'Nunito Sans', sans-serif; font-weight:700; color:#1A3E74; font-size:1.2rem; margin-bottom:10px;">Dados Inseridos:</h4>
-            <p style="font-size:13px; color:#333; margin-bottom:5px;"><strong>Peso:</strong> ${document.getElementById('peso').value} kg</p>
-            <p style="font-size:13px; color:#333;"><strong>Altura:</strong> ${document.getElementById('altura').value} metros</p>
+            <p style="font-size:13px; color:#333; margin-bottom:5px;"><strong>Peso:</strong> ${document.getElementById('peso').value ? document.getElementById('peso').value + ' kg' : 'Não informado'}</p>
+            <p style="font-size:13px; color:#333;"><strong>Altura:</strong> ${document.getElementById('altura').value ? document.getElementById('altura').value + ' metros' : 'Não informado'}</p>
         `;
         contentToPrint.appendChild(inputValuesSection);
 
 
         // Resultado do Cálculo para o PDF
         const resultadoDivOriginal = document.getElementById('resultado');
-        if (resultadoDivOriginal && resultadoDivOriginal.innerText) {
+        if (resultadoDivOriginal && resultadoDivOriginal.innerText && !resultadoDivOriginal.classList.contains('text-red-600')) {
             const imcValue = resultadoDivOriginal.dataset.imc;
             const classificacao = resultadoDivOriginal.dataset.classificacao;
             const conduta = resultadoDivOriginal.dataset.conduta;
@@ -380,21 +423,29 @@
             const resultadoContent = document.createElement('div');
             resultadoContent.style.marginTop = '1rem';
             resultadoContent.style.padding = '1rem';
-            resultadoContent.style.backgroundColor = '#e0f2fe';
             resultadoContent.style.borderRadius = '0.5rem';
             resultadoContent.style.fontWeight = '600';
             resultadoContent.style.textAlign = 'left';
             resultadoContent.style.whiteSpace = 'pre-wrap';
-            // Define a cor do resultado no PDF baseada na classificação
+            
+            // Define a cor do resultado no PDF baseada na classificação (replicando a lógica do JS)
             let pdfResultColor = '#1A3E74'; // Padrão
-            if (classificacao === 'Abaixo do peso' || classificacao.includes('Obesidade Grau')) {
-                pdfResultColor = '#DC2626'; // Vermelho para baixo peso e obesidade
-            } else if (classificacao === 'Sobrepeso') {
-                pdfResultColor = '#F59E0B'; // Laranja para sobrepeso (Tailwind orange-500)
+            let pdfResultBgColor = '#e0f2fe'; // Padrão
+            if (classificacao === 'Abaixo do peso' || classificacao === 'Obesidade Grau III (Obesidade Mórbida)') {
+                pdfResultColor = '#DC2626'; // Vermelho
+                pdfResultBgColor = '#fee2e2'; // Vermelho claro
             } else if (classificacao === 'Peso normal') {
-                pdfResultColor = '#1ED760'; // Verde para peso normal
+                pdfResultColor = '#1ED760'; // Verde
+                pdfResultBgColor = '#d1fae5'; // Verde claro
+            } else if (classificacao === 'Sobrepeso') {
+                pdfResultColor = '#eab308'; // Amarelo/laranja (Tailwind yellow-600)
+                pdfResultBgColor = '#fffbeb'; // Amarelo claro
+            } else if (classificacao === 'Obesidade Grau I' || classificacao === 'Obesidade Grau II') {
+                pdfResultColor = '#ea580c'; // Laranja (Tailwind orange-600)
+                pdfResultBgColor = '#fff7ed'; // Laranja claro
             }
             resultadoContent.style.color = pdfResultColor;
+            resultadoContent.style.backgroundColor = pdfResultBgColor;
             
             resultadoContent.innerHTML = `
                 <p><strong>IMC calculado:</strong> ${imcValue} kg/m²</p>
@@ -430,7 +481,7 @@
             refHeader.style.color = '#1A3E74';
             refHeader.style.fontSize = '1rem';
             refHeader.style.marginBottom = '10px';
-            clonedRef.prepend(refHeader);
+            clonedRef.prepend(refHeader); // Adiciona o título como primeiro filho
             contentToPrint.appendChild(clonedRef);
         }
 
@@ -463,6 +514,7 @@
       document.getElementById('btnLimpar').addEventListener('click', limparCampos);
       document.getElementById('btnGerarPDF').addEventListener('click', gerarPDF);
 
+      // Carrega o rodapé (rodape111.html)
       fetch("rodape111.html")
         .then(res => res.text())
         .then(data => {
