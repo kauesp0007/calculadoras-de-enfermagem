@@ -1,81 +1,362 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Objetivo - Calculadoras de Enfermagem</title>
-  <link rel="canonical" href="https://www.calculadorasdeenfermagem.com.br/objetivo.html" />
-  <link rel="icon" href="favicon.ico" type="image/x-icon" />
-  <meta name="keywords" content="objetivo, enfermagem, cálculo de medicamentos, escalas, apoio à decisão, raciocínio clínico, calculadoras de enfermagem" />
-  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Objetivo - Calculadoras de Enfermagem</title>
+    <link rel="canonical" href="https://www.calculadorasdeenfermagem.com.br/objetivo.html" />
+    <link rel="icon" href="favicon.ico" type="image/x-icon" />
+    <meta name="keywords" content="objetivo, enfermagem, cálculo de medicamentos, escalas, apoio à decisão, raciocínio clínico, calculadoras de enfermagem" />
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
 
-  <!-- Google tag (gtag.js) -->
-  <script async src="https://www.googletagmanager.com/gtag/js?id=AW-952633102"></script>
-  <script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
-    gtag('config', 'AW-952633102');
-  </script>
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=AW-952633102"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'AW-952633102');
+    </script>
 
-  <!-- Importa a Topbar -->
-  <script src="topbar111.js" defer></script>
+    <!-- Importa a Topbar -->
+    <script src="topbar111.js" defer></script>
+
+    <style>
+        /* Reset básico e Box-sizing para consistência */
+        *, *::before, *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* Fontes personalizadas */
+        @import url('https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@700&family=Inter:wght@300;400;500;600&display=swap');
+
+        /* Estilos das classes de fonte e cor personalizadas (para uso no HTML com Tailwind) */
+        .font-nunito { font-family: 'Nunito Sans', sans-serif; }
+        .font-inter { font-family: 'Inter', sans-serif; }
+        .text-dark-blue { color: #1A3E74; } /* Azul Escuro */
+        .text-light-blue { color: #1FA4E5; } /* Azul Claro */
+        .text-gray-custom { color: #666666; } /* Cinza */
+        .text-success-green { color: #1ED760; } /* Verde */
+
+        /* Padrão de Botões (Componentes CSS para reuso) */
+        .btn-primary {
+            font-family: 'Inter', sans-serif;
+            font-weight: 600;
+            background-color: #1A3E74; /* Cor primária azul escuro */
+            color: #FFF;
+            padding: 12px 24px;
+            border-radius: 8px;
+            transition: background-color 0.3s ease;
+            border: none;
+            cursor: pointer;
+            text-align: center;
+        }
+        .btn-primary:hover { background-color: #122c54; } /* Tom mais escuro no hover */
+        .btn-secondary {
+            font-family: 'Inter', sans-serif;
+            font-weight: 600;
+            background-color: #1FA4E5; /* Cor secundária azul claro */
+            color: #FFF;
+            padding: 12px 24px;
+            border-radius: 8px;
+            transition: background-color 0.3s ease;
+            border: none;
+            cursor: pointer;
+            text-align: center;
+        }
+        .btn-secondary:hover { background-color: #178ac7; } /* Tom mais escuro no hover */
+        .btn-success {
+            font-family: 'Inter', sans-serif;
+            font-weight: 500;
+            background-color: #1ED760;
+            color: #FFF;
+            padding: 10px 20px;
+            border-radius: 8px;
+            transition: background-color 0.3s ease;
+            border: none;
+            cursor: pointer;
+            text-align: center;
+        }
+        .btn-success:hover { background-color: #17b351; }
+
+        /* Estilos para a área de resultado da calculadora (Componente específico) */
+        .resultado {
+            margin-top: 1rem;
+            padding: 1rem;
+            background-color: #e0f2fe; /* Tailwind blue-50 */
+            border-radius: 0.5rem;
+            font-weight: 600;
+            color: #1A3E74; /* text-dark-blue */
+            text-align: left;
+            white-space: pre-wrap;
+        }
+        /* Cores de resultado ajustadas para as novas cores */
+        .resultado.bg-success-green-light { background-color: #D4EDDA; border-color: #C3E6CB; color: #155724; } /* Similar ao green-100 */
+        .resultado.bg-warning-yellow-light { background-color: #FFF3CD; border-color: #FFEEDA; color: #856404; } /* Similar ao yellow-100 */
+        .resultado.bg-danger-red-light { background-color: #F8D7DA; border-color: #F5C6CB; color: #721C24; } /* Similar ao red-100 */
+        .resultado.bg-info-orange-light { background-color: #ffeeba; border-color: #ffb366; color: #856404; } /* Para alertas */
+
+        /* Estilos para a referência/bibliografia (Componente específico) */
+        .ref {
+            margin-top: 2rem;
+            font-size: 14px;
+            color: #666666; /* text-gray-custom */
+            text-align: left;
+        }
+
+        /* Layout principal com Topbar fixa */
+        body {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh; /* Garante que o body ocupe a altura total da viewport */
+            background-color: #f8fafc; /* Tailwind bg-gray-50 */
+            color: #333; /* Tailwind text-gray-800 */
+            font-family: 'Inter', sans-serif; /* Aplica a fonte Inter ao body */
+        }
+
+        /* ESTILOS DOS DROPDOWNS DA TOPBAR (MOVIDOS DE TOPBAR111.HTML) */
+        .dropdown-menu { display: none; }
+        .dropdown-menu.show { display: block; }
+        nav { justify-content: flex-end; }
+        nav button { cursor: pointer; }
+        nav .dropdown-menu a:hover { background-color: #bfdbfe; }
+        /* FIM DOS ESTILOS DA TOPBAR */
+
+        /* Espaçamento para o conteúdo abaixo da topbar fixa */
+        .main-content-wrapper {
+            display: flex;
+            flex-direction: column;
+            flex-grow: 1;
+            padding-top: 64px; /* Garante que o conteúdo comece abaixo da topbar fixa (64px de altura) */
+            width: 100%;
+        }
+
+        /* Conteúdo principal (main) */
+        main {
+            flex-grow: 1;
+            max-width: 1280px; /* max-w-7xl */
+            margin-left: auto;
+            margin-right: auto;
+            padding: 2rem 1rem; /* Equivalente a p-8 px-4 */
+            width: 100%;
+        }
+
+        /* --- NOVOS ESTILOS PARA O BOTÃO ESTÁTICO --- */
+        #openVideoBtn {
+            font-family: 'Inter', sans-serif;
+            font-weight: 600;
+            white-space: nowrap; /* Impede que o texto quebre linha */
+            padding: 0.75rem 1.25rem; /* Ajusta o padding para melhor touch target */
+        }
+
+        /* --- NOVOS ESTILOS PARA O MODAL DE VÍDEO --- */
+        .video-modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7); /* Fundo escuro semitransparente */
+            display: flex; /* Para centralizar o conteúdo */
+            justify-content: center;
+            align-items: center;
+            z-index: 1000; /* Garante que o modal esteja acima de tudo */
+            visibility: hidden; /* Escondido por padrão */
+            opacity: 0;
+            transition: visibility 0s, opacity 0.3s ease-in-out;
+        }
+
+        .video-modal-overlay.show {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        .video-modal-content {
+            background-color: #fff;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            position: relative;
+            max-width: 90%; /* Largura máxima para mobile */
+            width: 700px; /* Largura média para desktop */
+            max-height: 90vh; /* Altura máxima para caber na tela */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .video-modal-content video {
+            width: 100%; /* Vídeo ocupa 100% da largura do contêiner */
+            height: auto; /* Altura automática para manter a proporção */
+            display: block;
+            margin-bottom: 0.75rem; /* Espaço entre o vídeo e o rodapé do modal se houver */
+        }
+
+        .video-modal-close-btn {
+            position: absolute;
+            top: 0.5rem;
+            right: 0.75rem;
+            background: none;
+            border: none;
+            font-size: 1.5rem; /* Tamanho do ícone 'X' */
+            cursor: pointer;
+            color: #333;
+            padding: 0.5rem;
+            line-height: 1; /* Garante que o 'X' não tenha espaçamento extra */
+            z-index: 1010; /* Acima do conteúdo do modal */
+        }
+
+        /* Responsividade do botão estático para telas menores */
+        @media (max-width: 768px) {
+            #openVideoBtn {
+                top: 1rem; /* Ajusta a posição superior para telas menores */
+                right: 1rem; /* Ajusta a posição direita para telas menores */
+                font-size: 0.8rem; /* Fonte menor */
+                padding: 0.5rem 1rem; /* Padding menor */
+                z-index: 55; /* Garante que esteja acima da topbar, mas abaixo do modal */
+            }
+            .video-modal-content {
+                max-width: 95%; /* Um pouco mais largo em tablets */
+                width: auto; /* Remove largura fixa para usar max-width */
+                padding: 0.75rem;
+            }
+            .video-modal-close-btn {
+                font-size: 1.3rem;
+                top: 0.25rem;
+                right: 0.5rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            #openVideoBtn {
+                top: 0.5rem;
+                right: 0.5rem;
+                font-size: 0.75rem;
+                padding: 0.4rem 0.8rem;
+            }
+            .video-modal-content {
+                max-width: 95%; /* Atinge o limite máximo em celulares */
+                padding: 0.5rem;
+            }
+            .video-modal-close-btn {
+                font-size: 1.2rem;
+                top: 0.1rem;
+                right: 0.3rem;
+            }
+        }
+        /* --- FIM: NOVOS ESTILOS --- */
+    </style>
 </head>
 <body class="bg-white text-gray-800 font-[Arial]">
 
-  <!-- Layout Flex: Sidebar + Conteúdo -->
-  <div class="flex min-h-screen">
+    <!-- O topbar111.js será carregado e injetará o header aqui -->
+    <div id="topbar-container"></div>
 
-    <!-- Sidebar oculta em mobile -->
-    <aside id="sidebar" class="hidden md:block w-64">
-      <script>
-        fetch('sidebar111.html')
-          .then(res => res.text())
-          .then(html => document.getElementById('sidebar').innerHTML = html);
-      </script>
-    </aside>
+    <!-- Botão estático "Sobre nós" -->
+    <button id="openVideoBtn" class="fixed top-20 right-4 bg-dark-blue text-white text-sm px-4 py-2 rounded-full shadow hover:bg-blue-900 transition z-60">
+        Sobre nós
+    </button>
 
-    <!-- Conteúdo principal -->
-    <main class="flex-1 max-w-5xl mx-auto px-4 py-12">
+    <!-- Layout Flex: Sidebar + Conteúdo -->
+    <div class="flex min-h-screen">
 
-      <h1 class="text-[60px] font-bold text-[#1A3E74] font-[Nunito Sans] text-left mb-8">
-        Objetivo do Site
-      </h1>
+        <!-- Sidebar oculta em mobile -->
+        <aside id="sidebar" class="hidden md:block w-64">
+            <script>
+                fetch('sidebar111.html')
+                    .then(res => res.text())
+                    .then(html => document.getElementById('sidebar').innerHTML = html);
+            </script>
+        </aside>
 
-      <p class="text-[18px] font-normal text-black text-left mt-4">
-        Oferecer a profissionais e estudantes de enfermagem uma ferramenta prática para o cálculo de medicamentos e doses, com base em prescrições médicas, simulações ou questões de cursos. O usuário insere os dados solicitados nos campos indicados e a calculadora realiza automaticamente os cálculos, utilizando fórmulas matemáticas específicas de cada tipo de procedimento, como regra de três simples, aspiração de insulina em unidades internacionais (UI) e gotejamento em diferentes formatos — por hora, por minuto, em microgotas e macrogotas.
-      </p>
+        <!-- Conteúdo principal -->
+        <main class="flex-1 max-w-5xl mx-auto px-4 py-12">
 
-      <p class="text-[18px] font-normal text-black text-left mt-4">
-        Disponibilizamos também a aplicação das principais escalas assistenciais utilizadas na enfermagem e na área da saúde, que exigem o cálculo por meio da soma de escores (pontuações) para identificar riscos ou auxiliar na elaboração de um plano de cuidado pelo enfermeiro. Exemplos incluem: Escala de Braden, Escala de Morse e Escala de Fugulin. Além disso, a plataforma oferece escalas de monitoramento que apoiam intervenções médicas, como a Escala de Aldrete e Kroulik, amplamente utilizadas pela equipe de enfermagem e fundamentais para orientar a liberação de pacientes na SRPA pelos médicos anestesistas.
-      </p>
+            <h1 class="text-[60px] font-bold text-[#1A3E74] font-[Nunito Sans] text-left mb-8">
+                Objetivo do Site
+            </h1>
 
-      <p class="text-[18px] font-normal text-black text-left mt-4">
-        Essas escalas, na maioria das vezes, são aplicadas pela equipe de enfermagem e funcionam como um guia para a definição de condutas por toda a equipe multiprofissional — incluindo técnicos de enfermagem, enfermeiros, médicos e fisioterapeutas. Em algumas delas, a atuação do enfermeiro é mais ativa; em outras, o instrumento serve apenas como base de monitoramento para subsidiar a decisão médica. Um exemplo disso é a Escala de Aldrete: embora seja aplicada e monitorada pela enfermagem na Sala de Recuperação Pós-Anestésica (SRPA), a decisão final sobre alta ou permanência do paciente em monitoramento cabe exclusivamente ao médico anestesista, cuja avaliação é criteriosa e soberana.
-      </p>
+            <p class="text-[18px] font-normal text-black text-left mt-4">
+                Oferecer a profissionais e estudantes de enfermagem uma ferramenta prática para o cálculo de medicamentos e doses, com base em prescrições médicas, simulações ou questões de cursos. O usuário insere os dados solicitados nos campos indicados e a calculadora realiza automaticamente os cálculos, utilizando fórmulas matemáticas específicas de cada tipo de procedimento, como regra de três simples, aspiração de insulina em unidades internacionais (UI) e gotejamento em diferentes formatos — por hora, por minuto, em microgotas e macrogotas.
+            </p>
 
-      <p class="text-[18px] font-normal text-black text-left mt-4">
-        Os cálculos matemáticos disponibilizados pelas calculadoras deste site têm caráter consultivo e didático, com base em referências bibliográficas reconhecidas, que devem ser consultadas para validação do conteúdo. A revisão dos cálculos de medicações, insulina e gotejamento não substitui a aplicação manual dos métodos tradicionais — como o uso de papel, lápis e as regras matemáticas padronizadas presentes na literatura científica. Em hipótese alguma as calculadoras devem ser consideradas como único meio para se chegar ao resultado final. Elas servem como apoio comparativo e educativo, mas não substituem o raciocínio crítico e a responsabilidade técnica do profissional. Nenhum cálculo automatizado substitui a análise e julgamento do profissional de enfermagem — e jamais substituirá.
-      </p>
+            <p class="text-[18px] font-normal text-black text-left mt-4">
+                Disponibilizamos também a aplicação das principais escalas assistenciais utilizadas na enfermagem e na área da saúde, que exigem o cálculo por meio da soma de escores (pontuações) para identificar riscos ou auxiliar na elaboração de um plano de cuidado pelo enfermeiro. Exemplos incluem: Escala de Braden, Escala de Morse e Escala de Fugulin. Além disso, a plataforma oferece escalas de monitoramento que apoiam intervenções médicas, como a Escala de Aldrete e Kroulik, amplamente utilizadas pela equipe de enfermagem e fundamentais para orientar a liberação de pacientes na SRPA pelos médicos anestesistas.
+            </p>
 
-      <p class="text-[18px] font-normal text-black text-left mt-4">
-        Em caso de dúvidas sobre a formulação ou os resultados dos cálculos, recomenda-se consultar seu professor de enfermagem ou enfermeiro responsável, que estão habilitados para oferecer esclarecimentos, tirar dúvidas e orientar o correto procedimento para a realização dos cálculos e obtenção dos resultados.
-      </p>
+            <p class="text-[18px] font-normal text-black text-left mt-4">
+                Essas escalas, na maioria das vezes, são aplicadas pela equipe de enfermagem e funcionam como um guia para a definição de condutas por toda a equipe multiprofissional — incluindo técnicos de enfermagem, enfermeiros, médicos e fisioterapeutas. Em algumas delas, a atuação do enfermeiro é mais ativa; em outras, o instrumento serve apenas como base de monitoramento para subsidiar a decisão médica. Um exemplo disso é a Escala de Aldrete: embora seja aplicada e monitorada pela enfermagem na Sala de Recuperação Pós-Anestésica (SRPA), a decisão final sobre alta ou permanência do paciente em monitoramento cabe exclusivamente ao médico anestesista, cuja avaliação é criteriosa e soberana.
+            </p>
 
+            <p class="text-[18px] font-normal text-black text-left mt-4">
+                Os cálculos matemáticos disponibilizados pelas calculadoras deste site têm caráter consultivo e didático, com base em referências bibliográficas reconhecidas, que devem ser consultadas para validação do conteúdo. A revisão dos cálculos de medicações, insulina e gotejamento não substitui a aplicação manual dos métodos tradicionais — como o uso de papel, lápis e as regras matemáticas padronizadas presentes na literatura científica. Em hipótese alguma as calculadoras devem ser consideradas como único meio para se chegar ao resultado final. Elas servem como apoio comparativo e educativo, mas não substituem o raciocínio crítico e a responsabilidade técnica do profissional. Nenhum cálculo automatizado substitui a análise e julgamento do profissional de enfermagem — e jamais substituirá.
+            </p>
 
-    </main>
-  </div>
+            <p class="text-[18px] font-normal text-black text-left mt-4">
+                Em caso de dúvidas sobre a formulação ou os resultados dos cálculos, recomenda-se consultar seu professor de enfermagem ou enfermeiro responsável, que estão habilitados para oferecer esclarecimentos, tirar dúvidas e orientar o correto procedimento para a realização dos cálculos e obtenção dos resultados.
+            </p>
 
-  <!-- Rodapé -->
-  <script>
-    fetch("rodape111.html")
-      .then(r => r.text())
-      .then(html => {
-        const footer = document.createElement("footer");
-        footer.innerHTML = html;
-        document.body.appendChild(footer);
-      });
-  </script>
+        </main>
+    </div>
 
+    <!-- Rodapé -->
+    <script>
+        fetch("rodape111.html")
+            .then(r => r.text())
+            .then(html => {
+                const footer = document.createElement("footer");
+                footer.innerHTML = html;
+                document.body.appendChild(footer);
+            });
+    </script>
+
+    <!-- --- ESTRUTURA DO MODAL DE VÍDEO --- -->
+    <div id="videoModal" class="video-modal-overlay">
+        <div class="video-modal-content">
+            <button id="closeVideoModal" class="video-modal-close-btn">&times;</button>
+            <video id="sobrenosVideo" controls preload="metadata">
+                <source src="sobrenos.mp4" type="video/mp4">
+                Seu navegador não suporta a tag de vídeo.
+            </video>
+        </div>
+    </div>
+    <!-- --- FIM DA ESTRUTURA DO MODAL DE VÍDEO --- -->
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // --- Lógica para o Modal de Vídeo ---
+            const openVideoBtn = document.getElementById('openVideoBtn');
+            const videoModal = document.getElementById('videoModal');
+            const closeVideoModalBtn = document.getElementById('closeVideoModal');
+            const sobrenosVideo = document.getElementById('sobrenosVideo');
+
+            if (openVideoBtn) {
+                openVideoBtn.addEventListener('click', function() {
+                    videoModal.classList.add('show');
+                    // O vídeo não iniciará automaticamente devido a preload="metadata" e ausência de .play()
+                });
+            }
+
+            if (closeVideoModalBtn) {
+                closeVideoModalBtn.addEventListener('click', function() {
+                    videoModal.classList.remove('show');
+                    sobrenosVideo.pause(); // Pausa o vídeo ao fechar
+                    sobrenosVideo.currentTime = 0; // Volta o vídeo para o início
+                });
+            }
+
+            if (videoModal) {
+                videoModal.addEventListener('click', function(event) {
+                    if (event.target === videoModal) { // Se o clique foi diretamente no overlay (fundo escuro)
+                        videoModal.classList.remove('show');
+                        sobrenosVideo.pause(); // Pausa o vídeo
+                        sobrenosVideo.currentTime = 0; // Volta o vídeo para o início
+                    }
+                });
+            }
+        });
+    </script>
 </body>
 </html>
