@@ -96,6 +96,7 @@
       text-align: left;
       white-space: pre-wrap; /* Mantém quebras de linha no texto */
       word-break: break-word; /* Quebra palavras longas se necessário */
+      display: none; /* Inicia oculto */
     }
     .resultado.bg-red-100 { /* Classe para mensagens de erro (fundo) */
         background-color: #fee2e2; /* Tailwind red-100 */
@@ -127,13 +128,13 @@
     /* ESTILOS DOS DROPDOWNS DA TOPBAR (MOVIDOS DE TOPBAR111.HTML) */
     .dropdown-menu { display: none; }
     .dropdown-menu.show { display: block; }
-    nav { justify-content: flex-end; } 
+    nav { justify-content: flex-end; }  
     nav button { cursor: pointer; }
     nav .dropdown-menu a:hover { background-color: #bfdbfe; }
     /* FIM DOS ESTILOS DA TOPBAR */
 
     /* Espaçamento para o conteúdo abaixo da topbar fixa */
-    .main-content-wrapper { 
+    .main-content-wrapper {  
       display: flex;
       flex-direction: column;
       flex-grow: 1;
@@ -159,24 +160,24 @@
 </head>
 <body class="bg-gray-50 text-gray-800 font-inter">
 
-  <div id="topbar-container"></div> 
+  <div id="topbar-container"></div>  
 
   <div class="main-content-wrapper">
     <main class="flex flex-col flex-grow">
 
       <div class="flex flex-wrap items-center justify-center gap-4 mb-3">
         <img src="iconpages.png" alt="Ícone da Calculadora de Medicamentos" class="w-32 h-auto" />
-        <h1 class="font-nunito font-extrabold text-dark-blue text-4xl lg:text-5xl text-center">
+        <h1 id="main-title" class="font-nunito font-extrabold text-dark-blue text-4xl lg:text-5xl text-center">
           Calculadora de Medicamentos
         </h1>
       </div>
 
-      <div id="conteudo" class="w-full">
+      <div id="conteudo-principal-calc" class="w-full">
         <h2 class="font-inter font-normal text-lg text-gray-700 text-center mb-6">
           Quanto devo aspirar do medicamento prescrito?
         </h2>
 
-        <div class="alert-custom">
+        <div id="alert-section" class="alert-custom">
           <p class="font-bold mb-2">Atenção:</p>
           <p>Em caso de dúvidas, procure seu enfermeiro responsável e faça a dupla checagem ou seu professor. Jamais prepare e administre medicações com dúvidas. É um direito e dever do profissional de enfermagem, em caso de insegurança, falta de prática ou dúvida, relatar ao seu enfermeiro.</p>
           <p class="mt-2">Essa prática está alinhada com a **Meta Internacional nº 3 de Segurança do Paciente**: *“Melhorar a segurança na prescrição, uso e administração de medicamentos e com O código de ética dos profissionais de enfermagem”*.</p>
@@ -205,7 +206,7 @@
 
         <div id="resultado" class="resultado" aria-live="polite"></div>
 
-        <div class="ref font-inter text-gray-custom">
+        <div id="bibliografia" class="ref font-inter text-gray-custom">
           <strong>Referência bibliográfica:</strong><br />
           <p class="mt-2">
             Cálculo de Medicamentos. Enfa. Ana Carolina Ayres.<br>
@@ -215,7 +216,7 @@
       </div>
 
     </main>
-  </div> 
+  </div>  
 
   <a href="doacoes.html" class="fixed bottom-4 right-4 bg-dark-blue text-white text-sm px-4 py-2 rounded-full shadow hover:bg-blue-900 transition fixed-donation-button">
     Ajude-nos a manter o site gratuito
@@ -223,8 +224,6 @@
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   
-  <script src="pdf111.js"></script>
-
   <div id="footer-container"></div>
 
   <script>
@@ -234,12 +233,12 @@
       const volume = parseFloat(document.getElementById('volume').value);
       const resultadoDiv = document.getElementById('resultado');
 
-      // Limpa classes de erro anteriores
+      // Limpa classes de erro anteriores e adiciona classe padrão
       resultadoDiv.classList.remove('bg-red-100', 'text-red-600');
-      resultadoDiv.classList.add('bg-blue-100', 'text-dark-blue'); // Adiciona classe padrão
+      resultadoDiv.classList.add('bg-blue-100', 'text-dark-blue'); 
+      resultadoDiv.style.display = 'block'; // Garante que o resultado seja exibido
 
       if (isNaN(apresentacao) || isNaN(prescricao) || isNaN(volume) || apresentacao <= 0 || volume <= 0) {
-        resultadoDiv.style.display = 'block';
         resultadoDiv.innerHTML = "Por favor, preencha todos os campos com valores numéricos válidos e positivos (Apresentação e Volume devem ser maiores que zero).";
         resultadoDiv.classList.remove('bg-blue-100', 'text-dark-blue');
         resultadoDiv.classList.add('bg-red-100', 'text-red-600');
@@ -247,7 +246,6 @@
       }
 
       if (prescricao <= 0) {
-        resultadoDiv.style.display = 'block';
         resultadoDiv.innerHTML = "A prescrição deve ser um valor positivo. Se a prescrição for zero, não há medicamento a ser administrado.";
         resultadoDiv.classList.remove('bg-blue-100', 'text-dark-blue');
         resultadoDiv.classList.add('bg-red-100', 'text-red-600');
@@ -258,7 +256,6 @@
       const denominador = apresentacao;
       const x = numerador / denominador;
 
-      resultadoDiv.style.display = 'block';
       resultadoDiv.innerHTML =
         `<p class="font-bold text-lg mb-2">Cálculo:</p>` +
         `<p>${apresentacao} mg ----------- ${volume} ml</p>` +
@@ -282,34 +279,148 @@
       resultadoDiv.classList.add('bg-blue-100', 'text-dark-blue'); // Reinicia para a classe padrão
     }
 
+    // Função para gerar PDF (Aprimorada)
     function gerarPDF() {
-      // Cria uma cópia do conteúdo para o PDF
-      const content = document.getElementById('conteudo').cloneNode(true);
+        const mainTitle = document.getElementById('main-title');
+        const alertSection = document.getElementById('alert-section');
+        const apresentacaoInput = document.getElementById('apresentacao');
+        const prescricaoInput = document.getElementById('prescricao');
+        const volumeInput = document.getElementById('volume');
+        const resultadoDiv = document.getElementById('resultado');
+        const bibliografiaDiv = document.getElementById('bibliografia');
 
-      // Remove os botões da cópia antes de gerar o PDF
-      const buttonsDiv = content.querySelector('.flex.flex-wrap.justify-start.gap-4.mt-6');
-      if (buttonsDiv) buttonsDiv.remove();
+        // Cria um container temporário para os elementos que irão para o PDF
+        const pdfContentWrapper = document.createElement('div');
+        pdfContentWrapper.style.padding = '20px'; // Adiciona um padding geral ao conteúdo do PDF
+        pdfContentWrapper.style.fontFamily = 'Inter, sans-serif'; // Garante a fonte no PDF
+        pdfContentWrapper.style.color = '#333'; // Cor do texto padrão no PDF
+        pdfContentWrapper.style.lineHeight = '1.6'; // Melhora a legibilidade
 
-      // Esconde o botão de doação fixo antes de gerar o PDF
-      const fixedButton = document.querySelector('.fixed-donation-button');
-      if (fixedButton) {
-        fixedButton.style.display = 'none';
-      }
-
-      const opt = {
-        margin:       0.5,
-        filename:     'calculo_medicamento.pdf',
-        image:        { type: 'jpeg', quality: 0.98 },
-        html2canvas:  { scale: 3, scrollY: 0 },
-        jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' },
-      };
-      
-      html2pdf().set(opt).from(content).save().then(() => {
-        // Volta a exibir o botão de doação fixo após a geração do PDF
-        if (fixedButton) {
-          fixedButton.style.display = '';
+        // Adiciona o título principal
+        if (mainTitle) {
+            const clonedMainTitle = mainTitle.cloneNode(true);
+            clonedMainTitle.style.fontSize = '28px'; // Ajustar tamanho para o PDF
+            clonedMainTitle.style.color = '#1A3E74';
+            clonedMainTitle.style.textAlign = 'center';
+            clonedMainTitle.style.marginBottom = '15px';
+            pdfContentWrapper.appendChild(clonedMainTitle);
         }
-      });
+
+        // Adiciona o subtítulo
+        const subtitle = document.createElement('h2');
+        subtitle.style.fontSize = '18px';
+        subtitle.style.fontWeight = 'normal';
+        subtitle.style.textAlign = 'center';
+        subtitle.style.color = '#666';
+        subtitle.style.marginBottom = '20px';
+        subtitle.innerText = 'Cálculo de Medicamentos Injétáveis';
+        pdfContentWrapper.appendChild(subtitle);
+
+        // Adiciona a data de geração
+        const dateDiv = document.createElement('p');
+        dateDiv.style.fontSize = '10px';
+        dateDiv.style.color = '#777';
+        dateDiv.style.textAlign = 'right';
+        dateDiv.style.marginBottom = '20px';
+        dateDiv.innerText = `Gerado em: ${new Date().toLocaleDateString('pt-BR')} ${new Date().toLocaleTimeString('pt-BR')}`;
+        pdfContentWrapper.appendChild(dateDiv);
+
+        // Adiciona a seção de alerta/atenção
+        if (alertSection) {
+            const clonedAlert = alertSection.cloneNode(true);
+            clonedAlert.style.backgroundColor = '#fefce8'; // yellow-50
+            clonedAlert.style.borderColor = '#fde68a'; // yellow-200
+            clonedAlert.style.color = '#b45309'; // yellow-800
+            clonedAlert.style.padding = '15px';
+            clonedAlert.style.borderRadius = '8px';
+            clonedAlert.style.marginBottom = '20px';
+            clonedAlert.style.fontSize = '12px';
+            clonedAlert.querySelector('p:first-child').style.fontWeight = 'bold'; // "Atenção:"
+            clonedAlert.querySelectorAll('p').forEach(p => p.style.marginBottom = '5px'); // Ajusta margem entre parágrafos
+            pdfContentWrapper.appendChild(clonedAlert);
+        }
+
+        // Adiciona os valores de entrada
+        const inputValuesDiv = document.createElement('div');
+        inputValuesDiv.innerHTML = '<h3 style="font-size: 16px; font-weight: bold; color: #1A3E74; margin-bottom: 10px;">Valores Fornecidos:</h3>';
+        inputValuesDiv.style.marginBottom = '20px';
+
+        const createInputItem = (label, value, unit) => {
+            const p = document.createElement('p');
+            p.style.fontSize = '14px';
+            p.innerHTML = `<strong>${label}:</strong> ${value || 'Não preenchido'} ${unit}`;
+            return p;
+        };
+        inputValuesDiv.appendChild(createInputItem('Apresentação disponível', apresentacaoInput.value || '0', 'mg'));
+        inputValuesDiv.appendChild(createInputItem('Prescrição de medicamento', prescricaoInput.value || '0', 'mg'));
+        inputValuesDiv.appendChild(createInputItem('Volume do frasco/ampola', volumeInput.value || '0', 'ml'));
+        pdfContentWrapper.appendChild(inputValuesDiv);
+
+
+        // Adiciona o resultado do cálculo se estiver visível
+        if (resultadoDiv && resultadoDiv.style.display !== 'none' && resultadoDiv.innerHTML.trim() !== '') {
+            const clonedResultado = resultadoDiv.cloneNode(true);
+            clonedResultado.style.marginTop = '20px';
+            clonedResultado.style.padding = '15px';
+            clonedResultado.style.borderRadius = '8px';
+            clonedResultado.style.whiteSpace = 'pre-wrap';
+            clonedResultado.style.fontSize = '14px'; // Ajusta o tamanho da fonte para o PDF
+            clonedResultado.style.backgroundColor = '#e6f0ff'; // blue-100
+            clonedResultado.style.color = '#1A3E74'; // dark-blue
+
+            // Ajusta o estilo da tag <mark> dentro do resultado
+            const markElement = clonedResultado.querySelector('mark');
+            if (markElement) {
+                markElement.style.backgroundColor = '#fde047'; // yellow-200
+                markElement.style.color = '#1A3E74'; // dark-blue
+                markElement.style.padding = '2px 4px';
+                markElement.style.borderRadius = '4px';
+            }
+
+            pdfContentWrapper.appendChild(clonedResultado);
+        } else {
+            // Mensagem caso o cálculo não tenha sido feito ou esteja com erro
+            const noResultP = document.createElement('p');
+            noResultP.style.fontSize = '14px';
+            noResultP.style.color = '#dc2626'; // Red para indicar aviso
+            noResultP.style.marginTop = '20px';
+            noResultP.innerText = 'Nenhum cálculo foi realizado ou os dados inseridos são inválidos. Por favor, preencha os campos e clique em "Calcular" antes de gerar o PDF.';
+            pdfContentWrapper.appendChild(noResultP);
+        }
+
+        // Adiciona a bibliografia
+        if (bibliografiaDiv) {
+            const clonedBibliografia = bibliografiaDiv.cloneNode(true);
+            clonedBibliografia.style.marginTop = '25px';
+            clonedBibliografia.style.fontSize = '12px';
+            clonedBibliografia.style.color = '#666';
+            clonedBibliografia.querySelectorAll('a').forEach(a => {
+                a.style.color = '#1FA4E5';
+                a.style.textDecoration = 'underline';
+            });
+            pdfContentWrapper.appendChild(clonedBibliografia);
+        }
+
+        // Esconde o botão de doação antes de gerar o PDF
+        const fixedButton = document.querySelector('.fixed-donation-button');
+        if (fixedButton) {
+            fixedButton.style.display = 'none';
+        }
+
+        const opt = {
+            margin:       0.5,
+            filename:     'calculo_medicamento.pdf',
+            image:        { type: 'jpeg', quality: 0.98 },
+            html2canvas:  { scale: 3, scrollY: 0, useCORS: true },
+            jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' },
+        };
+        
+        html2pdf().set(opt).from(pdfContentWrapper).save().then(() => {
+            // Volta a exibir o botão de doação após a geração do PDF
+            if (fixedButton) {
+                fixedButton.style.display = '';
+            }
+        });
     }
 
     document.addEventListener('DOMContentLoaded', () => {
