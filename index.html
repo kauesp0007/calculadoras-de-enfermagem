@@ -15,15 +15,15 @@
     /* Estilos base para o corpo da página */
     body {
       padding-top: 64px; /* Espaço para a topbar fixa (ajuste se a altura real for diferente) */
-      position: relative; /* Necessário para posicionar o botão "Bem-vindo" em relação ao body */
-      min-height: 100vh; /* Garante que o body tenha altura suficiente para o rodapé ser 'bottom' */
+      position: relative;
+      min-height: 100vh;
       display: flex;
       flex-direction: column;
     }
 
     /* Ajuste para o main para empurrar o rodapé para baixo */
     main {
-        flex-grow: 1; /* Permite que o conteúdo principal ocupe o espaço restante */
+        flex-grow: 1;
     }
 
     /* Em telas maiores (desktop), não precisamos de ajustes para a sidebar aqui no index.html */
@@ -42,47 +42,47 @@
     .btn-welcome {
         font-family: 'Inter', sans-serif;
         font-weight: 600;
-        background-color: #1A3E74; /* Cor primária azul escuro, igual aos botões dos repositórios */
+        background-color: #1A3E74;
         color: #FFF;
-        padding: 12px 24px;
+        padding: 8px 16px; /* Tamanho um pouco menor para se adequar ao canto superior */
         border-radius: 8px;
         transition: background-color 0.3s ease;
         border: none;
         cursor: pointer;
         text-align: center;
-        /* Posição fixa no canto inferior direito */
+        /* Posição fixa no canto superior direito, abaixo da topbar */
         position: fixed;
+        top: 74px; /* Altura da topbar (64px) + um pequeno espaçamento (10px) */
         right: 1rem; /* 16px da direita */
-        /* bottom: calc(4rem + 16px);  Ajustado via JS para maior precisão */
-        z-index: 20; /* Abaixo da topbar (z-index: 30) e do botão de doação (z-index: 30), mas acima do conteúdo */
+        z-index: 40; /* Z-index alto para garantir que fique acima de tudo, mas abaixo da topbar (z-index 50) */
     }
 
     .btn-welcome:hover {
-        background-color: #122c54; /* Tom mais escuro no hover */
+        background-color: #122c54;
     }
 
     /* Estilos para o Modal de Vídeo */
     .video-modal {
-      display: none; /* Escondido por padrão */
-      position: fixed; /* Fixado na tela */
-      z-index: 100; /* Acima de tudo */
+      display: none;
+      position: fixed;
+      z-index: 100;
       left: 0;
       top: 0;
       width: 100%;
       height: 100%;
-      overflow: auto; /* Permite scroll se o conteúdo for grande */
-      background-color: rgba(0,0,0,0.8); /* Fundo escuro semi-transparente */
-      justify-content: center; /* Centraliza horizontalmente */
-      align-items: center; /* Centraliza verticalmente */
+      overflow: auto;
+      background-color: rgba(0,0,0,0.8);
+      justify-content: center;
+      align-items: center;
     }
 
     .video-modal-content {
       background-color: #fefefe;
-      margin: auto; /* Centraliza o modal */
+      margin: auto;
       padding: 20px;
       border: 1px solid #888;
-      width: 90%; /* Largura padrão */
-      max-width: 700px; /* Largura máxima, ajustada para "não muito grande nem muito pequeno" */
+      width: 90%;
+      max-width: 700px;
       border-radius: 10px;
       position: relative;
       box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2), 0 6px 20px 0 rgba(0,0,0,0.19);
@@ -107,21 +107,33 @@
     .video-modal-content video {
       width: 100%;
       height: auto;
-      display: block; /* Remove espaço extra abaixo do vídeo */
+      display: block;
       margin-top: 10px;
     }
 
-    /* Ajustes para o botão de doação para não colidir com o novo botão */
+    /* Ajustes para o botão de doação (voltou para a posição original, já que o "Bem-vindo" mudou) */
     .fixed-donation-button {
-        bottom: 1rem; /* Margem original do rodapé */
-        right: 1rem; /* Margem original da direita */
-        z-index: 30; /* Mantém acima */
+        bottom: 1rem;
+        right: 1rem;
+        z-index: 30;
     }
 
-    /* Ajuste para o rodapé, garantindo que ele tenha um padding inferior adequado */
+    /* Ajuste para o rodapé (voltou para o padrão, já que o JS não precisa ajustar o padding do body por causa do botão "Bem-vindo") */
     #footer-container {
-        /* Será ajustado via JS após o carregamento do rodapé para maior precisão */
-        padding-bottom: 5rem; /* Fallback caso o JS falhe, ou uma base para o cálculo JS */
+        /* Será ajustado via JS apenas se o rodapé tiver altura dinâmica para não cobrir o conteúdo */
+        padding-bottom: 5rem; /* Fallback ou base */
+    }
+
+    /* Adicionado para garantir que o cabeçalho principal tenha um padding à direita para o botão "Bem-vindo" */
+    .header-with-logo {
+        padding-right: calc(1rem + 16px + 100px); /* 1rem do botão, 16px de padding, + a largura aproximada do botão (ajustável) */
+    }
+
+    /* Ajuste para o título principal se ele estiver muito perto do botão "Bem-vindo" */
+    @media (min-width: 640px) { /* Exemplo: a partir de telas sm */
+      .header-with-logo .text-center.sm\:text-left {
+        margin-right: 120px; /* Adiciona margem à direita para o texto não colidir com o botão */
+      }
     }
 
   </style>
@@ -170,19 +182,18 @@
     </div>
   </main>
 
-  <a href="doacoes.html" class="fixed bottom-4 right-4 bg-[#1A3E74] text-white text-sm px-4 py-2 rounded-full shadow hover:bg-blue-900 transition fixed-donation-button">
-    Ajude-nos a manter o site gratuito
-  </a>
-
   <button id="btnWelcome" class="btn-welcome">
     Bem-vindo!
   </button>
 
+  <a href="doacoes.html" class="fixed bottom-4 right-4 bg-[#1A3E74] text-white text-sm px-4 py-2 rounded-full shadow hover:bg-blue-900 transition fixed-donation-button">
+    Ajude-nos a manter o site gratuito
+  </a>
+
   <div id="videoModal" class="video-modal">
     <div class="video-modal-content">
       <span class="video-modal-close">&times;</span>
-      <video id="welcomeVideo" controls autoplay>
-        <source src="boasvindas.mp4" type="video/mp4">
+      <video id="welcomeVideo" controls> <source src="boasvindas.mp4" type="video/mp4">
         Seu navegador não suporta a tag de vídeo.
       </video>
     </div>
@@ -199,7 +210,7 @@
       const footerContainer = document.getElementById('footer-container');
       const donationButton = document.querySelector('.fixed-donation-button');
 
-      // Carrega o conteúdo do rodapé e ajusta a posição dos botões fixos
+      // Carrega o conteúdo do rodapé
       fetch("rodape111.html")
         .then(res => res.text())
         .then(data => {
@@ -207,38 +218,26 @@
           footer.innerHTML = data;
           document.body.appendChild(footer);
 
-          // Ajusta a posição do botão "Bem-vindo!" e do botão de doação
-          // após o rodapé ter sido carregado e renderizado.
-          // Isso garante que eles se posicionem corretamente em relação ao rodapé.
-          // Adicionamos um pequeno timeout para garantir que o DOM seja atualizado
-          // antes de ler a altura do footer.
+          // O padding-bottom do body agora só precisa considerar o rodapé,
+          // já que o botão "Bem-vindo" está no topo.
+          // O botão de doação continua no bottom, então seu cálculo de posição é mantido.
           setTimeout(() => {
             const footerHeight = footer.offsetHeight;
             const paddingBottomForBody = footerHeight + 20; // 20px extra para um respiro
-
-            // Ajusta o padding inferior do body para que o conteúdo não fique escondido sob o footer
             document.body.style.paddingBottom = `${paddingBottomForBody}px`;
 
-            // Posição do botão de doação: 1rem (16px) acima do rodapé
+            // O botão de doação permanece na posição inferior
             if (donationButton) {
-                donationButton.style.bottom = `${16 + footerHeight}px`; // Ajusta based on footer height
+                donationButton.style.bottom = `${16 + footerHeight}px`;
             }
-
-            // Posição do botão Bem-vindo: 16px acima do botão de doação
-            if (btnWelcome && donationButton) {
-                const donationButtonHeight = donationButton.offsetHeight;
-                btnWelcome.style.bottom = `${16 + donationButtonHeight + parseFloat(donationButton.style.bottom)}px`;
-            } else if (btnWelcome) { // Fallback if donation button doesn't exist
-                btnWelcome.style.bottom = `${16 + footerHeight + 16}px`; // Assumes a default height for donation button if not found
-            }
-          }, 100); // Pequeno atraso para o DOM atualizar
+          }, 100);
         })
         .catch(err => console.error("Erro ao carregar rodape111.html:", err));
 
       // Lógica do botão "Bem-vindo!" e modal de vídeo
       btnWelcome.addEventListener('click', () => {
-        videoModal.style.display = 'flex'; // Altera para flex para centralizar
-        welcomeVideo.play(); // Inicia o vídeo automaticamente
+        videoModal.style.display = 'flex'; // Exibe o modal
+        welcomeVideo.play(); // Inicia o vídeo SOMENTE ao clicar no botão
       });
 
       closeModal.addEventListener('click', () => {
@@ -250,6 +249,15 @@
       // Fechar modal ao clicar fora do conteúdo do vídeo
       videoModal.addEventListener('click', (event) => {
         if (event.target === videoModal) {
+          videoModal.style.display = 'none';
+          welcomeVideo.pause();
+          welcomeVideo.currentTime = 0;
+        }
+      });
+
+      // Pausar vídeo se o modal for escondido por alguma outra forma (ex: ESC key)
+      document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape' && videoModal.style.display === 'flex') {
           videoModal.style.display = 'none';
           welcomeVideo.pause();
           welcomeVideo.currentTime = 0;
