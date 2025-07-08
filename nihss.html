@@ -9,7 +9,7 @@
     <meta name="keywords" content="AVC, AVE, acidente vascular cerebral, avaliação, escala de nihss, escala, prognóstico, enfermagem" />
 
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-    <script defer src="./topbar111.js"></script>
+    <script src="./topbar111.js"></script>
 
     <script async src="https://www.googletagmanager.com/gtag/js?id=AW-952633102"></script>
     <script>
@@ -145,13 +145,24 @@
         /* Estilos gerais da tabela */
         table {
             border: 1px solid #e2e8f0; /* Borda da tabela */
+            border-collapse: collapse; /* Adicionado para garantir que as bordas colapsem */
         }
         th, td {
             border: 1px solid #e2e8f0; /* Borda das células */
+            padding: 1rem;
+            text-align: center; /* Padrão centralizado para desktop */
+            vertical-align: middle; /* Alinha o texto no meio verticalmente */
+            color: #333; /* text-black-custom */
         }
         th {
             background-color: #f0f8ff; /* Fundo do cabeçalho da tabela */
             color: #1A3E74; /* Cor do texto do cabeçalho */
+            font-weight: 600;
+            text-align: center;
+        }
+        /* Adaptação para a primeira coluna TH */
+        th:first-child {
+            text-align: left; /* Alinha o primeiro TH à esquerda */
         }
         td select {
             background-color: #ffffff; /* Fundo do select */
@@ -159,36 +170,138 @@
             border-radius: 0.25rem; /* Borda arredondada do select */
             padding: 0.5rem;
             font-family: 'Inter', sans-serif;
+            width: 100%;
         }
 
-        /* Responsividade da tabela para mobile */
-        @media (max-width: 640px) {
-            table, thead, tbody, th, td, tr { display: block; }
-            thead tr { position: absolute; top: -9999px; left: -9999px; }
-            tr { border: 1px solid #e2e8f0; margin-bottom: 0.5rem; }
+        /* --- INÍCIO: Responsividade para Mobile --- */
+        @media (max-width: 768px) {
+            /* Ajustes gerais de fonte e padding para o corpo */
+            body {
+                font-size: 0.95rem; /* Ligeiramente menor para mobile */
+            }
+            .main-content-wrapper {
+                padding: 1rem 0.75rem; /* Reduzir padding lateral em telas menores */
+            }
+
+            /* Ajustes para títulos */
+            h1 {
+                font-size: 2.25rem; /* text-4xl para telas menores */
+                margin-bottom: 0.5rem; /* Espaçamento menor */
+            }
+            h2 {
+                font-size: 1.125rem; /* text-lg para telas menores */
+                margin-bottom: 0.5rem; /* Espaçamento menor */
+            }
+            p {
+                font-size: 0.9rem; /* text-sm para parágrafos */
+                margin-bottom: 1rem; /* Espaçamento menor */
+            }
+
+            /* Tabela: Transforma em "cards" ou blocos */
+            table, thead, tbody, th, td, tr {
+                display: block; /* Cada elemento da tabela se torna um bloco */
+                width: 100%; /* Ocupa a largura total */
+            }
+            thead tr {
+                /* Esconde o cabeçalho original da tabela em mobile */
+                position: absolute;
+                top: -9999px;
+                left: -9999px;
+            }
+            tr {
+                /* Estilo para cada "linha" da tabela em mobile */
+                border: 1px solid #e2e8f0;
+                margin-bottom: 1rem; /* Espaçamento entre os "cards" */
+                border-radius: 0.5rem; /* Cantos arredondados para os cards */
+                overflow: hidden; /* Garante que o conteúdo não vaze */
+            }
             td {
-                border: none;
-                border-bottom: 1px solid #eee;
+                /* Estilo para cada "célula" em mobile */
+                border: none; /* Remove bordas internas da célula */
+                border-bottom: 1px solid #eee; /* Adiciona uma linha divisória entre "linhas" de dados */
                 position: relative;
-                padding-left: 50%;
-                text-align: right;
+                padding-left: 50%; /* Espaço para o rótulo "virtual" */
+                text-align: right; /* Alinha o valor à direita */
+                padding-top: 0.75rem; /* Ajusta o padding para o rótulo */
+                padding-bottom: 0.75rem; /* Ajusta o padding para o rótulo */
+            }
+            td:last-child {
+                border-bottom: 0; /* Remove a borda da última célula de cada "card" */
             }
             td:before {
+                /* Cria o rótulo "virtual" para cada dado em mobile */
                 position: absolute;
-                top: 6px;
-                left: 6px;
-                width: 45%;
+                top: 50%; /* Centraliza verticalmente */
+                left: 0.75rem; /* Espaçamento à esquerda */
+                width: 45%; /* Largura para o rótulo */
                 padding-right: 10px;
-                white-space: nowrap;
-                text-align: left;
+                white-space: normal; /* Permite quebra de linha */
+                text-align: left; /* Alinha o rótulo à esquerda */
                 font-weight: bold;
                 color: #1A3E74; /* Cor para os rótulos em mobile */
+                transform: translateY(-50%); /* Ajusta o alinhamento vertical */
             }
+
             /* Estilos específicos para os rótulos da tabela em mobile para NIHSS */
             /* Usará o atributo data-label definido no JavaScript */
+            /* Cada td terá seu próprio data-label gerado pelo JS, então o nth-of-type(1) aplica a todos */
             #tabelaPontuacoes td:nth-of-type(1):before { content: attr(data-label); }
-            #tabelaPontuacoes td:nth-of-type(2):before { content: "Pontuação:"; }
+            #tabelaPontuacoes td:nth-of-type(2):before { content: "Pontuação Selecionada:"; } /* Rótulo para o select */
+
+            /* Ajuste para o select dentro do td */
+            td select {
+                width: 100%;
+                font-size: 0.9rem; /* Tamanho da fonte do select em mobile */
+                padding: 0.5rem; /* Padding do select */
+                margin-top: 0.25rem; /* Pequena margem para separar do rótulo */
+            }
+
+            /* Botões: Empilhar verticalmente e centralizar */
+            .flex.flex-wrap.justify-start.gap-4.mt-6 {
+                flex-direction: column;
+                align-items: center; /* Centraliza os botões */
+            }
+            .btn-primary, .btn-secondary {
+                width: 95%; /* Ocupar quase toda a largura */
+                margin-bottom: 0.75rem; /* Espaçamento entre os botões */
+            }
+            /* Remover margem do último botão para evitar espaço extra */
+            .flex.flex-wrap.justify-start.gap-4.mt-6 button:last-child {
+                margin-bottom: 0;
+            }
+
+            /* Ajustar o alerta para telas menores */
+            .resultado {
+                padding: 0.75rem;
+                font-size: 0.875rem;
+            }
         }
+
+        /* Ajustes para telas muito pequenas (ex: 320px de largura) */
+        @media (max-width: 480px) {
+            h1 {
+                font-size: 1.75rem; /* Ainda menor */
+            }
+            h2 {
+                font-size: 1rem;
+            }
+            p {
+                font-size: 0.85rem;
+            }
+            td {
+                padding-left: 48%; /* Ajusta o padding para telas muito estreitas */
+            }
+            td:before {
+                left: 0.5rem; /* Ajusta a posição do rótulo */
+                width: 45%;
+                font-size: 0.8rem; /* Rótulo menor */
+            }
+            td select {
+                font-size: 0.85rem;
+                padding: 0.4rem;
+            }
+        }
+        /* --- FIM: Responsividade para Mobile --- */
     </style>
 </head>
 <body class="bg-gray-50 text-gray-800 font-inter">
@@ -214,7 +327,8 @@
 
     <div class="main-content-wrapper">
         <main class="mx-auto px-4 py-8 max-w-4xl">
-            <div id="conteudo"> <table class="w-full border-collapse border border-gray-300 mb-6 text-left">
+            <div id="conteudo">
+                <table class="w-full border-collapse border border-gray-300 mb-6 text-left">
                     <thead>
                         <tr>
                             <th class="border border-gray-300 p-4 font-semibold text-center">Item</th>
@@ -222,10 +336,10 @@
                         </tr>
                     </thead>
                     <tbody id="tabelaPontuacoes">
-                    </tbody>
+                        </tbody>
                 </table>
 
-                <div id="resultado" class="resultado" aria-live="polite"></div>
+                <div id="resultado" class="resultado" aria-live="polite" style="display: none;"></div>
 
                 <div class="ref font-inter text-gray-custom text-left">
                     <p class="font-bold mb-2">Referências bibliográficas:</p>
@@ -266,21 +380,92 @@
     <script>
         // Dados da escala NIHSS (mantidos no escopo global para acesso pelas funções)
         const dados = [
-            ["1.1 - Nível de consciência", ["Alerta", 0, "Não alerta, necessita estímulo", 1, "Responde com reflexo motor", 2, "Coma", 3]],
-            ["1.2 - Mês e idade", ["Responde ambas", 0, "Responde uma", 1, "Nenhuma", 2]],
-            ["1.3 - Comando motor", ["Executa ambas tarefas", 0, "Executa uma", 1, "Nenhuma executada", 2]],
-            ["2 - Melhor olhar conjugado", ["Normal", 0, "Paralisia parcial", 1, "Desvio forçado", 2]],
-            ["3 - Campos visuais", ["Sem perda", 0, "Hemianopsia parcial", 1, "Hemianopsia completa", 2, "Bilateral", 3]],
-            ["4 - Paralisia facial", ["Simétrico", 0, "Paralisia leve", 1, "Parcial", 2, "Completa", 3]],
-            ["5.1 - Força MSE", ["Mantém 10s", 0, "Queda", 1, "Parcial", 2, "Não vence gravidade", 3, "Sem movimento", 4]],
-            ["5.2 - Força MSD", ["Mantém 10s", 0, "Queda", 1, "Parcial", 2, "Não vence gravidade", 3, "Sem movimento", 4]],
-            ["6.1 - Força MIE", ["Mantém 10s", 0, "Cai <10s", 1, "Algum esforço", 2, "Cai sem esforço", 3, "Sem movimento", 4]],
-            ["6.2 - Força MID", ["Mantém 10s", 0, "Cai <10s", 1, "Algum esforço", 2, "Cai sem esforço", 3, "Sem movimento", 4]],
-            ["7 - Ataxia", ["Ausente", 0, "1 membro", 1, "2 membros", 2]],
-            ["8 - Sensibilidade", ["Normal", 0, "Perda leve", 1, "Perda severa", 2]],
-            ["9 - Linguagem", ["Sem afasia", 0, "Afasia leve/moderada", 1, "Afasia severa", 2]],
-            ["10 - Disartria", ["Normal", 0, "Leve/moderada", 1, "Severa", 2]],
-            ["11 - Extinção e intenção", ["Sem anormalidade", 0, "Extinção leve", 1, "Negligência severa", 2]]
+            ["1a - Nível de consciência", [
+                "Alerta", 0,
+                "Não alerta, necessita estímulo mínimo para responder ou para manter a resposta", 1,
+                "Não alerta, necessita estímulo repetitivo para responder ou estímulo doloroso", 2,
+                "Coma", 3
+            ]],
+            ["1b - Nível de consciência: Responde Mês e Idade", [
+                "Responde ambas corretamente", 0,
+                "Responde uma corretamente", 1,
+                "Nenhuma respondida corretamente", 2
+            ]],
+            ["1c - Nível de consciência: Executa comando motor", [
+                "Executa ambas as tarefas corretamente", 0,
+                "Executa uma tarefa corretamente", 1,
+                "Nenhuma executada corretamente", 2
+            ]],
+            ["2 - Melhor olhar conjugado", [
+                "Normal", 0,
+                "Paralisia parcial do olhar (olhar fixo em uma direção)", 1,
+                "Desvio forçado do olhar", 2
+            ]],
+            ["3 - Campos visuais", [
+                "Sem perda", 0,
+                "Hemianopsia parcial (cegueira em uma parte do campo visual)", 1,
+                "Hemianopsia completa (cegueira em metade do campo visual)", 2,
+                "Cegueira bilateral (cegueira total)", 3
+            ]],
+            ["4 - Paralisia facial", [
+                "Simétrico (sem paralisia)", 0,
+                "Paralisia leve (assimetria ao sorrir)", 1,
+                "Paralisia parcial (comprometimento de face inferior)", 2,
+                "Paralisia completa (comprometimento de face superior e inferior)", 3
+            ]],
+            ["5a - Força motora no membro superior esquerdo", [
+                "Sem queda por 10 segundos (normal)", 0,
+                "Queda antes de 10 segundos (mantém algum esforço)", 1,
+                "Não vence a gravidade (só levanta contra a cama)", 2,
+                "Sem movimento (sem esforço contra a gravidade)", 3,
+                "Amputação ou fusão de articulação (não testável)", 4
+            ]],
+            ["5b - Força motora no membro superior direito", [
+                "Sem queda por 10 segundos (normal)", 0,
+                "Queda antes de 10 segundos (mantém algum esforço)", 1,
+                "Não vence a gravidade (só levanta contra a cama)", 2,
+                "Sem movimento (sem esforço contra a gravidade)", 3,
+                "Amputação ou fusão de articulação (não testável)", 4
+            ]],
+            ["6a - Força motora no membro inferior esquerdo", [
+                "Sem queda por 5 segundos (normal)", 0,
+                "Queda antes de 5 segundos (mantém algum esforço)", 1,
+                "Não vence a gravidade (só levanta contra a cama)", 2,
+                "Sem movimento (sem esforço contra a gravidade)", 3,
+                "Amputação ou fusão de articulação (não testável)", 4
+            ]],
+            ["6b - Força motora no membro inferior direito", [
+                "Sem queda por 5 segundos (normal)", 0,
+                "Queda antes de 5 segundos (mantém algum esforço)", 1,
+                "Não vence a gravidade (só levanta contra a cama)", 2,
+                "Sem movimento (sem esforço contra a gravidade)", 3,
+                "Amputação ou fusão de articulação (não testável)", 4
+            ]],
+            ["7 - Ataxia dos membros", [
+                "Ausente", 0,
+                "Presente em 1 membro", 1,
+                "Presente em 2 membros", 2
+            ]],
+            ["8 - Sensibilidade", [
+                "Normal", 0,
+                "Perda leve (dor ou toque leve)", 1,
+                "Perda severa (não sente dor ou toque leve)", 2
+            ]],
+            ["9 - Melhor linguagem (Afasia)", [
+                "Sem afasia", 0,
+                "Afasia leve a moderada", 1,
+                "Afasia severa", 2
+            ]],
+            ["10 - Disartria", [
+                "Normal", 0,
+                "Leve a moderada", 1,
+                "Severa", 2
+            ]],
+            ["11 - Extinção e negligência", [
+                "Sem anormalidade", 0,
+                "Extinção leve (negligência em um modalidade)", 1,
+                "Negligência severa (negligência em mais de uma modalidade)", 2
+            ]]
         ];
 
         document.addEventListener('DOMContentLoaded', () => {
@@ -299,7 +484,7 @@
                 const td1 = document.createElement("td");
                 // Adiciona um atributo data-label para uso em mobile
                 td1.setAttribute('data-label', item[0]);
-                td1.className = "border border-gray-300 p-4 font-semibold w-1/3 align-top";
+                td1.className = "border border-gray-300 p-4 font-semibold w-1/3 align-top text-left"; /* Adicionado text-left aqui */
                 td1.innerText = item[0];
 
                 const td2 = document.createElement("td");
@@ -316,10 +501,11 @@
                 defaultOpt.selected = true;
                 select.appendChild(defaultOpt);
 
-                for (let j = 1; j < item[1].length; j += 2) {
+                // Start from item[1][0] for the option text and item[1][1] for value
+                for (let j = 0; j < item[1].length; j += 2) {
                     const opt = document.createElement("option");
-                    opt.value = item[1][j];
-                    opt.text = `${item[1][j-1]} (${item[1][j]} pontos)`;
+                    opt.value = item[1][j+1]; // The score
+                    opt.text = `${item[1][j]} (${item[1][j+1]} pontos)`; // The description (item[1][j]) and score
                     select.appendChild(opt);
                 }
                 td2.appendChild(select);
@@ -395,36 +581,12 @@
                 fixedButton.style.display = 'none'; // Esconde o botão de doação
             }
 
-            // Clona apenas o conteúdo da calculadora que deve ser incluído no PDF
-            const contentToPrint = document.getElementById("conteudo").cloneNode(true);
+            const pdfContentWrapper = document.createElement('div');
+            pdfContentWrapper.style.fontFamily = "'Inter', sans-serif";
+            pdfContentWrapper.style.color = '#333';
+            pdfContentWrapper.style.padding = '20px';
 
-            // Remove os botões clonados para não aparecerem no PDF
-            const buttonsDiv = contentToPrint.querySelector('.flex.flex-wrap.justify-start.gap-4.mt-6');
-            if (buttonsDiv) {
-                buttonsDiv.remove();
-            }
-
-            // Garante que o resultado esteja visível e com o conteúdo correto para o PDF
-            const originalResultDiv = document.getElementById('resultado');
-            const resultDivInPdf = contentToPrint.querySelector('#resultado');
-
-            if (originalResultDiv.style.display !== 'none' && originalResultDiv.innerHTML.trim() !== '' && !originalResultDiv.innerHTML.includes('Por favor, selecione')) {
-                resultDivInPdf.style.display = 'block';
-                resultDivInPdf.innerHTML = originalResultDiv.innerHTML;
-                // Copia as classes de estilo para o resultado no PDF
-                originalResultDiv.classList.forEach(cls => {
-                    if (cls.startsWith('bg-') || cls.startsWith('text-')) { // Copia apenas classes de cor relevantes
-                        resultDivInPdf.classList.add(cls);
-                    }
-                });
-            } else {
-                resultDivInPdf.style.display = 'block';
-                resultDivInPdf.innerHTML = "Resultado não calculado ou seleção incompleta na página. Calcule antes de gerar o PDF.";
-                resultDivInPdf.classList.add('bg-info-orange-light', 'text-orange-800'); // Alerta padrão no PDF
-            }
-
-            // Adiciona um cabeçalho ao PDF
-            // **Modificação aqui: Criando o elemento div diretamente**
+            // Adiciona o título principal, subtítulo e descrição do relatório
             const headerDiv = document.createElement('div');
             headerDiv.style.cssText = "text-align: center; margin-bottom: 20px; font-family: 'Nunito Sans', sans-serif; color: #1A3E74;";
             headerDiv.innerHTML = `
@@ -432,7 +594,110 @@
                 <p style="font-size: 14px; color: #666666;">Relatório de Avaliação do Acidente Vascular Encefálico</p>
                 <p style="font-size: 12px; color: #777;">Gerado em: ${new Date().toLocaleDateString('pt-BR')} ${new Date().toLocaleTimeString('pt-BR')}</p>
             `;
-            contentToPrint.prepend(headerDiv); // Prepend o elemento div completo
+            pdfContentWrapper.appendChild(headerDiv);
+
+            // Adiciona o cabeçalho "Avaliação da gravidade do AVE..."
+            const h2Pdf = document.createElement('h2');
+            h2Pdf.style.cssText = "font-family: 'Inter', sans-serif; font-weight: 600; color: #1FA4E5; font-size: 18px; margin-bottom: 10px; text-align: left;";
+            h2Pdf.textContent = document.querySelector('h2').textContent;
+            pdfContentWrapper.appendChild(h2Pdf);
+
+            // Adiciona a descrição
+            const pDescriptionPdf = document.createElement('p');
+            pDescriptionPdf.style.cssText = "font-family: 'Inter', sans-serif; font-weight: 400; color: #666666; font-size: 14px; margin-bottom: 15px; text-align: justify;";
+            pDescriptionPdf.textContent = document.querySelectorAll('p')[0].textContent; // Pega o primeiro parágrafo
+            pdfContentWrapper.appendChild(pDescriptionPdf);
+
+            // Título "Pontuações selecionadas"
+            const selectedScoresTitle = document.createElement('p');
+            selectedScoresTitle.style.cssText = "font-family: 'Inter', sans-serif; font-weight: 600; color: #1A3E74; font-size: 16px; margin-top: 20px; margin-bottom: 10px; text-align: left;";
+            selectedScoresTitle.textContent = "Pontuações Selecionadas:";
+            pdfContentWrapper.appendChild(selectedScoresTitle);
+
+
+            // Cria uma nova tabela para o PDF com as seleções do usuário
+            const pdfTable = document.createElement('table');
+            pdfTable.style.cssText = "width: 100%; border-collapse: collapse; margin-bottom: 20px;";
+            pdfTable.innerHTML = `
+                <thead>
+                    <tr>
+                        <th style="border: 1px solid #e2e8f0; padding: 10px; background-color: #f0f8ff; color: #1A3E74; font-weight: 600; text-align: left;">Item</th>
+                        <th style="border: 1px solid #e2e8f0; padding: 10px; background-color: #f0f8ff; color: #1A3E74; font-weight: 600; text-align: center;">Pontuação Selecionada</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            `;
+            const pdfTableBody = pdfTable.querySelector('tbody');
+
+            let allSelectedForPdf = true;
+            for (let i = 0; i < dados.length; i++) {
+                const selectElement = document.getElementById(`q${i}`);
+                const selectedValue = selectElement.value;
+                const selectedText = selectElement.options[selectElement.selectedIndex].text;
+
+                const tr = document.createElement('tr');
+                const itemTd = document.createElement('td');
+                itemTd.style.cssText = "border: 1px solid #e2e8f0; padding: 8px; text-align: left; vertical-align: top;";
+                itemTd.textContent = dados[i][0]; // Nome do item (ex: "1.1 - Nível de consciência")
+
+                const scoreTd = document.createElement('td');
+                scoreTd.style.cssText = "border: 1px solid #e2e8f0; padding: 8px; text-align: center; vertical-align: top;";
+
+                if (selectedValue === "") {
+                    scoreTd.textContent = "Não selecionado";
+                    scoreTd.style.color = '#CC0000'; // Vermelho para não selecionado
+                    allSelectedForPdf = false;
+                } else {
+                    scoreTd.textContent = selectedText;
+                }
+                tr.appendChild(itemTd);
+                tr.appendChild(scoreTd);
+                pdfTableBody.appendChild(tr);
+            }
+
+            pdfContentWrapper.appendChild(pdfTable);
+
+            // Adiciona o resultado da pontuação
+            const originalResultDiv = document.getElementById('resultado');
+            const resultDivForPdf = document.createElement('div');
+            resultDivForPdf.className = 'resultado'; // Mantém a classe base para estilos
+            resultDivForPdf.style.marginTop = '1rem';
+            resultDivForPdf.style.padding = '1rem';
+            resultDivForPdf.style.borderRadius = '0.5rem';
+            resultDivForPdf.style.fontWeight = '600';
+            resultDivForPdf.style.textAlign = 'left';
+            resultDivForPdf.style.whiteSpace = 'pre-wrap';
+            resultDivForPdf.style.color = getComputedStyle(originalResultDiv).color; // Copia a cor do texto
+            resultDivForPdf.style.backgroundColor = getComputedStyle(originalResultDiv).backgroundColor; // Copia a cor de fundo
+
+
+            if (originalResultDiv.style.display !== 'none' && originalResultDiv.innerHTML.trim() !== '' && !originalResultDiv.innerHTML.includes('Por favor, selecione')) {
+                resultDivForPdf.innerHTML = originalResultDiv.innerHTML;
+                originalResultDiv.classList.forEach(cls => {
+                    if (cls.startsWith('bg-') || cls.startsWith('text-')) {
+                        resultDivForPdf.classList.add(cls);
+                    }
+                });
+            } else {
+                resultDivForPdf.innerHTML = "Resultado não calculado ou seleção incompleta na página. Por favor, calcule antes de gerar o PDF.";
+                resultDivForPdf.classList.add('bg-info-orange-light', 'text-orange-800');
+                resultDivForPdf.style.backgroundColor = '#ffeeba';
+                resultDivForPdf.style.color = '#856404';
+            }
+            pdfContentWrapper.appendChild(resultDivForPdf);
+
+
+            // Adiciona a referência bibliográfica
+            const references = document.querySelector('.ref').cloneNode(true);
+            references.style.marginTop = '2rem';
+            references.style.fontSize = '12px'; // Ajusta o tamanho da fonte para PDF
+            references.style.color = '#666666';
+            references.style.textAlign = 'left';
+            references.querySelectorAll('a').forEach(a => {
+                a.style.color = '#1FA4E5';
+                a.style.textDecoration = 'underline';
+            });
+            pdfContentWrapper.appendChild(references);
 
             const opt = {
                 margin: 0.5,
@@ -442,7 +707,7 @@
                 jsPDF: { unit: "in", format: "a4", orientation: "portrait" }
             };
 
-            html2pdf().set(opt).from(contentToPrint).save().then(() => {
+            html2pdf().set(opt).from(pdfContentWrapper).save().then(() => {
                 if (fixedButton) {
                     fixedButton.style.display = ''; // Volta a exibir o botão de doação
                 }
