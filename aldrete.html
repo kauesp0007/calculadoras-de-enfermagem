@@ -17,7 +17,7 @@
   <script async src="https://www.googletagmanager.com/gtag/js?id=AW-952633102"></script>
   <script>
     window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
+    function gtag(){dataLayer.push(arguments);}<
     gtag('js', new Date());
     gtag('config', 'AW-952633102');
   </script>
@@ -184,12 +184,11 @@
 
   <div class="flex flex-wrap items-center justify-center gap-4 mb-3">
     <img src="iconpages.png" alt="Ícone da Página" class="w-32 h-auto" />
-    <h1 class="font-nunito font-extrabold text-dark-blue text-4xl lg:text-5xl text-center">
+    <h1 id="main-title" class="font-nunito font-extrabold text-dark-blue text-4xl lg:text-5xl text-center">
       Avaliação em SRPA - Aldrete e Kroulik
     </h1>
 </div>
-
-      <h2 class="font-inter font-semibold text-light-blue text-2xl lg:text-3xl mb-3 text-left">
+      <h2 id="main-subtitle" class="font-inter font-semibold text-light-blue text-2xl lg:text-3xl mb-3 text-left">
         Avalia a recuperação pós anestésica de pacientes em sala de SRPA
       </h2>
       <p class="font-inter font-normal text-black text-base lg:text-lg mb-6 text-left">
@@ -323,8 +322,9 @@
       resultadoDiv.classList.remove('text-red-600', 'text-dark-blue');
     }
 
-    // Função para gerar PDF (PADRÃO FUGULIN.HTML)
+    // Função para gerar PDF (PADRÃO FUGULIN.HTML ajustado para incluir títulos existentes)
     function gerarPDF() {
+        // Clona o conteúdo principal da calculadora
         const contentToPrint = document.getElementById('conteudo').cloneNode(true);
 
         // Opcional: Esconder elementos fixos ou não desejados no PDF antes de gerar
@@ -333,17 +333,37 @@
             fixedButton.style.display = 'none';
         }
 
-        // Adiciona o cabeçalho ao PDF
-        const headerHtml = `
-            <div style="text-align: center; margin-bottom: 20px; font-family: 'Nunito Sans', sans-serif; color: #1A3E74;">
-                <h1 style="font-size: 24px; font-weight: bold; margin-bottom: 5px;">Escala de Aldrete e Kroulik</h1>
-                <p style="font-size: 14px; color: #666666;">Avaliação da Recuperação Pós-Anestésica</p>
-                <p style="font-size: 12px; color: #777;">Gerado em: ${new Date().toLocaleDateString('pt-BR')} ${new Date().toLocaleTimeString('pt-BR')}</p>
-            </div>
-        `;
-        const tempDiv = document.createElement('div');
-        tempDiv.innerHTML = headerHtml;
-        contentToPrint.prepend(tempDiv.firstChild);
+        // --- NOVO TRECHO PARA INCLUIR OS TÍTULOS DA PÁGINA NO PDF ---
+        const mainTitle = document.getElementById('main-title'); // Obter o <h1> principal
+        const mainSubtitle = document.getElementById('main-subtitle'); // Obter o <h2> secundário
+
+        if (mainSubtitle) { // Adiciona o subtítulo (se existir)
+            const clonedSubtitle = mainSubtitle.cloneNode(true);
+            clonedSubtitle.style.marginBottom = '5px'; // Ajuste de margem para o PDF
+            clonedSubtitle.style.fontSize = '14px'; // Ajuste de tamanho da fonte
+            clonedSubtitle.style.color = '#666666'; // Ajuste de cor
+            clonedSubtitle.style.textAlign = 'center'; // Centraliza o texto
+            contentToPrint.prepend(clonedSubtitle);
+        }
+
+        if (mainTitle) { // Adiciona o título principal (se existir)
+            const clonedTitle = mainTitle.cloneNode(true);
+            clonedTitle.style.marginBottom = '5px'; // Ajuste de margem para o PDF
+            clonedTitle.style.fontSize = '24px'; // Ajuste de tamanho da fonte
+            clonedTitle.style.color = '#1A3E74'; // Ajuste de cor
+            clonedTitle.style.textAlign = 'center'; // Centraliza o texto
+            contentToPrint.prepend(clonedTitle);
+        }
+        
+        // Adiciona a data de geração
+        const dateDiv = document.createElement('p');
+        dateDiv.style.fontSize = '12px';
+        dateDiv.style.color = '#777';
+        dateDiv.style.textAlign = 'center';
+        dateDiv.style.marginBottom = '20px';
+        dateDiv.innerText = `Gerado em: ${new Date().toLocaleDateString('pt-BR')} ${new Date().toLocaleTimeString('pt-BR')}`;
+        contentToPrint.prepend(dateDiv);
+        // --- FIM DO NOVO TRECHO ---
 
         // Configurações do PDF
         const opt = {
