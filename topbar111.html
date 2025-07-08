@@ -1,106 +1,271 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8" />
-  <title>Topbar111 - Calculadoras de Enfermagem</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
-  <style>
-    .dropdown-menu { display: none; }
-    .dropdown-menu.show { display: block; }
-    nav { justify-content: flex-end; }
-    nav button { cursor: pointer; }
-    nav .dropdown-menu a:hover { background-color: #bfdbfe; }
-  </style>
+    <meta charset="UTF-8" />
+    <title>Topbar111 - Calculadoras de Enfermagem</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
+    <style>
+        /* Estilos existentes */
+        .dropdown-menu { display: none; }
+        .dropdown-menu.show { display: block; }
+        nav { justify-content: flex-end; }
+        nav button { cursor: pointer; }
+        nav .dropdown-menu a:hover { background-color: #bfdbfe; }
+
+        /* --- NOVOS ESTILOS PARA O MODAL DE VÍDEO --- */
+        .video-modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7); /* Fundo escuro semitransparente */
+            display: flex; /* Para centralizar o conteúdo */
+            justify-content: center;
+            align-items: center;
+            z-index: 1000; /* Garante que o modal esteja acima de tudo */
+            visibility: hidden; /* Escondido por padrão */
+            opacity: 0;
+            transition: visibility 0s, opacity 0.3s ease-in-out;
+        }
+
+        .video-modal-overlay.show {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        .video-modal-content {
+            background-color: #fff;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            position: relative;
+            max-width: 90%; /* Largura máxima para mobile */
+            width: 700px; /* Largura média para desktop */
+            max-height: 90vh; /* Altura máxima para caber na tela */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .video-modal-content video {
+            width: 100%; /* Vídeo ocupa 100% da largura do contêiner */
+            height: auto; /* Altura automática para manter a proporção */
+            display: block;
+            margin-bottom: 0.75rem; /* Espaço entre o vídeo e o rodapé do modal se houver */
+        }
+
+        .video-modal-close-btn {
+            position: absolute;
+            top: 0.5rem;
+            right: 0.75rem;
+            background: none;
+            border: none;
+            font-size: 1.5rem; /* Tamanho do ícone 'X' */
+            cursor: pointer;
+            color: #333;
+            padding: 0.5rem;
+            line-height: 1; /* Garante que o 'X' não tenha espaçamento extra */
+            z-index: 1010; /* Acima do conteúdo do modal */
+        }
+
+        /* Responsividade do modal para telas menores */
+        @media (max-width: 768px) {
+            .video-modal-content {
+                max-width: 95%; /* Um pouco mais largo em tablets */
+                width: auto; /* Remove largura fixa para usar max-width */
+                padding: 0.75rem;
+            }
+            .video-modal-close-btn {
+                font-size: 1.3rem;
+                top: 0.25rem;
+                right: 0.5rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .video-modal-content {
+                max-width: 95%; /* Atinge o limite máximo em celulares */
+                padding: 0.5rem;
+            }
+            .video-modal-close-btn {
+                font-size: 1.2rem;
+                top: 0.1rem;
+                right: 0.3rem;
+            }
+        }
+        /* --- FIM: NOVOS ESTILOS --- */
+    </style>
 </head>
 <body class="bg-gray-50 font-inter">
 
 <header class="fixed top-0 left-0 w-full bg-white shadow z-50">
-  <div class="max-w-7xl mx-auto px-4 py-2 flex items-center justify-end">
-    <nav class="flex space-x-6">
+    <div class="max-w-7xl mx-auto px-4 py-2 flex items-center justify-end">
+        <nav class="flex space-x-6">
 
-      <div class="relative">
-        <a href="index.html" class="font-semibold text-gray-800 hover:text-blue-500">Início</a>
-      </div>
+            <div class="relative">
+                <a href="index.html" class="font-semibold text-gray-800 hover:text-blue-500">Início</a>
+            </div>
 
-      <div class="relative">
-        <button type="button" data-menu-target="menu1" class="font-semibold text-gray-800 hover:text-blue-500">Sobre Nós</button>
-        <div id="menu1" class="dropdown-menu absolute right-0 mt-2 w-40 bg-white border border-gray-200 rounded shadow-lg p-2 text-gray-700 text-sm z-50">
-          <a href="objetivo.html" class="block px-3 py-2 rounded hover:bg-blue-100">Objetivo do site</a>
-          <a href="missao.html" class="block px-3 py-2 rounded hover:bg-blue-100">Missão, visão e valores</a>
-        </div>
-      </div>
+            <div class="relative">
+                <button type="button" data-menu-target="menu1" class="font-semibold text-gray-800 hover:text-blue-500">Sobre Nós</button>
+                <div id="menu1" class="dropdown-menu absolute right-0 mt-2 w-40 bg-white border border-gray-200 rounded shadow-lg p-2 text-gray-700 text-sm z-50">
+                    <a href="objetivo.html" class="block px-3 py-2 rounded hover:bg-blue-100">Objetivo do site</a>
+                    <a href="missao.html" class="block px-3 py-2 rounded hover:bg-blue-100">Missão, visão e valores</a>
+                    <a href="#" id="videoSobreNosLink" class="block px-3 py-2 rounded hover:bg-blue-100">Vídeo sobre nós</a>
+                </div>
+            </div>
 
-      <div class="relative">
-        <button type="button" data-menu-target="menu2" class="font-semibold text-gray-800 hover:text-blue-500">Calculadoras</button>
-        <div id="menu2" class="dropdown-menu absolute right-0 mt-2 w-72 max-h-96 overflow-y-auto bg-white border border-gray-200 rounded shadow-lg p-2 text-gray-700 text-sm z-50">
-          <a href="aldrete.html" class="block px-3 py-2 rounded hover:bg-blue-100">Calcular Escala de Aldrete</a>
-          <a href="apgar.html" class="block px-3 py-2 rounded hover:bg-blue-100">Calcular Apgar</a>
-          <a href="asa.html" class="block px-3 py-2 rounded hover:bg-blue-100">Risco Perioperatório (ASA)</a>
-          <a href="balancohidrico.html" class="block px-3 py-2 rounded hover:bg-blue-100">Calcular Balanço Hídrico</a>
-          <a href="braden.html" class="block px-3 py-2 rounded hover:bg-blue-100">Calcular Escala de Braden</a>
-          <a href="cincinnati.html" class="block px-3 py-2 rounded hover:bg-blue-100">Escala de Cincinnati</a>
-          <a href="dimensionamento.html" class="block px-3 py-2 rounded hover:bg-blue-100">Calcular Dimensionamento de Enfermagem</a>
-          <a href="elpo.html" class="block px-3 py-2 rounded hover:bg-blue-100">Calcular Escala de ELPO</a>
-          <a href="fugulin.html" class="block px-3 py-2 rounded hover:bg-blue-100">Calcular Fugulin</a>
-          <a href="gestacional.html" class="block px-3 py-2 rounded hover:bg-blue-100">Calcular IG e DPP</a>
-          <a href="glasgow.html" class="block px-3 py-2 rounded hover:bg-blue-100">Calcular Escala de Glasgow</a>
-          <a href="gotejamento.html" class="block px-3 py-2 rounded hover:bg-blue-100">Cálculo de Gotejamento</a>
-          <a href="imc.html" class="block px-3 py-2 rounded hover:bg-blue-100">Calcular IMC</a>
-          <a href="insulina.html" class="block px-3 py-2 rounded hover:bg-blue-100">Cálculo de Insulina</a>
-          <a href="johns.html" class="block px-3 py-2 rounded hover:bg-blue-100">Calcular Escala de Johns Hopkins</a>
-          <a href="manchester.html" class="block px-3 py-2 rounded hover:bg-blue-100">Calcular Escala de Manchester</a>
-          <a href="medicamentos.html" class="block px-3 py-2 rounded hover:bg-blue-100">Cálculo de Medicamentos</a>
-          <a href="meows.html" class="block px-3 py-2 rounded hover:bg-blue-100">Calcular Escala de MEOWS</a>
-          <a href="morse.html" class="block px-3 py-2 rounded hover:bg-blue-100">Calcular Escala de Morse</a>
-          <a href="news.html" class="block px-3 py-2 rounded hover:bg-blue-100">Calcular Protocolo NEWS</a>
-          <a href="nihss.html" class="block px-3 py-2 rounded hover:bg-blue-100">Calcular Escala NIHSS (AVEI)</a>
-          <a href="richmond.html" class="block px-3 py-2 rounded hover:bg-blue-100">Calcular Escala de Richmond</a>
-        </div>
-      </div>
+            <div class="relative">
+                <button type="button" data-menu-target="menu2" class="font-semibold text-gray-800 hover:text-blue-500">Calculadoras</button>
+                <div id="menu2" class="dropdown-menu absolute right-0 mt-2 w-72 max-h-96 overflow-y-auto bg-white border border-gray-200 rounded shadow-lg p-2 text-gray-700 text-sm z-50">
+                    <a href="aldrete.html" class="block px-3 py-2 rounded hover:bg-blue-100">Calcular Escala de Aldrete</a>
+                    <a href="apgar.html" class="block px-3 py-2 rounded hover:bg-blue-100">Calcular Apgar</a>
+                    <a href="asa.html" class="block px-3 py-2 rounded hover:bg-blue-100">Risco Perioperatório (ASA)</a>
+                    <a href="balancohidrico.html" class="block px-3 py-2 rounded hover:bg-blue-100">Calcular Balanço Hídrico</a>
+                    <a href="braden.html" class="block px-3 py-2 rounded hover:bg-blue-100">Calcular Escala de Braden</a>
+                    <a href="cincinnati.html" class="block px-3 py-2 rounded hover:bg-blue-100">Escala de Cincinnati</a>
+                    <a href="dimensionamento.html" class="block px-3 py-2 rounded hover:bg-blue-100">Calcular Dimensionamento de Enfermagem</a>
+                    <a href="elpo.html" class="block px-3 py-2 rounded hover:bg-blue-100">Calcular Escala de ELPO</a>
+                    <a href="fugulin.html" class="block px-3 py-2 rounded hover:bg-blue-100">Calcular Fugulin</a>
+                    <a href="gestacional.html" class="block px-3 py-2 rounded hover:bg-blue-100">Calcular IG e DPP</a>
+                    <a href="glasgow.html" class="block px-3 py-2 rounded hover:bg-blue-100">Calcular Escala de Glasgow</a>
+                    <a href="gotejamento.html" class="block px-3 py-2 rounded hover:bg-blue-100">Cálculo de Gotejamento</a>
+                    <a href="imc.html" class="block px-3 py-2 rounded hover:bg-blue-100">Calcular IMC</a>
+                    <a href="insulina.html" class="block px-3 py-2 rounded hover:bg-blue-100">Cálculo de Insulina</a>
+                    <a href="johns.html" class="block px-3 py-2 rounded hover:bg-blue-100">Calcular Escala de Johns Hopkins</a>
+                    <a href="manchester.html" class="block px-3 py-2 rounded hover:bg-blue-100">Calcular Escala de Manchester</a>
+                    <a href="medicamentos.html" class="block px-3 py-2 rounded hover:bg-blue-100">Cálculo de Medicamentos</a>
+                    <a href="meows.html" class="block px-3 py-2 rounded hover:bg-blue-100">Calcular Escala de MEOWS</a>
+                    <a href="morse.html" class="block px-3 py-2 rounded hover:bg-blue-100">Calcular Escala de Morse</a>
+                    <a href="news.html" class="block px-3 py-2 rounded hover:bg-blue-100">Calcular Protocolo NEWS</a>
+                    <a href="nihss.html" class="block px-3 py-2 rounded hover:bg-blue-100">Calcular Escala NIHSS (AVEI)</a>
+                    <a href="richmond.html" class="block px-3 py-2 rounded hover:bg-blue-100">Calcular Escala de Richmond</a>
+                </div>
+            </div>
 
-      <div class="relative">
-        <button type="button" data-menu-target="menu3" class="font-semibold text-gray-800 hover:text-blue-500">Conteúdo</button>
-        <div id="menu3" class="dropdown-menu absolute right-0 mt-2 w-72 bg-white border border-gray-200 rounded shadow-lg p-2 text-gray-700 text-sm z-50">
-          <a href="regrasmedicacoes.html" class="block px-3 py-2 rounded hover:bg-blue-100">Manual de Uso seguro de medicamentos</a>
-          <a href="vigilancia.html" class="block px-3 py-2 rounded hover:bg-blue-100">Medicação de Alta Vigilância (MAV)</a>
-          <a href="checagem.html" class="block px-3 py-2 rounded hover:bg-blue-100">Dupla e Tripla Checagem</a>
-          <span class="block px-3 py-2 opacity-60">Links Úteis (em construção)</span>
-          <a href="legislacoes.html" class="block px-3 py-2 rounded hover:bg-blue-100">Legislações e Pareceres</a>
-        </div>
-      </div>
+            <div class="relative">
+                <button type="button" data-menu-target="menu3" class="font-semibold text-gray-800 hover:text-blue-500">Conteúdo</button>
+                <div id="menu3" class="dropdown-menu absolute right-0 mt-2 w-72 bg-white border border-gray-200 rounded shadow-lg p-2 text-gray-700 text-sm z-50">
+                    <a href="regrasmedicacoes.html" class="block px-3 py-2 rounded hover:bg-blue-100">Manual de Uso seguro de medicamentos</a>
+                    <a href="vigilancia.html" class="block px-3 py-2 rounded hover:bg-blue-100">Medicação de Alta Vigilância (MAV)</a>
+                    <a href="checagem.html" class="block px-3 py-2 rounded hover:bg-blue-100">Dupla e Tripla Checagem</a>
+                    <span class="block px-3 py-2 opacity-60">Links Úteis (em construção)</span>
+                    <a href="legislacoes.html" class="block px-3 py-2 rounded hover:bg-blue-100">Legislações e Pareceres</a>
+                </div>
+            </div>
 
-      <div class="relative">
-        <button type="button" data-menu-target="menu4" class="font-semibold text-gray-800 hover:text-blue-500">Carreira</button>
-        <div id="menu4" class="dropdown-menu absolute right-0 mt-2 w-72 bg-white border border-gray-200 rounded shadow-lg p-2 text-gray-700 text-sm z-50">
-          <span class="block px-3 py-2 opacity-60">Gere seu Currículo (em construção)</span>
-          <span class="block px-3 py-2 opacity-60">Testes Psicológicos (em construção)</span>
-          <span class="block px-3 py-2 opacity-60">Trilha de Conhecimento (em construção)</span>
-          <span class="block px-3 py-2 opacity-60">Concursos Públicos abertos (em construção)</span>
-          <span class="block px-3 py-2 opacity-60">Mentoria com IA (em construção)</span>
-        </div>
-      </div>
+            <div class="relative">
+                <button type="button" data-menu-target="menu4" class="font-semibold text-gray-800 hover:text-blue-500">Carreira</button>
+                <div id="menu4" class="dropdown-menu absolute right-0 mt-2 w-72 bg-white border border-gray-200 rounded shadow-lg p-2 text-gray-700 text-sm z-50">
+                    <span class="block px-3 py-2 opacity-60">Gere seu Currículo (em construção)</span>
+                    <span class="block px-3 py-2 opacity-60">Testes Psicológicos (em construção)</span>
+                    <span class="block px-3 py-2 opacity-60">Trilha de Conhecimento (em construção)</span>
+                    <span class="block px-3 py-2 opacity-60">Concursos Públicos abertos (em construção)</span>
+                    <span class="block px-3 py-2 opacity-60">Mentoria com IA (em construção)</span>
+                </div>
+            </div>
 
-      <div class="relative">
-        <button type="button" data-menu-target="menu5" class="font-semibold text-gray-800 hover:text-blue-500">Loja Virtual</button>
-        <div id="menu5" class="dropdown-menu absolute right-0 mt-2 w-56 bg-white border border-gray-200 rounded shadow-lg p-2 text-gray-700 text-sm z-50">
-          <span class="block px-3 py-2 opacity-60">Em construção</span>
-        </div>
-      </div>
+            <div class="relative">
+                <button type="button" data-menu-target="menu5" class="font-semibold text-gray-800 hover:text-blue-500">Loja Virtual</button>
+                <div id="menu5" class="dropdown-menu absolute right-0 mt-2 w-56 bg-white border border-gray-200 rounded shadow-lg p-2 text-gray-700 text-sm z-50">
+                    <span class="block px-3 py-2 opacity-60">Em construção</span>
+                </div>
+            </div>
 
-      <div class="relative">
-        <button type="button" data-menu-target="menu6" class="font-semibold text-gray-800 hover:text-blue-500">Fale Conosco</button>
-        <div id="menu6" class="dropdown-menu absolute right-0 mt-2 w-60 bg-white border border-gray-200 rounded shadow-lg p-2 text-gray-700 text-sm z-50">
-          <a href="fale.html" class="block px-3 py-2 rounded hover:bg-blue-100">Fale Conosco</a>
-          <a href="doacoes.html" class="block px-3 py-2 rounded hover:bg-blue-100">Contribua</a>
-        </div>
-      </div>
+            <div class="relative">
+                <button type="button" data-menu-target="menu6" class="font-semibold text-gray-800 hover:text-blue-500">Fale Conosco</button>
+                <div id="menu6" class="dropdown-menu absolute right-0 mt-2 w-60 bg-white border border-gray-200 rounded shadow-lg p-2 text-gray-700 text-sm z-50">
+                    <a href="fale.html" class="block px-3 py-2 rounded hover:bg-blue-100">Fale Conosco</a>
+                    <a href="doacoes.html" class="block px-3 py-2 rounded hover:bg-blue-100">Contribua</a>
+                </div>
+            </div>
 
-    </nav>
-  </div>
+        </nav>
+    </div>
 </header>
 
 <div class="pt-20"></div>
 
+<div id="videoModal" class="video-modal-overlay">
+    <div class="video-modal-content">
+        <button id="closeVideoModal" class="video-modal-close-btn">&times;</button>
+        <video id="sobrenosVideo" controls preload="metadata">
+            <source src="sobrenos.mp4" type="video/mp4">
+            Seu navegador não suporta a tag de vídeo.
+        </video>
+    </div>
+</div>
 </body>
 </html>
+
+<script>
+    // --- LÓGICA DO TOPBAR EXISTENTE ---
+    document.addEventListener('DOMContentLoaded', function() {
+        const dropdownButtons = document.querySelectorAll('[data-menu-target]');
+        dropdownButtons.forEach(button => {
+            button.addEventListener('click', function(event) {
+                event.stopPropagation(); // Impede que o clique se propague e feche o menu imediatamente
+                const menuId = this.dataset.menuTarget;
+                const dropdownMenu = document.getElementById(menuId);
+
+                // Fecha todos os outros dropdowns
+                document.querySelectorAll('.dropdown-menu').forEach(menu => {
+                    if (menu.id !== menuId) {
+                        menu.classList.remove('show');
+                    }
+                });
+
+                // Alterna o dropdown clicado
+                dropdownMenu.classList.toggle('show');
+            });
+        });
+
+        // Fecha os dropdowns quando clica fora deles
+        document.addEventListener('click', function(event) {
+            document.querySelectorAll('.dropdown-menu').forEach(menu => {
+                if (!menu.contains(event.target) && !event.target.matches('[data-menu-target]')) {
+                    menu.classList.remove('show');
+                }
+            });
+        });
+    });
+
+    // --- NOVA LÓGICA PARA O MODAL DE VÍDEO ---
+    document.addEventListener('DOMContentLoaded', function() {
+        const videoLink = document.getElementById('videoSobreNosLink');
+        const videoModal = document.getElementById('videoModal');
+        const closeVideoModalBtn = document.getElementById('closeVideoModal');
+        const sobrenosVideo = document.getElementById('sobrenosVideo');
+
+        // Abre o modal ao clicar no link
+        if (videoLink) { // Verifica se o elemento existe
+            videoLink.addEventListener('click', function(event) {
+                event.preventDefault(); // Impede o comportamento padrão do link
+                videoModal.classList.add('show');
+                // O vídeo não iniciará automaticamente, mas estará pronto para play
+            });
+        }
+
+        // Fecha o modal ao clicar no botão 'x'
+        if (closeVideoModalBtn) { // Verifica se o elemento existe
+            closeVideoModalBtn.addEventListener('click', function() {
+                videoModal.classList.remove('show');
+                sobrenosVideo.pause(); // Pausa o vídeo ao fechar
+                sobrenosVideo.currentTime = 0; // Volta o vídeo para o início (opcional, remova se quiser que continue de onde parou)
+            });
+        }
+
+        // Fecha o modal ao clicar fora do conteúdo do vídeo
+        if (videoModal) { // Verifica se o elemento existe
+            videoModal.addEventListener('click', function(event) {
+                if (event.target === videoModal) { // Verifica se o clique foi diretamente no overlay
+                    videoModal.classList.remove('show');
+                    sobrenosVideo.pause(); // Pausa o vídeo ao fechar
+                    sobrenosVideo.currentTime = 0; // Volta o vídeo para o início
+                }
+            });
+        }
+    });
+</script>
