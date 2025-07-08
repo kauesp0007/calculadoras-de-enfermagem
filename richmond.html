@@ -360,6 +360,11 @@
         }
 
         function gerarPDFRASS() {
+            const fixedButton = document.querySelector('.fixed-donation-button');
+            if (fixedButton) {
+                fixedButton.style.display = 'none'; // Esconde o botão de doação
+            }
+
             const contentToPrint = document.getElementById("conteudo").cloneNode(true);
 
             // Remove os botões clonados para não aparecerem no PDF
@@ -386,16 +391,15 @@
                 resultDivInPdf.classList.add('bg-info-orange-light', 'text-orange-800');
             }
 
-            const headerHtml = `
-                <div style="text-align: center; margin-bottom: 20px; font-family: 'Nunito Sans', sans-serif; color: #1A3E74;">
-                    <h1 style="font-size: 24px; font-weight: bold; margin-bottom: 5px;">Escala de Richmond (RASS)</h1>
-                    <p style="font-size: 14px; color: #666666;">Relatório de Agitação e Sedação</p>
-                    <p style="font-size: 12px; color: #777;">Gerado em: ${new Date().toLocaleDateString('pt-BR')} ${new Date().toLocaleTimeString('pt-BR')}</p>
-                </div>
+            // Cria o elemento do cabeçalho diretamente e adiciona os estilos
+            const headerDiv = document.createElement('div');
+            headerDiv.style.cssText = "text-align: center; margin-bottom: 20px; font-family: 'Nunito Sans', sans-serif; color: #1A3E74;";
+            headerDiv.innerHTML = `
+                <h1 style="font-size: 24px; font-weight: bold; margin-bottom: 5px;">Escala de Richmond (RASS)</h1>
+                <p style="font-size: 14px; color: #666666;">Relatório de Agitação e Sedação</p>
+                <p style="font-size: 12px; color: #777;">Gerado em: ${new Date().toLocaleDateString('pt-BR')} ${new Date().toLocaleTimeString('pt-BR')}</p>
             `;
-            const tempDiv = document.createElement('div');
-            tempDiv.innerHTML = headerHtml;
-            contentToPrint.prepend(tempDiv.firstChild);
+            contentToPrint.prepend(headerDiv); // Prepend o elemento div completo
 
             const opt = {
                 margin: 0.5,
@@ -405,7 +409,11 @@
                 jsPDF: { unit: "in", format: "a4", orientation: "portrait" }
             };
 
-            html2pdf().set(opt).from(contentToPrint).save();
+            html2pdf().set(opt).from(contentToPrint).save().then(() => {
+                if (fixedButton) {
+                    fixedButton.style.display = ''; // Volta a exibir o botão de doação
+                }
+            });
         }
     </script>
 </body>
