@@ -100,6 +100,7 @@
     }
     .resultado.text-red-600 { /* Classe para mensagens de erro (fundo) */
         background-color: #fee2e2; /* Tailwind red-100 */
+        color: #dc2626; /* Tailwind red-600 */
     }
 
     /* Estilos para a referência/bibliografia (Componente específico) */
@@ -127,13 +128,13 @@
     /* ESTILOS DOS DROPDOWNS DA TOPBAR (MOVIDOS DE TOPBAR111.HTML) */
     .dropdown-menu { display: none; }
     .dropdown-menu.show { display: block; }
-    nav { justify-content: flex-end; } 
+    nav { justify-content: flex-end; }  
     nav button { cursor: pointer; }
     nav .dropdown-menu a:hover { background-color: #bfdbfe; }
     /* FIM DOS ESTILOS DA TOPBAR */
 
     /* Espaçamento para o conteúdo abaixo da topbar fixa */
-    .main-content-wrapper { 
+    .main-content-wrapper {  
       display: flex;
       flex-direction: column;
       flex-grow: 1;
@@ -167,19 +168,19 @@
 </head>
 <body class="bg-gray-50 text-gray-800 font-inter">
 
-  <div id="topbar-container"></div> 
+  <div id="topbar-container"></div>  
 
   <div class="main-content-wrapper">
     <main class="flex flex-col flex-grow">
 
       <div class="flex flex-wrap items-center justify-center gap-4 mb-3">
         <img src="iconpages.png" alt="Ícone da Calculadora de Gotejamento" class="w-32 h-auto" />
-        <h1 class="font-nunito font-extrabold text-dark-blue text-4xl lg:text-5xl text-center">
+        <h1 id="main-title" class="font-nunito font-extrabold text-dark-blue text-4xl lg:text-5xl text-center">
           Cálculo de Gotejamento
         </h1>
       </div>
 
-      <div class="subtitulo font-inter text-black-custom">
+      <div id="regras-basicas" class="subtitulo font-inter text-black-custom">
         <strong>Regras básicas:</strong><br>
         <strong>Gotejamento macrogotas em horas =</strong> volume dividido por tempo vezes (x) 3. <br>
         <strong>Gotejamento microgotas em horas =</strong> volume dividido por tempo. <br>
@@ -187,7 +188,7 @@
         <strong>Gotejamento microgotas por minutos =</strong> volume x (vezes) 60 dividido por tempo.
       </div>
 
-      <div id="conteudo" class="w-full">
+      <div id="conteudo-calculadora" class="w-full">
         <div class="mb-4">
           <label for="volume" class="block text-black-custom text-lg font-medium mb-2">Volume (ml):</label>
           <input type="number" id="volume" min="0" step="any" placeholder="Ex: 1000" 
@@ -216,13 +217,13 @@
           </select>
         </div>
         
-        <div class="meta-seguranca">
+        <div id="meta-seguranca" class="meta-seguranca">
           <strong>Meta Internacional de Segurança do Paciente nº 3:</strong> Melhorar a segurança na prescrição, no uso e na administração de medicamentos.
         </div>
 
-        <div id="resultado" class="resultado" aria-live="polite"></div>
+        <div id="resultado" class="resultado" aria-live="polite" style="display: none;"></div>
 
-        <div class="ref font-inter text-gray-custom mt-10">
+        <div id="bibliografia" class="ref font-inter text-gray-custom mt-10">
           <strong>Referência bibliográfica:</strong><br />
           <p class="mt-2">
             AYRES, Ana Carolina. <strong>Cálculo de Medicamentos</strong>. Conselho Regional de Enfermagem da Bahia – Coren-BA. 2024. Disponível em: <br>
@@ -244,7 +245,7 @@
       </div>
 
     </main>
-  </div> 
+  </div>  
 
   <a href="doacoes.html" class="fixed bottom-4 right-4 bg-dark-blue text-white text-sm px-4 py-2 rounded-full shadow hover:bg-blue-900 transition fixed-donation-button">
     Ajude-nos a manter o site gratuito
@@ -252,8 +253,6 @@
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   
-  <script src="pdf111.js"></script>
-
   <div id="footer-container"></div>
 
   <script>
@@ -272,9 +271,10 @@
       const volume = parseFloat(volumeInput.value);
       const tempo = parseFloat(tempoInput.value);
 
-      // Resetar estilos de erro
+      // Resetar estilos de erro e esconder resultado
       resultadoDiv.classList.remove('text-red-600', 'bg-red-100');
       resultadoDiv.classList.add('text-dark-blue', 'bg-blue-50'); // Adiciona estilo padrão
+      resultadoDiv.style.display = 'none'; // Esconde o resultado ao iniciar novo cálculo
 
       if (isNaN(volume) || volume <= 0) {
         resultadoDiv.style.display = 'block';
@@ -307,15 +307,14 @@
         calculoDetalhado += `Cálculo para tempo em horas e equipo ${equipo}:\n\n`;
         calculoDetalhado += `volume (ml) × fator gotejamento (${divisor}) ÷ (tempo em horas × 60 minutos/hora)\n\n`;
         calculoDetalhado += `${volume} ml × ${divisor} gotas/ml ÷ (${tempo} horas × 60 min/hora)\n\n`;
-        calculoDetalhado += `${volume * divisor} ÷ ${tempo * 60} = ${gotasPorMinuto.toFixed(2)}\n`;
-
+        calculoDetalhado += `${(volume * divisor).toFixed(2)} ÷ ${(tempo * 60).toFixed(2)} = ${gotasPorMinuto.toFixed(2)}\n`; // Ajustado para toFixed
       } else if (unidadeTempo === "minutos") {
         gotasPorMinuto = (volume * divisor) / tempo;
 
         calculoDetalhado += `Cálculo para tempo em minutos e equipo ${equipo}:\n\n`;
         calculoDetalhado += `volume (ml) × fator gotejamento (${divisor}) ÷ tempo em minutos\n\n`;
         calculoDetalhado += `${volume} ml × ${divisor} gotas/ml ÷ ${tempo} minutos\n\n`;
-        calculoDetalhado += `${volume * divisor} ÷ ${tempo} = ${gotasPorMinuto.toFixed(2)}\n`;
+        calculoDetalhado += `${(volume * divisor).toFixed(2)} ÷ ${tempo.toFixed(2)} = ${gotasPorMinuto.toFixed(2)}\n`; // Ajustado para toFixed
       }
 
       const gotasArredondadas = arredondar(gotasPorMinuto);
@@ -342,45 +341,136 @@ ${gotasArredondadas} gotas/minuto
 
       const resultadoDiv = document.getElementById('resultado');
       resultadoDiv.innerHTML = '';
-      resultadoDiv.style.display = 'none';
+      resultadoDiv.style.display = 'none'; // Esconde a div de resultado
       resultadoDiv.classList.remove('text-red-600', 'bg-red-100'); // Remove estilos de erro
       resultadoDiv.classList.add('text-dark-blue', 'bg-blue-50'); // Adiciona estilos padrão
     }
 
-    // A função gerarPDF() pode estar aqui ou em pdf111.js. 
-    // Se estiver em pdf111.js, remova esta função inline.
-    // Se não tiver pdf111.js, deixe esta função aqui.
+    // Função para gerar PDF (Aprimorada)
     function gerarPDF() {
-      const content = document.getElementById('conteudo').cloneNode(true); // Captura o conteúdo principal da calculadora
+        console.log('Função gerarPDF() iniciada.');
 
-      // Remove elementos que não devem ir no PDF (ex: botões)
-      const buttonsDiv = content.querySelector('.flex.flex-wrap.justify-start.gap-4.mt-6');
-      if (buttonsDiv) buttonsDiv.remove();
+        const mainTitle = document.getElementById('main-title');
+        const regrasBasicas = document.getElementById('regras-basicas');
+        const volumeInput = document.getElementById('volume');
+        const tempoInput = document.getElementById('tempo');
+        const unidadeTempoSelect = document.getElementById('unidadeTempo');
+        const equipoSelect = document.getElementById('equipo');
+        const metaSegurancaDiv = document.getElementById('meta-seguranca');
+        const resultadoDiv = document.getElementById('resultado');
+        const bibliografiaDiv = document.getElementById('bibliografia');
 
-      // Remove as regras básicas do PDF, se desejar
-      const subtitulo = content.querySelector('.subtitulo');
-      if (subtitulo) subtitulo.remove();
-      
-      // Esconde o botão de doação antes de gerar o PDF
-      const fixedButton = document.querySelector('.fixed-donation-button');
-      if (fixedButton) {
-        fixedButton.style.display = 'none';
-      }
+        // Cria um container temporário para os elementos que irão para o PDF
+        const pdfContentWrapper = document.createElement('div');
+        pdfContentWrapper.style.padding = '20px'; // Adiciona um padding geral ao conteúdo do PDF
+        pdfContentWrapper.style.fontFamily = 'Inter, sans-serif'; // Garante a fonte no PDF
+        pdfContentWrapper.style.color = '#333'; // Cor do texto padrão no PDF
 
-      const opt = {
-        margin:       0.5,
-        filename:     'calculo-gotejamento.pdf',
-        image:        { type: 'jpeg', quality: 0.98 },
-        html2canvas:  { scale: 3, scrollY: 0 },
-        jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' },
-      };
-      
-      html2pdf().set(opt).from(content).save().then(() => {
-        // Volta a exibir o botão de doação após a geração do PDF
-        if (fixedButton) {
-          fixedButton.style.display = '';
+        // Adiciona o título principal
+        if (mainTitle) {
+            const clonedMainTitle = mainTitle.cloneNode(true);
+            clonedMainTitle.style.fontSize = '28px'; // Ajustar tamanho para o PDF
+            clonedMainTitle.style.color = '#1A3E74';
+            clonedMainTitle.style.textAlign = 'center';
+            clonedMainTitle.style.marginBottom = '15px';
+            pdfContentWrapper.appendChild(clonedMainTitle);
         }
-      });
+
+        // Adiciona a data de geração
+        const dateDiv = document.createElement('p');
+        dateDiv.style.fontSize = '10px';
+        dateDiv.style.color = '#777';
+        dateDiv.style.textAlign = 'right';
+        dateDiv.style.marginBottom = '20px';
+        dateDiv.innerText = `Gerado em: ${new Date().toLocaleDateString('pt-BR')} ${new Date().toLocaleTimeString('pt-BR')}`;
+        pdfContentWrapper.appendChild(dateDiv);
+
+        // Adiciona os valores de entrada no PDF
+        const inputValuesDiv = document.createElement('div');
+        inputValuesDiv.style.marginBottom = '20px';
+        inputValuesDiv.innerHTML = `
+            <p><strong>Volume:</strong> ${volumeInput.value ? volumeInput.value + ' ml' : 'Não informado'}</p>
+            <p><strong>Tempo:</strong> ${tempoInput.value ? tempoInput.value + ' ' + unidadeTempoSelect.options[unidadeTempoSelect.selectedIndex].text.toLowerCase() : 'Não informado'}</p>
+            <p><strong>Equipo:</strong> ${equipoSelect.options[equipoSelect.selectedIndex].text}</p>
+        `;
+        pdfContentWrapper.appendChild(inputValuesDiv);
+
+        // Adiciona o resultado se estiver visível e não for uma mensagem de erro
+        if (resultadoDiv && resultadoDiv.innerHTML.trim() !== '' && resultadoDiv.style.display !== 'none' && !resultadoDiv.classList.contains('text-red-600')) {
+            const clonedResultado = resultadoDiv.cloneNode(true);
+            clonedResultado.style.marginTop = '10px';
+            clonedResultado.style.padding = '15px';
+            clonedResultado.style.backgroundColor = '#e0f2fe'; // Sempre azul padrão para resultado válido no PDF
+            clonedResultado.style.color = '#1A3E74'; // Sempre azul escuro padrão
+            clonedResultado.style.borderRadius = '8px';
+            clonedResultado.style.whiteSpace = 'pre-wrap';
+            pdfContentWrapper.appendChild(clonedResultado);
+        } else {
+            // Adiciona uma mensagem de aviso/erro se o cálculo não foi realizado ou é inválido
+            const noResultP = document.createElement('p');
+            noResultP.style.fontSize = '14px';
+            noResultP.style.color = '#dc2626';
+            noResultP.style.marginTop = '10px';
+            noResultP.innerText = 'Nenhum cálculo válido foi realizado. Por favor, preencha os campos e clique em "Calcular" antes de gerar o PDF.';
+            pdfContentWrapper.appendChild(noResultP);
+        }
+
+        // Adiciona as regras básicas (opcional, incluído para completude do PDF)
+        if (regrasBasicas) {
+            const clonedRegrasBasicas = regrasBasicas.cloneNode(true);
+            clonedRegrasBasicas.style.fontSize = '12px';
+            clonedRegrasBasicas.style.color = '#555';
+            clonedRegrasBasicas.style.marginTop = '25px';
+            clonedRegrasBasicas.style.borderTop = '1px dashed #ccc';
+            clonedRegrasBasicas.style.paddingTop = '15px';
+            pdfContentWrapper.appendChild(clonedRegrasBasicas);
+        }
+
+        // Adiciona a Meta de Segurança do Paciente
+        if (metaSegurancaDiv) {
+            const clonedMetaSeguranca = metaSegurancaDiv.cloneNode(true);
+            clonedMetaSeguranca.style.fontSize = '12px';
+            clonedMetaSeguranca.style.color = '#555';
+            clonedMetaSeguranca.style.marginTop = '25px';
+            clonedMetaSeguranca.style.fontStyle = 'italic';
+            clonedMetaSeguranca.style.borderTop = '1px solid #e5e7eb';
+            clonedMetaSeguranca.style.paddingTop = '15px';
+            pdfContentWrapper.appendChild(clonedMetaSeguranca);
+        }
+
+        // Adiciona a bibliografia
+        if (bibliografiaDiv) {
+            const clonedBibliografia = bibliografiaDiv.cloneNode(true);
+            clonedBibliografia.style.marginTop = '25px';
+            clonedBibliografia.style.fontSize = '12px';
+            clonedBibliografia.style.color = '#666';
+            clonedBibliografia.querySelectorAll('a').forEach(a => {
+                a.style.color = '#1FA4E5';
+                a.style.textDecoration = 'underline';
+            });
+            pdfContentWrapper.appendChild(clonedBibliografia);
+        }
+
+        // Esconde o botão de doação antes de gerar o PDF
+        const fixedButton = document.querySelector('.fixed-donation-button');
+        if (fixedButton) {
+            fixedButton.style.display = 'none';
+        }
+
+        const opt = {
+            margin:       0.5,
+            filename:     'calculo_gotejamento.pdf',
+            image:        { type: 'jpeg', quality: 0.98 },
+            html2canvas:  { scale: 3, scrollY: 0, useCORS: true },
+            jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' },
+        };
+        
+        html2pdf().set(opt).from(pdfContentWrapper).save().then(() => {
+            // Volta a exibir o botão de doação após a geração do PDF
+            if (fixedButton) {
+                fixedButton.style.display = '';
+            }
+        });
     }
 
     document.addEventListener('DOMContentLoaded', () => {
