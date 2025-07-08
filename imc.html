@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Calculadora de Índice de Massa Corporal</title>
+
+  <link rel="canonical" href="https://www.calculadorasdeenfermagem.com.br/imc.html" />
+
+  <link rel="icon" href="favicon.ico" type="image/x-icon" />
+
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
+    
+  <meta name="keywords" content="IMC, Índice de Massa Corporal, obesidade, sobrepeso, avaliação nutricional, enfermagem, saúde, calculadora de IMC" />
+  <meta name="description" content="Calcule o Índice de Massa Corporal (IMC) para avaliar o grau de sobrepeso e obesidade, importante para condutas nutricionais e assistenciais." />
+
+  <script async src="https://www.googletagmanager.com/gtag/js?id=AW-952633102"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'AW-952633102');
+  </script>
+
+  <script src="topbar111.js" defer></script>
+
+  <style>
+    /* Reset básico e Box-sizing para consistência */
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    /* Fontes personalizadas */
+    @import url('https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@700&family=Inter:wght@300;400;500;600&display=swap');
+
+    /* Estilos das classes de fonte e cor personalizadas (para uso no HTML com Tailwind) */
+    .font-nunito { font-family: 'Nunito Sans', sans-serif; }
+    .font-inter { font-family: 'Inter', sans-serif; }
+    .text-dark-blue { color: #1A3E74; } /* Azul Escuro */
+    .text-light-blue { color: #1FA4E5; } /* Azul Claro */
+    .text-gray-custom { color: #666666; } /* Cinza */
+    .text-success-green { color: #1ED760; } /* Verde */
+
+    /* Padrão de Botões (Componentes CSS para reuso) */
+    .btn-primary {
+      font-family: 'Inter', sans-serif;
+      font-weight: 600;
+      background-color: #1A3E74; /* Cor primária azul escuro */
+      color: #FFF;
+      padding: 12px 24px;
+      border-radius: 8px;
+      transition: background-color 0.3s ease;
+      border: none;
+      cursor: pointer;
+      text-align: center;
+    }
+    .btn-primary:hover { background-color: #122c54; } /* Tom mais escuro no hover */
+    .btn-secondary {
+      font-family: 'Inter', sans-serif;
+      font-weight: 600;
+      background-color: #1FA4E5; /* Cor secundária azul claro */
+      color: #FFF;
+      padding: 12px 24px;
+      border-radius: 8px;
+      transition: background-color 0.3s ease;
+      border: none;
+      cursor: pointer;
+      text-align: center;
+    }
+    .btn-secondary:hover { background-color: #178ac7; } /* Tom mais escuro no hover */
+    .btn-success {
+      font-family: 'Inter', sans-serif;
+      font-weight: 500;
+      background-color: #1ED760;
+      color: #FFF;
+      padding: 10px 20px;
+      border-radius: 8px;
+      transition: background-color 0.3s ease;
+      border: none;
+      cursor: pointer;
+      text-align: center;
+    }
+    .btn-success:hover { background-color: #17b351; }
+
+    /* Estilos para a área de resultado da calculadora (Componente específico) */
+    .resultado {
+      margin-top: 1rem;
+      padding: 1rem;
+      background-color: #e0f2fe; /* Tailwind blue-50 */
+      border-radius: 0.5rem;
+      font-weight: 600;
+      color: #1A3E74; /* text-dark-blue */
+      text-align: left;
+      white-space: pre-wrap;
+    }
+
+    /* Estilos para a referência/bibliografia (Componente específico) */
+    .ref {
+      margin-top: 2rem;
+      font-size: 14px;
+      color: #666666; /* text-gray-custom */
+      text-align: left;
+    }
+
+    /* Estilo para o botão "Ajude-nos" fixo (Componente de botão) */
+    .fixed-donation-button {
+      z-index: 30;
+    }
+    
+    /* Layout principal com Topbar fixa */
+    body {
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh; /* Garante que o body ocupe a altura total da viewport */
+      background-color: #f8fafc; /* Tailwind bg-gray-50 */
+      color: #333; /* Tailwind text-gray-800 */
+    }
+
+    /* ESTILOS DOS DROPDOWNS DA TOPBAR (MOVIDOS DE TOPBAR111.HTML) */
+    .dropdown-menu { display: none; }
+    .dropdown-menu.show { display: block; }
+    nav { justify-content: flex-end; }  
+    nav button { cursor: pointer; }
+    nav .dropdown-menu a:hover { background-color: #bfdbfe; }
+    /* FIM DOS ESTILOS DA TOPBAR */
+
+    /* Espaçamento para o conteúdo abaixo da topbar fixa */
+    .main-content-wrapper {  
+      display: flex;
+      flex-direction: column;
+      flex-grow: 1;
+      padding-top: 64px; /* Garante que o conteúdo comece abaixo da topbar fixa (64px de altura) */
+      width: 100%;
+    }
+
+    /* Conteúdo principal (main) */
+    main {
+      flex-grow: 1;
+      max-width: 1280px; /* max-w-7xl */
+      margin-left: auto;
+      margin-right: auto;
+      padding: 2rem 1rem; /* Equivalente a p-8 px-4 */
+      width: 100%;
+    }
+
+    /* Estilos para os campos de entrada */
+    .input-group {
+        margin-bottom: 1rem;
+    }
+    .input-group label {
+        display: block;
+        font-weight: 500;
+        margin-bottom: 0.5rem;
+        color: #1A3E74; /* text-dark-blue */
+    }
+    .input-group input[type="number"] {
+        width: 100%;
+        padding: 0.75rem;
+        border: 1px solid #ccc;
+        border-radius: 0.375rem; /* rounded-md */
+        font-size: 1rem;
+        color: #333;
+    }
+    .input-group input[type="number"]:focus {
+        outline: none;
+        border-color: #1FA4E5; /* text-light-blue */
+        box-shadow: 0 0 0 3px rgba(31, 164, 229, 0.2);
+    }
+    /* Classe para texto menor - para a descrição do IMC */
+    .text-xs-custom {
+        font-size: 0.75rem; /* Equivalente a text-xs do Tailwind */
+    }
+  </style>
+</head>
+<body class="bg-gray-50 text-gray-800 font-inter">
+
+  <div id="topbar-container"></div>
+
+  <div class="main-content-wrapper">
+    <main>
+      <div class="flex flex-wrap items-center justify-center gap-4 mb-3">
+        <img src="iconpages.png" alt="Ícone da Página" class="w-32 h-auto" />
+        <h1 id="main-title" class="font-nunito font-extrabold text-dark-blue text-4xl lg:text-5xl text-center">
+          Calculadora de Índice de Massa Corporal
+        </h1>
+      </div>
+      <h2 id="main-subtitle" class="font-inter font-semibold text-light-blue text-2xl lg:text-3xl mb-3 text-left">
+        O IMC é reconhecido como padrão internacional para avaliar o grau de sobrepeso e obesidade. É calculado dividindo o peso (em kg) pela altura ao quadrado (em metros).
+      </h2>
+      <p id="intro-description" class="font-inter font-normal text-black mb-6 text-left text-xs-custom">
+        O IMC é uma avaliação importante para o enfermeiro no paciente recém-admitido em uma unidade de internação hospitalar durante a anamnese e exame físico e na Atenção primária, pois através dele o enfermeiro e a equipe multidisciplinar podem definir com mais efetividade condutas nutricionais, medicamentosas e assistenciais ao paciente.
+      </p>
+      
+      <div id="conteudo">
+        <div class="input-section mb-8">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="input-group">
+                    <label for="peso">Peso (kg):</label>
+                    <input type="number" id="peso" placeholder="Ex: 70.5" step="0.1" min="0" class="input-field" />
+                </div>
+                <div class="input-group">
+                    <label for="altura">Altura (metros):</label>
+                    <input type="number" id="altura" placeholder="Ex: 1.75" step="0.01" min="0" class="input-field" />
+                </div>
+            </div>
+        </div>
+
+        <div id="resultado" class="resultado" aria-live="polite"></div>
+
+        <div class="ref font-inter text-gray-custom text-left">
+          <h3>Referência Bibliográfica:</h3>
+          <ul>
+            <li>
+              Ministério da Saúde. Obesidade. **BVS MS**. Disponível em:
+              <a href="https://bvsms.saude.gov.br/bvs/dicas/215_obesidade.html" target="_blank" class="text-light-blue hover:underline">
+                https://bvsms.saude.gov.br/bvs/dicas/215_obesidade.html
+              </a>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="flex flex-wrap justify-start gap-4 mt-6">
+        <button id="btnCalcular" class="btn-primary" aria-label="Calcular IMC">
+          Calcular
+        </button>
+        <button id="btnLimpar" class="btn-primary" aria-label="Limpar campos">
+          Limpar
+        </button>
+        <button id="btnGerarPDF" class="btn-secondary" aria-label="Gerar PDF do IMC">
+          Gerar PDF
+        </button>
+      </div>
+    </main>
+  </div> 
+  <a href="doacoes.html" class="fixed bottom-4 right-4 bg-dark-blue text-white text-sm px-4 py-2 rounded-full shadow hover:bg-blue-900 transition fixed-donation-button">
+    Ajude-nos a manter o site gratuito
+  </a>
+
+  <div id="footer-container"></div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <script>
+    function calcular() {
+      const peso = parseFloat(document.getElementById('peso').value);
+      const altura = parseFloat(document.getElementById('altura').value);
+
+      const resultadoDiv = document.getElementById('resultado');
+
+      if (isNaN(peso) || isNaN(altura) || peso <= 0 || altura <= 0) {
+        resultadoDiv.innerText = 'Por favor, insira valores válidos para peso e altura.';
+        resultadoDiv.classList.add('text-red-600');
+        resultadoDiv.classList.remove('text-dark-blue', 'text-success-green');
+        return;
+      }
+
+      const imc = peso / (altura * altura);
+      let classificacao = '';
+      let conduta = '';
+      let resultadoCor = 'text-dark-blue'; // Cor padrão
+
+      if (imc < 18.5) {
+        classificacao = 'Abaixo do peso';
+        conduta = 'Risco de desnutrição. Avaliação e acompanhamento nutricional são recomendados.';
+        resultadoCor = 'text-red-600'; // Vermelho para alerta
+      } else if (imc >= 18.5 && imc < 24.9) {
+        classificacao = 'Peso normal';
+        conduta = 'Manter hábitos de vida saudáveis. Bom estado nutricional.';
+        resultadoCor = 'text-success-green'; // Verde para normal
+      } else if (imc >= 25 && imc < 29.9) {
+        classificacao = 'Sobrepeso';
+        conduta = 'Atenção para mudanças no estilo de vida e alimentação. Avaliação nutricional pode ser indicada.';
+        resultadoCor = 'text-yellow-600'; // Amarelo para atenção (adicione essa classe no CSS se ainda não tiver)
+      } else if (imc >= 30 && imc < 34.9) {
+        classificacao = 'Obesidade Grau I';
+        conduta = 'Necessidade de intervenção nutricional e acompanhamento médico. Risco aumentado para comorbidades.';
+        resultadoCor = 'text-orange-600'; // Laranja para alerta maior
+      } else if (imc >= 35 && imc < 39.9) {
+        classificacao = 'Obesidade Grau II';
+        conduta = 'Intervenção urgente e acompanhamento multidisciplinar. Alto risco para comorbidades graves.';
+        resultadoCor = 'text-red-600'; // Vermelho para alerta crítico
+      } else {
+        classificacao = 'Obesidade Grau III (Obesidade Mórbida)';
+        conduta = 'Cuidado intensivo e abordagem multidisciplinar. Risco muito elevado para a saúde.';
+        resultadoCor = 'text-red-800'; // Vermelho escuro para risco extremo
+      }
+      
+      resultadoDiv.innerHTML = `
+        <p><strong>IMC calculado:</strong> ${imc.toFixed(2)} kg/m²</p>
+        <p><strong>Classificação:</strong> ${classificacao}</p>
+        <p class="mt-2"><strong>Conduta de Enfermagem:</strong> ${conduta}</p>
+      `;
+      resultadoDiv.className = `resultado ${resultadoCor}`;
+
+      // Armazenar os valores e detalhes para a geração do PDF
+      resultadoDiv.dataset.imc = imc.toFixed(2);
+      resultadoDiv.dataset.classificacao = classificacao;
+      resultadoDiv.dataset.conduta = conduta;
+      resultadoDiv.dataset.peso = peso;
+      resultadoDiv.dataset.altura = altura;
+    }
+
+    function limparCampos() {
+      document.getElementById('peso').value = '';
+      document.getElementById('altura').value = '';
+      const resultadoDiv = document.getElementById('resultado');
+      resultadoDiv.innerText = '';
+      resultadoDiv.classList.remove('text-red-600', 'text-dark-blue', 'text-success-green', 'text-yellow-600', 'text-orange-600', 'text-red-800');
+    }
+
+    // Função para gerar PDF (seguindo o padrão Aldrete.html)
+    function gerarPDF() {
+        const contentToPrint = document.createElement('div'); // Criamos um novo div para o conteúdo do PDF
+
+        // Adiciona a data de geração
+        const dateDiv = document.createElement('p');
+        dateDiv.style.fontSize = '12px';
+        dateDiv.style.color = '#777';
+        dateDiv.style.textAlign = 'center';
+        dateDiv.style.marginBottom = '20px';
+        dateDiv.innerText = `Gerado em: ${new Date().toLocaleDateString('pt-BR')} ${new Date().toLocaleTimeString('pt-BR')}`;
+        contentToPrint.appendChild(dateDiv);
+
+        // --- NOVO TRECHO PARA INCLUIR OS TÍTULOS DA PÁGINA NO PDF ---
+        const mainTitle = document.getElementById('main-title'); // Obter o <h1> principal
+        const mainSubtitle = document.getElementById('main-subtitle'); // Obter o <h2> secundário
+        const introDescription = document.getElementById('intro-description'); // Obter o parágrafo de descrição
+
+        if (mainTitle) { // Adiciona o título principal (se existir)
+            const clonedTitle = mainTitle.cloneNode(true);
+            clonedTitle.style.marginBottom = '5px'; // Ajuste de margem para o PDF
+            clonedTitle.style.fontSize = '24px'; // Ajuste de tamanho da fonte
+            clonedTitle.style.color = '#1A3E74'; // Ajuste de cor
+            clonedTitle.style.textAlign = 'center'; // Centraliza o texto
+            contentToPrint.appendChild(clonedTitle);
+        }
+
+        if (mainSubtitle) { // Adiciona o subtítulo (se existir)
+            const clonedSubtitle = mainSubtitle.cloneNode(true);
+            clonedSubtitle.style.marginBottom = '15px'; // Ajuste de margem para o PDF
+            clonedSubtitle.style.fontSize = '14px'; // Ajuste de tamanho da fonte
+            clonedSubtitle.style.color = '#666666'; // Ajuste de cor
+            clonedSubtitle.style.textAlign = 'center'; // Centraliza o texto
+            contentToPrint.appendChild(clonedSubtitle);
+        }
+
+        if (introDescription) { // Adiciona a descrição introdutória (se existir)
+            const clonedDescription = introDescription.cloneNode(true);
+            clonedDescription.style.marginBottom = '20px';
+            clonedDescription.style.fontSize = '10px';
+            clonedDescription.style.color = '#333';
+            clonedDescription.style.textAlign = 'left';
+            contentToPrint.appendChild(clonedDescription);
+        }
+        // --- FIM DO NOVO TRECHO DE TÍTULOS E DESCRIÇÃO ---
+
+        // Adiciona os valores de entrada ao PDF
+        const inputValuesSection = document.createElement('div');
+        inputValuesSection.style.marginBottom = '20px';
+        inputValuesSection.style.padding = '10px';
+        inputValuesSection.style.border = '1px solid #ddd';
+        inputValuesSection.style.borderRadius = '5px';
+        inputValuesSection.innerHTML = `
+            <h4 style="font-family:'Nunito Sans', sans-serif; font-weight:700; color:#1A3E74; font-size:1.2rem; margin-bottom:10px;">Dados Inseridos:</h4>
+            <p style="font-size:13px; color:#333; margin-bottom:5px;"><strong>Peso:</strong> ${document.getElementById('peso').value} kg</p>
+            <p style="font-size:13px; color:#333;"><strong>Altura:</strong> ${document.getElementById('altura').value} metros</p>
+        `;
+        contentToPrint.appendChild(inputValuesSection);
+
+
+        // Resultado do Cálculo para o PDF
+        const resultadoDivOriginal = document.getElementById('resultado');
+        if (resultadoDivOriginal && resultadoDivOriginal.innerText) {
+            const imcValue = resultadoDivOriginal.dataset.imc;
+            const classificacao = resultadoDivOriginal.dataset.classificacao;
+            const conduta = resultadoDivOriginal.dataset.conduta;
+
+            const resultadoContent = document.createElement('div');
+            resultadoContent.style.marginTop = '1rem';
+            resultadoContent.style.padding = '1rem';
+            resultadoContent.style.backgroundColor = '#e0f2fe';
+            resultadoContent.style.borderRadius = '0.5rem';
+            resultadoContent.style.fontWeight = '600';
+            resultadoContent.style.textAlign = 'left';
+            resultadoContent.style.whiteSpace = 'pre-wrap';
+            // Define a cor do resultado no PDF baseada na classificação
+            let pdfResultColor = '#1A3E74'; // Padrão
+            if (classificacao === 'Abaixo do peso' || classificacao.includes('Obesidade Grau')) {
+                pdfResultColor = '#DC2626'; // Vermelho para baixo peso e obesidade
+            } else if (classificacao === 'Sobrepeso') {
+                pdfResultColor = '#F59E0B'; // Laranja para sobrepeso (Tailwind orange-500)
+            } else if (classificacao === 'Peso normal') {
+                pdfResultColor = '#1ED760'; // Verde para peso normal
+            }
+            resultadoContent.style.color = pdfResultColor;
+            
+            resultadoContent.innerHTML = `
+                <p><strong>IMC calculado:</strong> ${imcValue} kg/m²</p>
+                <p><strong>Classificação:</strong> ${classificacao}</p>
+                <p style="margin-top:0.5rem;"><strong>Conduta de Enfermagem:</strong> ${conduta}</p>
+            `;
+            contentToPrint.appendChild(resultadoContent);
+
+        } else {
+            const warningP = document.createElement('p');
+            warningP.innerText = 'Por favor, calcule o IMC antes de gerar o PDF.';
+            warningP.style.color = '#DC2626';
+            warningP.style.marginBottom = '15px';
+            contentToPrint.appendChild(warningP);
+        }
+
+        // Referência Bibliográfica para o PDF
+        const refSection = document.querySelector('.ref');
+        if (refSection) {
+            const clonedRef = refSection.cloneNode(true);
+            clonedRef.style.marginTop = '2rem';
+            clonedRef.style.fontSize = '10px';
+            clonedRef.style.color = '#666666';
+            clonedRef.style.textAlign = 'left';
+            clonedRef.querySelectorAll('a').forEach(a => {
+                a.style.color = '#1FA4E5';
+                a.style.textDecoration = 'underline';
+            });
+            const refHeader = document.createElement('h3');
+            refHeader.innerText = 'Referência Bibliográfica:';
+            refHeader.style.fontFamily = "'Nunito Sans', sans-serif";
+            refHeader.style.fontWeight = '700';
+            refHeader.style.color = '#1A3E74';
+            refHeader.style.fontSize = '1rem';
+            refHeader.style.marginBottom = '10px';
+            clonedRef.prepend(refHeader);
+            contentToPrint.appendChild(clonedRef);
+        }
+
+        // Esconder o botão de doação antes de gerar o PDF
+        const fixedButton = document.querySelector('.fixed-donation-button');
+        if (fixedButton) {
+            fixedButton.style.display = 'none';
+        }
+
+        // Configurações do PDF
+        const opt = {
+            margin:       0.5,
+            filename:     'calculadora-imc.pdf',
+            image:        { type: 'jpeg', quality: 0.98 },
+            html2canvas:  { scale: 3, scrollY: 0 },
+            jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }
+        };
+
+        // Gera e salva o PDF
+        html2pdf().set(opt).from(contentToPrint).save().then(() => {
+            // Reexibe o botão após a geração (se foi escondido)
+            if (fixedButton) {
+                fixedButton.style.display = '';
+            }
+        });
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      document.getElementById('btnCalcular').addEventListener('click', calcular);
+      document.getElementById('btnLimpar').addEventListener('click', limparCampos);
+      document.getElementById('btnGerarPDF').addEventListener('click', gerarPDF);
+
+      fetch("rodape111.html")
+        .then(res => res.text())
+        .then(data => {
+          document.getElementById("footer-container").innerHTML = data;
+        })
+        .catch(err => console.error("Erro ao carregar rodape111.html:", err));
+    });
+  </script>
+</body>
+</html>
