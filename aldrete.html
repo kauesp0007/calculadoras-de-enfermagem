@@ -273,11 +273,9 @@
     Ajude-nos a manter o site gratuito
   </a>
 
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-  <script src="pdf111.js"></script>
-
   <div id="footer-container"></div>
 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   <script>
     function calcular() {
       const campos = ['atividade', 'respiracao', 'circulacao', 'consciencia', 'saturacao'];
@@ -297,7 +295,7 @@
       if (!allSelected) {
         resultadoDiv.innerText = 'Por favor, selecione todas as opções para calcular.';
         resultadoDiv.classList.add('text-red-600');
-        resultadoDiv.classList.remove('text-dark-blue'); /* Ajustado para a nova classe de cor */
+        resultadoDiv.classList.remove('text-dark-blue');
         return;
       }
 
@@ -312,7 +310,7 @@
 
       resultadoDiv.innerText = `Pontuação total: ${total}/10\n\nConduta: ${conduta}`;
       resultadoDiv.classList.remove('text-red-600');
-      resultadoDiv.classList.add('text-dark-blue'); /* Ajustado para a nova classe de cor */
+      resultadoDiv.classList.add('text-dark-blue');
     }
 
     function limpar() {
@@ -322,14 +320,55 @@
       });
       const resultadoDiv = document.getElementById('resultado');
       resultadoDiv.innerText = '';
-      resultadoDiv.classList.remove('text-red-600', 'text-dark-blue'); /* Removido text-[#1A3E74] */
+      resultadoDiv.classList.remove('text-red-600', 'text-dark-blue');
+    }
+
+    // Função para gerar PDF (PADRÃO FUGULIN.HTML)
+    function gerarPDF() {
+        const contentToPrint = document.getElementById('conteudo').cloneNode(true);
+
+        // Opcional: Esconder elementos fixos ou não desejados no PDF antes de gerar
+        const fixedButton = document.querySelector('.fixed-donation-button');
+        if (fixedButton) {
+            fixedButton.style.display = 'none';
+        }
+
+        // Adiciona o cabeçalho ao PDF
+        const headerHtml = `
+            <div style="text-align: center; margin-bottom: 20px; font-family: 'Nunito Sans', sans-serif; color: #1A3E74;">
+                <h1 style="font-size: 24px; font-weight: bold; margin-bottom: 5px;">Escala de Aldrete e Kroulik</h1>
+                <p style="font-size: 14px; color: #666666;">Avaliação da Recuperação Pós-Anestésica</p>
+                <p style="font-size: 12px; color: #777;">Gerado em: ${new Date().toLocaleDateString('pt-BR')} ${new Date().toLocaleTimeString('pt-BR')}</p>
+            </div>
+        `;
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = headerHtml;
+        contentToPrint.prepend(tempDiv.firstChild);
+
+        // Configurações do PDF
+        const opt = {
+            margin:       0.5,
+            filename:     'escala-aldrete.pdf',
+            image:        { type: 'jpeg', quality: 0.98 },
+            html2canvas:  { scale: 3, scrollY: 0 },
+            jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }
+        };
+
+        // Gera e salva o PDF
+        html2pdf().set(opt).from(contentToPrint).save().then(() => {
+            // Reexibe o botão após a geração (se foi escondido)
+            if (fixedButton) {
+                fixedButton.style.display = '';
+            }
+        });
     }
 
     document.addEventListener('DOMContentLoaded', () => {
       document.getElementById('btnCalcular').addEventListener('click', calcular);
       document.getElementById('btnLimpar').addEventListener('click', limpar);
-      // Adiciona o evento para o botão Gerar PDF
-      document.getElementById('btnGerarPDF').addEventListener('click', () => gerarPDF('conteudo', document.title));
+      
+      // Conecta o botão Gerar PDF à nova função
+      document.getElementById('btnGerarPDF').addEventListener('click', gerarPDF);
 
       fetch("rodape111.html")
         .then(res => res.text())
