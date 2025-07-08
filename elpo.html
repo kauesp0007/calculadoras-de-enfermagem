@@ -44,7 +44,8 @@
     .text-success-green { color: #1ED760; } /* Verde */
     /* Adicionado para consistência de cor de texto padrão */
     .text-black-custom { color: #333; } 
-    .text-dark-blue { color: #1A3E74; } /* Tailwind text-dark-blue para mensagens de erro */
+    /* Ajustado para a classe de erro do Tailwind */
+    .text-red-custom { color: #dc2626; } /* Tailwind red-600, similar to error messages */
 
 
     /* Padrão de Botões (Componentes CSS para reuso) */
@@ -99,8 +100,10 @@
       text-align: left;
       white-space: pre-wrap; /* Mantém quebras de linha no texto */
     }
-    .resultado.text-red-600 { /* Classe para mensagens de erro */
+    /* Usa a classe customizada text-red-custom ou a própria text-red-600 do tailwind */
+    .resultado.text-red-600 {
         background-color: #fee2e2; /* Tailwind red-100 */
+        color: #dc2626; /* Tailwind red-600 */
     }
 
     /* Estilos para a referência/bibliografia (Componente específico) */
@@ -128,13 +131,13 @@
     /* ESTILOS DOS DROPDOWNS DA TOPBAR (MOVIDOS DE TOPBAR111.HTML) */
     .dropdown-menu { display: none; }
     .dropdown-menu.show { display: block; }
-    nav { justify-content: flex-end; } 
+    nav { justify-content: flex-end; }  
     nav button { cursor: pointer; }
     nav .dropdown-menu a:hover { background-color: #bfdbfe; }
     /* FIM DOS ESTILOS DA TOPBAR */
 
     /* Espaçamento para o conteúdo abaixo da topbar fixa */
-    .main-content-wrapper { 
+    .main-content-wrapper {  
       display: flex;
       flex-direction: column;
       flex-grow: 1;
@@ -181,20 +184,21 @@
 </head>
 <body class="bg-gray-50 text-gray-800 font-inter">
 
-  <div id="topbar-container"></div> 
+  <div id="topbar-container"></div>  
 
   <div class="main-content-wrapper">
-    <main class="flex flex-col flex-grow"> <div class="flex flex-wrap items-center justify-center gap-4 mb-3">
+    <main class="flex flex-col flex-grow">
+      <div class="flex flex-wrap items-center justify-center gap-4 mb-3">
         <img src="iconpages.png" alt="Ícone da Escala ELPO" class="w-32 h-auto" />
-        <h1 class="font-nunito font-extrabold text-dark-blue text-4xl lg:text-5xl text-center">
+        <h1 id="main-title" class="font-nunito font-extrabold text-dark-blue text-4xl lg:text-5xl text-center">
           Escala de ELPO (Risco LPP em bloco operatório)
         </h1>
       </div>
 
-      <h2 class="font-inter font-semibold text-light-blue text-2xl lg:text-3xl mb-3 text-left">
+      <h2 id="subtitle" class="font-inter font-semibold text-light-blue text-2xl lg:text-3xl mb-3 text-left">
         Selecione a pontuação para cada item abaixo:
       </h2>
-      <p class="font-inter font-normal text-black-custom text-base lg:text-lg mb-6 text-left">
+      <p id="intro-paragraph" class="font-inter font-normal text-black-custom text-base lg:text-lg mb-6 text-left">
         Esta calculadora auxilia na avaliação do risco de lesão por pressão em pacientes submetidos a procedimentos cirúrgicos no bloco operatório.
       </p>
 
@@ -262,7 +266,7 @@
 
         <div id="resultado" class="resultado" aria-live="polite"></div>
 
-        <div class="ref font-inter text-gray-custom text-left">
+        <div id="reference-section" class="ref font-inter text-gray-custom text-left">
           Referência: <br>
           Lesão por pressão decorrente do posicionamento cirúrgico e fatores associados disponível em:  
           <a href="https://www.scielo.br/j/ape/a/VPg7mpWnvhgkDVXWGWjR6hn/" target="_blank" class="text-light-blue hover:underline">https://www.scielo.br/</a>
@@ -282,7 +286,7 @@
       </div>
 
     </main>
-  </div> 
+  </div>  
 
   <a href="doacoes.html" class="fixed bottom-4 right-4 bg-dark-blue text-white text-sm px-4 py-2 rounded-full shadow hover:bg-blue-900 transition fixed-donation-button">
     Ajude-nos a manter o site gratuito
@@ -290,8 +294,6 @@
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   
-  <script src="pdf111.js"></script>
-
   <div id="footer-container"></div>
 
   <script>
@@ -309,7 +311,7 @@
       let isRisky = false;
 
       if (total >= 20) {
-        resultadoTexto += "Risco elevado para lesão por pressão = Criar um plano de cuidado na SAEP visando minimizar os riscos de lesão por pressão no paciente em sitio ciúrgico, principalmente em cirurgias G ou pacientes que aguardam retaguarda de UTI.";
+        resultadoTexto += "Risco elevado para lesão por pressão = Criar um plano de cuidado na SAEP visando minimizar os riscos de lesão por pressão no paciente em sítio cirúrgico, principalmente em cirurgias G ou pacientes que aguardam retaguarda de UTI.";
         isRisky = true;
       } else {
         resultadoTexto += "Risco baixo para lesão por pressão.";
@@ -338,19 +340,114 @@
       resultadoDiv.classList.add('text-dark-blue'); // Garante a cor padrão após limpar
     }
 
-    // A função gerarPDF() pode estar aqui ou em pdf111.js. 
-    // Se estiver em pdf111.js, remova esta função inline.
-    // Se não tiver pdf111.js, deixe esta função aqui.
+    // Função para gerar PDF (PADRÃO)
     function gerarPDF() {
-      const elemento = document.getElementById('conteudo'); // Gera PDF do conteúdo principal da calculadora
-      const opt = {
-        margin:       0.5,
-        filename:     'escala-elpo.pdf',
-        image:        { type: 'jpeg', quality: 0.98 },
-        html2canvas:  { scale: 3 },
-        jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }
-      };
-      html2pdf().set(opt).from(elemento).save();
+        console.log('Função gerarPDF() iniciada.');
+        
+        // Clona os elementos de cabeçalho e o conteúdo principal
+        const mainTitle = document.getElementById('main-title');
+        const subtitle = document.getElementById('subtitle');
+        const introParagraph = document.getElementById('intro-paragraph');
+        const contentToPrint = document.getElementById('conteudo'); // Conteúdo principal da calculadora
+        
+        // Cria um container temporário para os elementos que irão para o PDF
+        const pdfContentWrapper = document.createElement('div');
+        pdfContentWrapper.style.padding = '20px'; // Adiciona um padding geral ao conteúdo do PDF
+        pdfContentWrapper.style.fontFamily = 'Inter, sans-serif'; // Garante a fonte no PDF
+        pdfContentWrapper.style.color = '#333'; // Cor do texto padrão no PDF
+
+        // Adiciona o título principal
+        if (mainTitle) {
+            const clonedMainTitle = mainTitle.cloneNode(true);
+            clonedMainTitle.style.fontSize = '28px'; // Ajustar tamanho para o PDF
+            clonedMainTitle.style.color = '#1A3E74';
+            clonedMainTitle.style.textAlign = 'center';
+            clonedMainTitle.style.marginBottom = '15px';
+            pdfContentWrapper.appendChild(clonedMainTitle);
+        }
+
+        // Adiciona a introdução/subtítulo
+        if (introParagraph) { // Preferimos a intro-paragraph por ser mais descritiva
+            const clonedIntroParagraph = introParagraph.cloneNode(true);
+            clonedIntroParagraph.style.fontSize = '14px';
+            clonedIntroParagraph.style.color = '#666';
+            clonedIntroParagraph.style.textAlign = 'center';
+            clonedIntroParagraph.style.marginBottom = '20px';
+            pdfContentWrapper.appendChild(clonedIntroParagraph);
+        }
+
+        // Adiciona a data de geração
+        const dateDiv = document.createElement('p');
+        dateDiv.style.fontSize = '10px';
+        dateDiv.style.color = '#777';
+        dateDiv.style.textAlign = 'right';
+        dateDiv.style.marginBottom = '10px';
+        dateDiv.innerText = `Gerado em: ${new Date().toLocaleDateString('pt-BR')} ${new Date().toLocaleTimeString('pt-BR')}`;
+        pdfContentWrapper.appendChild(dateDiv);
+
+        // Clona e anexa o conteúdo principal da calculadora
+        if (contentToPrint) {
+            const clonedContent = contentToPrint.cloneNode(true);
+            
+            // Corrige estilos de tabela para PDF, se necessário (exemplo básico)
+            const table = clonedContent.querySelector('table');
+            if (table) {
+                table.style.width = '100%';
+                table.style.borderCollapse = 'collapse';
+                table.querySelectorAll('th, td').forEach(cell => {
+                    cell.style.border = '1px solid #ccc';
+                    cell.style.padding = '8px';
+                    cell.style.textAlign = 'left';
+                });
+            }
+            
+            // Remove selects do conteúdo clonado e substitui pelos valores selecionados
+            const selects = clonedContent.querySelectorAll('select');
+            selects.forEach(select => {
+                const selectedValue = select.options[select.selectedIndex].text;
+                const valueDisplay = document.createElement('span');
+                valueDisplay.innerText = selectedValue;
+                valueDisplay.style.fontWeight = 'bold';
+                select.parentNode.replaceChild(valueDisplay, select);
+            });
+
+            // Adiciona o resultado atual se estiver visível
+            const resultadoDiv = document.getElementById('resultado');
+            if (resultadoDiv && resultadoDiv.innerText.trim() !== '') {
+                const clonedResultado = resultadoDiv.cloneNode(true);
+                clonedResultado.style.marginTop = '20px';
+                clonedResultado.style.padding = '15px';
+                clonedResultado.style.backgroundColor = resultadoDiv.classList.contains('text-red-600') ? '#fee2e2' : '#e0f2fe';
+                clonedResultado.style.color = resultadoDiv.classList.contains('text-red-600') ? '#dc2626' : '#1A3E74';
+                clonedResultado.style.borderRadius = '8px';
+                clonedContent.appendChild(clonedResultado);
+            }
+
+            pdfContentWrapper.appendChild(clonedContent);
+        }
+
+        // Opcional: Esconder elementos fixos ou não desejados no PDF antes de gerar
+        const fixedButton = document.querySelector('.fixed-donation-button');
+        if (fixedButton) {
+            fixedButton.style.display = 'none';
+        }
+
+        // Configurações do PDF
+        const opt = {
+            margin:       0.5,
+            filename:     'escala-elpo.pdf', // Nome do arquivo específico
+            image:        { type: 'jpeg', quality: 0.98 },
+            html2canvas:  { scale: 3, scrollY: 0 }, // scrollY: 0 é importante para evitar rolagem extra no PDF
+            jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }
+        };
+
+        // Gera e salva o PDF
+        html2pdf().set(opt).from(pdfContentWrapper).save().then(() => {
+            // Reexibe o botão após a geração (se foi escondido)
+            if (fixedButton) {
+                fixedButton.style.display = '';
+            }
+        });
     }
 
     document.addEventListener('DOMContentLoaded', () => {
@@ -358,10 +455,8 @@
       document.getElementById('btnCalcular').addEventListener('click', calcular);
       document.getElementById('btnLimpar').addEventListener('click', limpar);
       
-      // O botão Gerar PDF usa html2pdf.js, que já foi importado
-      document.getElementById('btnGerarPDF').addEventListener('click', () => {
-        gerarPDF(); 
-      });
+      // O botão Gerar PDF usa html2pdf.js
+      document.getElementById('btnGerarPDF').addEventListener('click', gerarPDF);
 
       // Carrega o rodapé (rodape111.html)
       fetch("rodape111.html")
