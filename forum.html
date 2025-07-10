@@ -8,7 +8,7 @@
     <link rel="icon" href="favicon.ico" type="image/x-icon" />
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
 
-    <!-- Fontes personalizadas (do apgar.html) -->
+    <!-- Fontes personalizadas -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;700&family=Inter:wght@400;700&display=swap" rel="stylesheet">
@@ -150,7 +150,7 @@
             padding: 0.75rem; /* Padding para o botão */
             border-radius: 9999px; /* Botão redondo */
             box-shadow: 0 2px 5px rgba(0,0,0,0.2); /* Sombra sutil */
-            z-index: 60; /* Acima da topbar (z-50) */
+            z-index: 10000; /* MUITO ALTO para garantir que esteja acima de tudo, incluindo VLibras */
             cursor: pointer;
             transition: background-color 0.2s ease, transform 0.2s ease;
         }
@@ -189,7 +189,7 @@
             height: 100vh;
             background-color: #f9fafb; /* Fundo azul bem claro, como a topbar */
             box-shadow: -4px 0 10px rgba(0,0,0,0.2); /* Sombra para o efeito de slide */
-            z-index: 70; /* Acima do botão e da topbar */
+            z-index: 10001; /* Acima do botão de acessibilidade e VLibras */
             transition: right 0.3s ease-in-out;
             padding: 1rem;
             display: flex;
@@ -264,7 +264,7 @@
             width: 100%;
             height: 100%;
             background-color: rgba(0, 0, 0, 0.5); /* Fundo escuro semi-transparente */
-            z-index: 65; /* Entre o botão e o menu */
+            z-index: 9999; /* Entre o conteúdo e o menu de acessibilidade */
             display: none; /* Oculto por padrão */
         }
 
@@ -427,10 +427,12 @@
             color: #1F2937;
         }
     </style>
+    <!-- Inclui o script externo para a topbar e acessibilidade, como no index.html -->
+    <script src="topbar111.js" defer></script>
 </head>
 <body class="bg-gray-50 text-gray-800 font-inter">
 
-    <!-- Topbar (Conteúdo de topbar111.html inlinado) -->
+    <!-- Topbar (Conteúdo de topbar111.html inlinado no index.html e replicado aqui) -->
     <header class="fixed top-0 left-0 w-full bg-blue-50 shadow z-50">
         <div class="max-w-7xl mx-auto px-4 py-0 flex items-center justify-between h-16">
             <img src="icontopbar.png" alt="Logo Calculadoras de Enfermagem" class="h-16 w-auto object-contain">
@@ -554,7 +556,7 @@
     <!-- Overlay para o menu de acessibilidade -->
     <div id="accessibilityOverlay"></div>
 
-    <!-- VLibras Widget -->
+    <!-- VLibras Widget (será injetado pelo script) -->
     <div vw class="enabled">
         <div vw-access-button class="active"></div>
         <div vw-plugin-wrapper>
@@ -613,6 +615,7 @@
     <!-- Div para o rodapé dinâmico -->
     <div id="footer-container"></div>
 
+    <!-- Script principal da página -->
     <script type="module">
         // Importa as funções necessárias do Firebase SDK
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
@@ -654,6 +657,7 @@
             messageModalOverlay.style.display = 'none';
         }
 
+        // Adiciona listeners para o modal de mensagem
         messageModalClose.addEventListener('click', hideCustomMessage);
         messageModalOverlay.addEventListener('click', (e) => {
             if (e.target === messageModalOverlay) {
@@ -764,191 +768,100 @@
             });
         }
 
-        // --- Lógica da Topbar (copiado e adaptado de topbar111.js) ---
-        document.addEventListener('DOMContentLoaded', function() {
-            const dropdownButtons = document.querySelectorAll('[data-menu-target]');
-            const menuToggle = document.getElementById('menuToggle');
-            const mainNav = document.getElementById('mainNav');
+        // --- Lógica do Cookie Consent Banner (copiado do index.html) ---
+        const cookieConsentBanner = document.getElementById('cookieConsentBanner');
+        const acceptCookiesBtn = document.getElementById('acceptCookiesBtn');
+        const refuseCookiesBtn = document.getElementById('refuseCookiesBtn');
+        const cookiesAcceptedKey = 'cookiesAccepted'; // Chave para localStorage
 
-            // Lógica do menu hambúrguer (mobile)
-            menuToggle.addEventListener('click', function() {
-                mainNav.classList.toggle('hidden');
-                mainNav.classList.toggle('flex');
-                mainNav.classList.toggle('flex-col');
-                document.querySelectorAll('.dropdown-menu').forEach(menu => {
-                    menu.classList.remove('show');
-                });
+        function showCookieBanner() {
+            if (localStorage.getItem(cookiesAcceptedKey) === null) {
+                cookieConsentBanner.classList.add('show');
+            }
+        }
+
+        function hideCookieBanner() {
+            cookieConsentBanner.classList.remove('show');
+        }
+
+        if (acceptCookiesBtn) {
+            acceptCookiesBtn.addEventListener('click', () => {
+                localStorage.setItem(cookiesAcceptedKey, 'true');
+                hideCookieBanner();
             });
+        }
 
-            // Fecha o menu hambúrguer quando um link é clicado
-            mainNav.querySelectorAll('a').forEach(link => {
-                link.addEventListener('click', function() {
-                    if (window.innerWidth < 768) {
-                        mainNav.classList.add('hidden');
-                        mainNav.classList.remove('flex');
-                        mainNav.classList.remove('flex-col');
-                    }
-                });
+        if (refuseCookiesBtn) {
+            refuseCookiesBtn.addEventListener('click', () => {
+                localStorage.setItem(cookiesAcceptedKey, 'false');
+                hideCookieBanner();
             });
+        }
+        // --- Fim da Lógica do Cookie Consent Banner ---
 
-            // Garante que o menu esteja no estado correto ao redimensionar a janela
-            window.addEventListener('resize', function() {
-                if (window.innerWidth >= 768) {
-                    mainNav.classList.remove('hidden');
-                    mainNav.classList.add('flex');
-                    mainNav.classList.add('flex-row');
-                    mainNav.classList.remove('flex-col');
-                    document.querySelectorAll('.dropdown-menu').forEach(menu => {
-                        menu.classList.remove('show');
-                    });
+        // --- Lógica do Botão "Bem-vindo!" e Modal de Vídeo (copiado do index.html) ---
+        const btnWelcome = document.getElementById('btnWelcome');
+        const videoModal = document.getElementById('videoModal');
+        const closeModal = document.querySelector('.video-modal-close');
+        const welcomeVideo = document.getElementById('welcomeVideo');
+
+        if (btnWelcome) {
+            btnWelcome.addEventListener('click', () => {
+                videoModal.style.display = 'flex';
+                welcomeVideo.play();
+            });
+        }
+
+        if (closeModal) {
+            closeModal.addEventListener('click', () => {
+                videoModal.style.display = 'none';
+                welcomeVideo.pause();
+                welcomeVideo.currentTime = 0;
+            });
+        }
+
+        if (videoModal) {
+            videoModal.addEventListener('click', (event) => {
+                if (event.target === videoModal) {
+                    videoModal.style.display = 'none';
+                    welcomeVideo.pause();
+                    welcomeVideo.currentTime = 0;
                 }
-            });
-
-            // Lógica para os dropdowns dos submenus
-            dropdownButtons.forEach(button => {
-                button.addEventListener('click', function(event) {
-                    event.stopPropagation();
-                    const menuId = this.dataset.menuTarget;
-                    const dropdownMenu = document.getElementById(menuId);
-                    document.querySelectorAll('.dropdown-menu').forEach(menu => {
-                        if (menu.id !== menuId) {
-                            menu.classList.remove('show');
-                        }
-                    });
-                    dropdownMenu.classList.toggle('show');
-                });
-            });
-
-            // Fecha os dropdowns quando clica fora deles
-            document.addEventListener('click', function(event) {
-                document.querySelectorAll('.dropdown-menu').forEach(menu => {
-                    if (!menu.contains(event.target) && !event.target.matches('[data-menu-target]')) {
-                        menu.classList.remove('show');
-                    }
-                });
-            });
-        });
-
-
-        // --- Lógica da Nova Barra de Acessibilidade Hambúrguer (copiado de index.html) ---
-        const accessibilityHamburgerBtn = document.getElementById('accessibilityHamburgerBtn');
-        const accessibilityOffCanvasMenu = document.getElementById('accessibilityOffCanvasMenu');
-        const closeAccessibilityMenuBtn = document.getElementById('closeAccessibilityMenuBtn');
-        const accessibilityOverlay = document.getElementById('accessibilityOverlay');
-
-        const toggleFontSizeBtn = document.getElementById('toggleFontSizeBtn');
-        const toggleContrastBtn = document.getElementById('toggleContrastBtn');
-        const toggleDarkModeBtn = document.getElementById('toggleDarkModeBtn');
-        const resetAccessibilityBtn = document.getElementById('resetAccessibilityBtn');
-
-        let currentFontSize = 'normal';
-        let isHighContrast = false;
-        let isDarkMode = false;
-
-        function applyAccessibilitySettings() {
-            const body = document.body;
-            body.classList.remove('font-size-small', 'font-size-large');
-            if (currentFontSize === 'small') {
-                body.classList.add('font-size-small');
-            } else if (currentFontSize === 'large') {
-                body.classList.add('font-size-large');
-            }
-
-            if (isHighContrast) {
-                body.classList.add('high-contrast');
-            } else {
-                body.classList.remove('high-contrast');
-            }
-
-            if (isDarkMode) {
-                body.classList.add('dark-mode');
-            } else {
-                body.classList.remove('dark-mode');
-            }
-        }
-
-        if (toggleFontSizeBtn) {
-            toggleFontSizeBtn.addEventListener('click', () => {
-                if (currentFontSize === 'normal') {
-                    currentFontSize = 'large';
-                } else if (currentFontSize === 'large') {
-                    currentFontSize = 'small';
-                } else {
-                    currentFontSize = 'normal';
-                }
-                applyAccessibilitySettings();
-            });
-        }
-
-        if (toggleContrastBtn) {
-            toggleContrastBtn.addEventListener('click', () => {
-                isHighContrast = !isHighContrast;
-                applyAccessibilitySettings();
-            });
-        }
-
-        if (toggleDarkModeBtn) {
-            toggleDarkModeBtn.addEventListener('click', () => {
-                isDarkMode = !isDarkMode;
-                applyAccessibilitySettings();
-            });
-        }
-
-        if (resetAccessibilityBtn) {
-            resetAccessibilityBtn.addEventListener('click', () => {
-                currentFontSize = 'normal';
-                isHighContrast = false;
-                isDarkMode = false;
-                applyAccessibilitySettings();
-            });
-        }
-
-        if (accessibilityHamburgerBtn) {
-            accessibilityHamburgerBtn.addEventListener('click', () => {
-                accessibilityOffCanvasMenu.classList.add('is-open');
-                accessibilityOverlay.style.display = 'block';
-            });
-        }
-
-        if (closeAccessibilityMenuBtn) {
-            closeAccessibilityMenuBtn.addEventListener('click', () => {
-                accessibilityOffCanvasMenu.classList.remove('is-open');
-                accessibilityOverlay.style.display = 'none';
-            });
-        }
-
-        if (accessibilityOverlay) {
-            accessibilityOverlay.addEventListener('click', () => {
-                accessibilityOffCanvasMenu.classList.remove('is-open');
-                accessibilityOverlay.style.display = 'none';
             });
         }
 
         document.addEventListener('keydown', (event) => {
-            if (event.key === 'Escape' && accessibilityOffCanvasMenu.classList.contains('is-open')) {
-                accessibilityOffCanvasMenu.classList.remove('is-open');
-                accessibilityOverlay.style.display = 'none';
+            if (event.key === 'Escape' && videoModal.style.display === 'flex') {
+                videoModal.style.display = 'none';
+                welcomeVideo.pause();
+                welcomeVideo.currentTime = 0;
             }
         });
+        // --- Fim da Lógica do Botão "Bem-vindo!" e Modal de Vídeo ---
 
-        applyAccessibilitySettings();
-
-        // --- Carrega o conteúdo do rodapé (rodape111.html) ---
+        // --- Início do DOMContentLoaded para VLibras e Rodapé ---
         document.addEventListener('DOMContentLoaded', () => {
+            // Inicialização do widget VLibras
+            new VLibras.Widget('https://vlibras.gov.br/app');
+
+            // Carrega o conteúdo do rodapé
             fetch("rodape111.html")
-                .then(res => res.text())
+                .then(res => {
+                    if (!res.ok) {
+                        throw new Error(`HTTP error! status: ${res.status}`);
+                    }
+                    return res.text();
+                })
                 .then(data => {
                     const footer = document.createElement("footer");
                     footer.innerHTML = data;
                     document.body.appendChild(footer);
                 })
                 .catch(err => console.error("Erro ao carregar rodape111.html:", err));
+
+            // Mostra o banner de cookies ao carregar a página, se necessário
+            showCookieBanner();
         });
-    </script>
-    <script src="https://vlibras.gov.br/app/vlibras-plugin.js"></script>
-    <script>
-        // Inicialização do widget VLibras
-        new VLibras.Widget('https://vlibras.gov.br/app');
     </script>
 </body>
 </html>
