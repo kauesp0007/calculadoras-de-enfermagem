@@ -358,6 +358,226 @@ fórum.html
                 noPostsMessage.classList.add('hidden');
             });
         }
+        <!-- Div para o rodapé dinâmico -->
+    <div id="footer-container"></div>
+
+    <!-- Cookie Consent Banner -->
+    <div id="cookieConsentBanner">
+        <p>Utilizamos cookies para melhorar sua experiência em nosso site. Ao continuar navegando, você concorda com nossa <a href="politica.html" class="underline text-blue-200 hover:text-blue-100">Política de Cookies</a>.</p>
+        <div class="cookie-buttons">
+            <button id="acceptCookiesBtn">Aceitar todos os cookies</button>
+            <button id="refuseCookiesBtn" class="secondary">Recusar cookies</button>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const btnWelcome = document.getElementById('btnWelcome');
+            const videoModal = document.getElementById('videoModal');
+            const closeModal = document.querySelector('.video-modal-close');
+            const welcomeVideo = document.getElementById('welcomeVideo');
+
+            // Elementos do Cookie Consent Banner
+            const cookieConsentBanner = document.getElementById('cookieConsentBanner');
+            const acceptCookiesBtn = document.getElementById('acceptCookiesBtn');
+            const refuseCookiesBtn = document.getElementById('refuseCookiesBtn');
+            const cookiesAcceptedKey = 'cookiesAccepted'; // Chave para localStorage
+
+            // --- Lógica do Cookie Consent Banner ---
+            function showCookieBanner() {
+                // Só mostra o banner se o usuário ainda não tiver feito uma escolha
+                if (localStorage.getItem(cookiesAcceptedKey) === null) {
+                    cookieConsentBanner.classList.add('show');
+                }
+            }
+
+            function hideCookieBanner() {
+                cookieConsentBanner.classList.remove('show');
+            }
+
+            // Event Listeners para os botões do banner de cookies
+            if (acceptCookiesBtn) {
+                acceptCookiesBtn.addEventListener('click', () => {
+                    localStorage.setItem(cookiesAcceptedKey, 'true');
+                    hideCookieBanner();
+                });
+            }
+
+            if (refuseCookiesBtn) {
+                refuseCookiesBtn.addEventListener('click', () => {
+                    localStorage.setItem(cookiesAcceptedKey, 'false');
+                    hideCookieBanner();
+                });
+            }
+
+            // Carrega o conteúdo do rodapé
+            fetch("rodape111.html")
+                .then(res => res.text())
+                .then(data => {
+                    const footer = document.createElement("footer");
+                    footer.innerHTML = data;
+                    document.body.appendChild(footer);
+                })
+                .catch(err => console.error("Erro ao carregar rodape111.html:", err));
+
+            // Lógica para o botão "Bem-vindo" e o vídeo
+            if (btnWelcome) {
+                btnWelcome.addEventListener('click', () => {
+                    videoModal.style.display = 'flex';
+                    welcomeVideo.play();
+                });
+            }
+
+            if (closeModal) {
+                closeModal.addEventListener('click', () => {
+                    videoModal.style.display = 'none';
+                    welcomeVideo.pause();
+                    welcomeVideo.currentTime = 0;
+                });
+            }
+
+            if (videoModal) {
+                videoModal.addEventListener('click', (event) => {
+                    if (event.target === videoModal) {
+                        videoModal.style.display = 'none';
+                        welcomeVideo.pause();
+                        welcomeVideo.currentTime = 0;
+                    }
+                });
+            }
+
+            document.addEventListener('keydown', (event) => {
+                if (event.key === 'Escape' && videoModal.style.display === 'flex') {
+                    videoModal.style.display = 'none';
+                    welcomeVideo.pause();
+                    welcomeVideo.currentTime = 0;
+                }
+            });
+
+            // Mostra o banner de cookies ao carregar a página, se necessário
+            showCookieBanner();
+
+            // --- Lógica da Nova Barra de Acessibilidade Hambúrguer ---
+            const accessibilityHamburgerBtn = document.getElementById('accessibilityHamburgerBtn');
+            const accessibilityOffCanvasMenu = document.getElementById('accessibilityOffCanvasMenu');
+            const closeAccessibilityMenuBtn = document.getElementById('closeAccessibilityMenuBtn');
+            const accessibilityOverlay = document.getElementById('accessibilityOverlay');
+
+            // Botões de Acessibilidade
+            const toggleFontSizeBtn = document.getElementById('toggleFontSizeBtn');
+            const toggleContrastBtn = document.getElementById('toggleContrastBtn');
+            const toggleDarkModeBtn = document.getElementById('toggleDarkModeBtn');
+            const resetAccessibilityBtn = document.getElementById('resetAccessibilityBtn');
+
+            let currentFontSize = 'normal'; // 'normal', 'small', 'large'
+            let isHighContrast = false;
+            let isDarkMode = false;
+
+            // Função para aplicar/remover classes de acessibilidade
+            function applyAccessibilitySettings() {
+                const body = document.body;
+
+                // Tamanho da Fonte
+                body.classList.remove('font-size-small', 'font-size-large');
+                if (currentFontSize === 'small') {
+                    body.classList.add('font-size-small');
+                } else if (currentFontSize === 'large') {
+                    body.classList.add('font-size-large');
+                }
+
+                // Alto Contraste
+                if (isHighContrast) {
+                    body.classList.add('high-contrast');
+                } else {
+                    body.classList.remove('high-contrast');
+                }
+
+                // Modo Escuro
+                if (isDarkMode) {
+                    body.classList.add('dark-mode');
+                } else {
+                    body.classList.remove('dark-mode');
+                }
+            }
+
+            // Funções de Toggle
+            if (toggleFontSizeBtn) {
+                toggleFontSizeBtn.addEventListener('click', () => {
+                    if (currentFontSize === 'normal') {
+                        currentFontSize = 'large';
+                    } else if (currentFontSize === 'large') {
+                        currentFontSize = 'small';
+                    } else {
+                        currentFontSize = 'normal';
+                    }
+                    applyAccessibilitySettings();
+                });
+            }
+
+            if (toggleContrastBtn) {
+                toggleContrastBtn.addEventListener('click', () => {
+                    isHighContrast = !isHighContrast;
+                    applyAccessibilitySettings();
+                });
+            }
+
+            if (toggleDarkModeBtn) {
+                toggleDarkModeBtn.addEventListener('click', () => {
+                    isDarkMode = !isDarkMode;
+                    applyAccessibilitySettings();
+                });
+            }
+
+            if (resetAccessibilityBtn) {
+                resetAccessibilityBtn.addEventListener('click', () => {
+                    currentFontSize = 'normal';
+                    isHighContrast = false;
+                    isDarkMode = false;
+                    applyAccessibilitySettings();
+                });
+            }
+
+            // Lógica para abrir/fechar o menu de acessibilidade
+            if (accessibilityHamburgerBtn) {
+                accessibilityHamburgerBtn.addEventListener('click', () => {
+                    accessibilityOffCanvasMenu.classList.add('is-open');
+                    accessibilityOverlay.style.display = 'block';
+                });
+            }
+
+            if (closeAccessibilityMenuBtn) {
+                closeAccessibilityMenuBtn.addEventListener('click', () => {
+                    accessibilityOffCanvasMenu.classList.remove('is-open');
+                    accessibilityOverlay.style.display = 'none';
+                });
+            }
+
+            if (accessibilityOverlay) {
+                accessibilityOverlay.addEventListener('click', () => {
+                    accessibilityOffCanvasMenu.classList.remove('is-open');
+                    accessibilityOverlay.style.display = 'none';
+                });
+            }
+
+            // Fechar com a tecla ESC
+            document.addEventListener('keydown', (event) => {
+                if (event.key === 'Escape' && accessibilityOffCanvasMenu.classList.contains('is-open')) {
+                    accessibilityOffCanvasMenu.classList.remove('is-open');
+                    accessibilityOverlay.style.display = 'none';
+                }
+            });
+
+            // Aplica as configurações iniciais (se houver alguma persistência futura)
+            applyAccessibilitySettings();
+        });
+    </script>
+    <script src="https://vlibras.gov.br/app/vlibras-plugin.js"></script>
+    <script>
+        // Inicialização do widget VLibras
+        new VLibras.Widget('https://vlibras.gov.br/app');
+    </script>
+</body>
+</html>
     </script>
 </body>
 </html>
