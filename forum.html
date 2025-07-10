@@ -9,8 +9,9 @@
     <meta name="description" content="Compartilhe perguntas e respostas sobre enfermagem com a comunidade.">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Nunito+Sans:wght@700;900&display=swap" rel="stylesheet">
-    <!-- topbar111.js é carregado aqui e deve conter a lógica para a topbar e acessibilidade -->
-    <script src="topbar111.js" defer></script>
+    <!-- Font Awesome para ícones -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+
     <script async src="https://www.googletagmanager.com/gtag/js?id=AW-952633102"></script>
     <script>
         window.dataLayer = window.dataLayer || [];
@@ -18,7 +19,15 @@
         gtag('js', new Date());
         gtag('config', 'AW-952633102');
     </script>
+
     <style>
+        /* Reset básico e Box-sizing para consistência */
+        *, *::before, *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
         /* Estilos de fonte e cores personalizados */
         .font-nunito { font-family: 'Nunito Sans', sans-serif; }
         .font-inter { font-family: 'Inter', sans-serif; }
@@ -34,7 +43,7 @@
             display: block;
         }
 
-        /* Estilos para o corpo da página e layout flexbox */
+        /* Estilos base para o corpo da página */
         body {
             padding-top: 64px; /* Espaço para a topbar fixa */
             min-height: 100vh; /* Garante que o body ocupe no mínimo 100% da altura da viewport */
@@ -435,6 +444,79 @@
             background-color: yellow; /* Mantém o amarelo para alto contraste no botão */
             color: black;
         }
+
+        /* --- Cookie Consent Banner Styles --- */
+        #cookieConsentBanner {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background-color: #1A3E74; /* Cor azul escuro da identidade */
+            color: #fff;
+            padding: 1rem;
+            text-align: center;
+            z-index: 1000; /* Acima do rodapé e outros elementos */
+            display: none; /* Oculto por padrão, mostrado via JS */
+            flex-direction: column; /* Empilha conteúdo em mobile */
+            align-items: center;
+            gap: 1rem;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.2);
+        }
+
+        #cookieConsentBanner.show {
+            display: flex; /* Mostra o banner */
+        }
+
+        #cookieConsentBanner p {
+            margin: 0;
+            font-size: 0.9rem;
+            line-height: 1.4;
+        }
+
+        #cookieConsentBanner .cookie-buttons {
+            display: flex;
+            gap: 0.75rem;
+            justify-content: center;
+            flex-wrap: wrap; /* Permite quebrar em telas menores */
+        }
+
+        #cookieConsentBanner button {
+            background-color: #2563eb; /* Tailwind blue-600 */
+            color: white;
+            padding: 0.6rem 1.2rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            transition: background-color 0.2s ease;
+            border: none;
+            cursor: pointer;
+            white-space: nowrap; /* Evita quebra de linha no texto do botão */
+        }
+
+        #cookieConsentBanner button:hover {
+            background-color: #1d4ed8; /* Tailwind blue-700 */
+        }
+
+        #cookieConsentBanner button.secondary {
+            background-color: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.5);
+        }
+
+        #cookieConsentBanner button.secondary:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+            border-color: white;
+        }
+
+        /* Responsive adjustments for cookie banner */
+        @media (min-width: 768px) {
+            #cookieConsentBanner {
+                flex-direction: row; /* Layout em linha para desktop */
+                justify-content: space-between;
+                padding: 1rem 2rem;
+            }
+            #cookieConsentBanner .cookie-buttons {
+                justify-content: flex-end;
+            }
+        }
     </style>
 </head>
 <body class="bg-gray-50 text-gray-800 font-inter">
@@ -619,6 +701,15 @@
         </div>
     </div>
 
+    <!-- Cookie Consent Banner -->
+    <div id="cookieConsentBanner">
+        <p>Utilizamos cookies para melhorar sua experiência em nosso site. Ao continuar navegando, você concorda com nossa <a href="politica.html" class="underline text-blue-200 hover:text-blue-100">Política de Cookies</a>.</p>
+        <div class="cookie-buttons">
+            <button id="acceptCookiesBtn">Aceitar todos os cookies</button>
+            <button id="refuseCookiesBtn" class="secondary">Recusar cookies</button>
+        </div>
+    </div>
+
     <!-- Script principal da página (Firebase, Cookie, Vídeo Modal e Rodapé) -->
     <script type="module">
         // Importa as funções necessárias do Firebase SDK
@@ -772,7 +863,7 @@
             });
         }
 
-        // --- Lógica do Cookie Consent Banner (copiado do index.html) ---
+        // --- Lógica do Cookie Consent Banner ---
         const cookieConsentBanner = document.getElementById('cookieConsentBanner');
         const acceptCookiesBtn = document.getElementById('acceptCookiesBtn');
         const refuseCookiesBtn = document.getElementById('refuseCookiesBtn');
@@ -803,7 +894,7 @@
         }
         // --- Fim da Lógica do Cookie Consent Banner ---
 
-        // --- Lógica do Botão "Bem-vindo!" e Modal de Vídeo (copiado do index.html) ---
+        // --- Lógica do Botão "Bem-vindo!" e Modal de Vídeo ---
         const btnWelcome = document.getElementById('btnWelcome');
         const videoModal = document.getElementById('videoModal');
         const closeModal = document.querySelector('.video-modal-close');
@@ -843,6 +934,124 @@
         });
         // --- Fim da Lógica do Botão "Bem-vindo!" e Modal de Vídeo ---
 
+        // --- Lógica da Topbar (Dropdowns e Menu Mobile) ---
+        const menuToggle = document.getElementById('menuToggle');
+        const mainNav = document.getElementById('mainNav');
+        const dropdownButtons = document.querySelectorAll('[data-menu-target]');
+
+        // Toggle do menu mobile
+        if (menuToggle) {
+            menuToggle.addEventListener('click', () => {
+                mainNav.classList.toggle('hidden');
+                mainNav.classList.toggle('flex');
+            });
+        }
+
+        // Toggle dos dropdowns
+        dropdownButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                const targetId = button.dataset.menuTarget;
+                const targetMenu = document.getElementById(targetId);
+
+                // Fecha todos os outros dropdowns
+                dropdownButtons.forEach(otherButton => {
+                    const otherTargetId = otherButton.dataset.menuTarget;
+                    const otherTargetMenu = document.getElementById(otherTargetId);
+                    if (otherTargetMenu && otherTargetMenu !== targetMenu) {
+                        otherTargetMenu.classList.remove('show');
+                    }
+                });
+
+                // Alterna o dropdown clicado
+                if (targetMenu) {
+                    targetMenu.classList.toggle('show');
+                }
+            });
+        });
+
+        // Fecha dropdowns ao clicar fora
+        document.addEventListener('click', (event) => {
+            if (!event.target.closest('#mainNav') && !event.target.closest('#menuToggle')) {
+                dropdownButtons.forEach(button => {
+                    const targetId = button.dataset.menuTarget;
+                    const targetMenu = document.getElementById(targetId);
+                    if (targetMenu) {
+                        targetMenu.classList.remove('show');
+                    }
+                });
+                // Garante que o menu mobile se esconde também
+                if (window.innerWidth < 768) { // Apenas para mobile
+                    mainNav.classList.add('hidden');
+                    mainNav.classList.remove('flex');
+                }
+            }
+        });
+
+        // --- Lógica de Acessibilidade (diretamente no forum.html) ---
+        const accessibilityBtn = document.getElementById('accessibilityHamburgerBtn');
+        const accessibilityMenu = document.getElementById('accessibilityOffCanvasMenu');
+        const accessibilityOverlay = document.getElementById('accessibilityOverlay');
+        const closeAccessibilityBtn = document.getElementById('closeAccessibilityMenuBtn');
+        const toggleFontSizeBtn = document.getElementById('toggleFontSizeBtn');
+        const toggleContrastBtn = document.getElementById('toggleContrastBtn');
+        const toggleDarkModeBtn = document.getElementById('toggleDarkModeBtn');
+        const resetAccessibilityBtn = document.getElementById('resetAccessibilityBtn');
+
+        // Abre o menu de acessibilidade
+        if (accessibilityBtn) {
+            accessibilityBtn.addEventListener('click', () => {
+                accessibilityMenu.classList.add('is-open'); // Usa a classe is-open para controlar a transição
+                accessibilityOverlay.style.display = 'block';
+            });
+        }
+
+        // Fecha o menu de acessibilidade
+        function closeAccessibilityMenu() {
+            accessibilityMenu.classList.remove('is-open');
+            accessibilityOverlay.style.display = 'none';
+        }
+
+        if (closeAccessibilityBtn) {
+            closeAccessibilityBtn.addEventListener('click', closeAccessibilityMenu);
+        }
+
+        if (accessibilityOverlay) {
+            accessibilityOverlay.addEventListener('click', closeAccessibilityMenu);
+        }
+
+        // Funções de acessibilidade
+        if (toggleFontSizeBtn) {
+            toggleFontSizeBtn.addEventListener('click', () => {
+                if (document.body.classList.contains('font-size-large')) {
+                    document.body.classList.remove('font-size-large');
+                    document.body.classList.add('font-size-small');
+                } else if (document.body.classList.contains('font-size-small')) {
+                    document.body.classList.remove('font-size-small');
+                } else {
+                    document.body.classList.add('font-size-large');
+                }
+            });
+        }
+
+        if (toggleContrastBtn) {
+            toggleContrastBtn.addEventListener('click', () => {
+                document.body.classList.toggle('high-contrast');
+            });
+        }
+
+        if (toggleDarkModeBtn) {
+            toggleDarkModeBtn.addEventListener('click', () => {
+                document.body.classList.toggle('dark-mode'); // Usa 'dark-mode'
+            });
+        }
+
+        if (resetAccessibilityBtn) {
+            resetAccessibilityBtn.addEventListener('click', () => {
+                document.body.classList.remove('font-size-small', 'font-size-large', 'high-contrast', 'dark-mode');
+            });
+        }
+
+
         // --- Início do DOMContentLoaded para VLibras, Rodapé e Cookie Banner ---
         document.addEventListener('DOMContentLoaded', () => {
             // Inicialização do widget VLibras
@@ -870,5 +1079,6 @@
             showCookieBanner();
         });
     </script>
+    <script src="https://vlibras.gov.br/app/vlibras-plugin.js"></script>
 </body>
 </html>
