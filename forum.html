@@ -6,7 +6,7 @@
     <title>Fórum de Perguntas e Respostas - Calculadoras de Enfermagem</title>
     <link rel="icon" href="favicon.ico">
     <link rel="canonical" href="https://www.calculadorasdeenfermagem.com.br/forum.html">
-    <meta name="description" content="Compartilhe perguntas e respostas sobre enfermagem com a comunidade.">
+    <meta name="description" content="Compartilhe perguntas e respostas sobre enfermagem com a comunidade de enfermagem.">
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -827,7 +827,7 @@
     </footer>
 
     <!-- Script principal da página (Firebase, Cookie, Vídeo Modal, Topbar e Acessibilidade) -->
-    <script type="module">
+    <script type="module" defer>
         // Importa as funções necessárias do Firebase SDK
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
@@ -1064,129 +1064,147 @@
         // --- Fim da Lógica do Botão "Bem-vindo!" e Modal de Vídeo ---
 
         // --- Lógica da Topbar (Dropdowns e Menu Mobile) ---
-        const menuToggle = document.getElementById('menuToggle');
-        const mainNav = document.getElementById('mainNav');
-        const dropdownButtons = document.querySelectorAll('[data-menu-target]');
-
-        // Toggle do menu mobile
-        if (menuToggle) {
-            menuToggle.addEventListener('click', () => {
-                mainNav.classList.toggle('hidden');
-                mainNav.classList.toggle('flex');
-            });
-        }
-
-        // Toggle dos dropdowns
-        dropdownButtons.forEach(button => {
-            button.addEventListener('click', () => {
-                const targetId = button.dataset.menuTarget;
-                const targetMenu = document.getElementById(targetId);
-
-                // Fecha todos os outros dropdowns
-                dropdownButtons.forEach(otherButton => {
-                    const otherTargetId = otherButton.dataset.menuTarget;
-                    const otherTargetMenu = document.getElementById(otherTargetId);
-                    if (otherTargetMenu && otherTargetMenu !== targetMenu) {
-                        otherTargetMenu.classList.remove('show');
-                    }
-                });
-
-                // Alterna o dropdown clicado
-                if (targetMenu) {
-                    targetMenu.classList.toggle('show');
-                }
-            });
-        });
-
-        // Fecha dropdowns ao clicar fora
-        document.addEventListener('click', (event) => {
-            if (!event.target.closest('#mainNav') && !event.target.closest('#menuToggle')) {
-                dropdownButtons.forEach(button => {
-                    const targetId = button.dataset.menuTarget;
-                    const targetMenu = document.getElementById(targetId);
-                    if (targetMenu) {
-                        targetMenu.classList.remove('show');
-                    }
-                });
-                // Garante que o menu mobile se esconde também
-                if (window.innerWidth < 768) { // Apenas para mobile
-                    mainNav.classList.add('hidden');
-                    mainNav.classList.remove('flex');
-                }
-            }
-        });
+        // Mover estas referências para dentro do DOMContentLoaded para garantir que os elementos existam
+        let menuToggle;
+        let mainNav;
+        let dropdownButtons;
 
         // --- Lógica de Acessibilidade (diretamente no forum.html) ---
-        const accessibilityBtn = document.getElementById('accessibilityHamburgerBtn');
-        const accessibilityMenu = document.getElementById('accessibilityOffCanvasMenu');
-        const accessibilityOverlay = document.getElementById('accessibilityOverlay');
-        const closeAccessibilityBtn = document.getElementById('closeAccessibilityMenuBtn');
-        const toggleFontSizeBtn = document.getElementById('toggleFontSizeBtn');
-        const toggleContrastBtn = document.getElementById('toggleContrastBtn');
-        const toggleDarkModeBtn = document.getElementById('toggleDarkModeBtn');
-        const resetAccessibilityBtn = document.getElementById('resetAccessibilityBtn');
+        // Mover estas referências para dentro do DOMContentLoaded para garantir que os elementos existam
+        let accessibilityBtn;
+        let accessibilityMenu;
+        let accessibilityOverlay;
+        let closeAccessibilityBtn;
+        let toggleFontSizeBtn;
+        let toggleContrastBtn;
+        let toggleDarkModeBtn;
+        let resetAccessibilityBtn;
 
-        // Abre o menu de acessibilidade
-        if (accessibilityBtn) {
-            accessibilityBtn.addEventListener('click', () => {
-                accessibilityMenu.classList.add('is-open'); // Usa a classe is-open para controlar a transição
-                accessibilityOverlay.style.display = 'block';
-            });
-        }
 
-        // Fecha o menu de acessibilidade
-        function closeAccessibilityMenu() {
-            accessibilityMenu.classList.remove('is-open');
-            accessibilityOverlay.style.display = 'none';
-        }
-
-        if (closeAccessibilityBtn) {
-            closeAccessibilityBtn.addEventListener('click', closeAccessibilityMenu);
-        }
-
-        if (accessibilityOverlay) {
-            accessibilityOverlay.addEventListener('click', closeAccessibilityMenu);
-        }
-
-        // Funções de acessibilidade
-        if (toggleFontSizeBtn) {
-            toggleFontSizeBtn.addEventListener('click', () => {
-                if (document.body.classList.contains('font-size-large')) {
-                    document.body.classList.remove('font-size-large');
-                    document.body.classList.add('font-size-small');
-                } else if (document.body.classList.contains('font-size-small')) {
-                    document.body.classList.remove('font-size-small');
-                } else {
-                    document.body.classList.add('font-size-large');
-                }
-            });
-        }
-
-        if (toggleContrastBtn) {
-            toggleContrastBtn.addEventListener('click', () => {
-                document.body.classList.toggle('high-contrast');
-            });
-        }
-
-        if (toggleDarkModeBtn) {
-            toggleDarkModeBtn.addEventListener('click', () => {
-                document.body.classList.toggle('dark-mode');
-            });
-        }
-
-        if (resetAccessibilityBtn) {
-            resetAccessibilityBtn.addEventListener('click', () => {
-                document.body.classList.remove('font-size-small', 'font-size-large', 'high-contrast', 'dark-mode');
-            });
-        }
-
-        // --- Início do DOMContentLoaded para VLibras e Cookie Banner ---
+        // --- Início do DOMContentLoaded para VLibras, Cookie Banner, Topbar e Acessibilidade ---
         document.addEventListener('DOMContentLoaded', () => {
             // Inicialização do widget VLibras
             new VLibras.Widget('https://vlibras.gov.br/app');
 
             // Mostra o banner de cookies ao carregar a página, se necessário
             showCookieBanner();
+
+            // Atribuições de elementos do DOM para Topbar e Acessibilidade (agora dentro de DOMContentLoaded)
+            menuToggle = document.getElementById('menuToggle');
+            mainNav = document.getElementById('mainNav');
+            dropdownButtons = document.querySelectorAll('[data-menu-target]');
+
+            accessibilityBtn = document.getElementById('accessibilityHamburgerBtn');
+            accessibilityMenu = document.getElementById('accessibilityOffCanvasMenu');
+            accessibilityOverlay = document.getElementById('accessibilityOverlay');
+            closeAccessibilityBtn = document.getElementById('closeAccessibilityMenuBtn');
+            toggleFontSizeBtn = document.getElementById('toggleFontSizeBtn');
+            toggleContrastBtn = document.getElementById('toggleContrastBtn');
+            toggleDarkModeBtn = document.getElementById('toggleDarkModeBtn');
+            resetAccessibilityBtn = document.getElementById('resetAccessibilityBtn');
+
+
+            // Toggle do menu mobile
+            if (menuToggle) {
+                menuToggle.addEventListener('click', () => {
+                    mainNav.classList.toggle('hidden');
+                    mainNav.classList.toggle('flex');
+                });
+            }
+
+            // Toggle dos dropdowns
+            dropdownButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    const targetId = button.dataset.menuTarget;
+                    const targetMenu = document.getElementById(targetId);
+
+                    // Fecha todos os outros dropdowns
+                    dropdownButtons.forEach(otherButton => {
+                        const otherTargetId = otherButton.dataset.menuTarget;
+                        const otherTargetMenu = document.getElementById(otherTargetId);
+                        if (otherTargetMenu && otherTargetMenu !== targetMenu) {
+                            otherTargetMenu.classList.remove('show');
+                        }
+                    });
+
+                    // Alterna o dropdown clicado
+                    if (targetMenu) {
+                        targetMenu.classList.toggle('show');
+                    }
+                });
+            });
+
+            // Fecha dropdowns ao clicar fora
+            document.addEventListener('click', (event) => {
+                if (!event.target.closest('#mainNav') && !event.target.closest('#menuToggle') && !event.target.closest('.dropdown-menu')) {
+                    dropdownButtons.forEach(button => {
+                        const targetId = button.dataset.menuTarget;
+                        const targetMenu = document.getElementById(targetId);
+                        if (targetMenu) {
+                            targetMenu.classList.remove('show');
+                        }
+                    });
+                    // Garante que o menu mobile se esconde também
+                    if (window.innerWidth < 768) { // Apenas para mobile
+                        mainNav.classList.add('hidden');
+                        mainNav.classList.remove('flex');
+                    }
+                }
+            });
+
+            // Abre o menu de acessibilidade
+            if (accessibilityBtn) {
+                accessibilityBtn.addEventListener('click', () => {
+                    accessibilityMenu.classList.add('is-open'); // Usa a classe is-open para controlar a transição
+                    accessibilityOverlay.style.display = 'block';
+                });
+            }
+
+            // Fecha o menu de acessibilidade
+            function closeAccessibilityMenu() {
+                accessibilityMenu.classList.remove('is-open');
+                accessibilityOverlay.style.display = 'none';
+            }
+
+            if (closeAccessibilityBtn) {
+                closeAccessibilityBtn.addEventListener('click', closeAccessibilityMenu);
+            }
+
+            if (accessibilityOverlay) {
+                accessibilityOverlay.addEventListener('click', closeAccessibilityMenu);
+            }
+
+            // Funções de acessibilidade
+            if (toggleFontSizeBtn) {
+                toggleFontSizeBtn.addEventListener('click', () => {
+                    if (document.body.classList.contains('font-size-large')) {
+                        document.body.classList.remove('font-size-large');
+                        document.body.classList.add('font-size-small');
+                    } else if (document.body.classList.contains('font-size-small')) {
+                        document.body.classList.remove('font-size-small');
+                    } else {
+                        document.body.classList.add('font-size-large');
+                    }
+                });
+            }
+
+            if (toggleContrastBtn) {
+                toggleContrastBtn.addEventListener('click', () => {
+                    document.body.classList.toggle('high-contrast');
+                });
+            }
+
+            if (toggleDarkModeBtn) {
+                toggleDarkModeBtn.addEventListener('click', () => {
+                    document.body.classList.toggle('dark-mode');
+                });
+            }
+
+            if (resetAccessibilityBtn) {
+                resetAccessibilityBtn.addEventListener('click', () => {
+                    document.body.classList.remove('font-size-small', 'font-size-large', 'high-contrast', 'dark-mode');
+                });
+            }
         });
     </script>
     <script src="https://vlibras.gov.br/app/vlibras-plugin.js"></script>
