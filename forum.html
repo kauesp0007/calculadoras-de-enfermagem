@@ -863,131 +863,74 @@
             });
         }
 
-        // --- Lógica do Cookie Consent Banner ---
-        const cookieConsentBanner = document.getElementById('cookieConsentBanner');
-        const acceptCookiesBtn = document.getElementById('acceptCookiesBtn');
-        const refuseCookiesBtn = document.getElementById('refuseCookiesBtn');
-        const cookiesAcceptedKey = 'cookiesAccepted'; // Chave para localStorage
+        <button id="btnWelcome" class="btn-welcome">
+        Bem-vindo!
+    </button>
 
-        function showCookieBanner() {
-            if (localStorage.getItem(cookiesAcceptedKey) === null) {
-                cookieConsentBanner.classList.add('show');
-            }
-        }
+    <!-- O BOTÃO DE DOAÇÃO FOI REMOVIDO PERMANENTEMENTE -->
 
-        function hideCookieBanner() {
-            cookieConsentBanner.classList.remove('show');
-        }
+    <div id="videoModal" class="video-modal">
+        <div class="video-modal-content">
+            <span class="video-modal-close">&times;</span>
+            <video id="welcomeVideo" controls> <source src="boasvindas.mp4" type="video/mp4">
+                Seu navegador não suporta a tag de vídeo.
+            </video>
+        </div>
+    </div>
 
-        if (acceptCookiesBtn) {
-            acceptCookiesBtn.addEventListener('click', () => {
-                localStorage.setItem(cookiesAcceptedKey, 'true');
-                hideCookieBanner();
-            });
-        }
+    <!-- Div para o rodapé dinâmico -->
+    <div id="footer-container"></div>
 
-        if (refuseCookiesBtn) {
-            refuseCookiesBtn.addEventListener('click', () => {
-                localStorage.setItem(cookiesAcceptedKey, 'false');
-                hideCookieBanner();
-            });
-        }
-        // --- Fim da Lógica do Cookie Consent Banner ---
+    <!-- Cookie Consent Banner -->
+    <div id="cookieConsentBanner">
+        <p>Utilizamos cookies para melhorar sua experiência em nosso site. Ao continuar navegando, você concorda com nossa <a href="politica.html" class="underline text-blue-200 hover:text-blue-100">Política de Cookies</a>.</p>
+        <div class="cookie-buttons">
+            <button id="acceptCookiesBtn">Aceitar todos os cookies</button>
+            <button id="refuseCookiesBtn" class="secondary">Recusar cookies</button>
+        </div>
+    </div>
 
-        // --- Lógica do Botão "Bem-vindo!" e Modal de Vídeo ---
-        const btnWelcome = document.getElementById('btnWelcome');
-        const videoModal = document.getElementById('videoModal');
-        const closeModal = document.querySelector('.video-modal-close');
-        const welcomeVideo = document.getElementById('welcomeVideo');
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const btnWelcome = document.getElementById('btnWelcome');
+            const videoModal = document.getElementById('videoModal');
+            const closeModal = document.querySelector('.video-modal-close');
+            const welcomeVideo = document.getElementById('welcomeVideo');
 
-        if (btnWelcome) {
-            btnWelcome.addEventListener('click', () => {
-                videoModal.style.display = 'flex';
-                welcomeVideo.play();
-            });
-        }
+            // Elementos do Cookie Consent Banner
+            const cookieConsentBanner = document.getElementById('cookieConsentBanner');
+            const acceptCookiesBtn = document.getElementById('acceptCookiesBtn');
+            const refuseCookiesBtn = document.getElementById('refuseCookiesBtn');
+            const cookiesAcceptedKey = 'cookiesAccepted'; // Chave para localStorage
 
-        if (closeModal) {
-            closeModal.addEventListener('click', () => {
-                videoModal.style.display = 'none';
-                welcomeVideo.pause();
-                welcomeVideo.currentTime = 0;
-            });
-        }
-
-        if (videoModal) {
-            videoModal.addEventListener('click', (event) => {
-                if (event.target === videoModal) {
-                    videoModal.style.display = 'none';
-                    welcomeVideo.pause();
-                    welcomeVideo.currentTime = 0;
+            // --- Lógica do Cookie Consent Banner ---
+            function showCookieBanner() {
+                // Só mostra o banner se o usuário ainda não tiver feito uma escolha
+                if (localStorage.getItem(cookiesAcceptedKey) === null) {
+                    cookieConsentBanner.classList.add('show');
                 }
-            });
-        }
-
-        document.addEventListener('keydown', (event) => {
-            if (event.key === 'Escape' && videoModal.style.display === 'flex') {
-                videoModal.style.display = 'none';
-                welcomeVideo.pause();
-                welcomeVideo.currentTime = 0;
             }
-        });
-        // --- Fim da Lógica do Botão "Bem-vindo!" e Modal de Vídeo ---
 
-        // --- Lógica da Topbar (Dropdowns e Menu Mobile) ---
-        const menuToggle = document.getElementById('menuToggle');
-        const mainNav = document.getElementById('mainNav');
-        const dropdownButtons = document.querySelectorAll('[data-menu-target]');
+            function hideCookieBanner() {
+                cookieConsentBanner.classList.remove('show');
+            }
 
-        // Toggle do menu mobile
-        if (menuToggle) {
-            menuToggle.addEventListener('click', () => {
-                mainNav.classList.toggle('hidden');
-                mainNav.classList.toggle('flex');
-            });
-        }
-
-        // Toggle dos dropdowns
-        dropdownButtons.forEach(button => {
-            button.addEventListener('click', () => {
-                const targetId = button.dataset.menuTarget;
-                const targetMenu = document.getElementById(targetId);
-
-                // Fecha todos os outros dropdowns
-                dropdownButtons.forEach(otherButton => {
-                    const otherTargetId = otherButton.dataset.menuTarget;
-                    const otherTargetMenu = document.getElementById(otherTargetId);
-                    if (otherTargetMenu && otherTargetMenu !== targetMenu) {
-                        otherTargetMenu.classList.remove('show');
-                    }
+            // Event Listeners para os botões do banner de cookies
+            if (acceptCookiesBtn) {
+                acceptCookiesBtn.addEventListener('click', () => {
+                    localStorage.setItem(cookiesAcceptedKey, 'true');
+                    hideCookieBanner();
                 });
-
-                // Alterna o dropdown clicado
-                if (targetMenu) {
-                    targetMenu.classList.toggle('show');
-                }
-            });
-        });
-
-        // Fecha dropdowns ao clicar fora
-        document.addEventListener('click', (event) => {
-            if (!event.target.closest('#mainNav') && !event.target.closest('#menuToggle')) {
-                dropdownButtons.forEach(button => {
-                    const targetId = button.dataset.menuTarget;
-                    const targetMenu = document.getElementById(targetId);
-                    if (targetMenu) {
-                        targetMenu.classList.remove('show');
-                    }
-                });
-                // Garante que o menu mobile se esconde também
-                if (window.innerWidth < 768) { // Apenas para mobile
-                    mainNav.classList.add('hidden');
-                    mainNav.classList.remove('flex');
-                }
             }
-        });
 
-        // Carrega o conteúdo do rodapé
+            if (refuseCookiesBtn) {
+                refuseCookiesBtn.addEventListener('click', () => {
+                    localStorage.setItem(cookiesAcceptedKey, 'false');
+                    hideCookieBanner();
+                });
+            }
+
+            // Carrega o conteúdo do rodapé
             fetch("rodape111.html")
                 .then(res => res.text())
                 .then(data => {
