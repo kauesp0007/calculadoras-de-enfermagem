@@ -9,23 +9,45 @@
         /* Estilos existentes para dropdowns */
         .dropdown-menu { display: none; }
         .dropdown-menu.show { display: block; }
-        /* A classe 'justify-between' já está no HTML para o ícone e a navegação */
 
         /* Estilos para garantir que o menu mobile fique acima de outros conteúdos quando aberto */
+        /* Ajustado para que o mainNav tenha scroll e altura máxima no mobile */
         #mainNav.flex {
             z-index: 40; /* Um z-index alto para o menu mobile */
+            max-height: calc(100vh - 64px); /* Altura máxima da viewport menos a altura do header */
+            overflow-y: auto; /* Adiciona scroll se o conteúdo for muito longo */
+            -webkit-overflow-scrolling: touch; /* Suaviza o scroll em iOS */
         }
         .dropdown-menu {
-            z-index: 50; /* Z-index ainda maior para os submenus */
+            /* Alterado de 'absolute md:static' para 'static md:absolute' */
+            /* Isso faz com que os dropdowns fluam no layout mobile e sejam absolutos no desktop */
+            position: static; /* Por padrão, estático (fluxo normal) */
+            margin-top: 0; /* Remove margin-top padrão no mobile */
+            width: 100%; /* Ocupa a largura total do item pai no mobile */
+            box-shadow: none; /* Remove sombra no mobile */
+            border: none; /* Remove borda no mobile */
+            z-index: 50; /* Z-index ainda maior para os submenus (se aplicável) */
+        }
+
+        /* Estilos específicos para desktop para os dropdowns */
+        @media (min-width: 768px) { /* md breakpoint */
+            .dropdown-menu {
+                position: absolute; /* Torna-se absoluto no desktop */
+                margin-top: 0.5rem; /* mt-2 (8px) para desktop */
+                width: auto; /* Largura automática para se ajustar ao conteúdo */
+                box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05); /* Sombra padrão do Tailwind */
+                border: 1px solid #e5e7eb; /* Borda padrão do Tailwind */
+            }
         }
     </style>
 </head>
 <body class="bg-gray-50 font-inter">
 
 <header class="fixed top-0 left-0 w-full bg-white shadow z-50">
-    <div class="max-w-7xl mx-auto px-4 py-2 flex items-center justify-between">
-        <!-- Ícone da barra superior -->
-        <img src="icontopbar.png" alt="Logo Calculadoras de Enfermagem" class="h-12 w-auto object-contain">
+    <!-- Ajustado py-1 para acomodar o ícone h-14 e manter a altura da barra compacta (64px) -->
+    <div class="max-w-7xl mx-auto px-4 py-1 flex items-center justify-between">
+        <!-- Ícone da barra superior - Aumentado para h-14 (56px) -->
+        <img src="icontopbar.png" alt="Logo Calculadoras de Enfermagem" class="h-14 w-auto object-contain">
 
         <!-- Botão do Menu Hambúrguer (visível apenas em telas pequenas) -->
         <button id="menuToggle" class="md:hidden p-2 text-gray-800 focus:outline-none rounded-md hover:bg-gray-100 transition-colors">
@@ -45,7 +67,7 @@
 
             <div class="relative mb-2 md:mb-0">
                 <button type="button" data-menu-target="menu1" class="font-semibold text-gray-800 hover:text-blue-500 block py-2 md:py-0 rounded-md hover:bg-blue-100 md:hover:bg-transparent px-3 md:px-0 w-full text-left">Sobre Nós</button>
-                <div id="menu1" class="dropdown-menu absolute md:static md:mt-0 mt-2 w-40 bg-white border border-gray-200 rounded shadow-lg p-2 text-gray-700 text-sm z-50">
+                <div id="menu1" class="dropdown-menu bg-white border border-gray-200 rounded shadow-lg p-2 text-gray-700 text-sm">
                     <a href="objetivo.html" class="block px-3 py-2 rounded hover:bg-blue-100">Objetivo do site</a>
                     <a href="missao.html" class="block px-3 py-2 rounded hover:bg-blue-100">Missão, visão e valores</a>
                 </div>
@@ -53,7 +75,7 @@
 
             <div class="relative mb-2 md:mb-0">
                 <button type="button" data-menu-target="menu2" class="font-semibold text-gray-800 hover:text-blue-500 block py-2 md:py-0 rounded-md hover:bg-blue-100 md:hover:bg-transparent px-3 md:px-0 w-full text-left">Calculadoras & Escalas</button>
-                <div id="menu2" class="dropdown-menu absolute md:static md:mt-0 mt-2 w-72 max-h-96 overflow-y-auto bg-white border border-gray-200 rounded shadow-lg p-2 text-gray-700 text-sm z-50">
+                <div id="menu2" class="dropdown-menu max-h-96 overflow-y-auto bg-white border border-gray-200 rounded shadow-lg p-2 text-gray-700 text-sm">
                     <!-- Submenu de Calculadoras -->
                     <span class="block px-3 py-2 font-bold text-gray-900">Calculadoras</span>
                     <a href="balancohidrico.html" class="block px-3 py-2 rounded hover:bg-blue-100">Balanço Hídrico</a>
@@ -91,7 +113,7 @@
 
             <div class="relative mb-2 md:mb-0">
                 <button type="button" data-menu-target="menu3" class="font-semibold text-gray-800 hover:text-blue-500 block py-2 md:py-0 rounded-md hover:bg-blue-100 md:hover:bg-transparent px-3 md:px-0 w-full text-left">Conteúdo</button>
-                <div id="menu3" class="dropdown-menu absolute md:static md:mt-0 mt-2 w-72 bg-white border border-gray-200 rounded shadow-lg p-2 text-gray-700 text-sm z-50">
+                <div id="menu3" class="dropdown-menu bg-white border border-gray-200 rounded shadow-lg p-2 text-gray-700 text-sm">
                     <a href="regrasmedicacoes.html" class="block px-3 py-2 rounded hover:bg-blue-100">Manual de Uso seguro de medicamentos</a>
                     <a href="vigilancia.html" class="block px-3 py-2 rounded hover:bg-blue-100">Medicação de Alta Vigilância (MAV)</a>
                     <a href="checagem.html" class="block px-3 py-2 rounded hover:bg-blue-100">Dupla e Tripla Checagem</a>
@@ -102,7 +124,7 @@
 
             <div class="relative mb-2 md:mb-0">
                 <button type="button" data-menu-target="menu4" class="font-semibold text-gray-800 hover:text-blue-500 block py-2 md:py-0 rounded-md hover:bg-blue-100 md:hover:bg-transparent px-3 md:px-0 w-full text-left">Carreira</button>
-                <div id="menu4" class="dropdown-menu absolute md:static md:mt-0 mt-2 w-72 bg-white border border-gray-200 rounded shadow-lg p-2 text-gray-700 text-sm z-50">
+                <div id="menu4" class="dropdown-menu bg-white border border-gray-200 rounded shadow-lg p-2 text-gray-700 text-sm">
                     <span class="block px-3 py-2 opacity-60">Gere seu Currículo (em construção)</span>
                     <span class="block px-3 py-2 opacity-60">Testes Psicológicos (em construção)</span>
                     <span class="block px-3 py-2 opacity-60">Trilha de Conhecimento (em construção)</span>
@@ -113,14 +135,14 @@
 
             <div class="relative mb-2 md:mb-0">
                 <button type="button" data-menu-target="menu5" class="font-semibold text-gray-800 hover:text-blue-500 block py-2 md:py-0 rounded-md hover:bg-blue-100 md:hover:bg-transparent px-3 md:px-0 w-full text-left">Loja Virtual</button>
-                <div id="menu5" class="dropdown-menu absolute md:static md:mt-0 mt-2 w-56 bg-white border border-gray-200 rounded shadow-lg p-2 text-gray-700 text-sm z-50">
+                <div id="menu5" class="dropdown-menu bg-white border border-gray-200 rounded shadow-lg p-2 text-gray-700 text-sm">
                     <span class="block px-3 py-2 opacity-60">Em construção</span>
                 </div>
             </div>
 
             <div class="relative mb-2 md:mb-0">
                 <button type="button" data-menu-target="menu6" class="font-semibold text-gray-800 hover:text-blue-500 block py-2 md:py-0 rounded-md hover:bg-blue-100 md:hover:bg-transparent px-3 md:px-0 w-full text-left">Fale Conosco</button>
-                <div id="menu6" class="dropdown-menu absolute md:static md:mt-0 mt-2 w-60 bg-white border border-gray-200 rounded shadow-lg p-2 text-gray-700 text-sm z-50">
+                <div id="menu6" class="dropdown-menu bg-white border border-gray-200 rounded shadow-lg p-2 text-gray-700 text-sm">
                     <a href="fale.html" class="block px-3 py-2 rounded hover:bg-blue-100">Fale Conosco</a>
                     <a href="doacoes.html" class="block px-3 py-2 rounded hover:bg-blue-100">Contribua</a>
                 </div>
