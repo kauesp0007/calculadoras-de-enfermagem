@@ -186,7 +186,7 @@
             z-index: 30;
         }
 
-        /* --- Estilos para a Nova Barra de Acessibilidade Hambúrguer --- */
+        /* --- Novos Estilos para a Nova Barra de Acessibilidade Hambúrguer --- */
         #accessibilityHamburgerBtn {
             position: fixed;
             right: 1rem; /* 16px da direita */
@@ -827,6 +827,7 @@
         generatePdfBtn.addEventListener('click', generatePdf);
 
         function calculateFOURScore() {
+            console.log('calculateFOURScore: Iniciando cálculo...');
             let totalScore = 0;
             const selectedOptions = {};
             let allQuestionsAnswered = true; // Flag para verificar se todas as perguntas foram respondidas
@@ -836,8 +837,10 @@
             if (eyeResponse) {
                 totalScore += parseInt(eyeResponse.value);
                 selectedOptions['Resposta Ocular'] = eyeResponse.parentNode.textContent.trim();
+                console.log('calculateFOURScore: Resposta Ocular selecionada:', eyeResponse.value);
             } else {
                 allQuestionsAnswered = false;
+                console.log('calculateFOURScore: Resposta Ocular NÃO selecionada.');
             }
 
             // Resposta Motora
@@ -845,8 +848,10 @@
             if (motorResponse) {
                 totalScore += parseInt(motorResponse.value);
                 selectedOptions['Resposta Motora'] = motorResponse.parentNode.textContent.trim();
+                console.log('calculateFOURScore: Resposta Motora selecionada:', motorResponse.value);
             } else {
                 allQuestionsAnswered = false;
+                console.log('calculateFOURScore: Resposta Motora NÃO selecionada.');
             }
 
             // Reflexo de Tronco
@@ -854,8 +859,10 @@
             if (brainstemReflex) {
                 totalScore += parseInt(brainstemReflex.value);
                 selectedOptions['Reflexo de Tronco'] = brainstemReflex.parentNode.textContent.trim();
+                console.log('calculateFOURScore: Reflexo de Tronco selecionado:', brainstemReflex.value);
             } else {
                 allQuestionsAnswered = false;
+                console.log('calculateFOURScore: Reflexo de Tronco NÃO selecionado.');
             }
 
             // Respiração
@@ -863,15 +870,20 @@
             if (respiration) {
                 totalScore += parseInt(respiration.value);
                 selectedOptions['Respiração'] = respiration.parentNode.textContent.trim();
+                console.log('calculateFOURScore: Respiração selecionada:', respiration.value);
             } else {
                 allQuestionsAnswered = false;
+                console.log('calculateFOURScore: Respiração NÃO selecionada.');
             }
 
+            console.log('calculateFOURScore: allQuestionsAnswered:', allQuestionsAnswered);
             if (!allQuestionsAnswered) {
                 showCustomMessage('Por favor, selecione uma opção para todas as categorias antes de calcular.');
+                resultDiv.classList.add('hidden'); // Garante que o resultado anterior seja escondido
                 return;
             }
 
+            console.log('calculateFOURScore: Pontuação total calculada:', totalScore);
             displayResult(totalScore, selectedOptions);
         }
 
@@ -898,6 +910,7 @@
                 interpretation = 'Pontuação inválida.';
                 className = 'bg-info-orange-light';
             }
+            console.log(`getScoreInterpretation: Score ${score}, Interpretação: ${interpretation}, Classe: ${className}`);
             return { interpretation, className };
         }
 
@@ -907,21 +920,33 @@
                 <p class="mb-2"><strong>Pontuação Total FOUR Score:</strong> ${score}</p>
                 <p><strong>Interpretação:</strong> ${interpretation}</p>
             `;
-            resultDiv.className = `resultado ${className}`;
-            resultDiv.classList.remove('hidden');
+            // Remove todas as classes de cor e adiciona a correta
+            resultDiv.classList.remove('bg-normal', 'bg-mild', 'bg-moderate', 'bg-severe', 'bg-very-severe', 'bg-info-orange-light');
+            resultDiv.classList.add('resultado', className);
+            resultDiv.classList.remove('hidden'); // Garante que o div de resultado esteja visível
+            console.log('displayResult: Resultado exibido. Classes do resultDiv:', resultDiv.classList);
         }
 
         function clearForm() {
             document.querySelectorAll('input[type="radio"]').forEach(radio => radio.checked = false);
-            resultDiv.classList.add('hidden');
-            resultDiv.innerHTML = '';
-            console.log('Formulário e resultado limpos.');
+            resultDiv.classList.add('hidden'); // Esconde o div de resultado
+            resultDiv.innerHTML = ''; // Limpa o conteúdo
+            resultDiv.className = 'resultado hidden'; // Reseta as classes
+            console.log('clearForm: Formulário e resultado limpos.');
         }
 
         function generatePdf() {
-            const currentScore = parseInt(document.querySelector('.resultado strong')?.textContent.split(': ')[1]) || null;
-            if (currentScore === null || isNaN(currentScore)) {
+            console.log('generatePdf: Iniciando geração de PDF...');
+            // Verifica se o resultado foi calculado e está visível
+            const currentScoreText = resultDiv.querySelector('strong')?.textContent;
+            let currentScore = null;
+            if (currentScoreText) {
+                currentScore = parseInt(currentScoreText);
+            }
+
+            if (resultDiv.classList.contains('hidden') || isNaN(currentScore)) {
                 showCustomMessage('Por favor, calcule o FOUR Score antes de gerar o PDF.');
+                console.log('generatePdf: Geração de PDF abortada - resultado não calculado ou oculto.');
                 return;
             }
 
@@ -936,6 +961,7 @@
                     selectedOptionsForPdf[groupTitle] = 'Nenhuma opção selecionada'; // Para o PDF, indicar se não foi selecionado
                 }
             });
+            console.log('generatePdf: Opções selecionadas para PDF:', selectedOptionsForPdf);
 
             const { interpretation, className } = getScoreInterpretation(currentScore);
 
@@ -945,7 +971,7 @@
             pdfContentWrapper.style.fontFamily = 'Inter, sans-serif';
             pdfContentWrapper.style.color = '#333';
 
-            // Título e Subtítulo
+            // Título e Subtítulo (conforme o que foi solicitado anteriormente para o PDF)
             const title = document.createElement('h1');
             title.textContent = 'Escala FOUR Score';
             title.style.fontSize = '24px';
@@ -962,6 +988,16 @@
             subtitle.style.marginBottom = '20px';
             subtitle.style.color = '#1FA4E5';
             pdfContentWrapper.appendChild(subtitle);
+
+            // Adiciona a data e hora de geração
+            const dateTime = document.createElement('p');
+            dateTime.style.fontSize = '12px';
+            dateTime.style.color = '#777';
+            dateTime.style.textAlign = 'center';
+            dateTime.style.marginBottom = '20px';
+            dateTime.textContent = `Gerado em: ${new Date().toLocaleDateString('pt-BR')} ${new Date().toLocaleTimeString('pt-BR')}`;
+            pdfContentWrapper.appendChild(dateTime);
+
 
             // Detalhes das opções selecionadas
             const detailsDiv = document.createElement('div');
@@ -1038,11 +1074,20 @@
             const fixedButton = document.querySelector('.fixed-donation-button');
             if (fixedButton) {
                 fixedButton.style.display = 'none';
+                console.log('generatePdf: Botão de doação ocultado.');
             }
 
             html2pdf().set(opt).from(pdfContentWrapper).save().then(() => {
                 if (fixedButton) {
                     fixedButton.style.display = ''; // Volta a exibir o botão após gerar o PDF
+                    console.log('generatePdf: Botão de doação reexibido.');
+                }
+                console.log('generatePdf: PDF gerado com sucesso.');
+            }).catch(error => {
+                console.error('generatePdf: Erro ao gerar PDF:', error);
+                showCustomMessage('Ocorreu um erro ao gerar o PDF. Por favor, tente novamente.');
+                if (fixedButton) {
+                    fixedButton.style.display = ''; // Garante que o botão seja reexibido em caso de erro
                 }
             });
         }
