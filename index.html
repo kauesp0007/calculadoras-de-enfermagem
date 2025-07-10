@@ -911,10 +911,17 @@
         }
         /* Ajuste para o header que é carregado via topbar111.js */
         /* Assumindo que topbar111.html injeta um <header> com position: fixed */
+        #topbar-container {
+            position: fixed; /* O container da topbar agora é fixo */
+            top: 30px; /* Empurra para baixo da barra de acessibilidade */
+            width: 100%;
+            z-index: 99998; /* Garante que fique abaixo da barra de acessibilidade */
+        }
+
+        /* Se o topbar111.html injetar um <header> dentro do #topbar-container, este estilo garantirá que ele não tenha um top duplicado */
         #topbar-container > header {
-            top: 30px !important; /* Empurra para baixo da barra de acessibilidade */
-            z-index: 99998 !important; /* Garante que fique abaixo da barra de acessibilidade */
-            /* Manter outras propriedades de posicionamento se já existirem no topbar111.html (left, width) */
+            position: static !important; /* Remove o posicionamento fixo do header interno se ele tiver */
+            top: auto !important; /* Remove o top duplicado */
         }
     </style>
     <script src="topbar111.js" defer></script> <!-- topbar111.js foi mantido aqui -->
@@ -1058,8 +1065,61 @@
         </div>
     </div>
 
-    <!-- O div footer-container não é mais necessário, pois o JS cria o elemento footer diretamente -->
-    <!-- <div id="footer-container"></div> -->
+    <!-- Rodapé incorporado diretamente no HTML -->
+    <footer class="bg-[#1A3E74] text-white py-8 font-inter">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="flex flex-col md:flex-row justify-between items-center md:items-start space-y-8 md:space-y-0">
+                <!-- Coluna 1: Logo e Descrição -->
+                <div class="flex-1 text-center md:text-left">
+                    <img src="iconpages.png" alt="Logo Calculadoras de Enfermagem" class="w-24 h-auto mx-auto md:mx-0 mb-4" />
+                    <p class="text-sm">Oferecendo ferramentas e calculadoras essenciais para otimizar a prática clínica e acadêmica em enfermagem.</p>
+                </div>
+
+                <!-- Divisor Vertical (apenas em desktop) -->
+                <div class="vertical-divider-footer-stretched hidden md:block"></div>
+
+                <!-- Coluna 2: Links Úteis -->
+                <div class="flex-1 text-center md:text-left">
+                    <h3 class="font-bold text-lg mb-4">Links Úteis</h3>
+                    <ul class="space-y-2 text-sm">
+                        <li><a href="mapa-do-site.html" class="hover:underline">Mapa do Site</a></li>
+                        <li><a href="politica-de-privacidade.html" class="hover:underline">Política de Privacidade</a></li>
+                        <li><a href="termos-de-uso.html" class="hover:underline">Termos de Uso</a></li>
+                        <li><a href="contato.html" class="hover:underline">Contato</a></li>
+                    </ul>
+                </div>
+
+                <!-- Divisor Vertical (apenas em desktop) -->
+                <div class="vertical-divider-footer-stretched hidden md:block"></div>
+
+                <!-- Coluna 3: Redes Sociais -->
+                <div class="flex-1 text-center md:text-right">
+                    <h3 class="font-bold text-lg mb-4">Siga-nos</h3>
+                    <div class="flex justify-center md:justify-end space-x-4">
+                        <a href="https://facebook.com/" target="_blank" class="footer-social-icon" title="Facebook">
+                            <i class="fab fa-facebook-f text-xl"></i>
+                        </a>
+                        <a href="https://instagram.com/" target="_blank" class="footer-social-icon" title="Instagram">
+                            <i class="fab fa-instagram text-xl"></i>
+                        </a>
+                        <a href="https://linkedin.com/" target="_blank" class="footer-social-icon" title="LinkedIn">
+                            <i class="fab fa-linkedin-in text-xl"></i>
+                        </a>
+                        <a href="https://tiktok.com/" target="_blank" class="footer-social-icon" title="TikTok">
+                            <i class="fab fa-tiktok text-xl"></i>
+                        </a>
+                        <a href="https://youtube.com/" target="_blank" class="footer-social-icon" title="YouTube">
+                            <i class="fab fa-youtube text-xl"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-8 text-center">
+                <p>© 2025 Calculadoras de Enfermagem. Todos os direitos reservados.</p>
+            </div>
+        </div>
+    </footer>
 
     <script>
         // Funções de Acessibilidade (copiadas do indexteste.html)
@@ -1092,30 +1152,24 @@
             document.body.style.fontSize = fontSizeLevels[currentFontSizeIndex] + '%';
             // Update text for both desktop and PWA bar
             const fontSizeElemDesktop = document.getElementById('fontSizeText');
-            const fontSizeElemPWA = document.getElementById('fontSizeTextPWA'); // This element might not exist yet in PWA bar
+            // Assuming PWA bar elements might have different IDs or be dynamically created
+            // For now, only update desktop elements if PWA elements are not present or have different IDs
             if (fontSizeElemDesktop) fontSizeElemDesktop.textContent = fontSizeTexts[currentFontSizeIndex];
-            if (fontSizeElemPWA) fontSizeElemPWA.textContent = fontSizeTexts[currentFontSizeIndex]; // Update if it exists
 
             document.documentElement.style.setProperty('--espacamento-linha', lineHeightLevels[currentLineHeightIndex]);
             const lineHeightElemDesktop = document.getElementById('lineHeightText');
-            const lineHeightElemPWA = document.getElementById('lineHeightTextPWA');
             if (lineHeightElemDesktop) lineHeightElemDesktop.textContent = lineHeightTexts[currentLineHeightIndex];
-            if (lineHeightElemPWA) lineHeightElemPWA.textContent = lineHeightTexts[currentLineHeightIndex];
 
             document.documentElement.style.setProperty('--espacamento-letra', letterSpacingLevels[currentLetterSpacingIndex] + 'em');
             const letterSpacingElemDesktop = document.getElementById('letterSpacingText');
-            const letterSpacingElemPWA = document.getElementById('letterSpacingTextPWA');
             if (letterSpacingElemDesktop) letterSpacingElemDesktop.textContent = letterSpacingTexts[currentLetterSpacingIndex];
-            if (letterSpacingElemPWA) letterSpacingElemPWA.textContent = letterSpacingTexts[currentLetterSpacingIndex];
 
             speechRate = readingSpeedLevels[currentReadingSpeedIndex];
             if (currentUtterance) {
                 currentUtterance.rate = speechRate;
             }
             const readingSpeedElemDesktop = document.getElementById('readingSpeedText');
-            const readingSpeedElemPWA = document.getElementById('readingSpeedTextPWA');
             if (readingSpeedElemDesktop) readingSpeedElemDesktop.textContent = readingSpeedTexts[currentReadingSpeedIndex];
-            if (readingSpeedElemPWA) readingSpeedElemPWA.textContent = readingSpeedTexts[currentReadingSpeedIndex];
 
 
             if (contrasteAtivo) document.body.classList.add('contraste-alto'); else document.body.classList.remove('contraste-alto');
@@ -1196,7 +1250,7 @@
 
         function toggleLeitura() {
             const toggleLeituraBtnDesktop = document.getElementById('toggleLeituraBtn');
-            const toggleLeituraBtnPWA = document.getElementById('toggleLeituraBtnPWA');
+            // const toggleLeituraBtnPWA = document.getElementById('toggleLeituraBtnPWA'); // Removed as PWA bar is not fully implemented yet
 
             const setButtonState = (btn, isPlaying) => {
                 if (btn) {
@@ -1212,13 +1266,13 @@
                 speechSynth.pause();
                 isReading = false;
                 setButtonState(toggleLeituraBtnDesktop, false);
-                setButtonState(toggleLeituraBtnPWA, false);
+                // setButtonState(toggleLeituraBtnPWA, false);
             } else if (speechSynth.paused) {
                 // Se estiver pausado, retome
                 speechSynth.resume();
                 isReading = true;
                 setButtonState(toggleLeituraBtnDesktop, true);
-                setButtonState(toggleLeituraBtnPWA, true);
+                // setButtonState(toggleLeituraBtnPWA, true);
             } else {
                 // Se não estiver falando, inicie uma nova leitura
                 speechSynth.cancel(); // Garante que não há outras falas na fila
@@ -1230,13 +1284,13 @@
                 currentUtterance.onend = () => {
                     isReading = false;
                     setButtonState(toggleLeituraBtnDesktop, false);
-                    setButtonState(toggleLeituraBtnPWA, false);
+                    // setButtonState(toggleLeituraBtnPWA, false);
                 };
 
                 speechSynth.speak(currentUtterance);
                 isReading = true;
                 setButtonState(toggleLeituraBtnDesktop, true);
-                setButtonState(toggleLeituraBtnPWA, true);
+                // setButtonState(toggleLeituraBtnPWA, true);
             }
         }
 
@@ -1244,7 +1298,7 @@
             speechSynth.cancel();
             isReading = false;
             const toggleLeituraBtnDesktop = document.getElementById('toggleLeituraBtn');
-            const toggleLeituraBtnPWA = document.getElementById('toggleLeituraBtnPWA');
+            // const toggleLeituraBtnPWA = document.getElementById('toggleLeituraBtnPWA'); // Removed
 
             const setButtonToPlay = (btn) => {
                 if (btn) {
@@ -1252,7 +1306,7 @@
                 }
             };
             setButtonToPlay(toggleLeituraBtnDesktop);
-            setButtonToPlay(toggleLeituraBtnPWA);
+            // setButtonToPlay(toggleLeituraBtnPWA); // Removed
 
             toggleLeitura(); // Inicia uma nova leitura do começo
         }
@@ -1300,10 +1354,10 @@
         const acceptCookiesBtn = document.getElementById('acceptCookiesBtn');
         const cookiePolicyLink = document.getElementById('cookiePolicyLink');
 
-        const videoTutorialModal = document.getElementById('videoTutorialModal');
-        const closeVideoTutorialBtn = document.getElementById('closeVideoTutorialBtn');
-        const skipTutorialBtn = document.getElementById('skipTutorialBtn');
-        const tutorialVideoFrame = document.getElementById('tutorialVideoFrame');
+        const videoTutorialModal = document.getElementById('videoModal'); // Corrected ID to match HTML
+        const closeVideoTutorialBtn = document.querySelector('#videoModal .video-modal-close'); // Use querySelector for the close button inside the modal
+        const tutorialVideoFrame = document.getElementById('welcomeVideo'); // Corrected ID to match HTML
+        const skipTutorialBtn = null; // No explicit skip button in the current HTML
 
         function showCookieBanner() {
             if (cookieConsentBanner) {
@@ -1323,7 +1377,8 @@
         function checkCookieConsent() {
             const cookiesAccepted = localStorage.getItem('cookiesAccepted');
             if (!cookiesAccepted) {
-                showCookieBanner();
+                // showCookieBanner(); // Cookie banner is not in this HTML, so don't try to show it
+                checkFirstVisitAndShowTutorial(); // Directly proceed to tutorial check if no cookie banner
             } else {
                 checkFirstVisitAndShowTutorial();
             }
@@ -1339,9 +1394,9 @@
             const tutorialShown = localStorage.getItem('tutorialShown');
             if (!tutorialShown) {
                 if (videoTutorialModal) {
-                    videoTutorialModal.classList.remove('hidden');
+                    videoTutorialModal.style.display = 'flex'; // Show modal
                     videoTutorialModal.setAttribute('aria-hidden', 'false');
-                    if (tutorialVideoFrame) tutorialVideoFrame.src = `https://www.youtube.com/embed/dQw4w9WgXcQ?rel=0`;
+                    if (tutorialVideoFrame) tutorialVideoFrame.src = `boasvindas.mp4`; // Set video source
                     if (closeVideoTutorialBtn) closeVideoTutorialBtn.focus();
                 }
             }
@@ -1350,10 +1405,11 @@
         function closeVideoTutorial() {
             localStorage.setItem('tutorialShown', 'true');
             if (videoTutorialModal) {
-                videoTutorialModal.classList.add('hidden');
+                videoTutorialModal.style.display = 'none'; // Hide modal
                 videoTutorialModal.setAttribute('aria-hidden', 'true');
             }
-            if (tutorialVideoFrame) tutorialVideoFrame.src = tutorialVideoFrame.src.replace('?autoplay=1&rel=0', '');
+            if (tutorialVideoFrame) tutorialVideoFrame.pause(); // Pause video
+            if (tutorialVideoFrame) tutorialVideoFrame.currentTime = 0; // Reset video to start
         }
 
         // --- Botão Voltar ao Topo ---
