@@ -9,122 +9,865 @@
     <meta name="description" content="Compartilhe perguntas e respostas sobre enfermagem com a comunidade.">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Nunito+Sans:wght@700;900&display=swap" rel="stylesheet">
+    <!-- topbar111.js é carregado aqui e deve conter a lógica para a topbar e acessibilidade -->
     <script src="topbar111.js" defer></script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=AW-952633102"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'AW-952633102');
+    </script>
     <style>
-        body.dark {
-            background-color: #1a202c;
+        /* Estilos de fonte e cores personalizados */
+        .font-nunito { font-family: 'Nunito Sans', sans-serif; }
+        .font-inter { font-family: 'Inter', sans-serif; }
+        .text-dark-blue { color: #1A3E74; } /* Azul Escuro */
+        .text-light-blue { color: #1FA4E5; } /* Azul Claro */
+
+        /* Garante que os menus dropdown da topbar estão ocultos por padrão */
+        .dropdown-menu {
+            display: none; /* ESSENCIAL: Oculta os menus dropdown por padrão */
+        }
+        /* Classe para mostrar o dropdown, controlada pelo JS */
+        .dropdown-menu.show {
+            display: block;
+        }
+
+        /* Estilos para o corpo da página e layout flexbox */
+        body {
+            padding-top: 64px; /* Espaço para a topbar fixa */
+            min-height: 100vh; /* Garante que o body ocupe no mínimo 100% da altura da viewport */
+            display: flex;
+            flex-direction: column; /* Organiza os filhos em coluna */
+            background-color: #f9fafb; /* Cor de fundo principal mais clara */
+            color: #1F2937; /* Cor de texto padrão */
+            font-family: 'Inter', sans-serif; /* Fonte padrão do corpo */
+            margin: 0;
+        }
+
+        /* Ajuste para o main para empurrar o rodapé para baixo */
+        main {
+            flex-grow: 1; /* Permite que o conteúdo principal ocupe todo o espaço restante */
+        }
+
+        /* Estilos do formulário e posts */
+        .form-section {
+            background-color: #fff;
+            padding: 2rem; /* p-8 */
+            border-radius: 0.75rem; /* rounded-xl */
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); /* shadow-md */
+            margin-bottom: 2rem; /* mb-8 */
+        }
+        .input-field {
+            width: 100%;
+            padding: 0.75rem; /* p-3 */
+            border: 1px solid #d1d5db; /* border-gray-300 */
+            border-radius: 0.5rem; /* rounded-lg */
+            margin-bottom: 1rem; /* mb-4 */
+            font-size: 1rem; /* text-base */
+            color: #374151; /* text-gray-700 */
+        }
+        .input-field:focus {
+            outline: none;
+            border-color: #2563eb; /* blue-600 */
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2); /* ring-blue-200 */
+        }
+        .submit-button {
+            background-color: #1A3E74; /* Cor azul escuro da identidade */
             color: white;
+            padding: 0.75rem 1.5rem; /* py-3 px-6 */
+            border-radius: 0.5rem; /* rounded-lg */
+            font-weight: 600; /* font-semibold */
+            transition: background-color 0.2s ease;
+            border: none;
+            cursor: pointer;
         }
-        body.contrast {
-            background-color: black;
-            color: yellow;
+        .submit-button:hover {
+            background-color: #122c54; /* Tom mais escuro no hover */
         }
-        .contrast .input-field, .contrast .submit-button {
-            background-color: yellow;
+        .posts-section {
+            background-color: #fff;
+            padding: 2rem; /* p-8 */
+            border-radius: 0.75rem; /* rounded-xl */
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); /* shadow-md */
+        }
+        .post-card {
+            border-bottom: 1px solid #e5e7eb; /* border-gray-200 */
+            padding-bottom: 1.5rem; /* pb-6 */
+            margin-bottom: 1.5rem; /* mb-6 */
+        }
+        .post-card:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+        .post-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            margin-bottom: 0.5rem; /* mb-2 */
+        }
+        .post-author {
+            font-weight: 600; /* font-semibold */
+            color: #1A3E74; /* Cor azul escuro */
+        }
+        .post-profession {
+            font-size: 0.875rem; /* text-sm */
+            color: #6b7280; /* text-gray-500 */
+            margin-left: 0.5rem; /* ml-2 */
+        }
+        .post-timestamp {
+            font-size: 0.75rem; /* text-xs */
+            color: #9ca3af; /* text-gray-400 */
+        }
+        .post-question {
+            font-weight: 600; /* font-semibold */
+            margin-bottom: 0.5rem; /* mb-2 */
+            color: #374151; /* text-gray-700 */
+        }
+        .post-answer {
+            color: #4b5563; /* text-gray-600 */
+            margin-bottom: 1rem; /* mb-4 */
+        }
+        .no-posts-message {
+            text-align: center;
+            color: #6b7280; /* text-gray-500 */
+            font-style: italic;
+        }
+        .loading-message {
+            text-align: center;
+            color: #6b7280;
+            margin-top: 1rem;
+        }
+        .error-message {
+            color: #dc2626; /* red-600 */
+            text-align: center;
+            margin-top: 1rem;
+        }
+        /* Estilos para o modal de mensagem */
+        .message-modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.6);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            display: none; /* Hidden by default */
+        }
+        .message-modal-content {
+            background-color: #fff;
+            padding: 2rem;
+            border-radius: 0.5rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+            position: relative;
+        }
+        .message-modal-close {
+            position: absolute;
+            top: 0.5rem;
+            right: 0.5rem;
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #6b7280;
+        }
+        .message-modal-close:hover {
+            color: #1F2937;
+        }
+
+        /* Estilos do botão "Bem-vindo!" */
+        .btn-welcome {
+            font-family: 'Inter', sans-serif;
+            font-weight: 600;
+            background-color: #1A3E74;
+            color: #FFF;
+            padding: 8px 16px;
+            border-radius: 8px;
+            transition: background-color 0.3s ease;
+            border: none;
+            cursor: pointer;
+            text-align: center;
+            position: fixed;
+            right: 1rem;
+            z-index: 40;
+            display: none; /* Oculto por padrão em mobile */
+        }
+        .btn-welcome:hover {
+            background-color: #122c54;
+        }
+        @media (min-width: 640px) { /* sm */
+            .btn-welcome {
+                display: block; /* Mostra o botão em telas maiores que mobile */
+                top: 74px; /* Altura da topbar (64px) + espaçamento (10px) */
+                right: 1rem; /* 16px da direita */
+            }
+        }
+
+        /* Estilos para o Modal de Vídeo */
+        .video-modal {
+            display: none; /* Oculto por padrão */
+            position: fixed;
+            z-index: 100;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.8);
+            justify-content: center;
+            align-items: center;
+        }
+        .video-modal-content {
+            background-color: #fefefe;
+            margin: auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 90%;
+            max-width: 700px;
+            border-radius: 10px;
+            position: relative;
+            box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2), 0 6px 20px 0 rgba(0,0,0,0.19);
+        }
+        .video-modal-close {
+            color: #aaa;
+            position: absolute;
+            top: 10px;
+            right: 20px;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .video-modal-close:hover,
+        .video-modal-close:focus {
+            color: black;
+            text-decoration: none;
+        }
+        .video-modal-content video {
+            width: 100%;
+            height: auto;
+            display: block;
+            margin-top: 10px;
+        }
+
+        /* Ajustes para o botão de doação */
+        .fixed-donation-button {
+            bottom: 1rem;
+            right: 1rem;
+            z-index: 30;
+        }
+
+        /* Estilo para o elemento <footer> que será criado dinamicamente */
+        footer {
+            background-color: #1A3E74; /* Cor azul do seu rodapé */
+            color: white; /* Cor do texto do rodapé */
+            padding: 1rem 0; /* Padding interno para o conteúdo do rodapé */
+            text-align: center;
+            width: 100%; /* Garante que o rodapé ocupe a largura total */
+            box-sizing: border-box; /* Inclui padding na largura */
+            margin-top: auto; /* ESSENCIAL: Empurra o rodapé para o final do container flexível */
+            flex-shrink: 0; /* Garante que o rodapé não encolha */
+        }
+
+        /* --- Estilos para a Nova Barra de Acessibilidade Hambúrguer --- */
+        #accessibilityHamburgerBtn {
+            position: fixed;
+            right: 1rem; /* 16px da direita */
+            background-color: #1A3E74; /* Cor azul escuro do seu rodapé/identidade */
+            color: white;
+            padding: 0.75rem; /* Padding para o botão */
+            border-radius: 9999px; /* Botão redondo */
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2); /* Sombra sutil */
+            z-index: 10000; /* MUITO ALTO para garantir que esteja acima de tudo, incluindo VLibras */
+            cursor: pointer;
+            transition: background-color 0.2s ease, transform 0.2s ease;
+        }
+
+        #accessibilityHamburgerBtn:hover {
+            background-color: #122c54; /* Tom mais escuro no hover */
+            transform: scale(1.05); /* Pequeno efeito de escala */
+        }
+
+        #accessibilityHamburgerBtn svg {
+            width: 24px; /* Tamanho do ícone de hambúrguer */
+            height: 24px;
+        }
+
+        /* Posição do botão de acessibilidade em telas grandes (desktop/tablet) */
+        @media (min-width: 640px) { /* sm */
+            #accessibilityHamburgerBtn {
+                top: 146px; /* Ajustado para ficar duas linhas abaixo do botão "Bem-vindo!" */
+            }
+        }
+
+        /* Posição do botão de acessibilidade em telas pequenas (mobile) */
+        @media (max-width: 639px) { /* Extra small screens */
+            #accessibilityHamburgerBtn {
+                top: 72px; /* 64px (topbar height) + 8px de espaçamento */
+            }
+        }
+
+        /* Menu Off-Canvas de Acessibilidade */
+        #accessibilityOffCanvasMenu {
+            position: fixed;
+            top: 0;
+            right: -300px; /* Inicialmente escondido fora da tela */
+            width: 90vw; /* Largura adaptativa para mobile */
+            max-width: 280px; /* Largura máxima para desktop */
+            height: 100vh;
+            background-color: #f9fafb; /* Fundo azul bem claro, como a topbar */
+            box-shadow: -4px 0 10px rgba(0,0,0,0.2); /* Sombra para o efeito de slide */
+            z-index: 10001; /* Acima do botão de acessibilidade e VLibras */
+            transition: right 0.3s ease-in-out;
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem; /* Espaçamento entre os itens */
+            overflow-y: auto; /* Rolagem se o conteúdo for muito longo */
+        }
+
+        #accessibilityOffCanvasMenu.is-open {
+            right: 0; /* Desliza para a tela */
+        }
+
+        #accessibilityOffCanvasMenu .menu-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        #accessibilityOffCanvasMenu .menu-header h3 {
+            font-size: 1.25rem; /* text-xl */
+            font-weight: 700; /* font-bold */
+            color: #1F2937; /* Cor de texto padrão */
+        }
+
+        #accessibilityOffCanvasMenu .close-menu-btn {
+            background: none;
+            border: none;
+            font-size: 2rem;
+            color: #6b7280; /* text-gray-500 */
+            cursor: pointer;
+            padding: 0.25rem;
+            border-radius: 50%;
+            transition: background-color 0.2s ease;
+        }
+
+        #accessibilityOffCanvasMenu .close-menu-btn:hover {
+            background-color: #e5e7eb; /* bg-gray-200 */
+        }
+
+        #accessibilityOffCanvasMenu button {
+            background-color: #e0f2fe; /* blue-100 */
+            color: #1F2937; /* text-gray-800 */
+            padding: 0.75rem 1rem;
+            border-radius: 0.5rem;
+            text-align: left;
+            font-weight: 600;
+            transition: background-color 0.2s ease, transform 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            border: 1px solid #bfdbfe; /* blue-200 */
+        }
+
+        #accessibilityOffCanvasMenu button:hover {
+            background-color: #bfdbfe; /* blue-200 */
+            transform: translateY(-2px); /* Pequeno efeito de elevação */
+        }
+
+        #accessibilityOffCanvasMenu button svg {
+            width: 20px;
+            height: 20px;
+            stroke: currentColor;
+            stroke-width: 2;
+        }
+
+        /* Overlay para escurecer o fundo quando o menu está aberto */
+        #accessibilityOverlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5); /* Fundo escuro semi-transparente */
+            z-index: 9999; /* Entre o conteúdo e o menu de acessibilidade */
+            display: none; /* Oculto por padrão */
+        }
+
+        /* Estilos para as configurações de acessibilidade */
+        body.font-size-small { font-size: 0.9em; }
+        body.font-size-large { font-size: 1.1em; }
+        body.high-contrast {
+            filter: contrast(200%) brightness(150%);
+            background-color: black !important;
+            color: white !important;
+        }
+        body.dark-mode { /* Renomeado de .dark para .dark-mode para evitar conflito com a classe .dark do seu CSS original */
+            background-color: #1a202c !important;
+            color: #e2e8f0 !important;
+        }
+        body.dark-mode .bg-blue-50 {
+            background-color: #2d3748 !important; /* Ajuste para elementos com bg-blue-50 no dark mode */
+        }
+        body.dark-mode .text-gray-800, body.dark-mode .text-gray-700, body.dark-mode .text-gray-600 {
+            color: #e2e8f0 !important;
+        }
+        body.dark-mode .shadow, body.dark-mode .shadow-lg {
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.4), 0 1px 3px rgba(0, 0, 0, 0.2) !important;
+        }
+        /* Ajustes para elementos específicos no modo de alto contraste/escuro */
+        body.high-contrast .input-field, body.high-contrast .submit-button,
+        body.dark-mode .input-field, body.dark-mode .submit-button {
+            background-color: #4a5568; /* Cor de fundo para campos no modo escuro/contraste */
+            color: #e2e8f0; /* Cor de texto para campos */
+            border-color: #718096; /* Cor da borda para campos */
+        }
+        body.high-contrast .submit-button {
+            background-color: yellow; /* Mantém o amarelo para alto contraste no botão */
             color: black;
         }
     </style>
 </head>
 <body class="bg-gray-50 text-gray-800 font-inter">
 
-    <!-- Topbar -->
+    <!-- Topbar (Estrutura completa do index.html) -->
     <header class="fixed top-0 left-0 w-full bg-blue-50 shadow z-50">
         <div class="max-w-7xl mx-auto px-4 py-0 flex items-center justify-between h-16">
             <img src="icontopbar.png" alt="Logo Calculadoras de Enfermagem" class="h-16 w-auto object-contain">
+            <button id="menuToggle" class="md:hidden p-2 text-gray-800 focus:outline-none rounded-md hover:bg-gray-100 transition-colors">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                </svg>
+            </button>
+            <nav id="mainNav" class="hidden md:flex flex-col md:flex-row md:space-x-6 absolute md:static top-full left-0 w-full md:w-auto bg-blue-50 md:bg-transparent shadow-lg md:shadow-none p-4 md:p-0">
+                <div class="relative mb-2 md:mb-0">
+                    <a href="index.html" class="font-semibold text-gray-800 hover:text-blue-500 block py-2 md:py-0 rounded-md hover:bg-blue-100 md:hover:bg-transparent px-3 md:px-0">Início</a>
+                </div>
+                <div class="relative mb-2 md:mb-0">
+                    <button type="button" data-menu-target="menu1" class="font-semibold text-gray-800 hover:text-blue-500 block py-2 md:py-0 rounded-md hover:bg-blue-100 md:hover:bg-transparent px-3 md:px-0 w-full text-left">Sobre Nós</button>
+                    <div id="menu1" class="dropdown-menu bg-white border border-gray-200 rounded shadow-lg p-2 text-gray-700 text-sm">
+                        <a href="objetivo.html" class="block px-3 py-2 rounded hover:bg-blue-100">Objetivo do site</a>
+                        <a href="missao.html" class="block px-3 py-2 rounded hover:bg-blue-100">Missão, visão e valores</a>
+                    </div>
+                </div>
+                <div class="relative mb-2 md:mb-0">
+                    <button type="button" data-menu-target="menu2" class="font-semibold text-gray-800 hover:text-blue-500 block py-2 md:py-0 rounded-md hover:bg-blue-100 md:hover:bg-transparent px-3 md:px-0 w-full text-left">Calculadoras & Escalas</button>
+                    <div id="menu2" class="dropdown-menu max-h-96 overflow-y-auto bg-white border border-gray-200 rounded shadow-lg p-2 text-gray-700 text-sm">
+                        <span class="block px-3 py-2 font-bold text-gray-900">Calculadoras</span>
+                        <a href="balancohidrico.html" class="block px-3 py-2 rounded hover:bg-blue-100">Balanço Hídrico</a>
+                        <a href="dimensionamento.html" class="block px-3 py-2 rounded hover:bg-blue-100">Cálculo de Dimensionamento da Equipe de Enfermagem</a>
+                        <a href="gotejamento.html" class="block px-3 py-2 rounded hover:bg-blue-100">Cálculo de Gotejamento</a>
+                        <a href="gestacional.html" class="block px-3 py-2 rounded hover:bg-blue-100">Cálculo de Idade Gestacional e DPP</a>
+                        <a href="imc.html" class="block px-3 py-2 rounded hover:bg-blue-100">Cálculo de IMC</a>
+                        <a href="insulina.html" class="block px-3 py-2 rounded hover:bg-blue-100">Cálculo de Aspiração de Insulina</a>
+                        <a href="medicamentos.html" class="block px-3 py-2 rounded hover:bg-blue-100">Cálculo de Medicamentos</a>
+                        <div class="border-t border-gray-200 my-2"></div>
+                        <span class="block px-3 py-2 font-bold text-gray-900">Escalas de Enfermagem</span>
+                        <a href="aldrete.html" class="block px-3 py-2 rounded hover:bg-blue-100">Escala de Aldrete e Kroulik</a>
+                        <a href="apgar.html" class="block px-3 py-2 rounded hover:bg-blue-100">Escala de Apgar</a>
+                        <a href="asa.html" class="block px-3 py-2 rounded hover:bg-blue-100">Classificação ASA (American Society of Anesthesiologists)</a>
+                        <a href="braden.html" class="block px-3 py-2 rounded hover:bg-blue-100">Escala de Braden</a>
+                        <a href="cincinnati.html" class="block px-3 py-2 rounded hover:bg-blue-100">Escala de Cincinnati</a>
+                        <a href="elpo.html" class="block px-3 py-2 rounded hover:bg-blue-100">Escala de ELPO</a>
+                        <a href="fugulin.html" class="block px-3 py-2 rounded hover:bg-blue-100">Escala de Fugulin</a>
+                        <a href="glasgow.html" class="block px-3 py-2 rounded hover:bg-blue-100">Escala de Coma de Glasgow</a>
+                        <a href="gosnell.html" class="block px-3 py-2 rounded hover:bg-blue-100">Escala de Gosnell</a>
+                        <a href="johns.html" class="block px-3 py-2 rounded hover:bg-blue-100">Escala Johns - Hopkins</a>
+                        <a href="manchester.html" class="block px-3 py-2 rounded hover:bg-blue-100">Protocolo de Manchester</a>
+                        <a href="meows.html" class="block px-3 py-2 rounded hover:bg-blue-100">Escala de MEOWS (Modified Early Obstetric Warning Score)</a>
+                        <a href="morse.html" class="block px-3 py-2 rounded hover:bg-blue-100">Escala de Morse</a>
+                        <a href="news.html" class="block px-3 py-2 rounded hover:bg-blue-100">Escala de NEWS (National Early Warning Score)</a>
+                        <a href="nihss.html" class="block px-3 py-2 rounded hover:bg-blue-100">Escala de NIHSS (National Institutes of Health Stroke Scale)</a>
+                        <a href="norton.html" class="block px-3 py-2 rounded hover:bg-blue-100">Escala de Norton</a>
+                        <a href="richmond.html" class="block px-3 py-2 rounded hover:bg-blue-100">Escala de Richmond (Richmond Agitation Sedation Scale)</a>
+                        <a href="waterlow.html" class="block px-3 py-2 rounded hover:bg-blue-100">Escala de Waterlow</a>
+                    </div>
+                </div>
+                <div class="relative mb-2 md:mb-0">
+                    <button type="button" data-menu-target="menu3" class="font-semibold text-gray-800 hover:text-blue-500 block py-2 md:py-0 rounded-md hover:bg-blue-100 md:hover:bg-transparent px-3 md:px-0 w-full text-left">Conteúdo</button>
+                    <div id="menu3" class="dropdown-menu bg-white border border-gray-200 rounded shadow-lg p-2 text-gray-700 text-sm">
+                        <a href="regrasmedicacoes.html" class="block px-3 py-2 rounded hover:bg-blue-100">Manual de Uso seguro de medicamentos</a>
+                        <a href="vigilancia.html" class="block px-3 py-2 rounded hover:bg-blue-100">Medicação de Alta Vigilância (MAV)</a>
+                        <a href="checagem.html" class="block px-3 py-2 rounded hover:bg-blue-100">Dupla e Tripla Checagem</a>
+                        <span class="block px-3 py-2 opacity-60">Links Úteis (em construção)</span>
+                        <a href="legislacoes.html" class="block px-3 py-2 rounded hover:bg-blue-100">Legislações e Pareceres</a>
+                    </div>
+                </div>
+                <div class="relative mb-2 md:mb-0">
+                    <button type="button" data-menu-target="menu4" class="font-semibold text-gray-800 hover:text-blue-500 block py-2 md:py-0 rounded-md hover:bg-blue-100 md:hover:bg-transparent px-3 md:px-0 w-full text-left">Carreira</button>
+                    <div id="menu4" class="dropdown-menu bg-white border border-gray-200 rounded shadow-lg p-2 text-gray-700 text-sm">
+                        <span class="block px-3 py-2 opacity-60">Gere seu Currículo (em construção)</span>
+                        <span class="block px-3 py-2 opacity-60">Testes Psicológicos (em construção)</span>
+                        <span class="block px-3 py-2 opacity-60">Trilha de Conhecimento (em construção)</span>
+                        <a href="concurso.html" class="block px-3 py-2 rounded hover:bg-blue-100">Concursos Públicos em aberto</a>
+                        <span class="block px-3 py-2 opacity-60">Mentoria com IA (em construção)</span>
+                    </div>
+                </div>
+                <div class="relative mb-2 md:mb-0">
+                    <button type="button" data-menu-target="menu5" class="font-semibold text-gray-800 hover:text-blue-500 block py-2 md:py-0 rounded-md hover:bg-blue-100 md:hover:bg-transparent px-3 md:px-0 w-full text-left">Loja Virtual</button>
+                    <div id="menu5" class="dropdown-menu bg-white border border-gray-200 rounded shadow-lg p-2 text-gray-700 text-sm">
+                        <span class="block px-3 py-2 opacity-60">Em construção</span>
+                    </div>
+                </div>
+                <div class="relative mb-2 md:mb-0">
+                    <button type="button" data-menu-target="menu6" class="font-semibold text-gray-800 hover:text-blue-500 block py-2 md:py-0 rounded-md hover:bg-blue-100 md:hover:bg-transparent px-3 md:px-0 w-full text-left">Fale Conosco</button>
+                    <div id="menu6" class="dropdown-menu bg-white border border-gray-200 rounded shadow-lg p-2 text-gray-700 text-sm">
+                        <a href="fale.html" class="block px-3 py-2 rounded hover:bg-blue-100">Fale Conosco</a>
+                        <a href="doacoes.html" class="block px-3 py-2 rounded hover:bg-blue-100">Contribua</a>
+                    </div>
+                </div>
+            </nav>
         </div>
     </header>
 
-    <!-- Botão de Acessibilidade -->
-    <button id="accessibilityHamburgerBtn" aria-label="Abrir menu de acessibilidade" class="fixed top-20 left-4 z-50 p-2 rounded-full bg-blue-600 text-white hover:bg-blue-700 focus:outline-none">
-        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" class="w-6 h-6">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+    <!-- Botão de Acessibilidade Hambúrguer (Posicionado à direita) -->
+    <button id="accessibilityHamburgerBtn" aria-label="Abrir menu de acessibilidade">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
         </svg>
     </button>
 
-    <div id="accessibilityOffCanvasMenu" class="fixed top-0 left-0 w-64 h-full bg-white shadow-lg transform -translate-x-full transition-transform duration-300 z-50">
-        <div class="flex justify-between items-center p-4 border-b">
-            <h3 class="text-lg font-semibold">Acessibilidade</h3>
-            <button id="closeAccessibilityMenuBtn" aria-label="Fechar menu de acessibilidade" class="text-gray-500 hover:text-gray-700 text-xl">&times;</button>
+    <!-- Menu Off-Canvas de Acessibilidade -->
+    <div id="accessibilityOffCanvasMenu">
+        <div class="menu-header">
+            <h3>Acessibilidade</h3>
+            <button class="close-menu-btn" id="closeAccessibilityMenuBtn" aria-label="Fechar menu de acessibilidade">&times;</button>
         </div>
-        <div class="p-4 space-y-4">
-            <button id="toggleFontSizeBtn" class="w-full py-2 px-4 bg-gray-100 hover:bg-gray-200 rounded text-left">Aumentar Fonte</button>
-            <button id="toggleContrastBtn" class="w-full py-2 px-4 bg-gray-100 hover:bg-gray-200 rounded text-left">Alto Contraste</button>
-            <button id="toggleDarkModeBtn" class="w-full py-2 px-4 bg-gray-100 hover:bg-gray-200 rounded text-left">Modo Escuro</button>
-            <button id="resetAccessibilityBtn" class="w-full py-2 px-4 bg-red-100 hover:bg-red-200 text-red-700 rounded text-left">Redefinir</button>
+        <button id="toggleFontSizeBtn">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-type"><polyline points="4 7 4 4 20 4 20 7"/><line x1="9" x2="15" y1="20" y2="20"/><line x1="12" x2="12" y1="4" y2="20"/></svg>
+            Tamanho da Fonte
+        </button>
+        <button id="toggleContrastBtn">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-contrast"><circle cx="12" cy="12" r="10"/><path d="M12 18a6 6 0 0 0 0-12v12z"/></svg>
+            Alto Contraste
+        </button>
+        <button id="toggleDarkModeBtn">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-moon"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
+            Modo Escuro
+        </button>
+        <button id="resetAccessibilityBtn">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-refresh-ccw"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.76 2.75L3 8"/><path d="M3 3v5h5"/></svg>
+            Redefinir
+        </button>
+    </div>
+
+    <!-- Overlay para o menu de acessibilidade -->
+    <div id="accessibilityOverlay"></div>
+
+    <!-- VLibras Widget (será inicializado pelo script) -->
+    <div vw class="enabled">
+        <div vw-access-button class="active"></div>
+        <div vw-plugin-wrapper>
+            <div class="vw-plugin-top-wrapper"></div>
         </div>
     </div>
 
-    <div id="accessibilityOverlay" class="fixed inset-0 bg-black bg-opacity-50 hidden z-40"></div>
+    <div class="main-content-wrapper">
+        <main class="max-w-4xl mx-auto px-4 py-8">
+            <div class="flex flex-col items-center justify-center gap-4 mb-3 text-center">
+                <img src="iconpages.png" alt="Ícone da Página" class="w-32 h-auto" />
+                <h1 id="main-title" class="font-nunito font-extrabold text-dark-blue text-4xl lg:text-5xl">
+                    Fórum de Perguntas e Respostas
+                </h1>
+            </div>
+            <h2 id="main-subtitle" class="font-inter font-semibold text-light-blue text-xl lg:text-2xl mb-3 text-center sm:text-left">
+                Compartilhe suas dúvidas e conhecimentos com a comunidade de enfermagem.
+            </h2>
 
-    <!-- Conteúdo principal -->
-    <main class="max-w-4xl mx-auto px-4 py-24">
-        <div class="text-center mb-8">
-            <img src="iconpages.png" alt="Ícone da Página" class="w-24 h-auto mx-auto mb-4">
-            <h1 id="main-title" class="text-4xl font-extrabold text-dark-blue font-nunito">Fórum de Perguntas e Respostas</h1>
-            <p id="main-subtitle" class="text-xl text-light-blue mt-2 font-semibold">Compartilhe suas dúvidas e conhecimentos com a comunidade de enfermagem.</p>
+            <!-- Seção para Postar Nova Pergunta/Resposta -->
+            <div class="form-section">
+                <h2 class="text-2xl font-semibold text-center text-gray-800 mb-6">Postar Nova Pergunta/Resposta</h2>
+                <input type="text" id="nameInput" class="input-field" placeholder="Seu Nome" aria-label="Seu Nome" required />
+                <input type="text" id="professionInput" class="input-field" placeholder="Sua Profissão (Opcional)" aria-label="Sua Profissão" />
+                <textarea id="questionInput" class="input-field h-24 resize-y" placeholder="Escreva sua pergunta aqui..." aria-label="Sua Pergunta" required></textarea>
+                <textarea id="answerInput" class="input-field h-24 resize-y" placeholder="Escreva sua resposta aqui (Opcional)..." aria-label="Sua Resposta"></textarea>
+                <button id="postButton" class="submit-button w-full">Postar</button>
+                <p id="formMessage" class="error-message hidden"></p>
+            </div>
+
+            <!-- Seção para Exibir Posts Existentes -->
+            <div class="posts-section">
+                <h2 class="text-2xl font-semibold text-center text-gray-800 mb-6">Posts Recentes</h2>
+                <div id="postsContainer">
+                    <p class="loading-message">Carregando posts...</p>
+                    <!-- Posts serão carregados aqui pelo JavaScript -->
+                </div>
+                <p id="noPostsMessage" class="no-posts-message hidden">Nenhuma pergunta ou resposta postada ainda.</p>
+            </div>
+        </main>
+    </div>
+
+    <!-- Botão "Ajude-nos" fixo -->
+    <a href="doacoes.html" class="fixed bottom-4 right-4 bg-dark-blue text-white text-sm px-4 py-2 rounded-full shadow hover:bg-blue-900 transition fixed-donation-button">
+        Ajude-nos a manter o site gratuito
+    </a>
+
+    <!-- Modal de Mensagem Personalizado -->
+    <div id="messageModalOverlay" class="message-modal-overlay">
+        <div class="message-modal-content">
+            <button id="messageModalClose" class="message-modal-close">&times;</button>
+            <p id="messageModalText" class="text-gray-700 text-lg"></p>
         </div>
+    </div>
 
-        <div class="bg-white shadow rounded p-6 space-y-4">
-            <input id="nameInput" type="text" placeholder="Seu Nome" class="w-full p-2 border rounded input-field" />
-            <input id="professionInput" type="text" placeholder="Sua Profissão (opcional)" class="w-full p-2 border rounded input-field" />
-            <textarea id="questionInput" placeholder="Escreva sua pergunta aqui..." class="w-full p-2 border rounded h-24 input-field"></textarea>
-            <textarea id="answerInput" placeholder="Escreva sua resposta aqui (opcional)..." class="w-full p-2 border rounded h-24 input-field"></textarea>
-            <button id="postButton" class="w-full bg-blue-600 text-white py-2 rounded submit-button">Postar</button>
-            <p id="formMessage" class="text-red-600 hidden"></p>
-        </div>
+    <!-- Script principal da página (Firebase, Cookie, Vídeo Modal e Rodapé) -->
+    <script type="module">
+        // Importa as funções necessárias do Firebase SDK
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, query, orderBy, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        <div id="postsContainer" class="mt-10 space-y-4"></div>
-        <p id="noPostsMessage" class="text-center text-gray-600 mt-4 hidden">Nenhuma pergunta ou resposta postada ainda.</p>
-    </main>
+        // Global variables provided by the Canvas environment
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
+        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
 
-    <!-- Rodapé dinâmico -->
-    <script>
-        fetch("rodape111.html")
-            .then(res => res.text())
-            .then(data => {
-                const footer = document.createElement("footer");
-                footer.innerHTML = data;
-                document.body.appendChild(footer);
-            })
-            .catch(err => console.error("Erro ao carregar rodape111.html:", err));
-    </script>
+        // Inicializa o Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
 
-    <!-- Script de acessibilidade -->
-    <script>
-        const accessibilityBtn = document.getElementById('accessibilityHamburgerBtn');
-        const accessibilityMenu = document.getElementById('accessibilityOffCanvasMenu');
-        const accessibilityOverlay = document.getElementById('accessibilityOverlay');
-        const closeAccessibilityBtn = document.getElementById('closeAccessibilityMenuBtn');
+        // Referências aos elementos do DOM do Fórum
+        const nameInput = document.getElementById('nameInput');
+        const professionInput = document.getElementById('professionInput');
+        const questionInput = document.getElementById('questionInput');
+        const answerInput = document.getElementById('answerInput');
+        const postButton = document.getElementById('postButton');
+        const postsContainer = document.getElementById('postsContainer');
+        const noPostsMessage = document.getElementById('noPostsMessage');
+        const formMessage = document.getElementById('formMessage');
+        const messageModalOverlay = document.getElementById('messageModalOverlay');
+        const messageModalText = document.getElementById('messageModalText');
+        const messageModalClose = document.getElementById('messageModalClose');
 
-        accessibilityBtn.addEventListener('click', () => {
-            accessibilityMenu.classList.remove('-translate-x-full');
-            accessibilityOverlay.classList.remove('hidden');
+        let userId = null; // Para armazenar o ID do usuário autenticado
+
+        // --- Funções do Modal de Mensagem ---
+        function showCustomMessage(message) {
+            messageModalText.textContent = message;
+            messageModalOverlay.style.display = 'flex';
+        }
+
+        function hideCustomMessage() {
+            messageModalOverlay.style.display = 'none';
+        }
+
+        // Adiciona listeners para o modal de mensagem
+        messageModalClose.addEventListener('click', hideCustomMessage);
+        messageModalOverlay.addEventListener('click', (e) => {
+            if (e.target === messageModalOverlay) {
+                hideCustomMessage();
+            }
         });
 
-        closeAccessibilityBtn.addEventListener('click', () => {
-            accessibilityMenu.classList.add('-translate-x-full');
-            accessibilityOverlay.classList.add('hidden');
+        // --- Autenticação Firebase ---
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                userId = user.uid;
+                console.log('Usuário autenticado:', userId);
+                listenForPosts();
+            } else {
+                try {
+                    if (initialAuthToken) {
+                        await signInWithCustomToken(auth, initialAuthToken);
+                        console.log('Autenticação com token personalizado bem-sucedida.');
+                    } else {
+                        await signInAnonymously(auth);
+                        console.log('Autenticação anônima bem-sucedida.');
+                    }
+                } catch (error) {
+                    console.error('Erro na autenticação:', error);
+                    showCustomMessage('Erro ao autenticar. Por favor, tente novamente.');
+                }
+            }
         });
 
-        accessibilityOverlay.addEventListener('click', () => {
-            accessibilityMenu.classList.add('-translate-x-full');
-            accessibilityOverlay.classList.add('hidden');
+        // --- Adicionar Novo Post ao Firestore ---
+        postButton.addEventListener('click', async () => {
+            const name = nameInput.value.trim();
+            const profession = professionInput.value.trim();
+            const question = questionInput.value.trim();
+            const answer = answerInput.value.trim();
+
+            if (!name || !question) {
+                formMessage.textContent = 'Nome e Pergunta são campos obrigatórios.';
+                formMessage.classList.remove('hidden');
+                return;
+            } else {
+                formMessage.classList.add('hidden');
+            }
+
+            postButton.disabled = true;
+            postButton.textContent = 'Postando...';
+
+            try {
+                const forumCollectionRef = collection(db, `artifacts/${appId}/public/data/forum_posts`);
+                await addDoc(forumCollectionRef, {
+                    name: name,
+                    profession: profession,
+                    question: question,
+                    answer: answer,
+                    timestamp: serverTimestamp(),
+                    userId: userId
+                });
+                showCustomMessage('Sua postagem foi adicionada com sucesso!');
+                nameInput.value = '';
+                professionInput.value = '';
+                questionInput.value = '';
+                answerInput.value = '';
+            } catch (e) {
+                console.error("Erro ao adicionar documento: ", e);
+                showCustomMessage('Erro ao postar. Por favor, tente novamente.');
+            } finally {
+                postButton.disabled = false;
+                postButton.textContent = 'Postar';
+            }
         });
 
-        document.getElementById('toggleFontSizeBtn').addEventListener('click', () => {
-            document.body.classList.toggle('text-lg');
-        });
+        // --- Escutar Posts do Firestore em Tempo Real ---
+        function listenForPosts() {
+            const q = query(collection(db, `artifacts/${appId}/public/data/forum_posts`), orderBy("timestamp", "desc"));
 
-        document.getElementById('toggleContrastBtn').addEventListener('click', () => {
-            document.body.classList.toggle('contrast');
-        });
+            onSnapshot(q, (querySnapshot) => {
+                postsContainer.innerHTML = '';
+                const posts = [];
+                querySnapshot.forEach((doc) => {
+                    posts.push({ id: doc.id, ...doc.data() });
+                });
 
-        document.getElementById('toggleDarkModeBtn').addEventListener('click', () => {
-            document.body.classList.toggle('dark');
-        });
+                if (posts.length === 0) {
+                    noPostsMessage.classList.remove('hidden');
+                    postsContainer.classList.add('hidden');
+                } else {
+                    noPostsMessage.classList.add('hidden');
+                    postsContainer.classList.remove('hidden');
+                    posts.forEach(post => {
+                        const postCard = document.createElement('div');
+                        postCard.className = 'post-card';
+                        const timestamp = post.timestamp ? new Date(post.timestamp.toDate()).toLocaleString('pt-BR') : 'Data Indisponível';
+                        postCard.innerHTML = `
+                            <div class="post-header">
+                                <span class="post-author">${post.name} <span class="post-profession">${post.profession ? `(${post.profession})` : ''}</span></span>
+                                <span class="post-timestamp">${timestamp}</span>
+                            </div>
+                            <p class="post-question"><strong>Pergunta:</strong> ${post.question}</p>
+                            ${post.answer ? `<p class="post-answer"><strong>Resposta:</strong> ${post.answer}</p>` : ''}
+                        `;
+                        postsContainer.appendChild(postCard);
+                    });
+                }
+            }, (error) => {
+                console.error("Erro ao carregar posts: ", error);
+                postsContainer.innerHTML = `<p class="error-message">Erro ao carregar posts: ${error.message}</p>`;
+                noPostsMessage.classList.add('hidden');
+            });
+        }
 
-        document.getElementById('resetAccessibilityBtn').addEventListener('click', () => {
-            document.body.classList.remove('text-lg', 'contrast', 'dark');
+        // --- Lógica do Cookie Consent Banner (copiado do index.html) ---
+        const cookieConsentBanner = document.getElementById('cookieConsentBanner');
+        const acceptCookiesBtn = document.getElementById('acceptCookiesBtn');
+        const refuseCookiesBtn = document.getElementById('refuseCookiesBtn');
+        const cookiesAcceptedKey = 'cookiesAccepted'; // Chave para localStorage
+
+        function showCookieBanner() {
+            if (localStorage.getItem(cookiesAcceptedKey) === null) {
+                cookieConsentBanner.classList.add('show');
+            }
+        }
+
+        function hideCookieBanner() {
+            cookieConsentBanner.classList.remove('show');
+        }
+
+        if (acceptCookiesBtn) {
+            acceptCookiesBtn.addEventListener('click', () => {
+                localStorage.setItem(cookiesAcceptedKey, 'true');
+                hideCookieBanner();
+            });
+        }
+
+        if (refuseCookiesBtn) {
+            refuseCookiesBtn.addEventListener('click', () => {
+                localStorage.setItem(cookiesAcceptedKey, 'false');
+                hideCookieBanner();
+            });
+        }
+        // --- Fim da Lógica do Cookie Consent Banner ---
+
+        // --- Lógica do Botão "Bem-vindo!" e Modal de Vídeo (copiado do index.html) ---
+        const btnWelcome = document.getElementById('btnWelcome');
+        const videoModal = document.getElementById('videoModal');
+        const closeModal = document.querySelector('.video-modal-close');
+        const welcomeVideo = document.getElementById('welcomeVideo');
+
+        if (btnWelcome) {
+            btnWelcome.addEventListener('click', () => {
+                videoModal.style.display = 'flex';
+                welcomeVideo.play();
+            });
+        }
+
+        if (closeModal) {
+            closeModal.addEventListener('click', () => {
+                videoModal.style.display = 'none';
+                welcomeVideo.pause();
+                welcomeVideo.currentTime = 0;
+            });
+        }
+
+        if (videoModal) {
+            videoModal.addEventListener('click', (event) => {
+                if (event.target === videoModal) {
+                    videoModal.style.display = 'none';
+                    welcomeVideo.pause();
+                    welcomeVideo.currentTime = 0;
+                }
+            });
+        }
+
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape' && videoModal.style.display === 'flex') {
+                videoModal.style.display = 'none';
+                welcomeVideo.pause();
+                welcomeVideo.currentTime = 0;
+            }
+        });
+        // --- Fim da Lógica do Botão "Bem-vindo!" e Modal de Vídeo ---
+
+        // --- Início do DOMContentLoaded para VLibras, Rodapé e Cookie Banner ---
+        document.addEventListener('DOMContentLoaded', () => {
+            // Inicialização do widget VLibras
+            new VLibras.Widget('https://vlibras.gov.br/app');
+
+            // Carrega o rodapé (rodape111.html)
+            fetch("rodape111.html")
+                .then(res => {
+                    console.log('Resposta do fetch para rodape111.html:', res);
+                    if (!res.ok) {
+                        throw new Error(`Erro HTTP! Status: ${res.status}`);
+                    }
+                    return res.text();
+                })
+                .then(data => {
+                    console.log('Conteúdo do rodape111.html:', data);
+                    const footer = document.createElement("footer"); // Cria um elemento footer
+                    footer.innerHTML = data; // Define o conteúdo HTML
+                    document.body.appendChild(footer); // Anexa diretamente ao body
+                    console.log('Rodapé carregado e anexado com sucesso.');
+                })
+                .catch(err => console.error("Erro ao carregar rodape111.html:", err));
+
+            // Mostra o banner de cookies ao carregar a página, se necessário
+            showCookieBanner();
         });
     </script>
 </body>
