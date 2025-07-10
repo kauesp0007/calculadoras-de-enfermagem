@@ -827,7 +827,7 @@
     </footer>
 
     <!-- Script principal da página (Firebase, Cookie, Vídeo Modal, Topbar e Acessibilidade) -->
-    <script type="module" defer>
+    <script type="module">
         // Importa as funções necessárias do Firebase SDK
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
@@ -1063,60 +1063,30 @@
         });
         // --- Fim da Lógica do Botão "Bem-vindo!" e Modal de Vídeo ---
 
-        // --- Lógica da Topbar (Dropdowns e Menu Mobile) ---
-        // Mover estas referências para dentro do DOMContentLoaded para garantir que os elementos existam
-        let menuToggle;
-        let mainNav;
-        let dropdownButtons;
+        // --- Funções de Inicialização da UI (Chamadas no DOMContentLoaded) ---
+        function initializeUIElements() {
+            // Topbar (Dropdowns e Mobile Menu)
+            const menuToggle = document.getElementById('menuToggle');
+            const mainNav = document.getElementById('mainNav');
+            const dropdownButtons = document.querySelectorAll('[data-menu-target]');
 
-        // --- Lógica de Acessibilidade (diretamente no forum.html) ---
-        // Mover estas referências para dentro do DOMContentLoaded para garantir que os elementos existam
-        let accessibilityBtn;
-        let accessibilityMenu;
-        let accessibilityOverlay;
-        let closeAccessibilityBtn;
-        let toggleFontSizeBtn;
-        let toggleContrastBtn;
-        let toggleDarkModeBtn;
-        let resetAccessibilityBtn;
+            console.log('UI Init: Topbar elements:', { menuToggle, mainNav, dropdownButtons });
 
-
-        // --- Início do DOMContentLoaded para VLibras, Cookie Banner, Topbar e Acessibilidade ---
-        document.addEventListener('DOMContentLoaded', () => {
-            // Inicialização do widget VLibras
-            new VLibras.Widget('https://vlibras.gov.br/app');
-
-            // Mostra o banner de cookies ao carregar a página, se necessário
-            showCookieBanner();
-
-            // Atribuições de elementos do DOM para Topbar e Acessibilidade (agora dentro de DOMContentLoaded)
-            menuToggle = document.getElementById('menuToggle');
-            mainNav = document.getElementById('mainNav');
-            dropdownButtons = document.querySelectorAll('[data-menu-target]');
-
-            accessibilityBtn = document.getElementById('accessibilityHamburgerBtn');
-            accessibilityMenu = document.getElementById('accessibilityOffCanvasMenu');
-            accessibilityOverlay = document.getElementById('accessibilityOverlay');
-            closeAccessibilityBtn = document.getElementById('closeAccessibilityMenuBtn');
-            toggleFontSizeBtn = document.getElementById('toggleFontSizeBtn');
-            toggleContrastBtn = document.getElementById('toggleContrastBtn');
-            toggleDarkModeBtn = document.getElementById('toggleDarkModeBtn');
-            resetAccessibilityBtn = document.getElementById('resetAccessibilityBtn');
-
-
-            // Toggle do menu mobile
             if (menuToggle) {
                 menuToggle.addEventListener('click', () => {
                     mainNav.classList.toggle('hidden');
                     mainNav.classList.toggle('flex');
+                    console.log('UI Init: Menu toggle clicked. mainNav classes:', mainNav.classList);
                 });
+            } else {
+                console.warn('UI Init: menuToggle element not found.');
             }
 
-            // Toggle dos dropdowns
             dropdownButtons.forEach(button => {
-                button.addEventListener('click', () => {
+                button.addEventListener('click', (event) => {
                     const targetId = button.dataset.menuTarget;
                     const targetMenu = document.getElementById(targetId);
+                    console.log('UI Init: Dropdown button clicked:', button.textContent, 'Target:', targetId, 'Menu:', targetMenu);
 
                     // Fecha todos os outros dropdowns
                     dropdownButtons.forEach(otherButton => {
@@ -1124,18 +1094,22 @@
                         const otherTargetMenu = document.getElementById(otherTargetId);
                         if (otherTargetMenu && otherTargetMenu !== targetMenu) {
                             otherTargetMenu.classList.remove('show');
+                            console.log('UI Init: Closed other dropdown:', otherTargetId);
                         }
                     });
 
                     // Alterna o dropdown clicado
                     if (targetMenu) {
                         targetMenu.classList.toggle('show');
+                        console.log('UI Init: Toggled target menu:', targetId, 'Current show state:', targetMenu.classList.contains('show'));
+                    } else {
+                        console.warn('UI Init: Target menu not found for:', targetId);
                     }
                 });
             });
 
-            // Fecha dropdowns ao clicar fora
             document.addEventListener('click', (event) => {
+                // Verifica se o clique não foi dentro da navegação principal, do botão de toggle ou de um dropdown
                 if (!event.target.closest('#mainNav') && !event.target.closest('#menuToggle') && !event.target.closest('.dropdown-menu')) {
                     dropdownButtons.forEach(button => {
                         const targetId = button.dataset.menuTarget;
@@ -1149,32 +1123,50 @@
                         mainNav.classList.add('hidden');
                         mainNav.classList.remove('flex');
                     }
+                    console.log('UI Init: Clicked outside topbar/dropdowns. Closing menus.');
                 }
             });
 
-            // Abre o menu de acessibilidade
+            // Accessibility Logic
+            const accessibilityBtn = document.getElementById('accessibilityHamburgerBtn');
+            const accessibilityMenu = document.getElementById('accessibilityOffCanvasMenu');
+            const accessibilityOverlay = document.getElementById('accessibilityOverlay');
+            const closeAccessibilityBtn = document.getElementById('closeAccessibilityMenuBtn');
+            const toggleFontSizeBtn = document.getElementById('toggleFontSizeBtn');
+            const toggleContrastBtn = document.getElementById('toggleContrastBtn');
+            const toggleDarkModeBtn = document.getElementById('toggleDarkModeBtn');
+            const resetAccessibilityBtn = document.getElementById('resetAccessibilityBtn');
+
+            console.log('UI Init: Accessibility elements:', { accessibilityBtn, accessibilityMenu, accessibilityOverlay });
+
             if (accessibilityBtn) {
                 accessibilityBtn.addEventListener('click', () => {
-                    accessibilityMenu.classList.add('is-open'); // Usa a classe is-open para controlar a transição
+                    accessibilityMenu.classList.add('is-open');
                     accessibilityOverlay.style.display = 'block';
+                    console.log('UI Init: Accessibility button clicked. Menu open.');
                 });
+            } else {
+                console.warn('UI Init: accessibilityHamburgerBtn element not found.');
             }
 
-            // Fecha o menu de acessibilidade
             function closeAccessibilityMenu() {
                 accessibilityMenu.classList.remove('is-open');
                 accessibilityOverlay.style.display = 'none';
+                console.log('UI Init: Accessibility menu closed.');
             }
 
             if (closeAccessibilityBtn) {
                 closeAccessibilityBtn.addEventListener('click', closeAccessibilityMenu);
+            } else {
+                console.warn('UI Init: closeAccessibilityMenuBtn element not found.');
             }
 
             if (accessibilityOverlay) {
                 accessibilityOverlay.addEventListener('click', closeAccessibilityMenu);
+            } else {
+                console.warn('UI Init: accessibilityOverlay element not found.');
             }
 
-            // Funções de acessibilidade
             if (toggleFontSizeBtn) {
                 toggleFontSizeBtn.addEventListener('click', () => {
                     if (document.body.classList.contains('font-size-large')) {
@@ -1185,26 +1177,55 @@
                     } else {
                         document.body.classList.add('font-size-large');
                     }
+                    console.log('UI Init: Font size toggled. Body classes:', document.body.classList);
                 });
+            } else {
+                console.warn('UI Init: toggleFontSizeBtn element not found.');
             }
 
             if (toggleContrastBtn) {
                 toggleContrastBtn.addEventListener('click', () => {
                     document.body.classList.toggle('high-contrast');
+                    console.log('UI Init: Contrast toggled. Body classes:', document.body.classList);
                 });
+            } else {
+                console.warn('UI Init: toggleContrastBtn element not found.');
             }
 
             if (toggleDarkModeBtn) {
                 toggleDarkModeBtn.addEventListener('click', () => {
                     document.body.classList.toggle('dark-mode');
+                    console.log('UI Init: Dark mode toggled. Body classes:', document.body.classList);
                 });
+            } else {
+                console.warn('UI Init: toggleDarkModeBtn element not found.');
             }
 
             if (resetAccessibilityBtn) {
                 resetAccessibilityBtn.addEventListener('click', () => {
                     document.body.classList.remove('font-size-small', 'font-size-large', 'high-contrast', 'dark-mode');
+                    console.log('UI Init: Accessibility reset. Body classes:', document.body.classList);
                 });
+            } else {
+                console.warn('UI Init: resetAccessibilityBtn element not found.');
             }
+        } // Fim de initializeUIElements
+
+        // --- Início do DOMContentLoaded para VLibras, Cookie Banner e Inicialização da UI ---
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('DOMContentLoaded fired.');
+
+            // Inicialização do widget VLibras (primeiro, se for modificar o DOM)
+            new VLibras.Widget('https://vlibras.gov.br/app');
+            console.log('VLibras widget initialized.');
+
+            // Mostra o banner de cookies ao carregar a página, se necessário
+            showCookieBanner();
+            console.log('Cookie banner check performed.');
+
+            // Inicializa todos os elementos da UI (topbar, acessibilidade, etc.)
+            initializeUIElements();
+            console.log('UI elements initialization function called.');
         });
     </script>
     <script src="https://vlibras.gov.br/app/vlibras-plugin.js"></script>
