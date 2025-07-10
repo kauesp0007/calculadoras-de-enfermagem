@@ -352,7 +352,7 @@
             margin-top: 10px;
         }
 
-        /* Estilo para o elemento <footer> que será criado dinamicamente */
+        /* Estilo para o elemento <footer> */
         footer {
             background-color: #1A3E74; /* Cor azul do seu rodapé */
             color: white; /* Cor do texto do rodapé */
@@ -499,7 +499,7 @@
             background-color: black !important;
             color: white !important;
         }
-        body.dark-mode { /* Renomeado de .dark para .dark-mode para evitar conflito com a classe .dark do seu CSS original */
+        body.dark-mode {
             background-color: #1a202c !important;
             color: #e2e8f0 !important;
         }
@@ -789,6 +789,43 @@
         </div>
     </div>
 
+    <!-- Rodapé -->
+    <footer class="bg-blue-900 text-white px-4 py-4">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between">
+            <!-- Ícone alinhado à esquerda -->
+            <div class="flex-shrink-0 mb-4 md:mb-0">
+                <img src="iconrodape.png" alt="Ícone Rodapé" class="w-15 h-20 mx-auto md:mx-0" />
+            </div>
+
+            <!-- Texto centralizado e Links centralizados -->
+            <div class="flex-1 flex flex-col items-center text-center md:text-left">
+                <p class="text-sm mb-2">© 2025 Calculadoras de Enfermagem</p>
+                <div class="flex flex-wrap gap-4 justify-center text-sm">
+                    <a href="index.html" class="hover:underline">Início</a>
+                    <a href="politica.html" class="hover:underline">Políticas de Privacidade</a>
+                    <a href="politica.html" class="hover:underline">Políticas de Cookies</a>
+                    <a href="termos.html" class="hover:underline">Termos de Uso</a>
+                </div>
+            </div>
+
+            <!-- Nova div para os ícones das redes sociais, alinhada à direita -->
+            <div class="flex-shrink-0 flex space-x-4 mt-4 md:mt-0">
+                <a href="https://youtube.com/" target="_blank" class="text-white hover:text-gray-300" aria-label="YouTube">
+                    <i class="fab fa-youtube text-2xl"></i>
+                </a>
+                <a href="https://facebook.com/" target="_blank" class="text-white hover:text-gray-300" aria-label="Facebook">
+                    <i class="fab fa-facebook-f text-2xl"></i>
+                </a>
+                <a href="https://instagram.com/" target="_blank" class="text-white hover:text-gray-300" aria-label="Instagram">
+                    <i class="fab fa-instagram text-2xl"></i>
+                </a>
+                <a href="https://tiktok.com/" target="_blank" class="text-white hover:text-gray-300" aria-label="TikTok">
+                    <i class="fab fa-tiktok text-2xl"></i>
+                </a>
+            </div>
+        </div>
+    </footer>
+
     <!-- Script principal da página (Firebase, Cookie, Vídeo Modal, Topbar e Acessibilidade) -->
     <script type="module">
         // Importa as funções necessárias do Firebase SDK
@@ -982,27 +1019,26 @@
         // --- Fim da Lógica do Cookie Consent Banner ---
 
         // --- Lógica do Botão "Bem-vindo!" e Modal de Vídeo (se houver) ---
-        // Se você tiver um botão de "Bem-vindo!" e um modal de vídeo em outras páginas,
-        // e quiser que eles funcionem aqui, adicione o HTML correspondente no body.
-        // Por enquanto, as referências abaixo são apenas para compatibilidade,
-        // mas não terão efeito sem os elementos HTML.
-        const btnWelcome = document.getElementById('btnWelcome');
-        const videoModal = document.getElementById('videoModal');
-        const closeModal = document.querySelector('.video-modal-close');
-        const welcomeVideo = document.getElementById('welcomeVideo');
+        // Estes elementos não estão presentes no HTML atual, mas a lógica é mantida para compatibilidade.
+        const btnWelcome = document.getElementById('btnWelcome'); // Pode não existir
+        const videoModal = document.getElementById('videoModal'); // Pode não existir
+        const closeModal = document.querySelector('.video-modal-close'); // Pode não existir
+        const welcomeVideo = document.getElementById('welcomeVideo'); // Pode não existir
 
         if (btnWelcome) {
             btnWelcome.addEventListener('click', () => {
-                videoModal.style.display = 'flex';
-                welcomeVideo.play();
+                if (videoModal) {
+                    videoModal.style.display = 'flex';
+                    if (welcomeVideo) welcomeVideo.play();
+                }
             });
         }
 
         if (closeModal) {
             closeModal.addEventListener('click', () => {
-                videoModal.style.display = 'none';
-                welcomeVideo.pause();
-                welcomeVideo.currentTime = 0;
+                if (videoModal) videoModal.style.display = 'none';
+                if (welcomeVideo) welcomeVideo.pause();
+                if (welcomeVideo) welcomeVideo.currentTime = 0;
             });
         }
 
@@ -1010,8 +1046,8 @@
             videoModal.addEventListener('click', (event) => {
                 if (event.target === videoModal) {
                     videoModal.style.display = 'none';
-                    welcomeVideo.pause();
-                    welcomeVideo.currentTime = 0;
+                    if (welcomeVideo) welcomeVideo.pause();
+                    if (welcomeVideo) welcomeVideo.currentTime = 0;
                 }
             });
         }
@@ -1019,7 +1055,7 @@
         document.addEventListener('keydown', (event) => {
             if (event.key === 'Escape' && videoModal && videoModal.style.display === 'flex') {
                 videoModal.style.display = 'none';
-                if (welcomeVideo) { // Verifica se welcomeVideo existe antes de tentar pausar
+                if (welcomeVideo) {
                     welcomeVideo.pause();
                     welcomeVideo.currentTime = 0;
                 }
@@ -1134,7 +1170,7 @@
 
         if (toggleDarkModeBtn) {
             toggleDarkModeBtn.addEventListener('click', () => {
-                document.body.classList.toggle('dark-mode'); // Usa 'dark-mode'
+                document.body.classList.toggle('dark-mode');
             });
         }
 
@@ -1144,28 +1180,10 @@
             });
         }
 
-        // --- Início do DOMContentLoaded para VLibras, Rodapé e Cookie Banner ---
+        // --- Início do DOMContentLoaded para VLibras e Cookie Banner ---
         document.addEventListener('DOMContentLoaded', () => {
             // Inicialização do widget VLibras
             new VLibras.Widget('https://vlibras.gov.br/app');
-
-            // Carrega o rodapé (rodape111.html)
-            fetch(new URL("rodape111.html", window.location.href).href)
-                .then(res => {
-                    console.log('Resposta do fetch para rodape111.html:', res);
-                    if (!res.ok) {
-                        throw new Error(`Erro HTTP! Status: ${res.status}`);
-                    }
-                    return res.text();
-                })
-                .then(data => {
-                    console.log('Conteúdo do rodape111.html:', data);
-                    const footer = document.createElement("footer"); // Cria um elemento footer
-                    footer.innerHTML = data; // Define o conteúdo HTML
-                    document.body.appendChild(footer); // Anexa diretamente ao body
-                    console.log('Rodapé carregado e anexado com sucesso.');
-                })
-                .catch(err => console.error("Erro ao carregar rodape111.html:", err));
 
             // Mostra o banner de cookies ao carregar a página, se necessário
             showCookieBanner();
