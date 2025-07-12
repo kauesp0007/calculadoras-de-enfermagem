@@ -275,7 +275,7 @@ window.definirCorFoco = function(color) {
     currentFocusColor = color;
     document.documentElement.style.setProperty('--cor-foco-acessibilidade', color);
     localStorage.setItem('focusColor', color);
-    updateFocusColorButtons(color);
+    updateFocusColorButtons(currentFocusColor);
 };
 
 /**
@@ -516,57 +516,8 @@ document.addEventListener('keydown', (event) => {
     if (event.key === 'Escape' && !customModal.classList.contains('hidden')) {
         hideCustomModal();
     }
-    if (event.key === 'Escape' && !videoTutorialModal.classList.contains('hidden')) {
-        closeVideoTutorial();
-    }
+    // Removed video tutorial modal close on escape key as the modal is removed
 });
-
-// --- Video Tutorial Modal Logic ---
-const videoTutorialModal = document.getElementById('videoTutorialModal');
-const tutorialVideoFrame = document.getElementById('tutorialVideoFrame');
-const skipTutorialBtn = document.getElementById('skipTutorialBtn');
-
-/**
- * Shows the video tutorial modal if it hasn't been shown before.
- */
-function showVideoTutorialIfFirstVisit() {
-    const hasSeenTutorial = localStorage.getItem('hasSeenTutorial');
-    if (!hasSeenTutorial && videoTutorialModal) {
-        videoTutorialModal.classList.remove('hidden');
-        videoTutorialModal.setAttribute('aria-hidden', 'false');
-        document.body.style.overflow = 'hidden'; // Prevent scrolling behind modal
-        if (tutorialVideoFrame) {
-            // Autoplay the video (most browsers require user interaction for autoplay)
-            const videoSrc = tutorialVideoFrame.src;
-            if (!videoSrc.includes('autoplay=1')) {
-                tutorialVideoFrame.src = videoSrc + '?autoplay=1';
-            }
-        }
-    }
-}
-
-/**
- * Closes the video tutorial modal and sets a flag in localStorage.
- */
-window.closeVideoTutorial = function() {
-    if (videoTutorialModal) {
-        videoTutorialModal.classList.add('hidden');
-        videoTutorialModal.setAttribute('aria-hidden', 'true');
-        document.body.style.overflow = ''; // Restore body scrolling
-        localStorage.setItem('hasSeenTutorial', 'true'); // Mark tutorial as seen
-        if (tutorialVideoFrame) {
-            // Stop the video when closing the modal
-            tutorialVideoFrame.src = tutorialVideoFrame.src.replace('?autoplay=1', '').replace('&autoplay=1', '');
-        }
-    }
-};
-
-if (skipTutorialBtn) {
-    skipTutorialBtn.addEventListener('click', closeVideoTutorial);
-}
-
-// Show video tutorial on first visit after DOM is loaded
-document.addEventListener('DOMContentLoaded', showVideoTutorialIfFirstVisit);
 
 // --- Newsletter Subscription Logic ---
 const newsletterEmail = document.getElementById('newsletterEmail');
