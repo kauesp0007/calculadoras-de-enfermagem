@@ -372,7 +372,7 @@
 <body class="bg-gray-50 text-gray-800 font-inter">
 
     <div id="topbar-container"></div>
-    <script src="topbar111.js" defer></script>
+    <script src="./topbar111.js" defer></script>
 
     <div class="main-content-wrapper">
         <main class="max-w-4xl mx-auto px-4 py-8">
@@ -452,23 +452,8 @@
     <!-- Div para o rodapé dinâmico -->
     <div id="footer-container"></div>
 
-    <!-- Script principal da página (Firebase, Cookie, Calculadora e PDF) -->
-    <script type="module">
-        // Importa as funções necessárias do Firebase SDK
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, addDoc, query, orderBy, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-
-        // Global variables provided by the Canvas environment
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
-        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
-
-        // Inicializa o Firebase
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
-        const auth = getAuth(app);
-
+    <!-- Script principal da página (Cookie, Calculadora e PDF) -->
+    <script>
         // Referências aos elementos do DOM
         const btnCalcular = document.getElementById('btnCalcular');
         const btnLimpar = document.getElementById('btnLimpar');
@@ -480,8 +465,6 @@
         const messageModalOverlay = document.getElementById('messageModalOverlay');
         const messageModalText = document.getElementById('messageModalText');
         const messageModalClose = document.getElementById('messageModalClose');
-
-        let userId = null; // Para armazenar o ID do usuário autenticado
 
         // --- Funções do Modal de Mensagem ---
         function showCustomMessage(message) {
@@ -498,26 +481,6 @@
         messageModalOverlay.addEventListener('click', (e) => {
             if (e.target === messageModalOverlay) {
                 hideCustomMessage();
-            }
-        });
-
-        // --- Autenticação Firebase (mantida para consistência com outras páginas) ---
-        onAuthStateChanged(auth, async (user) => {
-            if (user) {
-                userId = user.uid;
-                console.log('FOUR Score Firebase: Usuário autenticado:', userId);
-            } else {
-                try {
-                    if (initialAuthToken) {
-                        await signInWithCustomToken(auth, initialAuthToken);
-                        console.log('FOUR Score Firebase: Autenticação com token personalizado bem-sucedida.');
-                    } else {
-                        await signInAnonymously(auth);
-                        console.log('FOUR Score Firebase: Autenticação anônima bem-sucedida.');
-                    }
-                } catch (error) {
-                    console.error('FOUR Score Firebase: Erro na autenticação:', error);
-                }
             }
         });
 
@@ -825,8 +788,25 @@
 
         // --- Início do DOMContentLoaded para preencher o formulário, carregar rodapé e adicionar listeners ---
         document.addEventListener('DOMContentLoaded', () => {
+            console.log('DOMContentLoaded fired. Starting dynamic content generation for FOUR Scale.');
+
+            // Carrega o rodapé
+            fetch("./rodape111.html")
+                .then(res => res.text())
+                .then(data => {
+                    const footerContainer = document.getElementById("footer-container");
+                    if (footerContainer) {
+                        footerContainer.innerHTML = data;
+                        console.log('Rodapé carregado com sucesso.');
+                    } else {
+                        console.error("Elemento #footer-container não encontrado.");
+                    }
+                })
+                .catch(err => console.error("Erro ao carregar rodape111.html:", err));
+
             // Preenche o formulário dinamicamente
             fourData.forEach((item, index) => {
+                console.log(`Generating section for: ${item.category}`);
                 const sectionDiv = document.createElement('div');
                 sectionDiv.className = 'criterion-section';
 
@@ -853,23 +833,12 @@
                     label.appendChild(input);
                     label.appendChild(span);
                     optionsGroupDiv.appendChild(label);
+                    console.log(`  Added option: ${option.description} with score ${option.score}`);
                 });
                 sectionDiv.appendChild(optionsGroupDiv);
                 conteudoDiv.appendChild(sectionDiv);
+                console.log(`Section "${item.category}" appended to #conteudo.`);
             });
-
-            // Carrega o rodapé
-            fetch("rodape111.html")
-                .then(res => res.text())
-                .then(data => {
-                    const footerContainer = document.getElementById("footer-container");
-                    if (footerContainer) {
-                        footerContainer.innerHTML = data;
-                    } else {
-                        console.error("Elemento #footer-container não encontrado.");
-                    }
-                })
-                .catch(err => console.error("Erro ao carregar rodape111.html:", err));
 
             // Mostra o banner de cookies ao carregar a página, se necessário
             showCookieBanner();
