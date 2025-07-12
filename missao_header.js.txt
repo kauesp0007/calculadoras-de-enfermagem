@@ -1,0 +1,153 @@
+// missao_header.js
+
+// Get references to DOM elements for the mobile menu
+const hamburgerButton = document.getElementById('hamburgerButton');
+const offCanvasMenu = document.getElementById('offCanvasMenu');
+const menuOverlay = document.getElementById('menuOverlay');
+
+/**
+ * Toggles the mobile off-canvas menu and its overlay.
+ */
+function toggleMobileMenu() {
+    offCanvasMenu.classList.toggle('is-open');
+    menuOverlay.classList.toggle('is-open');
+    // Set aria-expanded attribute for accessibility
+    const isExpanded = offCanvasMenu.classList.contains('is-open');
+    hamburgerButton.setAttribute('aria-expanded', isExpanded);
+    // Manage body scroll when menu is open
+    document.body.style.overflow = isExpanded ? 'hidden' : '';
+}
+
+// Add event listeners for the mobile menu
+if (hamburgerButton) {
+    hamburgerButton.addEventListener('click', toggleMobileMenu);
+}
+if (menuOverlay) {
+    menuOverlay.addEventListener('click', toggleMobileMenu); // Close menu when clicking outside
+}
+
+/**
+ * Handles submenu toggling for both desktop and mobile navigation.
+ * @param {Event} event - The click event.
+ */
+function handleSubmenuToggle(event) {
+    event.preventDefault(); // Prevent default link behavior
+    const target = event.currentTarget;
+    const submenuId = target.dataset.submenuToggle;
+    const submenu = document.getElementById(submenuId);
+
+    if (submenu) {
+        // Close all other open submenus at the same level
+        const parentUl = target.closest('ul');
+        if (parentUl) {
+            parentUl.querySelectorAll('[data-submenu-toggle]').forEach(otherToggle => {
+                const otherSubmenuId = otherToggle.dataset.submenuToggle;
+                const otherSubmenu = document.getElementById(otherSubmenuId);
+                if (otherSubmenu && otherSubmenu !== submenu && otherSubmenu.classList.contains('is-open')) {
+                    otherSubmenu.classList.remove('is-open');
+                    otherSubmenu.classList.add('hidden');
+                    otherToggle.setAttribute('aria-expanded', 'false');
+                    // Reset chevron for closed submenu
+                    const otherChevron = otherToggle.querySelector('.fa-chevron-down, .fa-chevron-right');
+                    if (otherChevron) {
+                        otherChevron.classList.remove('fa-chevron-right');
+                        otherChevron.classList.add('fa-chevron-down');
+                    }
+                }
+            });
+        }
+
+        // Toggle the clicked submenu
+        submenu.classList.toggle('hidden');
+        submenu.classList.toggle('is-open'); // Add/remove is-open for mobile transitions
+        const isExpanded = submenu.classList.contains('is-open');
+        target.setAttribute('aria-expanded', isExpanded);
+
+        // Toggle chevron icon for mobile menu
+        const chevron = target.querySelector('.fa-chevron-down, .fa-chevron-right');
+        if (chevron) {
+            if (isExpanded) {
+                chevron.classList.remove('fa-chevron-down');
+                chevron.classList.add('fa-chevron-right');
+            } else {
+                chevron.classList.remove('fa-chevron-right');
+                chevron.classList.add('fa-chevron-down');
+            }
+        }
+    }
+}
+
+// Attach event listeners for submenu toggles (for both desktop and mobile)
+document.querySelectorAll('[data-submenu-toggle]').forEach(toggle => {
+    toggle.addEventListener('click', handleSubmenuToggle);
+});
+
+/**
+ * Toggles the visibility of elements based on PWA (mobile) mode.
+ * This function is called on window resize and page load.
+ */
+function togglePWAModeElements() {
+    const desktopOnlyElements = document.querySelectorAll('.desktop-only');
+    const pwaOnlyElements = document.querySelectorAll('.pwa-only');
+    const isMobile = window.innerWidth <= 768; // Define breakpoint for mobile
+
+    desktopOnlyElements.forEach(el => {
+        el.style.display = isMobile ? 'none' : ''; // Use empty string to revert to default display
+    });
+
+    pwaOnlyElements.forEach(el => {
+        el.style.display = isMobile ? '' : 'none';
+    });
+
+    // Adjust body padding-top based on mobile/desktop header heights
+    const body = document.body;
+    if (isMobile) {
+        body.style.paddingTop = '90px'; // Adjust for mobile header height
+    } else {
+        body.style.paddingTop = '115px'; // Adjust for desktop header height (accessibility bar + header)
+    }
+}
+
+// Initial call to set element visibility on page load
+window.addEventListener('load', togglePWAModeElements);
+// Listen for window resize to adjust PWA elements visibility
+window.addEventListener('resize', togglePWAModeElements);
+
+// Ensure VLibras button is positioned correctly on mobile
+window.addEventListener('load', () => {
+    const vlibrasButton = document.querySelector('.vw-access-button');
+    if (vlibrasButton) {
+        // Apply fixed positioning and z-index to VLibras button on mobile
+        const isMobile = window.innerWidth <= 768;
+        if (isMobile) {
+            vlibrasButton.style.position = 'fixed';
+            vlibrasButton.style.right = '20px';
+            vlibrasButton.style.bottom = '170px'; // Position above quickAccessNursingAssistantBtn
+            vlibrasButton.style.zIndex = '99992'; // Higher than other floating buttons
+            vlibrasButton.style.width = '50px';
+            vlibrasButton.style.height = '50px';
+            vlibrasButton.style.borderRadius = '12px';
+            vlibrasButton.style.backgroundColor = '#1A3E74';
+            vlibrasButton.style.color = 'white';
+            vlibrasButton.style.boxShadow = '0 2px 5px rgba(0,0,0,0.2)';
+            vlibrasButton.style.display = 'flex';
+            vlibrasButton.style.alignItems = 'center';
+            vlibrasButton.style.justifyContent = 'center';
+        } else {
+            // Reset styles for desktop if needed, or let CSS handle it
+            vlibrasButton.style.position = '';
+            vlibrasButton.style.right = '';
+            vlibrasButton.style.bottom = '';
+            vlibrasButton.style.zIndex = '';
+            vlibrasButton.style.width = '';
+            vlibrasButton.style.height = '';
+            vlibrasButton.style.borderRadius = '';
+            vlibrasButton.style.backgroundColor = '';
+            vlibrasButton.style.color = '';
+            vlibrasButton.style.boxShadow = '';
+            vlibrasButton.style.display = '';
+            vlibrasButton.style.alignItems = '';
+            vlibrasButton.style.justifyContent = '';
+        }
+    }
+});
