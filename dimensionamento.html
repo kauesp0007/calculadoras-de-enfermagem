@@ -194,6 +194,45 @@
             width: auto; /* Deixa o botão se ajustar ao conteúdo */
         }
     }
+
+    /* Estilo para o modal de mensagem */
+    .message-modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.6);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
+        display: none; /* Hidden by default */
+    }
+    .message-modal-content {
+        background-color: #fff;
+        padding: 2rem;
+        border-radius: 0.5rem;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        text-align: center;
+        max-width: 400px;
+        width: 90%;
+        position: relative;
+    }
+    .message-modal-close {
+        color: #aaa;
+        position: absolute;
+        top: 0.5rem;
+        right: 0.5rem;
+        background: none;
+        border: none;
+        font-size: 1.5rem;
+        font-weight: bold;
+        cursor: pointer;
+    }
+    .message-modal-close:hover {
+        color: #1F2937;
+    }
   </style>
 
 </head>
@@ -262,6 +301,10 @@
           <button type="button" id="btnGerarPDF" class="btn-secondary" aria-label="Gerar PDF">
             Gerar PDF
           </button>
+          <!-- NOVO BOTÃO NANDA, NIC, NOC -->
+          <button id="btnNandaNicNoc" class="btn-primary" aria-label="Pesquisar NANDA, NIC, NOC">
+              NANDA, NIC, NOC
+          </button>
         </div>
       </form>
 
@@ -276,6 +319,49 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
   <script>
+    // Referências aos elementos do DOM
+    const resultadoDiv = document.getElementById('resultado');
+    const observacaoDiv = document.getElementById('observacao');
+    const btnNandaNicNoc = document.getElementById('btnNandaNicNoc'); // NOVO: Referência ao botão NANDA, NIC, NOC
+
+    // --- Funções do Modal de Mensagem (necessário para exibir mensagens de erro) ---
+    const messageModalOverlay = document.createElement('div');
+    messageModalOverlay.id = 'messageModalOverlay';
+    messageModalOverlay.className = 'message-modal-overlay';
+    document.body.appendChild(messageModalOverlay);
+
+    const messageModalContent = document.createElement('div');
+    messageModalContent.className = 'message-modal-content';
+    messageModalOverlay.appendChild(messageModalContent);
+
+    const messageModalClose = document.createElement('button');
+    messageModalClose.id = 'messageModalClose';
+    messageModalClose.className = 'message-modal-close';
+    messageModalClose.innerHTML = '&times;';
+    messageModalContent.appendChild(messageModalClose);
+
+    const messageModalText = document.createElement('p');
+    messageModalText.id = 'messageModalText';
+    messageModalText.className = 'text-gray-700 text-lg';
+    messageModalContent.appendChild(messageModalText);
+
+    function showCustomMessage(message) {
+        messageModalText.textContent = message;
+        messageModalOverlay.style.display = 'flex';
+    }
+
+    function hideCustomMessage() {
+        messageModalOverlay.style.display = 'none';
+    }
+
+    messageModalClose.addEventListener('click', hideCustomMessage);
+    messageModalOverlay.addEventListener('click', (e) => {
+        if (e.target === messageModalOverlay) {
+            hideCustomMessage();
+        }
+    });
+    // --- Fim das Funções do Modal de Mensagem ---
+
     // Define as horas de enfermagem por tipo de cuidado (usado nos cálculos)
     const horasEnfermagem = {
       minimo: 4,
@@ -293,9 +379,6 @@
       const pacientesSemiInt = Number(document.getElementById('numPacientesSemiInt').value) || 0;
       const pacientesAltaDep = Number(document.getElementById('numPacientesAltaDep').value) || 0;
       const pacientesIntensivo = Number(document.getElementById('numPacientesIntensivo').value) || 0;
-
-      const resultadoDiv = document.getElementById('resultado');
-      const observacaoDiv = document.getElementById('observacao'); // Mantido para consistência
 
       if (!resultadoDiv || !observacaoDiv) {
         console.error("Elementos 'resultado' ou 'observacao' não encontrados!");
@@ -321,6 +404,10 @@
       if (totalHoras === 0) {
         resultadoDiv.classList.add('error');
         resultadoDiv.textContent = "Informe a quantidade de pelo menos um paciente para realizar o cálculo.";
+        // Limpa os data-attributes se houver erro
+        resultadoDiv.dataset.enfermeiros = '';
+        resultadoDiv.dataset.tecnicos = '';
+        resultadoDiv.dataset.scaleName = '';
         console.log('Cálculo incompleto: nenhum paciente informado.');
         return;
       }
@@ -344,6 +431,11 @@ Dimensionamento para jornada de 12 horas:
       resultadoDiv.classList.add('text-dark-blue');
       resultadoDiv.textContent = textoResultado;
       console.log('Cálculo concluído. Resultado exibido.');
+
+      // Armazena os resultados para o botão NANDA, NIC, NOC
+      resultadoDiv.dataset.enfermeiros = enfermeiros12h;
+      resultadoDiv.dataset.tecnicos = tecnicos12h;
+      resultadoDiv.dataset.scaleName = "Dimensionamento de Enfermagem";
     }
 
     function limpar() {
@@ -354,13 +446,13 @@ Dimensionamento para jornada de 12 horas:
       document.getElementById('numPacientesAltaDep').value = '';
       document.getElementById('numPacientesIntensivo').value = '';
 
-      const resultadoDiv = document.getElementById('resultado');
-      const observacaoDiv = document.getElementById('observacao');
-
       if (resultadoDiv) {
         resultadoDiv.innerText = "";
         resultadoDiv.classList.remove('text-red-custom', 'text-dark-blue', 'error');
-        // resultadoDiv.style.display = "none"; // Opcional: esconder a div de resultado ao limpar
+        // Limpa os data-attributes
+        delete resultadoDiv.dataset.enfermeiros;
+        delete resultadoDiv.dataset.tecnicos;
+        delete resultadoDiv.dataset.scaleName;
       }
       if (observacaoDiv) {
         observacaoDiv.innerText = "";
@@ -444,6 +536,7 @@ Dimensionamento para jornada de 12 horas:
         const btnCalcular = document.getElementById('btnCalcular');
         const btnLimpar = document.getElementById('btnLimpar');
         const btnGerarPDF = document.getElementById('btnGerarPDF');
+        const btnNandaNicNoc = document.getElementById('btnNandaNicNoc'); // Referência ao novo botão
 
         if (btnCalcular) {
           btnCalcular.addEventListener('click', calcular);
@@ -464,6 +557,28 @@ Dimensionamento para jornada de 12 horas:
           console.log('Evento click anexado ao btnGerarPDF.');
         } else {
           console.error('Elemento btnGerarPDF não encontrado!');
+        }
+
+        // Listener para o novo botão NANDA, NIC, NOC
+        if (btnNandaNicNoc) {
+            btnNandaNicNoc.addEventListener('click', () => {
+                const enfermeiros = resultadoDiv.dataset.enfermeiros;
+                const tecnicos = resultadoDiv.dataset.tecnicos;
+                const scaleName = resultadoDiv.dataset.scaleName;
+
+                // Se não houver resultados válidos ou se a mensagem de erro estiver visível
+                if (!enfermeiros || !tecnicos || !scaleName || resultadoDiv.innerText.includes('Informe a quantidade de pelo menos um paciente')) {
+                    showCustomMessage('Por favor, clique em "Calcular" primeiro para obter o dimensionamento e habilitar a pesquisa NANDA, NIC, NOC.');
+                    return;
+                }
+
+                // Constrói a string de pesquisa detalhada
+                const detailedSearchQuery = `${enfermeiros} enfermeiros e ${tecnicos} técnicos de enfermagem ${scaleName} GERAR diagnosticos de enfermagem da NANDA, GERAR intervenções de enfermagem do NIC, Gerar um exemplo de mensuração dos resultados implementados pelo enfermeiro (NOC)`;
+                const encodedSearchQuery = encodeURIComponent(detailedSearchQuery);
+                
+                // Abre uma nova aba com a pesquisa do Google
+                window.open(`https://www.google.com/search?q=${encodedSearchQuery}`, '_blank');
+            });
         }
 
       } catch (e) {
