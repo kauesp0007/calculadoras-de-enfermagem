@@ -368,6 +368,10 @@
         <button id="btnGerarPDF" class="btn-secondary" aria-label="Gerar PDF">
           Gerar PDF
         </button>
+        <!-- NOVO BOTÃO NANDA, NIC, NOC -->
+        <button id="btnNandaNicNoc" class="btn-primary" aria-label="Pesquisar NANDA, NIC, NOC">
+            NANDA, NIC, NOC
+        </button>
       </div>
 
     </main>
@@ -382,6 +386,48 @@
   <div id="footer-container"></div>
 
   <script>
+    // Referências aos elementos do DOM
+    const resultadoDiv = document.getElementById('resultado');
+    const btnNandaNicNoc = document.getElementById('btnNandaNicNoc'); // NOVO: Referência ao botão NANDA, NIC, NOC
+
+    // --- Funções do Modal de Mensagem (necessário para exibir mensagens de erro) ---
+    const messageModalOverlay = document.createElement('div');
+    messageModalOverlay.id = 'messageModalOverlay';
+    messageModalOverlay.className = 'message-modal-overlay';
+    document.body.appendChild(messageModalOverlay);
+
+    const messageModalContent = document.createElement('div');
+    messageModalContent.className = 'message-modal-content';
+    messageModalOverlay.appendChild(messageModalContent);
+
+    const messageModalClose = document.createElement('button');
+    messageModalClose.id = 'messageModalClose';
+    messageModalClose.className = 'message-modal-close';
+    messageModalClose.innerHTML = '&times;';
+    messageModalContent.appendChild(messageModalClose);
+
+    const messageModalText = document.createElement('p');
+    messageModalText.id = 'messageModalText';
+    messageModalText.className = 'text-gray-700 text-lg';
+    messageModalContent.appendChild(messageModalText);
+
+    function showCustomMessage(message) {
+        messageModalText.textContent = message;
+        messageModalOverlay.style.display = 'flex';
+    }
+
+    function hideCustomMessage() {
+        messageModalOverlay.style.display = 'none';
+    }
+
+    messageModalClose.addEventListener('click', hideCustomMessage);
+    messageModalOverlay.addEventListener('click', (e) => {
+        if (e.target === messageModalOverlay) {
+            hideCustomMessage();
+        }
+    });
+    // --- Fim das Funções do Modal de Mensagem ---
+
     // Função para atualizar o score exibido e recalcular o total de Glasgow
     function updateScoreAndCalculate(criterionName) {
       const selectElement = document.getElementById(`${criterionName}_select`);
@@ -431,6 +477,11 @@
           resultadoDiv.classList.remove('text-red-600', 'bg-red-100');
           resultadoDiv.classList.add('text-dark-blue', 'bg-blue-50');
       }
+
+      // Armazena os resultados para o botão NANDA, NIC, NOC
+      resultadoDiv.dataset.score = total;
+      resultadoDiv.dataset.interpretacao = interpretacao;
+      resultadoDiv.dataset.scaleName = "Escala de Coma de Glasgow";
     }
 
     // Função para limpar todos os campos e o resultado
@@ -452,6 +503,10 @@
       resultadoDiv.style.display = 'none'; // Esconde a div de resultado
       resultadoDiv.classList.remove('text-red-600', 'bg-red-100'); // Remove as classes de "risco"
       resultadoDiv.classList.add('text-dark-blue', 'bg-blue-50'); // Garante as classes padrão para futuros cálculos
+      // Limpa os data-attributes
+      delete resultadoDiv.dataset.score;
+      delete resultadoDiv.dataset.interpretacao;
+      delete resultadoDiv.dataset.scaleName;
     }
 
     // Função para gerar PDF (Aprimorada para a nova estrutura)
@@ -593,6 +648,28 @@
       document.getElementById('btnCalcular').addEventListener('click', calcularEscala);
       document.getElementById('btnLimpar').addEventListener('click', limparCampos);
       document.getElementById('btnGerarPDF').addEventListener('click', gerarPDF);
+
+      // NOVO: Adiciona o event listener para o novo botão NANDA, NIC, NOC
+      if (btnNandaNicNoc) {
+          btnNandaNicNoc.addEventListener('click', () => {
+              const currentScore = resultadoDiv.dataset.score;
+              const interpretacao = resultadoDiv.dataset.interpretacao;
+              const scaleName = resultadoDiv.dataset.scaleName;
+
+              // Se não houver resultados válidos (ou se a mensagem de erro estiver visível)
+              if (!currentScore || !interpretacao || !scaleName || resultadoDiv.innerHTML.includes('Nenhum cálculo realizado')) {
+                  showCustomMessage('Por favor, clique em "Calcular Escore" primeiro para obter a pontuação e habilitar a pesquisa NANDA, NIC, NOC.');
+                  return;
+              }
+
+              // Constrói a string de pesquisa detalhada
+              const detailedSearchQuery = `${currentScore} pontos, ${interpretacao} - ${scaleName} GERAR diagnosticos de enfermagem da NANDA, GERAR intervenções de enfermagem do NIC, Gerar um exemplo de mensuração dos resultados implementados pelo enfermeiro (NOC)`;
+              const encodedSearchQuery = encodeURIComponent(detailedSearchQuery);
+              
+              // Abre uma nova aba com a pesquisa do Google
+              window.open(`https://www.google.com/search?q=${encodedSearchQuery}`, '_blank');
+          });
+      }
 
       // Carrega o rodapé (rodape111.html)
       fetch("rodape111.html")
