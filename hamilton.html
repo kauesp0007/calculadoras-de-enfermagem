@@ -14,7 +14,6 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Nunito+Sans:wght@700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 
-    <!-- html2pdf CDN -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
     <script async src="https://www.googletagmanager.com/gtag/js?id=AW-952633102"></script>
@@ -439,12 +438,10 @@
             </p>
 
             <div id="conteudo">
-                <!-- As tabelas da calculadora serão geradas dinamicamente aqui pelo JavaScript -->
-            </div>
+                </div>
 
             <div id="resultado" class="resultado hidden" aria-live="polite">
-                <!-- O resultado será exibido aqui -->
-            </div>
+                </div>
 
             <div class="flex flex-wrap justify-start gap-4 mt-6">
                 <button id="btnCalcular" class="btn-primary" aria-label="Calcular pontuação HAM-A">
@@ -456,7 +453,7 @@
                 <button id="btnGerarPDF" class="btn-secondary" aria-label="Gerar PDF">
                     Gerar PDF
                 </button>
-                <button id="btnNandaNicNoc" class="btn-primary" aria-label="Ver NANDA, NIC, NOC">
+                <button id="btnNandaNicNoc" class="btn-primary" aria-label="Pesquisar NANDA, NIC, NOC">
                     NANDA, NIC, NOC
                 </button>
             </div>
@@ -468,13 +465,12 @@
                     <a href="https://www.scielo.br/j/jbpsiq/a/ky4z4s3HSXCdxGndpdY7gVK/">
                         Calculadora Escala de Ansiedade de Hamilton (HAM-A).
                     </a>
-                    Disponível em: https://calculadorasmedicas.com.br/calcula-dora/escala-de-ansiedade-hamilton
+                    Disponível em: https://www.scielo.br/j/jbpsiq/a/ky4z4s3HSXCdxGndpdY7gVK/
                 </p>
             </div>
         </main>
     </div>
 
-    <!-- Modal de Mensagem Personalizado -->
     <div id="messageModalOverlay" class="message-modal-overlay">
         <div class="message-modal-content">
             <button id="messageModalClose" class="message-modal-close">&times;</button>
@@ -482,7 +478,6 @@
         </div>
     </div>
 
-    <!-- Cookie Consent Banner -->
     <div id="cookieConsentBanner">
         <p>Utilizamos cookies para melhorar sua experiência em nosso site. Ao continuar navegando, você concorda com nossa <a href="politica.html" class="underline text-blue-200 hover:text-blue-100">Política de Cookies</a>.</p>
         <div class="cookie-buttons">
@@ -491,10 +486,8 @@
         </div>
     </div>
 
-    <!-- Div para o rodapé dinâmico -->
     <div id="footer-container"></div>
 
-    <!-- Script principal da página (Cookie, Calculadora e PDF) -->
     <script>
         // Referências aos elementos do DOM
         const btnCalcular = document.getElementById('btnCalcular');
@@ -1050,7 +1043,23 @@
             
             // Adiciona o event listener para o novo botão NANDA, NIC, NOC
             btnNandaNicNoc.addEventListener('click', () => {
-                window.location.href = 'hamiltonnanda.html';
+                // Tenta obter a classificação da segunda linha do resultado
+                const resultadoTextElement = resultadoDiv.querySelector('p:nth-child(2) strong');
+                let currentClassification = '';
+                if (resultadoTextElement) {
+                    currentClassification = resultadoTextElement.textContent.trim();
+                }
+
+                // Verifica se há uma classificação válida
+                if (!currentClassification || currentClassification.includes('Por favor, selecione') || currentClassification.includes('Pontuação inválida')) {
+                    showCustomMessage('Por favor, clique em "Calcular" primeiro para obter a classificação e habilitar a pesquisa NANDA, NIC, NOC.');
+                    return; // Sai da função se não houver classificação válida
+                }
+
+                // Codifica a string de pesquisa para a URL
+                const searchQuery = encodeURIComponent(`${currentClassification} taxonomia NANDA, NIC e NOC`);
+                // Abre uma nova aba com a pesquisa do Google
+                window.open(`https://www.google.com/search?q=${searchQuery}`, '_blank');
             });
         });
     </script>
