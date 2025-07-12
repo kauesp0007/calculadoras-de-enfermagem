@@ -1,0 +1,898 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Boletim de Silverman-Anderson - Calculadoras de Enfermagem</title>
+    <link rel="icon" href="favicon.ico">
+    <link rel="canonical" href="https://www.calculadorasdeenfermagem.com.br/silverman.html">
+    <meta name="description" content="Calcule o Boletim de Silverman-Anderson para avaliar o grau de desconforto respiratório em recém-nascidos.">
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Nunito+Sans:wght@700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+
+    <!-- html2pdf CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+    <script async src="https://www.googletagmanager.com/gtag/js?id=AW-952633102"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'AW-952633102');
+    </script>
+
+    <style>
+        /* Reset básico e Box-sizing para consistência */
+        *, *::before, *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* Fontes personalizadas */
+        .font-nunito { font-family: 'Nunito Sans', sans-serif; }
+        .font-inter { font-family: 'Inter', sans-serif; }
+
+        /* Estilos das classes de fonte e cor personalizadas (para uso no HTML com Tailwind) */
+        .text-dark-blue { color: #1A3E74; } /* Azul Escuro */
+        .text-light-blue { color: #1FA4E5; } /* Azul Claro */
+        .text-gray-custom { color: #666666; } /* Cinza */
+        .text-success-green { color: #1ED760; } /* Verde */
+
+        /* Padrão de Botões (Componentes CSS para reuso) */
+        .btn-primary {
+            font-family: 'Inter', sans-serif;
+            font-weight: 600;
+            background-color: #1A3E74; /* Cor primária azul escuro */
+            color: #FFF;
+            padding: 12px 24px;
+            border-radius: 8px;
+            transition: background-color 0.3s ease;
+            border: none;
+            cursor: pointer;
+            text-align: center;
+        }
+        .btn-primary:hover { background-color: #122c54; } /* Tom mais escuro no hover */
+        .btn-secondary {
+            font-family: 'Inter', sans-serif;
+            font-weight: 600;
+            background-color: #1FA4E5; /* Cor secundária azul claro */
+            color: #FFF;
+            padding: 12px 24px;
+            border-radius: 8px;
+            transition: background-color 0.3s ease;
+            border: none;
+            cursor: pointer;
+            text-align: center;
+        }
+        .btn-secondary:hover { background-color: #178ac7; } /* Tom mais escuro no hover */
+        .btn-success {
+            font-family: 'Inter', sans-serif;
+            font-weight: 600; /* Padronizado com os outros botões */
+            background-color: #1ED760;
+            color: #FFF;
+            padding: 12px 24px; /* Padronizado com os outros botões */
+            border-radius: 8px;
+            transition: background-color 0.3s ease;
+            border: none;
+            cursor: pointer;
+            text-align: center;
+        }
+        .btn-success:hover { background-color: #17b351; }
+
+        /* Estilos para a área de resultado da calculadora (Componente específico) */
+        .resultado {
+            margin-top: 1rem;
+            padding: 1rem;
+            background-color: #e0f2fe; /* Tailwind blue-50 */
+            border-radius: 0.5rem;
+            font-weight: 600;
+            color: #1A3E74; /* text-dark-blue */
+            text-align: left;
+            white-space: pre-wrap;
+        }
+        /* Cores de resultado ajustadas para Silverman-Anderson */
+        .resultado.bg-silverman-leve { background-color: #D4EDDA; color: #155724; } /* Verde para Leve */
+        .resultado.bg-silverman-moderado { background-color: #FFF3CD; color: #856404; } /* Amarelo para Moderado */
+        .resultado.bg-silverman-grave { background-color: #F8D7DA; color: #721C24; } /* Vermelho claro para Grave */
+        .resultado.bg-info-orange-light { background-color: #ffeeba; border-color: #ffb366; color: #856404; } /* Para alertas */
+
+        /* Estilos para a referência/bibliografia (Componente específico) */
+        .ref {
+            margin-top: 2rem;
+            font-size: 14px;
+            color: #666666; /* text-gray-custom */
+            text-align: left;
+        }
+        
+        /* Layout principal com Topbar fixa */
+        body {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh; /* Garante que o body ocupe a altura total da viewport */
+            background-color: #f8fafc; /* Tailwind bg-gray-50 */
+            color: #333; /* Tailwind text-gray-800 */
+            font-family: 'Inter', sans-serif; /* Aplica a fonte Inter ao body */
+        }
+
+        /* ESTILOS DOS DROPDOWNS DA TOPBAR (MOVIDOS DE TOPBAR111.HTML) */
+        .dropdown-menu { display: none; }
+        .dropdown-menu.show { display: block; }
+        nav { justify-content: flex-end; } 
+        nav button { cursor: pointer; }
+        nav .dropdown-menu a:hover { background-color: #bfdbfe; }
+        /* FIM DOS ESTILOS DA TOPBAR */
+
+        /* Estilos para garantir que o menu mobile fique acima de outros conteúdos quando aberto */
+        #mainNav.flex {
+            z-index: 40; /* Um z-index alto para o menu mobile */
+            max-height: calc(100vh - 64px); /* Altura máxima da viewport menos a altura do header */
+            overflow-y: auto; /* Adiciona scroll se o conteúdo for muito longo */
+            -webkit-overflow-scrolling: touch; /* Suaviza o scroll em iOS */
+        }
+        .dropdown-menu {
+            position: static; /* Por padrão, estático (fluxo normal) no mobile */
+            margin-top: 0; /* Remove margin-top padrão no mobile */
+            width: 100%; /* Ocupa a largura total do item pai no mobile */
+            box-shadow: none; /* Remove sombra no mobile */
+            border: none; /* Remove borda no mobile */
+            background-color: transparent; /* Fundo transparente no mobile para se misturar ao menu principal */
+            padding: 0; /* Remove padding extra no mobile */
+        }
+
+        /* Estilos específicos para desktop para os dropdowns */
+        @media (min-width: 768px) { /* md breakpoint */
+            .dropdown-menu {
+                position: absolute; /* Torna-se absoluto no desktop */
+                margin-top: 0.5rem; /* mt-2 (8px) para desktop */
+                width: auto; /* Largura automática para se ajustar ao conteúdo */
+                box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05); /* Sombra padrão do Tailwind */
+                border: 1px solid #e5e7eb; /* Borda padrão do Tailwind */
+                background-color: #fff; /* Fundo branco para os dropdowns no desktop */
+                padding: 0.5rem; /* p-2 */
+                border-radius: 0.25rem; /* rounded */
+            }
+        }
+
+        /* Espaçamento para o conteúdo abaixo da topbar fixa */
+        .main-content-wrapper { 
+            display: flex;
+            flex-direction: column;
+            flex-grow: 1;
+            padding-top: 64px; /* Garante que o conteúdo comece abaixo da topbar fixa (64px de altura) */
+            width: 100%;
+        }
+
+        /* Conteúdo principal (main) */
+        main {
+            flex-grow: 1;
+            max-width: 1280px; /* max-w-7xl */
+            margin-left: auto;
+            margin-right: auto;
+            padding: 2rem 1rem; /* Equivalente a p-8 px-4 */
+            width: 100%;
+        }
+
+        /* Estilo para o modal de mensagem */
+        .message-modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.6);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            display: none; /* Hidden by default */
+        }
+        .message-modal-content {
+            background-color: #fff;
+            padding: 2rem;
+            border-radius: 0.5rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+            position: relative;
+        }
+        .message-modal-close {
+            color: #aaa;
+            position: absolute;
+            top: 0.5rem;
+            right: 0.5rem;
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .message-modal-close:hover {
+            color: #1F2937;
+        }
+
+        /* --- Cookie Consent Banner Styles --- */
+        #cookieConsentBanner {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background-color: #1A3E74; /* Cor azul escuro da identidade */
+            color: #fff;
+            padding: 1rem;
+            text-align: center;
+            z-index: 1000; /* Acima do rodapé e outros elementos */
+            display: none; /* Oculto por padrão, mostrado via JS */
+            flex-direction: column; /* Empilha conteúdo em mobile */
+            align-items: center;
+            gap: 1rem;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.2);
+        }
+
+        #cookieConsentBanner.show {
+            display: flex; /* Mostra o banner */
+        }
+
+        #cookieConsentBanner p {
+            margin: 0;
+            font-size: 0.9rem;
+            line-height: 1.4;
+        }
+
+        #cookieConsentBanner .cookie-buttons {
+            display: flex;
+            gap: 0.75rem;
+            justify-content: center;
+            flex-wrap: wrap; /* Permite quebrar em telas menores */
+        }
+
+        #cookieConsentBanner button {
+            background-color: #2563eb; /* Tailwind blue-600 */
+            color: white;
+            padding: 0.6rem 1.2rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            transition: background-color 0.2s ease;
+            border: none;
+            cursor: pointer;
+            white-space: nowrap; /* Evita quebra de linha no texto do botão */
+        }
+
+        #cookieConsentBanner button.secondary {
+            background-color: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.5);
+        }
+
+        #cookieConsentBanner button.secondary:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+            border-color: white;
+        }
+
+        /* Responsive adjustments for cookie banner */
+        @media (min-width: 768px) {
+            #cookieConsentBanner {
+                flex-direction: row; /* Layout em linha para desktop */
+                justify-content: space-between;
+                padding: 1rem 2rem;
+            }
+            #cookieConsentBanner .cookie-buttons {
+                justify-content: flex-end;
+            }
+        }
+
+        /* --- ESTILOS PARA SEÇÕES DE CRITÉRIOS (tabela) --- */
+        .silverman-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 1.5rem;
+            background-color: #fff;
+            border-radius: 8px;
+            overflow: hidden; /* Para cantos arredondados */
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+
+        .silverman-table th, .silverman-table td {
+            padding: 0.75rem 1rem;
+            border: 1px solid #e2e8f0; /* gray-200 */
+            text-align: left; /* Alinhamento padrão à esquerda para desktop */
+            vertical-align: top;
+        }
+
+        .silverman-table th {
+            background-color: #f1f5f9; /* gray-100 */
+            font-weight: 700;
+            color: #1A3E74; /* dark-blue */
+            font-size: 0.95rem;
+        }
+
+        .silverman-table tbody tr {
+            transition: background-color 0.2s ease;
+        }
+
+        .silverman-table tbody tr:hover {
+            background-color: #f8fafc; /* gray-50 */
+        }
+
+        .silverman-table .option-row {
+            cursor: pointer;
+        }
+
+        .silverman-table .option-row input[type="radio"] {
+            margin-right: 0.75rem;
+            transform: scale(1.1);
+            accent-color: #1A3E74;
+        }
+
+        .silverman-table .option-row input[type="radio"]:checked + span {
+            font-weight: 600;
+            color: #1A3E74;
+        }
+
+        /* Estilo para a célula do parâmetro que abrange várias linhas */
+        .parameter-cell {
+            vertical-align: middle;
+            font-weight: 600;
+            color: #1A3E74;
+            background-color: #e0f2fe; /* blue-50 */
+        }
+
+        /* Ajustes para telas menores */
+        @media (max-width: 768px) {
+            h1 { font-size: 2.25rem; }
+            h2 { font-size: 1.125rem; }
+            p { font-size: 0.9rem; }
+            .main-content-wrapper { padding: 1rem 0.75rem; }
+            .btn-primary, .btn-secondary {
+                width: 100%;
+                margin-bottom: 0.75rem;
+            }
+            .silverman-table, .silverman-table tbody, .silverman-table tr, .silverman-table td, .silverman-table th {
+                display: block; /* Empilha elementos da tabela */
+                width: 100%;
+            }
+            .silverman-table thead {
+                display: none; /* Esconde o cabeçalho da tabela em mobile */
+            }
+            .silverman-table tr {
+                margin-bottom: 1rem;
+                border: 1px solid #e2e8f0;
+                border-radius: 8px;
+                overflow: hidden;
+            }
+            .silverman-table td {
+                text-align: left; /* ALINHAMENTO À ESQUERDA PARA MOBILE */
+                padding-left: 1rem; /* Ajusta o padding para o texto */
+                position: relative;
+            }
+            .silverman-table td::before {
+                content: attr(data-label); /* Usa o atributo data-label */
+                position: static; /* Remove posicionamento absoluto para fluir com o texto */
+                display: block; /* Garante que o label ocupe sua própria linha */
+                width: auto;
+                padding-left: 0;
+                font-weight: 600;
+                text-align: left;
+                color: #1A3E74;
+                margin-bottom: 0.25rem; /* Espaçamento entre o label e o conteúdo */
+            }
+            .silverman-table .parameter-cell {
+                text-align: left;
+                padding-left: 1rem;
+                background-color: #e0f2fe;
+            }
+            .silverman-table .parameter-cell::before {
+                content: ''; /* Remove o data-label para a célula do parâmetro */
+            }
+            .silverman-table .option-row label {
+                display: flex; /* Garante que o label seja um flex container */
+                align-items: center; /* Alinha o radio e o texto verticalmente */
+                justify-content: flex-start; /* ALINHA O CONTEÚDO DO LABEL À ESQUERDA */
+                width: 100%; /* Ocupa a largura total da célula */
+            }
+            .silverman-table .option-row input[type="radio"] {
+                margin-right: 0.75rem; /* Mantém o espaçamento entre o radio e o texto */
+                margin-top: 0; /* Remove float e ajusta margem */
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800 font-inter">
+
+    <div id="topbar-container"></div>
+    <script src="./topbar111.js" defer></script>
+
+    <div class="main-content-wrapper">
+        <main class="max-w-4xl mx-auto px-4 py-8">
+            <div class="flex flex-col items-center justify-center gap-4 mb-3 text-center">
+                <img src="iconpages.png" alt="Ícone da Página" class="w-32 h-auto" />
+                <h1 id="main-title" class="font-nunito font-extrabold text-dark-blue text-4xl lg:text-5xl">
+                    Boletim de Silverman-Anderson
+                </h1>
+            </div>
+            <h2 id="main-subtitle" class="font-inter font-semibold text-light-blue text-xl lg:text-2xl mb-3 text-center sm:text-left">
+                Avaliação do Desconforto Respiratório Neonatal
+            </h2>
+
+            <p id="description-text" class="text-gray-700 mb-6">
+                O Boletim de Silverman-Anderson (BSA) é uma ferramenta clínica utilizada para avaliar o grau de desconforto respiratório em recém-nascidos, atribuindo pontuações a diferentes sinais respiratórios para determinar a gravidade da condição. Ele avalia cinco parâmetros respiratórios: retração costal, movimento toracoabdominal, batimento de asa nasal, gemido expiratório e retração xifoide, cada um pontuado de 0 a 2. A soma total das pontuações (de 0 a 10) indica o nível de desconforto respiratório.
+            </p>
+            <p class="font-inter font-normal text-light-blue text-base lg:text-lg mb-6 text-center sm:text-left">
+                Selecione um item para cada parâmetro respiratório:
+            </p>
+
+            <div id="conteudo">
+                <!-- A tabela da calculadora será gerada dinamicamente aqui pelo JavaScript -->
+            </div>
+
+            <div id="resultado" class="resultado hidden" aria-live="polite">
+                <!-- O resultado será exibido aqui -->
+            </div>
+
+            <div class="flex flex-wrap justify-start gap-4 mt-6">
+                <button id="btnCalcular" class="btn-primary" aria-label="Calcular pontuação Silverman-Anderson">
+                    Calcular
+                </button>
+                <button id="btnLimpar" class="btn-primary" aria-label="Limpar campos">
+                    Limpar
+                </button>
+                <button id="btnGerarPDF" class="btn-secondary" aria-label="Gerar PDF">
+                    Gerar PDF
+                </button>
+            </div>
+
+            <div class="ref font-inter text-gray-custom text-left">
+                <p class="font-bold mb-2">Referência Bibliográfica:</p>
+                <p>
+                    Brasil. Ministério da Saúde. Secretaria de Atenção à Saúde. Departamento de Ações Programáticas Estratégicas.
+                    <br />
+                    Atenção à saúde do recém-nascido: guia para os profissionais de saúde. Brasília: Ministério da Saúde, 2011. v.3.
+                    <br />
+                    Disponível em:
+                    <a href="https://bvsms.saude.gov.br/bvs/publicacoes/atencao_saude_recem_nascido_profissionais_v3.pdf" target="_blank" rel="noopener noreferrer" class="text-light-blue hover:underline">
+                        https://bvsms.saude.gov.br/bvs/publicacoes/atencao_saude_recem_nascido_profissionais_v3.pdf
+                    </a>
+                    (p. 15).
+                </p>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal de Mensagem Personalizado -->
+    <div id="messageModalOverlay" class="message-modal-overlay">
+        <div class="message-modal-content">
+            <button id="messageModalClose" class="message-modal-close">&times;</button>
+            <p id="messageModalText" class="text-gray-700 text-lg"></p>
+        </div>
+    </div>
+
+    <!-- Cookie Consent Banner -->
+    <div id="cookieConsentBanner">
+        <p>Utilizamos cookies para melhorar sua experiência em nosso site. Ao continuar navegando, você concorda com nossa <a href="politica.html" class="underline text-blue-200 hover:text-blue-100">Política de Cookies</a>.</p>
+        <div class="cookie-buttons">
+            <button id="acceptCookiesBtn">Aceitar todos os cookies</button>
+            <button id="refuseCookiesBtn" class="secondary">Recusar cookies</button>
+        </div>
+    </div>
+
+    <!-- Div para o rodapé dinâmico -->
+    <div id="footer-container"></div>
+
+    <!-- Script principal da página (Cookie, Calculadora e PDF) -->
+    <script>
+        // Referências aos elementos do DOM
+        const btnCalcular = document.getElementById('btnCalcular');
+        const btnLimpar = document.getElementById('btnLimpar');
+        const btnGerarPDF = document.getElementById('btnGerarPDF');
+        const resultadoDiv = document.getElementById('resultado');
+        const conteudoDiv = document.getElementById('conteudo'); // Onde os critérios serão injetados
+
+        // Referências para o modal de mensagem
+        const messageModalOverlay = document.getElementById('messageModalOverlay');
+        const messageModalText = document.getElementById('messageModalText');
+        const messageModalClose = document.getElementById('messageModalClose');
+
+        // --- Funções do Modal de Mensagem ---
+        function showCustomMessage(message) {
+            messageModalText.textContent = message;
+            messageModalOverlay.style.display = 'flex';
+        }
+
+        function hideCustomMessage() {
+            messageModalOverlay.style.display = 'none';
+        }
+
+        // Adiciona listeners para o modal de mensagem
+        messageModalClose.addEventListener('click', hideCustomMessage);
+        messageModalOverlay.addEventListener('click', (e) => {
+            if (e.target === messageModalOverlay) {
+                hideCustomMessage();
+            }
+        });
+
+        // Dados da escala de Silverman-Anderson baseados na página 15 do PDF fornecido
+        const silvermanData = [
+            {
+                parameter: "Retração Costal",
+                nameAttr: "retractionCostal",
+                options: [
+                    { score: 0, description: "Ausente" },
+                    { score: 1, description: "Leve" },
+                    { score: 2, description: "Marcada" }
+                ]
+            },
+            {
+                parameter: "Movimento Toracoabdominal",
+                nameAttr: "thoracoabdominalMovement",
+                options: [
+                    { score: 0, description: "Sincronizado" },
+                    { score: 1, description: "Tórax imóvel, abdômen em movimento" },
+                    { score: 2, description: "Balancim" }
+                ]
+            },
+            {
+                parameter: "Batimento de Asa Nasal",
+                nameAttr: "nasalFlaring",
+                options: [
+                    { score: 0, description: "Ausente" },
+                    { score: 1, description: "Discreto" },
+                    { score: 2, description: "Marcado" }
+                ]
+            },
+            {
+                parameter: "Gemido Expiratório",
+                nameAttr: "expiratoryGrunt",
+                options: [
+                    { score: 0, description: "Ausente" },
+                    { score: 1, description: "Audível com estetoscópio" },
+                    { score: 2, description: "Audível sem estetoscópio" }
+                ]
+            },
+            {
+                parameter: "Retração Xifoide",
+                nameAttr: "xiphoidRetraction",
+                options: [
+                    { score: 0, description: "Ausente" },
+                    { score: 1, description: "Leve" },
+                    { score: 2, description: "Marcada" }
+                ]
+            }
+        ];
+
+        // --- Lógica da Calculadora Silverman-Anderson ---
+        function calcularPontuacao() {
+            let totalScore = 0;
+            let allParametersSelected = true;
+            const selectedDetails = [];
+
+            silvermanData.forEach(paramGroup => {
+                const selectedOption = document.querySelector(`input[name="${paramGroup.nameAttr}"]:checked`);
+                if (selectedOption) {
+                    const score = parseInt(selectedOption.value, 10);
+                    totalScore += score;
+                    selectedDetails.push({
+                        parameter: paramGroup.parameter,
+                        description: selectedOption.nextElementSibling.textContent,
+                        score: score
+                    });
+                } else {
+                    allParametersSelected = false;
+                }
+            });
+
+            if (!allParametersSelected) {
+                resultadoDiv.style.display = "block";
+                resultadoDiv.innerHTML = '⚠️ <strong class="font-bold">Por favor, selecione um item para cada parâmetro</strong> antes de calcular.';
+                resultadoDiv.classList.add('bg-info-orange-light');
+                resultadoDiv.classList.remove('hidden', 'bg-silverman-leve', 'bg-silverman-moderado', 'bg-silverman-grave');
+                return;
+            }
+
+            let classificacao = "";
+            let resultadoClasse = '';
+
+            if (totalScore >= 0 && totalScore <= 3) {
+                classificacao = "Desconforto Respiratório Leve";
+                resultadoClasse = 'bg-silverman-leve';
+            } else if (totalScore >= 4 && totalScore <= 7) {
+                classificacao = "Desconforto Respiratório Moderado";
+                resultadoClasse = 'bg-silverman-moderado';
+            } else if (totalScore >= 8 && totalScore <= 10) {
+                classificacao = "Desconforto Respiratório Grave";
+                resultadoClasse = 'bg-silverman-grave';
+            } else {
+                classificacao = "Pontuação inválida";
+                resultadoClasse = 'bg-info-orange-light';
+            }
+
+            resultadoDiv.style.display = "block";
+            resultadoDiv.innerHTML = `
+                <p>Pontuação Total do Silverman-Anderson: <strong class="font-bold">${totalScore}</strong></p>
+                <p>Classificação: <strong class="font-bold">${classificacao}</strong></p>
+            `;
+            resultadoDiv.classList.remove('hidden', 'bg-info-orange-light', 'bg-silverman-leve', 'bg-silverman-moderado', 'bg-silverman-grave');
+            resultadoDiv.classList.add(resultadoClasse);
+        }
+
+        function limparCampos() {
+            silvermanData.forEach(paramGroup => {
+                document.querySelectorAll(`input[name="${paramGroup.nameAttr}"]`).forEach(radio => radio.checked = false);
+            });
+            resultadoDiv.style.display = 'none';
+            resultadoDiv.innerHTML = '';
+            resultadoDiv.className = 'resultado hidden';
+        }
+
+        function gerarPDF() {
+            const pdfContentWrapper = document.createElement('div');
+            pdfContentWrapper.style.fontFamily = "'Inter', sans-serif";
+            pdfContentWrapper.style.color = '#333';
+            pdfContentWrapper.style.padding = '20px';
+
+            // Adiciona o título principal, subtítulo e data/hora
+            const mainTitle = document.getElementById('main-title');
+            const mainSubtitle = document.getElementById('main-subtitle');
+            const descriptionText = document.getElementById('description-text');
+
+            if (mainTitle) {
+                const clonedTitle = mainTitle.cloneNode(true);
+                clonedTitle.style.fontSize = '24px';
+                clonedTitle.style.fontWeight = 'bold';
+                clonedTitle.style.textAlign = 'center';
+                clonedTitle.style.marginBottom = '5px';
+                clonedTitle.style.color = '#1A3E74';
+                pdfContentWrapper.appendChild(clonedTitle);
+            }
+
+            if (mainSubtitle) {
+                const clonedSubtitle = mainSubtitle.cloneNode(true);
+                clonedSubtitle.style.fontSize = '18px';
+                clonedSubtitle.style.textAlign = 'center';
+                clonedSubtitle.style.marginBottom = '20px';
+                clonedSubtitle.style.color = '#1FA4E5';
+                pdfContentWrapper.appendChild(clonedSubtitle);
+            }
+
+            // Adiciona a data e hora de geração
+            const dateTime = document.createElement('p');
+            dateTime.style.fontSize = '12px';
+            dateTime.style.color = '#777';
+            dateTime.style.textAlign = 'center';
+            dateTime.style.marginBottom = '20px';
+            dateTime.textContent = `Gerado em: ${new Date().toLocaleDateString('pt-BR')} ${new Date().toLocaleTimeString('pt-BR')}`;
+            pdfContentWrapper.appendChild(dateTime);
+
+            // Adiciona a descrição introdutória
+            if (descriptionText) {
+                const clonedDescription = descriptionText.cloneNode(true);
+                clonedDescription.style.cssText = "font-family: 'Inter', sans-serif; font-weight: 400; color: #666666; font-size: 14px; margin-bottom: 15px; text-align: justify;";
+                pdfContentWrapper.appendChild(clonedDescription);
+            }
+
+            // Título "Parâmetros Selecionados"
+            const selectedItemsTitle = document.createElement('p');
+            selectedItemsTitle.style.cssText = "font-family: 'Inter', sans-serif; font-weight: 600; color: #1A3E74; font-size: 16px; margin-top: 20px; margin-bottom: 10px; text-align: left;";
+            selectedItemsTitle.textContent = "Parâmetros Selecionados do Boletim de Silverman-Anderson:";
+            pdfContentWrapper.appendChild(selectedItemsTitle);
+
+            // Cria uma nova tabela para o PDF com a seleção do usuário
+            const pdfSelectionsTable = document.createElement('table');
+            pdfSelectionsTable.className = 'silverman-table'; // Reusa a classe da tabela para estilização
+            pdfSelectionsTable.style.marginBottom = '20px';
+
+            const thead = document.createElement('thead');
+            thead.innerHTML = `
+                <tr>
+                    <th>Parâmetro</th>
+                    <th>Resposta Observada</th>
+                    <th>Pontuação</th>
+                </tr>
+            `;
+            pdfSelectionsTable.appendChild(thead);
+
+            const tbody = document.createElement('tbody');
+            let allParametersSelectedInPdf = true; // Flag para verificar se todas as seleções estão no PDF
+            silvermanData.forEach(paramGroup => {
+                const selectedOption = document.querySelector(`input[name="${paramGroup.nameAttr}"]:checked`);
+                const tr = document.createElement('tr');
+                if (selectedOption) {
+                    const score = parseInt(selectedOption.value, 10);
+                    const description = selectedOption.nextElementSibling.textContent;
+
+                    tr.innerHTML = `
+                        <td data-label="Parâmetro">${paramGroup.parameter}</td>
+                        <td data-label="Resposta Observada">${description}</td>
+                        <td data-label="Pontuação">${score}</td>
+                    `;
+                } else {
+                    tr.innerHTML = `
+                        <td data-label="Parâmetro">${paramGroup.parameter}</td>
+                        <td data-label="Resposta Observada" style="color: #CC0000;">Nenhum item selecionado para este parâmetro.</td>
+                        <td data-label="Pontuação" style="color: #CC0000;">-</td>
+                    `;
+                    allParametersSelectedInPdf = false;
+                }
+                tbody.appendChild(tr);
+            });
+            pdfSelectionsTable.appendChild(tbody);
+            pdfContentWrapper.appendChild(pdfSelectionsTable);
+
+            // Adiciona o resultado da pontuação
+            const resultDivForPdf = document.createElement('div');
+            resultDivForPdf.className = 'resultado';
+            resultDivForPdf.style.marginTop = '1rem';
+            resultDivForPdf.style.padding = '1rem';
+            resultDivForPdf.style.borderRadius = '0.5rem';
+            resultDivForPdf.style.fontWeight = '600';
+            resultDivForPdf.style.textAlign = 'left';
+            resultDivForPdf.style.whiteSpace = 'pre-wrap';
+
+            // Verifica se o resultado já foi calculado na página e se todas as seleções estão presentes
+            if (resultadoDiv.style.display !== 'none' && resultadoDiv.innerHTML.trim() !== '' && allParametersSelectedInPdf) {
+                resultDivForPdf.innerHTML = resultadoDiv.innerHTML;
+                // Copia as classes de cor do resultado original
+                resultadoDiv.classList.forEach(cls => {
+                    if (cls.startsWith('bg-') || cls.startsWith('text-')) {
+                        resultDivForPdf.classList.add(cls);
+                    }
+                });
+            } else {
+                resultDivForPdf.innerHTML = "Resultado não calculado ou seleção incompleta na página. Por favor, selecione um item para cada parâmetro e calcule antes de gerar o PDF.";
+                resultDivForPdf.classList.add('bg-info-orange-light', 'text-orange-800');
+                resultDivForPdf.style.backgroundColor = '#ffeeba';
+                resultDivForPdf.style.color = '#856404';
+            }
+            pdfContentWrapper.appendChild(resultDivForPdf);
+
+            // Adiciona a referência bibliográfica
+            const references = document.querySelector('.ref').cloneNode(true);
+            references.style.marginTop = '2rem';
+            references.style.fontSize = '12px'; // Ajusta o tamanho da fonte para PDF
+            references.style.color = '#666666';
+            references.style.textAlign = 'left';
+            references.querySelectorAll('a').forEach(a => {
+                a.style.color = '#1FA4E5';
+                a.style.textDecoration = 'underline';
+            });
+            pdfContentWrapper.appendChild(references);
+
+            const opt = {
+                margin: 0.5,
+                filename: "boletim-silverman-anderson.pdf", // Nome do arquivo PDF
+                image: { type: "jpeg", quality: 0.98 },
+                html2canvas: { scale: 3, scrollY: 0 },
+                jsPDF: { unit: "in", format: "a4", orientation: "portrait" }
+            };
+
+            html2pdf().set(opt).from(pdfContentWrapper).save().catch(error => {
+                console.error('Erro ao gerar PDF:', error);
+                showCustomMessage('Ocorreu um erro ao gerar o PDF. Por favor, tente novamente.');
+            });
+        }
+
+        // --- Lógica do Cookie Consent Banner ---
+        const cookieConsentBanner = document.getElementById('cookieConsentBanner');
+        const acceptCookiesBtn = document.getElementById('acceptCookiesBtn');
+        const refuseCookiesBtn = document.getElementById('refuseCookiesBtn');
+        const cookiesAcceptedKey = 'cookiesAccepted'; // Chave para localStorage
+
+        function showCookieBanner() {
+            if (localStorage.getItem(cookiesAcceptedKey) === null) {
+                cookieConsentBanner.classList.add('show');
+            }
+        }
+
+        function hideCookieBanner() {
+            cookieConsentBanner.classList.remove('show');
+        }
+
+        if (acceptCookiesBtn) {
+            acceptCookiesBtn.addEventListener('click', () => {
+                localStorage.setItem(cookiesAcceptedKey, 'true');
+                hideCookieBanner();
+            });
+        }
+
+        if (refuseCookiesBtn) {
+            refuseCookiesBtn.addEventListener('click', () => {
+                localStorage.setItem(cookiesAcceptedKey, 'false');
+                hideCookieBanner();
+            });
+        }
+        // --- Fim da Lógica do Cookie Consent Banner ---
+
+        // --- Início do DOMContentLoaded para preencher o formulário, carregar rodapé e adicionar listeners ---
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('DOMContentLoaded fired. Starting dynamic content generation for Silverman-Anderson Scale.');
+
+            // Carrega o rodapé
+            fetch("./rodape111.html")
+                .then(res => res.text())
+                .then(data => {
+                    const footerContainer = document.getElementById("footer-container");
+                    if (footerContainer) {
+                        footerContainer.innerHTML = data;
+                        console.log('Rodapé carregado com sucesso.');
+                    } else {
+                        console.error("Elemento #footer-container não encontrado.");
+                    }
+                })
+                .catch(err => console.error("Erro ao carregar rodape111.html:", err));
+
+            // Preenche o formulário dinamicamente com a tabela
+            console.log("Attempting to dynamically generate Silverman-Anderson scale table.");
+
+            const table = document.createElement('table');
+            table.className = 'silverman-table';
+
+            const thead = document.createElement('thead');
+            thead.innerHTML = `
+                <tr>
+                    <th>Parâmetro</th>
+                    <th>Pontuação</th>
+                    <th>0</th>
+                    <th>1</th>
+                    <th>2</th>
+                </tr>
+            `;
+            table.appendChild(thead);
+
+            const tbody = document.createElement('tbody');
+            silvermanData.forEach(paramGroup => {
+                const tr = document.createElement('tr');
+                tr.className = 'option-row';
+
+                // Célula do Parâmetro
+                const paramCell = document.createElement('td');
+                paramCell.className = 'parameter-cell';
+                paramCell.setAttribute('data-label', 'Parâmetro'); // Para mobile
+                paramCell.textContent = paramGroup.parameter;
+                tr.appendChild(paramCell);
+
+                // Célula de Pontuação (vazia, para alinhamento visual com a imagem)
+                const scoreLabelCell = document.createElement('td');
+                scoreLabelCell.setAttribute('data-label', 'Pontuação'); // Para mobile
+                scoreLabelCell.textContent = ''; // Deixada vazia conforme a imagem da tabela
+                tr.appendChild(scoreLabelCell);
+
+                // Células das opções de pontuação (0, 1, 2)
+                paramGroup.options.forEach(option => {
+                    const optionCell = document.createElement('td');
+                    optionCell.setAttribute('data-label', `Score ${option.score}`); // Para mobile
+                    const label = document.createElement('label');
+                    label.className = 'option-label flex items-center'; // Removido justify-content-center
+                    const input = document.createElement('input');
+                    input.type = 'radio';
+                    input.name = paramGroup.nameAttr; // Nome do grupo de rádio é o nameAttr do parâmetro
+                    input.value = option.score;
+                    input.id = `${paramGroup.nameAttr}-${option.score}`; // ID único para o input
+
+                    const span = document.createElement('span');
+                    span.textContent = option.description; // A descrição fica no span
+
+                    label.appendChild(input);
+                    label.appendChild(span);
+                    optionCell.appendChild(label);
+                    tr.appendChild(optionCell);
+                });
+                tbody.appendChild(tr);
+                console.log(`  [Silverman-Anderson Scale] Added parameter: ${paramGroup.parameter}`);
+            });
+            table.appendChild(tbody);
+            conteudoDiv.appendChild(table);
+            console.log(`[Silverman-Anderson Scale] Table appended to #conteudo.`);
+
+            // Mostra o banner de cookies ao carregar a página, se necessário
+            showCookieBanner();
+
+            // Adiciona event listeners aos botões
+            btnCalcular.addEventListener('click', calcularPontuacao);
+            btnLimpar.addEventListener('click', limparCampos);
+            btnGerarPDF.addEventListener('click', gerarPDF);
+        });
+    </script>
+</body>
+</html>
