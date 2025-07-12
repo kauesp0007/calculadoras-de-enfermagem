@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>Escala de Gosnell - Risco de Lesões por Pressão</title>
+    <title>Escala de Gosnell - Risco de Úlceras por Pressão</title>
     <link rel="canonical" href="https://www.calculadorasdeenfermagem.com.br/gosnell.html" />
     <meta name="description" content="Calcule a Escala de Gosnell para avaliar o risco de desenvolvimento de úlceras por pressão em pacientes, uma adaptação da escala de Norton." />
     <meta name="keywords" content="escala de gosnell, úlcera por pressão, lesão por pressão, avaliação de risco, enfermagem, prevenção, risco de úlcera" />
@@ -261,6 +261,45 @@
         /* ******************************************* */
         /* FIM: Adições para Responsividade da Tabela */
         /* ******************************************* */
+
+        /* Estilo para o modal de mensagem */
+        .message-modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.6);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            display: none; /* Hidden by default */
+        }
+        .message-modal-content {
+            background-color: #fff;
+            padding: 2rem;
+            border-radius: 0.5rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+            position: relative;
+        }
+        .message-modal-close {
+            color: #aaa;
+            position: absolute;
+            top: 0.5rem;
+            right: 0.5rem;
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .message-modal-close:hover {
+            color: #1F2937;
+        }
     </style>
 </head>
 <body class="bg-gray-50 text-gray-800 font-inter">
@@ -279,7 +318,7 @@
                 Avaliação de Risco para Lesões por Pressão
             </h2>
             <p class="font-inter font-normal text-black text-base lg:text-lg mb-6 text-center sm:text-left">
-                A Escala de Gosnell é uma adaptação da escala de Norton, que acrescentou o fator nutrição e retirou a condição física. É constituída por cinco fatores de risco: estado mental, continência, mobilidade, atividade e nutrição, cada um com descrições detalhadas. A faixa de pontuação possível para a escala de Gosnell varia de 5 (boa) a 20 (ruim), indicando o risco de desenvolvimento de Lesões por pressão.
+                A Escala de Gosnell é uma adaptação da escala de Norton, que acrescentou o fator nutrição e retirou a condição física. É constituída por cinco fatores de risco: estado mental, continência, mobilidade, atividade e nutrição, cada um com descrições detalhadas. A faixa de pontuação possível para a escala de Gosnell varia de 5 (boa) a 20 (ruim), indicando o risco de desenvolvimento de lesões por pressão.
             </p>
             <p class="font-inter font-normal text-light-blue text-base lg:text-lg mb-6 text-center sm:text-left">
                 Selecione a pontuação para cada critério na tabela:
@@ -313,6 +352,10 @@
                 <button id="btnGerarPDF" class="btn-secondary" aria-label="Gerar PDF">
                     Gerar PDF
                 </button>
+                <!-- NOVO BOTÃO NANDA, NIC, NOC -->
+                <button id="btnNandaNicNoc" class="btn-primary" aria-label="Pesquisar NANDA, NIC, NOC">
+                    NANDA, NIC, NOC
+                </button>
             </div>
 
             <div class="ref font-inter text-gray-custom text-left">
@@ -320,7 +363,9 @@
                 <p>
                     Gosnell, D. J. (1987). Assessment and group classification of pressure sore risk. *Nursing Research*, 36(2), 79-83.
                 </p>
-                
+                <p class="mt-2">
+                    Adaptado de: Qconcursos.com. *Assistência de Enfermagem em Feridas e Curativos*. Disponível em: <a href="https://www.qconcursos.com/artigos/assistencia-de-enfermagem-em-feridas-e-curativos-parte-1" target="_blank" class="text-light-blue hover:underline">qconcursos.com</a>
+                </p>
             </div>
         </main>
     </div>
@@ -329,10 +374,62 @@
         Ajude-nos a manter o site gratuito
     </a>
 
+    <!-- Modal de Mensagem Personalizado -->
+    <div id="messageModalOverlay" class="message-modal-overlay">
+        <div class="message-modal-content">
+            <button id="messageModalClose" class="message-modal-close">&times;</button>
+            <p id="messageModalText" class="text-gray-700 text-lg"></p>
+        </div>
+    </div>
+
     <div id="footer-container"></div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script>
+        // Referências aos elementos do DOM
+        const resultadoDiv = document.getElementById('resultado');
+        const btnNandaNicNoc = document.getElementById('btnNandaNicNoc'); // NOVO: Referência ao botão NANDA, NIC, NOC
+
+        // Referências para o modal de mensagem
+        const messageModalOverlay = document.createElement('div');
+        messageModalOverlay.id = 'messageModalOverlay';
+        messageModalOverlay.className = 'message-modal-overlay';
+        document.body.appendChild(messageModalOverlay);
+
+        const messageModalContent = document.createElement('div');
+        messageModalContent.className = 'message-modal-content';
+        messageModalOverlay.appendChild(messageModalContent);
+
+        const messageModalClose = document.createElement('button');
+        messageModalClose.id = 'messageModalClose';
+        messageModalClose.className = 'message-modal-close';
+        messageModalClose.innerHTML = '&times;';
+        messageModalContent.appendChild(messageModalClose);
+
+        const messageModalText = document.createElement('p');
+        messageModalText.id = 'messageModalText';
+        messageModalText.className = 'text-gray-700 text-lg';
+        messageModalContent.appendChild(messageModalText);
+
+        // --- Funções do Modal de Mensagem ---
+        function showCustomMessage(message) {
+            messageModalText.textContent = message;
+            messageModalOverlay.style.display = 'flex';
+        }
+
+        function hideCustomMessage() {
+            messageModalOverlay.style.display = 'none';
+        }
+
+        // Adiciona listeners para o modal de mensagem
+        messageModalClose.addEventListener('click', hideCustomMessage);
+        messageModalOverlay.addEventListener('click', (e) => {
+            if (e.target === messageModalOverlay) {
+                hideCustomMessage();
+            }
+        });
+        // --- Fim das Funções do Modal de Mensagem ---
+
         // Dados da escala de Gosnell
         const gosnellData = [
             {
@@ -445,6 +542,28 @@
             document.getElementById('btnCalcular').addEventListener('click', calcularPontuacao);
             document.getElementById('btnLimpar').addEventListener('click', limparCampos);
             document.getElementById('btnGerarPDF').addEventListener('click', gerarPDF);
+
+            // NOVO: Adiciona o event listener para o novo botão NANDA, NIC, NOC
+            if (btnNandaNicNoc) {
+                btnNandaNicNoc.addEventListener('click', () => {
+                    const currentScore = resultadoDiv.dataset.score;
+                    const classificacao = resultadoDiv.dataset.classificacao;
+                    const scaleName = resultadoDiv.dataset.scaleName;
+
+                    // Se não houver resultados válidos (ou se a mensagem de erro estiver visível)
+                    if (!currentScore || !classificacao || !scaleName || resultadoDiv.innerHTML.includes('Por favor, selecione uma opção para cada fator de risco')) {
+                        showCustomMessage('Por favor, clique em "Calcular" primeiro para obter a pontuação e habilitar a pesquisa NANDA, NIC, NOC.');
+                        return;
+                    }
+
+                    // Constrói a string de pesquisa detalhada
+                    const detailedSearchQuery = `${currentScore} pontos, ${classificacao} - ${scaleName} GERAR diagnosticos de enfermagem da NANDA, GERAR intervenções de enfermagem do NIC, Gerar um exemplo de mensuração dos resultados implementados pelo enfermeiro (NOC)`;
+                    const encodedSearchQuery = encodeURIComponent(detailedSearchQuery);
+                    
+                    // Abre uma nova aba com a pesquisa do Google
+                    window.open(`https://www.google.com/search?q=${encodedSearchQuery}`, '_blank');
+                });
+            }
         }); // Fim do DOMContentLoaded
 
         function calcularPontuacao() {
@@ -473,6 +592,10 @@
                 resultadoDiv.style.display = "block";
                 resultadoDiv.innerHTML = '⚠️ <strong class="font-bold">Por favor, selecione uma opção para cada fator de risco</strong> antes de calcular.';
                 resultadoDiv.classList.add('bg-info-orange-light');
+                // Limpa os data-attributes se houver erro
+                resultadoDiv.dataset.score = '';
+                resultadoDiv.dataset.classificacao = '';
+                resultadoDiv.dataset.scaleName = '';
                 return;
             }
 
@@ -494,12 +617,14 @@
             resultadoDiv.style.display = "block";
             resultadoDiv.innerHTML = `Pontuação total Gosnell: <strong class="font-bold">${total}</strong><br><br>Classificação: <strong class="font-bold">${classificacao}</strong>`;
             resultadoDiv.classList.add(resultadoClasse);
+
+            // Armazena os resultados para o botão NANDA, NIC, NOC
+            resultadoDiv.dataset.score = total;
+            resultadoDiv.dataset.classificacao = classificacao;
+            resultadoDiv.dataset.scaleName = "Escala de Gosnell";
         }
 
         function limparCampos() {
-            document.querySelectorAll('#gosnellTable td.selected').forEach(td => {
-                td.classList.remove('selected');
-            });
             document.querySelectorAll('#gosnellTable tr.selected').forEach(tr => {
                 tr.classList.remove('selected');
             });
@@ -507,6 +632,10 @@
             resultadoDiv.style.display = 'none';
             resultadoDiv.innerHTML = '';
             resultadoDiv.className = 'resultado'; // Reseta as classes
+            // Limpa os data-attributes
+            delete resultadoDiv.dataset.score;
+            delete resultadoDiv.dataset.classificacao;
+            delete resultadoDiv.dataset.scaleName;
         }
 
         function gerarPDF() {
@@ -563,7 +692,7 @@
                     const score = selectedRow.querySelector('td:nth-of-type(3)').innerText; // Pega a pontuação da opção
                     const li = document.createElement('li');
                     li.style.fontSize = '14px';
-                    li.innerText = `${description} (${score})`;
+                    li.innerText = `${description} (Pontuação: ${score})`;
                     ul.appendChild(li);
                 } else {
                     const li = document.createElement('li');
