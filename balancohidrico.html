@@ -296,6 +296,10 @@
         <button id="btnGerarPDF" class="btn-secondary" aria-label="Gerar PDF do Balanço Hídrico">
           Gerar PDF
         </button>
+        <!-- NOVO BOTÃO NANDA, NIC, NOC -->
+        <button id="btnNandaNicNoc" class="btn-primary" aria-label="Pesquisar NANDA, NIC, NOC">
+            NANDA, NIC, NOC
+        </button>
       </div>
     </main>
   </div> 
@@ -307,6 +311,48 @@
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   <script>
+    // Referências aos elementos do DOM
+    const resultadoDiv = document.getElementById('resultado');
+    const btnNandaNicNoc = document.getElementById('btnNandaNicNoc'); // NOVO: Referência ao botão NANDA, NIC, NOC
+
+    // --- Funções do Modal de Mensagem (necessário para exibir mensagens de erro) ---
+    const messageModalOverlay = document.createElement('div');
+    messageModalOverlay.id = 'messageModalOverlay';
+    messageModalOverlay.className = 'message-modal-overlay';
+    document.body.appendChild(messageModalOverlay);
+
+    const messageModalContent = document.createElement('div');
+    messageModalContent.className = 'message-modal-content';
+    messageModalOverlay.appendChild(messageModalContent);
+
+    const messageModalClose = document.createElement('button');
+    messageModalClose.id = 'messageModalClose';
+    messageModalClose.className = 'message-modal-close';
+    messageModalClose.innerHTML = '&times;';
+    messageModalContent.appendChild(messageModalClose);
+
+    const messageModalText = document.createElement('p');
+    messageModalText.id = 'messageModalText';
+    messageModalText.className = 'text-gray-700 text-lg';
+    messageModalContent.appendChild(messageModalText);
+
+    function showCustomMessage(message) {
+        messageModalText.textContent = message;
+        messageModalOverlay.style.display = 'flex';
+    }
+
+    function hideCustomMessage() {
+        messageModalOverlay.style.display = 'none';
+    }
+
+    messageModalClose.addEventListener('click', hideCustomMessage);
+    messageModalOverlay.addEventListener('click', (e) => {
+        if (e.target === messageModalOverlay) {
+            hideCustomMessage();
+        }
+    });
+    // --- Fim das Funções do Modal de Mensagem ---
+
     function calcularBalançoHidrico() {
       const entradasIds = ['ingestaoOral', 'alimentosAgua', 'medicacoesIV', 'soroterapia', 'outrasEntradas'];
       const saidasIds = ['urina', 'vomito', 'diarreia', 'drenos', 'outrasPerdas'];
@@ -337,7 +383,6 @@
       });
 
       const balanco = totalEntradas - totalSaidas;
-      const resultadoDiv = document.getElementById('resultado');
       let classificacao = '';
       let resultadoCor = 'text-dark-blue'; // Padrão
 
@@ -376,11 +421,10 @@
       `;
       resultadoDiv.className = `resultado ${resultadoCor}`; // Aplica a classe de cor
 
-      // Armazenar os valores e detalhes para a geração do PDF
-      resultadoDiv.dataset.totalEntradas = totalEntradas;
-      resultadoDiv.dataset.totalSaidas = totalSaidas;
-      resultadoDiv.dataset.balanco = balanco;
-      resultadoDiv.dataset.classificacao = classificacao;
+      // Armazenar os valores e detalhes para a geração do PDF e para o botão NANDA, NIC, NOC
+      resultadoDiv.dataset.score = balanco; // Armazena o valor numérico do balanço
+      resultadoDiv.dataset.scaleName = "Balanço Hídrico";
+      resultadoDiv.dataset.classificacao = classificacao; // Armazena a classificação textual
       resultadoDiv.dataset.detalheEntradas = JSON.stringify(detalheEntradas);
       resultadoDiv.dataset.detalheSaidas = JSON.stringify(detalheSaidas);
       resultadoDiv.dataset.conduta = conduta; // Armazena a conduta completa
@@ -391,9 +435,15 @@
       inputFields.forEach(input => {
         input.value = 0;
       });
-      const resultadoDiv = document.getElementById('resultado');
       resultadoDiv.innerText = '';
       resultadoDiv.classList.remove('text-red-600', 'text-dark-blue', 'text-success-green');
+      // Limpa os data-attributes
+      delete resultadoDiv.dataset.score;
+      delete resultadoDiv.dataset.scaleName;
+      delete resultadoDiv.dataset.classificacao;
+      delete resultadoDiv.dataset.detalheEntradas;
+      delete resultadoDiv.dataset.detalheSaidas;
+      delete resultadoDiv.dataset.conduta;
     }
 
     // Função para gerar PDF (PADRÃO OTIMIZADO)
@@ -487,7 +537,7 @@
         if (resultadoDivOriginal && resultadoDivOriginal.innerText) {
             const totalEntradas = resultadoDivOriginal.dataset.totalEntradas;
             const totalSaidas = resultadoDivOriginal.dataset.totalSaidas;
-            const balancoValue = resultadoDivOriginal.dataset.balanco;
+            const balancoValue = resultadoDivOriginal.dataset.score; // Usar dataset.score
             const classificacao = resultadoDivOriginal.dataset.classificacao;
             const detalheEntradas = JSON.parse(resultadoDivOriginal.dataset.detalheEntradas || '[]');
             const detalheSaidas = JSON.parse(resultadoDivOriginal.dataset.detalheSaidas || '[]');
@@ -588,6 +638,28 @@
       document.getElementById('btnCalcular').addEventListener('click', calcularBalançoHidrico);
       document.getElementById('btnLimpar').addEventListener('click', limparCampos);
       document.getElementById('btnGerarPDF').addEventListener('click', gerarPDF);
+
+      // NOVO: Listener para o botão NANDA, NIC, NOC
+      if (btnNandaNicNoc) {
+          btnNandaNicNoc.addEventListener('click', () => {
+              const balancoValue = resultadoDiv.dataset.score; // Pega o valor do balanço
+              const classificacao = resultadoDiv.dataset.classificacao; // Pega a classificação (positivo, negativo, neutro)
+              const scaleName = resultadoDiv.dataset.scaleName; // Pega o nome da escala
+
+              // Se não houver balanço ou classificação válidos, exibe mensagem de erro
+              if (balancoValue === undefined || classificacao === undefined || !scaleName || resultadoDiv.innerText.trim() === '') {
+                  showCustomMessage('Por favor, clique em "Calcular" primeiro para obter o balanço hídrico e habilitar a pesquisa NANDA, NIC, NOC.');
+                  return;
+              }
+
+              // Constrói a string de pesquisa detalhada
+              const detailedSearchQuery = `${balancoValue} mL ${classificacao} ${scaleName} GERAR diagnosticos de enfermagem da NANDA, GERAR intervenções de enfermagem do NIC, Gerar um exemplo de mensuração dos resultados implementados pelo enfermeiro (NOC)`;
+              const encodedSearchQuery = encodeURIComponent(detailedSearchQuery);
+              
+              // Abre uma nova aba com a pesquisa do Google
+              window.open(`https://www.google.com/search?q=${encodedSearchQuery}`, '_blank');
+          });
+      }
 
       fetch("rodape111.html")
         .then(res => res.text())
