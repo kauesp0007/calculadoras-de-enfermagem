@@ -208,6 +208,10 @@
         <button id="btnGerarPDF" class="btn-secondary" aria-label="Gerar PDF">
           Gerar PDF
         </button>
+        <!-- NOVO BOTÃO NANDA, NIC, NOC -->
+        <button id="btnNandaNicNoc" class="btn-primary" aria-label="Pesquisar NANDA, NIC, NOC">
+            NANDA, NIC, NOC
+        </button>
       </div>
 
     </main>
@@ -222,6 +226,49 @@
   <div id="footer-container"></div>
 
   <script>
+    // Referências aos elementos do DOM
+    const resultadoDiv = document.getElementById('resultado');
+    const bibliografiaDiv = document.getElementById('bibliografia');
+    const btnNandaNicNoc = document.getElementById('btnNandaNicNoc'); // NOVO: Referência ao botão NANDA, NIC, NOC
+
+    // --- Funções do Modal de Mensagem (necessário para exibir mensagens de erro) ---
+    const messageModalOverlay = document.createElement('div');
+    messageModalOverlay.id = 'messageModalOverlay';
+    messageModalOverlay.className = 'message-modal-overlay';
+    document.body.appendChild(messageModalOverlay);
+
+    const messageModalContent = document.createElement('div');
+    messageModalContent.className = 'message-modal-content';
+    messageModalOverlay.appendChild(messageModalContent);
+
+    const messageModalClose = document.createElement('button');
+    messageModalClose.id = 'messageModalClose';
+    messageModalClose.className = 'message-modal-close';
+    messageModalClose.innerHTML = '&times;';
+    messageModalContent.appendChild(messageModalClose);
+
+    const messageModalText = document.createElement('p');
+    messageModalText.id = 'messageModalText';
+    messageModalText.className = 'text-gray-700 text-lg';
+    messageModalContent.appendChild(messageModalText);
+
+    function showCustomMessage(message) {
+        messageModalText.textContent = message;
+        messageModalOverlay.style.display = 'flex';
+    }
+
+    function hideCustomMessage() {
+        messageModalOverlay.style.display = 'none';
+    }
+
+    messageModalClose.addEventListener('click', hideCustomMessage);
+    messageModalOverlay.addEventListener('click', (e) => {
+        if (e.target === messageModalOverlay) {
+            hideCustomMessage();
+        }
+    });
+    // --- Fim das Funções do Modal de Mensagem ---
+
     function calcularGestacional() {
       const dumInput = document.getElementById('dum').value;
       const resultadoDiv = document.getElementById('resultado');
@@ -233,6 +280,10 @@
         resultadoDiv.classList.remove('text-dark-blue', 'bg-blue-50'); // Remove estilo padrão
         resultadoDiv.style.display = 'block';
         bibliografiaDiv.style.display = 'none'; // Esconde bibliografia se houver erro
+        // Limpa os data-attributes se houver erro
+        resultadoDiv.dataset.idadeGestacional = '';
+        resultadoDiv.dataset.dpp = '';
+        resultadoDiv.dataset.scaleName = '';
         return;
       }
       
@@ -249,6 +300,10 @@
           resultadoDiv.classList.remove('text-dark-blue', 'bg-blue-50');
           resultadoDiv.style.display = 'block';
           bibliografiaDiv.style.display = 'none';
+          // Limpa os data-attributes se houver erro
+          resultadoDiv.dataset.idadeGestacional = '';
+          resultadoDiv.dataset.dpp = '';
+          resultadoDiv.dataset.scaleName = '';
           return;
       }
 
@@ -270,6 +325,11 @@
 
       // Exibe bibliografia junto com resultado
       bibliografiaDiv.style.display = 'block';
+
+      // Armazena os resultados para o botão NANDA, NIC, NOC
+      resultadoDiv.dataset.idadeGestacional = `${semanas} semanas e ${dias} dias`;
+      resultadoDiv.dataset.dpp = dppFormatada;
+      resultadoDiv.dataset.scaleName = "Calculadora de Idade Gestacional e DPP";
     }
 
     function limparCampos() {
@@ -282,6 +342,10 @@
       resultadoDiv.classList.remove('text-red-600', 'text-dark-blue', 'bg-red-100', 'bg-blue-50');
       
       bibliografiaDiv.style.display = 'none'; // Esconde a bibliografia ao limpar
+      // Limpa os data-attributes
+      delete resultadoDiv.dataset.idadeGestacional;
+      delete resultadoDiv.dataset.dpp;
+      delete resultadoDiv.dataset.scaleName;
     }
 
     // Função para gerar PDF (PADRÃO)
@@ -400,6 +464,28 @@
       document.getElementById('btnCalcular').addEventListener('click', calcularGestacional);
       document.getElementById('btnLimpar').addEventListener('click', limparCampos);
       document.getElementById('btnGerarPDF').addEventListener('click', gerarPDF);
+
+      // NOVO: Adiciona o event listener para o novo botão NANDA, NIC, NOC
+      if (btnNandaNicNoc) {
+          btnNandaNicNoc.addEventListener('click', () => {
+              const idadeGestacional = resultadoDiv.dataset.idadeGestacional;
+              const dpp = resultadoDiv.dataset.dpp;
+              const scaleName = resultadoDiv.dataset.scaleName;
+
+              // Se não houver resultados válidos (ou se a mensagem de erro estiver visível)
+              if (!idadeGestacional || !dpp || !scaleName || resultadoDiv.innerHTML.includes('Por favor, insira a data da última menstruação')) {
+                  showCustomMessage('Por favor, clique em "Calcular Idade Gestacional e DPP" primeiro para obter os resultados e habilitar a pesquisa NANDA, NIC, NOC.');
+                  return;
+              }
+
+              // Constrói a string de pesquisa detalhada
+              const detailedSearchQuery = `Idade Gestacional: ${idadeGestacional}, DPP: ${dpp} - ${scaleName} GERAR diagnosticos de enfermagem da NANDA, GERAR intervenções de enfermagem do NIC, Gerar um exemplo de mensuração dos resultados implementados pelo enfermeiro (NOC)`;
+              const encodedSearchQuery = encodeURIComponent(detailedSearchQuery);
+              
+              // Abre uma nova aba com a pesquisa do Google
+              window.open(`https://www.google.com/search?q=${encodedSearchQuery}`, '_blank');
+          });
+      }
 
       // Carrega o rodapé (rodape111.html)
       fetch("rodape111.html")
