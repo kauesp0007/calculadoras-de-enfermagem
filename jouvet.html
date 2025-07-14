@@ -435,6 +435,10 @@
                 <button id="btnGerarPDF" class="btn-secondary" aria-label="Gerar PDF">
                     Gerar PDF
                 </button>
+                <!-- Botão NANDA, NIC, NOC adicionado aqui -->
+                <button id="btnNandaNicNoc" class="btn-primary" aria-label="Pesquisar NANDA, NIC, NOC">
+                    NANDA, NIC, NOC
+                </button>
             </div>
 
             <div class="ref font-inter text-gray-custom text-left">
@@ -477,6 +481,7 @@
         const btnGerarPDF = document.getElementById('btnGerarPDF');
         const resultadoDiv = document.getElementById('resultado');
         const conteudoDiv = document.getElementById('conteudo'); // Onde os critérios serão injetados
+        const btnNandaNicNoc = document.getElementById('btnNandaNicNoc'); // Referência ao botão NANDA, NIC, NOC
 
         // Referências para o modal de mensagem
         const messageModalOverlay = document.getElementById('messageModalOverlay');
@@ -593,7 +598,7 @@
                 <p>Comentário: <strong class="font-bold">${comentario}</strong></p>
                 <p class="text-sm mt-2 text-gray-600"><em>*Esta pontuação é uma interpretação para fins de cálculo e não substitui a avaliação clínica descritiva da Escala de Jouvet.</em></p>
             `;
-            resultadoDiv.classList.remove('hidden', 'bg-info-orange-light', 'bg-jouvet-1', 'bg-jouvet-2', 'bg-jouvet-3');
+            resultadoDiv.classList.remove('hidden', 'bg-info-orange-light');
             resultadoDiv.classList.add(resultadoClasse);
         }
 
@@ -601,7 +606,7 @@
             document.querySelectorAll('input[type="radio"]').forEach(radio => radio.checked = false);
             resultadoDiv.style.display = 'none';
             resultadoDiv.innerHTML = '';
-            resultadoDiv.className = 'resultado hidden';
+            resultadoDiv.className = 'resultado hidden'; // Reset all classes
         }
 
         function gerarPDF() {
@@ -870,6 +875,45 @@
             btnCalcular.addEventListener('click', calcularPontuacao);
             btnLimpar.addEventListener('click', limparCampos);
             btnGerarPDF.addEventListener('click', gerarPDF);
+
+            // NOVO: Adiciona o event listener para o botão NANDA, NIC, NOC
+            if (btnNandaNicNoc) {
+                btnNandaNicNoc.addEventListener('click', () => {
+                    let currentScore = '';
+                    let currentNivel = '';
+                    const scaleName = "Escala de Jouvet"; // Nome da escala fixo
+
+                    // Verifica se resultadoDiv tem conteúdo e está visível
+                    if (resultadoDiv.style.display !== 'none' && resultadoDiv.innerText.trim() !== '' && !resultadoDiv.innerText.includes('Por favor, selecione um item')) {
+                        const lines = resultadoDiv.innerText.split('\n');
+
+                        // Extrai a pontuação total
+                        const scoreLine = lines.find(line => line.includes('Pontuação Total da Escala de Jouvet:'));
+                        if (scoreLine) {
+                            currentScore = scoreLine.split(':')[1].trim();
+                        }
+
+                        // Extrai o Nível de Coma de Jouvet
+                        const nivelLine = lines.find(line => line.includes('Nível de Coma de Jouvet:'));
+                        if (nivelLine) {
+                            currentNivel = nivelLine.split(':')[1].trim();
+                        }
+                    }
+
+                    // Se alguma parte crucial estiver faltando após a análise, exibe erro
+                    if (!currentScore || !currentNivel) {
+                        showCustomMessage('Por favor, clique em "Calcular" primeiro para obter a pontuação e o nível de Jouvet e habilitar a pesquisa NANDA, NIC, NOC.');
+                        return;
+                    }
+
+                    // Constrói a string de pesquisa detalhada
+                    const detailedSearchQuery = `Pontuação ${currentScore}, ${currentNivel} - ${scaleName} GERAR diagnosticos de enfermagem da NANDA, GERAR intervenções de enfermagem do NIC, Gerar um exemplo de mensuração dos resultados implementados pelo enfermeiro (NOC)`;
+                    const encodedSearchQuery = encodeURIComponent(detailedSearchQuery);
+                    
+                    // Abre uma nova aba com a pesquisa do Google
+                    window.open(`https://www.google.com/search?q=${encodedSearchQuery}`, '_blank');
+                });
+            }
         });
     </script>
 </body>
