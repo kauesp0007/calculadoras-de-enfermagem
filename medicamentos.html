@@ -157,11 +157,66 @@
         margin-bottom: 0; /* Remove margem do último parágrafo */
     }
 
+    /* Estilos para o grupo de input */
+    .input-section {
+        background-color: #fff;
+        padding: 1.5rem; /* p-6 */
+        border-radius: 0.75rem; /* rounded-xl */
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); /* shadow-md */
+        margin-bottom: 1.5rem; /* mb-6 */
+    }
+
+    .input-group {
+        margin-bottom: 1rem; /* Espaçamento entre cada label/input pair */
+    }
+    .input-group:last-child {
+        margin-bottom: 0; /* Remove margin do último grupo */
+    }
+
     input[type="number"] {
       @apply w-full p-3 border border-gray-300 rounded-lg mt-1 focus:outline-none focus:ring-2 focus:ring-light-blue;
     }
     label {
-      @apply block mt-4 font-medium text-gray-700;
+      @apply block mt-4 font-bold text-gray-700; /* Adicionado font-bold aqui */
+    }
+
+    /* Estilo para o modal de mensagem */
+    .message-modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.6);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
+        display: none; /* Hidden by default */
+    }
+    .message-modal-content {
+        background-color: #fff;
+        padding: 2rem;
+        border-radius: 0.5rem;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        text-align: center;
+        max-width: 400px;
+        width: 90%;
+        position: relative;
+    }
+    .message-modal-close {
+        color: #aaa;
+        position: absolute;
+        top: 0.5rem;
+        right: 0.5rem;
+        background: none;
+        border: none;
+        font-size: 1.5rem;
+        font-weight: bold;
+        cursor: pointer;
+    }
+    .message-modal-close:hover {
+        color: #1F2937;
     }
   </style>
 </head>
@@ -190,27 +245,25 @@
           <p class="mt-2">Essa prática está alinhada com a **Meta Internacional nº 3 de Segurança do Paciente**: *“Melhorar a segurança na prescrição, uso e administração de medicamentos e com O código de ética dos profissionais de enfermagem”*.</p>
         </div>
 
-        <label for="apresentacao">Apresentação disponível na farmácia do hospital (em mg):</label>
-        <input type="number" id="apresentacao" placeholder="Ex: 80" min="0" step="any" aria-label="Apresentação disponível em miligramas">
+        <!-- Início da seção de inputs com melhoria de layout -->
+        <div class="input-section">
+            <div class="input-group">
+                <label for="apresentacao">Apresentação disponível na farmácia do hospital (em mg):</label>
+                <input type="number" id="apresentacao" placeholder="Ex: 80" min="0" step="any" aria-label="Apresentação disponível em miligramas">
+            </div>
 
-        <label for="prescricao">Prescrição de medicamento (em mg):</label>
-        <input type="number" id="prescricao" placeholder="Ex: 20" min="0" step="any" aria-label="Prescrição de medicamento em miligramas">
+            <div class="input-group">
+                <label for="prescricao">Prescrição de medicamento (em mg):</label>
+                <input type="number" id="prescricao" placeholder="Ex: 20" min="0" step="any" aria-label="Prescrição de medicamento em miligramas">
+            </div>
 
-        <label for="volume">Volume do frasco/ampola (em ml):</label>
-        <input type="number" id="volume" placeholder="Ex: 2" min="0" step="any" aria-label="Volume do frasco ou ampola em mililitros">
-
-        <div class="flex flex-wrap justify-start gap-4 mt-6">
-          <button id="btnCalcular" class="btn-primary" aria-label="Calcular dose do medicamento">
-            Calcular
-          </button>
-          <button id="btnLimpar" class="btn-primary" aria-label="Limpar campos">
-            Limpar
-          </button>
-          <button id="btnGerarPDF" class="btn-secondary" aria-label="Gerar PDF">
-            Gerar PDF
-          </button>
+            <div class="input-group">
+                <label for="volume">Volume do frasco/ampola (em ml):</label>
+                <input type="number" id="volume" placeholder="Ex: 2" min="0" step="any" aria-label="Volume do frasco ou ampola em mililitros">
+            </div>
         </div>
-
+        <!-- Fim da seção de inputs com melhoria de layout -->
+        
         <div id="resultado" class="resultado" aria-live="polite"></div>
 
         <div id="bibliografia" class="ref font-inter text-gray-custom">
@@ -220,6 +273,22 @@
             Disponível em: <a href="https://www.coren-ba.gov.br/wp-content/uploads/2024/07/CALCULO-DE-MEDICAMENTOS-Enfa.-Ana-Carolina-Ayres.pdf" target="_blank" class="text-light-blue hover:underline">https://www.coren-ba.gov.br/.../CALCULO-DE-MEDICAMENTOS</a>
           </p>
         </div>
+      </div>
+
+      <div class="flex flex-wrap justify-start gap-4 mt-6">
+        <button id="btnCalcular" class="btn-primary" aria-label="Calcular dose do medicamento">
+          Calcular
+        </button>
+        <button id="btnLimpar" class="btn-primary" aria-label="Limpar campos">
+          Limpar
+        </button>
+        <button id="btnGerarPDF" class="btn-secondary" aria-label="Gerar PDF">
+          Gerar PDF
+        </button>
+        <!-- Botão NANDA, NIC, NOC adicionado aqui -->
+        <button id="btnNandaNicNoc" class="btn-primary" aria-label="Pesquisar NANDA, NIC, NOC">
+            NANDA, NIC, NOC
+        </button>
       </div>
 
     </main>
@@ -233,7 +302,38 @@
   
   <div id="footer-container"></div>
 
+  <!-- Modal de Mensagem Personalizado -->
+  <div id="messageModalOverlay" class="message-modal-overlay">
+      <div class="message-modal-content">
+          <button id="messageModalClose" class="message-modal-close">&times;</button>
+          <p id="messageModalText" class="text-gray-700 text-lg"></p>
+      </div>
+  </div>
+
   <script>
+    // Referências para o modal de mensagem
+    const messageModalOverlay = document.getElementById('messageModalOverlay');
+    const messageModalText = document.getElementById('messageModalText');
+    const messageModalClose = document.getElementById('messageModalClose');
+
+    // --- Funções do Modal de Mensagem ---
+    function showCustomMessage(message) {
+        messageModalText.textContent = message;
+        messageModalOverlay.style.display = 'flex';
+    }
+
+    function hideCustomMessage() {
+        messageModalText.textContent = ''; // Clear text on hide
+        messageModalOverlay.style.display = 'none';
+    }
+
+    messageModalClose.addEventListener('click', hideCustomMessage);
+    messageModalOverlay.addEventListener('click', (e) => {
+        if (e.target === messageModalOverlay) {
+            hideCustomMessage();
+        }
+    });
+
     function calcular() {
       const apresentacao = parseFloat(document.getElementById('apresentacao').value);
       const prescricao = parseFloat(document.getElementById('prescricao').value);
@@ -249,6 +349,11 @@
         resultadoDiv.innerHTML = "Por favor, preencha todos os campos com valores numéricos válidos e positivos (Apresentação e Volume devem ser maiores que zero).";
         resultadoDiv.classList.remove('bg-blue-100', 'text-dark-blue');
         resultadoDiv.classList.add('bg-red-100', 'text-red-600');
+        // Clear data attributes on error
+        resultadoDiv.dataset.apresentacao = '';
+        resultadoDiv.dataset.prescricao = '';
+        resultadoDiv.dataset.volume = '';
+        resultadoDiv.dataset.resultadoMl = '';
         return;
       }
 
@@ -256,22 +361,33 @@
         resultadoDiv.innerHTML = "A prescrição deve ser um valor positivo. Se a prescrição for zero, não há medicamento a ser administrado.";
         resultadoDiv.classList.remove('bg-blue-100', 'text-dark-blue');
         resultadoDiv.classList.add('bg-red-100', 'text-red-600');
+        // Clear data attributes on error
+        resultadoDiv.dataset.apresentacao = '';
+        resultadoDiv.dataset.prescricao = '';
+        resultadoDiv.dataset.volume = '';
+        resultadoDiv.dataset.resultadoMl = '';
         return;
       }
 
       const numerador = prescricao * volume;
       const denominador = apresentacao;
       const x = numerador / denominador;
+      const xArredondado = x.toFixed(2); // Arredonda para 2 casas decimais para exibição
 
       resultadoDiv.innerHTML =
         `<p class="font-bold text-lg mb-2">Cálculo:</p>` +
         `<p>${apresentacao} mg ----------- ${volume} ml</p>` +
         `<p>${prescricao} mg ----------- x ml</p><br>` +
         `<p>${apresentacao}x = ${prescricao} x ${volume}</p>` +
-        `<p>${apresentacao}x = ${numerador}</p>` +
         `<p>x = ${numerador} ÷ ${denominador}</p>` +
-        `<p>x = ${x.toFixed(2)} ml</p><br>` +
-        `<p class="font-bold text-lg">Deve-se aspirar <mark class="bg-yellow-200 text-dark-blue px-1 py-0.5 rounded">${x.toFixed(2)} ml</mark> do frasco/ampola para administrar a dose prescrita.</p>`;
+        `<p>x = ${x.toFixed(4)} ml</p><br>` + // Exibe com mais casas para o cálculo detalhado
+        `<p class="font-bold text-lg">Deve-se aspirar <mark class="bg-yellow-200 text-dark-blue px-1 py-0.5 rounded">${xArredondado} ml</mark> do frasco/ampola para administrar a dose prescrita.</p>`;
+    
+      // Store data for NANDA button
+      resultadoDiv.dataset.apresentacao = apresentacao;
+      resultadoDiv.dataset.prescricao = prescricao;
+      resultadoDiv.dataset.volume = volume;
+      resultadoDiv.dataset.resultadoMl = xArredondado;
     }
 
     function limparCampos() {
@@ -284,6 +400,11 @@
       resultadoDiv.style.display = 'none'; // Esconde o resultado ao limpar
       resultadoDiv.classList.remove('bg-red-100', 'text-red-600'); // Garante que classes de erro sejam removidas
       resultadoDiv.classList.add('bg-blue-100', 'text-dark-blue'); // Reinicia para a classe padrão
+      // Clear data attributes
+      resultadoDiv.dataset.apresentacao = '';
+      resultadoDiv.dataset.prescricao = '';
+      resultadoDiv.dataset.volume = '';
+      resultadoDiv.dataset.resultadoMl = '';
     }
 
     // Função para gerar PDF (Aprimorada)
@@ -435,6 +556,32 @@
       document.getElementById('btnCalcular').addEventListener('click', calcular);
       document.getElementById('btnLimpar').addEventListener('click', limparCampos);
       document.getElementById('btnGerarPDF').addEventListener('click', gerarPDF);
+
+      // NOVO: Adiciona o event listener para o botão NANDA, NIC, NOC
+      const btnNandaNicNoc = document.getElementById('btnNandaNicNoc');
+      if (btnNandaNicNoc) {
+          btnNandaNicNoc.addEventListener('click', () => {
+              const resultadoDiv = document.getElementById('resultado');
+              const apresentacao = document.getElementById('apresentacao').value;
+              const prescricao = document.getElementById('prescricao').value;
+              const volume = document.getElementById('volume').value;
+              const resultadoMl = resultadoDiv.dataset.resultadoMl; // Pega o resultado do cálculo
+              const scaleName = "Calculadora de Medicamentos"; // Nome da escala fixo
+
+              // Se alguma parte crucial estiver faltando, exibe erro
+              if (!apresentacao || !prescricao || !volume || !resultadoMl) {
+                  showCustomMessage('Por favor, clique em "Calcular" primeiro para obter o resultado e habilitar a pesquisa NANDA, NIC, NOC.');
+                  return;
+              }
+
+              // Constrói a string de pesquisa detalhada
+              const detailedSearchQuery = `Apresentação: ${apresentacao} mg, Prescrição: ${prescricao} mg, Volume: ${volume} ml, Resultado: ${resultadoMl} ml - ${scaleName} GERAR diagnosticos de enfermagem da NANDA, GERAR intervenções de enfermagem do NIC, Gerar um exemplo de mensuração dos resultados implementados pelo enfermeiro (NOC)`;
+              const encodedSearchQuery = encodeURIComponent(detailedSearchQuery);
+              
+              // Abre uma nova aba com a pesquisa do Google
+              window.open(`https://www.google.com/search?q=${encodedSearchQuery}`, '_blank');
+          });
+      }
 
       // Carrega o rodapé (rodape111.html)
       fetch("rodape111.html")
