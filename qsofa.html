@@ -1,0 +1,959 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>qSOFA - Avaliação Rápida de Sepse - Calculadoras de Enfermagem</title>
+    <link rel="icon" href="favicon.ico">
+    <link rel="canonical" href="https://www.calculadorasdeenfermagem.com.br/qsofa.html">
+    <meta name="description" content="Calcule o escore qSOFA (quick Sepsis-related Organ Failure Assessment) para identificar rapidamente pacientes com suspeita de infecção em risco de desenvolver sepse, avaliando frequência respiratória, nível de consciência e pressão arterial sistólica. Uma pontuação de 2 ou mais sugere risco elevado de desfechos desfavoráveis." />
+    <meta name="keywords" content="qSOFA, sepse, infecção, triagem, avaliação rápida, risco de sepse, UTI, frequência respiratória, nível de consciência, pressão arterial sistólica, enfermagem, medicina de emergência" />
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Nunito+Sans:wght@700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+
+    <!-- html2pdf CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+    <!-- Google Tag Manager (gtag.js) - Consent Mode -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=AW-952633102"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('consent', 'default', {
+            'analytics_storage': 'denied',
+            'wait_for_update': 500 // Espera 500ms por uma atualização do consentimento
+        });
+        gtag('config', 'AW-952633102');
+    </script>
+
+    <!-- Schema.org Structured Data -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "MedicalEntity",
+      "name": "qSOFA - Quick Sepsis-related Organ Failure Assessment",
+      "url": "https://www.calculadorasdeenfermagem.com.br/qsofa.html",
+      "description": "Calculadora interativa do escore qSOFA para triagem rápida de pacientes com suspeita de infecção em risco de sepse, avaliando frequência respiratória, nível de consciência e pressão arterial sistólica.",
+      "alternateName": ["qSOFA Score Calculator", "Quick Sepsis Organ Failure Assessment"]
+    }
+    </script>
+
+    <style>
+        /* Reset básico e Box-sizing para consistência */
+        *, *::before, *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* Fontes personalizadas */
+        .font-nunito { font-family: 'Nunito Sans', sans-serif; }
+        .font-inter { font-family: 'Inter', sans-serif; }
+
+        /* Estilos das classes de fonte e cor personalizadas (para uso no HTML com Tailwind) */
+        .text-dark-blue { color: #1A3E74; } /* Azul Escuro */
+        .text-light-blue { color: #1FA4E5; } /* Azul Claro */
+        .text-gray-custom { color: #666666; } /* Cinza */
+        .text-success-green { color: #1ED760; } /* Verde */
+
+        /* Padrão de Botões (Componentes CSS para reuso) */
+        .btn-primary {
+            font-family: 'Inter', sans-serif;
+            font-weight: 600;
+            background-color: #1A3E74; /* Cor primária azul escuro */
+            color: #FFF;
+            padding: 12px 24px;
+            border-radius: 8px;
+            transition: background-color 0.3s ease;
+            border: none;
+            cursor: pointer;
+            text-align: center;
+        }
+        .btn-primary:hover { background-color: #122c54; } /* Tom mais escuro no hover */
+        .btn-secondary {
+            font-family: 'Inter', sans-serif;
+            font-weight: 600;
+            background-color: #1FA4E5; /* Cor secundária azul claro */
+            color: #FFF;
+            padding: 12px 24px;
+            border-radius: 8px;
+            transition: background-color 0.3s ease;
+            border: none;
+            cursor: pointer;
+            text-align: center;
+        }
+        .btn-secondary:hover { background-color: #178ac7; } /* Tom mais escuro no hover */
+        .btn-success {
+            font-family: 'Inter', sans-serif;
+            font-weight: 600; /* Padronizado com os outros botões */
+            background-color: #1ED760;
+            color: #FFF;
+            padding: 12px 24px; /* Padronizado com os outros botões */
+            border-radius: 8px;
+            transition: background-color 0.3s ease;
+            border: none;
+            cursor: pointer;
+            text-align: center;
+        }
+        .btn-success:hover { background-color: #17b351; }
+
+        /* Estilos para a área de resultado da calculadora (Componente específico) */
+        .resultado {
+            margin-top: 1rem;
+            padding: 1rem;
+            background-color: #e0f2fe; /* Tailwind blue-50 */
+            border-radius: 0.5rem;
+            font-weight: 600;
+            color: #1A3E74; /* text-dark-blue */
+            text-align: left;
+            white-space: pre-wrap;
+        }
+        /* Cores de resultado ajustadas para qSOFA */
+        .resultado.bg-qsofa-low { background-color: #D4EDDA; color: #155724; } /* Verde para Baixo Risco */
+        .resultado.bg-qsofa-high { background-color: #F8D7DA; color: #721C24; } /* Vermelho para Alto Risco */
+        .resultado.bg-info-orange-light { background-color: #ffeeba; border-color: #ffb366; color: #856404; } /* Para alertas */
+
+        /* Estilos para a referência/bibliografia (Componente específico) */
+        .ref {
+            margin-top: 2rem;
+            font-size: 14px;
+            color: #666666; /* text-gray-custom */
+            text-align: left;
+        }
+        
+        /* Layout principal com Topbar fixa */
+        body {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh; /* Garante que o body ocupe a altura total da viewport */
+            background-color: #f8fafc; /* Tailwind bg-gray-50 */
+            color: #333; /* Tailwind text-gray-800 */
+            font-family: 'Inter', sans-serif; /* Aplica a fonte Inter ao body */
+        }
+
+        /* ESTILOS DOS DROPDOWNS DA TOPBAR (MOVIDOS DE TOPBAR111.HTML) */
+        .dropdown-menu { display: none; }
+        .dropdown-menu.show { display: block; }
+        nav { justify-content: flex-end; } 
+        nav button { cursor: pointer; }
+        nav .dropdown-menu a:hover { background-color: #bfdbfe; }
+        /* FIM DOS ESTILOS DA TOPBAR */
+
+        /* Estilos para garantir que o menu mobile fique acima de outros conteúdos quando aberto */
+        #mainNav.flex {
+            z-index: 40; /* Um z-index alto para o menu mobile */
+            max-height: 70vh; /* Limita a altura do menu móvel */
+            overflow-y: auto; /* Adiciona scroll se o conteúdo for muito longo */
+            -webkit-overflow-scrolling: touch; /* Suaviza o scroll em iOS */
+        }
+        .dropdown-menu {
+            position: static; /* Por padrão, estático (fluxo normal) no mobile */
+            margin-top: 0; /* Remove margin-top padrão no mobile */
+            width: 100%; /* Ocupa a largura total do item pai no mobile */
+            box-shadow: none; /* Remove sombra no mobile */
+            border: none; /* Remove borda no mobile */
+            background-color: transparent; /* Fundo transparente no mobile para se misturar ao menu principal */
+            padding: 0; /* Remove padding extra no mobile */
+        }
+
+        /* Estilos específicos para desktop para os dropdowns */
+        @media (min-width: 768px) { /* md breakpoint */
+            .dropdown-menu {
+                position: absolute; /* Torna-se absoluto no desktop */
+                margin-top: 0.5rem; /* mt-2 (8px) para desktop */
+                width: auto; /* Largura automática para se ajustar ao conteúdo */
+                box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05); /* Sombra padrão do Tailwind */
+                border: 1px solid #e5e7eb; /* Borda padrão do Tailwind */
+                background-color: #fff; /* Fundo branco para os dropdowns no desktop */
+                padding: 0.5rem; /* p-2 */
+                border-radius: 0.25rem; /* rounded */
+            }
+        }
+
+        /* Espaçamento para o conteúdo abaixo da topbar fixa */
+        .main-content-wrapper { 
+            display: flex;
+            flex-direction: column;
+            flex-grow: 1;
+            padding-top: 64px; /* Garante que o conteúdo comece abaixo da topbar fixa (64px de altura) */
+            width: 100%;
+        }
+
+        /* Conteúdo principal (main) */
+        main {
+            flex-grow: 1;
+            max-width: 1280px; /* max-w-7xl */
+            margin-left: auto;
+            margin-right: auto;
+            padding: 2rem 1rem; /* Equivalente a p-8 px-4 */
+            width: 100%;
+        }
+
+        /* Estilo para o modal de mensagem */
+        .message-modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.6);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            display: none; /* Hidden by default */
+        }
+        .message-modal-content {
+            background-color: #fff;
+            padding: 2rem;
+            border-radius: 0.5rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+            position: relative;
+        }
+        .message-modal-close {
+            color: #aaa;
+            position: absolute;
+            top: 0.5rem;
+            right: 0.5rem;
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .message-modal-close:hover {
+            color: #1F2937;
+        }
+
+        /* --- Cookie Consent Banner Styles --- */
+        #cookieConsentBanner {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background-color: #1A3E74; /* Cor azul escuro da identidade */
+            color: #fff;
+            padding: 1rem;
+            text-align: center;
+            z-index: 1000; /* Acima do rodapé e outros elementos */
+            display: none; /* Oculto por padrão, mostrado via JS */
+            flex-direction: column; /* Empilha conteúdo em mobile */
+            align-items: center;
+            gap: 1rem;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.2);
+        }
+
+        #cookieConsentBanner.show {
+            display: flex; /* Mostra o banner */
+        }
+
+        #cookieConsentBanner p {
+            margin: 0;
+            font-size: 0.9rem;
+            line-height: 1.4;
+        }
+
+        #cookieConsentBanner .cookie-buttons {
+            display: flex;
+            gap: 0.75rem;
+            justify-content: center;
+            flex-wrap: wrap; /* Permite quebrar em telas menores */
+        }
+
+        #cookieConsentBanner button {
+            background-color: #2563eb; /* Tailwind blue-600 */
+            color: white;
+            padding: 0.6rem 1.2rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            transition: background-color 0.2s ease;
+            border: none;
+            cursor: pointer;
+            white-space: nowrap; /* Evita quebra de linha no texto do botão */
+        }
+
+        #cookieConsentBanner button.secondary {
+            background-color: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.5);
+        }
+
+        #cookieConsentBanner button.secondary:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+            border-color: white;
+        }
+
+        /* Responsive adjustments for cookie banner */
+        @media (min-width: 768px) {
+            #cookieConsentBanner {
+                flex-direction: row; /* Layout em linha para desktop */
+                justify-content: space-between;
+                padding: 1rem 2rem;
+            }
+            #cookieConsentBanner .cookie-buttons {
+                justify-content: flex-end;
+            }
+        }
+
+        /* --- ESTILOS PARA SEÇÕES DE CRITÉRIOS (tabela) --- */
+        .qsofa-section {
+            margin-bottom: 2.5rem; /* Espaçamento entre as tabelas de critério */
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            padding: 1.5rem;
+        }
+
+        .qsofa-section h3 {
+            margin-bottom: 1rem;
+            color: #1A3E74; /* dark-blue */
+            font-size: 1.25rem; /* text-xl */
+            font-weight: 700; /* font-bold */
+        }
+
+        .qsofa-section p.explanation {
+            font-size: 0.9rem;
+            color: #555;
+            margin-bottom: 1rem;
+            font-style: italic;
+        }
+
+        .qsofa-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .qsofa-table th, .qsofa-table td {
+            padding: 0.75rem 1rem;
+            border: 1px solid #e2e8f0; /* gray-200 */
+            text-align: left; /* Alinhamento padrão à esquerda para desktop */
+            vertical-align: top;
+        }
+
+        .qsofa-table th {
+            background-color: #f1f5f9; /* gray-100 */
+            font-weight: 700;
+            color: #1A3E74; /* dark-blue */
+            font-size: 0.95rem;
+        }
+
+        .qsofa-table tbody tr {
+            transition: background-color 0.2s ease;
+        }
+
+        .qsofa-table tbody tr:hover {
+            background-color: #f8fafc; /* gray-50 */
+        }
+
+        .qsofa-table .option-row {
+            cursor: pointer;
+        }
+
+        .qsofa-table .option-row input[type="radio"] {
+            margin-right: 0.75rem;
+            transform: scale(1.1);
+            accent-color: #1A3E74;
+        }
+
+        .qsofa-table .option-row input[type="radio"]:checked + span {
+            font-weight: 600;
+            color: #1A3E74;
+        }
+
+        /* Ajustes para telas menores */
+        @media (max-width: 768px) {
+            h1 { font-size: 2.25rem; }
+            h2 { font-size: 1.125rem; }
+            p { font-size: 0.9rem; }
+            .main-content-wrapper { padding: 1rem 0.75rem; }
+            .btn-primary, .btn-secondary {
+                width: 100%;
+                margin-bottom: 0.75rem;
+            }
+            .qsofa-section {
+                padding: 1rem;
+            }
+            .qsofa-section h3 {
+                font-size: 1.125rem; /* text-lg */
+                margin-bottom: 0.75rem;
+            }
+            .qsofa-table, .qsofa-table tbody, .qsofa-table tr, .qsofa-table td, .qsofa-table th {
+                display: block; /* Empilha elementos da tabela */
+                width: 100%;
+            }
+            .qsofa-table thead {
+                display: none; /* Esconde o cabeçalho da tabela em mobile */
+            }
+            .qsofa-table tr {
+                margin-bottom: 0.5rem; /* Espaçamento entre as opções */
+                border: 1px solid #e2e8f0;
+                border-radius: 8px;
+                overflow: hidden;
+            }
+            .qsofa-table td {
+                text-align: left; /* ALINHAMENTO À ESQUERDA PARA MOBILE */
+                padding: 0.75rem 1rem; /* Ajusta o padding para o texto */
+                position: relative;
+            }
+            .qsofa-table td::before {
+                content: attr(data-label); /* Usa o atributo data-label */
+                position: static; /* Remove posicionamento absoluto para fluir com o texto */
+                display: block; /* Garante que o label ocupe sua própria linha */
+                width: auto;
+                padding-left: 0;
+                font-weight: 600;
+                text-align: left;
+                color: #1A3E74;
+                margin-bottom: 0.25rem; /* Espaçamento entre o label e o conteúdo */
+            }
+            .qsofa-table .option-row label {
+                display: flex; /* Garante que o label seja um flex container */
+                align-items: center; /* Alinha o radio e o texto verticalmente */
+                justify-content: flex-start; /* ALINHA O CONTEÚDO DO LABEL À ESQUERDA */
+                width: 100%; /* Ocupa a largura total da célula */
+            }
+            .qsofa-table .option-row input[type="radio"] {
+                margin-right: 0.75rem; /* Mantém o espaçamento entre o radio e o texto */
+                margin-top: 0; /* Remove float e ajusta margem */
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800 font-inter">
+
+    <div id="topbar-container"></div>
+    <script src="./topbar111.js" defer></script>
+
+    <div class="main-content-wrapper">
+        <main class="max-w-4xl mx-auto px-4 py-8">
+            <div class="flex flex-col items-center justify-center gap-4 mb-3 text-center">
+                <img src="iconpages.png" alt="Ícone da Calculadora qSOFA" class="w-32 h-auto" />
+                <h1 id="main-title" class="font-nunito font-extrabold text-dark-blue text-4xl lg:text-5xl">
+                    qSOFA
+                </h1>
+            </div>
+            <h2 id="main-subtitle" class="font-inter font-semibold text-light-blue text-xl lg:text-2xl mb-3 text-center sm:text-left">
+                Quick Sepsis-related Organ Failure Assessment
+            </h2>
+
+            <p id="description-text" class="text-gray-700 mb-6">
+                O sistema de pontuação qSOFA (quick Sepsis-related Organ Failure Assessment) é uma ferramenta de triagem rápida e simplificada, essencial para identificar pacientes com suspeita de infecção que podem estar em risco de desenvolver sepse. A sepse é uma resposta inflamatória sistêmica grave do corpo a uma infecção, que pode levar à disfunção de órgãos e, em casos graves, à morte. O qSOFA avalia três critérios clínicos de fácil obtenção: frequência respiratória, nível de consciência e pressão arterial sistólica. Cada critério positivo contribui com 1 ponto para o escore total. Uma pontuação de 2 ou mais sugere um risco elevado de desfechos desfavoráveis, como maior permanência na UTI e aumento da mortalidade. Embora seja uma ferramenta valiosa para a triagem precoce e o direcionamento da investigação, o qSOFA não constitui um diagnóstico definitivo de sepse e deve ser sempre utilizado em conjunto com a avaliação clínica completa e exames laboratoriais.
+            </p>
+            <p class="font-inter font-normal text-light-blue text-base lg:text-lg mb-6 text-center sm:text-left">
+                Selecione a pontuação para cada um dos critérios abaixo:
+            </p>
+
+            <div id="conteudo">
+                <!-- As tabelas da calculadora serão geradas dinamicamente aqui pelo JavaScript -->
+            </div>
+
+            <div id="resultado" class="resultado hidden" aria-live="polite">
+                <!-- O resultado será exibido aqui -->
+            </div>
+
+            <div class="flex flex-wrap justify-start gap-4 mt-6">
+                <button id="btnCalcular" class="btn-primary" aria-label="Calcular pontuação qSOFA">
+                    Calcular
+                </button>
+                <button id="btnLimpar" class="btn-primary" aria-label="Limpar campos">
+                    Limpar
+                </button>
+                <button id="btnGerarPDF" class="btn-secondary" aria-label="Gerar PDF">
+                    Gerar PDF
+                </button>
+                <!-- Botão NANDA, NIC, NOC adicionado aqui -->
+                <button id="btnNandaNicNoc" class="btn-primary" aria-label="Pesquisar NANDA, NIC, NOC">
+                    NANDA, NIC, NOC
+                </button>
+            </div>
+
+            <div class="ref font-inter text-gray-custom text-left">
+                <p class="font-bold mb-2">Referência Bibliográfica:</p>
+                <p>
+                    Singer, M., Deutschman, C. S., Seymour, C. W., Shankar-Hari, M., Annane, D., Bauer, M., ... & Hotchkiss, R. S. (2016).
+                    <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC7475464/" target="_blank" rel="noopener noreferrer" class="text-light-blue hover:underline">
+                        The Third International Consensus Definitions for Sepsis and Septic Shock (Sepsis-3).
+                    </a>
+                    JAMA, 315(8), 801-810. (Este link é para o artigo original do Sepsis-3, que inclui o qSOFA)
+                </p>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal de Mensagem Personalizado -->
+    <div id="messageModalOverlay" class="message-modal-overlay">
+        <div class="message-modal-content">
+            <button id="messageModalClose" class="message-modal-close">&times;</button>
+            <p id="messageModalText" class="text-gray-700 text-lg"></p>
+        </div>
+    </div>
+
+    <!-- Cookie Consent Banner -->
+    <div id="cookieConsentBanner">
+        <p>Utilizamos cookies para melhorar sua experiência em nosso site. Ao continuar navegando, você concorda com nossa <a href="politica.html" class="underline text-blue-200 hover:text-blue-100">Política de Cookies</a>.</p>
+        <div class="cookie-buttons">
+            <button id="acceptCookiesBtn">Aceitar todos os cookies</button>
+            <button id="refuseCookiesBtn" class="secondary">Recusar cookies</button>
+        </div>
+    </div>
+
+    <!-- Div para o rodapé dinâmico -->
+    <div id="footer-container"></div>
+
+    <!-- Script principal da página (Cookie, Calculadora e PDF) -->
+    <script>
+        // Referências aos elementos do DOM
+        const btnCalcular = document.getElementById('btnCalcular');
+        const btnLimpar = document.getElementById('btnLimpar');
+        const btnGerarPDF = document.getElementById('btnGerarPDF');
+        const resultadoDiv = document.getElementById('resultado');
+        const conteudoDiv = document.getElementById('conteudo'); // Onde os critérios serão injetados
+        const btnNandaNicNoc = document.getElementById('btnNandaNicNoc'); // Referência ao botão NANDA, NIC, NOC
+
+        // Referências para o modal de mensagem
+        const messageModalOverlay = document.getElementById('messageModalOverlay');
+        const messageModalText = document.getElementById('messageModalText');
+        const messageModalClose = document.getElementById('messageModalClose');
+
+        // --- Funções do Modal de Mensagem ---
+        function showCustomMessage(message) {
+            messageModalText.textContent = message;
+            messageModalOverlay.style.display = 'flex';
+        }
+
+        function hideCustomMessage() {
+            messageModalOverlay.style.display = 'none';
+        }
+
+        // Adiciona listeners para o modal de mensagem
+        messageModalClose.addEventListener('click', hideCustomMessage);
+        messageModalOverlay.addEventListener('click', (e) => {
+            if (e.target === messageModalOverlay) {
+                hideCustomMessage();
+            }
+        });
+
+        // Dados da Escala qSOFA
+        const qsofaData = [
+            {
+                category: "Frequência Respiratória (FR)",
+                nameAttr: "fr",
+                explanation: "Avalie a frequência respiratória do paciente em incursões por minuto.",
+                options: [
+                    { description: "Menor que 22 irpm", score: 0 },
+                    { description: "Maior ou igual a 22 irpm", score: 1 }
+                ]
+            },
+            {
+                category: "Nível de Consciência (Escala de Coma de Glasgow - GCS)",
+                nameAttr: "gcs",
+                explanation: "Avalie o nível de consciência do paciente utilizando a Escala de Coma de Glasgow.",
+                options: [
+                    { description: "GCS ≥ 15", score: 0 },
+                    { description: "GCS < 15 (alterado)", score: 1 }
+                ]
+            },
+            {
+                category: "Pressão Arterial Sistólica (PAS)",
+                nameAttr: "pas",
+                explanation: "Avalie a pressão arterial sistólica do paciente em mmHg.",
+                options: [
+                    { description: "PAS > 100 mmHg", score: 0 },
+                    { description: "PAS ≤ 100 mmHg", score: 1 }
+                ]
+            }
+        ];
+
+        // --- Lógica da Calculadora qSOFA ---
+        function calcularPontuacao() {
+            let totalQSOFAScore = 0;
+            const missingCategories = []; // Array para armazenar categorias não selecionadas
+            const selectedDetails = [];
+
+            // Limpa resultados anteriores e estilos
+            resultadoDiv.innerHTML = '';
+            resultadoDiv.className = 'resultado'; // Reseta para a classe base
+            resultadoDiv.style.display = 'none'; // Esconde até um resultado válido ou erro específico
+
+            qsofaData.forEach(paramGroup => {
+                const selectedOption = document.querySelector(`input[name="${paramGroup.nameAttr}"]:checked`);
+                if (selectedOption) {
+                    const score = parseFloat(selectedOption.value);
+                    totalQSOFAScore += score;
+                    selectedDetails.push({
+                        parameter: paramGroup.category,
+                        description: selectedOption.nextElementSibling.textContent,
+                        score: score
+                    });
+                } else {
+                    missingCategories.push(paramGroup.category); // Adiciona a categoria não selecionada
+                }
+            });
+
+            if (missingCategories.length > 0) {
+                resultadoDiv.style.display = "block";
+                let errorMessage = '⚠️ <strong class="font-bold">Por favor, selecione uma opção para cada critério</strong> antes de calcular.<br>Critérios pendentes: ' + missingCategories.join(', ') + '.';
+                resultadoDiv.innerHTML = errorMessage;
+                resultadoDiv.classList.add('bg-info-orange-light'); // Adiciona estilo de erro específico
+                // Limpa atributos de dados em caso de erro
+                resultadoDiv.dataset.score = '';
+                resultadoDiv.dataset.interpretacao = '';
+                return; // Interrompe a função se houver campos faltando
+            }
+
+            let interpretacao = '';
+            let resultadoClasse = '';
+            let conduta = '';
+
+            if (totalQSOFAScore >= 2) {
+                interpretacao = "Alto risco de desfechos desfavoráveis (maior permanência na UTI e mortalidade).";
+                resultadoClasse = 'bg-qsofa-high';
+                conduta = "Considerar avaliação adicional para sepse e intervenção rápida. Necessária investigação laboratorial e avaliação clínica completa.";
+            } else {
+                interpretacao = "Baixo risco de desfechos desfavoráveis no momento.";
+                resultadoClasse = 'bg-qsofa-low';
+                conduta = "Manter monitoramento clínico. Reavaliar se houver piora do quadro.";
+            }
+
+            resultadoDiv.style.display = "block";
+            resultadoDiv.innerHTML = `
+                <p>Pontuação Total qSOFA: <strong class="font-bold">${totalQSOFAScore}</strong></p>
+                <p>Interpretação: <strong class="font-bold">${interpretacao}</strong></p>
+                <p>Conduta Sugerida: <strong class="font-bold">${conduta}</strong></p>
+                <p class="mt-4 text-sm text-gray-700">
+                    <strong class="text-red-600">Importante:</strong> O qSOFA não é um diagnóstico definitivo de sepse. É uma ferramenta de triagem e não substitui a avaliação clínica completa e a investigação laboratorial. Não é recomendado para pacientes obstétricas.
+                </p>
+            `;
+            resultadoDiv.classList.remove('hidden', 'bg-info-orange-light', 'bg-qsofa-low', 'bg-qsofa-high');
+            resultadoDiv.classList.add(resultadoClasse);
+
+            // Armazena dados para o botão NANDA
+            resultadoDiv.dataset.score = totalQSOFAScore;
+            resultadoDiv.dataset.interpretacao = interpretacao;
+            resultadoDiv.dataset.conduta = conduta;
+        }
+
+        function limparCampos() {
+            qsofaData.forEach(paramGroup => {
+                document.querySelectorAll(`input[name="${paramGroup.nameAttr}"]`).forEach(radio => radio.checked = false);
+            });
+            resultadoDiv.style.display = 'none';
+            resultadoDiv.innerHTML = '';
+            resultadoDiv.className = 'resultado hidden';
+            // Limpa atributos de dados
+            resultadoDiv.dataset.score = '';
+            resultadoDiv.dataset.interpretacao = '';
+            resultadoDiv.dataset.conduta = '';
+        }
+
+        function gerarPDF() {
+            const pdfContentWrapper = document.createElement('div');
+            pdfContentWrapper.style.fontFamily = "'Inter', sans-serif";
+            pdfContentWrapper.style.color = '#333';
+            pdfContentWrapper.style.padding = '20px';
+
+            // Adiciona o título principal, subtítulo e data/hora
+            const mainTitle = document.getElementById('main-title');
+            const mainSubtitle = document.getElementById('main-subtitle');
+            const descriptionText = document.getElementById('description-text');
+
+            if (mainTitle) {
+                const clonedTitle = mainTitle.cloneNode(true);
+                clonedTitle.style.fontSize = '24px';
+                clonedTitle.style.fontWeight = 'bold';
+                clonedTitle.style.textAlign = 'center';
+                clonedTitle.style.marginBottom = '5px';
+                clonedTitle.style.color = '#1A3E74';
+                pdfContentWrapper.appendChild(clonedTitle);
+            }
+
+            if (mainSubtitle) {
+                const clonedSubtitle = mainSubtitle.cloneNode(true);
+                clonedSubtitle.style.fontSize = '18px';
+                clonedSubtitle.style.textAlign = 'center';
+                clonedSubtitle.style.marginBottom = '20px';
+                clonedSubtitle.style.color = '#1FA4E5';
+                pdfContentWrapper.appendChild(clonedSubtitle);
+            }
+
+            // Adiciona a data e hora de geração
+            const dateTime = document.createElement('p');
+            dateTime.style.fontSize = '12px';
+            dateTime.style.color = '#777';
+            dateTime.style.textAlign = 'center';
+            dateTime.style.marginBottom = '20px';
+            dateTime.textContent = `Gerado em: ${new Date().toLocaleDateString('pt-BR')} ${new Date().toLocaleTimeString('pt-BR')}`;
+            pdfContentWrapper.appendChild(dateTime);
+
+            // Adiciona a descrição introdutória
+            if (descriptionText) {
+                const clonedDescription = descriptionText.cloneNode(true);
+                clonedDescription.style.cssText = "font-family: 'Inter', sans-serif; font-weight: 400; color: #666666; font-size: 14px; margin-bottom: 15px; text-align: justify;";
+                pdfContentWrapper.appendChild(clonedDescription);
+            }
+
+            // Título "Critérios Selecionados e Pontuações"
+            const selectedItemsTitle = document.createElement('p');
+            selectedItemsTitle.style.cssText = "font-family: 'Inter', sans-serif; font-weight: 600; color: #1A3E74; font-size: 16px; margin-top: 20px; margin-bottom: 10px; text-align: left;";
+            selectedItemsTitle.textContent = "Critérios Selecionados e Pontuações:";
+            pdfContentWrapper.appendChild(selectedItemsTitle);
+
+            // Cria uma nova tabela para o PDF com a seleção do usuário
+            const pdfSelectionsTable = document.createElement('table');
+            pdfSelectionsTable.className = 'qsofa-table'; // Reusa a classe da tabela para estilização
+            pdfSelectionsTable.style.marginBottom = '20px';
+
+            const thead = document.createElement('thead');
+            thead.innerHTML = `
+                <tr>
+                    <th>Critério</th>
+                    <th>Descrição Selecionada</th>
+                    <th>Pontuação</th>
+                </tr>
+            `;
+            pdfSelectionsTable.appendChild(thead);
+
+            const tbody = document.createElement('tbody');
+            let allParametersSelectedInPdf = true; // Flag para verificar se todas as seleções estão no PDF
+            qsofaData.forEach(paramGroup => {
+                const selectedOption = document.querySelector(`input[name="${paramGroup.nameAttr}"]:checked`);
+                const tr = document.createElement('tr');
+                if (selectedOption) {
+                    const score = parseFloat(selectedOption.value);
+                    const description = selectedOption.nextElementSibling.textContent; // Pega o texto do span
+
+                    tr.innerHTML = `
+                        <td data-label="Critério">${paramGroup.category}</td>
+                        <td data-label="Descrição Selecionada">${description}</td>
+                        <td data-label="Pontuação">${score}</td>
+                    `;
+                } else {
+                    tr.innerHTML = `
+                        <td data-label="Critério">${paramGroup.category}</td>
+                        <td data-label="Descrição Selecionada" style="color: #CC0000;">Nenhuma opção selecionada para este critério.</td>
+                        <td data-label="Pontuação" style="color: #CC0000;">-</td>
+                    `;
+                    allParametersSelectedInPdf = false;
+                }
+                tbody.appendChild(tr);
+            });
+
+            pdfSelectionsTable.appendChild(tbody);
+            pdfContentWrapper.appendChild(pdfSelectionsTable);
+
+            // Adiciona o resultado da pontuação
+            const resultDivForPdf = document.createElement('div');
+            resultDivForPdf.className = 'resultado';
+            resultDivForPdf.style.marginTop = '1rem';
+            resultDivForPdf.style.padding = '1rem';
+            resultDivForPdf.style.borderRadius = '0.5rem';
+            resultDivForPdf.style.fontWeight = '600';
+            resultDivForPdf.style.textAlign = 'left';
+            resultDivForPdf.style.whiteSpace = 'pre-wrap';
+
+            // Verifica se o resultado já foi calculado na página e se todas as seleções estão presentes
+            if (resultadoDiv.style.display !== 'none' && resultadoDiv.innerHTML.trim() !== '' && allParametersSelectedInPdf) {
+                resultDivForPdf.innerHTML = resultadoDiv.innerHTML;
+                // Copia as classes de cor do resultado original
+                resultadoDiv.classList.forEach(cls => {
+                    if (cls.startsWith('bg-') || cls.startsWith('text-')) {
+                        resultDivForPdf.classList.add(cls);
+                    }
+                });
+            } else {
+                resultDivForPdf.innerHTML = "Resultado não calculado ou seleção incompleta na página. Por favor, selecione uma opção para cada critério e calcule antes de gerar o PDF.";
+                resultDivForPdf.classList.add('bg-info-orange-light', 'text-orange-800');
+                resultDivForPdf.style.backgroundColor = '#ffeeba';
+                resultDivForPdf.style.color = '#856404';
+            }
+            pdfContentWrapper.appendChild(resultDivForPdf);
+
+            // Adiciona a referência bibliográfica
+            const references = document.querySelector('.ref').cloneNode(true);
+            references.style.marginTop = '2rem';
+            references.style.fontSize = '12px'; // Ajusta o tamanho da fonte para PDF
+            references.style.color = '#666666';
+            references.style.textAlign = 'left';
+            references.querySelectorAll('a').forEach(a => {
+                a.style.color = '#1FA4E5';
+                a.style.textDecoration = 'underline';
+            });
+            pdfContentWrapper.appendChild(references);
+
+            const opt = {
+                margin: 0.5,
+                filename: "escala-qsofa.pdf", // Nome do arquivo PDF
+                image: { type: "jpeg", quality: 0.98 },
+                html2canvas: { scale: 3, scrollY: 0 },
+                jsPDF: { unit: "in", format: "a4", orientation: "portrait" }
+            };
+
+            html2pdf().set(opt).from(pdfContentWrapper).save().catch(error => {
+                console.error('Erro ao gerar PDF:', error);
+                showCustomMessage('Ocorreu um erro ao gerar o PDF. Por favor, tente novamente.');
+            });
+        }
+
+        // --- Lógica do Cookie Consent Banner ---
+        const cookieConsentBanner = document.getElementById('cookieConsentBanner');
+        const acceptCookiesBtn = document.getElementById('acceptCookiesBtn');
+        const refuseCookiesBtn = document.getElementById('refuseCookiesBtn');
+        const cookiesAcceptedKey = 'cookiesAccepted'; // Chave para localStorage
+
+        function showCookieBanner() {
+            if (localStorage.getItem(cookiesAcceptedKey) === null) {
+                cookieConsentBanner.classList.add('show');
+            }
+        }
+
+        function hideCookieBanner() {
+            cookieConsentBanner.classList.remove('show');
+        }
+
+        if (acceptCookiesBtn) {
+            acceptCookiesBtn.addEventListener('click', () => {
+                localStorage.setItem(cookiesAcceptedKey, 'true');
+                hideCookieBanner();
+                // Atualiza o consentimento do GTM para 'granted'
+                gtag('consent', 'update', {
+                    'analytics_storage': 'granted'
+                });
+            });
+        }
+
+        if (refuseCookiesBtn) {
+            refuseCookiesBtn.addEventListener('click', () => {
+                localStorage.setItem(cookiesAcceptedKey, 'false');
+                hideCookieBanner();
+                // O consentimento já está 'denied' por padrão, então não precisa de 'update' aqui
+            });
+        }
+        // --- Fim da Lógica do Cookie Consent Banner ---
+
+        // --- Início do DOMContentLoaded para preencher o formulário, carregar rodapé e adicionar listeners ---
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('DOMContentLoaded fired. Starting dynamic content generation for qSOFA Scale.');
+
+            // Carrega o rodapé
+            fetch("./rodape111.html")
+                .then(res => res.text())
+                .then(data => {
+                    const footerContainer = document.getElementById("footer-container");
+                    if (footerContainer) {
+                        footerContainer.innerHTML = data;
+                        console.log('Rodapé carregado com sucesso.');
+                    } else {
+                        console.error("Elemento #footer-container não encontrado.");
+                    }
+                })
+                .catch(err => console.error("Erro ao carregar rodape111.html:", err));
+
+            // Preenche o formulário dinamicamente com as tabelas separadas
+            console.log("Attempting to dynamically generate qSOFA tables.");
+
+            qsofaData.forEach((paramGroup, index) => {
+                const qsofaSection = document.createElement('div');
+                qsofaSection.className = 'qsofa-section';
+
+                const paramTitle = document.createElement('h3');
+                paramTitle.textContent = `${index + 1}. ${paramGroup.category}`;
+                qsofaSection.appendChild(paramTitle);
+
+                if (paramGroup.explanation) {
+                    const explanationP = document.createElement('p');
+                    explanationP.className = 'explanation';
+                    explanationP.textContent = paramGroup.explanation;
+                    qsofaSection.appendChild(explanationP);
+                }
+
+                const table = document.createElement('table');
+                table.className = 'qsofa-table';
+
+                const thead = document.createElement('thead');
+                thead.innerHTML = `
+                    <tr>
+                        <th>Descrição</th>
+                        <th>Pontuação</th>
+                    </tr>
+                `;
+                table.appendChild(thead);
+
+                const tbody = document.createElement('tbody');
+                paramGroup.options.forEach((option, optIndex) => {
+                    const tr = document.createElement('tr');
+                    tr.className = 'option-row';
+
+                    // Célula da Descrição (com radio button)
+                    const descriptionCell = document.createElement('td');
+                    descriptionCell.setAttribute('data-label', 'Descrição'); // Para mobile
+                    const label = document.createElement('label');
+                    label.className = 'option-label flex items-center justify-start'; // Alinha à esquerda
+                    const input = document.createElement('input');
+                    input.type = 'radio';
+                    input.name = paramGroup.nameAttr;
+                    input.value = option.score;
+                    // Certifica-se que o ID é único combinando o nome do grupo e o índice da opção
+                    input.id = `${paramGroup.nameAttr}-${optIndex}`;
+
+                    const span = document.createElement('span');
+                    span.textContent = option.description;
+
+                    label.appendChild(input);
+                    label.appendChild(span);
+                    descriptionCell.appendChild(label);
+                    tr.appendChild(descriptionCell);
+
+                    // Célula da Pontuação
+                    const scoreCell = document.createElement('td');
+                    scoreCell.setAttribute('data-label', 'Pontuação'); // Para mobile
+                    scoreCell.textContent = `${option.score} ponto(s)`;
+                    tr.appendChild(scoreCell);
+
+                    tbody.appendChild(tr);
+                });
+                table.appendChild(tbody);
+                qsofaSection.appendChild(table);
+                conteudoDiv.appendChild(qsofaSection);
+                console.log(`[qSOFA] Generated table for parameter: ${paramGroup.category}`);
+            });
+
+            // Mostra o banner de cookies ao carregar a página, se necessário
+            showCookieBanner();
+
+            // Adiciona event listeners aos botões
+            btnCalcular.addEventListener('click', calcularPontuacao);
+            btnLimpar.addEventListener('click', limparCampos);
+            btnGerarPDF.addEventListener('click', gerarPDF);
+
+            // NOVO: Adiciona o event listener para o botão NANDA, NIC, NOC
+            if (btnNandaNicNoc) {
+                btnNandaNicNoc.addEventListener('click', () => {
+                    const currentScore = resultadoDiv.dataset.score;
+                    const interpretacao = resultadoDiv.dataset.interpretacao;
+                    const conduta = resultadoDiv.dataset.conduta;
+                    const scaleName = "qSOFA"; // Nome da escala fixo
+
+                    // Se alguma parte crucial estiver faltando, exibe erro
+                    if (!currentScore || !interpretacao || !conduta) {
+                        showCustomMessage('Por favor, clique em "Calcular" primeiro para obter a pontuação e a conduta e habilitar a pesquisa NANDA, NIC, NOC.');
+                        return;
+                    }
+
+                    // Constrói a string de pesquisa detalhada
+                    const detailedSearchQuery = `Pontuação qSOFA: ${currentScore}, Interpretação: ${interpretacao}, Conduta Sugerida: ${conduta} - ${scaleName} GERAR diagnosticos de enfermagem da NANDA, GERAR intervenções de enfermagem do NIC, Gerar um exemplo de mensuração dos resultados implementados pelo enfermeiro (NOC)`;
+                    const encodedSearchQuery = encodeURIComponent(detailedSearchQuery);
+                    
+                    // Abre uma nova aba com a pesquisa do Google
+                    window.open(`https://www.google.com/search?q=${encodedSearchQuery}`, '_blank');
+                });
+            }
+        });
+    </script>
+</body>
+</html>
