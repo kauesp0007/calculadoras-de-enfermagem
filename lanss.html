@@ -267,14 +267,14 @@
         <div class="flex flex-col items-center justify-center gap-4 mb-6 text-center sm:text-left">
             <img src="iconpages.png" alt="Ícone da Página" class="w-32 h-auto" />
             <h1 id="main-title" class="font-nunito font-extrabold text-dark-blue text-4xl lg:text-5xl text-left w-full">
-                Escala LANSS (Leeds Assessment of Neuropathic Symptoms and Signs)
+                Escala de LANSS 
             </h1>
         </div>
         <h2 id="main-subtitle" class="font-inter font-semibold text-light-blue text-xl lg:text-2xl mb-6 text-left w-full">
             Avaliação da Dor Neuropática
         </h2>
         <p class="font-inter font-normal text-black text-base lg:text-lg mb-6 text-left">
-            A Escala LANSS é um questionário utilizado para avaliar a dor neuropática, ou seja, dor causada por lesão ou disfunção do sistema nervoso. Ela ajuda a determinar se os nervos que transmitem a informação da dor estão funcionando adequadamente e pode auxiliar na escolha do tratamento mais adequado para o paciente.
+            A Escala LANSS (Leeds Assessment of Neuropathic Symptoms and Signs) é um questionário utilizado para avaliar a dor neuropática, ou seja, dor causada por lesão ou disfunção do sistema nervoso. Ela ajuda a determinar se os nervos que transmitem a informação da dor estão funcionando adequadamente e pode auxiliar na escolha do tratamento mais adequado para o paciente.
         </p>
 
         <div id="conteudo">
@@ -417,36 +417,7 @@
 
             <div id="resultado" class="resultado hidden" aria-live="polite"></div>
 
-            <div class="info-section">
-                <h3 class="info-title">Interpretação:</h3>
-                <ul class="info-text list-disc ml-5 mb-4">
-                    <li><strong>Pontuação igual ou superior a 12:</strong> sugere que mecanismos neuropáticos podem estar contribuindo para a dor.</li>
-                    <li><strong>Pontuação inferior a 12:</strong> indica que é menos provável que os nervos sejam a causa da dor.</li>
-                </ul>
-            </div>
-
-            <div class="info-section">
-                <h3 class="info-title">Importância da Escala LANSS:</h3>
-                <ul class="info-text list-disc ml-5 mb-4">
-                    <li>Identificar pacientes com dor neuropática.</li>
-                    <li>Orientar a escolha do tratamento mais adequado.</li>
-                    <li>Acompanhar a evolução da dor ao longo do tempo.</li>
-                </ul>
-            </div>
-
-            <div class="info-section">
-                <h3 class="info-title">Outras Escalas de Dor:</h3>
-                <p class="info-text">
-                    Além da LANSS, existem outras escalas para avaliar a dor, como a Escala Visual Analógica (EVA) e a Escala Numérica.
-                </p>
-                <ul class="info-text list-disc ml-5 mb-4">
-                    <li><strong>Escala Visual Analógica (EVA):</strong> mede a intensidade da dor em uma linha de 0 a 10.</li>
-                    <li><strong>Escala Numérica:</strong> usa números de 0 a 10 para classificar a dor.</li>
-                </ul>
-                <p class="info-text">
-                    Em resumo, a Escala LANSS é uma ferramenta importante para avaliar a dor neuropática, auxiliando no diagnóstico e tratamento adequado, enquanto outras escalas podem complementar essa avaliação, fornecendo informações sobre a intensidade e características da dor.
-                </p>
-            </div>
+            <!-- As seções "Interpretação", "Importância da Escala LANSS" e "Outras Escalas de Dor" foram removidas daqui. -->
 
             <div class="ref font-inter text-gray-custom text-left">
                 Referência:
@@ -478,6 +449,48 @@
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   <script>
+    // Referências aos elementos do DOM
+    const resultadoDiv = document.getElementById('resultado');
+    const btnNandaNicNoc = document.getElementById('btnNandaNicNoc'); // Referência ao botão NANDA, NIC, NOC
+
+    // --- Funções do Modal de Mensagem (necessário para exibir mensagens de erro) ---
+    const messageModalOverlay = document.createElement('div');
+    messageModalOverlay.id = 'messageModalOverlay';
+    messageModalOverlay.className = 'message-modal-overlay';
+    document.body.appendChild(messageModalOverlay);
+
+    const messageModalContent = document.createElement('div');
+    messageModalContent.className = 'message-modal-content';
+    messageModalOverlay.appendChild(messageModalContent);
+
+    const messageModalClose = document.createElement('button');
+    messageModalClose.id = 'messageModalClose';
+    messageModalClose.className = 'message-modal-close';
+    messageModalClose.innerHTML = '&times;';
+    messageModalContent.appendChild(messageModalClose);
+
+    const messageModalText = document.createElement('p');
+    messageModalText.id = 'messageModalText';
+    messageModalText.className = 'text-gray-700 text-lg';
+    messageModalContent.appendChild(messageModalText);
+
+    function showCustomMessage(message) {
+        messageModalText.textContent = message;
+        messageModalOverlay.style.display = 'flex';
+    }
+
+    function hideCustomMessage() {
+        messageModalOverlay.style.display = 'none';
+    }
+
+    messageModalClose.addEventListener('click', hideCustomMessage);
+    messageModalOverlay.addEventListener('click', (e) => {
+        if (e.target === messageModalOverlay) {
+            hideCustomMessage();
+        }
+    });
+    // --- Fim das Funções do Modal de Mensagem ---
+
     function calcular() {
       const sintomas = ['sintoma1', 'sintoma2', 'sintoma3', 'sintoma4', 'sintoma5'];
       const sinais = ['sinal1', 'sinal2', 'sinal3'];
@@ -492,7 +505,7 @@
           allSelected = false;
           break;
         }
-        total += parseInt(selecionado.value, 10); // Corrigido: 'seleclionado' para 'selecionado'
+        total += parseInt(selecionado.value, 10);
       }
 
       // Calcula pontuação dos sinais, se todos os sintomas foram selecionados
@@ -507,13 +520,15 @@
         }
       }
 
-      const resultadoDiv = document.getElementById('resultado');
       if (!allSelected) {
         resultadoDiv.innerText = 'Por favor, selecione todas as opções para calcular.';
         resultadoDiv.classList.add('text-red-600');
         resultadoDiv.classList.remove('text-dark-blue');
-        // Garante que a mensagem de erro esteja visível
         resultadoDiv.classList.remove('hidden'); 
+        // Limpa os data-attributes se houver erro
+        resultadoDiv.dataset.score = '';
+        resultadoDiv.dataset.conduta = '';
+        resultadoDiv.dataset.scaleName = '';
         return;
       }
 
@@ -526,8 +541,12 @@
       resultadoDiv.innerText = `Pontuação total da Escala LANSS: ${total}/24\n\nConduta: ${conduta}`;
       resultadoDiv.classList.remove('text-red-600');
       resultadoDiv.classList.add('text-dark-blue');
-      // Garante que o resultado esteja visível após o cálculo
       resultadoDiv.classList.remove('hidden');
+
+      // Armazena a pontuação e a conduta nos data-attributes
+      resultadoDiv.dataset.score = total;
+      resultadoDiv.dataset.conduta = conduta;
+      resultadoDiv.dataset.scaleName = "Escala LANSS";
     }
 
     function limpar() {
@@ -535,21 +554,35 @@
       campos.forEach(campo => {
         document.querySelectorAll(`input[name="${campo}"]`).forEach(el => el.checked = false);
       });
-      const resultadoDiv = document.getElementById('resultado');
       resultadoDiv.innerText = '';
       resultadoDiv.classList.remove('text-red-600', 'text-dark-blue');
-      // Oculta o resultado ao limpar
       resultadoDiv.classList.add('hidden');
+      // Limpa os data-attributes
+      delete resultadoDiv.dataset.score;
+      delete resultadoDiv.dataset.conduta;
+      delete resultadoDiv.dataset.scaleName;
     }
 
     function gerarPDF() {
         const contentToPrint = document.getElementById('conteudo').cloneNode(true);
 
         // Remove botões da seção clonada para o PDF
-        const buttonsContainer = contentToPrint.querySelector('.flex.flex-wrap.justify-start.gap-4.mt-6');
+        const buttonsContainer = document.querySelector('.flex.flex-wrap.justify-start.gap-4.mt-6'); // Pega do DOM original
         if (buttonsContainer) {
-            buttonsContainer.remove();
+            // Remove o container de botões do clone para o PDF
+            const clonedButtonsContainer = contentToPrint.querySelector('.flex.flex-wrap.justify-start.gap-4.mt-6');
+            if (clonedButtonsContainer) {
+                clonedButtonsContainer.remove();
+            }
         }
+
+        // Remove as seções de informação que não devem ir para o PDF
+        contentToPrint.querySelectorAll('.info-section').forEach(section => {
+            const titleElement = section.querySelector('.info-title');
+            if (titleElement && (titleElement.innerText.includes('Interpretação') || titleElement.innerText.includes('Importância da Escala LANSS') || titleElement.innerText.includes('Outras Escalas de Dor'))) {
+                section.remove();
+            }
+        });
 
         // Adiciona títulos e data ao PDF
         const pdfTitleText = "Escala LANSS";
@@ -579,6 +612,26 @@
         dateDiv.innerText = `Gerado em: ${new Date().toLocaleDateString('pt-BR')} ${new Date().toLocaleTimeString('pt-BR')}`;
         contentToPrint.prepend(dateDiv);
 
+        // Adiciona o resultado atual ao PDF, se disponível
+        const originalResultadoDiv = document.getElementById('resultado');
+        if (originalResultadoDiv && originalResultadoDiv.innerText.trim() !== '' && !originalResultadoDiv.classList.contains('hidden') && !originalResultadoDiv.innerText.includes('Por favor, selecione')) {
+            const clonedResultado = originalResultadoDiv.cloneNode(true);
+            clonedResultado.style.marginTop = '20px';
+            clonedResultado.style.padding = '15px';
+            clonedResultado.style.backgroundColor = originalResultadoDiv.classList.contains('text-red-600') ? '#fee2e2' : '#e0f2fe';
+            clonedResultado.style.color = originalResultadoDiv.classList.contains('text-red-600') ? '#dc2626' : '#1A3E74';
+            clonedResultado.style.borderRadius = '8px';
+            clonedResultado.style.whiteSpace = 'pre-wrap';
+            contentToPrint.appendChild(clonedResultado);
+        } else {
+            const noResultP = document.createElement('p');
+            noResultP.style.fontSize = '14px';
+            noResultP.style.color = '#dc2626';
+            noResultP.style.marginTop = '20px';
+            noResultP.innerText = 'Nenhum cálculo realizado. Por favor, preencha os critérios e clique em "Calcular" antes de gerar o PDF.';
+            contentToPrint.appendChild(noResultP);
+        }
+
         const opt = {
             margin:       0.5,
             filename:     'escala-lanss.pdf',
@@ -595,31 +648,18 @@
       document.getElementById('btnLimpar').addEventListener('click', limpar);
       document.getElementById('btnGerarPDF').addEventListener('click', gerarPDF);
 
-      const btnNandaNicNoc = document.getElementById('btnNandaNicNoc');
-
       if (btnNandaNicNoc) {
           btnNandaNicNoc.addEventListener('click', () => {
-              const resultadoDiv = document.getElementById('resultado');
-              let currentConduta = '';
+              const currentScore = resultadoDiv.dataset.score;
+              const currentConduta = resultadoDiv.dataset.conduta;
+              const scaleName = resultadoDiv.dataset.scaleName;
 
-              // Ajustado para a terceira linha (índice 2) onde a "Conduta" é exibida
-              if (resultadoDiv.innerText && resultadoDiv.innerText.includes('Conduta: ')) {
-                  const lines = resultadoDiv.innerText.split('\n');
-                  if (lines.length >= 3 && lines[2].startsWith('Conduta: ')) { 
-                      currentConduta = lines[2].substring('Conduta: '.length).trim();
-                  }
-              }
-
-              if (!currentConduta || resultadoDiv.classList.contains('hidden') || resultadoDiv.innerText.includes('Por favor, selecione')) {
-                  resultadoDiv.innerText = 'Por favor, clique em "Calcular" primeiro para obter a conduta e habilitar a pesquisa NANDA, NIC, NOC.';
-                  resultadoDiv.classList.add('text-red-600');
-                  resultadoDiv.classList.remove('text-dark-blue');
-                  // Garante que a mensagem de erro esteja visível
-                  resultadoDiv.classList.remove('hidden'); 
+              if (!currentScore || !currentConduta || !scaleName || resultadoDiv.classList.contains('hidden') || resultadoDiv.innerText.includes('Por favor, selecione')) {
+                  showCustomMessage('Por favor, clique em "Calcular" primeiro para obter a conduta e habilitar a pesquisa NANDA, NIC, NOC.');
                   return;
               }
 
-              const searchQuery = encodeURIComponent(`${currentConduta} taxonomia NANDA, NIC e NOC`);
+              const searchQuery = encodeURIComponent(`Pontuação LANSS: ${currentScore}, Conduta: ${currentConduta} - ${scaleName} GERAR diagnosticos de enfermagem da NANDA, GERAR intervenções de enfermagem do NIC, Gerar um exemplo de mensuração dos resultados implementados pelo enfermeiro (NOC)`);
               window.open(`https://www.google.com/search?q=${searchQuery}`, '_blank');
           });
       }
@@ -641,4 +681,3 @@
   </script>
 </body>
 </html>
-
