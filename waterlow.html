@@ -267,6 +267,10 @@
                 <button id="btnGerarPDF" class="btn-secondary" aria-label="Gerar PDF">
                     Gerar PDF
                 </button>
+                <!-- Botão NANDA, NIC, NOC adicionado aqui -->
+                <button id="btnNandaNicNoc" class="btn-primary" aria-label="Pesquisar NANDA, NIC, NOC">
+                    NANDA, NIC, NOC
+                </button>
             </div>
 
             <div class="ref font-inter text-gray-custom text-left">
@@ -286,8 +290,39 @@
 
     <div id="footer-container"></div>
 
+    <!-- Modal de Mensagem Personalizado -->
+    <div id="messageModalOverlay" class="message-modal-overlay">
+        <div class="message-modal-content">
+            <button id="messageModalClose" class="message-modal-close">&times;</button>
+            <p id="messageModalText" class="text-gray-700 text-lg"></p>
+        </div>
+    </div>
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script>
+        // Referências para o modal de mensagem
+        const messageModalOverlay = document.getElementById('messageModalOverlay');
+        const messageModalText = document.getElementById('messageModalText');
+        const messageModalClose = document.getElementById('messageModalClose');
+
+        // --- Funções do Modal de Mensagem ---
+        function showCustomMessage(message) {
+            messageModalText.textContent = message;
+            messageModalOverlay.style.display = 'flex';
+        }
+
+        function hideCustomMessage() {
+            messageModalText.textContent = ''; // Clear text on hide
+            messageModalOverlay.style.display = 'none';
+        }
+
+        messageModalClose.addEventListener('click', hideCustomMessage);
+        messageModalOverlay.addEventListener('click', (e) => {
+            if (e.target === messageModalOverlay) {
+                hideCustomMessage();
+            }
+        });
+
         // Dados da escala de Waterlow
         const waterlowData = [
             {
@@ -447,6 +482,30 @@
             document.getElementById('btnCalcular').addEventListener('click', calcularPontuacao);
             document.getElementById('btnLimpar').addEventListener('click', limparCampos);
             document.getElementById('btnGerarPDF').addEventListener('click', gerarPDF);
+
+            // NOVO: Adiciona o event listener para o botão NANDA, NIC, NOC
+            const btnNandaNicNoc = document.getElementById('btnNandaNicNoc');
+            if (btnNandaNicNoc) {
+                btnNandaNicNoc.addEventListener('click', () => {
+                    const resultadoDiv = document.getElementById('resultado');
+                    let currentScore = resultadoDiv.dataset.score;
+                    let currentClassificacao = resultadoDiv.dataset.classificacao;
+                    const scaleName = "Escala de Waterlow"; // Nome da escala fixo
+
+                    // Se alguma parte crucial estiver faltando, exibe erro
+                    if (!currentScore || !currentClassificacao) {
+                        showCustomMessage('Por favor, clique em "Calcular" primeiro para obter a pontuação e a classificação e habilitar a pesquisa NANDA, NIC, NOC.');
+                        return;
+                    }
+
+                    // Constrói a string de pesquisa detalhada
+                    const detailedSearchQuery = `Pontuação Waterlow: ${currentScore}, Classificação: ${currentClassificacao} - ${scaleName} GERAR diagnosticos de enfermagem da NANDA, GERAR intervenções de enfermagem do NIC, Gerar um exemplo de mensuração dos resultados implementados pelo enfermeiro (NOC)`;
+                    const encodedSearchQuery = encodeURIComponent(detailedSearchQuery);
+                    
+                    // Abre uma nova aba com a pesquisa do Google
+                    window.open(`https://www.google.com/search?q=${encodedSearchQuery}`, '_blank');
+                });
+            }
         }); // Fim do DOMContentLoaded
 
         function calcularPontuacao() {
@@ -479,6 +538,9 @@
                 resultadoDiv.style.display = "block";
                 resultadoDiv.innerHTML = '⚠️ <strong class="font-bold">Por favor, selecione uma opção para todos os campos obrigatórios</strong> (Tipo de pele, Mobilidade, Débito Neurológico, Continência) antes de calcular.';
                 resultadoDiv.classList.add('bg-info-orange-light');
+                // Clear data attributes on error
+                resultadoDiv.dataset.score = '';
+                resultadoDiv.dataset.classificacao = '';
                 return;
             }
 
@@ -502,6 +564,10 @@
             resultadoDiv.style.display = "block";
             resultadoDiv.innerHTML = `Pontuação total Waterlow: <strong class="font-bold">${total}</strong><br><br>Classificação: <strong class="font-bold">${classificacao}</strong>`;
             resultadoDiv.classList.add(resultadoClasse);
+
+            // Store data for NANDA button
+            resultadoDiv.dataset.score = total;
+            resultadoDiv.dataset.classificacao = classificacao;
         }
 
         function limparCampos() {
@@ -521,6 +587,9 @@
             resultadoDiv.style.display = 'none';
             resultadoDiv.innerHTML = '';
             resultadoDiv.className = 'resultado'; // Reseta as classes
+            // Clear data attributes
+            resultadoDiv.dataset.score = '';
+            resultadoDiv.dataset.classificacao = '';
         }
 
         function gerarPDF() {
