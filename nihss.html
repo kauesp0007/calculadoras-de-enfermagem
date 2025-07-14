@@ -302,6 +302,45 @@
             }
         }
         /* --- FIM: Responsividade para Mobile --- */
+
+        /* Estilo para o modal de mensagem */
+        .message-modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.6);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            display: none; /* Hidden by default */
+        }
+        .message-modal-content {
+            background-color: #fff;
+            padding: 2rem;
+            border-radius: 0.5rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+            position: relative;
+        }
+        .message-modal-close {
+            color: #aaa;
+            position: absolute;
+            top: 0.5rem;
+            right: 0.5rem;
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .message-modal-close:hover {
+            color: #1F2937;
+        }
     </style>
 </head>
 <body class="bg-gray-50 text-gray-800 font-inter">
@@ -366,6 +405,10 @@
                 <button id="btnGerarPDF" class="btn-secondary" aria-label="Gerar PDF">
                     Gerar PDF
                 </button>
+                <!-- Botão NANDA, NIC, NOC adicionado aqui -->
+                <button id="btnNandaNicNoc" class="btn-primary" aria-label="Pesquisar NANDA, NIC, NOC">
+                    NANDA, NIC, NOC
+                </button>
             </div>
         </main>
     </div>
@@ -376,9 +419,40 @@
 
     <div id="footer-container"></div>
 
+    <!-- Modal de Mensagem Personalizado -->
+    <div id="messageModalOverlay" class="message-modal-overlay">
+        <div class="message-modal-content">
+            <button id="messageModalClose" class="message-modal-close">&times;</button>
+            <p id="messageModalText" class="text-gray-700 text-lg"></p>
+        </div>
+    </div>
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
     <script>
+        // Referências para o modal de mensagem
+        const messageModalOverlay = document.getElementById('messageModalOverlay');
+        const messageModalText = document.getElementById('messageModalText');
+        const messageModalClose = document.getElementById('messageModalClose');
+
+        // --- Funções do Modal de Mensagem ---
+        function showCustomMessage(message) {
+            messageModalText.textContent = message;
+            messageModalOverlay.style.display = 'flex';
+        }
+
+        function hideCustomMessage() {
+            messageModalText.textContent = ''; // Clear text on hide
+            messageModalOverlay.style.display = 'none';
+        }
+
+        messageModalClose.addEventListener('click', hideCustomMessage);
+        messageModalOverlay.addEventListener('click', (e) => {
+            if (e.target === messageModalOverlay) {
+                hideCustomMessage();
+            }
+        });
+
         // Dados da escala NIHSS (mantidos no escopo global para acesso pelas funções)
         const dados = [
             ["1a - Nível de consciência", [
@@ -519,6 +593,47 @@
             document.getElementById('btnCalcular').addEventListener('click', calcularPontuacao);
             document.getElementById('btnLimpar').addEventListener('click', limparCampos);
             document.getElementById('btnGerarPDF').addEventListener('click', gerarPDF);
+
+            // NOVO: Adiciona o event listener para o botão NANDA, NIC, NOC
+            const btnNandaNicNoc = document.getElementById('btnNandaNicNoc');
+            if (btnNandaNicNoc) {
+                btnNandaNicNoc.addEventListener('click', () => {
+                    const resultadoDiv = document.getElementById('resultado');
+                    let currentScore = '';
+                    let currentConduta = '';
+                    const scaleName = "Escala NIHSS"; // Nome da escala fixo
+
+                    // Verifica se resultadoDiv tem conteúdo e está visível
+                    if (resultadoDiv.style.display !== 'none' && resultadoDiv.innerText.trim() !== '' && !resultadoDiv.innerText.includes('Por favor, selecione uma opção')) {
+                        const lines = resultadoDiv.innerText.split('\n');
+
+                        // Extrai a pontuação total
+                        const scoreLine = lines.find(line => line.includes('Pontuação total NIHSS:'));
+                        if (scoreLine) {
+                            currentScore = scoreLine.split(':')[1].trim().replace(/<\/?strong[^>]*>/g, '');
+                        }
+
+                        // Extrai a Conduta
+                        const condutaLine = lines.find(line => line.includes('Conduta:'));
+                        if (condutaLine) {
+                            currentConduta = condutaLine.split(':')[1].trim().replace(/<\/?strong[^>]*>/g, '');
+                        }
+                    }
+
+                    // Se alguma parte crucial estiver faltando, exibe erro
+                    if (!currentScore || !currentConduta) {
+                        showCustomMessage('Por favor, clique em "Calcular" primeiro para obter a pontuação e a conduta e habilitar a pesquisa NANDA, NIC, NOC.');
+                        return;
+                    }
+
+                    // Constrói a string de pesquisa detalhada
+                    const detailedSearchQuery = `Pontuação ${currentScore}, Conduta: ${currentConduta} - ${scaleName} GERAR diagnosticos de enfermagem da NANDA, GERAR intervenções de enfermagem do NIC, Gerar um exemplo de mensuração dos resultados implementados pelo enfermeiro (NOC)`;
+                    const encodedSearchQuery = encodeURIComponent(detailedSearchQuery);
+                    
+                    // Abre uma nova aba com a pesquisa do Google
+                    window.open(`https://www.google.com/search?q=${encodedSearchQuery}`, '_blank');
+                });
+            }
         }); // Fim do DOMContentLoaded
 
         function calcularPontuacao() {
@@ -560,7 +675,7 @@
             }
 
             resultadoDiv.style.display = "block";
-            resultadoDiv.innerHTML = `Pontuação total NIHSS: <strong class="font-bold">${total}</strong><br><br>Conduta: ${conduta}`;
+            resultadoDiv.innerHTML = `Pontuação total NIHSS: <strong class="font-bold">${total}</strong><br><br>Conduta: <strong class="font-bold">${conduta}</strong>`;
             resultadoClasses.forEach(cls => resultadoDiv.classList.add(cls));
         }
 
