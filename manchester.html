@@ -220,6 +220,45 @@
       #tabela-sintomas td:nth-of-type(2):before { content: "Escore:"; }
       #tabela-sintomas td:nth-of-type(3):before { content: "Selecionar:"; }
     }
+
+    /* Estilo para o modal de mensagem */
+    .message-modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.6);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
+        display: none; /* Hidden by default */
+    }
+    .message-modal-content {
+        background-color: #fff;
+        padding: 2rem;
+        border-radius: 0.5rem;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        text-align: center;
+        max-width: 400px;
+        width: 90%;
+        position: relative;
+    }
+    .message-modal-close {
+        color: #aaa;
+        position: absolute;
+        top: 0.5rem;
+        right: 0.5rem;
+        background: none;
+        border: none;
+        font-size: 1.5rem;
+        font-weight: bold;
+        cursor: pointer;
+    }
+    .message-modal-close:hover {
+        color: #1F2937;
+    }
   </style>
 </head>
 <body class="bg-gray-50 text-gray-800 font-inter">
@@ -298,6 +337,10 @@
         <button id="btnGerarPDF" class="btn-secondary" aria-label="Gerar PDF">
           Gerar PDF
         </button>
+        <!-- Botão NANDA, NIC, NOC adicionado aqui -->
+        <button id="btnNandaNicNoc" class="btn-primary" aria-label="Pesquisar NANDA, NIC, NOC">
+            NANDA, NIC, NOC
+        </button>
       </div>
 
     </main>
@@ -311,7 +354,52 @@
   
   <div id="footer-container"></div>
 
+  <!-- Modal de Mensagem Personalizado -->
+  <div id="messageModalOverlay" class="message-modal-overlay">
+      <div class="message-modal-content">
+          <button id="messageModalClose" class="message-modal-close">&times;</button>
+          <p id="messageModalText" class="text-gray-700 text-lg"></p>
+      </div>
+  </div>
+
   <script>
+    // Referências para o modal de mensagem
+    const messageModalOverlay = document.createElement('div');
+    messageModalOverlay.id = 'messageModalOverlay';
+    messageModalOverlay.className = 'message-modal-overlay';
+    document.body.appendChild(messageModalOverlay);
+
+    const messageModalContent = document.createElement('div');
+    messageModalContent.className = 'message-modal-content';
+    messageModalOverlay.appendChild(messageModalContent);
+
+    const messageModalClose = document.createElement('button');
+    messageModalClose.id = 'messageModalClose';
+    messageModalClose.className = 'message-modal-close';
+    messageModalClose.innerHTML = '&times;';
+    messageModalContent.appendChild(messageModalClose);
+
+    const messageModalText = document.createElement('p');
+    messageModalText.id = 'messageModalText';
+    messageModalText.className = 'text-gray-700 text-lg';
+    messageModalContent.appendChild(messageModalText);
+
+    function showCustomMessage(message) {
+        messageModalText.textContent = message;
+        messageModalOverlay.style.display = 'flex';
+    }
+
+    function hideCustomMessage() {
+        messageModalOverlay.style.display = 'none';
+    }
+
+    messageModalClose.addEventListener('click', hideCustomMessage);
+    messageModalOverlay.addEventListener('click', (e) => {
+        if (e.target === messageModalOverlay) {
+            hideCustomMessage();
+        }
+    });
+
     function calcularManchester() {
       const checkboxes = document.querySelectorAll('#formManchester input[type="checkbox"]:checked');
       let total = 0;
@@ -329,30 +417,48 @@
       resultadoDiv.style.display = 'none'; // Esconde o resultado ao iniciar novo cálculo ou limpar
 
       if (total >= 12) {
-        classificacao = "🔴 Vermelho – Imediato";
+        classificacao = "Vermelho – Imediato"; // Removido o emoji para a pesquisa
         corClasse = "bg-red";
         corTextoClasse = "text-red-600";
       } else if (total >= 9) {
-        classificacao = "🟠 Laranja – Até 10 min";
+        classificacao = "Laranja – Até 10 min"; // Removido o emoji para a pesquisa
         corClasse = "bg-orange";
         corTextoClasse = "text-orange-700";
       } else if (total >= 6) {
-        classificacao = "🟡 Amarelo – Até 60 min";
+        classificacao = "Amarelo – Até 60 min"; // Removido o emoji para a pesquisa
         corClasse = "bg-yellow";
         corTextoClasse = "text-yellow-700";
       } else if (total >= 3) {
-        classificacao = "🟢 Verde – Até 120 min";
+        classificacao = "Verde – Até 120 min"; // Removido o emoji para a pesquisa
         corClasse = "bg-green";
         corTextoClasse = "text-green-700";
       } else {
-        classificacao = "🔵 Azul – Até 240 min";
+        classificacao = "Azul – Até 240 min"; // Removido o emoji para a pesquisa
         corClasse = "bg-blue";
         corTextoClasse = "text-blue-700";
       }
       
       resultadoDiv.style.display = 'block';
-      resultadoDiv.innerHTML = `<strong>${classificacao}</strong><br>Escore total: ${total}`;
+      // Adiciona o emoji de volta apenas na exibição para o usuário
+      let classificacaoDisplay = '';
+      if (total >= 12) {
+        classificacaoDisplay = "🔴 Vermelho – Imediato";
+      } else if (total >= 9) {
+        classificacaoDisplay = "🟠 Laranja – Até 10 min";
+      } else if (total >= 6) {
+        classificacaoDisplay = "🟡 Amarelo – Até 60 min";
+      } else if (total >= 3) {
+        classificacaoDisplay = "🟢 Verde – Até 120 min";
+      } else {
+        classificacaoDisplay = "🔵 Azul – Até 240 min";
+      }
+
+      resultadoDiv.innerHTML = `<strong>${classificacaoDisplay}</strong><br>Escore total: ${total}`;
       resultadoDiv.classList.add(corClasse, corTextoClasse);
+
+      // Armazena a classificação e o escore para o botão NANDA
+      resultadoDiv.dataset.classificacao = classificacao;
+      resultadoDiv.dataset.escore = total;
     }
 
     function limparCampos() {
@@ -366,6 +472,9 @@
       resultadoDiv.classList.remove('bg-red', 'bg-orange', 'bg-yellow', 'bg-green', 'bg-blue', 
                                    'text-red-600', 'text-orange-700', 'text-yellow-700', 
                                    'text-green-700', 'text-blue-700');
+      // Limpa os data-attributes
+      delete resultadoDiv.dataset.classificacao;
+      delete resultadoDiv.dataset.escore;
     }
 
     // Função para gerar PDF (Aprimorada)
@@ -525,6 +634,37 @@
       document.getElementById('btnCalcular').addEventListener('click', calcularManchester);
       document.getElementById('btnLimpar').addEventListener('click', limparCampos);
       document.getElementById('btnGerarPDF').addEventListener('click', gerarPDF);
+
+      // NOVO: Adiciona o event listener para o botão NANDA, NIC, NOC
+      const btnNandaNicNoc = document.getElementById('btnNandaNicNoc');
+      if (btnNandaNicNoc) {
+          btnNandaNicNoc.addEventListener('click', () => {
+              const resultadoDiv = document.getElementById('resultado');
+              let currentEscore = '';
+              let currentClassificacao = '';
+              const scaleName = "Protocolo de Manchester"; // Nome da escala fixo
+
+              // Verifica se resultadoDiv tem conteúdo e está visível
+              if (resultadoDiv.style.display !== 'none' && resultadoDiv.innerText.trim() !== '' && !resultadoDiv.innerText.includes('Nenhuma classificação de risco foi calculada')) {
+                  // Extrai a classificação e o escore dos data-attributes
+                  currentClassificacao = resultadoDiv.dataset.classificacao;
+                  currentEscore = resultadoDiv.dataset.escore;
+              }
+
+              // Se alguma parte crucial estiver faltando após a análise, exibe erro
+              if (!currentEscore || !currentClassificacao) {
+                  showCustomMessage('Por favor, clique em "Calcular" primeiro para obter o escore e a classificação e habilitar a pesquisa NANDA, NIC, NOC.');
+                  return;
+              }
+
+              // Constrói a string de pesquisa detalhada
+              const detailedSearchQuery = `Escore ${currentEscore}, Classificação: ${currentClassificacao} - ${scaleName} GERAR diagnosticos de enfermagem da NANDA, GERAR intervenções de enfermagem do NIC, Gerar um exemplo de mensuração dos resultados implementados pelo enfermeiro (NOC)`;
+              const encodedSearchQuery = encodeURIComponent(detailedSearchQuery);
+              
+              // Abre uma nova aba com a pesquisa do Google
+              window.open(`https://www.google.com/search?q=${encodedSearchQuery}`, '_blank');
+          });
+      }
 
       // Carrega o rodapé (rodape111.html)
       fetch("rodape111.html")
