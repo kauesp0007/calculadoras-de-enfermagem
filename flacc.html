@@ -267,7 +267,7 @@
         <div class="flex flex-col items-center justify-center gap-4 mb-6 text-center sm:text-left">
             <img src="iconpages.png" alt="Ícone da Página" class="w-32 h-auto" />
             <h1 id="main-title" class="font-nunito font-extrabold text-dark-blue text-4xl lg:text-5xl text-left w-full">
-                Escala FLACC (Face, Legs, Activity, Cry, Consolability)
+                Escala de FLACC 
             </h1>
         </div>
         <h2 id="main-subtitle" class="font-inter font-semibold text-light-blue text-xl lg:text-2xl mb-6 text-left w-full">
@@ -415,6 +415,48 @@
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   <script>
+    // Referências aos elementos do DOM
+    const resultadoDiv = document.getElementById('resultado');
+    const btnNandaNicNoc = document.getElementById('btnNandaNicNoc'); // Referência ao botão NANDA, NIC, NOC
+
+    // --- Funções do Modal de Mensagem (necessário para exibir mensagens de erro) ---
+    const messageModalOverlay = document.createElement('div');
+    messageModalOverlay.id = 'messageModalOverlay';
+    messageModalOverlay.className = 'message-modal-overlay';
+    document.body.appendChild(messageModalOverlay);
+
+    const messageModalContent = document.createElement('div');
+    messageModalContent.className = 'message-modal-content';
+    messageModalOverlay.appendChild(messageModalContent);
+
+    const messageModalClose = document.createElement('button');
+    messageModalClose.id = 'messageModalClose';
+    messageModalClose.className = 'message-modal-close';
+    messageModalClose.innerHTML = '&times;';
+    messageModalContent.appendChild(messageModalClose);
+
+    const messageModalText = document.createElement('p');
+    messageModalText.id = 'messageModalText';
+    messageModalText.className = 'text-gray-700 text-lg';
+    messageModalContent.appendChild(messageModalText);
+
+    function showCustomMessage(message) {
+        messageModalText.textContent = message;
+        messageModalOverlay.style.display = 'flex';
+    }
+
+    function hideCustomMessage() {
+        messageModalOverlay.style.display = 'none';
+    }
+
+    messageModalClose.addEventListener('click', hideCustomMessage);
+    messageModalOverlay.addEventListener('click', (e) => {
+        if (e.target === messageModalOverlay) {
+            hideCustomMessage();
+        }
+    });
+    // --- Fim das Funções do Modal de Mensagem ---
+
     function calcular() {
       const categorias = ['face', 'legs', 'activity', 'cry', 'consolability'];
       let total = 0;
@@ -430,12 +472,15 @@
         total += parseInt(selecionado.value, 10);
       }
 
-      const resultadoDiv = document.getElementById('resultado');
       if (!allSelected) {
         resultadoDiv.innerText = 'Por favor, selecione uma opção para cada categoria para calcular.';
         resultadoDiv.classList.add('text-red-600');
         resultadoDiv.classList.remove('text-dark-blue');
         resultadoDiv.classList.remove('hidden'); 
+        // Limpa os data-attributes se houver erro
+        resultadoDiv.dataset.score = '';
+        resultadoDiv.dataset.conduta = '';
+        resultadoDiv.dataset.scaleName = '';
         return;
       }
 
@@ -455,6 +500,11 @@
       resultadoDiv.classList.remove('text-red-600');
       resultadoDiv.classList.add('text-dark-blue');
       resultadoDiv.classList.remove('hidden');
+
+      // Armazena a pontuação e a conduta nos data-attributes
+      resultadoDiv.dataset.score = total;
+      resultadoDiv.dataset.conduta = conduta;
+      resultadoDiv.dataset.scaleName = "Escala FLACC";
     }
 
     function limpar() {
@@ -462,10 +512,13 @@
       categorias.forEach(categoria => {
         document.querySelectorAll(`input[name="${categoria}"]`).forEach(el => el.checked = false);
       });
-      const resultadoDiv = document.getElementById('resultado');
       resultadoDiv.innerText = '';
       resultadoDiv.classList.remove('text-red-600', 'text-dark-blue');
       resultadoDiv.classList.add('hidden');
+      // Limpa os data-attributes
+      delete resultadoDiv.dataset.score;
+      delete resultadoDiv.dataset.conduta;
+      delete resultadoDiv.dataset.scaleName;
     }
 
     function gerarPDF() {
@@ -505,6 +558,26 @@
         dateDiv.innerText = `Gerado em: ${new Date().toLocaleDateString('pt-BR')} ${new Date().toLocaleTimeString('pt-BR')}`;
         contentToPrint.prepend(dateDiv);
 
+        // Adiciona o resultado atual ao PDF, se disponível
+        const originalResultadoDiv = document.getElementById('resultado');
+        if (originalResultadoDiv && originalResultadoDiv.innerText.trim() !== '' && !originalResultadoDiv.classList.contains('hidden') && !originalResultadoDiv.innerText.includes('Por favor, selecione')) {
+            const clonedResultado = originalResultadoDiv.cloneNode(true);
+            clonedResultado.style.marginTop = '20px';
+            clonedResultado.style.padding = '15px';
+            clonedResultado.style.backgroundColor = originalResultadoDiv.classList.contains('text-red-600') ? '#fee2e2' : '#e0f2fe';
+            clonedResultado.style.color = originalResultadoDiv.classList.contains('text-red-600') ? '#dc2626' : '#1A3E74';
+            clonedResultado.style.borderRadius = '8px';
+            clonedResultado.style.whiteSpace = 'pre-wrap';
+            contentToPrint.appendChild(clonedResultado);
+        } else {
+            const noResultP = document.createElement('p');
+            noResultP.style.fontSize = '14px';
+            noResultP.style.color = '#dc2626';
+            noResultP.style.marginTop = '20px';
+            noResultP.innerText = 'Nenhum cálculo realizado. Por favor, preencha os critérios e clique em "Calcular" antes de gerar o PDF.';
+            contentToPrint.appendChild(noResultP);
+        }
+
         const opt = {
             margin:       0.5,
             filename:     'escala-flacc.pdf',
@@ -521,29 +594,18 @@
       document.getElementById('btnLimpar').addEventListener('click', limpar);
       document.getElementById('btnGerarPDF').addEventListener('click', gerarPDF);
 
-      const btnNandaNicNoc = document.getElementById('btnNandaNicNoc');
-
       if (btnNandaNicNoc) {
           btnNandaNicNoc.addEventListener('click', () => {
-              const resultadoDiv = document.getElementById('resultado');
-              let currentConduta = '';
+              const currentScore = resultadoDiv.dataset.score;
+              const currentConduta = resultadoDiv.dataset.conduta;
+              const scaleName = resultadoDiv.dataset.scaleName;
 
-              if (resultadoDiv.innerText && resultadoDiv.innerText.includes('Conduta: ')) {
-                  const lines = resultadoDiv.innerText.split('\n');
-                  if (lines.length >= 2 && lines[1].startsWith('Conduta: ')) { 
-                      currentConduta = lines[1].substring('Conduta: '.length).trim();
-                  }
-              }
-
-              if (!currentConduta || resultadoDiv.classList.contains('hidden') || resultadoDiv.innerText.includes('Por favor, selecione')) {
-                  resultadoDiv.innerText = 'Por favor, clique em "Calcular" primeiro para obter a conduta e habilitar a pesquisa NANDA, NIC, NOC.';
-                  resultadoDiv.classList.add('text-red-600');
-                  resultadoDiv.classList.remove('text-dark-blue');
-                  resultadoDiv.classList.remove('hidden'); 
+              if (!currentScore || !currentConduta || !scaleName || resultadoDiv.classList.contains('hidden') || resultadoDiv.innerText.includes('Por favor, selecione')) {
+                  showCustomMessage('Por favor, clique em "Calcular" primeiro para obter a conduta e habilitar a pesquisa NANDA, NIC, NOC.');
                   return;
               }
 
-              const searchQuery = encodeURIComponent(`${currentConduta} taxonomia NANDA, NIC e NOC`);
+              const searchQuery = encodeURIComponent(`Pontuação FLACC: ${currentScore}, Conduta: ${currentConduta} - ${scaleName} GERAR diagnosticos de enfermagem da NANDA, GERAR intervenções de enfermagem do NIC, Gerar um exemplo de mensuração dos resultados implementados pelo enfermeiro (NOC)`);
               window.open(`https://www.google.com/search?q=${searchQuery}`, '_blank');
           });
       }
@@ -565,4 +627,3 @@
   </script>
 </body>
 </html>
-
