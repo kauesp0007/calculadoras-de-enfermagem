@@ -346,6 +346,10 @@
         <button id="btnGerarPDF" class="btn-secondary" aria-label="Gerar PDF">
           Gerar PDF
         </button>
+        <!-- NOVO BOTÃO NANDA, NIC, NOC -->
+        <button id="btnNandaNicNoc" class="btn-primary" aria-label="Pesquisar NANDA, NIC, NOC">
+            NANDA, NIC, NOC
+        </button>
       </div>
 
     </main>
@@ -360,6 +364,48 @@
   <div id="footer-container"></div>
 
   <script>
+    // Referências aos elementos do DOM
+    const resultadoDiv = document.getElementById('resultado');
+    const btnNandaNicNoc = document.getElementById('btnNandaNicNoc'); // Referência ao botão NANDA, NIC, NOC
+
+    // --- Funções do Modal de Mensagem (necessário para exibir mensagens de erro) ---
+    const messageModalOverlay = document.createElement('div');
+    messageModalOverlay.id = 'messageModalOverlay';
+    messageModalOverlay.className = 'message-modal-overlay';
+    document.body.appendChild(messageModalOverlay);
+
+    const messageModalContent = document.createElement('div');
+    messageModalContent.className = 'message-modal-content';
+    messageModalOverlay.appendChild(messageModalContent);
+
+    const messageModalClose = document.createElement('button');
+    messageModalClose.id = 'messageModalClose';
+    messageModalClose.className = 'message-modal-close';
+    messageModalClose.innerHTML = '&times;';
+    messageModalContent.appendChild(messageModalClose);
+
+    const messageModalText = document.createElement('p');
+    messageModalText.id = 'messageModalText';
+    messageModalText.className = 'text-gray-700 text-lg';
+    messageModalContent.appendChild(messageModalText);
+
+    function showCustomMessage(message) {
+        messageModalText.textContent = message;
+        messageModalOverlay.style.display = 'flex';
+    }
+
+    function hideCustomMessage() {
+        messageModalOverlay.style.display = 'none';
+    }
+
+    messageModalClose.addEventListener('click', hideCustomMessage);
+    messageModalOverlay.addEventListener('click', (e) => {
+        if (e.target === messageModalOverlay) {
+            hideCustomMessage();
+        }
+    });
+    // --- Fim das Funções do Modal de Mensagem ---
+
     function calcular() {
       const idade = parseInt(document.getElementById('idade').value);
       const quedas = parseInt(document.getElementById('quedas').value);
@@ -369,7 +415,6 @@
       const mobilidade = parseInt(document.getElementById('mobilidade').value);
       const cognicao = parseInt(document.getElementById('cognicao').value);
 
-      const resultadoDiv = document.getElementById('resultado');
       let total = 0;
 
       // Resetar classes de cor do resultado e esconder
@@ -386,6 +431,11 @@
         resultadoDiv.style.display = 'block';
         resultadoDiv.textContent = "Por favor, selecione uma opção para todas as categorias para calcular o risco.";
         resultadoDiv.classList.add('bg-red-100', 'text-red-600'); // Estilo de erro
+        // Limpa os data-attributes se houver erro
+        resultadoDiv.dataset.score = '';
+        resultadoDiv.dataset.risco = '';
+        resultadoDiv.dataset.plano = '';
+        resultadoDiv.dataset.scaleName = '';
         return;
       }
 
@@ -412,6 +462,12 @@
       resultadoDiv.style.display = 'block';
       resultadoDiv.innerHTML = `<strong>Pontuação total: ${total}</strong><br><br><strong>${risco}</strong><br>${plano}`;
       resultadoDiv.classList.add(resultadoClass);
+
+      // Armazena a pontuação, risco e plano nos data-attributes
+      resultadoDiv.dataset.score = total;
+      resultadoDiv.dataset.risco = risco;
+      resultadoDiv.dataset.plano = plano;
+      resultadoDiv.dataset.scaleName = "Escala Johns Hopkins de Risco de Queda";
     }
 
     function limparCampos() {
@@ -424,13 +480,17 @@
       document.getElementById('mobilidade').value = '';
       document.getElementById('cognicao').value = '';
 
-      const resultadoDiv = document.getElementById('resultado');
       resultadoDiv.innerHTML = '';
       resultadoDiv.style.display = 'none'; // Esconde a div de resultado
       // Remove todas as classes de cor e fundo ao limpar
       resultadoDiv.classList.remove('bg-red-100', 'text-red-600', 'bg-yellow-100', 'text-yellow-700', 'bg-green-100', 'text-green-700', 'bg-blue-50', 'text-dark-blue');
       // Adiciona as classes padrão caso o resultado seja exibido novamente sem um cálculo
       resultadoDiv.classList.add('bg-blue-50', 'text-dark-blue');
+      // Limpa os data-attributes
+      delete resultadoDiv.dataset.score;
+      delete resultadoDiv.dataset.risco;
+      delete resultadoDiv.dataset.plano;
+      delete resultadoDiv.dataset.scaleName;
     }
 
     // Função para gerar PDF (Aprimorada)
@@ -611,6 +671,30 @@
       document.getElementById('btnCalcular').addEventListener('click', calcular);
       document.getElementById('btnLimpar').addEventListener('click', limparCampos);
       document.getElementById('btnGerarPDF').addEventListener('click', gerarPDF);
+
+      // NOVO: Adiciona o event listener para o novo botão NANDA, NIC, NOC
+      const btnNandaNicNoc = document.getElementById('btnNandaNicNoc');
+      if (btnNandaNicNoc) {
+          btnNandaNicNoc.addEventListener('click', () => {
+              const currentScore = parseInt(resultadoDiv.dataset.score); // Certifica-se de que é um número
+              const risco = resultadoDiv.dataset.risco;
+              const plano = resultadoDiv.dataset.plano;
+              const scaleName = resultadoDiv.dataset.scaleName;
+
+              // Verifica se os dados necessários estão presentes e são válidos
+              if (isNaN(currentScore) || !risco || !plano || !scaleName) {
+                  showCustomMessage('Por favor, clique em "Calcular" primeiro para obter o risco e o plano de cuidado e habilitar a pesquisa NANDA, NIC, NOC.');
+                  return;
+              }
+
+              // Constrói a string de pesquisa detalhada
+              const detailedSearchQuery = `Escala Johns Hopkins: Pontuação ${currentScore}, Risco: ${risco}, Plano de Cuidado: ${plano} - ${scaleName} GERAR diagnosticos de enfermagem da NANDA, GERAR intervenções de enfermagem do NIC, Gerar um exemplo de mensuração dos resultados implementados pelo enfermeiro (NOC)`;
+              const encodedSearchQuery = encodeURIComponent(detailedSearchQuery);
+              
+              // Abre uma nova aba com a pesquisa do Google
+              window.open(`https://www.google.com/search?q=${encodedSearchQuery}`, '_blank');
+          });
+      }
 
       // Carrega o rodapé (rodape111.html)
       fetch("rodape111.html")
