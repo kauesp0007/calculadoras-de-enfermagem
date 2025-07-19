@@ -10,6 +10,6 @@ O criador deste repositório não oferece garantias de qualquer tipo, expressas 
 
 Este repositório pode conter dados de exemplo ou fictícios para demonstração. Não utilize esses dados para decisões críticas sem validação independente.
 
-2025 CAU-ZIP / ciadeenfermagem@gmail.com. Todos os direitos reservados. Este projeto é distribuído sob a MIT License(https://github.com/kauesp0007/calculadoras-de-enfermagem/blob/main/LICENSE). Para mais detalhes, consulte o arquivo `LICENSE` no diretório raiz do repositório.
+2025 <CAU-ZIP> / ciadeenfermagem@gmail.com. Todos os direitos reservados. Este projeto é distribuído sob a MIT License(https://github.com/kauesp0007/calculadoras-de-enfermagem/blob/main/LICENSE). Para mais detalhes, consulte o arquivo `LICENSE` no diretório raiz do repositório.
 
 ---
