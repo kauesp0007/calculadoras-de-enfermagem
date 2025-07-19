@@ -15,13 +15,13 @@
   <meta name="description" content="Calcule o Protocolo NEWS (National Early Warning Score) para detecção precoce de deterioração clínica em pacientes hospitalizados, promovendo segurança e acionamento do Time de Resposta Rápida." />
   <!-- Removida a tag meta name="keywords" conforme auditoria -->
 
-  <!-- Google Analytics (Movido para o topo do head conforme instrução) -->
+  <!-- Google Analytics (ID atualizado e movido para o topo do head conforme instrução) -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-8FLJ59XXDK"></script>
   <script>
     window.dataLayer = window.dataLayer || [];
     function gtag(){dataLayer.push(arguments);}
     gtag('js', new Date());
-    gtag('config', 'G-8FLJ59XXDK');
+    gtag('config', 'G-8FLJ59XXDK'); /* ID do Google Analytics atualizado */
   </script>
 
   <!-- Schema.org Structured Data (Adicionado conforme auditoria) -->
@@ -451,6 +451,74 @@
         font-family: "Font Awesome 6 Free" !important; /* Ensure Font Awesome font is used */
         font-weight: 900 !important; /* For solid icons */
     }
+
+    /* FIX: Ensure cookie banner is always fixed at the bottom and visible */
+    #cookieConsentBanner {
+        position: fixed !important;
+        bottom: 0 !important;
+        left: 0 !important;
+        width: 100% !important;
+        display: none; /* Hidden by default, controlled by JS */
+        flex-direction: column !important; /* Ensure flex direction */
+        align-items: center !important;
+        gap: 1rem !important;
+        background-color: #1A3E74 !important; /* Fundo azul escuro */
+        color: #fff !important; /* Texto branco */
+        padding: 1rem !important;
+        text-align: center !important;
+        z-index: 1000 !important;
+        box-shadow: 0 -2px 10px rgba(0,0,0,0.2) !important;
+    }
+
+    #cookieConsentBanner.show {
+        display: flex !important; /* Show the banner */
+    }
+
+    #cookieConsentBanner p {
+        margin: 0 !important;
+        font-size: 0.9rem !important;
+        line-height: 1.4 !important;
+    }
+
+    #cookieConsentBanner .cookie-buttons {
+        display: flex !important;
+        gap: 0.75rem !important;
+        justify-content: center !important;
+        flex-wrap: wrap !important;
+    }
+
+    #cookieConsentBanner button {
+        background-color: #2563eb !important; /* Tailwind blue-600 */
+        color: white !important;
+        padding: 0.6rem 1.2rem !important;
+        border-radius: 0.5rem !important;
+        font-weight: 600 !important;
+        transition: background-color 0.2s ease !important;
+        border: none !important;
+        cursor: pointer !important;
+        white-space: nowrap !important;
+    }
+
+    #cookieConsentBanner button.secondary {
+        background-color: transparent !important;
+        border: 1px solid rgba(255, 255, 255, 0.5) !important;
+    }
+
+    #cookieConsentBanner button.secondary:hover {
+        background-color: rgba(255, 255, 255, 0.1) !important;
+        border-color: white !important;
+    }
+    /* Responsive adjustments for cookie banner */
+    @media (min-width: 768px) {
+        #cookieConsentBanner {
+            flex-direction: row !important; /* Layout em linha para desktop */
+            justify-content: space-between !important;
+            padding: 1rem 2rem !important;
+        }
+        #cookieConsentBanner .cookie-buttons {
+            justify-content: flex-end !important;
+        }
+    }
   </style>
 </head>
 <body class="bg-gray-50 text-gray-800 font-inter">
@@ -495,14 +563,14 @@
       <div class="flex flex-wrap items-center justify-center gap-4 mb-3">
         <img src="iconpages.png" alt="Ícone do Protocolo NEWS" class="w-32 h-auto" />
         <h1 class="font-nunito font-extrabold text-dark-blue text-4xl lg:text-5xl text-center">
-          Escala NEWS 
+          Calculadora Protocolo NEWS - (National Early Warning Score)
         </h1>
       </div>
       <h2 class="font-inter font-normal text-lg text-gray-700 text-center mb-6">
         
       </h2>
       <p class="font-inter font-medium text-light-blue text-center text-xl mb-6">
-        Escala de deterioração clínica do paciente (National Early Warning Score)
+        Protocolo de deterioração clínica do paciente (Acionamento do Time de resposta rápida)
       </p>
 
       <div id="conteudo" class="w-full">
@@ -885,30 +953,31 @@
       const toggleContrastBtn = document.getElementById('toggleContrastBtn');
       const toggleDarkModeBtn = document.getElementById('toggleDarkModeBtn');
       const resetAccessibilityBtn = document.getElementById('resetAccessibilityBtn');
-      let currentFontSize = 'normal'; // 'normal', 'small', 'large'
-      let isHighContrast = false;
-      let isDarkMode = false;
+      let currentFontSize = localStorage.getItem('fontSize') || 'normal'; // 'normal', 'small', 'large'
+      let isHighContrast = localStorage.getItem('isHighContrast') === 'true';
+      let isDarkMode = localStorage.getItem('isDarkMode') === 'true';
       // Função para aplicar/remover classes de acessibilidade
       function applyAccessibilitySettings() {
           const body = document.body;
-          // Tamanho da Fonte
-          body.classList.remove('font-size-small', 'font-size-large');
+          
+          // Reset classes
+          body.classList.remove('font-size-small', 'font-size-large', 'high-contrast', 'dark-mode');
+
+          // Apply font size
           if (currentFontSize === 'small') {
               body.classList.add('font-size-small');
           } else if (currentFontSize === 'large') {
               body.classList.add('font-size-large');
           }
-          // Alto Contraste
+
+          // Apply contrast
           if (isHighContrast) {
               body.classList.add('high-contrast');
-          } else {
-              body.classList.remove('high-contrast');
           }
-          // Modo Escuro
+
+          // Apply reading mode
           if (isDarkMode) {
               body.classList.add('dark-mode');
-          } else {
-              body.classList.remove('dark-mode');
           }
       }
       // Funções de Toggle
@@ -921,18 +990,21 @@
               } else {
                   currentFontSize = 'normal';
               }
+              localStorage.setItem('fontSize', currentFontSize);
               applyAccessibilitySettings();
           });
       }
       if (toggleContrastBtn) {
           toggleContrastBtn.addEventListener('click', () => {
               isHighContrast = !isHighContrast;
+              localStorage.setItem('isHighContrast', isHighContrast);
               applyAccessibilitySettings();
           });
       }
       if (toggleDarkModeBtn) {
           toggleDarkModeBtn.addEventListener('click', () => {
               isDarkMode = !isDarkMode;
+              localStorage.setItem('isDarkMode', isDarkMode);
               applyAccessibilitySettings();
           });
       }
@@ -941,6 +1013,9 @@
               currentFontSize = 'normal';
               isHighContrast = false;
               isDarkMode = false;
+              localStorage.removeItem('fontSize');
+              localStorage.removeItem('isHighContrast');
+              localStorage.removeItem('isDarkMode');
               applyAccessibilitySettings();
           });
       }
@@ -974,6 +1049,59 @@
       });
       // Aplica as configurações iniciais (se houver alguma persistência futura)
       applyAccessibilitySettings();
+
+      // --- Lógica do Cookie Consent Banner ---
+      const cookieConsentBanner = document.getElementById('cookieConsentBanner');
+      const acceptCookiesBtn = document.getElementById('acceptCookiesBtn');
+      const refuseCookiesBtn = document.getElementById('refuseCookiesBtn');
+      const cookiesAcceptedKey = 'cookiesAccepted'; // Chave para localStorage
+
+      function showCookieBanner() {
+          if (cookieConsentBanner) { // Garante que o elemento exista antes de tentar manipulá-lo
+              const consentStatus = localStorage.getItem(cookiesAcceptedKey);
+              console.log('Cookie Consent Status:', consentStatus); // Log de depuração
+              if (consentStatus === null) {
+                  cookieConsentBanner.classList.add('show');
+                  console.log('Cookie banner exibido.'); // Log de depuração
+              } else {
+                  console.log('Consentimento de cookies já decidido, banner não exibido.'); // Log de depuração
+              }
+          } else {
+              console.error('Elemento #cookieConsentBanner não encontrado.'); // Log de erro
+          }
+      }
+
+      function hideCookieBanner() {
+          if (cookieConsentBanner) { // Garante que o elemento exista antes de tentar manipulá-lo
+              cookieConsentBanner.classList.remove('show');
+              console.log('Cookie banner ocultado.'); // Log de depuração
+          }
+      }
+
+      if (acceptCookiesBtn) {
+          acceptCookiesBtn.addEventListener('click', () => {
+              localStorage.setItem(cookiesAcceptedKey, 'true');
+              hideCookieBanner();
+              // Atualiza o consentimento do Google Analytics para 'granted'
+              gtag('consent', 'update', {
+                  'analytics_storage': 'granted'
+              });
+              console.log('Cookies aceites.'); // Log de depuração
+          });
+      }
+
+      if (refuseCookiesBtn) {
+          refuseCookiesBtn.addEventListener('click', () => {
+              localStorage.setItem(cookiesAcceptedKey, 'false');
+              hideCookieBanner();
+              // O consentimento já está 'denied' por padrão, então não precisa de 'update' aqui
+              console.log('Cookies recusados.'); // Log de depuração
+          });
+      }
+      // --- Fim da Lógica do Cookie Consent Banner ---
+
+      // CHAMADA DA FUNÇÃO showCookieBanner() APÓS O DOM SER CARREGADO
+      showCookieBanner(); 
     });
   </script>
 </body>
