@@ -1,0 +1,944 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Escala CRIES - Avaliação da Dor em Recém-Nascidos</title>
+
+    <link rel="canonical" href="https://www.calculadorasdeenfermagem.com.br/cries.html" />
+
+    <link rel="icon" href="favicon.ico" type="image/x-icon" />
+
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
+    <!-- Fontes personalizadas -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <!-- Font Awesome para ícones -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+
+    <!-- Google Tag Manager (gtag.js) - Consent Mode -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=AW-952633102"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('consent', 'default', {
+            'analytics_storage': 'denied',
+            'wait_for_update': 500 // Espera 500ms por uma atualização do consentimento
+        });
+        gtag('config', 'AW-952633102');
+    </script>
+
+    <script src="topbar111.js" defer></script>
+
+    <style>
+        /* Reset básico e Box-sizing para consistência */
+        *, *::before, *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* Fontes personalizadas */
+        .font-nunito { font-family: 'Nunito Sans', sans-serif; }
+        .font-inter { font-family: 'Inter', sans-serif; }
+        .text-dark-blue { color: #1A3E74; } /* Azul Escuro */
+        .text-light-blue { color: #1FA4E5; } /* Azul Claro */
+        .text-gray-custom { color: #666666; } /* Cinza */
+        .text-success-green { color: #1ED760; } /* Verde */
+
+        /* Padrão de Botões (Componentes CSS para reuso) */
+        .btn-primary {
+            font-family: 'Inter', sans-serif;
+            font-weight: 600;
+            background-color: #1A3E74; /* Cor primária azul escuro */
+            color: #FFF;
+            padding: 12px 24px;
+            border-radius: 8px;
+            transition: background-color 0.3s ease;
+            border: none;
+            cursor: pointer;
+            text-align: center;
+        }
+        .btn-primary:hover { background-color: #122c54; } /* Tom mais escuro no hover */
+        .btn-secondary {
+            font-family: 'Inter', sans-serif;
+            font-weight: 600;
+            background-color: #1FA4E5; /* Cor secundária azul claro */
+            color: #FFF;
+            padding: 12px 24px;
+            border-radius: 8px;
+            transition: background-color 0.3s ease;
+            border: none;
+            cursor: pointer;
+            text-align: center;
+        }
+        .btn-secondary:hover { background-color: #178ac7; } /* Tom mais escuro no hover */
+        .btn-success {
+            font-family: 'Inter', sans-serif;
+            font-weight: 500;
+            background-color: #1ED760;
+            color: #FFF;
+            padding: 10px 20px;
+            border-radius: 8px;
+            transition: background-color 0.3s ease;
+            border: none;
+            cursor: pointer;
+            text-align: center;
+        }
+        .btn-success:hover { background-color: #17b351; }
+
+        /* Estilos para a área de resultado da calculadora (Componente específico) */
+        .resultado {
+            margin-top: 1rem;
+            padding: 1rem;
+            background-color: #e0f2fe; /* Tailwind blue-50 */
+            border-radius: 0.5rem;
+            font-weight: 600;
+            color: #1A3E74; /* text-dark-blue */
+            text-align: left;
+            white-space: pre-wrap;
+        }
+
+        /* Estilos para a referência/bibliografia (Componente específico) */
+        .ref {
+            margin-top: 2rem;
+            font-size: 14px;
+            color: #666666; /* text-gray-custom */
+            text-align: left;
+        }
+
+        /* Estilo para o botão "Ajude-nos" fixo (Componente de botão) */
+        .fixed-donation-button {
+            z-index: 30;
+        }
+
+        /* Layout principal com Topbar fixa */
+        body {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh; /* Garante que o body ocupe a altura total da viewport */
+            background-color: #f8fafc; /* Tailwind bg-gray-50 */
+            color: #333; /* Tailwind text-gray-800 */
+        }
+
+        /* ESTILOS DOS DROPDOWNS DA TOPBAR (MOVIDOS DE TOPBAR111.HTML) */
+        .dropdown-menu { display: none; }
+        .dropdown-menu.show { display: block; }
+        nav { justify-content: flex-end; }
+        nav button { cursor: pointer; }
+        nav .dropdown-menu a:hover { background-color: #bfdbfe; }
+        /* FIM DOS ESTILOS DA TOPBAR */
+
+        /* Espaçamento para o conteúdo abaixo da topbar fixa */
+        .main-content-wrapper {
+            display: flex;
+            flex-direction: column;
+            flex-grow: 1;
+            padding-top: 64px; /* Garante que o conteúdo comece abaixo da topbar fixa (64px de altura) */
+            width: 100%;
+        }
+
+        /* Conteúdo principal (main) */
+        main {
+            flex-grow: 1;
+            max-width: 1280px; /* max-w-7xl */
+            margin-left: auto;
+            margin-right: auto;
+            padding: 2rem 1rem; /* Equivalente a p-8 px-4 */
+            width: 100%;
+        }
+
+        /* --- NOVOS ESTILOS PARA RESPONSIVIDADE DO FORMULÁRIO (Substituem a lógica de tabela) --- */
+
+        /* Container de cada critério */
+        .criterion-section {
+            background-color: #fff;
+            border: 1px solid #e2e8f0; /* similar ao border-gray-300 */
+            border-radius: 8px; /* Cantos levemente arredondados */
+            padding: 1rem;
+            margin-bottom: 1rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05); /* Sombra suave */
+        }
+
+        /* Título de cada critério */
+        .criterion-title {
+            font-size: 1.25rem; /* text-xl */
+            font-weight: 700; /* font-bold */
+            color: #1A3E74; /* text-dark-blue */
+            margin-bottom: 0.75rem;
+        }
+
+        /* Grupo de opções (radio buttons) */
+        .options-group {
+            display: flex;
+            flex-direction: column; /* Mobile-first: empilha as opções verticalmente */
+            gap: 0.5rem; /* Espaçamento entre as opções */
+        }
+
+        /* Label de cada opção (torna-a clicável e flexível) */
+        .option-label {
+            display: flex; /* Alinha o radio com o texto */
+            align-items: center;
+            font-size: 1rem;
+            color: #374151; /* text-gray-700 */
+            cursor: pointer;
+            padding: 0.6rem 0.75rem; /* Aumenta a área de clique */
+            border-radius: 6px;
+            transition: background-color 0.2s ease;
+            border: 1px solid transparent; /* Adiciona uma borda transparente para evitar "salto" no hover/focus */
+        }
+        .option-label:hover {
+            background-color: #f3f4f6; /* bg-gray-100 */
+        }
+        .option-label input[type="radio"] {
+            margin-right: 0.75rem; /* Espaço entre o radio e o texto */
+            transform: scale(1.1); /* Aumenta um pouco o tamanho do radio */
+            flex-shrink: 0; /* Evita que o radio button encolha */
+        }
+
+        /* Media query para telas médias (tablets e desktops pequenos) */
+        @media (min-width: 640px) { /* sm breakpoint */
+            .options-group {
+                flex-direction: row; /* Alinha opções horizontalmente */
+                flex-wrap: wrap; /* Permite que as opções quebrem para a próxima linha */
+                gap: 1rem; /* Aumenta o espaçamento entre opções */
+            }
+            .option-label {
+                /* Permite que as labels ocupem um espaço flexível, ajustando-se. */
+                /* Pode-se usar flex-basis: calc(50% - 0.5rem) para 2 colunas, se necessário */
+                flex-basis: auto; /* Deixa o tamanho ser automático, mas respeita o wrap */
+            }
+        }
+
+        /* Estilos do divisor vertical no rodapé */
+        .vertical-divider-footer-stretched {
+            width: 1px; /* Largura da linha */
+            background-color: rgba(255, 255, 255, 0.3); /* Cor da linha */
+            height: 100%; /* Estende a altura do div pai */
+            margin-left: 1rem;
+            margin-right: 1rem;
+        }
+
+        /* Estilos do rodapé */
+        .footer-social-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background-color: rgba(255, 255, 255, 0.1);
+            transition: background-color 0.3s ease;
+        }
+        .footer-social-icon:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+
+        /* --- Cookie Consent Banner Styles --- */
+        #cookieConsentBanner {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background-color: #1A3E74; /* Cor azul escuro da identidade */
+            color: #fff;
+            padding: 1rem;
+            text-align: center;
+            z-index: 1000; /* Acima do rodapé e outros elementos */
+            display: none; /* Oculto por padrão, mostrado via JS */
+            flex-direction: column; /* Empilha conteúdo em mobile */
+            align-items: center;
+            gap: 1rem;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.2);
+        }
+
+        #cookieConsentBanner.show {
+            display: flex; /* Mostra o banner */
+        }
+
+        #cookieConsentBanner p {
+            margin: 0;
+            font-size: 0.9rem;
+            line-height: 1.4;
+        }
+
+        #cookieConsentBanner .cookie-buttons {
+            display: flex;
+            gap: 0.75rem;
+            justify-content: center;
+            flex-wrap: wrap; /* Permite quebrar em telas menores */
+        }
+
+        #cookieConsentBanner button {
+            background-color: #2563eb; /* Tailwind blue-600 */
+            color: white;
+            padding: 0.6rem 1.2rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            transition: background-color 0.2s ease;
+            border: none;
+            cursor: pointer;
+            white-space: nowrap; /* Evita quebra de linha no texto do botão */
+        }
+
+        #cookieConsentBanner button.secondary {
+            background-color: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.5);
+        }
+
+        #cookieConsentBanner button.secondary:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+            border-color: white;
+        }
+
+        /* Responsive adjustments for cookie banner */
+        @media (min-width: 768px) {
+            #cookieConsentBanner {
+                flex-direction: row; /* Layout em linha para desktop */
+                justify-content: space-between;
+                padding: 1rem 2rem;
+            }
+            #cookieConsentBanner .cookie-buttons {
+                justify-content: flex-end;
+            }
+        }
+
+        /* Estilos para o menu off-canvas de acessibilidade */
+        .accessibility-off-canvas-menu {
+            position: fixed;
+            top: 0;
+            right: -300px; /* Escondido por padrão */
+            width: 300px;
+            height: 100%;
+            background-color: #fff;
+            box-shadow: -2px 0 10px rgba(0,0,0,0.2);
+            z-index: 1000;
+            transition: right 0.3s ease-in-out;
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .accessibility-off-canvas-menu.is-open {
+            right: 0; /* Visível quando aberto */
+        }
+
+        .accessibility-overlay {
+            display: none; /* Oculto por padrão */
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            z-index: 999;
+        }
+
+        .accessibility-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .accessibility-header h4 {
+            font-size: 1.25rem;
+            font-weight: bold;
+            color: #1A3E74;
+        }
+
+        .accessibility-close-btn {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #666;
+        }
+
+        .accessibility-option-btn {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            width: 100%;
+            padding: 0.75rem 1rem;
+            background-color: #f1f5f9; /* Tailwind gray-100 */
+            border-radius: 0.5rem;
+            border: 1px solid #e2e8f0; /* Tailwind gray-200 */
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+
+        .accessibility-option-btn:hover {
+            background-color: #e2e8f0; /* Tailwind gray-200 */
+        }
+
+        .accessibility-option-btn i {
+            color: #1A3E74;
+        }
+
+        .accessibility-option-btn span {
+            font-weight: 600;
+            color: #333;
+        }
+
+        /* Estilos para as classes de acessibilidade aplicadas ao body */
+        body.font-size-small { font-size: 0.85em; }
+        body.font-size-large { font-size: 1.15em; }
+
+        body.high-contrast {
+            background-color: #000 !important;
+            color: #FFF !important;
+        }
+        body.high-contrast a { color: #FFFF00 !important; }
+        body.high-contrast button, body.high-contrast .btn-primary, body.high-contrast .btn-secondary {
+            background-color: #FFF !important;
+            color: #000 !important;
+            border: 1px solid #FFFF00 !important;
+        }
+        body.high-contrast .bg-white, body.high-contrast .bg-blue-50 {
+            background-color: #333 !important;
+            color: #FFF !important;
+            border: 1px solid #FFFF00 !important;
+        }
+        body.high-contrast .text-gray-600, body.high-contrast .text-gray-700, body.high-contrast .text-gray-800 {
+            color: #FFF !important;
+        }
+        body.high-contrast .text-dark-blue, body.high-contrast .text-light-blue {
+            color: #FFFF00 !important;
+        }
+        body.high-contrast .shadow, body.high-contrast .shadow-md {
+            box-shadow: 0 0 5px #FFFF00 !important;
+        }
+        body.high-contrast .border, body.high-contrast .border-gray-300 {
+            border-color: #FFFF00 !important;
+        }
+
+        body.dark-mode {
+            background-color: #1F2937 !important; /* Dark Gray */
+            color: #E5E7EB !important; /* Light Gray */
+        }
+        body.dark-mode a { color: #93C5FD !important; /* Light Blue */ }
+        body.dark-mode .bg-white, body.dark-mode .bg-blue-50 {
+            background-color: #374151 !important; /* Medium Dark Gray */
+            color: #E5E7EB !important;
+        }
+        body.dark-mode .text-gray-600, body.dark-mode .text-gray-700, body.dark-mode .text-gray-800 {
+            color: #E5E7EB !important;
+        }
+        body.dark-mode .text-dark-blue, body.dark-mode .text-light-blue {
+            color: #93C5FD !important;
+        }
+        body.dark-mode .shadow, body.dark-mode .shadow-md {
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.3), 0 2px 4px -1px rgba(0,0,0,0.2) !important;
+        }
+        body.dark-mode .border, body.dark-mode .border-gray-300 {
+            border-color: #4B5563 !important;
+        }
+        body.dark-mode .btn-primary, body.dark-mode .btn-secondary {
+            background-color: #4B5563 !important;
+            color: #E5E7EB !important;
+        }
+        body.dark-mode .btn-primary:hover, body.dark-mode .btn-secondary:hover {
+            background-color: #6B7280 !important;
+        }
+        body.dark-mode #cookieConsentBanner {
+            background-color: #374151 !important;
+        }
+        body.dark-mode #cookieConsentBanner button {
+            background-color: #60A5FA !important;
+            color: #1F2937 !important;
+        }
+        body.dark-mode #cookieConsentBanner button.secondary {
+            background-color: transparent !important;
+            border-color: #93C5FD !important;
+            color: #93C5FD !important;
+        }
+        body.dark-mode #cookieConsentBanner button.secondary:hover {
+            background-color: rgba(147, 197, 253, 0.1) !important;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800 font-inter">
+
+    <div id="topbar-container"></div>
+
+    <!-- VLibras Widget -->
+    <div vw class="enabled">
+        <div vw-access-button class="active"></div>
+        <div vw-plugin-wrapper>
+            <div class="vw-plugin-top-wrapper"></div>
+        </div>
+    </div>
+
+    <!-- Botão Hambúrguer de Acessibilidade Visual -->
+    <button id="accessibilityHamburgerBtn" class="fixed bottom-4 left-4 bg-blue-700 text-white p-3 rounded-full shadow-lg z-50">
+        <i class="fas fa-universal-access text-xl text-white"></i> <!-- Adicionado text-white explicitamente aqui -->
+    </button>
+
+    <!-- Off-canvas Menu de Acessibilidade -->
+    <div id="accessibilityOffCanvasMenu" class="accessibility-off-canvas-menu">
+        <div class="accessibility-header">
+            <h4>Acessibilidade</h4>
+            <button id="closeAccessibilityMenuBtn" class="accessibility-close-btn">&times;</button>
+        </div>
+        <button id="toggleFontSizeBtn" class="accessibility-option-btn">
+            <i class="fas fa-font"></i>
+            <span>Tamanho da Fonte</span>
+        </button>
+        <button id="toggleContrastBtn" class="accessibility-option-btn">
+            <i class="fas fa-adjust"></i>
+            <span>Alto Contraste</span>
+        </button>
+        <button id="toggleDarkModeBtn" class="accessibility-option-btn">
+            <i class="fas fa-moon"></i>
+            <span>Modo Escuro</span>
+        </button>
+        <button id="resetAccessibilityBtn" class="accessibility-option-btn">
+            <i class="fas fa-sync-alt"></i>
+            <span>Resetar</span>
+        </button>
+    </div>
+
+    <!-- Overlay para o menu off-canvas -->
+    <div id="accessibilityOverlay" class="accessibility-overlay"></div>
+
+    <div class="main-content-wrapper">
+        <main class="max-w-4xl mx-auto px-4 py-8">
+            <div class="flex flex-col items-center justify-center gap-4 mb-3 text-center">
+                <img src="iconpages.png" alt="Ícone da Página" class="w-32 h-auto" />
+                <h1 id="main-title" class="font-nunito font-extrabold text-dark-blue text-4xl lg:text-5xl">
+                    Escala CRIES - Avaliação da Dor em Recém-Nascidos
+                </h1>
+            </div>
+            <h2 id="main-subtitle" class="font-inter font-semibold text-light-blue text-xl lg:text-2xl mb-3 text-center sm:text-left">
+                Ferramenta para avaliar a dor em recém-nascidos, especialmente útil em situações pós-operatórias.
+            </h2>
+            <p class="font-inter font-normal text-black text-base lg:text-lg mb-6 text-center sm:text-left">
+                A escala CRIES (Crying, Requiring increased oxygen, Increased vital signs, Expression, Sleeplessness) é uma ferramenta para avaliar a dor em recém-nascidos, especialmente útil em situações pós-operatórias. Ela analisa cinco parâmetros comportamentais e fisiológicos que podem indicar dor.
+            </p>
+
+            <h3 class="font-inter font-semibold text-dark-blue text-lg lg:text-xl mb-3">O que a escala CRIES avalia:</h3>
+            <ul class="list-disc list-inside mb-6 text-base lg:text-lg text-gray-700">
+                <li><strong>Choro:</strong> A intensidade e padrão do choro do bebê.</li>
+                <li><strong>Necessidade de oxigênio:</strong> Se o bebê requer suplementação de oxigênio para manter a saturação adequada.</li>
+                <li><strong>Aumento dos sinais vitais:</strong> Alterações como frequência cardíaca e respiratória elevadas, pressão arterial aumentada.</li>
+                <li><strong>Expressão facial:</strong> Observação de expressões faciais como caretas, testa franzida, boca aberta, etc.</li>
+                <li><strong>Insônia:</strong> Dificuldade para dormir ou períodos de sono interrompidos.</li>
+            </ul>
+
+            <h3 class="font-inter font-semibold text-dark-blue text-lg lg:text-xl mb-3">Como funciona:</h3>
+            <p class="font-inter font-normal text-black text-base lg:text-lg mb-6">
+                Cada um dos cinco parâmetros recebe uma pontuação de 0 a 2, totalizando um máximo de 10 pontos. Uma pontuação mais alta indica maior intensidade de dor.
+            </p>
+
+            <h3 class="font-inter font-semibold text-dark-blue text-lg lg:text-xl mb-3">Aplicações:</h3>
+            <p class="font-inter font-normal text-black text-base lg:text-lg mb-6">
+                A escala CRIES é frequentemente utilizada em unidades de terapia intensiva neonatal (UTIN) e em situações pós-operatórias para avaliar a dor em bebês.
+            </p>
+
+            <p class="font-inter font-normal text-light-blue text-base lg:text-lg mb-6 text-center sm:text-left">
+                Selecione a pontuação para cada critério:
+            </p>
+
+            <div id="conteudo">
+                <div class="criterion-section">
+                    <h3 class="criterion-title">Choro (Crying)</h3>
+                    <div class="options-group">
+                        <label class="option-label"><input type="radio" name="choro" value="0" class="mr-2">Ausente (0)</label>
+                        <label class="option-label"><input type="radio" name="choro" value="1" class="mr-2">Alto (1)</label>
+                        <label class="option-label"><input type="radio" name="choro" value="2" class="mr-2">Incontrolável (2)</label>
+                    </div>
+                    <p class="text-gray-600 text-sm mt-2">Avalia a intensidade e o padrão do choro do bebê.</p>
+                </div>
+
+                <div class="criterion-section">
+                    <h3 class="criterion-title">Necessidade de Oxigênio (Requiring increased oxygen)</h3>
+                    <div class="options-group">
+                        <label class="option-label"><input type="radio" name="oxigenio" value="0" class="mr-2">SpO2 > 95% (0)</label>
+                        <label class="option-label"><input type="radio" name="oxigenio" value="1" class="mr-2">SpO2 21%-30% (1)</label>
+                        <label class="option-label"><input type="radio" name="oxigenio" value="2" class="mr-2">SpO2 > 30% (2)</label>
+                    </div>
+                    <p class="text-gray-600 text-sm mt-2">Verifica se há necessidade de suplementação de oxigênio para manter a saturação adequada.</p>
+                </div>
+
+                <div class="criterion-section">
+                    <h3 class="criterion-title">Aumento dos Sinais Vitais (Increased vital signs - FC e/ou PA)</h3>
+                    <div class="options-group">
+                        <label class="option-label"><input type="radio" name="sinais_vitais" value="0" class="mr-2">Sem aumento (0)</label>
+                        <label class="option-label"><input type="radio" name="sinais_vitais" value="1" class="mr-2">Aumento de até 20% (1)</label>
+                        <label class="option-label"><input type="radio" name="sinais_vitais" value="2" class="mr-2">Aumento de mais de 20% (2)</label>
+                    </div>
+                    <p class="text-gray-600 text-sm mt-2">Observa alterações como frequência cardíaca e respiratória elevadas, ou pressão arterial aumentada.</p>
+                </div>
+
+                <div class="criterion-section">
+                    <h3 class="criterion-title">Expressão Facial (Expression)</h3>
+                    <div class="options-group">
+                        <label class="option-label"><input type="radio" name="expressao_facial" value="0" class="mr-2">Relaxada (0)</label>
+                        <label class="option-label"><input type="radio" name="expressao_facial" value="1" class="mr-2">Careta esporádica (1)</label>
+                        <label class="option-label"><input type="radio" name="expressao_facial" value="2" class="mr-2">Contorcida (2)</label>
+                    </div>
+                    <p class="text-gray-600 text-sm mt-2">Observação de expressões faciais como caretas, testa franzida, boca aberta, etc.</p>
+                </div>
+
+                <div class="criterion-section">
+                    <h3 class="criterion-title">Insônia (Sleeplessness)</h3>
+                    <div class="options-group">
+                        <label class="option-label"><input type="radio" name="insonia" value="0" class="mr-2">Normal (0)</label>
+                        <label class="option-label"><input type="radio" name="insonia" value="1" class="mr-2">Intervalos curtos (1)</label>
+                        <label class="option-label"><input type="radio" name="insonia" value="2" class="mr-2">Ausente (2)</label>
+                    </div>
+                    <p class="text-gray-600 text-sm mt-2">Dificuldade para dormir ou períodos de sono interrompidos.</p>
+                </div>
+
+                <div id="resultado" class="resultado hidden" aria-live="polite"></div>
+
+                <div class="ref font-inter text-gray-custom text-left">
+                    <h3 class="font-bold mb-2">Referências:</h3>
+                    <ul class="list-disc list-inside space-y-1">
+                        <li>Krechel, S. W., & Bildner, J. (1995). CRIES: a new neonatal postoperative pain measurement score. Initial testing of validity and reliability. Paediatric Anaesthesia, 5(1), 53-61. Disponível em: <a href="https://pubmed.ncbi.nlm.nih.gov/8967560/" target="_blank" class="text-light-blue hover:underline">https://pubmed.ncbi.nlm.nih.gov/8967560/</a></li>
+                        <li>Carepatron. CRIES Pain Scale & Example | Free PDF Download. Disponível em: <a href="https://www.carepatron.com/templates/cries-pain-scale" target="_blank" class="text-light-blue hover:underline">https://www.carepatron.com/templates/cries-pain-scale</a></li>
+                        <li>Sociedade Brasileira de Pediatria. A Linguagem da Dor no Recém-Nascido. Documento Científico do Departamento de Neonatologia. Disponível em: <a href="https://www.sbp.com.br/fileadmin/user_upload/pdfs/doc_linguagem-da-dor-out2010.pdf" target="_blank" class="text-light-blue hover:underline">https://www.sbp.com.br/fileadmin/user_upload/pdfs/doc_linguagem-da-dor-out2010.pdf</a></li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="flex flex-wrap justify-start gap-4 mt-6">
+                <button id="btnCalcular" class="btn-primary" aria-label="Calcular pontuação">
+                    Calcular
+                </button>
+                <button id="btnLimpar" class="btn-primary" aria-label="Limpar campos">
+                    Limpar
+                </button>
+                <button id="btnGerarPDF" class="btn-secondary" aria-label="Gerar PDF">
+                    Gerar PDF
+                </button>
+                <button id="btnNandaNicNoc" class="btn-primary" aria-label="Pesquisar NANDA, NIC, NOC">
+                    NANDA, NIC, NOC
+                </button>
+            </div>
+        </main>
+    </div>
+
+    <!-- Botão "Ajude-nos" fixo (mantido como no Aldrete.html) -->
+    <a href="doacoes.html" class="fixed bottom-4 right-4 bg-dark-blue text-white text-sm px-4 py-2 rounded-full shadow hover:bg-blue-900 transition fixed-donation-button">
+        Ajude-nos a manter o site gratuito
+    </a>
+
+    <!-- Div para o rodapé dinâmico (agora carregado via JS) -->
+    <div id="footer-container"></div>
+
+    <!-- Cookie Consent Banner -->
+    <div id="cookieConsentBanner">
+        <p>Utilizamos cookies para melhorar sua experiência em nosso site. Ao continuar navegando, você concorda com nossa <a href="politica.html" class="underline text-blue-200 hover:text-blue-100">Política de Cookies</a>.</p>
+        <div class="cookie-buttons">
+            <button id="acceptCookiesBtn">Aceitar todos os cookies</button>
+            <button id="refuseCookiesBtn" class="secondary">Recusar cookies</button>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- Lógica do Cookie Consent Banner ---
+            const cookieConsentBanner = document.getElementById('cookieConsentBanner');
+            const acceptCookiesBtn = document.getElementById('acceptCookiesBtn');
+            const refuseCookiesBtn = document.getElementById('refuseCookiesBtn');
+            const cookiesAcceptedKey = 'cookiesAccepted'; // Chave para localStorage
+
+            function showCookieBanner() {
+                if (localStorage.getItem(cookiesAcceptedKey) === null) {
+                    cookieConsentBanner.classList.add('show');
+                }
+            }
+
+            function hideCookieBanner() {
+                cookieConsentBanner.classList.remove('show');
+            }
+
+            if (acceptCookiesBtn) {
+                acceptCookiesBtn.addEventListener('click', () => {
+                    localStorage.setItem(cookiesAcceptedKey, 'true');
+                    hideCookieBanner();
+                    gtag('consent', 'update', { 'analytics_storage': 'granted' });
+                });
+            }
+
+            if (refuseCookiesBtn) {
+                refuseCookiesBtn.addEventListener('click', () => {
+                    localStorage.setItem(cookiesAcceptedKey, 'false');
+                    hideCookieBanner();
+                });
+            }
+            showCookieBanner(); // Mostra o banner ao carregar a página
+
+            // --- Lógica da Nova Barra de Acessibilidade Hambúrguer ---
+            const accessibilityHamburgerBtn = document.getElementById('accessibilityHamburgerBtn');
+            const accessibilityOffCanvasMenu = document.getElementById('accessibilityOffCanvasMenu');
+            const closeAccessibilityMenuBtn = document.getElementById('closeAccessibilityMenuBtn');
+            const accessibilityOverlay = document.getElementById('accessibilityOverlay');
+
+            const toggleFontSizeBtn = document.getElementById('toggleFontSizeBtn');
+            const toggleContrastBtn = document.getElementById('toggleContrastBtn');
+            const toggleDarkModeBtn = document.getElementById('toggleDarkModeBtn');
+            const resetAccessibilityBtn = document.getElementById('resetAccessibilityBtn');
+
+            let currentFontSize = 'normal';
+            let isHighContrast = false;
+            let isDarkMode = false;
+
+            function applyAccessibilitySettings() {
+                const body = document.body;
+                body.classList.remove('font-size-small', 'font-size-large');
+                if (currentFontSize === 'small') {
+                    body.classList.add('font-size-small');
+                } else if (currentFontSize === 'large') {
+                    body.classList.add('font-size-large');
+                }
+
+                if (isHighContrast) {
+                    body.classList.add('high-contrast');
+                } else {
+                    body.classList.remove('high-contrast');
+                }
+
+                if (isDarkMode) {
+                    body.classList.add('dark-mode');
+                } else {
+                    body.classList.remove('dark-mode');
+                }
+            }
+
+            if (toggleFontSizeBtn) {
+                toggleFontSizeBtn.addEventListener('click', () => {
+                    if (currentFontSize === 'normal') {
+                        currentFontSize = 'large';
+                    } else if (currentFontSize === 'large') {
+                        currentFontSize = 'small';
+                    } else {
+                        currentFontSize = 'normal';
+                    }
+                    applyAccessibilitySettings();
+                });
+            }
+
+            if (toggleContrastBtn) {
+                toggleContrastBtn.addEventListener('click', () => {
+                    isHighContrast = !isHighContrast;
+                    applyAccessibilitySettings();
+                });
+            }
+
+            if (toggleDarkModeBtn) {
+                toggleDarkModeBtn.addEventListener('click', () => {
+                    isDarkMode = !isDarkMode;
+                    applyAccessibilitySettings();
+                });
+            }
+
+            if (resetAccessibilityBtn) {
+                resetAccessibilityBtn.addEventListener('click', () => {
+                    currentFontSize = 'normal';
+                    isHighContrast = false;
+                    isDarkMode = false;
+                    applyAccessibilitySettings();
+                });
+            }
+
+            if (accessibilityHamburgerBtn) {
+                accessibilityHamburgerBtn.addEventListener('click', () => {
+                    accessibilityOffCanvasMenu.classList.add('is-open');
+                    accessibilityOverlay.style.display = 'block';
+                });
+            }
+
+            if (closeAccessibilityMenuBtn) {
+                closeAccessibilityMenuBtn.addEventListener('click', () => {
+                    accessibilityOffCanvasMenu.classList.remove('is-open');
+                    accessibilityOverlay.style.display = 'none';
+                });
+            }
+
+            if (accessibilityOverlay) {
+                accessibilityOverlay.addEventListener('click', () => {
+                    accessibilityOffCanvasMenu.classList.remove('is-open');
+                    accessibilityOverlay.style.display = 'none';
+                });
+            }
+
+            document.addEventListener('keydown', (event) => {
+                if (event.key === 'Escape' && accessibilityOffCanvasMenu.classList.contains('is-open')) {
+                    accessibilityOffCanvasMenu.classList.remove('is-open');
+                    accessibilityOverlay.style.display = 'none';
+                }
+            });
+            applyAccessibilitySettings();
+
+            // --- Lógica da Calculadora CRIES ---
+            function calcularCRIES() {
+                const campos = ['choro', 'oxigenio', 'sinais_vitais', 'expressao_facial', 'insonia'];
+                let total = 0;
+                let allSelected = true;
+                let conduta = '';
+
+                for (const campo of campos) {
+                    const selecionado = document.querySelector(`input[name="${campo}"]:checked`);
+                    if (!selecionado) {
+                        allSelected = false;
+                        break;
+                    }
+                    total += parseInt(selecionado.value, 10);
+                }
+
+                const resultadoDiv = document.getElementById('resultado');
+                if (!allSelected) {
+                    resultadoDiv.innerText = 'Por favor, selecione todas as opções para calcular.';
+                    resultadoDiv.classList.add('text-red-600');
+                    resultadoDiv.classList.remove('text-dark-blue');
+                    resultadoDiv.classList.remove('hidden');
+                    return;
+                }
+
+                if (total >= 7) {
+                    conduta = 'Dor intensa. Requer avaliação e intervenção imediata.';
+                } else if (total >= 4) {
+                    conduta = 'Dor moderada. Requer avaliação e manejo da dor.';
+                } else {
+                    conduta = 'Dor mínima ou ausente. Manter monitoramento.';
+                }
+
+                resultadoDiv.innerText = `Pontuação total: ${total}/10\n\nConduta: ${conduta}`;
+                resultadoDiv.classList.remove('text-red-600');
+                resultadoDiv.classList.add('text-dark-blue');
+                resultadoDiv.classList.remove('hidden');
+            }
+
+            function limparCRIES() {
+                const campos = ['choro', 'oxigenio', 'sinais_vitais', 'expressao_facial', 'insonia'];
+                campos.forEach(campo => {
+                    document.querySelectorAll(`input[name="${campo}"]`).forEach(el => el.checked = false);
+                });
+                const resultadoDiv = document.getElementById('resultado');
+                resultadoDiv.innerText = '';
+                resultadoDiv.classList.remove('text-red-600', 'text-dark-blue');
+                resultadoDiv.classList.add('hidden');
+            }
+
+            function gerarPDFCRIES() {
+                const contentToPrint = document.getElementById('conteudo').cloneNode(true);
+
+                const fixedButton = document.querySelector('.fixed-donation-button');
+                if (fixedButton) {
+                    fixedButton.style.display = 'none';
+                }
+
+                const pdfTitleText = "Escala CRIES";
+                const pdfSubtitleText = "Relatório de Avaliação da Dor em Recém-Nascidos";
+
+                const titleDiv = document.createElement('h1');
+                titleDiv.style.fontSize = '24px';
+                titleDiv.style.color = '#1A3E74';
+                titleDiv.style.textAlign = 'center';
+                titleDiv.style.marginBottom = '5px';
+                titleDiv.innerText = pdfTitleText;
+                contentToPrint.prepend(titleDiv);
+
+                const subtitleDiv = document.createElement('h2');
+                subtitleDiv.style.fontSize = '14px';
+                subtitleDiv.style.color = '#666666';
+                subtitleDiv.style.textAlign = 'center';
+                subtitleDiv.style.marginBottom = '15px';
+                subtitleDiv.innerText = pdfSubtitleText;
+                contentToPrint.prepend(subtitleDiv);
+
+                const dateDiv = document.createElement('p');
+                dateDiv.style.fontSize = '12px';
+                dateDiv.style.color = '#777';
+                dateDiv.style.textAlign = 'center';
+                dateDiv.style.marginBottom = '20px';
+                dateDiv.innerText = `Gerado em: ${new Date().toLocaleDateString('pt-BR')} ${new Date().toLocaleTimeString('pt-BR')}`;
+                contentToPrint.prepend(dateDiv);
+
+                const opt = {
+                    margin:       0.5,
+                    filename:     'escala-cries.pdf',
+                    image:        { type: 'jpeg', quality: 0.98 },
+                    html2canvas:  { scale: 3, scrollY: 0 },
+                    jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }
+                };
+
+                html2pdf().set(opt).from(contentToPrint).save().then(() => {
+                    if (fixedButton) {
+                        fixedButton.style.display = '';
+                    }
+                });
+            }
+
+            const btnNandaNicNoc = document.getElementById('btnNandaNicNoc');
+
+            if (btnNandaNicNoc) {
+                btnNandaNicNoc.addEventListener('click', () => {
+                    const resultadoDiv = document.getElementById('resultado');
+                    let currentConduta = '';
+
+                    if (resultadoDiv.innerText && resultadoDiv.innerText.includes('Conduta: ')) {
+                        const lines = resultadoDiv.innerText.split('\n');
+                        if (lines.length >= 3 && lines[2].startsWith('Conduta: ')) {
+                            currentConduta = lines[2].substring('Conduta: '.length).trim();
+                        }
+                    }
+
+                    if (!currentConduta || resultadoDiv.classList.contains('hidden') || resultadoDiv.innerText.includes('Por favor, selecione')) {
+                        resultadoDiv.innerText = 'Por favor, clique em "Calcular" primeiro para obter a conduta e habilitar a pesquisa NANDA, NIC, NOC.';
+                        resultadoDiv.classList.add('text-red-600');
+                        resultadoDiv.classList.remove('text-dark-blue');
+                        if (resultadoDiv.classList.contains('hidden')) {
+                            resultadoDiv.classList.remove('hidden');
+                        }
+                        return;
+                    }
+
+                    const searchQuery = encodeURIComponent(`${currentConduta} taxonomia NANDA, NIC e NOC`);
+                    window.open(`https://www.google.com/search?q=${searchQuery}`, '_blank');
+                });
+            }
+
+            document.getElementById('btnCalcular').addEventListener('click', calcularCRIES);
+            document.getElementById('btnLimpar').addEventListener('click', limparCRIES);
+            document.getElementById('btnGerarPDF').addEventListener('click', gerarPDFCRIES);
+
+            // Carrega o rodapé
+            fetch("rodape111.html")
+                .then(res => res.text())
+                .then(data => {
+                    const footerContainer = document.getElementById("footer-container");
+                    if (footerContainer) {
+                        footerContainer.innerHTML = data;
+                    } else {
+                        console.error('Elemento footer-container não encontrado.');
+                    }
+                })
+                .catch(err => console.error("Erro ao carregar rodape111.html:", err));
+
+            // VLibras widget initialization
+            new VLibras.Widget('https://vlibras.gov.br/app');
+
+            // Service Worker registration (mantido como no Aldrete.html)
+            if ('serviceWorker' in navigator) {
+                window.addEventListener('load', () => {
+                    navigator.serviceWorker.register('/service-worker.js')
+                        .then(registration => {
+                            console.log('ServiceWorker registration successful with scope: ', registration.scope);
+                        })
+                        .catch(err => {
+                            console.log('ServiceWorker registration failed: ', err);
+                        });
+                });
+            }
+        });
+    </script>
+</body>
+</html>
