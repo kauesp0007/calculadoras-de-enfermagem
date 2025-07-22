@@ -5,8 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Rodapé - Calculadoras de Enfermagem</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;700&family=Inter:wght@400;700&display=swap" rel="stylesheet">
     <style>
+        /* Importação das fontes diretamente no CSS para compatibilidade com srcdoc/PWA */
+        @import url('https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;700&family=Inter:wght@400;700&display=swap');
+
         /* Variáveis CSS para cores do site */
         :root {
             --cor-foco-acessibilidade: yellow;
@@ -19,8 +21,6 @@
         .font-inter { font-family: 'Inter', sans-serif; }
 
         /* Cores Padrão do Site - Ajustadas para WCAG AAA (7:1 contraste) */
-        /* As propriedades body aqui são para o ambiente de teste isolado deste arquivo.
-           Quando este rodapé é incluído em outra página, os estilos do body da página principal se aplicam. */
         body {
             background-color: #f9fafb; /* Cor de fundo principal mais clara */
             color: #1F2937; /* Cor de texto padrão - Ajustado para AAA */
@@ -28,11 +28,11 @@
             letter-spacing: var(--espacamento-letra); /* Aplicar espaçamento de letra */
             font-family: 'Inter', sans-serif; /* Fonte padrão do corpo */
             margin: 0;
+            /* Propriedades para fixar o rodapé na parte inferior da página */
             display: flex;
             flex-direction: column;
             min-height: 100vh;
         }
-
         /* Estilos para o modo escuro */
         @media (prefers-color-scheme: dark) {
             body.dark {
@@ -99,6 +99,7 @@
         }
 
         /* Estilo para foco visível (acessibilidade) */
+        /* Garante que elementos focados pelo teclado tenham um contorno claro */
         a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible {
             outline: 2px solid var(--cor-foco-acessibilidade); /* Contorno amarelo para acessibilidade */
             outline-offset: 2px; /* Espaçamento entre o contorno e o elemento */
@@ -169,89 +170,103 @@
             box-shadow: 0 0 0 4px rgba(255, 255, 0, 0.5); /* Anel de foco personalizado */
         }
 
-        /* Estilos para o grid no rodapé em telas grandes */
-        @media (min-width: 768px) {
-            .footer-grid {
-                display: grid;
+        /* Estilos para o grid no rodapé */
+        .footer-grid-container {
+            display: grid; /* Sempre um grid */
+            grid-template-columns: 1fr; /* Padrão: uma coluna para telas muito pequenas */
+            gap: 1rem; /* Espaçamento padrão */
+            align-items: start;
+        }
+
+        @media (min-width: 640px) { /* sm breakpoint: 2 colunas para Institucional e Sustentabilidade */
+            .footer-grid-container {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+                gap: 2rem; /* Espaçamento um pouco maior para sm */
+            }
+            .footer-grid-container .social-links-container {
+                grid-column: 1 / -1; /* Links sociais ocupam a largura total abaixo das duas primeiras seções */
+                margin-top: 1rem; /* Adiciona espaço acima dos links sociais */
+            }
+        }
+
+        @media (min-width: 768px) { /* md breakpoint: layout original de 4 colunas */
+            .footer-grid-container {
                 grid-template-columns: repeat(3, minmax(0, 1fr)) 1fr; /* 3 colunas para as seções e 1 para social */
                 gap: 2rem; /* Espaçamento entre as colunas */
-                align-items: start; /* Alinha o conteúdo ao topo de cada célula */
             }
-            .footer-grid .vertical-divider-footer-stretched {
+            .footer-grid-container .vertical-divider-footer-stretched {
                 grid-column: 3 / 4; /* Posiciona o divisor na 3ª coluna */
                 height: auto; /* Permite que o divisor se estenda com o conteúdo */
             }
-            .footer-grid .social-links-container {
+            .footer-grid-container .social-links-container {
                 grid-column: 4 / 5; /* Posiciona os links sociais na 4ª coluna */
+                margin-top: 0; /* Redefine a margem para desktop */
             }
         }
 
-        /* Estilos para o banner de cookies (garantindo que ele seja azul e branco) */
-        #cookie-banner {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            background-color: #1A3E74; /* Azul escuro */
-            color: #fff; /* Texto branco */
-            padding: 1rem;
-            text-align: center;
-            z-index: 1000;
-            box-shadow: 0 -2px 10px rgba(0,0,0,0.2);
-            display: flex; /* Usar flexbox para alinhamento */
-            flex-direction: column; /* Empilhar itens em telas pequenas */
-            align-items: center;
-            gap: 1rem;
-        }
-
-        #cookie-banner p {
-            margin: 0;
-            font-size: 0.9rem;
-            line-height: 1.4;
-        }
-
-        #cookie-banner .cookie-buttons {
+        /* Estilos para seções colapsáveis */
+        .collapsible-header {
             display: flex;
-            gap: 0.75rem;
-            justify-content: center;
-            flex-wrap: wrap; /* Permite que os botões quebrem para a próxima linha em telas pequenas */
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.5rem 0;
+            -webkit-tap-highlight-color: transparent; /* Remove highlight em mobile */
         }
 
-        #cookie-banner button {
-            background-color: #2563eb; /* Um tom de azul para o botão primário */
-            color: white;
-            padding: 0.6rem 1.2rem;
-            border-radius: 0.5rem;
-            font-weight: 600;
-            transition: background-color 0.2s ease;
-            border: none;
-            cursor: pointer;
-            white-space: nowrap; /* Impede que o texto do botão quebre */
+        .collapsible-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out;
+            padding-left: 0.5rem; /* Recuo para conteúdo */
         }
 
-        #cookie-banner button.secondary {
-            background-color: transparent;
-            border: 1px solid rgba(255, 255, 255, 0.5); /* Borda branca translúcida */
+        .collapsible-content.expanded {
+            max-height: 1000px; /* Valor grande o suficiente para expandir todo o conteúdo */
         }
 
-        #cookie-banner button.secondary:hover {
-            background-color: rgba(255, 255, 255, 0.1);
-            border-color: white;
+        .collapsible-icon {
+            transition: transform 0.3s ease-out;
         }
 
-        /* Responsividade para o banner de cookies */
-        @media (min-width: 768px) {
-            #cookie-banner {
-                flex-direction: row; /* Layout em linha para desktop */
-                justify-content: space-between;
-                padding: 1rem 2rem;
+        .collapsible-header.expanded .collapsible-icon {
+            transform: rotate(180deg);
+        }
+
+        /* Desativar colapsável em telas maiores que 'sm' */
+        @media (min-width: 640px) {
+            .collapsible-header {
+                cursor: default; /* Remove cursor de ponteiro */
+                padding: 0; /* Remove padding extra */
             }
-            #cookie-banner .cookie-buttons {
-                justify-content: flex-end;
+            .collapsible-header .collapsible-icon {
+                display: none; /* Esconde o ícone de colapsar */
             }
+            .collapsible-content {
+                max-height: none !important; /* Sempre expandido */
+                overflow: visible !important; /* Sempre visível */
+                padding-left: 0; /* Remove recuo */
+            }
+        }
+
+        /* Estilo para o skip link */
+        .skip-link {
+            position: absolute;
+            top: -40px;
+            left: 0;
+            background-color: var(--cor-foco-acessibilidade);
+            color: #1F2937;
+            padding: 8px;
+            z-index: 1000;
+            text-decoration: none;
+            transition: top 0.3s ease-in-out;
+        }
+        .skip-link:focus {
+            top: 0;
         }
     </style>
     <script>
+        console.log('Script tag started execution.'); // Log para verificar se o script está sendo executado
+
         // Script para aplicar a classe 'dark' ao corpo se o modo escuro for preferido pelo sistema
         if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
             document.documentElement.classList.add('dark');
@@ -266,7 +281,7 @@
             /*
             (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
             (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
-            m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+            m=s.getElementsByTagName(o)[0];a[i].async=1;a[i].src=g;m.parentNode.insertBefore(a,m)
             })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
             ga('create', 'UA-XXXXX-Y', 'auto');
             ga('send', 'pageview');
@@ -314,6 +329,8 @@
 
         // Script para o banner de cookies e configurações
         document.addEventListener('DOMContentLoaded', () => {
+            console.log('DOMContentLoaded fired - Script de cookies iniciado.'); // Log para verificar o disparo do DOMContentLoaded
+
             const cookieBanner = document.getElementById('cookie-banner');
             const cookieSettingsModal = document.getElementById('cookie-settings-modal');
             const floatingCookieBtn = document.getElementById('floating-cookie-btn');
@@ -339,6 +356,7 @@
 
             // Função para abrir o modal com transição e gerenciar foco
             function openModal(modalElement) {
+                console.log('Abrindo modal:', modalElement.id);
                 lastFocusedElement = document.activeElement; // Armazena o elemento que tinha o foco
                 modalElement.style.display = 'flex';
                 // Força o reflow para garantir que a transição ocorra
@@ -362,6 +380,7 @@
 
             // Função para fechar o modal com transição e restaurar foco
             function closeModal(modalElement) {
+                console.log('Fechando modal:', modalElement.id);
                 modalElement.classList.remove('show');
                 modalElement.addEventListener('transitionend', function handler() {
                     modalElement.style.display = 'none';
@@ -407,47 +426,44 @@
 
             // Função para obter as preferências de cookies do localStorage
             function getCookiePreferences() {
-                const preferences = localStorage.getItem('cookiePreferences');
-                return preferences ? JSON.parse(preferences) : null;
+                try {
+                    const preferences = localStorage.getItem('cookiePreferences');
+                    console.log('localStorage.getItem("cookiePreferences"):', preferences); // Log para depuração
+                    return preferences ? JSON.parse(preferences) : null;
+                } catch (e) {
+                    console.error('Erro ao ler do localStorage:', e); // Log de erro
+                    return null;
+                }
             }
 
             // Função para salvar as preferências de cookies no localStorage
             function saveCookiePreferences(preferences) {
-                localStorage.setItem('cookiePreferences', JSON.stringify(preferences));
-                logConsent(preferences); // Chama a função para registrar no back-end
-            }
-
-            // Função para aplicar as preferências de cookies
-            function applyCookiePreferences(preferences) {
-                if (preferences) {
-                    // Essenciais são sempre true
-                    functionalCheckbox.checked = true; // Essenciais são sempre ativados
-                    analyticalCheckbox.checked = preferences.analytical;
-                    marketingCheckbox.checked = preferences.marketing;
-
-                    // Condicionalmente carregar Google Analytics
-                    if (preferences.analytical) {
-                        loadGoogleAnalytics();
-                    } else {
-                        // Desativar GA ou remover scripts se já carregados
-                        // (Lógica mais complexa para desativar GA se já estiver ativo)
-                    }
+                try {
+                    localStorage.setItem('cookiePreferences', JSON.stringify(preferences));
+                    logConsent(preferences); // Chama a função para registrar no back-end
+                    console.log('Preferências de cookies salvas no localStorage:', preferences); // Log para depuração
+                } catch (e) {
+                    console.error('Erro ao salvar no localStorage:', e); // Log de erro
                 }
             }
 
             // Inicializa as preferências e exibe o banner/flutuante
             const storedPreferences = getCookiePreferences();
+            console.log('Preferências de cookies após recuperação:', storedPreferences); // Log para depuração
             if (storedPreferences) {
                 cookieBanner.style.display = 'none'; // Esconde o banner se já houver preferências
                 floatingCookieBtn.style.display = 'flex'; // Mostra o botão flutuante
                 applyCookiePreferences(storedPreferences); // Aplica as preferências existentes
+                console.log('Preferências de cookies encontradas e aplicadas. Banner escondido, botão flutuante visível.'); // Log para depuração
             } else {
                 cookieBanner.style.display = 'flex'; // Exibe o banner se não houver preferências
                 floatingCookieBtn.style.display = 'none'; // Esconde o botão flutuante inicialmente
+                console.log('Nenhuma preferência de cookie encontrada. Exibindo banner, botão flutuante escondido.'); // Log para depuração
             }
 
             // Event Listeners para o banner principal
             acceptAllBtn.addEventListener('click', () => {
+                console.log('Botão "Aceitar Todos" clicado.');
                 const preferences = {
                     essential: true,
                     analytical: true,
@@ -460,6 +476,7 @@
             });
 
             declineAllBtn.addEventListener('click', () => {
+                console.log('Botão "Recusar Todos" clicado.');
                 const preferences = {
                     essential: true, // Essenciais ainda são true
                     analytical: false,
@@ -472,6 +489,7 @@
             });
 
             openSettingsBtn.addEventListener('click', () => {
+                console.log('Botão "Configurações de Cookies" clicado (banner).');
                 cookieBanner.style.display = 'none'; // Esconde o banner principal
                 openModal(cookieSettingsModal); // Exibe o modal de configurações com transição
 
@@ -491,6 +509,7 @@
 
             // Event Listeners para o modal de configurações
             saveSettingsBtn.addEventListener('click', () => {
+                console.log('Botão "Salvar Preferências" clicado.');
                 const preferences = {
                     essential: true,
                     analytical: analyticalCheckbox.checked,
@@ -503,6 +522,7 @@
             });
 
             closeSettingsBtn.addEventListener('click', () => {
+                console.log('Botão "Fechar" clicado (modal).');
                 closeModal(cookieSettingsModal); // Fecha o modal com transição
                 // Se o banner principal ainda não foi aceito/recusado, exibi-lo novamente
                 const currentPreferences = getCookiePreferences();
@@ -515,6 +535,7 @@
 
             // Event Listener para o botão flutuante
             floatingCookieBtn.addEventListener('click', () => {
+                console.log('Botão flutuante de cookies clicado.');
                 openModal(cookieSettingsModal); // Abre diretamente as configurações com transição
                 // Carrega as preferências atuais no modal
                 const currentPreferences = getCookiePreferences();
@@ -529,10 +550,77 @@
                     marketingCheckbox.checked = true;
                 }
             });
+
+            // Lógica para colapsar/expandir seções do rodapé
+            const collapsibleSections = document.querySelectorAll('.collapsible-section');
+
+            collapsibleSections.forEach(section => {
+                const header = section.querySelector('.collapsible-header');
+                const content = section.querySelector('.collapsible-content');
+                const icon = section.querySelector('.collapsible-icon');
+
+                // Função para configurar o estado inicial e em redimensionamento
+                function setupCollapsibleState() {
+                    console.log('setupCollapsibleState called for:', header.querySelector('h6').textContent, 'Window width:', window.innerWidth);
+                    if (window.innerWidth >= 640) { // Desktop/Tablet (>= sm)
+                        console.log('Screen >= 640px. Expanding content for:', header.querySelector('h6').textContent);
+                        content.classList.add('expanded'); // Sempre expandido
+                        header.setAttribute('aria-expanded', 'true'); // Indica estado expandido
+                        header.removeAttribute('role'); // Não é um botão no desktop
+                        header.removeAttribute('tabindex'); // Não é focável como botão
+                        if (icon) icon.style.display = 'none'; // Esconde o ícone
+                        header.style.cursor = 'default';
+                    } else { // Mobile (< sm)
+                        console.log('Screen < 640px. Collapsing content for:', header.querySelector('h6').textContent);
+                        content.classList.remove('expanded'); // Começa colapsado
+                        header.setAttribute('aria-expanded', 'false'); // Indica estado colapsado
+                        header.setAttribute('role', 'button'); // É um botão no mobile
+                        header.setAttribute('tabindex', '0'); // É focável
+                        if (icon) icon.style.display = 'block'; // Mostra o ícone
+                        header.style.cursor = 'pointer';
+                    }
+                }
+
+                // Adiciona listener de clique para alternar em mobile
+                if (header) { // Garante que o cabeçalho existe
+                    header.addEventListener('click', () => {
+                        console.log('Collapsible header clicked for:', header.querySelector('h6').textContent, 'Current width:', window.innerWidth);
+                        if (window.innerWidth < 640) { // Apenas alterna no mobile
+                            console.log('Toggling collapsible content for:', header.querySelector('h6').textContent);
+                            if (content.classList.contains('expanded')) {
+                                content.classList.remove('expanded');
+                                header.setAttribute('aria-expanded', 'false');
+                            } else {
+                                // Fecha outros conteúdos expandidos, se apenas um deve estar aberto por vez
+                                document.querySelectorAll('.collapsible-content.expanded').forEach(openContent => {
+                                    if (openContent !== content) {
+                                        openContent.classList.remove('expanded');
+                                        const prevHeader = openContent.previousElementSibling;
+                                        if (prevHeader) prevHeader.setAttribute('aria-expanded', 'false');
+                                    }
+                                });
+                                content.classList.add('expanded');
+                                header.setAttribute('aria-expanded', 'true');
+                            }
+                        } else {
+                            console.log('Clique ignorado em desktop/tablet para cabeçalho colapsável.');
+                        }
+                    });
+                }
+
+                // Chama na carga da página e no redimensionamento
+                setupCollapsibleState();
+                window.addEventListener('resize', setupCollapsibleState);
+            });
         });
     </script>
 </head>
-<body>
+<body class="bg-gray-50 text-gray-800 font-inter">
+    <!-- IMPORTANTE: Para que o rodapé "grude" na parte inferior da página, -->
+    <!-- o conteúdo principal da sua página (tudo o que vem antes do rodapé) -->
+    <!-- deve estar dentro de um elemento com `flex-grow: 1;`. Exemplo: -->
+    <!-- <main class="flex-grow">Seu conteúdo aqui...</main> -->
+
     <!-- Banner de Cookies LGPD -->
     <div id="cookie-banner" style="display: none;" class="fixed bottom-0 left-0 right-0 z-50 bg-[#1A3E74] bg-opacity-90 text-white p-4 shadow-md flex flex-col md:flex-row md:items-center md:justify-between gap-4 text-sm font-inter" role="dialog" aria-live="polite" aria-label="Consentimento de Cookies">
       <p class="flex-1">
@@ -598,17 +686,24 @@
             <section class="border-b border-white pb-4 mb-4 dark:border-gray-700" aria-labelledby="footer-logo-heading">
                 <h2 id="footer-logo-heading" class="sr-only">Logo do Rodapé</h2>
                 <div class="flex justify-start items-center">
-                    <!-- Tamanho do ícone do rodapé ajustado para ser menor -->
-                    <img src="https://www.calculadorasdeenfermagem.com.br/iconrodape1.webp" alt="Logo Calculadoras de Enfermagem Rodapé" width="80" height="56" class="h-auto w-auto max-w-[80px] max-h-[56px]" loading="lazy" decoding="async">
+                    <!-- Aumentado o tamanho da imagem do rodapé e adicionado classes responsivas -->
+                    <img src="https://www.calculadorasdeenfermagem.com.br/iconrodape1.webp" alt="Logo Calculadoras de Enfermagem Rodapé" width="120" height="84" class="h-auto w-auto max-w-[120px] max-h-[84px] object-contain" loading="lazy" decoding="async">
                 </div>
             </section>
 
-            <div class="md:flex md:justify-between md:items-start md:space-x-8 md:items-stretch footer-grid">
-                <section class="mb-6 md:mb-0" aria-labelledby="institutional-heading">
-                    <h6 id="institutional-heading" class="font-bold mb-2">Institucional</h6>
-                    <ul class="list-none space-y-1">
+            <!-- Contêiner para o grid do rodapé -->
+            <div class="footer-grid-container">
+                <!-- Seção Institucional -->
+                <section class="mb-6 md:mb-0 text-left collapsible-section" aria-labelledby="institutional-heading">
+                    <div class="collapsible-header" role="button" tabindex="0" aria-expanded="false" aria-controls="institutional-content">
+                        <h6 id="institutional-heading" class="font-bold mb-2">Institucional</h6>
+                        <svg class="collapsible-icon w-5 h-5 ml-2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                            <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+                        </svg>
+                    </div>
+                    <ul id="institutional-content" class="list-none space-y-1 collapsible-content">
                         <li><a href="https://www.calculadorasdeenfermagem.com.br/missao.html" class="text-white hover:underline dark:text-gray-300 dark:hover:text-white">Sobre Nós</a></li>
-                        <li><a href="mapa-do-site.html" class="text-white hover:underline dark:text-gray-300 dark:hover:text-white">Mapa do Site</a></li>
+                        <li><a href="mapa-do-site.html" class="text-white hover:underline dark:text-300 dark:hover:text-white">Mapa do Site</a></li>
                         <li><a href="https://www.calculadorasdeenfermagem.com.br/politica.html" class="text-white hover:underline dark:text-gray-300 dark:hover:text-white">Políticas de Cookies</a></li>
                         <!-- Novos links para retenção de dados e LGPD -->
                         <li><a href="https://www.calculadorasdeenfermagem.com.br/politica-retencao-dados.html" class="text-white hover:underline dark:text-gray-300 dark:hover:text-white">Política de Retenção de Dados</a></li>
@@ -619,20 +714,26 @@
                 </section>
 
                 <!-- Seção de Sustentabilidade Digital -->
-                <section class="mb-6 md:mb-0" aria-labelledby="digital-sustainability-heading">
-                    <h6 id="digital-sustainability-heading" class="font-bold mb-2">Sustentabilidade Digital</h6>
-                    <ul class="list-none space-y-1">
+                <section class="mb-6 md:mb-0 text-left collapsible-section" aria-labelledby="digital-sustainability-heading">
+                    <div class="collapsible-header" role="button" tabindex="0" aria-expanded="false" aria-controls="digital-sustainability-content">
+                        <h6 id="digital-sustainability-heading" class="font-bold mb-2">Sustentabilidade Digital</h6>
+                        <svg class="collapsible-icon w-5 h-5 ml-2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                            <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+                        </svg>
+                    </div>
+                    <ul id="digital-sustainability-content" class="list-none space-y-1 collapsible-content">
                         <li><a href="https://www.calculadorasdeenfermagem.com.br/nosso-compromisso.html" class="text-white hover:underline dark:text-gray-300 dark:hover:text-white">Nosso Compromisso</a></li>
                         <li><a href="https://www.calculadorasdeenfermagem.com.br/relatorios-de-impacto.html" class="text-white hover:underline dark:text-gray-300 dark:hover:text-white">Relatório de Impacto</a></li>
                         <li><a href="https://www.calculadorasdeenfermagem.com.br/tecnologia-verde.html" class="text-white hover:underline dark:text-gray-300 dark:hover:text-white">Tecnologia Verde</a></li>
                     </ul>
                 </section>
 
-                <div class="flex flex-1 flex-col md:flex-row justify-end items-start md:items-start social-links-container">
+                <div class="flex flex-col justify-end items-start social-links-container">
                     <div class="vertical-divider-footer-stretched hidden md:block dark:bg-gray-700" aria-hidden="true"></div>
-                    <nav class="flex flex-col items-start space-y-4" aria-label="Links de Redes Sociais">
-                        <h6 class="font-bold mb-2">Siga-nos</h6>
-                        <div class="flex space-x-4">
+                    <!-- Seção Siga-nos - NÃO COLAPSÁVEL -->
+                    <section class="text-left" aria-labelledby="social-media-heading">
+                        <h6 id="social-media-heading" class="font-bold mb-2">Siga-nos</h6>
+                        <nav class="flex space-x-4" aria-label="Links de Redes Sociais">
                             <a href="https://linkedin.com/company/calculadoras-de-enfermagem" target="_blank" class="footer-social-icon" title="LinkedIn" aria-label="LinkedIn (abre em nova aba)" rel="noopener noreferrer">
                                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
                                     <path d="M20.447 20.452h-3.554v-5.569c0-1.325-.028-3.044-1.852-3.044-1.853 0-2.136 1.445-2.136 2.957v5.656H9.596V9.528h3.418v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.923-2.063-2.065 0-1.145.92-2.066 2.063-2.066 1.145 0 2.064.922 2.064 2.066 0 1.142-.92 2.065-2.064 2.065zm-.012 13.019H3.25V9.529h2.075v10.923z"/>
@@ -658,8 +759,8 @@
                                 </svg>
                                 <span class="sr-only">YouTube</span>
                             </a>
-                        </div>
-                    </nav>
+                        </nav>
+                    </section>
                 </div>
             </div>
 
