@@ -461,6 +461,74 @@
         border-color: #4299e1 !important;
     }
 
+    /* --- Cookie Consent Banner Styles --- */
+    #cookieConsentBanner {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        background-color: #1A3E74; /* Cor azul escuro da identidade */
+        color: #fff;
+        padding: 1rem;
+        text-align: center;
+        z-index: 1000; /* Acima do rodapé e outros elementos */
+        display: none; /* Oculto por padrão, mostrado via JS */
+        flex-direction: column; /* Empilha conteúdo em mobile */
+        align-items: center;
+        gap: 1rem;
+        box-shadow: 0 -2px 10px rgba(0,0,0,0.2);
+    }
+
+    #cookieConsentBanner.show {
+        display: flex; /* Mostra o banner */
+    }
+
+    #cookieConsentBanner p {
+        margin: 0;
+        font-size: 0.9rem;
+        line-height: 1.4;
+    }
+
+    #cookieConsentBanner .cookie-buttons {
+        display: flex;
+        gap: 0.75rem;
+        justify-content: center;
+        flex-wrap: wrap; /* Permite quebrar em telas menores */
+    }
+
+    #cookieConsentBanner button {
+        background-color: #2563eb; /* Tailwind blue-600 */
+        color: white;
+        padding: 0.6rem 1.2rem;
+        border-radius: 0.5rem;
+        font-weight: 600;
+        transition: background-color 0.2s ease;
+        border: none;
+        cursor: pointer;
+        white-space: nowrap; /* Evita quebra de linha no texto do botão */
+    }
+
+    #cookieConsentBanner button.secondary {
+        background-color: transparent;
+        border: 1px solid rgba(255, 255, 255, 0.5);
+    }
+
+    #cookieConsentBanner button.secondary:hover {
+        background-color: rgba(255, 255, 255, 0.1);
+        border-color: white;
+    }
+
+    /* Responsive adjustments for cookie banner */
+    @media (min-width: 768px) {
+        #cookieConsentBanner {
+            flex-direction: row; /* Layout em linha para desktop */
+            justify-content: space-between;
+            padding: 1rem 2rem;
+        }
+        #cookieConsentBanner .cookie-buttons {
+            justify-content: flex-end;
+        }
+    }
   </style>
 </head>
 <body class="bg-gray-50 text-gray-800 font-inter">
@@ -728,7 +796,7 @@
     // Adiciona listeners para o modal de mensagem
     messageModalClose.addEventListener('click', hideCustomMessage);
     messageModalOverlay.addEventListener('click', (e) => {
-        if (e.target === messageModalOverlay) {
+        if (e.target === messageModalOverlay) { // Garante que só feche se clicar no overlay, não no menu
             hideCustomMessage();
         }
     });
@@ -1025,9 +1093,11 @@
           });
       }
       if (accessibilityOverlay) {
-          accessibilityOverlay.addEventListener('click', () => {
-              accessibilityOffCanvasMenu.classList.remove('is-open');
-              accessibilityOverlay.style.display = 'none';
+          accessibilityOverlay.addEventListener('click', (event) => { // Adicionado 'event' como parâmetro
+            if (event.target === accessibilityOverlay) { // Garante que só feche se clicar no overlay, não no menu
+                accessibilityOffCanvasMenu.classList.remove('is-open');
+                accessibilityOverlay.style.display = 'none';
+            }
           });
       }
       // Fechar com a tecla ESC
@@ -1147,11 +1217,14 @@
     function showCookieBanner() {
         if (localStorage.getItem(cookiesAcceptedKey) === null) {
             cookieConsentBanner.classList.add('show');
+            // Ajusta o padding-bottom do body para acomodar o banner
+            document.body.style.paddingBottom = `${cookieConsentBanner.offsetHeight}px`;
         }
     }
 
     function hideCookieBanner() {
         cookieConsentBanner.classList.remove('show');
+        document.body.style.paddingBottom = '0'; // Remove o padding-bottom
     }
 
     if (acceptCookiesBtn) {
