@@ -427,16 +427,20 @@
         body.high-contrast h1, body.high-contrast h2, body.high-contrast h3, body.high-contrast h4, body.high-contrast h5, body.high-contrast h6 {
             color: white !important;
         }
-        body.high-contrast .container, body.high-contrast table, body.high-contrast .resultado, body.high-contrast .accessibility-off-canvas-menu { /* Ajuste para containers específicos */
+        body.high-contrast .container, body.high-contrast .katz-criterion-section, body.high-contrast .resultado, body.high-contrast .accessibility-off-canvas-menu { /* Ajuste para containers específicos */
             background-color: black !important;
             border-color: yellow !important;
             color: yellow !important;
         }
-        body.high-contrast th, body.high-contrast td {
+        body.high-contrast .katz-option-label {
+            color: yellow !important;
             border-color: yellow !important;
         }
-        body.high-contrast tr.selected, body.high-contrast tr.selected td {
-            background-color: #333 !important; /* Um cinza escuro para seleção em alto contraste */
+        body.high-contrast .katz-option-label:hover {
+            background-color: #333 !important;
+        }
+        body.high-contrast .katz-option-label input[type="radio"]:checked {
+            accent-color: yellow !important;
         }
         body.high-contrast select, body.high-contrast input, body.high-contrast textarea { /* Ajuste para campos de formulário */
             background-color: black !important;
@@ -466,20 +470,20 @@
         body.dark-mode h1, body.dark-mode h2, body.dark-mode h3, body.dark-mode h4, body.dark-mode h5, body.dark-mode h6 {
             color: #edf2f7 !important; /* text-gray-100 */
         }
-        body.dark-mode .container, body.dark-mode table, body.dark-mode .resultado, body.dark-mode .accessibility-off-canvas-menu { /* Ajuste para containers específicos */
+        body.dark-mode .container, body.dark-mode .katz-criterion-section, body.dark-mode .resultado, body.dark-mode .accessibility-off-canvas-menu { /* Ajuste para containers específicos */
             background-color: #2d3748 !important; /* bg-gray-800 */
             border-color: #4a5568 !important; /* border-gray-700 */
             color: #e2e8f0 !important;
         }
-        body.dark-mode th, body.dark-mode td {
+        body.dark-mode .katz-option-label {
+            color: #e2e8f0 !important;
             border-color: #4a5568 !important;
         }
-        body.dark-mode th {
-            background-color: #4a5568 !important; /* blue-900 */
-            color: #e2e8f0 !important;
+        body.dark-mode .katz-option-label:hover {
+            background-color: #4a5568 !important;
         }
-        body.dark-mode tr.selected, body.dark-mode tr.selected td {
-            background-color: #4a5568 !important; /* blue-800 */
+        body.dark-mode .katz-option-label input[type="radio"]:checked {
+            accent-color: #63b3ed !important; /* blue-400 */
         }
         body.dark-mode select, body.dark-mode input, body.dark-mode textarea { /* Ajuste para campos de formulário */
             background-color: #2d3748 !important;
@@ -524,60 +528,69 @@
         body.font-size-small { font-size: 0.875rem; } /* text-sm */
         body.font-size-large { font-size: 1.125rem; } /* text-lg */
 
-        /* --- ESTILOS PARA SEÇÕES DE CRITÉRIOS (tabela) --- */
-        .katz-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 1.5rem;
+        /* --- NOVOS ESTILOS PARA SEÇÕES DE CRITÉRIOS (inspirado em Fugulin) --- */
+        .katz-criterion-section {
             background-color: #fff;
-            border-radius: 8px;
-            overflow: hidden; /* Para cantos arredondados */
-            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            border: 1px solid #e2e8f0; /* similar ao border-gray-300 */
+            border-radius: 8px; /* Cantos levemente arredondados */
+            padding: 1rem;
+            margin-bottom: 1rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05); /* Sombra suave */
         }
 
-        .katz-table th, .katz-table td {
-            padding: 0.75rem 1rem;
-            border: 1px solid #e2e8f0; /* gray-200 */
-            text-align: left; /* Alinhamento padrão à esquerda para desktop */
-            vertical-align: top;
+        .katz-criterion-title {
+            font-size: 1.125rem; /* text-lg */
+            font-weight: 600; /* font-semibold */
+            color: #1A3E74; /* text-dark-blue */
+            margin-bottom: 0.75rem;
         }
 
-        .katz-table th {
-            background-color: #f1f5f9; /* gray-100 */
-            font-weight: 700;
-            color: #1A3E74; /* dark-blue */
-            font-size: 0.95rem;
+        .katz-options-group {
+            display: flex;
+            flex-direction: column; /* Mobile-first: empilha as opções verticalmente */
+            gap: 0.5rem; /* Espaçamento entre as opções */
         }
 
-        .katz-table tbody tr {
-            transition: background-color 0.2s ease;
-        }
-
-        .katz-table tbody tr:hover {
-            background-color: #f8fafc; /* gray-50 */
-        }
-
-        .katz-table .option-row {
+        .katz-option-label {
+            display: flex; /* Alinha o radio/checkbox com o texto */
+            align-items: center;
+            font-size: 1rem;
+            color: #374151; /* text-gray-700 */
             cursor: pointer;
+            padding: 0.6rem 0.75rem; /* Aumenta a área de clique */
+            border-radius: 6px;
+            transition: background-color 0.2s ease, border-color 0.2s ease;
+            border: 1px solid transparent; /* Adiciona uma borda transparente para evitar "salto" no hover/focus */
+        }
+        .katz-option-label:hover {
+            background-color: #f3f4f6; /* bg-gray-100 */
+            border-color: #cbd5e0; /* gray-300 */
+        }
+        .katz-option-label input[type="radio"] {
+            margin-right: 0.75rem; /* Espaço entre o input e o texto */
+            transform: scale(1.1); /* Aumenta um pouco o tamanho do input */
+            flex-shrink: 0; /* Evita que o input encolha */
+            accent-color: #1A3E74; /* Cor para o radio/checkbox preenchido */
         }
 
-        .katz-table .option-row input[type="radio"] {
-            margin-right: 0.75rem;
-            transform: scale(1.1);
-            accent-color: #1A3E74;
+        /* Estilo para a opção selecionada */
+        .katz-option-label input[type="radio"]:checked + span {
+            font-weight: 600; /* Texto em negrito para selecionado */
+            color: #1A3E74; /* Cor mais escura para selecionado */
+        }
+        .katz-option-label input[type="radio"]:checked {
+            border-color: #1A3E74; /* Borda da caixa de seleção */
         }
 
-        .katz-table .option-row input[type="radio"]:checked + span {
-            font-weight: 600;
-            color: #1A3E74;
-        }
-
-        /* Estilo para a célula do item (descrição) que abrange várias linhas */
-        .item-cell {
-            vertical-align: middle;
-            font-weight: 600;
-            color: #1A3E74;
-            background-color: #e0f2fe; /* blue-50 */
+        /* Media query para telas médias (tablets e desktops pequenos) */
+        @media (min-width: 640px) { /* sm breakpoint */
+            .katz-options-group {
+                flex-direction: column; /* Mantém vertical, melhor para descrições longas */
+                gap: 0.75rem; /* Aumenta o espaçamento entre opções */
+            }
+            .katz-option-label {
+                padding: 0.75rem 1rem;
+            }
         }
 
         /* Ajustes para telas menores */
@@ -589,53 +602,6 @@
             .btn-primary, .btn-secondary {
                 width: 100%;
                 margin-bottom: 0.75rem;
-            }
-            .katz-table, .katz-table tbody, .katz-table tr, .katz-table td, .katz-table th {
-                display: block; /* Empilha elementos da tabela */
-                width: 100%;
-            }
-            .katz-table thead {
-                display: none; /* Esconde o cabeçalho da tabela em mobile */
-            }
-            .katz-table tr {
-                margin-bottom: 1rem;
-                border: 1px solid #e2e8f0;
-                border-radius: 8px;
-                overflow: hidden;
-            }
-            .katz-table td {
-                text-align: left; /* ALINHAMENTO À ESQUERDA PARA MOBILE */
-                padding-left: 1rem; /* Ajusta o padding para o texto */
-                position: relative;
-            }
-            .katz-table td::before {
-                content: attr(data-label); /* Usa o atributo data-label */
-                position: static; /* Remove posicionamento absoluto para fluir com o texto */
-                display: block; /* Garante que o label ocupe sua própria linha */
-                width: auto;
-                padding-left: 0;
-                font-weight: 600;
-                text-align: left;
-                color: #1A3E74;
-                margin-bottom: 0.25rem; /* Espaçamento entre o label e o conteúdo */
-            }
-            .katz-table .item-cell {
-                text-align: left;
-                padding-left: 1rem;
-                background-color: #e0f2fe;
-            }
-            .katz-table .item-cell::before {
-                content: ''; /* Remove o data-label para a célula do item */
-            }
-            .katz-table .option-row label {
-                display: flex; /* Garante que o label seja um flex container */
-                align-items: center; /* Alinha o radio e o texto verticalmente */
-                justify-content: flex-start; /* ALINHA O CONTEÚDO DO LABEL À ESQUERDA */
-                width: 100%; /* Ocupa a largura total da célula */
-            }
-            .katz-table .option-row input[type="radio"] {
-                margin-right: 0.75rem; /* Mantém o espaçamento entre o radio e o texto */
-                margin-top: 0; /* Remove float e ajusta margem */
             }
         }
     </style>
@@ -665,7 +631,7 @@
             </p>
 
             <div id="conteudo">
-                <!-- A tabela da calculadora será gerada dinamicamente aqui pelo JavaScript -->
+                <!-- As seções de critério serão preenchidas dinamicamente via JavaScript -->
             </div>
 
             <div id="resultado" class="resultado hidden" aria-live="polite">
@@ -958,7 +924,7 @@
             pdfTitle.style.textAlign = 'center';
             pdfTitle.style.marginBottom = '5px';
             pdfTitle.style.color = '#1A3E74';
-            pdfTitle.textContent = "Escala NIHSS"; // Título do PDF conforme instrução global
+            pdfTitle.textContent = "Escala de Katz"; // Título do PDF
             pdfContentWrapper.appendChild(pdfTitle);
 
             const pdfSubtitle = document.createElement('h2');
@@ -966,13 +932,13 @@
             pdfSubtitle.style.textAlign = 'center';
             pdfSubtitle.style.marginBottom = '20px';
             pdfSubtitle.style.color = '#1FA4E5';
-            pdfSubtitle.textContent = "Relatório de Avaliação do Acidente Vascular Encefálico"; // Subtítulo do PDF conforme instrução global
+            pdfSubtitle.textContent = "Relatório de Avaliação da Autonomia nas ABVDs"; // Subtítulo do PDF
             pdfContentWrapper.appendChild(pdfSubtitle);
 
             const dateTime = document.createElement('p');
             dateTime.style.fontSize = '12px';
             dateTime.style.color = '#777';
-            dateTime.style.textAlign = 'center';
+            dateTime.style.textAlign = 'right';
             dateTime.style.marginBottom = '20px';
             dateTime.textContent = `Gerado em: ${new Date().toLocaleDateString('pt-BR')} ${new Date().toLocaleTimeString('pt-BR')}`;
             pdfContentWrapper.appendChild(dateTime);
@@ -991,47 +957,60 @@
             selectedItemsTitle.textContent = "Itens Selecionados da Escala de Katz:";
             pdfContentWrapper.appendChild(selectedItemsTitle);
 
-            // Cria uma nova tabela para o PDF com a seleção do usuário
-            const pdfSelectionsTable = document.createElement('table');
-            pdfSelectionsTable.className = 'katz-table'; // Reusa a classe da tabela para estilização
-            pdfSelectionsTable.style.marginBottom = '20px';
-
-            const thead = document.createElement('thead');
-            thead.innerHTML = `
-                <tr>
-                    <th>Item</th>
-                    <th>Descrição Selecionada</th>
-                    <th>Pontuação</th>
-                </tr>
-            `;
-            pdfSelectionsTable.appendChild(thead);
-
-            const tbody = document.createElement('tbody');
-            let allItemsSelectedInPdf = true; // Flag para verificar se todas as seleções estão no PDF
+            // Adiciona as seções de critério clonadas para o PDF
             katzData.forEach(itemGroup => {
-                const selectedOption = document.querySelector(`input[name="${itemGroup.nameAttr}"]:checked`);
-                const tr = document.createElement('tr');
-                if (selectedOption) {
-                    const score = parseInt(selectedOption.value, 10);
-                    const description = selectedOption.nextElementSibling.textContent;
+                const sectionDiv = document.createElement('div');
+                sectionDiv.style.cssText = `
+                    background-color: #fff;
+                    border: 1px solid #e2e8f0;
+                    border-radius: 8px;
+                    padding: 1rem;
+                    margin-bottom: 1rem;
+                    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+                `;
 
-                    tr.innerHTML = `
-                        <td data-label="Item">${itemGroup.item}</td>
-                        <td data-label="Descrição Selecionada">${description}</td>
-                        <td data-label="Pontuação">${score}</td>
+                const titleH3 = document.createElement('h3');
+                titleH3.style.cssText = `
+                    font-size: 1.125rem;
+                    font-weight: 600;
+                    color: #1A3E74;
+                    margin-bottom: 0.75rem;
+                `;
+                titleH3.innerText = itemGroup.item; // Usa o item como título
+                sectionDiv.appendChild(titleH3);
+
+                const optionsGroupDiv = document.createElement('div');
+                optionsGroupDiv.style.cssText = `
+                    display: flex;
+                    flex-direction: column;
+                    gap: 0.5rem;
+                `;
+
+                const selectedOption = document.querySelector(`input[name="${itemGroup.nameAttr}"]:checked`);
+                if (selectedOption) {
+                    const label = document.createElement('p'); // Usar <p> para exibir a opção selecionada
+                    label.style.cssText = `
+                        font-size: 1rem;
+                        color: #374151;
+                        padding: 0.6rem 0.75rem;
+                        font-weight: 600; /* Destaca a opção selecionada */
+                        color: #1A3E74; /* Cor mais escura */
                     `;
+                    label.textContent = selectedOption.nextElementSibling.textContent; // A descrição da opção
+                    optionsGroupDiv.appendChild(label);
                 } else {
-                    tr.innerHTML = `
-                        <td data-label="Item">${itemGroup.item}</td>
-                        <td data-label="Descrição Selecionada" style="color: #CC0000;">Nenhum item selecionado para este item.</td>
-                        <td data-label="Pontuação" style="color: #CC0000;">-</td>
+                    const label = document.createElement('p');
+                    label.style.cssText = `
+                        font-size: 1rem;
+                        color: #CC0000; /* Cor de erro */
+                        padding: 0.6rem 0.75rem;
                     `;
-                    allItemsSelectedInPdf = false;
+                    label.textContent = "Nenhuma opção selecionada para este item.";
+                    optionsGroupDiv.appendChild(label);
                 }
-                tbody.appendChild(tr);
+                sectionDiv.appendChild(optionsGroupDiv);
+                pdfContentWrapper.appendChild(sectionDiv);
             });
-            pdfSelectionsTable.appendChild(tbody);
-            pdfContentWrapper.appendChild(pdfSelectionsTable);
 
             // Adiciona o resultado da pontuação
             const resultDivForPdf = document.createElement('div');
@@ -1044,7 +1023,7 @@
             resultDivForPdf.style.whiteSpace = 'pre-wrap';
 
             // Verifica se o resultado já foi calculado na página e se todas as seleções estão presentes
-            if (resultadoDiv.style.display !== 'none' && resultadoDiv.innerHTML.trim() !== '' && allItemsSelectedInPdf) {
+            if (resultadoDiv.style.display !== 'none' && resultadoDiv.innerHTML.trim() !== '' && !resultadoDiv.innerHTML.includes('Por favor, selecione uma opção')) {
                 resultDivForPdf.innerHTML = resultadoDiv.innerHTML;
                 // Copia as classes de cor do resultado original
                 resultadoDiv.classList.forEach(cls => {
@@ -1054,7 +1033,7 @@
                 });
             } else {
                 resultDivForPdf.innerHTML = "Resultado não calculado ou seleção incompleta na página. Por favor, selecione uma opção para cada item e calcule antes de gerar o PDF.";
-                resultDivForPdf.classList.add('bg-info-orange-light', 'text-orange-800');
+                resultDivForPdf.classList.add('bg-info-orange-light');
                 resultDivForPdf.style.backgroundColor = '#ffeeba';
                 resultDivForPdf.style.color = '#856404';
             }
@@ -1269,70 +1248,41 @@
                 })
                 .catch(err => console.error("Erro ao carregar rodape111.html:", err));
 
-            // Preenche o formulário dinamicamente com a tabela
-            console.log("Attempting to dynamically generate Katz scale table.");
+            // Preenche o formulário dinamicamente com as seções de critério
+            console.log("Attempting to dynamically generate Katz scale sections.");
 
-            const table = document.createElement('table');
-            table.className = 'katz-table';
-
-            const thead = document.createElement('thead');
-            thead.innerHTML = `
-                <tr>
-                    <th>Item</th>
-                    <th>Descrição</th>
-                    <th>Cotação</th>
-                </tr>
-            `;
-            table.appendChild(thead);
-
-            const tbody = document.createElement('tbody');
             katzData.forEach(itemGroup => {
-                itemGroup.options.forEach((option, index) => {
-                    const tr = document.createElement('tr');
-                    tr.className = 'option-row';
+                const sectionDiv = document.createElement('div');
+                sectionDiv.className = 'katz-criterion-section';
 
-                    // Célula do Item (mesclada para a primeira opção do grupo)
-                    if (index === 0) {
-                        const itemCell = document.createElement('td');
-                        itemCell.rowSpan = itemGroup.options.length;
-                        itemCell.className = 'item-cell';
-                        itemCell.setAttribute('data-label', 'Item'); // Para mobile
-                        itemCell.textContent = itemGroup.item;
-                        tr.appendChild(itemCell);
-                    }
+                const titleH3 = document.createElement('h3');
+                titleH3.className = 'katz-criterion-title';
+                titleH3.innerText = itemGroup.item;
+                sectionDiv.appendChild(titleH3);
 
-                    // Célula da Descrição com o radio button
-                    const descriptionCell = document.createElement('td');
-                    descriptionCell.setAttribute('data-label', 'Descrição'); // Para mobile
+                const optionsGroupDiv = document.createElement('div');
+                optionsGroupDiv.className = 'katz-options-group';
+
+                itemGroup.options.forEach((option, optIndex) => {
                     const label = document.createElement('label');
-                    label.className = 'option-label flex items-center justify-start'; // Alinha à esquerda
+                    label.className = 'katz-option-label';
                     const input = document.createElement('input');
                     input.type = 'radio';
                     input.name = itemGroup.nameAttr; // Nome do grupo de rádio é o nameAttr do item
                     input.value = option.score;
-                    input.id = `${itemGroup.nameAttr}-${option.score}`; // ID único para o input
+                    input.id = `${itemGroup.nameAttr}-${optIndex}`; // ID único para o input
 
                     const span = document.createElement('span');
                     span.textContent = option.description; // A descrição fica no span
 
                     label.appendChild(input);
                     label.appendChild(span);
-                    descriptionCell.appendChild(label);
-                    tr.appendChild(descriptionCell);
-
-                    // Célula da Cotação (Pontuação)
-                    const scoreCell = document.createElement('td');
-                    scoreCell.setAttribute('data-label', 'Cotação'); // Para mobile
-                    scoreCell.textContent = option.score; // Exibe a pontuação
-                    tr.appendChild(scoreCell);
-
-                    tbody.appendChild(tr);
-                    console.log(`  [Katz Scale] Added option for ${itemGroup.item}: ${option.description} (Score: ${option.score})`);
+                    optionsGroupDiv.appendChild(label);
                 });
+                sectionDiv.appendChild(optionsGroupDiv);
+                conteudoDiv.appendChild(sectionDiv);
+                console.log(`[Katz Scale] Section "${itemGroup.item}" appended to #conteudo.`);
             });
-            table.appendChild(tbody);
-            conteudoDiv.appendChild(table);
-            console.log(`[Katz Scale] Table appended to #conteudo.`);
 
             // Mostra o banner de cookies ao carregar a página, se necessário
             showCookieBanner();
