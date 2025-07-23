@@ -138,7 +138,6 @@
             background-color: #f8fafc; /* Tailwind bg-gray-50 */
             color: #333; /* Tailwind text-gray-800 */
             font-family: 'Inter', sans-serif; /* Aplica a fonte Inter ao body */
-            align-items: flex-start; /* Alinha todo o conteúdo à esquerda */
         }
 
         /* ESTILOS DOS DROPDOWNS DA TOPBAR (MOVIDOS DE TOPBAR111.HTML) */
@@ -184,14 +183,14 @@
         .main-content-wrapper { 
             display: flex;
             flex-direction: column;
-            flex-grow: 1;
+            flex-grow: 1; /* Permite que o wrapper do conteúdo principal se expanda */
             padding-top: 64px; /* Garante que o conteúdo comece abaixo da topbar fixa (64px de altura) */
             width: 100%;
         }
 
         /* Conteúdo principal (main) */
         main {
-            flex-grow: 1;
+            flex-grow: 1; /* Permite que o main se expanda dentro do wrapper */
             max-width: 1280px; /* max-w-7xl */
             margin-left: auto;
             margin-right: auto;
@@ -874,6 +873,13 @@
             pdfContentWrapper.style.color = '#333';
             pdfContentWrapper.style.padding = '20px';
 
+            // 1. Verifica se um cálculo válido foi realizado antes de gerar o PDF.
+            const resultadoDiv = document.getElementById('resultado');
+            if (resultadoDiv.style.display === 'none' || resultadoDiv.innerHTML.trim() === '' || resultadoDiv.innerHTML.includes('Por favor, selecione uma opção')) {
+                showCustomMessage('Por favor, clique em "Calcular" primeiro para obter o resultado antes de gerar o PDF.');
+                return; // Aborta PDF generation
+            }
+
             // Adiciona o título principal e subtítulo do PDF conforme instrução global
             const pdfTitle = document.createElement('h1');
             pdfTitle.style.fontSize = '24px';
@@ -881,7 +887,7 @@
             pdfTitle.style.textAlign = 'center';
             pdfTitle.style.marginBottom = '5px';
             pdfTitle.style.color = '#1A3E74';
-            pdfTitle.textContent = "Escala NIHSS"; // Título do PDF conforme instrução global
+            pdfTitle.textContent = "Escala FOUR"; // Título do PDF
             pdfContentWrapper.appendChild(pdfTitle);
 
             const pdfSubtitle = document.createElement('h2');
@@ -889,7 +895,7 @@
             pdfSubtitle.style.textAlign = 'center';
             pdfSubtitle.style.marginBottom = '20px';
             pdfSubtitle.style.color = '#1FA4E5';
-            pdfSubtitle.textContent = "Relatório de Avaliação do Acidente Vascular Encefálico"; // Subtítulo do PDF conforme instrução global
+            pdfSubtitle.textContent = "Relatório de Avaliação Neurológica Detalhada"; // Subtítulo do PDF
             pdfContentWrapper.appendChild(pdfSubtitle);
 
             // Adiciona a data e hora de geração
@@ -971,6 +977,8 @@
             resultDivForPdf.style.fontWeight = '600';
             resultDivForPdf.style.textAlign = 'left';
             resultDivForPdf.style.whiteSpace = 'pre-wrap';
+            resultDivForPdf.style.fontSize = '14px'; // Ajusta o tamanho da fonte para PDF
+
 
             if (resultadoDiv.style.display !== 'none' && resultadoDiv.innerHTML.trim() !== '' && !resultadoDiv.innerHTML.includes('Por favor, selecione')) {
                 resultDivForPdf.innerHTML = resultadoDiv.innerHTML;
@@ -1022,11 +1030,15 @@
         function showCookieBanner() {
             if (localStorage.getItem(cookiesAcceptedKey) === null) {
                 cookieConsentBanner.classList.add('show');
+                // Adiciona padding-bottom ao body igual à altura do banner
+                document.body.style.paddingBottom = `${cookieConsentBanner.offsetHeight}px`;
             }
         }
 
         function hideCookieBanner() {
             cookieConsentBanner.classList.remove('show');
+            // Remove padding-bottom do body
+            document.body.style.paddingBottom = '0';
         }
 
         if (acceptCookiesBtn) {
