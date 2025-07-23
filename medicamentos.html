@@ -11,10 +11,8 @@
 
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
   
-  <!-- Removida a tag meta name="keywords" conforme auditoria -->
   <meta name="description" content="Calculadora de regra de três para administração de medicamentos injetáveis em enfermagem, focando na segurança do paciente. Calcule a dose exata e evite erros na medicação." />
 
-  <!-- Google Analytics -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-8FLJ59XXDK"></script>
   <script>
     window.dataLayer = window.dataLayer || [];
@@ -23,7 +21,6 @@
     gtag('config', 'G-8FLJ59XXDK');
   </script>
 
-  <!-- Schema.org Structured Data (Adicionado conforme auditoria) -->
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
@@ -48,14 +45,13 @@
 
     /* Fontes personalizadas */
     @import url('https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@700&family=Inter:wght@300;400;500;600&display=swap');
-
     /* Estilos das classes de fonte e cor personalizadas (para uso no HTML com Tailwind) */
     .font-nunito { font-family: 'Nunito Sans', sans-serif; }
     .font-inter { font-family: 'Inter', sans-serif; }
     .text-dark-blue { color: #1A3E74; } /* Azul Escuro */
     .text-light-blue { color: #1FA4E5; } /* Azul Claro */
     .text-gray-custom { color: #666666; } /* Cinza */
-    .text-success-green { color: #1ED760; } /* Verde */
+    .text-success-green { color: #1ED760; } /* Verde (mantido caso precise em outro lugar, mas ajustado para PDF button) */
     .text-black-custom { color: #333; } /* Cor para textos padrão */
 
     /* Padrão de Botões (Componentes CSS para reuso) */
@@ -85,7 +81,7 @@
       text-align: center;
     }
     .btn-secondary:hover { background-color: #178ac7; } /* Tom mais escuro no hover */
-    .btn-success {
+    .btn-success { /* Este estilo não será mais usado para o botão PDF diretamente */
       font-family: 'Inter', sans-serif;
       font-weight: 500;
       background-color: #1ED760;
@@ -492,44 +488,35 @@
   </style>
 </head>
 <body class="bg-gray-50 text-gray-800 font-inter">
+  <div id="topbar-container"></div>
 
-  <div id="topbar-container"></div>  
-
-  <!-- Botão Hambúrguer de Acessibilidade Visual (Adicionado) -->
   <button id="accessibilityHamburgerBtn" class="fixed bottom-4 left-4 bg-blue-700 text-white p-3 rounded-full shadow-lg z-50">
-      <i class="fas fa-universal-access text-xl"></i>
+    <i class="fas fa-universal-access text-xl"></i>
   </button>
 
-  <!-- Off-canvas Menu de Acessibilidade (Adicionado) -->
   <div id="accessibilityOffCanvasMenu" class="accessibility-off-canvas-menu">
-      <div class="accessibility-header">
-          <h4>Acessibilidade</h4>
-          <button id="closeAccessibilityMenuBtn" class="accessibility-close-btn">&times;</button>
-      </div>
-      <button id="toggleFontSizeBtn" class="accessibility-option-btn">
-          <i class="fas fa-font"></i>
-          <span>Tamanho da Fonte</span>
-      </button>
-      <button id="toggleContrastBtn" class="accessibility-option-btn">
-          <i class="fas fa-adjust"></i>
-          <span>Alto Contraste</span>
-      </button>
-      <button id="toggleDarkModeBtn" class="accessibility-option-btn">
-          <i class="fas fa-moon"></i>
-          <span>Modo Escuro</span>
-      </button>
-      <button id="resetAccessibilityBtn" class="accessibility-option-btn">
-          <i class="fas fa-sync-alt"></i>
-          <span>Resetar</span>
-      </button>
+    <div class="accessibility-header">
+      <h4>Acessibilidade</h4>
+      <button id="closeAccessibilityMenuBtn" class="accessibility-close-btn">&times;</button>
+    </div>
+    <button id="toggleFontSizeBtn" class="accessibility-option-btn">
+      <i class="fas fa-font"></i> <span>Tamanho da Fonte</span>
+    </button>
+    <button id="toggleContrastBtn" class="accessibility-option-btn">
+      <i class="fas fa-adjust"></i> <span>Alto Contraste</span>
+    </button>
+    <button id="toggleDarkModeBtn" class="accessibility-option-btn">
+      <i class="fas fa-moon"></i> <span>Modo Escuro</span>
+    </button>
+    <button id="resetAccessibilityBtn" class="accessibility-option-btn">
+      <i class="fas fa-sync-alt"></i> <span>Resetar</span>
+    </button>
   </div>
 
-  <!-- Overlay para o menu off-canvas (Adicionado) -->
   <div id="accessibilityOverlay" class="accessibility-overlay"></div>
 
-  <div class="main-content-wrapper">
+  <div class="main-content-wrapper"> 
     <main class="flex flex-col flex-grow">
-
       <div class="flex flex-wrap items-center justify-center gap-4 mb-3">
         <img src="iconpages.png" alt="Ícone da Calculadora de Medicamentos" class="w-32 h-auto" />
         <h1 id="main-title" class="font-nunito font-extrabold text-dark-blue text-4xl lg:text-5xl text-center">
@@ -542,66 +529,109 @@
           Quanto devo aspirar do medicamento prescrito?
         </h2>
 
-        <div id="alert-section" class="alert-custom">
-          <p class="font-bold mb-2">Atenção:</p>
-          <p>Em caso de dúvidas, procure seu enfermeiro responsável e faça a dupla checagem ou seu professor. Jamais prepare e administre medicações com dúvidas. É um direito e dever do profissional de enfermagem, em caso de insegurança, falta de prática ou dúvida, relatar ao seu enfermeiro.</p>
-          <p class="mt-2">Essa prática está alinhada com a **Meta Internacional nº 3 de Segurança do Paciente**: *“Melhorar a segurança na prescrição, uso e administração de medicamentos e com O código de ética dos profissionais de enfermagem”*.</p>
-        </div>
-
-        <!-- Início da seção de inputs com melhoria de layout -->
         <div class="input-section">
-            <div class="input-group">
-                <label for="apresentacao">Apresentação disponível na farmácia do hospital (em mg):</label>
-                <input type="number" id="apresentacao" placeholder="Ex: 80" min="0" step="any" aria-label="Apresentação disponível em miligramas">
+          <div class="input-group">
+            <label for="apresentacao">Apresentação disponível na farmácia do hospital (em mg):</label>
+            <input type="number" id="apresentacao" placeholder="Ex: 80" min="0" step="any" aria-label="Apresentação disponível em miligramas"> 
+          </div>
+          <div class="input-group">
+            <label for="prescricao">Prescrição de medicamento (em mg):</label>
+            <input type="number" id="prescricao" placeholder="Ex: 20" min="0" step="any" aria-label="Prescrição de medicamento em miligramas">
+          </div>
+          <div class="input-group">
+            <label for="volume">Volume do frasco/ampola (em ml):</label>
+            <input type="number" id="volume" placeholder="Ex: 2" min="0" step="any" aria-label="Volume do frasco ou ampola em mililitros">
+          </div>
+        </div>
+        <div class="flex flex-col lg:flex-row gap-6 mb-6">
+            <div id="atencao-medicamentos" class="bg-gray-100 p-4 rounded-lg border border-gray-300 w-full lg:w-1/2 text-xs font-inter text-black-custom">
+                <p class="font-bold mb-2">Atenção:</p>
+                <p>Em caso de dúvidas, procure seu enfermeiro responsável e faça a dupla checagem ou seu professor. Jamais prepare e administre medicações com dúvidas. É um direito e dever do profissional de enfermagem, em caso de insegurança, falta de prática ou dúvida, relatar ao seu enfermeiro.</p>
+                <p class="mt-2">Essa prática está alinhada com a <strong>Meta Internacional nº 3 de Segurança do Paciente</strong>: <em>“Melhorar a segurança na prescrição, uso e administração de medicamentos e com O código de ética dos profissionais de enfermagem”</em>.</p>
             </div>
 
-            <div class="input-group">
-                <label for="prescricao">Prescrição de medicamento (em mg):</label>
-                <input type="number" id="prescricao" placeholder="Ex: 20" min="0" step="any" aria-label="Prescrição de medicamento em miligramas">
-            </div>
-
-            <div class="input-group">
-                <label for="volume">Volume do frasco/ampola (em ml):</label>
-                <input type="number" id="volume" placeholder="Ex: 2" min="0" step="any" aria-label="Volume do frasco ou ampola em mililitros">
+            <div id="nove-certos-medicamentos" class="bg-gray-100 p-4 rounded-lg border border-gray-300 w-full lg:w-1/2 text-xs font-inter text-black-custom">
+                <h3 class="font-bold text-sm mb-2">Os 9 Certos da Administração de Medicamentos:</h3>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs mb-4">
+                    <div class="flex items-center gap-2">
+                        <input type="checkbox" id="certo1" class="form-checkbox h-4 w-4 text-light-blue rounded" aria-label="Nome do paciente correto">
+                        <label for="certo1" class="text-black-custom">1. Nome do paciente correto</label>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <input type="checkbox" id="certo2" class="form-checkbox h-4 w-4 text-light-blue rounded" aria-label="Medicamento correto">
+                        <label for="certo2" class="text-black-custom">2. Medicamento correto</label>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <input type="checkbox" id="certo3" class="form-checkbox h-4 w-4 text-light-blue rounded" aria-label="Hora correta">
+                        <label for="certo3" class="text-black-custom">3. Hora correta</label>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <input type="checkbox" id="certo4" class="form-checkbox h-4 w-4 text-light-blue rounded" aria-label="Dose prescrita correta">
+                        <label for="certo4" class="text-black-custom">4. Dose prescrita correta</label>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <input type="checkbox" id="certo5" class="form-checkbox h-4 w-4 text-light-blue rounded" aria-label="Via de administração correta">
+                        <label for="certo5" class="text-black-custom">5. Via de administração correta</label>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <input type="checkbox" id="certo6" class="form-checkbox h-4 w-4 text-light-blue rounded" aria-label="Documentação/Registro certo">
+                        <label for="certo6" class="text-black-custom">6. Documentação/Registro certo</label>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <input type="checkbox" id="certo7" class="form-checkbox h-4 w-4 text-light-blue rounded" aria-label="Orientação correta">
+                        <label for="certo7" class="text-black-custom">7. Orientação correta</label>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <input type="checkbox" id="certo8" class="form-checkbox h-4 w-4 text-light-blue rounded" aria-label="Resposta certa">
+                        <label for="certo8" class="text-black-custom">8. Resposta certa</label>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <input type="checkbox" id="certo9" class="form-checkbox h-4 w-4 text-light-blue rounded" aria-label="Validade certa">
+                        <label for="certo9" class="text-black-custom">9. Validade certa</label>
+                    </div>
+                </div>
+                <p class="mt-4 text-black-custom">
+                    <label class="inline-flex items-center">
+                        Meta 1 = <input type="checkbox" id="meta1" class="form-checkbox h-4 w-4 text-light-blue rounded ml-2" aria-label="Meta 1 - Certo">
+                    </label>
+                    <label class="inline-flex items-center ml-4">
+                        Meta 3 = <input type="checkbox" id="meta3" class="form-checkbox h-4 w-4 text-light-blue rounded ml-2" aria-label="Meta 3 - Certo">
+                    </label>
+                    <label class="inline-flex items-center ml-4">
+                        Meta 5 = <input type="checkbox" id="meta5" class="form-checkbox h-4 w-4 text-light-blue rounded ml-2" aria-label="Meta 5 - Certo">
+                    </label>
+                </p>
             </div>
         </div>
-        <!-- Fim da seção de inputs com melhoria de layout -->
-        
+
         <div id="resultado" class="resultado" aria-live="polite"></div>
 
-        <div id="bibliografia" class="ref font-inter text-gray-custom">
-          <strong>Referência bibliográfica:</strong><br />
-          <p class="mt-2">
-            Cálculo de Medicamentos. Enfa. Ana Carolina Ayres.<br>
-            Disponível em: <a href="https://www.coren-ba.gov.br/wp-content/uploads/2024/07/CALCULO-DE-MEDICAMENTOS-Enfa.-Ana-Carolina-Ayres.pdf" target="_blank" class="text-light-blue hover:underline">https://www.coren-ba.gov.br/.../CALCULO-DE-MEDICAMENTOS</a>
-          </p>
-        </div>
       </div>
 
-      <div class="flex flex-col md:flex-row justify-start gap-4 mt-6"> <!-- Ajustado para responsividade -->
-        <button id="btnCalcular" class="btn-primary" aria-label="Calcular dose do medicamento">
+      <div class="flex flex-col md:flex-row justify-start gap-4 mt-6"> <button id="btnCalcular" class="btn-primary" aria-label="Calcular dose do medicamento">
           Calcular
         </button>
-        <button id="btnLimpar" class="btn-primary" aria-label="Limpar campos">
+        <button id="btnLimpar" class="btn-secondary" aria-label="Limpar campos da calculadora">
           Limpar
         </button>
-        <button id="btnGerarPDF" class="btn-secondary" aria-label="Gerar PDF">
+        <button id="btnGerarPDF" class="btn-primary" aria-label="Gerar PDF do cálculo">
           Gerar PDF
         </button>
-        <!-- Botão NANDA, NIC, NOC adicionado aqui -->
-        <button id="btnNandaNicNoc" class="btn-primary" aria-label="Pesquisar NANDA, NIC, NOC">
-            NANDA, NIC, NOC
-        </button>
+        <a href="https://www.nandanicnoc.com.br" target="_blank" id="btnNandaNicNoc" class="btn-primary" aria-label="Acessar NANDA NIC NOC">
+          NANDA NIC NOC
+        </a>
       </div>
 
+      <div id="bibliografia" class="ref font-inter text-gray-custom">
+        <strong>Referência bibliográfica:</strong><br />
+        <p class="mt-2">
+          Cálculo de Medicamentos. Enfa. Ana Carolina Ayres.<br>
+          Disponível em: <a href="https://www.coren-ba.gov.br/wp-content/uploads/2024/07/CALCULO-DE-MEDICAMENTOS-Enfa.-Ana-Carolina-Ayres.pdf" target="_blank" class="text-light-blue hover:underline">https://www.coren-ba.gov.br/.../CALCULO-DE-MEDICAMENTOS</a>
+        </p>
+      </div>
     </main>
-  </div>  
+  </div>
 
-  <!-- O botão de doação foi removido permanentemente conforme suas instruções -->
-
-  <div id="footer-container"></div>
-
-  <!-- Modal de Mensagem Personalizado -->
   <div id="messageModalOverlay" class="message-modal-overlay">
       <div class="message-modal-content">
           <button id="messageModalClose" class="message-modal-close">&times;</button>
@@ -609,473 +639,176 @@
       </div>
   </div>
 
-  <!-- Cookie Consent Banner (Adicionado) -->
   <div id="cookieConsentBanner">
-      <p>Utilizamos cookies para melhorar sua experiência em nosso site. Ao continuar navegando, você concorda com nossa <a href="politica.html" class="underline text-blue-200 hover:text-blue-100">Política de Cookies</a>.</p>
-      <div class="cookie-buttons">
-          <button id="acceptCookiesBtn">Aceitar todos os cookies</button>
-          <button id="refuseCookiesBtn" class="secondary">Recusar cookies</button>
-      </div>
+    <p>Utilizamos cookies para garantir a melhor experiência em nosso site. Ao continuar, você concorda com o uso de cookies. <a href="/politica-de-privacidade.html" target="_blank" class="text-light-blue hover:underline">Saiba mais</a>.</p>
+    <div class="cookie-buttons">
+      <button id="acceptCookies">Aceitar</button>
+      <button id="declineCookies" class="secondary">Recusar</button>
+    </div>
   </div>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-  
+  <script src="script.js"></script>
+  <script src="cookie-consent.js"></script>
+  <script src="accessibility.js"></script>
+
   <script>
-    // Referências para o modal de mensagem
-    const messageModalOverlay = document.createElement('div');
-    messageModalOverlay.id = 'messageModalOverlay';
-    messageModalOverlay.className = 'message-modal-overlay';
-    document.body.appendChild(messageModalOverlay);
+    // É uma boa prática envolver o código que manipula o DOM dentro de um DOMContentLoaded
+    // para garantir que todos os elementos HTML já foram carregados.
+    document.addEventListener('DOMContentLoaded', function() {
+        // Referências para o modal de mensagem
+        const messageModalOverlay = document.getElementById('messageModalOverlay');
+        const messageModalClose = document.getElementById('messageModalClose');
+        const messageModalText = document.getElementById('messageModalText');
 
-    const messageModalContent = document.createElement('div');
-    messageModalContent.className = 'message-modal-content';
-    messageModalOverlay.appendChild(messageModalContent);
-
-    const messageModalClose = document.createElement('button');
-    messageModalClose.id = 'messageModalClose';
-    messageModalClose.className = 'message-modal-close';
-    messageModalClose.innerHTML = '&times;';
-    messageModalContent.appendChild(messageModalClose);
-
-    const messageModalText = document.createElement('p');
-    messageModalText.id = 'messageModalText';
-    messageModalText.className = 'text-gray-700 text-lg';
-    messageModalContent.appendChild(messageModalText);
-
-    // --- Funções do Modal de Mensagem ---
-    function showCustomMessage(message) {
-        messageModalText.textContent = message;
-        messageModalOverlay.style.display = 'flex';
-    }
-
-    function hideCustomMessage() {
-        messageModalText.textContent = ''; // Clear text on hide
-        messageModalOverlay.style.display = 'none';
-    }
-
-    messageModalClose.addEventListener('click', hideCustomMessage);
-    messageModalOverlay.addEventListener('click', (e) => {
-        if (e.target === messageModalOverlay) {
-            hideCustomMessage();
-        }
-    });
-
-    function calcular() {
-      const apresentacao = parseFloat(document.getElementById('apresentacao').value);
-      const prescricao = parseFloat(document.getElementById('prescricao').value);
-      const volume = parseFloat(document.getElementById('volume').value);
-      const resultadoDiv = document.getElementById('resultado');
-
-      // Limpa classes de erro anteriores e adiciona classe padrão
-      resultadoDiv.classList.remove('bg-red-100', 'text-red-600');
-      resultadoDiv.classList.add('bg-blue-100', 'text-dark-blue'); 
-      resultadoDiv.style.display = 'block'; // Garante que o resultado seja exibido
-
-      if (isNaN(apresentacao) || isNaN(prescricao) || isNaN(volume) || apresentacao <= 0 || volume <= 0) {
-        resultadoDiv.innerHTML = "Por favor, preencha todos os campos com valores numéricos válidos e positivos (Apresentação e Volume devem ser maiores que zero).";
-        resultadoDiv.classList.remove('bg-blue-100', 'text-dark-blue');
-        resultadoDiv.classList.add('bg-red-100', 'text-red-600');
-        // Clear data attributes on error
-        resultadoDiv.dataset.apresentacao = '';
-        resultadoDiv.dataset.prescricao = '';
-        resultadoDiv.dataset.volume = '';
-        resultadoDiv.dataset.resultadoMl = '';
-        return;
-      }
-
-      if (prescricao <= 0) {
-        resultadoDiv.innerHTML = "A prescrição deve ser um valor positivo. Se a prescrição for zero, não há medicamento a ser administrado.";
-        resultadoDiv.classList.remove('bg-blue-100', 'text-dark-blue');
-        resultadoDiv.classList.add('bg-red-100', 'text-red-600');
-        // Clear data attributes on error
-        resultadoDiv.dataset.apresentacao = '';
-        resultadoDiv.dataset.prescricao = '';
-        resultadoDiv.dataset.volume = '';
-        resultadoDiv.dataset.resultadoMl = '';
-        return;
-      }
-
-      const numerador = prescricao * volume;
-      const denominador = apresentacao;
-      const x = numerador / denominador;
-      const xArredondado = x.toFixed(2); // Arredonda para 2 casas decimais para exibição
-
-      resultadoDiv.innerHTML =
-        `<p class="font-bold text-lg mb-2">Cálculo:</p>` +
-        `<p>${apresentacao} mg ----------- ${volume} ml</p>` +
-        `<p>${prescricao} mg ----------- x ml</p><br>` +
-        `<p>${apresentacao}x = ${prescricao} x ${volume}</p>` +
-        `<p>x = ${numerador} ÷ ${denominador}</p>` +
-        `<p>x = ${x.toFixed(4)} ml</p><br>` + // Exibe com mais casas para o cálculo detalhado
-        `<p class="font-bold text-lg">Deve-se aspirar <mark class="bg-yellow-200 text-dark-blue px-1 py-0.5 rounded">${xArredondado} ml</mark> do frasco/ampola para administrar a dose prescrita.</p>`;
-    
-      // Store data for NANDA button
-      resultadoDiv.dataset.apresentacao = apresentacao;
-      resultadoDiv.dataset.prescricao = prescricao;
-      resultadoDiv.dataset.volume = volume;
-      resultadoDiv.dataset.resultadoMl = xArredondado;
-    }
-
-    function limparCampos() {
-      document.getElementById('apresentacao').value = '';
-      document.getElementById('prescricao').value = '';
-      document.getElementById('volume').value = '';
-      
-      const resultadoDiv = document.getElementById('resultado');
-      resultadoDiv.innerHTML = '';
-      resultadoDiv.style.display = 'none'; // Esconde o resultado ao limpar
-      resultadoDiv.classList.remove('bg-red-100', 'text-red-600'); // Garante que classes de erro sejam removidas
-      resultadoDiv.classList.add('bg-blue-100', 'text-dark-blue'); // Reinicia para a classe padrão
-      // Clear data attributes
-      resultadoDiv.dataset.apresentacao = '';
-      resultadoDiv.dataset.prescricao = '';
-      resultadoDiv.dataset.volume = '';
-      resultadoDiv.dataset.resultadoMl = '';
-    }
-
-    // Função para gerar PDF (Aprimorada)
-    function gerarPDF() {
-        const mainTitle = document.getElementById('main-title');
-        const alertSection = document.getElementById('alert-section');
-        const apresentacaoInput = document.getElementById('apresentacao');
-        const prescricaoInput = document.getElementById('prescricao');
-        const volumeInput = document.getElementById('volume');
-        const resultadoDiv = document.getElementById('resultado');
-        const bibliografiaDiv = document.getElementById('bibliografia');
-
-        // Cria um container temporário para os elementos que irão para o PDF
-        const pdfContentWrapper = document.createElement('div');
-        pdfContentWrapper.style.padding = '20px'; // Adiciona um padding geral ao conteúdo do PDF
-        pdfContentWrapper.style.fontFamily = 'Inter, sans-serif'; // Garante a fonte no PDF
-        pdfContentWrapper.style.color = '#333'; // Cor do texto padrão no PDF
-        pdfContentWrapper.style.lineHeight = '1.6'; // Melhora a legibilidade
-
-        // Adiciona o título principal
-        if (mainTitle) {
-            const clonedMainTitle = mainTitle.cloneNode(true);
-            clonedMainTitle.style.fontSize = '28px'; // Ajustar tamanho para o PDF
-            clonedMainTitle.style.color = '#1A3E74';
-            clonedMainTitle.style.textAlign = 'center';
-            clonedMainTitle.style.marginBottom = '15px';
-            pdfContentWrapper.appendChild(clonedMainTitle);
-        }
-
-        // Adiciona o subtítulo
-        const subtitle = document.createElement('h2');
-        subtitle.style.fontSize = '18px';
-        subtitle.style.fontWeight = 'normal';
-        subtitle.style.textAlign = 'center';
-        subtitle.style.color = '#666';
-        subtitle.style.marginBottom = '20px';
-        subtitle.innerText = 'Cálculo de Medicamentos Injétáveis';
-        pdfContentWrapper.appendChild(subtitle);
-
-        // Adiciona a data de geração
-        const dateDiv = document.createElement('p');
-        dateDiv.style.fontSize = '10px';
-        dateDiv.style.color = '#777';
-        dateDiv.style.textAlign = 'right';
-        dateDiv.style.marginBottom = '20px';
-        dateDiv.innerText = `Gerado em: ${new Date().toLocaleDateString('pt-BR')} ${new Date().toLocaleTimeString('pt-BR')}`;
-        pdfContentWrapper.appendChild(dateDiv);
-
-        // Adiciona a seção de alerta/atenção
-        if (alertSection) {
-            const clonedAlert = alertSection.cloneNode(true);
-            clonedAlert.style.backgroundColor = '#fefce8'; // yellow-50
-            clonedAlert.style.borderColor = '#fde68a'; // yellow-200
-            clonedAlert.style.color = '#b45309'; // yellow-800
-            clonedAlert.style.padding = '15px';
-            clonedAlert.style.borderRadius = '8px';
-            clonedAlert.style.marginBottom = '20px';
-            clonedAlert.style.fontSize = '12px';
-            clonedAlert.querySelector('p:first-child').style.fontWeight = 'bold'; // "Atenção:"
-            clonedAlert.querySelectorAll('p').forEach(p => p.style.marginBottom = '5px'); // Ajusta margem entre parágrafos
-            pdfContentWrapper.appendChild(clonedAlert);
-        }
-
-        // Adiciona os valores de entrada
-        const inputValuesDiv = document.createElement('div');
-        inputValuesDiv.innerHTML = '<h3 style="font-size: 16px; font-weight: bold; color: #1A3E74; margin-bottom: 10px;">Valores Fornecidos:</h3>';
-        inputValuesDiv.style.marginBottom = '20px';
-
-        const createInputItem = (label, value, unit) => {
-            const p = document.createElement('p');
-            p.style.fontSize = '14px';
-            p.innerHTML = `<strong>${label}:</strong> ${value || 'Não preenchido'} ${unit}`;
-            return p;
-        };
-        inputValuesDiv.appendChild(createInputItem('Apresentação disponível', apresentacaoInput.value || '0', 'mg'));
-        inputValuesDiv.appendChild(createInputItem('Prescrição de medicamento', prescricaoInput.value || '0', 'mg'));
-        inputValuesDiv.appendChild(createInputItem('Volume do frasco/ampola', volumeInput.value || '0', 'ml'));
-        pdfContentWrapper.appendChild(inputValuesDiv);
-
-
-        // Adiciona o resultado do cálculo se estiver visível
-        if (resultadoDiv && resultadoDiv.style.display !== 'none' && resultadoDiv.innerHTML.trim() !== '') {
-            const clonedResultado = resultadoDiv.cloneNode(true);
-            clonedResultado.style.marginTop = '20px';
-            clonedResultado.style.padding = '15px';
-            clonedResultado.style.borderRadius = '8px';
-            clonedResultado.style.whiteSpace = 'pre-wrap';
-            clonedResultado.style.fontSize = '14px'; // Ajusta o tamanho da fonte para o PDF
-            clonedResultado.style.backgroundColor = '#e6f0ff'; // blue-100
-            clonedResultado.style.color = '#1A3E74'; // dark-blue
-
-            // Ajusta o estilo da tag <mark> dentro do resultado
-            const markElement = clonedResultado.querySelector('mark');
-            if (markElement) {
-                markElement.style.backgroundColor = '#fde047'; // yellow-200
-                markElement.style.color = '#1A3E74'; // dark-blue
-                markElement.style.padding = '2px 4px';
-                markElement.style.borderRadius = '4px';
-            }
-
-            pdfContentWrapper.appendChild(clonedResultado);
-        } else {
-            // Mensagem caso o cálculo não tenha sido feito ou esteja com erro
-            const noResultP = document.createElement('p');
-            noResultP.style.fontSize = '14px';
-            noResultP.style.color = '#dc2626'; // Red para indicar aviso
-            noResultP.style.marginTop = '20px';
-            noResultP.innerText = 'Nenhum cálculo foi realizado ou os dados inseridos são inválidos. Por favor, preencha os campos e clique em "Calcular" antes de gerar o PDF.';
-            pdfContentWrapper.appendChild(noResultP);
-        }
-
-        // Adiciona a bibliografia
-        if (bibliografiaDiv) {
-            const clonedBibliografia = bibliografiaDiv.cloneNode(true);
-            clonedBibliografia.style.marginTop = '25px';
-            clonedBibliografia.style.fontSize = '12px';
-            clonedBibliografia.style.color = '#666';
-            clonedBibliografia.querySelectorAll('a').forEach(a => {
-                a.style.color = '#1FA4E5';
-                a.style.textDecoration = 'underline';
-            });
-            pdfContentWrapper.appendChild(clonedBibliografia);
-        }
-
-        // Esconde o botão de doação antes de gerar o PDF (já removido do HTML principal)
-        // const fixedButton = document.querySelector('.fixed-donation-button');
-        // if (fixedButton) {
-        //     fixedButton.style.display = 'none';
-        // }
-
-        const opt = {
-            margin:       0.5,
-            filename:     'calculo_medicamento.pdf',
-            image:        { type: 'jpeg', quality: 0.98 },
-            html2canvas:  { scale: 3, scrollY: 0, useCORS: true },
-            jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' },
-        };
+        // Referências dos botões da calculadora
+        const btnCalcular = document.getElementById('btnCalcular');
+        const btnLimpar = document.getElementById('btnLimpar');
+        const btnGerarPDF = document.getElementById('btnGerarPDF'); // Adicionado
         
-        html2pdf().set(opt).from(pdfContentWrapper).save().then(() => {
-            // Volta a exibir o botão de doação após a geração do PDF
-            // if (fixedButton) {
-            //     fixedButton.style.display = '';
-            // }
-        }).catch(error => {
-            console.error('Erro ao gerar PDF:', error);
-            showCustomMessage('Ocorreu um erro ao gerar o PDF. Por favor, tente novamente.');
-        });
-    }
+        // --- Funções do Modal de Mensagem ---
+        function showCustomMessage(message) {
+            messageModalText.textContent = message;
+            messageModalOverlay.style.display = 'flex';
+        }
 
-    document.addEventListener('DOMContentLoaded', () => {
-      // Anexa eventos aos botões
-      document.getElementById('btnCalcular').addEventListener('click', calcular);
-      document.getElementById('btnLimpar').addEventListener('click', limparCampos);
-      document.getElementById('btnGerarPDF').addEventListener('click', gerarPDF);
+        function hideCustomMessage() {
+            messageModalText.textContent = ''; // Clear text on hide
+            messageModalOverlay.style.display = 'none';
+        }
 
-      // NOVO: Adiciona o event listener para o botão NANDA, NIC, NOC
-      const btnNandaNicNoc = document.getElementById('btnNandaNicNoc');
-      if (btnNandaNicNoc) {
-          btnNandaNicNoc.addEventListener('click', () => {
-              const resultadoDiv = document.getElementById('resultado');
-              const apresentacao = document.getElementById('apresentacao').value;
-              const prescricao = document.getElementById('prescricao').value;
-              const volume = document.getElementById('volume').value;
-              const resultadoMl = resultadoDiv.dataset.resultadoMl; // Pega o resultado do cálculo
-              const scaleName = "Calculadora de Medicamentos"; // Nome da escala fixo
+        if (messageModalClose) {
+            messageModalClose.addEventListener('click', hideCustomMessage);
+        }
+        if (messageModalOverlay) {
+            messageModalOverlay.addEventListener('click', (e) => {
+                if (e.target === messageModalOverlay) {
+                    hideCustomMessage();
+                }
+            });
+        }
 
-              // Se alguma parte crucial estiver faltando, exibe erro
-              if (!apresentacao || !prescricao || !volume || !resultadoMl) {
-                  showCustomMessage('Por favor, clique em "Calcular" primeiro para obter o resultado e habilitar a pesquisa NANDA, NIC, NOC.');
-                  return;
-              }
+        function calcular() {
+            const apresentacao = parseFloat(document.getElementById('apresentacao').value);
+            const prescricao = parseFloat(document.getElementById('prescricao').value);
+            const volume = parseFloat(document.getElementById('volume').value);
+            const resultadoDiv = document.getElementById('resultado');
 
-              // Constrói a string de pesquisa detalhada
-              const detailedSearchQuery = `Apresentação: ${apresentacao} mg, Prescrição: ${prescricao} mg, Volume: ${volume} ml, Resultado: ${resultadoMl} ml - ${scaleName} GERAR diagnosticos de enfermagem da NANDA, GERAR intervenções de enfermagem do NIC, Gerar um exemplo de mensuração dos resultados implementados pelo enfermeiro (NOC)`;
-              const encodedSearchQuery = encodeURIComponent(detailedSearchQuery);
-              
-              // Abre uma nova aba com a pesquisa do Google
-              window.open(`https://www.google.com/search?q=${encodedSearchQuery}`, '_blank');
-          });
-      }
+            // Limpa classes de erro anteriores e adiciona classe padrão
+            resultadoDiv.classList.remove('bg-red-100', 'text-red-600');
+            resultadoDiv.classList.add('bg-blue-100', 'text-dark-blue'); 
+            resultadoDiv.style.display = 'block'; // Garante que o resultado seja exibido
 
-      // Carrega o rodapé (rodape111.html)
-      fetch("rodape111.html")
-        .then(res => res.text())
-        .then(data => {
-          const footerContainer = document.getElementById("footer-container");
-          if (footerContainer) {
-            footerContainer.innerHTML = data;
-          } else {
-            console.error('Elemento footer-container não encontrado.');
-          }
-        })
-        .catch(err => console.error("Erro ao carregar rodape111.html:", err));
-
-      // --- Lógica do Cookie Consent Banner ---
-      const cookieConsentBanner = document.getElementById('cookieConsentBanner');
-      const acceptCookiesBtn = document.getElementById('acceptCookiesBtn');
-      const refuseCookiesBtn = document.getElementById('refuseCookiesBtn');
-      const cookiesAcceptedKey = 'cookiesAccepted'; // Chave para localStorage
-
-      function showCookieBanner() {
-          if (localStorage.getItem(cookiesAcceptedKey) === null) {
-              cookieConsentBanner.classList.add('show');
-          }
-      }
-
-      function hideCookieBanner() {
-          cookieConsentBanner.classList.remove('show');
-      }
-
-      if (acceptCookiesBtn) {
-          acceptCookiesBtn.addEventListener('click', () => {
-              localStorage.setItem(cookiesAcceptedKey, 'true');
-              hideCookieBanner();
-              // Atualiza o consentimento do GTM para 'granted'
-              gtag('consent', 'update', {
-                  'analytics_storage': 'granted'
-              });
-          });
-      }
-
-      if (refuseCookiesBtn) {
-          refuseCookiesBtn.addEventListener('click', () => {
-              localStorage.setItem(cookiesAcceptedKey, 'false');
-              hideCookieBanner();
-              // O consentimento já está 'denied' por padrão, então não precisa de 'update' aqui
-          });
-      }
-      // Mostra o banner de cookies ao carregar a página, se necessário
-      showCookieBanner();
-
-      // --- Lógica da Nova Barra de Acessibilidade Hambúrguer (Adicionada) ---
-      const accessibilityHamburgerBtn = document.getElementById('accessibilityHamburgerBtn');
-      const accessibilityOffCanvasMenu = document.getElementById('accessibilityOffCanvasMenu');
-      const closeAccessibilityMenuBtn = document.getElementById('closeAccessibilityMenuBtn');
-      const accessibilityOverlay = document.getElementById('accessibilityOverlay');
-
-      // Botões de Acessibilidade
-      const toggleFontSizeBtn = document.getElementById('toggleFontSizeBtn');
-      const toggleContrastBtn = document.getElementById('toggleContrastBtn');
-      const toggleDarkModeBtn = document.getElementById('toggleDarkModeBtn');
-      const resetAccessibilityBtn = document.getElementById('resetAccessibilityBtn');
-
-      let currentFontSize = 'normal'; // 'normal', 'small', 'large'
-      let isHighContrast = false;
-      let isDarkMode = false;
-
-      // Função para aplicar/remover classes de acessibilidade
-      function applyAccessibilitySettings() {
-          const body = document.body;
-
-          // Tamanho da Fonte
-          body.classList.remove('font-size-small', 'font-size-large');
-          if (currentFontSize === 'small') {
-              body.classList.add('font-size-small');
-          } else if (currentFontSize === 'large') {
-              body.classList.add('font-size-large');
-          }
-
-          // Alto Contraste
-          if (isHighContrast) {
-              body.classList.add('high-contrast');
-          } else {
-              body.classList.remove('high-contrast');
-          }
-
-          // Modo Escuro
-          if (isDarkMode) {
-              body.classList.add('dark-mode');
-          } else {
-              body.classList.remove('dark-mode');
-          }
-      }
-
-      // Funções de Toggle
-      if (toggleFontSizeBtn) {
-          toggleFontSizeBtn.addEventListener('click', () => {
-              if (currentFontSize === 'normal') {
-                  currentFontSize = 'large';
-              } else if (currentFontSize === 'large') {
-                  currentFontSize = 'small';
-              } else {
-                  currentFontSize = 'normal';
-              }
-              applyAccessibilitySettings();
-          });
-      }
-
-      if (toggleContrastBtn) {
-          toggleContrastBtn.addEventListener('click', () => {
-              isHighContrast = !isHighContrast;
-              applyAccessibilitySettings();
-          });
-      }
-
-      if (toggleDarkModeBtn) {
-          toggleDarkModeBtn.addEventListener('click', () => {
-              isDarkMode = !isDarkMode;
-              applyAccessibilitySettings();
-          });
-      }
-
-      if (resetAccessibilityBtn) {
-          resetAccessibilityBtn.addEventListener('click', () => {
-              currentFontSize = 'normal';
-              isHighContrast = false;
-              isDarkMode = false;
-              applyAccessibilitySettings();
-          });
-      }
-
-      // Lógica para abrir/fechar o menu de acessibilidade
-      if (accessibilityHamburgerBtn) {
-          accessibilityHamburgerBtn.addEventListener('click', () => {
-              accessibilityOffCanvasMenu.classList.add('is-open');
-              accessibilityOverlay.style.display = 'block';
-          });
-      }
-
-      if (closeAccessibilityMenuBtn) {
-          closeAccessibilityMenuBtn.addEventListener('click', () => {
-              accessibilityOffCanvasMenu.classList.remove('is-open');
-              accessibilityOverlay.style.display = 'none';
-          });
-      }
-
-      if (accessibilityOverlay) {
-          accessibilityOverlay.addEventListener('click', (event) => {
-            if (event.target === accessibilityOverlay) { // Garante que só feche se clicar no overlay, não no menu
-                accessibilityOffCanvasMenu.classList.remove('is-open');
-                accessibilityOverlay.style.display = 'none';
+            if (isNaN(apresentacao) || isNaN(prescricao) || isNaN(volume) || apresentacao <= 0 || volume <= 0) {
+                resultadoDiv.innerHTML = "Por favor, preencha todos os campos com valores numéricos válidos e positivos (Apresentação e Volume devem ser maiores que zero).";
+                resultadoDiv.classList.remove('bg-blue-100', 'text-dark-blue');
+                resultadoDiv.classList.add('bg-red-100', 'text-red-600');
+                // Clear data attributes on error
+                resultadoDiv.dataset.apresentacao = '';
+                resultadoDiv.dataset.prescricao = '';
+                resultadoDiv.dataset.volume = '';
+                resultadoDiv.dataset.resultadoMl = '';
+                return;
             }
-          });
-      }
 
-      // Fechar com a tecla ESC
-      document.addEventListener('keydown', (event) => {
-          if (event.key === 'Escape' && accessibilityOffCanvasMenu.classList.contains('is-open')) {
-              accessibilityOffCanvasMenu.classList.remove('is-open');
-              accessibilityOverlay.style.display = 'none';
-          }
-      });
+            if (prescricao <= 0) {
+                resultadoDiv.innerHTML = "A prescrição deve ser um valor positivo. Se a prescrição for zero, não há medicamento a ser administrado.";
+                resultadoDiv.classList.remove('bg-blue-100', 'text-dark-blue');
+                resultadoDiv.classList.add('bg-red-100', 'text-red-600');
+                // Clear data attributes on error
+                resultadoDiv.dataset.apresentacao = '';
+                resultadoDiv.dataset.prescricao = '';
+                resultadoDiv.dataset.volume = '';
+                resultadoDiv.dataset.resultadoMl = '';
+                return;
+            }
 
-      // Aplica as configurações iniciais (se houver alguma persistência futura)
-      applyAccessibilitySettings();
+            const numerador = prescricao * volume;
+            const denominador = apresentacao;
+            const x = numerador / denominador;
+            const xArredondado = x.toFixed(2); // Arredonda para 2 casas decimais para exibição
+
+            resultadoDiv.innerHTML =
+                `<p class="font-bold text-lg mb-2">Cálculo:</p>` +
+                `<p>${apresentacao} mg ----------- ${volume} ml</p>` +
+                `<p>${prescricao} mg ----------- x ml</p><br>` +
+                `<p>${apresentacao}x = ${prescricao} x ${volume}</p>` +
+                `<p>x = ${numerador} ÷ ${denominador}</p>` +
+                `<p>x = ${x.toFixed(4)} ml</p><br>` + // Exibe com mais casas para o cálculo detalhado
+                `<p class="font-bold text-lg">Deve-se aspirar <mark class="bg-yellow-200 text-dark-blue px-1 py-0.5 rounded">${xArredondado} ml</mark> do frasco/ampola para administrar a dose prescrita.</p>`;
+            
+            // Store data for NANDA button
+            resultadoDiv.dataset.apresentacao = apresentacao;
+            resultadoDiv.dataset.prescricao = prescricao;
+            resultadoDiv.dataset.volume = volume;
+            resultadoDiv.dataset.resultadoMl = xArredondado;
+        }
+
+        function limparCampos() {
+            document.getElementById('apresentacao').value = '';
+            document.getElementById('prescricao').value = '';
+            document.getElementById('volume').value = '';
+            
+            const resultadoDiv = document.getElementById('resultado');
+            resultadoDiv.innerHTML = '';
+            resultadoDiv.style.display = 'none'; // Esconde o resultado ao limpar
+            resultadoDiv.classList.remove('bg-red-100', 'text-red-600'); // Garante que classes de erro sejam removidas
+            resultadoDiv.classList.add('bg-blue-100', 'text-dark-blue'); // Reinicia para a classe padrão
+            // Clear data attributes
+            resultadoDiv.dataset.apresentacao = '';
+            resultadoDiv.dataset.prescricao = '';
+            resultadoDiv.dataset.volume = '';
+            resultadoDiv.dataset.resultadoMl = '';
+        }
+
+        // --- Adição dos Event Listeners ---
+        // Conecta a função calcular() ao clique do botão "Calcular"
+        if (btnCalcular) { // Verifica se o elemento existe antes de adicionar o listener
+            btnCalcular.addEventListener('click', calcular);
+        }
+
+        // Conecta a função limparCampos() ao clique do botão "Limpar"
+        if (btnLimpar) { // Verifica se o elemento existe antes de adicionar o listener
+            btnLimpar.addEventListener('click', limparCampos);
+        }
+
+        // Adiciona a funcionalidade de Gerar PDF
+        if (btnGerarPDF) {
+            btnGerarPDF.addEventListener('click', () => {
+                const apresentacao = document.getElementById('apresentacao').value;
+                const prescricao = document.getElementById('prescricao').value;
+                const volume = document.getElementById('volume').value;
+                const resultadoText = document.getElementById('resultado').innerHTML;
+
+                if (!apresentacao || !prescricao || !volume || !resultadoText) {
+                    showCustomMessage("Preencha todos os campos e calcule antes de gerar o PDF.");
+                    return;
+                }
+
+                const element = document.createElement('div');
+                element.style.padding = '20px';
+                element.style.fontFamily = 'sans-serif';
+
+                element.innerHTML = `
+                    <h1 style="color: #1A3E74; text-align: center;">Cálculo de Medicamentos - Enfermagem</h1>
+                    <p style="margin-top: 20px;"><strong>Apresentação disponível:</strong> ${apresentacao} mg</p>
+                    <p><strong>Prescrição de medicamento:</strong> ${prescricao} mg</p>
+                    <p><strong>Volume do frasco/ampola:</strong> ${volume} ml</p>
+                    <hr style="margin: 20px 0; border: 0; border-top: 1px solid #eee;">
+                    <div style="background-color: #e6f0ff; padding: 15px; border-radius: 8px;">
+                        ${resultadoText}
+                    </div>
+                    <p style="margin-top: 30px; font-size: 0.8em; color: #666;">
+                        Este cálculo foi gerado pela Calculadora de Medicamentos em CalculadorasDeEnfermagem.com.br
+                    </p>
+                    <p style="font-size: 0.8em; color: #666;">
+                        Referência bibliográfica: Cálculo de Medicamentos. Enfa. Ana Carolina Ayres. Disponível em: https://www.coren-ba.gov.br/.../CALCULO-DE-MEDICAMENTOS
+                    </p>
+                `;
+
+                html2pdf().from(element).save('calculo_medicamento.pdf');
+            });
+        }
     });
   </script>
 </body>
