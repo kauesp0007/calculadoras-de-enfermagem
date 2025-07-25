@@ -1,1033 +1,1099 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Calculadora de Balanço Hídrico - Enfermagem</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dimensionamento de Enfermagem - COFEN 543/2017</title>
 
-  <link rel="canonical" href="https://www.calculadorasdeenfermagem.com.br/balancohidrico.html" />
+    <link rel="canonical" href="https://www.calculadorasdeenfermagem.com.br/dimensionamento.html" />
 
-  <link rel="icon" href="favicon.ico" type="image/x-icon" />
-  <link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
-  <link rel="apple-touch-icon" href="iconpages.png">
-  <link rel="icon" type="image/png" href="iconpages.png">
+    <link rel="icon" href="favicon.ico" type="image/x-icon" />
 
-  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Nunito+Sans:wght@700;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
+    <!-- Fontes personalizadas -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <!-- Font Awesome para ícones -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 
-  <!-- html2pdf CDN -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <!-- Google Tag Manager (gtag.js) - Consent Mode -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=AW-952633102"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('consent', 'default', {
+            'analytics_storage': 'denied',
+            'wait_for_update': 500 // Espera 500ms por uma atualização do consentimento
+        });
+        gtag('config', 'AW-952633102');
+    </script>
 
-  <!-- Google Analytics -->
-  <script async src="https://www.googletagmanager.com/gtag/js?id=AW-952633102"></script>
-  <script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
-    gtag('consent', 'default', {
-        'analytics_storage': 'denied',
-        'wait_for_update': 500
-    });
-    gtag('config', 'AW-952633102');
-  </script>
+    <script src="topbar111.js" defer></script>
 
-  <!-- Dados Estruturados (Schema.org) -->
-  <script type="application/ld+json">
-  {
-    "@context": "https://schema.org",
-    "@type": "MedicalEntity",
-    "name": "Calculadora de Balanço Hídrico",
-    "url": "https://www.calculadorasdeenfermagem.com.br/balancohidrico.html",
-    "description": "Ferramenta para calcular o balanço hídrico de pacientes, essencial para o monitoramento e manejo de fluidos em diversas condições clínicas.",
-    "alternateName": ["Balanço Hídrico Enfermagem", "Fluid Balance Calculator"]
-  }
-  </script>
-
-  <style>
-    /* Reset básico e Box-sizing para consistência */
-    *, *::before, *::after {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-
-    /* Fontes personalizadas */
-    .font-nunito { font-family: 'Nunito Sans', sans-serif; }
-    .font-inter { font-family: 'Inter', sans-serif; }
-
-    /* Estilos das classes de fonte e cor personalizadas (para uso no HTML com Tailwind) */
-    .text-dark-blue { color: #1A3E74; } /* Azul Escuro */
-    .text-light-blue { color: #1FA4E5; } /* Azul Claro */
-    .text-gray-custom { color: #666666; } /* Cinza */
-    .text-success-green { color: #1ED760; } /* Verde */
-    .text-black-custom { color: #333; } /* Cor para textos padrão */
-    .text-red-600 { color: #dc2626; } /* Tailwind red-600 para mensagens de erro */
-
-    /* Padrão de Botões (Componentes CSS para reuso) */
-    .btn-primary {
-      font-family: 'Inter', sans-serif;
-      font-weight: 600;
-      background-color: #1A3E74; /* Cor primária azul escuro */
-      color: #FFF;
-      padding: 12px 24px;
-      border-radius: 8px;
-      transition: background-color 0.3s ease;
-      border: none;
-      cursor: pointer;
-      text-align: center;
-    }
-    .btn-primary:hover { background-color: #122c54; } /* Tom mais escuro no hover */
-    .btn-secondary {
-      font-family: 'Inter', sans-serif;
-      font-weight: 600;
-      background-color: #1FA4E5; /* Cor secundária azul claro */
-      color: #FFF;
-      padding: 12px 24px;
-      border-radius: 8px;
-      transition: background-color 0.3s ease;
-      border: none;
-      cursor: pointer;
-      text-align: center;
-    }
-    .btn-secondary:hover { background-color: #178ac7; } /* Tom mais escuro no hover */
-    .btn-success {
-      font-family: 'Inter', sans-serif;
-      font-weight: 500;
-      background-color: #1ED760;
-      color: #FFF;
-      padding: 10px 20px;
-      border-radius: 8px;
-      transition: background-color 0.3s ease;
-      border: none;
-      cursor: pointer;
-      text-align: center;
-    }
-    .btn-success:hover { background-color: #17b351; }
-
-    /* Estilos para a área de resultado da calculadora (Componente específico) */
-    .resultado {
-      margin-top: 1.5rem; /* mt-6 */
-      padding: 1.25rem; /* p-5 */
-      background-color: #e0f2fe; /* Tailwind blue-50 */
-      border-radius: 0.5rem;
-      font-weight: 600;
-      color: #1A3E74; /* text-dark-blue */
-      text-align: left;
-      white-space: pre-wrap; /* Mantém quebras de linha no texto */
-    }
-    .resultado.bg-red-100 { /* Classe para mensagens de erro (fundo) */
-        background-color: #fee2e2; /* Tailwind red-100 */
-        color: #dc2626; /* Tailwind red-600 */
-    }
-    .resultado.bg-yellow-100 { /* Para balanço zero ou informativo */
-        background-color: #fefce8; /* Tailwind yellow-100 */
-        color: #d97706; /* Tailwind yellow-700 */
-    }
-    .resultado.bg-green-100 { /* Para balanço positivo */
-        background-color: #dcfce7; /* Tailwind green-100 */
-        color: #15803d; /* Tailwind green-700 */
-    }
-    .resultado.bg-info-orange-light { /* Para mensagens informativas no PDF */
-        background-color: #ffeeba;
-        color: #856404;
-    }
-
-
-    /* Estilos para a referência/bibliografia (Componente específico) */
-    .ref {
-      margin-top: 2.5rem; /* mt-10 */
-      font-size: 0.875rem; /* text-sm */
-      color: #666666; /* text-gray-custom */
-      text-align: left;
-    }
-
-    /* Estilo para o botão "Ajude-nos" fixo (Componente de botão) */
-    .fixed-donation-button {
-      z-index: 30;
-    }
-    
-    /* Layout principal com Topbar fixa */
-    body {
-      display: flex;
-      flex-direction: column;
-      min-height: 100vh; /* Garante que o body ocupe a altura total da viewport */
-      background-color: #f8fafc; /* Tailwind bg-gray-50 */
-      color: #333; /* Tailwind text-gray-800 */
-      font-family: 'Inter', sans-serif; /* Aplica a fonte Inter ao body */
-    }
-
-    /* ESTILOS DOS DROPDOWNS DA TOPBAR (MOVIDOS DE TOPBAR111.HTML) */
-    .dropdown-menu { display: none; }
-    .dropdown-menu.show { display: block; }
-    nav { justify-content: flex-end; }  
-    nav button { cursor: pointer; }
-    nav .dropdown-menu a:hover { background-color: #bfdbfe; }
-    /* FIM DOS ESTILOS DA TOPBAR */
-
-    /* Estilos para garantir que o menu mobile fique acima de outros conteúdos quando aberto */
-    #mainNav.flex {
-        z-index: 40; /* Um z-index alto para o menu mobile */
-        max-height: calc(100vh - 64px); /* Altura máxima da viewport menos a altura do header */
-        overflow-y: auto; /* Adiciona scroll se o conteúdo for muito longo */
-        -webkit-overflow-scrolling: touch; /* Suaviza o scroll em iOS */
-    }
-    .dropdown-menu {
-        position: static; /* Por padrão, estático (fluxo normal) no mobile */
-        margin-top: 0; /* Remove margin-top padrão no mobile */
-        width: 100%; /* Ocupa a largura total do item pai no mobile */
-        box-shadow: none; /* Remove sombra no mobile */
-        border: none; /* Remove borda no mobile */
-        background-color: transparent; /* Fundo transparente no mobile para se misturar ao menu principal */
-        padding: 0; /* Remove padding extra no mobile */
-    }
-
-    /* Estilos específicos para desktop para os dropdowns */
-    @media (min-width: 768px) { /* md breakpoint */
-        .dropdown-menu {
-            position: absolute; /* Torna-se absoluto no desktop */
-            margin-top: 0.5rem; /* mt-2 (8px) para desktop */
-            width: auto; /* Largura automática para se ajustar ao conteúdo */
-            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05); /* Sombra padrão do Tailwind */
-            border: 1px solid #e5e7eb; /* Borda padrão do Tailwind */
-            background-color: #fff; /* Fundo branco para os dropdowns no desktop */
-            padding: 0.5rem; /* p-2 */
-            border-radius: 0.25rem; /* rounded */
+    <style>
+        /* Reset básico e Box-sizing para consistência */
+        *, *::before, *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
         }
-    }
 
-    /* Espaçamento para o conteúdo abaixo da topbar fixa */
-    .main-content-wrapper {  
-      display: flex;
-      flex-direction: column;
-      flex-grow: 1;
-      padding-top: 64px; /* Garante que o conteúdo comece abaixo da topbar fixa (64px de altura) */
-      width: 100%;
-      max-width: 1280px; /* max-w-screen-xl (Tailwind 7xl) */
-      margin-left: auto;
-      margin-right: auto;
-      padding: 2rem 1rem; /* p-8 px-4 */
-      padding-bottom: 5rem; /* Adicionado para afastar os botões do rodapé */
-    }
-    
-    /* Estilos específicos para este arquivo Balanço Hídrico */
-    .descricao {
-      font-size: 1rem; /* Adjust to Tailwind base font size */
-      color: #333; /* Black-custom */
-      margin-top: 1rem; /* mt-4 */
-      margin-bottom: 1.5rem; /* mb-6 */
-      line-height: 1.6; /* leading-relaxed */
-    }
-    
-    /* Estilo para o modal de mensagem */
-    .message-modal-overlay {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background-color: rgba(0, 0, 0, 0.6);
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        z-index: 1000;
-        display: none; /* Hidden by default */
-    }
-    .message-modal-content {
-        background-color: #fff;
-        padding: 2rem;
-        border-radius: 0.5rem;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        text-align: center;
-        max-width: 400px;
-        width: 90%;
-        position: relative;
-    }
-    .message-modal-close {
-        color: #aaa;
-        position: absolute;
-        top: 0.5rem;
-        right: 0.5rem;
-        background: none;
-        border: none;
-        font-size: 1.5rem;
-        font-weight: bold;
-        cursor: pointer;
-    }
-    .message-modal-close:hover {
-        color: #1F2937;
-    }
+        /* Fontes personalizadas */
+        .font-nunito { font-family: 'Nunito Sans', sans-serif; }
+        .font-inter { font-family: 'Inter', sans-serif; }
+        .text-dark-blue { color: #1A3E74; } /* Azul Escuro */
+        .text-light-blue { color: #1FA4E5; } /* Azul Claro */
+        .text-gray-custom { color: #666666; } /* Cinza */
+        .text-success-green { color: #1ED760; } /* Verde */
 
-    /* --- Cookie Consent Banner Styles --- */
-    #cookieConsentBanner {
-        position: fixed;
-        bottom: 0;
-        left: 0;
-        width: 100%;
-        background-color: #1A3E74; /* Cor azul escuro da identidade */
-        color: #fff;
-        padding: 1rem;
-        text-align: center;
-        z-index: 1000; /* Acima do rodapé e outros elementos */
-        display: none; /* Oculto por padrão, mostrado via JS */
-        flex-direction: column; /* Empilha conteúdo em mobile */
-        align-items: center;
-        gap: 1rem;
-        box-shadow: 0 -2px 10px rgba(0,0,0,0.2);
-    }
+        /* Padrão de Botões (Componentes CSS para reuso) */
+        .btn-primary {
+            font-family: 'Inter', sans-serif;
+            font-weight: 600;
+            background-color: #1A3E74; /* Cor primária azul escuro */
+            color: #FFF;
+            padding: 12px 24px;
+            border-radius: 8px;
+            transition: background-color 0.3s ease;
+            border: none;
+            cursor: pointer;
+            text-align: center;
+        }
+        .btn-primary:hover { background-color: #122c54; } /* Tom mais escuro no hover */
+        .btn-secondary {
+            font-family: 'Inter', sans-serif;
+            font-weight: 600;
+            background-color: #1FA4E5; /* Cor secundária azul claro */
+            color: #FFF;
+            padding: 12px 24px;
+            border-radius: 8px;
+            transition: background-color 0.3s ease;
+            border: none;
+            cursor: pointer;
+            text-align: center;
+        }
+        .btn-secondary:hover { background-color: #178ac7; } /* Tom mais escuro no hover */
+        .btn-success {
+            font-family: 'Inter', sans-serif;
+            font-weight: 500;
+            background-color: #1ED760;
+            color: #FFF;
+            padding: 10px 20px;
+            border-radius: 8px;
+            transition: background-color 0.3s ease;
+            border: none;
+            cursor: pointer;
+            text-align: center;
+        }
+        .btn-success:hover { background-color: #17b351; }
 
-    #cookieConsentBanner.show {
-        display: flex; /* Mostra o banner */
-    }
+        /* Estilos para a área de resultado da calculadora (Componente específico) */
+        .resultado {
+            margin-top: 1rem;
+            padding: 1rem;
+            background-color: #e0f2fe; /* Tailwind blue-50 */
+            border-radius: 0.5rem;
+            font-weight: 600;
+            color: #1A3E74; /* text-dark-blue */
+            text-align: left;
+            white-space: pre-wrap;
+        }
 
-    #cookieConsentBanner p {
-        margin: 0;
-        font-size: 0.9rem;
-        line-height: 1.4;
-    }
+        /* Estilos para a referência/bibliografia (Componente específico) */
+        .ref {
+            margin-top: 2rem;
+            font-size: 14px;
+            color: #666666; /* text-gray-custom */
+            text-align: left;
+        }
 
-    #cookieConsentBanner .cookie-buttons {
-        display: flex;
-        gap: 0.75rem;
-        justify-content: center;
-        flex-wrap: wrap; /* Permite quebrar em telas menores */
-    }
+        /* Estilo para o botão "Ajude-nos" fixo (Componente de botão) */
+        .fixed-donation-button {
+            z-index: 30;
+        }
 
-    #cookieConsentBanner button {
-        background-color: #2563eb; /* Tailwind blue-600 */
-        color: white;
-        padding: 0.6rem 1.2rem;
-        border-radius: 0.5rem;
-        font-weight: 600;
-        transition: background-color 0.2s ease;
-        border: none;
-        cursor: pointer;
-        white-space: nowrap; /* Evita quebra de linha no texto do botão */
-    }
+        /* Layout principal com Topbar fixa */
+        body {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh; /* Garante que o body ocupe a altura total da viewport */
+            background-color: #f8fafc; /* Tailwind bg-gray-50 */
+            color: #333; /* Tailwind text-gray-800 */
+        }
 
-    #cookieConsentBanner button.secondary {
-        background-color: transparent;
-        border: 1px solid rgba(255, 255, 255, 0.5);
-    }
+        /* ESTILOS DOS DROPDOWNS DA TOPBAR (MOVIDOS DE TOPBAR111.HTML) */
+        .dropdown-menu { display: none; }
+        .dropdown-menu.show { display: block; }
+        nav { justify-content: flex-end; }
+        nav button { cursor: pointer; }
+        nav .dropdown-menu a:hover { background-color: #bfdbfe; }
+        /* FIM DOS ESTILOS DA TOPBAR */
 
-    #cookieConsentBanner button.secondary:hover {
-        background-color: rgba(255, 255, 255, 0.1);
-        border-color: white;
-    }
+        /* Espaçamento para o conteúdo abaixo da topbar fixa */
+        .main-content-wrapper {
+            display: flex;
+            flex-direction: column;
+            flex-grow: 1;
+            padding-top: 64px; /* Garante que o conteúdo comece abaixo da topbar fixa (64px de altura) */
+            width: 100%;
+        }
 
-    /* Responsive adjustments for cookie banner */
-    @media (min-width: 768px) {
+        /* Conteúdo principal (main) */
+        main {
+            flex-grow: 1;
+            max-width: 1280px; /* max-w-7xl */
+            margin-left: auto;
+            margin-right: auto;
+            padding: 2rem 1rem; /* Equivalente a p-8 px-4 */
+            width: 100%;
+        }
+
+        /* --- Estilos para o formulário de dimensionamento --- */
+        .form-section {
+            background-color: #fff;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+
+        .form-section label {
+            font-weight: 600;
+            color: #1A3E74;
+            display: block;
+            margin-bottom: 0.5rem;
+        }
+
+        .form-section select, .form-section input[type="number"] {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .form-section input[type="number"]::-webkit-outer-spin-button,
+        .form-section input[type="number"]::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        .form-section input[type="number"] {
+            -moz-appearance: textfield;
+        }
+
+        /* Estilos do divisor vertical no rodapé */
+        .vertical-divider-footer-stretched {
+            width: 1px; /* Largura da linha */
+            background-color: rgba(255, 255, 255, 0.3); /* Cor da linha */
+            height: 100%; /* Estende a altura do div pai */
+            margin-left: 1rem;
+            margin-right: 1rem;
+        }
+
+        /* Estilos do rodapé */
+        .footer-social-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background-color: rgba(255, 255, 255, 0.1);
+            transition: background-color 0.3s ease;
+        }
+        .footer-social-icon:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+
+        /* --- Cookie Consent Banner Styles --- */
         #cookieConsentBanner {
-            flex-direction: row; /* Layout em linha para desktop */
-            justify-content: space-between;
-            padding: 1rem 2rem;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background-color: #1A3E74; /* Cor azul escuro da identidade */
+            color: #fff;
+            padding: 1rem;
+            text-align: center;
+            z-index: 1000; /* Acima do rodapé e outros elementos */
+            display: none; /* Oculto por padrão, mostrado via JS */
+            flex-direction: column; /* Empilha conteúdo em mobile */
+            align-items: center;
+            gap: 1rem;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.2);
         }
+
+        #cookieConsentBanner.show {
+            display: flex; /* Mostra o banner */
+        }
+
+        #cookieConsentBanner p {
+            margin: 0;
+            font-size: 0.9rem;
+            line-height: 1.4;
+        }
+
         #cookieConsentBanner .cookie-buttons {
-            justify-content: flex-end;
+            display: flex;
+            gap: 0.75rem;
+            justify-content: center;
+            flex-wrap: wrap; /* Permite quebrar em telas menores */
         }
-    }
 
-    /* Estilos para o botão de acessibilidade */
-    .accessibility-hamburger-btn {
-        position: fixed;
-        bottom: 4rem; /* Distância da parte inferior */
-        left: 1rem; /* Distância da parte esquerda */
-        background-color: #1A3E74; /* Cor primária */
-        color: white;
-        border-radius: 50%;
-        width: 56px; /* Largura do botão */
-        height: 56px; /* Altura do botão */
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 1.5rem; /* Tamanho do ícone */
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-        cursor: pointer;
-        z-index: 50; /* Garante que esteja acima da maioria dos elementos */
-        transition: background-color 0.3s ease;
-    }
+        #cookieConsentBanner button {
+            background-color: #2563eb; /* Tailwind blue-600 */
+            color: white;
+            padding: 0.6rem 1.2rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            transition: background-color 0.2s ease;
+            border: none;
+            cursor: pointer;
+            white-space: nowrap; /* Evita quebra de linha no texto do botão */
+        }
 
-    .accessibility-hamburger-btn:hover {
-        background-color: #122c54; /* Cor mais escura no hover */
-    }
+        #cookieConsentBanner button.secondary {
+            background-color: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.5);
+        }
 
-    /* Off-canvas menu de acessibilidade */
-    .accessibility-off-canvas-menu {
-        position: fixed;
-        top: 0;
-        right: -300px; /* Escondido à direita por padrão */
-        width: 300px;
-        height: 100%;
-        background-color: #fff;
-        box-shadow: -2px 0 10px rgba(0,0,0,0.2);
-        z-index: 1000;
-        transition: right 0.3s ease-in-out; /* Transição para deslizar */
-        padding: 1rem;
-        display: flex;
-        flex-direction: column;
-        gap: 1rem;
-    }
+        #cookieConsentBanner button.secondary:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+            border-color: white;
+        }
 
-    .accessibility-off-canvas-menu.is-open {
-        right: 0; /* Abre o menu */
-    }
+        /* Responsive adjustments for cookie banner */
+        @media (min-width: 768px) {
+            #cookieConsentBanner {
+                flex-direction: row; /* Layout em linha para desktop */
+                justify-content: space-between;
+                padding: 1rem 2rem;
+            }
+            #cookieConsentBanner .cookie-buttons {
+                justify-content: flex-end;
+            }
+        }
 
-    /* Overlay que cobre a página quando o menu está aberto */
-    .accessibility-overlay {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background-color: rgba(0, 0, 0, 0.5);
-        z-index: 999; /* Abaixo do menu, acima do conteúdo */
-        display: none; /* Escondido por padrão */
-    }
+        /* Estilos para o menu off-canvas de acessibilidade */
+        .accessibility-off-canvas-menu {
+            position: fixed;
+            top: 0;
+            right: -300px; /* Escondido por padrão */
+            width: 300px;
+            height: 100%;
+            background-color: #fff;
+            box-shadow: -2px 0 10px rgba(0,0,0,0.2);
+            z-index: 1000;
+            transition: right 0.3s ease-in-out;
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
 
-    /* Cabeçalho do menu de acessibilidade */
-    .accessibility-menu-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 20px;
-        border-bottom: 1px solid #eee;
-        padding-bottom: 10px;
-    }
+        .accessibility-off-canvas-menu.is-open {
+            right: 0; /* Visível quando aberto */
+        }
 
-    .accessibility-menu-header h3 {
-        margin: 0;
-        font-size: 1.2rem;
-        color: #1A3E74;
-    }
+        .accessibility-overlay {
+            display: none; /* Oculto por padrão */
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            z-index: 999;
+        }
 
-    /* Botão de fechar o menu */
-    .close-accessibility-menu-btn {
-        background: none;
-        border: none;
-        font-size: 1.8rem;
-        font-weight: bold;
-        cursor: pointer;
-        color: #666;
-    }
+        .accessibility-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
 
-    /* Opções de acessibilidade */
-    .accessibility-option-btn {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        width: 100%;
-        padding: 0.75rem 1rem;
-        background-color: #f1f5f9; /* Tailwind gray-100 */
-        border-radius: 0.5rem;
-        border: 1px solid #e2e8f0; /* Tailwind gray-200 */
-        cursor: pointer;
-        transition: background-color 0.2s ease;
-    }
+        .accessibility-header h4 {
+            font-size: 1.25rem;
+            font-weight: bold;
+            color: #1A3E74;
+        }
 
-    .accessibility-option-btn:hover {
-        background-color: #e2e8f0; /* Tailwind gray-200 */
-    }
+        .accessibility-close-btn {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #666;
+        }
 
-    .accessibility-option-btn i {
-        color: #1A3E74;
-    }
+        .accessibility-option-btn {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            width: 100%;
+            padding: 0.75rem 1rem;
+            background-color: #f1f5f9; /* Tailwind gray-100 */
+            border-radius: 0.5rem;
+            border: 1px solid #e2e8f0; /* Tailwind gray-200 */
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
 
-    .accessibility-option-btn span {
-        font-weight: 600;
-        color: #333;
-    }
+        .accessibility-option-btn:hover {
+            background-color: #e2e8f0; /* Tailwind gray-200 */
+        }
 
-    /* Estilos para as classes de acessibilidade aplicadas ao body */
-    body.font-size-small { font-size: 0.85em; }
-    body.font-size-large { font-size: 1.15em; }
+        .accessibility-option-btn i {
+            color: #1A3E74;
+        }
 
-    body.high-contrast {
-        background-color: #000 !important;
-        color: #FFF !important;
-    }
-    body.high-contrast a { color: #FFFF00 !important; }
-    body.high-contrast button, body.high-contrast .btn-primary, body.high-contrast .btn-secondary {
-        background-color: #FFF !important;
-        color: #000 !important;
-        border: 1px solid #FFFF00 !important;
-    }
-    body.high-contrast .bg-white, body.high-contrast .bg-blue-50, body.high-contrast .resultado {
-        background-color: #333 !important;
-        color: #FFF !important;
-        border: 1px solid #FFFF00 !important;
-    }
-    body.high-contrast .text-gray-600, body.high-contrast .text-gray-700, body.high-contrast .text-gray-800 {
-        color: #FFF !important;
-    }
-    body.high-contrast .text-dark-blue, body.high-contrast .text-light-blue {
-        color: #FFFF00 !important;
-    }
-    body.high-contrast .shadow, body.high-contrast .shadow-md {
-        box-shadow: 0 0 5px #FFFF00 !important;
-    }
-    body.high-contrast .border, body.high-contrast .border-gray-300 {
-        border-color: #FFFF00 !important;
-    }
-    body.high-contrast input[type="number"], body.high-contrast input[type="radio"] + label {
-        background-color: #000 !important;
-        color: #FFFF00 !important;
-        border-color: #FFFF00 !important;
-    }
-    body.high-contrast input[type="radio"] {
-        border-color: #FFFF00 !important;
-    }
-    body.high-contrast .accessibility-off-canvas-menu {
-        background-color: #000 !important;
-        box-shadow: -2px 0 10px #FFFF00 !important;
-    }
-    body.high-contrast .accessibility-menu-header h3 {
-        color: #FFF !important;
-    }
-    body.high-contrast .close-accessibility-menu-btn {
-        color: #FFF !important;
-    }
-    body.high-contrast .accessibility-option-btn {
-        background-color: #333 !important;
-        border-color: #FFFF00 !important;
-        color: #FFF !important;
-    }
-    body.high-contrast .accessibility-option-btn i {
-        color: #FFFF00 !important;
-    }
-    body.high-contrast .accessibility-option-btn span {
-        color: #FFF !important;
-    }
-    body.high-contrast .accessibility-option-btn:hover {
-        background-color: #555 !important;
-    }
+        .accessibility-option-btn span {
+            font-weight: 600;
+            color: #333;
+        }
 
+        /* Estilos para as classes de acessibilidade aplicadas ao body */
+        body.font-size-small { font-size: 0.85em; }
+        body.font-size-large { font-size: 1.15em; }
 
-    body.dark-mode {
-        background-color: #1F2937 !important; /* Dark Gray */
-        color: #E5E7EB !important; /* Light Gray */
-    }
-    body.dark-mode a { color: #93C5FD !important; /* Light Blue */ }
-    body.dark-mode .bg-white, body.dark-mode .bg-blue-50, body.dark-mode .resultado {
-        background-color: #374151 !important; /* Medium Dark Gray */
-        color: #E5E7EB !important;
-    }
-    body.dark-mode .text-gray-600, body.dark-mode .text-gray-700, body.dark-mode .text-gray-800 {
-        color: #E5E7EB !important;
-    }
-    body.dark-mode .text-dark-blue, body.dark-mode .text-light-blue {
-        color: #93C5FD !important;
-    }
-    body.dark-mode .shadow, body.dark-mode .shadow-md {
-        box-shadow: 0 4px 6px -1px rgba(0,0,0,0.3), 0 2px 4px -1px rgba(0,0,0,0.2) !important;
-    }
-    body.dark-mode .border, body.dark-mode .border-gray-300 {
-        border-color: #4B5563 !important;
-    }
-    body.dark-mode .btn-primary, body.dark-mode .btn-secondary {
-        background-color: #4B5563 !important;
-        color: #E5E7EB !important;
-    }
-    body.dark-mode .btn-primary:hover, body.dark-mode .btn-secondary:hover {
-        background-color: #6B7280 !important;
-    }
-    body.dark-mode #cookieConsentBanner {
-        background-color: #374151 !important;
-    }
-    body.dark-mode #cookieConsentBanner button {
-        background-color: #60A5FA !important;
-        color: #1F2937 !important;
-    }
-    body.dark-mode #cookieConsentBanner button.secondary {
-        background-color: transparent !important;
-        border-color: #93C5FD !important;
-        color: #93C5FD !important;
-    }
-    body.dark-mode #cookieConsentBanner button.secondary:hover {
-        background-color: rgba(147, 197, 253, 0.1) !important;
-    }
-    body.dark-mode input[type="number"], body.dark-mode input[type="radio"] + label {
-        background-color: #2d3748 !important;
-        color: #e2e8f0 !important;
-        border-color: #4a5568 !important;
-    }
-    body.dark-mode input[type="radio"] {
-        border-color: #4a5568 !important;
-    }
-    body.dark-mode .accessibility-off-canvas-menu {
-        background-color: #2d3748 !important;
-        box-shadow: -2px 0 10px rgba(255, 255, 255, 0.1) !important;
-    }
-    body.dark-mode .accessibility-menu-header h3 {
-        color: #e2e8f0 !important;
-    }
-    body.dark-mode .close-accessibility-menu-btn {
-        color: #a0aec0 !important;
-    }
-    body.dark-mode .accessibility-option-btn {
-        background-color: #4a5568 !important;
-        border-color: #667eea !important;
-        color: #e2e8f0 !important;
-    }
-    body.dark-mode .accessibility-option-btn i {
-        color: #93C5FD !important;
-    }
-    body.dark-mode .accessibility-option-btn span {
-        color: #e2e8f0 !important;
-    }
-    body.dark-mode .accessibility-option-btn:hover {
-        background-color: #6b7280 !important;
-    }
+        body.high-contrast {
+            background-color: #000 !important;
+            color: #FFF !important;
+        }
+        body.high-contrast a { color: #FFFF00 !important; }
+        body.high-contrast button, body.high-contrast .btn-primary, body.high-contrast .btn-secondary {
+            background-color: #FFF !important;
+            color: #000 !important;
+            border: 1px solid #FFFF00 !important;
+        }
+        body.high-contrast .bg-white, body.high-contrast .bg-blue-50 {
+            background-color: #333 !important;
+            color: #FFF !important;
+            border: 1px solid #FFFF00 !important;
+        }
+        body.high-contrast .text-gray-600, body.high-contrast .text-gray-700, body.high-contrast .text-gray-800 {
+            color: #FFF !important;
+        }
+        body.high-contrast .text-dark-blue, body.high-contrast .text-light-blue {
+            color: #FFFF00 !important;
+        }
+        body.high-contrast .shadow, body.high-contrast .shadow-md {
+            box-shadow: 0 0 5px #FFFF00 !important;
+        }
+        body.high-contrast .border, body.high-contrast .border-gray-300 {
+            border-color: #FFFF00 !important;
+        }
 
-  </style>
+        body.dark-mode {
+            background-color: #1F2937 !important; /* Dark Gray */
+            color: #E5E7EB !important; /* Light Gray */
+        }
+        body.dark-mode a { color: #93C5FD !important; /* Light Blue */ }
+        body.dark-mode .bg-white, body.dark-mode .bg-blue-50 {
+            background-color: #374151 !important; /* Medium Dark Gray */
+            color: #E5E7EB !important;
+        }
+        body.dark-mode .text-gray-600, body.dark-mode .text-gray-700, body.dark-mode .text-gray-800 {
+            color: #E5E7EB !important;
+        }
+        body.dark-mode .text-dark-blue, body.dark-mode .text-light-blue {
+            color: #93C5FD !important;
+        }
+        body.dark-mode .shadow, body.dark-mode .shadow-md {
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.3), 0 2px 4px -1px rgba(0,0,0,0.2) !important;
+        }
+        body.dark-mode .border, body.dark-mode .border-gray-300 {
+            border-color: #4B5563 !important;
+        }
+        body.dark-mode .btn-primary, body.dark-mode .btn-secondary {
+            background-color: #4B5563 !important;
+            color: #E5E7EB !important;
+        }
+        body.dark-mode .btn-primary:hover, body.dark-mode .btn-secondary:hover {
+            background-color: #6B7280 !important;
+        }
+        body.dark-mode #cookieConsentBanner {
+            background-color: #374151 !important;
+        }
+        body.dark-mode #cookieConsentBanner button {
+            background-color: #60A5FA !important;
+            color: #1F2937 !important;
+        }
+        body.dark-mode #cookieConsentBanner button.secondary {
+            background-color: transparent !important;
+            border-color: #93C5FD !important;
+            color: #93C5FD !important;
+        }
+        body.dark-mode #cookieConsentBanner button.secondary:hover {
+            background-color: rgba(147, 197, 253, 0.1) !important;
+        }
+    </style>
 </head>
 <body class="bg-gray-50 text-gray-800 font-inter">
 
-  <div id="topbar-container"></div>  
-  <script src="./topbar111.js" defer></script>
+    <div id="topbar-container"></div>
 
-  <div class="main-content-wrapper">
-    <main class="flex flex-col flex-grow">
+    <!-- VLibras Widget -->
+    <div vw class="enabled">
+        <div vw-access-button class="active"></div>
+        <div vw-plugin-wrapper>
+            <div class="vw-plugin-top-wrapper"></div>
+        </div>
+    </div>
 
-      <div class="flex flex-wrap items-center justify-center gap-4 mb-3">
-        <img src="iconpages.png" alt="Ícone Balanço Hídrico" class="w-32 h-auto" />
-        <h1 id="main-title" class="font-nunito font-extrabold text-dark-blue text-4xl lg:text-5xl text-center">
-          Balanço Hídrico
-        </h1>
-      </div>
+    <!-- Botão Hambúrguer de Acessibilidade Visual -->
+    <button id="accessibilityHamburgerBtn" class="fixed bottom-4 left-4 bg-blue-700 text-white p-3 rounded-full shadow-lg z-50">
+        <i class="fas fa-universal-access text-xl text-white"></i>
+    </button>
 
-      <div id="intro-description" class="border border-gray-300 rounded-lg p-4 mb-6 shadow-md text-sm text-gray-700">
-        <p class="mb-2">
-          Relatório de Equilíbrio Hídrico<br>
-          O Balanço Hídrico é essencial para monitorar o equilíbrio de líquidos do paciente. Os dados de entradas e saídas são <strong>registrados pelo técnico de enfermagem</strong> ao longo das suas 12 horas de plantão dando seguimento ao registro de 12 horas realizado pelo técnico de enfermagem do plantão anterior, com anotação cuidadosa em prontuário. O <strong>cálculo e o fechamento do Balanço Hídrico, que abrange 24 horas</strong>, são de <strong>responsabilidade do enfermeiro plantonista</strong>, fundamentais para a tomada de decisões clínicas precisas.
-        </p>
-        <p class="mb-2">
-          <strong>Atenção, profissionais:</strong><br>
-          <strong>Técnico de Enfermagem:</strong> Lembre-se de registrar <strong>todos</strong> os valores de entrada e saída de líquidos e comunicar ao final do plantao os valores ao enfermeiro.<br>
-          <strong>Enfermeiro:</strong> Não se esqueça de realizar o <strong>fechamento</strong> do balanço hídrico das 24 horas para a garantia de uma assistência de qualidade ao paciente.
-        </p>
-        <p>
-          Esta prática está diretamente alinhada com a <strong>Meta 02 de Segurança do Paciente: Comunicação efetiva entre a equipe multiprofissional</strong>. O técnico de enfermagem comunica ao final do plantão as entradas e saídas de liquidos do paciente ao enfermeiro, após o fechamento do balanço hídrico o enfermeiro comunica na passagem de plantão ao próximo colega enfermeiro o valor do fechamento do balanço e ao médico visitador. A comunicação efetiva entre a equipe melhora a qualidade da assistencia ao paciente.
-        </p>
-        <p>VALE RESSALTAR: SE O BALANÇO HIDRICO FOR <strong>POSITIVO</strong> O PACIENTE ESTÁ RETENDO LIQUIDOS. SE O BALANÇO HÍDRICO FOR <strong>NEGATIVO</strong> PERDAS DE LIQUIDOS (MUITO ACIMA DO QUE ELE INGERIU) É NECESSARIO OBSERVAR SINAIS DE DESIDRATAÇÃO. Em ambos os casos elabore um plano de cuidados na SAE e comunique o médico.</p>
-      </div>
+    <!-- Off-canvas Menu de Acessibilidade -->
+    <div id="accessibilityOffCanvasMenu" class="accessibility-off-canvas-menu">
+        <div class="accessibility-header">
+            <h4>Acessibilidade</h4>
+            <button id="closeAccessibilityMenuBtn" class="accessibility-close-btn">&times;</button>
+        </div>
+        <button id="toggleFontSizeBtn" class="accessibility-option-btn">
+            <i class="fas fa-font"></i>
+            <span>Tamanho da Fonte</span>
+        </button>
+        <button id="toggleContrastBtn" class="accessibility-option-btn">
+            <i class="fas fa-adjust"></i>
+            <span>Alto Contraste</span>
+        </button>
+        <button id="toggleDarkModeBtn" class="accessibility-option-btn">
+            <i class="fas fa-moon"></i>
+            <span>Modo Escuro</span>
+        </button>
+        <button id="resetAccessibilityBtn" class="accessibility-option-btn">
+            <i class="fas fa-sync-alt"></i>
+            <span>Resetar</span>
+        </button>
+    </div>
 
-        <div class="bg-white p-4 rounded-lg shadow-md mb-4">
-            <h3 class="font-bold text-xl text-dark-blue mb-4">Entradas (ml)</h3>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                    <label for="oral" class="block text-gray-700 text-sm font-bold mb-2">Oral:</label>
-                    <input type="number" id="oral" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" value="0">
+    <!-- Overlay para o menu off-canvas -->
+    <div id="accessibilityOverlay" class="accessibility-overlay"></div>
+
+    <div class="main-content-wrapper">
+        <main class="max-w-4xl mx-auto px-4 py-8">
+            <div class="flex flex-col items-center justify-center gap-4 mb-3 text-center">
+                <img src="iconpages.png" alt="Ícone da Página" class="w-32 h-auto" />
+                <h1 id="main-title" class="font-nunito font-extrabold text-dark-blue text-4xl lg:text-5xl">
+                    Dimensionamento de Enfermagem
+                </h1>
+            </div>
+            <h2 id="main-subtitle" class="font-inter font-semibold text-light-blue text-sm lg:text-base mb-3 text-center sm:text-left">
+    Calculadora baseada na Resolução COFEN Nº 543/2017. Consulte a Calculadora disponibilizada pelo Conselho Federal de Enfermagem (COFEN), ela é gratuita e dispõe de todas as variáveis e ambientes de trabalho para um dimensionamento mais robusto.
+</h2>
+           <p class="font-inter font-normal text-black text-xs lg:text-base mb-6 text-left">
+    Esta ferramenta auxilia, mas nao substitui o cálculo do quantitativo de profissionais de enfermagem feitas da forma tradicional. Para realizar o dimensionamento de forma acertiva é necessario calcular primeiramente o grau de complexidade do paciente através do Sistema de Classificação de Pacientes (SCP), para realizar o SCP o enfermeiro pode usar inúmeras escalas de classificação validadas pelo COFEN entre elas a Escala de Fugulin que calcula indivudualmente o grau de complexidade do paciente internado de acordo com alguns critérios avaliativos, a soma dessa escala gera um escore de complexidade. O enfermeiro realiza individualmente cada Fugulin dos pacientes e ao final classifica quantos pacientes de cuidados minimos, intermediarios, de alta dependencia, etc... Após esse levantamento aí sim o enfermeiro realiza o dimensionamento de enfermagem! Vale ressaltar que trata-se de uma avaliação científica baseada em fatos obtidos por fontes validadas pelo COFEN. <strong>Atenção:</strong> <u>Hoje em dia nao se usa mais os termos: "Tenho 5 pacientes acamados, 4 pacientes com SNE e curativos, 6 pacientes que deambulam, etc..." para realizar o SCP;</u> Isto é um método sugestivo e empírico. Utilize escalas que avaliam o grau de complexidade do paciente para elaborar o SCP e realizar em seguida o dimensionamento de enfermagem.
+</p>
+
+
+            <!-- Novo botão para Fugulin -->
+            <div class="flex justify-center mb-6">
+                <button id="btnGrauComplexidade" class="btn-primary text-base px-6 py-3" aria-label="Calcular grau de complexidade do paciente (FUGULIN)">
+                    Calcular Grau de Complexidade do Paciente (FUGULIN)
+                </button>
+            </div>
+
+            <div id="conteudo">
+                <div class="form-section">
+                    <h3 class="font-inter font-semibold text-dark-blue text-lg lg:text-xl mb-4">Parâmetros de Dimensionamento</h3>
+
+                    <div class="mb-4">
+                        <label for="cargaHoraria">Carga Horária Semanal (horas):</label>
+                        <select id="cargaHoraria" name="cargaHoraria">
+                            <option value="30">30 horas</option>
+                            <option value="36">36 horas</option>
+                            <option value="40">40 horas</option>
+                            <option value="44">44 horas</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="tipoUnidade">Tipo de Unidade Hospitalar:</label>
+                        <select id="tipoUnidade" name="tipoUnidade">
+                            <option value="unidadeInternacao">Unidade de Internação</option>
+                            <option value="uti">Unidade de Terapia Intensiva (UTI)</option>
+                        </select>
+                    </div>
+
+                    <!-- Explicações detalhadas sobre os parâmetros -->
+                    <div class="text-gray-700 text-xs mb-4 p-2 border border-gray-200 rounded-md bg-gray-50">
+                        <h5 class="font-bold text-dark-blue mb-1">Entendendo os Parâmetros (Resolução COFEN Nº 543/2017):</h5>
+                        <p class="mb-1"><strong>Horas de Enfermagem por Paciente (HPPD - por 24h):</strong></p>
+                        <ul class="list-disc list-inside ml-4 mb-2">
+                            <li>Cuidado Mínimo: 3.8 horas</li>
+                            <li>Cuidado Intermediário: 5.6 horas</li>
+                            <li>Cuidado de Alta Dependência: 9.4 horas</li>
+                            <li>Cuidado Semi-intensivo: 10 horas</li>
+                            <li>Cuidado Intensivo: 17.9 horas</li>
+                        </ul>
+                        <p class="mb-1"><strong>Distribuição Percentual Mínima por Categoria (Enfermeiros vs. Técnicos/Auxiliares):</strong></p>
+                        <ul class="list-disc list-inside ml-4 mb-2">
+                            <li>Cuidado Mínimo e Intermediário: 33% Enfermeiros, 67% Técnicos/Auxiliares</li>
+                            <li>Cuidado de Alta Dependência: 36% Enfermeiros, 64% Técnicos/Auxiliares</li>
+                            <li>Cuidado Semi-intensivo: 42% Enfermeiros, 58% Técnicos/Auxiliares</li>
+                            <li>Cuidado Intensivo: 52% Enfermeiros, 48% Técnicos/Auxiliares</li>
+                        </ul>
+                        <p class="mb-1"><strong>Proporção Profissional/Paciente por Turno (para referência, não usada diretamente no cálculo desta ferramenta):</strong></p>
+                        <ul class="list-disc list-inside ml-4 mb-2">
+                            <li>Cuidado Mínimo: 1 profissional de enfermagem para 6 pacientes</li>
+                            <li>Cuidado Intermediário: 1 profissional de enfermagem para 4 pacientes</li>
+                            <li>Cuidado de Alta Dependência: 1 profissional de enfermagem para 2.4;</li>
+                            <li>Cuidado Semi-intensivo: 1 profissional de enfermagem para 2.4;</li>
+                            <li>Cuidado Intensivo: 1 profissional de enfermagem para 1.33.</li>
+                        </ul>
+                        <p class="mb-1"><strong>Índice de Segurança Técnica (IST):</strong> Não inferior a 15% (já aplicado automaticamente no cálculo final para cobrir ausências não previstas).</p>
+                        <p class="mb-1"><strong>Regra da Maior Carga de Trabalho (§ 1º, Item III):</strong> A distribuição percentual de Enfermeiros e Técnicos/Auxiliares para a unidade como um todo será definida pelo grupo de pacientes que apresentar a maior carga de trabalho (maior total de horas diárias necessárias).</p>
+                        <p class="font-bold mt-2">Observações Importantes da Resolução:</p>
+                        <ul class="list-disc list-inside ml-4">
+                            <li>**Alojamento Conjunto:** O binômio mãe/filho deve ser classificado, no mínimo, como Cuidado Intermediário.</li>
+                            <li>**Berçário e Pediatria (menores de 6 anos):** Todo recém-nascido e criança menor de 6 anos deve ser classificado, no mínimo, como Cuidado Intermediário, independente da presença do acompanhante.</li>
+                            <li>**Pacientes Intensivos:** Devem ser internados em UTI com infraestrutura e recursos adequados.</li>
+                            <li>**Pacientes Semi-intensivos:** Devem ser internados em unidades que disponham de recursos humanos e tecnologias adequadas.</li>
+                        </ul>
+                    </div>
+
+                    <div id="pacientesUnidadeInternacao" class="mb-4">
+                        <h4 class="font-inter font-semibold text-light-blue text-base lg:text-lg mb-2">Número de Pacientes por Grau de Complexidade (Unidade de Internação):</h4>
+                        <p class="text-gray-600 text-sm mb-2">Preencha o número de pacientes para cada nível de cuidado. Se um nível não se aplica, deixe 0.</p>
+                        <label for="numCM">Cuidado Mínimo (3.8h/dia):</label>
+                        <input type="number" id="numCM" name="numCM" min="0" value="0" />
+
+                        <label for="numCI">Cuidado Intermediário (5.6h/dia):</label>
+                        <input type="number" id="numCI" name="numCI" min="0" value="0" />
+
+                        <label for="numCAD">Cuidado de Alta Dependência (9.4h/dia):</label>
+                        <input type="number" id="numCAD" name="numCAD" min="0" value="0" />
+
+                        <label for="numCSI">Cuidado Semi-intensivo (10h/dia):</label>
+                        <input type="number" id="numCSI" name="numCSI" min="0" value="0" />
+                    </div>
+
+                    <div id="pacientesUTI" class="mb-4 hidden">
+                        <h4 class="font-inter font-semibold text-light-blue text-base lg:text-lg mb-2">Número de Leitos de UTI (Cuidado Intensivo):</h4>
+                        <p class="text-gray-600 text-sm mb-2">Todos os pacientes em UTI são considerados de Cuidado Intensivo (17.9h/dia).</p>
+                        <label for="numLeitosUTI">Número de Leitos de UTI:</label>
+                        <input type="number" id="numLeitosUTI" name="numLeitosUTI" min="0" value="0" />
+                    </div>
                 </div>
-                <div>
-                    <label for="ev" class="block text-gray-700 text-sm font-bold mb-2">Intravenosa (EV):</label>
-                    <input type="number" id="ev" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" value="0">
-                </div>
-                <div>
-                    <label for="outras_entradas" class="block text-gray-700 text-sm font-bold mb-2">Outras Entradas:</label>
-                    <input type="number" id="outras_entradas" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" value="0">
+
+                <div id="resultado" class="resultado hidden" aria-live="polite"></div>
+
+                <div class="ref font-inter text-gray-custom text-left">
+                    <h3 class="font-bold mb-2">Referências:</h3>
+                    <ul class="list-disc list-inside space-y-1">
+                        <li>Conselho Federal de Enfermagem (COFEN). Resolução COFEN Nº 543/2017. Disponível em: <a href="https://www.cofen.gov.br/resolucao-cofen-5432017/" target="_blank" class="text-light-blue hover:underline">https://www.cofen.gov.br/resolucao-cofen-5432017/</a></li>
+                    </ul>
                 </div>
             </div>
-        </div>
 
-        <div class="bg-white p-4 rounded-lg shadow-md mb-4">
-            <h3 class="font-bold text-xl text-dark-blue mb-4">Saídas (ml)</h3>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                    <label for="urina" class="block text-gray-700 text-sm font-bold mb-2">Urina:</label>
-                    <input type="number" id="urina" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" value="0">
-                </div>
-                <div>
-                    <label for="drenagem" class="block text-gray-700 text-sm font-bold mb-2">Drenagem (Sondas, etc.):</label>
-                    <input type="number" id="drenagem" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" value="0">
-                </div>
-                <div>
-                    <label for="vomito" class="block text-gray-700 text-sm font-bold mb-2">Vômito:</label>
-                    <input type="number" id="vomito" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" value="0">
-                </div>
-                <div>
-                    <label for="outras_saidas" class="block text-gray-700 text-sm font-bold mb-2">Outras Saídas:</label>
-                    <input type="number" id="outras_saidas" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" value="0">
-                </div>
+            <div class="flex flex-wrap justify-start gap-4 mt-6">
+                <button id="btnCalcular" class="btn-primary" aria-label="Calcular dimensionamento">
+                    Calcular
+                </button>
+                <button id="btnLimpar" class="btn-primary" aria-label="Limpar campos">
+                    Limpar
+                </button>
+                <button id="btnGerarPDF" class="btn-secondary" aria-label="Gerar PDF">
+                    Gerar PDF
+                </button>
+                <button id="btnNandaNicNoc" class="btn-primary" aria-label="Pesquisar NANDA, NIC, NOC">
+                    NANDA, NIC, NOC
+                </button>
             </div>
+        </main>
+    </div>
+
+    <!-- Botão "Ajude-nos" fixo -->
+    <a href="doacoes.html" class="fixed bottom-4 right-4 bg-dark-blue text-white text-sm px-4 py-2 rounded-full shadow hover:bg-blue-900 transition fixed-donation-button">
+        Ajude-nos a manter o site gratuito
+    </a>
+
+    <!-- Div para o rodapé dinâmico -->
+    <div id="footer-container"></div>
+
+    <!-- Cookie Consent Banner -->
+    <div id="cookieConsentBanner">
+        <p>Utilizamos cookies para melhorar sua experiência em nosso site. Ao continuar navegando, você concorda com nossa <a href="politica.html" class="underline text-blue-200 hover:text-blue-100">Política de Cookies</a>.</p>
+        <div class="cookie-buttons">
+            <button id="acceptCookiesBtn">Aceitar todos os cookies</button>
+            <button id="refuseCookiesBtn" class="secondary">Recusar cookies</button>
         </div>
+    </div>
 
-        <div id="resultado" class="resultado" aria-live="polite" style="display: none;"></div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- Lógica do Cookie Consent Banner ---
+            const cookieConsentBanner = document.getElementById('cookieConsentBanner');
+            const acceptCookiesBtn = document.getElementById('acceptCookiesBtn');
+            const refuseCookiesBtn = document.getElementById('refuseCookiesBtn');
+            const cookiesAcceptedKey = 'cookiesAccepted'; // Chave para localStorage
 
-        <div id="bibliografia" class="ref font-inter text-gray-custom">
-          <strong>Referência bibliográfica:</strong><br />
-          <p class="mt-2">
-            Manual de Enfermagem para Balanço Hídrico. Exemplo: BRASIL. Ministério da Saúde. Portaria nº 2.436, de 21 de setembro de 2017. Aprova a Política Nacional de Atenção Básica.
-          </p>
-        </div>
-      </div>
+            function showCookieBanner() {
+                if (localStorage.getItem(cookiesAcceptedKey) === null) {
+                    cookieConsentBanner.classList.add('show');
+                }
+            }
 
-      <div class="flex flex-wrap justify-start gap-4 mt-6 mb-10 pl-4">
-  <button id="btnCalcular" class="btn-primary" aria-label="Calcular Balanço Hídrico">
-    Calcular
-  </button>
-  <button id="btnLimpar" class="btn-primary" aria-label="Limpar campos">
-    Limpar
-  </button>
-  <button id="btnGerarPDF" class="btn-secondary" aria-label="Gerar PDF">
-    Gerar PDF
-  </button>
-  <button id="btnNandaNicNoc" class="btn-primary" aria-label="Pesquisar NANDA, NIC, NOC">
-    NANDA, NIC, NOC
-  </button>
-</div>
-    </main>
-  </div>
-  <a href="doacoes.html" class="fixed bottom-4 right-4 bg-dark-blue text-white text-sm px-4 py-2 rounded-full shadow hover:bg-blue-900 transition fixed-donation-button">
-    Ajude-nos a manter o site gratuito
-  </a>
-  <div id="footer-container"></div>
+            function hideCookieBanner() {
+                cookieConsentBanner.classList.remove('show');
+            }
 
-  <!-- Modal de Mensagem Personalizado -->
-  <div id="messageModalOverlay" class="message-modal-overlay">
-      <div class="message-modal-content">
-          <button id="messageModalClose" class="message-modal-close">&times;</button>
-          <p id="messageModalText" class="text-gray-700 text-lg"></p>
-      </div>
-  </div>
+            if (acceptCookiesBtn) {
+                acceptCookiesBtn.addEventListener('click', () => {
+                    localStorage.setItem(cookiesAcceptedKey, 'true');
+                    hideCookieBanner();
+                    gtag('consent', 'update', { 'analytics_storage': 'granted' });
+                });
+            }
 
-  <!-- Cookie Consent Banner -->
-  <div id="cookieConsentBanner">
-      <p>Utilizamos cookies para melhorar sua experiência em nosso site. Ao continuar navegando, você concorda com nossa <a href="politica.html" class="underline text-blue-200 hover:text-blue-100">Política de Cookies</a>.</p>
-      <div class="cookie-buttons">
-          <button id="acceptCookiesBtn">Aceitar todos os cookies</button>
-          <button id="refuseCookiesBtn" class="secondary">Recusar cookies</button>
-      </div>
-  </div>
+            if (refuseCookiesBtn) {
+                refuseCookiesBtn.addEventListener('click', () => {
+                    localStorage.setItem(cookiesAcceptedKey, 'false');
+                    hideCookieBanner();
+                });
+            }
+            showCookieBanner(); // Mostra o banner ao carregar a página
 
-  <!-- Botão Hambúrguer de Acessibilidade -->
-  <button id="accessibilityHamburgerBtn" class="accessibility-hamburger-btn" role="button" aria-label="Abrir menu de acessibilidade">
-      <i class="fas fa-universal-access"></i>
-  </button>
+            // --- Lógica da Nova Barra de Acessibilidade Hambúrguer ---
+            const accessibilityHamburgerBtn = document.getElementById('accessibilityHamburgerBtn');
+            const accessibilityOffCanvasMenu = document.getElementById('accessibilityOffCanvasMenu');
+            const closeAccessibilityMenuBtn = document.getElementById('closeAccessibilityMenuBtn');
+            const accessibilityOverlay = document.getElementById('accessibilityOverlay');
 
-  <!-- Off-canvas Menu de Acessibilidade -->
-  <div id="accessibilityOffCanvasMenu" class="accessibility-off-canvas-menu">
-      <div class="accessibility-menu-header">
-          <h3>Acessibilidade</h3>
-          <button id="closeAccessibilityMenuBtn" class="close-accessibility-menu-btn" aria-label="Fechar menu de acessibilidade">&times;</button>
-      </div>
-      <div class="accessibility-option">
-          <label>Tamanho da Fonte:</label>
-          <button id="font-size-small" class="accessibility-option-btn" aria-label="Fonte pequena">A-</button>
-          <button id="font-size-medium" class="accessibility-option-btn" aria-label="Fonte média">A</button>
-          <button id="font-size-large" class="accessibility-option-btn" aria-label="Fonte grande">A+</button>
-      </div>
-      <div class="accessibility-option">
-          <label>Contraste:</label>
-          <button id="contrast-normal" class="accessibility-option-btn" aria-label="Contraste normal">Normal</button>
-          <button id="contrast-high" class="accessibility-option-btn" aria-label="Alto contraste">Alto</button>
-      </div>
-      <div class="accessibility-option">
-          <label>Modo de Leitura:</label>
-          <button id="reading-mode-normal" class="accessibility-option-btn" aria-label="Modo normal">Normal</button>
-          <button id="reading-mode-dark" class="accessibility-option-btn" aria-label="Modo escuro">Escuro</button>
-      </div>
-  </div>
+            const toggleFontSizeBtn = document.getElementById('toggleFontSizeBtn');
+            const toggleContrastBtn = document.getElementById('toggleContrastBtn');
+            const toggleDarkModeBtn = document.getElementById('toggleDarkModeBtn');
+            const resetAccessibilityBtn = document.getElementById('resetAccessibilityBtn');
 
-  <!-- Overlay para o menu de acessibilidade -->
-  <div id="accessibilityOverlay" class="accessibility-overlay"></div>
+            let currentFontSize = 'normal';
+            let isHighContrast = false;
+            let isDarkMode = false;
 
-  <script>
-    // JS for Balanço Hídrico calculation
-    const resultadoDiv = document.getElementById('resultado');
-    const btnNandaNicNoc = document.getElementById('btnNandaNicNoc');
+            function applyAccessibilitySettings() {
+                const body = document.body;
+                body.classList.remove('font-size-small', 'font-size-large');
+                if (currentFontSize === 'small') {
+                    body.classList.add('font-size-small');
+                } else if (currentFontSize === 'large') {
+                    body.classList.add('font-size-large');
+                }
 
-    // Modal functions
-    const messageModalOverlay = document.getElementById('messageModalOverlay');
-    const messageModalText = document.getElementById('messageModalText');
-    const messageModalClose = document.getElementById('messageModalClose');
+                if (isHighContrast) {
+                    body.classList.add('high-contrast');
+                } else {
+                    body.classList.remove('high-contrast');
+                }
 
-    function showCustomMessage(message) {
-        messageModalText.textContent = message;
-        messageModalOverlay.style.display = 'flex';
-    }
+                if (isDarkMode) {
+                    body.classList.add('dark-mode');
+                } else {
+                    body.classList.remove('dark-mode');
+                }
+            }
 
-    function hideCustomMessage() {
-        messageModalOverlay.style.display = 'none';
-    }
+            if (toggleFontSizeBtn) {
+                toggleFontSizeBtn.addEventListener('click', () => {
+                    if (currentFontSize === 'normal') {
+                        currentFontSize = 'large';
+                    } else if (currentFontSize === 'large') {
+                        currentFontSize = 'small';
+                    } else {
+                        currentFontSize = 'normal';
+                    }
+                    applyAccessibilitySettings();
+                });
+            }
 
-    messageModalClose.addEventListener('click', hideCustomMessage);
-    messageModalOverlay.addEventListener('click', (e) => {
-        if (e.target === messageModalOverlay) {
-            hideCustomMessage();
-        }
-    });
+            if (toggleContrastBtn) {
+                toggleContrastBtn.addEventListener('click', () => {
+                    isHighContrast = !isHighContrast;
+                    applyAccessibilitySettings();
+                });
+            }
 
-    function calcular() {
-        const oral = parseFloat(document.getElementById('oral').value) || 0;
-        const ev = parseFloat(document.getElementById('ev').value) || 0;
-        const outras_entradas = parseFloat(document.getElementById('outras_entradas').value) || 0;
+            if (toggleDarkModeBtn) {
+                toggleDarkModeBtn.addEventListener('click', () => {
+                    isDarkMode = !isDarkMode;
+                    applyAccessibilitySettings();
+                });
+            }
 
-        const urina = parseFloat(document.getElementById('urina').value) || 0;
-        const drenagem = parseFloat(document.getElementById('drenagem').value) || 0;
-        const vomito = parseFloat(document.getElementById('vomito').value) || 0;
-        const outras_saidas = parseFloat(document.getElementById('outras_saidas').value) || 0;
+            if (resetAccessibilityBtn) {
+                resetAccessibilityBtn.addEventListener('click', () => {
+                    currentFontSize = 'normal';
+                    isHighContrast = false;
+                    isDarkMode = false;
+                    applyAccessibilitySettings();
+                });
+            }
 
-        const totalEntradas = oral + ev + outras_entradas;
-        const totalSaidas = urina + drenagem + vomito + outras_saidas;
-        const balanco = totalEntradas - totalSaidas;
+            if (accessibilityHamburgerBtn) {
+                accessibilityHamburgerBtn.addEventListener('click', () => {
+                    accessibilityOffCanvasMenu.classList.add('is-open');
+                    accessibilityOverlay.style.display = 'block';
+                });
+            }
 
-        resultadoDiv.style.display = 'block';
-        resultadoDiv.innerHTML = `
-            <strong>Total de Entradas:</strong> ${totalEntradas} ml<br>
-            <strong>Total de Saídas:</strong> ${totalSaidas} ml<br>
-            <strong>Balanço Hídrico:</strong> ${balanco} ml
-        `;
-        resultadoDiv.classList.remove('bg-red-100', 'text-red-600', 'bg-yellow-100', 'text-yellow-700', 'bg-green-100', 'text-green-700', 'bg-blue-50', 'text-dark-blue');
-        resultadoDiv.classList.add('bg-blue-50', 'text-dark-blue'); // Default color
+            if (closeAccessibilityMenuBtn) {
+                closeAccessibilityMenuBtn.addEventListener('click', () => {
+                    accessibilityOffCanvasMenu.classList.remove('is-open');
+                    accessibilityOverlay.style.display = 'none';
+                });
+            }
 
-        // Set data attributes for NANDA button
-        resultadoDiv.dataset.totalEntradas = totalEntradas;
-        resultadoDiv.dataset.totalSaidas = totalSaidas;
-        resultadoDiv.dataset.balanco = balanco;
-        resultadoDiv.dataset.scaleName = "Balanço Hídrico";
+            if (accessibilityOverlay) {
+                accessibilityOverlay.addEventListener('click', () => {
+                    accessibilityOffCanvasMenu.classList.remove('is-open');
+                    accessibilityOverlay.style.display = 'none';
+                });
+            }
 
-        // Determine color based on balance
-        if (balanco < 0) {
-            resultadoDiv.classList.add('bg-red-100', 'text-red-600');
-        } else if (balanco > 0) {
-            resultadoDiv.classList.add('bg-green-100', 'text-green-700');
-        } else {
-            resultadoDiv.classList.add('bg-yellow-100', 'text-yellow-700');
-        }
-    }
-
-    function limparCampos() {
-        document.getElementById('oral').value = '0';
-        document.getElementById('ev').value = '0';
-        document.getElementById('outras_entradas').value = '0';
-        document.getElementById('urina').value = '0';
-        document.getElementById('drenagem').value = '0';
-        document.getElementById('vomito').value = '0';
-        document.getElementById('outras_saidas').value = '0';
-
-        resultadoDiv.innerHTML = '';
-        resultadoDiv.style.display = 'none';
-        resultadoDiv.classList.remove('bg-red-100', 'text-red-600', 'bg-yellow-100', 'text-yellow-700', 'bg-green-100', 'text-green-700', 'bg-blue-50', 'text-dark-blue');
-        // Clear data attributes
-        delete resultadoDiv.dataset.totalEntradas;
-        delete resultadoDiv.dataset.totalSaidas;
-        delete resultadoDiv.dataset.balanco;
-        delete resultadoDiv.dataset.scaleName;
-    }
-
-    // PDF Generation Function - Modified as per user's example
-    function gerarPDF() {
-        // Esconde o botão de doação fixo para que não apareça no PDF.
-        const fixedButton = document.querySelector('.fixed-donation-button');
-        if (fixedButton) {
-            fixedButton.style.display = 'none';
-        }
-
-        // Clona o conteúdo principal da calculadora (o elemento <main>)
-        const contentToPrint = document.querySelector('main').cloneNode(true);
-
-        // Remove os botões de ação do CLONE do conteúdo
-        const clonedButtonsContainer = contentToPrint.querySelector('.flex.flex-wrap.justify-start.gap-4.mt-6');
-        if (clonedButtonsContainer) {
-            clonedButtonsContainer.remove();
-        }
-        // Remove o botão de doação do CLONE do conteúdo se ele estiver lá
-        contentToPrint.querySelector('.fixed-donation-button')?.remove();
-
-        // Títulos para o PDF
-        const pdfTitleText = "Balanço Hídrico";
-        const pdfSubtitleText = "Relatório de Balanço Hídrico Detalhado";
-
-        const headerDiv = document.createElement('div');
-        headerDiv.style.cssText = "text-align: center; margin-bottom: 20px; font-family: 'Nunito Sans', sans-serif; color: #1A3E74;";
-        headerDiv.innerHTML = `
-            <h1 style="font-size: 24px; font-weight: bold; margin-bottom: 5px;">${pdfTitleText}</h1>
-            <p style="font-size: 14px; color: #666666;">${pdfSubtitleText}</p>
-            <p style="font-size: 12px; color: #777;">Gerado em: ${new Date().toLocaleDateString('pt-BR')} ${new Date().toLocaleTimeString('pt-BR')}</p>
-        `;
-        // Prepend o cabeçalho ao clone do main
-        contentToPrint.prepend(headerDiv);
-
-        // Ajusta o resultado para o PDF.
-        // Pega a div de resultado ORIGINAL para obter o conteúdo e as classes.
-        const resultadoDivPage = document.getElementById('resultado'); 
-        const resultDivForPdf = contentToPrint.querySelector('#resultado'); // Pega a div de resultado dentro do CLONE
-
-        if (resultDivForPdf && resultadoDivPage.style.display !== 'none' && resultadoDivPage.innerHTML.trim() !== '' && !resultadoDivPage.classList.contains('text-red-600')) {
-            resultDivForPdf.innerHTML = resultadoDivPage.innerHTML; // Copia o HTML
-            // Limpa classes existentes no clone para aplicar as corretas
-            resultDivForPdf.classList.remove('bg-red-100', 'text-red-600', 'bg-yellow-100', 'text-yellow-700', 'bg-green-100', 'text-green-700', 'bg-blue-50', 'text-dark-blue');
-            // Copia as classes de cor do resultado original
-            resultadoDivPage.classList.forEach(cls => {
-                if (cls.startsWith('bg-') || cls.startsWith('text-')) {
-                    resultDivForPdf.classList.add(cls);
+            document.addEventListener('keydown', (event) => {
+                if (event.key === 'Escape' && accessibilityOffCanvasMenu.classList.contains('is-open')) {
+                    accessibilityOffCanvasMenu.classList.remove('is-open');
+                    accessibilityOverlay.style.display = 'none';
                 }
             });
-            // Garante cores explícitas para o PDF
-            resultDivForPdf.style.backgroundColor = '#e0f2fe';
-            resultDivForPdf.style.color = '#1A3E74';
-            resultDivForPdf.style.display = 'block'; // Garante que esteja visível no PDF
-        } else if (resultDivForPdf) {
-            resultDivForPdf.innerHTML = "Resultado não calculado na página ou cálculo inválido. Por favor, preencha os campos e clique em 'Calcular' antes de gerar o PDF.";
-            resultDivForPdf.style.backgroundColor = '#ffeeba'; // Light orange/yellow for info
-            resultDivForPdf.style.color = '#856404'; // Darker orange/brown text
-            resultDivForPdf.style.display = 'block'; // Garante que esteja visível no PDF
-        }
+            applyAccessibilitySettings();
 
-        // Ajusta a referência bibliográfica para o PDF.
-        const references = contentToPrint.querySelector('#bibliografia'); // Pega a div de referência dentro do CLONE
-        if (references) {
-            references.style.marginTop = '2rem';
-            references.style.fontSize = '12px'; // Ajusta o tamanho da fonte para PDF
-            references.style.color = '#666666';
-            references.style.textAlign = 'left';
-            references.querySelectorAll('a').forEach(a => {
-                a.style.color = '#1FA4E5';
-                a.style.textDecoration = 'underline';
-            });
-        }
+            // --- Lógica da Calculadora de Dimensionamento ---
+            const cargaHorariaSelect = document.getElementById('cargaHoraria');
+            const tipoUnidadeSelect = document.getElementById('tipoUnidade');
+            const pacientesUnidadeInternacaoDiv = document.getElementById('pacientesUnidadeInternacao');
+            const pacientesUTIDiv = document.getElementById('pacientesUTI');
+            const numCMInput = document.getElementById('numCM');
+            const numCIInput = document.getElementById('numCI');
+            const numCADInput = document.getElementById('numCAD');
+            const numCSIInput = document.getElementById('numCSI');
+            const numLeitosUTIInput = document.getElementById('numLeitosUTI');
+            const resultadoDiv = document.getElementById('resultado');
 
-        const opt = {
-            margin:       0.5,
-            filename:     'balanco-hidrico.pdf',
-            image:        { type: 'jpeg', quality: 0.98 },
-            // Aumenta a escala para melhor qualidade e tenta ajustar em uma página
-            // scrollY: 0 é importante para evitar que o html2canvas crie um canvas muito alto
-            html2canvas:  { scale: 2, scrollY: 0, useCORS: true, logging: true }, 
-            jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }, // Alterado para 'mm' e 'a4'
-        };
-        
-        html2pdf().set(opt).from(contentToPrint).save().then(() => {
-            // Volta a exibir o botão de doação após a geração do PDF
-            if (fixedButton) {
-                fixedButton.style.display = '';
+            function toggleUnidadeInputs() {
+                if (tipoUnidadeSelect.value === 'unidadeInternacao') {
+                    pacientesUnidadeInternacaoDiv.classList.remove('hidden');
+                    pacientesUTIDiv.classList.add('hidden');
+                    numLeitosUTIInput.value = 0; // Reset UTI input
+                } else {
+                    pacientesUnidadeInternacaoDiv.classList.add('hidden');
+                    pacientesUTIDiv.classList.remove('hidden');
+                    numCMInput.value = 0; // Reset geral inputs
+                    numCIInput.value = 0;
+                    numCADInput.value = 0;
+                    numCSIInput.value = 0;
+                }
             }
-        }).catch(error => {
-            console.error('Erro ao gerar PDF:', error);
-            showCustomMessage('Ocorreu um erro ao gerar o PDF. Por favor, tente novamente.');
-            if (fixedButton) {
-                fixedButton.style.display = '';
-            }
-        });
-    }
 
-    document.addEventListener('DOMContentLoaded', () => {
-        document.getElementById('btnCalcular').addEventListener('click', calcular);
-        document.getElementById('btnLimpar').addEventListener('click', limparCampos);
-        document.getElementById('btnGerarPDF').addEventListener('click', gerarPDF);
+            tipoUnidadeSelect.addEventListener('change', toggleUnidadeInputs);
+            toggleUnidadeInputs(); // Initial call to set correct inputs on load
 
-        // NANDA button logic
-        if (btnNandaNicNoc) {
-            btnNandaNicNoc.addEventListener('click', () => {
-                const totalEntradas = resultadoDiv.dataset.totalEntradas;
-                const totalSaidas = resultadoDiv.dataset.totalSaidas;
-                const balanco = resultadoDiv.dataset.balanco;
-                const scaleName = resultadoDiv.dataset.scaleName;
+            function calcularDimensionamento() {
+                const cargaHorariaSemanal = parseInt(cargaHorariaSelect.value, 10);
+                const tipoUnidade = tipoUnidadeSelect.value;
 
-                if (resultadoDiv.style.display === 'none' || !totalEntradas || !totalSaidas || !balanco || !scaleName) {
-                    showCustomMessage('Por favor, clique em "Calcular" primeiro para obter o balanço hídrico e habilitar a pesquisa NANDA, NIC, NOC.');
+                let totalHorasEnfermagemDia = 0;
+                let enfermeirosBase = 0;
+                let tecnicosAuxBase = 0;
+                let maiorCargaTrabalhoTipo = null;
+                let maiorCargaTrabalhoHoras = 0;
+
+                const HPPD = {
+                    CM: 3.8,
+                    CI: 5.6,
+                    CAD: 9.4,
+                    CSI: 10,
+                    INTENSIVO: 17.9
+                };
+
+                const PERCENTAGENS = {
+                    CM_CI: { enfermeiro: 0.33, tecnicoAux: 0.67 },
+                    CAD: { enfermeiro: 0.36, tecnicoAux: 0.64 },
+                    CSI: { enfermeiro: 0.42, tecnicoAux: 0.58 },
+                    INTENSIVO: { enfermeiro: 0.52, tecnicoAux: 0.48 }
+                };
+
+                // Validate cargaHoraria
+                if (isNaN(cargaHorariaSemanal) || cargaHorariaSemanal <= 0) {
+                    resultadoDiv.innerText = 'Por favor, selecione uma carga horária semanal válida.';
+                    resultadoDiv.classList.add('text-red-600');
+                    resultadoDiv.classList.remove('text-dark-blue', 'hidden');
                     return;
                 }
 
-                const detailedSearchQuery = `Balanço Hídrico: Entradas ${totalEntradas}ml, Saídas ${totalSaidas}ml, Balanço ${balanco}ml - ${scaleName} GERAR diagnosticos de enfermagem da NANDA, GERAR intervenções de enfermagem do NIC, Gerar um exemplo de mensuração dos resultados implementados pelo enfermeiro (NOC)`;
-                const encodedSearchQuery = encodeURIComponent(detailedSearchQuery);
-                window.open(`https://www.google.com/search?q=${encodedSearchQuery}`, '_blank');
-            });
-        }
+                if (tipoUnidade === 'unidadeInternacao') {
+                    const numCM = parseInt(numCMInput.value, 10) || 0;
+                    const numCI = parseInt(numCIInput.value, 10) || 0;
+                    const numCAD = parseInt(numCADInput.value, 10) || 0;
+                    const numCSI = parseInt(numCSIInput.value, 10) || 0;
 
-        // Carrega o rodapé
-        fetch("rodape111.html")
-            .then(res => res.text())
-            .then(data => {
-                const footerContainer = document.getElementById("footer-container");
-                if (footerContainer) {
-                    footerContainer.innerHTML = data;
-                } else {
-                    console.error('Elemento footer-container não encontrado.');
+                    if (numCM + numCI + numCAD + numCSI === 0) {
+                        resultadoDiv.innerText = 'Por favor, insira o número de pacientes para pelo menos um grau de complexidade na Unidade de Internação.';
+                        resultadoDiv.classList.add('text-red-600');
+                        resultadoDiv.classList.remove('text-dark-blue', 'hidden');
+                        return;
+                    }
+
+                    const horasCM = numCM * HPPD.CM;
+                    const horasCI = numCI * HPPD.CI;
+                    const horasCAD = numCAD * HPPD.CAD;
+                    const horasCSI = numCSI * HPPD.CSI;
+
+                    totalHorasEnfermagemDia = horasCM + horasCI + horasCAD + horasCSI;
+
+                    // Determinar a maior carga de trabalho para definir as porcentagens
+                    const cargas = [
+                        { tipo: 'CM_CI', horas: horasCM + horasCI },
+                        { tipo: 'CAD', horas: horasCAD },
+                        { tipo: 'CSI', horas: horasCSI }
+                    ];
+
+                    maiorCargaTrabalhoTipo = 'CM_CI'; // Default para o menor risco
+                    maiorCargaTrabalhoHoras = cargas[0].horas;
+
+                    for (let i = 1; i < cargas.length; i++) {
+                        if (cargas[i].horas > maiorCargaTrabalhoHoras) {
+                            maiorCargaTrabalhoHoras = cargas[i].horas;
+                            maiorCargaTrabalhoTipo = cargas[i].tipo;
+                        }
+                    }
+
+                    if (totalHorasEnfermagemDia === 0) {
+                         maiorCargaTrabalhoTipo = 'CM_CI';
+                    }
+
+                } else if (tipoUnidade === 'uti') {
+                    const numLeitosUTI = parseInt(numLeitosUTIInput.value, 10) || 0;
+
+                    if (numLeitosUTI === 0) {
+                        resultadoDiv.innerText = 'Por favor, insira o número de leitos de UTI.';
+                        resultadoDiv.classList.add('text-red-600');
+                        resultadoDiv.classList.remove('text-dark-blue', 'hidden');
+                        return;
+                    }
+
+                    totalHorasEnfermagemDia = numLeitosUTI * HPPD.INTENSIVO;
+                    maiorCargaTrabalhoTipo = 'INTENSIVO';
                 }
-            })
-            .catch(err => console.error("Erro ao carregar rodape111.html:", err));
 
-        // --- Lógica de Acessibilidade ---
-        const accessibilityHamburgerBtn = document.getElementById('accessibilityHamburgerBtn');
-        const accessibilityOffCanvasMenu = document.getElementById('accessibilityOffCanvasMenu');
-        const closeAccessibilityMenuBtn = document.getElementById('closeAccessibilityMenuBtn');
-        const accessibilityOverlay = document.getElementById('accessibilityOverlay');
+                const horasProfissionalDia = cargaHorariaSemanal / 7;
+                const profissionaisBaseTotal = totalHorasEnfermagemDia / horasProfissionalDia;
 
-        const fontSizeSmallBtn = document.getElementById('font-size-small');
-        const fontSizeMediumBtn = document.getElementById('font-size-medium');
-        const fontSizeLargeBtn = document.getElementById('font-size-large');
-        const contrastNormalBtn = document.getElementById('contrast-normal');
-        const contrastHighBtn = document.getElementById('contrast-high');
-        const readingModeNormalBtn = document.getElementById('reading-mode-normal');
-        const readingModeDarkBtn = document.getElementById('reading-mode-dark');
+                const percentuaisAplicados = PERCENTAGENS[maiorCargaTrabalhoTipo];
+                enfermeirosBase = profissionaisBaseTotal * percentuaisAplicados.enfermeiro;
+                tecnicosAuxBase = profissionaisBaseTotal * percentuaisAplicados.tecnicoAux;
 
-        function applyAccessibilitySettings() {
-            const body = document.body;
-            const savedFontSize = localStorage.getItem('fontSize');
-            const savedContrast = localStorage.getItem('contrast');
-            const savedReadingMode = localStorage.getItem('readingMode');
 
-            body.classList.remove('font-size-small', 'font-size-large', 'high-contrast', 'dark-mode');
+                // Apply Technical Safety Index (IST) - 15%
+                const IST = 1.15;
+                const totalEnfermeirosFinal = Math.ceil(enfermeirosBase * IST);
+                const totalTecnicosAuxFinal = Math.ceil(tecnicosAuxBase * IST);
+                const totalProfissionaisGeral = totalEnfermeirosFinal + totalTecnicosAuxFinal;
 
-            if (savedFontSize === 'small') { body.classList.add('font-size-small'); } else if (savedFontSize === 'large') { body.classList.add('font-size-large'); }
-            if (savedContrast === 'high') { body.classList.add('high-contrast'); }
-            if (savedReadingMode === 'dark') { body.classList.add('dark-mode'); }
+                // Calculate professionals per 12-hour shift
+                const enfermeiros12hShift = Math.ceil(totalEnfermeirosFinal / 2);
+                const tecnicosAux12hShift = Math.ceil(totalTecnicosAuxFinal / 2);
 
-            updateAccessibilityButtons(savedFontSize, savedContrast, savedReadingMode);
-        }
 
-        function updateAccessibilityButtons(fontSize, contrast, readingMode) {
-            [fontSizeSmallBtn, fontSizeMediumBtn, fontSizeLargeBtn].forEach(btn => { if(btn) btn.classList.remove('active'); });
-            if (fontSize === 'small' && fontSizeSmallBtn) { fontSizeSmallBtn.classList.add('active'); } else if (fontSize === 'large' && fontSizeLargeBtn) { fontSizeLargeBtn.classList.add('active'); } else if (fontSizeMediumBtn) { fontSizeMediumBtn.classList.add('active'); }
+               resultadoDiv.innerHTML = `
+  <div class="space-y-0.5 leading-none text-xs">
+    <p><strong>Total de Horas de Enfermagem Necessárias por Dia (24h):</strong> ${totalHorasEnfermagemDia.toFixed(2)} horas</p>
+    <p><strong>Total de Profissionais de Enfermagem Necessários (com IST) para cobertura 24h:</strong> ${totalProfissionaisGeral}</p>
+    <p><strong>Número de Enfermeiros Necessários (com IST) para cobertura 24h:</strong> ${totalEnfermeirosFinal}</p>
+    <p><strong>Número de Técnicos/Auxiliares de Enfermagem Necessários (com IST) para cobertura 24h:</strong> ${totalTecnicosAuxFinal}</p>
 
-            [contrastNormalBtn, contrastHighBtn].forEach(btn => { if(btn) btn.classList.remove('active'); });
-            if (contrast === 'high' && contrastHighBtn) { contrastHighBtn.classList.add('active'); } else if (contrastNormalBtn) { contrastNormalBtn.classList.add('active'); }
+    <table class="w-auto text-left border-collapse mt-1 text-xs">
+      <thead>
+        <tr>
+          <th colspan="2" class="pb-1"><strong>Profissionais em um turno de 12 horas (estimativa)</strong></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="pr-4">Enfermeiros:</td>
+          <td>${enfermeiros12hShift}</td>
+        </tr>
+        <tr>
+          <td class="pr-4">Técnicos/Auxiliares de Enfermagem:</td>
+          <td>${tecnicosAux12hShift}</td>
+        </tr>
+      </tbody>
+    </table>
 
-            [readingModeNormalBtn, readingModeDarkBtn].forEach(btn => { if(btn) btn.classList.remove('active'); });
-            if (readingMode === 'dark' && readingModeDarkBtn) { readingModeDarkBtn.classList.add('active'); } else if (readingModeNormalBtn) { readingModeNormalBtn.classList.add('active'); }
-        }
+    <p class="text-[0.65rem] text-gray-600 mt-1 leading-none">
+      <em>*A distribuição percentual foi baseada na categoria com a maior carga de trabalho: 
+      ${maiorCargaTrabalhoTipo === 'CM_CI' ? 'Cuidado Mínimo/Intermediário' : maiorCargaTrabalhoTipo === 'CAD' ? 'Cuidado de Alta Dependência' : maiorCargaTrabalhoTipo === 'CSI' ? 'Cuidado Semi-intensivo' : 'Cuidado Intensivo'}.</em>
+    </p>
+    
+    <p class="text-[0.65rem] text-gray-600 mt-0.5 leading-none">
+      <em>O total em 24 horas representa o quadro completo de profissionais necessário para cobrir todos os turnos, considerando folgas e ausências.</em>
+    </p>
+  </div>
+`;
 
-        if (fontSizeSmallBtn) fontSizeSmallBtn.addEventListener('click', () => { localStorage.setItem('fontSize', 'small'); applyAccessibilitySettings(); });
-        if (fontSizeMediumBtn) fontSizeMediumBtn.addEventListener('click', () => { localStorage.removeItem('fontSize'); applyAccessibilitySettings(); });
-        if (fontSizeLargeBtn) fontSizeLargeBtn.addEventListener('click', () => { localStorage.setItem('fontSize', 'large'); applyAccessibilitySettings(); });
-        if (contrastNormalBtn) contrastNormalBtn.addEventListener('click', () => { localStorage.removeItem('contrast'); applyAccessibilitySettings(); });
-        if (contrastHighBtn) contrastHighBtn.addEventListener('click', () => { localStorage.setItem('contrast', 'high'); applyAccessibilitySettings(); });
-        if (readingModeNormalBtn) readingModeNormalBtn.addEventListener('click', () => { localStorage.removeItem('readingMode'); applyAccessibilitySettings(); });
-        if (readingModeDarkBtn) readingModeDarkBtn.addEventListener('click', () => { localStorage.setItem('readingMode', 'dark'); applyAccessibilitySettings(); });
+resultadoDiv.classList.remove('text-red-600', 'hidden');
+resultadoDiv.classList.add('text-dark-blue');
 
-        if (accessibilityHamburgerBtn) { accessibilityHamburgerBtn.addEventListener('click', () => { accessibilityOffCanvasMenu.classList.add('is-open'); accessibilityOverlay.style.display = 'block'; }); }
-        if (closeAccessibilityMenuBtn) { closeAccessibilityMenuBtn.addEventListener('click', () => { accessibilityOffCanvasMenu.classList.remove('is-open'); accessibilityOverlay.style.display = 'none'; }); }
-        if (accessibilityOverlay) { accessibilityOverlay.addEventListener('click', (event) => { if (event.target === accessibilityOverlay) { accessibilityOffCanvasMenu.classList.remove('is-open'); accessibilityOverlay.style.display = 'none'; } }); }
-        document.addEventListener('keydown', (event) => { if (event.key === 'Escape' && accessibilityOffCanvasMenu.classList.contains('is-open')) { accessibilityOffCanvasMenu.classList.remove('is-open'); accessibilityOverlay.style.display = 'none'; } });
-        applyAccessibilitySettings();
+                // Store data for NANDA, NIC, NOC button
+                resultadoDiv.dataset.tipoUnidade = tipoUnidade;
+                resultadoDiv.dataset.cargaHoraria = cargaHorariaSemanal;
+                resultadoDiv.dataset.totalProfissionais = totalProfissionaisGeral;
+                resultadoDiv.dataset.enfermeiros = totalEnfermeirosFinal;
+                resultadoDiv.dataset.tecnicosAux = totalTecnicosAuxFinal;
+                resultadoDiv.dataset.maiorCargaTrabalhoTipo = maiorCargaTrabalhoTipo; // Armazena o tipo de maior carga
+            }
 
-        // --- Lógica do Cookie Consent Banner ---
-        const cookieConsentBanner = document.getElementById('cookieConsentBanner');
-        const acceptCookiesBtn = document.getElementById('acceptCookiesBtn');
-        const refuseCookiesBtn = document.getElementById('refuseCookiesBtn');
-        const cookiesAcceptedKey = 'cookiesAccepted';
+            function limparDimensionamento() {
+                cargaHorariaSelect.value = '30';
+                tipoUnidadeSelect.value = 'unidadeInternacao';
+                toggleUnidadeInputs(); // Reset visibility and values
 
-        function showCookieBanner() { if (localStorage.getItem(cookiesAcceptedKey) === null || localStorage.getItem(cookiesAcceptedKey) === 'false') { cookieConsentBanner.classList.add('show'); } }
-        function hideCookieBanner() { cookieConsentBanner.classList.remove('show'); }
+                numCMInput.value = 0;
+                numCIInput.value = 0;
+                numCADInput.value = 0;
+                numCSIInput.value = 0;
+                numLeitosUTIInput.value = 0;
 
-        if (acceptCookiesBtn) {
-            acceptCookiesBtn.addEventListener('click', () => {
-                localStorage.setItem(cookiesAcceptedKey, 'true');
-                hideCookieBanner();
-                gtag('consent', 'update', { 'analytics_storage': 'granted' });
-            });
-        }
-        if (refuseCookiesBtn) {
-            refuseCookiesBtn.addEventListener('click', () => {
-                localStorage.setItem(cookiesAcceptedKey, 'false');
-                hideCookieBanner();
-            });
-        }
-        showCookieBanner();
-    });
-  </script>
+                resultadoDiv.innerText = '';
+                resultadoDiv.classList.remove('text-red-600', 'text-dark-blue');
+                resultadoDiv.classList.add('hidden');
+
+                // Clear datasets
+                resultadoDiv.dataset.tipoUnidade = '';
+                resultadoDiv.dataset.cargaHoraria = '';
+                resultadoDiv.dataset.totalProfissionais = '';
+                resultadoDiv.dataset.enfermeiros = '';
+                resultadoDiv.dataset.tecnicosAux = '';
+                resultadoDiv.dataset.maiorCargaTrabalhoTipo = '';
+            }
+
+            function gerarPDFDimensionamento() {
+                const contentToPrint = document.getElementById('conteudo').cloneNode(true);
+
+                const fixedButton = document.querySelector('.fixed-donation-button');
+                if (fixedButton) {
+                    fixedButton.style.display = 'none';
+                }
+
+                const pdfTitleText = "Dimensionamento de Enfermagem";
+                const pdfSubtitleText = "Relatório Baseado na Resolução COFEN Nº 543/2017";
+
+                const titleDiv = document.createElement('h1');
+                titleDiv.style.fontSize = '24px';
+                titleDiv.style.color = '#1A3E74';
+                titleDiv.style.textAlign = 'center';
+                titleDiv.style.marginBottom = '5px';
+                titleDiv.innerText = pdfTitleText;
+                contentToPrint.prepend(titleDiv);
+
+                const subtitleDiv = document.createElement('h2');
+                subtitleDiv.style.fontSize = '14px';
+                subtitleDiv.style.color = '#666666';
+                subtitleDiv.style.textAlign = 'center';
+                subtitleDiv.style.marginBottom = '15px';
+                subtitleDiv.innerText = pdfSubtitleText;
+                contentToPrint.prepend(subtitleDiv);
+
+                const dateDiv = document.createElement('p');
+                dateDiv.style.fontSize = '12px';
+                dateDiv.style.color = '#777';
+                dateDiv.style.textAlign = 'center';
+                dateDiv.style.marginBottom = '20px';
+                dateDiv.innerText = `Gerado em: ${new Date().toLocaleDateString('pt-BR')} ${new Date().toLocaleTimeString('pt-BR')}`;
+                contentToPrint.prepend(dateDiv);
+
+                const opt = {
+                    margin:       0.5,
+                    filename:     'dimensionamento-enfermagem.pdf',
+                    image:        { type: 'jpeg', quality: 0.98 },
+                    html2canvas:  { scale: 3, scrollY: 0 },
+                    jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }
+                };
+
+                html2pdf().set(opt).from(contentToPrint).save().then(() => {
+                    if (fixedButton) {
+                        fixedButton.style.display = '';
+                    }
+                });
+            }
+
+            const btnNandaNicNoc = document.getElementById('btnNandaNicNoc');
+
+            if (btnNandaNicNoc) {
+                btnNandaNicNoc.addEventListener('click', () => {
+                    const totalProfissionais = resultadoDiv.dataset.totalProfissionais;
+                    const enfermeiros = resultadoDiv.dataset.enfermeiros;
+                    const tecnicosAux = resultadoDiv.dataset.tecnicosAux;
+                    const tipoUnidade = tipoUnidadeSelect.value === 'unidadeInternacao' ? 'Unidade de Internação' : 'UTI Adulto/Pediátrica';
+                    const cargaHoraria = resultadoDiv.dataset.cargaHoraria;
+                    const maiorCargaTrabalhoTipo = resultadoDiv.dataset.maiorCargaTrabalhoTipo;
+
+                    if (!totalProfissionais || resultadoDiv.classList.contains('hidden')) {
+                        resultadoDiv.innerText = 'Por favor, clique em "Calcular" primeiro para obter o dimensionamento e habilitar a pesquisa NANDA, NIC, NOC.';
+                        resultadoDiv.classList.add('text-red-600');
+                        resultadoDiv.classList.remove('text-dark-blue');
+                        if (resultadoDiv.classList.contains('hidden')) {
+                            resultadoDiv.classList.remove('hidden');
+                        }
+                        return;
+                    }
+
+                    // Constrói a string de pesquisa padronizada
+                    const resultadoSummary = `Total: ${totalProfissionais} profissionais (${enfermeiros} enfermeiros, ${tecnicosAux} técnicos/auxiliares) - Proporção baseada em: ${maiorCargaTrabalhoTipo === 'CM_CI' ? 'Cuidado Mínimo/Intermediário' : maiorCargaTrabalhoTipo === 'CAD' ? 'Cuidado de Alta Dependência' : maiorCargaTrabalhoTipo === 'CSI' ? 'Cuidado Semi-intensivo' : 'Cuidado Intensivo'}`;
+                    const detailedSearchQuery = `Dimensionamento de Enfermagem: ${tipoUnidade} - Carga Horária ${cargaHoraria}h - ${resultadoSummary} GERAR diagnosticos de enfermagem da NANDA, GERAR intervenções de enfermagem do NIC, Gerar um exemplo de mensuração dos resultados implementados pelo enfermeiro (NOC)`;
+                    const encodedSearchQuery = encodeURIComponent(detailedSearchQuery);
+                    window.open(`https://www.google.com/search?q=${encodedSearchQuery}`, '_blank');
+                });
+            }
+
+            // Botão para redirecionar para fugulin.html
+            const btnGrauComplexidade = document.getElementById('btnGrauComplexidade');
+            if (btnGrauComplexidade) {
+                btnGrauComplexidade.addEventListener('click', () => {
+                    window.location.href = 'fugulin.html';
+                });
+            }
+
+            document.getElementById('btnCalcular').addEventListener('click', calcularDimensionamento);
+            document.getElementById('btnLimpar').addEventListener('click', limparDimensionamento);
+            document.getElementById('btnGerarPDF').addEventListener('click', gerarPDFDimensionamento);
+
+            // Carrega o rodapé
+            fetch("rodape111.html")
+                .then(res => res.text())
+                .then(data => {
+                    const footerContainer = document.getElementById("footer-container");
+                    if (footerContainer) {
+                        footerContainer.innerHTML = data;
+                    } else {
+                        console.error('Elemento footer-container não encontrado.');
+                    }
+                })
+                .catch(err => console.error("Erro ao carregar rodape111.html:", err));
+
+            // VLibras widget initialization
+            new VLibras.Widget('https://vlibras.gov.br/app');
+
+            // Service Worker registration
+            if ('serviceWorker' in navigator) {
+                window.addEventListener('load', () => {
+                    navigator.serviceWorker.register('/service-worker.js')
+                        .then(registration => {
+                            console.log('ServiceWorker registration successful with scope: ', registration.scope);
+                        })
+                        .catch(err => {
+                            console.log('ServiceWorker registration failed: ', err);
+                        });
+                });
+            }
+        });
+    </script>
 </body>
 </html>
