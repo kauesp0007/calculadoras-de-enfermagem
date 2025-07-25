@@ -1105,191 +1105,201 @@ pdfContentWrapper.style.fontSize = '9px'; // opcional para ajustar altura
       refSection.style.textAlign = 'left';
       pdfContentWrapper.appendChild(refSection);
 
-      // Configurações do PDF
-      const options = {
-        margin: [10, 10, 10, 10], // top, left, bottom, right
-        filename: 'balanco_hidrico.pdf',
-        image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: { scale: 2 },
-        jsPDF: { unit: 'mm', format: [210, 297], orientation: 'portrait' }, // já é A4
-html2canvas: { scale: 1 } // ⬅ menor escala (reduz o conteúdo)
-      };
+     <script>
+  // Função para gerar o PDF no padrão aldrete.html
+  function gerarPDF() {
+    const titulo = document.getElementById('main-title')?.innerText || 'Balanço Hídrico';
+    const subtitulo = document.getElementById('main-subtitle')?.innerText || '';
+    const dataHora = new Date().toLocaleString('pt-BR');
+    const camposPreenchidos = document.getElementById('camposResposta')?.innerText || '';
+    const resultado = document.getElementById('resultado')?.innerText || '';
+    const referencia = document.getElementById('referenciaFinal')?.innerText || '';
 
-      // Gera e baixa o PDF
-      html2pdf().from(pdfContentWrapper).set(options).save();
+    const pdfContent = `
+      <div style="font-family: 'Arial', sans-serif; padding: 10px;">
+        <h1 style="color: #1A3E74; font-size: 20px;">${titulo}</h1>
+        <h2 style="color: #1FA4E5; font-size: 16px; margin-top: 4px;">${subtitulo}</h2>
+        <p style="font-size: 10px; margin-top: 4px;"><strong>Data e Hora:</strong> ${dataHora}</p>
+        <hr style="margin: 6px 0;">
+        <p style="font-size: 10px; white-space: pre-line;"><strong>Campos preenchidos:</strong><br>${camposPreenchidos}</p>
+        <p style="font-size: 10px;"><strong>Resultado:</strong><br>${resultado}</p>
+        <p style="font-size: 10px; color: #666666;"><strong>Referência:</strong><br>${referencia}</p>
+      </div>
+    `;
+
+    const pdfContentWrapper = document.getElementById('pdfPreviewContent');
+    pdfContentWrapper.innerHTML = pdfContent;
+
+    const options = {
+      margin: [5, 5, 5, 5],
+      filename: 'balanco_hidrico.pdf',
+      image: { type: 'jpeg', quality: 0.98 },
+      html2canvas: { scale: 1.5, scrollY: 0 },
+      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+    };
+
+    html2pdf().from(pdfContentWrapper).set(options).save();
+  }
+
+  // Event Listeners
+  calcularBtn.addEventListener('click', calcularBalançoHidrico);
+  limparBtn.addEventListener('click', limparCampos);
+  gerarPdfBtn.addEventListener('click', gerarPDF);
+
+  // NANDA, NIC, NOC button
+  btnNandaNicNoc.addEventListener('click', () => {
+    const balancoValue = resultadoDiv.dataset.score;
+    const classificacao = resultadoDiv.dataset.classificacao;
+    const scaleName = resultadoDiv.dataset.scaleName;
+
+    if (balancoValue === undefined || classificacao === undefined || !scaleName || resultadoDiv.innerText.trim() === '') {
+      showCustomMessage('Por favor, clique em "Calcular" primeiro para obter o balanço hídrico e habilitar a pesquisa NANDA, NIC, NOC.');
+      return;
     }
 
-    // Event Listeners
-    calcularBtn.addEventListener('click', calcularBalançoHidrico);
-    limparBtn.addEventListener('click', limparCampos);
-    gerarPdfBtn.addEventListener('click', gerarPDF);
+    const detailedSearchQuery = `${balancoValue} mL ${classificacao} ${scaleName} GERAR diagnosticos de enfermagem da NANDA, GERAR intervenções de enfermagem do NIC, Gerar um exemplo de mensuração dos resultados implementados pelo enfermeiro (NOC)`;
+    const encodedSearchQuery = encodeURIComponent(detailedSearchQuery);
+    window.open(`https://www.google.com/search?q=${encodedSearchQuery}`, '_blank');
+  });
 
-    // NANDA, NIC, NOC button
-    btnNandaNicNoc.addEventListener('click', () => {
-      const balancoValue = resultadoDiv.dataset.score; // Pega o valor do balanço
-      const classificacao = resultadoDiv.dataset.classificacao; // Pega a classificação (positivo, negativo)
-      const scaleName = resultadoDiv.dataset.scaleName; // Pega o nome da escala
+  // --- Cookie Consent Logic ---
+  const cookieConsentBanner = document.getElementById('cookieConsentBanner');
+  const acceptCookiesBtn = document.getElementById('acceptCookies');
+  const declineCookiesBtn = document.getElementById('declineCookies');
 
-      // Se não houver balanço ou classificação válidos, exibe mensagem de erro
-      if (balancoValue === undefined || classificacao === undefined || !scaleName || resultadoDiv.innerText.trim() === '') {
-        showCustomMessage('Por favor, clique em "Calcular" primeiro para obter o balanço hídrico e habilitar a pesquisa NANDA, NIC, NOC.');
-        return;
-      }
-
-      // Constrói a string de pesquisa detalhada
-      const detailedSearchQuery = `${balancoValue} mL ${classificacao} ${scaleName} GERAR diagnosticos de enfermagem da NANDA, GERAR intervenções de enfermagem do NIC, Gerar um exemplo de mensuração dos resultados implementados pelo enfermeiro (NOC)`;
-      const encodedSearchQuery = encodeURIComponent(detailedSearchQuery);
-
-      // Abre uma nova aba com a pesquisa do Google
-      window.open(`https://www.google.com/search?q=${encodedSearchQuery}`, '_blank');
-    });
-
-    // --- Cookie Consent Logic ---
-    const cookieConsentBanner = document.getElementById('cookieConsentBanner');
-    const acceptCookiesBtn = document.getElementById('acceptCookies');
-    const declineCookiesBtn = document.getElementById('declineCookies');
-
-    function showCookieBanner() {
-      if (!localStorage.getItem('cookieConsent')) {
-        cookieConsentBanner.classList.add('show');
-      }
+  function showCookieBanner() {
+    if (!localStorage.getItem('cookieConsent')) {
+      cookieConsentBanner.classList.add('show');
     }
+  }
 
-    function hideCookieBanner() {
-      cookieConsentBanner.classList.remove('show');
+  function hideCookieBanner() {
+    cookieConsentBanner.classList.remove('show');
+  }
+
+  acceptCookiesBtn.addEventListener('click', () => {
+    localStorage.setItem('cookieConsent', 'accepted');
+    hideCookieBanner();
+  });
+
+  declineCookiesBtn.addEventListener('click', () => {
+    localStorage.setItem('cookieConsent', 'declined');
+    hideCookieBanner();
+  });
+
+  document.addEventListener('DOMContentLoaded', showCookieBanner);
+
+  // Lógica para o menu de acessibilidade
+  const accessibilityHamburgerBtn = document.getElementById('accessibilityHamburgerBtn');
+  const accessibilityOffCanvasMenu = document.getElementById('accessibilityOffCanvasMenu');
+  const closeAccessibilityMenuBtn = document.getElementById('closeAccessibilityMenuBtn');
+  const accessibilityOverlay = document.getElementById('accessibilityOverlay');
+
+  const toggleFontSizeBtn = document.getElementById('toggleFontSizeBtn');
+  const toggleContrastBtn = document.getElementById('toggleContrastBtn');
+  const toggleDarkModeBtn = document.getElementById('toggleDarkModeBtn');
+  const resetAccessibilityBtn = document.getElementById('resetAccessibilityBtn');
+
+  let currentFontSize = localStorage.getItem('fontSize') || 'normal';
+  let isHighContrast = localStorage.getItem('highContrast') === 'true';
+  let isDarkMode = localStorage.getItem('darkMode') === 'true';
+
+  function applyAccessibilitySettings() {
+    document.body.classList.remove('font-size-small', 'font-size-large');
+    if (currentFontSize === 'small') {
+      document.body.classList.add('font-size-small');
+    } else if (currentFontSize === 'large') {
+      document.body.classList.add('font-size-large');
     }
+    localStorage.setItem('fontSize', currentFontSize);
 
-    acceptCookiesBtn.addEventListener('click', () => {
-      localStorage.setItem('cookieConsent', 'accepted');
-      hideCookieBanner();
-    });
+    if (isHighContrast) {
+      document.body.classList.add('high-contrast');
+    } else {
+      document.body.classList.remove('high-contrast');
+    }
+    localStorage.setItem('highContrast', isHighContrast);
 
-    declineCookiesBtn.addEventListener('click', () => {
-      localStorage.setItem('cookieConsent', 'declined');
-      hideCookieBanner();
-      // Optionally disable analytics or other features here
-    });
+    if (isDarkMode) {
+      document.body.classList.add('dark-mode');
+    } else {
+      document.body.classList.remove('dark-mode');
+    }
+    localStorage.setItem('darkMode', isDarkMode);
+  }
 
-    // Show banner on page load
-    document.addEventListener('DOMContentLoaded', showCookieBanner);
-
-
-    // Lógica para o menu de acessibilidade
-    const accessibilityHamburgerBtn = document.getElementById('accessibilityHamburgerBtn');
-    const accessibilityOffCanvasMenu = document.getElementById('accessibilityOffCanvasMenu');
-    const closeAccessibilityMenuBtn = document.getElementById('closeAccessibilityMenuBtn');
-    const accessibilityOverlay = document.getElementById('accessibilityOverlay');
-
-    const toggleFontSizeBtn = document.getElementById('toggleFontSizeBtn');
-    const toggleContrastBtn = document.getElementById('toggleContrastBtn');
-    const toggleDarkModeBtn = document.getElementById('toggleDarkModeBtn');
-    const resetAccessibilityBtn = document.getElementById('resetAccessibilityBtn');
-
-    let currentFontSize = localStorage.getItem('fontSize') || 'normal';
-    let isHighContrast = localStorage.getItem('highContrast') === 'true';
-    let isDarkMode = localStorage.getItem('darkMode') === 'true';
-
-    function applyAccessibilitySettings() {
-      // Tamanho da Fonte
-      document.body.classList.remove('font-size-small', 'font-size-large');
-      if (currentFontSize === 'small') {
-        document.body.classList.add('font-size-small');
+  if (toggleFontSizeBtn) {
+    toggleFontSizeBtn.addEventListener('click', () => {
+      if (currentFontSize === 'normal') {
+        currentFontSize = 'large';
       } else if (currentFontSize === 'large') {
-        document.body.classList.add('font-size-large');
-      }
-      localStorage.setItem('fontSize', currentFontSize);
-
-      // Alto Contraste
-      if (isHighContrast) {
-        document.body.classList.add('high-contrast');
+        currentFontSize = 'small';
       } else {
-        document.body.classList.remove('high-contrast');
-      }
-      localStorage.setItem('highContrast', isHighContrast);
-
-      // Modo Escuro
-      if (isDarkMode) {
-        document.body.classList.add('dark-mode');
-      } else {
-        document.body.classList.remove('dark-mode');
-      }
-      localStorage.setItem('darkMode', isDarkMode);
-    }
-
-    // Funções de Toggle
-    if (toggleFontSizeBtn) {
-      toggleFontSizeBtn.addEventListener('click', () => {
-        if (currentFontSize === 'normal') {
-          currentFontSize = 'large';
-        } else if (currentFontSize === 'large') {
-          currentFontSize = 'small';
-        } else {
-          currentFontSize = 'normal';
-        }
-        applyAccessibilitySettings();
-      });
-    }
-
-    if (toggleContrastBtn) {
-      toggleContrastBtn.addEventListener('click', () => {
-        isHighContrast = !isHighContrast;
-        applyAccessibilitySettings();
-      });
-    }
-
-    if (toggleDarkModeBtn) {
-      toggleDarkModeBtn.addEventListener('click', () => {
-        isDarkMode = !isDarkMode;
-        applyAccessibilitySettings();
-      });
-    }
-
-    if (resetAccessibilityBtn) {
-      resetAccessibilityBtn.addEventListener('click', () => {
         currentFontSize = 'normal';
-        isHighContrast = false;
-        isDarkMode = false;
-        applyAccessibilitySettings();
-      });
-    }
-
-    document.addEventListener('DOMContentLoaded', () => {
-      // Lógica para abrir/fechar o menu de acessibilidade
-      if (accessibilityHamburgerBtn) {
-          accessibilityHamburgerBtn.addEventListener('click', () => {
-              accessibilityOffCanvasMenu.classList.add('is-open');
-              accessibilityOverlay.style.display = 'block';
-          });
       }
-
-      if (closeAccessibilityMenuBtn) {
-          closeAccessibilityMenuBtn.addEventListener('click', () => {
-              accessibilityOffCanvasMenu.classList.remove('is-open');
-              accessibilityOverlay.style.display = 'none';
-          });
-      }
-
-      if (accessibilityOverlay) {
-          accessibilityOverlay.addEventListener('click', (event) => {
-            if (event.target === accessibilityOverlay) { // Garante que só feche se clicar no overlay, não no menu
-                accessibilityOffCanvasMenu.classList.remove('is-open');
-                accessibilityOverlay.style.display = 'none';
-            }
-          });
-      }
-
-      // Fechar com a tecla ESC
-      document.addEventListener('keydown', (event) => {
-          if (event.key === 'Escape' && accessibilityOffCanvasMenu.classList.contains('is-open')) {
-              accessibilityOffCanvasMenu.classList.remove('is-open');
-              accessibilityOverlay.style.display = 'none';
-          }
-      });
-
-      // Aplica as configurações iniciais (se houver alguma persistência futura)
       applyAccessibilitySettings();
     });
-  </script>
-  <div id="pdfPreviewContent" style="display: none;"></div>
+  }
+
+  if (toggleContrastBtn) {
+    toggleContrastBtn.addEventListener('click', () => {
+      isHighContrast = !isHighContrast;
+      applyAccessibilitySettings();
+    });
+  }
+
+  if (toggleDarkModeBtn) {
+    toggleDarkModeBtn.addEventListener('click', () => {
+      isDarkMode = !isDarkMode;
+      applyAccessibilitySettings();
+    });
+  }
+
+  if (resetAccessibilityBtn) {
+    resetAccessibilityBtn.addEventListener('click', () => {
+      currentFontSize = 'normal';
+      isHighContrast = false;
+      isDarkMode = false;
+      applyAccessibilitySettings();
+    });
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    if (accessibilityHamburgerBtn) {
+      accessibilityHamburgerBtn.addEventListener('click', () => {
+        accessibilityOffCanvasMenu.classList.add('is-open');
+        accessibilityOverlay.style.display = 'block';
+      });
+    }
+
+    if (closeAccessibilityMenuBtn) {
+      closeAccessibilityMenuBtn.addEventListener('click', () => {
+        accessibilityOffCanvasMenu.classList.remove('is-open');
+        accessibilityOverlay.style.display = 'none';
+      });
+    }
+
+    if (accessibilityOverlay) {
+      accessibilityOverlay.addEventListener('click', (event) => {
+        if (event.target === accessibilityOverlay) {
+          accessibilityOffCanvasMenu.classList.remove('is-open');
+          accessibilityOverlay.style.display = 'none';
+        }
+      });
+    }
+
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape' && accessibilityOffCanvasMenu.classList.contains('is-open')) {
+        accessibilityOffCanvasMenu.classList.remove('is-open');
+        accessibilityOverlay.style.display = 'none';
+      }
+    });
+
+    applyAccessibilitySettings();
+  });
+</script>
+
+<!-- Wrapper invisível para conteúdo do PDF -->
+<div id="pdfPreviewContent" style="display: none;"></div>
 </body>
 </html>
