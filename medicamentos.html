@@ -34,6 +34,8 @@
 
   <script src="topbar111.js" defer></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <!-- html2pdf CDN -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
   <style>
     /* Reset básico e Box-sizing para consistência */
@@ -53,6 +55,7 @@
     .text-gray-custom { color: #666666; } /* Cinza */
     .text-success-green { color: #1ED760; } /* Verde (mantido caso precise em outro lugar, mas ajustado para PDF button) */
     .text-black-custom { color: #333; } /* Cor para textos padrão */
+    .text-red-600 { color: #dc2626; } /* Tailwind red-600 para mensagens de erro */
 
     /* Padrão de Botões (Componentes CSS para reuso) */
     .btn-primary {
@@ -186,6 +189,7 @@
       margin-left: auto;
       margin-right: auto;
       padding: 2rem 1rem; /* p-8 px-4 */
+      padding-bottom: 5rem; /* Adicionado para afastar os botões do rodapé */
     }
     
     /* Estilos específicos para este arquivo */
@@ -490,10 +494,12 @@
 <body class="bg-gray-50 text-gray-800 font-inter">
   <div id="topbar-container"></div>
 
+  <!-- Botão Hambúrguer de Acessibilidade -->
   <button id="accessibilityHamburgerBtn" class="fixed bottom-4 left-4 bg-blue-700 text-white p-3 rounded-full shadow-lg z-50">
     <i class="fas fa-universal-access text-xl"></i>
   </button>
 
+  <!-- Off-canvas Menu de Acessibilidade -->
   <div id="accessibilityOffCanvasMenu" class="accessibility-off-canvas-menu">
     <div class="accessibility-header">
       <h4>Acessibilidade</h4>
@@ -513,6 +519,7 @@
     </button>
   </div>
 
+  <!-- Overlay para o menu de acessibilidade -->
   <div id="accessibilityOverlay" class="accessibility-overlay"></div>
 
   <div class="main-content-wrapper"> 
@@ -611,7 +618,8 @@
 
       </div>
 
-      <div class="flex flex-col md:flex-row justify-start gap-4 mt-6"> <button id="btnCalcular" class="btn-primary" aria-label="Calcular dose do medicamento">
+      <div class="flex flex-col md:flex-row justify-start gap-4 mt-6"> 
+        <button id="btnCalcular" class="btn-primary" aria-label="Calcular dose do medicamento">
           Calcular
         </button>
         <button id="btnLimpar" class="btn-secondary" aria-label="Limpar campos da calculadora">
@@ -620,9 +628,9 @@
         <button id="btnGerarPDF" class="btn-primary" aria-label="Gerar PDF do cálculo">
           Gerar PDF
         </button>
-        <a href="https://www.nandanicnoc.com.br" target="_blank" id="btnNandaNicNoc" class="btn-primary" aria-label="Acessar NANDA NIC NOC">
-          NANDA NIC NOC
-        </a>
+        <button id="btnNandaNicNoc" class="btn-primary" aria-label="Pesquisar NANDA, NIC, NOC">
+          NANDA, NIC, NOC
+        </button>
       </div>
 
       <div id="bibliografia" class="ref font-inter text-gray-custom">
@@ -635,6 +643,10 @@
     </main>
   </div>
 
+  <!-- O botão de doação fixo foi removido conforme sua solicitação -->
+
+  <div id="footer-container"></div>
+
   <div id="messageModalOverlay" class="message-modal-overlay">
       <div class="message-modal-content">
           <button id="messageModalClose" class="message-modal-close">&times;</button>
@@ -645,19 +657,12 @@
   <div id="cookieConsentBanner">
     <p>Utilizamos cookies para garantir a melhor experiência em nosso site. Ao continuar, você concorda com o uso de cookies. <a href="/politica-de-privacidade.html" target="_blank" class="text-light-blue hover:underline">Saiba mais</a>.</p>
     <div class="cookie-buttons">
-      <button id="acceptCookies">Aceitar</button>
-      <button id="declineCookies" class="secondary">Recusar</button>
+      <button id="acceptCookiesBtn">Aceitar</button>
+      <button id="refuseCookiesBtn" class="secondary">Recusar</button>
     </div>
   </div>
 
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-  <script src="script.js"></script>
-  <script src="cookie-consent.js"></script>
-  <script src="accessibility.js"></script>
-
   <script>
-    // É uma boa prática envolver o código que manipula o DOM dentro de um DOMContentLoaded
-    // para garantir que todos os elementos HTML já foram carregados.
     document.addEventListener('DOMContentLoaded', function() {
         // Referências para o modal de mensagem
         const messageModalOverlay = document.getElementById('messageModalOverlay');
@@ -667,7 +672,8 @@
         // Referências dos botões da calculadora
         const btnCalcular = document.getElementById('btnCalcular');
         const btnLimpar = document.getElementById('btnLimpar');
-        const btnGerarPDF = document.getElementById('btnGerarPDF'); // Adicionado
+        const btnGerarPDF = document.getElementById('btnGerarPDF'); 
+        const btnNandaNicNoc = document.getElementById('btnNandaNicNoc');
         
         // --- Funções do Modal de Mensagem ---
         function showCustomMessage(message) {
@@ -676,7 +682,7 @@
         }
 
         function hideCustomMessage() {
-            messageModalText.textContent = ''; // Clear text on hide
+            messageModalText.textContent = ''; // Limpa o texto ao esconder
             messageModalOverlay.style.display = 'none';
         }
 
@@ -706,7 +712,7 @@
                 resultadoDiv.innerHTML = "Por favor, preencha todos os campos com valores numéricos válidos e positivos (Apresentação e Volume devem ser maiores que zero).";
                 resultadoDiv.classList.remove('bg-blue-100', 'text-dark-blue');
                 resultadoDiv.classList.add('bg-red-100', 'text-red-600');
-                // Clear data attributes on error
+                // Limpa os atributos de dados em caso de erro
                 resultadoDiv.dataset.apresentacao = '';
                 resultadoDiv.dataset.prescricao = '';
                 resultadoDiv.dataset.volume = '';
@@ -718,7 +724,7 @@
                 resultadoDiv.innerHTML = "A prescrição deve ser um valor positivo. Se a prescrição for zero, não há medicamento a ser administrado.";
                 resultadoDiv.classList.remove('bg-blue-100', 'text-dark-blue');
                 resultadoDiv.classList.add('bg-red-100', 'text-red-600');
-                // Clear data attributes on error
+                // Limpa os atributos de dados em caso de erro
                 resultadoDiv.dataset.apresentacao = '';
                 resultadoDiv.dataset.prescricao = '';
                 resultadoDiv.dataset.volume = '';
@@ -740,7 +746,7 @@
                 `<p>x = ${x.toFixed(4)} ml</p><br>` + // Exibe com mais casas para o cálculo detalhado
                 `<p class="font-bold text-lg">Deve-se aspirar <mark class="bg-yellow-200 text-dark-blue px-1 py-0.5 rounded">${xArredondado} ml</mark> do frasco/ampola para administrar a dose prescrita.</p>`;
             
-            // Store data for NANDA button
+            // Armazena dados para o botão NANDA
             resultadoDiv.dataset.apresentacao = apresentacao;
             resultadoDiv.dataset.prescricao = prescricao;
             resultadoDiv.dataset.volume = volume;
@@ -757,7 +763,7 @@
             resultadoDiv.style.display = 'none'; // Esconde o resultado ao limpar
             resultadoDiv.classList.remove('bg-red-100', 'text-red-600'); // Garante que classes de erro sejam removidas
             resultadoDiv.classList.add('bg-blue-100', 'text-dark-blue'); // Reinicia para a classe padrão
-            // Clear data attributes
+            // Limpa os atributos de dados
             resultadoDiv.dataset.apresentacao = '';
             resultadoDiv.dataset.prescricao = '';
             resultadoDiv.dataset.volume = '';
@@ -765,54 +771,304 @@
         }
 
         // --- Adição dos Event Listeners ---
-        // Conecta a função calcular() ao clique do botão "Calcular"
-        if (btnCalcular) { // Verifica se o elemento existe antes de adicionar o listener
+        if (btnCalcular) {
             btnCalcular.addEventListener('click', calcular);
         }
 
-        // Conecta a função limparCampos() ao clique do botão "Limpar"
-        if (btnLimpar) { // Verifica se o elemento existe antes de adicionar o listener
+        if (btnLimpar) {
             btnLimpar.addEventListener('click', limparCampos);
         }
 
         // Adiciona a funcionalidade de Gerar PDF
         if (btnGerarPDF) {
             btnGerarPDF.addEventListener('click', () => {
-                const apresentacao = document.getElementById('apresentacao').value;
-                const prescricao = document.getElementById('prescricao').value;
-                const volume = document.getElementById('volume').value;
-                const resultadoText = document.getElementById('resultado').innerHTML;
+                // Esconde o botão de doação fixo para que não apareça no PDF.
+                // O botão de doação já foi removido do HTML, esta linha é redundante mas mantida por segurança.
+                const fixedButton = document.querySelector('.fixed-donation-button');
+                if (fixedButton) {
+                    fixedButton.style.display = 'none';
+                }
 
-                if (!apresentacao || !prescricao || !volume || !resultadoText) {
-                    showCustomMessage("Preencha todos os campos e calcule antes de gerar o PDF.");
+                // Clona o conteúdo principal da calculadora (o elemento <main>)
+                const contentToPrint = document.querySelector('main').cloneNode(true);
+
+                // Remove os botões de ação do CLONE do conteúdo
+                const clonedButtonsContainer = contentToPrint.querySelector('.flex.flex-col.md\\:flex-row.justify-start.gap-4.mt-6');
+                if (clonedButtonsContainer) {
+                    clonedButtonsContainer.remove();
+                }
+                // Remove o botão de doação do CLONE do conteúdo se ele estiver lá (redundante após remoção do HTML)
+                contentToPrint.querySelector('.fixed-donation-button')?.remove();
+
+                // Títulos para o PDF
+                const pdfTitleText = "Cálculo de Medicamentos - Enfermagem";
+                const pdfSubtitleText = "Relatório de Cálculo de Medicamentos";
+
+                const headerDiv = document.createElement('div');
+                headerDiv.style.cssText = "text-align: center; margin-bottom: 20px; font-family: 'Nunito Sans', sans-serif; color: #1A3E74;";
+                headerDiv.innerHTML = `
+                    <h1 style="font-size: 24px; font-weight: bold; margin-bottom: 5px;">${pdfTitleText}</h1>
+                    <p style="font-size: 14px; color: #666666;">${pdfSubtitleText}</p>
+                    <p style="font-size: 12px; color: #777;">Gerado em: ${new Date().toLocaleDateString('pt-BR')} ${new Date().toLocaleTimeString('pt-BR')}</p>
+                `;
+                // Prepend o cabeçalho ao clone do main
+                contentToPrint.prepend(headerDiv);
+
+                // Ajusta o resultado para o PDF.
+                // Pega a div de resultado ORIGINAL para obter o conteúdo e as classes.
+                const resultadoDivPage = document.getElementById('resultado'); 
+                const resultDivForPdf = contentToPrint.querySelector('#resultado'); // Pega a div de resultado dentro do CLONE
+
+                if (resultDivForPdf && resultadoDivPage.style.display !== 'none' && resultadoDivPage.innerHTML.trim() !== '' && !resultadoDivPage.classList.contains('bg-red-100')) {
+                    resultDivForPdf.innerHTML = resultadoDivPage.innerHTML; // Copia o HTML
+                    // Limpa classes existentes no clone para aplicar as corretas
+                    resultDivForPdf.classList.remove('bg-red-100', 'text-red-600');
+                    // Copia as classes de cor do resultado original
+                    resultadoDivPage.classList.forEach(cls => {
+                        if (cls.startsWith('bg-') || cls.startsWith('text-')) {
+                            resultDivForPdf.classList.add(cls);
+                        }
+                    });
+                    // Garante cores explícitas para o PDF
+                    resultDivForPdf.style.backgroundColor = '#e6f0ff';
+                    resultDivForPdf.style.color = '#1A3E74';
+                    resultDivForPdf.style.display = 'block'; // Garante que esteja visível no PDF
+                } else if (resultDivForPdf) {
+                    resultDivForPdf.innerHTML = "Resultado não calculado na página ou cálculo inválido. Por favor, preencha os campos e clique em 'Calcular' antes de gerar o PDF.";
+                    resultDivForPdf.style.backgroundColor = '#ffeeba'; // Laranja claro/amarelo para informação
+                    resultDivForPdf.style.color = '#856404'; // Texto laranja/marrom mais escuro
+                    resultDivForPdf.style.display = 'block'; // Garante que esteja visível no PDF
+                }
+
+                // Ajusta a referência bibliográfica para o PDF.
+                const references = contentToPrint.querySelector('#bibliografia'); // Pega a div de referência dentro do CLONE
+                if (references) {
+                    references.style.marginTop = '2rem';
+                    references.style.fontSize = '12px'; // Ajusta o tamanho da fonte para PDF
+                    references.style.color = '#666666';
+                    references.style.textAlign = 'left';
+                    references.querySelectorAll('a').forEach(a => {
+                        a.style.color = '#1FA4E5';
+                        a.style.textDecoration = 'underline';
+                    });
+                }
+
+                const opt = {
+                    margin:       0.5,
+                    filename:     'calculo_medicamento.pdf',
+                    image:        { type: 'jpeg', quality: 0.98 },
+                    html2canvas:  { scale: 2, scrollY: 0, useCORS: true, logging: true }, // scale: 2 para melhor qualidade, scrollY: 0 para evitar scroll no canvas
+                    jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }, // Alterado para 'mm' e 'a4'
+                };
+                
+                html2pdf().set(opt).from(contentToPrint).save().then(() => {
+                    // Volta a exibir o botão de doação após a geração do PDF
+                    // Esta linha é redundante pois o botão já foi removido do HTML.
+                    const fixedButton = document.querySelector('.fixed-donation-button');
+                    if (fixedButton) {
+                        fixedButton.style.display = '';
+                    }
+                }).catch(error => {
+                    console.error('Erro ao gerar PDF:', error);
+                    showCustomMessage('Ocorreu um erro ao gerar o PDF. Por favor, tente novamente.');
+                    // Esta linha é redundante pois o botão já foi removido do HTML.
+                    const fixedButton = document.querySelector('.fixed-donation-button');
+                    if (fixedButton) {
+                        fixedButton.style.display = '';
+                    }
+                });
+            });
+        }
+
+        // NANDA NIC NOC button logic
+        if (btnNandaNicNoc) {
+            btnNandaNicNoc.addEventListener('click', () => {
+                const resultadoDiv = document.getElementById('resultado');
+                const apresentacao = resultadoDiv.dataset.apresentacao;
+                const prescricao = resultadoDiv.dataset.prescricao;
+                const volume = resultadoDiv.dataset.volume;
+                const resultadoMl = resultadoDiv.dataset.resultadoMl;
+                const scaleName = "Cálculo de Medicamentos"; // Nome da escala fixo
+
+                // Se alguma parte crucial estiver faltando, exibe erro
+                if (!apresentacao || !prescricao || !volume || !resultadoMl || resultadoDiv.style.display === 'none' || resultadoDiv.classList.contains('bg-red-100')) {
+                    showCustomMessage('Por favor, clique em "Calcular" primeiro para obter o resultado e habilitar a pesquisa NANDA, NIC, NOC.');
                     return;
                 }
 
-                const element = document.createElement('div');
-                element.style.padding = '20px';
-                element.style.fontFamily = 'sans-serif';
-
-                element.innerHTML = `
-                    <h1 style="color: #1A3E74; text-align: center;">Cálculo de Medicamentos - Enfermagem</h1>
-                    <p style="margin-top: 20px;"><strong>Apresentação disponível:</strong> ${apresentacao} mg</p>
-                    <p><strong>Prescrição de medicamento:</strong> ${prescricao} mg</p>
-                    <p><strong>Volume do frasco/ampola:</strong> ${volume} ml</p>
-                    <hr style="margin: 20px 0; border: 0; border-top: 1px solid #eee;">
-                    <div style="background-color: #e6f0ff; padding: 15px; border-radius: 8px;">
-                        ${resultadoText}
-                    </div>
-                    <p style="margin-top: 30px; font-size: 0.8em; color: #666;">
-                        Este cálculo foi gerado pela Calculadora de Medicamentos em CalculadorasDeEnfermagem.com.br
-                    </p>
-                    <p style="font-size: 0.8em; color: #666;">
-                        Referência bibliográfica: Cálculo de Medicamentos.  Disponível em: https://www.coren-ba.gov.br/.../CALCULO-DE-MEDICAMENTOS
-                        CONSELHO FEDERAL DE ENFERMAGEM (COFEN). Resoluções e Pareceres Técnicos sobre a Administração de Medicamentos. Disponível em: www.cofen.gov.br.
-                    </p>
-                `;
-
-                html2pdf().from(element).save('calculo_medicamento.pdf');
+                // Constrói a string de pesquisa detalhada
+                const detailedSearchQuery = `Apresentação: ${apresentacao} mg, Prescrição: ${prescricao} mg, Volume: ${volume} ml, Resultado: ${resultadoMl} ml - ${scaleName} GERAR diagnosticos de enfermagem da NANDA, GERAR intervenções de enfermagem do NIC, Gerar um exemplo de mensuração dos resultados implementados pelo enfermeiro (NOC)`;
+                const encodedSearchQuery = encodeURIComponent(detailedSearchQuery);
+                
+                // Abre uma nova aba com a pesquisa do Google
+                window.open(`https://www.google.com/search?q=${encodedSearchQuery}`, '_blank');
             });
         }
+
+        // Carrega o rodapé (rodape111.html)
+        fetch("rodape111.html")
+          .then(res => res.text())
+          .then(data => {
+            const footerContainer = document.getElementById("footer-container");
+            if (footerContainer) {
+              footerContainer.innerHTML = data;
+            } else {
+              console.error('Elemento footer-container não encontrado.');
+            }
+          })
+          .catch(err => console.error("Erro ao carregar rodape111.html:", err));
+
+        // --- Lógica do Cookie Consent Banner ---
+        const cookieConsentBanner = document.getElementById('cookieConsentBanner');
+        const acceptCookiesBtn = document.getElementById('acceptCookiesBtn'); // ID corrigido
+        const refuseCookiesBtn = document.getElementById('refuseCookiesBtn'); // ID corrigido
+        const cookiesAcceptedKey = 'cookiesAccepted'; // Chave para localStorage
+
+        function showCookieBanner() {
+            if (localStorage.getItem(cookiesAcceptedKey) === null || localStorage.getItem(cookiesAcceptedKey) === 'false') {
+                cookieConsentBanner.classList.add('show');
+            }
+        }
+
+        function hideCookieBanner() {
+            cookieConsentBanner.classList.remove('show');
+        }
+
+        if (acceptCookiesBtn) {
+            acceptCookiesBtn.addEventListener('click', () => {
+                localStorage.setItem(cookiesAcceptedKey, 'true');
+                hideCookieBanner();
+                // Atualiza o consentimento do GTM para 'granted'
+                gtag('consent', 'update', {
+                    'analytics_storage': 'granted'
+                });
+            });
+        }
+
+        if (refuseCookiesBtn) {
+            refuseCookiesBtn.addEventListener('click', () => {
+                localStorage.setItem(cookiesAcceptedKey, 'false');
+                hideCookieBanner();
+                // O consentimento já está 'denied' por padrão, então não precisa de 'update' aqui
+            });
+        }
+        // Mostra o banner de cookies ao carregar a página, se necessário
+        showCookieBanner();
+
+        // --- Lógica da Nova Barra de Acessibilidade Hambúrguer ---
+        const accessibilityHamburgerBtn = document.getElementById('accessibilityHamburgerBtn');
+        const accessibilityOffCanvasMenu = document.getElementById('accessibilityOffCanvasMenu');
+        const closeAccessibilityMenuBtn = document.getElementById('closeAccessibilityMenuBtn');
+        const accessibilityOverlay = document.getElementById('accessibilityOverlay');
+
+        // Botões de Acessibilidade
+        const toggleFontSizeBtn = document.getElementById('toggleFontSizeBtn');
+        const toggleContrastBtn = document.getElementById('toggleContrastBtn');
+        const toggleDarkModeBtn = document.getElementById('toggleDarkModeBtn');
+        const resetAccessibilityBtn = document.getElementById('resetAccessibilityBtn');
+
+        let currentFontSize = 'normal'; // 'normal', 'small', 'large'
+        let isHighContrast = false;
+        let isDarkMode = false;
+
+        // Função para aplicar/remover classes de acessibilidade
+        function applyAccessibilitySettings() {
+            const body = document.body;
+
+            // Tamanho da Fonte
+            body.classList.remove('font-size-small', 'font-size-large');
+            if (currentFontSize === 'small') {
+                body.classList.add('font-size-small');
+            } else if (currentFontSize === 'large') {
+                body.classList.add('font-size-large');
+            }
+
+            // Alto Contraste
+            if (isHighContrast) {
+                body.classList.add('high-contrast');
+            } else {
+                body.classList.remove('high-contrast');
+            }
+
+            // Modo Escuro
+            if (isDarkMode) {
+                body.classList.add('dark-mode');
+            } else {
+                body.classList.remove('dark-mode');
+            }
+        }
+
+        // Funções de Toggle
+        if (toggleFontSizeBtn) {
+            toggleFontSizeBtn.addEventListener('click', () => {
+                if (currentFontSize === 'normal') {
+                    currentFontSize = 'large';
+                } else if (currentFontSize === 'large') {
+                    currentFontSize = 'small';
+                } else {
+                    currentFontSize = 'normal';
+                }
+                applyAccessibilitySettings();
+            });
+        }
+
+        if (toggleContrastBtn) {
+            toggleContrastBtn.addEventListener('click', () => {
+                isHighContrast = !isHighContrast;
+                applyAccessibilitySettings();
+            });
+        }
+
+        if (toggleDarkModeBtn) {
+            toggleDarkModeBtn.addEventListener('click', () => {
+                isDarkMode = !isDarkMode;
+                applyAccessibilitySettings();
+            });
+        }
+
+        if (resetAccessibilityBtn) {
+            resetAccessibilityBtn.addEventListener('click', () => {
+                currentFontSize = 'normal';
+                isHighContrast = false;
+                isDarkMode = false;
+                applyAccessibilitySettings();
+            });
+        }
+
+        // Lógica para abrir/fechar o menu de acessibilidade
+        if (accessibilityHamburgerBtn) {
+            accessibilityHamburgerBtn.addEventListener('click', () => {
+                accessibilityOffCanvasMenu.classList.add('is-open');
+                accessibilityOverlay.style.display = 'block';
+            });
+        }
+
+        if (closeAccessibilityMenuBtn) {
+            closeAccessibilityMenuBtn.addEventListener('click', () => {
+                accessibilityOffCanvasMenu.classList.remove('is-open');
+                accessibilityOverlay.style.display = 'none';
+            });
+        }
+
+        if (accessibilityOverlay) {
+            accessibilityOverlay.addEventListener('click', (event) => {
+                if (event.target === accessibilityOverlay) { // Garante que só feche se clicar no overlay, não no menu
+                    accessibilityOffCanvasMenu.classList.remove('is-open');
+                    accessibilityOverlay.style.display = 'none';
+                }
+            });
+        }
+
+        // Fechar com a tecla ESC
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape' && accessibilityOffCanvasMenu.classList.contains('is-open')) {
+                accessibilityOffCanvasMenu.classList.remove('is-open');
+                accessibilityOverlay.style.display = 'none';
+            }
+        });
+
+        // Aplica as configurações iniciais (se houver alguma persistência futura)
+        applyAccessibilitySettings();
     });
   </script>
 </body>
