@@ -3,37 +3,48 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Balanço Hídrico - Relatório de Equilíbrio Hídrico</title>
+  <title>Calculadora de Balanço Hídrico - Enfermagem</title>
 
   <link rel="canonical" href="https://www.calculadorasdeenfermagem.com.br/balancohidrico.html" />
 
   <link rel="icon" href="favicon.ico" type="image/x-icon" />
+  <link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
+  <link rel="apple-touch-icon" href="iconpages.png">
+  <link rel="icon" type="image/png" href="iconpages.png">
 
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
-    
-  <meta name="description" content="Calcule o balanço hídrico de pacientes de forma detalhada, registrando todas as entradas e saídas de líquidos para um monitoramento preciso do equilíbrio hídrico. Essencial para enfermeiros e técnicos de enfermagem na avaliação do estado de hidratação e na tomada de decisões clínicas, prevenindo desidratação ou hiper-hidratação." />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Nunito+Sans:wght@700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 
+  <!-- html2pdf CDN -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+  <!-- Google Analytics -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=AW-952633102"></script>
   <script>
     window.dataLayer = window.dataLayer || [];
     function gtag(){dataLayer.push(arguments);}
     gtag('js', new Date());
+    gtag('consent', 'default', {
+        'analytics_storage': 'denied',
+        'wait_for_update': 500
+    });
     gtag('config', 'AW-952633102');
   </script>
 
+  <!-- Dados Estruturados (Schema.org) -->
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
     "@type": "MedicalEntity",
-    "name": "Balanço Hídrico",
+    "name": "Calculadora de Balanço Hídrico",
     "url": "https://www.calculadorasdeenfermagem.com.br/balancohidrico.html",
-    "description": "Calculadora de Balanço Hídrico para monitoramento de entradas e saídas de líquidos em pacientes, auxiliando na avaliação do equilíbrio hídrico.",
-    "alternateName": ["Cálculo de Balanço Hídrico", "Controle Hídrico"]
+    "description": "Ferramenta para calcular o balanço hídrico de pacientes, essencial para o monitoramento e manejo de fluidos em diversas condições clínicas.",
+    "alternateName": ["Balanço Hídrico Enfermagem", "Fluid Balance Calculator"]
   }
   </script>
-
-  <script src="topbar111.js" defer></script>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 
   <style>
     /* Reset básico e Box-sizing para consistência */
@@ -44,14 +55,16 @@
     }
 
     /* Fontes personalizadas */
-    @import url('https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@700&family=Inter:wght@300;400;500;600&display=swap');
-    /* Estilos das classes de fonte e cor personalizadas (para uso no HTML com Tailwind) */
     .font-nunito { font-family: 'Nunito Sans', sans-serif; }
     .font-inter { font-family: 'Inter', sans-serif; }
+
+    /* Estilos das classes de fonte e cor personalizadas (para uso no HTML com Tailwind) */
     .text-dark-blue { color: #1A3E74; } /* Azul Escuro */
     .text-light-blue { color: #1FA4E5; } /* Azul Claro */
     .text-gray-custom { color: #666666; } /* Cinza */
     .text-success-green { color: #1ED760; } /* Verde */
+    .text-black-custom { color: #333; } /* Cor para textos padrão */
+    .text-red-600 { color: #dc2626; } /* Tailwind red-600 para mensagens de erro */
 
     /* Padrão de Botões (Componentes CSS para reuso) */
     .btn-primary {
@@ -96,32 +109,45 @@
 
     /* Estilos para a área de resultado da calculadora (Componente específico) */
     .resultado {
-      margin-top: 1rem;
-      padding: 0.75rem; /* ALTERADO: de 1rem para 0.75rem */
+      margin-top: 1.5rem; /* mt-6 */
+      padding: 1.25rem; /* p-5 */
       background-color: #e0f2fe; /* Tailwind blue-50 */
       border-radius: 0.5rem;
       font-weight: 600;
-      color: #1A3E74; /* text-dark-blue - Sempre azul */
+      color: #1A3E74; /* text-dark-blue */
       text-align: left;
-      white-space: pre-wrap;
+      white-space: pre-wrap; /* Mantém quebras de linha no texto */
     }
-    /* Cores de resultado ajustadas para Balanço Hídrico - Mantido apenas text-dark-blue */
-    .resultado.text-dark-blue { color: #1A3E74; } /* Positivo */
-    .resultado.text-red-600 { color: #DC2626; } /* Negativo */
-    .resultado.bg-info-orange-light { background-color: #ffeeba; border-color: #ffb366; color: #856404; } /* Para alertas */
+    .resultado.bg-red-100 { /* Classe para mensagens de erro (fundo) */
+        background-color: #fee2e2; /* Tailwind red-100 */
+        color: #dc2626; /* Tailwind red-600 */
+    }
+    .resultado.bg-yellow-100 { /* Para balanço zero ou informativo */
+        background-color: #fefce8; /* Tailwind yellow-100 */
+        color: #d97706; /* Tailwind yellow-700 */
+    }
+    .resultado.bg-green-100 { /* Para balanço positivo */
+        background-color: #dcfce7; /* Tailwind green-100 */
+        color: #15803d; /* Tailwind green-700 */
+    }
+    .resultado.bg-info-orange-light { /* Para mensagens informativas no PDF */
+        background-color: #ffeeba;
+        color: #856404;
+    }
+
 
     /* Estilos para a referência/bibliografia (Componente específico) */
     .ref {
-      margin-top: 2rem;
-      font-size: 14px;
+      margin-top: 2.5rem; /* mt-10 */
+      font-size: 0.875rem; /* text-sm */
       color: #666666; /* text-gray-custom */
       text-align: left;
     }
 
-    /* Estilo para o botão "Ajude-nos" fixo (REMOVIDO conforme auditoria) */
-    /* .fixed-donation-button {
+    /* Estilo para o botão "Ajude-nos" fixo (Componente de botão) */
+    .fixed-donation-button {
       z-index: 30;
-    } */
+    }
     
     /* Layout principal com Topbar fixa */
     body {
@@ -144,7 +170,7 @@
     /* Estilos para garantir que o menu mobile fique acima de outros conteúdos quando aberto */
     #mainNav.flex {
         z-index: 40; /* Um z-index alto para o menu mobile */
-        max-height: 70vh; /* Limita a altura do menu móvel conforme auditoria */
+        max-height: calc(100vh - 64px); /* Altura máxima da viewport menos a altura do header */
         overflow-y: auto; /* Adiciona scroll se o conteúdo for muito longo */
         -webkit-overflow-scrolling: touch; /* Suaviza o scroll em iOS */
     }
@@ -179,54 +205,21 @@
       flex-grow: 1;
       padding-top: 64px; /* Garante que o conteúdo comece abaixo da topbar fixa (64px de altura) */
       width: 100%;
-    }
-
-    /* Conteúdo principal (main) */
-    main {
-      flex-grow: 1;
-      max-width: 1280px; /* max-w-7xl */
+      max-width: 1280px; /* max-w-screen-xl (Tailwind 7xl) */
       margin-left: auto;
       margin-right: auto;
-      padding: 2rem 1rem; /* Equivalente a p-8 px-4 */
-      width: 100%;
+      padding: 2rem 1rem; /* p-8 px-4 */
     }
-
-    /* Estilos para os campos de entrada */
-    .input-group {
-        margin-bottom: 0.5rem; /* Diminuído o espaçamento das caixas */
+    
+    /* Estilos específicos para este arquivo Balanço Hídrico */
+    .descricao {
+      font-size: 1rem; /* Adjust to Tailwind base font size */
+      color: #333; /* Black-custom */
+      margin-top: 1rem; /* mt-4 */
+      margin-bottom: 1.5rem; /* mb-6 */
+      line-height: 1.6; /* leading-relaxed */
     }
-    .input-group label {
-        display: block;
-        font-weight: 500;
-        margin-bottom: 0.25rem; /* Diminuído o espaçamento da label */
-        color: #1A3E74; /* text-dark-blue */
-        font-size: 0.875rem; /* Letras menores para labels */
-    }
-    .input-group input[type="number"] {
-        width: 100%;
-        padding: 0.5rem 0.75rem; /* Achatando os itens: padding menor */
-        border: 1px solid #ccc;
-        border-radius: 0.375rem; /* rounded-md */
-        font-size: 0.9rem; /* Letras menores para inputs */
-        color: #333;
-    }
-    .input-group input[type="number"]:focus {
-        outline: none;
-        border-color: #1FA4E5; /* text-light-blue */
-        box-shadow: 0 0 0 3px rgba(31, 164, 229, 0.2);
-    }
-    .input-section h3 {
-        font-family: 'Nunito Sans', sans-serif;
-        font-weight: 700;
-        color: #1A3E74;
-        font-size: 1.5rem;
-        margin-bottom: 1rem;
-    }
-    /* Nova classe para texto menor - ajustada para 0.75rem (12px) */
-    .text-xs-custom {
-        font-size: 0.75rem; /* Equivalente a text-xs do Tailwind */
-    }
-
+    
     /* Estilo para o modal de mensagem */
     .message-modal-overlay {
         position: fixed;
@@ -335,17 +328,41 @@
         }
     }
 
-    /* Estilos para o menu off-canvas de acessibilidade */
+    /* Estilos para o botão de acessibilidade */
+    .accessibility-hamburger-btn {
+        position: fixed;
+        bottom: 4rem; /* Distância da parte inferior */
+        left: 1rem; /* Distância da parte esquerda */
+        background-color: #1A3E74; /* Cor primária */
+        color: white;
+        border-radius: 50%;
+        width: 56px; /* Largura do botão */
+        height: 56px; /* Altura do botão */
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem; /* Tamanho do ícone */
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        cursor: pointer;
+        z-index: 50; /* Garante que esteja acima da maioria dos elementos */
+        transition: background-color 0.3s ease;
+    }
+
+    .accessibility-hamburger-btn:hover {
+        background-color: #122c54; /* Cor mais escura no hover */
+    }
+
+    /* Off-canvas menu de acessibilidade */
     .accessibility-off-canvas-menu {
         position: fixed;
         top: 0;
-        right: -300px; /* Escondido por padrão */
+        right: -300px; /* Escondido à direita por padrão */
         width: 300px;
         height: 100%;
         background-color: #fff;
         box-shadow: -2px 0 10px rgba(0,0,0,0.2);
         z-index: 1000;
-        transition: right 0.3s ease-in-out;
+        transition: right 0.3s ease-in-out; /* Transição para deslizar */
         padding: 1rem;
         display: flex;
         flex-direction: column;
@@ -353,41 +370,48 @@
     }
 
     .accessibility-off-canvas-menu.is-open {
-        right: 0; /* Visível quando aberto */
+        right: 0; /* Abre o menu */
     }
 
+    /* Overlay que cobre a página quando o menu está aberto */
     .accessibility-overlay {
-        display: none; /* Oculto por padrão */
         position: fixed;
         top: 0;
         left: 0;
         width: 100%;
         height: 100%;
-        background-color: rgba(0,0,0,0.5);
-        z-index: 999;
+        background-color: rgba(0, 0, 0, 0.5);
+        z-index: 999; /* Abaixo do menu, acima do conteúdo */
+        display: none; /* Escondido por padrão */
     }
 
-    .accessibility-header {
+    /* Cabeçalho do menu de acessibilidade */
+    .accessibility-menu-header {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        margin-bottom: 1rem;
+        margin-bottom: 20px;
+        border-bottom: 1px solid #eee;
+        padding-bottom: 10px;
     }
 
-    .accessibility-header h4 {
-        font-size: 1.25rem;
-        font-weight: bold;
+    .accessibility-menu-header h3 {
+        margin: 0;
+        font-size: 1.2rem;
         color: #1A3E74;
     }
 
-    .accessibility-close-btn {
+    /* Botão de fechar o menu */
+    .close-accessibility-menu-btn {
         background: none;
         border: none;
-        font-size: 1.5rem;
+        font-size: 1.8rem;
+        font-weight: bold;
         cursor: pointer;
         color: #666;
     }
 
+    /* Opções de acessibilidade */
     .accessibility-option-btn {
         display: flex;
         align-items: center;
@@ -428,210 +452,148 @@
         color: #000 !important;
         border: 1px solid #FFFF00 !important;
     }
-    body.high-contrast .bg-white, body.high-contrast .bg-blue-50 {
+    body.high-contrast .bg-white, body.high-contrast .bg-blue-50, body.high-contrast .resultado {
         background-color: #333 !important;
         color: #FFF !important;
         border: 1px solid #FFFF00 !important;
     }
-    body.high-contrast .text-dark-blue, body.high-contrast .text-light-blue, body.high-contrast .text-gray-custom, body.high-contrast .text-success-green, body.high-contrast .text-red-600 {
+    body.high-contrast .text-gray-600, body.high-contrast .text-gray-700, body.high-contrast .text-gray-800 {
         color: #FFF !important;
     }
-    body.high-contrast input, body.high-contrast select, body.high-contrast textarea {
-        background-color: #555 !important;
-        color: #FFF !important;
-        border: 1px solid #FFFF00 !important;
-    }
-    body.high-contrast .input-group label {
+    body.high-contrast .text-dark-blue, body.high-contrast .text-light-blue {
         color: #FFFF00 !important;
     }
-    body.high-contrast .resultado {
-        background-color: #333 !important;
-        border: 1px solid #FFFF00 !important;
+    body.high-contrast .shadow, body.high-contrast .shadow-md {
+        box-shadow: 0 0 5px #FFFF00 !important;
+    }
+    body.high-contrast .border, body.high-contrast .border-gray-300 {
+        border-color: #FFFF00 !important;
+    }
+    body.high-contrast input[type="number"], body.high-contrast input[type="radio"] + label {
+        background-color: #000 !important;
+        color: #FFFF00 !important;
+        border-color: #FFFF00 !important;
+    }
+    body.high-contrast input[type="radio"] {
+        border-color: #FFFF00 !important;
+    }
+    body.high-contrast .accessibility-off-canvas-menu {
+        background-color: #000 !important;
+        box-shadow: -2px 0 10px #FFFF00 !important;
+    }
+    body.high-contrast .accessibility-menu-header h3 {
+        color: #FFF !important;
+    }
+    body.high-contrast .close-accessibility-menu-btn {
         color: #FFF !important;
     }
     body.high-contrast .accessibility-option-btn {
-        background-color: #555 !important;
-        border: 1px solid #FFFF00 !important;
-    }
-    body.high-contrast .accessibility-option-btn span, body.high-contrast .accessibility-option-btn i {
-        color: #FFFF00 !important;
-    }
-    body.high-contrast #cookieConsentBanner {
         background-color: #333 !important;
-        border-top: 1px solid #FFFF00 !important;
-    }
-    body.high-contrast #cookieConsentBanner p {
+        border-color: #FFFF00 !important;
         color: #FFF !important;
     }
-    body.high-contrast #cookieConsentBanner button {
-        background-color: #FFF !important;
-        color: #000 !important;
-        border: 1px solid #FFFF00 !important;
-    }
-    body.high-contrast #cookieConsentBanner button.secondary {
-        background-color: #555 !important;
+    body.high-contrast .accessibility-option-btn i {
         color: #FFFF00 !important;
-        border: 1px solid #FFFF00 !important;
     }
+    body.high-contrast .accessibility-option-btn span {
+        color: #FFF !important;
+    }
+    body.high-contrast .accessibility-option-btn:hover {
+        background-color: #555 !important;
+    }
+
+
     body.dark-mode {
-        background-color: #121212 !important;
-        color: #E0E0E0 !important;
+        background-color: #1F2937 !important; /* Dark Gray */
+        color: #E5E7EB !important; /* Light Gray */
     }
-    body.dark-mode a { color: #BB86FC !important; }
-    body.dark-mode .bg-white, body.dark-mode .bg-blue-50 {
-        background-color: #1E1E1E !important;
-        color: #E0E0E0 !important;
+    body.dark-mode a { color: #93C5FD !important; /* Light Blue */ }
+    body.dark-mode .bg-white, body.dark-mode .bg-blue-50, body.dark-mode .resultado {
+        background-color: #374151 !important; /* Medium Dark Gray */
+        color: #E5E7EB !important;
     }
-    body.dark-mode .text-dark-blue, body.dark-mode .text-light-blue, body.dark-mode .text-gray-custom, body.dark-mode .text-success-green, body.dark-mode .text-red-600 {
-        color: #E0E0E0 !important;
+    body.dark-mode .text-gray-600, body.dark-mode .text-gray-700, body.dark-mode .text-gray-800 {
+        color: #E5E7EB !important;
     }
-    body.dark-mode input, body.dark-mode select, body.dark-mode textarea {
-        background-color: #333333 !important;
-        color: #E0E0E0 !important;
-        border-color: #555555 !important;
+    body.dark-mode .text-dark-blue, body.dark-mode .text-light-blue {
+        color: #93C5FD !important;
     }
-    body.dark-mode .input-group label {
-        color: #E0E0E0 !important;
+    body.dark-mode .shadow, body.dark-mode .shadow-md {
+        box-shadow: 0 4px 6px -1px rgba(0,0,0,0.3), 0 2px 4px -1px rgba(0,0,0,0.2) !important;
     }
-    body.dark-mode .resultado {
-        background-color: #1E1E1E !important;
-        border-color: #333333 !important;
-        color: #E0E0E0 !important;
+    body.dark-mode .border, body.dark-mode .border-gray-300 {
+        border-color: #4B5563 !important;
     }
-    body.dark-mode .btn-primary {
-        background-color: #BB86FC !important;
-        color: #121212 !important;
+    body.dark-mode .btn-primary, body.dark-mode .btn-secondary {
+        background-color: #4B5563 !important;
+        color: #E5E7EB !important;
     }
-    body.dark-mode .btn-secondary {
-        background-color: #03DAC6 !important;
-        color: #121212 !important;
-    }
-    body.dark-mode .accessibility-option-btn {
-        background-color: #333333 !important;
-        border-color: #555555 !important;
-    }
-    body.dark-mode .accessibility-option-btn span, body.dark-mode .accessibility-option-btn i {
-        color: #E0E0E0 !important;
+    body.dark-mode .btn-primary:hover, body.dark-mode .btn-secondary:hover {
+        background-color: #6B7280 !important;
     }
     body.dark-mode #cookieConsentBanner {
-        background-color: #1E1E1E !important;
-        border-top-color: #333333 !important;
-    }
-    body.dark-mode #cookieConsentBanner p {
-        color: #E0E0E0 !important;
+        background-color: #374151 !important;
     }
     body.dark-mode #cookieConsentBanner button {
-        background-color: #BB86FC !important;
-        color: #121212 !important;
+        background-color: #60A5FA !important;
+        color: #1F2937 !important;
     }
     body.dark-mode #cookieConsentBanner button.secondary {
-        background-color: #333333 !important;
-        color: #BB86FC !important;
+        background-color: transparent !important;
+        border-color: #93C5FD !important;
+        color: #93C5FD !important;
     }
-    /* Estilos para o mobile: centraliza botões e inputs */
-    @media (max-width: 767px) { /* md breakpoint */
-        .input-group input[type="number"] {
-            text-align: center; /* Centraliza o texto nos inputs */
-        }
-        .input-group label {
-            text-align: center; /* Centraliza o label */
-        }
-        .flex-wrap.justify-center.gap-4 {
-            flex-direction: column; /* Empilha os botões */
-            align-items: center; /* Centraliza os botões */
-        }
-        .btn-primary, .btn-secondary, .btn-success {
-            width: 90%; /* Ajusta a largura dos botões */
-            margin-bottom: 0.75rem; /* Adiciona espaço entre eles */
-        }
-        .resultado {
-            text-align: center; /* Centraliza o resultado */
-            padding: 1rem 0.75rem;
-        }
-        .btn-primary, .btn-secondary {
-          width: 100%; /* Empilha os botões em telas pequenas */
-          margin-bottom: 0.75rem;
-        }
-        .flex-wrap.justify-start.gap-4 {
-            flex-direction: column;
-            align-items: flex-start;
-        }
+    body.dark-mode #cookieConsentBanner button.secondary:hover {
+        background-color: rgba(147, 197, 253, 0.1) !important;
+    }
+    body.dark-mode input[type="number"], body.dark-mode input[type="radio"] + label {
+        background-color: #2d3748 !important;
+        color: #e2e8f0 !important;
+        border-color: #4a5568 !important;
+    }
+    body.dark-mode input[type="radio"] {
+        border-color: #4a5568 !important;
+    }
+    body.dark-mode .accessibility-off-canvas-menu {
+        background-color: #2d3748 !important;
+        box-shadow: -2px 0 10px rgba(255, 255, 255, 0.1) !important;
+    }
+    body.dark-mode .accessibility-menu-header h3 {
+        color: #e2e8f0 !important;
+    }
+    body.dark-mode .close-accessibility-menu-btn {
+        color: #a0aec0 !important;
+    }
+    body.dark-mode .accessibility-option-btn {
+        background-color: #4a5568 !important;
+        border-color: #667eea !important;
+        color: #e2e8f0 !important;
+    }
+    body.dark-mode .accessibility-option-btn i {
+        color: #93C5FD !important;
+    }
+    body.dark-mode .accessibility-option-btn span {
+        color: #e2e8f0 !important;
+    }
+    body.dark-mode .accessibility-option-btn:hover {
+        background-color: #6b7280 !important;
+    }
 
-        /* Ajustes para tabelas em mobile */
-        table {
-            width: 100%;
-            display: block;
-            overflow-x: auto;
-            white-space: nowrap;
-        }
-        th, td {
-            padding: 0.5rem; /* Menor padding para células */
-            font-size: 0.8rem; /* Menor fonte para células */
-        }
-    }
-    /* Estilos para as tabelas de Entradas e Saídas */
-    .input-table {
-        width: 100%;
-        border-collapse: collapse;
-        margin-bottom: 1rem;
-    }
-    .input-table th, .input-table td {
-        padding: 0.3rem 0.5rem; /* Achatando os itens */
-        border: 1px solid #e2e8f0;
-        text-align: left;
-    }
-    .input-table th {
-        background-color: #f1f5f9;
-        font-weight: 600;
-        color: #1A3E74;
-        font-size: 0.875rem;
-    }
-    .input-table td input[type="number"] {
-        padding: 0.3rem 0.5rem; /* Achatando os itens ainda mais nos inputs da tabela */
-        font-size: 0.875rem; /* Letras menores nos inputs da tabela */
-    }
-    .input-table td label {
-        font-size: 0.875rem; /* Letras menores nas labels da tabela */
-        margin-bottom: 0;
-    }
   </style>
 </head>
 <body class="bg-gray-50 text-gray-800 font-inter">
-  <div id="topbar-container"></div>
 
-  <button id="accessibilityHamburgerBtn" class="fixed bottom-4 left-4 bg-blue-700 text-white p-3 rounded-full shadow-lg z-50">
-    <i class="fas fa-universal-access text-xl"></i>
-  </button>
-
-  <div id="accessibilityOffCanvasMenu" class="accessibility-off-canvas-menu">
-    <div class="accessibility-header">
-      <h4>Acessibilidade</h4>
-      <button id="closeAccessibilityMenuBtn" class="accessibility-close-btn">&times;</button>
-    </div>
-    <button id="toggleFontSizeBtn" class="accessibility-option-btn">
-      <i class="fas fa-font"></i>
-      <span>Tamanho da Fonte</span>
-    </button>
-    <button id="toggleContrastBtn" class="accessibility-option-btn">
-      <i class="fas fa-adjust"></i>
-      <span>Alto Contraste</span>
-    </button>
-    <button id="toggleDarkModeBtn" class="accessibility-option-btn">
-      <i class="fas fa-moon"></i>
-      <span>Modo Escuro</span>
-    </button>
-    <button id="resetAccessibilityBtn" class="accessibility-option-btn">
-      <i class="fas fa-sync-alt"></i>
-      <span>Resetar</span>
-    </button>
-  </div>
-  <div id="accessibilityOverlay" class="accessibility-overlay"></div>
+  <div id="topbar-container"></div>  
+  <script src="./topbar111.js" defer></script>
 
   <div class="main-content-wrapper">
-    <main>
+    <main class="flex flex-col flex-grow">
+
       <div class="flex flex-wrap items-center justify-center gap-4 mb-3">
-        <img src="iconpages.png" alt="Ícone da Calculadora de Balanço Hídrico" class="w-32 h-auto" />
-        <h1 id="main-title" class="font-nunito text-4xl font-bold text-dark-blue text-center">Calculadora de Balanço Hídrico</h1>
+        <img src="iconpages.png" alt="Ícone Balanço Hídrico" class="w-32 h-auto" />
+        <h1 id="main-title" class="font-nunito font-extrabold text-dark-blue text-4xl lg:text-5xl text-center">
+          Balanço Hídrico
+        </h1>
       </div>
 
       <div id="intro-description" class="border border-gray-300 rounded-lg p-4 mb-6 shadow-md text-sm text-gray-700">
@@ -649,647 +611,449 @@
         </p>
         <p>VALE RESSALTAR: SE O BALANÇO HIDRICO FOR <strong>POSITIVO</strong> O PACIENTE ESTÁ RETENDO LIQUIDOS. SE O BALANÇO HÍDRICO FOR <strong>NEGATIVO</strong> PERDAS DE LIQUIDOS (MUITO ACIMA DO QUE ELE INGERIU) É NECESSARIO OBSERVAR SINAIS DE DESIDRATAÇÃO. Em ambos os casos elabore um plano de cuidados na SAE e comunique o médico.</p>
       </div>
-      
-      <div id="conteudo" class="bg-white p-6 rounded-lg shadow-md mb-8">
-        <div class="input-section mb-8">
-          <h3>Entradas (mL)</h3>
-          <table class="input-table">
-            <thead>
-              <tr>
-                <th>Item</th>
-                <th>Valor (mL)</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td><label for="ingestaoOral">Ingestão Oral:</label></td>
-                <td><input type="number" id="ingestaoOral" value="0" min="0" class="input-field" /></td>
-              </tr>
-              <tr>
-                <td><label for="aguaDeMetabolismo">Água de Metabolismo:</label></td>
-                <td><input type="number" id="aguaDeMetabolismo" value="0" min="0" class="input-field" /></td>
-              </tr>
-              <tr>
-                <td><label for="dietasEnterais">Dietas Enterais:</label></td>
-                <td><input type="number" id="dietasEnterais" value="0" min="0" class="input-field" /></td>
-              </tr>
-              <tr>
-                <td><label for="medicacoesIV">Medicações (VO/EV/Enteral):</label></td>
-                <td><input type="number" id="medicacoesIV" value="0" min="0" class="input-field" /></td>
-              </tr>
-              <tr>
-                <td><label for="soroterapia">Soroterapia:</label></td>
-                <td><input type="number" id="soroterapia" value="0" min="0" class="input-field" /></td>
-              </tr>
-              <tr>
-                <td><label for="outrasEntradas">Outras Entradas:</label></td>
-                <td><input type="number" id="outrasEntradas" value="0" min="0" class="input-field" /></td>
-              </tr>
-            </tbody>
-          </table>
+
+        <div class="bg-white p-4 rounded-lg shadow-md mb-4">
+            <h3 class="font-bold text-xl text-dark-blue mb-4">Entradas (ml)</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label for="oral" class="block text-gray-700 text-sm font-bold mb-2">Oral:</label>
+                    <input type="number" id="oral" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" value="0">
+                </div>
+                <div>
+                    <label for="ev" class="block text-gray-700 text-sm font-bold mb-2">Intravenosa (EV):</label>
+                    <input type="number" id="ev" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" value="0">
+                </div>
+                <div>
+                    <label for="outras_entradas" class="block text-gray-700 text-sm font-bold mb-2">Outras Entradas:</label>
+                    <input type="number" id="outras_entradas" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" value="0">
+                </div>
+            </div>
         </div>
 
-        <div class="input-section mb-8">
-          <h3>Saídas (mL)</h3>
-          <table class="input-table">
-            <thead>
-              <tr>
-                <th>Item</th>
-                <th>Valor (mL)</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td><label for="urina">Urina:</label></td>
-                <td><input type="number" id="urina" value="0" min="0" class="input-field" /></td>
-              </tr>
-              <tr>
-                <td><label for="vomito">Vômito:</label></td>
-                <td><input type="number" id="vomito" value="0" min="0" class="input-field" /></td>
-              </tr>
-              <tr>
-                <td><label for="diarreia">Diarreia:</label></td>
-                <td><input type="number" id="diarreia" value="0" min="0" class="input-field" /></td>
-              </tr>
-              <tr>
-                <td><label for="drenos">Drenos:</label></td>
-                <td><input type="number" id="drenos" value="0" min="0" class="input-field" /></td>
-              </tr>
-              <tr>
-                <td><label for="outrasPerdas">Outras Perdas:</label></td>
-                <td><input type="number" id="outrasPerdas" value="0" min="0" class="input-field" /></td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-        
-        <div class="flex flex-wrap justify-center gap-4 mb-6">
-          <button id="calcularBtn" class="btn-primary">Calcular Balanço Hídrico</button>
-          <button id="limparBtn" class="btn-secondary">Limpar Campos</button>
-          <button id="gerarPdfBtn" class="btn-primary">Gerar PDF</button> <button id="btnNandaNicNoc" class="btn-secondary">NANDA, NIC, NOC</button>
+        <div class="bg-white p-4 rounded-lg shadow-md mb-4">
+            <h3 class="font-bold text-xl text-dark-blue mb-4">Saídas (ml)</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label for="urina" class="block text-gray-700 text-sm font-bold mb-2">Urina:</label>
+                    <input type="number" id="urina" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" value="0">
+                </div>
+                <div>
+                    <label for="drenagem" class="block text-gray-700 text-sm font-bold mb-2">Drenagem (Sondas, etc.):</label>
+                    <input type="number" id="drenagem" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" value="0">
+                </div>
+                <div>
+                    <label for="vomito" class="block text-gray-700 text-sm font-bold mb-2">Vômito:</label>
+                    <input type="number" id="vomito" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" value="0">
+                </div>
+                <div>
+                    <label for="outras_saidas" class="block text-gray-700 text-sm font-bold mb-2">Outras Saídas:</label>
+                    <input type="number" id="outras_saidas" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" value="0">
+                </div>
+            </div>
         </div>
 
-        <div id="resultado" class="resultado" aria-live="polite"></div>
+        <div id="resultado" class="resultado" aria-live="polite" style="display: none;"></div>
 
-        <div class="ref font-inter text-gray-custom">
-          <p><strong>Referências:</strong></p>
-          <ul class="list-disc list-inside ml-4">
-            <li>Conselho Federal de Enfermagem (COFEN). Resolução COFEN nº 0509/2016. Norma Técnica para anotação de enfermagem e balanço hídrico.</li>
-            <li>Neto, J. Balanço hídrico: o que é, como calcular e qual a importância para o paciente. Blog de Enfermagem. Disponível em: &lt;https://www.blogdeenfermagem.com/balanco-hidrico/&gt;. Acesso em: 20 jul. 2024.</li>
-            <li>Potter, P. A.; Perry, A. G. Fundamentos de Enfermagem. 9. ed. Rio de Janeiro: Elsevier, 2018.</li>
-          </ul>
+        <div id="bibliografia" class="ref font-inter text-gray-custom">
+          <strong>Referência bibliográfica:</strong><br />
+          <p class="mt-2">
+            Manual de Enfermagem para Balanço Hídrico. Exemplo: BRASIL. Ministério da Saúde. Portaria nº 2.436, de 21 de setembro de 2017. Aprova a Política Nacional de Atenção Básica.
+          </p>
         </div>
       </div>
+
+      <div class="flex flex-wrap justify-start gap-4 mt-6">
+        <button id="btnCalcular" class="btn-primary" aria-label="Calcular Balanço Hídrico">
+          Calcular
+        </button>
+        <button id="btnLimpar" class="btn-primary" aria-label="Limpar campos">
+          Limpar
+        </button>
+        <button id="btnGerarPDF" class="btn-secondary" aria-label="Gerar PDF">
+          Gerar PDF
+        </button>
+        <button id="btnNandaNicNoc" class="btn-primary" aria-label="Pesquisar NANDA, NIC, NOC">
+            NANDA, NIC, NOC
+        </button>
+      </div>
     </main>
+  </div>
+  <a href="doacoes.html" class="fixed bottom-4 right-4 bg-dark-blue text-white text-sm px-4 py-2 rounded-full shadow hover:bg-blue-900 transition fixed-donation-button">
+    Ajude-nos a manter o site gratuito
+  </a>
+  <div id="footer-container"></div>
 
-    <div id="footer-container"></div>
+  <!-- Modal de Mensagem Personalizado -->
+  <div id="messageModalOverlay" class="message-modal-overlay">
+      <div class="message-modal-content">
+          <button id="messageModalClose" class="message-modal-close">&times;</button>
+          <p id="messageModalText" class="text-gray-700 text-lg"></p>
+      </div>
   </div>
 
-  <div id="cookieConsentBanner" class="hidden">
-    <p>Utilizamos cookies para melhorar a sua experiência. Ao continuar, você concorda com a nossa <a href="politica-de-privacidade.html" class="text-light-blue hover:underline">Política de Privacidade</a>.</p>
-    <div class="cookie-buttons">
-      <button id="acceptCookies">Aceitar Cookies</button>
-      <button id="declineCookies" class="secondary">Recusar cookies</button>
-    </div>
+  <!-- Cookie Consent Banner -->
+  <div id="cookieConsentBanner">
+      <p>Utilizamos cookies para melhorar sua experiência em nosso site. Ao continuar navegando, você concorda com nossa <a href="politica.html" class="underline text-blue-200 hover:text-blue-100">Política de Cookies</a>.</p>
+      <div class="cookie-buttons">
+          <button id="acceptCookiesBtn">Aceitar todos os cookies</button>
+          <button id="refuseCookiesBtn" class="secondary">Recusar cookies</button>
+      </div>
   </div>
 
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <!-- Botão Hambúrguer de Acessibilidade -->
+  <button id="accessibilityHamburgerBtn" class="accessibility-hamburger-btn" role="button" aria-label="Abrir menu de acessibilidade">
+      <i class="fas fa-universal-access"></i>
+  </button>
+
+  <!-- Off-canvas Menu de Acessibilidade -->
+  <div id="accessibilityOffCanvasMenu" class="accessibility-off-canvas-menu">
+      <div class="accessibility-menu-header">
+          <h3>Acessibilidade</h3>
+          <button id="closeAccessibilityMenuBtn" class="close-accessibility-menu-btn" aria-label="Fechar menu de acessibilidade">&times;</button>
+      </div>
+      <div class="accessibility-option">
+          <label>Tamanho da Fonte:</label>
+          <button id="font-size-small" class="accessibility-option-btn" aria-label="Fonte pequena">A-</button>
+          <button id="font-size-medium" class="accessibility-option-btn" aria-label="Fonte média">A</button>
+          <button id="font-size-large" class="accessibility-option-btn" aria-label="Fonte grande">A+</button>
+      </div>
+      <div class="accessibility-option">
+          <label>Contraste:</label>
+          <button id="contrast-normal" class="accessibility-option-btn" aria-label="Contraste normal">Normal</button>
+          <button id="contrast-high" class="accessibility-option-btn" aria-label="Alto contraste">Alto</button>
+      </div>
+      <div class="accessibility-option">
+          <label>Modo de Leitura:</label>
+          <button id="reading-mode-normal" class="accessibility-option-btn" aria-label="Modo normal">Normal</button>
+          <button id="reading-mode-dark" class="accessibility-option-btn" aria-label="Modo escuro">Escuro</button>
+      </div>
+  </div>
+
+  <!-- Overlay para o menu de acessibilidade -->
+  <div id="accessibilityOverlay" class="accessibility-overlay"></div>
+
   <script>
-    // Referências aos elementos do DOM
+    // JS for Balanço Hídrico calculation
     const resultadoDiv = document.getElementById('resultado');
-    const calcularBtn = document.getElementById('calcularBtn');
-    const limparBtn = document.getElementById('limparBtn');
-    const gerarPdfBtn = document.getElementById('gerarPdfBtn');
     const btnNandaNicNoc = document.getElementById('btnNandaNicNoc');
 
-    // --- Funções do Modal de Mensagem (necessário para exibir mensagens de erro) ---
-    // Adicionado ao DOM dinamicamente para garantir que o CSS do modal seja aplicado
-    const messageModalOverlay = document.createElement('div');
-    messageModalOverlay.id = 'messageModalOverlay';
-    messageModalOverlay.className = 'message-modal-overlay';
-    document.body.appendChild(messageModalOverlay);
-
-    const messageModalContent = document.createElement('div');
-    messageModalContent.className = 'message-modal-content';
-    messageModalOverlay.appendChild(messageModalContent);
-
-    const messageModalClose = document.createElement('button');
-    messageModalClose.id = 'messageModalClose';
-    messageModalClose.className = 'message-modal-close';
-    messageModalClose.innerHTML = '&times;';
-    messageModalContent.appendChild(messageModalClose);
-
-    const messageModalText = document.createElement('p');
-    messageModalText.id = 'messageModalText';
-    messageModalText.className = 'text-gray-700 text-lg';
-    messageModalContent.appendChild(messageModalText);
+    // Modal functions
+    const messageModalOverlay = document.getElementById('messageModalOverlay');
+    const messageModalText = document.getElementById('messageModalText');
+    const messageModalClose = document.getElementById('messageModalClose');
 
     function showCustomMessage(message) {
-      messageModalText.textContent = message;
-      messageModalOverlay.style.display = 'flex';
+        messageModalText.textContent = message;
+        messageModalOverlay.style.display = 'flex';
     }
 
     function hideCustomMessage() {
-      messageModalOverlay.style.display = 'none';
+        messageModalOverlay.style.display = 'none';
     }
 
     messageModalClose.addEventListener('click', hideCustomMessage);
     messageModalOverlay.addEventListener('click', (e) => {
-      if (e.target === messageModalOverlay) {
-        hideCustomMessage();
-      }
+        if (e.target === messageModalOverlay) {
+            hideCustomMessage();
+        }
     });
-    // --- Fim das Funções do Modal de Mensagem ---
 
-    function calcularBalançoHidrico() {
-      // Entradas
-      const ingestaoOral = parseFloat(document.getElementById('ingestaoOral').value) || 0;
-      const aguaDeMetabolismo = parseFloat(document.getElementById('aguaDeMetabolismo').value) || 0;
-      const dietasEnterais = parseFloat(document.getElementById('dietasEnterais').value) || 0;
-      const medicacoesIV = parseFloat(document.getElementById('medicacoesIV').value) || 0;
-      const soroterapia = parseFloat(document.getElementById('soroterapia').value) || 0;
-      const outrasEntradas = parseFloat(document.getElementById('outrasEntradas').value) || 0;
+    function calcular() {
+        const oral = parseFloat(document.getElementById('oral').value) || 0;
+        const ev = parseFloat(document.getElementById('ev').value) || 0;
+        const outras_entradas = parseFloat(document.getElementById('outras_entradas').value) || 0;
 
-      // Saídas
-      const urina = parseFloat(document.getElementById('urina').value) || 0;
-      const vomito = parseFloat(document.getElementById('vomito').value) || 0;
-      const diarreia = parseFloat(document.getElementById('diarreia').value) || 0;
-      const drenos = parseFloat(document.getElementById('drenos').value) || 0;
-      const outrasPerdas = parseFloat(document.getElementById('outrasPerdas').value) || 0;
+        const urina = parseFloat(document.getElementById('urina').value) || 0;
+        const drenagem = parseFloat(document.getElementById('drenagem').value) || 0;
+        const vomito = parseFloat(document.getElementById('vomito').value) || 0;
+        const outras_saidas = parseFloat(document.getElementById('outras_saidas').value) || 0;
 
-      const totalEntradas = ingestaoOral + aguaDeMetabolismo + dietasEnterais + medicacoesIV + soroterapia + outrasEntradas;
-      const totalSaidas = urina + vomito + diarreia + drenos + outrasPerdas;
-      const balanco = totalEntradas - totalSaidas;
+        const totalEntradas = oral + ev + outras_entradas;
+        const totalSaidas = urina + drenagem + vomito + outras_saidas;
+        const balanco = totalEntradas - totalSaidas;
 
-      let classificacao = '';
-      let conduta = '';
-      let resultadoCorClass = 'text-dark-blue'; // ALTERADO: Resultado sempre na cor azul
-
-      if (balanco > 200) { // Alterado o limite para positivo
-        classificacao = 'POSITIVO';
-        conduta = `
-          <p>O Balanço Hídrico <strong>POSITIVO</strong> indica que as entradas de líquidos foram maiores que as saídas. Isso pode levar a sobrecarga de volume e edemas. É crucial monitorar de perto os sinais vitais, o peso do paciente e comunicar imediatamente o médico para reavaliação da terapia e ajuste no plano de cuidados.</p>
-          <p class="mt-2 text-xs-custom">O balanço hídrico é fechado em 24 horas, geralmente pelo Enfermeiro, para uma avaliação completa do estado de hidratação e tomada de decisão clínica.</p>
-          <p>Comunique o enfermeiro responsável sobre o resultado do balanço hídrico para avaliação e conduta adequada, especialmente em casos de balanço hídrico positivo ou negativo significativo.</p>
+        resultadoDiv.style.display = 'block';
+        resultadoDiv.innerHTML = `
+            <strong>Total de Entradas:</strong> ${totalEntradas} ml<br>
+            <strong>Total de Saídas:</strong> ${totalSaidas} ml<br>
+            <strong>Balanço Hídrico:</strong> ${balanco} ml
         `;
-      }  if (balanco < -200) { // Alterado o limite para negativo
-        classificacao = 'NEGATIVO';
-        conduta = `
-          <p>O Balanço Hídrico <strong>NEGATIVO</strong> sugere que as saídas de líquidos foram maiores que as entradas, indicando uma possível desidratação. É vital observar sinais como mucosas secas, diminuição da turgência da pele, hipotensão e taquicardia. Informe o médico com urgência para que a reposição volêmica adequada seja iniciada.</p>
-          <p class="mt-2 text-xs-custom">O balanço hídrico é fechado em 24 horas, geralmente pelo Enfermeiro, para uma avaliação completa do estado de hidratação e tomada de decisão clínica.</p>
-          <p>Comunique o enfermeiro responsável sobre o resultado do balanço hídrico para avaliação e conduta adequada, especialmente em casos de balanço hídrico positivo ou negativo significativo.</p>
-        `;
-      }  {
-        
-      }
+        resultadoDiv.classList.remove('bg-red-100', 'text-red-600', 'bg-yellow-100', 'text-yellow-700', 'bg-green-100', 'text-green-700', 'bg-blue-50', 'text-dark-blue');
+        resultadoDiv.classList.add('bg-blue-50', 'text-dark-blue'); // Default color
 
-      const detalheEntradas = [];
-      if (ingestaoOral > 0) detalheEntradas.push(`Ingestão Oral: ${ingestaoOral} mL`);
-      if (aguaDeMetabolismo > 0) detalheEntradas.push(`Água de Metabolismo: ${aguaDeMetabolismo} mL`);
-      if (dietasEnterais > 0) detalheEntradas.push(`Dietas Enterais: ${dietasEnterais} mL`);
-      if (medicacoesIV > 0) detalheEntradas.push(`Medicações (VO/EV/Enteral): ${medicacoesIV} mL`);
-      if (soroterapia > 0) detalheEntradas.push(`Soroterapia: ${soroterapia} mL`);
-      if (outrasEntradas > 0) detalheEntradas.push(`Outras Entradas: ${outrasEntradas} mL`);
+        // Set data attributes for NANDA button
+        resultadoDiv.dataset.totalEntradas = totalEntradas;
+        resultadoDiv.dataset.totalSaidas = totalSaidas;
+        resultadoDiv.dataset.balanco = balanco;
+        resultadoDiv.dataset.scaleName = "Balanço Hídrico";
 
-      const detalheSaidas = [];
-      if (urina > 0) detalheSaidas.push(`Urina: ${urina} mL`);
-      if (vomito > 0) detalheSaidas.push(`Vômito: ${vomito} mL`);
-      if (diarreia > 0) detalheSaidas.push(`Diarreia: ${diarreia} mL`);
-      if (drenos > 0) detalheSaidas.push(`Drenos: ${drenos} mL`);
-      if (outrasPerdas > 0) detalheSaidas.push(`Outras Perdas: ${outrasPerdas} mL`);
-
-
-      resultadoDiv.innerHTML = `
-  <div class="space-y-0.5 text-xs leading-tight">
-    <p><strong>Resultado:</strong> ${classificacao === 'POSITIVO' ? 'NEGATIVO' : 'POSITIVO'}</p>
-    <p class="mt-0.5"><strong>Cálculo Detalhado:</strong></p>
-    <p class="ml-2 mt-0.5"><strong>Total de Entradas:</strong></p>
-    <ul class="list-disc list-inside ml-4 mt-0.5">
-      ${detalheEntradas.length > 0 ? detalheEntradas.map(item => `<li>${item}</li>`).join('') : '<li>Nenhuma entrada registrada</li>'}
-      <li><strong>Soma das Entradas:</strong> ${totalEntradas} mL</li>
-    </ul>
-    <p class="ml-2 mt-0.5"><strong>Total de Saídas:</strong></p>
-    <ul class="list-disc list-inside ml-4 mt-0.5">
-      ${detalheSaidas.length > 0 ? detalheSaidas.map(item => `<li>${item}</li>`).join('') : '<li>Nenhuma saída registrada</li>'}
-      <li><strong>Soma das Saídas:</strong> ${totalSaidas} mL</li>
-    </ul>
-    <p class="mt-1"><strong>Balanço Hídrico Final:</strong></p>
-    <p class="ml-2 mt-0.5">${totalEntradas} mL (Entradas) - ${totalSaidas} mL (Saídas) = <strong>${balanco} mL</strong></p>
-    <p class="mt-1">${conduta}</p>
-  </div>
-`;
-
-resultadoDiv.className = `resultado ${resultadoCorClass}`;
-resultadoDiv.style.display = 'block';
-
-      // Armazenar os valores e detalhes para a geração do PDF e para o botão NANDA, NIC, NOC
-      resultadoDiv.dataset.score = balanco; // Armazena o valor numérico do balanço
-      resultadoDiv.dataset.scaleName = "Balanço Hídrico";
-      resultadoDiv.dataset.classificacao = classificacao; // Armazena a classificação
-      resultadoDiv.dataset.detalheEntradas = JSON.stringify(detalheEntradas);
-      resultadoDiv.dataset.detalheSaidas = JSON.stringify(detalheSaidas);
-      resultadoDiv.dataset.totalEntradas = totalEntradas;
-      resultadoDiv.dataset.totalSaidas = totalSaidas;
-      resultadoDiv.dataset.conduta = conduta; // Armazena a conduta
+        // Determine color based on balance
+        if (balanco < 0) {
+            resultadoDiv.classList.add('bg-red-100', 'text-red-600');
+        } else if (balanco > 0) {
+            resultadoDiv.classList.add('bg-green-100', 'text-green-700');
+        } else {
+            resultadoDiv.classList.add('bg-yellow-100', 'text-yellow-700');
+        }
     }
 
     function limparCampos() {
-      const inputs = document.querySelectorAll('.input-field');
-      inputs.forEach(input => {
-        input.value = '0';
-      });
-      resultadoDiv.style.display = 'none'; // Oculta o resultado
-      resultadoDiv.innerHTML = ''; // Limpa o conteúdo do resultado
-      resultadoDiv.className = 'resultado'; // Reseta a classe
+        document.getElementById('oral').value = '0';
+        document.getElementById('ev').value = '0';
+        document.getElementById('outras_entradas').value = '0';
+        document.getElementById('urina').value = '0';
+        document.getElementById('drenagem').value = '0';
+        document.getElementById('vomito').value = '0';
+        document.getElementById('outras_saidas').value = '0';
+
+        resultadoDiv.innerHTML = '';
+        resultadoDiv.style.display = 'none';
+        resultadoDiv.classList.remove('bg-red-100', 'text-red-600', 'bg-yellow-100', 'text-yellow-700', 'bg-green-100', 'text-green-700', 'bg-blue-50', 'text-dark-blue');
+        // Clear data attributes
+        delete resultadoDiv.dataset.totalEntradas;
+        delete resultadoDiv.dataset.totalSaidas;
+        delete resultadoDiv.dataset.balanco;
+        delete resultadoDiv.dataset.scaleName;
     }
 
+    // PDF Generation Function - Modified as per user's example
     function gerarPDF() {
-      // Verifica se o balanço hídrico foi calculado
-      const balancoValue = resultadoDiv.dataset.score;
-      if (balancoValue === undefined || resultadoDiv.innerText.trim() === '') {
-        showCustomMessage('Por favor, calcule o balanço hídrico antes de gerar o PDF.');
-        return;
-        setTimeout(() => {
-  pdfContentWrapper.style.display = 'none';
-}, 1000);
-
-      }
-
-      const pdfContentWrapper = document.getElementById('pdfPreviewContent');
-pdfContentWrapper.innerHTML = ''; // limpa conteúdo anterior
-pdfContentWrapper.style.display = 'block';
-pdfContentWrapper.style.padding = '20px';
-pdfContentWrapper.style.fontFamily = "'Inter', sans-serif";
-pdfContentWrapper.style.color = '#333';
-pdfContentWrapper.style.backgroundColor = '#ffffff';
-pdfContentWrapper.style.fontSize = '9px'; // opcional para ajustar altura
-
-      // Título Principal
-      const pdfMainTitle = document.createElement('h1');
-      pdfMainTitle.style.fontFamily = "'Nunito Sans', sans-serif";
-      pdfMainTitle.style.fontWeight = 'bold';
-      pdfMainTitle.style.fontSize = '28px';
-      pdfMainTitle.style.color = '#1A3E74';
-      pdfMainTitle.style.textAlign = 'center';
-      pdfMainTitle.style.marginBottom = '10px';
-      pdfMainTitle.innerText = "Calculadora de Balanço Hídrico";
-      pdfContentWrapper.appendChild(pdfMainTitle);
-
-      // Subtítulo
-      const pdfMainSubtitle = document.createElement('p');
-      pdfMainSubtitle.style.marginBottom = '15px';
-      pdfMainSubtitle.style.fontSize = '18px';
-      pdfMainSubtitle.style.color = '#1FA4E5';
-      pdfMainSubtitle.style.textAlign = 'center';
-      pdfMainSubtitle.innerText = "Relatório de Equilíbrio Hídrico";
-      pdfContentWrapper.appendChild(pdfMainSubtitle);
-
-      // Data e Hora de Geração
-      const dateDiv = document.createElement('p');
-      dateDiv.style.fontSize = '12px';
-      dateDiv.style.color = '#777';
-      dateDiv.style.textAlign = 'center';
-      dateDiv.style.marginBottom = '20px';
-      dateDiv.innerText = `Gerado em: ${new Date().toLocaleDateString('pt-BR')} ${new Date().toLocaleTimeString('pt-BR')}`;
-      pdfContentWrapper.appendChild(dateDiv);
-
-      // Descrição Introdutória (O texto novo e suas propriedades)
-      const introDescriptionPDF = document.createElement('div');
-      introDescriptionPDF.style.border = '1px solid #ccc';
-      introDescriptionPDF.style.borderRadius = '8px';
-      introDescriptionPDF.style.padding = '15px';
-      introDescriptionPDF.style.marginBottom = '20px';
-      introDescriptionPDF.style.boxShadow = '0 2px 4px rgba(0,0,0,0.1)';
-      introDescriptionPDF.style.fontSize = '9px'; /* Letras pequenas para o PDF */
-      introDescriptionPDF.style.color = '#333';
-      introDescriptionPDF.innerHTML = `
-        <p style="margin-bottom: 10px;">
-          Relatório de Equilíbrio Hídrico<br>
-          O Balanço Hídrico é essencial para monitorar o equilíbrio de líquidos do paciente. Os dados de entradas e saídas são <strong>registrados pelo técnico de enfermagem</strong> ao longo das suas 12 horas de plantão, com anotação cuidadosa em prontuário. O <strong>cálculo e o fechamento do Balanço Hídrico, que abrange 24 horas</strong>, são de <strong>responsabilidade do enfermeiro plantonista</strong>, fundamentais para a tomada de decisões clínicas precisas.
-        </p>
-        <p style="margin-bottom: 10px;">
-          <strong>Atenção, profissionais:</strong><br>
-          <strong>Técnico de Enfermagem:</strong> Lembre-se de registrar <strong>todos</strong> os valores de entrada e saída de líquidos.<br>
-          <strong>Enfermeiro:</strong> Não se esqueça de realizar o <strong>fechamento</strong> do balanço hídrico para a avaliação completa do paciente.
-        </p>
-        <p>
-          Esta prática está diretamente alinhada com a <strong>Meta 02 de Segurança do Paciente: Melhorar a Segurança da Comunicação</strong>. A acurácia na coleta e cálculo do balanço hídrico garante uma avaliação correta do estado do paciente e previne erros que possam comprometer seu bem-estar.
-        </p>
-      `;
-      pdfContentWrapper.appendChild(introDescriptionPDF);
-
-      // Conteúdo da Calculadora (Entradas e Saídas) - Recriação textual para o PDF
-      const inputsSectionEntradas = document.createElement('div');
-      inputsSectionEntradas.style.marginBottom = '20px';
-      inputsSectionEntradas.innerHTML = `
-        <h4 style="font-family:'Nunito Sans', sans-serif; font-weight:700; color:#1A3E74; font-size:1.2rem; margin-bottom:10px;">Entradas (mL)</h4>
-        <table style="width:100%; border-collapse:collapse;">
-            <thead>
-                <tr>
-                    <th style="padding:0.3rem 0.5rem; border:1px solid #e2e8f0; background-color:#f1f5f9; font-weight:600; color:#1A3E74; font-size:0.875rem;">Item</th>
-                    <th style="padding:0.3rem 0.5rem; border:1px solid #e2e8f0; background-color:#f1f5f9; font-weight:600; color:#1A3E74; font-size:0.875rem;">Valor (mL)</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td style="padding:0.3rem 0.5rem; border:1px solid #e2e8f0; font-size:0.875rem;">Ingestão Oral:</td>
-                    <td style="padding:0.3rem 0.5rem; border:1px solid #e2e8f0; font-size:0.875rem;">${document.getElementById('ingestaoOral').value} mL</td>
-                </tr>
-                <tr>
-                    <td style="padding:0.3rem 0.5rem; border:1px solid #e2e8f0; font-size:0.875rem;">Água de Metabolismo:</td>
-                    <td style="padding:0.3rem 0.5rem; border:1px solid #e2e8f0; font-size:0.875rem;">${document.getElementById('aguaDeMetabolismo').value} mL</td>
-                </tr>
-                <tr>
-                    <td style="padding:0.3rem 0.5rem; border:1px solid #e2e8f0; font-size:0.875rem;">Dietas Enterais:</td>
-                    <td style="padding:0.3rem 0.5rem; border:1px solid #e2e8f0; font-size:0.875rem;">${document.getElementById('dietasEnterais').value} mL</td>
-                </tr>
-                <tr>
-                    <td style="padding:0.3rem 0.5rem; border:1px solid #e2e8f0; font-size:0.875rem;">Medicações (VO/EV/Enteral):</td>
-                    <td style="padding:0.3rem 0.5rem; border:1px solid #e2e8f0; font-size:0.875rem;">${document.getElementById('medicacoesIV').value} mL</td>
-                </tr>
-                <tr>
-                    <td style="padding:0.3rem 0.5rem; border:1px solid #e2e8f0; font-size:0.875rem;">Soroterapia:</td>
-                    <td style="padding:0.3rem 0.5rem; border:1px solid #e2e8f0; font-size:0.875rem;">${document.getElementById('soroterapia').value} mL</td>
-                </tr>
-                <tr>
-                    <td style="padding:0.3rem 0.5rem; border:1px solid #e2e8f0; font-size:0.875rem;">Outras Entradas:</td>
-                    <td style="padding:0.3rem 0.5rem; border:1px solid #e2e8f0; font-size:0.875rem;">${document.getElementById('outrasEntradas').value} mL</td>
-                </tr>
-            </tbody>
-        </table>
-      `;
-      pdfContentWrapper.appendChild(inputsSectionEntradas);
-
-      const inputsSectionSaidas = document.createElement('div');
-      inputsSectionSaidas.style.marginBottom = '20px';
-      inputsSectionSaidas.innerHTML = `
-        <h4 style="font-family:'Nunito Sans', sans-serif; font-weight:700; color:#1A3E74; font-size:1.2rem; margin-bottom:10px;">Saídas (mL)</h4>
-        <table style="width:100%; border-collapse:collapse;">
-            <thead>
-                <tr>
-                    <th style="padding:0.3rem 0.5rem; border:1px solid #e2e8f0; background-color:#f1f5f9; font-weight:600; color:#1A3E74; font-size:0.875rem;">Item</th>
-                    <th style="padding:0.3rem 0.5rem; border:1px solid #e2e8f0; background-color:#f1f5f9; font-weight:600; color:#1A3E74; font-size:0.875rem;">Valor (mL)</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td style="padding:0.3rem 0.5rem; border:1px solid #e2e8f0; font-size:0.875rem;">Urina:</td>
-                    <td style="padding:0.3rem 0.5rem; border:1px solid #e2e8f0; font-size:0.875rem;">${document.getElementById('urina').value} mL</td>
-                </tr>
-                <tr>
-                    <td style="padding:0.3rem 0.5rem; border:1px solid #e2e8f0; font-size:0.875rem;">Vômito:</td>
-                    <td style="padding:0.3rem 0.5rem; border:1px solid #e2e8f0; font-size:0.875rem;">${document.getElementById('vomito').value} mL</td>
-                </tr>
-                <tr>
-                    <td style="padding:0.3rem 0.5rem; border:1px solid #e2e8f0; font-size:0.875rem;">Diarreia:</td>
-                    <td style="padding:0.3rem 0.5rem; border:1px solid #e2e8f0; font-size:0.875rem;">${document.getElementById('diarreia').value} mL</td>
-                </tr>
-                <tr>
-                    <td style="padding:0.3rem 0.5rem; border:1px solid #e2e8f0; font-size:0.875rem;">Drenos:</td>
-                    <td style="padding:0.3rem 0.5rem; border:1px solid #e2e8f0; font-size:0.875rem;">${document.getElementById('drenos').value} mL</td>
-                </tr>
-                <tr>
-                    <td style="padding:0.3rem 0.5rem; border:1px solid #e2e8f0; font-size:0.875rem;">Outras Perdas:</td>
-                    <td style="padding:0.3rem 0.5rem; border:1px solid #e2e8f0; font-size:0.875rem;">${document.getElementById('outrasPerdas').value} mL</td>
-                </tr>
-            </tbody>
-        </table>
-      `;
-      pdfContentWrapper.appendChild(inputsSectionSaidas);
-
-      // Conteúdo do Resultado
-      const resultadoContent = document.createElement('div');
-      resultadoContent.style.marginTop = '1rem';
-      resultadoContent.style.padding = '0.75rem';
-      resultadoContent.style.borderRadius = '0.5rem';
-      resultadoContent.style.fontWeight = '600';
-      resultadoContent.style.textAlign = 'left';
-      resultadoContent.style.whiteSpace = 'pre-wrap';
-      resultadoContent.style.backgroundColor = '#e0f2fe'; // Tailwind blue-50
-      resultadoContent.style.color = '#1A3E74'; // ALTERADO: Cor do resultado sempre azul no PDF
-
-      // Replicar o conteúdo dinâmico do resultadoDiv
-      const classificacao = resultadoDiv.dataset.classificacao;
-      const totalEntradas = resultadoDiv.dataset.totalEntradas;
-      const totalSaidas = resultadoDiv.dataset.totalSaidas;
-      
-
-      const conduta = resultadoDiv.dataset.conduta;
-      const detalheEntradas = JSON.parse(resultadoDiv.dataset.detalheEntradas || '[]');
-      const detalheSaidas = JSON.parse(resultadoDiv.dataset.detalheSaidas || '[]');
-
-      resultadoContent.innerHTML = `
-        <p><strong>Balanço Hídrico:</strong> O resultado indica que o balanço hídrico é <strong>${classificacao}</strong>.</p>
-        <p style="margin-top:1rem;"><strong>Cálculo Detalhado:</strong></p>
-        <p style="margin-left:1rem;"><strong>Total de Entradas:</strong></p>
-        <ul style="list-style:disc; list-style-position:inside; margin-left:2rem;">
-          ${detalheEntradas.length > 0 ? detalheEntradas.map(item => `<li>${item}</li>`).join('') : '<li>Nenhuma entrada registrada</li>'}
-          <li><strong>Soma das Entradas:</strong> ${totalEntradas} mL</li>
-        </ul>
-        <p style="margin-left:1rem; margin-top:0.5rem;"><strong>Total de Saídas:</strong></p>
-        <ul style="list-style:disc; list-style-position:inside; margin-left:2rem;">
-          ${detalheSaidas.length > 0 ? detalheSaidas.map(item => `<li>${item}</li>`).join('') : '<li>Nenhuma saída registrada</li>'}
-          <li><strong>Soma das Saídas:</strong> ${totalSaidas} mL</li>
-        </ul>
-        <p style="margin-top:1rem;"><strong>Balanço Hídrico Final:</strong></p>
-        <p style="margin-left:1rem;">${totalEntradas} mL (Entradas) - ${totalSaidas} mL (Saídas) = <strong>${balancoValue} mL</strong></p>
-        <div style="margin-top:1.5rem;">${conduta}</div>
-      `;
-      pdfContentWrapper.appendChild(resultadoContent);
-
-      // Referências
-      const refSection = document.querySelector('.ref').cloneNode(true);
-      refSection.style.marginTop = '2rem';
-      refSection.style.fontSize = '12px'; // Ajustado para ser menor no PDF
-      refSection.style.color = '#666';
-      refSection.style.textAlign = 'left';
-      pdfContentWrapper.appendChild(refSection);
-
-      // Configurações do PDF
-      const options = {
-        margin: [10, 10, 10, 10], // top, left, bottom, right
-        filename: 'balanco_hidrico.pdf',
-        image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: { scale: 2 },
-        jsPDF: { unit: 'mm', format: [210, 297], orientation: 'portrait' }, // já é A4
-html2canvas: { scale: 1 } // ⬅ menor escala (reduz o conteúdo)
-      };
-
-      // Gera e baixa o PDF
-      html2pdf().from(pdfContentWrapper).set(options).save();
-    }
-
-    // Event Listeners
-    calcularBtn.addEventListener('click', calcularBalançoHidrico);
-    limparBtn.addEventListener('click', limparCampos);
-    gerarPdfBtn.addEventListener('click', gerarPDF);
-
-    // NANDA, NIC, NOC button
-    btnNandaNicNoc.addEventListener('click', () => {
-      const balancoValue = resultadoDiv.dataset.score; // Pega o valor do balanço
-      const classificacao = resultadoDiv.dataset.classificacao; // Pega a classificação (positivo, negativo)
-      const scaleName = resultadoDiv.dataset.scaleName; // Pega o nome da escala
-
-      // Se não houver balanço ou classificação válidos, exibe mensagem de erro
-      if (balancoValue === undefined || classificacao === undefined || !scaleName || resultadoDiv.innerText.trim() === '') {
-        showCustomMessage('Por favor, clique em "Calcular" primeiro para obter o balanço hídrico e habilitar a pesquisa NANDA, NIC, NOC.');
-        return;
-      }
-
-      // Constrói a string de pesquisa detalhada
-      const detailedSearchQuery = `${balancoValue} mL ${classificacao} ${scaleName} GERAR diagnosticos de enfermagem da NANDA, GERAR intervenções de enfermagem do NIC, Gerar um exemplo de mensuração dos resultados implementados pelo enfermeiro (NOC)`;
-      const encodedSearchQuery = encodeURIComponent(detailedSearchQuery);
-
-      // Abre uma nova aba com a pesquisa do Google
-      window.open(`https://www.google.com/search?q=${encodedSearchQuery}`, '_blank');
-    });
-
-    // --- Cookie Consent Logic ---
-    const cookieConsentBanner = document.getElementById('cookieConsentBanner');
-    const acceptCookiesBtn = document.getElementById('acceptCookies');
-    const declineCookiesBtn = document.getElementById('declineCookies');
-
-    function showCookieBanner() {
-      if (!localStorage.getItem('cookieConsent')) {
-        cookieConsentBanner.classList.add('show');
-      }
-    }
-
-    function hideCookieBanner() {
-      cookieConsentBanner.classList.remove('show');
-    }
-
-    acceptCookiesBtn.addEventListener('click', () => {
-      localStorage.setItem('cookieConsent', 'accepted');
-      hideCookieBanner();
-    });
-
-    declineCookiesBtn.addEventListener('click', () => {
-      localStorage.setItem('cookieConsent', 'declined');
-      hideCookieBanner();
-      // Optionally disable analytics or other features here
-    });
-
-    // Show banner on page load
-    document.addEventListener('DOMContentLoaded', showCookieBanner);
-
-
-    // Lógica para o menu de acessibilidade
-    const accessibilityHamburgerBtn = document.getElementById('accessibilityHamburgerBtn');
-    const accessibilityOffCanvasMenu = document.getElementById('accessibilityOffCanvasMenu');
-    const closeAccessibilityMenuBtn = document.getElementById('closeAccessibilityMenuBtn');
-    const accessibilityOverlay = document.getElementById('accessibilityOverlay');
-
-    const toggleFontSizeBtn = document.getElementById('toggleFontSizeBtn');
-    const toggleContrastBtn = document.getElementById('toggleContrastBtn');
-    const toggleDarkModeBtn = document.getElementById('toggleDarkModeBtn');
-    const resetAccessibilityBtn = document.getElementById('resetAccessibilityBtn');
-
-    let currentFontSize = localStorage.getItem('fontSize') || 'normal';
-    let isHighContrast = localStorage.getItem('highContrast') === 'true';
-    let isDarkMode = localStorage.getItem('darkMode') === 'true';
-
-    function applyAccessibilitySettings() {
-      // Tamanho da Fonte
-      document.body.classList.remove('font-size-small', 'font-size-large');
-      if (currentFontSize === 'small') {
-        document.body.classList.add('font-size-small');
-      } else if (currentFontSize === 'large') {
-        document.body.classList.add('font-size-large');
-      }
-      localStorage.setItem('fontSize', currentFontSize);
-
-      // Alto Contraste
-      if (isHighContrast) {
-        document.body.classList.add('high-contrast');
-      } else {
-        document.body.classList.remove('high-contrast');
-      }
-      localStorage.setItem('highContrast', isHighContrast);
-
-      // Modo Escuro
-      if (isDarkMode) {
-        document.body.classList.add('dark-mode');
-      } else {
-        document.body.classList.remove('dark-mode');
-      }
-      localStorage.setItem('darkMode', isDarkMode);
-    }
-
-    // Funções de Toggle
-    if (toggleFontSizeBtn) {
-      toggleFontSizeBtn.addEventListener('click', () => {
-        if (currentFontSize === 'normal') {
-          currentFontSize = 'large';
-        } else if (currentFontSize === 'large') {
-          currentFontSize = 'small';
-        } else {
-          currentFontSize = 'normal';
+        // Esconde o botão de doação fixo para que não apareça no PDF.
+        const fixedButton = document.querySelector('.fixed-donation-button');
+        if (fixedButton) {
+            fixedButton.style.display = 'none';
         }
-        applyAccessibilitySettings();
-      });
-    }
 
-    if (toggleContrastBtn) {
-      toggleContrastBtn.addEventListener('click', () => {
-        isHighContrast = !isHighContrast;
-        applyAccessibilitySettings();
-      });
-    }
+        // Clona o conteúdo principal da calculadora
+        const contentToPrint = document.getElementById('conteudo').cloneNode(true);
 
-    if (toggleDarkModeBtn) {
-      toggleDarkModeBtn.addEventListener('click', () => {
-        isDarkMode = !isDarkMode;
-        applyAccessibilitySettings();
-      });
-    }
+        // Remove elementos que não devem ser incluídos no PDF (botões de ação, etc.)
+        const buttonsContainer = document.querySelector('.flex.flex-wrap.justify-start.gap-4.mt-6');
+        if (buttonsContainer) {
+            // Remove o container de botões do CLONE do conteúdo
+            const clonedButtonsContainer = contentToPrint.querySelector('.flex.flex-wrap.justify-start.gap-4.mt-6');
+            if (clonedButtonsContainer) {
+                clonedButtonsContainer.remove();
+            }
+        }
+        // Remove o botão de doação do CLONE do conteúdo se ele estiver lá
+        contentToPrint.querySelector('.fixed-donation-button')?.remove();
 
-    if (resetAccessibilityBtn) {
-      resetAccessibilityBtn.addEventListener('click', () => {
-        currentFontSize = 'normal';
-        isHighContrast = false;
-        isDarkMode = false;
-        applyAccessibilitySettings();
-      });
+        // Títulos para o PDF
+        const pdfTitleText = "Balanço Hídrico";
+        const pdfSubtitleText = "Relatório de Balanço Hídrico Detalhado";
+
+        const headerDiv = document.createElement('div');
+        headerDiv.style.cssText = "text-align: center; margin-bottom: 20px; font-family: 'Nunito Sans', sans-serif; color: #1A3E74;";
+        headerDiv.innerHTML = `
+            <h1 style="font-size: 24px; font-weight: bold; margin-bottom: 5px;">${pdfTitleText}</h1>
+            <p style="font-size: 14px; color: #666666;">${pdfSubtitleText}</p>
+            <p style="font-size: 12px; color: #777;">Gerado em: ${new Date().toLocaleDateString('pt-BR')} ${new Date().toLocaleTimeString('pt-BR')}</p>
+        `;
+        contentToPrint.prepend(headerDiv);
+
+        // Adiciona o resultado da pontuação
+        const resultadoDivPage = document.getElementById('resultado'); // Pega a div de resultado ORIGINAL
+        const resultDivForPdf = document.createElement('div');
+        resultDivForPdf.className = 'resultado'; // Reusa a classe existente para estilização
+        resultDivForPdf.style.marginTop = '1rem';
+        resultDivForPdf.style.padding = '1rem';
+        resultDivForPdf.style.borderRadius = '0.5rem';
+        resultDivForPdf.style.fontWeight = '600';
+        resultDivForPdf.style.textAlign = 'left';
+        resultDivForPdf.style.whiteSpace = 'pre-wrap';
+
+        if (resultadoDivPage.style.display !== 'none' && resultadoDivPage.innerHTML.trim() !== '') {
+            resultDivForPdf.innerHTML = resultadoDivPage.innerHTML;
+            // Copia as classes de cor do resultado original
+            resultadoDivPage.classList.forEach(cls => {
+                if (cls.startsWith('bg-') || cls.startsWith('text-')) {
+                    resultDivForPdf.classList.add(cls);
+                }
+            });
+            // Garante cores explícitas para o PDF
+            if (resultadoDivPage.classList.contains('bg-red-100')) {
+                resultDivForPdf.style.backgroundColor = '#fee2e2';
+                resultDivForPdf.style.color = '#dc2626';
+            } else if (resultadoDivPage.classList.contains('bg-green-100')) {
+                resultDivForPdf.style.backgroundColor = '#dcfce7';
+                resultDivForPdf.style.color = '#15803d';
+            } else if (resultadoDivPage.classList.contains('bg-yellow-100')) {
+                resultDivForPdf.style.backgroundColor = '#fefce8';
+                resultDivForPdf.style.color = '#d97706';
+            } else {
+                resultDivForPdf.style.backgroundColor = '#e0f2fe';
+                resultDivForPdf.style.color = '#1A3E74';
+            }
+        } else {
+            resultDivForPdf.innerHTML = "Resultado não calculado na página. Por favor, preencha todos os campos e clique em 'Calcular' antes de gerar o PDF.";
+            resultDivForPdf.style.backgroundColor = '#ffeeba'; // Light orange/yellow for info
+            resultDivForPdf.style.color = '#856404'; // Darker orange/brown text
+        }
+        // Encontra a posição correta para inserir o resultado clonado.
+        // Se houver uma div com id="bibliografia", insere antes dela. Caso contrário, insere no final.
+        const bibliografiaDiv = contentToPrint.querySelector('#bibliografia');
+        if (bibliografiaDiv) {
+            contentToPrint.insertBefore(resultDivForPdf, bibliografiaDiv);
+        } else {
+            contentToPrint.appendChild(resultDivForPdf);
+        }
+
+        // Adiciona a referência bibliográfica
+        const references = document.getElementById('bibliografia'); // Pega a div de referência ORIGINAL
+        if (references) {
+            const referencesForPdf = references.cloneNode(true);
+            referencesForPdf.style.marginTop = '2rem';
+            referencesForPdf.style.fontSize = '12px'; // Ajusta o tamanho da fonte para PDF
+            referencesForPdf.style.color = '#666666';
+            referencesForPdf.style.textAlign = 'left';
+            referencesForPdf.querySelectorAll('a').forEach(a => {
+                a.style.color = '#1FA4E5';
+                a.style.textDecoration = 'underline';
+            });
+            // Garante que a referência bibliográfica seja adicionada apenas uma vez e no final
+            if (!contentToPrint.querySelector('#bibliografia')) { // Evita duplicar se já foi clonada como parte do 'conteudo'
+                contentToPrint.appendChild(referencesForPdf);
+            }
+        }
+
+        const opt = {
+            margin:       0.5,
+            filename:     'balanco-hidrico.pdf',
+            image:        { type: 'jpeg', quality: 0.98 },
+            html2canvas:  { scale: 3, scrollY: 0, useCORS: true },
+            jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' },
+        };
+        
+        html2pdf().set(opt).from(contentToPrint).save().then(() => {
+            // Volta a exibir o botão de doação após a geração do PDF
+            if (fixedButton) {
+                fixedButton.style.display = '';
+            }
+        }).catch(error => {
+            console.error('Erro ao gerar PDF:', error);
+            showCustomMessage('Ocorreu um erro ao gerar o PDF. Por favor, tente novamente.');
+            if (fixedButton) {
+                fixedButton.style.display = '';
+            }
+        });
     }
 
     document.addEventListener('DOMContentLoaded', () => {
-      // Lógica para abrir/fechar o menu de acessibilidade
-      if (accessibilityHamburgerBtn) {
-          accessibilityHamburgerBtn.addEventListener('click', () => {
-              accessibilityOffCanvasMenu.classList.add('is-open');
-              accessibilityOverlay.style.display = 'block';
-          });
-      }
+        document.getElementById('btnCalcular').addEventListener('click', calcular);
+        document.getElementById('btnLimpar').addEventListener('click', limparCampos);
+        document.getElementById('btnGerarPDF').addEventListener('click', gerarPDF);
 
-      if (closeAccessibilityMenuBtn) {
-          closeAccessibilityMenuBtn.addEventListener('click', () => {
-              accessibilityOffCanvasMenu.classList.remove('is-open');
-              accessibilityOverlay.style.display = 'none';
-          });
-      }
+        // NANDA button logic
+        if (btnNandaNicNoc) {
+            btnNandaNicNoc.addEventListener('click', () => {
+                const totalEntradas = resultadoDiv.dataset.totalEntradas;
+                const totalSaidas = resultadoDiv.dataset.totalSaidas;
+                const balanco = resultadoDiv.dataset.balanco;
+                const scaleName = resultadoDiv.dataset.scaleName;
 
-      if (accessibilityOverlay) {
-          accessibilityOverlay.addEventListener('click', (event) => {
-            if (event.target === accessibilityOverlay) { // Garante que só feche se clicar no overlay, não no menu
-                accessibilityOffCanvasMenu.classList.remove('is-open');
-                accessibilityOverlay.style.display = 'none';
-            }
-          });
-      }
+                if (resultadoDiv.style.display === 'none' || !totalEntradas || !totalSaidas || !balanco || !scaleName) {
+                    showCustomMessage('Por favor, clique em "Calcular" primeiro para obter o balanço hídrico e habilitar a pesquisa NANDA, NIC, NOC.');
+                    return;
+                }
 
-      // Fechar com a tecla ESC
-      document.addEventListener('keydown', (event) => {
-          if (event.key === 'Escape' && accessibilityOffCanvasMenu.classList.contains('is-open')) {
-              accessibilityOffCanvasMenu.classList.remove('is-open');
-              accessibilityOverlay.style.display = 'none';
-          }
-      });
+                const detailedSearchQuery = `Balanço Hídrico: Entradas ${totalEntradas}ml, Saídas ${totalSaidas}ml, Balanço ${balanco}ml - ${scaleName} GERAR diagnosticos de enfermagem da NANDA, GERAR intervenções de enfermagem do NIC, Gerar um exemplo de mensuração dos resultados implementados pelo enfermeiro (NOC)`;
+                const encodedSearchQuery = encodeURIComponent(detailedSearchQuery);
+                window.open(`https://www.google.com/search?q=${encodedSearchQuery}`, '_blank');
+            });
+        }
 
-      // Aplica as configurações iniciais (se houver alguma persistência futura)
-      applyAccessibilitySettings();
+        // Carrega o rodapé
+        fetch("rodape111.html")
+            .then(res => res.text())
+            .then(data => {
+                const footerContainer = document.getElementById("footer-container");
+                if (footerContainer) {
+                    footerContainer.innerHTML = data;
+                } else {
+                    console.error('Elemento footer-container não encontrado.');
+                }
+            })
+            .catch(err => console.error("Erro ao carregar rodape111.html:", err));
+
+        // --- Lógica de Acessibilidade ---
+        const accessibilityHamburgerBtn = document.getElementById('accessibilityHamburgerBtn');
+        const accessibilityOffCanvasMenu = document.getElementById('accessibilityOffCanvasMenu');
+        const closeAccessibilityMenuBtn = document.getElementById('closeAccessibilityMenuBtn');
+        const accessibilityOverlay = document.getElementById('accessibilityOverlay');
+
+        const fontSizeSmallBtn = document.getElementById('font-size-small');
+        const fontSizeMediumBtn = document.getElementById('font-size-medium');
+        const fontSizeLargeBtn = document.getElementById('font-size-large');
+        const contrastNormalBtn = document.getElementById('contrast-normal');
+        const contrastHighBtn = document.getElementById('contrast-high');
+        const readingModeNormalBtn = document.getElementById('reading-mode-normal');
+        const readingModeDarkBtn = document.getElementById('reading-mode-dark');
+
+        function applyAccessibilitySettings() {
+            const body = document.body;
+            const savedFontSize = localStorage.getItem('fontSize');
+            const savedContrast = localStorage.getItem('contrast');
+            const savedReadingMode = localStorage.getItem('readingMode');
+
+            body.classList.remove('font-size-small', 'font-size-large', 'high-contrast', 'dark-mode');
+
+            if (savedFontSize === 'small') { body.classList.add('font-size-small'); } else if (savedFontSize === 'large') { body.classList.add('font-size-large'); }
+            if (savedContrast === 'high') { body.classList.add('high-contrast'); }
+            if (savedReadingMode === 'dark') { body.classList.add('dark-mode'); }
+
+            updateAccessibilityButtons(savedFontSize, savedContrast, savedReadingMode);
+        }
+
+        function updateAccessibilityButtons(fontSize, contrast, readingMode) {
+            [fontSizeSmallBtn, fontSizeMediumBtn, fontSizeLargeBtn].forEach(btn => { if(btn) btn.classList.remove('active'); });
+            if (fontSize === 'small' && fontSizeSmallBtn) { fontSizeSmallBtn.classList.add('active'); } else if (fontSize === 'large' && fontSizeLargeBtn) { fontSizeLargeBtn.classList.add('active'); } else if (fontSizeMediumBtn) { fontSizeMediumBtn.classList.add('active'); }
+
+            [contrastNormalBtn, contrastHighBtn].forEach(btn => { if(btn) btn.classList.remove('active'); });
+            if (contrast === 'high' && contrastHighBtn) { contrastHighBtn.classList.add('active'); } else if (contrastNormalBtn) { contrastNormalBtn.classList.add('active'); }
+
+            [readingModeNormalBtn, readingModeDarkBtn].forEach(btn => { if(btn) btn.classList.remove('active'); });
+            if (readingMode === 'dark' && readingModeDarkBtn) { readingModeDarkBtn.classList.add('active'); } else if (readingModeNormalBtn) { readingModeNormalBtn.classList.add('active'); }
+        }
+
+        if (fontSizeSmallBtn) fontSizeSmallBtn.addEventListener('click', () => { localStorage.setItem('fontSize', 'small'); applyAccessibilitySettings(); });
+        if (fontSizeMediumBtn) fontSizeMediumBtn.addEventListener('click', () => { localStorage.removeItem('fontSize'); applyAccessibilitySettings(); });
+        if (fontSizeLargeBtn) fontSizeLargeBtn.addEventListener('click', () => { localStorage.setItem('fontSize', 'large'); applyAccessibilitySettings(); });
+        if (contrastNormalBtn) contrastNormalBtn.addEventListener('click', () => { localStorage.removeItem('contrast'); applyAccessibilitySettings(); });
+        if (contrastHighBtn) contrastHighBtn.addEventListener('click', () => { localStorage.setItem('contrast', 'high'); applyAccessibilitySettings(); });
+        if (readingModeNormalBtn) readingModeNormalBtn.addEventListener('click', () => { localStorage.removeItem('readingMode'); applyAccessibilitySettings(); });
+        if (readingModeDarkBtn) readingModeDarkBtn.addEventListener('click', () => { localStorage.setItem('readingMode', 'dark'); applyAccessibilitySettings(); });
+
+        if (accessibilityHamburgerBtn) { accessibilityHamburgerBtn.addEventListener('click', () => { accessibilityOffCanvasMenu.classList.add('is-open'); accessibilityOverlay.style.display = 'block'; }); }
+        if (closeAccessibilityMenuBtn) { closeAccessibilityMenuBtn.addEventListener('click', () => { accessibilityOffCanvasMenu.classList.remove('is-open'); accessibilityOverlay.style.display = 'none'; }); }
+        if (accessibilityOverlay) { accessibilityOverlay.addEventListener('click', (event) => { if (event.target === accessibilityOverlay) { accessibilityOffCanvasMenu.classList.remove('is-open'); accessibilityOverlay.style.display = 'none'; } }); }
+        document.addEventListener('keydown', (event) => { if (event.key === 'Escape' && accessibilityOffCanvasMenu.classList.contains('is-open')) { accessibilityOffCanvasMenu.classList.remove('is-open'); accessibilityOverlay.style.display = 'none'; } });
+        applyAccessibilitySettings();
+
+        // --- Lógica do Cookie Consent Banner ---
+        const cookieConsentBanner = document.getElementById('cookieConsentBanner');
+        const acceptCookiesBtn = document.getElementById('acceptCookiesBtn');
+        const refuseCookiesBtn = document.getElementById('refuseCookiesBtn');
+        const cookiesAcceptedKey = 'cookiesAccepted';
+
+        function showCookieBanner() { if (localStorage.getItem(cookiesAcceptedKey) === null || localStorage.getItem(cookiesAcceptedKey) === 'false') { cookieConsentBanner.classList.add('show'); } }
+        function hideCookieBanner() { cookieConsentBanner.classList.remove('show'); }
+
+        if (acceptCookiesBtn) {
+            acceptCookiesBtn.addEventListener('click', () => {
+                localStorage.setItem(cookiesAcceptedKey, 'true');
+                hideCookieBanner();
+                gtag('consent', 'update', { 'analytics_storage': 'granted' });
+            });
+        }
+        if (refuseCookiesBtn) {
+            refuseCookiesBtn.addEventListener('click', () => {
+                localStorage.setItem(cookiesAcceptedKey, 'false');
+                hideCookieBanner();
+            });
+        }
+        showCookieBanner();
     });
   </script>
-  <div id="pdfPreviewContent" style="display: none;"></div>
 </body>
 </html>
