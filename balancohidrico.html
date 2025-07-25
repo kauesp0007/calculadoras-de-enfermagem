@@ -209,7 +209,6 @@
       margin-left: auto;
       margin-right: auto;
       padding: 2rem 1rem; /* p-8 px-4 */
-      padding-bottom: 5rem; /* Adicionado para afastar os botões do rodapé */
     }
     
     /* Estilos específicos para este arquivo Balanço Hídrico */
@@ -663,12 +662,20 @@
         </div>
       </div>
 
-      <div class="flex flex-col md:flex-row justify-start gap-4 mt-6 mb-6 ml-4">
-  <button id="btnCalcular" class="btn-calc bg-green-600 text-white font-semibold px-4 py-2 rounded-md hover:bg-green-700 transition">Calcular</button>
-  <button id="btnLimpar" class="btn-reset bg-yellow-500 text-white font-semibold px-4 py-2 rounded-md hover:bg-yellow-600 transition">Limpar</button>
-  <button id="btnGerarPDF" class="btn-pdf bg-blue-500 text-white font-semibold px-4 py-2 rounded-md hover:bg-blue-600 transition">Gerar PDF</button>
-  <button id="btnNandaNicNoc" class="btn-nanda bg-purple-600 text-white font-semibold px-4 py-2 rounded-md hover:bg-purple-700 transition">NANDA / NIC / NOC</button>
-</div>
+      <div class="flex flex-wrap justify-start gap-4 mt-6">
+        <button id="btnCalcular" class="btn-primary" aria-label="Calcular Balanço Hídrico">
+          Calcular
+        </button>
+        <button id="btnLimpar" class="btn-primary" aria-label="Limpar campos">
+          Limpar
+        </button>
+        <button id="btnGerarPDF" class="btn-secondary" aria-label="Gerar PDF">
+          Gerar PDF
+        </button>
+        <button id="btnNandaNicNoc" class="btn-primary" aria-label="Pesquisar NANDA, NIC, NOC">
+            NANDA, NIC, NOC
+        </button>
+      </div>
     </main>
   </div>
   <a href="doacoes.html" class="fixed bottom-4 right-4 bg-dark-blue text-white text-sm px-4 py-2 rounded-full shadow hover:bg-blue-900 transition fixed-donation-button">
@@ -809,112 +816,152 @@
         delete resultadoDiv.dataset.scaleName;
     }
 
-  function gerarPDF() {
-    // Esconde o botão de doação fixo para que não apareça no PDF.
-    const fixedButton = document.querySelector('.fixed-donation-button');
-    if (fixedButton) {
-        fixedButton.style.display = 'none';
-    }
+    // PDF Generation Function - Modified as per user's example
+    function gerarPDF() {
+        // Esconde o botão de doação fixo para que não apareça no PDF.
+        const fixedButton = document.querySelector('.fixed-donation-button');
+        if (fixedButton) {
+            fixedButton.style.display = 'none';
+        }
 
-    // Clona o conteúdo principal da calculadora (o elemento <main>)
-    const contentToPrint = document.querySelector('main').cloneNode(true);
+        // Clona o conteúdo principal da calculadora
+        const contentToPrint = document.getElementById('conteudo').cloneNode(true);
 
-    // Reduz o tamanho da fonte para caber tudo em uma página
-    contentToPrint.style.fontSize = '9px';  // Ajuste conforme necessário (8px a 10px)
-    contentToPrint.style.lineHeight = '1.1';
+        // Remove elementos que não devem ser incluídos no PDF (botões de ação, etc.)
+        const buttonsContainer = document.querySelector('.flex.flex-wrap.justify-start.gap-4.mt-6');
+        if (buttonsContainer) {
+            // Remove o container de botões do CLONE do conteúdo
+            const clonedButtonsContainer = contentToPrint.querySelector('.flex.flex-wrap.justify-start.gap-4.mt-6');
+            if (clonedButtonsContainer) {
+                clonedButtonsContainer.remove();
+            }
+        }
+        // Remove o botão de doação do CLONE do conteúdo se ele estiver lá
+        contentToPrint.querySelector('.fixed-donation-button')?.remove();
 
-    // Remove os botões de ação do CLONE do conteúdo
-    const clonedButtonsContainer = contentToPrint.querySelector('.flex.flex-wrap.justify-start.gap-4.mt-6');
-    if (clonedButtonsContainer) {
-        clonedButtonsContainer.remove();
-    }
-    // Remove o botão de doação do CLONE do conteúdo se ele estiver lá
-    contentToPrint.querySelector('.fixed-donation-button')?.remove();
+        // Títulos para o PDF
+        const pdfTitleText = "Balanço Hídrico";
+        const pdfSubtitleText = "Relatório de Balanço Hídrico Detalhado";
 
-    // Títulos para o PDF
-    const pdfTitleText = "Balanço Hídrico";
-    const pdfSubtitleText = "Relatório de Balanço Hídrico Detalhado";
+        const headerDiv = document.createElement('div');
+        headerDiv.style.cssText = "text-align: center; margin-bottom: 20px; font-family: 'Nunito Sans', sans-serif; color: #1A3E74;";
+        headerDiv.innerHTML = `
+            <h1 style="font-size: 24px; font-weight: bold; margin-bottom: 5px;">${pdfTitleText}</h1>
+            <p style="font-size: 14px; color: #666666;">${pdfSubtitleText}</p>
+            <p style="font-size: 12px; color: #777;">Gerado em: ${new Date().toLocaleDateString('pt-BR')} ${new Date().toLocaleTimeString('pt-BR')}</p>
+        `;
+        contentToPrint.prepend(headerDiv);
 
-    const headerDiv = document.createElement('div');
-    headerDiv.style.cssText = "text-align: center; margin-bottom: 12px; font-family: 'Nunito Sans', sans-serif; color: #1A3E74;";
-    headerDiv.innerHTML = `
-        <h1 style="font-size: 18px; font-weight: bold; margin-bottom: 3px;">${pdfTitleText}</h1>
-        <p style="font-size: 10px; color: #666666;">${pdfSubtitleText}</p>
-        <p style="font-size: 8px; color: #777;">Gerado em: ${new Date().toLocaleDateString('pt-BR')} ${new Date().toLocaleTimeString('pt-BR')}</p>
-    `;
-    contentToPrint.prepend(headerDiv);
+        // Adiciona o resultado da pontuação
+        const resultadoDivPage = document.getElementById('resultado'); // Pega a div de resultado ORIGINAL
+        const resultDivForPdf = document.createElement('div');
+        resultDivForPdf.className = 'resultado'; // Reusa a classe existente para estilização
+        resultDivForPdf.style.marginTop = '1rem';
+        resultDivForPdf.style.padding = '1rem';
+        resultDivForPdf.style.borderRadius = '0.5rem';
+        resultDivForPdf.style.fontWeight = '600';
+        resultDivForPdf.style.textAlign = 'left';
+        resultDivForPdf.style.whiteSpace = 'pre-wrap';
 
-    // Ajusta o resultado para o PDF.
-    const resultadoDivPage = document.getElementById('resultado'); 
-    const resultDivForPdf = contentToPrint.querySelector('#resultado'); // Pega a div de resultado dentro do CLONE
+        if (resultadoDivPage.style.display !== 'none' && resultadoDivPage.innerHTML.trim() !== '') {
+            resultDivForPdf.innerHTML = resultadoDivPage.innerHTML;
+            // Copia as classes de cor do resultado original
+            resultadoDivPage.classList.forEach(cls => {
+                if (cls.startsWith('bg-') || cls.startsWith('text-')) {
+                    resultDivForPdf.classList.add(cls);
+                }
+            });
+            // Garante cores explícitas para o PDF
+            if (resultadoDivPage.classList.contains('bg-red-100')) {
+                resultDivForPdf.style.backgroundColor = '#fee2e2';
+                resultDivForPdf.style.color = '#dc2626';
+            } else if (resultadoDivPage.classList.contains('bg-green-100')) {
+                resultDivForPdf.style.backgroundColor = '#dcfce7';
+                resultDivForPdf.style.color = '#15803d';
+            } else if (resultadoDivPage.classList.contains('bg-yellow-100')) {
+                resultDivForPdf.style.backgroundColor = '#fefce8';
+                resultDivForPdf.style.color = '#d97706';
+            } else {
+                resultDivForPdf.style.backgroundColor = '#e0f2fe';
+                resultDivForPdf.style.color = '#1A3E74';
+            }
+        } else {
+            resultDivForPdf.innerHTML = "Resultado não calculado na página. Por favor, preencha todos os campos e clique em 'Calcular' antes de gerar o PDF.";
+            resultDivForPdf.style.backgroundColor = '#ffeeba'; // Light orange/yellow for info
+            resultDivForPdf.style.color = '#856404'; // Darker orange/brown text
+        }
+        // Encontra a posição correta para inserir o resultado clonado.
+        // Se houver uma div com id="bibliografia", insere antes dela. Caso contrário, insere no final.
+        const bibliografiaDiv = contentToPrint.querySelector('#bibliografia');
+        if (bibliografiaDiv) {
+            contentToPrint.insertBefore(resultDivForPdf, bibliografiaDiv);
+        } else {
+            contentToPrint.appendChild(resultDivForPdf);
+        }
 
-    if (resultDivForPdf && resultadoDivPage.style.display !== 'none' && resultadoDivPage.innerHTML.trim() !== '') {
-        resultDivForPdf.innerHTML = resultadoDivPage.innerHTML; // Copia o HTML
-        resultDivForPdf.classList.remove('bg-red-100', 'text-red-600', 'bg-yellow-100', 'text-yellow-700', 'bg-green-100', 'text-green-700', 'bg-blue-50', 'text-dark-blue');
-        // Copia as classes de cor do resultado original
-        resultadoDivPage.classList.forEach(cls => {
-            if (cls.startsWith('bg-') || cls.startsWith('text-')) {
-                resultDivForPdf.classList.add(cls);
+        // Adiciona a referência bibliográfica
+        const references = document.getElementById('bibliografia'); // Pega a div de referência ORIGINAL
+        if (references) {
+            const referencesForPdf = references.cloneNode(true);
+            referencesForPdf.style.marginTop = '2rem';
+            referencesForPdf.style.fontSize = '12px'; // Ajusta o tamanho da fonte para PDF
+            referencesForPdf.style.color = '#666666';
+            referencesForPdf.style.textAlign = 'left';
+            referencesForPdf.querySelectorAll('a').forEach(a => {
+                a.style.color = '#1FA4E5';
+                a.style.textDecoration = 'underline';
+            });
+            // Garante que a referência bibliográfica seja adicionada apenas uma vez e no final
+            if (!contentToPrint.querySelector('#bibliografia')) { // Evita duplicar se já foi clonada como parte do 'conteudo'
+                contentToPrint.appendChild(referencesForPdf);
+            }
+        }
+
+        const opt = {
+            margin:       0.5,
+            filename:     'balanco-hidrico.pdf',
+            image:        { type: 'jpeg', quality: 0.98 },
+            html2canvas:  { scale: 3, scrollY: 0, useCORS: true },
+            jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' },
+        };
+        
+        html2pdf().set(opt).from(contentToPrint).save().then(() => {
+            // Volta a exibir o botão de doação após a geração do PDF
+            if (fixedButton) {
+                fixedButton.style.display = '';
+            }
+        }).catch(error => {
+            console.error('Erro ao gerar PDF:', error);
+            showCustomMessage('Ocorreu um erro ao gerar o PDF. Por favor, tente novamente.');
+            if (fixedButton) {
+                fixedButton.style.display = '';
             }
         });
-        // Garante cores explícitas para o PDF
-        if (resultadoDivPage.classList.contains('bg-red-100')) {
-            resultDivForPdf.style.backgroundColor = '#fee2e2';
-            resultDivForPdf.style.color = '#dc2626';
-        } else if (resultadoDivPage.classList.contains('bg-green-100')) {
-            resultDivForPdf.style.backgroundColor = '#dcfce7';
-            resultDivForPdf.style.color = '#15803d';
-        } else if (resultadoDivPage.classList.contains('bg-yellow-100')) {
-            resultDivForPdf.style.backgroundColor = '#fefce8';
-            resultDivForPdf.style.color = '#d97706';
-        } else {
-            resultDivForPdf.style.backgroundColor = '#e0f2fe';
-            resultDivForPdf.style.color = '#1A3E74';
-        }
-        resultDivForPdf.style.display = 'block'; // Garante que esteja visível no PDF
-        // Reduz fonte e linha no resultado para otimizar espaço
-        resultDivForPdf.style.fontSize = '9px';
-        resultDivForPdf.style.lineHeight = '1.1';
-    } else if (resultDivForPdf) {
-        resultDivForPdf.innerHTML = "Resultado não calculado na página. Por favor, preencha todos os campos e clique em 'Calcular' antes de gerar o PDF.";
-        resultDivForPdf.style.backgroundColor = '#ffeeba';
-        resultDivForPdf.style.color = '#856404';
-        resultDivForPdf.style.display = 'block';
     }
 
-    // Ajusta a referência bibliográfica para o PDF.
-    const references = contentToPrint.querySelector('#bibliografia');
-    if (references) {
-        references.style.marginTop = '1rem';
-        references.style.fontSize = '8px';
-        references.style.color = '#666666';
-        references.style.textAlign = 'left';
-        references.querySelectorAll('a').forEach(a => {
-            a.style.color = '#1FA4E5';
-            a.style.textDecoration = 'underline';
-        });
-    }
+    document.addEventListener('DOMContentLoaded', () => {
+        document.getElementById('btnCalcular').addEventListener('click', calcular);
+        document.getElementById('btnLimpar').addEventListener('click', limparCampos);
+        document.getElementById('btnGerarPDF').addEventListener('click', gerarPDF);
 
-    const opt = {
-        margin:       0.1,  // margem menor para maximizar espaço
-        filename:     'balanco-hidrico.pdf',
-        image:        { type: 'jpeg', quality: 0.98 },
-        html2canvas:  { scale: 4, scrollY: 0, useCORS: true },
-        jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' },
-    };
+        // NANDA button logic
+        if (btnNandaNicNoc) {
+            btnNandaNicNoc.addEventListener('click', () => {
+                const totalEntradas = resultadoDiv.dataset.totalEntradas;
+                const totalSaidas = resultadoDiv.dataset.totalSaidas;
+                const balanco = resultadoDiv.dataset.balanco;
+                const scaleName = resultadoDiv.dataset.scaleName;
 
-    html2pdf().set(opt).from(contentToPrint).save().then(() => {
-        if (fixedButton) {
-            fixedButton.style.display = '';
+                if (resultadoDiv.style.display === 'none' || !totalEntradas || !totalSaidas || !balanco || !scaleName) {
+                    showCustomMessage('Por favor, clique em "Calcular" primeiro para obter o balanço hídrico e habilitar a pesquisa NANDA, NIC, NOC.');
+                    return;
+                }
+
+                const detailedSearchQuery = `Balanço Hídrico: Entradas ${totalEntradas}ml, Saídas ${totalSaidas}ml, Balanço ${balanco}ml - ${scaleName} GERAR diagnosticos de enfermagem da NANDA, GERAR intervenções de enfermagem do NIC, Gerar um exemplo de mensuração dos resultados implementados pelo enfermeiro (NOC)`;
+                const encodedSearchQuery = encodeURIComponent(detailedSearchQuery);
+                window.open(`https://www.google.com/search?q=${encodedSearchQuery}`, '_blank');
+            });
         }
-    }).catch(error => {
-        console.error('Erro ao gerar PDF:', error);
-        showCustomMessage('Ocorreu um erro ao gerar o PDF. Por favor, tente novamente.');
-        if (fixedButton) {
-            fixedButton.style.display = '';
-        }
-    });
-}
 
         // Carrega o rodapé
         fetch("rodape111.html")
@@ -1007,27 +1054,6 @@
         }
         showCookieBanner();
     });
-    document.addEventListener("DOMContentLoaded", function () {
-    const btnCalcular = document.getElementById('btnCalcular');
-    const btnLimpar = document.getElementById('btnLimpar');
-    const btnGerarPDF = document.getElementById('btnGerarPDF');
-
-    if (btnCalcular) {
-        btnCalcular.addEventListener('click', calcular);
-    }
-    if (btnLimpar) {
-        btnLimpar.addEventListener('click', limparCampos);
-    }
-    if (btnGerarPDF) {
-        btnGerarPDF.addEventListener('click', gerarPDF);
-    }
-    if (btnNandaNicNoc) {
-        btnNandaNicNoc.addEventListener('click', function () {
-            window.open('https://www.calculadorasdeenfermagem.com.br/nanda-nic-noc.html', '_blank');
-        });
-    }
-});
-
   </script>
 </body>
 </html>
