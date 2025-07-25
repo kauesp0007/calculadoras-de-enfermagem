@@ -209,6 +209,7 @@
       margin-left: auto;
       margin-right: auto;
       padding: 2rem 1rem; /* p-8 px-4 */
+      padding-bottom: 5rem; /* Adicionado para afastar os botões do rodapé */
     }
     
     /* Estilos específicos para este arquivo Balanço Hídrico */
@@ -824,17 +825,13 @@
             fixedButton.style.display = 'none';
         }
 
-        // Clona o conteúdo principal da calculadora
-        const contentToPrint = document.getElementById('conteudo').cloneNode(true);
+        // Clona o conteúdo principal da calculadora (o elemento <main>)
+        const contentToPrint = document.querySelector('main').cloneNode(true);
 
-        // Remove elementos que não devem ser incluídos no PDF (botões de ação, etc.)
-        const buttonsContainer = document.querySelector('.flex.flex-wrap.justify-start.gap-4.mt-6');
-        if (buttonsContainer) {
-            // Remove o container de botões do CLONE do conteúdo
-            const clonedButtonsContainer = contentToPrint.querySelector('.flex.flex-wrap.justify-start.gap-4.mt-6');
-            if (clonedButtonsContainer) {
-                clonedButtonsContainer.remove();
-            }
+        // Remove os botões de ação do CLONE do conteúdo
+        const clonedButtonsContainer = contentToPrint.querySelector('.flex.flex-wrap.justify-start.gap-4.mt-6');
+        if (clonedButtonsContainer) {
+            clonedButtonsContainer.remove();
         }
         // Remove o botão de doação do CLONE do conteúdo se ele estiver lá
         contentToPrint.querySelector('.fixed-donation-button')?.remove();
@@ -850,21 +847,18 @@
             <p style="font-size: 14px; color: #666666;">${pdfSubtitleText}</p>
             <p style="font-size: 12px; color: #777;">Gerado em: ${new Date().toLocaleDateString('pt-BR')} ${new Date().toLocaleTimeString('pt-BR')}</p>
         `;
+        // Prepend o cabeçalho ao clone do main
         contentToPrint.prepend(headerDiv);
 
-        // Adiciona o resultado da pontuação
-        const resultadoDivPage = document.getElementById('resultado'); // Pega a div de resultado ORIGINAL
-        const resultDivForPdf = document.createElement('div');
-        resultDivForPdf.className = 'resultado'; // Reusa a classe existente para estilização
-        resultDivForPdf.style.marginTop = '1rem';
-        resultDivForPdf.style.padding = '1rem';
-        resultDivForPdf.style.borderRadius = '0.5rem';
-        resultDivForPdf.style.fontWeight = '600';
-        resultDivForPdf.style.textAlign = 'left';
-        resultDivForPdf.style.whiteSpace = 'pre-wrap';
+        // Ajusta o resultado para o PDF.
+        // Pega a div de resultado ORIGINAL para obter o conteúdo e as classes.
+        const resultadoDivPage = document.getElementById('resultado'); 
+        const resultDivForPdf = contentToPrint.querySelector('#resultado'); // Pega a div de resultado dentro do CLONE
 
-        if (resultadoDivPage.style.display !== 'none' && resultadoDivPage.innerHTML.trim() !== '') {
-            resultDivForPdf.innerHTML = resultadoDivPage.innerHTML;
+        if (resultDivForPdf && resultadoDivPage.style.display !== 'none' && resultadoDivPage.innerHTML.trim() !== '') {
+            resultDivForPdf.innerHTML = resultadoDivPage.innerHTML; // Copia o HTML
+            // Limpa classes existentes no clone para aplicar as corretas
+            resultDivForPdf.classList.remove('bg-red-100', 'text-red-600', 'bg-yellow-100', 'text-yellow-700', 'bg-green-100', 'text-green-700', 'bg-blue-50', 'text-dark-blue');
             // Copia as classes de cor do resultado original
             resultadoDivPage.classList.forEach(cls => {
                 if (cls.startsWith('bg-') || cls.startsWith('text-')) {
@@ -885,36 +879,25 @@
                 resultDivForPdf.style.backgroundColor = '#e0f2fe';
                 resultDivForPdf.style.color = '#1A3E74';
             }
-        } else {
+            resultDivForPdf.style.display = 'block'; // Garante que esteja visível no PDF
+        } else if (resultDivForPdf) {
             resultDivForPdf.innerHTML = "Resultado não calculado na página. Por favor, preencha todos os campos e clique em 'Calcular' antes de gerar o PDF.";
             resultDivForPdf.style.backgroundColor = '#ffeeba'; // Light orange/yellow for info
             resultDivForPdf.style.color = '#856404'; // Darker orange/brown text
-        }
-        // Encontra a posição correta para inserir o resultado clonado.
-        // Se houver uma div com id="bibliografia", insere antes dela. Caso contrário, insere no final.
-        const bibliografiaDiv = contentToPrint.querySelector('#bibliografia');
-        if (bibliografiaDiv) {
-            contentToPrint.insertBefore(resultDivForPdf, bibliografiaDiv);
-        } else {
-            contentToPrint.appendChild(resultDivForPdf);
+            resultDivForPdf.style.display = 'block'; // Garante que esteja visível no PDF
         }
 
-        // Adiciona a referência bibliográfica
-        const references = document.getElementById('bibliografia'); // Pega a div de referência ORIGINAL
+        // Ajusta a referência bibliográfica para o PDF.
+        const references = contentToPrint.querySelector('#bibliografia'); // Pega a div de referência dentro do CLONE
         if (references) {
-            const referencesForPdf = references.cloneNode(true);
-            referencesForPdf.style.marginTop = '2rem';
-            referencesForPdf.style.fontSize = '12px'; // Ajusta o tamanho da fonte para PDF
-            referencesForPdf.style.color = '#666666';
-            referencesForPdf.style.textAlign = 'left';
-            referencesForPdf.querySelectorAll('a').forEach(a => {
+            references.style.marginTop = '2rem';
+            references.style.fontSize = '12px'; // Ajusta o tamanho da fonte para PDF
+            references.style.color = '#666666';
+            references.style.textAlign = 'left';
+            references.querySelectorAll('a').forEach(a => {
                 a.style.color = '#1FA4E5';
                 a.style.textDecoration = 'underline';
             });
-            // Garante que a referência bibliográfica seja adicionada apenas uma vez e no final
-            if (!contentToPrint.querySelector('#bibliografia')) { // Evita duplicar se já foi clonada como parte do 'conteudo'
-                contentToPrint.appendChild(referencesForPdf);
-            }
         }
 
         const opt = {
