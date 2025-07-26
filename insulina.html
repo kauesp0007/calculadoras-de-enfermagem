@@ -2024,23 +2024,20 @@
                         </div>
                     </div>
 
-                    <div id="resultado" class="resultado" aria-live="polite" style="display: none;"></div>
-                    <!-- Seringa horizontal visual -->
-<!-- Seringa horizontal com marcações de 1 a 100 -->
+                    <!-- Visualização da Seringa (100 UI) -->
 <div class="w-full max-w-4xl mx-auto mt-6" id="visual-seringa">
   <label class="block text-sm font-semibold text-gray-700 mb-2">Visualização da Seringa (0 a 100 UI):</label>
   <div class="relative h-12 border border-gray-300 rounded bg-white overflow-hidden shadow-inner">
     
-    <!-- Traços de 1 a 100 -->
-    <div class="absolute top-0 left-0 w-full h-full flex z-10">
-      <div class="flex justify-between w-full">
-        <!-- Gera 100 divisões -->
-        <div class="flex w-full">
-          <!-- As marcações serão inseridas via JS abaixo -->
-          <div id="marcacoes-seringa" class="flex w-full h-full"></div>
-        </div>
-      </div>
+    <!-- Preenchimento dinâmico -->
+    <div id="seringaPreenchida" class="absolute top-0 left-0 h-full bg-yellow-400 opacity-70 z-0 transition-all duration-700 ease-in-out" style="width: 0%;"></div>
+    
+    <!-- Traços (marcadores) -->
+    <div class="absolute top-0 left-0 w-full h-full flex z-10 pointer-events-none">
+      <div class="flex justify-between w-full" id="marcacoes-seringa"></div>
     </div>
+  </div>
+</div>
 
     <!-- Preenchimento -->
     <div id="seringaPreenchida" class="absolute top-0 left-0 h-full bg-blue-400 opacity-60 z-0 transition-all duration-700 ease-in-out" style="width: 0%;"></div>
@@ -3325,12 +3322,7 @@
                 resultadoDiv.dataset.seringa = '';
                 resultadoDiv.dataset.prescricao = '';
                 resultadoDiv.dataset.resultadoMl = '';
-                // Atualiza preenchimento da seringa baseado na prescrição (UI)
-const preenchimento = document.getElementById('seringaPreenchida');
-if (preenchimento) {
-  const porcentagem = Math.min((prescricao / 100) * 100, 100); // Limita em 100%
-  preenchimento.style.width = `${porcentagem}%`;
-}
+               
                 announceStatus("Erro no cálculo. Por favor, corrija os campos.");
                 return;
             }
@@ -3357,6 +3349,13 @@ if (preenchimento) {
             resultadoDiv.innerHTML = explicacao; // Use innerHTML to render abbr tags
             resultadoDiv.focus(); // Focus on the result
             announceStatus(`Cálculo realizado. Resultado: ${xArredondado} mililitros.`);
+            // Preenche a seringa com base na prescrição (em UI)
+const preenchimento = document.getElementById('seringaPreenchida');
+if (preenchimento) {
+  const larguraPercentual = Math.min(prescricao, 100); // Máximo 100%
+  preenchimento.style.width = `${larguraPercentual}%`;
+}
+
 
             // Store data for NANDA button
             resultadoDiv.dataset.frasco = frasco;
@@ -3585,21 +3584,21 @@ function gerarPDF() {
     </script>
   <script>
   document.addEventListener("DOMContentLoaded", function () {
-      document.addEventListener("DOMContentLoaded", function () {
-  // Gera os traços da seringa (1 a 100)
+  // Gera 100 traços de 1 a 100 UI
   const marcacoesContainer = document.getElementById("marcacoes-seringa");
   if (marcacoesContainer) {
     for (let i = 1; i <= 100; i++) {
-      const linha = document.createElement("div");
-      linha.style.height = (i % 10 === 0) ? "100%" : (i % 5 === 0 ? "70%" : "40%");
-      linha.style.width = "1px";
-      linha.style.backgroundColor = "#333";
-      linha.style.marginRight = "calc(100% / 100 - 1px)";
-      linha.title = i + " UI";
-      marcacoesContainer.appendChild(linha);
+      const risco = document.createElement("div");
+      risco.style.height = (i % 10 === 0) ? "100%" : (i % 5 === 0 ? "70%" : "40%");
+      risco.style.width = "1px";
+      risco.style.backgroundColor = "#333";
+      risco.title = `${i} UI`;
+      risco.className = "h-full";
+      marcacoesContainer.appendChild(risco);
     }
   }
 });
+
     const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
 
     if (btnNandaNicNoc) {
