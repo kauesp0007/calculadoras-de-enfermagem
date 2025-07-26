@@ -2024,26 +2024,7 @@
                         </div>
                     </div>
 
-                    <!-- Visualização da Seringa (100 UI) -->
-<div class="w-full max-w-4xl mx-auto mt-6" id="visual-seringa">
-  <label class="block text-sm font-semibold text-gray-700 mb-2">Visualização da Seringa (0 a 100 UI):</label>
-  <div class="relative h-12 border border-gray-300 rounded bg-white overflow-hidden shadow-inner">
-    
-    <!-- Preenchimento dinâmico -->
-    <div id="seringaPreenchida" class="absolute top-0 left-0 h-full bg-yellow-400 opacity-70 z-0 transition-all duration-700 ease-in-out" style="width: 0%;"></div>
-    
-    <!-- Traços (marcadores) -->
-    <div class="absolute top-0 left-0 w-full h-full flex z-10 pointer-events-none">
-      <div class="flex justify-between w-full" id="marcacoes-seringa"></div>
-    </div>
-  </div>
-</div>
-
-    <!-- Preenchimento -->
-    <div id="seringaPreenchida" class="absolute top-0 left-0 h-full bg-blue-400 opacity-60 z-0 transition-all duration-700 ease-in-out" style="width: 0%;"></div>
-  </div>
-</div>
-
+                    <div id="resultado" class="resultado" aria-live="polite" style="display: none;"></div>
 
                     <div id="bibliografia" class="ref font-inter text-gray-custom mt-10">
                         <strong>Referência bibliográfica:</strong><br />
@@ -3322,7 +3303,6 @@
                 resultadoDiv.dataset.seringa = '';
                 resultadoDiv.dataset.prescricao = '';
                 resultadoDiv.dataset.resultadoMl = '';
-               
                 announceStatus("Erro no cálculo. Por favor, corrija os campos.");
                 return;
             }
@@ -3349,13 +3329,6 @@
             resultadoDiv.innerHTML = explicacao; // Use innerHTML to render abbr tags
             resultadoDiv.focus(); // Focus on the result
             announceStatus(`Cálculo realizado. Resultado: ${xArredondado} mililitros.`);
-            // Preenche a seringa com base na prescrição (em UI)
-const preenchimento = document.getElementById('seringaPreenchida');
-if (preenchimento) {
-  const larguraPercentual = Math.min(prescricao, 100); // Máximo 100%
-  preenchimento.style.width = `${larguraPercentual}%`;
-}
-
 
             // Store data for NANDA button
             resultadoDiv.dataset.frasco = frasco;
@@ -3393,12 +3366,6 @@ if (preenchimento) {
             resultadoDiv.dataset.prescricao = '';
             resultadoDiv.dataset.resultadoMl = '';
             announceStatus('Campos da calculadora limpos.');
-            
-            // Esvazia a seringa
-const preenchimento = document.getElementById('seringaPreenchida');
-if (preenchimento) preenchimento.style.width = '0%';
-
-
         }
 
         // Função para gerar PDF (Aprimorada)
@@ -3584,21 +3551,6 @@ function gerarPDF() {
     </script>
   <script>
   document.addEventListener("DOMContentLoaded", function () {
-  // Gera 100 traços de 1 a 100 UI
-  const marcacoesContainer = document.getElementById("marcacoes-seringa");
-  if (marcacoesContainer) {
-    for (let i = 1; i <= 100; i++) {
-      const risco = document.createElement("div");
-      risco.style.height = (i % 10 === 0) ? "100%" : (i % 5 === 0 ? "70%" : "40%");
-      risco.style.width = "1px";
-      risco.style.backgroundColor = "#333";
-      risco.title = `${i} UI`;
-      risco.className = "h-full";
-      marcacoesContainer.appendChild(risco);
-    }
-  }
-});
-
     const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
 
     if (btnNandaNicNoc) {
