@@ -3420,6 +3420,9 @@ function gerarPDF() {
     // 🧾 Resultado
     const resultadoDivPage = document.getElementById('resultado');
     const resultDivForPdf = contentToPrint.querySelector('#resultado');
+    <div id="syringeContainer" class="mt-6">
+  <!-- Seringa interativa será injetada aqui -->
+</div>
     if (resultDivForPdf && resultadoDivPage.style.display !== 'none' && resultadoDivPage.innerHTML.trim() !== '') {
         resultDivForPdf.innerHTML = resultadoDivPage.innerHTML;
         resultDivForPdf.style.display = 'block';
@@ -3575,6 +3578,59 @@ function gerarPDF() {
       });
     }
   });
+</script>
+    <script>
+document.addEventListener('DOMContentLoaded', () => {
+  const resultadoDiv = document.getElementById('resultado');
+  const syringeContainer = document.getElementById('syringeContainer');
+
+  // Observa mudanças no conteúdo do resultado
+  const observer = new MutationObserver(() => {
+    const match = resultadoDiv.textContent.match(/([\d,.]+)\s*ml/i);
+    if (match) {
+      const mlValue = parseFloat(match[1].replace(',', '.'));
+      if (!isNaN(mlValue)) {
+        const uiValue = Math.round(mlValue * 100); // 1 ml = 100 UI
+        renderSyringe(uiValue);
+      }
+    }
+  });
+
+  observer.observe(resultadoDiv, { childList: true, subtree: true });
+
+  function renderSyringe(ui) {
+    const maxUnits = 100;
+    const fillPercent = Math.min(ui, maxUnits);
+    const fillWidth = 900 * (fillPercent / maxUnits);
+
+    syringeContainer.innerHTML = `
+      <div class="flex flex-col items-center p-4 bg-white rounded-lg shadow-md max-w-3xl mx-auto">
+        <h3 class="text-lg font-bold text-dark-blue mb-2 text-center">Visualização da Seringa (UI: ${ui})</h3>
+        <svg width="1000" height="100" viewBox="0 0 1000 100" style="min-width: 600px;">
+          <rect x="50" y="40" width="900" height="20" fill="#f0f0f0" stroke="#ccc" stroke-width="1" rx="5" ry="5"/>
+          <rect x="50" y="40" width="${fillWidth}" height="20" fill="#FFD700" rx="5" ry="5"/>
+          <rect x="950" y="45" width="20" height="10" fill="#f0f0f0" stroke="#ccc" stroke-width="1"/>
+          <line x1="970" y1="50" x2="990" y2="50" stroke="#888" stroke-width="1"/>
+          <polygon points="990,48 995,50 990,52" fill="#888"/>
+          <rect x="0" y="35" width="50" height="30" fill="#ddd" stroke="#bbb" stroke-width="1" rx="3" ry="3"/>
+          ${drawGraduations()}
+        </svg>
+      </div>
+    `;
+  }
+
+  function drawGraduations() {
+    const graduations = [];
+    for (let i = 0; i <= 100; i++) {
+      const x = 50 + (i * 9);
+      graduations.push(`<line x1="${x}" y1="55" x2="${x}" y2="60" stroke="#333" stroke-width="0.5"/>`);
+      if (i % 10 === 0 && i > 0) {
+        graduations.push(`<text x="${x}" y="70" font-size="8" fill="#333" text-anchor="middle">${i}</text>`);
+      }
+    }
+    return graduations.join('');
+  }
+});
 </script>
 </body>
 </html>
