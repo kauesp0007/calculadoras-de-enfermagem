@@ -1797,6 +1797,7 @@
                     <li role="none"><a role="menuitem" href="legislacoes.html" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Legislações e Pareceres</a></li>
                     <li role="none"><a role="menuitem" href="regrasmedicacoes.html" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Manual de Uso seguro de medicamentos</a></li>
                     <li role="none"><a role="menuitem" href="vigilancia.html" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Medicação de Alta Vigilância (<abbr lang="en" title="Medicação de Alta Vigilância">MAV</abbr>)</a></li>
+                    <li role="none"><a role="menuitem" href="metasinternacionais.html" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Metas Internacionais de Segurança do Paciente</a></li>
                     <li role="none"><a role="menuitem" href="nanda.html" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">O que é <abbr lang="en" title="North American Nursing Diagnosis Association">NANDA</abbr>, <abbr lang="en" title="Nursing Interventions Classification">NIC</abbr> e <abbr lang="en" title="Nursing Outcomes Classification">NOC</abbr>?</a></li>
                 </ul>
             </li>
@@ -1948,7 +1949,6 @@
                     </div>
 
                     <div class="flex flex-col lg:flex-row justify-start gap-6 mb-6">
-  <!-- Quadrado da esquerda -->
   <div id="insulina-seringas-info" class="bg-gray-100 p-4 rounded-lg border border-gray-300 w-full lg:w-1/2 text-xs font-inter text-black-custom insulina-info">
     <strong>Medidas de seringas para aplicação de medicamentos por via subcutânea - Seringa de <abbr lang="en" title="Insulin">Insulina</abbr> de 1 <abbr lang="en" title="Mililitro">mL</abbr>:</strong>
     <p class="mt-2"><strong>Exemplos:</strong></p>
@@ -1959,17 +1959,10 @@
     <p class="mt-3"><strong>Atenção:</strong> 1 <abbr lang="en" title="Unidade Internacional">UI</abbr> de <abbr lang="en" title="Insulin">Insulina</abbr> equivale a 0,01 <abbr lang="en" title="Mililitro">mL</abbr> > 10 <abbr lang="en" title="Unidade Internacional">UI</abbr> <abbr lang="en" title="Insulin">Insulina</abbr> equivale a 0,1 <abbr lang="en" title="Mililitro">mL</abbr></p>
     <p class="mt-3 font-bold text-red-600">ATENÇÃO: <abbr lang="en" title="Insulin">INSULINA</abbr> É UMA MEDICAÇÃO DE ALTA VIGILÂNCIA (MAV), REALIZE A DUPLA CHECAGEM (<span lang="en" title="Double Check">DOUBLE CHECK</span>) JUNTO AO SEU ENFERMEIRO.</p>
 
+    <!-- Image of Seringa de Insulina -->
     <img src="seringainsulina.webp" alt="Imagem de seringa de insulina graduada" class="w-full h-auto mt-4 rounded-md object-contain">
   </div>
-
-  <!-- Imagens empilhadas e alinhadas à direita -->
-  <div class="flex flex-col gap-4 w-full lg:w-1/2 items-center">
-    <img src="meta1.webp" alt="Meta 1" class="w-full max-w-[360px] rounded-md shadow object-contain">
-    <img src="meta3.webp" alt="Meta 3" class="w-full max-w-[360px] rounded-md shadow object-contain">
-    <img src="meta5.webp" alt="Meta 5" class="w-full max-w-[360px] rounded-md shadow object-contain">
-  </div>
 </div>
-
 
                         <div id="os-9-certos" class="bg-gray-100 p-4 rounded-lg border border-gray-300 w-full lg:w-1/2 text-xs font-inter text-black-custom">
                             <strong class="text-sm block mb-2">Os 9 Certos da Administração de Medicamentos:</strong>
@@ -2102,7 +2095,7 @@
         <div class="max-w-7xl mx-auto px-4">
             <div class="border-b border-white pb-4 mb-4">
                 <div class="flex justify-start items-center">
-                    <!-- Aumentado o tamanho da imagem do rodapé e adicionado classes responsivas -->
+                    <!-- Image of Logotipo Calculadoras de Enfermagem no rodapé -->
                     <img src="https://www.calculadorasdeenfermagem.com.br/iconrodape1.webp" alt="Logotipo Calculadoras de Enfermagem no rodapé: um estetoscópio e um coração dentro de um círculo azul." width="120" height="84" class="h-auto w-auto max-w-[80px] max-h-[80px]" loading="lazy" decoding="async">
                 </div>
             </div>
@@ -3228,9 +3221,18 @@
 
         // --- Cookie Consent Banner Logic ---
         const cookieConsentBanner = document.getElementById('cookieConsentBanner');
-        const acceptCookiesBtn = document.getElementById('acceptCookiesBtn');
-        const refuseCookiesBtn = document.getElementById('refuseCookiesBtn');
+        const acceptCookiesBtn = document.getElementById('acceptAllCookiesBtn'); // Corrected ID
+        const refuseCookiesBtn = document.getElementById('refuseAllCookiesBtn'); // Corrected ID
+        const manageCookiesBtn = document.getElementById('manageCookiesBtn'); // New button
+        const granularCookieModal = document.getElementById('granularCookieModal'); // New modal
+        const granularModalCloseButton = document.getElementById('granularModalCloseButton');
+        const saveGranularPreferencesBtn = document.getElementById('saveGranularPreferencesBtn');
+        const cancelGranularPreferencesBtn = document.getElementById('cancelGranularPreferencesBtn');
+        const cookieAnalyticsCheckbox = document.getElementById('cookieAnalytics');
+        const cookieMarketingCheckbox = document.getElementById('cookieMarketing');
+
         const cookiesAcceptedKey = 'cookiesAccepted'; // Chave para localStorage
+        const cookiePreferencesKey = 'cookiePreferences'; // New key for granular preferences
 
         function showCookieBanner() {
             // Só mostra o banner se o usuário ainda não tiver feito uma escolha
@@ -3243,25 +3245,100 @@
             cookieConsentBanner.classList.remove('show');
         }
 
+        function showGranularCookieModal() {
+            hideCookieBanner(); // Hide the main banner
+            granularCookieModal.classList.add('show');
+            granularCookieModal.setAttribute('aria-hidden', 'false');
+            document.body.style.overflow = 'hidden'; // Prevent scrolling behind modal
+            // Load current preferences into checkboxes
+            const preferences = JSON.parse(localStorage.getItem(cookiePreferencesKey)) || {};
+            cookieAnalyticsCheckbox.checked = preferences.analytics === true;
+            cookieMarketingCheckbox.checked = preferences.marketing === true;
+            granularModalCloseButton.focus(); // Focus the close button
+            announceStatus('Modal de configurações de cookies aberto.');
+        }
+
+        function hideGranularCookieModal() {
+            granularCookieModal.classList.remove('show');
+            granularCookieModal.setAttribute('aria-hidden', 'true');
+            document.body.style.overflow = ''; // Restore body scrolling
+            // If the main banner was showing, show it again if no choice was made
+            if (localStorage.getItem(cookiesAcceptedKey) === null) {
+                showCookieBanner();
+            }
+            announceStatus('Modal de configurações de cookies fechado.');
+        }
+
+        function saveGranularPreferences() {
+            const preferences = {
+                essential: true, // Always essential
+                analytics: cookieAnalyticsCheckbox.checked,
+                marketing: cookieMarketingCheckbox.checked
+            };
+            localStorage.setItem(cookiePreferencesKey, JSON.stringify(preferences));
+            localStorage.setItem(cookiesAcceptedKey, 'true'); // Mark that a choice has been made
+
+            // Update gtag consent based on preferences
+            gtag('consent', 'update', {
+                'analytics_storage': preferences.analytics ? 'granted' : 'denied'
+            });
+
+            hideGranularCookieModal();
+            announceStatus('Preferências de cookies salvas.');
+        }
+
+        function refuseAllCookies() {
+            localStorage.setItem(cookiesAcceptedKey, 'false');
+            localStorage.setItem(cookiePreferencesKey, JSON.stringify({ essential: true, analytics: false, marketing: false }));
+            gtag('consent', 'update', {
+                'analytics_storage': 'denied'
+            });
+            hideCookieBanner();
+            announceStatus('Todos os cookies não essenciais foram recusados.');
+        }
+
         // Event Listeners para os botões do banner de cookies
         if (acceptCookiesBtn) {
             acceptCookiesBtn.addEventListener('click', () => {
                 localStorage.setItem(cookiesAcceptedKey, 'true');
+                localStorage.setItem(cookiePreferencesKey, JSON.stringify({ essential: true, analytics: true, marketing: true }));
                 hideCookieBanner();
-                // Atualiza o consentimento do GTM para 'granted'
+                // Atualiza o consentimento do GTM para 'granted' para todos
                 gtag('consent', 'update', {
                     'analytics_storage': 'granted'
                 });
+                announceStatus('Todos os cookies foram aceitos.');
             });
         }
 
         if (refuseCookiesBtn) {
-            refuseCookiesBtn.addEventListener('click', () => {
-                localStorage.setItem(cookiesAcceptedKey, 'false');
-                hideCookieBanner();
-                // O consentimento já está 'denied' por padrão, então não precisa de 'update' aqui
-            });
+            refuseCookiesBtn.addEventListener('click', refuseAllCookies);
         }
+
+        if (manageCookiesBtn) {
+            manageCookiesBtn.addEventListener('click', showGranularCookieModal);
+        }
+
+        if (granularModalCloseButton) {
+            granularModalCloseButton.addEventListener('click', hideGranularCookieModal);
+        }
+
+        if (saveGranularPreferencesBtn) {
+            saveGranularPreferencesBtn.addEventListener('click', saveGranularPreferences);
+        }
+
+        if (cancelGranularPreferencesBtn) {
+            cancelGranularPreferencesBtn.addEventListener('click', hideGranularCookieModal);
+        }
+
+        // Close granular modal if escape key is pressed
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape') {
+                if (granularCookieModal && granularCookieModal.classList.contains('show')) {
+                    hideGranularCookieModal();
+                }
+            }
+        });
 
         // --- Insulin Calculator Logic (from insulina.html) ---
         const frascoInput = document.getElementById('frasco');
@@ -3402,9 +3479,14 @@ function gerarPDF() {
         '#backToTopBtn',
         '#barraAcessibilidade',
         '#pwaAcessibilidadeBar',
-        '.flex.flex-col.md\\:flex-row.justify-start.gap-4.mt-6'
+        '.flex.flex-col.lg\\:flex-row.justify-start.gap-4.mt-6' // This targets the buttons div
     ];
-    unwantedSelectors.forEach(sel => contentToPrint.querySelector(sel)?.remove());
+    unwantedSelectors.forEach(sel => {
+        const element = contentToPrint.querySelector(sel);
+        if (element) {
+            element.remove();
+        }
+    });
 
     // ✅ Cabeçalho
     const pdfTitleText = "Cálculo de Aspiração de Insulina";
@@ -3420,9 +3502,6 @@ function gerarPDF() {
     // 🧾 Resultado
     const resultadoDivPage = document.getElementById('resultado');
     const resultDivForPdf = contentToPrint.querySelector('#resultado');
-    <div id="syringeContainer" class="mt-6">
-  <!-- Seringa interativa será injetada aqui -->
-</div>
     if (resultDivForPdf && resultadoDivPage.style.display !== 'none' && resultadoDivPage.innerHTML.trim() !== '') {
         resultDivForPdf.innerHTML = resultadoDivPage.innerHTML;
         resultDivForPdf.style.display = 'block';
@@ -3516,15 +3595,14 @@ function gerarPDF() {
             const scaleName = "Cálculo de Insulina"; // Mantém o nome da escala
 
             if (resultadoMl) { // Verifica se há um resultado válido
-                const message = `Resultados para NANDA, NIC, NOC:\n\n` +
-                                `Frasco disponível: ${frasco} UI\n` +
-                                `Seringa: ${seringa} ml\n` +
-                                `Prescrição médica: ${prescricao} UI\n` +
-                                `Volume a aspirar: ${resultadoMl} ml\n` +
-                                `Cálculo: ${scaleName}`;
-                showCustomModal(message);
+                // Construct the query for Google Search based on the calculated values
+                const detailedSearchQuery = `Frasco disponível: ${frasco} UI, Seringa: ${seringa} ml, Prescrição médica: ${prescricao} UI, Volume a aspirar: ${resultadoMl} ml - ${scaleName} GERAR diagnosticos de enfermagem da NANDA, GERAR intervenções de enfermagem do NIC, Gerar um exemplo de mensuração dos resultados implementados pelo enfermeiro (NOC)`;
+                const encodedSearchQuery = encodeURIComponent(detailedSearchQuery);
+                
+                // Open a new tab with the Google search
+                window.open(`https://www.google.com/search?q=${encodedSearchQuery}`, '_blank');
             } else {
-                showCustomModal("Nenhum cálculo realizado para exibir NANDA, NIC, NOC. Por favor, preencha os campos e calcule primeiro.");
+                showCustomModal("Nenhum cálculo realizado para habilitar a pesquisa NANDA, NIC, NOC. Por favor, preencha os campos e calcule primeiro.");
             }
         });
 
@@ -3564,73 +3642,5 @@ function gerarPDF() {
             });
         }
     </script>
-  <script>
-  document.addEventListener("DOMContentLoaded", function () {
-    const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
-
-    if (btnNandaNicNoc) {
-      btnNandaNicNoc.addEventListener("click", function () {
-        const valorDose = document.getElementById("valorDose");
-        const valor = valorDose ? valorDose.textContent.trim() : "";
-
-        const query = encodeURIComponent(`${valor} + gerar diagnóstico da taxonomia NANDA + gerar diagnóstico da taxonomia NIC + gerar diagnóstico da taxonomia NOC`);
-        window.open(`https://www.google.com/search?q=${query}`, "_blank");
-      });
-    }
-  });
-</script>
-    <script>
-document.addEventListener('DOMContentLoaded', () => {
-  const resultadoDiv = document.getElementById('resultado');
-  const syringeContainer = document.getElementById('syringeContainer');
-
-  // Observa mudanças no conteúdo do resultado
-  const observer = new MutationObserver(() => {
-    const match = resultadoDiv.textContent.match(/([\d,.]+)\s*ml/i);
-    if (match) {
-      const mlValue = parseFloat(match[1].replace(',', '.'));
-      if (!isNaN(mlValue)) {
-        const uiValue = Math.round(mlValue * 100); // 1 ml = 100 UI
-        renderSyringe(uiValue);
-      }
-    }
-  });
-
-  observer.observe(resultadoDiv, { childList: true, subtree: true });
-
-  function renderSyringe(ui) {
-    const maxUnits = 100;
-    const fillPercent = Math.min(ui, maxUnits);
-    const fillWidth = 900 * (fillPercent / maxUnits);
-
-    syringeContainer.innerHTML = `
-      <div class="flex flex-col items-center p-4 bg-white rounded-lg shadow-md max-w-3xl mx-auto">
-        <h3 class="text-lg font-bold text-dark-blue mb-2 text-center">Visualização da Seringa (UI: ${ui})</h3>
-        <svg width="1000" height="100" viewBox="0 0 1000 100" style="min-width: 600px;">
-          <rect x="50" y="40" width="900" height="20" fill="#f0f0f0" stroke="#ccc" stroke-width="1" rx="5" ry="5"/>
-          <rect x="50" y="40" width="${fillWidth}" height="20" fill="#FFD700" rx="5" ry="5"/>
-          <rect x="950" y="45" width="20" height="10" fill="#f0f0f0" stroke="#ccc" stroke-width="1"/>
-          <line x1="970" y1="50" x2="990" y2="50" stroke="#888" stroke-width="1"/>
-          <polygon points="990,48 995,50 990,52" fill="#888"/>
-          <rect x="0" y="35" width="50" height="30" fill="#ddd" stroke="#bbb" stroke-width="1" rx="3" ry="3"/>
-          ${drawGraduations()}
-        </svg>
-      </div>
-    `;
-  }
-
-  function drawGraduations() {
-    const graduations = [];
-    for (let i = 0; i <= 100; i++) {
-      const x = 50 + (i * 9);
-      graduations.push(`<line x1="${x}" y1="55" x2="${x}" y2="60" stroke="#333" stroke-width="0.5"/>`);
-      if (i % 10 === 0 && i > 0) {
-        graduations.push(`<text x="${x}" y="70" font-size="8" fill="#333" text-anchor="middle">${i}</text>`);
-      }
-    }
-    return graduations.join('');
-  }
-});
-</script>
 </body>
 </html>
