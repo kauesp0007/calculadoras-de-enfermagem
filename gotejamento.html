@@ -840,118 +840,93 @@
 
     // Função para gerar PDF (Aprimorada)
     function gerarPDF() {
-      console.log('Função gerarPDF() iniciada.');
-      const mainTitle = document.getElementById('main-title');
-      const regrasBasicas = document.getElementById('regras-basicas');
-      const volumeInput = document.getElementById('volume');
-      const tempoInput = document.getElementById('tempo');
-      const unidadeTempoSelect = document.getElementById('unidadeTempo');
-      const equipoSelect = document.getElementById('equipo');
-      const metaSegurancaDiv = document.getElementById('meta-seguranca');
-      const resultadoDiv = document.getElementById('resultado');
-      const bibliografiaDiv = document.getElementById('bibliografia');
+  const resultadoDiv = document.getElementById('resultado');
+  const conteudoCalculadora = document.getElementById('conteudo-calculadora');
+  const regrasBasicas = document.getElementById('regras-basicas');
+  const bibliografiaDiv = document.getElementById('bibliografia');
 
-      // Cria um container temporário para os elementos que irão para o PDF
-      const pdfContentWrapper = document.createElement('div');
-      pdfContentWrapper.style.padding = '20px'; // Adiciona um padding geral ao conteúdo do PDF
-      pdfContentWrapper.style.fontFamily = 'Inter, sans-serif'; // Garante a fonte no PDF
-      pdfContentWrapper.style.color = '#333'; // Cor do texto padrão no PDF
-      pdfContentWrapper.style.width = '100%';
-      pdfContentWrapper.style.boxSizing = 'border-box';
-      pdfContentWrapper.style.margin = '0 auto';
- 
+  // Cria um container com layout vertical
+  const pdfContentWrapper = document.createElement('div');
+  pdfContentWrapper.style.width = '100%';
+  pdfContentWrapper.style.maxWidth = '800px';
+  pdfContentWrapper.style.margin = '0 auto';
+  pdfContentWrapper.style.padding = '30px';
+  pdfContentWrapper.style.fontFamily = 'Inter, sans-serif';
+  pdfContentWrapper.style.fontSize = '12px';
+  pdfContentWrapper.style.color = '#333';
+  pdfContentWrapper.style.boxSizing = 'border-box';
 
-      // Adiciona o título principal
-      if (mainTitle) {
-        const clonedMainTitle = mainTitle.cloneNode(true);
-        clonedMainTitle.style.fontSize = '28px'; // Ajustar tamanho para o PDF
-        clonedMainTitle.style.color = '#1A3E74';
-        clonedMainTitle.style.textAlign = 'center';
-        clonedMainTitle.style.marginBottom = '15px';
-        pdfContentWrapper.appendChild(clonedMainTitle);
-      }
+  // Título
+  const titulo = document.createElement('h1');
+  titulo.innerText = 'Cálculo de Gotejamento';
+  titulo.style.fontSize = '22px';
+  titulo.style.textAlign = 'center';
+  titulo.style.color = '#1A3E74';
+  titulo.style.marginBottom = '5px';
+  pdfContentWrapper.appendChild(titulo);
 
-      // Adiciona a data de geração
-      const dateDiv = document.createElement('p');
-      dateDiv.style.fontSize = '10px';
-      dateDiv.style.color = '#777';
-      dateDiv.style.textAlign = 'right';
-      dateDiv.style.marginBottom = '20px';
-      dateDiv.innerText = `Gerado em: ${new Date().toLocaleDateString('pt-BR')} ${new Date().toLocaleTimeString('pt-BR')}`;
-      pdfContentWrapper.appendChild(dateDiv);
+  // Subtítulo
+  const subtitulo = document.createElement('h2');
+  subtitulo.innerText = 'Relatório de Cálculo Assistencial';
+  subtitulo.style.fontSize = '14px';
+  subtitulo.style.textAlign = 'center';
+  subtitulo.style.color = '#666';
+  subtitulo.style.marginBottom = '15px';
+  pdfContentWrapper.appendChild(subtitulo);
 
-      // Adiciona os valores de entrada no PDF
-      const inputValuesDiv = document.createElement('div');
-      inputValuesDiv.style.marginBottom = '20px';
-      inputValuesDiv.innerHTML = `
-        <p><strong>Volume:</strong> ${volumeInput.value ? volumeInput.value + ' ml' : 'Não informado'}</p>
-        <p><strong>Tempo:</strong> ${tempoInput.value ? tempoInput.value + ' ' + unidadeTempoSelect.options[unidadeTempoSelect.selectedIndex].text.toLowerCase() : 'Não informado'}</p>
-        <p><strong>Equipo:</strong> ${equipoSelect.options[equipoSelect.selectedIndex].text}</p>
-      `;
-      pdfContentWrapper.appendChild(inputValuesDiv);
+  // Data
+  const data = document.createElement('p');
+  data.innerText = `Gerado em: ${new Date().toLocaleDateString('pt-BR')} ${new Date().toLocaleTimeString('pt-BR')}`;
+  data.style.fontSize = '10px';
+  data.style.textAlign = 'right';
+  data.style.color = '#999';
+  data.style.marginBottom = '20px';
+  pdfContentWrapper.appendChild(data);
 
-      // Adiciona o resultado se estiver visível e não for uma mensagem de erro
-      if (resultadoDiv && resultadoDiv.innerHTML.trim() !== '' && resultadoDiv.style.display !== 'none' && !resultadoDiv.classList.contains('text-red-600')) {
-        const clonedResultado = resultadoDiv.cloneNode(true);
-        clonedResultado.style.marginTop = '10px';
-        clonedResultado.style.padding = '15px';
-        clonedResultado.style.backgroundColor = '#e0f2fe'; // Sempre azul padrão para resultado válido no PDF
-        clonedResultado.style.color = '#1A3E74'; // Sempre azul escuro padrão
-        clonedResultado.style.borderRadius = '8px';
-        clonedResultado.style.whiteSpace = 'pre-wrap';
-        pdfContentWrapper.appendChild(clonedResultado);
-      } else {
-        // Adiciona uma mensagem de aviso/erro se o cálculo não foi realizado ou é inválido
-        const noResultP = document.createElement('p');
-        noResultP.style.fontSize = '14px';
-        noResultP.style.color = '#dc2626';
-        noResultP.style.marginTop = '10px';
-        noResultP.innerText = 'Nenhum cálculo válido foi realizado. Por favor, preencha os campos e clique em "Calcular" antes de gerar o PDF.';
-        pdfContentWrapper.appendChild(noResultP);
-      }
+  // Clona os inputs e resultado
+  if (conteudoCalculadora) {
+    const cloneInputs = conteudoCalculadora.cloneNode(true);
+    cloneInputs.style.marginBottom = '20px';
+    pdfContentWrapper.appendChild(cloneInputs);
+  }
 
-      // Adiciona as regras básicas (opcional, incluído para completude do PDF)
-      if (regrasBasicas) {
-        const clonedRegrasBasicas = regrasBasicas.cloneNode(true);
-        clonedRegrasBasicas.style.fontSize = '12px';
-        clonedRegrasBasicas.style.color = '#555';
-        clonedRegrasBasicas.style.marginTop = '25px';
-        clonedRegrasBasicas.style.borderTop = '1px dashed #ccc';
-        clonedRegrasBasicas.style.paddingTop = '15px';
-        pdfContentWrapper.appendChild(clonedRegrasBasicas);
-      }
+  if (resultadoDiv && resultadoDiv.style.display !== 'none') {
+    const cloneResultado = resultadoDiv.cloneNode(true);
+    cloneResultado.style.backgroundColor = '#e0f2fe';
+    cloneResultado.style.padding = '10px';
+    cloneResultado.style.borderRadius = '6px';
+    cloneResultado.style.marginTop = '10px';
+    cloneResultado.style.whiteSpace = 'pre-wrap';
+    pdfContentWrapper.appendChild(cloneResultado);
+  }
 
-      // Adiciona a Meta de Segurança do Paciente
-      if (metaSegurancaDiv) {
-        const clonedMetaSeguranca = metaSegurancaDiv.cloneNode(true);
-        clonedMetaSeguranca.style.fontSize = '12px';
-        clonedMetaSeguranca.style.color = '#555';
-        clonedMetaSeguranca.style.marginTop = '25px';
-        clonedMetaSeguranca.style.fontStyle = 'italic';
-        pdfContentWrapper.appendChild(clonedMetaSeguranca);
-      }
+  if (regrasBasicas) {
+    const cloneRegras = regrasBasicas.cloneNode(true);
+    cloneRegras.style.marginTop = '30px';
+    cloneRegras.style.fontSize = '11px';
+    pdfContentWrapper.appendChild(cloneRegras);
+  }
 
-      // Adiciona a bibliografia
-      if (bibliografiaDiv) {
-        const clonedBibliografia = bibliografiaDiv.cloneNode(true);
-        clonedBibliografia.style.fontSize = '10px';
-        clonedBibliografia.style.color = '#666';
-        clonedBibliografia.style.marginTop = '25px';
-        pdfContentWrapper.appendChild(clonedBibliografia);
-      }
+  if (bibliografiaDiv) {
+    const cloneBibliografia = bibliografiaDiv.cloneNode(true);
+    cloneBibliografia.style.marginTop = '30px';
+    cloneBibliografia.style.fontSize = '10px';
+    pdfContentWrapper.appendChild(cloneBibliografia);
+  }
 
-      // Configurações do html2pdf
-      const pdfOptions = {
-        margin: [5, 5, 5, 5], // top, left, bottom, right
-        filename: 'calculo-gotejamento.pdf',
-        image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: { scale: 2, logging: true, dpi: 192, letterRendering: true },
-        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-      };
+  // Configurações do PDF com proporções corretas
+  const options = {
+    margin: 0.5,
+    filename: 'calculo-gotejamento.pdf',
+    image: { type: 'jpeg', quality: 0.98 },
+    html2canvas: { scale: 2, scrollY: 0 },
+    jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
+  };
 
-      // Gera e salva o PDF
-      html2pdf().from(pdfContentWrapper).set(pdfOptions).save();
-    }
+  // Geração do PDF
+  html2pdf().set(options).from(pdfContentWrapper).save();
+}
+
 
     // Event Listeners
     document.getElementById('btnCalcular').addEventListener('click', calcularGotejamento);
