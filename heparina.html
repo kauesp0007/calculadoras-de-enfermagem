@@ -1,0 +1,1049 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" /> 
+  <title>Calculadora de Heparina - Enfermagem</title>
+
+  <link rel="canonical" href="https://www.calculadorasdeenfermagem.com.br/heparina.html" />
+
+  <link rel="icon" href="favicon.ico" type="image/x-icon" />
+
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
+  
+  <meta name="keywords" content="Calculadora de Heparina, Heparina, Anticoagulante, Enfermagem, Cálculo de Medicamentos, Dose de Heparina" />
+  <meta name="description" content="Calcule a dose de Heparina de forma precisa para administração segura, utilizando a regra de três. Ferramenta essencial para profissionais de enfermagem." />
+
+  <script async src="https://www.googletagmanager.com/gtag/js?id=AW-952633102"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'AW-952633102');
+  </script>
+
+  <script src="topbar111.js" defer></script>
+  <!-- Font Awesome para ícones de acessibilidade -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+
+  <style>
+    /* Reset básico e Box-sizing para consistência */
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    /* Fontes personalizadas */
+    @import url('https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@700&family=Inter:wght@300;400;500;600&display=swap&font-display=swap');
+
+    /* Estilos das classes de fonte e cor personalizadas (para uso no HTML com Tailwind) */
+    .font-nunito { font-family: 'Nunito Sans', sans-serif; }
+    .font-inter { font-family: 'Inter', sans-serif; }
+    .text-dark-blue { color: #1A3E74; } /* Azul Escuro */
+    .text-light-blue { color: #1FA4E5; } /* Azul Claro */
+    .text-gray-custom { color: #666666; } /* Cinza */
+    .text-success-green { color: #1ED760; } /* Verde */
+    .text-black-custom { color: #333; } /* Cor para textos padrão */
+    .text-red-600 { color: #dc2626; } /* Tailwind red-600 para mensagens de erro */
+
+
+    /* Padrão de Botões (Componentes CSS para reuso) */
+    .btn-primary {
+      font-family: 'Inter', sans-serif;
+      font-weight: 600;
+      background-color: #1A3E74; /* Cor primária azul escuro */
+      color: #FFF;
+      padding: 12px 24px;
+      border-radius: 8px;
+      transition: background-color 0.3s ease;
+      border: none;
+      cursor: pointer;
+      text-align: center;
+    }
+    .btn-primary:hover { background-color: #122c54; } /* Tom mais escuro no hover */
+    .btn-secondary {
+      font-family: 'Inter', sans-serif;
+      font-weight: 600;
+      background-color: #1FA4E5; /* Cor secundária azul claro */
+      color: #FFF;
+      padding: 12px 24px;
+      border-radius: 8px;
+      transition: background-color 0.3s ease;
+      border: none;
+      cursor: pointer;
+      text-align: center;
+    }
+    .btn-secondary:hover { background-color: #178ac7; } /* Tom mais escuro no hover */
+    .btn-success {
+      font-family: 'Inter', sans-serif;
+      font-weight: 500;
+      background-color: #1ED760;
+      color: #FFF;
+      padding: 10px 20px;
+      border-radius: 8px;
+      transition: background-color 0.3s ease;
+      border: none;
+      cursor: pointer;
+      text-align: center;
+    }
+    .btn-success:hover { background-color: #17b351; }
+
+    /* Estilos para a área de resultado da calculadora (Componente específico) */
+    .resultado {
+      margin-top: 1rem;
+      padding: 1rem;
+      background-color: #e0f2fe; /* Tailwind blue-50 */
+      border-radius: 0.5rem;
+      font-weight: 600;
+      color: #1A3E74; /* text-dark-blue */
+      text-align: left;
+      white-space: pre-wrap; /* Mantém quebras de linha no texto */
+    }
+    .resultado.text-red-600 { /* Classe para mensagens de erro (fundo) */
+        background-color: #fee2e2; /* Tailwind red-100 */
+        color: #dc2626; /* Tailwind red-600 */
+    }
+
+    /* Estilos para a referência/bibliografia (Componente específico) */
+    .ref {
+      margin-top: 2rem;
+      font-size: 14px;
+      color: #666666; /* text-gray-custom */
+      text-align: left;
+    }
+
+    /* Estilo para o botão "Ajude-nos" fixo (Componente de botão) */
+    .fixed-donation-button {
+      z-index: 30;
+    }
+    
+    /* Layout principal com Topbar fixa */
+    body {
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh; /* Garante que o body ocupe a altura total da viewport */
+      background-color: #f8fafc; /* Tailwind bg-gray-50 */
+      color: #333; /* Tailwind text-gray-800 */
+      font-family: 'Inter', sans-serif; /* Aplica a fonte Inter ao body */
+    }
+
+    /* ESTILOS DOS DROPDOWNS DA TOPBAR (MOVIDOS DE TOPBAR111.HTML) */
+    .dropdown-menu { display: none; }
+    .dropdown-menu.show { display: block; }
+    nav { justify-content: flex-end; } 
+    nav button { cursor: pointer; }
+    nav .dropdown-menu a:hover { background-color: #bfdbfe; }
+    /* FIM DOS ESTILOS DA TOPBAR */
+
+    /* Estilos para garantir que o menu mobile fique acima de outros conteúdos quando aberto */
+    #mainNav.flex {
+        z-index: 40; /* Um z-index alto para o menu mobile */
+        max-height: 70vh; /* Limita a altura do menu móvel conforme auditoria */
+        overflow-y: auto; /* Adiciona scroll se o conteúdo for muito longo */
+        -webkit-overflow-scrolling: touch; /* Suaviza o scroll em iOS */
+    }
+    .dropdown-menu {
+        position: static; /* Por padrão, estático (fluxo normal) no mobile */
+        margin-top: 0; /* Remove margin-top padrão no mobile */
+        width: 100%; /* Ocupa a largura total do item pai no mobile */
+        box-shadow: none; /* Remove sombra no mobile */
+        border: none; /* Remove borda no mobile */
+        background-color: transparent; /* Fundo transparente no mobile para se misturar ao menu principal */
+        padding: 0; /* Remove padding extra no mobile */
+    }
+
+    /* Estilos específicos para desktop para os dropdowns */
+    @media (min-width: 768px) { /* md breakpoint */
+        .dropdown-menu {
+            position: absolute; /* Torna-se absoluto no desktop */
+            margin-top: 0.5rem; /* mt-2 (8px) para desktop */
+            width: auto; /* Largura automática para se ajustar ao conteúdo */
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05); /* Sombra padrão do Tailwind */
+            border: 1px solid #e5e7eb; /* Borda padrão do Tailwind */
+            background-color: #fff; /* Fundo branco para os dropdowns no desktop */
+            padding: 0.5rem; /* p-2 */
+            border-radius: 0.25rem; /* rounded */
+        }
+    }
+
+    /* Espaçamento para o conteúdo abaixo da topbar fixa */
+    .main-content-wrapper { 
+      display: flex;
+      flex-direction: column;
+      flex-grow: 1;
+      padding-top: 64px; /* Garante que o conteúdo comece abaixo da topbar fixa (64px de altura) */
+      width: 100%;
+      max-width: 1280px; /* max-w-screen-xl (Tailwind 7xl) */
+      margin-left: auto;
+      margin-right: auto;
+      padding: 2rem 1rem; /* p-8 px-4 */
+    }
+    
+    /* Estilos específicos para este arquivo */
+    .input-group {
+        margin-bottom: 1rem;
+    }
+    .input-group label {
+        display: block;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        color: #1A3E74;
+    }
+    .input-group input {
+        width: 100%;
+        padding: 0.75rem;
+        border: 1px solid #e2e8f0;
+        border-radius: 0.5rem;
+        font-size: 1rem;
+        color: #333;
+    }
+
+    /* Estilo para o modal de mensagem */
+    .message-modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.6);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
+        display: none; /* Hidden by default */
+    }
+    .message-modal-content {
+        background-color: #fff;
+        padding: 2rem;
+        border-radius: 0.5rem;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        text-align: center;
+        max-width: 400px;
+        width: 90%;
+        position: relative;
+    }
+    .message-modal-close {
+        color: #aaa;
+        position: absolute;
+        top: 0.5rem;
+        right: 0.5rem;
+        background: none;
+        border: none;
+        font-size: 1.5rem;
+        font-weight: bold;
+        cursor: pointer;
+    }
+    .message-modal-close:hover {
+        color: #1F2937;
+    }
+
+    /* --- Cookie Consent Banner Styles --- */
+    #cookieConsentBanner {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        background-color: #1A3E74; /* Cor azul escuro da identidade */
+        color: #fff;
+        padding: 1rem;
+        text-align: center;
+        z-index: 1000; /* Acima do rodapé e outros elementos */
+        display: none; /* Oculto por padrão, mostrado via JS */
+        flex-direction: column; /* Empilha conteúdo em mobile */
+        align-items: center;
+        gap: 1rem;
+        box-shadow: 0 -2px 10px rgba(0,0,0,0.2);
+    }
+
+    #cookieConsentBanner.show {
+        display: flex; /* Mostra o banner */
+    }
+
+    #cookieConsentBanner p {
+        margin: 0;
+        font-size: 0.9rem;
+        line-height: 1.4;
+    }
+
+    #cookieConsentBanner .cookie-buttons {
+        display: flex;
+        gap: 0.75rem;
+        justify-content: center;
+        flex-wrap: wrap; /* Permite quebrar em telas menores */
+    }
+
+    #cookieConsentBanner button {
+        background-color: #2563eb; /* Tailwind blue-600 */
+        color: white;
+        padding: 0.6rem 1.2rem;
+        border-radius: 0.5rem;
+        font-weight: 600;
+        transition: background-color 0.2s ease;
+        border: none;
+        cursor: pointer;
+        white-space: nowrap; /* Evita quebra de linha no texto do botão */
+    }
+
+    #cookieConsentBanner button.secondary {
+        background-color: transparent;
+        border: 1px solid rgba(255, 255, 255, 0.5);
+    }
+
+    #cookieConsentBanner button.secondary:hover {
+        background-color: rgba(255, 255, 255, 0.1);
+        border-color: white;
+    }
+
+    /* Responsive adjustments for cookie banner */
+    @media (min-width: 768px) {
+        #cookieConsentBanner {
+            flex-direction: row; /* Layout em linha para desktop */
+            justify-content: space-between;
+            padding: 1rem 2rem;
+        }
+        #cookieConsentBanner .cookie-buttons {
+            justify-content: flex-end;
+        }
+    }
+
+    /* Estilos para o menu off-canvas de acessibilidade */
+    .accessibility-off-canvas-menu {
+        position: fixed;
+        top: 0;
+        right: -300px; /* Escondido por padrão */
+        width: 300px;
+        height: 100%;
+        background-color: #fff;
+        box-shadow: -2px 0 10px rgba(0,0,0,0.2);
+        z-index: 1000;
+        transition: right 0.3s ease-in-out;
+        padding: 1rem;
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .accessibility-off-canvas-menu.is-open {
+        right: 0; /* Visível quando aberto */
+    }
+
+    .accessibility-overlay {
+        display: none; /* Oculto por padrão */
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0,0,0,0.5);
+        z-index: 999;
+    }
+
+    .accessibility-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+    }
+
+    .accessibility-header h4 {
+        font-size: 1.25rem;
+        font-weight: bold;
+        color: #1A3E74;
+    }
+
+    .accessibility-close-btn {
+        background: none;
+        border: none;
+        font-size: 1.5rem;
+        cursor: pointer;
+        color: #666;
+    }
+
+    .accessibility-option-btn {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        width: 100%;
+        padding: 0.75rem 1rem;
+        background-color: #f1f5f9; /* Tailwind gray-100 */
+        border-radius: 0.5rem;
+        border: 1px solid #e2e8f0; /* Tailwind gray-200 */
+        cursor: pointer;
+        transition: background-color 0.2s ease;
+    }
+
+    .accessibility-option-btn:hover {
+        background-color: #e2e8f0; /* Tailwind gray-200 */
+    }
+
+    .accessibility-option-btn i {
+        color: #1A3E74;
+    }
+
+    .accessibility-option-btn span {
+        font-weight: 600;
+        color: #333;
+    }
+
+    /* Estilos para as classes de acessibilidade aplicadas ao body */
+    body.font-size-small { font-size: 0.85em; }
+    body.font-size-large { font-size: 1.15em; }
+
+    body.high-contrast {
+        background-color: #000 !important;
+        color: #FFF !important;
+    }
+    body.high-contrast a { color: #FFFF00 !important; }
+    body.high-contrast button, body.high-contrast .btn-primary, body.high-contrast .btn-secondary {
+        background-color: #FFF !important;
+        color: #000 !important;
+        border: 1px solid #FFFF00 !important;
+    }
+    body.high-contrast .bg-white, body.high-contrast .bg-blue-50 {
+        background-color: #333 !important;
+        color: #FFF !important;
+        border: 1px solid #FFFF00 !important;
+    }
+    body.high-contrast .text-gray-600, body.high-contrast .text-gray-700, body.high-contrast .text-gray-800 {
+        color: #FFF !important;
+    }
+    body.high-contrast .text-dark-blue, body.high-contrast .text-light-blue {
+        color: #FFFF00 !important;
+    }
+    body.high-contrast .shadow, body.high-contrast .shadow-md {
+        box-shadow: 0 0 5px #FFFF00 !important;
+    }
+    body.high-contrast .border, body.high-contrast .border-gray-300 {
+        border-color: #FFFF00 !important;
+    }
+
+    body.dark-mode {
+        background-color: #1F2937 !important; /* Dark Gray */
+        color: #E5E7EB !important; /* Light Gray */
+    }
+    body.dark-mode a { color: #93C5FD !important; /* Light Blue */ }
+    body.dark-mode .bg-white, body.dark-mode .bg-blue-50 {
+        background-color: #374151 !important; /* Medium Dark Gray */
+        color: #E5E7EB !important;
+    }
+    body.dark-mode .text-gray-600, body.dark-mode .text-gray-700, body.dark-mode .text-gray-800 {
+        color: #E5E7EB !important;
+    }
+    body.dark-mode .text-dark-blue, body.dark-mode .text-light-blue {
+        color: #93C5FD !important;
+    }
+    body.dark-mode .shadow, body.dark-mode .shadow-md {
+        box-shadow: 0 4px 6px -1px rgba(0,0,0,0.3), 0 2px 4px -1px rgba(0,0,0,0.2) !important;
+    }
+    body.dark-mode .border, body.dark-mode .border-gray-300 {
+        border-color: #4B5563 !important;
+    }
+    body.dark-mode .btn-primary, body.dark-mode .btn-secondary {
+        background-color: #4B5563 !important;
+        color: #E5E7EB !important;
+    }
+    body.dark-mode .btn-primary:hover, body.dark-mode .btn-secondary:hover {
+        background-color: #6B7280 !important;
+    }
+    body.dark-mode #cookieConsentBanner {
+        background-color: #374151 !important;
+    }
+    body.dark-mode #cookieConsentBanner button {
+        background-color: #60A5FA !important;
+        color: #1F2937 !important;
+    }
+    body.dark-mode #cookieConsentBanner button.secondary {
+        background-color: transparent !important;
+        border-color: #93C5FD !important;
+        color: #93C5FD !important;
+    }
+    body.dark-mode #cookieConsentBanner button.secondary:hover {
+        background-color: rgba(147, 197, 253, 0.1) !important;
+    }
+  </style>
+</head>
+<body class="bg-gray-50 text-gray-800 font-inter">
+
+  <div id="topbar-container"></div>  
+
+  <button id="accessibilityHamburgerBtn" class="fixed bottom-4 left-4 bg-blue-700 text-white p-3 rounded-full shadow-lg z-50">
+      <i class="fas fa-universal-access text-xl"></i>
+  </button>
+
+  <div id="accessibilityOffCanvasMenu" class="accessibility-off-canvas-menu">
+      <div class="accessibility-header">
+          <h4>Acessibilidade</h4>
+          <button id="closeAccessibilityMenuBtn" class="accessibility-close-btn">&times;</button>
+      </div>
+      <button id="toggleFontSizeBtn" class="accessibility-option-btn">
+          <i class="fas fa-font"></i>
+          <span>Tamanho da Fonte</span>
+      </button>
+      <button id="toggleContrastBtn" class="accessibility-option-btn">
+          <i class="fas fa-adjust"></i>
+          <span>Alto Contraste</span>
+      </button>
+      <button id="toggleDarkModeBtn" class="accessibility-option-btn">
+          <i class="fas fa-moon"></i>
+          <span>Modo Escuro</span>
+      </button>
+      <button id="resetAccessibilityBtn" class="accessibility-option-btn">
+          <i class="fas fa-sync-alt"></i>
+          <span>Resetar</span>
+      </button>
+  </div>
+
+  <div id="accessibilityOverlay" class="accessibility-overlay"></div>
+
+  <div class="main-content-wrapper">
+    <main class="max-w-4xl mx-auto px-4 py-8"> 
+        <div class="flex flex-col items-center justify-center gap-4 mb-3 text-center"> 
+            <img src="iconpages.png" alt="Ícone da Página" class="w-32 h-auto" width="128" height="128" />
+            <h1 id="main-title" class="font-nunito font-extrabold text-dark-blue text-4xl lg:text-5xl">
+                Calculadora de Heparina
+            </h1>
+        <div class="bg-gray-100 border border-gray-300 rounded-lg shadow-md p-4 mb-6">
+  <h2 id="main-subtitle" class="font-inter font-normal text-black text-sm lg:text-base leading-relaxed text-left normal-case">
+    A heparina é um anticoagulante injetável de aplicação via subcutânea, intravenosa direta ou infusão intravenosa que atua inibindo a coagulação sanguínea. A heparina também é conhecida como "não fracionada" pois possui um peso molecular maior, por ter um peso molecular maior possui maiores efeitos colaterais e requer um monitoramento maior. A heparina pode ser usada para heparinização de cateteres venosos centrais, em boulos se o médico solicitar ou por infusão intravenosa (Por bomba de infusão) o médico calculará a quantidade, via, forma e tempo de infusão segundo requisitos médicos como exames laboratoriais, peso, altura etc. Sempre atente-se a Prescrição Médica (PM) e realize dupla checagem com seu enfemeiro.
+  </h2>
+</div>
+
+        <p class="font-inter font-normal text-black text-base lg:text-lg mb-6 text-center sm:text-left"> 
+            Preencha os campos abaixo para calcular a dose de Heparina:
+        </p>
+
+        <div id="conteudo">
+            <div class="input-group">
+                <label for="heparinaUIporML">Frasco de Heparina da farmácia (UI por ml):</label>
+                <input type="number" id="heparinaUIporML" placeholder="Ex: 5000" min="1" step="any" />
+            </div>
+
+            <div class="input-group">
+                <label for="mlTotalFrasco">Quantidade de ml no frasco-ampola da farmácia (total):</label>
+                <input type="number" id="mlTotalFrasco" placeholder="Ex: 5" min="0.1" step="any" />
+            </div>
+
+            <div class="input-group">
+                <label for="prescricaoMedicaUI">Prescrição Médica (quantas UI solicitado pelo médico):</label>
+                <input type="number" id="prescricaoMedicaUI" placeholder="Ex: 12500" min="1" step="any" />
+            </div>
+
+            <!-- Container geral centralizado para os dois quadrados lado a lado -->
+            <div class="flex flex-col lg:flex-row gap-6 w-full max-w-[1200px] mx-auto px-4 mt-6">
+                <!-- Quadrado esquerdo -->
+                <div id="nove-certinhos" class="bg-gray-100 p-4 rounded-lg border border-gray-300 w-full lg:w-2/5 text-xs font-inter text-black-custom">
+                    <strong class="text-sm block mb-2">Os 9 Certos da Administração de Medicamentos:</strong>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1 text-xs leading-tight max-w-full">
+                        <div class="flex items-center">
+                            <input type="checkbox" id="certo1" class="h-3 w-3 text-blue-600 rounded mr-2">
+                            <label for="certo1" class="whitespace-nowrap">1. Paciente certo</label>
+                        </div>
+                        <div class="flex items-center">
+                            <input type="checkbox" id="certo2" class="h-3 w-3 text-blue-600 rounded mr-2">
+                            <label for="certo2" class="whitespace-nowrap">2. Medicamento certo</label>
+                        </div>
+                        <div class="flex items-center">
+                            <input type="checkbox" id="certo3" class="h-3 w-3 text-blue-600 rounded mr-2">
+                            <label for="certo3" class="whitespace-nowrap">3. Dose certa</label>
+                        </div>
+                        <div class="flex items-center">
+                            <input type="checkbox" id="certo4" class="h-3 w-3 text-blue-600 rounded mr-2">
+                            <label for="certo4" class="whitespace-nowrap">4. Hora certa</label>
+                        </div>
+                        <div class="flex items-center">
+                            <input type="checkbox" id="certo5" class="h-3 w-3 text-blue-600 rounded mr-2">
+                            <label for="certo5" class="whitespace-nowrap">5. Via certa</label>
+                        </div>
+                        <div class="flex items-center">
+                            <input type="checkbox" id="certo6" class="h-3 w-3 text-blue-600 rounded mr-2">
+                            <label for="certo6" class="whitespace-nowrap">6. Documentação/Registro certo</label>
+                        </div>
+                        <div class="flex items-center">
+                            <input type="checkbox" id="certo7" class="h-3 w-3 text-blue-600 rounded mr-2">
+                            <label for="certo7" class="whitespace-nowrap">7. Orientação certa</label>
+                        </div>
+                        <div class="flex items-center">
+                            <input type="checkbox" id="certo8" class="h-3 w-3 text-blue-600 rounded mr-2">
+                            <label for="certo8" class="whitespace-nowrap">8. Resposta certa</label>
+                        </div>
+                        <div class="flex items-center">
+                            <input type="checkbox" id="certo9" class="h-3 w-3 text-blue-600 rounded mr-2">
+                            <label for="certo9" class="whitespace-nowrap">9. Validade certa</label>
+                        </div>
+                    </div>
+
+                    <div class="mt-4 pt-2 border-t border-gray-200">
+                        <div class="flex items-center mb-1">
+                            <label for="meta1" class="text-xs mr-2">Meta 1 =</label>
+                            <input type="checkbox" id="meta1" class="h-3 w-3 text-blue-600 rounded">
+                            <label for="meta1" class="ml-1 text-xs">Certo</label>
+                        </div>
+                        <div class="flex items-center mb-1">
+                            <label for="meta3" class="text-xs mr-2">Meta 3 =</label>
+                            <input type="checkbox" id="meta3" class="h-3 w-3 text-blue-600 rounded">
+                            <label for="meta3" class="ml-1 text-xs">Certo</label>
+                        </div>
+                        <div class="flex items-center">
+                            <label for="meta5" class="text-xs mr-2">Meta 5 =</label>
+                            <input type="checkbox" id="meta5" class="h-3 w-3 text-blue-600 rounded">
+                            <label for="meta5" class="ml-1 text-xs">Certo</label>
+                        </div>
+                        <div class="flex items-center">
+                            <label for="duplachecagem" class="text-xs mr-2">Dupla checagem =</label>
+                            <input type="checkbox" id="duplachecagem" class="h-3 w-3 text-blue-600 rounded">
+                            <label for="duplachecagem" class="ml-1 text-xs">Certo</label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quadrado direito: Regras básicas + imagens -->
+                <div id="regras-basicas" class="bg-gray-100 p-4 rounded-lg border border-gray-300 w-full lg:w-3/5 text-sm leading-tight font-inter text-black-custom flex flex-col">
+                    <strong class="text-base mb-3">Regras básicas:</strong>
+                    <p class="mb-3">
+                        <strong>1 UI Equivale a =</strong> 0,01 UI da seringa de 1 ml<br>
+                        <strong>Via de administração:</strong> Verificar em Prescrição médica.<br>
+                        <strong>Atenção:</strong> Verifique Sinais de sangramento no paciente.<br>
+                        <strong>Atenção:</strong> Verifique se há agendamento de Diálise ao paciente.<br>
+                        <strong>Técnico de enfermagem:</strong> A FORMA da administração deve ser checada na PM,  nao esqueça de utilizar bomba de infusão!<br>
+                        <strong>Enfermeiro:</strong> Verifique se a coleta laboratorial do TTPa está sendo realizada conforme pedido médico.<br>
+                        <strong>Enfermeiro:</strong> Verifique se a pesagem do paciente está sendo realizada diariamente.<br>
+                    </p>
+                    <!-- Imagens empilhadas -->
+                    <div class="mt-auto flex flex-col gap-4 items-center">
+                        <img src="https://placehold.co/250x150/e0f2fe/1A3E74?text=Meta+1" alt="Meta 1" class="max-w-[250px] w-full rounded-md shadow object-contain" width="250" height="150">
+                        <img src="https://placehold.co/250x150/e0f2fe/1A3E74?text=Meta+3" alt="Meta 3" class="max-w-[250px] w-full rounded-md shadow object-contain" width="250" height="150">
+                        <img src="https://placehold.co/250x150/e0f2fe/1A3E74?text=Meta+5" alt="Meta 5" class="max-w-[250px] w-full rounded-md shadow object-contain" width="250" height="150">
+                    </div>
+                </div>
+            </div>
+
+            <div id="resultado" class="resultado" aria-live="polite"></div>
+
+            <div class="ref font-inter text-gray-custom text-left">
+                <strong>Referências Bibliográficas:</strong><br />
+                <p class="mt-2">
+                    1. AYRES, Ana Carolina. <strong>Cálculo de Medicamentos</strong>. Conselho Regional de Enfermagem da Bahia – Coren-BA. 2024. Disponível em: <a href="https://www.coren-ba.gov.br/wp-content/uploads/2024/07/CALCULO-DE-MEDICAMENTOS-Enfa.-Ana-Carolina-Ayres.pdf" target="_blank" class="text-light-blue hover:underline" rel="noopener noreferrer">https://www.coren-ba.gov.br/...</a>. Acesso em: 26 de julho de 2025.
+                </p>
+                <p class="mt-2">
+                    2. Sociedade Brasileira de Cardiologia. **Diretrizes Brasileiras de Anticoagulação**. Disponível em: <a href="https://www.portal.cardiol.br/portal/publicacoes/diretrizes/2019/Diretriz_Anticoagulacao.pdf" target="_blank" class="text-light-blue hover:underline" rel="noopener noreferrer">https://www.portal.cardiol.br/portal/publicacoes/diretrizes/2019/Diretriz_Anticoagulacao.pdf</a>. Acesso em: 26 de julho de 2025.
+                </p>
+            </div>
+        </div>
+
+        <div class="flex flex-wrap justify-start gap-4 mt-6">
+            <button id="btnCalcular" class="btn-primary" aria-label="Calcular dose de Heparina">
+                Calcular
+            </button>
+            <button id="btnLimpar" class="btn-primary" aria-label="Limpar campos">
+                Limpar
+            </button>
+            <button id="btnGerarPDF" class="btn-secondary" aria-label="Gerar PDF do cálculo de Heparina">
+                Gerar PDF
+            </button>
+            <button id="btnNandaNicNoc" class="btn-primary" aria-label="Pesquisar NANDA, NIC, NOC para Heparina">
+                NANDA, NIC, NOC
+            </button>
+        </div>
+    </main>
+  </div> 
+  
+  <a href="doacoes.html" class="fixed bottom-4 right-4 bg-dark-blue text-white text-sm px-4 py-2 rounded-full shadow hover:bg-blue-900 transition fixed-donation-button">
+    Ajude-nos a manter o site gratuito
+  </a>
+
+  <div id="footer-container"></div>
+
+  <!-- Modal de Mensagem (para alertas) -->
+  <div id="messageModalOverlay" class="message-modal-overlay">
+      <div class="message-modal-content">
+          <button id="messageModalClose" class="message-modal-close">&times;</button>
+          <p id="messageModalText" class="text-gray-700 text-lg"></p>
+      </div>
+  </div>
+
+  <!-- Cookie Consent Banner -->
+  <div id="cookieConsentBanner">
+      <p>Utilizamos cookies para melhorar sua experiência em nosso site. Ao continuar navegando, você concorda com nossa <a href="politica.html" class="underline text-blue-200 hover:text-blue-100">Política de Cookies</a>.</p>
+      <div class="cookie-buttons">
+          <button id="acceptCookiesBtn">Aceitar todos os cookies</button>
+          <button id="refuseCookiesBtn" class="secondary">Recusar cookies</button>
+      </div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <script>
+    // Funções do Modal de Mensagem (copiadas do fast.html)
+    const messageModalOverlay = document.createElement('div');
+    messageModalOverlay.id = 'messageModalOverlay';
+    messageModalOverlay.className = 'message-modal-overlay';
+    document.body.appendChild(messageModalOverlay);
+
+    const messageModalContent = document.createElement('div');
+    messageModalContent.className = 'message-modal-content';
+    messageModalOverlay.appendChild(messageModalContent);
+
+    const messageModalClose = document.createElement('button');
+    messageModalClose.id = 'messageModalClose';
+    messageModalClose.className = 'message-modal-close';
+    messageModalClose.innerHTML = '&times;';
+    messageModalContent.appendChild(messageModalClose);
+
+    const messageModalText = document.createElement('p');
+    messageModalText.id = 'messageModalText';
+    messageModalText.className = 'text-gray-700 text-lg';
+    messageModalContent.appendChild(messageModalText);
+
+    function showCustomMessage(message) {
+        messageModalText.textContent = message;
+        messageModalOverlay.style.display = 'flex';
+    }
+
+    function hideCustomMessage() {
+        messageModalOverlay.style.display = 'none';
+    }
+
+    messageModalClose.addEventListener('click', hideCustomMessage);
+    messageModalOverlay.addEventListener('click', (e) => {
+        if (e.target === messageModalOverlay) {
+            hideCustomMessage();
+        }
+    });
+
+    // Função de arredondamento personalizada para Heparina
+    function customHeparinRounding(num) {
+        // Garante que o número tenha pelo menos 3 casas decimais para análise consistente
+        num = parseFloat(num.toFixed(3)); 
+        const numStr = num.toString();
+        const parts = numStr.split('.');
+        const integerPart = parseInt(parts[0]);
+        const decimalStr = parts[1] || '000';
+
+        const d1 = parseInt(decimalStr[0] || '0'); // Primeira casa decimal
+        const d2 = parseInt(decimalStr[1] || '0'); // Segunda casa decimal
+        const d3 = parseInt(decimalStr[2] || '0'); // Terceira casa decimal
+
+        let finalResult = 0;
+
+        // Lógica de arredondamento baseada nos exemplos fornecidos
+        if (d2 === 5) { // Se a segunda casa decimal for 5
+            if (d3 >= 5) { // Ex: 2.56 -> 2.7
+                finalResult = integerPart + 0.7;
+            } else { // Ex: 2.53 -> 2.4
+                finalResult = integerPart + 0.4;
+            }
+        } else {
+            // Para outros casos, arredondamento padrão para uma casa decimal
+            finalResult = Math.round(num * 10) / 10;
+        }
+
+        // Formatação final: remove o zero à direita se for .0
+        let formattedResult = finalResult.toFixed(1);
+        if (formattedResult.endsWith('.0')) {
+            formattedResult = formattedPart.substring(0, formattedResult.length - 2);
+        }
+        return formattedResult.replace('.', ','); // Troca ponto por vírgula para padrão PT-BR
+    }
+
+    // Função de Cálculo de Heparina
+    function calcularHeparina() {
+      const heparinaUIporMLInput = document.getElementById('heparinaUIporML');
+      const mlTotalFrascoInput = document.getElementById('mlTotalFrasco'); // Não usado no cálculo, mas mantido para input
+      const prescricaoMedicaUIInput = document.getElementById('prescricaoMedicaUI');
+      
+      const resultadoDiv = document.getElementById('resultado');
+
+      const heparinaUIporML = parseFloat(heparinaUIporMLInput.value);
+      const prescricaoMedicaUI = parseFloat(prescricaoMedicaUIInput.value);
+
+      // Resetar estilos de erro e esconder resultado
+      resultadoDiv.classList.remove('text-red-600', 'bg-red-100');
+      resultadoDiv.classList.add('text-dark-blue', 'bg-blue-50');
+      resultadoDiv.style.display = 'none';
+      resultadoDiv.dataset.aspirarMl = '';
+      resultadoDiv.dataset.scaleName = '';
+
+      if (isNaN(heparinaUIporML) || heparinaUIporML <= 0) {
+        showCustomMessage("Por favor, informe a quantidade de UI por ml do frasco de heparina (maior que zero).");
+        return;
+      }
+      if (isNaN(prescricaoMedicaUI) || prescricaoMedicaUI <= 0) {
+        showCustomMessage("Por favor, informe a prescrição médica em UI (maior que zero).");
+        return;
+      }
+
+      // Cálculo da Regra de Três
+      // Quantas UI tem no FA da farmacia POR ML ________ 1 ML DO FRASCO AMPOLA DA FARMACIA
+      // PRESCRIÇÃO MEDICA EM UI ______________________ X ( QUANTO ASPIRAR) EM UI/ml
+      
+      const aspirarMlRaw = (prescricaoMedicaUI * 1) / heparinaUIporML;
+      const aspirarMlRounded = customHeparinRounding(aspirarMlRaw); // Aplica o arredondamento personalizado
+
+      let resultadoTexto = `
+        ${heparinaUIporML.toLocaleString('pt-BR')} UI ________ 1 ml
+        ${prescricaoMedicaUI.toLocaleString('pt-BR')} UI ________ X
+
+        ${heparinaUIporML.toLocaleString('pt-BR')}X = ${prescricaoMedicaUI.toLocaleString('pt-BR')} X 1
+        X = ${prescricaoMedicaUI.toLocaleString('pt-BR')} dividido por ${heparinaUIporML.toLocaleString('pt-BR')}
+        
+        ${prescricaoMedicaUI.toLocaleString('pt-BR')}
+        ______
+        ${heparinaUIporML.toLocaleString('pt-BR')}
+        
+        X = ${aspirarMlRaw.toFixed(2).replace('.', ',')} ml
+
+        Você deve aspirar ${aspirarMlRounded} ml do frasco-ampola.
+      `;
+
+      resultadoDiv.innerText = resultadoTexto;
+      resultadoDiv.style.display = 'block';
+
+      // Armazena o resultado para o botão NANDA, NIC, NOC
+      resultadoDiv.dataset.aspirarMl = aspirarMlRounded; // Armazena o valor já arredondado
+      resultadoDiv.dataset.scaleName = "Cálculo de Heparina";
+    }
+
+    // Função para Limpar os campos
+    function limparCampos() {
+      document.getElementById('heparinaUIporML').value = '';
+      document.getElementById('mlTotalFrasco').value = '';
+      document.getElementById('prescricaoMedicaUI').value = '';
+      
+      const resultadoDiv = document.getElementById('resultado');
+      resultadoDiv.innerText = '';
+      resultadoDiv.style.display = 'none';
+      resultadoDiv.classList.remove('text-red-600', 'bg-red-100', 'text-dark-blue', 'bg-blue-50');
+      // Limpa os data-attributes
+      delete resultadoDiv.dataset.aspirarMl;
+      delete resultadoDiv.dataset.scaleName;
+    }
+
+    // Função para gerar PDF (adaptada do fast.html)
+    function gerarPDF() {
+        const contentToPrint = document.getElementById('conteudo').cloneNode(true);
+
+        // Opcional: Esconder elementos fixos ou não desejados no PDF antes de gerar
+        const fixedButton = document.querySelector('.fixed-donation-button');
+        if (fixedButton) {
+            fixedButton.style.display = 'none';
+        }
+
+        // --- TRECHO PARA INCLUIR OS TÍTULOS DA PÁGINA NO PDF ---
+        const pdfTitleText = "Calculadora de Heparina"; // Título do PDF
+        const pdfSubtitleText = "Relatório de Cálculo de Heparina"; // Subtítulo do PDF
+
+        const titleDiv = document.createElement('h1');
+        titleDiv.style.fontSize = '24px';
+        titleDiv.style.color = '#1A3E74';
+        titleDiv.style.textAlign = 'center';
+        titleDiv.style.marginBottom = '5px';
+        titleDiv.innerText = pdfTitleText;
+        contentToPrint.prepend(titleDiv);
+
+        const subtitleDiv = document.createElement('h2');
+        subtitleDiv.style.fontSize = '14px';
+        subtitleDiv.style.color = '#666666';
+        subtitleDiv.style.textAlign = 'center';
+        subtitleDiv.style.marginBottom = '15px';
+        subtitleDiv.innerText = pdfSubtitleText;
+        contentToPrint.prepend(subtitleDiv);
+        
+        // Adiciona a data de geração
+        const dateDiv = document.createElement('p');
+        dateDiv.style.fontSize = '12px';
+        dateDiv.style.color = '#777';
+        dateDiv.style.textAlign = 'center';
+        dateDiv.style.marginBottom = '20px';
+        dateDiv.innerText = `Gerado em: ${new Date().toLocaleDateString('pt-BR')} ${new Date().toLocaleTimeString('pt-BR')}`;
+        contentToPrint.prepend(dateDiv);
+        // --- FIM DO TRECHO ---
+
+        // Configurações do PDF
+        const opt = {
+            margin:       0.5,
+            filename:     'calculo-heparina.pdf',
+            image:        { type: 'jpeg', quality: 0.98 },
+            html2canvas:  { scale: 3, scrollY: 0 },
+            jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }
+        };
+
+        // Gera e salva o PDF
+        html2pdf().set(opt).from(contentToPrint).save().then(() => {
+            // Reexibe o botão após a geração (se foi escondido)
+            if (fixedButton) {
+                fixedButton.style.display = '';
+            }
+        });
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      // Referências aos elementos do DOM para os botões principais
+      const resultadoDiv = document.getElementById('resultado');
+      const btnNandaNicNoc = document.getElementById('btnNandaNicNoc');
+
+      document.getElementById('btnCalcular').addEventListener('click', calcularHeparina);
+      document.getElementById('btnLimpar').addEventListener('click', limparCampos);
+      document.getElementById('btnGerarPDF').addEventListener('click', gerarPDF);
+
+      // Botão NANDA, NIC, NOC
+      if (btnNandaNicNoc) {
+          btnNandaNicNoc.addEventListener('click', () => {
+              const aspirarMl = resultadoDiv.dataset.aspirarMl;
+              const scaleName = resultadoDiv.dataset.scaleName;
+
+              if (!aspirarMl) {
+                  showCustomMessage('Por favor, clique em "Calcular" primeiro para obter o resultado e habilitar a pesquisa NANDA, NIC, NOC.');
+                  return;
+              }
+
+              // Constrói a string de pesquisa
+              const detailedSearchQuery = `Heparina: ${aspirarMl} ml a aspirar, ${scaleName} - GERAR diagnosticos de enfermagem da NANDA, GERAR intervenções de enfermagem do NIC, Gerar um exemplo de mensuração dos resultados implementados pelo enfermeiro (NOC)`;
+              const encodedSearchQuery = encodeURIComponent(detailedSearchQuery);
+              
+              // Abre uma nova aba com a pesquisa do Google
+              window.open(`https://www.google.com/search?q=${encodedSearchQuery}`, '_blank');
+          });
+      }
+
+      // Carregar rodapé (rodape111.html)
+      fetch("rodape111.html")
+        .then(res => res.text())
+        .then(data => {
+          const footerContainer = document.getElementById("footer-container");
+          if (footerContainer) {
+            footerContainer.innerHTML = data;
+          } else {
+            console.error('Elemento footer-container não encontrado.');
+          }
+        })
+        .catch(err => console.error("Erro ao carregar rodape111.html:", err));
+
+      // Lógica para o Cookie Consent Banner (copiada do fast.html)
+      const cookieConsentBanner = document.getElementById('cookieConsentBanner');
+      const acceptCookiesBtn = document.getElementById('acceptCookiesBtn');
+      const refuseCookiesBtn = document.getElementById('refuseCookiesBtn');
+
+      function showCookieConsent() {
+          if (!localStorage.getItem('cookieConsent')) {
+              cookieConsentBanner.classList.add('show');
+          }
+      }
+
+      function setCookieConsent(consent) {
+          localStorage.setItem('cookieConsent', consent);
+          cookieConsentBanner.classList.remove('show');
+      }
+
+      acceptCookiesBtn.addEventListener('click', () => setCookieConsent('accepted'));
+      refuseCookiesBtn.addEventListener('click', () => setCookieConsent('refused'));
+
+      showCookieConsent();
+
+      // Lógica para o menu de acessibilidade (copiada e corrigida do fast.html)
+      const accessibilityHamburgerBtn = document.getElementById('accessibilityHamburgerBtn');
+      const accessibilityOffCanvasMenu = document.getElementById('accessibilityOffCanvasMenu');
+      const closeAccessibilityMenuBtn = document.getElementById('closeAccessibilityMenuBtn');
+      const accessibilityOverlay = document.getElementById('accessibilityOverlay');
+      const toggleFontSizeBtn = document.getElementById('toggleFontSizeBtn');
+      const toggleContrastBtn = document.getElementById('toggleContrastBtn');
+      const toggleDarkModeBtn = document.getElementById('toggleDarkModeBtn');
+      const resetAccessibilityBtn = document.getElementById('resetAccessibilityBtn');
+
+      function applyAccessibilitySettings() {
+          const fontSize = localStorage.getItem('accessibilityFontSize');
+          const contrast = localStorage.getItem('accessibilityContrast');
+          const darkMode = localStorage.getItem('accessibilityDarkMode');
+
+          document.body.classList.remove('font-size-small', 'font-size-large', 'high-contrast', 'dark-mode');
+
+          if (fontSize === 'small') {
+              document.body.classList.add('font-size-small');
+          } else if (fontSize === 'large') {
+              document.body.classList.add('font-size-large');
+          }
+
+          if (contrast === 'enabled') {
+              document.body.classList.add('high-contrast');
+          }
+
+          if (darkMode === 'enabled') {
+              document.body.classList.add('dark-mode');
+          }
+      }
+
+      applyAccessibilitySettings(); 
+
+      toggleFontSizeBtn.addEventListener('click', () => {
+          let currentFontSize = localStorage.getItem('accessibilityFontSize');
+          if (currentFontSize === 'small') {
+              localStorage.setItem('accessibilityFontSize', 'large');
+          } else if (currentFontSize === 'large') {
+              localStorage.setItem('accessibilityFontSize', ''); // Volta ao padrão
+          } else {
+              localStorage.setItem('accessibilityFontSize', 'small');
+          }
+          applyAccessibilitySettings();
+      });
+
+      toggleContrastBtn.addEventListener('click', () => {
+          let currentContrast = localStorage.getItem('accessibilityContrast');
+          if (currentContrast === 'enabled') {
+              localStorage.setItem('accessibilityContrast', '');
+          } else {
+              localStorage.setItem('accessibilityContrast', 'enabled');
+          }
+          applyAccessibilitySettings();
+      });
+
+      toggleDarkModeBtn.addEventListener('click', () => {
+          let currentDarkMode = localStorage.getItem('accessibilityDarkMode');
+          if (currentDarkMode === 'enabled') {
+              localStorage.setItem('accessibilityDarkMode', '');
+          } else {
+              localStorage.setItem('accessibilityDarkMode', 'enabled');
+          }
+          applyAccessibilitySettings();
+      });
+
+      resetAccessibilityBtn.addEventListener('click', () => {
+          localStorage.removeItem('accessibilityFontSize');
+          localStorage.removeItem('accessibilityContrast');
+          localStorage.removeItem('accessibilityDarkMode');
+          applyAccessibilitySettings();
+      });
+
+      // Lógica para abrir/fechar o menu de acessibilidade
+      if (accessibilityHamburgerBtn) {
+          accessibilityHamburgerBtn.addEventListener('click', () => {
+              accessibilityOffCanvasMenu.classList.add('is-open');
+              accessibilityOverlay.style.display = 'block';
+          });
+      }
+
+      if (closeAccessibilityMenuBtn) {
+          closeAccessibilityMenuBtn.addEventListener('click', () => {
+              accessibilityOffCanvasMenu.classList.remove('is-open');
+              accessibilityOverlay.style.display = 'none';
+          });
+      }
+
+      if (accessibilityOverlay) {
+          accessibilityOverlay.addEventListener('click', (event) => {
+            if (event.target === accessibilityOverlay) { // Garante que só feche se clicar no overlay, não no menu
+                accessibilityOffCanvasMenu.classList.remove('is-open');
+                accessibilityOverlay.style.display = 'none';
+            }
+          });
+      }
+
+      // Fechar com a tecla ESC
+      document.addEventListener('keydown', (event) => {
+          if (event.key === 'Escape' && accessibilityOffCanvasMenu.classList.contains('is-open')) {
+              accessibilityOffCanvasMenu.classList.remove('is-open');
+              accessibilityOverlay.style.display = 'none';
+          }
+      });
+    }); // Fim do DOMContentLoaded principal
+  </script>
+</body>
+</html>
