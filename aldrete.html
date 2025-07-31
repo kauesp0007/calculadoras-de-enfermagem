@@ -611,8 +611,13 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <!-- Inclua o JavaScript global que contém a lógica das barras de acessibilidade, modais e cookies -->
     <script src="global-scripts.js"></script>
+    <script src="https://vlibras.gov.br/app/vlibras-plugin.js"></script>
     <script>
+        // Lógica específica da calculadora Aldrete
         document.addEventListener('DOMContentLoaded', function() {
+            // Inicialização do VLibras (agora no global-scripts.js, mas mantemos a chamada aqui para garantir)
+            new VLibras.Widget('https://vlibras.gov.br/app');
+
             // Lógica para carregar o cabeçalho global
             fetch('menu-global.html')
                 .then(response => response.text())
@@ -628,7 +633,6 @@
                 })
                 .catch(error => console.error('Erro ao carregar o menu global:', error));
 
-            // Lógica específica da calculadora Aldrete
             const resultadoDiv = document.getElementById('resultado');
             const btnNandaNicNoc = document.getElementById('btnNandaNicNoc');
 
@@ -658,6 +662,7 @@
                     resultadoDiv.innerHTML = errorMessage;
                     resultadoDiv.classList.add('bg-info-orange-light');
                     resultadoDiv.dataset.score = '';
+                    resultadoDiv.dataset.conduta = ''; // Limpa conduta em caso de erro
                     resultadoDiv.dataset.scaleName = '';
                     return;
                 }
@@ -682,6 +687,7 @@
 
                 // Armazena a pontuação e o nome da escala no dataset para acesso pelo botão NANDA, NIC, NOC
                 resultadoDiv.dataset.score = total;
+                resultadoDiv.dataset.conduta = conduta; // Armazena a conduta
                 resultadoDiv.dataset.scaleName = "Escala de Aldrete e Kroulik";
             }
 
@@ -695,6 +701,7 @@
                 resultadoDiv.classList.remove('bg-info-orange-light', 'bg-aldrete-alta', 'bg-aldrete-observacao', 'bg-aldrete-instavel');
                 // Limpa os data-attributes
                 resultadoDiv.dataset.score = '';
+                resultadoDiv.dataset.conduta = '';
                 resultadoDiv.dataset.scaleName = '';
             }
 
@@ -711,8 +718,9 @@
                 contentToPrint.style.lineHeight = '1.1';
 
                 const unwantedSelectors = [
-                    '#backToTopBtn',
-                    '.flex.flex-wrap.justify-start.gap-4.mt-6' // This targets the buttons div
+                    '#backToTopBtn', // Removido, pois o botão agora é um elemento global
+                    '.flex.flex-wrap.justify-start.gap-4.mt-6', // Remove a div dos botões
+                    '#newsletters-section' // Remove a seção de newsletter
                 ];
                 unwantedSelectors.forEach(sel => {
                     const element = contentToPrint.querySelector(sel);
@@ -738,7 +746,7 @@
                 if (resultDivForPdf && resultadoDiv.style.display !== 'none' && resultadoDiv.innerHTML.trim() !== '' && !resultadoDiv.classList.contains('bg-info-orange-light')) {
                     resultDivForPdf.innerHTML = resultadoDiv.innerHTML;
                     resultadoDiv.classList.forEach(cls => {
-                        if (cls.startsWith('bg-') || cls.startsWith('text-')) {
+                        if (cls.startsWith('bg-') || cls.startsWith('text-') || cls.startsWith('aldrete-')) { // Inclui classes específicas do Aldrete
                             resultDivForPdf.classList.add(cls);
                         }
                     });
@@ -789,8 +797,8 @@
             // Adiciona o event listener para o botão NANDA, NIC, NOC
             if (btnNandaNicNoc) {
                 btnNandaNicNoc.addEventListener('click', () => {
-                    const currentConduta = resultadoDiv.dataset.conduta; // Pega a conduta armazenada
-                    const scaleName = resultadoDiv.dataset.scaleName; // Pega o nome da escala
+                    const currentConduta = resultadoDiv.dataset.conduta;
+                    const scaleName = resultadoDiv.dataset.scaleName;
 
                     if (!currentConduta || !scaleName || resultadoDiv.classList.contains('hidden') || resultadoDiv.innerHTML.includes('Por favor, selecione')) {
                         window.showCustomModal('Por favor, clique em "Calcular" primeiro para obter a conduta e habilitar a pesquisa NANDA, NIC, NOC.');
