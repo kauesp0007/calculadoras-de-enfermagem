@@ -6,33 +6,27 @@
     <title>Escala de Barthel - Avaliação de Dependência Funcional - Calculadoras de Enfermagem</title>
     <link rel="icon" href="favicon.ico">
     <link rel="canonical" href="https://www.calculadorasdeenfermagem.com.br/barthel.html">
+    <!-- Removida a tag meta name="keywords" conforme auditoria -->
     <meta name="description" content="Calcule a Escala de Barthel para avaliar a dependência funcional em atividades diárias (ABVDs) e o grau de independência em pessoas com deficiências físicas, neurológicas ou em reabilitação. Ferramenta essencial para enfermagem e geriatria." />
-    
-    <!-- Preconnect & Fonts -->
-    <link rel="preconnect" href="https://cdn.jsdelivr.net">
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="preconnect" href="https://vlibras.gov.br">
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;700&family=Inter:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Nunito+Sans:wght@700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/antijingoist/opendyslexic/web/opendyslexic.css" />
 
-    <!-- Google Analytics & Consent Mode -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=AW-952633102"></script>
+    <!-- html2pdf CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+    <!-- Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-8FLJ59XXDK"></script>
     <script>
         window.dataLayer = window.dataLayer || [];
         function gtag(){dataLayer.push(arguments);}
         gtag('js', new Date());
-        gtag('consent', 'default', {
-            'analytics_storage': 'denied',
-            'wait_for_update': 500 // Espera 500ms por uma atualização do consentimento
-        });
-        gtag('config', 'AW-952633102');
         gtag('config', 'G-8FLJ59XXDK');
     </script>
 
-    <!-- Schema.org Structured Data -->
+    <!-- Schema.org Structured Data (Adicionado conforme auditoria) -->
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
@@ -44,1390 +38,1266 @@
     }
     </script>
 
-    <!-- SEU NOVO ARQUIVO CSS PRINCIPAL -->
-    <link rel="stylesheet" href="global-styles.css">
-
-    <!-- Estilos específicos desta página (se houver e não estiverem no global-styles.css) -->
     <style>
-        /* Cores de resultado ajustadas para Barthel */
-        .resultado.bg-barthel-total { background-color: #D4EDDA; color: #155724; }
-        .resultado.bg-barthel-leve { background-color: #FFF3CD; color: #856404; }
-        .resultado.bg-barthel-moderada { background-color: #F8D7DA; color: #721C24; }
-        .resultado.bg-barthel-grave { background-color: #fce2e2; color: #cc0000; }
-        .resultado.bg-barthel-completa { background-color: #c9302c; color: #ffffff; }
-        .resultado.bg-info-orange-light { background-color: #ffeeba; border-color: #ffb366; color: #856404; }
+        /* Reset básico e Box-sizing para consistência */
+        *, *::before, *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
 
-        /* Container de cada critério */
-        .criterion-section {
-            background-color: #fff;
-            border: 1px solid #e2e8f0;
+        /* Fontes personalizadas */
+        .font-nunito { font-family: 'Nunito Sans', sans-serif; }
+        .font-inter { font-family: 'Inter', sans-serif; }
+
+        /* Estilos das classes de fonte e cor personalizadas (para uso no HTML com Tailwind) */
+        .text-dark-blue { color: #1A3E74; } /* Azul Escuro */
+        .text-light-blue { color: #1FA4E5; } /* Azul Claro */
+        .text-gray-custom { color: #666666; } /* Cinza */
+        .text-success-green { color: #1ED760; } /* Verde */
+
+        /* Padrão de Botões (Componentes CSS para reuso) */
+        .btn-primary {
+            font-family: 'Inter', sans-serif;
+            font-weight: 600;
+            background-color: #1A3E74; /* Cor primária azul escuro */
+            color: #FFF;
+            padding: 12px 24px;
             border-radius: 8px;
+            transition: background-color 0.3s ease;
+            border: none;
+            cursor: pointer;
+            text-align: center;
+        }
+        .btn-primary:hover { background-color: #122c54; } /* Tom mais escuro no hover */
+        .btn-secondary {
+            font-family: 'Inter', sans-serif;
+            font-weight: 600;
+            background-color: #1FA4E5; /* Cor secundária azul claro */
+            color: #FFF;
+            padding: 12px 24px;
+            border-radius: 8px;
+            transition: background-color 0.3s ease;
+            border: none;
+            cursor: pointer;
+            text-align: center;
+        }
+        .btn-secondary:hover { background-color: #178ac7; } /* Tom mais escuro no hover */
+        .btn-success {
+            font-family: 'Inter', sans-serif;
+            font-weight: 600; /* Padronizado com os outros botões */
+            background-color: #1ED760;
+            color: #FFF;
+            padding: 12px 24px; /* Padronizado com os outros botões */
+            border-radius: 8px;
+            transition: background-color 0.3s ease;
+            border: none;
+            cursor: pointer;
+            text-align: center;
+        }
+        .btn-success:hover { background-color: #17b351; }
+
+        /* Estilos para a área de resultado da calculadora (Componente específico) */
+        .resultado {
+            margin-top: 1rem;
             padding: 1rem;
-            margin-bottom: 1rem;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            background-color: #e0f2fe; /* Tailwind blue-50 */
+            border-radius: 0.5rem;
+            font-weight: 600;
+            color: #1A3E74; /* text-dark-blue */
+            text-align: left;
+            white-space: pre-wrap;
         }
+        /* Cores de resultado ajustadas para Barthel */
+        .resultado.bg-barthel-total { background-color: #D4EDDA; color: #155724; } /* Verde para Independência Total */
+        .resultado.bg-barthel-leve { background-color: #FFF3CD; color: #856404; } /* Amarelo para Dependência Leve */
+        .resultado.bg-barthel-moderada { background-color: #F8D7DA; color: #721C24; } /* Vermelho claro para Dependência Moderada */
+        .resultado.bg-barthel-grave { background-color: #fce2e2; color: #cc0000; } /* Vermelho para Dependência Grave */
+        .resultado.bg-barthel-completa { background-color: #c9302c; color: #ffffff; } /* Vermelho escuro para Dependência Completa */
+        .resultado.bg-info-orange-light { background-color: #ffeeba; border-color: #ffb366; color: #856404; } /* Para alertas */
 
-        /* Título de cada critério */
-        .criterion-title {
-            font-size: 1.25rem;
-            font-weight: 700;
-            color: #1A3E74;
-            margin-bottom: 0.75rem;
+        /* Estilos para a referência/bibliografia (Componente específico) */
+        .ref {
+            margin-top: 2rem;
+            font-size: 14px;
+            color: #666666; /* text-gray-custom */
+            text-align: left;
         }
-
-        /* Grupo de opções (radio buttons) */
-        .options-group {
+        
+        /* Layout principal com Topbar fixa */
+        body {
             display: flex;
             flex-direction: column;
-            gap: 0.5rem;
+            min-height: 100vh; /* Garante que o body ocupe a altura total da viewport */
+            background-color: #f8fafc; /* Tailwind bg-gray-50 */
+            color: #333; /* Tailwind text-gray-800 */
+            font-family: 'Inter', sans-serif; /* Aplica a fonte Inter ao body */
         }
 
-        /* Label de cada opção (torna-a clicável e flexível) */
-        .option-label {
+        /* ESTILOS DOS DROPDOWNS DA TOPBAR (MOVIDOS DE TOPBAR111.HTML) */
+        .dropdown-menu { display: none; }
+        .dropdown-menu.show { display: block; }
+        nav { justify-content: flex-end; } 
+        nav button { cursor: pointer; }
+        nav .dropdown-menu a:hover { background-color: #bfdbfe; }
+        /* FIM DOS ESTILOS DA TOPBAR */
+
+        /* Estilos para garantir que o menu mobile fique acima de outros conteúdos quando aberto */
+        #mainNav.flex {
+            z-index: 40; /* Um z-index alto para o menu mobile */
+            max-height: 70vh; /* Limita a altura do menu móvel conforme auditoria */
+            overflow-y: auto; /* Adiciona scroll se o conteúdo for muito longo */
+            -webkit-overflow-scrolling: touch; /* Suaviza o scroll em iOS */
+        }
+        .dropdown-menu {
+            position: static; /* Por padrão, estático (fluxo normal) no mobile */
+            margin-top: 0; /* Remove margin-top padrão no mobile */
+            width: 100%; /* Ocupa a largura total do item pai no mobile */
+            box-shadow: none; /* Remove sombra no mobile */
+            border: none; /* Remove borda no mobile */
+            background-color: transparent; /* Fundo transparente no mobile para se misturar ao menu principal */
+            padding: 0; /* Remove padding extra no mobile */
+        }
+
+        /* Estilos específicos para desktop para os dropdowns */
+        @media (min-width: 768px) { /* md breakpoint */
+            .dropdown-menu {
+                position: absolute; /* Torna-se absoluto no desktop */
+                margin-top: 0.5rem; /* mt-2 (8px) para desktop */
+                width: auto; /* Largura automática para se ajustar ao conteúdo */
+                box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05); /* Sombra padrão do Tailwind */
+                border: 1px solid #e5e7eb; /* Borda padrão do Tailwind */
+                background-color: #fff; /* Fundo branco para os dropdowns no desktop */
+                padding: 0.5rem; /* p-2 */
+                border-radius: 0.25rem; /* rounded */
+            }
+        }
+
+        /* Espaçamento para o conteúdo abaixo da topbar fixa */
+        .main-content-wrapper { 
             display: flex;
-            align-items: flex-start;
-            font-size: 1rem;
-            color: #374151;
+            flex-direction: column;
+            flex-grow: 1;
+            padding-top: 64px; /* Garante que o conteúdo comece abaixo da topbar fixa (64px de altura) */
+            width: 100%;
+        }
+
+        /* Conteúdo principal (main) */
+        main {
+            flex-grow: 1;
+            max-width: 1280px; /* max-w-7xl */
+            margin-left: auto;
+            margin-right: auto;
+            padding: 2rem 1rem; /* Equivalente a p-8 px-4 */
+            width: 100%;
+        }
+
+        /* Estilo para o modal de mensagem */
+        .message-modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.6);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            display: none; /* Hidden by default */
+        }
+        .message-modal-content {
+            background-color: #fff;
+            padding: 2rem;
+            border-radius: 0.5rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+            position: relative;
+        }
+        .message-modal-close {
+            color: #aaa;
+            position: absolute;
+            top: 0.5rem;
+            right: 0.5rem;
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            font-weight: bold;
             cursor: pointer;
-            padding: 0.25rem 0;
-            border-radius: 6px;
+        }
+        .message-modal-close:hover {
+            color: #1F2937;
+        }
+
+        /* --- Cookie Consent Banner Styles --- */
+        #cookieConsentBanner {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background-color: #1A3E74; /* Cor azul escuro da identidade */
+            color: #fff;
+            padding: 1rem;
+            text-align: center;
+            z-index: 1000; /* Acima do rodapé e outros elementos */
+            display: none; /* Oculto por padrão, mostrado via JS */
+            flex-direction: column; /* Empilha conteúdo em mobile */
+            align-items: center;
+            gap: 1rem;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.2);
+        }
+
+        #cookieConsentBanner.show {
+            display: flex; /* Mostra o banner */
+        }
+
+        #cookieConsentBanner p {
+            margin: 0;
+            font-size: 0.9rem;
+            line-height: 1.4;
+        }
+
+        #cookieConsentBanner .cookie-buttons {
+            display: flex;
+            gap: 0.75rem;
+            justify-content: center;
+            flex-wrap: wrap; /* Permite quebrar em telas menores */
+        }
+
+        #cookieConsentBanner button {
+            background-color: #2563eb; /* Tailwind blue-600 */
+            color: white;
+            padding: 0.6rem 1.2rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            transition: background-color 0.2s ease;
+            border: none;
+            cursor: pointer;
+            white-space: nowrap; /* Evita quebra de linha no texto do botão */
+        }
+
+        #cookieConsentBanner button.secondary {
+            background-color: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.5);
+        }
+
+        #cookieConsentBanner button.secondary:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+            border-color: white;
+        }
+
+        /* Responsive adjustments for cookie banner */
+        @media (min-width: 768px) {
+            #cookieConsentBanner {
+                flex-direction: row; /* Layout em linha para desktop */
+                justify-content: space-between;
+                padding: 1rem 2rem;
+            }
+            #cookieConsentBanner .cookie-buttons {
+                justify-content: flex-end;
+            }
+        }
+
+        /* Estilos para o menu off-canvas de acessibilidade */
+        .accessibility-off-canvas-menu {
+            position: fixed;
+            top: 0;
+            right: -300px; /* Escondido por padrão */
+            width: 300px;
+            height: 100%;
+            background-color: #fff;
+            box-shadow: -2px 0 10px rgba(0,0,0,0.2);
+            z-index: 1000;
+            transition: right 0.3s ease-in-out;
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .accessibility-off-canvas-menu.is-open {
+            right: 0; /* Visível quando aberto */
+        }
+
+        .accessibility-overlay {
+            display: none; /* Oculto por padrão */
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            z-index: 999;
+        }
+
+        .accessibility-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .accessibility-header h4 {
+            font-size: 1.25rem;
+            font-weight: bold;
+            color: #1A3E74;
+        }
+
+        .accessibility-close-btn {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #666;
+        }
+
+        .accessibility-option-btn {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            width: 100%;
+            padding: 0.75rem 1rem;
+            background-color: #f1f5f9; /* Tailwind gray-100 */
+            border-radius: 0.5rem;
+            border: 1px solid #e2e8f0; /* Tailwind gray-200 */
+            cursor: pointer;
             transition: background-color 0.2s ease;
         }
-        .option-label:hover {
-            background-color: #f3f4f6;
-        }
-        .option-label input[type="radio"] {
-            margin-right: 0.75rem;
-            transform: scale(1.1);
-            flex-shrink: 0;
-            accent-color: #1A3E74;
-            margin-top: 0.25rem;
+
+        .accessibility-option-btn:hover {
+            background-color: #e2e8f0; /* Tailwind gray-200 */
         }
 
-        /* Media query para telas médias (tablets e desktops pequenos) */
-        @media (min-width: 640px) {
-            .options-group {
-                flex-direction: column;
+        .accessibility-option-btn i {
+            color: #1A3E74;
+        }
+
+        .accessibility-option-btn span {
+            font-weight: 600;
+            color: #333;
+        }
+
+        /* Estilos para as classes de acessibilidade aplicadas ao body */
+        body.font-size-small { font-size: 0.85em; }
+        body.font-size-large { font-size: 1.15em; }
+
+        body.high-contrast {
+            background-color: #000 !important;
+            color: #FFF !important;
+        }
+        body.high-contrast a { color: #FFFF00 !important; }
+        body.high-contrast button, body.high-contrast .btn-primary, body.high-contrast .btn-secondary {
+            background-color: #FFF !important;
+            color: #000 !important;
+            border: 1px solid #FFFF00 !important;
+        }
+        body.high-contrast .bg-white, body.high-contrast .bg-blue-50 {
+            background-color: #333 !important;
+            color: #FFF !important;
+            border: 1px solid #FFFF00 !important;
+        }
+        body.high-contrast .text-gray-600, body.high-contrast .text-gray-700, body.high-contrast .text-gray-800 {
+            color: #FFF !important;
+        }
+        body.high-contrast .text-dark-blue, body.high-contrast .text-light-blue {
+            color: #FFFF00 !important;
+        }
+        body.high-contrast .shadow, body.high-contrast .shadow-md {
+            box-shadow: 0 0 5px #FFFF00 !important;
+        }
+        body.high-contrast .border, body.high-contrast .border-gray-300 {
+            border-color: #FFFF00 !important;
+        }
+
+        body.dark-mode {
+            background-color: #1F2937 !important; /* Dark Gray */
+            color: #E5E7EB !important; /* Light Gray */
+        }
+        body.dark-mode a { color: #93C5FD !important; /* Light Blue */ }
+        body.dark-mode .bg-white, body.dark-mode .bg-blue-50 {
+            background-color: #374151 !important; /* Medium Dark Gray */
+            color: #E5E7EB !important;
+        }
+        body.dark-mode .text-gray-600, body.dark-mode .text-gray-700, body.dark-mode .text-gray-800 {
+            color: #E5E7EB !important;
+        }
+        body.dark-mode .text-dark-blue, body.dark-mode .text-light-blue {
+            color: #93C5FD !important;
+        }
+        body.dark-mode .shadow, body.dark-mode .shadow-md {
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.3), 0 2px 4px -1px rgba(0,0,0,0.2) !important;
+        }
+        body.dark-mode .border, body.dark-mode .border-gray-300 {
+            border-color: #4B5563 !important;
+        }
+        body.dark-mode .btn-primary, body.dark-mode .btn-secondary {
+            background-color: #4B5563 !important;
+            color: #E5E7EB !important;
+        }
+        body.dark-mode .btn-primary:hover, body.dark-mode .btn-secondary:hover {
+            background-color: #6B7280 !important;
+        }
+        body.dark-mode #cookieConsentBanner {
+            background-color: #374151 !important;
+        }
+        body.dark-mode #cookieConsentBanner button {
+            background-color: #60A5FA !important;
+            color: #1F2937 !important;
+        }
+        body.dark-mode #cookieConsentBanner button.secondary {
+            background-color: transparent !important;
+            border-color: #93C5FD !important;
+            color: #93C5FD !important;
+        }
+        body.dark-mode #cookieConsentBanner button.secondary:hover {
+            background-color: rgba(147, 197, 253, 0.1) !important;
+        }
+        /* --- ESTILOS PARA SEÇÕES DE CRITÉRIOS (tabela) --- */
+        .activity-section {
+            margin-bottom: 2.5rem; /* Espaçamento entre as tabelas de atividade */
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            padding: 1.5rem;
+        }
+
+        .activity-section h3 {
+            margin-bottom: 1rem;
+            color: #1A3E74; /* dark-blue */
+            font-size: 1.25rem; /* text-xl */
+            font-weight: 700; /* font-bold */
+        }
+
+        .barthel-table {
+            width: 100%;
+            border-collapse: collapse;
+            /* Remove box-shadow e border-radius daqui, já estão no .activity-section */
+        }
+
+        .barthel-table th, .barthel-table td {
+            padding: 0.75rem 1rem;
+            border: 1px solid #e2e8f0; /* gray-200 */
+            text-align: left; /* Alinhamento padrão à esquerda para desktop */
+            vertical-align: top;
+        }
+
+        .barthel-table th {
+            background-color: #f1f5f9; /* gray-100 */
+            font-weight: 700;
+            color: #1A3E74; /* dark-blue */
+            font-size: 0.95rem;
+        }
+
+        .barthel-table tbody tr {
+            transition: background-color 0.2s ease;
+        }
+
+        .barthel-table tbody tr:hover {
+            background-color: #f8fafc; /* gray-50 */
+        }
+
+        .barthel-table .option-row {
+            cursor: pointer;
+        }
+
+        .barthel-table .option-row input[type="radio"] {
+            margin-right: 0.75rem;
+            transform: scale(1.1);
+            accent-color: #1A3E74;
+        }
+
+        .barthel-table .option-row input[type="radio"]:checked + span {
+            font-weight: 600;
+            color: #1A3E74;
+        }
+
+        /* Ajustes para telas menores */
+        @media (max-width: 768px) {
+            h1 { font-size: 2.25rem; }
+            h2 { font-size: 1.125rem; }
+            p { font-size: 0.9rem; }
+            .main-content-wrapper { padding: 1rem 0.75rem; }
+            .btn-primary, .btn-secondary {
+                width: 100%;
+                margin-bottom: 0.75rem;
             }
-            .option-label {
-                flex-basis: auto;
+            .activity-section {
+                padding: 1rem;
+            }
+            .activity-section h3 {
+                font-size: 1.125rem; /* text-lg */
+                margin-bottom: 0.75rem;
+            }
+            .barthel-table, .barthel-table tbody, .barthel-table tr, .barthel-table td, .barthel-table th {
+                display: block; /* Empilha elementos da tabela */
+                width: 100%;
+            }
+            .barthel-table thead {
+                display: none; /* Esconde o cabeçalho da tabela em mobile */
+            }
+            .barthel-table tr {
+                margin-bottom: 0.5rem; /* Espaçamento entre as opções */
+                border: 1px solid #e2e8f0;
+                border-radius: 8px;
+                overflow: hidden;
+            }
+            .barthel-table td {
+                text-align: left; /* ALINHAMENTO À ESQUERDA PARA MOBILE */
+                padding: 0.75rem 1rem; /* Ajusta o padding para o texto */
+                position: relative;
+            }
+            .barthel-table td::before {
+                content: attr(data-label); /* Usa o atributo data-label */
+                position: static; /* Remove posicionamento absoluto para fluir com o texto */
+                display: block; /* Garante que o label ocupe sua própria linha */
+                width: auto;
+                padding-left: 0;
+                font-weight: 600;
+                text-align: left;
+                color: #1A3E74;
+                margin-bottom: 0.25rem; /* Espaçamento entre o label e o conteúdo */
+            }
+            .barthel-table .option-row label {
+                display: flex; /* Garante que o label seja um flex container */
+                align-items: center; /* Alinha o radio e o texto verticalmente */
+                justify-content: flex-start; /* ALINHA O CONTEÚDO DO LABEL À ESQUERDA */
+                width: 100%; /* Ocupa a largura total da célula */
+            }
+            .barthel-table .option-row input[type="radio"] {
+                margin-right: 0.75rem; /* Mantém o espaçamento entre o radio e o texto */
+                margin-top: 0; /* Remove float e ajusta margem */
             }
         }
     </style>
 </head>
 <body class="bg-gray-50 text-gray-800 font-inter">
 
-    <!-- 🌐 Skip Links (invisíveis, aparecem ao focar via Tab) -->
-    <nav aria-label="Atalhos de Acessibilidade" class="sr-only focus-within:not-sr-only focus-within:absolute focus-within:top-0 focus-within:left-0 focus-within:z-50 focus-within:bg-white focus-within:text-blue-700 focus-within:p-4 focus-within:underline">
-        <a href="/" accesskey="I" class="block mb-2">Ir para o Início [<span lang="en">Alt</span> + <span lang="en">Shift</span> + <span lang="en">I</span>]</a>
-        <a href="#main-content" accesskey="C" class="block mb-2">Pular para o conteúdo principal [<span lang="en">Alt</span> + <span lang="en">Shift</span> + <span lang="en">C</span>]</a>
-        <a href="#barraAcessibilidade" accesskey="A" class="block mb-2">Ativar barra de acessibilidade [<span lang="en">Alt</span> + <span lang="en">Shift</span> + <span lang="en">A</span>]</a>
-        <a href="#backToTopBtn" accesskey="T" class="block">Voltar ao Topo da Página [<span lang="en">Alt</span> + <span lang="en">Shift</span> + <span lang="en">T</span>]</a>
-    </nav>
+    <div id="topbar-container"></div>
+    <script src="./topbar111.js" defer></script>
 
-    <!-- ARIA Live Region for Status Messages -->
-    <div id="statusMessage" class="sr-only" aria-live="polite" aria-atomic="true"></div>
-
-    <!-- Accessibility Bar (Desktop) -->
-    <div id="barraAcessibilidade" class="desktop-only flex justify-end items-center space-x-2">
-        <button id="btnAlternarTamanhoFonte" aria-label="Alterar tamanho da fonte">
-            <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-type"><polyline points="4 7 4 4 20 4 20 7"/><line x1="9" x2="15" y1="20" y2="20"/><line x1="12" x2="12" y1="4" y2="20"/></svg>
-            <span id="fontSizeText">Normal</span>
-        </button>
-        <button id="btnAlternarEspacamentoLinha" aria-label="Alterar espaçamento de linha">
-            <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-align-justify"><line x1="3" x2="21" y1="6" y2="6"/><line x1="3" x2="21" y1="12" y2="12"/><line x1="3" x2="21" y1="18" y2="18"/></svg>
-            <span id="lineHeightText">Médio</span>
-        </button>
-        <button id="btnAlternarEspacamentoLetra" aria-label="Alterar espaçamento de letra">
-            <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-text-spacing"><path d="M10 12H3"/><path d="M21 12h-7"/><path d="M12 20V4"/></svg>
-            <span id="letterSpacingText">Normal</span>
-        </button>
-        <button id="btnAlternarVelocidadeLeitura" aria-label="Alterar velocidade de leitura">
-            <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-gauge"><path d="M12 14v4"/><path d="M12 2a10 10 0 0 0-9.8 12.3 4 4 0 0 0 5.7 5.7A10 10 0 0 0 22 12Z"/></svg>
-            <span id="readingSpeedText">Normal</span>
-        </button>
-        <button id="btnToggleLeitura" aria-label="Reproduzir/Pausar leitura do conteúdo principal">
-            <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-play"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-            <span class="sr-only" id="toggleLeituraText">Reproduzir Leitura</span>
-        </button>
-        <button id="btnReiniciarLeitura" aria-label="Reiniciar leitura do conteúdo principal">
-            <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-rotate-ccw"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.76 2.75L3 8"/><path d="M3 3v5h5"/></svg>
-            <span class="sr-only">Reiniciar Leitura</span>
-        </button>
-        <button id="btnReadFocused" aria-label="Ler elemento focado">
-            <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-volume-2"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M22.42 1.42a15 15 0 0 1 0 21.16"/></svg>
-            <span class="sr-only">Ler Foco</span>
-        </button>
-        <button id="btnAlternarContraste" aria-label="Alternar alto contraste" aria-pressed="false">
-            <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-contrast"><circle cx="12" cy="12" r="10"/><path d="M12 18a6 6 0 0 0 0-12v12z"/></svg>
-            <span class="sr-only">Contraste</span>
-        </button>
-        <button id="btnAlternarModoEscuro" aria-label="Alternar modo escuro" aria-pressed="false">
-            <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-moon"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
-            <span class="sr-only">Modo Escuro</span>
-        </button>
-        <button id="btnAlternarFonteDislexia" aria-label="Alternar fonte para dislexia">
-            <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-type"><polyline points="4 7 4 4 20 4 20 7"/><line x1="9" x2="15" y1="20" y2="20"/><line x1="12" x2="12" y1="4" y2="20"/></svg>
-            <span class="sr-only">Fonte Dislexia</span>
-        </button>
-        <div class="flex space-x-1" role="radiogroup" aria-label="Cor de foco de acessibilidade">
-            <button class="color-option" style="background-color: yellow;" data-color="yellow" aria-label="Cor de foco amarela"></button>
-            <button class="color-option" style="background-color: lime;" data-color="lime" aria-label="Cor de foco verde-limão"></button>
-            <button class="color-option" style="background-color: cyan;" data-color="cyan" aria-label="Cor de foco ciano"></button>
-            <button class="color-option" style="background-color: magenta;" data-color="magenta" aria-label="Cor de foco magenta"></button>
-        </div>
-        <button id="btnKeyboardShortcuts" aria-label="Atalhos de Teclado">
-            <i class="fas fa-keyboard" aria-hidden="true"></i>
-            <span class="sr-only">Atalhos de Teclado</span>
-        </button>
-        <button id="btnResetarAcessibilidade" aria-label="Redefinir configurações de acessibilidade">
-            <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-refresh-ccw"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.76 2.75L3 8"/><path d="M3 3v5h5"/></svg>
-            <span class="sr-only">Redefinir</span>
-        </button>
-    </div>
-
-    <!-- Accessibility Toggle Button (PWA/Mobile) -->
-    <button id="accessibilityToggleButton" class="accessibility-toggle-button pwa-only" aria-label="Alternar barra de acessibilidade">
-        <i class="fa fa-universal-access text-2xl" style="color: white;"></i>
+    <!-- Botão Hambúrguer de Acessibilidade Visual (Adicionado) -->
+    <button id="accessibilityHamburgerBtn" class="fixed bottom-4 left-4 bg-blue-700 text-white p-3 rounded-full shadow-lg z-50">
+        <i class="fas fa-universal-access text-xl"></i>
     </button>
 
-    <!-- PWA Accessibility Bar (Mobile) -->
-    <div id="pwaAcessibilidadeBar" class="pwa-only">
-        <!-- Submenu Controle de Fonte -->
-        <div class="pwa-submenu">
-            <button type="button" class="pwa-submenu-header" data-submenu="font-control" aria-expanded="false" aria-controls="font-control-submenu" aria-label="Controle de Fonte">
-                Controle de Fonte
-                <i class="fa fa-chevron-right text-xs ml-2" aria-hidden="true"></i>
-            </button>
-            <div id="font-control-submenu" class="pwa-submenu-content">
-                <button id="btnAlternarTamanhoFontePWA" aria-label="Alterar tamanho da fonte">
-                    <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-type"><polyline points="4 7 4 4 20 4 20 7"/><line x1="9" x2="15" y1="20" y2="20"/><line x1="12" x2="12" y1="4" y2="20"/></svg>
-                    <span id="fontSizeTextPWA">Normal</span>
-                </button>
-                <button id="btnAlternarEspacamentoLinhaPWA" aria-label="Alterar espaçamento de linha">
-                    <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-align-justify"><line x1="3" x2="21" y1="6" y2="6"/><line x1="3" x2="21" y1="12" y2="12"/><line x1="3" x2="21" y1="18" y2="18"/></svg>
-                    <span id="lineHeightTextPWA">Médio</span>
-                </button>
-                <button id="btnAlternarEspacamentoLetraPWA" aria-label="Alterar espaçamento de letra">
-                    <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-text-spacing"><path d="M10 12H3"/><path d="M21 12h-7"/><path d="M12 20V4"/></svg>
-                    <span id="letterSpacingTextPWA">Normal</span>
-                </button>
-                <button id="btnAlternarFonteDislexiaPWA" aria-label="Alternar fonte para dislexia">
-                    <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-type"><polyline points="4 7 4 4 20 4 20 7"/><line x1="9" x2="15" y1="20" y2="20"/><line x1="12" x2="12" y1="4" y2="20"/></svg>
-                    <span class="sr-only">Fonte Dislexia</span>
-                </button>
-            </div>
+    <!-- Off-canvas Menu de Acessibilidade (Adicionado) -->
+    <div id="accessibilityOffCanvasMenu" class="accessibility-off-canvas-menu">
+        <div class="accessibility-header">
+            <h4>Acessibilidade</h4>
+            <button id="closeAccessibilityMenuBtn" class="accessibility-close-btn">&times;</button>
         </div>
-
-        <!-- Submenu Controle de Cor -->
-        <div class="pwa-submenu">
-            <button type="button" class="pwa-submenu-header" data-submenu="color-control" aria-expanded="false" aria-controls="color-control-submenu" aria-label="Controle de Cor">
-                Controle de Cor
-                <i class="fa fa-chevron-right text-xs ml-2" aria-hidden="true"></i>
-            </button>
-            <div id="color-control-submenu" class="pwa-submenu-content">
-                <button id="btnAlternarContrastePWA" aria-label="Alternar alto contraste" aria-pressed="false">
-                    <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-contrast"><circle cx="12" cy="12" r="10"/><path d="M12 18a6 6 0 0 0 0-12v12z"/></svg>
-                    <span class="sr-only">Contraste</span>
-                </button>
-                <button id="btnAlternarModoEscuroPWA" aria-label="Alternar modo escuro" aria-pressed="false">
-                    <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-moon"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
-                    <span class="sr-only">Modo Escuro</span>
-                </button>
-                <div class="flex space-x-1" role="radiogroup" aria-label="Cor de foco de acessibilidade">
-                    <button class="color-option" style="background-color: yellow;" data-color="yellow" aria-label="Cor de foco amarela"></button>
-                    <button class="color-option" style="background-color: lime;" data-color="lime" aria-label="Cor de foco verde-limão"></button>
-                    <button class="color-option" style="background-color: cyan;" data-color="cyan" aria-label="Cor de foco ciano"></button>
-                    <button class="color-option" style="background-color: magenta;" data-color="magenta" aria-label="Cor de foco magenta"></button>
-                </div>
-            </div>
-        </div>
-
-        <!-- Submenu Navegação -->
-        <div class="pwa-submenu">
-            <button type="button" class="pwa-submenu-header" data-submenu="navigation-control" aria-expanded="false" aria-controls="navigation-control-submenu" aria-label="Navegação">
-                Navegação
-                <i class="fa fa-chevron-right text-xs ml-2" aria-hidden="true"></i>
-            </button>
-            <div id="navigation-control-submenu" class="pwa-submenu-content">
-                <button id="btnAlternarVelocidadeLeituraPWA" aria-label="Alterar velocidade de leitura">
-                    <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-gauge"><path d="M12 14v4"/><path d="M12 2a10 10 0 0 0-9.8 12.3 4 4 0 0 0 5.7 5.7A10 10 0 0 0 22 12Z"/></svg>
-                    <span id="readingSpeedTextPWA">Normal</span>
-                </button>
-                <button id="btnToggleLeituraPWA" aria-label="Reproduzir/Pausar leitura do conteúdo principal">
-                    <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-play"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-                    <span class="sr-only" id="toggleLeituraTextPWA">Reproduzir Leitura</span>
-                </button>
-                <button id="btnReiniciarLeituraPWA" aria-label="Reiniciar leitura do conteúdo principal">
-                    <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-rotate-ccw"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.76 2.75L3 8"/><path d="M3 3v5h5"/></svg>
-                    <span class="sr-only">Reiniciar Leitura</span>
-                </button>
-                <button id="btnReadFocusedPWA" aria-label="Ler elemento focado">
-                    <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-volume-2"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M22.42 1.42a15 15 0 0 1 0 21.16"/></svg>
-                    <span class="sr-only">Ler Foco</span>
-                </button>
-                <button id="btnKeyboardShortcutsPWA" aria-label="Atalhos de Teclado">
-                    <i class="fas fa-keyboard" aria-hidden="true"></i>
-                    <span class="sr-only">Atalhos de Teclado</span>
-                </button>
-            </div>
-        </div>
-
-        <!-- Submenu Resetar -->
-        <div class="pwa-submenu">
-            <button type="button" class="pwa-submenu-header" data-submenu="reset-control" aria-expanded="false" aria-controls="reset-control-submenu" aria-label="Resetar Configurações">
-                Resetar
-                <i class="fa fa-chevron-right text-xs ml-2" aria-hidden="true"></i>
-            </button>
-            <div id="reset-control-submenu" class="pwa-submenu-content">
-                <button id="btnResetarAcessibilidadePWA" aria-label="Redefinir configurações de acessibilidade">
-                    <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-refresh-ccw"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.76 2.75L3 8"/><path d="M3 3v5h5"/></svg>
-                    <span class="sr-only">Redefinir</span>
-                </button>
-            </div>
-        </div>
+        <button id="toggleFontSizeBtn" class="accessibility-option-btn">
+            <i class="fas fa-font"></i>
+            <span>Tamanho da Fonte</span>
+        </button>
+        <button id="toggleContrastBtn" class="accessibility-option-btn">
+            <i class="fas fa-adjust"></i>
+            <span>Alto Contraste</span>
+        </button>
+        <button id="toggleDarkModeBtn" class="accessibility-option-btn">
+            <i class="fas fa-moon"></i>
+            <span>Modo Escuro</span>
+        </button>
+        <button id="resetAccessibilityBtn" class="accessibility-option-btn">
+            <i class="fas fa-sync-alt"></i>
+            <span>Resetar</span>
+        </button>
     </div>
 
-    <!-- VLibras Widget (will be injected by script) -->
-    <div vw class="enabled">
-        <div vw-access-button class="active"></div>
-        <div vw-plugin-wrapper>
-            <div class="vw-plugin-top-wrapper"></div>
-        </div>
-    </div>
+    <!-- Overlay para o menu off-canvas (Adicionado) -->
+    <div id="accessibilityOverlay" class="accessibility-overlay"></div>
 
-    <!-- Back to Top button -->
-    <button id="backToTopBtn" aria-label="Voltar ao topo da página" accesskey="T">
-        Voltar ao Topo
-    </button>
+    <div class="main-content-wrapper">
+        <main class="max-w-4xl mx-auto px-4 py-8">
+            <div class="flex flex-col items-center justify-center gap-4 mb-3 text-center">
+                <img src="iconpages.png" alt="Ícone da Página" class="w-32 h-auto" />
+                <h1 id="main-title" class="font-nunito font-extrabold text-dark-blue text-4xl lg:text-5xl">
+                    Escala de Barthel
+                </h1>
+            </div>
+            <h2 id="main-subtitle" class="font-inter font-semibold text-light-blue text-xl lg:text-2xl mb-3 text-center sm:text-left">
+                Avaliação da Dependência Funcional em Atividades Diárias
+            </h2>
 
-    <!-- Custom Modal (para mensagens showCustomModal) -->
-    <div id="customModal" class="modal-overlay hidden" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="modalMessageTitle">
-        <div class="modal-content">
-            <button class="modal-close-btn" id="modalCloseButton" aria-label="Fechar mensagem">×</button>
-            <h3 id="modalMessageTitle" class="sr-only">Mensagem do Sistema</h3>
-            <p id="modalMessage" class="text-gray-800 text-lg mb-4"></p>
-        </div>
-    </div>
+            <p id="description-text" class="text-gray-700 mb-6">
+                A Escala de Barthel é um instrumento utilizado para avaliar a dependência funcional em atividades diárias, especialmente em pessoas com deficiências físicas ou neurológicas. Ela mede a capacidade do indivíduo em realizar 10 tarefas básicas, como alimentação, higiene pessoal, vestir-se, usar o banheiro, transferir-se, controlar a continência e alimentar-se, atribuindo pontuações que indicam o grau de dependência.
+            </p>
+            <p class="font-inter font-normal text-light-blue text-base lg:text-lg mb-6 text-center sm:text-left">
+                Selecione a pontuação para cada atividade:
+            </p>
 
-    <!-- Granular Cookie Consent Modal -->
-    <div id="granularCookieModal" class="modal-overlay hidden" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="granularModalTitle">
-        <div class="granular-modal-content">
-            <button class="modal-close-btn" id="granularModalCloseButton" aria-label="Fechar configurações de cookies">×</button>
-            <h3 id="granularModalTitle">Configurações de Privacidade</h3>
-            <p>Utilizamos cookies para garantir o funcionamento do nosso site e para personalizar o conteúdo. Você pode ajustar suas preferências abaixo:</p>
-
-            <div class="checkbox-group">
-                <label for="cookieEssential">
-                    <input type="checkbox" id="cookieEssential" checked disabled aria-describedby="descEssential">
-                    Essenciais
-                </label>
-                <span id="descEssential" class="description">Necessários para o funcionamento básico do site (ex: navegação, carrinho de compras). Não podem ser desativados.</span>
+            <div id="conteudo">
+                <!-- As tabelas da calculadora serão geradas dinamicamente aqui pelo JavaScript -->
             </div>
 
-            <div class="checkbox-group">
-                <label for="cookieAnalytics">
-                    <input type="checkbox" id="cookieAnalytics" aria-describedby="descAnalytics">
-                    Analíticos
-                </label>
-                <span id="descAnalytics" class="description">Coletam informações sobre como você usa o site para nos ajudar a melhorar.</span>
+            <div id="resultado" class="resultado hidden" aria-live="polite">
+                <!-- O resultado será exibido aqui -->
             </div>
 
-            <div class="checkbox-group">
-                <label for="cookieMarketing">
-                    <input type="checkbox" id="cookieMarketing" aria-describedby="descMarketing">
-                    Marketing
-                </label>
-                <span id="descMarketing" class="description">Usados para exibir anúncios relevantes com base nos seus interesses.</span>
+            <div class="flex flex-wrap justify-start gap-4 mt-6">
+                <button id="btnCalcular" class="btn-primary" aria-label="Calcular pontuação Barthel">
+                    Calcular
+                </button>
+                <button id="btnLimpar" class="btn-primary" aria-label="Limpar campos">
+                    Limpar
+                </button>
+                <button id="btnGerarPDF" class="btn-secondary" aria-label="Gerar PDF">
+                    Gerar PDF
+                </button>
+                <!-- NOVO BOTÃO NANDA, NIC, NOC -->
+                <button id="btnNandaNicNoc" class="btn-primary" aria-label="Pesquisar NANDA, NIC, NOC">
+                    NANDA, NIC, NOC
+                </button>
             </div>
 
-            <div class="modal-buttons">
-                <button id="saveGranularPreferencesBtn" class="btn-save">Salvar Preferências</button>
-                <button id="cancelGranularPreferencesBtn" class="btn-cancel">Cancelar</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Keyboard Shortcuts Modal -->
-    <div id="keyboardShortcutsModal" class="modal-overlay hidden" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="keyboardModalTitle">
-        <div class="keyboard-modal-content">
-            <button class="modal-close-btn" id="keyboardModalCloseButton" aria-label="Fechar atalhos de teclado">×</button>
-            <h3 id="keyboardModalTitle">Atalhos de Teclado e Navegação</h3>
-            <p class="mb-4">Utilize as seguintes combinações de teclas para acessar rapidamente as funcionalidades de acessibilidade:</p>
-            <ul>
-                <li><strong>Alt + Shift + I:</strong> Ir para o Início (Home)</li>
-                <li><strong>Alt + Shift + T:</strong> Voltar ao Topo da Página</li>
-            </ul>
-            <h4 class="font-bold mb-2 mt-4">Navegação Geral por Teclado</h4>
-            <ul>
-                <li><strong>Tab:</strong> Move o foco entre elementos interativos (links, botões, formulários)</li>
-                <li><strong>Shift + Tab:</strong> Volta ao elemento anterior</li>
-                <li><strong>Enter:</strong> Ativa links ou botões</li>
-                <li><strong>Esc:</strong> Fecha menus, modais ou pop-ups</li>
-                <li><strong>Setas (↑ ↓ ← →):</strong> Navegação em listas, menus e sliders</li>
-                <li><strong>"Pular para o conteúdo principal":</strong> Pressione <strong>Tab</strong> ao carregar a página</li>
-            </ul>
-        </div>
-    </div>
-
-    <!-- Container para o menu superior (header) que será carregado dinamicamente -->
-    <div id="global-header-container"></div>
-
-    <main id="main-content" class="flex-grow p-8 text-center">
-        <div class="main-content-wrapper">
-            <main class="max-w-4xl mx-auto px-4 py-8">
-                <!-- Breadcrumb -->
-                <nav class="breadcrumb" aria-label="breadcrumb">
-                    <ol>
-                        <li><a href="index.html">Início</a></li>
-                        <li><a href="#">Calculadoras</a></li>
-                        <li>Classificação ASA</li>
-                    </ol>
-                </nav>
-
-                <div class="flex flex-col items-center justify-center gap-4 mb-3 text-center">
-                    <img src="iconpages.png" alt="Ícone da Classificação ASA" class="w-32 h-auto" />
-                    <h1 id="main-title" class="font-nunito font-extrabold text-dark-blue text-4xl lg:text-5xl">
-                        Classificação ASA
-                    </h1>
-                </div>
-                <!-- Bar below the title -->
-                <div class="title-bar"></div>
-
-                <h2 id="main-subtitle" class="font-inter font-semibold text-light-blue text-xl lg:text-2xl mb-3 text-center sm:text-left">
-                    Avaliação de Risco Perioperatório/Anestésico
-                </h2>
-                <p class="font-inter font-normal text-black-custom text-base lg:text-lg mb-6 text-center sm:text-left">
-                    A classificação ASA (American Society of Anesthesiologists) é uma conduta estabelecida pelo médico anestesista na consulta pré anestésica; a equipe de enfermagem cabe atentar-se ao grau de risco ASA e estar sempre preparado para situações complexas que exijam destreza e qualidade na assistência ao paciente no bloco operatório.
+            <div class="ref font-inter text-gray-custom text-left">
+                <p class="font-bold mb-2">Referência Bibliográfica:</p>
+                <p>
+                    Minosso, J. S., et al. (2010).
+                    <a href="https://www.scielo.br/j/ape/a/7n8WhRb6Wvcs3QdrWx3ywJn/" target="_blank" rel="noopener noreferrer" class="text-light-blue hover:underline">
+                        Validação da Escala de Barthel para uso em pacientes hospitalizados.
+                    </a>
+                    Acta Paulista de Enfermagem, 23(2), 241-247.
                 </p>
-                <p class="font-inter font-normal text-light-blue text-base lg:text-lg mb-6 text-center sm:text-left">
-                    Selecione o escore correspondente à condição do paciente:
-                </p>
+            </div>
+        </main>
+    </div>
 
-                <div id="conteudo">
-                    <div class="criterion-section">
-                        <label for="asa1" class="option-label">
-                            <input type="radio" name="asa" value="ASA I: Paciente Estável, sem doença orgânica, fisiológica, bioquímica ou psiquiátrica." id="asa1">
-                            <strong>ASA I</strong>: Paciente Estável, sem doença orgânica, fisiológica, bioquímica ou psiquiátrica.
-                        </label>
-                    </div>
-                    <div class="criterion-section">
-                        <label for="asa2" class="option-label">
-                            <input type="radio" name="asa" value="ASA II: Paciente com doença sistêmica leve e/ou controlada (ex: HAS controlada, DM controlado)." id="asa2">
-                            <strong>ASA II</strong>: Paciente com doença sistêmica leve e/ou controlada (ex: HAS controlada, DM controlado).
-                        </label>
-                    </div>
-                    <div class="criterion-section">
-                        <label for="asa3" class="option-label">
-                            <input type="radio" name="asa" value="ASA III: Paciente com doença sistêmica moderada a grave, sem incapacidade total (ex: DPOC, angina)." id="asa3">
-                            <strong>ASA III</strong>: Paciente com doença sistêmica moderada a grave, sem incapacidade total (ex: DPOC, angina).
-                        </label>
-                    </div>
-                    <div class="criterion-section">
-                        <label for="asa4" class="option-label">
-                            <input type="radio" name="asa" value="ASA IV: Paciente com doença sistêmica grave que representa ameaça constante à vida." id="asa4">
-                            <strong>ASA IV</strong>: Paciente com doença sistêmica grave que representa ameaça constante à vida.
-                        </label>
-                    </div>
-                    <div class="criterion-section">
-                        <label for="asa5" class="option-label">
-                            <input type="radio" name="asa" value="ASA V: Paciente de vaga zero cirurgica (Risco iminente de morte)." id="asa5">
-                            <strong>ASA V</strong>: Paciente de vaga zero cirurgica (Risco iminente de morte).
-                        </label>
-                    </div>
-                    <div class="criterion-section">
-                        <label for="asa6" class="option-label">
-                            <input type="radio" name="asa" value="ASA VI: Paciente com morte encefálica, aguardando equipe de OPO." id="asa6">
-                            <strong>ASA VI</strong>: Paciente com morte encefálica, aguardando equipe de OPO.
-                        </label>
-                    </div>
-
-                    <div id="resultado" class="resultado hidden" aria-live="polite"></div>
-
-                    <div class="ref font-inter text-gray-custom text-left">
-                        <p class="font-bold mb-2">Referência Bibliográfica:</p>
-                        <p>
-                            Sociedade de Anestesiologia do Estado de São Paulo. Sistema de classificação de estado físico. Disponível em:
-                            <a href="https://saesp.org.br/wp-content/uploads/Sistema-de-classificacao-de-estado-fisico.pdf" target="_blank" rel="noopener noreferrer" class="text-light-blue hover:underline">
-                                https://saesp.org.br/wp-content/uploads/Sistema-de-classificacao-de-estado-fisico.pdf
-                            </a>
-                        </p>
-                    </div>
-                </div>
-
-                <div class="flex flex-wrap justify-start gap-4 mt-6">
-                    <button id="btnCalcular" class="btn-primary" aria-label="Calcular classificação">
-                        Calcular
-                    </button>
-                    <button id="btnLimpar" class="btn-primary" aria-label="Limpar seleção">
-                        Limpar
-                    </button>
-                    <button id="btnGerarPDF" class="btn-secondary" aria-label="Gerar PDF">
-                        Gerar PDF
-                    </button>
-                    <!-- BOTÃO NANDA, NIC, NOC -->
-                    <button id="btnNandaNicNoc" class="btn-primary" aria-label="Pesquisar NANDA, NIC, NOC">
-                        NANDA, NIC, NOC
-                    </button>
-                </div>
-            </main>
+    <!-- Modal de Mensagem Personalizado -->
+    <div id="messageModalOverlay" class="message-modal-overlay">
+        <div class="message-modal-content">
+            <button id="messageModalClose" class="message-modal-close">&times;</button>
+            <p id="messageModalText" class="text-gray-700 text-lg"></p>
         </div>
-
-        <!-- Newsletter Section -->
-        <form id="newsletters-section" action="https://formspree.io/f/movlvvzp" method="POST" role="form" aria-label="Assinar Newsletter" class="max-w-7xl mx-auto px-4">
-            <h4 class="newsletter-heading">Assine nossa <span lang="en">Newsletter</span></h4>
-            <p class="newsletter-description">Receba as últimas notícias, artigos e atualizações diretamente na sua caixa de entrada!</p>
-            <div class="newsletter-form-container">
-                <label for="email" class="block text-black-custom text-lg font-medium py-2 text-left">
-                    E-mail:
-                    <span class="tooltip-container">
-                        <button type="button" class="tooltip-icon-button" aria-label="Informações sobre o e-mail" aria-describedby="tooltip-email">
-                            <i class="fas fa-info-circle" aria-hidden="true"></i>
-                        </button>
-                        <span id="tooltip-email" class="tooltip-text" role="tooltip">Digite um endereço de e-mail válido para receber atualizações.</span>
-                    </span>
-                </label>
-                <div class="newsletter-email-input-wrapper">
-                    <input type="email" id="email" name="email" placeholder="Seu e-mail" class="newsletter-email-input" autocomplete="email" required aria-describedby="erro-email ajuda-email tooltip-email">
-                    <span id="erro-email" class="newsletter-error-message" aria-live="assertive" tabindex="-1"></span>
-                    <span id="ajuda-email" class="sr-only">Digite um endereço de e-mail válido para receber atualizações.</span>
-                </div>
-
-                <div class="newsletter-consent-and-button-group flex flex-col md:flex-row md:justify-end md:items-center gap-4 mt-4 md:mt-0">
-                    <div class="newsletter-consent-checkbox-group flex items-center justify-start w-full md:w-auto">
-                        <input type="checkbox" id="newsletterConsent" name="consent" class="newsletter-consent-checkbox" required aria-describedby="consent-tip">
-                        <label for="newsletterConsent" class="newsletter-consent-label ml-2">Aceito receber informações e atualizações sobre o Calculadoras de Enfermagem.</label>
-                        <span id="consent-tip" class="sr-only">Marque esta caixa para concordar em receber informações e atualizações.</span>
-                    </div>
-                    <button type="submit" id="subscribeNewsletterBtn" class="newsletter-subscribe-button" aria-label="Assinar newsletter" disabled>Assinar</button>
-                </div>
-            </div>
-        </form>
-    </main>
-
-    <!-- Rodapé integrado diretamente -->
-    <footer class="bg-[#1A3E74] text-white py-8">
-        <div class="max-w-7xl mx-auto px-4">
-            <div class="border-b border-white pb-4 mb-4">
-                <div class="flex justify-start items-center">
-                    <img src="https://www.calculadorasdeenfermagem.com.br/iconrodape1.webp" alt="Logotipo Calculadoras de Enfermagem no rodapé: um estetoscópio e um coração dentro de um círculo azul." width="120" height="84" class="h-auto w-auto max-w-[80px] max-h-[80px]" loading="lazy" decoding="async">
-                </div>
-            </div>
-
-            <div class="md:flex md:justify-between md:items-start md:space-x-8 md:items-stretch">
-                <div class="mb-6 md:mb-0">
-                    <h5 class="font-bold mb-2">Institucional</h5>
-                    <ul class="list-none space-y-1">
-                        <li><a href="index.html" class="text-white hover:underline">Início</a></li>
-                        <li><a href="missao.html" class="text-white hover:underline">Sobre Nós</a></li>
-                        <li><a href="mapa-do-site.html" class="text-white hover:underline">Mapa do <span lang="en">Site</span></a></li>
-                        <li><a href="politica.html" class="text-white hover:underline">Políticas de <span lang="en">Cookies</span></a></li>
-                        <li><a href="politica.html" class="text-white hover:underline">Política de Retenção de dados</a></li>
-                        <li><a href="politica.html" class="text-white hover:underline"><abbr lang="en" title="Lei Geral de Proteção de Dados">LGPD</abbr></a></li>
-                        <li><a href="politica.html" class="text-white hover:underline">Políticas de Privacidade</a></li>
-                        <li><a href="termos.html" class="text-white hover:underline">Termos e Condições de Uso</a></li>
-                        <li><a href="politicadeacessibilidade.html" class="text-white hover:underline">Política de Acessibilidade</a></li>
-                    </ul>
-                </div>
-
-                <div class="mb-6 md:mb-0">
-                    <h5 class="font-bold mb-2">Sustentabilidade Digital</h5>
-                    <ul class="list-none space-y-1">
-                        <li><a href="nossocompromisso.html" class="text-white hover:underline">Nosso Compromisso</a></li>
-                        <li><a href="impactodigital.html" class="text-white hover:underline">Relatório de Impacto</a></li>
-                        <li><a href="tecnologiaverde.html" class="text-white hover:underline">Tecnologia Verde</a></li>
-                    </ul>
-                </div>
-
-                <div class="mb-6 md:mb-0">
-                    <h5 class="font-bold mb-2">Nosso Compromisso</h5>
-                    <p class="text-white text-sm mb-2 max-w-sm md:max-w-xs">Nosso <span lang="en">site</span> adota como princípio de governança, o comprometimento com elevados padrões de acessibilidade digital, sustentabilidade digital e proteção de dados, em conformidade com as melhores práticas e diretrizes vigentes.</p>
-                    <div class="flex space-x-4 items-center justify-start">
-                        <img src="https://www.calculadorasdeenfermagem.com.br/seloacessibilidade.webp" alt="Selo de Acessibilidade, representando acessibilidade digital." width="100" height="100" class="w-auto h-auto max-w-[80px] max-h-[80px]" loading="lazy" decoding="async">
-                        <img src="https://www.calculadorasdeenfermagem.com.br/selosustentabilidade.webp" alt="Selo de Sustentabilidade, representando sustentabilidade digital." width="100" height="100" class="w-auto h-auto max-w-[80px] max-h-[80px]" loading="lazy" decoding="async">
-                        <img src="https://www.calculadorasdeenfermagem.com.br/selolgpd.webp" alt="Selo LGPD, representando a Lei Geral de Proteção de Dados." width="100" height="100" class="w-auto h-auto max-w-[80px] max-h-[80px]" loading="lazy" decoding="async">
-                    </div>
-                </div>
-
-                <div class="flex flex-1 flex-col md:flex-row justify-end items-start md:items-start">
-                    <div class="vertical-divider-footer-stretched hidden md:block"></div>
-                    <div class="flex flex-col items-start space-y-4">
-                        <h5 class="font-bold mb-2">Siga-nos</h5>
-                        <div class="flex space-x-4">
-                            <a href="https://linkedin.com/company/calculadoras-de-enfermagem" target="_blank" class="footer-social-icon" title="LinkedIn" aria-label="Acesse Nosso Perfil no LinkedIn">
-                                <i class="fab fa-linkedin text-xl"></i> <span class="sr-only">Acesse Nosso Perfil no <span lang="en">LinkedIn</span></span>
-                            </a>
-                            <a href="https://www.instagram.com/calculadorasdeenfermagem/" target="_blank" class="footer-social-icon" title="Instagram" aria-label="Acesse Nosso Perfil no Instagram">
-                                <i class="fab fa-instagram text-xl"></i> <span class="sr-only">Acesse Nosso Perfil no <span lang="en">Instagram</span></span>
-                            </a>
-                            <a href="https://www.tiktok.com/@calculadorasdeenf?_t=ZM-8y94b3VAz2M&_r=1" target="_blank" class="footer-social-icon" title="TikTok" aria-label="Acesse Nosso Perfil no TikTok">
-                                <i class="fab fa-tiktok text-xl"></i> <span class="sr-only">Acesse Nosso Perfil no <span lang="en">Tik Tok</span></span>
-                            </a>
-                            <a href="https://www.youtube.com/channel/UC_6runTDHz8u5S1Yab842pg" target="_blank" class="footer-social-icon" title="YouTube" aria-label="Acesse Nosso Perfil no YouTube">
-                                <i class="fab fa-youtube text-xl"></i> <span class="sr-only">Acesse Nosso Perfil no <span lang="en">Youtube</span></span>
-                            </a>
-                        </div>
-                        <button id="openGranularCookieModalBtn" class="btn-secondary text-white mt-4 py-2 px-4 rounded-md" aria-label="Gerenciar Preferências de Cookies">
-                            Gerenciar Preferências de Cookies
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            <div class="mt-8 text-center">
-                <p>© 2025 Calculadoras de Enfermagem. Todos os direitos reservados.</p>
-            </div>
-        </div>
-    </footer>
+    </div>
 
     <!-- Cookie Consent Banner -->
     <div id="cookieConsentBanner">
-        <p>Utilizamos <span lang="en">cookies</span> para melhorar sua experiência em nosso <span lang="en">site</span>. Ao continuar navegando, você concorda com nossa <a href="politica.html" class="underline text-blue-200 hover:text-blue-100" aria-label="Política de Cookies">Política de <span lang="en">Cookies</span></a> e <a href="politica.html" class="underline text-blue-200 hover:text-100" aria-label="Política de Privacidade">Política de Privacidade</a>.</p>
+        <p>Utilizamos cookies para melhorar sua experiência em nosso site. Ao continuar navegando, você concorda com nossa <a href="politica.html" class="underline text-blue-200 hover:text-blue-100">Política de Cookies</a>.</p>
         <div class="cookie-buttons">
-            <button id="acceptAllCookiesBtn" aria-label="Aceitar todos os cookies">Aceitar todos os <span lang="en">cookies</span></button>
-            <button id="manageCookiesBtn" class="secondary" aria-label="Gerenciar suas preferências de cookies">Gerenciar <span lang="en">cookies</span></button>
-            <button id="refuseAllCookiesBtn" class="secondary" aria-label="Recusar todos os cookies">Recusar todos os <span lang="en">cookies</span></button>
+            <button id="acceptCookiesBtn">Aceitar todos os cookies</button>
+            <button id="refuseCookiesBtn" class="secondary">Recusar cookies</button>
         </div>
     </div>
 
-    <!-- Modais de Informação -->
-    <div id="customModal" class="modal-overlay hidden" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="modalMessageTitle">
-        <div class="modal-content">
-            <button class="modal-close-btn" id="modalCloseButton" aria-label="Fechar mensagem">×</button>
-            <h3 id="modalMessageTitle" class="sr-only">Mensagem do Sistema</h3>
-            <p id="modalMessage" class="text-gray-800 text-lg mb-4"></p>
-        </div>
-    </div>
-    <div id="granularCookieModal" class="modal-overlay hidden" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="granularModalTitle">
-        <div class="granular-modal-content">
-            <button class="modal-close-btn" id="granularModalCloseButton" aria-label="Fechar configurações de cookies">×</button>
-            <h3 id="granularModalTitle">Configurações de Privacidade</h3>
-            <p>Utilizamos cookies para garantir o funcionamento do nosso site e para personalizar o conteúdo. Você pode ajustar suas preferências abaixo:</p>
+    <!-- Div para o rodapé dinâmico -->
+    <div id="footer-container"></div>
 
-            <div class="checkbox-group">
-                <label for="cookieEssential">
-                    <input type="checkbox" id="cookieEssential" checked disabled aria-describedby="descEssential">
-                    Essenciais
-                </label>
-                <span id="descEssential" class="description">Necessários para o funcionamento básico do site (ex: navegação, carrinho de compras). Não podem ser desativados.</span>
-            </div>
-            <div class="checkbox-group">
-                <label for="cookieAnalytics">
-                    <input type="checkbox" id="cookieAnalytics" aria-describedby="descAnalytics">
-                    Analíticos
-                </label>
-                <span id="descAnalytics" class="description">Coletam informações sobre como você usa o site para nos ajudar a melhorar.</span>
-            </div>
-            <div class="checkbox-group">
-                <label for="cookieMarketing">
-                    <input type="checkbox" id="cookieMarketing" aria-describedby="descMarketing">
-                    Marketing
-                </label>
-                <span id="descMarketing" class="description">Usados para exibir anúncios relevantes com base nos seus interesses.</span>
-            </div>
-            <div class="modal-buttons">
-                <button id="saveGranularPreferencesBtn" class="btn-save">Salvar Preferências</button>
-                <button id="cancelGranularPreferencesBtn" class="btn-cancel">Cancelar</button>
-            </div>
-        </div>
-    </div>
-    <div id="keyboardShortcutsModal" class="modal-overlay hidden" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="keyboardModalTitle">
-        <div class="keyboard-modal-content">
-            <button class="modal-close-btn" id="keyboardModalCloseButton" aria-label="Fechar atalhos de teclado">×</button>
-            <h3 id="keyboardModalTitle">Atalhos de Teclado e Navegação</h3>
-            <p class="mb-4">Utilize as seguintes combinações de teclas para acessar rapidamente as funcionalidades de acessibilidade:</p>
-            <ul>
-                <li><strong>Alt + Shift + I:</strong> Ir para o Início (Home)</li>
-                <li><strong>Alt + Shift + T:</strong> Voltar ao Topo da Página</li>
-            </ul>
-            <h4 class="font-bold mb-2 mt-4">Navegação Geral por Teclado</h4>
-            <ul>
-                <li><strong>Tab:</strong> Move o foco entre elementos interativos (links, botões, formulários)</li>
-                <li><strong>Shift + Tab:</strong> Volta ao elemento anterior</li>
-                <li><strong>Enter:</strong> Ativa links ou botões</li>
-                <li><strong>Esc:</strong> Fecha menus, modais ou pop-ups</li>
-                <li><strong>Setas (↑ ↓ ← →):</strong> Navegação em listas, menus e sliders</li>
-                <li><strong>"Pular para o conteúdo principal":</strong> Pressione <strong>Tab</strong> ao carregar a página</li>
-            </ul>
-        </div>
-    </div>
-
-    <!-- Container para o menu superior (header) que será carregado dinamicamente -->
-    <div id="global-header-container"></div>
-    <div id="menuOverlay" class="menu-overlay pwa-only"></div>
-
-    <main id="main-content" class="flex-grow p-8 text-center">
-        <div class="main-content-wrapper">
-            <main class="max-w-4xl mx-auto px-4 py-8">
-                <!-- Breadcrumb -->
-                <nav class="breadcrumb" aria-label="breadcrumb">
-                    <ol>
-                        <li><a href="index.html">Início</a></li>
-                        <li><a href="#">Calculadoras</a></li>
-                        <li>Escala de Barthel</li>
-                    </ol>
-                </nav>
-
-                <div class="flex flex-col items-center justify-center gap-4 mb-3 text-center">
-                    <img src="iconpages.png" alt="Ícone da Escala de Barthel" class="w-32 h-auto" />
-                    <h1 id="main-title" class="font-nunito font-extrabold text-dark-blue text-4xl lg:text-5xl">
-                        Escala de Barthel
-                    </h1>
-                </div>
-                <!-- Bar below the title -->
-                <div class="title-bar"></div>
-
-                <h2 id="main-subtitle" class="font-inter font-semibold text-light-blue text-xl lg:text-2xl mb-3 text-center sm:text-left">
-                    Avaliação da Dependência Funcional em Atividades Diárias
-                </h2>
-
-                <p id="description-text" class="text-gray-700 mb-6">
-                    A Escala de Barthel é um instrumento utilizado para avaliar a dependência funcional em atividades diárias, especialmente em pessoas com deficiências físicas ou neurológicas. Ela mede a capacidade do indivíduo em realizar 10 tarefas básicas, como alimentação, higiene pessoal, vestir-se, usar o banheiro, transferir-se, controlar a continência e alimentar-se, atribuindo pontuações que indicam o grau de dependência.
-                </p>
-                <p class="font-inter font-normal text-light-blue text-base lg:text-lg mb-6 text-center sm:text-left">
-                    Selecione a pontuação para cada atividade:
-                </p>
-
-                <div id="conteudo">
-                    <div class="criterion-section">
-                        <h3 class="criterion-title">Alimentação</h3>
-                        <div class="options-group">
-                            <label class="option-label"><input type="radio" name="alimentacao" value="0">incapacitado (0)</label>
-                            <label class="option-label"><input type="radio" name="alimentacao" value="5">precisa de ajuda para cortar, passar manteiga, etc ou dieta modificada (5)</label>
-                            <label class="option-label"><input type="radio" name="alimentacao" value="10">independente (10)</label>
-                        </div>
-                    </div>
-                    <div class="criterion-section">
-                        <h3 class="criterion-title">Banho</h3>
-                        <div class="options-group">
-                            <label class="option-label"><input type="radio" name="banho" value="0">dependente (0)</label>
-                            <label class="option-label"><input type="radio" name="banho" value="5">independente (5)</label>
-                        </div>
-                    </div>
-                    <div class="criterion-section">
-                        <h3 class="criterion-title">Higiene pessoal</h3>
-                        <div class="options-group">
-                            <label class="option-label"><input type="radio" name="higienePessoal" value="0">precisa de ajuda com higiene pessoal (0)</label>
-                            <label class="option-label"><input type="radio" name="higienePessoal" value="5">independente rosto/cabelo/dentes/barbear (5)</label>
-                        </div>
-                    </div>
-                    <div class="criterion-section">
-                        <h3 class="criterion-title">Vestir-se</h3>
-                        <div class="options-group">
-                            <label class="option-label"><input type="radio" name="vestir" value="0">dependente (0)</label>
-                            <label class="option-label"><input type="radio" name="vestir" value="5">precisa de ajuda, mas consegue fazer parte sozinho (5)</label>
-                            <label class="option-label"><input type="radio" name="vestir" value="10">independente (10)</label>
-                        </div>
-                    </div>
-                    <div class="criterion-section">
-                        <h3 class="criterion-title">Controle esfincteriano (Intestino)</h3>
-                        <div class="options-group">
-                            <label class="option-label"><input type="radio" name="controleIntestino" value="0">incontinente (necessidade de enemas) (0)</label>
-                            <label class="option-label"><input type="radio" name="controleIntestino" value="5">acidente ocasional (5)</label>
-                            <label class="option-label"><input type="radio" name="controleIntestino" value="10">continente (10)</label>
-                        </div>
-                    </div>
-                    <div class="criterion-section">
-                        <h3 class="criterion-title">Controle esfincteriano (Bexiga)</h3>
-                        <div class="options-group">
-                            <label class="option-label"><input type="radio" name="controleBexiga" value="0">incontinente, ou caracterizado e incapaz de manejo (0)</label>
-                            <label class="option-label"><input type="radio" name="controleBexiga" value="5">acidente ocasional (5)</label>
-                            <label class="option-label"><input type="radio" name="controleBexiga" value="10">continente (10)</label>
-                        </div>
-                    </div>
-                    <div class="criterion-section">
-                        <h3 class="criterion-title">Uso do Toilet</h3>
-                        <div class="options-group">
-                            <label class="option-label"><input type="radio" name="usoToilet" value="0">dependente (0)</label>
-                            <label class="option-label"><input type="radio" name="usoToilet" value="5">precisa de alguma ajuda parcial (5)</label>
-                            <label class="option-label"><input type="radio" name="usoToilet" value="10">independente (10)</label>
-                        </div>
-                    </div>
-                    <div class="criterion-section">
-                        <h3 class="criterion-title">Transferência (da cama para a cadeira e vice versa)</h3>
-                        <div class="options-group">
-                            <label class="option-label"><input type="radio" name="transferencia" value="0">incapacitado, sem equilíbrio para ficar sentado (0)</label>
-                            <label class="option-label"><input type="radio" name="transferencia" value="5">necessita de muita ajuda, pode sentar (5)</label>
-                            <label class="option-label"><input type="radio" name="transferencia" value="10">pouca ajuda (verbal ou física) (10)</label>
-                            <label class="option-label"><input type="radio" name="transferencia" value="15">independente (15)</label>
-                        </div>
-                    </div>
-                    <div class="criterion-section">
-                        <h3 class="criterion-title">Mobilidade (em superfícies planas)</h3>
-                        <div class="options-group">
-                            <label class="option-label"><input type="radio" name="mobilidade" value="0">imóvel ou &lt; 50 metros (0)</label>
-                            <label class="option-label"><input type="radio" name="mobilidade" value="5">cadeira de rodas independente, incluindo esquinas, >50 metros (5)</label>
-                            <label class="option-label"><input type="radio" name="mobilidade" value="10">caminha com ajuda de uma pessoa (verbal ou física) >50 metros (10)</label>
-                            <label class="option-label"><input type="radio" name="mobilidade" value="15">independente (mas pode precisar de alguma ajuda) (15)</label>
-                        </div>
-                    </div>
-                    <div class="criterion-section">
-                        <h3 class="criterion-title">Subir e descer escadas</h3>
-                        <div class="options-group">
-                            <label class="option-label"><input type="radio" name="escadas" value="0">dependente (0)</label>
-                            <label class="option-label"><input type="radio" name="escadas" value="5">precisa de ajuda (física ou verbal) (5)</label>
-                            <label class="option-label"><input type="radio" name="escadas" value="10">independente (10)</label>
-                        </div>
-                    </div>
-
-                    <div id="resultado" class="resultado hidden" aria-live="polite"></div>
-
-                    <div class="ref font-inter text-gray-custom text-left">
-                        <p class="font-bold mb-2">Referência Bibliográfica:</p>
-                        <p>
-                            Minosso, J. S., et al. (2010).
-                            <a href="https://www.scielo.br/j/ape/a/7n8WhRb6Wvcs3QdrWx3ywJn/" target="_blank" rel="noopener noreferrer" class="text-light-blue hover:underline">
-                                Validação da Escala de Barthel para uso em pacientes hospitalizados.
-                            </a>
-                            Acta Paulista de Enfermagem, 23(2), 241-247.
-                        </p>
-                    </div>
-                </div>
-
-                <div class="flex flex-wrap justify-start gap-4 mt-6">
-                    <button id="btnCalcular" class="btn-primary" aria-label="Calcular pontuação Barthel">
-                        Calcular
-                    </button>
-                    <button id="btnLimpar" class="btn-primary" aria-label="Limpar campos">
-                        Limpar
-                    </button>
-                    <button id="btnGerarPDF" class="btn-secondary" aria-label="Gerar PDF">
-                        Gerar PDF
-                    </button>
-                    <!-- BOTÃO NANDA, NIC, NOC -->
-                    <button id="btnNandaNicNoc" class="btn-primary" aria-label="Pesquisar NANDA, NIC, NOC">
-                        NANDA, NIC, NOC
-                    </button>
-                </div>
-            </main>
-        </div>
-
-        <!-- Newsletter Section -->
-        <form id="newsletters-section" action="https://formspree.io/f/movlvvzp" method="POST" role="form" aria-label="Assinar Newsletter" class="max-w-7xl mx-auto px-4">
-            <h4 class="newsletter-heading">Assine nossa <span lang="en">Newsletter</span></h4>
-            <p class="newsletter-description">Receba as últimas notícias, artigos e atualizações diretamente na sua caixa de entrada!</p>
-            <div class="newsletter-form-container">
-                <label for="email" class="block text-black-custom text-lg font-medium py-2 text-left">
-                    E-mail:
-                    <span class="tooltip-container">
-                        <button type="button" class="tooltip-icon-button" aria-label="Informações sobre o e-mail" aria-describedby="tooltip-email">
-                            <i class="fas fa-info-circle" aria-hidden="true"></i>
-                        </button>
-                        <span id="tooltip-email" class="tooltip-text" role="tooltip">Digite um endereço de e-mail válido para receber atualizações.</span>
-                    </span>
-                </label>
-                <div class="newsletter-email-input-wrapper">
-                    <input type="email" id="email" name="email" placeholder="Seu e-mail" class="newsletter-email-input" autocomplete="email" required aria-describedby="erro-email ajuda-email tooltip-email">
-                    <span id="erro-email" class="newsletter-error-message" aria-live="assertive" tabindex="-1"></span>
-                    <span id="ajuda-email" class="sr-only">Digite um endereço de e-mail válido para receber atualizações.</span>
-                </div>
-
-                <div class="newsletter-consent-and-button-group flex flex-col md:flex-row md:justify-end md:items-center gap-4 mt-4 md:mt-0">
-                    <div class="newsletter-consent-checkbox-group flex items-center justify-start w-full md:w-auto">
-                        <input type="checkbox" id="newsletterConsent" name="consent" class="newsletter-consent-checkbox" required aria-describedby="consent-tip">
-                        <label for="newsletterConsent" class="newsletter-consent-label ml-2">Aceito receber informações e atualizações sobre o Calculadoras de Enfermagem.</label>
-                        <span id="consent-tip" class="sr-only">Marque esta caixa para concordar em receber informações e atualizações.</span>
-                    </div>
-                    <button type="submit" id="subscribeNewsletterBtn" class="newsletter-subscribe-button" aria-label="Assinar newsletter" disabled>Assinar</button>
-                </div>
-            </div>
-        </form>
-    </main>
-
-    <!-- Rodapé integrado diretamente -->
-    <footer class="bg-[#1A3E74] text-white py-8">
-        <div class="max-w-7xl mx-auto px-4">
-            <div class="border-b border-white pb-4 mb-4">
-                <div class="flex justify-start items-center">
-                    <img src="https://www.calculadorasdeenfermagem.com.br/iconrodape1.webp" alt="Logotipo Calculadoras de Enfermagem no rodapé: um estetoscópio e um coração dentro de um círculo azul." width="120" height="84" class="h-auto w-auto max-w-[80px] max-h-[80px]" loading="lazy" decoding="async">
-                </div>
-            </div>
-
-            <div class="md:flex md:justify-between md:items-start md:space-x-8 md:items-stretch">
-                <div class="mb-6 md:mb-0">
-                    <h5 class="font-bold mb-2">Institucional</h5>
-                    <ul class="list-none space-y-1">
-                        <li><a href="index.html" class="text-white hover:underline">Início</a></li>
-                        <li><a href="missao.html" class="text-white hover:underline">Sobre Nós</a></li>
-                        <li><a href="mapa-do-site.html" class="text-white hover:underline">Mapa do <span lang="en">Site</span></a></li>
-                        <li><a href="politica.html" class="text-white hover:underline">Políticas de <span lang="en">Cookies</span></a></li>
-                        <li><a href="politica.html" class="text-white hover:underline">Política de Retenção de dados</a></li>
-                        <li><a href="politica.html" class="text-white hover:underline"><abbr lang="en" title="Lei Geral de Proteção de Dados">LGPD</abbr></a></li>
-                        <li><a href="politica.html" class="text-white hover:underline">Políticas de Privacidade</a></li>
-                        <li><a href="termos.html" class="text-white hover:underline">Termos e Condições de Uso</a></li>
-                        <li><a href="politicadeacessibilidade.html" class="text-white hover:underline">Política de Acessibilidade</a></li>
-                    </ul>
-                </div>
-
-                <div class="mb-6 md:mb-0">
-                    <h5 class="font-bold mb-2">Sustentabilidade Digital</h5>
-                    <ul class="list-none space-y-1">
-                        <li><a href="nossocompromisso.html" class="text-white hover:underline">Nosso Compromisso</a></li>
-                        <li><a href="impactodigital.html" class="text-white hover:underline">Relatório de Impacto</a></li>
-                        <li><a href="tecnologiaverde.html" class="text-white hover:underline">Tecnologia Verde</a></li>
-                    </ul>
-                </div>
-
-                <div class="mb-6 md:mb-0">
-                    <h5 class="font-bold mb-2">Nosso Compromisso</h5>
-                    <p class="text-white text-sm mb-2 max-w-sm md:max-w-xs">Nosso <span lang="en">site</span> adota como princípio de governança, o comprometimento com elevados padrões de acessibilidade digital, sustentabilidade digital e proteção de dados, em conformidade com as melhores práticas e diretrizes vigentes.</p>
-                    <div class="flex space-x-4 items-center justify-start">
-                        <img src="https://www.calculadorasdeenfermagem.com.br/seloacessibilidade.webp" alt="Selo de Acessibilidade, representando acessibilidade digital." width="100" height="100" class="w-auto h-auto max-w-[80px] max-h-[80px]" loading="lazy" decoding="async">
-                        <img src="https://www.calculadorasdeenfermagem.com.br/selosustentabilidade.webp" alt="Selo de Sustentabilidade, representando sustentabilidade digital." width="100" height="100" class="w-auto h-auto max-w-[80px] max-h-[80px]" loading="lazy" decoding="async">
-                        <img src="https://www.calculadorasdeenfermagem.com.br/selolgpd.webp" alt="Selo LGPD, representando a Lei Geral de Proteção de Dados." width="100" height="100" class="w-auto h-auto max-w-[80px] max-h-[80px]" loading="lazy" decoding="async">
-                    </div>
-                </div>
-
-                <div class="flex flex-1 flex-col md:flex-row justify-end items-start md:items-start">
-                    <div class="vertical-divider-footer-stretched hidden md:block"></div>
-                    <div class="flex flex-col items-start space-y-4">
-                        <h5 class="font-bold mb-2">Siga-nos</h5>
-                        <div class="flex space-x-4">
-                            <a href="https://linkedin.com/company/calculadoras-de-enfermagem" target="_blank" class="footer-social-icon" title="LinkedIn" aria-label="Acesse Nosso Perfil no LinkedIn">
-                                <i class="fab fa-linkedin text-xl"></i> <span class="sr-only">Acesse Nosso Perfil no <span lang="en">LinkedIn</span></span>
-                            </a>
-                            <a href="https://www.instagram.com/calculadorasdeenfermagem/" target="_blank" class="footer-social-icon" title="Instagram" aria-label="Acesse Nosso Perfil no Instagram">
-                                <i class="fab fa-instagram text-xl"></i> <span class="sr-only">Acesse Nosso Perfil no <span lang="en">Instagram</span></span>
-                            </a>
-                            <a href="https://www.tiktok.com/@calculadorasdeenf?_t=ZM-8y94b3VAz2M&_r=1" target="_blank" class="footer-social-icon" title="TikTok" aria-label="Acesse Nosso Perfil no TikTok">
-                                <i class="fab fa-tiktok text-xl"></i> <span class="sr-only">Acesse Nosso Perfil no <span lang="en">Tik Tok</span></span>
-                            </a>
-                            <a href="https://www.youtube.com/channel/UC_6runTDHz8u5S1Yab842pg" target="_blank" class="footer-social-icon" title="YouTube" aria-label="Acesse Nosso Perfil no YouTube">
-                                <i class="fab fa-youtube text-xl"></i> <span class="sr-only">Acesse Nosso Perfil no <span lang="en">Youtube</span></span>
-                            </a>
-                        </div>
-                        <button id="openGranularCookieModalBtn" class="btn-secondary text-white mt-4 py-2 px-4 rounded-md" aria-label="Gerenciar Preferências de Cookies">
-                            Gerenciar Preferências de Cookies
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            <div class="mt-8 text-center">
-                <p>© 2025 Calculadoras de Enfermagem. Todos os direitos reservados.</p>
-            </div>
-        </div>
-    </footer>
-
-    <!-- Botão lateral de VLibras -->
-    <div vw class="enabled">
-        <div vw-access-button class="active"></div>
-        <div vw-plugin-wrapper>
-            <div class="vw-plugin-top-wrapper"></div>
-        </div>
-    </div>
-
-    <!-- Botão de Voltar ao Topo -->
-    <button id="backToTopBtn" aria-label="Voltar ao topo da página">
-        Voltar ao Topo
-    </button>
-    
-    <!-- Modais de Informação -->
-    <div id="customModal" class="modal-overlay hidden" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="modalMessageTitle">
-        <div class="modal-content">
-            <button class="modal-close-btn" id="modalCloseButton" aria-label="Fechar mensagem">×</button>
-            <h3 id="modalMessageTitle" class="sr-only">Mensagem do Sistema</h3>
-            <p id="modalMessage" class="text-gray-800 text-lg mb-4"></p>
-        </div>
-    </div>
-    <div id="granularCookieModal" class="modal-overlay hidden" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="granularModalTitle">
-        <div class="granular-modal-content">
-            <button class="modal-close-btn" id="granularModalCloseButton" aria-label="Fechar configurações de cookies">×</button>
-            <h3 id="granularModalTitle">Configurações de Privacidade</h3>
-            <p>Utilizamos cookies para garantir o funcionamento do nosso site e para personalizar o conteúdo. Você pode ajustar suas preferências abaixo:</p>
-
-            <div class="checkbox-group">
-                <label for="cookieEssential">
-                    <input type="checkbox" id="cookieEssential" checked disabled aria-describedby="descEssential">
-                    Essenciais
-                </label>
-                <span id="descEssential" class="description">Necessários para o funcionamento básico do site (ex: navegação, carrinho de compras). Não podem ser desativados.</span>
-            </div>
-            <div class="checkbox-group">
-                <label for="cookieAnalytics">
-                    <input type="checkbox" id="cookieAnalytics" aria-describedby="descAnalytics">
-                    Analíticos
-                </label>
-                <span id="descAnalytics" class="description">Coletam informações sobre como você usa o site para nos ajudar a melhorar.</span>
-            </div>
-            <div class="checkbox-group">
-                <label for="cookieMarketing">
-                    <input type="checkbox" id="cookieMarketing" aria-describedby="descMarketing">
-                    Marketing
-                </label>
-                <span id="descMarketing" class="description">Usados para exibir anúncios relevantes com base nos seus interesses.</span>
-            </div>
-            <div class="modal-buttons">
-                <button id="saveGranularPreferencesBtn" class="btn-save">Salvar Preferências</button>
-                <button id="cancelGranularPreferencesBtn" class="btn-cancel">Cancelar</button>
-            </div>
-        </div>
-    </div>
-    <div id="keyboardShortcutsModal" class="modal-overlay hidden" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="keyboardModalTitle">
-        <div class="keyboard-modal-content">
-            <button class="modal-close-btn" id="keyboardModalCloseButton" aria-label="Fechar atalhos de teclado">×</button>
-            <h3 id="keyboardModalTitle">Atalhos de Teclado e Navegação</h3>
-            <p class="mb-4">Utilize as seguintes combinações de teclas para acessar rapidamente as funcionalidades de acessibilidade:</p>
-            <ul>
-                <li><strong>Alt + Shift + I:</strong> Ir para o Início (Home)</li>
-                <li><strong>Alt + Shift + T:</strong> Voltar ao Topo da Página</li>
-            </ul>
-            <h4 class="font-bold mb-2 mt-4">Navegação Geral por Teclado</h4>
-            <ul>
-                <li><strong>Tab:</strong> Move o foco entre elementos interativos (links, botões, formulários)</li>
-                <li><strong>Shift + Tab:</strong> Volta ao elemento anterior</li>
-                <li><strong>Enter:</strong> Ativa links ou botões</li>
-                <li><strong>Esc:</strong> Fecha menus, modais ou pop-ups</li>
-                <li><strong>Setas (↑ ↓ ← →):</strong> Navegação em listas, menus e sliders</li>
-                <li><strong>"Pular para o conteúdo principal":</strong> Pressione <strong>Tab</strong> ao carregar a página</li>
-            </ul>
-        </div>
-    </div>
-
-    <!-- Banner de Cookies -->
-    <div id="cookieConsentBanner">
-        <p>Utilizamos <span lang="en">cookies</span> para melhorar sua experiência em nosso <span lang="en">site</span>. Ao continuar navegando, você concorda com nossa <a href="politica.html" class="underline text-blue-200 hover:text-blue-100" aria-label="Política de Cookies">Política de <span lang="en">Cookies</span></a> e <a href="politica.html" class="underline text-blue-200 hover:text-100" aria-label="Política de Privacidade">Política de Privacidade</a>.</p>
-        <div class="cookie-buttons">
-            <button id="acceptAllCookiesBtn" aria-label="Aceitar todos os cookies">Aceitar todos os <span lang="en">cookies</span></button>
-            <button id="manageCookiesBtn" class="secondary" aria-label="Gerenciar suas preferências de cookies">Gerenciar <span lang="en">cookies</span></button>
-            <button id="refuseAllCookiesBtn" class="secondary" aria-label="Recusar todos os cookies">Recusar todos os <span lang="en">cookies</span></button>
-        </div>
-    </div>
-
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-    <script src="global-scripts.js"></script>
-    <script src="https://vlibras.gov.br/app/vlibras-plugin.js"></script>
+    <!-- Script principal da página (Cookie, Calculadora e PDF) -->
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Lógica para carregar o cabeçalho global
-            fetch('menu-global.html')
-                .then(response => response.text())
-                .then(html => {
-                    const container = document.getElementById('global-header-container');
-                    if (container) {
-                        container.innerHTML = html;
-                        // Chame a função de inicialização do menu após o HTML ser carregado
-                        if (typeof initializeGlobalMenu === 'function') {
-                            initializeGlobalMenu();
-                        }
+        // Referências aos elementos do DOM
+        const btnCalcular = document.getElementById('btnCalcular');
+        const btnLimpar = document.getElementById('btnLimpar');
+        const btnGerarPDF = document.getElementById('btnGerarPDF');
+        const resultadoDiv = document.getElementById('resultado');
+        const conteudoDiv = document.getElementById('conteudo'); // Onde os critérios serão injetados
+        const btnNandaNicNoc = document.getElementById('btnNandaNicNoc'); // NOVO: Referência ao botão NANDA, NIC, NOC
+
+        // Referências para o modal de mensagem
+        const messageModalOverlay = document.getElementById('messageModalOverlay');
+        const messageModalText = document.getElementById('messageModalText');
+        const messageModalClose = document.getElementById('messageModalClose');
+
+        // --- Funções do Modal de Mensagem ---
+        function showCustomMessage(message) {
+            messageModalText.textContent = message;
+            messageModalOverlay.style.display = 'flex';
+        }
+
+        function hideCustomMessage() {
+            messageModalOverlay.style.display = 'none';
+        }
+
+        // Adiciona listeners para o modal de mensagem
+        messageModalClose.addEventListener('click', hideCustomMessage);
+        messageModalOverlay.addEventListener('click', (e) => {
+            if (e.target === messageModalOverlay) {
+                hideCustomMessage();
+            }
+        });
+
+        // Dados da Escala de Barthel baseados na imagem fornecida
+        const barthelData = [
+            {
+                activity: "Alimentação",
+                nameAttr: "alimentacao",
+                options: [
+                    { score: 0, description: "incapacitado" },
+                    { score: 5, description: "precisa de ajuda para cortar, passar manteiga, etc ou dieta modificada" },
+                    { score: 10, description: "independente" }
+                ]
+            },
+            {
+                activity: "Banho",
+                nameAttr: "banho",
+                options: [
+                    { score: 0, description: "dependente" },
+                    { score: 5, description: "independente" }
+                ]
+            },
+            {
+                activity: "Higiene pessoal",
+                nameAttr: "higienePessoal",
+                options: [
+                    { score: 0, description: "precisa de ajuda com higiene pessoal" },
+                    { score: 5, description: "independente rosto/cabelo/dentes/barbear" }
+                ]
+            },
+            {
+                activity: "Vestir-se",
+                nameAttr: "vestir",
+                options: [
+                    { score: 0, description: "dependente" },
+                    { score: 5, description: "precisa de ajuda, mas consegue fazer parte sozinho" },
+                    { score: 10, description: "independente (incluindo botões, zíper, laços, etc.)" }
+                ]
+            },
+            {
+                activity: "Controle esfincteriano (Intestino)",
+                nameAttr: "controleIntestino",
+                options: [
+                    { score: 0, description: "incontinente (necessidade de enemas)" },
+                    { score: 5, description: "acidente ocasional" },
+                    { score: 10, description: "continente" }
+                ]
+            },
+            {
+                activity: "Controle esfincteriano (Bexiga)",
+                nameAttr: "controleBexiga",
+                options: [
+                    { score: 0, description: "incontinente, ou caracterizado e incapaz de manejo" },
+                    { score: 5, description: "acidente ocasional" },
+                    { score: 10, description: "continente" }
+                ]
+            },
+            {
+                activity: "Uso do Toilet",
+                nameAttr: "usoToilet",
+                options: [
+                    { score: 0, description: "dependente" },
+                    { score: 5, description: "precisa de alguma ajuda parcial" },
+                    { score: 10, description: "independente (pentear-se, limpar-se, etc)." }
+                ]
+            },
+            {
+                activity: "Transferência (da cama para a cadeira e vice versa)",
+                nameAttr: "transferencia",
+                options: [
+                    { score: 0, description: "incapacitado, sem equilíbrio para ficar sentado" },
+                    { score: 5, description: "necessita de muita ajuda, pode sentar" },
+                    { score: 10, description: "pouca ajuda (verbal ou física)" },
+                    { score: 15, description: "independente" }
+                ]
+            },
+            {
+                activity: "Mobilidade (em superfícies planas)",
+                nameAttr: "mobilidade",
+                options: [
+                    { score: 0, description: "imóvel ou < 50 metros" },
+                    { score: 5, description: "cadeira de rodas independente, incluindo esquinas, >50 metros" },
+                    { score: 10, description: "caminha com ajuda de uma pessoa (verbal ou física) >50 metros" },
+                    { score: 15, description: "independente (mas pode precisar de alguma ajuda)" }
+                ]
+            },
+            {
+                activity: "Subir e descer escadas",
+                nameAttr: "escadas",
+                options: [
+                    { score: 0, description: "dependente" },
+                    { score: 5, description: "precisa de ajuda (física ou verbal)" },
+                    { score: 10, description: "independente" }
+                ]
+            }
+        ];
+
+        // --- Lógica da Calculadora Barthel ---
+        function calcularPontuacao() {
+            let totalScore = 0;
+            let allActivitiesSelected = true;
+            const selectedDetails = [];
+
+            barthelData.forEach(activityGroup => {
+                const selectedOption = document.querySelector(`input[name="${activityGroup.nameAttr}"]:checked`);
+                if (selectedOption) {
+                    const score = parseInt(selectedOption.value, 10);
+                    totalScore += score;
+                    selectedDetails.push({
+                        activity: activityGroup.activity,
+                        description: selectedOption.nextElementSibling.textContent,
+                        score: score
+                    });
+                } else {
+                    allActivitiesSelected = false;
+                }
+            });
+
+            if (!allActivitiesSelected) {
+                resultadoDiv.style.display = "block";
+                resultadoDiv.innerHTML = '⚠️ <strong class="font-bold">Por favor, selecione uma opção para cada atividade</strong> antes de calcular.';
+                resultadoDiv.classList.add('bg-info-orange-light');
+                resultadoDiv.classList.remove('hidden', 'bg-barthel-total', 'bg-barthel-leve', 'bg-barthel-moderada', 'bg-barthel-grave', 'bg-barthel-completa');
+                // Limpa os data-attributes se houver erro
+                resultadoDiv.dataset.score = '';
+                resultadoDiv.dataset.scaleName = '';
+                return;
+            }
+
+            let classificacao = "";
+            let resultadoClasse = '';
+            let comentario = "";
+
+            if (totalScore === 100) {
+                classificacao = "Independência Total";
+                resultadoClasse = 'bg-barthel-total';
+                comentario = "O indivíduo é totalmente independente em todas as Atividades da Vida Diária.";
+            } else if (totalScore >= 91 && totalScore <= 99) {
+                classificacao = "Dependência Leve";
+                resultadoClasse = 'bg-barthel-leve';
+                comentario = "O indivíduo possui dependência leve para realizar as Atividades da Vida Diária.";
+            } else if (totalScore >= 61 && totalScore <= 90) {
+                classificacao = "Dependência Moderada";
+                resultadoClasse = 'bg-barthel-moderada';
+                comentario = "O indivíduo possui dependência moderada para realizar as Atividades da Vida Diária.";
+            } else if (totalScore >= 21 && totalScore <= 60) {
+                classificacao = "Dependência Grave";
+                resultadoClasse = 'bg-barthel-grave';
+                comentario = "O indivíduo possui dependência grave para realizar as Atividades da Vida Diária.";
+            } else if (totalScore >= 0 && totalScore <= 20) {
+                classificacao = "Dependência Completa";
+                resultadoClasse = 'bg-barthel-completa';
+                comentario = "O indivíduo possui dependência completa para realizar as Atividades da Vida Diária.";
+            } else {
+                classificacao = "Pontuação inválida";
+                resultadoClasse = 'bg-info-orange-light';
+                comentario = "A pontuação calculada está fora dos limites esperados da escala. Verifique as seleções.";
+            }
+
+            resultadoDiv.style.display = "block";
+            resultadoDiv.innerHTML = `
+                <p>Pontuação Total da Escala de Barthel: <strong class="font-bold">${totalScore}</strong></p>
+                <p>Classificação: <strong class="font-bold">${classificacao}</strong></p>
+                <p>Comentário: <strong class="font-bold">${comentario}</strong></p>
+            `;
+            resultadoDiv.classList.remove('hidden', 'bg-info-orange-light', 'bg-barthel-total', 'bg-barthel-leve', 'bg-barthel-moderada', 'bg-barthel-grave', 'bg-barthel-completa');
+            resultadoDiv.classList.add(resultadoClasse);
+
+            // Armazena a pontuação e o nome da escala no dataset para acesso pelo botão NANDA, NIC, NOC
+            resultadoDiv.dataset.score = totalScore;
+            resultadoDiv.dataset.scaleName = "Escala de Barthel";
+        }
+
+        function limparCampos() {
+            barthelData.forEach(activityGroup => {
+                document.querySelectorAll(`input[name="${activityGroup.nameAttr}"]`).forEach(radio => radio.checked = false);
+            });
+            resultadoDiv.style.display = 'none';
+            resultadoDiv.innerHTML = '';
+            resultadoDiv.className = 'resultado hidden';
+            // Limpa a pontuação e o nome da escala armazenados
+            delete resultadoDiv.dataset.score;
+            delete resultadoDiv.dataset.scaleName;
+        }
+
+        function gerarPDF() {
+            const pdfContentWrapper = document.createElement('div');
+            pdfContentWrapper.style.fontFamily = "'Inter', sans-serif";
+            pdfContentWrapper.style.color = '#333';
+            pdfContentWrapper.style.padding = '20px';
+
+            // Adiciona o título principal, subtítulo e data/hora
+            const mainTitle = document.getElementById('main-title');
+            const mainSubtitle = document.getElementById('main-subtitle');
+            const descriptionText = document.getElementById('description-text');
+
+            if (mainTitle) {
+                const clonedTitle = mainTitle.cloneNode(true);
+                clonedTitle.style.fontSize = '24px';
+                clonedTitle.style.fontWeight = 'bold';
+                clonedTitle.style.textAlign = 'center';
+                clonedTitle.style.marginBottom = '5px';
+                clonedTitle.style.color = '#1A3E74';
+                pdfContentWrapper.appendChild(clonedTitle);
+            }
+
+            if (mainSubtitle) {
+                const clonedSubtitle = mainSubtitle.cloneNode(true);
+                clonedSubtitle.style.fontSize = '18px';
+                clonedSubtitle.style.textAlign = 'center';
+                clonedSubtitle.style.marginBottom = '20px';
+                clonedSubtitle.style.color = '#1FA4E5';
+                pdfContentWrapper.appendChild(clonedSubtitle);
+            }
+
+            // Adiciona a data e hora de geração
+            const dateTime = document.createElement('p');
+            dateTime.style.fontSize = '12px';
+            dateTime.style.color = '#777';
+            dateTime.style.textAlign = 'center';
+            dateTime.style.marginBottom = '20px';
+            dateTime.textContent = `Gerado em: ${new Date().toLocaleDateString('pt-BR')} ${new Date().toLocaleTimeString('pt-BR')}`;
+            pdfContentWrapper.appendChild(dateTime);
+
+            // Adiciona a descrição introdutória
+            if (descriptionText) {
+                const clonedDescription = descriptionText.cloneNode(true);
+                clonedDescription.style.cssText = "font-family: 'Inter', sans-serif; font-weight: 400; color: #666666; font-size: 14px; margin-bottom: 15px; text-align: justify;";
+                pdfContentWrapper.appendChild(clonedDescription);
+            }
+
+            // Título "Atividades Selecionadas"
+            const selectedItemsTitle = document.createElement('p');
+            selectedItemsTitle.style.cssText = "font-family: 'Inter', sans-serif; font-weight: 600; color: #1A3E74; font-size: 16px; margin-top: 20px; margin-bottom: 10px; text-align: left;";
+            selectedItemsTitle.textContent = "Atividades Selecionadas da Escala de Barthel:";
+            pdfContentWrapper.appendChild(selectedItemsTitle);
+
+            // Cria uma nova tabela para o PDF com a seleção do usuário
+            const pdfSelectionsTable = document.createElement('table');
+            pdfSelectionsTable.className = 'barthel-table'; // Reusa a classe da tabela para estilização
+            pdfSelectionsTable.style.marginBottom = '20px';
+
+            const thead = document.createElement('thead');
+            thead.innerHTML = `
+                <tr>
+                    <th>Atividade</th>
+                    <th>Descrição Selecionada</th>
+                    <th>Pontuação</th>
+                </tr>
+            `;
+            pdfSelectionsTable.appendChild(thead);
+
+            const tbody = document.createElement('tbody');
+            let allActivitiesSelectedInPdf = true; // Flag para verificar se todas as seleções estão no PDF
+            barthelData.forEach(activityGroup => {
+                const selectedOption = document.querySelector(`input[name="${activityGroup.nameAttr}"]:checked`);
+                const tr = document.createElement('tr');
+                if (selectedOption) {
+                    const score = parseInt(selectedOption.value, 10);
+                    const description = selectedOption.nextElementSibling.textContent; // Pega o texto do span
+
+                    tr.innerHTML = `
+                        <td data-label="Atividade">${activityGroup.activity}</td>
+                        <td data-label="Descrição Selecionada">${description}</td>
+                        <td data-label="Pontuação">${score}</td>
+                    `;
+                } else {
+                    tr.innerHTML = `
+                        <td data-label="Atividade">${activityGroup.activity}</td>
+                        <td data-label="Descrição Selecionada" style="color: #CC0000;">Nenhuma opção selecionada para esta atividade.</td>
+                        <td data-label="Pontuação" style="color: #CC0000;">-</td>
+                    `;
+                    allActivitiesSelectedInPdf = false;
+                }
+                tbody.appendChild(tr);
+            });
+            pdfSelectionsTable.appendChild(tbody);
+            pdfContentWrapper.appendChild(pdfSelectionsTable);
+
+            // Adiciona o resultado da pontuação
+            const resultDivForPdf = document.createElement('div');
+            resultDivForPdf.className = 'resultado';
+            resultDivForPdf.style.marginTop = '1rem';
+            resultDivForPdf.style.padding = '1rem';
+            resultDivForPdf.style.borderRadius = '0.5rem';
+            resultDivForPdf.style.fontWeight = '600';
+            resultDivForPdf.style.textAlign = 'left';
+            resultDivForPdf.style.whiteSpace = 'pre-wrap';
+
+            // Verifica se o resultado já foi calculado na página e se todas as seleções estão presentes
+            if (resultadoDiv.style.display !== 'none' && resultadoDiv.innerHTML.trim() !== '' && allActivitiesSelectedInPdf) {
+                resultDivForPdf.innerHTML = resultadoDiv.innerHTML;
+                // Copia as classes de cor do resultado original
+                resultadoDiv.classList.forEach(cls => {
+                    if (cls.startsWith('bg-') || cls.startsWith('text-')) {
+                        resultDivForPdf.classList.add(cls);
+                    }
+                });
+            } else {
+                resultDivForPdf.innerHTML = "Resultado não calculado ou seleção incompleta na página. Por favor, selecione uma opção para cada atividade e calcule antes de gerar o PDF.";
+                resultDivForPdf.classList.add('bg-info-orange-light', 'text-orange-800');
+                resultDivForPdf.style.backgroundColor = '#ffeeba';
+                resultDivForPdf.style.color = '#856404';
+            }
+            pdfContentWrapper.appendChild(resultDivForPdf);
+
+            // Adiciona a referência bibliográfica
+            const references = document.querySelector('.ref').cloneNode(true);
+            references.style.marginTop = '2rem';
+            references.style.fontSize = '12px'; // Ajusta o tamanho da fonte para PDF
+            references.style.color = '#666666';
+            references.style.textAlign = 'left';
+            references.querySelectorAll('a').forEach(a => {
+                a.style.color = '#1FA4E5';
+                a.style.textDecoration = 'underline';
+            });
+            pdfContentWrapper.appendChild(references);
+
+            const opt = {
+                margin: 0.5,
+                filename: "escala-barthel.pdf", // Nome do arquivo PDF
+                image: { type: "jpeg", quality: 0.98 },
+                html2canvas: { scale: 3, scrollY: 0 },
+                jsPDF: { unit: "in", format: "a4", orientation: "portrait" }
+            };
+
+            html2pdf().set(opt).from(pdfContentWrapper).save().catch(error => {
+                console.error('Erro ao gerar PDF:', error);
+                showCustomMessage('Ocorreu um erro ao gerar o PDF. Por favor, tente novamente.');
+            });
+        }
+
+        // --- Lógica do Cookie Consent Banner ---
+        const cookieConsentBanner = document.getElementById('cookieConsentBanner');
+        const acceptCookiesBtn = document.getElementById('acceptCookiesBtn');
+        const refuseCookiesBtn = document.getElementById('refuseCookiesBtn');
+        const cookiesAcceptedKey = 'cookiesAccepted'; // Chave para localStorage
+
+        function showCookieBanner() {
+            if (localStorage.getItem(cookiesAcceptedKey) === null) {
+                cookieConsentBanner.classList.add('show');
+            }
+        }
+
+        function hideCookieBanner() {
+            cookieConsentBanner.classList.remove('show');
+        }
+
+        if (acceptCookiesBtn) {
+            acceptCookiesBtn.addEventListener('click', () => {
+                localStorage.setItem(cookiesAcceptedKey, 'true');
+                hideCookieBanner();
+                // Atualiza o consentimento do GTM para 'granted'
+                gtag('consent', 'update', {
+                    'analytics_storage': 'granted'
+                });
+            });
+        }
+
+        if (refuseCookiesBtn) {
+            refuseCookiesBtn.addEventListener('click', () => {
+                localStorage.setItem(cookiesAcceptedKey, 'false');
+                hideCookieBanner();
+                // O consentimento já está 'denied' por padrão, então não precisa de 'update' aqui
+            });
+        }
+        // --- Fim da Lógica do Cookie Consent Banner ---
+
+        // --- Lógica da Nova Barra de Acessibilidade Hambúrguer (Adicionada) ---
+        const accessibilityHamburgerBtn = document.getElementById('accessibilityHamburgerBtn');
+        const accessibilityOffCanvasMenu = document.getElementById('accessibilityOffCanvasMenu');
+        const closeAccessibilityMenuBtn = document.getElementById('closeAccessibilityMenuBtn');
+        const accessibilityOverlay = document.getElementById('accessibilityOverlay');
+
+        // Botões de Acessibilidade
+        const toggleFontSizeBtn = document.getElementById('toggleFontSizeBtn');
+        const toggleContrastBtn = document = document.getElementById('toggleContrastBtn');
+        const toggleDarkModeBtn = document.getElementById('toggleDarkModeBtn');
+        const resetAccessibilityBtn = document.getElementById('resetAccessibilityBtn');
+
+        let currentFontSize = 'normal'; // 'normal', 'small', 'large'
+        let isHighContrast = false;
+        let isDarkMode = false;
+
+        // Função para aplicar/remover classes de acessibilidade
+        function applyAccessibilitySettings() {
+            const body = document.body;
+
+            // Tamanho da Fonte
+            body.classList.remove('font-size-small', 'font-size-large');
+            if (currentFontSize === 'small') {
+                body.classList.add('font-size-small');
+            } else if (currentFontSize === 'large') {
+                body.classList.add('font-size-large');
+            }
+
+            // Alto Contraste
+            if (isHighContrast) {
+                body.classList.add('high-contrast');
+            } else {
+                body.classList.remove('high-contrast');
+            }
+
+            // Modo Escuro
+            if (isDarkMode) {
+                body.classList.add('dark-mode');
+            } else {
+                body.classList.remove('dark-mode');
+            }
+        }
+
+        // Funções de Toggle
+        if (toggleFontSizeBtn) {
+            toggleFontSizeBtn.addEventListener('click', () => {
+                if (currentFontSize === 'normal') {
+                    currentFontSize = 'large';
+                } else if (currentFontSize === 'large') {
+                    currentFontSize = 'small';
+                } else {
+                    currentFontSize = 'normal';
+                }
+                applyAccessibilitySettings();
+            });
+        }
+
+        if (toggleContrastBtn) {
+            toggleContrastBtn.addEventListener('click', () => {
+                isHighContrast = !isHighContrast;
+                applyAccessibilitySettings();
+            });
+        }
+
+        if (toggleDarkModeBtn) {
+            toggleDarkModeBtn.addEventListener('click', () => {
+                isDarkMode = !isDarkMode;
+                applyAccessibilitySettings();
+            });
+        }
+
+        if (resetAccessibilityBtn) {
+            resetAccessibilityBtn.addEventListener('click', () => {
+                currentFontSize = 'normal';
+                isHighContrast = false;
+                isDarkMode = false;
+                applyAccessibilitySettings();
+            });
+        }
+
+        // Lógica para abrir/fechar o menu de acessibilidade
+        if (accessibilityHamburgerBtn) {
+            accessibilityHamburgerBtn.addEventListener('click', () => {
+                accessibilityOffCanvasMenu.classList.add('is-open');
+                accessibilityOverlay.style.display = 'block';
+            });
+        }
+
+        if (closeAccessibilityMenuBtn) {
+            closeAccessibilityMenuBtn.addEventListener('click', () => {
+                accessibilityOffCanvasMenu.classList.remove('is-open');
+                accessibilityOverlay.style.display = 'none';
+            });
+        }
+
+        if (accessibilityOverlay) {
+            accessibilityOverlay.addEventListener('click', (event) => {
+                if (event.target === accessibilityOverlay) { // Garante que só feche se clicar no overlay, não no menu
+                    accessibilityOffCanvasMenu.classList.remove('is-open');
+                    accessibilityOverlay.style.display = 'none';
+                }
+            });
+        }
+
+        // Fechar com a tecla ESC
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape' && accessibilityOffCanvasMenu.classList.contains('is-open')) {
+                accessibilityOffCanvasMenu.classList.remove('is-open');
+                accessibilityOverlay.style.display = 'none';
+            }
+        });
+
+        // Aplica as configurações iniciais (se houver alguma persistência futura)
+        applyAccessibilitySettings();
+        // --- Fim da Lógica da Nova Barra de Acessibilidade Hambúrguer ---
+
+        // --- Início do DOMContentLoaded para preencher o formulário, carregar rodapé e adicionar listeners ---
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('DOMContentLoaded fired. Starting dynamic content generation for Barthel Scale.');
+
+            // Carrega o rodapé
+            fetch("./rodape111.html")
+                .then(res => res.text())
+                .then(data => {
+                    const footerContainer = document.getElementById("footer-container");
+                    if (footerContainer) {
+                        footerContainer.innerHTML = data;
+                        console.log('Rodapé carregado com sucesso.');
+                    } else {
+                        console.error("Elemento #footer-container não encontrado.");
                     }
                 })
-                .catch(error => console.error('Erro ao carregar o menu global:', error));
-            
-            // Lógica específica da calculadora Barthel
-            const resultadoDiv = document.getElementById('resultado');
-            const btnNandaNicNoc = document.getElementById('btnNandaNicNoc');
+                .catch(err => console.error("Erro ao carregar rodape111.html:", err));
 
-            function calcularPontuacao() {
-                let totalScore = 0;
-                let allActivitiesSelected = true;
-                const selectedDetails = [];
-                
-                const barthelData = [
-                    {
-                        activity: "Alimentação",
-                        nameAttr: "alimentacao",
-                        options: [
-                            { score: 0, description: "incapacitado" },
-                            { score: 5, description: "precisa de ajuda para cortar, passar manteiga, etc ou dieta modificada" },
-                            { score: 10, description: "independente" }
-                        ]
-                    },
-                    {
-                        activity: "Banho",
-                        nameAttr: "banho",
-                        options: [
-                            { score: 0, description: "dependente" },
-                            { score: 5, description: "independente" }
-                        ]
-                    },
-                    {
-                        activity: "Higiene pessoal",
-                        nameAttr: "higienePessoal",
-                        options: [
-                            { score: 0, description: "precisa de ajuda com higiene pessoal" },
-                            { score: 5, description: "independente rosto/cabelo/dentes/barbear" }
-                        ]
-                    },
-                    {
-                        activity: "Vestir-se",
-                        nameAttr: "vestir",
-                        options: [
-                            { score: 0, description: "dependente" },
-                            { score: 5, description: "precisa de ajuda, mas consegue fazer parte sozinho" },
-                            { score: 10, description: "independente (incluindo botões, zíper, laços, etc.)" }
-                        ]
-                    },
-                    {
-                        activity: "Controle esfincteriano (Intestino)",
-                        nameAttr: "controleIntestino",
-                        options: [
-                            { score: 0, description: "incontinente (necessidade de enemas)" },
-                            { score: 5, description: "acidente ocasional" },
-                            { score: 10, description: "continente" }
-                        ]
-                    },
-                    {
-                        activity: "Controle esfincteriano (Bexiga)",
-                        nameAttr: "controleBexiga",
-                        options: [
-                            { score: 0, description: "incontinente, ou caracterizado e incapaz de manejo" },
-                            { score: 5, description: "acidente ocasional" },
-                            { score: 10, description: "continente" }
-                        ]
-                    },
-                    {
-                        activity: "Uso do Toilet",
-                        nameAttr: "usoToilet",
-                        options: [
-                            { score: 0, description: "dependente" },
-                            { score: 5, description: "precisa de alguma ajuda parcial" },
-                            { score: 10, description: "independente (pentear-se, limpar-se, etc)." }
-                        ]
-                    },
-                    {
-                        activity: "Transferência (da cama para a cadeira e vice versa)",
-                        nameAttr: "transferencia",
-                        options: [
-                            { score: 0, description: "incapacitado, sem equilíbrio para ficar sentado" },
-                            { score: 5, description: "necessita de muita ajuda, pode sentar" },
-                            { score: 10, description: "pouca ajuda (verbal ou física)" },
-                            { score: 15, description: "independente" }
-                        ]
-                    },
-                    {
-                        activity: "Mobilidade (em superfícies planas)",
-                        nameAttr: "mobilidade",
-                        options: [
-                            { score: 0, description: "imóvel ou < 50 metros" },
-                            { score: 5, description: "cadeira de rodas independente, incluindo esquinas, >50 metros" },
-                            { score: 10, description: "caminha com ajuda de uma pessoa (verbal ou física) >50 metros" },
-                            { score: 15, description: "independente (mas pode precisar de alguma ajuda)" }
-                        ]
-                    },
-                    {
-                        activity: "Subir e descer escadas",
-                        nameAttr: "escadas",
-                        options: [
-                            { score: 0, description: "dependente" },
-                            { score: 5, description: "precisa de ajuda (física ou verbal)" },
-                            { score: 10, description: "independente" }
-                        ]
-                    }
-                ];
-
-                barthelData.forEach(activityGroup => {
-                    const selectedOption = document.querySelector(`input[name="${activityGroup.nameAttr}"]:checked`);
-                    if (selectedOption) {
-                        const score = parseInt(selectedOption.value, 10);
-                        totalScore += score;
-                        selectedDetails.push({
-                            activity: activityGroup.activity,
-                            description: selectedOption.nextElementSibling.textContent,
-                            score: score
-                        });
-                    } else {
-                        allActivitiesSelected = false;
-                    }
-                });
-
-                if (!allActivitiesSelected) {
-                    resultadoDiv.style.display = "block";
-                    resultadoDiv.innerHTML = '⚠️ <strong class="font-bold">Por favor, selecione uma opção para cada atividade</strong> antes de calcular.';
-                    resultadoDiv.classList.add('bg-info-orange-light');
-                    resultadoDiv.classList.remove('hidden', 'bg-barthel-total', 'bg-barthel-leve', 'bg-barthel-moderada', 'bg-barthel-grave', 'bg-barthel-completa');
-                    resultadoDiv.dataset.score = '';
-                    resultadoDiv.dataset.scaleName = '';
-                    return;
-                }
-
-                let classificacao = "";
-                let resultadoClasse = '';
-                let comentario = "";
-
-                if (totalScore === 100) {
-                    classificacao = "Independência Total";
-                    resultadoClasse = 'bg-barthel-total';
-                    comentario = "O indivíduo é totalmente independente em todas as Atividades da Vida Diária.";
-                } else if (totalScore >= 91 && totalScore <= 99) {
-                    classificacao = "Dependência Leve";
-                    resultadoClasse = 'bg-barthel-leve';
-                    comentario = "O indivíduo possui dependência leve para realizar as Atividades da Vida Diária.";
-                } else if (totalScore >= 61 && totalScore <= 90) {
-                    classificacao = "Dependência Moderada";
-                    resultadoClasse = 'bg-barthel-moderada';
-                    comentario = "O indivíduo possui dependência moderada para realizar as Atividades da Vida Diária.";
-                } else if (totalScore >= 21 && totalScore <= 60) {
-                    classificacao = "Dependência Grave";
-                    resultadoClasse = 'bg-barthel-grave';
-                    comentario = "O indivíduo possui dependência grave para realizar as Atividades da Vida Diária.";
-                } else if (totalScore >= 0 && totalScore <= 20) {
-                    classificacao = "Dependência Completa";
-                    resultadoClasse = 'bg-barthel-completa';
-                    comentario = "O indivíduo possui dependência completa para realizar as Atividades da Vida Diária.";
-                } else {
-                    classificacao = "Pontuação inválida";
-                    resultadoClasse = 'bg-info-orange-light';
-                    comentario = "A pontuação calculada está fora dos limites esperados da escala. Verifique as seleções.";
-                }
-
-                resultadoDiv.style.display = "block";
-                resultadoDiv.innerHTML = `
-                    <p>Pontuação Total da Escala de Barthel: <strong class="font-bold">${totalScore}</strong></p>
-                    <p>Classificação: <strong class="font-bold">${classificacao}</strong></p>
-                    <p>Comentário: <strong class="font-bold">${comentario}</strong></p>
-                `;
-                resultadoDiv.classList.remove('hidden', 'bg-info-orange-light', 'bg-barthel-total', 'bg-barthel-leve', 'bg-barthel-moderada', 'bg-barthel-grave', 'bg-barthel-completa');
-                resultadoDiv.classList.add(resultadoClasse);
-
-                resultadoDiv.dataset.score = totalScore;
-                resultadoDiv.dataset.scaleName = "Escala de Barthel";
-            }
-
-            function limparCampos() {
-                const radios = document.querySelectorAll('#conteudo input[type="radio"]');
-                radios.forEach(radio => radio.checked = false);
-
-                resultadoDiv.style.display = 'none';
-                resultadoDiv.innerHTML = '';
-                resultadoDiv.className = 'resultado hidden';
-                delete resultadoDiv.dataset.score;
-                delete resultadoDiv.dataset.scaleName;
-            }
-
-            function gerarPDF() {
-                if (resultadoDiv.style.display === 'none' || resultadoDiv.innerHTML.trim() === '' || resultadoDiv.classList.contains('bg-info-orange-light')) {
-                    window.showCustomModal('Por favor, clique em "Calcular" primeiro para obter um resultado válido antes de gerar o PDF.');
-                    return;
-                }
-
-                const contentToPrint = document.querySelector('main').cloneNode(true);
-
-                contentToPrint.style.fontSize = '9px';
-                contentToPrint.style.lineHeight = '1.1';
-
-                const unwantedSelectors = [
-                    '#backToTopBtn',
-                    '.flex.flex-wrap.justify-start.gap-4.mt-6',
-                    '#newsletters-section'
-                ];
-                unwantedSelectors.forEach(sel => {
-                    const element = contentToPrint.querySelector(sel);
-                    if (element) {
-                        element.remove();
-                    }
-                });
-
-                const pdfTitleText = "Escala de Barthel";
-                const pdfSubtitleText = "Relatório de Avaliação da Dependência Funcional";
-                const headerDiv = document.createElement('div');
-                headerDiv.style.cssText = "text-align: center; margin-bottom: 12px; font-family: 'Nunito Sans', sans-serif; color: #1A3E74;";
-                headerDiv.innerHTML = `
-                    <h1 style="font-size: 18px; font-weight: bold; margin-bottom: 3px;">${pdfTitleText}</h1>
-                    <p style="font-size: 10px; color: #666666;">${pdfSubtitleText}</p>
-                    <p style="font-size: 8px; color: #777;">Gerado em: ${new Date().toLocaleDateString('pt-BR')} ${new Date().toLocaleTimeString('pt-BR')}</p>
-                `;
-                contentToPrint.prepend(headerDiv);
-
-                const resultDivForPdf = contentToPrint.querySelector('#resultado');
-                if (resultDivForPdf && resultadoDiv.style.display !== 'none' && resultadoDiv.innerHTML.trim() !== '' && !resultadoDiv.classList.contains('bg-info-orange-light')) {
-                    resultDivForPdf.innerHTML = resultadoDiv.innerHTML;
-                    resultadoDiv.classList.forEach(cls => {
-                        if (cls.startsWith('bg-') || cls.startsWith('text-') || cls.startsWith('barthel-')) {
-                            resultDivForPdf.classList.add(cls);
-                        }
-                    });
-                    resultDivForPdf.style.backgroundColor = getComputedStyle(resultadoDiv).backgroundColor;
-                    resultDivForPdf.style.color = getComputedStyle(resultadoDiv).color;
-                    resultDivForPdf.style.display = 'block';
-                    resultDivForPdf.style.fontSize = '9px';
-                    resultDivForPdf.style.lineHeight = '1.1';
-                } else if (resultDivForPdf) {
-                    resultDivForPdf.innerHTML = "Resultado não calculado na página ou cálculo inválido. Por favor, preencha os campos e clique em 'Calcular' antes de gerar o PDF.";
-                    resultDivForPdf.style.backgroundColor = '#ffeeba';
-                    resultDivForPdf.style.color = '#856404';
-                    resultDivForPdf.style.display = 'block';
-                }
-
-                const references = contentToPrint.querySelector('.ref');
-                if (references) {
-                    references.style.marginTop = '1rem';
-                    references.style.fontSize = '8px';
-                    references.style.color = '#666666';
-                    references.style.textAlign = 'left';
-                    references.querySelectorAll('a').forEach(a => {
-                        a.style.color = '#004d99';
-                        a.style.textDecoration = 'underline';
-                    });
-                }
-
-                const opt = {
-                    margin:       0.1,
-                    filename:     'escala-barthel.pdf',
-                    image:        { type: 'jpeg', quality: 0.98 },
-                    html2canvas:  { scale: 4, scrollY: 0, useCORS: true },
-                    jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' },
-                };
-
-                html2pdf().set(opt).from(contentToPrint).save().catch(error => {
-                    console.error('Erro ao gerar PDF:', error);
-                    window.showCustomModal('Ocorreu um erro ao gerar o PDF. Por favor, tente novamente.');
-                });
-            }
-
-            // Geração dinâmica dos critérios
-            const barthelData = [
-                {
-                    activity: "Alimentação",
-                    nameAttr: "alimentacao",
-                    options: [
-                        { score: 0, description: "incapacitado" },
-                        { score: 5, description: "precisa de ajuda para cortar, passar manteiga, etc ou dieta modificada" },
-                        { score: 10, description: "independente" }
-                    ]
-                },
-                {
-                    activity: "Banho",
-                    nameAttr: "banho",
-                    options: [
-                        { score: 0, description: "dependente" },
-                        { score: 5, description: "independente" }
-                    ]
-                },
-                {
-                    activity: "Higiene pessoal",
-                    nameAttr: "higienePessoal",
-                    options: [
-                        { score: 0, description: "precisa de ajuda com higiene pessoal" },
-                        { score: 5, description: "independente rosto/cabelo/dentes/barbear" }
-                    ]
-                },
-                {
-                    activity: "Vestir-se",
-                    nameAttr: "vestir",
-                    options: [
-                        { score: 0, description: "dependente" },
-                        { score: 5, description: "precisa de ajuda, mas consegue fazer parte sozinho" },
-                        { score: 10, description: "independente (incluindo botões, zíper, laços, etc.)" }
-                    ]
-                },
-                {
-                    activity: "Controle esfincteriano (Intestino)",
-                    nameAttr: "controleIntestino",
-                    options: [
-                        { score: 0, description: "incontinente (necessidade de enemas)" },
-                        { score: 5, description: "acidente ocasional" },
-                        { score: 10, description: "continente" }
-                    ]
-                },
-                {
-                    activity: "Controle esfincteriano (Bexiga)",
-                    nameAttr: "controleBexiga",
-                    options: [
-                        { score: 0, description: "incontinente, ou caracterizado e incapaz de manejo" },
-                        { score: 5, description: "acidente ocasional" },
-                        { score: 10, description: "continente" }
-                    ]
-                },
-                {
-                    activity: "Uso do Toilet",
-                    nameAttr: "usoToilet",
-                    options: [
-                        { score: 0, description: "dependente" },
-                        { score: 5, description: "precisa de alguma ajuda parcial" },
-                        { score: 10, description: "independente (10)" }
-                    ]
-                },
-                {
-                    activity: "Transferência (da cama para a cadeira e vice versa)",
-                    nameAttr: "transferencia",
-                    options: [
-                        { score: 0, description: "incapacitado, sem equilíbrio para ficar sentado" },
-                        { score: 5, description: "necessita de muita ajuda, pode sentar" },
-                        { score: 10, description: "pouca ajuda (verbal ou física)" },
-                        { score: 15, description: "independente" }
-                    ]
-                },
-                {
-                    activity: "Mobilidade (em superfícies planas)",
-                    nameAttr: "mobilidade",
-                    options: [
-                        { score: 0, description: "imóvel ou < 50 metros" },
-                        { score: 5, description: "cadeira de rodas independente, incluindo esquinas, >50 metros" },
-                        { score: 10, description: "caminha com ajuda de uma pessoa (verbal ou física) >50 metros" },
-                        { score: 15, description: "independente (mas pode precisar de alguma ajuda)" }
-                    ]
-                },
-                {
-                    activity: "Subir e descer escadas",
-                    nameAttr: "escadas",
-                    options: [
-                        { score: 0, description: "dependente" },
-                        { score: 5, description: "precisa de ajuda (física ou verbal)" },
-                        { score: 10, description: "independente" }
-                    ]
-                }
-            ];
+            // Preenche o formulário dinamicamente com as tabelas separadas
+            console.log("Attempting to dynamically generate Barthel scale tables.");
 
             barthelData.forEach(activityGroup => {
                 const activitySection = document.createElement('div');
-                activitySection.className = 'criterion-section';
+                activitySection.className = 'activity-section';
 
                 const activityTitle = document.createElement('h3');
-                activityTitle.className = 'criterion-title';
-                activityTitle.textContent = `${activityGroup.activity}`;
+                activityTitle.textContent = `Atividade: ${activityGroup.activity}`;
                 activitySection.appendChild(activityTitle);
 
-                const optionsGroup = document.createElement('div');
-                optionsGroup.className = 'options-group';
+                const table = document.createElement('table');
+                table.className = 'barthel-table';
 
+                const thead = document.createElement('thead');
+                thead.innerHTML = `
+                    <tr>
+                        <th>Pontuação e Descrição</th>
+                    </tr>
+                `;
+                table.appendChild(thead);
+
+                const tbody = document.createElement('tbody');
                 activityGroup.options.forEach(option => {
-                    const label = document.createElement('label');
-                    label.className = 'option-label';
-                    label.innerHTML = `
-                        <input type="radio" name="${activityGroup.nameAttr}" value="${option.score}">
-                        <span>${option.description} (${option.score})</span>
-                    `;
-                    optionsGroup.appendChild(label);
-                });
+                    const tr = document.createElement('tr');
+                    tr.className = 'option-row';
 
-                activitySection.appendChild(optionsGroup);
-                document.getElementById('conteudo').appendChild(activitySection);
+                    const td = document.createElement('td');
+                    td.setAttribute('data-label', 'Opção'); // Para mobile
+                    const label = document.createElement('label');
+                    label.className = 'option-label flex items-center justify-start'; // Alinha à esquerda
+                    const input = document.createElement('input');
+                    input.type = 'radio';
+                    input.name = activityGroup.nameAttr;
+                    input.value = option.score;
+                    input.id = `${activityGroup.nameAttr}-${option.score}`;
+
+                    const span = document.createElement('span');
+                    span.textContent = `${option.score} = ${option.description}`;
+
+                    label.appendChild(input);
+                    label.appendChild(span);
+                    td.appendChild(label);
+                    tr.appendChild(td);
+                    tbody.appendChild(tr);
+                });
+                table.appendChild(tbody);
+                activitySection.appendChild(table);
+                conteudoDiv.appendChild(activitySection);
+                console.log(`[Barthel Scale] Generated table for activity: ${activityGroup.activity}`);
             });
+
+            // Mostra o banner de cookies ao carregar a página, se necessário
+            showCookieBanner();
 
             // Adiciona event listeners aos botões
             btnCalcular.addEventListener('click', calcularPontuacao);
             btnLimpar.addEventListener('click', limparCampos);
             btnGerarPDF.addEventListener('click', gerarPDF);
 
+            // NOVO: Adiciona o event listener para o novo botão NANDA, NIC, NOC
             if (btnNandaNicNoc) {
                 btnNandaNicNoc.addEventListener('click', () => {
-                    const currentScore = resultadoDiv.dataset.score;
-                    const scaleName = resultadoDiv.dataset.scaleName;
+                    const currentScore = resultadoDiv.dataset.score; // Pega a pontuação armazenada
+                    const scaleName = resultadoDiv.dataset.scaleName; // Pega o nome da escala
 
-                    if (!currentScore || !scaleName || resultadoDiv.classList.contains('hidden')) {
-                        window.showCustomModal('Por favor, clique em "Calcular" primeiro para obter a pontuação e habilitar a pesquisa NANDA, NIC, NOC.');
+                    // Se não houver pontuação ou nome da escala válidos, ou o resultado estiver oculto, exibe mensagem de erro
+                    if (!currentScore || !scaleName || resultadoDiv.classList.contains('hidden') || resultadoDiv.innerText.includes('Por favor, selecione uma opção para cada atividade')) {
+                        showCustomMessage('Por favor, clique em "Calcular" primeiro para obter a pontuação e habilitar a pesquisa NANDA, NIC, NOC.');
                         return;
                     }
 
-                    const detailedSearchQuery = `Pontuação ${scaleName}: ${currentScore} - GERAR diagnosticos de enfermagem da NANDA, GERAR intervenções de enfermagem do NIC, Gerar um exemplo de mensuração dos resultados implementados pelo enfermeiro (NOC)`;
+                    // Constrói a string de pesquisa detalhada
+                    const detailedSearchQuery = `${currentScore} ${scaleName} GERAR diagnosticos de enfermagem da NANDA, GERAR intervenções de enfermagem do NIC, Gerar um exemplo de mensuração dos resultados implementados pelo enfermeiro (NOC)`;
                     const encodedSearchQuery = encodeURIComponent(detailedSearchQuery);
                     
+                    // Abre uma nova aba com a pesquisa do Google
                     window.open(`https://www.google.com/search?q=${encodedSearchQuery}`, '_blank');
                 });
             }
         });
     </script>
-    <button id="backToTopBtn" title="Voltar ao topo">
-    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m18 15-6-6-6 6"/></svg>
-</button>
-
-<div id="cookieConsentBanner">
-    <p>Este site utiliza cookies para melhorar sua experiência. Ao continuar, você concorda com nossas políticas.</p>
-    <div class="cookie-buttons">
-        <button id="acceptAllCookiesBtn">Aceitar Cookies</button>
-        <button id="refuseAllCookiesBtn" class="secondary">Recusar</button>
-    </div>
-</div>
 </body>
 </html>
