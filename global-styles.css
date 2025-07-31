@@ -488,7 +488,7 @@ header {
         background-color: #1A3E74 !important;
         color: white !important;
         box-shadow: 0 2px 5px rgba(0,0,0,0.2) !important;
-        /* Removed !important from display to allow JS control */
+        display: flex !important;
         align-items: center !important;
         justify-content: center !important;
         z-index: 99992;
@@ -1576,27 +1576,70 @@ footer .vertical-divider-footer-stretched {
     align-self: stretch; /* Make it stretch vertically */
 }
 
-@media (min-width: 767px) { /* Mobile adjustments for footer */
+/* Ajustes para o layout do rodapé em telas maiores (desktop) */
+@media (min-width: 768px) { /* md breakpoint em Tailwind é 768px */
+    /* A div principal que contém as seções do rodapé */
+    /* .md\:flex .md\:justify-between .md\:items-start .md\:space-x-8 .md\:items-stretch */
+    /* Tradução das classes Tailwind para CSS puro */
     footer .md\:flex {
-        flex-direction: column;
-        align-items: center;
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 2rem; /* space-x-8 no Tailwind é 2rem */
+        align-items: stretch; /* items-stretch */
+    }
+
+    /* Ajuste para a última coluna do rodapé que tem flex-col no mobile e flex-row no desktop */
+    footer .flex-1.flex-col.md\:flex-row {
+        flex-direction: row; /* Alinha os itens horizontalmente no desktop */
+        justify-content: flex-end; /* Alinha à direita, como no design de insulina.html */
+        align-items: flex-start; /* Alinha ao topo */
+        gap: 1rem; /* Espaçamento entre os itens sociais e o botão */
+    }
+
+    /* Remove a margem inferior para as seções do rodapé no desktop */
+    footer .md\:mb-0 {
+        margin-bottom: 0 !important; /* Força a remoção da margem inferior */
+    }
+
+    /* Esconde o divisor vertical no mobile, mas mostra no desktop */
+    footer .vertical-divider-footer-stretched {
+        display: block;
+    }
+}
+
+/* Mobile adjustments for footer (max-width: 767px) */
+/* Estes estilos garantem que os elementos se empilhem corretamente em telas menores,
+   anulando ou definindo comportamentos específicos para mobile. */
+@media (max-width: 767px) {
+    /* O container principal das seções do rodapé */
+    /* Por padrão, divs são block e empilham. */
+    /* Se a div principal tiver display: flex no mobile, ela precisa ser flex-direction: column */
+    footer .md\:flex { /* Este seletor ainda aponta para a div principal do rodapé */
+        flex-direction: column; /* Garante que as seções se empilhem */
+        align-items: center; /* Centraliza as seções horizontalmente no mobile */
+        gap: 1.5rem; /* Espaçamento entre as seções empilhadas */
     }
     footer .md\:justify-between {
-        justify-content: flex-start;
+        justify-content: center; /* Centraliza o conteúdo no mobile */
     }
     footer .md\:items-start {
-        align-items: flex-start;
+        align-items: center; /* Centraliza o conteúdo no mobile */
     }
     footer .md\:space-x-8 {
-        gap: 1.5rem; /* Adjust space for vertical layout */
+        gap: 0; /* Remove o espaçamento horizontal para as seções principais no mobile */
     }
+
+    /* Ajustes para a última coluna do rodapé (Siga-nos e botão de cookies) */
+    footer .flex-1.flex-col.md\:flex-row {
+        flex-direction: column; /* Garante que os itens se empilhem no mobile */
+        align-items: center; /* Centraliza os itens verticalmente */
+        justify-content: center;
+        gap: 1rem; /* Espaçamento entre os itens empilhados */
+    }
+
+    /* Garante que a margem inferior permaneça para as seções no mobile */
     footer .mb-6 {
         margin-bottom: 1.5rem;
-    }
-    footer .vertical-divider-footer-stretched {
-        display: none; /* Hide on mobile */
-    }
-    footer .flex-1.flex-col.md\:flex-row {
-        align-items: flex-start;
     }
 }
