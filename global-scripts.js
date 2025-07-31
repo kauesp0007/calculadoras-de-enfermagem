@@ -260,7 +260,7 @@ document.addEventListener('DOMContentLoaded', function() {
     function alternarEspacamentoLetra() {
         currentLetterSpacing = (currentLetterSpacing % 3) + 1;
         updateLetterSpacing();
-        if (isReading) { // Se estiver lendo, reinicia com a nova velocidade
+        if (isReading) {
             reiniciarLeitura();
         }
     }
@@ -303,7 +303,7 @@ document.addEventListener('DOMContentLoaded', function() {
     function alternarVelocidadeLeitura() {
         currentReadingSpeed = (currentReadingSpeed % 3) + 1;
         updateReadingSpeed();
-        if (isReading) { // Se estiver lendo, reinicia com a nova velocidade
+        if (isReading) {
             reiniciarLeitura();
         }
     }
@@ -336,14 +336,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 speechSynthesizer.resume();
                 announceStatus('Leitura retomada.');
             } else {
-                // Cancel any ongoing speech before starting a new one
                 if (speechSynthesizer.speaking) {
                     speechSynthesizer.cancel();
                 }
                 const textToRead = mainContent.innerText;
                 utterance = new SpeechSynthesisUtterance(textToRead);
                 utterance.lang = 'pt-BR';
-                utterance.rate = currentReadingSpeed === 1 ? 1 : (currentReadingSpeed === 2 ? 0.75 : 1.25); // Apply saved speed
+                utterance.rate = currentReadingSpeed === 1 ? 1 : (currentReadingSpeed === 2 ? 0.75 : 1.25);
                 utterance.onend = () => {
                     isReading = false;
                     if (toggleLeituraBtn) {
@@ -367,25 +366,20 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    /**
-     * Restarts text-to-speech reading from the beginning.
-     */
+    /** Reinicia a leitura de texto para voz do início do conteúdo principal. */
     function reiniciarLeitura() {
         if (speechSynthesizer.speaking) {
             speechSynthesizer.cancel();
         }
         isReading = false;
         announceStatus('Leitura reiniciada.');
-        toggleLeitura(); // Start reading from the beginning
+        toggleLeitura();
     }
 
-    /**
-     * Reads the text content of the currently focused element.
-     */
+    /** Lê o elemento atualmente focado. */
     function readFocusedElement() {
         const focusedElement = document.activeElement;
         if (focusedElement && focusedElement.innerText) {
-            // Cancel any ongoing speech before starting a new one
             if (speechSynthesizer.speaking) {
                 speechSynthesizer.cancel();
             }
@@ -394,15 +388,13 @@ document.addEventListener('DOMContentLoaded', function() {
             focusedUtterance.lang = 'pt-BR';
             focusedUtterance.rate = currentReadingSpeed === 1 ? 1 : (currentReadingSpeed === 2 ? 0.75 : 1.25);
             speechSynthesizer.speak(focusedUtterance);
-            announceStatus(`Lendo: ${textToRead.substring(0, 50)}...`); // Announce first 50 chars
+            announceStatus(`Lendo: ${textToRead.substring(0, 50)}...`);
         } else {
             announceStatus('Nenhum elemento focado com texto para ler.');
         }
     }
 
-    /**
-     * Toggles high contrast mode.
-     */
+    /** Alterna o modo de alto contraste. */
     function alternarContraste() {
         body.classList.toggle('contraste-alto');
         const isActive = body.classList.contains('contraste-alto');
@@ -412,9 +404,7 @@ document.addEventListener('DOMContentLoaded', function() {
         announceStatus(`Modo de alto contraste ${isActive ? 'ativado' : 'desativado'}.`);
     }
 
-    /**
-     * Toggles dark mode.
-     */
+    /** Alterna o modo escuro. */
     function alternarModoEscuro() {
         body.classList.toggle('dark-mode');
         const isActive = body.classList.contains('dark-mode');
@@ -424,9 +414,7 @@ document.addEventListener('DOMContentLoaded', function() {
         announceStatus(`Modo escuro ${isActive ? 'ativado' : 'desativado'}.`);
     }
 
-    /**
-     * Toggles OpenDyslexic font.
-     */
+    /** Alterna a fonte amigável para dislexia. */
     function alternarFonteDislexia() {
         body.classList.toggle('fonte-dislexia');
         const isActive = body.classList.contains('fonte-dislexia');
@@ -435,8 +423,8 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     /**
-      * Sets the accessibility focus color.
-     * @param {string} color - The color to set (e.g., 'yellow', 'lime').
+      * Define a cor de foco de acessibilidade.
+     * @param {string} color - A cor a ser definida (ex: 'yellow', 'lime').
      */
     function definirCorFoco(color) {
         currentFocusColor = color;
@@ -447,20 +435,19 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     /**
-     * Updates the visual state of the focus color selection buttons.
-     * @param {string} selectedColor - The currently selected color.
+     * Atualiza o estado visual dos botões de seleção de cor de foco.
+     * @param {string} selectedColor - A cor atualmente selecionada.
      */
     function updateFocusColorButtons(selectedColor) {
         document.querySelectorAll('#barraAcessibilidade .color-option').forEach(button => {
-            if (button.dataset.color === selectedColor) { // Use dataset.color
+            if (button.dataset.color === selectedColor) {
                 button.classList.add('selected');
             } else {
                 button.classList.remove('selected');
             }
         });
-        // Also update buttons in PWA accessibility bar if they exist
         document.querySelectorAll('#pwaAcessibilidadeBar .color-option').forEach(button => {
-            if (button.dataset.color === selectedColor) { // Use dataset.color
+            if (button.dataset.color === selectedColor) {
                 button.classList.add('selected');
             } else {
                 button.classList.remove('selected');
@@ -468,26 +455,20 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    /**
-     * Resets all accessibility settings to default.
-     */
+    /** Redefine todas as configurações de acessibilidade para o padrão. */
     function resetarAcessibilidade() {
-        // Reset font size
         currentFontSize = 1;
         updateFontSize();
-        body.style.fontSize = ''; // Remove inline style
+        body.style.fontSize = '';
 
-        // Reset line height
         currentLineHeight = 1;
         updateLineHeight();
         document.documentElement.style.setProperty('--espacamento-linha', '1.5');
 
-        // Reset letter spacing
         currentLetterSpacing = 1;
         updateLetterSpacing();
         document.documentElement.style.setProperty('--espacamento-letra', '0em');
 
-        // Reset reading speed
         currentReadingSpeed = 1;
         updateReadingSpeed();
         if (speechSynthesizer.speaking) {
@@ -501,18 +482,14 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
 
-        // Remove contrast, dark mode, and dyslexia font classes
         body.classList.remove('contraste-alto', 'dark-mode', 'fonte-dislexia');
         if (btnAlternarContraste) btnAlternarContraste.setAttribute('aria-pressed', 'false');
         if (btnAlternarContrastePWA) btnAlternarContrastePWA.setAttribute('aria-pressed', 'false');
         if (btnAlternarModoEscuro) btnAlternarModoEscuro.setAttribute('aria-pressed', 'false');
         if (btnAlternarModoEscuroPWA) btnAlternarModoEscuroPWA.setAttribute('aria-pressed', 'false');
 
+        definirCorFoco('yellow');
 
-        // Reset focus color
-        definirCorFoco('yellow'); // Set default focus color
-
-        // Clear all accessibility related localStorage items
         localStorage.removeItem('fontSize');
         localStorage.removeItem('lineHeight');
         localStorage.removeItem('letterSpacing');
@@ -525,165 +502,75 @@ document.addEventListener('DOMContentLoaded', function() {
         announceStatus('Configurações de acessibilidade redefinidas para o padrão.');
     }
 
-    // --- Event Listeners for Accessibility Buttons (Desktop) ---
-    document.addEventListener('DOMContentLoaded', () => {
-        document.getElementById('btnAlternarTamanhoFonte')?.addEventListener('click', alternarTamanhoFonte);
-        document.getElementById('btnAlternarEspacamentoLinha')?.addEventListener('click', alternarEspacamentoLinha);
-        document.getElementById('btnAlternarEspacamentoLetra')?.addEventListener('click', alternarEspacamentoLetra);
-        document.getElementById('btnAlternarVelocidadeLeitura')?.addEventListener('click', alternarVelocidadeLeitura);
-        document.getElementById('btnToggleLeitura')?.addEventListener('click', toggleLeitura);
-        document.getElementById('btnReiniciarLeitura')?.addEventListener('click', reiniciarLeitura);
-        document.getElementById('btnReadFocused')?.addEventListener('click', readFocusedElement);
-        document.getElementById('btnAlternarContraste')?.addEventListener('click', alternarContraste);
-        document.getElementById('btnAlternarModoEscuro')?.addEventListener('click', alternarModoEscuro);
-        document.getElementById('btnAlternarFonteDislexia')?.addEventListener('click', alternarFonteDislexia);
-        document.getElementById('btnResetarAcessibilidade')?.addEventListener('click', resetarAcessibilidade);
-        document.getElementById('btnKeyboardShortcuts')?.addEventListener('click', showKeyboardShortcutsModal);
+    // --- Lógica do Focus Trap (para modais e menus off-canvas) ---
+    let focusedElementBeforeModal;
+    let focusableElements;
+    let firstFocusableElement;
+    let lastFocusableElement;
 
+    function trapFocus(element) {
+        focusedElementBeforeModal = document.activeElement;
+        focusableElements = element.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
+        firstFocusableElement = focusableElements[0];
+        lastFocusableElement = focusableElements[focusableElements.length - 1];
 
-        document.querySelectorAll('#barraAcessibilidade .color-option').forEach(button => {
-            button.addEventListener('click', () => definirCorFoco(button.dataset.color));
-        });
+        element.addEventListener('keydown', handleTrapFocus);
+    }
 
-        // --- Event Listeners for Accessibility Buttons (PWA/Mobile) ---
-        document.getElementById('btnAlternarTamanhoFontePWA')?.addEventListener('click', alternarTamanhoFonte);
-        document.getElementById('btnAlternarEspacamentoLinhaPWA')?.addEventListener('click', alternarEspacamentoLinha);
-        document.getElementById('btnAlternarEspacamentoLetraPWA')?.addEventListener('click', alternarEspacamentoLetra);
-        document.getElementById('btnAlternarVelocidadeLeituraPWA')?.addEventListener('click', alternarVelocidadeLeitura);
-        document.getElementById('btnToggleLeituraPWA')?.addEventListener('click', toggleLeitura);
-        document.getElementById('btnReiniciarLeituraPWA')?.addEventListener('click', reiniciarLeitura);
-        document.getElementById('btnReadFocusedPWA')?.addEventListener('click', readFocusedElement);
-        document.getElementById('btnAlternarContrastePWA')?.addEventListener('click', alternarContraste);
-        document.getElementById('btnAlternarModoEscuroPWA')?.addEventListener('click', alternarModoEscuro);
-        document.getElementById('btnAlternarFonteDislexiaPWA')?.addEventListener('click', alternarFonteDislexia);
-        document.getElementById('btnResetarAcessibilidadePWA')?.addEventListener('click', resetarAcessibilidade);
-        document.getElementById('btnKeyboardShortcutsPWA')?.addEventListener('click', showKeyboardShortcutsModal);
+    function releaseFocus() {
+        if (focusedElementBeforeModal) {
+            focusedElementBeforeModal.focus();
+        }
+        document.removeEventListener('keydown', handleTrapFocus);
+    }
 
+    function handleTrapFocus(e) {
+        const isTabPressed = e.key === 'Tab';
+        if (!isTabPressed) {
+            return;
+        }
 
-        document.querySelectorAll('#pwaAcessibilidadeBar .color-option').forEach(button => {
-            button.addEventListener('click', () => definirCorFoco(button.dataset.color));
-        });
-
-        // --- Submenu Toggle Logic for PWA Accessibility Bar ---
-        document.querySelectorAll('.pwa-submenu-header').forEach(header => {
-            header.addEventListener('click', function() {
-                const submenuId = this.dataset.submenu;
-                const submenuContent = document.getElementById(`${submenuId}-submenu`);
-                const chevronIcon = this.querySelector('i.fa-chevron-down, i.fa-chevron-right');
-
-                if (!submenuContent) {
-                    console.error(`Submenu content not found for ID: ${submenuId}-submenu`);
-                    return;
-                }
-
-                document.querySelectorAll('.pwa-submenu-content.is-open').forEach(openSubmenu => {
-                    if (openSubmenu.id !== `${submenuId}-submenu`) {
-                        openSubmenu.classList.remove('is-open');
-                        const openSubmenuHeader = openSubmenu.previousElementSibling;
-                        const openChevron = openSubmenuHeader.querySelector('i.fa-chevron-down');
-                        if (openChevron) {
-                            openChevron.classList.remove('fa-chevron-down');
-                            openChevron.classList.add('fa-chevron-right');
-                            openSubmenuHeader.setAttribute('aria-expanded', 'false');
-                        }
-                    }
-                });
-
-                submenuContent.classList.toggle('is-open');
-                const isExpanded = submenuContent.classList.contains('is-open');
-                this.setAttribute('aria-expanded', isExpanded);
-
-                if (chevronIcon) {
-                    if (isExpanded) {
-                        chevronIcon.classList.remove('fa-chevron-right');
-                        chevronIcon.classList.add('fa-chevron-down');
-                    } else {
-                        chevronIcon.classList.remove('fa-chevron-down');
-                        chevronIcon.classList.add('fa-chevron-right');
-                    }
-                }
-            });
-        });
-
-        // Initial apply of saved settings
-        applySavedSettings();
-    });
-
-
-    // --- Back to Top Button ---
-    const backToTopBtn = document.getElementById('backToTopBtn');
-
-    /**
-     * Checks the scroll position and shows/hides the "Back to Top" button.
-     */
-    function checkScrollPosition() {
-        if (backToTopBtn) {
-            if (window.scrollY > 200) {
-                backToTopBtn.style.display = 'block';
-            } else {
-                backToTopBtn.style.display = 'none';
+        if (e.shiftKey) {
+            if (document.activeElement === firstFocusableElement) {
+                lastFocusableElement.focus();
+                e.preventDefault();
+            }
+        } else {
+            if (document.activeElement === lastFocusableElement) {
+                firstFocusableElement.focus();
+                e.preventDefault();
             }
         }
     }
 
-    /**
-     * Scrolls the page to the top smoothly.
-     */
-    function scrollToTop() {
-        window.scrollTo({
-            top: 0,
-            behavior: 'smooth'
-        });
-        announceStatus('Página rolada para o topo.');
-    }
-
-    window.addEventListener('scroll', checkScrollPosition);
-    document.addEventListener('DOMContentLoaded', checkScrollPosition);
-    if (backToTopBtn) {
-        backToTopBtn.addEventListener('click', scrollToTop);
-    }
-
-    // --- Custom Modal Logic (for newsletter and NANDA/NIC/NOC) ---
-    const customModal = document.getElementById('customModal');
-    const modalMessage = document.getElementById('modalMessage');
-    const modalMessageTitle = document.getElementById('modalMessageTitle'); // New title element
-    const modalCloseButton = document.getElementById('modalCloseButton');
-
-    /**
-     * Displays a custom modal with a given message.
-     * @param {string} message - The message to display in the modal.
-     * @param {HTMLElement} [triggeringElement=document.activeElement] - The element that triggered the modal.
-     */
+    // --- Funções do Modal de Mensagem Personalizado (showCustomModal) ---
     window.showCustomModal = function(message, triggeringElement = document.activeElement) {
         if (customModal && modalMessage && modalMessageTitle) {
-            lastFocusedElement = triggeringElement; // Store the element that opened the modal
+            lastFocusedElement = triggeringElement;
             modalMessage.textContent = message;
-            modalMessageTitle.textContent = "Mensagem de Informação"; // Set a default title for screen readers
+            modalMessageTitle.textContent = "Mensagem de Informação";
             customModal.classList.remove('hidden');
             customModal.setAttribute('aria-hidden', 'false');
-            document.body.style.overflow = 'hidden'; // Prevent scrolling behind modal
-            modalCloseButton.focus(); // Focus the close button for accessibility
-            announceStatus(`Modal aberto: ${message}`); // Announce modal message
+            document.body.style.overflow = 'hidden';
+            modalCloseButton.focus();
+            announceStatus(`Modal aberto: ${message}`);
         } else {
-            console.error('Custom Modal elements not found.');
+            console.error('Elementos do Modal Personalizado não encontrados.');
         }
     }
 
-    /**
-     * Hides the custom modal.
-     */
     function hideCustomModal() {
         if (customModal) {
             customModal.classList.add('hidden');
             customModal.setAttribute('aria-hidden', 'true');
-            document.body.style.overflow = ''; // Restore body scrolling
+            document.body.style.overflow = '';
             if (lastFocusedElement) {
-                lastFocusedElement.focus(); // Return focus to the element that opened the modal
-                lastFocusedElement = null; // Clear the stored element
+                lastFocusedElement.focus();
+                lastFocusedElement = null;
             }
             announceStatus('Modal fechado.');
         } else {
-            console.error('Custom Modal element not found for hiding.');
+            console.error('Elemento do Modal Personalizado não encontrado para ocultar.');
         }
     }
 
@@ -691,7 +578,6 @@ document.addEventListener('DOMContentLoaded', function() {
         modalCloseButton.addEventListener('click', hideCustomModal);
     }
 
-    // Close modal if escape key is pressed
     document.addEventListener('keydown', (event) => {
         if (event.key === 'Escape') {
             if (customModal && !customModal.classList.contains('hidden')) {
@@ -701,25 +587,17 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // --- Newsletter Subscription Logic (Adjusted for Formspree) ---
-    const newsletterForm = document.getElementById('newsletters-section'); // Now the form itself
-    const newsletterEmail = document.getElementById('email'); // Changed to 'email'
+    const newsletterForm = document.getElementById('newsletters-section');
+    const newsletterEmail = document.getElementById('email');
     const newsletterConsent = document.getElementById('newsletterConsent');
     const subscribeNewsletterBtn = document.getElementById('subscribeNewsletterBtn');
-    const newsletterError = document.getElementById('erro-email'); // Changed to 'erro-email'
+    const newsletterError = document.getElementById('erro-email');
 
-    /**
-     * Validates the email format.
-     * @param {string} email - The email address to validate.
-     * @returns {boolean} True if the email is valid, false otherwise.
-     */
     function isValidEmail(email) {
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         return emailRegex.test(email);
     }
 
-    /**
-     * Updates the state of the subscribe button based on input validity and consent.
-     */
     function updateSubscribeButtonState() {
         const emailValid = newsletterEmail && isValidEmail(newsletterEmail.value);
         const consentChecked = newsletterConsent && newsletterConsent.checked;
@@ -728,7 +606,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // Add event listeners for newsletter form fields
     if (newsletterEmail) {
         newsletterEmail.addEventListener('input', updateSubscribeButtonState);
     }
@@ -736,10 +613,9 @@ document.addEventListener('DOMContentLoaded', function() {
         newsletterConsent.addEventListener('change', updateSubscribeButtonState);
     }
 
-    // Handle Formspree submission
     if (newsletterForm) {
         newsletterForm.addEventListener('submit', async function(event) {
-            event.preventDefault(); // Prevent default form submission
+            event.preventDefault();
 
             const email = newsletterEmail.value;
             if (!isValidEmail(email)) {
@@ -763,10 +639,9 @@ document.addEventListener('DOMContentLoaded', function() {
             }
 
             if (newsletterError) {
-                newsletterError.style.display = 'none'; // Hide previous errors
+                newsletterError.style.display = 'none';
             }
 
-            // Disable button during submission
             if (subscribeNewsletterBtn) {
                 subscribeNewsletterBtn.disabled = true;
                 subscribeNewsletterBtn.textContent = 'Enviando...';
@@ -776,7 +651,7 @@ document.addEventListener('DOMContentLoaded', function() {
             try {
                 const response = await fetch(this.action, {
                     method: this.method,
-                    body: new FormData(this), // Use FormData to send form data
+                    body: new FormData(this),
                     headers: {
                         'Accept': 'application/json'
                     }
@@ -784,8 +659,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
                 if (response.ok) {
                     window.showCustomModal('Obrigado por se inscrever na nossa newsletter!');
-                    newsletterForm.reset(); // Clear form fields
-                    updateSubscribeButtonState(); // Update button state after reset
+                    newsletterForm.reset();
+                    updateSubscribeButtonState();
                     announceStatus('Inscrição na newsletter realizada com sucesso!');
                 } else {
                     const data = await response.json();
@@ -818,7 +693,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Initial state update for newsletter button on DOMContentLoaded
     document.addEventListener('DOMContentLoaded', updateSubscribeButtonState);
 
     // --- Cookie Consent Banner Logic ---
@@ -826,7 +700,12 @@ document.addEventListener('DOMContentLoaded', function() {
     const acceptAllCookiesBtn = document.getElementById('acceptAllCookiesBtn');
     const refuseAllCookiesBtn = document.getElementById('refuseAllCookiesBtn');
     const manageCookiesBtn = document.getElementById('manageCookiesBtn');
-    const openGranularCookieModalBtn = document.getElementById('openGranularCookieModalBtn'); // Botão no rodapé
+    const granularCookieModal = document.getElementById('granularCookieModal');
+    const granularModalCloseButton = document.getElementById('granularModalCloseButton');
+    const saveGranularPreferencesBtn = document.getElementById('saveGranularPreferencesBtn');
+    const cancelGranularPreferencesBtn = document.getElementById('cancelGranularPreferencesBtn');
+    const cookieAnalyticsCheckbox = document.getElementById('cookieAnalytics');
+    const cookieMarketingCheckbox = document.getElementById('cookieMarketing');
 
     const cookiesAcceptedKey = 'cookiesAccepted';
     const cookiePreferencesKey = 'cookiePreferences';
@@ -860,7 +739,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function saveGranularPreferences() {
         const preferences = {
-            essential: true, // Always essential
+            essential: true,
             analytics: cookieAnalyticsCheckbox ? cookieAnalyticsCheckbox.checked : false,
             marketing: cookieMarketingCheckbox ? cookieMarketingCheckbox.checked : false
         };
@@ -946,8 +825,6 @@ document.addEventListener('DOMContentLoaded', function() {
     updateGtagConsent();
 
     // --- VLibras widget initialization ---
-    // Make sure the VLibras script is loaded in the HTML head
-    // <script src="https://vlibras.gov.br/app/vlibras-plugin.js"></script>
     new VLibras.Widget('https://vlibras.gov.br/app');
 
 
@@ -991,7 +868,6 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // --- Global Navigation Submenu Toggle Logic (for desktop and mobile) ---
-    // This logic handles the opening/closing of submenus in both desktop and mobile navigation.
     function handleSubmenuToggle(event) {
         event.preventDefault();
         const toggleBtn = event.currentTarget;
@@ -1000,7 +876,6 @@ document.addEventListener('DOMContentLoaded', function() {
         const isCurrentlyExpanded = toggleBtn.getAttribute('aria-expanded') === 'true';
 
         if (submenu) {
-            // Close all other open submenus at the same level
             const parentUl = toggleBtn.closest('ul');
             if (parentUl) {
                 parentUl.querySelectorAll('[data-submenu-toggle]').forEach(otherToggle => {
@@ -1020,7 +895,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 });
             }
 
-            // Toggle the clicked submenu
             if (isCurrentlyExpanded) {
                 submenu.classList.add('hidden');
                 toggleBtn.setAttribute('aria-expanded', 'false');
@@ -1043,17 +917,19 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // Add event listeners for desktop submenu toggles
     document.querySelectorAll('.desktop-nav [data-submenu-toggle]').forEach(toggleBtn => {
         toggleBtn.addEventListener('click', handleSubmenuToggle);
     });
 
-    // Add event listeners for mobile submenu toggles
     document.querySelectorAll('#offCanvasMenu [data-submenu-toggle]').forEach(toggleBtn => {
         toggleBtn.addEventListener('click', handleSubmenuToggle);
     });
 
     // --- Hamburger Menu and Off-Canvas Navigation Logic (PWA/Mobile) ---
+    const hamburgerButton = document.getElementById('hamburgerButton');
+    const offCanvasMenu = document.getElementById('offCanvasMenu');
+    const menuOverlay = document.getElementById('menuOverlay');
+
     if (hamburgerButton && offCanvasMenu && menuOverlay) {
         hamburgerButton.addEventListener('click', () => {
             offCanvasMenu.classList.toggle('is-open');
@@ -1067,7 +943,6 @@ document.addEventListener('DOMContentLoaded', function() {
             } else {
                 releaseFocus();
             }
-            // Close accessibility bar if open when hamburger is clicked
             if (pwaAcessibilidadeBar && pwaAcessibilidadeBar.classList.contains('is-open')) {
                 pwaAcessibilidadeBar.classList.remove('is-open');
                 accessibilityToggleButton.setAttribute('aria-expanded', 'false');
@@ -1080,7 +955,6 @@ document.addEventListener('DOMContentLoaded', function() {
             releaseFocus();
         });
 
-        // Close off-canvas menu when a link inside it is clicked
         offCanvasMenu.querySelectorAll('a').forEach(link => {
             link.addEventListener('click', () => {
                 offCanvasMenu.classList.remove('is-open');
@@ -1091,6 +965,9 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // --- Accessibility Toggle Button Logic (PWA/Mobile) ---
+    const accessibilityToggleButton = document.getElementById('accessibilityToggleButton');
+    const pwaAcessibilidadeBar = document.getElementById('pwaAcessibilidadeBar');
+
     if (accessibilityToggleButton && pwaAcessibilidadeBar && menuOverlay) {
         accessibilityToggleButton.addEventListener('click', () => {
             pwaAcessibilidadeBar.classList.toggle('is-open');
@@ -1098,24 +975,22 @@ document.addEventListener('DOMContentLoaded', function() {
             accessibilityToggleButton.setAttribute('aria-expanded', isOpen);
 
             if (isOpen) {
-                menuOverlay.classList.add('is-open'); // Show overlay
+                menuOverlay.classList.add('is-open');
                 const firstFocusable = pwaAcessibilidadeBar.querySelector('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
                 if (firstFocusable) {
                     firstFocusable.focus();
                 }
                 trapFocus(pwaAcessibilidadeBar);
-                // Close hamburger menu if open when accessibility toggle is clicked
                 if (offCanvasMenu && offCanvasMenu.classList.contains('is-open')) {
                     offCanvasMenu.classList.remove('is-open');
                 }
             } else {
-                menuOverlay.classList.remove('is-open'); // Hide overlay
+                menuOverlay.classList.remove('is-open');
                 releaseFocus();
             }
         });
 
         menuOverlay.addEventListener('click', (e) => {
-            // Only close pwaAcessibilidadeBar if the click target is the overlay itself
             if (pwaAcessibilidadeBar.classList.contains('is-open') &&
                 !pwaAcessibilidadeBar.contains(e.target)) {
                 pwaAcessibilidadeBar.classList.remove('is-open');
@@ -1176,25 +1051,487 @@ document.addEventListener('DOMContentLoaded', function() {
         adjustTitleBarWidth();
     });
 
-    // Initial calls on load
     togglePWAModeElements();
     adjustTitleBarWidth();
 
     // --- Newsletter Section - Dynamic Elements and Tooltips ---
-    // This part ensures that tooltips are properly initialized for dynamically loaded content
-    // and that the newsletter form logic is correctly bound.
+    const newsletterForm = document.getElementById('newsletters-section');
+    const newsletterEmail = document.getElementById('email');
+    const newsletterConsent = document.getElementById('newsletterConsent');
+    const subscribeNewsletterBtn = document.getElementById('subscribeNewsletterBtn');
+    const newsletterError = document.getElementById('erro-email');
+
+    function isValidEmail(email) {
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        return emailRegex.test(email);
+    }
+
+    function updateSubscribeButtonState() {
+        const emailValid = newsletterEmail && isValidEmail(newsletterEmail.value);
+        const consentChecked = newsletterConsent && newsletterConsent.checked;
+        if (subscribeNewsletterBtn) {
+            subscribeNewsletterBtn.disabled = !(emailValid && consentChecked);
+        }
+    }
+
+    if (newsletterEmail) {
+        newsletterEmail.addEventListener('input', updateSubscribeButtonState);
+    }
+    if (newsletterConsent) {
+        newsletterConsent.addEventListener('change', updateSubscribeButtonState);
+    }
+
+    if (newsletterForm) {
+        newsletterForm.addEventListener('submit', async function(event) {
+            event.preventDefault();
+
+            const email = newsletterEmail.value;
+            if (!isValidEmail(email)) {
+                if (newsletterError) {
+                    newsletterError.textContent = 'E-mail inválido. Verifique se digitou corretamente, por exemplo: nome@dominio.com';
+                    newsletterError.style.display = 'block';
+                    newsletterError.focus();
+                }
+                announceStatus('Erro no formulário: E-mail inválido. Verifique se digitou corretamente, por exemplo: nome@dominio.com');
+                return;
+            }
+
+            if (!newsletterConsent.checked) {
+                if (newsletterError) {
+                    newsletterError.textContent = 'Você deve aceitar os termos para se inscrever.';
+                    newsletterError.style.display = 'block';
+                    newsletterError.focus();
+                }
+                announceStatus('Erro no formulário: Você deve aceitar os termos para se inscrever.');
+                return;
+            }
+
+            if (newsletterError) {
+                newsletterError.style.display = 'none';
+            }
+
+            if (subscribeNewsletterBtn) {
+                subscribeNewsletterBtn.disabled = true;
+                subscribeNewsletterBtn.textContent = 'Enviando...';
+            }
+            announceStatus('Enviando formulário da newsletter...');
+
+            try {
+                const response = await fetch(this.action, {
+                    method: this.method,
+                    body: new FormData(this),
+                    headers: {
+                        'Accept': 'application/json'
+                    }
+                });
+
+                if (response.ok) {
+                    window.showCustomModal('Obrigado por se inscrever na nossa newsletter!');
+                    newsletterForm.reset();
+                    updateSubscribeButtonState();
+                    announceStatus('Inscrição na newsletter realizada com sucesso!');
+                } else {
+                    const data = await response.json();
+                    let errorMessage = 'Ocorreu um erro ao se inscrever. Por favor, tente novamente. Certifique-se de que o e-mail não está em uso ou tente novamente mais tarde.';
+                    if (data.errors) {
+                        errorMessage = data.errors.map(error => error.message).join(', ') + '. Verifique se digitou corretamente ou tente novamente mais tarde.';
+                    }
+                    if (newsletterError) {
+                        newsletterError.textContent = errorMessage;
+                        newsletterError.style.display = 'block';
+                        newsletterError.focus();
+                    }
+                    announceStatus(`Erro na inscrição da newsletter: ${errorMessage}`);
+                }
+            } catch (error) {
+                console.error('Submission error:', error);
+                const networkErrorMessage = 'Ocorreu um erro de rede. Por favor, tente novamente.';
+                if (newsletterError) {
+                    newsletterError.textContent = networkErrorMessage;
+                    newsletterError.style.display = 'block';
+                    newsletterError.focus();
+                }
+                announceStatus(`Erro na inscrição da newsletter: ${networkErrorMessage}`);
+            } finally {
+                if (subscribeNewsletterBtn) {
+                    subscribeNewsletterBtn.disabled = false;
+                    subscribeNewsletterBtn.textContent = 'Assinar';
+                }
+            }
+        });
+    }
+
+    document.addEventListener('DOMContentLoaded', updateSubscribeButtonState);
+
+    // --- Cookie Consent Banner Logic ---
+    const cookieConsentBanner = document.getElementById('cookieConsentBanner');
+    const acceptAllCookiesBtn = document.getElementById('acceptAllCookiesBtn');
+    const refuseAllCookiesBtn = document.getElementById('refuseAllCookiesBtn');
+    const manageCookiesBtn = document.getElementById('manageCookiesBtn');
+    const granularCookieModal = document.getElementById('granularCookieModal');
+    const granularModalCloseButton = document.getElementById('granularModalCloseButton');
+    const saveGranularPreferencesBtn = document.getElementById('saveGranularPreferencesBtn');
+    const cancelGranularPreferencesBtn = document.getElementById('cancelGranularPreferencesBtn');
+    const cookieAnalyticsCheckbox = document.getElementById('cookieAnalytics');
+    const cookieMarketingCheckbox = document.getElementById('cookieMarketing');
+
+    const cookiesAcceptedKey = 'cookiesAccepted';
+    const cookiePreferencesKey = 'cookiePreferences';
+
+    function showCookieBanner() {
+        if (localStorage.getItem(cookiesAcceptedKey) === null) {
+            cookieConsentBanner.classList.add('show');
+        }
+    }
+
+    function hideCookieBanner() {
+        cookieConsentBanner.classList.remove('show');
+    }
+
+    function updateGtagConsent() {
+        const preferences = JSON.parse(localStorage.getItem(cookiePreferencesKey)) || {};
+        const analyticsStorage = preferences.analytics === true ? 'granted' : 'denied';
+        const adStorage = preferences.marketing === true ? 'granted' : 'denied';
+
+        gtag('consent', 'update', {
+            'analytics_storage': analyticsStorage,
+            'ad_storage': adStorage
+        });
+    }
+
+    function loadGranularPreferences() {
+        const preferences = JSON.parse(localStorage.getItem(cookiePreferencesKey)) || {};
+        if (cookieAnalyticsCheckbox) cookieAnalyticsCheckbox.checked = preferences.analytics === true;
+        if (cookieMarketingCheckbox) cookieMarketingCheckbox.checked = preferences.marketing === true;
+    }
+
+    function saveGranularPreferences() {
+        const preferences = {
+            essential: true,
+            analytics: cookieAnalyticsCheckbox ? cookieAnalyticsCheckbox.checked : false,
+            marketing: cookieMarketingCheckbox ? cookieMarketingCheckbox.checked : false
+        };
+        localStorage.setItem(cookiePreferencesKey, JSON.stringify(preferences));
+        localStorage.setItem(cookiesAcceptedKey, 'true');
+        updateGtagConsent();
+        hideGranularCookieModal();
+        announceStatus('Preferências de cookies salvas.');
+    }
+
+    function showGranularCookieModal() {
+        hideCookieBanner();
+        if (granularCookieModal) {
+            granularCookieModal.classList.add('show');
+            granularCookieModal.setAttribute('aria-hidden', 'false');
+            document.body.style.overflow = 'hidden';
+            loadGranularPreferences();
+            if (granularModalCloseButton) granularModalCloseButton.focus();
+            announceStatus('Modal de configurações de cookies aberto.');
+        }
+    }
+
+    function hideGranularCookieModal() {
+        if (granularCookieModal) {
+            granularCookieModal.classList.remove('show');
+            granularCookieModal.setAttribute('aria-hidden', 'true');
+            document.body.style.overflow = '';
+            if (localStorage.getItem(cookiesAcceptedKey) === null) {
+                showCookieBanner();
+            }
+            announceStatus('Modal de configurações de cookies fechado.');
+        }
+    }
+
+    function refuseAllCookies() {
+        localStorage.setItem(cookiesAcceptedKey, 'false');
+        localStorage.setItem(cookiePreferencesKey, JSON.stringify({ essential: true, analytics: false, marketing: false }));
+        updateGtagConsent();
+        hideCookieBanner();
+        announceStatus('Todos os cookies não essenciais foram recusados.');
+    }
+
+    if (acceptAllCookiesBtn) {
+        acceptAllCookiesBtn.addEventListener('click', () => {
+            localStorage.setItem(cookiesAcceptedKey, 'true');
+            localStorage.setItem(cookiePreferencesKey, JSON.stringify({ essential: true, analytics: true, marketing: true }));
+            hideCookieBanner();
+            updateGtagConsent();
+            announceStatus('Todos os cookies foram aceitos.');
+        });
+    }
+
+    if (refuseAllCookiesBtn) {
+        refuseAllCookiesBtn.addEventListener('click', refuseAllCookies);
+    }
+
+    if (manageCookiesBtn) {
+        manageCookiesBtn.addEventListener('click', showGranularCookieModal);
+    }
+    if (openGranularCookieModalBtn) {
+        openGranularCookieModalBtn.addEventListener('click', showGranularCookieModal);
+    }
+
+    if (granularModalCloseButton) {
+        granularModalCloseButton.addEventListener('click', hideGranularCookieModal);
+    }
+    if (saveGranularPreferencesBtn) {
+        saveGranularPreferencesBtn.addEventListener('click', saveGranularPreferences);
+    }
+    if (cancelGranularPreferencesBtn) {
+        cancelGranularPreferencesBtn.addEventListener('click', hideGranularCookieModal);
+    }
+
+    document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape') {
+            if (granularCookieModal && granularCookieModal.classList.contains('show')) {
+                hideGranularCookieModal();
+            }
+        }
+    });
+
+    showCookieBanner();
+    updateGtagConsent();
+
+    // --- VLibras widget initialization ---
+    new VLibras.Widget('https://vlibras.gov.br/app');
+
+
+    // --- Service Worker registration ---
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('/service-worker.js')
+                .then(registration => {
+                    console.log('ServiceWorker registration successful with scope: ', registration.scope);
+                })
+                .catch(err => {
+                    console.log('ServiceWorker registration failed: ', err);
+                });
+        });
+    }
+
+    // --- Keyboard Shortcuts Modal Event Listeners ---
+    if (btnKeyboardShortcuts) {
+        btnKeyboardShortcuts.addEventListener('click', showKeyboardShortcutsModal);
+    }
+    if (btnKeyboardShortcutsPWA) {
+        btnKeyboardShortcutsPWA.addEventListener('click', showKeyboardShortcutsModal);
+    }
+
+    if (keyboardModalCloseButton) {
+        keyboardModalCloseButton.addEventListener('click', hideKeyboardShortcutsModal);
+    }
+    if (keyboardShortcutsModal) {
+        keyboardShortcutsModal.addEventListener('click', (e) => {
+            if (e.target === keyboardShortcutsModal) {
+                hideKeyboardShortcutsModal();
+            }
+        });
+    }
+    document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape') {
+            if (keyboardShortcutsModal && keyboardShortcutsModal.classList.contains('show')) {
+                hideKeyboardShortcutsModal();
+            }
+        }
+    });
+
+    // --- Global Navigation Submenu Toggle Logic (for desktop and mobile) ---
+    function handleSubmenuToggle(event) {
+        event.preventDefault();
+        const toggleBtn = event.currentTarget;
+        const submenuId = toggleBtn.dataset.submenuToggle;
+        const submenu = document.getElementById(`submenu-${submenuId}`);
+        const isCurrentlyExpanded = toggleBtn.getAttribute('aria-expanded') === 'true';
+
+        if (submenu) {
+            const parentUl = toggleBtn.closest('ul');
+            if (parentUl) {
+                parentUl.querySelectorAll('[data-submenu-toggle]').forEach(otherToggle => {
+                    if (otherToggle !== toggleBtn) {
+                        const otherSubmenu = document.getElementById(`submenu-${otherToggle.dataset.submenuToggle}`);
+                        if (otherSubmenu && !otherSubmenu.classList.contains('hidden')) {
+                            otherSubmenu.classList.add('hidden');
+                            otherToggle.setAttribute('aria-expanded', 'false');
+                            const icon = otherToggle.querySelector('svg, i');
+                            if (icon) {
+                                icon.classList.remove('fa-chevron-down');
+                                icon.classList.add('fa-chevron-right');
+                                if (icon.tagName === 'SVG') icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>';
+                            }
+                        }
+                    }
+                });
+            }
+
+            if (isCurrentlyExpanded) {
+                submenu.classList.add('hidden');
+                toggleBtn.setAttribute('aria-expanded', 'false');
+                const icon = toggleBtn.querySelector('svg, i');
+                if (icon) {
+                    icon.classList.remove('fa-chevron-down');
+                    icon.classList.add('fa-chevron-right');
+                    if (icon.tagName === 'SVG') icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>';
+                }
+            } else {
+                submenu.classList.remove('hidden');
+                toggleBtn.setAttribute('aria-expanded', 'true');
+                const icon = toggleBtn.querySelector('svg, i');
+                if (icon) {
+                    icon.classList.remove('fa-chevron-right');
+                    icon.classList.add('fa-chevron-down');
+                    if (icon.tagName === 'SVG') icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>';
+                }
+            }
+        }
+    }
+
+    document.querySelectorAll('.desktop-nav [data-submenu-toggle]').forEach(toggleBtn => {
+        toggleBtn.addEventListener('click', handleSubmenuToggle);
+    });
+
+    document.querySelectorAll('#offCanvasMenu [data-submenu-toggle]').forEach(toggleBtn => {
+        toggleBtn.addEventListener('click', handleSubmenuToggle);
+    });
+
+    // --- Hamburger Menu and Off-Canvas Navigation Logic (PWA/Mobile) ---
+    const hamburgerButton = document.getElementById('hamburgerButton');
+    const offCanvasMenu = document.getElementById('offCanvasMenu');
+    const menuOverlay = document.getElementById('menuOverlay');
+
+    if (hamburgerButton && offCanvasMenu && menuOverlay) {
+        hamburgerButton.addEventListener('click', () => {
+            offCanvasMenu.classList.toggle('is-open');
+            menuOverlay.classList.toggle('is-open');
+            if (offCanvasMenu.classList.contains('is-open')) {
+                const firstFocusable = offCanvasMenu.querySelector('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
+                if (firstFocusable) {
+                    firstFocusable.focus();
+                }
+                trapFocus(offCanvasMenu);
+            } else {
+                releaseFocus();
+            }
+            if (pwaAcessibilidadeBar && pwaAcessibilidadeBar.classList.contains('is-open')) {
+                pwaAcessibilidadeBar.classList.remove('is-open');
+                accessibilityToggleButton.setAttribute('aria-expanded', 'false');
+            }
+        });
+
+        menuOverlay.addEventListener('click', () => {
+            offCanvasMenu.classList.remove('is-open');
+            menuOverlay.classList.remove('is-open');
+            releaseFocus();
+        });
+
+        offCanvasMenu.querySelectorAll('a').forEach(link => {
+            link.addEventListener('click', () => {
+                offCanvasMenu.classList.remove('is-open');
+                menuOverlay.classList.remove('is-open');
+                releaseFocus();
+            });
+        });
+    }
+
+    // --- Accessibility Toggle Button Logic (PWA/Mobile) ---
+    const accessibilityToggleButton = document.getElementById('accessibilityToggleButton');
+    const pwaAcessibilidadeBar = document.getElementById('pwaAcessibilidadeBar');
+
+    if (accessibilityToggleButton && pwaAcessibilidadeBar && menuOverlay) {
+        accessibilityToggleButton.addEventListener('click', () => {
+            pwaAcessibilidadeBar.classList.toggle('is-open');
+            const isOpen = pwaAcessibilidadeBar.classList.contains('is-open');
+            accessibilityToggleButton.setAttribute('aria-expanded', isOpen);
+
+            if (isOpen) {
+                menuOverlay.classList.add('is-open');
+                const firstFocusable = pwaAcessibilidadeBar.querySelector('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
+                if (firstFocusable) {
+                    firstFocusable.focus();
+                }
+                trapFocus(pwaAcessibilidadeBar);
+                if (offCanvasMenu && offCanvasMenu.classList.contains('is-open')) {
+                    offCanvasMenu.classList.remove('is-open');
+                }
+            } else {
+                menuOverlay.classList.remove('is-open');
+                releaseFocus();
+            }
+        });
+
+        menuOverlay.addEventListener('click', (e) => {
+            if (pwaAcessibilidadeBar.classList.contains('is-open') &&
+                !pwaAcessibilidadeBar.contains(e.target)) {
+                pwaAcessibilidadeBar.classList.remove('is-open');
+                accessibilityToggleButton.setAttribute('aria-expanded', 'false');
+                menuOverlay.classList.remove('is-open');
+                releaseFocus();
+            }
+        });
+    }
+
+    // --- PWA/Desktop Mode Toggle Logic ---
+    const mainTitle = document.getElementById('main-title');
+    const titleBar = document.querySelector('.title-bar');
+
+    function isPWAOrSmallScreen() {
+        return window.matchMedia('(display-mode: standalone)').matches || window.innerWidth <= 768;
+    }
+
+    function togglePWAModeElements() {
+        const vlibrasWidgetButton = document.querySelector('.vw-access-button');
+
+        if (isPWAOrSmallScreen()) {
+            if (hamburgerButton) hamburgerButton.classList.remove('pwa-only');
+            if (offCanvasMenu) offCanvasMenu.classList.remove('pwa-only');
+            if (menuOverlay) menuOverlay.classList.remove('pwa-only');
+            if (pwaAcessibilidadeBar) pwaAcessibilidadeBar.classList.remove('pwa-only');
+
+            if (vlibrasWidgetButton) vlibrasWidgetButton.style.display = 'flex';
+
+            if (desktopNav) desktopNav.classList.add('desktop-only');
+            if (desktopAcessibilidadeBar) desktopAcessibilidadeBar.classList.add('desktop-only');
+        } else {
+            if (hamburgerButton) hamburgerButton.classList.add('pwa-only');
+            if (offCanvasMenu) offCanvasMenu.classList.add('pwa-only');
+            if (menuOverlay) menuOverlay.classList.add('pwa-only');
+            if (desktopNav) desktopNav.classList.remove('desktop-only');
+            if (desktopAcessibilidadeBar) desktopAcessibilidadeBar.classList.remove('desktop-only');
+
+            if (pwaAcessibilidadeBar) pwaAcessibilidadeBar.classList.add('pwa-only');
+
+            if (vlibrasWidgetButton) vlibrasWidgetButton.style.display = 'none';
+
+            if (offCanvasMenu) offCanvasMenu.classList.remove('is-open');
+            if (menuOverlay) menuOverlay.classList.remove('is-open');
+            if (pwaAcessibilidadeBar) pwaAcessibilidadeBar.classList.remove('is-open');
+        }
+    }
+
+    function adjustTitleBarWidth() {
+        if (mainTitle && titleBar) {
+            const titleWidth = mainTitle.offsetWidth;
+            titleBar.style.width = `${titleWidth}px`;
+        }
+    }
+
+    window.addEventListener('resize', () => {
+        togglePWAModeElements();
+        adjustTitleBarWidth();
+    });
+
+    togglePWAModeElements();
+    adjustTitleBarWidth();
+
+    // --- Newsletter Section - Dynamic Elements and Tooltips ---
     const newsletterSection = document.getElementById('newsletters-section');
     if (newsletterSection) {
-        // Re-initialize tooltips for the newsletter section if it's dynamically loaded
         newsletterSection.querySelectorAll('.tooltip-container').forEach(container => {
             const button = container.querySelector('.tooltip-icon-button');
             const tooltipText = container.querySelector('.tooltip-text');
 
             if (button && tooltipText) {
-                // Ensure the button has aria-describedby for accessibility
                 button.setAttribute('aria-describedby', tooltipText.id);
 
-                // Add event listeners for hover and focus to show/hide tooltip
                 button.addEventListener('mouseenter', () => { tooltipText.style.visibility = 'visible'; tooltipText.style.opacity = '1'; });
                 button.addEventListener('mouseleave', () => { tooltipText.style.visibility = 'hidden'; tooltipText.style.opacity = '0'; });
                 button.addEventListener('focus', () => { tooltipText.style.visibility = 'visible'; tooltipText.style.opacity = '1'; });
