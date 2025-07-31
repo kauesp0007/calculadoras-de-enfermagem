@@ -24,6 +24,20 @@ document.addEventListener('DOMContentLoaded', function() {
     const hamburgerButton = document.getElementById('hamburgerButton');
     const offCanvasMenu = document.getElementById('offCanvasMenu');
     const menuOverlay = document.getElementById('menuOverlay');
+    if (hamburgerButton && menuOverlay && offCanvasMenu) {
+    hamburgerButton.addEventListener('click', () => {
+        offCanvasMenu.classList.toggle('translate-x-0');
+        offCanvasMenu.classList.toggle('-translate-x-full');
+        menuOverlay.style.display = 'block';
+    });
+
+    menuOverlay.addEventListener('click', () => {
+        offCanvasMenu.classList.remove('translate-x-0');
+        offCanvasMenu.classList.add('-translate-x-full');
+        menuOverlay.style.display = 'none';
+    });
+}
+
     
     // --- Variáveis de Estado ---
     let currentFontSize = 1;
