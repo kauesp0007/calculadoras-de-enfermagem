@@ -126,6 +126,50 @@ function initializeGlobalFunctions() {
     const letterSpacingTextPWA = document.getElementById('letterSpacingTextPWA');
     const readingSpeedText = document.getElementById('readingSpeedText');
     const keyboardShortcutsModal = document.getElementById('keyboardShortcutsModal');
+        // --- Lógica de Acessibilidade (Móvel) ---
+    const accessibilityToggleButton = document.getElementById('accessibilityToggleButton');
+    const accessibilityPanel = document.getElementById('pwaAcessibilidadeBar');
+    const accessibilityCloseBtn = document.getElementById('pwaAcessibilidadeCloseBtn');
+    const menuOverlay = document.getElementById('menuOverlay');
+    const mainNavigationMenu = document.getElementById('offCanvasMenu'); // Assumindo que o ID do menu de navegação é este
+
+    // Abre o painel de acessibilidade
+    accessibilityToggleButton?.addEventListener('click', () => {
+        if (mainNavigationMenu?.classList.contains('is-open')) {
+            mainNavigationMenu.classList.remove('is-open');
+        }
+        accessibilityPanel?.classList.add('is-open');
+        menuOverlay?.style.display = 'block';
+    });
+
+    // Fecha o painel de acessibilidade
+    function closeAccessibilityPanel() {
+        accessibilityPanel?.classList.remove('is-open');
+        if (!mainNavigationMenu?.classList.contains('is-open')) {
+            menuOverlay?.style.display = 'none';
+        }
+    }
+
+    accessibilityCloseBtn?.addEventListener('click', closeAccessibilityPanel);
+
+    // O overlay agora fecha ambos os menus laterais
+    menuOverlay?.addEventListener('click', () => {
+        mainNavigationMenu?.classList.remove('is-open');
+        accessibilityPanel?.classList.remove('is-open');
+        menuOverlay.style.display = 'none';
+    });
+
+    // --- Vincula as funções de acessibilidade aos novos botões do PWA ---
+    document.getElementById('btnAlternarTamanhoFontePWA')?.addEventListener('click', () => { currentFontSize = (currentFontSize % 5) + 1; updateFontSize(); });
+    document.getElementById('btnAlternarEspacamentoLinhaPWA')?.addEventListener('click', () => { currentLineHeight = (currentLineHeight % 3) + 1; updateLineHeight(); });
+    document.getElementById('btnAlternarEspacamentoLetraPWA')?.addEventListener('click', () => { currentLetterSpacing = (currentLetterSpacing % 3) + 1; updateLetterSpacing(); });
+    document.getElementById('btnAlternarContrastePWA')?.addEventListener('click', () => { const isPressed = body.classList.toggle('contraste-alto'); localStorage.setItem('contrasteAlto', isPressed); document.getElementById('btnAlternarContrastePWA').setAttribute('aria-pressed', isPressed); announceStatus(`Alto contraste ${isPressed ? 'ativado' : 'desativado'}.`); });
+    document.getElementById('btnAlternarModoEscuroPWA')?.addEventListener('click', () => { const isPressed = body.classList.toggle('dark-mode'); localStorage.setItem('darkMode', isPressed); document.getElementById('btnAlternarModoEscuroPWA').setAttribute('aria-pressed', isPressed); announceStatus(`Modo escuro ${isPressed ? 'ativado' : 'desativado'}.`); });
+    document.getElementById('btnAlternarFonteDislexiaPWA')?.addEventListener('click', () => { const isEnabled = body.classList.toggle('fonte-dislexia'); localStorage.setItem('fonteDislexia', isEnabled); announceStatus(`Fonte para dislexia ${isEnabled ? 'ativada' : 'desativada'}.`); });
+    document.querySelectorAll('#pwaAcessibilidadeBar .color-option').forEach(button => button.addEventListener('click', () => updateFocusColor(button.dataset.color)));
+    document.getElementById('btnKeyboardShortcutsPWA')?.addEventListener('click', showKeyboardShortcutsModal);
+    document.getElementById('btnResetarAcessibilidadePWA')?.addEventListener('click', resetAccessibilitySettings);
+
 
     let currentFontSize = 1;
     let currentLineHeight = 1;
