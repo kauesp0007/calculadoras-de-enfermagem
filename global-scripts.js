@@ -189,7 +189,8 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 // Ativar o modal de preferências de cookies
 document.addEventListener("DOMContentLoaded", function () {
-  const manageBtn = document.getElementById('manageCookiesBtn');
+  // CORREÇÃO: Usar o ID correto do botão no rodapé
+  const manageBtn = document.getElementById('openGranularCookieModalBtn');
   const modal = document.getElementById('granularCookieModal');
 
   if (manageBtn && modal) {
