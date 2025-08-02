@@ -36,6 +36,7 @@
         gtag('js', new Date());
         gtag('consent', 'default', {
             'analytics_storage': 'denied',
+            'ad_storage': 'denied',
             'wait_for_update': 500
         });
         gtag('config', 'AW-952633102');
@@ -57,21 +58,30 @@
     <!-- Global and Page-specific CSS -->
     <link rel="stylesheet" href="global-styles.css">
     <style>
-        /* Styles from Aldrete example for consistency */
-        body { font-family: 'Inter', sans-serif; }
+        :root {
+            --cor-foco-acessibilidade: yellow;
+            --espacamento-linha: 1.5;
+            --espacamento-letra: 0em;
+        }
+        body { 
+            font-family: 'Inter', sans-serif; 
+            line-height: var(--espacamento-linha);
+            letter-spacing: var(--espacamento-letra);
+            padding-top: 50px; /* Espaço para a barra de acessibilidade fixa */
+        }
         .font-nunito { font-family: 'Nunito Sans', sans-serif; }
         .text-dark-blue { color: #1A3E74; }
         .text-light-blue { color: #1FA4E7; }
         .text-black-custom { color: #333; }
         .bg-dark-blue { background-color: #1A3E74; }
 
-        /* Buttons */
+        /* Botões */
         .btn-primary { background-color: #1A3E74; color: white; padding: 0.75rem 1.5rem; border-radius: 0.5rem; font-weight: 600; transition: background-color 0.3s; }
         .btn-primary:hover { background-color: #132d57; }
         .btn-secondary { background-color: #1FA4E7; color: white; padding: 0.75rem 1.5rem; border-radius: 0.5rem; font-weight: 600; transition: background-color 0.3s; }
         .btn-secondary:hover { background-color: #1a8cd8; }
 
-        /* Result colors for Apgar */
+        /* Cores de resultado para Apgar */
         .resultado { padding: 1rem; border-radius: 0.5rem; margin-top: 1.5rem; font-weight: 600; }
         .resultado.hidden { display: none; }
         .resultado.bg-apgar-boa { background-color: #D4EDDA; color: #006400; }
@@ -79,7 +89,7 @@
         .resultado.bg-apgar-grave { background-color: #F8D7DA; color: #8B0000; }
         .bg-info-orange-light { background-color: #fff3cd; color: #856404; }
 
-        /* Form Styles */
+        /* Estilos do Formulário */
         .criterion-section { background-color: #fff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 1rem; margin-bottom: 1rem; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
         .criterion-title { font-size: 1.25rem; font-weight: 700; color: #1A3E74; margin-bottom: 0.75rem; }
         .options-group { display: flex; flex-direction: column; gap: 0.5rem; }
@@ -91,35 +101,26 @@
             .option-label { flex-basis: auto; }
         }
 
-        /* --- Estilo para o botão "Voltar ao Topo" --- */
+        /* Botão Voltar ao Topo */
         #backToTopBtn {
-            position: fixed;
-            bottom: 20px; /* Posicionado acima do rodapé */
-            right: 20px;
-            background-color: rgba(26, 62, 116, 0.8); /* Cor institucional com transparência */
-            color: white;
-            font-size: 0.875rem; /* Equivalente a text-sm */
-            padding: 0.5rem 1rem; /* Equivalente a px-4 py-2 */
-            border-radius: 9999px; /* Equivalente a rounded-full */
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1), 0 1px 2px rgba(0,0,0,0.06); /* Sombra */
-            transition: background-color 0.2s ease; /* Transição */
-            z-index: 99990; /* Acima do conteúdo normal, abaixo da barra de acessibilidade */
-            display: none; /* Inicialmente oculto, será mostrado com JS */
-            cursor: pointer; /* Indica que é clicável */
-            font-family: 'Inter', sans-serif; /* Garante a fonte Inter */
+            position: fixed; bottom: 20px; right: 20px;
+            background-color: rgba(26, 62, 116, 0.8); color: white;
+            font-size: 0.875rem; padding: 0.5rem 1rem; border-radius: 9999px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1), 0 1px 2px rgba(0,0,0,0.06);
+            transition: background-color 0.2s ease; z-index: 99990;
+            display: none; cursor: pointer; font-family: 'Inter', sans-serif;
         }
-        #backToTopBtn:hover {
-            background-color: rgba(18, 42, 80, 0.9); /* Tom mais escuro no hover com mais opacidade */
-        }
+        #backToTopBtn:hover { background-color: rgba(18, 42, 80, 0.9); }
 
-        /* Cookie Consent Banner */
+        /* Banner de Consentimento de Cookies */
         #cookieConsentBanner {
             display: none; position: fixed; bottom: 0; left: 0; width: 100%;
             background-color: #1A3E74; color: white; padding: 1rem;
             z-index: 1000; box-shadow: 0 -2px 10px rgba(0,0,0,0.2);
-            text-align: center;
+            transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
+            transform: translateY(100%);
         }
-        #cookieConsentBanner.show { display: flex; flex-direction: column; align-items: center; }
+        #cookieConsentBanner.show { display: flex; flex-direction: column; align-items: center; opacity: 1; transform: translateY(0); }
         #cookieConsentBanner p { margin-bottom: 1rem; }
         #cookieConsentBanner .cookie-buttons { display: flex; justify-content: center; gap: 1rem; flex-wrap: wrap; }
         #cookieConsentBanner button { padding: 0.5rem 1rem; border-radius: 0.375rem; border: 1px solid white; cursor: pointer; background-color: #1FA4E7; }
@@ -129,6 +130,98 @@
             #cookieConsentBanner.show { flex-direction: row; justify-content: space-between; }
             #cookieConsentBanner p { margin-bottom: 0; }
         }
+
+        /* Modal Granular de Cookies */
+        #granularCookieModal {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background-color: rgba(0, 0, 0, 0.6); display: flex;
+            justify-content: center; align-items: center; z-index: 100002;
+            display: none; transition: opacity 0.3s ease-in-out; opacity: 0;
+        }
+        #granularCookieModal.show { display: flex; opacity: 1; }
+        .granular-modal-content {
+            background-color: #fff; padding: 2rem; border-radius: 0.75rem;
+            box-shadow: 0 10px 15px rgba(0, 0, 0, 0.2); max-width: 500px;
+            width: 90%; position: relative; text-align: left; color: #1F2937;
+        }
+        .granular-modal-content h3 { font-size: 1.5rem; font-weight: bold; margin-bottom: 1rem; }
+        .granular-modal-content p { margin-bottom: 1rem; color: #4b5563; }
+        .granular-modal-content .checkbox-group { margin-bottom: 1rem; }
+        .granular-modal-content .checkbox-group label { display: flex; align-items: center; margin-bottom: 0.5rem; cursor: pointer; }
+        .granular-modal-content .checkbox-group input[type="checkbox"] { margin-right: 0.5rem; height: 1.25rem; width: 1.25rem; flex-shrink: 0; accent-color: #1A3E74; }
+        .granular-modal-content .checkbox-group .description { font-size: 0.875rem; color: #4b5563; margin-left: 1.75rem; margin-top: -0.25rem; display: block; }
+        .granular-modal-content .modal-buttons { display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 1.5rem; }
+        .granular-modal-content .modal-buttons button { padding: 0.75rem 1.5rem; border-radius: 0.5rem; font-weight: 600; transition: background-color 0.2s ease; border: none; cursor: pointer; }
+        .granular-modal-content .modal-buttons .btn-save { background-color: #1A3E74; color: white; }
+        .granular-modal-content .modal-buttons .btn-save:hover { background-color: #122A50; }
+        .granular-modal-content .modal-buttons .btn-cancel { background-color: #e5e7eb; color: #4b5563; }
+        .granular-modal-content .modal-buttons .btn-cancel:hover { background-color: #d1d5db; }
+        .modal-close-btn { position: absolute; top: 1rem; right: 1rem; background: none; border: none; font-size: 2rem; cursor: pointer; color: #6b7280; padding: 0.25rem; border-radius: 50%; transition: background-color 0.2s ease; }
+        .modal-close-btn:hover { background-color: #e5e7eb; }
+
+        /* Estilos de Acessibilidade (Padrão Heparina) */
+        #barraAcessibilidade {
+            position: fixed; top: 0; left: 0; width: 100%;
+            background-color: #1A3E74; color: #fff; z-index: 100000;
+            padding: 5px 20px; font-family: 'Inter', sans-serif; font-size: 13px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); display: flex;
+            justify-content: flex-end; align-items: center; min-height: 30px;
+            box-sizing: border-box; flex-wrap: wrap; gap: 8px;
+        }
+        #barraAcessibilidade button {
+            padding: 6px 12px; background-color: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.4); color: white;
+            cursor: pointer; border-radius: 5px; transition: background-color 0.2s ease, border-color 0.2s ease;
+            font-family: 'Inter', sans-serif; font-weight: 400; display: flex;
+            align-items: center; justify-content: center; gap: 4px;
+            flex-shrink: 0; height: 32px;
+        }
+        #barraAcessibilidade button:hover {
+            background-color: rgba(255, 255, 255, 0.15); border-color: white;
+        }
+        #barraAcessibilidade button:focus-visible, a:focus-visible, button:focus-visible, textarea:focus-visible, input:focus-visible {
+            outline: 3px solid var(--cor-foco-acessibilidade); outline-offset: 2px;
+        }
+        #barraAcessibilidade button svg {
+            width: 16px; height: 16px; stroke: currentColor; stroke-width: 2.5;
+        }
+        #barraAcessibilidade .color-option {
+            width: 32px; height: 32px; border-radius: 5px;
+            border: 2px solid rgba(255, 255, 255, 0.5); cursor: pointer;
+            transition: border-color 0.2s ease, transform 0.2s ease; box-sizing: border-box;
+        }
+        #barraAcessibilidade .color-option.selected {
+            border-color: var(--cor-foco-acessibilidade); transform: scale(1.1);
+        }
+        #barraAcessibilidade .color-option:hover {
+            transform: scale(1.1); border-color: white;
+        }
+        .contraste-alto { background-color: #000 !important; color: #ffff00 !important; }
+        .contraste-alto a { color: #00ffff !important; }
+        .contraste-alto .bg-white, .contraste-alto .bg-gray-50, .contraste-alto .criterion-section { background-color: #333 !important; color: #ffff00 !important; border-color: #ffff00 !important; }
+        .contraste-alto .text-dark-blue, .contraste-alto .text-light-blue, .contraste-alto .text-black-custom { color: #ffff00 !important; }
+        .dark-mode { background-color: #1a202c !important; color: #e2e8f0 !important; }
+        .dark-mode .bg-white, .dark-mode .bg-gray-50, .dark-mode .criterion-section { background-color: #2d3748 !important; color: #e2e8f0 !important; border-color: #4a5568 !important; }
+        .dark-mode .text-dark-blue, .dark-mode .text-light-blue, .dark-mode .text-black-custom { color: #e2e8f0 !important; }
+        .fonte-dislexia { font-family: 'OpenDyslexic', Arial, sans-serif; }
+        
+        /* Modal de Atalhos de Teclado */
+        #keyboardShortcutsModal {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background-color: rgba(0, 0, 0, 0.6);
+            justify-content: center; align-items: center; z-index: 100003;
+            display: none; transition: opacity 0.3s ease-in-out; opacity: 0;
+        }
+        #keyboardShortcutsModal.show { display: flex; opacity: 1; }
+        .keyboard-modal-content {
+            background-color: #fff; padding: 2rem; border-radius: 0.75rem;
+            box-shadow: 0 10px 15px rgba(0, 0, 0, 0.2); max-width: 600px;
+            width: 90%; position: relative; text-align: left; color: #1F2937;
+        }
+        .keyboard-modal-content h3 { font-size: 1.5rem; font-weight: bold; margin-bottom: 1rem; }
+        .keyboard-modal-content ul { list-style: disc; margin-left: 1.5rem; margin-bottom: 1rem; }
+        .keyboard-modal-content li { margin-bottom: 0.5rem; color: #4b5563; }
+        .keyboard-modal-content strong { color: #1F2937; }
     </style>
 </head>
 <body class="bg-gray-50 text-gray-800 font-inter">
@@ -144,8 +237,8 @@
     <!-- ARIA Live Region for Status Messages -->
     <div id="statusMessage" class="sr-only" aria-live="polite" aria-atomic="true"></div>
     
-    <!-- Accessibility Bar (Desktop) -->
-    <div id="barraAcessibilidade" class="flex justify-end items-center space-x-2">
+    <!-- Barra de Acessibilidade (Padrão Heparina) -->
+    <div id="barraAcessibilidade">
         <button id="btnAlternarTamanhoFonte" aria-label="Alterar tamanho da fonte">
             <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-type"><polyline points="4 7 4 4 20 4 20 7"/><line x1="9" x2="15" y1="20" y2="20"/><line x1="12" x2="12" y1="4" y2="20"/></svg>
             <span id="fontSizeText">Normal</span>
@@ -213,15 +306,14 @@
         </div>
     </div>
 
-    <main id="main-content" class="flex-grow p-8 text-center">
+    <main id="main-content" class="flex-grow p-4 sm:p-8 text-center">
         <div class="main-content-wrapper max-w-4xl mx-auto px-4 py-8">
             <nav class="breadcrumb" aria-label="breadcrumb"><ol><li><a href="index.html">Início</a></li><li><a href="#">Calculadoras</a></li><li>Escala de Apgar</li></ol></nav>
 
             <div class="flex flex-col items-center justify-center gap-4 mb-3 text-center">
-               
                 <h1 id="main-title" class="font-nunito font-extrabold text-dark-blue text-4xl lg:text-5xl">Escala de Apgar</h1>
             </div>
-            <div class="title-bar"></div>
+            <div class="title-bar w-full h-1 bg-dark-blue mx-auto mb-6"></div>
 
             <h2 id="main-subtitle" class="font-inter font-semibold text-light-blue text-xl lg:text-2xl mb-3 text-center sm:text-left">Avalia a condição física do recém-nascido (RN) logo após o parto.</h2>
             <p class="font-inter font-normal text-black-custom text-base lg:text-lg mb-6 text-center sm:text-left">A Escala de Apgar avalia a condição física do recém-nascido (RN) em dois momentos cruciais: 1 e 5 minutos de vida. Ela avalia cinco critérios: frequência cardíaca, esforço respiratório, tônus muscular, irritabilidade reflexa e cor da pele. Cada critério recebe uma nota de 0 a 2, somando um total de 0 a 10.</p>
@@ -308,7 +400,7 @@
         </div>
     </footer>
 
-    <!-- Cookie Consent Banner -->
+    <!-- Banner de Consentimento de Cookies -->
     <div id="cookieConsentBanner">
         <p>Utilizamos cookies para melhorar sua experiência em nosso site. Ao continuar navegando, você concorda com nossa <a href="politica.html" class="underline text-blue-200 hover:text-blue-100">Política de Cookies</a>.</p>
         <div class="cookie-buttons">
@@ -318,7 +410,48 @@
         </div>
     </div>
     
-    <!-- Back to Top Button -->
+    <!-- Modal Granular de Cookies -->
+    <div id="granularCookieModal" role="dialog" aria-modal="true" aria-labelledby="granularModalTitle" class="hidden">
+        <div class="granular-modal-content">
+            <button id="granularModalCloseButton" class="modal-close-btn" aria-label="Fechar configurações de cookies">×</button>
+            <h3 id="granularModalTitle">Configurações de Privacidade</h3>
+            <p>Utilizamos cookies para garantir o funcionamento do nosso site e para personalizar o conteúdo. Você pode ajustar suas preferências abaixo:</p>
+            <div class="checkbox-group">
+                <label for="cookieEssential"><input type="checkbox" id="cookieEssential" checked disabled> Essenciais</label>
+                <span class="description">Necessários para o funcionamento básico do site. Não podem ser desativados.</span>
+            </div>
+            <div class="checkbox-group">
+                <label for="cookieAnalytics"><input type="checkbox" id="cookieAnalytics"> Analíticos</label>
+                <span class="description">Coletam informações sobre como você usa o site para nos ajudar a melhorar.</span>
+            </div>
+            <div class="checkbox-group">
+                <label for="cookieMarketing"><input type="checkbox" id="cookieMarketing"> Marketing</label>
+                <span class="description">Usados para exibir anúncios relevantes com base nos seus interesses.</span>
+            </div>
+            <div class="modal-buttons">
+                <button id="saveGranularPreferencesBtn" class="btn-save">Salvar Preferências</button>
+                <button id="cancelGranularPreferencesBtn" class="btn-cancel">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Atalhos de Teclado -->
+    <div id="keyboardShortcutsModal" class="hidden" role="dialog" aria-modal="true" aria-labelledby="keyboardModalTitle">
+        <div class="keyboard-modal-content">
+            <button id="keyboardModalCloseButton" class="modal-close-btn" aria-label="Fechar atalhos de teclado">×</button>
+            <h3 id="keyboardModalTitle">Atalhos de Teclado e Navegação</h3>
+            <h4 class="font-bold mb-2">Atalhos de Acessibilidade (Accesskey)</h4>
+            <p class="mb-4">Utilize as seguintes combinações de teclas para aceder rapidamente às funcionalidades de acessibilidade:</p>
+            <ul>
+                <li><strong>Alt + Shift + I:</strong> Ir para o Início (Home)</li>
+                <li><strong>Alt + Shift + C:</strong> Ir para o Conteúdo Principal</li>
+                <li><strong>Alt + Shift + A:</strong> Ir para a Barra de Acessibilidade</li>
+                <li><strong>Alt + Shift + T:</strong> Voltar ao Topo da Página</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Botão Voltar ao Topo -->
     <button id="backToTopBtn" aria-label="Voltar ao topo da página" accesskey="T">
         Voltar ao Topo
     </button>
@@ -328,16 +461,16 @@
     <script src="global-scripts.js"></script> 
     <script>
     document.addEventListener('DOMContentLoaded', function() {
-        // This script assumes `global-scripts.js` handles the main accessibility and menu logic.
-        // The logic specific to this calculator page is below.
+        // Este script assume que `global-scripts.js` lida com a lógica principal de acessibilidade e menu.
+        // A lógica específica para esta página da calculadora está abaixo.
 
-        // Initialize VLibras
+        // Inicializar VLibras
         new VLibras.Widget('https://vlibras.gov.br/app');
 
-        // Load Global Header (assuming menu-global.html exists)
+        // Carregar Cabeçalho Global (assumindo que menu-global.html existe)
         fetch('menu-global.html')
             .then(response => {
-                if (!response.ok) throw new Error('Menu not found');
+                if (!response.ok) throw new Error('Menu não encontrado');
                 return response.text();
             })
             .then(html => {
@@ -345,14 +478,14 @@
                 if (headerContainer) {
                     headerContainer.innerHTML = html;
                     if (typeof initializeGlobalMenu === 'function') {
-                        // This function should be defined in menu-global.html or global-scripts.js
+                        // Esta função deve ser definida em menu-global.html ou global-scripts.js
                         initializeGlobalMenu(); 
                     }
                 }
             })
-            .catch(error => console.warn('Could not load global menu:', error));
+            .catch(error => console.warn('Não foi possível carregar o menu global:', error));
 
-        // Calculator Logic
+        // Lógica da Calculadora
         const resultadoDiv = document.getElementById('resultado');
         const btnNandaNicNoc = document.getElementById('btnNandaNicNoc');
 
@@ -360,10 +493,14 @@
             const campos = ["fc", "resp", "tonus", "reflexo", "cor"];
             let total = 0;
             let allSelected = true;
+            let selections = {}; // Objeto para armazenar as seleções para o PDF
             for (const campo of campos) {
                 const selecionado = document.querySelector(`input[name="${campo}"]:checked`);
                 if (!selecionado) { allSelected = false; break; }
                 total += parseInt(selecionado.value, 10);
+                const legend = selecionado.closest('fieldset').querySelector('legend').textContent;
+                const label = selecionado.closest('label').textContent;
+                selections[legend] = label;
             }
 
             resultadoDiv.className = 'resultado p-4 mt-6 rounded-lg text-left';
@@ -389,6 +526,7 @@
             resultadoDiv.dataset.score = total;
             resultadoDiv.dataset.conduta = conduta;
             resultadoDiv.dataset.scaleName = "Escala de Apgar";
+            resultadoDiv.dataset.selections = JSON.stringify(selections);
         }
 
         function limpar() {
@@ -398,6 +536,7 @@
             delete resultadoDiv.dataset.score;
             delete resultadoDiv.dataset.conduta;
             delete resultadoDiv.dataset.scaleName;
+            delete resultadoDiv.dataset.selections;
         }
 
         function gerarPDF() {
@@ -405,21 +544,225 @@
                 alert('Por favor, clique em "Calcular" primeiro para gerar o PDF.');
                 return;
             }
-            const contentToPrint = document.querySelector('.main-content-wrapper').cloneNode(true);
-            
-            // Options for PDF generation with specified margins
+            const contentToPrint = document.createElement('div');
+            contentToPrint.style.padding = '20px';
+            contentToPrint.style.fontFamily = 'Arial, sans-serif';
+
+            const pdfHeader = document.createElement('div');
+            pdfHeader.style.textAlign = 'center';
+            pdfHeader.style.marginBottom = '20px';
+            pdfHeader.innerHTML = `<h2>Relatório - Escala de Apgar</h2><p>Gerado em: ${new Date().toLocaleString('pt-BR')}</p>`;
+            contentToPrint.appendChild(pdfHeader);
+
+            const selections = JSON.parse(resultadoDiv.dataset.selections || '{}');
+            const selectionsTable = document.createElement('table');
+            selectionsTable.style.width = '100%';
+            selectionsTable.style.borderCollapse = 'collapse';
+            selectionsTable.style.marginBottom = '20px';
+            let tableBody = '<thead><tr><th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Critério</th><th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Seleção</th></tr></thead><tbody>';
+            for (const [key, value] of Object.entries(selections)) {
+                tableBody += `<tr><td style="border: 1px solid #ddd; padding: 8px;"><strong>${key}</strong></td><td style="border: 1px solid #ddd; padding: 8px;">${value}</td></tr>`;
+            }
+            tableBody += '</tbody>';
+            selectionsTable.innerHTML = tableBody;
+            contentToPrint.appendChild(selectionsTable);
+
+            const resultForPdf = document.createElement('div');
+            resultForPdf.innerHTML = resultadoDiv.innerHTML;
+            contentToPrint.appendChild(resultForPdf);
+
             const opt = {
-                margin: 1.27, // Margin in cm
-                filename: 'escala-apgar.pdf',
-                image: { type: 'jpeg', quality: 0.98 },
-                html2canvas: { scale: 2 },
-                jsPDF: { unit: 'cm', format: 'a4', orientation: 'portrait' },
-                pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
+                margin:       [0.5, 0.5, 0.5, 0.5],
+                filename:     'escala-apgar.pdf',
+                image:        { type: 'jpeg', quality: 0.98 },
+                html2canvas:  { scale: 2, useCORS: true },
+                jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }
             };
 
             html2pdf().set(opt).from(contentToPrint).save();
         }
 
+        // --- Lógica de Acessibilidade (Padrão Heparina) ---
+        const body = document.body;
+        const statusMessageDiv = document.getElementById('statusMessage');
+        const fontSizeText = document.getElementById('fontSizeText');
+        const lineHeightText = document.getElementById('lineHeightText');
+        const letterSpacingText = document.getElementById('letterSpacingText');
+        const readingSpeedText = document.getElementById('readingSpeedText');
+        const keyboardShortcutsModal = document.getElementById('keyboardShortcutsModal');
+
+        let currentFontSize = 1;
+        let currentLineHeight = 1;
+        let currentLetterSpacing = 1;
+        let currentReadingSpeed = 1;
+        let speechSynthesizer = window.speechSynthesis;
+        let utterance = null;
+        let isReading = false;
+        let currentFocusColor = 'yellow';
+        let lastFocusedElement = null;
+
+        function announceStatus(message) {
+            if (statusMessageDiv) statusMessageDiv.textContent = message;
+        }
+
+        function applySavedSettings() {
+            currentFontSize = parseInt(localStorage.getItem('fontSize') || '1');
+            updateFontSize(false);
+            currentLineHeight = parseInt(localStorage.getItem('lineHeight') || '1');
+            updateLineHeight(false);
+            currentLetterSpacing = parseInt(localStorage.getItem('letterSpacing') || '1');
+            updateLetterSpacing(false);
+            currentReadingSpeed = parseInt(localStorage.getItem('readingSpeed') || '1');
+            updateReadingSpeed(false);
+            if (localStorage.getItem('contrasteAlto') === 'true') {
+                body.classList.add('contraste-alto');
+                document.getElementById('btnAlternarContraste')?.setAttribute('aria-pressed', 'true');
+            }
+            if (localStorage.getItem('darkMode') === 'true') {
+                body.classList.add('dark-mode');
+                document.getElementById('btnAlternarModoEscuro')?.setAttribute('aria-pressed', 'true');
+            }
+            if (localStorage.getItem('fonteDislexia') === 'true') {
+                body.classList.add('fonte-dislexia');
+            }
+            currentFocusColor = localStorage.getItem('focusColor') || 'yellow';
+            updateFocusColor(currentFocusColor, false);
+        }
+
+        function updateFontSize(announce = true) {
+            const sizes = ['1em', '1.15em', '1.3em', '1.5em', '2em'];
+            const names = ['Normal', 'Médio', 'Grande', 'Extra Grande', 'Máximo'];
+            body.style.fontSize = sizes[currentFontSize - 1];
+            if (fontSizeText) fontSizeText.textContent = names[currentFontSize - 1];
+            localStorage.setItem('fontSize', currentFontSize);
+            if(announce) announceStatus(`Tamanho da fonte: ${names[currentFontSize - 1]}`);
+        }
+
+        function updateLineHeight(announce = true) {
+            const heights = ['1.5', '1.8', '2.0'];
+            const names = ['Médio', 'Grande', 'Extra Grande'];
+            document.documentElement.style.setProperty('--espacamento-linha', heights[currentLineHeight - 1]);
+            if (lineHeightText) lineHeightText.textContent = names[currentLineHeight - 1];
+            localStorage.setItem('lineHeight', currentLineHeight);
+            if(announce) announceStatus(`Espaçamento de linha: ${names[currentLineHeight - 1]}`);
+        }
+
+        function updateLetterSpacing(announce = true) {
+            const spacings = ['0em', '0.05em', '0.1em'];
+            const names = ['Normal', 'Médio', 'Grande'];
+            document.documentElement.style.setProperty('--espacamento-letra', spacings[currentLetterSpacing - 1]);
+            if (letterSpacingText) letterSpacingText.textContent = names[currentLetterSpacing - 1];
+            localStorage.setItem('letterSpacing', currentLetterSpacing);
+            if(announce) announceStatus(`Espaçamento de letra: ${names[currentLetterSpacing - 1]}`);
+        }
+
+        function updateReadingSpeed(announce = true) {
+            const rates = [1, 0.75, 1.25];
+            const names = ['Normal', 'Lento', 'Rápido'];
+            if (utterance) utterance.rate = rates[currentReadingSpeed - 1];
+            if(readingSpeedText) readingSpeedText.textContent = names[currentReadingSpeed - 1];
+            localStorage.setItem('readingSpeed', currentReadingSpeed);
+            if(announce) announceStatus(`Velocidade de leitura: ${names[currentReadingSpeed - 1]}`);
+        }
+        
+        function updateFocusColor(color, announce = true) {
+            currentFocusColor = color;
+            document.documentElement.style.setProperty('--cor-foco-acessibilidade', currentFocusColor);
+            localStorage.setItem('focusColor', color);
+            document.querySelectorAll('.color-option').forEach(button => {
+                button.classList.toggle('selected', button.dataset.color === color);
+                button.setAttribute('aria-checked', button.dataset.color === color);
+            });
+            if (announce) announceStatus(`Cor de foco alterada para ${color}.`);
+        }
+
+        function showKeyboardShortcutsModal() {
+            if (!keyboardShortcutsModal) return;
+            keyboardShortcutsModal.classList.add('show');
+            lastFocusedElement = document.activeElement;
+            keyboardShortcutsModal.querySelector('button').focus();
+        }
+
+        function hideKeyboardShortcutsModal() {
+            if (!keyboardShortcutsModal) return;
+            keyboardShortcutsModal.classList.remove('show');
+            if (lastFocusedElement) lastFocusedElement.focus();
+        }
+
+        function resetAccessibilitySettings() {
+            body.classList.remove('contraste-alto', 'dark-mode', 'fonte-dislexia');
+            localStorage.removeItem('contrasteAlto');
+            localStorage.removeItem('darkMode');
+            localStorage.removeItem('fonteDislexia');
+            document.getElementById('btnAlternarContraste')?.setAttribute('aria-pressed', 'false');
+            document.getElementById('btnAlternarModoEscuro')?.setAttribute('aria-pressed', 'false');
+            
+            currentFontSize = 1; updateFontSize(false);
+            currentLineHeight = 1; updateLineHeight(false);
+            currentLetterSpacing = 1; updateLetterSpacing(false);
+            currentReadingSpeed = 1; updateReadingSpeed(false);
+            updateFocusColor('yellow', false);
+            
+            announceStatus('Configurações de acessibilidade redefinidas.');
+        }
+
+        // Event Listeners Acessibilidade
+        document.getElementById('btnAlternarTamanhoFonte')?.addEventListener('click', () => { currentFontSize = (currentFontSize % 5) + 1; updateFontSize(); });
+        document.getElementById('btnAlternarEspacamentoLinha')?.addEventListener('click', () => { currentLineHeight = (currentLineHeight % 3) + 1; updateLineHeight(); });
+        document.getElementById('btnAlternarEspacamentoLetra')?.addEventListener('click', () => { currentLetterSpacing = (currentLetterSpacing % 3) + 1; updateLetterSpacing(); });
+        document.getElementById('btnAlternarVelocidadeLeitura')?.addEventListener('click', () => { currentReadingSpeed = (currentReadingSpeed % 3) + 1; updateReadingSpeed(); });
+        document.getElementById('btnAlternarContraste')?.addEventListener('click', () => { const isPressed = body.classList.toggle('contraste-alto'); localStorage.setItem('contrasteAlto', isPressed); document.getElementById('btnAlternarContraste').setAttribute('aria-pressed', isPressed); announceStatus(`Alto contraste ${isPressed ? 'ativado' : 'desativado'}.`); });
+        document.getElementById('btnAlternarModoEscuro')?.addEventListener('click', () => { const isPressed = body.classList.toggle('dark-mode'); localStorage.setItem('darkMode', isPressed); document.getElementById('btnAlternarModoEscuro').setAttribute('aria-pressed', isPressed); announceStatus(`Modo escuro ${isPressed ? 'ativado' : 'desativado'}.`); });
+        document.getElementById('btnAlternarFonteDislexia')?.addEventListener('click', () => { const isEnabled = body.classList.toggle('fonte-dislexia'); localStorage.setItem('fonteDislexia', isEnabled); announceStatus(`Fonte para dislexia ${isEnabled ? 'ativada' : 'desativada'}.`); });
+        document.querySelectorAll('#barraAcessibilidade .color-option').forEach(button => button.addEventListener('click', () => updateFocusColor(button.dataset.color)));
+        document.getElementById('btnResetarAcessibilidade')?.addEventListener('click', resetAccessibilitySettings);
+        document.getElementById('btnKeyboardShortcuts')?.addEventListener('click', showKeyboardShortcutsModal);
+        document.getElementById('keyboardModalCloseButton')?.addEventListener('click', hideKeyboardShortcutsModal);
+        
+        applySavedSettings();
+
+        // --- Lógica de Cookies ---
+        const cookieBanner = document.getElementById('cookieConsentBanner');
+        const acceptAllCookiesBtn = document.getElementById('acceptAllCookiesBtn');
+        const refuseAllCookiesBtn = document.getElementById('refuseAllCookiesBtn');
+        const manageCookiesBtn = document.getElementById('manageCookiesBtn');
+        const granularCookieModal = document.getElementById('granularCookieModal');
+        const openGranularCookieModalBtn = document.getElementById('openGranularCookieModalBtn');
+        const saveGranularPreferencesBtn = document.getElementById('saveGranularPreferencesBtn');
+        const granularModalCloseButton = document.getElementById('granularModalCloseButton');
+        const cancelGranularPreferencesBtn = document.getElementById('cancelGranularPreferencesBtn');
+        const cookieAnalyticsCheckbox = document.getElementById('cookieAnalytics');
+        const cookieMarketingCheckbox = document.getElementById('cookieMarketing');
+        
+        function showCookieBanner() { if (!localStorage.getItem('cookieConsent')) cookieBanner.classList.add('show'); }
+        function hideCookieBanner() { cookieBanner.classList.remove('show'); }
+        function updateGtagConsent(consent) { gtag('consent', 'update', consent); }
+        function showGranularCookieModal() {
+            cookieAnalyticsCheckbox.checked = localStorage.getItem('analytics_storage') === 'granted';
+            cookieMarketingCheckbox.checked = localStorage.getItem('ad_storage') === 'granted';
+            granularCookieModal.classList.add('show');
+        }
+        function hideGranularCookieModal() { granularCookieModal.classList.remove('show'); }
+
+        acceptAllCookiesBtn?.addEventListener('click', () => { const consent = { 'analytics_storage': 'granted', 'ad_storage': 'granted' }; updateGtagConsent(consent); localStorage.setItem('cookieConsent', 'accepted'); localStorage.setItem('analytics_storage', 'granted'); localStorage.setItem('ad_storage', 'granted'); hideCookieBanner(); });
+        refuseAllCookiesBtn?.addEventListener('click', () => { const consent = { 'analytics_storage': 'denied', 'ad_storage': 'denied' }; updateGtagConsent(consent); localStorage.setItem('cookieConsent', 'refused'); localStorage.setItem('analytics_storage', 'denied'); localStorage.setItem('ad_storage', 'denied'); hideCookieBanner(); });
+        manageCookiesBtn?.addEventListener('click', showGranularCookieModal);
+        openGranularCookieModalBtn?.addEventListener('click', showGranularCookieModal);
+        granularModalCloseButton?.addEventListener('click', hideGranularCookieModal);
+        cancelGranularPreferencesBtn?.addEventListener('click', hideGranularCookieModal);
+        saveGranularPreferencesBtn?.addEventListener('click', () => {
+            const consent = { 'analytics_storage': cookieAnalyticsCheckbox.checked ? 'granted' : 'denied', 'ad_storage': cookieMarketingCheckbox.checked ? 'granted' : 'denied' };
+            updateGtagConsent(consent);
+            localStorage.setItem('cookieConsent', 'managed');
+            localStorage.setItem('analytics_storage', consent.analytics_storage);
+            localStorage.setItem('ad_storage', consent.ad_storage);
+            hideGranularCookieModal();
+            hideCookieBanner();
+        });
+
+        showCookieBanner();
+
+        // Lógica dos botões da calculadora
         document.getElementById('btnCalcular').addEventListener('click', calcular);
         document.getElementById('btnLimpar').addEventListener('click', limpar);
         document.getElementById('btnGerarPDF').addEventListener('click', gerarPDF);
@@ -435,7 +778,7 @@
             });
         }
 
-        // Back to Top Button Logic (from reference)
+        // Lógica do Botão Voltar ao Topo
         const backToTopBtn = document.getElementById('backToTopBtn');
         if (backToTopBtn) {
             window.onscroll = function() {
@@ -449,27 +792,6 @@
                 window.scrollTo({top: 0, behavior: 'smooth'});
             });
         }
-
-        // Cookie Consent Banner Logic (from reference)
-        const cookieBanner = document.getElementById('cookieConsentBanner');
-        const acceptCookiesBtn = document.getElementById('acceptAllCookiesBtn');
-        const refuseCookiesBtn = document.getElementById('refuseAllCookiesBtn');
-        
-        if (!localStorage.getItem('cookieConsent')) {
-            cookieBanner.style.display = 'flex';
-        }
-
-        acceptCookiesBtn.addEventListener('click', () => {
-            localStorage.setItem('cookieConsent', 'accepted');
-            cookieBanner.style.display = 'none';
-            gtag('consent', 'update', {'analytics_storage': 'granted'});
-        });
-
-        refuseCookiesBtn.addEventListener('click', () => {
-            localStorage.setItem('cookieConsent', 'refused');
-            cookieBanner.style.display = 'none';
-            gtag('consent', 'update', {'analytics_storage': 'denied'});
-        });
     });
     </script>
 </body>
