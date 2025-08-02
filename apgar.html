@@ -78,7 +78,6 @@
         /* Botões */
         .btn-primary { background-color: #1A3E74; color: white; padding: 0.75rem 1.5rem; border-radius: 0.5rem; font-weight: 600; transition: background-color 0.3s; }
         .btn-primary:hover { background-color: #132d57; }
-        /* CORREÇÃO: Cor do botão secundário ajustada para o padrão de heparina */
         .btn-secondary { background-color: #003366; color: white; padding: 0.75rem 1.5rem; border-radius: 0.5rem; font-weight: 600; transition: background-color 0.3s; }
         .btn-secondary:hover { background-color: #002244; }
 
@@ -540,47 +539,112 @@
             delete resultadoDiv.dataset.selections;
         }
 
+        // CORREÇÃO: Função gerarPDF baseada no exemplo fornecido.
         function gerarPDF() {
-            if (!resultadoDiv.dataset.score) {
-                alert('Por favor, clique em "Calcular" primeiro para gerar o PDF.');
+            console.log('Iniciando a geração do PDF...');
+            const resultadoDiv = document.getElementById('resultado');
+            const refDiv = document.querySelector('.ref');
+
+            // 1. Validar se o cálculo foi feito
+            if (!resultadoDiv || !resultadoDiv.dataset.score) {
+                alert('Por favor, clique em "Calcular" primeiro para obter um resultado válido antes de gerar o PDF.');
+                console.error('Tentativa de gerar PDF sem resultado válido.');
                 return;
             }
-            const contentToPrint = document.createElement('div');
-            contentToPrint.style.padding = '20px';
-            contentToPrint.style.fontFamily = 'Arial, sans-serif';
 
-            const pdfHeader = document.createElement('div');
-            pdfHeader.style.textAlign = 'center';
-            pdfHeader.style.marginBottom = '20px';
-            pdfHeader.innerHTML = `<h2>Relatório - Escala de Apgar</h2><p>Gerado em: ${new Date().toLocaleString('pt-BR')}</p>`;
-            contentToPrint.appendChild(pdfHeader);
+            // 2. Criar o container principal para o conteúdo do PDF
+            const pdfContentWrapper = document.createElement('div');
+            pdfContentWrapper.style.width = '100%';
+            pdfContentWrapper.style.maxWidth = '800px';
+            pdfContentWrapper.style.margin = '0 auto';
+            pdfContentWrapper.style.padding = '30px';
+            pdfContentWrapper.style.fontFamily = 'Inter, sans-serif';
+            pdfContentWrapper.style.fontSize = '12px';
+            pdfContentWrapper.style.color = '#333';
+            pdfContentWrapper.style.boxSizing = 'border-box';
 
-            const selections = JSON.parse(resultadoDiv.dataset.selections || '{}');
-            const selectionsTable = document.createElement('table');
-            selectionsTable.style.width = '100%';
-            selectionsTable.style.borderCollapse = 'collapse';
-            selectionsTable.style.marginBottom = '20px';
-            let tableBody = '<thead><tr><th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Critério</th><th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Seleção</th></tr></thead><tbody>';
-            for (const [key, value] of Object.entries(selections)) {
-                tableBody += `<tr><td style="border: 1px solid #ddd; padding: 8px;"><strong>${key}</strong></td><td style="border: 1px solid #ddd; padding: 8px;">${value}</td></tr>`;
+            // 3. Adicionar Título, Subtítulo e Data
+            const titulo = document.createElement('h1');
+            titulo.innerText = 'Escala de Apgar';
+            titulo.style.fontSize = '22px';
+            titulo.style.textAlign = 'center';
+            titulo.style.color = '#1A3E74';
+            titulo.style.marginBottom = '5px';
+            pdfContentWrapper.appendChild(titulo);
+
+            const subtitulo = document.createElement('h2');
+            subtitulo.innerText = 'Relatório de Avaliação do Recém-Nascido';
+            subtitulo.style.fontSize = '14px';
+            subtitulo.style.textAlign = 'center';
+            subtitulo.style.color = '#666';
+            subtitulo.style.marginBottom = '15px';
+            pdfContentWrapper.appendChild(subtitulo);
+
+            const data = document.createElement('p');
+            data.innerText = `Gerado em: ${new Date().toLocaleDateString('pt-BR')} ${new Date().toLocaleTimeString('pt-BR')}`;
+            data.style.fontSize = '10px';
+            data.style.textAlign = 'right';
+            data.style.color = '#999';
+            data.style.marginBottom = '20px';
+            pdfContentWrapper.appendChild(data);
+
+            // 4. Adicionar a tabela de seleções do usuário
+            try {
+                const selections = JSON.parse(resultadoDiv.dataset.selections || '{}');
+                const selectionsTable = document.createElement('table');
+                selectionsTable.style.width = '100%';
+                selectionsTable.style.borderCollapse = 'collapse';
+                selectionsTable.style.marginBottom = '20px';
+                let tableHeader = '<thead><tr><th style="border: 1px solid #ddd; padding: 8px; text-align: left; background-color: #f2f2f2;">Critério</th><th style="border: 1px solid #ddd; padding: 8px; text-align: left; background-color: #f2f2f2;">Seleção</th></tr></thead>';
+                let tableBody = '<tbody>';
+                for (const [key, value] of Object.entries(selections)) {
+                    tableBody += `<tr><td style="border: 1px solid #ddd; padding: 8px;"><strong>${key}</strong></td><td style="border: 1px solid #ddd; padding: 8px;">${value}</td></tr>`;
+                }
+                tableBody += '</tbody>';
+                selectionsTable.innerHTML = tableHeader + tableBody;
+                pdfContentWrapper.appendChild(selectionsTable);
+                console.log('Tabela de seleções adicionada ao PDF.');
+            } catch (e) {
+                console.error('Erro ao processar as seleções para o PDF:', e);
             }
-            tableBody += '</tbody>';
-            selectionsTable.innerHTML = tableBody;
-            contentToPrint.appendChild(selectionsTable);
+            
+            // 5. Clonar e adicionar o resultado
+            const cloneResultado = resultadoDiv.cloneNode(true);
+            cloneResultado.classList.remove('hidden');
+            cloneResultado.style.display = 'block';
+            cloneResultado.style.backgroundColor = '#e0f2fe';
+            cloneResultado.style.padding = '15px';
+            cloneResultado.style.borderRadius = '6px';
+            cloneResultado.style.marginTop = '10px';
+            cloneResultado.style.border = '1px solid #bde0fe';
+            pdfContentWrapper.appendChild(cloneResultado);
+            console.log('Resultado clonado e adicionado ao PDF.');
 
-            const resultForPdf = document.createElement('div');
-            resultForPdf.innerHTML = resultadoDiv.innerHTML;
-            contentToPrint.appendChild(resultForPdf);
+            // 6. Clonar e adicionar a referência
+            if (refDiv) {
+                const cloneRef = refDiv.cloneNode(true);
+                cloneRef.style.marginTop = '30px';
+                cloneRef.style.fontSize = '10px';
+                pdfContentWrapper.appendChild(cloneRef);
+                console.log('Referência clonada e adicionada ao PDF.');
+            }
 
-            const opt = {
-                margin:       [0.5, 0.5, 0.5, 0.5],
-                filename:     'escala-apgar.pdf',
-                image:        { type: 'jpeg', quality: 0.98 },
-                html2canvas:  { scale: 2, useCORS: true },
-                jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }
+            // 7. Configurar e gerar o PDF
+            const options = {
+                margin: 0.5,
+                filename: 'relatorio_escala_apgar.pdf',
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2, scrollY: 0, useCORS: true }, // Usando scale 2 como no exemplo
+                jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
             };
-
-            html2pdf().set(opt).from(contentToPrint).save();
+            
+            console.log('Gerando PDF com as seguintes opções:', options);
+            html2pdf().set(options).from(pdfContentWrapper).save().then(() => {
+                console.log('PDF salvo com sucesso.');
+            }).catch(err => {
+                console.error('Erro na biblioteca html2pdf:', err);
+                alert("Ocorreu um erro ao gerar o PDF. Verifique o console para mais detalhes.");
+            });
         }
 
         // --- Lógica de Acessibilidade (Padrão Heparina) ---
