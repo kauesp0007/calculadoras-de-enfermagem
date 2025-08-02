@@ -1,3 +1,71 @@
+// Exemplo de como o seu ficheiro global-scripts.js ficaria
+
+/**
+ * GERA UM PDF A PARTIR DE UM SELETOR DE CONTEÚDO.
+ * Esta função é genérica e pode ser chamada por qualquer página.
+ * @param {object} options - Opções para o PDF (titulo, subtitulo, nomeArquivo, seletorConteudo).
+ */
+function gerarPDFGlobal(options) {
+    // Valores padrão
+    const {
+        titulo = 'Relatório da Calculadora',
+        subtitulo = 'Relatório de Cálculo Assistencial',
+        nomeArquivo = 'relatorio.pdf',
+        seletorConteudo = '.main-content-wrapper' // Um seletor padrão
+    } = options;
+
+    console.log(`Iniciando geração de PDF para: ${titulo}`);
+
+    const elementoParaImprimir = document.querySelector(seletorConteudo);
+
+    if (!elementoParaImprimir) {
+        alert('Erro: Não foi possível encontrar o conteúdo principal para gerar o PDF.');
+        console.error(`Elemento com seletor "${seletorConteudo}" não encontrado.`);
+        return;
+    }
+    
+    // Clona o conteúdo para não modificar a página atual
+    const contentToPrint = elementoParaImprimir.cloneNode(true);
+
+    // Remove elementos interativos do clone para uma impressão limpa
+    contentToPrint.querySelectorAll('button, a, input, fieldset, nav').forEach(el => el.remove());
+
+    // Cria um cabeçalho para o PDF
+    const pdfHeader = document.createElement('div');
+    pdfHeader.style.textAlign = 'center';
+    pdfHeader.style.marginBottom = '25px';
+    pdfHeader.innerHTML = `
+        <h1 style="font-family: 'Nunito Sans', sans-serif; font-size: 22px; font-weight: bold; color: #1A3E74; margin: 0;">${titulo}</h1>
+        <h2 style="font-size: 14px; color: #666; margin-top: 5px;">${subtitulo}</h2>
+        <p style="font-size: 10px; color: #999; margin-top: 10px;">Gerado em: ${new Date().toLocaleString('pt-BR')}</p>
+    `;
+
+    // Insere o cabeçalho no início do conteúdo
+    contentToPrint.prepend(pdfHeader);
+
+    const pdfOptions = {
+        margin: 0.5,
+        filename: nomeArquivo,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2, scrollY: 0, useCORS: true },
+        jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
+    };
+
+    console.log('Gerando PDF com as opções:', pdfOptions);
+    html2pdf().set(pdfOptions).from(contentToPrint).save().catch(err => {
+        console.error("Erro ao gerar PDF: ", err);
+    });
+}
+
+
+// --- O RESTO DO SEU CÓDIGO DE global-scripts.js CONTINUA AQUI ---
+// Por exemplo:
+
+document.addEventListener('DOMContentLoaded', function() {
+  // ... o seu código de inicialização de menus, acessibilidade, etc.
+});
+
+// ... mais código, se houver.
 // global-scripts.js - VERSÃO CORRIGIDA E COMPLETA
 document.addEventListener('DOMContentLoaded', function() {
     // --- Referências de Elementos Globais ---
