@@ -24,27 +24,19 @@ document.addEventListener('DOMContentLoaded', function() {
     const hamburgerButton = document.getElementById('hamburgerButton');
     const offCanvasMenu = document.getElementById('offCanvasMenu');
     const menuOverlay = document.getElementById('menuOverlay');
-    if (hamburgerButton && menuOverlay && offCanvasMenu) {
-    hamburgerButton.addEventListener('click', () => {
-        offCanvasMenu.classList.toggle('translate-x-0');
-        offCanvasMenu.classList.toggle('-translate-x-full');
-        menuOverlay.style.display = 'block';
-    });
-
-    menuOverlay.addEventListener('click', () => {
-        offCanvasMenu.classList.remove('translate-x-0');
-        offCanvasMenu.classList.add('-translate-x-full');
-        menuOverlay.style.display = 'none';
-    });
-}
-
     
-    // --- Variáveis de Estado ---
+    // Variáveis de Estado
     let currentFontSize = 1;
     let currentLineHeight = 1;
     let currentLetterSpacing = 1;
-    
-    // --- Funções de Acessibilidade (Resumidas para brevidade, use as suas funções completas aqui) ---
+    let currentReadingSpeed = 1;
+    let speechSynthesizer = window.speechSynthesis;
+    let utterance = null;
+    let isReading = false;
+    let currentFocusColor = localStorage.getItem('focusColor') || 'yellow';
+    let lastFocusedElement = null;
+
+    // --- Funções de Acessibilidade ---
     function announceStatus(message) {
         if (statusMessageDiv) statusMessageDiv.textContent = message;
     }
@@ -54,6 +46,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const labels = ['Normal', 'Médio', 'Grande', 'Extra Grande', 'Máximo'];
         body.style.fontSize = sizes[currentFontSize - 1];
         if (fontSizeText) fontSizeText.textContent = labels[currentFontSize - 1];
+        if (fontSizeTextPWA) fontSizeTextPWA.textContent = labels[currentFontSize - 1];
         localStorage.setItem('fontSize', currentFontSize);
         if (announce) announceStatus(`Tamanho da fonte alterado para ${labels[currentFontSize - 1]}`);
     }
@@ -68,6 +61,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const labels = ['Médio', 'Grande', 'Extra Grande'];
         document.documentElement.style.setProperty('--espacamento-linha', heights[currentLineHeight - 1]);
         if (lineHeightText) lineHeightText.textContent = labels[currentLineHeight - 1];
+        if (lineHeightTextPWA) lineHeightTextPWA.textContent = labels[currentLineHeight - 1];
         localStorage.setItem('lineHeight', currentLineHeight);
         if (announce) announceStatus(`Espaçamento de linha alterado para ${labels[currentLineHeight - 1]}`);
     }
@@ -82,6 +76,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const labels = ['Normal', 'Médio', 'Grande'];
         document.documentElement.style.setProperty('--espacamento-letra', spacings[currentLetterSpacing - 1]);
         if (letterSpacingText) letterSpacingText.textContent = labels[currentLetterSpacing - 1];
+        if (letterSpacingTextPWA) letterSpacingTextPWA.textContent = labels[currentLetterSpacing - 1];
         localStorage.setItem('letterSpacing', currentLetterSpacing);
         if (announce) announceStatus(`Espaçamento de letra alterado para ${labels[currentLetterSpacing - 1]}`);
     }
@@ -96,6 +91,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const isActive = body.classList.contains('contraste-alto');
         localStorage.setItem('contrasteAlto', isActive);
         if (btnAlternarContraste) btnAlternarContraste.setAttribute('aria-pressed', isActive);
+        if (btnAlternarContrastePWA) btnAlternarContrastePWA.setAttribute('aria-pressed', isActive);
         announceStatus(`Modo de alto contraste ${isActive ? 'ativado' : 'desativado'}.`);
     }
 
@@ -104,6 +100,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const isActive = body.classList.contains('dark-mode');
         localStorage.setItem('darkMode', isActive);
         if (btnAlternarModoEscuro) btnAlternarModoEscuro.setAttribute('aria-pressed', isActive);
+        if (btnAlternarModoEscuroPWA) btnAlternarModoEscuroPWA.setAttribute('aria-pressed', isActive);
         announceStatus(`Modo escuro ${isActive ? 'ativado' : 'desativado'}.`);
     }
 
@@ -115,26 +112,29 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     function resetarAcessibilidade() {
-        // Redefine as variáveis de estado
         currentFontSize = 1;
         currentLineHeight = 1;
         currentLetterSpacing = 1;
         
-        // Remove estilos e classes
         body.style.fontSize = '';
         document.documentElement.style.setProperty('--espacamento-linha', '1.5');
         document.documentElement.style.setProperty('--espacamento-letra', '0em');
         body.classList.remove('contraste-alto', 'dark-mode', 'fonte-dislexia');
         
-        // Limpa o localStorage
-        localStorage.clear();
+        localStorage.removeItem('fontSize');
+        localStorage.removeItem('lineHeight');
+        localStorage.removeItem('letterSpacing');
+        localStorage.removeItem('contrasteAlto');
+        localStorage.removeItem('darkMode');
+        localStorage.removeItem('fonteDislexia');
         
-        // Atualiza a interface
         updateFontSize(false);
         updateLineHeight(false);
         updateLetterSpacing(false);
         if (btnAlternarContraste) btnAlternarContraste.setAttribute('aria-pressed', 'false');
         if (btnAlternarModoEscuro) btnAlternarModoEscuro.setAttribute('aria-pressed', 'false');
+        if (btnAlternarContrastePWA) btnAlternarContrastePWA.setAttribute('aria-pressed', 'false');
+        if (btnAlternarModoEscuroPWA) btnAlternarModoEscuroPWA.setAttribute('aria-pressed', 'false');
         
         announceStatus('Configurações de acessibilidade redefinidas.');
     }
@@ -154,49 +154,161 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
+    // --- Lógica do Modal Personalizado ---
+    const customModal = document.getElementById('customModal');
+    const modalCloseButton = document.getElementById('modalCloseButton');
+    const modalMessage = document.getElementById('modalMessage');
+
+    function showCustomModal(message) {
+        if (customModal && modalMessage && modalCloseButton) {
+            modalMessage.textContent = message;
+            customModal.classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+            lastFocusedElement = document.activeElement;
+            modalCloseButton.focus();
+        }
+    }
+
+    function hideCustomModal() {
+        if (customModal) {
+            customModal.classList.add('hidden');
+            document.body.style.overflow = '';
+            if (lastFocusedElement) {
+                lastFocusedElement.focus();
+                lastFocusedElement = null;
+            }
+        }
+    }
+
+    if (modalCloseButton) {
+        modalCloseButton.addEventListener('click', hideCustomModal);
+    }
+
+    document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape' && customModal && !customModal.classList.contains('hidden')) {
+            hideCustomModal();
+        }
+    });
+
     // --- Lógica do Banner de Cookies ---
     const cookieConsentBanner = document.getElementById('cookieConsentBanner');
     const acceptAllCookiesBtn = document.getElementById('acceptAllCookiesBtn');
     const refuseAllCookiesBtn = document.getElementById('refuseAllCookiesBtn');
+    const manageCookiesBtn = document.getElementById('manageCookiesBtn');
+    const granularCookieModal = document.getElementById('granularCookieModal');
+    const granularModalCloseButton = document.getElementById('granularModalCloseButton');
+    const saveGranularPreferencesBtn = document.getElementById('saveGranularPreferencesBtn');
+    const cancelGranularPreferencesBtn = document.getElementById('cancelGranularPreferencesBtn');
+    const cookieAnalyticsCheckbox = document.getElementById('cookieAnalytics');
+    const cookieMarketingCheckbox = document.getElementById('cookieMarketing');
 
-    if (cookieConsentBanner && !localStorage.getItem('cookieConsent')) {
-        cookieConsentBanner.classList.add('show');
+    const cookiesAcceptedKey = 'cookiesAccepted';
+    const analyticsConsentKey = 'analyticsConsent';
+    const marketingConsentKey = 'marketingConsent';
+
+    function showCookieBanner() {
+        if (localStorage.getItem(cookiesAcceptedKey) === null) {
+            cookieConsentBanner.classList.add('show');
+        }
     }
 
-    if(acceptAllCookiesBtn){
+    function hideCookieBanner() {
+        cookieConsentBanner.classList.remove('show');
+    }
+
+    function updateGtagConsent() {
+        const analyticsStorage = localStorage.getItem(analyticsConsentKey) === 'true' ? 'granted' : 'denied';
+        const adStorage = localStorage.getItem(marketingConsentKey) === 'true' ? 'granted' : 'denied';
+
+        gtag('consent', 'update', {
+            'analytics_storage': analyticsStorage,
+            'ad_storage': adStorage
+        });
+    }
+
+    function loadGranularPreferences() {
+        cookieAnalyticsCheckbox.checked = localStorage.getItem(analyticsConsentKey) === 'true';
+        cookieMarketingCheckbox.checked = localStorage.getItem(marketingConsentKey) === 'true';
+    }
+
+    function saveGranularPreferences() {
+        localStorage.setItem(analyticsConsentKey, cookieAnalyticsCheckbox.checked);
+        localStorage.setItem(marketingConsentKey, cookieMarketingCheckbox.checked);
+        localStorage.setItem(cookiesAcceptedKey, 'true');
+        updateGtagConsent();
+        granularCookieModal.classList.add('hidden');
+        document.body.style.overflow = '';
+        showCookieBanner();
+    }
+
+    function showGranularCookieModal() {
+        loadGranularPreferences();
+        granularCookieModal.classList.remove('hidden');
+        granularCookieModal.classList.add('show'); // Adiciona a classe show
+        document.body.style.overflow = 'hidden';
+        lastFocusedElement = document.activeElement;
+        const focusableElements = granularCookieModal.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
+        if (focusableElements.length > 0) {
+            focusableElements[0].focus();
+        }
+    }
+
+    function hideGranularCookieModal() {
+        granularCookieModal.classList.add('hidden');
+        granularCookieModal.classList.remove('show'); // Remove a classe show
+        document.body.style.overflow = '';
+        if (lastFocusedElement) {
+            lastFocusedElement.focus();
+        }
+    }
+
+    function refuseAllCookies() {
+        localStorage.setItem(cookiesAcceptedKey, 'false');
+        localStorage.setItem(analyticsConsentKey, 'false');
+        localStorage.setItem(marketingConsentKey, 'false');
+        updateGtagConsent();
+        hideCookieBanner();
+    }
+
+    if (acceptAllCookiesBtn) {
         acceptAllCookiesBtn.addEventListener('click', () => {
-            localStorage.setItem('cookieConsent', 'accepted');
-            cookieConsentBanner.classList.remove('show');
+            localStorage.setItem(cookiesAcceptedKey, 'true');
+            localStorage.setItem(analyticsConsentKey, 'true');
+            localStorage.setItem(marketingConsentKey, 'true');
+            updateGtagConsent();
+            hideCookieBanner();
         });
     }
 
-    if(refuseAllCookiesBtn) {
-        refuseAllCookiesBtn.addEventListener('click', () => {
-            localStorage.setItem('cookieConsent', 'refused');
-            cookieConsentBanner.classList.remove('show');
-        });
+    if (refuseAllCookiesBtn) {
+        refuseAllCookiesBtn.addEventListener('click', refuseAllCookies);
     }
 
-    // --- Event Listeners da Barra de Acessibilidade (Desktop) ---
-    // Atribui os eventos apenas se os botões existirem no DOM.
-    document.getElementById('btnAlternarTamanhoFonte')?.addEventListener('click', alternarTamanhoFonte);
-    document.getElementById('btnAlternarEspacamentoLinha')?.addEventListener('click', alternarEspacamentoLinha);
-    document.getElementById('btnAlternarEspacamentoLetra')?.addEventListener('click', alternarEspacamentoLetra);
-    document.getElementById('btnAlternarContraste')?.addEventListener('click', alternarContraste);
-    document.getElementById('btnAlternarModoEscuro')?.addEventListener('click', alternarModoEscuro);
-    document.getElementById('btnAlternarFonteDislexia')?.addEventListener('click', alternarFonteDislexia);
-    document.getElementById('btnResetarAcessibilidade')?.addEventListener('click', resetarAcessibilidade);
-});
-// Ativar o modal de preferências de cookies
-document.addEventListener("DOMContentLoaded", function () {
-  // CORREÇÃO: Usar o ID correto do botão no rodapé
-  const manageBtn = document.getElementById('openGranularCookieModalBtn');
-  const modal = document.getElementById('granularCookieModal');
+    if (manageCookiesBtn) {
+        manageCookiesBtn.addEventListener('click', showGranularCookieModal);
+    }
+    
+    if (openGranularCookieModalBtn) {
+        openGranularCookieModalBtn.addEventListener('click', showGranularCookieModal);
+    }
 
-  if (manageBtn && modal) {
-    manageBtn.addEventListener('click', function () {
-      modal.classList.add('show');
-    });
-  }
+    if (granularModalCloseButton) {
+        granularModalCloseButton.addEventListener('click', hideGranularCookieModal);
+    }
+
+    if (saveGranularPreferencesBtn) {
+        saveGranularPreferencesBtn.addEventListener('click', saveGranularPreferences);
+    }
+
+    if (cancelGranularPreferencesBtn) {
+        cancelGranularPreferencesBtn.addEventListener('click', hideGranularCookieModal);
+    }
+
+    // Initial check and display of cookie banner
+    showCookieBanner();
+    updateGtagConsent();
+
+    // --- Outras lógicas de inicialização ---
+    applySavedSettings();
 });
 
