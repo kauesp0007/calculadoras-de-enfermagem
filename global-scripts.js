@@ -187,3 +187,15 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('btnAlternarFonteDislexia')?.addEventListener('click', alternarFonteDislexia);
     document.getElementById('btnResetarAcessibilidade')?.addEventListener('click', resetarAcessibilidade);
 });
+// Ativar o modal de preferências de cookies
+document.addEventListener("DOMContentLoaded", function () {
+  const manageBtn = document.getElementById('manageCookiesBtn');
+  const modal = document.getElementById('granularCookieModal');
+
+  if (manageBtn && modal) {
+    manageBtn.addEventListener('click', function () {
+      modal.classList.add('show');
+    });
+  }
+});
+
