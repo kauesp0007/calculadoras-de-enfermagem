@@ -76,13 +76,30 @@ function gerarPDFGlobal(options) {
         contentToPrint.appendChild(cloneResultado);
     }
 
-    const pdfOptions = {
-        margin: 0.5,
-        filename: nomeArquivo,
-        image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: { scale: 2, scrollY: 0, useCORS: true },
-        jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
-    };
+    // Define estilo adicional antes de gerar PDF
+contentToPrint.style.lineHeight = '1cm';
+contentToPrint.style.fontSize = '12px';
+contentToPrint.style.margin = '0';
+
+// Configurações detalhadas do PDF
+const pdfOptions = {
+    margin: [0.5, 0.5, 0.5, 0.5], // Margens: sup, esq, inf, dir (em polegadas ≈ 1,27 cm)
+    filename: nomeArquivo,
+    image: { type: 'jpeg', quality: 0.98 },
+    html2canvas: {
+        scale: 2,
+        scrollY: 0,
+        useCORS: true
+    },
+    jsPDF: {
+        unit: 'cm',
+        format: [21.0, 29.7], // A4 em centímetros
+        orientation: 'portrait',
+        putOnlyUsedFonts: true
+    },
+    pagebreak: { avoid: ['p', 'h1', 'h2', 'h3', 'div', 'section'] }
+};
+
 
     html2pdf().set(pdfOptions).from(contentToPrint).save().catch(err => {
         console.error("Erro ao gerar PDF: ", err);
