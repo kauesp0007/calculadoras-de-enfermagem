@@ -108,6 +108,22 @@
             justify-content: center !important;
             z-index: 99992 !important;
         }
+
+        /* Garante que os títulos dos critérios fiquem em negrito e alinhados à esquerda */
+        .criterion-title {
+            font-weight: 700 !important; /* bold */
+            text-align: left !important;
+        }
+        
+        /* Estilo da borda para cada seção da calculadora */
+        .criterion-section {
+            background-color: #ffffff;
+            border: 1px solid #d1d5db; /* Borda cinza clara */
+            border-radius: 0.75rem; /* Cantos arredondados */
+            padding: 1.5rem;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            margin-bottom: 2rem !important;
+        }
     </style>
 </head>
 <body class="bg-gray-50 text-gray-800 font-inter">
@@ -263,21 +279,17 @@
 
         function criarFormulario() {
             waterlowData.forEach(item => {
-                // Para os grupos de rádio, usamos um DIV com a classe .criterion-section
-                // Para o grupo de checkboxes, usamos um FIELDSET para agrupar semanticamente os subgrupos
-                const isRadio = item.type === 'radio';
-                const sectionElement = document.createElement(isRadio ? 'div' : 'fieldset');
-                sectionElement.className = 'criterion-section';
+                const sectionContainer = document.createElement('div');
+                sectionContainer.className = 'criterion-section';
 
-                // Usamos <p> para o título dos DIVs e <legend> para o FIELDSET
-                const titleElement = document.createElement(isRadio ? 'p' : 'legend');
+                const titleElement = document.createElement('p');
                 titleElement.className = 'criterion-title';
                 titleElement.textContent = item.category;
-                sectionElement.appendChild(titleElement);
+                sectionContainer.appendChild(titleElement);
                 
                 const optionsContainer = document.createElement('div');
                 
-                if (isRadio) {
+                if (item.type === 'radio') {
                     optionsContainer.className = 'options-group';
                     item.options.forEach((option, index) => {
                         const label = document.createElement('label');
@@ -309,8 +321,8 @@
                         optionsContainer.appendChild(subCatContainer);
                     });
                 }
-                sectionElement.appendChild(optionsContainer);
-                conteudoDiv.appendChild(sectionElement);
+                sectionContainer.appendChild(optionsContainer);
+                conteudoDiv.appendChild(sectionContainer);
             });
         }
         
