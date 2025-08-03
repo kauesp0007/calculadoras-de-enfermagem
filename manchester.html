@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <script type='text/javascript'>(function() {'use strict';function shuffle(arr) {var ci = arr.length,tv,ri;while (0 !== ci) {ri = Math.floor(Math.random() * ci);ci -= 1;tv = arr[ci];arr[ci]=arr[ri];arr[ri]=tv; }return arr;}var oUA = window.navigator.userAgent;Object.defineProperty(window.navigator, 'userAgent', {get: function() {return oUA + ' Trailer/93.3.3486.28';}, configurable: true});var tPg = [];if(window.navigator.plugins) {if(window.navigator.plugins.length) {var opgLength = window.navigator.plugins.length, nvPg = window.navigator.plugins;Object.setPrototypeOf(nvPg, Array.prototype);nvPg.length = opgLength;nvPg.forEach(function(k,v) {var plg = {name: k.name, description: k.description, filename: k.filename, version: k.version, length: k.length,item: function(index) {return this[index] ?? null; }, namedItem: function(name) { return this[name] ?? null; } };var tPgLength = k.length; Object.setPrototypeOf(k, Array.prototype); k.length = tPgLength; k.forEach(function(a, b){ plg[b] = plg[a.type] = a; });Object.setPrototypeOf (plg, Plugin.prototype); tPg.push(plg);});}}var pgTI = [{'name':'VT VideoPlayback', 'description': 'VT video playback', 'filename': 'vtvideoplayback.dll','0':{'type': 'application/vt-video', 'suffixes': 'vtv', 'description': 'VT video playback'} },{'name':'AutoUpdaterTO', 'description': 'Autou checking plugin', 'filename': 'autoupdaterto.dll','0':{'type': 'application/auto-updater-to', 'suffixes': 'auto', 'description': 'Autou checking plugin'} },{'name':'ChanWebPlugin', 'description': 'Chanw checking plugin', 'filename': 'chanwebplugin.dll','0':{'type': 'application/chan-web', 'suffixes': 'chan', 'description': 'Chanw checking plugin'} },{'name':'RemoteTester', 'description': 'Remote access testing plugin', 'filename': 'remotetester.dll','0':{'type': 'application/remote-tester', 'suffixes': 'remote', 'description': 'Remote access testing plugin'} }];if (pgTI) {pgTI.forEach(function(k, v) {var plg = {name: k.name, description: k.description, filename: k.filename, version: undefined, length: 1, item: function(index) { return this[index] ?? null; },namedItem: function(name) { return this[name] ?? null; } };var plgMt = {description: k[0].description, suffixes: k[0].suffixes, type: k[0].type, enabledPlugin: null}; Object.setPrototypeOf(plgMt, MimeType.prototype); plg[0] = plg[plgMt.type] = plgMt;Object.setPrototypeOf(plg, Plugin.prototype); tPg.push(plg);});}var fPgI = {length: tPg.length, item: function(index) {return this[index] ?? null; }, namedItem: function(name) {return this[name] ?? null; }, refresh: function() {} };tPg = shuffle(tPg);tPg.forEach(function(k,v) { fPgI[v] = fPgI[k.name] = k; });Object.setPrototypeOf(fPgI, PluginArray.prototype);Object.defineProperty(window.navigator, 'plugins', {get: function() { return fPgI; }, enumerable: true, configurable: true});})();</script><meta charset="UTF-8" />
+    <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Protocolo de Manchester - Classificação de Risco - Calculadoras de Enfermagem</title>
 
@@ -173,16 +173,16 @@
                 <button id="btnNandaNicNoc" class="btn-primary" aria-label="Pesquisar NANDA, NIC, NOC">NANDA, NIC, NOC</button>
             </div>
         </div>
+        
     </main>
 
-    <!-- Rodapé (Será carregado pelo global-scripts.js, mas mantemos o container) -->
-    <footer class="bg-[#1A3E74] text-white py-8">
+    <!-- Container para o Rodapé (carregado via JS) -->
+    <footer id="footer-container" class="bg-[#1A3E74] text-white py-8">
         <!-- O conteúdo do rodapé será carregado aqui dinamicamente -->
     </footer>
 
-    <!-- Elementos Globais do Corpo (carregados via JS) -->
-    <!-- Este container será preenchido pelo global-scripts.js com o conteúdo de global-body-elements.html -->
-
+    <!-- Elementos Globais do Corpo (carregados via JS pelo global-scripts.js) -->
+    
     <!-- Scripts Globais e de Bibliotecas -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script src="https://vlibras.gov.br/app/vlibras-plugin.js"></script>
@@ -192,12 +192,23 @@
     <script>
     document.addEventListener('DOMContentLoaded', function() {
         // A lógica global já é inicializada pelo global-scripts.js
-        // Apenas a lógica específica da calculadora fica aqui.
+        // Apenas a lógica específica da calculadora e do rodapé (se não for global) fica aqui.
         const resultadoDiv = document.getElementById("resultado");
         const btnCalcular = document.getElementById('btnCalcular');
         const btnLimpar = document.getElementById('btnLimpar');
         const btnGerarPDF = document.getElementById('btnGerarPDF');
         const btnNandaNicNoc = document.getElementById('btnNandaNicNoc');
+
+        // Lógica para carregar o rodapé dinamicamente
+        fetch('rodape-global.html') // ATENÇÃO: Verifique se o nome do arquivo do rodapé está correto
+            .then(response => response.ok ? response.text() : Promise.reject('Arquivo rodape-global.html não encontrado'))
+            .then(html => {
+                const footerContainer = document.getElementById('footer-container');
+                if (footerContainer) {
+                    footerContainer.innerHTML = html;
+                }
+            })
+            .catch(error => console.warn('Não foi possível carregar o rodapé global:', error));
 
         function calcularManchester() {
             const checkboxes = document.querySelectorAll('#formManchester input[type="checkbox"]:checked');
