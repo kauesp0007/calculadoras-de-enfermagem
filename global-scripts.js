@@ -174,16 +174,14 @@ function initializeNavigationMenu() {
     });
   });
 
-  // Tornar submenus clicáveis em mobile
-  const submenuTriggers = offCanvasMenu?.querySelectorAll('.has-submenu > a');
-  submenuTriggers?.forEach(trigger => {
-    trigger.addEventListener('click', (e) => {
-      if (window.innerWidth < 1024) {
-        e.preventDefault(); // Impede navegação
-        const submenu = trigger.nextElementSibling;
-        if (submenu?.classList.contains('submenu')) {
-          submenu.classList.toggle('open');
-        }
+  // Lógica corrigida para submenus clicáveis no mobile
+  const submenuToggles = offCanvasMenu?.querySelectorAll('button[data-submenu-toggle]');
+  submenuToggles?.forEach(button => {
+    button.addEventListener('click', (e) => {
+      e.preventDefault(); // Impede qualquer comportamento padrão do botão
+      const submenu = button.nextElementSibling; // O submenu é o próximo elemento (o <ul>)
+      if (submenu && submenu.tagName === 'UL') {
+        submenu.classList.toggle('open'); // Adiciona ou remove a classe 'open'
       }
     });
   });
