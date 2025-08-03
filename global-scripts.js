@@ -143,19 +143,52 @@ document.addEventListener('DOMContentLoaded', function() {
  */
 
 function initializeNavigationMenu() {
-    const hamburgerButton = document.getElementById('hamburgerButton');
-    const offCanvasMenu = document.getElementById('offCanvasMenu');
-    const menuOverlay = document.getElementById('menuOverlay');
-    const accessibilityPanel = document.getElementById('pwaAcessibilidadeBar');
+  const hamburgerButton = document.getElementById('hamburgerButton');
+  const offCanvasMenu = document.getElementById('offCanvasMenu');
+  const menuOverlay = document.getElementById('menuOverlay');
+  const accessibilityPanel = document.getElementById('pwaAcessibilidadeBar');
 
-    hamburgerButton?.addEventListener('click', () => {
-        if (accessibilityPanel?.classList.contains('is-open')) {
-            accessibilityPanel.classList.remove('is-open');
-        }
-        offCanvasMenu?.classList.add('is-open');
-        if (menuOverlay) menuOverlay.style.display = 'block';
+  // Abrir menu hamburguer
+  hamburgerButton?.addEventListener('click', () => {
+    if (accessibilityPanel?.classList.contains('is-open')) {
+      accessibilityPanel.classList.remove('is-open');
+    }
+    offCanvasMenu?.classList.add('is-open');
+    if (menuOverlay) menuOverlay.style.display = 'block';
+  });
+
+  // Fechar ao clicar fora do menu
+  menuOverlay?.addEventListener('click', () => {
+    offCanvasMenu?.classList.remove('is-open');
+    accessibilityPanel?.classList.remove('is-open');
+    if (menuOverlay) menuOverlay.style.display = 'none';
+  });
+
+  // Fechar ao clicar em qualquer item de link do menu
+  offCanvasMenu?.querySelectorAll('a').forEach(link => {
+    link.addEventListener('click', () => {
+      offCanvasMenu.classList.remove('is-open');
+      if (!accessibilityPanel?.classList.contains('is-open')) {
+        menuOverlay.style.display = 'none';
+      }
     });
+  });
+
+  // Tornar submenus clicáveis em mobile
+  const submenuTriggers = offCanvasMenu?.querySelectorAll('.has-submenu > a');
+  submenuTriggers?.forEach(trigger => {
+    trigger.addEventListener('click', (e) => {
+      if (window.innerWidth < 1024) {
+        e.preventDefault(); // Impede navegação
+        const submenu = trigger.nextElementSibling;
+        if (submenu?.classList.contains('submenu')) {
+          submenu.classList.toggle('open');
+        }
+      }
+    });
+  });
 }
+
 
 function inicializarTooltips() {
     const elementosComTooltip = document.querySelectorAll('[data-tooltip]');
