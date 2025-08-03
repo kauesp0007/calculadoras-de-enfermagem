@@ -326,6 +326,7 @@ document.head.appendChild(estiloTooltip);
     document.getElementById('btnAlternarModoEscuro')?.addEventListener('click', () => { body.classList.toggle('dark-mode'); });
     document.getElementById('btnAlternarFonteDislexia')?.addEventListener('click', () => { body.classList.toggle('fonte-dislexia'); });
     document.getElementById('btnResetarAcessibilidade')?.addEventListener('click', resetarAcessibilidade);
+    
 
     // --- Lógica do Botão Voltar ao Topo ---
     const backToTopBtn = document.getElementById('backToTopBtn');
@@ -382,4 +383,19 @@ document.head.appendChild(estiloTooltip);
         new VLibras.Widget('https://vlibras.gov.br/app');
     }
     inicializarTooltips(); 
+}
+// --- Lógica da Newsletter ---
+const newsletterConsent = document.getElementById('newsletterConsent');
+const subscribeNewsletterBtn = document.getElementById('subscribeNewsletterBtn');
+
+// Só adiciona o listener se os elementos existirem na página
+if (newsletterConsent && subscribeNewsletterBtn) {
+    newsletterConsent.addEventListener('change', function() {
+        // Habilita o botão de assinar apenas se o checkbox de consentimento estiver marcado
+        if (this.checked) {
+            subscribeNewsletterBtn.disabled = false;
+        } else {
+            subscribeNewsletterBtn.disabled = true;
+        }
+    });
 }
