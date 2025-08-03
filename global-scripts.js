@@ -127,27 +127,14 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Carrega os elementos HTML globais do corpo (barra de acessibilidade, modais, etc.)
     fetch('global-body-elements.html')
-    .then(response => response.ok ? response.text() : Promise.reject('Ficheiro global-body-elements.html não encontrado'))
-    .then(html => {
-        // 1. Insere o conteúdo global no final do body, como antes
-        document.body.insertAdjacentHTML('beforeend', html);
+        .then(response => response.ok ? response.text() : Promise.reject('Ficheiro global-body-elements.html não encontrado'))
+        .then(html => {
+            document.body.insertAdjacentHTML('beforeend', html);
+            initializeGlobalFunctions();
+        })
+        .catch(error => console.warn('Não foi possível carregar os elementos globais do corpo:', error));
 
-        // 2. --- NOVA LÓGICA DE REPOSICIONAMENTO ---
-        // Encontra o wrapper da newsletter que acabamos de adicionar
-        const newsletterWrapper = document.getElementById('global-newsletter-wrapper');
-        // Encontra o rodapé (<footer_>) que existe na página principal
-        const footer = document.querySelector('footer');
-
-        // Se a newsletter e o rodapé existirem, move a newsletter para antes do rodapé
-        if (newsletterWrapper && footer) {
-            footer.parentNode.insertBefore(newsletterWrapper, footer);
-        }
-        // --- FIM DA NOVA LÓGICA ---
-
-        // 3. Continua a inicializar todas as funções globais, incluindo a da newsletter
-        initializeGlobalFunctions();
-    })
-    .catch(error => console.warn('Não foi possível carregar os elementos globais do corpo:', error));
+});
 
 /**
  * =================================================================================
@@ -187,14 +174,16 @@ function initializeNavigationMenu() {
     });
   });
 
-  // Lógica corrigida para submenus clicáveis no mobile
-  const submenuToggles = offCanvasMenu?.querySelectorAll('button[data-submenu-toggle]');
-  submenuToggles?.forEach(button => {
-    button.addEventListener('click', (e) => {
-      e.preventDefault(); // Impede qualquer comportamento padrão do botão
-      const submenu = button.nextElementSibling; // O submenu é o próximo elemento (o <ul>)
-      if (submenu && submenu.tagName === 'UL') {
-        submenu.classList.toggle('open'); // Adiciona ou remove a classe 'open'
+  // Tornar submenus clicáveis em mobile
+  const submenuTriggers = offCanvasMenu?.querySelectorAll('.has-submenu > a');
+  submenuTriggers?.forEach(trigger => {
+    trigger.addEventListener('click', (e) => {
+      if (window.innerWidth < 1024) {
+        e.preventDefault(); // Impede navegação
+        const submenu = trigger.nextElementSibling;
+        if (submenu?.classList.contains('submenu')) {
+          submenu.classList.toggle('open');
+        }
       }
     });
   });
@@ -220,7 +209,6 @@ function inicializarTooltips() {
 }
 
 function initializeGlobalFunctions() {
-    
     const body = document.body;
     const estiloTooltip = document.createElement('style');
 estiloTooltip.innerHTML = `
@@ -340,7 +328,6 @@ document.head.appendChild(estiloTooltip);
     document.getElementById('btnAlternarModoEscuro')?.addEventListener('click', () => { body.classList.toggle('dark-mode'); });
     document.getElementById('btnAlternarFonteDislexia')?.addEventListener('click', () => { body.classList.toggle('fonte-dislexia'); });
     document.getElementById('btnResetarAcessibilidade')?.addEventListener('click', resetarAcessibilidade);
-    
 
     // --- Lógica do Botão Voltar ao Topo ---
     const backToTopBtn = document.getElementById('backToTopBtn');
@@ -397,23 +384,4 @@ document.head.appendChild(estiloTooltip);
         new VLibras.Widget('https://vlibras.gov.br/app');
     }
     inicializarTooltips(); 
-}
-    function initializeGlobalFunctions() {
-    // ... (todo o seu código existente: acessibilidade, cookies, etc.)
-
-    // --- Lógica da Newsletter ---
-    const newsletterConsent = document.getElementById('newsletterConsent');
-    const subscribeNewsletterBtn = document.getElementById('subscribeNewsletterBtn');
-
-    if (newsletterConsent && subscribeNewsletterBtn) {
-        newsletterConsent.addEventListener('change', function() {
-            if (this.checked) {
-                subscribeNewsletterBtn.disabled = false;
-            } else {
-                subscribeNewsletterBtn.disabled = true;
-            }
-        });
-    }
-
-    // ... (o resto da sua função)
 }
