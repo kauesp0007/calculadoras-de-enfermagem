@@ -29,9 +29,12 @@ function gerarPDFGlobal(options) {
         return;
     }
     
-    const contentToPrint = elementoParaImprimir.cloneNode(true);
-    contentToPrint.querySelectorAll('button, a, input, fieldset, nav').forEach(el => el.remove());
+    // Cria um container DIV para o conteúdo do PDF, em vez de clonar o wrapper inteiro.
+    const contentToPrint = document.createElement('div');
+    contentToPrint.style.padding = '20px';
+    contentToPrint.style.fontFamily = 'Inter, sans-serif';
 
+    // Cria um cabeçalho para o PDF
     const pdfHeader = document.createElement('div');
     pdfHeader.style.textAlign = 'center';
     pdfHeader.style.marginBottom = '25px';
@@ -40,7 +43,38 @@ function gerarPDFGlobal(options) {
         <h2 style="font-size: 14px; color: #666; margin-top: 5px;">${subtitulo}</h2>
         <p style="font-size: 10px; color: #999; margin-top: 10px;">Gerado em: ${new Date().toLocaleString('pt-BR')}</p>
     `;
-    contentToPrint.prepend(pdfHeader);
+    contentToPrint.appendChild(pdfHeader);
+
+    // --- LÓGICA ATUALIZADA PARA INCLUIR ITENS SELECIONADOS ---
+    const conteudoCalculadora = elementoParaImprimir.querySelector('#conteudo');
+    if (conteudoCalculadora) {
+        const cloneConteudo = conteudoCalculadora.cloneNode(true);
+        
+        // Remove todos os inputs de rádio que NÃO foram selecionados
+        cloneConteudo.querySelectorAll('input[type="radio"]:not(:checked)').forEach(radio => {
+            // Remove a linha inteira da tabela (tr) ou o label da opção
+            radio.closest('.option-row, .option-label')?.remove();
+        });
+
+        // Remove as tabelas/fieldsets que ficaram vazios após a limpeza
+        cloneConteudo.querySelectorAll('tbody, .options-group').forEach(container => {
+            if (container.children.length === 0) {
+                container.closest('.criterion-section, .criterion-table')?.remove();
+            }
+        });
+        
+        // Adiciona o conteúdo limpo ao PDF
+        contentToPrint.appendChild(cloneConteudo);
+    }
+    // --- FIM DA LÓGICA ATUALIZADA ---
+
+    // Adiciona o resultado final ao PDF
+    const resultadoDiv = elementoParaImprimir.querySelector('#resultado');
+    if (resultadoDiv && !resultadoDiv.classList.contains('hidden')) {
+        const cloneResultado = resultadoDiv.cloneNode(true);
+        cloneResultado.style.marginTop = '20px';
+        contentToPrint.appendChild(cloneResultado);
+    }
 
     const pdfOptions = {
         margin: 0.5,
