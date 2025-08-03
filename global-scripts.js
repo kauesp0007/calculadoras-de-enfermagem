@@ -157,8 +157,53 @@ function initializeNavigationMenu() {
     });
 }
 
+function inicializarTooltips() {
+    const elementosComTooltip = document.querySelectorAll('[data-tooltip]');
+    
+    elementosComTooltip.forEach(el => {
+        const texto = el.getAttribute('data-tooltip');
+        
+        const tooltip = document.createElement('div');
+        tooltip.className = 'tooltip-dinamico';
+        tooltip.innerText = texto;
+        el.appendChild(tooltip);
+
+        el.addEventListener('mouseenter', () => tooltip.style.opacity = '1');
+        el.addEventListener('mouseleave', () => tooltip.style.opacity = '0');
+        el.addEventListener('touchstart', () => tooltip.style.opacity = '1');
+        el.addEventListener('touchend', () => setTimeout(() => tooltip.style.opacity = '0', 2000));
+    });
+}
+
 function initializeGlobalFunctions() {
     const body = document.body;
+    const estiloTooltip = document.createElement('style');
+estiloTooltip.innerHTML = `
+.tooltip-dinamico {
+  position: absolute;
+  background-color: #1A3E74;
+  color: white;
+  font-size: 12px;
+  padding: 6px 10px;
+  border-radius: 4px;
+  white-space: normal;
+  z-index: 9999;
+  opacity: 0;
+  transition: opacity 0.3s;
+  top: 120%;
+  left: 50%;
+  transform: translateX(-50%);
+  max-width: 220px;
+  text-align: center;
+}
+[data-tooltip] {
+  position: relative;
+  cursor: help;
+  border-bottom: 1px dotted #1A3E74;
+}
+`;
+document.head.appendChild(estiloTooltip);
+
     const statusMessageDiv = document.getElementById('statusMessage');
     let lastFocusedElement = null;
 
@@ -305,4 +350,5 @@ function initializeGlobalFunctions() {
     if (typeof VLibras !== 'undefined') {
         new VLibras.Widget('https://vlibras.gov.br/app');
     }
+    inicializarTooltips(); 
 }
