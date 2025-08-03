@@ -52,21 +52,44 @@
     }
     </script>
 
-    <!-- Estilos Específicos da Página Waterlow e Correções PWA -->
+    <!-- Estilos Específicos da Página e Ajustes -->
     <style>
-        /* Classes de resultado específicas para a Escala de Waterlow */
-        .resultado.bg-waterlow-risco { background-color: #d4edda; color: #155724; } /* Verde para 'Em Risco' */
-        .resultado.bg-waterlow-alto-risco { background-color: #fff3cd; color: #856404; } /* Amarelo para 'Alto Risco' */
-        .resultado.bg-waterlow-muito-alto-risco { background-color: #f8d7da; color: #721c24; } /* Vermelho para 'Muito Alto Risco' */
-        .resultado.bg-info-alerta { background-color: #fff3cd; color: #856404; } /* Cor de alerta genérica */
+        /* Define a cor de fundo azul claro para o resultado */
+        .resultado-azul { background-color: #e0f2fe; color: #1A3E74; }
+        .resultado.bg-info-alerta { background-color: #fff3cd; color: #856404; }
 
         /* Correção para o espaçamento do conteúdo principal na versão PWA/mobile */
         @media (max-width: 768px) {
             body {
-                /* Garante espaço suficiente para o cabeçalho fixo no modo PWA,
-                   evitando que o título e o breadcrumb fiquem sobrepostos. */
                 padding-top: 120px !important;
             }
+        }
+        
+        /* Layout em grade para as opções dentro de cada critério */
+        .options-group {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 1rem;
+        }
+
+        /* Container para os grupos de checkbox */
+        .checkbox-group-container {
+            border: 1px solid #e5e7eb;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        /* Ajustes para compactar o menu */
+        .desktop-nav ul {
+            gap: 1rem !important; /* Reduz o espaço entre os itens principais */
+        }
+        .desktop-nav ul ul li a, .desktop-nav ul ul li button {
+            padding: 0.4rem 0.8rem !important; /* Reduz o padding dos itens do submenu */
+        }
+        .off-canvas-menu ul li a, .off-canvas-menu ul li button {
+            padding: 10px 18px !important; /* Reduz o padding no menu mobile */
+            font-size: 1.1rem !important;
         }
     </style>
 </head>
@@ -170,20 +193,18 @@
                         <img src="https://www.calculadorasdeenfermagem.com.br/selolgpd.webp" alt="Selo LGPD" width="100" height="100" class="w-auto h-auto max-w-[80px] max-h-[80px]" loading="lazy" decoding="async">
                     </div>
                 </div>
-                <div class="flex flex-1 flex-col md:flex-row justify-end items-start md:items-start">
-                    <div class="vertical-divider-footer-stretched hidden md:block"></div>
-                    <div class="flex flex-col items-start space-y-4">
-                        <h5 class="font-bold mb-2">Siga-nos</h5>
-                        <div class="flex space-x-4">
-                            <a href="https://linkedin.com/company/calculadoras-de-enfermagem" target="_blank" class="footer-social-icon" title="LinkedIn" aria-label="Acesse Nosso Perfil no LinkedIn"><i class="fab fa-linkedin text-xl"></i></a>
-                            <a href="https://www.instagram.com/calculadorasdeenfermagem/" target="_blank" class="footer-social-icon" title="Instagram" aria-label="Acesse Nosso Perfil no Instagram"><i class="fab fa-instagram text-xl"></i></a>
-                            <a href="https://www.tiktok.com/@calculadorasdeenf" target="_blank" class="footer-social-icon" title="TikTok" aria-label="Acesse Nosso Perfil no TikTok"><i class="fab fa-tiktok text-xl"></i></a>
-                            <a href="https://www.youtube.com/channel/UC_6runTDHz8u5S1Yab842pg" target="_blank" class="footer-social-icon" title="YouTube" aria-label="Acesse Nosso Perfil no YouTube"><i class="fab fa-youtube text-xl"></i></a>
-                        </div>
-                        <button id="openGranularCookieModalBtn" class="btn-secondary text-white mt-4 py-2 px-4 rounded-md" aria-label="Gerenciar Preferências de Cookies">
-                            Gerenciar Preferências de Cookies
-                        </button>
+                <!-- Seção Siga-nos e Gerenciar Cookies -->
+                <div class="flex flex-col items-start space-y-4">
+                    <h5 class="font-bold mb-2">Siga-nos</h5>
+                    <div class="flex space-x-4">
+                        <a href="https://linkedin.com/company/calculadoras-de-enfermagem" target="_blank" class="footer-social-icon" title="LinkedIn" aria-label="Acesse Nosso Perfil no LinkedIn"><i class="fab fa-linkedin text-xl"></i></a>
+                        <a href="https://www.instagram.com/calculadorasdeenfermagem/" target="_blank" class="footer-social-icon" title="Instagram" aria-label="Acesse Nosso Perfil no Instagram"><i class="fab fa-instagram text-xl"></i></a>
+                        <a href="https://www.tiktok.com/@calculadorasdeenf" target="_blank" class="footer-social-icon" title="TikTok" aria-label="Acesse Nosso Perfil no TikTok"><i class="fab fa-tiktok text-xl"></i></a>
+                        <a href="https://www.youtube.com/channel/UC_6runTDHz8u5S1Yab842pg" target="_blank" class="footer-social-icon" title="YouTube" aria-label="Acesse Nosso Perfil no YouTube"><i class="fab fa-youtube text-xl"></i></a>
                     </div>
+                    <button id="openGranularCookieModalBtn" class="btn-secondary text-white mt-4 py-2 px-4 rounded-md" aria-label="Gerenciar Preferências de Cookies">
+                        Gerenciar Preferências de Cookies
+                    </button>
                 </div>
             </div>
             <div class="mt-8 text-center">
@@ -200,9 +221,6 @@
     <!-- Script Específico da Página Waterlow -->
     <script>
     document.addEventListener('DOMContentLoaded', function() {
-        // A lógica global (menu, acessibilidade, cookies) já foi carregada e inicializada pelo global-scripts.js
-        // Aqui fica apenas a lógica específica da Calculadora Waterlow.
-
         const conteudoDiv = document.getElementById('conteudo');
         const resultadoDiv = document.getElementById('resultado');
         const btnCalcular = document.getElementById('btnCalcular');
@@ -210,7 +228,6 @@
         const btnGerarPDF = document.getElementById('btnGerarPDF');
         const btnNandaNicNoc = document.getElementById('btnNandaNicNoc');
 
-        // Dados da escala de Waterlow baseados no seu arquivo de texto
         const waterlowData = [
             { category: "Tipo de pele", nameAttr: "tipoPele", type: "radio", options: [ { description: "Saudável", score: 0 }, { description: "Fina", score: 1 }, { description: "Seca", score: 1 }, { description: "Edematosa", score: 1 }, { description: "Viscosa (úmida)", score: 1 }, { description: "Descorada", score: 2 }, { description: "Quebradiça/danificada", score: 3 } ] },
             { category: "Mobilidade", nameAttr: "mobilidade", type: "radio", options: [ { description: "Totalmente móvel", score: 0 }, { description: "Inquieto/agitado", score: 1 }, { description: "Apático", score: 2 }, { description: "Mobilidade restrita", score: 3 }, { description: "Inerte/tração", score: 4 }, { description: "Acamado/cadeira de rodas", score: 5 } ] },
@@ -227,7 +244,6 @@
             }
         ];
 
-        // Função para criar o formulário dinamicamente
         function criarFormulario() {
             waterlowData.forEach(item => {
                 const fieldset = document.createElement('fieldset');
@@ -239,9 +255,9 @@
                 fieldset.appendChild(legend);
 
                 const optionsGroup = document.createElement('div');
-                optionsGroup.className = 'options-group';
-
+                
                 if (item.type === 'radio') {
+                    optionsGroup.className = 'options-group';
                     item.options.forEach((option, index) => {
                         const label = document.createElement('label');
                         label.className = 'option-label';
@@ -249,18 +265,28 @@
                         optionsGroup.appendChild(label);
                     });
                 } else if (item.type === 'checkbox-group') {
+                    // Para checkboxes, não usamos a grade principal, mas sim containers internos
+                    optionsGroup.className = ''; 
                     item.sub_categories.forEach(subCat => {
+                        const subCatContainer = document.createElement('div');
+                        subCatContainer.className = 'checkbox-group-container';
+
                         const subCatTitle = document.createElement('p');
-                        subCatTitle.className = 'font-semibold text-gray-700 mt-2 mb-1';
+                        subCatTitle.className = 'font-semibold text-gray-700 mb-2';
                         subCatTitle.textContent = subCat.name;
-                        optionsGroup.appendChild(subCatTitle);
+                        subCatContainer.appendChild(subCatTitle);
+
+                        const subCatOptionsGroup = document.createElement('div');
+                        subCatOptionsGroup.className = 'options-group';
                         
                         subCat.options.forEach((option, index) => {
                             const label = document.createElement('label');
                             label.className = 'option-label';
                             label.innerHTML = `<input type="checkbox" name="${subCat.nameAttr}" value="${option.score}" id="${subCat.nameAttr}-${index}"> <span>${option.description} (${option.score} pts)</span>`;
-                            optionsGroup.appendChild(label);
+                            subCatOptionsGroup.appendChild(label);
                         });
+                        subCatContainer.appendChild(subCatOptionsGroup);
+                        optionsGroup.appendChild(subCatContainer);
                     });
                 }
                 fieldset.appendChild(optionsGroup);
@@ -268,13 +294,12 @@
             });
         }
         
-        criarFormulario(); // Chama a função para montar o formulário
+        criarFormulario();
 
         function calcular() {
             let total = 0;
             let allRadioSelected = true;
             
-            // Valida e soma os inputs de rádio
             waterlowData.filter(item => item.type === 'radio').forEach(item => {
                 const selecionado = document.querySelector(`input[name="${item.nameAttr}"]:checked`);
                 if (selecionado) {
@@ -292,33 +317,25 @@
                 return;
             }
 
-            // Soma os checkboxes
             document.querySelectorAll('input[type="checkbox"]:checked').forEach(cb => {
                 total += parseInt(cb.value, 10);
             });
 
             let classificacao = "";
-            let resultadoClasse = '';
-
             if (total >= 20) {
                 classificacao = "Risco Muito Alto";
-                resultadoClasse = 'bg-waterlow-muito-alto-risco';
             } else if (total >= 15) {
                 classificacao = "Alto Risco";
-                resultadoClasse = 'bg-waterlow-alto-risco';
             } else if (total >= 10) {
                 classificacao = "Em Risco";
-                resultadoClasse = 'bg-waterlow-risco';
             } else {
                 classificacao = "Risco Baixo (não requer intervenção específica, mas monitoramento)";
-                resultadoClasse = 'bg-waterlow-risco'; // Usa a mesma cor de 'Em Risco'
             }
             
-            resultadoDiv.className = `resultado p-4 mt-6 rounded-lg text-left ${resultadoClasse}`;
+            resultadoDiv.className = 'resultado p-4 mt-6 rounded-lg text-left resultado-azul';
             resultadoDiv.innerHTML = `<p>Pontuação total: <strong class="font-bold">${total}</strong></p><p>Classificação: <strong class="font-bold">${classificacao}</strong></p>`;
             resultadoDiv.classList.remove('hidden');
 
-            // Armazena dados para PDF e NANDA
             resultadoDiv.dataset.score = total;
             resultadoDiv.dataset.classificacao = classificacao;
         }
@@ -331,7 +348,6 @@
             delete resultadoDiv.dataset.classificacao;
         }
 
-        // Adiciona os event listeners aos botões
         btnCalcular?.addEventListener('click', calcular);
         btnLimpar?.addEventListener('click', limpar);
 
@@ -340,7 +356,6 @@
                 alert('Por favor, clique em "Calcular" primeiro para gerar o PDF.');
                 return;
             }
-            // Chama a função global de PDF
             gerarPDFGlobal({
                 titulo: 'Escala de Waterlow',
                 subtitulo: 'Relatório de Avaliação de Risco para Lesão por Pressão',
