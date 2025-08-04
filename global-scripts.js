@@ -152,6 +152,8 @@ function inicializarTooltips() {
 }
 
 
+// ENCONTRE a função initializeCookieFunctionality() no seu JS e SUBSTITUA-A por este bloco completo:
+
 function initializeCookieFunctionality() {
     // Seleciona todos os elementos relacionados a cookies
     const cookieConsentBanner = document.getElementById('cookieConsentBanner');
@@ -165,6 +167,9 @@ function initializeCookieFunctionality() {
     const cookieAnalyticsCheckbox = document.getElementById('cookieAnalytics');
     const cookieMarketingCheckbox = document.getElementById('cookieMarketing');
 
+    // Esta é a referência ao botão extra que estava no seu arquivo antigo
+    const openGranularCookieModalBtn = document.getElementById('openGranularCookieModalBtn');
+
     // Funções auxiliares para mostrar/ocultar elementos
     const showCookieBanner = () => { if (!localStorage.getItem('cookieConsent') && cookieConsentBanner) cookieConsentBanner.classList.add('show'); };
     const hideCookieBanner = () => { if (cookieConsentBanner) cookieConsentBanner.classList.remove('show'); };
@@ -172,6 +177,7 @@ function initializeCookieFunctionality() {
         if (!granularCookieModal) return;
         if(cookieAnalyticsCheckbox) cookieAnalyticsCheckbox.checked = localStorage.getItem('analytics_storage') === 'granted';
         if(cookieMarketingCheckbox) cookieMarketingCheckbox.checked = localStorage.getItem('ad_storage') === 'granted';
+        // A lógica correta para o CSS atual é remover a classe 'hidden'
         granularCookieModal.classList.remove('hidden');
     };
     const hideGranularCookieModal = () => { if(granularCookieModal) granularCookieModal.classList.add('hidden'); };
@@ -194,9 +200,14 @@ function initializeCookieFunctionality() {
         });
     }
 
-    // Listener corrigido e reforçado para o botão de gerenciar
+    // Listener para o botão "Gerenciar cookies"
     if (manageCookiesBtn) {
         manageCookiesBtn.addEventListener('click', showGranularCookieModal);
+    }
+    
+    // Listener para o botão extra do arquivo antigo
+    if (openGranularCookieModalBtn) {
+        openGranularCookieModalBtn.addEventListener('click', showGranularCookieModal);
     }
     
     if (granularModalCloseButton) {
