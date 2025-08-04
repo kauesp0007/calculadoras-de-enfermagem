@@ -142,6 +142,82 @@ function inicializarTooltips() {
     });
 }
 
+
+function initializeCookieFunctionality() {
+    // Seleciona todos os elementos relacionados a cookies
+    const cookieConsentBanner = document.getElementById('cookieConsentBanner');
+    const acceptAllCookiesBtn = document.getElementById('acceptAllCookiesBtn');
+    const refuseAllCookiesBtn = document.getElementById('refuseAllCookiesBtn');
+    const manageCookiesBtn = document.getElementById('manageCookiesBtn');
+    const granularCookieModal = document.getElementById('granularCookieModal');
+    const saveGranularPreferencesBtn = document.getElementById('saveGranularPreferencesBtn');
+    const granularModalCloseButton = document.getElementById('granularModalCloseButton');
+    const cancelGranularPreferencesBtn = document.getElementById('cancelGranularPreferencesBtn');
+    const cookieAnalyticsCheckbox = document.getElementById('cookieAnalytics');
+    const cookieMarketingCheckbox = document.getElementById('cookieMarketing');
+
+    // Funções auxiliares para mostrar/ocultar elementos
+    const showCookieBanner = () => { if (!localStorage.getItem('cookieConsent') && cookieConsentBanner) cookieConsentBanner.classList.add('show'); };
+    const hideCookieBanner = () => { if (cookieConsentBanner) cookieConsentBanner.classList.remove('show'); };
+    const showGranularCookieModal = () => {
+        if (!granularCookieModal) return;
+        if(cookieAnalyticsCheckbox) cookieAnalyticsCheckbox.checked = localStorage.getItem('analytics_storage') === 'granted';
+        if(cookieMarketingCheckbox) cookieMarketingCheckbox.checked = localStorage.getItem('ad_storage') === 'granted';
+        granularCookieModal.classList.remove('hidden');
+    };
+    const hideGranularCookieModal = () => { if(granularCookieModal) granularCookieModal.classList.add('hidden'); };
+    const updateGtagConsent = (consent) => { if(typeof gtag === 'function') { gtag('consent', 'update', consent); } };
+
+    // Adiciona os eventos aos botões
+    if (acceptAllCookiesBtn) {
+        acceptAllCookiesBtn.addEventListener('click', () => {
+            updateGtagConsent({ 'analytics_storage': 'granted', 'ad_storage': 'granted' });
+            localStorage.setItem('cookieConsent', 'accepted');
+            hideCookieBanner();
+        });
+    }
+
+    if (refuseAllCookiesBtn) {
+        refuseAllCookiesBtn.addEventListener('click', () => {
+            updateGtagConsent({ 'analytics_storage': 'denied', 'ad_storage': 'denied' });
+            localStorage.setItem('cookieConsent', 'refused');
+            hideCookieBanner();
+        });
+    }
+
+    // Listener corrigido e reforçado para o botão de gerenciar
+    if (manageCookiesBtn) {
+        manageCookiesBtn.addEventListener('click', showGranularCookieModal);
+    }
+    
+    if (granularModalCloseButton) {
+        granularModalCloseButton.addEventListener('click', hideGranularCookieModal);
+    }
+
+    if (cancelGranularPreferencesBtn) {
+        cancelGranularPreferencesBtn.addEventListener('click', hideGranularCookieModal);
+    }
+    
+    if (saveGranularPreferencesBtn) {
+        saveGranularPreferencesBtn.addEventListener('click', () => {
+            const consent = { 
+                'analytics_storage': cookieAnalyticsCheckbox.checked ? 'granted' : 'denied', 
+                'ad_storage': cookieMarketingCheckbox.checked ? 'granted' : 'denied' 
+            };
+            updateGtagConsent(consent);
+            localStorage.setItem('cookieConsent', 'managed');
+            localStorage.setItem('analytics_storage', consent.analytics_storage);
+            localStorage.setItem('ad_storage', consent.ad_storage);
+            hideGranularCookieModal();
+            hideCookieBanner();
+        });
+    }
+
+    // Exibe o banner inicial se necessário
+    showCookieBanner();
+}
+
+
 function initializeGlobalFunctions() {
     function forceDesktopView() {
         if (window.innerWidth > 1024) {
@@ -322,7 +398,6 @@ function initializeGlobalFunctions() {
         button.addEventListener('click', () => setFocusColor(button.dataset.color));
     });
 
-    // LÓGICA CORRIGIDA E EXPLÍCITA PARA O MODAL DE TECLADO
     const keyboardModal = document.getElementById('keyboardShortcutsModal');
     const openKeyboardBtn = document.getElementById('btnKeyboardShortcuts');
     const openKeyboardBtnPWA = document.getElementById('btnKeyboardShortcutsPWA');
@@ -341,63 +416,13 @@ function initializeGlobalFunctions() {
         }
     });
     
-    // LÓGICA CORRIGIDA E EXPLÍCITA PARA COOKIES
-    const cookieConsentBanner = document.getElementById('cookieConsentBanner');
-    const acceptAllCookiesBtn = document.getElementById('acceptAllCookiesBtn');
-    const refuseAllCookiesBtn = document.getElementById('refuseAllCookiesBtn');
-    const manageCookiesBtn = document.getElementById('manageCookiesBtn');
-    const granularCookieModal = document.getElementById('granularCookieModal');
-    const saveGranularPreferencesBtn = document.getElementById('saveGranularPreferencesBtn');
-    const granularModalCloseButton = document.getElementById('granularModalCloseButton');
-    const cancelGranularPreferencesBtn = document.getElementById('cancelGranularPreferencesBtn');
-    const cookieAnalyticsCheckbox = document.getElementById('cookieAnalytics');
-    const cookieMarketingCheckbox = document.getElementById('cookieMarketing');
+    // Chama a função que inicializa toda a lógica de cookies
+    initializeCookieFunctionality();
 
-    const showCookieBanner = () => { if (!localStorage.getItem('cookieConsent') && cookieConsentBanner) cookieConsentBanner.classList.add('show'); };
-    const hideCookieBanner = () => { if (cookieConsentBanner) cookieConsentBanner.classList.remove('show'); };
-    const updateGtagConsent = (consent) => { if(typeof gtag === 'function') { gtag('consent', 'update', consent); } };
-    
-    const showGranularCookieModal = () => {
-        if(cookieAnalyticsCheckbox) cookieAnalyticsCheckbox.checked = localStorage.getItem('analytics_storage') === 'granted';
-        if(cookieMarketingCheckbox) cookieMarketingCheckbox.checked = localStorage.getItem('ad_storage') === 'granted';
-        if(granularCookieModal) granularCookieModal.classList.remove('hidden');
-    };
-    const hideGranularCookieModal = () => { if(granularCookieModal) granularCookieModal.classList.add('hidden'); };
-
-    acceptAllCookiesBtn?.addEventListener('click', () => {
-        updateGtagConsent({ 'analytics_storage': 'granted', 'ad_storage': 'granted' });
-        localStorage.setItem('cookieConsent', 'accepted');
-        hideCookieBanner();
-    });
-    refuseAllCookiesBtn?.addEventListener('click', () => {
-        updateGtagConsent({ 'analytics_storage': 'denied', 'ad_storage': 'denied' });
-        localStorage.setItem('cookieConsent', 'refused');
-        hideCookieBanner();
-    });
-    manageCookiesBtn?.addEventListener('click', showGranularCookieModal);
-    granularModalCloseButton?.addEventListener('click', hideGranularCookieModal);
-    cancelGranularPreferencesBtn?.addEventListener('click', hideGranularCookieModal);
-    saveGranularPreferencesBtn?.addEventListener('click', () => {
-        const consent = { 
-            'analytics_storage': cookieAnalyticsCheckbox.checked ? 'granted' : 'denied', 
-            'ad_storage': cookieMarketingCheckbox.checked ? 'granted' : 'denied' 
-        };
-        updateGtagConsent(consent);
-        localStorage.setItem('cookieConsent', 'managed');
-        localStorage.setItem('analytics_storage', consent.analytics_storage);
-        localStorage.setItem('ad_storage', consent.ad_storage);
-        hideGranularCookieModal();
-        hideCookieBanner();
-    });
-    showCookieBanner();
-
-    // CARREGAMENTO DAS CONFIGURAÇÕES DE ACESSIBILIDADE
     function loadAccessibilitySettings() {
-        // Problema 1: Fontes - A fonte agora sempre começa no tamanho padrão.
         currentFontSize = 1;
         updateFontSize(false);
 
-        // Outras configurações continuam sendo carregadas do localStorage para conveniência do usuário.
         currentLineHeight = parseInt(localStorage.getItem('lineHeight') || '1', 10);
         updateLineHeight(false);
         currentLetterSpacing = parseInt(localStorage.getItem('letterSpacing') || '1', 10);
@@ -411,7 +436,6 @@ function initializeGlobalFunctions() {
     }
     loadAccessibilitySettings();
     
-    // LÓGICA DOS MENUS LATERAIS
     accessibilityToggleButton?.addEventListener('click', () => {
         if (offCanvasMenu?.classList.contains('is-open')) {
             offCanvasMenu.classList.remove('is-open');
@@ -436,7 +460,6 @@ function initializeGlobalFunctions() {
         backToTopBtn.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
     }
 
-    // INICIALIZAÇÃO DO VLIBRAS
     function initVLibras() {
         if (document.querySelector('[vw]')) {
             let attempts = 0;
