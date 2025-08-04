@@ -29,10 +29,12 @@ function gerarPDFGlobal(options) {
         return;
     }
     
+    // Cria um container DIV para o conteúdo do PDF, em vez de clonar o wrapper inteiro.
     const contentToPrint = document.createElement('div');
     contentToPrint.style.padding = '20px';
     contentToPrint.style.fontFamily = 'Inter, sans-serif';
 
+    // Cria um cabeçalho para o PDF
     const pdfHeader = document.createElement('div');
     pdfHeader.style.textAlign = 'center';
     pdfHeader.style.marginBottom = '25px';
@@ -119,42 +121,45 @@ document.addEventListener('DOMContentLoaded', function() {
 
 
 function initializeNavigationMenu() {
-    const hamburgerButton = document.getElementById('hamburgerButton');
-    const offCanvasMenu = document.getElementById('offCanvasMenu');
-    const menuOverlay = document.getElementById('menuOverlay');
-    const closeMenuButton = document.getElementById('closeMenuButton');
+  const hamburgerButton = document.getElementById('hamburgerButton');
+  const offCanvasMenu = document.getElementById('offCanvasMenu');
+  const menuOverlay = document.getElementById('menuOverlay');
 
-    function openMenu() {
-        offCanvasMenu?.classList.add('is-open');
-        menuOverlay?.classList.add('is-open');
-        hamburgerButton?.setAttribute('aria-expanded', 'true');
-    }
+  hamburgerButton?.addEventListener('click', () => {
+    offCanvasMenu?.classList.toggle('is-open');
+    menuOverlay?.classList.toggle('is-open');
+  });
 
-    function closeMenu() {
-        offCanvasMenu?.classList.remove('is-open');
-        menuOverlay?.classList.remove('is-open');
-        hamburgerButton?.setAttribute('aria-expanded', 'false');
-    }
+  menuOverlay?.addEventListener('click', () => {
+    offCanvasMenu?.classList.remove('is-open');
+    menuOverlay?.classList.remove('is-open');
+  });
 
-    hamburgerButton?.addEventListener('click', openMenu);
-    closeMenuButton?.addEventListener('click', closeMenu);
-    menuOverlay?.addEventListener('click', closeMenu);
+  const submenuToggles = offCanvasMenu?.querySelectorAll('button[data-submenu-toggle]');
+  submenuToggles?.forEach(toggle => {
+      toggle.addEventListener('click', (e) => {
+          e.preventDefault();
+          const submenuId = toggle.getAttribute('data-submenu-toggle');
+          const submenu = document.getElementById(`submenu-${submenuId}`);
+          const icon = toggle.querySelector('i');
 
-    const submenuToggles = offCanvasMenu?.querySelectorAll('button[data-submenu-toggle]');
-    submenuToggles?.forEach(toggle => {
-        toggle.addEventListener('click', (e) => {
-            e.preventDefault();
-            const submenuId = toggle.getAttribute('data-submenu-toggle');
-            const submenu = document.getElementById(`submenu-${submenuId}`);
-            const icon = toggle.querySelector('i');
+          if (submenu) {
+              const parentUl = toggle.closest('ul');
+              parentUl.querySelectorAll('.submenu.open').forEach(openSubmenu => {
+                  if (openSubmenu !== submenu) {
+                      openSubmenu.classList.remove('open');
+                      const otherIcon = openSubmenu.previousElementSibling.querySelector('i');
+                      otherIcon?.classList.remove('fa-chevron-up');
+                      otherIcon?.classList.add('fa-chevron-down');
+                  }
+              });
 
-            if (submenu) {
-                submenu.classList.toggle('open');
-                icon?.classList.toggle('fa-chevron-down');
-                icon?.classList.toggle('fa-chevron-up');
-            }
-        });
-    });
+              submenu.classList.toggle('open');
+              icon?.classList.toggle('fa-chevron-down');
+              icon?.classList.toggle('fa-chevron-up');
+          }
+      });
+  });
 }
 
 
