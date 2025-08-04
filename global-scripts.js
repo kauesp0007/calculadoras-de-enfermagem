@@ -204,13 +204,6 @@ function initializeCookieFunctionality() {
     if (manageCookiesBtn) {
         manageCookiesBtn.addEventListener('click', showGranularCookieModal);
     }
-    // COLE ESTE NOVO BLOCO LOGO ABAIXO DO BLOCO ACIMA:
-
-// Adiciona o listener para o botão específico do rodapé
-const openGranularCookieModalBtn = document.getElementById('openGranularCookieModalBtn');
-if (openGranularCookieModalBtn) {
-    openGranularCookieModalBtn.addEventListener('click', showGranularCookieModal);
-}
     
     // Listener para o botão extra do arquivo antigo
     if (openGranularCookieModalBtn) {
