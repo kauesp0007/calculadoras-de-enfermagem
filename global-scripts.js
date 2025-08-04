@@ -97,7 +97,8 @@ function initializeNavigationMenu() {
     const hamburgerButton = document.getElementById('hamburgerButton');
     const offCanvasMenu = document.getElementById('offCanvasMenu');
     const menuOverlay = document.getElementById('menuOverlay');
-    const closeMenuBtn = document.getElementById('closeOffCanvasMenu');
+    // COLE ESTA LINHA CORRIGIDA NO LUGAR DA ANTIGA:
+const closeMenuBtn = document.getElementById('closeOffCanvasMenu') || document.getElementById('closeMenuButton');
 
     const openNavMenu = () => {
         if(offCanvasMenu) {
