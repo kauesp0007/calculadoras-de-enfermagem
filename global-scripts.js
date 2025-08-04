@@ -283,17 +283,6 @@ function initializeGlobalFunctions() {
         }
     }
 
-    const keyboardShortcutsModal = document.getElementById('keyboardShortcutsModal');
-    const closeShortcutsBtn = document.getElementById('keyboardModalCloseButton');
-    function showShortcutsModal() { if (keyboardShortcutsModal) keyboardShortcutsModal.classList.remove('hidden'); }
-    function hideShortcutsModal() { if (keyboardShortcutsModal) keyboardShortcutsModal.classList.add('hidden'); }
-    closeShortcutsBtn?.addEventListener('click', hideShortcutsModal);
-    window.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape' && keyboardShortcutsModal && !keyboardShortcutsModal.classList.contains('hidden')) {
-            hideShortcutsModal();
-        }
-    });
-
     function resetarAcessibilidade() {
         if(synth) synth.cancel();
         currentFontSize = 1; currentLineHeight = 1; currentLetterSpacing = 1; velocidadeLeituraAtual = 1;
@@ -316,7 +305,6 @@ function initializeGlobalFunctions() {
         { ids: ['btnAlternarModoEscuro', 'btnAlternarModoEscuroPWA'], action: toggleDarkMode },
         { ids: ['btnAlternarFonteDislexia', 'btnAlternarFonteDislexiaPWA'], action: toggleDyslexiaFont },
         { ids: ['btnResetarAcessibilidade', 'btnResetarAcessibilidadePWA'], action: resetarAcessibilidade },
-        { ids: ['btnKeyboardShortcuts', 'btnKeyboardShortcutsPWA'], action: showShortcutsModal },
         { ids: ['btnToggleLeitura'], action: handleToggleLeitura },
         { ids: ['btnReiniciarLeitura'], action: handleReiniciarLeitura },
         { ids: ['btnAlternarVelocidadeLeitura'], action: handleVelocidadeLeitura },
@@ -324,53 +312,36 @@ function initializeGlobalFunctions() {
     ];
     accessibilityActions.forEach(item => {
         item.ids.forEach(id => {
-            document.getElementById(id)?.addEventListener('click', item.action);
+            const element = document.getElementById(id);
+            if (element) {
+                element.addEventListener('click', item.action);
+            }
         });
     });
     document.querySelectorAll('.color-option').forEach(button => {
         button.addEventListener('click', () => setFocusColor(button.dataset.color));
     });
 
-    function loadAccessibilitySettings() {
-        currentFontSize = parseInt(localStorage.getItem('fontSize') || '1', 10);
-        updateFontSize(false);
-        currentLineHeight = parseInt(localStorage.getItem('lineHeight') || '1', 10);
-        updateLineHeight(false);
-        currentLetterSpacing = parseInt(localStorage.getItem('letterSpacing') || '1', 10);
-        updateLetterSpacing(false);
-        velocidadeLeituraAtual = parseInt(localStorage.getItem('readingSpeed') || '1', 10);
-        if (readingSpeedText) handleVelocidadeLeitura();
-        if (localStorage.getItem('highContrast') === 'true') body.classList.add('contraste-alto');
-        if (localStorage.getItem('darkMode') === 'true') body.classList.add('dark-mode');
-        if (localStorage.getItem('dyslexiaFont') === 'true') body.classList.add('fonte-dislexia');
-        setFocusColor(localStorage.getItem('focusColor') || 'yellow', false);
-    }
-    loadAccessibilitySettings();
+    // LÓGICA CORRIGIDA E EXPLÍCITA PARA O MODAL DE TECLADO
+    const keyboardModal = document.getElementById('keyboardShortcutsModal');
+    const openKeyboardBtn = document.getElementById('btnKeyboardShortcuts');
+    const openKeyboardBtnPWA = document.getElementById('btnKeyboardShortcutsPWA');
+    const closeKeyboardBtn = document.getElementById('keyboardModalCloseButton');
+
+    const showKeyboardModal = () => { if (keyboardModal) keyboardModal.classList.remove('hidden'); };
+    const hideKeyboardModal = () => { if (keyboardModal) keyboardModal.classList.add('hidden'); };
+
+    openKeyboardBtn?.addEventListener('click', showKeyboardModal);
+    openKeyboardBtnPWA?.addEventListener('click', showKeyboardModal);
+    closeKeyboardBtn?.addEventListener('click', hideKeyboardModal);
     
-    accessibilityToggleButton?.addEventListener('click', () => {
-        if (offCanvasMenu?.classList.contains('is-open')) {
-            offCanvasMenu.classList.remove('is-open');
-            offCanvasMenu.classList.add('-translate-x-full');
-        }
-        pwaAcessibilidadeBar?.classList.add('is-open');
-        if (menuOverlay) menuOverlay.style.display = 'block';
-    });
-
-    pwaAcessibilidadeCloseBtn?.addEventListener('click', () => {
-        pwaAcessibilidadeBar?.classList.remove('is-open');
-        if (!offCanvasMenu?.classList.contains('is-open')) {
-            if (menuOverlay) menuOverlay.style.display = 'none';
+    window.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && keyboardModal && !keyboardModal.classList.contains('hidden')) {
+            hideKeyboardModal();
         }
     });
-
-    const backToTopBtn = document.getElementById('backToTopBtn');
-    if (backToTopBtn) {
-        window.addEventListener('scroll', () => {
-            backToTopBtn.style.display = (window.scrollY > 200) ? 'block' : 'none';
-        });
-        backToTopBtn.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
-    }
-
+    
+    // LÓGICA CORRIGIDA E EXPLÍCITA PARA COOKIES
     const cookieConsentBanner = document.getElementById('cookieConsentBanner');
     const acceptAllCookiesBtn = document.getElementById('acceptAllCookiesBtn');
     const refuseAllCookiesBtn = document.getElementById('refuseAllCookiesBtn');
@@ -382,16 +353,16 @@ function initializeGlobalFunctions() {
     const cookieAnalyticsCheckbox = document.getElementById('cookieAnalytics');
     const cookieMarketingCheckbox = document.getElementById('cookieMarketing');
 
-    function showCookieBanner() { if (!localStorage.getItem('cookieConsent') && cookieConsentBanner) cookieConsentBanner.classList.add('show'); }
-    function hideCookieBanner() { if (cookieConsentBanner) cookieConsentBanner.classList.remove('show'); }
-    function updateGtagConsent(consent) { if(typeof gtag === 'function') { gtag('consent', 'update', consent); } }
+    const showCookieBanner = () => { if (!localStorage.getItem('cookieConsent') && cookieConsentBanner) cookieConsentBanner.classList.add('show'); };
+    const hideCookieBanner = () => { if (cookieConsentBanner) cookieConsentBanner.classList.remove('show'); };
+    const updateGtagConsent = (consent) => { if(typeof gtag === 'function') { gtag('consent', 'update', consent); } };
     
-    function showGranularCookieModal() {
+    const showGranularCookieModal = () => {
         if(cookieAnalyticsCheckbox) cookieAnalyticsCheckbox.checked = localStorage.getItem('analytics_storage') === 'granted';
         if(cookieMarketingCheckbox) cookieMarketingCheckbox.checked = localStorage.getItem('ad_storage') === 'granted';
         if(granularCookieModal) granularCookieModal.classList.remove('hidden');
-    }
-    function hideGranularCookieModal() { if(granularCookieModal) granularCookieModal.classList.add('hidden'); }
+    };
+    const hideGranularCookieModal = () => { if(granularCookieModal) granularCookieModal.classList.add('hidden'); };
 
     acceptAllCookiesBtn?.addEventListener('click', () => {
         updateGtagConsent({ 'analytics_storage': 'granted', 'ad_storage': 'granted' });
@@ -420,6 +391,52 @@ function initializeGlobalFunctions() {
     });
     showCookieBanner();
 
+    // CARREGAMENTO DAS CONFIGURAÇÕES DE ACESSIBILIDADE
+    function loadAccessibilitySettings() {
+        // Problema 1: Fontes - A fonte agora sempre começa no tamanho padrão.
+        currentFontSize = 1;
+        updateFontSize(false);
+
+        // Outras configurações continuam sendo carregadas do localStorage para conveniência do usuário.
+        currentLineHeight = parseInt(localStorage.getItem('lineHeight') || '1', 10);
+        updateLineHeight(false);
+        currentLetterSpacing = parseInt(localStorage.getItem('letterSpacing') || '1', 10);
+        updateLetterSpacing(false);
+        velocidadeLeituraAtual = parseInt(localStorage.getItem('readingSpeed') || '1', 10);
+        if (readingSpeedText) handleVelocidadeLeitura();
+        if (localStorage.getItem('highContrast') === 'true') body.classList.add('contraste-alto');
+        if (localStorage.getItem('darkMode') === 'true') body.classList.add('dark-mode');
+        if (localStorage.getItem('dyslexiaFont') === 'true') body.classList.add('fonte-dislexia');
+        setFocusColor(localStorage.getItem('focusColor') || 'yellow', false);
+    }
+    loadAccessibilitySettings();
+    
+    // LÓGICA DOS MENUS LATERAIS
+    accessibilityToggleButton?.addEventListener('click', () => {
+        if (offCanvasMenu?.classList.contains('is-open')) {
+            offCanvasMenu.classList.remove('is-open');
+            offCanvasMenu.classList.add('-translate-x-full');
+        }
+        pwaAcessibilidadeBar?.classList.add('is-open');
+        if (menuOverlay) menuOverlay.style.display = 'block';
+    });
+
+    pwaAcessibilidadeCloseBtn?.addEventListener('click', () => {
+        pwaAcessibilidadeBar?.classList.remove('is-open');
+        if (!offCanvasMenu?.classList.contains('is-open')) {
+            if (menuOverlay) menuOverlay.style.display = 'none';
+        }
+    });
+
+    const backToTopBtn = document.getElementById('backToTopBtn');
+    if (backToTopBtn) {
+        window.addEventListener('scroll', () => {
+            backToTopBtn.style.display = (window.scrollY > 200) ? 'block' : 'none';
+        });
+        backToTopBtn.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+    }
+
+    // INICIALIZAÇÃO DO VLIBRAS
     function initVLibras() {
         if (document.querySelector('[vw]')) {
             let attempts = 0;
