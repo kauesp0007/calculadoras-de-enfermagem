@@ -65,6 +65,7 @@
 
     <!-- Estilos Específicos da Página e Ajustes -->
     <style>
+        /* Estilos da Calculadora */
         .resultado-azul { background-color: #e0f2fe; color: #1A3E74; }
         .bg-info-alerta {
             background-color: #fff3cd;
@@ -86,13 +87,69 @@
             box-shadow: 0 0 0 3px rgba(255, 215, 0, 0.7);
         }
 
+        /* Estilos do Accordion */
+        .accordion-item {
+            background-color: #fff;
+            border: 1px solid #e2e8f0;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+            margin-bottom: 1.5rem;
+        }
+
+        .accordion-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.5rem;
+            cursor: pointer;
+            font-weight: 700;
+            font-size: 1.25rem;
+            color: #1A3E74;
+            transition: background-color 0.3s ease;
+        }
+
+        .accordion-header:hover {
+            background-color: #f8fafc;
+        }
+
+        .accordion-content {
+            display: none;
+            padding: 0 1.5rem 1.5rem;
+        }
+
+        .accordion-content.is-open {
+            display: block;
+        }
+
+        .accordion-toggle-icon {
+            transition: transform 0.3s ease;
+        }
+
+        .accordion-header[aria-expanded="true"] .accordion-toggle-icon {
+            transform: rotate(180deg);
+        }
+        
+        .option-label {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 0.25rem;
+            transition: background-color 0.2s;
+        }
+        
+        .option-label:hover {
+            background-color: #f1f5f9;
+        }
+
+        .option-label input[type="radio"] {
+            margin-right: 0.5rem;
+            accent-color: #1A3E74;
+        }
+        
         @media (max-width: 768px) {
-            /* Garante espaço suficiente para o cabeçalho fixo no modo PWA, evitando sobreposição */
-            body {
-                padding-top: 120px !important;
-            }
+            body { padding-top: 120px !important; }
             .main-content-wrapper { padding-left: 1rem; padding-right: 1rem; }
-            .criterion-section { padding: 1rem; }
             .action-buttons {
                 flex-direction: column;
                 width: 100%;
@@ -102,44 +159,6 @@
             }
         }
         
-        .criterion-section {
-            background-color: #ffffff; border: 1px solid #d1d5db; border-radius: 0.75rem;
-            padding: 1.5rem; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-            margin-bottom: 2rem !important;
-        }
-        
-        .criterion-title {
-            font-weight: 700 !important; text-align: left !important; color: #1A3E74;
-            font-size: 1.25rem; margin-bottom: 1rem;
-        }
-
-        .silverman-table { width: 100%; border-collapse: collapse; }
-        .silverman-table th, .silverman-table td { padding: 0.75rem; border: 1px solid #e2e8f0; text-align: left; vertical-align: middle; }
-        .silverman-table th { background-color: #f8fafc; font-weight: 600; }
-        .silverman-table tr:hover { background-color: #f9fafb; }
-        .silverman-table .option-label { cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 0.5rem; padding: 0.5rem; height: 100%; }
-
-        .btn-primary:focus-visible, .btn-secondary:focus-visible, .option-label input:focus-visible + span {
-            outline: 3px solid #3b82f6; outline-offset: 2px; border-radius: 4px;
-        }
-        .btn-primary:disabled, .btn-secondary:disabled { opacity: 0.6; cursor: not-allowed; }
-
-        .score-summary-bar-container {
-            width: 100%;
-            background-color: #e9ecef;
-            border-radius: 0.25rem;
-            overflow: hidden;
-            margin-top: 1rem;
-        }
-        .score-summary-bar {
-            height: 10px;
-            border-radius: 0.25rem;
-            transition: width 0.5s ease-in-out, background-color 0.5s ease-in-out;
-        }
-        .bar-low { background-color: #28a745; } /* Verde */
-        .bar-medium { background-color: #ffc107; } /* Amarelo */
-        .bar-high { background-color: #dc3545; } /* Vermelho */
-
         @media print {
             body { padding-top: 0 !important; }
             #global-header-container, footer, .action-buttons, .breadcrumb, #backToTopBtn, .vw-access-button { display: none !important; }
@@ -172,7 +191,7 @@
 
             <h2 id="main-subtitle" class="font-inter font-semibold text-light-blue text-xl lg:text-2xl mb-3 text-center sm:text-left">Avaliação do Desconforto Respiratório Neonatal</h2>
             <p class="font-inter font-normal text-black-custom text-base lg:text-lg mb-6 text-center sm:text-left">
-                O Boletim de Silverman-Anderson (BSA) é uma ferramenta clínica utilizada para avaliar o grau de desconforto respiratório em recém-nascidos, atribuindo pontuações a diferentes sinais para determinar a gravidade da condição. A soma total (de 0 a 10) indica o nível de desconforto.
+                O Boletim de Silverman-Anderson (<abbr title="Boletim de Silverman-Anderson">BSA</abbr>) é uma ferramenta clínica utilizada para avaliar o grau de desconforto respiratório em recém-nascidos, atribuindo pontuações a diferentes sinais para determinar a gravidade da condição. A soma total (de 0 a 10) indica o nível de desconforto.
             </p>
             <p class="font-inter font-normal text-light-blue text-base lg:text-lg mb-6 text-center sm:text-left">Selecione uma opção para cada parâmetro respiratório:</p>
 
@@ -300,63 +319,64 @@
         ];
 
         function criarFormulario() {
-            const fieldset = document.createElement('fieldset');
-            fieldset.className = 'criterion-section';
-            
-            const legend = document.createElement('legend');
-            legend.className = 'criterion-title';
-            legend.textContent = "Parâmetros de Avaliação";
-            fieldset.appendChild(legend);
-
-            const table = document.createElement('table');
-            table.className = 'silverman-table';
-            const tbody = document.createElement('tbody');
-
             silvermanData.forEach(item => {
-                const row = document.createElement('tr');
-                let paramHTML = item.parameter;
-                if (item.tooltip) {
-                    paramHTML += ` <span data-tooltip="${item.tooltip}" class="inline-block" aria-label="Informação sobre ${item.parameter}"><i class="fas fa-info-circle text-gray-400" aria-hidden="true"></i></span>`;
-                }
-                
-                let cellsHTML = `<td class="font-semibold">${paramHTML}</td>`;
-                
+                const accordionItem = document.createElement('div');
+                accordionItem.className = 'accordion-item';
+
+                const header = document.createElement('div');
+                header.className = 'accordion-header';
+                header.setAttribute('aria-expanded', 'false');
+                header.setAttribute('tabindex', '0');
+                header.innerHTML = `
+                    <span>${item.parameter}
+                        <span class="tooltip-container">
+                            <button type="button" class="tooltip-icon-button" aria-label="Informações sobre ${item.parameter}">
+                                <i class="fas fa-info-circle" aria-hidden="true"></i>
+                            </button>
+                            <span class="tooltip-text">${item.tooltip}</span>
+                        </span>
+                    </span>
+                    <i class="fas fa-chevron-down accordion-toggle-icon" aria-hidden="true"></i>
+                `;
+                accordionItem.appendChild(header);
+
+                const content = document.createElement('div');
+                content.className = 'accordion-content';
+                content.setAttribute('role', 'region');
+
                 item.options.forEach(option => {
-                    const inputId = `${item.nameAttr}-${option.score}`;
-                    cellsHTML += `
-                        <td class="text-center">
-                            <label for="${inputId}" class="option-label">
-                                <input type="radio" name="${item.nameAttr}" value="${option.score}" id="${inputId}">
-                                <span>${option.description}</span>
-                            </label>
-                        </td>`;
+                    const label = document.createElement('label');
+                    label.className = 'option-label';
+                    const input = document.createElement('input');
+                    input.type = 'radio';
+                    input.name = item.nameAttr;
+                    input.value = option.score;
+
+                    label.appendChild(input);
+                    label.innerHTML += `<span>${option.description} (${option.score})</span>`;
+                    content.appendChild(label);
                 });
-                row.innerHTML = cellsHTML;
-                tbody.appendChild(row);
+
+                accordionItem.appendChild(content);
+                conteudoDiv.appendChild(accordionItem);
+
+                header.addEventListener('click', function() {
+                    const isExpanded = this.getAttribute('aria-expanded') === 'true';
+                    document.querySelectorAll('.accordion-header').forEach(h => {
+                        h.setAttribute('aria-expanded', 'false');
+                        h.nextElementSibling.classList.remove('is-open');
+                    });
+                    this.setAttribute('aria-expanded', !isExpanded);
+                    if (!isExpanded) {
+                        content.classList.add('is-open');
+                    }
+                });
             });
-
-            table.innerHTML = '<thead><tr><th scope="col">Parâmetro</th><th scope="col" class="text-center">0 Pontos</th><th scope="col" class="text-center">1 Ponto</th><th scope="col" class="text-center">2 Pontos</th></tr></thead>';
-            table.appendChild(tbody);
-            fieldset.appendChild(table);
-            conteudoDiv.appendChild(fieldset);
-
-            try {
-                if (typeof inicializarTooltips === 'function') {
-                    inicializarTooltips();
-                }
-            } catch (e) {
-                console.error("Erro ao inicializar tooltips:", e);
-            }
         }
         
         criarFormulario();
 
         function calcular() {
-            btnCalcular.disabled = true;
-            btnCalcular.innerHTML = `<i class="fas fa-spinner fa-spin mr-2" aria-hidden="true"></i>Calculando...`;
-            if(statusMessageDiv) statusMessageDiv.textContent = "Calculando pontuação...";
-            if (navigator.vibrate) { navigator.vibrate(100); }
-
             let total = 0;
             let allSelected = true;
             
@@ -369,54 +389,52 @@
                 }
             });
 
-            setTimeout(() => {
-                resultadoDiv.classList.remove('hidden');
-                if (!allSelected) {
-                    resultadoDiv.className = 'resultado p-4 mt-6 rounded-lg text-left bg-info-alerta flex items-start gap-4 visible';
-                    resultadoDiv.innerHTML = `<i class="fas fa-exclamation-triangle mt-1" aria-hidden="true"></i><div><strong class="font-bold block">Atenção!</strong> Por favor, selecione uma opção para cada um dos cinco parâmetros.</div>`;
-                    resultadoDiv.setAttribute('tabindex', '0');
-                    resultadoDiv.focus();
-                    resultadoDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                    delete resultadoDiv.dataset.score;
-                    btnCalcular.disabled = false;
-                    btnCalcular.textContent = 'Calcular';
-                    if(statusMessageDiv) statusMessageDiv.textContent = "Erro: campos obrigatórios não preenchidos.";
-                    return;
-                }
+            resultadoDiv.classList.remove('hidden');
+            if (!allSelected) {
+                resultadoDiv.className = 'resultado p-4 mt-6 rounded-lg text-left bg-info-alerta flex items-start gap-4 visible';
+                resultadoDiv.innerHTML = `<i class="fas fa-exclamation-triangle mt-1" aria-hidden="true"></i><div><strong class="font-bold block">Atenção!</strong> Por favor, selecione uma opção para cada um dos cinco parâmetros.</div>`;
+                resultadoDiv.setAttribute('tabindex', '0');
+                resultadoDiv.focus();
+                resultadoDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                delete resultadoDiv.dataset.score;
+                return;
+            }
 
-                let classificacao = "";
-                let barClass = "";
-                if (total <= 3) {
-                    classificacao = "Desconforto Respiratório Leve.";
-                    barClass = "bar-low";
-                } else if (total <= 7) {
-                    classificacao = "Desconforto Respiratório Moderado.";
-                    barClass = "bar-medium";
-                } else {
-                    classificacao = "Desconforto Respiratório Grave.";
-                    barClass = "bar-high";
-                }
-                
-                const scorePercentage = (total / 10) * 100;
+            let classificacao = "";
+            let barClass = "";
+            let resultadoClass = "";
+            
+            if (total <= 3) {
+                classificacao = "Desconforto Respiratório Leve.";
+                barClass = "bar-low";
+                resultadoClass = "bg-success-green";
+            } else if (total <= 7) {
+                classificacao = "Desconforto Respiratório Moderado.";
+                barClass = "bar-medium";
+                resultadoClass = "bg-info-alerta";
+            } else {
+                classificacao = "Desconforto Respiratório Grave.";
+                barClass = "bar-high";
+                resultadoClass = "bg-danger-red";
+            }
+            
+            const scorePercentage = (total / 10) * 100;
 
-                resultadoDiv.className = 'resultado p-4 mt-6 rounded-lg text-left resultado-azul visible';
-                resultadoDiv.innerHTML = `
-                    <p>Pontuação Total: <strong class="font-bold">${total}</strong></p>
-                    <p>Classificação: <strong class="font-bold">${classificacao}</strong></p>
-                    <div class="score-summary-bar-container" role="progressbar" aria-valuenow="${total}" aria-valuemin="0" aria-valuemax="10" aria-label="Barra de gravidade da pontuação.">
-                        <div class="score-summary-bar ${barClass}" style="width: ${scorePercentage}%;"></div>
-                    </div>
-                `;
-                resultadoDiv.classList.add('highlight');
-                setTimeout(() => resultadoDiv.classList.remove('highlight'), 2000); // Remove o destaque após 2s
+            resultadoDiv.className = `resultado p-4 mt-6 rounded-lg text-left ${resultadoClass} visible`;
+            resultadoDiv.innerHTML = `
+                <p>Pontuação Total: <strong class="font-bold">${total}</strong></p>
+                <p>Classificação: <strong class="font-bold">${classificacao}</strong></p>
+                <div class="score-summary-bar-container" role="progressbar" aria-valuenow="${total}" aria-valuemin="0" aria-valuemax="10" aria-label="Barra de gravidade da pontuação.">
+                    <div class="score-summary-bar ${barClass}" style="width: ${scorePercentage}%;"></div>
+                </div>
+            `;
+            resultadoDiv.setAttribute('tabindex', '0');
+            resultadoDiv.focus();
+            resultadoDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
 
-                resultadoDiv.dataset.score = total;
-                resultadoDiv.dataset.classificacao = classificacao;
-                
-                btnCalcular.disabled = false;
-                btnCalcular.textContent = 'Calcular';
-                if(statusMessageDiv) statusMessageDiv.textContent = `Cálculo concluído. Pontuação: ${total}. ${classificacao}`;
-            }, 300);
+            resultadoDiv.dataset.score = total;
+            resultadoDiv.dataset.classificacao = classificacao;
+            resultadoDiv.dataset.scaleName = "Boletim de Silverman-Anderson";
         }
 
         function limpar() {
@@ -425,22 +443,15 @@
             resultadoDiv.innerHTML = '';
             delete resultadoDiv.dataset.score;
             delete resultadoDiv.dataset.classificacao;
-            if(statusMessageDiv) statusMessageDiv.textContent = "Campos limpos.";
+            // Fecha todos os accordions
+            document.querySelectorAll('.accordion-header').forEach(h => {
+                h.setAttribute('aria-expanded', 'false');
+            });
+            document.querySelectorAll('.accordion-content').forEach(c => {
+                c.classList.remove('is-open');
+            });
         }
         
-        // Function to handle the "Back to Top" button behavior
-        function setupBackToTopButton() {
-            const backToTopBtn = document.getElementById('backToTopBtn');
-            if (backToTopBtn) {
-                window.addEventListener('scroll', () => {
-                    backToTopBtn.style.display = (window.scrollY > 200) ? 'block' : 'none';
-                });
-                backToTopBtn.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
-            }
-        }
-        
-        setupBackToTopButton();
-
         btnCalcular?.addEventListener('click', calcular);
         btnLimpar?.addEventListener('click', limpar);
 
@@ -449,7 +460,6 @@
                 alert('Por favor, clique em "Calcular" primeiro para gerar o PDF.');
                 return;
             }
-            // Check if the global PDF function exists and call it
             if (typeof gerarPDFGlobal === 'function') {
                 gerarPDFGlobal({
                     titulo: 'Boletim de Silverman-Anderson',
