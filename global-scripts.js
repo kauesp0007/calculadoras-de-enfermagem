@@ -119,42 +119,30 @@ document.addEventListener('DOMContentLoaded', function() {
 
 
 function initializeNavigationMenu() {
-    const hamburgerButton = document.getElementById('hamburgerButton');
-    const offCanvasMenu = document.getElementById('offCanvasMenu');
-    const menuOverlay = document.getElementById('menuOverlay');
-    const closeMenuButton = document.getElementById('closeMenuButton');
+  const hamburgerButton = document.getElementById('hamburgerButton');
+  const offCanvasMenu = document.getElementById('offCanvasMenu');
+  const menuOverlay = document.getElementById('menuOverlay');
 
-    function openMenu() {
-        offCanvasMenu?.classList.add('is-open');
-        menuOverlay?.classList.add('is-open');
-        hamburgerButton?.setAttribute('aria-expanded', 'true');
-    }
+  hamburgerButton?.addEventListener('click', () => {
+      offCanvasMenu?.classList.toggle('-translate-x-full'); // Alterna a classe de visibilidade
+      menuOverlay?.style.display = offCanvasMenu?.classList.contains('-translate-x-full') ? 'none' : 'block';
+  });
 
-    function closeMenu() {
-        offCanvasMenu?.classList.remove('is-open');
-        menuOverlay?.classList.remove('is-open');
-        hamburgerButton?.setAttribute('aria-expanded', 'false');
-    }
+  menuOverlay?.addEventListener('click', () => {
+      offCanvasMenu?.classList.add('-translate-x-full');
+      menuOverlay.style.display = 'none';
+  });
 
-    hamburgerButton?.addEventListener('click', openMenu);
-    closeMenuButton?.addEventListener('click', closeMenu);
-    menuOverlay?.addEventListener('click', closeMenu);
-
-    const submenuToggles = offCanvasMenu?.querySelectorAll('button[data-submenu-toggle]');
-    submenuToggles?.forEach(toggle => {
-        toggle.addEventListener('click', (e) => {
-            e.preventDefault();
-            const submenuId = toggle.getAttribute('data-submenu-toggle');
-            const submenu = document.getElementById(`submenu-${submenuId}`);
-            const icon = toggle.querySelector('i');
-
-            if (submenu) {
-                submenu.classList.toggle('open');
-                icon?.classList.toggle('fa-chevron-down');
-                icon?.classList.toggle('fa-chevron-up');
-            }
-        });
-    });
+  const submenuToggles = offCanvasMenu?.querySelectorAll('.has-submenu > a, .has-submenu > button');
+  submenuToggles?.forEach(toggle => {
+      toggle.addEventListener('click', (e) => {
+          e.preventDefault();
+          const submenu = toggle.nextElementSibling;
+          if (submenu && submenu.classList.contains('submenu')) {
+              submenu.classList.toggle('open');
+          }
+      });
+  });
 }
 
 
@@ -178,69 +166,61 @@ function inicializarTooltips() {
 
 function initializeGlobalFunctions() {
     const body = document.body;
-    const estiloTooltip = document.createElement('style');
-    estiloTooltip.innerHTML = `
-    .tooltip-dinamico {
-      position: absolute;
-      background-color: #1A3E74;
-      color: white;
-      font-size: 12px;
-      padding: 6px 10px;
-      border-radius: 4px;
-      white-space: normal;
-      z-index: 9999;
-      opacity: 0;
-      transition: opacity 0.3s;
-      top: 120%;
-      left: 50%;
-      transform: translateX(-50%);
-      max-width: 220px;
-      text-align: center;
-    }
-    [data-tooltip] {
-      position: relative;
-      cursor: help;
-      border-bottom: 1px dotted #1A3E74;
-    }
-    `;
-    document.head.appendChild(estiloTooltip);
+    const statusMessageDiv = document.createElement('div');
+    statusMessageDiv.setAttribute('aria-live', 'polite');
+    statusMessageDiv.className = 'sr-only';
+    body.appendChild(statusMessageDiv);
 
-    const statusMessageDiv = document.getElementById('statusMessage');
-
-    // --- Lógica de Acessibilidade ---
+    // --- Seletores de Elementos ---
     const fontSizeText = document.getElementById('fontSizeText');
     const lineHeightText = document.getElementById('lineHeightText');
     const letterSpacingText = document.getElementById('letterSpacingText');
+    const readingSpeedText = document.getElementById('readingSpeedText');
     const accessibilityToggleButton = document.getElementById('accessibilityToggleButton');
     const pwaAcessibilidadeBar = document.getElementById('pwaAcessibilidadeBar');
     const pwaAcessibilidadeCloseBtn = document.getElementById('pwaAcessibilidadeCloseBtn');
     const menuOverlay = document.getElementById('menuOverlay');
     const offCanvasMenu = document.getElementById('offCanvasMenu');
 
+    // --- Variáveis de Estado de Acessibilidade ---
     let currentFontSize = 1;
     let currentLineHeight = 1;
     let currentLetterSpacing = 1;
+    let velocidadeLeituraAtual = 1;
+    let ultimoElementoFocado = null;
+    const synth = window.speechSynthesis;
+    let leitorAtivo = false;
+    let isPaused = false;
+    const velocidadesLeitura = [
+        { rate: 0.8, label: 'Lenta' },
+        { rate: 1, label: 'Normal' },
+        { rate: 1.5, label: 'Rápida' },
+        { rate: 2.0, label: 'Muito Rápida' }
+    ];
 
+    // --- Funções de Acessibilidade ---
     function announceStatus(message) {
-        if (statusMessageDiv) statusMessageDiv.textContent = message;
+        statusMessageDiv.textContent = message;
+        setTimeout(() => statusMessageDiv.textContent = '', 3000);
     }
-
+    
+    // Funções de atualização com `announce` opcional para evitar anúncios na carga inicial
     function updateFontSize(announce = true) {
         const sizes = ['1em', '1.15em', '1.3em', '1.5em', '2em'];
         const labels = ['Normal', 'Médio', 'Grande', 'Extra Grande', 'Máximo'];
         body.style.fontSize = sizes[currentFontSize - 1];
         if (fontSizeText) fontSizeText.textContent = labels[currentFontSize - 1];
         localStorage.setItem('fontSize', currentFontSize);
-        if (announce) announceStatus(`Tamanho da fonte: ${labels[currentFontSize - 1]}`);
+        if (announce) announceStatus(`Tamanho da fonte alterado para ${labels[currentFontSize - 1]}`);
     }
 
     function updateLineHeight(announce = true) {
-        const heights = ['1.5', '1.8', '2.0'];
+        const heights = ['1.5', '1.8', '2.2'];
         const labels = ['Médio', 'Grande', 'Extra Grande'];
         document.documentElement.style.setProperty('--espacamento-linha', heights[currentLineHeight - 1]);
         if (lineHeightText) lineHeightText.textContent = labels[currentLineHeight - 1];
         localStorage.setItem('lineHeight', currentLineHeight);
-        if (announce) announceStatus(`Espaçamento de linha: ${labels[currentLineHeight - 1]}`);
+        if (announce) announceStatus(`Espaçamento de linha alterado para ${labels[currentLineHeight - 1]}`);
     }
 
     function updateLetterSpacing(announce = true) {
@@ -249,24 +229,189 @@ function initializeGlobalFunctions() {
         document.documentElement.style.setProperty('--espacamento-letra', spacings[currentLetterSpacing - 1]);
         if (letterSpacingText) letterSpacingText.textContent = labels[currentLetterSpacing - 1];
         localStorage.setItem('letterSpacing', currentLetterSpacing);
-        if (announce) announceStatus(`Espaçamento de letra: ${labels[currentLetterSpacing - 1]}`);
+        if (announce) announceStatus(`Espaçamento de letra alterado para ${labels[currentLetterSpacing - 1]}`);
+    }
+
+    function setFocusColor(color, announce = true) {
+        if (!color) return;
+        document.documentElement.style.setProperty('--cor-foco-acessibilidade', color);
+        localStorage.setItem('focusColor', color);
+        document.querySelectorAll('.color-option').forEach(opt => {
+            opt.classList.toggle('selected', opt.dataset.color === color);
+        });
+        if (announce) announceStatus(`Cor de foco alterada.`);
+    }
+
+    // --- Leitor de Tela (TTS) ---
+    document.addEventListener('focusin', (event) => { ultimoElementoFocado = event.target; });
+
+    function lerConteudo(texto) {
+        if (synth.speaking) synth.cancel();
+        const utterance = new SpeechSynthesisUtterance(texto);
+        utterance.lang = 'pt-BR';
+        utterance.rate = velocidadesLeitura[velocidadeLeituraAtual - 1].rate;
+        utterance.onstart = () => { leitorAtivo = true; isPaused = false; };
+        utterance.onend = () => { leitorAtivo = false; isPaused = false; };
+        utterance.onerror = () => { leitorAtivo = false; isPaused = false; console.error("Erro na síntese de voz."); };
+        synth.speak(utterance);
     }
     
+    function handleToggleLeitura() {
+        if (!leitorAtivo) {
+            const conteudo = document.querySelector('main')?.innerText;
+            if (conteudo) lerConteudo(conteudo);
+            else announceStatus('Não há conteúdo principal para ler.');
+        } else {
+            if (isPaused) {
+                synth.resume();
+                isPaused = false;
+                announceStatus('Leitura retomada.');
+            } else {
+                synth.pause();
+                isPaused = true;
+                announceStatus('Leitura pausada.');
+            }
+        }
+    }
+
+    function handleReiniciarLeitura() {
+        synth.cancel();
+        leitorAtivo = false;
+        isPaused = false;
+        setTimeout(handleToggleLeitura, 100); // Pequeno delay para garantir o cancelamento
+        announceStatus('Leitura reiniciada.');
+    }
+
+    function handleVelocidadeLeitura() {
+        velocidadeLeituraAtual = (velocidadeLeituraAtual % velocidadesLeitura.length) + 1;
+        const novaVelocidade = velocidadesLeitura[velocidadeLeituraAtual - 1];
+        if (readingSpeedText) readingSpeedText.textContent = novaVelocidade.label;
+        localStorage.setItem('readingSpeed', velocidadeLeituraAtual);
+        announceStatus(`Velocidade de leitura: ${novaVelocidade.label}`);
+        if (leitorAtivo && !isPaused) {
+            handleReiniciarLeitura();
+        }
+    }
+
+    function handleLerFoco() {
+        if (ultimoElementoFocado) {
+            const texto = (ultimoElementoFocado.textContent || ultimoElementoFocado.ariaLabel || ultimoElementoFocado.alt || ultimoElementoFocado.value)?.trim();
+            if (texto) lerConteudo(texto);
+            else announceStatus('Elemento focado não tem texto para ler.');
+        } else {
+            announceStatus('Nenhum elemento está focado.');
+        }
+    }
+
+    // --- Modal de Atalhos ---
+    const keyboardShortcutsModal = document.getElementById('keyboardShortcutsModal');
+    const closeShortcutsBtn = document.getElementById('keyboardModalCloseButton');
+
+    function showShortcutsModal() {
+        keyboardShortcutsModal?.classList.remove('hidden');
+    }
+    
+    function hideShortcutsModal() {
+        keyboardShortcutsModal?.classList.add('hidden');
+    }
+    
+    closeShortcutsBtn?.addEventListener('click', hideShortcutsModal);
+    window.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && !keyboardShortcutsModal?.classList.contains('hidden')) {
+            hideShortcutsModal();
+        }
+    });
+
+    // --- Reset ---
     function resetarAcessibilidade() {
+        synth.cancel(); // Para qualquer leitura
         currentFontSize = 1;
         currentLineHeight = 1;
         currentLetterSpacing = 1;
+        velocidadeLeituraAtual = 1;
+        
         body.style.fontSize = '';
         document.documentElement.style.setProperty('--espacamento-linha', '1.5');
         document.documentElement.style.setProperty('--espacamento-letra', '0em');
+        
         body.classList.remove('contraste-alto', 'dark-mode', 'fonte-dislexia');
+        
         localStorage.clear();
+
         updateFontSize(false);
         updateLineHeight(false);
         updateLetterSpacing(false);
+        if (readingSpeedText) readingSpeedText.textContent = 'Normal';
+        setFocusColor('yellow', false); // Reseta para o padrão
+        
         announceStatus('Configurações de acessibilidade redefinidas.');
     }
+
+    // --- Adicionar Event Listeners ---
+    const eventMap = {
+        'btnAlternarTamanhoFonte': () => { currentFontSize = (currentFontSize % 5) + 1; updateFontSize(); },
+        'btnAlternarTamanhoFontePWA': () => { currentFontSize = (currentFontSize % 5) + 1; updateFontSize(); },
+        
+        'btnAlternarEspacamentoLinha': () => { currentLineHeight = (currentLineHeight % 3) + 1; updateLineHeight(); },
+        'btnAlternarEspacamentoLinhaPWA': () => { currentLineHeight = (currentLineHeight % 3) + 1; updateLineHeight(); },
+
+        'btnAlternarEspacamentoLetra': () => { currentLetterSpacing = (currentLetterSpacing % 3) + 1; updateLetterSpacing(); },
+        'btnAlternarEspacamentoLetraPWA': () => { currentLetterSpacing = (currentLetterSpacing % 3) + 1; updateLetterSpacing(); },
+        
+        'btnAlternarContraste': () => { body.classList.toggle('contraste-alto'); announceStatus('Alto contraste ' + (body.classList.contains('contraste-alto') ? 'ativado' : 'desativado')); },
+        'btnAlternarContrastePWA': () => { body.classList.toggle('contraste-alto'); announceStatus('Alto contraste ' + (body.classList.contains('contraste-alto') ? 'ativado' : 'desativado')); },
+
+        'btnAlternarModoEscuro': () => { body.classList.toggle('dark-mode'); announceStatus('Modo escuro ' + (body.classList.contains('dark-mode') ? 'ativado' : 'desativado')); },
+        'btnAlternarModoEscuroPWA': () => { body.classList.toggle('dark-mode'); announceStatus('Modo escuro ' + (body.classList.contains('dark-mode') ? 'ativado' : 'desativado')); },
+
+        'btnAlternarFonteDislexia': () => { body.classList.toggle('fonte-dislexia'); announceStatus('Fonte para dislexia ' + (body.classList.contains('fonte-dislexia') ? 'ativada' : 'desativada')); },
+        'btnAlternarFonteDislexiaPWA': () => { body.classList.toggle('fonte-dislexia'); announceStatus('Fonte para dislexia ' + (body.classList.contains('fonte-dislexia') ? 'ativada' : 'desativada')); },
+
+        'btnResetarAcessibilidade': resetarAcessibilidade,
+        'btnResetarAcessibilidadePWA': resetarAcessibilidade,
+
+        'btnToggleLeitura': handleToggleLeitura,
+        'btnReiniciarLeitura': handleReiniciarLeitura,
+        'btnAlternarVelocidadeLeitura': handleVelocidadeLeitura,
+        'btnReadFocused': handleLerFoco,
+        
+        'btnKeyboardShortcuts': showShortcutsModal,
+        'btnKeyboardShortcutsPWA': showShortcutsModal
+    };
+
+    for (const id in eventMap) {
+        document.getElementById(id)?.addEventListener('click', eventMap[id]);
+    }
     
+    document.querySelectorAll('.color-option').forEach(button => {
+        button.addEventListener('click', () => setFocusColor(button.dataset.color));
+    });
+
+    // --- Lógica de Carregamento Inicial das Configurações ---
+    function loadAccessibilitySettings() {
+        currentFontSize = parseInt(localStorage.getItem('fontSize') || '1', 10);
+        updateFontSize(false);
+
+        currentLineHeight = parseInt(localStorage.getItem('lineHeight') || '1', 10);
+        updateLineHeight(false);
+
+        currentLetterSpacing = parseInt(localStorage.getItem('letterSpacing') || '1', 10);
+        updateLetterSpacing(false);
+
+        velocidadeLeituraAtual = parseInt(localStorage.getItem('readingSpeed') || '1', 10);
+        if (readingSpeedText) readingSpeedText.textContent = velocidadesLeitura[velocidadeLeituraAtual - 1].label;
+
+        if (localStorage.getItem('highContrast') === 'true') body.classList.add('contraste-alto');
+        if (localStorage.getItem('darkMode') === 'true') body.classList.add('dark-mode');
+        if (localStorage.getItem('dyslexiaFont') === 'true') body.classList.add('fonte-dislexia');
+        
+        const savedColor = localStorage.getItem('focusColor') || 'yellow';
+        setFocusColor(savedColor, false);
+    }
+
+    loadAccessibilitySettings();
+    
+    // --- Lógica do Menu PWA/Mobile ---
     accessibilityToggleButton?.addEventListener('click', () => {
         if (offCanvasMenu?.classList.contains('is-open')) {
             offCanvasMenu.classList.remove('is-open');
@@ -281,14 +426,6 @@ function initializeGlobalFunctions() {
             if (menuOverlay) menuOverlay.style.display = 'none';
         }
     });
-    
-    document.getElementById('btnAlternarTamanhoFonte')?.addEventListener('click', () => { currentFontSize = (currentFontSize % 5) + 1; updateFontSize(); });
-    document.getElementById('btnAlternarEspacamentoLinha')?.addEventListener('click', () => { currentLineHeight = (currentLineHeight % 3) + 1; updateLineHeight(); });
-    document.getElementById('btnAlternarEspacamentoLetra')?.addEventListener('click', () => { currentLetterSpacing = (currentLetterSpacing % 3) + 1; updateLetterSpacing(); });
-    document.getElementById('btnAlternarContraste')?.addEventListener('click', () => { body.classList.toggle('contraste-alto'); });
-    document.getElementById('btnAlternarModoEscuro')?.addEventListener('click', () => { body.classList.toggle('dark-mode'); });
-    document.getElementById('btnAlternarFonteDislexia')?.addEventListener('click', () => { body.classList.toggle('fonte-dislexia'); });
-    document.getElementById('btnResetarAcessibilidade')?.addEventListener('click', resetarAcessibilidade);
 
     // --- Lógica do Botão Voltar ao Topo ---
     const backToTopBtn = document.getElementById('backToTopBtn');
@@ -305,7 +442,6 @@ function initializeGlobalFunctions() {
     const refuseAllCookiesBtn = document.getElementById('refuseAllCookiesBtn');
     const manageCookiesBtn = document.getElementById('manageCookiesBtn');
     const granularCookieModal = document.getElementById('granularCookieModal');
-    const openGranularCookieModalBtn = document.getElementById('openGranularCookieModalBtn');
     const saveGranularPreferencesBtn = document.getElementById('saveGranularPreferencesBtn');
     const granularModalCloseButton = document.getElementById('granularModalCloseButton');
     const cancelGranularPreferencesBtn = document.getElementById('cancelGranularPreferencesBtn');
@@ -325,7 +461,6 @@ function initializeGlobalFunctions() {
     acceptAllCookiesBtn?.addEventListener('click', () => { const consent = { 'analytics_storage': 'granted', 'ad_storage': 'granted' }; updateGtagConsent(consent); localStorage.setItem('cookieConsent', 'accepted'); hideCookieBanner(); });
     refuseAllCookiesBtn?.addEventListener('click', () => { const consent = { 'analytics_storage': 'denied', 'ad_storage': 'denied' }; updateGtagConsent(consent); localStorage.setItem('cookieConsent', 'refused'); hideCookieBanner(); });
     manageCookiesBtn?.addEventListener('click', showGranularCookieModal);
-    openGranularCookieModalBtn?.addEventListener('click', showGranularCookieModal);
     granularModalCloseButton?.addEventListener('click', hideGranularCookieModal);
     cancelGranularPreferencesBtn?.addEventListener('click', hideGranularCookieModal);
     saveGranularPreferencesBtn?.addEventListener('click', () => {
@@ -337,13 +472,13 @@ function initializeGlobalFunctions() {
         hideGranularCookieModal();
         hideCookieBanner();
     });
-
+    
     showCookieBanner();
 
     // Inicializar VLibras de forma robusta
     function initVLibras() {
         let attempts = 0;
-        const maxAttempts = 50; // Tenta por 10 segundos (50 * 200ms)
+        const maxAttempts = 50;
         const interval = setInterval(() => {
             attempts++;
             if (typeof VLibras !== 'undefined') {
