@@ -122,58 +122,39 @@ function initializeNavigationMenu() {
     const hamburgerButton = document.getElementById('hamburgerButton');
     const offCanvasMenu = document.getElementById('offCanvasMenu');
     const menuOverlay = document.getElementById('menuOverlay');
-    const iconMenu = document.getElementById('icon-menu');
-    const iconClose = document.getElementById('icon-close');
+    const closeMenuButton = document.getElementById('closeMenuButton');
 
-    hamburgerButton?.addEventListener('click', () => {
-        const isOpen = offCanvasMenu.classList.toggle('is-open');
-        menuOverlay?.classList.toggle('is-open');
-        hamburgerButton.setAttribute('aria-expanded', isOpen);
+    function openMenu() {
+        offCanvasMenu?.classList.add('is-open');
+        menuOverlay?.classList.add('is-open');
+        hamburgerButton?.setAttribute('aria-expanded', 'true');
+    }
 
-        // Alterna a visibilidade dos ícones
-        if (iconMenu && iconClose) {
-            iconMenu.classList.toggle('hidden', isOpen);
-            iconClose.classList.toggle('hidden', !isOpen);
-        }
-    });
-
-    menuOverlay?.addEventListener('click', () => {
+    function closeMenu() {
         offCanvasMenu?.classList.remove('is-open');
         menuOverlay?.classList.remove('is-open');
-        hamburgerButton.setAttribute('aria-expanded', 'false');
+        hamburgerButton?.setAttribute('aria-expanded', 'false');
+    }
 
-        // Garante que o ícone de menu seja mostrado ao fechar pelo overlay
-        if (iconMenu && iconClose) {
-            iconMenu.classList.remove('hidden');
-            iconClose.classList.add('hidden');
-        }
+    hamburgerButton?.addEventListener('click', openMenu);
+    closeMenuButton?.addEventListener('click', closeMenu);
+    menuOverlay?.addEventListener('click', closeMenu);
+
+    const submenuToggles = offCanvasMenu?.querySelectorAll('button[data-submenu-toggle]');
+    submenuToggles?.forEach(toggle => {
+        toggle.addEventListener('click', (e) => {
+            e.preventDefault();
+            const submenuId = toggle.getAttribute('data-submenu-toggle');
+            const submenu = document.getElementById(`submenu-${submenuId}`);
+            const icon = toggle.querySelector('i');
+
+            if (submenu) {
+                submenu.classList.toggle('open');
+                icon?.classList.toggle('fa-chevron-down');
+                icon?.classList.toggle('fa-chevron-up');
+            }
+        });
     });
-
-  const submenuToggles = offCanvasMenu?.querySelectorAll('button[data-submenu-toggle]');
-  submenuToggles?.forEach(toggle => {
-      toggle.addEventListener('click', (e) => {
-          e.preventDefault();
-          const submenuId = toggle.getAttribute('data-submenu-toggle');
-          const submenu = document.getElementById(`submenu-${submenuId}`);
-          const icon = toggle.querySelector('i');
-
-          if (submenu) {
-              const parentUl = toggle.closest('ul');
-              parentUl.querySelectorAll('.submenu.open').forEach(openSubmenu => {
-                  if (openSubmenu !== submenu) {
-                      openSubmenu.classList.remove('open');
-                      const otherIcon = openSubmenu.previousElementSibling.querySelector('i');
-                      otherIcon?.classList.remove('fa-chevron-up');
-                      otherIcon?.classList.add('fa-chevron-down');
-                  }
-              });
-
-              submenu.classList.toggle('open');
-              icon?.classList.toggle('fa-chevron-down');
-              icon?.classList.toggle('fa-chevron-up');
-          }
-      });
-  });
 }
 
 
