@@ -190,6 +190,7 @@ function initializeNavigationMenu() {
 }
 
 
+
 function inicializarTooltips() {
     const elementosComTooltip = document.querySelectorAll('[data-tooltip]');
     
