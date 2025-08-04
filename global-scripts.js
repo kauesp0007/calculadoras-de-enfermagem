@@ -92,28 +92,38 @@ document.addEventListener('DOMContentLoaded', function() {
         .catch(error => console.warn('Não foi possível carregar os elementos globais do corpo:', error));
 });
 
+// COLE ESTA FUNÇÃO COMPLETA NO LUGAR DA ANTIGA initializeNavigationMenu()
 function initializeNavigationMenu() {
     const hamburgerButton = document.getElementById('hamburgerButton');
     const offCanvasMenu = document.getElementById('offCanvasMenu');
     const menuOverlay = document.getElementById('menuOverlay');
+    const closeMenuBtn = document.getElementById('closeOffCanvasMenu');
 
-    const toggleNavMenu = () => {
-        const isOpen = offCanvasMenu.classList.toggle('is-open');
-        offCanvasMenu.classList.toggle('-translate-x-full');
-        menuOverlay.style.display = isOpen ? 'block' : 'none';
+    const openNavMenu = () => {
+        if(offCanvasMenu) {
+            offCanvasMenu.classList.add('is-open');
+            offCanvasMenu.classList.remove('-translate-x-full');
+        }
+        if(menuOverlay) {
+            menuOverlay.style.display = 'block';
+            menuOverlay.classList.add('is-open');
+        }
     };
 
-    hamburgerButton?.addEventListener('click', toggleNavMenu);
-    menuOverlay?.addEventListener('click', () => {
-        if (offCanvasMenu?.classList.contains('is-open')) {
-            toggleNavMenu();
+    const closeNavMenu = () => {
+        if(offCanvasMenu) {
+            offCanvasMenu.classList.remove('is-open');
+            offCanvasMenu.classList.add('-translate-x-full');
         }
-        const pwaAcessibilidadeBar = document.getElementById('pwaAcessibilidadeBar');
-        if (pwaAcessibilidadeBar?.classList.contains('is-open')) {
-            pwaAcessibilidadeBar.classList.remove('is-open');
+        if(menuOverlay) {
             menuOverlay.style.display = 'none';
+            menuOverlay.classList.remove('is-open');
         }
-    });
+    };
+
+    hamburgerButton?.addEventListener('click', openNavMenu);
+    menuOverlay?.addEventListener('click', closeNavMenu);
+    closeMenuBtn?.addEventListener('click', closeNavMenu);
 
     const submenuToggles = offCanvasMenu?.querySelectorAll('.has-submenu > a, .has-submenu > button');
     submenuToggles?.forEach(toggle => {
@@ -126,7 +136,6 @@ function initializeNavigationMenu() {
         });
     });
 }
-
 function inicializarTooltips() {
     const elementosComTooltip = document.querySelectorAll('[data-tooltip]');
     elementosComTooltip.forEach(el => {
