@@ -29,12 +29,10 @@ function gerarPDFGlobal(options) {
         return;
     }
     
-    // Cria um container DIV para o conteúdo do PDF, em vez de clonar o wrapper inteiro.
     const contentToPrint = document.createElement('div');
     contentToPrint.style.padding = '20px';
     contentToPrint.style.fontFamily = 'Inter, sans-serif';
 
-    // Cria um cabeçalho para o PDF
     const pdfHeader = document.createElement('div');
     pdfHeader.style.textAlign = 'center';
     pdfHeader.style.marginBottom = '25px';
@@ -121,19 +119,35 @@ document.addEventListener('DOMContentLoaded', function() {
 
 
 function initializeNavigationMenu() {
-  const hamburgerButton = document.getElementById('hamburgerButton');
-  const offCanvasMenu = document.getElementById('offCanvasMenu');
-  const menuOverlay = document.getElementById('menuOverlay');
+    const hamburgerButton = document.getElementById('hamburgerButton');
+    const offCanvasMenu = document.getElementById('offCanvasMenu');
+    const menuOverlay = document.getElementById('menuOverlay');
+    const iconMenu = document.getElementById('icon-menu');
+    const iconClose = document.getElementById('icon-close');
 
-  hamburgerButton?.addEventListener('click', () => {
-    offCanvasMenu?.classList.toggle('is-open');
-    menuOverlay?.classList.toggle('is-open');
-  });
+    hamburgerButton?.addEventListener('click', () => {
+        const isOpen = offCanvasMenu.classList.toggle('is-open');
+        menuOverlay?.classList.toggle('is-open');
+        hamburgerButton.setAttribute('aria-expanded', isOpen);
 
-  menuOverlay?.addEventListener('click', () => {
-    offCanvasMenu?.classList.remove('is-open');
-    menuOverlay?.classList.remove('is-open');
-  });
+        // Alterna a visibilidade dos ícones
+        if (iconMenu && iconClose) {
+            iconMenu.classList.toggle('hidden', isOpen);
+            iconClose.classList.toggle('hidden', !isOpen);
+        }
+    });
+
+    menuOverlay?.addEventListener('click', () => {
+        offCanvasMenu?.classList.remove('is-open');
+        menuOverlay?.classList.remove('is-open');
+        hamburgerButton.setAttribute('aria-expanded', 'false');
+
+        // Garante que o ícone de menu seja mostrado ao fechar pelo overlay
+        if (iconMenu && iconClose) {
+            iconMenu.classList.remove('hidden');
+            iconClose.classList.add('hidden');
+        }
+    });
 
   const submenuToggles = offCanvasMenu?.querySelectorAll('button[data-submenu-toggle]');
   submenuToggles?.forEach(toggle => {
