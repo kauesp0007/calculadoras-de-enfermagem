@@ -1,0 +1,896 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Formulário de Criação de Currículo Dinâmico</title>
+    
+    <!-- Metatags e SEO -->
+    <link rel="canonical" href="https://www.calculadorasdeenfermagem.com.br/gerador-curriculo-enfermagem.html" />
+    <link rel="icon" href="favicon.ico" type="image/x-icon" />
+    <meta name="description" content="Crie um currículo de enfermagem profissional com nosso formulário dinâmico. Ferramenta gratuita para estudantes, técnicos e enfermeiros experientes." />
+    <meta property="og:title" content="Formulário de Criação de Currículo Dinâmico - Calculadoras de Enfermagem" />
+    <meta property="og:description" content="Crie um currículo de enfermagem profissional com nosso formulário dinâmico." />
+    <meta property="og:url" content="https://www.calculadorasdeenfermagem.com.br/gerador-curriculo-enfermagem.html" />
+    <meta property="og:image" content="https://www.calculadorasdeenfermagem.com.br/iconpages.webp" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Formulário de Criação de Currículo Dinâmico - Calculadoras de Enfermagem" />
+    <meta name="twitter:description" content="Crie um currículo de enfermagem profissional com nosso formulário dinâmico." />
+    <meta name="twitter:image" content="https://www.calculadorasdeenfermagem.com.br/iconpages.webp" />
+
+    <!-- Estilos Globais e de Bibliotecas -->
+    <link rel="stylesheet" href="global-styles.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=Lato:wght@400;700&family=Lora:wght@400;700&family=Montserrat:wght@400;700&family=Open+Sans:wght@400;700&family=Roboto:wght@400;700&family=Source+Sans+Pro:wght@400;700&family=Merriweather:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web@2.0.3/dist/phosphor.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" xintegrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+    <style>
+        :root {
+            --primary-color: #1A3E74;
+            --secondary-color: #3B82F6;
+            --accent-color: #E0F2FE;
+        }
+        .progress-bar-fill { transition: width 0.5s ease-in-out; }
+        .preview-section-highlight {
+            outline: 2px dashed var(--secondary-color);
+            outline-offset: 4px;
+            background-color: rgba(59, 130, 246, 0.1);
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        .preview-section-highlight::after {
+            content: 'Editando esta seção';
+            position: absolute;
+            top: -1.5rem;
+            left: 0;
+            background-color: var(--secondary-color);
+            color: white;
+            padding: 0.2rem 0.5rem;
+            font-size: 0.75rem;
+            border-radius: 0.25rem;
+            font-weight: 500;
+        }
+        #thumbnail-wrapper {
+            background-color: #e5e7eb;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            height: 400px;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        #thumbnail-content {
+            width: 210mm;
+            height: 297mm;
+            background: white;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            transform: scale(0.35);
+            transform-origin: center center;
+            overflow: hidden;
+        }
+        #full-preview-content {
+            width: 210mm;
+            min-height: 297mm;
+            margin: 2rem auto;
+            background: white;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+        #photo-upload-input { display: none; }
+        details > summary { cursor: pointer; list-style: none; }
+        details > summary::-webkit-details-marker { display: none; }
+        details > summary::before {
+            content: '►';
+            margin-right: 0.5rem;
+            font-size: 0.8em;
+            transition: transform 0.2s;
+        }
+        details[open] > summary::before { transform: rotate(90deg); }
+        .date-picker-button {
+            background-color: #f9fafb;
+            border: 1px solid #d1d5db;
+            padding: 0.5rem;
+            border-radius: 0.375rem;
+            text-align: left;
+        }
+        .date-picker-popover {
+            display: none;
+            position: absolute;
+            background: white;
+            border: 1px solid #d1d5db;
+            border-radius: 0.5rem;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            z-index: 10;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 font-sans text-gray-800">
+
+    <div id="global-header-container">
+        <!-- O cabeçalho modular será carregado aqui -->
+    </div>
+
+    <main class="max-w-screen-2xl mx-auto p-4 md:p-8 grid grid-cols-1 lg:grid-cols-2 gap-8">
+        
+        <!-- COLUNA ESQUERDA: FORMULÁRIO E PROGRESSO -->
+        <div class="lg:col-span-1">
+            <div class="bg-white p-6 rounded-xl shadow-lg sticky top-8">
+                <h1 class="text-2xl font-bold text-gray-800 mb-2">Preencha seu Currículo</h1>
+                <p class="text-gray-600 mb-4">O preview ao lado é atualizado ao salvar cada seção.</p>
+
+                <!-- Barra de Progresso -->
+                <div class="mb-6">
+                    <div class="flex justify-between mb-1">
+                        <span class="text-base font-medium text-blue-700">Progresso</span>
+                        <span class="text-sm font-medium text-blue-700" id="progress-percentage">0%</span>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-2.5">
+                        <div id="progress-bar" class="bg-blue-600 h-2.5 rounded-full progress-bar-fill" style="width: 0%"></div>
+                    </div>
+                </div>
+
+                <!-- Formulário em Acordeão -->
+                <div id="curriculum-form" class="space-y-4 max-h-[65vh] overflow-y-auto pr-4">
+                    <!-- As seções do formulário serão injetadas aqui pelo JavaScript -->
+                </div>
+                
+                <!-- Botão para Adicionar Nova Seção -->
+                <div class="mt-6">
+                    <button id="add-section-btn" class="w-full bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold py-2 px-4 rounded-lg">
+                        + Adicionar Seção
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- COLUNA DIREITA: PREVIEW E CUSTOMIZAÇÃO -->
+        <div class="lg:col-span-1">
+            <div class="sticky top-8">
+                <!-- Controles de Customização -->
+                <div class="bg-white p-4 rounded-xl shadow-lg mb-6">
+                    <h2 class="text-xl font-bold mb-4">Opções de Estilo</h2>
+                    <div class="space-y-4">
+                        <div class="flex items-center space-x-4">
+                            <span class="font-semibold text-sm w-20">Cor:</span>
+                            <div id="color-picker" class="flex flex-wrap gap-2"></div>
+                        </div>
+                        <div class="flex items-center space-x-4">
+                            <span class="font-semibold text-sm w-20">Fonte:</span>
+                            <select id="font-picker" class="block w-full p-2 border border-gray-300 rounded-md shadow-sm text-sm"></select>
+                        </div>
+                        <div class="flex items-center space-x-4">
+                             <span class="font-semibold text-sm w-20">Foto:</span>
+                            <label for="photo-upload-input" class="cursor-pointer bg-white hover:bg-gray-100 text-gray-800 font-semibold py-2 px-4 border border-gray-300 rounded-md shadow-sm text-center text-sm">
+                                <i class="ph ph-upload-simple mr-2"></i>Carregar Foto
+                            </label>
+                            <input type="file" id="photo-upload-input" accept="image/*">
+                        </div>
+                        <div class="flex items-center space-x-4">
+                            <span class="font-semibold text-sm w-20">Colunas:</span>
+                            <select id="column-picker" class="block w-full p-2 border border-gray-300 rounded-md shadow-sm text-sm">
+                                <option value="1">1 Coluna</option>
+                                <option value="2">2 Colunas</option>
+                            </select>
+                        </div>
+                         <div class="flex items-center space-x-2 mt-2">
+                            <input type="checkbox" id="reading-mode-toggle" class="h-4 w-4 rounded border-gray-300 text-blue-600">
+                            <label for="reading-mode-toggle" class="text-sm font-medium text-gray-700">Ativar Modo Leitura</label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Wrapper da Miniatura -->
+                <div id="thumbnail-wrapper">
+                    <div id="thumbnail-content">
+                        <!-- O HTML do currículo será injetado aqui -->
+                    </div>
+                </div>
+                <button id="view-full-preview-btn" class="w-full mt-4 bg-blue-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-blue-700">
+                    Visualizar
+                </button>
+            </div>
+        </div>
+
+    </main>
+    
+    <!-- Modal para Visualização Completa -->
+    <div id="full-preview-modal" class="hidden fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4">
+        <div id="full-preview-modal-content" class="bg-gray-200 p-2 rounded-xl shadow-2xl w-full max-w-4xl h-[90vh] flex flex-col">
+             <div class="flex-shrink-0 flex justify-between items-center p-2 bg-white rounded-t-lg">
+                <h2 class="text-lg font-semibold text-gray-700 pl-4">Visualização Completa</h2>
+                <div class="flex items-center gap-2">
+                    <button id="maximize-modal-btn" class="text-gray-800 hover:text-black transition-colors p-2" aria-label="Maximizar"><i class="ph-bold ph-arrows-out text-2xl"></i></button>
+                    <button id="close-full-preview-btn" class="text-gray-800 hover:text-black transition-colors p-2" aria-label="Fechar"><i class="ph-bold ph-x text-2xl"></i></button>
+                </div>
+            </div>
+            <div id="full-preview-scroll-area" class="flex-grow overflow-auto">
+                <div id="full-preview-content">
+                    <!-- O HTML do currículo será injetado aqui -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para Adicionar Seção -->
+    <div id="add-section-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div class="bg-white p-6 rounded-lg shadow-xl w-full max-w-md">
+            <h3 class="text-lg font-bold mb-4">Adicionar Nova Seção</h3>
+            <div id="predefined-sections" class="mb-4">
+                <label class="block text-sm font-medium text-gray-700 mb-2">Adicionar uma seção pré-definida:</label>
+                <!-- Botões de seções pré-definidas serão injetados aqui -->
+            </div>
+            <hr class="my-4">
+            <div>
+                <label for="custom-section-name" class="block text-sm font-medium text-gray-700">Ou crie sua própria seção:</label>
+                <input type="text" id="custom-section-name" placeholder="Ex: Publicações" class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm">
+                <button id="create-custom-section-btn" class="mt-2 w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700">Criar Seção</button>
+            </div>
+            <button id="close-modal-btn" class="mt-4 w-full bg-gray-200 text-gray-700 py-2 rounded-md hover:bg-gray-300">Cancelar</button>
+        </div>
+    </div>
+    
+    <footer class="bg-[#1A3E74] text-white py-8">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="border-b border-white pb-4 mb-4">
+                <div class="flex justify-start items-center">
+                    <img src="https://www.calculadorasdeenfermagem.com.br/iconrodape1.webp" alt="Logotipo Calculadoras de Enfermagem no rodapé" width="120" height="84" class="h-auto w-auto max-w-[80px] max-h-[80px]" loading="lazy" decoding="async">
+                </div>
+            </div>
+            <div class="md:flex md:justify-between md:items-start md:space-x-8 md:items-stretch">
+                <div class="mb-6 md:mb-0">
+                    <h5 class="font-bold mb-2">Institucional</h5>
+                    <ul class="list-none space-y-1">
+                        <li><a href="index.html" class="text-white hover:underline">Início</a></li>
+                        <li><a href="missao.html" class="text-white hover:underline">Sobre Nós</a></li>
+                        <li><a href="mapa-do-site.html" class="text-white hover:underline">Mapa do Site</a></li>
+                        <li><a href="politica.html" class="text-white hover:underline">Políticas de Cookies</a></li>
+                        <li><a href="politica.html" class="text-white hover:underline">Política de Retenção de dados</a></li>
+                        <li><a href="politica.html" class="text-white hover:underline">LGPD</a></li>
+                        <li><a href="politica.html" class="text-white hover:underline">Políticas de Privacidade</a></li>
+                        <li><a href="termos.html" class="text-white hover:underline">Termos e Condições de Uso</a></li>
+                        <li><a href="politicadeacessibilidade.html" class="text-white hover:underline">Política de Acessibilidade</a></li>
+                    </ul>
+                </div>
+                <div class="mb-6 md:mb-0">
+                    <h5 class="font-bold mb-2">Sustentabilidade Digital</h5>
+                    <ul class="list-none space-y-1">
+                        <li><a href="nossocompromisso.html" class="text-white hover:underline">Nosso Compromisso</a></li>
+                        <li><a href="impactodigital.html" class="text-white hover:underline">Relatório de Impacto</a></li>
+                        <li><a href="tecnologiaverde.html" class="text-white hover:underline">Tecnologia Verde</a></li>
+                    </ul>
+                </div>
+                <div class="mb-6 md:mb-0">
+                    <h5 class="font-bold mb-2">Nosso Compromisso</h5>
+                    <p class="text-white text-sm mb-2 max-w-sm md:max-w-xs">Nosso site adota como princípio de governança, o comprometimento com elevados padrões de acessibilidade digital, sustentabilidade digital e proteção de dados.</p>
+                    <div class="flex space-x-4 items-center justify-start">
+                        <img src="https://www.calculadorasdeenfermagem.com.br/seloacessibilidade.webp" alt="Selo de Acessibilidade" width="100" height="100" class="w-auto h-auto max-w-[80px] max-h-[80px]" loading="lazy" decoding="async">
+                        <img src="https://www.calculadorasdeenfermagem.com.br/selosustentabilidade.webp" alt="Selo de Sustentabilidade" width="100" height="100" class="w-auto h-auto max-w-[80px] max-h-[80px]" loading="lazy" decoding="async">
+                        <img src="https://www.calculadorasdeenfermagem.com.br/selolgpd.webp" alt="Selo LGPD" width="100" height="100" class="w-auto h-auto max-w-[80px] max-h-[80px]" loading="lazy" decoding="async">
+                    </div>
+                </div>
+                <div class="flex flex-1 flex-col md:flex-row justify-end items-start md:items-start">
+                    <div class="vertical-divider-footer-stretched hidden md:block"></div>
+                    <div class="flex flex-col items-start space-y-4">
+                        <h5 class="font-bold mb-2">Siga-nos</h5>
+                        <div class="flex space-x-4">
+                            <a href="https://linkedin.com/company/calculadoras-de-enfermagem" target="_blank" class="footer-social-icon" title="LinkedIn" aria-label="Acesse Nosso Perfil no LinkedIn"><i class="fab fa-linkedin text-xl"></i></a>
+                            <a href="https://www.instagram.com/calculadorasdeenfermagem/" target="_blank" class="footer-social-icon" title="Instagram" aria-label="Acesse Nosso Perfil no Instagram"><i class="fab fa-instagram text-xl"></i></a>
+                            <a href="https://www.tiktok.com/@calculadorasdeenf" target="_blank" class="footer-social-icon" title="TikTok" aria-label="Acesse Nosso Perfil no TikTok"><i class="fab fa-tiktok text-xl"></i></a>
+                            <a href="https://www.youtube.com/channel/UC_6runTDHz8u5S1Yab842pg" target="_blank" class="footer-social-icon" title="YouTube" aria-label="Acesse Nosso Perfil no YouTube"><i class="fab fa-youtube text-xl"></i></a>
+                        </div>
+                        <button id="openGranularCookieModalBtn" class="btn-secondary text-white mt-4 py-2 px-4 rounded-md" aria-label="Gerenciar Preferências de Cookies"> Gerenciar Preferências de Cookies </button>
+                    </div>
+                </div>
+            </div>
+            <div class="mt-8 text-center">
+                <p>&copy; 2025 Calculadoras de Enfermagem. Todos os direitos reservados.</p>
+            </div>
+        </div>
+    </footer>
+
+    <div id="global-body-container">
+        <!-- Elementos globais do body serão carregados aqui -->
+    </div>
+
+    <script src="global-scripts.js"></script>
+    <script>
+        // --- DADOS E CONFIGURAÇÕES GLOBAIS ---
+        
+        let formData = {}; 
+        let previewData = {};
+        let savedSections = new Set();
+        
+        const colorPalettes = [
+            { name: "Azul Profissional", primary: "#0d47a1", secondary: "#1976d2", accent: "#e3f2fd" },
+            { name: "Cinza Corporativo", primary: "#374151", secondary: "#6b7280", accent: "#f3f4f6" },
+            { name: "Verde Escuro", primary: "#14532d", secondary: "#16a34a", accent: "#f0fdf4" },
+            { name: "Bordô Clássico", primary: "#881337", secondary: "#be123c", accent: "#fff1f2" },
+            { name: "Lavanda Suave", primary: "#5b21b6", secondary: "#8b5cf6", accent: "#f5f3ff" },
+            { name: "Rosa Queimado", primary: "#831843", secondary: "#c2410c", accent: "#fff7ed" },
+            { name: "Verde Sálvia", primary: "#365314", secondary: "#84cc16", accent: "#f7fee7" },
+            { name: "Azul Ardósia", primary: "#334155", secondary: "#64748b", accent: "#f1f5f9" },
+            { name: "Marrom Terra", primary: "#422006", secondary: "#a16207", accent: "#fefce8" },
+            { name: "Turquesa", primary: "#0e7490", secondary: "#06b6d4", accent: "#ecfeff" },
+        ];
+
+        const fontFamilies = [
+            { name: "Inter", value: "'Inter', sans-serif" },
+            { name: "Lato", value: "'Lato', sans-serif" },
+            { name: "Roboto", value: "'Roboto', sans-serif" },
+        ];
+
+        let uiState = {
+            layout: 0,
+            color: 0,
+            font: 0,
+            columns: 1,
+            photo: null,
+            readingMode: true, // Modo leitura ativado por padrão
+        };
+        
+        // --- FUNÇÕES DE LAYOUT DO CURRÍCULO ---
+        const layouts = [
+            // Layout 1: Modelo Clássico e Direto
+            (data, theme, font, columns, photo) => {
+                const headerHTML = `
+                    <div class="text-center mb-6 flex flex-col items-center">
+                        ${photo ? `<img src="${photo}" alt="Foto de Perfil" class="w-28 h-28 rounded-full mb-4 object-cover">` : ''}
+                        <h1 class="text-3xl font-bold" style="color: ${theme.primary};">${data.dadosPessoais.nomeCompleto.value}</h1>
+                        <p class="text-sm text-gray-600">${data.dadosPessoais.endereco.value}</p>
+                        <p class="text-sm text-gray-600">${data.dadosPessoais.email.value} | ${data.dadosPessoais.telefone.value}</p>
+                    </div>`;
+
+                const sectionsHTML = Object.keys(data)
+                    .filter(key => key !== 'dadosPessoais' && !key.startsWith('is'))
+                    .map(key => {
+                        const sectionData = data[key];
+                        if (!sectionData) return '';
+                        
+                        const title = key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
+                        let content = '';
+
+                        if (Array.isArray(sectionData)) {
+                             if (sectionData.length === 0 && !savedSections.has(key)) {
+                                content = `<p class="text-gray-400 italic">Preencha esta seção...</p>`;
+                             } else {
+                                content = sectionData.map(item => {
+                                    return `<div class="mb-3">${Object.entries(item).filter(([, fieldData]) => fieldData.showInPreview && fieldData.value).map(([, fieldData]) => `<p><span class="font-semibold">${fieldData.label}:</span> ${fieldData.value}</p>`).join('')}</div>`;
+                                }).join('');
+                             }
+                        } else if (typeof sectionData === 'object' && sectionData.value === undefined) { 
+                             content = Object.entries(sectionData).filter(([, fieldData]) => fieldData.showInPreview && fieldData.value).map(([, fieldData]) => `<p><span class="font-semibold">${fieldData.label}:</span> ${fieldData.value}</p>`).join('');
+                        } else if (sectionData.showInPreview && sectionData.value) {
+                            content = `<p>${sectionData.value}</p>`;
+                        }
+
+                        if (!content.trim()) return '';
+
+                        return `<div class="cv-section" data-section-key="${key}"><h2 style="color: ${theme.primary}; border-bottom: 2px solid ${theme.accent};">${title}</h2>${content}</div>`;
+                    }).join('');
+
+                return `
+                    <div class="cv-preview p-8" style="font-family: ${font.value};">
+                        ${headerHTML}
+                        <div class="grid ${columns == 2 ? 'grid-cols-2 gap-x-8' : 'grid-cols-1'}">
+                           ${sectionsHTML}
+                        </div>
+                    </div>`;
+            },
+            // ... (outros 4 layouts aqui)
+        ];
+
+        // --- LÓGICA PRINCIPAL ---
+        document.addEventListener("DOMContentLoaded", () => {
+            const curriculumForm = document.getElementById('curriculum-form');
+            const thumbnailContent = document.getElementById('thumbnail-content');
+            const fullPreviewContent = document.getElementById('full-preview-content');
+            const fullPreviewModal = document.getElementById('full-preview-modal');
+
+            function initialize() {
+                const params = new URLSearchParams(window.location.search);
+                const perfil = params.get('perfil') || 'estudante';
+                uiState.layout = parseInt(params.get('layout') || '0', 10);
+                
+                formData = createBlankProfile(perfil);
+                previewData = getFictitiousProfileData(perfil);
+
+                renderForm();
+                renderControls();
+                updateAll();
+                setupModal();
+                setupPreviewModal();
+            }
+
+            function renderForm() {
+                curriculumForm.innerHTML = '';
+                Object.keys(formData).forEach(key => {
+                    if (typeof formData[key] === 'object' && formData[key] !== null && !key.startsWith('is')) {
+                        curriculumForm.appendChild(createFormSection(key, formData[key]));
+                    }
+                });
+                addFormEventListeners();
+            }
+            
+            function createFormSection(key, data) {
+                const section = document.createElement('details');
+                section.className = 'p-4 border border-gray-200 rounded-lg';
+                section.dataset.sectionKey = key;
+                section.open = key === 'dadosPessoais';
+
+                const summary = document.createElement('summary');
+                summary.className = 'font-semibold text-lg text-gray-700 flex justify-between items-center';
+                summary.innerHTML = `<span>${key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}</span>`;
+                section.appendChild(summary);
+
+                const content = document.createElement('div');
+                content.className = 'mt-4 space-y-4';
+                
+                if (Array.isArray(data)) {
+                    data.forEach((item, index) => content.appendChild(createFormGroup(key, item, index)));
+                    const addButton = document.createElement('button');
+                    addButton.textContent = `+ Adicionar`;
+                    addButton.className = 'mt-4 text-sm bg-blue-100 text-blue-800 py-1 px-3 rounded-md hover:bg-blue-200';
+                    addButton.dataset.action = 'add';
+                    addButton.dataset.key = key;
+                    content.appendChild(addButton);
+                } else {
+                    Object.keys(data).forEach(field => content.appendChild(createInputField(key, field, data[field])));
+                }
+                
+                const actionsDiv = document.createElement('div');
+                actionsDiv.className = 'mt-4 flex space-x-2';
+                actionsDiv.innerHTML = `
+                    <button data-action="save" data-key="${key}" class="text-sm bg-green-500 text-white py-1 px-3 rounded-md hover:bg-green-600">Salvar</button>
+                    <button data-action="modify" data-key="${key}" class="text-sm bg-gray-300 text-white py-1 px-3 rounded-md cursor-not-allowed" disabled>Modificar</button>
+                `;
+                content.appendChild(actionsDiv);
+                section.appendChild(content);
+                return section;
+            }
+
+            function createFormGroup(key, itemData, index) {
+                const group = document.createElement('div');
+                group.className = 'p-3 border border-gray-200 rounded-md relative';
+                Object.keys(itemData).forEach(field => {
+                    group.appendChild(createInputField(`${key}.${index}`, field, itemData[field]));
+                });
+                const removeButton = document.createElement('button');
+                removeButton.innerHTML = '&times;';
+                removeButton.className = 'absolute top-2 right-2 text-red-500 hover:text-red-700 font-bold text-xl';
+                removeButton.dataset.action = 'remove';
+                removeButton.dataset.key = key;
+                removeButton.dataset.index = index;
+                group.appendChild(removeButton);
+                return group;
+            }
+
+            function createInputField(path, field, fieldData) {
+                const div = document.createElement('div');
+                const label = document.createElement('label');
+                label.textContent = fieldData.label;
+                label.className = 'block text-sm font-medium text-gray-700';
+                
+                let input;
+                if (fieldData.type === 'date' || fieldData.type === 'month-year') {
+                    input = createDatePicker(path, field, fieldData.value, fieldData.type);
+                } else if (fieldData.options) {
+                    input = document.createElement('select');
+                    input.className = 'mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm';
+                    input.innerHTML = `<option value="">Selecione...</option>` + fieldData.options.map(opt => `<option value="${opt}" ${opt === fieldData.value ? 'selected' : ''}>${opt}</option>`).join('');
+                    input.dataset.path = `${path}.${field}.value`;
+                } else {
+                    input = document.createElement('input');
+                    input.type = 'text';
+                    input.value = fieldData.value;
+                    input.className = 'mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm';
+                    input.dataset.path = `${path}.${field}.value`;
+                }
+                
+                div.appendChild(label);
+                div.appendChild(input);
+
+                if (fieldData.isSensitive) {
+                    const checkboxDiv = document.createElement('div');
+                    checkboxDiv.className = 'flex items-center mt-1';
+                    const checkbox = document.createElement('input');
+                    checkbox.type = 'checkbox';
+                    checkbox.checked = fieldData.showInPreview;
+                    checkbox.dataset.path = `${path}.${field}.showInPreview`;
+                    checkbox.className = 'h-4 w-4 rounded border-gray-300 text-blue-600';
+                    const checkboxLabel = document.createElement('label');
+                    checkboxLabel.textContent = 'Incluir no currículo';
+                    checkboxLabel.className = 'ml-2 text-xs text-gray-600';
+                    checkboxDiv.appendChild(checkbox);
+                    checkboxDiv.appendChild(checkboxLabel);
+                    div.appendChild(checkboxDiv);
+                }
+
+                return div;
+            }
+            
+            function createDatePicker(path, field, value, type) {
+                const container = document.createElement('div');
+                container.className = 'relative';
+
+                const button = document.createElement('button');
+                button.type = 'button';
+                button.className = 'date-picker-button w-full';
+                button.textContent = value || 'Selecione a data';
+                container.appendChild(button);
+
+                const popover = document.createElement('div');
+                popover.className = 'date-picker-popover p-2 grid grid-cols-3 gap-2';
+
+                const [day, month, year] = value.split('/');
+
+                const yearSelect = document.createElement('select');
+                yearSelect.innerHTML = '<option value="">Ano</option>' + Array.from({length: 70}, (_, i) => new Date().getFullYear() - i).map(y => `<option value="${y}" ${y == year ? 'selected' : ''}>${y}</option>`).join('');
+                
+                const monthSelect = document.createElement('select');
+                monthSelect.innerHTML = '<option value="">Mês</option>' + Array.from({length: 12}, (_, i) => (i + 1).toString().padStart(2, '0')).map(m => `<option value="${m}" ${m == month ? 'selected' : ''}>${m}</option>`).join('');
+
+                popover.appendChild(yearSelect);
+                popover.appendChild(monthSelect);
+
+                if (type === 'date') {
+                    const daySelect = document.createElement('select');
+                    daySelect.innerHTML = '<option value="">Dia</option>' + Array.from({length: 31}, (_, i) => (i + 1).toString().padStart(2, '0')).map(d => `<option value="${d}" ${d == day ? 'selected' : ''}>${d}</option>`).join('');
+                    popover.appendChild(daySelect);
+                }
+                
+                container.appendChild(popover);
+
+                button.addEventListener('click', () => {
+                    popover.style.display = popover.style.display === 'grid' ? 'none' : 'grid';
+                });
+
+                popover.addEventListener('change', () => {
+                    const dayValue = popover.children[2] ? popover.children[2].value : '01';
+                    const monthValue = popover.children[1].value;
+                    const yearValue = popover.children[0].value;
+
+                    if (monthValue && yearValue && (type !== 'date' || dayValue)) {
+                        const newDate = type === 'date' ? `${dayValue}/${monthValue}/${yearValue}` : `${monthValue}/${yearValue}`;
+                        button.textContent = newDate;
+                        
+                        const fullPath = `${path}.${field}.value`;
+                        const pathParts = fullPath.split('.');
+                        let current = formData;
+                        pathParts.slice(0, -1).forEach(p => current = current[p]);
+                        current[pathParts[pathParts.length - 1]] = newDate;
+                        // Não atualiza o preview aqui, espera o 'salvar'
+                    }
+                });
+
+                return container;
+            }
+
+            function addFormEventListeners() {
+                curriculumForm.addEventListener('input', (e) => {
+                    if (e.target.dataset.path) {
+                        const path = e.target.dataset.path.split('.');
+                        const value = e.target.type === 'checkbox' ? e.target.checked : e.target.value;
+                        let current = formData;
+                        path.slice(0, -1).forEach(p => current = current[p]);
+                        current[path[path.length - 1]] = value;
+                        // Não atualiza preview em tempo real, apenas ao salvar
+                    }
+                });
+
+                curriculumForm.addEventListener('click', (e) => {
+                    const button = e.target.closest('button');
+                    if (!button) return;
+                    
+                    const { action, key, index } = button.dataset;
+                    const sectionEl = button.closest('details');
+
+                    if (action === 'save') {
+                        sectionEl.querySelectorAll('input, select, button').forEach(input => {
+                            if(!input.dataset.action) input.disabled = true;
+                        });
+                        button.disabled = true;
+                        button.classList.add('bg-gray-300', 'cursor-not-allowed');
+                        const modifyBtn = button.nextElementSibling;
+                        modifyBtn.disabled = false;
+                        modifyBtn.classList.remove('bg-gray-300', 'cursor-not-allowed');
+                        savedSections.add(key);
+                        sectionEl.open = false; // Retrai a seção
+                        updateAll();
+                    }
+                    if (action === 'modify') {
+                        sectionEl.querySelectorAll('input, select, button').forEach(input => input.disabled = false);
+                        button.disabled = true;
+                        button.classList.add('bg-gray-300', 'cursor-not-allowed');
+                        const saveBtn = button.previousElementSibling;
+                        saveBtn.disabled = false;
+                        saveBtn.classList.remove('bg-gray-300', 'cursor-not-allowed');
+                        sectionEl.open = true; // Expande a seção
+                    }
+                    if (action === 'add') {
+                        const newObj = JSON.parse(JSON.stringify(getMasterDataStructure()[key][0]));
+                        Object.keys(newObj).forEach(k => newObj[k].value = '');
+                        formData[key].push(newObj);
+                        renderForm();
+                        updateAll();
+                    }
+                    if (action === 'remove') {
+                        formData[key].splice(index, 1);
+                        renderForm();
+                        updateAll();
+                    }
+                });
+                
+                curriculumForm.addEventListener('focusin', (e) => {
+                    const section = e.target.closest('details');
+                    if (section && uiState.readingMode) {
+                        highlightPreviewSection(section.dataset.sectionKey);
+                    }
+                });
+
+                curriculumForm.addEventListener('focusout', () => {
+                     if (uiState.readingMode) {
+                        highlightPreviewSection(null);
+                    }
+                });
+            }
+            
+            function renderControls() {
+                const colorPicker = document.getElementById('color-picker');
+                colorPicker.innerHTML = colorPalettes.map((c, i) => `<button data-index="${i}" class="w-6 h-6 rounded-full border-2 ${i === uiState.color ? 'border-blue-500' : 'border-transparent'}" style="background-color: ${c.primary};"></button>`).join('');
+                colorPicker.addEventListener('click', e => {
+                    if(e.target.dataset.index) {
+                        uiState.color = parseInt(e.target.dataset.index);
+                        renderControls();
+                        updatePreview();
+                    }
+                });
+
+                const fontPicker = document.getElementById('font-picker');
+                fontPicker.innerHTML = fontFamilies.map((f, i) => `<option value="${i}" ${i === uiState.font ? 'selected' : ''}>${f.name}</option>`).join('');
+                fontPicker.addEventListener('change', e => {
+                    uiState.font = parseInt(e.target.value);
+                    updatePreview();
+                });
+
+                document.getElementById('photo-upload-input').addEventListener('change', e => {
+                    if (e.target.files && e.target.files[0]) {
+                        const reader = new FileReader();
+                        reader.onload = (event) => {
+                            uiState.photo = event.target.result;
+                            updatePreview();
+                        }
+                        reader.readAsDataURL(e.target.files[0]);
+                    }
+                });
+
+                const columnPicker = document.getElementById('column-picker');
+                columnPicker.value = uiState.columns;
+                columnPicker.addEventListener('change', e => {
+                    uiState.columns = parseInt(e.target.value);
+                    updatePreview();
+                });
+
+                const readingModeToggle = document.getElementById('reading-mode-toggle');
+                readingModeToggle.checked = uiState.readingMode;
+                readingModeToggle.addEventListener('change', e => {
+                    uiState.readingMode = e.target.checked;
+                });
+            }
+
+            function updateAll() {
+                updatePreview();
+                updateProgress();
+            }
+
+            function updatePreview() {
+                const renderData = {};
+                Object.keys(previewData).forEach(key => {
+                    if (savedSections.has(key)) {
+                        renderData[key] = formData[key];
+                    } else {
+                        renderData[key] = previewData[key];
+                    }
+                });
+
+                const theme = colorPalettes[uiState.color];
+                const font = fontFamilies[uiState.font];
+                const layoutFunc = layouts[uiState.layout] || layouts[0];
+                const html = layoutFunc(renderData, theme, font, uiState.columns, uiState.photo);
+                thumbnailContent.innerHTML = html;
+                fullPreviewContent.innerHTML = html;
+            }
+            
+            function updateProgress() {
+                const sections = curriculumForm.querySelectorAll('details');
+                const savedSectionsCount = savedSections.size;
+                const progress = sections.length > 0 ? (savedSectionsCount / sections.length) * 100 : 0;
+                
+                document.getElementById('progress-bar').style.width = `${progress}%`;
+                document.getElementById('progress-percentage').textContent = `${Math.round(progress)}%`;
+            }
+            
+            function highlightPreviewSection(key) {
+                document.querySelectorAll('#full-preview-content .cv-section').forEach(el => el.classList.remove('preview-section-highlight'));
+                if (key) {
+                    const elToHighlight = document.querySelector(`#full-preview-content .cv-section[data-section-key="${key}"]`);
+                    if (elToHighlight) elToHighlight.classList.add('preview-section-highlight');
+                }
+            }
+
+            function setupModal() {
+                const modal = document.getElementById('add-section-modal');
+                const openBtn = document.getElementById('add-section-btn');
+                const closeBtn = document.getElementById('close-modal-btn');
+                const createBtn = document.getElementById('create-custom-section-btn');
+                const predefinedContainer = document.getElementById('predefined-sections');
+
+                openBtn.addEventListener('click', () => {
+                    predefinedContainer.innerHTML = ''; // Limpa botões antigos
+                    const masterKeys = Object.keys(getMasterDataStructure());
+                    const currentKeys = Object.keys(formData);
+                    const availableKeys = masterKeys.filter(k => !currentKeys.includes(k) && !k.startsWith('is'));
+                    
+                    availableKeys.forEach(key => {
+                        const btn = document.createElement('button');
+                        btn.textContent = key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
+                        btn.className = 'bg-gray-100 text-sm p-2 rounded-md hover:bg-gray-200 mr-2 mb-2';
+                        btn.onclick = () => {
+                            formData[key] = getMasterDataStructure()[key];
+                            previewData[key] = getMasterDataStructure()[key]; // Adiciona ao preview também
+                            renderForm();
+                            updateAll();
+                            modal.classList.add('hidden');
+                        };
+                        predefinedContainer.appendChild(btn);
+                    });
+                    modal.classList.remove('hidden');
+                });
+
+                closeBtn.addEventListener('click', () => modal.classList.add('hidden'));
+                
+                createBtn.addEventListener('click', () => {
+                    const input = document.getElementById('custom-section-name');
+                    const newName = input.value.trim();
+                    if (newName) {
+                        const key = newName.toLowerCase().replace(/\s+/g, '');
+                        const customSection = [{ Título: { value: '', label: 'Título', showInPreview: true }, Descrição: { value: '', label: 'Descrição', showInPreview: true } }];
+                        formData[key] = customSection;
+                        previewData[key] = customSection;
+                        renderForm();
+                        updateAll();
+                        input.value = '';
+                        modal.classList.add('hidden');
+                    }
+                });
+            }
+
+            function setupPreviewModal() {
+                const openBtn = document.getElementById('view-full-preview-btn');
+                const closeBtn = document.getElementById('close-full-preview-btn');
+                const maximizeBtn = document.getElementById('maximize-modal-btn');
+
+                openBtn.addEventListener('click', () => fullPreviewModal.classList.remove('hidden'));
+                closeBtn.addEventListener('click', () => fullPreviewModal.classList.add('hidden'));
+                maximizeBtn.addEventListener('click', () => document.getElementById('full-preview-modal-content').classList.toggle('maximized'));
+                
+                fullPreviewModal.addEventListener('click', (e) => {
+                    if (e.target === fullPreviewModal) {
+                        fullPreviewModal.classList.add('hidden');
+                    }
+                });
+            }
+            
+            initialize();
+        });
+
+        // --- FUNÇÕES AUXILIARES ---
+        function getMasterDataStructure() {
+            return {
+                dadosPessoais: {
+                    nomeCompleto: { value: "", label: "Nome Completo", showInPreview: true },
+                    nomeSocial: { value: "", label: "Nome Social", showInPreview: true },
+                    pronomes: { value: "", label: "Pronomes", showInPreview: false, isSensitive: true },
+                    nascimento: { value: "", label: "Data de Nascimento", showInPreview: true, type: 'date' },
+                    sexo: { value: "", label: "Sexo", showInPreview: false, isSensitive: true, options: ["Feminino", "Masculino", "Outro", "Prefiro não informar"] },
+                    identidadeGenero: { value: "", label: "Identidade de Gênero", showInPreview: false, isSensitive: true, options: ["Mulher Cis", "Homem Cis", "Mulher Trans", "Homem Trans", "Não-binário", "Outro"] },
+                    orientacaoSexual: { value: "", label: "Orientação Sexual", showInPreview: false, isSensitive: true, options: ["Heterossexual", "Homossexual", "Bissexual", "Assexual", "Outro"] },
+                    nacionalidade: { value: "", label: "Nacionalidade", showInPreview: true },
+                    estadoCivil: { value: "", label: "Estado Civil", showInPreview: false, isSensitive: true, options: ["Solteiro(a)", "Casado(a)", "Divorciado(a)", "Viúvo(a)", "União Estável"] },
+                    filhos: { value: "", label: "Possui Filhos", showInPreview: false, isSensitive: true, options: ["Não", "Sim, um(a)", "Sim, dois(duas)", "Sim, três ou mais"] },
+                    endereco: { value: "", label: "Endereço", showInPreview: true },
+                    telefone: { value: "", label: "Telefone", showInPreview: true },
+                    email: { value: "", label: "E-mail", showInPreview: true },
+                    coren: { value: "", label: "COREN", showInPreview: true },
+                    pcd: { value: "", label: "Pessoa com Deficiência", showInPreview: true, options: ["Não", "Sim"] },
+                    condicoesEspeciais: { value: "", label: "Condições Especiais", showInPreview: true },
+                },
+                redesSociais: {
+                    linkedin: { value: "", label: "LinkedIn", showInPreview: true },
+                    instagram: { value: "", label: "Instagram", showInPreview: true },
+                },
+                objetivoProfissional: { value: "", label: "Objetivo Profissional", showInPreview: true },
+                formacao: [{
+                    instituicao: { value: "", label: "Instituição", showInPreview: true },
+                    curso: { value: "", label: "Curso", showInPreview: true },
+                    periodo: { value: "", label: "Período", showInPreview: true, type: 'month-year' },
+                }],
+                certificacoesCursos: [{
+                    nome: { value: "", label: "Nome do Curso/Certificação", showInPreview: true },
+                }],
+                experiencia: [{
+                    empresa: { value: "", label: "Empresa/Instituição", showInPreview: true },
+                    cargo: { value: "", label: "Cargo/Função", showInPreview: true },
+                    periodo: { value: "", label: "Período", showInPreview: true, type: 'month-year' },
+                    descricao: { value: "", label: "Descrição das Atividades", showInPreview: true },
+                }],
+            };
+        }
+
+        function createBlankProfile(profile) {
+            const master = getMasterDataStructure();
+            const profileTemplate = JSON.parse(JSON.stringify(master)); 
+
+            Object.keys(profileTemplate).forEach(sectionKey => {
+                const section = profileTemplate[sectionKey];
+                if (Array.isArray(section)) {
+                    profileTemplate[sectionKey] = [];
+                } else if (typeof section === 'object') {
+                    Object.keys(section).forEach(fieldKey => {
+                        section[fieldKey].value = '';
+                    });
+                }
+            });
+            
+            const profileStructure = getProfileDataStructure(profile);
+            let blankProfile = {};
+            Object.keys(profileStructure).forEach(key => {
+                blankProfile[key] = profileTemplate[key];
+            });
+
+            return blankProfile;
+        }
+        
+        function getFictitiousProfileData(profile) {
+            const allData = {
+                estudante: {
+                    dadosPessoais: { nomeCompleto: { value: "Ana Beatriz Silva" }, nomeSocial: { value: "Ana" }, pronomes: { value: "Ela/Dela" }, nascimento: { value: "15/05/2004" } /* ... etc */ },
+                    // ... outras seções preenchidas
+                },
+                experiente: {
+                    dadosPessoais: { nomeCompleto: { value: "Carlos Eduardo Oliveira" }, nomeSocial: { value: "Carlos" } /* ... etc */ },
+                    // ... outras seções preenchidas
+                },
+            };
+            // Simplificado para usar a estrutura mestre como base para os dados fictícios
+            const master = getMasterDataStructure();
+            const data = allData[profile] || allData.estudante;
+            Object.keys(data).forEach(sectionKey => {
+                 Object.keys(data[sectionKey]).forEach(fieldKey => {
+                    if(master[sectionKey] && master[sectionKey][fieldKey]){
+                         master[sectionKey][fieldKey].value = data[sectionKey][fieldKey].value || data[sectionKey][fieldKey];
+                    }
+                 });
+            });
+            return master;
+        }
+
+        function getProfileDataStructure(profile) {
+            const structures = {
+                estudante: {
+                    dadosPessoais: {}, redesSociais: {}, objetivoProfissional: {}, formacao: [], certificacoesCursos: [], experiencia: [],
+                },
+                experiente: {
+                    dadosPessoais: {}, redesSociais: {}, objetivoProfissional: {}, experiencia: [], formacao: [], certificacoesCursos: [],
+                },
+                academico: {
+                    dadosPessoais: {}, redesSociais: {}, resumoAcademico: {}, formacao: [], experiencia: [],
+                }
+            };
+            return structures[profile] || structures.estudante;
+        }
+    </script>
+</body>
+</html>
