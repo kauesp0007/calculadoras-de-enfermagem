@@ -50,7 +50,8 @@
             /* Adicionado font-inter para garantir a consistência da fonte */
             /* Alterado font-medium para font-semibold para font-weight: 600 */
             /* Adicionado text-center */
-            @apply inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-semibold rounded-md shadow-sm text-white cursor-pointer transition-transform transform hover:scale-105 font-inter text-center;
+            /* Ajustado padding para tornar os botões ligeiramente menores */
+            @apply inline-flex items-center justify-center px-3 py-1.5 border border-transparent text-sm font-semibold rounded-md shadow-sm text-white cursor-pointer transition-transform transform hover:scale-105 font-inter text-center;
         }
         .btn-primary {
             /* Ajustado para usar primary-blue da identidade visual */
@@ -92,7 +93,7 @@
             100% { transform: rotate(360deg); }
         }
 
-        /* Estilos para o modal de compartilhamento */
+        /* Estilos para o modal de compartilhamento e guia do usuário */
         .share-modal-overlay {
             position: fixed;
             top: 0;
@@ -124,6 +125,72 @@
             font-size: 1.5rem;
             font-weight: bold;
             cursor: pointer;
+        }
+
+        /* Estilos para a barra lateral retrátil */
+        #sidebar {
+            width: 256px; /* Largura padrão expandida (64 * 4px) */
+            transition: width 0.3s ease-in-out;
+        }
+        #sidebar[data-expanded="false"] {
+            width: 80px; /* Largura recolhida (20 * 4px) */
+        }
+
+        #sidebar .sidebar-text {
+            display: inline-block;
+            opacity: 1;
+            transition: opacity 0.3s ease-in-out;
+        }
+        #sidebar[data-expanded="false"] .sidebar-text {
+            display: none;
+            opacity: 0;
+        }
+
+        #sidebar-toggle .sidebar-icon {
+            transition: transform 0.3s ease-in-out;
+        }
+        #sidebar[data-expanded="false"] #sidebar-toggle .sidebar-icon {
+            transform: rotate(180deg);
+        }
+
+        /* Ajuste do conteúdo principal para a barra lateral */
+        #main-content {
+            margin-left: 256px; /* Margem padrão para barra expandida */
+            transition: margin-left 0.3s ease-in-out;
+        }
+        #main-content[data-sidebar-expanded="false"] {
+            margin-left: 80px; /* Margem para barra recolhida */
+        }
+
+        /* Responsividade para telas menores */
+        @media (max-width: 1023px) { /* Abaixo do breakpoint 'lg' do Tailwind */
+            #sidebar {
+                position: static; /* Remove a fixação da barra lateral em telas pequenas */
+                width: 100%; /* Ocupa a largura total */
+                height: auto;
+                flex-direction: row; /* Botões em linha */
+                flex-wrap: wrap;
+                justify-content: center;
+                padding: 1rem;
+                border-right: none;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            }
+            #sidebar button {
+                width: auto; /* Botões ajustam sua largura */
+                flex-grow: 1; /* Permite que os botões cresçam para preencher o espaço */
+                margin: 0.5rem; /* Espaçamento entre os botões */
+            }
+            #sidebar .sidebar-text {
+                display: inline-block; /* Sempre mostra o texto em telas pequenas */
+                opacity: 1;
+            }
+            #sidebar #sidebar-toggle {
+                display: none; /* Oculta o botão de recolher/expandir em telas pequenas */
+            }
+            #main-content {
+                margin-left: 0 !important; /* Remove a margem esquerda em telas pequenas */
+                padding-top: 20px; /* Garante espaçamento do cabeçalho */
+            }
         }
     </style>
 </head>
@@ -209,6 +276,43 @@
         </div>
     </div>
 
+    <!-- User Guide Modal HTML -->
+    <div id="userGuideModal" class="share-modal-overlay hidden">
+        <div class="share-modal-content max-w-2xl">
+            <button id="userGuideModalCloseBtn" class="share-modal-close" aria-label="Fechar guia do usuário">&times;</button>
+            <h3 class="text-gray-800 text-2xl font-bold mb-4">Bem-vindo ao Criador de Currículos! 👋</h3>
+            <p class="text-gray-700 text-left mb-4">Este guia rápido vai te ajudar a navegar pela plataforma:</p>
+            
+            <div class="text-left mb-4">
+                <h4 class="font-semibold text-lg text-primary-blue mb-2 flex items-center"><i data-lucide="edit" class="mr-2"></i>1. Seção de Edição</h4>
+                <p class="text-gray-700 mb-2">Aqui você preenche suas informações pessoais, experiência, educação, habilidades e muito mais. Cada seção é editável e você pode adicionar ou remover itens facilmente.</p>
+                <p class="text-gray-700">Procure pelos botões **"Adicionar"** e **"Remover"** dentro de cada seção para gerenciar seus dados. 📝</p>
+            </div>
+
+            <div class="text-left mb-4">
+                <h4 class="font-semibold text-lg text-primary-blue mb-2 flex items-center"><i data-lucide="layout-template" class="mr-2"></i>2. Escolha de Modelos</h4>
+                <p class="text-gray-700 mb-2">No canto superior direito (ou na barra lateral, dependendo da tela), você encontrará o botão **"Mudar Template"**. Clique nele para explorar nossa vasta biblioteca de modelos de currículo. Escolha o que melhor se adapta ao seu estilo e especialidade!</p>
+            </div>
+
+            <div class="text-left mb-4">
+                <h4 class="font-semibold text-lg text-primary-blue mb-2 flex items-center"><i data-lucide="eye" class="mr-2"></i>3. Pré-visualização e Exportação</h4>
+                <p class="text-gray-700 mb-2">Após preencher seus dados, clique em **"Pré-visualizar e Exportar"** para ver como seu currículo está ficando.</p>
+                <p class="text-gray-700">Nesta tela, você verá a **barra lateral à esquerda** (ou na parte inferior em telas menores) com as opções de exportação e compartilhamento. 🚀</p>
+            </div>
+
+            <div class="text-left mb-4">
+                <h4 class="font-semibold text-lg text-primary-blue mb-2 flex items-center"><i data-lucide="chevrons-left-right" class="mr-2"></i>4. Barra Lateral Retrátil</h4>
+                <p class="text-gray-700 mb-2">Na tela de pré-visualização, a barra lateral de ações pode ser **recolhida ou expandida** clicando no ícone de setas no topo. Isso te dá mais espaço para visualizar o currículo ou acessar as ferramentas rapidamente.</p>
+                <p class="text-gray-700">Os botões nesta barra são: **Gerar PDF**, **Gerar Word**, **Compartilhar** (por e-mail ou WhatsApp) e **Gerar Carta de Apresentação**.</p>
+            </div>
+
+            <button class="btn btn-primary mt-4" onclick="hideUserGuide()">Entendi! Começar a Criar</button>
+        </div>
+    </div>
+
+    <!-- Button to open user guide (e.g., in the header or as a floating button) -->
+    <button id="openUserGuideBtn" class="btn btn-primary fixed bottom-4 right-4 z-50 rounded-full p-3 shadow-lg"><i data-lucide="help-circle" class="h-6 w-6"></i></button>
+
     <!-- Scripts Globais e de Bibliotecas -->
     <script src="global-scripts.js"></script>
 
@@ -263,6 +367,8 @@
             selectedTemplate: null,
             currentView: 'editor', // 'editor', 'preview', 'templates'
             isLoading: true,
+            isSidebarExpanded: true, // Novo estado para a barra lateral
+            showUserGuide: false, // Novo estado para o guia do usuário
         };
 
         // --- FUNÇÕES DE LÓGICA (CONTROLADORES) ---
@@ -669,6 +775,38 @@
             appContainer.innerHTML = viewHTML;
             lucide.createIcons(); // Recria os ícones após a renderização
             attachEventListeners(); // Re-anexa os event listeners após a renderização
+
+            // Atualiza a barra lateral e o guia do usuário após a renderização
+            const sidebar = document.getElementById('sidebar');
+            const mainContent = document.getElementById('main-content');
+            if (sidebar && mainContent) {
+                sidebar.dataset.expanded = state.isSidebarExpanded;
+                mainContent.dataset.sidebarExpanded = state.isSidebarExpanded;
+                // Atualiza o ícone e texto do botão de toggle da barra lateral
+                const toggleButton = document.getElementById('sidebar-toggle');
+                if (toggleButton) {
+                    const icon = toggleButton.querySelector('.sidebar-icon');
+                    const text = toggleButton.querySelector('.sidebar-text');
+                    if (state.isSidebarExpanded) {
+                        icon.dataset.lucide = 'chevrons-left';
+                        text.textContent = 'Recolher';
+                    } else {
+                        icon.dataset.lucide = 'chevrons-right';
+                        text.textContent = 'Expandir';
+                    }
+                    lucide.createIcons(); // Re-renderiza o ícone
+                }
+            }
+
+            const userGuideModal = document.getElementById('userGuideModal');
+            if (userGuideModal) {
+                if (state.showUserGuide) {
+                    userGuideModal.classList.remove('hidden');
+                    lucide.createIcons(); // Re-renderiza ícones no modal
+                } else {
+                    userGuideModal.classList.add('hidden');
+                }
+            }
         }
         
         function renderSection(title, sectionName, items, fields, icon) {
@@ -723,7 +861,7 @@
                         </div>
                     </div>
                 </header>
-                <main class="max-w-screen-xl mx-auto py-8 sm:px-6 lg:px-8">
+                <main class="max-w-screen-xl mx-auto py-8 sm:px-6 lg:px-8 pt-20">
                     <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
                         <div class="lg:col-span-2">
                             <div class="card">
@@ -834,15 +972,17 @@
                         <button class="btn btn-primary" onclick="setState({ currentView: 'editor' })"><i data-lucide="arrow-left" class="mr-2 h-4 w-4"></i>Voltar ao Editor</button>
                     </div>
                 </div>
-                <div class="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-sm p-4 border-t border-gray-200 shadow-lg z-10">
-                    <div class="max-w-4xl mx-auto flex justify-center items-center flex-wrap gap-3">
-                        <button class="btn btn-primary" onclick="downloadPDF()"><i data-lucide="file-type-2" class="mr-2 h-4 w-4"></i>Gerar PDF</button>
-                        <button class="btn btn-primary" onclick="downloadWord()"><i data-lucide="file-text" class="mr-2 h-4 w-4"></i>Gerar Word</button>
-                        <button class="btn btn-primary" onclick="openShareOptions()"><i data-lucide="share-2" class="mr-2 h-4 w-4"></i>Compartilhar</button>
-                        <button class="btn btn-primary" onclick="generateCoverLetter()"><i data-lucide="mail" class="mr-2 h-4 w-4"></i>Gerar Carta de Apresentação</button>
-                    </div>
+                <div id="sidebar" class="fixed top-20 bottom-0 left-0 bg-primary-blue/90 backdrop-blur-sm p-4 border-r border-gray-200 shadow-lg z-10 flex flex-col items-start space-y-4 py-8">
+                    <button id="sidebar-toggle" class="btn btn-primary w-full mb-4">
+                        <i data-lucide="chevrons-left" class="h-4 w-4 mr-2 sidebar-icon"></i>
+                        <span class="sidebar-text">Recolher</span>
+                    </button>
+                    <button class="btn btn-primary w-full" onclick="downloadPDF()"><i data-lucide="file-type-2" class="mr-2 h-4 w-4"></i><span class="sidebar-text">Gerar PDF</span></button>
+                    <button class="btn btn-primary w-full" onclick="downloadWord()"><i data-lucide="file-text" class="mr-2 h-4 w-4"></i><span class="sidebar-text">Gerar Word</span></button>
+                    <button class="btn btn-primary w-full" onclick="openShareOptions()"><i data-lucide="share-2" class="mr-2 h-4 w-4"></i><span class="sidebar-text">Compartilhar</span></button>
+                    <button class="btn btn-primary w-full" onclick="generateCoverLetter()"><i data-lucide="mail" class="mr-2 h-4 w-4"></i><span class="sidebar-text">Gerar Carta de Apresentação</span></button>
                 </div>
-                <main class="max-w-4xl mx-auto py-10 sm:px-6 lg:px-8 pb-40">
+                <main id="main-content" class="max-w-4xl mx-auto py-10 sm:px-6 lg:px-8 pb-40 pt-20">
                     ${generatePreviewHTML()}
                 </main>
             `;
@@ -859,7 +999,7 @@
                         <button class="btn btn-primary" onclick="setState({ currentView: 'editor' })"><i data-lucide="arrow-left" class="mr-2 h-4 w-4"></i>Voltar ao Editor</button>
                     </div>
                 </div>
-                <main class="max-w-screen-xl mx-auto py-8 sm:px-6 lg:px-8">
+                <main class="max-w-screen-xl mx-auto py-8 sm:px-6 lg:px-8 pt-20">
                     <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
                         ${state.templates.map(template => `
                             <div 
@@ -890,6 +1030,21 @@
                     </div>
                 </main>
             `;
+        }
+
+        // Função para alternar a barra lateral
+        function toggleSidebar() {
+            setState({ isSidebarExpanded: !state.isSidebarExpanded });
+        }
+
+        // Função para abrir o modal do guia do usuário
+        function showUserGuide() {
+            setState({ showUserGuide: true });
+        }
+
+        // Função para fechar o modal do guia do usuário
+        function hideUserGuide() {
+            setState({ showUserGuide: false });
         }
 
         // --- INICIALIZAÇÃO E EVENT LISTENERS ---
@@ -934,6 +1089,11 @@
 
             // Adiciona listener para fechar o modal de compartilhamento
             document.getElementById('shareModalCloseBtn')?.addEventListener('click', closeShareOptions);
+
+            // Adiciona listeners para o toggle da barra lateral e o guia do usuário
+            document.getElementById('sidebar-toggle')?.addEventListener('click', toggleSidebar);
+            document.getElementById('openUserGuideBtn')?.addEventListener('click', showUserGuide);
+            document.getElementById('userGuideModalCloseBtn')?.addEventListener('click', hideUserGuide);
         }
 
         function generateFallbackTemplates() {
