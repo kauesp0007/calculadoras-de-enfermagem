@@ -1,168 +1,143 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-BR">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Modelos de Currículos - Calculadoras de Enfermagem</title>
-    
-    <!-- =================================================================== -->
-    <!-- ARQUIVOS DE ESTILO E FONTES EXTERNAS -->
-    <!-- =================================================================== -->
-    
-    <!-- Tailwind CSS -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Criador de Currículos para Profissionais de Saúde</title>
+    <!-- Tailwind CSS para estilização rápida e responsiva -->
     <script src="https://cdn.tailwindcss.com"></script>
-    
-    <!-- Fontes do Google -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=Lato:wght@400;700&family=Lora:wght@400;700&family=Montserrat:wght@400;700&family=Open+Sans:wght@400;700&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
-    
-    <!-- Ícones -->
-    <script src="https://unpkg.com/@phosphor-icons/web@2.0.3/dist/phosphor.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" xintegrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-
-    <!-- Estilos Globais do Site -->
+    <script>
+        // Configuração personalizada do Tailwind CSS para cores da identidade visual
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'primary-blue': '#1A3E74',
+                        'secondary-blue': '#004d99',
+                        'success-green': '#006400',
+                        'error-red': '#8B0000',
+                        'neutral-gray': '#2d3748',
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Biblioteca jsPDF para exportar para PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <!-- Biblioteca html2canvas para capturar o preview como imagem para o PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <!-- Biblioteca para exportar para Word (DOCX) -->
+    <script src="https://unpkg.com/docx@latest/build/index.js"></script>
+    <!-- Ícones (Lucide) -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Estilos Globais -->
     <link rel="stylesheet" href="global-styles.css">
 
-    <!-- =================================================================== -->
-    <!-- ESTILOS ESPECÍFICOS DA PÁGINA DE MODELOS -->
-    <!-- =================================================================== -->
     <style>
-        /* AJUSTE: Garante que o conteúdo principal não fique sob o cabeçalho fixo */
-        main.main-content-wrapper {
-            padding-top: 130px;
+        /* Estilos personalizados para complementar o Tailwind */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@500;600;700&display=swap');
+        
+        /* O body já é estilizado por global-styles.css, mas estas são específicas para a aplicação de currículo */
+        body {
+            /* font-family: 'Inter', sans-serif; */ /* Já definido em global-styles.css */
+            /* background-color: #f3f4f6; */ /* Já definido em global-styles.css */
         }
 
-        /* Estilos para a página e previews dos currículos */
-        .btn-perfil.active {
-            background-color: #3b82f6;
-            color: white;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        .form-input {
+            @apply w-full px-3 py-2 text-sm text-gray-700 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition;
         }
-        
-        /* AJUSTE: Retorna o contêiner para a altura fixa anterior */
-        .preview-container {
-            height: 320px;
-            width: 100%;
-            overflow: hidden;
-            position: relative;
-            border: 1px solid #e5e7eb;
-            border-radius: 0.5rem;
-            margin-bottom: 1rem;
-            transition: box-shadow 0.3s ease-in-out;
-            background-color: #f1f5f9; /* cinza de fundo */
+        .btn {
+            /* Adicionado font-inter para garantir a consistência da fonte */
+            /* Alterado font-medium para font-semibold para font-weight: 600 */
+            /* Adicionado text-center */
+            @apply inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-semibold rounded-md shadow-sm text-white cursor-pointer transition-transform transform hover:scale-105 font-inter text-center;
+        }
+        .btn-primary {
+            /* Ajustado para usar primary-blue da identidade visual */
+            @apply bg-primary-blue hover:bg-secondary-blue focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-blue;
+        }
+        .btn-secondary {
+            /* Ajustado para usar neutral-gray da identidade visual */
+            @apply bg-neutral-gray hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-neutral-gray;
+        }
+        .btn-danger {
+             @apply bg-error-red hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-error-red;
+        }
+        .card {
+            @apply bg-white p-6 rounded-xl shadow-lg mb-6;
+        }
+        h2 {
+            @apply text-2xl font-bold text-gray-800 mb-4;
+        }
+        h3 {
+             @apply text-lg font-semibold text-gray-700 mb-3;
+        }
+        /* Animação de carregamento */
+        .loader-container {
             display: flex;
-            align-items: flex-start; /* Alinha ao topo */
             justify-content: center;
+            align-items: center;
+            height: 100vh;
         }
-        /* AJUSTE: Aumenta a escala e foca no topo para melhor visualização */
-        .preview-container > div {
-            transform: scale(0.35); 
-            transform-origin: top center;
-            width: 210mm; /* A4 width */
-            height: 297mm; /* A4 height */
-            pointer-events: none;
-            background-color: white;
-            box-shadow: 0 0 15px rgba(0,0,0,0.1);
-            overflow: hidden;
-            color: #334155;
-            line-height: 1.6;
+        .loader {
+            border: 8px solid #f3f3f3;
+            border-top: 8px solid #4f46e5;
+            border-radius: 50%;
+            width: 80px;
+            height: 80px;
+            animation: spin 1.5s linear infinite;
         }
-        
-        #preview-modal {
-            z-index: 110000;
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
 
-        /* Estilos do Modal */
-        #preview-modal-content {
-            transition: all 0.3s ease-in-out;
-        }
-        #preview-modal-content.maximized {
-            width: 95vw;
-            max-width: 95vw;
-            height: 95vh;
-        }
-        #preview-content {
+        /* Estilos para o modal de compartilhamento */
+        .share-modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
             width: 100%;
             height: 100%;
-            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.6);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
         }
-        #preview-content > div { /* O currículo dentro do modal */
-            width: 210mm;
-            min-height: 297mm;
-            margin: 2rem auto;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        .share-modal-content {
+            background-color: #fff;
+            padding: 2rem;
+            border-radius: 0.5rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+            position: relative;
         }
-        
-        /* Estilos base para os previews */
-        .cv-preview h1, .cv-preview h2, .cv-preview h3 { font-weight: 700; line-height: 1.2; }
-        .cv-preview h1 { font-size: 2.5rem; margin-bottom: 0.5rem; }
-        .cv-preview h2 { font-size: 1.2rem; margin-bottom: 0.5rem; padding-bottom: 0.25rem; display: flex; align-items: center; gap: 0.5rem; }
-        .cv-preview h3 { font-size: 1.1rem; color: #1e293b; }
-        .cv-preview p { line-height: 1.4; }
-        .cv-preview .cv-section { margin-bottom: 1.5rem; }
-        .cv-preview .cv-tag { display: inline-block; padding: 0.25rem 0.75rem; border-radius: 9999px; font-size: 0.8rem; margin: 0.2rem; }
-        .cv-preview ul { list-style: disc; margin-left: 1rem; }
-        .cv-preview ul li { margin-bottom: 0.25rem; }
+        .share-modal-close {
+            position: absolute;
+            top: 0.5rem;
+            right: 0.5rem;
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            font-weight: bold;
+            cursor: pointer;
+        }
     </style>
 </head>
-<body class="bg-gray-100 font-sans text-gray-900">
-    
-    <!-- O cabeçalho modular será carregado aqui pelo global-scripts.js -->
+<body class="antialiased">
+
+    <!-- Container para o menu global (será carregado via JS) -->
     <div id="global-header-container"></div>
 
-    <main class="main-content-wrapper max-w-7xl mx-auto p-4 md:p-8">
-
-        <nav class="text-gray-600 mb-4" aria-label="breadcrumb">
-            <ol class="list-none p-0 inline-flex">
-                <li class="flex items-center"><a href="index.html" class="hover:underline">Início</a><i class="ph-bold ph-caret-right mx-2 text-gray-400"></i></li>
-                <li class="flex items-center"><a href="#" class="hover:underline">Modelos</a><i class="ph-bold ph-caret-right mx-2 text-gray-400"></i></li>
-                <li><span class="text-[#1A3E74] font-semibold">Currículos</span></li>
-            </ol>
-        </nav>
-        
-        <div class="mb-8">
-            <h1 class="text-3xl md:text-4xl font-bold text-gray-800 mb-2">Escolha o Modelo de Currículo Ideal</h1>
-            <p class="text-gray-600">Navegue pelos perfis e selecione o layout que melhor representa a sua carreira na enfermagem.</p>
-        </div>
-
-        <div class="mb-6 flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4">
-            <input type="text" id="busca-modelo" placeholder="Buscar modelo..." class="flex-grow p-3 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"/>
-            <button id="btn-estudante" class="btn-perfil px-4 py-2 rounded-lg text-sm transition-colors bg-blue-500 text-white" onclick="setPerfilAtivo('estudante', this)">Estudante</button>
-            <button id="btn-profissional" class="btn-perfil px-4 py-2 rounded-lg text-sm transition-colors bg-gray-200 hover:bg-gray-300" onclick="setPerfilAtivo('experiente', this)">Profissional</button>
-            <button id="btn-academico" class="btn-perfil px-4 py-2 rounded-lg text-sm transition-colors bg-gray-200 hover:bg-gray-300" onclick="setPerfilAtivo('academico', this)">Acadêmico</button>
-        </div>
-
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8" id="modelos-container">
-            <!-- Os cartões de modelo serão gerados e inseridos aqui via JavaScript -->
-        </div>
-    
-    </main>
-    
-    <!-- Modal de Pré-visualização -->
-    <div id="preview-modal" class="hidden fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center p-4 transition-opacity duration-300" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
-        <div id="preview-modal-content" class="bg-gray-200 p-2 rounded-xl shadow-2xl w-full max-w-4xl h-[90vh] flex flex-col">
-            <div class="flex-shrink-0 flex flex-col p-4 bg-white rounded-t-lg items-center">
-                <div class="w-full flex justify-between items-start mb-2">
-                    <h2 id="modalTitle" class="text-lg font-semibold text-gray-700">Pré-visualização</h2>
-                    <div class="flex items-center gap-2">
-                        <button onclick="toggleMaximizeModal()" class="text-gray-700 hover:text-gray-900 transition-colors p-2" aria-label="Maximizar"><i class="ph-bold ph-arrows-out text-2xl"></i></button>
-                        <button onclick="fecharModal()" class="text-gray-700 hover:text-gray-900 transition-colors p-2" aria-label="Fechar pré-visualização"><i class="ph-bold ph-x text-2xl"></i></button>
-                    </div>
-                </div>
-            </div>
-            <div id="preview-content" class="flex-grow overflow-auto">
-                <!-- O conteúdo do currículo em tamanho real será inserido aqui -->
-            </div>
-            <div class="flex-shrink-0 mt-2 p-4 flex justify-end gap-4 bg-white rounded-b-lg">
-                <div id="confirmation-message" class="text-green-600 font-medium mr-4 hidden self-center">Modelo selecionado e pronto para uso!</div>
-                <button id="btn-avancar" class="bg-[#1A3E74] text-white px-6 py-3 rounded-lg hover:bg-[#153460] transition-colors font-semibold" aria-label="Avançar com este Modelo">Avançar com este Modelo</button>
-            </div>
-        </div>
+    <div id="app-container">
+        <!-- O conteúdo da aplicação será renderizado aqui pelo JavaScript -->
     </div>
 
-    <!-- Rodapé -->
-    <footer class="bg-[#1A3E74] text-white py-8">
+    <!-- Rodapé Global (agora incorporado diretamente na página) -->
+    <footer class="bg-primary-blue text-white py-8">
         <div class="max-w-7xl mx-auto px-4">
             <div class="border-b border-white pb-4 mb-4">
                 <div class="flex justify-start items-center">
@@ -211,233 +186,787 @@
                             <a href="https://www.tiktok.com/@calculadorasdeenf" target="_blank" class="footer-social-icon" title="TikTok" aria-label="Acesse Nosso Perfil no TikTok"><i class="fab fa-tiktok text-xl"></i></a>
                             <a href="https://www.youtube.com/channel/UC_6runTDHz8u5S1Yab842pg" target="_blank" class="footer-social-icon" title="YouTube" aria-label="Acesse Nosso Perfil no YouTube"><i class="fab fa-youtube text-xl"></i></a>
                         </div>
-                        <button id="openGranularCookieModalBtn" class="btn-secondary text-white mt-4 py-2 px-4 rounded-md" aria-label="Gerenciar Preferências de Cookies"> Gerenciar Preferências de Cookies </button>
+                        <button id="openGranularCookieModalBtn" class="btn-secondary text-white mt-4 py-2 px-4 rounded-md" aria-label="Gerenciar Preferências de Cookies">
+                            Gerenciar Preferências de Cookies
+                        </button>
                     </div>
                 </div>
             </div>
             <div class="mt-8 text-center">
-                <p>&copy; 2025 Calculadoras de Enfermagem. Todos os direitos reservados.</p>
+                <p>© 2025 Calculadoras de Enfermagem. Todos os direitos reservados.</p>
             </div>
         </div>
     </footer>
 
-    <!-- =================================================================== -->
-    <!-- SCRIPTS GLOBAIS E ESPECÍFICOS -->
-    <!-- =================================================================== -->
-    
-    <!-- Biblioteca para gerar PDF -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-    
-    <!-- Script Global do Site (carrega menu, acessibilidade, etc.) -->
-    <script src="global-scripts.js"></script> 
-    
-    <!-- Script Específico da Página de Modelos -->
+    <!-- Share Options Modal -->
+    <div id="shareOptionsModal" class="share-modal-overlay hidden">
+        <div class="share-modal-content">
+            <button id="shareModalCloseBtn" class="share-modal-close" aria-label="Fechar opções de compartilhamento">&times;</button>
+            <h3 class="text-gray-800 text-lg mb-4">Compartilhar Currículo</h3>
+            <button class="btn btn-primary w-full mb-3" onclick="shareByEmail()"><i data-lucide="mail" class="mr-2 h-4 w-4"></i> Compartilhar por E-mail</button>
+            <button class="btn btn-primary w-full mb-4" onclick="shareByWhatsapp()"><i data-lucide="message-square" class="mr-2 h-4 w-4"></i> Compartilhar por WhatsApp</button>
+            <button class="btn btn-secondary w-full" onclick="closeShareOptions()">Cancelar</button>
+        </div>
+    </div>
+
+    <!-- Scripts Globais e de Bibliotecas -->
+    <script src="global-scripts.js"></script>
+
     <script>
-        document.addEventListener("DOMContentLoaded", () => {
-            // --- DADOS COMPLETOS DOS PERSONAGENS ---
-            const curriculumData = {
-                estudante: {
-                    dadosPessoais: { nomeCompleto: "Ana Beatriz Silva", nomeSocial: "Ana", pronomes: "Ela/Dela", nascimento: "15/05/2004", sexo: "Feminino", identidadeGenero: "Mulher Cis", orientacaoSexual: "Heterossexual", nacionalidade: "Brasileira", estadoCivil: "Solteira", filhos: "Não", endereco: "Rua das Palmeiras, 123, Bairro Jardim, São Paulo/SP, CEP 01234-567", telefone: "(11) 91234-5678", email: "anabeatriz.enfermagem@email.com", pcd: "Não", condicoesEspeciais: "N/A" },
-                    redesSociais: { linkedin: "linkedin.com/in/anabeatrizsilva", instagram: "@ana.enfermagem" },
-                    objetivoProfissional: "Buscando uma oportunidade de estágio em Técnico de Enfermagem para aplicar os conhecimentos adquiridos na faculdade, contribuindo com proatividade e empatia no cuidado ao paciente e no desenvolvimento da equipe.",
-                    formacao: [{ instituicao: "Escola de Enfermagem de Excelência (EEX)", paisEstado: "Brasil, São Paulo", curso: "Técnico em Enfermagem", nivel: "Técnico", inicio: "02/2024", fim: "12/2025 (previsão)", status: "Em andamento" }],
-                    experiencia: [{ projeto: "Simulação Realística em Terapia Intensiva", instituicao: "Escola de Enfermagem de Excelência (EEX)", funcao: "Membro da equipe de pesquisa", periodo: "03/2025 - presente", descricao: "Participação em projeto de pesquisa sobre a aplicação de simulações realísticas para o aprimoramento de competências técnicas e comportamentais de estudantes em cenários de Terapia Intensiva." }],
-                    idiomas: [ { idioma: "Inglês", nivel: "Avançado", fala: "Avançado", escuta: "Avançado", escrita: "Avançado" }, { idioma: "Espanhol", nivel: "Básico", fala: "Básico", escuta: "Básico", escrita: "Básico" } ],
-                    tecnologias: ["Sistemas de Prontuário Eletrônico (MV Soul, Tasy)", "Pacote Office (Word, Excel, PowerPoint)"],
-                    habilidades: { soft: ["Comunicação Assertiva", "Resiliência", "Trabalho em Equipe Multidisciplinar", "Empatia", "Ética Profissional"], hard: ["Aferição de Sinais Vitais", "Administração de Medicamentos", "Curativos", "Higienização e Conforto do Paciente"] },
-                    complementares: { cnh: "Tipo B", veiculo: "Não", viagens: "Sim", mudanca: "Sim" },
-                    diversidade: { raca: "Parda", identidadeGenero: "Mulher Cis", orientacaoSexual: "Heterossexual" },
-                    isEstudante: true, isAcademico: false,
-                    imageUrl: "https://www.calculadorasdeenfermagem.com.br/Estudante_Ana_Beatriz_Silva_tecnicadeenfermagem_curriculo_ImagemgeradacomIA.webp"
+        // --- ESTADO DA APLICAÇÃO (Substituindo o useState do React) ---
+        let state = {
+            resumeData: {
+                personalInfo: {
+                    fullName: 'Dr. Carlos Andrade',
+                    profession: 'Cardiologista',
+                    email: 'carlos.andrade@emailmed.com',
+                    phone: '(11) 91234-5678',
+                    address: 'São Paulo, SP'
                 },
-                experiente: {
-                    dadosPessoais: { nomeCompleto: "Carlos Eduardo Oliveira", nomeSocial: "Carlos", pronomes: "Ele/Dele", nascimento: "20/08/1985", sexo: "Masculino", identidadeGenero: "Homem Cis", orientacaoSexual: "Heterossexual", nacionalidade: "Brasileiro", estadoCivil: "Casado", filhos: "Sim, dois", endereco: "Avenida Atlântica, 789, Copacabana, Rio de Janeiro/RJ, CEP 22070-001", telefone: "(21) 98765-4321", email: "carlos.oliveira.enfermagem@email.com", coren: "Sim, COREN-RJ: 123.456-ENF", pcd: "Não", condicoesEspeciais: "N/A" },
-                    redesSociais: { linkedin: "linkedin.com/in/carlosoliveiraenfermeiro", twitter: "@CarlosEnfermagem" },
-                    objetivoProfissional: "Atuar como Enfermeiro Chefe em Terapia Intensiva, liderando equipes, aprimorando protocolos de atendimento e contribuindo para a excelência e inovação na assistência ao paciente crítico.",
-                    experiencia: [{ empresa: "Hospital Mount Sinai, Nova York, EUA", cargo: "Enfermeiro Sênior em Terapia Intensiva", segmento: "Saúde Hospitalar", hierarquia: "Analista", nacionalidadeLocalizacao: "EUA, Nova York", inicio: "01/2018", fim: "12/2023", atual: "Não", descricao: "Liderou equipe de 10 enfermeiros e 20 técnicos, implementou um novo protocolo de prevenção de úlceras por pressão que reduziu a incidência em 30% e participou da equipe de resposta rápida a emergências." }],
-                    formacao: [{ instituicao: "Universidade de São Paulo (USP)", paisEstado: "Brasil, São Paulo", curso: "Bacharelado em Enfermagem", nivel: "Superior", inicio: "01/2005", fim: "12/2009", status: "Concluído" }],
-                    certificacoesCursos: ["Certificado em Suporte Avançado de Vida (ACLS) - American Heart Association", "Curso 'Inteligência Artificial para Enfermeiros' - Harvard Medical School", "Curso de Gestão e Liderança em Enfermagem - Albert Einstein"],
-                    idiomas: [ { idioma: "Inglês", nivel: "Fluente", fala: "Fluente", escuta: "Fluente", escrita: "Fluente" }, { idioma: "Espanhol", nivel: "Avançado", fala: "Avançado", escuta: "Avançado", escrita: "Avançado" }, { idioma: "Libras", nivel: "Intermediário" } ],
-                    tecnologias: ["Sistemas de Prontuário Eletrônico (Epic, Cerner)", "Software de Gestão Hospitalar", "Ferramentas de análise de dados (Power BI)"],
-                    habilidades: { tecnicas: ["Liderança de Equipes", "Gestão de Protocolos", "Suporte Avançado de Vida", "Ventilação Mecânica", "Manejo de Pacientes Críticos"], comportamentais: ["Liderança Situacional", "Pensamento Crítico", "Gestão de Conflitos", "Tomada de Decisão sob Pressão", "Comunicação Interpessoal"] },
-                    complementares: { jornada: "Integral", tipoContrato: "CLT", hierarquia: "Gerente - Diretor", voluntariado: "Cruz Vermelha, Missão Humanitária na Síria (2015)", congressos: "Palestrante no Congresso Internacional de Enfermagem em Terapia Intensiva (Nova Iorque, 2022)", premios: "'Enfermeiro do Ano' - Hospital Mount Sinai (2020)", recomendacoes: "Disponível mediante solicitação." },
-                    diversidade: { raca: "Branca", identidadeGenero: "Homem Cis", orientacaoSexual: "Heterossexual" },
-                    isEstudante: false, isAcademico: false,
-                    imageUrl: "https://www.calculadorasdeenfermagem.com.br/Profissional_Experiente_Carlos_Eduardo_Oliveira_Enfermeiro_Intensivista_ImagemgeradacomIA.webp"
-                },
-                academico: {
-                    dadosPessoais: { nomeCompleto: "Dra. Helena Costa", nomeSocial: "Helena", pronomes: "Ela/Dela", nascimento: "10/12/1978", sexo: "Feminino", identidadeGenero: "Mulher Cis", orientacaoSexual: "Heterossexual", nacionalidade: "Portuguesa", estadoCivil: "Divorciada", filhos: "Não", endereco: "Rua do Ouro, 567, Bairro Centro, Lisboa, Portugal, CEP 1234-567", telefone: "+351 987 654 321", email: "helena.costa.academica@email.com", coren: "Sim, Cédula Profissional de Enfermagem (Portugal)", pcd: "Não", condicoesEspeciais: "N/A" },
-                    redesSociais: { linkedin: "linkedin.com/in/helenacosta", googleScholar: "Perfil disponível com publicações" },
-                    resumoAcademico: "Professora e pesquisadora com mais de 20 anos de experiência na área de Enfermagem em Saúde Coletiva e Políticas Públicas. Linha de pesquisa focada em inovações tecnológicas para a saúde da família e comunidades carentes.",
-                    formacao: [{ nivel: "Doutorado", titulo: "PhD em Enfermagem em Saúde Coletiva", instituicao: "Universidade do Porto, Portugal", tituloTese: "Impacto da Inteligência Artificial na Acessibilidade aos Serviços de Saúde em Áreas Rurais", orientador: "Prof. Dr. João Santos", anoDefesa: "2010" }],
-                    experiencia: [{ instituicao: "Universidade de Coimbra, Portugal", cargo: "Professora Titular e Coordenadora do Programa de Pós-Graduação em Enfermagem", periodo: "01/2012 - presente", atividades: "Orientação de mestrandos e doutorandos, ensino de disciplinas de Métodos de Pesquisa, pesquisa em projetos financiados e coordenação de intercâmbios internacionais." }],
-                    producaoIntelectual: { artigos: "Mais de 50 artigos publicados em revistas de alto impacto, incluindo The Lancet e The New England Journal of Medicine.", livros: "Autora do livro 'Saúde Comunitária na Era Digital'.", eventos: "Palestrante convidada em mais de 30 congressos internacionais.", bancas: "Participação em bancas de mestrado e doutorado em instituições renomadas como a Universidade de São Paulo (USP) e a Universidade de Oxford." },
-                    projetosPesquisa: [{ nome: "Telessaúde e IA para o Cuidado Pediátrico", instituicao: "Fundação para a Ciência e a Tecnologia (FCT), Portugal", papel: "Coordenadora Geral", periodo: "2018 - 2023" }],
-                    idiomas: [ { idioma: "Inglês", nivel: "Fluente" }, { idioma: "Espanhol", nivel: "Avançado" }, { idioma: "Francês", nivel: "Intermediário" } ],
-                    tecnologias: { softwareEstatistico: "R, SPSS", gestoresBibliograficos: "Mendeley, Zotero" },
-                    habilidades: {}, // FIX: Added empty object to prevent errors
-                    complementares: {},
-                    orientacoesBancas: { orientacoes: "15 de TCC, 10 de mestrado, 5 de doutorado.", bancas: "Participação em bancas de mestrado e doutorado em instituições renomadas como a Universidade de São Paulo (USP) e a Universidade de Oxford." },
-                    associacoes: "Membro da Associação Internacional de Enfermagem em Saúde Pública.",
-                    diversidade: { raca: "Branca", identidadeGenero: "Mulher Cis", orientacaoSexual: "Heterossexual" },
-                    recomendacoes: "Disponível mediante solicitação.", isEstudante: false, isAcademico: true,
-                    imageUrl: "https://www.calculadorasdeenfermagem.com.br/Academica_Helena_Costa_pesquisadora_curriculo_lattes_ImagemgeradacomIA.webp"
+                summary: 'Cardiologista com mais de 15 anos de experiência em diagnóstico e tratamento de doenças cardiovasculares. Especialista em ecocardiografia e medicina intensiva, com forte histórico em pesquisa clínica e publicação de artigos. Comprometido com a excelência no atendimento e na aplicação de tratamentos baseados em evidências.',
+                experience: [{
+                    id: Date.now(),
+                    position: 'Cardiologista Chefe',
+                    company: 'InCor - Instituto do Coração',
+                    startDate: '2015-06',
+                    endDate: 'Atual',
+                    description: 'Liderança da equipe de cardiologia clínica, supervisão de residentes e desenvolvimento de protocolos de tratamento para insuficiência cardíaca.'
+                }],
+                education: [{
+                    id: Date.now() + 1,
+                    degree: 'Doutorado em Ciências (Cardiologia)',
+                    institution: 'Universidade de São Paulo (USP)',
+                    startDate: '2011-02',
+                    endDate: '2015-01'
+                }],
+                skills: [
+                    { id: Date.now() + 2, name: 'Ecocardiografia Doppler', level: 'Avançado' },
+                    { id: Date.now() + 3, name: 'Cateterismo Cardíaco', level: 'Avançado' },
+                    { id: Date.now() + 4, name: 'Gestão de Equipes Médicas', level: 'Avançado' },
+                ],
+                certifications: [{
+                    id: Date.now() + 5,
+                    name: 'Título de Especialista em Cardiologia',
+                    issuer: 'Sociedade Brasileira de Cardiologia (SBC)',
+                    date: '2010'
+                }],
+                languages: [{
+                    id: Date.now() + 6,
+                    language: 'Inglês',
+                    proficiency: 'Fluente'
+                }],
+                medicalInfo: {
+                    license: 'CRM-SP 98765'
                 }
-            };
+            },
+            templates: [],
+            selectedTemplate: null,
+            currentView: 'editor', // 'editor', 'preview', 'templates'
+            isLoading: true,
+        };
 
-            // --- DADOS DE ESTILOS PARA CUSTOMIZAÇÃO ---
-            const colorPalettes = [
-                { name: "Azul Corporativo", primary: "#1A3E74", secondary: "#3B82F6", accent: "#E0F2FE" }, { name: "Verde Saúde", primary: "#166534", secondary: "#22C55E", accent: "#DCFCE7" }, { name: "Cinza Clássico", primary: "#374151", secondary: "#6B7280", accent: "#F3F4F6" }, { name: "Bordô Sofisticado", primary: "#7F1D1D", secondary: "#B91C1C", accent: "#FEE2E2" }, { name: "Roxo Sereno", primary: "#5B21B6", secondary: "#8B5CF6", accent: "#EDE9FE" }, { name: "Marrom Terroso", primary: "#44403C", secondary: "#A8A29E", accent: "#F5F5F4" }, { name: "Turquesa Vibrante", primary: "#0E7490", secondary: "#06B6D4", accent: "#CFFAFE" }, { name: "Ouro Elegante", primary: "#92400E", secondary: "#D97706", accent: "#FEF3C7" }, { name: "Índigo Profundo", primary: "#3730A3", secondary: "#6366F1", accent: "#E0E7FF" }, { name: "Verde-oliva", primary: "#4D7C0F", secondary: "#84CC16", accent: "#ECFDF5" }
-            ];
-            const fontFamilies = [
-                { name: "Inter", value: "Inter, sans-serif" }, { name: "Lato", value: "Lato, sans-serif" }, { name: "Roboto", value: "Roboto, sans-serif" }, { name: "Montserrat", value: "Montserrat, sans-serif" }, { name: "Open Sans", value: "Open Sans, sans-serif" }
-            ];
+        // --- FUNÇÕES DE LÓGICA (CONTROLADORES) ---
 
-            // --- ELEMENTOS DO DOM ---
-            const modelosContainer = document.getElementById('modelos-container');
-            const previewContent = document.getElementById('preview-content');
-            const previewModal = document.getElementById('preview-modal');
-            
-            let currentPerfil = 'estudante';
+        function setState(newState) {
+            // Atualiza o estado e re-renderiza a UI
+            Object.assign(state, newState);
+            render();
+        }
 
-            // --- ESTRUTURAS DE LAYOUT ---
-            const layouts = [
-                // Layout 0: Clássico com barra lateral
-                (data, theme, font) => `<div class="cv-preview shadow-lg rounded-xl overflow-hidden" style="font-family: ${font.value};"><div class="grid grid-cols-5 h-full"><div class="col-span-2 p-8 text-white" style="background-color: ${theme.primary};"><div class="flex flex-col items-center mb-6"><img src="${data.imageUrl}" alt="Foto de perfil de ${data.dadosPessoais.nomeCompleto}" class="shadow-md" style="width: 100px; height: 150px; border-radius: 0.5rem; object-fit: cover; border: 3px solid white; margin-bottom: 1rem;" onerror="this.onerror=null;this.src='https://placehold.co/300x450/E0F2FE/1A3E74?text=${(data.dadosPessoais.nomeCompleto || '').split(' ').map(n => n[0]).join('')}';"><h1 class="text-2xl font-bold mt-4 text-center">${data.dadosPessoais.nomeCompleto}</h1><p class="text-sm italic text-center">${data.objetivoProfissional || data.resumoAcademico || ''}</p></div><div class="mb-4"><h2 class="text-lg font-bold border-b pb-1 flex items-center gap-2" style="border-color: ${theme.secondary};"><i class="ph-bold ph-info"></i>Dados Pessoais</h2><p class="text-sm"><strong>E-mail:</strong> ${data.dadosPessoais.email}</p><p class="text-sm"><strong>Telefone:</strong> ${data.dadosPessoais.telefone}</p><p class="text-sm"><strong>Endereço:</strong> ${data.dadosPessoais.endereco}</p>${data.dadosPessoais.coren ? `<p class="text-sm"><strong>COREN:</strong> ${data.dadosPessoais.coren}</p>` : ''}</div>${data.redesSociais.linkedin || data.redesSociais.instagram || data.redesSociais.googleScholar ? `<div class="mb-4"><h2 class="text-lg font-bold border-b pb-1 flex items-center gap-2" style="border-color: ${theme.secondary};"><i class="ph-bold ph-link"></i>Redes Sociais</h2>${data.redesSociais.linkedin ? `<p class="text-sm"><strong>LinkedIn:</strong> ${data.redesSociais.linkedin}</p>` : ''}${data.redesSociais.instagram ? `<p class="text-sm"><strong>Instagram:</strong> ${data.redesSociais.instagram}</p>` : ''}${data.redesSociais.googleScholar ? `<p class="text-sm"><strong>Google Scholar:</strong> ${data.redesSociais.googleScholar}</p>` : ''}</div>` : ''}<div class="mb-4"><h2 class="text-lg font-bold border-b pb-1 flex items-center gap-2" style="border-color: ${theme.secondary};"><i class="ph-bold ph-globe"></i>Idiomas</h2>${data.idiomas.map(idioma => `<p class="text-sm"><strong>${idioma.idioma}:</strong> ${idioma.nivel}</p>`).join('')}</div><div class="mb-4"><h2 class="text-lg font-bold border-b pb-1 flex items-center gap-2" style="border-color: ${theme.secondary};"><i class="ph-bold ph-wrench"></i>Habilidades</h2><div class="flex flex-wrap gap-2 mt-2">${data.habilidades && data.habilidades.soft ? data.habilidades.soft.map(h => `<span class="cv-tag bg-white text-gray-800" style="color: ${theme.primary}">${h}</span>`).join('') : ''}${data.habilidades && data.habilidades.hard ? data.habilidades.hard.map(h => `<span class="cv-tag bg-white text-gray-800" style="color: ${theme.primary}">${h}</span>`).join('') : ''}${data.habilidades && data.habilidades.tecnicas ? data.habilidades.tecnicas.map(h => `<span class="cv-tag bg-white text-gray-800" style="color: ${theme.primary}">${h}</span>`).join('') : ''}${data.habilidades && data.habilidades.comportamentais ? data.habilidades.comportamentais.map(h => `<span class="cv-tag bg-white text-gray-800" style="color: ${theme.primary}">${h}</span>`).join('') : ''}${data.tecnologias ? (Array.isArray(data.tecnologias) ? data.tecnologias.map(t => `<span class="cv-tag bg-white text-gray-800" style="color: ${theme.primary}">${t}</span>`).join('') : (data.tecnologias.softwareEstatistico ? data.tecnologias.softwareEstatistico.split(', ').map(t => `<span class="cv-tag bg-white text-gray-800" style="color: ${theme.primary}">${t}</span>`).join('') : '')) : ''}</div></div>${data.diversidade ? `<div class="mb-4"><h2 class="text-lg font-bold border-b pb-1 flex items-center gap-2" style="border-color: ${theme.secondary};"><i class="ph-bold ph-user-circle"></i>Diversidade</h2><p class="text-sm"><strong>Raça:</strong> ${data.diversidade.raca}</p><p class="text-sm"><strong>Gênero:</strong> ${data.diversidade.identidadeGenero}</p></div>` : ''}</div><div class="col-span-3 p-8"><div class="cv-section"><h2 class="text-xl" style="color: ${theme.primary}; border-bottom: 2px solid ${theme.primary};"><i class="ph-bold ph-graduation-cap"></i>Formação Acadêmica</h2>${data.formacao.map(f => `<div class="mb-4"><h3 class="font-bold" style="color: ${theme.primary};">${f.curso || f.titulo}</h3><p class="text-sm font-semibold">${f.instituicao}</p><p class="text-xs mt-1 text-gray-500">${f.inicio || (f.periodo && f.periodo.split(' - ')[0]) || ''} - ${f.fim || (f.periodo && f.periodo.split(' - ')[1]) || f.anoDefesa || 'Presente'}</p>${f.tituloTese ? `<p class="text-xs italic text-gray-400 mt-1">Tese: "${f.tituloTese}"</p>` : ''}</div>`).join('')}</div><div class="cv-section"><h2 class="text-xl" style="color: ${theme.primary}; border-bottom: 2px solid ${theme.primary};"><i class="ph-bold ph-briefcase"></i>${data.isEstudante ? 'Projetos Acadêmicos' : data.isAcademico ? 'Experiência Acadêmica' : 'Experiência Profissional'}</h2>${(data.experiencia || []).map(e => `<div class="mb-4"><h3 class="font-bold" style="color: ${theme.primary};">${e.cargo || e.projeto}</h3><p class="text-sm font-semibold">${e.empresa || e.instituicao}</p><p class="text-xs mt-1 text-gray-500">${e.inicio || e.periodo} - ${e.fim || (e.periodo && e.periodo.split(' - ')[1]) || 'Presente'}</p><p class="text-sm mt-2">${e.descricao || e.atividades || ''}</p></div>`).join('')}</div>${data.certificacoesCursos && data.certificacoesCursos.length > 0 ? `<div class="cv-section"><h2 class="text-xl" style="color: ${theme.primary}; border-bottom: 2px solid ${theme.primary};"><i class="ph-bold ph-medal"></i>Certificações</h2><ul class="list-disc pl-5 text-sm">${data.certificacoesCursos.map(c => `<li>${c}</li>`).join('')}</ul></div>` : ''}${data.isAcademico && data.producaoIntelectual ? `<div class="cv-section"><h2 class="text-xl" style="color: ${theme.primary}; border-bottom: 2px solid ${theme.primary};"><i class="ph-bold ph-books"></i>Produção Intelectual</h2><p class="text-sm mb-1"><strong>Artigos:</strong> ${data.producaoIntelectual.artigos}</p><p class="text-sm mb-1"><strong>Livros:</strong> ${data.producaoIntelectual.livros}</p><p class="text-sm mb-1"><strong>Eventos:</strong> ${data.producaoIntelectual.eventos}</p><p class="text-sm mb-1"><strong>Bancas:</strong> ${data.producaoIntelectual.bancas}</p></div>` : ''}</div></div></div>`,
-                // Layout 1: Header moderno
-                (data, theme, font) => `<div class="cv-preview shadow-lg rounded-xl p-8" style="font-family: ${font.value};"><div class="text-center mb-8 pb-4 border-b-2" style="border-color: ${theme.primary};"><h1 class="text-3xl font-bold" style="color: ${theme.primary};">${data.dadosPessoais.nomeCompleto}</h1><p class="text-lg italic mt-1">${data.objetivoProfissional || data.resumoAcademico || ''}</p><div class="flex justify-center flex-wrap gap-4 mt-4 text-sm" style="color: ${theme.primary};"><span><i class="ph-bold ph-envelope"></i> ${data.dadosPessoais.email}</span><span><i class="ph-bold ph-phone"></i> ${data.dadosPessoais.telefone}</span>${data.redesSociais.linkedin ? `<span><i class="ph-bold ph-linkedin-logo"></i> ${data.redesSociais.linkedin}</span>` : ''}</div></div><div class="grid grid-cols-2 gap-8"><div class="col-span-1"><div class="cv-section"><h2 style="color: ${theme.primary};"><i class="ph-bold ph-graduation-cap"></i>Formação Acadêmica</h2>${data.formacao.map(f => `<div class="mb-4"><h3 class="font-bold">${f.curso || f.titulo}</h3><p class="text-sm font-semibold">${f.instituicao}</p><p class="text-xs mt-1 text-gray-500">${f.inicio || (f.periodo && f.periodo.split(' - ')[0]) || ''} - ${f.fim || (f.periodo && f.periodo.split(' - ')[1]) || f.anoDefesa || 'Presente'}</p>${f.tituloTese ? `<p class="text-xs italic text-gray-400 mt-1">Tese: "${f.tituloTese}"</p>` : ''}</div>`).join('')}</div><div class="cv-section"><h2 style="color: ${theme.primary};"><i class="ph-bold ph-briefcase"></i>${data.isEstudante ? 'Projetos Acadêmicos' : data.isAcademico ? 'Experiência Acadêmica' : 'Experiência Profissional'}</h2>${(data.experiencia || []).map(e => `<div class="mb-4"><h3 class="font-bold">${e.cargo || e.projeto}</h3><p class="text-sm font-semibold">${e.empresa || e.instituicao}</p><p class="text-xs mt-1 text-gray-500">${e.inicio || e.periodo} - ${e.fim || (e.periodo && e.periodo.split(' - ')[1]) || 'Presente'}</p><p class="text-sm mt-2">${e.descricao || e.atividades || ''}</p></div>`).join('')}</div>${data.certificacoesCursos && data.certificacoesCursos.length > 0 ? `<div class="cv-section"><h2 style="color: ${theme.primary};"><i class="ph-bold ph-medal"></i>Certificações e Cursos</h2><ul class="list-disc pl-5 text-sm">${data.certificacoesCursos.map(c => `<li>${c}</li>`).join('')}</ul></div>` : ''}${data.isAcademico && data.producaoIntelectual ? `<div class="cv-section"><h2 style="color: ${theme.primary};"><i class="ph-bold ph-books"></i>Produção Intelectual</h2><p class="text-sm mb-1"><strong>Artigos:</strong> ${data.producaoIntelectual.artigos}</p><p class="text-sm mb-1"><strong>Livros:</strong> ${data.producaoIntelectual.livros}</p><p class="text-sm mb-1"><strong>Eventos:</strong> ${data.producaoIntelectual.eventos}</p></div>` : ''}</div><div class="col-span-1"><div class="cv-section"><h2 style="color: ${theme.primary};"><i class="ph-bold ph-lightbulb"></i>Habilidades e Tecnologia</h2><div class="flex flex-wrap gap-2 mt-2">${data.habilidades && data.habilidades.soft ? data.habilidades.soft.map(h => `<span class="cv-tag" style="background-color: ${theme.accent}; color: ${theme.primary}">${h}</span>`).join('') : ''}${data.habilidades && data.habilidades.hard ? data.habilidades.hard.map(h => `<span class="cv-tag" style="background-color: ${theme.accent}; color: ${theme.primary}">${h}</span>`).join('') : ''}${data.habilidades && data.habilidades.tecnicas ? data.habilidades.tecnicas.map(h => `<span class="cv-tag" style="background-color: ${theme.accent}; color: ${theme.primary}">${h}</span>`).join('') : ''}${data.habilidades && data.habilidades.comportamentais ? data.habilidades.comportamentais.map(h => `<span class="cv-tag" style="background-color: ${theme.accent}; color: ${theme.primary}">${h}</span>`).join('') : ''}${data.tecnologias ? (Array.isArray(data.tecnologias) ? data.tecnologias.map(t => `<span class="cv-tag" style="background-color: ${theme.accent}; color: ${theme.primary}">${t}</span>`).join('') : (data.tecnologias.softwareEstatistico ? data.tecnologias.softwareEstatistico.split(', ').map(t => `<span class="cv-tag" style="background-color: ${theme.accent}; color: ${theme.primary}">${t}</span>`).join('') : '')) : ''}</div></div><div class="cv-section"><h2 style="color: ${theme.primary};"><i class="ph-bold ph-globe"></i>Idiomas</h2>${data.idiomas.map(idioma => `<p class="text-sm mb-1"><strong>${idioma.idioma}:</strong> ${idioma.nivel}</p>`).join('')}</div>${data.isAcademico && data.projetosPesquisa ? `<div class="cv-section"><h2 style="color: ${theme.primary};"><i class="ph-bold ph-flask"></i>Projetos de Pesquisa</h2>${data.projetosPesquisa.map(p => `<p class="text-sm mb-1"><strong>${p.nome}:</strong> ${p.papel} (${p.periodo})</p>`).join('')}</div>` : ''}${data.isAcademico && data.associacoes ? `<div class="cv-section"><h2 style="color: ${theme.primary};"><i class="ph-bold ph-handshake"></i>Associações</h2><p class="text-sm">${data.associacoes}</p></div>` : ''}<div class="cv-section"><h2 style="color: ${theme.primary};"><i class="ph-bold ph-note-pencil"></i>Informações Adicionais</h2>${data.complementares.cnh ? `<p class="text-sm"><strong>CNH:</strong> ${data.complementares.cnh}</p>` : ''}${data.complementares.voluntariado ? `<p class="text-sm"><strong>Voluntariado:</strong> ${data.complementares.voluntariado}</p>` : ''}</div></div></div></div>`,
-                // Layout 2: Foco no conteúdo com barra vertical
-                (data, theme, font) => `<div class="cv-preview shadow-lg rounded-xl flex" style="font-family: ${font.value};"><div class="w-8" style="background-color: ${theme.primary};"></div><div class="p-8 flex-1"><div class="pb-4 mb-4 border-b-2" style="border-color: ${theme.primary};"><h1 class="text-3xl font-bold" style="color: ${theme.primary};">${data.dadosPessoais.nomeCompleto}</h1><p class="text-sm italic">${data.objetivoProfissional || data.resumoAcademico || ''}</p><div class="flex flex-wrap gap-4 mt-2"><span class="text-xs"><i class="ph-bold ph-envelope"></i> ${data.dadosPessoais.email}</span><span class="text-xs"><i class="ph-bold ph-phone"></i> ${data.dadosPessoais.telefone}</span>${data.redesSociais.linkedin ? `<span class="text-xs"><i class="ph-bold ph-linkedin-logo"></i> ${data.redesSociais.linkedin}</span>` : ''}</div></div><div class="cv-section"><h2 style="color: ${theme.primary};"><i class="ph-bold ph-graduation-cap"></i>Formação Acadêmica</h2>${data.formacao.map(f => `<div class="mb-4"><h3 class="font-bold">${f.curso || f.titulo}</h3><p class="text-sm font-semibold">${f.instituicao}</p><p class="text-xs mt-1 text-gray-500">${f.inicio || (f.periodo && f.periodo.split(' - ')[0]) || ''} - ${f.fim || (f.periodo && f.periodo.split(' - ')[1]) || f.anoDefesa || 'Presente'}</p></div>`).join('')}</div><div class="cv-section"><h2 style="color: ${theme.primary};"><i class="ph-bold ph-briefcase"></i>${data.isEstudante ? 'Projetos Acadêmicos' : data.isAcademico ? 'Experiência Acadêmica' : 'Experiência Profissional'}</h2>${(data.experiencia || []).map(e => `<div class="mb-4"><h3 class="font-bold">${e.cargo || e.projeto}</h3><p class="text-sm font-semibold">${e.empresa || e.instituicao}</p><p class="text-xs mt-1 text-gray-500">${e.inicio || e.periodo} - ${e.fim || (e.periodo && e.periodo.split(' - ')[1]) || 'Presente'}</p><p class="text-sm mt-2">${e.descricao || e.atividades || ''}</p></div>`).join('')}</div>${data.certificacoesCursos && data.certificacoesCursos.length > 0 ? `<div class="cv-section"><h2 style="color: ${theme.primary};"><i class="ph-bold ph-medal"></i>Certificações e Cursos</h2><ul class="list-disc pl-5 text-sm">${data.certificacoesCursos.map(c => `<li>${c}</li>`).join('')}</ul></div>` : ''}${data.isAcademico && data.producaoIntelectual ? `<div class="cv-section"><h2 style="color: ${theme.primary};"><i class="ph-bold ph-books"></i>Produção Intelectual</h2><p class="text-sm mb-1"><strong>Artigos:</strong> ${data.producaoIntelectual.artigos}</p><p class="text-sm mb-1"><strong>Livros:</strong> ${data.producaoIntelectual.livros}</p><p class="text-sm mb-1"><strong>Eventos:</strong> ${data.producaoIntelectual.eventos}</p></div>` : ''}<div class="cv-section"><h2 style="color: ${theme.primary};"><i class="ph-bold ph-globe"></i>Habilidades e Idiomas</h2><div class="flex flex-wrap gap-2 mt-2">${data.idiomas.map(i => `<span class="cv-tag" style="background-color: ${theme.accent}; color: ${theme.primary}">${i.idioma}: ${i.nivel}</span>`).join('')}${data.habilidades && data.habilidades.soft ? data.habilidades.soft.map(h => `<span class="cv-tag" style="background-color: ${theme.accent}; color: ${theme.primary}">${h}</span>`).join('') : ''}${data.habilidades && data.habilidades.hard ? data.habilidades.hard.map(h => `<span class="cv-tag" style="background-color: ${theme.accent}; color: ${theme.primary}">${h}</span>`).join('') : ''}${data.habilidades && data.habilidades.tecnicas ? data.habilidades.tecnicas.map(h => `<span class="cv-tag" style="background-color: ${theme.accent}; color: ${theme.primary}">${h}</span>`).join('') : ''}${data.habilidades && data.habilidades.comportamentais ? data.habilidades.comportamentais.map(h => `<span class="cv-tag" style="background-color: ${theme.accent}; color: ${theme.primary}">${h}</span>`).join('') : ''}${data.tecnologias ? (Array.isArray(data.tecnologias) ? data.tecnologias.map(t => `<span class="cv-tag" style="background-color: ${theme.accent}; color: ${theme.primary}">${t}</span>`).join('') : (data.tecnologias.softwareEstatistico ? data.tecnologias.softwareEstatistico.split(', ').map(t => `<span class="cv-tag" style="background-color: ${theme.accent}; color: ${theme.primary}">${t}</span>`).join('') : '')) : ''}</div></div></div></div>`,
-                // Layout 3: Timeline
-                (data, theme, font) => `<div class="cv-preview shadow-lg rounded-xl p-8" style="font-family: ${font.value};"><h1 class="text-3xl font-bold text-center mb-6" style="color: ${theme.primary};">${data.dadosPessoais.nomeCompleto}</h1><p class="text-lg italic text-center mb-6">${data.objetivoProfissional || data.resumoAcademico || ''}</p><div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6"><div class="md:col-span-1"><h2 style="color: ${theme.primary};"><i class="ph-bold ph-info"></i>Dados Pessoais</h2><p class="text-sm"><strong>E-mail:</strong> ${data.dadosPessoais.email}</p><p class="text-sm"><strong>Telefone:</strong> ${data.dadosPessoais.telefone}</p>${data.redesSociais.linkedin || data.redesSociais.instagram || data.redesSociais.googleScholar ? `<h2 class="mt-4" style="color: ${theme.primary};"><i class="ph-bold ph-link"></i>Redes Sociais</h2>${data.redesSociais.linkedin ? `<p class="text-sm"><strong>LinkedIn:</strong> ${data.redesSociais.linkedin}</p>` : ''}${data.redesSociais.instagram ? `<p class="text-sm"><strong>Instagram:</strong> ${data.redesSociais.instagram}</p>` : ''}${data.redesSociais.googleScholar ? `<p class="text-sm"><strong>Google Scholar:</strong> ${data.redesSociais.googleScholar}</p>` : ''}` : ''}<h2 class="mt-4" style="color: ${theme.primary};"><i class="ph-bold ph-globe"></i>Idiomas</h2>${data.idiomas.map(idioma => `<p class="text-sm"><strong>${idioma.idioma}:</strong> ${idioma.nivel}</p>`).join('')}${data.isAcademico && data.tecnologias.softwareEstatistico ? `<h2 class="mt-4" style="color: ${theme.primary};"><i class="ph-bold ph-code"></i>Tecnologias</h2><p class="text-sm"><strong>Software:</strong> ${data.tecnologias.softwareEstatistico}</p><p class="text-sm"><strong>Gestores:</strong> ${data.tecnologias.gestoresBibliograficos}</p>` : ''}${data.isAcademico && data.associacoes ? `<h2 class="mt-4" style="color: ${theme.primary};"><i class="ph-bold ph-handshake"></i>Associações</h2><p class="text-sm">${data.associacoes}</p>` : ''}${data.certificacoesCursos && data.certificacoesCursos.length > 0 ? `<h2 class="mt-4" style="color: ${theme.primary};"><i class="ph-bold ph-medal"></i>Certificações</h2><ul class="list-disc pl-5 text-sm">${data.certificacoesCursos.map(c => `<li>${c}</li>`).join('')}</ul>` : ''}</div><div class="md:col-span-2"><div class="relative pl-8 mb-8"><div class="absolute left-0 top-0 bottom-0 w-1" style="background-color: ${theme.primary};"></div><div class="mb-8"><h2 style="color: ${theme.primary};"><i class="ph-bold ph-graduation-cap"></i>Formação Acadêmica</h2>${data.formacao.map(f => `<div class="relative pl-8 mb-4"><div class="absolute w-4 h-4 rounded-full -left-2 top-1" style="background-color: ${theme.secondary}; border: 2px solid white;"></div><h3 class="font-bold">${f.curso || f.titulo}</h3><p class="text-sm font-semibold">${f.instituicao}</p><p class="text-xs mt-1 text-gray-500">${f.inicio || (f.periodo && f.periodo.split(' - ')[0]) || ''} - ${f.fim || (f.periodo && f.periodo.split(' - ')[1]) || f.anoDefesa || 'Presente'}</p></div>`).join('')}</div><div><h2 style="color: ${theme.primary};"><i class="ph-bold ph-briefcase"></i>${data.isEstudante ? 'Projetos Acadêmicos' : data.isAcademico ? 'Experiência Acadêmica' : 'Experiência Profissional'}</h2>${(data.experiencia || []).map(e => `<div class="relative pl-8 mb-4"><div class="absolute w-4 h-4 rounded-full -left-2 top-1" style="background-color: ${theme.secondary}; border: 2px solid white;"></div><h3 class="font-bold">${e.cargo || e.projeto}</h3><p class="text-sm font-semibold">${e.empresa || e.instituicao}</p><p class="text-xs mt-1 text-gray-500">${e.inicio || e.periodo} - ${e.fim || (e.periodo && e.periodo.split(' - ')[1]) || 'Presente'}</p><p class="text-sm mt-2">${e.descricao || e.atividades || ''}</p></div>`).join('')}</div></div></div></div><div class="cv-section mt-8"><h2 style="color: ${theme.primary};"><i class="ph-bold ph-lightbulb"></i>Habilidades</h2><div class="flex flex-wrap gap-2 mt-2">${data.habilidades && data.habilidades.soft ? data.habilidades.soft.map(h => `<span class="cv-tag" style="background-color: ${theme.accent}; color: ${theme.primary}">${h}</span>`).join('') : ''}${data.habilidades && data.habilidades.hard ? data.habilidades.hard.map(h => `<span class="cv-tag" style="background-color: ${theme.accent}; color: ${theme.primary}">${h}</span>`).join('') : ''}${data.habilidades && data.habilidades.tecnicas ? data.habilidades.tecnicas.map(h => `<span class="cv-tag" style="background-color: ${theme.accent}; color: ${theme.primary}">${h}</span>`).join('') : ''}${data.habilidades && data.habilidades.comportamentais ? data.habilidades.comportamentais.map(h => `<span class="cv-tag" style="background-color: ${theme.accent}; color: ${theme.primary}">${h}</span>`).join('') : ''}</div></div></div>`
-            ];
+        // Funções para manipular o estado (substituindo `setResumeData`)
+        function updatePersonalInfo(field, value) {
+            state.resumeData.personalInfo[field] = value;
+            render(); // Re-renderiza para refletir a mudança imediatamente
+        }
+        
+        function updateSummary(value) {
+            state.resumeData.summary = value;
+            render(); // Re-renderiza para refletir a mudança imediatamente
+        }
 
-            // --- AJUSTE: MODELOS FIXOS POR PERFIL ---
-            const modelosBase = [
-                { layout: 0, color: 0, font: 0, nome: "Clássico Corporativo" },
-                { layout: 1, color: 1, font: 2, nome: "Moderno Verde" },
-                { layout: 2, color: 4, font: 1, nome: "Minimalista Roxo" },
-                { layout: 3, color: 6, font: 3, nome: "Timeline Turquesa" },
-                { layout: 0, color: 2, font: 4, nome: "Clássico Sóbrio" },
-                { layout: 1, color: 8, font: 0, nome: "Moderno Índigo" },
-                { layout: 1, color: 0, font: 0, nome: "Moderno Corporativo" },
-                { layout: 3, color: 3, font: 2, nome: "Timeline Sofisticada" },
-                { layout: 0, color: 5, font: 1, nome: "Clássico Terroso" },
-                { layout: 2, color: 7, font: 4, nome: "Minimalista Elegante" },
-                { layout: 1, color: 9, font: 3, nome: "Moderno Oliva" },
-                { layout: 3, color: 2, font: 0, nome: "Timeline Sóbria" },
-                { layout: 0, color: 3, font: 1, nome: "Clássico Bordô" },
-                { layout: 3, color: 2, font: 0, nome: "Timeline Acadêmica" }
-            ];
+        function updateMedicalInfo(field, value) {
+            state.resumeData.medicalInfo[field] = value;
+            render(); // Re-renderiza para refletir a mudança imediatamente
+        }
 
-            const modelosPorPerfil = {
-                estudante: modelosBase,
-                experiente: modelosBase,
-                academico: modelosBase
-            };
-
-            // --- FUNÇÕES DE RENDERIZAÇÃO E LÓGICA ---
-            
-            function createPreviewCard(layoutIndex, colorIndex, fontIndex, nomeModelo) {
-                const layout = layouts[layoutIndex];
-                const theme = colorPalettes[colorIndex];
-                const font = fontFamilies[fontIndex];
-                const profileData = curriculumData[currentPerfil];
-                const card = document.createElement('div');
-                card.className = 'bg-white rounded-xl shadow-md hover:shadow-xl transition-shadow duration-300 flex flex-col';
-                
-                const cardContent = `
-                    <div class="preview-container cursor-pointer">
-                        ${layout(profileData, theme, font)}
-                    </div>
-                    <div class="p-4 flex flex-col items-center flex-grow">
-                        <p class="font-semibold text-gray-800 text-center mb-3">${nomeModelo}</p>
-                        <button class="btn-selecionar mt-auto bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors w-full">Selecionar</button>
-                    </div>
-                `;
-                card.innerHTML = cardContent;
-
-                card.querySelector('.preview-container').addEventListener('click', () => openModal(layoutIndex, colorIndex, fontIndex));
-                card.querySelector('.btn-selecionar').addEventListener('click', () => openModal(layoutIndex, colorIndex, fontIndex));
-                
-                return card;
+        function addItem(section) {
+            const newItems = [...state.resumeData[section]];
+            const newItem = { id: Date.now() };
+            switch (section) {
+                case 'experience':
+                    newItem.position = ''; newItem.company = ''; newItem.startDate = ''; newItem.endDate = ''; newItem.description = '';
+                    break;
+                case 'education':
+                    newItem.degree = ''; newItem.institution = ''; newItem.startDate = ''; newItem.endDate = '';
+                    break;
+                case 'skills':
+                    newItem.name = ''; newItem.level = 'Intermediário';
+                    break;
+                case 'certifications':
+                    newItem.name = ''; newItem.issuer = ''; newItem.date = '';
+                    break;
+                case 'languages':
+                    newItem.language = ''; newItem.proficiency = 'Intermediário';
+                    break;
             }
+            newItems.push(newItem);
+            state.resumeData[section] = newItems;
+            render();
+        }
 
-            function updatePreviewStyles(layoutIndex, colorIndex, fontIndex) {
-                const layout = layouts[layoutIndex];
-                const profileData = curriculumData[currentPerfil];
-                const theme = colorPalettes[colorIndex];
-                const font = fontFamilies[fontIndex];
-                previewContent.innerHTML = layout(profileData, theme, font);
+        function removeItem(section, id) {
+            state.resumeData[section] = state.resumeData[section].filter(item => item.id !== id);
+            render();
+        }
+
+        function updateItem(section, id, field, value) {
+            const item = state.resumeData[section].find(item => item.id === id);
+            if (item) {
+                item[field] = value;
+                render(); // Re-renderiza para refletir a mudança imediatamente
+            }
+        }
+
+        // Função para exibir alertas personalizados
+        function showCustomAlert(message) {
+            const modal = document.createElement('div');
+            modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+            modal.innerHTML = `
+                <div class="bg-white p-6 rounded-lg shadow-xl max-w-sm mx-auto text-center">
+                    <p class="text-gray-800 text-lg mb-4">${message}</p>
+                    <button class="btn btn-primary" onclick="this.closest('.fixed').remove()">OK</button>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        }
+
+        // --- FUNÇÕES DE EXPORTAÇÃO E INTEGRAÇÃO ---
+
+        async function downloadPDF() {
+            const previewElement = document.getElementById('resume-preview-content');
+            if (!previewElement) {
+                showCustomAlert('Erro: Elemento de pré-visualização não encontrado.');
+                return;
             }
             
-            function renderAllPreviews() {
-                modelosContainer.innerHTML = '';
-                const modelosAtuais = modelosPorPerfil[currentPerfil];
+            const spinner = document.createElement('div');
+            spinner.className = 'fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 flex items-center justify-center z-50';
+            spinner.innerHTML = `<div class="loader"></div>`;
+            document.body.appendChild(spinner);
+
+            try {
+                const canvas = await html2canvas(previewElement, { scale: 2, useCORS: true });
+                const imgData = canvas.toDataURL('image/png');
+                const { jsPDF } = window.jspdf;
+                const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+                const pdfWidth = pdf.internal.pageSize.getWidth();
+                const imgProps = pdf.getImageProperties(imgData);
+                const imgHeight = (imgProps.height * pdfWidth) / imgProps.width;
                 
-                if (modelosAtuais) {
-                    modelosAtuais.forEach(modelo => {
-                        modelosContainer.appendChild(createPreviewCard(modelo.layout, modelo.color, modelo.font, modelo.nome));
+                pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, imgHeight);
+                pdf.save(`curriculo_${state.resumeData.personalInfo.fullName.replace(/\s+/g, '_')}.pdf`);
+            } catch (error) {
+                console.error("Erro ao gerar PDF:", error);
+                showCustomAlert("Ocorreu um erro ao gerar o PDF.");
+            } finally {
+                document.body.removeChild(spinner);
+            }
+        }
+
+        async function downloadWord() {
+            const spinner = document.createElement('div');
+            spinner.className = 'fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 flex items-center justify-center z-50';
+            spinner.innerHTML = `<div class="loader"></div>`;
+            document.body.appendChild(spinner);
+
+            try {
+                const { personalInfo, summary, experience, education, skills, certifications, languages } = state.resumeData;
+
+                const children = [];
+
+                // Personal Info
+                children.push(new docx.Paragraph({
+                    children: [
+                        new docx.TextRun({ text: personalInfo.fullName || 'Seu Nome', bold: true, size: 48, font: "Inter" }),
+                    ],
+                    alignment: docx.AlignmentType.CENTER,
+                }));
+                children.push(new docx.Paragraph({
+                    children: [
+                        new docx.TextRun({ text: personalInfo.profession || 'Sua Profissão', size: 28, font: "Inter", break: 1 }),
+                        new docx.TextRun({ text: `${personalInfo.email || ''} | ${personalInfo.phone || ''} | ${personalInfo.address || ''}`, size: 24, font: "Inter", break: 1 }),
+                    ],
+                    alignment: docx.AlignmentType.CENTER,
+                }));
+
+                // Medical License (if exists)
+                if (personalInfo.license) {
+                    children.push(new docx.Paragraph({
+                        children: [
+                            new docx.TextRun({ text: `Registro Profissional: ${personalInfo.license}`, bold: true, size: 24, font: "Inter" }),
+                        ],
+                        alignment: docx.AlignmentType.CENTER,
+                        spacing: { before: 200, after: 200 }
+                    }));
+                }
+
+                // Summary
+                if (summary) {
+                    children.push(new docx.Paragraph({
+                        children: [
+                            new docx.TextRun({ text: "Resumo Profissional", bold: true, size: 32, font: "Poppins", break: 2 }),
+                        ],
+                    }));
+                    children.push(new docx.Paragraph({
+                        children: [
+                            new docx.TextRun({ text: summary, size: 24, font: "Inter" }),
+                        ],
+                    }));
+                }
+
+                // Experience
+                if (experience.length > 0) {
+                    children.push(new docx.Paragraph({
+                        children: [
+                            new docx.TextRun({ text: "Experiência Profissional", bold: true, size: 32, font: "Poppins", break: 2 }),
+                        ],
+                    }));
+                    experience.forEach(exp => {
+                        children.push(new docx.Paragraph({
+                            children: [
+                                new docx.TextRun({ text: `${exp.position || 'Cargo'} em ${exp.company || 'Empresa'}`, bold: true, size: 28, font: "Inter" }),
+                            ],
+                        }));
+                        children.push(new docx.Paragraph({
+                            children: [
+                                new docx.TextRun({ text: `${exp.startDate} - ${exp.endDate || 'Atual'}`, size: 24, font: "Inter" }),
+                            ],
+                        }));
+                        if (exp.description) {
+                            children.push(new docx.Paragraph({
+                                children: [
+                                    new docx.TextRun({ text: exp.description, size: 24, font: "Inter" }),
+                                ],
+                            }));
+                        }
                     });
-                } else {
-                    modelosContainer.innerHTML = '<p class="text-gray-600 col-span-full text-center">Nenhum modelo disponível para este perfil.</p>';
                 }
-            }
-            
-            function openModal(layoutIndex, colorIndex, fontIndex) {
-                previewModal.dataset.layoutIndex = layoutIndex;
-                previewModal.dataset.colorIndex = colorIndex;
-                previewModal.dataset.fontIndex = fontIndex;
-                updatePreviewStyles(layoutIndex, colorIndex, fontIndex);
-                previewModal.classList.remove('hidden');
-                document.getElementById('confirmation-message').classList.add('hidden');
-            }
 
-            window.fecharModal = () => previewModal.classList.add('hidden');
-            window.toggleMaximizeModal = () => document.getElementById('preview-modal-content').classList.toggle('maximized');
-            
-            window.setPerfilAtivo = (perfil, button) => {
-                currentPerfil = perfil;
-                document.querySelectorAll('.btn-perfil').forEach(btn => {
-                    btn.classList.remove('active', 'bg-blue-500', 'text-white');
-                    btn.classList.add('bg-gray-200', 'hover:bg-gray-300');
+                // Education
+                if (education.length > 0) {
+                    children.push(new docx.Paragraph({
+                        children: [
+                            new docx.TextRun({ text: "Formação Acadêmica", bold: true, size: 32, font: "Poppins", break: 2 }),
+                        ],
+                    }));
+                    education.forEach(edu => {
+                        children.push(new docx.Paragraph({
+                            children: [
+                                new docx.TextRun({ text: edu.degree || 'Curso', bold: true, size: 28, font: "Inter" }),
+                            ],
+                        }));
+                        children.push(new docx.Paragraph({
+                            children: [
+                                new docx.TextRun({ text: `${edu.institution || 'Instituição'} - ${edu.endDate}`, size: 24, font: "Inter" }),
+                            ],
+                        }));
+                    });
+                }
+
+                // Skills
+                if (skills.length > 0) {
+                    children.push(new docx.Paragraph({
+                        children: [
+                            new docx.TextRun({ text: "Habilidades", bold: true, size: 32, font: "Poppins", break: 2 }),
+                        ],
+                    }));
+                    children.push(new docx.Paragraph({
+                        children: [
+                            new docx.TextRun({ text: skills.map(s => `${s.name} (${s.level})`).join(', '), size: 24, font: "Inter" }),
+                        ],
+                    }));
+                }
+
+                // Certifications
+                if (certifications.length > 0) {
+                    children.push(new docx.Paragraph({
+                        children: [
+                            new docx.TextRun({ text: "Certificações", bold: true, size: 32, font: "Poppins", break: 2 }),
+                        ],
+                    }));
+                    certifications.forEach(cert => {
+                        children.push(new docx.Paragraph({
+                            children: [
+                                new docx.TextRun({ text: cert.name || 'Certificação', bold: true, size: 28, font: "Inter" }),
+                            ],
+                        }));
+                        children.push(new docx.Paragraph({
+                            children: [
+                                new docx.TextRun({ text: `${cert.issuer || 'Emissor'}, ${cert.date || 'Data'}`, size: 24, font: "Inter" }),
+                            ],
+                        }));
+                    });
+                }
+
+                // Languages
+                if (languages.length > 0) {
+                    children.push(new docx.Paragraph({
+                        children: [
+                            new docx.TextRun({ text: "Idiomas", bold: true, size: 32, font: "Poppins", break: 2 }),
+                        ],
+                    }));
+                    languages.forEach(lang => {
+                        children.push(new docx.Paragraph({
+                            children: [
+                                new docx.TextRun({ text: `${lang.language || 'Idioma'}: ${lang.proficiency || 'Proficiência'}`, size: 24, font: "Inter" }),
+                            ],
+                        }));
+                    });
+                }
+
+                const doc = new docx.Document({
+                    sections: [{
+                        properties: {
+                            page: {
+                                margins: {
+                                    top: docx.convertInchesToTwip(0.75),
+                                    bottom: docx.convertInchesToTwip(0.75),
+                                    left: docx.convertInchesToTwip(0.75),
+                                    right: docx.convertInchesToTwip(0.75),
+                                },
+                            },
+                        },
+                        children: children,
+                    }],
                 });
-                button.classList.add('active', 'bg-blue-500', 'text-white');
-                button.classList.remove('bg-gray-200', 'hover:bg-gray-300');
-                renderAllPreviews();
-            };
 
-            document.getElementById('btn-avancar').addEventListener('click', () => {
-                const perfil = currentPerfil;
-                const layoutIndex = previewModal.dataset.layoutIndex;
-                const colorIndex = previewModal.dataset.colorIndex;
-                const fontIndex = previewModal.dataset.fontIndex;
-                const targetUrl = new URL('https://www.calculadorasdeenfermagem.com.br/gerador-curriculo-enfermagem.html');
-                targetUrl.searchParams.append('perfil', perfil);
-                targetUrl.searchParams.append('layout', layoutIndex);
-                targetUrl.searchParams.append('cor', colorIndex);
-                targetUrl.searchParams.append('fonte', fontIndex);
-                const confirmationMessage = document.getElementById('confirmation-message');
-                confirmationMessage.classList.remove('hidden');
-                setTimeout(() => { window.location.href = targetUrl.toString(); }, 1000);
-            });
+                const blob = await docx.Packer.toBlob(doc);
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `curriculo_${personalInfo.fullName.replace(/\s+/g, '_')}.docx`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                showCustomAlert('Documento Word gerado com sucesso!');
+            } catch (error) {
+                console.error("Erro ao gerar Word:", error);
+                showCustomAlert("Ocorreu um erro ao gerar o documento Word.");
+            } finally {
+                document.body.removeChild(spinner);
+            }
+        }
 
-            previewModal.addEventListener('click', (e) => {
-                if (e.target === previewModal) {
-                    fecharModal();
+        // Função para abrir o modal de opções de compartilhamento
+        function openShareOptions() {
+            document.getElementById('shareOptionsModal').classList.remove('hidden');
+            lucide.createIcons(); // Garante que os ícones no modal sejam renderizados
+        }
+
+        // Função para fechar o modal de opções de compartilhamento
+        function closeShareOptions() {
+            document.getElementById('shareOptionsModal').classList.add('hidden');
+        }
+
+        // Função para compartilhar por e-mail
+        function shareByEmail() {
+            const subject = encodeURIComponent(`Meu Currículo Profissional - ${state.resumeData.personalInfo.fullName}`);
+            const body = encodeURIComponent(`Olá,\n\nConfira meu currículo profissional de saúde: ${window.location.href}\n\nAtenciosamente,\n${state.resumeData.personalInfo.fullName}`);
+            window.location.href = `mailto:?subject=${subject}&body=${body}`;
+            closeShareOptions();
+        }
+
+        // Função para compartilhar por WhatsApp
+        function shareByWhatsapp() {
+            const text = encodeURIComponent(`Confira meu currículo profissional de saúde: ${window.location.href}`);
+            window.open(`https://wa.me/?text=${text}`, '_blank');
+            closeShareOptions();
+        }
+        
+        async function generateCoverLetter() {
+            showCustomAlert('Gerando carta de apresentação... Por favor, aguarde.');
+            const spinner = document.createElement('div');
+            spinner.className = 'fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 flex items-center justify-center z-50';
+            spinner.innerHTML = `<div class="loader"></div>`;
+            document.body.appendChild(spinner);
+
+            try {
+                const { personalInfo, summary, experience, education, skills } = state.resumeData;
+                const prompt = `Crie uma carta de apresentação profissional para um candidato à vaga de ${personalInfo.profession}.
+                Nome: ${personalInfo.fullName}
+                Email: ${personalInfo.email}
+                Telefone: ${personalInfo.phone}
+                Endereço: ${personalInfo.address}
+                
+                Resumo Profissional: ${summary}
+                
+                Experiência: ${experience.map(exp => `${exp.position} na ${exp.company} (${exp.startDate} - ${exp.endDate}): ${exp.description}`).join('\n')}
+                
+                Educação: ${education.map(edu => `${edu.degree} em ${edu.institution} (${edu.startDate} - ${edu.endDate})`).join('\n')}
+                
+                Habilidades: ${skills.map(skill => `${skill.name} (${skill.level})`).join(', ')}
+                
+                A carta deve ser formal, concisa, destacar as qualificações relevantes para a área da saúde e ter um tom confiante. Comece com uma saudação formal e termine com uma despedida profissional. Não inclua informações de contato no corpo da carta, apenas no cabeçalho (se for o caso, mas aqui só o texto).`;
+
+                let chatHistory = [];
+                chatHistory.push({ role: "user", parts: [{ text: prompt }] });
+                const payload = { contents: chatHistory };
+                const apiKey = ""; // If you want to use models other than gemini-2.5-flash-preview-05-20 or imagen-3.0-generate-002, provide an API key here. Otherwise, leave this as-is.
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const result = await response.json();
+
+                if (result.candidates && result.candidates.length > 0 &&
+                    result.candidates[0].content && result.candidates[0].content.parts &&
+                    result.candidates[0].content.parts.length > 0) {
+                    const text = result.candidates[0].content.parts[0].text;
+                    const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+                    const url = URL.createObjectURL(blob);
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.download = `carta_apresentacao_${personalInfo.fullName.replace(/\s+/g, '_')}.txt`;
+                    link.click();
+                    URL.revokeObjectURL(url);
+                    showCustomAlert('Carta de apresentação gerada e baixada com sucesso!');
+                } else {
+                    showCustomAlert('Não foi possível gerar a carta de apresentação. Tente novamente.');
+                }
+            } catch (error) {
+                console.error("Erro ao gerar carta de apresentação:", error);
+                showCustomAlert("Ocorreu um erro ao gerar a carta de apresentação.");
+            } finally {
+                document.body.removeChild(spinner);
+            }
+        }
+
+        // --- FUNÇÕES DE RENDERIZAÇÃO (VIEWS) ---
+
+        function render() {
+            const appContainer = document.getElementById('app-container');
+            if (state.isLoading) {
+                appContainer.innerHTML = '<div class="loader-container"><div class="loader"></div></div>';
+                return;
+            }
+
+            let viewHTML = '';
+            switch (state.currentView) {
+                case 'editor':
+                    viewHTML = renderEditor();
+                    break;
+                case 'preview':
+                    viewHTML = renderPreviewPage();
+                    break;
+                case 'templates':
+                    viewHTML = renderTemplatesPage();
+                    break;
+            }
+            appContainer.innerHTML = viewHTML;
+            lucide.createIcons(); // Recria os ícones após a renderização
+            attachEventListeners(); // Re-anexa os event listeners após a renderização
+        }
+        
+        function renderSection(title, sectionName, items, fields, icon) {
+            return `
+                <div class="mb-8">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="flex items-center gap-2"><i data-lucide="${icon}"></i>${title}</h3>
+                        <button class="btn btn-primary text-xs px-3 py-1" onclick="addItem('${sectionName}')">Adicionar</button>
+                    </div>
+                    <div id="${sectionName}-list" class="space-y-4">
+                        ${items.map((item, index) => `
+                            <div class="p-4 border rounded-lg bg-gray-50/50" data-id="${item.id}" data-section="${sectionName}">
+                                <div class="flex justify-between items-center mb-3">
+                                    <span class="font-medium text-gray-600">${fields[0].label} ${index + 1}</span>
+                                    <button class="btn btn-primary btn-sm text-xs px-2 py-1 remove-item-btn"><i data-lucide="trash-2" class="w-3 h-3"></i></button>
+                                </div>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                    ${fields.map(field => `
+                                        <div class="${field.fullWidth ? 'md:col-span-2' : ''}">
+                                            <label class="block text-xs font-medium text-gray-600 mb-1">${field.label}</label>
+                                            ${field.type === 'textarea' ? `
+                                                <textarea class="form-input" rows="3" data-field="${field.key}">${item[field.key] || ''}</textarea>
+                                            ` : field.type === 'select' ? `
+                                                <select class="form-input" data-field="${field.key}">
+                                                    ${field.options.map(opt => `<option value="${opt}" ${item[field.key] === opt ? 'selected' : ''}>${opt}</option>`).join('')}
+                                                </select>
+                                            ` : `
+                                                <input type="${field.type || 'text'}" class="form-input" value="${item[field.key] || ''}" data-field="${field.key}">
+                                            `}
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderEditor() {
+            const { personalInfo, summary, experience, education, skills, certifications, languages, medicalInfo, selectedTemplate } = state.resumeData;
+            return `
+                <header class="bg-white shadow-md">
+                    <div class="max-w-screen-xl mx-auto py-5 px-4 sm:px-6 lg:px-8 flex justify-between items-center flex-wrap gap-4">
+                        <div>
+                            <h1 class="text-2xl font-bold text-gray-900 flex items-center gap-3"><i data-lucide="file-text"></i>Gerador de Currículos de Saúde</h1>
+                            <p class="text-gray-500 mt-1">Crie um currículo profissional em minutos.</p>
+                        </div>
+                        <div class="flex gap-3 flex-wrap">
+                            <button class="btn btn-primary" onclick="setState({ currentView: 'templates' })"><i data-lucide="layout-template" class="mr-2 h-4 w-4"></i> Mudar Template</button>
+                            <button class="btn btn-primary" onclick="setState({ currentView: 'preview' })"><i data-lucide="eye" class="mr-2 h-4 w-4"></i>Pré-visualizar e Exportar</button>
+                        </div>
+                    </div>
+                </header>
+                <main class="max-w-screen-xl mx-auto py-8 sm:px-6 lg:px-8">
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                        <div class="lg:col-span-2">
+                            <div class="card">
+                                <h3><i data-lucide="user-circle" class="inline-block mr-2"></i>Informações Pessoais</h3>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                                    <div><label class="block text-sm font-medium text-gray-700">Nome Completo</label><input class="form-input mt-1" value="${personalInfo.fullName}" oninput="updatePersonalInfo('fullName', this.value)"></div>
+                                    <div><label class="block text-sm font-medium text-gray-700">Profissão</label><input class="form-input mt-1" value="${personalInfo.profession}" oninput="updatePersonalInfo('profession', this.value)"></div>
+                                    <div><label class="block text-sm font-medium text-gray-700">Email</label><input type="email" class="form-input mt-1" value="${personalInfo.email}" oninput="updatePersonalInfo('email', this.value)"></div>
+                                    <div><label class="block text-sm font-medium text-gray-700">Telefone</label><input class="form-input mt-1" value="${personalInfo.phone}" oninput="updatePersonalInfo('phone', this.value)"></div>
+                                    <div class="md:col-span-2"><label class="block text-sm font-medium text-gray-700">Endereço</label><input class="form-input mt-1" value="${personalInfo.address}" oninput="updatePersonalInfo('address', this.value)"></div>
+                                    <div class="md:col-span-2"><label class="block text-sm font-medium text-gray-700">Registro Profissional (CRM, COREN)</label><input class="form-input mt-1" value="${medicalInfo.license}" oninput="updateMedicalInfo('license', this.value)"></div>
+                                </div>
+                            </div>
+                            <div class="card">
+                                <h3><i data-lucide="align-left" class="inline-block mr-2"></i>Resumo Profissional</h3>
+                                <textarea class="form-input mt-4" rows="5" oninput="updateSummary(this.value)">${summary}</textarea>
+                            </div>
+                            <div class="card">
+                                ${renderSection('Experiência Profissional', 'experience', experience, [
+                                    { label: 'Cargo', key: 'position' }, { label: 'Empresa', key: 'company' },
+                                    { label: 'Data de Início', key: 'startDate', type: 'month' }, { label: 'Data de Fim', key: 'endDate', type: 'month' },
+                                    { label: 'Descrição', key: 'description', type: 'textarea', fullWidth: true }
+                                ], 'briefcase')}
+                                ${renderSection('Formação Acadêmica', 'education', education, [
+                                    { label: 'Curso/Grau', key: 'degree' }, { label: 'Instituição', key: 'institution' },
+                                    { label: 'Data de Início', key: 'startDate', type: 'month' }, { label: 'Data de Fim', key: 'endDate', type: 'month' }
+                                ], 'graduation-cap')}
+                                ${renderSection('Habilidades', 'skills', skills, [
+                                    { label: 'Habilidade', key: 'name' },
+                                    { label: 'Nível', key: 'level', type: 'select', options: ['Básico', 'Intermediário', 'Avançado', 'Especialista'] }
+                                ], 'zap')}
+                                ${renderSection('Certificações', 'certifications', certifications, [
+                                    { label: 'Nome da Certificação', key: 'name' }, { label: 'Instituição Emissora', key: 'issuer' },
+                                    { label: 'Data de Emissão', key: 'date', type: 'month' }
+                                ], 'award')}
+                                ${renderSection('Idiomas', 'languages', languages, [
+                                    { label: 'Idioma', key: 'language' },
+                                    { label: 'Proficiência', type: 'select', options: ['Básico', 'Intermediário', 'Avançado', 'Fluente', 'Nativo'] }
+                                ], 'languages')}
+                            </div>
+                        </div>
+                        <div class="lg:col-span-1">
+                            <div class="card sticky top-8">
+                                <h3>Modelo Selecionado</h3>
+                                ${state.selectedTemplate ? `
+                                    <div class="p-3 border-2 border-primary-blue rounded-lg bg-blue-50">
+                                        <div class="flex items-center gap-3">
+                                            <div class="w-10 h-10 rounded" style="background-color: ${state.selectedTemplate.color_scheme.primary};"></div>
+                                            <div>
+                                                <p class="font-semibold text-gray-800">${state.selectedTemplate.name}</p>
+                                                <p class="text-xs text-gray-500">${state.selectedTemplate.style} | ${state.selectedTemplate.specialty}</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <button class="btn btn-primary w-full mt-4" onclick="setState({ currentView: 'templates' })">Trocar Modelo</button>
+                                ` : '<p>Nenhum modelo selecionado.</p>'}
+                            </div>
+                        </div>
+                    </div>
+                </main>
+            `;
+        }
+
+        // A função generatePreviewHTML, renderPreviewPage, e renderTemplatesPage permanecem muito similares à versão anterior,
+        // mas com o novo design e chamadas a setState.
+        
+        function generatePreviewHTML() {
+            const { resumeData, selectedTemplate } = state;
+            if (!selectedTemplate) return '<div class="text-center p-10">Selecione um template primeiro.</div>';
+
+            const colors = selectedTemplate.color_scheme;
+            const typography = selectedTemplate.typography;
+            const { personalInfo, summary, experience, education, skills, certifications, languages, medicalInfo } = resumeData;
+
+            return `
+                <div id="resume-preview-content" style="font-family: '${typography.body}', sans-serif; color: ${colors.text}; max-width: 210mm; min-height: 297mm; background-color: white; padding: 20px; margin: 0 auto; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1); border-radius: 8px;">
+                    <!-- Header -->
+                    <div style="background-color: ${colors.primary}; color: white; padding: 40px; margin: -20px -20px 30px -20px; border-radius: 8px 8px 0 0; text-align: center;">
+                        <h1 style="font-size: 2.5em; margin: 0 0 5px 0; font-family: '${typography.heading}', sans-serif;">${personalInfo.fullName || 'Seu Nome'}</h1>
+                        <p style="font-size: 1.3em; margin: 0 0 20px 0; opacity: 0.9; font-family: '${typography.accent}', sans-serif;">${personalInfo.profession || 'Sua Profissão'}</p>
+                        <div style="display: flex; justify-content: center; flex-wrap: wrap; gap: 10px 25px; font-size: 0.9em; border-top: 1px solid rgba(255,255,255,0.3); padding-top: 15px;">
+                            ${personalInfo.email ? `<span><i data-lucide="mail" class="inline-block w-4 h-4 -mt-1 mr-1"></i> ${personalInfo.email}</span>` : ''}
+                            ${personalInfo.phone ? `<span><i data-lucide="phone" class="inline-block w-4 h-4 -mt-1 mr-1"></i> ${personalInfo.phone}</span>` : ''}
+                            ${personalInfo.address ? `<span><i data-lucide="map-pin" class="inline-block w-4 h-4 -mt-1 mr-1"></i> ${personalInfo.address}</span>` : ''}
+                        </div>
+                    </div>
+
+                    <div style="padding: 0 20px;">
+                        ${medicalInfo.license ? `<div style="background-color: ${colors.secondary}; color: ${colors.primary}; padding: 15px; border-radius: 8px; text-align: center; margin-bottom: 30px; border-left: 5px solid ${colors.primary};"><p style="margin: 0; font-weight: bold; font-size: 1.1em;"><i data-lucide="stethoscope" class="inline-block w-5 h-5 -mt-1 mr-2"></i>Registro Profissional: ${medicalInfo.license}</p></div>` : ''}
+                        ${summary ? `<div style="margin-bottom: 30px;"><h2 style="color: ${colors.primary}; border-bottom: 2px solid ${colors.accent}; padding-bottom: 5px; margin-bottom: 15px; font-size: 1.4em; font-family: '${typography.heading}', sans-serif;">Resumo Profissional</h2><p style="line-height: 1.7; text-align: justify;">${summary}</p></div>` : ''}
+                        ${experience.length > 0 ? `<div style="margin-bottom: 30px;"><h2 style="color: ${colors.primary}; border-bottom: 2px solid ${colors.accent}; padding-bottom: 5px; margin-bottom: 15px; font-size: 1.4em; font-family: '${typography.heading}', sans-serif;">Experiência Profissional</h2>${experience.map(exp => `<div style="margin-bottom: 20px; padding-left: 20px; border-left: 3px solid ${colors.accent};"><h3 style="color: ${colors.primary}; font-size: 1.1em; margin: 0 0 2px 0; font-weight: 600;">${exp.position || 'Cargo'}</h3><p style="font-style: italic; opacity: 0.9; margin: 0 0 5px 0;">${exp.company || 'Empresa'}</p><p style="color: ${colors.accent}; font-size: 0.9em; margin: 0 0 10px 0;">${exp.startDate} - ${exp.endDate || 'Atual'}</p>${exp.description ? `<p style="margin: 0; line-height: 1.6;">${exp.description}</p>` : ''}</div>`).join('')}</div>` : ''}
+                        ${education.length > 0 ? `<div style="margin-bottom: 30px;"><h2 style="color: ${colors.primary}; border-bottom: 2px solid ${colors.accent}; padding-bottom: 5px; margin-bottom: 15px; font-size: 1.4em; font-family: '${typography.heading}', sans-serif;">Formação Acadêmica</h2>${education.map(edu => `<div style="margin-bottom: 15px; padding-left: 20px; border-left: 3px solid ${colors.accent};"><h3 style="color: ${colors.primary}; font-size: 1.1em; margin: 0 0 2px 0; font-weight: 600;">${edu.degree || 'Curso'}</h3><p style="font-style: italic; opacity: 0.9; margin: 0 0 5px 0;">${edu.institution || 'Instituição'}</p><p style="color: ${colors.accent}; font-size: 0.9em; margin: 0;">${edu.startDate} - ${edu.endDate}</p></div>`).join('')}</div>` : ''}
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 30px; margin-bottom: 30px;">
+                            ${skills.length > 0 ? `<div><h2 style="color: ${colors.primary}; border-bottom: 2px solid ${colors.accent}; padding-bottom: 5px; margin-bottom: 15px; font-size: 1.4em; font-family: '${typography.heading}', sans-serif;">Habilidades</h2><div style="display: flex; flex-wrap: wrap; gap: 10px;">${skills.map(skill => `<div style="background-color: ${colors.secondary}; padding: 8px 15px; border-radius: 20px; border-left: 4px solid ${colors.accent}; font-size: 0.9em;"><span style="font-weight: 500;">${skill.name}</span> - <span style="color: ${colors.primary};">${skill.level}</span></div>`).join('')}</div></div>` : ''}
+                            ${languages.length > 0 ? `<div><h2 style="color: ${colors.primary}; border-bottom: 2px solid ${colors.accent}; padding-bottom: 5px; margin-bottom: 15px; font-size: 1.4em; font-family: '${typography.heading}', sans-serif;">Idiomas</h2><div style="display: flex; flex-direction: column; gap: 10px;">${languages.map(lang => `<div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #eee;"><span style="font-weight: 500;">${lang.language}</span><span style="font-size: 0.9em; color: ${colors.accent}; font-weight: 500;">${lang.proficiency}</span></div>`).join('')}</div></div>` : ''}
+                        </div>
+                        ${certifications.length > 0 ? `<div style="margin-bottom: 30px;"><h2 style="color: ${colors.primary}; border-bottom: 2px solid ${colors.accent}; padding-bottom: 5px; margin-bottom: 15px; font-size: 1.4em; font-family: '${typography.heading}', sans-serif;">Certificações</h2>${certifications.map(cert => `<div style="background-color: ${colors.secondary}; padding: 15px; border-radius: 8px; margin-bottom: 10px; border: 1px solid ${colors.accent};"><h3 style="color: ${colors.primary}; margin: 0 0 5px 0; font-weight: 600;">${cert.name}</h3><p style="margin: 0 0 5px 0; opacity: 0.9;">${cert.issuer}</p><p style="color: ${colors.accent}; font-size: 0.9em; margin: 0;">${cert.date}</p></div>`).join('')}</div>` : ''}
+                    </div>
+                </div>
+            `;
+        }
+        
+        function renderPreviewPage() {
+            return `
+                <div class="bg-primary-blue sticky top-0 z-20 shadow-lg">
+                    <div class="max-w-screen-xl mx-auto py-4 px-4 sm:px-6 lg:px-8 flex justify-between items-center flex-wrap gap-4">
+                        <h1 class="text-xl font-bold text-white">Pré-visualização e Exportação</h1>
+                        <button class="btn btn-primary" onclick="setState({ currentView: 'editor' })"><i data-lucide="arrow-left" class="mr-2 h-4 w-4"></i>Voltar ao Editor</button>
+                    </div>
+                </div>
+                <div class="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-sm p-4 border-t border-gray-200 shadow-lg z-10">
+                    <div class="max-w-4xl mx-auto flex justify-center items-center flex-wrap gap-3">
+                        <button class="btn btn-primary" onclick="downloadPDF()"><i data-lucide="file-type-2" class="mr-2 h-4 w-4"></i>Gerar PDF</button>
+                        <button class="btn btn-primary" onclick="downloadWord()"><i data-lucide="file-text" class="mr-2 h-4 w-4"></i>Gerar Word</button>
+                        <button class="btn btn-primary" onclick="openShareOptions()"><i data-lucide="share-2" class="mr-2 h-4 w-4"></i>Compartilhar</button>
+                        <button class="btn btn-primary" onclick="generateCoverLetter()"><i data-lucide="mail" class="mr-2 h-4 w-4"></i>Gerar Carta de Apresentação</button>
+                    </div>
+                </div>
+                <main class="max-w-4xl mx-auto py-10 sm:px-6 lg:px-8 pb-40">
+                    ${generatePreviewHTML()}
+                </main>
+            `;
+        }
+
+        function renderTemplatesPage() {
+            return `
+                <div class="bg-white sticky top-0 z-10 shadow-md">
+                    <div class="max-w-screen-xl mx-auto py-6 px-4 sm:px-6 lg:px-8 flex justify-between items-center">
+                        <div>
+                            <h1 class="text-3xl font-bold text-gray-900">Escolha seu Modelo</h1>
+                            <p class="text-gray-500 mt-1">${state.templates.length}+ modelos profissionais para a área da saúde</p>
+                        </div>
+                        <button class="btn btn-primary" onclick="setState({ currentView: 'editor' })"><i data-lucide="arrow-left" class="mr-2 h-4 w-4"></i>Voltar ao Editor</button>
+                    </div>
+                </div>
+                <main class="max-w-screen-xl mx-auto py-8 sm:px-6 lg:px-8">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+                        ${state.templates.map(template => `
+                            <div 
+                                onclick="(() => { state.selectedTemplate = state.templates.find(t => t.id === ${template.id}); setState({ currentView: 'editor' }); })()"
+                                class="border-2 rounded-lg overflow-hidden cursor-pointer transition-all duration-300 hover:shadow-2xl hover:-translate-y-2 relative group ${state.selectedTemplate?.id === template.id ? 'border-primary-blue shadow-xl' : 'border-gray-200 hover:border-primary-blue'}"
+                            >
+                                <div class="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                                    <span class="text-white font-semibold">Usar este Modelo</span>
+                                </div>
+                                <div style="height: 280px; background-color: ${template.color_scheme.secondary}; padding: 10px;">
+                                    <div style="background-color: ${template.color_scheme.primary}; height: 40px; border-radius: 4px; margin-bottom: 8px;"></div>
+                                    <div style="height: 10px; background-color: ${template.color_scheme.accent}; border-radius: 4px; width: 60%; margin-bottom: 5px;"></div>
+                                    <div style="height: 6px; background-color: #d1d5db; border-radius: 4px; width: 90%; margin-bottom: 5px;"></div>
+                                    <div style="height: 6px; background-color: #d1d5db; border-radius: 4px; width: 80%; margin-bottom: 15px;"></div>
+                                    <div style="height: 10px; background-color: ${template.color_scheme.accent}; border-radius: 4px; width: 50%; margin-bottom: 5px;"></div>
+                                    <div style="height: 6px; background-color: #d1d5db; border-radius: 4px; width: 85%;"></div>
+                                </div>
+                                <div class="p-4 bg-white">
+                                    <h3 class="font-semibold text-sm text-gray-800 truncate">${template.name}</h3>
+                                    <div class="flex gap-2 mt-2">
+                                        <span class="text-xs font-medium bg-indigo-100 text-indigo-800 px-2 py-0.5 rounded-full">${template.style}</span>
+                                        <span class="text-xs font-medium bg-gray-100 text-gray-800 px-2 py-0.5 rounded-full">${template.specialty}</span>
+                                    </div>
+                                </div>
+                                ${state.selectedTemplate?.id === template.id ? `<div class="absolute top-2 right-2 bg-primary-blue text-white p-1 rounded-full"><i data-lucide="check" class="w-4 h-4"></i></div>` : ''}
+                            </div>
+                        `).join('')}
+                    </div>
+                </main>
+            `;
+        }
+
+        // --- INICIALIZAÇÃO E EVENT LISTENERS ---
+        function attachEventListeners() {
+            // Adiciona listeners para campos de informações pessoais e resumo
+            document.querySelector('input[oninput="updatePersonalInfo(\'fullName\', this.value)"]')
+                ?.addEventListener('input', (e) => updatePersonalInfo('fullName', e.target.value));
+            document.querySelector('input[oninput="updatePersonalInfo(\'profession\', this.value)"]')
+                ?.addEventListener('input', (e) => updatePersonalInfo('profession', e.target.value));
+            document.querySelector('input[oninput="updatePersonalInfo(\'email\', this.value)"]')
+                ?.addEventListener('input', (e) => updatePersonalInfo('email', e.target.value));
+            document.querySelector('input[oninput="updatePersonalInfo(\'phone\', this.value)"]')
+                ?.addEventListener('input', (e) => updatePersonalInfo('phone', e.target.value));
+            document.querySelector('input[oninput="updatePersonalInfo(\'address\', this.value)"]')
+                ?.addEventListener('input', (e) => updatePersonalInfo('address', e.target.value));
+            document.querySelector('input[oninput="updateMedicalInfo(\'license\', this.value)"]')
+                ?.addEventListener('input', (e) => updateMedicalInfo('license', e.target.value));
+            document.querySelector('textarea[oninput="updateSummary(this.value)"]')
+                ?.addEventListener('input', (e) => updateSummary(e.target.value));
+
+            // Adiciona listeners para campos de seções dinâmicas
+            document.querySelectorAll('[data-section]').forEach(itemElement => {
+                const section = itemElement.dataset.section;
+                const id = parseInt(itemElement.dataset.id);
+
+                itemElement.querySelectorAll('input, textarea, select').forEach(input => {
+                    const field = input.dataset.field;
+                    if (input.type === 'textarea' || input.tagName === 'SELECT') {
+                        input.addEventListener('change', (e) => updateItem(section, id, field, e.target.value));
+                    } else {
+                        input.addEventListener('input', (e) => updateItem(section, id, field, e.target.value));
+                    }
+                });
+
+                // Certifique-se de que o listener para remover item seja anexado apenas uma vez
+                const removeButton = itemElement.querySelector('.remove-item-btn');
+                if (removeButton && !removeButton.dataset.listenerAttached) {
+                    removeButton.addEventListener('click', () => removeItem(section, id));
+                    removeButton.dataset.listenerAttached = 'true'; // Marca que o listener foi anexado
                 }
             });
 
-            document.addEventListener('keydown', (e) => {
-                if (!previewModal.classList.contains('hidden')) {
-                    if (e.key === 'Escape') fecharModal();
-                    if (e.key === 'Enter' && document.activeElement.tagName !== 'BUTTON') document.getElementById('btn-avancar').click();
-                }
-            });
+            // Adiciona listener para fechar o modal de compartilhamento
+            document.getElementById('shareModalCloseBtn')?.addEventListener('click', closeShareOptions);
+        }
 
-            // Inicialização da página
-            renderAllPreviews();
+        function generateFallbackTemplates() {
+            const colors = [{"primary":"#2C5F7C","secondary":"#E8F4F8","accent":"#4A90A4","text":"#333333","name":"medical_blue"},{"primary":"#0F4C75","secondary":"#F0F8FF","accent":"#3282B8","text":"#2C3E50","name":"professional_navy"},{"primary":"#2E8B57","secondary":"#F0FFF0","accent":"#90EE90","text":"#2F4F4F","name":"health_green"},{"primary":"#8B0000","secondary":"#FFF5F5","accent":"#DC143C","text":"#4A4A4A","name":"medical_red"},{"primary":"#4B0082","secondary":"#F8F0FF","accent":"#9370DB","text":"#2C2C2C","name":"healthcare_purple"},{"primary":"#FF6B35","secondary":"#FFF8F5","accent":"#FF8C69","text":"#333333","name":"warm_orange"},{"primary":"#1E3A8A","secondary":"#EFF6FF","accent":"#3B82F6","text":"#1F2937","name":"trust_blue"},{"primary":"#059669","secondary":"#ECFDF5","accent":"#10B981","text":"#374151","name":"nature_green"}];
+            const layouts = ["classic_single_column", "modern_two_column", "creative_sidebar", "professional_header"];
+            const specialties = ["Medicina Geral", "Enfermagem", "Fisioterapia", "Psicologia", "Nutrição", "Farmácia", "Odontologia", "Veterinária"];
+            const styles = ["Profissional", "Moderno", "Criativo", "Clássico", "Elegante"];
+            const typographySets = [{"heading":"Poppins","body":"Inter","accent":"Work Sans","name":"contemporary_tech"},{"heading":"Roboto","body":"Open Sans","accent":"Lato","name":"modern_sans"},{"heading":"Montserrat","body":"Source Sans Pro","accent":"Nunito","name":"professional_clean"}];
+            const templates = [];
+            for (let i = 1; i <= 200; i++) {
+                templates.push({
+                    id: i,
+                    name: `Modelo ${i}`,
+                    layout: layouts[i % layouts.length],
+                    color_scheme: colors[i % colors.length],
+                    typography: typographySets[i % typographySets.length],
+                    specialty: specialties[i % specialties.length],
+                    style: styles[i % styles.length],
+                    sections: { header: { show_photo: i % 3 !== 0 } }
+                });
+            }
+            return templates;
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('Inicializando aplicação...');
+            const templates = generateFallbackTemplates();
+            state.templates = templates;
+            state.selectedTemplate = templates[0]; // Define o primeiro template como padrão
+            setState({ isLoading: false }); // Renderiza a UI inicial
         });
+
     </script>
+
 </body>
 </html>
