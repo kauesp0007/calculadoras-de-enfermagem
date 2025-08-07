@@ -514,7 +514,7 @@ function initializeGlobalFunctions() {
     }
     initVLibras();
 // =================================================================
-// INÍCIO DO BLOCO DE CÓDIGO FINAL E CORRIGIDO PARA O TRADUTOR
+// INÍCIO DO BLOCO DE CÓDIGO FINAL E MAIS ROBUSTO PARA O TRADUTOR
 // =================================================================
 
 function inicializarGoogleTradutor() {
@@ -523,7 +523,7 @@ function inicializarGoogleTradutor() {
         return;
     }
 
-    // Função de callback que o Google irá chamar quando estiver pronto
+    // Função de callback que o Google irá chamar
     window.googleTranslateElementInit = function() {
         new google.translate.TranslateElement({
             pageLanguage: 'pt',
@@ -551,27 +551,49 @@ function vincularSeletorPersonalizado() {
     }
 
     languageSwitcher.addEventListener('click', function(event) {
-        // 1. Impede que o '#' seja adicionado à URL
-        event.preventDefault();
+        event.preventDefault(); // Impede que o '#' seja adicionado à URL
 
         const target = event.target.closest('.language-option');
         if (!target) return;
 
         const langCode = target.getAttribute('data-lang');
         
-        // 2. Encontra o <select> que o Google cria no seu documento
-        const googleSelect = document.querySelector('select.goog-te-combo');
-
-        if (googleSelect) {
-            // 3. Define o valor do select para o idioma escolhido
-            googleSelect.value = langCode;
-            
-            // 4. Dispara o evento 'change' para que o Google inicie a tradução
-            googleSelect.dispatchEvent(new Event('change'));
-        } else {
-            console.error("Seletor do Google (select.goog-te-combo) não foi encontrado. O widget pode não ter carregado a tempo.");
-        }
+        // Tenta acionar a tradução de forma robusta
+        acionarTraducaoGoogle(langCode);
     });
+}
+
+// Função que espera o seletor do Google aparecer e o aciona
+function acionarTraducaoGoogle(langCode) {
+    let attempts = 0;
+    const maxAttempts = 15;
+    const intervalTime = 200; // ms
+
+    const interval = setInterval(function() {
+        const googleSelect = document.querySelector('select.goog-te-combo');
+        
+        if (googleSelect) {
+            // Se encontrou o seletor, para de tentar
+            clearInterval(interval);
+            
+            // Se o valor já for o correto, não faz nada
+            if (googleSelect.value === langCode) {
+                return;
+            }
+            
+            // Define o valor e dispara o evento para traduzir
+            googleSelect.value = langCode;
+            googleSelect.dispatchEvent(new Event('change'));
+            
+        } else {
+            // Se não encontrou, incrementa a tentativa
+            attempts++;
+            if (attempts >= maxAttempts) {
+                clearInterval(interval);
+                console.error("TRADUTOR: Não foi possível encontrar o seletor do Google (select.goog-te-combo) após " + maxAttempts + " tentativas. O widget pode não estar carregando.");
+            }
+        }
+    }, intervalTime);
 }
 
     inicializarTooltips(); 
