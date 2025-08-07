@@ -513,10 +513,7 @@ function initializeGlobalFunctions() {
         }
     }
     initVLibras();
-// =================================================================
-// INÍCIO DO BLOCO DE CÓDIGO FINAL E MAIS ROBUSTO PARA O TRADUTOR
-// =================================================================
-
+  
 function inicializarGoogleTradutor() {
     // Previne a duplicação do script
     if (document.querySelector('script[src*="translate.google.com"]')) {
@@ -546,7 +543,7 @@ function inicializarGoogleTradutor() {
 function vincularSeletorPersonalizado() {
     const languageSwitcher = document.getElementById('language-switcher');
     if (!languageSwitcher) {
-        console.error("Elemento #language-switcher não encontrado.");
+        console.error("TRADUTOR: Elemento do menu de bandeiras (#language-switcher) não encontrado.");
         return;
     }
 
@@ -570,18 +567,19 @@ function acionarTraducaoGoogle(langCode) {
     const intervalTime = 200; // ms
 
     const interval = setInterval(function() {
+        // Procura pelo <select> que o Google cria
         const googleSelect = document.querySelector('select.goog-te-combo');
         
         if (googleSelect) {
             // Se encontrou o seletor, para de tentar
             clearInterval(interval);
             
-            // Se o valor já for o correto, não faz nada
+            // Se o idioma já for o selecionado, não faz nada
             if (googleSelect.value === langCode) {
                 return;
             }
             
-            // Define o valor e dispara o evento para traduzir
+            // Define o valor e dispara o evento 'change' para que o Google inicie a tradução
             googleSelect.value = langCode;
             googleSelect.dispatchEvent(new Event('change'));
             
@@ -590,7 +588,7 @@ function acionarTraducaoGoogle(langCode) {
             attempts++;
             if (attempts >= maxAttempts) {
                 clearInterval(interval);
-                console.error("TRADUTOR: Não foi possível encontrar o seletor do Google (select.goog-te-combo) após " + maxAttempts + " tentativas. O widget pode não estar carregando.");
+                console.error("TRADUTOR: Não foi possível encontrar o seletor do Google (select.goog-te-combo) após " + maxAttempts + " tentativas. O widget pode não estar carregando ou pode estar bloqueado.");
             }
         }
     }, intervalTime);
