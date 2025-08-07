@@ -575,9 +575,5 @@ function vincularSeletorPersonalizado() {
     });
 }
 
-// =================================================================
-// FIM DO BLOCO DE CÓDIGO FINAL
-// =================================================================
- 
     inicializarTooltips(); 
 }
