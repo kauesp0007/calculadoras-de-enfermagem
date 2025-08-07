@@ -16,13 +16,10 @@
     <!-- Font Awesome (para ícones do rodapé) -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     
-    <!-- CSS Customizado -->
-    <link href="css/ui-improvements.css" rel="stylesheet">
-    
     <!-- TailwindCSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     
-    <!-- Configuração do Tailwind com cores e fontes personalizadas -->
+    <!-- Configuração do Tailwind com cores e fontes personalizadas do NOVO layout -->
     <script>
         tailwind.config = {
             theme: {
@@ -49,25 +46,10 @@
                             '0%, 100%': { opacity: '1' },
                             '50%': { opacity: '.5' },
                         },
-                        morph: {
-                            '0%': { content: '"Crescimento"', opacity: '1' },
-                            '20%': { opacity: '1' },
-                            '25%': { opacity: '0' },
-                            '30%': { content: '"Oportunidades"', opacity: '0' },
-                            '35%': { opacity: '1' },
-                            '55%': { opacity: '1' },
-                            '60%': { opacity: '0' },
-                            '65%': { content: '"Desenvolvimento"', opacity: '0' },
-                            '70%': { opacity: '1' },
-                            '90%': { opacity: '1' },
-                            '95%': { opacity: '0' },
-                            '100%': { content: '"Crescimento"', opacity: '0' },
-                        }
                     },
                     animation: {
                         fadeInUp: 'fadeInUp 0.5s ease-out',
                         pulse: 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-                        morph: 'morph 8s infinite',
                     }
                 },
             },
@@ -97,20 +79,22 @@
         .footer-social-icon:hover {
             color: #d1d5db; /* gray-300 */
         }
-        /* Estilo para o texto que muda */
-        .morph-text-container::after {
-            content: "Crescimento";
-            animation: morph 8s infinite;
-            font-weight: 800; /* Nunito Sans extra-bold */
+        /* Animação de fade-in para os cards */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .fade-in-card {
+            animation: fadeIn 0.5s ease-out forwards;
         }
     </style>
 </head>
 <body class="bg-gray-100 font-sans antialiased">
     
-    <div id="page-container">
-        <div id="main-container" class="w-full">
-            <!-- Sidebar -->
-            <aside id="sidebar" class="w-64 bg-white shadow-lg p-6 flex-shrink-0 flex flex-col justify-between transform -translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out z-50 fixed md:static">
+    <div id="page-container" class="flex flex-col min-h-screen">
+        <div id="main-container" class="flex-1 flex">
+            <!-- Sidebar (do novo layout) -->
+            <aside id="sidebar" class="w-64 bg-white shadow-lg p-6 flex-shrink-0 flex flex-col justify-between transform -translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out z-50 fixed md:static h-full">
                 <div>
                     <!-- Logo e título da aplicação -->
                     <div class="flex items-center justify-start mb-10">
@@ -139,7 +123,7 @@
                                 </a>
                             </li>
                             <li>
-                                <a href="vagaseconcursos.html" class="flex items-center p-3 rounded-lg text-primary-blue bg-blue-50 font-medium hover:bg-secondary-blue hover:text-white transition-colors">
+                                <a href="#" class="flex items-center p-3 rounded-lg text-primary-blue bg-blue-50 font-medium hover:bg-secondary-blue hover:text-white transition-colors">
                                     <i data-lucide="briefcase" class="h-5 w-5 mr-3"></i>
                                     <span class="sidebar-text">Vagas e Concursos</span>
                                 </a>
@@ -153,158 +137,70 @@
                         </ul>
                     </nav>
                 </div>
+                 <!-- Botões de autenticação na sidebar -->
+                <div class="pt-4">
+                    <button onclick="window.showLogin()" class="w-full bg-primary-blue text-white p-3 rounded-lg font-bold hover:bg-secondary-blue transition-colors mb-2">Entrar</button>
+                    <button onclick="window.showRegister()" class="w-full bg-gray-200 text-primary-blue p-3 rounded-lg font-bold hover:bg-gray-300 transition-colors">Cadastrar</button>
+                </div>
             </aside>
 
             <!-- Main Content -->
             <div id="main-content" class="flex-1 flex flex-col overflow-hidden transition-all duration-300 ease-in-out">
-                <!-- Header -->
-                <header class="w-full bg-gray-100 p-4 flex items-center justify-between z-40">
+                <!-- Header (do novo layout) -->
+                <header class="w-full bg-gray-100 p-4 flex items-center justify-between z-40 sticky top-0">
                     <button id="sidebar-toggle-btn" class="md:hidden text-gray-600 hover:text-gray-900 transition-colors">
                         <i data-lucide="menu" class="h-6 w-6"></i>
                     </button>
-                    <!-- Conteúdo do cabeçalho removido conforme solicitado -->
+                    <div class="flex-1"></div> <!-- Espaçador para manter o botão à esquerda e remover o conteúdo do usuário -->
                 </header>
 
                 <!-- Main Content Area -->
-                <main class="flex-1 overflow-x-hidden overflow-y-auto bg-gray-100">
-                    <div id="vagas-content" class="section-content active">
-                        <div>
-                            <div class="max-w-6xl mx-auto p-6">
-                                <!-- Efeito Morphing -->
-                                <div class="text-center mb-8">
-                                    <h1 class="text-2xl sm:text-3xl font-heading text-gray-700">
-                                        Sua carreira em Enfermagem merece
-                                        <span class="morph-text-container text-primary-blue"></span>
-                                    </h1>
+                <main class="flex-1 overflow-x-hidden overflow-y-auto bg-gray-100 p-6">
+                    <div class="max-w-7xl mx-auto">
+                        <div class="mb-8">
+                            <h2 class="text-3xl font-heading font-bold text-gray-900 mb-2">Vagas e Concursos</h2>
+                            <p class="text-gray-600">Encontre a sua próxima oportunidade profissional em enfermagem.</p>
+                        </div>
+                        
+                        <!-- Filtros de Vagas (do novo layout) -->
+                        <div class="bg-white rounded-xl shadow-md p-6 mb-8">
+                            <h3 class="text-xl font-heading font-bold mb-4">Filtrar Oportunidades</h3>
+                            <form id="job-filter-form" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                                <div class="col-span-1">
+                                    <label for="filter-type" class="text-sm font-medium text-gray-700">Tipo</label>
+                                    <select id="filter-type" name="type" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-blue focus:ring focus:ring-primary-blue focus:ring-opacity-50">
+                                        <option value="all">Todas</option>
+                                        <option value="jobs">Vagas de Emprego</option>
+                                        <option value="contests">Concursos Públicos</option>
+                                    </select>
                                 </div>
-                                
-                                <div class="mb-8">
-                                    <h2 class="text-3xl font-heading font-bold text-gray-900 mb-2">Vagas e Concursos</h2>
-                                    <p class="text-gray-600">Encontre a sua próxima oportunidade profissional em enfermagem.</p>
+                                <div class="col-span-1">
+                                    <label for="filter-location" class="text-sm font-medium text-gray-700">Localização</label>
+                                    <input type="text" id="filter-location" name="location" placeholder="Ex: São Paulo" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-blue focus:ring focus:ring-primary-blue focus:ring-opacity-50">
                                 </div>
-                                
-                                <!-- Filtros de Vagas -->
-                                <div class="bg-white rounded-xl shadow-md p-6 mb-8">
-                                    <h3 class="text-xl font-heading font-bold mb-4">Filtrar Oportunidades</h3>
-                                    <form id="job-filter-form" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                                        <div class="col-span-1">
-                                            <label for="filter-type" class="text-sm font-medium text-gray-700">Tipo</label>
-                                            <select id="filter-type" name="type" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
-                                                <option value="all">Todas</option>
-                                                <option value="jobs">Vagas de Emprego</option>
-                                                <option value="contests">Concursos Públicos</option>
-                                            </select>
-                                        </div>
-                                        <div class="col-span-1">
-                                            <label for="filter-location" class="text-sm font-medium text-gray-700">Localização</label>
-                                            <input type="text" id="filter-location" name="location" placeholder="Ex: São Paulo" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
-                                        </div>
-                                        <div class="col-span-1">
-                                            <label for="filter-specialty" class="text-sm font-medium text-gray-700">Especialidade</label>
-                                            <input type="text" id="filter-specialty" name="specialty" placeholder="Ex: UTI" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
-                                        </div>
-                                        <div class="col-span-1 flex items-end">
-                                            <button type="submit" class="w-full btn btn-primary bg-primary-blue text-white py-2 px-4 rounded-lg flex items-center justify-center hover:bg-secondary-blue">
-                                                <i data-lucide="search" class="mr-2 h-5 w-5"></i>
-                                                Buscar
-                                            </button>
-                                        </div>
-                                    </form>
+                                <div class="col-span-1">
+                                    <label for="filter-specialty" class="text-sm font-medium text-gray-700">Especialidade</label>
+                                    <input type="text" id="filter-specialty" name="specialty" placeholder="Ex: UTI" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-blue focus:ring focus:ring-primary-blue focus:ring-opacity-50">
                                 </div>
-                                
-                                <!-- Contêiner Dinâmico para as Vagas -->
-                                <div id="job-listings-container" class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    <!-- As vagas e concursos serão injetados aqui pelo JavaScript -->
+                                <div class="col-span-1 flex items-end">
+                                    <button type="submit" class="w-full bg-primary-blue text-white py-2 px-4 rounded-lg flex items-center justify-center hover:bg-secondary-blue transition-colors">
+                                        <i data-lucide="search" class="mr-2 h-5 w-5"></i>
+                                        Buscar
+                                    </button>
                                 </div>
-                                
-                                <!-- Indicador de Última Atualização -->
-                                <p class="text-sm text-gray-500 text-center mt-8">Última atualização: <span id="last-updated">...</span></p>
-                            </div>
+                            </form>
+                        </div>
+                        
+                        <!-- Lista de Vagas (Container para carregamento dinâmico) -->
+                        <div id="job-listings" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <!-- O conteúdo aqui será inserido dinamicamente pelo JavaScript -->
                         </div>
                     </div>
                 </main>
             </div>
         </div>
 
-        <!-- Modals de Autenticação -->
-        <div id="login-modal" class="fixed inset-0 bg-gray-900 bg-opacity-75 hidden flex items-center justify-center p-4 z-[9999]">
-            <div class="bg-white rounded-xl shadow-2xl max-w-md w-full p-8 relative animate-fadeInUp">
-                <h2 class="text-2xl font-heading font-bold text-gray-900 mb-6">Fazer Login</h2>
-                <form id="login-form">
-                    <div class="space-y-4">
-                        <div>
-                            <label for="login-email" class="text-sm font-medium text-gray-700">Email</label>
-                            <input type="email" id="login-email" name="email" placeholder="seu-email@exemplo.com" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-blue focus:ring focus:ring-primary-blue focus:ring-opacity-50" required>
-                        </div>
-                        <div>
-                            <label for="login-password" class="text-sm font-medium text-gray-700">Senha</label>
-                            <input type="password" id="login-password" name="password" placeholder="Sua senha secreta" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-blue focus:ring focus:ring-primary-blue focus:ring-opacity-50" required>
-                        </div>
-                        <div class="text-right">
-                            <button type="button" class="text-sm text-primary-blue hover:underline" onclick="showForgotPassword()">Esqueceu a senha?</button>
-                        </div>
-                    </div>
-                    <button type="submit" class="mt-6 w-full btn btn-primary bg-primary-blue text-white py-2 px-4 rounded-lg flex items-center justify-center hover:bg-secondary-blue">
-                        <i data-lucide="log-in" class="mr-2 h-5 w-5"></i>
-                        Entrar
-                    </button>
-                </form>
-                <div class="mt-6 text-center">
-                    <p class="text-gray-600">
-                        Não tem uma conta? 
-                        <button class="text-primary-blue hover:underline" onclick="showRegister()">
-                            Cadastre-se
-                        </button>
-                    </p>
-                </div>
-                <button class="absolute top-4 right-4 text-gray-400 hover:text-gray-600" onclick="closeModal('login-modal')">
-                    <i data-lucide="x" class="h-6 w-6"></i>
-                </button>
-            </div>
-        </div>
-        
-        <div id="register-modal" class="fixed inset-0 bg-gray-900 bg-opacity-75 hidden flex items-center justify-center p-4 z-[9999]">
-            <div class="bg-white rounded-xl shadow-2xl max-w-md w-full p-8 relative animate-fadeInUp">
-                <h2 class="text-2xl font-heading font-bold text-gray-900 mb-6">Criar Conta</h2>
-                <form id="register-form">
-                    <div class="space-y-4">
-                        <div>
-                            <label for="register-name" class="text-sm font-medium text-gray-700">Nome Completo</label>
-                            <input type="text" id="register-name" name="name" placeholder="Seu nome" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-blue focus:ring focus:ring-primary-blue focus:ring-opacity-50" required>
-                        </div>
-                        <div>
-                            <label for="register-email" class="text-sm font-medium text-gray-700">Email</label>
-                            <input type="email" id="register-email" name="email" placeholder="seu-email@exemplo.com" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-blue focus:ring focus:ring-primary-blue focus:ring-opacity-50" required>
-                        </div>
-                        <div>
-                            <label for="register-password" class="text-sm font-medium text-gray-700">Senha</label>
-                            <input type="password" id="register-password" name="password" placeholder="Mínimo 6 caracteres" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-blue focus:ring focus:ring-primary-blue focus:ring-opacity-50" required>
-                        </div>
-                        <div>
-                            <label for="register-confirm-password" class="text-sm font-medium text-gray-700">Confirmar Senha</label>
-                            <input type="password" id="register-confirm-password" name="confirm-password" placeholder="Repita a senha" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-blue focus:ring focus:ring-primary-blue focus:ring-opacity-50" required>
-                        </div>
-                    </div>
-                    <button type="submit" class="mt-6 w-full btn btn-primary bg-primary-blue text-white py-2 px-4 rounded-lg flex items-center justify-center hover:bg-secondary-blue">
-                        <i data-lucide="user-plus" class="mr-2 h-5 w-5"></i>
-                        Criar Conta
-                    </button>
-                </form>
-                <div class="mt-6 text-center">
-                    <p class="text-gray-600">
-                        Já tem uma conta? 
-                        <button class="text-primary-blue hover:underline" onclick="showLogin()">
-                            Fazer login
-                        </button>
-                    </p>
-                </div>
-                <button class="absolute top-4 right-4 text-gray-400 hover:text-gray-600" onclick="closeModal('register-modal')">
-                    <i data-lucide="x" class="h-6 w-6"></i>
-                </button>
-            </div>
-        </div>
-
-        <!-- Footer -->
+        <!-- Footer (do novo layout) -->
         <footer class="bg-[#1A3E74] text-white py-8">
             <div class="max-w-7xl mx-auto px-4">
                 <div class="border-b border-white pb-4 mb-4">
@@ -354,9 +250,6 @@
                                 <a href="https://www.tiktok.com/@calculadorasdeenf" target="_blank" class="footer-social-icon" title="TikTok" aria-label="Acesse Nosso Perfil no TikTok"><i class="fab fa-tiktok text-xl"></i></a>
                                 <a href="https://www.youtube.com/channel/UC_6runTDHz8u5S1Yab842pg" target="_blank" class="footer-social-icon" title="YouTube" aria-label="Acesse Nosso Perfil no YouTube"><i class="fab fa-youtube text-xl"></i></a>
                             </div>
-                            <button id="openGranularCookieModalBtn" class="bg-secondary-blue text-white mt-4 py-2 px-4 rounded-md hover:bg-blue-800 transition-colors" aria-label="Gerenciar Preferências de Cookies">
-                                Gerenciar Preferências de Cookies
-                            </button>
                         </div>
                     </div>
                 </div>
@@ -367,115 +260,129 @@
         </footer>
     </div>
     
+    <!-- Modais de Autenticação (do novo layout) -->
+    <div id="login-modal" class="fixed inset-0 bg-gray-900 bg-opacity-75 hidden flex items-center justify-center p-4 z-[9999]">
+        <!-- Conteúdo do modal de login aqui -->
+    </div>
+    <div id="register-modal" class="fixed inset-0 bg-gray-900 bg-opacity-75 hidden flex items-center justify-center p-4 z-[9999]">
+        <!-- Conteúdo do modal de cadastro aqui -->
+    </div>
+
     <!-- Scripts -->
-    <script src="js/app.js"></script>
-    <script src="js/auth-new.js"></script>
-    <script src="js/resume-editor.js"></script>
-    <script src="js/template-renderer.js"></script>
-    <script src="js/export-utils.js"></script>
-    <script src="js/share-utils.js"></script>
-    <script src="js/jobs-integration.js"></script>
-    <script src="js/web-scraper.js"></script>
-    <script src="js/auto-updater.js"></script>
-    
     <script>
-        // Inicialização da aplicação
+        // Inicialização da aplicação e lógica da UI
         document.addEventListener('DOMContentLoaded', function() {
             lucide.createIcons();
 
             const sidebar = document.getElementById('sidebar');
-            const mainContent = document.getElementById('main-content');
             const sidebarToggleBtn = document.getElementById('sidebar-toggle-btn');
 
-            sidebarToggleBtn.addEventListener('click', () => {
-                sidebar.classList.toggle('-translate-x-full');
-            });
+            if (sidebarToggleBtn) {
+                sidebarToggleBtn.addEventListener('click', () => {
+                    sidebar.classList.toggle('-translate-x-full');
+                });
+            }
 
             // Funções de modal (exemplo)
             window.showLogin = function() {
-                closeAllModals();
-                document.getElementById('login-modal').classList.remove('hidden');
-                document.getElementById('login-modal').classList.add('flex');
+                // Implementar a exibição do modal de login
+                console.log("Abrir modal de login");
             }
             window.showRegister = function() {
-                closeAllModals();
-                document.getElementById('register-modal').classList.remove('hidden');
-                document.getElementById('register-modal').classList.add('flex');
-            }
-            window.closeModal = function(modalId) {
-                document.getElementById(modalId).classList.add('hidden');
-                document.getElementById(modalId).classList.remove('flex');
-            }
-            window.closeAllModals = function() {
-                const modals = document.querySelectorAll('[id$="-modal"]');
-                modals.forEach(modal => {
-                    modal.classList.add('hidden');
-                    modal.classList.remove('flex');
-                });
+                // Implementar a exibição do modal de registro
+                console.log("Abrir modal de registro");
             }
         });
 
-        // --- Código adicionado para buscar e exibir as vagas dinamicamente ---
-        document.addEventListener('DOMContentLoaded', () => {
-            const container = document.getElementById('job-listings-container');
-            const lastUpdatedElement = document.getElementById('last-updated');
+        // --- SCRIPT DE CARREGAMENTO DINÂMICO DE VAGAS ---
+        document.addEventListener('DOMContentLoaded', async () => {
+            const jobListingsContainer = document.getElementById('job-listings');
+            if (!jobListingsContainer) return;
 
-            // URL do arquivo JSON no seu repositório GitHub
-            // Substitua 'seu-usuario' e 'nome-do-repositorio' pelos seus dados
-            const jsonUrl = 'https://raw.githubusercontent.com/<seu-usuario>/<nome-do-repositorio>/main/vagas.json';
+            // Mostra um estado de carregamento inicial
+            jobListingsContainer.innerHTML = `
+                <div class="col-span-full text-center py-8">
+                    <svg class="animate-spin h-10 w-10 text-primary-blue mx-auto mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <p class="text-gray-600">Carregando vagas...</p>
+                </div>
+            `;
 
-            fetch(jsonUrl)
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('Não foi possível carregar o arquivo vagas.json');
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    if (data.length === 0) {
-                        container.innerHTML = '<p class="text-center text-gray-500">Nenhuma vaga encontrada.</p>';
-                        return;
-                    }
-                    
-                    // Exibe a data de coleta da primeira vaga como data de atualização
-                    lastUpdatedElement.textContent = data[0].data_coleta;
+            // Função para criar o HTML de cada card de vaga
+            function criarCardVaga(vaga) {
+                const tipoClasse = vaga.tipo === 'Concurso' 
+                    ? 'bg-green-100 text-success-green' 
+                    : 'bg-blue-100 text-primary-blue';
+                const botaoTexto = vaga.tipo === 'Concurso' ? 'Ver edital' : 'Ver detalhes';
 
-                    data.forEach(vaga => {
-                        const vagaCard = document.createElement('div');
-                        vagaCard.className = 'bg-white p-6 rounded-xl shadow-md border border-gray-200 hover:shadow-lg transition-shadow';
-
-                        // Determina o tipo de vaga e o estilo do "selo"
-                        const isContest = vaga.link.includes('concursos') || vaga.link.includes('edital');
-                        const typeLabel = isContest ? 'Concurso' : 'Vaga';
-                        const typeColor = isContest ? 'bg-green-100 text-success-green' : 'bg-blue-100 text-primary-blue';
-                        const buttonText = isContest ? 'Ver edital' : 'Ver detalhes';
-                        const locationHtml = vaga.localizacao ? `<p class="text-sm text-gray-500 mb-2"><i data-lucide="map-pin" class="h-4 w-4 inline mr-1"></i> ${vaga.localizacao}</p>` : '';
-                        
-                        vagaCard.innerHTML = `
-                            <div class="flex items-center mb-4">
-                                <i data-lucide="briefcase" class="h-8 w-8 text-primary-blue mr-4"></i>
-                                <div>
-                                    <h4 class="text-lg font-heading font-bold">${vaga.titulo}</h4>
-                                    <p class="text-gray-600">${vaga.empresa || 'Empresa não informada'}</p>
-                                </div>
+                const card = document.createElement('div');
+                card.className = "bg-white p-6 rounded-xl shadow-md border border-gray-200 hover:shadow-lg transition-shadow flex flex-col fade-in-card";
+                
+                card.innerHTML = `
+                    <div class="flex-grow">
+                        <div class="flex items-center mb-4">
+                            <i data-lucide="briefcase" class="h-8 w-8 text-primary-blue mr-4"></i>
+                            <div>
+                                <h4 class="text-lg font-heading font-bold">${vaga.titulo || 'Título não disponível'}</h4>
+                                <p class="text-gray-600">${vaga.empresa || 'Empresa não informada'}</p>
                             </div>
-                            ${locationHtml}
-                            <div class="flex justify-between items-center">
-                                <span class="inline-block px-3 py-1 text-sm font-semibold rounded-full ${typeColor}">${typeLabel}</span>
-                                <a href="${vaga.link}" target="_blank" class="btn btn-sm btn-primary bg-primary-blue text-white py-1 px-3 rounded-lg hover:bg-secondary-blue">${buttonText}</a>
-                            </div>
-                        `;
-                        container.appendChild(vagaCard);
+                        </div>
+                        <p class="text-sm text-gray-500 mb-2"><i data-lucide="map-pin" class="h-4 w-4 inline mr-1"></i> ${vaga.local || 'Local não informado'}</p>
+                        <p class="text-sm text-gray-500 mb-4"><i data-lucide="tag" class="h-4 w-4 inline mr-1"></i> ${vaga.salario || 'Salário a combinar'}</p>
+                    </div>
+                    <div class="flex justify-between items-center mt-4">
+                        <span class="inline-block px-3 py-1 text-sm font-semibold rounded-full ${tipoClasse}">${vaga.tipo || 'Vaga'}</span>
+                        <a href="${vaga.link || '#'}" target="_blank" class="bg-primary-blue text-white py-1 px-3 rounded-lg hover:bg-secondary-blue transition-colors text-sm font-semibold">
+                            ${botaoTexto}
+                        </a>
+                    </div>
+                `;
+                return card;
+            }
+
+            try {
+                // Faz a requisição para o arquivo JSON.
+                // **IMPORTANTE**: Este arquivo 'vagas.json' deve existir no seu servidor.
+                const response = await fetch('vagas.json');
+                
+                if (!response.ok) {
+                    throw new Error(`Erro HTTP: ${response.status}`);
+                }
+
+                const vagas = await response.json();
+
+                // Limpa o conteúdo de carregamento
+                jobListingsContainer.innerHTML = '';
+
+                if (vagas.length === 0) {
+                    // Se não houver vagas, mostra uma mensagem
+                    jobListingsContainer.innerHTML = `
+                        <div class="col-span-full text-center py-12 text-gray-500">
+                            <p class="text-lg font-semibold mb-2">Ops! Nenhuma vaga encontrada no momento.</p>
+                            <p class="text-sm">Tente novamente mais tarde.</p>
+                        </div>
+                    `;
+                } else {
+                    // Itera sobre as vagas e cria o HTML para cada uma
+                    vagas.forEach(vaga => {
+                        const vagaElement = criarCardVaga(vaga);
+                        jobListingsContainer.appendChild(vagaElement);
                     });
-                    lucide.createIcons();
-                })
-                .catch(error => {
-                    console.error('Erro:', error);
-                    container.innerHTML = `<p class="text-center text-red-500">Ocorreu um erro ao carregar os dados: ${error.message}</p>`;
-                });
+                    lucide.createIcons(); // Recria os ícones do Lucide após adicionar os cards
+                }
+            } catch (error) {
+                // Exibe uma mensagem de erro em caso de falha
+                console.error('Erro ao carregar ou renderizar as vagas:', error);
+                jobListingsContainer.innerHTML = `
+                    <div class="col-span-full text-center py-12 text-error-red">
+                        <p class="text-lg font-semibold mb-2">Desculpe, ocorreu um erro.</p>
+                        <p class="text-sm">Não foi possível carregar as vagas no momento. Por favor, tente novamente.</p>
+                    </div>
+                `;
+            }
         });
-        // --- Fim do código adicionado ---
-
     </script>
 </body>
 </html>
