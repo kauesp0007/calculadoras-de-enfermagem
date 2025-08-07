@@ -1,6 +1,6 @@
 function criarIconesLucide() {
-    if (typeof lucide !== 'undefined' && typeof lucide.createIcons === 'function') {
-        lucide.createIcons();
+    if (typeof lucide !== 'undefined' && typeof criarIconesLucide === 'function') {
+        criarIconesLucide()
     } else {
         console.warn("LUCIDE ICONS: Biblioteca Lucide não carregada. Ícones não serão renderizados.");
     }
