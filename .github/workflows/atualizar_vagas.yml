@@ -2,34 +2,52 @@ name: Atualizar Vagas e Concursos
 
 on:
   schedule:
-    - cron: '0 6 * * *' # Executa todos os dias às 06:00 UTC (03:00 Horário de Brasília)
-  workflow_dispatch: # Permite que você execute manualmente quando quiser
+    - cron: '0 6 * * *'
+  workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-latest
-
+    permissions:
+      contents: write # Esta linha é a nova permissão para permitir commit e push
     steps:
       - name: Checkout do Repositório
         uses: actions/checkout@v2
 
       - name: Configurar Python
-        uses: actions/setup-python@v2
-        with:
-          python-version: '3.x'
+        run: |
+          echo "Configurando Python..."
+          python -m pip install --upgrade pip
+          echo "Python configurado com sucesso."
 
       - name: Instalar Dependências
         run: |
-          python -m pip install --upgrade pip
+          echo "Instalando dependências..."
           pip install requests beautifulsoup4
+          echo "Dependências instaladas com sucesso."
 
       - name: Executar o Script de Scraping
-        run: python scraping.py
+        run: |
+          echo "Iniciando script de scraping..."
+          python scraping.py
+          echo "Script de scraping concluído."
+
+      - name: Verificar Arquivo JSON
+        run: |
+          echo "Verificando se o arquivo vagas.json foi criado..."
+          ls -la
+          if [ -f "vagas.json" ]; then
+            echo "Arquivo vagas.json encontrado!"
+          else
+            echo "ERRO: O arquivo vagas.json NÃO foi encontrado."
+          fi
 
       - name: Commitar e Enviar Alterações
         run: |
+          echo "Preparando para commitar e enviar alterações..."
           git config --global user.name 'github-actions'
           git config --global user.email 'github-actions@github.com'
           git add .
           git commit -m "Atualizar vagas e concursos" || echo "Nenhuma alteração para commitar"
           git push
+          echo "Alterações enviadas com sucesso."
