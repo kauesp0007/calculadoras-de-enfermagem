@@ -7,11 +7,7 @@ const CACHE_NAME = 'calculadoras-enfermagem-cache-v1';
 const urlsToCache = [
   '/',
   '/index.html',
-  '/global-styles.css',
-  '/global-scripts.js',
-  '/menu-global.html',
-  '/global-body-elements.html',
-  // Páginas adicionadas para cache
+   // Páginas adicionadas para cache
   '/gotejamento.html',
   '/insulina.html',
   '/dimensionamento.html',
