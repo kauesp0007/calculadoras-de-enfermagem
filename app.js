@@ -92,39 +92,89 @@ const state = {
 // Inicialização da aplicação
 function initializeApp() {
     console.log('Inicializando aplicação...');
-    inicializarGoogleTradutor();
-    checkAuthStatus();
-    / Adicione esta função no início do seu app.js
-function inicializarGoogleTradutor() {
-    // Previne a duplicação do script
-    if (document.querySelector('script[src*="translate.google.com"]')) {
-        // Se o script já existe, apenas garante que o widget seja renderizado
-        if (window.google && window.google.translate) {
-            new google.translate.TranslateElement({
-                pageLanguage: 'pt',
-                includedLanguages: 'pt,en,es',
-                layout: google.translate.TranslateElement.InlineLayout.SIMPLE,
-                autoDisplay: false
-            }, 'google_translate_element');
+    setupGoogleTranslator();
+    
+        / Adicione esta função no início do seu app.js
+function setupGoogleTranslator() {
+    // 1. VERIFICA SE O MENU DE BANDEIRAS ESTÁ NA TELA
+    // Usamos um MutationObserver para esperar o app.js renderizar o menu
+    const observer = new MutationObserver((mutations, obs) => {
+        const languageSwitcher = document.getElementById('language-switcher');
+        if (languageSwitcher) {
+            console.log("TRADUTOR: Menu de bandeiras encontrado. Iniciando o tradutor.");
+            
+            // O menu existe, agora podemos iniciar o tradutor com segurança
+            initializeAndBindTranslator(languageSwitcher);
+            
+            // Para de observar, pois o trabalho está feito
+            obs.disconnect();
         }
-        return;
-    }
+    });
 
-    // Função de callback que o Google irá chamar
+    // Começa a observar o corpo do documento por mudanças
+    observer.observe(document.body, {
+        childList: true,
+        subtree: true
+    });
+}
+
+function initializeAndBindTranslator(switcherElement) {
+    // 2. CARREGA O SCRIPT DO GOOGLE
+    // Previne a duplicação do script
+    if (document.querySelector('script[src*="translate.google.com"]')) return;
+
     window.googleTranslateElementInit = function() {
         new google.translate.TranslateElement({
             pageLanguage: 'pt',
             includedLanguages: 'pt,en,es',
-            layout: google.translate.TranslateElement.InlineLayout.SIMPLE,
-            autoDisplay: false
+            autoDisplay: false,
+            layout: google.translate.TranslateElement.InlineLayout.SIMPLE
         }, 'google_translate_element');
     };
 
-    // Carrega a API do Google Tradutor
     const script = document.createElement('script');
     script.type = 'text/javascript';
     script.src = '//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit';
     document.body.appendChild(script);
+
+    // 3. VINCULA O CLIQUE DAS BANDEIRAS À LÓGICA DE TRADUÇÃO
+    switcherElement.addEventListener('click', function(event) {
+        event.preventDefault();
+        const target = event.target.closest('.language-option');
+        if (!target) return;
+
+        const langCode = target.getAttribute('data-lang');
+        console.log(`TRADUTOR: Bandeira '${langCode}' clicada.`);
+        
+        // Tenta acionar a tradução de forma robusta
+        triggerGoogleTranslation(langCode);
+    });
+}
+
+// Função que espera o seletor do Google aparecer e o aciona
+function triggerGoogleTranslation(langCode) {
+    let attempts = 0;
+    const maxAttempts = 15;
+    const intervalTime = 200;
+
+    const interval = setInterval(function() {
+        const googleSelect = document.querySelector('select.goog-te-combo');
+        
+        if (googleSelect) {
+            clearInterval(interval);
+            if (googleSelect.value === langCode) return;
+            
+            console.log("TRADUTOR: Seletor do Google encontrado. Acionando tradução.");
+            googleSelect.value = langCode;
+            googleSelect.dispatchEvent(new Event('change'));
+        } else {
+            attempts++;
+            if (attempts >= maxAttempts) {
+                clearInterval(interval);
+                console.error("TRADUTOR: Falha crítica. O widget do Google (select.goog-te-combo) não foi renderizado na página.");
+            }
+        }
+    }, intervalTime);
 }
     
     // Verificar se há usuário logado no localStorage
