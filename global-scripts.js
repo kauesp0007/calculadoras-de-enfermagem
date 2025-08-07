@@ -160,7 +160,7 @@ function initializeCookieFunctionality() {
     const cookieConsentBanner = document.getElementById('cookieConsentBanner');
     const acceptAllCookiesBtn = document.getElementById('acceptAllCookiesBtn');
     const refuseAllCookiesBtn = document.getElementById('refuseAllCookiesBtn');
-    const manageCookiesBtn = document.getElementById('manageCookiesBtn');
+    const manageCookiesBtn = document.getElementById('manageCookiesBtn'); // Botão no banner
     const granularCookieModal = document.getElementById('granularCookieModal');
     const saveGranularPreferencesBtn = document.getElementById('saveGranularPreferencesBtn');
     const granularModalCloseButton = document.getElementById('granularModalCloseButton');
@@ -168,71 +168,69 @@ function initializeCookieFunctionality() {
     const cookieAnalyticsCheckbox = document.getElementById('cookieAnalytics');
     const cookieMarketingCheckbox = document.getElementById('cookieMarketing');
 
-    // Esta é a referência ao botão extra que estava no seu arquivo antigo
+    // Botão "Gerenciar Preferências de Cookies" que fica no rodapé
     const openGranularCookieModalBtn = document.getElementById('openGranularCookieModalBtn');
 
     // Funções auxiliares para mostrar/ocultar elementos
     const showCookieBanner = () => { if (!localStorage.getItem('cookieConsent') && cookieConsentBanner) cookieConsentBanner.classList.add('show'); };
     const hideCookieBanner = () => { if (cookieConsentBanner) cookieConsentBanner.classList.remove('show'); };
+    
     const showGranularCookieModal = () => {
         if (!granularCookieModal) return;
         if(cookieAnalyticsCheckbox) cookieAnalyticsCheckbox.checked = localStorage.getItem('analytics_storage') === 'granted';
         if(cookieMarketingCheckbox) cookieMarketingCheckbox.checked = localStorage.getItem('ad_storage') === 'granted';
-        // A lógica correta para o CSS atual é remover a classe 'hidden'
         granularCookieModal.classList.remove('hidden');
+        // Força o navegador a aplicar a mudança antes de adicionar a classe de transição
+        setTimeout(() => {
+            granularCookieModal.classList.add('show');
+        }, 10);
     };
-    const hideGranularCookieModal = () => { if(granularCookieModal) granularCookieModal.classList.add('hidden'); };
+    
+    const hideGranularCookieModal = () => { 
+        if(granularCookieModal) {
+            granularCookieModal.classList.remove('show');
+            setTimeout(() => {
+                granularCookieModal.classList.add('hidden');
+            }, 300); // Deve corresponder à duração da transição no CSS
+        }
+    };
+
     const updateGtagConsent = (consent) => { if(typeof gtag === 'function') { gtag('consent', 'update', consent); } };
 
     // Adiciona os eventos aos botões
-    if (acceptAllCookiesBtn) {
-        acceptAllCookiesBtn.addEventListener('click', () => {
-            updateGtagConsent({ 'analytics_storage': 'granted', 'ad_storage': 'granted' });
-            localStorage.setItem('cookieConsent', 'accepted');
-            hideCookieBanner();
-        });
-    }
+    acceptAllCookiesBtn?.addEventListener('click', () => {
+        updateGtagConsent({ 'analytics_storage': 'granted', 'ad_storage': 'granted' });
+        localStorage.setItem('cookieConsent', 'accepted');
+        hideCookieBanner();
+    });
 
-    if (refuseAllCookiesBtn) {
-        refuseAllCookiesBtn.addEventListener('click', () => {
-            updateGtagConsent({ 'analytics_storage': 'denied', 'ad_storage': 'denied' });
-            localStorage.setItem('cookieConsent', 'refused');
-            hideCookieBanner();
-        });
-    }
+    refuseAllCookiesBtn?.addEventListener('click', () => {
+        updateGtagConsent({ 'analytics_storage': 'denied', 'ad_storage': 'denied' });
+        localStorage.setItem('cookieConsent', 'refused');
+        hideCookieBanner();
+    });
 
-    // Listener para o botão "Gerenciar cookies"
-    if (manageCookiesBtn) {
-        manageCookiesBtn.addEventListener('click', showGranularCookieModal);
-    }
+    // Listener para o botão "Gerenciar cookies" no BANNER
+    manageCookiesBtn?.addEventListener('click', showGranularCookieModal);
     
-    // Listener para o botão extra do arquivo antigo
-    if (openGranularCookieModalBtn) {
-        openGranularCookieModalBtn.addEventListener('click', showGranularCookieModal);
-    }
+    // Listener para o botão "Gerenciar Preferências de Cookies" no RODAPÉ
+    openGranularCookieModalBtn?.addEventListener('click', showGranularCookieModal);
     
-    if (granularModalCloseButton) {
-        granularModalCloseButton.addEventListener('click', hideGranularCookieModal);
-    }
-
-    if (cancelGranularPreferencesBtn) {
-        cancelGranularPreferencesBtn.addEventListener('click', hideGranularCookieModal);
-    }
+    granularModalCloseButton?.addEventListener('click', hideGranularCookieModal);
+    cancelGranularPreferencesBtn?.addEventListener('click', hideGranularCookieModal);
     
-    if (saveGranularPreferencesBtn) {
-        saveGranularPreferencesBtn.addEventListener('click', () => {
-            const consent = { 
-                'analytics_storage': cookieAnalyticsCheckbox.checked ? 'granted' : 'denied', 
-                'ad_storage': cookieMarketingCheckbox.checked ? 'granted' : 'denied' 
-            };
-            updateGtagConsent(consent);
-            localStorage.setItem('cookieConsent', 'managed');
-            localStorage.setItem('analytics_storage', consent.analytics_storage);
-            localStorage.setItem('ad_storage', consent.ad_storage);
-            hideGranularCookieModal();
-            hideCookieBanner();
-        });
-    }
+    saveGranularPreferencesBtn?.addEventListener('click', () => {
+        const consent = { 
+            'analytics_storage': cookieAnalyticsCheckbox.checked ? 'granted' : 'denied', 
+            'ad_storage': cookieMarketingCheckbox.checked ? 'granted' : 'denied' 
+        };
+        updateGtagConsent(consent);
+        localStorage.setItem('cookieConsent', 'managed');
+        localStorage.setItem('analytics_storage', consent.analytics_storage);
+        localStorage.setItem('ad_storage', consent.ad_storage);
+        hideGranularCookieModal();
+        hideCookieBanner();
+    });
 
     // Exibe o banner inicial se necessário
     showCookieBanner();
