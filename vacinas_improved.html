@@ -372,7 +372,7 @@
   <script src="global-scripts.js"></script>
 
   <script>
-    document.addEventListener("DOMContentLoaded", function() {
+        document.addEventListener("DOMContentLoaded", function() {
         const resultadoDiv = document.getElementById("resultado");
         const btnCalcular = document.getElementById("btnCalcular");
         const btnLimpar = document.getElementById("btnLimpar");
@@ -826,25 +826,6 @@
             resultadoDiv.style.display = "none";
         }
 
-        // Função para gerar PDF
-        function generatePDF() {
-            if (resultadoDiv.style.display === "none") {
-                alert("Por favor, calcule o calendário de vacinação antes de gerar o PDF.");
-                return;
-            }
-            
-            const element = resultadoDiv;
-            const opt = {
-                margin: 1,
-                filename: "calendario-vacinacao-infantil.pdf",
-                image: { type: "jpeg", quality: 0.98 },
-                html2canvas: { scale: 2 },
-                jsPDF: { unit: "in", format: "letter", orientation: "portrait" }
-            };
-            
-            html2pdf().set(opt).from(element).save();
-        }
-
         // Função para abrir NANDA, NIC, NOC
         function openNandaNicNoc() {
             window.open("https://www.calculadorasdeenfermagem.com.br/nanda-nic-noc.html", "_blank");
@@ -858,13 +839,36 @@
         // Event listeners
         btnCalcular.addEventListener("click", calculateVaccineSchedule);
         btnLimpar.addEventListener("click", clearFields);
-        btnGerarPDF.addEventListener("click", generatePDF);
+        
+        // CORREÇÃO APLICADA AQUI
+        btnGerarPDF.addEventListener('click', () => {
+            // Verifica se um cálculo já foi realizado
+            if (resultadoDiv.style.display === 'none' || resultadoDiv.innerHTML.trim() === '') {
+                alert('Por favor, clique em "Calcular" primeiro para gerar o PDF.');
+                return;
+            }
+            
+            // Verifica se a função global existe antes de chamá-la
+            if (typeof gerarPDFGlobal === 'function') {
+                gerarPDFGlobal({
+                    titulo: 'Calendário de Vacinação Infantil',
+                    subtitulo: 'Relatório de Cálculo de Vacinas por Idade',
+                    nomeArquivo: 'relatorio_vacinacao_infantil.pdf',
+                    seletorConteudo: '.main-content-wrapper' // Este seletor captura todo o conteúdo principal
+                });
+            } else {
+                console.error('A função global gerarPDFGlobal não foi encontrada.');
+                alert('Ocorreu um erro ao tentar gerar o PDF. A função necessária não foi encontrada.');
+            }
+        });
+
         btnNandaNicNoc.addEventListener("click", openNandaNicNoc);
         btnVisualizarCalendario.addEventListener("click", visualizarCalendario);
 
         // Inicializar a página
         createAgeSections();
     });
+
   </script>
 
 </body>
