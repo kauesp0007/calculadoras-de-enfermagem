@@ -513,11 +513,10 @@ function initializeGlobalFunctions() {
         }
     }
     initVLibras();
-  // =================================================================
-// INÍCIO DO BLOCO DE CÓDIGO CORRIGIDO PARA O TRADUTOR
+// =================================================================
+// INÍCIO DO BLOCO DE CÓDIGO FINAL PARA O TRADUTOR
 // =================================================================
 
-// Função para inicializar o Google Tradutor e o seletor personalizado
 function inicializarGoogleTradutor() {
     // Previne a duplicação do script
     if (document.querySelector('script[src*="translate.google.com"]')) {
@@ -532,9 +531,6 @@ function inicializarGoogleTradutor() {
             autoDisplay: false,
             layout: google.translate.TranslateElement.InlineLayout.SIMPLE
         }, 'google_translate_element');
-        
-        // Chama a nossa função de vinculação aprimorada
-        vincularSeletorPersonalizado();
     };
 
     // Carrega a API do Google Tradutor
@@ -542,14 +538,18 @@ function inicializarGoogleTradutor() {
     script.type = 'text/javascript';
     script.src = '//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit';
     document.body.appendChild(script);
+
+    // Vincula o nosso menu personalizado
+    vincularSeletorPersonalizado();
 }
 
-// Função aprimorada para conectar nosso menu ao widget do Google
 function vincularSeletorPersonalizado() {
     const languageSwitcher = document.getElementById('language-switcher');
-    if (!languageSwitcher) return;
+    if (!languageSwitcher) {
+        console.error("Elemento #language-switcher não encontrado.");
+        return;
+    }
 
-    // Adiciona o evento de clique ao nosso menu de bandeiras
     languageSwitcher.addEventListener('click', function(event) {
         event.preventDefault();
         const target = event.target.closest('.language-option');
@@ -557,49 +557,28 @@ function vincularSeletorPersonalizado() {
 
         const langCode = target.getAttribute('data-lang');
         
-        // Tenta encontrar o seletor do Google e acioná-lo
-        acionarTraducaoGoogle(langCode);
+        // Encontra o iframe do Google que contém as opções de idioma
+        const googleIframe = document.querySelector('.goog-te-menu-frame');
+        if (!googleIframe) {
+            console.error("Iframe do Google Tradutor (.goog-te-menu-frame) não encontrado.");
+            return;
+        }
+
+        // Encontra o link do idioma específico dentro do iframe
+        const langLink = googleIframe.contentWindow.document.querySelector('.goog-te-menu2-item[value="' + langCode + '"]');
+        if (langLink) {
+            // Simula um clique real no link do idioma
+            langLink.click();
+        } else {
+            console.error("Link para o idioma '" + langCode + "' não encontrado dentro do iframe do Google.");
+        }
     });
 }
 
-// NOVA FUNÇÃO: Tenta repetidamente encontrar e acionar o seletor do Google
-function acionarTraducaoGoogle(langCode) {
-    const googleTranslateElement = document.getElementById('google_translate_element');
-    if (!googleTranslateElement) {
-        console.error("Elemento 'google_translate_element' não encontrado.");
-        return;
-    }
-
-    let attempts = 0;
-    const maxAttempts = 10;
-    const intervalTime = 200; // ms
-
-    // Cria um intervalo para verificar se o seletor do Google já foi renderizado
-    const interval = setInterval(function() {
-        const googleSelect = googleTranslateElement.querySelector('select.goog-te-combo');
-        
-        if (googleSelect) {
-            // Se encontrou o seletor, para de tentar
-            clearInterval(interval);
-            
-            // Define o valor e dispara o evento para traduzir
-            googleSelect.value = langCode;
-            googleSelect.dispatchEvent(new Event('change'));
-            
-        } else {
-            // Se não encontrou, incrementa a tentativa
-            attempts++;
-            if (attempts >= maxAttempts) {
-                clearInterval(interval);
-                console.error("Não foi possível encontrar o seletor do Google (goog-te-combo) após " + maxAttempts + " tentativas.");
-            }
-        }
-    }, intervalTime);
-}
-
 // =================================================================
-// FIM DO BLOCO DE CÓDIGO CORRIGIDO
+// FIM DO BLOCO DE CÓDIGO FINAL
 // =================================================================
+===============================================
 
     
     inicializarTooltips(); 
