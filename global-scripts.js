@@ -514,7 +514,7 @@ function initializeGlobalFunctions() {
     }
     initVLibras();
 // =================================================================
-// INÍCIO DO BLOCO DE CÓDIGO FINAL PARA O TRADUTOR
+// INÍCIO DO BLOCO DE CÓDIGO FINAL E CORRIGIDO PARA O TRADUTOR
 // =================================================================
 
 function inicializarGoogleTradutor() {
@@ -523,7 +523,7 @@ function inicializarGoogleTradutor() {
         return;
     }
 
-    // Função de callback que o Google irá chamar
+    // Função de callback que o Google irá chamar quando estiver pronto
     window.googleTranslateElementInit = function() {
         new google.translate.TranslateElement({
             pageLanguage: 'pt',
@@ -551,26 +551,25 @@ function vincularSeletorPersonalizado() {
     }
 
     languageSwitcher.addEventListener('click', function(event) {
+        // 1. Impede que o '#' seja adicionado à URL
         event.preventDefault();
+
         const target = event.target.closest('.language-option');
         if (!target) return;
 
         const langCode = target.getAttribute('data-lang');
         
-        // Encontra o iframe do Google que contém as opções de idioma
-        const googleIframe = document.querySelector('.goog-te-menu-frame');
-        if (!googleIframe) {
-            console.error("Iframe do Google Tradutor (.goog-te-menu-frame) não encontrado.");
-            return;
-        }
+        // 2. Encontra o <select> que o Google cria no seu documento
+        const googleSelect = document.querySelector('select.goog-te-combo');
 
-        // Encontra o link do idioma específico dentro do iframe
-        const langLink = googleIframe.contentWindow.document.querySelector('.goog-te-menu2-item[value="' + langCode + '"]');
-        if (langLink) {
-            // Simula um clique real no link do idioma
-            langLink.click();
+        if (googleSelect) {
+            // 3. Define o valor do select para o idioma escolhido
+            googleSelect.value = langCode;
+            
+            // 4. Dispara o evento 'change' para que o Google inicie a tradução
+            googleSelect.dispatchEvent(new Event('change'));
         } else {
-            console.error("Link para o idioma '" + langCode + "' não encontrado dentro do iframe do Google.");
+            console.error("Seletor do Google (select.goog-te-combo) não foi encontrado. O widget pode não ter carregado a tempo.");
         }
     });
 }
