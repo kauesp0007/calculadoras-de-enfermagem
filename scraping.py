@@ -14,19 +14,22 @@ def buscar_vagas(url, retries=5, delay=5):
     
     for i in range(retries):
         try:
-            response = requests.get(url, headers=headers, timeout=10) # Aumentando o timeout para 10 segundos
+            response = requests.get(url, headers=headers, timeout=10)
             response.raise_for_status()  # Lança um erro para status de resposta ruins (4xx ou 5xx)
             soup = BeautifulSoup(response.content, 'html.parser')
             
-            all_opportunities = soup.find_all('div', class_='card-oportunidade')
+            # --- SELETORES ATUALIZADOS ---
+            # O seletor foi ajustado para encontrar a div correta das vagas.
+            all_opportunities = soup.find_all('div', class_='px-4 py-3')
             vagas_encontradas = []
             
             for item in all_opportunities:
                 try:
-                    vaga_titulo = item.find('h3', class_='card-title').text.strip()
-                    vaga_empresa = item.find('p', class_='card-company').text.strip()
-                    vaga_local = item.find('p', class_='card-location').text.strip()
-                    vaga_link = item.find('a', class_='card-link')['href']
+                    # Seletores foram ajustados para a nova estrutura
+                    vaga_titulo = item.find('h3', class_='text-lg font-bold').text.strip()
+                    vaga_empresa = item.find('div', class_='text-sm text-gray-600').text.strip()
+                    vaga_local = item.find('p', class_='text-sm text-gray-500').text.strip()
+                    vaga_link = item.find('a', href=True)['href']
 
                     vagas_encontradas.append({
                         "titulo": vaga_titulo,
@@ -37,7 +40,13 @@ def buscar_vagas(url, retries=5, delay=5):
                 except AttributeError:
                     continue
             
-            return vagas_encontradas
+            # Se nenhuma vaga for encontrada, o script continuará e retornará uma lista vazia,
+            # mas vamos adicionar um log para informar se algo for encontrado.
+            if vagas_encontradas:
+                return vagas_encontradas
+            else:
+                print("Nenhuma vaga encontrada com os seletores atuais.")
+                return []
 
         except (requests.exceptions.RequestException, requests.exceptions.HTTPError) as e:
             print(f"Tentativa {i + 1} de {retries} falhou: {e}")
