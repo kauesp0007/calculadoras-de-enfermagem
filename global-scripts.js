@@ -513,6 +513,43 @@ function initializeGlobalFunctions() {
         }
     }
     initVLibras();
+  // Função para inicializar o Google Tradutor
+function inicializarGoogleTradutor() {
+    // Verifica se o script já foi adicionado para não duplicar
+    if (document.querySelector('script[src*="translate.google.com"]')) {
+        return;
+    }
+
+    // Cria a função de callback que o Google irá chamar
+    window.googleTranslateElementInit = function() {
+        new google.translate.TranslateElement({
+            // Inclui os idiomas que você quer oferecer
+            includedLanguages: 'pt,en,es',
+            // Define o idioma padrão do site
+            pageLanguage: 'pt',
+            // Layout: Simples, para podermos estilizar
+            layout: google.translate.TranslateElement.InlineLayout.SIMPLE,
+            // Desativa a exibição do banner do Google no topo da página
+            autoDisplay: false
+        }, 'google_translate_element');
+    };
+
+    // Cria e adiciona a tag de script para carregar a API do Google Tradutor
+    const script = document.createElement('script');
+    script.type = 'text/javascript';
+    script.src = '//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit';
+    document.body.appendChild(script);
+}
+
+// ... dentro da sua função initializeGlobalFunctions() ...
+function initializeGlobalFunctions() {
+    // ... todo o seu código existente ...
+
+    // Adicione esta chamada no final da função
+    inicializarGoogleTradutor();
+    
+    // ... o resto do seu código, como a chamada para inicializarTooltips() ...
+}
     
     inicializarTooltips(); 
 }
