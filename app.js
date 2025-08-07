@@ -92,6 +92,8 @@ const state = {
 // Inicialização da aplicação
 function initializeApp() {
     console.log('Inicializando aplicação...');
+    inicializarGoogleTradutor();
+    checkAuthStatus();
     / Adicione esta função no início do seu app.js
 function inicializarGoogleTradutor() {
     // Previne a duplicação do script
