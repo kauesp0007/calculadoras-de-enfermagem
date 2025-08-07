@@ -1,3 +1,10 @@
+function criarIconesLucide() {
+    if (typeof lucide !== 'undefined' && typeof lucide.createIcons === 'function') {
+        lucide.createIcons();
+    } else {
+        console.warn("LUCIDE ICONS: Biblioteca Lucide não carregada. Ícones não serão renderizados.");
+    }
+}
 // Estado global da aplicação
 const state = {
     isAuthenticated: false,
