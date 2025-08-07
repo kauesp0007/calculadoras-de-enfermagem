@@ -93,7 +93,7 @@ const state = {
 function initializeApp() {
     console.log('Inicializando aplicação...');
     setupGoogleTranslator();
-    
+    }
         / Adicione esta função no início do seu app.js
 function setupGoogleTranslator() {
     // 1. VERIFICA SE O MENU DE BANDEIRAS ESTÁ NA TELA
