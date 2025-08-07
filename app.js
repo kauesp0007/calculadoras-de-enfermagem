@@ -81,9 +81,42 @@ const state = {
     currentMessageIndex: 0
 };
 
+
 // Inicialização da aplicação
 function initializeApp() {
     console.log('Inicializando aplicação...');
+    / Adicione esta função no início do seu app.js
+function inicializarGoogleTradutor() {
+    // Previne a duplicação do script
+    if (document.querySelector('script[src*="translate.google.com"]')) {
+        // Se o script já existe, apenas garante que o widget seja renderizado
+        if (window.google && window.google.translate) {
+            new google.translate.TranslateElement({
+                pageLanguage: 'pt',
+                includedLanguages: 'pt,en,es',
+                layout: google.translate.TranslateElement.InlineLayout.SIMPLE,
+                autoDisplay: false
+            }, 'google_translate_element');
+        }
+        return;
+    }
+
+    // Função de callback que o Google irá chamar
+    window.googleTranslateElementInit = function() {
+        new google.translate.TranslateElement({
+            pageLanguage: 'pt',
+            includedLanguages: 'pt,en,es',
+            layout: google.translate.TranslateElement.InlineLayout.SIMPLE,
+            autoDisplay: false
+        }, 'google_translate_element');
+    };
+
+    // Carrega a API do Google Tradutor
+    const script = document.createElement('script');
+    script.type = 'text/javascript';
+    script.src = '//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit';
+    document.body.appendChild(script);
+}
     
     // Verificar se há usuário logado no localStorage
     checkAuthStatus();
