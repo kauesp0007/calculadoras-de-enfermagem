@@ -121,20 +121,26 @@ self.addEventListener('install', event => {
   );
 });
 
-// Evento 'fetch': é acionado sempre que a página tenta obter um recurso (ex: um CSS, uma imagem).
-self.addEventListener('fetch', event => {
-  event.respondWith(
-    caches.match(event.request)
-      .then(response => {
-        // Se o recurso for encontrado no cache, retorna-o diretamente.
-        if (response) {
-          return response;
-        }
-        // Se não for encontrado, busca na rede.
-        return fetch(event.request);
-      }
-    )
-  );
+self.addEventListener('fetch', function(event) {
+    // Verifica se a URL da solicitação é para um recurso externo (ex: Google)
+    if (event.request.url.indexOf('http' ) !== 0 || event.request.url.indexOf(self.location.origin) !== 0) {
+        // Se for externa, não faz nada e deixa o navegador lidar com ela.
+        // Isso permite que scripts de terceiros (Google Tradutor, Analytics) funcionem.
+        return;
+    }
+
+    // Se a solicitação for para o seu próprio domínio, usa a estratégia de cache.
+    event.respondWith(
+        caches.match(event.request)
+            .then(function(response) {
+                // Cache hit - return response
+                if (response) {
+                    return response;
+                }
+                return fetch(event.request);
+            }
+        )
+    );
 });
 
 // Evento 'activate': é acionado quando um novo service worker é ativado.
