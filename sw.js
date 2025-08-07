@@ -87,6 +87,23 @@ const urlsToCache = [
   '/favicon.ico',
   '/iconpages.webp',
   '/icontopbar1.webp',
+  '/meta1.webp',
+  '/meta2.webp',
+  '/meta3.webp',
+  '/meta4.webp',
+  '/meta5.webp',
+  '/meta6.webp',
+  '/selolgpd.webp',
+  '/pentagono.webp',
+  '/iconrodape1.webp',
+  '/iconcompface1.webp',
+  '/iconcomptwiter1.webp',
+  '/seringainsulina.webp',
+  '/seloacessibilidade.webp',
+  '/metasinternacionais.webp',
+  '/selosustentabilidade.webp',
+  '/icontopbar1.webp',
+
   // Recursos externos também podem ser cacheados
   'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css',
   'https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@700;900&family=Inter:wght@400;600;700&display=swap'
