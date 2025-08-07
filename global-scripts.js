@@ -513,14 +513,18 @@ function initializeGlobalFunctions() {
         }
     }
     initVLibras();
-  // Função para inicializar o Google Tradutor e o seletor personalizado
+  // =================================================================
+// INÍCIO DO BLOCO DE CÓDIGO CORRIGIDO PARA O TRADUTOR
+// =================================================================
+
+// Função para inicializar o Google Tradutor e o seletor personalizado
 function inicializarGoogleTradutor() {
-    // Verifica se o script já foi adicionado para não duplicar
+    // Previne a duplicação do script
     if (document.querySelector('script[src*="translate.google.com"]')) {
         return;
     }
 
-    // 1. Função de callback que o Google irá chamar
+    // Função de callback que o Google irá chamar
     window.googleTranslateElementInit = function() {
         new google.translate.TranslateElement({
             pageLanguage: 'pt',
@@ -529,48 +533,74 @@ function inicializarGoogleTradutor() {
             layout: google.translate.TranslateElement.InlineLayout.SIMPLE
         }, 'google_translate_element');
         
-        // Aguarda um instante para o widget ser renderizado antes de tentarmos usá-lo
-        setTimeout(vincularSeletorPersonalizado, 500);
+        // Chama a nossa função de vinculação aprimorada
+        vincularSeletorPersonalizado();
     };
 
-    // 2. Cria e adiciona a tag de script para carregar a API do Google Tradutor
+    // Carrega a API do Google Tradutor
     const script = document.createElement('script');
     script.type = 'text/javascript';
     script.src = '//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit';
     document.body.appendChild(script);
 }
 
-// 3. Nova função para conectar nosso menu ao widget do Google
+// Função aprimorada para conectar nosso menu ao widget do Google
 function vincularSeletorPersonalizado() {
     const languageSwitcher = document.getElementById('language-switcher');
     if (!languageSwitcher) return;
 
+    // Adiciona o evento de clique ao nosso menu de bandeiras
     languageSwitcher.addEventListener('click', function(event) {
-        // Impede a ação padrão do link
         event.preventDefault();
-
-        // Encontra o link que foi clicado
         const target = event.target.closest('.language-option');
         if (!target) return;
 
         const langCode = target.getAttribute('data-lang');
         
-        // Encontra o widget escondido do Google
-        const googleTranslateElement = document.getElementById('google_translate_element');
-        const googleSelect = googleTranslateElement.querySelector('select.goog-te-combo');
-
-        if (googleSelect) {
-            // Define o valor do select do Google para o idioma escolhido
-            googleSelect.value = langCode;
-            
-            // Dispara o evento 'change' para que o Google inicie a tradução
-            const event = new Event('change');
-            googleSelect.dispatchEvent(event);
-        } else {
-            console.error("Seletor do Google Tradutor (goog-te-combo) não encontrado.");
-        }
+        // Tenta encontrar o seletor do Google e acioná-lo
+        acionarTraducaoGoogle(langCode);
     });
 }
+
+// NOVA FUNÇÃO: Tenta repetidamente encontrar e acionar o seletor do Google
+function acionarTraducaoGoogle(langCode) {
+    const googleTranslateElement = document.getElementById('google_translate_element');
+    if (!googleTranslateElement) {
+        console.error("Elemento 'google_translate_element' não encontrado.");
+        return;
+    }
+
+    let attempts = 0;
+    const maxAttempts = 10;
+    const intervalTime = 200; // ms
+
+    // Cria um intervalo para verificar se o seletor do Google já foi renderizado
+    const interval = setInterval(function() {
+        const googleSelect = googleTranslateElement.querySelector('select.goog-te-combo');
+        
+        if (googleSelect) {
+            // Se encontrou o seletor, para de tentar
+            clearInterval(interval);
+            
+            // Define o valor e dispara o evento para traduzir
+            googleSelect.value = langCode;
+            googleSelect.dispatchEvent(new Event('change'));
+            
+        } else {
+            // Se não encontrou, incrementa a tentativa
+            attempts++;
+            if (attempts >= maxAttempts) {
+                clearInterval(interval);
+                console.error("Não foi possível encontrar o seletor do Google (goog-te-combo) após " + maxAttempts + " tentativas.");
+            }
+        }
+    }, intervalTime);
+}
+
+// =================================================================
+// FIM DO BLOCO DE CÓDIGO CORRIGIDO
+// =================================================================
+
     
     inicializarTooltips(); 
 }
