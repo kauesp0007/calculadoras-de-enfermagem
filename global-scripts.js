@@ -1,5 +1,22 @@
 /**
  * =================================================================================
+ * REGISTO DO SERVICE WORKER
+ * Este código verifica se o navegador suporta Service Workers e, se suportar,
+ * regista o ficheiro sw.js para ativar o cache offline.
+ * =================================================================================
+ */
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js').then(registration => {
+      console.log('Service Worker registado com sucesso:', registration.scope);
+    }, err => {
+      console.log('Registo do Service Worker falhou:', err);
+    });
+  });
+}
+
+/**
+ * =================================================================================
  * ARQUIVO DE SCRIPTS GLOBAIS - VERSÃO CORRIGIDA E UNIFICADA
  * Este ficheiro contém toda a lógica JavaScript partilhada pelo site.
  * =================================================================================
