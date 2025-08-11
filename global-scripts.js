@@ -96,6 +96,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (headerContainer) {
                 headerContainer.innerHTML = html;
                 initializeNavigationMenu();
+              initializeSiteSearch();
             }
         })
         .catch(error => console.warn('Não foi possível carregar o menu global:', error));
@@ -515,4 +516,133 @@ function initializeGlobalFunctions() {
     initVLibras();
   
     inicializarTooltips(); 
+}
+/* ============================
+   SEARCH / PESQUISA NO SITE
+   - Modo padrão: usa Google site:yourdomain
+   - Modo local (opcional): define useGoogle = false e crie /search-index.json
+   ============================ */
+function initializeSiteSearch() {
+    // Formulários (desktop e mobile)
+    const formDesktop = document.getElementById('siteSearchForm');
+    const inputDesktop = document.getElementById('siteSearchInput');
+    const resultsDesktop = document.getElementById('siteSearchResults');
+
+    const formMobile = document.getElementById('siteSearchFormMobile');
+    const inputMobile = document.getElementById('siteSearchInputMobile');
+    const resultsMobile = document.getElementById('siteSearchResultsMobile');
+
+    // CONFIG: definir true -> usa Google site search (rápido, sem configuração)
+    // definir false -> usa /search-index.json (arquivo JSON com índice do site)
+    const useGoogle = true;
+    let localIndex = null;
+
+    if (!useGoogle) {
+        fetch('/search-index.json')
+            .then(r => r.ok ? r.json() : Promise.reject('index not found'))
+            .then(json => localIndex = json)
+            .catch(() => console.info('search-index.json não encontrado — fallback para Google se configurado.'));
+    }
+
+    function handleSubmit(query) {
+        if (!query || query.trim().length === 0) return;
+        const q = query.trim();
+        if (useGoogle) {
+            // abre numa nova aba uma pesquisa Google limitada ao domínio atual
+            const site = location.hostname;
+            const url = `https://www.google.com/search?q=site:${site}+${encodeURIComponent(q)}`;
+            window.open(url, '_blank');
+            return;
+        }
+        // pesquisa local
+        performLocalSearch(q, localIndex, resultsDesktop || resultsMobile);
+    }
+
+    // desktop
+    if (formDesktop && inputDesktop) {
+        formDesktop.addEventListener('submit', function(e) {
+            e.preventDefault();
+            handleSubmit(inputDesktop.value);
+        });
+        inputDesktop.addEventListener('input', function() {
+            if (!useGoogle && localIndex) performLocalSearch(this.value, localIndex, resultsDesktop);
+            if (!this.value) resultsDesktop?.classList.add('hidden');
+        });
+    }
+
+    // mobile
+    if (formMobile && inputMobile) {
+        formMobile.addEventListener('submit', function(e) {
+            e.preventDefault();
+            handleSubmit(inputMobile.value);
+            // ao submeter no mobile fecha o off-canvas (se existir)
+            const offCanvasMenu = document.getElementById('offCanvasMenu');
+            if (offCanvasMenu && offCanvasMenu.classList.contains('is-open')) {
+                offCanvasMenu.classList.remove('is-open');
+                document.getElementById('menuOverlay')?.classList.remove('is-open');
+                document.getElementById('menuOverlay').style.display = 'none';
+            }
+        });
+        inputMobile.addEventListener('input', function() {
+            if (!useGoogle && localIndex) performLocalSearch(this.value, localIndex, resultsMobile);
+            if (!this.value) resultsMobile?.classList.add('hidden');
+        });
+    }
+
+    // fechar painel de resultados ao clicar fora
+    document.addEventListener('click', function(e) {
+        if (!e.target.closest('#siteSearchForm') && !e.target.closest('#siteSearchResults')) {
+            resultsDesktop?.classList.add('hidden');
+        }
+        if (!e.target.closest('#siteSearchFormMobile') && !e.target.closest('#siteSearchResultsMobile')) {
+            resultsMobile?.classList.add('hidden');
+        }
+    });
+}
+
+// Função de pesquisa local (procura simples por título/snippet/content)
+function performLocalSearch(query, index, resultsContainer) {
+    if (!resultsContainer) return;
+    if (!index) {
+        resultsContainer.innerHTML = `<div class="result-item">Índice de pesquisa não encontrado.</div>`;
+        resultsContainer.classList.remove('hidden');
+        return;
+    }
+    const q = query.trim().toLowerCase();
+    if (!q) {
+        resultsContainer.classList.add('hidden');
+        return;
+    }
+    const hits = [];
+    for (let i = 0; i < index.length; i++) {
+        const item = index[i];
+        const title = (item.title || '').toLowerCase();
+        const snippet = (item.snippet || '').toLowerCase();
+        const content = (item.content || '').toLowerCase();
+        if (title.includes(q) || snippet.includes(q) || content.includes(q)) {
+            hits.push(item);
+            if (hits.length >= 20) break;
+        }
+    }
+    if (hits.length === 0) {
+        resultsContainer.innerHTML = `<div class="result-item">Nenhum resultado encontrado para "<strong>${escapeHtml(query)}</strong>".</div>`;
+    } else {
+        resultsContainer.innerHTML = hits.map(h => {
+            const title = escapeHtml(h.title || h.url);
+            const url = h.url || '#';
+            const snip = escapeHtml(h.snippet || (h.content || '').slice(0, 120));
+            return `<div class="result-item"><a href="${url}">${title}</a><div class="result-snippet">${snip}</div></div>`;
+        }).join('');
+    }
+    resultsContainer.classList.remove('hidden');
+}
+
+// pequena função utilitária
+function escapeHtml(str) {
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;');
 }
