@@ -114,7 +114,8 @@ function initializeNavigationMenu() {
     const hamburgerButton = document.getElementById('hamburgerButton');
     const offCanvasMenu = document.getElementById('offCanvasMenu');
     const menuOverlay = document.getElementById('menuOverlay');
-    const closeMenuBtn = document.getElementById('closeOffCanvasMenu') || document.getElementById('closeMenuButton');
+    // COLE ESTA LINHA CORRIGIDA NO LUGAR DA ANTIGA:
+const closeMenuBtn = document.getElementById('closeOffCanvasMenu') || document.getElementById('closeMenuButton');
 
     const openNavMenu = () => {
         if(offCanvasMenu) {
@@ -152,22 +153,6 @@ function initializeNavigationMenu() {
             }
         });
     });
-
-    // Código da busca:
-    const searchFormMobile = document.getElementById('searchFormMobile');
-    const searchFormDesktop = document.getElementById('searchFormDesktop');
-
-    function handleSearch(event) {
-        event.preventDefault();
-        const query = event.target.querySelector('input[name="q"]').value;
-        if (query) {
-             // Redireciona para a página de busca interna
-            window.location.href = `/search.html?q=${encodeURIComponent(query)}`;
-        }
-    }
-
-    searchFormMobile?.addEventListener('submit', handleSearch);
-    searchFormDesktop?.addEventListener('submit', handleSearch);
 }
 function inicializarTooltips() {
     const elementosComTooltip = document.querySelectorAll('[data-tooltip]');
