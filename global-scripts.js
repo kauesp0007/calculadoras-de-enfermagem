@@ -304,10 +304,18 @@ function initializeGlobalFunctions() {
         setTimeout(() => statusMessageDiv.textContent = '', 3000);
     }
 
+    // Ação para aumentar o tamanho da fonte, separada da função de aplicação
+    function alternarTamanhoFonte() {
+        // Correção para ciclar corretamente de 1 a 5
+        currentFontSize = (currentFontSize % 5) + 1;
+        updateFontSize();
+    }
+
+    // Função que aplica o tamanho da fonte
     function updateFontSize(announce = true) {
         const sizes = ['1em', '1.15em', '1.3em', '1.5em', '2em'];
         const labels = ['Normal', 'Médio', 'Grande', 'Extra Grande', 'Máximo'];
-        currentFontSize = (currentFontSize % sizes.length) + 1;
+        // Acessa o índice correto com base em currentFontSize, que varia de 1 a 5
         const newIndex = currentFontSize - 1;
         body.style.fontSize = sizes[newIndex];
         if (fontSizeText) fontSizeText.textContent = labels[newIndex];
@@ -430,13 +438,8 @@ function initializeGlobalFunctions() {
         announceStatus('Configurações de acessibilidade redefinidas.');
     }
     
-    // Função para alternar o tamanho da fonte, que será chamada pelos botões
-    function alternarTamanhoFonte() {
-        currentFontSize = (currentFontSize % 5) + 1;
-        updateFontSize();
-    }
-
     const accessibilityActions = [
+        // Correção: `action` agora chama a nova função `alternarTamanhoFonte`
         { ids: ['btnAlternarTamanhoFonte', 'btnAlternarTamanhoFontePWA'], action: alternarTamanhoFonte },
         { ids: ['btnAlternarEspacamentoLinha', 'btnAlternarEspacamentoLinhaPWA'], action: updateLineHeight },
         { ids: ['btnAlternarEspacamentoLetra', 'btnAlternarEspacamentoLetraPWA'], action: updateLetterSpacing },
@@ -486,8 +489,10 @@ function initializeGlobalFunctions() {
     initializeCookieFunctionality();
 
     function loadAccessibilitySettings() {
-        currentFontSize = parseInt(localStorage.getItem('fontSize') || '1', 10);
-        updateFontSize(false);
+        const savedFontSize = parseInt(localStorage.getItem('fontSize') || '1', 10);
+        currentFontSize = savedFontSize;
+        updateFontSize(false); // Aplica a fonte salva. 'false' evita o anúncio inicial.
+        
         currentLineHeight = parseInt(localStorage.getItem('lineHeight') || '1', 10);
         updateLineHeight(false);
         currentLetterSpacing = parseInt(localStorage.getItem('letterSpacing') || '1', 10);
