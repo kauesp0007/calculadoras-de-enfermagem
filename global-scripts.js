@@ -516,3 +516,25 @@ function initializeGlobalFunctions() {
   
     inicializarTooltips(); 
 }
+document.addEventListener('DOMContentLoaded', function () {
+  const footer = document.querySelector('footer');
+  if (footer) {
+    const adContainer = document.createElement('div');
+    adContainer.className = 'my-8 flex justify-center';
+
+    const innerDiv = document.createElement('div');
+    innerDiv.id = 'container-62a5c8277a385b7247c1969a06823c61';
+
+    const adScript = document.createElement('script');
+    adScript.async = true;
+    adScript.setAttribute('data-cfasync', 'false');
+    adScript.src = '//pl27406653.profitableratecpm.com/62a5c8277a385b7247c1969a06823c61/invoke.js';
+
+    adContainer.appendChild(innerDiv);
+    footer.parentNode.insertBefore(adContainer, footer);
+    adContainer.appendChild(adScript);
+  } else {
+    console.warn('Footer não encontrado para inserir o anúncio.');
+  }
+});
+
