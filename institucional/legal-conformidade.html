@@ -147,7 +147,9 @@
     <main class="main-container-wrapper">
         <div class="max-w-7xl mx-auto">
             <h1 class="text-3xl font-bold text-gray-800 mb-2">Repositório de Conformidade</h1>
-            <p class="text-gray-600 mb-8">Gerencie as políticas e diretrizes do site.</p>
+            <p class="text-gray-600 mb-6">Gerencie as políticas e diretrizes do site.</p>
+            
+            <div id="pending-alerts" class="mb-6"></div>
 
             <div id="document-list" class="bg-white p-6 rounded-lg shadow-md">
                 <!-- Os documentos serão inseridos aqui pelo JavaScript -->
@@ -157,10 +159,10 @@
 
     <!-- Modal para Workflow de Nova Versão -->
     <div id="workflow-modal" class="modal-overlay">
-        <div class="modal-content">
+        <div class="modal-content" role="dialog" aria-modal="true" aria-labelledby="modal-doc-title">
             <div class="flex justify-between items-center mb-4">
-                <h2 class="text-2xl font-bold text-gray-800">Nova Versão: <span id="modal-doc-title"></span></h2>
-                <button onclick="closeModal('workflow-modal')" class="text-gray-500 hover:text-gray-800">&times;</button>
+                <h2 class="text-2xl font-bold text-gray-800" id="modal-doc-title"></h2>
+                <button onclick="closeModal('workflow-modal')" class="text-gray-500 hover:text-gray-800 text-2xl" aria-label="Fechar">&times;</button>
             </div>
             
             <div id="workflow-visualizer" class="mb-6">
@@ -186,10 +188,10 @@
 
     <!-- Modal para Histórico de Versões -->
     <div id="history-modal" class="modal-overlay">
-        <div class="modal-content">
+        <div class="modal-content" role="dialog" aria-modal="true" aria-labelledby="history-doc-title">
             <div class="flex justify-between items-center mb-4">
-                <h2 class="text-2xl font-bold text-gray-800">Histórico: <span id="history-doc-title"></span></h2>
-                <button onclick="closeModal('history-modal')" class="text-gray-500 hover:text-gray-800">&times;</button>
+                <h2 class="text-2xl font-bold text-gray-800" id="history-doc-title"></h2>
+                <button onclick="closeModal('history-modal')" class="text-gray-500 hover:text-gray-800 text-2xl" aria-label="Fechar">&times;</button>
             </div>
             <div id="history-content" class="max-h-96 overflow-y-auto">
                 <!-- History will be injected here -->
@@ -337,6 +339,48 @@
                     history: [
                          { version: '1.0', date: '2023-09-10', summary: 'Publicação inicial do documento.' },
                     ]
+                },
+                {
+                    id: 4,
+                    title: 'Política de Cookies',
+                    version: '1.2',
+                    lastUpdated: '2024-07-15',
+                    status: 'Publicado',
+                    history: [
+                        { version: '1.2', date: '2024-07-15', summary: 'Detalhes sobre cookies de terceiros.' },
+                        { version: '1.1', date: '2023-01-20', summary: 'Revisão e melhoria da clareza.' },
+                    ]
+                },
+                {
+                    id: 5,
+                    title: 'Declaração de Acessibilidade',
+                    version: '1.0',
+                    lastUpdated: '2024-02-25',
+                    status: 'Publicado',
+                    history: [
+                        { version: '1.0', date: '2024-02-25', summary: 'Publicação inicial do documento.' },
+                    ]
+                },
+                {
+                    id: 6,
+                    title: 'Declaração de Compromisso com a Sustentabilidade Digital',
+                    version: '1.1',
+                    lastUpdated: '2024-05-18',
+                    status: 'Publicado',
+                    history: [
+                        { version: '1.1', date: '2024-05-18', summary: 'Inclusão de metas para redução da pegada de carbono.' },
+                        { version: '1.0', date: '2024-01-10', summary: 'Publicação inicial do compromisso.' },
+                    ]
+                },
+                {
+                    id: 7,
+                    title: 'Relatório de Impacto Digital',
+                    version: '1.0',
+                    lastUpdated: '2024-08-01',
+                    status: 'Elaboração',
+                    history: [
+                        { version: '1.0', date: '2024-08-01', summary: 'Início da elaboração do primeiro relatório anual.' },
+                    ]
                 }
             ];
 
@@ -344,16 +388,41 @@
             let activeWorkflow = null;
 
             const documentListEl = document.getElementById('document-list');
+            const pendingAlertsEl = document.getElementById('pending-alerts');
             
             function renderDocuments() {
+                // Limpa a lista e o alerta
                 documentListEl.innerHTML = '';
+                pendingAlertsEl.innerHTML = '';
+
+                const pendingDocs = documents.filter(doc => doc.status !== 'Publicado');
+
+                // Mostra o alerta se houver documentos pendentes
+                if (pendingDocs.length > 0) {
+                    pendingAlertsEl.innerHTML = `
+                        <div class="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 rounded-md" role="alert">
+                          <p class="font-bold">Atenção!</p>
+                          <p>Existem ${pendingDocs.length} documento(s) com atualizações pendentes de aprovação.</p>
+                        </div>
+                    `;
+                }
+
                 documents.forEach(doc => {
                     const docEl = document.createElement('div');
                     docEl.className = 'grid grid-cols-5 items-center gap-4 py-4 border-b last:border-b-0';
+                    
+                    // Adiciona destaque visual para documentos com workflow pendente
+                    if (doc.status !== 'Publicado') {
+                        docEl.classList.add('bg-yellow-50', 'pl-4', 'border-l-4', 'border-yellow-400');
+                    }
+
                     docEl.innerHTML = `
-                        <div class="col-span-2 font-semibold text-gray-800">${doc.title}</div>
+                        <div class="col-span-2 font-semibold text-gray-800 flex items-center gap-3">
+                            ${doc.status !== 'Publicado' ? '<i class="fas fa-exclamation-triangle text-yellow-500" title="Workflow pendente"></i>' : ''}
+                            <span>${doc.title}</span>
+                        </div>
                         <div>v${doc.version}</div>
-                        <div><span class="status-badge status-${doc.status.toLowerCase().replace(' ', '')}">${doc.status}</span></div>
+                        <div><span class="status-badge status-${doc.status.toLowerCase().replace(/ /g, '')}">${doc.status}</span></div>
                         <div class="flex justify-end gap-2">
                             <button onclick="showHistory(${doc.id})" class="px-3 py-1 text-sm bg-gray-100 rounded-md hover:bg-gray-200">Ver Histórico</button>
                             <button onclick="startNewVersion(${doc.id})" class="px-3 py-1 text-sm bg-blue-100 text-blue-800 rounded-md hover:bg-blue-200">Nova Versão</button>
@@ -420,7 +489,7 @@
             }
 
             document.getElementById('workflow-action-btn').addEventListener('click', () => {
-                if (activeWorkflow.currentStep < workflowSteps.length - 1) {
+                if (activeWorkflow && activeWorkflow.currentStep < workflowSteps.length - 1) {
                     activeWorkflow.currentStep++;
                     const doc = documents.find(d => d.id === activeWorkflow.docId);
                     const newStatus = workflowSteps[activeWorkflow.currentStep];
@@ -464,12 +533,25 @@
                 
                 const mailtoLink = `mailto:${recipient}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
                 
-                // Abre o cliente de e-mail do usuário
-                window.location.href = mailtoLink;
+                window.open(mailtoLink, '_blank');
             }
 
-            window.openModal = (id) => document.getElementById(id).classList.add('visible');
-            window.closeModal = (id) => document.getElementById(id).classList.remove('visible');
+            window.openModal = (id) => {
+                const modal = document.getElementById(id);
+                if (modal) modal.classList.add('visible');
+            };
+            window.closeModal = (id) => {
+                const modal = document.getElementById(id);
+                if (modal) modal.classList.remove('visible');
+            };
+
+            document.addEventListener('keydown', (event) => {
+                if (event.key === 'Escape') {
+                    document.querySelectorAll('.modal-overlay.visible').forEach(modal => {
+                        modal.classList.remove('visible');
+                    });
+                }
+            });
 
             // Inicialização
             renderDocuments();
