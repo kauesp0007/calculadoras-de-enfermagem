@@ -1,0 +1,791 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <base href="https://www.calculadorasdeenfermagem.com.br/">
+    <title>Gerador de Quiz | Calculadoras de Enfermagem</title>
+    <meta name="robots" content="noindex, nofollow">
+    <meta name="description" content="Crie quizzes interativos para redes sociais. Ferramenta para gerar posts de perguntas e respostas para enfermagem.">
+    <link rel="canonical" href="https://www.calculadorasdeenfermagem.com.br/institucional/quiz.html">
+    <link rel="icon" href="images/favicon.png" type="image/png">
+    
+    <!-- Scripts e Estilos Globais do Site -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="global-styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Nunito+Sans:wght@700;800;900&display=swap" rel="stylesheet">
+
+    <!-- Scripts Específicos da Ferramenta -->
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+    
+    <style>
+        /* Estilos Globais do Template Principal */
+        :root {
+            --primary-color: #1a3e74;
+            --primary-dark: #122c50;
+            --text-color: #2c2c2c;
+            --primary-light: #2a5a94;
+            --success-color: #10B981;
+            --white: #ffffff;
+            --shadow: 0 4px 20px rgba(26, 62, 116, 0.1);
+            --border-radius: 12px;
+            --background-color: #f8f9fa;
+        }
+        #global-header-container .max-w-7xl, footer .max-w-7xl { max-width: 1600px !important; }
+        
+        /* Ajuste para o container principal da ferramenta */
+        .main-container-wrapper {
+            margin-top: 85px;
+            padding: 0; 
+        }
+
+        /* Estilos Específicos da Ferramenta */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-color);
+        }
+        .main-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            gap: 1.5rem;
+            padding: 1.5rem;
+            min-height: calc(100vh - 85px);
+        }
+        .editor-panel {
+            width: 100%;
+            max-width: 420px;
+            background: var(--white);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+        }
+        .template-viewer {
+            flex-shrink: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 1rem;
+        }
+        .template-container {
+            width: 500px;
+            height: 500px;
+            position: relative;
+            background: var(--white);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+        @media (min-width: 1024px) {
+            .main-container {
+                flex-direction: row;
+                align-items: flex-start;
+            }
+        }
+        @media (max-width: 1024px) {
+            .editor-panel { max-width: 600px; }
+        }
+        .title { font-family: 'Nunito Sans', sans-serif; font-weight: 800; }
+        .subtitle { font-family: 'Inter', sans-serif; font-weight: 600; }
+        .editable { outline: none; }
+        .editable:hover { 
+            cursor: text; 
+            background-color: rgba(0, 0, 0, 0.05); 
+            box-shadow: 0 0 0 2px var(--primary-color);
+            border-radius: 4px; 
+        }
+        .editable:focus { 
+            box-shadow: 0 0 0 2px var(--primary-color);
+            background-color: rgba(0, 0, 0, 0.08); 
+        }
+        .tab-buttons { display: flex; border-bottom: 1px solid #e5e7eb; margin-bottom: 1.5rem; flex-wrap: wrap; }
+        .tab-button { padding: 0.75rem 1rem; font-size: 0.875rem; font-weight: 600; cursor: pointer; border-bottom: 2px solid transparent; transition: all 0.2s ease; color: #6b7280; }
+        .tab-button:hover { color: var(--primary-color); }
+        .tab-button.active { color: var(--primary-color); border-bottom-color: var(--primary-color); }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; animation: fadeIn 0.5s; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .control-section { margin-bottom: 1.5rem; }
+        .control-label { display: block; font-size: 0.875rem; font-weight: 600; color: #4b5563; margin-bottom: 0.75rem; }
+        .btn-control { padding: 0.5rem; border-radius: 0.5rem; transition: all 0.2s ease; cursor: pointer; border: 1px solid #e5e7eb; background-color: #f9fafb; font-size: 0.875rem; }
+        .btn-control:hover { background-color: #f3f4f6; border-color: #d1d5db; }
+        .btn-control.active { background-color: var(--primary-color); color: var(--white); border-color: var(--primary-color); }
+        .btn-primary { background-color: var(--primary-color); color: var(--white); padding: 0.75rem 1rem; border-radius: 0.5rem; transition: all 0.3s ease; box-shadow: 0 4px 10px rgba(0,0,0,0.1); font-weight: 600; text-align: center; }
+        .btn-primary:hover { background-color: var(--primary-light); transform: translateY(-2px); box-shadow: 0 6px 15px rgba(0,0,0,0.15); }
+        .logo-choice { padding: 0.5rem; border: 2px solid #e5e7eb; border-radius: 0.5rem; cursor: pointer; transition: all 0.2s ease; }
+        .logo-choice:hover, .logo-choice.selected { border-color: var(--primary-color); transform: scale(1.05); }
+        .logo-choice img { height: 40px; width: 100%; object-fit: contain; }
+        .switch { position: relative; display: inline-block; width: 38px; height: 22px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 22px; }
+        .slider:before { position: absolute; content: ""; height: 16px; width: 16px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
+        input:checked + .slider { background-color: var(--primary-color); }
+        input:checked + .slider:before { transform: translateX(16px); }
+        
+        #company-header, #quiz-footer { display: flex; align-items: center; gap: 1rem; }
+        .header-layout-logo-right { flex-direction: row-reverse; }
+        .footer-layout-logo-right { flex-direction: row-reverse; }
+        #header-logo-container, #footer-logo-container { flex-shrink: 0; }
+        #header-text-container, #footer-text-container { flex-grow: 1; min-width: 0; }
+        
+        .quiz-option.correct { background-color: #D1FAE5 !important; border: 1px solid var(--success-color); }
+        .quiz-option.correct .option-letter { background-color: var(--success-color) !important; }
+        .option-letter { line-height: 2rem; text-align: center; }
+    </style>
+</head>
+<body style="display: none;">
+    <div id="global-header-container"></div>
+    
+    <main class="main-container-wrapper">
+        <div class="main-container">
+            <!-- PAINEL DE EDIÇÃO (ESQUERDA) -->
+            <div class="editor-panel">
+                <h2 class="text-2xl font-bold text-gray-800 mb-2">Editor de Quiz</h2>
+                <p class="text-sm text-gray-500 mb-6">Personalize o seu template de quiz.</p>
+
+                <!-- ABAS DE NAVEGAÇÃO -->
+                <div class="tab-buttons">
+                    <button class="tab-button active" onclick="openTab(event, 'tab-geral')">Geral</button>
+                    <button class="tab-button" onclick="openTab(event, 'tab-layout')">Layout</button>
+                    <button class="tab-button" onclick="openTab(event, 'tab-logo')">Logo</button>
+                    <button class="tab-button" onclick="openTab(event, 'tab-quiz')">Quiz</button>
+                    <button class="tab-button" onclick="openTab(event, 'tab-texto')">Texto</button>
+                </div>
+
+                <!-- CONTEÚDO DAS ABAS -->
+                <div id="tab-geral" class="tab-content active">
+                    <div class="control-section">
+                        <label class="control-label">Modelos Predefinidos</label>
+                        <div class="grid grid-cols-2 gap-2">
+                            <button onclick="applyTemplate('classic')" class="btn-control">Clássico</button>
+                            <button onclick="applyTemplate('corporate')" class="btn-control">Corporativo</button>
+                            <button onclick="applyTemplate('modern')" class="btn-control">Moderno</button>
+                            <button onclick="applyTemplate('fresh')" class="btn-control">Fresco</button>
+                        </div>
+                    </div>
+                     <div class="control-section">
+                        <label class="control-label">Cores</label>
+                         <div class="flex items-center justify-between mb-2">
+                            <span>Cor Primária</span>
+                            <input type="color" id="primaryColorPicker" value="#1a3e74" class="w-8 h-8 rounded-full border-none cursor-pointer">
+                        </div>
+                    </div>
+                </div>
+
+                <div id="tab-layout" class="tab-content">
+                    <div class="control-section">
+                        <label class="control-label">Formato da Imagem</label>
+                        <div class="grid grid-cols-2 gap-2">
+                            <button onclick="resizeTemplate('square', this)" class="btn-control active">Quadrado (1:1)</button>
+                            <button onclick="resizeTemplate('portrait', this)" class="btn-control">Retrato (4:5)</button>
+                            <button onclick="resizeTemplate('stories', this)" class="btn-control">Stories (9:16)</button>
+                        </div>
+                    </div>
+                     <div class="control-section space-y-3">
+                        <label class="control-label">Visibilidade dos Elementos</label>
+                        <div class="flex items-center justify-between"><span class="text-sm">Mostrar Logo</span><label class="switch"><input type="checkbox" id="toggleLogo" onchange="toggleElement('logo', this)"><span class="slider"></span></label></div>
+                        <div class="flex items-center justify-between"><span class="text-sm">Mostrar Rodapé</span><label class="switch"><input type="checkbox" id="toggleFooter" onchange="toggleElement('footer', this)" checked><span class="slider"></span></label></div>
+                        <div class="flex items-center justify-between"><span class="text-sm">Mostrar Resposta</span><label class="switch"><input type="checkbox" id="toggleAnswer" onchange="toggleElement('answer', this)"><span class="slider"></span></label></div>
+                    </div>
+                </div>
+
+                <div id="tab-logo" class="tab-content">
+                    <div class="control-section">
+                        <label class="control-label">Posição do Logo</label>
+                        <div class="grid grid-cols-2 gap-2">
+                            <button onclick="setLogoPosition('header', this)" class="btn-control active">Cabeçalho</button>
+                            <button onclick="setLogoPosition('footer', this)" class="btn-control">Rodapé</button>
+                        </div>
+                    </div>
+                    <div class="control-section">
+                        <label class="control-label">Layout do Cabeçalho</label>
+                        <div class="grid grid-cols-2 gap-2">
+                            <button onclick="setHeaderLayout('logo-left', this)" class="btn-control active">Logo Esquerda</button>
+                            <button onclick="setHeaderLayout('logo-right', this)" class="btn-control">Logo Direita</button>
+                        </div>
+                    </div>
+                     <div class="control-section">
+                        <label class="control-label">Layout do Rodapé</label>
+                        <div class="grid grid-cols-2 gap-2">
+                            <button onclick="setFooterLayout('logo-left', this)" class="btn-control active">Logo Esquerda</button>
+                            <button onclick="setFooterLayout('logo-right', this)" class="btn-control">Logo Direita</button>
+                        </div>
+                    </div>
+                    <div class="control-section">
+                        <label class="control-label">Selecionar Logo</label>
+                        <div id="logo-selection" class="grid grid-cols-3 gap-2">
+                            <div class="logo-choice" onclick="selectLogo('https://www.calculadorasdeenfermagem.com.br/icontopbar1.webp', this)"><img src="https://www.calculadorasdeenfermagem.com.br/icontopbar1.webp" alt="Logo 1"></div>
+                            <div class="logo-choice" onclick="selectLogo('https://www.calculadorasdeenfermagem.com.br/iconpages.webp', this)"><img src="https://www.calculadorasdeenfermagem.com.br/iconpages.webp" alt="Logo 2"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="tab-quiz" class="tab-content">
+                    <div class="control-section">
+                        <label for="quiz-question-input" class="control-label">Pergunta</label>
+                        <textarea id="quiz-question-input" rows="3" class="w-full p-2 border rounded text-sm" oninput="updateQuizContent()"></textarea>
+                    </div>
+                    <div class="control-section">
+                        <label class="control-label">Opções (Marque a correta)</label>
+                        <div id="quiz-options-editor" class="space-y-2 mb-2 max-h-48 overflow-y-auto pr-2"></div>
+                        <div class="flex space-x-2">
+                            <button onclick="addQuizOption()" class="flex-1 btn-control text-sm">+ Adicionar</button>
+                            <button onclick="removeQuizOption()" class="flex-1 btn-control text-sm">- Remover</button>
+                        </div>
+                    </div>
+                     <div class="control-section">
+                        <label for="quiz-source-input" class="control-label">Fonte</label>
+                        <input type="text" id="quiz-source-input" class="w-full p-2 border rounded text-sm" oninput="updateQuizContent()">
+                    </div>
+                </div>
+
+                <div id="tab-texto" class="tab-content">
+                    <div class="control-section">
+                        <label class="control-label">Cabeçalho</label>
+                        <div class="flex items-center justify-between mb-2">
+                            <span>Cor do Título</span>
+                            <input type="color" id="headerTitleColorPicker" value="#ffffff" oninput="updateTextColor('main-title', this.value)" class="w-8 h-8 rounded-full border-none cursor-pointer">
+                        </div>
+                         <div class="flex items-center justify-between">
+                            <span>Cor do Subtítulo</span>
+                            <input type="color" id="headerSubtitleColorPicker" value="#ffffff" oninput="updateTextColor('main-subtitle', this.value)" class="w-8 h-8 rounded-full border-none cursor-pointer">
+                        </div>
+                    </div>
+                     <div class="control-section">
+                        <label class="control-label">Corpo do Quiz</label>
+                        <div class="flex items-center justify-between mb-2">
+                            <span>Cor da Pergunta</span>
+                            <input type="color" id="questionColorPicker" value="#2c2c2c" oninput="updateTextColor('quiz-question-text', this.value)" class="w-8 h-8 rounded-full border-none cursor-pointer">
+                        </div>
+                        <div class="flex items-center justify-between mb-2">
+                            <span>Cor do Texto da Opção</span>
+                            <input type="color" id="optionTextColorPicker" value="#2c2c2c" oninput="updateOptionTextColor(this.value)" class="w-8 h-8 rounded-full border-none cursor-pointer">
+                        </div>
+                         <div class="flex items-center justify-between">
+                            <span>Cor da Letra da Opção</span>
+                            <input type="color" id="optionLetterColorPicker" value="#1a3e74" oninput="updateOptionLetterColor(this.value)" class="w-8 h-8 rounded-full border-none cursor-pointer">
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Botão de Exportar Fixo no Fundo -->
+                <div class="mt-auto pt-6 border-t border-gray-200 space-y-2">
+                    <button onclick="exportImage('question')" class="w-full btn-primary">Exportar Pergunta</button>
+                    <button onclick="exportImage('answer')" class="w-full btn-primary" style="background-color: var(--success-color)">Exportar Resposta</button>
+                </div>
+            </div>
+
+            <!-- VISUALIZADOR DO TEMPLATE (DIREITA) -->
+            <div class="template-viewer">
+                <div id="template-to-export" class="template-container">
+                    <!-- Cabeçalho -->
+                    <div id="company-header" class="p-6 flex-shrink-0 justify-center" style="background-color: var(--primary-color);">
+                        <div id="header-logo-container" class="hidden">
+                            <img id="header-logo" src="" alt="Logotipo" class="h-12 w-auto">
+                        </div>
+                        <div id="header-text-container" class="text-center">
+                            <div class="title editable text-2xl" id="main-title" style="color: white; margin-bottom: 8px;">QUIZ DE ENFERMAGEM</div>
+                            <div class="subtitle editable text-base" id="main-subtitle" style="color: rgba(255,255,255,0.9);">Teste seus conhecimentos</div>
+                        </div>
+                    </div>
+
+                    <!-- Conteúdo Principal (Quiz) -->
+                    <div id="main-content-area" class="p-6 flex-1 flex flex-col bg-white rounded-t-lg -mt-2 min-h-0">
+                        <div id="quiz-content-container" class="flex-1 flex flex-col justify-center min-h-0">
+                            <div id="quiz-content-wrapper">
+                                <div id="quiz-question-text" class="subtitle editable font-semibold text-gray-800 mb-4 text-center">
+                                    Qual é o procedimento correto para administração de medicamentos?
+                                </div>
+                                <div id="revealed-answer-container" class="hidden text-center mb-3">
+                                   <span id="revealed-answer-text" class="font-semibold" style="color: var(--success-color);"></span>
+                                </div>
+                                <div id="quiz-options-container" class="space-y-3 px-4">
+                                    <!-- Opções serão inseridas aqui pelo JS -->
+                                </div>
+                            </div>
+                        </div>
+                         <div id="quiz-source-container" class="text-center text-xs text-gray-500 mt-auto pt-2 px-4 flex-shrink-0">
+                            <!-- Fonte será inserida aqui -->
+                        </div>
+                    </div>
+                    
+                    <!-- Rodapé -->
+                    <div id="quiz-footer" class="text-white p-3 flex-shrink-0 mt-auto justify-center" style="background-color: var(--primary-color);">
+                        <div id="footer-logo-container" class="hidden">
+                             <img id="footer-logo" src="" alt="Logotipo no Rodapé" class="h-8 w-auto">
+                        </div>
+                        <div id="footer-text-container" class="text-center w-full">
+                             <a href="https://www.calculadorasdeenfermagem.com.br" target="_blank" class="text-xs font-medium editable">www.calculadorasdeenfermagem.com.br</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+    
+    <footer class="bg-[#1A3E74] text-white py-8">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="border-b border-white pb-4 mb-4">
+                <div class="flex justify-start items-center">
+                    <img src="https://www.calculadorasdeenfermagem.com.br/iconrodape1.webp" alt="Logotipo Calculadoras de Enfermagem no rodapé" width="120" height="84" class="h-auto w-auto max-w-[80px] max-h-[80px]" loading="lazy" decoding="async">
+                </div>
+            </div>
+            <div class="md:flex md:justify-between md:items-start md:space-x-8 md:items-stretch">
+                <div class="mb-6 md:mb-0">
+                    <h5 class="font-bold mb-2">Institucional</h5>
+                    <ul class="list-none space-y-1">
+                        <li><a href="index.html" class="text-white hover:underline">Início</a></li>
+                        <li><a href="missao.html" class="text-white hover:underline">Sobre Nós</a></li>
+                        <li><a href="mapa-do-site.html" class="text-white hover:underline">Mapa do Site</a></li>
+                        <li><a href="politica.html" class="text-white hover:underline">Políticas de Cookies</a></li>
+                        <li><a href="politica.html" class="text-white hover:underline">Política de Retenção de dados</a></li>
+                        <li><a href="politica.html" class="text-white hover:underline">LGPD</a></li>
+                        <li><a href="politica.html" class="text-white hover:underline">Políticas de Privacidade</a></li>
+                        <li><a href="termos.html" class="text-white hover:underline">Termos e Condições de Uso</a></li>
+                        <li><a href="politicadeacessibilidade.html" class="text-white hover:underline">Política de Acessibilidade</a></li>
+                    </ul>
+                </div>
+                <div class="mb-6 md:mb-0">
+                    <h5 class="font-bold mb-2">Sustentabilidade Digital</h5>
+                    <ul class="list-none space-y-1">
+                        <li><a href="nossocompromisso.html" class="text-white hover:underline">Nosso Compromisso</a></li>
+                        <li><a href="impactodigital.html" class="text-white hover:underline">Relatório de Impacto</a></li>
+                        <li><a href="tecnologiaverde.html" class="text-white hover:underline">Tecnologia Verde</a></li>
+                    </ul>
+                </div>
+                <div class="mb-6 md:mb-0">
+                    <h5 class="font-bold mb-2">Nosso Compromisso</h5>
+                    <p class="text-white text-sm mb-2 max-w-sm md:max-w-xs">Nosso site adota como princípio de governança, o comprometimento com elevados padrões de acessibilidade digital, sustentabilidade digital e proteção de dados.</p>
+                    <div class="flex space-x-4 items-center justify-start">
+                        <img src="https://www.calculadorasdeenfermagem.com.br/seloacessibilidade.webp" alt="Selo de Acessibilidade" width="100" height="100" class="w-auto h-auto max-w-[80px] max-h-[80px]" loading="lazy" decoding="async">
+                        <img src="https://www.calculadorasdeenfermagem.com.br/selosustentabilidade.webp" alt="Selo de Sustentabilidade" width="100" height="100" class="w-auto h-auto max-w-[80px] max-h-[80px]" loading="lazy" decoding="async">
+                        <img src="https://www.calculadorasdeenfermagem.com.br/selolgpd.webp" alt="Selo LGPD" width="100" height="100" class="w-auto h-auto max-w-[80px] max-h-[80px]" loading="lazy" decoding="async">
+                    </div>
+                </div>
+                <div class="flex flex-1 flex-col md:flex-row justify-end items-start md:items-start">
+                    <div class="vertical-divider-footer-stretched hidden md:block"></div>
+                    <div class="flex flex-col items-start space-y-4">
+                        <h5 class="font-bold mb-2">Siga-nos</h5>
+                        <div class="flex space-x-4">
+                            <a href="https://linkedin.com/company/calculadoras-de-enfermagem" target="_blank" class="footer-social-icon" title="LinkedIn" aria-label="Acesse Nosso Perfil no LinkedIn"><i class="fab fa-linkedin text-xl"></i></a>
+                            <a href="https://www.instagram.com/calculadorasdeenfermagem/" target="_blank" class="footer-social-icon" title="Instagram" aria-label="Acesse Nosso Perfil no Instagram"><i class="fab fa-instagram text-xl"></i></a>
+                            <a href="https://www.tiktok.com/@calculadorasdeenf" target="_blank" class="footer-social-icon" title="TikTok" aria-label="Acesse Nosso Perfil no TikTok"><i class="fab fa-tiktok text-xl"></i></a>
+                            <a href="https://www.youtube.com/channel/UC_6runTDHz8u5S1Yab842pg" target="_blank" class="footer-social-icon" title="YouTube" aria-label="Acesse Nosso Perfil no YouTube"><i class="fab fa-youtube text-xl"></i></a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="mt-8 text-center">
+                <p>© 2025 Calculadoras de Enfermagem. Todos os direitos reservados.</p>
+            </div>
+            <div id="movedCookieBtn" class="text-center">
+                <button id="openGranularCookieModalBtn" class="btn-secondary text-white py-2 px-4 rounded-md" aria-label="Gerenciar Preferências de Cookies">Gerenciar Preferências de Cookies</button>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Firebase SDKs -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
+        
+        const firebaseConfig = {
+            apiKey: "AIzaSyC1US-K0KoiE9OS4IGalxkNUwqSicTPbeA",
+            authDomain: "acesso-restrito-github.firebaseapp.com",
+            projectId: "acesso-restrito-github",
+            storageBucket: "acesso-restrito-github.appspot.com",
+            messagingSenderId: "32644970643",
+            appId: "1:32644970643:web:92f5f3653ddeaa8ac0b566"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+
+        let inactivityTimer;
+
+        function resetTimer() {
+            clearTimeout(inactivityTimer);
+            inactivityTimer = setTimeout(() => {
+                console.log("User inactive. Signing out.");
+                signOut(auth);
+            }, 30 * 60 * 1000); // 30 minutos
+        }
+
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                // User is authenticated
+                document.body.style.display = 'block';
+                // Dispatch a custom event to signal that authentication is complete
+                document.dispatchEvent(new CustomEvent('authReady'));
+                
+                // Set up or reset inactivity timer
+                window.addEventListener('mousemove', resetTimer);
+                window.addEventListener('mousedown', resetTimer);
+                window.addEventListener('keypress', resetTimer);
+                resetTimer();
+            } else {
+                // User is not authenticated, redirect
+                window.location.href = 'https://www.calculadorasdeenfermagem.com.br/institucional/acessorestrito.html';
+            }
+        });
+    </script>
+
+    <script src="global-scripts.js"></script>
+    <script>
+        // Wait for the 'authReady' event before initializing the app
+        document.addEventListener('authReady', () => {
+            initializeAppTool();
+        });
+
+        function initializeAppTool() {
+            // --- VARIÁVEIS GLOBAIS E ESTADO DA APLICAÇÃO ---
+            let quizState = {
+                question: "Qual é o procedimento correto para administração de medicamentos?",
+                options: [
+                    "Verificar apenas o nome do paciente",
+                    "Aplicar os 5 certos da medicação",
+                    "Administrar sem conferência",
+                    "Verificar apenas a dosagem"
+                ],
+                correctOptionIndex: 1,
+                source: "Fonte: Anvisa (2023)"
+            };
+            let logoPosition = 'header';
+            let headerLayout = 'logo-left';
+            let footerLayout = 'logo-left';
+
+            // Elementos do DOM
+            const templateContainer = document.querySelector('.template-container');
+            const primaryColorPicker = document.getElementById('primaryColorPicker');
+            const questionInput = document.getElementById('quiz-question-input');
+            const optionsEditor = document.getElementById('quiz-options-editor');
+            const sourceInput = document.getElementById('quiz-source-input');
+
+            // Modelos predefinidos
+            const templates = {
+                classic: { primaryColor: '#1a3e74', title: 'QUIZ DE ENFERMAGEM', subtitle: 'Teste seus conhecimentos' },
+                corporate: { primaryColor: '#0055A4', title: 'AVALIAÇÃO CORPORATIVA', subtitle: 'Verificação de conhecimento' },
+                modern: { primaryColor: '#00B8D9', title: 'DESAFIO DO DIA', subtitle: 'Você está preparado?' },
+                fresh: { primaryColor: '#10B981', title: 'QUIZ ECOLÓGICO', subtitle: 'O quanto você sabe?' }
+            };
+
+            // --- FUNÇÕES PRINCIPAIS ---
+            window.openTab = function(event, tabName) {
+                document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+                document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+                document.getElementById(tabName).classList.add('active');
+                event.currentTarget.classList.add('active');
+            }
+
+            function setupEditableElements() {
+                document.querySelectorAll('.editable').forEach(el => {
+                    if (el.dataset.listener) return;
+                    el.contentEditable = true;
+                    el.dataset.listener = true;
+                    el.addEventListener('keydown', e => {
+                        if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); el.blur(); }
+                    });
+                });
+            }
+
+            // --- FUNÇÕES DE CONTROLE DO TEMPLATE ---
+            window.applyTemplate = function(templateName) {
+                const t = templates[templateName];
+                if (!t) return;
+                
+                primaryColorPicker.value = t.primaryColor;
+                document.documentElement.style.setProperty('--primary-color', t.primaryColor);
+                document.getElementById('company-header').style.backgroundColor = t.primaryColor;
+                document.getElementById('quiz-footer').style.backgroundColor = t.primaryColor;
+                
+                document.getElementById('main-title').textContent = t.title;
+                document.getElementById('main-subtitle').textContent = t.subtitle;
+                
+                updateOptionLetterColor(t.primaryColor);
+                document.getElementById('optionLetterColorPicker').value = t.primaryColor;
+            }
+
+            window.resizeTemplate = function(format, button) {
+                document.querySelectorAll('[onclick^="resizeTemplate"]').forEach(btn => btn.classList.remove('active'));
+                button.classList.add('active');
+                
+                let width = 500, height = 500;
+                if (format === 'portrait') height = 625;
+                if (format === 'stories') height = Math.round(500 * (16 / 9));
+                
+                templateContainer.style.width = `${width}px`;
+                templateContainer.style.height = `${height}px`;
+                
+                setTimeout(adjustFontSizeToFit, 50);
+            }
+            
+            window.exportImage = async function(mode) {
+                const answerToggle = document.getElementById('toggleAnswer');
+                const wasAnswerVisible = answerToggle.checked;
+
+                answerToggle.checked = (mode === 'answer');
+                toggleElement('answer', answerToggle, false);
+                
+                const editorPanel = document.querySelector('.editor-panel');
+                editorPanel.style.display = 'none';
+
+                await new Promise(resolve => setTimeout(resolve, 100));
+
+                try {
+                    const canvas = await html2canvas(document.getElementById('template-to-export'), { 
+                        useCORS: true, 
+                        scale: 2, 
+                        backgroundColor: null 
+                    });
+                    const link = document.createElement('a');
+                    link.download = `meu-quiz-${mode}.png`;
+                    link.href = canvas.toDataURL('image/png');
+                    link.click();
+                } catch (err) {
+                    console.error("Erro ao exportar:", err);
+                } finally {
+                    editorPanel.style.display = 'flex';
+                    answerToggle.checked = wasAnswerVisible;
+                    toggleElement('answer', answerToggle, false);
+                }
+            }
+
+            window.toggleElement = function(id, checkbox) {
+                const isChecked = checkbox.checked;
+                if (id === 'logo') {
+                    const isLogoVisible = document.getElementById('toggleLogo').checked;
+                    document.getElementById('header-logo-container').classList.toggle('hidden', !(isLogoVisible && logoPosition === 'header'));
+                    document.getElementById('footer-logo-container').classList.toggle('hidden', !(isLogoVisible && logoPosition === 'footer'));
+                    
+                    setHeaderLayout(headerLayout);
+                    setFooterLayout(footerLayout);
+
+                } else if (id === 'footer') {
+                    document.getElementById('quiz-footer').classList.toggle('hidden', !isChecked);
+                } else if (id === 'answer') {
+                    document.getElementById('revealed-answer-container').classList.toggle('hidden', !isChecked);
+                    renderQuizTemplate(); 
+                }
+            }
+            
+            // --- FUNÇÃO DE AJUSTE DE FONTE ---
+            function adjustFontSizeToFit() {
+                const container = document.getElementById('quiz-content-container');
+                const wrapper = document.getElementById('quiz-content-wrapper');
+                if (!container || !wrapper) return;
+
+                wrapper.style.transform = 'scale(1)';
+                
+                requestAnimationFrame(() => {
+                    const containerHeight = container.clientHeight;
+                    const wrapperHeight = wrapper.scrollHeight;
+
+                    if (wrapperHeight > containerHeight) {
+                        const scale = containerHeight / wrapperHeight;
+                        wrapper.style.transform = `scale(${scale})`;
+                        wrapper.style.transformOrigin = 'center center';
+                    } else {
+                        wrapper.style.transform = 'scale(1)';
+                    }
+                });
+            }
+
+            // --- FUNÇÕES DE CONTROLE DO QUIZ ---
+            function populateQuizEditor() {
+                questionInput.value = quizState.question;
+                sourceInput.value = quizState.source;
+                optionsEditor.innerHTML = '';
+                quizState.options.forEach((optionText, index) => {
+                    const div = document.createElement('div');
+                    div.className = 'flex items-center gap-2';
+                    div.innerHTML = `
+                        <input type="radio" name="correct-option" value="${index}" ${index === quizState.correctOptionIndex ? 'checked' : ''} onchange="updateQuizContent()">
+                        <input type="text" class="w-full p-2 border rounded text-sm" value="${optionText}" oninput="updateQuizContent()">
+                    `;
+                    optionsEditor.appendChild(div);
+                });
+            }
+
+            function renderQuizTemplate() {
+                document.getElementById('quiz-question-text').textContent = quizState.question;
+                document.getElementById('quiz-source-container').textContent = quizState.source;
+                const optionsContainer = document.getElementById('quiz-options-container');
+                optionsContainer.innerHTML = '';
+                const optionLetterColor = document.getElementById('optionLetterColorPicker').value;
+                const optionTextColor = document.getElementById('optionTextColorPicker').value;
+                const showAnswer = document.getElementById('toggleAnswer').checked;
+
+                const correctLetter = String.fromCharCode(65 + quizState.correctOptionIndex);
+                document.getElementById('revealed-answer-text').textContent = `Resposta Correta: ${correctLetter}`;
+
+                quizState.options.forEach((optionText, index) => {
+                    const letter = String.fromCharCode(65 + index);
+                    const optionEl = document.createElement('div');
+                    optionEl.className = 'quiz-option flex items-center p-3 rounded-lg bg-gray-100 border border-transparent';
+                    
+                    if(showAnswer && index === quizState.correctOptionIndex) {
+                        optionEl.classList.add('correct');
+                    }
+
+                    optionEl.innerHTML = `
+                        <div class="option-letter flex-shrink-0 w-8 h-8 rounded-full font-bold text-white mr-3" style="background-color: ${optionLetterColor};">
+                            ${letter}
+                        </div>
+                        <div class="option-text text-base" style="color: ${optionTextColor};">${optionText}</div>
+                    `;
+                    optionsContainer.appendChild(optionEl);
+                });
+                adjustFontSizeToFit();
+            }
+
+            function updateQuizContent() {
+                quizState.question = questionInput.value;
+                quizState.source = sourceInput.value;
+                const optionTextInputs = optionsEditor.querySelectorAll('input[type="text"]');
+                quizState.options = Array.from(optionTextInputs).map(input => input.value);
+                
+                const correctRadio = optionsEditor.querySelector('input[type="radio"]:checked');
+                if (correctRadio) {
+                    quizState.correctOptionIndex = parseInt(correctRadio.value, 10);
+                }
+                
+                renderQuizTemplate();
+            }
+
+            window.addQuizOption = function() {
+                if (quizState.options.length < 10) {
+                    quizState.options.push("Nova opção");
+                    populateQuizEditor();
+                    renderQuizTemplate();
+                }
+            }
+
+            window.removeQuizOption = function() {
+                if (quizState.options.length > 2) {
+                    quizState.options.pop();
+                    if(quizState.correctOptionIndex >= quizState.options.length){
+                        quizState.correctOptionIndex = quizState.options.length - 1;
+                    }
+                    populateQuizEditor();
+                    renderQuizTemplate();
+                }
+            }
+
+            // --- FUNÇÕES DE CONTROLE DE LOGO E LAYOUT ---
+            window.setLogoPosition = function(position, button) {
+                if (button) {
+                    document.querySelectorAll('[onclick^="setLogoPosition"]').forEach(btn => btn.classList.remove('active'));
+                    button.classList.add('active');
+                }
+                logoPosition = position;
+                toggleElement('logo', document.getElementById('toggleLogo'));
+            }
+
+            window.setHeaderLayout = function(layout, button) {
+                if (button) {
+                    document.querySelectorAll('[onclick^="setHeaderLayout"]').forEach(btn => btn.classList.remove('active'));
+                    button.classList.add('active');
+                    headerLayout = layout;
+                }
+                const header = document.getElementById('company-header');
+                const textContainer = document.getElementById('header-text-container');
+                const isLogoActive = document.getElementById('toggleLogo').checked && logoPosition === 'header';
+
+                header.classList.remove('justify-center', 'justify-between', 'header-layout-logo-right');
+                textContainer.classList.remove('text-center', 'text-left', 'text-right');
+
+                if (isLogoActive) {
+                    header.classList.add('justify-between');
+                    header.classList.toggle('header-layout-logo-right', layout === 'logo-right');
+                    textContainer.classList.add(layout === 'logo-right' ? 'text-right' : 'text-left');
+                } else {
+                    header.classList.add('justify-center');
+                    textContainer.classList.add('text-center');
+                }
+            }
+            
+            window.setFooterLayout = function(layout, button) {
+                if (button) {
+                    document.querySelectorAll('[onclick^="setFooterLayout"]').forEach(btn => btn.classList.remove('active'));
+                    button.classList.add('active');
+                    footerLayout = layout;
+                }
+                const footer = document.getElementById('quiz-footer');
+                const textContainer = document.getElementById('footer-text-container');
+                const isLogoActive = document.getElementById('toggleLogo').checked && logoPosition === 'footer';
+
+                footer.classList.remove('justify-center', 'justify-between', 'footer-layout-logo-right');
+                textContainer.classList.remove('text-center', 'text-left', 'text-right');
+
+                if (isLogoActive) {
+                    footer.classList.add('justify-between');
+                    footer.classList.toggle('footer-layout-logo-right', layout === 'logo-right');
+                    textContainer.classList.add(layout === 'logo-right' ? 'text-left' : 'text-right');
+                } else {
+                    footer.classList.add('justify-center');
+                    textContainer.classList.add('text-center');
+                }
+            }
+
+            window.selectLogo = function(logoUrl, element) {
+                document.getElementById('header-logo').src = logoUrl;
+                document.getElementById('footer-logo').src = logoUrl;
+                document.querySelectorAll('.logo-choice').forEach(el => el.classList.remove('selected'));
+                element.classList.add('selected');
+            }
+
+            // --- FUNÇÕES DE CONTROLE DE ESTILO ---
+            function updateTextColor(elementId, color) {
+                document.getElementById(elementId).style.color = color;
+            }
+            
+            function updateOptionTextColor(color) {
+                document.querySelectorAll('.option-text').forEach(el => el.style.color = color);
+            }
+
+            function updateOptionLetterColor(color) {
+                document.querySelectorAll('.option-letter').forEach(el => {
+                    if(!el.closest('.quiz-option.correct')) {
+                       el.style.backgroundColor = color;
+                    }
+                });
+            }
+
+            // --- INICIALIZAÇÃO DA FERRAMENTA ---
+            if (typeof loadHTML === 'function') {
+                loadHTML('#global-header-container', 'header.html');
+            }
+            
+            populateQuizEditor();
+            renderQuizTemplate();
+            setupEditableElements();
+            applyTemplate('classic');
+            selectLogo('https://www.calculadorasdeenfermagem.com.br/icontopbar1.webp', document.querySelector('.logo-choice'));
+            setHeaderLayout('logo-left', document.querySelector('[onclick*="setHeaderLayout(\'logo-left\'"]'));
+            setFooterLayout('logo-left', document.querySelector('[onclick*="setFooterLayout(\'logo-left\'"]'));
+
+            primaryColorPicker.addEventListener('input', () => {
+                const color = primaryColorPicker.value;
+                document.documentElement.style.setProperty('--primary-color', color);
+                document.getElementById('company-header').style.backgroundColor = color;
+                document.getElementById('quiz-footer').style.backgroundColor = color;
+                document.getElementById('optionLetterColorPicker').value = color;
+                updateOptionLetterColor(color);
+            });
+            
+            new ResizeObserver(adjustFontSizeToFit).observe(templateContainer);
+            new ResizeObserver(adjustFontSizeToFit).observe(document.getElementById('main-content-area'));
+        }
+    </script>
+</body>
+</html>
