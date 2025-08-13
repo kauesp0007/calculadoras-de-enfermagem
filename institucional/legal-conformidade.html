@@ -33,7 +33,7 @@
             --danger-color: #EF4444;
             --info-color: #3B82F6;
         }
-        #global-header-container .max-w-7xl, footer .max-w-7xl { max-width: 1600px !important; }
+        #global-header-container { z-index: 50; } /* Garante que o header fique acima do conteúdo mas abaixo dos modais */
         
         .main-container-wrapper {
             margin-top: 85px;
@@ -59,8 +59,8 @@
         .status-revisao { background-color: #DBEAFE; color: #1E40AF; }
         .status-aprovacao { background-color: #E0E7FF; color: #3730A3; }
 
-        /* Estilos do Modal */
-        .modal-overlay {
+        /* Estilos do Modal e Editor */
+        .modal-overlay, .editor-view {
             position: fixed;
             top: 0;
             left: 0;
@@ -75,71 +75,32 @@
             visibility: hidden;
             transition: opacity 0.3s, visibility 0.3s;
         }
-        .modal-overlay.visible {
+        .modal-overlay.visible, .editor-view.visible {
             opacity: 1;
             visibility: visible;
         }
-        .modal-content {
+        .modal-content, .editor-content {
             background: white;
             padding: 2rem;
             border-radius: var(--border-radius);
             width: 90%;
-            max-width: 600px;
             transform: scale(0.95);
             transition: transform 0.3s;
         }
-        .modal-overlay.visible .modal-content {
+        .modal-content { max-width: 600px; }
+        .editor-content { max-width: 900px; height: 90vh; display: flex; flex-direction: column; }
+        .modal-overlay.visible .modal-content, .editor-view.visible .editor-content {
             transform: scale(1);
         }
 
         /* Estilos do Workflow */
-        .workflow-steps {
-            display: flex;
-            justify-content: space-between;
-            position: relative;
-            margin-bottom: 1.5rem;
-        }
-        .workflow-steps::before {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: 0;
-            right: 0;
-            height: 2px;
-            background-color: #e5e7eb;
-            transform: translateY(-50%);
-        }
-        .workflow-step {
-            position: relative;
-            text-align: center;
-        }
-        .step-circle {
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            background-color: #e5e7eb;
-            color: #6b7280;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 0.5rem;
-            border: 2px solid #e5e7eb;
-            transition: all 0.3s ease;
-        }
-        .step-label {
-            font-size: 0.75rem;
-            color: #6b7280;
-        }
-        .workflow-step.active .step-circle {
-            background-color: var(--info-color);
-            color: white;
-            border-color: var(--info-color);
-        }
-        .workflow-step.completed .step-circle {
-            background-color: var(--success-color);
-            color: white;
-            border-color: var(--success-color);
-        }
+        .workflow-steps { display: flex; justify-content: space-between; position: relative; margin-bottom: 1.5rem; }
+        .workflow-steps::before { content: ''; position: absolute; top: 50%; left: 0; right: 0; height: 2px; background-color: #e5e7eb; transform: translateY(-50%); }
+        .workflow-step { position: relative; text-align: center; }
+        .step-circle { width: 32px; height: 32px; border-radius: 50%; background-color: #e5e7eb; color: #6b7280; display: flex; align-items: center; justify-content: center; margin: 0 auto 0.5rem; border: 2px solid #e5e7eb; transition: all 0.3s ease; }
+        .step-label { font-size: 0.75rem; color: #6b7280; }
+        .workflow-step.active .step-circle { background-color: var(--info-color); color: white; border-color: var(--info-color); }
+        .workflow-step.completed .step-circle { background-color: var(--success-color); color: white; border-color: var(--success-color); }
     </style>
 </head>
 <body style="display: none;">
@@ -166,35 +127,24 @@
             </div>
         </div>
     </main>
-
-    <!-- Modal para Workflow de Nova Versão -->
-    <div id="workflow-modal" class="modal-overlay">
-        <div class="modal-content" role="dialog" aria-modal="true" aria-labelledby="modal-doc-title">
-            <div class="flex justify-between items-center mb-4">
-                <h2 class="text-2xl font-bold text-gray-800" id="modal-doc-title"></h2>
-                <button onclick="closeModal('workflow-modal')" class="text-gray-500 hover:text-gray-800 text-2xl" aria-label="Fechar">&times;</button>
+    
+    <!-- Editor de Documento (Tela Cheia) -->
+    <div id="editor-view" class="editor-view">
+        <div class="editor-content" role="dialog" aria-modal="true">
+            <div class="flex justify-between items-center mb-4 pb-4 border-b">
+                <h2 class="text-2xl font-bold text-gray-800" id="editor-doc-title"></h2>
+                <button onclick="cancelEdit()" class="text-gray-500 hover:text-gray-800 text-2xl" aria-label="Fechar">&times;</button>
             </div>
-            
-            <div id="workflow-visualizer" class="mb-6">
-                <!-- Workflow steps will be injected here -->
+            <div id="editor-form-content" class="flex-grow overflow-y-auto pr-4">
+                <!-- Campos de edição dinâmicos serão inseridos aqui -->
             </div>
-
-            <div id="workflow-details">
-                <p class="mb-2"><strong>Versão Aprovada Atual:</strong> <span id="modal-current-version"></span></p>
-                <p class="mb-4"><strong>Nova Versão em Andamento:</strong> <span id="modal-new-version"></span></p>
-                
-                <div class="mb-4">
-                    <label for="summary-changes" class="block text-sm font-medium text-gray-700 mb-1">Resumo das Alterações</label>
-                    <textarea id="summary-changes" rows="3" class="w-full p-2 border rounded-md"></textarea>
-                </div>
-            </div>
-
-            <div class="flex justify-end gap-4 mt-6">
-                <button onclick="closeModal('workflow-modal')" class="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300">Cancelar</button>
-                <button id="workflow-action-btn" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">Avançar</button>
+            <div class="flex justify-end gap-4 mt-6 pt-4 border-t">
+                <button onclick="cancelEdit()" class="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300">Cancelar</button>
+                <button onclick="saveAndAdvance()" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">Salvar e Continuar Workflow</button>
             </div>
         </div>
     </div>
+
 
     <!-- Modal para Histórico de Versões -->
     <div id="history-modal" class="modal-overlay">
@@ -336,18 +286,18 @@
             const initialDate = getBrasiliaDateTime();
             
             let documents = [
-                { id: 1, title: 'Política de Privacidade', url: 'https://www.calculadorasdeenfermagem.com.br/politica.html', publishedVersion: '1.0', latestApprovedVersion: '1.0', workflow: null, history: [{ version: '1.0', date: initialDate, summary: 'Versão inicial publicada.' }] },
-                { id: 2, title: 'Políticas de Cookies', url: 'https://www.calculadorasdeenfermagem.com.br/politica.html', publishedVersion: '1.0', latestApprovedVersion: '1.0', workflow: null, history: [{ version: '1.0', date: initialDate, summary: 'Versão inicial publicada.' }] },
-                { id: 3, title: 'Termos de Uso', url: 'https://www.calculadorasdeenfermagem.com.br/termos.html', publishedVersion: '1.0', latestApprovedVersion: '1.0', workflow: null, history: [{ version: '1.0', date: initialDate, summary: 'Versão inicial publicada.' }] },
-                { id: 4, title: 'Diretrizes da LGPD', url: 'https://www.calculadorasdeenfermagem.com.br/politica.html', publishedVersion: '1.0', latestApprovedVersion: '1.0', workflow: null, history: [{ version: '1.0', date: initialDate, summary: 'Versão inicial publicada.' }] },
-                { id: 5, title: 'Declaração de Acessibilidade', url: 'https://www.calculadorasdeenfermagem.com.br/politicadeacessibilidade.html', publishedVersion: '1.0', latestApprovedVersion: '1.0', workflow: null, history: [{ version: '1.0', date: initialDate, summary: 'Versão inicial publicada.' }] },
-                { id: 6, title: 'Declaração de Compromisso com a Sustentabilidade Digital', url: 'https://www.calculadorasdeenfermagem.com.br/nossocompromisso.html', publishedVersion: '1.0', latestApprovedVersion: '1.0', workflow: null, history: [{ version: '1.0', date: initialDate, summary: 'Versão inicial publicada.' }] },
-                { id: 7, title: 'Relatório de Impacto Digital', url: 'https://www.calculadorasdeenfermagem.com.br/impactodigital.html', publishedVersion: '1.0', latestApprovedVersion: '1.0', workflow: null, history: [{ version: '1.0', date: initialDate, summary: 'Versão inicial publicada.' }] },
-                { id: 8, title: 'Declaração de Tecnologia Verde', url: 'https://www.calculadorasdeenfermagem.com.br/tecnologiaverde.html', publishedVersion: '1.0', latestApprovedVersion: '1.0', workflow: null, history: [{ version: '1.0', date: initialDate, summary: 'Versão inicial publicada.' }] }
+                { id: 1, title: 'Política de Privacidade', url: 'https://www.calculadorasdeenfermagem.com.br/politica.html', publishedVersion: '1.0', latestApprovedVersion: '1.0', workflow: null, history: [{ version: '1.0', date: initialDate, summary: 'Versão inicial publicada.' }], content: 'Texto completo da Política de Privacidade...' },
+                { id: 2, title: 'Políticas de Cookies', url: 'https://www.calculadorasdeenfermagem.com.br/politica.html', publishedVersion: '1.0', latestApprovedVersion: '1.0', workflow: null, history: [{ version: '1.0', date: initialDate, summary: 'Versão inicial publicada.' }], content: 'Texto completo da Política de Cookies...' },
+                { id: 3, title: 'Termos de Uso', url: 'https://www.calculadorasdeenfermagem.com.br/termos.html', publishedVersion: '1.0', latestApprovedVersion: '1.0', workflow: null, history: [{ version: '1.0', date: initialDate, summary: 'Versão inicial publicada.' }], content: 'Texto completo dos Termos de Uso...' },
+                { id: 4, title: 'Diretrizes da LGPD', url: 'https://www.calculadorasdeenfermagem.com.br/politica.html', publishedVersion: '1.0', latestApprovedVersion: '1.0', workflow: null, history: [{ version: '1.0', date: initialDate, summary: 'Versão inicial publicada.' }], content: 'Texto completo das Diretrizes da LGPD...' },
+                { id: 5, title: 'Declaração de Acessibilidade', url: 'https://www.calculadorasdeenfermagem.com.br/politicadeacessibilidade.html', publishedVersion: '1.0', latestApprovedVersion: '1.0', workflow: null, history: [{ version: '1.0', date: initialDate, summary: 'Versão inicial publicada.' }], content: 'Texto completo da Declaração de Acessibilidade...' },
+                { id: 6, title: 'Declaração de Compromisso com a Sustentabilidade Digital', url: 'https://www.calculadorasdeenfermagem.com.br/nossocompromisso.html', publishedVersion: '1.0', latestApprovedVersion: '1.0', workflow: null, history: [{ version: '1.0', date: initialDate, summary: 'Versão inicial publicada.' }], content: 'Texto completo da Declaração de Compromisso...' },
+                { id: 7, title: 'Relatório de Impacto Digital', url: 'https://www.calculadorasdeenfermagem.com.br/impactodigital.html', publishedVersion: '1.0', latestApprovedVersion: '1.0', workflow: null, history: [{ version: '1.0', date: initialDate, summary: 'Versão inicial publicada.' }], content: 'Texto completo do Relatório de Impacto Digital...' },
+                { id: 8, title: 'Declaração de Tecnologia Verde', url: 'https://www.calculadorasdeenfermagem.com.br/tecnologiaverde.html', publishedVersion: '1.0', latestApprovedVersion: '1.0', workflow: null, history: [{ version: '1.0', date: initialDate, summary: 'Versão inicial publicada.' }], content: 'Texto completo da Declaração de Tecnologia Verde...' }
             ];
 
             const workflowSteps = ['Iniciação', 'Elaboração', 'Revisão', 'Aprovação', 'Publicado'];
-            let activeWorkflow = null;
+            let activeDocument = null;
 
             const documentListEl = document.getElementById('document-list');
             const pendingAlertsEl = document.getElementById('pending-alerts');
@@ -390,7 +340,7 @@
 
                     docEl.innerHTML = `
                         <div class="col-span-2 font-semibold text-gray-800 flex items-center gap-3">
-                            ${isDiscrepancy ? '<i class="fas fa-exclamation-triangle text-red-500" title="Discrepância de versão!"></i>' : (hasPendingWorkflow ? '<i class="fas fa-hourglass-half text-yellow-500" title="Workflow em andamento"></i>' : '')}
+                            ${isDiscrepancy ? '<i class="fas fa-exclamation-triangle text-red-500" title="Discrepância de versão!"></i>' : (hasPendingWorkflow ? `<i class="fas fa-hourglass-half text-yellow-500" title="Workflow: ${doc.workflow.status}"></i>` : '')}
                             <a href="${doc.url}" target="_blank" title="Abrir documento" class="hover:underline">${doc.title} <i class="fas fa-external-link-alt text-xs text-gray-400"></i></a>
                         </div>
                         <div>v${doc.publishedVersion}</div>
@@ -412,10 +362,9 @@
                 const doc = documents.find(d => d.id === docId);
                 if (doc) {
                     doc.publishedVersion = doc.latestApprovedVersion;
-                    doc.lastUpdated = getBrasiliaDateTime();
-                     doc.history.unshift({
+                    doc.history.unshift({
                         version: doc.publishedVersion,
-                        date: doc.lastUpdated,
+                        date: getBrasiliaDateTime(),
                         summary: `Versão ${doc.publishedVersion} publicada para corrigir discrepância.`
                     });
                     renderDocuments();
@@ -436,66 +385,75 @@
             }
 
             window.startNewVersion = function(docId) {
-                const doc = documents.find(d => d.id === docId);
-                if (doc.workflow) return;
+                activeDocument = documents.find(d => d.id === docId);
+                if (!activeDocument || activeDocument.workflow) return;
 
-                const baseVersion = doc.latestApprovedVersion;
+                const baseVersion = activeDocument.latestApprovedVersion;
                 const [major, minor] = baseVersion.split('.').map(Number);
                 const newVersion = `${major}.${minor + 1}`;
 
-                activeWorkflow = { docId: doc.id, currentStep: 1, newVersion: newVersion };
-                doc.workflow = { version: newVersion, status: workflowSteps[1], currentStep: 1, summary: '' };
+                activeDocument.workflow = { version: newVersion, status: workflowSteps[1], currentStep: 1, summary: '', content: activeDocument.content };
                 
-                document.getElementById('modal-doc-title').textContent = doc.title;
-                document.getElementById('modal-current-version').textContent = `v${doc.latestApprovedVersion}`;
-                document.getElementById('modal-new-version').textContent = `v${newVersion}`;
-                document.getElementById('summary-changes').value = '';
-                
-                updateWorkflowVisualizer();
-                openModal('workflow-modal');
+                renderEditor();
+                openModal('editor-view');
                 renderDocuments();
             }
+            
+            function renderEditor() {
+                document.getElementById('editor-doc-title').textContent = `Editando: ${activeDocument.title} (v${activeDocument.workflow.version})`;
+                const formContent = document.getElementById('editor-form-content');
+                formContent.innerHTML = `
+                    <div class="mb-4">
+                        <label for="editor-content" class="block text-sm font-medium text-gray-700 mb-1">Conteúdo do Documento</label>
+                        <textarea id="editor-content" rows="15" class="w-full p-2 border rounded-md">${activeDocument.workflow.content}</textarea>
+                    </div>
+                    <div>
+                        <label for="editor-summary" class="block text-sm font-medium text-gray-700 mb-1">Resumo das Alterações</label>
+                        <textarea id="editor-summary" rows="3" class="w-full p-2 border rounded-md">${activeDocument.workflow.summary}</textarea>
+                    </div>
+                `;
+            }
 
-            function updateWorkflowVisualizer() {
-                const visualizerEl = document.getElementById('workflow-visualizer');
-                visualizerEl.innerHTML = `<div class="workflow-steps">${workflowSteps.map((step, index) => `<div class="workflow-step ${index < activeWorkflow.currentStep ? 'completed' : ''} ${index === activeWorkflow.currentStep ? 'active' : ''}"><div class="step-circle">${index < activeWorkflow.currentStep ? '<i class="fas fa-check"></i>' : index + 1}</div><div class="step-label">${step}</div></div>`).join('')}</div>`;
-                const actionBtn = document.getElementById('workflow-action-btn');
-                if (activeWorkflow.currentStep < workflowSteps.length - 1) {
-                    actionBtn.textContent = `Mover para ${workflowSteps[activeWorkflow.currentStep + 1]}`;
-                    actionBtn.disabled = false;
-                } else {
-                    actionBtn.textContent = 'Finalizado';
-                    actionBtn.disabled = true;
+            window.saveAndAdvance = function() {
+                if (!activeDocument || !activeDocument.workflow) return;
+                
+                // Salva o conteúdo do editor no objeto de workflow
+                activeDocument.workflow.content = document.getElementById('editor-content').value;
+                activeDocument.workflow.summary = document.getElementById('editor-summary').value;
+
+                // Avança o workflow
+                if (activeDocument.workflow.currentStep < workflowSteps.length - 1) {
+                    activeDocument.workflow.currentStep++;
+                    const newStatus = workflowSteps[activeDocument.workflow.currentStep];
+                    activeDocument.workflow.status = newStatus;
+
+                    if (newStatus === 'Publicado') {
+                        activeDocument.latestApprovedVersion = activeDocument.workflow.version;
+                        activeDocument.publishedVersion = activeDocument.workflow.version;
+                        activeDocument.content = activeDocument.workflow.content;
+                        activeDocument.history.unshift({ version: activeDocument.workflow.version, date: getBrasiliaDateTime(), summary: activeDocument.workflow.summary || 'Atualização de versão.' });
+                        activeDocument.workflow = null;
+                    }
+                    
+                    sendEmailNotification(activeDocument.title, activeDocument.workflow ? activeDocument.workflow.version : activeDocument.latestApprovedVersion, newStatus);
+                    closeModal('editor-view');
+                    renderDocuments();
                 }
             }
 
-            document.getElementById('workflow-action-btn').addEventListener('click', () => {
-                if (activeWorkflow && activeWorkflow.currentStep < workflowSteps.length - 1) {
-                    const doc = documents.find(d => d.id === activeWorkflow.docId);
-                    activeWorkflow.currentStep++;
-                    const newStatus = workflowSteps[activeWorkflow.currentStep];
-                    doc.workflow.status = newStatus;
-                    doc.workflow.currentStep = activeWorkflow.currentStep;
-
-                    if (newStatus === 'Publicado') {
-                        doc.latestApprovedVersion = activeWorkflow.newVersion;
-                        doc.publishedVersion = activeWorkflow.newVersion; // Publica automaticamente ao aprovar
-                        doc.lastUpdated = getBrasiliaDateTime();
-                        doc.history.unshift({ version: activeWorkflow.newVersion, date: doc.lastUpdated, summary: document.getElementById('summary-changes').value || 'Atualização de versão.' });
-                        doc.workflow = null;
-                        closeModal('workflow-modal');
-                    }
-                    
-                    sendEmailNotification(doc.title, activeWorkflow.newVersion, newStatus);
-                    updateWorkflowVisualizer();
-                    renderDocuments();
+            window.cancelEdit = function() {
+                if (activeDocument) {
+                    activeDocument.workflow = null;
+                    activeDocument = null;
                 }
-            });
+                closeModal('editor-view');
+                renderDocuments();
+            }
 
             function sendEmailNotification(docTitle, newVersion, status) {
                 const recipient = 'ciadeenfermagem@gmail.com';
                 const subject = `Atualização de Workflow: ${docTitle} - v${newVersion}`;
-                const body = `Olá,\n\nO documento "${docTitle}" foi atualizado para o status: "${status}".\n\nVersão em andamento: v${newVersion}\nResumo das alterações: ${document.getElementById('summary-changes').value || 'N/A'}\n\nPor favor, tome a ação necessária.\n\nAtenciosamente,\nSistema de Conformidade - Calculadoras de Enfermagem`;
+                const body = `Olá,\n\nO documento "${docTitle}" foi atualizado para o status: "${status}".\n\nVersão em andamento: v${newVersion}\nResumo das alterações: ${document.getElementById('editor-summary').value || 'N/A'}\n\nPor favor, tome a ação necessária.\n\nAtenciosamente,\nSistema de Conformidade - Calculadoras de Enfermagem`;
                 const mailtoLink = `mailto:${recipient}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
                 window.open(mailtoLink, '_blank');
             }
@@ -511,8 +469,16 @@
 
             document.addEventListener('keydown', (event) => {
                 if (event.key === 'Escape') {
-                    document.querySelectorAll('.modal-overlay.visible').forEach(modal => modal.classList.remove('visible'));
+                    document.querySelectorAll('.modal-overlay.visible, .editor-view.visible').forEach(el => el.classList.remove('visible'));
                 }
+            });
+
+            document.querySelectorAll('.modal-overlay').forEach(overlay => {
+                overlay.addEventListener('click', (event) => {
+                    if (event.target === overlay) {
+                        closeModal(overlay.id);
+                    }
+                });
             });
 
             renderDocuments();
