@@ -30,6 +30,7 @@
             --bg-light: #f8f9fa;
             --success-color: #10B981;
             --warning-color: #F59E0B;
+            --danger-color: #EF4444;
             --info-color: #3B82F6;
         }
         #global-header-container .max-w-7xl, footer .max-w-7xl { max-width: 1600px !important; }
@@ -151,8 +152,17 @@
             
             <div id="pending-alerts" class="mb-6"></div>
 
-            <div id="document-list" class="bg-white p-6 rounded-lg shadow-md">
-                <!-- Os documentos serão inseridos aqui pelo JavaScript -->
+            <div class="bg-white p-6 rounded-lg shadow-md">
+                <div class="grid grid-cols-6 items-center gap-4 pb-4 border-b font-bold text-gray-500 text-sm">
+                    <div class="col-span-2">DOCUMENTO</div>
+                    <div>VERSÃO PUBLICADA</div>
+                    <div>VERSÃO APROVADA</div>
+                    <div>STATUS WORKFLOW</div>
+                    <div class="text-right">AÇÕES</div>
+                </div>
+                <div id="document-list">
+                    <!-- Os documentos serão inseridos aqui pelo JavaScript -->
+                </div>
             </div>
         </div>
     </main>
@@ -170,8 +180,8 @@
             </div>
 
             <div id="workflow-details">
-                <p class="mb-2"><strong>Versão Atual:</strong> <span id="modal-current-version"></span></p>
-                <p class="mb-4"><strong>Nova Versão:</strong> <span id="modal-new-version"></span></p>
+                <p class="mb-2"><strong>Versão Aprovada Atual:</strong> <span id="modal-current-version"></span></p>
+                <p class="mb-4"><strong>Nova Versão em Andamento:</strong> <span id="modal-new-version"></span></p>
                 
                 <div class="mb-4">
                     <label for="summary-changes" class="block text-sm font-medium text-gray-700 mb-1">Resumo das Alterações</label>
@@ -307,81 +317,33 @@
     <script src="global-scripts.js"></script>
     <script>
         document.addEventListener('authReady', () => {
-            // Mock de banco de dados
+            
+            function getBrasiliaDateTime() {
+                const date = new Date();
+                const options = {
+                    timeZone: 'America/Sao_Paulo',
+                    year: 'numeric', month: '2-digit', day: '2-digit',
+                    hour: '2-digit', minute: '2-digit', second: '2-digit',
+                    hour12: false
+                };
+                const formatter = new Intl.DateTimeFormat('pt-BR', options);
+                const parts = formatter.formatToParts(date);
+                const dateParts = {};
+                parts.forEach(({type, value}) => dateParts[type] = value);
+                return `${dateParts.day}/${dateParts.month}/${dateParts.year} - ${dateParts.hour}:${dateParts.minute}:${dateParts.second} (Horário de Brasília)`;
+            }
+
+            const initialDate = getBrasiliaDateTime();
+            
             let documents = [
-                {
-                    id: 1,
-                    title: 'Política de Privacidade',
-                    version: '2.1',
-                    lastUpdated: '2024-07-15',
-                    status: 'Publicado',
-                    history: [
-                        { version: '2.1', date: '2024-07-15', summary: 'Atualização para conformidade com nova regulamentação.' },
-                        { version: '2.0', date: '2023-01-20', summary: 'Revisão geral e inclusão de cláusulas sobre cookies.' },
-                    ]
-                },
-                {
-                    id: 2,
-                    title: 'Termos de Uso',
-                    version: '1.5',
-                    lastUpdated: '2024-06-01',
-                    status: 'Publicado',
-                    history: [
-                         { version: '1.5', date: '2024-06-01', summary: 'Ajustes na cláusula de responsabilidade.' },
-                    ]
-                },
-                {
-                    id: 3,
-                    title: 'Diretrizes da LGPD',
-                    version: '1.0',
-                    lastUpdated: '2023-09-10',
-                    status: 'Publicado',
-                    history: [
-                         { version: '1.0', date: '2023-09-10', summary: 'Publicação inicial do documento.' },
-                    ]
-                },
-                {
-                    id: 4,
-                    title: 'Política de Cookies',
-                    version: '1.2',
-                    lastUpdated: '2024-07-15',
-                    status: 'Publicado',
-                    history: [
-                        { version: '1.2', date: '2024-07-15', summary: 'Detalhes sobre cookies de terceiros.' },
-                        { version: '1.1', date: '2023-01-20', summary: 'Revisão e melhoria da clareza.' },
-                    ]
-                },
-                {
-                    id: 5,
-                    title: 'Declaração de Acessibilidade',
-                    version: '1.0',
-                    lastUpdated: '2024-02-25',
-                    status: 'Publicado',
-                    history: [
-                        { version: '1.0', date: '2024-02-25', summary: 'Publicação inicial do documento.' },
-                    ]
-                },
-                {
-                    id: 6,
-                    title: 'Declaração de Compromisso com a Sustentabilidade Digital',
-                    version: '1.1',
-                    lastUpdated: '2024-05-18',
-                    status: 'Publicado',
-                    history: [
-                        { version: '1.1', date: '2024-05-18', summary: 'Inclusão de metas para redução da pegada de carbono.' },
-                        { version: '1.0', date: '2024-01-10', summary: 'Publicação inicial do compromisso.' },
-                    ]
-                },
-                {
-                    id: 7,
-                    title: 'Relatório de Impacto Digital',
-                    version: '1.0',
-                    lastUpdated: '2024-08-01',
-                    status: 'Elaboração',
-                    history: [
-                        { version: '1.0', date: '2024-08-01', summary: 'Início da elaboração do primeiro relatório anual.' },
-                    ]
-                }
+                { id: 1, title: 'Política de Privacidade', url: 'https://www.calculadorasdeenfermagem.com.br/politica.html', publishedVersion: '1.0', latestApprovedVersion: '1.0', workflow: null, history: [{ version: '1.0', date: initialDate, summary: 'Versão inicial publicada.' }] },
+                { id: 2, title: 'Políticas de Cookies', url: 'https://www.calculadorasdeenfermagem.com.br/politica.html', publishedVersion: '1.0', latestApprovedVersion: '1.0', workflow: null, history: [{ version: '1.0', date: initialDate, summary: 'Versão inicial publicada.' }] },
+                { id: 3, title: 'Termos de Uso', url: 'https://www.calculadorasdeenfermagem.com.br/termos.html', publishedVersion: '1.0', latestApprovedVersion: '1.0', workflow: null, history: [{ version: '1.0', date: initialDate, summary: 'Versão inicial publicada.' }] },
+                { id: 4, title: 'Diretrizes da LGPD', url: 'https://www.calculadorasdeenfermagem.com.br/politica.html', publishedVersion: '1.0', latestApprovedVersion: '1.0', workflow: null, history: [{ version: '1.0', date: initialDate, summary: 'Versão inicial publicada.' }] },
+                { id: 5, title: 'Declaração de Acessibilidade', url: 'https://www.calculadorasdeenfermagem.com.br/politicadeacessibilidade.html', publishedVersion: '1.0', latestApprovedVersion: '1.0', workflow: null, history: [{ version: '1.0', date: initialDate, summary: 'Versão inicial publicada.' }] },
+                { id: 6, title: 'Declaração de Compromisso com a Sustentabilidade Digital', url: 'https://www.calculadorasdeenfermagem.com.br/nossocompromisso.html', publishedVersion: '1.0', latestApprovedVersion: '1.0', workflow: null, history: [{ version: '1.0', date: initialDate, summary: 'Versão inicial publicada.' }] },
+                { id: 7, title: 'Relatório de Impacto Digital', url: 'https://www.calculadorasdeenfermagem.com.br/impactodigital.html', publishedVersion: '1.0', latestApprovedVersion: '1.0', workflow: null, history: [{ version: '1.0', date: initialDate, summary: 'Versão inicial publicada.' }] },
+                { id: 8, title: 'Declaração de Tecnologia Verde', url: 'https://www.calculadorasdeenfermagem.com.br/tecnologiaverde.html', publishedVersion: '1.0', latestApprovedVersion: '1.0', workflow: null, history: [{ version: '1.0', date: initialDate, summary: 'Versão inicial publicada.' }] }
             ];
 
             const workflowSteps = ['Iniciação', 'Elaboração', 'Revisão', 'Aprovação', 'Publicado'];
@@ -391,45 +353,73 @@
             const pendingAlertsEl = document.getElementById('pending-alerts');
             
             function renderDocuments() {
-                // Limpa a lista e o alerta
                 documentListEl.innerHTML = '';
                 pendingAlertsEl.innerHTML = '';
 
-                const pendingDocs = documents.filter(doc => doc.status !== 'Publicado');
+                const pendingDocs = documents.filter(doc => doc.workflow !== null);
+                const discrepancyDocs = documents.filter(doc => doc.publishedVersion !== doc.latestApprovedVersion);
 
-                // Mostra o alerta se houver documentos pendentes
-                if (pendingDocs.length > 0) {
+                if (discrepancyDocs.length > 0) {
                     pendingAlertsEl.innerHTML = `
-                        <div class="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 rounded-md" role="alert">
+                        <div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded-md mb-6" role="alert">
+                          <p class="font-bold">Discrepância Encontrada!</p>
+                          <p>${discrepancyDocs.length} documento(s) tem uma versão publicada que não é a última versão aprovada.</p>
+                        </div>
+                    `;
+                } else if (pendingDocs.length > 0) {
+                    pendingAlertsEl.innerHTML = `
+                        <div class="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 rounded-md mb-6" role="alert">
                           <p class="font-bold">Atenção!</p>
-                          <p>Existem ${pendingDocs.length} documento(s) com atualizações pendentes de aprovação.</p>
+                          <p>Existem ${pendingDocs.length} documento(s) com atualizações em andamento.</p>
                         </div>
                     `;
                 }
 
                 documents.forEach(doc => {
                     const docEl = document.createElement('div');
-                    docEl.className = 'grid grid-cols-5 items-center gap-4 py-4 border-b last:border-b-0';
+                    const isDiscrepancy = doc.publishedVersion !== doc.latestApprovedVersion;
+                    const hasPendingWorkflow = doc.workflow !== null;
                     
-                    // Adiciona destaque visual para documentos com workflow pendente
-                    if (doc.status !== 'Publicado') {
+                    docEl.className = 'grid grid-cols-6 items-center gap-4 py-4 border-b last:border-b-0';
+                    
+                    if (isDiscrepancy) {
+                        docEl.classList.add('bg-red-50', 'pl-4', 'border-l-4', 'border-red-400');
+                    } else if (hasPendingWorkflow) {
                         docEl.classList.add('bg-yellow-50', 'pl-4', 'border-l-4', 'border-yellow-400');
                     }
 
                     docEl.innerHTML = `
                         <div class="col-span-2 font-semibold text-gray-800 flex items-center gap-3">
-                            ${doc.status !== 'Publicado' ? '<i class="fas fa-exclamation-triangle text-yellow-500" title="Workflow pendente"></i>' : ''}
-                            <span>${doc.title}</span>
+                            ${isDiscrepancy ? '<i class="fas fa-exclamation-triangle text-red-500" title="Discrepância de versão!"></i>' : (hasPendingWorkflow ? '<i class="fas fa-hourglass-half text-yellow-500" title="Workflow em andamento"></i>' : '')}
+                            <a href="${doc.url}" target="_blank" title="Abrir documento" class="hover:underline">${doc.title} <i class="fas fa-external-link-alt text-xs text-gray-400"></i></a>
                         </div>
-                        <div>v${doc.version}</div>
-                        <div><span class="status-badge status-${doc.status.toLowerCase().replace(/ /g, '')}">${doc.status}</span></div>
+                        <div>v${doc.publishedVersion}</div>
+                        <div>v${doc.latestApprovedVersion}</div>
+                        <div>
+                            ${hasPendingWorkflow ? `<span class="status-badge status-${doc.workflow.status.toLowerCase()}">${doc.workflow.status}</span>` : '<span class="text-gray-400">-</span>'}
+                        </div>
                         <div class="flex justify-end gap-2">
+                            ${isDiscrepancy ? `<button onclick="publishVersion(${doc.id})" class="px-3 py-1 text-sm bg-green-100 text-green-800 rounded-md hover:bg-green-200">Publicar v${doc.latestApprovedVersion}</button>` : ''}
                             <button onclick="showHistory(${doc.id})" class="px-3 py-1 text-sm bg-gray-100 rounded-md hover:bg-gray-200">Ver Histórico</button>
-                            <button onclick="startNewVersion(${doc.id})" class="px-3 py-1 text-sm bg-blue-100 text-blue-800 rounded-md hover:bg-blue-200">Nova Versão</button>
+                            <button onclick="startNewVersion(${doc.id})" class="px-3 py-1 text-sm bg-blue-100 text-blue-800 rounded-md hover:bg-blue-200" ${hasPendingWorkflow ? 'disabled' : ''}>Nova Versão</button>
                         </div>
                     `;
                     documentListEl.appendChild(docEl);
                 });
+            }
+
+            window.publishVersion = function(docId) {
+                const doc = documents.find(d => d.id === docId);
+                if (doc) {
+                    doc.publishedVersion = doc.latestApprovedVersion;
+                    doc.lastUpdated = getBrasiliaDateTime();
+                     doc.history.unshift({
+                        version: doc.publishedVersion,
+                        date: doc.lastUpdated,
+                        summary: `Versão ${doc.publishedVersion} publicada para corrigir discrepância.`
+                    });
+                    renderDocuments();
+                }
             }
 
             window.showHistory = function(docId) {
@@ -447,37 +437,28 @@
 
             window.startNewVersion = function(docId) {
                 const doc = documents.find(d => d.id === docId);
-                const [major, minor] = doc.version.split('.').map(Number);
+                if (doc.workflow) return;
+
+                const baseVersion = doc.latestApprovedVersion;
+                const [major, minor] = baseVersion.split('.').map(Number);
                 const newVersion = `${major}.${minor + 1}`;
 
-                activeWorkflow = {
-                    docId: doc.id,
-                    currentStep: 0, // Iniciação
-                    newVersion: newVersion,
-                    summary: ''
-                };
-
+                activeWorkflow = { docId: doc.id, currentStep: 1, newVersion: newVersion };
+                doc.workflow = { version: newVersion, status: workflowSteps[1], currentStep: 1, summary: '' };
+                
                 document.getElementById('modal-doc-title').textContent = doc.title;
-                document.getElementById('modal-current-version').textContent = `v${doc.version}`;
+                document.getElementById('modal-current-version').textContent = `v${doc.latestApprovedVersion}`;
                 document.getElementById('modal-new-version').textContent = `v${newVersion}`;
                 document.getElementById('summary-changes').value = '';
                 
                 updateWorkflowVisualizer();
                 openModal('workflow-modal');
+                renderDocuments();
             }
 
             function updateWorkflowVisualizer() {
                 const visualizerEl = document.getElementById('workflow-visualizer');
-                visualizerEl.innerHTML = `
-                    <div class="workflow-steps">
-                        ${workflowSteps.map((step, index) => `
-                            <div class="workflow-step ${index < activeWorkflow.currentStep ? 'completed' : ''} ${index === activeWorkflow.currentStep ? 'active' : ''}">
-                                <div class="step-circle">${index < activeWorkflow.currentStep ? '<i class="fas fa-check"></i>' : index + 1}</div>
-                                <div class="step-label">${step}</div>
-                            </div>
-                        `).join('')}
-                    </div>
-                `;
+                visualizerEl.innerHTML = `<div class="workflow-steps">${workflowSteps.map((step, index) => `<div class="workflow-step ${index < activeWorkflow.currentStep ? 'completed' : ''} ${index === activeWorkflow.currentStep ? 'active' : ''}"><div class="step-circle">${index < activeWorkflow.currentStep ? '<i class="fas fa-check"></i>' : index + 1}</div><div class="step-label">${step}</div></div>`).join('')}</div>`;
                 const actionBtn = document.getElementById('workflow-action-btn');
                 if (activeWorkflow.currentStep < workflowSteps.length - 1) {
                     actionBtn.textContent = `Mover para ${workflowSteps[activeWorkflow.currentStep + 1]}`;
@@ -490,22 +471,19 @@
 
             document.getElementById('workflow-action-btn').addEventListener('click', () => {
                 if (activeWorkflow && activeWorkflow.currentStep < workflowSteps.length - 1) {
-                    activeWorkflow.currentStep++;
                     const doc = documents.find(d => d.id === activeWorkflow.docId);
+                    activeWorkflow.currentStep++;
                     const newStatus = workflowSteps[activeWorkflow.currentStep];
+                    doc.workflow.status = newStatus;
+                    doc.workflow.currentStep = activeWorkflow.currentStep;
 
                     if (newStatus === 'Publicado') {
-                        doc.status = 'Publicado';
-                        doc.version = activeWorkflow.newVersion;
-                        doc.lastUpdated = new Date().toISOString().split('T')[0];
-                        doc.history.unshift({
-                            version: activeWorkflow.newVersion,
-                            date: doc.lastUpdated,
-                            summary: document.getElementById('summary-changes').value || 'Atualização de versão.'
-                        });
+                        doc.latestApprovedVersion = activeWorkflow.newVersion;
+                        doc.publishedVersion = activeWorkflow.newVersion; // Publica automaticamente ao aprovar
+                        doc.lastUpdated = getBrasiliaDateTime();
+                        doc.history.unshift({ version: activeWorkflow.newVersion, date: doc.lastUpdated, summary: document.getElementById('summary-changes').value || 'Atualização de versão.' });
+                        doc.workflow = null;
                         closeModal('workflow-modal');
-                    } else {
-                         doc.status = newStatus;
                     }
                     
                     sendEmailNotification(doc.title, activeWorkflow.newVersion, newStatus);
@@ -517,22 +495,8 @@
             function sendEmailNotification(docTitle, newVersion, status) {
                 const recipient = 'ciadeenfermagem@gmail.com';
                 const subject = `Atualização de Workflow: ${docTitle} - v${newVersion}`;
-                const body = `
-                    Olá,
-                    
-                    O documento "${docTitle}" foi atualizado para o status: "${status}".
-                    
-                    Versão em andamento: v${newVersion}
-                    Resumo das alterações: ${document.getElementById('summary-changes').value || 'N/A'}
-                    
-                    Por favor, tome a ação necessária.
-                    
-                    Atenciosamente,
-                    Sistema de Conformidade - Calculadoras de Enfermagem
-                `;
-                
+                const body = `Olá,\n\nO documento "${docTitle}" foi atualizado para o status: "${status}".\n\nVersão em andamento: v${newVersion}\nResumo das alterações: ${document.getElementById('summary-changes').value || 'N/A'}\n\nPor favor, tome a ação necessária.\n\nAtenciosamente,\nSistema de Conformidade - Calculadoras de Enfermagem`;
                 const mailtoLink = `mailto:${recipient}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-                
                 window.open(mailtoLink, '_blank');
             }
 
@@ -547,13 +511,10 @@
 
             document.addEventListener('keydown', (event) => {
                 if (event.key === 'Escape') {
-                    document.querySelectorAll('.modal-overlay.visible').forEach(modal => {
-                        modal.classList.remove('visible');
-                    });
+                    document.querySelectorAll('.modal-overlay.visible').forEach(modal => modal.classList.remove('visible'));
                 }
             });
 
-            // Inicialização
             renderDocuments();
         });
     </script>
