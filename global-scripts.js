@@ -109,13 +109,12 @@ document.addEventListener('DOMContentLoaded', function() {
         .catch(error => console.warn('Não foi possível carregar os elementos globais do corpo:', error));
 });
 
-// COLE ESTA FUNÇÃO COMPLETA NO LUGAR DA ANTIGA initializeNavigationMenu()
+
 function initializeNavigationMenu() {
     const hamburgerButton = document.getElementById('hamburgerButton');
     const offCanvasMenu = document.getElementById('offCanvasMenu');
     const menuOverlay = document.getElementById('menuOverlay');
-    // COLE ESTA LINHA CORRIGIDA NO LUGAR DA ANTIGA:
-const closeMenuBtn = document.getElementById('closeOffCanvasMenu') || document.getElementById('closeMenuButton');
+    const closeMenuBtn = document.getElementById('closeOffCanvasMenu') || document.getElementById('closeMenuButton');
 
     const openNavMenu = () => {
         if(offCanvasMenu) {
@@ -170,14 +169,12 @@ function inicializarTooltips() {
 }
 
 
-// ENCONTRE a função initializeCookieFunctionality() no seu JS e SUBSTITUA-A por este bloco completo:
-
 function initializeCookieFunctionality() {
     // Seleciona todos os elementos relacionados a cookies
     const cookieConsentBanner = document.getElementById('cookieConsentBanner');
     const acceptAllCookiesBtn = document.getElementById('acceptAllCookiesBtn');
     const refuseAllCookiesBtn = document.getElementById('refuseAllCookiesBtn');
-    const manageCookiesBtn = document.getElementById('manageCookiesBtn'); // Botão no banner
+    const manageCookiesBtn = document.getElementById('manageCookiesBtn');
     const granularCookieModal = document.getElementById('granularCookieModal');
     const saveGranularPreferencesBtn = document.getElementById('saveGranularPreferencesBtn');
     const granularModalCloseButton = document.getElementById('granularModalCloseButton');
@@ -185,25 +182,24 @@ function initializeCookieFunctionality() {
     const cookieAnalyticsCheckbox = document.getElementById('cookieAnalytics');
     const cookieMarketingCheckbox = document.getElementById('cookieMarketing');
 
-    // Botão "Gerenciar Preferências de Cookies" que fica no rodapé
+    // Esta é a referência ao botão extra que estava no seu arquivo antigo
     const openGranularCookieModalBtn = document.getElementById('openGranularCookieModalBtn');
 
     // Funções auxiliares para mostrar/ocultar elementos
     const showCookieBanner = () => { if (!localStorage.getItem('cookieConsent') && cookieConsentBanner) cookieConsentBanner.classList.add('show'); };
     const hideCookieBanner = () => { if (cookieConsentBanner) cookieConsentBanner.classList.remove('show'); };
-    
     const showGranularCookieModal = () => {
         if (!granularCookieModal) return;
         if(cookieAnalyticsCheckbox) cookieAnalyticsCheckbox.checked = localStorage.getItem('analytics_storage') === 'granted';
         if(cookieMarketingCheckbox) cookieMarketingCheckbox.checked = localStorage.getItem('ad_storage') === 'granted';
+        // A lógica correta para o CSS atual é remover a classe 'hidden'
         granularCookieModal.classList.remove('hidden');
         // Força o navegador a aplicar a mudança antes de adicionar a classe de transição
         setTimeout(() => {
             granularCookieModal.classList.add('show');
         }, 10);
     };
-    
-    const hideGranularCookieModal = () => { 
+    const hideGranularCookieModal = () => {
         if(granularCookieModal) {
             granularCookieModal.classList.remove('show');
             setTimeout(() => {
@@ -211,43 +207,57 @@ function initializeCookieFunctionality() {
             }, 300); // Deve corresponder à duração da transição no CSS
         }
     };
-
     const updateGtagConsent = (consent) => { if(typeof gtag === 'function') { gtag('consent', 'update', consent); } };
 
     // Adiciona os eventos aos botões
-    acceptAllCookiesBtn?.addEventListener('click', () => {
-        updateGtagConsent({ 'analytics_storage': 'granted', 'ad_storage': 'granted' });
-        localStorage.setItem('cookieConsent', 'accepted');
-        hideCookieBanner();
-    });
+    if (acceptAllCookiesBtn) {
+        acceptAllCookiesBtn.addEventListener('click', () => {
+            updateGtagConsent({ 'analytics_storage': 'granted', 'ad_storage': 'granted' });
+            localStorage.setItem('cookieConsent', 'accepted');
+            hideCookieBanner();
+        });
+    }
 
-    refuseAllCookiesBtn?.addEventListener('click', () => {
-        updateGtagConsent({ 'analytics_storage': 'denied', 'ad_storage': 'denied' });
-        localStorage.setItem('cookieConsent', 'refused');
-        hideCookieBanner();
-    });
+    if (refuseAllCookiesBtn) {
+        refuseAllCookiesBtn.addEventListener('click', () => {
+            updateGtagConsent({ 'analytics_storage': 'denied', 'ad_storage': 'denied' });
+            localStorage.setItem('cookieConsent', 'refused');
+            hideCookieBanner();
+        });
+    }
 
-    // Listener para o botão "Gerenciar cookies" no BANNER
-    manageCookiesBtn?.addEventListener('click', showGranularCookieModal);
+    // Listener para o botão "Gerenciar cookies"
+    if (manageCookiesBtn) {
+        manageCookiesBtn.addEventListener('click', showGranularCookieModal);
+    }
     
-    // Listener para o botão "Gerenciar Preferências de Cookies" no RODAPÉ
-    openGranularCookieModalBtn?.addEventListener('click', showGranularCookieModal);
+    // Listener para o botão extra do arquivo antigo
+    if (openGranularCookieModalBtn) {
+        openGranularCookieModalBtn.addEventListener('click', showGranularCookieModal);
+    }
     
-    granularModalCloseButton?.addEventListener('click', hideGranularCookieModal);
-    cancelGranularPreferencesBtn?.addEventListener('click', hideGranularCookieModal);
+    if (granularModalCloseButton) {
+        granularModalCloseButton.addEventListener('click', hideGranularCookieModal);
+    }
+
+    if (cancelGranularPreferencesBtn) {
+        cancelGranularPreferencesBtn.addEventListener('click', hideGranularCookieModal);
+    }
     
-    saveGranularPreferencesBtn?.addEventListener('click', () => {
-        const consent = { 
-            'analytics_storage': cookieAnalyticsCheckbox.checked ? 'granted' : 'denied', 
-            'ad_storage': cookieMarketingCheckbox.checked ? 'granted' : 'denied' 
-        };
-        updateGtagConsent(consent);
-        localStorage.setItem('cookieConsent', 'managed');
-        localStorage.setItem('analytics_storage', consent.analytics_storage);
-        localStorage.setItem('ad_storage', consent.ad_storage);
-        hideGranularCookieModal();
-        hideCookieBanner();
-    });
+    if (saveGranularPreferencesBtn) {
+        saveGranularPreferencesBtn.addEventListener('click', () => {
+            const consent = { 
+                'analytics_storage': cookieAnalyticsCheckbox.checked ? 'granted' : 'denied', 
+                'ad_storage': cookieMarketingCheckbox.checked ? 'granted' : 'denied' 
+            };
+            updateGtagConsent(consent);
+            localStorage.setItem('cookieConsent', 'managed');
+            localStorage.setItem('analytics_storage', consent.analytics_storage);
+            localStorage.setItem('ad_storage', consent.ad_storage);
+            hideGranularCookieModal();
+            hideCookieBanner();
+        });
+    }
 
     // Exibe o banner inicial se necessário
     showCookieBanner();
@@ -301,6 +311,7 @@ function initializeGlobalFunctions() {
         const newIndex = currentFontSize - 1;
         body.style.fontSize = sizes[newIndex];
         if (fontSizeText) fontSizeText.textContent = labels[newIndex];
+        if (fontSizeTextPWA) fontSizeTextPWA.textContent = labels[newIndex];
         localStorage.setItem('fontSize', currentFontSize);
         if (announce) announceStatus(`Tamanho da fonte: ${labels[newIndex]}`);
     }
@@ -312,6 +323,7 @@ function initializeGlobalFunctions() {
         const newIndex = currentLineHeight - 1;
         document.documentElement.style.setProperty('--espacamento-linha', heights[newIndex]);
         if (lineHeightText) lineHeightText.textContent = labels[newIndex];
+        if (lineHeightTextPWA) lineHeightTextPWA.textContent = labels[newIndex];
         localStorage.setItem('lineHeight', currentLineHeight);
         if (announce) announceStatus(`Espaçamento de linha: ${labels[newIndex]}`);
     }
@@ -323,6 +335,7 @@ function initializeGlobalFunctions() {
         const newIndex = currentLetterSpacing - 1;
         document.documentElement.style.setProperty('--espacamento-letra', spacings[newIndex]);
         if (letterSpacingText) letterSpacingText.textContent = labels[newIndex];
+        if (letterSpacingTextPWA) letterSpacingTextPWA.textContent = labels[newIndex];
         localStorage.setItem('letterSpacing', currentLetterSpacing);
         if (announce) announceStatus(`Espaçamento de letra: ${labels[newIndex]}`);
     }
@@ -339,17 +352,23 @@ function initializeGlobalFunctions() {
 
     function toggleContrast() {
         body.classList.toggle('contraste-alto');
-        announceStatus('Alto contraste ' + (body.classList.contains('contraste-alto') ? 'ativado' : 'desativado'));
+        const isActive = body.classList.contains('contraste-alto');
+        localStorage.setItem('contrasteAlto', isActive);
+        announceStatus(`Modo de alto contraste ${isActive ? 'ativado' : 'desativado'}.`);
     }
 
     function toggleDarkMode() {
         body.classList.toggle('dark-mode');
-        announceStatus('Modo escuro ' + (body.classList.contains('dark-mode') ? 'ativado' : 'desativado'));
+        const isActive = body.classList.contains('dark-mode');
+        localStorage.setItem('darkMode', isActive);
+        announceStatus(`Modo escuro ${isActive ? 'ativado' : 'desativado'}.`);
     }
 
     function toggleDyslexiaFont() {
         body.classList.toggle('fonte-dislexia');
-        announceStatus('Fonte para dislexia ' + (body.classList.contains('fonte-dislexia') ? 'ativada' : 'desativada'));
+        const isActive = body.classList.contains('fonte-dislexia');
+        localStorage.setItem('fonteDislexia', isActive);
+        announceStatus(`Fonte para dislexia ${isActive ? 'ativada' : 'desativada'}.`);
     }
 
     function lerConteudo(texto) {
@@ -386,6 +405,7 @@ function initializeGlobalFunctions() {
         velocidadeLeituraAtual = (velocidadeLeituraAtual % velocidadesLeitura.length) + 1;
         const novaVelocidade = velocidadesLeitura[velocidadeLeituraAtual - 1];
         if (readingSpeedText) readingSpeedText.textContent = novaVelocidade.label;
+        if (readingSpeedTextPWA) readingSpeedTextPWA.textContent = novaVelocidade.label;
     }
 
     function handleLerFoco() {
@@ -405,6 +425,7 @@ function initializeGlobalFunctions() {
         localStorage.clear();
         updateFontSize(false); updateLineHeight(false); updateLetterSpacing(false);
         if (readingSpeedText) readingSpeedText.textContent = 'Normal';
+        if (readingSpeedTextPWA) readingSpeedTextPWA.textContent = 'Normal';
         setFocusColor('yellow', false);
         announceStatus('Configurações de acessibilidade redefinidas.');
     }
@@ -417,9 +438,9 @@ function initializeGlobalFunctions() {
         { ids: ['btnAlternarModoEscuro', 'btnAlternarModoEscuroPWA'], action: toggleDarkMode },
         { ids: ['btnAlternarFonteDislexia', 'btnAlternarFonteDislexiaPWA'], action: toggleDyslexiaFont },
         { ids: ['btnResetarAcessibilidade', 'btnResetarAcessibilidadePWA'], action: resetarAcessibilidade },
-        { ids: ['btnToggleLeitura'], action: handleToggleLeitura },
-        { ids: ['btnReiniciarLeitura'], action: handleReiniciarLeitura },
-        { ids: ['btnAlternarVelocidadeLeitura'], action: handleVelocidadeLeitura },
+        { ids: ['btnToggleLeitura', 'btnToggleLeituraPWA'], action: handleToggleLeitura },
+        { ids: ['btnReiniciarLeitura', 'btnReiniciarLeituraPWA'], action: handleReiniciarLeitura },
+        { ids: ['btnAlternarVelocidadeLeitura', 'btnAlternarVelocidadeLeituraPWA'], action: handleVelocidadeLeitura },
         { ids: ['btnReadFocused'], action: handleLerFoco },
     ];
     accessibilityActions.forEach(item => {
@@ -431,6 +452,9 @@ function initializeGlobalFunctions() {
         });
     });
     document.querySelectorAll('.color-option').forEach(button => {
+        button.addEventListener('click', () => setFocusColor(button.dataset.color));
+    });
+    document.querySelectorAll('.color-options-pwa .color-option').forEach(button => {
         button.addEventListener('click', () => setFocusColor(button.dataset.color));
     });
 
@@ -456,18 +480,17 @@ function initializeGlobalFunctions() {
     initializeCookieFunctionality();
 
     function loadAccessibilitySettings() {
-        currentFontSize = 1;
+        currentFontSize = parseInt(localStorage.getItem('fontSize') || '1', 10);
         updateFontSize(false);
-
         currentLineHeight = parseInt(localStorage.getItem('lineHeight') || '1', 10);
         updateLineHeight(false);
         currentLetterSpacing = parseInt(localStorage.getItem('letterSpacing') || '1', 10);
         updateLetterSpacing(false);
         velocidadeLeituraAtual = parseInt(localStorage.getItem('readingSpeed') || '1', 10);
-        if (readingSpeedText) handleVelocidadeLeitura();
-        if (localStorage.getItem('highContrast') === 'true') body.classList.add('contraste-alto');
+        updateReadingSpeed(false);
+        if (localStorage.getItem('contrasteAlto') === 'true') body.classList.add('contraste-alto');
         if (localStorage.getItem('darkMode') === 'true') body.classList.add('dark-mode');
-        if (localStorage.getItem('dyslexiaFont') === 'true') body.classList.add('fonte-dislexia');
+        if (localStorage.getItem('fonteDislexia') === 'true') body.classList.add('fonte-dislexia');
         setFocusColor(localStorage.getItem('focusColor') || 'yellow', false);
     }
     loadAccessibilitySettings();
@@ -475,10 +498,9 @@ function initializeGlobalFunctions() {
     accessibilityToggleButton?.addEventListener('click', () => {
         if (offCanvasMenu?.classList.contains('is-open')) {
             offCanvasMenu.classList.remove('is-open');
-            offCanvasMenu.classList.add('-translate-x-full');
         }
-        pwaAcessibilidadeBar?.classList.add('is-open');
-        if (menuOverlay) menuOverlay.style.display = 'block';
+        pwaAcessibilidadeBar?.classList.toggle('is-open');
+        if (menuOverlay) menuOverlay.style.display = pwaAcessibilidadeBar.classList.contains('is-open') ? 'block' : 'none';
     });
 
     pwaAcessibilidadeCloseBtn?.addEventListener('click', () => {
@@ -487,7 +509,7 @@ function initializeGlobalFunctions() {
             if (menuOverlay) menuOverlay.style.display = 'none';
         }
     });
-
+    
     const backToTopBtn = document.getElementById('backToTopBtn');
     if (backToTopBtn) {
         window.addEventListener('scroll', () => {
@@ -514,27 +536,107 @@ function initializeGlobalFunctions() {
     }
     initVLibras();
   
-    inicializarTooltips(); 
+    inicializarTooltips();
+
+    // --- Newsletter Subscription Logic (Adjusted for Formspree) ---
+    const newsletterForm = document.getElementById('newsletters-section'); // Now the form itself
+    const newsletterEmail = document.getElementById('email'); // Changed to 'email'
+    const newsletterConsent = document.getElementById('newsletterConsent');
+    const subscribeNewsletterBtn = document.getElementById('subscribeNewsletterBtn');
+    const newsletterError = document.getElementById('erro-email'); // Changed to 'erro-email'
+
+    /**
+     * Validates the email format.
+     * @param {string} email - The email address to validate.
+     * @returns {boolean} True if the email is valid, false otherwise.
+     */
+    function isValidEmail(email) {
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        return emailRegex.test(email);
+    }
+
+    /**
+     * Updates the state of the subscribe button based on input validity and consent.
+     */
+    function updateSubscribeButtonState() {
+        const emailValid = isValidEmail(newsletterEmail.value);
+        const consentChecked = newsletterConsent.checked;
+        // The button is disabled unless both email is valid and consent is checked.
+        subscribeNewsletterBtn.disabled = !(emailValid && consentChecked);
+    }
+
+    // Add event listeners for newsletter form fields
+    if (newsletterEmail) {
+        newsletterEmail.addEventListener('input', updateSubscribeButtonState);
+    }
+    if (newsletterConsent) {
+        newsletterConsent.addEventListener('change', updateSubscribeButtonState);
+    }
+
+    // Handle Formspree submission
+    if (newsletterForm) {
+        newsletterForm.addEventListener('submit', async function(event) {
+            event.preventDefault(); // Prevent default form submission
+
+            const email = newsletterEmail.value;
+            if (!isValidEmail(email)) {
+                newsletterError.textContent = 'E-mail inválido. Verifique se digitou corretamente, por exemplo: nome@dominio.com';
+                newsletterError.style.display = 'block';
+                announceStatus('Erro no formulário: E-mail inválido. Verifique se digitou corretamente, por exemplo: nome@dominio.com');
+                return;
+            }
+
+            if (!newsletterConsent.checked) {
+                newsletterError.textContent = 'Você deve aceitar os termos para se inscrever.';
+                newsletterError.style.display = 'block';
+                announceStatus('Erro no formulário: Você deve aceitar os termos para se inscrever.');
+                return;
+            }
+
+            newsletterError.style.display = 'none'; // Hide previous errors
+
+            // Disable button during submission
+            subscribeNewsletterBtn.disabled = true;
+            subscribeNewsletterBtn.textContent = 'Enviando...';
+            announceStatus('Enviando formulário da newsletter...');
+
+            try {
+                const response = await fetch(this.action, {
+                    method: this.method,
+                    body: new FormData(this), // Use FormData to send form data
+                    headers: {
+                        'Accept': 'application/json'
+                    }
+                });
+
+                if (response.ok) {
+                    showCustomModal('Obrigado por se inscrever na nossa newsletter!');
+                    newsletterForm.reset(); // Clear form fields
+                    updateSubscribeButtonState(); // Update button state after reset
+                    announceStatus('Inscrição na newsletter realizada com sucesso!');
+                } else {
+                    const data = await response.json();
+                    let errorMessage = 'Ocorreu um erro ao se inscrever. Por favor, tente novamente. Certifique-se de que o e-mail não está em uso ou tente novamente mais tarde.';
+                    if (data.errors) {
+                        errorMessage = data.errors.map(error => error.message).join(', ') + '. Verifique se digitou corretamente ou tente novamente mais tarde.';
+                    }
+                    newsletterError.textContent = errorMessage;
+                    newsletterError.style.display = 'block';
+                    announceStatus(`Erro na inscrição da newsletter: ${errorMessage}`);
+                }
+            } catch (error) {
+                console.error('Submission error:', error);
+                const networkErrorMessage = 'Ocorreu um erro de rede. Por favor, tente novamente.';
+                newsletterError.textContent = networkErrorMessage;
+                newsletterError.style.display = 'block';
+                announceStatus(`Erro na inscrição da newsletter: ${networkErrorMessage}`);
+            } finally {
+                subscribeNewsletterBtn.disabled = false;
+                subscribeNewsletterBtn.textContent = 'Assinar';
+            }
+        });
+    }
+
+    // Initial state update for newsletter button on DOMContentLoaded
+    document.addEventListener('DOMContentLoaded', updateSubscribeButtonState);
 }
-document.addEventListener('DOMContentLoaded', function () {
-  const footer = document.querySelector('footer');
-  if (footer) {
-    const adContainer = document.createElement('div');
-    adContainer.className = 'my-8 flex justify-center';
-
-    const innerDiv = document.createElement('div');
-    innerDiv.id = 'container-62a5c8277a385b7247c1969a06823c61';
-
-    const adScript = document.createElement('script');
-    adScript.async = true;
-    adScript.setAttribute('data-cfasync', 'false');
-    adScript.src = '//pl27406653.profitableratecpm.com/62a5c8277a385b7247c1969a06823c61/invoke.js';
-
-    adContainer.appendChild(innerDiv);
-    footer.parentNode.insertBefore(adContainer, footer);
-    adContainer.appendChild(adScript);
-  } else {
-    console.warn('Footer não encontrado para inserir o anúncio.');
-  }
-});
-
