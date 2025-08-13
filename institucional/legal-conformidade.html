@@ -12,7 +12,6 @@
     
     <!-- Scripts e Estilos Globais do Site -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="global-styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -134,15 +133,15 @@
         <div class="editor-content" role="dialog" aria-modal="true">
             <div class="flex justify-between items-center mb-4 pb-4 border-b">
                 <h2 class="text-2xl font-bold text-gray-800" id="editor-doc-title"></h2>
-                <button onclick="cancelEdit()" class="text-gray-500 hover:text-gray-800 text-2xl" aria-label="Fechar">&times;</button>
+                <button id="close-editor-btn" class="text-gray-500 hover:text-gray-800 text-2xl" aria-label="Fechar">&times;</button>
             </div>
             <div id="editor-form-content" class="flex-grow overflow-y-auto pr-4">
                 <!-- Campos de edição dinâmicos serão inseridos aqui -->
             </div>
             <div class="flex justify-between items-center gap-4 mt-6 pt-4 border-t">
-                <button onclick="showDiff()" class="px-4 py-2 bg-gray-100 text-gray-800 rounded-md hover:bg-gray-200">Comparar com Versão Aprovada</button>
+                <button id="diff-btn" class="px-4 py-2 bg-gray-100 text-gray-800 rounded-md hover:bg-gray-200">Comparar com Versão Aprovada</button>
                 <div>
-                    <button onclick="cancelEdit()" class="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300">Cancelar</button>
+                    <button id="cancel-edit-btn" class="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300">Cancelar</button>
                     <button id="editor-action-btn" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">Salvar e Avançar</button>
                 </div>
             </div>
@@ -152,12 +151,14 @@
     <!-- Modais Globais serão carregados aqui -->
     <div id="global-body-elements-container"></div>
 
-    <!-- Firebase SDKs -->
+    <!-- Firebase SDKs e Lógica da Aplicação -->
     <script type="module">
+        // Imports do Firebase
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
         import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
         import { getFirestore, collection, onSnapshot, doc, updateDoc, addDoc, getDocs, query, collectionGroup } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
         
+        // Configuração do Firebase
         const firebaseConfig = {
             apiKey: "AIzaSyC1US-K0KoiE9OS4IGalxkNUwqSicTPbeA",
             authDomain: "acesso-restrito-github.firebaseapp.com",
@@ -167,215 +168,211 @@
             appId: "1:32644970643:web:92f5f3653ddeaa8ac0b566"
         };
 
+        // Inicialização do Firebase
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        window.db = db;
-        window.auth = auth;
-        window.firebase = {
-            collection,
-            onSnapshot,
-            doc,
-            updateDoc,
-            addDoc,
-            getDocs,
-            query,
-            collectionGroup
+        // Estado da Aplicação
+        let currentUser = null;
+        let documents = [];
+        let activeDocument = null;
+        const workflowSteps = ['Iniciação', 'Elaboração', 'Revisão', 'Aprovação', 'Publicado'];
+
+        // Simulação de banco de dados de usuários
+        const users = {
+            'kauesp07@hotmail.com': { name: 'Cauê Silvério Marques Zipfel', roles: ['Administrador', 'Revisor', 'Editor'] },
+            'leivis.ml@gmail.com': { name: 'Leivis de Melo Lima', roles: ['Editor'] }
         };
 
+        // --- Manipulador de Autenticação ---
         onAuthStateChanged(auth, (user) => {
-            document.dispatchEvent(new CustomEvent('authReady', { detail: { user } }));
-        });
-    </script>
-
-    <script src="global-scripts.js"></script>
-    <script>
-        document.addEventListener('authReady', (event) => {
-            const realUser = event.detail.user;
-            let currentUser = null;
-            let documents = [];
-
-            const users = {
-                'kauesp07@hotmail.com': { name: 'Cauê Silvério Marques Zipfel', roles: ['Administrador', 'Revisor', 'Editor'] },
-                'leivis.ml@gmail.com': { name: 'Leivis de Melo Lima', roles: ['Editor'] }
-            };
-
-            if (realUser && users[realUser.email]) {
-                currentUser = { email: realUser.email, ...users[realUser.email] };
+            if (user && users[user.email]) {
+                currentUser = { email: user.email, ...users[user.email] };
                 document.body.classList.remove('hidden');
-                initializeApp();
+                initializeAppLogic();
             } else {
                 window.location.href = 'institucional/acessorestrito.html';
             }
-            
-            function initializeApp() {
-                renderUserInfo();
-                setupFirestoreListener();
+        });
+
+        // --- Inicialização da Lógica da Aplicação ---
+        function initializeAppLogic() {
+            renderUserInfo();
+            setupFirestoreListener();
+            setupGlobalEventListeners();
+        }
+
+        // --- Renderização da Interface ---
+        function renderUserInfo() {
+            const userInfoEl = document.getElementById('user-info');
+            if(userInfoEl && currentUser) {
+                userInfoEl.innerHTML = `
+                    <div>
+                        <span class="font-bold">${currentUser.name}</span>
+                        <span class="text-sm text-gray-500">(${currentUser.roles.join(', ')})</span>
+                    </div>
+                    <button id="sign-out-btn" class="text-sm text-blue-600 hover:underline">Sair</button>
+                `;
+                document.getElementById('sign-out-btn').addEventListener('click', () => {
+                    signOut(auth).catch(error => console.error("Erro ao sair:", error));
+                });
             }
-            
-            function renderUserInfo() {
-                const userInfoEl = document.getElementById('user-info');
-                if(userInfoEl && currentUser) {
-                    userInfoEl.innerHTML = `
-                        <div>
-                            <span class="font-bold">${currentUser.name}</span>
-                            <span class="text-sm text-gray-500">(${currentUser.roles.join(', ')})</span>
-                        </div>
-                        <button onclick="window.auth.signOut()" class="text-sm text-blue-600 hover:underline">Sair</button>
-                    `;
-                }
+        }
+
+        function renderDocuments() {
+            const listEl = document.getElementById('document-list');
+            const alertsEl = document.getElementById('pending-alerts');
+            if (!listEl || !alertsEl) return;
+
+            listEl.innerHTML = '';
+            alertsEl.innerHTML = '';
+
+            const pendingDocs = documents.filter(doc => doc.workflow);
+            const discrepancyDocs = documents.filter(doc => doc.publishedVersion !== doc.latestApprovedVersion);
+
+            if (discrepancyDocs.length > 0) {
+                alertsEl.innerHTML = `<div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded-md mb-6" role="alert"><p class="font-bold">Discrepância Encontrada!</p><p>${discrepancyDocs.length} documento(s) tem uma versão publicada que não é a última versão aprovada.</p></div>`;
+            } else if (pendingDocs.length > 0) {
+                alertsEl.innerHTML = `<div class="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 rounded-md mb-6" role="alert"><p class="font-bold">Atenção!</p><p>Existem ${pendingDocs.length} documento(s) com atualizações em andamento.</p></div>`;
             }
 
-            function setupFirestoreListener() {
-                const { collection, onSnapshot, db } = window.firebase;
-                const docsCollection = collection(db, 'legal_documents');
+            documents.forEach(doc => {
+                const docEl = document.createElement('div');
+                const isDiscrepancy = doc.publishedVersion !== doc.latestApprovedVersion;
+                const hasPendingWorkflow = !!doc.workflow;
                 
-                onSnapshot(docsCollection, (snapshot) => {
-                    documents = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                    renderDocuments();
-                }, (error) => {
-                    console.error("Erro ao buscar documentos do Firestore: ", error);
-                    document.getElementById('pending-alerts').innerHTML = `<div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded-md mb-6" role="alert"><p class="font-bold">Erro de Conexão</p><p>Não foi possível carregar os documentos. Verifique as regras de segurança do Firebase e a sua conexão.</p></div>`;
-                });
-            }
-            
-            function renderDocuments() {
-                const documentListEl = document.getElementById('document-list');
-                const pendingAlertsEl = document.getElementById('pending-alerts');
-                documentListEl.innerHTML = '';
-                pendingAlertsEl.innerHTML = '';
+                docEl.className = 'grid grid-cols-6 items-center gap-4 py-4 border-b last:border-b-0';
+                if (isDiscrepancy) docEl.classList.add('bg-red-50', 'pl-4', 'border-l-4', 'border-red-400');
+                else if (hasPendingWorkflow) docEl.classList.add('bg-yellow-50', 'pl-4', 'border-l-4', 'border-yellow-400');
 
-                const pendingDocs = documents.filter(doc => doc.workflow);
-                const discrepancyDocs = documents.filter(doc => doc.publishedVersion !== doc.latestApprovedVersion);
+                docEl.innerHTML = `
+                    <div class="col-span-2 font-semibold text-gray-800 flex items-center gap-3">
+                        ${isDiscrepancy ? '<i class="fas fa-exclamation-triangle text-red-500" title="Discrepância de versão!"></i>' : (hasPendingWorkflow ? `<i class="fas fa-hourglass-half text-yellow-500" title="Workflow: ${doc.workflow.status}"></i>` : '')}
+                        <a href="${doc.url}" target="_blank" title="Abrir documento" class="hover:underline">${doc.title} <i class="fas fa-external-link-alt text-xs text-gray-400"></i></a>
+                    </div>
+                    <div>v${doc.publishedVersion}</div>
+                    <div>v${doc.latestApprovedVersion}</div>
+                    <div>${hasPendingWorkflow ? `<span class="status-badge status-${doc.workflow.status.toLowerCase()}">${doc.workflow.status}</span>` : '<span class="text-gray-400">-</span>'}</div>
+                    <div class="flex justify-end gap-2" data-doc-id="${doc.id}">
+                        ${isDiscrepancy && currentUser.roles.includes('Administrador') ? `<button data-action="publish" class="px-3 py-1 text-sm bg-green-100 text-green-800 rounded-md hover:bg-green-200">Publicar v${doc.latestApprovedVersion}</button>` : ''}
+                        <button data-action="history" class="px-3 py-1 text-sm bg-gray-100 rounded-md hover:bg-gray-200">Ver Histórico</button>
+                        <button data-action="new-version" class="px-3 py-1 text-sm bg-blue-100 text-blue-800 rounded-md hover:bg-blue-200" ${hasPendingWorkflow || !currentUser.roles.includes('Editor') ? 'disabled' : ''}>Nova Versão</button>
+                    </div>
+                `;
+                listEl.appendChild(docEl);
+            });
+        }
+        
+        function renderEditor() {
+            document.getElementById('editor-doc-title').textContent = `Editando: ${activeDocument.title} (v${activeDocument.workflow.version})`;
+            const formContent = document.getElementById('editor-form-content');
+            formContent.innerHTML = `
+                <div class="mb-4">
+                    <label for="editor-content-area" class="block text-sm font-medium text-gray-700 mb-1">Conteúdo do Documento</label>
+                    <textarea id="editor-content-area"></textarea>
+                </div>
+                <div>
+                    <label for="editor-summary" class="block text-sm font-medium text-gray-700 mb-1">Resumo das Alterações</label>
+                    <textarea id="editor-summary" rows="3" class="w-full p-2 border rounded-md"></textarea>
+                </div>
+            `;
 
-                if (discrepancyDocs.length > 0) {
-                    pendingAlertsEl.innerHTML = `<div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded-md mb-6" role="alert"><p class="font-bold">Discrepância Encontrada!</p><p>${discrepancyDocs.length} documento(s) tem uma versão publicada que não é a última versão aprovada.</p></div>`;
-                } else if (pendingDocs.length > 0) {
-                    pendingAlertsEl.innerHTML = `<div class="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 rounded-md mb-6" role="alert"><p class="font-bold">Atenção!</p><p>Existem ${pendingDocs.length} documento(s) com atualizações em andamento.</p></div>`;
+            tinymce.init({
+                selector: '#editor-content-area',
+                plugins: 'lists link image table code help wordcount',
+                toolbar: 'undo redo | blocks | bold italic | alignleft aligncenter alignright | bullist numlist outdent indent | link image | code',
+                setup: (editor) => {
+                    editor.on('init', () => {
+                        editor.setContent(activeDocument.workflow.content);
+                        document.getElementById('editor-summary').value = activeDocument.workflow.summary;
+                    });
                 }
+            });
+        }
 
-                documents.forEach(doc => {
-                    const docEl = document.createElement('div');
-                    const isDiscrepancy = doc.publishedVersion !== doc.latestApprovedVersion;
-                    const hasPendingWorkflow = doc.workflow;
-                    
-                    docEl.className = 'grid grid-cols-6 items-center gap-4 py-4 border-b last:border-b-0';
-                    
-                    if (isDiscrepancy) {
-                        docEl.classList.add('bg-red-50', 'pl-4', 'border-l-4', 'border-red-400');
-                    } else if (hasPendingWorkflow) {
-                        docEl.classList.add('bg-yellow-50', 'pl-4', 'border-l-4', 'border-yellow-400');
-                    }
+        // --- Listener do Firestore ---
+        function setupFirestoreListener() {
+            const docsCollection = collection(db, 'legal_documents');
+            onSnapshot(docsCollection, (snapshot) => {
+                documents = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                renderDocuments();
+            }, (error) => {
+                console.error("Erro ao buscar documentos do Firestore: ", error);
+                const alertsEl = document.getElementById('pending-alerts');
+                if(alertsEl) {
+                    alertsEl.innerHTML = `<div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded-md mb-6" role="alert"><p class="font-bold">Erro de Conexão</p><p>Não foi possível carregar os documentos. Verifique as regras de segurança do Firebase e a sua conexão.</p></div>`;
+                }
+            });
+        }
 
-                    docEl.innerHTML = `
-                        <div class="col-span-2 font-semibold text-gray-800 flex items-center gap-3">
-                            ${isDiscrepancy ? '<i class="fas fa-exclamation-triangle text-red-500" title="Discrepância de versão!"></i>' : (hasPendingWorkflow ? `<i class="fas fa-hourglass-half text-yellow-500" title="Workflow: ${doc.workflow.status}"></i>` : '')}
-                            <a href="${doc.url}" target="_blank" title="Abrir documento" class="hover:underline">${doc.title} <i class="fas fa-external-link-alt text-xs text-gray-400"></i></a>
-                        </div>
-                        <div>v${doc.publishedVersion}</div>
-                        <div>v${doc.latestApprovedVersion}</div>
-                        <div>
-                            ${hasPendingWorkflow ? `<span class="status-badge status-${doc.workflow.status.toLowerCase()}">${doc.workflow.status}</span>` : '<span class="text-gray-400">-</span>'}
-                        </div>
-                        <div class="flex justify-end gap-2">
-                            ${isDiscrepancy && currentUser.roles.includes('Administrador') ? `<button onclick="publishVersion('${doc.id}')" class="px-3 py-1 text-sm bg-green-100 text-green-800 rounded-md hover:bg-green-200">Publicar v${doc.latestApprovedVersion}</button>` : ''}
-                            <button onclick="showHistory('${doc.id}')" class="px-3 py-1 text-sm bg-gray-100 rounded-md hover:bg-gray-200">Ver Histórico</button>
-                            <button onclick="startNewVersion('${doc.id}')" class="px-3 py-1 text-sm bg-blue-100 text-blue-800 rounded-md hover:bg-blue-200" ${hasPendingWorkflow || !currentUser.roles.includes('Editor') ? 'disabled' : ''}>Nova Versão</button>
-                        </div>
-                    `;
-                    documentListEl.appendChild(docEl);
-                });
+        // --- Funções de Ação e Manipuladores de Eventos ---
+        function openModal(id) { document.getElementById(id)?.classList.add('visible'); }
+        function closeModal(id) { document.getElementById(id)?.classList.remove('visible'); }
+        
+        function cancelEdit() {
+            tinymce.get('editor-content-area')?.remove();
+            closeModal('editor-view');
+            activeDocument = null;
+        }
+
+        async function saveAndAdvance() {
+            if (!activeDocument) return;
+            activeDocument.workflow.content = tinymce.get('editor-content-area').getContent();
+            activeDocument.workflow.summary = document.getElementById('editor-summary').value;
+            
+            console.log("Salvando no Firestore:", activeDocument);
+            // Lógica para atualizar o documento no Firestore
+            // Ex: await updateDoc(doc(db, 'legal_documents', activeDocument.id), { workflow: activeDocument.workflow });
+            cancelEdit();
+        }
+        
+        function startNewVersion(docId) {
+            activeDocument = documents.find(d => d.id === docId);
+            if (!activeDocument || activeDocument.workflow) return;
+
+            const [major, minor] = activeDocument.latestApprovedVersion.split('.').map(Number);
+            const newVersion = `${major}.${minor + 1}`;
+            activeDocument.workflow = { version: newVersion, status: workflowSteps[1], currentStep: 1, summary: '', content: activeDocument.content };
+            
+            renderEditor();
+            openModal('editor-view');
+        }
+
+        function publishVersion(docId) { console.log(`Publicando v${doc.latestApprovedVersion} para o documento ${docId}`); }
+        function showHistory(docId) { console.log(`Mostrando histórico para o documento ${docId}`); }
+        function showDiff() { console.log("Mostrando diferenças..."); }
+
+        function handleDocumentAction(event) {
+            const button = event.target.closest('button[data-action]');
+            if (!button) return;
+            const docId = button.closest('[data-doc-id]').dataset.docId;
+            switch (button.dataset.action) {
+                case 'publish': publishVersion(docId); break;
+                case 'history': showHistory(docId); break;
+                case 'new-version': startNewVersion(docId); break;
             }
+        }
 
-            window.openModal = (id) => {
-                const modal = document.getElementById(id);
-                if (modal) modal.classList.add('visible');
-            };
-
-            window.closeModal = (id) => {
-                const modal = document.getElementById(id);
-                if (modal) modal.classList.remove('visible');
-            };
+        // --- Listeners de Eventos Globais ---
+        function setupGlobalEventListeners() {
+            document.getElementById('document-list').addEventListener('click', handleDocumentAction);
+            document.getElementById('diff-btn').addEventListener('click', showDiff);
+            document.getElementById('cancel-edit-btn').addEventListener('click', cancelEdit);
+            document.getElementById('editor-action-btn').addEventListener('click', saveAndAdvance);
+            document.getElementById('close-editor-btn').addEventListener('click', cancelEdit);
 
             document.addEventListener('keydown', (event) => {
                 if (event.key === 'Escape') {
                     document.querySelectorAll('.modal-overlay.visible, .editor-view.visible').forEach(el => el.classList.remove('visible'));
                 }
             });
-
             document.body.addEventListener('click', (event) => {
                 if (event.target.matches('.modal-overlay, .editor-view')) {
                     event.target.classList.remove('visible');
                 }
             });
-
-            let activeDocument = null;
-            const workflowSteps = ['Iniciação', 'Elaboração', 'Revisão', 'Aprovação', 'Publicado'];
-
-            window.startNewVersion = function(docId) {
-                activeDocument = documents.find(d => d.id === docId);
-                if (!activeDocument || activeDocument.workflow) return;
-
-                const baseVersion = activeDocument.latestApprovedVersion;
-                const [major, minor] = baseVersion.split('.').map(Number);
-                const newVersion = `${major}.${minor + 1}`;
-
-                activeDocument.workflow = { version: newVersion, status: workflowSteps[1], currentStep: 1, summary: '', content: activeDocument.content };
-                
-                renderEditor();
-                openModal('editor-view');
-            };
-
-            function renderEditor() {
-                document.getElementById('editor-doc-title').textContent = `Editando: ${activeDocument.title} (v${activeDocument.workflow.version})`;
-                const formContent = document.getElementById('editor-form-content');
-                formContent.innerHTML = `
-                    <div class="mb-4">
-                        <label for="editor-content-area" class="block text-sm font-medium text-gray-700 mb-1">Conteúdo do Documento</label>
-                        <textarea id="editor-content-area"></textarea>
-                    </div>
-                    <div>
-                        <label for="editor-summary" class="block text-sm font-medium text-gray-700 mb-1">Resumo das Alterações</label>
-                        <textarea id="editor-summary" rows="3" class="w-full p-2 border rounded-md"></textarea>
-                    </div>
-                `;
-
-                tinymce.init({
-                    selector: '#editor-content-area',
-                    plugins: 'lists link image table code help wordcount',
-                    toolbar: 'undo redo | blocks | bold italic | alignleft aligncenter alignright | bullist numlist outdent indent | link image | code',
-                    setup: function(editor) {
-                        editor.on('init', function() {
-                            editor.setContent(activeDocument.workflow.content);
-                            document.getElementById('editor-summary').value = activeDocument.workflow.summary;
-                        });
-                    }
-                });
-            }
-
-            window.cancelEdit = function() {
-                if (tinymce.get('editor-content-area')) {
-                    tinymce.get('editor-content-area').remove();
-                }
-                closeModal('editor-view');
-                activeDocument = null;
-            };
-
-            window.saveAndAdvance = function() {
-                if (!activeDocument) return;
-                const content = tinymce.get('editor-content-area').getContent();
-                const summary = document.getElementById('editor-summary').value;
-                
-                activeDocument.workflow.content = content;
-                activeDocument.workflow.summary = summary;
-
-                // Aqui iria a lógica para atualizar o documento no Firestore
-                console.log("Salvando no Firestore:", activeDocument);
-
-                cancelEdit();
-            };
-        });
+        }
     </script>
 </body>
 </html>
