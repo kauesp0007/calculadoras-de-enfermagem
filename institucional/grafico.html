@@ -462,58 +462,30 @@
         let inactivityTimer;
         let pageInitialized = false;
 
-        const allowedReferrers = [
-            'https://www.calculadorasdeenfermagem.com.br/institucional/index.html',
-            'https://www.calculadorasdeenfermagem.com.br/institucional/manual-redes-sociais.html',
-            'https://www.calculadorasdeenfermagem.com.br/institucional/topicos.html',
-            'https://www.calculadorasdeenfermagem.com.br/institucional/educativo.html',
-            'https://www.calculadorasdeenfermagem.com.br/institucional/tabela.html',
-            'https://www.calculadorasdeenfermagem.com.br/institucional/grafico.html',
-            'https://www.calculadorasdeenfermagem.com.br/institucional/multiplas-imagens.html',
-            'https://www.calculadorasdeenfermagem.com.br/institucional/quiz.html',
-            'https://www.calculadorasdeenfermagem.com.br/institucional/comemorativo.html',
-            'https://www.calculadorasdeenfermagem.com.br/institucional/legal-conformidade.html',
-            'https://www.calculadorasdeenfermagem.com.br/institucional/governanca-planejamento.html',
-            'https://www.calculadorasdeenfermagem.com.br/institucional/procedimentos-manuais.html',
-            'https://www.calculadorasdeenfermagem.com.br/institucional/segurança-e-ti.html',
-            'https://www.calculadorasdeenfermagem.com.br/institucional/relatórios-monitoramento.html',
-            'https://www.calculadorasdeenfermagem.com.br/institucional/conteudo-comunicacao.htm',
-            'https://www.calculadorasdeenfermagem.com.br/institucional/contratos-fornecedores.htm',
-            'https://www.calculadorasdeenfermagem.com.br/institucional/parcerias.htm'
-        ];
-
-        const referrer = document.referrer;
-        const isInternalNavigation = allowedReferrers.some(url => referrer.startsWith(url));
-
-        if (isInternalNavigation && sessionStorage.getItem('isAuthenticated') === 'true') {
-            document.body.style.display = 'block';
-            initializeAppTool();
-            pageInitialized = true;
-        }
-
         function resetTimer() {
             clearTimeout(inactivityTimer);
             inactivityTimer = setTimeout(() => {
                 console.log("User inactive. Signing out.");
-                sessionStorage.removeItem('isAuthenticated');
                 signOut(auth);
             }, 30 * 60 * 1000); // 30 minutos
         }
 
         onAuthStateChanged(auth, (user) => {
             if (user) {
-                sessionStorage.setItem('isAuthenticated', 'true');
+                // User is authenticated
                 if (!pageInitialized) {
                     document.body.style.display = 'block';
                     initializeAppTool();
+                    pageInitialized = true;
                 }
                 
+                // Set up or reset inactivity timer
                 window.addEventListener('mousemove', resetTimer);
                 window.addEventListener('mousedown', resetTimer);
                 window.addEventListener('keypress', resetTimer);
                 resetTimer();
             } else {
-                sessionStorage.removeItem('isAuthenticated');
+                // User is not authenticated, redirect
                 window.location.href = 'https://www.calculadorasdeenfermagem.com.br/institucional/acessorestrito.html';
             }
         });
