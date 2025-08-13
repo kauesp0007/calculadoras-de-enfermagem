@@ -11,39 +11,46 @@
         body {
             font-family: 'Inter', sans-serif;
         }
-        /* Oculta o ícone de olho padrão do input de senha no Edge/IE */
-        input::-ms-reveal,
-        input::-ms-clear {
-            display: none;
+        /* Estilos adicionais para uma transição suave na seção de conteúdo */
+        .hidden-content {
+            opacity: 0;
+            max-height: 0;
+            overflow: hidden;
+            transition: opacity 0.5s ease-in-out, max-height 0.5s ease-in-out;
+        }
+        .visible-content {
+            opacity: 1;
+            max-height: 1000px; /* Um valor alto para acomodar o conteúdo */
+            overflow: visible;
         }
     </style>
 </head>
 <body class="bg-slate-100 flex items-center justify-center min-h-screen p-4">
 
     <!-- Container principal para o formulário de login -->
-    <div class="bg-white p-8 sm:p-10 rounded-3xl shadow-2xl w-full max-w-md">
+    <div id="login-container" class="bg-white p-8 sm:p-10 rounded-3xl shadow-2xl w-full max-w-md">
         <div class="text-center">
             <!-- Título da tela de acesso -->
             <h2 class="text-3xl font-extrabold text-gray-900 mb-2">Acesso Restrito</h2>
             <!-- Subtítulo ou descrição -->
-            <p class="text-gray-500 mb-8">Por favor, insira suas credenciais para continuar.</p>
+            <p class="text-gray-500 mb-8">Por favor, insira suas credenciais para acessar o conteúdo.</p>
         </div>
 
         <!-- Formulário de login -->
         <form id="loginForm" class="space-y-6">
             <!-- Grupo de campo para o e-mail -->
             <div>
-                <label for="email" class="block text-sm font-medium text-gray-700">E-mail ou Usuário</label>
+                <label for="email" class="block text-sm font-medium text-gray-700">E-mail</label>
                 <input
-                    type="text"
+                    type="email"
                     id="email"
                     name="email"
                     required
-                    placeholder="Seu e-mail ou usuário"
+                    placeholder="Seu e-mail"
                     class="mt-1 block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 transition-colors"
                 >
             </div>
-
+            
             <!-- Grupo de campo para a senha -->
             <div class="relative">
                 <label for="password" class="block text-sm font-medium text-gray-700">Senha</label>
@@ -61,42 +68,141 @@
             <div>
                 <button
                     type="submit"
+                    id="loginButton"
                     class="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-lg font-semibold text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
                 >
                     Entrar
                 </button>
             </div>
             
-            <!-- Link para recuperação de senha -->
+            <!-- Link para recuperação de senha (apenas para exemplo) -->
             <div class="text-center mt-4">
                 <a href="#" class="text-sm font-medium text-blue-600 hover:text-blue-500 transition-colors">
                     Esqueceu a senha?
                 </a>
             </div>
+            
+            <!-- Mensagem de erro -->
+            <div id="errorMessage" class="text-center text-red-500 mt-4 hidden">
+                Credenciais inválidas.
+            </div>
         </form>
     </div>
 
-    <!-- Script JavaScript para lidar com a submissão do formulário (exemplo) -->
+    <!-- Conteúdo restrito (invisível inicialmente) -->
+    <div id="protected-content" class="hidden-content absolute top-0 left-0 w-full p-8 text-gray-800">
+        <div class="bg-white p-8 sm:p-10 rounded-3xl shadow-2xl w-full max-w-2xl mx-auto">
+            <h2 class="text-3xl font-bold mb-4">Bem-vindo(a) à página restrita!</h2>
+            <p class="mb-4">Este é o conteúdo que só pode ser visualizado após inserir a senha correta.</p>
+            <p>Você pode adicionar aqui o conteúdo que deseja proteger, como documentos, links ou informações confidenciais.</p>
+            <button id="logoutButton" class="mt-8 py-2 px-4 border border-transparent rounded-lg shadow-sm text-base font-medium text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors">
+                Sair
+            </button>
+        </div>
+    </div>
+
+    <!-- Firebase SDK CDN links -->
+    <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js"></script>
+    
+    <!-- Script JavaScript para lidar com a submissão e a lógica de autenticação do Firebase -->
     <script>
-        document.getElementById('loginForm').addEventListener('submit', function(event) {
-            // Evita o comportamento padrão de recarregar a página
-            event.preventDefault();
+        document.addEventListener('DOMContentLoaded', () => {
+            const loginForm = document.getElementById('loginForm');
+            const emailInput = document.getElementById('email');
+            const passwordInput = document.getElementById('password');
+            const errorMessage = document.getElementById('errorMessage');
+            const loginContainer = document.getElementById('login-container');
+            const protectedContent = document.getElementById('protected-content');
+            const logoutButton = document.getElementById('logoutButton');
 
-            // Pega os valores dos campos
-            const email = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
+            let auth;
 
-            // Simula uma chamada de autenticação
-            console.log('Dados do formulário submetidos:');
-            console.log('E-mail/Usuário:', email);
-            console.log('Senha:', password);
+            // Sua configuração do Firebase. Eu a atualizei com o que você enviou.
+            const firebaseConfig = {
+                apiKey: "AIzaSyC1US-K0KoiE9OS4IGalxkNUwqSicTPbeA",
+                authDomain: "acesso-restrito-github.firebaseapp.com",
+                projectId: "acesso-restrito-github",
+                storageBucket: "acesso-restrito-github.firebasestorage.app",
+                messagingSenderId: "32644970643",
+                appId: "1:32644970643:web:92f5f3653ddeaa8ac0b566"
+            };
             
-            // Aqui você adicionaria sua lógica de autenticação real (ex: uma chamada de API)
-            // if (autenticar(email, password)) {
-            //     window.location.href = '/dashboard';
-            // } else {
-            //     alert('Credenciais inválidas!');
-            // }
+            // Função para inicializar o Firebase e lidar com a autenticação inicial
+            async function initializeFirebase() {
+                try {
+                    // Inicializa os serviços do Firebase
+                    const app = firebase.initializeApp(firebaseConfig);
+                    auth = firebase.getAuth(app);
+
+                    // Define o listener para mudanças de estado de autenticação
+                    firebase.onAuthStateChanged(auth, (user) => {
+                        if (user) {
+                            // Usuário autenticado
+                            console.log('Usuário autenticado:', user.email);
+                            showProtectedContent();
+                        } else {
+                            // Usuário não autenticado
+                            console.log('Nenhum usuário autenticado.');
+                            showLoginForm();
+                        }
+                    });
+
+                } catch (error) {
+                    console.error("Erro ao inicializar o Firebase:", error);
+                    // Oculta tudo para evitar comportamento inesperado em caso de erro
+                    loginContainer.classList.add('hidden');
+                    protectedContent.classList.remove('visible-content');
+                    protectedContent.classList.add('hidden-content');
+                }
+            }
+            
+            // Função para mostrar a tela de login
+            function showLoginForm() {
+                protectedContent.classList.remove('visible-content');
+                protectedContent.classList.add('hidden-content');
+                loginContainer.classList.remove('hidden');
+            }
+
+            // Função para mostrar o conteúdo protegido
+            function showProtectedContent() {
+                loginContainer.classList.add('hidden');
+                protectedContent.classList.remove('hidden-content');
+                protectedContent.classList.add('visible-content');
+            }
+
+            // Lida com a submissão do formulário de login
+            loginForm.addEventListener('submit', async function(event) {
+                event.preventDefault();
+                const email = emailInput.value;
+                const password = passwordInput.value;
+
+                try {
+                    // Tenta fazer o login com e-mail e senha usando o Firebase
+                    await firebase.signInWithEmailAndPassword(auth, email, password);
+                    console.log('Login bem-sucedido!');
+                    errorMessage.classList.add('hidden');
+                } catch (error) {
+                    // Trata os erros de login do Firebase
+                    console.error('Erro de login:', error.code, error.message);
+                    errorMessage.textContent = 'Credenciais inválidas.';
+                    errorMessage.classList.remove('hidden');
+                    passwordInput.value = ''; // Limpa o campo da senha
+                }
+            });
+
+            // Lida com o botão de logout
+            logoutButton.addEventListener('click', async () => {
+                try {
+                    await auth.signOut();
+                    console.log('Logout realizado.');
+                } catch (error) {
+                    console.error('Erro ao fazer logout:', error.message);
+                }
+            });
+
+            // Inicia o processo de inicialização do Firebase
+            initializeFirebase();
         });
     </script>
 </body>
