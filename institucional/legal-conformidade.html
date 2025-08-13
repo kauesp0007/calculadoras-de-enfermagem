@@ -149,38 +149,7 @@
         </div>
     </div>
 
-    <!-- Modal para Histórico de Versões -->
-    <div id="history-modal" class="modal-overlay">
-         <div class="modal-content" role="dialog" aria-modal="true" aria-labelledby="history-doc-title">
-            <div class="flex justify-between items-center mb-4">
-                <h2 class="text-2xl font-bold text-gray-800" id="history-doc-title"></h2>
-                <button onclick="closeModal('history-modal')" class="text-gray-500 hover:text-gray-800 text-2xl" aria-label="Fechar">&times;</button>
-            </div>
-            <div id="history-content" class="max-h-96 overflow-y-auto">
-                <!-- History will be injected here -->
-            </div>
-             <div class="flex justify-end gap-4 mt-6">
-                <button onclick="closeModal('history-modal')" class="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300">Fechar</button>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Modal para Diff Viewer -->
-    <div id="diff-modal" class="modal-overlay">
-         <div class="modal-content" role="dialog" aria-modal="true" aria-labelledby="diff-doc-title">
-            <div class="flex justify-between items-center mb-4">
-                <h2 class="text-2xl font-bold text-gray-800" id="diff-doc-title"></h2>
-                <button onclick="closeModal('diff-modal')" class="text-gray-500 hover:text-gray-800 text-2xl" aria-label="Fechar">&times;</button>
-            </div>
-            <div id="diff-content" class="max-h-96 overflow-y-auto p-2 bg-gray-50 rounded">
-                <!-- Diff will be injected here -->
-            </div>
-             <div class="flex justify-end gap-4 mt-6">
-                <button onclick="closeModal('diff-modal')" class="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300">Fechar</button>
-            </div>
-        </div>
-    </div>
-    
+    <!-- Modais Globais serão carregados aqui -->
     <div id="global-body-elements-container"></div>
 
     <!-- Firebase SDKs -->
@@ -223,12 +192,18 @@
                 document.body.classList.remove('hidden');
                 initializeApp();
             } else {
-                window.location.href = 'https://www.calculadorasdeenfermagem.com.br/institucional/acessorestrito.html';
+                window.location.href = 'institucional/acessorestrito.html';
             }
             
             function initializeApp() {
                 console.log(`App inicializada para ${currentUser.name}`);
                 renderUserInfo();
+                
+                // Simulação de dados (substituir por Firestore)
+                let documents = []; 
+                
+                // Função para renderizar a lista de documentos (vazia por enquanto)
+                renderDocuments();
             }
             
             function renderUserInfo() {
@@ -242,6 +217,15 @@
                         <button onclick="window.auth.signOut()" class="text-sm text-blue-600 hover:underline">Sair</button>
                     `;
                 }
+            }
+            
+            function renderDocuments() {
+                const documentListEl = document.getElementById('document-list');
+                const pendingAlertsEl = document.getElementById('pending-alerts');
+                documentListEl.innerHTML = ''; // Limpa a lista
+                pendingAlertsEl.innerHTML = ''; // Limpa os alertas
+                
+                // Lógica para buscar e renderizar os documentos do Firestore iria aqui
             }
 
             window.openModal = (id) => {
@@ -260,12 +244,11 @@
                 }
             });
 
-            document.querySelectorAll('.modal-overlay, .editor-view').forEach(overlay => {
-                overlay.addEventListener('click', (event) => {
-                    if (event.target === overlay) {
-                        closeModal(overlay.id);
-                    }
-                });
+            // Adiciona listener aos modais que serão carregados dinamicamente
+            document.body.addEventListener('click', (event) => {
+                if (event.target.classList.contains('modal-overlay')) {
+                    event.target.classList.remove('visible');
+                }
             });
 
             let activeDocument = null;
