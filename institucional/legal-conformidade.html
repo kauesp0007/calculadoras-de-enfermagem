@@ -172,22 +172,8 @@
          <div class="modal-content">
             <h2 class="text-2xl font-bold text-gray-800 mb-4">Simular Login</h2>
             <p class="mb-6 text-gray-600">Escolha um perfil para interagir com a aplicação. Cada perfil tem diferentes permissões.</p>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <button onclick="simulateLogin('Editor')" class="p-4 border rounded-lg hover:bg-gray-100">
-                    <div class="text-2xl mb-2"><i class="fas fa-pencil-alt"></i></div>
-                    <div class="font-bold">Editor</div>
-                    <div class="text-sm text-gray-500">Pode criar e editar versões.</div>
-                </button>
-                <button onclick="simulateLogin('Revisor')" class="p-4 border rounded-lg hover:bg-gray-100">
-                    <div class="text-2xl mb-2"><i class="fas fa-user-check"></i></div>
-                    <div class="font-bold">Revisor</div>
-                    <div class="text-sm text-gray-500">Pode mover para aprovação.</div>
-                </button>
-                <button onclick="simulateLogin('Administrador')" class="p-4 border rounded-lg hover:bg-gray-100">
-                    <div class="text-2xl mb-2"><i class="fas fa-user-shield"></i></div>
-                    <div class="font-bold">Administrador</div>
-                    <div class="text-sm text-gray-500">Pode publicar versões.</div>
-                </button>
+            <div id="login-options" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <!-- Opções de login serão inseridas aqui -->
             </div>
         </div>
     </div>
@@ -229,7 +215,7 @@
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
 
-        window.auth = auth; // Expose auth to global scope for main script
+        window.auth = auth;
 
         onAuthStateChanged(auth, (user) => {
             document.dispatchEvent(new CustomEvent('authReady', { detail: { user } }));
@@ -239,7 +225,67 @@
     <script src="global-scripts.js"></script>
     <script>
         document.addEventListener('authReady', (event) => {
-            // Lógica da aplicação principal
+            const realUser = event.detail.user;
+            let currentUser = null;
+
+            const users = {
+                'kauesp07@hotmail.com': { name: 'Kaue SP', roles: ['Administrador', 'Revisor', 'Editor'] },
+                'leivis.ml@gmail.com': { name: 'Leivis ML', roles: ['Editor'] }
+            };
+
+            if (realUser && users[realUser.email]) {
+                currentUser = { email: realUser.email, ...users[realUser.email] };
+                document.body.classList.remove('hidden');
+                initializeApp();
+            } else {
+                // Se o usuário do Firebase não for um dos definidos, redireciona para o login
+                // Isso garante que apenas usuários autorizados usem a ferramenta
+                window.location.href = 'https://www.calculadorasdeenfermagem.com.br/institucional/acessorestrito.html';
+            }
+            
+            function initializeApp() {
+                // Lógica da aplicação principal
+                console.log(`App inicializada para ${currentUser.name}`);
+                renderUserInfo();
+                // O resto do seu código de lógica da aplicação vai aqui...
+            }
+            
+            function renderUserInfo() {
+                const userInfoEl = document.getElementById('user-info');
+                if(userInfoEl && currentUser) {
+                    userInfoEl.innerHTML = `
+                        <div>
+                            <span class="font-bold">${currentUser.name}</span>
+                            <span class="text-sm text-gray-500">(${currentUser.roles.join(', ')})</span>
+                        </div>
+                        <button onclick="window.auth.signOut()" class="text-sm text-blue-600 hover:underline">Sair</button>
+                    `;
+                }
+            }
+
+            window.openModal = (id) => {
+                const modal = document.getElementById(id);
+                if (modal) modal.classList.add('visible');
+            };
+
+            window.closeModal = (id) => {
+                const modal = document.getElementById(id);
+                if (modal) modal.classList.remove('visible');
+            };
+
+            document.addEventListener('keydown', (event) => {
+                if (event.key === 'Escape') {
+                    document.querySelectorAll('.modal-overlay.visible, .editor-view.visible').forEach(el => el.classList.remove('visible'));
+                }
+            });
+
+            document.querySelectorAll('.modal-overlay, .editor-view').forEach(overlay => {
+                overlay.addEventListener('click', (event) => {
+                    if (event.target === overlay) {
+                        closeModal(overlay.id);
+                    }
+                });
+            });
         });
     </script>
 </body>
