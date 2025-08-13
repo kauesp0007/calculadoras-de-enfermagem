@@ -429,9 +429,15 @@ function initializeGlobalFunctions() {
         setFocusColor('yellow', false);
         announceStatus('Configurações de acessibilidade redefinidas.');
     }
+    
+    // Função para alternar o tamanho da fonte, que será chamada pelos botões
+    function alternarTamanhoFonte() {
+        currentFontSize = (currentFontSize % 5) + 1;
+        updateFontSize();
+    }
 
     const accessibilityActions = [
-        { ids: ['btnAlternarTamanhoFonte', 'btnAlternarTamanhoFontePWA'], action: updateFontSize },
+        { ids: ['btnAlternarTamanhoFonte', 'btnAlternarTamanhoFontePWA'], action: alternarTamanhoFonte },
         { ids: ['btnAlternarEspacamentoLinha', 'btnAlternarEspacamentoLinhaPWA'], action: updateLineHeight },
         { ids: ['btnAlternarEspacamentoLetra', 'btnAlternarEspacamentoLetraPWA'], action: updateLetterSpacing },
         { ids: ['btnAlternarContraste', 'btnAlternarContrastePWA'], action: toggleContrast },
