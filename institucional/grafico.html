@@ -445,7 +445,7 @@
     <!-- Firebase SDKs -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         
         const firebaseConfig = {
             apiKey: "YOUR_API_KEY",
@@ -459,14 +459,61 @@
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
 
+        let inactivityTimer;
+        let pageInitialized = false;
+
+        const allowedReferrers = [
+            'https://www.calculadorasdeenfermagem.com.br/institucional/index.html',
+            'https://www.calculadorasdeenfermagem.com.br/institucional/manual-redes-sociais.html',
+            'https://www.calculadorasdeenfermagem.com.br/institucional/topicos.html',
+            'https://www.calculadorasdeenfermagem.com.br/institucional/educativo.html',
+            'https://www.calculadorasdeenfermagem.com.br/institucional/tabela.html',
+            'https://www.calculadorasdeenfermagem.com.br/institucional/grafico.html',
+            'https://www.calculadorasdeenfermagem.com.br/institucional/multiplas-imagens.html',
+            'https://www.calculadorasdeenfermagem.com.br/institucional/quiz.html',
+            'https://www.calculadorasdeenfermagem.com.br/institucional/comemorativo.html',
+            'https://www.calculadorasdeenfermagem.com.br/institucional/legal-conformidade.html',
+            'https://www.calculadorasdeenfermagem.com.br/institucional/governanca-planejamento.html',
+            'https://www.calculadorasdeenfermagem.com.br/institucional/procedimentos-manuais.html',
+            'https://www.calculadorasdeenfermagem.com.br/institucional/segurança-e-ti.html',
+            'https://www.calculadorasdeenfermagem.com.br/institucional/relatórios-monitoramento.html',
+            'https://www.calculadorasdeenfermagem.com.br/institucional/conteudo-comunicacao.htm',
+            'https://www.calculadorasdeenfermagem.com.br/institucional/contratos-fornecedores.htm',
+            'https://www.calculadorasdeenfermagem.com.br/institucional/parcerias.htm'
+        ];
+
+        const referrer = document.referrer;
+        const isInternalNavigation = allowedReferrers.some(url => referrer.startsWith(url));
+
+        if (isInternalNavigation && sessionStorage.getItem('isAuthenticated') === 'true') {
+            document.body.style.display = 'block';
+            initializeAppTool();
+            pageInitialized = true;
+        }
+
+        function resetTimer() {
+            clearTimeout(inactivityTimer);
+            inactivityTimer = setTimeout(() => {
+                console.log("User inactive. Signing out.");
+                sessionStorage.removeItem('isAuthenticated');
+                signOut(auth);
+            }, 30 * 60 * 1000); // 30 minutos
+        }
+
         onAuthStateChanged(auth, (user) => {
             if (user) {
-                console.log("User is authenticated:", user.uid);
-                document.body.style.display = 'block';
-                // Initialize the main application logic after authentication
-                initializeAppTool();
+                sessionStorage.setItem('isAuthenticated', 'true');
+                if (!pageInitialized) {
+                    document.body.style.display = 'block';
+                    initializeAppTool();
+                }
+                
+                window.addEventListener('mousemove', resetTimer);
+                window.addEventListener('mousedown', resetTimer);
+                window.addEventListener('keypress', resetTimer);
+                resetTimer();
             } else {
-                console.log("User not authenticated. Redirecting...");
+                sessionStorage.removeItem('isAuthenticated');
                 window.location.href = 'https://www.calculadorasdeenfermagem.com.br/institucional/acessorestrito.html';
             }
         });
@@ -588,7 +635,7 @@
                 toggleElement('charts-footer', {checked: state.visibility.footer}, false);
             }
 
-            function undo() {
+            window.undo = function() {
                 if (historyIndex > 0) {
                     historyIndex--;
                     restoreState(history[historyIndex]);
@@ -596,7 +643,7 @@
                 }
             }
 
-            function redo() {
+            window.redo = function() {
                 if (historyIndex < history.length - 1) {
                     historyIndex++;
                     restoreState(history[historyIndex]);
