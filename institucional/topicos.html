@@ -1,0 +1,779 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <base href="https://www.calculadorasdeenfermagem.com.br/">
+    <title>Gerador de Tópicos para Redes Sociais | Calculadoras de Enfermagem</title>
+    <meta name="robots" content="noindex, nofollow">
+    <meta name="description" content="Crie posts de tópicos e dicas para redes sociais. Ferramenta para gerar imagens personalizadas para enfermagem.">
+    <link rel="canonical" href="https://www.calculadorasdeenfermagem.com.br/institucional/topico.html">
+    <link rel="icon" href="images/favicon.png" type="image/png">
+    
+    <!-- Scripts e Estilos Globais do Site -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="global-styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Nunito+Sans:wght@700;800;900&display=swap" rel="stylesheet">
+
+    <!-- Scripts Específicos da Ferramenta -->
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+    
+    <style>
+        /* Estilos Globais do Template Principal */
+        :root {
+            --primary-color: #1a3e74;
+            --primary-dark: #122c50;
+            --text-color: #2c2c2c;
+            --primary-light: #2a5a94;
+            --white: #ffffff;
+            --shadow: 0 4px 20px rgba(26, 62, 116, 0.1);
+            --border-radius: 12px;
+            --background-color: #f8f9fa;
+        }
+        #global-header-container .max-w-7xl, footer .max-w-7xl { max-width: 1600px !important; }
+        
+        /* Ajuste para o container principal da ferramenta */
+        .main-container-wrapper {
+            margin-top: 85px;
+            padding: 0; 
+        }
+
+        /* Estilos Específicos da Ferramenta de Tópicos */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-color);
+        }
+        .main-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            gap: 1.5rem;
+            padding: 1.5rem;
+            min-height: calc(100vh - 85px); /* Ajustar altura para preencher a tela abaixo do header */
+        }
+        .editor-panel {
+            width: 100%;
+            max-width: 420px;
+            background: var(--white);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+        }
+        .template-viewer {
+            flex-shrink: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 1rem;
+        }
+        .template-container {
+            width: 500px;
+            height: 500px;
+            position: relative;
+            background: var(--white);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+        @media (min-width: 1024px) {
+            .main-container {
+                flex-direction: row;
+                align-items: flex-start;
+            }
+        }
+        @media (max-width: 1024px) {
+            .editor-panel { max-width: 600px; }
+        }
+        .title { font-family: 'Nunito Sans', sans-serif; font-weight: 800; }
+        .subtitle { font-family: 'Inter', sans-serif; font-weight: 600; }
+        .editable { outline: none; }
+        .editable:hover { 
+            cursor: text; 
+            background-color: rgba(0, 0, 0, 0.05); 
+            box-shadow: 0 0 0 2px var(--primary-color);
+            border-radius: 4px; 
+        }
+        .editable:focus { 
+            box-shadow: 0 0 0 2px var(--primary-color);
+            background-color: rgba(0, 0, 0, 0.08); 
+        }
+        .tab-buttons { display: flex; border-bottom: 1px solid #e5e7eb; margin-bottom: 1.5rem; flex-wrap: wrap; }
+        .tab-button { padding: 0.75rem 1rem; font-size: 0.875rem; font-weight: 600; cursor: pointer; border-bottom: 2px solid transparent; transition: all 0.2s ease; color: #6b7280; }
+        .tab-button:hover { color: var(--primary-color); }
+        .tab-button.active { color: var(--primary-color); border-bottom-color: var(--primary-color); }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; animation: fadeIn 0.5s; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .control-section { margin-bottom: 1.5rem; }
+        .control-label { display: block; font-size: 0.875rem; font-weight: 600; color: #4b5563; margin-bottom: 0.75rem; }
+        .btn-control { padding: 0.5rem; border-radius: 0.5rem; transition: all 0.2s ease; cursor: pointer; border: 1px solid #e5e7eb; background-color: #f9fafb; font-size: 0.875rem; }
+        .btn-control:hover { background-color: #f3f4f6; border-color: #d1d5db; }
+        .btn-control.active { background-color: var(--primary-color); color: var(--white); border-color: var(--primary-color); }
+        .btn-primary { background-color: var(--primary-color); color: var(--white); padding: 0.75rem 1rem; border-radius: 0.5rem; transition: all 0.3s ease; box-shadow: 0 4px 10px rgba(0,0,0,0.1); font-weight: 600; text-align: center; }
+        .btn-primary:hover { background-color: var(--primary-light); transform: translateY(-2px); box-shadow: 0 6px 15px rgba(0,0,0,0.15); }
+        .logo-choice { padding: 0.5rem; border: 2px solid #e5e7eb; border-radius: 0.5rem; cursor: pointer; transition: all 0.2s ease; }
+        .logo-choice:hover, .logo-choice.selected { border-color: var(--primary-color); transform: scale(1.05); }
+        .logo-choice img { height: 40px; width: 100%; object-fit: contain; }
+        .switch { position: relative; display: inline-block; width: 38px; height: 22px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 22px; }
+        .slider:before { position: absolute; content: ""; height: 16px; width: 16px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
+        input:checked + .slider { background-color: var(--primary-color); }
+        input:checked + .slider:before { transform: translateX(16px); }
+        
+        #company-header, #quiz-footer { display: flex; align-items: center; gap: 1rem; }
+        .header-layout-logo-right { flex-direction: row-reverse; }
+        .footer-layout-logo-right { flex-direction: row-reverse; }
+        #header-logo-container, #footer-logo-container { flex-shrink: 0; }
+        #header-text-container, #footer-text-container { flex-grow: 1; min-width: 0; }
+        
+        .topics-list { transform-origin: top center; transition: transform 0.3s ease-in-out; }
+        .topic-item { background: white; padding: 12px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.07); display: flex; align-items: center; transition: all 0.3s ease; margin-bottom: 12px; gap: 12px; cursor: pointer; border: 2px solid transparent; }
+        .topic-item.selected { border-color: var(--primary-color); box-shadow: 0 4px 15px rgba(26, 62, 116, 0.2); }
+        .topic-item.image-right { flex-direction: row-reverse; }
+        .topic-number { width: 35px; height: 35px; background: var(--primary-color); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 16px; flex-shrink: 0; }
+        .topic-image-container { width: 60px; height: 60px; flex-shrink: 0; border-radius: 8px; overflow: hidden; }
+        .topic-image { width: 100%; height: 100%; object-fit: cover; }
+        .topic-content { flex: 1; min-width: 0; }
+        .topic-title { color: var(--primary-color); margin-bottom: 4px; font-weight: 600; }
+        .topic-description { color: var(--text-color); line-height: 1.4; font-size: 0.875rem; }
+        #topic-editor-section.disabled { opacity: 0.5; pointer-events: none; }
+    </style>
+</head>
+<body style="display: none;">
+    <div id="global-header-container"></div>
+    
+    <main class="main-container-wrapper">
+        <div class="main-container">
+            <!-- PAINEL DE EDIÇÃO (ESQUERDA) -->
+            <div class="editor-panel">
+                <h2 class="text-2xl font-bold text-gray-800 mb-2">Editor de Tópicos</h2>
+                <p class="text-sm text-gray-500 mb-6">Personalize o seu template de tópicos.</p>
+
+                <!-- ABAS DE NAVEGAÇÃO -->
+                <div class="tab-buttons">
+                    <button class="tab-button active" onclick="openTab(event, 'tab-geral')">Geral</button>
+                    <button class="tab-button" onclick="openTab(event, 'tab-layout')">Layout</button>
+                    <button class="tab-button" onclick="openTab(event, 'tab-logo')">Logo</button>
+                    <button class="tab-button" onclick="openTab(event, 'tab-topicos')">Tópicos</button>
+                </div>
+
+                <!-- CONTEÚDO DAS ABAS -->
+                <div id="tab-geral" class="tab-content active">
+                    <div class="control-section">
+                        <label class="control-label">Modelos Predefinidos</label>
+                        <div class="grid grid-cols-2 gap-2">
+                            <button onclick="applyTemplate('classic')" class="btn-control">Clássico</button>
+                            <button onclick="applyTemplate('corporate')" class="btn-control">Corporativo</button>
+                            <button onclick="applyTemplate('modern')" class="btn-control">Moderno</button>
+                            <button onclick="applyTemplate('fresh')" class="btn-control">Fresco</button>
+                        </div>
+                    </div>
+                     <div class="control-section">
+                        <label class="control-label">Cores</label>
+                         <div class="flex items-center justify-between mb-2">
+                            <span>Cor Primária</span>
+                            <input type="color" id="primaryColorPicker" value="#1a3e74" class="w-8 h-8 rounded-full border-none cursor-pointer">
+                        </div>
+                    </div>
+                </div>
+
+                <div id="tab-layout" class="tab-content">
+                    <div class="control-section">
+                        <label class="control-label">Formato da Imagem</label>
+                        <div class="grid grid-cols-2 gap-2">
+                            <button onclick="resizeTemplate('square', this)" class="btn-control active">Quadrado (1:1)</button>
+                            <button onclick="resizeTemplate('portrait', this)" class="btn-control">Retrato (4:5)</button>
+                            <button onclick="resizeTemplate('stories', this)" class="btn-control">Stories (9:16)</button>
+                        </div>
+                    </div>
+                     <div class="control-section space-y-3">
+                        <label class="control-label">Visibilidade dos Elementos</label>
+                        <div class="flex items-center justify-between"><span class="text-sm">Mostrar Logo</span><label class="switch"><input type="checkbox" id="toggleLogo" onchange="toggleElement('logo', this)"><span class="slider"></span></label></div>
+                        <div class="flex items-center justify-between"><span class="text-sm">Mostrar Rodapé</span><label class="switch"><input type="checkbox" id="toggleFooter" onchange="toggleElement('footer', this)" checked><span class="slider"></span></label></div>
+                    </div>
+                </div>
+
+                <div id="tab-logo" class="tab-content">
+                    <div class="control-section">
+                        <label class="control-label">Posição do Logo</label>
+                        <div class="grid grid-cols-2 gap-2">
+                            <button onclick="setLogoPosition('header', this)" class="btn-control active">Cabeçalho</button>
+                            <button onclick="setLogoPosition('footer', this)" class="btn-control">Rodapé</button>
+                        </div>
+                    </div>
+                    <div class="control-section">
+                        <label class="control-label">Layout do Cabeçalho</label>
+                        <div class="grid grid-cols-2 gap-2">
+                            <button onclick="setHeaderLayout('logo-left', this)" class="btn-control active">Logo Esquerda</button>
+                            <button onclick="setHeaderLayout('logo-right', this)" class="btn-control">Logo Direita</button>
+                        </div>
+                    </div>
+                     <div class="control-section">
+                        <label class="control-label">Layout do Rodapé</label>
+                        <div class="grid grid-cols-2 gap-2">
+                            <button onclick="setFooterLayout('logo-left', this)" class="btn-control active">Logo Esquerda</button>
+                            <button onclick="setFooterLayout('logo-right', this)" class="btn-control">Logo Direita</button>
+                        </div>
+                    </div>
+                    <div class="control-section">
+                        <label class="control-label">Selecionar Logo</label>
+                        <div id="logo-selection" class="grid grid-cols-3 gap-2">
+                            <div class="logo-choice" onclick="selectLogo('https://www.calculadorasdeenfermagem.com.br/icontopbar1.webp', this)"><img src="https://www.calculadorasdeenfermagem.com.br/icontopbar1.webp" alt="Logo 1"></div>
+                            <div class="logo-choice" onclick="selectLogo('https://www.calculadorasdeenfermagem.com.br/iconpages.webp', this)"><img src="https://www.calculadorasdeenfermagem.com.br/iconpages.webp" alt="Logo 2"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="tab-topicos" class="tab-content">
+                    <div class="control-section">
+                        <label class="control-label">Edição da Lista de Tópicos</label>
+                        <div class="grid grid-cols-2 gap-2">
+                            <button onclick="addTopic()" class="btn-control text-sm">+ Adicionar Tópico</button>
+                            <button onclick="removeTopic()" class="btn-control text-sm">- Remover Tópico</button>
+                        </div>
+                    </div>
+                    <div id="topic-editor-section" class="control-section border-t pt-4 mt-4 disabled">
+                        <label class="control-label">Editar Tópico Selecionado</label>
+                         <input type="file" id="topicImageUpload" accept="image/*" class="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-violet-50 file:text-violet-700 hover:file:bg-violet-100 mb-4">
+                        <div class="grid grid-cols-3 gap-2">
+                             <button onclick="setTopicImagePosition('left')" class="btn-control text-sm">Img Esquerda</button>
+                             <button onclick="setTopicImagePosition('right')" class="btn-control text-sm">Img Direita</button>
+                             <button onclick="setTopicImagePosition('none')" class="btn-control text-sm">Sem Img</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Botão de Exportar Fixo no Fundo -->
+                <div class="mt-auto pt-6 border-t border-gray-200 space-y-2">
+                    <button onclick="exportImage()" class="w-full btn-primary">Exportar Imagem</button>
+                </div>
+            </div>
+
+            <!-- VISUALIZADOR DO TEMPLATE (DIREITA) -->
+            <div class="template-viewer">
+                <div id="template-to-export" class="template-container">
+                    <!-- Cabeçalho -->
+                    <div id="company-header" class="p-6 flex-shrink-0 justify-center" style="background-color: var(--primary-color);">
+                        <div id="header-logo-container" class="hidden">
+                            <img id="header-logo" src="" alt="Logotipo" class="h-12 w-auto">
+                        </div>
+                        <div id="header-text-container" class="text-center">
+                            <div class="title editable text-2xl" id="main-title" style="color: white; margin-bottom: 8px;">5 DICAS ESSENCIAIS</div>
+                            <div class="subtitle editable text-base" id="main-subtitle" style="color: rgba(255,255,255,0.9);">Para uma enfermagem de qualidade</div>
+                        </div>
+                    </div>
+
+                    <!-- Conteúdo Principal (Tópicos) -->
+                    <div id="main-content-area" class="p-6 flex-1 flex flex-col bg-gray-50 rounded-t-lg -mt-2 min-h-0">
+                         <!-- Este container vai crescer e conter a lista que escala -->
+                        <div id="scaling-container" class="flex-1 min-h-0" style="overflow: hidden;">
+                            <!-- A lista de tópicos não precisa de 'h-full', pois seu pai já controla o espaço. -->
+                            <div class="topics-list">
+                                <!-- Tópicos serão injetados aqui pelo JavaScript -->
+                            </div>
+                        </div>
+                        <!-- Referência e footer ficam fora da área de escala -->
+                        <div id="reference-container" class="text-center text-xs text-gray-500 mt-4 flex-shrink-0">
+                            <span class="font-bold">Referência:</span>
+                            <span class="editable">Fonte da sua informação</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Rodapé -->
+                    <div id="quiz-footer" class="text-white p-3 flex-shrink-0 mt-auto justify-center" style="background-color: var(--primary-color);">
+                        <div id="footer-logo-container" class="hidden">
+                             <img id="footer-logo" src="" alt="Logotipo no Rodapé" class="h-8 w-auto">
+                        </div>
+                        <div id="footer-text-container" class="text-center w-full">
+                             <a href="https://www.calculadorasdeenfermagem.com.br" target="_blank" class="text-xs font-medium editable">www.calculadorasdeenfermagem.com.br</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+    
+    <footer class="bg-[#1A3E74] text-white py-8">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="border-b border-white pb-4 mb-4">
+                <div class="flex justify-start items-center">
+                    <img src="https://www.calculadorasdeenfermagem.com.br/iconrodape1.webp" alt="Logotipo Calculadoras de Enfermagem no rodapé" width="120" height="84" class="h-auto w-auto max-w-[80px] max-h-[80px]" loading="lazy" decoding="async">
+                </div>
+            </div>
+            <div class="md:flex md:justify-between md:items-start md:space-x-8 md:items-stretch">
+                <div class="mb-6 md:mb-0">
+                    <h5 class="font-bold mb-2">Institucional</h5>
+                    <ul class="list-none space-y-1">
+                        <li><a href="index.html" class="text-white hover:underline">Início</a></li>
+                        <li><a href="missao.html" class="text-white hover:underline">Sobre Nós</a></li>
+                        <li><a href="mapa-do-site.html" class="text-white hover:underline">Mapa do Site</a></li>
+                        <li><a href="politica.html" class="text-white hover:underline">Políticas de Cookies</a></li>
+                        <li><a href="politica.html" class="text-white hover:underline">Política de Retenção de dados</a></li>
+                        <li><a href="politica.html" class="text-white hover:underline">LGPD</a></li>
+                        <li><a href="politica.html" class="text-white hover:underline">Políticas de Privacidade</a></li>
+                        <li><a href="termos.html" class="text-white hover:underline">Termos e Condições de Uso</a></li>
+                        <li><a href="politicadeacessibilidade.html" class="text-white hover:underline">Política de Acessibilidade</a></li>
+                    </ul>
+                </div>
+                <div class="mb-6 md:mb-0">
+                    <h5 class="font-bold mb-2">Sustentabilidade Digital</h5>
+                    <ul class="list-none space-y-1">
+                        <li><a href="nossocompromisso.html" class="text-white hover:underline">Nosso Compromisso</a></li>
+                        <li><a href="impactodigital.html" class="text-white hover:underline">Relatório de Impacto</a></li>
+                        <li><a href="tecnologiaverde.html" class="text-white hover:underline">Tecnologia Verde</a></li>
+                    </ul>
+                </div>
+                <div class="mb-6 md:mb-0">
+                    <h5 class="font-bold mb-2">Nosso Compromisso</h5>
+                    <p class="text-white text-sm mb-2 max-w-sm md:max-w-xs">Nosso site adota como princípio de governança, o comprometimento com elevados padrões de acessibilidade digital, sustentabilidade digital e proteção de dados.</p>
+                    <div class="flex space-x-4 items-center justify-start">
+                        <img src="https://www.calculadorasdeenfermagem.com.br/seloacessibilidade.webp" alt="Selo de Acessibilidade" width="100" height="100" class="w-auto h-auto max-w-[80px] max-h-[80px]" loading="lazy" decoding="async">
+                        <img src="https://www.calculadorasdeenfermagem.com.br/selosustentabilidade.webp" alt="Selo de Sustentabilidade" width="100" height="100" class="w-auto h-auto max-w-[80px] max-h-[80px]" loading="lazy" decoding="async">
+                        <img src="https://www.calculadorasdeenfermagem.com.br/selolgpd.webp" alt="Selo LGPD" width="100" height="100" class="w-auto h-auto max-w-[80px] max-h-[80px]" loading="lazy" decoding="async">
+                    </div>
+                </div>
+                <div class="flex flex-1 flex-col md:flex-row justify-end items-start md:items-start">
+                    <div class="vertical-divider-footer-stretched hidden md:block"></div>
+                    <div class="flex flex-col items-start space-y-4">
+                        <h5 class="font-bold mb-2">Siga-nos</h5>
+                        <div class="flex space-x-4">
+                            <a href="https://linkedin.com/company/calculadoras-de-enfermagem" target="_blank" class="footer-social-icon" title="LinkedIn" aria-label="Acesse Nosso Perfil no LinkedIn"><i class="fab fa-linkedin text-xl"></i></a>
+                            <a href="https://www.instagram.com/calculadorasdeenfermagem/" target="_blank" class="footer-social-icon" title="Instagram" aria-label="Acesse Nosso Perfil no Instagram"><i class="fab fa-instagram text-xl"></i></a>
+                            <a href="https://www.tiktok.com/@calculadorasdeenf" target="_blank" class="footer-social-icon" title="TikTok" aria-label="Acesse Nosso Perfil no TikTok"><i class="fab fa-tiktok text-xl"></i></a>
+                            <a href="https://www.youtube.com/channel/UC_6runTDHz8u5S1Yab842pg" target="_blank" class="footer-social-icon" title="YouTube" aria-label="Acesse Nosso Perfil no YouTube"><i class="fab fa-youtube text-xl"></i></a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="mt-8 text-center">
+                <p>© 2025 Calculadoras de Enfermagem. Todos os direitos reservados.</p>
+            </div>
+            <div id="movedCookieBtn" class="text-center">
+                <button id="openGranularCookieModalBtn" class="btn-secondary text-white py-2 px-4 rounded-md" aria-label="Gerenciar Preferências de Cookies">Gerenciar Preferências de Cookies</button>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Firebase SDKs -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
+        
+        const firebaseConfig = {
+            apiKey: "AIzaSyC1US-K0KoiE9OS4IGalxkNUwqSicTPbeA",
+            authDomain: "acesso-restrito-github.firebaseapp.com",
+            projectId: "acesso-restrito-github",
+            storageBucket: "acesso-restrito-github.appspot.com",
+            messagingSenderId: "32644970643",
+            appId: "1:32644970643:web:92f5f3653ddeaa8ac0b566"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+
+        let inactivityTimer;
+
+        function resetTimer() {
+            clearTimeout(inactivityTimer);
+            inactivityTimer = setTimeout(() => {
+                console.log("User inactive. Signing out.");
+                signOut(auth);
+            }, 30 * 60 * 1000); // 30 minutos
+        }
+
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                // User is authenticated
+                document.body.style.display = 'block';
+                // Dispatch a custom event to signal that authentication is complete
+                document.dispatchEvent(new CustomEvent('authReady'));
+                
+                // Set up or reset inactivity timer
+                window.addEventListener('mousemove', resetTimer);
+                window.addEventListener('mousedown', resetTimer);
+                window.addEventListener('keypress', resetTimer);
+                resetTimer();
+            } else {
+                // User is not authenticated, redirect
+                window.location.href = 'https://www.calculadorasdeenfermagem.com.br/institucional/acessorestrito.html';
+            }
+        });
+    </script>
+
+    <script src="global-scripts.js"></script>
+    <script>
+        // Wait for the 'authReady' event before initializing the app
+        document.addEventListener('authReady', () => {
+            initializeAppTool();
+        });
+
+        function initializeAppTool() {
+            // --- VARIÁVEIS GLOBAIS E ESTADO DA APLICAÇÃO ---
+            let logoPosition = 'header';
+            let headerLayout = 'logo-left';
+            let footerLayout = 'logo-left';
+            let topics = [];
+            let selectedTopicIndex = -1;
+
+            // Elementos do DOM
+            const templateContainer = document.querySelector('.template-container');
+            const primaryColorPicker = document.getElementById('primaryColorPicker');
+            const topicImageUpload = document.getElementById('topicImageUpload');
+            const topicEditorSection = document.getElementById('topic-editor-section');
+           
+            // Modelos predefinidos
+            const templates = {
+                classic: { primaryColor: '#1a3e74', title: '5 DICAS ESSENCIAIS', subtitle: 'Para uma enfermagem de qualidade' },
+                corporate: { primaryColor: '#0055A4', title: 'NOSSO COMPROMISSO', subtitle: 'Pilares da nossa atuação' },
+                modern: { primaryColor: '#00B8D9', title: 'PASSOS PARA O SUCESSO', subtitle: 'Guia prático e rápido' },
+                fresh: { primaryColor: '#10B981', title: 'HÁBITOS SAUDÁVEIS', subtitle: 'Dicas para o dia a dia' }
+            };
+
+            // --- FUNÇÕES PRINCIPAIS ---
+            window.openTab = function(event, tabName) {
+                document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+                document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+                document.getElementById(tabName).classList.add('active');
+                event.currentTarget.classList.add('active');
+            }
+
+            function setupEditableElements() {
+                document.querySelectorAll('.editable').forEach(el => {
+                    if (el.dataset.listener) return;
+                    el.contentEditable = true;
+                    el.dataset.listener = true;
+                    el.addEventListener('keydown', e => {
+                        if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); el.blur(); }
+                    });
+                    el.addEventListener('input', () => adjustContentToFit());
+                });
+            }
+
+            // --- FUNÇÃO DE AJUSTE DE CONTEÚDO ---
+            function adjustContentToFit() {
+                const scalingArea = document.getElementById('scaling-container');
+                const topicsList = document.querySelector('.topics-list');
+                if (!scalingArea || !topicsList) return;
+
+                topicsList.style.transform = 'scale(1)';
+                
+                requestAnimationFrame(() => {
+                    const containerHeight = scalingArea.clientHeight;
+                    const contentHeight = topicsList.scrollHeight;
+
+                    if (contentHeight > containerHeight) {
+                        const scale = containerHeight / contentHeight;
+                        topicsList.style.transform = `scale(${scale})`;
+                    } else {
+                        topicsList.style.transform = 'scale(1)';
+                    }
+                });
+            }
+
+            // --- FUNÇÕES DE CONTROLE DO TEMPLATE ---
+            window.applyTemplate = function(templateName) {
+                const t = templates[templateName];
+                if (!t) return;
+                
+                primaryColorPicker.value = t.primaryColor;
+                updatePrimaryColor(t.primaryColor);
+
+                document.getElementById('main-title').textContent = t.title;
+                document.getElementById('main-subtitle').textContent = t.subtitle;
+                updateTopicsTitle();
+                adjustContentToFit();
+            }
+
+            window.resizeTemplate = function(format, button) {
+                document.querySelectorAll('[onclick^="resizeTemplate"]').forEach(btn => btn.classList.remove('active'));
+                button.classList.add('active');
+                
+                let width = 500, height = 500;
+                if (format === 'portrait') height = 625;
+                if (format === 'stories') {
+                    width = 450;
+                    height = 800;
+                }
+                
+                templateContainer.style.width = `${width}px`;
+                templateContainer.style.height = `${height}px`;
+                setTimeout(adjustContentToFit, 50);
+            }
+            
+            window.exportImage = async function() {
+                const editorPanel = document.querySelector('.editor-panel');
+                editorPanel.style.display = 'none';
+                if(selectedTopicIndex !== -1) {
+                     selectTopic(-1); // Deseleciona o tópico para esconder a borda
+                }
+
+                await new Promise(resolve => setTimeout(resolve, 100));
+
+                try {
+                    const canvas = await html2canvas(document.getElementById('template-to-export'), { 
+                        useCORS: true, 
+                        scale: 2, 
+                        backgroundColor: null 
+                    });
+                    const link = document.createElement('a');
+                    link.download = `meus-topicos.png`;
+                    link.href = canvas.toDataURL('image/png');
+                    link.click();
+                } catch (err) {
+                    console.error("Erro ao exportar:", err);
+                } finally {
+                    editorPanel.style.display = 'flex';
+                }
+            }
+
+            window.toggleElement = function(id, checkbox) {
+                const isChecked = checkbox.checked;
+                if (id === 'logo') {
+                    const isLogoVisible = document.getElementById('toggleLogo').checked;
+                    document.getElementById('header-logo-container').classList.toggle('hidden', !(isLogoVisible && logoPosition === 'header'));
+                    document.getElementById('footer-logo-container').classList.toggle('hidden', !(isLogoVisible && logoPosition === 'footer'));
+                    
+                    setHeaderLayout(headerLayout);
+                    setFooterLayout(footerLayout);
+
+                } else if (id === 'footer') {
+                    document.getElementById('quiz-footer').classList.toggle('hidden', !isChecked);
+                }
+                adjustContentToFit();
+            }
+            
+            // --- FUNÇÕES DE EDIÇÃO DOS TÓPICOS ---
+            function createTopicElement(topic, index) {
+                const topicEl = document.createElement('div');
+                topicEl.className = 'topic-item';
+                topicEl.dataset.index = index;
+                if (index === selectedTopicIndex) {
+                    topicEl.classList.add('selected');
+                }
+                if (topic.image.position === 'right') {
+                    topicEl.classList.add('image-right');
+                }
+
+                let imageHTML = '';
+                if (topic.image.src && topic.image.position !== 'none') {
+                     imageHTML = `
+                        <div class="topic-image-container">
+                            <img src="${topic.image.src}" class="topic-image" alt="Imagem do Tópico">
+                        </div>
+                     `;
+                }
+
+                const contentHTML = `
+                    <div class="topic-number">${index + 1}</div>
+                    <div class="topic-content">
+                        <div class="topic-title editable">${topic.title}</div>
+                        <div class="topic-description editable">${topic.description}</div>
+                    </div>
+                `;
+                
+                topicEl.innerHTML = imageHTML + contentHTML;
+                
+                topicEl.addEventListener('click', () => selectTopic(index));
+                return topicEl;
+            }
+            
+            window.selectTopic = function(index) {
+                selectedTopicIndex = index;
+                topicEditorSection.classList.toggle('disabled', index === -1);
+                renderTopics();
+            }
+
+            function renderTopics() {
+                const topicsList = document.querySelector('.topics-list');
+                topicsList.innerHTML = '';
+                const imageLoadPromises = [];
+
+                topics.forEach((topic, index) => {
+                    const topicEl = createTopicElement(topic, index);
+                    topicsList.appendChild(topicEl);
+                    
+                    const img = topicEl.querySelector('.topic-image');
+                    if (img && !img.complete) {
+                        const promise = new Promise(resolve => {
+                            img.onload = resolve;
+                            img.onerror = resolve; 
+                        });
+                        imageLoadPromises.push(promise);
+                    }
+                });
+
+                const finalizeRender = () => {
+                    setupEditableElements();
+                    adjustContentToFit();
+                };
+
+                if (imageLoadPromises.length > 0) {
+                    Promise.all(imageLoadPromises).then(finalizeRender);
+                } else {
+                    finalizeRender();
+                }
+            }
+
+            window.addTopic = function() {
+                topics.push({
+                    title: 'Novo Tópico',
+                    description: 'Descreva o novo tópico aqui.',
+                    image: { src: '', position: 'none' }
+                });
+                updateTopicsTitle();
+                selectTopic(topics.length - 1);
+            }
+
+            window.removeTopic = function() {
+                if (selectedTopicIndex !== -1) {
+                    topics.splice(selectedTopicIndex, 1);
+                    updateTopicsTitle();
+                    selectTopic(-1);
+                } else if (topics.length > 0) {
+                    topics.pop();
+                    updateTopicsTitle();
+                    renderTopics();
+                }
+            }
+            
+            window.setTopicImagePosition = function(position) {
+                if (selectedTopicIndex === -1) return;
+                topics[selectedTopicIndex].image.position = position;
+                renderTopics();
+            }
+
+            function updateTopicsTitle() {
+                const topicsCount = topics.length;
+                const titleElement = document.getElementById('main-title');
+                const currentTitle = titleElement.textContent;
+                if (/\d+/.test(currentTitle)) {
+                     titleElement.textContent = currentTitle.replace(/\d+/, topicsCount);
+                }
+            }
+
+            // --- FUNÇÕES DE CONTROLE DE LOGO E LAYOUT ---
+            window.setLogoPosition = function(position, button) {
+                if (button) {
+                    document.querySelectorAll('[onclick^="setLogoPosition"]').forEach(btn => btn.classList.remove('active'));
+                    button.classList.add('active');
+                }
+                logoPosition = position;
+                toggleElement('logo', document.getElementById('toggleLogo'));
+            }
+
+            window.setHeaderLayout = function(layout, button) {
+                if (button) {
+                    document.querySelectorAll('[onclick^="setHeaderLayout"]').forEach(btn => btn.classList.remove('active'));
+                    button.classList.add('active');
+                    headerLayout = layout;
+                }
+                const header = document.getElementById('company-header');
+                const textContainer = document.getElementById('header-text-container');
+                const isLogoActive = document.getElementById('toggleLogo').checked && logoPosition === 'header';
+
+                header.classList.remove('justify-center', 'justify-between', 'header-layout-logo-right');
+                textContainer.classList.remove('text-center', 'text-left', 'text-right');
+
+                if (isLogoActive) {
+                    header.classList.add('justify-between');
+                    header.classList.toggle('header-layout-logo-right', layout === 'logo-right');
+                    textContainer.classList.add(layout === 'logo-right' ? 'text-right' : 'text-left');
+                } else {
+                    header.classList.add('justify-center');
+                    textContainer.classList.add('text-center');
+                }
+            }
+            
+            window.setFooterLayout = function(layout, button) {
+                if (button) {
+                    document.querySelectorAll('[onclick^="setFooterLayout"]').forEach(btn => btn.classList.remove('active'));
+                    button.classList.add('active');
+                    footerLayout = layout;
+                }
+                const footer = document.getElementById('quiz-footer');
+                const textContainer = document.getElementById('footer-text-container');
+                const isLogoActive = document.getElementById('toggleLogo').checked && logoPosition === 'footer';
+
+                footer.classList.remove('justify-center', 'justify-between', 'footer-layout-logo-right');
+                textContainer.classList.remove('text-center', 'text-left', 'text-right');
+
+                if (isLogoActive) {
+                    footer.classList.add('justify-between');
+                    footer.classList.toggle('footer-layout-logo-right', layout === 'logo-right');
+                    textContainer.classList.add(layout === 'logo-right' ? 'text-left' : 'text-right');
+                } else {
+                    footer.classList.add('justify-center');
+                    textContainer.classList.add('text-center');
+                }
+            }
+
+            window.selectLogo = function(logoUrl, element) {
+                document.getElementById('header-logo').src = logoUrl;
+                document.getElementById('footer-logo').src = logoUrl;
+                document.querySelectorAll('.logo-choice').forEach(el => el.classList.remove('selected'));
+                element.classList.add('selected');
+            }
+
+            function updatePrimaryColor(color) {
+                document.documentElement.style.setProperty('--primary-color', color);
+            }
+
+            // --- INICIALIZAÇÃO DA FERRAMENTA ---
+            if (typeof loadHTML === 'function') {
+                loadHTML('#global-header-container', 'header.html');
+            }
+
+            const initialTopics = [
+                { title: 'Comunicação efetiva', description: 'Mantenha diálogo claro com pacientes e equipe.' },
+                { title: 'Higienização constante', description: 'Lave as mãos antes e após cada procedimento.' },
+                { title: 'Documentação precisa', description: 'Registre todos os procedimentos realizados.' },
+                { title: 'Educação continuada', description: 'Mantenha-se atualizado com novos conhecimentos.' },
+                { title: 'Empatia e cuidado', description: 'Trate cada paciente com humanização.' }
+            ];
+            
+            topics = initialTopics.map(t => ({ ...t, image: { src: '', position: 'none' } }));
+            
+            renderTopics();
+            applyTemplate('classic');
+            selectLogo('https://www.calculadorasdeenfermagem.com.br/icontopbar1.webp', document.querySelector('.logo-choice'));
+            setHeaderLayout('logo-left', document.querySelector('[onclick*="setHeaderLayout(\'logo-left\'"]'));
+            setFooterLayout('logo-left', document.querySelector('[onclick*="setFooterLayout(\'logo-left\'"]'));
+
+            primaryColorPicker.addEventListener('input', () => {
+                updatePrimaryColor(primaryColorPicker.value);
+            });
+
+            topicImageUpload.addEventListener('change', (event) => {
+                if (selectedTopicIndex === -1 || !event.target.files || !event.target.files[0]) return;
+                
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    topics[selectedTopicIndex].image.src = e.target.result;
+                    if (topics[selectedTopicIndex].image.position === 'none') {
+                        topics[selectedTopicIndex].image.position = 'left';
+                    }
+                    renderTopics();
+                };
+                reader.readAsDataURL(event.target.files[0]);
+                event.target.value = '';
+            });
+
+            const observer = new ResizeObserver(adjustContentToFit);
+            observer.observe(document.getElementById('main-content-area'));
+            
+            setTimeout(adjustContentToFit, 100);
+        }
+    </script>
+</body>
+</html>
