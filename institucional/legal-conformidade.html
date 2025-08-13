@@ -156,7 +156,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
         import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
-        import { getFirestore, collection, onSnapshot, doc, updateDoc, addDoc } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+        import { getFirestore, collection, onSnapshot, doc, updateDoc, addDoc, getDoc } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
         
         const firebaseConfig = {
             apiKey: "AIzaSyC1US-K0KoiE9OS4IGalxkNUwqSicTPbeA",
@@ -178,7 +178,8 @@
             onSnapshot,
             doc,
             updateDoc,
-            addDoc
+            addDoc,
+            getDoc
         };
 
         onAuthStateChanged(auth, (user) => {
@@ -232,6 +233,9 @@
                 onSnapshot(docsCollection, (snapshot) => {
                     documents = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                     renderDocuments();
+                }, (error) => {
+                    console.error("Erro ao buscar documentos do Firestore: ", error);
+                    document.getElementById('pending-alerts').innerHTML = `<div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded-md mb-6" role="alert"><p class="font-bold">Erro de Conexão</p><p>Não foi possível carregar os documentos. Verifique as regras de segurança do Firebase e a sua conexão.</p></div>`;
                 });
             }
             
@@ -241,7 +245,7 @@
                 documentListEl.innerHTML = '';
                 pendingAlertsEl.innerHTML = '';
 
-                const pendingDocs = documents.filter(doc => doc.workflow !== null);
+                const pendingDocs = documents.filter(doc => doc.workflow);
                 const discrepancyDocs = documents.filter(doc => doc.publishedVersion !== doc.latestApprovedVersion);
 
                 if (discrepancyDocs.length > 0) {
@@ -253,7 +257,7 @@
                 documents.forEach(doc => {
                     const docEl = document.createElement('div');
                     const isDiscrepancy = doc.publishedVersion !== doc.latestApprovedVersion;
-                    const hasPendingWorkflow = doc.workflow !== null;
+                    const hasPendingWorkflow = doc.workflow;
                     
                     docEl.className = 'grid grid-cols-6 items-center gap-4 py-4 border-b last:border-b-0';
                     
@@ -274,9 +278,9 @@
                             ${hasPendingWorkflow ? `<span class="status-badge status-${doc.workflow.status.toLowerCase()}">${doc.workflow.status}</span>` : '<span class="text-gray-400">-</span>'}
                         </div>
                         <div class="flex justify-end gap-2">
-                            ${isDiscrepancy ? `<button onclick="publishVersion('${doc.id}')" class="px-3 py-1 text-sm bg-green-100 text-green-800 rounded-md hover:bg-green-200">Publicar v${doc.latestApprovedVersion}</button>` : ''}
+                            ${isDiscrepancy && currentUser.roles.includes('Administrador') ? `<button onclick="publishVersion('${doc.id}')" class="px-3 py-1 text-sm bg-green-100 text-green-800 rounded-md hover:bg-green-200">Publicar v${doc.latestApprovedVersion}</button>` : ''}
                             <button onclick="showHistory('${doc.id}')" class="px-3 py-1 text-sm bg-gray-100 rounded-md hover:bg-gray-200">Ver Histórico</button>
-                            <button onclick="startNewVersion('${doc.id}')" class="px-3 py-1 text-sm bg-blue-100 text-blue-800 rounded-md hover:bg-blue-200" ${hasPendingWorkflow ? 'disabled' : ''}>Nova Versão</button>
+                            <button onclick="startNewVersion('${doc.id}')" class="px-3 py-1 text-sm bg-blue-100 text-blue-800 rounded-md hover:bg-blue-200" ${hasPendingWorkflow || !currentUser.roles.includes('Editor') ? 'disabled' : ''}>Nova Versão</button>
                         </div>
                     `;
                     documentListEl.appendChild(docEl);
@@ -304,6 +308,72 @@
                     event.target.classList.remove('visible');
                 }
             });
+
+            let activeDocument = null;
+            const workflowSteps = ['Iniciação', 'Elaboração', 'Revisão', 'Aprovação', 'Publicado'];
+
+            window.startNewVersion = function(docId) {
+                activeDocument = documents.find(d => d.id === docId);
+                if (!activeDocument || activeDocument.workflow) return;
+
+                const baseVersion = activeDocument.latestApprovedVersion;
+                const [major, minor] = baseVersion.split('.').map(Number);
+                const newVersion = `${major}.${minor + 1}`;
+
+                activeDocument.workflow = { version: newVersion, status: workflowSteps[1], currentStep: 1, summary: '', content: activeDocument.content };
+                
+                renderEditor();
+                openModal('editor-view');
+            };
+
+            function renderEditor() {
+                document.getElementById('editor-doc-title').textContent = `Editando: ${activeDocument.title} (v${activeDocument.workflow.version})`;
+                const formContent = document.getElementById('editor-form-content');
+                formContent.innerHTML = `
+                    <div class="mb-4">
+                        <label for="editor-content-area" class="block text-sm font-medium text-gray-700 mb-1">Conteúdo do Documento</label>
+                        <textarea id="editor-content-area"></textarea>
+                    </div>
+                    <div>
+                        <label for="editor-summary" class="block text-sm font-medium text-gray-700 mb-1">Resumo das Alterações</label>
+                        <textarea id="editor-summary" rows="3" class="w-full p-2 border rounded-md"></textarea>
+                    </div>
+                `;
+
+                tinymce.init({
+                    selector: '#editor-content-area',
+                    plugins: 'lists link image table code help wordcount',
+                    toolbar: 'undo redo | blocks | bold italic | alignleft aligncenter alignright | bullist numlist outdent indent | link image | code',
+                    setup: function(editor) {
+                        editor.on('init', function() {
+                            editor.setContent(activeDocument.workflow.content);
+                            document.getElementById('editor-summary').value = activeDocument.workflow.summary;
+                        });
+                    }
+                });
+            }
+
+            window.cancelEdit = function() {
+                if (tinymce.get('editor-content-area')) {
+                    tinymce.get('editor-content-area').remove();
+                }
+                closeModal('editor-view');
+                activeDocument = null;
+            };
+
+            window.saveAndAdvance = function() {
+                if (!activeDocument) return;
+                const content = tinymce.get('editor-content-area').getContent();
+                const summary = document.getElementById('editor-summary').value;
+                
+                activeDocument.workflow.content = content;
+                activeDocument.workflow.summary = summary;
+
+                // Aqui iria a lógica para atualizar o documento no Firestore
+                console.log("Salvando no Firestore:", activeDocument);
+
+                cancelEdit();
+            };
         });
     </script>
 </body>
