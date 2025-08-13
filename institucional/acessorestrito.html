@@ -23,6 +23,9 @@
             max-height: 1000px; /* Um valor alto para acomodar o conteúdo */
             overflow: visible;
         }
+        .hidden {
+            display: none !important;
+        }
     </style>
 </head>
 <body class="bg-slate-100 flex items-center justify-center min-h-screen p-4">
@@ -90,7 +93,7 @@
     </div>
 
     <!-- Conteúdo restrito (invisível inicialmente) -->
-    <div id="protected-content" class="hidden-content absolute top-0 left-0 w-full p-8 text-gray-800">
+    <div id="protected-content" class="hidden-content hidden absolute top-0 left-0 w-full p-8 text-gray-800">
         <div class="bg-white p-8 sm:p-10 rounded-3xl shadow-2xl w-full max-w-2xl mx-auto">
             <h2 class="text-3xl font-bold mb-4">Bem-vindo(a) à página restrita!</h2>
             <p class="mb-4">Este é o conteúdo que só pode ser visualizado após inserir a senha correta.</p>
@@ -101,12 +104,12 @@
         </div>
     </div>
 
-    <!-- Firebase SDK CDN links -->
-    <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js"></script>
-    
     <!-- Script JavaScript para lidar com a submissão e a lógica de autenticação do Firebase -->
-    <script>
+    <script type="module">
+        // Importa as funções do SDK do Firebase como módulos
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
+        
         document.addEventListener('DOMContentLoaded', () => {
             const loginForm = document.getElementById('loginForm');
             const emailInput = document.getElementById('email');
@@ -118,7 +121,7 @@
 
             let auth;
 
-            // Sua configuração do Firebase. Eu a atualizei com o que você enviou.
+            // Sua configuração do Firebase.
             const firebaseConfig = {
                 apiKey: "AIzaSyC1US-K0KoiE9OS4IGalxkNUwqSicTPbeA",
                 authDomain: "acesso-restrito-github.firebaseapp.com",
@@ -129,18 +132,20 @@
             };
             
             // Função para inicializar o Firebase e lidar com a autenticação inicial
-            async function initializeFirebase() {
+            function initializeFirebase() {
                 try {
                     // Inicializa os serviços do Firebase
-                    const app = firebase.initializeApp(firebaseConfig);
-                    auth = firebase.getAuth(app);
+                    const app = initializeApp(firebaseConfig);
+                    auth = getAuth(app);
 
                     // Define o listener para mudanças de estado de autenticação
-                    firebase.onAuthStateChanged(auth, (user) => {
+                    onAuthStateChanged(auth, (user) => {
                         if (user) {
                             // Usuário autenticado
                             console.log('Usuário autenticado:', user.email);
-                            showProtectedContent();
+                            // Ao logar, redireciona o usuário para a página principal
+                            window.location.href = 'https://www.calculadorasdeenfermagem.com.br/institucional/index.html';
+                            showProtectedContent(); // Esta linha não será executada, pois o redirecionamento acontece antes
                         } else {
                             // Usuário não autenticado
                             console.log('Nenhum usuário autenticado.');
@@ -179,9 +184,10 @@
 
                 try {
                     // Tenta fazer o login com e-mail e senha usando o Firebase
-                    await firebase.signInWithEmailAndPassword(auth, email, password);
+                    await signInWithEmailAndPassword(auth, email, password);
                     console.log('Login bem-sucedido!');
                     errorMessage.classList.add('hidden');
+                    // O redirecionamento acontece no listener de estado de autenticação (onAuthStateChanged)
                 } catch (error) {
                     // Trata os erros de login do Firebase
                     console.error('Erro de login:', error.code, error.message);
@@ -194,7 +200,7 @@
             // Lida com o botão de logout
             logoutButton.addEventListener('click', async () => {
                 try {
-                    await auth.signOut();
+                    await signOut(auth);
                     console.log('Logout realizado.');
                 } catch (error) {
                     console.error('Erro ao fazer logout:', error.message);
