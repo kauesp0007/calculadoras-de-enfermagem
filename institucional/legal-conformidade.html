@@ -30,74 +30,36 @@
             --shadow: 0 4px 20px rgba(26, 62, 116, 0.1);
             --border-radius: 12px;
             --bg-light: #f8f9fa;
-            --success-color: #10B981;
-            --warning-color: #F59E0B;
-            --danger-color: #EF4444;
-            --info-color: #3B82F6;
         }
         
-        .main-container-wrapper {
-            padding: 2rem;
-            background-color: var(--bg-light);
-        }
-
         body {
             font-family: 'Inter', sans-serif;
             background-color: var(--bg-light);
             color: var(--text-color);
         }
         
-        .status-badge {
-            padding: 0.25rem 0.75rem;
-            border-radius: 9999px;
-            font-size: 0.75rem;
-            font-weight: 600;
-            text-transform: uppercase;
-        }
+        .main-container-wrapper { padding: 2rem; background-color: var(--bg-light); }
+        .status-badge { padding: 0.25rem 0.75rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; }
         .status-publicado { background-color: #D1FAE5; color: #065F46; }
         .status-elaboracao { background-color: #FEF3C7; color: #92400E; }
         .status-revisao { background-color: #DBEAFE; color: #1E40AF; }
         .status-aprovacao { background-color: #E0E7FF; color: #3730A3; }
         .status-agendado { background-color: #F3E8FF; color: #6B21A8; }
 
-        /* Estilos do Modal e Editor */
-        .modal-overlay, .editor-view {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.6);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 1000;
-            opacity: 0;
-            visibility: hidden;
-            transition: opacity 0.3s, visibility 0.3s;
+        /* Estilos do Modal */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0, 0, 0, 0.6); display: flex;
+            align-items: center; justify-content: center; z-index: 1000;
+            opacity: 0; visibility: hidden; transition: opacity 0.3s, visibility 0.3s;
         }
-        .modal-overlay.visible, .editor-view.visible {
-            opacity: 1;
-            visibility: visible;
-        }
-        .modal-content, .editor-content {
-            background: white;
-            padding: 2rem;
-            border-radius: var(--border-radius);
-            width: 90%;
-            transform: scale(0.95);
+        .modal-overlay.visible { opacity: 1; visibility: visible; }
+        .modal-content {
+            background: white; padding: 2rem; border-radius: var(--border-radius);
+            width: 90%; max-width: 700px; transform: scale(0.95);
             transition: transform 0.3s;
         }
-        .modal-content { max-width: 700px; }
-        .editor-content { max-width: 1200px; height: 90vh; display: flex; flex-direction: column; }
-        .modal-overlay.visible .modal-content, .editor-view.visible .editor-content {
-            transform: scale(1);
-        }
-
-        /* Diff viewer */
-        .diff-container { white-space: pre-wrap; font-family: monospace; }
-        .diff-container ins { background-color: #d4edda; text-decoration: none; }
-        .diff-container del { background-color: #f8d7da; text-decoration: none; }
+        .modal-overlay.visible .modal-content { transform: scale(1); }
     </style>
 </head>
 <body class="hidden">
@@ -106,12 +68,20 @@
     <main class="main-container-wrapper">
         <div class="max-w-7xl mx-auto">
             <div class="flex justify-between items-center mb-2">
-                <h1 class="text-3xl font-bold text-gray-800">Repositório de Conformidade</h1>
-                <div id="user-info" class="text-right"></div>
+                <div>
+                    <h1 class="text-3xl font-bold text-gray-800">Repositório de Conformidade</h1>
+                    <p class="text-gray-600 mt-1">Gerencie as políticas e diretrizes do site.</p>
+                </div>
+                <div class="flex items-center gap-4">
+                     <button id="add-new-policy-btn" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 font-semibold flex items-center gap-2">
+                        <i class="fas fa-plus-circle"></i>
+                        Nova Política
+                    </button>
+                    <div id="user-info" class="text-right"></div>
+                </div>
             </div>
-            <p class="text-gray-600 mb-6">Gerencie as políticas e diretrizes do site.</p>
             
-            <div id="pending-alerts" class="mb-6"></div>
+            <div id="pending-alerts" class="my-6"></div>
 
             <div class="bg-white p-6 rounded-lg shadow-md">
                 <div class="grid grid-cols-6 items-center gap-4 pb-4 border-b font-bold text-gray-500 text-sm">
@@ -121,44 +91,36 @@
                     <div>STATUS WORKFLOW</div>
                     <div class="text-right">AÇÕES</div>
                 </div>
-                <div id="document-list">
-                    <!-- Os documentos serão inseridos aqui pelo JavaScript -->
-                </div>
+                <div id="document-list"></div>
             </div>
         </div>
     </main>
     
-    <!-- Editor de Documento (Tela Cheia) -->
-    <div id="editor-view" class="editor-view">
-        <div class="editor-content" role="dialog" aria-modal="true">
+    <!-- Modal para Nova Versão / Nova Política -->
+    <div id="version-modal" class="modal-overlay">
+        <div class="modal-content" role="dialog" aria-modal="true">
             <div class="flex justify-between items-center mb-4 pb-4 border-b">
-                <h2 class="text-2xl font-bold text-gray-800" id="editor-doc-title"></h2>
-                <button id="close-editor-btn" class="text-gray-500 hover:text-gray-800 text-2xl" aria-label="Fechar">&times;</button>
+                <h2 class="text-2xl font-bold text-gray-800" id="modal-title"></h2>
+                <button id="close-modal-btn" class="text-gray-500 hover:text-gray-800 text-2xl" aria-label="Fechar">&times;</button>
             </div>
-            <div id="editor-form-content" class="flex-grow overflow-y-auto pr-4">
-                <!-- Campos de edição dinâmicos serão inseridos aqui -->
+            <div id="modal-form-content" class="space-y-4">
+                <!-- Campos do formulário serão inseridos aqui -->
             </div>
-            <div class="flex justify-between items-center gap-4 mt-6 pt-4 border-t">
-                <button id="diff-btn" class="px-4 py-2 bg-gray-100 text-gray-800 rounded-md hover:bg-gray-200">Comparar com Versão Aprovada</button>
-                <div>
-                    <button id="cancel-edit-btn" class="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300">Cancelar</button>
-                    <button id="editor-action-btn" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">Salvar e Avançar</button>
-                </div>
+            <div class="flex justify-end gap-4 mt-6 pt-4 border-t">
+                <button id="cancel-modal-btn" class="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300">Cancelar</button>
+                <button id="save-modal-btn" class="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">Salvar</button>
             </div>
         </div>
     </div>
 
-    <!-- Modais Globais serão carregados aqui -->
     <div id="global-body-elements-container"></div>
 
     <!-- Firebase SDKs e Lógica da Aplicação -->
     <script type="module">
-        // Imports do Firebase
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
         import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
-        import { getFirestore, collection, onSnapshot, doc, updateDoc, addDoc, getDocs, query, collectionGroup } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+        import { getFirestore, collection, onSnapshot, doc, updateDoc, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
         
-        // Configuração do Firebase
         const firebaseConfig = {
             apiKey: "AIzaSyC1US-K0KoiE9OS4IGalxkNUwqSicTPbeA",
             authDomain: "acesso-restrito-github.firebaseapp.com",
@@ -168,24 +130,20 @@
             appId: "1:32644970643:web:92f5f3653ddeaa8ac0b566"
         };
 
-        // Inicialização do Firebase
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        // Estado da Aplicação
         let currentUser = null;
         let documents = [];
         let activeDocument = null;
+        let isNewPolicyMode = false;
         const workflowSteps = ['Iniciação', 'Elaboração', 'Revisão', 'Aprovação', 'Publicado'];
-
-        // Simulação de banco de dados de usuários
         const users = {
             'kauesp07@hotmail.com': { name: 'Cauê Silvério Marques Zipfel', roles: ['Administrador', 'Revisor', 'Editor'] },
             'leivis.ml@gmail.com': { name: 'Leivis de Melo Lima', roles: ['Editor'] }
         };
 
-        // --- Manipulador de Autenticação ---
         onAuthStateChanged(auth, (user) => {
             if (user && users[user.email]) {
                 currentUser = { email: user.email, ...users[user.email] };
@@ -196,14 +154,12 @@
             }
         });
 
-        // --- Inicialização da Lógica da Aplicação ---
         function initializeAppLogic() {
             renderUserInfo();
             setupFirestoreListener();
             setupGlobalEventListeners();
         }
 
-        // --- Renderização da Interface ---
         function renderUserInfo() {
             const userInfoEl = document.getElementById('user-info');
             if(userInfoEl && currentUser) {
@@ -214,163 +170,195 @@
                     </div>
                     <button id="sign-out-btn" class="text-sm text-blue-600 hover:underline">Sair</button>
                 `;
-                document.getElementById('sign-out-btn').addEventListener('click', () => {
-                    signOut(auth).catch(error => console.error("Erro ao sair:", error));
-                });
+                document.getElementById('sign-out-btn').addEventListener('click', () => signOut(auth));
             }
         }
 
         function renderDocuments() {
             const listEl = document.getElementById('document-list');
-            const alertsEl = document.getElementById('pending-alerts');
-            if (!listEl || !alertsEl) return;
-
-            listEl.innerHTML = '';
-            alertsEl.innerHTML = '';
-
-            const pendingDocs = documents.filter(doc => doc.workflow);
-            const discrepancyDocs = documents.filter(doc => doc.publishedVersion !== doc.latestApprovedVersion);
-
-            if (discrepancyDocs.length > 0) {
-                alertsEl.innerHTML = `<div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded-md mb-6" role="alert"><p class="font-bold">Discrepância Encontrada!</p><p>${discrepancyDocs.length} documento(s) tem uma versão publicada que não é a última versão aprovada.</p></div>`;
-            } else if (pendingDocs.length > 0) {
-                alertsEl.innerHTML = `<div class="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 rounded-md mb-6" role="alert"><p class="font-bold">Atenção!</p><p>Existem ${pendingDocs.length} documento(s) com atualizações em andamento.</p></div>`;
-            }
-
+            if (!listEl) return;
+            listEl.innerHTML = ''; // Limpa a lista para renderizar novamente
             documents.forEach(doc => {
                 const docEl = document.createElement('div');
-                const isDiscrepancy = doc.publishedVersion !== doc.latestApprovedVersion;
                 const hasPendingWorkflow = !!doc.workflow;
-                
                 docEl.className = 'grid grid-cols-6 items-center gap-4 py-4 border-b last:border-b-0';
-                if (isDiscrepancy) docEl.classList.add('bg-red-50', 'pl-4', 'border-l-4', 'border-red-400');
-                else if (hasPendingWorkflow) docEl.classList.add('bg-yellow-50', 'pl-4', 'border-l-4', 'border-yellow-400');
+                 if (hasPendingWorkflow) docEl.classList.add('bg-yellow-50', 'pl-4', 'border-l-4', 'border-yellow-400');
 
                 docEl.innerHTML = `
                     <div class="col-span-2 font-semibold text-gray-800 flex items-center gap-3">
-                        ${isDiscrepancy ? '<i class="fas fa-exclamation-triangle text-red-500" title="Discrepância de versão!"></i>' : (hasPendingWorkflow ? `<i class="fas fa-hourglass-half text-yellow-500" title="Workflow: ${doc.workflow.status}"></i>` : '')}
+                        ${hasPendingWorkflow ? `<i class="fas fa-hourglass-half text-yellow-500" title="Workflow: ${doc.workflow.status}"></i>` : ''}
                         <a href="${doc.url}" target="_blank" title="Abrir documento" class="hover:underline">${doc.title} <i class="fas fa-external-link-alt text-xs text-gray-400"></i></a>
                     </div>
                     <div>v${doc.publishedVersion}</div>
                     <div>v${doc.latestApprovedVersion}</div>
                     <div>${hasPendingWorkflow ? `<span class="status-badge status-${doc.workflow.status.toLowerCase()}">${doc.workflow.status}</span>` : '<span class="text-gray-400">-</span>'}</div>
                     <div class="flex justify-end gap-2" data-doc-id="${doc.id}">
-                        ${isDiscrepancy && currentUser.roles.includes('Administrador') ? `<button data-action="publish" class="px-3 py-1 text-sm bg-green-100 text-green-800 rounded-md hover:bg-green-200">Publicar v${doc.latestApprovedVersion}</button>` : ''}
-                        <button data-action="history" class="px-3 py-1 text-sm bg-gray-100 rounded-md hover:bg-gray-200">Ver Histórico</button>
+                        <button data-action="history" class="px-3 py-1 text-sm bg-gray-100 rounded-md hover:bg-gray-200">Histórico</button>
                         <button data-action="new-version" class="px-3 py-1 text-sm bg-blue-100 text-blue-800 rounded-md hover:bg-blue-200" ${hasPendingWorkflow || !currentUser.roles.includes('Editor') ? 'disabled' : ''}>Nova Versão</button>
                     </div>
                 `;
                 listEl.appendChild(docEl);
             });
         }
-        
-        function renderEditor() {
-            document.getElementById('editor-doc-title').textContent = `Editando: ${activeDocument.title} (v${activeDocument.workflow.version})`;
-            const formContent = document.getElementById('editor-form-content');
-            formContent.innerHTML = `
-                <div class="mb-4">
-                    <label for="editor-content-area" class="block text-sm font-medium text-gray-700 mb-1">Conteúdo do Documento</label>
-                    <textarea id="editor-content-area"></textarea>
-                </div>
-                <div>
-                    <label for="editor-summary" class="block text-sm font-medium text-gray-700 mb-1">Resumo das Alterações</label>
-                    <textarea id="editor-summary" rows="3" class="w-full p-2 border rounded-md"></textarea>
-                </div>
-            `;
 
-            tinymce.init({
-                selector: '#editor-content-area',
-                plugins: 'lists link image table code help wordcount',
-                toolbar: 'undo redo | blocks | bold italic | alignleft aligncenter alignright | bullist numlist outdent indent | link image | code',
-                setup: (editor) => {
-                    editor.on('init', () => {
-                        editor.setContent(activeDocument.workflow.content);
-                        document.getElementById('editor-summary').value = activeDocument.workflow.summary;
-                    });
-                }
-            });
-        }
-
-        // --- Listener do Firestore ---
         function setupFirestoreListener() {
             const docsCollection = collection(db, 'legal_documents');
             onSnapshot(docsCollection, (snapshot) => {
                 documents = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                 renderDocuments();
-            }, (error) => {
-                console.error("Erro ao buscar documentos do Firestore: ", error);
-                const alertsEl = document.getElementById('pending-alerts');
-                if(alertsEl) {
-                    alertsEl.innerHTML = `<div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded-md mb-6" role="alert"><p class="font-bold">Erro de Conexão</p><p>Não foi possível carregar os documentos. Verifique as regras de segurança do Firebase e a sua conexão.</p></div>`;
-                }
-            });
+            }, (error) => console.error("Erro ao buscar documentos: ", error));
         }
-
-        // --- Funções de Ação e Manipuladores de Eventos ---
+        
+        // --- Lógica dos Modais ---
         function openModal(id) { document.getElementById(id)?.classList.add('visible'); }
         function closeModal(id) { document.getElementById(id)?.classList.remove('visible'); }
-        
-        function cancelEdit() {
-            tinymce.get('editor-content-area')?.remove();
-            closeModal('editor-view');
+
+        function showNewPolicyModal() {
+            isNewPolicyMode = true;
             activeDocument = null;
+            document.getElementById('modal-title').textContent = 'Criar Nova Política';
+            const formContent = document.getElementById('modal-form-content');
+            formContent.innerHTML = `
+                <div>
+                    <label for="policy-title" class="block text-sm font-medium text-gray-700">Título do Documento</label>
+                    <input type="text" id="policy-title" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                </div>
+                <div>
+                    <label for="policy-url" class="block text-sm font-medium text-gray-700">URL do Documento</label>
+                    <input type="url" id="policy-url" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                </div>
+                <div>
+                    <label for="policy-summary" class="block text-sm font-medium text-gray-700">Resumo</label>
+                    <textarea id="policy-summary" rows="3" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" placeholder="Versão inicial publicada"></textarea>
+                </div>
+                 <div>
+                    <label for="policy-content" class="block text-sm font-medium text-gray-700">Conteúdo Inicial</label>
+                    <textarea id="policy-content" rows="6" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" placeholder="Insira o conteúdo completo da política aqui..."></textarea>
+                </div>
+            `;
+            openModal('version-modal');
         }
 
-        async function saveAndAdvance() {
+        function showNewVersionModal(docId) {
+            isNewPolicyMode = false;
+            activeDocument = documents.find(d => d.id === docId);
             if (!activeDocument) return;
-            activeDocument.workflow.content = tinymce.get('editor-content-area').getContent();
-            activeDocument.workflow.summary = document.getElementById('editor-summary').value;
-            
-            console.log("Salvando no Firestore:", activeDocument);
-            // Lógica para atualizar o documento no Firestore
-            // Ex: await updateDoc(doc(db, 'legal_documents', activeDocument.id), { workflow: activeDocument.workflow });
-            cancelEdit();
+
+            document.getElementById('modal-title').textContent = `Nova Versão para: ${activeDocument.title}`;
+            const formContent = document.getElementById('modal-form-content');
+            formContent.innerHTML = `
+                <div class="bg-gray-100 p-3 rounded-md">
+                    <p><span class="font-semibold">Versão Anterior Aprovada:</span> v${activeDocument.latestApprovedVersion}</p>
+                </div>
+                <div>
+                    <label for="version-summary" class="block text-sm font-medium text-gray-700">Resumo das Alterações</label>
+                    <textarea id="version-summary" rows="4" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" placeholder="Descreva o que foi alterado nesta nova versão..."></textarea>
+                </div>
+            `;
+            openModal('version-modal');
         }
         
-        function startNewVersion(docId) {
-            activeDocument = documents.find(d => d.id === docId);
-            if (!activeDocument || activeDocument.workflow) return;
+        async function handleSave() {
+            const saveButton = document.getElementById('save-modal-btn');
+            saveButton.disabled = true;
+            saveButton.textContent = 'Salvando...';
 
-            const [major, minor] = activeDocument.latestApprovedVersion.split('.').map(Number);
-            const newVersion = `${major}.${minor + 1}`;
-            activeDocument.workflow = { version: newVersion, status: workflowSteps[1], currentStep: 1, summary: '', content: activeDocument.content };
-            
-            renderEditor();
-            openModal('editor-view');
+            try {
+                if (isNewPolicyMode) {
+                    // --- LÓGICA PARA CRIAR NOVA POLÍTICA ---
+                    const title = document.getElementById('policy-title').value;
+                    const url = document.getElementById('policy-url').value;
+                    let summary = document.getElementById('policy-summary').value;
+                    const content = document.getElementById('policy-content').value;
+
+                    if (!title || !url || !content) {
+                        alert('Título, URL e Conteúdo são obrigatórios.');
+                        return;
+                    }
+                    if (!summary) {
+                        summary = "Versão inicial publicada";
+                    }
+
+                    const newPolicy = {
+                        title: title,
+                        content: content,
+                        date: serverTimestamp(), // Data e hora do servidor
+                        latestApprovedVersion: "1.0",
+                        publishedVersion: "1.0",
+                        summary: summary,
+                        url: url,
+                        workflow: null // Workflow nulo para novos arquivos
+                    };
+                    
+                    await addDoc(collection(db, 'legal_documents'), newPolicy);
+                    console.log("Nova política adicionada com sucesso!");
+
+                } else {
+                    // --- LÓGICA PARA CRIAR NOVA VERSÃO ---
+                    if (!activeDocument) return;
+                    
+                    const summary = document.getElementById('version-summary').value;
+                    if (!summary) {
+                        alert('O resumo das alterações é obrigatório.');
+                        return;
+                    }
+
+                    const [major, minor] = activeDocument.latestApprovedVersion.split('.').map(Number);
+                    const newVersionNumber = `${major}.${minor + 1}`;
+
+                    const newVersionData = {
+                        workflow: {
+                            title: activeDocument.title, // Mesmo título
+                            content: activeDocument.content, // Mesmo conteúdo para edição
+                            date: serverTimestamp(), // Data e hora do servidor
+                            latestApprovedVersion: activeDocument.latestApprovedVersion, // Versão anterior
+                            publishedVersion: newVersionNumber, // Nova versão sequencial
+                            summary: summary, // Resumo do usuário
+                            url: activeDocument.url, // Mesma URL
+                            status: workflowSteps[1], // Inicia em "Elaboração"
+                            currentStep: 1,
+                            version: newVersionNumber
+                        }
+                    };
+                    
+                    const docRef = doc(db, 'legal_documents', activeDocument.id);
+                    await updateDoc(docRef, newVersionData);
+                    console.log(`Workflow de nova versão iniciado para ${activeDocument.title}`);
+                }
+                closeModal('version-modal');
+            } catch (error) {
+                console.error("Erro ao salvar no Firebase:", error);
+                alert("Ocorreu um erro ao salvar. Tente novamente.");
+            } finally {
+                saveButton.disabled = false;
+                saveButton.textContent = 'Salvar';
+            }
         }
-
-        function publishVersion(docId) { console.log(`Publicando v${doc.latestApprovedVersion} para o documento ${docId}`); }
-        function showHistory(docId) { console.log(`Mostrando histórico para o documento ${docId}`); }
-        function showDiff() { console.log("Mostrando diferenças..."); }
 
         function handleDocumentAction(event) {
             const button = event.target.closest('button[data-action]');
             if (!button) return;
             const docId = button.closest('[data-doc-id]').dataset.docId;
             switch (button.dataset.action) {
-                case 'publish': publishVersion(docId); break;
-                case 'history': showHistory(docId); break;
-                case 'new-version': startNewVersion(docId); break;
+                case 'history': console.log(`Mostrando histórico para o documento ${docId}`); break;
+                case 'new-version': showNewVersionModal(docId); break;
             }
         }
 
-        // --- Listeners de Eventos Globais ---
         function setupGlobalEventListeners() {
             document.getElementById('document-list').addEventListener('click', handleDocumentAction);
-            document.getElementById('diff-btn').addEventListener('click', showDiff);
-            document.getElementById('cancel-edit-btn').addEventListener('click', cancelEdit);
-            document.getElementById('editor-action-btn').addEventListener('click', saveAndAdvance);
-            document.getElementById('close-editor-btn').addEventListener('click', cancelEdit);
-
-            document.addEventListener('keydown', (event) => {
-                if (event.key === 'Escape') {
-                    document.querySelectorAll('.modal-overlay.visible, .editor-view.visible').forEach(el => el.classList.remove('visible'));
-                }
+            document.getElementById('add-new-policy-btn').addEventListener('click', showNewPolicyModal);
+            document.getElementById('save-modal-btn').addEventListener('click', handleSave);
+            
+            const modal = document.getElementById('version-modal');
+            document.getElementById('close-modal-btn').addEventListener('click', () => closeModal('version-modal'));
+            document.getElementById('cancel-modal-btn').addEventListener('click', () => closeModal('version-modal'));
+            
+            modal.addEventListener('click', (event) => {
+                if (event.target === modal) closeModal('version-modal');
             });
-            document.body.addEventListener('click', (event) => {
-                if (event.target.matches('.modal-overlay, .editor-view')) {
-                    event.target.classList.remove('visible');
-                }
+            document.addEventListener('keydown', (event) => {
+                if (event.key === 'Escape') closeModal('version-modal');
             });
         }
     </script>
