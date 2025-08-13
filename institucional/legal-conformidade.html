@@ -36,7 +36,7 @@
             --danger-color: #EF4444;
             --info-color: #3B82F6;
         }
-        #global-header-container { z-index: 50; }
+        #global-header-container { z-index: 50; position:relative; }
         
         .main-container-wrapper {
             margin-top: 85px;
@@ -153,17 +153,59 @@
 
     <!-- Modal para Histórico de Versões -->
     <div id="history-modal" class="modal-overlay">
-        <!-- Conteúdo preenchido dinamicamente -->
+         <div class="modal-content" role="dialog" aria-modal="true" aria-labelledby="history-doc-title">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-2xl font-bold text-gray-800" id="history-doc-title"></h2>
+                <button onclick="closeModal('history-modal')" class="text-gray-500 hover:text-gray-800 text-2xl" aria-label="Fechar">&times;</button>
+            </div>
+            <div id="history-content" class="max-h-96 overflow-y-auto">
+                <!-- History will be injected here -->
+            </div>
+             <div class="flex justify-end gap-4 mt-6">
+                <button onclick="closeModal('history-modal')" class="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300">Fechar</button>
+            </div>
+        </div>
     </div>
     
     <!-- Modal para Login Simulado -->
-    <div id="login-modal" class="modal-overlay visible">
-        <!-- Conteúdo preenchido dinamicamente -->
+    <div id="login-modal" class="modal-overlay">
+         <div class="modal-content">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">Simular Login</h2>
+            <p class="mb-6 text-gray-600">Escolha um perfil para interagir com a aplicação. Cada perfil tem diferentes permissões.</p>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <button onclick="simulateLogin('Editor')" class="p-4 border rounded-lg hover:bg-gray-100">
+                    <div class="text-2xl mb-2"><i class="fas fa-pencil-alt"></i></div>
+                    <div class="font-bold">Editor</div>
+                    <div class="text-sm text-gray-500">Pode criar e editar versões.</div>
+                </button>
+                <button onclick="simulateLogin('Revisor')" class="p-4 border rounded-lg hover:bg-gray-100">
+                    <div class="text-2xl mb-2"><i class="fas fa-user-check"></i></div>
+                    <div class="font-bold">Revisor</div>
+                    <div class="text-sm text-gray-500">Pode mover para aprovação.</div>
+                </button>
+                <button onclick="simulateLogin('Administrador')" class="p-4 border rounded-lg hover:bg-gray-100">
+                    <div class="text-2xl mb-2"><i class="fas fa-user-shield"></i></div>
+                    <div class="font-bold">Administrador</div>
+                    <div class="text-sm text-gray-500">Pode publicar versões.</div>
+                </button>
+            </div>
+        </div>
     </div>
     
     <!-- Modal para Diff Viewer -->
     <div id="diff-modal" class="modal-overlay">
-        <!-- Conteúdo preenchido dinamicamente -->
+         <div class="modal-content" role="dialog" aria-modal="true" aria-labelledby="diff-doc-title">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-2xl font-bold text-gray-800" id="diff-doc-title"></h2>
+                <button onclick="closeModal('diff-modal')" class="text-gray-500 hover:text-gray-800 text-2xl" aria-label="Fechar">&times;</button>
+            </div>
+            <div id="diff-content" class="max-h-96 overflow-y-auto p-2 bg-gray-50 rounded">
+                <!-- Diff will be injected here -->
+            </div>
+             <div class="flex justify-end gap-4 mt-6">
+                <button onclick="closeModal('diff-modal')" class="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300">Fechar</button>
+            </div>
+        </div>
     </div>
     
     <footer class="bg-[#1A3E74] text-white py-8">
@@ -174,28 +216,23 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
         import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
-        import { getFirestore, collection, getDocs, doc, updateDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
         
         const firebaseConfig = {
             apiKey: "AIzaSyC1US-K0KoiE9OS4IGalxkNUwqSicTPbeA",
             authDomain: "acesso-restrito-github.firebaseapp.com",
             projectId: "acesso-restrito-github",
-            storageBucket: "acesso-restrito-github.appspot.com",
+            storageBucket: "acesso-restrito-github.firebasestorage.app",
             messagingSenderId: "32644970643",
             appId: "1:32644970643:web:92f5f3653ddeaa8ac0b566"
         };
 
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
-        const db = getFirestore(app);
+
+        window.auth = auth; // Expose auth to global scope for main script
 
         onAuthStateChanged(auth, (user) => {
-            if (user) {
-                document.body.classList.remove('hidden');
-                document.dispatchEvent(new CustomEvent('authReady', { detail: { user } }));
-            } else {
-                document.dispatchEvent(new CustomEvent('authReady', { detail: { user: null } }));
-            }
+            document.dispatchEvent(new CustomEvent('authReady', { detail: { user } }));
         });
     </script>
 
