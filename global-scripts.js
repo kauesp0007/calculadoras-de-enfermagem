@@ -303,25 +303,24 @@ function initializeGlobalFunctions() {
         statusMessageDiv.textContent = message;
         setTimeout(() => statusMessageDiv.textContent = '', 3000);
     }
-
-    // Ação para aumentar o tamanho da fonte, separada da função de aplicação
-    function alternarTamanhoFonte() {
-        // Correção para ciclar corretamente de 1 a 5
-        currentFontSize = (currentFontSize % 5) + 1;
-        updateFontSize();
-    }
-
-    // Função que aplica o tamanho da fonte
+    
+    // CORREÇÃO: Função que aplica o tamanho da fonte (apenas lê o valor)
     function updateFontSize(announce = true) {
         const sizes = ['1em', '1.15em', '1.3em', '1.5em', '2em'];
         const labels = ['Normal', 'Médio', 'Grande', 'Extra Grande', 'Máximo'];
-        // Acessa o índice correto com base em currentFontSize, que varia de 1 a 5
-        const newIndex = currentFontSize - 1;
+        // Garante que o valor esteja no intervalo [1, 5]
+        const newIndex = Math.min(Math.max(currentFontSize, 1), 5) - 1;
         body.style.fontSize = sizes[newIndex];
         if (fontSizeText) fontSizeText.textContent = labels[newIndex];
         if (fontSizeTextPWA) fontSizeTextPWA.textContent = labels[newIndex];
         localStorage.setItem('fontSize', currentFontSize);
         if (announce) announceStatus(`Tamanho da fonte: ${labels[newIndex]}`);
+    }
+
+    // CORREÇÃO: Função que alterna o tamanho da fonte (incrementa e depois chama update)
+    function alternarTamanhoFonte() {
+        currentFontSize = (currentFontSize % 5) + 1;
+        updateFontSize();
     }
 
     function updateLineHeight(announce = true) {
@@ -439,8 +438,7 @@ function initializeGlobalFunctions() {
     }
     
     const accessibilityActions = [
-        // Correção: `action` agora chama a nova função `alternarTamanhoFonte`
-        { ids: ['btnAlternarTamanhoFonte', 'btnAlternarTamanhoFontePWA'], action: alternarTamanhoFonte },
+        { ids: ['btnAlternarTamanhoFonte', 'btnAlternarTamanhoFontePWA'], action: updateFontSize },
         { ids: ['btnAlternarEspacamentoLinha', 'btnAlternarEspacamentoLinhaPWA'], action: updateLineHeight },
         { ids: ['btnAlternarEspacamentoLetra', 'btnAlternarEspacamentoLetraPWA'], action: updateLetterSpacing },
         { ids: ['btnAlternarContraste', 'btnAlternarContrastePWA'], action: toggleContrast },
@@ -489,10 +487,8 @@ function initializeGlobalFunctions() {
     initializeCookieFunctionality();
 
     function loadAccessibilitySettings() {
-        const savedFontSize = parseInt(localStorage.getItem('fontSize') || '1', 10);
-        currentFontSize = savedFontSize;
-        updateFontSize(false); // Aplica a fonte salva. 'false' evita o anúncio inicial.
-        
+        currentFontSize = parseInt(localStorage.getItem('fontSize') || '1', 10);
+        updateFontSize(false);
         currentLineHeight = parseInt(localStorage.getItem('lineHeight') || '1', 10);
         updateLineHeight(false);
         currentLetterSpacing = parseInt(localStorage.getItem('letterSpacing') || '1', 10);
