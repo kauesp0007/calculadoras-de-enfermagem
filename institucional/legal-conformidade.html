@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <base href="https://www.calculadorasdeenfermagem.com.br/">
+    <title>Repositório de Conformidade | Calculadoras de Enfermagem</title>
+    <meta name="robots" content="noindex, nofollow">
+    <meta name="description" content="Repositório de arquivos do site Calculadoras de Enfermagem voltados para Políticas de privacidade, termos de uso, LGPD e outras diretrizes de conformidade.">
+    <link rel="canonical" href="https://www.calculadorasdeenfermagem.com.br/institucional/legal-conformidade.html">
+    <link rel="icon" href="images/favicon.png" type="image/png">
+    
+    <!-- Scripts e Estilos Globais do Site -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="global-styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Nunito+Sans:wght@700;800;900&display=swap" rel="stylesheet">
+
+    <style>
+        /* Estilos Globais e Variáveis CSS */
+        :root {
+            --primary-color: #1a3e74;
+            --primary-light: #2a5a94;
+            --white: #ffffff;
+            --text-color: #2c2c2c;
+            --shadow: 0 4px 20px rgba(26, 62, 116, 0.1);
+            --border-radius: 12px;
+            --bg-light: #f8f9fa;
+            --success-color: #10B981;
+            --warning-color: #F59E0B;
+            --info-color: #3B82F6;
+        }
+        #global-header-container .max-w-7xl, footer .max-w-7xl { max-width: 1600px !important; }
+        
+        .main-container-wrapper {
+            margin-top: 85px;
+            padding: 2rem;
+            background-color: var(--bg-light);
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-light);
+            color: var(--text-color);
+        }
+        
+        .status-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        .status-publicado { background-color: #D1FAE5; color: #065F46; }
+        .status-elaboracao { background-color: #FEF3C7; color: #92400E; }
+        .status-revisao { background-color: #DBEAFE; color: #1E40AF; }
+        .status-aprovacao { background-color: #E0E7FF; color: #3730A3; }
+
+        /* Estilos do Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s, visibility 0.3s;
+        }
+        .modal-overlay.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+        .modal-content {
+            background: white;
+            padding: 2rem;
+            border-radius: var(--border-radius);
+            width: 90%;
+            max-width: 600px;
+            transform: scale(0.95);
+            transition: transform 0.3s;
+        }
+        .modal-overlay.visible .modal-content {
+            transform: scale(1);
+        }
+
+        /* Estilos do Workflow */
+        .workflow-steps {
+            display: flex;
+            justify-content: space-between;
+            position: relative;
+            margin-bottom: 1.5rem;
+        }
+        .workflow-steps::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background-color: #e5e7eb;
+            transform: translateY(-50%);
+        }
+        .workflow-step {
+            position: relative;
+            text-align: center;
+        }
+        .step-circle {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background-color: #e5e7eb;
+            color: #6b7280;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 0.5rem;
+            border: 2px solid #e5e7eb;
+            transition: all 0.3s ease;
+        }
+        .step-label {
+            font-size: 0.75rem;
+            color: #6b7280;
+        }
+        .workflow-step.active .step-circle {
+            background-color: var(--info-color);
+            color: white;
+            border-color: var(--info-color);
+        }
+        .workflow-step.completed .step-circle {
+            background-color: var(--success-color);
+            color: white;
+            border-color: var(--success-color);
+        }
+    </style>
+</head>
+<body style="display: none;">
+    <div id="global-header-container"></div>
+    
+    <main class="main-container-wrapper">
+        <div class="max-w-7xl mx-auto">
+            <h1 class="text-3xl font-bold text-gray-800 mb-2">Repositório de Conformidade</h1>
+            <p class="text-gray-600 mb-8">Gerencie as políticas e diretrizes do site.</p>
+
+            <div id="document-list" class="bg-white p-6 rounded-lg shadow-md">
+                <!-- Os documentos serão inseridos aqui pelo JavaScript -->
+            </div>
+        </div>
+    </main>
+
+    <!-- Modal para Workflow de Nova Versão -->
+    <div id="workflow-modal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-2xl font-bold text-gray-800">Nova Versão: <span id="modal-doc-title"></span></h2>
+                <button onclick="closeModal('workflow-modal')" class="text-gray-500 hover:text-gray-800">&times;</button>
+            </div>
+            
+            <div id="workflow-visualizer" class="mb-6">
+                <!-- Workflow steps will be injected here -->
+            </div>
+
+            <div id="workflow-details">
+                <p class="mb-2"><strong>Versão Atual:</strong> <span id="modal-current-version"></span></p>
+                <p class="mb-4"><strong>Nova Versão:</strong> <span id="modal-new-version"></span></p>
+                
+                <div class="mb-4">
+                    <label for="summary-changes" class="block text-sm font-medium text-gray-700 mb-1">Resumo das Alterações</label>
+                    <textarea id="summary-changes" rows="3" class="w-full p-2 border rounded-md"></textarea>
+                </div>
+            </div>
+
+            <div class="flex justify-end gap-4 mt-6">
+                <button onclick="closeModal('workflow-modal')" class="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300">Cancelar</button>
+                <button id="workflow-action-btn" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">Avançar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para Histórico de Versões -->
+    <div id="history-modal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-2xl font-bold text-gray-800">Histórico: <span id="history-doc-title"></span></h2>
+                <button onclick="closeModal('history-modal')" class="text-gray-500 hover:text-gray-800">&times;</button>
+            </div>
+            <div id="history-content" class="max-h-96 overflow-y-auto">
+                <!-- History will be injected here -->
+            </div>
+             <div class="flex justify-end gap-4 mt-6">
+                <button onclick="closeModal('history-modal')" class="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300">Fechar</button>
+            </div>
+        </div>
+    </div>
+    
+    <footer class="bg-[#1A3E74] text-white py-8">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="border-b border-white pb-4 mb-4">
+                <div class="flex justify-start items-center">
+                    <img src="https://www.calculadorasdeenfermagem.com.br/iconrodape1.webp" alt="Logotipo Calculadoras de Enfermagem no rodapé" width="120" height="84" class="h-auto w-auto max-w-[80px] max-h-[80px]" loading="lazy" decoding="async">
+                </div>
+            </div>
+            <div class="md:flex md:justify-between md:items-start md:space-x-8 md:items-stretch">
+                <div class="mb-6 md:mb-0">
+                    <h5 class="font-bold mb-2">Institucional</h5>
+                    <ul class="list-none space-y-1">
+                        <li><a href="index.html" class="text-white hover:underline">Início</a></li>
+                        <li><a href="missao.html" class="text-white hover:underline">Sobre Nós</a></li>
+                        <li><a href="mapa-do-site.html" class="text-white hover:underline">Mapa do Site</a></li>
+                        <li><a href="politica.html" class="text-white hover:underline">Políticas de Cookies</a></li>
+                        <li><a href="politica.html" class="text-white hover:underline">Política de Retenção de dados</a></li>
+                        <li><a href="politica.html" class="text-white hover:underline">LGPD</a></li>
+                        <li><a href="politica.html" class="text-white hover:underline">Políticas de Privacidade</a></li>
+                        <li><a href="termos.html" class="text-white hover:underline">Termos e Condições de Uso</a></li>
+                        <li><a href="politicadeacessibilidade.html" class="text-white hover:underline">Política de Acessibilidade</a></li>
+                    </ul>
+                </div>
+                <div class="mb-6 md:mb-0">
+                    <h5 class="font-bold mb-2">Sustentabilidade Digital</h5>
+                    <ul class="list-none space-y-1">
+                        <li><a href="nossocompromisso.html" class="text-white hover:underline">Nosso Compromisso</a></li>
+                        <li><a href="impactodigital.html" class="text-white hover:underline">Relatório de Impacto</a></li>
+                        <li><a href="tecnologiaverde.html" class="text-white hover:underline">Tecnologia Verde</a></li>
+                    </ul>
+                </div>
+                <div class="mb-6 md:mb-0">
+                    <h5 class="font-bold mb-2">Nosso Compromisso</h5>
+                    <p class="text-white text-sm mb-2 max-w-sm md:max-w-xs">Nosso site adota como princípio de governança, o comprometimento com elevados padrões de acessibilidade digital, sustentabilidade digital e proteção de dados.</p>
+                    <div class="flex space-x-4 items-center justify-start">
+                        <img src="https://www.calculadorasdeenfermagem.com.br/seloacessibilidade.webp" alt="Selo de Acessibilidade" width="100" height="100" class="w-auto h-auto max-w-[80px] max-h-[80px]" loading="lazy" decoding="async">
+                        <img src="https://www.calculadorasdeenfermagem.com.br/selosustentabilidade.webp" alt="Selo de Sustentabilidade" width="100" height="100" class="w-auto h-auto max-w-[80px] max-h-[80px]" loading="lazy" decoding="async">
+                        <img src="https://www.calculadorasdeenfermagem.com.br/selolgpd.webp" alt="Selo LGPD" width="100" height="100" class="w-auto h-auto max-w-[80px] max-h-[80px]" loading="lazy" decoding="async">
+                    </div>
+                </div>
+                <div class="flex flex-1 flex-col md:flex-row justify-end items-start md:items-start">
+                    <div class="vertical-divider-footer-stretched hidden md:block"></div>
+                    <div class="flex flex-col items-start space-y-4">
+                        <h5 class="font-bold mb-2">Siga-nos</h5>
+                        <div class="flex space-x-4">
+                            <a href="https://linkedin.com/company/calculadoras-de-enfermagem" target="_blank" class="footer-social-icon" title="LinkedIn" aria-label="Acesse Nosso Perfil no LinkedIn"><i class="fab fa-linkedin text-xl"></i></a>
+                            <a href="https://www.instagram.com/calculadorasdeenfermagem/" target="_blank" class="footer-social-icon" title="Instagram" aria-label="Acesse Nosso Perfil no Instagram"><i class="fab fa-instagram text-xl"></i></a>
+                            <a href="https://www.tiktok.com/@calculadorasdeenf" target="_blank" class="footer-social-icon" title="TikTok" aria-label="Acesse Nosso Perfil no TikTok"><i class="fab fa-tiktok text-xl"></i></a>
+                            <a href="https://www.youtube.com/channel/UC_6runTDHz8u5S1Yab842pg" target="_blank" class="footer-social-icon" title="YouTube" aria-label="Acesse Nosso Perfil no YouTube"><i class="fab fa-youtube text-xl"></i></a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="mt-8 text-center">
+                <p>© 2025 Calculadoras de Enfermagem. Todos os direitos reservados.</p>
+            </div>
+            <div id="movedCookieBtn" class="text-center">
+                <button id="openGranularCookieModalBtn" class="btn-secondary text-white py-2 px-4 rounded-md" aria-label="Gerenciar Preferências de Cookies">Gerenciar Preferências de Cookies</button>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Firebase SDKs -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
+        
+        const firebaseConfig = {
+            apiKey: "AIzaSyC1US-K0KoiE9OS4IGalxkNUwqSicTPbeA",
+            authDomain: "acesso-restrito-github.firebaseapp.com",
+            projectId: "acesso-restrito-github",
+            storageBucket: "acesso-restrito-github.appspot.com",
+            messagingSenderId: "32644970643",
+            appId: "1:32644970643:web:92f5f3653ddeaa8ac0b566"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+
+        let inactivityTimer;
+
+        function resetTimer() {
+            clearTimeout(inactivityTimer);
+            inactivityTimer = setTimeout(() => {
+                console.log("User inactive. Signing out.");
+                signOut(auth);
+            }, 30 * 60 * 1000); // 30 minutos
+        }
+
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                document.body.style.display = 'block';
+                document.dispatchEvent(new CustomEvent('authReady'));
+                window.addEventListener('mousemove', resetTimer);
+                window.addEventListener('mousedown', resetTimer);
+                window.addEventListener('keypress', resetTimer);
+                resetTimer();
+            } else {
+                window.location.href = 'https://www.calculadorasdeenfermagem.com.br/institucional/acessorestrito.html';
+            }
+        });
+    </script>
+
+    <script src="global-scripts.js"></script>
+    <script>
+        document.addEventListener('authReady', () => {
+            // Mock de banco de dados
+            let documents = [
+                {
+                    id: 1,
+                    title: 'Política de Privacidade',
+                    version: '2.1',
+                    lastUpdated: '2024-07-15',
+                    status: 'Publicado',
+                    history: [
+                        { version: '2.1', date: '2024-07-15', summary: 'Atualização para conformidade com nova regulamentação.' },
+                        { version: '2.0', date: '2023-01-20', summary: 'Revisão geral e inclusão de cláusulas sobre cookies.' },
+                    ]
+                },
+                {
+                    id: 2,
+                    title: 'Termos de Uso',
+                    version: '1.5',
+                    lastUpdated: '2024-06-01',
+                    status: 'Publicado',
+                    history: [
+                         { version: '1.5', date: '2024-06-01', summary: 'Ajustes na cláusula de responsabilidade.' },
+                    ]
+                },
+                {
+                    id: 3,
+                    title: 'Diretrizes da LGPD',
+                    version: '1.0',
+                    lastUpdated: '2023-09-10',
+                    status: 'Publicado',
+                    history: [
+                         { version: '1.0', date: '2023-09-10', summary: 'Publicação inicial do documento.' },
+                    ]
+                }
+            ];
+
+            const workflowSteps = ['Iniciação', 'Elaboração', 'Revisão', 'Aprovação', 'Publicado'];
+            let activeWorkflow = null;
+
+            const documentListEl = document.getElementById('document-list');
+            
+            function renderDocuments() {
+                documentListEl.innerHTML = '';
+                documents.forEach(doc => {
+                    const docEl = document.createElement('div');
+                    docEl.className = 'grid grid-cols-5 items-center gap-4 py-4 border-b last:border-b-0';
+                    docEl.innerHTML = `
+                        <div class="col-span-2 font-semibold text-gray-800">${doc.title}</div>
+                        <div>v${doc.version}</div>
+                        <div><span class="status-badge status-${doc.status.toLowerCase().replace(' ', '')}">${doc.status}</span></div>
+                        <div class="flex justify-end gap-2">
+                            <button onclick="showHistory(${doc.id})" class="px-3 py-1 text-sm bg-gray-100 rounded-md hover:bg-gray-200">Ver Histórico</button>
+                            <button onclick="startNewVersion(${doc.id})" class="px-3 py-1 text-sm bg-blue-100 text-blue-800 rounded-md hover:bg-blue-200">Nova Versão</button>
+                        </div>
+                    `;
+                    documentListEl.appendChild(docEl);
+                });
+            }
+
+            window.showHistory = function(docId) {
+                const doc = documents.find(d => d.id === docId);
+                document.getElementById('history-doc-title').textContent = doc.title;
+                const historyContentEl = document.getElementById('history-content');
+                historyContentEl.innerHTML = doc.history.map(h => `
+                    <div class="border-b last:border-0 py-3">
+                        <p class="font-bold">Versão ${h.version} <span class="font-normal text-gray-500">- ${h.date}</span></p>
+                        <p class="text-sm text-gray-600 mt-1">${h.summary}</p>
+                    </div>
+                `).join('');
+                openModal('history-modal');
+            }
+
+            window.startNewVersion = function(docId) {
+                const doc = documents.find(d => d.id === docId);
+                const [major, minor] = doc.version.split('.').map(Number);
+                const newVersion = `${major}.${minor + 1}`;
+
+                activeWorkflow = {
+                    docId: doc.id,
+                    currentStep: 0, // Iniciação
+                    newVersion: newVersion,
+                    summary: ''
+                };
+
+                document.getElementById('modal-doc-title').textContent = doc.title;
+                document.getElementById('modal-current-version').textContent = `v${doc.version}`;
+                document.getElementById('modal-new-version').textContent = `v${newVersion}`;
+                document.getElementById('summary-changes').value = '';
+                
+                updateWorkflowVisualizer();
+                openModal('workflow-modal');
+            }
+
+            function updateWorkflowVisualizer() {
+                const visualizerEl = document.getElementById('workflow-visualizer');
+                visualizerEl.innerHTML = `
+                    <div class="workflow-steps">
+                        ${workflowSteps.map((step, index) => `
+                            <div class="workflow-step ${index < activeWorkflow.currentStep ? 'completed' : ''} ${index === activeWorkflow.currentStep ? 'active' : ''}">
+                                <div class="step-circle">${index < activeWorkflow.currentStep ? '<i class="fas fa-check"></i>' : index + 1}</div>
+                                <div class="step-label">${step}</div>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+                const actionBtn = document.getElementById('workflow-action-btn');
+                if (activeWorkflow.currentStep < workflowSteps.length - 1) {
+                    actionBtn.textContent = `Mover para ${workflowSteps[activeWorkflow.currentStep + 1]}`;
+                    actionBtn.disabled = false;
+                } else {
+                    actionBtn.textContent = 'Finalizado';
+                    actionBtn.disabled = true;
+                }
+            }
+
+            document.getElementById('workflow-action-btn').addEventListener('click', () => {
+                if (activeWorkflow.currentStep < workflowSteps.length - 1) {
+                    activeWorkflow.currentStep++;
+                    const doc = documents.find(d => d.id === activeWorkflow.docId);
+                    const newStatus = workflowSteps[activeWorkflow.currentStep];
+
+                    if (newStatus === 'Publicado') {
+                        doc.status = 'Publicado';
+                        doc.version = activeWorkflow.newVersion;
+                        doc.lastUpdated = new Date().toISOString().split('T')[0];
+                        doc.history.unshift({
+                            version: activeWorkflow.newVersion,
+                            date: doc.lastUpdated,
+                            summary: document.getElementById('summary-changes').value || 'Atualização de versão.'
+                        });
+                        closeModal('workflow-modal');
+                    } else {
+                         doc.status = newStatus;
+                    }
+                    
+                    sendEmailNotification(doc.title, activeWorkflow.newVersion, newStatus);
+                    updateWorkflowVisualizer();
+                    renderDocuments();
+                }
+            });
+
+            function sendEmailNotification(docTitle, newVersion, status) {
+                const recipient = 'ciadeenfermagem@gmail.com';
+                const subject = `Atualização de Workflow: ${docTitle} - v${newVersion}`;
+                const body = `
+                    Olá,
+                    
+                    O documento "${docTitle}" foi atualizado para o status: "${status}".
+                    
+                    Versão em andamento: v${newVersion}
+                    Resumo das alterações: ${document.getElementById('summary-changes').value || 'N/A'}
+                    
+                    Por favor, tome a ação necessária.
+                    
+                    Atenciosamente,
+                    Sistema de Conformidade - Calculadoras de Enfermagem
+                `;
+                
+                const mailtoLink = `mailto:${recipient}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+                
+                // Abre o cliente de e-mail do usuário
+                window.location.href = mailtoLink;
+            }
+
+            window.openModal = (id) => document.getElementById(id).classList.add('visible');
+            window.closeModal = (id) => document.getElementById(id).classList.remove('visible');
+
+            // Inicialização
+            renderDocuments();
+        });
+    </script>
+</body>
+</html>
