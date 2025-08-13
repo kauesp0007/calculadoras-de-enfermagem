@@ -448,12 +448,12 @@
         import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         
         const firebaseConfig = {
-            apiKey: "YOUR_API_KEY",
-            authDomain: "YOUR_AUTH_DOMAIN",
-            projectId: "YOUR_PROJECT_ID",
-            storageBucket: "YOUR_STORAGE_BUCKET",
-            messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-            appId: "YOUR_APP_ID"
+            apiKey: "AIzaSyC1US-K0KoiE9OS4IGalxkNUwqSicTPbeA",
+            authDomain: "acesso-restrito-github.firebaseapp.com",
+            projectId: "acesso-restrito-github",
+            storageBucket: "acesso-restrito-github.appspot.com",
+            messagingSenderId: "32644970643",
+            appId: "1:32644970643:web:92f5f3653ddeaa8ac0b566"
         };
 
         const app = initializeApp(firebaseConfig);
@@ -470,19 +470,18 @@
         }
 
         onAuthStateChanged(auth, (user) => {
+            console.log("onAuthStateChanged triggered");
             if (user) {
-                // User is authenticated
+                console.log("Usuário autenticado:", user.uid);
                 document.body.style.display = 'block';
-                // Dispatch a custom event to signal that authentication is complete
                 document.dispatchEvent(new CustomEvent('authReady'));
                 
-                // Set up or reset inactivity timer
                 window.addEventListener('mousemove', resetTimer);
                 window.addEventListener('mousedown', resetTimer);
                 window.addEventListener('keypress', resetTimer);
                 resetTimer();
             } else {
-                // User is not authenticated, redirect
+                console.log("Usuário não autenticado. Redirecionando...");
                 window.location.href = 'https://www.calculadorasdeenfermagem.com.br/institucional/acessorestrito.html';
             }
         });
@@ -490,8 +489,8 @@
 
     <script src="global-scripts.js"></script>
     <script>
-        // Wait for the 'authReady' event before initializing the app
         document.addEventListener('authReady', () => {
+            console.log("Evento authReady recebido");
             initializeAppTool();
         });
 
@@ -508,15 +507,13 @@
             };
             let chartType = 'doughnut';
             let legendPosition = 'bottom';
-            let logoPosition = 'header'; // 'header' or 'footer'
-            let headerLayout = 'logo-left'; // 'logo-left' or 'logo-right'
-            let footerLayout = 'logo-left'; // 'logo-left' or 'logo-right'
+            let logoPosition = 'header';
+            let headerLayout = 'logo-left';
+            let footerLayout = 'logo-left';
 
-            // History for Undo/Redo
             let history = [];
             let historyIndex = -1;
 
-            // Elementos do DOM
             const templateContainer = document.querySelector('.template-container');
             const primaryColorPicker = document.getElementById('primaryColorPicker');
             const backgroundColorPicker = document.getElementById('backgroundColorPicker');
@@ -525,7 +522,6 @@
             const undoBtn = document.getElementById('undo-btn');
             const redoBtn = document.getElementById('redo-btn');
 
-            // Modelos predefinidos
             const templates = {
                 classic: { primaryColor: '#1a3e74', backgroundColor: '#f8f9fa', chartType: 'doughnut', title: 'ESTATÍSTICAS DE SAÚDE', subtitle: 'Dados importantes para enfermagem' },
                 corporate: { primaryColor: '#0055A4', backgroundColor: '#ffffff', chartType: 'bar', title: 'RELATÓRIO FINANCEIRO', subtitle: 'Performance do último trimestre' },
@@ -533,7 +529,6 @@
                 fresh: { primaryColor: '#10B981', backgroundColor: '#F0FDF4', chartType: 'pie', title: 'IMPACTO AMBIENTAL', subtitle: 'Distribuição de recursos' }
             };
 
-            // --- FUNÇÕES DE HISTÓRICO (UNDO/REDO) ---
             function saveState() {
                 const state = {
                     primaryColor: primaryColorPicker.value,
@@ -630,7 +625,6 @@
                 redoBtn.disabled = historyIndex >= history.length - 1;
             }
 
-            // --- FUNÇÕES PRINCIPAIS ---
             window.createChart = function() {
                 if (myChart) myChart.destroy();
                 const ctx = document.getElementById('mainChart').getContext('2d');
@@ -667,7 +661,6 @@
                 });
             }
 
-            // --- FUNÇÕES DE CONTROLE DO TEMPLATE ---
             window.applyTemplate = function(templateName) {
                 const t = templates[templateName];
                 if (!t) return;
@@ -752,7 +745,6 @@
                     }).catch(() => { editorPanel.style.display = 'flex'; });
             }
 
-            // --- FUNÇÕES DE CONTROLE DO GRÁFICO ---
             window.setChartType = function(type, button, doSaveState = true) {
                 document.querySelectorAll('[onclick^="setChartType"]').forEach(btn => btn.classList.remove('active'));
                 button.classList.add('active');
@@ -810,7 +802,6 @@
                 saveState();
             }
             
-            // --- FUNÇÕES DE CONTROLE DE ESTATÍSTICAS ---
             function populateStatsEditor() {
                 statsEditorContainer.innerHTML = '';
                 const statCards = document.querySelectorAll('#quick-stats .stat-card');
@@ -860,13 +851,11 @@
                 }
             }
 
-            // --- FUNÇÕES DE CONTROLE DE LOGO E LAYOUT ---
             function updateAlignment() {
                 const isLogoEnabled = document.getElementById('toggleLogo').checked;
                 const header = document.getElementById('company-header');
                 const footer = document.getElementById('charts-footer');
 
-                // Header
                 if (isLogoEnabled && logoPosition === 'header') {
                     header.classList.add('layout-side-by-side');
                     header.classList.toggle('layout-logo-right', headerLayout === 'logo-right');
@@ -874,7 +863,6 @@
                     header.classList.remove('layout-side-by-side', 'layout-logo-right');
                 }
 
-                // Footer
                 if (isLogoEnabled && logoPosition === 'footer') {
                     footer.classList.add('layout-side-by-side');
                     footer.classList.toggle('layout-logo-right', footerLayout === 'logo-right');
@@ -917,7 +905,6 @@
                 saveState();
             }
 
-            // --- FUNÇÕES DE CONTROLE DE ESTILO E TEXTO ---
             function updateHeaderAndFooterColors(doSaveState = true) {
                 const color = primaryColorPicker.value;
                 document.getElementById('company-header').style.backgroundColor = color;
