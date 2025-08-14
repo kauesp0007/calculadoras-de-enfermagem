@@ -513,6 +513,71 @@ function initializeGlobalFunctions() {
         }
     }
     initVLibras();
+  // --- Funcionalidade de Pesquisa na Página ---
+    const searchInput = document.getElementById('page-search-input');
+    const searchBtn = document.getElementById('search-btn');
+
+    function highlightText(text) {
+        let bodyHTML = document.body.innerHTML;
+        const regex = new RegExp(`(${text})`, 'gi');
+        bodyHTML = bodyHTML.replace(regex, `<span class="highlight">$1</span>`);
+        document.body.innerHTML = bodyHTML;
+    }
+
+    function clearHighlight() {
+        const highlights = document.querySelectorAll('.highlight');
+        highlights.forEach(el => {
+            const parent = el.parentNode;
+            parent.replaceChild(document.createTextNode(el.textContent), el);
+        });
+    }
+
+    const searchFunction = () => {
+        const query = searchInput.value.trim();
+        clearHighlight(); // Limpa destaques anteriores
+
+        if (query.length > 2) {
+            highlightText(query);
+            const firstMatch = document.querySelector('.highlight');
+            if (firstMatch) {
+                firstMatch.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            } else {
+                alert('Nenhum resultado encontrado.');
+            }
+        }
+    };
+
+    searchBtn.addEventListener('click', searchFunction);
+    searchInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            searchFunction();
+        }
+    });
+
+
+    // --- Funcionalidade de Tradução (Google Translate) ---
+    window.googleTranslateElementInit = function() {
+        new google.translate.TranslateElement({
+            pageLanguage: 'pt',
+            includedLanguages: 'en,es,pt',
+            layout: google.translate.TranslateElement.InlineLayout.SIMPLE,
+            autoDisplay: false
+        }, 'language-switcher');
+    };
+
+    const googleTranslateScript = document.createElement('script');
+    googleTranslateScript.src = 'https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit';
+    googleTranslateScript.async = true;
+    document.body.appendChild(googleTranslateScript);
+
+    window.translatePage = function(language) {
+        const googleTranslateElement = document.querySelector('.goog-te-combo');
+        if (googleTranslateElement) {
+            googleTranslateElement.value = language;
+            googleTranslateElement.dispatchEvent(new Event('change'));
+        }
+    };
   
     inicializarTooltips(); 
 }
