@@ -35,7 +35,7 @@ const portals = [
   { title: 'Strattner', icon: 'briefcase', description: 'Vagas de emprego para a Strattner.', url: 'https://www.strattner.com.br/carreira/', type: 'Vaga' },
   { title: 'Fundação São Francisco Xavier', icon: 'briefcase', description: 'Vagas de emprego para a Fundação São Francisco Xavier.', url: 'https://trabalheconosco.vagas.com.br/fsfx', type: 'Vaga' },
   { title: 'Hospital Beneficência Portuguesa de São Paulo', icon: 'briefcase', description: 'Vagas de emprego para o Hospital Beneficência Portuguesa de São Paulo.', url: 'https://www.bp.org.br/institucional/trabalhe-conosco', type: 'Vaga' },
-  { title: 'In Saúde', icon: 'briefcase', description: 'Vagas de emprego para a In Saúde.', url: 'https://www.insaude.org.br/trabalhe-conosco', type: 'Vaga' }
+  { title: 'In Saúde', icon: 'briefcase', description: 'Vagas de emprego para a In Saúde.', url: 'https://www.insaude.org.br/trabalhe-conosco', type: 'Vaga' },
   { title: 'Médicos Sem Fronteiras', icon: 'heart-pulse', description: 'Oportunidades para enfermeiros em projetos humanitários ao redor do mundo.', url: 'https://www.msf.org.br/profissao/enfermeiro/', type: 'Vaga' },
   { title: 'BNE', icon: 'briefcase', description: 'Banco Nacional de Empregos com vagas de enfermagem em todo o Brasil.', url: 'https://www.bne.com.br/vagas-de-emprego-para-enfermeiro', type: 'Vaga' },
   { title: 'Só Enfermagem Vagas', icon: 'briefcase', description: 'Portal especializado com vagas e notícias exclusivas para a área de enfermagem.', url: 'https://www.soenfermagem.net/empregos/', type: 'Vaga' },
@@ -44,6 +44,6 @@ const portals = [
   { title: 'Prepara Enfermagem', icon: 'award', description: 'Portal especializado em concursos públicos para a área de enfermagem.', url: 'https://preparaenfermagem.com.br/concursos', type: 'Concurso' },
   { title: 'Fundatec Concursos', icon: 'award', description: 'Banca organizadora que realiza diversos concursos na área da saúde.', url: 'https://www.fundatec.org.br/portal/concursos/', type: 'Concurso' },
   { title: 'PCI Concursos', icon: 'award', description: 'Agregador com notícias e vagas de concursos para enfermeiros em todo o Brasil.', url: 'https://www.pciconcursos.com.br/cargos/enfermeiro', type: 'Concurso' },
-  { title: 'Estratégia Concursos', icon: 'award', description: 'Cursos preparatórios e notícias sobre os principais editais da área da saúde.', url: 'https://www.estrategiaconcursos.com.br/blog/concursos-area-da-saude/', type: 'Concurso' },
+  { title: 'Estratégia Concursos', icon: 'award', description: 'Cursos preparatórios e notícias sobre os principais editais da área da saúde.', url: 'https://www.estrategiaconcursos.com.br/blog/concursos-area-da-saude/', type: 'Concurso' }
 ];
 
