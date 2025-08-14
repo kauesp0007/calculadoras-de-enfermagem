@@ -2,8 +2,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const commentForm = document.getElementById('comment-form');
     const commentsDisplay = document.getElementById('comments-display');
 
-    const db = window.db; // Obtém a instância do Firestore do escopo global
-
     // Função para renderizar um único comentário
     function renderComment(comment) {
         const commentElement = document.createElement('div');
@@ -21,13 +19,24 @@ document.addEventListener('DOMContentLoaded', function() {
     // Função para buscar e exibir os comentários do Firestore
     async function getComments() {
         commentsDisplay.innerHTML = ''; // Limpa os comentários existentes
-        const commentsRef = collection(db, "comments");
-        const q = query(commentsRef, orderBy("timestamp", "desc"));
-        const querySnapshot = await getDocs(q);
+        
+        // Assegura que o 'db' esteja disponível antes de tentar buscar os comentários
+        if (typeof window.db === 'undefined') {
+            console.error("Firestore 'db' not initialized.");
+            return;
+        }
 
-        querySnapshot.forEach((doc) => {
-            renderComment(doc.data());
-        });
+        const commentsRef = window.collection(window.db, "comments");
+        const q = window.query(commentsRef, window.orderBy("timestamp", "desc"));
+        
+        try {
+            const querySnapshot = await window.getDocs(q);
+            querySnapshot.forEach((doc) => {
+                renderComment(doc.data());
+            });
+        } catch (e) {
+            console.error("Erro ao buscar comentários: ", e);
+        }
     }
 
     // Função para lidar com o envio de um novo comentário
@@ -37,17 +46,23 @@ document.addEventListener('DOMContentLoaded', function() {
         const name = document.getElementById('comment-name').value;
         const text = document.getElementById('comment-text').value;
 
+        if (!name || !text) {
+            alert("Nome e comentário são obrigatórios.");
+            return;
+        }
+
         try {
-            await addDoc(collection(db, "comments"), {
+            await window.addDoc(window.collection(window.db, "comments"), {
                 name: name,
                 text: text,
-                timestamp: serverTimestamp()
+                timestamp: window.serverTimestamp()
             });
             console.log("Comentário adicionado com sucesso!");
             commentForm.reset();
             getComments(); // Atualiza a lista de comentários
         } catch (e) {
             console.error("Erro ao adicionar o comentário: ", e);
+            alert("Erro ao enviar o comentário. Verifique as regras do Firebase.");
         }
     });
 
