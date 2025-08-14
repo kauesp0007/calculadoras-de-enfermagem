@@ -87,7 +87,8 @@
   // Importa as funções que você precisa do SDKs
   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
   import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-analytics.js";
-  import { getFirestore } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js"; // Novo: importa o Firestore
+  // Importa todas as funções do Firestore
+  import { getFirestore, collection, addDoc, getDocs, orderBy, query, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
 
   // Sua configuração do Firebase
   const firebaseConfig = {
@@ -100,12 +101,19 @@
     measurementId: "G-VVDP5JGEX8"
   };
 
-  // Inicializa o Firebase e o Analytics
+  // Inicializa o Firebase
   const app = initializeApp(firebaseConfig);
   const analytics = getAnalytics(app);
+  const db = getFirestore(app);
 
-  // Inicializa o Firestore e o torna global para seu blog-comments.js
-  window.db = getFirestore(app);
+  // Torna as funções e a instância do db globais
+  window.db = db;
+  window.collection = collection;
+  window.addDoc = addDoc;
+  window.getDocs = getDocs;
+  window.orderBy = orderBy;
+  window.query = query;
+  window.serverTimestamp = serverTimestamp;
 </script>
 </head>
 <body class="bg-neutral-light font-sans antialiased">
@@ -192,11 +200,7 @@ Procurar emprego vai exigir do profissional uma organização do tempo, cadastro
                             </form>
                               
                             <div id="comments-display" class="space-y-6">
-                                <div class="bg-neutral-light p-4 rounded-lg">
-                                    <p class="text-sm font-bold text-gray-800">Nome do Usuário <span class="text-xs font-normal text-gray-500">- Data e Hora</span></p>
-                                    <p class="text-gray-600 mt-2">Este é um comentário de exemplo. Os comentários reais serão carregados aqui .</p>
-                                </div>
-                            </div>            
+                                </div>            
                         </div>
 
                     </div>
@@ -276,6 +280,5 @@ Procurar emprego vai exigir do profissional uma organização do tempo, cadastro
         });
     </script>
     <script src="blog-comments.js"></script>
-</body>
 </body>
 </html>
