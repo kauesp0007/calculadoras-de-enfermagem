@@ -2,6 +2,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const commentForm = document.getElementById('comment-form');
     const commentsDisplay = document.getElementById('comments-display');
 
+    const db = window.db; // Obtém a instância do Firestore do escopo global
+
     // Função para renderizar um único comentário
     function renderComment(comment) {
         const commentElement = document.createElement('div');
@@ -17,35 +19,36 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // Função para buscar e exibir os comentários do Firestore
-    function getComments() {
+    async function getComments() {
         commentsDisplay.innerHTML = ''; // Limpa os comentários existentes
-        db.collection("comments").orderBy("timestamp", "desc").get().then((querySnapshot) => {
-            querySnapshot.forEach((doc) => {
-                renderComment(doc.data());
-            });
+        const commentsRef = collection(db, "comments");
+        const q = query(commentsRef, orderBy("timestamp", "desc"));
+        const querySnapshot = await getDocs(q);
+
+        querySnapshot.forEach((doc) => {
+            renderComment(doc.data());
         });
     }
 
     // Função para lidar com o envio de um novo comentário
-    commentForm.addEventListener('submit', function(event) {
+    commentForm.addEventListener('submit', async function(event) {
         event.preventDefault(); // Impede o envio do formulário padrão
         
         const name = document.getElementById('comment-name').value;
         const text = document.getElementById('comment-text').value;
 
-        db.collection("comments").add({
-            name: name,
-            text: text,
-            timestamp: firebase.firestore.FieldValue.serverTimestamp()
-        })
-        .then(() => {
+        try {
+            await addDoc(collection(db, "comments"), {
+                name: name,
+                text: text,
+                timestamp: serverTimestamp()
+            });
             console.log("Comentário adicionado com sucesso!");
             commentForm.reset();
             getComments(); // Atualiza a lista de comentários
-        })
-        .catch((error) => {
-            console.error("Erro ao adicionar o comentário: ", error);
-        });
+        } catch (e) {
+            console.error("Erro ao adicionar o comentário: ", e);
+        }
     });
 
     // Chama a função para exibir os comentários quando a página carregar
