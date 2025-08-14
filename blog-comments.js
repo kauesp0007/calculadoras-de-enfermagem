@@ -20,7 +20,6 @@ document.addEventListener('DOMContentLoaded', function() {
     async function getComments() {
         commentsDisplay.innerHTML = ''; // Limpa os comentários existentes
         
-        // Assegura que o 'db' esteja disponível antes de tentar buscar os comentários
         if (typeof window.db === 'undefined') {
             console.error("Firestore 'db' not initialized.");
             return;
