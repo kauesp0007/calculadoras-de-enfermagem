@@ -1,0 +1,33 @@
+name: 🚀 Deploy automático no GitHub Pages
+
+on:
+  push:
+    branches:
+      - main   # sempre que você der push na branch main
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: 📥 Clonar repositório
+        uses: actions/checkout@v4
+
+      - name: ⚙️ Configurar GitHub Pages
+        uses: actions/configure-pages@v5
+
+      - name: 📤 Upload dos arquivos
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./
+
+      - name: 🚀 Deploy no GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
