@@ -19,7 +19,7 @@
 
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-  <link rel="stylesheet" href="global-styles.css">
+  <link rel="stylesheet" href="/global-styles.css">
   
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -136,16 +136,63 @@
 </head>
 <body class="bg-gray-50 text-gray-800 font-inter">
 
-  <nav aria-label="Atalhos de Acessibilidade" class="sr-only focus-within:not-sr-only focus-within:absolute focus-within:top-0 focus-within:left-0 focus-within:z-50 focus-within:bg-white focus-within:text-blue-700 focus-within:p-4 focus-within:underline">
-    <a href="/" accesskey="I" class="block mb-2">Ir para o Início [Alt + Shift + I]</a>
-    <a href="#main-content" accesskey="C" class="block mb-2">Pular para o conteúdo principal [Alt + Shift + C]</a>
-    <a href="#barraAcessibilidade" accesskey="A" class="block mb-2">Ativar barra de acessibilidade [Alt + Shift + A]</a>
-    <a href="#backToTopBtn" accesskey="T" class="block">Voltar ao Topo da Página [Alt + Shift + T]</a>
+  <nav aria-label="Accessibility Shortcuts" class="sr-only focus-within:not-sr-only focus-within:absolute focus-within:top-0 focus-within:left-0 focus-within:z-50 focus-within:bg-white focus-within:text-blue-700 focus-within:p-4 focus-within:underline">
+    <a href="/" accesskey="H" class="block mb-2">Go to Home [Alt + Shift + H]</a>
+    <a href="#main-content" accesskey="C" class="block mb-2">Skip to main content [Alt + Shift + C]</a>
+    <a href="#accessibilityBar" accesskey="A" class="block mb-2">Activate accessibility bar [Alt + Shift + A]</a>
+    <a href="#backToTopBtn" accesskey="T" class="block">Back to Top of Page [Alt + Shift + T]</a>
   </nav>
 
   <div id="statusMessage" class="sr-only" aria-live="polite" aria-atomic="true"></div>
 
   <div id="global-header-container"></div>
+  <!-- Language Selector (Top Right, below global menu, dynamic spacing and z-index) -->
+<div id="language-selector-wrapper" class="flex justify-end w-full" style="position:relative; z-index:100; padding-right:2rem;">
+  <div class="flex items-center space-x-2 bg-gray-100 rounded-lg px-2 py-1 shadow"
+       style="font-size:0.95rem; height:2.2rem; margin-top:24px;">
+    <label for="languageSelect" class="text-gray-700 font-semibold" style="font-size:0.95rem;">🌐</label>
+    <select id="languageSelect" class="border border-gray-300 rounded px-2 py-1" style="font-size:0.95rem; min-width:90px;">
+      <option value="en" selected>🇺🇸 English</option>
+      <option value="pt">🇧🇷 Português</option>
+    </select>
+  </div>
+</div>
+<script>
+  // Adjust language selector spacing dynamically after menu global loads
+  function ajustarEspacoSeletorIdioma() {
+    var header = document.getElementById('global-header-container');
+    var selector = document.getElementById('language-selector-wrapper');
+    if (header && selector) {
+      var headerHeight = header.offsetHeight;
+      selector.style.marginTop = (headerHeight ? headerHeight + 12 : 24) + 'px';
+    }
+  }
+  window.addEventListener('load', ajustarEspacoSeletorIdioma);
+  window.addEventListener('resize', ajustarEspacoSeletorIdioma);
+  document.getElementById('languageSelect').addEventListener('change', function() {
+    if (this.value === 'pt') {
+      window.location.href = "/";
+    } else {
+      window.location.href = "/en/";
+    }
+  });
+</script>
+  <script>
+    // Load global menu and body elements as in en/katz.html
+    document.addEventListener('DOMContentLoaded', function() {
+      fetch('/menu-global.html')
+        .then(response => response.text())
+        .then(html => {
+          document.getElementById('global-header-container').innerHTML = html;
+          ajustarEspacoSeletorIdioma();
+        });
+      fetch('/global-body-elements.html')
+        .then(response => response.text())
+        .then(html => {
+          document.body.insertAdjacentHTML('beforeend', html);
+        });
+    });
+  </script>
 
   <main id="main-content" class="flex-grow p-4 sm:p-8">
     <div class="main-content-wrapper max-w-4xl mx-auto px-4 py-8">
@@ -259,7 +306,7 @@
   
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   <script src="https://vlibras.gov.br/app/vlibras-plugin.js"></script>
-  <script src="global-scripts.js"></script>
+  <script src="/global-scripts.js"></script>
 
   <script>
     document.addEventListener('DOMContentLoaded', function() {
