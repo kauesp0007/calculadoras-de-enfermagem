@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Medication Dosage Calculator - Nursing</title>
+
+    <!-- Main page EN -->
+<link rel="canonical" href="https://www.calculadorasdeenfermagem.com.br/en/medicamentos.html" />
+<link rel="alternate" hreflang="pt-br" href="https://www.calculadorasdeenfermagem.com.br/medicamentos.html" />
+<link rel="alternate" hreflang="en" href="https://www.calculadorasdeenfermagem.com.br/en/medicamentos.html" />
+    <link rel="icon" href="favicon.ico" type="image/x-icon" />
+    <meta name="description" content="Quickly and safely calculate medication dosages using the rule of three. This calculator provides detailed explanations, ideal for nursing and ensuring patient safety in medication administration." />
+    <meta property="og:title" content="Medication Dosage Calculator - Nursing" />
+    <meta property="og:description" content="Quickly and safely calculate medication dosages using the rule of three." />
+    <meta property="og:url" content="https://www.calculadorasdeenfermagem.com.br/en/medicamentos.html" />
+    <meta property="og:image" content="https://www.calculadorasdeenfermagem.com.br/iconpages.webp" />
+    <meta name="twitter:card" content="summary_large_image" />
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="global-styles.css">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@700;900&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/antijingoist/opendyslexic/web/opendyslexic.css" />
+
+    <script async src="https://www.googletagmanager.com/gtag/js?id=AW-952633102"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('consent', 'default', {
+            'analytics_storage': 'denied',
+            'ad_storage': 'denied',
+            'wait_for_update': 500
+        });
+        gtag('config', 'AW-952633102');
+        gtag('config', 'G-8FLJ59XXDK');
+    </script>
+    
+    <style>
+        .standard-result-box {
+            background-color: #EBF4FF;
+            color: #1A3E74;
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+            margin-top: 1.5rem;
+            font-family: 'Courier New', Courier, monospace;
+            white-space: pre-wrap;
+            line-height: 1.6;
+        }
+        .bg-info-orange-light { background-color: #ffeeba; color: #856404; }
+
+        .input-card {
+            background-color: #fff;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 1rem 1.5rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.07), 0 2px 4px -2px rgba(0, 0, 0, 0.07);
+        }
+        .input-card label {
+            font-size: 1.125rem;
+            font-weight: 700;
+            color: #1A3E74;
+            display: block;
+            margin-bottom: 0.5rem;
+        }
+        .input-card input[type="number"], .input-card select {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.5rem;
+            font-size: 1rem;
+            color: #374151;
+            background-color: #f9fafb;
+        }
+        .input-card input[type="radio"] {
+             accent-color: #1A3E74;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800 font-inter">
+
+    <div id="global-header-container"></div>
+    <!-- Language Selector (Top Right, below global menu, dynamic spacing and z-index) -->
+    <div id="language-selector-wrapper" class="flex justify-end w-full" style="position:relative; z-index:100; padding-right:2rem;">
+        <div class="flex items-center space-x-2 bg-gray-100 rounded-lg px-2 py-1 shadow" style="font-size:0.95rem; height:2.2rem; margin-top:24px;">
+            <label for="languageSelect" class="text-gray-700 font-semibold" style="font-size:0.95rem;">🌐</label>
+            <select id="languageSelect" class="border border-gray-300 rounded px-2 py-1" style="font-size:0.95rem; min-width:90px;">
+                <option value="en" selected>🇺🇸 English</option>
+                <option value="pt">🇧🇷 Português</option>
+            </select>
+        </div>
+    </div>
+    <script>
+        // Loads only the global menu from the en/ folder
+        document.addEventListener('DOMContentLoaded', function() {
+            fetch('menu-global.html')
+                .then(response => response.text())
+                .then(html => {
+                    document.getElementById('global-header-container').innerHTML = html;
+                });
+        });
+        // Adjusts the language selector spacing dynamically
+        function ajustarEspacoSeletorIdioma() {
+            var header = document.getElementById('global-header-container');
+            var selector = document.getElementById('language-selector-wrapper');
+            if (header && selector) {
+                var headerHeight = header.offsetHeight;
+                selector.style.marginTop = (headerHeight ? headerHeight + 12 : 24) + 'px';
+            }
+        }
+        window.addEventListener('load', ajustarEspacoSeletorIdioma);
+        window.addEventListener('resize', ajustarEspacoSeletorIdioma);
+        document.getElementById('languageSelect').addEventListener('change', function() {
+            if (this.value === 'pt') {
+                window.location.href = "/";
+            } else {
+                window.location.href = "/en/";
+            }
+        });
+    </script>
+    <script src="../global-scripts.js"></script>
+
+    <main id="main-content" class="flex-grow p-4 sm:p-8">
+        <div class="main-content-wrapper max-w-4xl mx-auto">
+            <nav class="breadcrumb" aria-label="breadcrumb"><ol><li><a href="index.html">Home</a></li><li><a href="#">Calculators</a></li><li>Medication Dosage Calculator</li></ol></nav>
+
+            <div class="text-center mb-8">
+                <h1 id="main-title" class="font-nunito font-bold text-dark-blue text-3xl lg:text-4xl">
+                    Medication Dosage Calculator
+                </h1>
+                <div class="title-bar mx-auto mt-2"></div>
+                <h2 id="main-subtitle" class="font-inter font-semibold text-light-blue text-xl lg:text-2xl mt-4">
+                    How much should I draw up?
+                </h2>
+            </div>
+            
+            <div class="bg-white p-6 rounded-lg shadow-md">
+                <p class="font-inter font-normal text-light-blue text-base lg:text-lg mb-6 text-left">
+                    Enter the information below and click "Calculate":
+                </p>
+
+                <div id="conteudo" class="space-y-4">
+                    <div class="input-card">
+                        <label for="prescricao">Medical prescription (lb):</label>
+                        <input type="number" id="prescricao" placeholder="e.g., 150">
+                    </div>
+                    <div class="input-card">
+                        <label for="concentracao">Available concentration (per fl oz):</label>
+                        <input type="number" id="concentracao" placeholder="e.g., 50">
+                    </div>
+                    <div class="input-card">
+                        <label>Bottle proportion:</label>
+                        <div id="proporcao-options" class="mt-2 space-y-2 text-gray-500">
+                            <p>Fill in the available concentration first.</p>
+                        </div>
+                    </div>
+                    <div class="input-card">
+                        <label for="volumeTotal">Total bottle volume (fl oz):</label>
+                        <input type="number" id="volumeTotal" placeholder="e.g., 3.4">
+                    </div>
+                </div>
+
+                <div id="resultado" class="hidden" aria-live="polite"></div>
+
+                <div class="flex flex-wrap justify-start gap-4 mt-6">
+                <button id="btnCalcular" class="btn-primary" aria-label="Calculate Katz score">
+                    Calculate
+                </button>
+                <button id="btnLimpar" class="btn-primary" aria-label="Clear fields">
+                    Clear
+                </button>
+                <button id="btnGerarPDF" class="btn-secondary" aria-label="Generate PDF">
+                    Generate PDF
+                </button>
+                <button id="btnNandaNicNoc" class="btn-primary" aria-label="Search NANDA, NIC, NOC">
+                    NANDA, NIC, NOC
+                </button>
+            </div>
+
+                <!-- Caixas de Informação -->
+                <div class="flex flex-col lg:flex-row gap-6 w-full mx-auto mt-8">
+                    <div id="atencao-medicamentos" class="bg-gray-100 p-4 rounded-lg border border-gray-300 w-full lg:w-1/2 text-xs font-inter text-black-custom">
+                        <p class="font-bold mb-2">Attention:</p>
+                        <p class="mb-2">If you have any questions, consult your supervising nurse and perform double-checking or ask your instructor. Never prepare or administer medications if you have doubts. It is the right and duty of the nursing professional, in case of insecurity, lack of practice, or doubt, to ask for help from your nurse.</p>
+                        <p class="mb-2">Nurse, it is your responsibility to assess the level of knowledge in medication preparation and administration of your staff. Provide ongoing health education and prepare medications together with less experienced professionals.</p>
+                        <p class="mb-2"><strong>AVOID MEDICATION ERRORS AND ADVERSE EVENTS.</strong></p>
+                        <p class="mb-2"><strong>This calculator is for guidance only. Medication calculations should be performed effectively in a traditional manner and under supervision. Preferably, use a medication infusion pump.</strong></p>
+                        <p class="mt-2">This practice is aligned with <strong>International Patient Safety Goal #3</strong>: <em>“Improve safety in prescribing, using, and administering medications and with the nursing professionals' code of ethics”</em>.</p>
+                    </div>
+                    <div id="nove-certos-medicamentos" class="bg-gray-100 p-4 rounded-lg border border-gray-300 w-full lg:w-1/2 text-xs font-inter text-black-custom">
+                        <h3 class="font-bold text-sm mb-2">The 9 Rights of Medication Administration:</h3>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs mb-4">
+                            <p>1. Right patient</p>
+                            <p>2. Right medication</p>
+                            <p>3. Right time</p>
+                            <p>4. Right dose</p>
+                            <p>5. Right route</p>
+                            <p>6. Right documentation</p>
+                            <p>7. Right education</p>
+                            <p>8. Right response</p>
+                            <p>9. Right expiration</p>
+                        </div>
+                        <div class="mt-6 flex flex-col items-center space-y-4">
+                            <img src="metasinter.webp" alt="Metas inter" class="max-w-[400px] w-full rounded-md shadow object-contain" width="400" height="240">
+                            
+                        </div>
+                    </div>
+                </div>
+
+                <div class="ref font-inter text-gray-custom text-left mt-8 border-t pt-4">
+                    <strong>Reference:</strong>
+                    <p class="mt-2">
+                        <a href="https://www.ismp.org/resources/medication-calculation-safety-tips" target="_blank" rel="noopener noreferrer" class="text-light-blue hover:underline">
+                            Institute for Safe Medication Practices (ISMP). Medication Calculation Safety Tips.
+                        </a>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="bg-[#1A3E74] text-white py-8">
+        <!-- Conteúdo do rodapé -->
+    <div class="max-w-7xl mx-auto px-4">
+            <div class="border-b border-white pb-4 mb-4">
+                <div class="flex justify-start items-center">
+                    <img src="https://www.calculadorasdeenfermagem.com.br/iconrodape1.webp" alt="Nursing Calculators Logo in footer" width="120" height="84" class="h-auto w-auto max-w-[80px] max-h-[80px]" loading="lazy" decoding="async">
+                </div>
+            </div>
+            <div class="md:flex md:justify-between md:items-start md:space-x-8 md:items-stretch">
+                <div class="mb-6 md:mb-0">
+                    <h5 class="font-bold mb-2">Institutional</h5>
+                    <ul class="list-none space-y-1">
+                        <li><a href="index.html" class="text-white hover:underline">Home</a></li>
+                        <li><a href="missao.html" class="text-white hover:underline">About Us</a></li>
+                        <li><a href="mapa-do-site.html" class="text-white hover:underline">Site Map</a></li>
+                        <li><a href="politica.html" class="text-white hover:underline">Cookies Policy</a></li>
+                        <li><a href="politica.html" class="text-white hover:underline">Data Retention Policy</a></li>
+                        <li><a href="politica.html" class="text-white hover:underline"><abbr lang="en" title="General Data Protection Law">LGPD</abbr></a></li>
+                        <li><a href="politica.html" class="text-white hover:underline">Privacy Policies</a></li>
+                        <li><a href="termos.html" class="text-white hover:underline">Terms and Conditions of Use</a></li>
+                        <li><a href="politicadeacessibilidade.html" class="text-white hover:underline">Accessibility Policy</a></li>
+                    </ul>
+                </div>
+                <div class="mb-6 md:mb-0">
+                    <h5 class="font-bold mb-2">Digital Sustainability</h5>
+                    <ul class="list-none space-y-1">
+                        <li><a href="nossocompromisso.html" class="text-white hover:underline">Our Commitment</a></li>
+                        <li><a href="impactodigital.html" class="text-white hover:underline">Impact Report</a></li>
+                        <li><a href="tecnologiaverde.html" class="text-white hover:underline">Green Technology</a></li>
+                    </ul>
+                </div>
+                <div class="mb-6 md:mb-0">
+                    <h5 class="font-bold mb-2">Our Commitment</h5>
+                    <p class="text-white text-sm mb-2 max-w-sm md:max-w-xs">Our site adopts as a governance principle, the commitment to high standards of digital accessibility, digital sustainability, and data protection...</p>
+                    <div class="flex space-x-4 items-center justify-start">
+                        <img src="https://www.calculadorasdeenfermagem.com.br/seloacessibilidade.webp" alt="Accessibility Seal" width="100" height="100" class="w-auto h-auto max-w-[80px] max-h-[80px]" loading="lazy" decoding="async">
+                        <img src="https://www.calculadorasdeenfermagem.com.br/selosustentabilidade.webp" alt="Sustainability Seal" width="100" height="100" class="w-auto h-auto max-w-[80px] max-h-[80px]" loading="lazy" decoding="async">
+                        <img src="https://www.calculadorasdeenfermagem.com.br/selolgpd.webp" alt="LGPD Seal" width="100" height="100" class="w-auto h-auto max-w-[80px] max-h-[80px]" loading="lazy" decoding="async">
+                    </div>
+                </div>
+                <div class="flex flex-1 flex-col md:flex-row justify-end items-start md:items-start">
+                    <div class="vertical-divider-footer-stretched hidden md:block"></div>
+                    <div class="flex flex-col items-start space-y-4">
+                        <h5 class="font-bold mb-2">Follow Us</h5>
+                        <div class="flex space-x-4">
+                            <a href="https://linkedin.com/company/calculadoras-de-enfermagem" target="_blank" rel="noopener" class="footer-social-icon" title="LinkedIn" aria-label="Access Our LinkedIn Profile"><i class="fab fa-linkedin text-xl"></i></a>
+                            <a href="https://www.instagram.com/calculadorasdeenfermagem/" target="_blank" rel="noopener" class="footer-social-icon" title="Instagram" aria-label="Access Our Instagram Profile"><i class="fab fa-instagram text-xl"></i></a>
+                            <a href="https://www.tiktok.com/@calculadorasdeenf?_t=ZM-8y94b3VAz2M&_r=1" target="_blank" rel="noopener" class="footer-social-icon" title="TikTok" aria-label="Access Our TikTok Profile"><i class="fab fa-tiktok text-xl"></i></a>
+                            <a href="https://www.youtube.com/channel/UC_6runTDHz8u5S1Yab842pg" target="_blank" rel="noopener" class="footer-social-icon" title="YouTube" aria-label="Access Our YouTube Channel"><i class="fab fa-youtube text-xl"></i></a>
+                        </div>
+                        <button id="openGranularCookieModalBtn" class="btn-secondary text-white mt-4 py-2 px-4 rounded-md" aria-label="Manage Cookie Preferences">
+                            Manage Cookie Preferences
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="mt-8 text-center">
+                <p>© 2025 Calculadoras de Enfermagem. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+    
+    <!-- Removido carregamento duplicado, trocado para caminho correto -->
+    <!-- O bloco de carregamento global já foi inserido acima -->
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const resultadoDiv = document.getElementById('resultado');
+            const btnCalcular = document.getElementById('btnCalcular');
+            const btnLimpar = document.getElementById('btnLimpar');
+            const btnGerarPDF = document.getElementById('btnGerarPDF');
+            const btnNandaNicNoc = document.getElementById('btnNandaNicNoc');
+            const concentracaoInput = document.getElementById('concentracao');
+            const proporcaoOptionsDiv = document.getElementById('proporcao-options');
+
+            concentracaoInput.addEventListener('input', function() {
+                const concentracao = parseFloat(this.value);
+                if (!isNaN(concentracao) && concentracao > 0) {
+                    proporcaoOptionsDiv.innerHTML = `
+                        <label class="flex items-center space-x-2">
+                            <input type="radio" name="proporcao" value="1" class="form-radio">
+                            <span>${concentracao} per 1 fl oz</span>
+                        </label>
+                        <label class="flex items-center space-x-2">
+                            <input type="radio" name="proporcao" value="2" class="form-radio">
+                            <span>${concentracao} per 2 fl oz</span>
+                        </label>
+                    `;
+                } else {
+                    proporcaoOptionsDiv.innerHTML = '<p class="text-gray-500">Fill in the available concentration first.</p>';
+                }
+            });
+
+            function calcularMedicamentos() {
+                const prescricao = parseFloat(document.getElementById('prescricao').value); // lb
+                const concentracao = parseFloat(document.getElementById('concentracao').value); // per fl oz
+                const volumeTotal = parseFloat(document.getElementById('volumeTotal').value); // fl oz
+                const proporcaoRadio = document.querySelector('input[name="proporcao"]:checked');
+
+                resultadoDiv.style.display = 'block';
+
+                if (isNaN(prescricao) || isNaN(concentracao) || isNaN(volumeTotal) || !proporcaoRadio) {
+                    resultadoDiv.innerHTML = '⚠️ <strong class="font-bold">Please fill in all fields correctly.</strong>';
+                    resultadoDiv.className = 'standard-result-box bg-info-orange-light';
+                    return;
+                }
+
+                const proporcaoFlOz = parseFloat(proporcaoRadio.value);
+                // Calculation: total amount needed (per lb) divided by concentration per fl oz
+                // Example: prescription = 150 lb, concentration = 50 per fl oz, proporcaoFlOz = 1
+                // Result: (prescricao * proporcaoFlOz) / concentracao = fl oz to draw up
+                const resultadoFlOz = (prescricao * proporcaoFlOz) / concentracao;
+
+                const calculoStr = `
+  ${concentracao} per ${proporcaoFlOz} fl oz
+  ${prescricao} lb is to X fl oz
+
+  ${concentracao} * X = ${prescricao} * ${proporcaoFlOz}
+  X = ${prescricao * proporcaoFlOz} / ${concentracao}
+  X = ${resultadoFlOz.toFixed(2)} fl oz
+                `;
+
+                const explicacaoStr = `The prescription is for ${prescricao} lb, the vial/ampoule has ${concentracao} per ${proporcaoFlOz} fl oz with a total volume of ${volumeTotal} fl oz. You should draw up ${resultadoFlOz.toFixed(2)} fl oz.`;
+
+                resultadoDiv.innerHTML = `
+                    <pre>${calculoStr.trim()}</pre>
+                    <p class="mt-4 font-sans text-base">${explicacaoStr}</p>
+                `;
+                resultadoDiv.className = 'standard-result-box';
+            }
+
+            function limparCampos() {
+                document.getElementById('prescricao').value = '';
+                document.getElementById('concentracao').value = '';
+                document.getElementById('volumeTotal').value = '';
+                proporcaoOptionsDiv.innerHTML = '<p class="text-gray-500">Fill in the available concentration first.</p>';
+                resultadoDiv.innerHTML = '';
+                resultadoDiv.className = 'hidden';
+            }
+
+            btnCalcular?.addEventListener('click', calcularMedicamentos);
+            btnLimpar?.addEventListener('click', limparCampos);
+            btnGerarPDF?.addEventListener('click', () => {
+                if (!resultadoDiv.dataset.score) {
+                    alert('Please click "Calculate" first to generate the PDF.');
+                    return;
+                }
+                if (typeof gerarPDFGlobal === 'function') {
+                    gerarPDFGlobal({
+                        titulo: 'medication Index',
+                        subtitulo: 'How much should I draw up?',
+                        nomeArquivo: 'report_medication_index.pdf',
+                        seletorConteudo: '.main-content-wrapper'
+                    });
+                } else {
+                    console.error('gerarPDFGlobal function not defined.');
+                }
+            });
+            
+            btnNandaNicNoc?.addEventListener('click', () => {
+                const score = resultadoDiv.dataset.score;
+                const scaleName = resultadoDiv.dataset.scaleName;
+                const classification = resultadoDiv.dataset.classification;
+                if (!score || !classification) {
+                    alert('Calculate the result to search for the conduct.');
+                    return;
+                }
+                const searchQuery = encodeURIComponent(`${scaleName} score ${score} classification ${classification} NANDA, NIC and NOC taxonomy`);
+                window.open(`https://www.google.com/search?q=${searchQuery}`, '_blank');
+            });
+        });
+    </script>
+</body>
+</html>
