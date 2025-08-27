@@ -82,59 +82,112 @@
     <div id="statusMessage" class="sr-only" aria-live="polite" aria-atomic="true"></div>
     
     <div id="global-header-container"></div>
-    <!-- Language Selector (Top Right, abaixo do menu global, com espaçamento dinâmico e z-index alto) -->
-<div id="language-selector-wrapper" class="flex justify-end w-full" style="position:relative; z-index:100; padding-right:2rem;">
-  <div class="flex items-center space-x-2 bg-gray-100 rounded-lg px-2 py-1 shadow"
-       style="font-size:0.95rem; height:2.2rem; margin-top:24px;">
-    <label for="languageSelect" class="text-gray-700 font-semibold" style="font-size:0.95rem;">🌐</label>
-    <select id="languageSelect" class="border border-gray-300 rounded px-2 py-1" style="font-size:0.95rem; min-width:120px;">
-      <option value="pt">🇧🇷 Português</option>
-      <option value="en">🇺🇸 English</option>
-      <option value="es">🇪🇸 Español</option>
-      <option value="de">🇩🇪 Deutsch</option>
-      <option value="it">🇮🇹 Italiano</option>
-    </select>
+    <!-- ⬇️ COLE A PARTIR DAQUI, logo abaixo do #global-header-container -->
+<div id="language-dropdown-wrapper" class="flex justify-end w-full" style="position:relative; z-index:100; padding-right:2rem;">
+  <!-- 🌍 Selector de idioma com bandeiras -->
+  <div class="relative inline-block text-left z-50">
+    <!-- Botão principal (já em alemão) -->
+    <button id="langButton" class="flex items-center space-x-2 border px-3 py-1 rounded-lg shadow bg-gray-100">
+      <img id="langFlag" src="bandeira-alemanha.webp" alt="DE" class="w-5 h-4 rounded-sm">
+      <span id="langText" class="text-gray-700 font-medium">Deutsch</span>
+      <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+      </svg>
+    </button>
+
+    <!-- Menu suspenso -->
+    <div id="langMenu" class="hidden absolute right-0 mt-2 w-44 bg-white border rounded-lg shadow-lg">
+      <div class="flex items-center px-3 py-2 hover:bg-gray-100 cursor-pointer space-x-2" data-value="pt" data-flag="bandeira-brasil.webp">
+        <img src="bandeira-brasil.webp" class="w-5 h-4 rounded-sm" alt="BR"><span>Português</span>
+      </div>
+      <div class="flex items-center px-3 py-2 hover:bg-gray-100 cursor-pointer space-x-2" data-value="en" data-flag="bandeira-eua.webp">
+        <img src="bandeira-eua.webp" class="w-5 h-4 rounded-sm" alt="EN"><span>English</span>
+      </div>
+      <div class="flex items-center px-3 py-2 hover:bg-gray-100 cursor-pointer space-x-2" data-value="es" data-flag="bandeira-espanha.webp">
+        <img src="bandeira-espanha.webp" class="w-5 h-4 rounded-sm" alt="ES"><span>Español</span>
+      </div>
+      <div class="flex items-center px-3 py-2 hover:bg-gray-100 cursor-pointer space-x-2" data-value="de" data-flag="bandeira-alemanha.webp">
+        <img src="bandeira-alemanha.webp" class="w-5 h-4 rounded-sm" alt="DE"><span>Deutsch</span>
+      </div>
+      <div class="flex items-center px-3 py-2 hover:bg-gray-100 cursor-pointer space-x-2" data-value="it" data-flag="bandeira-italia.webp">
+        <img src="bandeira-italia.webp" class="w-5 h-4 rounded-sm" alt="IT"><span>Italiano</span>
+      </div>
+    </div>
   </div>
 </div>
 
 <script>
-  // Ajusta o espaçamento do seletor de idioma dinamicamente após o carregamento do menu global
-  function ajustarEspacoSeletorIdioma() {
-    var header = document.getElementById('global-header-container');
-    var selector = document.getElementById('language-selector-wrapper');
-    if (header && selector) {
-      var headerHeight = header.offsetHeight;
-      selector.style.marginTop = (headerHeight ? headerHeight + 12 : 24) + 'px';
+  // Ajuste automático da distância abaixo do header global
+  (function ajustarEspacoIdioma() {
+    function recalcular() {
+      var header = document.getElementById('global-header-container');
+      var wrapper = document.getElementById('language-dropdown-wrapper');
+      if (header && wrapper) {
+        var h = header.offsetHeight || 0;
+        wrapper.style.marginTop = (h ? (h + 12) : 24) + 'px';
+      }
     }
-  }
-  window.addEventListener('load', ajustarEspacoSeletorIdioma);
-  window.addEventListener('resize', ajustarEspacoSeletorIdioma);
+    window.addEventListener('load', recalcular);
+    window.addEventListener('resize', recalcular);
+  })();
 
-  // Redirecionamento ao trocar idioma
-  document.getElementById('languageSelect').addEventListener('change', function() {
-    switch (this.value) {
-      case 'en': window.location.href = "/en/"; break;
-      case 'es': window.location.href = "/es/"; break;
-      case 'de': window.location.href = "/de/"; break;
-      case 'it': window.location.href = "/it/"; break;
-      default: window.location.href = "/"; // pt
+  const button   = document.getElementById("langButton");
+  const menu     = document.getElementById("langMenu");
+  const langFlag = document.getElementById("langFlag");
+  const langText = document.getElementById("langText");
+
+  // Abrir/fechar menu
+  button.addEventListener("click", () => {
+    menu.classList.toggle("hidden");
+    button.setAttribute('aria-expanded', !menu.classList.contains('hidden'));
+  });
+
+  // Fechar ao clicar fora
+  document.addEventListener("click", (e) => {
+    if (!button.contains(e.target) && !menu.contains(e.target)) {
+      menu.classList.add("hidden");
+      button.setAttribute('aria-expanded', 'false');
     }
   });
 
-  // Detecta idioma atual pelo caminho da URL e seleciona automaticamente
-  window.addEventListener('DOMContentLoaded', function() {
-    var langSelect = document.getElementById('languageSelect');
-    var path = window.location.pathname;
+  // Troca de idioma
+  document.querySelectorAll("#langMenu div").forEach(item => {
+    item.addEventListener("click", () => {
+      const value = item.dataset.value;
+      const flag  = item.dataset.flag;
+      const text  = item.innerText.trim();
 
-    if (path.startsWith("/en/")) langSelect.value = "en";
-    else if (path.startsWith("/es/")) langSelect.value = "es";
-    else if (path.startsWith("/de/")) langSelect.value = "de";
-    else if (path.startsWith("/it/")) langSelect.value = "it";
-    else langSelect.value = "pt"; // padrão
+      langFlag.src = flag;
+      langText.textContent = text;
+      menu.classList.add("hidden");
+      button.setAttribute('aria-expanded', 'false');
+
+      switch (value) {
+        case 'en': window.location.href = "/en/"; break;
+        case 'es': window.location.href = "/es/"; break;
+        case 'de': window.location.href = "/de/"; break;
+        case 'it': window.location.href = "/it/"; break;
+        default:   window.location.href = "/";   // pt
+      }
+    });
+  });
+
+  // Detectar idioma atual pela URL
+  window.addEventListener("DOMContentLoaded", function() {
+    const path = window.location.pathname;
+    let current = document.querySelector('[data-value="pt"]');
+    if (path.startsWith("/en/"))      current = document.querySelector('[data-value="en"]');
+    else if (path.startsWith("/es/")) current = document.querySelector('[data-value="es"]');
+    else if (path.startsWith("/de/")) current = document.querySelector('[data-value="de"]');
+    else if (path.startsWith("/it/")) current = document.querySelector('[data-value="it"]');
+
+    if (current) {
+      langFlag.src = current.dataset.flag;
+      langText.textContent = current.innerText.trim();
+    }
   });
 </script>
 
-    
     <main id="main-content" class="flex-grow p-4 md:p-8">
         <section class="pt-8 pb-4 header-with-logo mt-12 mb-12">
             <div class="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center sm:justify-start">
