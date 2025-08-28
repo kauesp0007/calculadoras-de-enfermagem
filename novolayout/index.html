@@ -108,24 +108,50 @@
             Promise.all([
                 loadComponent('global-header.html', 'global-header-placeholder'),
                 loadComponent('global-footer.html', 'global-footer-placeholder')
-            ]).then(() => {
-                // Agora que os componentes estão no DOM e seus scripts executados,
-                // importa o script global que depende desses elementos.
+            ]).then(async () => {
+                // Tenta importar global-scripts.js (se houver)
                 import('./global-scripts.js').catch(e => console.error('Erro ao importar global-scripts:', e));
-            });
 
-            // --- Lógica de Carregamento de Scripts em Ambiente Homologado ---
-            if (window.location.hostname === 'localhost' || window.location.hostname.includes('homolog')) {
-                const firebaseScript = document.createElement('script');
-                firebaseScript.src = "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
-                firebaseScript.onload = () => {
-                    const firestoreScript = document.createElement('script');
-                    firestoreScript.src = "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
-                    document.head.appendChild(firestoreScript);
-                };
-                document.head.appendChild(firebaseScript);
-            }
-        });
+                // --- DEBUG: checar se elementos do header/footer foram injetados ---
+                console.log('DEBUG: elementos injetados:',
+                    'header:', document.querySelector('header') || document.getElementById('header') || document.querySelector('[data-header]'),
+                    'nav:', document.querySelector('nav') || document.querySelector('[data-nav]'),
+                    'sidebar:', document.querySelector('.sidebar') || document.getElementById('sidebar') || document.querySelector('[data-sidebar]')
+                );
+
+                // --- FALLBACK: Delegation para capturar cliques de menu se listeners faltarem ---
+                function fallbackMenuToggle(button, targetEl) {
+                    const expanded = button.getAttribute('aria-expanded') === 'true';
+                    button.setAttribute('aria-expanded', String(!expanded));
+                    if (targetEl) targetEl.classList.toggle('hidden');
+                }
+
+                document.addEventListener('click', (ev) => {
+                    const btn = ev.target.closest('.menu-toggle, .nav-toggle, .sidebar-toggle, [data-toggle="menu"], [data-toggle="dropdown"]');
+                    if (!btn) return;
+
+                    ev.preventDefault();
+
+                    // Prefer data-target/id, depois nextElementSibling, depois procura por .sidebar/.menu mais próxima
+                    const targetSelector = btn.getAttribute('data-target') || btn.getAttribute('aria-controls');
+                    let target = null;
+                    if (targetSelector) target = document.querySelector(targetSelector) || document.getElementById(targetSelector.replace('#',''));
+                    if (!target) target = btn.nextElementSibling;
+                    if (!target) target = document.querySelector('.sidebar') || document.querySelector('.menu') || document.querySelector('nav');
+
+                    console.log('DEBUG: clique menu detectado', { button: btn, target });
+
+                    fallbackMenuToggle(btn, target);
+                }, { capture: false });
+
+                // --- DEBUG: verificar se há listeners ligados (opcional) ---
+                // Exibe quantidade de elementos que podem ser botões de menu
+                const possibleButtons = document.querySelectorAll('.menu-toggle, .nav-toggle, .sidebar-toggle, [data-toggle="menu"], [data-toggle="dropdown"]');
+                console.log('DEBUG: possíveis botões de menu encontrados:', possibleButtons.length);
+
+                // Mostra instrução para o usuário caso precise inspecionar
+                console.log('DEBUG: Se os menus ainda não abrirem, abra DevTools (F12) -> Console/Network e me envie: erros do console, respostas do fetch de global-header/footer, e os arquivos global-header.html / global-scripts.js.');
+            });
     </script>
 </body>
 </html>
