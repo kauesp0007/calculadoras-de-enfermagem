@@ -1,101 +1,6 @@
-// ...existing code...
-/*
-  Refatorado: a lógica antes registrada em document.addEventListener('DOMContentLoaded', ...)
-  foi movida para a função init() e chamada imediatamente se o documento já estiver carregado.
-*/
-function loadScript(src) {
-    const script = document.createElement('script');
-    script.src = src;
-    script.defer = true;
-    document.head.appendChild(script);
-}
-
-// Carregar o badge de carbono no final do corpo, conforme o script original
-loadScript("https://unpkg.com/website-carbon-badges@1.1.3/b.min.js");
-
-function initGlobalScripts() {
-
-    // --- FIREBASE INITIALIZATION & DYNAMIC FORMS ---
-    const firebaseConfig = {
-        apiKey: "__FIREBASE_API_KEY__",
-        authDomain: "site-calculadoras.firebaseapp.com",
-        projectId: "site-calculadoras",
-        storageBucket: "site-calculadoras.appspot.com",
-        messagingSenderId: "57518126485",
-        appId: "1:57518126485:web:06e8853cedea7697c5729c",
-        measurementId: "G-GD0NBBTFYR"
-    };
-
-    if (typeof firebase !== 'undefined') {
-        try {
-            const app = firebase.initializeApp(firebaseConfig);
-            const db = firebase.firestore();
-
-            const newsletterForm = document.getElementById('newsletter-form');
-            if (newsletterForm) {
-                newsletterForm.addEventListener('submit', async (e) => {
-                    e.preventDefault();
-                    const emailInput = document.getElementById('newsletter-email');
-                    const feedbackDiv = document.getElementById('newsletter-feedback');
-                    const email = emailInput.value.trim();
-
-                    if (email) {
-                        feedbackDiv.textContent = 'A processar...';
-                        feedbackDiv.style.color = 'gray';
-                        try {
-                            await db.collection("newsletterSubscribers").add({
-                                email: email,
-                                subscribedAt: new Date()
-                            });
-                            feedbackDiv.textContent = 'Obrigado por subscrever!';
-                            feedbackDiv.style.color = 'green';
-                            emailInput.value = '';
-                        } catch (error) {
-                            console.error("Erro ao adicionar subscrição: ", error);
-                            feedbackDiv.textContent = 'Ocorreu um erro. Por favor, tente novamente.';
-                            feedbackDiv.style.color = 'red';
-                        }
-                    }
-                });
-            }
-
-            const suggestionForm = document.getElementById('suggestion-form');
-            if (suggestionForm) {
-                suggestionForm.addEventListener('submit', async (e) => {
-                    e.preventDefault();
-                    const suggestionText = document.getElementById('suggestion-text');
-                    const feedbackDiv = document.getElementById('suggestion-feedback');
-                    const submitBtn = document.getElementById('suggestion-submit-btn');
-                    const suggestion = suggestionText.value.trim();
-
-                    if (suggestion) {
-                        submitBtn.disabled = true;
-                        feedbackDiv.textContent = 'A enviar sugestão...';
-                        feedbackDiv.style.color = 'gray';
-
-                        try {
-                            await db.collection("toolSuggestions").add({
-                                suggestion: suggestion,
-                                submittedAt: new Date()
-                            });
-                            feedbackDiv.textContent = 'Sugestão enviada com sucesso. Obrigado!';
-                            feedbackDiv.style.color = 'green';
-                            suggestionText.value = '';
-                        } catch (error) {
-                            console.error("Erro ao enviar sugestão: ", error);
-                            feedbackDiv.textContent = 'Ocorreu um erro. Por favor, tente novamente.';
-                            feedbackDiv.style.color = 'red';
-                        } finally {
-                            submitBtn.disabled = false;
-                        }
-                    }
-                });
-            }
-        } catch (e) {
-            console.error('Erro inicializando Firebase:', e);
-        }
-    }
-
+// --- INÍCIO DO SCRIPT PRINCIPAL ---
+document.addEventListener('DOMContentLoaded', () => {
+            
     // --- MENU HAMBÚRGUER ---
     const hamburgerBtn = document.getElementById('hamburger-btn');
     const mobileMenu = document.getElementById('mobile-menu');
@@ -103,28 +8,32 @@ function initGlobalScripts() {
 
     if (hamburgerBtn && mobileMenu && closeMenuBtn) {
         const toggleMenu = () => {
-            const isExpanded = hamburgerBtn.getAttribute('aria-expanded') === 'true';
-            hamburgerBtn.setAttribute('aria-expanded', !isExpanded);
-            mobileMenu.style.display = isExpanded ? 'none' : 'block';
+            if (mobileMenu.style.display === 'none' || mobileMenu.style.display === '') {
+                mobileMenu.style.display = 'block';
+            } else {
+                mobileMenu.style.display = 'none';
+            }
         };
 
         hamburgerBtn.addEventListener('click', toggleMenu);
         closeMenuBtn.addEventListener('click', toggleMenu);
-    }
 
+        // Adiciona um listener para fechar o menu ao clicar em qualquer link
+        const mobileLinks = mobileMenu.querySelectorAll('a');
+        mobileLinks.forEach(link => {
+            link.addEventListener('click', toggleMenu);
+        });
+    }
+    
     // --- ACCORDION MENU MÓVEL ---
     document.querySelectorAll('.mobile-dropdown-btn').forEach(button => {
         button.addEventListener('click', () => {
             const content = button.nextElementSibling;
-            const isExpanded = button.getAttribute('aria-expanded') === 'true';
-            button.setAttribute('aria-expanded', !isExpanded);
-            if (content) content.classList.toggle('hidden');
+            content.classList.toggle('hidden');
             const icon = button.querySelector('i');
-            if (icon) {
-                icon.classList.toggle('fa-chevron-down');
-                icon.classList.toggle('fa-chevron-up');
-                icon.classList.toggle('rotate-180');
-            }
+            icon.classList.toggle('fa-chevron-down');
+            icon.classList.toggle('fa-chevron-up');
+            icon.classList.toggle('rotate-180');
         });
     });
 
@@ -136,42 +45,37 @@ function initGlobalScripts() {
 
         button.addEventListener('click', (event) => {
             event.stopPropagation();
-            const isCurrentlyOpen = !menu.classList.contains('hidden');
-
-            document.querySelectorAll('[id$="-menu"], [id$="-menu-desktop"], [id$="-menu-mobile"]').forEach(m => {
-                 m.classList.add('hidden');
-                 const btn = document.querySelector(`[aria-controls="${m.id}"]`);
-                 if (btn) btn.setAttribute('aria-expanded', 'false');
+            // Fecha outros menus do mesmo tipo (desktop/mobile)
+            const type = btnId.includes('desktop') ? 'desktop' : 'mobile';
+            document.querySelectorAll(`[id$="-menu-${type}"], [id$="-menu"]`).forEach(m => {
+                if (m !== menu) m.classList.add('hidden');
             });
-
-            if (!isCurrentlyOpen) {
-                menu.classList.remove('hidden');
-                button.setAttribute('aria-expanded', 'true');
-            }
+            menu.classList.toggle('hidden');
         });
     }
 
-    ['sobre-nos-btn', 'calculadoras-btn', 'conteudo-btn', 'carreira-btn', 'fale-conosco-btn', 'language-btn-desktop'].forEach(id => setupDropdown(id, id.replace('-btn', '-menu')));
+    // Desktop Dropdowns
+    ['sobre-nos-btn', 'calculadoras-btn', 'conteudo-btn', 'carreira-btn', 'fale-conosco-btn'].forEach(id => setupDropdown(id, id.replace('-btn', '-menu')));
+    setupDropdown('language-btn-desktop', 'language-menu-desktop');
+    
+    // Mobile Dropdown
     setupDropdown('language-btn-mobile', 'language-menu-mobile');
-
+    
     window.addEventListener('click', function() {
         document.querySelectorAll('[id$="-menu"], [id$="-menu-desktop"], [id$="-menu-mobile"]').forEach(m => {
-            const btn = document.querySelector(`[aria-controls="${m.id}"]`);
-            if(btn) btn.setAttribute('aria-expanded', 'false');
             m.classList.add('hidden');
         });
     });
 
-    // --- MÓDULOS DE MODAIS, COOKIES, ACESSIBILIDADE, etc. ---
+    // --- LÓGICA DE MODAIS E COOKIES (GLOBAL) ---
     const suggestToolBtn = document.getElementById('suggest-tool-btn');
     const suggestionModal = document.getElementById('suggestion-modal');
     const cookiePrefsModal = document.getElementById('cookie-prefs-modal');
 
-    const openModal = (modal, opener) => {
+    const openModal = (modal) => {
         if(!modal) return;
         modal.classList.remove('hidden');
         modal.classList.add('flex');
-        modal.opener = opener;
         window.addEventListener('keydown', closeModalOnEsc);
     };
 
@@ -179,16 +83,15 @@ function initGlobalScripts() {
         if(!modal) return;
         modal.classList.add('hidden');
         modal.classList.remove('flex');
-        if(modal.opener) modal.opener.focus();
         window.removeEventListener('keydown', closeModalOnEsc);
     };
-
-    function closeModalOnEsc(e) {
+    
+    const closeModalOnEsc = (e) => {
         if (e.key === 'Escape') {
             closeModal(suggestionModal);
             closeModal(cookiePrefsModal);
         }
-    }
+    };
 
     document.querySelectorAll('.modal').forEach(modal => {
         modal.addEventListener('click', (e) => {
@@ -204,10 +107,10 @@ function initGlobalScripts() {
     });
 
     if(suggestToolBtn) {
-        suggestToolBtn.addEventListener('click', () => openModal(suggestionModal, suggestToolBtn));
+        suggestToolBtn.addEventListener('click', () => openModal(suggestionModal));
     }
-
-    // --- CookieManager (mesma lógica) ---
+    
+    // --- GESTOR DE COOKIES ---
     class CookieManager {
         constructor() {
             this.banner = document.getElementById('cookie-banner');
@@ -216,7 +119,8 @@ function initGlobalScripts() {
                 analiticos: document.getElementById('cookies-analiticos'),
                 marketing: document.getElementById('cookies-marketing')
             };
-            this.prefs = { analiticos: true, marketing: true };
+
+            this.prefs = { analiticos: true, marketing: false };
             this.init();
         }
 
@@ -224,40 +128,12 @@ function initGlobalScripts() {
             this.loadPreferences();
             this.bindEvents();
             this.checkConsent();
-            this.applyCurrentConsent();
-        }
-
-        applyCurrentConsent() {
-            const adSection = document.getElementById('ad-section');
-            if (this.prefs.marketing) {
-                if(adSection) adSection.style.display = 'block';
-                if (typeof gtag === 'function') {
-                    gtag('consent', 'update', { 'ad_storage': 'granted' });
-                }
-            } else {
-                if(adSection) adSection.style.display = 'none';
-                if (typeof gtag === 'function') {
-                    gtag('consent', 'update', { 'ad_storage': 'denied' });
-                }
-            }
-
-            if (this.prefs.analiticos) {
-                 if (typeof gtag === 'function') {
-                    gtag('consent', 'update', { 'analytics_storage': 'granted' });
-                 }
-            } else {
-                 if (typeof gtag === 'function') {
-                    gtag('consent', 'update', { 'analytics_storage': 'denied' });
-                 }
-            }
         }
 
         loadPreferences() {
             try {
                 const storedPrefs = localStorage.getItem('cookiePrefs');
-                if (storedPrefs) {
-                   this.prefs = JSON.parse(storedPrefs);
-                }
+                if (storedPrefs) this.prefs = JSON.parse(storedPrefs);
             } catch (e) {
                 console.error('Falha ao carregar preferências de cookies do localStorage:', e);
             }
@@ -273,7 +149,6 @@ function initGlobalScripts() {
             }
             this.hideBanner();
             if(this.prefsModal) closeModal(this.prefsModal);
-            this.applyCurrentConsent();
         }
 
         updateUI() {
@@ -288,11 +163,8 @@ function initGlobalScripts() {
             document.getElementById('decline-cookies-btn')?.addEventListener('click', () => this.declineAll());
             document.getElementById('save-cookie-prefs-btn')?.addEventListener('click', () => this.managePrefsFromModal());
 
-            const manageBannerBtn = document.getElementById('manage-cookies-banner-btn');
-            if(manageBannerBtn) manageBannerBtn.addEventListener('click', () => openModal(this.prefsModal, manageBannerBtn));
-
-            const manageFooterBtn = document.getElementById('manage-cookies-footer-btn');
-            if(manageFooterBtn) manageFooterBtn.addEventListener('click', () => openModal(this.prefsModal, manageFooterBtn));
+            document.getElementById('manage-cookies-banner-btn')?.addEventListener('click', () => openModal(this.prefsModal));
+            document.getElementById('manage-cookies-footer-btn')?.addEventListener('click', () => openModal(this.prefsModal));
         }
 
         acceptAll() {
@@ -316,7 +188,7 @@ function initGlobalScripts() {
             this.savePreferences();
             this.updateUI();
         }
-
+        
         managePrefsFromModal() {
             if(this.modalToggles.analiticos) this.prefs.analiticos = this.modalToggles.analiticos.checked;
             if(this.modalToggles.marketing) this.prefs.marketing = this.modalToggles.marketing.checked;
@@ -339,8 +211,8 @@ function initGlobalScripts() {
     }
 
     new CookieManager();
-
-    // --- AccessibilityManager (mesma lógica do original) ---
+    
+    // --- MÓDULO DE ACESSIBILIDADE (GLOBAL) ---
     class AccessibilityManager {
         constructor() {
             this.body = document.body;
@@ -350,7 +222,7 @@ function initGlobalScripts() {
             this.closeBtn = document.getElementById('close-accessibility-menu');
             this.closeBtnFooter = document.getElementById('close-accessibility-menu-footer');
             this.resetBtn = document.getElementById('reset-accessibility');
-
+            
             this.state = {};
             this.readingMask = null;
             this.readingGuide = null;
@@ -366,17 +238,17 @@ function initGlobalScripts() {
                 e.stopPropagation();
                 this.menu.classList.toggle('open');
             });
-            if (this.closeBtn) this.closeBtn.addEventListener('click', closeMenu);
-            if (this.closeBtnFooter) this.closeBtnFooter.addEventListener('click', closeMenu);
-
+            this.closeBtn.addEventListener('click', closeMenu);
+            this.closeBtnFooter.addEventListener('click', closeMenu);
+            
             document.addEventListener('click', (e) => {
                 if (this.menu.classList.contains('open') && !e.target.closest('#accessibility-menu') && !e.target.closest('#accessibility-btn')) {
                     this.menu.classList.remove('open');
                 }
             });
 
-            if (this.resetBtn) this.resetBtn.addEventListener('click', () => this.resetAll());
-
+            this.resetBtn.addEventListener('click', () => this.resetAll());
+            
             this.menu.addEventListener('click', (e) => {
                 const target = e.target.closest('.acc-option');
                 if (!target) return;
@@ -389,7 +261,7 @@ function initGlobalScripts() {
             const group = action.replace(/-(\w)/g, (m, p1) => p1.toUpperCase());
             const isToggle = !value;
 
-            if (isToggle) { this.state[group] = !this.state[group]; }
+            if (isToggle) { this.state[group] = !this.state[group]; } 
             else { this.state[group] = this.state[group] === value ? null : value; }
 
             const funcName = 'apply' + group.charAt(0).toUpperCase() + group.slice(1);
@@ -402,13 +274,14 @@ function initGlobalScripts() {
         applyFontType(value) { this.body.classList.toggle('font-serif', value === 'serif'); this.body.classList.toggle('font-bold-force', value === 'bold'); }
         applyLineSpacing(value) { this.body.style.lineHeight = value || ''; }
         applyLetterSpacing(value) { this.body.style.letterSpacing = value ? `${value}em` : ''; }
-        applyContrast(value) {
-            this.html.className = this.html.className.replace(/contrast-\w+/g, '');
+        applyContrast(value) { 
+            this.html.className = this.html.className.replace(/contrast-\w+/g, ''); 
             if(value) {
                  this.html.classList.add(`contrast-${value}`);
             }
             const carbonBadge = document.getElementById('wcb');
             if(carbonBadge) {
+                // Adicionado a lógica para o modo dark do badge de carbono
                 if(value === 'dark') {
                     carbonBadge.classList.add('wcb-d');
                 } else {
@@ -418,16 +291,16 @@ function initGlobalScripts() {
         }
         applySaturation(value) { this.html.className = this.html.className.replace(/saturation-\w+/g, ''); if(value) this.html.classList.add(`saturation-${value}`); }
         applyHighlightLinks(active) { this.body.classList.toggle('links-highlighted', active); }
-
+        
         applySiteReader(active) {
-            if (active) {
-                this.body.addEventListener('click', this.readText, false);
-            } else {
-                this.body.removeEventListener('click', this.readText, false);
-                speechSynthesis.cancel();
+            if (active) { 
+                this.body.addEventListener('click', this.readText, false); 
+            } else { 
+                this.body.removeEventListener('click', this.readText, false); 
+                speechSynthesis.cancel(); 
             }
         }
-
+        
         readText(event) {
             if(event.target.closest('a, button, input, select, textarea')) return;
             event.preventDefault();
@@ -450,8 +323,8 @@ function initGlobalScripts() {
                 document.removeEventListener('mousemove', this.updateMaskPosition);
             }
         }
-
-        updateMaskPosition(e) { const maskHeight = 100; const el = document.getElementById('reading-mask'); if (el) el.style.clipPath = `polygon(0 ${e.clientY - maskHeight/2}px, 100% ${e.clientY - maskHeight/2}px, 100% ${e.clientY + maskHeight/2}px, 0 ${e.clientY + maskHeight/2}px)`; }
+        
+        updateMaskPosition(e) { const maskHeight = 100; document.getElementById('reading-mask').style.clipPath = `polygon(0 ${e.clientY - maskHeight/2}px, 100% ${e.clientY - maskHeight/2}px, 100% ${e.clientY + maskHeight/2}px, 0 ${e.clientY + maskHeight/2}px)`; }
 
         applyReadingGuide(active) {
             if (active && !this.readingGuide) {
@@ -463,7 +336,7 @@ function initGlobalScripts() {
             }
         }
 
-        updateGuidePosition(e) { const el = document.getElementById('reading-guide'); if (el) el.style.top = `${e.clientY}px`; }
+        updateGuidePosition(e) { document.getElementById('reading-guide').style.top = `${e.clientY}px`; }
 
         resetAll() {
             const allActions = new Set(Array.from(this.menu.querySelectorAll('[data-action]')).map(el => el.dataset.action));
@@ -475,7 +348,7 @@ function initGlobalScripts() {
             });
             this.updateActiveState();
         }
-
+        
         updateActiveState() {
             this.menu.querySelectorAll('.acc-feature').forEach(feature => {
                 const group = feature.dataset.group;
@@ -492,7 +365,7 @@ function initGlobalScripts() {
     }
 
     new AccessibilityManager();
-
+    
     // --- BOTÃO LIBRAS ---
     const librasBtn = document.getElementById('libras-btn');
     if(librasBtn) {
@@ -514,10 +387,12 @@ function initGlobalScripts() {
                 backToTopBtn.classList.add('is-hidden');
             }
         };
-
+        
+        // Verifica o estado inicial ao carregar a página e adiciona o listener
         toggleBackToTopButton();
         window.addEventListener('scroll', toggleBackToTopButton);
 
+        // Adiciona o listener para o evento de clique
         backToTopBtn.addEventListener('click', () => {
             window.scrollTo({ top: 0, behavior: 'smooth' });
         });
@@ -535,12 +410,4 @@ function initGlobalScripts() {
                 });
         });
     }
-} // fim initGlobalScripts
-
-// Executa init imediatamente se DOM já estiver pronto; caso contrário, aguarda DOMContentLoaded
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initGlobalScripts);
-} else {
-    initGlobalScripts();
-}
-// ...existing code...
+}); // Fim do DOMContentLoaded
