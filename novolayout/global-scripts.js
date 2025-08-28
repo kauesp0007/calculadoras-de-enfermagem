@@ -1,4 +1,8 @@
-// Ação de fallback para o carregamento dinâmico de scripts
+// ...existing code...
+/*
+  Refatorado: a lógica antes registrada em document.addEventListener('DOMContentLoaded', ...)
+  foi movida para a função init() e chamada imediatamente se o documento já estiver carregado.
+*/
 function loadScript(src) {
     const script = document.createElement('script');
     script.src = src;
@@ -9,14 +13,9 @@ function loadScript(src) {
 // Carregar o badge de carbono no final do corpo, conforme o script original
 loadScript("https://unpkg.com/website-carbon-badges@1.1.3/b.min.js");
 
-document.addEventListener('DOMContentLoaded', () => {
+function initGlobalScripts() {
 
     // --- FIREBASE INITIALIZATION & DYNAMIC FORMS ---
-    // A configuração do Firebase está agora no arquivo HTML principal para
-    // que possa ser usada em outros scripts no futuro, se necessário.
-
-    // A lógica de newsletter e sugestão agora usa uma função utilitária para reutilização
-    // A API Key foi substituída por um placeholder para processamento em ambiente homologado
     const firebaseConfig = {
         apiKey: "__FIREBASE_API_KEY__",
         authDomain: "site-calculadoras.firebaseapp.com",
@@ -28,73 +27,74 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     if (typeof firebase !== 'undefined') {
-        const app = firebase.initializeApp(firebaseConfig);
-        const db = firebase.firestore();
+        try {
+            const app = firebase.initializeApp(firebaseConfig);
+            const db = firebase.firestore();
 
-        // --- NEWSLETTER FORM LOGIC ---
-        const newsletterForm = document.getElementById('newsletter-form');
-        if (newsletterForm) {
-            newsletterForm.addEventListener('submit', async (e) => {
-                e.preventDefault();
-                const emailInput = document.getElementById('newsletter-email');
-                const feedbackDiv = document.getElementById('newsletter-feedback');
-                const email = emailInput.value.trim();
+            const newsletterForm = document.getElementById('newsletter-form');
+            if (newsletterForm) {
+                newsletterForm.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    const emailInput = document.getElementById('newsletter-email');
+                    const feedbackDiv = document.getElementById('newsletter-feedback');
+                    const email = emailInput.value.trim();
 
-                if (email) {
-                    feedbackDiv.textContent = 'A processar...';
-                    feedbackDiv.style.color = 'gray';
-                    try {
-                        await db.collection("newsletterSubscribers").add({
-                            email: email,
-                            subscribedAt: new Date()
-                        });
-                        feedbackDiv.textContent = 'Obrigado por subscrever!';
-                        feedbackDiv.style.color = 'green';
-                        emailInput.value = '';
-                    } catch (error) {
-                        console.error("Erro ao adicionar subscrição: ", error);
-                        feedbackDiv.textContent = 'Ocorreu um erro. Por favor, tente novamente.';
-                        feedbackDiv.style.color = 'red';
+                    if (email) {
+                        feedbackDiv.textContent = 'A processar...';
+                        feedbackDiv.style.color = 'gray';
+                        try {
+                            await db.collection("newsletterSubscribers").add({
+                                email: email,
+                                subscribedAt: new Date()
+                            });
+                            feedbackDiv.textContent = 'Obrigado por subscrever!';
+                            feedbackDiv.style.color = 'green';
+                            emailInput.value = '';
+                        } catch (error) {
+                            console.error("Erro ao adicionar subscrição: ", error);
+                            feedbackDiv.textContent = 'Ocorreu um erro. Por favor, tente novamente.';
+                            feedbackDiv.style.color = 'red';
+                        }
                     }
-                }
-            });
-        }
+                });
+            }
 
-        // --- SUGGESTION FORM LOGIC ---
-        const suggestionForm = document.getElementById('suggestion-form');
-        if (suggestionForm) {
-            suggestionForm.addEventListener('submit', async (e) => {
-                e.preventDefault();
-                const suggestionText = document.getElementById('suggestion-text');
-                const feedbackDiv = document.getElementById('suggestion-feedback');
-                const submitBtn = document.getElementById('suggestion-submit-btn');
-                const suggestion = suggestionText.value.trim();
+            const suggestionForm = document.getElementById('suggestion-form');
+            if (suggestionForm) {
+                suggestionForm.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    const suggestionText = document.getElementById('suggestion-text');
+                    const feedbackDiv = document.getElementById('suggestion-feedback');
+                    const submitBtn = document.getElementById('suggestion-submit-btn');
+                    const suggestion = suggestionText.value.trim();
 
-                if (suggestion) {
-                    submitBtn.disabled = true;
-                    feedbackDiv.textContent = 'A enviar sugestão...';
-                    feedbackDiv.style.color = 'gray';
+                    if (suggestion) {
+                        submitBtn.disabled = true;
+                        feedbackDiv.textContent = 'A enviar sugestão...';
+                        feedbackDiv.style.color = 'gray';
 
-                    try {
-                        await db.collection("toolSuggestions").add({
-                            suggestion: suggestion,
-                            submittedAt: new Date()
-                        });
-                        feedbackDiv.textContent = 'Sugestão enviada com sucesso. Obrigado!';
-                        feedbackDiv.style.color = 'green';
-                        suggestionText.value = '';
-                    } catch (error) {
-                        console.error("Erro ao enviar sugestão: ", error);
-                        feedbackDiv.textContent = 'Ocorreu um erro. Por favor, tente novamente.';
-                        feedbackDiv.style.color = 'red';
-                    } finally {
-                        submitBtn.disabled = false;
+                        try {
+                            await db.collection("toolSuggestions").add({
+                                suggestion: suggestion,
+                                submittedAt: new Date()
+                            });
+                            feedbackDiv.textContent = 'Sugestão enviada com sucesso. Obrigado!';
+                            feedbackDiv.style.color = 'green';
+                            suggestionText.value = '';
+                        } catch (error) {
+                            console.error("Erro ao enviar sugestão: ", error);
+                            feedbackDiv.textContent = 'Ocorreu um erro. Por favor, tente novamente.';
+                            feedbackDiv.style.color = 'red';
+                        } finally {
+                            submitBtn.disabled = false;
+                        }
                     }
-                }
-            });
+                });
+            }
+        } catch (e) {
+            console.error('Erro inicializando Firebase:', e);
         }
     }
-
 
     // --- MENU HAMBÚRGUER ---
     const hamburgerBtn = document.getElementById('hamburger-btn');
@@ -111,18 +111,20 @@ document.addEventListener('DOMContentLoaded', () => {
         hamburgerBtn.addEventListener('click', toggleMenu);
         closeMenuBtn.addEventListener('click', toggleMenu);
     }
-    
+
     // --- ACCORDION MENU MÓVEL ---
     document.querySelectorAll('.mobile-dropdown-btn').forEach(button => {
         button.addEventListener('click', () => {
             const content = button.nextElementSibling;
             const isExpanded = button.getAttribute('aria-expanded') === 'true';
             button.setAttribute('aria-expanded', !isExpanded);
-            content.classList.toggle('hidden');
+            if (content) content.classList.toggle('hidden');
             const icon = button.querySelector('i');
-            icon.classList.toggle('fa-chevron-down');
-            icon.classList.toggle('fa-chevron-up');
-            icon.classList.toggle('rotate-180');
+            if (icon) {
+                icon.classList.toggle('fa-chevron-down');
+                icon.classList.toggle('fa-chevron-up');
+                icon.classList.toggle('rotate-180');
+            }
         });
     });
 
@@ -136,14 +138,12 @@ document.addEventListener('DOMContentLoaded', () => {
             event.stopPropagation();
             const isCurrentlyOpen = !menu.classList.contains('hidden');
 
-            // Fecha todos os menus primeiro
             document.querySelectorAll('[id$="-menu"], [id$="-menu-desktop"], [id$="-menu-mobile"]').forEach(m => {
                  m.classList.add('hidden');
                  const btn = document.querySelector(`[aria-controls="${m.id}"]`);
                  if (btn) btn.setAttribute('aria-expanded', 'false');
             });
 
-            // Se o menu clicado não estava aberto antes, abre-o agora.
             if (!isCurrentlyOpen) {
                 menu.classList.remove('hidden');
                 button.setAttribute('aria-expanded', 'true');
@@ -151,12 +151,9 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Desktop Dropdowns
     ['sobre-nos-btn', 'calculadoras-btn', 'conteudo-btn', 'carreira-btn', 'fale-conosco-btn', 'language-btn-desktop'].forEach(id => setupDropdown(id, id.replace('-btn', '-menu')));
-    
-    // Mobile Dropdown
     setupDropdown('language-btn-mobile', 'language-menu-mobile');
-    
+
     window.addEventListener('click', function() {
         document.querySelectorAll('[id$="-menu"], [id$="-menu-desktop"], [id$="-menu-mobile"]').forEach(m => {
             const btn = document.querySelector(`[aria-controls="${m.id}"]`);
@@ -165,7 +162,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // --- LÓGICA DE MODAIS E COOKIES (GLOBAL) ---
+    // --- MÓDULOS DE MODAIS, COOKIES, ACESSIBILIDADE, etc. ---
     const suggestToolBtn = document.getElementById('suggest-tool-btn');
     const suggestionModal = document.getElementById('suggestion-modal');
     const cookiePrefsModal = document.getElementById('cookie-prefs-modal');
@@ -174,7 +171,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if(!modal) return;
         modal.classList.remove('hidden');
         modal.classList.add('flex');
-        modal.opener = opener; 
+        modal.opener = opener;
         window.addEventListener('keydown', closeModalOnEsc);
     };
 
@@ -185,13 +182,13 @@ document.addEventListener('DOMContentLoaded', () => {
         if(modal.opener) modal.opener.focus();
         window.removeEventListener('keydown', closeModalOnEsc);
     };
-    
-    const closeModalOnEsc = (e) => {
+
+    function closeModalOnEsc(e) {
         if (e.key === 'Escape') {
             closeModal(suggestionModal);
             closeModal(cookiePrefsModal);
         }
-    };
+    }
 
     document.querySelectorAll('.modal').forEach(modal => {
         modal.addEventListener('click', (e) => {
@@ -209,8 +206,8 @@ document.addEventListener('DOMContentLoaded', () => {
     if(suggestToolBtn) {
         suggestToolBtn.addEventListener('click', () => openModal(suggestionModal, suggestToolBtn));
     }
-    
-    // --- GESTOR DE COOKIES ---
+
+    // --- CookieManager (mesma lógica) ---
     class CookieManager {
         constructor() {
             this.banner = document.getElementById('cookie-banner');
@@ -219,7 +216,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 analiticos: document.getElementById('cookies-analiticos'),
                 marketing: document.getElementById('cookies-marketing')
             };
-            // Define marketing como VERDADEIRO por padrão (opt-out)
             this.prefs = { analiticos: true, marketing: true };
             this.init();
         }
@@ -233,8 +229,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
         applyCurrentConsent() {
             const adSection = document.getElementById('ad-section');
-            
-            // Atualiza o Google Consent Mode e a visibilidade da seção de anúncios
             if (this.prefs.marketing) {
                 if(adSection) adSection.style.display = 'block';
                 if (typeof gtag === 'function') {
@@ -279,7 +273,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             this.hideBanner();
             if(this.prefsModal) closeModal(this.prefsModal);
-            this.applyCurrentConsent(); // Aplica as novas preferências salvas
+            this.applyCurrentConsent();
         }
 
         updateUI() {
@@ -322,7 +316,7 @@ document.addEventListener('DOMContentLoaded', () => {
             this.savePreferences();
             this.updateUI();
         }
-        
+
         managePrefsFromModal() {
             if(this.modalToggles.analiticos) this.prefs.analiticos = this.modalToggles.analiticos.checked;
             if(this.modalToggles.marketing) this.prefs.marketing = this.modalToggles.marketing.checked;
@@ -345,8 +339,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     new CookieManager();
-    
-    // --- MÓDULO DE ACESSIBILIDADE (GLOBAL) ---
+
+    // --- AccessibilityManager (mesma lógica do original) ---
     class AccessibilityManager {
         constructor() {
             this.body = document.body;
@@ -356,7 +350,7 @@ document.addEventListener('DOMContentLoaded', () => {
             this.closeBtn = document.getElementById('close-accessibility-menu');
             this.closeBtnFooter = document.getElementById('close-accessibility-menu-footer');
             this.resetBtn = document.getElementById('reset-accessibility');
-            
+
             this.state = {};
             this.readingMask = null;
             this.readingGuide = null;
@@ -372,17 +366,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 e.stopPropagation();
                 this.menu.classList.toggle('open');
             });
-            this.closeBtn.addEventListener('click', closeMenu);
-            this.closeBtnFooter.addEventListener('click', closeMenu);
-            
+            if (this.closeBtn) this.closeBtn.addEventListener('click', closeMenu);
+            if (this.closeBtnFooter) this.closeBtnFooter.addEventListener('click', closeMenu);
+
             document.addEventListener('click', (e) => {
                 if (this.menu.classList.contains('open') && !e.target.closest('#accessibility-menu') && !e.target.closest('#accessibility-btn')) {
                     this.menu.classList.remove('open');
                 }
             });
 
-            this.resetBtn.addEventListener('click', () => this.resetAll());
-            
+            if (this.resetBtn) this.resetBtn.addEventListener('click', () => this.resetAll());
+
             this.menu.addEventListener('click', (e) => {
                 const target = e.target.closest('.acc-option');
                 if (!target) return;
@@ -395,7 +389,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const group = action.replace(/-(\w)/g, (m, p1) => p1.toUpperCase());
             const isToggle = !value;
 
-            if (isToggle) { this.state[group] = !this.state[group]; } 
+            if (isToggle) { this.state[group] = !this.state[group]; }
             else { this.state[group] = this.state[group] === value ? null : value; }
 
             const funcName = 'apply' + group.charAt(0).toUpperCase() + group.slice(1);
@@ -408,14 +402,13 @@ document.addEventListener('DOMContentLoaded', () => {
         applyFontType(value) { this.body.classList.toggle('font-serif', value === 'serif'); this.body.classList.toggle('font-bold-force', value === 'bold'); }
         applyLineSpacing(value) { this.body.style.lineHeight = value || ''; }
         applyLetterSpacing(value) { this.body.style.letterSpacing = value ? `${value}em` : ''; }
-        applyContrast(value) { 
-            this.html.className = this.html.className.replace(/contrast-\w+/g, ''); 
+        applyContrast(value) {
+            this.html.className = this.html.className.replace(/contrast-\w+/g, '');
             if(value) {
                  this.html.classList.add(`contrast-${value}`);
             }
             const carbonBadge = document.getElementById('wcb');
             if(carbonBadge) {
-                // Adicionado a lógica para o modo dark do badge de carbono
                 if(value === 'dark') {
                     carbonBadge.classList.add('wcb-d');
                 } else {
@@ -425,16 +418,16 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         applySaturation(value) { this.html.className = this.html.className.replace(/saturation-\w+/g, ''); if(value) this.html.classList.add(`saturation-${value}`); }
         applyHighlightLinks(active) { this.body.classList.toggle('links-highlighted', active); }
-        
+
         applySiteReader(active) {
-            if (active) { 
-                this.body.addEventListener('click', this.readText, false); 
-            } else { 
-                this.body.removeEventListener('click', this.readText, false); 
-                speechSynthesis.cancel(); 
+            if (active) {
+                this.body.addEventListener('click', this.readText, false);
+            } else {
+                this.body.removeEventListener('click', this.readText, false);
+                speechSynthesis.cancel();
             }
         }
-        
+
         readText(event) {
             if(event.target.closest('a, button, input, select, textarea')) return;
             event.preventDefault();
@@ -457,8 +450,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 document.removeEventListener('mousemove', this.updateMaskPosition);
             }
         }
-        
-        updateMaskPosition(e) { const maskHeight = 100; document.getElementById('reading-mask').style.clipPath = `polygon(0 ${e.clientY - maskHeight/2}px, 100% ${e.clientY - maskHeight/2}px, 100% ${e.clientY + maskHeight/2}px, 0 ${e.clientY + maskHeight/2}px)`; }
+
+        updateMaskPosition(e) { const maskHeight = 100; const el = document.getElementById('reading-mask'); if (el) el.style.clipPath = `polygon(0 ${e.clientY - maskHeight/2}px, 100% ${e.clientY - maskHeight/2}px, 100% ${e.clientY + maskHeight/2}px, 0 ${e.clientY + maskHeight/2}px)`; }
 
         applyReadingGuide(active) {
             if (active && !this.readingGuide) {
@@ -470,7 +463,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
 
-        updateGuidePosition(e) { document.getElementById('reading-guide').style.top = `${e.clientY}px`; }
+        updateGuidePosition(e) { const el = document.getElementById('reading-guide'); if (el) el.style.top = `${e.clientY}px`; }
 
         resetAll() {
             const allActions = new Set(Array.from(this.menu.querySelectorAll('[data-action]')).map(el => el.dataset.action));
@@ -482,7 +475,7 @@ document.addEventListener('DOMContentLoaded', () => {
             });
             this.updateActiveState();
         }
-        
+
         updateActiveState() {
             this.menu.querySelectorAll('.acc-feature').forEach(feature => {
                 const group = feature.dataset.group;
@@ -499,7 +492,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     new AccessibilityManager();
-    
+
     // --- BOTÃO LIBRAS ---
     const librasBtn = document.getElementById('libras-btn');
     if(librasBtn) {
@@ -521,12 +514,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 backToTopBtn.classList.add('is-hidden');
             }
         };
-        
-        // Verifica o estado inicial ao carregar a página e adiciona o listener
+
         toggleBackToTopButton();
         window.addEventListener('scroll', toggleBackToTopButton);
 
-        // Adiciona o listener para o evento de clique
         backToTopBtn.addEventListener('click', () => {
             window.scrollTo({ top: 0, behavior: 'smooth' });
         });
@@ -544,4 +535,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
         });
     }
-}); // Fim do DOMContentLoaded
+} // fim initGlobalScripts
+
+// Executa init imediatamente se DOM já estiver pronto; caso contrário, aguarda DOMContentLoaded
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initGlobalScripts);
+} else {
+    initGlobalScripts();
+}
+// ...existing code...
