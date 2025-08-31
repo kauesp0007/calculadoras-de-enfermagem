@@ -62,26 +62,31 @@
                     if (!res.ok) throw new Error(`HTTP ${res.status} - ${res.statusText}`);
                     const html = await res.text();
 
-                    // Cria template a partir do HTML recebido
-                    const template = document.createElement('template');
-                    template.innerHTML = html.trim();
+                    // Parse do HTML retornado para evitar inserir <html>/<head>/<body> dentro do body
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(html, 'text/html');
 
-                    // Captura os <script> presentes no conteúdo original antes de mover os nós
-                    const scriptTags = Array.from(template.content.querySelectorAll('script'));
+                    // Captura scripts antes de removê-los do conteúdo a ser inserido
+                    const scriptTags = Array.from(doc.querySelectorAll('script'));
 
-                    // Clona o fragmento para inserir no DOM (assim template.content permanece com os scripts)
-                    const frag = template.content.cloneNode(true);
+                    // Remove scripts do documento para obter apenas markup a ser inserido
+                    scriptTags.forEach(s => s.parentNode && s.parentNode.removeChild(s));
 
-                    // Substitui placeholder pelo conteúdo clonado
+                    // Conteúdo a inserir: preferir body.innerHTML se existir, senão usar todo o documento
+                    const contentHTML = doc.body && doc.body.innerHTML ? doc.body.innerHTML.trim() : doc.documentElement.innerHTML.trim();
+
                     const placeholder = document.getElementById(placeholderId);
                     if (!placeholder) return;
-                    placeholder.replaceWith(frag);
 
-                    // Evita duplicar injeção se já houver scripts marcados deste URL
+                    // Insere o HTML limpo (sem scripts) e remove placeholder
+                    placeholder.insertAdjacentHTML('afterend', contentHTML);
+                    placeholder.remove();
+
+                    // Não injetar novamente se já houver scripts marcados deste URL
                     const alreadyInjected = document.querySelectorAll(`script[data-injected-from="${url}"]`);
                     if (alreadyInjected.length) return;
 
-                    // Re-executa scripts: externos adicionados ao head, inline ao body
+                    // Recria e injeta scripts (externos no head, inline no body)
                     scriptTags.forEach(oldScript => {
                         const newScript = document.createElement('script');
                         if (oldScript.type) newScript.type = oldScript.type;
@@ -130,9 +135,4 @@
     </script>
 </body>
 </html>
-                navigator.serviceWorker.register('./service-worker.js').catch(err => console.warn('SW registration failed:', err));
-            }
-        });
-    </script>
-</body>
 </html>
