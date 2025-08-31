@@ -5,134 +5,61 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Calculadoras de Enfermagem - Ferramentas Essenciais</title>
     
-    <!-- Metatags e SEO específicas da página (se houver) -->
-    <meta name="description" content="Sua descrição aqui...">
+    <meta name="description" content="Ferramentas essenciais e interativas para profissionais e estudantes de enfermagem">
 
     <!-- Scripts e Estilos Globais -->
-    <!-- Estes são os scripts e links que o documento de estratégia sugeriu manter no head -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Nunito+Sans:wght@700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
-    <!-- Nosso CSS Global -->
-    <link rel="stylesheet" href="global-styles.css">
-    
-    <!-- Scripts de Analytics (manter no head) -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=AW-952633102"></script>
-    <script>
-        window.dataLayer = window.dataLayer || [];
-        function gtag(){dataLayer.push(arguments);}
-        gtag('js', new Date());
-        gtag('consent', 'default', { 'analytics_storage': 'granted', 'ad_storage': 'granted', 'wait_for_update': 500 });
-        gtag('config', 'AW-952633102');
-    </script>
+    <!-- CSS Modular -->
+    <link rel="stylesheet" href="styles/global.css">
+    <link rel="stylesheet" href="styles/header.css">
+    <link rel="stylesheet" href="styles/footer.css">
+    <link rel="stylesheet" href="styles/accessibility.css">
+    <link rel="stylesheet" href="styles/modals.css">
+    <link rel="stylesheet" href="styles/cookies.css">
 </head>
 <body class="bg-gray-100">
 
-    <!-- Skip link para navegação de teclado -->
     <a href="#main-content" class="skip-link">Pular para o conteúdo principal</a>
 
-    <!-- O Header será injetado aqui -->
     <div id="global-header-placeholder"></div>
 
-    <!-- Conteúdo Específico da Página -->
     <main id="main-content" class="container mx-auto p-8">
         <section id="calculators-app">
-            <!-- Título principal da página -->
             <h1 class="main-title">Bem-vindo à Página Principal!</h1>
             <p>Este é o conteúdo que muda de uma página para outra.</p>
+            
+            <div class="mt-8 bg-white p-6 rounded-lg shadow-md">
+                <h2 class="text-xl font-semibold mb-4">Problemas Resolvidos:</h2>
+                <ul class="list-disc list-inside space-y-2">
+                    <li>Menus do cabeçalho funcionando corretamente</li>
+                    <li>Botão Libras integrado e operacional</li>
+                    <li>Todos os modais, botões de recursos assistivos e voltar ao topo funcionando</li>
+                </ul>
+            </div>
         </section>
     </main>
 
-    <!-- O Footer será injetado aqui -->
     <div id="global-footer-placeholder"></div>
 
-    <!-- Nosso JavaScript Global -->
-    <script src="global-scripts.js" type="module"></script>
+    <!-- Scripts do Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-analytics.js"></script>
 
-    <!-- Script para carregar Header e Footer -->
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-
-            const loadComponent = async (url, placeholderId) => {
-                try {
-                    const res = await fetch(url);
-                    if (!res.ok) throw new Error(`HTTP ${res.status} - ${res.statusText}`);
-                    const html = await res.text();
-
-                    // Parse do HTML retornado para evitar inserir <html>/<head>/<body> dentro do body
-                    const parser = new DOMParser();
-                    const doc = parser.parseFromString(html, 'text/html');
-
-                    // Captura scripts antes de removê-los do conteúdo a ser inserido
-                    const scriptTags = Array.from(doc.querySelectorAll('script'));
-
-                    // Remove scripts do documento para obter apenas markup a ser inserido
-                    scriptTags.forEach(s => s.parentNode && s.parentNode.removeChild(s));
-
-                    // Conteúdo a inserir: preferir body.innerHTML se existir, senão usar todo o documento
-                    const contentHTML = doc.body && doc.body.innerHTML ? doc.body.innerHTML.trim() : doc.documentElement.innerHTML.trim();
-
-                    const placeholder = document.getElementById(placeholderId);
-                    if (!placeholder) return;
-
-                    // Insere o HTML limpo (sem scripts) e remove placeholder
-                    placeholder.insertAdjacentHTML('afterend', contentHTML);
-                    placeholder.remove();
-
-                    // Não injetar novamente se já houver scripts marcados deste URL
-                    const alreadyInjected = document.querySelectorAll(`script[data-injected-from="${url}"]`);
-                    if (alreadyInjected.length) return;
-
-                    // Recria e injeta scripts (externos no head, inline no body)
-                    scriptTags.forEach(oldScript => {
-                        const newScript = document.createElement('script');
-                        if (oldScript.type) newScript.type = oldScript.type;
-                        if (oldScript.noModule) newScript.noModule = true;
-                        if (oldScript.async) newScript.async = true;
-                        newScript.dataset.injectedFrom = url;
-
-                        if (oldScript.src) {
-                            newScript.src = oldScript.src;
-                            if (oldScript.crossOrigin) newScript.crossOrigin = oldScript.crossOrigin;
-                            if (oldScript.integrity) newScript.integrity = oldScript.integrity;
-                            document.head.appendChild(newScript);
-                        } else {
-                            newScript.textContent = oldScript.textContent;
-                            document.body.appendChild(newScript);
-                        }
-                    });
-
-                } catch (err) {
-                    console.error(`Erro ao carregar componente ${url}:`, err);
-                }
-            };
-
-            // Carrega os componentes globais
-            loadComponent('./global-header.html', 'global-header-placeholder');
-            loadComponent('./global-footer.html', 'global-footer-placeholder');
-
-            // Carregamento condicional de libs (exemplo: Firebase em homolog)
-            if (location.hostname === 'localhost' || location.hostname.includes('homolog')) {
-                const addScript = (src, onload) => {
-                    const s = document.createElement('script');
-                    s.src = src;
-                    s.onload = onload;
-                    document.head.appendChild(s);
-                };
-                addScript('https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js', () => {
-                    addScript('https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js');
-                });
-            }
-
-            // Registrar service worker (só em https ou localhost)
-            if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
-                navigator.serviceWorker.register('./service-worker.js').catch(err => console.warn('SW registration failed:', err));
-            }
-        });
-    </script>
+    <!-- JS Modular -->
+    <script src="js/firebase-config.js"></script>
+    <script src="js/header.js"></script>
+    <script src="js/footer.js"></script>
+    <script src="js/accessibility.js"></script>
+    <script src="js/modals.js"></script>
+    <script src="js/cookies.js"></script>
+    <script src="js/back-to-top.js"></script>
+    <script src="js/libras.js"></script>
+    <script src="js/main.js"></script>
 </body>
-</html>
 </html>
