@@ -1,6 +1,101 @@
-// --- INÍCIO DO SCRIPT PRINCIPAL ---
+// Ação de fallback para o carregamento dinâmico de scripts
+function loadScript(src) {
+    const script = document.createElement('script');
+    script.src = src;
+    script.defer = true;
+    document.head.appendChild(script);
+}
+
+// Carregar o badge de carbono no final do corpo, conforme o script original
+loadScript("https://unpkg.com/website-carbon-badges@1.1.3/b.min.js");
+
 document.addEventListener('DOMContentLoaded', () => {
-            
+
+    // --- FIREBASE INITIALIZATION & DYNAMIC FORMS ---
+    // A configuração do Firebase está agora no arquivo HTML principal para
+    // que possa ser usada em outros scripts no futuro, se necessário.
+
+    // A lógica de newsletter e sugestão agora usa uma função utilitária para reutilização
+    // A API Key foi substituída por um placeholder para processamento em ambiente homologado
+    const firebaseConfig = {
+        apiKey: "__FIREBASE_API_KEY__",
+        authDomain: "site-calculadoras.firebaseapp.com",
+        projectId: "site-calculadoras",
+        storageBucket: "site-calculadoras.appspot.com",
+        messagingSenderId: "57518126485",
+        appId: "1:57518126485:web:06e8853cedea7697c5729c",
+        measurementId: "G-GD0NBBTFYR"
+    };
+
+    if (typeof firebase !== 'undefined') {
+        const app = firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        // --- NEWSLETTER FORM LOGIC ---
+        const newsletterForm = document.getElementById('newsletter-form');
+        if (newsletterForm) {
+            newsletterForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const emailInput = document.getElementById('newsletter-email');
+                const feedbackDiv = document.getElementById('newsletter-feedback');
+                const email = emailInput.value.trim();
+
+                if (email) {
+                    feedbackDiv.textContent = 'A processar...';
+                    feedbackDiv.style.color = 'gray';
+                    try {
+                        await db.collection("newsletterSubscribers").add({
+                            email: email,
+                            subscribedAt: new Date()
+                        });
+                        feedbackDiv.textContent = 'Obrigado por subscrever!';
+                        feedbackDiv.style.color = 'green';
+                        emailInput.value = '';
+                    } catch (error) {
+                        console.error("Erro ao adicionar subscrição: ", error);
+                        feedbackDiv.textContent = 'Ocorreu um erro. Por favor, tente novamente.';
+                        feedbackDiv.style.color = 'red';
+                    }
+                }
+            });
+        }
+
+        // --- SUGGESTION FORM LOGIC ---
+        const suggestionForm = document.getElementById('suggestion-form');
+        if (suggestionForm) {
+            suggestionForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const suggestionText = document.getElementById('suggestion-text');
+                const feedbackDiv = document.getElementById('suggestion-feedback');
+                const submitBtn = document.getElementById('suggestion-submit-btn');
+                const suggestion = suggestionText.value.trim();
+
+                if (suggestion) {
+                    submitBtn.disabled = true;
+                    feedbackDiv.textContent = 'A enviar sugestão...';
+                    feedbackDiv.style.color = 'gray';
+
+                    try {
+                        await db.collection("toolSuggestions").add({
+                            suggestion: suggestion,
+                            submittedAt: new Date()
+                        });
+                        feedbackDiv.textContent = 'Sugestão enviada com sucesso. Obrigado!';
+                        feedbackDiv.style.color = 'green';
+                        suggestionText.value = '';
+                    } catch (error) {
+                        console.error("Erro ao enviar sugestão: ", error);
+                        feedbackDiv.textContent = 'Ocorreu um erro. Por favor, tente novamente.';
+                        feedbackDiv.style.color = 'red';
+                    } finally {
+                        submitBtn.disabled = false;
+                    }
+                }
+            });
+        }
+    }
+
+
     // --- MENU HAMBÚRGUER ---
     const hamburgerBtn = document.getElementById('hamburger-btn');
     const mobileMenu = document.getElementById('mobile-menu');
@@ -8,74 +103,86 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (hamburgerBtn && mobileMenu && closeMenuBtn) {
         const toggleMenu = () => {
-            if (mobileMenu.style.display === 'none' || mobileMenu.style.display === '') {
-                mobileMenu.style.display = 'block';
-            } else {
-                mobileMenu.style.display = 'none';
-            }
+            const isExpanded = hamburgerBtn.getAttribute('aria-expanded') === 'true';
+            hamburgerBtn.setAttribute('aria-expanded', !isExpanded);
+            mobileMenu.style.display = isExpanded ? 'none' : 'block';
         };
 
         hamburgerBtn.addEventListener('click', toggleMenu);
         closeMenuBtn.addEventListener('click', toggleMenu);
-
-        // Adiciona um listener para fechar o menu ao clicar em qualquer link
-        const mobileLinks = mobileMenu.querySelectorAll('a');
-        mobileLinks.forEach(link => {
-            link.addEventListener('click', toggleMenu);
-        });
     }
     
-    // --- ACCORDION MENU MÓVEL ---
-    document.querySelectorAll('.mobile-dropdown-btn').forEach(button => {
-        button.addEventListener('click', () => {
-            const content = button.nextElementSibling;
-            content.classList.toggle('hidden');
-            const icon = button.querySelector('i');
-            icon.classList.toggle('fa-chevron-down');
-            icon.classList.toggle('fa-chevron-up');
-            icon.classList.toggle('rotate-180');
-        });
-    });
+    // --- LÓGICA DE NAVEGAÇÃO UNIFICADA (DESKTOP E MÓVEL) ---
+    // Esta função lida com todos os dropdowns de navegação, unificando a lógica.
+    function setupNavigation() {
+        // Seleciona todos os botões de dropdown, incluindo os de sub-níveis
+        const dropdownButtons = document.querySelectorAll('[aria-haspopup="true"]');
 
-    // --- DROPDOWNS DESKTOP & MOBILE ---
-    function setupDropdown(btnId, menuId) {
-        const button = document.getElementById(btnId);
-        const menu = document.getElementById(menuId);
-        if (!button || !menu) return;
+        dropdownButtons.forEach(button => {
+            button.addEventListener('click', (event) => {
+                event.stopPropagation();
+                const menuId = button.getAttribute('aria-controls');
+                const menu = document.getElementById(menuId);
+                
+                if (!menu) return;
 
-        button.addEventListener('click', (event) => {
-            event.stopPropagation();
-            // Fecha outros menus do mesmo tipo (desktop/mobile)
-            const type = btnId.includes('desktop') ? 'desktop' : 'mobile';
-            document.querySelectorAll(`[id$="-menu-${type}"], [id$="-menu"]`).forEach(m => {
-                if (m !== menu) m.classList.add('hidden');
+                const isCurrentlyOpen = button.getAttribute('aria-expanded') === 'true';
+                
+                // Fecha o menu se ele já estiver aberto
+                if (isCurrentlyOpen) {
+                    button.setAttribute('aria-expanded', 'false');
+                    menu.classList.add('hidden');
+                } else {
+                    // Se o menu não estiver aberto, fecha todos os outros menus antes de abri-lo
+                    document.querySelectorAll('[aria-expanded="true"]').forEach(openBtn => {
+                        const openMenuId = openBtn.getAttribute('aria-controls');
+                        const openMenu = document.getElementById(openMenuId);
+                        openBtn.setAttribute('aria-expanded', 'false');
+                        if (openMenu) openMenu.classList.add('hidden');
+                    });
+                    
+                    button.setAttribute('aria-expanded', 'true');
+                    menu.classList.remove('hidden');
+                }
+
+                // Alterna o ícone do botão
+                const icon = button.querySelector('svg');
+                if (icon) {
+                    icon.classList.toggle('rotate-180', !isCurrentlyOpen);
+                }
             });
-            menu.classList.toggle('hidden');
+        });
+
+        // Fecha menus ao clicar fora
+        window.addEventListener('click', () => {
+            document.querySelectorAll('[aria-expanded="true"]').forEach(openBtn => {
+                const openMenuId = openBtn.getAttribute('aria-controls');
+                const openMenu = document.getElementById(openMenuId);
+                openBtn.setAttribute('aria-expanded', 'false');
+                if (openMenu) openMenu.classList.add('hidden');
+                // Ajusta o ícone
+                const icon = openBtn.querySelector('svg');
+                if (icon) {
+                    icon.classList.remove('rotate-180');
+                }
+            });
         });
     }
+    
+    // Inicia a navegação unificada
+    setupNavigation();
 
-    // Desktop Dropdowns
-    ['sobre-nos-btn', 'calculadoras-btn', 'conteudo-btn', 'carreira-btn', 'fale-conosco-btn'].forEach(id => setupDropdown(id, id.replace('-btn', '-menu')));
-    setupDropdown('language-btn-desktop', 'language-menu-desktop');
-    
-    // Mobile Dropdown
-    setupDropdown('language-btn-mobile', 'language-menu-mobile');
-    
-    window.addEventListener('click', function() {
-        document.querySelectorAll('[id$="-menu"], [id$="-menu-desktop"], [id$="-menu-mobile"]').forEach(m => {
-            m.classList.add('hidden');
-        });
-    });
 
     // --- LÓGICA DE MODAIS E COOKIES (GLOBAL) ---
     const suggestToolBtn = document.getElementById('suggest-tool-btn');
     const suggestionModal = document.getElementById('suggestion-modal');
     const cookiePrefsModal = document.getElementById('cookie-prefs-modal');
 
-    const openModal = (modal) => {
+    const openModal = (modal, opener) => {
         if(!modal) return;
         modal.classList.remove('hidden');
         modal.classList.add('flex');
+        modal.opener = opener; 
         window.addEventListener('keydown', closeModalOnEsc);
     };
 
@@ -83,6 +190,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if(!modal) return;
         modal.classList.add('hidden');
         modal.classList.remove('flex');
+        if(modal.opener) modal.opener.focus();
         window.removeEventListener('keydown', closeModalOnEsc);
     };
     
@@ -107,7 +215,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     if(suggestToolBtn) {
-        suggestToolBtn.addEventListener('click', () => openModal(suggestionModal));
+        suggestToolBtn.addEventListener('click', () => openModal(suggestionModal, suggestToolBtn));
     }
     
     // --- GESTOR DE COOKIES ---
@@ -119,8 +227,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 analiticos: document.getElementById('cookies-analiticos'),
                 marketing: document.getElementById('cookies-marketing')
             };
-
-            this.prefs = { analiticos: true, marketing: false };
+            // Define marketing como VERDADEIRO por padrão (opt-out)
+            this.prefs = { analiticos: true, marketing: true };
             this.init();
         }
 
@@ -128,12 +236,42 @@ document.addEventListener('DOMContentLoaded', () => {
             this.loadPreferences();
             this.bindEvents();
             this.checkConsent();
+            this.applyCurrentConsent();
+        }
+
+        applyCurrentConsent() {
+            const adSection = document.getElementById('ad-section');
+            
+            // Atualiza o Google Consent Mode e a visibilidade da seção de anúncios
+            if (this.prefs.marketing) {
+                if(adSection) adSection.style.display = 'block';
+                if (typeof gtag === 'function') {
+                    gtag('consent', 'update', { 'ad_storage': 'granted' });
+                }
+            } else {
+                if(adSection) adSection.style.display = 'none';
+                if (typeof gtag === 'function') {
+                    gtag('consent', 'update', { 'ad_storage': 'denied' });
+                }
+            }
+
+            if (this.prefs.analiticos) {
+                 if (typeof gtag === 'function') {
+                    gtag('consent', 'update', { 'analytics_storage': 'granted' });
+                 }
+            } else {
+                 if (typeof gtag === 'function') {
+                    gtag('consent', 'update', { 'analytics_storage': 'denied' });
+                 }
+            }
         }
 
         loadPreferences() {
             try {
                 const storedPrefs = localStorage.getItem('cookiePrefs');
-                if (storedPrefs) this.prefs = JSON.parse(storedPrefs);
+                if (storedPrefs) {
+                   this.prefs = JSON.parse(storedPrefs);
+                }
             } catch (e) {
                 console.error('Falha ao carregar preferências de cookies do localStorage:', e);
             }
@@ -149,6 +287,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             this.hideBanner();
             if(this.prefsModal) closeModal(this.prefsModal);
+            this.applyCurrentConsent(); // Aplica as novas preferências salvas
         }
 
         updateUI() {
@@ -163,8 +302,11 @@ document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('decline-cookies-btn')?.addEventListener('click', () => this.declineAll());
             document.getElementById('save-cookie-prefs-btn')?.addEventListener('click', () => this.managePrefsFromModal());
 
-            document.getElementById('manage-cookies-banner-btn')?.addEventListener('click', () => openModal(this.prefsModal));
-            document.getElementById('manage-cookies-footer-btn')?.addEventListener('click', () => openModal(this.prefsModal));
+            const manageBannerBtn = document.getElementById('manage-cookies-banner-btn');
+            if(manageBannerBtn) manageBannerBtn.addEventListener('click', () => openModal(this.prefsModal, manageBannerBtn));
+
+            const manageFooterBtn = document.getElementById('manage-cookies-footer-btn');
+            if(manageFooterBtn) manageFooterBtn.addEventListener('click', () => openModal(this.prefsModal, manageFooterBtn));
         }
 
         acceptAll() {
@@ -226,6 +368,9 @@ document.addEventListener('DOMContentLoaded', () => {
             this.state = {};
             this.readingMask = null;
             this.readingGuide = null;
+            
+            // Carrega o estado salvo do localStorage
+            this.loadState();
             this.init();
         }
 
@@ -247,7 +392,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             });
 
-            this.resetBtn.addEventListener('click', () => this.resetAll());
+            this.resetBtn.addEventListener('click', () => {
+                this.resetAll();
+                this.saveState();
+            });
             
             this.menu.addEventListener('click', (e) => {
                 const target = e.target.closest('.acc-option');
@@ -268,6 +416,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (typeof this[funcName] === 'function') { this[funcName](this.state[group]); }
 
             this.updateActiveState();
+            this.saveState(); // Salva o estado após a mudança
         }
 
         applyFontSize(value) { this.body.style.fontSize = value ? `${value}em` : ''; }
@@ -294,6 +443,8 @@ document.addEventListener('DOMContentLoaded', () => {
         
         applySiteReader(active) {
             if (active) { 
+                // Aviso sobre conflito com leitores de tela
+                console.warn("Leitor de sites ativado. Pode haver conflito com outros leitores de tela instalados.");
                 this.body.addEventListener('click', this.readText, false); 
             } else { 
                 this.body.removeEventListener('click', this.readText, false); 
@@ -362,6 +513,34 @@ document.addEventListener('DOMContentLoaded', () => {
                 feature.classList.toggle('active', hasActive);
             });
         }
+        
+        // Salva o estado atual no localStorage
+        saveState() {
+            try {
+                localStorage.setItem('accessibilityState', JSON.stringify(this.state));
+            } catch (e) {
+                console.error("Falha ao salvar estado de acessibilidade:", e);
+            }
+        }
+
+        // Carrega o estado do localStorage e o aplica
+        loadState() {
+            try {
+                const stored = localStorage.getItem('accessibilityState');
+                if (stored) {
+                    this.state = JSON.parse(stored);
+                    for (const key in this.state) {
+                        const funcName = 'apply' + key.charAt(0).toUpperCase() + key.slice(1);
+                        if (typeof this[funcName] === 'function') {
+                            this[funcName](this.state[key]);
+                        }
+                    }
+                    this.updateActiveState();
+                }
+            } catch (e) {
+                console.error("Falha ao carregar estado de acessibilidade:", e);
+            }
+        }
     }
 
     new AccessibilityManager();
@@ -369,10 +548,13 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- BOTÃO LIBRAS ---
     const librasBtn = document.getElementById('libras-btn');
     if(librasBtn) {
+        // Inicializa o widget VLibras apenas se necessário e clica no botão oficial
         librasBtn.addEventListener('click', () => {
             const vw_widget = document.querySelector('[vw-access-button]');
             if (vw_widget) {
                 vw_widget.click();
+            } else {
+                console.error("Widget VLibras não encontrado. Certifique-se de que o script foi carregado e o widget está no DOM.");
             }
         });
     }
