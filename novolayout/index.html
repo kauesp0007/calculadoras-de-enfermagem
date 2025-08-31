@@ -62,46 +62,40 @@
                     if (!res.ok) throw new Error(`HTTP ${res.status} - ${res.statusText}`);
                     const html = await res.text();
 
-                    // Cria fragmento a partir do HTML recebido
+                    // Cria template a partir do HTML recebido
                     const template = document.createElement('template');
                     template.innerHTML = html.trim();
-                    const frag = template.content;
 
-                    // Substitui placeholder pelo conteúdo do fragmento
+                    // Captura os <script> presentes no conteúdo original antes de mover os nós
+                    const scriptTags = Array.from(template.content.querySelectorAll('script'));
+
+                    // Clona o fragmento para inserir no DOM (assim template.content permanece com os scripts)
+                    const frag = template.content.cloneNode(true);
+
+                    // Substitui placeholder pelo conteúdo clonado
                     const placeholder = document.getElementById(placeholderId);
                     if (!placeholder) return;
                     placeholder.replaceWith(frag);
 
-                    // Re-executa scripts presentes no fragmento (inline e externos)
-                    // Procuramos scripts no documento que tenham sido inseridos
-                    const parent = document; // já substituímos, então aparecem no DOM
-                    const scripts = parent.querySelectorAll(`script[data-injected-from="${url}"]`);
-                    // se já marcados, não duplicar
-                    if (scripts.length) return;
+                    // Evita duplicar injeção se já houver scripts marcados deste URL
+                    const alreadyInjected = document.querySelectorAll(`script[data-injected-from="${url}"]`);
+                    if (alreadyInjected.length) return;
 
-                    // Marcar e processar scripts do conteúdo recém-inserido
-                    const insertedRoot = [...document.querySelectorAll(`[data-source="${url}"]`)]; // fallback se usar marcação
-                    // Em vez disso, varremos todos os scripts do fragmento original (usando template)
-                    const scriptTags = template.content.querySelectorAll('script');
+                    // Re-executa scripts: externos adicionados ao head, inline ao body
                     scriptTags.forEach(oldScript => {
                         const newScript = document.createElement('script');
-                        // copia atributos
                         if (oldScript.type) newScript.type = oldScript.type;
-                        if (oldScript.nomodule) newScript.noModule = true;
+                        if (oldScript.noModule) newScript.noModule = true;
                         if (oldScript.async) newScript.async = true;
                         newScript.dataset.injectedFrom = url;
 
                         if (oldScript.src) {
-                            // externo: garante execução ao adicioná-lo ao head/body
                             newScript.src = oldScript.src;
-                            // preservar crossorigin / integrity se existirem
                             if (oldScript.crossOrigin) newScript.crossOrigin = oldScript.crossOrigin;
                             if (oldScript.integrity) newScript.integrity = oldScript.integrity;
                             document.head.appendChild(newScript);
                         } else {
-                            // inline: copiar texto
                             newScript.textContent = oldScript.textContent;
-                            // anexar onde o script original estaria (colocar no body garante execução)
                             document.body.appendChild(newScript);
                         }
                     });
@@ -130,6 +124,12 @@
 
             // Registrar service worker (só em https ou localhost)
             if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
+                navigator.serviceWorker.register('./service-worker.js').catch(err => console.warn('SW registration failed:', err));
+            }
+        });
+    </script>
+</body>
+</html>
                 navigator.serviceWorker.register('./service-worker.js').catch(err => console.warn('SW registration failed:', err));
             }
         });
