@@ -29,8 +29,7 @@
     <meta name="twitter:image" content="https://www.calculadorasdeenfermagem.com.br/iconpages.webp" />
 
     <script src="https://cdn.tailwindcss.com"></script>
-<script src="https://cmp.gatekeeperconsent.com/min.js" data-cfasync="false"></script>
-<script src="https://the.gatekeeperconsent.com/cmp.min.js" data-cfasync="false"></script>
+
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link rel="stylesheet" href="global-styles.css">
 
@@ -40,7 +39,7 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/antijingoist/opendyslexic/web/opendyslexic.css" />
 
     <script async src="https://www.googletagmanager.com/gtag/js?id=AW-952633102"></script>
-    <script async src="//www.ezojs.com/ezoic/sa.min.js"></script>
+
 <script>
     window.ezstandalone = window.ezstandalone || {};
     ezstandalone.cmd = ezstandalone.cmd || [];
@@ -57,6 +56,56 @@
         gtag('config', 'AW-952633102');
         gtag('config', 'G-8FLJ59XXDK');
     </script>
+    <!-- Consent Mode base + helper para carregamento condicional do Google AdSense -->
+<script>
+  // Função para aplicar preferências de consentimento ao gtag
+  function applyConsent(adAccepted) {
+    if (adAccepted) {
+      // usuário aceitou anúncios
+      gtag('consent', 'update', {
+        'ad_storage': 'granted',
+        'analytics_storage': 'granted'
+      });
+      // carregar AdSense dinamicamente (exemplo)
+      loadAdSense();
+    } else {
+      // usuário recusou anúncios
+      gtag('consent', 'update', {
+        'ad_storage': 'denied',
+        'analytics_storage': 'denied'
+      });
+    }
+  }
+
+  // Função para injetar script do AdSense somente quando aceito
+  function loadAdSense() {
+    if (document.getElementById('adsbygoogle-js')) return; // evita múltiplas injeções
+    var s = document.createElement('script');
+    s.id = 'adsbygoogle-js';
+    s.async = true;
+    s.src = "https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js";
+    // se usar publisher ID, poderia precisar inserir atributo 'data-ad-client' em outro lugar (nos blocos de anúncio).
+    document.head.appendChild(s);
+  }
+
+  // Ao carregar a página, se o usuário já aceitou antes, aplicamos.
+  (function(){
+    try {
+      var stored = localStorage.getItem('consent_ads');
+      if (stored === 'accepted') {
+        applyConsent(true);
+      } else if (stored === 'rejected') {
+        applyConsent(false);
+      } else {
+        // padrão já definido acima (denied)
+      }
+    } catch(e){
+      // se localStorage não disponível, mantém o padrão denied
+      console.warn('localStorage não disponível para consentimento.');
+    }
+  })();
+</script>
+
 
     <script type="application/ld+json">
     {
@@ -702,7 +751,6 @@
 
 <!-- Anúncio Adterra antes do footer -->
 <div id="container-62a5c8277a385b7247c1969a06823c61" class="w-full max-w-md mx-auto my-4"></div>
-<script async="async" data-cfasync="false" src="//pl27406653.profitableratecpm.com/62a5c8277a385b7247c1969a06823c61/invoke.js"></script>
 
 <!-- Rodapé -->
 <footer>
@@ -775,5 +823,87 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script src="https://vlibras.gov.br/app/vlibras-plugin.js"></script>
     <script src="global-scripts.js"></script>
+    <!-- ========================
+     BANNER DE CONSENTIMENTO COMPATÍVEL COM GOOGLE
+     ======================== -->
+<style>
+  /* estilo básico; usa tailwind mas adiciono fallback simples */
+  #consent-banner {
+    position: fixed;
+    left: 1rem;
+    right: 1rem;
+    bottom: 1rem;
+    z-index: 9999;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+    padding: 1rem;
+    display: none;
+    align-items: center;
+    gap: 1rem;
+    max-width: 980px;
+    margin: 0 auto;
+  }
+  #consent-banner p { margin: 0; color: #111827; }
+  #consent-banner .btn { padding: 0.5rem 0.9rem; border-radius: 8px; cursor: pointer; border: none; }
+  #consent-accept { background: #1A3E74; color: white; }
+  #consent-reject { background: #e5e7eb; color: #111827; }
+  @media (min-width: 768px) {
+    #consent-banner { display: flex; }
+  }
+</style>
+
+<div id="consent-banner" role="dialog" aria-live="polite" aria-label="Preferências de cookies">
+  <div style="flex:1; min-width:0">
+    <p style="font-weight:600; color:#1A3E74">Preferência de cookies</p>
+    <p style="font-size:0.95rem; color:#374151; margin-top:6px;">
+      Usamos cookies para melhorar sua experiência e exibir anúncios relevantes.
+      Clique <a href="politica.html" style="color:#1A3E74; text-decoration:underline">Política de Privacidade</a> para mais detalhes.
+    </p>
+  </div>
+  <div style="display:flex; gap:0.5rem; align-items:center">
+    <button id="consent-reject" class="btn" aria-label="Recusar anúncios">Recusar</button>
+    <button id="consent-accept" class="btn" aria-label="Aceitar anúncios">Aceitar</button>
+  </div>
+</div>
+
+<script>
+  (function(){
+    var banner = document.getElementById('consent-banner');
+    var btnAccept = document.getElementById('consent-accept');
+    var btnReject = document.getElementById('consent-reject');
+
+    function hideBanner() {
+      banner.style.display = 'none';
+    }
+    function showBanner() {
+      // se já tiver escolha, não mostra
+      try {
+        var stored = localStorage.getItem('consent_ads');
+        if (stored === 'accepted' || stored === 'rejected') {
+          banner.style.display = 'none';
+          return;
+        }
+      } catch(e){}
+      banner.style.display = 'flex';
+    }
+
+    btnAccept.addEventListener('click', function(){
+      try { localStorage.setItem('consent_ads', 'accepted'); } catch(e){}
+      applyConsent(true); // função definida no head
+      hideBanner();
+    });
+
+    btnReject.addEventListener('click', function(){
+      try { localStorage.setItem('consent_ads', 'rejected'); } catch(e){}
+      applyConsent(false);
+      hideBanner();
+    });
+
+    // Mostrar banner somente se ainda não houver escolha
+    showBanner();
+  })();
+</script>
+
 </body>
 </html>
