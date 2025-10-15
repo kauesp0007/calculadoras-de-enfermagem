@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="de-DE">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SOFA - Sequential Organ Failure Assessment - Pflege-Rechner</title>
+
+    <link rel="canonical" href="https://www.calculadorasdeenfermagem.com.br/sofa.html" />
+
+    <link rel="alternate" hreflang="pt-br" href="https://www.calculadorasdeenfermagem.com.br/sofa.html" />
+    <link rel="alternate" hreflang="de" href="https://www.calculadorasdeenfermagem.com.br/de/sofa.html" />
+    <link rel="icon" href="../favicon.ico" type="image/x-icon" />
+    <meta name="description" content="Berechnen Sie den SOFA-Score (Sequential Organ Failure Assessment) zur Beurteilung von Organversagen bei kritisch kranken Patienten, zur Quantifizierung der Schwere in sechs Organsystemen und zur Unterstützung der Überwachung und klinischer Entscheidungen." />
+    <meta property="og:title" content="SOFA - Sequential Organ Failure Assessment - Pflege-Rechner" />
+    <meta property="og:description" content="Interaktiver Rechner für den SOFA-Score zur Beurteilung von Organversagen bei kritisch kranken Patienten, zur Quantifizierung der Schwere in sechs Organsystemen und zur Unterstützung der Überwachung und klinischer Entscheidungen." />
+    <meta property="og:url" content="https://www.calculadorasdeenfermagem.com.br/de/sofa.html" />
+    <meta property="og:image" content="https://www.calculadorasdeenfermagem.com.br/iconpages.webp" />
+    <meta name="twitter:card" content="summary_large_image" />
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="../global-styles.css">
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@700;900&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/antijingoist/opendyslexic/web/opendyslexic.css" />
+
+    <script async src="https://www.googletagmanager.com/gtag/js?id=AW-952633102"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('consent', 'default', {
+            'analytics_storage': 'denied',
+            'ad_storage': 'denied',
+            'wait_for_update': 500
+        });
+        gtag('config', 'AW-952633102');
+        gtag('config', 'G-8FLJ59XXDK');
+    </script>
+    
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "MedicalEntity",
+      "name": "SOFA - Sequential Organ Failure Assessment",
+      "url": "https://www.calculadorasdeenfermagem.com.br/de/sofa.html",
+      "description": "Interaktiver Rechner für den SOFA-Score zur Beurteilung von Organversagen bei kritisch kranken Patienten, zur Quantifizierung der Schwere in sechs Organsystemen und zur Unterstützung der Überwachung und klinischer Entscheidungen.",
+      "alternateName": ["SOFA Score Calculator", "Sequential Organ Failure Assessment"]
+    }
+    </script>
+
+    <style>
+        .resultado.bg-sofa-low { background-color: #D4EDDA; color: #155724; }
+        .resultado.bg-sofa-medium { background-color: #FFF3CD; color: #856404; }
+        .resultado.bg-sofa-high { background-color: #F8D7DA; color: #721C24; }
+        .bg-info-orange-light { background-color: #ffeeba; border-color: #ffb366; color: #856404; }
+
+        .sofa-criteria-container {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+        .sofa-criterion-card {
+            background-color: #fff;
+            border: 1px solid #d1d5db;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: box-shadow 0.3s ease;
+        }
+        .sofa-criterion-card:hover {
+            box-shadow: 0 10px 15px rgba(0, 0, 0, 0.15);
+        }
+        .sofa-criterion-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.75rem;
+            text-align: left;
+        }
+        .sofa-criterion-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #1A3E74;
+        }
+        .sofa-score-display {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #1FA4E5;
+        }
+        .sofa-select {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #ccc;
+            border-radius: 0.375rem;
+            font-size: 1rem;
+            color: #333;
+            background-color: #fff;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='currentColor'%3E%3Cpath fill-rule='evenodd' d='M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z' clip-rule='evenodd'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 0.75rem center;
+            background-size: 1.5em 1.5em;
+        }
+        .sofa-select:focus {
+            outline: none;
+            border-color: #1FA4E5;
+            box-shadow: 0 0 0 3px rgba(31, 164, 229, 0.2);
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800 font-inter">
+
+    <nav aria-label="Barrierefreiheits-Verknüpfungen" class="sr-only focus-within:not-sr-only focus-within:absolute focus-within:top-0 focus-within:left-0 focus-within:z-50 focus-within:bg-white focus-within:text-blue-700 focus-within:p-4 focus-within:underline">
+        <a href="/" accesskey="I" class="block mb-2">Zur Startseite springen [Alt + Shift + I]</a>
+        <a href="#main-content" accesskey="C" class="block mb-2">Zum Hauptinhalt springen [Alt + Shift + C]</a>
+        <a href="#barraAcessibilidade" accesskey="A" class="block mb-2">Barrierefreiheitsleiste aktivieren [Alt + Shift + A]</a>
+        <a href="#backToTopBtn" accesskey="T" class="block">Zurück zum Seitenanfang [Alt + Shift + T]</a>
+    </nav>
+
+    <div id="statusMessage" class="sr-only" aria-live="polite" aria-atomic="true"></div>
+
+    <div id="global-header-container"></div>
+    
+    <main id="main-content" class="flex-grow p-4 sm:p-8">
+        <div class="main-content-wrapper max-w-4xl mx-auto px-4 py-8">
+            <nav class="breadcrumb" aria-label="breadcrumb"><ol><li><a href="index.html">Start</a></li><li><a href="#">Rechner</a></li><li>SOFA-Score</li></ol></nav>
+
+            <div class="flex flex-col items-center justify-center gap-4 mb-3 text-center">
+                <h1 id="main-title" class="font-nunito font-extrabold text-dark-blue text-4xl lg:text-5xl">
+                    SOFA-Score
+                </h1>
+            </div>
+            <div class="title-bar w-full h-1 bg-dark-blue mx-auto mb-6"></div>
+
+            <h2 id="main-subtitle" class="font-inter font-semibold text-light-blue text-xl lg:text-2xl mb-3 text-center">
+                Sequential Organ Failure Assessment
+            </h2>
+            <p id="description-text" class="text-gray-700 mb-6 text-left">
+                Der Begriff "SOFA-Score" bezieht sich auf den Sequential Organ Failure Assessment Score, ein entscheidendes Instrument zur Beurteilung von Organfunktionsstörungen bei kritisch kranken Patienten, insbesondere bei Sepsis. Diese Skala quantifiziert die Schwere der Dysfunktion in sechs Hauptorgansystemen: Atmung, Herz-Kreislauf, Leber, Niere, Nervensystem und Blutgerinnung. Jedes System erhält eine Punktzahl von 0 bis 4, wobei höhere Punktzahlen eine stärkere Dysfunktion anzeigen. Der Gesamt-SOFA-Score kann von 0 bis 24 reichen. Ein höherer SOFA-Score deutet auf eine größere Krankheitsschwere und somit auf ein erhöhtes Mortalitätsrisiko hin. Der SOFA-Score wird häufig auf Intensivstationen (ITS) eingesetzt, um den Verlauf von Organfunktionsstörungen zu überwachen, klinische Entscheidungen zu unterstützen und die Reaktion auf die Behandlung bei schwerkranken Patienten zu bewerten.
+            </p>
+            <p class="font-inter text-black-custom text-base lg:text-lg text-center sm:text-left">
+                <strong>Erstellungsjahr:</strong> 1994 
+            </p>
+            <p class="font-inter text-black-custom text-base lg:text-lg text-center sm:text-left">
+                <strong>Autoren:</strong> Experten der European Society of Intensive Care Medicine.
+            </p>
+            <p class="font-inter text-black-custom text-base lg:text-lg text-center sm:text-left">
+                <strong>Anwendungsbereich:</strong> Intensivstationen (ITS).
+            </p>
+            <p class="font-inter text-black-custom text-base lg:text-lg text-center sm:text-left">
+                <strong>Bewertete Kriterien:</strong> Atmung, Gerinnung, Leber, Herz-Kreislauf, Zentralnervensystem (ZNS) und Niere.
+            </p>
+            <p class="font-inter text-black-custom text-base lg:text-lg text-center sm:text-left">
+                <strong>Wer verwendet es?:</strong> Intensivmediziner und Intensivpflegekräfte.
+            </p>
+            <p class="font-inter font-normal text-light-blue text-base lg:text-lg mb-6 text-left">
+                Wählen Sie die Punktzahl für jedes der unten stehenden Kriterien aus:
+            </p>
+
+            <div id="conteudo" class="sofa-criteria-container">
+            </div>
+
+            <div id="resultado" class="resultado hidden" aria-live="polite"></div>
+
+            <div class="flex flex-wrap justify-start gap-4 mt-6">
+                <button id="btnCalcular" class="btn-primary" aria-label="SOFA-Punktzahl berechnen">
+                    Berechnen
+                </button>
+                <button id="btnLimpar" class="btn-primary" aria-label="Felder löschen">
+                    Löschen
+                </button>
+                <button id="btnGerarPDF" class="btn-secondary" aria-label="PDF generieren">
+                    PDF generieren
+                </button>
+                <button id="btnNandaNicNoc" class="btn-primary" aria-label="NANDA, NIC, NOC durchsuchen">
+                    NANDA, NIC, NOC
+                </button>
+            </div>
+
+            <div class="ref font-inter text-gray-custom text-left mt-8 border-t pt-4">
+                <strong>Referenzen:</strong>
+                <p class="mt-2">
+                    Vincent, J. L., Moreno, R., Takala, J., et al. (1996). The SOFA (Sepsis-related Organ Failure Assessment) score to describe organ dysfunction/failure. *Intensive Care Medicine*, 22(7), 707–710. Verfügbar unter: <a href="https://link.springer.com/article/10.1007/BF01709751" target="_blank" rel="noopener noreferrer" class="text-light-blue hover:underline">https://link.springer.com/article/10.1007/BF01709751</a>
+                </p>
+                <p class="mt-2">
+                    Singer, M., Deutschman, C. S., Seymour, C. W., et al. (2016). The Third International Consensus Definitions for Sepsis and Septic Shock (Sepsis-3). *JAMA*, 315(8), 801–810. (Dieser Artikel validiert die Verwendung des SOFA-Scores zur Definition von Sepsis). Verfügbar unter: <a href="https://jamanetwork.com/journals/jama/fullarticle/2492881" target="_blank" rel="noopener noreferrer" class="text-light-blue hover:underline">https://jamanetwork.com/journals/jama/fullarticle/2492881</a>
+                </p>
+            </div>
+        </div>
+    </main>
+
+    <footer class="bg-[#1A3E74] text-white py-8">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="border-b border-white pb-4 mb-4">
+                <div class="flex justify-start items-center">
+                    <img src="https://www.calculadorasdeenfermagem.com.br/iconrodape1.webp" alt="Logo Pflege-Rechner im Fußbereich" width="120" height="84" class="h-auto w-auto max-w-[80px] max-h-[80px]" loading="lazy" decoding="async">
+                </div>
+            </div>
+            <div class="md:flex md:justify-between md:items-start md:space-x-8 md:items-stretch">
+                <div class="mb-6 md:mb-0">
+                    <h5 class="font-bold mb-2">Institutionell</h5>
+                    <ul class="list-none space-y-1">
+                        <li><a href="index.html" class="text-white hover:underline">Start</a></li>
+                        <li><a href="missao.html" class="text-white hover:underline">Über uns</a></li>
+                        <li><a href="mapa-do-site.html" class="text-white hover:underline">Sitemap</a></li>
+                        <li><a href="politica.html" class="text-white hover:underline">Cookie-Richtlinie</a></li>
+                        <li><a href="politica.html" class="text-white hover:underline">Datenspeicherungsrichtlinie</a></li>
+                        <li><a href="politica.html" class="text-white hover:underline">DSGVO</a></li>
+                        <li><a href="politica.html" class="text-white hover:underline">Datenschutzrichtlinie</a></li>
+                        <li><a href="termos.html" class="text-white hover:underline">Nutzungsbedingungen</a></li>
+                        <li><a href="politicadeacessibilidade.html" class="text-white hover:underline">Barrierefreiheitsrichtlinie</a></li>
+                    </ul>
+                </div>
+                <div class="mb-6 md:mb-0">
+                    <h5 class="font-bold mb-2">Digitale Nachhaltigkeit</h5>
+                    <ul class="list-none space-y-1">
+                        <li><a href="nossocompromisso.html" class="text-white hover:underline">Unser Engagement</a></li>
+                        <li><a href="impactodigital.html" class="text-white hover:underline">Auswirkungsbericht</a></li>
+                        <li><a href="tecnologiaverde.html" class="text-white hover:underline">Grüne Technologie</a></li>
+                    </ul>
+                </div>
+                <div class="mb-6 md:mb-0">
+                    <h5 class="font-bold mb-2">Unser Engagement</h5>
+                    <p class="text-white text-sm mb-2 max-w-sm md:max-w-xs">Unsere Website hat sich zum Prinzip der Governance verpflichtet, hohe Standards in Bezug auf digitale Barrierefreiheit, digitale Nachhaltigkeit und Datenschutz einzuhalten.</p>
+                    <div class="flex space-x-4 items-center justify-start">
+                        <img src="https://www.calculadorasdeenfermagem.com.br/seloacessibilidade.webp" alt="Barrierefreiheits-Siegel" width="100" height="100" class="w-auto h-auto max-w-[80px] max-h-[80px]" loading="lazy" decoding="async">
+                        <img src="https://www.calculadorasdeenfermagem.com.br/selosustentabilidade.webp" alt="Nachhaltigkeits-Siegel" width="100" height="100" class="w-auto h-auto max-w-[80px] max-h-[80px]" loading="lazy" decoding="async">
+                        <img src="https://www.calculadorasdeenfermagem.com.br/selolgpd.webp" alt="DSGVO-Siegel" width="100" height="100" class="w-auto h-auto max-w-[80px] max-h-[80px]" loading="lazy" decoding="async">
+                    </div>
+                </div>
+                <div class="flex flex-1 flex-col md:flex-row justify-end items-start md:items-start">
+                    <div class="vertical-divider-footer-stretched hidden md:block"></div>
+                    <div class="flex flex-col items-start space-y-4">
+                        <h5 class="font-bold mb-2">Folgen Sie uns</h5>
+                        <div class="flex space-x-4">
+                            <a href="https://linkedin.com/company/calculadoras-de-enfermagem" target="_blank" class="footer-social-icon" title="LinkedIn" aria-label="Besuchen Sie unser LinkedIn-Profil"><i class="fab fa-linkedin text-xl"></i></a>
+                            <a href="https://www.instagram.com/calculadorasdeenfermagem/" target="_blank" class="footer-social-icon" title="Instagram" aria-label="Besuchen Sie unser Instagram-Profil"><i class="fab fa-instagram text-xl"></i></a>
+                            <a href="https://www.tiktok.com/@calculadorasdeenf" target="_blank" class="footer-social-icon" title="TikTok" aria-label="Besuchen Sie unser TikTok-Profil"><i class="fab fa-tiktok text-xl"></i></a>
+                            <a href="https://www.youtube.com/channel/UC_6runTDHz8u5S1Yab842pg" target="_blank" class="footer-social-icon" title="YouTube" aria-label="Besuchen Sie unseren YouTube-Kanal"><i class="fab fa-youtube text-xl"></i></a>
+                        </div>
+                        <button id="openGranularCookieModalBtn" class="btn-secondary text-white mt-4 py-2 px-4 rounded-md" aria-label="Cookie-Einstellungen verwalten">
+                            Cookie-Einstellungen verwalten
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="mt-8 text-center">
+                <p>© 2025 Pflege-Rechner. Alle Rechte vorbehalten.</p>
+            </div>
+        </div>
+    </footer>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="https://vlibras.gov.br/app/vlibras-plugin.js"></script>
+    <script src="../global-scripts.js"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const resultadoDiv = document.getElementById('resultado');
+            const btnCalcular = document.getElementById('btnCalcular');
+            const btnLimpar = document.getElementById('btnLimpar');
+            const btnGerarPDF = document.getElementById('btnGerarPDF');
+            const btnNandaNicNoc = document.getElementById('btnNandaNicNoc');
+            const conteudoDiv = document.getElementById('conteudo');
+            
+            const sofaData = [
+                {
+                    category: "Atmung (PaO₂/FiO₂)",
+                    nameAttr: "respiratorio",
+                    explanation: "Bewerten Sie das Verhältnis PaO₂/FiO₂ des Patienten. PaO₂ in mmHg.",
+                    options: [
+                        { description: "> 400 mmHg", score: 0 },
+                        { description: "< 400 mmHg", score: 1 },
+                        { description: "< 300 mmHg", score: 2 },
+                        { description: "< 200 mmHg mit Beatmungsunterstützung", score: 3 },
+                        { description: "< 100 mmHg mit Beatmungsunterstützung", score: 4 }
+                    ]
+                },
+                {
+                    category: "Gerinnung (Thrombozyten)",
+                    nameAttr: "coagulacao",
+                    explanation: "Bewerten Sie die Thrombozytenzahl des Patienten (x10³ /µL).",
+                    options: [
+                        { description: "≥ 150 x 10³", score: 0 },
+                        { description: "< 150 x 10³", score: 1 },
+                        { description: "< 100 x 10³", score: 2 },
+                        { description: "< 50 x 10³", score: 3 },
+                        { description: "< 20 x 10³", score: 4 }
+                    ]
+                },
+                {
+                    category: "Leber (Bilirubin)",
+                    nameAttr: "hepatico",
+                    explanation: "Bewerten Sie den Bilirubinspiegel des Patienten (mg/dL).",
+                    options: [
+                        { description: "< 1.2 mg/dL", score: 0 },
+                        { description: "1.2-1.9 mg/dL", score: 1 },
+                        { description: "2-5.9 mg/dL", score: 2 },
+                        { description: "6-11.9 mg/dL", score: 3 },
+                        { description: "> 12 mg/dL", score: 4 }
+                    ]
+                },
+                {
+                    category: "Herz-Kreislauf (MAD und vasoaktive Medikamente)",
+                    nameAttr: "cardiovascular",
+                    explanation: "Bewerten Sie den mittleren arteriellen Druck (MAD) oder die Verwendung von vasoaktiven Medikamenten.",
+                    options: [
+                        { description: "MAD ≥ 70 mmHg", score: 0 },
+                        { description: "MAD < 70 mmHg", score: 1 },
+                        { description: "Dopamin < 5 µg/kg/min oder jede Dosis Dobutamin", score: 2 },
+                        { description: "Dopamin 5.1-15 µg/kg/min oder Epinephrin ≤ 0.1 µg/kg/min oder Norepinephrin ≤ 0.1 µg/kg/min", score: 3 },
+                        { description: "Dopamin > 15 µg/kg/min oder Epinephrin > 0.1 µg/kg/min oder Norepinephrin > 0.1 µg/kg/min", score: 4 }
+                    ]
+                },
+                {
+                    category: "ZNS (Glasgow Coma Scale)",
+                    nameAttr: "snc",
+                    explanation: "Bewerten Sie die Glasgow Coma Scale (GCS) des Patienten.",
+                    options: [
+                        { description: "GCS 15", score: 0 },
+                        { description: "GCS 13-14", score: 1 },
+                        { description: "GCS 10-12", score: 2 },
+                        { description: "GCS 6-9", score: 3 },
+                        { description: "GCS < 6", score: 4 }
+                    ]
+                },
+                {
+                    category: "Niere (Kreatinin/Urinfluss)",
+                    nameAttr: "renal",
+                    explanation: "Bewerten Sie das Serumkreatinin (mg/dL) oder den Urinfluss (mL/24h).",
+                    options: [
+                        { description: "Serum-Kr < 1.2 mg/dL", score: 0 },
+                        { description: "Serum-Kr 1.2-1.9 mg/dL", score: 1 },
+                        { description: "Serum-Kr 2-3.4 mg/dL", score: 2 },
+                        { description: "Serum-Kr 3.5-4.9 mg/dL oder Urinfluss < 500 mL/24h", score: 3 },
+                        { description: "Serum-Kr > 5 mg/dL oder Urinfluss < 200 mL/24h", score: 4 }
+                    ]
+                }
+            ];
+
+            function updateScoreDisplay(criterionId) {
+                const selectElement = document.getElementById(criterionId);
+                const scoreDisplayElement = document.getElementById(`${criterionId}_score_display`);
+                if (selectElement && scoreDisplayElement) {
+                    scoreDisplayElement.innerText = selectElement.value === "" ? "0" : selectElement.value;
+                }
+            }
+
+            function berechnePunktzahl() {
+                let totalSOFAScore = 0;
+                let allItemsSelected = true;
+
+                sofaData.forEach(item => {
+                    const selectElement = document.getElementById(item.nameAttr);
+                    if (selectElement.value === "") {
+                        allItemsSelected = false;
+                    } else {
+                        totalSOFAScore += parseInt(selectElement.value, 10);
+                    }
+                });
+
+                resultadoDiv.style.display = 'block';
+                if (!allItemsSelected) {
+                    resultadoDiv.innerHTML = '⚠️ <strong class="font-bold">Bitte wählen Sie für jedes Kriterium eine Option aus</strong>, bevor Sie berechnen.';
+                    resultadoDiv.className = 'resultado bg-info-orange-light';
+                    delete resultadoDiv.dataset.score;
+                    return;
+                }
+
+                let interpretacao = '';
+                let conduta = '';
+                let resultadoClasse = '';
+
+                if (totalSOFAScore >= 0 && totalSOFAScore <= 4) {
+                    interpretacao = "Geringe Organdysfunktion. Prognose im Allgemeinen gut.";
+                    resultadoClasse = 'bg-sofa-low';
+                    conduta = "Klinische Überwachung beibehalten. Neubewertung je nach Entwicklung des Patienten.";
+                } else if (totalSOFAScore >= 5 && totalSOFAScore <= 9) {
+                    interpretacao = "Mäßige Organdysfunktion. Erhöhtes Mortalitätsrisiko.";
+                    resultadoClasse = 'bg-sofa-medium';
+                    conduta = "Intensive Bewertung und Management. Untersuchung auf Sepsis und andere Ursachen für Dysfunktion in Betracht ziehen.";
+                } else { // totalSOFAScore >= 10
+                    interpretacao = "Schwere Organdysfunktion. Hohes Mortalitätsrisiko.";
+                    resultadoClasse = 'bg-sofa-high';
+                    conduta = "Aggressives Management der Organdysfunktion. Erweiterte Lebenserhaltung und aktive Suche nach reversiblen Ursachen.";
+                }
+
+                resultadoDiv.innerHTML = `<p>SOFA-Gesamtpunktzahl: <strong class="font-bold">${totalSOFAScore}</strong></p><p>Interpretation: <strong class="font-bold">${interpretacao}</strong></p><p>Vorgeschlagene Vorgehensweise: <strong class="font-bold">${conduta}</strong></p>`;
+                resultadoDiv.className = `resultado ${resultadoClasse}`;
+                
+                resultadoDiv.dataset.score = totalSOFAScore;
+                resultadoDiv.dataset.interpretacao = interpretacao;
+                resultadoDiv.dataset.conduta = conduta;
+                resultadoDiv.dataset.scaleName = "SOFA-Score";
+            }
+
+            function felderLeeren() {
+                sofaData.forEach(item => {
+                    const selectElement = document.getElementById(item.nameAttr);
+                    selectElement.selectedIndex = 0;
+                    document.getElementById(`${item.nameAttr}_score_display`).innerText = '0';
+                });
+                resultadoDiv.innerHTML = '';
+                resultadoDiv.className = 'resultado hidden';
+                delete resultadoDiv.dataset.score;
+                delete resultadoDiv.dataset.interpretacao;
+                delete resultadoDiv.dataset.conduta;
+                delete resultadoDiv.dataset.scaleName;
+            }
+
+            sofaData.forEach((item, index) => {
+                const sectionDiv = document.createElement('div');
+                sectionDiv.className = 'sofa-criterion-card';
+                
+                const headerDiv = document.createElement('div');
+                headerDiv.className = 'sofa-criterion-header';
+
+                const titleH3 = document.createElement('h3');
+                titleH3.className = 'sofa-criterion-title';
+                titleH3.innerText = `${item.category}`;
+                headerDiv.appendChild(titleH3);
+
+                const scoreSpan = document.createElement('span');
+                scoreSpan.className = 'sofa-score-display';
+                scoreSpan.id = `${item.nameAttr}_score_display`;
+                scoreSpan.innerText = '0';
+                headerDiv.appendChild(scoreSpan);
+                
+                sectionDiv.appendChild(headerDiv);
+
+                const optionsDiv = document.createElement('div');
+                optionsDiv.className = 'sofa-criterion-options';
+
+                const selectElement = document.createElement('select');
+                selectElement.id = item.nameAttr;
+                selectElement.className = 'sofa-select';
+                selectElement.onchange = () => updateScoreDisplay(item.nameAttr);
+
+                const defaultOption = document.createElement('option');
+                defaultOption.value = "";
+                defaultOption.text = "Auswählen...";
+                defaultOption.disabled = true;
+                defaultOption.selected = true;
+                selectElement.appendChild(defaultOption);
+
+                item.options.forEach(option => {
+                    const optionElement = document.createElement('option');
+                    optionElement.value = option.score;
+                    optionElement.text = `${option.description} (${option.score})`;
+                    selectElement.appendChild(optionElement);
+                });
+
+                optionsDiv.appendChild(selectElement);
+                sectionDiv.appendChild(optionsDiv);
+
+                const explanationP = document.createElement('p');
+                explanationP.className = 'text-gray-600 text-sm mt-2 text-left';
+                explanationP.innerText = item.explanation;
+                sectionDiv.appendChild(explanationP);
+                
+                conteudoDiv.appendChild(sectionDiv);
+            });
+
+            btnCalcular?.addEventListener('click', berechnePunktzahl);
+            btnLimpar?.addEventListener('click', felderLeeren);
+
+            btnGerarPDF?.addEventListener('click', () => {
+                if (!resultadoDiv.dataset.score) {
+                    alert('Bitte klicken Sie zuerst auf "Berechnen", um das PDF zu generieren.');
+                    return;
+                }
+                if (typeof gerarPDFGlobal === 'function') {
+                    gerarPDFGlobal({
+                        titulo: 'SOFA-Score',
+                        subtitulo: 'Bericht zur Beurteilung von Organversagen',
+                        nomeArquivo: 'bericht_sofa_score.pdf',
+                        seletorConteudo: '.main-content-wrapper'
+                    });
+                } else {
+                    console.error('Funktion gerarPDFGlobal nicht definiert.');
+                }
+            });
+            
+            btnNandaNicNoc?.addEventListener('click', () => {
+                const score = resultadoDiv.dataset.score;
+                const scaleName = resultadoDiv.dataset.scaleName;
+                const conduta = resultadoDiv.dataset.conduta;
+                if (!score || !conduta) {
+                    alert('Berechnen Sie das Ergebnis, um nach der Vorgehensweise zu suchen.');
+                    return;
+                }
+                const searchQuery = encodeURIComponent(`${scaleName} Punktzahl ${score} Vorgehensweise ${conduta} Taxonomie NANDA, NIC und NOC generieren`);
+                window.open(`https://www.google.com/search?q=${searchQuery}`, '_blank');
+            });
+        });
+    </script>
+</body>
+</html>
