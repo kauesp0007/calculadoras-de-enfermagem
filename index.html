@@ -122,17 +122,13 @@
             gap: 1.5rem;
             grid-template-columns: repeat(1, minmax(0, 1fr));
         }
-       /* Garantir menu de idioma sobre a caixa de pesquisa */
-       #langMenu {
-         z-index: 220; /* acima do search-wrapper (100) */
-       }
- 
+
         /* ======= Search box styles ======= */
         #search-wrapper {
           position: absolute;
           right: 2rem;
           top: calc(100% + 8px); /* coloca abaixo da caixa de idioma, pequeno espaçamento */
-          z-index: 100; /* menor que o langMenu para não cobrir o menu */
+          z-index: 90;
           width: 320px;
           max-width: calc(100% - 3rem);
           display: none; /* mostrado via JS quando JS presente / em desktop mostra por padrão */
@@ -191,7 +187,7 @@
                 'params' : {}
             };
         </script>
-        <script async type="text/javascript" src="//www.highperformanceformat.com/1e009bba81deb2bc366b3c4ac030f6be/invoke.js"></script>
+        <script type="text/javascript" src="//www.highperformanceformat.com/1e009bba81deb2bc366b3c4ac030f6be/invoke.js"></script>
     </div>
     
 
@@ -220,7 +216,11 @@
         <img src="bandeira-eua.webp" class="w-5 h-4 rounded-sm" alt="EN"><span>English</span>
       </div>
       <div class="flex items-center px-3 py-2 hover:bg-gray-100 cursor-pointer space-x-2" data-value="es" data-flag="bandeira-espanha.webp">
-        <img src="bandeira-espanha.webp" class
+        <img src="bandeira-espanha.webp" class="w-5 h-4 rounded-sm" alt="ES"><span>Español</span>
+      </div>
+      <div class="flex items-center px-3 py-2 hover:bg-gray-100 cursor-pointer space-x-2" data-value="de" data-flag="bandeira-alemanha.webp">
+        <img src="bandeira-alemanha.webp" class="w-5 h-4 rounded-sm" alt="DE"><span>Deutsch</span>
+      </div>
       <div class="flex items-center px-3 py-2 hover:bg-gray-100 cursor-pointer space-x-2" data-value="it" data-flag="bandeira-italia.webp">
         <img src="bandeira-italia.webp" class="w-5 h-4 rounded-sm" alt="IT"><span>Italiano</span>
       </div>
@@ -262,19 +262,23 @@
     });
   })();
 
-  // Seletor de idioma: inicializa somente após DOM estar pronto (evita não-inicializar em produção)
-  document.addEventListener('DOMContentLoaded', function initLangSelector() {
+  // Seletor de idioma com proteção caso elementos não existam
+  (function initLangSelector(){
     const button   = document.getElementById("langButton");
     const menu     = document.getElementById("langMenu");
     const langFlag = document.getElementById("langFlag");
     const langText = document.getElementById("langText");
-    if (!button || !menu || !langFlag || !langText) return;
 
+    if (!button || !menu || !langFlag || !langText) return; // evita erros em builds que não incluam esse bloco
+
+    // Abrir/fechar menu
     button.addEventListener("click", () => {
       menu.classList.toggle("hidden");
-      button.setAttribute('aria-expanded', String(!menu.classList.contains('hidden')));
+      const expanded = !menu.classList.contains('hidden');
+      button.setAttribute('aria-expanded', String(expanded));
     });
 
+    // Fechar ao clicar fora
     document.addEventListener("click", (e) => {
       if (!button.contains(e.target) && !menu.contains(e.target)) {
         if (!menu.classList.contains('hidden')) {
@@ -284,15 +288,18 @@
       }
     });
 
+    // Troca de idioma + atualização do botão
     menu.querySelectorAll("div").forEach(item => {
       item.addEventListener("click", () => {
         const value = item.dataset.value;
         const flag  = item.dataset.flag;
         const text  = item.innerText.trim();
+
         if (flag) langFlag.src = flag;
         if (text) langText.textContent = text;
         menu.classList.add("hidden");
         button.setAttribute('aria-expanded', 'false');
+
         switch (value) {
           case 'en': window.location.href = "/en/"; break;
           case 'es': window.location.href = "/es/"; break;
@@ -303,37 +310,31 @@
       });
     });
 
-    // Detectar idioma atual
-    var path = window.location.pathname;
-    var current = menu.querySelector('[data-value="pt"]');
-    if (path.startsWith("/en/")) current = menu.querySelector('[data-value="en"]');
-    else if (path.startsWith("/es/")) current = menu.querySelector('[data-value="es"]');
-    else if (path.startsWith("/de/")) current = menu.querySelector('[data-value="de"]');
-    else if (path.startsWith("/it/")) current = menu.querySelector('[data-value="it"]');
-    if (current) { langFlag.src = current.dataset.flag; langText.textContent = current.innerText.trim(); }
-  });
+    // Detectar idioma atual pela URL ao carregar
+    window.addEventListener("DOMContentLoaded", function() {
+      const path = window.location.pathname;
+      let current = menu.querySelector('[data-value="pt"]');
+      if (path.startsWith("/en/"))      current = menu.querySelector('[data-value="en"]');
+      else if (path.startsWith("/es/")) current = menu.querySelector('[data-value="es"]');
+      else if (path.startsWith("/de/")) current = menu.querySelector('[data-value="de"]');
+      else if (path.startsWith("/it/")) current = menu.querySelector('[data-value="it"]');
 
-  // Handler global simples para capturar erros e facilitar diagnóstico (não remove funcionalidade)
-  window.addEventListener('error', function(e){
-    console.error('Erro capturado:', e.error || e.message || e);
-    try {
-      var status = document.getElementById('statusMessage');
-      if (status) {
-        status.classList.remove('sr-only');
-        status.textContent = 'Erro detectado: ' + (e.error && e.error.message ? e.error.message : (e.message || 'ver console'));
+      if (current) {
+        langFlag.src = current.dataset.flag;
+        langText.textContent = current.innerText.trim();
       }
-    } catch(ignore){}
-  });
+    });
+  })();
 </script>
 
 <!-- inserir abaixo do initLangSelector (ou ao final do mesmo bloco) o script de busca/autocomplete -->
 <script>
-// Inicializa autocomplete somente após DOM completo
-document.addEventListener('DOMContentLoaded', function initSearchAutocomplete(){
+(function initSearchAutocomplete(){
   var input = document.getElementById('search-input');
   var list  = document.getElementById('search-suggestions');
   if (!input || !list) return;
 
+  // coletar itens pesquisáveis a partir dos links dentro do main-content
   var anchors = Array.from(document.querySelectorAll('#main-content a[href]'));
   var items = anchors.map(a => {
     var titleEl = a.querySelector('h3');
@@ -342,32 +343,88 @@ document.addEventListener('DOMContentLoaded', function initSearchAutocomplete(){
   }).filter(i => i.title);
 
   var selectedIndex = -1;
-  function clearList() { list.innerHTML = ''; list.setAttribute('aria-hidden','true'); input.setAttribute('aria-expanded','false'); selectedIndex = -1; }
+
+  function clearList() {
+    list.innerHTML = '';
+    list.setAttribute('aria-hidden', 'true');
+    input.setAttribute('aria-expanded','false');
+    selectedIndex = -1;
+  }
+
   function renderResults(results) {
-    clearList(); if (!results.length) return;
+    clearList();
+    if (!results.length) return;
     var frag = document.createDocumentFragment();
     results.forEach((r, idx) => {
       var li = document.createElement('li');
-      li.textContent = r.title; li.setAttribute('role','option'); li.setAttribute('data-href', r.href || '#'); li.tabIndex = -1;
+      li.textContent = r.title;
+      li.setAttribute('role','option');
+      li.setAttribute('data-href', r.href || '#');
+      li.tabIndex = -1;
       li.addEventListener('click', function(){ window.location.href = this.dataset.href; });
-      li.addEventListener('mouseover', function(){ Array.from(list.children).forEach(ch => ch.removeAttribute('aria-selected')); this.setAttribute('aria-selected','true'); selectedIndex = idx; });
+      li.addEventListener('mouseover', function(){
+        // destacar ao passar o mouse
+        Array.from(list.children).forEach(ch => ch.removeAttribute('aria-selected'));
+        this.setAttribute('aria-selected','true');
+        selectedIndex = idx;
+      });
       frag.appendChild(li);
     });
-    list.appendChild(frag); list.setAttribute('aria-hidden','false'); input.setAttribute('aria-expanded','true');
+    list.appendChild(frag);
+    list.setAttribute('aria-hidden','false');
+    input.setAttribute('aria-expanded','true');
   }
-  function search(term) { term = term.trim().toLowerCase(); if (!term) { clearList(); return; } var results = items.filter(i => i.title.toLowerCase().indexOf(term) !== -1).slice(0, 10); renderResults(results); }
-  input.addEventListener('input', function(e){ search(e.target.value); });
-  input.addEventListener('keydown', function(e){
-    var opts = list.querySelectorAll('li'); if (!opts.length) return;
-    if (e.key === 'ArrowDown') { e.preventDefault(); selectedIndex = Math.min(selectedIndex + 1, opts.length - 1); Array.from(opts).forEach(o => o.removeAttribute('aria-selected')); opts[selectedIndex].setAttribute('aria-selected','true'); opts[selectedIndex].scrollIntoView({ block: 'nearest' }); }
-    else if (e.key === 'ArrowUp') { e.preventDefault(); selectedIndex = Math.max(selectedIndex - 1, 0); Array.from(opts).forEach(o => o.removeAttribute('aria-selected')); opts[selectedIndex].setAttribute('aria-selected','true'); opts[selectedIndex].scrollIntoView({ block: 'nearest' }); }
-    else if (e.key === 'Enter') { e.preventDefault(); if (selectedIndex >= 0 && opts[selectedIndex]) window.location.href = opts[selectedIndex].dataset.href; else if (opts[0]) window.location.href = opts[0].dataset.href; }
-    else if (e.key === 'Escape') clearList();
+
+  function search(term) {
+    term = term.trim().toLowerCase();
+    if (!term) { clearList(); return; }
+    var results = items.filter(i => i.title.toLowerCase().indexOf(term) !== -1).slice(0, 10);
+    renderResults(results);
+  }
+
+  input.addEventListener('input', function(e){
+    search(e.target.value);
   });
-  document.addEventListener('click', function(e){ if (!input.contains(e.target) && !list.contains(e.target)) clearList(); });
+
+  input.addEventListener('keydown', function(e){
+    var opts = list.querySelectorAll('li');
+    if (!opts.length) return;
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      selectedIndex = Math.min(selectedIndex + 1, opts.length - 1);
+      Array.from(opts).forEach((o,i) => o.removeAttribute('aria-selected'));
+      opts[selectedIndex].setAttribute('aria-selected','true');
+      opts[selectedIndex].scrollIntoView({ block: 'nearest' });
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      selectedIndex = Math.max(selectedIndex - 1, 0);
+      Array.from(opts).forEach((o,i) => o.removeAttribute('aria-selected'));
+      opts[selectedIndex].setAttribute('aria-selected','true');
+      opts[selectedIndex].scrollIntoView({ block: 'nearest' });
+    } else if (e.key === 'Enter') {
+      e.preventDefault();
+      if (selectedIndex >= 0 && opts[selectedIndex]) {
+        window.location.href = opts[selectedIndex].dataset.href;
+      } else {
+        // se não houver seleção, tentar navegar para primeiro resultado
+        if (opts[0]) window.location.href = opts[0].dataset.href;
+      }
+    } else if (e.key === 'Escape') {
+      clearList();
+    }
+  });
+
+  // fechar sugestões ao clicar fora
+  document.addEventListener('click', function(e){
+    if (!input.contains(e.target) && !list.contains(e.target)) clearList();
+  });
+
+  // acessibilidade: limpar ao perder foco (pequeno delay para permitir click)
   input.addEventListener('blur', function(){ setTimeout(clearList, 150); });
+
+  // mostrar a caixa de pesquisa por padrão (JS habilitado)
   document.getElementById('search-wrapper').style.display = 'block';
-});
+})();
 </script>
 
     <main id="main-content" class="flex-grow p-4 sm:p-6 lg:p-8">
