@@ -102,7 +102,6 @@
 </script>
 
 
-    <!-- Antes: script type="application/ld+json" continha CSS inválido -->
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
@@ -112,66 +111,14 @@
       "description": "Ferramentas essenciais e interativas para profissionais e estudantes de enfermagem, oferecendo calculadoras de escalas clínicas e de dosagem de medicamentos para otimizar a prática diária e a segurança do paciente.",
       "alternateName": ["Calculadoras de Saúde", "Ferramentas de Enfermagem"]
     }
-    </script>
-
-    <!-- Mover CSS para <style> separado -->
-    <style>
         /* Layout das Calculadoras (Grid) */
         .calculator-grid {
             display: grid;
-            gap: 1.5rem;
-            grid-template-columns: repeat(1, minmax(0, 1fr));
+            gap: 1.5rem; /* Aumentado um pouco o espaçamento para melhor visualização em 4 colunas */
+            grid-template-columns: repeat(1, minmax(0, 1fr)); /* 1 coluna em mobile */
         }
 
-        /* ======= Search box styles ======= */
-        #search-wrapper {
-          position: absolute;
-          right: 2rem;
-          top: calc(100% + 8px); /* coloca abaixo da caixa de idioma, pequeno espaçamento */
-          z-index: 90;
-          width: 320px;
-          max-width: calc(100% - 3rem);
-          display: none; /* mostrado via JS quando JS presente / em desktop mostra por padrão */
-        }
-        #search-input {
-          width: 100%;
-          padding: 0.5rem 0.75rem;
-          border-radius: 10px;
-          border: 1px solid #e5e7eb;
-          box-shadow: 0 4px 12px rgba(0,0,0,0.06);
-          background: white;
-          outline: none;
-        }
-        #search-suggestions {
-          margin-top: 6px;
-          list-style: none;
-          padding: 0.25rem;
-          background: white;
-          border-radius: 8px;
-          box-shadow: 0 8px 24px rgba(0,0,0,0.08);
-          max-height: 280px;
-          overflow-y: auto;
-          border: 1px solid #e6edf3;
-        }
-        #search-suggestions li {
-          padding: 0.5rem 0.6rem;
-          cursor: pointer;
-          border-radius: 6px;
-        }
-        #search-suggestions li:hover, #search-suggestions li[aria-selected="true"] {
-          background: #f1f5f9;
-        }
-
-        /* Mobile: ocupar largura e centralizar */
-        @media (max-width: 640px) {
-          #search-wrapper {
-            left: 1rem;
-            right: 1rem;
-            top: calc(100% + 8px);
-            width: auto;
-          }
-        }
-    </style>
+    </script>
     
 </head>
 
@@ -189,7 +136,7 @@
         </script>
         <script type="text/javascript" src="//www.highperformanceformat.com/1e009bba81deb2bc366b3c4ac030f6be/invoke.js"></script>
     </div>
-    
+    ```
 
     
         <div id="statusMessage" class="sr-only" aria-live="polite" aria-atomic="true"></div>
@@ -199,7 +146,7 @@
   <!-- 🌍 Seletor de Idiomas com Bandeiras (dropdown separado) -->
   <div class="relative inline-block text-left z-50">
     <!-- Botão principal -->
-    <button id="langButton" type="button" aria-expanded="false" aria-controls="langMenu" class="flex items-center space-x-2 border px-3 py-1 rounded-lg shadow bg-gray-100">
+    <button id="langButton" class="flex items-center space-x-2 border px-3 py-1 rounded-lg shadow bg-gray-100">
       <img id="langFlag" src="bandeira-brasil.webp" alt="BR" class="w-5 h-4 rounded-sm">
       <span id="langText" class="text-gray-700 font-medium">Português</span>
       <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
@@ -226,12 +173,6 @@
       </div>
     </div>
   </div>
-
-  <!-- Caixa de pesquisa ancorada à direita (fica abaixo da caixa de idioma sem sobrepor) -->
-  <div id="search-wrapper" role="search" aria-label="Pesquisar calculadoras e escalas">
-    <input id="search-input" type="search" placeholder="Pesquisar calculadora ou escala..." aria-autocomplete="list" aria-controls="search-suggestions" aria-expanded="false" />
-    <ul id="search-suggestions" role="listbox" tabindex="-1" aria-label="Sugestões de pesquisa"></ul>
-  </div>
 </div>
 
 <script>
@@ -244,567 +185,588 @@
         var h = header.offsetHeight || 0;
         wrapper.style.marginTop = (h ? (h + 12) : 24) + 'px';
       }
-      // garantir que a caixa de pesquisa apareça (JS ativa e posiciona)
-      var sw = document.getElementById('search-wrapper');
-      if (sw) sw.style.display = 'block';
     }
     window.addEventListener('load', recalcular);
     window.addEventListener('resize', recalcular);
   })();
 
-  // Remove possíveis duplicatas do seletor de idioma (mantém apenas o primeiro)
-  (function removeDuplicateLangBoxes(){
-    document.addEventListener('DOMContentLoaded', function(){
-      var elems = document.querySelectorAll('[id="language-dropdown-wrapper"]');
-      if (elems.length > 1) {
-        for (var i = 1; i < elems.length; i++) elems[i].remove();
-      }
-    });
-  })();
+  const button   = document.getElementById("langButton");
+  const menu     = document.getElementById("langMenu");
+  const langFlag = document.getElementById("langFlag");
+  const langText = document.getElementById("langText");
 
-  // Seletor de idioma com proteção caso elementos não existam
-  (function initLangSelector(){
-    const button   = document.getElementById("langButton");
-    const menu     = document.getElementById("langMenu");
-    const langFlag = document.getElementById("langFlag");
-    const langText = document.getElementById("langText");
-
-    if (!button || !menu || !langFlag || !langText) return; // evita erros em builds que não incluam esse bloco
-
-    // Abrir/fechar menu
-    button.addEventListener("click", () => {
-      menu.classList.toggle("hidden");
-      const expanded = !menu.classList.contains('hidden');
-      button.setAttribute('aria-expanded', String(expanded));
-    });
-
-    // Fechar ao clicar fora
-    document.addEventListener("click", (e) => {
-      if (!button.contains(e.target) && !menu.contains(e.target)) {
-        if (!menu.classList.contains('hidden')) {
-          menu.classList.add("hidden");
-          button.setAttribute('aria-expanded', 'false');
-        }
-      }
-    });
-
-    // Troca de idioma + atualização do botão
-    menu.querySelectorAll("div").forEach(item => {
-      item.addEventListener("click", () => {
-        const value = item.dataset.value;
-        const flag  = item.dataset.flag;
-        const text  = item.innerText.trim();
-
-        if (flag) langFlag.src = flag;
-        if (text) langText.textContent = text;
-        menu.classList.add("hidden");
-        button.setAttribute('aria-expanded', 'false');
-
-        switch (value) {
-          case 'en': window.location.href = "/en/"; break;
-          case 'es': window.location.href = "/es/"; break;
-          case 'de': window.location.href = "/de/"; break;
-          case 'it': window.location.href = "/it/"; break;
-          default:   window.location.href = "/";   // pt
-        }
-      });
-    });
-
-    // Detectar idioma atual pela URL ao carregar
-    window.addEventListener("DOMContentLoaded", function() {
-      const path = window.location.pathname;
-      let current = menu.querySelector('[data-value="pt"]');
-      if (path.startsWith("/en/"))      current = menu.querySelector('[data-value="en"]');
-      else if (path.startsWith("/es/")) current = menu.querySelector('[data-value="es"]');
-      else if (path.startsWith("/de/")) current = menu.querySelector('[data-value="de"]');
-      else if (path.startsWith("/it/")) current = menu.querySelector('[data-value="it"]');
-
-      if (current) {
-        langFlag.src = current.dataset.flag;
-        langText.textContent = current.innerText.trim();
-      }
-    });
-  })();
-</script>
-
-<!-- inserir abaixo do initLangSelector (ou ao final do mesmo bloco) o script de busca/autocomplete -->
-<script>
-(function initSearchAutocomplete(){
-  var input = document.getElementById('search-input');
-  var list  = document.getElementById('search-suggestions');
-  if (!input || !list) return;
-
-  // coletar itens pesquisáveis a partir dos links dentro do main-content
-  var anchors = Array.from(document.querySelectorAll('#main-content a[href]'));
-  var items = anchors.map(a => {
-    var titleEl = a.querySelector('h3');
-    var title = titleEl ? titleEl.innerText.trim() : (a.getAttribute('aria-label') || a.textContent.trim());
-    return { title: title, href: a.getAttribute('href') };
-  }).filter(i => i.title);
-
-  var selectedIndex = -1;
-
-  function clearList() {
-    list.innerHTML = '';
-    list.setAttribute('aria-hidden', 'true');
-    input.setAttribute('aria-expanded','false');
-    selectedIndex = -1;
-  }
-
-  function renderResults(results) {
-    clearList();
-    if (!results.length) return;
-    var frag = document.createDocumentFragment();
-    results.forEach((r, idx) => {
-      var li = document.createElement('li');
-      li.textContent = r.title;
-      li.setAttribute('role','option');
-      li.setAttribute('data-href', r.href || '#');
-      li.tabIndex = -1;
-      li.addEventListener('click', function(){ window.location.href = this.dataset.href; });
-      li.addEventListener('mouseover', function(){
-        // destacar ao passar o mouse
-        Array.from(list.children).forEach(ch => ch.removeAttribute('aria-selected'));
-        this.setAttribute('aria-selected','true');
-        selectedIndex = idx;
-      });
-      frag.appendChild(li);
-    });
-    list.appendChild(frag);
-    list.setAttribute('aria-hidden','false');
-    input.setAttribute('aria-expanded','true');
-  }
-
-  function search(term) {
-    term = term.trim().toLowerCase();
-    if (!term) { clearList(); return; }
-    var results = items.filter(i => i.title.toLowerCase().indexOf(term) !== -1).slice(0, 10);
-    renderResults(results);
-  }
-
-  input.addEventListener('input', function(e){
-    search(e.target.value);
+  // Abrir/fechar menu
+  button.addEventListener("click", () => {
+    menu.classList.toggle("hidden");
+    button.setAttribute('aria-expanded', !menu.classList.contains('hidden'));
   });
 
-  input.addEventListener('keydown', function(e){
-    var opts = list.querySelectorAll('li');
-    if (!opts.length) return;
-    if (e.key === 'ArrowDown') {
-      e.preventDefault();
-      selectedIndex = Math.min(selectedIndex + 1, opts.length - 1);
-      Array.from(opts).forEach((o,i) => o.removeAttribute('aria-selected'));
-      opts[selectedIndex].setAttribute('aria-selected','true');
-      opts[selectedIndex].scrollIntoView({ block: 'nearest' });
-    } else if (e.key === 'ArrowUp') {
-      e.preventDefault();
-      selectedIndex = Math.max(selectedIndex - 1, 0);
-      Array.from(opts).forEach((o,i) => o.removeAttribute('aria-selected'));
-      opts[selectedIndex].setAttribute('aria-selected','true');
-      opts[selectedIndex].scrollIntoView({ block: 'nearest' });
-    } else if (e.key === 'Enter') {
-      e.preventDefault();
-      if (selectedIndex >= 0 && opts[selectedIndex]) {
-        window.location.href = opts[selectedIndex].dataset.href;
-      } else {
-        // se não houver seleção, tentar navegar para primeiro resultado
-        if (opts[0]) window.location.href = opts[0].dataset.href;
-      }
-    } else if (e.key === 'Escape') {
-      clearList();
+  // Fechar ao clicar fora
+  document.addEventListener("click", (e) => {
+    if (!button.contains(e.target) && !menu.contains(e.target)) {
+      menu.classList.add("hidden");
+      button.setAttribute('aria-expanded', 'false');
     }
   });
 
-  // fechar sugestões ao clicar fora
-  document.addEventListener('click', function(e){
-    if (!input.contains(e.target) && !list.contains(e.target)) clearList();
+  // Troca de idioma + atualização do botão
+  document.querySelectorAll("#langMenu div").forEach(item => {
+    item.addEventListener("click", () => {
+      const value = item.dataset.value;
+      const flag  = item.dataset.flag;
+      const text  = item.innerText.trim();
+
+      langFlag.src = flag;
+      langText.textContent = text;
+      menu.classList.add("hidden");
+      button.setAttribute('aria-expanded', 'false');
+
+      switch (value) {
+        case 'en': window.location.href = "/en/"; break;
+        case 'es': window.location.href = "/es/"; break;
+        case 'de': window.location.href = "/de/"; break;
+        case 'it': window.location.href = "/it/"; break;
+        default:   window.location.href = "/";   // pt
+      }
+    });
   });
 
-  // acessibilidade: limpar ao perder foco (pequeno delay para permitir click)
-  input.addEventListener('blur', function(){ setTimeout(clearList, 150); });
+  // Detectar idioma atual pela URL ao carregar
+  window.addEventListener("DOMContentLoaded", function() {
+    const path = window.location.pathname;
+    let current = document.querySelector('[data-value="pt"]');
+    if (path.startsWith("/en/"))      current = document.querySelector('[data-value="en"]');
+    else if (path.startsWith("/es/")) current = document.querySelector('[data-value="es"]');
+    else if (path.startsWith("/de/")) current = document.querySelector('[data-value="de"]');
+    else if (path.startsWith("/it/")) current = document.querySelector('[data-value="it"]');
 
-  // mostrar a caixa de pesquisa por padrão (JS habilitado)
-  document.getElementById('search-wrapper').style.display = 'block';
-})();
+    if (current) {
+      langFlag.src = current.dataset.flag;
+      langText.textContent = current.innerText.trim();
+    }
+  });
 </script>
 
-    <main id="main-content" class="flex-grow p-4 sm:p-6 lg:p-8">
-        <!-- DESIGN: Seção de cabeçalho com fundo semitransparente, bordas arredondadas e sombra -->
-        <section class="mt-16 mb-12 bg-white/70 backdrop-blur-lg p-6 sm:p-8 rounded-2xl shadow-md border border-slate-200">
-            <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center sm:justify-start">
+    <main id="main-content" class="flex-grow p-4 md:p-8">
+        <section class="pt-8 pb-4 header-with-logo mt-12 mb-12">
+            <div class="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center sm:justify-start">
                 <div class="flex-shrink-0 mb-4 sm:mb-0 sm:mr-6">
-                    <img src="https://www.calculadorasdeenfermagem.com.br/iconpages.webp" alt="Logo Calculadoras de Enfermagem" class="w-24 h-auto sm:w-32" />
+                    <img src="https://www.calculadorasdeenfermagem.com.br/iconpages.webp" alt="Logo Calculadoras de Enfermagem" class="w-32 h-auto" />
                 </div>
                 <div class="text-center sm:text-left">
-                    <h1 class="text-[#1A3E74] font-bold font-nunito text-3xl md:text-4xl leading-tight">Calculadoras de Enfermagem</h1>
-                    <p class="text-md md:text-lg text-gray-700 mt-2">Ferramentas essenciais para profissionais e estudantes de enfermagem, oferecendo calculadoras de escalas clínicas e de dosagem de medicamentos para otimizar a prática diária e a segurança do paciente.</p>
+                    <h1 class="text-[#1A3E74] font-bold font-nunito text-4xl leading-tight">Calculadoras de Enfermagem</h1>
+                    <p class="text-lg text-gray-600 mt-1">Ferramentas essenciais para profissionais e estudantes de enfermagem, oferecendo calculadoras de escalas clínicas e de dosagem de medicamentos para otimizar a prática diária e a segurança do paciente.</p>
                 </div>
             </div>
         </section>
 
-        <h2 class="text-3xl md:text-4xl font-bold text-[#1A3E74] font-nunito mb-8 text-center mt-12">Calculadoras de Enfermagem</h2>
+        <h2 class="text-3xl md:text-4xl font-bold text-[#1A3E74] font-nunito mb-6 text-center mt-12">Calculadoras de Enfermagem</h2> <!-- Aumentado o espaçamento aqui -->
 
-        <!-- DESIGN: Grid responsivo com cartões modernizados -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 mb-12">
-            <!-- DESIGN: Cartões com efeito de "vidro", sombra e animação ao passar o mouse. -->
-            <!-- SEO: Adicionado aria-label para acessibilidade. -->
-            <a href="balancohidrico.html" aria-label="Acessar a calculadora de Balanço Hídrico" class="group block p-6 bg-white/70 backdrop-blur-sm border border-slate-200 rounded-xl shadow-lg hover:shadow-xl hover:-translate-y-1 transform transition-all duration-300 flex flex-col items-center text-center">
-                <div class="text-4xl text-[#1A3E74] mb-3 group-hover:scale-110 transition-transform duration-300"><i class="fas fa-tint"></i></div>
+
+        <div class="calculator-grid grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 mb-12">
+            <!-- CALCULADORAS (Ordem Alfabética) -->
+            <a href="balancohidrico.html" class="p-5 bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 flex flex-col items-center text-center">
+                <div class="text-4xl text-[#1A3E74] mb-3">
+                    <i class="fas fa-tint"></i>
+                </div>
                 <h3 class="text-lg font-semibold text-gray-800 mb-1">Balanço Hídrico</h3>
-                <p class="text-gray-600 text-sm">Controle preciso de líquidos.</p>
+                <p class="text-gray-600 text-xs">Controle preciso de líquidos.</p>
             </a>
-            <a href="dimensionamento.html" aria-label="Acessar a calculadora de Dimensionamento de Equipe" class="group block p-6 bg-white/70 backdrop-blur-sm border border-slate-200 rounded-xl shadow-lg hover:shadow-xl hover:-translate-y-1 transform transition-all duration-300 flex flex-col items-center text-center">
-                <div class="text-4xl text-[#1A3E74] mb-3 group-hover:scale-110 transition-transform duration-300"><i class="fas fa-users-cog"></i></div>
+            <a href="dimensionamento.html" class="p-5 bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 flex flex-col items-center text-center">
+                <div class="text-4xl text-[#1A3E74] mb-3">
+                    <i class="fas fa-users-cog"></i>
+                </div>
                 <h3 class="text-lg font-semibold text-gray-800 mb-1">Dimensionamento de Equipe</h3>
-                <p class="text-gray-600 text-sm">Organize sua equipe de enfermagem.</p>
+                <p class="text-gray-600 text-xs">Organize sua equipe de enfermagem.</p>
             </a>
-            <a href="gotejamento.html" aria-label="Acessar a calculadora de Gotejamento de Soro" class="group block p-6 bg-white/70 backdrop-blur-sm border border-slate-200 rounded-xl shadow-lg hover:shadow-xl hover:-translate-y-1 transform transition-all duration-300 flex flex-col items-center text-center">
-                <div class="text-4xl text-[#1A3E74] mb-3 group-hover:scale-110 transition-transform duration-300"><i class="fas fa-hand-holding-water"></i></div>
+            <a href="gotejamento.html" class="p-5 bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 flex flex-col items-center text-center">
+                <div class="text-4xl text-[#1A3E74] mb-3">
+                    <i class="fas fa-hand-holding-water"></i>
+                </div>
                 <h3 class="text-lg font-semibold text-gray-800 mb-1">Cálculo de Gotejamento</h3>
-                <p class="text-gray-600 text-sm">Velocidade de infusão de solução Fisiológica.</p>
+                <p class="text-gray-600 text-xs">Velocidade de infusão de solução Fisiológica.</p>
             </a>
-            <a href="gestacional.html" aria-label="Acessar a calculadora de Idade Gestacional e DPP" class="group block p-6 bg-white/70 backdrop-blur-sm border border-slate-200 rounded-xl shadow-lg hover:shadow-xl hover:-translate-y-1 transform transition-all duration-300 flex flex-col items-center text-center">
-                <div class="text-4xl text-[#1A3E74] mb-3 group-hover:scale-110 transition-transform duration-300"><i class="fas fa-baby"></i></div>
+            <a href="gestacional.html" class="p-5 bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 flex flex-col items-center text-center">
+                <div class="text-4xl text-[#1A3E74] mb-3">
+                    <i class="fas fa-baby"></i>
+                </div>
                 <h3 class="text-lg font-semibold text-gray-800 mb-1">Idade Gestacional e DPP</h3>
-                <p class="text-gray-600 text-sm">Calcule a idade gestacional e Data provável do parto.</p>
+                <p class="text-gray-600 text-xs">Calcule a idade gestacional e Data provável do parto.</p>
             </a>
-            <a href="heparina.html" aria-label="Acessar a calculadora de Heparina" class="group block p-6 bg-white/70 backdrop-blur-sm border border-slate-200 rounded-xl shadow-lg hover:shadow-xl hover:-translate-y-1 transform transition-all duration-300 flex flex-col items-center text-center">
-                <div class="text-4xl text-[#1A3E74] mb-3 group-hover:scale-110 transition-transform duration-300"><i class="fas fa-syringe"></i></div>
+            <a href="heparina.html" class="p-5 bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 flex flex-col items-center text-center">
+                <div class="text-4xl text-[#1A3E74] mb-3">
+                    <i class="fas fa-syringe"></i>
+                </div>
                 <h3 class="text-lg font-semibold text-gray-800 mb-1">Cálculo de Heparina</h3>
-                <p class="text-gray-600 text-sm">Cálculo de doses de heparina.</p>
+                <p class="text-gray-600 text-xs">Cálculo de aspiração de Insulina.</p>
             </a>
-            <a href="imc.html" aria-label="Acessar a calculadora de IMC" class="group block p-6 bg-white/70 backdrop-blur-sm border border-slate-200 rounded-xl shadow-lg hover:shadow-xl hover:-translate-y-1 transform transition-all duration-300 flex flex-col items-center text-center">
-                <div class="text-4xl text-[#1A3E74] mb-3 group-hover:scale-110 transition-transform duration-300"><i class="fas fa-weight"></i></div>
+            <a href="imc.html" class="p-5 bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 flex flex-col items-center text-center">
+                <div class="text-4xl text-[#1A3E74] mb-3">
+                    <i class="fas fa-weight"></i>
+                </div>
                 <h3 class="text-lg font-semibold text-gray-800 mb-1">Cálculo de IMC</h3>
-                <p class="text-gray-600 text-sm">Índice de Massa Corporal.</p>
+                <p class="text-gray-600 text-xs">Índice de Massa Corporal.</p>
             </a>
-            <a href="insulina.html" aria-label="Acessar a calculadora de Insulina" class="group block p-6 bg-white/70 backdrop-blur-sm border border-slate-200 rounded-xl shadow-lg hover:shadow-xl hover:-translate-y-1 transform transition-all duration-300 flex flex-col items-center text-center">
-                <div class="text-4xl text-[#1A3E74] mb-3 group-hover:scale-110 transition-transform duration-300"><i class="fas fa-syringe"></i></div>
+            <a href="insulina.html" class="p-5 bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 flex flex-col items-center text-center">
+                <div class="text-4xl text-[#1A3E74] mb-3">
+                    <i class="fas fa-syringe"></i>
+                </div>
                 <h3 class="text-lg font-semibold text-gray-800 mb-1">Cálculo de Insulina</h3>
-                <p class="text-gray-600 text-sm">Cálculo de doses de insulina.</p>
+                <p class="text-gray-600 text-xs">Cálculo de doses de insulina.</p>
             </a>
-            <a href="medicamentos.html" aria-label="Acessar a calculadora de Medicamentos" class="group block p-6 bg-white/70 backdrop-blur-sm border border-slate-200 rounded-xl shadow-lg hover:shadow-xl hover:-translate-y-1 transform transition-all duration-300 flex flex-col items-center text-center">
-                <div class="text-4xl text-[#1A3E74] mb-3 group-hover:scale-110 transition-transform duration-300"><i class="fas fa-pills"></i></div>
+            <a href="medicamentos.html" class="p-5 bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 flex flex-col items-center text-center">
+                <div class="text-4xl text-[#1A3E74] mb-3">
+                    <i class="fas fa-pills"></i>
+                </div>
                 <h3 class="text-lg font-semibold text-gray-800 mb-1">Cálculo de Medicamentos</h3>
-                <p class="text-gray-600 text-sm">Doses e diluições de fármacos.</p>
+                <p class="text-gray-600 text-xs">Doses e diluições de fármacos.</p>
             </a>
+            
         </div>
 
-        <h2 class="text-3xl md:text-4xl font-bold text-[#1A3E74] font-nunito mb-8 text-center">Escalas para Avaliação de Pacientes</h2>
-        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 mb-12">
-            <!-- O padrão de cartão modernizado é aplicado a TODAS as escalas abaixo -->
-            <a href="aldrete.html" aria-label="Acessar a Escala de Aldrete e Kroulik" class="group block p-6 bg-white/70 backdrop-blur-sm border border-slate-200 rounded-xl shadow-lg hover:shadow-xl hover:-translate-y-1 transform transition-all duration-300 flex flex-col items-center text-center">
-                <div class="text-4xl text-[#1A3E74] mb-3 group-hover:scale-110 transition-transform duration-300"><i class="fas fa-notes-medical"></i></div>
-                <h3 class="text-lg font-semibold text-gray-800 mb-1">Escala de Aldrete e Kroulik</h3>
-                <p class="text-gray-600 text-sm">Avaliação do paciente em SRPA.</p>
-            </a>
-            <a href="apache.html" aria-label="Acessar a Escala de APACHE II" class="group block p-6 bg-white/70 backdrop-blur-sm border border-slate-200 rounded-xl shadow-lg hover:shadow-xl hover:-translate-y-1 transform transition-all duration-300 flex flex-col items-center text-center">
-                <div class="text-4xl text-[#1A3E74] mb-3 group-hover:scale-110 transition-transform duration-300"><i class="fa-solid fa-receipt"></i></div>
-                <h3 class="text-lg font-semibold text-gray-800 mb-1">Escala de APACHE II</h3>
-                <p class="text-gray-600 text-sm">Avaliação de gravidade do paciente em estado grave.</p>
-            </a>
-            <a href="apgar.html" aria-label="Acessar a Escala de Apgar" class="group block p-6 bg-white/70 backdrop-blur-sm border border-slate-200 rounded-xl shadow-lg hover:shadow-xl hover:-translate-y-1 transform transition-all duration-300 flex flex-col items-center text-center">
-                <div class="text-4xl text-[#1A3E74] mb-3 group-hover:scale-110 transition-transform duration-300"><i class="fas fa-baby-carriage"></i></div>
-                <h3 class="text-lg font-semibold text-gray-800 mb-1">Escala de Apgar</h3>
-                <p class="text-gray-600 text-sm">Avaliação de recém-nascidos.</p>
-            </a>
-            <a href="asa.html" aria-label="Acessar a escala de Risco Perioperatório - ASA" class="group block p-6 bg-white/70 backdrop-blur-sm border border-slate-200 rounded-xl shadow-lg hover:shadow-xl hover:-translate-y-1 transform transition-all duration-300 flex flex-col items-center text-center">
-                <div class="text-4xl text-[#1A3E74] mb-3 group-hover:scale-110 transition-transform duration-300"><i class="fas fa-notes-medical"></i></div>
-                <h3 class="text-lg font-semibold text-gray-800 mb-1">Risco Perioperatório - ASA</h3>
-                <p class="text-gray-600 text-sm">Classificação do estado físico.</p>
-            </a>
-            <a href="ballard.html" aria-label="Acessar a Escala de Ballard" class="group block p-6 bg-white/70 backdrop-blur-sm border border-slate-200 rounded-xl shadow-lg hover:shadow-xl hover:-translate-y-1 transform transition-all duration-300 flex flex-col items-center text-center">
-                <div class="text-4xl text-[#1A3E74] mb-3 group-hover:scale-110 transition-transform duration-300"><i class="fas fa-baby-carriage"></i></div>
-                <h3 class="text-lg font-semibold text-gray-800 mb-1">Escala de Ballard</h3>
-                <p class="text-gray-600 text-sm">Avaliação da maturidade neuromuscular e física do recém-nascido.</p>
-            </a>
-            <a href="barthel.html" aria-label="Acessar a Escala de Barthel" class="group block p-6 bg-white/70 backdrop-blur-sm border border-slate-200 rounded-xl shadow-lg hover:shadow-xl hover:-translate-y-1 transform transition-all duration-300 flex flex-col items-center text-center">
-                <div class="text-4xl text-[#1A3E74] mb-3 group-hover:scale-110 transition-transform duration-300"><i class="fas fa-walking"></i></div>
-                <h3 class="text-lg font-semibold text-gray-800 mb-1">Escala de Barthel</h3>
-                <p class="text-gray-600 text-sm"> Avalia grau de dependência funcional do paciente.</p>
-            </a>
-            <a href="bps.html" aria-label="Acessar a Escala de dor de Behavioural (BPS)" class="group block p-6 bg-white/70 backdrop-blur-sm border border-slate-200 rounded-xl shadow-lg hover:shadow-xl hover:-translate-y-1 transform transition-all duration-300 flex flex-col items-center text-center">
-                <div class="text-4xl text-[#1A3E74] mb-3 group-hover:scale-110 transition-transform duration-300"><i class="fa-solid fa-mask-face"></i></div>
-                <h3 class="text-lg font-semibold text-gray-800 mb-1">Escala de dor de Behavioural (BPS)</h3>
-                <p class="text-gray-600 text-sm">Avaliação de dor em pacientes sob ventilação mecânica.</p>
-            </a>
-            <a href="berg.html" aria-label="Acessar a Escala de BERG (BBS)" class="group block p-6 bg-white/70 backdrop-blur-sm border border-slate-200 rounded-xl shadow-lg hover:shadow-xl hover:-translate-y-1 transform transition-all duration-300 flex flex-col items-center text-center">
-                <div class="text-4xl text-[#1A3E74] mb-3 group-hover:scale-110 transition-transform duration-300"><i class="fa-solid fa-person"></i></div>
-                <h3 class="text-lg font-semibold text-gray-800 mb-1">Escala de BERG (BBS)</h3>
-                <p class="text-gray-600 text-sm">Avalia o equilíbrio estático e dinâmico de um paciente.</p>
-            </a>
-            <a href="bishop.html" aria-label="Acessar o índice de Bishop" class="group block p-6 bg-white/70 backdrop-blur-sm border border-slate-200 rounded-xl shadow-lg hover:shadow-xl hover:-translate-y-1 transform transition-all duration-300 flex flex-col items-center text-center">
-                <div class="text-4xl text-[#1A3E74] mb-3 group-hover:scale-110 transition-transform duration-300"><i class="fa-solid fa-user-doctor"></i></div>
-                <h3 class="text-lg font-semibold text-gray-800 mb-1">índice de Bishop</h3>
-                <p class="text-gray-600 text-sm">Avaliar a maturidade do colo do útero e a prontidão para o trabalho de parto.</p>
-            </a>
-            <a href="braden.html" aria-label="Acessar a Escala de Braden" class="group block p-6 bg-white/70 backdrop-blur-sm border border-slate-200 rounded-xl shadow-lg hover:shadow-xl hover:-translate-y-1 transform transition-all duration-300 flex flex-col items-center text-center">
-                <div class="text-4xl text-[#1A3E74] mb-3 group-hover:scale-110 transition-transform duration-300"><i class="fas fa-bed"></i></div>
-                <h3 class="text-lg font-semibold text-gray-800 mb-1">Escala de Braden</h3>
-                <p class="text-gray-600 text-sm">Risco de lesão por pressão.</p>
-            </a>
-            <a href="cam.html" aria-label="Acessar a Escala CAM-ICU" class="group block p-6 bg-white/70 backdrop-blur-sm border border-slate-200 rounded-xl shadow-lg hover:shadow-xl hover:-translate-y-1 transform transition-all duration-300 flex flex-col items-center text-center">
-                <div class="text-4xl text-[#1A3E74] mb-3 group-hover:scale-110 transition-transform duration-300"><i class="fas fa-hospital-alt"></i></div>
-                <h3 class="text-lg font-semibold text-gray-800 mb-1">Escala CAM-ICU</h3>
-                <p class="text-gray-600 text-sm">Avaliação de delirium em UTI.</p>
-            </a>
-            <a href="capurro.html" aria-label="Acessar o Método de Capurro" class="group block p-6 bg-white/70 backdrop-blur-sm border border-slate-200 rounded-xl shadow-lg hover:shadow-xl hover:-translate-y-1 transform transition-all duration-300 flex flex-col items-center text-center">
-                <div class="text-4xl text-[#1A3E74] mb-3 group-hover:scale-110 transition-transform duration-300"><i class="fas fa-baby-carriage"></i></div>
-                <h3 class="text-lg font-semibold text-gray-800 mb-1">Método de Capurro</h3>
-                <p class="text-gray-600 text-sm">Método para estimar a idade gestacional de de RN's.</p>
-            </a>
-            <a href="cincinnati.html" aria-label="Acessar a Escala de Cincinnati" class="group block p-6 bg-white/70 backdrop-blur-sm border border-slate-200 rounded-xl shadow-lg hover:shadow-xl hover:-translate-y-1 transform transition-all duration-300 flex flex-col items-center text-center">
-                <div class="text-4xl text-[#1A3E74] mb-3 group-hover:scale-110 transition-transform duration-300"><i class="fas fa-hospital-user"></i></div>
-                <h3 class="text-lg font-semibold text-gray-800 mb-1">Escala de Cincinnati</h3>
-                <p class="text-gray-600 text-sm">Avaliação de AVE.</p>
-            </a>
-            <a href="cornell.html" aria-label="Acessar a Escala de Cornell" class="group block p-6 bg-white/70 backdrop-blur-sm border border-slate-200 rounded-xl shadow-lg hover:shadow-xl hover:-translate-y-1 transform transition-all duration-300 flex flex-col items-center text-center">
-                <div class="text-4xl text-[#1A3E74] mb-3 group-hover:scale-110 transition-transform duration-300"><i class="fas fa-notes-medical"></i></div>
-                <h3 class="text-lg font-semibold text-gray-800 mb-1">Escala de Cornell</h3>
-                <p class="text-gray-600 text-sm">Classificação de depressão em paciente com demência.</p>
-            </a>
-            <a href="cries.html" aria-label="Acessar a Escala de CRIES" class="group block p-6 bg-white/70 backdrop-blur-sm border border-slate-200 rounded-xl shadow-lg hover:shadow-xl hover:-translate-y-1 transform transition-all duration-300 flex flex-col items-center text-center">
-                <div class="text-4xl text-[#1A3E74] mb-3 group-hover:scale-110 transition-transform duration-300"><i class="fa-solid fa-child"></i></div>
-                <h3 class="text-lg font-semibold text-gray-800 mb-1">Escala de CRIES</h3>
-                <p class="text-gray-600 text-sm">Avaliação de dor dos recém-nascidos.</p>
-            </a>
-            <a href="curb-65.html" aria-label="Acessar a Escala de CURB-65" class="group block p-6 bg-white/70 backdrop-blur-sm border border-slate-200 rounded-xl shadow-lg hover:shadow-xl hover:-translate-y-1 transform transition-all duration-300 flex flex-col items-center text-center">
-                <div class="text-4xl text-[#1A3E74] mb-3 group-hover:scale-110 transition-transform duration-300"><i class="fa-solid fa-lungs-virus"></i></div>
-                <h3 class="text-lg font-semibold text-gray-800 mb-1">Escala de CURB-65</h3>
-                <p class="text-gray-600 text-sm">Avaliação de Gravidade em Pneumonia Adquirida na Comunidade.</p>
-            </a>
-            <a href="downton.html" aria-label="Acessar a Escala de Downton" class="group block p-6 bg-white/70 backdrop-blur-sm border border-slate-200 rounded-xl shadow-lg hover:shadow-xl hover:-translate-y-1 transform transition-all duration-300 flex flex-col items-center text-center">
-                <div class="text-4xl text-[#1A3E74] mb-3 group-hover:scale-110 transition-transform duration-300"><i class="fa-solid fa-shower"></i></div>
-                <h3 class="text-lg font-semibold text-gray-800 mb-1">Escala de Downton</h3>
-                <p class="text-gray-600 text-sm">Avalia o risco de queda em pacientes idosos.</p>
-            </a>
-            <a href="elpo.html" aria-label="Acessar a Escala de ELPO" class="group block p-6 bg-white/70 backdrop-blur-sm border border-slate-200 rounded-xl shadow-lg hover:shadow-xl hover:-translate-y-1 transform transition-all duration-300 flex flex-col items-center text-center">
-                <div class="text-4xl text-[#1A3E74] mb-3 group-hover:scale-110 transition-transform duration-300"><i class="fas fa-child"></i></div>
-                <h3 class="text-lg font-semibold text-gray-800 mb-1">Escala de ELPO</h3>
-                <p class="text-gray-600 text-sm">Avaliação de lesão por pressão em bloco operatório.</p>
-            </a>
-            <a href="fast.html" aria-label="Acessar a Escala de FAST" class="group block p-6 bg-white/70 backdrop-blur-sm border border-slate-200 rounded-xl shadow-lg hover:shadow-xl hover:-translate-y-1 transform transition-all duration-300 flex flex-col items-center text-center">
-                <div class="text-4xl text-[#1A3E74] mb-3 group-hover:scale-110 transition-transform duration-300"><i class="fa-solid fa-person-walking-with-cane"></i></div>
-                <h3 class="text-lg font-semibold text-gray-800 mb-1">Escala de FAST</h3>
-                <p class="text-gray-600 text-sm">Avaliação de risco de AVE.</p>
-            </a>
-            <a href="flacc.html" aria-label="Acessar a Escala de FLACC" class="group block p-6 bg-white/70 backdrop-blur-sm border border-slate-200 rounded-xl shadow-lg hover:shadow-xl hover:-translate-y-1 transform transition-all duration-300 flex flex-col items-center text-center">
-                <div class="text-4xl text-[#1A3E74] mb-3 group-hover:scale-110 transition-transform duration-300"><i class="fas fa-hospital-alt"></i></div>
-                <h3 class="text-lg font-semibold text-gray-800 mb-1">Escala de FLACC</h3>
-                <p class="text-gray-600 text-sm">Avaliação de dor em crianças não verbal.</p>
-            </a>
-            <a href="four.html" aria-label="Acessar a Escala de FOUR" class="group block p-6 bg-white/70 backdrop-blur-sm border border-slate-200 rounded-xl shadow-lg hover:shadow-xl hover:-translate-y-1 transform transition-all duration-300 flex flex-col items-center text-center">
-                <div class="text-4xl text-[#1A3E74] mb-3 group-hover:scale-110 transition-transform duration-300"><i class="fa-solid fa-user-nurse"></i></div>
-                <h3 class="text-lg font-semibold text-gray-800 mb-1">Escala de FOUR</h3>
-                <p class="text-gray-600 text-sm">Avaliação neurológica.</p>
-            </a>
-            <a href="fugulin.html" aria-label="Acessar a Escala de Fugulin (SCP)" class="group block p-6 bg-white/70 backdrop-blur-sm border border-slate-200 rounded-xl shadow-lg hover:shadow-xl hover:-translate-y-1 transform transition-all duration-300 flex flex-col items-center text-center">
-                <div class="text-4xl text-[#1A3E74] mb-3 group-hover:scale-110 transition-transform duration-300"><i class="fas fa-hospital-alt"></i></div>
-                <h3 class="text-lg font-semibold text-gray-800 mb-1">Escala de Fugulin (SCP)</h3>
-                <p class="text-gray-600 text-sm">Avaliação do grau de Complexidade do paciente.</p>
-            </a>
-            <a href="gds.html" aria-label="Acessar a Escala de GDS" class="group block p-6 bg-white/70 backdrop-blur-sm border border-slate-200 rounded-xl shadow-lg hover:shadow-xl hover:-translate-y-1 transform transition-all duration-300 flex flex-col items-center text-center">
-                <div class="text-4xl text-[#1A3E74] mb-3 group-hover:scale-110 transition-transform duration-300"><i class="fas fa-child"></i></div>
-                <h3 class="text-lg font-semibold text-gray-800 mb-1">Escala de GDS</h3>
-                <p class="text-gray-600 text-sm">Depressão do paciente geriátrico.</p>
-            </a>
-            <a href="glasgow.html" aria-label="Acessar a Escala de coma de Glasgow" class="group block p-6 bg-white/70 backdrop-blur-sm border border-slate-200 rounded-xl shadow-lg hover:shadow-xl hover:-translate-y-1 transform transition-all duration-300 flex flex-col items-center text-center">
-                <div class="text-4xl text-[#1A3E74] mb-3 group-hover:scale-110 transition-transform duration-300"><i class="fa-solid fa-eye"></i></div>
-                <h3 class="text-lg font-semibold text-gray-800 mb-1">Escala de coma de Glasgow</h3>
-                <p class="text-gray-600 text-sm">Nível de consciência.</p>
-            </a>
-            <a href="gosnell.html" aria-label="Acessar a Escala de Gosnell" class="group block p-6 bg-white/70 backdrop-blur-sm border border-slate-200 rounded-xl shadow-lg hover:shadow-xl hover:-translate-y-1 transform transition-all duration-300 flex flex-col items-center text-center">
-                <div class="text-4xl text-[#1A3E74] mb-3 group-hover:scale-110 transition-transform duration-300"><i class="fa-solid fa-weight-scale"></i></div>
-                <h3 class="text-lg font-semibold text-gray-800 mb-1">Escala de Gosnell</h3>
-                <p class="text-gray-600 text-sm">Risco de lesão por pressão.</p>
-            </a>
-            <a href="hamilton.html" aria-label="Acessar a Escala de Hamilton" class="group block p-6 bg-white/70 backdrop-blur-sm border border-slate-200 rounded-xl shadow-lg hover:shadow-xl hover:-translate-y-1 transform transition-all duration-300 flex flex-col items-center text-center">
-                <div class="text-4xl text-[#1A3E74] mb-3 group-hover:scale-110 transition-transform duration-300"><i class="fas fa-file-medical-alt"></i></div>
-                <h3 class="text-lg font-semibold text-gray-800 mb-1">Escala de Hamilton</h3>
-                <p class="text-gray-600 text-sm">Avalia gravidade dos sintomas de Ansiedade.</p>
-            </a>
-            <a href="humpty.html" aria-label="Acessar a Escala de Humpty - Dumpty" class="group block p-6 bg-white/70 backdrop-blur-sm border border-slate-200 rounded-xl shadow-lg hover:shadow-xl hover:-translate-y-1 transform transition-all duration-300 flex flex-col items-center text-center">
-                <div class="text-4xl text-[#1A3E74] mb-3 group-hover:scale-110 transition-transform duration-300"><i class="fas fa-file-medical-alt"></i></div>
-                <h3 class="text-lg font-semibold text-gray-800 mb-1">Escala de Humpty - Dumpty </h3>
-                <p class="text-gray-600 text-sm">Risco de quedas em pacientes pediátricos.</p>
-            </a>
-            <a href="johns.html" aria-label="Acessar a Escala de Johns" class="group block p-6 bg-white/70 backdrop-blur-sm border border-slate-200 rounded-xl shadow-lg hover:shadow-xl hover:-translate-y-1 transform transition-all duration-300 flex flex-col items-center text-center">
-                <div class="text-4xl text-[#1A3E74] mb-3 group-hover:scale-110 transition-transform duration-300"><i class="fa-solid fa-person-walking-with-cane"></i></div>
-                <h3 class="text-lg font-semibold text-gray-800 mb-1">Escala de Johns</h3>
-                <p class="text-gray-600 text-sm">Avalia risco de queda.</p>
-            </a>
-            <a href="jouvet.html" aria-label="Acessar a Escala de Jouvet" class="group block p-6 bg-white/70 backdrop-blur-sm border border-slate-200 rounded-xl shadow-lg hover:shadow-xl hover:-translate-y-1 transform transition-all duration-300 flex flex-col items-center text-center">
-                <div class="text-4xl text-[#1A3E74] mb-3 group-hover:scale-110 transition-transform duration-300"><i class="fas fa-bed"></i></div>
-                <h3 class="text-lg font-semibold text-gray-800 mb-1">Escala de Jouvet</h3>
-                <p class="text-gray-600 text-sm">Escala de coma/consciência.</p>
-            </a>
-            <a href="katz.html" aria-label="Acessar a Escala de Katz" class="group block p-6 bg-white/70 backdrop-blur-sm border border-slate-200 rounded-xl shadow-lg hover:shadow-xl hover:-translate-y-1 transform transition-all duration-300 flex flex-col items-center text-center">
-                <div class="text-4xl text-[#1A3E74] mb-3 group-hover:scale-110 transition-transform duration-300"><i class="fa-solid fa-bath"></i></div>
-                <h3 class="text-lg font-semibold text-gray-800 mb-1">Escala de Katz</h3>
-                <p class="text-gray-600 text-sm">Avaliação de autonomia nas ABVDs.</p>
-            </a>
-            <a href="lachs.html" aria-label="Acessar a Escala de Lachs" class="group block p-6 bg-white/70 backdrop-blur-sm border border-slate-200 rounded-xl shadow-lg hover:shadow-xl hover:-translate-y-1 transform transition-all duration-300 flex flex-col items-center text-center">
-                <div class="text-4xl text-[#1A3E74] mb-3 group-hover:scale-110 transition-transform duration-300"><i class="fa-solid fa-person-walking-with-cane"></i></div>
-                <h3 class="text-lg font-semibold text-gray-800 mb-1">Escala de Lachs</h3>
-                <p class="text-gray-600 text-sm">Avaliação da capacidade funcional do idoso.</p>
-            </a>
-            <a href="lanss.html" aria-label="Acessar a Escala de LANSS" class="group block p-6 bg-white/70 backdrop-blur-sm border border-slate-200 rounded-xl shadow-lg hover:shadow-xl hover:-translate-y-1 transform transition-all duration-300 flex flex-col items-center text-center">
-                <div class="text-4xl text-[#1A3E74] mb-3 group-hover:scale-110 transition-transform duration-300"><i class="fas fa-user-nurse"></i></div>
-                <h3 class="text-lg font-semibold text-gray-800 mb-1">Escala de LANSS</h3>
-                <p class="text-gray-600 text-sm">Avaliação de dor neuropática.</p>
-            </a>
-            <a href="lawton.html" aria-label="Acessar a Escala de Lawton" class="group block p-6 bg-white/70 backdrop-blur-sm border border-slate-200 rounded-xl shadow-lg hover:shadow-xl hover:-translate-y-1 transform transition-all duration-300 flex flex-col items-center text-center">
-                <div class="text-4xl text-[#1A3E74] mb-3 group-hover:scale-110 transition-transform duration-300"><i class="fa-solid fa-mug-saucer"></i></div>
-                <h3 class="text-lg font-semibold text-gray-800 mb-1">Escala de Lawton</h3>
-                <p class="text-gray-600 text-sm">Mede o grau de independência nas AIVD em idosos.</p>
-            </a>
-            <a href="manchester.html" aria-label="Acessar a Escala de Manchester" class="group block p-6 bg-white/70 backdrop-blur-sm border border-slate-200 rounded-xl shadow-lg hover:shadow-xl hover:-translate-y-1 transform transition-all duration-300 flex flex-col items-center text-center">
-                <div class="text-4xl text-[#1A3E74] mb-3 group-hover:scale-110 transition-transform duration-300"><i class="fas fa-clinic-medical"></i></div>
-                <h3 class="text-lg font-semibold text-gray-800 mb-1">Escala de Manchester</h3>
-                <p class="text-gray-600 text-sm">Triagem de risco.</p>
-            </a>
-            <a href="meem.html" aria-label="Acessar a Escala de MEEM" class="group block p-6 bg-white/70 backdrop-blur-sm border border-slate-200 rounded-xl shadow-lg hover:shadow-xl hover:-translate-y-1 transform transition-all duration-300 flex flex-col items-center text-center">
-                <div class="text-4xl text-[#1A3E74] mb-3 group-hover:scale-110 transition-transform duration-300"><i class="fas fa-wheelchair"></i></div>
-                <h3 class="text-lg font-semibold text-gray-800 mb-1">Escala de MEEM</h3>
-                <p class="text-gray-600 text-sm">Rastreio cognitivo de déficits.</p>
-            </a>
-            <a href="meows.html" aria-label="Acessar a Escala de MEOWS" class="group block p-6 bg-white/70 backdrop-blur-sm border border-slate-200 rounded-xl shadow-lg hover:shadow-xl hover:-translate-y-1 transform transition-all duration-300 flex flex-col items-center text-center">
-                <div class="text-4xl text-[#1A3E74] mb-3 group-hover:scale-110 transition-transform duration-300"><i class="fas fa-notes-medical"></i></div>
-                <h3 class="text-lg font-semibold text-gray-800 mb-1">Escala de MEOWS</h3>
-                <p class="text-gray-600 text-sm">Escore de alerta obstétrico precoce.</p>
-            </a>
-            <a href="morse.html" aria-label="Acessar a Escala de Morse" class="group block p-6 bg-white/70 backdrop-blur-sm border border-slate-200 rounded-xl shadow-lg hover:shadow-xl hover:-translate-y-1 transform transition-all duration-300 flex flex-col items-center text-center">
-                <div class="text-4xl text-[#1A3E74] mb-3 group-hover:scale-110 transition-transform duration-300"><i class="fas fa-walking"></i></div>
-                <h3 class="text-lg font-semibold text-gray-800 mb-1">Escala de Morse</h3>
-                <p class="text-gray-600 text-sm">Risco de queda.</p>
-            </a>
-            <a href="news.html" aria-label="Acessar a Escala de NEWS" class="group block p-6 bg-white/70 backdrop-blur-sm border border-slate-200 rounded-xl shadow-lg hover:shadow-xl hover:-translate-y-1 transform transition-all duration-300 flex flex-col items-center text-center">
-                <div class="text-4xl text-[#1A3E74] mb-3 group-hover:scale-110 transition-transform duration-300"><i class="fas fa-chart-line"></i></div>
-                <h3 class="text-lg font-semibold text-gray-800 mb-1">Escala de NEWS</h3>
-                <p class="text-gray-600 text-sm">Escore de alerta precoce adulto.</p>
-            </a>
-            <a href="nihss.html" aria-label="Acessar a Escala NIHSS" class="group block p-6 bg-white/70 backdrop-blur-sm border border-slate-200 rounded-xl shadow-lg hover:shadow-xl hover:-translate-y-1 transform transition-all duration-300 flex flex-col items-center text-center">
-                <div class="text-4xl text-[#1A3E74] mb-3 group-hover:scale-110 transition-transform duration-300"><i class="fas fa-brain"></i></div>
-                <h3 class="text-lg font-semibold text-gray-800 mb-1">Escala NIHSS</h3>
-                <p class="text-gray-600 text-sm">Avaliação de AVE.</p>
-            </a>
-            <a href="nips.html" aria-label="Acessar a Escala de NIPS" class="group block p-6 bg-white/70 backdrop-blur-sm border border-slate-200 rounded-xl shadow-lg hover:shadow-xl hover:-translate-y-1 transform transition-all duration-300 flex flex-col items-center text-center">
-                <div class="text-4xl text-[#1A3E74] mb-3 group-hover:scale-110 transition-transform duration-300"><i class="fa-solid fa-eye-dropper"></i></div>
-                <h3 class="text-lg font-semibold text-gray-800 mb-1">Escala de NIPS</h3>
-                <p class="text-gray-600 text-sm">Ferramenta para avaliar a dor em recém-nascidos.</p>
-            </a>
-            <a href="norton.html" aria-label="Acessar a Escala de Norton" class="group block p-6 bg-white/70 backdrop-blur-sm border border-slate-200 rounded-xl shadow-lg hover:shadow-xl hover:-translate-y-1 transform transition-all duration-300 flex flex-col items-center text-center">
-                <div class="text-4xl text-[#1A3E74] mb-3 group-hover:scale-110 transition-transform duration-300"><i class="fas fa-file-medical-alt"></i></div>
-                <h3 class="text-lg font-semibold text-gray-800 mb-1">Escala de Norton</h3>
-                <p class="text-gray-600 text-sm">Risco de lesão por pressão.</p>
-            </a>
-            <a href="escalanumerica.html" aria-label="Acessar a Escala Numérica de Dor" class="group block p-6 bg-white/70 backdrop-blur-sm border border-slate-200 rounded-xl shadow-lg hover:shadow-xl hover:-translate-y-1 transform transition-all duration-300 flex flex-col items-center text-center">
-                <div class="text-4xl text-[#1A3E74] mb-3 group-hover:scale-110 transition-transform duration-300"><i class="fas fa-hospital-alt"></i></div>
-                <h3 class="text-lg font-semibold text-gray-800 mb-1">Escala Numérica de Dor</h3>
-                <p class="text-gray-600 text-sm">Escala de dor numérica.</p>
-            </a>
-            <a href="ofras.html" aria-label="Acessar a Escala de OFRAS" class="group block p-6 bg-white/70 backdrop-blur-sm border border-slate-200 rounded-xl shadow-lg hover:shadow-xl hover:-translate-y-1 transform transition-all duration-300 flex flex-col items-center text-center">
-                <div class="text-4xl text-[#1A3E74] mb-3 group-hover:scale-110 transition-transform duration-300"><i class="fa-solid fa-square-plus"></i></div>
-                <h3 class="text-lg font-semibold text-gray-800 mb-1">Escala de OFRAS</h3>
-                <p class="text-gray-600 text-sm">Risco de quedas em pacientes obstétricas.</p>
-            </a>
-            <a href="painad.html" aria-label="Acessar a Escala de PAINAD" class="group block p-6 bg-white/70 backdrop-blur-sm border border-slate-200 rounded-xl shadow-lg hover:shadow-xl hover:-translate-y-1 transform transition-all duration-300 flex flex-col items-center text-center">
-                <div class="text-4xl text-[#1A3E74] mb-3 group-hover:scale-110 transition-transform duration-300"><i class="fa-solid fa-hand-holding-medical"></i></div>
-                <h3 class="text-lg font-semibold text-gray-800 mb-1">Escala de PAINAD</h3>
-                <p class="text-gray-600 text-sm">Avaliação da Dor em Demência Avançada.</p>
-            </a>
-            <a href="pelod.html" aria-label="Acessar a Escala de PELOD" class="group block p-6 bg-white/70 backdrop-blur-sm border border-slate-200 rounded-xl shadow-lg hover:shadow-xl hover:-translate-y-1 transform transition-all duration-300 flex flex-col items-center text-center">
-                <div class="text-4xl text-[#1A3E74] mb-3 group-hover:scale-110 transition-transform duration-300"><i class="fa-solid fa-comment-medical"></i></div>
-                <h3 class="text-lg font-semibold text-gray-800 mb-1">Escala de PELOD</h3>
-                <p class="text-gray-600 text-sm">Gravidade e risco precoce em crianças na UTIP.</p>
-            </a>
-            <a href="pews.html" aria-label="Acessar a Escala de PEWS" class="group block p-6 bg-white/70 backdrop-blur-sm border border-slate-200 rounded-xl shadow-lg hover:shadow-xl hover:-translate-y-1 transform transition-all duration-300 flex flex-col items-center text-center">
-                <div class="text-4xl text-[#1A3E74] mb-3 group-hover:scale-110 transition-transform duration-300"><i class="fas fa-notes-medical"></i></div>
-                <h3 class="text-lg font-semibold text-gray-800 mb-1">Escala de PEWS</h3>
-                <p class="text-gray-600 text-sm">Alerta clínico precoce pediátrico.</p>
-            </a>
-            <a href="perroca.html" aria-label="Acessar a Classificação de paciente Perroca (SCP)" class="group block p-6 bg-white/70 backdrop-blur-sm border border-slate-200 rounded-xl shadow-lg hover:shadow-xl hover:-translate-y-1 transform transition-all duration-300 flex flex-col items-center text-center">
-                <div class="text-4xl text-[#1A3E74] mb-3 group-hover:scale-110 transition-transform duration-300"><i class="fas fa-hospital-alt"></i></div>
-                <h3 class="text-lg font-semibold text-gray-800 mb-1">Classificação de paciente Perroca (SCP)</h3>
-                <p class="text-gray-600 text-sm">Classificação do paciente segundo suas complexidades.</p>
-            </a>
-            <a href="prism.html" aria-label="Acessar a Escala PRISM" class="group block p-6 bg-white/70 backdrop-blur-sm border border-slate-200 rounded-xl shadow-lg hover:shadow-xl hover:-translate-y-1 transform transition-all duration-300 flex flex-col items-center text-center">
-                <div class="text-4xl text-[#1A3E74] mb-3 group-hover:scale-110 transition-transform duration-300"><i class="fas fa-lungs"></i></div>
-                <h3 class="text-lg font-semibold text-gray-800 mb-1">Escala PRISM</h3>
-                <p class="text-gray-600 text-sm">Risco de mortalidade em UTIP.</p>
-            </a>
-            <a href="qsofa.html" aria-label="Acessar a Escala qSOFA" class="group block p-6 bg-white/70 backdrop-blur-sm border border-slate-200 rounded-xl shadow-lg hover:shadow-xl hover:-translate-y-1 transform transition-all duration-300 flex flex-col items-center text-center">
-                <div class="text-4xl text-[#1A3E74] mb-3 group-hover:scale-110 transition-transform duration-300"><i class="fas fa-lungs"></i></div>
-                <h3 class="text-lg font-semibold text-gray-800 mb-1">Escala qSOFA</h3>
-                <p class="text-gray-600 text-sm">Triagem rápida para sepse.</p>
-            </a>
-            <a href="rancholosamigos.html" aria-label="Acessar a Escala de Rancho Los Amigos" class="group block p-6 bg-white/70 backdrop-blur-sm border border-slate-200 rounded-xl shadow-lg hover:shadow-xl hover:-translate-y-1 transform transition-all duration-300 flex flex-col items-center text-center">
-                <div class="text-4xl text-[#1A3E74] mb-3 group-hover:scale-110 transition-transform duration-300"><i class="fas fa-user-md"></i></div>
-                <h3 class="text-lg font-semibold text-gray-800 mb-1">Escala de Rancho Los Amigos</h3>
-                <p class="text-gray-600 text-sm">Padrões cognitivos e comportamentais de pacientes com lesão cerebral.</p>
-            </a>
-            <a href="richmond.html" aria-label="Acessar a Escala de Richmond" class="group block p-6 bg-white/70 backdrop-blur-sm border border-slate-200 rounded-xl shadow-lg hover:shadow-xl hover:-translate-y-1 transform transition-all duration-300 flex flex-col items-center text-center">
-                <div class="text-4xl text-[#1A3E74] mb-3 group-hover:scale-110 transition-transform duration-300"><i class="fas fa-user-md"></i></div>
-                <h3 class="text-lg font-semibold text-gray-800 mb-1">Escala de Richmond</h3>
-                <p class="text-gray-600 text-sm">Sedação e agitação.</p>
-            </a>
-            <a href="saps.html" aria-label="Acessar a Escala de SAPS III" class="group block p-6 bg-white/70 backdrop-blur-sm border border-slate-200 rounded-xl shadow-lg hover:shadow-xl hover:-translate-y-1 transform transition-all duration-300 flex flex-col items-center text-center">
-                <div class="text-4xl text-[#1A3E74] mb-3 group-hover:scale-110 transition-transform duration-300"><i class="fas fa-hospital-alt"></i></div>
-                <h3 class="text-lg font-semibold text-gray-800 mb-1">Escala de SAPS III</h3>
-                <p class="text-gray-600 text-sm">Porcentagem de Índice de mortalidade em UTI.</p>
-            </a>
-            <a href="silverman.html" aria-label="Acessar o Boletim de Silverman e Anderson" class="group block p-6 bg-white/70 backdrop-blur-sm border border-slate-200 rounded-xl shadow-lg hover:shadow-xl hover:-translate-y-1 transform transition-all duration-300 flex flex-col items-center text-center">
-                <div class="text-4xl text-[#1A3E74] mb-3 group-hover:scale-110 transition-transform duration-300"><i class="fas fa-notes-medical"></i></div>
-                <h3 class="text-lg font-semibold text-gray-800 mb-1">Boletim de Silverman e Anderson</h3>
-                <p class="text-gray-600 text-sm">Grau de desconforto respiratório em RN.</p>
-            </a>
-            <a href="sofa.html" aria-label="Acessar a Escala SOFA" class="group block p-6 bg-white/70 backdrop-blur-sm border border-slate-200 rounded-xl shadow-lg hover:shadow-xl hover:-translate-y-1 transform transition-all duration-300 flex flex-col items-center text-center">
-                <div class="text-4xl text-[#1A3E74] mb-3 group-hover:scale-110 transition-transform duration-300"><i class="fas fa-heartbeat"></i></div>
-                <h3 class="text-lg font-semibold text-gray-800 mb-1">Escala SOFA</h3>
-                <p class="text-gray-600 text-sm">Disfunção orgânica em sepse.</p>
-            </a>
-            <a href="tinetti.html" aria-label="Acessar a Escala de Tinetti (POMA)" class="group block p-6 bg-white/70 backdrop-blur-sm border border-slate-200 rounded-xl shadow-lg hover:shadow-xl hover:-translate-y-1 transform transition-all duration-300 flex flex-col items-center text-center">
-                <div class="text-4xl text-[#1A3E74] mb-3 group-hover:scale-110 transition-transform duration-300"><i class="fa-solid fa-person-walking-with-cane"></i></div>
-                <h3 class="text-lg font-semibold text-gray-800 mb-1">Escala de Tinetti (POMA)</h3>
-                <p class="text-gray-600 text-sm">Avalia risco de queda em idosos observando marcha e equilíbrio.</p>
-            </a>
-            <a href="waterlow.html" aria-label="Acessar a Escala de Waterlow" class="group block p-6 bg-white/70 backdrop-blur-sm border border-slate-200 rounded-xl shadow-lg hover:shadow-xl hover:-translate-y-1 transform transition-all duration-300 flex flex-col items-center text-center">
-                <div class="text-4xl text-[#1A3E74] mb-3 group-hover:scale-110 transition-transform duration-300"><i class="fa-solid fa-weight-scale"></i></div>
-                <h3 class="text-lg font-semibold text-gray-800 mb-1">Escala de Waterlow</h3>
-                <p class="text-gray-600 text-sm">Risco de lesão por pressão.</p>
-            </a>
-            <a href="downes.html" aria-label="Acessar a Escala Wood e Downes" class="group block p-6 bg-white/70 backdrop-blur-sm border border-slate-200 rounded-xl shadow-lg hover:shadow-xl hover:-translate-y-1 transform transition-all duration-300 flex flex-col items-center text-center">
-                <div class="text-4xl text-[#1A3E74] mb-3 group-hover:scale-110 transition-transform duration-300"><i class="fa-solid fa-stethoscope"></i></div>
-                <h3 class="text-lg font-semibold text-gray-800 mb-1">Escala Wood e Downes</h3>
-                <p class="text-gray-600 text-sm">Desconforto respiratório em RN.</p>
-            </a>
-            <a href="zarit.html" aria-label="Acessar a Escala de Zarit" class="group block p-6 bg-white/70 backdrop-blur-sm border border-slate-200 rounded-xl shadow-lg hover:shadow-xl hover:-translate-y-1 transform transition-all duration-300 flex flex-col items-center text-center">
-                <div class="text-4xl text-[#1A3E74] mb-3 group-hover:scale-110 transition-transform duration-300"><i class="fa-solid fa-hospital-user"></i></div>
-                <h3 class="text-lg font-semibold text-gray-800 mb-1">Escala de Zarit</h3>
-                <p class="text-gray-600 text-sm">Avaliação do grau de sobrecarga do cuidador familiar.</p>
-            </a>
-        </div>
-        
-        <h2 class="text-3xl md:text-4xl font-bold text-[#1A3E74] font-nunito mb-8 text-center mt-12">Calculadora de Vacinas</h2>
-        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 mb-12">
-            <a href="vacinas_improved.html" aria-label="Acessar o Calendário vacinal de Crianças" class="group block p-6 bg-white/70 backdrop-blur-sm border border-slate-200 rounded-xl shadow-lg hover:shadow-xl hover:-translate-y-1 transform transition-all duration-300 flex flex-col items-center text-center">
-                <div class="text-4xl text-[#1A3E74] mb-3 group-hover:scale-110 transition-transform duration-300"><i class="fas fa-syringe"></i></div>
+        <h2 class="text-3xl md:text-4xl font-bold text-[#1A3E74] font-nunito mb-6 text-center">Escalas para Avaliação de Pacientes</h2>
+        <div class="calculator-grid grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 mb-12">
+
+            <a href="aldrete.html" class="p-5 bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 flex flex-col items-center text-center">
+            <div class="text-4xl text-[#1A3E74] mb-3">
+                <i class="fas fa-notes-medical"></i>
+            </div>
+            <h3 class="text-lg font-semibold text-gray-800 mb-1">Escala de Aldrete e Kroulik</h3>
+            <p class="text-gray-600 text-xs">Avaliação do paciente em SRPA.</p>
+        </a>
+        <a href="apache.html" class="p-5 bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 flex flex-col items-center text-center">
+            <div class="text-4xl text-[#1A3E74] mb-3">
+                <i class="fa-solid fa-receipt"></i>
+            </div>
+            <h3 class="text-lg font-semibold text-gray-800 mb-1">Escala de APACHE II</h3>
+            <p class="text-gray-600 text-xs">Avaliação de gravidade do paciente em estado grave.</p>
+        </a>
+        <a href="apgar.html" class="p-5 bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 flex flex-col items-center text-center">
+            <div class="text-4xl text-[#1A3E74] mb-3">
+                <i class="fas fa-baby-carriage"></i>
+            </div>
+            <h3 class="text-lg font-semibold text-gray-800 mb-1">Escala de Apgar</h3>
+            <p class="text-gray-600 text-xs">Avaliação de recém-nascidos.</p>
+        </a>
+        <a href="asa.html" class="p-5 bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 flex flex-col items-center text-center">
+            <div class="text-4xl text-[#1A3E74] mb-3">
+                <i class="fas fa-notes-medical"></i>
+            </div>
+            <h3 class="text-lg font-semibold text-gray-800 mb-1">Risco Perioperatório - ASA</h3>
+            <p class="text-gray-600 text-xs">Classificação do estado físico pré operatório.</p>
+        </a>
+        <a href="ballard.html" class="p-5 bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 flex flex-col items-center text-center">
+            <div class="text-4xl text-[#1A3E74] mb-3">
+                <i class="fas fa-baby-carriage"></i>
+            </div>
+            <h3 class="text-lg font-semibold text-gray-800 mb-1">Escala de Ballard</h3>
+            <p class="text-gray-600 text-xs">Avaliação da maturidade neuromuscular e física do recém-nascido.</p>
+        </a>
+        <a href="barthel.html" class="p-5 bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 flex flex-col items-center text-center">
+            <div class="text-4xl text-[#1A3E74] mb-3">
+                <i class="fas fa-walking"></i>
+            </div>
+            <h3 class="text-lg font-semibold text-gray-800 mb-1">Escala de Barthel</h3>
+            <p class="text-gray-600 text-xs"> Avalia grau de dependência funcional do paciente.</p>
+        </a>
+        <a href="bps.html" class="p-5 bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 flex flex-col items-center text-center">
+            <div class="text-4xl text-[#1A3E74] mb-3">
+                <i class="fa-solid fa-mask-face"></i>
+            </div>
+            <h3 class="text-lg font-semibold text-gray-800 mb-1">Escala de dor de Behavioural (BPS)</h3>
+            <p class="text-gray-600 text-xs">Avaliação de dor em pacientes sob ventilação mecânica.</p>
+        </a>
+        <a href="berg.html" class="p-5 bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 flex flex-col items-center text-center">
+            <div class="text-4xl text-[#1A3E74] mb-3">
+                <i class="fa-solid fa-person"></i>
+            </div>
+            <h3 class="text-lg font-semibold text-gray-800 mb-1">Escala de BERG (BBS)</h3>
+            <p class="text-gray-600 text-xs">Avalia o equilíbrio estático e dinâmico de um paciente.</p>
+        </a>
+        <a href="bishop.html" class="p-5 bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 flex flex-col items-center text-center">
+            <div class="text-4xl text-[#1A3E74] mb-3">
+                <i class="fa-solid fa-user-doctor"></i>
+            </div>
+            <h3 class="text-lg font-semibold text-gray-800 mb-1">Índice de Bishop</h3>
+            <p class="text-gray-600 text-xs">Avaliar a maturidade do colo do útero e a prontidão para o trabalho de parto.</p>
+        </a>
+        <a href="braden.html" class="p-5 bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 flex flex-col items-center text-center">
+            <div class="text-4xl text-[#1A3E74] mb-3">
+                <i class="fas fa-bed"></i>
+            </div>
+            <h3 class="text-lg font-semibold text-gray-800 mb-1">Escala de Braden</h3>
+            <p class="text-gray-600 text-xs">Risco de lesão por pressão.</p>
+        </a>
+        <a href="cam.html" class="p-5 bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 flex flex-col items-center text-center">
+            <div class="text-4xl text-[#1A3E74] mb-3">
+                <i class="fas fa-hospital-alt"></i>
+            </div>
+            <h3 class="text-lg font-semibold text-gray-800 mb-1">Escala CAM-ICU</h3>
+            <p class="text-gray-600 text-xs">Avaliação de delirium em UTI.</p>
+        </a>
+        <a href="capurro.html" class="p-5 bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 flex flex-col items-center text-center">
+            <div class="text-4xl text-[#1A3E74] mb-3">
+                <i class="fas fa-baby-carriage"></i>
+            </div>
+            <h3 class="text-lg font-semibold text-gray-800 mb-1">Método de Capurro</h3>
+            <p class="text-gray-600 text-xs">Método para estimar a idade gestacional de de RN's.</p>
+        </a>
+        <a href="cincinnati.html" class="p-5 bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 flex flex-col items-center text-center">
+            <div class="text-4xl text-[#1A3E74] mb-3">
+                <i class="fas fa-hospital-user"></i>
+            </div>
+            <h3 class="text-lg font-semibold text-gray-800 mb-1">Escala de Cincinnati</h3>
+            <p class="text-gray-600 text-xs">Avaliação de AVE.</p>
+        </a>
+        <a href="cornell.html" class="p-5 bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 flex flex-col items-center text-center">
+            <div class="text-4xl text-[#1A3E74] mb-3">
+                <i class="fas fa-notes-medical"></i>
+            </div>
+            <h3 class="text-lg font-semibold text-gray-800 mb-1">Escala de Cornell</h3>
+            <p class="text-gray-600 text-xs">Classificação de depressão em paciente com demência.</p>
+        </a>
+        <a href="cries.html" class="p-5 bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 flex flex-col items-center text-center">
+            <div class="text-4xl text-[#1A3E74] mb-3">
+                <i class="fa-solid fa-child"></i>
+            </div>
+            <h3 class="text-lg font-semibold text-gray-800 mb-1">Escala de CRIES</h3>
+            <p class="text-gray-600 text-xs">Avaliação de dor dos recém-nascidos.</p>
+        </a>
+        <a href="curb-65.html" class="p-5 bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 flex flex-col items-center text-center">
+            <div class="text-4xl text-[#1A3E74] mb-3">
+                <i class="fa-solid fa-lungs-virus"></i>
+            </div>
+            <h3 class="text-lg font-semibold text-gray-800 mb-1">Escala de CURB-65</h3>
+            <p class="text-gray-600 text-xs">Avaliação de Gravidade em Pneumonia Adquirida na Comunidade.</p>
+        </a>
+        <a href="downton.html" class="p-5 bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 flex flex-col items-center text-center">
+            <div class="text-4xl text-[#1A3E74] mb-3">
+                <i class="fa-solid fa-shower"></i>
+            </div>
+            <h3 class="text-lg font-semibold text-gray-800 mb-1">Escala de Downton</h3>
+            <p class="text-gray-600 text-xs">Avalia o risco de queda em pacientes idosos.</p>
+        </a>
+        <a href="elpo.html" class="p-5 bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 flex flex-col items-center text-center">
+            <div class="text-4xl text-[#1A3E74] mb-3">
+                <i class="fas fa-child"></i>
+            </div>
+            <h3 class="text-lg font-semibold text-gray-800 mb-1">Escala de ELPO</h3>
+            <p class="text-gray-600 text-xs">Avaliação lesão por pressão em bloco operatório</p>
+        </a>
+        <a href="fast.html" class="p-5 bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 flex flex-col items-center text-center">
+            <div class="text-4xl text-[#1A3E74] mb-3">
+                <i class="fa-solid fa-person-walking-with-cane"></i>
+            </div>
+            <h3 class="text-lg font-semibold text-gray-800 mb-1">Escala de FAST</h3>
+            <p class="text-gray-600 text-xs">Avaliação de risco de AVE.</p>
+        </a>
+        <a href="flacc.html" class="p-5 bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 flex flex-col items-center text-center">
+            <div class="text-4xl text-[#1A3E74] mb-3">
+                <i class="fas fa-hospital-alt"></i>
+            </div>
+            <h3 class="text-lg font-semibold text-gray-800 mb-1">Escala de FLACC</h3>
+            <p class="text-gray-600 text-xs">Avaliação de dor em crianças não verbal.</p>
+        </a>
+        <a href="four.html" class="p-5 bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 flex flex-col items-center text-center">
+            <div class="text-4xl text-[#1A3E74] mb-3">
+                <i class="fa-solid fa-user-nurse"></i>
+            </div>
+            <h3 class="text-lg font-semibold text-gray-800 mb-1">Escala de FOUR</h3>
+            <p class="text-gray-600 text-xs">Avaliação neurológica.</p>
+        </a>
+        <a href="fugulin.html" class="p-5 bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 flex flex-col items-center text-center">
+            <div class="text-4xl text-[#1A3E74] mb-3">
+                <i class="fas fa-hospital-alt"></i>
+            </div>
+            <h3 class="text-lg font-semibold text-gray-800 mb-1">Escala de Fugulin (SCP)</h3>
+            <p class="text-gray-600 text-xs">Avaliação do grau de Complexidade do paciente.</p>
+        </a>
+        <a href="gds.html" class="p-5 bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 flex flex-col items-center text-center">
+            <div class="text-4xl text-[#1A3E74] mb-3">
+                <i class="fas fa-child"></i>
+            </div>
+            <h3 class="text-lg font-semibold text-gray-800 mb-1">Escala de GDS</h3>
+            <p class="text-gray-600 text-xs">Depressão do paciente geriátrico.</p>
+        </a>
+        <a href="glasgow.html" class="p-5 bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 flex flex-col items-center text-center">
+            <div class="text-4xl text-[#1A3E74] mb-3">
+                <i class="fa-solid fa-eye"></i>
+            </div>
+            <h3 class="text-lg font-semibold text-gray-800 mb-1">Escala de coma de Glasgow</h3>
+            <p class="text-gray-600 text-xs">Nível de consciência.</p>
+        </a>
+        <a href="gosnell.html" class="p-5 bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 flex flex-col items-center text-center">
+            <div class="text-4xl text-[#1A3E74] mb-3">
+                <i class="fa-solid fa-weight-scale"></i>
+            </div>
+            <h3 class="text-lg font-semibold text-gray-800 mb-1">Escala de Gosnell</h3>
+            <p class="text-gray-600 text-xs">Risco de lesão por pressão.</p>
+        </a>
+        <a href="hamilton.html" class="p-5 bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 flex flex-col items-center text-center">
+            <div class="text-4xl text-[#1A3E74] mb-3">
+                <i class="fas fa-file-medical-alt"></i>
+            </div>
+            <h3 class="text-lg font-semibold text-gray-800 mb-1">Escala de Hamilton</h3>
+            <p class="text-gray-600 text-xs">Avalia gravidade dos sintomas de Ansiedade.</p>
+        </a>
+        <a href="humpty.html" class="p-5 bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 flex flex-col items-center text-center">
+            <div class="text-4xl text-[#1A3E74] mb-3">
+                <i class="fas fa-file-medical-alt"></i>
+            </div>
+            <h3 class="text-lg font-semibold text-gray-800 mb-1">Escala de Humpty - Dumpty </h3>
+            <p class="text-gray-600 text-xs">Risco de quedas em pacientes pediátricos.</p>
+        </a>
+        <a href="johns.html" class="p-5 bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 flex flex-col items-center text-center">
+            <div class="text-4xl text-[#1A3E74] mb-3">
+                <i class="fa-solid fa-person-walking-with-cane"></i>
+            </div>
+            <h3 class="text-lg font-semibold text-gray-800 mb-1">Escala de Johns</h3>
+            <p class="text-gray-600 text-xs">Avalia risco de queda.</p>
+        </a>
+        <a href="jouvet.html" class="p-5 bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 flex flex-col items-center text-center">
+            <div class="text-4xl text-[#1A3E74] mb-3">
+                <i class="fas fa-bed"></i>
+            </div>
+            <h3 class="text-lg font-semibold text-gray-800 mb-1">Escala de Jouvet</h3>
+            <p class="text-gray-600 text-xs">Escala de coma/consciência.</p>
+        </a>
+        <a href="katz.html" class="p-5 bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 flex flex-col items-center text-center">
+            <div class="text-4xl text-[#1A3E74] mb-3">
+                <i class="fa-solid fa-bath"></i>
+            </div>
+            <h3 class="text-lg font-semibold text-gray-800 mb-1">Escala de Katz</h3>
+            <p class="text-gray-600 text-xs">Avaliação de autonomia nas ABVDs.</p>
+        </a>
+        <a href="lachs.html" class="p-5 bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 flex flex-col items-center text-center">
+            <div class="text-4xl text-[#1A3E74] mb-3">
+                <i class="fa-solid fa-person-walking-with-cane"></i>
+            </div>
+            <h3 class="text-lg font-semibold text-gray-800 mb-1">Escala de Lachs</h3>
+            <p class="text-gray-600 text-xs">Avaliação da capacidade funcional do idoso.</p>
+        </a>
+        <a href="lanss.html" class="p-5 bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 flex flex-col items-center text-center">
+            <div class="text-4xl text-[#1A3E74] mb-3">
+                <i class="fas fa-user-nurse"></i>
+            </div>
+            <h3 class="text-lg font-semibold text-gray-800 mb-1">Escala de LANSS</h3>
+            <p class="text-gray-600 text-xs">Avaliação de dor neuropática.</p>
+        </a>
+        <a href="lawton.html" class="p-5 bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 flex flex-col items-center text-center">
+            <div class="text-4xl text-[#1A3E74] mb-3">
+                <i class="fa-solid fa-mug-saucer"></i>
+            </div>
+            <h3 class="text-lg font-semibold text-gray-800 mb-1">Escala de Lawton</h3>
+            <p class="text-gray-600 text-xs">Mede o grau de independência nas AIVD em idosos.</p>
+        </a>
+        <a href="manchester.html" class="p-5 bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 flex flex-col items-center text-center">
+            <div class="text-4xl text-[#1A3E74] mb-3">
+                <i class="fas fa-clinic-medical"></i>
+            </div>
+            <h3 class="text-lg font-semibold text-gray-800 mb-1">Escala de Manchester</h3>
+            <p class="text-gray-600 text-xs">Prioridade de atendimento do paciente em Unidades de pronto atendimento.</p>
+        </a>
+        <a href="meem.html" class="p-5 bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 flex flex-col items-center text-center">
+            <div class="text-4xl text-[#1A3E74] mb-3">
+                <i class="fas fa-wheelchair"></i>
+            </div>
+            <h3 class="text-lg font-semibold text-gray-800 mb-1">Escala de MEEM</h3>
+            <p class="text-gray-600 text-xs">Rastreio cognitivo de déficits.</p>
+        </a>
+        <a href="meows.html" class="p-5 bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 flex flex-col items-center text-center">
+            <div class="text-4xl text-[#1A3E74] mb-3">
+                <i class="fas fa-notes-medical"></i>
+            </div>
+            <h3 class="text-lg font-semibold text-gray-800 mb-1">Escala de MEOWS</h3>
+            <p class="text-gray-600 text-xs">Escore de alerta obstétrico precoce/ Avalia Deterioração clínica.</p>
+        </a>
+        <a href="morse.html" class="p-5 bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 flex flex-col items-center text-center">
+            <div class="text-4xl text-[#1A3E74] mb-3">
+                <i class="fas fa-walking"></i>
+            </div>
+            <h3 class="text-lg font-semibold text-gray-800 mb-1">Escala de Morse</h3>
+            <p class="text-gray-600 text-xs">Risco de queda.</p>
+        </a>
+        <a href="news.html" class="p-5 bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 flex flex-col items-center text-center">
+            <div class="text-4xl text-[#1A3E74] mb-3">
+                <i class="fas fa-chart-line"></i>
+            </div>
+            <h3 class="text-lg font-semibold text-gray-800 mb-1">Escala de NEWS</h3>
+            <p class="text-gray-600 text-xs">Escore de alerta precoce adulto/ Avalia Deterioração clínica.</p>
+        </a>
+        <a href="nihss.html" class="p-5 bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 flex flex-col items-center text-center">
+            <div class="text-4xl text-[#1A3E74] mb-3">
+                <i class="fas fa-brain"></i>
+            </div>
+            <h3 class="text-lg font-semibold text-gray-800 mb-1">Escala NIHSS</h3>
+            <p class="text-gray-600 text-xs">Avaliação de AVE.</p>
+        </a>
+        <a href="nips.html" class="p-5 bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 flex flex-col items-center text-center">
+            <div class="text-4xl text-[#1A3E74] mb-3">
+                <i class="fa-solid fa-eye-dropper"></i>
+            </div>
+            <h3 class="text-lg font-semibold text-gray-800 mb-1">Escala de NIPS</h3>
+            <p class="text-gray-600 text-xs">Ferramenta para avaliar a dor em recém-nascidos.</p>
+        </a>
+        <a href="norton.html" class="p-5 bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 flex flex-col items-center text-center">
+            <div class="text-4xl text-[#1A3E74] mb-3">
+                <i class="fas fa-file-medical-alt"></i>
+            </div>
+            <h3 class="text-lg font-semibold text-gray-800 mb-1">Escala de Norton</h3>
+            <p class="text-gray-600 text-xs">Risco de lesão por pressão.</p>
+        </a>
+        <a href="escalanumerica.html" class="p-5 bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 flex flex-col items-center text-center">
+            <div class="text-4xl text-[#1A3E74] mb-3">
+                <i class="fas fa-hospital-alt"></i>
+            </div>
+            <h3 class="text-lg font-semibold text-gray-800 mb-1">Escala Numérica de Dor</h3>
+            <p class="text-gray-600 text-xs">Escala de dor numérica.</p>
+        </a>
+        <a href="ofras.html" class="p-5 bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 flex flex-col items-center text-center">
+            <div class="text-4xl text-[#1A3E74] mb-3">
+                <i class="fa-solid fa-square-plus"></i>
+            </div>
+            <h3 class="text-lg font-semibold text-gray-800 mb-1">Escala de OFRAS</h3>
+            <p class="text-gray-600 text-xs">Risco de quedas em pacientes obstétricas.</p>
+        </a>
+        <a href="painad.html" class="p-5 bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 flex flex-col items-center text-center">
+            <div class="text-4xl text-[#1A3E74] mb-3">
+                <i class="fa-solid fa-hand-holding-medical"></i>
+            </div>
+            <h3 class="text-lg font-semibold text-gray-800 mb-1">Escala de PAINAD</h3>
+            <p class="text-gray-600 text-xs">Avaliação da Dor em Demência Avançada.</p>
+        </a>
+        <a href="pelod.html" class="p-5 bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 flex flex-col items-center text-center">
+            <div class="text-4xl text-[#1A3E74] mb-3">
+                <i class="fa-solid fa-comment-medical"></i>
+            </div>
+            <h3 class="text-lg font-semibold text-gray-800 mb-1">Escala de PELOD</h3>
+            <p class="text-gray-600 text-xs">Gravidade e risco precoce em crianças na UTIP.</p>
+        </a>
+        <a href="pews.html" class="p-5 bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 flex flex-col items-center text-center">
+            <div class="text-4xl text-[#1A3E74] mb-3">
+                <i class="fas fa-notes-medical"></i>
+            </div>
+            <h3 class="text-lg font-semibold text-gray-800 mb-1">Escala de PEWS</h3>
+            <p class="text-gray-600 text-xs">Alerta clínico precoce pediátrico/ Avalia Deterioração clínica.</p>
+        </a>
+        <a href="perroca.html" class="p-5 bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 flex flex-col items-center text-center">
+            <div class="text-4xl text-[#1A3E74] mb-3">
+                <i class="fas fa-hospital-alt"></i>
+            </div>
+            <h3 class="text-lg font-semibold text-gray-800 mb-1">Cassificação de paciente Perroca (SCP)</h3>
+            <p class="text-gray-600 text-xs">Classificação do paciente segundo suas complexidades.</p>
+        </a>
+        <a href="prism.html" class="p-5 bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 flex flex-col items-center text-center">
+            <div class="text-4xl text-[#1A3E74] mb-3">
+                <i class="fas fa-lungs"></i>
+            </div>
+            <h3 class="text-lg font-semibold text-gray-800 mb-1">Escala PRISM</h3>
+            <p class="text-gray-600 text-xs">Risco de mortalidade em UTIP.</p>
+        </a>
+        <a href="qsofa.html" class="p-5 bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 flex flex-col items-center text-center">
+            <div class="text-4xl text-[#1A3E74] mb-3">
+                <i class="fas fa-lungs"></i>
+            </div>
+            <h3 class="text-lg font-semibold text-gray-800 mb-1">Escala qSOFA</h3>
+            <p class="text-gray-600 text-xs">Triagem rápida para sepse.</p>
+        </a>
+        <a href="rancholosamigos.html" class="p-5 bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 flex flex-col items-center text-center">
+            <div class="text-4xl text-[#1A3E74] mb-3">
+                <i class="fas fa-user-md"></i>
+            </div>
+            <h3 class="text-lg font-semibold text-gray-800 mb-1">Escala de Rancho Los Amigos</h3>
+            <p class="text-gray-600 text-xs">Padrões cognitivos e comportamentais de pacientes com lesão cerebral.</p>
+        </a>
+        <a href="richmond.html" class="p-5 bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 flex flex-col items-center text-center">
+            <div class="text-4xl text-[#1A3E74] mb-3">
+                <i class="fas fa-user-md"></i>
+            </div>
+            <h3 class="text-lg font-semibold text-gray-800 mb-1">Escala de Richmond</h3>
+            <p class="text-gray-600 text-xs">Sedação e agitação.</p>
+        </a>
+        <a href="saps.html" class="p-5 bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 flex flex-col items-center text-center">
+            <div class="text-4xl text-[#1A3E74] mb-3">
+                <i class="fas fa-hospital-alt"></i>
+            </div>
+            <h3 class="text-lg font-semibold text-gray-800 mb-1">Escala de SAPS III</h3>
+            <p class="text-gray-600 text-xs">Porcentagem de Índice de mortalidade em UTI.</p>
+        </a>
+        <a href="silverman.html" class="p-5 bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 flex flex-col items-center text-center">
+            <div class="text-4xl text-[#1A3E74] mb-3">
+                <i class="fas fa-notes-medical"></i>
+            </div>
+            <h3 class="text-lg font-semibold text-gray-800 mb-1">Boletim de Silverman e Anderson</h3>
+            <p class="text-gray-600 text-xs">Grau de desconforto respiratório em RN.</p>
+        </a>
+        <a href="sofa.html" class="p-5 bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 flex flex-col items-center text-center">
+            <div class="text-4xl text-[#1A3E74] mb-3">
+                <i class="fas fa-heartbeat"></i>
+            </div>
+            <h3 class="text-lg font-semibold text-gray-800 mb-1">Escala SOFA</h3>
+            <p class="text-gray-600 text-xs">Disfunção orgânica em sepse.</p>
+        </a>
+        <a href="tinetti.html" class="p-5 bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 flex flex-col items-center text-center">
+            <div class="text-4xl text-[#1A3E74] mb-3">
+                <i class="fa-solid fa-person-walking-with-cane"></i>
+            </div>
+            <h3 class="text-lg font-semibold text-gray-800 mb-1">Escala de Tinetti (POMA)</h3>
+            <p class="text-gray-600 text-xs">Avalia risco de queda em idosos observando marcha e equilíbrio.</p>
+        </a>
+        <a href="waterlow.html" class="p-5 bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 flex flex-col items-center text-center">
+            <div class="text-4xl text-[#1A3E74] mb-3">
+                <i class="fa-solid fa-weight-scale"></i>
+            </div>
+            <h3 class="text-lg font-semibold text-gray-800 mb-1">Escala de Waterlow</h3>
+            <p class="text-gray-600 text-xs">Risco de lesão por pressão.</p>
+        </a>
+        <a href="downes.html" class="p-5 bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 flex flex-col items-center text-center">
+            <div class="text-4xl text-[#1A3E74] mb-3">
+                <i class="fa-solid fa-stethoscope"></i>
+            </div>
+            <h3 class="text-lg font-semibold text-gray-800 mb-1">Escala Wood e Downes</h3>
+            <p class="text-gray-600 text-xs">Desconforto respiratório em RN.</p>
+        </a>
+        <a href="zarit.html" class="p-5 bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 flex flex-col items-center text-center">
+            <div class="text-4xl text-[#1A3E74] mb-3">
+                <i class="fa-solid fa-hospital-user"></i>
+            </div>
+            <h3 class="text-lg font-semibold text-gray-800 mb-1">Escala de Zarit</h3>
+            <p class="text-gray-600 text-xs">Avaliação do grau de sobrecarga do cuidador familiar.</p>
+        </a>
+    </div>
+        <!-- NOVA SEÇÃO DE VACINAS -->
+        <h2 class="text-3xl md:text-4xl font-bold text-[#1A3E74] font-nunito mb-6 text-center mt-12">Calculadora de Vacinas</h2>
+        <div class="calculator-grid grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 mb-12">
+            <a href="vacinas_improved.html" class="p-5 bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 flex flex-col items-center text-center">
+                <div class="text-4xl text-[#1A3E74] mb-3">
+                    <i class="fas fa-syringe"></i>
+                </div>
                 <h3 class="text-lg font-semibold text-gray-800 mb-1">Calendário vacinal de Crianças</h3>
-                <p class="text-gray-600 text-sm">Calcule qual vacina aplicar por idade.</p>
+                <p class="text-gray-600 text-xs">Calcule qual vacina aplicar por idade.</p>
             </a>
-            <a href="tabelas-vacinas-crianca.html" aria-label="Acessar a Tabela do Calendário Vacinal da Criança" class="group block p-6 bg-white/70 backdrop-blur-sm border border-slate-200 rounded-xl shadow-lg hover:shadow-xl hover:-translate-y-1 transform transition-all duration-300 flex flex-col items-center text-center">
-                <div class="text-4xl text-[#1A3E74] mb-3 group-hover:scale-110 transition-transform duration-300"><i class="fas fa-notes-medical"></i></div>
+            <a href="tabelas-vacinas-crianca.html" class="p-5 bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 flex flex-col items-center text-center">
+                <div class="text-4xl text-[#1A3E74] mb-3">
+                    <i class="fas fa-notes-medical"></i>
+                </div>
                 <h3 class="text-lg font-semibold text-gray-800 mb-1">Tabela do Calendário Vacinal da Criança</h3>
-                <p class="text-gray-600 text-sm">Verifique a tabela do calendário vacinal da criança.</p>
+                <p class="text-gray-600 text-xs">Verifique a tabela do calendario vacinal da criança.</p>
             </a>
         </div>
-    </main>
 
+</main>
+
+    </main>
     <!-- Outras seções do site -->
 
 <!-- Anúncio Adterra antes do footer -->
 <div id="container-62a5c8277a385b7247c1969a06823c61" class="w-full max-w-md mx-auto my-4"></div>
 
-<!-- Footer real abaixo -->
+<!-- Rodapé -->
+<footer>
+  <!-- Conteúdo do seu rodapé -->
+</footer>
+
+    <!-- Footer -->
     <footer class="bg-[#1A3E74] text-white py-8">
         <div class="max-w-7xl mx-auto px-4">
             <div class="border-b border-white pb-4 mb-4">
@@ -843,17 +805,16 @@
                         <img src="https://www.calculadorasdeenfermagem.com.br/selosustentabilidade.webp" alt="Selo de Sustentabilidade" width="100" height="100" class="w-auto h-auto max-w-[80px] max-h-[80px]" loading="lazy" decoding="async">
                         <img src="https://www.calculadorasdeenfermagem.com.br/selolgpd.webp" alt="Selo LGPD" width="100" height="100" class="w-auto h-auto max-w-[80px] max-h-[80px]" loading="lazy" decoding="async">
                     </div>
-                </div> <!-- FECHAMENTO ADICIONADO: encerra a coluna "Nosso Compromisso" -->
-                
+                </div>
                 <div class="flex flex-1 flex-col md:flex-row justify-end items-start md:items-start">
                     <div class="vertical-divider-footer-stretched hidden md:block"></div>
                     <div class="flex flex-col items-start space-y-4">
                         <h5 class="font-bold mb-2">Siga-nos</h5>
                         <div class="flex space-x-4">
-                            <a href="https://linkedin.com/company/calculadoras-de-enfermagem" target="_blank" rel="noopener noreferrer" class="footer-social-icon" title="LinkedIn" aria-label="Acesse Nosso Perfil no LinkedIn"><i class="fab fa-linkedin text-xl"></i></a>
-                            <a href="https://www.instagram.com/calculadorasdeenfermagem/" target="_blank" rel="noopener noreferrer" class="footer-social-icon" title="Instagram" aria-label="Acesse Nosso Perfil no Instagram"><i class="fab fa-instagram text-xl"></i></a>
-                            <a href="https://www.tiktok.com/@calculadorasdeenf" target="_blank" rel="noopener noreferrer" class="footer-social-icon" title="TikTok" aria-label="Acesse Nosso Perfil no TikTok"><i class="fab fa-tiktok text-xl"></i></a>
-                            <a href="https://www.youtube.com/channel/UC_6runTDHz8u5S1Yab842pg" target="_blank" rel="noopener noreferrer" class="footer-social-icon" title="YouTube" aria-label="Acesse Nosso Perfil no YouTube"><i class="fab fa-youtube text-xl"></i></a>
+                            <a href="https://linkedin.com/company/calculadoras-de-enfermagem" target="_blank" class="footer-social-icon" title="LinkedIn" aria-label="Acesse Nosso Perfil no LinkedIn"><i class="fab fa-linkedin text-xl"></i></a>
+                            <a href="https://www.instagram.com/calculadorasdeenfermagem/" target="_blank" class="footer-social-icon" title="Instagram" aria-label="Acesse Nosso Perfil no Instagram"><i class="fab fa-instagram text-xl"></i></a>
+                            <a href="https://www.tiktok.com/@calculadorasdeenf" target="_blank" class="footer-social-icon" title="TikTok" aria-label="Acesse Nosso Perfil no TikTok"><i class="fab fa-tiktok text-xl"></i></a>
+                            <a href="https://www.youtube.com/channel/UC_6runTDHz8u5S1Yab842pg" target="_blank" class="footer-social-icon" title="YouTube" aria-label="Acesse Nosso Perfil no YouTube"><i class="fab fa-youtube text-xl"></i></a>
                         </div>
                         
                     </div>
