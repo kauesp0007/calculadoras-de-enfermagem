@@ -115,14 +115,48 @@
       "description": "Ferramentas essenciais e interativas para profissionais e estudantes de enfermagem, oferecendo calculadoras de escalas clínicas e de dosagem de medicamentos para otimizar a prática diária e a segurança do paciente.",
       "alternateName": ["Calculadoras de Saúde", "Ferramentas de Enfermagem"]
     }
-        /* Layout das Calculadoras (Grid) */
-        .calculator-grid {
-            display: grid;
-            gap: 1.5rem; /* Aumentado um pouco o espaçamento para melhor visualização em 4 colunas */
-            grid-template-columns: repeat(1, minmax(0, 1fr)); /* 1 coluna em mobile */
-        }
-
     </script>
+    <!-- Estilos adicionais: cartões com bordas suaves, sombras e hover profissional -->
+    <style>
+      /* Aperfeiçoamento visual dos cartões de calculadoras/escala */
+      .calculator-grid a {
+        border-radius: 14px;
+        border: 1px solid rgba(26, 62, 116, 0.06);
+        background-clip: padding-box;
+        transition: transform 220ms cubic-bezier(.2,.9,.2,1), box-shadow 220ms cubic-bezier(.2,.9,.2,1), border-color 220ms;
+        box-shadow: 0 6px 18px rgba(10, 35, 77, 0.04);
+        will-change: transform, box-shadow;
+        overflow: hidden;
+      }
+      .calculator-grid a:hover,
+      .calculator-grid a:focus {
+        transform: translateY(-6px) scale(1.01);
+        box-shadow: 0 18px 40px rgba(10, 35, 77, 0.10);
+        border-color: rgba(26, 62, 116, 0.12);
+        outline: none;
+      }
+      .calculator-grid a:focus {
+        box-shadow: 0 18px 40px rgba(26, 62, 116, 0.12);
+        outline: 3px solid rgba(26,62,116,0.08);
+      }
+
+      /* Ícones e texto: suavizar a transição interna */
+      .calculator-grid a i {
+        transition: transform 220ms ease;
+      }
+      .calculator-grid a:hover i,
+      .calculator-grid a:focus i {
+        transform: scale(1.06);
+      }
+
+      /* Ajustes de gap/responsividade para melhor aparência mobile */
+      .calculator-grid { gap: 0.9rem; }
+      @media (min-width: 640px) { .calculator-grid { gap: 1rem; } }
+      @media (min-width: 768px) { .calculator-grid { gap: 1.25rem; } }
+
+      /* Pequenas melhorias de tipografia nos títulos dos cartões */
+      .calculator-grid h3 { line-height: 1.15; }
+    </style>
     
 </head>
 
@@ -172,67 +206,66 @@
       var wrapper = document.getElementById('language-dropdown-wrapper');
       if (header && wrapper) {
         var h = header.offsetHeight || 0;
-        wrapper.style.marginTop = (h ? (h + 12) : 24) + 'px';
+        /* Aumentado offset para evitar que a caixa de idiomas encoste na barra global */
+        wrapper.style.marginTop = (h ? (h + 24) : 32) + 'px';
       }
     }
     window.addEventListener('load', recalcular);
     window.addEventListener('resize', recalcular);
   })();
 
-  const button   = document.getElementById("langButton");
-  const menu     = document.getElementById("langMenu");
-  const langFlag = document.getElementById("langFlag");
-  const langText = document.getElementById("langText");
+  // Inicializa o seletor de idioma somente quando DOM estiver pronto
+  document.addEventListener('DOMContentLoaded', function() {
+    const button   = document.getElementById("langButton");
+    const menu     = document.getElementById("langMenu");
+    const langFlag = document.getElementById("langFlag");
+    const langText = document.getElementById("langText");
+    if (!button || !menu || !langFlag || !langText) return;
 
-  // Abrir/fechar menu
-  button.addEventListener("click", () => {
-    menu.classList.toggle("hidden");
-    button.setAttribute('aria-expanded', !menu.classList.contains('hidden'));
-  });
+    // Abrir/fechar menu
+    button.addEventListener("click", () => {
+      menu.classList.toggle("hidden");
+      button.setAttribute('aria-expanded', String(!menu.classList.contains('hidden')));
+    });
 
-  // Fechar ao clicar fora
-  document.addEventListener("click", (e) => {
-    if (!button.contains(e.target) && !menu.contains(e.target)) {
-      menu.classList.add("hidden");
-      button.setAttribute('aria-expanded', 'false');
-    }
-  });
-
-  // Troca de idioma + atualização do botão
-  document.querySelectorAll("#langMenu div").forEach(item => {
-    item.addEventListener("click", () => {
-      const value = item.dataset.value;
-      const flag  = item.dataset.flag;
-      const text  = item.innerText.trim();
-
-      langFlag.src = flag;
-      langText.textContent = text;
-      menu.classList.add("hidden");
-      button.setAttribute('aria-expanded', 'false');
-
-      switch (value) {
-        case 'en': window.location.href = "/en/"; break;
-        case 'es': window.location.href = "/es/"; break;
-        case 'de': window.location.href = "/de/"; break;
-        case 'it': window.location.href = "/it/"; break;
-        default:   window.location.href = "/";   // pt
+    // Fechar ao clicar fora
+    document.addEventListener("click", (e) => {
+      if (!button.contains(e.target) && !menu.contains(e.target)) {
+        if (!menu.classList.contains('hidden')) {
+          menu.classList.add("hidden");
+          button.setAttribute('aria-expanded', 'false');
+        }
       }
     });
-  });
 
-  // Detectar idioma atual pela URL ao carregar
-  window.addEventListener("DOMContentLoaded", function() {
-    const path = window.location.pathname;
-    let current = document.querySelector('[data-value="pt"]');
-    if (path.startsWith("/en/"))      current = document.querySelector('[data-value="en"]');
-    else if (path.startsWith("/es/")) current = document.querySelector('[data-value="es"]');
-    else if (path.startsWith("/de/")) current = document.querySelector('[data-value="de"]');
-    else if (path.startsWith("/it/")) current = document.querySelector('[data-value="it"]');
+    // Troca de idioma + atualização do botão
+    menu.querySelectorAll("div").forEach(item => {
+      item.addEventListener("click", () => {
+        const value = item.dataset.value;
+        const flag  = item.dataset.flag;
+        const text  = item.innerText.trim();
+        if (flag) langFlag.src = flag;
+        if (text) langText.textContent = text;
+        menu.classList.add("hidden");
+        button.setAttribute('aria-expanded', 'false');
+        switch (value) {
+          case 'en': window.location.href = "/en/"; break;
+          case 'es': window.location.href = "/es/"; break;
+          case 'de': window.location.href = "/de/"; break;
+          case 'it': window.location.href = "/it/"; break;
+          default:   window.location.href = "/"; // pt
+        }
+      });
+    });
 
-    if (current) {
-      langFlag.src = current.dataset.flag;
-      langText.textContent = current.innerText.trim();
-    }
+    // Detectar idioma atual pela URL
+    var path = window.location.pathname;
+    var current = menu.querySelector('[data-value="pt"]');
+    if (path.startsWith("/en/")) current = menu.querySelector('[data-value="en"]');
+    else if (path.startsWith("/es/")) current = menu.querySelector('[data-value="es"]');
+    else if (path.startsWith("/de/")) current = menu.querySelector('[data-value="de"]');
+    else if (path.startsWith("/it/")) current = menu.querySelector('[data-value="it"]');
+    if (current) { langFlag.src = current.dataset.flag; langText.textContent = current.innerText.trim(); }
   });
 </script>
 
