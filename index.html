@@ -156,6 +156,50 @@
 
       /* Pequenas melhorias de tipografia nos títulos dos cartões */
       .calculator-grid h3 { line-height: 1.15; }
+
+      /* Quick search (canto superior esquerdo) */
+#quick-search-wrapper {
+  position: absolute;
+  left: 1.5rem;
+  z-index: 95;
+  width: 260px;
+  max-width: calc(100% - 3rem);
+  display: none; /* ativado via JS quando posicionado */
+}
+#quick-search-input {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  border-radius: 10px;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 6px 18px rgba(10,35,77,0.06);
+  background: white;
+  outline: none;
+  font-size: 0.95rem;
+}
+#quick-search-suggestions {
+  margin-top: 6px;
+  list-style: none;
+  padding: 0.25rem;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 12px 30px rgba(10,35,77,0.08);
+  max-height: 240px;
+  overflow-y: auto;
+  border: 1px solid #e6edf3;
+}
+#quick-search-suggestions li {
+  padding: 0.45rem 0.6rem;
+  cursor: pointer;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  color: #0f172a;
+}
+#quick-search-suggestions li:hover, #quick-search-suggestions li[aria-selected="true"] {
+  background: #f1f5f9;
+}
+@media (max-width: 640px) {
+  #quick-search-wrapper { left: 1rem; right: 1rem; width: auto; }
+}
     </style>
     
 </head>
@@ -196,6 +240,12 @@
       </div>
     </div>
   </div>
+</div>
+
+<!-- Caixa de pesquisa rápida (canto superior esquerdo) -->
+<div id="quick-search-wrapper" role="search" aria-label="Pesquisar calculadora ou escala">
+  <input id="quick-search-input" type="search" placeholder="Pesquisar calculadora ou escala..." aria-autocomplete="list" aria-controls="quick-search-suggestions" aria-expanded="false" />
+  <ul id="quick-search-suggestions" role="listbox" tabindex="-1" aria-label="Sugestões de pesquisa"></ul>
 </div>
 
 <script>
@@ -934,5 +984,122 @@
   })();
 </script>
 
-</body>
-</html>
+<script>
+(function initQuickSearch(){
+  function positionWrapper() {
+    var header = document.getElementById('global-header-container');
+    var wrapper = document.getElementById('quick-search-wrapper');
+    if (!wrapper) return;
+    var h = header ? header.offsetHeight || 0 : 0;
+    // coloca abaixo do header com pequeno espaçamento (ajuste para não encostar no menu)
+    wrapper.style.top = (h ? (h + 18) : 24) + 'px';
+    wrapper.style.display = 'block';
+  }
+
+  document.addEventListener('DOMContentLoaded', function(){
+    var input = document.getElementById('quick-search-input');
+    var list  = document.getElementById('quick-search-suggestions');
+    var wrapper = document.getElementById('quick-search-wrapper');
+    if (!input || !list || !wrapper) return;
+
+    // posicionar inicialmente
+    positionWrapper();
+    window.addEventListener('resize', positionWrapper);
+    window.addEventListener('load', positionWrapper);
+
+    // coletar itens pesquisáveis a partir dos links dentro do main-content
+    var anchors = Array.from(document.querySelectorAll('#main-content a[href]'));
+    var items = anchors.map(a => {
+      var titleEl = a.querySelector('h3');
+      var title = titleEl ? titleEl.innerText.trim() : (a.getAttribute('aria-label') || a.textContent.trim());
+      // normalizar URL relativa
+      var href = a.getAttribute('href') || '#';
+      return { title: title, href: href };
+    }).filter(i => i.title);
+
+    var selectedIndex = -1;
+
+    function clearList() {
+      list.innerHTML = '';
+      list.setAttribute('aria-hidden', 'true');
+      input.setAttribute('aria-expanded','false');
+      selectedIndex = -1;
+    }
+
+    function renderResults(results) {
+      clearList();
+      if (!results.length) return;
+      var frag = document.createDocumentFragment();
+      results.forEach((r, idx) => {
+        var li = document.createElement('li');
+        li.textContent = r.title;
+        li.setAttribute('role','option');
+        li.setAttribute('data-href', r.href || '#');
+        li.tabIndex = -1;
+        li.addEventListener('click', function(){ window.location.href = this.dataset.href; });
+        li.addEventListener('mouseover', function(){
+          Array.from(list.children).forEach(ch => ch.removeAttribute('aria-selected'));
+          this.setAttribute('aria-selected','true');
+          selectedIndex = idx;
+        });
+        frag.appendChild(li);
+      });
+      list.appendChild(frag);
+      list.setAttribute('aria-hidden','false');
+      input.setAttribute('aria-expanded','true');
+    }
+
+    function search(term) {
+      term = (term || '').trim().toLowerCase();
+      if (!term) { clearList(); return; }
+      var results = items.filter(i => i.title.toLowerCase().indexOf(term) !== -1).slice(0, 8);
+      renderResults(results);
+    }
+
+    input.addEventListener('input', function(e){ search(e.target.value); });
+
+    input.addEventListener('keydown', function(e){
+      var opts = list.querySelectorAll('li');
+      if (!opts.length) {
+        if (e.key === 'Enter') {
+          // opcional: se nada selecionado, buscar primeira correspondência global
+          var term = input.value.trim().toLowerCase();
+          var first = items.find(i => i.title.toLowerCase().indexOf(term) !== -1);
+          if (first) window.location.href = first.href;
+        }
+        return;
+      }
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        selectedIndex = Math.min(selectedIndex + 1, opts.length - 1);
+        Array.from(opts).forEach((o,i) => o.removeAttribute('aria-selected'));
+        opts[selectedIndex].setAttribute('aria-selected','true');
+        opts[selectedIndex].scrollIntoView({ block: 'nearest' });
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        selectedIndex = Math.max(selectedIndex - 1, 0);
+        Array.from(opts).forEach((o,i) => o.removeAttribute('aria-selected'));
+        opts[selectedIndex].setAttribute('aria-selected','true');
+        opts[selectedIndex].scrollIntoView({ block: 'nearest' });
+      } else if (e.key === 'Enter') {
+        e.preventDefault();
+        if (selectedIndex >= 0 && opts[selectedIndex]) {
+          window.location.href = opts[selectedIndex].dataset.href;
+        } else if (opts[0]) {
+          window.location.href = opts[0].dataset.href;
+        }
+      } else if (e.key === 'Escape') {
+        clearList();
+      }
+    });
+
+    // fechar sugestões ao clicar fora
+    document.addEventListener('click', function(e){
+      if (!wrapper.contains(e.target)) clearList();
+    });
+
+    // limpar no blur com delay para permitir click
+    input.addEventListener('blur', function(){ setTimeout(clearList, 150); });
+  });
+})();
+</script>
