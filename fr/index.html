@@ -81,6 +81,114 @@
     <div id="statusMessage" class="sr-only" aria-live="polite" aria-atomic="true"></div>
     
     <div id="global-header-container"></div>
+    <div id="language-dropdown-wrapper" class="flex justify-end w-full" style="position:relative; z-index:100; padding-right:2rem;">
+  <!-- 🌍 Selettore di lingua con bandiere -->
+  <div class="relative inline-block text-left z-50">
+    <!-- Bottone principale (già in italiano) -->
+    <button id="langButton" class="flex items-center space-x-2 border px-3 py-1 rounded-lg shadow bg-gray-100">
+      <img id="langFlag" src="bandeira-franca.webp" alt="FR" class="w-5 h-4 rounded-sm">
+      <span id="langText" class="text-gray-700 font-medium">Français</span>
+      <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+      </svg>
+    </button>
+
+    <!-- Menù a tendina -->
+    <div id="langMenu" class="hidden absolute right-0 mt-2 w-44 bg-white border rounded-lg shadow-lg">
+      <div class="flex items-center px-3 py-2 hover:bg-gray-100 cursor-pointer space-x-2" data-value="pt" data-flag="bandeira-brasil.webp">
+        <img src="bandeira-brasil.webp" class="w-5 h-4 rounded-sm" alt="BR"><span>Português</span>
+      </div>
+      <div class="flex items-center px-3 py-2 hover:bg-gray-100 cursor-pointer space-x-2" data-value="en" data-flag="bandeira-eua.webp">
+        <img src="bandeira-eua.webp" class="w-5 h-4 rounded-sm" alt="EN"><span>English</span>
+      </div>
+      <div class="flex items-center px-3 py-2 hover:bg-gray-100 cursor-pointer space-x-2" data-value="es" data-flag="bandeira-espanha.webp">
+        <img src="bandeira-espanha.webp" class="w-5 h-4 rounded-sm" alt="ES"><span>Español</span>
+      </div>
+      <div class="flex items-center px-3 py-2 hover:bg-gray-100 cursor-pointer space-x-2" data-value="de" data-flag="bandeira-alemanha.webp">
+        <img src="bandeira-alemanha.webp" class="w-5 h-4 rounded-sm" alt="DE"><span>Deutsch</span>
+      </div>
+      <div class="flex items-center px-3 py-2 hover:bg-gray-100 cursor-pointer space-x-2" data-value="it" data-flag="bandeira-italia.webp">
+        <img src="bandeira-italia.webp" class="w-5 h-4 rounded-sm" alt="IT"><span>Italiano</span>
+      </div>
+        <div class="flex items-center px-3 py-2 hover:bg-gray-100 cursor-pointer space-x-2" data-value="fr" data-flag="bandeira-franca.webp">
+            <img src="bandeira-franca.webp" class="w-5 h-4 rounded-sm" alt="FR"><span>Français</span>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Regola automatica dello spazio sotto l'header
+  (function ajustarEspacoIdioma() {
+    function recalcular() {
+      var header = document.getElementById('global-header-container');
+      var wrapper = document.getElementById('language-dropdown-wrapper');
+      if (header && wrapper) {
+        var h = header.offsetHeight || 0;
+        wrapper.style.marginTop = (h ? (h + 12) : 24) + 'px';
+      }
+    }
+    window.addEventListener('load', recalcular);
+    window.addEventListener('resize', recalcular);
+  })();
+
+  const button   = document.getElementById("langButton");
+  const menu     = document.getElementById("langMenu");
+  const langFlag = document.getElementById("langFlag");
+  const langText = document.getElementById("langText");
+
+  // Apri/chiudi menù
+  button.addEventListener("click", () => {
+    menu.classList.toggle("hidden");
+    button.setAttribute('aria-expanded', !menu.classList.contains('hidden'));
+  });
+
+  // Chiudi cliccando fuori
+  document.addEventListener("click", (e) => {
+    if (!button.contains(e.target) && !menu.contains(e.target)) {
+      menu.classList.add("hidden");
+      button.setAttribute('aria-expanded', 'false');
+    }
+  });
+
+  // Cambio lingua
+  document.querySelectorAll("#langMenu div").forEach(item => {
+    item.addEventListener("click", () => {
+      const value = item.dataset.value;
+      const flag  = item.dataset.flag;
+      const text  = item.innerText.trim();
+
+      langFlag.src = flag;
+      langText.textContent = text;
+      menu.classList.add("hidden");
+      button.setAttribute('aria-expanded', 'false');
+
+      switch (value) {
+        case 'en': window.location.href = "/en/"; break;
+        case 'es': window.location.href = "/es/"; break;
+        case 'de': window.location.href = "/de/"; break;
+        case 'it': window.location.href = "/it/"; break;
+        case 'fr': window.location.href = "/fr/"; break;
+        default:   window.location.href = "/";   // pt
+      }
+    });
+  });
+
+  // Rileva lingua corrente dall'URL
+  window.addEventListener("DOMContentLoaded", function() {
+    const path = window.location.pathname;
+    let current = document.querySelector('[data-value="pt"]');
+    if (path.startsWith("/en/"))      current = document.querySelector('[data-value="en"]');
+    else if (path.startsWith("/es/")) current = document.querySelector('[data-value="es"]');
+    else if (path.startsWith("/de/")) current = document.querySelector('[data-value="de"]');
+    else if (path.startsWith("/it/")) current = document.querySelector('[data-value="it"]');
+    else if (path.startsWith("/fr/")) current = document.querySelector('[data-value="fr"]');
+
+    if (current) {
+      langFlag.src = current.dataset.flag;
+      langText.textContent = current.innerText.trim();
+    }
+  });
+</script>
     
     <main id="main-content" class="flex-grow p-4 md:p-8">
         <section class="pt-8 pb-4 header-with-logo mt-12 mb-12">
