@@ -173,11 +173,22 @@ function inicializarTooltips() {
 // TROVA la funzione initializeCookieFunctionality() nel tuo JS e SOSTITUISCILA con questo blocco completo:
 
 function initializeCookieFunctionality() {
-    // Seleziona tutti gli elementi correlati ai cookie
-    const cookieConsentBanner = document.getElementById('cookieConsentBanner');
-    const acceptAllCookiesBtn = document.getElementById('acceptAllCookiesBtn');
-    const refuseAllCookiesBtn = document.getElementById('refuseAllCookiesBtn');
-    const manageCookiesBtn = document.getElementById('manageCookiesBtn'); // Pulsante nel banner
+    // Seleziona elementi correlati ai cookie; supporta più varianti di id (compatibilità)
+    const cookieConsentBanner = document.getElementById('cookieConsentBanner')
+        || document.getElementById('consent-banner')
+        || document.getElementById('cookie-banner');
+
+    const acceptAllCookiesBtn = document.getElementById('acceptAllCookiesBtn')
+        || document.getElementById('consent-accept')
+        || document.getElementById('consent-accept-btn')
+        || document.getElementById('accept-all');
+
+    const refuseAllCookiesBtn = document.getElementById('refuseAllCookiesBtn')
+        || document.getElementById('consent-reject')
+        || document.getElementById('consent-reject-btn')
+        || document.getElementById('reject-all');
+
+    const manageCookiesBtn = document.getElementById('manageCookiesBtn') || document.getElementById('manage-cookies');
     const granularCookieModal = document.getElementById('granularCookieModal');
     const saveGranularPreferencesBtn = document.getElementById('saveGranularPreferencesBtn');
     const granularModalCloseButton = document.getElementById('granularModalCloseButton');
@@ -185,71 +196,78 @@ function initializeCookieFunctionality() {
     const cookieAnalyticsCheckbox = document.getElementById('cookieAnalytics');
     const cookieMarketingCheckbox = document.getElementById('cookieMarketing');
 
-    // Pulsante "Gestisci preferenze cookie" nel footer
     const openGranularCookieModalBtn = document.getElementById('openGranularCookieModalBtn');
 
-    // Funzioni ausiliarie per mostrare/nascondere elementi
-    const showCookieBanner = () => { if (!localStorage.getItem('cookieConsent') && cookieConsentBanner) cookieConsentBanner.classList.add('show'); };
+    function hasExistingConsent() {
+        try {
+            const a = localStorage.getItem('cookieConsent');
+            const b = localStorage.getItem('consent_ads');
+            return a === 'accepted' || a === 'refused' || a === 'managed' || b === 'accepted' || b === 'rejected';
+        } catch (e) { return false; }
+    }
+
+    const showCookieBanner = () => { if (!hasExistingConsent() && cookieConsentBanner) cookieConsentBanner.classList.add('show'); };
     const hideCookieBanner = () => { if (cookieConsentBanner) cookieConsentBanner.classList.remove('show'); };
-    
+
     const showGranularCookieModal = () => {
         if (!granularCookieModal) return;
-        if(cookieAnalyticsCheckbox) cookieAnalyticsCheckbox.checked = localStorage.getItem('analytics_storage') === 'granted';
-        if(cookieMarketingCheckbox) cookieMarketingCheckbox.checked = localStorage.getItem('ad_storage') === 'granted';
+        try {
+            if (cookieAnalyticsCheckbox) cookieAnalyticsCheckbox.checked = localStorage.getItem('analytics_storage') === 'granted';
+            if (cookieMarketingCheckbox) cookieMarketingCheckbox.checked = localStorage.getItem('ad_storage') === 'granted';
+        } catch (e) {}
         granularCookieModal.classList.remove('hidden');
-        // Forza il browser ad applicare la modifica prima di aggiungere la classe di transizione
-        setTimeout(() => {
-            granularCookieModal.classList.add('show');
-        }, 10);
+        setTimeout(() => granularCookieModal.classList.add('show'), 10);
     };
-    
-    const hideGranularCookieModal = () => { 
-        if(granularCookieModal) {
+
+    const hideGranularCookieModal = () => {
+        if (granularCookieModal) {
             granularCookieModal.classList.remove('show');
-            setTimeout(() => {
-                granularCookieModal.classList.add('hidden');
-            }, 300); // Deve corrispondere alla durata della transizione nel CSS
+            setTimeout(() => granularCookieModal.classList.add('hidden'), 300);
         }
     };
 
-    const updateGtagConsent = (consent) => { if(typeof gtag === 'function') { gtag('consent', 'update', consent); } };
+    const updateGtagConsent = (consent) => { if (typeof gtag === 'function') gtag('consent', 'update', consent); };
 
-    // Aggiunge gli eventi ai pulsanti
+    const persistConsent = (status, consent) => {
+        try {
+            if (status === 'accepted') localStorage.setItem('consent_ads', 'accepted');
+            if (status === 'rejected') localStorage.setItem('consent_ads', 'rejected');
+            localStorage.setItem('cookieConsent', status);
+            if (consent && consent.analytics_storage) localStorage.setItem('analytics_storage', consent.analytics_storage);
+            if (consent && consent.ad_storage) localStorage.setItem('ad_storage', consent.ad_storage);
+        } catch (e) { console.warn('localStorage non disponibile per persistenza consenso', e); }
+    };
+
     acceptAllCookiesBtn?.addEventListener('click', () => {
-        updateGtagConsent({ 'analytics_storage': 'granted', 'ad_storage': 'granted' });
-        localStorage.setItem('cookieConsent', 'accepted');
+        const consent = { 'analytics_storage': 'granted', 'ad_storage': 'granted' };
+        updateGtagConsent(consent);
+        persistConsent('accepted', consent);
         hideCookieBanner();
     });
 
     refuseAllCookiesBtn?.addEventListener('click', () => {
-        updateGtagConsent({ 'analytics_storage': 'denied', 'ad_storage': 'denied' });
-        localStorage.setItem('cookieConsent', 'refused');
+        const consent = { 'analytics_storage': 'denied', 'ad_storage': 'denied' };
+        updateGtagConsent(consent);
+        persistConsent('rejected', consent);
         hideCookieBanner();
     });
 
-    // Listener per il pulsante "Gestisci cookie" nel BANNER
     manageCookiesBtn?.addEventListener('click', showGranularCookieModal);
-    
-    // Listener per il pulsante "Gestisci preferenze cookie" nel FOOTER
     openGranularCookieModalBtn?.addEventListener('click', showGranularCookieModal);
-    
     granularModalCloseButton?.addEventListener('click', hideGranularCookieModal);
     cancelGranularPreferencesBtn?.addEventListener('click', hideGranularCookieModal);
-    
+
     saveGranularPreferencesBtn?.addEventListener('click', () => {
-        const consent = { 
-            'analytics_storage': cookieAnalyticsCheckbox.checked ? 'granted' : 'denied', 
-            'ad_storage': cookieMarketingCheckbox.checked ? 'granted' : 'denied' 
+        const consent = {
+            'analytics_storage': cookieAnalyticsCheckbox?.checked ? 'granted' : 'denied',
+            'ad_storage': cookieMarketingCheckbox?.checked ? 'granted' : 'denied'
         };
         updateGtagConsent(consent);
-        localStorage.setItem('cookieConsent', 'managed');
-        localStorage.setItem('analytics_storage', consent.analytics_storage);
-        localStorage.setItem('ad_storage', consent.ad_storage);
+        persistConsent('managed', consent);
         hideGranularCookieModal();
         hideCookieBanner();
     });
 
-    // Mostra il banner iniziale se necessario
     showCookieBanner();
 }
 
