@@ -54,41 +54,59 @@
             'analytics_storage': 'denied',
             'ad_storage': 'denied',
             'wait_for_update': 500
-        });
-        gtag('config', 'AW-952633102');
-        gtag('config', 'G-8FLJ59XXDK');
-    </script>
-    <!-- Consent Mode base + helper para carregamento condicional do Google AdSense -->
-<script>
-  // Função para aplicar preferências de consentimento ao gtag
-  function applyConsent(adAccepted) {
-    if (adAccepted) {
-      // usuário aceitou anúncios
-      gtag('consent', 'update', {
-        'ad_storage': 'granted',
-        'analytics_storage': 'granted'
-      });
-      // carregar AdSense dinamicamente (exemplo)
-      loadAdSense();
-    } else {
-      // usuário recusou anúncios
-      gtag('consent', 'update', {
-        'ad_storage': 'denied',
-        'analytics_storage': 'denied'
-      });
-    }
-  }
+            (function(){
+                var banner = document.getElementById('consent-banner');
+                if (!banner) return; // nada a fazer
 
-  // Função para injetar script do AdSense somente quando aceito
-  function loadAdSense() {
-    if (document.getElementById('adsbygoogle-js')) return; // evita múltiplas injeções
-    var s = document.createElement('script');
-    s.id = 'adsbygoogle-js';
-    s.async = true;
-    s.src = "https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js";
-    // se usar publisher ID, poderia precisar inserir atributo 'data-ad-client' em outro lugar (nos blocos de anúncio).
-    document.head.appendChild(s);
-  }
+                var btnAccept = document.getElementById('consent-accept');
+                var btnReject = document.getElementById('consent-reject');
+
+                function hideBanner() {
+                    try { banner.style.display = 'none'; } catch(e) { banner.classList && banner.classList.add('hidden'); }
+                }
+
+                function showBanner() {
+                    // se já tiver escolha, não mostra (suporta chaves antigas e novas)
+                    try {
+                        var storedOld = localStorage.getItem('consent_ads');
+                        var storedNew = localStorage.getItem('cookieConsent');
+                        if (storedOld === 'accepted' || storedOld === 'rejected' || storedNew === 'accepted' || storedNew === 'refused' || storedNew === 'managed') {
+                            banner.style.display = 'none';
+                            return;
+                        }
+                    } catch(e){ /* localStorage inacessível */ }
+                    banner.style.display = 'flex';
+                }
+
+                if (btnAccept) {
+                    btnAccept.addEventListener('click', function(){
+                        try { localStorage.setItem('consent_ads', 'accepted'); } catch(e){}
+                        try { localStorage.setItem('cookieConsent', 'accepted'); } catch(e){}
+                        try {
+                            if (typeof applyConsent === 'function') applyConsent(true); // função definida no head
+                        } catch(err) {
+                            console.warn('applyConsent falhou:', err);
+                        }
+                        hideBanner();
+                    });
+                }
+
+                if (btnReject) {
+                    btnReject.addEventListener('click', function(){
+                        try { localStorage.setItem('consent_ads', 'rejected'); } catch(e){}
+                        try { localStorage.setItem('cookieConsent', 'rejected'); } catch(e){}
+                        try {
+                            if (typeof applyConsent === 'function') applyConsent(false);
+                        } catch(err) {
+                            console.warn('applyConsent falhou:', err);
+                        }
+                        hideBanner();
+                    });
+                }
+
+                // Mostrar banner somente se ainda não houver escolha
+                showBanner();
+            })();
 
   // Ao carregar a página, se o usuário já aceitou antes, aplicamos.
   (function(){
