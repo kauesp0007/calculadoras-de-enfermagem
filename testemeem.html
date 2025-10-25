@@ -329,8 +329,7 @@
     
     <!-- Script para gerar PDF -->
     <!-- Colocado no início para garantir que a biblioteca esteja disponível -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
 
     <!-- O 'id="relatorio-meem"' é o alvo que o PDF vai capturar -->
@@ -563,187 +562,47 @@
 
 <!-- Botão Flutuante para Baixar PDF -->
 <!-- Dependências (se ainda não estiverem) -->
-
-
 <script>
-(async () => {
-  const { jsPDF } = window.jspdf;
+document.addEventListener('DOMContentLoaded', function() {
+    const btn = document.getElementById('btnBaixarPDF');
+    if (!btn) return; // botão não encontrado
 
-  const CONFIG = {
-    filenamePrefix: '',            // prefixo opcional do arquivo
-    filenameSuffixDate: true,      // adicionar data ao nome do arquivo
-    html2canvasScale: 2.0,         // qualidade: 1.0, 2.0, 3.0 (aumentar = mais nítido e maior uso de memória)
-    dpi: 96,                       // dpi de referência (navegador padrão)
-    a4: { widthMm: 210, heightMm: 297 }, // A4 em mm
-    hideSelectorsDuringCapture: ['#btnBaixarPDF', '.no-print'], // ocultar durante captura
-    waitAfterHideMs: 250,          // tempo para repintura após esconder
-    imageQuality: 0.95             // JPEG quality
-  };
+    btn.style.display = 'block'; // garante visibilidade
 
-  // util: converter px do canvas -> mm considerando scale
-  function pxToMm(px, scale = CONFIG.html2canvasScale, dpi = CONFIG.dpi) {
-    // derivação: mm = (canvasPx / scale) * 25.4 / dpi
-    return (px / scale) * 25.4 / dpi;
-  }
-  // util: calcular quantos pixels do canvas representam uma página A4 de altura
-  function pxPerPage(canvasScale = CONFIG.html2canvasScale, dpi = CONFIG.dpi) {
-    // px = pageHeightMm * dpi * scale / 25.4
-    return Math.floor((CONFIG.a4.heightMm * dpi * canvasScale) / 25.4);
-  }
+    btn.addEventListener('click', async function() {
+        const element = document.getElementById('relatorio-meem');
+        if (!element) { alert('Elemento do relatório não encontrado'); return; }
 
-  function aplicarCssTemporario() {
-    const style = document.createElement('style');
-    style.id = 'tmp-pdf-style-2';
-    style.innerHTML = `
-      .pdf-temp-root * { position: static !important; top: auto !important; left: auto !important; transform: none !important; }
-      .no-print { display: none !important; }
-      .pdf-remove-shadow { box-shadow: none !important; border: none !important; }
-    `;
-    document.head.appendChild(style);
-    document.documentElement.classList.add('pdf-temp-root');
-    return style;
-  }
-  function removerCssTemporario(style) {
-    if (style && style.parentNode) style.parentNode.removeChild(style);
-    document.documentElement.classList.remove('pdf-temp-root');
-  }
+        // Esconde temporariamente elementos que não devem aparecer no PDF
+        const toHide = [btn]; // você pode adicionar mais seletores: '.no-print'
+        const prevDisplay = toHide.map(el => el.style.display);
+        toHide.forEach(el => el.style.display = 'none');
 
-  // espera imagens carregarem
-  function esperarImagensCarregarem(timeout = 15000) {
-    const imgs = Array.from(document.images);
-    const prom = imgs.map(img => new Promise(res => {
-      if (!img.src || img.complete) return res();
-      const done = () => { img.removeEventListener('load', done); img.removeEventListener('error', done); res(); };
-      img.addEventListener('load', done);
-      img.addEventListener('error', done);
-    }));
-    return Promise.race([Promise.all(prom), new Promise(res => setTimeout(res, timeout))]);
-  }
-  // esperar fontes
-  function esperarFontesCarregarem(timeout = 4000) {
-    if (!document.fonts || !document.fonts.ready) return Promise.resolve();
-    return Promise.race([document.fonts.ready, new Promise(res => setTimeout(res, timeout))]);
-  }
+        // Espera imagens e fontes carregarem
+        const imagens = Array.from(element.getElementsByTagName('img'));
+        await Promise.all(imagens.map(img => {
+            if (img.complete) return Promise.resolve();
+            return new Promise(res => { img.onload = img.onerror = res; });
+        }));
+        if (document.fonts && document.fonts.ready) await document.fonts.ready;
 
-  async function gerarPdfManual(element) {
-    // 1) aplicar ajustes temporários
-    const tmpStyle = aplicarCssTemporario();
-    // esconder elementos
-    const toHide = CONFIG.hideSelectorsDuringCapture.flatMap(sel => Array.from(document.querySelectorAll(sel)));
-    const prevDisplays = toHide.map(el => el.style.display);
-    toHide.forEach(el => el.style.display = 'none');
+        // Configurações do html2pdf
+        const opt = {
+            margin:       0.3,
+            filename:     'MEEM.pdf',
+            image:        { type: 'jpeg', quality: 0.98 },
+            html2canvas:  { scale: 2, useCORS: true },
+            jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }
+        };
 
-    // ajustar container para ocupar bem a zona (se existir)
-    const prevMaxWidth = element.style.maxWidth || '';
-    const prevMargin = element.style.margin || '';
-    element.style.maxWidth = '100%';
-    element.style.margin = '0';
-
-    // dar tempo para repintura e esperar recursos
-    await Promise.all([
-      new Promise(r => setTimeout(r, CONFIG.waitAfterHideMs)),
-      esperarImagensCarregarem(),
-      esperarFontesCarregarem()
-    ]);
-
-    // 2) capturar com html2canvas (scale configurável)
-    const canvas = await html2canvas(element, {
-      scale: CONFIG.html2canvasScale,
-      useCORS: true,
-      allowTaint: false,
-      logging: false,
-      windowWidth: document.documentElement.scrollWidth,
-      windowHeight: document.documentElement.scrollHeight
+        // Gera PDF
+        html2pdf().set(opt).from(element).save().finally(() => {
+            // Restaura elementos ocultos
+            toHide.forEach((el, i) => el.style.display = prevDisplay[i]);
+        });
     });
-
-    // 3) restaurar estilos da página
-    element.style.maxWidth = prevMaxWidth;
-    element.style.margin = prevMargin;
-    toHide.forEach((el, i) => { el.style.display = prevDisplays[i] || ''; });
-    removerCssTemporario(tmpStyle);
-
-    // 4) preparar PDF manualmente (fatiamento preciso)
-    const canvasW = canvas.width;
-    const canvasH = canvas.height;
-    const scale = CONFIG.html2canvasScale;
-    const dpi = CONFIG.dpi;
-
-    // altura de uma página em px no canvas
-    const pagePx = pxPerPage(scale, dpi); // px
-
-    // converter largura do canvas para mm (para adicionar na página)
-    const canvasWidthMm = pxToMm(canvasW, scale, dpi);
-    const pageWidthMm = CONFIG.a4.widthMm;
-    const pageHeightMm = CONFIG.a4.heightMm;
-
-    // se a largura excede A4, ajustamos proporção para caber na largura
-    const scaleImgToPageWidth = Math.min(1, pageWidthMm / canvasWidthMm);
-    const imgDrawWidthMm = canvasWidthMm * scaleImgToPageWidth;
-
-    // converter canvas para imagem (dataURL)
-    const fullImgData = canvas.toDataURL('image/jpeg', CONFIG.imageQuality);
-
-    const pdf = new jsPDF({ unit: 'mm', format: [pageWidthMm, pageHeightMm], orientation: canvasWidthMm > canvasHeightMm ? 'landscape' : 'portrait' });
-
-    // se o canvas inteiro cabe em uma página (altura mm <= pageHeightMm), desenhar direto
-    const canvasHeightMm = pxToMm(canvasH, scale, dpi);
-    if (canvasHeightMm <= pageHeightMm) {
-      pdf.addImage(fullImgData, 'JPEG', 0, 0, imgDrawWidthMm, canvasHeightMm);
-      return pdf;
-    }
-
-    // caso contrário, fatiar por alturas em px (no espaço do canvas)
-    let yPx = 0;
-    let pageIndex = 0;
-    while (yPx < canvasH) {
-      const sliceH = Math.min(pagePx, canvasH - yPx);
-      // criar canvas temporário para o slice
-      const sliceCanvas = document.createElement('canvas');
-      sliceCanvas.width = canvasW;
-      sliceCanvas.height = sliceH;
-      const ctx = sliceCanvas.getContext('2d');
-      ctx.drawImage(canvas, 0, yPx, canvasW, sliceH, 0, 0, canvasW, sliceH);
-
-      const sliceData = sliceCanvas.toDataURL('image/jpeg', CONFIG.imageQuality);
-      const sliceHeightMm = pxToMm(sliceH, scale, dpi);
-
-      if (pageIndex > 0) pdf.addPage();
-      // desenhar a imagem ajustando largura para caber A4; manter proporção vertical calculada
-      pdf.addImage(sliceData, 'JPEG', 0, 0, imgDrawWidthMm, sliceHeightMm * scaleImgToPageWidth);
-      pageIndex++;
-      yPx += sliceH;
-    }
-
-    return pdf;
-  }
-
-  // Handler do botão: substitua '#btnBaixarPDF' caso seu botão tenha outro id
-  const btn = document.getElementById('btnBaixarPDF');
-  if (btn) {
-    btn.addEventListener('click', async function () {
-      try {
-        const el = document.getElementById('relatorio-meem') || document.body;
-        if (!el) { alert('Elemento para conversão não encontrado.'); return; }
-
-        // gerar pdf
-        const pdfObj = await gerarPdfManual(el);
-
-        // nome do arquivo
-        const baseName = document.title ? document.title.replace(/[\\/:"*?<>|]+/g, '') : 'pagina';
-        const datePart = CONFIG.filenameSuffixDate ? ('_' + new Date().toISOString().slice(0,19).replace(/[:T]/g,'-')) : '';
-        const filename = `${CONFIG.filenamePrefix || ''}${baseName}${datePart}.pdf`;
-
-        pdfObj.save(filename);
-      } catch (err) {
-        console.error('Erro ao gerar PDF (manual):', err);
-        alert('Erro ao gerar PDF. Veja o console para detalhes.');
-      }
-    });
-  }
-})();
+});
 </script>
-
-
 
 </body>
 </html>
