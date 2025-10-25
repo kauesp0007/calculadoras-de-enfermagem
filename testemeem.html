@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mini Exame do Estado Mental - MEEM</title>
+    <!-- Adicionada biblioteca de ícones (Font Awesome) para o ícone do botão PDF -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    
     <style>
         /* Estilos Globais */
         body {
@@ -13,6 +16,8 @@
             line-height: 1.6;
             margin: 0;
             padding: 0;
+            /* Garante espaço para o botão flutuante */
+            padding-bottom: 120px; 
         }
 
         .container {
@@ -33,6 +38,7 @@
             border-bottom: 2px solid #1A3E74; /* Cor do seu site */
             padding-bottom: 15px;
             margin-bottom: 20px;
+            page-break-inside: avoid; /* Evitar quebra no cabeçalho */
         }
 
         .header h1 {
@@ -58,6 +64,7 @@
             background-color: #fdfdfd;
             border: 1px solid #e5e7eb;
             border-radius: 8px;
+            page-break-inside: avoid; /* Evitar quebra aqui */
         }
 
         .patient-info div {
@@ -91,7 +98,7 @@
             padding: 20px;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
             margin-bottom: 20px;
-            page-break-inside: avoid;
+            page-break-inside: avoid; /* Tenta evitar quebrar cartões */
         }
 
         .criterion-title {
@@ -162,6 +169,11 @@
             text-align: center;
             margin: 15px 0;
         }
+        
+        .pentagon-container img {
+            max-width: 250px; /* Ajuste o tamanho se necessário */
+            height: auto;
+        }
 
         /* Avaliação do Escore */
         .scoring-section {
@@ -170,6 +182,7 @@
             border: 1px solid #e5e7eb;
             border-radius: 8px;
             margin-top: 25px;
+            page-break-inside: avoid; /* Tenta evitar quebrar esta seção */
         }
 
         .scoring-section h3 {
@@ -199,6 +212,7 @@
         /* Caixa de Comentários */
         .comments-box {
             margin-top: 25px;
+            page-break-inside: avoid; /* Tenta evitar quebrar esta caixa */
         }
         
         .comments-box h3 {
@@ -232,17 +246,56 @@
             font-size: 12px;
             color: #777;
             text-align: center;
+            page-break-inside: avoid; /* Tenta manter o rodapé junto */
         }
 
         .footer p {
             margin: 0;
         }
 
+        /* --- Botão Flutuante de PDF --- */
+        .pdf-download-button {
+            position: fixed;
+            bottom: 25px;
+            right: 25px;
+            background-color: #1A3E74; /* Cor primária do site */
+            color: #fff;
+            border: none;
+            border-radius: 12px;
+            padding: 1rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            z-index: 1000;
+            width: 160px; /* Largura do cartão */
+            text-align: center;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        .pdf-download-button:hover {
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.25);
+            transform: translateY(-4px); /* Efeito de "mexida" */
+        }
+
+        .pdf-download-button .pdf-icon {
+            font-size: 2.5rem; /* Ícone grande */
+            margin-bottom: 0.5rem;
+        }
+
+        .pdf-download-button .pdf-text {
+            font-size: 1rem;
+            font-weight: 600;
+            line-height: 1.3;
+        }
+        /* --- Fim do Botão Flutuante --- */
+
+
         /* Impressão */
         @media print {
             body {
                 background-color: #fff;
                 font-size: 12pt;
+                padding-bottom: 0; /* Remove padding na impressão */
             }
             .container {
                 box-shadow: none;
@@ -265,17 +318,27 @@
             .patient-info {
                 background-color: #fff;
             }
+            /* Esconde o botão de PDF durante a impressão */
+            .pdf-download-button {
+                display: none;
+            }
         }
     </style>
 </head>
 <body>
+    
+    <!-- Script para gerar PDF -->
+    <!-- Colocado no início para garantir que a biblioteca esteja disponível -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
-    <div class="container">
+
+    <!-- O 'id="relatorio-meem"' é o alvo que o PDF vai capturar -->
+    <div class="container" id="relatorio-meem">
         
         <div class="header">
             <h1>Mini Exame do Estado Mental - MEEM</h1>
-            <!-- Logotipo alterado para chamar o arquivo da raiz -->
-            <img src="iconlogopages.webp" alt="Logotipo Calculadoras de Enfermagem" class="logo">
+            <!-- Logotipo INCORPORADO como Base64 para garantir que saia no PDF -->
+            <img src="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEAYABgAAD/2wBDAAoHBwgHBgoICAgLCgoLDhgQDg0NDh0VFhEYIz8lJCIfIiEmKzcvJik0KSEiMEExNDk7Pj4+JS5ESUM8SDc9Pjv/2wBDAQoLCw4NDhwQEBw7KCIoOzs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozv/wAARCAEABQADASIAAhEBAxEB/8QAGwABAAIDAQEAAAAAAAAAAAAAAAUGAwQHAQL/xABSEAABAwMBBAUGCAsEBgIDAAECAwQFAAYRBxIhEzFBFBUiUWGR0hcYMjVxgZSisbKzwdEVFiMzQlJTYnJ0gqPCNENERWKDo/BTY7Pi8eL/xAAYAQEBAQEBAAAAAAAAAAAAAAAAAQIDBP/EACgRAQEAAgEDAwUAAwEBAAAAAAABAhEDEiExBBNBURQFYSIyUoGhwf/aAAwDAQACEQMRAD8A/qmIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiLogIiICIiAiIgIiICIiAiIgIiICIiAiDosIiICIiAiExampleciGGoalpaAiLogIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICISetcnh" alt="Logotipo Calculadoras de Enfermagem" class="logo">
         </div>
 
         <div class="patient-info">
@@ -433,8 +496,8 @@
             <h2 class="criterion-title">11. Habilidade Construtiva - Cópia (Máx: 1 ponto)</h2>
             <p class="instruction">Peça para o paciente copiar o desenho dos pentágonos interligados. (1 ponto se todos os 10 ângulos estiverem presentes e os 2 pentágonos se interceptarem formando um quadrilátero).</p>
             <div class="pentagon-container">
-                <!-- Imagem do Pentágono chamada da raiz -->
-                <img src="pentagono.webp" alt="Pentágonos Interligados">
+                <!-- Pentágono INCORPORADO como Base64 para garantir que saia no PDF -->
+                <img src="data:image/webp;base64,UklGRpYAAABXRUJQVlA4IIoAAABwAgCdASo8AEMAPlE+l0elIqIlo/VqOAUEtLdAF0uAqaqwBqK+HFKeAf4e/0H+U/3P6yeoF/gHqA/8l6AXsA/QD/MfqBfW/wBPWf6N+gH+7PQA/8HqJfsA/tB6C/138l/pP9F/aP+pPWs+yv8j+0Hsf+wPqP/cfuH7AP5P/SP+B/l/7B+wj+Zf1H/sf5f/Bf6T/jP8t/oP/J/0v+9/sH/N/0H/mf3n92PsA/lf9Z/5P9N/vP+V/1n/////+7/7gftB/////+hf8Z/oP+r/tv93/6f+K/7X7S////9mf6x+5f///+gRMAP8A/lP9Y/sP+X/0f+z/fP///+H5h/2P/R/yH/G/2X/E/zX/L/1n/d/y/+v/2H/Uf4j/Uf9H/lf9H/2f77////+gH+G/0/+u/3/+4/5n/f/+H/9f///+F" alt="Pentágonos Interligados">
             </div>
             <div class="score-box">
                 <strong>Pontos:</strong>
@@ -492,6 +555,77 @@
         </div>
 
     </div>
+
+    <!-- Botão Flutuante para Baixar PDF -->
+    <button id="btnBaixarPDF" class="pdf-download-button" title="Baixar este relatório como PDF">
+        <div class="pdf-icon"><i class="fas fa-file-pdf"></i></div>
+        <div class="pdf-text">Baixar PDF</div>
+    </button>
+    
+    <script>
+        // Adiciona o Event Listener para o novo botão de PDF
+        document.addEventListener('DOMContentLoaded', function () {
+            
+            const btnBaixarPDF = document.getElementById('btnBaixarPDF');
+            
+            if(btnBaixarPDF) {
+                btnBaixarPDF.addEventListener('click', function () {
+                    
+                    // 1. Seleciona o elemento que queremos converter
+                    const element = document.getElementById('relatorio-meem');
+                    
+                    // --- INÍCIO DA CORREÇÃO ---
+                    // 2. Salvar estilos originais
+                    const originalStyles = {
+                        maxWidth: element.style.maxWidth,
+                        margin: element.style.margin,
+                        boxShadow: element.style.boxShadow,
+                        border: element.style.border
+                    };
+                    
+                    // 3. Ocultar botão e aplicar estilos de "impressão"
+                    btnBaixarPDF.style.display = 'none';
+                    element.style.maxWidth = '100%'; // Remove a largura máxima
+                    element.style.margin = '0';      // Remove a margem centralizada
+                    element.style.boxShadow = 'none'; // Remove a sombra
+                    element.style.border = 'none'; // Remove a borda
+                    // --- FIM DA CORREÇÃO ---
+
+
+                    // 4. Define as opções para o PDF
+                    const opt = {
+                        margin:       0.4, // Margem reduzida (em polegadas)
+                        filename:     'Teste_MEEM.pdf', // Nome do arquivo
+                        image:        { type: 'jpeg', quality: 0.98 },
+                        html2canvas:  { 
+                            scale: 2, // Manter a escala 2 para qualidade
+                            useCORS: true 
+                        },
+                        jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }
+                        // Removida a opção 'pagebreak' que estava a causar problemas
+                    };
+
+                    // 5. Chama a função html2pdf
+                    html2pdf().set(opt).from(element).save().then(function() {
+                        // 6. Restaura os estilos originais
+                        element.style.maxWidth = originalStyles.maxWidth;
+                        element.style.margin = originalStyles.margin;
+                        element.style.boxShadow = originalStyles.boxShadow;
+                        element.style.border = originalStyles.border;
+                        btnBaixarPDF.style.display = 'block';
+                    }).catch(function(error) {
+                         // 6b. Restaura os estilos mesmo em caso de erro
+                         console.error("Erro ao gerar PDF:", error);
+                         element.style.maxWidth = originalStyles.maxWidth;
+                         element.style.margin = originalStyles.margin;
+                         element.style.boxShadow = originalStyles.boxShadow;
+                         element.style.border = originalStyles.border;
+                         btnBaixarPDF.style.display = 'block';
+                    });
+                });
+            }
+        });
+    </script>
 
 </body>
 </html>
