@@ -561,48 +561,153 @@
 -->
 
 <!-- Botão Flutuante para Baixar PDF -->
-<!-- Dependências (se ainda não estiverem) -->
+<button id="btnBaixarPDF" class="pdf-download-button" title="Baixar este relatório como PDF">
+  <div class="pdf-icon"><i class="fas fa-file-pdf"></i></div>
+  <div class="pdf-text">Baixar PDF</div>
+</button>
+
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    const btn = document.getElementById('btnBaixarPDF');
-    if (!btn) return; // botão não encontrado
+document.addEventListener('DOMContentLoaded', function () {
+  const btnBaixarPDF = document.getElementById('btnBaixarPDF');
+  if (!btnBaixarPDF) return;
 
-    btn.style.display = 'block'; // garante visibilidade
+  // Configurações que você pode ajustar
+  const CONFIG = {
+    filename: 'Teste_MEEM.pdf',
+    // escala do html2canvas: 2 = boa qualidade, 3-4 = ainda mais nítido (mas pode travar em páginas grandes)
+    html2canvasScale: 2,
+    // pequeno delay para garantir repintura (ms)
+    waitAfterHideMs: 250
+  };
 
-    btn.addEventListener('click', async function() {
-        const element = document.getElementById('relatorio-meem');
-        if (!element) { alert('Elemento do relatório não encontrado'); return; }
+  // Espera que todas as imagens carreguem (útil para evitar imagens faltando no canvas)
+  function esperarImagensCarregarem(timeout = 10000) {
+    const imgs = Array.from(document.images);
+    const prom = imgs.map(img => new Promise(res => {
+      if (!img.src || img.complete) return res();
+      const done = () => { img.removeEventListener('load', done); img.removeEventListener('error', done); res(); };
+      img.addEventListener('load', done);
+      img.addEventListener('error', done);
+    }));
+    return Promise.race([Promise.all(prom), new Promise(res => setTimeout(res, timeout))]);
+  }
 
-        // Esconde temporariamente elementos que não devem aparecer no PDF
-        const toHide = [btn]; // você pode adicionar mais seletores: '.no-print'
-        const prevDisplay = toHide.map(el => el.style.display);
-        toHide.forEach(el => el.style.display = 'none');
+  // Espera fontes carregarem (para evitar troca de fontes no canvas)
+  function esperarFontesCarregarem(timeout = 3000) {
+    if (!document.fonts || !document.fonts.ready) return Promise.resolve();
+    return Promise.race([document.fonts.ready, new Promise(res => setTimeout(res, timeout))]);
+  }
 
-        // Espera imagens e fontes carregarem
-        const imagens = Array.from(element.getElementsByTagName('img'));
-        await Promise.all(imagens.map(img => {
-            if (img.complete) return Promise.resolve();
-            return new Promise(res => { img.onload = img.onerror = res; });
-        }));
-        if (document.fonts && document.fonts.ready) await document.fonts.ready;
+  // Aplica CSS temporário para evitar elementos `position: fixed` causarem repetição
+  function aplicarCssTemporario() {
+    const style = document.createElement('style');
+    style.id = 'pdf-temp-style';
+    style.innerHTML = `
+      /* evita fixed/absolute que prejudicam o print (aplicado só no momento do PDF) */
+      .pdf-temp-root * { position: static !important; top: auto !important; left: auto !important; transform: none !important; }
+      /* elementos com classe no-print serão ocultados no PDF */
+      .no-print { display: none !important; }
+      /* remover sombras/bordas se necessário apenas no momento do PDF */
+      .pdf-remove-shadow { box-shadow: none !important; border: none !important; }
+    `;
+    document.head.appendChild(style);
+    document.documentElement.classList.add('pdf-temp-root');
+    return style;
+  }
 
-        // Configurações do html2pdf
-        const opt = {
-            margin:       0.3,
-            filename:     'MEEM.pdf',
-            image:        { type: 'jpeg', quality: 0.98 },
-            html2canvas:  { scale: 2, useCORS: true },
-            jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }
-        };
+  function removerCssTemporario(style) {
+    if (style && style.parentNode) style.parentNode.removeChild(style);
+    document.documentElement.classList.remove('pdf-temp-root');
+  }
 
-        // Gera PDF
-        html2pdf().set(opt).from(element).save().finally(() => {
-            // Restaura elementos ocultos
-            toHide.forEach((el, i) => el.style.display = prevDisplay[i]);
-        });
-    });
+  btnBaixarPDF.addEventListener('click', async function () {
+    try {
+      // 1) elemento que será convertido - ajuste aqui se quiser só parte da página
+      const element = document.getElementById('relatorio-meem') || document.body;
+      if (!element) { alert('Elemento do relatório não encontrado.'); return; }
+
+      // 2) salvar estilos originais do elemento para restaurar depois
+      const originalStyles = {
+        maxWidth: element.style.maxWidth || '',
+        margin: element.style.margin || '',
+        boxShadow: element.style.boxShadow || '',
+        border: element.style.border || ''
+      };
+
+      // 3) aplicar mudanças visuais temporárias
+      // esconder o botão e elementos com .no-print
+      const toHide = [btnBaixarPDF, ...Array.from(document.querySelectorAll('.no-print'))];
+      const prevDisplays = toHide.map(el => el ? el.style.display : null);
+      toHide.forEach(el => { if (el) el.style.display = 'none'; });
+
+      // aplicar classe para remover shadows apenas no conteúdo do relatório (ajuste se quiser)
+      element.classList.add('pdf-remove-shadow');
+
+      // aumentar a largura/ajustar margens para garantir que o conteúdo ocupe a página corretamente
+      element.style.maxWidth = '100%';
+      element.style.margin = '0';
+
+      // aplicar CSS temporário que converte fixed -> static
+      const tmpStyle = aplicarCssTemporario();
+
+      // 4) esperar recursos importantes carregarem
+      await Promise.all([
+        esperarImagensCarregarem(15000),
+        esperarFontesCarregarem(4000),
+        new Promise(res => setTimeout(res, CONFIG.waitAfterHideMs)) // pequena pausa para repaint
+      ]);
+
+      // 5) opções do html2pdf
+      const opt = {
+        margin:       0.4, // em polegadas (ajuste se quiser)
+        filename:     CONFIG.filename,
+        image:        { type: 'jpeg', quality: 0.98 },
+        html2canvas:  { 
+          scale: CONFIG.html2canvasScale,
+          useCORS: true,
+          allowTaint: false,
+          logging: false,
+          windowWidth: document.documentElement.scrollWidth,
+          windowHeight: document.documentElement.scrollHeight
+        },
+        jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }
+      };
+
+      // 6) gerar o PDF
+      await html2pdf().set(opt).from(element).save();
+
+      // 7) restaurar tudo (melhor no finally, mas aqui mantemos claro)
+      element.style.maxWidth = originalStyles.maxWidth;
+      element.style.margin = originalStyles.margin;
+      element.style.boxShadow = originalStyles.boxShadow;
+      element.style.border = originalStyles.border;
+      element.classList.remove('pdf-remove-shadow');
+
+      removerCssTemporario(tmpStyle);
+      toHide.forEach((el, i) => { if (el) el.style.display = prevDisplays[i]; });
+
+    } catch (error) {
+      console.error('Erro ao gerar PDF:', error);
+      alert('Erro ao gerar o PDF. Veja o console do navegador para detalhes.');
+      // tentativa de restaurar visual mesmo em erro
+      try { 
+        const element = document.getElementById('relatorio-meem') || document.body;
+        if (element) {
+          element.style.maxWidth = '';
+          element.style.margin = '';
+          element.style.boxShadow = '';
+          element.style.border = '';
+          element.classList.remove('pdf-remove-shadow');
+        }
+        const tmp = document.getElementById('pdf-temp-style');
+        if (tmp && tmp.parentNode) tmp.parentNode.removeChild(tmp);
+        document.querySelectorAll('.no-print, #btnBaixarPDF').forEach(el => { if (el) el.style.display = ''; });
+      } catch(_){}
+    }
+  });
 });
 </script>
+
 
 </body>
 </html>
