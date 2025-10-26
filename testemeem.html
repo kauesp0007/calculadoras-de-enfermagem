@@ -564,7 +564,6 @@
 (function () {
   const HTML2PDF_CDN = 'https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js';
 
-  // Garante que html2pdf esteja carregado
   function ensureHtml2pdf() {
     return new Promise((resolve, reject) => {
       if (window.html2pdf) return resolve(window.html2pdf);
@@ -576,7 +575,6 @@
     });
   }
 
-  // Cria o conteúdo a ser exportado
   function montarConteudoMEEM() {
     const wrapperOriginal = document.getElementById('relatorio-meem');
     if (!wrapperOriginal) {
@@ -584,22 +582,18 @@
       return null;
     }
 
-    // Clona o conteúdo para não alterar a página
     const clone = wrapperOriginal.cloneNode(true);
-
-    // Remove elementos indesejados no PDF
     clone.querySelectorAll('.pdf-download-button, #btnBaixarPDF').forEach(el => el.remove());
 
-    // Define margens internas e largura fixa
-    clone.style.width = '21cm';
-    clone.style.maxWidth = '21cm';
+    // Ajuste: largura responsiva
+    clone.style.width = '100%';
+    clone.style.maxWidth = '100%';
     clone.style.margin = '0 auto';
     clone.style.background = '#fff';
     clone.style.padding = '1cm';
     clone.style.boxSizing = 'border-box';
     clone.style.fontFamily = 'Inter, Arial, sans-serif';
 
-    // Adiciona cabeçalho no topo
     const cabecalho = document.createElement('div');
     cabecalho.style.textAlign = 'center';
     cabecalho.style.marginBottom = '10px';
@@ -611,25 +605,16 @@
     `;
     clone.insertBefore(cabecalho, clone.firstChild);
 
-    // Impede que cartões sejam cortados
     const style = document.createElement('style');
     style.textContent = `
-      .criterion-card {
+      .criterion-card, .patient-info {
         page-break-inside: avoid !important;
         break-inside: avoid !important;
-        -webkit-column-break-inside: avoid !important;
         margin-bottom: 12px;
         border: 1px solid #eee;
         border-radius: 8px;
         padding: 8px;
-      }
-      .patient-info {
-        page-break-inside: avoid !important;
-        background: #fff !important;
-        border: 1px solid #ddd;
-        border-radius: 8px;
-        margin-bottom: 12px;
-        padding: 8px;
+        background: #fff;
       }
       img {
         max-width: 100% !important;
@@ -648,35 +633,34 @@
     return clone;
   }
 
-  // Gera o PDF propriamente dito
   async function gerarPDF() {
     const content = montarConteudoMEEM();
     if (!content) return;
 
     await ensureHtml2pdf();
 
+    // Calcula largura dinamicamente para html2canvas
+    const largura = content.scrollWidth;
+
     const opt = {
-      margin: 0,
+      margin: 10, // margens de segurança
       filename: `Mini Exame do Estado Mental - MEEM_${new Date().toISOString().slice(0,19).replace(/[:T]/g,'-')}.pdf`,
       image: { type: 'jpeg', quality: 0.98 },
       html2canvas: {
         scale: 2,
         useCORS: true,
-        windowWidth: 794, // A4 em px (21cm)
+        windowWidth: largura,
         windowHeight: content.scrollHeight + 200,
       },
       jsPDF: { unit: 'pt', format: 'a4', orientation: 'portrait' },
       pagebreak: { mode: ['css', 'legacy'] }
     };
 
-    // Força o carregamento de imagens antes do PDF
     const imgs = content.querySelectorAll('img');
-    await Promise.all(Array.from(imgs).map(img => {
-      return new Promise(res => {
-        if (img.complete) res();
-        else img.onload = img.onerror = res;
-      });
-    }));
+    await Promise.all(Array.from(imgs).map(img => new Promise(res => {
+      if (img.complete) res();
+      else img.onload = img.onerror = res;
+    })));
 
     html2pdf().set(opt).from(content).save();
   }
@@ -688,6 +672,7 @@
   });
 })();
 </script>
+
 <!-- ==================== FIM DO BLOCO DE GERAÇÃO DE PDF ==================== -->
 
 </body>
