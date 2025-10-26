@@ -559,7 +559,6 @@
   <div class="pdf-text">Baixar PDF</div>
 
 </button>
-<!-- ==================== BLOCO DE GERAÇÃO DE PDF ATUALIZADO ==================== -->
 <script>
 (function () {
   const HTML2PDF_CDN = 'https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js';
@@ -585,14 +584,19 @@
     const clone = wrapperOriginal.cloneNode(true);
     clone.querySelectorAll('.pdf-download-button, #btnBaixarPDF').forEach(el => el.remove());
 
-    // Ajuste: largura responsiva
-    clone.style.width = '100%';
-    clone.style.maxWidth = '100%';
+    // --- CORREÇÃO APLICADA ---
+    // Definindo largura fixa em 'mm' para corresponder ao papel A4 (210mm)
+    // menos as margens (ex: 15mm de cada lado).
+    // Largura do conteúdo = 210mm - 15mm - 15mm = 180mm.
+    
+    clone.style.width = '180mm';      // Largura fixa
+    clone.style.maxWidth = '180mm';   // Garantia de largura máxima
     clone.style.margin = '0 auto';
     clone.style.background = '#fff';
-    clone.style.padding = '1cm';
-    clone.style.boxSizing = 'border-box';
+    clone.style.padding = '1cm';      // (10mm) O padding é mantido, mas o box-sizing cuida dele.
+    clone.style.boxSizing = 'border-box'; // Essencial para o padding não estourar a largura total
     clone.style.fontFamily = 'Inter, Arial, sans-serif';
+    // --- FIM DA CORREÇÃO ---
 
     const cabecalho = document.createElement('div');
     cabecalho.style.textAlign = 'center';
@@ -617,7 +621,7 @@
         background: #fff;
       }
       img {
-        max-width: 100% !important;
+        max-width: 100% !important; /* Isso agora será 100% dos 180mm */
         height: auto !important;
         display: block;
         margin: 8px auto;
@@ -639,22 +643,23 @@
 
     await ensureHtml2pdf();
 
-    // Calcula largura dinamicamente para html2canvas
-    const largura = content.scrollWidth;
-
+    // --- CORREÇÃO APLICADA ---
     const opt = {
-      margin: 10, // margens de segurança
+      // Definimos a margem em mm. (15mm em cada lado)
+      margin: 15, 
       filename: `Mini Exame do Estado Mental - MEEM_${new Date().toISOString().slice(0,19).replace(/[:T]/g,'-')}.pdf`,
       image: { type: 'jpeg', quality: 0.98 },
       html2canvas: {
         scale: 2,
         useCORS: true,
-        windowWidth: largura,
-        windowHeight: content.scrollHeight + 200,
+        // Removemos windowWidth e windowHeight para deixar a biblioteca
+        // usar a largura fixa do 'content'.
       },
-      jsPDF: { unit: 'pt', format: 'a4', orientation: 'portrait' },
+      // Mudamos a unidade para 'mm' e mantemos 'a4'
+      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
       pagebreak: { mode: ['css', 'legacy'] }
     };
+    // --- FIM DA CORREÇÃO ---
 
     const imgs = content.querySelectorAll('img');
     await Promise.all(Array.from(imgs).map(img => new Promise(res => {
@@ -672,8 +677,6 @@
   });
 })();
 </script>
-
-<!-- ==================== FIM DO BLOCO DE GERAÇÃO DE PDF ==================== -->
 
 </body>
 </html>
