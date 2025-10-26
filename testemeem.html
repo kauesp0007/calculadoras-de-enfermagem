@@ -559,83 +559,46 @@
   <div class="pdf-text">Baixar PDF</div>
 
 </button>
+<!-- ==================== BLOCO DE GERAÇÃO DE PDF (COLE ANTES DO </body>) ==================== -->
 <script>
 /*
-  Script de integração para testemeem.html
-  - Mantém seu botão #btnBaixarPDF
-  - Recolhe patient-info, pontuações, comentário e gera PDF com html2pdf
-  Cole este bloco ANTES do </body>
+  Script completo e atualizado para gerar PDF do MEEM.
+  - Preserve este bloco inteiro e substitua seu bloco antigo por ele.
+  - Mantém o botão flutuante #btnBaixarPDF.
 */
 
-(function(){
-  // Função genérica que gera o PDF a partir de um elemento DOM (clone)
-  function gerarPDFGlobalFromElement(options = {}) {
-    const {
-      element,        // nó DOM já preparado (obrigatório)
-      nomeArquivo = (document.title || 'relatorio') + '.pdf',
-      margemCm = 1
-    } = options;
+(function () {
+  // URL CDN html2pdf (versão estável)
+  const HTML2PDF_CDN = 'https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js';
 
-    if (!element) return Promise.reject('Elemento para gerar PDF não informado.');
-
-    const clone = element.cloneNode(true);
-    clone.style.background = '#fff';
-
-    // Insere cabeçalho com título (usa title da página) - você pode personalizar
-    const header = document.createElement('div');
-    header.style.textAlign = 'center';
-    header.style.marginBottom = '12px';
-    header.innerHTML = `
-      <h1 style="margin:0; font-size:20px; font-family: Inter, Arial, sans-serif;">${document.title || ''}</h1>
-      <div style="margin-top:4px; font-size:12px; color:#444;">Relatório gerado pelo site</div>
-      <div style="margin-top:6px; font-size:11px; color:#666;">Gerado em: ${new Date().toLocaleString()}</div>
-      <hr style="margin-top:10px; border:none; border-top:1px solid #ddd;">
-    `;
-    clone.insertBefore(header, clone.firstChild);
-
-    // Aguarda imagens carregarem no clone
-    function waitForImages(node) {
-      const imgs = Array.from(node.querySelectorAll('img'));
-      return Promise.all(imgs.map(img => new Promise(resolve => {
-        if (img.complete && img.naturalWidth !== 0) return resolve();
-        img.addEventListener('load', () => resolve());
-        img.addEventListener('error', () => resolve());
-        setTimeout(resolve, 3000);
-      })));
-    }
-    const fontsReady = (document.fonts && document.fonts.ready) ? document.fonts.ready : Promise.resolve();
-
-    return Promise.all([waitForImages(clone), fontsReady]).then(() => {
-      const opt = {
-        margin: margemCm,
-        filename: nomeArquivo,
-        image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: {
-          scale: Math.min(2, (window.devicePixelRatio || 1)),
-          useCORS: true,
-          logging: false,
-          allowTaint: false,
-          backgroundColor: '#ffffff'
-        },
-        jsPDF: { unit: 'cm', format: 'a4', orientation: 'portrait' }
+  // Carrega html2pdf dinamicamente se não existir
+  function ensureHtml2pdf() {
+    return new Promise((resolve, reject) => {
+      if (window.html2pdf) return resolve(window.html2pdf);
+      const s = document.createElement('script');
+      s.src = HTML2PDF_CDN;
+      s.onload = () => {
+        if (window.html2pdf) resolve(window.html2pdf);
+        else reject(new Error('html2pdf não disponível após carregar script.'));
       };
-      return html2pdf().set(opt).from(clone).save();
+      s.onerror = () => reject(new Error('Falha ao carregar html2pdf.js'));
+      document.head.appendChild(s);
     });
   }
 
-  // Função que monta o conteúdo a partir da estrutura específica do MEEM
+  // Função que monta o conteúdo específico do MEEM e retorna um elemento DOM pronto
   function montarConteudoMEEM() {
-    // Elemento base que já existe na página
-    const wrapper = document.getElementById('relatorio-meem') || document.querySelector('.container');
-    if (!wrapper) {
-      console.error('Elemento principal #relatorio-meem não encontrado.');
+    // Tenta achar wrapper principal - adapte se seu arquivo usar outro id
+    const wrapperOriginal = document.getElementById('relatorio-meem') || document.querySelector('.container') || document.querySelector('.main-content-wrapper');
+    if (!wrapperOriginal) {
+      console.error('Wrapper principal não encontrado (procure por #relatorio-meem, .container ou .main-content-wrapper).');
       return null;
     }
 
-    // Faz clone para não alterar a página original
-    const contentToPrint = wrapper.cloneNode(true);
+    // Faz clone para não mexer na página visível
+    const contentToPrint = wrapperOriginal.cloneNode(true);
 
-    // Cria (ou localiza) um bloco "resumo de respostas" onde vamos inserir dados calculados
+    // Criar / localizar container onde serão inseridos os dados processados (evita alterar layout original)
     let resumo = contentToPrint.querySelector('#conteudo-gerado-para-pdf');
     if (!resumo) {
       resumo = document.createElement('div');
@@ -648,17 +611,16 @@
       resumo.innerHTML = '';
     }
 
-    // 1) Captura informações do paciente (labels + spans)
+    // 1) Informações do paciente (procura .patient-info -> divs com label + span)
     const patientInfo = [];
-    const infoBlocks = wrapper.querySelectorAll('.patient-info > div');
+    const infoBlocks = wrapperOriginal.querySelectorAll('.patient-info > div');
     infoBlocks.forEach(block => {
       const labelEl = block.querySelector('label');
       const spanEl = block.querySelector('span');
-      const label = labelEl ? labelEl.textContent.trim().replace(':','') : '';
+      const label = labelEl ? labelEl.textContent.trim().replace(':', '') : '';
       const value = spanEl ? spanEl.textContent.trim() : '';
       if (label) patientInfo.push({ label, value });
     });
-
     const infoDiv = document.createElement('div');
     infoDiv.style.marginBottom = '10px';
     infoDiv.innerHTML = '<h3 style="margin:0 0 6px 0; color:#1A3E74;">Informações do Paciente</h3>';
@@ -674,13 +636,12 @@
     infoDiv.appendChild(ulInfo);
     resumo.appendChild(infoDiv);
 
-    // 2) Captura todas as criterion-cards e os inputs .score-input
-    const criterioCards = wrapper.querySelectorAll('.criterion-card');
+    // 2) Pontuações - procura .criterion-card e inputs .score-input
+    const criterioCards = wrapperOriginal.querySelectorAll('.criterion-card');
     let total = 0;
     const respostasDiv = document.createElement('div');
     respostasDiv.style.marginTop = '8px';
     respostasDiv.innerHTML = '<h3 style="margin:0 0 6px 0; color:#1A3E74;">Pontuações</h3>';
-
     const tabela = document.createElement('table');
     tabela.style.width = '100%';
     tabela.style.borderCollapse = 'collapse';
@@ -688,33 +649,46 @@
     tabela.innerHTML = '<thead><tr><th style="text-align:left; border-bottom:1px solid #ddd; padding:6px;">Item</th><th style="text-align:right; border-bottom:1px solid #ddd; padding:6px;">Pontos</th></tr></thead>';
     const tbody = document.createElement('tbody');
 
-    criterioCards.forEach(card => {
-      const titleEl = card.querySelector('.criterion-title');
-      const inputEl = card.querySelector('.score-input');
-      const title = titleEl ? titleEl.textContent.trim() : 'Item';
-      let val = 0;
-      if (inputEl) {
+    if (criterioCards && criterioCards.length) {
+      criterioCards.forEach(card => {
+        const titleEl = card.querySelector('.criterion-title') || card.querySelector('h3') || card.querySelector('h4');
+        const inputEl = card.querySelector('.score-input') || card.querySelector('input[type="text"], input[type="number"]');
+        const title = titleEl ? titleEl.textContent.trim() : 'Item';
+        let val = 0;
+        if (inputEl) {
+          const v = parseFloat(inputEl.value);
+          val = (isNaN(v) ? 0 : v);
+        }
+        total += val;
+
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td style="padding:6px; border-bottom:1px solid #f1f1f1;">${title}</td><td style="padding:6px; border-bottom:1px solid #f1f1f1; text-align:right;">${val}</td>`;
+        tbody.appendChild(tr);
+      });
+    } else {
+      // Caso não encontre cards, tenta buscar inputs com classe alternativa
+      const altInputs = wrapperOriginal.querySelectorAll('.score-input');
+      altInputs.forEach((inputEl, idx) => {
+        const title = inputEl.getAttribute('data-title') || ('Item ' + (idx+1));
         const v = parseFloat(inputEl.value);
-        val = (isNaN(v) ? 0 : v);
-      }
-      total += val;
+        const val = (isNaN(v) ? 0 : v);
+        total += val;
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td style="padding:6px; border-bottom:1px solid #f1f1f1;">${title}</td><td style="padding:6px; border-bottom:1px solid #f1f1f1; text-align:right;">${val}</td>`;
+        tbody.appendChild(tr);
+      });
+    }
 
-      const tr = document.createElement('tr');
-      tr.innerHTML = `<td style="padding:6px; border-bottom:1px solid #f1f1f1;">${title}</td><td style="padding:6px; border-bottom:1px solid #f1f1f1; text-align:right;">${val}</td>`;
-      tbody.appendChild(tr);
-    });
-
-    // Linha do total
+    // Linha total
     const trTotal = document.createElement('tr');
     trTotal.innerHTML = `<td style="padding:8px; font-weight:700; text-align:left;">Total</td><td style="padding:8px; font-weight:700; text-align:right;">${total}</td>`;
     tbody.appendChild(trTotal);
-
     tabela.appendChild(tbody);
     respostasDiv.appendChild(tabela);
     resumo.appendChild(respostasDiv);
 
     // 3) Comentários (textarea)
-    const textareaOrig = wrapper.querySelector('.comments-box textarea');
+    const textareaOrig = wrapperOriginal.querySelector('.comments-box textarea') || wrapperOriginal.querySelector('textarea');
     if (textareaOrig) {
       const commentsDiv = document.createElement('div');
       commentsDiv.style.marginTop = '10px';
@@ -729,42 +703,149 @@
       resumo.appendChild(commentsDiv);
     }
 
-    // 4) Mantém imagens (ex: pentágono) que estejam no contentToPrint (já copiado)
-    //    (já está preservado pelo clone)
+    // 4) Pentágonos / imagens e demais elementos já estão no clone e serão preservados
+    //    (não há ação extra aqui)
 
     return contentToPrint;
   }
 
-  // Integração com o botão existente
-  document.addEventListener('DOMContentLoaded', function() {
+  // Função que saneia o clone e injeta estilos de impressão, depois chama html2pdf
+  function gerarPdfAPartirDoClone(contentToPrint, filename) {
+    return new Promise((resolve, reject) => {
+      try {
+        // 1) Remove elementos que causam páginas em branco ou sobreposição
+        const selectorsToRemove = [
+          '.topbar', '.top-bar', '#topbar', '.pdf-download-button', '#btnBaixarPDF',
+          '.hamburger', '.accessibility-menu', '.floating-action', 'nav', 'footer', '.cookie-banner', '.cookie-consent'
+        ];
+        selectorsToRemove.forEach(sel => {
+          contentToPrint.querySelectorAll(sel).forEach(el => el.remove());
+        });
+
+        // 2) Força posicionamento estático e limpa transforms/filters pesados
+        contentToPrint.querySelectorAll('*').forEach(el => {
+          try {
+            const cs = window.getComputedStyle(el);
+            if (cs && (cs.position === 'fixed' || cs.position === 'absolute')) {
+              el.style.position = 'static';
+            }
+          } catch (e) { /* ignore */ }
+          el.style.transform = '';
+          el.style.filter = '';
+          el.style.boxShadow = 'none';
+        });
+
+        // 3) Injeta CSS de impressão no clone (evita quebras inadequadas e define A4)
+        const printStyles = document.createElement('style');
+        printStyles.innerHTML = `
+          :root { box-sizing: border-box; }
+          html, body { margin:0; padding:0; }
+          body { width:21cm; max-width:21cm; box-sizing: border-box; background: #fff !important; color: #111; }
+          img { max-width: 100% !important; height: auto !important; }
+          .criterion-card, .card, .question-block, .panel, .mb-2, .card-body {
+            page-break-inside: avoid; break-inside: avoid; -webkit-column-break-inside: avoid;
+          }
+          .no-print, .hide-print { display: none !important; }
+          .container, .main-content-wrapper { padding: 0.4cm !important; margin: 0 auto !important; }
+          * { box-shadow: none !important; }
+          table { page-break-inside: avoid; }
+        `;
+        contentToPrint.insertBefore(printStyles, contentToPrint.firstChild);
+
+        // 4) Ajustes de dimensão do clone
+        contentToPrint.style.width = '21cm';
+        contentToPrint.style.maxWidth = '21cm';
+        contentToPrint.style.boxSizing = 'border-box';
+        contentToPrint.style.margin = '0';
+        contentToPrint.style.padding = '0';
+
+        // 5) Insere cabeçalho simples (id usado para eventuais estilos)
+        const existingHeader = contentToPrint.querySelector('#__pdfHeader__');
+        if (existingHeader) existingHeader.remove();
+        const header = document.createElement('div');
+        header.id = '__pdfHeader__';
+        header.style.textAlign = 'center';
+        header.style.margin = '0 0 6px 0';
+        header.innerHTML = `
+          <h1 style="margin:0; font-size:20px; font-family: Inter, Arial, sans-serif;">${document.title || 'Relatório'}</h1>
+          <div style="font-size:12px; color:#444;">Relatório gerado pelo site</div>
+          <div style="font-size:11px; color:#666;">Gerado em: ${new Date().toLocaleString()}</div>
+          <hr style="border:none; border-top:1px solid #ddd; margin-top:8px;">
+        `;
+        contentToPrint.insertBefore(header, contentToPrint.firstChild);
+
+        // 6) Configurações do html2pdf (respeita CSS e pagebreak)
+        const opt = {
+          margin: 1, // cm
+          filename: filename || (document.title ? (document.title.replace(/\s+/g,'_') + '.pdf') : 'relatorio.pdf'),
+          image: { type: 'jpeg', quality: 0.98 },
+          html2canvas: {
+            scale: Math.min(2, (window.devicePixelRatio || 1)),
+            useCORS: true,
+            logging: false,
+            allowTaint: false,
+            windowWidth: Math.round((21 / 2.54) * 96), // ~794px @96dpi
+            windowHeight: contentToPrint.scrollHeight || (Math.round((29.7 / 2.54) * 96) * 10) // heurística se scrollHeight não disponível
+          },
+          jsPDF: { unit: 'cm', format: 'a4', orientation: 'portrait' },
+          pagebreak: { mode: ['css', 'legacy'] }
+        };
+
+        // Gera o PDF usando html2pdf
+        ensureHtml2pdf().then(() => {
+          // pequena espera para garantir imagens/fonts
+          setTimeout(() => {
+            html2pdf().set(opt).from(contentToPrint).save().then(resolve).catch(reject);
+          }, 40);
+        }).catch(reject);
+
+      } catch (err) {
+        reject(err);
+      }
+    });
+  }
+
+  // Integra o processo ao botão flutuante existente
+  function hookupButton() {
     const btn = document.getElementById('btnBaixarPDF');
     if (!btn) {
-      console.warn('Botão #btnBaixarPDF não encontrado.');
+      console.warn('Botão #btnBaixarPDF não encontrado. Verifique o id do seu botão.');
       return;
     }
 
-    btn.addEventListener('click', function() {
-      // Se desejar obrigar cálculo antes, poderia verificar algo; aqui permitimos gerar com zeros.
-      // Monta o conteúdo
+    btn.addEventListener('click', function () {
+      // Se quiser exigir que o usuário calcule antes: descomente e altere o seletor abaixo
+      // const resultadoDiv = document.getElementById('resultado');
+      // if (resultadoDiv && !resultadoDiv.dataset.score) { alert('Calcule primeiro'); return; }
+
+      // Monta o conteúdo do MEEM
       const content = montarConteudoMEEM();
       if (!content) {
         alert('Não foi possível preparar o conteúdo para o PDF.');
         return;
       }
 
-      // Nome do arquivo: usa título da página + timestamp
-      const fname = (document.title || 'meem') + '_' + (new Date().toISOString().slice(0,19).replace(/[:T]/g,'-')) + '.pdf';
+      // Define nome do arquivo
+      const fname = (document.title ? document.title.replace(/[\/\\?%*:|"<>]/g, '-') : 'relatorio') + '_' + (new Date().toISOString().slice(0,19).replace(/[:T]/g,'-')) + '.pdf';
 
-      gerarPDFGlobalFromElement({ element: content, nomeArquivo: fname, margemCm: 1 })
-      .catch(err => {
-        console.error('Erro ao gerar PDF:', err);
-        alert('Ocorreu um erro ao gerar o PDF. Veja console para detalhes.');
-      });
+      // Chama a geração
+      gerarPdfAPartirDoClone(content, fname)
+        .then(() => { /* sucesso */ })
+        .catch(err => {
+          console.error('Erro ao gerar PDF:', err);
+          alert('Ocorreu um erro ao gerar o PDF. Veja console para detalhes.');
+        });
     }, false);
+  }
+
+  // Inicialização
+  document.addEventListener('DOMContentLoaded', function () {
+    hookupButton();
   });
 
 })();
 </script>
+<!-- ==================== FIM DO BLOCO DE GERAÇÃO DE PDF ==================== -->
 
 </body>
 </html>
