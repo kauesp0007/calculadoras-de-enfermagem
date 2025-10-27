@@ -1,0 +1,734 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mini-Examen de l'État Mental - MMSE</title>
+    <!-- Ajout de la bibliothèque d'icônes (Font Awesome) pour l'icône du bouton PDF -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    
+    <style>
+        /* Styles Globaux */
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #f9fafb;
+            color: #333;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+            /* Garantit de l'espace pour le bouton flottant */
+            padding-bottom: 120px; 
+        }
+
+        .container {
+            /* Style original qui casse le PDF, sera manipulé via JS */
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            border: 1px solid #e5e7eb;
+            
+            /* Transition douce pour quand le style sera restauré */
+            transition: all 0.3s ease;
+        }
+
+        /* En-tête */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid #1A3E74; /* Couleur de votre site */
+            padding-bottom: 15px;
+            margin-bottom: 20px;
+            page-break-inside: avoid; /* Éviter la coupure dans l'en-tête */
+        }
+
+        .header h1 {
+            font-size: 28px;
+            font-weight: 900;
+            color: #1A3E74;
+            margin: 0;
+        }
+
+        .header .logo {
+            max-width: 100px;
+            height: auto;
+            border-radius: 8px;
+        }
+
+        /* Informations du Patient */
+        .patient-info {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-bottom: 25px;
+            padding: 15px;
+            background-color: #fdfdfd;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            page-break-inside: avoid; /* Éviter la coupure ici */
+        }
+
+        .patient-info div {
+            font-size: 14px;
+        }
+
+        .patient-info label {
+            font-weight: 600;
+            color: #555;
+            display: block;
+            margin-bottom: 2px;
+        }
+
+        .patient-info span {
+            display: block;
+            min-height: 20px;
+            border-bottom: 1px dotted #ccc;
+        }
+        
+        /* Ajustement pour que la date prenne toute la ligne si elle est impaire */
+        .patient-info div:last-child:nth-child(odd) {
+            grid-column: 1 / -1;
+        }
+
+
+        /* Style des Critères (Basé sur votre meem.html) */
+        .criterion-card {
+            background-color: #fff;
+            border: 1px solid #d1d5db;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            margin-bottom: 20px;
+            page-break-inside: avoid; /* Tente d'éviter de couper les cartes */
+        }
+
+        .criterion-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #1A3E74;
+            margin-bottom: 12px;
+            text-align: left; /* Standard demandé */
+        }
+
+        .criterion-card p,
+        .criterion-card ul {
+            margin: 0 0 10px 0;
+            padding-left: 0;
+            font-size: 15px;
+        }
+
+        .criterion-card li {
+            list-style-type: none;
+            position: relative;
+            padding-left: 20px;
+            margin-bottom: 5px;
+        }
+        
+        .criterion-card li::before {
+            content: "•";
+            position: absolute;
+            left: 0;
+            color: #1FA4E5; /* Couleur de votre site */
+            font-weight: bold;
+        }
+        
+        .criterion-card .instruction {
+            font-style: italic;
+            color: #666;
+            font-size: 14px;
+            border-left: 3px solid #1FA4E5;
+            padding-left: 10px;
+            margin-top: 10px;
+        }
+
+        .score-box {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            border-top: 1px solid #eee;
+            padding-top: 15px;
+            margin-top: 15px;
+        }
+
+        .score-box strong {
+            font-size: 14px;
+            color: #333;
+            margin-right: 10px;
+        }
+
+        .score-box .score-input {
+            width: 70px;
+            padding: 5px 8px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 16px;
+            text-align: center;
+        }
+
+        /* Dessin (Pentagones) */
+        .pentagon-container {
+            text-align: center;
+            margin: 15px 0;
+        }
+        
+        .pentagon-container img {
+            max-width: 250px; /* Ajustez la taille si nécessaire */
+            height: auto;
+        }
+
+        /* Évaluation du Score */
+        .scoring-section {
+            padding: 20px;
+            background-color: #fdfdfd;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            margin-top: 25px;
+            page-break-inside: avoid; /* Tente d'éviter de couper cette section */
+        }
+
+        .scoring-section h3 {
+            margin-top: 0;
+            color: #1A3E74;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 8px;
+        }
+        
+        .scoring-section table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        
+        .scoring-section th, .scoring-section td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        
+        .scoring-section th {
+            background-color: #f4f4f4;
+            font-weight: 600;
+        }
+
+        /* Boîte de Commentaires */
+        .comments-box {
+            margin-top: 25px;
+            page-break-inside: avoid; /* Tente d'éviter de couper cette boîte */
+        }
+        
+        .comments-box h3 {
+            font-size: 18px;
+            font-weight: 700;
+            color: #1A3E74;
+            margin-bottom: 10px;
+        }
+
+        .comments-box textarea {
+            width: 100%;
+            height: 150px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            padding: 10px;
+            font-family: inherit;
+            font-size: 14px;
+            line-height: 1.8;
+            /* Astuce pour les lignes */
+            background-image: linear-gradient(#eee .1em, transparent .1em);
+            background-size: 100% 1.8em;
+            background-attachment: local;
+            box-sizing: border-box; /* Garantit que le padding ne gâche pas la mise en page */
+        }
+
+        /* Pied de page */
+        .footer {
+            margin-top: 30px;
+            padding-top: 15px;
+            border-top: 1px solid #e5e7eb;
+            font-size: 12px;
+            color: #777;
+            text-align: center;
+            page-break-inside: avoid; /* Tente de garder le pied de page ensemble */
+        }
+
+        .footer p {
+            margin: 0;
+        }
+
+        /* --- Bouton Flottant de PDF --- */
+        .pdf-download-button {
+            position: fixed;
+            bottom: 25px;
+            right: 25px;
+            background-color: #1A3E74; /* Couleur primaire du site */
+            color: #fff;
+            border: none;
+            border-radius: 12px;
+            padding: 1rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            z-index: 1000;
+            width: 160px; /* Largeur de la carte */
+            text-align: center;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        .pdf-download-button:hover {
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.25);
+            transform: translateY(-4px); /* Effet de "secousse" */
+        }
+
+        .pdf-download-button .pdf-icon {
+            font-size: 2.5rem; /* Grande icône */
+            margin-bottom: 0.5rem;
+        }
+
+        .pdf-download-button .pdf-text {
+            font-size: 1rem;
+            font-weight: 600;
+            line-height: 1.3;
+        }
+        
+        /* --- Fin du Bouton Flottant --- */
+
+
+        /* Impression */
+        @media print {
+            body {
+                background-color: #fff;
+                font-size: 12pt;
+                padding-bottom: 0; /* Supprime le padding lors de l'impression */
+            }
+            .container {
+                box-shadow: none;
+                border: none;
+                padding: 0;
+                margin: 0;
+                max-width: 100%;
+            }
+            .criterion-card {
+                box-shadow: none;
+                border: 1px solid #ccc;
+            }
+            .comments-box textarea {
+                border: 1px solid #999;
+                background-image: linear-gradient(#ddd .1em, transparent .1em);
+            }
+            .score-input {
+                border: 1px solid #999;
+            }
+            .patient-info {
+                background-color: #fff;
+            }
+            /* Cache le bouton PDF pendant l'impression */
+            .pdf-download-button {
+                display: none;
+            }
+        }
+    </style>
+    </head>
+<body>
+      <!-- Script pour générer le PDF -->
+      <!-- Placé au début pour garantir que la bibliothèque soit disponible -->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+ 
+      <!-- Le 'id="rapport-mmse"' est la cible que le PDF va capturer -->
+      <!-- Le conteneur externe 'id="container-principal"' sera utilisé pour la manipulation de style -->
+      <div class="container" id="rapport-mmse">
+        
+        <div class="header">
+            <h1>Mini-Examen de l'État Mental - MMSE</h1>
+            <!-- Logo INTÉGRÉ en Base64 pour garantir sa sortie dans le PDF -->
+            <img src="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEAYABgAAD/2wBDAAoHBwgHBgoICAgLCgoLDhgQDg0NDh0VFhEYIz8lJCIfIiEmKzcvJik0KSEiMEExNDk7Pj4+JS5ESUM8SDc9Pjv/2wBDAQoLCw4NDhwQEBw7KCIoOzs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozv/wAARCAEABQADASIAAhEBAxEB/8QAGwABAAIDAQEAAAAAAAAAAAAAAAUGAwQHAQL/xABSEAABAwMBBAUGCAsEBgIDAAECAwQFAAYRBxIhEzFBFBUiUWGR0hcYMjVxgZSisbKzwdEVFiMzQlJTYnJ0gqPCNENERWKDo/BTY7Pi8eL/xAAYAQEBAQEBAAAAAAAAAAAAAAAAAQIDBP/EACgRAQEAAgEDAwUAAwEBAAAAAAABAhEDEiExBBNBURQFYSIyUoGhwf/aAAwDAQACEQMRAD8A/qmIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiLogIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiCiIv/9gV//Z" alt="Logo Calculatrices de Soins Infirmiers" class="logo">
+        </div>
+
+        <div class="patient-info">
+            <div><label>Nom du Patient :</label><span></span></div>
+            <div><label>Date de Naissance :</label><span></span></div>
+            <div><label>Âge :</label><span></span></div>
+            <div><label>Nom de la Mère :</label><span></span></div>
+            <div><label>Niveau d'études :</label><span></span></div>
+            <div><label>Sexe :</label><span></span></div>
+            <div><label>Comorbidités :</label><span></span></div>
+            <div><label>Référence Professionnelle :</label><span></span></div>
+            <div><label>Date :</label><span></span></div>
+        </div>
+
+        <!-- Début de l'Échelle MMSE -->
+
+        <div class="criterion-card">
+            <h2 class="criterion-title">1. Orientation Temporelle (Max : 5 points)</h2>
+            <p class="instruction">Demandez : "En quelle (année / saison / mois / jour du mois / jour de la semaine) sommes-nous ? Quelle heure est-il (approximativement) ?"</p>
+            <ul>
+                <li>Année</li>
+                <li>Saison</li>
+                <li>Mois</li>
+                <li>Jour du mois</li>
+                <li>Jour de la semaine</li>
+                 <!-- Nota: L'original demandait l'heure, mais la version française demande souvent la saison. Adaptez si nécessaire. -->
+            </ul>
+            <div class="score-box">
+                <strong>Points :</strong>
+                <input type="number" min="0" max="5" class="score-input">
+            </div>
+        </div>
+
+        <div class="criterion-card">
+            <h2 class="criterion-title">2. Orientation Spatiale (Max : 5 points)</h2>
+            <p class="instruction">Demandez : "Où sommes-nous ? (Quel est cet endroit / rue / quartier ou arrondissement / ville / département ou pays ?)"</p>
+            <ul>
+                <li>Endroit (ex : maison, cabinet)</li>
+                <li>Rue</li>
+                <li>Quartier / Arrondissement</li>
+                <li>Ville</li>
+                <li>Département / Pays</li>
+            </ul>
+            <div class="score-box">
+                <strong>Points :</strong>
+                <input type="number" min="0" max="5" class="score-input">
+            </div>
+        </div>
+
+        <div class="criterion-card">
+            <h2 class="criterion-title">3. Enregistrement (Max : 3 points)</h2>
+            <p class="instruction">"Je vais vous dire 3 mots. Répétez-les après moi : Cigare, Fleur, Porte". (1 point par mot répété correctement au premier essai).</p>
+             <!-- Nota: Mots adaptés pour le français. -->
+            <ul>
+                <li>Mot 1 (Cigare)</li>
+                <li>Mot 2 (Fleur)</li>
+                <li>Mot 3 (Porte)</li>
+            </ul>
+            <div class="score-box">
+                <strong>Points :</strong>
+                <input type="number" min="0" max="3" class="score-input">
+            </div>
+        </div>
+
+        <div class="criterion-card">
+            <h2 class="criterion-title">4. Attention et Calcul (Max : 5 points)</h2>
+            <p class="instruction">Choisissez UNE des options :
+                <br>A) "Soustraire 7 de 100, et continuez à soustraire 7 du résultat, 5 fois." (93, 86, 79, 72, 65)
+                <br>B) "Épelez le mot MONDE à l'envers." (E-D-N-O-M)
+            </p>
+            <ul>
+                <li>Calcul 1 (ou Lettre 1)</li>
+                <li>Calcul 2 (ou Lettre 2)</li>
+                <li>Calcul 3 (ou Lettre 3)</li>
+                <li>Calcul 4 (ou Lettre 4)</li>
+                <li>Calcul 5 (ou Lettre 5)</li>
+            </ul>
+            <div class="score-box">
+                <strong>Points :</strong>
+                <input type="number" min="0" max="5" class="score-input">
+            </div>
+        </div>
+
+        <div class="criterion-card">
+            <h2 class="criterion-title">5. Mémoire / Rappel (Max : 3 points)</h2>
+            <p class="instruction">"Quels étaient les 3 mots que je vous ai demandé de répéter tout à l'heure ?" (Cigare, Fleur, Porte).</p>
+            <ul>
+                <li>Mot 1 (Cigare)</li>
+                <li>Mot 2 (Fleur)</li>
+                <li>Mot 3 (Porte)</li>
+            </ul>
+            <div class="score-box">
+                <strong>Points :</strong>
+                <input type="number" min="0" max="3" class="score-input">
+            </div>
+        </div>
+
+        <div class="criterion-card">
+            <h2 class="criterion-title">6. Langage - Dénomination (Max : 2 points)</h2>
+            <p class="instruction">Montrez 2 objets (ex : une montre et un stylo) et demandez le nom de chacun.</p>
+            <ul>
+                <li>Objet 1 (Montre)</li>
+                <li>Objet 2 (Stylo)</li>
+            </ul>
+            <div class="score-box">
+                <strong>Points :</strong>
+                <input type="number" min="0" max="2" class="score-input">
+            </div>
+        </div>
+
+        <div class="criterion-card">
+            <h2 class="criterion-title">7. Langage - Répétition (Max : 1 point)</h2>
+            <p class="instruction">Demandez au patient de répéter la phrase : "PAS DE MAIS, DE SI, NI DE ET". (Une seule tentative).</p>
+             <!-- Nota: Phrase adaptée pour le français. -->
+            <div class="score-box">
+                <strong>Points :</strong>
+                <input type="number" min="0" max="1" class="score-input">
+            </div>
+        </div>
+        
+        <div class="criterion-card">
+            <h2 class="criterion-title">8. Langage - Ordre complexe (Max : 3 points)</h2>
+            <p class="instruction">"Suivez cet ordre en 3 étapes :
+                <br>1. Prenez ce papier avec la main droite.
+                <br>2. Pliez-le en deux.
+                <br>3. Posez-le sur la table." 
+                <!-- Nota: L'original demandait de le poser par terre, adapté pour 'table'. -->
+            </p>
+            <ul>
+                <li>Étape 1 (Main droite)</li>
+                <li>Étape 2 (Plier en deux)</li>
+                <li>Étape 3 (Poser sur la table)</li>
+            </ul>
+            <div class="score-box">
+                <strong>Points :</strong>
+                <input type="number" min="0" max="3" class="score-input">
+            </div>
+        </div>
+
+        <div class="criterion-card">
+            <h2 class="criterion-title">9. Langage - Lecture (Max : 1 point)</h2>
+            <p class="instruction">Donnez un papier avec la phrase "FERMEZ LES YEUX" écrite. Demandez au patient de lire et de faire ce qui est écrit.</p>
+            <div class="score-box">
+                <strong>Points :</strong>
+                <input type="number" min="0" max="1" class="score-input">
+            </div>
+        </div>
+
+        <div class="criterion-card">
+            <h2 class="criterion-title">10. Langage - Écriture (Max : 1 point)</h2>
+            <p class="instruction">Demandez au patient d'écrire une phrase complète (doit avoir un sujet et un verbe/prédicat et avoir du sens). (Ignorer les fautes d'orthographe).</p>
+            <div class="score-box">
+                <strong>Points :</strong>
+                <input type="number" min="0" max="1" class="score-input">
+            </div>
+        </div>
+
+        <div class="criterion-card">
+            <h2 class="criterion-title">11. Habileté Constructive - Copie (Max : 1 point)</h2>
+            <p class="instruction">Demandez au patient de copier le dessin des pentagones entrelacés. (1 point si les 10 angles sont présents et que les 2 pentagones s'intersectent en formant un quadrilatère).</p>
+            <div class="pentagon-container">
+                <!-- Pentagone INTÉGRÉ en Base64 pour garantir sa sortie dans le PDF -->
+                <img src="data:image/webp;base64,UklGRpYAAABXRUJQVlA4IIoAAABwAgCdASo8AEMAPlE+l0elIqIlo/VqOAUEtLdAF0uAqaqwBqK+HFKeAf4e/0H+U/3P6yeoF/gHqA/8l6AXsA/QD/MfqBfW/wBPWf6N+gH+7PQA/8HqJfsA/tB6C/138l/pP9F/aP+pPWs+yv8j+0Hsf+wPqP/cfuH7AP5P/SP+B/l/7B+wj+Zf1H/sf5f/Bf6T/jP8t/oP/J/0v+9/sH/N/0H/mf3n92PsA/lf9Z/5P9N/vP+V/1n/////+7/7gftB/////+hf8Z/oP+r/tv93/6f+K/7X7S////9mf6x+5f///+gRMAP8A/lP9Y/sP+X/0f+z/fP///+H5h/2P/R/yH/G/2X/E/zX/L/1n/d/y/+v/2H/Uf4j/Uf9H/lf9H/2f77////+gH+G/0/+u/3/+4/5n/f/+H/9f///+F" alt="Pentagones Entrelacés">
+            </div>
+            <div class="score-box">
+                <strong>Points :</strong>
+                <input type="number" min="0" max="1" class="score-input">
+            </div>
+        </div>
+
+        <!-- Évaluation du Score -->
+        <div class="scoring-section">
+            <h3>Évaluation du Score (Seuils Suggérés)</h3>
+            <p>Les seuils du MMSE sont fortement influencés par le niveau d'éducation. Les valeurs ci-dessous sont souvent utilisées comme référence (peuvent varier selon les validations locales) :</p>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Niveau d'études</th>
+                        <th>Seuil (Suggestion)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                     <!-- Les seuils français peuvent différer légèrement, vérifiez les sources locales -->
+                    <tr>
+                        <td>Faible niveau d'études (ex: < 6 ans)</td>
+                        <td>~21-24 points</td>
+                    </tr>
+                    <tr>
+                        <td>Niveau d'études moyen (ex: 6-11 ans)</td>
+                        <td>~24-27 points</td>
+                    </tr>
+                    <tr>
+                        <td>Niveau d'études élevé (ex: 12+ ans)</td>
+                        <td>~27-28 points</td>
+                    </tr>
+                </tbody>
+            </table>
+            <p style="font-size: 13px; margin-top: 10px;"><strong>Note :</strong> Des erreurs dans le rappel (Mémoire) et l'orientation temporelle doivent être prises en compte, même si le score final est au-dessus du seuil. Un score < 24 est généralement considéré comme indicateur d'un déficit cognitif.</p>
+        </div>
+
+        <!-- Boîte de Commentaires -->
+        <div class="comments-box">
+            <h3>Résultat et Commentaires de l'Évaluateur</h3>
+            <textarea placeholder="Insérez le résultat total, l'interprétation basée sur le niveau d'éducation et les commentaires supplémentaires..."></textarea>
+        </div>
+
+        <!-- Pied de page avec Référence -->
+        <div class="footer">
+            <p><strong>Référence Bibliographique :</strong></p>
+            <p>Folstein, M. F., Folstein, S. E., & McHugh, P. R. (1975). "Mini-mental state". A practical method for grading the cognitive state of patients for the clinician. *Journal of psychiatric research*, 12(3), 189–198. <a href="https://doi.org/10.1016/0022-3956(75)90026-6" target="_blank" rel="noopener noreferrer" class="text-light-blue hover:underline">DOI: 10.1016/0022-3956(75)90026-6</a></p>
+        </div>
+
+    </div>
+
+    
+    <!-- Bouton Flottant pour Télécharger le PDF -->
+    <button id="btnBaixarPDF" class="pdf-download-button" title="Télécharger ce rapport en PDF">
+      <div class="pdf-icon"><i class="fas fa-file-pdf"></i></div>
+      <div class="pdf-text">Télécharger PDF</div>
+    </button>
+    
+    <script>
+    (function () {
+      // CDN pour html2pdf.js
+      const HTML2PDF_CDN = 'https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js';
+
+      // Fonction pour s'assurer que html2pdf est chargé
+      function ensureHtml2pdf() {
+        return new Promise((resolve, reject) => {
+          // Si déjà chargé, retourne immédiatement
+          if (window.html2pdf) return resolve(window.html2pdf);
+          // Sinon, crée une balise script pour le charger
+          const s = document.createElement('script');
+          s.src = HTML2PDF_CDN;
+          // Quand chargé, résout la promesse
+          s.onload = () => resolve(window.html2pdf);
+          // En cas d'erreur, rejette la promesse
+          s.onerror = () => reject(new Error('Échec du chargement de html2pdf'));
+          document.head.appendChild(s); // Ajoute le script à la page
+        });
+      }
+
+      // Fonction pour préparer le contenu HTML pour le PDF
+      function prepareContentForPDF() {
+        // Trouve l'élément original à cloner
+        const wrapperOriginal = document.getElementById('rapport-mmse');
+        if (!wrapperOriginal) {
+          alert('Élément #rapport-mmse non trouvé.'); // Message d'erreur
+          return null; // Retourne null si non trouvé
+        }
+
+        // Clone l'élément pour ne pas modifier l'original
+        const clone = wrapperOriginal.cloneNode(true);
+        // Supprime les boutons PDF du clone
+        clone.querySelectorAll('.pdf-download-button, #btnBaixarPDF').forEach(el => el.remove());
+
+        // --- CORRECTION APPLIQUÉE ---
+        // Définit une largeur fixe en 'mm' pour correspondre au papier A4 (210mm)
+        // moins les marges (ex: 15mm de chaque côté).
+        // Largeur du contenu = 210mm - 15mm - 15mm = 180mm.
+        clone.style.width = '180mm';      // Largeur fixe
+        clone.style.maxWidth = '180mm';   // Garantie de largeur maximale
+        clone.style.margin = '0 auto';    // Centre le contenu (important pour html2pdf)
+        clone.style.background = '#fff';  // Fond blanc pour le PDF
+        clone.style.padding = '10mm';     // Padding interne (1cm)
+        clone.style.boxSizing = 'border-box'; // Essentiel pour que le padding n'augmente pas la largeur totale
+        clone.style.fontFamily = 'Arial, sans-serif'; // Police standard pour PDF
+        // --- FIN DE LA CORRECTION ---
+
+        // Crée un en-tête pour le PDF
+        const headerPDF = document.createElement('div');
+        headerPDF.style.textAlign = 'center';
+        headerPDF.style.marginBottom = '10mm'; // Espace après l'en-tête
+        headerPDF.innerHTML = `
+          <h1 style="font-size:18pt; margin:0; color:#1A3E74;">Mini-Examen de l'État Mental - MMSE</h1>
+          <div style="font-size:10pt; color:#666;">Rapport généré automatiquement</div>
+          <div style="font-size:9pt; color:#999;">${new Date().toLocaleString('fr-FR')}</div>
+          <hr style="margin-top:8px; border:none; border-top:1px solid #ccc;">
+        `;
+        // Insère l'en-tête au début du clone
+        clone.insertBefore(headerPDF, clone.firstChild);
+
+        // Ajoute des styles spécifiques pour l'impression/PDF
+        const stylePDF = document.createElement('style');
+        stylePDF.textContent = `
+          /* Styles pour éviter les coupures disgracieuses */
+          .criterion-card, .patient-info, .scoring-section, .comments-box, .footer {
+            page-break-inside: avoid !important; /* Standard CSS */
+            break-inside: avoid !important;      /* Propriété plus moderne */
+            margin-bottom: 8mm; /* Espace entre les éléments */
+          }
+          /* Styles pour que les images s'adaptent bien */
+          img {
+            max-width: 100% !important; /* Occupe au max la largeur du conteneur (180mm) */
+            height: auto !important;    /* Maintient les proportions */
+            display: block;             /* Évite les espaces étranges en dessous */
+            margin: 5mm auto;         /* Centre et espace les images */
+            page-break-inside: avoid !important; /* Empêche de couper une image */
+          }
+           /* Styles pour les titres */
+          h1, h2, h3 {
+            color: #1A3E74 !important; /* Assure la couleur */
+            page-break-after: avoid !important; /* Empêche une coupure juste après un titre */
+            margin-top: 5mm; /* Espace avant les titres */
+          }
+          /* Styles pour le tableau */
+          table { width: 100%; border-collapse: collapse; }
+          th, td { border: 1px solid #ccc; padding: 4mm; text-align: left; font-size: 10pt; }
+          th { background-color: #f0f0f0; }
+          /* Ajustements généraux de police */
+          body, p, li, span, label, input, textarea, strong, div { font-size: 10pt; line-height: 1.4; }
+          .instruction { font-size: 9pt; }
+          .score-box, .score-input { display: none; } /* Cache les inputs de score dans le PDF */
+        `;
+        // Ajoute les styles au début du clone
+        clone.prepend(stylePDF);
+
+        // Retourne le clone préparé
+        return clone;
+      }
+
+      // Fonction principale pour générer le PDF
+      async function generatePDF() {
+        // Prépare le contenu
+        const content = prepareContentForPDF();
+        if (!content) return; // Arrête si le contenu n'est pas prêt
+
+        try {
+          // Assure que html2pdf est chargé
+          await ensureHtml2pdf();
+
+          // --- Options pour html2pdf ---
+          const opt = {
+            // Marges en mm (15mm = 1.5cm)
+            margin:       15, 
+            // Nom du fichier PDF, avec date et heure
+            filename:     `Test-MMSE_${new Date().toISOString().slice(0,19).replace(/[:T]/g,'-')}.pdf`,
+            // Qualité de l'image (pour la conversion)
+            image:        { type: 'jpeg', quality: 0.98 },
+            // Options pour la capture HTML
+            html2canvas:  { 
+                scale: 2,         // Augmente la résolution
+                useCORS: true,    // Pour les images externes (pas nécessaire ici car Base64)
+                logging: false    // Désactive les logs dans la console
+            },
+            // Options pour le PDF lui-même
+            jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
+             // Mode de gestion des sauts de page (important !)
+            pagebreak:    { mode: ['css', 'avoid-all', 'legacy'] } 
+          };
+          // --- Fin des Options ---
+
+          // Attend que toutes les images dans le clone soient chargées (sécurité)
+          const imgs = content.querySelectorAll('img');
+          await Promise.all(Array.from(imgs).map(img => new Promise(res => {
+            if (img.complete && img.naturalHeight !== 0) res(); // Vérifie si l'image est valide
+            else { 
+                img.onload = res;
+                img.onerror = () => { console.warn('Image failed to load for PDF:', img.src); res(); }; // Gère les erreurs
+            }
+          })));
+          
+          console.log("Génération du PDF..."); // Message de débogage
+
+          // Génère et sauvegarde le PDF
+          html2pdf().set(opt).from(content).save();
+
+        } catch (error) {
+           console.error("Erreur lors de la génération du PDF:", error); // Affiche l'erreur
+           alert("Une erreur s'est produite lors de la génération du PDF. Veuillez réessayer."); // Message à l'utilisateur
+        }
+      }
+
+      // Attend que le DOM soit chargé
+      document.addEventListener('DOMContentLoaded', () => {
+        // Trouve le bouton de téléchargement
+        const btn = document.getElementById('btnBaixarPDF');
+        if (!btn) {
+            console.warn("Bouton PDF non trouvé."); // Avertissement si le bouton manque
+            return;
+        }
+        // Ajoute l'écouteur d'événement pour le clic
+        btn.addEventListener('click', generatePDF);
+      });
+    })();
+    </script>
+
+</body>
+</html>
