@@ -319,18 +319,6 @@
       <div class="flex items-center px-3 py-2 hover:bg-gray-100 cursor-pointer space-x-2" data-value="fr" data-flag="bandeira-franca.webp">
         <img src="bandeira-franca.webp" class="w-5 h-4 rounded-sm" alt="FR"><span>Français</span>
       </div>
-      <div class="flex items-center px-3 py-2 hover:bg-gray-100 cursor-pointer space-x-2" data-value="fr" data-flag="bandeira-franca.webp">
-        <img src="bandeira-india.webp" class="w-5 h-4 rounded-sm" alt="IN"><span>भारत</span>
-      </div>
-      <div class="flex items-center px-3 py-2 hover:bg-gray-100 cursor-pointer space-x-2" data-value="fr" data-flag="bandeira-franca.webp">
-        <img src="bandeira-china.webp" class="w-5 h-4 rounded-sm" alt="CN"><span>中国</span>
-      </div>
-      <div class="flex items-center px-3 py-2 hover:bg-gray-100 cursor-pointer space-x-2" data-value="fr" data-flag="bandeira-franca.webp">
-        <img src="bandeira-arabia.webp" class="w-5 h-4 rounded-sm" alt="AR"><span>اللغة العربية</span>
-      </div>
-      <div class="flex items-center px-3 py-2 hover:bg-gray-100 cursor-pointer space-x-2" data-value="fr" data-flag="bandeira-franca.webp">
-        <img src="bandeira-japao.webp" class="w-5 h-4 rounded-sm" alt="JP"><span>日本語</span>
-      </div>
     </div>
   </div>
 </div>
@@ -381,17 +369,13 @@
       menu.classList.add("hidden");
       button.setAttribute('aria-expanded', 'false');
 
-            switch (value) {
-                case 'en': newPath = "/en/"; break;
-                case 'es': newPath = "/es/"; break;
-                case 'de': newPath = "/de/"; break;
-                case 'it': newPath = "/it/"; break;
-                case 'fr': newPath = "/fr/"; break;
-                case 'in': newPath = "/in/"; break;
-                case 'cn': newPath = "/cn/"; break;
-                case 'ar': newPath = "/ar/"; break;
-                case 'jp': newPath = "/jp/"; break;
-                default:   newPath = "/";    // pt (raiz)
+      switch (value) {
+        case 'en': window.location.href = "/en/"; break;
+        case 'es': window.location.href = "/es/"; break;
+        case 'de': window.location.href = "/de/"; break;
+        case 'it': window.location.href = "/it/"; break;
+        case 'fr': window.location.href = "/fr/"; break;
+        default:   window.location.href = "/";   // pt
       }
     });
   });
@@ -405,10 +389,7 @@
     else if (path.startsWith("/de/")) current = document.querySelector('[data-value="de"]');
     else if (path.startsWith("/it/")) current = document.querySelector('[data-value="it"]');
     else if (path.startsWith("/fr/")) current = document.querySelector('[data-value="fr"]');
-    else if (path.startsWith("/in/")) current = document.querySelector('[data-value="in"]');
-    else if (path.startsWith("/cn/")) current = document.querySelector('[data-value="cn"]');
-    else if (path.startsWith("/ar/")) current = document.querySelector('[data-value="ar"]');
-    else if (path.startsWith("/jp/")) current = document.querySelector('[data-value="jp"]');
+
     if (current) {
       langFlag.src = current.dataset.flag;
       langText.textContent = current.innerText.trim();
@@ -1202,3 +1183,58 @@
   });
 })();
 </script>
+
+<!-- Script to load global header and accessibility bar -->
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    // Load Global Header
+    fetch("/menu-global.html")
+        .then(response => {
+            if (!response.ok) {
+                console.error('Error loading global menu. Status:', response.status);
+                return null;
+            }
+            return response.text();
+        })
+        .then(data => {
+            if (data) {
+                const headerContainer = document.getElementById("global-header-container");
+                if (headerContainer) {
+                    headerContainer.innerHTML = data;
+                } else {
+                    console.error('Element #global-header-container not found.');
+                }
+            }
+        })
+        .catch(error => console.error('Error fetching global header:', error));
+
+    // Load Global Body Elements (e.g., accessibility bar)
+    fetch("/global-body-elements.html")
+        .then(response => {
+            if (!response.ok) {
+                console.error('Error loading global body elements. Status:', response.status);
+                return null;
+            }
+            return response.text();
+        })
+        .then(data => {
+            if (data) {
+                // Create a temporary div to hold the fetched elements
+                const tempDiv = document.createElement('div');
+                tempDiv.innerHTML = data.trim();
+                
+                // Prepend all fetched elements to the start of the <body>
+                // This ensures the accessibility bar is at the top
+                const fragment = document.createDocumentFragment();
+                while (tempDiv.firstChild) {
+                    fragment.appendChild(tempDiv.firstChild);
+                }
+                document.body.prepend(fragment);
+            }
+        })
+        .catch(error => console.error('Error fetching global body elements:', error));
+});
+</script>
+</body>
+</html>
+
