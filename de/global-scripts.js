@@ -88,26 +88,47 @@ function gerarPDFGlobal(options) {
     });
 }
 
-document.addEventListener('DOMContentLoaded', function() {
-    fetch('menu-global.html')
-        .then(response => response.ok ? response.text() : Promise.reject('Datei menu-global.html nicht gefunden'))
-        .then(html => {
-            const headerContainer = document.getElementById('global-header-container');
-            if (headerContainer) {
-                headerContainer.innerHTML = html;
-                initializeNavigationMenu();
-            }
-        })
-        .catch(error => console.warn('Globales Menü konnte nicht geladen werden:', error));
+/* --- INÍCIO - CARREGADOR DO MENU GLOBAL --- */
 
-    fetch('global-body-elements.html')
-        .then(response => response.ok ? response.text() : Promise.reject('Datei global-body-elements.html nicht gefunden'))
-        .then(html => {
-            document.body.insertAdjacentHTML('beforeend', html);
-            initializeGlobalFunctions();
-        })
-        .catch(error => console.warn('Globale Body-Elemente konnten nicht geladen werden:', error));
+// Espera que o conteúdo principal da página (HTML) esteja carregado
+document.addEventListener("DOMContentLoaded", function() {
+    
+    // 1. Define o ID do placeholder que *realmente* existe no seu HTML
+    const menuPlaceholderId = "global-header-container";
+    
+    // 2. Encontra esse elemento na página
+    const menuPlaceholder = document.getElementById(menuPlaceholderId);
+
+    // 3. Verifica se o placeholder existe nesta página específica
+    //    (Isto evita erros em páginas que não tenham o menu)
+    if (menuPlaceholder) {
+        
+        // 4. Define o caminho para o ficheiro do menu
+        //    Como o global-scripts.js e o menu-global.html estão ambos na raiz, o caminho é simples.
+        const menuPath = "/menu-global.html"; // Usar / no início garante que funciona a partir de qualquer subpasta
+
+        // 5. Busca o conteúdo do menu
+        fetch(menuPath)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Falha ao carregar o menu. Status: ' + response.status);
+                }
+                return response.text(); // Converte o ficheiro HTML para texto
+            })
+            .then(htmlContent => {
+                // 6. Insere o HTML do menu dentro do div "global-header-container"
+                menuPlaceholder.innerHTML = htmlContent;
+            })
+            .catch(error => {
+                console.error('Erro ao carregar o menu global:', error);
+                // Opcional: Mostra uma mensagem de erro no local do menu
+                menuPlaceholder.innerHTML = "<p style='text-align:center; color:red;'>Menu indisponível.</p>";
+            });
+    }
+
 });
+
+/* --- FIM - CARREGADOR DO MENU GLOBAL --- */
 
 // FÜGEN SIE DIESE KOMPLETTE FUNKTION ANSTELLE DER ALTEN initializeNavigationMenu() EIN
 function initializeNavigationMenu() {
