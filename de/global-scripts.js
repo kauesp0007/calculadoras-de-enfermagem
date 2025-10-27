@@ -105,7 +105,7 @@ document.addEventListener("DOMContentLoaded", function() {
         
         // 4. Define o caminho para o ficheiro do menu
         //    Como o global-scripts.js e o menu-global.html estão ambos na raiz, o caminho é simples.
-        const menuPath = "/menu-global.html"; // Usar / no início garante que funciona a partir de qualquer subpasta
+        const menuPath = "de/menu-global.html"; // Usar / no início garante que funciona a partir de qualquer subpasta
 
         // 5. Busca o conteúdo do menu
         fetch(menuPath)
