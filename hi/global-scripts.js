@@ -556,28 +556,6 @@ function initializeGlobalFunctions() {
     });
 
 
-    // --- Funcionalidade de Tradução (Google Translate) ---
-    window.googleTranslateElementInit = function() {
-        new google.translate.TranslateElement({
-            pageLanguage: 'pt',
-            includedLanguages: 'en,es,pt',
-            layout: google.translate.TranslateElement.InlineLayout.SIMPLE,
-            autoDisplay: false
-        }, 'language-switcher');
-    };
-
-    const googleTranslateScript = document.createElement('script');
-    googleTranslateScript.src = 'https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit';
-    googleTranslateScript.async = true;
-    document.body.appendChild(googleTranslateScript);
-
-    window.translatePage = function(language) {
-        const googleTranslateElement = document.querySelector('.goog-te-combo');
-        if (googleTranslateElement) {
-            googleTranslateElement.value = language;
-            googleTranslateElement.dispatchEvent(new Event('change'));
-        }
-    };
   
     inicializarTooltips(); 
 }
