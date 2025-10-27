@@ -286,7 +286,7 @@
     
         <div id="statusMessage" class="sr-only" aria-live="polite" aria-atomic="true"></div>
         <div id="global-header-container"></div>
-        <!-- ⬇️ COLE A PARTIR DAQUI A BARRA DE IDIOMAS, logo abaixo do #global-header-container -->
+        <!-- ⬇️ COLE A PARTIR DAQUI, logo abaixo do #global-header-container -->
 <div id="language-dropdown-wrapper" class="flex justify-end w-full" style="position:relative; z-index:100; padding-right:2rem;">
   <!-- 🌍 Seletor de Idiomas com Bandeiras (dropdown separado) -->
   <div class="relative inline-block text-left z-50">
@@ -299,6 +299,7 @@
       </svg>
     </button>
 
+    <!-- Menu suspenso -->
     <div id="langMenu" class="hidden absolute right-0 mt-2 w-44 bg-white border rounded-lg shadow-lg">
       <div class="flex items-center px-3 py-2 hover:bg-gray-100 cursor-pointer space-x-2" data-value="pt" data-flag="bandeira-brasil.webp">
         <img src="bandeira-brasil.webp" class="w-5 h-4 rounded-sm" alt="BR"><span>Português</span>
@@ -380,18 +381,18 @@
       menu.classList.add("hidden");
       button.setAttribute('aria-expanded', 'false');
 
-            switch (value) {
-                case 'en': newPath = "/en/"; break;
-                case 'es': newPath = "/es/"; break;
-                case 'de': newPath = "/de/"; break;
-                case 'it': newPath = "/it/"; break;
-                case 'fr': newPath = "/fr/"; break;
-                case 'in': newPath = "/in/"; break;
-                case 'cn': newPath = "/cn/"; break;
-                case 'ar': newPath = "/ar/"; break;
-                case 'jp': newPath = "/jp/"; break;
-                default:   newPath = "/";    // pt (raiz)
-            }
+      switch (value) {
+        case 'en': window.location.href = "/en/"; break;
+        case 'es': window.location.href = "/es/"; break;
+        case 'de': window.location.href = "/de/"; break;
+        case 'it': window.location.href = "/it/"; break;
+        case 'fr': window.location.href = "/fr/"; break;
+        case 'in': window.location.href = "/in/"; break;
+        case 'cn': window.location.href = "/cn/"; break;
+        case 'ar': window.location.href = "/ar/"; break;
+        case 'jp': window.location.href = "/jp/"; break;
+        default:   window.location.href = "/";   // pt
+      }
     });
   });
 
@@ -1207,63 +1208,3 @@
   });
 })();
 </script>
-<!-- Script to load global header and accessibility bar -->
-<script>
-document.addEventListener("DOMContentLoaded", function() {
-
-    // --- INÍCIO DA MODIFICAÇÃO ---
-    // 1. Função para carregar o script do seletor
-    function loadLangSelector() {
-        var script = document.createElement('script');
-        // Se o lang-selector.js estiver na pasta /de/, mude para "/de/lang-selector.js"
-        script.src = "/lang-selector.js"; 
-        document.body.appendChild(script);
-    }
-    // --- FIM DA MODIFICAÇÃO ---
-
-    // Load Global Header (que contém a barra de idiomas)
-    fetch("/de/menu-global.html")
-        .then(response => {
-            if (!response.ok) {
-                console.error('Error loading global menu. Status:', response.status);
-                return null;
-            }
-            return response.text();
-        })
-        .then(data => {
-            if (data) {
-                const headerContainer = document.getElementById("global-header-container");
-                if (headerContainer) {
-                    headerContainer.innerHTML = data;
-                    
-                    // --- INÍCIO DA MODIFICAÇÃO ---
-                    // 2. Chame a função DEPOIS que o HTML for injetado
-                    loadLangSelector();
-                    // --- FIM DA MODIFICAÇÃO ---
-                }
-            }
-        })
-        .catch(error => console.error('Error fetching global header:', error));
-
-    // Load Global Body Elements (Barra de acessibilidade)
-    fetch("/de/global-body-elements.html")
-        .then(response => {
-            if (!response.ok) {
-                console.error('Error loading global body elements. Status:', response.status);
-                return null;
-            }
-            return response.text();
-        })
-        .then(data => {
-            if (data) {
-                const tempDiv = document.createElement('div');
-                tempDiv.innerHTML = data.trim();
-                document.body.prepend(tempDiv.firstChild);
-            }
-        })
-        .catch(error => console.error('Error fetching global body elements:', error));
-});
-</script>
-<!-- TAGS DE FECHAMENTO OBRIGATÓRIAS QUE FALTAM -->
-</body>
-</html>
