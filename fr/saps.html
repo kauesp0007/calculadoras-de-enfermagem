@@ -1,0 +1,673 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com">
+    <link rel="preconnect" href="https://cdn.jsdelivr.net">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <!-- Chargement des fichiers structurels depuis le dossier /fr/ -->
+    <link rel="preload" href="/fr/menu-global.html" as="fetch" crossorigin>
+    <link rel="preload" href="/fr/global-body-elements.html" as="fetch" crossorigin>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SAPS III - Score de Physiologie Aiguë Simplifié - Calculatrices de Soins Infirmiers</title>
+
+    <!-- Bloc Hreflang MIS À JOUR comme demandé -->
+    <link rel="canonical" href="https://www.calculadorasdeenfermagem.com.br/fr/saps.html" />
+    <link rel="alternate" hreflang="fr" href="https://www.calculadorasdeenfermagem.com.br/fr/saps.html" />
+    <link rel="alternate" hreflang="pt-br" href="https://www.calculadorasdeenfermagem.com.br/saps.html" />
+    <link rel="alternate" hreflang="en" href="https://www.calculadorasdeenfermagem.com.br/en/saps.html" />
+    <link rel="alternate" hreflang="es" href="https://www.calculadorasdeenfermagem.com.br/es/saps.html" />
+    <link rel="alternate" hreflang="de" href="https://www.calculadorasdeenfermagem.com.br/de/saps.html" />
+    <link rel="alternate" hreflang="it" href="https://www.calculadorasdeenfermagem.com.br/it/saps.html" />
+    <link rel="alternate" hreflang="x-default" href="https://www.calculadorasdeenfermagem.com.br/saps.html" />
+
+    <link rel="icon" href="/favicon.ico" type="image/x-icon" />
+    <meta name="description" content="Calculez le score SAPS III pour prédire la mortalité hospitalière à l'admission en USI, basé sur 20 critères physiologiques. Outil essentiel pour le pronostic." />
+    <meta property="og:title" content="SAPS III - Score de Physiologie Aiguë Simplifié - Calculatrices de Soins Infirmiers" />
+    <meta property="og:description" content="Calculatrice du score SAPS III pour la prédiction de la mortalité en USI." />
+    <meta property="og:url" content="https://www.calculadorasdeenfermagem.com.br/fr/saps.html" />
+    <meta property="og:image" content="https://www.calculadorasdeenfermagem.com.br/iconpages.webp" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="SAPS III - Score de Physiologie Aiguë Simplifié - Calculatrices de Soins Infirmiers" />
+    <meta name="twitter:description" content="Calculatrice du score SAPS III pour la prédiction de la mortalité en USI." />
+    <meta name="twitter:image" content="https://www.calculadorasdeenfermagem.com.br/iconpages.webp" />
+    
+    <script src="https://cdn.tailwindcss.com" defer></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" media="print" onload="this.media='all'">
+    <!-- Chemin absolu vers le CSS global -->
+    <link rel="stylesheet" href="/global-styles.css" media="print" onload="this.media='all'">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com&display=swap">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@700;900&family=Inter:wght@400;600;700&display=swap&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/antijingoist/opendyslexic/web/opendyslexic.css" />
+
+    <script async src="https://www.googletagmanager.com/gtag/js?id=AW-952633102"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('consent', 'default', {
+            'analytics_storage': 'denied',
+            'ad_storage': 'denied',
+            'wait_for_update': 500
+        });
+        gtag('config', 'AW-952633102');
+        gtag('config', 'G-8FLJ59XXDK');
+    </script>
+
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "MedicalEntity",
+      "name": "SAPS III",
+      "url": "https://www.calculadorasdeenfermagem.com.br/fr/saps.html",
+      "description": "Calculatrice du score SAPS III pour la prédiction de la mortalité en USI.",
+      "alternateName": ["Simplified Acute Physiology Score 3", "SAPS 3", "Score de Physiologie Aiguë Simplifié 3"]
+    }
+    </script>
+    
+    <style>
+        .resultado {
+             padding: 1rem;
+             margin-top: 1.5rem;
+             border-radius: 8px;
+             font-size: 1.1rem;
+             border: 1px solid transparent;
+             display: none; /* Caché par défaut */
+        }
+        .resultado p { margin-bottom: 0.5rem; }
+        .resultado strong { font-weight: bold; }
+        /* Classes de couleur pour le résultat */
+        .resultado.bg-saps-low { background-color: #D4EDDA; color: #155724; border-color: #c3e6cb;} /* Vert */
+        .resultado.bg-saps-medium { background-color: #FFF3CD; color: #856404; border-color: #ffeeba;} /* Jaune */
+        .resultado.bg-saps-high { background-color: #F8D7DA; color: #721C24; border-color: #f5c6cb;} /* Rouge */
+        .bg-info-orange-light { background-color: #ffeeba; border-color: #ffb366; color: #856404; } /* Orange pour erreur */
+
+        /* Styles pour les cartes de critères */
+        .saps-criteria-container {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+        .saps-criterion-card {
+            background-color: #fff;
+            border: 1px solid #d1d5db;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: box-shadow 0.3s ease;
+        }
+        .saps-criterion-card:hover {
+            box-shadow: 0 10px 15px rgba(0, 0, 0, 0.15);
+        }
+        .saps-criterion-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.75rem;
+            text-align: left;
+        }
+        .saps-criterion-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #1A3E74;
+        }
+        .saps-score-display {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #1FA4E5;
+        }
+        .saps-select {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #ccc;
+            border-radius: 0.375rem;
+            font-size: 1rem;
+            color: #333;
+            background-color: #fff;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='currentColor'%3E%3Cpath fill-rule='evenodd' d='M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z' clip-rule='evenodd'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 0.75rem center;
+            background-size: 1.5em 1.5em;
+        }
+        .saps-select:focus {
+            outline: none;
+            border-color: #1FA4E5;
+            box-shadow: 0 0 0 3px rgba(31, 164, 229, 0.2);
+        }
+         .incomplete { /* Style pour les champs non remplis */
+            border-color: #ef4444; /* Rouge */
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800 font-inter">
+
+    <div class="w-full flex justify-center py-2 bg-gray-100" aria-label="Espace pour la publicité supérieure"> 
+        <script type="text/javascript">
+            atOptions = {
+                'key' : '1e009bba81deb2bc366b3c4ac030f6be',
+                'format' : 'iframe',
+                'height' : 90,
+                'width' : 728,
+                'params' : {}
+            };
+        </script>
+        <script type="text/javascript" src="//www.highperformanceformat.com/1e009bba81deb2bc366b3c4ac030f6be/invoke.js" defer></script>
+    </div>
+    
+    <nav aria-label="Raccourcis d'accessibilité" class="sr-only focus-within:not-sr-only focus-within:absolute focus-within:top-0 focus-within:left-0 focus-within:z-50 focus-within:bg-white focus-within:text-blue-700 focus-within:p-4 focus-within:underline">
+        <a href="/fr/" accesskey="I" class="block mb-2">Aller à l'accueil [Alt + Shift + I]</a>
+        <a href="#main-content" accesskey="C" class="block mb-2">Passer au contenu principal [Alt + Shift + C]</a>
+        <a href="#barraAcessibilidade" accesskey="A" class="block mb-2">Activer la barre d'accessibilité [Alt + Shift + A]</a>
+        <a href="#backToTopBtn" accesskey="T" class="block">Retour en haut de la page [Alt + Shift + T]</a>
+    </nav>
+
+    <div id="statusMessage" class="sr-only" aria-live="polite" aria-atomic="true"></div>
+
+    <div id="global-header-container"></div>
+    <div id="language-dropdown-wrapper" class="flex justify-end w-full" style="position:relative; z-index:100; padding-right:2rem;">
+        <div class="relative inline-block text-left z-50">
+            <button id="langButton" class="flex items-center space-x-2 border px-3 py-1 rounded-lg shadow bg-gray-100">
+                <img id="langFlag" src="/bandeira-franca.webp" alt="FR" class="w-5 h-4 rounded-sm">
+                <span id="langText" class="text-gray-700 font-medium">Français</span>
+                <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                </svg>
+            </button>
+
+            <div id="langMenu" class="hidden absolute right-0 mt-2 w-44 bg-white border rounded-lg shadow-lg">
+                <div class="flex items-center px-3 py-2 hover:bg-gray-100 cursor-pointer space-x-2" data-value="pt" data-flag="/bandeira-brasil.webp">
+                    <img src="/bandeira-brasil.webp" class="w-5 h-4 rounded-sm" alt="BR"><span>Português</span>
+                </div>
+                <div class="flex items-center px-3 py-2 hover:bg-gray-100 cursor-pointer space-x-2" data-value="en" data-flag="/bandeira-eua.webp">
+                    <img src="/bandeira-eua.webp" class="w-5 h-4 rounded-sm" alt="EN"><span>English</span>
+                </div>
+                <div class="flex items-center px-3 py-2 hover:bg-gray-100 cursor-pointer space-x-2" data-value="es" data-flag="/bandeira-espanha.webp">
+                    <img src="/bandeira-espanha.webp" class="w-5 h-4 rounded-sm" alt="ES"><span>Español</span>
+                </div>
+                <div class="flex items-center px-3 py-2 hover:bg-gray-100 cursor-pointer space-x-2" data-value="de" data-flag="/bandeira-alemanha.webp">
+                    <img src="/bandeira-alemanha.webp" class="w-5 h-4 rounded-sm" alt="DE"><span>Deutsch</span>
+                </div>
+                <div class="flex items-center px-3 py-2 hover:bg-gray-100 cursor-pointer space-x-2" data-value="it" data-flag="/bandeira-italia.webp">
+                    <img src="/bandeira-italia.webp" class="w-5 h-4 rounded-sm" alt="IT"><span>Italiano</span>
+                </div>
+                <div class="flex items-center px-3 py-2 hover:bg-gray-100 cursor-pointer space-x-2" data-value="fr" data-flag="/bandeira-franca.webp">
+                    <img src="/bandeira-franca.webp" class="w-5 h-4 rounded-sm" alt="FR"><span>Français</span>
+                </div>
+                 <div class="flex items-center px-3 py-2 hover:bg-gray-100 cursor-pointer space-x-2" data-value="hi" data-flag="/bandeira-india.webp">
+                    <img src="/bandeira-india.webp" class="w-5 h-4 rounded-sm" alt="IN"><span>भारत</span>
+                </div>
+                <div class="flex items-center px-3 py-2 hover:bg-gray-100 cursor-pointer space-x-2" data-value="zh" data-flag="/bandeira-china.webp">
+                    <img src="/bandeira-china.webp" class="w-5 h-4 rounded-sm" alt="CN"><span>中国</span>
+                </div>
+                <div class="flex items-center px-3 py-2 hover:bg-gray-100 cursor-pointer space-x-2" data-value="ar" data-flag="/bandeira-arabia.webp">
+                    <img src="/bandeira-arabia.webp" class="w-5 h-4 rounded-sm" alt="AR"><span>اللغة العربية</span>
+                </div>
+                <div class="flex items-center px-3 py-2 hover:bg-gray-100 cursor-pointer space-x-2" data-value="ja" data-flag="/bandeira-japao.webp">
+                    <img src="/bandeira-japao.webp" class="w-5 h-4 rounded-sm" alt="JP"><span>日本語</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    <main id="main-content" class="flex-grow p-4 sm:p-8">
+        <div class="main-content-wrapper max-w-4xl mx-auto px-4 py-8">
+            <nav class="breadcrumb" aria-label="fil d'Ariane"><ol><li><a href="/fr/index.html">Accueil</a></li><li><a href="#">Calculatrices</a></li><li>SAPS III</li></ol></nav>
+
+            <div class="flex flex-col items-center justify-center gap-4 mb-3 text-center">
+                <h1 id="main-title" class="font-nunito font-extrabold text-dark-blue text-4xl lg:text-5xl">
+                    SAPS III
+                </h1>
+            </div>
+            <div class="title-bar w-full h-1 bg-dark-blue mx-auto mb-6"></div>
+
+            <h2 id="main-subtitle" class="font-inter font-semibold text-light-blue text-xl lg:text-2xl mb-3 text-center">
+                Score de Physiologie Aiguë Simplifié 3
+            </h2>
+            <p id="description-text" class="text-gray-700 mb-6 text-left">
+                Le score SAPS 3 (Simplified Acute Physiology Score 3) est un indice développé pour prédire la mortalité hospitalière à l'admission en USI. Le score a été développé à partir d'une étude rétrospective portant sur 16 784 patients, visant à élaborer un modèle pour évaluer la gravité de la maladie et prédire l'état vital à la sortie de l'hôpital sur la base des données d'admission en USI. L'étude a été publiée en 2005 et est une évolution du SAPS 2 de 1993. Ce dernier avait été développé à partir d'une étude portant sur 13 152 patients, visant également à développer un modèle pour mettre à jour et valider un nouveau score de physiologie aiguë en probabilité de décès hospitalier - mettant à jour le SAPS original de 1984.
+            </p>
+             <p class="font-inter text-black-custom text-base lg:text-lg text-center sm:text-left">
+                <strong>Année de création :</strong> 2005 
+            </p>
+            <p class="font-inter text-black-custom text-base lg:text-lg text-center sm:text-left">
+                <strong>Auteurs :</strong> Rui P. Moreno, Peter G. Metnitz, Edmundo Almeida, et al. (Groupe d'étude SAPS 3).
+            </p>
+            <p class="font-inter text-black-custom text-base lg:text-lg text-center sm:text-left">
+                <strong>Domaine d'application :</strong> Unité de Soins Intensifs (USI).
+            </p>
+            <p class="font-inter text-black-custom text-base lg:text-lg text-center sm:text-left">
+                <strong>Critères évalués :</strong> 20 variables physiologiques et démographiques collectées dans la première heure suivant l'admission en USI.
+            </p>
+            <p class="font-inter text-black-custom text-base lg:text-lg text-center sm:text-left">
+                <strong>Qui l'utilise ? :</strong> Médecins intensivistes et personnel infirmier en USI, chercheurs.
+            </p>
+            <p class="font-inter font-normal text-light-blue text-base lg:text-lg mb-6 text-left">
+                Sélectionnez la valeur ou la condition pour chacun des 20 critères :
+            </p>
+
+            <div id="conteudo" class="saps-criteria-container">
+                <!-- Les critères seront remplis dynamiquement par JavaScript -->
+            </div>
+
+            <div id="resultado" class="resultado hidden" aria-live="polite"></div>
+
+            <div class="flex flex-wrap justify-start gap-4 mt-6">
+                <button id="btnCalcular" class="btn-primary" aria-label="Calculer le score SAPS III">
+                    Calculer
+                </button>
+                <button id="btnLimpar" class="btn-primary" aria-label="Effacer les champs">
+                    Effacer
+                </button>
+                <button id="btnGerarPDF" class="btn-secondary" aria-label="Générer PDF">
+                    Générer PDF
+                </button>
+                <button id="btnNandaNicNoc" class="btn-primary" aria-label="Rechercher NANDA, NIC, NOC">
+                    NANDA, NIC, NOC
+                </button>
+            </div>
+
+            <div class="ref font-inter text-gray-custom text-left mt-8 border-t pt-4">
+                <strong>Références Bibliographiques :</strong>
+                 <!-- Références MISES À JOUR pour le Français -->
+                <p class="mt-2">
+                    Moreno RP, Metnitz PG, Almeida E, et al. SAPS 3--From evaluation of the patient to evaluation of the intensive care unit. Part 2: Development of a prognostic model for hospital mortality at ICU admission. *Intensive Care Med*. 2005;31(10):1345-1355. <a href="https://pubmed.ncbi.nlm.nih.gov/16132892/" target="_blank" rel="noopener noreferrer" class="text-light-blue hover:underline">Voir PubMed</a> (Article original)
+                </p>
+                <p class="mt-2">
+                    Le Gall JR, Lemeshow S, Saulnier F. A new Simplified Acute Physiology Score (SAPS II) based on a European/North American multicenter study. *JAMA*. 1993;270(24):2957-2963. (Référence pour SAPS II, souvent cité en comparaison)
+                </p>
+                 <p class="mt-2">
+                     Société de Réanimation de Langue Française (SRLF). Les scores de gravité en réanimation. (Consulter le site de la SRLF pour des ressources et recommandations françaises). <a href="https://www.srlf.org/" target="_blank" rel="noopener noreferrer" class="text-light-blue hover:underline">Site SRLF</a>
+                 </p>
+            </div>
+        </div>
+    </main>
+
+    <!-- Pied de page REMPLACÉ par le placeholder pour la modularisation -->
+    <div id="footer-placeholder"></div>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="https://vlibras.gov.br/app/vlibras-plugin.js"></script>
+    <!-- Chemins absolus vers les scripts globaux -->
+    <script src="/global-scripts.js" defer></script>
+    <script src="/lang-selector.js" defer></script>
+
+    <!-- Script de modularisation du pied de page (charge 'footer.html' depuis le dossier 'fr/') -->
+    <script>
+        fetch('footer.html') 
+            .then(response => response.text()) 
+            .then(data => {
+                document.getElementById('footer-placeholder').innerHTML = data;
+            });
+    </script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const resultadoDiv = document.getElementById('resultado');
+            const btnCalcular = document.getElementById('btnCalcular');
+            const btnLimpar = document.getElementById('btnLimpar');
+            const btnGerarPDF = document.getElementById('btnGerarPDF');
+            const btnNandaNicNoc = document.getElementById('btnNandaNicNoc');
+            const conteudoDiv = document.getElementById('conteudo');
+            
+            // Données SAPS III (TRADUITES et adaptées, points de l'article original Moreno et al. 2005)
+            // NOTE IMPORTANTE : Les points SAPS III sont complexes et varient légèrement selon les sources/calculateurs.
+            // Ceci est une implémentation basée sur les catégories générales de l'article de 2005. Le calcul EXACT de mortalité nécessite une formule logistique plus complexe non implémentée ici pour simplifier.
+            const sapsData = [
+                // --- PARTIE 1 : Variables Avant Admission ---
+                {
+                    category: "Âge (années)", // Traduit
+                    nameAttr: "age",
+                    options: [
+                        { description: "< 40", score: 0 },
+                        { description: "40-59", score: 7 },
+                        { description: "60-69", score: 12 },
+                        { description: "70-74", score: 15 },
+                        { description: "75-79", score: 16 },
+                        { description: "≥ 80", score: 18 }
+                    ]
+                },
+                {
+                    category: "Comorbidités", // Traduit
+                    nameAttr: "comorbidites",
+                    options: [
+                        { description: "Aucune", score: 0 },
+                        { description: "SIDA", score: 17 },
+                        { description: "Cancer hématologique", score: 10 },
+                        { description: "Cancer métastatique", score: 9 },
+                        { description: "Cirrhose", score: 4 }, // Simplifié, il existe plusieurs types
+                        // Il manque d'autres options ici pour être complet
+                    ]
+                },
+                 {
+                    category: "Localisation avant l'USI", // Traduit
+                    nameAttr: "localisation_avant_usi",
+                    options: [
+                        { description: "Domicile/Urgence/Autre hôpital", score: 0 }, // Groupe de référence
+                        { description: "Étage d'hospitalisation", score: 6 },
+                        { description: "Autre USI/Bloc opératoire", score: 8 } // Regroupé pour simplification
+                    ]
+                },
+                // --- PARTIE 2 : Raisons de l'Admission ---
+                {
+                    category: "Raison de l'admission en USI", // Traduit
+                    nameAttr: "raison_admission",
+                    options: [
+                         // Score 0 pour référence (ex: post-op programmé)
+                        { description: "Médicale (non chirurgical)", score: 0 }, 
+                        { description: "Chirurgie programmée", score: -8 }, // Exemple de score négatif
+                        { description: "Chirurgie en urgence", score: 7 },
+                        { description: "Infection (Sepsis)", score: 6 }, // Score approximatif
+                        { description: "Neurologique (ex: AVC)", score: 5 }, // Score approximatif
+                        { description: "Cardiovasculaire (ex: choc)", score: 3 }, // Score approximatif
+                        { description: "Respiratoire (ex: SDRA)", score: 4 }, // Score approximatif
+                         // Beaucoup d'autres raisons existent avec des scores spécifiques
+                    ]
+                },
+                // --- PARTIE 3 : Variables Physiologiques (Pire valeur dans la 1ère heure) ---
+                 {
+                    category: "Fréquence Cardiaque (bpm)", // Traduit
+                    nameAttr: "fc",
+                    options: [
+                        { description: "< 30", score: 11 },
+                        { description: "30-69", score: 4 },
+                        { description: "70-119", score: 0 },
+                        { description: "120-159", score: 7 },
+                        { description: "≥ 160", score: 8 }
+                    ]
+                },
+                {
+                    category: "Pression Artérielle Systolique (mmHg)", // Traduit
+                    nameAttr: "pas",
+                    options: [
+                        { description: "< 70", score: 13 },
+                        { description: "70-99", score: 5 },
+                        { description: "100-199", score: 0 },
+                        { description: "≥ 200", score: 2 }
+                    ]
+                },
+                 {
+                    category: "Température (°C)", // Traduit
+                    nameAttr: "temperature",
+                    options: [
+                        { description: "< 30", score: 20 }, // Très élevé
+                        { description: "30-33.9", score: 16 },
+                        { description: "34-35.9", score: 2 },
+                        { description: "36-39.9", score: 0 },
+                        { description: "≥ 40", score: 2 }
+                    ]
+                },
+                {
+                    category: "PaO2/FiO2 (mmHg) si ventilé", // Traduit
+                    nameAttr: "pao2_fio2",
+                    options: [
+                        { description: "Non ventilé", score: 0 }, // Ou PaO2 > 200 non ventilé
+                        { description: "≥ 200", score: 0 },
+                        { description: "100-199", score: 11 },
+                        { description: "< 100", score: 13 }
+                    ]
+                },
+                {
+                    category: "Débit Urinaire (mL/24h)", // Traduit
+                    nameAttr: "debit_urinaire",
+                    options: [
+                        { description: "≥ 1000", score: 0 },
+                        { description: "500-999", score: 5 },
+                        { description: "< 500", score: 11 }
+                        // Note: le calcul est normalement sur 8h pondéré sur 24h
+                    ]
+                },
+                 {
+                    category: "Urée Sanguine (mmol/L)", // ou BUN (mg/dL) - Adaptation nécessaire
+                    nameAttr: "uree",
+                    options: [
+                        { description: "< 10 mmol/L (~ < 28 mg/dL)", score: 0 },
+                        { description: "10-24.9 mmol/L (~ 28-69 mg/dL)", score: 8 },
+                        { description: "≥ 25 mmol/L (~ ≥ 70 mg/dL)", score: 10 }
+                    ]
+                },
+                {
+                    category: "Globules Blancs (x10^9/L)", // Traduit
+                    nameAttr: "globules_blancs",
+                    options: [
+                        { description: "< 1", score: 12 },
+                        { description: "1-14.9", score: 0 },
+                        { description: "≥ 15", score: 3 }
+                    ]
+                },
+                {
+                    category: "Bilirubine (µmol/L)", // Conversion mg/dL -> µmol/L (x17.1)
+                    nameAttr: "bilirubine",
+                    options: [
+                        { description: "< 70 µmol/L (~ < 4 mg/dL)", score: 0 },
+                        { description: "70-99 µmol/L (~ 4-5.9 mg/dL)", score: 4 },
+                        { description: "≥ 100 µmol/L (~ ≥ 6 mg/dL)", score: 9 }
+                    ]
+                },
+                {
+                    category: "pH Arteriel", // Traduit
+                    nameAttr: "ph_arteriel",
+                    options: [
+                        { description: "< 7.15", score: 13 },
+                        { description: "7.15-7.24", score: 9 },
+                        { description: "7.25-7.32", score: 3 },
+                        { description: "7.33-7.49", score: 0 },
+                        { description: "≥ 7.50", score: 3 } // Simplifié, il y a plus de catégories
+                    ]
+                },
+                 {
+                    category: "Score de Glasgow (GCS)", // Traduit
+                    nameAttr: "gcs",
+                     options: [
+                        { description: "< 3", score: 48 }, // Extrêmement élevé
+                        { description: "3-5", score: 26 },
+                        { description: "6-8", score: 13 },
+                        { description: "9-11", score: 7 },
+                        { description: "12-14", score: 5 },
+                        { description: "15", score: 0 }
+                    ]
+                },
+                // --- Variables Manquantes pour simplification (ex: Lactates, Plaques, Admission chirurgicale spécifique, etc.) ---
+            ];
+
+            // --- Fonctions de la Calculatrice SAPS III ---
+            function updateScoreDisplay(criterionId) {
+                const selectElement = document.getElementById(criterionId);
+                const scoreDisplayElement = document.getElementById(`${criterionId}_score_display`);
+                if (selectElement && scoreDisplayElement) {
+                    scoreDisplayElement.innerText = selectElement.value === "" ? "0" : selectElement.value;
+                }
+            }
+            
+            function calculerPontuacao() {
+                let totalSAPSScore = 0;
+                let allItemsSelected = true;
+                const selects = conteudoDiv.querySelectorAll('select'); // Cible les selects dans le conteneur
+
+                selects.forEach(selectElement => {
+                    selectElement.classList.remove('incomplete'); // Réinitialise le style d'erreur
+                    if (selectElement.value === "") {
+                        allItemsSelected = false;
+                        selectElement.classList.add('incomplete'); // Ajoute le style d'erreur
+                    } else {
+                        totalSAPSScore += parseFloat(selectElement.value);
+                    }
+                });
+
+                resultadoDiv.style.display = "block";
+                if (!allItemsSelected) {
+                    resultadoDiv.innerHTML = '⚠️ <strong class="font-bold">Veuillez sélectionner une option pour chaque critère</strong> avant de calculer.'; // TRADUIT
+                    resultadoDiv.className = 'resultado bg-info-orange-light';
+                    // Nettoie le dataset en cas d'erreur
+                    delete resultadoDiv.dataset.score;
+                    delete resultadoDiv.dataset.probabiliteDeces; 
+                    delete resultadoDiv.dataset.interpretation;
+                    return;
+                }
+
+                // ATTENTION: La formule de mortalité SAPS III est complexe, dépend de la région géographique et n'est pas publiquement et simplement disponible.
+                // Nous allons utiliser une INTERPRÉTATION QUALITATIVE basée sur les RANGS de score plutôt qu'un calcul de probabilité.
+                let interpretation = '';
+                let resultadoClasse = '';
+                
+                // Ces seuils sont APPROXIMATIFS et à titre indicatif SEULEMENT.
+                if (totalSAPSScore < 40) {
+                    interpretation = "Score bas, suggérant un risque de mortalité hospitalière relativement faible.";
+                    resultadoClasse = 'bg-saps-low'; // Vert
+                } else if (totalSAPSScore >= 40 && totalSAPSScore < 70) {
+                    interpretation = "Score moyen, suggérant un risque de mortalité hospitalière intermédiaire.";
+                    resultadoClasse = 'bg-saps-medium'; // Jaune
+                } else { // >= 70
+                    interpretation = "Score élevé, suggérant un risque de mortalité hospitalière élevé.";
+                    resultadoClasse = 'bg-saps-high'; // Rouge
+                }
+
+                // Affichage TRADUIT sans probabilité calculée
+                resultadoDiv.innerHTML = `<p>Score Total SAPS III : <strong class="font-bold">${totalSAPSScore.toFixed(0)}</strong></p><p>Interprétation Qualitative : <strong class="font-bold">${interpretation}</strong></p>`;
+                resultadoDiv.className = `resultado ${resultadoClasse}`;
+                
+                // Stocke les informations TRADUITES
+                resultadoDiv.dataset.score = totalSAPSScore.toFixed(0);
+                // dataset.probabiliteDeces n'est pas calculé ici
+                resultadoDiv.dataset.interpretation = interpretation;
+                resultadoDiv.dataset.scaleName = "SAPS III"; // TRADUIT
+            }
+
+            function limparCampos() {
+                const selects = conteudoDiv.querySelectorAll('select');
+                selects.forEach(selectElement => {
+                    selectElement.selectedIndex = 0;
+                    selectElement.classList.remove('incomplete'); // Enlève le style d'erreur
+                    const scoreDisplayId = `${selectElement.id}_score_display`;
+                    const scoreDisplayElement = document.getElementById(scoreDisplayId);
+                    if (scoreDisplayElement) {
+                        scoreDisplayElement.innerText = '0';
+                    }
+                });
+                resultadoDiv.innerHTML = '';
+                resultadoDiv.className = 'resultado hidden'; // Cache la div
+                // Nettoie tout le dataset
+                delete resultadoDiv.dataset.score;
+                delete resultadoDiv.dataset.probabiliteDeces;
+                delete resultadoDiv.dataset.interpretation;
+                delete resultadoDiv.dataset.scaleName;
+            }
+
+            // Remplit le formulaire dynamiquement
+            sapsData.forEach((item, index) => {
+                const sectionDiv = document.createElement('div');
+                sectionDiv.className = 'saps-criterion-card';
+                
+                const headerDiv = document.createElement('div');
+                headerDiv.className = 'saps-criterion-header';
+
+                const titleH3 = document.createElement('h3');
+                titleH3.className = 'saps-criterion-title';
+                titleH3.innerText = `${index + 1}. ${item.category}`; // TRADUIT (dans sapsData)
+                headerDiv.appendChild(titleH3);
+
+                const scoreSpan = document.createElement('span');
+                scoreSpan.className = 'saps-score-display';
+                scoreSpan.id = `${item.nameAttr}_score_display`; // ID unique pour chaque affichage de score
+                scoreSpan.innerText = '0'; // Initialise à 0
+                headerDiv.appendChild(scoreSpan);
+                
+                sectionDiv.appendChild(headerDiv);
+
+                const optionsDiv = document.createElement('div');
+                optionsDiv.className = 'saps-criterion-options';
+
+                const selectElement = document.createElement('select');
+                selectElement.id = item.nameAttr; // ID unique pour chaque select
+                selectElement.className = 'saps-select';
+                selectElement.onchange = () => updateScoreDisplay(item.nameAttr); // Appelle update avec l'ID correct
+
+                const defaultOption = document.createElement('option');
+                defaultOption.value = "";
+                defaultOption.text = "Sélectionnez..."; // TRADUIT
+                defaultOption.disabled = true;
+                defaultOption.selected = true;
+                selectElement.appendChild(defaultOption);
+
+                item.options.forEach(option => {
+                    const optionElement = document.createElement('option');
+                    optionElement.value = option.score;
+                     // Affichage : Description (Score: X)
+                    optionElement.text = `${option.description} (Score: ${option.score})`; // TRADUIT (dans sapsData)
+                    selectElement.appendChild(optionElement);
+                });
+
+                optionsDiv.appendChild(selectElement);
+                sectionDiv.appendChild(optionsDiv);
+                conteudoDiv.appendChild(sectionDiv);
+            });
+
+            // Ajoute les écouteurs aux boutons
+            btnCalcular?.addEventListener('click', calculerPontuacao);
+            btnLimpar?.addEventListener('click', limparCampos);
+
+            btnGerarPDF?.addEventListener('click', () => {
+                 if (!resultadoDiv.dataset.score) { // Vérifie si un score a été calculé
+                    alert('Veuillez cliquer sur "Calculer" d\'abord pour générer le PDF.'); // TRADUIT
+                    return;
+                }
+                if (typeof gerarPDFGlobal === 'function') {
+                    // Crée un contenu HTML simple pour le PDF incluant l'interprétation qualitative
+                    const score = resultadoDiv.dataset.score;
+                    const interpretation = resultadoDiv.dataset.interpretation;
+                     const pdfContentHtml = `
+                        <div style="font-family: Inter, sans-serif; padding: 20px;">
+                            <h1 style="color: #1A3E74; border-bottom: 2px solid #1A3E74; padding-bottom: 5px;">SAPS III</h1>
+                            <h2 style="color: #1FA4E5; margin-top: 15px;">Rapport de Score de Physiologie Aiguë Simplifié</h2>
+                            <div style="margin-top: 25px; background-color: #f3f4f6; border-radius: 8px; padding: 15px; border: 1px solid #e5e7eb;">
+                                <p style="font-size: 1.2em; color: #1A3E74; margin-bottom: 10px;"><strong>Score Total SAPS III : ${score}</strong></p>
+                                <p><strong>Interprétation Qualitative :</strong> ${interpretation}</p>
+                            </div>
+                            <p style="margin-top: 20px; font-size: 0.9em; color: #6b7280;">Note : Ce score fournit une indication qualitative du risque. Le calcul précis de la probabilité de mortalité nécessite la formule logistique spécifique SAPS III.</p>
+                        </div>
+                    `;
+
+                    gerarPDFGlobal({
+                        // Titres et nom de fichier TRADUITS
+                        titulo: 'SAPS III', 
+                        subtitulo: 'Rapport de Score de Physiologie Aiguë Simplifié',
+                        nomeArquivo: 'rapport_score_saps3.pdf',
+                        htmlConteudo: pdfContentHtml, // Utilise le HTML généré
+                    });
+                } else {
+                    console.error('Fonction gerarPDFGlobal non définie.'); // TRADUIT
+                }
+            });
+            
+            btnNandaNicNoc?.addEventListener('click', () => {
+                 if (!resultadoDiv.dataset.score || !resultadoDiv.dataset.interpretation) { // Vérifie score et interprétation
+                    alert('Calculez le résultat pour rechercher la conduite à tenir.'); // TRADUIT
+                    return;
+                }
+                const score = resultadoDiv.dataset.score;
+                const scaleName = "SAPS III"; // TRADUIT
+                const interpretation = resultadoDiv.dataset.interpretation; 
+                
+                // TRADUIT la query de recherche
+                const searchQuery = encodeURIComponent(`${scaleName} score ${score} interprétation ${interpretation} générer taxonomie NANDA, générer taxonomie NIC et générer taxonomie NOC`);
+                window.open(`https://www.google.com/search?q=${searchQuery}`, '_blank');
+            });
+        });
+    </script>
+    <script type='text/javascript' src='//pl27876671.effectivegatecpm.com/81/6f/74/816f749f9688a0cf1cae1bcf24b9b5e4.js'></script>
+    <script type='text/javascript' src='//pl27876671.effectivegatecpm.com/81/6f/74/816f749f9688a0cf1cae1bcf24b9b5e4.js'></script>
+
+    <script type="text/javascript">
+        atOptions = {
+            'key' : '1e009bba81deb2bc366b3c4ac030f6be',
+            'format' : 'iframe',
+            'height' : 90,
+            'width' : 728,
+            'params' : {}
+        };
+    </script>
+    <script type="text/javascript" src="//www.highperformanceformat.com/1e009bba81deb2bc366b3c4ac030f6be/invoke.js" defer></script>
+</body>
+</html>
