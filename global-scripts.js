@@ -22,71 +22,125 @@ if ('serviceWorker' in navigator) {
  * =================================================================================
  */
 
+// =======================================================================
+// INÍCIO DO NOVO CÓDIGO DE GERAÇÃO DE PDF (Substitua o seu antigo)
+// =======================================================================
+
+/**
+ * FUNÇÃO "PORTEIRO" (GATEKEEPER)
+ * Esta função é chamada pelos seus botões.
+ * Ela verifica se a biblioteca PDF está carregada antes de executar a lógica.
+ */
 function gerarPDFGlobal(options) {
-    const {
-        titulo = 'Relatório da Calculadora',
-        subtitulo = 'Relatório de Cálculo Assistencial',
-        nomeArquivo = 'relatorio.pdf',
-        seletorConteudo = '.main-content-wrapper'
-    } = options;
-
-    console.log(`Iniciando geração de PDF para: ${titulo}`);
-    const elementoParaImprimir = document.querySelector(seletorConteudo);
-
-    if (!elementoParaImprimir) {
-        alert('Erro: Não foi possível encontrar o conteúdo principal para gerar o PDF.');
-        console.error(`Elemento com seletor "${seletorConteudo}" não encontrado.`);
-        return;
-    }
+    const urlScript = 'https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js';
     
-    const contentToPrint = document.createElement('div');
-    contentToPrint.style.padding = '20px';
-    contentToPrint.style.fontFamily = 'Inter, sans-serif';
+    console.log("Verificando a biblioteca html2pdf...");
 
-    const pdfHeader = document.createElement('div');
-    pdfHeader.style.textAlign = 'center';
-    pdfHeader.style.marginBottom = '25px';
-    pdfHeader.innerHTML = `
-        <h1 style="font-family: 'Nunito Sans', sans-serif; font-size: 22px; font-weight: bold; color: #1A3E74; margin: 0;">${titulo}</h1>
-        <h2 style="font-size: 14px; color: #666; margin-top: 5px;">${subtitulo}</h2>
-        <p style="font-size: 10px; color: #999; margin-top: 10px;">Gerado em: ${new Date().toLocaleString('pt-BR')}</p>
-    `;
-    contentToPrint.appendChild(pdfHeader);
+    // Verifica se a função html2pdf JÁ existe
+    if (typeof html2pdf === 'function') {
+        console.log("Biblioteca já carregada. Gerando PDF...");
+        // Se sim, apenas executa a lógica principal, passando as 'options'
+        executarLogicaDoHtml2Pdf(options);
+    } else {
+        // Se não, cria a tag <script> para carregar a biblioteca
+        console.log("Biblioteca não encontrada. Carregando script...");
+        let script = document.createElement('script');
+        script.src = urlScript;
+        document.head.appendChild(script);
 
-    const conteudoCalculadora = elementoParaImprimir.querySelector('#conteudo');
-    if (conteudoCalculadora) {
-        const cloneConteudo = conteudoCalculadora.cloneNode(true);
-        cloneConteudo.querySelectorAll('input[type="radio"]:not(:checked)').forEach(radio => radio.closest('.option-row, .option-label')?.remove());
-        cloneConteudo.querySelectorAll('tbody, .options-group').forEach(container => {
-            if (container.children.length === 0) container.closest('.criterion-section, .criterion-table')?.remove();
-        });
-        contentToPrint.appendChild(cloneConteudo);
+        // O mais importante: espera o script carregar
+        script.onload = () => {
+            console.log("Biblioteca html2pdf carregada com sucesso. Gerando PDF...");
+            // Agora que o script carregou, executa a lógica principal
+            executarLogicaDoHtml2Pdf(options);
+        };
+        
+        // (Opcional) Tratamento de erro se o CDN falhar
+        script.onerror = () => {
+            console.error("Falha ao carregar o script do html2pdf.");
+            alert("Erro ao carregar a biblioteca de PDF. Por favor, tente novamente.");
+        };
     }
-
-    const resultadoDiv = elementoParaImprimir.querySelector('#resultado');
-    if (resultadoDiv && !resultadoDiv.classList.contains('hidden')) {
-        const cloneResultado = resultadoDiv.cloneNode(true);
-        cloneResultado.style.marginTop = '20px';
-        contentToPrint.appendChild(cloneResultado);
-    }
-
-    contentToPrint.style.lineHeight = '1.5';
-    contentToPrint.style.fontSize = '12px';
-    contentToPrint.style.margin = '0';
-
-    const pdfOptions = {
-        margin: [0.5, 0.5, 0.5, 0.5],
-        filename: nomeArquivo,
-        image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: { scale: 2, scrollY: 0, useCORS: true },
-        jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' },
-        pagebreak: { avoid: ['p', 'h1', 'h2', 'h3', 'div', 'section'] }
-    };
-
-    html2pdf().set(pdfOptions).from(contentToPrint).save().catch(err => {
-        console.error("Erro ao gerar PDF: ", err);
-    });
 }
+
+/**
+ * FUNÇÃO DE "LÓGICA PRINCIPAL"
+ * Esta função contém TODO O SEU CÓDIGO ORIGINAL.
+ * Ela só é chamada depois que o "porteiro" garante que a biblioteca está carregada.
+ */
+function executarLogicaDoHtml2Pdf(options) {
+    //
+    // O SEU CÓDIGO ORIGINAL COMEÇA EXATAMENTE AQUI
+    //
+    const {
+        titulo = 'Relatório da Calculadora',
+        subtitulo = 'Relatório de Cálculo Assistencial',
+        nomeArquivo = 'relatorio.pdf',
+        seletorConteudo = '.main-content-wrapper'
+    } = options;
+
+    console.log(`Iniciando geração de PDF para: ${titulo}`);
+    const elementoParaImprimir = document.querySelector(seletorConteudo);
+
+    if (!elementoParaImprimir) {
+        alert('Erro: Não foi possível encontrar o conteúdo principal para gerar o PDF.');
+        console.error(`Elemento com seletor "${seletorConteudo}" não encontrado.`);
+        return;
+    }
+    
+    const contentToPrint = document.createElement('div');
+    contentToPrint.style.padding = '20px';
+    contentToPrint.style.fontFamily = 'Inter, sans-serif';
+
+    const pdfHeader = document.createElement('div');
+    pdfHeader.style.textAlign = 'center';
+    pdfHeader.style.marginBottom = '25px';
+    pdfHeader.innerHTML = `
+        <h1 style="font-family: 'Nunito Sans', sans-serif; font-size: 22px; font-weight: bold; color: #1A3E74; margin: 0;">${titulo}</h1>
+        <h2 style="font-size: 14px; color: #666; margin-top: 5px;">${subtitulo}</h2>
+        <p style="font-size: 10px; color: #999; margin-top: 10px;">Gerado em: ${new Date().toLocaleString('pt-BR')}</p>
+    `;
+    contentToPrint.appendChild(pdfHeader);
+
+    const conteudoCalculadora = elementoParaImprimir.querySelector('#conteudo');
+    if (conteudoCalculadora) {
+        const cloneConteudo = conteudoCalculadora.cloneNode(true);
+        cloneConteudo.querySelectorAll('input[type="radio"]:not(:checked)').forEach(radio => radio.closest('.option-row, .option-label')?.remove());
+        cloneConteudo.querySelectorAll('tbody, .options-group').forEach(container => {
+            if (container.children.length === 0) container.closest('.criterion-section, .criterion-table')?.remove();
+        });
+        contentToPrint.appendChild(cloneConteudo);
+    }
+
+    const resultadoDiv = elementoParaImprimir.querySelector('#resultado');
+    if (resultadoDiv && !resultadoDiv.classList.contains('hidden')) {
+        const cloneResultado = resultadoDiv.cloneNode(true);
+        cloneResultado.style.marginTop = '20px';
+        contentToPrint.appendChild(cloneResultado);
+    }
+
+    contentToPrint.style.lineHeight = '1.5';
+    contentToPrint.style.fontSize = '12px';
+    contentToPrint.style.margin = '0';
+
+    const pdfOptions = {
+        margin: [0.5, 0.5, 0.5, 0.5],
+        filename: nomeArquivo,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2, scrollY: 0, useCORS: true },
+        jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' },
+        pagebreak: { avoid: ['p', 'h1', 'h2', 'h3', 'div', 'section'] }
+    };
+
+    // A chamada da biblioteca html2pdf() agora está segura aqui
+    html2pdf().set(pdfOptions).from(contentToPrint).save().catch(err => {
+        console.error("Erro ao gerar PDF: ", err);
+    });
+}
+
+// =======================================================================
+// FIM DO NOVO CÓDIGO DE GERAÇÃO DE PDF
+// =======================================================================
 
 document.addEventListener('DOMContentLoaded', function() {
     fetch('menu-global.html')
