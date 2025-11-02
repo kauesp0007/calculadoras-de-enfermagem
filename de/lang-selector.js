@@ -69,7 +69,7 @@ document.addEventListener("DOMContentLoaded", function() {
                 case 'it': newPath = "/it/"; break;
                 case 'fr': newPath = "/fr/"; break;
                 case 'in': newPath = "/in/"; break;
-                case 'cn': newPath = "/cn/"; break;
+                case 'zh': newPath = "/zh/"; break;
                 case 'ar': newPath = "/ar/"; break;
                 case 'jp': newPath = "/jp/"; break;
                 default:   newPath = "/";    // pt (raiz)
@@ -100,7 +100,7 @@ document.addEventListener("DOMContentLoaded", function() {
     else if (path.startsWith("/it/")) current = document.querySelector('[data-value="it"]');
     else if (path.startsWith("/fr/")) current = document.querySelector('[data-value="fr"]');
     else if (path.startsWith("/in/")) current = document.querySelector('[data-value="in"]');
-    else if (path.startsWith("/cn/")) current = document.querySelector('[data-value="cn"]');
+    else if (path.startsWith("/zh/")) current = document.querySelector('[data-value="zh"]');
     else if (path.startsWith("/ar/")) current = document.querySelector('[data-value="ar"]');
     else if (path.startsWith("/jp/")) current = document.querySelector('[data-value="jp"]');
     // Se for a raiz (/index.html ou /zarit.html), o default PT está correto
