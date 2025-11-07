@@ -72,6 +72,15 @@ document.addEventListener("DOMContentLoaded", function() {
                 case 'zh': newPath = "/zh/"; break;
                 case 'ar': newPath = "/ar/"; break;
                 case 'ja': newPath = "/ja/"; break;
+                case 'ru': newPath = "/ru/"; break;
+                case 'ko': newPath = "/ko/"; break;
+                case 'tr': newPath = "/tr/"; break;
+                case 'n1': newPath = "/n1/"; break;
+                case 'p1': newPath = "/p1/"; break;
+                case 'sv': newPath = "/sv/"; break;
+                case 'id': newPath = "/id/"; break;
+                case 'vi': newPath = "/vi/"; break;
+                case 'uk': newPath = "/uk/"; break;
                 default:   newPath = "/";    // pt (raiz)
             }
             
