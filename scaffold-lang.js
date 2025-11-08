@@ -18,7 +18,7 @@ const IGNORE_FILES = [
   'modelo.html',
   'novolayout.html',
   'politicaapp.html',
-  'sitemapenemplo.html',
+  'sitemapexemplo.html',
   'vacinas_improved.html',
   'carreiras.html',
   'checagem.html',
@@ -49,6 +49,7 @@ const IGNORE_FILES = [
   'transicao-carreira-enfermagem.html',
   'vacinas_improved.html',
   'vigilancia.html',
+  'rodape.html',
 
 ];
 // --- Fim das Configurações ---
