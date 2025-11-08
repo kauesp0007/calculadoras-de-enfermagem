@@ -1,0 +1,36 @@
+name: Gerar Sitemap
+
+# "Trigger": Isso roda a automação em todo 'push' (envio)
+on:
+  push:
+    branches:
+      - main # <-- IMPORTANTE: Verifique o nome da sua branch
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 1. Baixar o código do repositório
+        uses: actions/checkout@v4
+
+      - name: 2. Configurar o Node.js no "robô"
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20 # Usando uma versão LTS estável
+
+      - name: 3. Rodar o script para gerar o sitemap
+        run: node generate-sitemap.js
+
+      - name: 4. Fazer commit e push automático do novo sitemap.xml
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          # Mensagem do commit que o "robô" vai fazer
+          commit_message: 'Atualiza sitemap.xml (Automático)'
+          
+          # Diz ao robô para salvar apenas este arquivo
+          file_pattern: sitemap.xml
+
+          # Configura o autor do commit (o robô)
+          commit_user_name: 'Sitemap Bot'
+          commit_user_email: 'bot@calculadorasdeenfermagem.com.br'
