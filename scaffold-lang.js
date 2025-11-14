@@ -50,6 +50,9 @@ const IGNORE_FILES = [
   'vacinas_improved.html',
   'vigilancia.html',
   'rodape.html',
+  'nanda.html',
+  'insulina.html',
+  'heparina.html',
 
 ];
 // --- Fim das Configurações ---
