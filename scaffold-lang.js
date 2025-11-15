@@ -53,7 +53,6 @@ const IGNORE_FILES = [
   'nanda.html',
   'insulina.html',
   'heparina.html',
-
 ];
 // --- Fim das Configurações ---
 
@@ -100,10 +99,10 @@ function main() {
 
   // 5. Pega todos os arquivos .html da pasta Raiz (Português)
   const sourceFiles = getHtmlFiles(sourceDir);
-  let filesCopied = 0;
+  let filesCreated = 0; // Alterei o nome da variável de "filesCopied" para "filesCreated"
   let filesSkipped = 0;
 
-  // 6. Loop para copiar os arquivos
+  // 6. Loop para criar os arquivos
   for (const file of sourceFiles) {
     // Ignora os arquivos de script, sitemap e da lista IGNORE_FILES
     if (file === 'sitemap.html' || 
@@ -114,7 +113,8 @@ function main() {
       continue; // Pula este arquivo
     }
 
-    const sourcePath = path.join(sourceDir, file);
+    // Não precisamos mais do sourcePath
+    // const sourcePath = path.join(sourceDir, file);
     const targetPath = path.join(targetDir, file);
 
     // 7. Verifica se o arquivo JÁ EXISTE no destino
@@ -122,16 +122,16 @@ function main() {
       console.warn(`- PULANDO: ${targetPath} (já existe)`);
       filesSkipped++;
     } else {
-      // 8. Copia o arquivo
-      fs.copyFileSync(sourcePath, targetPath);
-      console.log(`+ COPIADO: ${targetPath}`);
-      filesCopied++;
+      // 8. ALTERAÇÃO PRINCIPAL: Cria um ficheiro vazio em vez de copiar
+      fs.writeFileSync(targetPath, ''); // <-- A MUDANÇA ESTÁ AQUI. Cria um ficheiro com conteúdo vazio.
+      console.log(`+ CRIADO: ${targetPath} (ficheiro vazio)`); // Mensagem alterada
+      filesCreated++;
     }
   }
 
   console.log('\n--- Preparação Concluída! ---');
-  console.log(`${filesCopied} arquivos copiados para a pasta "${targetLang}".`);
-  console.log(`${filesSkipped} arquivos pulados (já existiam).`);
+  console.log(`${filesCreated} ficheiros vazios criados na pasta "${targetLang}".`); // Mensagem alterada
+  console.log(`${filesSkipped} ficheiros pulados (já existiam).`);
 }
 
 // Executa a função principal
