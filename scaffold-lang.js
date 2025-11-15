@@ -6,15 +6,11 @@ const path = require('path');
 // O diretório raiz onde seus arquivos HTML estão. '.' significa o diretório atual.
 const ROOT_DIR = path.resolve(__dirname); 
 
-// Lista de arquivos para IGNORAR (copiada do sitemap)
+// Lista de arquivos .html para IGNORAR (não criar)
 const IGNORE_FILES = [
-  'footer.html',
-  '_language_selector.html',
   'avaliacaomeem.html',
   'exemplo.html',
-  'global-body-elements.html',
   'googlef8af7cdb552164b.html',
-  'menu-global.html',
   'modelo.html',
   'novolayout.html',
   'politicaapp.html',
@@ -53,24 +49,44 @@ const IGNORE_FILES = [
   'nanda.html',
   'insulina.html',
   'heparina.html',
+  'googlefc0a17cdd552164b.html',
+];
+
+// NOVO: Lista de ficheiros específicos (JS, CSS, Imagens) para COPIAR
+// Estes ficheiros serão COPIADOS da raiz para a nova pasta de idioma.
+const FILES_TO_COPY = [
+  // Adicione aqui os nomes exatos dos ficheiros que quer copiar.
+  // Por exemplo:
+  // 'global-scripts.js',
+  // 'global-styles.css',
+  // 'imagem-logo.webp',
+  // 'lang-selector.js'
+  'global-scripts.js',
+  'global-styles.css',
+  'lang-selector.js',
+  'bandeira-alemanha.webp',
+  'bandeira-espanha.webp',
+  'bandeira-eua.webp',
+  'bandeira-franca.webp',
+  'bandeira-italia.webp',
+  'bandeira-japao.webp',
+  'bandeira-arabia.webp',
+  'bandeira-china.webp',
+  'bandeira-coreia.webp',
+  'bandeira-india.webp',
+  'bandeira-russia.webp',
+  'bandeira-turquia.webp',
+  'bandeira-vietna.webp',
+  'bandeira-holanda.webp',
+  'bandeira-indonesia.webp',
+  'bandeira-polonia.webp',
+  'bandeira-suecia.webp',
+  'bandeira-ucrania.webp',
+  'bandeira-brasil.webp',
+  'metasinternacionais.webp',
+  'pentagono.webp',
 ];
 // --- Fim das Configurações ---
-
-/**
- * Encontra todos os arquivos .html em um diretório específico.
- */
-function getHtmlFiles(dir) {
-  try {
-    const files = fs.readdirSync(dir, { withFileTypes: true });
-    return files
-      .filter(file => file.isFile() && path.extname(file.name) === '.html')
-      .map(file => file.name);
-  } catch (error) {
-    console.error(`Erro ao ler o diretório ${dir}: ${error.message}`);
-    return [];
-  }
-}
-
 /**
  * Função principal que executa o script.
  */
@@ -97,40 +113,77 @@ function main() {
     console.log(`Pasta "${targetDir}" criada.`);
   }
 
-  // 5. Pega todos os arquivos .html da pasta Raiz (Português)
-  const sourceFiles = getHtmlFiles(sourceDir);
-  let filesCreated = 0; // Alterei o nome da variável de "filesCopied" para "filesCreated"
+  // 5. Pega TODOS os ficheiros da pasta Raiz (Português)
+  let allFiles;
+  try {
+    allFiles = fs.readdirSync(sourceDir, { withFileTypes: true });
+  } catch (error) {
+    console.error(`Erro ao ler o diretório ${sourceDir}: ${error.message}`);
+    return;
+  }
+  
+  let filesCreated = 0;
+  let filesCopied = 0; // Adicionada a contagem de ficheiros copiados
   let filesSkipped = 0;
 
-  // 6. Loop para criar os arquivos
-  for (const file of sourceFiles) {
-    // Ignora os arquivos de script, sitemap e da lista IGNORE_FILES
-    if (file === 'sitemap.html' || 
-        file === 'generate-sitemap.js' ||
-        file === 'scaffold-lang.js' || // Ignora a si mesmo
-        IGNORE_FILES.includes(file) || 
-        file.startsWith('_')) {
+  // 6. Loop para processar os arquivos
+  for (const file of allFiles) {
+    // Ignorar se não for um ficheiro (ex: é uma pasta como /en, /es)
+    if (!file.isFile()) {
+      continue;
+    }
+
+    const fileName = file.name;
+
+    // Ignora ficheiros de sistema, sitemap, de build e da lista IGNORE_FILES
+    if (fileName === 'sitemap.html' || 
+        fileName === 'generate-sitemap.js' ||
+        fileName === 'gerar-sw.js' ||
+        fileName === 'sw-template.js' ||
+        fileName === 'sw.js' ||
+        fileName === 'scaffold-lang.js' || // Ignora a si mesmo
+        fileName === 'package.json' ||
+        fileName === 'package-lock.json' ||
+        fileName === 'tailwind.config.js' ||
+        fileName.startsWith('.') || // Ignora ficheiros como .gitignore
+        IGNORE_FILES.includes(fileName) || 
+        fileName.startsWith('_')) {
       continue; // Pula este arquivo
     }
 
-    // Não precisamos mais do sourcePath
-    // const sourcePath = path.join(sourceDir, file);
-    const targetPath = path.join(targetDir, file);
+    const targetPath = path.join(targetDir, fileName);
 
     // 7. Verifica se o arquivo JÁ EXISTE no destino
     if (fs.existsSync(targetPath)) {
       console.warn(`- PULANDO: ${targetPath} (já existe)`);
       filesSkipped++;
-    } else {
-      // 8. ALTERAÇÃO PRINCIPAL: Cria um ficheiro vazio em vez de copiar
-      fs.writeFileSync(targetPath, ''); // <-- A MUDANÇA ESTÁ AQUI. Cria um ficheiro com conteúdo vazio.
-      console.log(`+ CRIADO: ${targetPath} (ficheiro vazio)`); // Mensagem alterada
+      continue; // Pula o resto do loop para este ficheiro
+    }
+
+    // 8. LÓGICA PRINCIPAL (O que fazer com o ficheiro?)
+
+    // Caso 1: O ficheiro está na lista para COPIAR?
+    if (FILES_TO_COPY.includes(fileName)) {
+      const sourcePath = path.join(sourceDir, fileName);
+      fs.copyFileSync(sourcePath, targetPath);
+      console.log(`+ COPIADO: ${targetPath}`);
+      filesCopied++;
+    
+    // Caso 2: É um ficheiro HTML (que não estava nas listas de ignorar/copiar)?
+    } else if (path.extname(fileName) === '.html') {
+      fs.writeFileSync(targetPath, ''); // Cria um ficheiro vazio
+      console.log(`+ CRIADO VAZIO: ${targetPath}`);
       filesCreated++;
+    
+    // Caso 3: É outro tipo de ficheiro (outro .js, .css, .md) que não queremos.
+    } else {
+      // Ignora silenciosamente
     }
   }
 
   console.log('\n--- Preparação Concluída! ---');
-  console.log(`${filesCreated} ficheiros vazios criados na pasta "${targetLang}".`); // Mensagem alterada
+  console.log(`${filesCreated} ficheiros .html vazios criados na pasta "${targetLang}".`);
+  console.log(`${filesCopied} ficheiros (js/css/webp) copiados para a pasta "${targetLang}".`);
   console.log(`${filesSkipped} ficheiros pulados (já existiam).`);
 }
 
