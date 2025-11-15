@@ -76,7 +76,7 @@ document.addEventListener("DOMContentLoaded", function() {
                 case 'ko': newPath = "/ko/"; break;
                 case 'tr': newPath = "/tr/"; break;
                 case 'nl': newPath = "/nl/"; break;
-                case 'p1': newPath = "/p1/"; break;
+                case 'pl': newPath = "/pl/"; break;
                 case 'sv': newPath = "/sv/"; break;
                 case 'id': newPath = "/id/"; break;
                 case 'vi': newPath = "/vi/"; break;
@@ -115,8 +115,8 @@ document.addEventListener("DOMContentLoaded", function() {
     else if (path.startsWith("/ru/")) current = document.querySelector('[data-value="ru"]');
     else if (path.startsWith("/ko/")) current = document.querySelector('[data-value="ko"]');
     else if (path.startsWith("/tr/")) current = document.querySelector('[data-value="tr"]');
-    else if (path.startsWith("/n1/")) current = document.querySelector('[data-value="n1"]');
-    else if (path.startsWith("/p1/")) current = document.querySelector('[data-value="p1"]');
+    else if (path.startsWith("/nl/")) current = document.querySelector('[data-value="nl"]');
+    else if (path.startsWith("/pl/")) current = document.querySelector('[data-value="pl"]');
     else if (path.startsWith("/sv/")) current = document.querySelector('[data-value="sv"]');
     else if (path.startsWith("/id/")) current = document.querySelector('[data-value="id"]');
     else if (path.startsWith("/vi/")) current = document.querySelector('[data-value="vi"]');
