@@ -75,7 +75,7 @@ document.addEventListener("DOMContentLoaded", function() {
                 case 'ru': newPath = "/ru/"; break;
                 case 'ko': newPath = "/ko/"; break;
                 case 'tr': newPath = "/tr/"; break;
-                case 'n1': newPath = "/n1/"; break;
+                case 'nl': newPath = "/nl/"; break;
                 case 'p1': newPath = "/p1/"; break;
                 case 'sv': newPath = "/sv/"; break;
                 case 'id': newPath = "/id/"; break;
