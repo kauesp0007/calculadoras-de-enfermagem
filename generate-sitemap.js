@@ -29,6 +29,9 @@ const IGNORE_FILES = [
   'vacinas_improved.html',
   'rodape.html',
   'avaliacaomeem.html',
+  'testemeem.html',
+  'site-de-vagas.html',
+  
 ];
 
 // Caminho de saída para o sitemap
