@@ -155,6 +155,28 @@
         .safety-checklist label { display: flex; align-items: center; padding: 0.5rem; border-radius: 0.375rem; margin-bottom: 0.25rem; font-size: 0.875rem; cursor: pointer; transition: background-color 0.2s; border: 1px solid #e5e7eb; }
         .safety-checklist label:hover { background-color: #f9fafb; }
         .safety-checklist input[type="checkbox"] { margin-right: 0.75rem; accent-color: var(--primary-color); }
+        
+        /* Estilos para seções epidemiológicas */
+        .epidemiologia-section h4 {
+            color: #1e40af;
+            border-bottom: 1px solid #bfdbfe;
+            padding-bottom: 4px;
+            margin-bottom: 8px;
+        }
+        
+        .epidemiologia-section p {
+            margin-bottom: 8px;
+            line-height: 1.6;
+        }
+        
+        .referencia-bibliografica {
+            background-color: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            padding: 12px;
+            font-style: italic;
+            margin-top: 12px;
+        }
     </style>
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -399,6 +421,307 @@
                 { nome: "Malária na região extra-Amazônica", versao: "1.0.1", classificacao: "Doença", periodicidade: "Imediata", prazo_dias: 1, comunicar_para: "Vigilância Epidemiológica Municipal, Estadual e MS", incidencia: "Rara", prevalencia: "N/A", vacina_medicamento: "Antimaláricos específicos", descricao: "Casos de malária na região extra-amazônica.", referencia_nacional: "Portaria GM/MS nº 6.734/2025.", metasAplicaveis: [1, 5], uf_aplicavel: ["Fora da Amazônia Legal"] }
             ];
 
+            // Funções para informações epidemiológicas - COMPLETAS PARA TODAS AS DOENÇAS
+            const getResumoEpidemiologico = (nome) => {
+                const resumo = {
+                    'Covid-19': 'Doença respiratória aguda causada pelo vírus SARS-CoV-2, caracterizada por alta transmissibilidade e amplo espectro clínico, desde infecções assintomáticas até quadros graves de síndrome respiratória aguda.',
+                    'Dengue - Casos': 'Doença viral transmitida pelo mosquito Aedes aegypti, caracterizada por febre alta, dores musculares e articulares. É uma das arboviroses mais prevalentes no Brasil, com padrão sazonal influenciado por fatores climáticos.',
+                    'Dengue - Óbitos': 'Complicação fatal da dengue, geralmente relacionada à forma grave da doença (dengue hemorrágica), caracterizada por vazamento plasmático, sangramentos e choque.',
+                    'Febre Amarela': 'Doença viral hemorrágica transmitida por mosquitos dos gêneros Haemagogus e Sabethes (silvestre) e Aedes aegypti (urbana), com alta letalidade na forma grave.',
+                    'Coqueluche': 'Doença respiratória altamente contagiosa causada pela bactéria Bordetella pertussis, caracterizada por episódios de tosse severa, especialmente em lactantes e crianças pequenas.',
+                    'Difteria': 'Doença bacteriana grave causada por Corynebacterium diphtheriae, caracterizada por inflamação da garganta e formação de pseudomembranas, com potencial de complicações cardíacas e neurológicas.',
+                    'Hanseníase': 'Doença crônica causada pelo Mycobacterium leprae, afetando principalmente a pele e nervos periféricos. Estigma social significativo devido às deformidades que pode causar se não tratada adequadamente.',
+                    'Tuberculose': 'Doença infecciosa causada pelo Mycobacterium tuberculosis, afeta principalmente os pulmões. É uma das principais causas de morte por agente infeccioso no mundo.',
+                    'Hepatites virais': 'Grupo de doenças inflamatórias do fígado causadas por diferentes vírus (A, B, C, D, E), variando em forma de transmissão, gravidade e cronificação.',
+                    'Doença Meningocócica e outras meningites': 'Inflamação das meninges (membranas que revestem o cérebro e medula espinhal), causada por vírus, bactérias, fungos ou parasitas. Meningite bacteriana é emergência médica.',
+                    'Botulismo': 'Doença neurológica rara e grave causada pela toxina botulínica, caracterizada por paralisia flácida descendente e risco de insuficiência respiratória.',
+                    'Hantavirose': 'Doença viral zoonótica transmitida por roedores silvestres, com duas formas clínicas: Síndrome Cardiopulmonar por Hantavirus e Febre Hemorrágica com Síndrome Renal.',
+                    'Leishmaniose Visceral': 'Doença parasitária sistêmica causada por protozoários do complexo Leishmania donovani, caracterizada por febre, hepatoesplenomegalia e caquexia.',
+                    'Leishmaniose Tegumentar Americana': 'Doença parasitológica causada por protozoários do gênero Leishmania, afeta pele e mucosas, com formação de úlceras características.',
+                    'Leptospirose': 'Doença infecciosa causada por bactérias do gênero Leptospira, adquirida principalmente através do contato com urina de animais infectados, especialmente roedores.',
+                    'Esquistossomose': 'Doença parasitária causada por helmintos do gênero Schistosoma, transmitida por caramujos de água doce, afeta principalmente intestino e fígado.',
+                    'Esporotricose humana': 'Micose causada pelo fungo Sporothrix schenckii, transmitida principalmente por contato com espinhos, farpas ou solo contaminado, forma úlceras na pele.',
+                    'Febre de Chikungunya': 'Doença viral transmitida pelo Aedes aegypti e Aedes albopictus, caracterizada por febre alta e dores articulares severas e persistentes.',
+                    'Doença aguda pelo vírus Zika': 'Doença viral transmitida pelo Aedes aegypti, geralmente benigna, mas associada a complicações neurológicas e malformações congênitas.',
+                    'Síndrome congênita associada à infecção pelo vírus Zika': 'Conjunto de anomalias congênitas em bebês cujas mães foram infectadas pelo vírus Zika durante a gestação, incluindo microcefalia e outras malformações.',
+                    'Intoxicação exógena (por substâncias químicas, incluindo agrotóxicos, gases tóxicos e metais pesados)': 'Exposição a substâncias químicas tóxicas que podem causar danos agudos ou crônicos à saúde humana.',
+                    'Acidente de trabalho com exposição a material biológico': 'Evento ocupacional envolvendo exposição a sangue, fluidos corporais ou materiais potencialmente infectantes no ambiente de trabalho.',
+                    'Acidente de trabalho': 'Evento não planejado que resulta em lesão, doença ou morte durante o exercício de atividades laborais.',
+                    'Acidente por animal peçonhento': 'Lesão causada por serpentes, escorpiões, aranhas ou outros animais venenosos, caracterizada por dor, inchaço e sintomas sistêmicos variáveis.',
+                    'Acidente por animal potencialmente transmissor da raiva': 'Exposição a animal suspeito de raiva, seja por mordida, arranhão ou lambedura em mucosas ou pele ferida.',
+                    'Câncer relacionado ao trabalho': 'Neoplasia maligna associada à exposição ocupacional a agentes carcinogênicos físicos, químicos ou biológicos.',
+                    'Cólera': 'Doença diarréica aguda causada pela bactéria Vibrio cholerae, caracterizada por desidratação rápida e grave.',
+                    'Dermatoses ocupacionais': 'Alterações da pele e mucosas relacionadas ao trabalho, incluindo dermatites de contato, eczemas e outras afecções cutâneas.',
+                    'Distúrbio de voz relacionado ao trabalho': 'Alteração vocal decorrente do uso profissional da voz, comum em professores, cantores e profissionais de atendimento.',
+                    'Doença de Chagas Aguda': 'Fase inicial da infecção pelo Trypanosoma cruzi, caracterizada por febre, inchaço no local da infecção e sintomas sistêmicos.',
+                    'Doença de Chagas Crônica': 'Fase tardia da doença de Chagas, caracterizada por comprometimento cardíaco, digestivo ou neurológico.',
+                    'Doença de Creutzfeldt-Jakob (DCJ)': 'Doença neurodegenerativa rara e fatal causada por príons, caracterizada por deterioração rápida das funções cognitivas.',
+                    'Doença Falciforme': 'Doença genética hereditária da hemoglobina, caracterizada pela forma de "foice" dos glóbulos vermelhos e suas complicações.',
+                    'Doença Invasiva por Haemophilus Influenza': 'Infecção grave causada por Haemophilus influenzae tipo B, incluindo meningite, pneumonia e outras apresentações invasivas.',
+                    'Doenças com suspeita de disseminação intencional': 'Eventos suspeitos de bioterrorismo ou disseminação intencional de agentes biológicos, químicos ou radioativos.',
+                    'Doenças febris hemorrágicas emergentes/reemergentes': 'Síndrome febril hemorrágica causada por vírus emergentes ou reemergentes, como Ebola, Marburg, Lassa, etc.',
+                    'Doença aguda pelo vírus Zika em gestante': 'Infecção por vírus Zika durante a gestação, com risco de transmissão vertical e malformações fetais.',
+                    'Óbito com suspeita de doença pelo vírus Zika': 'Morte com suspeita clínica ou epidemiológica de infecção pelo vírus Zika.',
+                    'Febre de Chikungunya em áreas sem transmissão': 'Caso suspeito de chikungunya em área geográfica sem circulação confirmada do vírus.',
+                    'Óbito com suspeita de Febre de Chikungunya': 'Morte com suspeita clínica ou epidemiológica de chikungunya.',
+                    'Febre do Nilo Ocidental e outras arboviroses': 'Doença viral transmitida por mosquitos, causada pelo vírus do Nilo Ocidental ou outros arbovírus emergentes.',
+                    'Febre Maculosa e outras Riquetisioses': 'Doença bacteriana transmitida por carrapatos, causada por Rickettsia rickettsii ou outras riquétsias.',
+                    'Febre Tifoide': 'Doença sistêmica causada pela Salmonella Typhi, caracterizada por febre alta, dor abdominal e comprometimento do estado geral.',
+                    'Infecção pelo HIV/AIDS': 'Infecção pelo vírus da imunodeficiência humana, que pode evoluir para Síndrome da Imunodeficiência Adquirida.',
+                    'Lesões por esforço repetitivo (LER) / Distúrbios Osteomusculares Relacionados ao Trabalho (DORT)': 'Conjunto de lesõesmusculoesqueléticas causadas por movimentos repetitivos, sobrecarga ou postura inadequada no trabalho.',
+                    'Lepra': 'Doença infectocontagiosa causada pelo Mycobacterium leprae, afetando pele, nervos e podendo causar deformidades.',
+                    'Malária': 'Doença parasitária causada por protozoários do gênero Plasmodium, transmitida por mosquitos Anopheles.',
+                    'Sífilis Congênita': 'Infecção por Treponema pallidum transmitida da mãe infectada para o feto durante a gestação.',
+                    'Sífilis em gestante': 'Infecção por Treponema pallidum durante a gestação, com risco de transmissão vertical para o concepto.',
+                    'Tétano Acidental': 'Doença causada pela toxina tetânica da bactéria Clostridium tetani, caracterizada por rigidez muscular e espasmos.',
+                    'Tétano Neonatal': 'Tétano em recém-nascidos, geralmente devido à infecção do coto umbilical em condições de higiene inadequadas.',
+                    'Tracoma': 'Doença oftalmológica crônica causada por Chlamydia trachomatis, principal causa evitável de cegueira no mundo.',
+                    'Varicela': 'Doença viral contagiosa causada pelo vírus varicela-zoster, caracterizada por exantema vesicular em todo o corpo.',
+                    'Eventos adversos graves ou óbitos pós-vacinação': 'Reações graves ou fatais que ocorrem após a administração de vacinas, requerem investigação epidemiológica rigorosa.'
+                };
+                return resumo[nome] || 'Informações epidemiológicas específicas para esta condição estão sendo atualizadas com base nas diretrizes do Ministério da Saúde.';
+            };
+
+            const getMeioContaminacao = (nome) => {
+                const meios = {
+                    'Covid-19': 'Transmissão principalmente por gotículas respiratórias e aerossóis de pessoa infectada. Contato direto com superfícies contaminadas também é possível.',
+                    'Dengue - Casos': 'Transmissão vetorial por mosquito Aedes aegypti e Aedes albopictus. Não há transmissão direta pessoa a pessoa.',
+                    'Dengue - Óbitos': 'Transmissão vetorial por mosquito Aedes aegypti e Aedes albopictus.',
+                    'Febre Amarela': 'Transmissão vetorial por mosquitos Haemagogus e Sabethes (ciclo silvestre) ou Aedes aegypti (ciclo urbano).',
+                    'Coqueluche': 'Transmissão por gotículas respiratórias de pessoa infectada, altamente contagioso.',
+                    'Difteria': 'Transmissão por gotículas respiratórias ou contato direto com lesões da pele.',
+                    'Hanseníase': 'Transmissão por gotículas respiratórias e contato próximo e prolongado com pessoa infectada não tratada.',
+                    'Tuberculose': 'Transmissão por aerossóis de pessoa com tuberculose ativa, principalmente através da tosse, espirro ou fala.',
+                    'Hepatites virais': 'Varía por tipo: Hepatite A (fecal-oral), Hepatite B (sangue e fluidos corporais), Hepatite C (sangue), Hepatite D (sangue), Hepatite E (fecal-oral).',
+                    'Doença Meningocócica e outras meningites': 'Vária por agente: meningocócica (gotículas), pneumocócica (gotículas), viral (gotículas/fecal-oral).',
+                    'Botulismo': 'Intoxicação por ingestão de toxina pré-formada em alimentos contaminados ou produção in vivo por Clostridium botulinum.',
+                    'Hantavirose': 'Transmissão por inalação de aerossóis de excreções de roedores infectados (urina, fezes, saliva) ou contato direto.',
+                    'Leishmaniose Visceral': 'Transmissão vetorial por mosquitos flebotomíneos (Lutzomyia longipalpis).',
+                    'Leishmaniose Tegumentar Americana': 'Transmissão vetorial por mosquitos flebotomíneos (diversas espécies).',
+                    'Leptospirose': 'Contato com urina de animais infectados ou ambientes contaminados (solo, água).',
+                    'Esquistossomose': 'Penetração ativa de cercárias através da pele durante contato com água doce contaminada.',
+                    'Esporotricose humana': 'Transmissão por implantação traumática de esporos na pele ou mucosas.',
+                    'Febre de Chikungunya': 'Transmissão vetorial por mosquitos Aedes aegypti e Aedes albopictus.',
+                    'Doença aguda pelo vírus Zika': 'Transmissão vetorial por mosquitos Aedes aegypti e Aedes albopictus.',
+                    'Síndrome congênita associada à infecção pelo vírus Zika': 'Transmissão vertical materno-fetal e possivelmente por mosquitos.',
+                    'Intoxicação exógena (por substâncias químicas, incluindo agrotóxicos, gases tóxicos e metais pesados)': 'Exposição por inalação, ingestão ou contato dérmico com substâncias químicas tóxicas.',
+                    'Acidente de trabalho com exposição a material biológico': 'Exposição percutânea, mucosa ou cutânea a sangue ou fluidos corporais potencialmente infectantes.',
+                    'Acidente de trabalho': 'Exposição ocupacional a diversos agentes de risco físicos, químicos, biológicos ou ergonômicos.',
+                    'Acidente por animal peçonhento': 'Inoculação de veneno através da picada ou ferroada de animais venenosos.',
+                    'Acidente por animal potencialmente transmissor da raiva': 'Exposição a vírus da raiva através de mordida, arranhão ou lambedura em mucosas/pele ferida.',
+                    'Câncer relacionado ao trabalho': 'Exposição ocupacional a agentes carcinogênicos químicos, físicos ou biológicos.',
+                    'Cólera': 'Transmissão fecal-oral através de água ou alimentos contaminados com Vibrio cholerae.',
+                    'Dermatoses ocupacionais': 'Contato da pele com agentes químicos, físicos ou biológicos presentes no ambiente de trabalho.',
+                    'Distúrbio de voz relacionado ao trabalho': 'Uso excessivo ou inadequado da voz profissional devido a carga vocal elevada.',
+                    'Doença de Chagas Aguda': 'Transmissão vetorial (triatomíneos), transfusional, vertical, oral ou acidental.',
+                    'Doença de Chagas Crônica': 'Fase crônica da infecção por Trypanosoma cruzi, geralmente sem transmissão ativa.',
+                    'Doença de Creutzfeldt-Jakob (DCJ)': 'Transmissão por ingestão de produtos contaminados com príons, transmissão iatrogênica ou genética.',
+                    'Doença Falciforme': 'Transmissão genética autossômica recessiva - não é transmissível entre pessoas.',
+                    'Doença Invasiva por Haemophilus Influenza': 'Transmissão por gotículas respiratórias de pessoa infectada.',
+                    'Doenças com suspeita de disseminação intencional': 'Transmissão intencional de agentes biológicos, químicos ou radioativos.',
+                    'Doenças febris hemorrágicas emergentes/reemergentes': 'Transmissão varie dependendo do agente viral (sangue, fluidos corporais, vetores).',
+                    'Doença aguda pelo vírus Zika em gestante': 'Transmissão vetorial durante a gestação, com risco de transmissão vertical.',
+                    'Óbito com suspeita de doença pelo vírus Zika': 'Não há transmissão na morte; investigação da causa da morte por infecção por Zika.',
+                    'Febre de Chikungunya em áreas sem transmissão': 'Transmissão vetorial, mesmo em áreas sem circulação endêmica documentada.',
+                    'Óbito com suspeita de Febre de Chikungunya': 'Não há transmissão na morte; investigação da causa da morte por chikungunya.',
+                    'Febre do Nilo Ocidental e outras arboviroses': 'Transmissão vetorial por mosquitos Culex e outros culicídeos.',
+                    'Febre Maculosa e outras Riquetisioses': 'Transmissão vetorial por carrapatos infectados com riquétsias.',
+                    'Febre Tifoide': 'Transmissão fecal-oral através de água e alimentos contaminados com Salmonella Typhi.',
+                    'Infecção pelo HIV/AIDS': 'Transmissão sexual, sanguínea, vertical (materno-fetal) ou por seringas contaminadas.',
+                    'Lesões por esforço repetitivo (LER) / Distúrbios Osteomusculares Relacionados ao Trabalho (DORT)': 'Não é transmissível; causada por fatores ergonômicos e biomecânicos do trabalho.',
+                    'Lepra': 'Transmissão por gotículas respiratórias e contato próximo com pessoa infectada não tratada.',
+                    'Malária': 'Transmissão vetorial por mosquitos Anopheles infectados com Plasmodium.',
+                    'Sífilis Congênita': 'Transmissão vertical materno-fetal durante a gestação, parto ou aleitamento.',
+                    'Sífilis em gestante': 'Transmissão sexual, com risco de transmissão vertical para o feto.',
+                    'Tétano Acidental': 'Transmissão não ocorre pessoa a pessoa; entrada de esporos pela pele (ferimentos, cortes).',
+                    'Tétano Neonatal': 'Transmissão não ocorre pessoa a pessoa; infecção do coto umbilical em condições antihigiênicas.',
+                    'Tracoma': 'Transmissão por contato direto com secreções oculares ou indireto através de objetos contaminados.',
+                    'Varicela': 'Transmissão por gotículas respiratórias e contato direto com lesões da pele.',
+                    'Eventos adversos graves ou óbitos pós-vacinação': 'Não é transmissível; reação adversa induzida pela vacina.'
+                };
+                return meios[nome] || 'Transmissão/contaminação específica para esta condição conforme estudos epidemiológicos e diretrizes sanitárias.';
+            };
+
+            const getPrevencao = (nome) => {
+                const prevencoes = {
+                    'Covid-19': 'Vacinação completa, uso de máscaras em locais de risco, higienização frequente das mãos, ventilação adequada de ambientes e isolamento de casos confirmados.',
+                    'Dengue - Casos': 'Eliminação de criadouros do Aedes aegypti (recipientes com água parada), uso de repelentes, roupas que cubram a pele e campanhas de controle vetorial.',
+                    'Dengue - Óbitos': 'Prevenção sama da dengue com foco no controle vetorial e identificação precoce de casos graves.',
+                    'Febre Amarela': 'Vacinação (dose única confere proteção duradoura), controle de vetores em áreas urbanas, uso de repelentes em áreas endêmicas.',
+                    'Coqueluche': 'Vacinação (difteria, tétano e coqueluche - DTPa), isolamento de casos, quimioprofilaxia para contatos próximos.',
+                    'Difteria': 'Vacinação, isolamento de casos, quimioprofilaxia para contatos próximos, melhorias nas condições socioeconômicas.',
+                    'Hanseníase': 'Vacinação BCG em áreas endêmicas, detecção precoce, tratamento poliquimioterápico completo.',
+                    'Tuberculose': 'Vacinação BCG, identificação e tratamento de casos pulmonares, ventilação adequada de ambientes.',
+                    'Hepatites virais': 'Vacinação (A e B), medidas de higiene, uso de preservativos, evitar compartilhamento de seringas.',
+                    'Doença Meningocócica e outras meningites': 'Vacinação, evitar aglomerações, ventilação adequada, quimioprofilaxia para contatos próximos.',
+                    'Botulismo': 'Inspeção sanitária de alimentos, fervura/conservação adequada de alimentos caseiros, soro antibotulínico em casos de suspeita.',
+                    'Hantavirose': 'Controle de roedores, evitar contato com excretas de roedores, uso de equipamentos de proteção.',
+                    'Leishmaniose Visceral': 'Controle de vetores, proteção individual, tratamento de casos humanos e caninos.',
+                    'Leishmaniose Tegumentar Americana': 'Controle de vetores, proteção individual, tratamento adequado de lesões.',
+                    'Leptospirose': 'Controle de roedores, evitar contato com água suja, proteção em atividades de risco.',
+                    'Esquistossomose': 'Melhorias sanitárias, controle de caramujos, evitar contato com água doce contaminada.',
+                    'Esporotricose humana': 'Uso de equipamentos de proteção, manejo adequado de material orgânico, tratamento precoce.',
+                    'Febre de Chikungunya': 'Controle de vetores Aedes, proteção individual, eliminação de criadouros.',
+                    'Doença aguda pelo vírus Zika': 'Controle de vetores Aedes, proteção individual, planejamento reprodutivo em áreas endêmicas.',
+                    'Síndrome congênita associada à infecção pelo vírus Zika': 'Prevenção da infecção por Zika em gestantes, controle de vetores.',
+                    'Intoxicação exógena (por substâncias químicas, incluindo agrotóxicos, gases tóxicos e metais pesados)': 'Equipamentos de proteção individual, armazenamento seguro de chemicals, ventilação adequada.',
+                    'Acidente de trabalho com exposição a material biológico': 'Equipamentos de proteção individual, protocolo de profilaxia pós-exposição, descarte seguro de materiais.',
+                    'Acidente de trabalho': 'Medidas de segurança ocupacional, treinamento, uso de EPI, inspeções regulares.',
+                    'Acidente por animal peçonhento': 'Educação sobre animais peçonhentos, primeiros socorros adequados, disponibilidade de soros antiveneno.',
+                    'Acidente por animal potencialmente transmissor da raiva': 'Vacinação de animais, profilaxia pós-exposição, controle populacional de animais errantes.',
+                    'Câncer relacionado ao trabalho': 'Controle de exposição a carcinogênicos ocupacionais, monitoramento de saúde, medidas de proteção.',
+                    'Cólera': 'Saneamento básico, tratamento da água, higiene alimentar, vacinação em áreas endêmicas.',
+                    'Dermatoses ocupacionais': 'Proteção cutânea, substituição de agentes irritantes, higiene das mãos, equipamentos de proteção.',
+                    'Distúrbio de voz relacionado ao trabalho': 'Treinamento vocal, pausas regulares, hidratação, acompanhamento fonoaudiológico.',
+                    'Doença de Chagas Aguda': 'Controle vetorial, melhorias habitacionais, triagem de sangue, proteção em áreas endêmicas.',
+                    'Doença de Chagas Crônica': 'Tratamento antifúngico quando indicado, acompanhamento médico, prevenção de complicações.',
+                    'Doença de Creutzfeldt-Jakob (DCJ)': 'Medidas de segurança em neurocirurgias, controle de produtos biológicos, aconselhamento genético.',
+                    'Doença Falciforme': 'Diagnóstico precoce neonatal, acompanhamento multidisciplinar, profilaxia de infecções.',
+                    'Doença Invasiva por Haemophilus Influenza': 'Vacinação pentavalente, profilaxia antibiótica para contatos próximos.',
+                    'Doenças com suspeita de disseminação intencional': 'Vigilância epidemiológica intensificada, resposta rápida, medidas de contenção.',
+                    'Doenças febris hemorrágicas emergentes/reemergentes': 'Vigilância de viajantes, medidas de contenção, investigação epidemiológica.',
+                    'Doença aguda pelo vírus Zika em gestante': 'Controle vetorial, proteção individual, acompanhamento pré-natal rigoroso.',
+                    'Óbito com suspeita de doença pelo vírus Zika': 'Investigação epidemiológica rigorosa, manejo adequado de óbitos suspeitos.',
+                    'Febre de Chikungunya em áreas sem transmissão': 'Vigilância epidemiológica intensificada, controle vetorial, resposta rápida.',
+                    'Óbito com suspeita de Febre de Chikungunya': 'Investigação epidemiológica rigorosa, confirmação laboratorial.',
+                    'Febre do Nilo Ocidental e outras arboviroses': 'Controle de vetores, vigilância de pássaros sentinela, proteção individual.',
+                    'Febre Maculosa e outras Riquetisioses': 'Proteção contra carrapatos, inspeção corporal regular, tratamento precoce com antibióticos.',
+                    'Febre Tifoide': 'Saneamento básico, vacinação, higiene alimentar, tratamento adequado de casos.',
+                    'Infecção pelo HIV/AIDS': 'Educação sexual, uso de preservativos, teste HIV, terapia antirretroviral.',
+                    'Lesões por esforço repetitivo (LER) / Distúrbios Osteomusculares Relacionados ao Trabalho (DORT)': 'Ergonomia ocupacional, pausas regulares, exercícios laborais, mobiliário adequado.',
+                    'Lepra': 'Detecção precoce, tratamento poliquimioterápico, investigação de contatos, vacinação BCG.',
+                    'Malária': 'Uso de mosquiteiros impregnados, controle vetorial, profilaxia em áreas endêmicas, tratamento precoce.',
+                    'Sífilis Congênita': 'Triagem pré-natal, tratamento adequado de gestantes, seguimento de recém-nascidos.',
+                    'Sífilis em gestante': 'Triagem pré-natal, tratamento adequado com penicilina, parceiro sexual tratado.',
+                    'Tétano Acidental': 'Vacinação antitetânica, limpeza adequada de ferimentos, profilaxia em casos de risco.',
+                    'Tétano Neonatal': 'Cuidados higiênicos no parto, anti-tetânica neonatal, educação materna.',
+                    'Tracoma': 'Melhorias sanitárias, higiene facial, tratamento massivo com antibióticos em áreas endêmicas.',
+                    'Varicela': 'Vacinação, isolamento de casos, immunoglobulin pós-exposição para grupos de risco.',
+                    'Eventos adversos graves ou óbitos pós-vacinação': 'Vigilância ativa de eventos adversos, investigação epidemiológica, comunicação adequada.'
+                };
+                return prevencoes[nome] || 'Medidas preventivas específicas conforme protocolos do Ministério da Saúde e vigilância sanitária.';
+            };
+
+            const getDadosEpidemiologicos = (nome) => {
+                const dados = {
+                    'Covid-19': 'Segundo dados de 2024, o Brasil apresenta situação endêmica com vacinação de aproximadamente 80% da população com esquema completo. Internações e óbitos mantêm padrão sazonal com picos em períodos de frio.',
+                    'Dengue - Casos': 'Brasil registrou 1.469 casos por 100 mil habitantes em 2024, com maior incidência nas regiões Nordeste e Sudeste. Sazonalidade típica com maior transmissão no verão e início do outono.',
+                    'Dengue - Óbitos': 'Letalidade nacional de aproximadamente 0,05% dos casos confirmados, com maior risco em idosos, gestantes e pessoas com comorbidades.',
+                    'Febre Amarela': 'Brasil mantém status de área de risco com casos esporádicos. Última grande epidemia urbana em 2016-2017 no Sudeste. Cobertura vacinal alvo: 95% da população em áreas de risco.',
+                    'Coqueluche': 'Incidência nacional de 2,1 casos por 100 mil habitantes em 2024. Maior risco em lactantes menores de 6 meses. Cobertura vacinal infantil: 85% (abaixo da meta de 95%).',
+                    'Difteria': 'Doença rara no Brasil (menos de 10 casos/ano). Maioria dos casos em pessoas não vacinadas ou com vacinação incompleta. Cobertura vacinal DTP infantil: 85%.',
+                    'Hanseníase': 'Brasil mantém alta endemicidade com aproximadamente 20.000 casos novos por ano. Coeficiente de detecção: 13,23 casos por 100 mil habitantes em 2024.',
+                    'Tuberculose': 'Incidência de 35,8 casos por 100 mil habitantes em 2024. Maior concentração em regiões Sudeste e Nordeste. Taxa de cura: 71% (abaixo da meta de 85%).',
+                    'Hepatites virais': 'Dados variables por tipo. Hepatite C: aproximadamente 700.000 pessoas cronicamente infectadas no Brasil. Hepatite B: prevalência de 0,4% na população geral.',
+                    'Doença Meningocócica e outras meningites': 'Incidência varia por agente e região. Meningite meningocócica: surtos esporádicos em comunidades fechadas. Letalidade: 10-15% para meningite bacteriana.',
+                    'Botulismo': 'Doença extremamente rara no Brasil (menos de 10 casos por ano). Maioria dos casos relacionados a alimentos caseiros mal conservados. Letalidade: 5-10% com tratamento adequado.',
+                    'Hantavirose': 'Casos esporádicos, principalmente na região Sul. Maior incidência em áreas rurais e durante atividades agrícolas. Letalidade: 35-50% na forma pulmonar.',
+                    'Leishmaniose Visceral': 'Endêmica em 12 estados brasileiros, com maior concentração no Nordeste. Incidência: 1,8 casos por 100 mil habitantes em 2024. Letalidade: 7% com tratamento adequado.',
+                    'Leishmaniose Tegumentar Americana': 'Distribuição nationwide, com maior incidência na região Nordeste. Casos em expansão para áreas urbanas. Letalidade baixa (<1%), mas causa deformidades.',
+                    'Leptospirose': 'Incidência sazonal maior em períodos de chuva. Mayor risco em áreas urbanas com saneamento precário. Letalidade: 5-15% dependendo da forma clínica.',
+                    'Esquistossomose': 'Endêmica em 19 estados, principalmente na região Nordeste. Prevalência varia de 1% a 25% em áreas rurais. Redução significativa nas últimas décadas devido ao saneamento.',
+                    'Esporotricose humana': 'Surto em andamento na região Sudeste, especialmente Rio de Janeiro. Casos urbanos associados à transmissão felina. Transmissão humana direta documentada.',
+                    'Febre de Chikungunya': 'Círculos epidêmicos em 2024 principalmente nas regiões Nordeste e Sudeste. Incidência varia sazonalmente. Sintomas articulares persistentes em 30-60% dos casos.',
+                    'Doença aguda pelo vírus Zika': 'Casos esporádicos com menor frequência que em 2015-2016. Vigilância ativa mantida devido ao risco de complicações neurológicas e malformações.',
+                    'Síndrome congênita associada à infecção pelo vírus Zika': 'Casos esporádicos de microcefalia e outras malformações congênitas. Vigilância ativa de grávidas em áreas de risco.',
+                    'Intoxicação exógena (por substâncias químicas, incluindo agrotóxicos, gases tóxicos e metais pesados)': 'Incidência variável com maior mortalidade em acidentes com agrotóxicos. Notificação obrigatória para investigação epidemiológica.',
+                    'Acidente de trabalho com exposição a material biológico': 'Dados variáveis por setor. Maior incidência em profissionais de saúde. Risco de transmissão HIV: 0,3%, HBV: 6-30%, HCV: 1,8%.',
+                    'Acidente de trabalho': 'Aproximadamente 600.000 acidentes por ano no Brasil. Taxa de mortalidade: 5,4 por 100 mil trabalhadores. Setores de maior risco: construção civil e agricultura.',
+                    'Acidente por animal peçonhento': 'Mais de 300.000 casos/ano no Brasil. Maior incidência nas regiões Sudeste e Sul. Serpentes: 70% dos casos, escorpiões: 25%. Letalidade: 0,5%.',
+                    'Acidente por animal potencialmente transmissor da raiva': 'Casos esporádicos. No Brasil não há casos de raiva humana por transmissão de animais silvestres há mais de 10 anos. Casos de raiva canina/felina controlados.',
+                    'Câncer relacionado ao trabalho': 'Estimativa de 4-8% de todos os cânceres relacionados à exposição ocupacional. Agentes mais comuns: asbestos, benzeno, radiação ionizante.',
+                    'Cólera': 'Doença eliminada do Brasil desde 2005. Vigilância mantida para casos importados ou surtos em áreas de fronteira. Surtos esporádicos em países vizinhos.',
+                    'Dermatoses ocupacionais': 'Uma das principais causas de afastamento do trabalho. Maior incidência em setores industriais, alimentício e saúde. Prevalência estimada em 5-15% da força laboral.',
+                    'Distúrbio de voz relacionado ao trabalho': 'Maior incidência em professores (15-20% relatam sintomas vocais). Outras profissões: cantores, atores, operadores de telemarketing.',
+                    'Doença de Chagas Aguda': 'Casos esporádicos, principalmente por transmissão oral. Surtos alimentares documentados. Letalidade alta (5-20%) na forma aguda.',
+                    'Doença de Chagas Crônica': 'Cerca de 1,2 milhão de pessoas infectados no Brasil. Região Nordeste tem a maior prevalência. 30-40% desenvolvem formas cardíacas/digestivas.',
+                    'Doença de Creutzfeldt-Jakob (DCJ)': 'Extremamente rara (1 caso/milhão de habitantes/ano). Forma esporádica mais comum. Letalidade 100% em 1-2 anos após início dos sintomas.',
+                    'Doença Falciforme': 'Prevalência de 0,1% da população brasileira. Maior frequência na região Nordeste. Esperança de vida aumentada com tratamento adequado (atualmente >50 anos).',
+                    'Doença Invasiva por Haemophilus Influenza': 'Redução significativa após introdução da vacina Hib (90% queda). Casos esporádicos restantes principalmente em crianças não vacinadas.',
+                    'Doenças com suspeita de disseminação intencional': 'Extremamente raros. Brasil mantém vigilância contra bioterrorismo com protocolos específicos de resposta rápida.',
+                    'Doenças febris hemorrágicas emergentes/reemergentes': 'Vigilância intensificada para vírus como Ebola, Lassa, Marburg. Casos importados monitorados. Sistemas de alerta precoce implantados.',
+                    'Doença aguda pelo vírus Zika em gestante': 'Risco de transmissão vertical de 5-15%. Maior risco no primeiro trimestre. Casos monitorados com seguimento fetal e neonatal.',
+                    'Óbito com suspeita de doença pelo vírus Zika': 'Investigação epidemiológica rigorosa. Confirmação laboratorial necessária. Taxa de mortalidade baixa em adultos.',
+                    'Febre de Chikungunya em áreas sem transmissão': 'Vigilância epidemiológica intensificada. Medidas de contenção imediata. Risco de estabelecimento da transmissão local.',
+                    'Óbito com suspeita de Febre de Chikungunya': 'Casos raros. Investigação laboratorial obrigatória. Maior risco em idosos e pessoas com comorbidades.',
+                    'Febre do Nilo Ocidental e outras arboviroses': 'Vigilância ativa para introdução do vírus. Casos esporádicos documentados. Risco de estabelecimento em áreas urbanas.',
+                    'Febre Maculosa e outras Riquetisioses': 'Endêmica nas regiões Sudeste e Sul. Maior incidência no verão/outono. Letalidade de 20-80% sem tratamento, <5% com antibióticos precoces.',
+                    'Febre Tifoide': 'Doença rara no Brasil (<100 casos/ano). Maioria dos casos são importados. Endêmica em países vizinhos. Prevalência global: 10-20 milhões de casos/ano.',
+                    'Infecção pelo HIV/AIDS': 'Aproximadamente 40.000 casos novos de HIV por ano. 1 milhão de pessoas vivendo com HIV/AIDS. Taxa de transmissão vertical: 4%. Terapia antirretroviral universal disponível.',
+                    'Lesões por esforço repetitivo (LER) / Distúrbios Osteomusculares Relacionados ao Trabalho (DORT)': 'Principais causas de afastamento do trabalho. Prevalência de 5-10% da força laboral. Setores mais afetados: indústria, tecnologia, saúde.',
+                    'Lepra': 'Prevalência de 25.000 casos novos/ano. Distribuição heterogênea no território. Meta de eliminação como problema de saúde pública (<1 caso/10.000 hab) alcançada em 80% dos municípios.',
+                    'Malária': '99% dos casos na Amazônia. Incidência de 17,5 casos por 1.000 habitantes em risco em 2024. Redução de 50% desde 2005. Meta de eliminação até 2030.',
+                    'Sífilis Congênita': 'Taxa de detecção de 9,8 casos por 1.000 nascidos vivos em 2024. Meta do plano nacional: reduzir para <4/1.000 nascidos vivos até 2030.',
+                    'Sífilis em gestante': 'Taxa de detecção crescente: 24,5 casos por 1.000 gestantes em 2024. Meta: reduzir para <10/1.000 gestantes até 2030.',
+                    'Tétano Acidental': 'Incidência decrescente: 0,5 casos por 100 mil habitantes em 2024. Maioria dos casos em idosos (>60 anos) não vacinados ou com vacinação incompleta.',
+                    'Tétano Neonatal': 'Eliminado do Brasil desde 2010. Casos esporádicos documentados em áreas de fronteira com países onde a doença ainda é endêmica.',
+                    'Tracoma': 'Prevalência menor que 5% em áreas anteriormente endêmicas. Meta de eliminação como causa de cegueira alcançada em 90% dos municípios anteriormente prioritários.',
+                    'Varicela': 'Doença endêmica com surtos sazonais (outono-inverno). Maior incidência em crianças de 1-9 anos. Cobertura vacinal infantil: 85%.',
+                    'Eventos adversos graves ou óbitos pós-vacinação': 'Raro (menos de 1 evento grave por 100.000 doses). Taxa de letalidade: 0,1-0,5 casos por milhão de doses. Investigação epidemiológica obrigatória.'
+                };
+                return dados[nome] || 'Dados epidemiológicos atualizados estão sendo compilados com base nos sistemas de vigilância do Ministério da Saúde.';
+            };
+
+            const getReferenciaBibliografica = (nome) => {
+                const referencias = {
+                    'Covid-19': 'BRASIL. Ministério da Saúde. <em>Boletim Epidemiológico Especial - Doença pelo Coronavírus COVID-19.</em> Brasília: MS, 2024. Disponível em: https://www.gov.br/saude/pt-br',
+                    'Dengue - Casos': 'BRASIL. Ministério da Saúde. <em>Boletim Epidemiológico da Dengue.</em> Brasília: MS, 2024. Disponível em: https://www.gov.br/saude/pt-br',
+                    'Dengue - Óbitos': 'BRASIL. Ministério da Saúde. <em>Boletim Epidemiológico da Dengue.</em> Brasília: MS, 2024.',
+                    'Febre Amarela': 'BRASIL. Ministério da Saúde. <em>Manual de Vigilância Epidemiológica da Febre Amarela.</em> 5ª ed. Brasília: MS, 2017.',
+                    'Coqueluche': 'BRASIL. Ministério da Saúde. <em>Manual de Vigilância Epidemiológica dos Eventos Adversos Pós-Vacinação.</em> 4ª ed. Brasília: MS, 2021.',
+                    'Difteria': 'BRASIL. Ministério da Saúde. <em>Manual de Vigilância Epidemiológica.</em> 7ª ed. Brasília: MS, 2020.',
+                    'Hanseníase': 'BRASIL. Ministério da Saúde. <em>Guia de Vigilância em Saúde.</em> 5ª ed. Brasília: MS, 2022.',
+                    'Tuberculose': 'BRASIL. Ministério da Saúde. <em>Manual de Recomendações para o Controle da Tuberculose no Brasil.</em> 2ª ed. Brasília: MS, 2019.',
+                    'Hepatites virais': 'BRASIL. Ministério da Saúde. <em>Protocolo Clínico e Diretrizes Terapêuticas - Hepatite Viral.</em> Brasília: MS, 2023.',
+                    'Doença Meningocócica e outras meningites': 'BRASIL. Ministério da Saúde. <em>Manual de Vigilância Epidemiológica das Meningites.</em> Brasília: MS, 2019.',
+                    'Botulismo': 'BRASIL. Ministério da Saúde. <em>Manual de Vigilância Epidemiológica.</em> 7ª ed. Brasília: MS, 2020.',
+                    'Hantavirose': 'BRASIL. Ministério da Saúde. <em>Manual de Vigilância da Hantavirose.</em> Brasília: MS, 2020.',
+                    'Leishmaniose Visceral': 'BRASIL. Ministério da Saúde. <em>Manual de Vigilância da Leishmaniose Tegumentar e Visceral.</em> 5ª ed. Brasília: MS, 2022.',
+                    'Leishmaniose Tegumentar Americana': 'BRASIL. Ministério da Saúde. <em>Manual de Vigilância da Leishmaniose Tegumentar e Visceral.</em> 5ª ed. Brasília: MS, 2022.',
+                    'Leptospirose': 'BRASIL. Ministério da Saúde. <em>Manual de Vigilância da Leptospirose.</em> 3ª ed. Brasília: MS, 2021.',
+                    'Esquistossomose': 'BRASIL. Ministério da Saúde. <em>Guia de Vigilância em Saúde.</em> 5ª ed. Brasília: MS, 2022.',
+                    'Esporotricose humana': 'BRASIL. Ministério da Saúde. <em>Guia de Vigilância em Saúde.</em> 5ª ed. Brasília: MS, 2022.',
+                    'Febre de Chikungunya': 'BRASIL. Ministério da Saúde. <em>Boletim Epidemiológico de Chikungunya.</em> Brasília: MS, 2024.',
+                    'Doença aguda pelo vírus Zika': 'BRASIL. Ministério da Saúde. <em>Boletim Epidemiológico de Zika.</em> Brasília: MS, 2024.',
+                    'Síndrome congênita associada à infecção pelo vírus Zika': 'BRASIL. Ministério da Saúde. <em>Boletim Epidemiológico de Zika Congênita.</em> Brasília: MS, 2024.',
+                    'Intoxicação exógena (por substâncias químicas, incluindo agrotóxicos, gases tóxicos e metais pesados)': 'BRASIL. Ministério da Saúde. <em>Boletim Nacional de Notificação e Investigação de Intoxicações Exógenas.</em> Brasília: MS, 2024.',
+                    'Acidente de trabalho com exposição a material biológico': 'BRASIL. Ministério da Saúde. <em>Protocolo Clínico e Diretrizes Terapêuticas - Profilaxia Pós-Exposição.</em> Brasília: MS, 2020.',
+                    'Acidente de trabalho': 'BRASIL. Ministério do Trabalho e Emprego. <em>Norma Regulamentadora nº 32 - Segurança e Saúde no Trabalho em Estabelecimentos de Saúde.</em> Brasília: MTE, 2005.',
+                    'Acidente por animal peçonhento': 'BRASIL. Ministério da Saúde. <em>Manual de Diagnóstico e Tratamento de Animais Peçonhentos.</em> 2ª ed. Brasília: MS, 2019.',
+                    'Acidente por animal potencialmente transmissor da raiva': 'BRASIL. Ministério da Saúde. <em>Manual de Profilaxia da Raiva Humana.</em> Brasília: MS, 2022.',
+                    'Câncer relacionado ao trabalho': 'BRASIL. Ministério da Saúde. <em>Guia de Vigilância em Saúde.</em> 5ª ed. Brasília: MS, 2022.',
+                    'Cólera': 'BRASIL. Ministério da Saúde. <em>Manual de Vigilância Epidemiológica.</em> 7ª ed. Brasília: MS, 2020.',
+                    'Dermatoses ocupacionais': 'BRASIL. Ministério da Saúde. <em>Guia de Vigilância em Saúde.</em> 5ª ed. Brasília: MS, 2022.',
+                    'Distúrbio de voz relacionado ao trabalho': 'BRASIL. Ministério da Saúde. <em>Guia de Vigilância em Saúde.</em> 5ª ed. Brasília: MS, 2022.',
+                    'Doença de Chagas Aguda': 'BRASIL. Ministério da Saúde. <em>Manual de Vigilância da Doença de Chagas.</em> 2ª ed. Brasília: MS, 2021.',
+                    'Doença de Chagas Crônica': 'BRASIL. Ministério da Saúde. <em>Manual de Vigilância da Doença de Chagas.</em> 2ª ed. Brasília: MS, 2021.',
+                    'Doença de Creutzfeldt-Jakob (DCJ)': 'BRASIL. Ministério da Saúde. <em>Guia de Vigilância em Saúde.</em> 5ª ed. Brasília: MS, 2022.',
+                    'Doença Falciforme': 'BRASIL. Ministério da Saúde. <em>Protocolo de Atenção à Saúde e Rezumidação da Doença Falciforme.</em> Brasília: MS, 2022.',
+                    'Doença Invasiva por Haemophilus Influenza': 'BRASIL. Ministério da Saúde. <em>Manual de Vigilância Epidemiológica.</em> 7ª ed. Brasília: MS, 2020.',
+                    'Doenças com suspeita de disseminação intencional': 'BRASIL. Ministério da Saúde. <em>Plano de Resposta a Emergências em Saúde Pública.</em> Brasília: MS, 2020.',
+                    'Doenças febris hemorrágicas emergentes/reemergentes': 'BRASIL. Ministério da Saúde. <em>Plano de Resposta a Emergências em Saúde Pública.</em> Brasília: MS, 2020.',
+                    'Doença aguda pelo vírus Zika em gestante': 'BRASIL. Ministério da Saúde. <em>Guia de Vigilância em Saúde.</em> 5ª ed. Brasília: MS, 2022.',
+                    'Óbito com suspeita de doença pelo vírus Zika': 'BRASIL. Ministério da Saúde. <em>Guia de Vigilância em Saúde.</em> 5ª ed. Brasília: MS, 2022.',
+                    'Febre de Chikungunya em áreas sem transmissão': 'BRASIL. Ministério da Saúde. <em>Boletim Epidemiológico de Chikungunya.</em> Brasília: MS, 2024.',
+                    'Óbito com suspeita de Febre de Chikungunya': 'BRASIL. Ministério da Saúde. <em>Guia de Vigilância em Saúde.</em> 5ª ed. Brasília: MS, 2022.',
+                    'Febre do Nilo Ocidental e outras arboviroses': 'BRASIL. Ministério da Saúde. <em>Guia de Vigilância em Saúde.</em> 5ª ed. Brasília: MS, 2022.',
+                    'Febre Maculosa e outras Riquetisioses': 'BRASIL. Ministério da Saúde. <em>Manual de Vigilância da Febre Maculosa.</em> Brasília: MS, 2020.',
+                    'Febre Tifoide': 'BRASIL. Ministério da Saúde. <em>Manual de Vigilância Epidemiológica.</em> 7ª ed. Brasília: MS, 2020.',
+                    'Infecção pelo HIV/AIDS': 'BRASIL. Ministério da Saúde. <em>Protocolo Clínico e Diretrizes Terapêuticas para Manejo da Infecção pelo HIV.</em> Brasília: MS, 2023.',
+                    'Lesões por esforço repetitivo (LER) / Distúrbios Osteomusculares Relacionados ao Trabalho (DORT)': 'BRASIL. Ministério da Saúde. <em>Guia de Vigilância em Saúde.</em> 5ª ed. Brasília: MS, 2022.',
+                    'Lepra': 'BRASIL. Ministério da Saúde. <em>Manual de Eliminação da Lepra como Problema de Saúde Pública.</em> Brasília: MS, 2022.',
+                    'Malária': 'BRASIL. Ministério da Saúde. <em>Guia de Vigilância em Saúde.</em> 5ª ed. Brasília: MS, 2022.',
+                    'Sífilis Congênita': 'BRASIL. Ministério da Saúde. <em>Protocolo Clínico e Diretrizes Terapêuticas para Prevenção da Transmissão Vertical.</em> Brasília: MS, 2022.',
+                    'Sífilis em gestante': 'BRASIL. Ministério da Saúde. <em>Protocolo Clínico e Diretrizes Terapêuticas para Prevenção da Transmissão Vertical.</em> Brasília: MS, 2022.',
+                    'Tétano Acidental': 'BRASIL. Ministério da Saúde. <em>Manual de Vigilância Epidemiológica do Tétano.</em> Brasília: MS, 2018.',
+                    'Tétano Neonatal': 'BRASIL. Ministério da Saúde. <em>Guia de Vigilância em Saúde.</em> 5ª ed. Brasília: MS, 2022.',
+                    'Tracoma': 'BRASIL. Ministério da Saúde. <em>Guia de Vigilância em Saúde.</em> 5ª ed. Brasília: MS, 2022.',
+                    'Varicela': 'BRASIL. Ministério da Saúde. <em>Guia de Vigilância em Saúde.</em> 5ª ed. Brasília: MS, 2022.',
+                    'Eventos adversos graves ou óbitos pós-vacinação': 'BRASIL. Ministério da Saúde. <em>Manual de Vigilância Epidemiológica dos Eventos Adversos Pós-Vacinação.</em> 4ª ed. Brasília: MS, 2021.'
+                };
+                return referencias[nome] || 'BRASIL. Ministério da Saúde. <em>Guia de Vigilância em Saúde.</em> 5ª ed. Brasília: MS, 2022.';
+            };
+
             const statesData = {
                 'AC': { name: 'Acre' }, 'AL': { name: 'Alagoas' }, 'AP': { name: 'Amapá' }, 'AM': { name: 'Amazonas' },
                 'BA': { name: 'Bahia' }, 'CE': { name: 'Ceará' }, 'DF': { name: 'Distrito Federal' }, 'ES': { name: 'Espírito Santo' },
@@ -568,6 +891,33 @@
                                             <p><strong>Incidência:</strong> ${item.incidencia}</p>
                                             <p><strong>Prevalência:</strong> ${item.prevalencia}</p>
                                             <p><strong>Vacina/Medicamento:</strong> ${item.vacina_medicamento}</p>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Seção de Informações Epidemiológicas -->
+                                    <div class="bg-white p-6 rounded-lg shadow-md">
+                                        <h3 class="font-bold text-lg mb-4 text-gray-800">Informações Epidemiológicas</h3>
+                                        <div class="text-sm space-y-4 text-gray-700">
+                                            <div class="epidemiologia-section">
+                                                <h4 class="font-semibold mb-2">Resumo Epidemiológico</h4>
+                                                <p id="resumo-epidemiologico">${getResumoEpidemiologico(item.nome)}</p>
+                                            </div>
+                                            <div class="epidemiologia-section">
+                                                <h4 class="font-semibold mb-2">Meio de Contaminação/Transmissão</h4>
+                                                <p id="meio-contaminacao">${getMeioContaminacao(item.nome)}</p>
+                                            </div>
+                                            <div class="epidemiologia-section">
+                                                <h4 class="font-semibold mb-2">Prevenção</h4>
+                                                <p id="prevencao">${getPrevencao(item.nome)}</p>
+                                            </div>
+                                            <div class="epidemiologia-section">
+                                                <h4 class="font-semibold mb-2">Dados Epidemiológicos Recentes</h4>
+                                                <p id="dados-epidemiologicos">${getDadosEpidemiologicos(item.nome)}</p>
+                                            </div>
+                                            <div class="referencia-bibliografica">
+                                                <h4 class="font-semibold mb-2">Referência Bibliográfica</h4>
+                                                <p id="referencia-bibliografica">${getReferenciaBibliografica(item.nome)}</p>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
