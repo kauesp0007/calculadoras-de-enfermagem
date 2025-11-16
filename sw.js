@@ -1164,6 +1164,7 @@ const urlsToCache = [
   'norton.html',
   'nossocompromisso.html',
   'notificacao-compulsoria.html',
+  'notificacao1.html',
   'objetivo.html',
   'ofras.html',
   'painad.html',
