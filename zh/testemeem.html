@@ -1,622 +1,677 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="zh-CN">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>简明精神状态检查 - MMSE</title>
     <!-- 添加图标库 (Font Awesome) 用于PDF按钮图标 -->
-    <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'"><noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"></noscript>
-    
+    <link
+      rel="preload"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+      as="style"
+      onload="this.onload=null;this.rel='stylesheet'"
+    />
+    <noscript
+      ><link
+        rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+    /></noscript>
+
     <style>
-        /* 全局样式 */
+      /* 全局样式 */
+      body {
+        font-family:
+          -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica,
+          Arial, sans-serif;
+        background-color: #f9fafb;
+        color: #333;
+        line-height: 1.6;
+        margin: 0;
+        padding: 0;
+        /* 为浮动按钮留出空间 */
+        padding-bottom: 120px;
+      }
+
+      .container {
+        max-width: 800px;
+        margin: 20px auto;
+        padding: 20px;
+        background-color: #ffffff;
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        border: 1px solid #e5e7eb;
+      }
+
+      /* 页眉 */
+      .header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-bottom: 2px solid #1a3e74; /* 网站颜色 */
+        padding-bottom: 15px;
+        margin-bottom: 20px;
+        page-break-inside: avoid; /* 避免页眉换页 */
+      }
+
+      .header h1 {
+        font-size: 28px;
+        font-weight: 900;
+        color: #1a3e74;
+        margin: 0;
+      }
+
+      .header .logo {
+        max-width: 100px;
+        height: auto;
+        border-radius: 8px;
+      }
+
+      /* 患者信息 */
+      .patient-info {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 15px;
+        margin-bottom: 25px;
+        padding: 15px;
+        background-color: #fdfdfd;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        page-break-inside: avoid; /* 避免此处换页 */
+      }
+
+      .patient-info div {
+        font-size: 14px;
+      }
+
+      .patient-info label {
+        font-weight: 600;
+        color: #555;
+        display: block;
+        margin-bottom: 2px;
+      }
+
+      .patient-info span {
+        display: block;
+        min-height: 20px;
+        border-bottom: 1px dotted #ccc;
+      }
+
+      /* 调整日期栏为单行（如果是奇数） */
+      .patient-info div:last-child:nth-child(odd) {
+        grid-column: 1 / -1;
+      }
+
+      /* 标准样式 (基于meem.html) */
+      .criterion-card {
+        background-color: #fff;
+        border: 1px solid #d1d5db;
+        border-radius: 12px;
+        padding: 20px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        margin-bottom: 20px;
+        page-break-inside: avoid; /* 避免卡片换页 */
+      }
+
+      .criterion-title {
+        font-size: 18px;
+        font-weight: 700;
+        color: #1a3e74;
+        margin-bottom: 12px;
+        text-align: left; /* 标准要求 */
+      }
+
+      .criterion-card p,
+      .criterion-card ul {
+        margin: 0 0 10px 0;
+        padding-left: 0;
+        font-size: 15px;
+      }
+
+      .criterion-card li {
+        list-style-type: none;
+        position: relative;
+        padding-left: 20px;
+        margin-bottom: 5px;
+      }
+
+      .criterion-card li::before {
+        content: "•";
+        position: absolute;
+        left: 0;
+        color: #1fa4e5; /* 网站颜色 */
+        font-weight: bold;
+      }
+
+      .criterion-card .instruction {
+        font-style: italic;
+        color: #666;
+        font-size: 14px;
+        border-left: 3px solid #1fa4e5;
+        padding-left: 10px;
+        margin-top: 10px;
+      }
+
+      .score-box {
+        display: flex;
+        justify-content: flex-end;
+        align-items: center;
+        border-top: 1px solid #eee;
+        padding-top: 15px;
+        margin-top: 15px;
+      }
+
+      .score-box strong {
+        font-size: 14px;
+        color: #333;
+        margin-right: 10px;
+      }
+
+      .score-box .score-input {
+        width: 70px;
+        padding: 5px 8px;
+        border: 1px solid #ccc;
+        border-radius: 6px;
+        font-size: 16px;
+        text-align: center;
+      }
+
+      /* 绘图 (五角形) */
+      .pentagon-container {
+        text-align: center;
+        margin: 15px 0;
+      }
+
+      .pentagon-container img {
+        max-width: 250px; /* 根据需要调整大小 */
+        height: auto;
+      }
+
+      /* 评分部分 */
+      .scoring-section {
+        padding: 20px;
+        background-color: #fdfdfd;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        margin-top: 25px;
+        page-break-inside: avoid; /* 避免此部分换页 */
+      }
+
+      .scoring-section h3 {
+        margin-top: 0;
+        color: #1a3e74;
+        border-bottom: 1px solid #eee;
+        padding-bottom: 8px;
+      }
+
+      .scoring-section table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 10px;
+      }
+
+      .scoring-section th,
+      .scoring-section td {
+        border: 1px solid #ddd;
+        padding: 8px;
+        text-align: left;
+      }
+
+      .scoring-section th {
+        background-color: #f4f4f4;
+        font-weight: 600;
+      }
+
+      /* 评论框 */
+      .comments-box {
+        margin-top: 25px;
+        page-break-inside: avoid; /* 避免此框换页 */
+      }
+
+      .comments-box h3 {
+        font-size: 18px;
+        font-weight: 700;
+        color: #1a3e74;
+        margin-bottom: 10px;
+      }
+
+      .comments-box textarea {
+        width: 100%;
+        height: 150px;
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        padding: 10px;
+        font-family: inherit;
+        font-size: 14px;
+        line-height: 1.8;
+        /* 行线效果 */
+        background-image: linear-gradient(#eee 0.1em, transparent 0.1em);
+        background-size: 100% 1.8em;
+        background-attachment: local;
+        box-sizing: border-box; /* 确保padding不破坏布局 */
+      }
+
+      /* 页脚 */
+      .footer {
+        margin-top: 30px;
+        padding-top: 15px;
+        border-top: 1px solid #e5e7eb;
+        font-size: 12px;
+        color: #777;
+        text-align: center;
+        page-break-inside: avoid; /* 尝试保持页脚在一起 */
+      }
+
+      .footer p {
+        margin: 0;
+      }
+
+      /* --- 浮动PDF按钮 --- */
+      .pdf-download-button {
+        position: fixed;
+        bottom: 25px;
+        right: 25px;
+        background-color: #1a3e74; /* 网站主色 */
+        color: #fff;
+        border: none;
+        border-radius: 12px;
+        padding: 1rem;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        transition: all 0.3s ease;
+        cursor: pointer;
+        z-index: 1000;
+        width: 160px; /* 卡片宽度 */
+        text-align: center;
+        font-family:
+          -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica,
+          Arial, sans-serif;
+      }
+
+      .pdf-download-button:hover {
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.25);
+        transform: translateY(-4px); /* "摇动"效果 */
+      }
+
+      .pdf-download-button .pdf-icon {
+        font-size: 2.5rem; /* 大图标 */
+        margin-bottom: 0.5rem;
+      }
+
+      .pdf-download-button .pdf-text {
+        font-size: 1rem;
+        font-weight: 600;
+        line-height: 1.3;
+      }
+
+      /* --- 浮动按钮结束 --- */
+
+      /* 打印 */
+      @media print {
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background-color: #f9fafb;
-            color: #333;
-            line-height: 1.6;
-            margin: 0;
-            padding: 0;
-            /* 为浮动按钮留出空间 */
-            padding-bottom: 120px; 
+          background-color: #fff;
+          font-size: 12pt;
+          padding-bottom: 0; /* 打印时移除padding */
         }
-
         .container {
-            max-width: 800px;
-            margin: 20px auto;
-            padding: 20px;
-            background-color: #ffffff;
-            border-radius: 12px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-            border: 1px solid #e5e7eb;
+          box-shadow: none;
+          border: none;
+          padding: 0;
+          margin: 0;
+          max-width: 100%;
         }
-
-        /* 页眉 */
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 2px solid #1A3E74; /* 网站颜色 */
-            padding-bottom: 15px;
-            margin-bottom: 20px;
-            page-break-inside: avoid; /* 避免页眉换页 */
-        }
-
-        .header h1 {
-            font-size: 28px;
-            font-weight: 900;
-            color: #1A3E74;
-            margin: 0;
-        }
-
-        .header .logo {
-            max-width: 100px;
-            height: auto;
-            border-radius: 8px;
-        }
-
-        /* 患者信息 */
-        .patient-info {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 15px;
-            margin-bottom: 25px;
-            padding: 15px;
-            background-color: #fdfdfd;
-            border: 1px solid #e5e7eb;
-            border-radius: 8px;
-            page-break-inside: avoid; /* 避免此处换页 */
-        }
-
-        .patient-info div {
-            font-size: 14px;
-        }
-
-        .patient-info label {
-            font-weight: 600;
-            color: #555;
-            display: block;
-            margin-bottom: 2px;
-        }
-
-        .patient-info span {
-            display: block;
-            min-height: 20px;
-            border-bottom: 1px dotted #ccc;
-        }
-        
-        /* 调整日期栏为单行（如果是奇数） */
-        .patient-info div:last-child:nth-child(odd) {
-            grid-column: 1 / -1;
-        }
-
-
-        /* 标准样式 (基于meem.html) */
         .criterion-card {
-            background-color: #fff;
-            border: 1px solid #d1d5db;
-            border-radius: 12px;
-            padding: 20px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-            margin-bottom: 20px;
-            page-break-inside: avoid; /* 避免卡片换页 */
+          box-shadow: none;
+          border: 1px solid #ccc;
         }
-
-        .criterion-title {
-            font-size: 18px;
-            font-weight: 700;
-            color: #1A3E74;
-            margin-bottom: 12px;
-            text-align: left; /* 标准要求 */
-        }
-
-        .criterion-card p,
-        .criterion-card ul {
-            margin: 0 0 10px 0;
-            padding-left: 0;
-            font-size: 15px;
-        }
-
-        .criterion-card li {
-            list-style-type: none;
-            position: relative;
-            padding-left: 20px;
-            margin-bottom: 5px;
-        }
-        
-        .criterion-card li::before {
-            content: "•";
-            position: absolute;
-            left: 0;
-            color: #1FA4E5; /* 网站颜色 */
-            font-weight: bold;
-        }
-        
-        .criterion-card .instruction {
-            font-style: italic;
-            color: #666;
-            font-size: 14px;
-            border-left: 3px solid #1FA4E5;
-            padding-left: 10px;
-            margin-top: 10px;
-        }
-
-        .score-box {
-            display: flex;
-            justify-content: flex-end;
-            align-items: center;
-            border-top: 1px solid #eee;
-            padding-top: 15px;
-            margin-top: 15px;
-        }
-
-        .score-box strong {
-            font-size: 14px;
-            color: #333;
-            margin-right: 10px;
-        }
-
-        .score-box .score-input {
-            width: 70px;
-            padding: 5px 8px;
-            border: 1px solid #ccc;
-            border-radius: 6px;
-            font-size: 16px;
-            text-align: center;
-        }
-
-        /* 绘图 (五角形) */
-        .pentagon-container {
-            text-align: center;
-            margin: 15px 0;
-        }
-        
-        .pentagon-container img {
-            max-width: 250px; /* 根据需要调整大小 */
-            height: auto;
-        }
-
-        /* 评分部分 */
-        .scoring-section {
-            padding: 20px;
-            background-color: #fdfdfd;
-            border: 1px solid #e5e7eb;
-            border-radius: 8px;
-            margin-top: 25px;
-            page-break-inside: avoid; /* 避免此部分换页 */
-        }
-
-        .scoring-section h3 {
-            margin-top: 0;
-            color: #1A3E74;
-            border-bottom: 1px solid #eee;
-            padding-bottom: 8px;
-        }
-        
-        .scoring-section table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 10px;
-        }
-        
-        .scoring-section th, .scoring-section td {
-            border: 1px solid #ddd;
-            padding: 8px;
-            text-align: left;
-        }
-        
-        .scoring-section th {
-            background-color: #f4f4f4;
-            font-weight: 600;
-        }
-
-        /* 评论框 */
-        .comments-box {
-            margin-top: 25px;
-            page-break-inside: avoid; /* 避免此框换页 */
-        }
-        
-        .comments-box h3 {
-            font-size: 18px;
-            font-weight: 700;
-            color: #1A3E74;
-            margin-bottom: 10px;
-        }
-
         .comments-box textarea {
-            width: 100%;
-            height: 150px;
-            border: 1px solid #ccc;
-            border-radius: 8px;
-            padding: 10px;
-            font-family: inherit;
-            font-size: 14px;
-            line-height: 1.8;
-            /* 行线效果 */
-            background-image: linear-gradient(#eee .1em, transparent .1em);
-            background-size: 100% 1.8em;
-            background-attachment: local;
-            box-sizing: border-box; /* 确保padding不破坏布局 */
+          border: 1px solid #999;
+          background-image: linear-gradient(#ddd 0.1em, transparent 0.1em);
         }
-
-        /* 页脚 */
-        .footer {
-            margin-top: 30px;
-            padding-top: 15px;
-            border-top: 1px solid #e5e7eb;
-            font-size: 12px;
-            color: #777;
-            text-align: center;
-            page-break-inside: avoid; /* 尝试保持页脚在一起 */
+        .score-input {
+          border: 1px solid #999;
         }
-
-        .footer p {
-            margin: 0;
+        .patient-info {
+          background-color: #fff;
         }
-
-        /* --- 浮动PDF按钮 --- */
+        /* 打印时隐藏PDF按钮 */
         .pdf-download-button {
-            position: fixed;
-            bottom: 25px;
-            right: 25px;
-            background-color: #1A3E74; /* 网站主色 */
-            color: #fff;
-            border: none;
-            border-radius: 12px;
-            padding: 1rem;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-            transition: all 0.3s ease;
-            cursor: pointer;
-            z-index: 1000;
-            width: 160px; /* 卡片宽度 */
-            text-align: center;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+          display: none;
         }
-
-        .pdf-download-button:hover {
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.25);
-            transform: translateY(-4px); /* "摇动"效果 */
-        }
-
-        .pdf-download-button .pdf-icon {
-            font-size: 2.5rem; /* 大图标 */
-            margin-bottom: 0.5rem;
-        }
-
-        .pdf-download-button .pdf-text {
-            font-size: 1rem;
-            font-weight: 600;
-            line-height: 1.3;
-        }
-        
-        /* --- 浮动按钮结束 --- */
-
-
-        /* 打印 */
-        @media print {
-            body {
-                background-color: #fff;
-                font-size: 12pt;
-                padding-bottom: 0; /* 打印时移除padding */
-            }
-            .container {
-                box-shadow: none;
-                border: none;
-                padding: 0;
-                margin: 0;
-                max-width: 100%;
-            }
-            .criterion-card {
-                box-shadow: none;
-                border: 1px solid #ccc;
-            }
-            .comments-box textarea {
-                border: 1px solid #999;
-                background-image: linear-gradient(#ddd .1em, transparent .1em);
-            }
-            .score-input {
-                border: 1px solid #999;
-            }
-            .patient-info {
-                background-color: #fff;
-            }
-            /* 打印时隐藏PDF按钮 */
-            .pdf-download-button {
-                display: none;
-            }
-        }
+      }
     </style>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;700&family=Inter:wght@400;700&display=swap" rel="stylesheet">
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9472305505608641" crossorigin="anonymous"></script>
-</head>
-<body>
-      
- 
-  
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;700&family=Inter:wght@400;700&display=swap"
+      rel="stylesheet"
+    />
+    <script
+      async
+      src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9472305505608641"
+      crossorigin="anonymous"
+    ></script>
+  </head>
+  <body>
     <div class="container" id="relatorio-meem">
-        
-        <div class="header">
-            <h1>简明精神状态检查 - MMSE</h1>
-            
-            <img src="icondoc.webp" alt="护理计算器标志" class="logo">
-        </div>
+      <div class="header">
+        <h1>简明精神状态检查 - MMSE</h1>
 
-        <div class="patient-info">
-            <div><label>患者姓名:</label><span></span></div>
-            <div><label>出生日期:</label><span></span></div>
-            <div><label>年龄:</label><span></span></div>
-            <div><label>母亲姓名:</label><span></span></div>
-            <div><label>教育程度:</label><span></span></div>
-            <div><label>性别:</label><span></span></div>
-            <div><label>合并症:</label><span></span></div>
-            <div><label>转诊专业人员:</label><span></span></div>
-            <div><label>日期:</label><span></span></div>
-        </div>
+        <img src="icondoc.webp" alt="护理计算器标志" class="logo" />
+      </div>
 
-        <!-- MMSE量表开始 -->
+      <div class="patient-info">
+        <div><label>患者姓名:</label><span></span></div>
+        <div><label>出生日期:</label><span></span></div>
+        <div><label>年龄:</label><span></span></div>
+        <div><label>母亲姓名:</label><span></span></div>
+        <div><label>教育程度:</label><span></span></div>
+        <div><label>性别:</label><span></span></div>
+        <div><label>合并症:</label><span></span></div>
+        <div><label>转诊专业人员:</label><span></span></div>
+        <div><label>日期:</label><span></span></div>
+      </div>
 
-        <div class="criterion-card">
-            <h2 class="criterion-title">1. 时间定向力 (最高: 5分)</h2>
-            <p class="instruction">询问："现在是（年份/月份/日期/星期几）？大约几点？"</p>
-            <ul>
-                <li>年份</li>
-                <li>月份</li>
-                <li>日期</li>
-                <li>星期几</li>
-                <li>大约时间</li>
-            </ul>
-            <div class="score-box">
-                <strong>得分:</strong>
-                <input type="number" min="0" max="5" class="score-input">
-            </div>
-        </div>
+      <!-- MMSE量表开始 -->
 
-        <div class="criterion-card">
-            <h2 class="criterion-title">2. 空间定向力 (最高: 5分)</h2>
-            <p class="instruction">询问："我们在哪里？（这里是什么地方/街道/社区/城市/省份？）"</p>
-            <ul>
-                <li>地点（如：家，诊室）</li>
-                <li>街道</li>
-                <li>社区</li>
-                <li>城市</li>
-                <li>省份</li>
-            </ul>
-            <div class="score-box">
-                <strong>得分:</strong>
-                <input type="number" min="0" max="5" class="score-input">
-            </div>
+      <div class="criterion-card">
+        <h2 class="criterion-title">1. 时间定向力 (最高: 5分)</h2>
+        <p class="instruction">
+          询问："现在是（年份/月份/日期/星期几）？大约几点？"
+        </p>
+        <ul>
+          <li>年份</li>
+          <li>月份</li>
+          <li>日期</li>
+          <li>星期几</li>
+          <li>大约时间</li>
+        </ul>
+        <div class="score-box">
+          <strong>得分:</strong>
+          <input type="number" min="0" max="5" class="score-input" />
         </div>
+      </div>
 
-        <div class="criterion-card">
-            <h2 class="criterion-title">3. 记录 (最高: 3分)</h2>
-            <p class="instruction">"我要说三个词。请跟我重复：花瓶、汽车、砖头"。（首次正确重复得1分）</p>
-            <ul>
-                <li>词语1 (花瓶)</li>
-                <li>词语2 (汽车)</li>
-                <li>词语3 (砖头)</li>
-            </ul>
-            <div class="score-box">
-                <strong>得分:</strong>
-                <input type="number" min="0" max="3" class="score-input">
-            </div>
+      <div class="criterion-card">
+        <h2 class="criterion-title">2. 空间定向力 (最高: 5分)</h2>
+        <p class="instruction">
+          询问："我们在哪里？（这里是什么地方/街道/社区/城市/省份？）"
+        </p>
+        <ul>
+          <li>地点（如：家，诊室）</li>
+          <li>街道</li>
+          <li>社区</li>
+          <li>城市</li>
+          <li>省份</li>
+        </ul>
+        <div class="score-box">
+          <strong>得分:</strong>
+          <input type="number" min="0" max="5" class="score-input" />
         </div>
+      </div>
 
-        <div class="criterion-card">
-            <h2 class="criterion-title">4. 注意力和计算力 (最高: 5分)</h2>
-            <p class="instruction">选择其中一个选项：
-                <br>A) "从100减去7，继续从结果减去7，做5次。"（93, 86, 79, 72, 65）
-                <br>B) "将单词'世界'倒拼。" (O-D-N-U-M)
-            </p>
-            <ul>
-                <li>计算1（或字母1）</li>
-                <li>计算2（或字母2）</li>
-                <li>计算3（或字母3）</li>
-                <li>计算4（或字母4）</li>
-                <li>计算5（或字母5）</li>
-            </ul>
-            <div class="score-box">
-                <strong>得分:</strong>
-                <input type="number" min="0" max="5" class="score-input">
-            </div>
+      <div class="criterion-card">
+        <h2 class="criterion-title">3. 记录 (最高: 3分)</h2>
+        <p class="instruction">
+          "我要说三个词。请跟我重复：花瓶、汽车、砖头"。（首次正确重复得1分）
+        </p>
+        <ul>
+          <li>词语1 (花瓶)</li>
+          <li>词语2 (汽车)</li>
+          <li>词语3 (砖头)</li>
+        </ul>
+        <div class="score-box">
+          <strong>得分:</strong>
+          <input type="number" min="0" max="3" class="score-input" />
         </div>
+      </div>
 
-        <div class="criterion-card">
-            <h2 class="criterion-title">5. 记忆/回忆 (最高: 3分)</h2>
-            <p class="instruction">"刚才我让你重复的三个词是什么？"（花瓶、汽车、砖头）</p>
-            <ul>
-                <li>词语1 (花瓶)</li>
-                <li>词语2 (汽车)</li>
-                <li>词语3 (砖头)</li>
-            </ul>
-            <div class="score-box">
-                <strong>得分:</strong>
-                <input type="number" min="0" max="3" class="score-input">
-            </div>
+      <div class="criterion-card">
+        <h2 class="criterion-title">4. 注意力和计算力 (最高: 5分)</h2>
+        <p class="instruction">
+          选择其中一个选项： <br />A)
+          "从100减去7，继续从结果减去7，做5次。"（93, 86, 79, 72, 65） <br />B)
+          "将单词'世界'倒拼。" (O-D-N-U-M)
+        </p>
+        <ul>
+          <li>计算1（或字母1）</li>
+          <li>计算2（或字母2）</li>
+          <li>计算3（或字母3）</li>
+          <li>计算4（或字母4）</li>
+          <li>计算5（或字母5）</li>
+        </ul>
+        <div class="score-box">
+          <strong>得分:</strong>
+          <input type="number" min="0" max="5" class="score-input" />
         </div>
+      </div>
 
-        <div class="criterion-card">
-            <h2 class="criterion-title">6. 语言 - 命名 (最高: 2分)</h2>
-            <p class="instruction">出示2个物品（如：一个手表和一支笔）并询问每个的名称。</p>
-            <ul>
-                <li>物品1 (手表)</li>
-                <li>物品2 (笔)</li>
-            </ul>
-            <div class="score-box">
-                <strong>得分:</strong>
-                <input type="number" min="0" max="2" class="score-input">
-            </div>
+      <div class="criterion-card">
+        <h2 class="criterion-title">5. 记忆/回忆 (最高: 3分)</h2>
+        <p class="instruction">
+          "刚才我让你重复的三个词是什么？"（花瓶、汽车、砖头）
+        </p>
+        <ul>
+          <li>词语1 (花瓶)</li>
+          <li>词语2 (汽车)</li>
+          <li>词语3 (砖头)</li>
+        </ul>
+        <div class="score-box">
+          <strong>得分:</strong>
+          <input type="number" min="0" max="3" class="score-input" />
         </div>
+      </div>
 
-        <div class="criterion-card">
-            <h2 class="criterion-title">7. 语言 - 复述 (最高: 1分)</h2>
-            <p class="instruction">请患者重复这句话："不在这里，也不在那里，也不在别处"。（只有一次机会）</p>
-            <div class="score-box">
-                <strong>得分:</strong>
-                <input type="number" min="0" max="1" class="score-input">
-            </div>
+      <div class="criterion-card">
+        <h2 class="criterion-title">6. 语言 - 命名 (最高: 2分)</h2>
+        <p class="instruction">
+          出示2个物品（如：一个手表和一支笔）并询问每个的名称。
+        </p>
+        <ul>
+          <li>物品1 (手表)</li>
+          <li>物品2 (笔)</li>
+        </ul>
+        <div class="score-box">
+          <strong>得分:</strong>
+          <input type="number" min="0" max="2" class="score-input" />
         </div>
-        
-        <div class="criterion-card">
-            <h2 class="criterion-title">8. 语言 - 指令 (最高: 3分)</h2>
-            <p class="instruction">"按照这个三阶段指令进行：
-                <br>1. 用右手拿起这张纸。
-                <br>2. 将它对折。
-                <br>3. 把它放在桌上。"
-            </p>
-            <ul>
-                <li>阶段1 (右手)</li>
-                <li>阶段2 (对折)</li>
-                <li>阶段3 (放在桌上)</li>
-            </ul>
-            <div class="score-box">
-                <strong>得分:</strong>
-                <input type="number" min="0" max="3" class="score-input">
-            </div>
-        </div>
+      </div>
 
-        <div class="criterion-card">
-            <h2 class="criterion-title">9. 语言 - 阅读 (最高: 1分)</h2>
-            <p class="instruction">给患者一张写着"闭上眼睛"的纸条。请患者阅读并执行指令。</p>
-            <div class="score-box">
-                <strong>得分:</strong>
-                <input type="number" min="0" max="1" class="score-input">
-            </div>
+      <div class="criterion-card">
+        <h2 class="criterion-title">7. 语言 - 复述 (最高: 1分)</h2>
+        <p class="instruction">
+          请患者重复这句话："不在这里，也不在那里，也不在别处"。（只有一次机会）
+        </p>
+        <div class="score-box">
+          <strong>得分:</strong>
+          <input type="number" min="0" max="1" class="score-input" />
         </div>
+      </div>
 
-        <div class="criterion-card">
-            <h2 class="criterion-title">10. 语言 - 书写 (最高: 1分)</h2>
-            <p class="instruction">请患者写一个完整的句子（必须有主语和动词/谓语且要有意义）。（忽略拼写错误）</p>
-            <div class="score-box">
-                <strong>得分:</strong>
-                <input type="number" min="0" max="1" class="score-input">
-            </div>
+      <div class="criterion-card">
+        <h2 class="criterion-title">8. 语言 - 指令 (最高: 3分)</h2>
+        <p class="instruction">
+          "按照这个三阶段指令进行： <br />1. 用右手拿起这张纸。 <br />2.
+          将它对折。 <br />3. 把它放在桌上。"
+        </p>
+        <ul>
+          <li>阶段1 (右手)</li>
+          <li>阶段2 (对折)</li>
+          <li>阶段3 (放在桌上)</li>
+        </ul>
+        <div class="score-box">
+          <strong>得分:</strong>
+          <input type="number" min="0" max="3" class="score-input" />
         </div>
+      </div>
 
-        <div class="criterion-card">
-            <h2 class="criterion-title">11. 构写技能 - 临摹 (最高: 1分)</h2>
-            <p class="instruction">请患者临摹相连五角形图。（如果所有10个角都存在且两个五角形相交形成四边形，得1分）</p>
-            <div class="pentagon-container">
-                <img src="pentagono.webp" alt="相连五角形">
-            </div>
-            <div class="score-box">
-                <strong>得分:</strong>
-                <input type="number" min="0" max="1" class="score-input">
-            </div>
+      <div class="criterion-card">
+        <h2 class="criterion-title">9. 语言 - 阅读 (最高: 1分)</h2>
+        <p class="instruction">
+          给患者一张写着"闭上眼睛"的纸条。请患者阅读并执行指令。
+        </p>
+        <div class="score-box">
+          <strong>得分:</strong>
+          <input type="number" min="0" max="1" class="score-input" />
         </div>
+      </div>
 
-        <!-- 评分部分 -->
-        <div class="scoring-section">
-            <h3>评分解释（建议截断分数）</h3>
-            <p>MMSE的截断分数受教育程度影响很大。以下数值常被用作巴西的参考标准：</p>
-            <table>
-                <thead>
-                    <tr>
-                        <th>教育程度</th>
-                        <th>截断分数（建议）</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td>文盲/无教育</td>
-                        <td>18-20分</td>
-                    </tr>
-                    <tr>
-                        <td>1-4年（低教育）</td>
-                        <td>25分</td>
-                    </tr>
-                    <tr>
-                        <td>5-8年（中等教育）</td>
-                        <td>26.5分</td>
-                    </tr>
-                    <tr>
-                        <td>9-11年（中等教育）</td>
-                        <td>28分</td>
-                    </tr>
-                    <tr>
-                        <td>12年以上（高教育）</td>
-                        <td>29分</td>
-                    </tr>
-                </tbody>
-            </table>
-            <p style="font-size: 13px; margin-top: 10px;"><strong>注意：</strong>回忆（记忆）和时间定向力的错误应予以重视，即使最终得分超过截断分数。</p>
+      <div class="criterion-card">
+        <h2 class="criterion-title">10. 语言 - 书写 (最高: 1分)</h2>
+        <p class="instruction">
+          请患者写一个完整的句子（必须有主语和动词/谓语且要有意义）。（忽略拼写错误）
+        </p>
+        <div class="score-box">
+          <strong>得分:</strong>
+          <input type="number" min="0" max="1" class="score-input" />
         </div>
+      </div>
 
-        <!-- 评论框 -->
-        <div class="comments-box">
-            <h3>结果和评估者评论</h3>
-            <textarea placeholder="输入总分、基于教育程度的解释和其他评论..."></textarea>
+      <div class="criterion-card">
+        <h2 class="criterion-title">11. 构写技能 - 临摹 (最高: 1分)</h2>
+        <p class="instruction">
+          请患者临摹相连五角形图。（如果所有10个角都存在且两个五角形相交形成四边形，得1分）
+        </p>
+        <div class="pentagon-container">
+          <img src="pentagono.webp" alt="相连五角形" />
         </div>
-
-        <!-- 带参考的页脚 -->
-        <div class="footer">
-            <p><strong>参考文献：</strong></p>
-            <p>Folstein, M. F., Folstein, S. E., & McHugh, P. R. (1975). <a href="https://pubmed.ncbi.nlm.nih.gov/11753447/" target="_blank" rel="noopener noreferrer" class="text-light-blue hover:underline">
-                "Mini-mental state": a practical method for grading the cognitive state of patients for the clinician.
-            </a> Journal of psychiatric research, 12(3), 189-198.</p>
+        <div class="score-box">
+          <strong>得分:</strong>
+          <input type="number" min="0" max="1" class="score-input" />
         </div>
+      </div>
 
+      <!-- 评分部分 -->
+      <div class="scoring-section">
+        <h3>评分解释（建议截断分数）</h3>
+        <p>
+          MMSE的截断分数受教育程度影响很大。以下数值常被用作巴西的参考标准：
+        </p>
+        <table>
+          <thead>
+            <tr>
+              <th>教育程度</th>
+              <th>截断分数（建议）</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>文盲/无教育</td>
+              <td>18-20分</td>
+            </tr>
+            <tr>
+              <td>1-4年（低教育）</td>
+              <td>25分</td>
+            </tr>
+            <tr>
+              <td>5-8年（中等教育）</td>
+              <td>26.5分</td>
+            </tr>
+            <tr>
+              <td>9-11年（中等教育）</td>
+              <td>28分</td>
+            </tr>
+            <tr>
+              <td>12年以上（高教育）</td>
+              <td>29分</td>
+            </tr>
+          </tbody>
+        </table>
+        <p style="font-size: 13px; margin-top: 10px">
+          <strong>注意：</strong
+          >回忆（记忆）和时间定向力的错误应予以重视，即使最终得分超过截断分数。
+        </p>
+      </div>
+
+      <!-- 评论框 -->
+      <div class="comments-box">
+        <h3>结果和评估者评论</h3>
+        <textarea
+          placeholder="输入总分、基于教育程度的解释和其他评论..."
+        ></textarea>
+      </div>
+
+      <!-- 带参考的页脚 -->
+      <div class="footer">
+        <p><strong>参考文献：</strong></p>
+        <p>
+          Folstein, M. F., Folstein, S. E., & McHugh, P. R. (1975).
+          <a
+            href="https://pubmed.ncbi.nlm.nih.gov/11753447/"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="text-light-blue hover:underline"
+          >
+            "Mini-mental state": a practical method for grading the cognitive
+            state of patients for the clinician.
+          </a>
+          Journal of psychiatric research, 12(3), 189-198.
+        </p>
+      </div>
     </div>
 
-    
-<!-- 浮动按钮下载PDF -->
-<button id="btnBaixarPDF" class="pdf-download-button" title="将此报告下载为PDF">
-  <div class="pdf-icon"><i class="fas fa-file-pdf"></i></div>
-  <div class="pdf-text">下载PDF</div>
+    <!-- 浮动按钮下载PDF -->
+    <button
+      id="btnBaixarPDF"
+      class="pdf-download-button"
+      title="将此报告下载为PDF"
+    >
+      <div class="pdf-icon"><i class="fas fa-file-pdf"></i></div>
+      <div class="pdf-text">下载PDF</div>
+    </button>
+    <script>
+      (function () {
+        const HTML2PDF_CDN =
+          "https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js";
 
-</button>
-<script>
-(function () {
-  const HTML2PDF_CDN = 'https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js';
+        function ensureHtml2pdf() {
+          return new Promise((resolve, reject) => {
+            if (window.html2pdf) return resolve(window.html2pdf);
+            const s = document.createElement("script");
+            s.src = HTML2PDF_CDN;
+            s.onload = () => resolve(window.html2pdf);
+            s.onerror = () => reject(new Error("加载html2pdf失败"));
+            document.head.appendChild(s);
+          });
+        }
 
-  function ensureHtml2pdf() {
-    return new Promise((resolve, reject) => {
-      if (window.html2pdf) return resolve(window.html2pdf);
-      const s = document.createElement('script');
-      s.src = HTML2PDF_CDN;
-      s.onload = () => resolve(window.html2pdf);
-      s.onerror = () => reject(new Error('加载html2pdf失败'));
-      document.head.appendChild(s);
-    });
-  }
+        function montarConteudoMEEM() {
+          const wrapperOriginal = document.getElementById("relatorio-meem");
+          if (!wrapperOriginal) {
+            alert("找不到元素#relatorio-meem。");
+            return null;
+          }
 
-  function montarConteudoMEEM() {
-    const wrapperOriginal = document.getElementById('relatorio-meem');
-    if (!wrapperOriginal) {
-      alert('找不到元素#relatorio-meem。');
-      return null;
-    }
+          const clone = wrapperOriginal.cloneNode(true);
+          clone
+            .querySelectorAll(".pdf-download-button, #btnBaixarPDF")
+            .forEach((el) => el.remove());
 
-    const clone = wrapperOriginal.cloneNode(true);
-    clone.querySelectorAll('.pdf-download-button, #btnBaixarPDF').forEach(el => el.remove());
+          // --- 应用修正 ---
+          // 将固定宽度设置为'mm'以对应A4纸张(210mm)
+          // 减去边距（例如每边15mm）。
+          // 内容宽度 = 210mm - 15mm - 15mm = 180mm。
 
-    // --- 应用修正 ---
-    // 将固定宽度设置为'mm'以对应A4纸张(210mm)
-    // 减去边距（例如每边15mm）。
-    // 内容宽度 = 210mm - 15mm - 15mm = 180mm。
-    
-    clone.style.width = '180mm';      // 固定宽度
-    clone.style.maxWidth = '180mm';   // 保证最大宽度
-    clone.style.margin = '0 auto';
-    clone.style.background = '#fff';
-    clone.style.padding = '1cm';      // (10mm) 保留padding，box-sizing处理它。
-    clone.style.boxSizing = 'border-box'; // 对padding不超出总宽度至关重要
-    clone.style.fontFamily = 'Inter, Arial, sans-serif';
-    // --- 修正结束 ---
+          clone.style.width = "180mm"; // 固定宽度
+          clone.style.maxWidth = "180mm"; // 保证最大宽度
+          clone.style.margin = "0 auto";
+          clone.style.background = "#fff";
+          clone.style.padding = "1cm"; // (10mm) 保留padding，box-sizing处理它。
+          clone.style.boxSizing = "border-box"; // 对padding不超出总宽度至关重要
+          clone.style.fontFamily = "Inter, Arial, sans-serif";
+          // --- 修正结束 ---
 
-    const cabecalho = document.createElement('div');
-    cabecalho.style.textAlign = 'center';
-    cabecalho.style.marginBottom = '10px';
-    cabecalho.innerHTML = `
+          const cabecalho = document.createElement("div");
+          cabecalho.style.textAlign = "center";
+          cabecalho.style.marginBottom = "10px";
+          cabecalho.innerHTML = `
       <h1 style="font-size:20px; margin:0; color:#1A3E74;">简明精神状态检查 - MMSE</h1>
       <div style="font-size:12px; color:#666;">自动生成的报告</div>
       <div style="font-size:11px; color:#999;">${new Date().toLocaleString()}</div>
       <hr style="margin-top:8px; border:none; border-top:1px solid #ccc;">
     `;
-    clone.insertBefore(cabecalho, clone.firstChild);
+          clone.insertBefore(cabecalho, clone.firstChild);
 
-    const style = document.createElement('style');
-    style.textContent = `
+          const style = document.createElement("style");
+          style.textContent = `
       .criterion-card, .patient-info {
         page-break-inside: avoid !important;
         break-inside: avoid !important;
@@ -638,52 +693,55 @@
         page-break-after: avoid !important;
       }
     `;
-    clone.prepend(style);
+          clone.prepend(style);
 
-    return clone;
-  }
+          return clone;
+        }
 
-  async function gerarPDF() {
-    const content = montarConteudoMEEM();
-    if (!content) return;
+        async function gerarPDF() {
+          const content = montarConteudoMEEM();
+          if (!content) return;
 
-    await ensureHtml2pdf();
+          await ensureHtml2pdf();
 
-    // --- 应用修正 ---
-    const opt = {
-      // 以mm定义边距。(每边15mm)
-      margin: 15, 
-      filename: `简明精神状态检查-MMSE_${new Date().toISOString().slice(0,19).replace(/[:T]/g,'-')}.pdf`,
-      image: { type: 'jpeg', quality: 0.98 },
-      html2canvas: {
-        scale: 2,
-        useCORS: true,
-        // 移除windowWidth和windowHeight，让库
-        // 使用'content'的固定宽度。
-      },
-      // 将单位改为'mm'并保持'a4'
-      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-      pagebreak: { mode: ['css', 'legacy'] }
-    };
-    // --- 修正结束 ---
+          // --- 应用修正 ---
+          const opt = {
+            // 以mm定义边距。(每边15mm)
+            margin: 15,
+            filename: `简明精神状态检查-MMSE_${new Date().toISOString().slice(0, 19).replace(/[:T]/g, "-")}.pdf`,
+            image: { type: "jpeg", quality: 0.98 },
+            html2canvas: {
+              scale: 2,
+              useCORS: true,
+              // 移除windowWidth和windowHeight，让库
+              // 使用'content'的固定宽度。
+            },
+            // 将单位改为'mm'并保持'a4'
+            jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
+            pagebreak: { mode: ["css", "legacy"] },
+          };
+          // --- 修正结束 ---
 
-    const imgs = content.querySelectorAll('img');
-    await Promise.all(Array.from(imgs).map(img => new Promise(res => {
-      if (img.complete) res();
-      else img.onload = img.onerror = res;
-    })));
+          const imgs = content.querySelectorAll("img");
+          await Promise.all(
+            Array.from(imgs).map(
+              (img) =>
+                new Promise((res) => {
+                  if (img.complete) res();
+                  else img.onload = img.onerror = res;
+                }),
+            ),
+          );
 
-    html2pdf().set(opt).from(content).save();
-  }
+          html2pdf().set(opt).from(content).save();
+        }
 
-  document.addEventListener('DOMContentLoaded', () => {
-    const btn = document.getElementById('btnBaixarPDF');
-    if (!btn) return;
-    btn.addEventListener('click', gerarPDF);
-  });
-})();
-</script>
-
-
-</body>
+        document.addEventListener("DOMContentLoaded", () => {
+          const btn = document.getElementById("btnBaixarPDF");
+          if (!btn) return;
+          btn.addEventListener("click", gerarPDF);
+        });
+      })();
+    </script>
+  </body>
 </html>

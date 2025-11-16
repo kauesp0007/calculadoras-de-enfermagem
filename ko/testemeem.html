@@ -1,620 +1,679 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ko">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>간이 정신 상태 검사 - MEEM</title>
     <!-- Adicionada biblioteca de ícones (Font Awesome) para o ícone do botão PDF -->
-    <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'"><noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"></noscript>
-    
+    <link
+      rel="preload"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+      as="style"
+      onload="this.onload=null;this.rel='stylesheet'"
+    />
+    <noscript
+      ><link
+        rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+    /></noscript>
+
     <style>
-        /* Estilos Globais */
+      /* Estilos Globais */
+      body {
+        font-family:
+          -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica,
+          Arial, sans-serif;
+        background-color: #f9fafb;
+        color: #333;
+        line-height: 1.6;
+        margin: 0;
+        padding: 0;
+        /* Garante espaço para o botão flutuante */
+        padding-bottom: 120px;
+      }
+
+      .container {
+        max-width: 800px;
+        margin: 20px auto;
+        padding: 20px;
+        background-color: #ffffff;
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        border: 1px solid #e5e7eb;
+      }
+
+      /* Cabeçalho */
+      .header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-bottom: 2px solid #1a3e74; /* Cor do seu site */
+        padding-bottom: 15px;
+        margin-bottom: 20px;
+        page-break-inside: avoid; /* Evitar quebra no cabeçalho */
+      }
+
+      .header h1 {
+        font-size: 28px;
+        font-weight: 900;
+        color: #1a3e74;
+        margin: 0;
+      }
+
+      .header .logo {
+        max-width: 100px;
+        height: auto;
+        border-radius: 8px;
+      }
+
+      /* Informações do Paciente */
+      .patient-info {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 15px;
+        margin-bottom: 25px;
+        padding: 15px;
+        background-color: #fdfdfd;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        page-break-inside: avoid; /* Evitar quebra aqui */
+      }
+
+      .patient-info div {
+        font-size: 14px;
+      }
+
+      .patient-info label {
+        font-weight: 600;
+        color: #555;
+        display: block;
+        margin-bottom: 2px;
+      }
+
+      .patient-info span {
+        display: block;
+        min-height: 20px;
+        border-bottom: 1px dotted #ccc;
+      }
+
+      /* Ajuste para a data ficar na linha inteira se for ímpar */
+      .patient-info div:last-child:nth-child(odd) {
+        grid-column: 1 / -1;
+      }
+
+      /* Estilo dos Critérios (Baseado no seu meem.html) */
+      .criterion-card {
+        background-color: #fff;
+        border: 1px solid #d1d5db;
+        border-radius: 12px;
+        padding: 20px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        margin-bottom: 20px;
+        page-break-inside: avoid; /* Tenta evitar quebrar cartões */
+      }
+
+      .criterion-title {
+        font-size: 18px;
+        font-weight: 700;
+        color: #1a3e74;
+        margin-bottom: 12px;
+        text-align: left; /* Padrão solicitado */
+      }
+
+      .criterion-card p,
+      .criterion-card ul {
+        margin: 0 0 10px 0;
+        padding-left: 0;
+        font-size: 15px;
+      }
+
+      .criterion-card li {
+        list-style-type: none;
+        position: relative;
+        padding-left: 20px;
+        margin-bottom: 5px;
+      }
+
+      .criterion-card li::before {
+        content: "•";
+        position: absolute;
+        left: 0;
+        color: #1fa4e5; /* Cor do seu site */
+        font-weight: bold;
+      }
+
+      .criterion-card .instruction {
+        font-style: italic;
+        color: #666;
+        font-size: 14px;
+        border-left: 3px solid #1fa4e5;
+        padding-left: 10px;
+        margin-top: 10px;
+      }
+
+      .score-box {
+        display: flex;
+        justify-content: flex-end;
+        align-items: center;
+        border-top: 1px solid #eee;
+        padding-top: 15px;
+        margin-top: 15px;
+      }
+
+      .score-box strong {
+        font-size: 14px;
+        color: #333;
+        margin-right: 10px;
+      }
+
+      .score-box .score-input {
+        width: 70px;
+        padding: 5px 8px;
+        border: 1px solid #ccc;
+        border-radius: 6px;
+        font-size: 16px;
+        text-align: center;
+      }
+
+      /* Desenho (Pentágonos) */
+      .pentagon-container {
+        text-align: center;
+        margin: 15px 0;
+      }
+
+      .pentagon-container img {
+        max-width: 250px; /* Ajuste o tamanho se necessário */
+        height: auto;
+      }
+
+      /* Avaliação do Escore */
+      .scoring-section {
+        padding: 20px;
+        background-color: #fdfdfd;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        margin-top: 25px;
+        page-break-inside: avoid; /* Tenta evitar quebrar esta seção */
+      }
+
+      .scoring-section h3 {
+        margin-top: 0;
+        color: #1a3e74;
+        border-bottom: 1px solid #eee;
+        padding-bottom: 8px;
+      }
+
+      .scoring-section table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 10px;
+      }
+
+      .scoring-section th,
+      .scoring-section td {
+        border: 1px solid #ddd;
+        padding: 8px;
+        text-align: left;
+      }
+
+      .scoring-section th {
+        background-color: #f4f4f4;
+        font-weight: 600;
+      }
+
+      /* Caixa de Comentários */
+      .comments-box {
+        margin-top: 25px;
+        page-break-inside: avoid; /* Tenta evitar quebrar esta caixa */
+      }
+
+      .comments-box h3 {
+        font-size: 18px;
+        font-weight: 700;
+        color: #1a3e74;
+        margin-bottom: 10px;
+      }
+
+      .comments-box textarea {
+        width: 100%;
+        height: 150px;
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        padding: 10px;
+        font-family: inherit;
+        font-size: 14px;
+        line-height: 1.8;
+        /* Truque para linhas */
+        background-image: linear-gradient(#eee 0.1em, transparent 0.1em);
+        background-size: 100% 1.8em;
+        background-attachment: local;
+        box-sizing: border-box; /* Garante que o padding não estrague o layout */
+      }
+
+      /* Rodapé */
+      .footer {
+        margin-top: 30px;
+        padding-top: 15px;
+        border-top: 1px solid #e5e7eb;
+        font-size: 12px;
+        color: #777;
+        text-align: center;
+        page-break-inside: avoid; /* Tenta manter o rodapé junto */
+      }
+
+      .footer p {
+        margin: 0;
+      }
+
+      /* --- Botão Flutuante de PDF --- */
+      .pdf-download-button {
+        position: fixed;
+        bottom: 25px;
+        right: 25px;
+        background-color: #1a3e74; /* Cor primária do site */
+        color: #fff;
+        border: none;
+        border-radius: 12px;
+        padding: 1rem;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        transition: all 0.3s ease;
+        cursor: pointer;
+        z-index: 1000;
+        width: 160px; /* Largura do cartão */
+        text-align: center;
+        font-family:
+          -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica,
+          Arial, sans-serif;
+      }
+
+      .pdf-download-button:hover {
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.25);
+        transform: translateY(-4px); /* Efeito de "mexida" */
+      }
+
+      .pdf-download-button .pdf-icon {
+        font-size: 2.5rem; /* Ícone grande */
+        margin-bottom: 0.5rem;
+      }
+
+      .pdf-download-button .pdf-text {
+        font-size: 1rem;
+        font-weight: 600;
+        line-height: 1.3;
+      }
+
+      /* --- Fim do Botão Flutuante --- */
+
+      /* Impressão */
+      @media print {
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background-color: #f9fafb;
-            color: #333;
-            line-height: 1.6;
-            margin: 0;
-            padding: 0;
-            /* Garante espaço para o botão flutuante */
-            padding-bottom: 120px; 
+          background-color: #fff;
+          font-size: 12pt;
+          padding-bottom: 0; /* Remove padding na impressão */
         }
-
         .container {
-            max-width: 800px;
-            margin: 20px auto;
-            padding: 20px;
-            background-color: #ffffff;
-            border-radius: 12px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-            border: 1px solid #e5e7eb;
+          box-shadow: none;
+          border: none;
+          padding: 0;
+          margin: 0;
+          max-width: 100%;
         }
-
-        /* Cabeçalho */
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 2px solid #1A3E74; /* Cor do seu site */
-            padding-bottom: 15px;
-            margin-bottom: 20px;
-            page-break-inside: avoid; /* Evitar quebra no cabeçalho */
-        }
-
-        .header h1 {
-            font-size: 28px;
-            font-weight: 900;
-            color: #1A3E74;
-            margin: 0;
-        }
-
-        .header .logo {
-            max-width: 100px;
-            height: auto;
-            border-radius: 8px;
-        }
-
-        /* Informações do Paciente */
-        .patient-info {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 15px;
-            margin-bottom: 25px;
-            padding: 15px;
-            background-color: #fdfdfd;
-            border: 1px solid #e5e7eb;
-            border-radius: 8px;
-            page-break-inside: avoid; /* Evitar quebra aqui */
-        }
-
-        .patient-info div {
-            font-size: 14px;
-        }
-
-        .patient-info label {
-            font-weight: 600;
-            color: #555;
-            display: block;
-            margin-bottom: 2px;
-        }
-
-        .patient-info span {
-            display: block;
-            min-height: 20px;
-            border-bottom: 1px dotted #ccc;
-        }
-        
-        /* Ajuste para a data ficar na linha inteira se for ímpar */
-        .patient-info div:last-child:nth-child(odd) {
-            grid-column: 1 / -1;
-        }
-
-
-        /* Estilo dos Critérios (Baseado no seu meem.html) */
         .criterion-card {
-            background-color: #fff;
-            border: 1px solid #d1d5db;
-            border-radius: 12px;
-            padding: 20px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-            margin-bottom: 20px;
-            page-break-inside: avoid; /* Tenta evitar quebrar cartões */
+          box-shadow: none;
+          border: 1px solid #ccc;
         }
-
-        .criterion-title {
-            font-size: 18px;
-            font-weight: 700;
-            color: #1A3E74;
-            margin-bottom: 12px;
-            text-align: left; /* Padrão solicitado */
-        }
-
-        .criterion-card p,
-        .criterion-card ul {
-            margin: 0 0 10px 0;
-            padding-left: 0;
-            font-size: 15px;
-        }
-
-        .criterion-card li {
-            list-style-type: none;
-            position: relative;
-            padding-left: 20px;
-            margin-bottom: 5px;
-        }
-        
-        .criterion-card li::before {
-            content: "•";
-            position: absolute;
-            left: 0;
-            color: #1FA4E5; /* Cor do seu site */
-            font-weight: bold;
-        }
-        
-        .criterion-card .instruction {
-            font-style: italic;
-            color: #666;
-            font-size: 14px;
-            border-left: 3px solid #1FA4E5;
-            padding-left: 10px;
-            margin-top: 10px;
-        }
-
-        .score-box {
-            display: flex;
-            justify-content: flex-end;
-            align-items: center;
-            border-top: 1px solid #eee;
-            padding-top: 15px;
-            margin-top: 15px;
-        }
-
-        .score-box strong {
-            font-size: 14px;
-            color: #333;
-            margin-right: 10px;
-        }
-
-        .score-box .score-input {
-            width: 70px;
-            padding: 5px 8px;
-            border: 1px solid #ccc;
-            border-radius: 6px;
-            font-size: 16px;
-            text-align: center;
-        }
-
-        /* Desenho (Pentágonos) */
-        .pentagon-container {
-            text-align: center;
-            margin: 15px 0;
-        }
-        
-        .pentagon-container img {
-            max-width: 250px; /* Ajuste o tamanho se necessário */
-            height: auto;
-        }
-
-        /* Avaliação do Escore */
-        .scoring-section {
-            padding: 20px;
-            background-color: #fdfdfd;
-            border: 1px solid #e5e7eb;
-            border-radius: 8px;
-            margin-top: 25px;
-            page-break-inside: avoid; /* Tenta evitar quebrar esta seção */
-        }
-
-        .scoring-section h3 {
-            margin-top: 0;
-            color: #1A3E74;
-            border-bottom: 1px solid #eee;
-            padding-bottom: 8px;
-        }
-        
-        .scoring-section table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 10px;
-        }
-        
-        .scoring-section th, .scoring-section td {
-            border: 1px solid #ddd;
-            padding: 8px;
-            text-align: left;
-        }
-        
-        .scoring-section th {
-            background-color: #f4f4f4;
-            font-weight: 600;
-        }
-
-        /* Caixa de Comentários */
-        .comments-box {
-            margin-top: 25px;
-            page-break-inside: avoid; /* Tenta evitar quebrar esta caixa */
-        }
-        
-        .comments-box h3 {
-            font-size: 18px;
-            font-weight: 700;
-            color: #1A3E74;
-            margin-bottom: 10px;
-        }
-
         .comments-box textarea {
-            width: 100%;
-            height: 150px;
-            border: 1px solid #ccc;
-            border-radius: 8px;
-            padding: 10px;
-            font-family: inherit;
-            font-size: 14px;
-            line-height: 1.8;
-            /* Truque para linhas */
-            background-image: linear-gradient(#eee .1em, transparent .1em);
-            background-size: 100% 1.8em;
-            background-attachment: local;
-            box-sizing: border-box; /* Garante que o padding não estrague o layout */
+          border: 1px solid #999;
+          background-image: linear-gradient(#ddd 0.1em, transparent 0.1em);
         }
-
-        /* Rodapé */
-        .footer {
-            margin-top: 30px;
-            padding-top: 15px;
-            border-top: 1px solid #e5e7eb;
-            font-size: 12px;
-            color: #777;
-            text-align: center;
-            page-break-inside: avoid; /* Tenta manter o rodapé junto */
+        .score-input {
+          border: 1px solid #999;
         }
-
-        .footer p {
-            margin: 0;
+        .patient-info {
+          background-color: #fff;
         }
-
-        /* --- Botão Flutuante de PDF --- */
+        /* Esconde o botão de PDF durante a impressão */
         .pdf-download-button {
-            position: fixed;
-            bottom: 25px;
-            right: 25px;
-            background-color: #1A3E74; /* Cor primária do site */
-            color: #fff;
-            border: none;
-            border-radius: 12px;
-            padding: 1rem;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-            transition: all 0.3s ease;
-            cursor: pointer;
-            z-index: 1000;
-            width: 160px; /* Largura do cartão */
-            text-align: center;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+          display: none;
         }
-
-        .pdf-download-button:hover {
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.25);
-            transform: translateY(-4px); /* Efeito de "mexida" */
-        }
-
-        .pdf-download-button .pdf-icon {
-            font-size: 2.5rem; /* Ícone grande */
-            margin-bottom: 0.5rem;
-        }
-
-        .pdf-download-button .pdf-text {
-            font-size: 1rem;
-            font-weight: 600;
-            line-height: 1.3;
-        }
-        
-        /* --- Fim do Botão Flutuante --- */
-
-
-        /* Impressão */
-        @media print {
-            body {
-                background-color: #fff;
-                font-size: 12pt;
-                padding-bottom: 0; /* Remove padding na impressão */
-            }
-            .container {
-                box-shadow: none;
-                border: none;
-                padding: 0;
-                margin: 0;
-                max-width: 100%;
-            }
-            .criterion-card {
-                box-shadow: none;
-                border: 1px solid #ccc;
-            }
-            .comments-box textarea {
-                border: 1px solid #999;
-                background-image: linear-gradient(#ddd .1em, transparent .1em);
-            }
-            .score-input {
-                border: 1px solid #999;
-            }
-            .patient-info {
-                background-color: #fff;
-            }
-            /* Esconde o botão de PDF durante a impressão */
-            .pdf-download-button {
-                display: none;
-            }
-        }
+      }
     </style>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;700&family=Inter:wght@400;700&display=swap" rel="stylesheet">
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9472305505608641" crossorigin="anonymous"></script>
-</head>
-<body>
-      
- 
-  
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;700&family=Inter:wght@400;700&display=swap"
+      rel="stylesheet"
+    />
+    <script
+      async
+      src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9472305505608641"
+      crossorigin="anonymous"
+    ></script>
+  </head>
+  <body>
     <div class="container" id="relatorio-meem">
-        
-        <div class="header">
-            <h1>간이 정신 상태 검사 - MEEM</h1>
-            
-            <img src="icondoc.webp" alt="간호 계산기 로고" class="logo">
-        </div>
+      <div class="header">
+        <h1>간이 정신 상태 검사 - MEEM</h1>
 
-        <div class="patient-info">
-            <div><label>환자 성명:</label><span></span></div>
-            <div><label>생년월일:</label><span></span></div>
-            <div><label>나이:</label><span></span></div>
-            <div><label>어머니 성명:</label><span></span></div>
-            <div><label>학력:</label><span></span></div>
-            <div><label>성별:</label><span></span></div>
-            <div><label>동반 질환:</label><span></span></div>
-            <div><label>전문가 참조:</label><span></span></div>
-            <div><label>날짜:</label><span></span></div>
-        </div>
+        <img src="icondoc.webp" alt="간호 계산기 로고" class="logo" />
+      </div>
 
-        <!-- Início da Escala MEEM -->
+      <div class="patient-info">
+        <div><label>환자 성명:</label><span></span></div>
+        <div><label>생년월일:</label><span></span></div>
+        <div><label>나이:</label><span></span></div>
+        <div><label>어머니 성명:</label><span></span></div>
+        <div><label>학력:</label><span></span></div>
+        <div><label>성별:</label><span></span></div>
+        <div><label>동반 질환:</label><span></span></div>
+        <div><label>전문가 참조:</label><span></span></div>
+        <div><label>날짜:</label><span></span></div>
+      </div>
 
-        <div class="criterion-card">
-            <h2 class="criterion-title">1. 시간 지남력 (최대: 5점)</h2>
-            <p class="instruction">질문: "지금이 (몇 년 / 몇 월 / 며칠 / 무슨 요일)입니까? 지금 몇 시(쯤)입니까?"</p>
-            <ul>
-                <li>년도</li>
-                <li>월</li>
-                <li>일</li>
-                <li>요일</li>
-                <li>대략적인 시간</li>
-            </ul>
-            <div class="score-box">
-                <strong>점수:</strong>
-                <input type="number" min="0" max="5" class="score-input">
-            </div>
-        </div>
+      <!-- Início da Escala MEEM -->
 
-        <div class="criterion-card">
-            <h2 class="criterion-title">2. 장소 지남력 (최대: 5점)</h2>
-            <p class="instruction">질문: "우리가 어디에 있습니까? (여기가 어떤 곳 / 거리 / 동네 / 도시 / 도입니까?)"</p>
-            <ul>
-                <li>장소 (예: 집, 병원)</li>
-                <li>거리</li>
-                <li>동네</li>
-                <li>도시</li>
-                <li>도 (시/도)</li>
-            </ul>
-            <div class="score-box">
-                <strong>점수:</strong>
-                <input type="number" min="0" max="5" class="score-input">
-            </div>
+      <div class="criterion-card">
+        <h2 class="criterion-title">1. 시간 지남력 (최대: 5점)</h2>
+        <p class="instruction">
+          질문: "지금이 (몇 년 / 몇 월 / 며칠 / 무슨 요일)입니까? 지금 몇
+          시(쯤)입니까?"
+        </p>
+        <ul>
+          <li>년도</li>
+          <li>월</li>
+          <li>일</li>
+          <li>요일</li>
+          <li>대략적인 시간</li>
+        </ul>
+        <div class="score-box">
+          <strong>점수:</strong>
+          <input type="number" min="0" max="5" class="score-input" />
         </div>
+      </div>
 
-        <div class="criterion-card">
-            <h2 class="criterion-title">3. 기억 등록 (최대: 3점)</h2>
-            <p class="instruction">"제가 3가지 단어를 말할 것입니다. 따라 해보세요: 화병, 자동차, 벽돌". (첫 시도에서 정확하게 반복할 때마다 1점).</p>
-            <ul>
-                <li>단어 1 (화병)</li>
-                <li>단어 2 (자동차)</li>
-                <li>단어 3 (벽돌)</li>
-            </ul>
-            <div class="score-box">
-                <strong>점수:</strong>
-                <input type="number" min="0" max="3" class="score-input">
-            </div>
+      <div class="criterion-card">
+        <h2 class="criterion-title">2. 장소 지남력 (최대: 5점)</h2>
+        <p class="instruction">
+          질문: "우리가 어디에 있습니까? (여기가 어떤 곳 / 거리 / 동네 / 도시 /
+          도입니까?)"
+        </p>
+        <ul>
+          <li>장소 (예: 집, 병원)</li>
+          <li>거리</li>
+          <li>동네</li>
+          <li>도시</li>
+          <li>도 (시/도)</li>
+        </ul>
+        <div class="score-box">
+          <strong>점수:</strong>
+          <input type="number" min="0" max="5" class="score-input" />
         </div>
+      </div>
 
-        <div class="criterion-card">
-            <h2 class="criterion-title">4. 주의력 및 계산 (최대: 5점)</h2>
-            <p class="instruction">두 가지 중 하나를 선택하세요:
-                <br>A) "100에서 7을 빼고, 그 결과에서 계속 7을 5번 빼보세요." (93, 86, 79, 72, 65)
-                <br>B) "세상'이라는 단어를 거꾸로 말해보세요." (상-세) (한국어 적용: 예: "서울" -> "울서")
-            </p>
-            <ul>
-                <li>계산 1 (또는 글자 1)</li>
-                <li>계산 2 (또는 글자 2)</li>
-                <li>계산 3 (또는 글자 3)</li>
-                <li>계산 4 (또는 글자 4)</li>
-                <li>계산 5 (또는 글자 5)</li>
-            </ul>
-            <div class="score-box">
-                <strong>점수:</strong>
-                <input type="number" min="0" max="5" class="score-input">
-            </div>
+      <div class="criterion-card">
+        <h2 class="criterion-title">3. 기억 등록 (최대: 3점)</h2>
+        <p class="instruction">
+          "제가 3가지 단어를 말할 것입니다. 따라 해보세요: 화병, 자동차, 벽돌".
+          (첫 시도에서 정확하게 반복할 때마다 1점).
+        </p>
+        <ul>
+          <li>단어 1 (화병)</li>
+          <li>단어 2 (자동차)</li>
+          <li>단어 3 (벽돌)</li>
+        </ul>
+        <div class="score-box">
+          <strong>점수:</strong>
+          <input type="number" min="0" max="3" class="score-input" />
         </div>
+      </div>
 
-        <div class="criterion-card">
-            <h2 class="criterion-title">5. 기억 회상 (최대: 3점)</h2>
-            <p class="instruction">"조금 전에 제가 반복해달라고 했던 3가지 단어는 무엇이었습니까?" (화병, 자동차, 벽돌).</p>
-            <ul>
-                <li>단어 1 (화병)</li>
-                <li>단어 2 (자동차)</li>
-                <li>단어 3 (벽돌)</li>
-            </ul>
-            <div class="score-box">
-                <strong>점수:</strong>
-                <input type="number" min="0" max="3" class="score-input">
-            </div>
+      <div class="criterion-card">
+        <h2 class="criterion-title">4. 주의력 및 계산 (최대: 5점)</h2>
+        <p class="instruction">
+          두 가지 중 하나를 선택하세요: <br />A) "100에서 7을 빼고, 그 결과에서
+          계속 7을 5번 빼보세요." (93, 86, 79, 72, 65) <br />B) "세상'이라는
+          단어를 거꾸로 말해보세요." (상-세) (한국어 적용: 예: "서울" -> "울서")
+        </p>
+        <ul>
+          <li>계산 1 (또는 글자 1)</li>
+          <li>계산 2 (또는 글자 2)</li>
+          <li>계산 3 (또는 글자 3)</li>
+          <li>계산 4 (또는 글자 4)</li>
+          <li>계산 5 (또는 글자 5)</li>
+        </ul>
+        <div class="score-box">
+          <strong>점수:</strong>
+          <input type="number" min="0" max="5" class="score-input" />
         </div>
+      </div>
 
-        <div class="criterion-card">
-            <h2 class="criterion-title">6. 언어 - 이름 대기 (최대: 2점)</h2>
-            <p class="instruction">두 가지 물건(예: 시계, 펜)을 보여주고 각각의 이름을 물어보세요.</p>
-            <ul>
-                <li>물건 1 (시계)</li>
-                <li>물건 2 (펜)</li>
-            </ul>
-            <div class="score-box">
-                <strong>점수:</strong>
-                <input type="number" min="0" max="2" class="score-input">
-            </div>
+      <div class="criterion-card">
+        <h2 class="criterion-title">5. 기억 회상 (최대: 3점)</h2>
+        <p class="instruction">
+          "조금 전에 제가 반복해달라고 했던 3가지 단어는 무엇이었습니까?" (화병,
+          자동차, 벽돌).
+        </p>
+        <ul>
+          <li>단어 1 (화병)</li>
+          <li>단어 2 (자동차)</li>
+          <li>단어 3 (벽돌)</li>
+        </ul>
+        <div class="score-box">
+          <strong>점수:</strong>
+          <input type="number" min="0" max="3" class="score-input" />
         </div>
+      </div>
 
-        <div class="criterion-card">
-            <h2 class="criterion-title">7. 언어 - 따라 말하기 (최대: 1점)</h2>
-            <p class="instruction">환자에게 "간장 공장 공장장" 문장을 따라 하도록 요청하세요. (시도는 한 번만).</p>
-            <div class="score-box">
-                <strong>점수:</strong>
-                <input type="number" min="0" max="1" class="score-input">
-            </div>
+      <div class="criterion-card">
+        <h2 class="criterion-title">6. 언어 - 이름 대기 (최대: 2점)</h2>
+        <p class="instruction">
+          두 가지 물건(예: 시계, 펜)을 보여주고 각각의 이름을 물어보세요.
+        </p>
+        <ul>
+          <li>물건 1 (시계)</li>
+          <li>물건 2 (펜)</li>
+        </ul>
+        <div class="score-box">
+          <strong>점수:</strong>
+          <input type="number" min="0" max="2" class="score-input" />
         </div>
-        
-        <div class="criterion-card">
-            <h2 class="criterion-title">8. 언어 - 명령 수행 (최대: 3점)</h2>
-            <p class="instruction">"다음 3단계 명령을 따르세요:
-                <br>1. 오른손으로 이 종이를 잡으세요.
-                <br>2. 반으로 접으세요.
-                <br>3. 책상 위에 놓으세요."
-            </p>
-            <ul>
-                <li>1단계 (오른손)</li>
-                <li>2단계 (반으로 접기)</li>
-                <li>3단계 (책상 위에 놓기)</li>
-            </ul>
-            <div class="score-box">
-                <strong>점수:</strong>
-                <input type="number" min="0" max="3" class="score-input">
-            </div>
-        </div>
+      </div>
 
-        <div class="criterion-card">
-            <h2 class="criterion-title">9. 언어 - 읽기 (최대: 1점)</h2>
-            <p class="instruction">"눈을 감으세요"라고 적힌 종이를 건네주고, 환자에게 읽고 적힌 대로 행동하도록 요청하세요.</p>
-            <div class="score-box">
-                <strong>점수:</strong>
-                <input type="number" min="0" max="1" class="score-input">
-            </div>
+      <div class="criterion-card">
+        <h2 class="criterion-title">7. 언어 - 따라 말하기 (최대: 1점)</h2>
+        <p class="instruction">
+          환자에게 "간장 공장 공장장" 문장을 따라 하도록 요청하세요. (시도는 한
+          번만).
+        </p>
+        <div class="score-box">
+          <strong>점수:</strong>
+          <input type="number" min="0" max="1" class="score-input" />
         </div>
+      </div>
 
-        <div class="criterion-card">
-            <h2 class="criterion-title">10. 언어 - 쓰기 (최대: 1점)</h2>
-            <p class="instruction">환자에게 완전한 문장(주어와 술어가 있고 의미가 통하는 문장)을 쓰도록 요청하세요. (철자 오류는 무시합니다).</p>
-            <div class="score-box">
-                <strong>점수:</strong>
-                <input type="number" min="0" max="1" class="score-input">
-            </div>
+      <div class="criterion-card">
+        <h2 class="criterion-title">8. 언어 - 명령 수행 (최대: 3점)</h2>
+        <p class="instruction">
+          "다음 3단계 명령을 따르세요: <br />1. 오른손으로 이 종이를 잡으세요.
+          <br />2. 반으로 접으세요. <br />3. 책상 위에 놓으세요."
+        </p>
+        <ul>
+          <li>1단계 (오른손)</li>
+          <li>2단계 (반으로 접기)</li>
+          <li>3단계 (책상 위에 놓기)</li>
+        </ul>
+        <div class="score-box">
+          <strong>점수:</strong>
+          <input type="number" min="0" max="3" class="score-input" />
         </div>
+      </div>
 
-        <div class="criterion-card">
-            <h2 class="criterion-title">11. 구성 능력 - 따라 그리기 (최대: 1점)</h2>
-            <p class="instruction">환자에게 겹쳐진 오각형 그림을 따라 그리도록 요청하세요. (10개의 각이 모두 존재하고 두 오각형이 교차하여 사각형을 만들면 1점).</p>
-            <div class="pentagon-container">
-                <img src="pentagono.webp" alt="겹쳐진 오각형">
-            </div>
-            <div class="score-box">
-                <strong>점수:</strong>
-                <input type="number" min="0" max="1" class="score-input">
-            </div>
+      <div class="criterion-card">
+        <h2 class="criterion-title">9. 언어 - 읽기 (최대: 1점)</h2>
+        <p class="instruction">
+          "눈을 감으세요"라고 적힌 종이를 건네주고, 환자에게 읽고 적힌 대로
+          행동하도록 요청하세요.
+        </p>
+        <div class="score-box">
+          <strong>점수:</strong>
+          <input type="number" min="0" max="1" class="score-input" />
         </div>
+      </div>
 
-        <!-- Avaliação do Escore -->
-        <div class="scoring-section">
-            <h3>점수 평가 (권장 기준점)</h3>
-            <p>MEEM의 기준점은 학력에 크게 영향을 받습니다. 아래 값은 브라질에서 자주 사용되는 참고 기준입니다:</p>
-            <table>
-                <thead>
-                    <tr>
-                        <th>학력</th>
-                        <th>기준점 (권장)</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td>문맹 / 무학력</td>
-                        <td>18 - 20점</td>
-                    </tr>
-                    <tr>
-                        <td>1~4년 (저학력)</td>
-                        <td>25점</td>
-                    </tr>
-                    <tr>
-                        <td>5~8년 (중학력)</td>
-                        <td>26.5점</td>
-                    </tr>
-                    <tr>
-                        <td>9~11년 (중학력)</td>
-                        <td>28점</td>
-                    </tr>
-                    <tr>
-                        <td>12년 이상 (고학력)</td>
-                        <td>29점</td>
-                    </tr>
-                </tbody>
-            </table>
-            <p style="font-size: 13px; margin-top: 10px;"><strong>참고:</strong> 최종 점수가 기준점 이상이더라도 기억 회상 및 시간 지남력 항목에서 오류가 발생한 경우 주의 깊게 평가해야 합니다.</p>
+      <div class="criterion-card">
+        <h2 class="criterion-title">10. 언어 - 쓰기 (최대: 1점)</h2>
+        <p class="instruction">
+          환자에게 완전한 문장(주어와 술어가 있고 의미가 통하는 문장)을 쓰도록
+          요청하세요. (철자 오류는 무시합니다).
+        </p>
+        <div class="score-box">
+          <strong>점수:</strong>
+          <input type="number" min="0" max="1" class="score-input" />
         </div>
+      </div>
 
-        <!-- Caixa de Comentários -->
-        <div class="comments-box">
-            <h3>평가자 결과 및 의견</h3>
-            <textarea placeholder="총점, 학력에 기반한 해석 및 추가 의견을 입력하세요..."></textarea>
+      <div class="criterion-card">
+        <h2 class="criterion-title">11. 구성 능력 - 따라 그리기 (최대: 1점)</h2>
+        <p class="instruction">
+          환자에게 겹쳐진 오각형 그림을 따라 그리도록 요청하세요. (10개의 각이
+          모두 존재하고 두 오각형이 교차하여 사각형을 만들면 1점).
+        </p>
+        <div class="pentagon-container">
+          <img src="pentagono.webp" alt="겹쳐진 오각형" />
         </div>
-
-        <!-- Rodapé com Referência -->
-        <div class="footer">
-            <p><strong>참고 문헌:</strong></p>
-            <p>BRUCKI, S. M. D. et al. Sugestões para o uso do Mini-Exame do Estado Mental no Brasil. <strong>Arquivos de Neuro-Psiquiatria</strong>, v. 61, n. 3B, p. 777-781, 2003. 링크: https://www.scielo.br/j/anp/a/rfsrRVTZBxR4ShMF5hWg5JJ/</p>
+        <div class="score-box">
+          <strong>점수:</strong>
+          <input type="number" min="0" max="1" class="score-input" />
         </div>
+      </div>
 
+      <!-- Avaliação do Escore -->
+      <div class="scoring-section">
+        <h3>점수 평가 (권장 기준점)</h3>
+        <p>
+          MEEM의 기준점은 학력에 크게 영향을 받습니다. 아래 값은 브라질에서 자주
+          사용되는 참고 기준입니다:
+        </p>
+        <table>
+          <thead>
+            <tr>
+              <th>학력</th>
+              <th>기준점 (권장)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>문맹 / 무학력</td>
+              <td>18 - 20점</td>
+            </tr>
+            <tr>
+              <td>1~4년 (저학력)</td>
+              <td>25점</td>
+            </tr>
+            <tr>
+              <td>5~8년 (중학력)</td>
+              <td>26.5점</td>
+            </tr>
+            <tr>
+              <td>9~11년 (중학력)</td>
+              <td>28점</td>
+            </tr>
+            <tr>
+              <td>12년 이상 (고학력)</td>
+              <td>29점</td>
+            </tr>
+          </tbody>
+        </table>
+        <p style="font-size: 13px; margin-top: 10px">
+          <strong>참고:</strong> 최종 점수가 기준점 이상이더라도 기억 회상 및
+          시간 지남력 항목에서 오류가 발생한 경우 주의 깊게 평가해야 합니다.
+        </p>
+      </div>
+
+      <!-- Caixa de Comentários -->
+      <div class="comments-box">
+        <h3>평가자 결과 및 의견</h3>
+        <textarea
+          placeholder="총점, 학력에 기반한 해석 및 추가 의견을 입력하세요..."
+        ></textarea>
+      </div>
+
+      <!-- Rodapé com Referência -->
+      <div class="footer">
+        <p><strong>참고 문헌:</strong></p>
+        <p>
+          BRUCKI, S. M. D. et al. Sugestões para o uso do Mini-Exame do Estado
+          Mental no Brasil. <strong>Arquivos de Neuro-Psiquiatria</strong>, v.
+          61, n. 3B, p. 777-781, 2003. 링크:
+          https://www.scielo.br/j/anp/a/rfsrRVTZBxR4ShMF5hWg5JJ/
+        </p>
+      </div>
     </div>
 
-    
-<!-- Botão Flutuante para Baixar PDF -->
-<button id="btnBaixarPDF" class="pdf-download-button" title="이 보고서를 PDF로 다운로드">
-  <div class="pdf-icon"><i class="fas fa-file-pdf"></i></div>
-  <div class="pdf-text">PDF 다운로드</div>
+    <!-- Botão Flutuante para Baixar PDF -->
+    <button
+      id="btnBaixarPDF"
+      class="pdf-download-button"
+      title="이 보고서를 PDF로 다운로드"
+    >
+      <div class="pdf-icon"><i class="fas fa-file-pdf"></i></div>
+      <div class="pdf-text">PDF 다운로드</div>
+    </button>
+    <script>
+      (function () {
+        const HTML2PDF_CDN =
+          "https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js";
 
-</button>
-<script>
-(function () {
-  const HTML2PDF_CDN = 'https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js';
+        function ensureHtml2pdf() {
+          return new Promise((resolve, reject) => {
+            if (window.html2pdf) return resolve(window.html2pdf);
+            const s = document.createElement("script");
+            s.src = HTML2PDF_CDN;
+            s.onload = () => resolve(window.html2pdf);
+            s.onerror = () => reject(new Error("html2pdf 로드 실패"));
+            document.head.appendChild(s);
+          });
+        }
 
-  function ensureHtml2pdf() {
-    return new Promise((resolve, reject) => {
-      if (window.html2pdf) return resolve(window.html2pdf);
-      const s = document.createElement('script');
-      s.src = HTML2PDF_CDN;
-      s.onload = () => resolve(window.html2pdf);
-      s.onerror = () => reject(new Error('html2pdf 로드 실패'));
-      document.head.appendChild(s);
-    });
-  }
+        function montarConteudoMEEM() {
+          const wrapperOriginal = document.getElementById("relatorio-meem");
+          if (!wrapperOriginal) {
+            alert("요소 #relatorio-meem를 찾을 수 없습니다.");
+            return null;
+          }
 
-  function montarConteudoMEEM() {
-    const wrapperOriginal = document.getElementById('relatorio-meem');
-    if (!wrapperOriginal) {
-      alert('요소 #relatorio-meem를 찾을 수 없습니다.');
-      return null;
-    }
+          const clone = wrapperOriginal.cloneNode(true);
+          clone
+            .querySelectorAll(".pdf-download-button, #btnBaixarPDF")
+            .forEach((el) => el.remove());
 
-    const clone = wrapperOriginal.cloneNode(true);
-    clone.querySelectorAll('.pdf-download-button, #btnBaixarPDF').forEach(el => el.remove());
+          // --- CORREÇÃO APLICADA ---
+          // Definindo largura fixa em 'mm' para corresponder ao papel A4 (210mm)
+          // menos as margens (ex: 15mm de cada lado).
+          // Largura do conteúdo = 210mm - 15mm - 15mm = 180mm.
 
-    // --- CORREÇÃO APLICADA ---
-    // Definindo largura fixa em 'mm' para corresponder ao papel A4 (210mm)
-    // menos as margens (ex: 15mm de cada lado).
-    // Largura do conteúdo = 210mm - 15mm - 15mm = 180mm.
-    
-    clone.style.width = '180mm';      // Largura fixa
-    clone.style.maxWidth = '180mm';   // Garantia de largura máxima
-    clone.style.margin = '0 auto';
-    clone.style.background = '#fff';
-    clone.style.padding = '1cm';      // (10mm) O padding é mantido, mas o box-sizing cuida dele.
-    clone.style.boxSizing = 'border-box'; // Essencial para o padding não estourar a largura total
-    clone.style.fontFamily = 'Inter, Arial, sans-serif';
-    // --- FIM DA CORREÇÃO ---
+          clone.style.width = "180mm"; // Largura fixa
+          clone.style.maxWidth = "180mm"; // Garantia de largura máxima
+          clone.style.margin = "0 auto";
+          clone.style.background = "#fff";
+          clone.style.padding = "1cm"; // (10mm) O padding é mantido, mas o box-sizing cuida dele.
+          clone.style.boxSizing = "border-box"; // Essencial para o padding não estourar a largura total
+          clone.style.fontFamily = "Inter, Arial, sans-serif";
+          // --- FIM DA CORREÇÃO ---
 
-    const cabecalho = document.createElement('div');
-    cabecalho.style.textAlign = 'center';
-    cabecalho.style.marginBottom = '10px';
-    cabecalho.innerHTML = `
+          const cabecalho = document.createElement("div");
+          cabecalho.style.textAlign = "center";
+          cabecalho.style.marginBottom = "10px";
+          cabecalho.innerHTML = `
       <h1 style="font-size:20px; margin:0; color:#1A3E74;">간이 정신 상태 검사 - MEEM</h1>
       <div style="font-size:12px; color:#666;">자동 생성된 보고서</div>
       <div style="font-size:11px; color:#999;">${new Date().toLocaleString()}</div>
       <hr style="margin-top:8px; border:none; border-top:1px solid #ccc;">
     `;
-    clone.insertBefore(cabecalho, clone.firstChild);
+          clone.insertBefore(cabecalho, clone.firstChild);
 
-    const style = document.createElement('style');
-    style.textContent = `
+          const style = document.createElement("style");
+          style.textContent = `
       .criterion-card, .patient-info {
         page-break-inside: avoid !important;
         break-inside: avoid !important;
@@ -636,52 +695,55 @@
         page-break-after: avoid !important;
       }
     `;
-    clone.prepend(style);
+          clone.prepend(style);
 
-    return clone;
-  }
+          return clone;
+        }
 
-  async function gerarPDF() {
-    const content = montarConteudoMEEM();
-    if (!content) return;
+        async function gerarPDF() {
+          const content = montarConteudoMEEM();
+          if (!content) return;
 
-    await ensureHtml2pdf();
+          await ensureHtml2pdf();
 
-    // --- CORREÇÃO APLICADA ---
-    const opt = {
-      // Definimos a margem em mm. (15mm em cada lado)
-      margin: 15, 
-      filename: `간이-정신-상태-검사-MEEM_${new Date().toISOString().slice(0,19).replace(/[:T]/g,'-')}.pdf`,
-      image: { type: 'jpeg', quality: 0.98 },
-      html2canvas: {
-        scale: 2,
-        useCORS: true,
-        // Removemos windowWidth e windowHeight para deixar a biblioteca
-        // usar a largura fixa do 'content'.
-      },
-      // Mudamos a unidade para 'mm' e mantemos 'a4'
-      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-      pagebreak: { mode: ['css', 'legacy'] }
-    };
-    // --- FIM DA CORREÇÃO ---
+          // --- CORREÇÃO APLICADA ---
+          const opt = {
+            // Definimos a margem em mm. (15mm em cada lado)
+            margin: 15,
+            filename: `간이-정신-상태-검사-MEEM_${new Date().toISOString().slice(0, 19).replace(/[:T]/g, "-")}.pdf`,
+            image: { type: "jpeg", quality: 0.98 },
+            html2canvas: {
+              scale: 2,
+              useCORS: true,
+              // Removemos windowWidth e windowHeight para deixar a biblioteca
+              // usar a largura fixa do 'content'.
+            },
+            // Mudamos a unidade para 'mm' e mantemos 'a4'
+            jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
+            pagebreak: { mode: ["css", "legacy"] },
+          };
+          // --- FIM DA CORREÇÃO ---
 
-    const imgs = content.querySelectorAll('img');
-    await Promise.all(Array.from(imgs).map(img => new Promise(res => {
-      if (img.complete) res();
-      else img.onload = img.onerror = res;
-    })));
+          const imgs = content.querySelectorAll("img");
+          await Promise.all(
+            Array.from(imgs).map(
+              (img) =>
+                new Promise((res) => {
+                  if (img.complete) res();
+                  else img.onload = img.onerror = res;
+                }),
+            ),
+          );
 
-    html2pdf().set(opt).from(content).save();
-  }
+          html2pdf().set(opt).from(content).save();
+        }
 
-  document.addEventListener('DOMContentLoaded', () => {
-    const btn = document.getElementById('btnBaixarPDF');
-    if (!btn) return;
-    btn.addEventListener('click', gerarPDF);
-  });
-})();
-</script>
-
-
-</body>
+        document.addEventListener("DOMContentLoaded", () => {
+          const btn = document.getElementById("btnBaixarPDF");
+          if (!btn) return;
+          btn.addEventListener("click", gerarPDF);
+        });
+      })();
+    </script>
+  </body>
 </html>

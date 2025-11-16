@@ -1,614 +1,670 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ja">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>ミニメンタルステート検査 - MMSE</title>
     <!-- アイコンライブラリ（Font Awesome）をPDFボタンアイコンのために追加 -->
-    <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'"><noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"></noscript>
-    
+    <link
+      rel="preload"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+      as="style"
+      onload="this.onload=null;this.rel='stylesheet'"
+    />
+    <noscript
+      ><link
+        rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+    /></noscript>
+
     <style>
-        /* グローバルスタイル */
+      /* グローバルスタイル */
+      body {
+        font-family:
+          -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica,
+          Arial, "Noto Sans JP", sans-serif;
+        background-color: #f9fafb;
+        color: #333;
+        line-height: 1.6;
+        margin: 0;
+        padding: 0;
+        /* フローティングボタンのためのスペースを確保 */
+        padding-bottom: 120px;
+      }
+
+      .container {
+        max-width: 800px;
+        margin: 20px auto;
+        padding: 20px;
+        background-color: #ffffff;
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        border: 1px solid #e5e7eb;
+      }
+
+      /* ヘッダー */
+      .header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-bottom: 2px solid #1a3e74; /* サイトの色 */
+        padding-bottom: 15px;
+        margin-bottom: 20px;
+        page-break-inside: avoid; /* ヘッダーでの改ページを回避 */
+      }
+
+      .header h1 {
+        font-size: 28px;
+        font-weight: 900;
+        color: #1a3e74;
+        margin: 0;
+      }
+
+      .header .logo {
+        max-width: 100px;
+        height: auto;
+        border-radius: 8px;
+      }
+
+      /* 患者情報 */
+      .patient-info {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 15px;
+        margin-bottom: 25px;
+        padding: 15px;
+        background-color: #fdfdfd;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        page-break-inside: avoid; /* ここでの改ページを回避 */
+      }
+
+      .patient-info div {
+        font-size: 14px;
+      }
+
+      .patient-info label {
+        font-weight: 600;
+        color: #555;
+        display: block;
+        margin-bottom: 2px;
+      }
+
+      .patient-info span {
+        display: block;
+        min-height: 20px;
+        border-bottom: 1px dotted #ccc;
+      }
+
+      /* 奇数の場合に日付が全幅になるように調整 */
+      .patient-info div:last-child:nth-child(odd) {
+        grid-column: 1 / -1;
+      }
+
+      /* 基準のスタイル */
+      .criterion-card {
+        background-color: #fff;
+        border: 1px solid #d1d5db;
+        border-radius: 12px;
+        padding: 20px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        margin-bottom: 20px;
+        page-break-inside: avoid; /* カードの改ページを回避 */
+      }
+
+      .criterion-title {
+        font-size: 18px;
+        font-weight: 700;
+        color: #1a3e74;
+        margin-bottom: 12px;
+        text-align: left;
+      }
+
+      .criterion-card p,
+      .criterion-card ul {
+        margin: 0 0 10px 0;
+        padding-left: 0;
+        font-size: 15px;
+      }
+
+      .criterion-card li {
+        list-style-type: none;
+        position: relative;
+        padding-left: 20px;
+        margin-bottom: 5px;
+      }
+
+      .criterion-card li::before {
+        content: "•";
+        position: absolute;
+        left: 0;
+        color: #1fa4e5; /* サイトの色 */
+        font-weight: bold;
+      }
+
+      .criterion-card .instruction {
+        font-style: italic;
+        color: #666;
+        font-size: 14px;
+        border-left: 3px solid #1fa4e5;
+        padding-left: 10px;
+        margin-top: 10px;
+      }
+
+      .score-box {
+        display: flex;
+        justify-content: flex-end;
+        align-items: center;
+        border-top: 1px solid #eee;
+        padding-top: 15px;
+        margin-top: 15px;
+      }
+
+      .score-box strong {
+        font-size: 14px;
+        color: #333;
+        margin-right: 10px;
+      }
+
+      .score-box .score-input {
+        width: 70px;
+        padding: 5px 8px;
+        border: 1px solid #ccc;
+        border-radius: 6px;
+        font-size: 16px;
+        text-align: center;
+      }
+
+      /* 描画（五角形） */
+      .pentagon-container {
+        text-align: center;
+        margin: 15px 0;
+      }
+
+      .pentagon-container img {
+        max-width: 250px; /* 必要に応じてサイズを調整 */
+        height: auto;
+      }
+
+      /* スコア評価 */
+      .scoring-section {
+        padding: 20px;
+        background-color: #fdfdfd;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        margin-top: 25px;
+        page-break-inside: avoid; /* このセクションの改ページを回避 */
+      }
+
+      .scoring-section h3 {
+        margin-top: 0;
+        color: #1a3e74;
+        border-bottom: 1px solid #eee;
+        padding-bottom: 8px;
+      }
+
+      .scoring-section table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 10px;
+      }
+
+      .scoring-section th,
+      .scoring-section td {
+        border: 1px solid #ddd;
+        padding: 8px;
+        text-align: left;
+      }
+
+      .scoring-section th {
+        background-color: #f4f4f4;
+        font-weight: 600;
+      }
+
+      /* コメントボックス */
+      .comments-box {
+        margin-top: 25px;
+        page-break-inside: avoid; /* このボックスの改ページを回避 */
+      }
+
+      .comments-box h3 {
+        font-size: 18px;
+        font-weight: 700;
+        color: #1a3e74;
+        margin-bottom: 10px;
+      }
+
+      .comments-box textarea {
+        width: 100%;
+        height: 150px;
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        padding: 10px;
+        font-family: inherit;
+        font-size: 14px;
+        line-height: 1.8;
+        /* 線のためのトリック */
+        background-image: linear-gradient(#eee 0.1em, transparent 0.1em);
+        background-size: 100% 1.8em;
+        background-attachment: local;
+        box-sizing: border-box; /* paddingがレイアウトを崩さないように */
+      }
+
+      /* フッター */
+      .footer {
+        margin-top: 30px;
+        padding-top: 15px;
+        border-top: 1px solid #e5e7eb;
+        font-size: 12px;
+        color: #777;
+        text-align: center;
+        page-break-inside: avoid; /* フッターをまとめる */
+      }
+
+      .footer p {
+        margin: 0;
+      }
+
+      /* --- PDFフローティングボタン --- */
+      .pdf-download-button {
+        position: fixed;
+        bottom: 25px;
+        right: 25px;
+        background-color: #1a3e74; /* サイトのプライマリカラー */
+        color: #fff;
+        border: none;
+        border-radius: 12px;
+        padding: 1rem;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        transition: all 0.3s ease;
+        cursor: pointer;
+        z-index: 1000;
+        width: 160px; /* カードの幅 */
+        text-align: center;
+        font-family:
+          -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica,
+          Arial, sans-serif;
+      }
+
+      .pdf-download-button:hover {
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.25);
+        transform: translateY(-4px); /* 「揺れ」効果 */
+      }
+
+      .pdf-download-button .pdf-icon {
+        font-size: 2.5rem; /* 大きなアイコン */
+        margin-bottom: 0.5rem;
+      }
+
+      .pdf-download-button .pdf-text {
+        font-size: 1rem;
+        font-weight: 600;
+        line-height: 1.3;
+      }
+
+      /* --- フローティングボタン終了 --- */
+
+      /* 印刷 */
+      @media print {
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, 'Noto Sans JP', sans-serif;
-            background-color: #f9fafb;
-            color: #333;
-            line-height: 1.6;
-            margin: 0;
-            padding: 0;
-            /* フローティングボタンのためのスペースを確保 */
-            padding-bottom: 120px; 
+          background-color: #fff;
+          font-size: 12pt;
+          padding-bottom: 0; /* 印刷時のpaddingを削除 */
         }
-
         .container {
-            max-width: 800px;
-            margin: 20px auto;
-            padding: 20px;
-            background-color: #ffffff;
-            border-radius: 12px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-            border: 1px solid #e5e7eb;
+          box-shadow: none;
+          border: none;
+          padding: 0;
+          margin: 0;
+          max-width: 100%;
         }
-
-        /* ヘッダー */
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 2px solid #1A3E74; /* サイトの色 */
-            padding-bottom: 15px;
-            margin-bottom: 20px;
-            page-break-inside: avoid; /* ヘッダーでの改ページを回避 */
-        }
-
-        .header h1 {
-            font-size: 28px;
-            font-weight: 900;
-            color: #1A3E74;
-            margin: 0;
-        }
-
-        .header .logo {
-            max-width: 100px;
-            height: auto;
-            border-radius: 8px;
-        }
-
-        /* 患者情報 */
-        .patient-info {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 15px;
-            margin-bottom: 25px;
-            padding: 15px;
-            background-color: #fdfdfd;
-            border: 1px solid #e5e7eb;
-            border-radius: 8px;
-            page-break-inside: avoid; /* ここでの改ページを回避 */
-        }
-
-        .patient-info div {
-            font-size: 14px;
-        }
-
-        .patient-info label {
-            font-weight: 600;
-            color: #555;
-            display: block;
-            margin-bottom: 2px;
-        }
-
-        .patient-info span {
-            display: block;
-            min-height: 20px;
-            border-bottom: 1px dotted #ccc;
-        }
-        
-        /* 奇数の場合に日付が全幅になるように調整 */
-        .patient-info div:last-child:nth-child(odd) {
-            grid-column: 1 / -1;
-        }
-
-
-        /* 基準のスタイル */
         .criterion-card {
-            background-color: #fff;
-            border: 1px solid #d1d5db;
-            border-radius: 12px;
-            padding: 20px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-            margin-bottom: 20px;
-            page-break-inside: avoid; /* カードの改ページを回避 */
+          box-shadow: none;
+          border: 1px solid #ccc;
         }
-
-        .criterion-title {
-            font-size: 18px;
-            font-weight: 700;
-            color: #1A3E74;
-            margin-bottom: 12px;
-            text-align: left; 
-        }
-
-        .criterion-card p,
-        .criterion-card ul {
-            margin: 0 0 10px 0;
-            padding-left: 0;
-            font-size: 15px;
-        }
-
-        .criterion-card li {
-            list-style-type: none;
-            position: relative;
-            padding-left: 20px;
-            margin-bottom: 5px;
-        }
-        
-        .criterion-card li::before {
-            content: "•";
-            position: absolute;
-            left: 0;
-            color: #1FA4E5; /* サイトの色 */
-            font-weight: bold;
-        }
-        
-        .criterion-card .instruction {
-            font-style: italic;
-            color: #666;
-            font-size: 14px;
-            border-left: 3px solid #1FA4E5;
-            padding-left: 10px;
-            margin-top: 10px;
-        }
-
-        .score-box {
-            display: flex;
-            justify-content: flex-end;
-            align-items: center;
-            border-top: 1px solid #eee;
-            padding-top: 15px;
-            margin-top: 15px;
-        }
-
-        .score-box strong {
-            font-size: 14px;
-            color: #333;
-            margin-right: 10px;
-        }
-
-        .score-box .score-input {
-            width: 70px;
-            padding: 5px 8px;
-            border: 1px solid #ccc;
-            border-radius: 6px;
-            font-size: 16px;
-            text-align: center;
-        }
-
-        /* 描画（五角形） */
-        .pentagon-container {
-            text-align: center;
-            margin: 15px 0;
-        }
-        
-        .pentagon-container img {
-            max-width: 250px; /* 必要に応じてサイズを調整 */
-            height: auto;
-        }
-
-        /* スコア評価 */
-        .scoring-section {
-            padding: 20px;
-            background-color: #fdfdfd;
-            border: 1px solid #e5e7eb;
-            border-radius: 8px;
-            margin-top: 25px;
-            page-break-inside: avoid; /* このセクションの改ページを回避 */
-        }
-
-        .scoring-section h3 {
-            margin-top: 0;
-            color: #1A3E74;
-            border-bottom: 1px solid #eee;
-            padding-bottom: 8px;
-        }
-        
-        .scoring-section table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 10px;
-        }
-        
-        .scoring-section th, .scoring-section td {
-            border: 1px solid #ddd;
-            padding: 8px;
-            text-align: left;
-        }
-        
-        .scoring-section th {
-            background-color: #f4f4f4;
-            font-weight: 600;
-        }
-
-        /* コメントボックス */
-        .comments-box {
-            margin-top: 25px;
-            page-break-inside: avoid; /* このボックスの改ページを回避 */
-        }
-        
-        .comments-box h3 {
-            font-size: 18px;
-            font-weight: 700;
-            color: #1A3E74;
-            margin-bottom: 10px;
-        }
-
         .comments-box textarea {
-            width: 100%;
-            height: 150px;
-            border: 1px solid #ccc;
-            border-radius: 8px;
-            padding: 10px;
-            font-family: inherit;
-            font-size: 14px;
-            line-height: 1.8;
-            /* 線のためのトリック */
-            background-image: linear-gradient(#eee .1em, transparent .1em);
-            background-size: 100% 1.8em;
-            background-attachment: local;
-            box-sizing: border-box; /* paddingがレイアウトを崩さないように */
+          border: 1px solid #999;
+          background-image: linear-gradient(#ddd 0.1em, transparent 0.1em);
         }
-
-        /* フッター */
-        .footer {
-            margin-top: 30px;
-            padding-top: 15px;
-            border-top: 1px solid #e5e7eb;
-            font-size: 12px;
-            color: #777;
-            text-align: center;
-            page-break-inside: avoid; /* フッターをまとめる */
+        .score-input {
+          border: 1px solid #999;
         }
-
-        .footer p {
-            margin: 0;
+        .patient-info {
+          background-color: #fff;
         }
-
-        /* --- PDFフローティングボタン --- */
+        /* 印刷時にPDFボタンを非表示 */
         .pdf-download-button {
-            position: fixed;
-            bottom: 25px;
-            right: 25px;
-            background-color: #1A3E74; /* サイトのプライマリカラー */
-            color: #fff;
-            border: none;
-            border-radius: 12px;
-            padding: 1rem;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-            transition: all 0.3s ease;
-            cursor: pointer;
-            z-index: 1000;
-            width: 160px; /* カードの幅 */
-            text-align: center;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+          display: none;
         }
-
-        .pdf-download-button:hover {
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.25);
-            transform: translateY(-4px); /* 「揺れ」効果 */
-        }
-
-        .pdf-download-button .pdf-icon {
-            font-size: 2.5rem; /* 大きなアイコン */
-            margin-bottom: 0.5rem;
-        }
-
-        .pdf-download-button .pdf-text {
-            font-size: 1rem;
-            font-weight: 600;
-            line-height: 1.3;
-        }
-        
-        /* --- フローティングボタン終了 --- */
-
-
-        /* 印刷 */
-        @media print {
-            body {
-                background-color: #fff;
-                font-size: 12pt;
-                padding-bottom: 0; /* 印刷時のpaddingを削除 */
-            }
-            .container {
-                box-shadow: none;
-                border: none;
-                padding: 0;
-                margin: 0;
-                max-width: 100%;
-            }
-            .criterion-card {
-                box-shadow: none;
-                border: 1px solid #ccc;
-            }
-            .comments-box textarea {
-                border: 1px solid #999;
-                background-image: linear-gradient(#ddd .1em, transparent .1em);
-            }
-            .score-input {
-                border: 1px solid #999;
-            }
-            .patient-info {
-                background-color: #fff;
-            }
-            /* 印刷時にPDFボタンを非表示 */
-            .pdf-download-button {
-                display: none;
-            }
-        }
+      }
     </style>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;700&family=Inter:wght@400;700&family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9472305505608641" crossorigin="anonymous"></script>
-</head>
-<body>
-      
- 
-  
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;700&family=Inter:wght@400;700&family=Noto+Sans+JP:wght@400;700&display=swap"
+      rel="stylesheet"
+    />
+    <script
+      async
+      src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9472305505608641"
+      crossorigin="anonymous"
+    ></script>
+  </head>
+  <body>
     <div class="container" id="relatorio-meem">
-        
-        <div class="header">
-            <h1>ミニメンタルステート検査 - MMSE</h1>
-            
-            <img src="../icondoc.webp" alt="看護計算機ロゴ" class="logo">
-        </div>
+      <div class="header">
+        <h1>ミニメンタルステート検査 - MMSE</h1>
 
-        <div class="patient-info">
-            <div><label>患者名：</label><span></span></div>
-            <div><label>生年月日：</label><span></span></div>
-            <div><label>年齢：</label><span></span></div>
-            <div><label>母親の名前：</label><span></span></div>
-            <div><label>学歴：</label><span></span></div>
-            <div><label>性別：</label><span></span></div>
-            <div><label>併存疾患：</label><span></span></div>
-            <div><label>専門家参照：</label><span></span></div>
-            <div><label>日付：</label><span></span></div>
-        </div>
+        <img src="../icondoc.webp" alt="看護計算機ロゴ" class="logo" />
+      </div>
 
-        <!-- MMSEスケール開始 -->
+      <div class="patient-info">
+        <div><label>患者名：</label><span></span></div>
+        <div><label>生年月日：</label><span></span></div>
+        <div><label>年齢：</label><span></span></div>
+        <div><label>母親の名前：</label><span></span></div>
+        <div><label>学歴：</label><span></span></div>
+        <div><label>性別：</label><span></span></div>
+        <div><label>併存疾患：</label><span></span></div>
+        <div><label>専門家参照：</label><span></span></div>
+        <div><label>日付：</label><span></span></div>
+      </div>
 
-        <div class="criterion-card">
-            <h2 class="criterion-title">1. 時間の見当識 (最大: 5点)</h2>
-            <p class="instruction">質問：「今は何（年 / 月 / 日 / 曜日）ですか？（おおよその）時刻は何時ですか？」</p>
-            <ul>
-                <li>年</li>
-                <li>月</li>
-                <li>日</li>
-                <li>曜日</li>
-                <li>おおよその時刻</li>
-            </ul>
-            <div class="score-box">
-                <strong>点数：</strong>
-                <input type="number" min="0" max="5" class="score-input">
-            </div>
-        </div>
+      <!-- MMSEスケール開始 -->
 
-        <div class="criterion-card">
-            <h2 class="criterion-title">2. 場所の見当識 (最大: 5点)</h2>
-            <p class="instruction">質問：「私たちはどこにいますか？（ここはどんな場所 / 通り / 近所 / 市 / 都道府県ですか？）」</p>
-            <ul>
-                <li>場所（例：家、診療所）</li>
-                <li>通り</li>
-                <li>近所</li>
-                <li>市</li>
-                <li>都道府県</li>
-            </ul>
-            <div class="score-box">
-                <strong>点数：</strong>
-                <input type="number" min="0" max="5" class="score-input">
-            </div>
+      <div class="criterion-card">
+        <h2 class="criterion-title">1. 時間の見当識 (最大: 5点)</h2>
+        <p class="instruction">
+          質問：「今は何（年 / 月 / 日 /
+          曜日）ですか？（おおよその）時刻は何時ですか？」
+        </p>
+        <ul>
+          <li>年</li>
+          <li>月</li>
+          <li>日</li>
+          <li>曜日</li>
+          <li>おおよその時刻</li>
+        </ul>
+        <div class="score-box">
+          <strong>点数：</strong>
+          <input type="number" min="0" max="5" class="score-input" />
         </div>
+      </div>
 
-        <div class="criterion-card">
-            <h2 class="criterion-title">3. 記銘 (最大: 3点)</h2>
-            <p class="instruction">「今から言う3つの言葉を繰り返してください：花瓶、車、レンガ」。（最初の試行で正しく繰り返せた数で1点ずつ）。</p>
-            <ul>
-                <li>言葉 1 (花瓶)</li>
-                <li>言葉 2 (車)</li>
-                <li>言葉 3 (レンガ)</li>
-            </ul>
-            <div class="score-box">
-                <strong>点数：</strong>
-                <input type="number" min="0" max="3" class="score-input">
-            </div>
+      <div class="criterion-card">
+        <h2 class="criterion-title">2. 場所の見当識 (最大: 5点)</h2>
+        <p class="instruction">
+          質問：「私たちはどこにいますか？（ここはどんな場所 / 通り / 近所 / 市
+          / 都道府県ですか？）」
+        </p>
+        <ul>
+          <li>場所（例：家、診療所）</li>
+          <li>通り</li>
+          <li>近所</li>
+          <li>市</li>
+          <li>都道府県</li>
+        </ul>
+        <div class="score-box">
+          <strong>点数：</strong>
+          <input type="number" min="0" max="5" class="score-input" />
         </div>
+      </div>
 
-        <div class="criterion-card">
-            <h2 class="criterion-title">4. 注意と計算 (最大: 5点)</h2>
-            <p class="instruction">どちらか一方を選択してください：
-                <br>A) 「100から7を引き、その答えからさらに7を引く、という計算を5回続けてください。」 (93, 86, 79, 72, 65)
-                <br>B) 「『さくら』という言葉を逆から言ってください。」 (ら-く-さ) ※日本語版の例に変更
-            </p>
-            <ul>
-                <li>計算 1 (または 文字 1)</li>
-                <li>計算 2 (または 文字 2)</li>
-                <li>計算 3 (または 文字 3)</li>
-                <li>計算 4</li>
-                <li>計算 5</li>
-            </ul>
-            <div class="score-box">
-                <strong>点数：</strong>
-                <input type="number" min="0" max="5" class="score-input">
-            </div>
+      <div class="criterion-card">
+        <h2 class="criterion-title">3. 記銘 (最大: 3点)</h2>
+        <p class="instruction">
+          「今から言う3つの言葉を繰り返してください：花瓶、車、レンガ」。（最初の試行で正しく繰り返せた数で1点ずつ）。
+        </p>
+        <ul>
+          <li>言葉 1 (花瓶)</li>
+          <li>言葉 2 (車)</li>
+          <li>言葉 3 (レンガ)</li>
+        </ul>
+        <div class="score-box">
+          <strong>点数：</strong>
+          <input type="number" min="0" max="3" class="score-input" />
         </div>
+      </div>
 
-        <div class="criterion-card">
-            <h2 class="criterion-title">5. 想起 (最大: 3点)</h2>
-            <p class="instruction">「さきほど覚えてもらった3つの言葉は何でしたか？」 (花瓶, 車, レンガ)。</p>
-            <ul>
-                <li>言葉 1 (花瓶)</li>
-                <li>言葉 2 (車)</li>
-                <li>言葉 3 (レンガ)</li>
-            </ul>
-            <div class="score-box">
-                <strong>点数：</strong>
-                <input type="number" min="0" max="3" class="score-input">
-            </div>
+      <div class="criterion-card">
+        <h2 class="criterion-title">4. 注意と計算 (最大: 5点)</h2>
+        <p class="instruction">
+          どちらか一方を選択してください： <br />A)
+          「100から7を引き、その答えからさらに7を引く、という計算を5回続けてください。」
+          (93, 86, 79, 72, 65) <br />B)
+          「『さくら』という言葉を逆から言ってください。」 (ら-く-さ)
+          ※日本語版の例に変更
+        </p>
+        <ul>
+          <li>計算 1 (または 文字 1)</li>
+          <li>計算 2 (または 文字 2)</li>
+          <li>計算 3 (または 文字 3)</li>
+          <li>計算 4</li>
+          <li>計算 5</li>
+        </ul>
+        <div class="score-box">
+          <strong>点数：</strong>
+          <input type="number" min="0" max="5" class="score-input" />
         </div>
+      </div>
 
-        <div class="criterion-card">
-            <h2 class="criterion-title">6. 呼称 (最大: 2点)</h2>
-            <p class="instruction">2つの物品（例：時計とペン）を見せて、それぞれの名前を尋ねます。</p>
-            <ul>
-                <li>物品 1 (時計)</li>
-                <li>物品 2 (ペン)</li>
-            </ul>
-            <div class="score-box">
-                <strong>点数：</strong>
-                <input type="number" min="0" max="2" class="score-input">
-            </div>
+      <div class="criterion-card">
+        <h2 class="criterion-title">5. 想起 (最大: 3点)</h2>
+        <p class="instruction">
+          「さきほど覚えてもらった3つの言葉は何でしたか？」 (花瓶, 車, レンガ)。
+        </p>
+        <ul>
+          <li>言葉 1 (花瓶)</li>
+          <li>言葉 2 (車)</li>
+          <li>言葉 3 (レンガ)</li>
+        </ul>
+        <div class="score-box">
+          <strong>点数：</strong>
+          <input type="number" min="0" max="3" class="score-input" />
         </div>
+      </div>
 
-        <div class="criterion-card">
-            <h2 class="criterion-title">7. 復唱 (最大: 1点)</h2>
-            <p class="instruction">「『みんなで力を合わせましょう』と繰り返してください。」（1回のみ）。※日本語版の例に変更</p>
-            <div class="score-box">
-                <strong>点数：</strong>
-                <input type="number" min="0" max="1" class="score-input">
-            </div>
+      <div class="criterion-card">
+        <h2 class="criterion-title">6. 呼称 (最大: 2点)</h2>
+        <p class="instruction">
+          2つの物品（例：時計とペン）を見せて、それぞれの名前を尋ねます。
+        </p>
+        <ul>
+          <li>物品 1 (時計)</li>
+          <li>物品 2 (ペン)</li>
+        </ul>
+        <div class="score-box">
+          <strong>点数：</strong>
+          <input type="number" min="0" max="2" class="score-input" />
         </div>
-        
-        <div class="criterion-card">
-            <h2 class="criterion-title">8. 口頭指示 (最大: 3点)</h2>
-            <p class="instruction">「この3段階の指示に従ってください：
-                <br>1. この紙を右手で取ってください。
-                <br>2. それを半分に折ってください。
-                <br>3. それをテーブルの上に置いてください。」
-            </p>
-            <ul>
-                <li>段階 1 (右手)</li>
-                <li>段階 2 (半分に折る)</li>
-                <li>段階 3 (テーブルに置く)</li>
-            </ul>
-            <div class="score-box">
-                <strong>点数：</strong>
-                <input type="number" min="0" max="3" class="score-input">
-            </div>
-        </div>
+      </div>
 
-        <div class="criterion-card">
-            <h2 class="criterion-title">9. 読解 (最大: 1点)</h2>
-            <p class="instruction">「目を閉じてください」と書かれた紙を渡し、読んで書かれた通りに行うよう指示します。</p>
-            <div class="score-box">
-                <strong>点数：</strong>
-                <input type="number" min="0" max="1" class="score-input">
-            </div>
+      <div class="criterion-card">
+        <h2 class="criterion-title">7. 復唱 (最大: 1点)</h2>
+        <p class="instruction">
+          「『みんなで力を合わせましょう』と繰り返してください。」（1回のみ）。※日本語版の例に変更
+        </p>
+        <div class="score-box">
+          <strong>点数：</strong>
+          <input type="number" min="0" max="1" class="score-input" />
         </div>
+      </div>
 
-        <div class="criterion-card">
-            <h2 class="criterion-title">10. 書字 (最大: 1点)</h2>
-            <p class="instruction">完全な文章（主語と述語があり、意味が通じるもの）を書くように指示します。（誤字は無視します）。</p>
-            <div class="score-box">
-                <strong>点数：</strong>
-                <input type="number" min="0" max="1" class="score-input">
-            </div>
+      <div class="criterion-card">
+        <h2 class="criterion-title">8. 口頭指示 (最大: 3点)</h2>
+        <p class="instruction">
+          「この3段階の指示に従ってください： <br />1.
+          この紙を右手で取ってください。 <br />2. それを半分に折ってください。
+          <br />3. それをテーブルの上に置いてください。」
+        </p>
+        <ul>
+          <li>段階 1 (右手)</li>
+          <li>段階 2 (半分に折る)</li>
+          <li>段階 3 (テーブルに置く)</li>
+        </ul>
+        <div class="score-box">
+          <strong>点数：</strong>
+          <input type="number" min="0" max="3" class="score-input" />
         </div>
+      </div>
 
-        <div class="criterion-card">
-            <h2 class="criterion-title">11. 描画 (最大: 1点)</h2>
-            <p class="instruction">重なり合う2つの五角形の図形を書き写すよう指示します。（すべての10個の角が存在し、2つの五角形が四角形を形成するように交差していれば1点）。</p>
-            <div class="pentagon-container">
-                <img src="../pentagono.webp" alt="重なり合う五角形">
-            </div>
-            <div class="score-box">
-                <strong>点数：</strong>
-                <input type="number" min="0" max="1" class="score-input">
-            </div>
+      <div class="criterion-card">
+        <h2 class="criterion-title">9. 読解 (最大: 1点)</h2>
+        <p class="instruction">
+          「目を閉じてください」と書かれた紙を渡し、読んで書かれた通りに行うよう指示します。
+        </p>
+        <div class="score-box">
+          <strong>点数：</strong>
+          <input type="number" min="0" max="1" class="score-input" />
         </div>
+      </div>
 
-        <!-- スコア評価 -->
-        <div class="scoring-section">
-            <h3>スコア評価（推奨カットオフ値）</h3>
-            <p>MMSEのカットオフ値は学歴に大きく影響されます。以下の値はブラジルでよく参照される基準です（日本の基準とは異なる場合があります）：</p>
-            <table>
-                <thead>
-                    <tr>
-                        <th>学歴</th>
-                        <th>カットオフ値（推奨）</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td>非識字 / 就学経験なし</td>
-                        <td>18 - 20点</td>
-                    </tr>
-                    <tr>
-                        <td>1～4年（低学歴）</td>
-                        <td>25点</td>
-                    </tr>
-                    <tr>
-                        <td>5～8年（中学歴）</td>
-                        <td>26.5点</td>
-                    </tr>
-                    <tr>
-                        <td>9～11年（中学歴）</td>
-                        <td>28点</td>
-                    </tr>
-                    <tr>
-                        <td>12年以上（高学歴）</td>
-                        <td>29点</td>
-                    </tr>
-                </tbody>
-            </table>
-            <p style="font-size: 13px; margin-top: 10px;"><strong>注：</strong>最終スコアがカットオフ値を超えていても、想起（記憶）や時間の見当識におけるエラーは重視されるべきです。</p>
+      <div class="criterion-card">
+        <h2 class="criterion-title">10. 書字 (最大: 1点)</h2>
+        <p class="instruction">
+          完全な文章（主語と述語があり、意味が通じるもの）を書くように指示します。（誤字は無視します）。
+        </p>
+        <div class="score-box">
+          <strong>点数：</strong>
+          <input type="number" min="0" max="1" class="score-input" />
         </div>
+      </div>
 
-        <!-- コメントボックス -->
-        <div class="comments-box">
-            <h3>評価者の結果とコメント</h3>
-            <textarea placeholder="合計結果、学歴に基づく解釈、および追加のコメントを入力してください..."></textarea>
+      <div class="criterion-card">
+        <h2 class="criterion-title">11. 描画 (最大: 1点)</h2>
+        <p class="instruction">
+          重なり合う2つの五角形の図形を書き写すよう指示します。（すべての10個の角が存在し、2つの五角形が四角形を形成するように交差していれば1点）。
+        </p>
+        <div class="pentagon-container">
+          <img src="../pentagono.webp" alt="重なり合う五角形" />
         </div>
-
-        <!-- 参考文献フッター -->
-        <div class="footer">
-            <p><strong>参考文献：</strong></p>
-            <p>BRUCKI, S. M. D. et al. Sugestões para o uso do Mini-Exame do Estado Mental no Brasil. <strong>Arquivos de Neuro-Psiquiatria</strong>, v. 61, n. 3B, p. 777-781, 2003. 入手先： https://www.scielo.br/j/anp/a/rfsrRVTZBxR4ShMF5hWg5JJ/</p>
+        <div class="score-box">
+          <strong>点数：</strong>
+          <input type="number" min="0" max="1" class="score-input" />
         </div>
+      </div>
 
+      <!-- スコア評価 -->
+      <div class="scoring-section">
+        <h3>スコア評価（推奨カットオフ値）</h3>
+        <p>
+          MMSEのカットオフ値は学歴に大きく影響されます。以下の値はブラジルでよく参照される基準です（日本の基準とは異なる場合があります）：
+        </p>
+        <table>
+          <thead>
+            <tr>
+              <th>学歴</th>
+              <th>カットオフ値（推奨）</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>非識字 / 就学経験なし</td>
+              <td>18 - 20点</td>
+            </tr>
+            <tr>
+              <td>1～4年（低学歴）</td>
+              <td>25点</td>
+            </tr>
+            <tr>
+              <td>5～8年（中学歴）</td>
+              <td>26.5点</td>
+            </tr>
+            <tr>
+              <td>9～11年（中学歴）</td>
+              <td>28点</td>
+            </tr>
+            <tr>
+              <td>12年以上（高学歴）</td>
+              <td>29点</td>
+            </tr>
+          </tbody>
+        </table>
+        <p style="font-size: 13px; margin-top: 10px">
+          <strong>注：</strong
+          >最終スコアがカットオフ値を超えていても、想起（記憶）や時間の見当識におけるエラーは重視されるべきです。
+        </p>
+      </div>
+
+      <!-- コメントボックス -->
+      <div class="comments-box">
+        <h3>評価者の結果とコメント</h3>
+        <textarea
+          placeholder="合計結果、学歴に基づく解釈、および追加のコメントを入力してください..."
+        ></textarea>
+      </div>
+
+      <!-- 参考文献フッター -->
+      <div class="footer">
+        <p><strong>参考文献：</strong></p>
+        <p>
+          BRUCKI, S. M. D. et al. Sugestões para o uso do Mini-Exame do Estado
+          Mental no Brasil. <strong>Arquivos de Neuro-Psiquiatria</strong>, v.
+          61, n. 3B, p. 777-781, 2003. 入手先：
+          https://www.scielo.br/j/anp/a/rfsrRVTZBxR4ShMF5hWg5JJ/
+        </p>
+      </div>
     </div>
 
-    
-<!-- PDFダウンロード用フローティングボタン -->
-<button id="btnBaixarPDF" class="pdf-download-button" title="このレポートをPDFとしてダウンロード">
-  <div class="pdf-icon"><i class="fas fa-file-pdf"></i></div>
-  <div class="pdf-text">PDFダウンロード</div>
+    <!-- PDFダウンロード用フローティングボタン -->
+    <button
+      id="btnBaixarPDF"
+      class="pdf-download-button"
+      title="このレポートをPDFとしてダウンロード"
+    >
+      <div class="pdf-icon"><i class="fas fa-file-pdf"></i></div>
+      <div class="pdf-text">PDFダウンロード</div>
+    </button>
+    <script>
+      (function () {
+        const HTML2PDF_CDN =
+          "https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js";
 
-</button>
-<script>
-(function () {
-  const HTML2PDF_CDN = 'https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js';
+        function ensureHtml2pdf() {
+          return new Promise((resolve, reject) => {
+            if (window.html2pdf) return resolve(window.html2pdf);
+            const s = document.createElement("script");
+            s.src = HTML2PDF_CDN;
+            s.onload = () => resolve(window.html2pdf);
+            s.onerror = () =>
+              reject(new Error("html2pdfの読み込みに失敗しました"));
+            document.head.appendChild(s);
+          });
+        }
 
-  function ensureHtml2pdf() {
-    return new Promise((resolve, reject) => {
-      if (window.html2pdf) return resolve(window.html2pdf);
-      const s = document.createElement('script');
-      s.src = HTML2PDF_CDN;
-      s.onload = () => resolve(window.html2pdf);
-      s.onerror = () => reject(new Error('html2pdfの読み込みに失敗しました'));
-      document.head.appendChild(s);
-    });
-  }
+        function montarConteudoMEEM() {
+          const wrapperOriginal = document.getElementById("relatorio-meem");
+          if (!wrapperOriginal) {
+            alert("要素 #relatorio-meem が見つかりません。");
+            return null;
+          }
 
-  function montarConteudoMEEM() {
-    const wrapperOriginal = document.getElementById('relatorio-meem');
-    if (!wrapperOriginal) {
-      alert('要素 #relatorio-meem が見つかりません。');
-      return null;
-    }
+          const clone = wrapperOriginal.cloneNode(true);
+          clone
+            .querySelectorAll(".pdf-download-button, #btnBaixarPDF")
+            .forEach((el) => el.remove());
 
-    const clone = wrapperOriginal.cloneNode(true);
-    clone.querySelectorAll('.pdf-download-button, #btnBaixarPDF').forEach(el => el.remove());
+          clone.style.width = "180mm";
+          clone.style.maxWidth = "180mm";
+          clone.style.margin = "0 auto";
+          clone.style.background = "#fff";
+          clone.style.padding = "1cm";
+          clone.style.boxSizing = "border-box";
+          clone.style.fontFamily = "Inter, Arial, sans-serif";
 
-    clone.style.width = '180mm';
-    clone.style.maxWidth = '180mm';
-    clone.style.margin = '0 auto';
-    clone.style.background = '#fff';
-    clone.style.padding = '1cm';
-    clone.style.boxSizing = 'border-box';
-    clone.style.fontFamily = 'Inter, Arial, sans-serif';
-
-    const cabecalho = document.createElement('div');
-    cabecalho.style.textAlign = 'center';
-    cabecalho.style.marginBottom = '10px';
-    cabecalho.innerHTML = `
+          const cabecalho = document.createElement("div");
+          cabecalho.style.textAlign = "center";
+          cabecalho.style.marginBottom = "10px";
+          cabecalho.innerHTML = `
       <h1 style="font-size:20px; margin:0; color:#1A3E74;">ミニメンタルステート検査 - MMSE</h1>
       <div style="font-size:12px; color:#666;">自動生成されたレポート</div>
-      <div style="font-size:11px; color:#999;">${new Date().toLocaleString('ja-JP')}</div>
+      <div style="font-size:11px; color:#999;">${new Date().toLocaleString("ja-JP")}</div>
       <hr style="margin-top:8px; border:none; border-top:1px solid #ccc;">
     `;
-    clone.insertBefore(cabecalho, clone.firstChild);
+          clone.insertBefore(cabecalho, clone.firstChild);
 
-    const style = document.createElement('style');
-    style.textContent = `
+          const style = document.createElement("style");
+          style.textContent = `
       .criterion-card, .patient-info {
         page-break-inside: avoid !important;
         break-inside: avoid !important;
@@ -630,46 +686,49 @@
         page-break-after: avoid !important;
       }
     `;
-    clone.prepend(style);
+          clone.prepend(style);
 
-    return clone;
-  }
+          return clone;
+        }
 
-  async function gerarPDF() {
-    const content = montarConteudoMEEM();
-    if (!content) return;
+        async function gerarPDF() {
+          const content = montarConteudoMEEM();
+          if (!content) return;
 
-    await ensureHtml2pdf();
+          await ensureHtml2pdf();
 
-    const opt = {
-      margin: 15, 
-      filename: `ミニメンタルステート検査_MMSE_${new Date().toISOString().slice(0,19).replace(/[:T]/g,'-')}.pdf`,
-      image: { type: 'jpeg', quality: 0.98 },
-      html2canvas: {
-        scale: 2,
-        useCORS: true,
-      },
-      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-      pagebreak: { mode: ['css', 'legacy'] }
-    };
+          const opt = {
+            margin: 15,
+            filename: `ミニメンタルステート検査_MMSE_${new Date().toISOString().slice(0, 19).replace(/[:T]/g, "-")}.pdf`,
+            image: { type: "jpeg", quality: 0.98 },
+            html2canvas: {
+              scale: 2,
+              useCORS: true,
+            },
+            jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
+            pagebreak: { mode: ["css", "legacy"] },
+          };
 
-    const imgs = content.querySelectorAll('img');
-    await Promise.all(Array.from(imgs).map(img => new Promise(res => {
-      if (img.complete) res();
-      else img.onload = img.onerror = res;
-    })));
+          const imgs = content.querySelectorAll("img");
+          await Promise.all(
+            Array.from(imgs).map(
+              (img) =>
+                new Promise((res) => {
+                  if (img.complete) res();
+                  else img.onload = img.onerror = res;
+                }),
+            ),
+          );
 
-    html2pdf().set(opt).from(content).save();
-  }
+          html2pdf().set(opt).from(content).save();
+        }
 
-  document.addEventListener('DOMContentLoaded', () => {
-    const btn = document.getElementById('btnBaixarPDF');
-    if (!btn) return;
-    btn.addEventListener('click', gerarPDF);
-  });
-})();
-</script>
-
-
-</body>
+        document.addEventListener("DOMContentLoaded", () => {
+          const btn = document.getElementById("btnBaixarPDF");
+          if (!btn) return;
+          btn.addEventListener("click", gerarPDF);
+        });
+      })();
+    </script>
+  </body>
 </html>
