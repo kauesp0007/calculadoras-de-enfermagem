@@ -20,7 +20,7 @@
     </title>
     <meta name="google-adsense-account" content="ca-pub-6472730056006847" />
 
-    <!-- Página inicial PT -->
+    <!-- Página inicializar PT -->
     <link
       rel="canonical"
       href="https://www.calculadorasdeenfermagem.com.br/meem.html"
@@ -125,6 +125,7 @@
       hreflang="x-default"
       href="https://www.calculadorasdeenfermagem.com.br/meem.html"
     />
+
     <link rel="icon" href="favicon.ico" type="image/x-icon" />
     <meta
       name="description"
@@ -221,6 +222,117 @@
     </script>
 
     <style>
+      /* --- INÍCIO DOS ESTILOS DA ABA LATERAL (SIDEBAR) --- */
+      .sidebar-toggle-btn {
+        position: fixed;
+        top: 150px;
+        left: 0;
+        z-index: 998;
+        background-color: #1a3e74;
+        color: white;
+        border: none;
+        border-radius: 0 50% 50% 0;
+        padding: 1rem 1rem 1rem 0.5rem;
+        cursor: pointer;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        transition: transform 0.3s ease;
+        font-size: 1.2rem;
+        writing-mode: vertical-rl;
+        text-orientation: mixed;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+      .sidebar-toggle-btn:hover {
+        background-color: #2a5298;
+      }
+
+      .sidebar-overlay {
+        position: fixed;
+        top: 70px; /* Começa abaixo do menu global (aprox. 70px) */
+        left: 0;
+        width: 100%;
+        height: calc(
+          100vh - 70px
+        ); /* Ocupa o resto da altura */
+        background-color: rgba(0, 0, 0, 0.6);
+        z-index: 9998; /* z-index alto para garantir */
+        opacity: 0;
+        visibility: hidden;
+        transition:
+          opacity 0.3s ease,
+          visibility 0.3s ease;
+      }
+      .sidebar-overlay.open {
+        opacity: 1;
+        visibility: visible;
+      }
+
+      .sidebar {
+        position: fixed;
+        top: 70px; /* Começa abaixo do menu global (aprox. 70px) */
+        left: 0;
+        height: calc(
+          100vh - 70px
+        ); /* Ocupa o resto da altura */
+        width: 50vw; /* Abre até o meio da página */
+        max-width: 450px; /* Limite máximo de largura */
+        background-color: #ffffff;
+        z-index: 9999; /* z-index alto para garantir */
+        transform: translateX(-100%);
+        transition: transform 0.3s ease;
+        overflow-y: auto;
+        padding: 1.5rem;
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+      }
+      .sidebar.open {
+        transform: translateX(0);
+      }
+      .sidebar .close-sidebar-btn {
+        position: absolute;
+        top: 10px;
+        right: 15px;
+        background: none;
+        border: none;
+        font-size: 2rem;
+        color: #888;
+        cursor: pointer;
+      }
+      .sidebar .close-sidebar-btn:hover {
+        color: #333;
+      }
+      /* Estilos para o conteúdo dentro da sidebar */
+      .sidebar-content {
+        color: #333;
+      }
+      .sidebar-content h2 {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: #1a3e74;
+        margin-bottom: 1rem;
+      }
+      .sidebar-content p,
+      .sidebar-content ul {
+        font-size: 0.9rem;
+        line-height: 1.6;
+        margin-bottom: 1rem;
+      }
+      .sidebar-content ul {
+        list-style: disc;
+        padding-left: 1.5rem;
+      }
+      .sidebar-content strong {
+        color: #1a3e74;
+        font-weight: 700; /* Negrito mais forte para títulos */
+      }
+      .sidebar-content .font-bold {
+        font-weight: 700;
+      }
+      .sidebar-content .text-red-600 {
+        color: #d9534f;
+      }
+      /* --- FIM DOS ESTILOS DA ABA LATERAL --- */
+
       .resultado.bg-meem-normal {
         background-color: #d4edda;
         color: #155724;
@@ -253,6 +365,7 @@
         border: 1px solid #d1d5db;
         border-radius: 12px;
         padding: 1.5rem;
+        margin-bottom: 1.5rem;
         box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         transition: box-shadow 0.3s ease;
       }
@@ -296,6 +409,24 @@
         box-shadow: 0 0 0 3px rgba(31, 164, 229, 0.2);
       }
 
+      /* --- PDF FIX --- */
+      .selected-option-for-pdf {
+        display: none; /* Oculto por padrão */
+        background-color: #eef2f9; /* Azul bem claro */
+        padding: 0.5rem;
+        border-radius: 6px;
+        margin-top: 0.75rem;
+        color: #1a3e74;
+        font-weight: 600;
+        font-size: 0.9rem;
+      }
+
+      @media (min-width: 640px) {
+        .meem-criterion-card {
+          /* Ajuste para o layout em linha, se necessário */
+        }
+      }
+
       /* --- Novo Bloco de Estilo para o Cartão do Documento --- */
       .report-card-link {
         display: block;
@@ -330,6 +461,84 @@
         line-height: 1.3;
       }
       /* --- Fim do Novo Bloco --- */
+
+      /* --- ESTILOS DE IMPRESSÃO (PDF) --- */
+      @media print {
+        /* Esconde tudo que não é o conteúdo principal */
+        body > *:not(main),
+        #global-header-container,
+        #language-dropdown-wrapper,
+        .sidebar-toggle-btn,
+        .sidebar-overlay,
+        .sidebar,
+        .breadcrumb,
+        #main-title button, /* Esconde botão de favoritar */
+        .report-card-link, /* Esconde o cartão de documento */
+        .title-bar,
+        #main-subtitle,
+        #intro-paragraph,
+        #description-text,
+        .flex.flex-wrap.justify-start.gap-4.mt-6, /* Esconde botões de ação */
+        #reference-section,
+        #footer-placeholder,
+        nav[aria-label="Atalhos de Acessibilidade"] {
+          display: none !important;
+        }
+
+        /* Garante que o main-content ocupe a página */
+        main,
+        .main-content-wrapper {
+          width: 100% !important;
+          margin: 0 !important;
+          padding: 0 !important;
+          box-shadow: none !important;
+          border: none !important;
+        }
+
+        /* PDF Fix: Esconde os dropdowns */
+        .meem-select {
+          display: none !important;
+        }
+
+        /* PDF Fix: Mostra o texto da seleção */
+        .selected-option-for-pdf {
+          display: block !important;
+          background-color: #eef2f9 !important;
+          border: 1px solid #ddd !important;
+          padding: 0.5rem !important;
+          border-radius: 6px !important;
+          margin-top: 0.75rem !important;
+          color: #1a3e74 !important;
+          font-weight: 600 !important;
+          font-size: 0.9rem !important;
+        }
+
+        /* Garante que o resultado seja impresso */
+        #resultado {
+          display: block !important;
+          margin-top: 1.5rem !important;
+          background-color: #e0f2fe !important; /* Força um fundo claro */
+          color: #1a3e74 !important;
+          border: 1px solid #bee3f8 !important;
+          page-break-before: always; /* Começa o resultado em uma nova página */
+        }
+
+        /* Ajusta os cards para impressão */
+        .meem-criterion-card {
+          box-shadow: none !important;
+          border: 1px solid #ccc !important;
+          padding: 1rem !important;
+          margin-bottom: 1rem !important;
+          page-break-inside: avoid; /* Evita que o card quebre no meio da página */
+        }
+
+        .meem-criterion-header,
+        .meem-criterion-title,
+        .meem-score-display {
+          color: #1a3e74 !important;
+        }
+      }
+      /* --- FIM DOS ESTILOS DE IMPRESSÃO --- */
     </style>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -361,6 +570,101 @@
         >Voltar ao Topo da Página [Alt + Shift + T]</a
       >
     </nav>
+
+    <!-- ABA LATERAL (SIDEBAR) E BOTÃO -->
+    <button
+      id="toggleSidebarBtn"
+      class="sidebar-toggle-btn"
+      aria-label="Abrir informações importantes"
+      aria-expanded="false"
+    >
+      <i class="fas fa-info-circle" aria-hidden="true"></i>
+      <span style="writing-mode: horizontal-tb">Info</span>
+    </button>
+    <div id="sidebarOverlay" class="sidebar-overlay"></div>
+    <aside id="infoSidebar" class="sidebar" aria-hidden="true">
+      <button
+        id="closeSidebarBtn"
+        class="close-sidebar-btn"
+        aria-label="Fechar"
+      >
+        &times;
+      </button>
+      <div class="sidebar-content">
+        <!-- Conteúdo da Sidebar para MEEM -->
+        <h2><strong>MEEM, breve história...</strong></h2>
+        <p>
+          O Mini exame do estado mental foi criado em 1975 nos Estados Unidos por
+          Marshal F. Folstein, Susan E. Folstein e Paul R. McHugh eles buscavam
+          um método objetivo, simples e padronizado para avaliar rapidamente o
+          estado mental de pacientes em ambientes clínicos. Até então, as
+          avaliações cognitivas eram longas e pouco práticas para uso
+          hospitalar. O novo instrumento trouxe um formato leve, rápido e fácil
+          de aplicar, permitindo identificar déficits cognitivos de forma
+          sistemática.
+        </p>
+
+        <h2><strong>Para que serve o MEEM?</strong></h2>
+        <p>O MEEM é utilizado para:</p>
+        <ul>
+          <li>Rastrear déficits cognitivos</li>
+          <li>Ajudar na detecção precoce de demência, como Alzheimer</li>
+          <li>Avaliar a evolução clínica ao longo do tempo</li>
+          <li>Monitorar progressão ou melhora do quadro cognitivo</li>
+          <li>
+            Auxiliar no planejamento terapêutico e no cuidado integral ao
+            paciente
+          </li>
+        </ul>
+        <p>Não é um exame diagnóstico isolado, mas é um poderoso instrumento de triagem.</p>
+
+        <h2>
+          <strong>Como funciona a pontuação e interpretação dos resultados</strong>
+        </h2>
+        <p>
+          A pontuação total do MEEM varia de 0 a 30 pontos. A interpretação pode
+          variar conforme idade e escolaridade, mas de forma geral:
+        </p>
+        <ul>
+          <li>25–30 pontos → Função cognitiva preservada</li>
+          <li>21–24 pontos → Déficit cognitivo leve</li>
+          <li>10–20 pontos → Déficit cognitivo moderado</li>
+          <li>0–9 pontos → Déficit cognitivo grave</li>
+        </ul>
+        <p>
+          A escolaridade influencia diretamente no desempenho, por isso existem
+          pontos de corte específicos para diferentes níveis educacionais,
+          garantindo maior precisão nos resultados.
+        </p>
+
+        <h2><strong>Qual profissional pode aplicar o MEEM?</strong></h2>
+        <p>
+          O MEEM pode ser aplicado por profissionais capacitados da área da
+          saúde, como:
+        </p>
+        <ul>
+          <li>Enfermeiros</li>
+          <li>Médicos</li>
+          <li>Psicólogos</li>
+          <li>Fisioterapeutas</li>
+          <li>Terapeutas ocupacionais</li>
+          <li>Outros profissionais treinados em avaliação cognitiva</li>
+        </ul>
+        <p>
+          O mais importante é que o avaliador entenda o protocolo, saiba
+          interpretar os resultados e reconheça limitações e variáveis clínicas.
+        </p>
+        <p>
+          Utilize nossa escala de MEEM automatizada, modo rápido e correto de
+          aplicar em poucos minutos. Nosso objetivo é disseminar testes e
+          escalas assistências automatizadas para colaborar com a propagação e
+          desenvolvimento de conhecimento da enfermagem e demais profissionais
+          da saúde.
+        </p>
+        <!-- Fim do conteúdo -->
+      </div>
+    </aside>
+    <!-- FIM DA ABA LATERAL -->
 
     <div
       id="statusMessage"
@@ -807,7 +1111,11 @@
 
         <div id="conteudo" class="meem-criteria-container"></div>
 
-        <div id="resultado" class="resultado hidden" aria-live="polite"></div>
+        <div
+          id="resultado"
+          class="resultado hidden"
+          aria-live="polite"
+        ></div>
 
         <div class="flex flex-wrap justify-start gap-4 mt-6">
           <button
@@ -1105,12 +1413,9 @@
         }
 
         function limparCampos() {
-          meemData.forEach((item) => {
-            const selectElement = document.getElementById(item.nameAttr);
-            selectElement.selectedIndex = 0;
-            document.getElementById(
-              `${item.nameAttr}_score_display`,
-            ).innerText = "0";
+          const selects = document.querySelectorAll("#conteudo select");
+          selects.forEach((select) => {
+            select.selectedIndex = 0;
           });
           resultadoDiv.innerHTML = "";
           resultadoDiv.className = "resultado hidden";
