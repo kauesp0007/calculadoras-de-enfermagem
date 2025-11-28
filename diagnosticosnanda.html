@@ -126,61 +126,86 @@
     </script>
 
     <style>
-      .nanda-domain {
-        @apply bg-white border border-gray-200 rounded-lg shadow-sm mb-4 overflow-hidden;
+      /* Estilo dos Cartões de Domínio (Igual Aldrete + Efeito de Movimento) */
+      .nanda-card {
+        @apply bg-white border border-gray-200 rounded-xl shadow-sm mb-4 overflow-hidden transition-all duration-300 ease-in-out;
       }
-      .nanda-domain-summary {
-        @apply flex justify-between items-center p-4 cursor-pointer bg-blue-50 hover:bg-blue-100 transition-colors duration-200;
+      /* Efeito de mover/flutuar ao passar o mouse */
+      .nanda-card:hover {
+        @apply transform -translate-y-1 shadow-lg border-blue-200;
+      }
+
+      .nanda-card-summary {
+        @apply flex justify-between items-center p-5 cursor-pointer bg-white hover:bg-gray-50 transition-colors duration-200;
         list-style: none;
       }
-      .nanda-domain-summary::-webkit-details-marker {
+      .nanda-card-summary::-webkit-details-marker {
         display: none;
       }
-      .nanda-domain-title {
-        @apply font-nunito font-bold text-lg text-dark-blue;
+      .nanda-card-title {
+        @apply font-nunito font-bold text-xl text-dark-blue flex items-center gap-3;
       }
       
-      .nanda-class {
-        @apply border-t border-gray-100;
+      /* Estilo das Classes (Aninhado) */
+      .nanda-class-container {
+        @apply border-t border-gray-100 bg-gray-50 p-4;
+      }
+      .nanda-class-details {
+        @apply bg-white border border-gray-200 rounded-lg mb-3 shadow-sm overflow-hidden;
       }
       .nanda-class-summary {
-        @apply flex justify-between items-center p-3 pl-6 cursor-pointer bg-white hover:bg-gray-50 transition-colors duration-200 border-l-4 border-transparent hover:border-light-blue;
+        @apply flex justify-between items-center p-3 pl-4 cursor-pointer hover:bg-blue-50 transition-colors duration-200;
         list-style: none;
       }
       .nanda-class-summary::-webkit-details-marker {
         display: none;
       }
       .nanda-class-title {
-        @apply font-inter font-semibold text-gray-700;
+        @apply font-inter font-semibold text-gray-700 text-sm md:text-base;
       }
 
-      .nanda-diagnosis-list {
-        @apply p-3 bg-gray-50 grid grid-cols-1 gap-2;
+      /* Área de Diagnósticos */
+      .diagnosis-container {
+        @apply p-3 bg-white border-t border-gray-100;
       }
       
-      .diagnosis-btn {
-        @apply w-full text-left p-3 rounded-md border border-gray-200 bg-white hover:bg-blue-50 hover:border-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200 text-sm text-gray-700;
-      }
-      .diagnosis-btn.selected {
-        @apply bg-blue-600 text-white border-blue-600 shadow-md;
+      /* Caixa de Pesquisa dentro da Classe */
+      .diagnosis-search {
+        @apply w-full mb-3 px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all;
       }
 
+      /* Botões de Diagnóstico */
+      .diagnosis-btn {
+        @apply w-full text-left p-3 mb-2 rounded-md border border-gray-100 bg-gray-50 hover:bg-blue-600 hover:text-white hover:border-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-300 transition-all duration-200 text-sm text-gray-700 flex items-center justify-between group;
+      }
+      .diagnosis-btn.selected {
+        @apply bg-blue-700 text-white border-blue-700 shadow-md transform scale-[1.01];
+      }
+      .diagnosis-btn i {
+        @apply opacity-0 group-hover:opacity-100 transition-opacity;
+      }
+      .diagnosis-btn.selected i {
+        @apply opacity-100;
+      }
+
+      /* Ícone Chevron Animado */
       .chevron-icon {
         @apply text-gray-400 transition-transform duration-300;
       }
       details[open] > summary .chevron-icon {
-        @apply transform rotate-180;
+        @apply transform rotate-180 text-blue-600;
       }
 
+      /* Painel de Ação */
       #action-panel {
-        @apply fixed bottom-0 left-0 w-full bg-white border-t border-gray-200 shadow-2xl p-4 transform translate-y-full transition-transform duration-300 z-50;
+        @apply fixed bottom-0 left-0 w-full bg-white border-t border-gray-200 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)] p-6 transform translate-y-full transition-transform duration-300 z-50 rounded-t-2xl;
       }
       #action-panel.visible {
         @apply translate-y-0;
       }
       @media(min-width: 1024px) {
         #action-panel {
-            @apply static transform-none shadow-none border-t-0 p-0 mt-6 bg-transparent;
+            @apply static transform-none shadow-none border-t-0 p-0 mt-6 bg-transparent rounded-none;
         }
         #action-panel.visible {
             @apply block;
@@ -232,63 +257,74 @@
           </ol>
         </nav>
 
-        <div class="text-center mb-8">
+        <div class="text-center mb-10">
           <h1
             class="font-nunito font-extrabold text-dark-blue text-4xl lg:text-5xl"
           >
             Taxonomia NANDA 2018
           </h1>
-          <div class="title-bar mx-auto mt-2"></div>
-          <p class="font-inter text-gray-600 text-lg mt-4 max-w-4xl mx-auto text-justify sm:text-center">
-            A taxonomia NANDA é um sistema de classificação padronizado para diagnósticos de enfermagem, organizado em 13 domínios e 47 classes. Seu objetivo é ajudar enfermeiros a identificar e descrever julgamentos clínicos sobre respostas humanas a condições de saúde, facilitando a comunicação, o planejamento de cuidados e a pesquisa. A estrutura, que inclui um título, definição e características definidoras para cada diagnóstico, visa tornar a prática de enfermagem mais científica e baseada em evidências.
+          <div class="title-bar mx-auto mt-3"></div>
+          <p class="font-inter text-gray-600 text-lg mt-6 max-w-4xl mx-auto text-justify sm:text-center leading-relaxed">
+            A taxonomia NANDA é um sistema de classificação padronizado para diagnósticos de enfermagem, organizado em 13 domínios e 47 classes. Seu objetivo é ajudar enfermeiros a identificar e descrever julgamentos clínicos sobre respostas humanas a condições de saúde. A estrutura visa tornar a prática de enfermagem mais científica e baseada em evidências.
           </p>
         </div>
 
-        <div class="flex flex-col lg:flex-row gap-8">
+        <div class="flex flex-col lg:flex-row gap-8 items-start">
+            <!-- Árvore de Navegação -->
             <div class="w-full lg:w-2/3">
                 <div id="nanda-container" class="space-y-4">
                     <div class="text-center py-10">
                         <i class="fas fa-spinner fa-spin text-4xl text-blue-600"></i>
-                        <p class="mt-2 text-gray-500">Carregando a Lista Completa...</p>
+                        <p class="mt-2 text-gray-500">Carregando Taxonomia Completa...</p>
                     </div>
                 </div>
             </div>
 
-            <div class="w-full lg:w-1/3">
-                <div id="action-panel" class="lg:sticky lg:top-8 bg-white p-6 rounded-lg lg:shadow-md border border-gray-200">
-                    <div id="selection-state" class="text-center">
-                        <div class="mb-4">
-                            <i class="fas fa-user-nurse text-4xl text-gray-300 mb-2"></i>
-                            <p class="text-gray-500 font-medium">Nenhum diagnóstico selecionado</p>
-                            <p class="text-sm text-gray-400">Navegue pelos domínios e selecione um diagnóstico para ver mais opções.</p>
+            <!-- Painel Lateral de Ação -->
+            <div class="w-full lg:w-1/3 sticky top-4">
+                <div id="action-panel" class="bg-white p-6 rounded-xl border border-gray-200 lg:shadow-md transition-all duration-300">
+                    <!-- Estado Vazio -->
+                    <div id="selection-state" class="text-center py-8">
+                        <div class="mb-4 inline-block p-4 bg-blue-50 rounded-full">
+                            <i class="fas fa-hand-pointer text-4xl text-blue-300"></i>
                         </div>
+                        <p class="text-gray-600 font-bold text-lg mb-2">Selecione um Diagnóstico</p>
+                        <p class="text-sm text-gray-400 leading-relaxed">
+                            Navegue pelos domínios e classes ao lado e clique em um diagnóstico para visualizar as opções de pesquisa.
+                        </p>
                     </div>
 
+                    <!-- Estado Ativo -->
                     <div id="active-state" class="hidden">
-                        <h3 class="text-sm font-bold text-gray-400 uppercase tracking-wider mb-2">Diagnóstico Selecionado</h3>
-                        <p id="selected-diagnosis-name" class="text-xl font-bold text-dark-blue mb-6 leading-snug">
+                        <div class="mb-6">
+                            <span class="text-xs font-bold text-blue-600 uppercase tracking-widest bg-blue-50 px-2 py-1 rounded">Diagnóstico Selecionado</span>
+                        </div>
+                        
+                        <p id="selected-diagnosis-name" class="text-xl font-bold text-dark-blue mb-8 leading-snug border-l-4 border-blue-600 pl-4">
                             <!-- Nome vai aqui -->
                         </p>
                         
                         <button
                             id="btnSearchDefinition"
-                            class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg shadow transition-colors duration-200 flex items-center justify-center gap-2"
+                            class="w-full group relative flex items-center justify-center gap-3 bg-gradient-to-r from-blue-700 to-blue-600 hover:from-blue-800 hover:to-blue-700 text-white font-bold py-4 px-6 rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200"
                         >
-                            <i class="fab fa-google"></i>
-                            Definição e Fatores de Risco
+                            <i class="fab fa-google text-lg"></i>
+                            <span>Definição e Fatores</span>
+                            <i class="fas fa-external-link-alt text-xs opacity-50 group-hover:opacity-100 absolute right-4"></i>
                         </button>
-                        <p class="text-xs text-gray-400 mt-3 text-center">
-                            Você será redirecionado para uma pesquisa externa.
+                        
+                        <p class="text-xs text-gray-400 mt-4 text-center border-t border-gray-100 pt-4">
+                            <i class="fas fa-info-circle mr-1"></i> Você será redirecionado para uma pesquisa externa segura.
                         </p>
                     </div>
                 </div>
             </div>
         </div>
 
-        <div class="mt-12 pt-6 border-t border-gray-200">
-            <p class="font-inter text-gray-custom text-sm">
-                <strong>Referência Bibliográfica:</strong><br>
-                NANDA International. (2018). <em>Diagnósticos de enfermagem da NANDA-I: definições e classificação 2018-2020</em>. (11.ª ed.). Thieme. Disponível em: <a href="https://nanda.org/" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:underline">https://nanda.org/</a>
+        <div class="mt-16 pt-8 border-t border-gray-200">
+            <p class="font-inter text-gray-custom text-sm bg-gray-50 p-4 rounded-lg border border-gray-100">
+                <strong class="text-dark-blue"><i class="fas fa-book mr-2"></i>Referência Bibliográfica:</strong><br>
+                NANDA International. (2018). <em>Diagnósticos de enfermagem da NANDA-I: definições e classificação 2018-2020</em>. (11.ª ed.). Thieme. Disponível em: <a href="https://nanda.org/" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:underline font-semibold">https://nanda.org/</a>
             </p>
         </div>
 
@@ -319,7 +355,7 @@
         initNandaApp();
       });
 
-      // DADOS EXTRAÍDOS DO ARQUIVO TAXONOMIA NANDA 2018.docx (256 Diagnósticos)
+      // DADOS COMPLETOS - 256 DIAGNÓSTICOS
       const nandaData = [
         {
             domain: "Domínio 1. Promoção da saúde",
@@ -875,28 +911,31 @@
 
         container.innerHTML = "";
 
-        // Função que garante limpeza extra se ainda houver números residuais
+        // Função que garante limpeza extra
         function cleanDiagnosisName(fullName) {
             return fullName.replace(/\s*\d+$/, "").replace(/^\d+\s*/, "").trim();
         }
 
         nandaData.forEach((domain) => {
             const domainDetails = document.createElement("details");
-            domainDetails.className = "nanda-domain group";
+            domainDetails.className = "nanda-card"; // Usa a classe do cartão estilizado
 
             const domainSummary = document.createElement("summary");
-            domainSummary.className = "nanda-domain-summary";
+            domainSummary.className = "nanda-card-summary";
             domainSummary.innerHTML = `
-                <span class="nanda-domain-title">${domain.domain}</span>
+                <span class="nanda-card-title">
+                    <i class="fas fa-folder text-blue-500"></i>
+                    ${domain.domain}
+                </span>
                 <i class="fas fa-chevron-down chevron-icon"></i>
             `;
             
             const classesContainer = document.createElement("div");
-            classesContainer.className = "bg-white";
+            classesContainer.className = "nanda-class-container"; // Container para as classes
 
             domain.classes.forEach((classe) => {
                 const classDetails = document.createElement("details");
-                classDetails.className = "nanda-class";
+                classDetails.className = "nanda-class-details"; // Estilo específico da classe
 
                 const classSummary = document.createElement("summary");
                 classSummary.className = "nanda-class-summary";
@@ -905,23 +944,51 @@
                     <i class="fas fa-chevron-down chevron-icon text-sm"></i>
                 `;
 
-                const diagnosisList = document.createElement("div");
-                diagnosisList.className = "nanda-diagnosis-list";
+                const diagnosisContainer = document.createElement("div");
+                diagnosisContainer.className = "diagnosis-container";
+
+                // Caixa de pesquisa dentro da classe
+                const searchInput = document.createElement("input");
+                searchInput.type = "text";
+                searchInput.placeholder = "Filtrar diagnósticos nesta classe...";
+                searchInput.className = "diagnosis-search";
+                
+                // Lista de diagnósticos
+                const diagListDiv = document.createElement("div");
+                
+                // Lógica de filtro
+                searchInput.addEventListener("input", (e) => {
+                    const term = e.target.value.toLowerCase();
+                    const buttons = diagListDiv.querySelectorAll("button");
+                    buttons.forEach(btn => {
+                        const txt = btn.textContent.toLowerCase();
+                        if(txt.includes(term)) {
+                            btn.style.display = "flex";
+                        } else {
+                            btn.style.display = "none";
+                        }
+                    });
+                });
 
                 classe.diagnoses.forEach((diag) => {
                     const cleanName = cleanDiagnosisName(diag);
                     
                     if(cleanName.includes("Esta Classe atualmente")) {
                         const emptyMsg = document.createElement("p");
-                        emptyMsg.className = "text-gray-400 text-sm italic p-2 pl-4";
+                        emptyMsg.className = "text-gray-400 text-sm italic p-2 pl-1";
                         emptyMsg.innerText = cleanName;
-                        diagnosisList.appendChild(emptyMsg);
+                        diagListDiv.appendChild(emptyMsg);
+                        // Se não tem diagnósticos, esconde a busca
+                        searchInput.style.display = 'none';
                         return;
                     }
 
                     const btn = document.createElement("button");
                     btn.className = "diagnosis-btn";
-                    btn.textContent = cleanName;
+                    btn.innerHTML = `
+                        <span>${cleanName}</span>
+                        <i class="fas fa-check text-blue-200"></i>
+                    `;
                     
                     btn.addEventListener("click", () => {
                         document.querySelectorAll(".diagnosis-btn.selected").forEach(b => b.classList.remove("selected"));
@@ -938,11 +1005,14 @@
                         };
                     });
 
-                    diagnosisList.appendChild(btn);
+                    diagListDiv.appendChild(btn);
                 });
 
+                diagnosisContainer.appendChild(searchInput);
+                diagnosisContainer.appendChild(diagListDiv);
+
                 classDetails.appendChild(classSummary);
-                classDetails.appendChild(diagnosisList);
+                classDetails.appendChild(diagnosisContainer);
                 classesContainer.appendChild(classDetails);
             });
 
@@ -951,9 +1021,10 @@
             container.appendChild(domainDetails);
         });
 
+        // Fechar painel mobile ao clicar fora
         document.addEventListener('click', (e) => {
             if (window.innerWidth < 1024) { 
-                if (!actionPanel.contains(e.target) && !container.contains(e.target)) {
+                if (!actionPanel.contains(e.target) && !container.contains(e.target) && !e.target.classList.contains('diagnosis-btn')) {
                     actionPanel.classList.remove("visible");
                 }
             }
