@@ -255,6 +255,7 @@ const urlsToCache = [
   'de/tinetti.html',
   'de/waterlow.html',
   'de/zarit.html',
+  'dezpassos.webp',
   'diagnosticosnanda.html',
   'dimensionamento.html',
   'doacoes.html',
