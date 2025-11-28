@@ -1141,6 +1141,7 @@ const urlsToCache = [
   'lanss.html',
   'lawton.html',
   'legislacoes.html',
+  'livronanda.webp',
   'main.js',
   'manchester.html',
   'manifest.json',

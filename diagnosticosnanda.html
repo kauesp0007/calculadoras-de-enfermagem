@@ -305,50 +305,55 @@
         color: #2563eb;
       }
 
-      #action-panel {
-        position: fixed;
-        bottom: 0;
-        left: 0;
-        width: 100%;
+      /* --- Painel de Ação --- */
+      /* No mobile, é fixo embaixo. No desktop, é estático na coluna lateral. */
+      #action-panel-container {
+        /* Container para os cartões laterais */
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem; /* Espaço entre os cartões */
+      }
+
+      .side-card {
         background-color: #ffffff;
-        border-top: 1px solid #e5e7eb;
-        box-shadow: 0 -4px 6px -1px rgba(0,0,0,0.1);
-        padding: 1.5rem;
-        transform: translateY(100%);
-        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        z-index: 50;
-        border-top-left-radius: 1rem;
-        border-top-right-radius: 1rem;
-      }
-      #action-panel.visible {
-        transform: translateY(0);
-      }
-      
-      @media(min-width: 1024px) {
-        #action-panel {
-            position: static;
-            transform: none;
-            box-shadow: none;
-            border-top: none;
-            padding: 0;
-            margin-top: 1.5rem;
-            background-color: transparent;
-            border-radius: 0;
-        }
-        #action-panel.visible {
-            display: block;
-        }
-      }
-      
-      .panel-content {
-        background-color: #ffffff;
-        padding: 1.5rem;
-        border-radius: 0.75rem;
         border: 1px solid #e5e7eb;
+        border-radius: 0.75rem; /* rounded-xl */
+        padding: 1.5rem;
+        box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
       }
+
+      /* Estilos específicos para o painel de seleção no mobile */
+      @media(max-width: 1023px) {
+        #action-panel-mobile-wrapper {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background-color: #ffffff;
+            border-top: 1px solid #e5e7eb;
+            box-shadow: 0 -4px 6px -1px rgba(0,0,0,0.1);
+            padding: 1.5rem;
+            transform: translateY(100%);
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 50;
+            border-top-left-radius: 1rem;
+            border-top-right-radius: 1rem;
+        }
+        #action-panel-mobile-wrapper.visible {
+            transform: translateY(0);
+        }
+        /* Oculta o container lateral padrão no mobile para usar o fixo */
+        #action-panel-container {
+            display: none;
+        }
+      }
+      
       @media(min-width: 1024px) {
-        .panel-content {
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        #action-panel-mobile-wrapper {
+            display: none; /* Oculta o wrapper mobile no desktop */
+        }
+        #action-panel-container {
+            display: flex; /* Mostra a coluna lateral no desktop */
         }
       }
     </style>
@@ -420,47 +425,36 @@
                 </div>
             </div>
 
-            <!-- Painel Lateral de Ação -->
-            <div class="w-full lg:w-1/3 sticky top-4">
-                <div id="action-panel">
-                    <div class="panel-content">
-                        <!-- Estado Vazio -->
-                        <div id="selection-state" class="text-center py-8">
-                            <div class="mb-4 inline-block p-4 bg-blue-50 rounded-full">
-                                <i class="fas fa-hand-pointer text-4xl text-blue-300"></i>
-                            </div>
-                            <p class="text-gray-600 font-bold text-lg mb-2">Selecione um Diagnóstico</p>
-                            <p class="text-sm text-gray-400 leading-relaxed">
-                                Navegue pelos domínios e classes ao lado e clique em um diagnóstico para visualizar as opções de pesquisa.
-                            </p>
-                        </div>
+            <!-- Coluna Lateral (Desktop) -->
+            <div class="w-full lg:w-1/3">
+                <div id="action-panel-container">
+                    <!-- Cartão 1: Seleção/Ação -->
+                    <div id="action-panel-desktop" class="side-card">
+                        <!-- Conteúdo injetado via JS (igual ao mobile) -->
+                    </div>
 
-                        <!-- Estado Ativo -->
-                        <div id="active-state" class="hidden">
-                            <div class="mb-6">
-                                <span class="text-xs font-bold text-blue-600 uppercase tracking-widest bg-blue-50 px-2 py-1 rounded">Diagnóstico Selecionado</span>
-                            </div>
-                            
-                            <p id="selected-diagnosis-name" class="text-xl font-bold text-dark-blue mb-8 leading-snug border-l-4 border-blue-600 pl-4">
-                                <!-- Nome vai aqui -->
-                            </p>
-                            
-                            <button
-                                id="btnSearchDefinition"
-                                class="w-full group relative flex items-center justify-center gap-3 bg-gradient-to-r from-blue-700 to-blue-600 hover:from-blue-800 hover:to-blue-700 text-white font-bold py-4 px-6 rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200"
-                            >
-                                <i class="fab fa-google text-lg"></i>
-                                <span>Definição e Fatores</span>
-                                <i class="fas fa-external-link-alt text-xs opacity-50 group-hover:opacity-100 absolute right-4"></i>
-                            </button>
-                            
-                            <p class="text-xs text-gray-400 mt-4 text-center border-t border-gray-100 pt-4">
-                                <i class="fas fa-info-circle mr-1"></i> Você será redirecionado para uma pesquisa externa segura.
-                            </p>
+                    <!-- Cartão 2: Sobre o NANDA -->
+                    <div class="side-card">
+                        <h3 class="font-nunito font-bold text-lg text-dark-blue mb-3 border-b border-gray-100 pb-2">
+                            Sobre o NANDA
+                        </h3>
+                        <p class="font-inter text-xs text-gray-600 leading-relaxed mb-4 text-justify">
+                            Atualmente a NANDA Internacional está no volume 13 (2024-2026), possui 13 domínios, 48 classes e 277 diagnósticos de enfermagem: 46 removidos das versões anteriores e 98 títulos alterados das versões anteriores.
+                        </p>
+                        <div class="rounded-lg overflow-hidden border border-gray-200">
+                            <img src="livronanda.webp" alt="Capa do livro NANDA Internacional 2024-2026" class="w-full h-auto object-cover" onerror="this.src='https://placehold.co/400x300/e2e8f0/64748b?text=Livro+NANDA';" />
                         </div>
+                        <p class="text-[10px] text-gray-400 mt-1 text-center italic">
+                            Imagem do Livro NANDA Internacional 2024-2025
+                        </p>
                     </div>
                 </div>
             </div>
+        </div>
+
+        <!-- Wrapper para Painel Mobile (Fixo no fundo) -->
+        <div id="action-panel-mobile-wrapper">
+            <!-- Conteúdo injetado via JS -->
         </div>
 
         <div class="mt-16 pt-8 border-t border-gray-200">
@@ -1043,13 +1037,74 @@
 
       function initNandaApp() {
         const container = document.getElementById("nanda-container");
-        const panelSelection = document.getElementById("selection-state");
-        const panelActive = document.getElementById("active-state");
-        const diagnosisNameEl = document.getElementById("selected-diagnosis-name");
-        const btnSearch = document.getElementById("btnSearchDefinition");
-        const actionPanel = document.getElementById("action-panel");
+        const desktopPanel = document.getElementById("action-panel-desktop");
+        const mobilePanelWrapper = document.getElementById("action-panel-mobile-wrapper");
 
         if (!container) return;
+
+        // Renderiza o conteúdo do painel de ação (usado tanto no desktop quanto no mobile)
+        function renderActionPanel(cleanName = null) {
+            let html = '';
+            
+            if (!cleanName) {
+                // Estado Vazio
+                html = `
+                    <div class="text-center py-8">
+                        <div class="mb-4 inline-block p-4 bg-blue-50 rounded-full">
+                            <i class="fas fa-hand-pointer text-4xl text-blue-300"></i>
+                        </div>
+                        <p class="text-gray-600 font-bold text-lg mb-2">Selecione um Diagnóstico</p>
+                        <p class="text-sm text-gray-400 leading-relaxed">
+                            Navegue pelos domínios e classes ao lado e clique em um diagnóstico para visualizar as opções de pesquisa.
+                        </p>
+                    </div>
+                `;
+            } else {
+                // Estado Ativo
+                html = `
+                    <div>
+                        <div class="mb-6">
+                            <span class="text-xs font-bold text-blue-600 uppercase tracking-widest bg-blue-50 px-2 py-1 rounded">Diagnóstico Selecionado</span>
+                        </div>
+                        
+                        <p class="text-xl font-bold text-dark-blue mb-8 leading-snug border-l-4 border-blue-600 pl-4">
+                            ${cleanName}
+                        </p>
+                        
+                        <button
+                            onclick="searchDefinition('${cleanName}')"
+                            class="w-full group relative flex items-center justify-center gap-3 bg-gradient-to-r from-blue-700 to-blue-600 hover:from-blue-800 hover:to-blue-700 text-white font-bold py-4 px-6 rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200"
+                        >
+                            <i class="fab fa-google text-lg"></i>
+                            <span>Definição e Fatores</span>
+                            <i class="fas fa-external-link-alt text-xs opacity-50 group-hover:opacity-100 absolute right-4"></i>
+                        </button>
+                        
+                        <p class="text-xs text-gray-500 mt-4 text-center border-t border-gray-100 pt-4 leading-relaxed">
+                            Ao clicar neste botão você será redimensionado a página de pesquisas da google através de inteligencia artificial que irá pesquisar na bibliografia da NANDA 2018 a definição e fatores de risco referente ao diagnóstico.
+                        </p>
+                    </div>
+                `;
+            }
+
+            // Atualiza Desktop
+            if (desktopPanel) desktopPanel.innerHTML = html;
+            
+            // Atualiza Mobile (dentro do wrapper)
+            if (mobilePanelWrapper) {
+                mobilePanelWrapper.innerHTML = `
+                    <div class="bg-white p-6 rounded-t-2xl shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)] border-t border-gray-200">
+                        ${html}
+                    </div>
+                `;
+            }
+        }
+
+        // Função global para pesquisa
+        window.searchDefinition = (cleanName) => {
+            const query = `Diagnóstico de enfermagem NANDA ${cleanName} Definição Fatores de risco`;
+            window.open(`https://www.google.com/search?q=${encodeURIComponent(query)}`, "_blank");
+        };
 
         container.innerHTML = "";
 
@@ -1057,6 +1112,9 @@
         function cleanDiagnosisName(fullName) {
             return fullName.replace(/\s*\d+$/, "").replace(/^\d+\s*/, "").trim();
         }
+
+        // Inicializa com estado vazio
+        renderActionPanel();
 
         nandaData.forEach((domain) => {
             const domainDetails = document.createElement("details");
@@ -1142,15 +1200,11 @@
                         document.querySelectorAll(".diagnosis-btn.selected").forEach(b => b.classList.remove("selected"));
                         btn.classList.add("selected");
 
-                        panelSelection.classList.add("hidden");
-                        panelActive.classList.remove("hidden");
-                        diagnosisNameEl.textContent = cleanName;
-                        actionPanel.classList.add("visible");
+                        // Renderiza o painel com o diagnóstico selecionado
+                        renderActionPanel(cleanName);
 
-                        btnSearch.onclick = () => {
-                            const query = `Diagnóstico de enfermagem NANDA ${cleanName} Definição Fatores de risco`;
-                            window.open(`https://www.google.com/search?q=${encodeURIComponent(query)}`, "_blank");
-                        };
+                        // Lógica para mostrar painel no mobile
+                        if (mobilePanelWrapper) mobilePanelWrapper.classList.add("visible");
                     });
 
                     diagListDiv.appendChild(btn);
@@ -1172,8 +1226,11 @@
         // Fechar painel mobile ao clicar fora
         document.addEventListener('click', (e) => {
             if (window.innerWidth < 1024) { 
-                if (!actionPanel.contains(e.target) && !container.contains(e.target) && !e.target.classList.contains('diagnosis-btn')) {
-                    actionPanel.classList.remove("visible");
+                if (mobilePanelWrapper && mobilePanelWrapper.classList.contains("visible") && 
+                    !mobilePanelWrapper.contains(e.target) && 
+                    !container.contains(e.target) && 
+                    !e.target.classList.contains('diagnosis-btn')) {
+                    mobilePanelWrapper.classList.remove("visible");
                 }
             }
         });
