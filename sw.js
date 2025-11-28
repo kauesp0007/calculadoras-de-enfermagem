@@ -5,6 +5,7 @@ const CACHE_NAME = 'calculadoras-enfermagem-cache-v1';
 // O SCRIPT DE BUILD VAI INJETAR A LISTA DE ARQUIVOS AQUI
 const urlsToCache = [
   'aldrete.html',
+  'altavigilancia.webp',
   'apache.html',
   'apgar.html',
   'ar/aldrete.html',
@@ -261,6 +262,7 @@ const urlsToCache = [
   'downloads.html',
   'downloads.template.html',
   'downton.html',
+  'duplachecagem.webp',
   'elpo.html',
   'en/aldrete.html',
   'en/apache.html',
@@ -1142,6 +1144,9 @@ const urlsToCache = [
   'lawton.html',
   'legislacoes.html',
   'livronanda.webp',
+  'livronic.webp',
+  'livronoc.webp',
+  'livrosae.webp',
   'main.js',
   'manchester.html',
   'manifest.json',
