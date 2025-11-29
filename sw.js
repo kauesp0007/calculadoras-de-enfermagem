@@ -429,6 +429,7 @@ const urlsToCache = [
   'es/gosnell.html',
   'es/gotas.webp',
   'es/gotejamento.html',
+  'es/goteo.webp',
   'es/hamilton.html',
   'es/humpty.html',
   'es/imc.html',
