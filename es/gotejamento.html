@@ -288,26 +288,38 @@
     </script>
 
     <style>
-      /* Estilo para o Resultado */
-      .resultado.bg-custom-blue {
-        background-color: #ebf8ff;
-        color: #1a3e74;
-        border: 1px solid #bee3f8;
-        padding: 1rem;
+      /* --- Estilo Refinado para o Resultado --- */
+      .resultado-container {
+        /* Estilo base similar ao card da calculadora */
+        background-color: #ebf8ff; /* Fundo azul bem claro */
+        border: 1px solid #1e40af; /* Borda azul escuro para destaque */
+        border-radius: 1rem;
+        padding: 1.25rem;
         margin-top: 1.5rem;
-        border-radius: 0.75rem;
+        width: 100%;
+        
+        /* Sombra forte */
+        box-shadow: 0 10px 15px -3px rgba(26, 62, 116, 0.15), 
+                    0 4px 6px -2px rgba(26, 62, 116, 0.1);
+        
+        color: #1a3e74;
         text-align: left;
-        line-height: 1.6;
+        display: none; /* Oculto por padrão */
       }
+
+      .resultado-container p {
+        margin: 0;
+        line-height: 1.5;
+        font-size: 1.05rem;
+      }
+
+      /* Estilo para mensagens de erro */
       .bg-info-orange-light {
         background-color: #fff3cd;
         color: #856404;
         border: 1px solid #ffeeba;
         padding: 1rem;
         border-radius: 0.75rem;
-      }
-      .calculo-passos {
-        font-size: 0.95rem;
       }
 
       /* --- Estilo Melhorado dos Cartões (Calculadora e Info) --- */
@@ -658,11 +670,11 @@
 
                 <!-- Imagem e Texto de Ação Adicionados -->
                 <div class="flex flex-col items-center mt-4">
-  <img 
-    src="../img/tempodegotejamento.webp" 
-    alt="Tiempo de Goteo" 
-    class="w-full max-w-[160px] h-auto rounded shadow-sm border border-gray-200"
-  >
+                  <img 
+                    src="../img/tempodegotejamento.webp" 
+                    alt="Tiempo de Goteo" 
+                    class="w-full max-w-[160px] h-auto rounded shadow-sm border border-gray-200"
+                  >
                   <p class="font-bold text-dark-blue mt-2 text-center">Haz clic en calcular</p>
                 </div>
 
@@ -718,7 +730,15 @@
           </div>
         </div>
 
-        <div id="resultado" class="resultado hidden" aria-live="polite"></div>
+        <!-- CONTAINER DO RESULTADO REFORMULADO -->
+        <!-- Agora será um bloco compacto abaixo da calculadora, sem excesso de espaço -->
+        <div class="w-full flex flex-col lg:flex-row justify-start mt-4">
+            <div class="w-full lg:w-1/2">
+                <div id="resultado" class="resultado-container" aria-live="polite">
+                    <!-- Conteúdo inserido via JS -->
+                </div>
+            </div>
+        </div>
 
         <div class="flex flex-wrap justify-start gap-4 mt-8">
           <button
@@ -822,7 +842,7 @@
               resultadoDiv.innerHTML =
                 '⚠️ <strong class="font-bold">Por favor, corrija los valores inválidos.</strong>';
               resultadoDiv.className =
-                "resultado bg-info-orange-light mt-6 p-4 rounded-lg";
+                "resultado-container bg-info-orange-light";
               delete resultadoDiv.dataset.gotasPorMinuto;
               return;
             }
@@ -840,25 +860,22 @@
             gotasPorMinuto = (volume * fatorGotejamento) / tempoEmMinutos;
   
             const gotasArredondadas = Math.round(gotasPorMinuto);
-            const equipoTexto =
-              equipo === "macrogotas" ? "Macrogotas" : "Microgotas";
+            const equipoTexto = equipo === "macrogotas" ? "Macrogotas" : "Microgotas";
+            
+            // Texto para exibir se é horas ou minutos no resultado
+            const unidadeTexto = unidadeTempo === "horas" ? "horas" : "minutos";
   
-            const calculoDetalhado = `
-                      <div class="calculo-passos">
-                          <p>
-                              <strong>Cálculo Explicativo Paso a Paso (${equipoTexto}):</strong><br>
-                              <strong>Paso 1:</strong> La fórmula es (Volumen en ml × Factor del Equipo) ÷ Tiempo en minutos.<br>
-                              <strong>Paso 2:</strong> Su cálculo: (${volume}ml × ${fatorGotejamento}) ÷ ${tempoEmMinutos} minutos.<br>
-                              <strong>Paso 3:</strong> El resultado exacto es ${gotasPorMinuto.toFixed(
-                                2,
-                              )} gotas por minuto.<br>
-                              <strong style="margin-top: 0.5rem; display: inline-block;">Resultado Final: Redondeado a ${gotasArredondadas} gotas/minuto.</strong>
-                          </p>
-                      </div>
-                  `;
+            // Formatação Simplificada e Direta
+            const resultadoTexto = `
+                <p>
+                    <strong>Resultado final:</strong> ${volume} ml de solución prescrita para infundir en ${tempo} ${unidadeTexto} debe fluir a: <br>
+                    <strong>${gotasArredondadas} gotas/minuto</strong>.
+                </p>
+            `;
   
-            resultadoDiv.innerHTML = calculoDetalhado;
-            resultadoDiv.className = "resultado bg-custom-blue mt-6";
+            resultadoDiv.innerHTML = resultadoTexto;
+            // Remove classes antigas se houver e aplica o container padrão
+            resultadoDiv.className = "resultado-container"; 
             resultadoDiv.style.display = "block";
   
             resultadoDiv.dataset.gotasPorMinuto = gotasArredondadas;
@@ -872,7 +889,7 @@
             document.getElementById("unidadeTempo").value = "horas";
             document.getElementById("equipo").value = "macrogotas";
             resultadoDiv.innerHTML = "";
-            resultadoDiv.className = "resultado hidden mt-6";
+            resultadoDiv.style.display = "none";
             document.getElementById("volume-error").classList.add("hidden");
             document.getElementById("tempo-error").classList.add("hidden");
             delete resultadoDiv.dataset.gotasPorMinuto;
