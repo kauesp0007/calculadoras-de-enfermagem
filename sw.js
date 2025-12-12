@@ -292,6 +292,8 @@ const urlsToCache = [
   'dimensionamento.html',
   'doacoes.html',
   'downes.html',
+  'downloads/page1.html',
+  'downloads/page2.html',
   'downloads.html',
   'downloads.template.html',
   'downton.html',
