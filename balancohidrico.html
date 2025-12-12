@@ -143,7 +143,8 @@
     <link rel="icon" href="favicon.ico" type="image/x-icon" />
     <link rel="manifest" href="manifest.json" />
 
-    <!-- Open Graph / Twitter -->
+    <!-- Open Graph (Facebook/WhatsApp/LinkedIn) -->
+    <meta property="og:type" content="website" />
     <meta
       property="og:title"
       content="Calculadora de Balanço Hídrico - Controle de Líquidos"
@@ -160,7 +161,21 @@
       property="og:image"
       content="https://www.calculadorasdeenfermagem.com.br/iconpages.webp"
     />
+
+    <!-- Twitter Card (Twitter/X) -->
     <meta name="twitter:card" content="summary_large_image" />
+    <meta
+      name="twitter:title"
+      content="Calculadora de Balanço Hídrico - Controle de Líquidos"
+    />
+    <meta
+      name="twitter:description"
+      content="Calcule o balanço hídrico de pacientes com precisão. Ferramenta essencial para enfermagem."
+    />
+    <meta
+      name="twitter:image"
+      content="https://www.calculadorasdeenfermagem.com.br/iconpages.webp"
+    />
 
     <link href="/public/output.css" rel="stylesheet" />
     <script
@@ -212,23 +227,48 @@
       gtag("config", "G-8FLJ59XXDK");
     </script>
 
-    <!-- Schema.org (Dados Estruturados) -->
+    <!-- Schema.org (Dados Estruturados + FAQ) -->
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
-        "@type": "MedicalWebPage",
-        "name": "Calculadora de Balanço Hídrico",
-        "url": "https://www.calculadorasdeenfermagem.com.br/balancohidrico.html",
-        "description": "Ferramenta online para cálculo e fechamento de Balanço Hídrico em enfermagem. Monitoramento de ingestão e eliminação de líquidos.",
-        "audience": {
-          "@type": "MedicalAudience",
-          "audienceType": "Enfermeiros, Técnicos de Enfermagem"
-        },
-        "about": {
-          "@type": "MedicalProcedure",
-          "name": "Controle de Balanço Hídrico",
-          "procedureType": "Noninvasive"
-        }
+        "@graph": [
+          {
+            "@type": "MedicalWebPage",
+            "name": "Calculadora de Balanço Hídrico",
+            "url": "https://www.calculadorasdeenfermagem.com.br/balancohidrico.html",
+            "description": "Ferramenta online para cálculo e fechamento de Balanço Hídrico em enfermagem. Monitoramento de ingestão e eliminação de líquidos.",
+            "audience": {
+              "@type": "MedicalAudience",
+              "audienceType": "Enfermeiros, Técnicos de Enfermagem"
+            },
+            "about": {
+              "@type": "MedicalProcedure",
+              "name": "Controle de Balanço Hídrico",
+              "procedureType": "Noninvasive"
+            }
+          },
+          {
+            "@type": "FAQPage",
+            "mainEntity": [
+              {
+                "@type": "Question",
+                "name": "O que é um balanço hídrico positivo?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Significa que a ingestão de líquidos foi maior que a eliminação. O paciente está retendo líquidos."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "O que é um balanço hídrico negativo?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Significa que a eliminação de líquidos foi maior que a ingestão. O paciente pode estar em risco de desidratação."
+                }
+              }
+            ]
+          }
+        ]
       }
     </script>
 
@@ -402,30 +442,20 @@
         box-shadow: 0 0 0 3px rgba(30, 64, 175, 0.2);
       }
 
-      /* --- Estilo do Resultado (Padrão Gotejamento) --- */
+      /* --- Estilo do Resultado REFORMULADO --- */
       #resultado {
         background-color: #ebf8ff; /* Fundo azul bem claro */
         border: 1px solid #1e40af; /* Borda azul escuro */
         border-radius: 1rem;
         padding: 1.25rem;
         margin-top: 1.5rem;
+        /* Sombra forte */
         box-shadow: 0 10px 15px -3px rgba(26, 62, 116, 0.15), 
                     0 4px 6px -2px rgba(26, 62, 116, 0.1);
-        color: #1a3e74;
-        font-weight: 600;
-        line-height: 1.5;
+        color: #1a3e74; /* Azul escuro */
         text-align: left;
       }
-      .bg-info-orange-light {
-        background-color: #fff3cd;
-        border: 1px solid #ffeeba;
-        color: #856404;
-      }
-      /* Cores específicas de resultado */
-      .text-positive { color: #166534; } /* Verde escuro */
-      .text-negative { color: #dc2626; } /* Vermelho */
-      .text-neutral { color: #1a3e74; } /* Azul */
-
+      
       /* Responsividade */
       @media (max-width: 768px) {
         .balanco-flex-container {
@@ -489,7 +519,7 @@
         </p>
         
         <!-- IMAGEM NA SIDEBAR -->
-        <img src="hidricoimagem.webp" alt="Ilustração sobre Balanço Hídrico" class="w-full h-auto rounded-md shadow-sm mb-4" />
+        <img src="img/hidricoimagem.webp" alt="Ilustração sobre Balanço Hídrico" class="w-full h-auto rounded-md shadow-sm mb-4" />
 
         <p><strong>Atenção, profissionais:</strong></p>
         <ul>
@@ -569,7 +599,7 @@
 
         <div id="conteudo" class="w-full">
           
-          <!-- Texto de instrução destacado (Substituindo o card anterior) -->
+          <!-- Texto de instrução destacado -->
           <h2 class="text-xl lg:text-2xl font-bold text-dark-blue mb-6 text-left">
             Insira as quantidades de líquidos ingeridos e eliminados abaixo e clique em "Calcular"
           </h2>
@@ -720,25 +750,6 @@
             </a>
           </p>
         </div>
-        
-        <!-- Seção FAQ para SEO -->
-        <section class="mt-12 mb-8 bg-white p-6 rounded-xl border border-gray-200 shadow-sm" itemscope itemtype="https://schema.org/FAQPage">
-            <h3 class="text-2xl font-bold text-dark-blue mb-6 font-nunito text-center">Perguntas Frequentes sobre Balanço Hídrico</h3>
-            
-            <div class="mb-4" itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
-                <h4 class="font-bold text-lg text-gray-800 mb-2" itemprop="name">O que é um balanço hídrico positivo?</h4>
-                <div itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
-                    <p class="text-gray-600" itemprop="text">Significa que a ingestão de líquidos foi maior que a eliminação. O paciente está retendo líquidos.</p>
-                </div>
-            </div>
-
-            <div class="mb-4" itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
-                <h4 class="font-bold text-lg text-gray-800 mb-2" itemprop="name">O que é um balanço hídrico negativo?</h4>
-                <div itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
-                    <p class="text-gray-600" itemprop="text">Significa que a eliminação de líquidos foi maior que a ingestão. O paciente pode estar em risco de desidratação.</p>
-                </div>
-            </div>
-        </section>
 
       </div>
     </main>
@@ -763,8 +774,6 @@
         fetchHTML("/menu-global.html", "global-header-container");
         fetchHTML("/_language_selector.html", "language-dropdown-wrapper");
         fetchHTML("/footer.html", "footer-placeholder");
-        // Não carregamos global-body-elements aqui pois já está no preload, mas se necessário para scripts comuns:
-        // fetchHTML("/global-body-elements.html", "global-body-elements-container"); 
 
         // --- LÓGICA DA SIDEBAR ---
         const toggleSidebarBtn = document.getElementById("toggleSidebarBtn");
@@ -836,32 +845,28 @@
           resultadoDiv.style.display = "block";
 
           let classificacao = "";
-          let corTextoClassificacao = "";
-
+          
           if (balanco > 0) {
             classificacao = "Balanço Hídrico Positivo (Retenção)";
-            corTextoClassificacao = "text-positive";
           } else if (balanco < 0) {
             classificacao = "Balanço Hídrico Negativo (Perda)";
-            corTextoClassificacao = "text-negative";
           } else {
             classificacao = "Balanço Hídrico Zerado (Equilíbrio)";
-            corTextoClassificacao = "text-neutral";
           }
 
-          // Formato Compacto (Estilo Gotejamento)
+          // Formato Compacto (Tudo azul escuro e negrito conforme solicitado)
+          // "tudo em letra azul, escura e grossa quando for negrito e simples quando for o resultado"
           const resultadoTexto = `
-                <p>
-                    <strong>Resultado Final:</strong><br>
-                    Ingestão Total: ${totalIngestao} ml | Eliminação Total: ${totalEliminacao} ml<br>
-                    <strong>Balanço: ${balanco} ml</strong><br>
-                    <span class="${corTextoClassificacao} font-bold">${classificacao}</span>
-                </p>
-            `;
+            <p style="margin: 0; color: #1a3e74; font-size: 1.05rem; line-height: 1.6;">
+                <span style="font-weight: 800;">Resultado final:</span> Ingestão Total: ${totalIngestao} ml | Eliminação Total: ${totalEliminacao} ml<br>
+                <span style="font-weight: 800;">Balanço:</span> ${balanco} ml<br>
+                <span style="font-weight: 800;">${classificacao}</span>
+            </p>
+          `;
 
           resultadoDiv.innerHTML = resultadoTexto;
-          // Mantém a classe base para o estilo azul padrão
-          resultadoDiv.className = "resultado"; // usa o estilo definido no CSS #resultado
+          // Garante o estilo da caixa azul semitransparente
+          resultadoDiv.className = "resultado"; // classe CSS #resultado já definida para isso
 
           resultadoDiv.dataset.score = balanco;
           resultadoDiv.dataset.classificacao = classificacao;
