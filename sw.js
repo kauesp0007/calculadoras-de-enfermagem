@@ -844,6 +844,8 @@ const urlsToCache = [
   'img/gotejamento.webp',
   'img/gotejamentoimagem.webp',
   'img/goteo.webp',
+  'img/hidricoicone.webp',
+  'img/hidricoimagem.webp',
   'img/iconecapurro.webp',
   'img/iconemeem.webp',
   'img/imc.webp',
