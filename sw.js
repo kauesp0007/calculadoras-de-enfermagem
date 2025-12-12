@@ -442,6 +442,7 @@ const urlsToCache = [
   'es/jouvet.html',
   'es/katz.html',
   'es/lachs.html',
+  'es/lang-selector.js',
   'es/lanss.html',
   'es/lasmetasinternacionales.webp',
   'es/lawton.html',
