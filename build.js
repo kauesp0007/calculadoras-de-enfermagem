@@ -1,35 +1,52 @@
 /* eslint-env node */
-// Importa os módulos 'fs' (para ler/escrever ficheiros) e 'path' (para lidar com caminhos)
-const fs = require('fs');
-const path = require('path');
+const fs = require("fs");
+const path = require("path");
 
-// Define os nomes dos nossos ficheiros
-const JSON_DATABASE_FILE = 'biblioteca.json';
-const TEMPLATE_FILE = 'downloads.template.html';
-const OUTPUT_FILE = 'downloads.html'; // O ficheiro final que será visto no site
+// Arquivos base
+const JSON_DATABASE_FILE = "biblioteca.json";
+const TEMPLATE_LISTA = "downloads.template.html";
+const TEMPLATE_ITEM = "item.template.html";
+const OUTPUT_LISTA = "downloads.html";
+const OUTPUT_PASTA = "biblioteca"; // pasta onde cada item será criado
 
-/**
- * Gera o HTML para um único cartão.
- * @param {object} item - O objeto do item vindo do JSON.
- * @returns {string} - O HTML do cartão.
- */
+// Função auxiliar — gera slug SEO
+function gerarSlug(texto) {
+  return texto
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^\w\s-]/g, "")
+    .trim()
+    .replace(/\s+/g, "-");
+}
+
+// Função auxiliar — descrição SEO automática
+function gerarDescricao(item) {
+  return `Download de ${item.titulo} — arquivo de ${item.categoria} disponível gratuitamente na Biblioteca de Enfermagem.`;
+}
+
+// Função auxiliar — palavras-chave automáticas
+function gerarKeywords(item) {
+  const base = [
+    "enfermagem",
+    "biblioteca",
+    "download",
+    "PDF",
+    "formulários",
+    "protocolos",
+    "escalas",
+    "imagens"
+  ];
+  const tituloWords = item.titulo.toLowerCase().split(" ");
+  return [...new Set([...base, ...tituloWords])].join(", ");
+}
+
+// Gera HTML de cartão da lista (downloads.html)
 function criarCartaoHTML(item) {
-  // Define os atributos de download (só para documentos)
-  const isDocument = item.categoria === 'documentos';
-  const target = isDocument ? 'target="_blank"' : '';
-  const download = item.download ? `download="${item.download}"` : '';
-  const label = isDocument ? 'Baixar' : 'Ver';
-
-  // Cria o HTML do cartão (COM o onerror de volta)
+  const slug = gerarSlug(item.titulo);
   return `
 <!-- Item: ${item.titulo} -->
-<a
-  href="${item.ficheiro}"
-  class="file-card"
-  ${target}
-  ${download}
-  aria-label="${label} ${item.titulo}"
->
+<a href="/biblioteca/${slug}.html" class="file-card" aria-label="Abrir página de ${item.titulo}">
   <img 
     src="${item.capa}" 
     alt="Capa de ${item.titulo}" 
@@ -40,58 +57,80 @@ function criarCartaoHTML(item) {
 </a>`;
 }
 
-/**
- * Função principal que constrói a página.
- */
-function construirPagina() {
-  try {
-    // 1. LER O "BANCO DE DADOS" JSON
-    const jsonPath = path.join(__dirname, JSON_DATABASE_FILE);
-    const jsonData = fs.readFileSync(jsonPath, 'utf8');
-    const biblioteca = JSON.parse(jsonData);
+// -----------------------------
+// Construção das páginas
+// -----------------------------
+function construirPaginas() {
+  console.log("\n🔧 Construindo Biblioteca…");
 
-    // 2. LER O "MOLDE" HTML
-    const templatePath = path.join(__dirname, TEMPLATE_FILE);
-    let templateHtml = fs.readFileSync(templatePath, 'utf8');
+  // 1 — LER JSON
+  const json = JSON.parse(fs.readFileSync(JSON_DATABASE_FILE, "utf8"));
 
-    // 3. GERAR OS BLOCOS DE HTML
-    const htmlGerado = {
-      todos: [],
-      documentos: [],
-      fotos: [],
-      videos: [],
-    };
-
-    // Itera por cada item no nosso "banco de dados"
-    for (const item of biblioteca) {
-      const cartaoHtml = criarCartaoHTML(item);
-      htmlGerado.todos.push(cartaoHtml);
-      if (item.categoria === 'documentos') {
-        htmlGerado.documentos.push(cartaoHtml);
-      } else if (item.categoria === 'fotos') {
-        htmlGerado.fotos.push(cartaoHtml);
-      } else if (item.categoria === 'videos') {
-        htmlGerado.videos.push(cartaoHtml);
-      }
-    }
-
-    // 4. SUBSTITUIR OS MARCADORES NO MOLDE
-    templateHtml = templateHtml.replace('<!-- [GERAR_TODOS] -->', htmlGerado.todos.join('\n'));
-    templateHtml = templateHtml.replace('<!-- [GERAR_DOCUMENTOS] -->', htmlGerado.documentos.join('\n'));
-    templateHtml = templateHtml.replace('<!-- [GERAR_FOTOS] -->', htmlGerado.fotos.join('\n'));
-    templateHtml = templateHtml.replace('<!-- [GERAR_VIDEOS] -->', htmlGerado.videos.join('\n'));
-
-    // 5. ESCREVER O FICHEIRO FINAL 'downloads.html'
-    const outputPath = path.join(__dirname, OUTPUT_FILE);
-    fs.writeFileSync(outputPath, templateHtml);
-
-    console.log(`\x1b[32m%s\x1b[0m`, `✅ Sucesso! O ficheiro '${OUTPUT_FILE}' foi (re)construído com ${biblioteca.length} itens.`);
-
-  } catch (error) {
-    console.error(`\x1b[31m%s\x1b[0m`, `❌ ERRO AO CONSTRUIR A PÁGINA:`);
-    console.error(error);
+  // 2 — CRIAR A PASTA /biblioteca se não existir
+  if (!fs.existsSync(OUTPUT_PASTA)) {
+    fs.mkdirSync(OUTPUT_PASTA);
   }
+
+  // 3 — LER TEMPLATE GERAL (downloads.template.html)
+  let templateLista = fs.readFileSync(TEMPLATE_LISTA, "utf8");
+
+  // 4 — Preparar estrutura de categorias
+  const htmlGerado = {
+    todos: [],
+    documentos: [],
+    fotos: [],
+    videos: []
+  };
+
+  // 5 — Para cada item: gerar cartão e página individual
+  const itemTemplate = fs.readFileSync(TEMPLATE_ITEM, "utf8");
+
+  json.forEach(item => {
+    const slug = gerarSlug(item.titulo);
+    const descricao = gerarDescricao(item);
+    const keywords = gerarKeywords(item);
+
+    // --- CRIAR CARTÃO PARA A LISTA ---
+    const card = criarCartaoHTML(item);
+    htmlGerado.todos.push(card);
+    htmlGerado[item.categoria]?.push(card);
+
+    // --- CRIAR PÁGINA INDIVIDUAL ---
+    let itemHtml = itemTemplate
+      .replace(/{{TITULO}}/g, item.titulo)
+      .replace(/{{DESCRICAO}}/g, descricao)
+      .replace(/{{PALAVRAS}}/g, keywords)
+      .replace(/{{CAPA}}/g, item.capa)
+      .replace(/{{FICHEIRO}}/g, item.ficheiro)
+      .replace(/{{DOWNLOAD}}/g, item.download || "")
+      .replace(/{{SLUG}}/g, slug);
+
+    fs.writeFileSync(`${OUTPUT_PASTA}/${slug}.html`, itemHtml);
+    console.log(`📄 Página criada: biblioteca/${slug}.html`);
+  });
+
+  // 6 — INSERIR SEO GLOBAL NO TEMPLATE downloads.html
+  const SEO_TITLE = "Biblioteca de Enfermagem — Downloads Gratuitos";
+  const SEO_DESCRIPTION = "Acesse e baixe documentos, formulários, imagens e vídeos da área da enfermagem.";
+  const SEO_KEYWORDS = "enfermagem, biblioteca, pdf, formulários, escalas, imagens, vídeos, downloads";
+
+  templateLista = templateLista
+    .replace("<!-- [SEO_TITLE] -->", SEO_TITLE)
+    .replace("<!-- [SEO_DESCRIPTION] -->", SEO_DESCRIPTION)
+    .replace("<!-- [SEO_KEYWORDS] -->", SEO_KEYWORDS);
+
+  // 7 — PREENCHE AS LISTAS
+  templateLista = templateLista
+    .replace("<!-- [GERAR_TODOS] -->", htmlGerado.todos.join("\n"))
+    .replace("<!-- [GERAR_DOCUMENTOS] -->", htmlGerado.documentos.join("\n"))
+    .replace("<!-- [GERAR_FOTOS] -->", htmlGerado.fotos.join("\n"))
+    .replace("<!-- [GERAR_VIDEOS] -->", htmlGerado.videos.join("\n"));
+
+  // 8 — SALVAR downloads.html
+  fs.writeFileSync(OUTPUT_LISTA, templateLista);
+
+  console.log("\n✅ Biblioteca reconstruída com sucesso!");
+  console.log(`📌 Downloads listados: ${json.length}`);
 }
 
-// Executa a função principal
-construirPagina();
+construirPaginas();
