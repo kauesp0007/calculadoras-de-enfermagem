@@ -31,6 +31,7 @@ const IGNORE_FILES = [
   'avaliacaomeem.html',
   'testemeem.html',
   'site-de-vagas.html',
+  'downloads.template.html',
   
 ];
 
