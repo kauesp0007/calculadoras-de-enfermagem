@@ -7,9 +7,13 @@ const JSON_DATABASE_FILE = "biblioteca.json";
 const TEMPLATE_LISTA = "downloads.template.html";
 const TEMPLATE_ITEM = "item.template.html";
 const OUTPUT_LISTA = "downloads.html";
-const OUTPUT_PASTA = "biblioteca"; // pasta onde cada item será criado
+const OUTPUT_PASTA_ITEM = "biblioteca";
+const OUTPUT_PASTA_PAGINAS = "downloads";
 
-// Função auxiliar — gera slug SEO
+// Configuração da paginação
+const ITENS_POR_PAGINA = 20;
+
+// Gera slug SEO
 function gerarSlug(texto) {
   return texto
     .toLowerCase()
@@ -20,12 +24,12 @@ function gerarSlug(texto) {
     .replace(/\s+/g, "-");
 }
 
-// Função auxiliar — descrição SEO automática
+// Descrição SEO automática
 function gerarDescricao(item) {
-  return `Download de ${item.titulo} — arquivo de ${item.categoria} disponível gratuitamente na Biblioteca de Enfermagem.`;
+  return `Download de ${item.titulo} — arquivo da categoria ${item.categoria}, disponível gratuitamente na Biblioteca de Enfermagem.`;
 }
 
-// Função auxiliar — palavras-chave automáticas
+// Palavras-chave automáticas
 function gerarKeywords(item) {
   const base = [
     "enfermagem",
@@ -35,68 +39,48 @@ function gerarKeywords(item) {
     "formulários",
     "protocolos",
     "escalas",
-    "imagens"
+    "imagens",
   ];
   const tituloWords = item.titulo.toLowerCase().split(" ");
   return [...new Set([...base, ...tituloWords])].join(", ");
 }
 
-// Gera HTML de cartão da lista (downloads.html)
+// Cartão HTML para cada item
 function criarCartaoHTML(item) {
   const slug = gerarSlug(item.titulo);
   return `
-<!-- Item: ${item.titulo} -->
-<a href="/biblioteca/${slug}.html" class="file-card" aria-label="Abrir página de ${item.titulo}">
-  <img 
-    src="${item.capa}" 
-    alt="Capa de ${item.titulo}" 
-    class="file-card-image"
-    onerror="this.src='https://placehold.co/400x480/EBF8FF/1A3E74?text=Erro';"
-  >
+<a href="/biblioteca/${slug}.html" class="file-card">
+  <img src="${item.capa}" class="file-card-image" alt="Capa de ${item.titulo}">
   <h4 class="file-card-title">${item.titulo}</h4>
 </a>`;
 }
 
-// -----------------------------
-// Construção das páginas
-// -----------------------------
+// ----------------------------
+// CONSTRUIR TODA A BIBLIOTECA
+// ----------------------------
 function construirPaginas() {
   console.log("\n🔧 Construindo Biblioteca…");
 
   // 1 — LER JSON
   const json = JSON.parse(fs.readFileSync(JSON_DATABASE_FILE, "utf8"));
 
-  // 2 — CRIAR A PASTA /biblioteca se não existir
-  if (!fs.existsSync(OUTPUT_PASTA)) {
-    fs.mkdirSync(OUTPUT_PASTA);
-  }
+  // 2 — CRIAR PASTAS SE NÃO EXISTIREM
+  if (!fs.existsSync(OUTPUT_PASTA_ITEM)) fs.mkdirSync(OUTPUT_PASTA_ITEM);
+  if (!fs.existsSync(OUTPUT_PASTA_PAGINAS)) fs.mkdirSync(OUTPUT_PASTA_PAGINAS);
 
-  // 3 — LER TEMPLATE GERAL (downloads.template.html)
-  let templateLista = fs.readFileSync(TEMPLATE_LISTA, "utf8");
+  // 3 — CARREGAR TEMPLATES
+  const templateListaOriginal = fs.readFileSync(TEMPLATE_LISTA, "utf8");
+  const templateItem = fs.readFileSync(TEMPLATE_ITEM, "utf8");
 
-  // 4 — Preparar estrutura de categorias
-  const htmlGerado = {
-    todos: [],
-    documentos: [],
-    fotos: [],
-    videos: []
-  };
-
-  // 5 — Para cada item: gerar cartão e página individual
-  const itemTemplate = fs.readFileSync(TEMPLATE_ITEM, "utf8");
-
-  json.forEach(item => {
+  // ----------------------------
+  // GERAR PÁGINAS INDIVIDUAIS
+  // ----------------------------
+  json.forEach((item) => {
     const slug = gerarSlug(item.titulo);
     const descricao = gerarDescricao(item);
     const keywords = gerarKeywords(item);
 
-    // --- CRIAR CARTÃO PARA A LISTA ---
-    const card = criarCartaoHTML(item);
-    htmlGerado.todos.push(card);
-    htmlGerado[item.categoria]?.push(card);
-
-    // --- CRIAR PÁGINA INDIVIDUAL ---
-    let itemHtml = itemTemplate
+    let htmlItem = templateItem
       .replace(/{{TITULO}}/g, item.titulo)
       .replace(/{{DESCRICAO}}/g, descricao)
       .replace(/{{PALAVRAS}}/g, keywords)
@@ -105,32 +89,78 @@ function construirPaginas() {
       .replace(/{{DOWNLOAD}}/g, item.download || "")
       .replace(/{{SLUG}}/g, slug);
 
-    fs.writeFileSync(`${OUTPUT_PASTA}/${slug}.html`, itemHtml);
+    fs.writeFileSync(`${OUTPUT_PASTA_ITEM}/${slug}.html`, htmlItem);
     console.log(`📄 Página criada: biblioteca/${slug}.html`);
   });
 
-  // 6 — INSERIR SEO GLOBAL NO TEMPLATE downloads.html
-  const SEO_TITLE = "Biblioteca de Enfermagem — Downloads Gratuitos";
-  const SEO_DESCRIPTION = "Acesse e baixe documentos, formulários, imagens e vídeos da área da enfermagem.";
-  const SEO_KEYWORDS = "enfermagem, biblioteca, pdf, formulários, escalas, imagens, vídeos, downloads";
+  // ----------------------------
+  // PAGINAÇÃO REAL
+  // ----------------------------
+  const totalPaginas = Math.ceil(json.length / ITENS_POR_PAGINA);
 
-  templateLista = templateLista
-    .replace("<!-- [SEO_TITLE] -->", SEO_TITLE)
-    .replace("<!-- [SEO_DESCRIPTION] -->", SEO_DESCRIPTION)
-    .replace("<!-- [SEO_KEYWORDS] -->", SEO_KEYWORDS);
+  for (let pagina = 1; pagina <= totalPaginas; pagina++) {
+    const inicio = (pagina - 1) * ITENS_POR_PAGINA;
+    const fim = inicio + ITENS_POR_PAGINA;
+    const itensPagina = json.slice(inicio, fim);
 
-  // 7 — PREENCHE AS LISTAS
-  templateLista = templateLista
-    .replace("<!-- [GERAR_TODOS] -->", htmlGerado.todos.join("\n"))
-    .replace("<!-- [GERAR_DOCUMENTOS] -->", htmlGerado.documentos.join("\n"))
-    .replace("<!-- [GERAR_FOTOS] -->", htmlGerado.fotos.join("\n"))
-    .replace("<!-- [GERAR_VIDEOS] -->", htmlGerado.videos.join("\n"));
+    // Criar cartões desta página
+    const blocos = itensPagina.map((item) => criarCartaoHTML(item)).join("\n");
 
-  // 8 — SALVAR downloads.html
-  fs.writeFileSync(OUTPUT_LISTA, templateLista);
+    // NAV DE PAGINAÇÃO
+    let nav = `<div class="pagination">`;
 
-  console.log("\n✅ Biblioteca reconstruída com sucesso!");
-  console.log(`📌 Downloads listados: ${json.length}`);
+    if (pagina > 1) {
+      nav += `<a href="/downloads/page${pagina - 1}.html" class="btn">« Anterior</a>`;
+    }
+
+    for (let p = 1; p <= totalPaginas; p++) {
+      nav += `<a href="/downloads/page${p}.html" class="btn ${p === pagina ? 'active' : ''}">${p}</a>`;
+    }
+
+    if (pagina < totalPaginas) {
+      nav += `<a href="/downloads/page${pagina + 1}.html" class="btn">Próxima »</a>`;
+    }
+
+    nav += `</div>`;
+
+    // SEO específico por página
+    const SEO_TITLE = `Biblioteca de Enfermagem — Página ${pagina}`;
+    const SEO_DESCRIPTION = `Downloads gratuitos de enfermagem — página ${pagina} com recursos profissionais.`;
+    const SEO_KEYWORDS = "enfermagem, downloads, pdf, imagens, biblioteca";
+
+    let htmlPagina = templateListaOriginal
+      .replace("<!-- [GERAR_TODOS] -->", blocos)
+      .replace("<!-- [SEO_TITLE] -->", SEO_TITLE)
+      .replace("<!-- [SEO_DESCRIPTION] -->", SEO_DESCRIPTION)
+      .replace("<!-- [SEO_KEYWORDS] -->", SEO_KEYWORDS)
+      .replace("<!-- [PAGINACAO] -->", nav);
+
+    fs.writeFileSync(`${OUTPUT_PASTA_PAGINAS}/page${pagina}.html`, htmlPagina);
+
+    console.log(`📘 Criada página: downloads/page${pagina}.html`);
+  }
+
+  // ================================
+// CRIAR downloads.html (página 1)
+// ================================
+const page1Path = path.join(OUTPUT_PASTA_PAGINAS, "page1.html");
+
+if (fs.existsSync(page1Path)) {
+  try {
+    // Copiar a page1.html para downloads.html
+    fs.copyFileSync(page1Path, OUTPUT_LISTA);
+    console.log("📌 'downloads.html' criado com sucesso (cópia de page1).");
+  } catch (err) {
+    console.error("❌ Erro ao criar downloads.html:", err);
+  }
+} else {
+  console.error("⚠️ page1.html não existe — nada foi copiado!");
+}
+
+
+  console.log("\n✅ Paginação criada com sucesso!");
+  console.log(`📌 Total de páginas: ${totalPaginas}`);
+  console.log(`📌 downloads.html agora é a página 1\n`);
 }
 
 construirPaginas();
