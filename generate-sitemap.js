@@ -203,6 +203,31 @@ function main() {
       sitemapEntries[pageKey][langKey] = url; // Adiciona a versão do idioma
     }
   }
+  // 3. Processa PASTAS ESPECIAIS (downloads, biblioteca)
+const SPECIAL_FOLDERS = ['downloads', 'biblioteca'];
+
+for (const folder of SPECIAL_FOLDERS) {
+  const dirPath = path.join(ROOT_DIR, folder);
+  const htmlFiles = getHtmlFiles(dirPath);
+
+  for (const file of htmlFiles) {
+
+    if (IGNORE_FILES.includes(file) || file.startsWith('_')) {
+      continue;
+    }
+
+    const pageKey = `${folder}/${file}`;
+    const url = `${BASE_URL}/${folder}/${file}`;
+
+    if (!sitemapEntries[pageKey]) {
+      sitemapEntries[pageKey] = {};
+    }
+
+    // Consideramos estas páginas como idioma padrão, pt-BR
+    sitemapEntries[pageKey]['pt'] = url;
+  }
+}
+
 
   // 3. Gera o XML
   const xmlContent = generateSitemapXml(sitemapEntries);
