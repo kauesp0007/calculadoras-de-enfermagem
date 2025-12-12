@@ -836,6 +836,7 @@ const urlsToCache = [
   'img/escaladebps.webp',
   'img/escaladebraden.webp',
   'img/exemplo_controlehidrico.png',
+  'img/fugulinicone.webp',
   'img/fugulinimagem.webp',
   'img/gasometria.webp',
   'img/gestacional.webp',
