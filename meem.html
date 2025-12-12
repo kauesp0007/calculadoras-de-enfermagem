@@ -227,46 +227,67 @@
     </script>
 
     <style>
-      /* --- INÍCIO DOS ESTILOS DA ABA LATERAL (SIDEBAR) --- */
-      .sidebar-toggle-btn {
+      /* --- ESTILOS DOS BOTÕES LATERAIS (ESQUERDA E DIREITA) --- */
+      .side-btn {
         position: fixed;
         top: 150px;
-        left: 0;
         z-index: 998;
-        background-color: #1a3e74;
+        background-color: rgba(26, 62, 116, 0.85); /* Azul semi-transparente */
         color: white;
         border: none;
-        border-radius: 0 50% 50% 0;
-        padding: 1rem 1rem 1rem 0.5rem;
+        padding: 1.5rem 0.6rem; /* Aumentado para acomodar o texto */
         cursor: pointer;
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-        transition: transform 0.3s ease;
-        font-size: 1.2rem;
+        transition: background-color 0.3s ease;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 0.8rem;
+      }
+      .side-btn:hover {
+        background-color: rgba(42, 82, 152, 0.95);
+      }
+      
+      .side-btn-text {
         writing-mode: vertical-rl;
         text-orientation: mixed;
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
+        transform: rotate(180deg); /* Texto de baixo para cima */
+        font-size: 1rem;
+        font-weight: 600;
+        white-space: nowrap;
+        letter-spacing: 0.5px;
       }
-      .sidebar-toggle-btn:hover {
-        background-color: #2a5298;
+      
+      .side-btn-icon {
+        font-size: 1.2rem;
       }
+
+      /* Botão Esquerdo */
+      #toggleSidebarBtn {
+        left: 0;
+        border-radius: 0 15px 15px 0; /* Arredondado na direita */
+      }
+
+      /* Botão Direito */
+      #scrollToCalcBtn {
+        right: 0;
+        border-radius: 15px 0 0 15px; /* Arredondado na esquerda */
+      }
+
+      /* --- FIM DOS ESTILOS DOS BOTÕES LATERAIS --- */
 
       .sidebar-overlay {
         position: fixed;
-        top: 70px; /* Começa abaixo do menu global (aprox. 70px) */
+        top: 70px;
         left: 0;
         width: 100%;
-        height: calc(
-          100vh - 70px
-        ); /* Ocupa o resto da altura */
+        height: calc(100vh - 70px);
         background-color: rgba(0, 0, 0, 0.6);
-        z-index: 9998; /* z-index alto para garantir */
+        z-index: 9998;
         opacity: 0;
         visibility: hidden;
-        transition:
-          opacity 0.3s ease,
-          visibility 0.3s ease;
+        transition: opacity 0.3s ease, visibility 0.3s ease;
       }
       .sidebar-overlay.open {
         opacity: 1;
@@ -275,15 +296,13 @@
 
       .sidebar {
         position: fixed;
-        top: 70px; /* Começa abaixo do menu global (aprox. 70px) */
+        top: 70px;
         left: 0;
-        height: calc(
-          100vh - 70px
-        ); /* Ocupa o resto da altura */
-        width: 50vw; /* Abre até o meio da página */
-        max-width: 450px; /* Limite máximo de largura */
+        height: calc(100vh - 70px);
+        width: 50vw;
+        max-width: 450px;
         background-color: #ffffff;
-        z-index: 9999; /* z-index alto para garantir */
+        z-index: 9999;
         transform: translateX(-100%);
         transition: transform 0.3s ease;
         overflow-y: auto;
@@ -328,7 +347,7 @@
       }
       .sidebar-content strong {
         color: #1a3e74;
-        font-weight: 700; /* Negrito mais forte para títulos */
+        font-weight: 700;
       }
       .sidebar-content .font-bold {
         font-weight: 700;
@@ -336,8 +355,57 @@
       .sidebar-content .text-red-600 {
         color: #d9534f;
       }
-      /* --- FIM DOS ESTILOS DA ABA LATERAL --- */
 
+      /* --- ESTILOS DOS CARDS (INFO e IMAGEM) --- */
+      .info-card-container {
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+      }
+      @media (min-width: 768px) {
+        .info-card-container {
+          flex-direction: row;
+          align-items: stretch; /* Garante mesma altura */
+        }
+      }
+
+      .info-card {
+        background-color: #fff;
+        border: 1px solid #1a3e74; /* Borda Azul Escuro */
+        border-radius: 12px;
+        padding: 1.5rem;
+        flex: 1;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2); /* Sombra Escura */
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+      }
+      
+      .info-card:hover {
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
+      }
+
+      .info-card p {
+        margin-bottom: 0.75rem;
+        font-size: 0.95rem;
+        line-height: 1.5;
+        color: #333;
+      }
+      .info-card strong {
+        color: #1a3e74;
+      }
+      
+      .info-card img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain; /* Ajusta sem distorcer */
+        border-radius: 8px;
+        max-height: 350px; /* Limite de altura para não ficar enorme */
+      }
+
+      /* --- ESTILOS DA CALCULADORA --- */
       .resultado.bg-meem-normal {
         background-color: #d4edda;
         color: #155724;
@@ -426,73 +494,28 @@
         font-size: 0.9rem;
       }
 
-      @media (min-width: 640px) {
-        .meem-criterion-card {
-          /* Ajuste para o layout em linha, se necessário */
-        }
-      }
-
-      /* --- Novo Bloco de Estilo para o Cartão do Documento --- */
-      .report-card-link {
-        display: block;
-        background-color: #fff;
-        border: 1px solid #d1d5db;
-        border-radius: 12px; /* bordas arredondados */
-        padding: 1rem;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* sombreamento profissional */
-        transition: all 0.3s ease;
-        text-decoration: none;
-        color: inherit;
-        text-align: center;
-        width: 160px; /* Tamanho proporcional */
-        flex-shrink: 0; /* Impede que o cartão encolha */
-      }
-
-      .report-card-link:hover {
-        box-shadow: 0 10px 15px rgba(0, 0, 0, 0.15);
-        transform: translateY(-4px); /* "leve mexida" */
-      }
-
-      .report-card-icon {
-        font-size: 2.5rem; /* text-4xl */
-        color: #1a3e74; /* Cor do seu site */
-        margin-bottom: 0.5rem; /* mb-2 */
-      }
-
-      .report-card-text {
-        font-size: 0.9rem; /* text-sm */
-        font-weight: 600; /* font-semibold */
-        color: #333;
-        line-height: 1.3;
-      }
-      /* --- Fim do Novo Bloco --- */
-
       /* --- ESTILOS DE IMPRESSÃO (PDF) --- */
       @media print {
-        /* Esconde tudo que não é o conteúdo principal */
         body > *:not(main),
         #global-header-container,
         #language-dropdown-wrapper,
-        .sidebar-toggle-btn,
+        .side-btn,
         .sidebar-overlay,
         .sidebar,
         .breadcrumb,
-        #main-title button, /* Esconde botão de favoritar */
-        .report-card-link, /* Esconde o cartão de documento */
+        #main-title button,
         .title-bar,
         #main-subtitle,
-        #intro-paragraph,
         #description-text,
-        #description-text + p, /* Esconde "Após realizar o teste..." */
-        #description-text + p + p, /* Esconde "Para cada item abaixo..." */
-        .flex.flex-wrap.justify-start.gap-4.mt-6, /* Esconde botões de ação */
+        .info-card-container, /* Oculta os cards de info no PDF */
+        #intro-text-block, /* Oculta o texto introdutório no PDF */
+        .flex.flex-wrap.justify-start.gap-4.mt-6,
         #reference-section,
         #footer-placeholder,
         nav[aria-label="Atalhos de Acessibilidade"] {
           display: none !important;
         }
 
-        /* Garante que o main-content ocupe a página */
         main,
         .main-content-wrapper {
           width: 100% !important;
@@ -502,12 +525,10 @@
           border: none !important;
         }
 
-        /* PDF Fix: Esconde os dropdowns */
         .meem-select {
           display: none !important;
         }
 
-        /* PDF Fix: Mostra o texto da seleção */
         .selected-option-for-pdf {
           display: block !important;
           background-color: #eef2f9 !important;
@@ -520,23 +541,21 @@
           font-size: 0.9rem !important;
         }
 
-        /* Garante que o resultado seja impresso */
         #resultado {
           display: block !important;
           margin-top: 1.5rem !important;
-          background-color: #e0f2fe !important; /* Força um fundo claro */
+          background-color: #e0f2fe !important;
           color: #1a3e74 !important;
           border: 1px solid #bee3f8 !important;
-          page-break-before: always; /* Começa o resultado em uma nova página */
+          page-break-before: always;
         }
 
-        /* Ajusta os cards para impressão */
         .meem-criterion-card {
           box-shadow: none !important;
           border: 1px solid #ccc !important;
           padding: 1rem !important;
           margin-bottom: 1rem !important;
-          page-break-inside: avoid; /* Evita que o card quebre no meio da página */
+          page-break-inside: avoid;
         }
 
         .meem-criterion-header,
@@ -544,13 +563,18 @@
         .meem-score-display {
           color: #1a3e74 !important;
         }
-
-        /* Esconde parágrafos de informação geral no print */
-        p.font-inter.text-black-custom {
-          display: none !important;
-        }
       }
       /* --- FIM DOS ESTILOS DE IMPRESSÃO --- */
+      
+      /* Responsividade Extra */
+      @media (max-width: 640px) {
+        .side-btn {
+          padding: 1rem 0.4rem;
+        }
+        .side-btn-text {
+          font-size: 0.9rem;
+        }
+      }
     </style>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -583,16 +607,27 @@
       >
     </nav>
 
-    <!-- ABA LATERAL (SIDEBAR) E BOTÃO -->
+    <!-- ABA LATERAL ESQUERDA (Leia mais sobre) -->
     <button
       id="toggleSidebarBtn"
-      class="sidebar-toggle-btn"
-      aria-label="Abrir informações importantes"
+      class="side-btn"
+      aria-label="Abrir informações sobre MEEM"
       aria-expanded="false"
     >
-      <i class="fas fa-info-circle" aria-hidden="true"></i>
-      <span style="writing-mode: horizontal-tb">Info</span>
+      <i class="fas fa-chevron-right side-btn-icon" aria-hidden="true"></i>
+      <span class="side-btn-text">Leia mais sobre</span>
     </button>
+
+    <!-- BOTÃO LATERAL DIREITA (Realizar cálculo) -->
+    <button
+      id="scrollToCalcBtn"
+      class="side-btn"
+      aria-label="Rolar para a calculadora"
+    >
+      <span class="side-btn-text">Realizar cálculo</span>
+      <i class="fas fa-chevron-down side-btn-icon" aria-hidden="true"></i>
+    </button>
+
     <div id="sidebarOverlay" class="sidebar-overlay"></div>
     <aside id="infoSidebar" class="sidebar" aria-hidden="true">
       <button
@@ -1020,41 +1055,28 @@
           </ol>
         </nav>
 
-        <!-- Container Principal do Cabeçalho - Alterado -->
-        <div class="flex items-center justify-center gap-6 mb-3 text-center">
-          <!-- Aumentei o gap -->
-
-          <!-- Container para Cartão e Botão Favoritar -->
-          <div class="flex flex-col items-center gap-2">
-            <!-- Cartão para o Documento MEEM -->
-            <a
-              href="/testemeem.html"
-              class="report-card-link"
-              aria-label="Abrir documento para impressão do Teste MEEM"
+        <!-- Container Principal do Cabeçalho - Alterado com Ícone -->
+        <div class="flex flex-col items-center justify-center gap-3 mb-3 text-center">
+          <div class="flex flex-col md:flex-row items-center justify-center gap-4">
+            <!-- Ícone ao lado do título -->
+            <img src="img/iconemeem.webp" alt="Ícone MEEM" class="w-32 h-auto" width="128" height="128">
+            
+            <h1
+              id="main-title"
+              class="font-nunito font-extrabold text-dark-blue text-4xl lg:text-5xl m-0"
             >
-              <!-- CORRIGIDO: Caminho relativo à raiz -->
-              <div class="report-card-icon"><i class="fas fa-brain"></i></div>
-              <div class="report-card-text">
-                Teste de Mini-Exame de Estado Mental
-              </div>
-            </a>
-            <!-- Botão Favoritar -->
-            <button
-              id="addFavoriteBtn"
-              class="bg-[#1A3E74] text-white px-4 py-2 rounded-lg shadow hover:bg-[#16325c] transition w-full"
-              title="Adicionar esta página aos favoritos"
-            >
-              ★ Favoritar
-            </button>
+              Mini-Exame do Estado Mental (MEEM)
+            </h1>
           </div>
-
-          <!-- Título Principal -->
-          <h1
-            id="main-title"
-            class="font-nunito font-extrabold text-dark-blue text-4xl lg:text-5xl"
+          
+          <!-- Botão Favoritar Abaixo -->
+          <button
+            id="addFavoriteBtn"
+            class="bg-[#1A3E74] text-white px-4 py-2 rounded-lg shadow hover:bg-[#16325c] transition mt-2"
+            title="Adicionar esta página aos favoritos"
           >
-            Mini-Exame do Estado Mental (MEEM)
-          </h1>
+            ★ Favoritar
+          </button>
         </div>
 
         <div class="title-bar w-full h-1 bg-dark-blue mx-auto mb-6"></div>
@@ -1066,56 +1088,40 @@
           Rastreio Cognitivo
         </h2>
 
-        <p id="description-text" class="text-gray-700 mb-6 text-left">
-          O <strong>Mini-Exame do Estado Mental (MEEM)</strong> é um dos
-          instrumentos de <strong>avaliação cognitiva</strong> mais utilizados
-          no Brasil. É um teste rápido e objetivo, composto por 11 itens que
-          avaliam orientação temporal e espacial, memória, atenção, cálculo,
-          linguagem e habilidades construtivas.
-        </p>
+        <div id="intro-text-block">
+          <p id="description-text" class="text-gray-700 mb-6 text-left">
+            O <strong>Mini-Exame do Estado Mental (MEEM)</strong> é um dos
+            instrumentos de <strong>avaliação cognitiva</strong> mais utilizados
+            no Brasil. É um teste rápido e objetivo, composto por 11 itens que
+            avaliam orientação temporal e espacial, memória, atenção, cálculo,
+            linguagem e habilidades construtivas.
+          </p>
 
-        <p class="text-gray-700 mb-6 text-left">
-          No contexto clínico, o MEEM é amplamente empregado em
-          <strong>geriatria, neurologia, psiquiatria e saúde mental</strong>
-          para o <strong>rastreamento de déficits cognitivos</strong>, incluindo
-          aqueles associados a quadros de demência, como a doença de Alzheimer.
-        </p>
-        <p
-          class="font-inter text-black-custom text-base lg:text-lg text-center sm:text-left"
-        >
-          <strong>Ano de Criação:</strong> 1975
-        </p>
-        <p
-          class="font-inter text-black-custom text-base lg:text-lg text-center sm:text-left"
-        >
-          <strong>Autores:</strong> Marshal F. Folstein, Susan E. Folstein e
-          Paul R. McHugh
-        </p>
-        <p
-          class="font-inter text-black-custom text-base lg:text-lg text-center sm:text-left"
-        >
-          <strong>Área empregada:</strong> Geriatria, Neurologia, Psiquiatria e
-          Saúde Mental
-        </p>
-        <p
-          class="font-inter text-black-custom text-base lg:text-lg text-center sm:text-left"
-        >
-          <strong>Critérios avaliados:</strong> Orientação temporal e espacial,
-          memória, atenção, cálculo, linguagem e habilidades construtivas
-        </p>
-        <p
-          class="font-inter text-black-custom text-base lg:text-lg text-center sm:text-left"
-        >
-          <strong>Quem utiliza?:</strong> Médicos, neuropsicologos, enfermeiros,
-          psicologos e terapeutas.
-        </p>
+          <p class="text-gray-700 mb-6 text-left">
+            No contexto clínico, o MEEM é amplamente empregado em
+            <strong>geriatria, neurologia, psiquiatria e saúde mental</strong>
+            para o <strong>rastreamento de déficits cognitivos</strong>, incluindo
+            aqueles associados a quadros de demência, como a doença de Alzheimer.
+          </p>
+        </div>
 
-        <p class="text-gray-700 mb-6 text-left">
-          <strong
-            >Após realizar o teste é possivel baixar o resultado em PDF com o
-            resultado.</strong
-          >
-        </p>
+        <!-- Seção de Cards Informativos (Texto e Imagem) -->
+        <div class="info-card-container">
+          <!-- Card Esquerdo: Informações Técnicas -->
+          <div class="info-card">
+            <p><strong>Ano de Criação:</strong> 1975</p>
+            <p><strong>Autores:</strong> Marshal F. Folstein, Susan E. Folstein e Paul R. McHugh</p>
+            <p><strong>Área empregada:</strong> Geriatria, Neurologia, Psiquiatria e Saúde Mental</p>
+            <p><strong>Critérios avaliados:</strong> Orientação temporal e espacial, memória, atenção, cálculo, linguagem e habilidades construtivas</p>
+            <p><strong>Quem utiliza?:</strong> Médicos, neuropsicologos, enfermeiros, psicologos e terapeutas.</p>
+            <p><strong>Após realizar o teste é possivel baixar o resultado em PDF com o resultado.</strong></p>
+          </div>
+
+          <!-- Card Direito: Imagem -->
+          <div class="info-card">
+            <img src="img/meemimagem.webp" alt="Ilustração do Mini-Exame do Estado Mental" class="w-full h-auto rounded-md object-contain" />
+          </div>
+        </div>
 
         <p
           class="font-inter font-normal text-light-blue text-base lg:text-lg mb-6 text-left"
@@ -1248,6 +1254,22 @@
         closeSidebarBtn?.addEventListener("click", closeSidebar);
         sidebarOverlay?.addEventListener("click", closeSidebar);
         // --- FIM DA LÓGICA DA SIDEBAR ---
+
+        // --- LÓGICA DO BOTÃO SCROLL (DIREITA) ---
+        const scrollToCalcBtn = document.getElementById("scrollToCalcBtn");
+        scrollToCalcBtn?.addEventListener("click", function () {
+          const firstSection = document.getElementById("orientacaoTemporal");
+          if (firstSection) {
+            // Rola até o elemento pai (o card) para melhor visualização
+            const parentCard = firstSection.closest('.meem-criterion-card');
+            (parentCard || firstSection).scrollIntoView({ behavior: "smooth", block: "start" });
+          } else {
+            const conteudo = document.getElementById("conteudo");
+            if (conteudo) {
+              conteudo.scrollIntoView({ behavior: "smooth", block: "start" });
+            }
+          }
+        });
 
         const resultadoDiv = document.getElementById("resultado");
         const btnCalcular = document.getElementById("btnCalcular");
