@@ -4,16 +4,8 @@ const path = require("path");
 
 const JSON_DATABASE_FILE = "biblioteca.json";
 const TEMPLATE_FILE = "downloads.template.html";
-const OUTPUT_ROOT = "downloads";
 const ITEMS_PER_PAGE = 20;
-
-function criarCartaoHTML(item) {
-  return `
-<a href="/biblioteca/${slugify(item.titulo)}.html" class="file-card">
-  <img src="${item.capa}" class="file-card-image" alt="Capa de ${item.titulo}">
-  <h4 class="file-card-title">${item.titulo}</h4>
-</a>`;
-}
+const OUTPUT_DIR = "downloads";
 
 function slugify(text) {
   return text
@@ -24,70 +16,72 @@ function slugify(text) {
     .replace(/(^-|-$)/g, "");
 }
 
-function gerarPaginacao(totalPages, currentPage) {
+function criarCartaoHTML(item) {
+  return `
+<a href="/biblioteca/${slugify(item.titulo)}.html" class="file-card">
+  <img src="/${item.capa}" class="file-card-image" alt="Capa de ${item.titulo}">
+  <h4 class="file-card-title">${item.titulo}</h4>
+</a>`;
+}
+
+function gerarPaginacao(total, atual) {
   let html = "";
 
-  if (currentPage > 1) {
-    html += `<a href="/downloads/${currentPage === 2 ? "" : "page" + (currentPage - 1) + ".html"}" class="btn">« Anterior</a>`;
+  if (atual > 1) {
+    html += `<a class="btn" href="${atual === 2 ? "/downloads.html" : `/downloads/page${atual - 1}.html`}">« Anterior</a>`;
   }
 
-  for (let i = 1; i <= totalPages; i++) {
-    const link =
-      i === 1 ? "/downloads.html" : `/downloads/page${i}.html`;
-    html += `<a href="${link}" class="btn ${
-      i === currentPage ? "active" : ""
-    }">${i}</a>`;
+  for (let i = 1; i <= total; i++) {
+    const link = i === 1 ? "/downloads.html" : `/downloads/page${i}.html`;
+    html += `<a class="btn ${i === atual ? "active" : ""}" href="${link}">${i}</a>`;
   }
 
-  if (currentPage < totalPages) {
-    html += `<a href="/downloads/page${currentPage + 1}.html" class="btn">Próxima »</a>`;
+  if (atual < total) {
+    html += `<a class="btn" href="/downloads/page${atual + 1}.html">Próxima »</a>`;
   }
 
   return html;
 }
 
 function construirPaginas() {
-  const json = JSON.parse(fs.readFileSync(JSON_DATABASE_FILE, "utf8"));
+  const data = JSON.parse(fs.readFileSync(JSON_DATABASE_FILE, "utf8"));
   const template = fs.readFileSync(TEMPLATE_FILE, "utf8");
 
-  const totalPages = Math.ceil(json.length / ITEMS_PER_PAGE);
+  const totalPages = Math.ceil(data.length / ITEMS_PER_PAGE);
 
-  if (!fs.existsSync(OUTPUT_ROOT)) {
-    fs.mkdirSync(OUTPUT_ROOT);
+  if (!fs.existsSync(OUTPUT_DIR)) {
+    fs.mkdirSync(OUTPUT_DIR);
   }
 
   for (let page = 1; page <= totalPages; page++) {
     const start = (page - 1) * ITEMS_PER_PAGE;
-    const end = start + ITEMS_PER_PAGE;
-    const itensPagina = json.slice(start, end);
+    const items = data.slice(start, start + ITEMS_PER_PAGE);
 
-    const cardsHTML = itensPagina.map(criarCartaoHTML).join("\n");
-    const paginacaoHTML = gerarPaginacao(totalPages, page);
+    const cards = items.map(criarCartaoHTML).join("\n");
+    const pagination = gerarPaginacao(totalPages, page);
 
-    let htmlFinal = template
-      .replace("<!-- [GERAR_TODOS] -->", cardsHTML)
-      .replace("<!-- [PAGINACAO] -->", paginacaoHTML)
+    let html = template
+      .replace("<!-- [GERAR_TODOS] -->", cards)
+      .replace("<!-- [PAGINACAO] -->", pagination)
       .replace(
-        "<title>",
-        `<title>Biblioteca de Enfermagem — Página ${page} | `
+        /<title>.*<\/title>/,
+        `<title>Biblioteca de Enfermagem — Página ${page}</title>`
       )
       .replace(
-        `<link rel="canonical" href="https://www.calculadorasdeenfermagem.com.br/downloads.html">`,
-        `<link rel="canonical" href="https://www.calculadorasdeenfermagem.com.br/${
-          page === 1 ? "downloads.html" : "downloads/page" + page + ".html"
-        }">`
+        /<link rel="canonical".*>/,
+        `<link rel="canonical" href="https://www.calculadorasdeenfermagem.com.br/${page === 1 ? "downloads.html" : `downloads/page${page}.html`}">`
       );
 
-    const outputFile =
+    const output =
       page === 1
         ? "downloads.html"
-        : path.join(OUTPUT_ROOT, `page${page}.html`);
+        : path.join(OUTPUT_DIR, `page${page}.html`);
 
-    fs.writeFileSync(outputFile, htmlFinal);
-    console.log(`📘 Página criada: ${outputFile}`);
+    fs.writeFileSync(output, html);
+    console.log(`📘 Criada página: ${output}`);
   }
 
-  console.log(`✅ Paginação finalizada: ${totalPages} páginas`);
+  console.log("✅ Paginação criada corretamente");
 }
 
 construirPaginas();
