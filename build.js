@@ -7,6 +7,10 @@ const TEMPLATE_FILE = "downloads.template.html";
 const ITEMS_PER_PAGE = 20;
 const OUTPUT_DIR = "downloads";
 
+/* ===============================
+   UTILIDADES
+================================ */
+
 function slugify(text) {
   return text
     .toLowerCase()
@@ -16,6 +20,10 @@ function slugify(text) {
     .replace(/(^-|-$)/g, "");
 }
 
+/* ===============================
+   CRIA CARD HTML
+================================ */
+
 function criarCartaoHTML(item) {
   return `
 <a href="/biblioteca/${slugify(item.titulo)}.html" class="file-card">
@@ -24,11 +32,17 @@ function criarCartaoHTML(item) {
 </a>`;
 }
 
+/* ===============================
+   PAGINAÇÃO
+================================ */
+
 function gerarPaginacao(total, atual) {
   let html = "";
 
   if (atual > 1) {
-    html += `<a class="btn" href="${atual === 2 ? "/downloads.html" : `/downloads/page${atual - 1}.html`}">« Anterior</a>`;
+    html += `<a class="btn" href="${
+      atual === 2 ? "/downloads.html" : `/downloads/page${atual - 1}.html`
+    }">« Anterior</a>`;
   }
 
   for (let i = 1; i <= total; i++) {
@@ -42,6 +56,10 @@ function gerarPaginacao(total, atual) {
 
   return html;
 }
+
+/* ===============================
+   CONSTRUTOR PRINCIPAL
+================================ */
 
 function construirPaginas() {
   const data = JSON.parse(fs.readFileSync(JSON_DATABASE_FILE, "utf8"));
@@ -57,11 +75,38 @@ function construirPaginas() {
     const start = (page - 1) * ITEMS_PER_PAGE;
     const items = data.slice(start, start + ITEMS_PER_PAGE);
 
-    const cards = items.map(criarCartaoHTML).join("\n");
+    let htmlTodos = "";
+    let htmlDocumentos = "";
+    let htmlFotos = "";
+    let htmlVideos = "";
+
+    items.forEach(item => {
+      const card = criarCartaoHTML(item);
+
+      // TODOS recebem tudo
+      htmlTodos += card;
+
+      // Distribuição por categoria
+      if (item.tipo === "documento") {
+        htmlDocumentos += card;
+      }
+
+      if (item.tipo === "foto") {
+        htmlFotos += card;
+      }
+
+      if (item.tipo === "video") {
+        htmlVideos += card;
+      }
+    });
+
     const pagination = gerarPaginacao(totalPages, page);
 
     let html = template
-      .replace("<!-- [GERAR_TODOS] -->", cards)
+      .replace("<!-- [GERAR_TODOS] -->", htmlTodos)
+      .replace("<!-- [GERAR_DOCUMENTOS] -->", htmlDocumentos)
+      .replace("<!-- [GERAR_FOTOS] -->", htmlFotos)
+      .replace("<!-- [GERAR_VIDEOS] -->", htmlVideos)
       .replace("<!-- [PAGINACAO] -->", pagination)
       .replace(
         /<title>.*<\/title>/,
@@ -69,7 +114,9 @@ function construirPaginas() {
       )
       .replace(
         /<link rel="canonical".*>/,
-        `<link rel="canonical" href="https://www.calculadorasdeenfermagem.com.br/${page === 1 ? "downloads.html" : `downloads/page${page}.html`}">`
+        `<link rel="canonical" href="https://www.calculadorasdeenfermagem.com.br/${
+          page === 1 ? "downloads.html" : `downloads/page${page}.html`
+        }">`
       );
 
     const output =
@@ -81,7 +128,7 @@ function construirPaginas() {
     console.log(`📘 Criada página: ${output}`);
   }
 
-  console.log("✅ Paginação criada corretamente");
+  console.log("✅ Paginação e categorias criadas com sucesso!");
 }
 
 construirPaginas();
