@@ -7,10 +7,9 @@ const JSON_DATABASE_FILE = "biblioteca.json";
 const TEMPLATE_FILE = "item.template.html";
 const OUTPUT_DIR = "biblioteca";
 const BASE_URL = "https://www.calculadorasdeenfermagem.com.br";
-
 // =================================================
 
-// Gera slug amigável para URL
+// Gera slug amigável
 function slugify(text) {
   return text
     .toLowerCase()
@@ -22,7 +21,7 @@ function slugify(text) {
 
 // Gera descrição SEO automática
 function gerarDescricao(item) {
-  return `Baixe gratuitamente ${item.titulo}. Material de enfermagem disponível na Biblioteca de Enfermagem com acesso rápido e seguro.`;
+  return `Baixe gratuitamente ${item.titulo}. Material de enfermagem disponível na Biblioteca de Enfermagem com acesso rápido, seguro e confiável.`;
 }
 
 // Gera palavras-chave SEO automáticas
@@ -31,9 +30,11 @@ function gerarPalavrasChave(item) {
     "enfermagem",
     "biblioteca de enfermagem",
     "downloads enfermagem",
-    "material enfermagem",
+    "material de enfermagem",
     "pdf enfermagem",
-    "documentos enfermagem"
+    "documentos enfermagem",
+    "imagens enfermagem",
+    "protocolos enfermagem"
   ];
 
   return [...base, item.titulo.toLowerCase()].join(", ");
@@ -52,21 +53,41 @@ function construirBiblioteca() {
     console.log("📁 Pasta /biblioteca criada");
   }
 
+  const slugsUsados = new Set();
+
   data.forEach((item) => {
-    const slug = slugify(item.titulo);
-    const outputFile = path.join(OUTPUT_DIR, `${slug}.html`);
+    // Usa slug do JSON se existir, senão gera
+    let slug = item.slug ? item.slug : slugify(item.titulo);
 
-    const descricao = gerarDescricao(item);
-    const palavras = gerarPalavrasChave(item);
+    // Garante slug único
+    let slugFinal = slug;
+    let contador = 1;
+    while (slugsUsados.has(slugFinal)) {
+      slugFinal = `${slug}-${contador++}`;
+    }
+    slugsUsados.add(slugFinal);
 
-    const htmlFinal = template
+    const outputFile = path.join(OUTPUT_DIR, `${slugFinal}.html`);
+
+    const descricao = item.descricao || gerarDescricao(item);
+    const palavras = item.palavras || gerarPalavrasChave(item);
+
+    let htmlFinal = template
       .replace(/{{TITULO}}/g, item.titulo)
       .replace(/{{DESCRICAO}}/g, descricao)
       .replace(/{{PALAVRAS}}/g, palavras)
-      .replace(/{{SLUG}}/g, slug)
-      .replace(/{{CAPA}}/g, item.capa.replace(/^\/?/, "")) // garante sem //
-      .replace(/{{FICHEIRO}}/g, item.ficheiro.replace(/^\/?/, ""))
-      .replace(/{{DOWNLOAD}}/g, item.download || "");
+      .replace(/{{SLUG}}/g, slugFinal)
+      .replace(/{{CAPA}}/g, item.capa.replace(/^\/+/, ""))
+      .replace(/{{FICHEIRO}}/g, item.ficheiro.replace(/^\/+/, ""));
+
+    // Trata download (remove se não existir)
+    if (item.download) {
+      htmlFinal = htmlFinal.replace(/{{DOWNLOAD}}/g, item.download);
+    } else {
+      htmlFinal = htmlFinal
+        .replace(/download="{{DOWNLOAD}}"/g, "")
+        .replace(/{{DOWNLOAD}}/g, "");
+    }
 
     fs.writeFileSync(outputFile, htmlFinal);
     console.log(`📄 Criado: ${outputFile}`);
