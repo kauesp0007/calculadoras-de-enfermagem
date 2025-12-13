@@ -21,13 +21,13 @@ function slugify(text) {
 }
 
 /* ===============================
-   CRIA CARD HTML
+   CRIA CARD HTML (CORRIGIDO)
 ================================ */
 
 function criarCartaoHTML(item) {
   return `
 <a href="/biblioteca/${slugify(item.titulo)}.html" class="file-card">
-  <img src="/${item.capa}" class="file-card-image" alt="Capa de ${item.titulo}">
+  <img src="${item.capa}" class="file-card-image" alt="Capa de ${item.titulo}">
   <h4 class="file-card-title">${item.titulo}</h4>
 </a>`;
 }
@@ -75,38 +75,28 @@ function construirPaginas() {
     const start = (page - 1) * ITEMS_PER_PAGE;
     const items = data.slice(start, start + ITEMS_PER_PAGE);
 
-    let htmlTodos = "";
-    let htmlDocumentos = "";
-    let htmlFotos = "";
-    let htmlVideos = "";
+    let todos = "";
+    let documentos = "";
+    let fotos = "";
+    let videos = "";
 
     items.forEach(item => {
       const card = criarCartaoHTML(item);
 
-      // TODOS recebem tudo
-      htmlTodos += card;
+      todos += card;
 
-      // Distribuição por categoria
-      if (item.tipo === "documento") {
-        htmlDocumentos += card;
-      }
-
-      if (item.tipo === "foto") {
-        htmlFotos += card;
-      }
-
-      if (item.tipo === "video") {
-        htmlVideos += card;
-      }
+      if (item.categoria === "documentos") documentos += card;
+      if (item.categoria === "fotos") fotos += card;
+      if (item.categoria === "videos") videos += card;
     });
 
     const pagination = gerarPaginacao(totalPages, page);
 
     let html = template
-      .replace("<!-- [GERAR_TODOS] -->", htmlTodos)
-      .replace("<!-- [GERAR_DOCUMENTOS] -->", htmlDocumentos)
-      .replace("<!-- [GERAR_FOTOS] -->", htmlFotos)
-      .replace("<!-- [GERAR_VIDEOS] -->", htmlVideos)
+      .replace("<!-- [GERAR_TODOS] -->", todos)
+      .replace("<!-- [GERAR_DOCUMENTOS] -->", documentos)
+      .replace("<!-- [GERAR_FOTOS] -->", fotos)
+      .replace("<!-- [GERAR_VIDEOS] -->", videos)
       .replace("<!-- [PAGINACAO] -->", pagination)
       .replace(
         /<title>.*<\/title>/,
@@ -128,7 +118,7 @@ function construirPaginas() {
     console.log(`📘 Criada página: ${output}`);
   }
 
-  console.log("✅ Paginação e categorias criadas com sucesso!");
+  console.log("✅ Biblioteca gerada com imagens, categorias e paginação corretas!");
 }
 
 construirPaginas();
