@@ -9,7 +9,9 @@ const OUTPUT_DIR = "biblioteca";
 const BASE_URL = "https://www.calculadorasdeenfermagem.com.br";
 // =================================================
 
-// Gera slug amigável
+// ================= FUNÇÕES =================
+
+// Slug SEO
 function slugify(text) {
   return text
     .toLowerCase()
@@ -19,75 +21,84 @@ function slugify(text) {
     .replace(/(^-|-$)/g, "");
 }
 
-// Gera descrição SEO automática
+// Descrição SEO automática
 function gerarDescricao(item) {
-  return `Baixe gratuitamente ${item.titulo}. Material de enfermagem disponível na Biblioteca de Enfermagem com acesso rápido, seguro e confiável.`;
+  return `Baixe gratuitamente ${item.titulo}. Material de enfermagem disponível na Biblioteca de Enfermagem com acesso rápido e seguro.`;
 }
 
-// Gera palavras-chave SEO automáticas
+// Palavras-chave SEO
 function gerarPalavrasChave(item) {
   const base = [
     "enfermagem",
     "biblioteca de enfermagem",
     "downloads enfermagem",
-    "material de enfermagem",
-    "pdf enfermagem",
-    "documentos enfermagem",
-    "imagens enfermagem",
-    "protocolos enfermagem"
+    "material enfermagem"
   ];
-
   return [...base, item.titulo.toLowerCase()].join(", ");
 }
 
-// Função principal
+// Detecta tipo do arquivo
+function detectarTipoArquivo(ficheiro) {
+  const ext = path.extname(ficheiro).toLowerCase();
+
+  if ([".pdf"].includes(ext)) return "Documento PDF";
+  if ([".doc", ".docx"].includes(ext)) return "Documento de Texto";
+  if ([".jpg", ".jpeg", ".png", ".webp"].includes(ext)) return "Imagem";
+  if ([".mp4", ".webm", ".ogg"].includes(ext)) return "Vídeo";
+
+  return "Arquivo";
+}
+
+// Gera tags automáticas
+function gerarTags(item) {
+  const palavrasTitulo = item.titulo
+    .toLowerCase()
+    .replace(/[^\w\s]/g, "")
+    .split(" ");
+
+  const base = [
+    "enfermagem",
+    "biblioteca",
+    item.categoria
+  ];
+
+  const tags = new Set([...base, ...palavrasTitulo]);
+  return Array.from(tags).join(", ");
+}
+
+// ================= EXECUÇÃO =================
+
 function construirBiblioteca() {
-  console.log("📚 Iniciando geração das páginas da biblioteca...");
+  console.log("📚 Gerando páginas da biblioteca...");
 
   const data = JSON.parse(fs.readFileSync(JSON_DATABASE_FILE, "utf8"));
   const template = fs.readFileSync(TEMPLATE_FILE, "utf8");
 
-  // Cria pasta /biblioteca se não existir
   if (!fs.existsSync(OUTPUT_DIR)) {
     fs.mkdirSync(OUTPUT_DIR);
     console.log("📁 Pasta /biblioteca criada");
   }
 
-  const slugsUsados = new Set();
-
   data.forEach((item) => {
-    // Usa slug do JSON se existir, senão gera
-    let slug = item.slug ? item.slug : slugify(item.titulo);
+    const slug = slugify(item.titulo);
+    const outputFile = path.join(OUTPUT_DIR, `${slug}.html`);
 
-    // Garante slug único
-    let slugFinal = slug;
-    let contador = 1;
-    while (slugsUsados.has(slugFinal)) {
-      slugFinal = `${slug}-${contador++}`;
-    }
-    slugsUsados.add(slugFinal);
+    const descricao = gerarDescricao(item);
+    const palavras = gerarPalavrasChave(item);
+    const tipo = detectarTipoArquivo(item.ficheiro);
+    const tags = gerarTags(item);
 
-    const outputFile = path.join(OUTPUT_DIR, `${slugFinal}.html`);
-
-    const descricao = item.descricao || gerarDescricao(item);
-    const palavras = item.palavras || gerarPalavrasChave(item);
-
-    let htmlFinal = template
+    const htmlFinal = template
       .replace(/{{TITULO}}/g, item.titulo)
       .replace(/{{DESCRICAO}}/g, descricao)
       .replace(/{{PALAVRAS}}/g, palavras)
-      .replace(/{{SLUG}}/g, slugFinal)
+      .replace(/{{SLUG}}/g, slug)
       .replace(/{{CAPA}}/g, item.capa.replace(/^\/+/, ""))
-      .replace(/{{FICHEIRO}}/g, item.ficheiro.replace(/^\/+/, ""));
-
-    // Trata download (remove se não existir)
-    if (item.download) {
-      htmlFinal = htmlFinal.replace(/{{DOWNLOAD}}/g, item.download);
-    } else {
-      htmlFinal = htmlFinal
-        .replace(/download="{{DOWNLOAD}}"/g, "")
-        .replace(/{{DOWNLOAD}}/g, "");
-    }
+      .replace(/{{FICHEIRO}}/g, item.ficheiro.replace(/^\/+/, ""))
+      .replace(/{{DOWNLOAD}}/g, item.download || "")
+      .replace(/{{CATEGORIA}}/g, item.categoria)
+      .replace(/{{TIPO}}/g, tipo)
+      .replace(/{{TAGS}}/g, tags);
 
     fs.writeFileSync(outputFile, htmlFinal);
     console.log(`📄 Criado: ${outputFile}`);
