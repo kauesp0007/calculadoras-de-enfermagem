@@ -505,41 +505,31 @@
 <script src="lang-selector.js" defer></script>
     <!-- Scripts -->
     <script>
-  function fetchHTML(url, id) {
-    return fetch(url)
-      .then(r => r.text())
-      .then(html => {
-        const el = document.getElementById(id);
-        if (el) el.innerHTML = html;
-      });
-  }
-
-  function loadScript(url) {
-    return new Promise((resolve, reject) => {
-      const script = document.createElement("script");
-      script.src = url;
-      script.onload = resolve;
-      script.onerror = reject;
-      document.body.appendChild(script);
+  // Modificado para garantir que fetchHTML retorne uma Promise
+function fetchHTML(url, id) {
+  return fetch(url)
+    .then(r => r.text())
+    .then(html => {
+      const el = document.getElementById(id);
+      if (el) el.innerHTML = html;
     });
-  }
+}
 
-  document.addEventListener("DOMContentLoaded", () => {
-    // 1️⃣ Carrega a barra de acessibilidade
-    fetchHTML("/global-body-elements.html", "global-body-elements-container")
-      .then(() => {
-        // 2️⃣ Após o HTML estar no DOM, carrega o script da barra
-        return loadScript("/global-body-elements.js");
-      })
-      .then(() => {
-        console.log("Barra de acessibilidade carregada e funcional!");
-      })
-      .catch(err => console.error("Erro ao carregar a barra:", err));
+document.addEventListener("DOMContentLoaded", () => {
+  // Carrega menu global
+  fetchHTML("/menu-global.html", "global-header-container");
 
-    // Carrega os outros elementos
-    fetchHTML("/menu-global.html", "global-header-container");
-    fetchHTML("/footer.html", "footer-placeholder");
-  });
+  // Carrega dropdown de idiomas e depois importa o script
+  fetchHTML("/_language_selector.html", "language-dropdown-wrapper")
+    .then(() => {
+      import('/js/lang-selector.js'); // Inicializa funcionalidade do dropdown
+    });
+
+  // Carrega rodapé e elementos do corpo independentemente
+  fetchHTML("/footer.html", "footer-placeholder");
+  fetchHTML("/global-body-elements.html", "global-body-elements-container");
+});
+
 </script>
 
 
