@@ -1063,22 +1063,31 @@
     <!-- Scripts Traduzidos -->
     <script>
         // Função para carregar HTML modular
-        function fetchHTML(url, containerId) {
-          fetch(url)
-            .then((response) => (response.ok ? response.text() : Promise.reject()))
-            .then((data) => {
-              const container = document.getElementById(containerId);
-              if (container) container.innerHTML = data;
-            })
-            .catch((error) => console.error(`Erro ao carregar ${url}:`, error));
-        }
-  
-        document.addEventListener("DOMContentLoaded", () => {
-          // Carrega módulos (Caminhos mantidos na raiz conforme solicitado)
-          fetchHTML("/menu-global.html", "global-header-container");
-          
-          fetchHTML("/footer.html", "footer-placeholder");
-          fetchHTML("/global-body-elements.html", "global-body-elements-container");
+        // Modificado para garantir que fetchHTML retorne uma Promise
+function fetchHTML(url, id) {
+  return fetch(url)
+    .then(r => r.text())
+    .then(html => {
+      const el = document.getElementById(id);
+      if (el) el.innerHTML = html;
+    });
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  // Carrega menu global
+  fetchHTML("/menu-global.html", "global-header-container");
+
+  // Carrega dropdown de idiomas e depois importa o script
+  fetchHTML("/_language_selector.html", "language-dropdown-wrapper")
+    .then(() => {
+      import('/js/lang-selector.js'); // Inicializa funcionalidade do dropdown
+    });
+
+  // Carrega rodapé e elementos do corpo independentemente
+  fetchHTML("/footer.html", "footer-placeholder");
+  fetchHTML("/global-body-elements.html", "global-body-elements-container");
+});
+
   
           const resultadoDiv = document.getElementById("resultado");
           const btnCalcular = document.getElementById("btnCalcular");
