@@ -100,40 +100,31 @@ document.addEventListener("DOMContentLoaded", function() {
     });
 
     // --- DETECÇÃO DO IDIOMA ATUAL (Para mostrar a bandeira correta ao carregar) ---
-    const langFlag = document.getElementById('langFlag');
-const langText = document.getElementById('langText');
+    const path = window.location.pathname;
+    let current = document.querySelector('[data-value="pt"]'); // Default Português
 
-const path = window.location.pathname;
-let current = null;
+    if (path.startsWith("/en/"))      current = document.querySelector('[data-value="en"]');
+    else if (path.startsWith("/es/")) current = document.querySelector('[data-value="es"]');
+    else if (path.startsWith("/de/")) current = document.querySelector('[data-value="de"]');
+    else if (path.startsWith("/it/")) current = document.querySelector('[data-value="it"]');
+    else if (path.startsWith("/fr/")) current = document.querySelector('[data-value="fr"]');
+    else if (path.startsWith("/hi/")) current = document.querySelector('[data-value="hi"]');
+    else if (path.startsWith("/zh/")) current = document.querySelector('[data-value="zh"]');
+    else if (path.startsWith("/ar/")) current = document.querySelector('[data-value="ar"]');
+    else if (path.startsWith("/ja/")) current = document.querySelector('[data-value="ja"]');
+    else if (path.startsWith("/ru/")) current = document.querySelector('[data-value="ru"]');
+    else if (path.startsWith("/ko/")) current = document.querySelector('[data-value="ko"]');
+    else if (path.startsWith("/tr/")) current = document.querySelector('[data-value="tr"]');
+    else if (path.startsWith("/nl/")) current = document.querySelector('[data-value="nl"]');
+    else if (path.startsWith("/pl/")) current = document.querySelector('[data-value="pl"]');
+    else if (path.startsWith("/sv/")) current = document.querySelector('[data-value="sv"]');
+    else if (path.startsWith("/id/")) current = document.querySelector('[data-value="id"]');
+    else if (path.startsWith("/vi/")) current = document.querySelector('[data-value="vi"]');
+    else if (path.startsWith("/uk/")) current = document.querySelector('[data-value="uk"]');
+    // Se for a raiz (/index.html ou /zarit.html), o default PT está correto
 
-if (path.startsWith("/en/"))      current = document.querySelector('[data-value="en"]');
-else if (path.startsWith("/es/")) current = document.querySelector('[data-value="es"]');
-else if (path.startsWith("/de/")) current = document.querySelector('[data-value="de"]');
-else if (path.startsWith("/it/")) current = document.querySelector('[data-value="it"]');
-else if (path.startsWith("/fr/")) current = document.querySelector('[data-value="fr"]');
-else if (path.startsWith("/hi/")) current = document.querySelector('[data-value="hi"]');
-else if (path.startsWith("/zh/")) current = document.querySelector('[data-value="zh"]');
-else if (path.startsWith("/ar/")) current = document.querySelector('[data-value="ar"]');
-else if (path.startsWith("/ja/")) current = document.querySelector('[data-value="ja"]');
-else if (path.startsWith("/ru/")) current = document.querySelector('[data-value="ru"]');
-else if (path.startsWith("/ko/")) current = document.querySelector('[data-value="ko"]');
-else if (path.startsWith("/tr/")) current = document.querySelector('[data-value="tr"]');
-else if (path.startsWith("/nl/")) current = document.querySelector('[data-value="nl"]');
-else if (path.startsWith("/pl/")) current = document.querySelector('[data-value="pl"]');
-else if (path.startsWith("/sv/")) current = document.querySelector('[data-value="sv"]');
-else if (path.startsWith("/id/")) current = document.querySelector('[data-value="id"]');
-else if (path.startsWith("/vi/")) current = document.querySelector('[data-value="vi"]');
-else if (path.startsWith("/uk/")) current = document.querySelector('[data-value="uk"]');
-
-// Se current não for encontrado (raiz / PT), usa PT
-if (!current) {
-    current = document.querySelector('[data-value="pt"]');
-}
-
-// Atualiza bandeira e texto
-if (current && langFlag && langText) {
-    langFlag.src = current.dataset.flag;
-    langText.textContent = current.innerText.trim();
-}
-
+    if (current) {
+      langFlag.src = current.dataset.flag;
+      langText.textContent = current.innerText.trim();
+    }
 });
