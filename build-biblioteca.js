@@ -205,24 +205,30 @@ function construirBiblioteca() {
 `;
 
     let html = template
-      .replace("<!-- [GERAR_TODOS] -->", conteudoItem)
-      .replace("<!-- [GERAR_DOCUMENTOS] -->", "")
-      .replace("<!-- [GERAR_FOTOS] -->", "")
-      .replace("<!-- [GERAR_VIDEOS] -->", "")
-      .replace("<!-- [PAGINACAO] -->", "")
-      .replace("</head>", schemaImage + "\n</head>")
-      .replace(
-        /<title>.*<\/title>/,
-        `<title>${item.titulo} | Biblioteca de Enfermagem</title>`
-      )
-      .replace(
-        /<meta name="description".*>/,
-        `<meta name="description" content="${descricao}">`
-      )
-      .replace(
-        /<link rel="canonical".*>/,
-        `<link rel="canonical" href="https://www.calculadorasdeenfermagem.com.br/biblioteca/${slug}.html">`
-      );
+  // REMOVE COMPLETAMENTE A ÁREA DE GRID
+  .replace(
+    /<div class="bg-white p-6 rounded-lg shadow">[\s\S]*?<\/div>\s*<!-- PAGINAÇÃO -->[\s\S]*?<\/div>/,
+    conteudoItem
+  )
+
+  // limpa paginação
+  .replace("<!-- [PAGINACAO] -->", "")
+
+  // SEO
+  .replace("</head>", schemaImage + "\n</head>")
+  .replace(
+    /<title>.*<\/title>/,
+    `<title>${item.titulo} | Biblioteca de Enfermagem</title>`
+  )
+  .replace(
+    /<meta name="description".*>/,
+    `<meta name="description" content="${descricao}">`
+  )
+  .replace(
+    /<link rel="canonical".*>/,
+    `<link rel="canonical" href="https://www.calculadorasdeenfermagem.com.br/biblioteca/${slug}.html">`
+  );
+
 
     fs.writeFileSync(path.join(OUTPUT_DIR, `${slug}.html`), html, "utf8");
     gerados++;
