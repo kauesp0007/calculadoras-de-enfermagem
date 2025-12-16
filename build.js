@@ -20,14 +20,30 @@ function slugify(text) {
     .replace(/(^-|-$)/g, "");
 }
 
+/**
+ * Garante que o caminho sempre seja absoluto (/img/..., /docs/...)
+ */
+function normalizarCaminho(caminho) {
+  if (!caminho) return "";
+  return caminho.startsWith("/") ? caminho : `/${caminho}`;
+}
+
 /* ===============================
    CRIA CARD HTML (CORRIGIDO)
 ================================ */
 
 function criarCartaoHTML(item) {
+  const capa = normalizarCaminho(item.capa);
+  const slug = slugify(item.titulo);
+
   return `
-<a href="/biblioteca/${slugify(item.titulo)}.html" class="file-card">
-  <img src="${item.capa}" class="file-card-image" alt="Capa de ${item.titulo}">
+<a href="/biblioteca/${slug}.html" class="file-card">
+  <img 
+    src="${capa}" 
+    class="file-card-image" 
+    alt="Capa de ${item.titulo}"
+    loading="lazy"
+  >
   <h4 class="file-card-title">${item.titulo}</h4>
 </a>`;
 }

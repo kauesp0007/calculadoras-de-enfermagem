@@ -5,7 +5,7 @@ const path = require("path");
 const BIBLIOTECA_JSON = "biblioteca.json";
 
 /**
- * Pastas monitoradas e suas categorias
+ * Pastas monitoradas
  */
 const PASTAS = [
   { dir: "img", categoria: "fotos" },
@@ -14,7 +14,7 @@ const PASTAS = [
 ];
 
 /**
- * Gera título legível a partir do nome do ficheiro
+ * Gera título amigável
  */
 function tituloFromFilename(filename) {
   return filename
@@ -24,7 +24,7 @@ function tituloFromFilename(filename) {
 }
 
 /**
- * Gera slug SEO-friendly a partir do título
+ * Gera slug SEO
  */
 function slugFromTitulo(titulo) {
   return titulo
@@ -36,24 +36,32 @@ function slugFromTitulo(titulo) {
 }
 
 /**
- * Gera descrição automática para SEO
+ * Descrição automática
  */
 function descricaoAutomatica(titulo) {
   return `Material de enfermagem sobre ${titulo} para apoio educacional e clínico.`;
 }
 
 /**
- * Carrega biblioteca.json existente
+ * Capa padrão por categoria
+ */
+function capaPadrao(categoria, ficheiro) {
+  if (categoria === "fotos") return ficheiro;
+  if (categoria === "documentos") return "/img/capa-word.webp";
+  if (categoria === "videos") return "/img/capa-video.webp";
+  return "/img/capa-padrao.webp";
+}
+
+/**
+ * Carrega biblioteca.json
  */
 function carregarBiblioteca() {
-  if (!fs.existsSync(BIBLIOTECA_JSON)) {
-    return [];
-  }
+  if (!fs.existsSync(BIBLIOTECA_JSON)) return [];
   return JSON.parse(fs.readFileSync(BIBLIOTECA_JSON, "utf8"));
 }
 
 /**
- * Salva biblioteca.json formatado
+ * Salva biblioteca.json
  */
 function salvarBiblioteca(data) {
   fs.writeFileSync(
@@ -64,53 +72,58 @@ function salvarBiblioteca(data) {
 }
 
 /**
- * Scanner principal
+ * Scanner principal (ATUALIZA + ADICIONA)
  */
 function executarScanner() {
-  const biblioteca = carregarBiblioteca();
+  let biblioteca = carregarBiblioteca();
 
-  // Evita duplicação usando o campo ficheiro
-  const ficheirosExistentes = new Set(
-    biblioteca.map(item => item.ficheiro)
-  );
+  // Indexa por ficheiro (chave única)
+  const index = {};
+  biblioteca.forEach(item => {
+    index[item.ficheiro] = item;
+  });
 
   let adicionados = 0;
+  let atualizados = 0;
 
   for (const pasta of PASTAS) {
     const pastaPath = path.join(process.cwd(), pasta.dir);
-
     if (!fs.existsSync(pastaPath)) continue;
 
     const arquivos = fs.readdirSync(pastaPath);
 
     for (const arquivo of arquivos) {
-      const caminho = `/${pasta.dir}/${arquivo}`;
-
-      if (ficheirosExistentes.has(caminho)) continue;
-
+      const ficheiro = `/${pasta.dir}/${arquivo}`;
       const titulo = tituloFromFilename(arquivo);
 
-      const novoItem = {
-        titulo,
-        slug: slugFromTitulo(titulo),
-        descricao: descricaoAutomatica(titulo),
-        categoria: pasta.categoria,
-        ficheiro: caminho,
-        capa:
-          pasta.categoria === "fotos"
-            ? caminho
-            : "/img/capa-padrao.webp"
-      };
-
-      biblioteca.push(novoItem);
-      adicionados++;
+      if (index[ficheiro]) {
+        // 🔁 ATUALIZA ITEM EXISTENTE
+        index[ficheiro].titulo = titulo;
+        index[ficheiro].slug = slugFromTitulo(titulo);
+        index[ficheiro].descricao = descricaoAutomatica(titulo);
+        index[ficheiro].categoria = pasta.categoria;
+        index[ficheiro].capa = capaPadrao(pasta.categoria, ficheiro);
+        atualizados++;
+      } else {
+        // ➕ NOVO ITEM
+        biblioteca.push({
+          titulo,
+          slug: slugFromTitulo(titulo),
+          descricao: descricaoAutomatica(titulo),
+          categoria: pasta.categoria,
+          ficheiro,
+          capa: capaPadrao(pasta.categoria, ficheiro)
+        });
+        adicionados++;
+      }
     }
   }
 
   salvarBiblioteca(biblioteca);
 
-  console.log("✅ Scanner concluído com sucesso");
-  console.log(`➕ Itens adicionados: ${adicionados}`);
+  console.log("✅ Scanner finalizado");
+  console.log(`➕ Novos itens: ${adicionados}`);
+  console.log(`🔁 Itens atualizados: ${atualizados}`);
 }
 
 executarScanner();
