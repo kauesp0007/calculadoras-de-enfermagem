@@ -42,7 +42,8 @@ function construirBiblioteca() {
     if (!item.titulo || !item.ficheiro) return;
 
     const slug = item.slug || slugify(item.titulo);
-    const descricao = item.descricao || `Material de enfermagem sobre ${item.titulo}.`;
+    const descricao =
+      item.descricao || `Material de enfermagem sobre ${item.titulo}.`;
     const isImagem = item.categoria === "fotos";
     const indiceImagem = imagens.findIndex(i => i.ficheiro === item.ficheiro);
 
@@ -68,25 +69,32 @@ function construirBiblioteca() {
        CONTEÚDO
     ================================ */
     const conteudoItem = `
-<div class="max-w-5xl mx-auto py-12 px-4 text-center">
+<div class="max-w-6xl mx-auto py-12 px-4 text-center">
 
   <button onclick="history.back()"
-    class="mb-6 inline-flex items-center px-6 py-3 bg-blue-900/80 text-white rounded-lg hover:bg-blue-900 transition">
+    class="mb-8 inline-flex items-center px-6 py-3 bg-blue-900/80 text-white rounded-lg hover:bg-blue-900 transition">
     ← Voltar
   </button>
 
-  <h1 class="text-3xl font-bold text-gray-800 mb-4">${item.titulo}</h1>
-  <p class="text-gray-600 max-w-3xl mx-auto mb-8">${descricao}</p>
+  <h1 class="text-3xl md:text-4xl font-bold text-gray-800 mb-4">
+    ${item.titulo}
+  </h1>
+
+  <p class="text-gray-600 text-lg max-w-6xl mx-auto mb-10">
+    ${descricao}
+  </p>
 
   ${
     isImagem
       ? `
-      <img src="${item.ficheiro}"
+      <img
+        src="${item.ficheiro}"
         alt="${item.titulo}"
         loading="lazy"
         decoding="async"
-        class="w-full max-w-4xl mx-auto rounded-lg shadow-md cursor-zoom-in"
-        onclick="abrirLightbox(${indiceImagem})">
+        class="w-full max-w-6xl mx-auto rounded-lg shadow-md cursor-zoom-in"
+        onclick="abrirLightbox(${indiceImagem})"
+      >
 
       <p class="text-sm text-gray-500 mt-4">
         ${item.titulo} — ${descricao}
@@ -96,7 +104,7 @@ function construirBiblioteca() {
   }
 
   <a href="${item.ficheiro}" download
-    class="mt-8 inline-flex px-8 py-4 bg-blue-900/80 text-white rounded-lg hover:bg-blue-900 transition">
+    class="mt-10 inline-flex px-8 py-4 bg-blue-900/80 text-white rounded-lg hover:bg-blue-900 transition">
     ⬇️ Baixar arquivo
   </a>
 </div>
