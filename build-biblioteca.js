@@ -7,18 +7,11 @@ const path = require("path");
 ================================ */
 const JSON_DATABASE_FILE = "biblioteca.json";
 const TEMPLATE_FILE = "downloads.template.html";
-const ITEMS_PER_PAGE = 20;
-const OUTPUT_DIR = "downloads";
-
-/* Capas padrão */
-const CAPA_WORD = "/img/capa-word.webp";
-const CAPA_VIDEO = "/img/capa-video.webp";
-const CAPA_PADRAO = "/img/capa-padrao.webp";
+const OUTPUT_DIR = "biblioteca";
 
 /* ===============================
    UTILIDADES
 ================================ */
-
 function slugify(text) {
   return text
     .toLowerCase()
@@ -28,135 +21,81 @@ function slugify(text) {
     .replace(/(^-|-$)/g, "");
 }
 
-function extensaoArquivo(caminho) {
-  return path.extname(caminho).toLowerCase();
-}
-
-/* Decide a capa correta */
-function definirCapa(item) {
-  const ext = extensaoArquivo(item.ficheiro);
-
-  if (item.categoria === "fotos") {
-    return item.ficheiro;
-  }
-
-  if (item.categoria === "videos") {
-    return CAPA_VIDEO;
-  }
-
-  if (item.categoria === "documentos") {
-    if (ext === ".doc" || ext === ".docx") {
-      return CAPA_WORD;
-    }
-    if (ext === ".pdf") {
-      return CAPA_PADRAO; // PDF real no PASSO 4
-    }
-  }
-
-  return CAPA_PADRAO;
-}
-
-/* ===============================
-   CRIA CARD HTML
-================================ */
-
-function criarCartaoHTML(item) {
-  const slug = item.slug || slugify(item.titulo);
-  const capa = definirCapa(item);
-
-  return `
-<a href="/biblioteca/${slug}.html" class="file-card">
-  <img src="${capa}" class="file-card-image" alt="Capa de ${item.titulo}" loading="lazy">
-  <h4 class="file-card-title">${item.titulo}</h4>
-</a>`;
-}
-
-/* ===============================
-   PAGINAÇÃO
-================================ */
-
-function gerarPaginacao(total, atual) {
-  let html = "";
-
-  if (atual > 1) {
-    html += `<a class="btn" href="${
-      atual === 2 ? "/downloads.html" : `/downloads/page${atual - 1}.html`
-    }">« Anterior</a>`;
-  }
-
-  for (let i = 1; i <= total; i++) {
-    const link = i === 1 ? "/downloads.html" : `/downloads/page${i}.html`;
-    html += `<a class="btn ${i === atual ? "active" : ""}" href="${link}">${i}</a>`;
-  }
-
-  if (atual < total) {
-    html += `<a class="btn" href="/downloads/page${atual + 1}.html">Próxima »</a>`;
-  }
-
-  return html;
-}
-
 /* ===============================
    CONSTRUTOR PRINCIPAL
 ================================ */
+function construirBiblioteca() {
+  if (!fs.existsSync(JSON_DATABASE_FILE)) {
+    console.error("❌ biblioteca.json não encontrado");
+    return;
+  }
 
-function construirPaginas() {
   const data = JSON.parse(fs.readFileSync(JSON_DATABASE_FILE, "utf8"));
   const template = fs.readFileSync(TEMPLATE_FILE, "utf8");
-
-  const totalPages = Math.ceil(data.length / ITEMS_PER_PAGE);
 
   if (!fs.existsSync(OUTPUT_DIR)) {
     fs.mkdirSync(OUTPUT_DIR);
   }
 
-  for (let page = 1; page <= totalPages; page++) {
-    const start = (page - 1) * ITEMS_PER_PAGE;
-    const items = data.slice(start, start + ITEMS_PER_PAGE);
+  let gerados = 0;
 
-    let todos = "";
-    let documentos = "";
-    let fotos = "";
-    let videos = "";
+  data.forEach(item => {
+    if (!item.titulo || !item.ficheiro) return;
 
-    items.forEach(item => {
-      const card = criarCartaoHTML(item);
+    const slug = item.slug || slugify(item.titulo);
+    const descricao =
+      item.descricao ||
+      `Material de enfermagem sobre ${item.titulo} para apoio educacional e clínico.`;
 
-      todos += card;
-      if (item.categoria === "documentos") documentos += card;
-      if (item.categoria === "fotos") fotos += card;
-      if (item.categoria === "videos") videos += card;
-    });
+    /* ===============================
+       CONTEÚDO DA PÁGINA
+    ================================ */
+    const conteudoItem = `
+<div class="max-w-4xl mx-auto py-10 px-4">
+  <button onclick="history.back()" class="mb-6 inline-block px-4 py-2 bg-gray-200 rounded hover:bg-gray-300">
+    ⬅ Voltar
+  </button>
 
-    const pagination = gerarPaginacao(totalPages, page);
+  <h1 class="text-3xl font-bold mb-4">${item.titulo}</h1>
 
+  <p class="text-gray-600 mb-6">
+    ${descricao}
+  </p>
+
+  <a href="${item.ficheiro}" download class="inline-block px-6 py-3 bg-blue-600 text-white rounded hover:bg-blue-700">
+    ⬇️ Baixar arquivo
+  </a>
+</div>
+`;
+
+    /* ===============================
+       HTML FINAL
+    ================================ */
     let html = template
-      .replace("<!-- [GERAR_TODOS] -->", todos)
-      .replace("<!-- [GERAR_DOCUMENTOS] -->", documentos)
-      .replace("<!-- [GERAR_FOTOS] -->", fotos)
-      .replace("<!-- [GERAR_VIDEOS] -->", videos)
-      .replace("<!-- [PAGINACAO] -->", pagination)
+      .replace("<!-- [GERAR_TODOS] -->", conteudoItem)
+      .replace("<!-- [GERAR_DOCUMENTOS] -->", "")
+      .replace("<!-- [GERAR_FOTOS] -->", "")
+      .replace("<!-- [GERAR_VIDEOS] -->", "")
+      .replace("<!-- [PAGINACAO] -->", "")
       .replace(
         /<title>.*<\/title>/,
-        `<title>Biblioteca de Enfermagem — Página ${page}</title>`
+        `<title>${item.titulo} | Biblioteca de Enfermagem</title>`
+      )
+      .replace(
+        /<meta name="description".*>/,
+        `<meta name="description" content="${descricao}">`
       )
       .replace(
         /<link rel="canonical".*>/,
-        `<link rel="canonical" href="https://www.calculadorasdeenfermagem.com.br/${
-          page === 1 ? "downloads.html" : `downloads/page${page}.html`
-        }">`
+        `<link rel="canonical" href="https://www.calculadorasdeenfermagem.com.br/biblioteca/${slug}.html">`
       );
 
-    const output =
-      page === 1
-        ? "downloads.html"
-        : path.join(OUTPUT_DIR, `page${page}.html`);
+    const outputPath = path.join(OUTPUT_DIR, `${slug}.html`);
+    fs.writeFileSync(outputPath, html, "utf8");
+    gerados++;
+  });
 
-    fs.writeFileSync(output, html);
-    console.log(`📘 Criada página: ${output}`);
-  }
-
-  console.log("✅ Downloads atualizados com capas corretas!");
+  console.log(`✅ ${gerados} páginas individuais da biblioteca geradas com sucesso`);
 }
 
-construirPaginas();
+construirBiblioteca();

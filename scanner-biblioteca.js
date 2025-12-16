@@ -68,6 +68,20 @@ function salvarBiblioteca(data) {
  */
 function executarScanner() {
   const biblioteca = carregarBiblioteca();
+  for (const item of biblioteca) {
+  if (!item.slug && item.titulo) {
+    item.slug = slugFromTitulo(item.titulo);
+  }
+
+  if (!item.descricao && item.titulo) {
+    item.descricao = descricaoAutomatica(item.titulo);
+  }
+
+  if (!item.capa) {
+    item.capa = "/img/capa-padrao.webp";
+  }
+}
+
 
   // Evita duplicação usando o campo ficheiro
   const ficheirosExistentes = new Set(
