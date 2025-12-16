@@ -47,12 +47,12 @@ function construirBiblioteca() {
       item.descricao ||
       `Material de enfermagem sobre ${item.titulo} para apoio educacional e clínico.`;
 
+    const isImagem = item.categoria === "fotos";
+
     /* ===============================
        CONTEÚDO DA PÁGINA
     ================================ */
-    const isImagem = item.categoria === "fotos";
-
-const conteudoItem = `
+    const conteudoItem = `
 <div class="max-w-4xl mx-auto py-10 px-4">
   
   <!-- CARD -->
@@ -77,14 +77,86 @@ const conteudoItem = `
     ${
       isImagem
         ? `
-        <!-- IMAGEM EM TAMANHO GRANDE -->
-        <div class="w-full">
-          <img 
-            src="${item.ficheiro}" 
-            alt="${item.titulo}" 
-            class="w-full h-auto object-contain"
+        <!-- IMAGEM GRANDE -->
+        <div class="w-full flex justify-center bg-gray-50 py-6">
+          <img
+            src="${item.ficheiro}"
+            alt="${item.titulo}"
+            class="w-[90%] max-w-full cursor-zoom-in rounded-lg shadow-md"
+            onclick="abrirLightbox()"
           >
         </div>
+
+        <!-- LIGHTBOX -->
+        <div id="lightbox" style="
+          display:none;
+          position:fixed;
+          inset:0;
+          background:rgba(0,0,0,0.9);
+          z-index:9999;
+          justify-content:center;
+          align-items:center;
+          flex-direction:column;
+        " onclick="fecharLightbox(event)">
+
+          <button style="
+            position:absolute;
+            top:20px;
+            right:30px;
+            font-size:32px;
+            color:white;
+            background:none;
+            border:none;
+            cursor:pointer;
+          ">✕</button>
+
+          <img
+            src="${item.ficheiro}"
+            alt="${item.titulo}"
+            id="lightbox-img"
+            style="
+              max-width:90%;
+              max-height:80%;
+              object-fit:contain;
+            "
+          >
+
+          <p style="
+            color:#ddd;
+            margin-top:15px;
+            font-size:16px;
+            text-align:center;
+            max-width:80%;
+          ">
+            ${item.titulo}
+          </p>
+        </div>
+
+        <script>
+          let zoom = 1;
+
+          function abrirLightbox() {
+            document.getElementById('lightbox').style.display = 'flex';
+            zoom = 1;
+            document.getElementById('lightbox-img').style.transform = 'scale(1)';
+          }
+
+          function fecharLightbox(e) {
+            if (e.target.id === 'lightbox' || e.target.tagName === 'BUTTON') {
+              document.getElementById('lightbox').style.display = 'none';
+            }
+          }
+
+          document.addEventListener('wheel', function(e) {
+            const lb = document.getElementById('lightbox');
+            if (lb && lb.style.display === 'flex') {
+              e.preventDefault();
+              zoom += e.deltaY * -0.001;
+              zoom = Math.min(Math.max(1, zoom), 3);
+              document.getElementById('lightbox-img').style.transform = 'scale(' + zoom + ')';
+            }
+          }, { passive: false });
+        </script>
         `
         : ``
     }
