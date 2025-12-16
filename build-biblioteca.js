@@ -54,23 +54,50 @@ function construirBiblioteca() {
 
 const conteudoItem = `
 <div class="max-w-4xl mx-auto py-10 px-4">
-  <button onclick="history.back()" class="mb-6 inline-block px-4 py-2 bg-gray-200 rounded hover:bg-gray-300">
-    ⬅ Voltar
-  </button>
+  
+  <!-- CARD -->
+  <div class="bg-white rounded-xl shadow-md overflow-hidden">
 
-  <h1 class="text-3xl font-bold mb-4">${item.titulo}</h1>
+    <!-- CABEÇALHO -->
+    <div class="p-6">
+      <button onclick="history.back()"
+        class="mb-4 inline-flex items-center px-4 py-2 bg-blue-900/80 text-white rounded-lg hover:bg-blue-900 transition">
+        ← Voltar
+      </button>
 
-  <p class="text-gray-600 mb-6">
-    ${descricao}
-  </p>
+      <h1 class="text-3xl font-bold text-gray-800 mb-3">
+        ${item.titulo}
+      </h1>
 
-  ${
-    isImagem
-      ? `<img src="${item.ficheiro}" alt="${item.titulo}" class="max-w-full rounded shadow mb-6">`
-      : `<a href="${item.ficheiro}" download class="inline-block px-6 py-3 bg-blue-600 text-white rounded hover:bg-blue-700">
-           ⬇️ Baixar arquivo
-         </a>`
-  }
+      <p class="text-gray-600 text-base">
+        ${descricao}
+      </p>
+    </div>
+
+    ${
+      isImagem
+        ? `
+        <!-- IMAGEM EM TAMANHO GRANDE -->
+        <div class="w-full">
+          <img 
+            src="${item.ficheiro}" 
+            alt="${item.titulo}" 
+            class="w-full h-auto object-contain"
+          >
+        </div>
+        `
+        : ``
+    }
+
+    <!-- AÇÕES -->
+    <div class="p-6">
+      <a href="${item.ficheiro}" download
+        class="inline-flex items-center justify-center px-6 py-3 bg-blue-900/80 text-white rounded-lg hover:bg-blue-900 transition">
+        ⬇️ Baixar arquivo
+      </a>
+    </div>
+
+  </div>
 </div>
 `;
 
