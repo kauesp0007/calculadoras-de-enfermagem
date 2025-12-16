@@ -1,171 +1,162 @@
+/* eslint-env node */
 const fs = require("fs");
 const path = require("path");
 
-// Configurações
-const BIBLIOTECA_JSON = "biblioteca.json";
-const TEMPLATE_ITEM = "item.template.html";
-const TEMPLATE_DOWNLOADS = "downloads.template.html";
-const PASTAS = [
-  { dir: "img", categoria: "fotos" },
-  { dir: "docs", categoria: "documentos" },
-  { dir: "videos", categoria: "videos" }
-];
-const ITENS_POR_PAGINA = 20;
+/* ===============================
+   CONFIGURAÇÕES
+================================ */
+const JSON_DATABASE_FILE = "biblioteca.json";
+const TEMPLATE_FILE = "downloads.template.html";
+const ITEMS_PER_PAGE = 20;
+const OUTPUT_DIR = "downloads";
 
-// Miniaturas padrão
+/* Capas padrão */
 const CAPA_WORD = "/img/capa-word.webp";
 const CAPA_VIDEO = "/img/capa-video.webp";
+const CAPA_PADRAO = "/img/capa-padrao.webp";
 
-// Funções auxiliares
-function tituloFromFilename(filename) {
-  return filename.replace(/\.[^/.]+$/, "").replace(/[-_]/g, " ").replace(/\b\w/g, l => l.toUpperCase());
+/* ===============================
+   UTILIDADES
+================================ */
+
+function slugify(text) {
+  return text
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)/g, "");
 }
 
-function slugFromTitulo(titulo) {
-  return titulo.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+function extensaoArquivo(caminho) {
+  return path.extname(caminho).toLowerCase();
 }
 
-function descricaoAutomatica(titulo) {
-  return `Material de enfermagem sobre ${titulo} para apoio educacional e clínico.`;
-}
+/* Decide a capa correta */
+function definirCapa(item) {
+  const ext = extensaoArquivo(item.ficheiro);
 
-function tipoArquivo(ficheiro) {
-  const ext = path.extname(ficheiro).toLowerCase();
-  if ([".jpg", ".jpeg", ".png", ".webp", ".gif"].includes(ext)) return "imagem";
-  if ([".pdf", ".doc", ".docx"].includes(ext)) return "documento";
-  if ([".mp4", ".mov", ".webm"].includes(ext)) return "video";
-  return "outro";
-}
-
-function capaPadrao(item) {
-  if (item.categoria === "fotos") return item.ficheiro;
-  if (item.categoria === "documentos") return CAPA_WORD;
-  if (item.categoria === "videos") return CAPA_VIDEO;
-  return "/img/capa-padrao.webp";
-}
-
-// Carregar e salvar biblioteca
-function carregarBiblioteca() {
-  if (!fs.existsSync(BIBLIOTECA_JSON)) return [];
-  return JSON.parse(fs.readFileSync(BIBLIOTECA_JSON, "utf8"));
-}
-
-function salvarBiblioteca(data) {
-  fs.writeFileSync(BIBLIOTECA_JSON, JSON.stringify(data, null, 2), "utf8");
-}
-
-// Gerar HTML do item
-function gerarItemHTML(item) {
-  let template = fs.readFileSync(TEMPLATE_ITEM, "utf8");
-  template = template
-    .replace(/{{TITULO}}/g, item.titulo)
-    .replace(/{{DESCRICAO}}/g, item.descricao)
-    .replace(/{{PALAVRAS}}/g, item.tags || "")
-    .replace(/{{SLUG}}/g, item.slug)
-    .replace(/{{CAPA}}/g, item.capa)
-    .replace(/{{FICHEIRO}}/g, item.ficheiro)
-    .replace(/{{CATEGORIA}}/g, item.categoria)
-    .replace(/{{TIPO}}/g, tipoArquivo(item.ficheiro))
-    .replace(/{{TAGS}}/g, item.tags || "");
-  return template;
-}
-
-// Gerar HTML de grid para downloads.html
-function gerarGridHTML(items) {
-  return items.map(item => {
-    const slug = item.slug;
-    const capa = item.capa;
-    const titulo = item.titulo;
-    const categoria = item.categoria;
-    return `
-<a href="/biblioteca/${slug}.html" class="file-card">
-  <img src="/${capa}" alt="Capa de ${titulo}" loading="lazy" />
-  <div class="file-card-title">${titulo}</div>
-</a>`;
-  }).join("\n");
-}
-
-// Paginação
-function dividirPaginas(items) {
-  const paginas = [];
-  for (let i = 0; i < items.length; i += ITENS_POR_PAGINA) {
-    paginas.push(items.slice(i, i + ITENS_POR_PAGINA));
+  if (item.categoria === "fotos") {
+    return item.ficheiro;
   }
-  return paginas;
-}
 
-// Atualizar downloads.html e pages
-function gerarDownloadsHTML(biblioteca) {
-  let template = fs.readFileSync(TEMPLATE_DOWNLOADS, "utf8");
+  if (item.categoria === "videos") {
+    return CAPA_VIDEO;
+  }
 
-  const porCategoria = {
-    todos: biblioteca,
-    documentos: biblioteca.filter(i => i.categoria === "documentos"),
-    fotos: biblioteca.filter(i => i.categoria === "fotos"),
-    videos: biblioteca.filter(i => i.categoria === "videos")
-  };
-
-  // Gerar grids por categoria
-  template = template.replace("<!-- [GERAR_TODOS] -->", gerarGridHTML(porCategoria.todos));
-  template = template.replace("<!-- [GERAR_DOCUMENTOS] -->", gerarGridHTML(porCategoria.documentos));
-  template = template.replace("<!-- [GERAR_FOTOS] -->", gerarGridHTML(porCategoria.fotos));
-  template = template.replace("<!-- [GERAR_VIDEOS] -->", gerarGridHTML(porCategoria.videos));
-
-  // Salvar downloads.html principal
-  fs.writeFileSync("downloads.html", template, "utf8");
-
-  // Paginação
-  const paginas = dividirPaginas(biblioteca);
-  paginas.forEach((paginaItems, index) => {
-    const pageTemplate = template.replace("<!-- [GERAR_TODOS] -->", gerarGridHTML(paginaItems));
-    const pageName = `downloads-page${index + 1}.html`;
-    fs.writeFileSync(pageName, pageTemplate, "utf8");
-  });
-}
-
-// Scanner e atualização biblioteca.json
-function executarScanner() {
-  const biblioteca = carregarBiblioteca();
-  const ficheirosExistentes = new Set(biblioteca.map(i => i.ficheiro));
-  let adicionados = 0;
-
-  for (const pasta of PASTAS) {
-    const dirPath = path.join(process.cwd(), pasta.dir);
-    if (!fs.existsSync(dirPath)) continue;
-
-    const arquivos = fs.readdirSync(dirPath);
-    for (const arquivo of arquivos) {
-      const caminho = `/${pasta.dir}/${arquivo}`;
-      if (ficheirosExistentes.has(caminho)) continue;
-
-      const titulo = tituloFromFilename(arquivo);
-      const novoItem = {
-        titulo,
-        slug: slugFromTitulo(titulo),
-        descricao: descricaoAutomatica(titulo),
-        categoria: pasta.categoria,
-        ficheiro: caminho,
-        capa: capaPadrao({ categoria: pasta.categoria, ficheiro: caminho }),
-        tags: titulo.split(" ").map(w => w.toLowerCase()).join(", ")
-      };
-
-      biblioteca.push(novoItem);
-
-      // Gerar HTML individual
-      const itemHTML = gerarItemHTML(novoItem);
-      const itemPath = path.join("biblioteca", `${novoItem.slug}.html`);
-      fs.writeFileSync(itemPath, itemHTML, "utf8");
-
-      adicionados++;
+  if (item.categoria === "documentos") {
+    if (ext === ".doc" || ext === ".docx") {
+      return CAPA_WORD;
+    }
+    if (ext === ".pdf") {
+      return CAPA_PADRAO; // PDF real no PASSO 4
     }
   }
 
-  salvarBiblioteca(biblioteca);
-  gerarDownloadsHTML(biblioteca);
-
-  console.log(`✅ Scanner concluído. Itens adicionados: ${adicionados}`);
-  console.log("✅ downloads.html e páginas atualizadas com sucesso!");
+  return CAPA_PADRAO;
 }
 
-// Executar
-executarScanner();
+/* ===============================
+   CRIA CARD HTML
+================================ */
+
+function criarCartaoHTML(item) {
+  const slug = item.slug || slugify(item.titulo);
+  const capa = definirCapa(item);
+
+  return `
+<a href="/biblioteca/${slug}.html" class="file-card">
+  <img src="${capa}" class="file-card-image" alt="Capa de ${item.titulo}" loading="lazy">
+  <h4 class="file-card-title">${item.titulo}</h4>
+</a>`;
+}
+
+/* ===============================
+   PAGINAÇÃO
+================================ */
+
+function gerarPaginacao(total, atual) {
+  let html = "";
+
+  if (atual > 1) {
+    html += `<a class="btn" href="${
+      atual === 2 ? "/downloads.html" : `/downloads/page${atual - 1}.html`
+    }">« Anterior</a>`;
+  }
+
+  for (let i = 1; i <= total; i++) {
+    const link = i === 1 ? "/downloads.html" : `/downloads/page${i}.html`;
+    html += `<a class="btn ${i === atual ? "active" : ""}" href="${link}">${i}</a>`;
+  }
+
+  if (atual < total) {
+    html += `<a class="btn" href="/downloads/page${atual + 1}.html">Próxima »</a>`;
+  }
+
+  return html;
+}
+
+/* ===============================
+   CONSTRUTOR PRINCIPAL
+================================ */
+
+function construirPaginas() {
+  const data = JSON.parse(fs.readFileSync(JSON_DATABASE_FILE, "utf8"));
+  const template = fs.readFileSync(TEMPLATE_FILE, "utf8");
+
+  const totalPages = Math.ceil(data.length / ITEMS_PER_PAGE);
+
+  if (!fs.existsSync(OUTPUT_DIR)) {
+    fs.mkdirSync(OUTPUT_DIR);
+  }
+
+  for (let page = 1; page <= totalPages; page++) {
+    const start = (page - 1) * ITEMS_PER_PAGE;
+    const items = data.slice(start, start + ITEMS_PER_PAGE);
+
+    let todos = "";
+    let documentos = "";
+    let fotos = "";
+    let videos = "";
+
+    items.forEach(item => {
+      const card = criarCartaoHTML(item);
+
+      todos += card;
+      if (item.categoria === "documentos") documentos += card;
+      if (item.categoria === "fotos") fotos += card;
+      if (item.categoria === "videos") videos += card;
+    });
+
+    const pagination = gerarPaginacao(totalPages, page);
+
+    let html = template
+      .replace("<!-- [GERAR_TODOS] -->", todos)
+      .replace("<!-- [GERAR_DOCUMENTOS] -->", documentos)
+      .replace("<!-- [GERAR_FOTOS] -->", fotos)
+      .replace("<!-- [GERAR_VIDEOS] -->", videos)
+      .replace("<!-- [PAGINACAO] -->", pagination)
+      .replace(
+        /<title>.*<\/title>/,
+        `<title>Biblioteca de Enfermagem — Página ${page}</title>`
+      )
+      .replace(
+        /<link rel="canonical".*>/,
+        `<link rel="canonical" href="https://www.calculadorasdeenfermagem.com.br/${
+          page === 1 ? "downloads.html" : `downloads/page${page}.html`
+        }">`
+      );
+
+    const output =
+      page === 1
+        ? "downloads.html"
+        : path.join(OUTPUT_DIR, `page${page}.html`);
+
+    fs.writeFileSync(output, html);
+    console.log(`📘 Criada página: ${output}`);
+  }
+
+  console.log("✅ Downloads atualizados com capas corretas!");
+}
+
+construirPaginas();
