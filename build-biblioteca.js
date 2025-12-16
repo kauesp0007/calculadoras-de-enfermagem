@@ -50,7 +50,9 @@ function construirBiblioteca() {
     /* ===============================
        CONTEÚDO DA PÁGINA
     ================================ */
-    const conteudoItem = `
+    const isImagem = item.categoria === "fotos";
+
+const conteudoItem = `
 <div class="max-w-4xl mx-auto py-10 px-4">
   <button onclick="history.back()" class="mb-6 inline-block px-4 py-2 bg-gray-200 rounded hover:bg-gray-300">
     ⬅ Voltar
@@ -62,9 +64,13 @@ function construirBiblioteca() {
     ${descricao}
   </p>
 
-  <a href="${item.ficheiro}" download class="inline-block px-6 py-3 bg-blue-600 text-white rounded hover:bg-blue-700">
-    ⬇️ Baixar arquivo
-  </a>
+  ${
+    isImagem
+      ? `<img src="${item.ficheiro}" alt="${item.titulo}" class="max-w-full rounded shadow mb-6">`
+      : `<a href="${item.ficheiro}" download class="inline-block px-6 py-3 bg-blue-600 text-white rounded hover:bg-blue-700">
+           ⬇️ Baixar arquivo
+         </a>`
+  }
 </div>
 `;
 
