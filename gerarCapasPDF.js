@@ -1,41 +1,49 @@
 /* eslint-env node */
 const fs = require("fs-extra");
 const path = require("path");
+const { PDFDocument } = require("pdf-lib");
+const { createCanvas } = require("canvas");
 const sharp = require("sharp");
-const { fromPath } = require("pdf2pic");
 
 const PDF_DIR = path.join(__dirname, "docs");
 const IMG_DIR = path.join(__dirname, "img");
 const JSON_PATH = path.join(__dirname, "biblioteca.json");
 
-// Função para gerar capa a partir do PDF
+// Função para gerar capa do PDF
 async function gerarCapa(pdfFile) {
   const baseName = path.parse(pdfFile).name;
-  const pngPath = path.join(IMG_DIR, baseName + ".png");
+  const pdfPath = path.join(PDF_DIR, pdfFile);
   const webpPath = path.join(IMG_DIR, baseName + ".webp");
 
-  // Configurações pdf2pic
-  const options = {
-    density: 150,
-    saveFilename: baseName,
-    savePath: IMG_DIR,
-    format: "png",
-    width: 1024,
-    height: 1448
-  };
+  // Lê PDF
+  const pdfBytes = await fs.readFile(pdfPath);
+  const pdfDoc = await PDFDocument.load(pdfBytes);
 
-  const storeAsImage = fromPath(path.join(PDF_DIR, pdfFile), options);
+  // Pega a primeira página
+  const page = pdfDoc.getPage(0);
+  const { width, height } = page.getSize();
 
-  // Gera a primeira página como PNG
-  await storeAsImage(1);
+  // Cria canvas
+  const canvas = createCanvas(width, height);
+  const ctx = canvas.getContext("2d");
 
-  // Converte PNG para WebP
-  await sharp(pngPath)
+  // Fundo branco
+  ctx.fillStyle = "#FFFFFF";
+  ctx.fillRect(0, 0, width, height);
+
+  // Renderiza texto básico (apenas título do PDF)
+  ctx.fillStyle = "#000000";
+  ctx.font = "bold 20px Arial";
+  ctx.fillText(baseName, 50, 50);
+
+  // Salva como PNG temporário
+  const buffer = canvas.toBuffer("image/png");
+
+  // Converte para WebP
+  await sharp(buffer)
+    .resize(1024, 1448, { fit: "inside" })
     .webp({ quality: 85 })
     .toFile(webpPath);
-
-  // Remove PNG temporário
-  await fs.remove(pngPath);
 
   return path.relative(__dirname, webpPath).replace(/\\/g, "/");
 }
@@ -55,10 +63,8 @@ async function atualizarBiblioteca() {
   for (const pdfFile of pdfFiles.filter(f => f.endsWith(".pdf"))) {
     const slug = path.parse(pdfFile).name;
 
-    // Localiza o item no JSON usando apenas o nome do arquivo
     let item = biblioteca.find(i => path.basename(i.ficheiro) === pdfFile);
 
-    // Se não existir, adiciona novo item
     if (!item) {
       item = {
         titulo: slug.replace(/[-_]/g, " "),
@@ -72,12 +78,10 @@ async function atualizarBiblioteca() {
       biblioteca.push(item);
     }
 
-    // Força geração de capa para todos os PDFs
     console.log(`Gerando capa para ${pdfFile}...`);
     item.capa = await gerarCapa(pdfFile);
   }
 
-  // Salvar JSON atualizado
   await fs.writeJSON(JSON_PATH, biblioteca, { spaces: 2 });
   console.log("✅ biblioteca.json atualizado com capas para todos os PDFs!");
 }
