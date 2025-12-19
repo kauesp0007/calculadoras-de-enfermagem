@@ -160,24 +160,17 @@ function main() {
       continue; // Pula o resto do loop para este ficheiro
     }
 
-    // 8. LÓGICA PRINCIPAL (O que fazer com o ficheiro?)
-
-    // Caso 1: O ficheiro está na lista para COPIAR?
-    if (FILES_TO_COPY.includes(fileName)) {
+    // 8. LÓGICA PRINCIPAL: COPIAR o ficheiro completo para o destino
+    // Agora copiamos todos os ficheiros da raiz (não ignorados) para a pasta do idioma,
+    // preservando o conteúdo em português.
+    try {
       const sourcePath = path.join(sourceDir, fileName);
       fs.copyFileSync(sourcePath, targetPath);
       console.log(`+ COPIADO: ${targetPath}`);
       filesCopied++;
-    
-    // Caso 2: É um ficheiro HTML (que não estava nas listas de ignorar/copiar)?
-    } else if (path.extname(fileName) === '.html') {
-      fs.writeFileSync(targetPath, ''); // Cria um ficheiro vazio
-      console.log(`+ CRIADO VAZIO: ${targetPath}`);
-      filesCreated++;
-    
-    // Caso 3: É outro tipo de ficheiro (outro .js, .css, .md) que não queremos.
-    } else {
-      // Ignora silenciosamente
+    } catch (err) {
+      console.error(`Erro ao copiar ${fileName}: ${err.message}`);
+      filesSkipped++;
     }
   }
 
