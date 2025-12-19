@@ -918,6 +918,7 @@ const urlsToCache = [
   'id/cornell.html',
   'id/cries.html',
   'id/curb-65.html',
+  'id/diagnosticosnanda.html',
   'id/downes.html',
   'id/downton.html',
   'id/elpo.html',
