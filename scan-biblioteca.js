@@ -59,10 +59,7 @@ function scan() {
         titulo,
         categoria,
         ficheiro,
-        capa:
-          categoria === "fotos"
-            ? ficheiro
-            : "/img/capa-padrao.webp",
+        capa: categoria === "fotos" ? ficheiro : "",
         download: arquivo,
       });
 

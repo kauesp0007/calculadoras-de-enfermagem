@@ -77,8 +77,13 @@ function executarScanner() {
     item.descricao = descricaoAutomatica(item.titulo);
   }
 
+  // Não forçar capa padrão para documentos; deixar em branco para que o gerador crie
   if (!item.capa) {
-    item.capa = "/img/capa-padrao.webp";
+    if (item.categoria === 'fotos') {
+      item.capa = item.ficheiro;
+    } else {
+      item.capa = '';
+    }
   }
 }
 
@@ -110,10 +115,7 @@ function executarScanner() {
         descricao: descricaoAutomatica(titulo),
         categoria: pasta.categoria,
         ficheiro: caminho,
-        capa:
-          pasta.categoria === "fotos"
-            ? caminho
-            : "/img/capa-padrao.webp"
+        capa: pasta.categoria === 'fotos' ? caminho : ''
       };
 
       biblioteca.push(novoItem);
