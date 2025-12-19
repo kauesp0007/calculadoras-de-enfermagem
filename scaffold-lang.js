@@ -160,17 +160,20 @@ function main() {
       continue; // Pula o resto do loop para este ficheiro
     }
 
-    // 8. LÓGICA PRINCIPAL: COPIAR o ficheiro completo para o destino
-    // Agora copiamos todos os ficheiros da raiz (não ignorados) para a pasta do idioma,
-    // preservando o conteúdo em português.
-    try {
-      const sourcePath = path.join(sourceDir, fileName);
-      fs.copyFileSync(sourcePath, targetPath);
-      console.log(`+ COPIADO: ${targetPath}`);
-      filesCopied++;
-    } catch (err) {
-      console.error(`Erro ao copiar ${fileName}: ${err.message}`);
-      filesSkipped++;
+    // 8. LÓGICA PRINCIPAL: COPIAR APENAS ficheiros .html para o destino
+    // Outros tipos de ficheiros (js, css, webp, etc.) NÃO serão enviados.
+    if (path.extname(fileName).toLowerCase() === '.html') {
+      try {
+        const sourcePath = path.join(sourceDir, fileName);
+        fs.copyFileSync(sourcePath, targetPath);
+        console.log(`+ COPIADO: ${targetPath}`);
+        filesCopied++;
+      } catch (err) {
+        console.error(`Erro ao copiar ${fileName}: ${err.message}`);
+        filesSkipped++;
+      }
+    } else {
+      // Ignora outros tipos de ficheiros
     }
   }
 
