@@ -12,7 +12,7 @@ const API_KEY = 'AIzaSyCO722vd9K9FHnZgzGrK5UAhIXiWzIW3gA';
 
 // 2. IDIOMA DE DESTINO (nl, pl, sv, uk, vi)
 // Pode ser passado como argumento: `node tradutor-final.js nl` (opcional)
-const IDIOMA_ALVO = process.argv[2] || 'nl'; 
+const IDIOMA_ALVO = process.argv[2] || 'vi'; 
 
 // 3. PASTA ALVO (por padrão usa o idioma alvo, mas pode ser sobrescrita)
 // Pode ser passado como segundo argumento: `node tradutor-final.js nl nl` (opcional)
