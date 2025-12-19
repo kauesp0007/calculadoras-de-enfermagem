@@ -18,7 +18,7 @@ async function gerarCapa(pdfFile) {
   const options = {
     density: 150,           // qualidade da imagem
     saveFilename: baseName,
-    savePath: IMG_DIR,
+    savePath: path.resolve(IMG_DIR),
     format: "png",
     width: 1024,
     height: 1448
@@ -28,28 +28,36 @@ async function gerarCapa(pdfFile) {
 
   // Gera a primeira página como PNG
   await storeAsImage(1);
+  // O pdf2pic pode gerar nomes variados e em pastas diferentes (img/ ou no CWD).
+  const candidateNames = [
+    `${baseName}.1.png`,
+    `${baseName}.01.png`,
+    `${baseName}-01.png`,
+    `${baseName}-1.png`,
+    `${baseName}.png`
+  ];
 
-  // O pdf2pic pode gerar nomes como `${baseName}.1.png`, `${baseName}.01.png`, `${baseName}-01.png`, etc.
-  let actualPngPath = pngPath;
-  if (!(await fs.pathExists(actualPngPath))) {
-    const candidates = [
-      `${baseName}.1.png`,
-      `${baseName}.01.png`,
-      `${baseName}-01.png`,
-      `${baseName}-1.png`,
-      `${baseName}.png`
-    ].map(n => path.join(IMG_DIR, n));
-
-    for (const c of candidates) {
-      if (await fs.pathExists(c)) {
-        actualPngPath = c;
+  // Procura primeiro em IMG_DIR, depois na raiz do repo (CWD). Se encontrado na raiz, move para IMG_DIR.
+  let actualPngPath = null;
+  for (const name of candidateNames) {
+    const pImg = path.join(IMG_DIR, name);
+    if (await fs.pathExists(pImg)) { actualPngPath = pImg; break; }
+  }
+  if (!actualPngPath) {
+    for (const name of candidateNames) {
+      const pRoot = path.join(process.cwd(), name);
+      if (await fs.pathExists(pRoot)) {
+        // mover para IMG_DIR
+        const dest = path.join(IMG_DIR, name);
+        await fs.move(pRoot, dest, { overwrite: true });
+        actualPngPath = dest;
         break;
       }
     }
   }
 
-  if (!(await fs.pathExists(actualPngPath))) {
-    throw new Error(`Arquivo PNG de saída não encontrado para ${baseName} (tentados: ${[pngPath].concat(candidates || []).join(', ')})`);
+  if (!actualPngPath) {
+    throw new Error(`Arquivo PNG de saída não encontrado para ${baseName} (tentados: ${candidateNames.join(', ')})`);
   }
 
   // Converte PNG para WebP
@@ -57,11 +65,11 @@ async function gerarCapa(pdfFile) {
     .webp({ quality: 85 })
     .toFile(webpPath);
 
-  // Remove PNG temporário
-  if (actualPngPath !== pngPath) {
+  // Remove PNG temporário (após converter para webp)
+  try {
     await fs.remove(actualPngPath);
-  } else {
-    await fs.remove(pngPath);
+  } catch (e) {
+    // não bloquear por falha na remoção
   }
 
   // Retorna caminho com barra inicial para ficar consistente com o site
