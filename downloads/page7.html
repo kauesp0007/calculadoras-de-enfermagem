@@ -418,7 +418,7 @@
     <div id="global-body-elements-container"></div>
 
     <!-- Scripts -->
-    <script>
+     <script>
   function fetchHTML(url, id) {
     return fetch(url)
       .then(r => r.text())
@@ -441,20 +441,31 @@
 
 document.addEventListener("DOMContentLoaded", () => {
 
-  // 1️⃣ Barra de acessibilidade
+  // 1️⃣ Barra de acessibilidade (injetar HTML antes de carregar o script)
   fetchHTML("/global-body-elements.html", "global-body-elements-container")
     .then(() => loadScript("/global-body-elements.js"))
     .then(() => console.log("Barra de acessibilidade carregada e funcional!"))
     .catch(err => console.error("Erro ao carregar a barra de acessibilidade:", err));
 
-  // 2️⃣ Barra de idiomas (HTML já presente)
+  // 2️⃣ Barra de idiomas: carregar após DOM ready (uma única vez)
   loadScript("/lang-selector.js")
     .then(() => console.log("Barra de idiomas carregada e funcional!"))
     .catch(err => console.error("Erro ao carregar a barra de idiomas:", err));
 
-  // 3️⃣ Outros elementos independentes
+  // 3️⃣ Outros elementos independentes (menu e footer)
   fetchHTML("/menu-global.html", "global-header-container");
-  fetchHTML("/footer.html", "footer-placeholder");
+
+  // Carrega o footer e, somente após a injeção do footer, carrega os scripts que dependem do footer (ex.: preferências de cookies)
+  fetchHTML("/footer.html", "footer-placeholder")
+    .then(() => {
+      // scripts que dependem do footer ou do conteúdo injetado
+      return Promise.all([
+        loadScript("/global-scripts.js").catch(err => console.error("Erro ao carregar global-scripts:", err)),
+        loadScript("/filtro-index.js").catch(err => console.error("Erro ao carregar filtro-index:", err))
+      ]);
+    })
+    .then(() => console.log("Footer e scripts dependentes carregados"))
+    .catch(err => console.error("Erro ao injetar footer ou carregar scripts dependentes:", err));
 });
 
 
