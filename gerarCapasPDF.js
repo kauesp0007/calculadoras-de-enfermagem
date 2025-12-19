@@ -100,9 +100,19 @@ async function atualizarBiblioteca() {
       biblioteca.push(item);
     }
 
-    // Força geração de capa para todos os PDFs
+    // Se já existe capa, pula a geração
+    if (item.capa && item.capa.trim() !== "") {
+      console.log(`Pular ${pdfFile} — capa já existente: ${item.capa}`);
+      continue;
+    }
+
+    // Gera capa apenas para PDFs sem capa
     console.log(`Gerando capa para ${pdfFile}...`);
-    item.capa = await gerarCapa(pdfFile);
+    try {
+      item.capa = await gerarCapa(pdfFile);
+    } catch (err) {
+      console.error(`Falha ao gerar capa para ${pdfFile}:`, err && err.message ? err.message : err);
+    }
   }
 
   // Salvar JSON atualizado

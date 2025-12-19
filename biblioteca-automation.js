@@ -36,50 +36,8 @@ function runScanner() {
 }
 
 async function gerarCapaParaPDF(pdfFile) {
-  // gera capa para um pdf específico, similar ao gerarCapasPDF.js
-  try {
-    const { fromPath } = require('pdf2pic');
-    const sharp = require('sharp');
-
-    const baseName = path.parse(pdfFile).name;
-    const fullPdfPath = path.join(DOCS_DIR, pdfFile);
-    const options = {
-      density: 150,
-      saveFilename: baseName,
-      savePath: IMG_DIR,
-      format: 'png',
-      width: 1024,
-      height: 1448,
-    };
-
-    const storeAsImage = fromPath(fullPdfPath, options);
-    console.log(`🖼️  Gerando PNG da primeira página de ${pdfFile}...`);
-    await storeAsImage(1);
-
-    // localizar arquivo PNG gerado
-    const candidates = [
-      `${baseName}.1.png`,
-      `${baseName}.01.png`,
-      `${baseName}-01.png`,
-      `${baseName}-1.png`,
-      `${baseName}.png`,
-    ].map(n => path.join(IMG_DIR, n));
-
-    let actualPng = null;
-    for (const c of candidates) if (fs.existsSync(c)) { actualPng = c; break; }
-    if (!actualPng) throw new Error('PNG de saída não encontrado para ' + pdfFile);
-
-    const webpPath = path.join(IMG_DIR, baseName + '.webp');
-    await sharp(actualPng).webp({ quality: 85 }).toFile(webpPath);
-    // remove png temporário
-    try { fs.unlinkSync(actualPng); } catch(e) {}
-
-    // retorna caminho relativo conforme padrão do site
-    return ('/' + path.relative(process.cwd(), webpPath).replace(/\\/g, '/')).replace(/\/\//g, '/');
-  } catch (err) {
-    console.error('Erro ao gerar capa para', pdfFile, err.message || err);
-    return null;
-  }
+  // função removida: usar o script dedicado gerarCapasPDF.js para criar capas
+  throw new Error('Não chamar gerarCapaParaPDF; use gerarCapasPDF.js via execSync');
 }
 
 async function main() {
@@ -122,21 +80,25 @@ async function main() {
     if (added) fs.writeFileSync(JSON_DB, JSON.stringify(biblioteca, null, 2), 'utf8');
   }
 
-  // 4) Gerar capas para PDFs que não possuam capa
-  let updated = false;
-  for (const item of biblioteca) {
-    if (item.categoria === 'documentos' && item.ficheiro && (!item.capa || item.capa === '')) {
-      const fileName = path.basename(item.ficheiro);
-      console.log('➡ Encontrado PDF sem capa:', fileName);
-      const capa = await gerarCapaParaPDF(fileName);
-      if (capa) {
-        item.capa = capa;
-        updated = true;
-        console.log('✅ Capa gerada e atribuída:', capa);
+  // 4) Se existirem PDFs sem capa, delegar a geração ao script gerarCapasPDF.js
+  const pdfsSemCapa = biblioteca.filter(i => i.categoria === 'documentos' && i.ficheiro && (!i.capa || i.capa === ''));
+  if (pdfsSemCapa.length > 0) {
+    console.log(`➡ Há ${pdfsSemCapa.length} PDFs sem capa. Executando gerarCapasPDF.js...`);
+    try {
+      execSync('node gerarCapasPDF.js', { stdio: 'inherit' });
+      // recarregar biblioteca.json caso o script tenha atualizado capas
+      const novaBiblioteca = JSON.parse(fs.readFileSync(JSON_DB, 'utf8'));
+      // substituir referência local
+      for (let i = 0; i < biblioteca.length; i++) {
+        biblioteca[i] = novaBiblioteca[i] || biblioteca[i];
       }
+      console.log('✅ Geração de capas concluída.');
+    } catch (err) {
+      console.error('❌ Falha ao executar gerarCapasPDF.js:', err && err.message ? err.message : err);
     }
+  } else {
+    console.log('➡ Nenhum PDF sem capa encontrado. Pular geração de capas.');
   }
-  if (updated) fs.writeFileSync(JSON_DB, JSON.stringify(biblioteca, null, 2), 'utf8');
 
   // 5) Criar páginas individuais em biblioteca/ apenas para itens novos (não possuir arquivo gerado ainda)
   if (!fs.existsSync(BIBLIOTECA_DIR)) fs.mkdirSync(BIBLIOTECA_DIR);
