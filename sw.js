@@ -4,6 +4,7 @@ const CACHE_NAME = 'calculadoras-enfermagem-cache-v1';
 
 // O SCRIPT DE BUILD VAI INJETAR A LISTA DE ARQUIVOS AQUI
 const urlsToCache = [
+  '5-hs-pcr.html',
   'aldrete.html',
   'altavigilancia.webp',
   'apache.html',
