@@ -40,13 +40,11 @@ function gerarPaginacao(total, atual) {
   let html = "";
 
   if (atual > 1) {
-    html += `<a class="btn" href="${
-      atual === 2 ? "/downloads.html" : `/downloads/page${atual - 1}.html`
-    }">« Anterior</a>`;
+    html += `<a class="btn" href="/downloads/page${atual - 1}.html">« Anterior</a>`;
   }
 
   for (let i = 1; i <= total; i++) {
-    const link = i === 1 ? "/downloads.html" : `/downloads/page${i}.html`;
+    const link = `/downloads/page${i}.html`;
     html += `<a class="btn ${i === atual ? "active" : ""}" href="${link}">${i}</a>`;
   }
 
@@ -104,15 +102,10 @@ function construirPaginas() {
       )
       .replace(
         /<link rel="canonical".*>/,
-        `<link rel="canonical" href="https://www.calculadorasdeenfermagem.com.br/${
-          page === 1 ? "downloads.html" : `downloads/page${page}.html`
-        }">`
+        `<link rel="canonical" href="https://www.calculadorasdeenfermagem.com.br/downloads/page${page}.html">`
       );
 
-    const output =
-      page === 1
-        ? "downloads.html"
-        : path.join(OUTPUT_DIR, `page${page}.html`);
+    const output = path.join(OUTPUT_DIR, `page${page}.html`);
 
     fs.writeFileSync(output, html);
     console.log(`📘 Criada página: ${output}`);
