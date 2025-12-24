@@ -46,13 +46,11 @@ async function translateTextBatch(texts) {
     const inputs = texts.map((t, i) => ({ index: i, text: t.trim() }))
         .filter(item => {
             const t = item.text;
-            // Regras básicas de exclusão
             if (t.length < 2) return false; 
             if (!isNaN(t)) return false; 
             if (t.startsWith('#') || t.startsWith('.')) return false; 
             if (t.includes('http://') || t.includes('https://') || t.includes('/')) return false;
-            // Bloqueamos apenas definições de função explícitas
-            if (t.includes('function(') || t.includes('=>')) return false; 
+            if (t.includes('function(') || t.includes('=>') || (t.includes('{') && t.includes(':') && !t.includes('$'))) return false; 
             if (t === 'true' || t === 'false' || t === 'null') return false; 
             return true;
         });
@@ -90,7 +88,6 @@ async function translateTextBatch(texts) {
 
     const finalTranslations = texts.map((original, i) => {
         let translated = translationsMap[i] || original;
-        // Limpeza e correção de entidades
         translated = translated
             .replace(/&#39;/g, "'")
             .replace(/&quot;/g, '"')
@@ -113,18 +110,68 @@ async function processFile(filePath) {
 
     // --- 1. PROTEÇÃO E SEPARAÇÃO DE SCRIPTS ---
     const scripts = [];
-    htmlContent = htmlContent.replace(/<script\b[^>]*>([\s\S]*?)<\/script>/gim, (match) => {
+    // Captura scripts normais (ignora JSON-LD por enquanto)
+    htmlContent = htmlContent.replace(/<script(?![^>]*application\/ld\+json)[^>]*>([\s\S]*?)<\/script>/gim, (match) => {
         scripts.push(match);
         return `<!--SCRIPT_PLACEHOLDER_${scripts.length - 1}-->`;
     });
     
     const $ = cheerio.load(htmlContent, { decodeEntities: false, xmlMode: false });
 
-    // --- 2. COLETA E TRADUÇÃO DE TEXTOS DO HTML (DOM) ---
+    // --- NOVO: ATUALIZAÇÃO DO CANONICAL ---
+    $('link[rel="canonical"]').each(function() {
+        const href = $(this).attr('href');
+        if (href && !href.includes(`/${TARGET_LANG_CODE}/`)) {
+            // Adiciona a pasta do idioma na URL (ex: .com.br/sv/pagina.html)
+            const newHref = href.replace('.com.br/', `.com.br/${TARGET_LANG_CODE}/`);
+            $(this).attr('href', newHref);
+            console.log(`      🔗 Canonical atualizado: ${newHref}`);
+        }
+    });
+
+    // --- 2. COLETA DE ELEMENTOS DO DOM ---
     const textNodes = [];
     const attrNodes = []; 
     const metaNodes = [];
     const titleNodes = [];
+    
+    // --- NOVO: COLETA DE SCHEMA.ORG (JSON-LD) ---
+    const schemaNodes = []; // Armazena referências para tradução
+    const schemaScripts = []; // Armazena os objetos JSON para remontar depois
+
+    $('script[type="application/ld+json"]').each(function() {
+        try {
+            const jsonContent = $(this).html();
+            const json = JSON.parse(jsonContent);
+            
+            // Função recursiva para encontrar campos de texto traduzíveis no JSON
+            function extractSchemaTexts(obj) {
+                if (typeof obj === 'object' && obj !== null) {
+                    for (const key in obj) {
+                        // Campos chaves para SEO que devem ser traduzidos
+                        if (['name', 'description', 'headline', 'text', 'alternativeHeadline', 'keywords', 'about'].includes(key) && typeof obj[key] === 'string') {
+                            schemaNodes.push({ obj: obj, key: key, text: obj[key] });
+                        } 
+                        // Caso especial para perguntas e respostas
+                        else if (key === 'acceptedAnswer' && obj[key].text) {
+                             schemaNodes.push({ obj: obj[key], key: 'text', text: obj[key].text });
+                        }
+                        else {
+                            extractSchemaTexts(obj[key]);
+                        }
+                    }
+                } else if (Array.isArray(obj)) {
+                    obj.forEach(item => extractSchemaTexts(item));
+                }
+            }
+
+            extractSchemaTexts(json);
+            schemaScripts.push({ el: $(this), json: json });
+
+        } catch (e) {
+            console.warn("      ⚠️ Erro ao processar JSON-LD:", e.message);
+        }
+    });
 
     $('title').each(function() {
         const text = $(this).text().trim();
@@ -157,24 +204,46 @@ async function processFile(filePath) {
         }
     });
 
-    // Executa tradução do HTML
+    // --- 3. EXECUÇÃO DAS TRADUÇÕES EM LOTE ---
+
+    // Tradução do Título
     if (titleNodes.length > 0) {
         console.log(`      Traduzindo título...`);
         const trans = await translateTextBatch(titleNodes.map(n => n.text));
         titleNodes.forEach((item, i) => { item.el.text(trans[i]); });
     }
 
+    // Tradução do Schema.org (SEO)
+    if (schemaNodes.length > 0) {
+        console.log(`      Traduzindo ${schemaNodes.length} campos de SEO (Schema.org)...`);
+        const schemaTexts = schemaNodes.map(n => n.text);
+        const translatedSchemaTexts = await translateTextBatch(schemaTexts);
+        
+        // Aplica tradução nos objetos JSON em memória
+        schemaNodes.forEach((item, i) => {
+            item.obj[item.key] = translatedSchemaTexts[i];
+        });
+
+        // Atualiza o HTML das tags script com o novo JSON
+        schemaScripts.forEach(scriptItem => {
+            scriptItem.el.html(JSON.stringify(scriptItem.json, null, 2));
+        });
+    }
+
+    // Tradução do Corpo
     if (textNodes.length > 0) {
         console.log(`      Traduzindo ${textNodes.length} textos do corpo...`);
         const trans = await translateTextBatch(textNodes.map(n => n.text));
         textNodes.forEach((item, i) => { item.node.data = trans[i]; });
     }
 
+    // Tradução de Atributos
     if (attrNodes.length > 0) {
         const trans = await translateTextBatch(attrNodes.map(n => n.text));
         attrNodes.forEach((item, i) => { item.el.attr(item.attr, trans[i]); });
     }
 
+    // Tradução de Meta Tags
     if (metaNodes.length > 0) {
         const trans = await translateTextBatch(metaNodes.map(n => n.text));
         metaNodes.forEach((item, i) => { item.el.attr('content', trans[i]); });
@@ -184,20 +253,18 @@ async function processFile(filePath) {
     
     let finalHtml = $.html();
 
-    // --- 3. TRADUÇÃO INTELIGENTE DE SCRIPTS ---
-    console.log(`      Processando scripts (Variáveis e Resultados)...`);
+    // --- 4. TRADUÇÃO INTELIGENTE DE SCRIPTS (VARIÁVEIS JS) ---
+    console.log(`      Processando scripts funcionais (Variáveis e Resultados)...`);
     
     const keywords = [
         'description', 'label', 'text', 'titulo', 'subtitulo', 'conduta', 'classificacao', 
         'msg', 'mensagem', 'erro', 'sucesso', 'resultado', 'equipo', 'unidade',
         'innerHTML', 'textContent', 'innerText', 'placeholder', 'title', 'alt',
         'alert', 'confirm', 'prompt', 'return',
-        // KEYWORDS ESPECÍFICAS PARA AS CALCULADORAS:
         'calculoStr', 'explicacaoStr', 'resultadoTexto', 'category', 'push', 
         'disturbioFinal', 'classificacao'
     ];
     
-    // REGEX CORRIGIDO: Aceita quebra de linha (multiline) e escapes
     const jsRegex = new RegExp(`(${keywords.join('|')})\\s*[:=\\(]\\s*(["'\`])((?:[^\\\\]|\\\\.)*?)\\2`, 'g');
 
     for (let i = 0; i < scripts.length; i++) {
@@ -228,30 +295,27 @@ async function processFile(filePath) {
             const jsTexts = jsMatches.map(m => m.text);
             const translatedJsTexts = await translateTextBatch(jsTexts);
 
-            // Substituição reversa para não alterar indices
             for (let j = 0; j < jsMatches.length; j++) {
                 const original = jsMatches[j].text;
                 const translated = translatedJsTexts[j];
                 const item = jsMatches[j];
 
                 if (original !== translated && translated) {
-                    // Estratégia de Replace por String exata (mais seguro)
+                    const escapedOriginal = original.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                    
                     const prefixPart = item.fullMatch.substring(0, item.fullMatch.indexOf(item.text));
                     const suffixPart = item.fullMatch.substring(item.fullMatch.indexOf(item.text) + item.text.length);
                     
                     const searchString = item.fullMatch;
                     const replaceString = prefixPart + translated + suffixPart;
                     
-                    // Substitui a primeira ocorrência encontrada dessa string exata
-                    scriptCode = scriptCode.replace(searchString, replaceString);
+                    scriptCode = scriptCode.split(searchString).join(replaceString);
                 }
             }
         }
 
         finalHtml = finalHtml.replace(`<!--SCRIPT_PLACEHOLDER_${i}-->`, scriptCode);
     }
-
-    // --- 4. CORREÇÕES FINAIS ---
 
     // Fix Scroll
     if (finalHtml.includes('type="number"') && !finalHtml.includes('addEventListener(\'wheel\'')) {

@@ -19,7 +19,7 @@
     <meta name="theme-color" content="#1A3E74">
 
     <!-- Canonical e Hreflang -->
-    <link rel="canonical" href="https://www.calculadorasdeenfermagem.com.br/gasometria.html">
+    <link rel="canonical" href="https://www.calculadorasdeenfermagem.com.br/sv/gasometria.html">
     <link rel="alternate" hreflang="pt-br" href="https://www.calculadorasdeenfermagem.com.br/gasometria.html">
     <link rel="alternate" hreflang="en" href="https://www.calculadorasdeenfermagem.com.br/en/gasometria.html">
     <link rel="alternate" hreflang="es" href="https://www.calculadorasdeenfermagem.com.br/es/gasometria.html">
@@ -513,8 +513,9 @@
             const value = parseFloat(input.value);
 
             errorSpan.classList.add("hidden");
+            // BE pode ser negativo ou positivo, então verificamos apenas isNaN
             if (key !== "be" && (isNaN(value) || value <= 0)) {
-              errorSpan.textContent = "Ogiltigt värde.";
+              errorSpan.textContent = "Ogiltigt värde."; // Valor inválido
               errorSpan.classList.remove("hidden");
               hasError = true;
             } else if (key === "be" && isNaN(value)) {
@@ -529,7 +530,7 @@
           if (hasError) {
             resultadoDiv.style.display = "block";
             resultadoDiv.innerHTML =
-              '<strong class="text-red-600">Por favor, corrija os valores inválidos.</strong>';
+              '<strong class="text-red-600">Vänligen korrigera ogiltiga värden.</strong>';
             resultadoDiv.className = "resultado bg-info-orange-light mt-4 p-4 rounded-lg";
             return;
           }
@@ -591,30 +592,33 @@
             }
           }
 
-          if (disturbioFinal.includes("Acidose Respiratória")) condutas.push("Bedöm ventilation, NIV eller intubation.");
-          if (disturbioFinal.includes("Alcalose Respiratória")) condutas.push("Controle de ansiedade/dor, ajuste ventilatório.");
-          if (disturbioFinal.includes("Acidose Metabólica")) condutas.push("Behandla den bakomliggande orsaken (sepsis, ketoacidos, njursvikt).");
-          if (disturbioFinal.includes("Alcalose Metabólica")) condutas.push("Repor volume e K+, corrigir vômitos/diuréticos.");
-          if (sato2 < SATO2_MIN) condutas.push("Hypoxemi: Tillskott med O₂.");
+          // Ajuste Lógico: Verifica os termos em SUECO (lowercase para segurança)
+          const distLower = disturbioFinal.toLowerCase();
+
+          if (distLower.includes("respiratorisk acidos")) condutas.push("Bedöm ventilation, NIV eller intubation.");
+          if (distLower.includes("respiratorisk alkalos")) condutas.push("Smärt-/ångestlindring, ventilationsjustering.");
+          if (distLower.includes("metabolisk acidos")) condutas.push("Behandla bakomliggande orsak (sepsis, ketoacidos, njursvikt).");
+          if (distLower.includes("metabolisk alkalos")) condutas.push("Vätskeersättning och K+, korrigera kräkningar/diuretika.");
+          if (sato2 < SATO2_MIN) condutas.push("Hypoxemi: Syrgastillförsel (O₂).");
           if (condutas.length === 0) condutas.push("Fortsätt övervaka.");
 
           // Formatar Resultado (Estilo Solicitado Compacto)
           let htmlResultado = `
             <div>
-                <span class="res-label">Interpretação:</span>
+                <span class="res-label">Tolkning:</span>
                 <span class="res-text">${disturbioFinal}</span>
                 
-                <span class="res-label">Conduta Sugerida:</span>
+                <span class="res-label">Föreslagen åtgärd:</span>
                 <span class="res-text">${condutas.join(" ")}</span>
             </div>
           `;
 
           resultadoDiv.innerHTML = htmlResultado;
-          resultadoDiv.className = "resultado"; // Usa o estilo CSS definido no head
+          resultadoDiv.className = "resultado"; 
           resultadoDiv.style.display = "block";
 
           resultadoDiv.dataset.resultado = disturbioFinal;
-          resultadoDiv.dataset.scaleName = "Interpretação de Gasometria Arterial";
+          resultadoDiv.dataset.scaleName = "Tolkning av arteriell blodgas";
         }
 
         function limparCampos() {
@@ -638,9 +642,9 @@
           }
           if (typeof gerarPDFGlobal === "function") {
             gerarPDFGlobal({
-              titulo: "Tolkning av arteriell blodgasanalys",
-              subtitulo: "Syra-basbedömningsrapport",
-              nomeArquivo: "relatorio_gasometria.pdf",
+              titulo: "Tolkning av arteriell blodgas",
+              subtitulo: "Rapport om syra-basstatus",
+              nomeArquivo: "blodgasanalys_rapport.pdf",
               seletorConteudo: ".main-content-wrapper",
             });
           }
@@ -649,11 +653,11 @@
         btnNandaNicNoc?.addEventListener("click", () => {
           const resultado = resultadoDiv.dataset.resultado;
           if (!resultado) {
-            alert('Räkna först.');
+            alert('Beräkna först.');
             return;
           }
           const searchQuery = encodeURIComponent(
-            `diagnóstico de enfermagem relacionado a ${resultado} NANDA NIC NOC`,
+            `omvårdnadsdiagnos relaterad till ${resultado} NANDA NIC NOC`,
           );
           window.open(
             `https://www.google.com/search?q=${searchQuery}`,
@@ -661,15 +665,6 @@
           );
         });
       });
-    </script>
-
-    <div id="footer-placeholder"></div>
-    <script>
-      fetch("footer.html") 
-        .then((response) => response.text()) 
-        .then((data) => {
-          document.getElementById("footer-placeholder").innerHTML = data;
-        });
     </script>
   
 
