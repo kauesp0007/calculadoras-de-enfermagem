@@ -7,144 +7,274 @@ const cheerio = require('cheerio');
 // CONFIGURAÇÕES
 // =====================================================================
 
-// 1. SUA CHAVE DA API GOOGLE CLOUD (A mais nova que você criou)
 const API_KEY = 'AIzaSyCO722vd9K9FHnZgzGrK5UAhIXiWzIW3gA';
-
-// 2. IDIOMA DE DESTINO (nl, pl, sv, uk, vi)
-// Pode ser passado como argumento: `node tradutor-final.js nl` (opcional)
-const IDIOMA_ALVO = process.argv[2] || 'sv'; 
-
-// 3. PASTA ALVO (por padrão usa o idioma alvo, mas pode ser sobrescrita)
-// Pode ser passado como segundo argumento: `node tradutor-final.js nl nl` (opcional)
-const PASTA_ALVO = process.argv[3] || IDIOMA_ALVO; 
-
-// 4. DOMÍNIO DO SITE usado para construir canonical (sem '/' final)
-// Pode ser configurado via variável de ambiente SITE_DOMAIN
-const SITE_DOMAIN = process.env.SITE_DOMAIN || 'https://www.calculadorasdeenfermagem.com.br';
+const IDIOMA_ALVO = process.argv[2] || 'sv';
+const PASTA_ALVO = process.argv[3] || IDIOMA_ALVO;
+const SITE_DOMAIN =
+  process.env.SITE_DOMAIN || 'https://www.calculadorasdeenfermagem.com.br';
 
 // =====================================================================
-// SCRIPT HÍBRIDO: CHEERIO (ESTRUTURA) + GOOGLE API (TRADUÇÃO)
+// GOOGLE API
 // =====================================================================
 
-// URL da API v2
 const URL_API = `https://translation.googleapis.com/language/translate/v2?key=${API_KEY}`;
 
 const files = glob.sync(`${PASTA_ALVO}/**/*.html`, {
-    ignore: ['**/node_modules/**', '**/assets/**', '**/css/**', '**/js/**'],
-    nodir: true
+  ignore: ['**/node_modules/**', '**/assets/**', '**/css/**', '**/js/**'],
+  nodir: true
 });
 
-// Função que conversa com o Google
-async function traduzirNoGoogle(textoArray, opts = {}) {
-    // opts.format -> 'text' | 'html'
-    // opts.source -> optional source language code
-    if (textoArray.length === 0) return [];
+// =====================================================================
+// FUNÇÕES AUXILIARES
+// =====================================================================
 
-    const chunkSize = 10; // reduzimos tamanho por precaução para HTML maiores
-    const chunks = [];
-    for (let i = 0; i < textoArray.length; i += chunkSize) {
-        chunks.push(textoArray.slice(i, i + chunkSize));
+async function traduzirNoGoogle(textos) {
+  if (!textos.length) return [];
+
+  const chunkSize = 50;
+  let resultados = [];
+
+  for (let i = 0; i < textos.length; i += chunkSize) {
+    const chunk = textos.slice(i, i + chunkSize);
+
+    try {
+      const response = await fetch(URL_API, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          q: chunk,
+          target: IDIOMA_ALVO,
+          source: 'pt',
+          format: 'text'
+        })
+      });
+
+      const data = await response.json();
+      if (data.error) throw new Error(data.error.message);
+
+      resultados.push(
+        ...data.data.translations.map(t => t.translatedText)
+      );
+    } catch (e) {
+      console.error(`⚠️ Google API: ${e.message}`);
+      resultados.push(...chunk);
     }
+  }
 
-    let resultadosFinais = [];
-
-    for (const chunk of chunks) {
-        try {
-            const bodyPayload = {
-                q: chunk,
-                target: IDIOMA_ALVO,
-                format: opts.format || 'text'
-            };
-
-            if (opts.source) bodyPayload.source = opts.source;
-
-            const response = await fetch(URL_API, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(bodyPayload)
-            });
-
-            const data = await response.json();
-            if (data.error) throw new Error(data.error.message || JSON.stringify(data.error));
-
-            if (data.data && data.data.translations) {
-                const traduzidos = data.data.translations.map(t => t.translatedText);
-                resultadosFinais = resultadosFinais.concat(traduzidos);
-            } else {
-                // caso inesperado, devolve originais
-                resultadosFinais = resultadosFinais.concat(chunk);
-            }
-        } catch (e) {
-            console.error(`   ⚠️ Erro no lote Google: ${e.message}`);
-            resultadosFinais = resultadosFinais.concat(chunk);
-        }
-    }
-
-    return resultadosFinais;
+  return resultados;
 }
 
-(async () => {
-    console.log(`\n=== TRADUTOR HÍBRIDO (CHEERIO + GOOGLE CLOUD) ===`);
-    console.log(`Alvo: ${IDIOMA_ALVO.toUpperCase()} | Arquivos: ${files.length}`);
+// =====================================================================
+// 🔧 FUNÇÃO CORRIGIDA – STRINGS DE SCRIPT
+// =====================================================================
 
-    for (const [index, file] of files.entries()) {
-        console.log(`[${index + 1}/${files.length}] Processando: ${path.basename(file)}...`);
+function extrairStringsDeScript(js) {
+  const regex = /(["'`])((?:\\.|[^\\])*?)\1/g;
+  let match;
+  let resultados = [];
 
-        try {
-            let content = fs.readFileSync(file, 'utf8');
-            const $ = cheerio.load(content, { decodeEntities: false });
+  while ((match = regex.exec(js)) !== null) {
+    const texto = match[2].trim();
 
-            // Tradução: envia o HTML completo ao Google com `format: 'html'`.
-            console.log(`   -> Traduzindo HTML completo (${Buffer.byteLength(content, 'utf8')} bytes)...`);
-            const traducoes = await traduzirNoGoogle([content], { format: 'html' });
-            let novoHtml = content;
-            if (traducoes && traducoes[0]) {
-                novoHtml = traducoes[0];
-            }
+    // ignora vazios
+    if (texto.length < 2) continue;
 
-            // Recarrega o HTML traduzido para ajustes finais via cheerio
-            const $$ = cheerio.load(novoHtml, { decodeEntities: false });
+    // ignora números puros
+    if (/^\d+$/.test(texto)) continue;
 
-            // 5. Ajustes Finais (Lang + Links Imagens) no HTML traduzido
-            $$.root().find('html').attr('lang', IDIOMA_ALVO);
+    // ignora paths, extensões, urls
+    if (/^(\/|\.\/|\.\.\/)/.test(texto)) continue;
+    if (/\.js$|\.css$|\.html$|\.png$|\.jpg$|\.webp$/i.test(texto)) continue;
+    if (/^https?:\/\//i.test(texto)) continue;
 
-            // Corrige imagens para raiz (opcional, igual ao script anterior)
-            $$('img').each((i, el) => {
-                const src = $$(el).attr('src');
-                if (src && !src.startsWith('http') && !src.startsWith('../')) {
-                    $$(el).attr('src', `../${src}`);
-                }
-            });
+    // ignora template literal
+    if (texto.includes('${')) continue;
 
-            // Ajusta o canonical para apontar para a versão completa no idioma alvo
-            try {
-                // normaliza barras
-                let relPath = file.replace(/\\/g, '/');
-                // remove barras iniciais
-                relPath = relPath.replace(/^\/+/g, '');
-                // constrói URL completa sem barras duplicadas
-                const canonicalUrl = SITE_DOMAIN.replace(/\/+$/, '') + '/' + relPath.replace(/^\/+/, '');
-
-                if ($$('head').length === 0) {
-                    // garante head
-                    $$('html').prepend('<head></head>');
-                }
-
-                if ($$('head link[rel="canonical"]').length) {
-                    $$('head link[rel="canonical"]').attr('href', canonicalUrl);
-                } else {
-                    $$('head').prepend(`<link rel="canonical" href="${canonicalUrl}">`);
-                }
-            } catch (e) {
-                // não crítico: segue sem alterar canonical
-            }
-
-            fs.writeFileSync(file, $$.html(), 'utf8');
-            console.log(`   ✅ Concluído.`);
-
-        } catch (error) {
-            console.error(`   ❌ FALHA CRÍTICA: ${error.message}`);
-        }
+    // ignora camelCase, snake_case, kebab-case técnicos
+    if (
+      /^[a-z]+[A-Z]/.test(texto) || // camelCase
+      /^[a-z0-9_]+$/.test(texto) ||  // snake_case / ids
+      /^[a-z0-9\-]+$/.test(texto)    // kebab-case
+    ) {
+      // ⚠️ EXCEÇÃO: palavras humanas curtas
+      if (!/^(sim|não|nao|ok|voltar|enviar|limpar|calcular)$/i.test(texto)) {
+        continue;
+      }
     }
-    console.log(`\n=== FIM ===`);
+
+    resultados.push({
+      original: texto,
+      fullMatch: match[0],
+      quote: match[1]
+    });
+  }
+
+  return resultados;
+}
+
+// =====================================================================
+// EXECUÇÃO
+// =====================================================================
+
+(async () => {
+  console.log('\n=== TRADUTOR FINAL (HTML + META + ATRIBUTOS + SCRIPT) ===');
+  console.log(`Idioma alvo: ${IDIOMA_ALVO.toUpperCase()}`);
+  console.log(`Arquivos encontrados: ${files.length}\n`);
+
+  for (const [i, file] of files.entries()) {
+    console.log(`[${i + 1}/${files.length}] ${path.basename(file)}`);
+
+    try {
+      const content = fs.readFileSync(file, 'utf8');
+      const $ = cheerio.load(content, { decodeEntities: false });
+
+      let textos = [];
+      let nodesTexto = [];
+      let metaNodes = [];
+      let attrNodes = [];
+      let scriptNodes = [];
+
+      // ==================================================
+      // 1. TEXTO VISÍVEL
+      // ==================================================
+      $('body *')
+        .contents()
+        .each(function () {
+          if (this.type === 'text') {
+            const texto = $(this).text().trim();
+            const parent = $(this).parent()[0]?.tagName?.toLowerCase();
+
+            if (
+              texto.length > 1 &&
+              !['script', 'style', 'noscript', 'code'].includes(parent)
+            ) {
+              textos.push(texto);
+              nodesTexto.push(this);
+            }
+          }
+        });
+
+      // ==================================================
+      // 2. META TAGS + TITLE
+      // ==================================================
+      [
+        'meta[name="description"]',
+        'meta[property="og:title"]',
+        'meta[property="og:description"]'
+      ].forEach(sel => {
+        $(sel).each((_, el) => {
+          const txt = $(el).attr('content');
+          if (txt && txt.length > 1) {
+            textos.push(txt);
+            metaNodes.push({ el });
+          }
+        });
+      });
+
+      const titleEl = $('head title').get(0);
+      if (titleEl) {
+        textos.push($(titleEl).text());
+        metaNodes.push({ el: titleEl, isTitle: true });
+      }
+
+      // ==================================================
+      // 3. ATRIBUTOS (placeholder, aria-label, title)
+      // ==================================================
+      $('[placeholder], [aria-label], [title]').each((_, el) => {
+        ['placeholder', 'aria-label', 'title'].forEach(attr => {
+          const val = $(el).attr(attr);
+          if (val && val.length > 1) {
+            textos.push(val);
+            attrNodes.push({ el, attr });
+          }
+        });
+      });
+
+      // ==================================================
+      // 4. SCRIPTS
+      // ==================================================
+      $('script').each((_, el) => {
+        const js = $(el).html();
+        if (!js) return;
+
+        extrairStringsDeScript(js).forEach(item => {
+          textos.push(item.original);
+          scriptNodes.push({ el, ...item });
+        });
+      });
+
+      // ==================================================
+      // 5. TRADUÇÃO
+      // ==================================================
+      if (textos.length) {
+        console.log(`   → Traduzindo ${textos.length} segmentos...`);
+        const traducoes = await traduzirNoGoogle(textos);
+        let c = 0;
+
+        // Texto visível
+        nodesTexto.forEach(n => {
+          $(n).replaceWith(traducoes[c++] || $(n).text());
+        });
+
+        // Meta + title
+        metaNodes.forEach(m => {
+          if (m.isTitle) $(m.el).text(traducoes[c++]);
+          else $(m.el).attr('content', traducoes[c++]);
+        });
+
+        // Atributos
+        attrNodes.forEach(a => {
+          $(a.el).attr(a.attr, traducoes[c++]);
+        });
+
+        // Scripts
+        scriptNodes.forEach(s => {
+          let js = $(s.el).html();
+          const traduzido = traducoes[c++]
+            .replace(/"/g, '\\"')
+            .replace(/'/g, "\\'");
+          js = js.replace(
+            s.fullMatch,
+            `${s.quote}${traduzido}${s.quote}`
+          );
+          $(s.el).html(js);
+        });
+      }
+
+      // ==================================================
+      // 6. AJUSTES FINAIS
+      // ==================================================
+      $('html').attr('lang', IDIOMA_ALVO);
+
+      $('img').each((_, el) => {
+        const src = $(el).attr('src');
+        if (src && !src.startsWith('http') && !src.startsWith('../')) {
+          $(el).attr('src', `../${src}`);
+        }
+      });
+
+      try {
+        const rel = file.replace(/\\/g, '/').replace(/^\/+/, '');
+        const canonical =
+          SITE_DOMAIN.replace(/\/+$/, '') + '/' + rel;
+
+        if (!$('head').length) $('html').prepend('<head></head>');
+
+        if ($('link[rel="canonical"]').length) {
+          $('link[rel="canonical"]').attr('href', canonical);
+        } else {
+          $('head').prepend(
+            `<link rel="canonical" href="${canonical}">`
+          );
+        }
+      } catch {}
+
+      fs.writeFileSync(file, $.html(), 'utf8');
+      console.log('   ✅ OK\n');
+    } catch (e) {
+      console.error(`   ❌ ERRO: ${e.message}\n`);
+    }
+  }
+
+  console.log('=== FIM DO PROCESSO ===\n');
 })();
