@@ -2,7 +2,7 @@ const fs = require('fs-extra');
 const path = require('path');
 const cheerio = require('cheerio');
 const glob = require('glob');
-const axios = require('axios'); // Necessário para a API V2
+const axios = require('axios'); 
 
 // ============================================================================
 // --- CONFIGURAÇÕES ---
@@ -10,7 +10,7 @@ const axios = require('axios'); // Necessário para a API V2
 
 const API_KEY = "AIzaSyCO722vd9K9FHnZgzGrK5UAhIXiWzIW3gA";
 
-// Idioma de destino (cria a pasta automaticamente, ex: sv, es, de, en)
+// Idioma de destino (ex: 'sv', 'es', 'en')
 const TARGET_LANG_CODE = 'sv'; 
 
 const SOURCE_DIR = './';
@@ -43,19 +43,14 @@ const targetDir = `./${TARGET_LANG_CODE}`;
 async function translateTextBatch(texts) {
     if (texts.length === 0) return [];
 
-    // Filtra textos muito curtos ou apenas numéricos para economizar cota e tempo
-    // Mantemos o índice original para remontar depois
     const inputs = texts.map((t, i) => ({ index: i, text: t.trim() }))
                         .filter(item => item.text.length > 1 && isNaN(item.text));
 
     if (inputs.length === 0) return texts;
 
-    // A API V2 aceita arrays de strings no parâmetro 'q'
-    // Vamos enviar em lotes de até 100 strings para não exceder limites de payload
-    const BATCH_SIZE = 100;
-    const translationsMap = {}; // Armazena índice -> tradução
+    const BATCH_SIZE = 50; 
+    const translationsMap = {}; 
 
-    // Divide em sub-lotes
     for (let i = 0; i < inputs.length; i += BATCH_SIZE) {
         const chunk = inputs.slice(i, i + BATCH_SIZE);
         const qParams = chunk.map(c => c.text);
@@ -66,13 +61,12 @@ async function translateTextBatch(texts) {
             const response = await axios.post(url, {
                 q: qParams,
                 target: TARGET_LANG_CODE,
-                format: 'text', // Usamos 'text' pois o Cheerio já limpou as tags HTML
-                source: 'pt'    // Força origem em Português
+                format: 'text',
+                source: 'pt'
             });
 
             const translatedData = response.data.data.translations;
 
-            // Mapeia de volta
             translatedData.forEach((t, idx) => {
                 const originalIndex = chunk[idx].index;
                 translationsMap[originalIndex] = t.translatedText;
@@ -80,19 +74,12 @@ async function translateTextBatch(texts) {
 
         } catch (error) {
             console.error(`      ⚠️ Erro na API V2:`, error.response ? error.response.data : error.message);
-            // Se der erro, mantemos o original para não quebrar o fluxo
         }
     }
 
-    // Reconstrói o array original com as traduções
     const finalTranslations = texts.map((original, i) => {
-        // Retorna a tradução se existir, senão retorna o original.
-        // Decodifica entidades HTML que a API de tradução pode retornar (ex: &#39; -> ')
         let translated = translationsMap[i] || original;
-        
-        // Pequena limpeza de entidades HTML comuns que a API V2 gosta de inserir
         translated = translated.replace(/&#39;/g, "'").replace(/&quot;/g, '"').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>');
-        
         return translated;
     });
 
@@ -105,28 +92,35 @@ async function processFile(filePath) {
 
     console.log(`\n🚀 Processando: ${fileName}`);
 
-    // Lê o HTML
     let htmlContent = await fs.readFile(filePath, 'utf-8');
     
-    // Carrega no Cheerio (modo relaxado para não quebrar HTML5 e não codificar caracteres)
     const $ = cheerio.load(htmlContent, { decodeEntities: false, xmlMode: false });
 
-    // --- 1. COLETA DE TEXTOS VISÍVEIS (DOM) ---
+    // --- 1. COLETA DE ELEMENTOS PARA TRADUÇÃO ---
     const textNodes = [];
     const attrNodes = []; 
+    const metaNodes = [];
+    const titleNodes = []; // Novo array específico para o Título
 
-    // Percorre elementos de texto visíveis
+    // 1.1 Título da Página (<title>)
+    $('title').each(function() {
+        const text = $(this).text().trim();
+        if (text.length > 1) {
+            titleNodes.push({ el: $(this), text: text });
+        }
+    });
+
+    // 1.2 Textos Visíveis no BODY
     $('body').find('*').contents().each(function() {
         if (this.type === 'text') {
             const text = $(this).text().trim();
-            // Ignora scripts, estilos e textos vazios
             if (text.length > 1 && !$(this).parent().is('script, style, noscript')) {
                 textNodes.push({ node: this, text: text });
             }
         }
     });
 
-    // Percorre atributos importantes
+    // 1.3 Atributos (placeholder, alt, title em elementos, etc.)
     $('input, img, button, a').each(function() {
         const el = $(this);
         ['placeholder', 'title', 'alt', 'aria-label'].forEach(attr => {
@@ -137,8 +131,7 @@ async function processFile(filePath) {
         });
     });
 
-    // Percorre Meta Tags de SEO
-    const metaNodes = [];
+    // 1.4 Meta Tags (SEO)
     $('meta[name="description"], meta[name="keywords"], meta[property^="og:"], meta[name^="twitter:"]').each(function() {
         const content = $(this).attr('content');
         if (content && content.trim().length > 1) {
@@ -147,13 +140,13 @@ async function processFile(filePath) {
     });
 
     // --- 2. EXTRAÇÃO DE STRINGS NO JAVASCRIPT ---
-    const jsRegex = /(description|conduta|classificacao|titulo|subtitulo|texto|msg|resposta):\s*(["'`])((?:(?=(\\?))\4.)*?)\2/g;
+    const jsRegex = /(description|conduta|classificacao|titulo|subtitulo|texto|msg|resposta|resultadoTexto|equipoTexto|unidadeTexto|innerHTML|textContent|placeholder)\s*[:=]\s*(["'`])((?:(?=(\\?))\4[\s\S])*?)\2/g;
+    
     let match;
     const jsMatches = [];
     
-    // Executa regex no HTML bruto para achar strings dentro de scripts
     while ((match = jsRegex.exec(htmlContent)) !== null) {
-        if (match[3].length > 2) { 
+        if (match[3] && match[3].length > 2) { 
             jsMatches.push({ 
                 fullMatch: match[0], 
                 key: match[1], 
@@ -163,8 +156,16 @@ async function processFile(filePath) {
         }
     }
 
-    // --- 3. TRADUÇÃO EM LOTES ---
+    // --- 3. TRADUÇÃO EM LOTES (API CALLS) ---
     
+    // Traduz Título da Página (NOVO)
+    if (titleNodes.length > 0) {
+        console.log(`      Traduzindo título da página...`);
+        const titleTexts = titleNodes.map(n => n.text);
+        const translatedTitleTexts = await translateTextBatch(titleTexts);
+        titleNodes.forEach((item, i) => { item.el.text(translatedTitleTexts[i]); });
+    }
+
     // Traduz Textos do DOM
     if (textNodes.length > 0) {
         console.log(`      Traduzindo ${textNodes.length} elementos de texto (DOM)...`);
@@ -189,33 +190,30 @@ async function processFile(filePath) {
 
     // --- 4. FINALIZAÇÃO E JAVASCRIPT ---
     
-    // Atualiza o atributo lang
     $('html').attr('lang', TARGET_LANG_CODE);
-    
-    // Gera o HTML base modificado pelo Cheerio
     let finalHtml = $.html();
 
-    // Aplica traduções no JavaScript (substituição direta no texto final)
+    // Aplica traduções no JavaScript
     if (jsMatches.length > 0) {
         console.log(`      Traduzindo ${jsMatches.length} strings dentro de Scripts...`);
         const jsTexts = jsMatches.map(m => m.text);
         const translatedJsTexts = await translateTextBatch(jsTexts);
 
-        // Substituição segura
         for (let i = 0; i < jsMatches.length; i++) {
             const original = jsMatches[i].text;
             const translated = translatedJsTexts[i];
             
             if (original !== translated && translated) {
                 const escapedOriginal = original.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-                const regexReplace = new RegExp(`${jsMatches[i].key}:\\s*${jsMatches[i].quote}${escapedOriginal}${jsMatches[i].quote}`, 'g');
+                // Regex ajustado para pegar também multiline se necessário
+                const regexReplace = new RegExp(`${jsMatches[i].key}\\s*[:=]\\s*${jsMatches[i].quote}${escapedOriginal}${jsMatches[i].quote}`);
                 
-                finalHtml = finalHtml.replace(regexReplace, `${jsMatches[i].key}: ${jsMatches[i].quote}${translated}${jsMatches[i].quote}`);
+                finalHtml = finalHtml.replace(regexReplace, `${jsMatches[i].key} = ${jsMatches[i].quote}${translated}${jsMatches[i].quote}`);
             }
         }
     }
 
-    // Fix de segurança para inputs numéricos (evita scroll mudando valor)
+    // Fix de segurança para inputs numéricos
     if (finalHtml.includes('type="number"') && !finalHtml.includes('addEventListener(\'wheel\'')) {
         const scrollFix = `
     <script>
@@ -229,7 +227,6 @@ async function processFile(filePath) {
         finalHtml = finalHtml.replace('</body>', scrollFix);
     }
 
-    // Salva o arquivo
     await fs.ensureDir(targetDir);
     await fs.writeFile(targetPath, finalHtml);
     console.log(`   ✅ Salvo em: ${targetPath}`);
@@ -243,7 +240,6 @@ async function main() {
 
         if (FILES_TO_TRANSLATE.length === 0) {
             const allFiles = glob.sync(`${SOURCE_DIR}/*.html`);
-            
             filesToProcess = allFiles.filter(file => {
                 const baseName = path.basename(file);
                 return !ARQUIVOS_IGNORADOS.includes(baseName) && !baseName.startsWith('_');
