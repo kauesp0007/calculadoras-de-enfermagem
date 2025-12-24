@@ -423,7 +423,7 @@
                   </label>
                   <div class="flex flex-col sm:flex-row gap-4">
                     <input type="number" id="tempo" min="0" step="any" placeholder="Exempel: 8" class="shadow-sm w-full sm:w-2/3">
-                    <select id="unidadeTempo" class="shadow-sm w-full sm:w-1/3" aria-label="Unidade de tempo">
+                    <select id="unidadeTempo" class="shadow-sm w-full sm:w-1/3" aria-label="Tidsenhet">
                       <option value="horas">Timmar</option>
                       <option value="minutos">Minuter</option>
                     </select>
@@ -436,12 +436,12 @@
                       <button type="button" class="tooltip-icon-button" aria-label="Information om laget">
                         <i class="fas fa-info-circle" aria-hidden="true"></i>
                       </button>
-                      <span class="tooltip-text">Makrodroppar (20 droppar/ml) eller mikrodroppar (60 droppar/ml).</span>
+                      <span class="tooltip-text">Macrogotas (20 gotas/ml) ou Microgotas (60 gotas/ml).</span>
                     </span>
                   </label>
-                  <select id="equipo" class="shadow-sm w-full" aria-label="Tipo de equipo">
-                    <option value="macrogotas">Makrodroppar (20 droppar/ml)</option>
-                    <option value="microgotas">Mikrodroppar (60 droppar/ml)</option>
+                  <select id="equipo" class="shadow-sm w-full" aria-label="Utrustningstyp">
+                    <option value="macrogotas">Macrogotas (20 gts/ml)</option>
+                    <option value="microgotas">Microgotas (60 gts/ml)</option>
                   </select>
                   <span id="equipo-error" class="text-red-600 text-sm mt-1 hidden" aria-live="assertive"></span>
                 </div>
@@ -466,9 +466,9 @@
                       <i class="fas fa-clock mr-2"></i>Tid i TIMMAR:</p>
                     <ul class="list-none pl-0 space-y-2">
                       <li class="bg-blue-50 p-2 rounded border border-blue-100">
-                        <strong>Droppar/min</strong>= Volym (ml) ÷ (Tid (h) × 3)</li>
+                        <strong>Gotas/min</strong>= Volym (ml) ÷ (Tid (h) × 3)</li>
                       <li class="bg-blue-50 p-2 rounded border border-blue-100">
-                        <strong>Mikrodroppar/min</strong>Volym (ml) ÷ Tid (h)</li>
+                        <strong>Microgotas/min</strong>Volym (ml) ÷ Tid (h)</li>
                     </ul>
                   </div>
 
@@ -477,9 +477,9 @@
                       <i class="fas fa-stopwatch mr-2"></i>Tid i MINUTER:</p>
                     <ul class="list-none pl-0 space-y-2">
                       <li class="bg-blue-50 p-2 rounded border border-blue-100">
-                        <strong>Droppar/min</strong>= (Volym (ml) × 20) ÷ Tid (min)</li>
+                        <strong>Gotas/min</strong>= (Volym (ml) × 20) ÷ Tid (min)</li>
                       <li class="bg-blue-50 p-2 rounded border border-blue-100">
-                        <strong>Mikrodroppar/min</strong>= (Volym (ml) × 60) ÷ Tid (min)</li>
+                        <strong>Microgotas/min</strong>= (Volym (ml) × 60) ÷ Tid (min)</li>
                     </ul>
                   </div>
                 </div>
@@ -509,7 +509,7 @@
         <!-- Seção de Referência Bibliográfica -->
         <div class="mt-12 pt-6 border-t border-gray-200">
             <p class="font-inter text-gray-600 text-sm bg-gray-50 p-4 rounded-lg border border-gray-100">
-                <strong class="text-dark-blue"><i class="fas fa-book mr-2"></i>Referenser:</strong><br>POTTER, P. A.; PERRY, A. G.<em>Grunderna i omvårdnad</em>9:e upplagan. Rio de Janeiro: Elsevier, 2018. Tillgänglig på:<a href="https://www.elsevier.com/pt-br/books/potter-and-perry-fundamentos-de-enfermagem/potter/978-85-352-8833-9" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:underline font-semibold">Elsevier Health</a>.
+                <strong class="text-dark-blue"><i class="fas fa-book mr-2"></i>Referenser:</strong><br>POTTER, P. A.; PERRY, A. G.<em>Grunderna i omvårdnad</em>. 9. ed. Rio de Janeiro: Elsevier, 2018. Disponível em:<a href="https://www.elsevier.com/pt-br/books/potter-and-perry-fundamentos-de-enfermagem/potter/978-85-352-8833-9" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:underline font-semibold">Elsevier Health</a>.
             </p>
         </div>
 
@@ -576,7 +576,7 @@ document.addEventListener("DOMContentLoaded", () => {
             if (hasError) {
               resultadoDiv.style.display = "block";
               resultadoDiv.innerHTML =
-                '⚠️ Korrigera de ogiltiga värdena.';
+                '⚠️ <strong class="font-bold">Por favor, corrija os valores inválidos.</strong>';
               resultadoDiv.className =
                 "resultado-container bg-info-orange-light";
               delete resultadoDiv.dataset.gotasPorMinuto;
@@ -602,10 +602,12 @@ document.addEventListener("DOMContentLoaded", () => {
             const unidadeTexto = unidadeTempo === "horas" ? "horas" : "minutos";
   
             // Formatação do Resultado em Português
-            const resultadoTexto = `<p>
-<strong>Slutresultat:</strong> ${volume} ml lösning som ordinerats för infusion under ${time} ${unitText} bör köras vid: <br>
-<strong>${roundedDrops} droppar/minut</strong>.
-</p>`;
+            const resultadoTexto = `
+                <p>
+                    <strong>Resultado final:</strong> ${volume} ml de solução prescrita para infundir em ${tempo} ${unidadeTexto} deve correr a: <br>
+                    <strong>${gotasArredondadas} gotas/minuto</strong>.
+                </p>
+            `;
   
             resultadoDiv.innerHTML = resultadoTexto;
             resultadoDiv.className = "resultado-container"; 

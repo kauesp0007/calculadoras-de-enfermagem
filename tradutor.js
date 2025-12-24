@@ -2,7 +2,7 @@ const fs = require('fs-extra');
 const path = require('path');
 const cheerio = require('cheerio');
 const glob = require('glob');
-const axios = require('axios'); 
+const axios = require('axios');
 
 // ============================================================================
 // --- CONFIGURAÇÕES ---
@@ -10,12 +10,12 @@ const axios = require('axios');
 
 const API_KEY = "AIzaSyCO722vd9K9FHnZgzGrK5UAhIXiWzIW3gA";
 
-// Idioma de destino (ex: 'sv', 'es', 'en')
+// Idioma de destino (cria a pasta automaticamente)
 const TARGET_LANG_CODE = 'sv'; 
 
 const SOURCE_DIR = './';
 
-// Deixe vazio [] para traduzir TODOS os arquivos HTML da pasta
+// Deixe vazio [] para traduzir TODOS os arquivos HTML da pasta raiz
 const FILES_TO_TRANSLATE = []; 
 
 const ARQUIVOS_IGNORADOS = [
@@ -43,8 +43,19 @@ const targetDir = `./${TARGET_LANG_CODE}`;
 async function translateTextBatch(texts) {
     if (texts.length === 0) return [];
 
+    // Filtra para não traduzir o que não deve (IDs, URLs, números, código)
     const inputs = texts.map((t, i) => ({ index: i, text: t.trim() }))
-                        .filter(item => item.text.length > 1 && isNaN(item.text));
+        .filter(item => {
+            const t = item.text;
+            // Regras de exclusão para parecer um humano:
+            if (t.length < 2) return false; // Muito curto
+            if (!isNaN(t)) return false; // Só números
+            if (t.startsWith('#') || t.startsWith('.')) return false; // Seletores CSS
+            if (t.includes('http://') || t.includes('https://') || t.includes('/')) return false; // URLs/Paths
+            if (t.includes('{') || t.includes('}')) return false; // Código
+            if (t === 'true' || t === 'false' || t === 'null') return false; // Booleanos
+            return true;
+        });
 
     if (inputs.length === 0) return texts;
 
@@ -61,8 +72,8 @@ async function translateTextBatch(texts) {
             const response = await axios.post(url, {
                 q: qParams,
                 target: TARGET_LANG_CODE,
-                format: 'text',
-                source: 'pt'
+                format: 'text', // 'text' preserva melhor a estrutura
+                source: 'pt'    // Força origem PT
             });
 
             const translatedData = response.data.data.translations;
@@ -77,10 +88,16 @@ async function translateTextBatch(texts) {
         }
     }
 
+    // Reconstrói o array
     const finalTranslations = texts.map((original, i) => {
         let translated = translationsMap[i] || original;
-        // Limpeza de entidades HTML
-        translated = translated.replace(/&#39;/g, "'").replace(/&quot;/g, '"').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>');
+        // Limpeza de entidades HTML que a API pode inserir
+        translated = translated
+            .replace(/&#39;/g, "'")
+            .replace(/&quot;/g, '"')
+            .replace(/&amp;/g, '&')
+            .replace(/&lt;/g, '<')
+            .replace(/&gt;/g, '>');
         return translated;
     });
 
@@ -95,30 +112,30 @@ async function processFile(filePath) {
 
     let htmlContent = await fs.readFile(filePath, 'utf-8');
 
-    // --- PROTEÇÃO DE SCRIPTS (PASSO CRÍTICO) ---
-    // Removemos os scripts temporariamente para o Cheerio não estragar a lógica JS (ex: mudar && para &amp;&amp;)
+    // --- 1. PROTEÇÃO E SEPARAÇÃO DE SCRIPTS ---
+    // Removemos scripts temporariamente para o Cheerio não estragar a lógica JS
     const scripts = [];
     htmlContent = htmlContent.replace(/<script\b[^>]*>([\s\S]*?)<\/script>/gim, (match) => {
         scripts.push(match);
         return `<!--SCRIPT_PLACEHOLDER_${scripts.length - 1}-->`;
     });
     
-    // Carrega HTML sem scripts no Cheerio
+    // Carrega HTML (sem scripts) no Cheerio
     const $ = cheerio.load(htmlContent, { decodeEntities: false, xmlMode: false });
 
-    // --- 1. COLETA E TRADUÇÃO DE TEXTOS VISÍVEIS (DOM) ---
+    // --- 2. COLETA E TRADUÇÃO DE TEXTOS DO HTML (DOM) ---
     const textNodes = [];
     const attrNodes = []; 
     const metaNodes = [];
     const titleNodes = [];
 
-    // Título
+    // Título da página
     $('title').each(function() {
         const text = $(this).text().trim();
         if (text.length > 1) titleNodes.push({ el: $(this), text: text });
     });
 
-    // Body Texts
+    // Textos do corpo
     $('body').find('*').contents().each(function() {
         if (this.type === 'text') {
             const text = $(this).text().trim();
@@ -128,10 +145,10 @@ async function processFile(filePath) {
         }
     });
 
-    // Atributos
-    $('input, img, button, a').each(function() {
+    // Atributos visíveis
+    $('input, img, button, a, select, option').each(function() {
         const el = $(this);
-        ['placeholder', 'title', 'alt', 'aria-label'].forEach(attr => {
+        ['placeholder', 'title', 'alt', 'aria-label', 'label'].forEach(attr => {
             const val = el.attr(attr);
             if (val && val.trim().length > 1) {
                 attrNodes.push({ el: el, attr: attr, text: val });
@@ -139,7 +156,7 @@ async function processFile(filePath) {
         });
     });
 
-    // Meta Tags
+    // Metas de SEO
     $('meta[name="description"], meta[name="keywords"], meta[property^="og:"], meta[name^="twitter:"]').each(function() {
         const content = $(this).attr('content');
         if (content && content.trim().length > 1) {
@@ -147,7 +164,7 @@ async function processFile(filePath) {
         }
     });
 
-    // --- EXECUTA TRADUÇÃO DO DOM ---
+    // Executa tradução do HTML
     if (titleNodes.length > 0) {
         console.log(`      Traduzindo título...`);
         const trans = await translateTextBatch(titleNodes.map(n => n.text));
@@ -173,63 +190,96 @@ async function processFile(filePath) {
     // Atualiza Lang
     $('html').attr('lang', TARGET_LANG_CODE);
     
-    // Recupera HTML base traduzido
     let finalHtml = $.html();
 
-    // --- 2. TRADUÇÃO E RESTAURAÇÃO DOS SCRIPTS ---
-    console.log(`      Processando ${scripts.length} blocos de script...`);
+    // --- 3. TRADUÇÃO INTELIGENTE DE SCRIPTS (A MÁGICA) ---
+    console.log(`      Processando scripts (lógica humana)...`);
     
-    // Regex poderosa para capturar strings dentro de JS
-    // Captura: chaves comuns (description: "...") OU atribuições diretas (innerHTML = "...") OU alertas (alert("..."))
-    // Adicionado 'alert', 'confirm', 'prompt' e atribuições de variáveis
-    const jsRegex = /(description|conduta|classificacao|titulo|subtitulo|texto|msg|resposta|resultadoTexto|equipoTexto|unidadeTexto|innerHTML|textContent|placeholder|alert|confirm|prompt)\s*[:=\(]\s*(["'`])((?:(?=(\\?))\4[\s\S])*?)\2/g;
+    // Regex Avançada: Captura strings que estão em contextos de "texto para usuário"
+    // Captura:
+    // 1. Chaves de objeto conhecidas (description: "...")
+    // 2. Atribuições a variáveis ou propriedades do DOM (innerHTML = "...", msg = "...")
+    // 3. Funções de alerta (alert("..."))
+    // 4. Arrays de objetos (comuns em seus dados: { ..., description: "..." })
+    // Ignora: Selectors jQuery ($), console.log, addEventListener
+    
+    // Lista de palavras-chave que indicam conteúdo traduzível
+    const keywords = [
+        'description', 'label', 'text', 'titulo', 'subtitulo', 'conduta', 'classificacao', 
+        'msg', 'mensagem', 'erro', 'sucesso', 'resultado', 'equipo', 'unidade',
+        'innerHTML', 'textContent', 'innerText', 'placeholder', 'title', 'alt',
+        'alert', 'confirm', 'prompt', 'return'
+    ];
+    
+    // Padrão: (palavraChave) (separador : ou =) (aspas) (texto) (aspas)
+    const jsRegex = new RegExp(`(${keywords.join('|')})\\s*[:=\\(]\\s*(["'\`])((?:(?=(\\\\?))\\4[\\s\\S])*?)\\2`, 'g');
 
     for (let i = 0; i < scripts.length; i++) {
         let scriptCode = scripts[i];
         const jsMatches = [];
         let match;
 
-        // Encontra strings traduzíveis no script
         while ((match = jsRegex.exec(scriptCode)) !== null) {
-            // match[3] é o conteúdo. Ignora se for curto ou parecer código
-            if (match[3] && match[3].length > 2 && !match[3].includes('$(') && !match[3].includes('document.')) { 
-                jsMatches.push({ 
-                    fullMatch: match[0], 
-                    key: match[1], 
-                    quote: match[2], 
-                    text: match[3] 
-                });
+            const fullMatch = match[0];
+            const key = match[1];
+            const quote = match[2];
+            const text = match[3];
+
+            // Filtros de segurança para não quebrar código
+            if (
+                text.length > 1 && 
+                !text.includes('document.') && 
+                !text.includes('$(') && 
+                !text.startsWith('#') &&
+                !text.startsWith('.') &&
+                !text.includes('function') &&
+                !text.includes('=>')
+            ) {
+                jsMatches.push({ fullMatch, key, quote, text });
             }
         }
 
         if (jsMatches.length > 0) {
+            // Traduz em lote
             const jsTexts = jsMatches.map(m => m.text);
             const translatedJsTexts = await translateTextBatch(jsTexts);
 
-            // Substitui no código do script
+            // Substitui no script
+            // Fazemos replace um a um para garantir o contexto
             for (let j = 0; j < jsMatches.length; j++) {
                 const original = jsMatches[j].text;
                 const translated = translatedJsTexts[j];
-                
+                const item = jsMatches[j];
+
                 if (original !== translated && translated) {
+                    // Escapa caracteres especiais para o regex de substituição
                     const escapedOriginal = original.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
                     
-                    // Reconstrói o padrão para substituir (Key + Separador + Quote + Texto + Quote)
-                    // Usa a parte inicial do match original (ex: 'alert(') para manter a sintaxe
-                    const prefix = jsMatches[j].fullMatch.split(jsMatches[j].quote)[0]; 
+                    // Reconstrói o padrão exato encontrado para substituição segura
+                    // Usa a parte inicial (key + separador + aspas) do match original
+                    const prefixPart = item.fullMatch.substring(0, item.fullMatch.indexOf(item.text));
+                    const suffixPart = item.fullMatch.substring(item.fullMatch.indexOf(item.text) + item.text.length); // geralmente a aspa de fechamento
                     
-                    const regexReplace = new RegExp(`${prefix.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}${jsMatches[j].quote}${escapedOriginal}${jsMatches[j].quote}`);
+                    // Cria uma regex que busca exatamente esse trecho no código atual
+                    // Importante: usamos replace normal de string se possível, ou regex global se for repetido
                     
-                    scriptCode = scriptCode.replace(regexReplace, `${prefix}${jsMatches[j].quote}${translated}${jsMatches[j].quote}`);
+                    // Estratégia de substituição por string direta (mais seguro que regex para replace)
+                    const searchString = item.fullMatch;
+                    const replaceString = prefixPart + translated + suffixPart;
+                    
+                    // Substitui apenas a ocorrência atual (ou todas se forem idênticas no mesmo contexto)
+                    scriptCode = scriptCode.split(searchString).join(replaceString);
                 }
             }
         }
 
-        // Devolve o script processado para o HTML final
+        // Devolve script traduzido para o HTML
         finalHtml = finalHtml.replace(`<!--SCRIPT_PLACEHOLDER_${i}-->`, scriptCode);
     }
 
-    // Fix de segurança para inputs numéricos (evita scroll mudando valor)
+    // --- 4. CORREÇÕES FINAIS E SALVAMENTO ---
+
+    // Fix Scroll para inputs numéricos
     if (finalHtml.includes('type="number"') && !finalHtml.includes('addEventListener(\'wheel\'')) {
         const scrollFix = `
     <script>
@@ -243,6 +293,7 @@ async function processFile(filePath) {
         finalHtml = finalHtml.replace('</body>', scrollFix);
     }
 
+    // Cria pasta e salva
     await fs.ensureDir(targetDir);
     await fs.writeFile(targetPath, finalHtml);
     console.log(`   ✅ Salvo em: ${targetPath}`);
