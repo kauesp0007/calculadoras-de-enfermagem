@@ -110,7 +110,6 @@ async function processFile(filePath) {
 
     // --- 1. PROTEÇÃO E SEPARAÇÃO DE SCRIPTS ---
     const scripts = [];
-    // Captura scripts normais (ignora JSON-LD por enquanto)
     htmlContent = htmlContent.replace(/<script(?![^>]*application\/ld\+json)[^>]*>([\s\S]*?)<\/script>/gim, (match) => {
         scripts.push(match);
         return `<!--SCRIPT_PLACEHOLDER_${scripts.length - 1}-->`;
@@ -118,11 +117,74 @@ async function processFile(filePath) {
     
     const $ = cheerio.load(htmlContent, { decodeEntities: false, xmlMode: false });
 
-    // --- NOVO: ATUALIZAÇÃO DO CANONICAL ---
+    // --- CORREÇÃO DE CAMINHOS DE IMAGENS E LINKS (FIX PATHS) ---
+    // Como o arquivo vai para uma subpasta (ex: /sv/), precisamos subir um nível (../)
+    // para encontrar recursos que estão na raiz ou na pasta img/
+    
+    const fixPath = (originalPath) => {
+        if (!originalPath) return originalPath;
+        // Ignora links absolutos (http/https), dados em base64, âncoras (#) e mailto
+        if (originalPath.match(/^(http|https|data:|#|mailto:|\/\/)/)) return originalPath;
+        
+        // Se já começa com ../, não mexe (evita duplicar se rodar de novo)
+        if (originalPath.startsWith('../')) return originalPath;
+
+        // Se o caminho começa com /, remove a barra inicial para ser relativo
+        if (originalPath.startsWith('/')) {
+            return '..' + originalPath; 
+        }
+        
+        // Se é um caminho relativo simples (ex: img/foto.png ou style.css), adiciona ../
+        return '../' + originalPath;
+    };
+
+    // Aplica correção em Imagens
+    $('img').each(function() {
+        const src = $(this).attr('src');
+        if (src) $(this).attr('src', fixPath(src));
+        
+        // Corrige srcset se houver (para imagens responsivas)
+        const srcset = $(this).attr('srcset');
+        if (srcset) {
+            const newSrcset = srcset.split(',').map(entry => {
+                const parts = entry.trim().split(' ');
+                parts[0] = fixPath(parts[0]);
+                return parts.join(' ');
+            }).join(', ');
+            $(this).attr('srcset', newSrcset);
+        }
+    });
+
+    // Aplica correção em Favicons e CSS
+    $('link[rel="icon"], link[rel="stylesheet"], link[rel="preload"]').each(function() {
+        const href = $(this).attr('href');
+        if (href) $(this).attr('href', fixPath(href));
+    });
+
+    // Aplica correção em Scripts externos (src)
+    $('script[src]').each(function() {
+        const src = $(this).attr('src');
+        if (src) $(this).attr('src', fixPath(src));
+    });
+
+    // Aplica correção em Links internos (a href) - Opcional, depende se quer manter na língua
+    // Geralmente links para outras páginas HTML devem manter a lógica. 
+    // Se o link for para "index.html", deve virar "../index.html" ou manter na pasta atual se a página existir traduzida.
+    // Assumindo que queremos voltar para a estrutura de navegação correta:
+    $('a').each(function() {
+        const href = $(this).attr('href');
+        // Apenas corrige se apontar para recursos (pdf, zip) ou páginas na raiz que não serão traduzidas
+        // Se for navegação entre páginas traduzidas, o ideal é não mexer ou apontar para a versão traduzida.
+        // Por segurança, vamos corrigir caminhos de arquivos estáticos.
+        if (href && (href.endsWith('.pdf') || href.endsWith('.png') || href.endsWith('.jpg'))) {
+            $(this).attr('href', fixPath(href));
+        }
+    });
+
+    // --- ATUALIZAÇÃO DO CANONICAL ---
     $('link[rel="canonical"]').each(function() {
         const href = $(this).attr('href');
         if (href && !href.includes(`/${TARGET_LANG_CODE}/`)) {
-            // Adiciona a pasta do idioma na URL (ex: .com.br/sv/pagina.html)
             const newHref = href.replace('.com.br/', `.com.br/${TARGET_LANG_CODE}/`);
             $(this).attr('href', newHref);
             console.log(`      🔗 Canonical atualizado: ${newHref}`);
@@ -135,24 +197,21 @@ async function processFile(filePath) {
     const metaNodes = [];
     const titleNodes = [];
     
-    // --- NOVO: COLETA DE SCHEMA.ORG (JSON-LD) ---
-    const schemaNodes = []; // Armazena referências para tradução
-    const schemaScripts = []; // Armazena os objetos JSON para remontar depois
+    // --- COLETA DE SCHEMA.ORG (JSON-LD) ---
+    const schemaNodes = []; 
+    const schemaScripts = []; 
 
     $('script[type="application/ld+json"]').each(function() {
         try {
             const jsonContent = $(this).html();
             const json = JSON.parse(jsonContent);
             
-            // Função recursiva para encontrar campos de texto traduzíveis no JSON
             function extractSchemaTexts(obj) {
                 if (typeof obj === 'object' && obj !== null) {
                     for (const key in obj) {
-                        // Campos chaves para SEO que devem ser traduzidos
                         if (['name', 'description', 'headline', 'text', 'alternativeHeadline', 'keywords', 'about'].includes(key) && typeof obj[key] === 'string') {
                             schemaNodes.push({ obj: obj, key: key, text: obj[key] });
                         } 
-                        // Caso especial para perguntas e respostas
                         else if (key === 'acceptedAnswer' && obj[key].text) {
                              schemaNodes.push({ obj: obj[key], key: 'text', text: obj[key].text });
                         }
@@ -206,44 +265,37 @@ async function processFile(filePath) {
 
     // --- 3. EXECUÇÃO DAS TRADUÇÕES EM LOTE ---
 
-    // Tradução do Título
     if (titleNodes.length > 0) {
         console.log(`      Traduzindo título...`);
         const trans = await translateTextBatch(titleNodes.map(n => n.text));
         titleNodes.forEach((item, i) => { item.el.text(trans[i]); });
     }
 
-    // Tradução do Schema.org (SEO)
     if (schemaNodes.length > 0) {
         console.log(`      Traduzindo ${schemaNodes.length} campos de SEO (Schema.org)...`);
         const schemaTexts = schemaNodes.map(n => n.text);
         const translatedSchemaTexts = await translateTextBatch(schemaTexts);
         
-        // Aplica tradução nos objetos JSON em memória
         schemaNodes.forEach((item, i) => {
             item.obj[item.key] = translatedSchemaTexts[i];
         });
 
-        // Atualiza o HTML das tags script com o novo JSON
         schemaScripts.forEach(scriptItem => {
             scriptItem.el.html(JSON.stringify(scriptItem.json, null, 2));
         });
     }
 
-    // Tradução do Corpo
     if (textNodes.length > 0) {
         console.log(`      Traduzindo ${textNodes.length} textos do corpo...`);
         const trans = await translateTextBatch(textNodes.map(n => n.text));
         textNodes.forEach((item, i) => { item.node.data = trans[i]; });
     }
 
-    // Tradução de Atributos
     if (attrNodes.length > 0) {
         const trans = await translateTextBatch(attrNodes.map(n => n.text));
         attrNodes.forEach((item, i) => { item.el.attr(item.attr, trans[i]); });
     }
 
-    // Tradução de Meta Tags
     if (metaNodes.length > 0) {
         const trans = await translateTextBatch(metaNodes.map(n => n.text));
         metaNodes.forEach((item, i) => { item.el.attr('content', trans[i]); });
@@ -313,6 +365,13 @@ async function processFile(filePath) {
                 }
             }
         }
+
+        // CORREÇÃO EXTRA DE CAMINHOS DENTRO DO JAVASCRIPT
+        // Procura por caminhos de imagem/recursos dentro de strings JS (ex: "img/foto.png")
+        // Regex: procura strings que começam com img/ ou /img/ e terminam com extensão de imagem
+        scriptCode = scriptCode.replace(/["']\/?(img\/[^"']+\.(png|jpg|jpeg|gif|webp|svg))["']/g, (match, path) => {
+            return match.replace(path, '../' + path.replace(/^\//, ''));
+        });
 
         finalHtml = finalHtml.replace(`<!--SCRIPT_PLACEHOLDER_${i}-->`, scriptCode);
     }
