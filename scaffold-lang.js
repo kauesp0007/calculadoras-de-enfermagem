@@ -50,6 +50,9 @@ const IGNORE_FILES = [
   'insulina.html',
   'heparina.html',
   'googlefc0a17cdd552164b.html',
+  'downloads.html',
+  'downloads.template.html',
+  'item.template.html',
 ];
 
 // NOVO: Lista de ficheiros específicos (JS, CSS, Imagens) para COPIAR
