@@ -306,28 +306,18 @@
                     <div id="conteudo" class="space-y-4">
                         <div class="medicamentos-input-group">
                           <label for="prescricao">Prescrição médica (mg):</label>
-                          <input type="number" id="prescricao" placeholder="Ex: 120" class="shadow-sm">
+                          <input type="number" id="prescricao" placeholder="Ex: 300" class="shadow-sm">
                         </div>
                         <div class="medicamentos-input-group">
                           <label for="concentracao">Concentração disponível (mg):</label>
-                          <input type="number" id="concentracao" placeholder="Ex: 240" class="shadow-sm">
+                          <input type="number" id="concentracao" placeholder="Ex: 200" class="shadow-sm">
                         </div>
-                        <div class="medicamentos-input-group">
-                          <label>Proporção do frasco:</label>
-                          <div id="proporcao-options" class="mt-2 space-y-2 text-gray-600">
-                            <label class="flex items-center space-x-2 cursor-pointer">
-                              <input type="radio" name="proporcao" value="1" class="form-radio">
-                              <span>1 mg/ml (Solução padrão)</span>
-                            </label>
-                            <label class="flex items-center space-x-2 cursor-pointer">
-                              <input type="radio" name="proporcao" value="2" class="form-radio">
-                              <span>2 mg/ml (Solução concentrada)</span>
-                            </label>
-                          </div>
-                        </div>
+                        
+                        <!-- REMOVIDO: Proporção do frasco (Radio buttons) conforme solicitado -->
+                        
                         <div class="medicamentos-input-group">
                           <label for="volumeTotal">Volume total do frasco da farmácia (ml):</label>
-                          <input type="number" id="volumeTotal" placeholder="Ex: 10" class="shadow-sm">
+                          <input type="number" id="volumeTotal" placeholder="Ex: 5" class="shadow-sm">
                         </div>
                     </div>
                 </div>
@@ -357,7 +347,7 @@
 
                     <div class="mt-4 flex justify-center">
                         <!-- Imagem com o estilo de Gotejamento (max-width: 100%, auto height) -->
-                        <img src="img/CALCULO DE MEDICAMENTOS REGRA DE 3.webp" alt="Regra de Três Ilustrada" loading="lazy">
+                        <img src="img/Regra de 3 Calculo de medicamentos Enfermagem.webp" alt="Regra de Três Ilustrada" loading="lazy">
                     </div>
                 </div>
             </div>
@@ -441,47 +431,61 @@
           const prescricao = parseFloat(document.getElementById("prescricao").value);
           const concentracao = parseFloat(document.getElementById("concentracao").value);
           const volumeTotal = parseFloat(document.getElementById("volumeTotal").value);
-          const proporcaoRadio = document.querySelector('input[name="proporcao"]:checked');
 
           resultadoDiv.style.display = "block";
 
-          if (isNaN(prescricao)) {
-            resultadoDiv.innerHTML = '<p class="text-red-600 font-bold"><i class="fas fa-exclamation-circle mr-2"></i>Por favor, preencha a Prescrição Médica.</p>';
+          // Validação dos três campos
+          if (isNaN(prescricao) || isNaN(concentracao) || isNaN(volumeTotal)) {
+            resultadoDiv.innerHTML = '<p class="text-red-600 font-bold"><i class="fas fa-exclamation-circle mr-2"></i>Por favor, preencha todos os campos corretamente (Prescrição, Concentração e Volume).</p>';
             return;
           }
 
-          if (!proporcaoRadio) {
-             resultadoDiv.innerHTML = '<p class="text-red-600 font-bold"><i class="fas fa-exclamation-circle mr-2"></i>Selecione a Proporção do Frasco.</p>';
-             return;
-          }
+          // Regra de Três: (P * V) / C
+          // Ex: 200mg --- 5ml
+          //     300mg --- X
+          //     200*X = 300*5 -> X = 1500 / 200 -> 7.5ml
+          
+          const resultadoMl = (prescricao * volumeTotal) / concentracao;
 
-          const cRatio = parseFloat(proporcaoRadio.value); // 1 ou 2 mg/ml
-          const resultadoMl = prescricao / cRatio;
-
-          // HTML do Resultado com estilo forte
+          // HTML do Resultado com estilo forte e passo a passo
           const calculoStr = `
             <div class="font-mono bg-white p-4 rounded border border-blue-200 text-sm mb-4">
-              <p>Considerando a proporção de <strong>${cRatio} mg/ml</strong>:</p>
-              <p class="mt-2">${cRatio}mg ----- 1ml</p>
-              <p>${prescricao}mg ----- X ml</p>
-              <p class="mt-2 text-gray-500 italic">Multiplicando cruzado:</p>
-              <p>X . ${cRatio} = ${prescricao} . 1</p>
-              <p>X = ${prescricao} / ${cRatio}</p>
-              <p class="font-bold text-dark-blue mt-1">X = ${resultadoMl.toFixed(2)} ml</p>
+              <p class="mb-2 font-bold text-gray-700">Passo a Passo (Regra de Três):</p>
+              <div class="flex flex-col gap-1">
+                <div class="flex justify-between w-full max-w-xs border-b border-gray-300 pb-1">
+                  <span>${concentracao} mg (Disponível)</span>
+                  <span class="px-2">---</span>
+                  <span>${volumeTotal} ml</span>
+                </div>
+                <div class="flex justify-between w-full max-w-xs pt-1">
+                  <span>${prescricao} mg (Prescrito)</span>
+                  <span class="px-2">---</span>
+                  <span>X ml</span>
+                </div>
+              </div>
+              
+              <div class="mt-4 text-gray-600 italic">
+                <p>Multiplicando cruzado:</p>
+                <p>X . ${concentracao} = ${prescricao} . ${volumeTotal}</p>
+                <p>X = (${prescricao} * ${volumeTotal}) / ${concentracao}</p>
+                <p>X = ${(prescricao * volumeTotal)} / ${concentracao}</p>
+              </div>
+              
+              <p class="font-bold text-dark-blue mt-3 text-lg border-t pt-2">X = ${resultadoMl.toFixed(2).replace('.', ',')} ml</p>
             </div>
           `;
 
           const explicacaoStr = `
             <div class="text-dark-blue">
                 <p class="text-xl font-extrabold mb-2"><i class="fas fa-syringe mr-2"></i>Resultado:</p>
-                <p class="text-lg">A prescrição é de <strong>${prescricao} mg</strong>.</p>
-                <p class="text-lg">Deve-se aspirar <strong class="text-2xl border-b-4 border-blue-500">${resultadoMl.toFixed(2)} ml</strong> desta solução.</p>
+                <p class="text-lg mb-2">Para administrar a dose prescrita de <strong>${prescricao} mg</strong>:</p>
+                <p class="text-lg">Você deve aspirar <strong class="text-2xl border-b-4 border-blue-500">${resultadoMl.toFixed(2).replace('.', ',')} ml</strong> da solução disponível.</p>
             </div>
           `;
 
           resultadoDiv.innerHTML = calculoStr + explicacaoStr;
           
-          // Scroll suave até o resultado para garantir visibilidade
+          // Scroll suave até o resultado
           resultadoDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
 
@@ -489,7 +493,6 @@
           document.getElementById("prescricao").value = "";
           document.getElementById("concentracao").value = "";
           document.getElementById("volumeTotal").value = "";
-          document.querySelectorAll('input[name="proporcao"]').forEach((radio) => radio.checked = false);
           resultadoDiv.innerHTML = "";
           resultadoDiv.style.display = "none";
         }
