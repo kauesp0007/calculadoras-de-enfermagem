@@ -42,17 +42,17 @@ const targetDir = `./${TARGET_LANG_CODE}`;
 async function translateTextBatch(texts) {
     if (texts.length === 0) return [];
 
-    // Filtro mais inteligente: permite {} mas bloqueia código puro
+    // Filtro mais inteligente e permissivo
     const inputs = texts.map((t, i) => ({ index: i, text: t.trim() }))
         .filter(item => {
             const t = item.text;
-            // Ignora se for muito curto, numérico ou seletor CSS
+            // Regras básicas de exclusão
             if (t.length < 2) return false; 
             if (!isNaN(t)) return false; 
             if (t.startsWith('#') || t.startsWith('.')) return false; 
             if (t.includes('http://') || t.includes('https://') || t.includes('/')) return false;
-            // Bloqueia apenas se parecer estrutura de função ou objeto puro, não template string
-            if (t.includes('function(') || t.includes('=>') || (t.includes('{') && t.includes(':') && !t.includes('$'))) return false; 
+            // Bloqueamos apenas definições de função explícitas
+            if (t.includes('function(') || t.includes('=>')) return false; 
             if (t === 'true' || t === 'false' || t === 'null') return false; 
             return true;
         });
@@ -187,17 +187,18 @@ async function processFile(filePath) {
     // --- 3. TRADUÇÃO INTELIGENTE DE SCRIPTS ---
     console.log(`      Processando scripts (Variáveis e Resultados)...`);
     
-    // Lista Expandida de Palavras-Chave para pegar Resultados e Itens
     const keywords = [
         'description', 'label', 'text', 'titulo', 'subtitulo', 'conduta', 'classificacao', 
         'msg', 'mensagem', 'erro', 'sucesso', 'resultado', 'equipo', 'unidade',
         'innerHTML', 'textContent', 'innerText', 'placeholder', 'title', 'alt',
         'alert', 'confirm', 'prompt', 'return',
-        // NOVAS VARIÁVEIS ADICIONADAS PARA AS CALCULADORAS:
-        'calculoStr', 'explicacaoStr', 'resultadoTexto', 'category', 'push'
+        // KEYWORDS ESPECÍFICAS PARA AS CALCULADORAS:
+        'calculoStr', 'explicacaoStr', 'resultadoTexto', 'category', 'push', 
+        'disturbioFinal', 'classificacao'
     ];
     
-    const jsRegex = new RegExp(`(${keywords.join('|')})\\s*[:=\\(]\\s*(["'\`])((?:(?=(\\\\?))\\4[\\s\\S])*?)\\2`, 'g');
+    // REGEX CORRIGIDO: Aceita quebra de linha (multiline) e escapes
+    const jsRegex = new RegExp(`(${keywords.join('|')})\\s*[:=\\(]\\s*(["'\`])((?:[^\\\\]|\\\\.)*?)\\2`, 'g');
 
     for (let i = 0; i < scripts.length; i++) {
         let scriptCode = scripts[i];
@@ -214,7 +215,7 @@ async function processFile(filePath) {
                 text.length > 1 && 
                 !text.includes('document.') && 
                 !text.includes('$(') && 
-                !text.startsWith('#') &&
+                !text.startsWith('#') && 
                 !text.startsWith('.') &&
                 !text.includes('function') &&
                 !text.includes('=>')
@@ -227,21 +228,22 @@ async function processFile(filePath) {
             const jsTexts = jsMatches.map(m => m.text);
             const translatedJsTexts = await translateTextBatch(jsTexts);
 
+            // Substituição reversa para não alterar indices
             for (let j = 0; j < jsMatches.length; j++) {
                 const original = jsMatches[j].text;
                 const translated = translatedJsTexts[j];
                 const item = jsMatches[j];
 
                 if (original !== translated && translated) {
-                    const escapedOriginal = original.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-                    
+                    // Estratégia de Replace por String exata (mais seguro)
                     const prefixPart = item.fullMatch.substring(0, item.fullMatch.indexOf(item.text));
                     const suffixPart = item.fullMatch.substring(item.fullMatch.indexOf(item.text) + item.text.length);
                     
                     const searchString = item.fullMatch;
                     const replaceString = prefixPart + translated + suffixPart;
                     
-                    scriptCode = scriptCode.split(searchString).join(replaceString);
+                    // Substitui a primeira ocorrência encontrada dessa string exata
+                    scriptCode = scriptCode.replace(searchString, replaceString);
                 }
             }
         }
