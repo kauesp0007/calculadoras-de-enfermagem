@@ -17,7 +17,7 @@
     <meta name="author" content="Calculadoras de Enfermagem">
     <meta name="robots" content="index, follow">
 
-    <link rel="canonical" href="https://www.calculadorasdeenfermagem.com.br/balancohidrico.html">
+    <link rel="canonical" href="https://www.calculadorasdeenfermagem.com.br/sv/balancohidrico.html">
     <link rel="alternate" hreflang="pt-br" href="https://www.calculadorasdeenfermagem.com.br/balancohidrico.html">
     <link rel="alternate" hreflang="en" href="https://www.calculadorasdeenfermagem.com.br/en/balancohidrico.html">
     <link rel="alternate" hreflang="es" href="https://www.calculadorasdeenfermagem.com.br/es/balancohidrico.html">
@@ -587,30 +587,29 @@ mellan det tvärvetenskapliga teamet. Sjuksköterskan kommunicerar patientens v�
           let classificacao = "";
           
           if (balanco > 0) {
-            classificacao = "Positiv vattenbalans (retention)";
+            classificacao = "Positiv vätskebalans (retention)";
           } else if (balanco < 0) {
-            classificacao = "Negativ vattenbalans (förlust)";
+            classificacao = "Negativ vätskebalans (förlust)";
           } else {
-            classificacao = "Nollvattenbalans (jämvikt)";
+            classificacao = "Neutral vätskebalans (jämvikt)";
           }
 
-          // Formato Compacto (Tudo azul escuro e negrito conforme solicitado)
-          // "tudo em letra azul, escura e grossa quando for negrito e simples quando for o resultado"
+          // Formato Compacto e Traduzido
+          // Totalt intag (Ingestão Total) | Total förlust (Eliminação Total)
           const resultadoTexto = `
             <p style="margin: 0; color: #1a3e74; font-size: 1.05rem; line-height: 1.6;">
-                <span style="font-weight: 800;">Resultado final:</span> Ingestão Total: ${totalIngestao} ml | Eliminação Total: ${totalEliminacao} ml<br>
-                <span style="font-weight: 800;">Balanço:</span> ${balanco} ml<br>
+                <span style="font-weight: 800;">Slutresultat:</span> Totalt intag: ${totalIngestao} ml | Total förlust: ${totalEliminacao} ml<br>
+                <span style="font-weight: 800;">Balans:</span> ${balanco} ml<br>
                 <span style="font-weight: 800;">${classificacao}</span>
             </p>
           `;
 
           resultadoDiv.innerHTML = resultadoTexto;
-          // Garante o estilo da caixa azul semitransparente
-          resultadoDiv.className = "resultado"; // classe CSS #resultado já definida para isso
+          resultadoDiv.className = "resultado"; 
 
           resultadoDiv.dataset.score = balanco;
           resultadoDiv.dataset.classificacao = classificacao;
-          resultadoDiv.dataset.scaleName = "Balanço Hídrico";
+          resultadoDiv.dataset.scaleName = "Vätskebalans";
         }
 
         function limparCampos() {
@@ -633,13 +632,13 @@ mellan det tvärvetenskapliga teamet. Sjuksköterskan kommunicerar patientens v�
           }
           if (typeof gerarPDFGlobal === "function") {
             gerarPDFGlobal({
-              titulo: "Vattenbalans",
-              subtitulo: "Rapport om vätskeintag och -utmatning",
-              nomeArquivo: "relatorio_balanco_hidrico.pdf",
+              titulo: "Vätskebalans",
+              subtitulo: "Rapport om vätskeintag och vätskeförlust",
+              nomeArquivo: "vatskebalans_rapport.pdf",
               seletorConteudo: ".main-content-wrapper",
             });
           } else {
-            console.error("Função gerarPDFGlobal não definida.");
+            console.error("Funktionen gerarPDFGlobal är inte definierad.");
           }
         });
 
@@ -647,12 +646,15 @@ mellan det tvärvetenskapliga teamet. Sjuksköterskan kommunicerar patientens v�
           const score = resultadoDiv.dataset.score;
           const scaleName = resultadoDiv.dataset.scaleName;
           const classificacao = resultadoDiv.dataset.classificacao;
-          if (!score && score !== 0) { // Verifica se calculou
-            alert("Beräkna resultatet för att undersöka beteendet.");
+          
+          // Verifica se o score existe (considerando que 0 é falsy em JS, precisamos checar explicitamente)
+          if (score === undefined || score === "") { 
+            alert("Beräkna resultatet för att undersöka åtgärder.");
             return;
           }
+          
           const searchQuery = encodeURIComponent(
-            `${scaleName} resultado ${score} ml, classificação ${classificacao} gerar taxonomia NANDA, gerar taxonomia NIC e gerar taxonomia de NOC`,
+            `${scaleName}: ${score} ml, Klassificering: ${classificacao} - NANDA omvårdnadsdiagnos NIC NOC svenska`,
           );
           window.open(
             `https://www.google.com/search?q=${searchQuery}`,

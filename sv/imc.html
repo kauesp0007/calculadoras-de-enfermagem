@@ -12,7 +12,7 @@
 
     <!-- Metatags e SEO -->
     <!-- Página inicial PT -->
-    <link rel="canonical" href="https://www.calculadorasdeenfermagem.com.br/imc.html">
+    <link rel="canonical" href="https://www.calculadorasdeenfermagem.com.br/sv/imc.html">
     <link rel="alternate" hreflang="pt-br" href="https://www.calculadorasdeenfermagem.com.br/imc.html">
     <link rel="alternate" hreflang="en" href="https://www.calculadorasdeenfermagem.com.br/en/imc.html">
     <link rel="alternate" hreflang="es" href="https://www.calculadorasdeenfermagem.com.br/es/imc.html">
@@ -379,9 +379,9 @@
           resultadoDiv.innerHTML = "";
           resultadoDiv.className = "resultado-quadro hidden";
 
-          // Validação de entrada
+          // Validação de entrada (Traduzida)
           if (isNaN(peso) || isNaN(altura) || peso <= 0 || altura <= 0) {
-            resultadoDiv.innerHTML = `<p>⚠️ <strong class="text-red-600">Por favor, insira valores numéricos válidos e maiores que zero para peso e altura.</strong></p>`;
+            resultadoDiv.innerHTML = `<p>⚠️ <strong class="text-red-600">Vänligen ange giltiga numeriska värden större än noll för vikt och längd.</strong></p>`;
             resultadoDiv.classList.remove("hidden");
             resultadoDiv.classList.add("bg-danger-red");
             return;
@@ -405,37 +405,37 @@
           } else if (imc >= 25 && imc < 29.9) {
             classificacao = "Övervikt";
             conduta =
-              "Var uppmärksam på förändringar i livsstil och kost. En näringsbedömning kan rekommenderas.";
+              "Var uppmärksam på förändringar i livsstil och kost. En nutritionsbedömning kan rekommenderas.";
             resultadoBgClass = "bg-info-orange-light";
           } else {
             // Obesidade
             conduta =
-              "Akut intervention och tvärvetenskaplig uppföljning är nödvändig. Hög risk för allvarliga komorbiditeter.";
+              "Akut intervention och multidisciplinär uppföljning är nödvändig. Hög risk för allvarliga komorbiditeter.";
             resultadoBgClass = "bg-danger-red";
 
             if (imc >= 30 && imc < 34.9) {
-              classificacao = "Grad I fetma";
+              classificacao = "Fetma grad I";
             } else if (imc >= 35 && imc < 39.9) {
-              classificacao = "Grad II-fetma";
+              classificacao = "Fetma grad II";
             } else {
-              classificacao = "Grad III (sjuklig) fetma";
+              classificacao = "Fetma grad III (sjuklig)";
             }
           }
 
-          // Exibe o resultado formatado
+          // Exibe o resultado formatado (Traduzido)
           resultadoDiv.innerHTML = `
                     <table class="w-full">
                         <tbody>
                             <tr>
-                                <td class="font-bold pr-2">IMC calculado:</td>
-                                <td>${imc.toFixed(2)} <abbr title="quilogramas por metro quadrado">kg/m²</abbr></td>
+                                <td class="font-bold pr-2">Beräknat BMI:</td>
+                                <td>${imc.toFixed(2)} <abbr title="kilogram per kvadratmeter">kg/m²</abbr></td>
                             </tr>
                             <tr>
-                                <td class="font-bold pr-2">Classificação:</td>
+                                <td class="font-bold pr-2">Klassificering:</td>
                                 <td>${classificacao}</td>
                             </tr>
                             <tr>
-                                <td class="font-bold pr-2">Conduta de Enfermagem:</td>
+                                <td class="font-bold pr-2">Omvårdnadsåtgärd:</td>
                                 <td>${conduta}</td>
                             </tr>
                         </tbody>
@@ -450,7 +450,7 @@
           resultadoDiv.dataset.conduta = conduta;
           resultadoDiv.dataset.peso = peso;
           resultadoDiv.dataset.altura = altura;
-          resultadoDiv.dataset.scaleName = "Calculadora de IMC";
+          resultadoDiv.dataset.scaleName = "BMI-kalkylator";
         }
 
         function limparCampos() {
@@ -470,18 +470,23 @@
         // Função para gerar PDF
         function gerarPDF() {
           if (!resultadoDiv.dataset.imc) {
-            showCustomMessage("Por favor, calcule o IMC antes de gerar o PDF.");
+            // Assumindo que showCustomMessage existe no seu global-scripts.js, senão use alert
+             if (typeof showCustomMessage === "function") {
+                showCustomMessage("Vänligen beräkna BMI innan du genererar PDF-filen.");
+             } else {
+                alert("Vänligen beräkna BMI innan du genererar PDF-filen.");
+             }
             return;
           }
           if (typeof gerarPDFGlobal === "function") {
             gerarPDFGlobal({
-              titulo: "Kroppsmasseindexkalkylator",
-              subtitulo: "BMI-bedömningsrapport",
-              nomeArquivo: "relatorio_imc.pdf",
+              titulo: "BMI-Kalkylator (Kroppsmasseindex)",
+              subtitulo: "Rapport om BMI-bedömning",
+              nomeArquivo: "bmi_rapport.pdf",
               seletorConteudo: ".main-content-wrapper",
             });
           } else {
-            console.error("Função gerarPDFGlobal não definida.");
+            console.error("Funktionen gerarPDFGlobal är inte definierad.");
           }
         }
 
@@ -494,13 +499,16 @@
             const scaleName = resultadoDiv.dataset.scaleName;
 
             if (!imcValue || !classificacao || !conduta) {
-              showCustomMessage(
-                "Calcule o resultado para pesquisar a conduta.",
-              );
+               if (typeof showCustomMessage === "function") {
+                  showCustomMessage("Beräkna resultatet för att undersöka åtgärder.");
+               } else {
+                  alert("Beräkna resultatet för att undersöka åtgärder.");
+               }
               return;
             }
+            // Query ajustada para o Sueco
             const searchQuery = encodeURIComponent(
-              `IMC: ${imcValue}, Classificação: ${classificacao}, Conduta de Enfermagem: ${conduta} - ${scaleName} GERAR diagnosticos de enfermagem da NANDA, GERAR intervenções de enfermagem do NIC, Gerar um exemplo de mensuração dos resultados implementados pelo enfermeiro (NOC)`,
+              `BMI: ${imcValue}, Klassificering: ${classificacao}, Åtgärd: ${conduta} - ${scaleName} NANDA omvårdnadsdiagnos NIC NOC svenska`,
             );
             window.open(
               `https://www.google.com/search?q=${searchQuery}`,
