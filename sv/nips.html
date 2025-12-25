@@ -308,221 +308,220 @@ FERNANDO FIGUEIRA (IFF).<a href="https://www.iff.fiocruz.br/pdf/modulo_dor2015.p
     <script src="global-scripts.js" defer=""></script>
 
     <script>
-      document.addEventListener("DOMContentLoaded", function () {
-        const resultadoDiv = document.getElementById("resultado");
-        const btnCalcular = document.getElementById("btnCalcular");
-        const btnLimpar = document.getElementById("btnLimpar");
-        const btnGerarPDF = document.getElementById("btnGerarPDF");
-        const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
-        const conteudoDiv = document.getElementById("conteudo");
+document.addEventListener("DOMContentLoaded", function () {
+  const resultadoDiv = document.getElementById("resultado");
+  const btnCalcular = document.getElementById("btnCalcular");
+  const btnLimpar = document.getElementById("btnLimpar");
+  const btnGerarPDF = document.getElementById("btnGerarPDF");
+  const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
+  const conteudoDiv = document.getElementById("conteudo");
 
-        // Dados da escala NIPS
-        const nipsData = [
-          {
-            category: "Ansiktsuttryck",
-            nameAttr: "expressao_facial",
-            options: [
-              { description: "Avslappnad", score: 0 },
-              { description: "Grimas", score: 1 },
-            ],
-            explain:
-              "Observa a mímica facial, como contrações ou relaxamento. Uma careta (grimace) indica tensão.",
-          },
-          {
-            category: "Gråtmönster",
-            nameAttr: "choro",
-            options: [
-              { description: "Frånvarande", score: 0 },
-              { description: "Resmungos / Gemidos", score: 1 },
-              { description: "Kraftigt gråt", score: 2 },
-            ],
-            explain:
-              "Avalia a presença e a intensidade do choro. Um choro alto e forte é um sinal de desconforto.",
-          },
-          {
-            category: "Andningsmönster",
-            nameAttr: "respiracao",
-            options: [
-              { description: "Avslappnad", score: 0 },
-              { description: "Alterado / Irregular", score: 1 },
-            ],
-            explain:
-              "Verifica se a respiração está calma e regular. Mudanças abruptas no padrão podem indicar dor.",
-          },
-          {
-            category: "Standardmotorarmar",
-            nameAttr: "bracos",
-            options: [
-              { description: "Relaxados / Sem movimentos", score: 0 },
-              { description: "Flexão / Extensão rígida", score: 1 },
-            ],
-            explain:
-              "Avalia o tônus e o movimento dos braços. A flexão ou extensão tensa pode ser um sinal de dor.",
-          },
-          {
-            category: "Benmotormönster",
-            nameAttr: "pernas",
-            options: [
-              { description: "Relaxadas / Sem movimentos", score: 0 },
-              { description: "Flexão / Extensão rígida", score: 1 },
-            ],
-            explain:
-              "Avalia o tônus e o movimento das pernas. A flexão ou extensão tensa pode ser um sinal de dor.",
-          },
-          {
-            category: "Medvetandetillstånd",
-            nameAttr: "estado_consciencia",
-            options: [
-              { description: "Calmo / Dormindo", score: 0 },
-              { description: "Inquieto / Desconfortável", score: 1 },
-            ],
-            explain:
-              "Observa o estado geral do recém-nascido. A agitação e a inquietação são sinais comuns de dor.",
-          },
-        ];
+  // Dados da escala NIPS
+  const nipsData = [
+  {
+    category: "Ansiktsuttryck",
+    nameAttr: "expressao_facial",
+    options: [
+    { description: "Avslappnad", score: 0 },
+    { description: "Grimas", score: 1 }],
 
-        // Preenche o formulário dinamicamente
-        nipsData.forEach((item) => {
-          const sectionDiv = document.createElement("div");
-          sectionDiv.className = "nips-criterion-section";
-          sectionDiv.id = `section-${item.nameAttr}`;
+    explain:
+    "Observera ansiktets mimik, t.ex. sammandragningar eller avslappning. En grimas tyder på spänning."
+  },
+  {
+    category: "Gråtmönster",
+    nameAttr: "choro",
+    options: [
+    { description: "Frånvarande", score: 0 },
+    { description: "Resmungos / Gemidos", score: 1 },
+    { description: "Kraftigt gråt", score: 2 }],
 
-          const titleH3 = document.createElement("h3");
-          titleH3.className = "nips-criterion-title";
-          titleH3.innerHTML =
-            item.category +
-            `
+    explain:
+    "Bedöm förekomsten av gråt och hur intensiv den är. Högljudd gråt med höga tonlägen är ett tecken på obehag."
+  },
+  {
+    category: "Andningsmönster",
+    nameAttr: "respiracao",
+    options: [
+    { description: "Avslappnad", score: 0 },
+    { description: "Alterado / Irregular", score: 1 }],
+
+    explain:
+    "Kontrollera att din andning är lugn och regelbunden. Plötsliga förändringar i mönstret kan tyda på smärta."
+  },
+  {
+    category: "Standardmotorarmar",
+    nameAttr: "bracos",
+    options: [
+    { description: "Relaxados / Sem movimentos", score: 0 },
+    { description: "Stel flexion/extension", score: 1 }],
+
+    explain:
+    "Den bedömer tonus och rörelse i armarna. Spänd flexion eller extension kan vara ett tecken på smärta."
+  },
+  {
+    category: "Benmotormönster",
+    nameAttr: "pernas",
+    options: [
+    { description: "Relaxadas / Sem movimentos", score: 0 },
+    { description: "Stel flexion/extension", score: 1 }],
+
+    explain:
+    "Den bedömer tonus och rörelse i benen. Spänd flexion eller extension kan vara ett tecken på smärta."
+  },
+  {
+    category: "Medvetandetillstånd",
+    nameAttr: "estado_consciencia",
+    options: [
+    { description: "Calmo / Dormindo", score: 0 },
+    { description: "Rastlös / obekväm", score: 1 }],
+
+    explain:
+    "Observera den nyföddas allmäntillstånd. Agitation och rastlöshet är vanliga tecken på smärta."
+  }];
+
+
+  // Preenche o formulário dinamicamente
+  nipsData.forEach((item) => {
+    const sectionDiv = document.createElement("div");
+    sectionDiv.className = "nips-criterion-section";
+    sectionDiv.id = `section-${item.nameAttr}`;
+
+    const titleH3 = document.createElement("h3");
+    titleH3.className = "nips-criterion-title";
+    titleH3.innerHTML =
+    item.category +
+    `
               <div class="text-sm font-normal text-gray-500 mt-1">${item.explain}</div>`;
-          sectionDiv.appendChild(titleH3);
+    sectionDiv.appendChild(titleH3);
 
-          const selectElement = document.createElement("select");
-          selectElement.id = item.nameAttr;
-          selectElement.className = "nips-criterion-select";
+    const selectElement = document.createElement("select");
+    selectElement.id = item.nameAttr;
+    selectElement.className = "nips-criterion-select";
 
-          const defaultOption = document.createElement("option");
-          defaultOption.value = "";
-          defaultOption.text = "Välja...";
-          selectElement.appendChild(defaultOption);
+    const defaultOption = document.createElement("option");
+    defaultOption.value = "";
+    defaultOption.text = "Välja...";
+    selectElement.appendChild(defaultOption);
 
-          item.options.forEach((option) => {
-            const optionElement = document.createElement("option");
-            optionElement.value = option.score;
-            optionElement.text = `${option.description} (poäng: ${option.score})`;
-            selectElement.appendChild(optionElement);
-          });
+    item.options.forEach((option) => {
+      const optionElement = document.createElement("option");
+      optionElement.value = option.score;
+      optionElement.text = `${option.description} (poäng: ${option.score})`;
+      selectElement.appendChild(optionElement);
+    });
 
-          sectionDiv.appendChild(selectElement);
-          conteudoDiv.appendChild(sectionDiv);
-        });
+    sectionDiv.appendChild(selectElement);
+    conteudoDiv.appendChild(sectionDiv);
+  });
 
-        function calcularNips() {
-          const selects = document.querySelectorAll("#conteudo select");
-          let allSelected = true;
-          let total = 0;
+  function calcularNips() {
+    const selects = document.querySelectorAll("#conteudo select");
+    let allSelected = true;
+    let total = 0;
 
-          selects.forEach((select) => {
-            if (select.value === "") {
-              allSelected = false;
-              select.classList.add("incomplete");
-            } else {
-              select.classList.remove("incomplete");
-              total += Number(select.value);
-            }
-          });
+    selects.forEach((select) => {
+      if (select.value === "") {
+        allSelected = false;
+        select.classList.add("incomplete");
+      } else {
+        select.classList.remove("incomplete");
+        total += Number(select.value);
+      }
+    });
 
-          resultadoDiv.style.display = "block";
-          if (!allSelected) {
-            resultadoDiv.innerHTML =
-              '⚠️ <strong class="font-bold">Por favor, selecione uma opção para todos os itens antes de calcular.</strong>';
-            resultadoDiv.classList.add("bg-red-100");
-            resultadoDiv.classList.remove("bg-blue-50");
-            delete resultadoDiv.dataset.score;
-            return;
-          }
+    resultadoDiv.style.display = "block";
+    if (!allSelected) {
+      resultadoDiv.innerHTML =
+      '⚠️ <strong class="font-bold">Por favor, selecione uma opção para todos os itens antes de calcular.</strong>';
+      resultadoDiv.classList.add("bg-red-100");
+      resultadoDiv.classList.remove("bg-blue-50");
+      delete resultadoDiv.dataset.score;
+      return;
+    }
 
-          let classificacao = "";
-          let recomendacao = "";
-          let resultadoClasse = "";
+    let classificacao = "";
+    let recomendacao = "";
+    let resultadoClasse = "";
 
-          if (total < 4) {
-            classificacao = "Avsaknad av smärta";
-            recomendacao =
-              "O escore indica ausência de dor. Continue monitorando o paciente.";
-            resultadoClasse = "bg-blue-50";
-          } else {
-            // total >= 4
-            classificacao = "Närvaro av smärta";
-            recomendacao =
-              "O escore indica presença de dor. Avalie a necessidade de intervenção e comunique o médico pediatra.";
-            resultadoClasse = "bg-red-100";
-          }
+    if (total < 4) {
+      classificacao = "Avsaknad av smärta";
+      recomendacao =
+      "Poängen indikerar ingen smärta. Fortsätt övervaka patienten.";
+      resultadoClasse = "bg-blue-50";
+    } else {
+      // total >= 4
+      classificacao = "Närvaro av smärta";
+      recomendacao =
+      "Poängen indikerar förekomst av smärta. Bedöm behovet av ingripande och meddela barnläkaren.";
+      resultadoClasse = "bg-red-100";
+    }
 
-          resultadoDiv.innerHTML = `
+    resultadoDiv.innerHTML = `
                 <p>Escore total: <strong class="font-bold">${total}</strong></p>
                 <p>Classificação: <strong class="font-bold">${classificacao}</strong></p>
                 <p class="mt-4"><strong>Recomendação:</strong> ${recomendacao}</p>
             `;
-          resultadoDiv.className = `resultado ${resultadoClasse}`;
-          resultadoDiv.style.display = "block";
+    resultadoDiv.className = `resultat ${resultadoClasse}`;
+    resultadoDiv.style.display = "block";
 
-          resultadoDiv.dataset.score = total;
-          resultadoDiv.dataset.scaleName = "Escala NIPS";
-          resultadoDiv.dataset.classificacao = classificacao;
-        }
+    resultadoDiv.dataset.score = total;
+    resultadoDiv.dataset.scaleName = "Escala NIPS";
+    resultadoDiv.dataset.classificacao = classificacao;
+  }
 
-        function limparCampos() {
-          const selects = document.querySelectorAll("#conteudo select");
-          selects.forEach((select) => {
-            select.selectedIndex = 0;
-            select.classList.remove("incomplete");
-          });
-          resultadoDiv.innerHTML = "";
-          resultadoDiv.className = "resultado hidden";
-          delete resultadoDiv.dataset.score;
-          delete resultadoDiv.dataset.scaleName;
-          delete resultadoDiv.dataset.classificacao;
-        }
+  function limparCampos() {
+    const selects = document.querySelectorAll("#conteudo select");
+    selects.forEach((select) => {
+      select.selectedIndex = 0;
+      select.classList.remove("incomplete");
+    });
+    resultadoDiv.innerHTML = "";
+    resultadoDiv.className = "dolt resultat";
+    delete resultadoDiv.dataset.score;
+    delete resultadoDiv.dataset.scaleName;
+    delete resultadoDiv.dataset.classificacao;
+  }
 
-        btnCalcular?.addEventListener("click", calcularNips);
-        btnLimpar?.addEventListener("click", limparCampos);
+  btnCalcular?.addEventListener("click", calcularNips);
+  btnLimpar?.addEventListener("click", limparCampos);
 
-        btnGerarPDF?.addEventListener("click", () => {
-          if (!resultadoDiv.dataset.score) {
-            alert(
-              'Klicka först på "Beräkna poäng" för att generera PDF-filen.',
-            );
-            return;
-          }
-          if (typeof gerarPDFGlobal === "function") {
-            gerarPDFGlobal({
-              titulo: "NIPS-skala",
-              subtitulo: "Rapport om bedömning av neonatal smärta",
-              nomeArquivo: "relatorio_escala_nips.pdf",
-              seletorConteudo: ".main-content-wrapper",
-            });
-          } else {
-            console.error("Função gerarPDFGlobal não definida.");
-          }
-        });
-
-        btnNandaNicNoc?.addEventListener("click", () => {
-          const score = resultadoDiv.dataset.score;
-          const scaleName = resultadoDiv.dataset.scaleName;
-          const classificacao = resultadoDiv.dataset.classificacao;
-          if (!score || !classificacao) {
-            alert("Beräkna resultatet för att undersöka beteendet.");
-            return;
-          }
-          const searchQuery = encodeURIComponent(
-            `cuidados enfermagem dor neonatal ${classificacao} NIPS NANDA NIC NOC`,
-          );
-          window.open(
-            `https://www.google.com/search?q=${searchQuery}`,
-            "_blank",
-          );
-        });
+  btnGerarPDF?.addEventListener("click", () => {
+    if (!resultadoDiv.dataset.score) {
+      alert(
+        'Klicka först på "Beräkna poäng" för att generera PDF-filen.'
+      );
+      return;
+    }
+    if (typeof gerarPDFGlobal === "function") {
+      gerarPDFGlobal({
+        titulo: "NIPS-skala",
+        subtitulo: "Rapport om bedömning av neonatal smärta",
+        nomeArquivo: "relatorio_escala_nips.pdf",
+        seletorConteudo: ".main-content-wrapper"
       });
-    </script>
+    } else {
+      console.error("Funktionen GeneratePDFGlobal är inte definierad.");
+    }
+  });
+
+  btnNandaNicNoc?.addEventListener("click", () => {
+    const score = resultadoDiv.dataset.score;
+    const scaleName = resultadoDiv.dataset.scaleName;
+    const classificacao = resultadoDiv.dataset.classificacao;
+    if (!score || !classificacao) {
+      alert("Beräkna resultatet för att undersöka beteendet.");
+      return;
+    }
+    const searchQuery = encodeURIComponent(
+      `cuidados enfermagem dor neonatal ${classificacao} NIPS NANDA NIC NOC`
+    );
+    window.open(
+      `https://www.google.com/search?q=${searchQuery}`,
+      "_blank"
+    );
+  });
+});</script>
 
     <script src="/lang-selector.js" defer=""></script>
 

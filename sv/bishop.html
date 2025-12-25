@@ -294,223 +294,222 @@ Välj ett alternativ för varje kriterium för att beräkna den totala poängen.
     <script src="global-scripts.js" defer=""></script>
 
     <script>
-      document.addEventListener("DOMContentLoaded", function () {
-        const resultadoDiv = document.getElementById("resultado");
-        const btnCalcular = document.getElementById("btnCalcular");
-        const btnLimpar = document.getElementById("btnLimpar");
-        const btnGerarPDF = document.getElementById("btnGerarPDF");
-        const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
-        const conteudoDiv = document.getElementById("conteudo");
+document.addEventListener("DOMContentLoaded", function () {
+  const resultadoDiv = document.getElementById("resultado");
+  const btnCalcular = document.getElementById("btnCalcular");
+  const btnLimpar = document.getElementById("btnLimpar");
+  const btnGerarPDF = document.getElementById("btnGerarPDF");
+  const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
+  const conteudoDiv = document.getElementById("conteudo");
 
-        // Dados da escala de Bishop
-        const bishopData = [
-          {
-            category: "Cervikal dilatation",
-            nameAttr: "dilatacao",
-            options: [
-              { description: "0 cm", score: 0 },
-              { description: "1–2 cm", score: 1 },
-              { description: "3–4 cm", score: 2 },
-              { description: "≥ 5 cm", score: 3 },
-            ],
-            explain:
-              "Abertura do colo do útero, medida em centímetros. Quanto maior a dilatação, maior a pontuação.",
-          },
-          {
-            category: "Cervikal utplåning",
-            nameAttr: "apagamento",
-            options: [
-              { description: "0–30 %", score: 0 },
-              { description: "40–50 %", score: 1 },
-              { description: "60–70 %", score: 2 },
-              { description: "≥ 80 %", score: 3 },
-            ],
-            explain:
-              "Afinamento e encurtamento do colo do útero em relação ao seu comprimento original. Expresso em porcentagem. Quanto maior a porcentagem, maior a pontuação.",
-          },
-          {
-            category: "Cervikal konsistens",
-            nameAttr: "consistencia",
-            options: [
-              { description: "Fast", score: 0 },
-              { description: "Genomsnitt", score: 1 },
-              { description: "Mjukgjord", score: 2 },
-            ],
-            explain:
-              "Determina a firmeza do colo do útero ao toque. Um colo mais amolecido está mais maduro e pronto para o parto.",
-          },
-          {
-            category: "Livmoderhalsens position",
-            nameAttr: "posicao",
-            options: [
-              { description: "Bakdel", score: 0 },
-              { description: "Median", score: 1 },
-              { description: "Tidigare", score: 2 },
-            ],
-            explain:
-              "Localização do colo do útero em relação ao eixo pélvico. Um colo em posição anterior indica maior maturidade.",
-          },
-          {
-            category: "Fosterpresentationsstation",
-            nameAttr: "estacao",
-            options: [
-              { description: "-3", score: 0 },
-              { description: "-2", score: 1 },
-              { description: "-1 eller 0", score: 2 },
-              { description: "+1 eller +2", score: 3 },
-            ],
-            explain:
-              "Posição da cabeça do bebê em relação às espinhas isquiáticas da pelve materna. A estação é medida em centímetros, sendo 0 o ponto de referência. Quanto mais para baixo (+), maior a pontuação.",
-          },
-        ];
+  // Dados da escala de Bishop
+  const bishopData = [
+  {
+    category: "Cervikal dilatation",
+    nameAttr: "dilatacao",
+    options: [
+    { description: "0 cm", score: 0 },
+    { description: "1–2 cm", score: 1 },
+    { description: "3–4 cm", score: 2 },
+    { description: "≥ 5 cm", score: 3 }],
 
-        // Preenche o formulário dinamicamente
-        bishopData.forEach((item) => {
-          const sectionDiv = document.createElement("div");
-          sectionDiv.className = "bishop-criterion-section";
-          sectionDiv.id = `section-${item.nameAttr}`;
+    explain:
+    "Öppning av livmoderhalsen, mätt i centimeter. Ju större utvidgning, desto högre poäng."
+  },
+  {
+    category: "Cervikal utplåning",
+    nameAttr: "apagamento",
+    options: [
+    { description: "0–30 %", score: 0 },
+    { description: "40–50 %", score: 1 },
+    { description: "60–70 %", score: 2 },
+    { description: "≥ 80 %", score: 3 }],
 
-          const titleH3 = document.createElement("h3");
-          titleH3.className = "bishop-criterion-title";
-          titleH3.innerHTML =
-            item.category +
-            `
+    explain:
+    "Förtunning och förkortning av livmoderhalsen i förhållande till dess ursprungliga längd. Uttrycks som en procentsats. Ju högre procentsats, desto högre poäng."
+  },
+  {
+    category: "Cervikal konsistens",
+    nameAttr: "consistencia",
+    options: [
+    { description: "Fast", score: 0 },
+    { description: "Genomsnitt", score: 1 },
+    { description: "Mjukgjord", score: 2 }],
+
+    explain:
+    "Den avgör hur fast livmoderhalsen är vid beröring. En mjukare livmoderhals är mer mogen och redo för förlossning."
+  },
+  {
+    category: "Livmoderhalsens position",
+    nameAttr: "posicao",
+    options: [
+    { description: "Bakdel", score: 0 },
+    { description: "Median", score: 1 },
+    { description: "Tidigare", score: 2 }],
+
+    explain:
+    "Livmoderhalsens läge i förhållande till bäckenets axel. En livmoderhals som är placerad längre fram indikerar större mognad."
+  },
+  {
+    category: "Fosterpresentationsstation",
+    nameAttr: "estacao",
+    options: [
+    { description: "-3", score: 0 },
+    { description: "-2", score: 1 },
+    { description: "-1 eller 0", score: 2 },
+    { description: "+1 eller +2", score: 3 }],
+
+    explain:
+    "Barnets huvudposition i förhållande till sittbenskotorna i moderns bäcken. Positionen mäts i centimeter, där 0 är referenspunkten. Ju längre ned (+), desto högre poäng."
+  }];
+
+
+  // Preenche o formulário dinamicamente
+  bishopData.forEach((item) => {
+    const sectionDiv = document.createElement("div");
+    sectionDiv.className = "bishop-criterion-section";
+    sectionDiv.id = `section-${item.nameAttr}`;
+
+    const titleH3 = document.createElement("h3");
+    titleH3.className = "bishop-criterion-title";
+    titleH3.innerHTML =
+    item.category +
+    `
               <div class="text-sm font-normal text-gray-500 mt-1">${item.explain}</div>`;
-          sectionDiv.appendChild(titleH3);
+    sectionDiv.appendChild(titleH3);
 
-          const selectElement = document.createElement("select");
-          selectElement.id = item.nameAttr;
-          selectElement.className = "bishop-criterion-select";
+    const selectElement = document.createElement("select");
+    selectElement.id = item.nameAttr;
+    selectElement.className = "bishop-criterion-select";
 
-          const defaultOption = document.createElement("option");
-          defaultOption.value = "";
-          defaultOption.text = "Välja...";
-          selectElement.appendChild(defaultOption);
+    const defaultOption = document.createElement("option");
+    defaultOption.value = "";
+    defaultOption.text = "Välja...";
+    selectElement.appendChild(defaultOption);
 
-          item.options.forEach((option) => {
-            const optionElement = document.createElement("option");
-            optionElement.value = option.score;
-            optionElement.text = `${option.description} (poäng: ${option.score})`;
-            selectElement.appendChild(optionElement);
-          });
+    item.options.forEach((option) => {
+      const optionElement = document.createElement("option");
+      optionElement.value = option.score;
+      optionElement.text = `${option.description} (poäng: ${option.score})`;
+      selectElement.appendChild(optionElement);
+    });
 
-          sectionDiv.appendChild(selectElement);
-          conteudoDiv.appendChild(sectionDiv);
-        });
+    sectionDiv.appendChild(selectElement);
+    conteudoDiv.appendChild(sectionDiv);
+  });
 
-        function calcularBishop() {
-          const selects = document.querySelectorAll("#conteudo select");
-          let allSelected = true;
-          let total = 0;
+  function calcularBishop() {
+    const selects = document.querySelectorAll("#conteudo select");
+    let allSelected = true;
+    let total = 0;
 
-          selects.forEach((select) => {
-            if (select.value === "") {
-              allSelected = false;
-              select.classList.add("incomplete");
-            } else {
-              select.classList.remove("incomplete");
-              total += Number(select.value);
-            }
-          });
+    selects.forEach((select) => {
+      if (select.value === "") {
+        allSelected = false;
+        select.classList.add("incomplete");
+      } else {
+        select.classList.remove("incomplete");
+        total += Number(select.value);
+      }
+    });
 
-          resultadoDiv.style.display = "block";
-          if (!allSelected) {
-            resultadoDiv.innerHTML =
-              '⚠️ <strong class="font-bold">Por favor, selecione uma opção para todos os itens antes de calcular.</strong>';
-            resultadoDiv.classList.add("bg-red-100");
-            resultadoDiv.classList.remove("bg-yellow-100", "bg-blue-50");
-            delete resultadoDiv.dataset.score;
-            return;
-          }
+    resultadoDiv.style.display = "block";
+    if (!allSelected) {
+      resultadoDiv.innerHTML =
+      '⚠️ <strong class="font-bold">Por favor, selecione uma opção para todos os itens antes de calcular.</strong>';
+      resultadoDiv.classList.add("bg-red-100");
+      resultadoDiv.classList.remove("bg-yellow-100", "bg-blue-50");
+      delete resultadoDiv.dataset.score;
+      return;
+    }
 
-          let classificacao = "";
-          let recomendacao = "";
-          let resultadoClasse = "";
+    let classificacao = "";
+    let recomendacao = "";
+    let resultadoClasse = "";
 
-          if (total < 6) {
-            classificacao = "Colo Desfavorável / Imaturo";
-            recomendacao =
-              "O colo do útero não está maduro. É provável que sejam necessários métodos de preparo cervical antes de se tentar a indução do trabalho de parto.";
-            resultadoClasse = "bg-red-100";
-          } else if (total >= 6 && total <= 7) {
-            classificacao = "Osäkerhetszon";
-            recomendacao =
-              "A indução pode ser tentada, mas o sucesso não é garantido. A monitorização cuidadosa é essencial.";
-            resultadoClasse = "bg-yellow-100";
-          } else {
-            // total >= 8
-            classificacao = "Colo Favorável / Maduro";
-            recomendacao =
-              "O colo do útero está maduro, com alta probabilidade de sucesso para a indução do parto. O parto espontâneo pode estar próximo.";
-            resultadoClasse = "bg-blue-50";
-          }
+    if (total < 6) {
+      classificacao = "Ogynnsam / omogen hals";
+      recomendacao =
+      "Livmoderhalsen är inte mogen. Det är troligt att metoder för att förbereda livmoderhalsen kommer att behövas innan man försöker sätta igång förlossningen.";
+      resultadoClasse = "bg-red-100";
+    } else if (total >= 6 && total <= 7) {
+      classificacao = "Osäkerhetszon";
+      recomendacao =
+      "Induktionsförsök kan göras, men det är inte säkert att det lyckas. Noggrann övervakning är nödvändig.";
+      resultadoClasse = "bg-yellow-100";
+    } else {
+      // total >= 8
+      classificacao = "Colo Gynnsam / mogen";
+      recomendacao =
+      "Livmoderhalsen är mogen, med stor sannolikhet för framgångsrik igångsättning av förlossningen. Spontan förlossning kan vara nära förestående.";
+      resultadoClasse = "bg-blue-50";
+    }
 
-          resultadoDiv.innerHTML = `
+    resultadoDiv.innerHTML = `
                 <p>Escore total: <strong class="font-bold">${total}</strong></p>
                 <p>Classificação: <strong class="font-bold">${classificacao}</strong></p>
                 <p class="mt-4"><strong>Recomendação:</strong> ${recomendacao}</p>
             `;
-          resultadoDiv.className = `resultado ${resultadoClasse}`;
-          resultadoDiv.style.display = "block";
+    resultadoDiv.className = `resultat ${resultadoClasse}`;
+    resultadoDiv.style.display = "block";
 
-          resultadoDiv.dataset.score = total;
-          resultadoDiv.dataset.scaleName = "Escala de Bishop";
-          resultadoDiv.dataset.classificacao = classificacao;
-        }
+    resultadoDiv.dataset.score = total;
+    resultadoDiv.dataset.scaleName = "Escala de Bishop";
+    resultadoDiv.dataset.classificacao = classificacao;
+  }
 
-        function limparCampos() {
-          const selects = document.querySelectorAll("#conteudo select");
-          selects.forEach((select) => {
-            select.selectedIndex = 0;
-            select.classList.remove("incomplete");
-          });
-          resultadoDiv.innerHTML = "";
-          resultadoDiv.className = "resultado hidden";
-          delete resultadoDiv.dataset.score;
-          delete resultadoDiv.dataset.scaleName;
-          delete resultadoDiv.dataset.classificacao;
-        }
+  function limparCampos() {
+    const selects = document.querySelectorAll("#conteudo select");
+    selects.forEach((select) => {
+      select.selectedIndex = 0;
+      select.classList.remove("incomplete");
+    });
+    resultadoDiv.innerHTML = "";
+    resultadoDiv.className = "dolt resultat";
+    delete resultadoDiv.dataset.score;
+    delete resultadoDiv.dataset.scaleName;
+    delete resultadoDiv.dataset.classificacao;
+  }
 
-        btnCalcular?.addEventListener("click", calcularBishop);
-        btnLimpar?.addEventListener("click", limparCampos);
+  btnCalcular?.addEventListener("click", calcularBishop);
+  btnLimpar?.addEventListener("click", limparCampos);
 
-        btnGerarPDF?.addEventListener("click", () => {
-          if (!resultadoDiv.dataset.score) {
-            alert(
-              'Klicka först på "Beräkna poäng" för att generera PDF-filen.',
-            );
-            return;
-          }
-          if (typeof gerarPDFGlobal === "function") {
-            gerarPDFGlobal({
-              titulo: "Biskopskala",
-              subtitulo: "Rapport om cervikal bedömning",
-              nomeArquivo: "relatorio_escala_bishop.pdf",
-              seletorConteudo: ".main-content-wrapper",
-            });
-          } else {
-            console.error("Função gerarPDFGlobal não definida.");
-          }
-        });
-
-        btnNandaNicNoc?.addEventListener("click", () => {
-          const score = resultadoDiv.dataset.score;
-          const scaleName = resultadoDiv.dataset.scaleName;
-          const classificacao = resultadoDiv.dataset.classificacao;
-          if (!score || !classificacao) {
-            alert("Beräkna resultatet för att undersöka beteendet.");
-            return;
-          }
-          const searchQuery = encodeURIComponent(
-            `${scaleName} pontuação ${score} parto ${classificacao} gerar taxonomia NANDA, gerar taxonomia NIC e gerar taxonomia de NOC`,
-          );
-          window.open(
-            `https://www.google.com/search?q=${searchQuery}`,
-            "_blank",
-          );
-        });
+  btnGerarPDF?.addEventListener("click", () => {
+    if (!resultadoDiv.dataset.score) {
+      alert(
+        'Klicka först på "Beräkna poäng" för att generera PDF-filen.'
+      );
+      return;
+    }
+    if (typeof gerarPDFGlobal === "function") {
+      gerarPDFGlobal({
+        titulo: "Biskopskala",
+        subtitulo: "Rapport om cervikal bedömning",
+        nomeArquivo: "relatorio_escala_bishop.pdf",
+        seletorConteudo: ".main-content-wrapper"
       });
-    </script>
+    } else {
+      console.error("Funktionen GeneratePDFGlobal är inte definierad.");
+    }
+  });
+
+  btnNandaNicNoc?.addEventListener("click", () => {
+    const score = resultadoDiv.dataset.score;
+    const scaleName = resultadoDiv.dataset.scaleName;
+    const classificacao = resultadoDiv.dataset.classificacao;
+    if (!score || !classificacao) {
+      alert("Beräkna resultatet för att undersöka beteendet.");
+      return;
+    }
+    const searchQuery = encodeURIComponent(
+      `${scaleName} poäng ${score} parto ${classificacao} gerar taxonomia NANDA, gerar taxonomia NIC e gerar taxonomia de NOC`
+    );
+    window.open(
+      `https://www.google.com/search?q=${searchQuery}`,
+      "_blank"
+    );
+  });
+});</script>
 
     <script src="/lang-selector.js" defer=""></script>
 

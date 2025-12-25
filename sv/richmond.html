@@ -375,154 +375,153 @@
     <script src="/global-scripts.js" defer=""></script>
 
     <script>
-      document.addEventListener("DOMContentLoaded", () => {
-        const resultadoDiv = document.getElementById("resultado");
-        const btnCalcular = document.getElementById("btnCalcular");
-        const btnLimpar = document.getElementById("btnLimpar");
-        const btnGerarPDF = document.getElementById("btnGerarPDF");
-        const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
-        const tabelaRASS = document.getElementById("tabelaRASS");
-        let scoreSelecionado = null;
-        let interpretacaoSelecionada = null;
+document.addEventListener("DOMContentLoaded", () => {
+  const resultadoDiv = document.getElementById("resultado");
+  const btnCalcular = document.getElementById("btnCalcular");
+  const btnLimpar = document.getElementById("btnLimpar");
+  const btnGerarPDF = document.getElementById("btnGerarPDF");
+  const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
+  const tabelaRASS = document.getElementById("tabelaRASS");
+  let scoreSelecionado = null;
+  let interpretacaoSelecionada = null;
 
-        // Dados da escala de Richmond
-        const rassData = [
-          {
-            score: "+4",
-            description:
-              "Mycket upprörd: Aggressiv, farlig för sig själva och andra.",
-          },
-          {
-            score: "+3",
-            description:
-              "Agitado: Puxa ou remove tubos/cateteres, comportamento combativo.",
-          },
-          {
-            score: "+2",
-            description:
-              "Mycket rastlös: Frekventa och okoordinerade rörelser, utan aggression.",
-          },
-          {
-            score: "+1",
-            description: "Rastlös: Orolig, med icke-aggressiva rörelser.",
-          },
-          { score: "0", description: "Vaken och lugn: Det ideala tillståndet." },
-          {
-            score: "-1",
-            description:
-              "Sömnig: Vaknar i >10 sekunder, ihållande ögonkontakt.",
-          },
-          { score: "-2", description: "Mild sedering: Kort ögonkontakt." },
-          {
-            score: "-3",
-            description: "Måttlig sedering: Rör sig utan att göra ögonkontakt.",
-          },
-          {
-            score: "-4",
-            description: "Djupsedering: Reagerar på smärtsamma stimuli.",
-          },
-          {
-            score: "-5",
-            description: "Ingen respons: Ingen respons på stimuli.",
-          },
-        ];
+  // Dados da escala de Richmond
+  const rassData = [
+  {
+    score: "+4",
+    description:
+    "Mycket upprörd: Aggressiv, farlig för sig själva och andra."
+  },
+  {
+    score: "+3",
+    description:
+    "Agitado: Puxa ou remove tubos/cateteres, comportamento combativo."
+  },
+  {
+    score: "+2",
+    description:
+    "Mycket rastlös: Frekventa och okoordinerade rörelser, utan aggression."
+  },
+  {
+    score: "+1",
+    description: "Rastlös: Orolig, med icke-aggressiva rörelser."
+  },
+  { score: "0", description: "Vaken och lugn: Det ideala tillståndet." },
+  {
+    score: "-1",
+    description:
+    "Sömnig: Vaknar i >10 sekunder, ihållande ögonkontakt."
+  },
+  { score: "-2", description: "Mild sedering: Kort ögonkontakt." },
+  {
+    score: "-3",
+    description: "Måttlig sedering: Rör sig utan att göra ögonkontakt."
+  },
+  {
+    score: "-4",
+    description: "Djupsedering: Reagerar på smärtsamma stimuli."
+  },
+  {
+    score: "-5",
+    description: "Ingen respons: Ingen respons på stimuli."
+  }];
 
-        // Adiciona event listeners para a seleção das linhas da tabela
-        tabelaRASS?.addEventListener("click", function (e) {
-          const targetRow = e.target.closest("tr");
-          if (targetRow) {
-            tabelaRASS
-              .querySelectorAll("tr")
-              .forEach((row) => row.classList.remove("selected"));
-            targetRow.classList.add("selected");
-            scoreSelecionado = targetRow.getAttribute("data-score");
-            interpretacaoSelecionada = targetRow.cells[1].textContent.trim();
-          }
-        });
 
-        function calcularRASS() {
-          if (scoreSelecionado === null) {
-            resultadoDiv.innerHTML =
-              '⚠️ <strong class="font-bold">Por favor, selecione um nível da escala</strong> antes de continuar.';
-            resultadoDiv.className = "resultado bg-info-orange-light";
-            resultadoDiv.style.display = "block";
-            delete resultadoDiv.dataset.score;
-            return;
-          }
+  // Adiciona event listeners para a seleção das linhas da tabela
+  tabelaRASS?.addEventListener("click", function (e) {
+    const targetRow = e.target.closest("tr");
+    if (targetRow) {
+      tabelaRASS.
+      querySelectorAll("tr").
+      forEach((row) => row.classList.remove("selected"));
+      targetRow.classList.add("selected");
+      scoreSelecionado = targetRow.getAttribute("data-score");
+      interpretacaoSelecionada = targetRow.cells[1].textContent.trim();
+    }
+  });
 
-          let resultadoClasses = "";
-          if (parseInt(scoreSelecionado) >= 2) {
-            resultadoClasses = "bg-danger-red-light";
-          } else if (
-            parseInt(scoreSelecionado) >= -3 &&
-            parseInt(scoreSelecionado) <= 1
-          ) {
-            resultadoClasses = "bg-warning-yellow-light";
-          } else {
-            // Score -4 ou -5
-            resultadoClasses = "bg-danger-red-light";
-          }
+  function calcularRASS() {
+    if (scoreSelecionado === null) {
+      resultadoDiv.innerHTML =
+      '⚠️ <strong class="font-bold">Por favor, selecione um nível da escala</strong> antes de continuar.';
+      resultadoDiv.className = "bg-info-orange-ljus resultat";
+      resultadoDiv.style.display = "block";
+      delete resultadoDiv.dataset.score;
+      return;
+    }
 
-          resultadoDiv.innerHTML = `<p>Pontuação RASS: <strong class="font-bold">${scoreSelecionado}</strong></p><p>Interpretação: <strong class="font-bold">${interpretacaoSelecionada}</strong></p>`;
-          resultadoDiv.className = `resultado ${resultadoClasses}`;
-          resultadoDiv.style.display = "block";
+    let resultadoClasses = "";
+    if (parseInt(scoreSelecionado) >= 2) {
+      resultadoClasses = "bg-danger-red-light";
+    } else if (
+    parseInt(scoreSelecionado) >= -3 &&
+    parseInt(scoreSelecionado) <= 1)
+    {
+      resultadoClasses = "bg-warning-yellow-light";
+    } else {
+      // Score -4 ou -5
+      resultadoClasses = "bg-danger-red-light";
+    }
 
-          resultadoDiv.dataset.score = scoreSelecionado;
-          resultadoDiv.dataset.classificacao = interpretacaoSelecionada;
-          resultadoDiv.dataset.scaleName = "Escala de Richmond (RASS)";
-        }
+    resultadoDiv.innerHTML = `<p>Pontuação RASS: <strong class="font-bold">${scoreSelecionado}</strong></p><p>Interpretação: <strong class="font-bold">${interpretacaoSelecionada}</strong></p>`;
+    resultadoDiv.className = `resultat ${resultadoClasses}`;
+    resultadoDiv.style.display = "block";
 
-        function limparCampos() {
-          tabelaRASS
-            .querySelectorAll("tr")
-            .forEach((row) => row.classList.remove("selected"));
-          scoreSelecionado = null;
-          interpretacaoSelecionada = null;
-          resultadoDiv.innerHTML = "";
-          resultadoDiv.className = "resultado hidden";
-          delete resultadoDiv.dataset.score;
-          delete resultadoDiv.dataset.classificacao;
-          delete resultadoDiv.dataset.scaleName;
-        }
+    resultadoDiv.dataset.score = scoreSelecionado;
+    resultadoDiv.dataset.classificacao = interpretacaoSelecionada;
+    resultadoDiv.dataset.scaleName = "Escala de Richmond (RASS)";
+  }
 
-        btnCalcular?.addEventListener("click", calcularRASS);
-        btnLimpar?.addEventListener("click", limparCampos);
+  function limparCampos() {
+    tabelaRASS.
+    querySelectorAll("tr").
+    forEach((row) => row.classList.remove("selected"));
+    scoreSelecionado = null;
+    interpretacaoSelecionada = null;
+    resultadoDiv.innerHTML = "";
+    resultadoDiv.className = "dolt resultat";
+    delete resultadoDiv.dataset.score;
+    delete resultadoDiv.dataset.classificacao;
+    delete resultadoDiv.dataset.scaleName;
+  }
 
-        btnGerarPDF?.addEventListener("click", () => {
-          if (!resultadoDiv.dataset.score) {
-            alert('Klicka först på "Beräkna" för att generera PDF-filen.');
-            return;
-          }
-          if (typeof gerarPDFGlobal === "function") {
-            gerarPDFGlobal({
-              titulo: "Richmond Achievement Scale (RASS)",
-              subtitulo: "Rapport om bedömning av agitation och sedering",
-              nomeArquivo: "relatorio_escala_richmond.pdf",
-              seletorConteudo: ".main-content-wrapper",
-            });
-          } else {
-            console.error("Função gerarPDFGlobal não definida.");
-          }
-        });
+  btnCalcular?.addEventListener("click", calcularRASS);
+  btnLimpar?.addEventListener("click", limparCampos);
 
-        btnNandaNicNoc?.addEventListener("click", () => {
-          const score = resultadoDiv.dataset.score;
-          const scaleName = resultadoDiv.dataset.scaleName;
-          const classificacao = resultadoDiv.dataset.classificacao;
-          if (!score || !classificacao) {
-            alert("Beräkna resultatet för att undersöka beteendet.");
-            return;
-          }
-          const searchQuery = encodeURIComponent(
-            `${scaleName} pontuação ${score} classificação ${classificacao} gerar taxonomia NANDA, gerar taxonomia NIC e gerar taxonomia de NOC`,
-          );
-          window.open(
-            `https://www.google.com/search?q=${searchQuery}`,
-            "_blank",
-          );
-        });
+  btnGerarPDF?.addEventListener("click", () => {
+    if (!resultadoDiv.dataset.score) {
+      alert('Klicka först på "Beräkna" för att generera PDF-filen.');
+      return;
+    }
+    if (typeof gerarPDFGlobal === "function") {
+      gerarPDFGlobal({
+        titulo: "Richmond Achievement Scale (RASS)",
+        subtitulo: "Rapport om bedömning av agitation och sedering",
+        nomeArquivo: "relatorio_escala_richmond.pdf",
+        seletorConteudo: ".main-content-wrapper"
       });
-    </script>
+    } else {
+      console.error("Funktionen GeneratePDFGlobal är inte definierad.");
+    }
+  });
+
+  btnNandaNicNoc?.addEventListener("click", () => {
+    const score = resultadoDiv.dataset.score;
+    const scaleName = resultadoDiv.dataset.scaleName;
+    const classificacao = resultadoDiv.dataset.classificacao;
+    if (!score || !classificacao) {
+      alert("Beräkna resultatet för att undersöka beteendet.");
+      return;
+    }
+    const searchQuery = encodeURIComponent(
+      `${scaleName} poäng ${score} Klassificering ${classificacao} gerar taxonomia NANDA, gerar taxonomia NIC e gerar taxonomia de NOC`
+    );
+    window.open(
+      `https://www.google.com/search?q=${searchQuery}`,
+      "_blank"
+    );
+  });
+});</script>
 
     <script src="/lang-selector.js" defer=""></script>
 

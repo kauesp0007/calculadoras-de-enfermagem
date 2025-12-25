@@ -275,66 +275,66 @@ Barnläkare.</p>
     <script src="global-scripts.js" defer=""></script>
 
     <script>
-      document.addEventListener("DOMContentLoaded", function () {
-        const resultadoDiv = document.getElementById("resultado");
-        const conteudoDiv = document.getElementById("conteudo");
-        const btnCalcular = document.getElementById("btnCalcular");
-        const btnLimpar = document.getElementById("btnLimpar");
+document.addEventListener("DOMContentLoaded", function () {
+  const resultadoDiv = document.getElementById("resultado");
+  const conteudoDiv = document.getElementById("conteudo");
+  const btnCalcular = document.getElementById("btnCalcular");
+  const btnLimpar = document.getElementById("btnLimpar");
 
-        const flaccData = [
-          {
-            id: "face",
-            title: "Ansikte",
-            options: [
-              { score: 0, text: "Inget uttryck eller leende" },
-              { score: 1, text: "Grimaser, rynkade ögonbryn" },
-              { score: 2, text: "Käken darrade, käken var sammanbiten." },
-            ],
-          },
-          {
-            id: "legs",
-            title: "Ben",
-            options: [
-              { score: 0, text: "Normal eller avslappnad" },
-              { score: 1, text: "Rastlös, upprörd, spänd" },
-              { score: 2, text: "Sparka eller sträcka sig" },
-            ],
-          },
-          {
-            id: "activity",
-            title: "Aktivitet",
-            options: [
-              { score: 0, text: "Tyst, rör sig lätt" },
-              { score: 1, text: "Vridande, spänd" },
-              { score: 2, text: "Böjd, stel eller med abrupta rörelser." },
-            ],
-          },
-          {
-            id: "cry",
-            title: "Gråt (Choro)",
-            options: [
-              { score: 0, text: "Ingen gråt" },
-              { score: 1, text: "Stön, enstaka klagomål" },
-              { score: 2, text: "Ständigt gråt, skrik" },
-            ],
-          },
-          {
-            id: "consolability",
-            title: "Tröstbarhet",
-            options: [
-              { score: 0, text: "Nöjd, avslappnad" },
-              { score: 1, text: "Tranquilizada por toques/abraços" },
-              { score: 2, text: "Svårt att trösta" },
-            ],
-          },
-        ];
+  const flaccData = [
+  {
+    id: "face",
+    title: "Ansikte",
+    options: [
+    { score: 0, text: "Inget uttryck eller leende" },
+    { score: 1, text: "Grimaser, rynkade ögonbryn" },
+    { score: 2, text: "Käken darrade, käken var sammanbiten." }]
 
-        function createForm() {
-          conteudoDiv.innerHTML = "";
-          flaccData.forEach((criterion) => {
-            const card = document.createElement("div");
-            card.className = "criterion-card";
-            card.innerHTML = `
+  },
+  {
+    id: "legs",
+    title: "Ben",
+    options: [
+    { score: 0, text: "Normal eller avslappnad" },
+    { score: 1, text: "Rastlös, upprörd, spänd" },
+    { score: 2, text: "Sparka eller sträcka sig" }]
+
+  },
+  {
+    id: "activity",
+    title: "Aktivitet",
+    options: [
+    { score: 0, text: "Tyst, rör sig lätt" },
+    { score: 1, text: "Vridande, spänd" },
+    { score: 2, text: "Böjd, stel eller med abrupta rörelser." }]
+
+  },
+  {
+    id: "cry",
+    title: "Gråt (Choro)",
+    options: [
+    { score: 0, text: "Ingen gråt" },
+    { score: 1, text: "Stön, enstaka klagomål" },
+    { score: 2, text: "Ständigt gråt, skrik" }]
+
+  },
+  {
+    id: "consolability",
+    title: "Tröstbarhet",
+    options: [
+    { score: 0, text: "Nöjd, avslappnad" },
+    { score: 1, text: "Lugnas av beröring/kramar" },
+    { score: 2, text: "Svårt att trösta" }]
+
+  }];
+
+
+  function createForm() {
+    conteudoDiv.innerHTML = "";
+    flaccData.forEach((criterion) => {
+      const card = document.createElement("div");
+      card.className = "criterion-card";
+      card.innerHTML = `
                     <h3 class="criterion-title">${criterion.title}</h3>
                     <div class="options-container">
                         <select id="${criterion.id}-select" class="custom-select">
@@ -343,66 +343,65 @@ Barnläkare.</p>
                         </select>
                     </div>
                 `;
-            conteudoDiv.appendChild(card);
-          });
-        }
+      conteudoDiv.appendChild(card);
+    });
+  }
 
-        function calcular() {
-          let total = 0;
-          let allSelected = true;
+  function calcular() {
+    let total = 0;
+    let allSelected = true;
 
-          flaccData.forEach((criterion) => {
-            const select = document.getElementById(`${criterion.id}-select`);
-            if (select && select.value) {
-              total += parseInt(select.value, 10);
-            } else {
-              allSelected = false;
-            }
-          });
+    flaccData.forEach((criterion) => {
+      const select = document.getElementById(`${criterion.id}-select`);
+      if (select && select.value) {
+        total += parseInt(select.value, 10);
+      } else {
+        allSelected = false;
+      }
+    });
 
-          if (!allSelected) {
-            resultadoDiv.innerHTML =
-              '⚠️ <strong class="font-bold">Por favor, selecione uma opção para cada critério.</strong>';
-            resultadoDiv.className = "standard-result-box bg-info-orange-light";
-            resultadoDiv.style.display = "block";
-            delete resultadoDiv.dataset.score;
-            return;
-          }
+    if (!allSelected) {
+      resultadoDiv.innerHTML =
+      '⚠️ <strong class="font-bold">Por favor, selecione uma opção para cada critério.</strong>';
+      resultadoDiv.className = "standard-result-box bg-info-orange-light";
+      resultadoDiv.style.display = "block";
+      delete resultadoDiv.dataset.score;
+      return;
+    }
 
-          let conduta = "";
-          if (total === 0) {
-            conduta = "Ingen smärta";
-          } else if (total <= 3) {
-            conduta = "Lindrig smärta";
-          } else if (total <= 6) {
-            conduta = "Måttlig smärta";
-          } else {
-            conduta = "Intensiv smärta";
-          }
+    let conduta = "";
+    if (total === 0) {
+      conduta = "Ingen smärta";
+    } else if (total <= 3) {
+      conduta = "Lindrig smärta";
+    } else if (total <= 6) {
+      conduta = "Måttlig smärta";
+    } else {
+      conduta = "Intensiv smärta";
+    }
 
-          resultadoDiv.innerHTML = `
+    resultadoDiv.innerHTML = `
                 <p class="font-bold text-lg">Pontuação total: <span class="font-black">${total}/10</span></p>
                 <p class="font-bold text-lg">Interpretação: <span class="font-black">${conduta}</span></p>
             `;
-          resultadoDiv.className = "standard-result-box";
-          resultadoDiv.style.display = "block";
-          resultadoDiv.dataset.score = total;
-          resultadoDiv.dataset.conduta = conduta;
-        }
+    resultadoDiv.className = "standard-result-box";
+    resultadoDiv.style.display = "block";
+    resultadoDiv.dataset.score = total;
+    resultadoDiv.dataset.conduta = conduta;
+  }
 
-        function limpar() {
-          createForm();
-          resultadoDiv.innerHTML = "";
-          resultadoDiv.className = "hidden";
-          delete resultadoDiv.dataset.score;
-          delete resultadoDiv.dataset.conduta;
-        }
+  function limpar() {
+    createForm();
+    resultadoDiv.innerHTML = "";
+    resultadoDiv.className = "hidden";
+    delete resultadoDiv.dataset.score;
+    delete resultadoDiv.dataset.conduta;
+  }
 
-        createForm();
-        btnCalcular?.addEventListener("click", calcular);
-        btnLimpar?.addEventListener("click", limpar);
-      });
-    </script>
+  createForm();
+  btnCalcular?.addEventListener("click", calcular);
+  btnLimpar?.addEventListener("click", limpar);
+});</script>
 
     <script src="/lang-selector.js" defer=""></script>
 
