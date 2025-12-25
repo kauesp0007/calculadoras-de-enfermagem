@@ -521,157 +521,155 @@
 
     <!-- Scripts Traduzidos -->
     <script>
-        // Função para carregar HTML modular
-        // Modificado para garantir que fetchHTML retorne uma Promise
+// Função para carregar HTML modular
+// Modificado para garantir que fetchHTML retorne uma Promise
 function fetchHTML(url, id) {
-  return fetch(url)
-    .then(r => r.text())
-    .then(html => {
-      const el = document.getElementById(id);
-      if (el) el.innerHTML = html;
-    });
+  return fetch(url).
+  then((r) => r.text()).
+  then((html) => {
+    const el = document.getElementById(id);
+    if (el) el.innerHTML = html;
+  });
 }
 
 document.addEventListener("DOMContentLoaded", () => {
   // Carrega menu global
   fetchHTML("/menu-global.html", "global-header-container");
-  fetchHTML("/_language_selector.html", "language-dropdown-wrapper")
+  fetchHTML("/_language_selector.html", "language-dropdown-wrapper");
   fetchHTML("/footer.html", "footer-placeholder");
   fetchHTML("/global-body-elements.html", "global-body-elements-container");
 });
 
-  
-          const resultadoDiv = document.getElementById("resultado");
-          const btnCalcular = document.getElementById("btnCalcular");
-          const btnLimpar = document.getElementById("btnLimpar");
-          const btnGerarPDF = document.getElementById("btnGerarPDF");
-          const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
-  
-          function calcularGotejamento() {
-            const volumeInput = document.getElementById("volume");
-            const tempoInput = document.getElementById("tempo");
-            const unidadeTempo = document.getElementById("unidadeTempo").value;
-            const equipo = document.getElementById("equipo").value;
-  
-            let hasError = false;
-            const volume = parseFloat(volumeInput.value);
-            const tempo = parseFloat(tempoInput.value);
-  
-            document.getElementById("volume-error").classList.add("hidden");
-            document.getElementById("tempo-error").classList.add("hidden");
-  
-            if (isNaN(volume) || volume <= 0) {
-              document.getElementById("volume-error").textContent =
-                "Por favor, insira um volume válido maior que zero.";
-              document.getElementById("volume-error").classList.remove("hidden");
-              hasError = true;
-            }
-            if (isNaN(tempo) || tempo <= 0) {
-              document.getElementById("tempo-error").textContent =
-                "Por favor, insira um tempo válido maior que zero.";
-              document.getElementById("tempo-error").classList.remove("hidden");
-              hasError = true;
-            }
-  
-            if (hasError) {
-              resultadoDiv.style.display = "block";
-              resultadoDiv.innerHTML =
-                '⚠️ <strong class="font-bold">Por favor, corrija os valores inválidos.</strong>';
-              resultadoDiv.className =
-                "resultado-container bg-info-orange-light";
-              delete resultadoDiv.dataset.gotasPorMinuto;
-              return;
-            }
-  
-            let gotasPorMinuto;
-            let fatorGotejamento;
-  
-            if (equipo === "macrogotas") {
-              fatorGotejamento = 20;
-            } else {
-              fatorGotejamento = 60;
-            }
-  
-            let tempoEmMinutos = unidadeTempo === "horas" ? tempo * 60 : tempo;
-            gotasPorMinuto = (volume * fatorGotejamento) / tempoEmMinutos;
-  
-            const gotasArredondadas = Math.round(gotasPorMinuto);
-            const equipoTexto = equipo === "macrogotas" ? "Macrogotas" : "Microgotas";
-            
-            // Texto para exibir se é horas ou minutos no resultado
-            const unidadeTexto = unidadeTempo === "horas" ? "horas" : "minutos";
-  
-            // Formatação do Resultado em Português
-            const resultadoTexto = `
+
+const resultadoDiv = document.getElementById("resultado");
+const btnCalcular = document.getElementById("btnCalcular");
+const btnLimpar = document.getElementById("btnLimpar");
+const btnGerarPDF = document.getElementById("btnGerarPDF");
+const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
+
+function calcularGotejamento() {
+  const volumeInput = document.getElementById("volume");
+  const tempoInput = document.getElementById("tempo");
+  const unidadeTempo = document.getElementById("unidadeTempo").value;
+  const equipo = document.getElementById("equipo").value;
+
+  let hasError = false;
+  const volume = parseFloat(volumeInput.value);
+  const tempo = parseFloat(tempoInput.value);
+
+  document.getElementById("volume-error").classList.add("hidden");
+  document.getElementById("tempo-error").classList.add("hidden");
+
+  if (isNaN(volume) || volume <= 0) {
+    document.getElementById("volume-error").textContent =
+    "Будь ласка, введіть дійсний об'єм, більший за нуль.";
+    document.getElementById("volume-error").classList.remove("hidden");
+    hasError = true;
+  }
+  if (isNaN(tempo) || tempo <= 0) {
+    document.getElementById("tempo-error").textContent =
+    "Будь ласка, введіть дійсний час, більший за нуль.";
+    document.getElementById("tempo-error").classList.remove("hidden");
+    hasError = true;
+  }
+
+  if (hasError) {
+    resultadoDiv.style.display = "block";
+    resultadoDiv.innerHTML =
+    '⚠️ <strong class="font-bold">Por favor, corrija os valores inválidos.</strong>';
+    resultadoDiv.className =
+    "result-container bg-info-orange-light";
+    delete resultadoDiv.dataset.gotasPorMinuto;
+    return;
+  }
+
+  let gotasPorMinuto;
+  let fatorGotejamento;
+
+  if (equipo === "macrogotas") {
+    fatorGotejamento = 20;
+  } else {
+    fatorGotejamento = 60;
+  }
+
+  let tempoEmMinutos = unidadeTempo === "horas" ? tempo * 60 : tempo;
+  gotasPorMinuto = volume * fatorGotejamento / tempoEmMinutos;
+
+  const gotasArredondadas = Math.round(gotasPorMinuto);
+  const equipoTexto = equipo === "macrogotas" ? "Macrogotas" : "Microgotas";
+
+  // Texto para exibir se é horas ou minutos no resultado
+  const unidadeTexto = unidadeTempo === "horas" ? "horas" : "minutos";
+
+  // Formatação do Resultado em Português
+  const resultadoTexto = `
                 <p>
-                    <strong>Resultado final:</strong> ${volume} ml de solução prescrita para infundir em ${tempo} ${unidadeTexto} deve correr a: <br>
+                    <strong>Resultado final:</strong> ${volume} мл призначеного розчину, який потрібно влити в ${tempo} ${unidadeTexto} deve correr a: <br>
                     <strong>${gotasArredondadas} gotas/minuto</strong>.
                 </p>
             `;
-  
-            resultadoDiv.innerHTML = resultadoTexto;
-            resultadoDiv.className = "resultado-container"; 
-            resultadoDiv.style.display = "block";
-  
-            resultadoDiv.dataset.gotasPorMinuto = gotasArredondadas;
-            resultadoDiv.dataset.equipo = equipoTexto;
-            resultadoDiv.dataset.scaleName = "Cálculo de Gotejamento";
-          }
-  
-          function limparCampos() {
-            document.getElementById("volume").value = "";
-            document.getElementById("tempo").value = "";
-            document.getElementById("unidadeTempo").value = "horas";
-            document.getElementById("equipo").value = "macrogotas";
-            resultadoDiv.innerHTML = "";
-            resultadoDiv.style.display = "none";
-            document.getElementById("volume-error").classList.add("hidden");
-            document.getElementById("tempo-error").classList.add("hidden");
-            delete resultadoDiv.dataset.gotasPorMinuto;
-            delete resultadoDiv.dataset.equipo;
-            delete resultadoDiv.dataset.scaleName;
-          }
-  
-          btnCalcular?.addEventListener("click", calcularGotejamento);
-          btnLimpar?.addEventListener("click", limparCampos);
-  
-          btnGerarPDF?.addEventListener("click", () => {
-            if (!resultadoDiv.dataset.gotasPorMinuto) {
-              alert(
-                'Por favor, clique em "Calcular" primeiro para gerar o PDF.',
-              );
-              return;
-            }
-            if (typeof gerarPDFGlobal === "function") {
-              gerarPDFGlobal({
-                titulo: "Cálculo de Gotejamento",
-                subtitulo: "Relatório de Dosagem de Gotejamento",
-                nomeArquivo: "relatorio_gotejamento.pdf",
-                seletorConteudo: ".main-content-wrapper",
-              });
-            } else {
-              console.error("Função gerarPDFGlobal não definida.");
-            }
-          });
-  
-          btnNandaNicNoc?.addEventListener("click", () => {
-            const gotasPorMinuto = resultadoDiv.dataset.gotasPorMinuto;
-            const equipo = resultadoDiv.dataset.equipo;
-            const scaleName = resultadoDiv.dataset.scaleName;
-            if (!gotasPorMinuto || !equipo) {
-              alert("Calcule o resultado para buscar a conduta.");
-              return;
-            }
-            const searchQuery = encodeURIComponent(
-              `${scaleName} resultado ${gotasPorMinuto} gotas/minuto, equipo ${equipo} gerar taxonomia NANDA, gerar taxonomia NIC e gerar taxonomia NOC`,
-            );
-            window.open(
-              `https://www.google.com/search?q=${searchQuery}`,
-              "_blank",
-            );
-          });
-        
-      </script>
+
+  resultadoDiv.innerHTML = resultadoTexto;
+  resultadoDiv.className = "result-контейнер";
+  resultadoDiv.style.display = "block";
+
+  resultadoDiv.dataset.gotasPorMinuto = gotasArredondadas;
+  resultadoDiv.dataset.equipo = equipoTexto;
+  resultadoDiv.dataset.scaleName = "Розрахунок крапельного зрошення";
+}
+
+function limparCampos() {
+  document.getElementById("volume").value = "";
+  document.getElementById("tempo").value = "";
+  document.getElementById("unidadeTempo").value = "horas";
+  document.getElementById("equipo").value = "macrogotas";
+  resultadoDiv.innerHTML = "";
+  resultadoDiv.style.display = "none";
+  document.getElementById("volume-error").classList.add("hidden");
+  document.getElementById("tempo-error").classList.add("hidden");
+  delete resultadoDiv.dataset.gotasPorMinuto;
+  delete resultadoDiv.dataset.equipo;
+  delete resultadoDiv.dataset.scaleName;
+}
+
+btnCalcular?.addEventListener("click", calcularGotejamento);
+btnLimpar?.addEventListener("click", limparCampos);
+
+btnGerarPDF?.addEventListener("click", () => {
+  if (!resultadoDiv.dataset.gotasPorMinuto) {
+    alert(
+      "Будь ласка, спочатку натисніть \"Розрахувати\", щоб згенерувати PDF-файл."
+    );
+    return;
+  }
+  if (typeof gerarPDFGlobal === "function") {
+    gerarPDFGlobal({
+      titulo: "Розрахунок крапельного зрошення",
+      subtitulo: "Звіт про крапельне дозування",
+      nomeArquivo: "relatorio_gotejamento.pdf",
+      seletorConteudo: ".main-content-wrapper"
+    });
+  } else {
+    console.error("Функція GeneratePDFGlobal не визначена.");
+  }
+});
+
+btnNandaNicNoc?.addEventListener("click", () => {
+  const gotasPorMinuto = resultadoDiv.dataset.gotasPorMinuto;
+  const equipo = resultadoDiv.dataset.equipo;
+  const scaleName = resultadoDiv.dataset.scaleName;
+  if (!gotasPorMinuto || !equipo) {
+    alert("Обчисліть результат, щоб визначити, як діяти далі.");
+    return;
+  }
+  const searchQuery = encodeURIComponent(
+    `${scaleName} результат ${gotasPorMinuto} gotas/minuto, equipo ${equipo} gerar taxonomia NANDA, gerar taxonomia NIC e gerar taxonomia NOC`
+  );
+  window.open(
+    `https://www.google.com/search?q=${searchQuery}`,
+    "_blank"
+  );
+});</script>
 
     <script src="/lang-selector.js" defer=""></script>
     <script src="/global-scripts.js" defer=""></script>

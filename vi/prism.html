@@ -312,250 +312,249 @@ Có sẵn tại:<a href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3924376/" 
     <script src="global-scripts.js" defer=""></script>
 
     <script>
-      document.addEventListener("DOMContentLoaded", () => {
-        const resultadoDiv = document.getElementById("resultado");
-        const btnCalcular = document.getElementById("btnCalcular");
-        const btnLimpar = document.getElementById("btnLimpar");
-        const btnGerarPDF = document.getElementById("btnGerarPDF");
-        const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
-        const conteudoDiv = document.getElementById("conteudo");
+document.addEventListener("DOMContentLoaded", () => {
+  const resultadoDiv = document.getElementById("resultado");
+  const btnCalcular = document.getElementById("btnCalcular");
+  const btnLimpar = document.getElementById("btnLimpar");
+  const btnGerarPDF = document.getElementById("btnGerarPDF");
+  const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
+  const conteudoDiv = document.getElementById("conteudo");
 
-        const prismData = [
-          {
-            domain: "Escala de Coma de Glasgow (GCS)",
-            nameAttr: "gcs",
-            options: [
-              { text: "15", score: 0 },
-              { text: "13-14", score: 1 },
-              { text: "10-12", score: 2 },
-              { text: "7-9", score: 3 },
-              { text: "< 7", score: 4 },
-            ],
-          },
-          {
-            domain: "Frequência Cardíaca (FC - bpm)",
-            nameAttr: "fc",
-            options: [
-              { text: "70-160", score: 0 },
-              { text: "161-180 ou 60-69", score: 1 },
-              { text: "181-200 ou 50-59", score: 2 },
-              { text: "> 200 ou < 50", score: 4 },
-            ],
-          },
-          {
-            domain: "Pressão Arterial Sistólica (PAS - mmHg)",
-            nameAttr: "pas",
-            options: [
-              { text: "80-110", score: 0 },
-              { text: "111-120 ou 70-79", score: 1 },
-              { text: "121-130 ou 60-69", score: 2 },
-              { text: "> 130 ou < 60", score: 4 },
-            ],
-          },
-          {
-            domain: "Frequência Respiratória (FR - rpm)",
-            nameAttr: "fr",
-            options: [
-              { text: "15-40", score: 0 },
-              { text: "41-50 ou 10-14", score: 1 },
-              { text: "51-60 ou 6-9", score: 2 },
-              { text: "> 60 ou < 6", score: 4 },
-            ],
-          },
-          {
-            domain: "Temperatura (°C)",
-            nameAttr: "temp",
-            options: [
-              { text: "36.0-37.5", score: 0 },
-              { text: "37.6-38.0 ou 35.5-35.9", score: 1 },
-              { text: "38.1-39.0 ou 34.0-35.4", score: 2 },
-              { text: "> 39.0 ou < 34.0", score: 4 },
-            ],
-          },
-          {
-            domain: "pH Arterial",
-            nameAttr: "ph",
-            options: [
-              { text: "7.35-7.45", score: 0 },
-              { text: "7.30-7.34 ou 7.46-7.50", score: 1 },
-              { text: "7.20-7.29 ou 7.51-7.60", score: 2 },
-              { text: "< 7.20 ou > 7.60", score: 4 },
-            ],
-          },
-          {
-            domain: "Glicose (mg/dL)",
-            nameAttr: "glicose",
-            options: [
-              { text: "70-150", score: 0 },
-              { text: "151-200 ou 50-69", score: 1 },
-              { text: "201-300 ou 30-49", score: 2 },
-              { text: "> 300 ou < 30", score: 4 },
-            ],
-          },
-        ];
+  const prismData = [
+  {
+    domain: "Escala de Coma de Glasgow (GCS)",
+    nameAttr: "gcs",
+    options: [
+    { text: "15", score: 0 },
+    { text: "13-14", score: 1 },
+    { text: "10-12", score: 2 },
+    { text: "7-9", score: 3 },
+    { text: "< 7", score: 4 }]
 
-        // --- Funções da Calculadora PRISM ---
-        function updateScoreDisplay(criterionId) {
-          const selectElement = document.getElementById(criterionId);
-          const scoreDisplayElement = document.getElementById(
-            `${criterionId}_score_display`,
-          );
-          if (selectElement && scoreDisplayElement) {
-            scoreDisplayElement.innerText =
-              selectElement.value === "" ? "0" : selectElement.value;
-          }
-        }
+  },
+  {
+    domain: "Nhịp tim (FC - bpm)",
+    nameAttr: "fc",
+    options: [
+    { text: "70-160", score: 0 },
+    { text: "161-180 ou 60-69", score: 1 },
+    { text: "181-200 ou 50-59", score: 2 },
+    { text: "> 200 ou < 50", score: 4 }]
 
-        function calcularPontuacao() {
-          let totalScore = 0;
-          let allItemsSelected = true;
+  },
+  {
+    domain: "Huyết áp tâm thu (PAS - mmHg)",
+    nameAttr: "pas",
+    options: [
+    { text: "80-110", score: 0 },
+    { text: "111-120 ou 70-79", score: 1 },
+    { text: "121-130 ou 60-69", score: 2 },
+    { text: "> 130 ou < 60", score: 4 }]
 
-          prismData.forEach((item) => {
-            const selectElement = document.getElementById(item.nameAttr);
-            if (selectElement.value === "") {
-              allItemsSelected = false;
-            } else {
-              totalScore += parseInt(selectElement.value, 10);
-            }
-          });
+  },
+  {
+    domain: "Tần số thở (FR - rpm)",
+    nameAttr: "fr",
+    options: [
+    { text: "15-40", score: 0 },
+    { text: "41-50 ou 10-14", score: 1 },
+    { text: "51-60 ou 6-9", score: 2 },
+    { text: "> 60 ou < 6", score: 4 }]
 
-          resultadoDiv.style.display = "block";
-          if (!allItemsSelected) {
-            resultadoDiv.innerHTML =
-              '⚠️ <strong class="font-bold">Por favor, selecione uma pontuação para cada item</strong> antes de calcular.';
-            resultadoDiv.className = "resultado bg-info-orange-light";
-            delete resultadoDiv.dataset.score;
-            return;
-          }
+  },
+  {
+    domain: "Temperatura (°C)",
+    nameAttr: "temp",
+    options: [
+    { text: "36.0-37.5", score: 0 },
+    { text: "37.6-38.0 ou 35.5-35.9", score: 1 },
+    { text: "38.1-39.0 ou 34.0-35.4", score: 2 },
+    { text: "> 39.0 ou < 34.0", score: 4 }]
 
-          let grauRisco = "";
-          let resultadoClasse = "";
+  },
+  {
+    domain: "pH Arterial",
+    nameAttr: "ph",
+    options: [
+    { text: "7.35-7.45", score: 0 },
+    { text: "7.30-7.34 ou 7.46-7.50", score: 1 },
+    { text: "7.20-7.29 ou 7.51-7.60", score: 2 },
+    { text: "< 7.20 ou > 7.60", score: 4 }]
 
-          if (totalScore <= 5) {
-            grauRisco = "Baixo risco de disfunção orgânica";
-            resultadoClasse = "bg-pelod-baixo";
-          } else if (totalScore <= 15) {
-            grauRisco = "Risco moderado de disfunção orgânica";
-            resultadoClasse = "bg-pelod-moderado";
-          } else if (totalScore <= 25) {
-            grauRisco = "Risco alto de disfunção orgânica";
-            resultadoClasse = "bg-pelod-alto";
-          } else {
-            grauRisco = "Risco muito alto de disfunção orgânica";
-            resultadoClasse = "bg-pelod-muito-alto";
-          }
+  },
+  {
+    domain: "Glicose (mg/dL)",
+    nameAttr: "glicose",
+    options: [
+    { text: "70-150", score: 0 },
+    { text: "151-200 ou 50-69", score: 1 },
+    { text: "201-300 ou 30-49", score: 2 },
+    { text: "> 300 ou < 30", score: 4 }]
 
-          resultadoDiv.innerHTML = `<p>Pontuação Total PRISM: <strong class="font-bold">${totalScore}</strong></p><p>Grau de Risco: <strong class="font-bold">${grauRisco}</strong></p>`;
-          resultadoDiv.className = `resultado ${resultadoClasse}`;
+  }];
 
-          resultadoDiv.dataset.score = totalScore;
-          resultadoDiv.dataset.grauRisco = grauRisco;
-          resultadoDiv.dataset.scaleName = "Escala PRISM";
-        }
 
-        function limparCampos() {
-          prismData.forEach((item) => {
-            const selectElement = document.getElementById(item.nameAttr);
-            selectElement.selectedIndex = 0;
-            document.getElementById(
-              `${item.nameAttr}_score_display`,
-            ).innerText = "0";
-          });
-          resultadoDiv.innerHTML = "";
-          resultadoDiv.className = "resultado hidden";
-          delete resultadoDiv.dataset.score;
-          delete resultadoDiv.dataset.grauRisco;
-          delete resultadoDiv.dataset.scaleName;
-        }
+  // --- Funções da Calculadora PRISM ---
+  function updateScoreDisplay(criterionId) {
+    const selectElement = document.getElementById(criterionId);
+    const scoreDisplayElement = document.getElementById(
+      `${criterionId}_score_display`
+    );
+    if (selectElement && scoreDisplayElement) {
+      scoreDisplayElement.innerText =
+      selectElement.value === "" ? "0" : selectElement.value;
+    }
+  }
 
-        // Preenche o formulário dinamicamente
-        prismData.forEach((item, index) => {
-          const sectionDiv = document.createElement("div");
-          sectionDiv.className = "prism-criterion-card";
+  function calcularPontuacao() {
+    let totalScore = 0;
+    let allItemsSelected = true;
 
-          const headerDiv = document.createElement("div");
-          headerDiv.className = "prism-criterion-header";
+    prismData.forEach((item) => {
+      const selectElement = document.getElementById(item.nameAttr);
+      if (selectElement.value === "") {
+        allItemsSelected = false;
+      } else {
+        totalScore += parseInt(selectElement.value, 10);
+      }
+    });
 
-          const titleH3 = document.createElement("h3");
-          titleH3.className = "prism-criterion-title";
-          titleH3.innerText = item.domain;
-          headerDiv.appendChild(titleH3);
+    resultadoDiv.style.display = "block";
+    if (!allItemsSelected) {
+      resultadoDiv.innerHTML =
+      '⚠️ <strong class="font-bold">Por favor, selecione uma pontuação para cada item</strong> antes de calcular.';
+      resultadoDiv.className = "Kết quả bg-info-orange-light";
+      delete resultadoDiv.dataset.score;
+      return;
+    }
 
-          const scoreSpan = document.createElement("span");
-          scoreSpan.className = "prism-score-display";
-          scoreSpan.id = `${item.nameAttr}_score_display`;
-          scoreSpan.innerText = "0";
-          headerDiv.appendChild(scoreSpan);
+    let grauRisco = "";
+    let resultadoClasse = "";
 
-          sectionDiv.appendChild(headerDiv);
+    if (totalScore <= 5) {
+      grauRisco = "Nguy cơ rối loạn chức năng cơ quan thấp";
+      resultadoClasse = "bg-pelod-baixo";
+    } else if (totalScore <= 15) {
+      grauRisco = "Nguy cơ rối loạn chức năng cơ quan vừa phải";
+      resultadoClasse = "bg-pelod-moderado";
+    } else if (totalScore <= 25) {
+      grauRisco = "Nguy cơ cao về rối loạn chức năng cơ quan";
+      resultadoClasse = "bg-pelod-alto";
+    } else {
+      grauRisco = "Rủi ro rất cao về rối loạn chức năng cơ quan";
+      resultadoClasse = "bg-pelod-muito-alto";
+    }
 
-          const optionsDiv = document.createElement("div");
-          optionsDiv.className = "prism-criterion-options";
+    resultadoDiv.innerHTML = `<p>Pontuação Total PRISM: <strong class="font-bold">${totalScore}</strong></p><p>Grau de Risco: <strong class="font-bold">${grauRisco}</strong></p>`;
+    resultadoDiv.className = `kết quả ${resultadoClasse}`;
 
-          const selectElement = document.createElement("select");
-          selectElement.id = item.nameAttr;
-          selectElement.className = "prism-select";
-          selectElement.onchange = () => updateScoreDisplay(item.nameAttr);
+    resultadoDiv.dataset.score = totalScore;
+    resultadoDiv.dataset.grauRisco = grauRisco;
+    resultadoDiv.dataset.scaleName = "Escala PRISM";
+  }
 
-          const defaultOption = document.createElement("option");
-          defaultOption.value = "";
-          defaultOption.text = "Selecione...";
-          defaultOption.disabled = true;
-          defaultOption.selected = true;
-          selectElement.appendChild(defaultOption);
+  function limparCampos() {
+    prismData.forEach((item) => {
+      const selectElement = document.getElementById(item.nameAttr);
+      selectElement.selectedIndex = 0;
+      document.getElementById(
+        `${item.nameAttr}_score_display`
+      ).innerText = "0";
+    });
+    resultadoDiv.innerHTML = "";
+    resultadoDiv.className = "kết quả ẩn";
+    delete resultadoDiv.dataset.score;
+    delete resultadoDiv.dataset.grauRisco;
+    delete resultadoDiv.dataset.scaleName;
+  }
 
-          item.options.forEach((option) => {
-            const optionElement = document.createElement("option");
-            optionElement.value = option.score;
-            optionElement.text = `${option.text} (${option.score})`;
-            selectElement.appendChild(optionElement);
-          });
+  // Preenche o formulário dinamicamente
+  prismData.forEach((item, index) => {
+    const sectionDiv = document.createElement("div");
+    sectionDiv.className = "prism-criterion-card";
 
-          optionsDiv.appendChild(selectElement);
-          sectionDiv.appendChild(optionsDiv);
-          conteudoDiv.appendChild(sectionDiv);
-        });
+    const headerDiv = document.createElement("div");
+    headerDiv.className = "prism-criterion-header";
 
-        // Adiciona os event listeners aos botões
-        btnCalcular?.addEventListener("click", calcularPontuacao);
-        btnLimpar?.addEventListener("click", limparCampos);
+    const titleH3 = document.createElement("h3");
+    titleH3.className = "prism-criterion-title";
+    titleH3.innerText = item.domain;
+    headerDiv.appendChild(titleH3);
 
-        btnGerarPDF?.addEventListener("click", () => {
-          if (!resultadoDiv.dataset.score) {
-            alert('Por favor, clique em "Calcular" primeiro para gerar o PDF.');
-            return;
-          }
-          if (typeof gerarPDFGlobal === "function") {
-            gerarPDFGlobal({
-              titulo: "Escala PRISM",
-              subtitulo:
-                "Relatório de Avaliação de Risco de Mortalidade Pediátrica",
-              nomeArquivo: "relatorio_escala_prism.pdf",
-              seletorConteudo: ".main-content-wrapper",
-            });
-          } else {
-            console.error("Função gerarPDFGlobal não definida.");
-          }
-        });
+    const scoreSpan = document.createElement("span");
+    scoreSpan.className = "prism-score-display";
+    scoreSpan.id = `${item.nameAttr}_score_display`;
+    scoreSpan.innerText = "0";
+    headerDiv.appendChild(scoreSpan);
 
-        btnNandaNicNoc?.addEventListener("click", () => {
-          const score = resultadoDiv.dataset.score;
-          const scaleName = resultadoDiv.dataset.scaleName;
-          const grauRisco = resultadoDiv.dataset.grauRisco;
-          if (!score || !grauRisco) {
-            alert("Calcule o resultado para pesquisar a conduta.");
-            return;
-          }
-          const searchQuery = encodeURIComponent(
-            `${scaleName} pontuação ${score} risco ${grauRisco} gerar taxonomia NANDA, gerar taxonomia NIC e gerar taxonomia de NOC`,
-          );
-          window.open(
-            `https://www.google.com/search?q=${searchQuery}`,
-            "_blank",
-          );
-        });
+    sectionDiv.appendChild(headerDiv);
+
+    const optionsDiv = document.createElement("div");
+    optionsDiv.className = "prism-criterion-options";
+
+    const selectElement = document.createElement("select");
+    selectElement.id = item.nameAttr;
+    selectElement.className = "prism-select";
+    selectElement.onchange = () => updateScoreDisplay(item.nameAttr);
+
+    const defaultOption = document.createElement("option");
+    defaultOption.value = "";
+    defaultOption.text = "Chọn...";
+    defaultOption.disabled = true;
+    defaultOption.selected = true;
+    selectElement.appendChild(defaultOption);
+
+    item.options.forEach((option) => {
+      const optionElement = document.createElement("option");
+      optionElement.value = option.score;
+      optionElement.text = `${option.text} (${option.score})`;
+      selectElement.appendChild(optionElement);
+    });
+
+    optionsDiv.appendChild(selectElement);
+    sectionDiv.appendChild(optionsDiv);
+    conteudoDiv.appendChild(sectionDiv);
+  });
+
+  // Adiciona os event listeners aos botões
+  btnCalcular?.addEventListener("click", calcularPontuacao);
+  btnLimpar?.addEventListener("click", limparCampos);
+
+  btnGerarPDF?.addEventListener("click", () => {
+    if (!resultadoDiv.dataset.score) {
+      alert("Vui lòng nhấp vào \"Tính toán\" trước để tạo tệp PDF.");
+      return;
+    }
+    if (typeof gerarPDFGlobal === "function") {
+      gerarPDFGlobal({
+        titulo: "Escala PRISM",
+        subtitulo:
+        "Báo cáo đánh giá rủi ro tử vong ở trẻ em",
+        nomeArquivo: "relatorio_escala_prism.pdf",
+        seletorConteudo: ".main-content-wrapper"
       });
-    </script>
+    } else {
+      console.error("Chức năng gerarPDFGlobal không được định nghĩa.");
+    }
+  });
+
+  btnNandaNicNoc?.addEventListener("click", () => {
+    const score = resultadoDiv.dataset.score;
+    const scaleName = resultadoDiv.dataset.scaleName;
+    const grauRisco = resultadoDiv.dataset.grauRisco;
+    if (!score || !grauRisco) {
+      alert("Tính toán kết quả để nghiên cứu hành vi.");
+      return;
+    }
+    const searchQuery = encodeURIComponent(
+      `${scaleName} điểm số ${score} risco ${grauRisco} gerar taxonomia NANDA, gerar taxonomia NIC e gerar taxonomia de NOC`
+    );
+    window.open(
+      `https://www.google.com/search?q=${searchQuery}`,
+      "_blank"
+    );
+  });
+});</script>
 
     <script src="/lang-selector.js" defer=""></script>
 

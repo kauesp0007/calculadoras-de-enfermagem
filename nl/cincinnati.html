@@ -315,110 +315,109 @@ verpleegkundigen in de preklinische zorg en verpleegkundigen op de spoedeisende 
 
     <!-- Script Específico da Página Cincinnati -->
     <script>
-      document.addEventListener("DOMContentLoaded", function () {
-        const resultadoDiv = document.getElementById("resultado");
-        const btnCalcular = document.getElementById("btnCalcular");
-        const btnLimpar = document.getElementById("btnLimpar");
-        const btnGerarPDF = document.getElementById("btnGerarPDF");
-        const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
-        const cincinnatiTable = document.getElementById("cincinnatiTable");
+document.addEventListener("DOMContentLoaded", function () {
+  const resultadoDiv = document.getElementById("resultado");
+  const btnCalcular = document.getElementById("btnCalcular");
+  const btnLimpar = document.getElementById("btnLimpar");
+  const btnGerarPDF = document.getElementById("btnGerarPDF");
+  const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
+  const cincinnatiTable = document.getElementById("cincinnatiTable");
 
-        cincinnatiTable?.addEventListener("click", function (e) {
-          if (
-            e.target.tagName === "TD" &&
-            e.target.hasAttribute("data-value")
-          ) {
-            const row = e.target.parentElement;
-            [...row.children].forEach((td) => td.classList.remove("selected"));
-            e.target.classList.add("selected");
-          }
-        });
+  cincinnatiTable?.addEventListener("click", function (e) {
+    if (
+    e.target.tagName === "TD" &&
+    e.target.hasAttribute("data-value"))
+    {
+      const row = e.target.parentElement;
+      [...row.children].forEach((td) => td.classList.remove("selected"));
+      e.target.classList.add("selected");
+    }
+  });
 
-        function calcular() {
-          const rows = cincinnatiTable.querySelectorAll("tbody tr");
-          let positivo = false;
-          let incompleto = false;
+  function calcular() {
+    const rows = cincinnatiTable.querySelectorAll("tbody tr");
+    let positivo = false;
+    let incompleto = false;
 
-          rows.forEach((row) => {
-            const selectedCell = row.querySelector(".selected");
-            if (!selectedCell) {
-              incompleto = true;
-            } else if (selectedCell.dataset.value === "1") {
-              positivo = true;
-            }
-          });
+    rows.forEach((row) => {
+      const selectedCell = row.querySelector(".selected");
+      if (!selectedCell) {
+        incompleto = true;
+      } else if (selectedCell.dataset.value === "1") {
+        positivo = true;
+      }
+    });
 
-          if (incompleto) {
-            resultadoDiv.innerHTML =
-              '⚠️ <strong class="font-bold">Por favor, selecione uma opção para cada critério.</strong>';
-            resultadoDiv.className = "resultado bg-info-orange-light";
-            resultadoDiv.style.display = "block";
-            delete resultadoDiv.dataset.score;
-            return;
-          }
+    if (incompleto) {
+      resultadoDiv.innerHTML =
+      '⚠️ <strong class="font-bold">Por favor, selecione uma opção para cada critério.</strong>';
+      resultadoDiv.className = "bg-info-oranje-licht resultaat";
+      resultadoDiv.style.display = "block";
+      delete resultadoDiv.dataset.score;
+      return;
+    }
 
-          const resultadoTexto = positivo
-            ? "POSITIVO para suspeita de AVE"
-            : "NEGATIVO para suspeita de AVE";
-          const resultadoClasse = positivo
-            ? "bg-cincinnati-positivo"
-            : "bg-cincinnati-negativo";
+    const resultadoTexto = positivo ?
+    "POSITIVO para suspeita de AVE" :
+    "NEGATIVO para suspeita de AVE";
+    const resultadoClasse = positivo ?
+    "bg-cincinnati-positivo" :
+    "bg-cincinnati-negativo";
 
-          resultadoDiv.innerHTML = `<p>Resultado: <strong class="font-bold">${resultadoTexto}</strong></p>`;
-          resultadoDiv.className = `resultado ${resultadoClasse}`;
-          resultadoDiv.style.display = "block";
+    resultadoDiv.innerHTML = `<p>Resultado: <strong class="font-bold">${resultadoTexto}</strong></p>`;
+    resultadoDiv.className = `resultaat ${resultadoClasse}`;
+    resultadoDiv.style.display = "block";
 
-          resultadoDiv.dataset.score = resultadoTexto;
-          resultadoDiv.dataset.scaleName = "Escala de Cincinnati";
-        }
+    resultadoDiv.dataset.score = resultadoTexto;
+    resultadoDiv.dataset.scaleName = "Escala de Cincinnati";
+  }
 
-        function limpar() {
-          cincinnatiTable
-            .querySelectorAll("td.selected")
-            .forEach((cell) => cell.classList.remove("selected"));
-          resultadoDiv.innerHTML = "";
-          resultadoDiv.className = "resultado hidden";
-          delete resultadoDiv.dataset.score;
-          delete resultadoDiv.dataset.scaleName;
-        }
+  function limpar() {
+    cincinnatiTable.
+    querySelectorAll("td.selected").
+    forEach((cell) => cell.classList.remove("selected"));
+    resultadoDiv.innerHTML = "";
+    resultadoDiv.className = "verborgen resultaat";
+    delete resultadoDiv.dataset.score;
+    delete resultadoDiv.dataset.scaleName;
+  }
 
-        btnCalcular?.addEventListener("click", calcular);
-        btnLimpar?.addEventListener("click", limpar);
+  btnCalcular?.addEventListener("click", calcular);
+  btnLimpar?.addEventListener("click", limpar);
 
-        btnGerarPDF?.addEventListener("click", () => {
-          if (!resultadoDiv.dataset.score) {
-            alert('Por favor, clique em "Calcular" primeiro para gerar o PDF.');
-            return;
-          }
-          if (typeof gerarPDFGlobal === "function") {
-            gerarPDFGlobal({
-              titulo: "Escala de Cincinnati",
-              subtitulo: "Relatório de Avaliação Rápida de AVE",
-              nomeArquivo: "relatorio_escala_cincinnati.pdf",
-              seletorConteudo: ".main-content-wrapper",
-            });
-          } else {
-            console.error("Função gerarPDFGlobal não definida.");
-          }
-        });
-
-        btnNandaNicNoc?.addEventListener("click", () => {
-          const score = resultadoDiv.dataset.score;
-          const scaleName = resultadoDiv.dataset.scaleName;
-          if (!score) {
-            alert("Calcule o resultado para pesquisar a conduta.");
-            return;
-          }
-          const searchQuery = encodeURIComponent(
-            `${score} ${scaleName} gerar taxonomia de NANDA gerar taxonomia de NIC gerar Taxonomia de NOC`,
-          );
-          window.open(
-            `https://www.google.com/search?q=${searchQuery}`,
-            "_blank",
-          );
-        });
+  btnGerarPDF?.addEventListener("click", () => {
+    if (!resultadoDiv.dataset.score) {
+      alert("Klik eerst op \"Bereken\" om de PDF te genereren.");
+      return;
+    }
+    if (typeof gerarPDFGlobal === "function") {
+      gerarPDFGlobal({
+        titulo: "Escala de Cincinnati",
+        subtitulo: "Verslag snelle beoordeling beroerte",
+        nomeArquivo: "relatorio_escala_cincinnati.pdf",
+        seletorConteudo: ".main-content-wrapper"
       });
-    </script>
+    } else {
+      console.error("GeneratePDFGlobal-functie niet gedefinieerd.");
+    }
+  });
+
+  btnNandaNicNoc?.addEventListener("click", () => {
+    const score = resultadoDiv.dataset.score;
+    const scaleName = resultadoDiv.dataset.scaleName;
+    if (!score) {
+      alert("Bereken het resultaat om het gedrag te zoeken.");
+      return;
+    }
+    const searchQuery = encodeURIComponent(
+      `${score} ${scaleName} gerar taxonomia de NANDA gerar taxonomia de NIC gerar Taxonomia de NOC`
+    );
+    window.open(
+      `https://www.google.com/search?q=${searchQuery}`,
+      "_blank"
+    );
+  });
+});</script>
 
     <script src="/lang-selector.js" defer=""></script>
 

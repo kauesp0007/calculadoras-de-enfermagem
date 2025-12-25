@@ -288,415 +288,414 @@ trẻ sơ sinh cực non tháng.<em>Tạp chí Nhi khoa</em>,
     <script src="global-scripts.js" defer=""></script>
 
     <script>
-      document.addEventListener("DOMContentLoaded", function () {
-        const resultadoDiv = document.getElementById("resultado");
-        const btnCalcular = document.getElementById("btnCalcular");
-        const btnLimpar = document.getElementById("btnLimpar");
-        const btnGerarPDF = document.getElementById("btnGerarPDF");
-        const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
-        const conteudoDiv = document.getElementById("conteudo");
+document.addEventListener("DOMContentLoaded", function () {
+  const resultadoDiv = document.getElementById("resultado");
+  const btnCalcular = document.getElementById("btnCalcular");
+  const btnLimpar = document.getElementById("btnLimpar");
+  const btnGerarPDF = document.getElementById("btnGerarPDF");
+  const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
+  const conteudoDiv = document.getElementById("conteudo");
 
-        const ballardData = [
-          {
-            category: "Maturidade Neuromuscular",
-            items: [
-              {
-                title: "Postura",
-                nameAttr: "postura",
-                explain:
-                  "Avalia o grau de flexão dos membros quando o bebê está em repouso. Bebês mais maduros apresentam postura mais fletida (membros em flexão).",
-                options: [
-                  { description: "Extensão total", score: -1 },
-                  { description: "Flexão leve / parcial", score: 0 },
-                  { description: "Flexão moderada", score: 1 },
-                  { description: "Flexão boa", score: 2 },
-                  { description: "Forte flexão", score: 3 },
-                  { description: "Flexão total (muito maduro)", score: 4 },
-                ],
-              },
-              {
-                title: "Ângulo do Punho (Square Window)",
-                nameAttr: "square_window",
-                explain:
-                  "Avalia a flexão do punho quando se dobra a mão sobre o antebraço. Um ângulo menor (mão mais próxima do antebraço) indica maior maturidade.",
-                options: [
-                  { description: "< 90°", score: -1 },
-                  { description: " 90°", score: 0 },
-                  { description: " 60°", score: 1 },
-                  { description: " 45°", score: 2 },
-                  { description: " 30°", score: 3 },
-                  { description: "0° (muito próximo)", score: 4 },
-                ],
-              },
-              {
-                title: "Recuo do Braço (Arm Recoil)",
-                nameAttr: "arm_recoil",
-                explain:
-                  "Avalia a rapidez e intensidade do retorno do braço após esticar e soltar. Quanto mais rápido e vigoroso o retorno, maior a maturidade neuromuscular.",
-                options: [
-                  { description: "Sem retorno", score: 0 },
-                  { description: "Retorno lento", score: 1 },
-                  { description: "Retorno parcial", score: 2 },
-                  { description: "Retorno rápido", score: 3 },
-                  { description: "Retorno completo e vigoroso", score: 4 },
-                ],
-              },
-              {
-                title: "Ângulo Poplíteo",
-                nameAttr: "popliteo",
-                explain:
-                  "Avalia o grau de resistência ao estender o membro inferior. Ângulo menor (maior flexão) indica mais maturidade.",
-                options: [
-                  { description: "180°", score: -1 },
-                  { description: "160°", score: 0 },
-                  { description: "140°", score: 1 },
-                  { description: "120°", score: 2 },
-                  { description: "100°", score: 3 },
-                  { description: "90°", score: 4 },
-                  { description: "< 90°", score: 5 },
-                ],
-              },
-              {
-                title: "Sinal do Lençol (Scarf Sign)",
-                nameAttr: "scarf",
-                explain:
-                  "Ao puxar um braço transversalmente sobre o tórax, observa-se até onde o cotovelo cruza a linha média do corpo. Quanto menor o cruzamento, maior maturidade.",
-                options: [
-                  { description: "Cotovelo cruza linha média", score: -1 },
-                  { description: "Cotovelo na linha média", score: 0 },
-                  { description: "Cotovelo próximo ao ombro", score: 1 },
-                  { description: "Cotovelo não atinge ombro", score: 2 },
-                  { description: "Cotovelo muito distante do ombro", score: 3 },
-                ],
-              },
-              {
-                title: "Calcanhar → Orelha (Heel to Ear)",
-                nameAttr: "heel_to_ear",
-                explain:
-                  "Ao aproximar o calcanhar da orelha, observa-se resistência. Maior resistência = maior maturidade.",
-                options: [
-                  { description: "Pé alcança orelha facilmente", score: -1 },
-                  { description: "Pé próximo à orelha", score: 0 },
-                  { description: "Resistência moderada", score: 1 },
-                  { description: "Resistência boa", score: 2 },
-                  { description: "Pé distante da orelha", score: 3 },
-                  { description: "Forte resistência (muito maduro)", score: 4 },
-                ],
-              },
-            ],
-          },
-          {
-            category: "Maturidade Física",
-            items: [
-              {
-                title: "Pele",
-                nameAttr: "pele",
-                explain:
-                  "Avalia a textura da pele: desde fina e translúcida em prematuros até espessa, seca e com fissuras em bebês pós-termo.",
-                options: [
-                  {
-                    description: "Pegajosa, translúcida (muito imaturo)",
-                    score: -1,
-                  },
-                  { description: "Gelatinosa / fina", score: 0 },
-                  { description: "homogeneamente e veias visíveis", score: 1 },
-                  { description: "Mais espessa, poucas fissuras", score: 2 },
-                  { description: "Espessa, rachada", score: 3 },
-                  {
-                    description:
-                      "Grossa, seca com fissuras profundas (pós-termo)",
-                    score: 4,
-                  },
-                ],
-              },
-              {
-                title: "Lanugo",
-                nameAttr: "lanugo",
-                explain:
-                  "Avalia a presença e distribuição do lanugo (pelos finos). Em prematuros é abundante; em bebês mais maduros tende a diminuir e desaparecer.",
-                options: [
-                  { description: "Ausente (muito pós-termo)", score: -1 },
-                  { description: "Escasso", score: 0 },
-                  { description: "Abundante", score: 1 },
-                  {
-                    description: "Fino (característico de prematuridade)",
-                    score: 2,
-                  },
-                  { description: "Áreas sem pelos", score: 3 },
-                  {
-                    description: "Praticamente ausente (muito imaturo)",
-                    score: 4,
-                  },
-                ],
-              },
-              {
-                title: "Pregas Plantares",
-                nameAttr: "plantares",
-                explain:
-                  "Avalia as pregas na sola do pé: prematuros têm poucas pregas; bebês maduros apresentam pregas profundas cobrindo toda a sola.",
-                options: [
-                  { description: "Ausentes / muito rasas", score: -1 },
-                  { description: "Marcas na parte anterior", score: 0 },
-                  { description: "Até metade da planta", score: 1 },
-                  { description: "Até 2/3", score: 2 },
-                  { description: "Pregas em toda a planta", score: 3 },
-                  { description: "Pregas profundas e pronunciadas", score: 4 },
-                ],
-              },
-              {
-                title: "Mamas",
-                nameAttr: "mamas",
-                explain:
-                  "Observa-se o tamanho do broto mamário e da aréola. Em bebês mais maduros, a glândula e a aréola são maiores e mais protuberantes.",
-                options: [
-                  { description: "Imperceptível", score: -1 },
-                  { description: "Pouco visível", score: 0 },
-                  { description: "Aréola plana, pequeno broto", score: 1 },
-                  {
-                    description:
-                      "Aréola parcialmente elevada 1–2 mm de glândula",
-                    score: 2,
-                  },
-                  {
-                    description: "Aréola de borda elevada 3–4 mm de glândula",
-                    score: 3,
-                  },
-                  {
-                    description: "borda elevada 5–10 mm de glândula",
-                    score: 4,
-                  },
-                ],
-              },
-              {
-                title: "Olhos e Orelhas",
-                nameAttr: "olhos_orelhas",
-                explain:
-                  "Avalia a firmeza da cartilagem das orelhas e conformação das pálpebras. Orelhas mais firmes e pavilhão bem formado indicam maior maturidade.",
-                options: [
-                  {
-                    description: "Cartilagem mole / pálpebras fundidas",
-                    score: -1,
-                  },
-                  { description: "Alguma firmeza", score: 0 },
-                  { description: "Firmeza moderada", score: 1 },
-                  { description: "Boa firmeza", score: 2 },
-                  { description: "Firmeza completa", score: 3 },
-                ],
-              },
-              {
-                title: "Genitália",
-                nameAttr: "genitalia",
-                explain:
-                  "Avalia desenvolvimento genital: nos meninos observa-se posição e rugosidade do escroto / nas meninas, a proeminência do clitóris e o tamanho dos lábios. Indica maturidade sexual/neonatal.",
-                options: [
-                  {
-                    description:
-                      "Masculino: testículos não descidos; Feminino: lábios planos",
-                    score: -1,
-                  },
-                  {
-                    description:
-                      "Masculino: parcialmente descidos; Feminino: lábios menores pequenos",
-                    score: 0,
-                  },
-                  {
-                    description:
-                      "Masculino: testículos na bolsa; Feminino: lábios menores evidentes",
-                    score: 1,
-                  },
-                  {
-                    description:
-                      "Masculino: escroto rugoso; Feminino: lábios menores e maiores igualmente proeminentes",
-                    score: 2,
-                  },
-                  { description: "Genitália totalmente madura", score: 3 },
-                ],
-              },
-            ],
-          },
-        ];
+  const ballardData = [
+  {
+    category: "Sự trưởng thành thần kinh cơ",
+    items: [
+    {
+      title: "Postura",
+      nameAttr: "postura",
+      explain:
+      "Đánh giá mức độ uốn cong của các chi khi em bé đang nghỉ ngơi. Em bé trưởng thành hơn có tư thế uốn cong hơn (các chi uốn cong).",
+      options: [
+      { description: "Tổng chiều dài", score: -1 },
+      { description: "Gập nhẹ / một phần", score: 0 },
+      { description: "Gập bụng vừa phải", score: 1 },
+      { description: "Gập bụng tốt", score: 2 },
+      { description: "Gập mạnh", score: 3 },
+      { description: "Tổng số lần uốn cong (rất chín muồi)", score: 4 }]
 
-        // Preenche o formulário dinamicamente
-        ballardData.forEach((section) => {
-          const sectionDiv = document.createElement("div");
-          sectionDiv.className = "ballard-criterion-section";
+    },
+    {
+      title: "Góc của tay cầm (Cửa sổ vuông)",
+      nameAttr: "square_window",
+      explain:
+      "Đánh giá độ uốn cong của cổ tay khi gập tay trên cẳng tay. Góc nhỏ hơn (tay gần cẳng tay hơn) cho thấy sự trưởng thành hơn.",
+      options: [
+      { description: "< 90°", score: -1 },
+      { description: " 90°", score: 0 },
+      { description: " 60°", score: 1 },
+      { description: " 45°", score: 2 },
+      { description: " 30°", score: 3 },
+      { description: "0° (rất gần)", score: 4 }]
 
-          const titleH3 = document.createElement("h3");
-          titleH3.className = "ballard-criterion-title";
-          titleH3.innerText = section.category;
-          sectionDiv.appendChild(titleH3);
+    },
+    {
+      title: "Sự giật lùi của cánh tay (Arm Recoil)",
+      nameAttr: "arm_recoil",
+      explain:
+      "Đánh giá tốc độ và cường độ của sự trở lại của cánh tay sau khi duỗi và thả lỏng. Càng nhanh và mạnh mẽ sự trở lại, càng cao mức độ phát triển thần kinh cơ.",
+      options: [
+      { description: "Sem retorno", score: 0 },
+      { description: "Retorno lento", score: 1 },
+      { description: "Retorno parcial", score: 2 },
+      { description: "Quay lại nhanh", score: 3 },
+      { description: "Retorno completo e vigoroso", score: 4 }]
 
-          const groupDiv = document.createElement("div");
-          groupDiv.className = "ballard-criterion-group";
+    },
+    {
+      title: "Góc gối",
+      nameAttr: "popliteo",
+      explain:
+      "Đánh giá mức độ sức mạnh khi duỗi chân dưới. Góc nhỏ hơn (độ uốn cong lớn hơn) cho thấy mức độ trưởng thành cao hơn.",
+      options: [
+      { description: "180°", score: -1 },
+      { description: "160°", score: 0 },
+      { description: "140°", score: 1 },
+      { description: "120°", score: 2 },
+      { description: "100°", score: 3 },
+      { description: "90°", score: 4 },
+      { description: "< 90°", score: 5 }]
 
-          section.items.forEach((item) => {
-            const itemDiv = document.createElement("div");
-            itemDiv.id = `item-${item.nameAttr}`;
-            itemDiv.className = "ballard-criterion-item";
+    },
+    {
+      title: "Dấu hiệu khăn quàng cổ (Scarf Sign)",
+      nameAttr: "scarf",
+      explain:
+      "Khi kéo một cánh tay ngang qua ngực, có thể quan sát được khuỷu tay vượt qua đường giữa cơ thể đến đâu. Vượt qua càng ít, độ trưởng thành càng cao.",
+      options: [
+      { description: "Cotovelo vượt qua đường giữa", score: -1 },
+      { description: "Khuỷu tay ở đường giữa", score: 0 },
+      { description: "Khuỷu tay gần vai", score: 1 },
+      { description: "Cotovelo không chạm đến vai", score: 2 },
+      { description: "Cotovelo muito distante do ombro", score: 3 }]
 
-            const itemTitle = document.createElement("h4");
-            itemTitle.className = "ballard-item-title";
-            itemTitle.innerText = item.title;
-            itemDiv.appendChild(itemTitle);
+    },
+    {
+      title: "Calcanhar → Orelha (Heel to Ear)",
+      nameAttr: "heel_to_ear",
+      explain:
+      "Khi đưa gót chân gần tai, có thể cảm nhận được sự kháng cự. Kháng cự càng lớn = độ chín càng cao.",
+      options: [
+      { description: "Chân dễ dàng chạm đến tai", score: -1 },
+      { description: "Chân gần tai", score: 0 },
+      { description: "Kháng cự vừa phải", score: 1 },
+      { description: "Khả năng chống chịu tốt", score: 2 },
+      { description: "Chân cách xa tai", score: 3 },
+      { description: "Khả năng chống chịu mạnh mẽ (rất chín muồi)", score: 4 }]
 
-            const itemExplain = document.createElement("p");
-            itemExplain.className = "ballard-item-explain";
-            itemExplain.innerText = item.explain;
-            itemDiv.appendChild(itemExplain);
+    }]
 
-            item.options.forEach((option) => {
-              const optionDiv = document.createElement("div");
-              optionDiv.className = "ballard-criterion-option";
+  },
+  {
+    category: "Sự trưởng thành về thể chất",
+    items: [
+    {
+      title: "Pele",
+      nameAttr: "pele",
+      explain:
+      "Đánh giá kết cấu da: từ mỏng và trong suốt ở trẻ sinh non đến dày, khô và nứt nẻ ở trẻ sinh đủ tháng.",
+      options: [
+      {
+        description: "Dính, trong suốt (rất non)",
+        score: -1
+      },
+      { description: "Gelatinosa / fina", score: 0 },
+      { description: "đồng nhất và các tĩnh mạch có thể nhìn thấy", score: 1 },
+      { description: "Mais espessa, poucas fissuras", score: 2 },
+      { description: "Espessa, rachada", score: 3 },
+      {
+        description:
+        "Dày, khô với các vết nứt sâu (sau khi nung)",
+        score: 4
+      }]
 
-              const radioInput = document.createElement("input");
-              radioInput.type = "radio";
-              radioInput.name = item.nameAttr;
-              radioInput.value = option.score;
-              radioInput.id = `${item.nameAttr}_${option.score}`;
+    },
+    {
+      title: "Lanugo",
+      nameAttr: "lanugo",
+      explain:
+      "Đánh giá sự hiện diện và phân bố của lông tơ (lông mỏng). Ở trẻ sinh non, lông tơ rất nhiều; ở trẻ sinh đủ tháng, lông tơ có xu hướng giảm dần và biến mất.",
+      options: [
+      { description: "Vắng mặt (quá hạn rất lâu)", score: -1 },
+      { description: "Escasso", score: 0 },
+      { description: "Abundante", score: 1 },
+      {
+        description: "Mỏng (đặc trưng của sự non nớt)",
+        score: 2
+      },
+      { description: "Vùng không có lông", score: 3 },
+      {
+        description: "Praticamente ausente (muito imaturo)",
+        score: 4
+      }]
 
-              const label = document.createElement("label");
-              label.htmlFor = radioInput.id;
-              label.innerText = `${option.description} (${option.score})`;
+    },
+    {
+      title: "Pregas Plantares",
+      nameAttr: "plantares",
+      explain:
+      "Đánh giá các nếp gấp ở lòng bàn chân: trẻ sinh non có ít nếp gấp; trẻ sinh đủ tháng có các nếp gấp sâu bao phủ toàn bộ lòng bàn chân.",
+      options: [
+      { description: "Ausentes / muito rasas", score: -1 },
+      { description: "Marcas na parte anterior", score: 0 },
+      { description: "Cho đến nửa cây", score: 1 },
+      { description: "Cho đến 2/3", score: 2 },
+      { description: "Pregas em toda a planta", score: 3 },
+      { description: "Pregas profundas e pronunciadas", score: 4 }]
 
-              optionDiv.appendChild(radioInput);
-              optionDiv.appendChild(label);
-              itemDiv.appendChild(optionDiv);
-            });
+    },
+    {
+      title: "Mamas",
+      nameAttr: "mamas",
+      explain:
+      "Quan sát kích thước của núm vú và quầng vú. Ở trẻ sơ sinh lớn hơn, tuyến vú và quầng vú lớn hơn và nhô ra hơn.",
+      options: [
+      { description: "Không thể nhận ra", score: -1 },
+      { description: "Không dễ thấy", score: 0 },
+      { description: "Quầng vú phẳng, núm vú nhỏ", score: 1 },
+      {
+        description:
+        "Vùng quầng vú nhô lên một phần 1–2 mm của tuyến",
+        score: 2
+      },
+      {
+        description: "Vùng quầng vú có viền cao 3–4 mm của tuyến vú",
+        score: 3
+      },
+      {
+        description: "viền cao 5–10 mm của tuyến",
+        score: 4
+      }]
 
-            groupDiv.appendChild(itemDiv);
-          });
+    },
+    {
+      title: "Olhos e Orelhas",
+      nameAttr: "olhos_orelhas",
+      explain:
+      "Đánh giá độ cứng của sụn tai và hình dạng mí mắt. Tai cứng hơn và hình dạng tai tốt cho thấy sự trưởng thành hơn.",
+      options: [
+      {
+        description: "Sụn mềm / mí mắt dính liền",
+        score: -1
+      },
+      { description: "Alguma firmeza", score: 0 },
+      { description: "Firmeza moderada", score: 1 },
+      { description: "Boa firmeza", score: 2 },
+      { description: "Firmeza completa", score: 3 }]
 
-          sectionDiv.appendChild(groupDiv);
-          conteudoDiv.appendChild(sectionDiv);
-        });
+    },
+    {
+      title: "Bộ phận sinh dục",
+      nameAttr: "genitalia",
+      explain:
+      "Đánh giá sự phát triển cơ quan sinh dục: ở bé trai, quan sát vị trí và độ nhám của bìu / ở bé gái, độ nhô của âm vật và kích thước của môi âm hộ. Cho biết sự trưởng thành về mặt tình dục/sơ sinh.",
+      options: [
+      {
+        description:
+        "Nam: tinh hoàn không xuống; Nữ: môi âm hộ phẳng",
+        score: -1
+      },
+      {
+        description:
+        "Nam: một phần hạ xuống; Nữ: môi nhỏ",
+        score: 0
+      },
+      {
+        description:
+        "Nam: tinh hoàn trong bìu; Nữ: môi nhỏ rõ rệt",
+        score: 1
+      },
+      {
+        description:
+        "Nam giới: bìu sần sùi; Nữ giới: môi nhỏ và môi lớn đều nổi bật",
+        score: 2
+      },
+      { description: "Cơ quan sinh dục hoàn toàn trưởng thành", score: 3 }]
 
-        // Lógica de cálculo e botões
-        const criteriaNames = ballardData.flatMap((s) =>
-          s.items.map((i) => i.nameAttr),
-        );
+    }]
 
-        function calcularBallard() {
-          let allSelected = true;
-          let total = 0;
-          document
-            .querySelectorAll(".ballard-criterion-item")
-            .forEach((el) => el.classList.remove("incomplete"));
+  }];
 
-          criteriaNames.forEach((name) => {
-            const selected = document.querySelector(
-              `input[name="${name}"]:checked`,
-            );
-            if (!selected) {
-              allSelected = false;
-              document
-                .getElementById(`item-${name}`)
-                .classList.add("incomplete");
-            } else {
-              total += Number(selected.value);
-            }
-          });
 
-          resultadoDiv.style.display = "block";
-          if (!allSelected) {
-            resultadoDiv.innerHTML =
-              '⚠️ <strong class="font-bold">Por favor, selecione uma opção para todos os itens destacados antes de calcular.</strong>';
-            resultadoDiv.classList.add("bg-red-100");
-            resultadoDiv.classList.remove("bg-blue-50");
-            delete resultadoDiv.dataset.score;
-            return;
-          }
+  // Preenche o formulário dinamicamente
+  ballardData.forEach((section) => {
+    const sectionDiv = document.createElement("div");
+    sectionDiv.className = "ballard-criterion-section";
 
-          const semanasFloat = 20 + total * 0.4;
-          const semanas = Math.floor(semanasFloat);
-          const dias = Math.round((semanasFloat - semanas) * 7);
+    const titleH3 = document.createElement("h3");
+    titleH3.className = "ballard-criterion-title";
+    titleH3.innerText = section.category;
+    sectionDiv.appendChild(titleH3);
 
-          let classificacao = "";
-          if (semanas < 37) classificacao = "Pré-termo";
-          else if (semanas >= 37 && semanas < 42) classificacao = "A termo";
-          else classificacao = "Pós-termo";
+    const groupDiv = document.createElement("div");
+    groupDiv.className = "ballard-criterion-group";
 
-          let conduta = "";
-          if (classificacao === "Pré-termo") {
-            conduta =
-              "Monitorar termorregulação, glicemia e sinais de desconforto respiratório. Considerar suporte ventilatório e cuidados em unidade neonatal conforme necessidade.";
-          } else if (classificacao === "A termo") {
-            conduta =
-              "Cuidados neonatais de rotina; observar aleitamento e sinais vitais. Avaliar necessidades de triagem neonatal.";
-          } else {
-            conduta =
-              "Avaliar sinais de pós-maturidade (pele, glicemia, termorregulação), observar risco de hipóxia e adaptabilidade neonatal.";
-          }
+    section.items.forEach((item) => {
+      const itemDiv = document.createElement("div");
+      itemDiv.id = `item-${item.nameAttr}`;
+      itemDiv.className = "ballard-criterion-item";
 
-          resultadoDiv.innerHTML = `
+      const itemTitle = document.createElement("h4");
+      itemTitle.className = "ballard-item-title";
+      itemTitle.innerText = item.title;
+      itemDiv.appendChild(itemTitle);
+
+      const itemExplain = document.createElement("p");
+      itemExplain.className = "ballard-item-explain";
+      itemExplain.innerText = item.explain;
+      itemDiv.appendChild(itemExplain);
+
+      item.options.forEach((option) => {
+        const optionDiv = document.createElement("div");
+        optionDiv.className = "ballard-criterion-option";
+
+        const radioInput = document.createElement("input");
+        radioInput.type = "radio";
+        radioInput.name = item.nameAttr;
+        radioInput.value = option.score;
+        radioInput.id = `${item.nameAttr}_${option.score}`;
+
+        const label = document.createElement("label");
+        label.htmlFor = radioInput.id;
+        label.innerText = `${option.description} (${option.score})`;
+
+        optionDiv.appendChild(radioInput);
+        optionDiv.appendChild(label);
+        itemDiv.appendChild(optionDiv);
+      });
+
+      groupDiv.appendChild(itemDiv);
+    });
+
+    sectionDiv.appendChild(groupDiv);
+    conteudoDiv.appendChild(sectionDiv);
+  });
+
+  // Lógica de cálculo e botões
+  const criteriaNames = ballardData.flatMap((s) =>
+  s.items.map((i) => i.nameAttr)
+  );
+
+  function calcularBallard() {
+    let allSelected = true;
+    let total = 0;
+    document.
+    querySelectorAll(".ballard-criterion-item").
+    forEach((el) => el.classList.remove("incomplete"));
+
+    criteriaNames.forEach((name) => {
+      const selected = document.querySelector(
+        `input[name="${name}"]:checked`
+      );
+      if (!selected) {
+        allSelected = false;
+        document.
+        getElementById(`item-${name}`).
+        classList.add("incomplete");
+      } else {
+        total += Number(selected.value);
+      }
+    });
+
+    resultadoDiv.style.display = "block";
+    if (!allSelected) {
+      resultadoDiv.innerHTML =
+      '⚠️ <strong class="font-bold">Por favor, selecione uma opção para todos os itens destacados antes de calcular.</strong>';
+      resultadoDiv.classList.add("bg-red-100");
+      resultadoDiv.classList.remove("bg-blue-50");
+      delete resultadoDiv.dataset.score;
+      return;
+    }
+
+    const semanasFloat = 20 + total * 0.4;
+    const semanas = Math.floor(semanasFloat);
+    const dias = Math.round((semanasFloat - semanas) * 7);
+
+    let classificacao = "";
+    if (semanas < 37) classificacao = "Trước thời hạn";else
+    if (semanas >= 37 && semanas < 42) classificacao = "A termo";else
+    classificacao = "Hậu kỳ";
+
+    let conduta = "";
+    if (classificacao === "Trước thời hạn") {
+      conduta =
+      "Theo dõi điều hòa nhiệt độ, đường huyết và các dấu hiệu khó thở. Cân nhắc hỗ trợ thở máy và chăm sóc tại đơn vị sơ sinh nếu cần thiết.";
+    } else if (classificacao === "A termo") {
+      conduta =
+      "Chăm sóc sơ sinh thường quy; theo dõi việc cho bú và các dấu hiệu sinh tồn. Đánh giá nhu cầu sàng lọc sơ sinh.";
+    } else {
+      conduta =
+      "Đánh giá các dấu hiệu sau khi sinh (da, đường huyết, điều hòa nhiệt độ), quan sát nguy cơ thiếu oxy và khả năng thích ứng của trẻ sơ sinh.";
+    }
+
+    resultadoDiv.innerHTML = `
               <p>Escore total: <strong class="font-bold">${total}</strong></p>
               <p>Idade gestacional estimada: <strong class="font-bold">${semanas} semanas e ${dias} dias</strong></p>
               <p>Classificação: <strong class="font-bold">${classificacao}</strong></p>
               <p class="mt-4"><strong>Conduta sugerida:</strong> ${conduta}</p>
             `;
-          resultadoDiv.className = `resultado bg-blue-50`;
-          resultadoDiv.style.display = "block";
+    resultadoDiv.className = `Kết quả bg-blue-50`;
+    resultadoDiv.style.display = "block";
 
-          resultadoDiv.dataset.score = total;
-          resultadoDiv.dataset.scaleName = "Escala de Ballard";
-          resultadoDiv.dataset.classificacao = classificacao;
-        }
+    resultadoDiv.dataset.score = total;
+    resultadoDiv.dataset.scaleName = "Escala de Ballard";
+    resultadoDiv.dataset.classificacao = classificacao;
+  }
 
-        function limparCampos() {
-          criteriaNames.forEach((name) => {
-            document
-              .querySelectorAll(`input[name="${name}"]`)
-              .forEach((input) => (input.checked = false));
-          });
-          resultadoDiv.innerHTML = "";
-          resultadoDiv.className = "resultado hidden";
-          delete resultadoDiv.dataset.score;
-          delete resultadoDiv.dataset.scaleName;
-          delete resultadoDiv.dataset.classificacao;
-          document
-            .querySelectorAll(".ballard-criterion-item")
-            .forEach((el) => el.classList.remove("incomplete"));
-        }
+  function limparCampos() {
+    criteriaNames.forEach((name) => {
+      document.
+      querySelectorAll(`input[name="${name}"]`).
+      forEach((input) => input.checked = false);
+    });
+    resultadoDiv.innerHTML = "";
+    resultadoDiv.className = "kết quả ẩn";
+    delete resultadoDiv.dataset.score;
+    delete resultadoDiv.dataset.scaleName;
+    delete resultadoDiv.dataset.classificacao;
+    document.
+    querySelectorAll(".ballard-criterion-item").
+    forEach((el) => el.classList.remove("incomplete"));
+  }
 
-        btnCalcular?.addEventListener("click", calcularBallard);
-        btnLimpar?.addEventListener("click", limparCampos);
+  btnCalcular?.addEventListener("click", calcularBallard);
+  btnLimpar?.addEventListener("click", limparCampos);
 
-        btnGerarPDF?.addEventListener("click", () => {
-          if (!resultadoDiv.dataset.score) {
-            alert(
-              'Por favor, clique em "Calcular Escore" primeiro para gerar o PDF.',
-            );
-            return;
-          }
-          if (typeof gerarPDFGlobal === "function") {
-            gerarPDFGlobal({
-              titulo: "Escala de Ballard",
-              subtitulo: "Relatório de Idade Gestacional",
-              nomeArquivo: "relatorio_escala_ballard.pdf",
-              seletorConteudo: ".main-content-wrapper",
-            });
-          } else {
-            console.error("Função gerarPDFGlobal não definida.");
-          }
-        });
-
-        btnNandaNicNoc?.addEventListener("click", () => {
-          const score = resultadoDiv.dataset.score;
-          const scaleName = resultadoDiv.dataset.scaleName;
-          const classificacao = resultadoDiv.dataset.classificacao;
-          if (!score || !classificacao) {
-            alert("Calcule o resultado para pesquisar a conduta.");
-            return;
-          }
-          const searchQuery = encodeURIComponent(
-            `cuidados enfermagem recém-nascido ${classificacao} Ballard NANDA NIC NOC`,
-          );
-          window.open(
-            `https://www.google.com/search?q=${searchQuery}`,
-            "_blank",
-          );
-        });
+  btnGerarPDF?.addEventListener("click", () => {
+    if (!resultadoDiv.dataset.score) {
+      alert(
+        "Vui lòng nhấp vào \"Tính điểm\" trước để tạo tệp PDF."
+      );
+      return;
+    }
+    if (typeof gerarPDFGlobal === "function") {
+      gerarPDFGlobal({
+        titulo: "Escala de Ballard",
+        subtitulo: "Báo cáo tuổi thai",
+        nomeArquivo: "relatorio_escala_ballard.pdf",
+        seletorConteudo: ".main-content-wrapper"
       });
-    </script>
+    } else {
+      console.error("Chức năng gerarPDFGlobal không được định nghĩa.");
+    }
+  });
+
+  btnNandaNicNoc?.addEventListener("click", () => {
+    const score = resultadoDiv.dataset.score;
+    const scaleName = resultadoDiv.dataset.scaleName;
+    const classificacao = resultadoDiv.dataset.classificacao;
+    if (!score || !classificacao) {
+      alert("Tính toán kết quả để nghiên cứu hành vi.");
+      return;
+    }
+    const searchQuery = encodeURIComponent(
+      `chăm sóc y tá cho trẻ sơ sinh ${classificacao} Ballard NANDA NIC NOC`
+    );
+    window.open(
+      `https://www.google.com/search?q=${searchQuery}`,
+      "_blank"
+    );
+  });
+});</script>
 
     <script src="/lang-selector.js" defer=""></script>
 

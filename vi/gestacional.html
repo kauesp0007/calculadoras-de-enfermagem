@@ -303,63 +303,63 @@ với điều kiện thai kỳ được 40 tuần.</p>
 
     <!-- Script específico da página -->
     <script>
-      document.addEventListener("DOMContentLoaded", function () {
-        const resultadoDiv = document.getElementById("resultado");
-        const btnCalcular = document.getElementById("btnCalcular");
-        const btnLimpar = document.getElementById("btnLimpar");
-        const btnGerarPDF = document.getElementById("btnGerarPDF");
-        const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
+document.addEventListener("DOMContentLoaded", function () {
+  const resultadoDiv = document.getElementById("resultado");
+  const btnCalcular = document.getElementById("btnCalcular");
+  const btnLimpar = document.getElementById("btnLimpar");
+  const btnGerarPDF = document.getElementById("btnGerarPDF");
+  const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
 
-        function calcularGestacional() {
-          const dumInput = document.getElementById("dum").value;
-          const resultadoDiv = document.getElementById("resultado");
+  function calcularGestacional() {
+    const dumInput = document.getElementById("dum").value;
+    const resultadoDiv = document.getElementById("resultado");
 
-          resultadoDiv.className = "resultado-quadro mt-6";
-          resultadoDiv.style.display = "block";
-          btnGerarPDF.setAttribute("disabled", "true");
-          btnNandaNicNoc.setAttribute("disabled", "true");
+    resultadoDiv.className = "Kết quả khung MT-6";
+    resultadoDiv.style.display = "block";
+    btnGerarPDF.setAttribute("disabled", "true");
+    btnNandaNicNoc.setAttribute("disabled", "true");
 
-          if (!dumInput) {
-            resultadoDiv.innerHTML =
-              '<p class="text-red-600">⚠️ <strong>Por favor, insira a data da última menstruação (DUM).</strong></p>';
-            resultadoDiv.classList.add("bg-danger-red");
-            resultadoDiv.classList.remove(
-              "bg-info-orange-light",
-              "bg-success-green",
-            );
-            delete resultadoDiv.dataset.idadeGestacional;
-            delete resultadoDiv.dataset.dpp;
-            return;
-          }
+    if (!dumInput) {
+      resultadoDiv.innerHTML =
+      '<p class="text-red-600">⚠️ <strong>Por favor, insira a data da última menstruação (DUM).</strong></p>';
+      resultadoDiv.classList.add("bg-danger-red");
+      resultadoDiv.classList.remove(
+        "bg-info-orange-light",
+        "bg-success-green"
+      );
+      delete resultadoDiv.dataset.idadeGestacional;
+      delete resultadoDiv.dataset.dpp;
+      return;
+    }
 
-          const dum = new Date(dumInput + "T00:00:00");
-          const hoje = new Date();
-          hoje.setHours(0, 0, 0, 0);
-          dum.setHours(0, 0, 0, 0);
+    const dum = new Date(dumInput + "T00:00:00");
+    const hoje = new Date();
+    hoje.setHours(0, 0, 0, 0);
+    dum.setHours(0, 0, 0, 0);
 
-          if (dum > hoje) {
-            resultadoDiv.innerHTML =
-              '<p class="text-red-600">⚠️ <strong>A Data da Última Menstruação (DUM) não pode ser no futuro.</strong></p>';
-            resultadoDiv.classList.add("bg-danger-red");
-            resultadoDiv.classList.remove(
-              "bg-info-orange-light",
-              "bg-success-green",
-            );
-            delete resultadoDiv.dataset.idadeGestacional;
-            delete resultadoDiv.dataset.dpp;
-            return;
-          }
+    if (dum > hoje) {
+      resultadoDiv.innerHTML =
+      '<p class="text-red-600">⚠️ <strong>A Data da Última Menstruação (DUM) não pode ser no futuro.</strong></p>';
+      resultadoDiv.classList.add("bg-danger-red");
+      resultadoDiv.classList.remove(
+        "bg-info-orange-light",
+        "bg-success-green"
+      );
+      delete resultadoDiv.dataset.idadeGestacional;
+      delete resultadoDiv.dataset.dpp;
+      return;
+    }
 
-          const diffMs = hoje - dum;
-          const diffDias = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-          const semanas = Math.floor(diffDias / 7);
-          const dias = diffDias % 7;
+    const diffMs = hoje - dum;
+    const diffDias = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+    const semanas = Math.floor(diffDias / 7);
+    const dias = diffDias % 7;
 
-          const dpp = new Date(dum.getTime());
-          dpp.setDate(dpp.getDate() + 280);
-          const dppFormatada = dpp.toLocaleDateString("pt-BR");
+    const dpp = new Date(dum.getTime());
+    dpp.setDate(dpp.getDate() + 280);
+    const dppFormatada = dpp.toLocaleDateString("pt-BR");
 
-          resultadoDiv.innerHTML = `
+    resultadoDiv.innerHTML = `
                   <table class="w-full text-sm">
                       <tbody>
                           <tr>
@@ -373,71 +373,70 @@ với điều kiện thai kỳ được 40 tuần.</p>
                       </tbody>
                   </table>
               `;
-          resultadoDiv.classList.add("bg-success-green");
-          resultadoDiv.classList.remove(
-            "bg-danger-red",
-            "bg-info-orange-light",
-          );
+    resultadoDiv.classList.add("bg-success-green");
+    resultadoDiv.classList.remove(
+      "bg-danger-red",
+      "bg-info-orange-light"
+    );
 
-          resultadoDiv.dataset.idadeGestacional = `${semanas} semanas e ${dias} dias`;
-          resultadoDiv.dataset.dpp = dppFormatada;
-          resultadoDiv.dataset.scaleName =
-            "Calculadora de Idade Gestacional e DPP";
-          btnGerarPDF.removeAttribute("disabled");
-          btnNandaNicNoc.removeAttribute("disabled");
-        }
+    resultadoDiv.dataset.idadeGestacional = `${semanas} semanas e ${dias} dias`;
+    resultadoDiv.dataset.dpp = dppFormatada;
+    resultadoDiv.dataset.scaleName =
+    "Máy tính tuổi thai và DPP";
+    btnGerarPDF.removeAttribute("disabled");
+    btnNandaNicNoc.removeAttribute("disabled");
+  }
 
-        function limparCampos() {
-          document.getElementById("dum").value = "";
-          const resultadoDiv = document.getElementById("resultado");
-          resultadoDiv.innerHTML = "";
-          resultadoDiv.classList.add("hidden");
-          btnGerarPDF.setAttribute("disabled", "true");
-          btnNandaNicNoc.setAttribute("disabled", "true");
-          delete resultadoDiv.dataset.idadeGestacional;
-          delete resultadoDiv.dataset.dpp;
-          delete resultadoDiv.dataset.scaleName;
-        }
+  function limparCampos() {
+    document.getElementById("dum").value = "";
+    const resultadoDiv = document.getElementById("resultado");
+    resultadoDiv.innerHTML = "";
+    resultadoDiv.classList.add("hidden");
+    btnGerarPDF.setAttribute("disabled", "true");
+    btnNandaNicNoc.setAttribute("disabled", "true");
+    delete resultadoDiv.dataset.idadeGestacional;
+    delete resultadoDiv.dataset.dpp;
+    delete resultadoDiv.dataset.scaleName;
+  }
 
-        // Event Listeners
-        btnCalcular?.addEventListener("click", calcularGestacional);
-        btnLimpar?.addEventListener("click", limparCampos);
+  // Event Listeners
+  btnCalcular?.addEventListener("click", calcularGestacional);
+  btnLimpar?.addEventListener("click", limparCampos);
 
-        btnGerarPDF?.addEventListener("click", () => {
-          if (!resultadoDiv.dataset.idadeGestacional) {
-            alert('Por favor, clique em "Calcular" primeiro para gerar o PDF.');
-            return;
-          }
-          if (typeof gerarPDFGlobal === "function") {
-            gerarPDFGlobal({
-              titulo: "Calculadora de Idade Gestacional e DPP",
-              subtitulo: "Relatório de Cálculo de Gestação",
-              nomeArquivo: "relatorio_gestacional.pdf",
-              seletorConteudo: ".main-content-wrapper",
-            });
-          } else {
-            console.error("Função gerarPDFGlobal não definida.");
-          }
-        });
-
-        btnNandaNicNoc?.addEventListener("click", () => {
-          const idadeGestacional = resultadoDiv.dataset.idadeGestacional;
-          const dpp = resultadoDiv.dataset.dpp;
-          const scaleName = resultadoDiv.dataset.scaleName;
-          if (!idadeGestacional || !dpp) {
-            alert("Calcule o resultado para pesquisar a conduta.");
-            return;
-          }
-          const searchQuery = encodeURIComponent(
-            `${scaleName} idade gestacional ${idadeGestacional} DPP ${dpp} gerar taxonomia NANDA, gerar taxonomia NIC e gerar taxonomia de NOC`,
-          );
-          window.open(
-            `https://www.google.com/search?q=${searchQuery}`,
-            "_blank",
-          );
-        });
+  btnGerarPDF?.addEventListener("click", () => {
+    if (!resultadoDiv.dataset.idadeGestacional) {
+      alert("Vui lòng nhấp vào \"Tính toán\" trước để tạo tệp PDF.");
+      return;
+    }
+    if (typeof gerarPDFGlobal === "function") {
+      gerarPDFGlobal({
+        titulo: "Máy tính tuổi thai và DPP",
+        subtitulo: "Báo cáo tính toán thai kỳ",
+        nomeArquivo: "relatorio_gestacional.pdf",
+        seletorConteudo: ".main-content-wrapper"
       });
-    </script>
+    } else {
+      console.error("Chức năng gerarPDFGlobal không được định nghĩa.");
+    }
+  });
+
+  btnNandaNicNoc?.addEventListener("click", () => {
+    const idadeGestacional = resultadoDiv.dataset.idadeGestacional;
+    const dpp = resultadoDiv.dataset.dpp;
+    const scaleName = resultadoDiv.dataset.scaleName;
+    if (!idadeGestacional || !dpp) {
+      alert("Tính toán kết quả để nghiên cứu hành vi.");
+      return;
+    }
+    const searchQuery = encodeURIComponent(
+      `${scaleName} tuổi thai ${idadeGestacional} DPP ${dpp} gerar taxonomia NANDA, gerar taxonomia NIC e gerar taxonomia de NOC`
+    );
+    window.open(
+      `https://www.google.com/search?q=${searchQuery}`,
+      "_blank"
+    );
+  });
+});</script>
 
     <script src="/lang-selector.js" defer=""></script>
 

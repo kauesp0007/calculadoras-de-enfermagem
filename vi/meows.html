@@ -291,258 +291,257 @@ Nhịp thở, Độ bão hòa oxy, Cảm giác đau và Mức độ ý thức.</
     <script src="global-scripts.js" defer=""></script>
 
     <script>
-      document.addEventListener("DOMContentLoaded", () => {
-        const resultadoDiv = document.getElementById("resultado");
-        const btnCalcular = document.getElementById("btnCalcular");
-        const btnLimpar = document.getElementById("btnLimpar");
-        const btnGerarPDF = document.getElementById("btnGerarPDF");
-        const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
-        const conteudoDiv = document.getElementById("conteudo");
+document.addEventListener("DOMContentLoaded", () => {
+  const resultadoDiv = document.getElementById("resultado");
+  const btnCalcular = document.getElementById("btnCalcular");
+  const btnLimpar = document.getElementById("btnLimpar");
+  const btnGerarPDF = document.getElementById("btnGerarPDF");
+  const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
+  const conteudoDiv = document.getElementById("conteudo");
 
-        const meowsData = [
-          {
-            variable: "Temperatura (°C)",
-            nameAttr: "temperatura",
-            options: [
-              { text: "≤ 35", score: 2 },
-              { text: "35.1 - 36", score: 1 },
-              { text: "36.1 - 37.9", score: 0 },
-              { text: "≥ 38", score: 2 },
-            ],
-          },
-          {
-            variable: "Pressão Arterial Sistólica (mmHg)",
-            nameAttr: "pas",
-            options: [
-              { text: "≤ 90", score: 2 },
-              { text: "91 - 100", score: 1 },
-              { text: "101 - 149", score: 0 },
-              { text: "150 - 159", score: 1 },
-              { text: "≥ 160", score: 2 },
-            ],
-          },
-          {
-            variable: "Pressão Arterial Diastólica (mmHg)",
-            nameAttr: "pad",
-            options: [
-              { text: "≤ 89", score: 0 },
-              { text: "90 - 99", score: 1 },
-              { text: "≥ 100", score: 2 },
-            ],
-          },
-          {
-            variable: "Frequência Cardíaca (bpm)",
-            nameAttr: "fc",
-            options: [
-              { text: "≤ 40", score: 2 },
-              { text: "41 - 50", score: 1 },
-              { text: "51 - 99", score: 0 },
-              { text: "100 - 119", score: 1 },
-              { text: "≥ 120", score: 2 },
-            ],
-          },
-          {
-            variable: "Frequência Respiratória (ipm)",
-            nameAttr: "fr",
-            options: [
-              { text: "≤ 10", score: 2 },
-              { text: "11 - 20", score: 0 },
-              { text: "21 - 29", score: 1 },
-              { text: "≥ 30", score: 2 },
-            ],
-          },
-          {
-            variable: "Saturação de O2 (%)",
-            nameAttr: "satO2",
-            options: [
-              { text: "≤ 95%", score: 2 },
-              { text: "96 - 100%", score: 0 },
-            ],
-          },
-          {
-            variable: "Dor (escore 0-10)",
-            nameAttr: "dor",
-            options: [
-              { text: "0 - 1", score: 0 },
-              { text: "2 - 3", score: 1 },
-            ],
-          },
-          {
-            variable: "Nível de Consciência",
-            nameAttr: "consciencia",
-            options: [
-              { text: "Doloroso ou Inconsciente", score: 2 },
-              { text: "Verbal", score: 1 },
-              { text: "Alerta", score: 0 },
-            ],
-          },
-        ];
+  const meowsData = [
+  {
+    variable: "Temperatura (°C)",
+    nameAttr: "temperatura",
+    options: [
+    { text: "≤ 35", score: 2 },
+    { text: "35.1 - 36", score: 1 },
+    { text: "36.1 - 37.9", score: 0 },
+    { text: "≥ 38", score: 2 }]
 
-        // --- Funções da Calculadora MEOWS ---
-        function updateScoreDisplay(criterionId) {
-          const selectElement = document.getElementById(criterionId);
-          const scoreDisplayElement = document.getElementById(
-            `${criterionId}_score_display`,
-          );
-          if (selectElement && scoreDisplayElement) {
-            scoreDisplayElement.innerText =
-              selectElement.value === "" ? "0" : selectElement.value;
-          }
-        }
+  },
+  {
+    variable: "Huyết áp tâm thu (mmHg)",
+    nameAttr: "pas",
+    options: [
+    { text: "≤ 90", score: 2 },
+    { text: "91 - 100", score: 1 },
+    { text: "101 - 149", score: 0 },
+    { text: "150 - 159", score: 1 },
+    { text: "≥ 160", score: 2 }]
 
-        function calcularMeows() {
-          let totalScore = 0;
-          let allItemsSelected = true;
+  },
+  {
+    variable: "Huyết áp tâm trương (mmHg)",
+    nameAttr: "pad",
+    options: [
+    { text: "≤ 89", score: 0 },
+    { text: "90 - 99", score: 1 },
+    { text: "≥ 100", score: 2 }]
 
-          meowsData.forEach((item) => {
-            const selectElement = document.getElementById(item.nameAttr);
-            if (selectElement.value === "") {
-              allItemsSelected = false;
-            } else {
-              totalScore += parseInt(selectElement.value, 10);
-            }
-          });
+  },
+  {
+    variable: "Nhịp tim (bpm)",
+    nameAttr: "fc",
+    options: [
+    { text: "≤ 40", score: 2 },
+    { text: "41 - 50", score: 1 },
+    { text: "51 - 99", score: 0 },
+    { text: "100 - 119", score: 1 },
+    { text: "≥ 120", score: 2 }]
 
-          resultadoDiv.style.display = "block";
-          if (!allItemsSelected) {
-            resultadoDiv.innerHTML =
-              '⚠️ <strong class="font-bold">Por favor, selecione uma opção para cada item</strong> antes de calcular.';
-            resultadoDiv.className = "resultado bg-info-orange-light";
-            delete resultadoDiv.dataset.score;
-            return;
-          }
+  },
+  {
+    variable: "Tần số thở (ipm)",
+    nameAttr: "fr",
+    options: [
+    { text: "≤ 10", score: 2 },
+    { text: "11 - 20", score: 0 },
+    { text: "21 - 29", score: 1 },
+    { text: "≥ 30", score: 2 }]
 
-          let classificacao = "";
-          let acaoRecomendada = "";
-          let resultadoClasse = "";
+  },
+  {
+    variable: "Độ bão hòa O2 (%)",
+    nameAttr: "satO2",
+    options: [
+    { text: "≤ 95%", score: 2 },
+    { text: "96 - 100%", score: 0 }]
 
-          if (totalScore >= 5) {
-            classificacao = "Risco Elevado";
-            acaoRecomendada =
-              "Acionar equipe médica imediatamente e iniciar intervenções apropriadas. Monitoramento contínuo (Ex: a cada 5-15 min).";
-            resultadoClasse = "bg-red-custom";
-          } else if (totalScore >= 3) {
-            classificacao = "Risco Moderado";
-            acaoRecomendada =
-              "Monitoramento reforçado (Ex: a cada 30-60 min) e avaliação clínica detalhada. Considerar acionar equipe médica.";
-            resultadoClasse = "bg-yellow-custom";
-          } else {
-            classificacao = "Baixo Risco";
-            acaoRecomendada =
-              "Continuar monitoramento de rotina conforme protocolo da instituição.";
-            resultadoClasse = "bg-green-custom";
-          }
+  },
+  {
+    variable: "Dor (escore 0-10)",
+    nameAttr: "dor",
+    options: [
+    { text: "0 - 1", score: 0 },
+    { text: "2 - 3", score: 1 }]
 
-          resultadoDiv.innerHTML = `<p>Pontuação total: <strong class="font-bold">${totalScore}</strong></p><p>Classificação: <strong class="font-bold">${classificacao}</strong></p><p>Ação Recomendada: <strong class="font-bold">${acaoRecomendada}</strong></p>`;
-          resultadoDiv.className = `resultado ${resultadoClasse}`;
+  },
+  {
+    variable: "Mức độ nhận thức",
+    nameAttr: "consciencia",
+    options: [
+    { text: "Doloroso ou Inconsciente", score: 2 },
+    { text: "Verbal", score: 1 },
+    { text: "Alerta", score: 0 }]
 
-          resultadoDiv.dataset.score = totalScore;
-          resultadoDiv.dataset.classificacao = classificacao;
-          resultadoDiv.dataset.scaleName = "Protocolo MEOWS";
-        }
+  }];
 
-        function limparCampos() {
-          meowsData.forEach((item) => {
-            const selectElement = document.getElementById(item.nameAttr);
-            selectElement.selectedIndex = 0;
-            document.getElementById(
-              `${item.nameAttr}_score_display`,
-            ).innerText = "0";
-          });
-          resultadoDiv.innerHTML = "";
-          resultadoDiv.className = "resultado hidden";
-          delete resultadoDiv.dataset.score;
-          delete resultadoDiv.dataset.classificacao;
-          delete resultadoDiv.dataset.scaleName;
-        }
 
-        // Preenche o formulário dinamicamente
-        meowsData.forEach((item, index) => {
-          const sectionDiv = document.createElement("div");
-          sectionDiv.className = "meows-criterion-card";
+  // --- Funções da Calculadora MEOWS ---
+  function updateScoreDisplay(criterionId) {
+    const selectElement = document.getElementById(criterionId);
+    const scoreDisplayElement = document.getElementById(
+      `${criterionId}_score_display`
+    );
+    if (selectElement && scoreDisplayElement) {
+      scoreDisplayElement.innerText =
+      selectElement.value === "" ? "0" : selectElement.value;
+    }
+  }
 
-          const headerDiv = document.createElement("div");
-          headerDiv.className = "meows-criterion-header";
+  function calcularMeows() {
+    let totalScore = 0;
+    let allItemsSelected = true;
 
-          const titleH3 = document.createElement("h3");
-          titleH3.className = "meows-criterion-title";
-          titleH3.innerText = item.variable;
-          headerDiv.appendChild(titleH3);
+    meowsData.forEach((item) => {
+      const selectElement = document.getElementById(item.nameAttr);
+      if (selectElement.value === "") {
+        allItemsSelected = false;
+      } else {
+        totalScore += parseInt(selectElement.value, 10);
+      }
+    });
 
-          const scoreSpan = document.createElement("span");
-          scoreSpan.className = "meows-score-display";
-          scoreSpan.id = `${item.nameAttr}_score_display`;
-          scoreSpan.innerText = "0";
-          headerDiv.appendChild(scoreSpan);
+    resultadoDiv.style.display = "block";
+    if (!allItemsSelected) {
+      resultadoDiv.innerHTML =
+      '⚠️ <strong class="font-bold">Por favor, selecione uma opção para cada item</strong> antes de calcular.';
+      resultadoDiv.className = "Kết quả bg-info-orange-light";
+      delete resultadoDiv.dataset.score;
+      return;
+    }
 
-          sectionDiv.appendChild(headerDiv);
+    let classificacao = "";
+    let acaoRecomendada = "";
+    let resultadoClasse = "";
 
-          const optionsDiv = document.createElement("div");
-          optionsDiv.className = "meows-criterion-options";
+    if (totalScore >= 5) {
+      classificacao = "Risco Elevado";
+      acaoRecomendada =
+      "Gọi ngay đội ngũ y tế và bắt đầu các biện pháp can thiệp thích hợp. Theo dõi liên tục (Ví dụ: cứ sau 5-15 phút).";
+      resultadoClasse = "bg-red-custom";
+    } else if (totalScore >= 3) {
+      classificacao = "Risco Moderado";
+      acaoRecomendada =
+      "Theo dõi chặt chẽ (Ví dụ: cứ sau 30-60 phút) và đánh giá lâm sàng chi tiết. Cân nhắc gọi đội ngũ y tế.";
+      resultadoClasse = "bg-yellow-custom";
+    } else {
+      classificacao = "Baixo Risco";
+      acaoRecomendada =
+      "Tiếp tục theo dõi thường xuyên theo quy trình của cơ sở.";
+      resultadoClasse = "bg-green-custom";
+    }
 
-          const selectElement = document.createElement("select");
-          selectElement.id = item.nameAttr;
-          selectElement.className = "meows-select";
-          selectElement.onchange = () => updateScoreDisplay(item.nameAttr);
+    resultadoDiv.innerHTML = `<p>Pontuação total: <strong class="font-bold">${totalScore}</strong></p><p>Classificação: <strong class="font-bold">${classificacao}</strong></p><p>Ação Recomendada: <strong class="font-bold">${acaoRecomendada}</strong></p>`;
+    resultadoDiv.className = `kết quả ${resultadoClasse}`;
 
-          const defaultOption = document.createElement("option");
-          defaultOption.value = "";
-          defaultOption.text = "Selecione...";
-          defaultOption.disabled = true;
-          defaultOption.selected = true;
-          selectElement.appendChild(defaultOption);
+    resultadoDiv.dataset.score = totalScore;
+    resultadoDiv.dataset.classificacao = classificacao;
+    resultadoDiv.dataset.scaleName = "Protocolo MEOWS";
+  }
 
-          item.options.forEach((option) => {
-            const optionElement = document.createElement("option");
-            optionElement.value = option.score;
-            optionElement.text = `${option.text} (${option.score})`;
-            selectElement.appendChild(optionElement);
-          });
+  function limparCampos() {
+    meowsData.forEach((item) => {
+      const selectElement = document.getElementById(item.nameAttr);
+      selectElement.selectedIndex = 0;
+      document.getElementById(
+        `${item.nameAttr}_score_display`
+      ).innerText = "0";
+    });
+    resultadoDiv.innerHTML = "";
+    resultadoDiv.className = "kết quả ẩn";
+    delete resultadoDiv.dataset.score;
+    delete resultadoDiv.dataset.classificacao;
+    delete resultadoDiv.dataset.scaleName;
+  }
 
-          optionsDiv.appendChild(selectElement);
-          sectionDiv.appendChild(optionsDiv);
-          conteudoDiv.appendChild(sectionDiv);
-        });
+  // Preenche o formulário dinamicamente
+  meowsData.forEach((item, index) => {
+    const sectionDiv = document.createElement("div");
+    sectionDiv.className = "meows-criterion-card";
 
-        // Adiciona os event listeners aos botões
-        btnCalcular?.addEventListener("click", calcularMeows);
-        btnLimpar?.addEventListener("click", limparCampos);
+    const headerDiv = document.createElement("div");
+    headerDiv.className = "meows-criterion-header";
 
-        btnGerarPDF?.addEventListener("click", () => {
-          if (!resultadoDiv.dataset.score) {
-            alert('Por favor, clique em "Calcular" primeiro para gerar o PDF.');
-            return;
-          }
-          if (typeof gerarPDFGlobal === "function") {
-            gerarPDFGlobal({
-              titulo: "Protocolo MEOWS",
-              subtitulo: "Relatório de Deterioração Clínica Obstétrica",
-              nomeArquivo: "protocolo_meows.pdf",
-              seletorConteudo: ".main-content-wrapper",
-            });
-          } else {
-            console.error("Função gerarPDFGlobal não definida.");
-          }
-        });
+    const titleH3 = document.createElement("h3");
+    titleH3.className = "meows-criterion-title";
+    titleH3.innerText = item.variable;
+    headerDiv.appendChild(titleH3);
 
-        btnNandaNicNoc?.addEventListener("click", () => {
-          const score = resultadoDiv.dataset.score;
-          const scaleName = resultadoDiv.dataset.scaleName;
-          const classificacao = resultadoDiv.dataset.classificacao;
-          if (!score || !classificacao) {
-            alert("Calcule o resultado para pesquisar a conduta.");
-            return;
-          }
-          const searchQuery = encodeURIComponent(
-            `${scaleName} pontuação ${score} classificação ${classificacao} gerar taxonomia NANDA, gerar taxonomia NIC e gerar taxonomia de NOC`,
-          );
-          window.open(
-            `https://www.google.com/search?q=${searchQuery}`,
-            "_blank",
-          );
-        });
+    const scoreSpan = document.createElement("span");
+    scoreSpan.className = "meows-score-display";
+    scoreSpan.id = `${item.nameAttr}_score_display`;
+    scoreSpan.innerText = "0";
+    headerDiv.appendChild(scoreSpan);
+
+    sectionDiv.appendChild(headerDiv);
+
+    const optionsDiv = document.createElement("div");
+    optionsDiv.className = "meows-criterion-options";
+
+    const selectElement = document.createElement("select");
+    selectElement.id = item.nameAttr;
+    selectElement.className = "meows-select";
+    selectElement.onchange = () => updateScoreDisplay(item.nameAttr);
+
+    const defaultOption = document.createElement("option");
+    defaultOption.value = "";
+    defaultOption.text = "Chọn...";
+    defaultOption.disabled = true;
+    defaultOption.selected = true;
+    selectElement.appendChild(defaultOption);
+
+    item.options.forEach((option) => {
+      const optionElement = document.createElement("option");
+      optionElement.value = option.score;
+      optionElement.text = `${option.text} (${option.score})`;
+      selectElement.appendChild(optionElement);
+    });
+
+    optionsDiv.appendChild(selectElement);
+    sectionDiv.appendChild(optionsDiv);
+    conteudoDiv.appendChild(sectionDiv);
+  });
+
+  // Adiciona os event listeners aos botões
+  btnCalcular?.addEventListener("click", calcularMeows);
+  btnLimpar?.addEventListener("click", limparCampos);
+
+  btnGerarPDF?.addEventListener("click", () => {
+    if (!resultadoDiv.dataset.score) {
+      alert("Vui lòng nhấp vào \"Tính toán\" trước để tạo tệp PDF.");
+      return;
+    }
+    if (typeof gerarPDFGlobal === "function") {
+      gerarPDFGlobal({
+        titulo: "Protocolo MEOWS",
+        subtitulo: "Báo cáo về tình trạng suy giảm sức khỏe sản khoa",
+        nomeArquivo: "protocolo_meows.pdf",
+        seletorConteudo: ".main-content-wrapper"
       });
-    </script>
+    } else {
+      console.error("Chức năng gerarPDFGlobal không được định nghĩa.");
+    }
+  });
+
+  btnNandaNicNoc?.addEventListener("click", () => {
+    const score = resultadoDiv.dataset.score;
+    const scaleName = resultadoDiv.dataset.scaleName;
+    const classificacao = resultadoDiv.dataset.classificacao;
+    if (!score || !classificacao) {
+      alert("Tính toán kết quả để nghiên cứu hành vi.");
+      return;
+    }
+    const searchQuery = encodeURIComponent(
+      `${scaleName} điểm số ${score} phân loại ${classificacao} gerar taxonomia NANDA, gerar taxonomia NIC e gerar taxonomia de NOC`
+    );
+    window.open(
+      `https://www.google.com/search?q=${searchQuery}`,
+      "_blank"
+    );
+  });
+});</script>
 
     <script src="/lang-selector.js" defer=""></script>
 

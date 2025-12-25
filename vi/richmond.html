@@ -378,154 +378,153 @@ tình trạng an thần và phản ứng với các kích thích.</p>
     <script src="/global-scripts.js" defer=""></script>
 
     <script>
-      document.addEventListener("DOMContentLoaded", () => {
-        const resultadoDiv = document.getElementById("resultado");
-        const btnCalcular = document.getElementById("btnCalcular");
-        const btnLimpar = document.getElementById("btnLimpar");
-        const btnGerarPDF = document.getElementById("btnGerarPDF");
-        const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
-        const tabelaRASS = document.getElementById("tabelaRASS");
-        let scoreSelecionado = null;
-        let interpretacaoSelecionada = null;
+document.addEventListener("DOMContentLoaded", () => {
+  const resultadoDiv = document.getElementById("resultado");
+  const btnCalcular = document.getElementById("btnCalcular");
+  const btnLimpar = document.getElementById("btnLimpar");
+  const btnGerarPDF = document.getElementById("btnGerarPDF");
+  const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
+  const tabelaRASS = document.getElementById("tabelaRASS");
+  let scoreSelecionado = null;
+  let interpretacaoSelecionada = null;
 
-        // Dados da escala de Richmond
-        const rassData = [
-          {
-            score: "+4",
-            description:
-              "Muito agitado: Agressivo, perigoso para si e para os outros.",
-          },
-          {
-            score: "+3",
-            description:
-              "Agitado: Puxa ou remove tubos/cateteres, comportamento combativo.",
-          },
-          {
-            score: "+2",
-            description:
-              "Muito inquieto: Movimentos frequentes e descoordenados, sem agressividade.",
-          },
-          {
-            score: "+1",
-            description: "Inquieto: Ansioso, com movimentos não agressivos.",
-          },
-          { score: "0", description: "Alerta e calmo: Estado ideal." },
-          {
-            score: "-1",
-            description:
-              "Sonolento: Acorda por >10s, contato visual sustentado.",
-          },
-          { score: "-2", description: "Sedação leve: Contato visual breve." },
-          {
-            score: "-3",
-            description: "Sedação moderada: Movimenta-se sem contato visual.",
-          },
-          {
-            score: "-4",
-            description: "Sedação profunda: Reage a estímulo doloroso.",
-          },
-          {
-            score: "-5",
-            description: "Sem resposta: Nenhuma resposta a estímulos.",
-          },
-        ];
+  // Dados da escala de Richmond
+  const rassData = [
+  {
+    score: "+4",
+    description:
+    "Muito agitado: Agressivo, perigoso para si e para os outros."
+  },
+  {
+    score: "+3",
+    description:
+    "Agitado: Puxa ou remove tubos/cateteres, comportamento combativo."
+  },
+  {
+    score: "+2",
+    description:
+    "Rất bồn chồn: Di chuyển thường xuyên và thiếu phối hợp, không có tính hung hăng."
+  },
+  {
+    score: "+1",
+    description: "Bồn chồn: Lo lắng, có những cử động không hung hăng."
+  },
+  { score: "0", description: "Alerta e calmo: Estado ideal." },
+  {
+    score: "-1",
+    description:
+    "Sonolento: Acorda por >10s, contato visual sustentado."
+  },
+  { score: "-2", description: "Gây mê nhẹ: Tiếp xúc bằng mắt trong thời gian ngắn." },
+  {
+    score: "-3",
+    description: "Gây mê vừa phải: Di chuyển mà không cần tiếp xúc bằng mắt."
+  },
+  {
+    score: "-4",
+    description: "Gây mê sâu: Phản ứng với kích thích đau."
+  },
+  {
+    score: "-5",
+    description: "Không có phản ứng: Không có phản ứng với các kích thích."
+  }];
 
-        // Adiciona event listeners para a seleção das linhas da tabela
-        tabelaRASS?.addEventListener("click", function (e) {
-          const targetRow = e.target.closest("tr");
-          if (targetRow) {
-            tabelaRASS
-              .querySelectorAll("tr")
-              .forEach((row) => row.classList.remove("selected"));
-            targetRow.classList.add("selected");
-            scoreSelecionado = targetRow.getAttribute("data-score");
-            interpretacaoSelecionada = targetRow.cells[1].textContent.trim();
-          }
-        });
 
-        function calcularRASS() {
-          if (scoreSelecionado === null) {
-            resultadoDiv.innerHTML =
-              '⚠️ <strong class="font-bold">Por favor, selecione um nível da escala</strong> antes de continuar.';
-            resultadoDiv.className = "resultado bg-info-orange-light";
-            resultadoDiv.style.display = "block";
-            delete resultadoDiv.dataset.score;
-            return;
-          }
+  // Adiciona event listeners para a seleção das linhas da tabela
+  tabelaRASS?.addEventListener("click", function (e) {
+    const targetRow = e.target.closest("tr");
+    if (targetRow) {
+      tabelaRASS.
+      querySelectorAll("tr").
+      forEach((row) => row.classList.remove("selected"));
+      targetRow.classList.add("selected");
+      scoreSelecionado = targetRow.getAttribute("data-score");
+      interpretacaoSelecionada = targetRow.cells[1].textContent.trim();
+    }
+  });
 
-          let resultadoClasses = "";
-          if (parseInt(scoreSelecionado) >= 2) {
-            resultadoClasses = "bg-danger-red-light";
-          } else if (
-            parseInt(scoreSelecionado) >= -3 &&
-            parseInt(scoreSelecionado) <= 1
-          ) {
-            resultadoClasses = "bg-warning-yellow-light";
-          } else {
-            // Score -4 ou -5
-            resultadoClasses = "bg-danger-red-light";
-          }
+  function calcularRASS() {
+    if (scoreSelecionado === null) {
+      resultadoDiv.innerHTML =
+      '⚠️ <strong class="font-bold">Por favor, selecione um nível da escala</strong> antes de continuar.';
+      resultadoDiv.className = "Kết quả bg-info-orange-light";
+      resultadoDiv.style.display = "block";
+      delete resultadoDiv.dataset.score;
+      return;
+    }
 
-          resultadoDiv.innerHTML = `<p>Pontuação RASS: <strong class="font-bold">${scoreSelecionado}</strong></p><p>Interpretação: <strong class="font-bold">${interpretacaoSelecionada}</strong></p>`;
-          resultadoDiv.className = `resultado ${resultadoClasses}`;
-          resultadoDiv.style.display = "block";
+    let resultadoClasses = "";
+    if (parseInt(scoreSelecionado) >= 2) {
+      resultadoClasses = "bg-danger-red-light";
+    } else if (
+    parseInt(scoreSelecionado) >= -3 &&
+    parseInt(scoreSelecionado) <= 1)
+    {
+      resultadoClasses = "bg-warning-yellow-light";
+    } else {
+      // Score -4 ou -5
+      resultadoClasses = "bg-danger-red-light";
+    }
 
-          resultadoDiv.dataset.score = scoreSelecionado;
-          resultadoDiv.dataset.classificacao = interpretacaoSelecionada;
-          resultadoDiv.dataset.scaleName = "Escala de Richmond (RASS)";
-        }
+    resultadoDiv.innerHTML = `<p>Pontuação RASS: <strong class="font-bold">${scoreSelecionado}</strong></p><p>Interpretação: <strong class="font-bold">${interpretacaoSelecionada}</strong></p>`;
+    resultadoDiv.className = `kết quả ${resultadoClasses}`;
+    resultadoDiv.style.display = "block";
 
-        function limparCampos() {
-          tabelaRASS
-            .querySelectorAll("tr")
-            .forEach((row) => row.classList.remove("selected"));
-          scoreSelecionado = null;
-          interpretacaoSelecionada = null;
-          resultadoDiv.innerHTML = "";
-          resultadoDiv.className = "resultado hidden";
-          delete resultadoDiv.dataset.score;
-          delete resultadoDiv.dataset.classificacao;
-          delete resultadoDiv.dataset.scaleName;
-        }
+    resultadoDiv.dataset.score = scoreSelecionado;
+    resultadoDiv.dataset.classificacao = interpretacaoSelecionada;
+    resultadoDiv.dataset.scaleName = "Escala de Richmond (RASS)";
+  }
 
-        btnCalcular?.addEventListener("click", calcularRASS);
-        btnLimpar?.addEventListener("click", limparCampos);
+  function limparCampos() {
+    tabelaRASS.
+    querySelectorAll("tr").
+    forEach((row) => row.classList.remove("selected"));
+    scoreSelecionado = null;
+    interpretacaoSelecionada = null;
+    resultadoDiv.innerHTML = "";
+    resultadoDiv.className = "kết quả ẩn";
+    delete resultadoDiv.dataset.score;
+    delete resultadoDiv.dataset.classificacao;
+    delete resultadoDiv.dataset.scaleName;
+  }
 
-        btnGerarPDF?.addEventListener("click", () => {
-          if (!resultadoDiv.dataset.score) {
-            alert('Por favor, clique em "Calcular" primeiro para gerar o PDF.');
-            return;
-          }
-          if (typeof gerarPDFGlobal === "function") {
-            gerarPDFGlobal({
-              titulo: "Escala de Richmond (RASS)",
-              subtitulo: "Relatório de Avaliação de Agitação e Sedação",
-              nomeArquivo: "relatorio_escala_richmond.pdf",
-              seletorConteudo: ".main-content-wrapper",
-            });
-          } else {
-            console.error("Função gerarPDFGlobal não definida.");
-          }
-        });
+  btnCalcular?.addEventListener("click", calcularRASS);
+  btnLimpar?.addEventListener("click", limparCampos);
 
-        btnNandaNicNoc?.addEventListener("click", () => {
-          const score = resultadoDiv.dataset.score;
-          const scaleName = resultadoDiv.dataset.scaleName;
-          const classificacao = resultadoDiv.dataset.classificacao;
-          if (!score || !classificacao) {
-            alert("Calcule o resultado para pesquisar a conduta.");
-            return;
-          }
-          const searchQuery = encodeURIComponent(
-            `${scaleName} pontuação ${score} classificação ${classificacao} gerar taxonomia NANDA, gerar taxonomia NIC e gerar taxonomia de NOC`,
-          );
-          window.open(
-            `https://www.google.com/search?q=${searchQuery}`,
-            "_blank",
-          );
-        });
+  btnGerarPDF?.addEventListener("click", () => {
+    if (!resultadoDiv.dataset.score) {
+      alert("Vui lòng nhấp vào \"Tính toán\" trước để tạo tệp PDF.");
+      return;
+    }
+    if (typeof gerarPDFGlobal === "function") {
+      gerarPDFGlobal({
+        titulo: "Escala de Richmond (RASS)",
+        subtitulo: "Báo cáo đánh giá kích động và an thần",
+        nomeArquivo: "relatorio_escala_richmond.pdf",
+        seletorConteudo: ".main-content-wrapper"
       });
-    </script>
+    } else {
+      console.error("Chức năng gerarPDFGlobal không được định nghĩa.");
+    }
+  });
+
+  btnNandaNicNoc?.addEventListener("click", () => {
+    const score = resultadoDiv.dataset.score;
+    const scaleName = resultadoDiv.dataset.scaleName;
+    const classificacao = resultadoDiv.dataset.classificacao;
+    if (!score || !classificacao) {
+      alert("Tính toán kết quả để nghiên cứu hành vi.");
+      return;
+    }
+    const searchQuery = encodeURIComponent(
+      `${scaleName} điểm số ${score} phân loại ${classificacao} gerar taxonomia NANDA, gerar taxonomia NIC e gerar taxonomia de NOC`
+    );
+    window.open(
+      `https://www.google.com/search?q=${searchQuery}`,
+      "_blank"
+    );
+  });
+});</script>
 
     <script src="/lang-selector.js" defer=""></script>
 

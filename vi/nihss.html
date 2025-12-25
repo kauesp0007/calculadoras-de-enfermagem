@@ -293,402 +293,401 @@ và đơn vị chăm sóc đặc biệt (ICU).</p>
     <script src="global-scripts.js" defer=""></script>
 
     <script>
-      document.addEventListener("DOMContentLoaded", () => {
-        const resultadoDiv = document.getElementById("resultado");
-        const btnCalcular = document.getElementById("btnCalcular");
-        const btnLimpar = document.getElementById("btnLimpar");
-        const btnGerarPDF = document.getElementById("btnGerarPDF");
-        const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
-        const conteudoDiv = document.getElementById("conteudo");
+document.addEventListener("DOMContentLoaded", () => {
+  const resultadoDiv = document.getElementById("resultado");
+  const btnCalcular = document.getElementById("btnCalcular");
+  const btnLimpar = document.getElementById("btnLimpar");
+  const btnGerarPDF = document.getElementById("btnGerarPDF");
+  const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
+  const conteudoDiv = document.getElementById("conteudo");
 
-        // Dados da Escala NIHSS
-        const nihssData = [
-          {
-            domain: "1a - Nível de consciência",
-            nameAttr: "nivelConsciencia",
-            options: [
-              { text: "Alerta", score: 0 },
-              {
-                text: "Não alerta, necessita estímulo mínimo para responder ou para manter a resposta",
-                score: 1,
-              },
-              {
-                text: "Não alerta, necessita estímulo repetitivo para responder ou estímulo doloroso",
-                score: 2,
-              },
-              { text: "Coma", score: 3 },
-            ],
-          },
-          {
-            domain: "1b - Nível de consciência: Responde Mês e Idade",
-            nameAttr: "mesIdade",
-            options: [
-              { text: "Responde ambas corretamente", score: 0 },
-              { text: "Responde uma corretamente", score: 1 },
-              { text: "Nenhuma respondida corretamente", score: 2 },
-            ],
-          },
-          {
-            domain: "1c - Nível de consciência: Executa comando motor",
-            nameAttr: "comandoMotor",
-            options: [
-              { text: "Executa ambas as tarefas corretamente", score: 0 },
-              { text: "Executa uma tarefa corretamente", score: 1 },
-              { text: "Nenhuma executada corretamente", score: 2 },
-            ],
-          },
-          {
-            domain: "2 - Melhor olhar conjugado",
-            nameAttr: "olharConjugado",
-            options: [
-              { text: "Normal", score: 0 },
-              {
-                text: "Paralisia parcial do olhar (olhar fixo em uma direção)",
-                score: 1,
-              },
-              { text: "Desvio forçado do olhar", score: 2 },
-            ],
-          },
-          {
-            domain: "3 - Campos visuais",
-            nameAttr: "camposVisuais",
-            options: [
-              { text: "Sem perda", score: 0 },
-              {
-                text: "Hemianopsia parcial (cegueira em uma parte do campo visual)",
-                score: 1,
-              },
-              {
-                text: "Hemianopsia completa (cegueira em metade do campo visual)",
-                score: 2,
-              },
-              { text: "Cegueira bilateral (cegueira total)", score: 3 },
-            ],
-          },
-          {
-            domain: "4 - Paralisia facial",
-            nameAttr: "paralisiaFacial",
-            options: [
-              { text: "Simétrico (sem paralisia)", score: 0 },
-              { text: "Paralisia leve (assimetria ao sorrir)", score: 1 },
-              {
-                text: "Paralisia parcial (comprometimento de face inferior)",
-                score: 2,
-              },
-              {
-                text: "Paralisia completa (comprometimento de face superior e inferior)",
-                score: 3,
-              },
-            ],
-          },
-          {
-            domain: "5a - Força motora no membro superior esquerdo",
-            nameAttr: "msEsq",
-            options: [
-              { text: "Sem queda por 10 segundos (normal)", score: 0 },
-              {
-                text: "Queda antes de 10 segundos (mantém algum esforço)",
-                score: 1,
-              },
-              {
-                text: "Não vence a gravidade (só levanta contra a cama)",
-                score: 2,
-              },
-              {
-                text: "Sem movimento (sem esforço contra a gravidade)",
-                score: 3,
-              },
-              {
-                text: "Amputação ou fusão de articulação (não testável)",
-                score: 4,
-              },
-            ],
-          },
-          {
-            domain: "5b - Força motora no membro superior direito",
-            nameAttr: "msDir",
-            options: [
-              { text: "Sem queda por 10 segundos (normal)", score: 0 },
-              {
-                text: "Queda antes de 10 segundos (mantém algum esforço)",
-                score: 1,
-              },
-              {
-                text: "Não vence a gravidade (só levanta contra a cama)",
-                score: 2,
-              },
-              {
-                text: "Sem movimento (sem esforço contra a gravidade)",
-                score: 3,
-              },
-              {
-                text: "Amputação ou fusão de articulação (não testável)",
-                score: 4,
-              },
-            ],
-          },
-          {
-            domain: "6a - Força motora no membro inferior esquerdo",
-            nameAttr: "miEsq",
-            options: [
-              { text: "Sem queda por 5 segundos (normal)", score: 0 },
-              {
-                text: "Queda antes de 5 segundos (mantém algum esforço)",
-                score: 1,
-              },
-              {
-                text: "Não vence a gravidade (só levanta contra a cama)",
-                score: 2,
-              },
-              {
-                text: "Sem movimento (sem esforço contra a gravidade)",
-                score: 3,
-              },
-              {
-                text: "Amputação ou fusão de articulação (não testável)",
-                score: 4,
-              },
-            ],
-          },
-          {
-            domain: "6b - Força motora no membro inferior direito",
-            nameAttr: "miDir",
-            options: [
-              { text: "Sem queda por 5 segundos (normal)", score: 0 },
-              {
-                text: "Queda antes de 5 segundos (mantém algum esforço)",
-                score: 1,
-              },
-              {
-                text: "Não vence a gravidade (só levanta contra a cama)",
-                score: 2,
-              },
-              {
-                text: "Sem movimento (sem esforço contra a gravidade)",
-                score: 3,
-              },
-              {
-                text: "Amputação ou fusão de articulação (não testável)",
-                score: 4,
-              },
-            ],
-          },
-          {
-            domain: "7 - Ataxia dos membros",
-            nameAttr: "ataxia",
-            options: [
-              { text: "Ausente", score: 0 },
-              { text: "Presente em 1 membro", score: 1 },
-              { text: "Presente em 2 membros", score: 2 },
-            ],
-          },
-          {
-            domain: "8 - Sensibilidade",
-            nameAttr: "sensibilidade",
-            options: [
-              { text: "Normal", score: 0 },
-              { text: "Perda leve (dor ou toque leve)", score: 1 },
-              { text: "Perda severa (não sente dor ou toque leve)", score: 2 },
-            ],
-          },
-          {
-            domain: "9 - Melhor linguagem (Afasia)",
-            nameAttr: "afasia",
-            options: [
-              { text: "Sem afasia", score: 0 },
-              { text: "Afasia leve a moderada", score: 1 },
-              { text: "Afasia severa", score: 2 },
-            ],
-          },
-          {
-            domain: "10 - Disartria",
-            nameAttr: "disartria",
-            options: [
-              { text: "Normal", score: 0 },
-              { text: "Leve a moderada", score: 1 },
-              { text: "Severa", score: 2 },
-            ],
-          },
-          {
-            domain: "11 - Extinção e negligência",
-            nameAttr: "extincaoNegligencia",
-            options: [
-              { text: "Sem anormalidade", score: 0 },
-              {
-                text: "Extinção leve (negligência em um modalidade)",
-                score: 1,
-              },
-              {
-                text: "Negligência severa (negligência em mais de uma modalidade)",
-                score: 2,
-              },
-            ],
-          },
-        ];
+  // Dados da Escala NIHSS
+  const nihssData = [
+  {
+    domain: "1a - Mức độ nhận thức",
+    nameAttr: "nivelConsciencia",
+    options: [
+    { text: "Alerta", score: 0 },
+    {
+      text: "Không cảnh giác, cần kích thích tối thiểu để phản ứng hoặc duy trì phản ứng",
+      score: 1
+    },
+    {
+      text: "Không cảnh báo, cần kích thích lặp đi lặp lại để phản ứng hoặc kích thích đau đớn",
+      score: 2
+    },
+    { text: "Coma", score: 3 }]
 
-        // --- Funções da Calculadora NIHSS ---
-        function updateScoreDisplay(criterionId) {
-          const selectElement = document.getElementById(criterionId);
-          const scoreDisplayElement = document.getElementById(
-            `${criterionId}_score_display`,
-          );
-          if (selectElement && scoreDisplayElement) {
-            scoreDisplayElement.innerText =
-              selectElement.value === "" ? "0" : selectElement.value;
-          }
-        }
+  },
+  {
+    domain: "1b - Mức độ nhận thức: Trả lời Tháng và Tuổi",
+    nameAttr: "tuổi",
+    options: [
+    { text: "Responde ambas corretamente", score: 0 },
+    { text: "Responde uma corretamente", score: 1 },
+    { text: "Nenhuma respondida corretamente", score: 2 }]
 
-        function calcularPontuacao() {
-          let totalScore = 0;
-          let allItemsSelected = true;
+  },
+  {
+    domain: "1c - Mức độ nhận thức: Thực hiện lệnh vận động",
+    nameAttr: "comandoMotor",
+    options: [
+    { text: "Executa ambas as tarefas corretamente", score: 0 },
+    { text: "Executa uma tarefa corretamente", score: 1 },
+    { text: "Nenhuma executada corretamente", score: 2 }]
 
-          nihssData.forEach((item) => {
-            const selectElement = document.getElementById(item.nameAttr);
-            if (selectElement.value === "") {
-              allItemsSelected = false;
-            } else {
-              totalScore += parseInt(selectElement.value, 10);
-            }
-          });
+  },
+  {
+    domain: "2 - Melhor olhar conjugado",
+    nameAttr: "olharConjugado",
+    options: [
+    { text: "Normal", score: 0 },
+    {
+      text: "Tê liệt một phần của ánh mắt (ánh mắt nhìn cố định về một hướng)",
+      score: 1
+    },
+    { text: "Sự lệch hướng ánh nhìn", score: 2 }]
 
-          resultadoDiv.style.display = "block";
-          if (!allItemsSelected) {
-            resultadoDiv.innerHTML =
-              '⚠️ <strong class="font-bold">Por favor, selecione uma opção para todos os itens</strong> antes de calcular.';
-            resultadoDiv.className = "resultado bg-info-orange-light";
-            delete resultadoDiv.dataset.score;
-            return;
-          }
+  },
+  {
+    domain: "3 - Trường thị giác",
+    nameAttr: "trường hợp thị giác",
+    options: [
+    { text: "Sem perda", score: 0 },
+    {
+      text: "Mất thị lực một phần (mất thị lực ở một phần của trường thị giác)",
+      score: 1
+    },
+    {
+      text: "Mất thị lực hoàn toàn một bên (mất thị lực một nửa trường thị giác)",
+      score: 2
+    },
+    { text: "Cegueira bilateral (cegueira total)", score: 3 }]
 
-          let conduta = "";
-          let resultadoClasses = "";
+  },
+  {
+    domain: "4 - Paralisia facial",
+    nameAttr: "paralisiaFacial",
+    options: [
+    { text: "Đối xứng (không bị liệt)", score: 0 },
+    { text: "Tê liệt nhẹ (không đối xứng khi cười)", score: 1 },
+    {
+      text: "Paralisia parcial (comprometimento de face inferior)",
+      score: 2
+    },
+    {
+      text: "Paralisia completa (comprometimento de face superior e inferior)",
+      score: 3
+    }]
 
-          if (totalScore <= 4) {
-            conduta =
-              "Risco baixo de complicações graves. Conduta: Monitoramento clínico e suporte básico.";
-            resultadoClasses = "bg-success-green-light";
-          } else if (totalScore <= 14) {
-            conduta =
-              "Risco moderado de complicações. Conduta: Avaliação neurológica frequente e discutir encaminhamento para unidade de terapia intensiva.";
-            resultadoClasses = "bg-warning-yellow-light";
-          } else {
-            // total > 14
-            conduta =
-              "Risco alto de complicações. Conduta: Assistência intensiva, possível indicação de trombólise ou intervenção neurocirúrgica.";
-            resultadoClasses = "bg-danger-red-light";
-          }
+  },
+  {
+    domain: "5a - Sức mạnh vận động ở chi trên bên trái",
+    nameAttr: "msEsq",
+    options: [
+    { text: "Sem queda por 10 segundos (normal)", score: 0 },
+    {
+      text: "Rơi trước 10 giây (giữ một chút sức lực)",
+      score: 1
+    },
+    {
+      text: "Không thể chống lại trọng lực (chỉ có thể nâng lên khỏi giường)",
+      score: 2
+    },
+    {
+      text: "Không có chuyển động (không có lực chống lại trọng lực)",
+      score: 3
+    },
+    {
+      text: "Cắt bỏ hoặc hợp nhất khớp (không thể kiểm tra)",
+      score: 4
+    }]
 
-          resultadoDiv.innerHTML = `<p>Pontuação total NIHSS: <strong class="font-bold">${totalScore}</strong></p><p>Conduta: <strong class="font-bold">${conduta}</strong></p>`;
-          resultadoDiv.className = `resultado ${resultadoClasses}`;
+  },
+  {
+    domain: "5b - Sức mạnh vận động ở chi trên bên phải",
+    nameAttr: "msDir",
+    options: [
+    { text: "Sem queda por 10 segundos (normal)", score: 0 },
+    {
+      text: "Rơi trước 10 giây (giữ một chút sức lực)",
+      score: 1
+    },
+    {
+      text: "Không thể chống lại trọng lực (chỉ có thể nâng lên khỏi giường)",
+      score: 2
+    },
+    {
+      text: "Không có chuyển động (không có lực chống lại trọng lực)",
+      score: 3
+    },
+    {
+      text: "Cắt bỏ hoặc hợp nhất khớp (không thể kiểm tra)",
+      score: 4
+    }]
 
-          resultadoDiv.dataset.score = totalScore;
-          resultadoDiv.dataset.conduta = conduta;
-          resultadoDiv.dataset.scaleName = "Escala NIHSS";
-        }
+  },
+  {
+    domain: "6a - Sức mạnh vận động ở chi dưới bên trái",
+    nameAttr: "miEsq",
+    options: [
+    { text: "Sem queda por 5 segundos (normal)", score: 0 },
+    {
+      text: "Rơi trước 5 giây (giữ một chút sức lực)",
+      score: 1
+    },
+    {
+      text: "Không thể chống lại trọng lực (chỉ có thể nâng lên khỏi giường)",
+      score: 2
+    },
+    {
+      text: "Không có chuyển động (không có lực chống lại trọng lực)",
+      score: 3
+    },
+    {
+      text: "Cắt bỏ hoặc hợp nhất khớp (không thể kiểm tra)",
+      score: 4
+    }]
 
-        function limparCampos() {
-          nihssData.forEach((item) => {
-            const selectElement = document.getElementById(item.nameAttr);
-            selectElement.selectedIndex = 0;
-            document.getElementById(
-              `${item.nameAttr}_score_display`,
-            ).innerText = "0";
-          });
-          resultadoDiv.innerHTML = "";
-          resultadoDiv.className = "resultado hidden";
-          delete resultadoDiv.dataset.score;
-          delete resultadoDiv.dataset.conduta;
-          delete resultadoDiv.dataset.scaleName;
-        }
+  },
+  {
+    domain: "6b - Sức mạnh vận động ở chi dưới bên phải",
+    nameAttr: "miDir",
+    options: [
+    { text: "Sem queda por 5 segundos (normal)", score: 0 },
+    {
+      text: "Rơi trước 5 giây (giữ một chút sức lực)",
+      score: 1
+    },
+    {
+      text: "Không thể chống lại trọng lực (chỉ có thể nâng lên khỏi giường)",
+      score: 2
+    },
+    {
+      text: "Không có chuyển động (không có lực chống lại trọng lực)",
+      score: 3
+    },
+    {
+      text: "Cắt bỏ hoặc hợp nhất khớp (không thể kiểm tra)",
+      score: 4
+    }]
 
-        // Preenche o formulário dinamicamente
-        nihssData.forEach((item, index) => {
-          const sectionDiv = document.createElement("div");
-          sectionDiv.className = "nihss-criterion-card";
+  },
+  {
+    domain: "7 - Ataxia dos membros",
+    nameAttr: "ataxia",
+    options: [
+    { text: "Ausente", score: 0 },
+    { text: "Presente em 1 membro", score: 1 },
+    { text: "Presente em 2 membros", score: 2 }]
 
-          const headerDiv = document.createElement("div");
-          headerDiv.className = "nihss-criterion-header";
+  },
+  {
+    domain: "8 - Độ nhạy",
+    nameAttr: "nhạy cảm",
+    options: [
+    { text: "Normal", score: 0 },
+    { text: "Perda leve (dor ou toque leve)", score: 1 },
+    { text: "Mất cảm giác nghiêm trọng (không cảm thấy đau hoặc chạm nhẹ)", score: 2 }]
 
-          const titleH3 = document.createElement("h3");
-          titleH3.className = "nihss-criterion-title";
-          titleH3.innerText = item.domain;
-          headerDiv.appendChild(titleH3);
+  },
+  {
+    domain: "9 - Melhor linguagem (Afasia)",
+    nameAttr: "afasia",
+    options: [
+    { text: "Sem afasia", score: 0 },
+    { text: "Afasia leve a moderada", score: 1 },
+    { text: "Afasia severa", score: 2 }]
 
-          const scoreSpan = document.createElement("span");
-          scoreSpan.className = "nihss-score-display";
-          scoreSpan.id = `${item.nameAttr}_score_display`;
-          scoreSpan.innerText = "0";
-          headerDiv.appendChild(scoreSpan);
+  },
+  {
+    domain: "10 - Disartria",
+    nameAttr: "disartria",
+    options: [
+    { text: "Normal", score: 0 },
+    { text: "Leve a moderada", score: 1 },
+    { text: "Severa", score: 2 }]
 
-          sectionDiv.appendChild(headerDiv);
+  },
+  {
+    domain: "11 - Sự tuyệt chủng và sự bỏ bê",
+    nameAttr: "extincaoNegligencia",
+    options: [
+    { text: "Không có bất thường", score: 0 },
+    {
+      text: "Sự tuyệt chủng nhẹ (sự lơ là trong một hình thức)",
+      score: 1
+    },
+    {
+      text: "Sơ suất nghiêm trọng (sơ suất trong nhiều lĩnh vực)",
+      score: 2
+    }]
 
-          const optionsDiv = document.createElement("div");
-          optionsDiv.className = "nihss-criterion-options";
+  }];
 
-          const selectElement = document.createElement("select");
-          selectElement.id = item.nameAttr;
-          selectElement.className = "nihss-select";
-          selectElement.onchange = () => updateScoreDisplay(item.nameAttr);
 
-          const defaultOption = document.createElement("option");
-          defaultOption.value = "";
-          defaultOption.text = "Selecione...";
-          defaultOption.disabled = true;
-          defaultOption.selected = true;
-          selectElement.appendChild(defaultOption);
+  // --- Funções da Calculadora NIHSS ---
+  function updateScoreDisplay(criterionId) {
+    const selectElement = document.getElementById(criterionId);
+    const scoreDisplayElement = document.getElementById(
+      `${criterionId}_score_display`
+    );
+    if (selectElement && scoreDisplayElement) {
+      scoreDisplayElement.innerText =
+      selectElement.value === "" ? "0" : selectElement.value;
+    }
+  }
 
-          item.options.forEach((option) => {
-            const optionElement = document.createElement("option");
-            optionElement.value = option.score;
-            optionElement.text = `${option.text} (${option.score})`;
-            selectElement.appendChild(optionElement);
-          });
+  function calcularPontuacao() {
+    let totalScore = 0;
+    let allItemsSelected = true;
 
-          optionsDiv.appendChild(selectElement);
-          sectionDiv.appendChild(optionsDiv);
-          conteudoDiv.appendChild(sectionDiv);
-        });
+    nihssData.forEach((item) => {
+      const selectElement = document.getElementById(item.nameAttr);
+      if (selectElement.value === "") {
+        allItemsSelected = false;
+      } else {
+        totalScore += parseInt(selectElement.value, 10);
+      }
+    });
 
-        // Adiciona os event listeners aos botões
-        btnCalcular?.addEventListener("click", calcularPontuacao);
-        btnLimpar?.addEventListener("click", limparCampos);
+    resultadoDiv.style.display = "block";
+    if (!allItemsSelected) {
+      resultadoDiv.innerHTML =
+      '⚠️ <strong class="font-bold">Por favor, selecione uma opção para todos os itens</strong> antes de calcular.';
+      resultadoDiv.className = "Kết quả bg-info-orange-light";
+      delete resultadoDiv.dataset.score;
+      return;
+    }
 
-        btnGerarPDF?.addEventListener("click", () => {
-          if (!resultadoDiv.dataset.score) {
-            alert('Por favor, clique em "Calcular" primeiro para gerar o PDF.');
-            return;
-          }
-          if (typeof gerarPDFGlobal === "function") {
-            gerarPDFGlobal({
-              titulo: "Escala NIHSS",
-              subtitulo:
-                "Relatório de Avaliação do Acidente Vascular Encefálico",
-              nomeArquivo: "relatorio_escala_nihss.pdf",
-              seletorConteudo: ".main-content-wrapper",
-            });
-          } else {
-            console.error("Função gerarPDFGlobal não definida.");
-          }
-        });
+    let conduta = "";
+    let resultadoClasses = "";
 
-        btnNandaNicNoc?.addEventListener("click", () => {
-          const score = resultadoDiv.dataset.score;
-          const scaleName = resultadoDiv.dataset.scaleName;
-          const conduta = resultadoDiv.dataset.conduta;
-          if (!score || !conduta) {
-            alert("Calcule o resultado para pesquisar a conduta.");
-            return;
-          }
-          const searchQuery = encodeURIComponent(
-            `${scaleName} pontuação ${score} conduta ${conduta} gerar taxonomia NANDA, gerar taxonomia NIC e gerar taxonomia de NOC`,
-          );
-          window.open(
-            `https://www.google.com/search?q=${searchQuery}`,
-            "_blank",
-          );
-        });
+    if (totalScore <= 4) {
+      conduta =
+      "Nguy cơ biến chứng nghiêm trọng thấp. Hành động: Theo dõi lâm sàng và hỗ trợ cơ bản.";
+      resultadoClasses = "bg-success-green-light";
+    } else if (totalScore <= 14) {
+      conduta =
+      "Nguy cơ biến chứng vừa phải. Hành động: Thường xuyên đánh giá tình trạng thần kinh và thảo luận về việc chuyển bệnh nhân đến đơn vị chăm sóc đặc biệt.";
+      resultadoClasses = "bg-warning-yellow-light";
+    } else {
+      // total > 14
+      conduta =
+      "Nguy cơ biến chứng cao. Hành động: Chăm sóc tích cực, có thể chỉ định điều trị huyết khối hoặc can thiệp phẫu thuật thần kinh.";
+      resultadoClasses = "bg-danger-red-light";
+    }
+
+    resultadoDiv.innerHTML = `<p>Pontuação total NIHSS: <strong class="font-bold">${totalScore}</strong></p><p>Conduta: <strong class="font-bold">${conduta}</strong></p>`;
+    resultadoDiv.className = `kết quả ${resultadoClasses}`;
+
+    resultadoDiv.dataset.score = totalScore;
+    resultadoDiv.dataset.conduta = conduta;
+    resultadoDiv.dataset.scaleName = "Escala NIHSS";
+  }
+
+  function limparCampos() {
+    nihssData.forEach((item) => {
+      const selectElement = document.getElementById(item.nameAttr);
+      selectElement.selectedIndex = 0;
+      document.getElementById(
+        `${item.nameAttr}_score_display`
+      ).innerText = "0";
+    });
+    resultadoDiv.innerHTML = "";
+    resultadoDiv.className = "kết quả ẩn";
+    delete resultadoDiv.dataset.score;
+    delete resultadoDiv.dataset.conduta;
+    delete resultadoDiv.dataset.scaleName;
+  }
+
+  // Preenche o formulário dinamicamente
+  nihssData.forEach((item, index) => {
+    const sectionDiv = document.createElement("div");
+    sectionDiv.className = "nihss-criterion-card";
+
+    const headerDiv = document.createElement("div");
+    headerDiv.className = "nihss-criterion-header";
+
+    const titleH3 = document.createElement("h3");
+    titleH3.className = "nihss-criterion-title";
+    titleH3.innerText = item.domain;
+    headerDiv.appendChild(titleH3);
+
+    const scoreSpan = document.createElement("span");
+    scoreSpan.className = "nihss-score-display";
+    scoreSpan.id = `${item.nameAttr}_score_display`;
+    scoreSpan.innerText = "0";
+    headerDiv.appendChild(scoreSpan);
+
+    sectionDiv.appendChild(headerDiv);
+
+    const optionsDiv = document.createElement("div");
+    optionsDiv.className = "nihss-criterion-options";
+
+    const selectElement = document.createElement("select");
+    selectElement.id = item.nameAttr;
+    selectElement.className = "nihss-select";
+    selectElement.onchange = () => updateScoreDisplay(item.nameAttr);
+
+    const defaultOption = document.createElement("option");
+    defaultOption.value = "";
+    defaultOption.text = "Chọn...";
+    defaultOption.disabled = true;
+    defaultOption.selected = true;
+    selectElement.appendChild(defaultOption);
+
+    item.options.forEach((option) => {
+      const optionElement = document.createElement("option");
+      optionElement.value = option.score;
+      optionElement.text = `${option.text} (${option.score})`;
+      selectElement.appendChild(optionElement);
+    });
+
+    optionsDiv.appendChild(selectElement);
+    sectionDiv.appendChild(optionsDiv);
+    conteudoDiv.appendChild(sectionDiv);
+  });
+
+  // Adiciona os event listeners aos botões
+  btnCalcular?.addEventListener("click", calcularPontuacao);
+  btnLimpar?.addEventListener("click", limparCampos);
+
+  btnGerarPDF?.addEventListener("click", () => {
+    if (!resultadoDiv.dataset.score) {
+      alert("Vui lòng nhấp vào \"Tính toán\" trước để tạo tệp PDF.");
+      return;
+    }
+    if (typeof gerarPDFGlobal === "function") {
+      gerarPDFGlobal({
+        titulo: "Escala NIHSS",
+        subtitulo:
+        "Báo cáo đánh giá tai biến mạch máu não",
+        nomeArquivo: "relatorio_escala_nihss.pdf",
+        seletorConteudo: ".main-content-wrapper"
       });
-    </script>
+    } else {
+      console.error("Chức năng gerarPDFGlobal không được định nghĩa.");
+    }
+  });
+
+  btnNandaNicNoc?.addEventListener("click", () => {
+    const score = resultadoDiv.dataset.score;
+    const scaleName = resultadoDiv.dataset.scaleName;
+    const conduta = resultadoDiv.dataset.conduta;
+    if (!score || !conduta) {
+      alert("Tính toán kết quả để nghiên cứu hành vi.");
+      return;
+    }
+    const searchQuery = encodeURIComponent(
+      `${scaleName} điểm số ${score} conduta ${conduta} gerar taxonomia NANDA, gerar taxonomia NIC e gerar taxonomia de NOC`
+    );
+    window.open(
+      `https://www.google.com/search?q=${searchQuery}`,
+      "_blank"
+    );
+  });
+});</script>
 
     <script src="/lang-selector.js" defer=""></script>
 

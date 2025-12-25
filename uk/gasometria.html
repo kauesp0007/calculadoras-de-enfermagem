@@ -479,128 +479,128 @@
 
     <!-- Script da Página -->
     <script>
-      document.addEventListener("DOMContentLoaded", () => {
-        const resultadoDiv = document.getElementById("resultado");
-        const btnCalcular = document.getElementById("btnCalcular");
-        const btnLimpar = document.getElementById("btnLimpar");
-        const btnGerarPDF = document.getElementById("btnGerarPDF");
-        const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
+document.addEventListener("DOMContentLoaded", () => {
+  const resultadoDiv = document.getElementById("resultado");
+  const btnCalcular = document.getElementById("btnCalcular");
+  const btnLimpar = document.getElementById("btnLimpar");
+  const btnGerarPDF = document.getElementById("btnGerarPDF");
+  const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
 
-        // Inputs
-        const inputs = {
-          ph: document.getElementById("ph"),
-          paco2: document.getElementById("paco2"),
-          hco3: document.getElementById("hco3"),
-          sato2: document.getElementById("sato2"),
-          be: document.getElementById("be"),
-        };
+  // Inputs
+  const inputs = {
+    ph: document.getElementById("ph"),
+    paco2: document.getElementById("paco2"),
+    hco3: document.getElementById("hco3"),
+    sato2: document.getElementById("sato2"),
+    be: document.getElementById("be")
+  };
 
-        // Spans de erro
-        const errors = {
-          ph: document.getElementById("ph-error"),
-          paco2: document.getElementById("paco2-error"),
-          hco3: document.getElementById("hco3-error"),
-          sato2: document.getElementById("sato2-error"),
-          be: document.getElementById("be-error"),
-        };
+  // Spans de erro
+  const errors = {
+    ph: document.getElementById("ph-error"),
+    paco2: document.getElementById("paco2-error"),
+    hco3: document.getElementById("hco3-error"),
+    sato2: document.getElementById("sato2-error"),
+    be: document.getElementById("be-error")
+  };
 
-        function interpretarGasometria() {
-          let hasError = false;
-          const valores = {};
+  function interpretarGasometria() {
+    let hasError = false;
+    const valores = {};
 
-          for (const key in inputs) {
-            const input = inputs[key];
-            const errorSpan = errors[key];
-            const value = parseFloat(input.value);
+    for (const key in inputs) {
+      const input = inputs[key];
+      const errorSpan = errors[key];
+      const value = parseFloat(input.value);
 
-            errorSpan.classList.add("hidden");
-            if (key !== "be" && (isNaN(value) || value <= 0)) {
-              errorSpan.textContent = "Valor inválido.";
-              errorSpan.classList.remove("hidden");
-              hasError = true;
-            } else if (key === "be" && isNaN(value)) {
-              errorSpan.textContent = "Valor inválido.";
-              errorSpan.classList.remove("hidden");
-              hasError = true;
-            } else {
-              valores[key] = value;
-            }
-          }
+      errorSpan.classList.add("hidden");
+      if (key !== "be" && (isNaN(value) || value <= 0)) {
+        errorSpan.textContent = "Неправильне значення.";
+        errorSpan.classList.remove("hidden");
+        hasError = true;
+      } else if (key === "be" && isNaN(value)) {
+        errorSpan.textContent = "Неправильне значення.";
+        errorSpan.classList.remove("hidden");
+        hasError = true;
+      } else {
+        valores[key] = value;
+      }
+    }
 
-          if (hasError) {
-            resultadoDiv.style.display = "block";
-            resultadoDiv.innerHTML =
-              '<strong class="text-red-600">Por favor, corrija os valores inválidos.</strong>';
-            resultadoDiv.className = "resultado bg-info-orange-light mt-4 p-4 rounded-lg";
-            return;
-          }
+    if (hasError) {
+      resultadoDiv.style.display = "block";
+      resultadoDiv.innerHTML =
+      '<strong class="text-red-600">Por favor, corrija os valores inválidos.</strong>';
+      resultadoDiv.className = "результат bg-info-orange-light mt-4 p-4 rounded-lg";
+      return;
+    }
 
-          const { ph, paco2, hco3, sato2, be } = valores;
+    const { ph, paco2, hco3, sato2, be } = valores;
 
-          // Lógica de Interpretação
-          let disturbioFinal = "";
-          let condutas = [];
+    // Lógica de Interpretação
+    let disturbioFinal = "";
+    let condutas = [];
 
-          const PH_MIN = 7.35, PH_MAX = 7.45;
-          const PACO2_MIN = 35, PACO2_MAX = 45;
-          const HCO3_MIN = 22, HCO3_MAX = 26;
-          const SATO2_MIN = 90;
+    const PH_MIN = 7.35,PH_MAX = 7.45;
+    const PACO2_MIN = 35,PACO2_MAX = 45;
+    const HCO3_MIN = 22,HCO3_MAX = 26;
+    const SATO2_MIN = 90;
 
-          if (ph < PH_MIN) {
-            if (paco2 > PACO2_MAX && hco3 >= HCO3_MIN && hco3 <= HCO3_MAX) {
-              disturbioFinal = "Acidose Respiratória Descompensada";
-            } else if (hco3 < HCO3_MIN && paco2 >= PACO2_MIN && paco2 <= PACO2_MAX) {
-              disturbioFinal = "Acidose Metabólica Descompensada";
-            } else if (paco2 > PACO2_MAX && hco3 > HCO3_MAX) {
-              disturbioFinal = "Acidose Respiratória Parcialmente Compensada";
-            } else if (hco3 < HCO3_MIN && paco2 < PACO2_MIN) {
-              disturbioFinal = "Acidose Metabólica Parcialmente Compensada";
-            } else if (paco2 > PACO2_MAX && hco3 < HCO3_MIN) {
-              disturbioFinal = "Distúrbio Misto: Acidose Respiratória e Metabólica";
-            } else {
-              disturbioFinal = "Acidemia (parâmetros conflitantes)";
-            }
-          } else if (ph > PH_MAX) {
-            if (paco2 < PACO2_MIN && hco3 >= HCO3_MIN && hco3 <= HCO3_MAX) {
-              disturbioFinal = "Alcalose Respiratória Descompensada";
-            } else if (hco3 > HCO3_MAX && paco2 >= PACO2_MIN && paco2 <= PACO2_MAX) {
-              disturbioFinal = "Alcalose Metabólica Descompensada";
-            } else if (paco2 < PACO2_MIN && hco3 < HCO3_MIN) {
-              disturbioFinal = "Alcalose Respiratória Parcialmente Compensada";
-            } else if (hco3 > HCO3_MAX && paco2 > PACO2_MAX) {
-              disturbioFinal = "Alcalose Metabólica Parcialmente Compensada";
-            } else if (paco2 < PACO2_MIN && hco3 > HCO3_MAX) {
-              disturbioFinal = "Distúrbio Misto: Alcalose Respiratória e Metabólica";
-            } else {
-              disturbioFinal = "Alcalemia (parâmetros conflitantes)";
-            }
-          } else {
-             if (paco2 > PACO2_MAX && hco3 > HCO3_MAX) {
-              disturbioFinal = "Acidose Respiratória Compensada";
-            } else if (paco2 < PACO2_MIN && hco3 < HCO3_MIN) {
-              disturbioFinal = "Alcalose Respiratória Compensada";
-            } else if (paco2 < PACO2_MIN && hco3 > HCO3_MAX) {
-              disturbioFinal = "Distúrbio Misto (pH normal)";
-            } else if (paco2 > PACO2_MAX && hco3 < HCO3_MIN) {
-              disturbioFinal = "Distúrbio Misto (pH normal)";
-            } else if (hco3 < HCO3_MIN) {
-              disturbioFinal = "Acidose Metabólica Compensada";
-            } else if (hco3 > HCO3_MAX) {
-              disturbioFinal = "Alcalose Metabólica Compensada";
-            } else {
-              disturbioFinal = "Equilíbrio Ácido-Básico Normal";
-            }
-          }
+    if (ph < PH_MIN) {
+      if (paco2 > PACO2_MAX && hco3 >= HCO3_MIN && hco3 <= HCO3_MAX) {
+        disturbioFinal = "Декомпенсований дихальний ацидоз";
+      } else if (hco3 < HCO3_MIN && paco2 >= PACO2_MIN && paco2 <= PACO2_MAX) {
+        disturbioFinal = "Декомпенсований метаболічний ацидоз";
+      } else if (paco2 > PACO2_MAX && hco3 > HCO3_MAX) {
+        disturbioFinal = "Частково компенсований дихальний ацидоз";
+      } else if (hco3 < HCO3_MIN && paco2 < PACO2_MIN) {
+        disturbioFinal = "Частково компенсований метаболічний ацидоз";
+      } else if (paco2 > PACO2_MAX && hco3 < HCO3_MIN) {
+        disturbioFinal = "Змішаний розлад: респіраторний та метаболічний ацидоз";
+      } else {
+        disturbioFinal = "Ацидемія (суперечливі параметри)";
+      }
+    } else if (ph > PH_MAX) {
+      if (paco2 < PACO2_MIN && hco3 >= HCO3_MIN && hco3 <= HCO3_MAX) {
+        disturbioFinal = "Декомпенсований респіраторний алкалоз";
+      } else if (hco3 > HCO3_MAX && paco2 >= PACO2_MIN && paco2 <= PACO2_MAX) {
+        disturbioFinal = "Декомпенсований метаболічний алкалоз";
+      } else if (paco2 < PACO2_MIN && hco3 < HCO3_MIN) {
+        disturbioFinal = "Частково компенсований респіраторний алкалоз";
+      } else if (hco3 > HCO3_MAX && paco2 > PACO2_MAX) {
+        disturbioFinal = "Частково компенсований метаболічний алкалоз";
+      } else if (paco2 < PACO2_MIN && hco3 > HCO3_MAX) {
+        disturbioFinal = "Змішаний розлад: респіраторний та метаболічний алкалоз";
+      } else {
+        disturbioFinal = "Алкаліємія (суперечливі параметри)";
+      }
+    } else {
+      if (paco2 > PACO2_MAX && hco3 > HCO3_MAX) {
+        disturbioFinal = "Компенсований дихальний ацидоз";
+      } else if (paco2 < PACO2_MIN && hco3 < HCO3_MIN) {
+        disturbioFinal = "Компенсований респіраторний алкалоз";
+      } else if (paco2 < PACO2_MIN && hco3 > HCO3_MAX) {
+        disturbioFinal = "Змішаний розлад (нормальний рН)";
+      } else if (paco2 > PACO2_MAX && hco3 < HCO3_MIN) {
+        disturbioFinal = "Змішаний розлад (нормальний рН)";
+      } else if (hco3 < HCO3_MIN) {
+        disturbioFinal = "Компенсований метаболічний ацидоз";
+      } else if (hco3 > HCO3_MAX) {
+        disturbioFinal = "Компенсований метаболічний алкалоз";
+      } else {
+        disturbioFinal = "Нормальний кислотно-лужний баланс";
+      }
+    }
 
-          if (disturbioFinal.includes("Acidose Respiratória")) condutas.push("Avaliar ventilação, VNI ou IOT.");
-          if (disturbioFinal.includes("Alcalose Respiratória")) condutas.push("Controle de ansiedade/dor, ajuste ventilatório.");
-          if (disturbioFinal.includes("Acidose Metabólica")) condutas.push("Tratar causa base (sepse, cetoacidose, renal).");
-          if (disturbioFinal.includes("Alcalose Metabólica")) condutas.push("Repor volume e K+, corrigir vômitos/diuréticos.");
-          if (sato2 < SATO2_MIN) condutas.push("Hipoxemia: Suplementar O₂.");
-          if (condutas.length === 0) condutas.push("Manter monitoramento.");
+    if (disturbioFinal.includes("Дихальний ацидоз")) condutas.push("Оцініть вентиляцію, NIV або OI.");
+    if (disturbioFinal.includes("Дихальний алкалоз")) condutas.push("Контроль тривоги/болю, регулювання вентиляції легень.");
+    if (disturbioFinal.includes("Метаболічний ацидоз")) condutas.push("Лікувати основну причину (сепсис, кетоацидоз, ниркову недостатність).");
+    if (disturbioFinal.includes("Метаболічний алкалоз")) condutas.push("Поповнити об'єм та К+, відкоригувати блювання/діуретики.");
+    if (sato2 < SATO2_MIN) condutas.push("Hipoxemia: Suplementar O₂.");
+    if (condutas.length === 0) condutas.push("Manter monitoramento.");
 
-          // Formatar Resultado (Estilo Solicitado Compacto)
-          let htmlResultado = `
+    // Formatar Resultado (Estilo Solicitado Compacto)
+    let htmlResultado = `
             <div>
                 <span class="res-label">Interpretação:</span>
                 <span class="res-text">${disturbioFinal}</span>
@@ -610,59 +610,58 @@
             </div>
           `;
 
-          resultadoDiv.innerHTML = htmlResultado;
-          resultadoDiv.className = "resultado"; // Usa o estilo CSS definido no head
-          resultadoDiv.style.display = "block";
+    resultadoDiv.innerHTML = htmlResultado;
+    resultadoDiv.className = "результат"; // Usa o estilo CSS definido no head
+    resultadoDiv.style.display = "block";
 
-          resultadoDiv.dataset.resultado = disturbioFinal;
-          resultadoDiv.dataset.scaleName = "Interpretação de Gasometria Arterial";
-        }
+    resultadoDiv.dataset.resultado = disturbioFinal;
+    resultadoDiv.dataset.scaleName = "Інтерпретація газів артеріальної крові";
+  }
 
-        function limparCampos() {
-          for (const key in inputs) {
-            inputs[key].value = "";
-            errors[key].classList.add("hidden");
-          }
-          resultadoDiv.innerHTML = "";
-          resultadoDiv.style.display = "none";
-          delete resultadoDiv.dataset.resultado;
-          delete resultadoDiv.dataset.scaleName;
-        }
+  function limparCampos() {
+    for (const key in inputs) {
+      inputs[key].value = "";
+      errors[key].classList.add("hidden");
+    }
+    resultadoDiv.innerHTML = "";
+    resultadoDiv.style.display = "none";
+    delete resultadoDiv.dataset.resultado;
+    delete resultadoDiv.dataset.scaleName;
+  }
 
-        btnCalcular?.addEventListener("click", interpretarGasometria);
-        btnLimpar?.addEventListener("click", limparCampos);
+  btnCalcular?.addEventListener("click", interpretarGasometria);
+  btnLimpar?.addEventListener("click", limparCampos);
 
-        btnGerarPDF?.addEventListener("click", () => {
-          if (!resultadoDiv.dataset.resultado) {
-            alert('Calcule primeiro para gerar PDF.');
-            return;
-          }
-          if (typeof gerarPDFGlobal === "function") {
-            gerarPDFGlobal({
-              titulo: "Interpretação de Gasometria Arterial",
-              subtitulo: "Relatório de Avaliação Acidobásica",
-              nomeArquivo: "relatorio_gasometria.pdf",
-              seletorConteudo: ".main-content-wrapper",
-            });
-          }
-        });
-
-        btnNandaNicNoc?.addEventListener("click", () => {
-          const resultado = resultadoDiv.dataset.resultado;
-          if (!resultado) {
-            alert('Calcule primeiro.');
-            return;
-          }
-          const searchQuery = encodeURIComponent(
-            `diagnóstico de enfermagem relacionado a ${resultado} NANDA NIC NOC`,
-          );
-          window.open(
-            `https://www.google.com/search?q=${searchQuery}`,
-            "_blank",
-          );
-        });
+  btnGerarPDF?.addEventListener("click", () => {
+    if (!resultadoDiv.dataset.resultado) {
+      alert('Calcule primeiro para gerar PDF.');
+      return;
+    }
+    if (typeof gerarPDFGlobal === "function") {
+      gerarPDFGlobal({
+        titulo: "Інтерпретація газів артеріальної крові",
+        subtitulo: "Звіт про оцінку кислотно-основного стану",
+        nomeArquivo: "relatorio_gasometria.pdf",
+        seletorConteudo: ".main-content-wrapper"
       });
-    </script>
+    }
+  });
+
+  btnNandaNicNoc?.addEventListener("click", () => {
+    const resultado = resultadoDiv.dataset.resultado;
+    if (!resultado) {
+      alert('Calcule primeiro.');
+      return;
+    }
+    const searchQuery = encodeURIComponent(
+      `медсестринський діагноз, пов'язаний з ${resultado} NANDA NIC NOC`
+    );
+    window.open(
+      `https://www.google.com/search?q=${searchQuery}`,
+      "_blank"
+    );
+  });
+});</script>
 
     <div id="footer-placeholder"></div>
     <script>

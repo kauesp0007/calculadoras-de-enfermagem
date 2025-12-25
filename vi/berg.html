@@ -312,537 +312,536 @@ một công cụ. **Vật lý trị liệu Canada**, tập 41, số
     <script src="global-scripts.js" defer=""></script>
 
     <script>
-      document.addEventListener("DOMContentLoaded", function () {
-        const resultadoDiv = document.getElementById("resultado");
-        const btnCalcular = document.getElementById("btnCalcular");
-        const btnLimpar = document.getElementById("btnLimpar");
-        const btnGerarPDF = document.getElementById("btnGerarPDF");
-        const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
-        const conteudoDiv = document.getElementById("conteudo");
+document.addEventListener("DOMContentLoaded", function () {
+  const resultadoDiv = document.getElementById("resultado");
+  const btnCalcular = document.getElementById("btnCalcular");
+  const btnLimpar = document.getElementById("btnLimpar");
+  const btnGerarPDF = document.getElementById("btnGerarPDF");
+  const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
+  const conteudoDiv = document.getElementById("conteudo");
 
-        const bergData = [
-          {
-            title: "1. Sentar para levantar",
-            nameAttr: "sentar_levantar",
-            options: [
-              {
-                description: "Incapaz de levantar-se sem assistência",
-                score: 0,
-              },
-              {
-                description:
-                  "Precisa de ajuda verbal e/ou supervisão para levantar-se",
-                score: 1,
-              },
-              {
-                description: "Precisa de assistência mínima para levantar-se",
-                score: 2,
-              },
-              {
-                description:
-                  "Levanta-se com segurança, mas precisa de assistência verbal para a estabilidade",
-                score: 3,
-              },
-              {
-                description:
-                  "Levanta-se com segurança e estabilidade, sem assistência",
-                score: 4,
-              },
-            ],
-          },
-          {
-            title: "2. Ficar de pé sem apoio",
-            nameAttr: "em_pe_sem_apoio",
-            options: [
-              {
-                description: "Incapaz de manter-se em pé por 30 segundos",
-                score: 0,
-              },
-              {
-                description:
-                  "Fica em pé 30 segundos, mas precisa de assistência",
-                score: 1,
-              },
-              {
-                description:
-                  "Fica em pé 30 segundos, mas precisa de supervisão",
-                score: 2,
-              },
-              { description: "Fica em pé 30 segundos com segurança", score: 3 },
-              {
-                description: "Fica em pé 30 segundos com segurança, sem apoio",
-                score: 4,
-              },
-            ],
-          },
-          {
-            title: "3. Sentar sem apoio",
-            nameAttr: "sentar_sem_apoio",
-            options: [
-              {
-                description: "Senta-se de forma insegura, cai na cadeira",
-                score: 0,
-              },
-              {
-                description: "Senta-se, mas precisa de assistência mínima",
-                score: 1,
-              },
-              {
-                description: "Senta-se de forma segura, mas usa os braços",
-                score: 2,
-              },
-              {
-                description:
-                  "Senta-se de forma segura, sem usar os braços, mas o movimento é lento",
-                score: 3,
-              },
-              {
-                description: "Senta-se de forma segura, sem usar os braços",
-                score: 4,
-              },
-            ],
-          },
-          {
-            title: "4. Sentar-se e levantar-se",
-            nameAttr: "sentar_e_levantar",
-            options: [
-              {
-                description:
-                  "Incapaz de sentar-se e levantar-se 3 vezes sem apoio",
-                score: 0,
-              },
-              {
-                description:
-                  "Senta-se e levanta-se 3 vezes, mas com assistência",
-                score: 1,
-              },
-              {
-                description:
-                  "Senta-se e levanta-se 3 vezes, mas com supervisão",
-                score: 2,
-              },
-              {
-                description:
-                  "Senta-se e levanta-se 3 vezes com segurança, mas o movimento é lento",
-                score: 3,
-              },
-              {
-                description: "Senta-se e levanta-se 3 vezes com segurança",
-                score: 4,
-              },
-            ],
-          },
-          {
-            title: "5. Transferência",
-            nameAttr: "transferencia",
-            options: [
-              { description: "Incapaz de transferir-se sem ajuda", score: 0 },
-              { description: "Transfere-se com assistência", score: 1 },
-              {
-                description:
-                  "Transfere-se com supervisão ou assistência verbal",
-                score: 2,
-              },
-              {
-                description:
-                  "Transfere-se de forma segura, mas o movimento é lento",
-                score: 3,
-              },
-              {
-                description: "Transfere-se de forma segura, sem assistência",
-                score: 4,
-              },
-            ],
-          },
-          {
-            title: "6. Ficar em pé com olhos fechados",
-            nameAttr: "em_pe_olhos_fechados",
-            options: [
-              {
-                description:
-                  "Incapaz de manter-se em pé por 10 segundos com os olhos fechados",
-                score: 0,
-              },
-              {
-                description:
-                  "Fica em pé por 10 segundos, mas precisa de supervisão",
-                score: 1,
-              },
-              {
-                description: "Fica em pé por 10 segundos com segurança",
-                score: 2,
-              },
-              {
-                description:
-                  "Fica em pé por 30 segundos, mas com ligeira instabilidade",
-                score: 3,
-              },
-              {
-                description: "Fica em pé 30 segundos com segurança, sem apoio",
-                score: 4,
-              },
-            ],
-          },
-          {
-            title: "7. Ficar em pé com pés juntos",
-            nameAttr: "em_pe_pes_juntos",
-            options: [
-              {
-                description: "Incapaz de manter-se em pé com os pés juntos",
-                score: 0,
-              },
-              {
-                description:
-                  "Fica em pé com os pés juntos, mas com assistência",
-                score: 1,
-              },
-              {
-                description: "Fica em pé com os pés juntos, mas com supervisão",
-                score: 2,
-              },
-              {
-                description: "Fica em pé com os pés juntos por 30 segundos",
-                score: 3,
-              },
-              {
-                description:
-                  "Fica em pé com os pés juntos por 1 minuto com segurança",
-                score: 4,
-              },
-            ],
-          },
-          {
-            title: "8. Alcançar a frente com o braço estendido",
-            nameAttr: "alcancar_a_frente",
-            options: [
-              {
-                description: "Incapaz de alcançar ou o movimento é perigoso",
-                score: 0,
-              },
-              {
-                description: "Alcança a frente, mas com assistência",
-                score: 1,
-              },
-              { description: "Alcança a frente, mas com supervisão", score: 2 },
-              {
-                description: "Alcança a frente, mas o movimento é lento",
-                score: 3,
-              },
-              {
-                description: "Alcança a frente com segurança, sem assistência",
-                score: 4,
-              },
-            ],
-          },
-          {
-            title: "9. Pegar um objeto do chão",
-            nameAttr: "pegar_objeto",
-            options: [
-              { description: "Incapaz de pegar o objeto", score: 0 },
-              {
-                description: "Pega o objeto, mas precisa de assistência",
-                score: 1,
-              },
-              { description: "Pega o objeto, mas com supervisão", score: 2 },
-              {
-                description: "Pega o objeto, mas o movimento é lento",
-                score: 3,
-              },
-              {
-                description:
-                  "Pega o objeto do chão com segurança, sem assistência",
-                score: 4,
-              },
-            ],
-          },
-          {
-            title: "10. Olhar para trás sobre os ombros",
-            nameAttr: "olhar_para_tras",
-            options: [
-              { description: "Incapaz de olhar para trás", score: 0 },
-              { description: "Olha para trás, mas com assistência", score: 1 },
-              { description: "Olha para trás, mas com supervisão", score: 2 },
-              {
-                description:
-                  "Olha para trás com segurança, mas o movimento é lento",
-                score: 3,
-              },
-              {
-                description: "Olha para trás com segurança, sem assistência",
-                score: 4,
-              },
-            ],
-          },
-          {
-            title: "11. Girar 360 graus",
-            nameAttr: "girar_360",
-            options: [
-              { description: "Incapaz de girar 360 graus", score: 0 },
-              { description: "Gira, mas com assistência", score: 1 },
-              { description: "Gira, mas com supervisão", score: 2 },
-              {
-                description:
-                  "Gira 360 graus com segurança, mas o movimento é lento",
-                score: 3,
-              },
-              {
-                description: "Gira 360 graus com segurança, sem assistência",
-                score: 4,
-              },
-            ],
-          },
-          {
-            title: "12. Permanecer em pé em um pé só",
-            nameAttr: "um_pe_so",
-            options: [
-              {
-                description: "Incapaz de permanecer em pé em um pé só",
-                score: 0,
-              },
-              {
-                description: "Fica em pé em um pé só por 5 segundos",
-                score: 1,
-              },
-              {
-                description: "Fica em pé em um pé só por 10 segundos",
-                score: 2,
-              },
-              {
-                description: "Fica em pé em um pé só por 15 segundos",
-                score: 3,
-              },
-              {
-                description: "Fica em pé em um pé só por 30 segundos",
-                score: 4,
-              },
-            ],
-          },
-          {
-            title: "13. Ficar em pé em um pé só com olhos fechados",
-            nameAttr: "um_pe_so_olhos_fechados",
-            options: [
-              {
-                description:
-                  "Incapaz de permanecer em pé em um pé só com os olhos fechados",
-                score: 0,
-              },
-              {
-                description:
-                  "Fica em pé em um pé só por 5 segundos com os olhos fechados",
-                score: 1,
-              },
-              {
-                description:
-                  "Fica em pé em um pé só por 10 segundos com os olhos fechados",
-                score: 2,
-              },
-              {
-                description:
-                  "Fica em pé em um pé só por 15 segundos com os olhos fechados",
-                score: 3,
-              },
-              {
-                description:
-                  "Fica em pé em um pé só por 30 segundos com os olhos fechados",
-                score: 4,
-              },
-            ],
-          },
-          {
-            title: "14. Ficar em pé e sentar em uma cadeira",
-            nameAttr: "sentar_e_levantar_cadeira",
-            options: [
-              {
-                description: "Incapaz de sentar-se e levantar-se da cadeira",
-                score: 0,
-              },
-              {
-                description: "Senta-se e levanta-se, mas com assistência",
-                score: 1,
-              },
-              {
-                description: "Senta-se e levanta-se, mas com supervisão",
-                score: 2,
-              },
-              {
-                description:
-                  "Senta-se e levanta-se com segurança, mas o movimento é lento",
-                score: 3,
-              },
-              {
-                description:
-                  "Senta-se e levanta-se com segurança, sem assistência",
-                score: 4,
-              },
-            ],
-          },
-        ];
+  const bergData = [
+  {
+    title: "1. Sentar para levantar",
+    nameAttr: "sentar_levantar",
+    options: [
+    {
+      description: "Không thể đứng dậy mà không có sự trợ giúp",
+      score: 0
+    },
+    {
+      description:
+      "Cần sự giúp đỡ bằng lời nói và/hoặc giám sát để đứng dậy",
+      score: 1
+    },
+    {
+      description: "Cần sự trợ giúp tối thiểu để đứng dậy",
+      score: 2
+    },
+    {
+      description:
+      "Đứng dậy một cách an toàn, nhưng cần sự hỗ trợ bằng lời nói để giữ thăng bằng",
+      score: 3
+    },
+    {
+      description:
+      "Đứng dậy một cách an toàn và ổn định, không cần sự trợ giúp",
+      score: 4
+    }]
 
-        // Preenche o formulário dinamicamente
-        bergData.forEach((item) => {
-          const sectionDiv = document.createElement("div");
-          sectionDiv.className = "berg-criterion-section";
-          sectionDiv.id = `section-${item.nameAttr}`;
+  },
+  {
+    title: "2. Đứng mà không cần hỗ trợ",
+    nameAttr: "em_pe_sem_apoio",
+    options: [
+    {
+      description: "Không thể đứng vững trong 30 giây",
+      score: 0
+    },
+    {
+      description:
+      "Đứng trong 30 giây, nhưng cần sự trợ giúp",
+      score: 1
+    },
+    {
+      description:
+      "Đứng trong 30 giây, nhưng cần có người giám sát",
+      score: 2
+    },
+    { description: "Đứng vững trong 30 giây", score: 3 },
+    {
+      description: "Đứng vững trong 30 giây mà không cần hỗ trợ",
+      score: 4
+    }]
 
-          const titleH3 = document.createElement("h3");
-          titleH3.className = "berg-criterion-title";
-          titleH3.innerHTML = item.title;
-          sectionDiv.appendChild(titleH3);
+  },
+  {
+    title: "3. Sentar sem apoio",
+    nameAttr: "sentar_sem_apoio",
+    options: [
+    {
+      description: "Senta-se de forma insegura, cai na cadeira",
+      score: 0
+    },
+    {
+      description: "Ngồi xuống, nhưng cần sự trợ giúp tối thiểu",
+      score: 1
+    },
+    {
+      description: "Ngồi an toàn, nhưng sử dụng cánh tay",
+      score: 2
+    },
+    {
+      description:
+      "Ngồi an toàn, không dùng tay, nhưng chuyển động chậm",
+      score: 3
+    },
+    {
+      description: "Ngồi an toàn, không dùng tay",
+      score: 4
+    }]
 
-          const selectElement = document.createElement("select");
-          selectElement.id = item.nameAttr;
-          selectElement.className = "berg-criterion-select mt-2";
+  },
+  {
+    title: "4. Sentar-se e levantar-se",
+    nameAttr: "sentar_e_levantar",
+    options: [
+    {
+      description:
+      "Incapaz de sentar-se e levantar-se 3 vezes sem apoio",
+      score: 0
+    },
+    {
+      description:
+      "Ngồi xuống và đứng lên 3 lần, nhưng có người giúp đỡ",
+      score: 1
+    },
+    {
+      description:
+      "Ngồi xuống và đứng lên 3 lần, nhưng phải có người giám sát",
+      score: 2
+    },
+    {
+      description:
+      "Ngồi xuống và đứng lên 3 lần một cách an toàn, nhưng chuyển động chậm chạp.",
+      score: 3
+    },
+    {
+      description: "Ngồi xuống và đứng dậy 3 lần một cách an toàn",
+      score: 4
+    }]
 
-          const defaultOption = document.createElement("option");
-          defaultOption.value = "";
-          defaultOption.text = "Selecione...";
-          selectElement.appendChild(defaultOption);
+  },
+  {
+    title: "5. Chuyển khoản",
+    nameAttr: "transferencia",
+    options: [
+    { description: "Incapaz de transferir-se sem ajuda", score: 0 },
+    { description: "Chuyển với sự hỗ trợ", score: 1 },
+    {
+      description:
+      "Chuyển giao với sự giám sát hoặc hỗ trợ bằng lời nói",
+      score: 2
+    },
+    {
+      description:
+      "Chuyển giao an toàn, nhưng tốc độ chậm",
+      score: 3
+    },
+    {
+      description: "Chuyển giao an toàn, không cần hỗ trợ",
+      score: 4
+    }]
 
-          item.options.forEach((option) => {
-            const optionElement = document.createElement("option");
-            optionElement.value = option.score;
-            optionElement.text = `${option.description} (pontos: ${option.score})`;
-            selectElement.appendChild(optionElement);
-          });
+  },
+  {
+    title: "6. Đứng với mắt nhắm lại",
+    nameAttr: "em_pe_olhos_fechados",
+    options: [
+    {
+      description:
+      "Không thể đứng vững trong 10 giây với mắt nhắm lại",
+      score: 0
+    },
+    {
+      description:
+      "Đứng trong 10 giây, nhưng cần có người giám sát",
+      score: 1
+    },
+    {
+      description: "Đứng vững trong 10 giây",
+      score: 2
+    },
+    {
+      description:
+      "Đứng trong 30 giây, nhưng hơi mất thăng bằng",
+      score: 3
+    },
+    {
+      description: "Đứng vững trong 30 giây mà không cần hỗ trợ",
+      score: 4
+    }]
 
-          sectionDiv.appendChild(selectElement);
-          conteudoDiv.appendChild(sectionDiv);
-        });
+  },
+  {
+    title: "7. Đứng với hai chân chụm lại",
+    nameAttr: "em_pe_pes_juntos",
+    options: [
+    {
+      description: "Không thể đứng thẳng với hai chân chụm lại",
+      score: 0
+    },
+    {
+      description:
+      "Đứng thẳng với hai chân chụm lại, nhưng có người hỗ trợ",
+      score: 1
+    },
+    {
+      description: "Đứng với hai chân chụm lại, nhưng có người giám sát",
+      score: 2
+    },
+    {
+      description: "Đứng với hai chân chụm lại trong 30 giây",
+      score: 3
+    },
+    {
+      description:
+      "Đứng với hai chân chụm lại trong 1 phút một cách an toàn",
+      score: 4
+    }]
 
-        function calcularBerg() {
-          const selects = document.querySelectorAll("#conteudo select");
-          let allSelected = true;
-          let total = 0;
+  },
+  {
+    title: "8. Đưa tay ra phía trước với cánh tay duỗi thẳng",
+    nameAttr: "alcancar_a_frente",
+    options: [
+    {
+      description: "Không thể đạt được hoặc chuyển động là nguy hiểm",
+      score: 0
+    },
+    {
+      description: "Tiến lên phía trước, nhưng với sự hỗ trợ",
+      score: 1
+    },
+    { description: "Tiến lên phía trước, nhưng dưới sự giám sát", score: 2 },
+    {
+      description: "Đạt được tiến bộ, nhưng tiến độ chậm",
+      score: 3
+    },
+    {
+      description: "Đạt đến phía trước một cách an toàn, không cần hỗ trợ",
+      score: 4
+    }]
 
-          selects.forEach((select) => {
-            if (select.value === "") {
-              allSelected = false;
-              select.classList.add("incomplete");
-            } else {
-              select.classList.remove("incomplete");
-              total += Number(select.value);
-            }
-          });
+  },
+  {
+    title: "9. Nhặt một vật từ sàn nhà",
+    nameAttr: "pegar_objeto",
+    options: [
+    { description: "Incapaz de pegar o objeto", score: 0 },
+    {
+      description: "Lấy vật đó, nhưng cần sự trợ giúp",
+      score: 1
+    },
+    { description: "Lấy vật đó, nhưng phải có người giám sát", score: 2 },
+    {
+      description: "Lấy vật thể, nhưng chuyển động chậm",
+      score: 3
+    },
+    {
+      description:
+      "Nhặt vật thể từ sàn nhà một cách an toàn, không cần sự trợ giúp",
+      score: 4
+    }]
 
-          resultadoDiv.style.display = "block";
-          if (!allSelected) {
-            resultadoDiv.innerHTML =
-              '⚠️ <strong class="font-bold">Por favor, selecione uma opção para todos os itens antes de calcular.</strong>';
-            resultadoDiv.className = `resultado bg-red-100`;
-            delete resultadoDiv.dataset.score;
-            return;
-          }
+  },
+  {
+    title: "10. Nhìn lại phía sau qua vai",
+    nameAttr: "olhar_para_tras",
+    options: [
+    { description: "Không thể nhìn lại", score: 0 },
+    { description: "Nhìn lại quá khứ, nhưng với sự hỗ trợ", score: 1 },
+    { description: "Nhìn lại quá khứ, nhưng với sự giám sát", score: 2 },
+    {
+      description:
+      "Nhìn lại phía sau một cách an toàn, nhưng chuyển động chậm",
+      score: 3
+    },
+    {
+      description: "Nhìn lại phía sau một cách an toàn, không cần trợ giúp",
+      score: 4
+    }]
 
-          let recomendacao = "";
+  },
+  {
+    title: "11. Girar 360 graus",
+    nameAttr: "girar_360",
+    options: [
+    { description: "Incapaz de girar 360 graus", score: 0 },
+    { description: "Quay, nhưng có hỗ trợ", score: 1 },
+    { description: "Quay, nhưng có giám sát", score: 2 },
+    {
+      description:
+      "Xoay 360 độ một cách an toàn, nhưng chuyển động chậm",
+      score: 3
+    },
+    {
+      description: "Xoay 360 độ một cách an toàn, không cần trợ giúp",
+      score: 4
+    }]
 
-          if (total <= 20) {
-            recomendacao = `A pontuação de ${total} indica um alto risco de quedas. É recomendada a assistência e a supervisão contínua.`;
-          } else if (total >= 21 && total <= 40) {
-            recomendacao = `A pontuação de ${total} indica que o paciente tem mobilidade funcional, mas pode ter um risco moderado de quedas. É recomendada a reabilitação.`;
-          } else if (total >= 41 && total <= 56) {
-            recomendacao = `A pontuação de ${total} indica baixo risco de quedas. O paciente tem um bom equilíbrio e mobilidade funcional.`;
-          }
+  },
+  {
+    title: "12. Đứng trên một chân",
+    nameAttr: "um_pe_so",
+    options: [
+    {
+      description: "Không thể đứng bằng một chân",
+      score: 0
+    },
+    {
+      description: "Đứng trên một chân trong 5 giây",
+      score: 1
+    },
+    {
+      description: "Đứng trên một chân trong 10 giây",
+      score: 2
+    },
+    {
+      description: "Đứng trên một chân trong 15 giây",
+      score: 3
+    },
+    {
+      description: "Đứng trên một chân trong 30 giây",
+      score: 4
+    }]
 
-          resultadoDiv.innerHTML = `
+  },
+  {
+    title: "13. Đứng trên một chân với mắt nhắm lại",
+    nameAttr: "um_pe_so_olhos_fechados",
+    options: [
+    {
+      description:
+      "Không thể đứng bằng một chân với mắt nhắm lại",
+      score: 0
+    },
+    {
+      description:
+      "Đứng trên một chân trong 5 giây với mắt nhắm lại",
+      score: 1
+    },
+    {
+      description:
+      "Đứng trên một chân trong 10 giây với mắt nhắm lại",
+      score: 2
+    },
+    {
+      description:
+      "Đứng trên một chân trong 15 giây với mắt nhắm lại",
+      score: 3
+    },
+    {
+      description:
+      "Đứng trên một chân trong 30 giây với mắt nhắm lại",
+      score: 4
+    }]
+
+  },
+  {
+    title: "14. Đứng và ngồi trên ghế",
+    nameAttr: "sentar_e_levantar_cadeira",
+    options: [
+    {
+      description: "Incapaz de sentar-se e levantar-se da cadeira",
+      score: 0
+    },
+    {
+      description: "Ngồi xuống và đứng dậy, nhưng cần sự trợ giúp",
+      score: 1
+    },
+    {
+      description: "Ngồi xuống và đứng dậy, nhưng phải có người giám sát",
+      score: 2
+    },
+    {
+      description:
+      "Ngồi xuống và đứng dậy một cách an toàn, nhưng chuyển động chậm chạp.",
+      score: 3
+    },
+    {
+      description:
+      "Ngồi xuống và đứng dậy một cách an toàn, không cần sự trợ giúp",
+      score: 4
+    }]
+
+  }];
+
+
+  // Preenche o formulário dinamicamente
+  bergData.forEach((item) => {
+    const sectionDiv = document.createElement("div");
+    sectionDiv.className = "berg-criterion-section";
+    sectionDiv.id = `section-${item.nameAttr}`;
+
+    const titleH3 = document.createElement("h3");
+    titleH3.className = "berg-criterion-title";
+    titleH3.innerHTML = item.title;
+    sectionDiv.appendChild(titleH3);
+
+    const selectElement = document.createElement("select");
+    selectElement.id = item.nameAttr;
+    selectElement.className = "berg-criterion-select mt-2";
+
+    const defaultOption = document.createElement("option");
+    defaultOption.value = "";
+    defaultOption.text = "Chọn...";
+    selectElement.appendChild(defaultOption);
+
+    item.options.forEach((option) => {
+      const optionElement = document.createElement("option");
+      optionElement.value = option.score;
+      optionElement.text = `${option.description} (pontos: ${option.score})`;
+      selectElement.appendChild(optionElement);
+    });
+
+    sectionDiv.appendChild(selectElement);
+    conteudoDiv.appendChild(sectionDiv);
+  });
+
+  function calcularBerg() {
+    const selects = document.querySelectorAll("#conteudo select");
+    let allSelected = true;
+    let total = 0;
+
+    selects.forEach((select) => {
+      if (select.value === "") {
+        allSelected = false;
+        select.classList.add("incomplete");
+      } else {
+        select.classList.remove("incomplete");
+        total += Number(select.value);
+      }
+    });
+
+    resultadoDiv.style.display = "block";
+    if (!allSelected) {
+      resultadoDiv.innerHTML =
+      '⚠️ <strong class="font-bold">Por favor, selecione uma opção para todos os itens antes de calcular.</strong>';
+      resultadoDiv.className = `Kết quả bg-red-100`;
+      delete resultadoDiv.dataset.score;
+      return;
+    }
+
+    let recomendacao = "";
+
+    if (total <= 20) {
+      recomendacao = `Điểm số của ${total} cho thấy nguy cơ ngã cao. Cần có sự hỗ trợ và giám sát liên tục.`;
+    } else if (total >= 21 && total <= 40) {
+      recomendacao = `Điểm số của ${total} cho thấy bệnh nhân có khả năng vận động chức năng, nhưng có thể có nguy cơ ngã vừa phải. Khuyến nghị phục hồi chức năng.`;
+    } else if (total >= 41 && total <= 56) {
+      recomendacao = `Điểm số của ${total} cho thấy nguy cơ té ngã thấp. Bệnh nhân có khả năng giữ thăng bằng và di chuyển tốt.`;
+    }
+
+    resultadoDiv.innerHTML = `
                 <p>Escore total: <strong class="font-bold">${total}</strong></p>
                 <p class="mt-4"><strong>Recomendação:</strong> ${recomendacao}</p>
             `;
-          resultadoDiv.className = `resultado bg-blue-50`;
-          resultadoDiv.style.display = "block";
+    resultadoDiv.className = `Kết quả bg-blue-50`;
+    resultadoDiv.style.display = "block";
 
-          resultadoDiv.dataset.score = total;
-          resultadoDiv.dataset.scaleName = "Escala de Equilíbrio de Berg";
+    resultadoDiv.dataset.score = total;
+    resultadoDiv.dataset.scaleName = "Thang đo cân bằng Berg";
+  }
+
+  function limparCampos() {
+    const selects = document.querySelectorAll("#conteudo select");
+    selects.forEach((select) => {
+      select.selectedIndex = 0;
+      select.classList.remove("incomplete");
+    });
+    resultadoDiv.innerHTML = "";
+    resultadoDiv.className = "kết quả ẩn";
+    delete resultadoDiv.dataset.score;
+    delete resultadoDiv.dataset.scaleName;
+  }
+
+  // Adiciona os event listeners aos botões
+  btnCalcular?.addEventListener("click", calcularBerg);
+  btnLimpar?.addEventListener("click", limparCampos);
+
+  btnGerarPDF?.addEventListener("click", () => {
+    if (!resultadoDiv.dataset.score) {
+      alert(
+        "Vui lòng nhấp vào \"Tính điểm\" trước để tạo tệp PDF."
+      );
+      return;
+    }
+    if (typeof gerarPDFGlobal === "function") {
+      const selectedOptions = {};
+      document.querySelectorAll("#conteudo select").forEach((select) => {
+        const selected = select.options[select.selectedIndex];
+        if (selected.value !== "") {
+          selectedOptions[select.id] = selected.text;
         }
-
-        function limparCampos() {
-          const selects = document.querySelectorAll("#conteudo select");
-          selects.forEach((select) => {
-            select.selectedIndex = 0;
-            select.classList.remove("incomplete");
-          });
-          resultadoDiv.innerHTML = "";
-          resultadoDiv.className = "resultado hidden";
-          delete resultadoDiv.dataset.score;
-          delete resultadoDiv.dataset.scaleName;
-        }
-
-        // Adiciona os event listeners aos botões
-        btnCalcular?.addEventListener("click", calcularBerg);
-        btnLimpar?.addEventListener("click", limparCampos);
-
-        btnGerarPDF?.addEventListener("click", () => {
-          if (!resultadoDiv.dataset.score) {
-            alert(
-              'Por favor, clique em "Calcular Escore" primeiro para gerar o PDF.',
-            );
-            return;
-          }
-          if (typeof gerarPDFGlobal === "function") {
-            const selectedOptions = {};
-            document.querySelectorAll("#conteudo select").forEach((select) => {
-              const selected = select.options[select.selectedIndex];
-              if (selected.value !== "") {
-                selectedOptions[select.id] = selected.text;
-              }
-            });
-
-            let contentToPrint = document
-              .querySelector(".main-content-wrapper")
-              .cloneNode(true);
-            let contentContainer = contentToPrint.querySelector("#conteudo");
-
-            contentContainer.innerHTML = "";
-
-            bergData.forEach((item) => {
-              let selectedText = selectedOptions[item.nameAttr];
-              if (selectedText) {
-                let itemDiv = document.createElement("div");
-                itemDiv.className = "mb-2 p-2 bg-gray-50 rounded";
-                itemDiv.innerHTML = `<strong>${item.title}:</strong> ${selectedText}`;
-                contentContainer.appendChild(itemDiv);
-              }
-            });
-
-            let resultadoHtml = resultadoDiv.cloneNode(true);
-            if (resultadoHtml.style.display !== "none") {
-              contentContainer.appendChild(resultadoHtml);
-            }
-
-            gerarPDFGlobal({
-              titulo: "Escala de Equilíbrio de Berg",
-              subtitulo:
-                "Relatório de Avaliação de Equilíbrio Estático e Dinâmico",
-              nomeArquivo: "relatorio_escala_berg.pdf",
-              seletorConteudo: ".main-content-wrapper",
-            });
-          } else {
-            console.error("Função gerarPDFGlobal não definida.");
-          }
-        });
-
-        btnNandaNicNoc?.addEventListener("click", () => {
-          const score = resultadoDiv.dataset.score;
-          const scaleName = resultadoDiv.dataset.scaleName;
-          if (!score) {
-            alert("Calcule o resultado para pesquisar a conduta.");
-            return;
-          }
-          let recomendacaoRisco = "risco de quedas";
-          if (score <= 20) {
-            recomendacaoRisco = "alto risco de quedas";
-          } else if (score >= 41) {
-            recomendacaoRisco = "baixo risco de quedas";
-          }
-          const searchQuery = encodeURIComponent(
-            `cuidados enfermagem para idoso com ${recomendacaoRisco} na Escala de Berg NANDA NIC NOC`,
-          );
-          window.open(
-            `https://www.google.com/search?q=${searchQuery}`,
-            "_blank",
-          );
-        });
       });
-    </script>
+
+      let contentToPrint = document.
+      querySelector(".main-content-wrapper").
+      cloneNode(true);
+      let contentContainer = contentToPrint.querySelector("#conteudo");
+
+      contentContainer.innerHTML = "";
+
+      bergData.forEach((item) => {
+        let selectedText = selectedOptions[item.nameAttr];
+        if (selectedText) {
+          let itemDiv = document.createElement("div");
+          itemDiv.className = "mb-2 p-2 bg-gray-50 rounded";
+          itemDiv.innerHTML = `<strong>${item.title}:</strong> ${selectedText}`;
+          contentContainer.appendChild(itemDiv);
+        }
+      });
+
+      let resultadoHtml = resultadoDiv.cloneNode(true);
+      if (resultadoHtml.style.display !== "none") {
+        contentContainer.appendChild(resultadoHtml);
+      }
+
+      gerarPDFGlobal({
+        titulo: "Thang đo cân bằng Berg",
+        subtitulo:
+        "Báo cáo đánh giá cân bằng tĩnh và động",
+        nomeArquivo: "relatorio_escala_berg.pdf",
+        seletorConteudo: ".main-content-wrapper"
+      });
+    } else {
+      console.error("Chức năng gerarPDFGlobal không được định nghĩa.");
+    }
+  });
+
+  btnNandaNicNoc?.addEventListener("click", () => {
+    const score = resultadoDiv.dataset.score;
+    const scaleName = resultadoDiv.dataset.scaleName;
+    if (!score) {
+      alert("Tính toán kết quả để nghiên cứu hành vi.");
+      return;
+    }
+    let recomendacaoRisco = "risco de quedas";
+    if (score <= 20) {
+      recomendacaoRisco = "alto risco de quedas";
+    } else if (score >= 41) {
+      recomendacaoRisco = "baixo risco de quedas";
+    }
+    const searchQuery = encodeURIComponent(
+      `cuidados enfermagem para idoso com ${recomendacaoRisco} na Escala de Berg NANDA NIC NOC`
+    );
+    window.open(
+      `https://www.google.com/search?q=${searchQuery}`,
+      "_blank"
+    );
+  });
+});</script>
 
     <script src="/lang-selector.js" defer=""></script>
 

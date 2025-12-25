@@ -265,66 +265,66 @@
     <script src="global-scripts.js" defer=""></script>
 
     <script>
-      document.addEventListener("DOMContentLoaded", function () {
-        const resultadoDiv = document.getElementById("resultado");
-        const conteudoDiv = document.getElementById("conteudo");
-        const btnCalcular = document.getElementById("btnCalcular");
-        const btnLimpar = document.getElementById("btnLimpar");
+document.addEventListener("DOMContentLoaded", function () {
+  const resultadoDiv = document.getElementById("resultado");
+  const conteudoDiv = document.getElementById("conteudo");
+  const btnCalcular = document.getElementById("btnCalcular");
+  const btnLimpar = document.getElementById("btnLimpar");
 
-        const apgarData = [
-          {
-            id: "fc",
-            title: "Frequência Cardíaca",
-            options: [
-              { score: 0, text: "Ausente" },
-              { score: 1, text: "< 100 bpm" },
-              { score: 2, text: "≥ 100 bpm" },
-            ],
-          },
-          {
-            id: "resp",
-            title: "Esforço Respiratório",
-            options: [
-              { score: 0, text: "Ausente" },
-              { score: 1, text: "Lenta/irregular" },
-              { score: 2, text: "Choro vigoroso" },
-            ],
-          },
-          {
-            id: "tonus",
-            title: "Tônus Muscular",
-            options: [
-              { score: 0, text: "Flácido" },
-              { score: 1, text: "Flexão de extremidades" },
-              { score: 2, text: "Movimentos ativos" },
-            ],
-          },
-          {
-            id: "reflexo",
-            title: "Irritabilidade Reflexa",
-            options: [
-              { score: 0, text: "Ausente" },
-              { score: 1, text: "Caretas" },
-              { score: 2, text: "Choro, espirro ou tosse" },
-            ],
-          },
-          {
-            id: "cor",
-            title: "Cor da Pele",
-            options: [
-              { score: 0, text: "Pálido ou cianótico" },
-              { score: 1, text: "Corpo rosado, extremidades azuladas" },
-              { score: 2, text: "Rosado por completo" },
-            ],
-          },
-        ];
+  const apgarData = [
+  {
+    id: "fc",
+    title: "Серцебиття",
+    options: [
+    { score: 0, text: "Ausente" },
+    { score: 1, text: "< 100 bpm" },
+    { score: 2, text: "≥ 100 bpm" }]
 
-        function createForm() {
-          conteudoDiv.innerHTML = "";
-          apgarData.forEach((criterion) => {
-            const card = document.createElement("div");
-            card.className = "criterion-card";
-            card.innerHTML = `
+  },
+  {
+    id: "resp",
+    title: "Дихальні зусилля",
+    options: [
+    { score: 0, text: "Ausente" },
+    { score: 1, text: "Lenta/irregular" },
+    { score: 2, text: "Choro vigoroso" }]
+
+  },
+  {
+    id: "tonus",
+    title: "М'язовий тонус",
+    options: [
+    { score: 0, text: "В'ялий." },
+    { score: 1, text: "Згинання кінців" },
+    { score: 2, text: "Movimentos ativos" }]
+
+  },
+  {
+    id: "reflexo",
+    title: "Рефлекторна дратівливість",
+    options: [
+    { score: 0, text: "Ausente" },
+    { score: 1, text: "Caretas" },
+    { score: 2, text: "Choro, espirro ou tosse" }]
+
+  },
+  {
+    id: "cor",
+    title: "Cor da Pele",
+    options: [
+    { score: 0, text: "Блідість або синюшність" },
+    { score: 1, text: "Рожеве тіло, синюваті краї" },
+    { score: 2, text: "Rosado por completo" }]
+
+  }];
+
+
+  function createForm() {
+    conteudoDiv.innerHTML = "";
+    apgarData.forEach((criterion) => {
+      const card = document.createElement("div");
+      card.className = "criterion-card";
+      card.innerHTML = `
                     <h3 class="criterion-title">${criterion.title}</h3>
                     <div class="options-container">
                         <select id="${criterion.id}-select" class="custom-select">
@@ -333,62 +333,61 @@
                         </select>
                     </div>
                 `;
-            conteudoDiv.appendChild(card);
-          });
-        }
+      conteudoDiv.appendChild(card);
+    });
+  }
 
-        function calcular() {
-          let total = 0;
-          let allSelected = true;
+  function calcular() {
+    let total = 0;
+    let allSelected = true;
 
-          apgarData.forEach((criterion) => {
-            const select = document.getElementById(`${criterion.id}-select`);
-            if (select && select.value) {
-              total += parseInt(select.value, 10);
-            } else {
-              allSelected = false;
-            }
-          });
+    apgarData.forEach((criterion) => {
+      const select = document.getElementById(`${criterion.id}-select`);
+      if (select && select.value) {
+        total += parseInt(select.value, 10);
+      } else {
+        allSelected = false;
+      }
+    });
 
-          if (!allSelected) {
-            resultadoDiv.innerHTML =
-              '⚠️ <strong class="font-bold">Por favor, selecione uma opção para cada critério.</strong>';
-            resultadoDiv.className = "standard-result-box bg-info-orange-light";
-            resultadoDiv.style.display = "block";
-            delete resultadoDiv.dataset.score;
-            return;
-          }
+    if (!allSelected) {
+      resultadoDiv.innerHTML =
+      '⚠️ <strong class="font-bold">Por favor, selecione uma opção para cada critério.</strong>';
+      resultadoDiv.className = "standard-result-box bg-info-orange-light";
+      resultadoDiv.style.display = "block";
+      delete resultadoDiv.dataset.score;
+      return;
+    }
 
-          let conduta = "";
-          if (total >= 8) {
-            conduta = "Recém-nascido com boa vitalidade. Cuidados de rotina.";
-          } else if (total >= 4) {
-            conduta =
-              "Moderada depressão. Suporte e reavaliação são necessários.";
-          } else {
-            conduta = "Grave depressão. Reanimação neonatal imediata.";
-          }
+    let conduta = "";
+    if (total >= 8) {
+      conduta = "Новонароджений з хорошими показниками життєздатності. Звичайний догляд.";
+    } else if (total >= 4) {
+      conduta =
+      "Помірна депресія. Потрібна підтримка та переоцінка.";
+    } else {
+      conduta = "Сильна депресія. Негайна реанімація новонароджених.";
+    }
 
-          resultadoDiv.innerHTML = `<p class="font-bold text-lg">Pontuação total: <span class="font-black">${total}/10</span></p><p class="font-bold text-lg">Conduta: <span class="font-black">${conduta}</span></p>`;
-          resultadoDiv.className = "standard-result-box";
-          resultadoDiv.style.display = "block";
-          resultadoDiv.dataset.score = total;
-          resultadoDiv.dataset.conduta = conduta;
-        }
+    resultadoDiv.innerHTML = `<p class="font-bold text-lg">Pontuação total: <span class="font-black">${total}/10</span></p><p class="font-bold text-lg">Conduta: <span class="font-black">${conduta}</span></p>`;
+    resultadoDiv.className = "standard-result-box";
+    resultadoDiv.style.display = "block";
+    resultadoDiv.dataset.score = total;
+    resultadoDiv.dataset.conduta = conduta;
+  }
 
-        function limpar() {
-          createForm();
-          resultadoDiv.innerHTML = "";
-          resultadoDiv.className = "hidden";
-          delete resultadoDiv.dataset.score;
-          delete resultadoDiv.dataset.conduta;
-        }
+  function limpar() {
+    createForm();
+    resultadoDiv.innerHTML = "";
+    resultadoDiv.className = "hidden";
+    delete resultadoDiv.dataset.score;
+    delete resultadoDiv.dataset.conduta;
+  }
 
-        createForm();
-        btnCalcular?.addEventListener("click", calcular);
-        btnLimpar?.addEventListener("click", limpar);
-      });
-    </script>
+  createForm();
+  btnCalcular?.addEventListener("click", calcular);
+  btnLimpar?.addEventListener("click", limpar);
+});</script>
 
     <script src="/lang-selector.js" defer=""></script>
 

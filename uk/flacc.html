@@ -276,66 +276,66 @@
     <script src="global-scripts.js" defer=""></script>
 
     <script>
-      document.addEventListener("DOMContentLoaded", function () {
-        const resultadoDiv = document.getElementById("resultado");
-        const conteudoDiv = document.getElementById("conteudo");
-        const btnCalcular = document.getElementById("btnCalcular");
-        const btnLimpar = document.getElementById("btnLimpar");
+document.addEventListener("DOMContentLoaded", function () {
+  const resultadoDiv = document.getElementById("resultado");
+  const conteudoDiv = document.getElementById("conteudo");
+  const btnCalcular = document.getElementById("btnCalcular");
+  const btnLimpar = document.getElementById("btnLimpar");
 
-        const flaccData = [
-          {
-            id: "face",
-            title: "Face (Rosto)",
-            options: [
-              { score: 0, text: "Nenhuma expressão ou sorriso" },
-              { score: 1, text: "Caretas, sobrancelhas franzidas" },
-              { score: 2, text: "Tremor do queixo, mandíbulas cerradas" },
-            ],
-          },
-          {
-            id: "legs",
-            title: "Legs (Pernas)",
-            options: [
-              { score: 0, text: "Normais ou relaxadas" },
-              { score: 1, text: "Inquietas, agitadas, tensas" },
-              { score: 2, text: "Chutando ou esticadas" },
-            ],
-          },
-          {
-            id: "activity",
-            title: "Activity (Atividade)",
-            options: [
-              { score: 0, text: "Quieta, movendo-se facilmente" },
-              { score: 1, text: "Contorcendo-se, tensa" },
-              { score: 2, text: "Curvada, rígida ou com movimentos bruscos" },
-            ],
-          },
-          {
-            id: "cry",
-            title: "Cry (Choro)",
-            options: [
-              { score: 0, text: "Sem choro" },
-              { score: 1, text: "Gemidos, queixa ocasional" },
-              { score: 2, text: "Choro continuado, gritos" },
-            ],
-          },
-          {
-            id: "consolability",
-            title: "Consolability (Consolabilidade)",
-            options: [
-              { score: 0, text: "Satisfeita, relaxada" },
-              { score: 1, text: "Tranquilizada por toques/abraços" },
-              { score: 2, text: "Difícil de consolar" },
-            ],
-          },
-        ];
+  const flaccData = [
+  {
+    id: "face",
+    title: "Face (Rosto)",
+    options: [
+    { score: 0, text: "Ніякого виразу обличчя чи посмішки" },
+    { score: 1, text: "Caretas, sobrancelhas franzidas" },
+    { score: 2, text: "Тремор підборіддя, стиснуті щелепи" }]
 
-        function createForm() {
-          conteudoDiv.innerHTML = "";
-          flaccData.forEach((criterion) => {
-            const card = document.createElement("div");
-            card.className = "criterion-card";
-            card.innerHTML = `
+  },
+  {
+    id: "legs",
+    title: "Legs (Pernas)",
+    options: [
+    { score: 0, text: "Normais ou relaxadas" },
+    { score: 1, text: "Inquietas, agitadas, tensas" },
+    { score: 2, text: "Chutando ou esticadas" }]
+
+  },
+  {
+    id: "activity",
+    title: "Діяльність",
+    options: [
+    { score: 0, text: "Quieta, movendo-se facilmente" },
+    { score: 1, text: "Contorcendo-se, tensa" },
+    { score: 2, text: "Вигнуті, жорсткі або з ривками" }]
+
+  },
+  {
+    id: "cry",
+    title: "Cry (Choro)",
+    options: [
+    { score: 0, text: "Sem choro" },
+    { score: 1, text: "Gemidos, queixa ocasional" },
+    { score: 2, text: "Choro continuado, gritos" }]
+
+  },
+  {
+    id: "consolability",
+    title: "Втіха",
+    options: [
+    { score: 0, text: "Satisfeita, relaxada" },
+    { score: 1, text: "Заспокоюють дотики / обійми" },
+    { score: 2, text: "Важко втішити" }]
+
+  }];
+
+
+  function createForm() {
+    conteudoDiv.innerHTML = "";
+    flaccData.forEach((criterion) => {
+      const card = document.createElement("div");
+      card.className = "criterion-card";
+      card.innerHTML = `
                     <h3 class="criterion-title">${criterion.title}</h3>
                     <div class="options-container">
                         <select id="${criterion.id}-select" class="custom-select">
@@ -344,66 +344,65 @@
                         </select>
                     </div>
                 `;
-            conteudoDiv.appendChild(card);
-          });
-        }
+      conteudoDiv.appendChild(card);
+    });
+  }
 
-        function calcular() {
-          let total = 0;
-          let allSelected = true;
+  function calcular() {
+    let total = 0;
+    let allSelected = true;
 
-          flaccData.forEach((criterion) => {
-            const select = document.getElementById(`${criterion.id}-select`);
-            if (select && select.value) {
-              total += parseInt(select.value, 10);
-            } else {
-              allSelected = false;
-            }
-          });
+    flaccData.forEach((criterion) => {
+      const select = document.getElementById(`${criterion.id}-select`);
+      if (select && select.value) {
+        total += parseInt(select.value, 10);
+      } else {
+        allSelected = false;
+      }
+    });
 
-          if (!allSelected) {
-            resultadoDiv.innerHTML =
-              '⚠️ <strong class="font-bold">Por favor, selecione uma opção para cada critério.</strong>';
-            resultadoDiv.className = "standard-result-box bg-info-orange-light";
-            resultadoDiv.style.display = "block";
-            delete resultadoDiv.dataset.score;
-            return;
-          }
+    if (!allSelected) {
+      resultadoDiv.innerHTML =
+      '⚠️ <strong class="font-bold">Por favor, selecione uma opção para cada critério.</strong>';
+      resultadoDiv.className = "standard-result-box bg-info-orange-light";
+      resultadoDiv.style.display = "block";
+      delete resultadoDiv.dataset.score;
+      return;
+    }
 
-          let conduta = "";
-          if (total === 0) {
-            conduta = "Nenhuma dor";
-          } else if (total <= 3) {
-            conduta = "Dor leve";
-          } else if (total <= 6) {
-            conduta = "Dor moderada";
-          } else {
-            conduta = "Dor intensa";
-          }
+    let conduta = "";
+    if (total === 0) {
+      conduta = "Nenhuma dor";
+    } else if (total <= 3) {
+      conduta = "Dor leve";
+    } else if (total <= 6) {
+      conduta = "Dor moderada";
+    } else {
+      conduta = "Dor intensa";
+    }
 
-          resultadoDiv.innerHTML = `
+    resultadoDiv.innerHTML = `
                 <p class="font-bold text-lg">Pontuação total: <span class="font-black">${total}/10</span></p>
                 <p class="font-bold text-lg">Interpretação: <span class="font-black">${conduta}</span></p>
             `;
-          resultadoDiv.className = "standard-result-box";
-          resultadoDiv.style.display = "block";
-          resultadoDiv.dataset.score = total;
-          resultadoDiv.dataset.conduta = conduta;
-        }
+    resultadoDiv.className = "standard-result-box";
+    resultadoDiv.style.display = "block";
+    resultadoDiv.dataset.score = total;
+    resultadoDiv.dataset.conduta = conduta;
+  }
 
-        function limpar() {
-          createForm();
-          resultadoDiv.innerHTML = "";
-          resultadoDiv.className = "hidden";
-          delete resultadoDiv.dataset.score;
-          delete resultadoDiv.dataset.conduta;
-        }
+  function limpar() {
+    createForm();
+    resultadoDiv.innerHTML = "";
+    resultadoDiv.className = "hidden";
+    delete resultadoDiv.dataset.score;
+    delete resultadoDiv.dataset.conduta;
+  }
 
-        createForm();
-        btnCalcular?.addEventListener("click", calcular);
-        btnLimpar?.addEventListener("click", limpar);
-      });
-    </script>
+  createForm();
+  btnCalcular?.addEventListener("click", calcular);
+  btnLimpar?.addEventListener("click", limpar);
+});</script>
 
     <script src="/lang-selector.js" defer=""></script>
 

@@ -294,148 +294,147 @@ Ministerstwo Zdrowia, 2014.<br>Dostępne w:<a href="https://www.gov.br/saude/pt-
     <script src="global-scripts.js" defer=""></script>
 
     <script>
-      document.addEventListener("DOMContentLoaded", () => {
-        const resultadoDiv = document.getElementById("resultado");
-        const btnCalcular = document.getElementById("btnCalcular");
-        const btnLimpar = document.getElementById("btnLimpar");
-        const btnGerarPDF = document.getElementById("btnGerarPDF");
-        const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
-        const conteudoDiv = document.getElementById("conteudo");
+document.addEventListener("DOMContentLoaded", () => {
+  const resultadoDiv = document.getElementById("resultado");
+  const btnCalcular = document.getElementById("btnCalcular");
+  const btnLimpar = document.getElementById("btnLimpar");
+  const btnGerarPDF = document.getElementById("btnGerarPDF");
+  const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
+  const conteudoDiv = document.getElementById("conteudo");
 
-        // Dados do Protocolo de Manchester
-        const manchesterData = [
-          { question: "Obstrução de via aérea", score: 3 },
-          { question: "Dificuldade respiratória grave", score: 5 },
-          { question: "Confusão/agitação", score: 2 },
-          { question: "Sonolência/desorientação", score: 3 },
-          { question: "Inconsciência", score: 5 },
-          { question: "Dor leve (1–3)", score: 1 },
-          { question: "Dor moderada (4–6)", score: 2 },
-          { question: "Dor intensa (7–10)", score: 3 },
-          { question: "PA < 90 ou FC > 130", score: 3 },
-          { question: "Extremidades frias/sudorese", score: 2 },
-          { question: "Sangramento leve", score: 1 },
-          { question: "Sangramento moderado", score: 2 },
-          { question: "Sangramento grave", score: 3 },
-          { question: "Febre moderada (38–39℃)", score: 1 },
-          { question: "Febre alta (>39℃)", score: 2 },
-          { question: "Hipotermia (<36℃)", score: 2 },
-          { question: "Fraqueza/paralisia focal", score: 3 },
-          { question: "Convulsão recente", score: 4 },
-          { question: "Alteração visual/auditiva súbita", score: 2 },
-        ];
+  // Dados do Protocolo de Manchester
+  const manchesterData = [
+  { question: "Niedrożność dróg oddechowych", score: 3 },
+  { question: "Poważne trudności w oddychaniu", score: 5 },
+  { question: "Dezorientacja/agresja", score: 2 },
+  { question: "Senność/dezorientacja", score: 3 },
+  { question: "Nieświadomość", score: 5 },
+  { question: "Dor leve (1–3)", score: 1 },
+  { question: "Dor moderada (4–6)", score: 2 },
+  { question: "Dor intensa (7–10)", score: 3 },
+  { question: "PA < 90 ou FC > 130", score: 3 },
+  { question: "Zimne kończyny/sudoresis", score: 2 },
+  { question: "Sangramento leve", score: 1 },
+  { question: "Sangramento moderado", score: 2 },
+  { question: "Sangramento grave", score: 3 },
+  { question: "Febre moderada (38–39℃)", score: 1 },
+  { question: "Febre alta (>39℃)", score: 2 },
+  { question: "Hipotermia (<36℃)", score: 2 },
+  { question: "Fraqueza/paralisia focal", score: 3 },
+  { question: "Niedawny napad", score: 4 },
+  { question: "Nagłe upośledzenie wzroku/słuchu", score: 2 }];
 
-        // Preenche o formulário dinamicamente
-        manchesterData.forEach((item, index) => {
-          const sectionDiv = document.createElement("div");
-          sectionDiv.className = "manchester-criterion-card";
 
-          const itemLabel = document.createElement("label");
-          itemLabel.className = "manchester-criterion-item";
+  // Preenche o formulário dinamicamente
+  manchesterData.forEach((item, index) => {
+    const sectionDiv = document.createElement("div");
+    sectionDiv.className = "manchester-criterion-card";
 
-          const inputCheckbox = document.createElement("input");
-          inputCheckbox.type = "checkbox";
-          inputCheckbox.name = "sintoma";
-          inputCheckbox.value = item.score;
-          inputCheckbox.id = `sintoma-${index}`;
+    const itemLabel = document.createElement("label");
+    itemLabel.className = "manchester-criterion-item";
 
-          const textSpan = document.createElement("span");
-          textSpan.innerText = `${item.question} (${item.score} pontos)`;
+    const inputCheckbox = document.createElement("input");
+    inputCheckbox.type = "checkbox";
+    inputCheckbox.name = "sintoma";
+    inputCheckbox.value = item.score;
+    inputCheckbox.id = `sintoma-${index}`;
 
-          itemLabel.appendChild(inputCheckbox);
-          itemLabel.appendChild(textSpan);
-          sectionDiv.appendChild(itemLabel);
-          conteudoDiv.appendChild(sectionDiv);
-        });
+    const textSpan = document.createElement("span");
+    textSpan.innerText = `${item.question} (${item.score} pontos)`;
 
-        function calcularManchester() {
-          const checkboxes = document.querySelectorAll(
-            '#conteudo input[type="checkbox"]:checked',
-          );
-          let total = 0;
-          checkboxes.forEach((c) => (total += parseInt(c.value)));
+    itemLabel.appendChild(inputCheckbox);
+    itemLabel.appendChild(textSpan);
+    sectionDiv.appendChild(itemLabel);
+    conteudoDiv.appendChild(sectionDiv);
+  });
 
-          let classificacao = "";
-          let corClasse = "";
+  function calcularManchester() {
+    const checkboxes = document.querySelectorAll(
+      '#conteudo input[type="checkbox"]:checked'
+    );
+    let total = 0;
+    checkboxes.forEach((c) => total += parseInt(c.value));
 
-          if (total >= 12) {
-            classificacao = "Vermelho – Imediato";
-            corClasse = "bg-red";
-          } else if (total >= 9) {
-            classificacao = "Laranja – Até 10 min";
-            corClasse = "bg-orange";
-          } else if (total >= 6) {
-            classificacao = "Amarelo – Até 60 min";
-            corClasse = "bg-yellow";
-          } else if (total >= 3) {
-            classificacao = "Verde – Até 120 min";
-            corClasse = "bg-green";
-          } else {
-            classificacao = "Azul – Até 240 min";
-            corClasse = "bg-blue";
-          }
+    let classificacao = "";
+    let corClasse = "";
 
-          resultadoDiv.innerHTML = `<p><strong>${classificacao}</strong></p><p>Escore total: <strong class="font-bold">${total}</strong></p>`;
-          resultadoDiv.className = `resultado ${corClasse}`;
-          resultadoDiv.style.display = "block";
+    if (total >= 12) {
+      classificacao = "Vermelho – Imediato";
+      corClasse = "bg-red";
+    } else if (total >= 9) {
+      classificacao = "Pomarańczowy - do 10 min";
+      corClasse = "bg-orange";
+    } else if (total >= 6) {
+      classificacao = "Żółty - do 60 min";
+      corClasse = "bg-yellow";
+    } else if (total >= 3) {
+      classificacao = "Zielony - do 120 min";
+      corClasse = "bg-green";
+    } else {
+      classificacao = "Niebieski - do 240 min";
+      corClasse = "bg-blue";
+    }
 
-          resultadoDiv.dataset.classificacao = classificacao;
-          resultadoDiv.dataset.escore = total;
-          resultadoDiv.dataset.scaleName = "Protocolo de Manchester";
-        }
+    resultadoDiv.innerHTML = `<p><strong>${classificacao}</strong></p><p>Escore total: <strong class="font-bold">${total}</strong></p>`;
+    resultadoDiv.className = `wynik ${corClasse}`;
+    resultadoDiv.style.display = "block";
 
-        function limparCampos() {
-          const checkboxes = document.querySelectorAll(
-            '#conteudo input[type="checkbox"]',
-          );
-          checkboxes.forEach((c) => (c.checked = false));
+    resultadoDiv.dataset.classificacao = classificacao;
+    resultadoDiv.dataset.escore = total;
+    resultadoDiv.dataset.scaleName = "Protocolo de Manchester";
+  }
 
-          resultadoDiv.innerHTML = "";
-          resultadoDiv.className = "resultado hidden";
-          delete resultadoDiv.dataset.classificacao;
-          delete resultadoDiv.dataset.escore;
-          delete resultadoDiv.dataset.scaleName;
-        }
+  function limparCampos() {
+    const checkboxes = document.querySelectorAll(
+      '#conteudo input[type="checkbox"]'
+    );
+    checkboxes.forEach((c) => c.checked = false);
 
-        // Adiciona os event listeners aos botões
-        btnCalcular?.addEventListener("click", calcularManchester);
-        btnLimpar?.addEventListener("click", limparCampos);
+    resultadoDiv.innerHTML = "";
+    resultadoDiv.className = "ukryty wynik";
+    delete resultadoDiv.dataset.classificacao;
+    delete resultadoDiv.dataset.escore;
+    delete resultadoDiv.dataset.scaleName;
+  }
 
-        btnGerarPDF?.addEventListener("click", () => {
-          if (!resultadoDiv.dataset.escore) {
-            alert('Por favor, clique em "Calcular" primeiro para gerar o PDF.');
-            return;
-          }
-          if (typeof gerarPDFGlobal === "function") {
-            gerarPDFGlobal({
-              titulo: "Protocolo de Manchester",
-              subtitulo: "Relatório de Classificação de Risco",
-              nomeArquivo: "protocolo_manchester.pdf",
-              seletorConteudo: ".main-content-wrapper",
-            });
-          } else {
-            console.error("Função gerarPDFGlobal não definida.");
-          }
-        });
+  // Adiciona os event listeners aos botões
+  btnCalcular?.addEventListener("click", calcularManchester);
+  btnLimpar?.addEventListener("click", limparCampos);
 
-        btnNandaNicNoc?.addEventListener("click", () => {
-          const escore = resultadoDiv.dataset.escore;
-          const classificacao = resultadoDiv.dataset.classificacao;
-          const scaleName = resultadoDiv.dataset.scaleName;
-          if (!escore || !classificacao) {
-            alert("Calcule o resultado para pesquisar a conduta.");
-            return;
-          }
-          const searchQuery = encodeURIComponent(
-            `${scaleName} escore ${escore} classificação ${classificacao} gerar taxonomia NANDA, gerar taxonomia NIC e gerar taxonomia de NOC`,
-          );
-          window.open(
-            `https://www.google.com/search?q=${searchQuery}`,
-            "_blank",
-          );
-        });
+  btnGerarPDF?.addEventListener("click", () => {
+    if (!resultadoDiv.dataset.escore) {
+      alert("Kliknij najpierw \"Oblicz\", aby wygenerować plik PDF.");
+      return;
+    }
+    if (typeof gerarPDFGlobal === "function") {
+      gerarPDFGlobal({
+        titulo: "Protocolo de Manchester",
+        subtitulo: "Raport klasyfikacji ryzyka",
+        nomeArquivo: "protocolo_manchester.pdf",
+        seletorConteudo: ".main-content-wrapper"
       });
-    </script>
+    } else {
+      console.error("Funkcja GeneratePDFGlobal nie została zdefiniowana.");
+    }
+  });
+
+  btnNandaNicNoc?.addEventListener("click", () => {
+    const escore = resultadoDiv.dataset.escore;
+    const classificacao = resultadoDiv.dataset.classificacao;
+    const scaleName = resultadoDiv.dataset.scaleName;
+    if (!escore || !classificacao) {
+      alert("Oblicz wynik, aby wyszukać zachowanie.");
+      return;
+    }
+    const searchQuery = encodeURIComponent(
+      `${scaleName} escore ${escore} klasyfikacja ${classificacao} gerar taxonomia NANDA, gerar taxonomia NIC e gerar taxonomia de NOC`
+    );
+    window.open(
+      `https://www.google.com/search?q=${searchQuery}`,
+      "_blank"
+    );
+  });
+});</script>
 
     <script src="/lang-selector.js" defer=""></script>
 

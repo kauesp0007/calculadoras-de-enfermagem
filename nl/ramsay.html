@@ -314,166 +314,165 @@ EDIPUCRS-uitgever.<a href="https://www.scielo.br/j/rbti/a/wdG9NLvWzPnK6bZ9SZCgPF
     <script src="global-scripts.js" defer=""></script>
 
     <script>
-      document.addEventListener("DOMContentLoaded", () => {
-        const btnCalcular = document.getElementById("btnCalcular");
-        const btnLimpar = document.getElementById("btnLimpar");
-        const btnGerarPDF = document.getElementById("btnGerarPDF");
-        const resultadoDiv = document.getElementById("resultado");
-        const conteudoDiv = document.getElementById("conteudo");
-        const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
+document.addEventListener("DOMContentLoaded", () => {
+  const btnCalcular = document.getElementById("btnCalcular");
+  const btnLimpar = document.getElementById("btnLimpar");
+  const btnGerarPDF = document.getElementById("btnGerarPDF");
+  const resultadoDiv = document.getElementById("resultado");
+  const conteudoDiv = document.getElementById("conteudo");
+  const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
 
-        // Dados da escala de Ramsay
-        const ramsayData = [
-          { score: 1, description: "Paciente agitado, ansioso ou inquieto." },
-          { score: 2, description: "Paciente calmo, cooperativo e orientado." },
-          {
-            score: 3,
-            description: "Paciente sonolento, mas responde a comandos.",
-          },
-          {
-            score: 4,
-            description:
-              "Paciente dormindo, responde rapidamente a estímulos (toque glabelar ou som alto).",
-          },
-          {
-            score: 5,
-            description: "Paciente dormindo, responde lentamente a estímulos.",
-          },
-          { score: 6, description: "Paciente não responde a estímulos." },
-        ];
+  // Dados da escala de Ramsay
+  const ramsayData = [
+  { score: 1, description: "Geagiteerde, angstige of rusteloze patiënt." },
+  { score: 2, description: "Rustige, meewerkende en georiënteerde patiënt." },
+  {
+    score: 3,
+    description: "Patiënt is slaperig, maar reageert op commando's."
+  },
+  {
+    score: 4,
+    description:
+    "De slapende patiënt reageert snel op stimuli (aanraking van de glabella of hard geluid)."
+  },
+  {
+    score: 5,
+    description: "Patiënt slaapt, reageert traag op prikkels."
+  },
+  { score: 6, description: "De patiënt reageert niet op prikkels." }];
 
-        // --- Lógica da Calculadora Ramsay ---
-        function calcularPontuacao() {
-          const selectedOption = document.querySelector(
-            'input[name="ramsayScore"]:checked',
-          );
-          if (!selectedOption) {
-            resultadoDiv.innerHTML =
-              '⚠️ <strong class="font-bold">Por favor, selecione um nível de sedação</strong> antes de calcular.';
-            resultadoDiv.className = "resultado bg-info-orange-light";
-            resultadoDiv.style.display = "block";
-            delete resultadoDiv.dataset.score;
-            return;
-          }
 
-          const score = parseInt(selectedOption.value, 10);
-          const description = selectedOption.nextElementSibling.textContent;
+  // --- Lógica da Calculadora Ramsay ---
+  function calcularPontuacao() {
+    const selectedOption = document.querySelector(
+      'input[name="ramsayScore"]:checked'
+    );
+    if (!selectedOption) {
+      resultadoDiv.innerHTML =
+      '⚠️ <strong class="font-bold">Por favor, selecione um nível de sedação</strong> antes de calcular.';
+      resultadoDiv.className = "bg-info-oranje-licht resultaat";
+      resultadoDiv.style.display = "block";
+      delete resultadoDiv.dataset.score;
+      return;
+    }
 
-          let resultadoClasse = "";
-          switch (score) {
-            case 1:
-              resultadoClasse = "bg-ramsay-1";
-              break;
-            case 2:
-              resultadoClasse = "bg-ramsay-2";
-              break;
-            case 3:
-              resultadoClasse = "bg-ramsay-3";
-              break;
-            case 4:
-              resultadoClasse = "bg-ramsay-4";
-              break;
-            case 5:
-              resultadoClasse = "bg-ramsay-5";
-              break;
-            case 6:
-              resultadoClasse = "bg-ramsay-6";
-              break;
-            default:
-              resultadoClasse = "bg-info-orange-light";
-              break;
-          }
+    const score = parseInt(selectedOption.value, 10);
+    const description = selectedOption.nextElementSibling.textContent;
 
-          resultadoDiv.innerHTML = `<p>Nível de Sedação Ramsay: <strong class="font-bold">${score}</strong></p><p>Classificação: <strong class="font-bold">${description}</strong></p>`;
-          resultadoDiv.className = `resultado ${resultadoClasse}`;
-          resultadoDiv.style.display = "block";
+    let resultadoClasse = "";
+    switch (score) {
+      case 1:
+        resultadoClasse = "bg-ramsay-1";
+        break;
+      case 2:
+        resultadoClasse = "bg-ramsay-2";
+        break;
+      case 3:
+        resultadoClasse = "bg-ramsay-3";
+        break;
+      case 4:
+        resultadoClasse = "bg-ramsay-4";
+        break;
+      case 5:
+        resultadoClasse = "bg-ramsay-5";
+        break;
+      case 6:
+        resultadoClasse = "bg-ramsay-6";
+        break;
+      default:
+        resultadoClasse = "bg-info-orange-light";
+        break;
+    }
 
-          resultadoDiv.dataset.score = score;
-          resultadoDiv.dataset.classificacao = description;
-          resultadoDiv.dataset.scaleName = "Escala de Ramsay";
-        }
+    resultadoDiv.innerHTML = `<p>Nível de Sedação Ramsay: <strong class="font-bold">${score}</strong></p><p>Classificação: <strong class="font-bold">${description}</strong></p>`;
+    resultadoDiv.className = `resultaat ${resultadoClasse}`;
+    resultadoDiv.style.display = "block";
 
-        function limparCampos() {
-          document
-            .querySelectorAll('input[name="ramsayScore"]')
-            .forEach((radio) => (radio.checked = false));
-          resultadoDiv.innerHTML = "";
-          resultadoDiv.className = "resultado hidden";
-          delete resultadoDiv.dataset.score;
-          delete resultadoDiv.dataset.classificacao;
-          delete resultadoDiv.dataset.scaleName;
-        }
+    resultadoDiv.dataset.score = score;
+    resultadoDiv.dataset.classificacao = description;
+    resultadoDiv.dataset.scaleName = "Escala de Ramsay";
+  }
 
-        // Preenche o formulário dinamicamente
-        const sectionDiv = document.createElement("div");
-        sectionDiv.className = "ramsay-criterion-card";
+  function limparCampos() {
+    document.
+    querySelectorAll('input[name="ramsayScore"]').
+    forEach((radio) => radio.checked = false);
+    resultadoDiv.innerHTML = "";
+    resultadoDiv.className = "verborgen resultaat";
+    delete resultadoDiv.dataset.score;
+    delete resultadoDiv.dataset.classificacao;
+    delete resultadoDiv.dataset.scaleName;
+  }
 
-        const titleH3 = document.createElement("h3");
-        titleH3.className = "ramsay-criterion-title";
-        titleH3.innerText = "Nível de Sedação";
-        sectionDiv.appendChild(titleH3);
+  // Preenche o formulário dinamicamente
+  const sectionDiv = document.createElement("div");
+  sectionDiv.className = "ramsay-criterion-card";
 
-        const optionsGroupDiv = document.createElement("div");
-        optionsGroupDiv.className = "ramsay-options-group";
+  const titleH3 = document.createElement("h3");
+  titleH3.className = "ramsay-criterion-title";
+  titleH3.innerText = "Verdoving";
+  sectionDiv.appendChild(titleH3);
 
-        ramsayData.forEach((item, index) => {
-          const label = document.createElement("label");
-          label.className = "ramsay-option-label";
-          const input = document.createElement("input");
-          input.type = "radio";
-          input.name = "ramsayScore";
-          input.value = item.score;
-          input.id = `ramsay-${item.score}`;
+  const optionsGroupDiv = document.createElement("div");
+  optionsGroupDiv.className = "ramsay-options-group";
 
-          const span = document.createElement("span");
-          span.innerText = `Grau ${item.score}: ${item.description}`;
+  ramsayData.forEach((item, index) => {
+    const label = document.createElement("label");
+    label.className = "ramsay-option-label";
+    const input = document.createElement("input");
+    input.type = "radio";
+    input.name = "ramsayScore";
+    input.value = item.score;
+    input.id = `ramsay-${item.score}`;
 
-          label.appendChild(input);
-          label.appendChild(span);
-          optionsGroupDiv.appendChild(label);
-        });
-        sectionDiv.appendChild(optionsGroupDiv);
-        conteudoDiv.appendChild(sectionDiv);
+    const span = document.createElement("span");
+    span.innerText = `Grau ${item.score}: ${item.description}`;
 
-        // Adiciona os event listeners aos botões
-        btnCalcular?.addEventListener("click", calcularPontuacao);
-        btnLimpar?.addEventListener("click", limparCampos);
+    label.appendChild(input);
+    label.appendChild(span);
+    optionsGroupDiv.appendChild(label);
+  });
+  sectionDiv.appendChild(optionsGroupDiv);
+  conteudoDiv.appendChild(sectionDiv);
 
-        btnGerarPDF?.addEventListener("click", () => {
-          if (!resultadoDiv.dataset.score) {
-            alert('Por favor, clique em "Calcular" primeiro para gerar o PDF.');
-            return;
-          }
-          if (typeof gerarPDFGlobal === "function") {
-            gerarPDFGlobal({
-              titulo: "Escala de Ramsay",
-              subtitulo: "Relatório de Avaliação do Nível de Sedação",
-              nomeArquivo: "relatorio_escala_ramsay.pdf",
-              seletorConteudo: ".main-content-wrapper",
-            });
-          } else {
-            console.error("Função gerarPDFGlobal não definida.");
-          }
-        });
+  // Adiciona os event listeners aos botões
+  btnCalcular?.addEventListener("click", calcularPontuacao);
+  btnLimpar?.addEventListener("click", limparCampos);
 
-        btnNandaNicNoc?.addEventListener("click", () => {
-          const score = resultadoDiv.dataset.score;
-          const scaleName = resultadoDiv.dataset.scaleName;
-          const classificacao = resultadoDiv.dataset.classificacao;
-          if (!score || !classificacao) {
-            alert("Calcule o resultado para pesquisar a conduta.");
-            return;
-          }
-          const searchQuery = encodeURIComponent(
-            `${scaleName} pontuação ${score} classificação ${classificacao} gerar taxonomia NANDA, gerar taxonomia NIC e gerar taxonomia de NOC`,
-          );
-          window.open(
-            `https://www.google.com/search?q=${searchQuery}`,
-            "_blank",
-          );
-        });
+  btnGerarPDF?.addEventListener("click", () => {
+    if (!resultadoDiv.dataset.score) {
+      alert("Klik eerst op \"Bereken\" om de PDF te genereren.");
+      return;
+    }
+    if (typeof gerarPDFGlobal === "function") {
+      gerarPDFGlobal({
+        titulo: "Escala de Ramsay",
+        subtitulo: "Beoordelingsrapport sedatieniveau",
+        nomeArquivo: "relatorio_escala_ramsay.pdf",
+        seletorConteudo: ".main-content-wrapper"
       });
-    </script>
+    } else {
+      console.error("GeneratePDFGlobal-functie niet gedefinieerd.");
+    }
+  });
+
+  btnNandaNicNoc?.addEventListener("click", () => {
+    const score = resultadoDiv.dataset.score;
+    const scaleName = resultadoDiv.dataset.scaleName;
+    const classificacao = resultadoDiv.dataset.classificacao;
+    if (!score || !classificacao) {
+      alert("Bereken het resultaat om het gedrag te zoeken.");
+      return;
+    }
+    const searchQuery = encodeURIComponent(
+      `${scaleName} score ${score} classificatie ${classificacao} gerar taxonomia NANDA, gerar taxonomia NIC e gerar taxonomia de NOC`
+    );
+    window.open(
+      `https://www.google.com/search?q=${searchQuery}`,
+      "_blank"
+    );
+  });
+});</script>
 
     <script src="/lang-selector.js" defer=""></script>
 

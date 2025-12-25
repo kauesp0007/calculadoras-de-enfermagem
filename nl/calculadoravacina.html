@@ -68,41 +68,40 @@
         gtag('config', 'G-8FLJ59XXDK');
     </script>
     <script>
-        function applyConsent(adAccepted) {
-            if (adAccepted) {
-                gtag('consent', 'update', {
-                    'ad_storage': 'granted',
-                    'analytics_storage': 'granted'
-                });
-                loadAdSense();
-            } else {
-                gtag('consent', 'update', {
-                    'ad_storage': 'denied',
-                    'analytics_storage': 'denied'
-                });
-            }
-        }
-        function loadAdSense() {
-            if (document.getElementById('adsbygoogle-js')) return;
-            var s = document.createElement('script');
-            s.id = 'adsbygoogle-js';
-            s.async = true;
-            s.src = "https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js";
-            document.head.appendChild(s);
-        }
-        (function(){
-            try {
-                var stored = localStorage.getItem('consent_ads');
-                if (stored === 'accepted') {
-                    applyConsent(true);
-                } else if (stored === 'rejected') {
-                    applyConsent(false);
-                }
-            } catch(e){
-                console.warn('localStorage não disponível para consentimento.');
-            }
-        })();
-    </script>
+function applyConsent(adAccepted) {
+  if (adAccepted) {
+    gtag('consent', 'update', {
+      'ad_storage': 'granted',
+      'analytics_storage': 'granted'
+    });
+    loadAdSense();
+  } else {
+    gtag('consent', 'update', {
+      'ad_storage': 'denied',
+      'analytics_storage': 'denied'
+    });
+  }
+}
+function loadAdSense() {
+  if (document.getElementById('adsbygoogle-js')) return;
+  var s = document.createElement('script');
+  s.id = 'adsbygoogle-js';
+  s.async = true;
+  s.src = "https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js";
+  document.head.appendChild(s);
+}
+(function () {
+  try {
+    var stored = localStorage.getItem('consent_ads');
+    if (stored === 'accepted') {
+      applyConsent(true);
+    } else if (stored === 'rejected') {
+      applyConsent(false);
+    }
+  } catch (e) {
+    console.warn("localStorage niet beschikbaar voor toestemming.");
+  }
+})();</script>
     
 
   <style>
@@ -404,465 +403,464 @@ Beschikbaar op:<a href="https://www.gov.br/saude/pt-br/campanhas-da-saude/2022/m
   <script src="global-scripts.js" defer="defer"></script>
 
   <script>
-    document.addEventListener("DOMContentLoaded", function() {
-        const resultadoDiv = document.getElementById("resultado");
-        const btnCalcular = document.getElementById("btnCalcular");
-        const btnLimpar = document.getElementById("btnLimpar");
-        const btnGerarPDF = document.getElementById("btnGerarPDF");
-        const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
-        const btnVisualizarCalendario = document.getElementById("btnVisualizarCalendario");
-        const conteudoDiv = document.getElementById("conteudo");
+document.addEventListener("DOMContentLoaded", function () {
+  const resultadoDiv = document.getElementById("resultado");
+  const btnCalcular = document.getElementById("btnCalcular");
+  const btnLimpar = document.getElementById("btnLimpar");
+  const btnGerarPDF = document.getElementById("btnGerarPDF");
+  const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
+  const btnVisualizarCalendario = document.getElementById("btnVisualizarCalendario");
+  const conteudoDiv = document.getElementById("conteudo");
 
-        // Função para determinar local de aplicação por idade
-        function getApplicationSite(age) {
-            const ageInMonths = parseAge(age);
-            if (ageInMonths < 24) { // Menor que 2 anos
-                return "Vasto lateral da coxa";
-            } else { // 2 anos ou mais
-                return "Músculo deltoide";
-            }
-        }
+  // Função para determinar local de aplicação por idade
+  function getApplicationSite(age) {
+    const ageInMonths = parseAge(age);
+    if (ageInMonths < 24) {// Menor que 2 anos
+      return "Vasto lateral da coxa";
+    } else {// 2 anos ou mais
+      return "Deltaspier";
+    }
+  }
 
-        // Função para determinar tipo de agulha por idade e via
-        function getNeedleType(age, route) {
-            const ageInMonths = parseAge(age);
-            
-            if (route === "Intradérmica (ID)") {
-                return "13x3,8";
-            } else if (route === "Subcutânea (SC)") {
-                return "13x4,5";
-            } else if (route === "Intramuscular (IM)") {
-                if (ageInMonths < 24) { // Menor que 2 anos
-                    return "20x5,5 ou 25x6 ou 25x7";
-                } else { // 2 anos ou mais
-                    return "20x5,5 ou 25x6 ou 25x7";
-                }
-            } else if (route === "Oral") {
-                return "Não se aplica";
-            }
-            return "Consultar protocolo específico";
-        }
+  // Função para determinar tipo de agulha por idade e via
+  function getNeedleType(age, route) {
+    const ageInMonths = parseAge(age);
 
-        // Função para converter idade em meses
-        function parseAge(age) {
-            if (age === "Ao nascer") return 0;
-            if (age.includes("mês")) {
-                return parseInt(age.split(" ")[0]);
-            }
-            if (age.includes("ano")) {
-                return parseInt(age.split(" ")[0]) * 12;
-            }
-            return 0;
-        }
+    if (route === "Intradermaal (ID)") {
+      return "13x3,8";
+    } else if (route === "Subcutaan (SC)") {
+      return "13x4,5";
+    } else if (route === "Intramuscular (IM)") {
+      if (ageInMonths < 24) {// Menor que 2 anos
+        return "20x5,5 ou 25x6 ou 25x7";
+      } else {// 2 anos ou mais
+        return "20x5,5 ou 25x6 ou 25x7";
+      }
+    } else if (route === "Oral") {
+      return "Niet van toepassing";
+    }
+    return "Raadpleeg specifiek protocol";
+  }
 
-        // Dados das vacinas com informações detalhadas
-        const vaccineData = {
-          "ages": [
-            "Ao nascer", "1 mês", "2 meses", "3 meses", "4 meses", "5 meses",
-            "6 meses", "7 meses", "8 meses", "9 meses", "12 meses", "15 meses",
-            "18 meses", "24 meses", "4 anos", "5 anos", "6 anos", "9 anos"
-          ],
-          "vaccines": [
-            {
-              "name": "BCG ID",
-              "shortName": "BCG",
-              "info": "BCG ID: Bacilo Calmette-Guérin Intradérmico. Vacina contra tuberculose. Deverá ser aplicada o mais precocemente possível, em recém-nascidos com peso maior ou igual a 2.000 g. Em casos de histórico familiar, suspeita de imunodeficiência ou RNs cujas mães fizeram uso de biológicos durante a gestação, a vacinação poderá ser postergada ou contraindicada.",
-              "administrationRoute": "Intradérmica (ID)",
-              "applicationScheme": "Dose única ao nascer.",
-              "sideEffects": "Reações locais comuns: vermelhidão, inchaço, úlcera no local da aplicação que evolui para cicatriz. Reações sistêmicas raras: febre baixa, linfadenite regional.",
-              "susAvailability": "Sim",
-              "susExplanation": "Disponível em todas as unidades básicas de saúde (UBS) do SUS.",
-              "schedule": {"Ao nascer": "Dose única"}
-            },
-            {
-              "name": "Hepatite B",
-              "shortName": "HepB",
-              "info": "Hepatite B: Vacina contra o vírus da hepatite B. Aplicar a primeira dose nas primeiras 12 horas de vida. O esquema de quatro doses pode ser adotado quando é utilizada uma vacina combinada que inclua a vacina hepatite B. Se mãe HBsAg+, administrar também HBIG o mais precocemente possível.",
-              "administrationRoute": "Intramuscular (IM)",
-              "applicationScheme": "Esquema de 3 ou 4 doses: 1ª dose ao nascer (nas primeiras 12h), 2ª dose com 1 mês, 3ª dose com 6 meses. Em caso de esquema de 4 doses, a 4ª dose é dada com 12 meses.",
-              "sideEffects": "Reações locais comuns: dor, vermelhidão e inchaço no local da aplicação. Reações sistêmicas raras: febre, mal-estar, dor de cabeça.",
-              "susAvailability": "Sim",
-              "susExplanation": "Disponível em todas as unidades básicas de saúde (UBS) do SUS.",
-              "schedule": {"Ao nascer": "1ª dose", "1 mês": "2ª dose", "6 meses": "3ª dose"}
-            },
-            {
-              "name": "Rotavírus",
-              "shortName": "ROTA",
-              "info": "Rotavírus: Vacina contra rotavírus, principal causa de diarreia grave em crianças. Vacina rotavírus monovalente: duas doses aos 2 e 4 meses. Vacina rotavírus pentavalente: três doses aos 2, 4 e 6 meses. A primeira dose pode ser feita a partir de 6 semanas de vida.",
-              "administrationRoute": "Oral",
-              "applicationScheme": "Vacina monovalente: 2 doses (2 e 4 meses). Vacina pentavalente: 3 doses (2, 4 e 6 meses).",
-              "sideEffects": "Reações comuns: irritabilidade, diarreia, vômito, febre. Reações raras: invaginação intestinal (muito rara).",
-              "susAvailability": "Sim",
-              "susExplanation": "Disponível em todas as unidades básicas de saúde (UBS) do SUS (vacina monovalente).",
-              "schedule": {"2 meses": "1ª dose", "4 meses": "2ª dose", "6 meses": "3ª dose"}
-            },
-            {
-              "name": "Tríplice bacteriana (DTPw ou DTPa)",
-              "shortName": "DTP",
-              "info": "Tríplice bacteriana: Vacina contra difteria, tétano e coqueluche. O uso da vacina acelular (DTPa) é preferível ao de células inteiras (DTPw) pois os eventos adversos associados com a sua administração são menos frequentes e intensos.",
-              "administrationRoute": "Intramuscular (IM)",
-              "applicationScheme": "Esquema de 3 doses (2, 4 e 6 meses) e 2 reforços (15 meses e 4 anos).",
-              "sideEffects": "DTPw: dor, inchaço, vermelhidão no local, febre, irritabilidade. DTPa: menos reações locais e sistêmicas, mas ainda pode causar dor e inchaço.",
-              "susAvailability": "Sim (DTPw)",
-              "susExplanation": "A DTPw (células inteiras) é disponibilizada pelo SUS. A DTPa (acelular) é disponível em clínicas particulares e centros de vacinação.",
-              "schedule": {"2 meses": "1ª dose", "4 meses": "2ª dose", "6 meses": "3ª dose", "15 meses": "REFORÇO", "4 anos": "REFORÇO"}
-            },
-            {
-              "name": "Haemophilus influenzae b",
-              "shortName": "Hib",
-              "info": "Haemophilus influenzae b: Vacina contra a bactéria Haemophilus influenzae tipo b, que pode causar meningite e outras infecções graves. Recomenda-se o reforço aos 15-18 meses, principalmente quando for utilizada vacina Hib nas formulações combinadas com tríplice bacteriana acelular (DTPa) na série primária.",
-              "administrationRoute": "Intramuscular (IM)",
-              "applicationScheme": "Esquema de 3 doses (2, 4 e 6 meses) e 1 reforço (15-18 meses).",
-              "sideEffects": "Reações locais comuns: dor, inchaço, vermelhidão. Reações sistêmicas raras: febre baixa, irritabilidade.",
-              "susAvailability": "Sim",
-              "susExplanation": "Disponível em todas as unidades básicas de saúde (UBS) do SUS (geralmente em vacinas combinadas como a Pentavalente).",
-              "schedule": {"2 meses": "1ª dose", "4 meses": "2ª dose", "6 meses": "3ª dose", "15 meses": "REFORÇO"}
-            },
-            {
-              "name": "Poliomielite (vírus inativados)",
-              "shortName": "VIP",
-              "info": "Poliomielite: Vacina Inativada Poliomielite (VIP) contra o vírus da poliomielite. O PNI alterou o esquema da vacina pólio para quatro doses exclusivamente com a vacina inativada (VIP): aos 2, 4, 6 meses e 1 único reforço aos 15 meses de idade.",
-              "administrationRoute": "Intramuscular (IM)",
-              "applicationScheme": "Esquema de 3 doses (2, 4 e 6 meses) e 1 reforço (15 meses).",
-              "sideEffects": "Reações locais comuns: dor, vermelhidão, inchaço. Reações sistêmicas raras: febre baixa, irritabilidade.",
-              "susAvailability": "Sim",
-              "susExplanation": "Disponível em todas as unidades básicas de saúde (UBS) do SUS.",
-              "schedule": {"2 meses": "1ª dose", "4 meses": "2ª dose", "6 meses": "3ª dose", "15 meses": "REFORÇO", "4 anos": "REFORÇO"}
-            },
-            {
-              "name": "Pneumocócicas conjugadas",
-              "shortName": "VPC",
-              "info": "Pneumocócicas conjugadas: Vacina Pneumocócica Conjugada contra pneumococo. A SBIm recomenda no esquema básico e no reforço, preferencialmente, as vacinas VPC20 ou VPC15. Na impossibilidade, utilizar a VPC13.",
-              "administrationRoute": "Intramuscular (IM)",
-              "applicationScheme": "Esquema de 2 doses (2 e 4 meses) e 1 reforço (12 meses).",
-              "sideEffects": "Reações locais comuns: dor, inchaço, vermelhidão. Reações sistêmicas: febre, irritabilidade, sonolência.",
-              "susAvailability": "Sim (VPC10)",
-              "susExplanation": "A VPC10 é disponibilizada pelo SUS. As vacinas VPC13, VPC15 e VPC20 são disponíveis em clínicas particulares e centros de vacinação.",
-              "schedule": {"2 meses": "1ª dose", "4 meses": "2ª dose", "6 meses": "3ª dose", "12 meses": "REFORÇO"}
-            },
-            {
-              "name": "Meningocócicas conjugadas ACWY ou C",
-              "shortName": "MenACWY",
-              "info": "Meningocócicas conjugadas ACWY/C: Vacina contra meningococo dos sorogrupos A, C, W e Y. A SBIm recomenda preferencialmente a vacina MenACWY pela maior abrangência de sorogrupos. O PNI oferece a Vacina MenC para crianças.",
-              "administrationRoute": "Intramuscular (IM)",
-              "applicationScheme": "Esquema de 2 doses (3 e 5 meses) e 2 reforços (12 meses e 5 anos).",
-              "sideEffects": "Reações locais comuns: dor, inchaço, vermelhidão. Reações sistêmicas: febre, irritabilidade.",
-              "susAvailability": "Sim (MenC)",
-              "susExplanation": "A vacina MenC é disponibilizada pelo SUS. A vacina MenACWY é disponível em clínicas particulares e centros de vacinação.",
-              "schedule": {"3 meses": "1ª dose", "5 meses": "2ª dose", "12 meses": "REFORÇO", "5 anos": "REFORÇO"}
-            },
-            {
-              "name": "Meningocócica B",
-              "shortName": "MenB",
-              "info": "Meningocócica B: Vacina contra meningococo do sorogrupo B. Pode ser usada a partir de 2 meses de idade, idealmente iniciando com uma dose aos 3 meses, outra aos 5 meses e uma dose de reforço entre 12 e 15 meses (esquema 2+1).",
-              "administrationRoute": "Intramuscular (IM)",
-              "applicationScheme": "Esquema de 2 doses (3 e 5 meses) e 1 reforço (12-15 meses).",
-              "sideEffects": "Reações locais comuns: dor, inchaço, vermelhidão. Reações sistêmicas: febre (mais comum), irritabilidade, perda de apetite.",
-              "susAvailability": "Não",
-              "susExplanation": "Não disponível no SUS. Disponível em clínicas particulares e centros de vacinação.",
-              "schedule": {"3 meses": "1ª dose", "5 meses": "2ª dose", "12 meses": "REFORÇO"}
-            },
-            {
-              "name": "Influenza (gripe)",
-              "shortName": "FLU",
-              "info": "Influenza: Vacina contra gripe. É recomendada para todas as crianças a partir dos 6 meses de idade. Quando administrada pela primeira vez em crianças menores de 9 anos, aplicar duas doses com intervalo de 30 dias.",
-              "administrationRoute": "Intramuscular (IM)",
-              "applicationScheme": "Anual. Para crianças de 6 meses a 8 anos que nunca foram vacinadas: 2 doses com intervalo de 30 dias. A partir de 9 anos: dose única anual.",
-              "sideEffects": "Reações locais comuns: dor, vermelhidão, inchaço. Reações sistêmicas: febre baixa, mal-estar, dor muscular.",
-              "susAvailability": "Sim",
-              "susExplanation": "Disponível em campanhas anuais de vacinação do SUS.",
-              "schedule": {"6 meses": "1ª dose", "7 meses": "2ª dose", "Anual": "Dose única anual"}
-            },
-            {
-              "name": "Febre amarela",
-              "shortName": "FA",
-              "info": "Febre amarela: Vacina contra o vírus da febre amarela. Duas doses: aos 9 meses e aos 4 anos de idade. Contraindicada para imunodeprimidos, mas se o risco de adquirir a doença superar os riscos potenciais da vacinação, o médico deve avaliar seu uso.",
-              "administrationRoute": "Subcutânea (SC)",
-              "applicationScheme": "Esquema de 2 doses: 1ª dose aos 9 meses, 2ª dose aos 4 anos.",
-              "sideEffects": "Reações locais comuns: dor, vermelhidão. Reações sistêmicas: febre, dor de cabeça, dor muscular, mal-estar. Reações graves são raras.",
-              "susAvailability": "Sim",
-              "susExplanation": "Disponível em todas as unidades básicas de saúde (UBS) do SUS.",
-              "schedule": {"9 meses": "1ª dose", "4 anos": "2ª dose"}
-            },
-            {
-              "name": "Hepatite A",
-              "shortName": "HepA",
-              "info": "Hepatite A: Vacina contra o vírus da hepatite A. Para crianças a partir de 12 meses de idade não vacinadas para hepatite B no primeiro ano de vida, a vacina combinada hepatites A e B na formulação adulto pode ser considerada para substituir a vacinação isolada.",
-              "administrationRoute": "Intramuscular (IM)",
-              "applicationScheme": "Esquema de 2 doses: 1ª dose aos 12 meses, 2ª dose aos 18 meses.",
-              "sideEffects": "Reações locais comuns: dor, vermelhidão, inchaço. Reações sistêmicas raras: febre baixa, irritabilidade.",
-              "susAvailability": "Sim",
-              "susExplanation": "Disponível em todas as unidades básicas de saúde (UBS) do SUS.",
-              "schedule": {"12 meses": "1ª dose", "18 meses": "2ª dose"}
-            },
-            {
-              "name": "Tríplice viral (sarampo, caxumba e rubéola)",
-              "shortName": "SCR",
-              "info": "Tríplice viral: Vacina contra sarampo, caxumba e rubéola. Para crianças com esquema completo, não há evidências que justifiquem uma terceira dose como rotina, podendo ser considerada em situações de risco epidemiológico, como surtos de caxumba e/ou sarampo.",
-              "administrationRoute": "Subcutânea (SC)",
-              "applicationScheme": "Esquema de 2 doses: 1ª dose aos 12 meses, 2ª dose aos 4 anos.",
-              "sideEffects": "Reações comuns: febre, vermelhidão na pele, inchaço nas glândulas. Reações raras: convulsões febris.",
-              "susAvailability": "Sim",
-              "susExplanation": "Disponível em todas as unidades básicas de saúde (UBS) do SUS.",
-              "schedule": {"12 meses": "1ª dose", "4 anos": "2ª dose"}
-            },
-            {
-              "name": "Varicela (catapora)",
-              "shortName": "VZ",
-              "info": "Varicela: Vacina contra varicela (catapora). É considerada adequadamente vacinada a criança que tenha recebido duas doses da vacina após 1 ano de idade. Em situação de risco, a primeira dose pode ser aplicada a partir de 9 meses de idade.",
-              "administrationRoute": "Subcutânea (SC)",
-              "applicationScheme": "Esquema de 2 doses: 1ª dose aos 12 meses, 2ª dose aos 4 anos. Em situações de risco, a primeira dose pode ser aplicada a partir de 9 meses.",
-              "sideEffects": "Reações locais comuns: dor, vermelhidão, inchaço. Reações sistêmicas: febre, erupção cutânea leve (similar à catapora).",
-              "susAvailability": "Sim (parte da tetra viral)",
-              "susExplanation": "Disponível no SUS como parte da vacina tetra viral (sarampo, caxumba, rubéola e varicela). A vacina isolada para varicela é disponível em clínicas particulares.",
-              "schedule": {"12 meses": "1ª dose", "4 anos": "2ª dose"}
-            },
-            {
-              "name": "HPV",
-              "shortName": "HPV",
-              "info": "HPV: Vacina contra Papilomavírus Humano. Duas vacinas estão disponíveis no Brasil, HPV4 e HPV9. A SBIm recomenda, sempre que possível, o uso preferencial da vacina HPV9 em duas doses, assim como a revacinação daqueles anteriormente vacinados com HPV2 ou HPV4.",
-              "administrationRoute": "Intramuscular (IM)",
-              "applicationScheme": "Esquema de 2 doses: 1ª dose aos 9 anos, 2ª dose 6 meses após a primeira.",
-              "sideEffects": "Reações locais comuns: dor, inchaço, vermelhidão. Reações sistêmicas: febre, dor de cabeça, fadiga.",
-              "susAvailability": "Sim (HPV4)",
-              "susExplanation": "A vacina HPV4 é disponibilizada pelo SUS para meninas de 9 a 14 anos e meninos de 11 a 14 anos. A vacina HPV9 é disponível em clínicas particulares.",
-              "schedule": {"9 anos": "Duas doses"}
-            },
-            {
-              "name": "Dengue",
-              "shortName": "DENG",
-              "info": "Dengue: Vacina contra dengue. Qdenga® é preferencial independente de contato prévio com o vírus da dengue em crianças a partir de 4 anos de idade, no esquema de duas doses com intervalo de três meses entre elas. Dengvaxia® é recomendada a partir de 6 anos de idade, soropositivas para dengue.",
-              "administrationRoute": "Subcutânea (SC)",
-              "applicationScheme": "Qdenga®: 2 doses com intervalo de 3 meses (a partir de 4 anos). Dengvaxia®: 3 doses com intervalo de 6 meses (a partir de 6 anos, para soropositivos).",
-              "sideEffects": "Reações comuns: dor de cabeça, dor muscular, febre, mal-estar. Reações graves são raras.",
-              "susAvailability": "Sim (Qdenga® em áreas selecionadas)",
-              "susExplanation": "A vacina Qdenga® está sendo gradualmente incorporada ao SUS em municípios selecionados. A Dengvaxia® não está disponível no SUS e é encontrada em clínicas particulares.",
-              "schedule": {"4 anos": "Qdenga® (2 doses)", "6 anos": "Dengvaxia® (3 doses)"}
-            },
-            {
-              "name": "Covid-19",
-              "shortName": "COVID",
-              "info": "Covid-19: Vacina contra SARS-CoV-2. Recomendada pelo PNI para crianças de 6 meses até menores de 5 anos de idade. Esquema de doses dependendo da vacina utilizada.",
-              "administrationRoute": "Intramuscular (IM)",
-              "applicationScheme": "Esquema de doses varia conforme a vacina e a idade. Consultar calendário oficial do SUS.",
-              "sideEffects": "Reações comuns: dor, vermelhidão, inchaço no local da aplicação, febre, dor de cabeça, fadiga, dor muscular. Reações graves são raras.",
-              "susAvailability": "Sim",
-              "susExplanation": "Disponível em todas as unidades básicas de saúde (UBS) do SUS.",
-              "schedule": {"6 meses": "Esquema de doses"}
-            },
-            {
-              "name": "Anticorpo monoclonal específico contra o VSR (Nirsevimabe)",
-              "shortName": "VSR",
-              "info": "Nirsevimabe: Anticorpo monoclonal contra o Vírus Sincicial Respiratório. Existem duas estratégias eficazes para proteção da criança contra infecção pelo VSR: a vacinação da gestante ou a administração do anticorpo monoclonal – Nirsevimabe – na criança.",
-              "administrationRoute": "Intramuscular (IM)",
-              "applicationScheme": "Dose única antes ou durante a estação de circulação do VSR.",
-              "sideEffects": "Reações comuns: dor, vermelhidão, inchaço no local da aplicação. Reações raras: febre, erupções cutâneas.",
-              "susAvailability": "Não",
-              "susExplanation": "Não disponível no SUS. Disponível em clínicas particulares e hospitais privados.",
-              "schedule": {"Ao nascer": "Dose única"}
-            }
-          ]
-        };
+  // Função para converter idade em meses
+  function parseAge(age) {
+    if (age === "Ao nascer") return 0;
+    if (age.includes("maand")) {
+      return parseInt(age.split(" ")[0]);
+    }
+    if (age.includes("ano")) {
+      return parseInt(age.split(" ")[0]) * 12;
+    }
+    return 0;
+  }
 
-        // Função para criar tooltip para as siglas no resultado
-        function createResultTooltip(shortName, fullName) {
-            return `
+  // Dados das vacinas com informações detalhadas
+  const vaccineData = {
+    "ages": [
+    "Ao nascer", "1 maand", "2 meses", "3 meses", "4 meses", "5 meses",
+    "6 meses", "7 meses", "8 meses", "9 meses", "12 meses", "15 meses",
+    "18 meses", "24 meses", "4 anos", "5 anos", "6 anos", "9 anos"],
+
+    "vaccines": [
+    {
+      "name": "BCG ID",
+      "shortName": "BCG",
+      "info": "BCG ID: Bacillus Calmette-Guérin Intradermal. Vaccin tegen tuberculose. Het moet zo vroeg mogelijk worden toegediend aan pasgeborenen met een gewicht van 2000g of meer. Bij familieanamnese, verdenking op immunodeficiëntie of NB's waarvan de moeder tijdens de zwangerschap biologische geneesmiddelen heeft gebruikt, kan vaccinatie worden uitgesteld of gecontra-indiceerd.",
+      "administrationRoute": "Intradermaal (ID)",
+      "applicationScheme": "Eenmalige dosis bij de geboorte.",
+      "sideEffects": "Vaak voorkomende lokale reacties: roodheid, zwelling, zweer op de plaats van aanbrengen die zich ontwikkelt tot een litteken. Zeldzame systemische reacties: lage koorts, regionale lymfadenitis.",
+      "susAvailability": "Ja",
+      "susExplanation": "Beschikbaar in alle SUS basisgezondheidszorg (UBS).",
+      "schedule": { "Ao nascer": "Enkele dosis" }
+    },
+    {
+      "name": "Hepatite B",
+      "shortName": "HepB",
+      "info": "Hepatitis B: Vaccin tegen het hepatitis B-virus. Geef de eerste dosis binnen de eerste 12 uur van het leven. Het schema van vier doses kan worden toegepast wanneer een gecombineerd vaccin inclusief hepatitis B-vaccin wordt gebruikt. Als de moeder HBsAg+ is, ook zo snel mogelijk HBIG toedienen.",
+      "administrationRoute": "Intramuscular (IM)",
+      "applicationScheme": "Programma met 3 of 4 doses: 1e dosis bij de geboorte (binnen de eerste 12 uur), 2e dosis na 1 maand, 3e dosis na 6 maanden. In het geval van een 4-dosis programma wordt de 4e dosis op 12 maanden gegeven.",
+      "sideEffects": "Vaak voorkomende lokale reacties: pijn, roodheid en zwelling op de plaats van aanbrengen. Zeldzame systemische reacties: koorts, malaise, hoofdpijn.",
+      "susAvailability": "Ja",
+      "susExplanation": "Beschikbaar in alle SUS basisgezondheidszorg (UBS).",
+      "schedule": { "Ao nascer": "1e dosis", "1 maand": "2e dosis", "6 meses": "3e dosis" }
+    },
+    {
+      "name": "Rotavirus",
+      "shortName": "ROTA",
+      "info": "Rotavirus: Vaccin tegen rotavirus, de belangrijkste oorzaak van ernstige diarree bij kinderen. Monovalent rotavirusvaccin: twee doses op 2 en 4 maanden. Pentavalent rotavirusvaccin: drie doses op 2, 4 en 6 maanden. De eerste dosis kan vanaf de leeftijd van 6 weken worden gegeven.",
+      "administrationRoute": "Oral",
+      "applicationScheme": "Monovalent vaccin: 2 doses (2 en 4 maanden). Pentavalent vaccin: 3 doses (2, 4 en 6 maanden).",
+      "sideEffects": "Vaak voorkomende reacties: prikkelbaarheid, diarree, braken, koorts. Zeldzame reacties: darminvasie (zeer zeldzaam).",
+      "susAvailability": "Ja",
+      "susExplanation": "Verkrijgbaar in alle SUS basisgezondheidszorg (UBS) (monovalent vaccin).",
+      "schedule": { "2 meses": "1e dosis", "4 meses": "2e dosis", "6 meses": "3e dosis" }
+    },
+    {
+      "name": "Bacteriële triple (DTPw of DTPa)",
+      "shortName": "DTP",
+      "info": "Bacterieel triple: Vaccin tegen difterie, tetanus en pertussis. Het gebruik van het acellulaire vaccin (DTPa) is te verkiezen boven het hele-cel-vaccin (DTPw) omdat de bijwerkingen van de toediening ervan minder frequent en intens zijn.",
+      "administrationRoute": "Intramuscular (IM)",
+      "applicationScheme": "Schema van 3 doses (2, 4 en 6 maanden) en 2 boosters (15 maanden en 4 jaar).",
+      "sideEffects": "DTPw: pijn, zwelling, roodheid op de plaats, koorts, prikkelbaarheid. DTPa: minder lokale en systemische reacties, maar kan nog steeds pijn en zwelling veroorzaken.",
+      "susAvailability": "Ja (DTPw)",
+      "susExplanation": "DTPw (whole cell) is verkrijgbaar bij SUS. DTPa (acellulair) is verkrijgbaar in privéklinieken en vaccinatiecentra.",
+      "schedule": { "2 meses": "1e dosis", "4 meses": "2e dosis", "6 meses": "3e dosis", "15 meses": "STRENGTHENING", "4 anos": "STRENGTHENING" }
+    },
+    {
+      "name": "Haemophilus influenzae b",
+      "shortName": "Hib",
+      "info": "Haemophilus influenzae b: Vaccin tegen de bacterie Haemophilus influenzae type b, die meningitis en andere ernstige infecties kan veroorzaken. Boosters worden aanbevolen op 15-18 maanden, vooral wanneer Hib-vaccin wordt gebruikt in combinatie met acellulaire bacteriële triple (DTPa) in de primaire serie.",
+      "administrationRoute": "Intramuscular (IM)",
+      "applicationScheme": "Schema van 3 doses (2, 4 en 6 maanden) en 1 booster (15-18 maanden).",
+      "sideEffects": "Vaak voorkomende lokale reacties: pijn, zwelling, roodheid. Zeldzame systemische reacties: lage koorts, prikkelbaarheid.",
+      "susAvailability": "Ja",
+      "susExplanation": "Verkrijgbaar in alle SUS basisgezondheidszorg (UBS) (meestal in gecombineerde vaccins zoals Pentavalent).",
+      "schedule": { "2 meses": "1e dosis", "4 meses": "2e dosis", "6 meses": "3e dosis", "15 meses": "STRENGTHENING" }
+    },
+    {
+      "name": "Poliomyelitis (geïnactiveerde virussen)",
+      "shortName": "VIP",
+      "info": "Poliomyelitis: Geïnactiveerd poliomyelitisvaccin (IPV) tegen het poliovirus. De PNI veranderde het poliovaccinschema naar vier doses met uitsluitend het geïnactiveerde vaccin (IPV): op de leeftijd van 2, 4, 6 maanden en een enkele booster op de leeftijd van 15 maanden.",
+      "administrationRoute": "Intramuscular (IM)",
+      "applicationScheme": "Schema van 3 doses (2, 4 en 6 maanden) en 1 booster (15 maanden).",
+      "sideEffects": "Vaak voorkomende lokale reacties: pijn, roodheid, zwelling. Zeldzame systemische reacties: lage koorts, prikkelbaarheid.",
+      "susAvailability": "Ja",
+      "susExplanation": "Beschikbaar in alle SUS basisgezondheidszorg (UBS).",
+      "schedule": { "2 meses": "1e dosis", "4 meses": "2e dosis", "6 meses": "3e dosis", "15 meses": "STRENGTHENING", "4 anos": "STRENGTHENING" }
+    },
+    {
+      "name": "Pneumokokkenconjugaten",
+      "shortName": "VPC",
+      "info": "Pneumokokkenconjugaten: Pneumokokkenconjugaatvaccin tegen pneumokokken. De SBIm adviseert de vaccins VPC20 of VPC15 in het basisprogramma en in boosters. Als dit niet mogelijk is, gebruik dan PCV13.",
+      "administrationRoute": "Intramuscular (IM)",
+      "applicationScheme": "Schema van 2 doses (2 en 4 maanden) en 1 booster (12 maanden).",
+      "sideEffects": "Vaak voorkomende lokale reacties: pijn, zwelling, roodheid. Systemische reacties: koorts, prikkelbaarheid, slaperigheid.",
+      "susAvailability": "Ja (VPC10)",
+      "susExplanation": "VPC10 is verkrijgbaar bij de SUS. De vaccins VPC13, VPC15 en VPC20 zijn verkrijgbaar in privéklinieken en vaccinatiecentra.",
+      "schedule": { "2 meses": "1e dosis", "4 meses": "2e dosis", "6 meses": "3e dosis", "12 meses": "STRENGTHENING" }
+    },
+    {
+      "name": "Meningokokkenconjugaten ACWY of C",
+      "shortName": "MenACWY",
+      "info": "Meningokokkenconjugaat ACWY/C: Vaccin tegen meningokokken serogroepen A, C, W en Y. De SBIm adviseert bij voorkeur het MenACWY-vaccin omdat dit meer serogroepen dekt. Het PNI biedt het MenC-vaccin aan voor kinderen.",
+      "administrationRoute": "Intramuscular (IM)",
+      "applicationScheme": "Schema van 2 doses (3 en 5 maanden) en 2 boosters (12 maanden en 5 jaar).",
+      "sideEffects": "Vaak voorkomende lokale reacties: pijn, zwelling, roodheid. Systemische reacties: koorts, prikkelbaarheid.",
+      "susAvailability": "Ja (MenC)",
+      "susExplanation": "Het MenC-vaccin is verkrijgbaar bij SUS. Het MenACWY-vaccin is verkrijgbaar bij privéklinieken en vaccinatiecentra.",
+      "schedule": { "3 meses": "1e dosis", "5 meses": "2e dosis", "12 meses": "STRENGTHENING", "5 anos": "STRENGTHENING" }
+    },
+    {
+      "name": "Meningokokken B",
+      "shortName": "MenB",
+      "info": "Meningokokken B: vaccin tegen meningokokken serogroep B. Het kan worden gebruikt vanaf de leeftijd van 2 maanden, idealiter beginnend met een dosis op 3 maanden, nog een dosis op 5 maanden en een boosterdosis tussen 12 en 15 maanden (2+1 schema).",
+      "administrationRoute": "Intramuscular (IM)",
+      "applicationScheme": "Schema van 2 doses (3 en 5 maanden) en 1 booster (12-15 maanden).",
+      "sideEffects": "Vaak voorkomende lokale reacties: pijn, zwelling, roodheid. Systemische reacties: koorts (meest voorkomend), prikkelbaarheid, verlies van eetlust.",
+      "susAvailability": "Geen",
+      "susExplanation": "Niet verkrijgbaar bij SUS. Verkrijgbaar in privéklinieken en vaccinatiecentra.",
+      "schedule": { "3 meses": "1e dosis", "5 meses": "2e dosis", "12 meses": "STRENGTHENING" }
+    },
+    {
+      "name": "Influenza (gripe)",
+      "shortName": "FLU",
+      "info": "Griep: Griepvaccin. Het wordt aanbevolen voor alle kinderen vanaf 6 maanden. Bij de eerste toediening aan kinderen jonger dan 9 jaar, twee doses met een tussenpoos van 30 dagen.",
+      "administrationRoute": "Intramuscular (IM)",
+      "applicationScheme": "Jaarlijks. Voor kinderen van 6 maanden tot 8 jaar die nog nooit gevaccineerd zijn: 2 doses met een tussenpoos van 30 dagen. Vanaf 9 jaar: één jaarlijkse dosis.",
+      "sideEffects": "Vaak voorkomende lokale reacties: pijn, roodheid, zwelling. Systemische reacties: lage koorts, malaise, spierpijn.",
+      "susAvailability": "Ja",
+      "susExplanation": "Beschikbaar in jaarlijkse SUS-vaccinatiecampagnes.",
+      "schedule": { "6 meses": "1e dosis", "7 meses": "2e dosis", "Anual": "Eenmalige jaarlijkse dosis" }
+    },
+    {
+      "name": "Febre amarela",
+      "shortName": "FA",
+      "info": "Gele koorts: Vaccin tegen het gele koorts virus. Twee doses: op de leeftijd van 9 maanden en 4 jaar. Gecontra-indiceerd voor immunosuppressieve patiënten, maar als het risico om de ziekte op te lopen groter is dan de mogelijke risico's van vaccinatie, moet de arts het gebruik ervan beoordelen.",
+      "administrationRoute": "Subcutaan (SC)",
+      "applicationScheme": "Schema met 2 doses: 1e dosis na 9 maanden, 2e dosis na 4 jaar.",
+      "sideEffects": "Vaak voorkomende lokale reacties: pijn, roodheid. Systemische reacties: koorts, hoofdpijn, spierpijn, malaise. Ernstige reacties zijn zeldzaam.",
+      "susAvailability": "Ja",
+      "susExplanation": "Beschikbaar in alle SUS basisgezondheidszorg (UBS).",
+      "schedule": { "9 meses": "1e dosis", "4 anos": "2e dosis" }
+    },
+    {
+      "name": "Hepatite A",
+      "shortName": "HepA",
+      "info": "Hepatitis A: vaccin tegen het hepatitis A-virus. Voor kinderen vanaf 12 maanden die in hun eerste levensjaar niet zijn gevaccineerd tegen hepatitis B, kan het gecombineerde hepatitis A- en B-vaccin in de formulering voor volwassenen worden overwogen ter vervanging van vaccinatie alleen.",
+      "administrationRoute": "Intramuscular (IM)",
+      "applicationScheme": "Schema met 2 doses: 1e dosis op 12 maanden, 2e dosis op 18 maanden.",
+      "sideEffects": "Vaak voorkomende lokale reacties: pijn, roodheid, zwelling. Zeldzame systemische reacties: lage koorts, prikkelbaarheid.",
+      "susAvailability": "Ja",
+      "susExplanation": "Beschikbaar in alle SUS basisgezondheidszorg (UBS).",
+      "schedule": { "12 meses": "1e dosis", "18 meses": "2e dosis" }
+    },
+    {
+      "name": "MMR (mazelen, bof en rode hond)",
+      "shortName": "SCR",
+      "info": "MMR: vaccin tegen mazelen, bof en rode hond. Voor kinderen met een volledige kuur is er geen bewijs om een derde dosis als routine te rechtvaardigen, maar het kan worden overwogen in situaties van epidemiologisch risico, zoals uitbraken van bof en/of mazelen.",
+      "administrationRoute": "Subcutaan (SC)",
+      "applicationScheme": "Schema met 2 doses: 1e dosis na 12 maanden, 2e dosis na 4 jaar.",
+      "sideEffects": "Vaak voorkomende reacties: koorts, roodheid van de huid, zwelling van de klieren. Zeldzame reacties: koortsachtige convulsies.",
+      "susAvailability": "Ja",
+      "susExplanation": "Beschikbaar in alle SUS basisgezondheidszorg (UBS).",
+      "schedule": { "12 meses": "1e dosis", "4 anos": "2e dosis" }
+    },
+    {
+      "name": "Varicela (catapora)",
+      "shortName": "VZ",
+      "info": "Varicella: vaccin tegen waterpokken. Een kind dat na 1 jaar twee doses van het vaccin heeft gekregen, wordt beschouwd als voldoende gevaccineerd. In risicosituaties kan de eerste dosis vanaf 9 maanden worden gegeven.",
+      "administrationRoute": "Subcutaan (SC)",
+      "applicationScheme": "Programma met 2 doses: 1e dosis op 12 maanden, 2e dosis op 4 jaar. In risicosituaties kan de eerste dosis vanaf 9 maanden worden gegeven.",
+      "sideEffects": "Vaak voorkomende lokale reacties: pijn, roodheid, zwelling. Systemische reacties: koorts, milde huiduitslag (vergelijkbaar met waterpokken).",
+      "susAvailability": "Ja (onderdeel van tetra virale)",
+      "susExplanation": "Verkrijgbaar bij SUS als onderdeel van het tetravirusvaccin (mazelen, bof, rode hond en waterpokken). Het varicellavaccin alleen is verkrijgbaar in privéklinieken.",
+      "schedule": { "12 meses": "1e dosis", "4 anos": "2e dosis" }
+    },
+    {
+      "name": "HPV",
+      "shortName": "HPV",
+      "info": "HPV: vaccin tegen het humaan papillomavirus. Er zijn twee vaccins beschikbaar in Brazilië, HPV4 en HPV9. Het SBIm beveelt aan om, waar mogelijk, bij voorkeur het HPV9-vaccin in twee doses te gebruiken en om mensen die eerder zijn gevaccineerd met HPV2 of HPV4 opnieuw te vaccineren.",
+      "administrationRoute": "Intramuscular (IM)",
+      "applicationScheme": "Schema met 2 doses: 1e dosis op 9-jarige leeftijd, 2e dosis 6 maanden na de eerste.",
+      "sideEffects": "Vaak voorkomende lokale reacties: pijn, zwelling, roodheid. Systemische reacties: koorts, hoofdpijn, vermoeidheid.",
+      "susAvailability": "Ja (HPV4)",
+      "susExplanation": "Het HPV4-vaccin is verkrijgbaar bij SUS voor meisjes van 9 tot 14 jaar en jongens van 11 tot 14 jaar. Het HPV9-vaccin is verkrijgbaar in privéklinieken.",
+      "schedule": { "9 anos": "Twee doses" }
+    },
+    {
+      "name": "Dengue",
+      "shortName": "DENG",
+      "info": "Dengue: Denguevaccin. Qdenga® heeft de voorkeur ongeacht eerder contact met het denguevirus bij kinderen vanaf 4 jaar, in een tweedosisprogramma met een interval van drie maanden tussen de doses. Dengvaxia® wordt aanbevolen voor kinderen vanaf 6 jaar die seropositief zijn voor dengue.",
+      "administrationRoute": "Subcutaan (SC)",
+      "applicationScheme": "Qdenga®: 2 doses met een tussenpoos van 3 maanden (vanaf 4 jaar). Dengvaxia®: 3 doses met een tussenpoos van 6 maanden (vanaf 6 jaar, voor seropositieve personen).",
+      "sideEffects": "Vaak voorkomende reacties: hoofdpijn, spierpijn, koorts, malaise. Ernstige reacties zijn zeldzaam.",
+      "susAvailability": "Ja (Qdenga® in geselecteerde gebieden)",
+      "susExplanation": "Het Qdenga®-vaccin wordt geleidelijk opgenomen in de SUS in geselecteerde gemeenten. Dengvaxia® is niet beschikbaar op de SUS en wordt gevonden in privéklinieken.",
+      "schedule": { "4 anos": "Qdenga® (2 doses)", "6 anos": "Dengvaxia® (3 doses)" }
+    },
+    {
+      "name": "Covid-19",
+      "shortName": "COVID",
+      "info": "Covid-19: vaccin tegen SARS-CoV-2. Aanbevolen door het PNI voor kinderen van 6 maanden tot jonger dan 5 jaar. Doseerschema afhankelijk van het gebruikte vaccin.",
+      "administrationRoute": "Intramuscular (IM)",
+      "applicationScheme": "Het doseringsschema varieert afhankelijk van het vaccin en de leeftijd. Raadpleeg de officiële SUS-kalender.",
+      "sideEffects": "Vaak voorkomende reacties: pijn, roodheid, zwelling op de plaats van aanbrengen, koorts, hoofdpijn, vermoeidheid, spierpijn. Ernstige reacties zijn zeldzaam.",
+      "susAvailability": "Ja",
+      "susExplanation": "Beschikbaar in alle SUS basisgezondheidszorg (UBS).",
+      "schedule": { "6 meses": "Doseringsschema" }
+    },
+    {
+      "name": "Specifiek monoklonaal antilichaam tegen RSV (Nirsevimab)",
+      "shortName": "VSR",
+      "info": "Nirsevimab: Monoklonaal antilichaam tegen Respiratoir Syncytieel Virus. Er zijn twee effectieve strategieën om kinderen te beschermen tegen RSV-infectie: het vaccineren van de zwangere vrouw of het toedienen van het monoklonale antilichaam - Nirsevimab - aan het kind.",
+      "administrationRoute": "Intramuscular (IM)",
+      "applicationScheme": "Eenmalige dosis voor of tijdens het RSV-circulatieseizoen.",
+      "sideEffects": "Vaak voorkomende reacties: pijn, roodheid, zwelling op de plaats van aanbrengen. Zeldzame reacties: koorts, huiduitslag.",
+      "susAvailability": "Geen",
+      "susExplanation": "Niet verkrijgbaar bij SUS. Verkrijgbaar in privéklinieken en ziekenhuizen.",
+      "schedule": { "Ao nascer": "Enkele dosis" }
+    }]
+
+  };
+
+  // Função para criar tooltip para as siglas no resultado
+  function createResultTooltip(shortName, fullName) {
+    return `
                 <span class="result-tooltip">
                     ${shortName}
                     <span class="tooltip-text">${fullName}</span>
                 </span>
             `;
-        }
+  }
 
-        // Função para criar tooltip para as vacinas na seleção
-        function createSelectionTooltip(vaccine) {
-            return `
+  // Função para criar tooltip para as vacinas na seleção
+  function createSelectionTooltip(vaccine) {
+    return `
                 <div class="vaccine-info-tooltip">
                     i
                     <span class="tooltip-text">${vaccine.info}</span>
                 </div>
             `;
+  }
+
+  // Função para criar as seções de idade
+  function createAgeSections() {
+    conteudoDiv.innerHTML = "";
+
+    vaccineData.ages.forEach((age) => {
+      const section = document.createElement("div");
+      section.className = "vaccine-age-section";
+
+      const title = document.createElement("h3");
+      title.className = "vaccine-age-title";
+      title.textContent = age;
+
+      const select = document.createElement("select");
+      select.className = "vaccine-dropdown";
+      select.name = `age_${age.replace(/\s+/g, "_")}`;
+      select.id = `age_${age.replace(/\s+/g, "_")}`;
+
+      // Opção padrão
+      const defaultOption = document.createElement("option");
+      defaultOption.value = "";
+      defaultOption.textContent = "Selecteer een vaccin";
+      select.appendChild(defaultOption);
+
+      // Adicionar vacinas disponíveis para esta idade
+      vaccineData.vaccines.forEach((vaccine) => {
+        if (vaccine.schedule[age]) {
+          const option = document.createElement("option");
+          option.value = vaccine.name;
+          option.textContent = `${vaccine.name} (${vaccine.schedule[age]})`; // Nome completo da vacina
+          option.setAttribute("data-info", vaccine.info);
+          select.appendChild(option);
         }
+      });
 
-        // Função para criar as seções de idade
-        function createAgeSections() {
-            conteudoDiv.innerHTML = "";
-            
-            vaccineData.ages.forEach(age => {
-                const section = document.createElement("div");
-                section.className = "vaccine-age-section";
-                
-                const title = document.createElement("h3");
-                title.className = "vaccine-age-title";
-                title.textContent = age;
-                
-                const select = document.createElement("select");
-                select.className = "vaccine-dropdown";
-                select.name = `age_${age.replace(/\s+/g, "_")}`;
-                select.id = `age_${age.replace(/\s+/g, "_")}`;
-                
-                // Opção padrão
-                const defaultOption = document.createElement("option");
-                defaultOption.value = "";
-                defaultOption.textContent = "Selecione uma vacina";
-                select.appendChild(defaultOption);
-                
-                // Adicionar vacinas disponíveis para esta idade
-                vaccineData.vaccines.forEach(vaccine => {
-                    if (vaccine.schedule[age]) {
-                        const option = document.createElement("option");
-                        option.value = vaccine.name;
-                        option.textContent = `${vaccine.name} (${vaccine.schedule[age]})`; // Nome completo da vacina
-                        option.setAttribute("data-info", vaccine.info);
-                        select.appendChild(option);
-                    }
-                });
-                
-                // Criar container para select e tooltip
-                const selectContainer = document.createElement("div");
-                selectContainer.className = "vaccine-option-with-tooltip";
-                selectContainer.appendChild(select);
-                
-                // Adicionar tooltip se houver vacina selecionada
-                const tooltipContainer = document.createElement("div");
-                tooltipContainer.id = `tooltip_${age.replace(/\s+/g, "_")}`;
-                selectContainer.appendChild(tooltipContainer);
-                
-                // Event listener para mostrar tooltip quando uma vacina for selecionada
-                select.addEventListener("change", function() {
-                    const selectedVaccine = vaccineData.vaccines.find(v => v.name === this.value);
-                    if (selectedVaccine) {
-                        tooltipContainer.innerHTML = createSelectionTooltip(selectedVaccine);
-                    } else {
-                        tooltipContainer.innerHTML = "";
-                    }
-                });
-                
-                section.appendChild(title);
-                section.appendChild(selectContainer);
-                conteudoDiv.appendChild(section);
-            });
+      // Criar container para select e tooltip
+      const selectContainer = document.createElement("div");
+      selectContainer.className = "vaccine-option-with-tooltip";
+      selectContainer.appendChild(select);
+
+      // Adicionar tooltip se houver vacina selecionada
+      const tooltipContainer = document.createElement("div");
+      tooltipContainer.id = `tooltip_${age.replace(/\s+/g, "_")}`;
+      selectContainer.appendChild(tooltipContainer);
+
+      // Event listener para mostrar tooltip quando uma vacina for selecionada
+      select.addEventListener("change", function () {
+        const selectedVaccine = vaccineData.vaccines.find((v) => v.name === this.value);
+        if (selectedVaccine) {
+          tooltipContainer.innerHTML = createSelectionTooltip(selectedVaccine);
+        } else {
+          tooltipContainer.innerHTML = "";
         }
+      });
 
-        // Função para calcular o calendário de vacinação
-        function calculateVaccineSchedule() {
-            const selectedVaccines = [];
-            const selects = conteudoDiv.querySelectorAll("select");
-            
-            selects.forEach(select => {
-                if (select.value) {
-                    const age = select.name.replace("age_", "").replace(/_/g, " ");
-                    const vaccineName = select.value;
-                    const vaccine = vaccineData.vaccines.find(v => v.name === vaccineName);
-                    
-                    if (vaccine) {
-                        selectedVaccines.push({
-                            age: age,
-                            vaccine: vaccine,
-                            dose: vaccine.schedule[age]
-                        });
-                    }
-                }
-            });
-            
-            if (selectedVaccines.length === 0) {
-                resultadoDiv.innerHTML = "<p class=\"text-red-600\">Por favor, selecione pelo menos uma vacina para calcular o calendário.</p>";
-                resultadoDiv.style.display = "block";
-                return;
-            }
-            
-            // Gerar resultado
-            let resultHTML = "<div class=\"bg-blue-50 p-6 rounded-lg border border-blue-200\">\n";
-            resultHTML += "<h3 class=\"text-xl font-bold text-blue-800 mb-4\">Calendário de Vacinação Personalizado</h3>\n";
-            
-            selectedVaccines.forEach(item => {
-                const applicationSite = getApplicationSite(item.age);
-                const needleType = getNeedleType(item.age, item.vaccine.administrationRoute);
-                
-                resultHTML += `<div class=\"mb-4 p-4 bg-white rounded-lg border border-blue-100\">\n`;
-                resultHTML += `<h4 class=\"font-bold text-blue-700 mb-2\">${item.vaccine.name} <span class=\"result-tooltip\">i<span class=\"tooltip-text\">${item.vaccine.shortName}</span></span></h4>\n`;
-                resultHTML += `<p><strong>Idade:</strong> ${item.age}</p>\n`;
-                resultHTML += `<p><strong>Dose:</strong> ${item.dose}</p>\n`;
-                resultHTML += `<p><strong>Via de Administração:</strong> ${item.vaccine.administrationRoute}</p>\n`;
-                resultHTML += `<p><strong>Local da via de administração por idade:</strong> ${applicationSite}</p>\n`;
-                resultHTML += `<p><strong>Tipo de agulha a ser usada:</strong> ${needleType}</p>\n`;
-                resultHTML += `<p><strong>Esquema de Aplicação:</strong> ${item.vaccine.applicationScheme}</p>\n`;
-                resultHTML += `<p><strong>Efeitos Colaterais:</strong> ${item.vaccine.sideEffects}</p>\n`;
-                resultHTML += `<p><strong>Disponibilizada pelo SUS:</strong> ${item.vaccine.susAvailability}</p>\n`;
-                if (item.vaccine.susAvailability === "Não") {
-                    resultHTML += `<p class=\"text-sm text-gray-600 ml-4\">${item.vaccine.susExplanation}</p>\n`;
-                }
-                resultHTML += `</div>\n`;
-            });
-            
-            resultHTML += "<div class=\"mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg\">\n";
-            resultHTML += "<p class=\"text-sm text-yellow-800\"><strong>Importante:</strong> Este calendário é baseado nas recomendações da SBIm e deve ser sempre discutido com o pediatra ou profissional de saúde responsável.</p>\n";
-            resultHTML += "</div>\n";
-            resultHTML += "</div>\n";
-            
-            resultadoDiv.innerHTML = resultHTML;
-            resultadoDiv.style.display = "block";
-            
-            // Scroll para o resultado
-            resultadoDiv.scrollIntoView({ behavior: "smooth" });
-        }
-
-        // Função para limpar os campos
-        function clearFields() {
-            const selects = conteudoDiv.querySelectorAll("select");
-            selects.forEach(select => {
-                select.value = "";
-            });
-            
-            // Limpar tooltips
-            const tooltipContainers = conteudoDiv.querySelectorAll("[id^=\"tooltip_\"]");
-            tooltipContainers.forEach(container => {
-                container.innerHTML = "";
-            });
-            
-            resultadoDiv.style.display = "none";
-        }
-
-        // Função para gerar PDF
-        function generatePDF() {
-            if (resultadoDiv.style.display === "none") {
-                alert("Por favor, calcule o calendário de vacinação antes de gerar o PDF.");
-                return;
-            }
-            
-            const element = resultadoDiv;
-            const opt = {
-                margin: 1,
-                filename: "calendario-vacinacao-infantil.pdf",
-                image: { type: "jpeg", quality: 0.98 },
-                html2canvas: { scale: 2 },
-                jsPDF: { unit: "in", format: "letter", orientation: "portrait" }
-            };
-            
-            html2pdf().set(opt).from(element).save();
-        }
-
-        // Função para abrir NANDA, NIC, NOC
-        function openNandaNicNoc() {
-            window.open("https://www.calculadorasdeenfermagem.com.br/nanda-nic-noc.html", "_blank");
-        }
-
-        // Função para visualizar calendário da criança
-        function visualizarCalendario() {
-            window.location.href = "calendario-criança.html";
-        }
-
-        // Event listeners
-        btnCalcular.addEventListener("click", calculateVaccineSchedule);
-        btnLimpar.addEventListener("click", clearFields);
-        btnGerarPDF.addEventListener("click", generatePDF);
-        btnNandaNicNoc.addEventListener("click", openNandaNicNoc);
-        btnVisualizarCalendario.addEventListener("click", visualizarCalendario);
-
-        // Inicializar a página
-        createAgeSections();
+      section.appendChild(title);
+      section.appendChild(selectContainer);
+      conteudoDiv.appendChild(section);
     });
-  </script>
+  }
+
+  // Função para calcular o calendário de vacinação
+  function calculateVaccineSchedule() {
+    const selectedVaccines = [];
+    const selects = conteudoDiv.querySelectorAll("select");
+
+    selects.forEach((select) => {
+      if (select.value) {
+        const age = select.name.replace("age_", "").replace(/_/g, " ");
+        const vaccineName = select.value;
+        const vaccine = vaccineData.vaccines.find((v) => v.name === vaccineName);
+
+        if (vaccine) {
+          selectedVaccines.push({
+            age: age,
+            vaccine: vaccine,
+            dose: vaccine.schedule[age]
+          });
+        }
+      }
+    });
+
+    if (selectedVaccines.length === 0) {
+      resultadoDiv.innerHTML = "<p class=\"text-red-600\">Por favor, selecione pelo menos uma vacina para calcular o calendário.</p>";
+      resultadoDiv.style.display = "block";
+      return;
+    }
+
+    // Gerar resultado
+    let resultHTML = "<div class=\"bg-blue-50 p-6 rounded-lg border border-blue-200\">\n";
+    resultHTML += "<h3 class=\"text-xl font-bold text-blue-800 mb-4\">Calendário de Vacinação Personalizado</h3>\n";
+
+    selectedVaccines.forEach((item) => {
+      const applicationSite = getApplicationSite(item.age);
+      const needleType = getNeedleType(item.age, item.vaccine.administrationRoute);
+
+      resultHTML += `<div class=\"mb-4 p-4 bg-white rounded-lg border border-blue-100\">\n`;
+      resultHTML += `<h4 class=\"font-bold text-blue-700 mb-2\">${item.vaccine.name} <span class=\"result-tooltip\">i<span class=\"tooltip-text\">${item.vaccine.shortName}</span></span></h4>\n`;
+      resultHTML += `<p><strong>Idade:</strong> ${item.age}</p>\n`;
+      resultHTML += `<p><strong>Dose:</strong> ${item.dose}</p>\n`;
+      resultHTML += `<p><strong>Via de Administração:</strong> ${item.vaccine.administrationRoute}</p>\n`;
+      resultHTML += `<p><strong>Local da via de administração por idade:</strong> ${applicationSite}</p>\n`;
+      resultHTML += `<p><strong>Tipo de agulha a ser usada:</strong> ${needleType}</p>\n`;
+      resultHTML += `<p><strong>Esquema de Aplicação:</strong> ${item.vaccine.applicationScheme}</p>\n`;
+      resultHTML += `<p><strong>Efeitos Colaterais:</strong> ${item.vaccine.sideEffects}</p>\n`;
+      resultHTML += `<p><strong>Disponibilizada pelo SUS:</strong> ${item.vaccine.susAvailability}</p>\n`;
+      if (item.vaccine.susAvailability === "Geen") {
+        resultHTML += `<p class=\"text-sm text-gray-600 ml-4\">${item.vaccine.susExplanation}</p>\n`;
+      }
+      resultHTML += `</div>\n`;
+    });
+
+    resultHTML += "<div class=\"mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg\">\n";
+    resultHTML += "<p class=\"text-sm text-yellow-800\"><strong>Importante:</strong> Este calendário é baseado nas recomendações da SBIm e deve ser sempre discutido com o pediatra ou profissional de saúde responsável.</p>\n";
+    resultHTML += "</div>\n";
+    resultHTML += "</div>\n";
+
+    resultadoDiv.innerHTML = resultHTML;
+    resultadoDiv.style.display = "block";
+
+    // Scroll para o resultado
+    resultadoDiv.scrollIntoView({ behavior: "smooth" });
+  }
+
+  // Função para limpar os campos
+  function clearFields() {
+    const selects = conteudoDiv.querySelectorAll("select");
+    selects.forEach((select) => {
+      select.value = "";
+    });
+
+    // Limpar tooltips
+    const tooltipContainers = conteudoDiv.querySelectorAll("[id^=\"tooltip_\"]");
+    tooltipContainers.forEach((container) => {
+      container.innerHTML = "";
+    });
+
+    resultadoDiv.style.display = "none";
+  }
+
+  // Função para gerar PDF
+  function generatePDF() {
+    if (resultadoDiv.style.display === "none") {
+      alert("Bereken het vaccinatieschema voordat je de PDF genereert.");
+      return;
+    }
+
+    const element = resultadoDiv;
+    const opt = {
+      margin: 1,
+      filename: "calendario-vacinacao-infantil.pdf",
+      image: { type: "jpeg", quality: 0.98 },
+      html2canvas: { scale: 2 },
+      jsPDF: { unit: "in", format: "letter", orientation: "portrait" }
+    };
+
+    html2pdf().set(opt).from(element).save();
+  }
+
+  // Função para abrir NANDA, NIC, NOC
+  function openNandaNicNoc() {
+    window.open("https://www.calculadorasdeenfermagem.com.br/nanda-nic-noc.html", "_blank");
+  }
+
+  // Função para visualizar calendário da criança
+  function visualizarCalendario() {
+    window.location.href = "kalender-kinderen.html";
+  }
+
+  // Event listeners
+  btnCalcular.addEventListener("click", calculateVaccineSchedule);
+  btnLimpar.addEventListener("click", clearFields);
+  btnGerarPDF.addEventListener("click", generatePDF);
+  btnNandaNicNoc.addEventListener("click", openNandaNicNoc);
+  btnVisualizarCalendario.addEventListener("click", visualizarCalendario);
+
+  // Inicializar a página
+  createAgeSections();
+});</script>
 
 
 
