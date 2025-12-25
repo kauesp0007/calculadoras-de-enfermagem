@@ -135,6 +135,14 @@ async function main() {
   console.log('🔧 Executando build.js para atualizar páginas de downloads...');
   execSync('node build.js', { stdio: 'inherit' });
 
+  // 7) Compilar CSS com Tailwind
+  console.log('🎨 Executando Tailwind CSS Build...');
+  execSync('.\\node_modules\\.bin\\tailwindcss -i ./src/input.css -o ./public/output.css --minify', { stdio: 'inherit' });
+
+  // 8) Gerar Service Worker
+  console.log('⚙️ Executando geração do Service Worker...');
+  execSync('node gerar-sw.js', { stdio: 'inherit' });
+
   console.log(`
 🎯 Processo concluído. Páginas individuais geradas: ${gerados} (novas).
 `);
