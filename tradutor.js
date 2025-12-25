@@ -8,7 +8,7 @@ const axios = require('axios');
 // --- CONFIGURAÇÕES ---
 // ============================================================================
 
-const API_KEY = "AIzaSyCO722vd9K9FHnZgzGrK5UAhIXiWzIW3gA";
+const API_KEY = "AIzaSyCUzEENJeiJ0jiGyVXEOa9U_rtIFcUsYPY";
 
 // Idioma de destino
 const TARGET_LANG_CODE = 'sv'; 
