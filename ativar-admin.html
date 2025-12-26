@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel Admin - Calculadoras de Enfermagem</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            background-color: #f0f2f5;
+            margin: 0;
+            text-align: center;
+        }
+        .card {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            max-width: 90%;
+            width: 400px;
+        }
+        h1 { color: #333; margin-bottom: 20px; font-size: 1.5rem; }
+        .status {
+            padding: 10px;
+            margin-bottom: 20px;
+            border-radius: 6px;
+            font-weight: bold;
+        }
+        .status.on { background-color: #d1fae5; color: #065f46; border: 1px solid #34d399; }
+        .status.off { background-color: #fee2e2; color: #991b1b; border: 1px solid #f87171; }
+        
+        button {
+            width: 100%;
+            padding: 15px;
+            margin: 5px 0;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            cursor: pointer;
+            font-weight: bold;
+            transition: opacity 0.2s;
+        }
+        button:active { opacity: 0.8; }
+        .btn-ativar { background-color: #10b981; color: white; }
+        .btn-desativar { background-color: #ef4444; color: white; }
+        .footer { margin-top: 20px; font-size: 0.8rem; color: #666; }
+    </style>
+</head>
+<body>
+
+    <div class="card">
+        <h1>Painel de Controle 🛡️</h1>
+        <p>Status atual do Modo Admin:</p>
+        <div id="status-display" class="status off">Verificando...</div>
+
+        <button onclick="ativar()" class="btn-ativar">ATIVAR MODO ADMIN (Bloquear Ads)</button>
+        <button onclick="desativar()" class="btn-desativar">DESATIVAR (Voltar ao normal)</button>
+        
+        <div class="footer">
+            <p>Ative isso em todos os seus dispositivos (PC e Celular) para não gerar tráfego inválido no AdSense.</p>
+            <a href="/" style="color:#2563eb; text-decoration: none;">Ir para a Home</a>
+        </div>
+    </div>
+
+    <script>
+        // Função para atualizar o texto na tela
+        function updateStatus() {
+            const statusDiv = document.getElementById('status-display');
+            const isAdmin = localStorage.getItem('admin_mode') === 'true';
+
+            if (isAdmin) {
+                statusDiv.textContent = "ATIVADO (Você está invisível)";
+                statusDiv.className = "status on";
+            } else {
+                statusDiv.textContent = "DESATIVADO (Você é um visitante)";
+                statusDiv.className = "status off";
+            }
+        }
+
+        function ativar() {
+            localStorage.setItem('admin_mode', 'true');
+            updateStatus();
+            alert('Modo Admin ATIVADO! O AdSense e Analytics não rodarão neste navegador.');
+        }
+
+        function desativar() {
+            localStorage.removeItem('admin_mode');
+            updateStatus();
+            alert('Modo Admin DESATIVADO! Você agora conta como um visitante normal.');
+        }
+
+        // Verifica ao carregar a página
+        updateStatus();
+    </script>
+</body>
+</html>

@@ -113,6 +113,7 @@ const urlsToCache = [
   'ar/zarit.html',
   'ar/_language_selector.html',
   'asa.html',
+  'ativar-admin.html',
   'autofillforms.webp',
   'autofillforms2.webp',
   'autofillforms3.webp',

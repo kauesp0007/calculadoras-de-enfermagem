@@ -9,8 +9,8 @@ const JSON_DATABASE_FILE = "biblioteca.json";
 const TEMPLATE_FILE = "item.template.html";
 const OUTPUT_DIR = "biblioteca";
 
-// ✅ NOVO MARKER: força rebuild uma vez (V3)
-const GENERATED_MARKER = "BIBLIOTECA_ITEM_TEMPLATE_V3";
+// ✅ NOVO MARKER: força rebuild uma vez (V4)
+const GENERATED_MARKER = "BIBLIOTECA_ITEM_TEMPLATE_V4";
 
 /* ===============================
    UTILIDADES
@@ -227,7 +227,7 @@ function construirBiblioteca() {
 
     const outFile = path.join(OUTPUT_DIR, `${slug}.html`);
 
-    // ✅ Agora só ignora se já for V3
+    // ✅ Agora só ignora se já for V4
     if (fs.existsSync(outFile)) {
       const current = fs.readFileSync(outFile, "utf8");
       if (current.includes(GENERATED_MARKER)) {
@@ -264,7 +264,7 @@ function construirBiblioteca() {
       html = html.replace("</body>", `\n${bloco}\n</body>`);
     }
 
-    // ✅ Injeta marker V3
+    // ✅ Injeta marker V4
     if (!html.includes(GENERATED_MARKER)) {
       html = html.replace("</head>", `\n<!-- ${GENERATED_MARKER} -->\n</head>`);
     }
