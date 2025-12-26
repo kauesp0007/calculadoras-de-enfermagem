@@ -21,7 +21,7 @@ function slugify(text) {
 }
 
 /* ===============================
-   CRIA CARD HTML (CORRIGIDO)
+   CRIA CARD HTML
 ================================ */
 
 function criarCartaoHTML(item) {
@@ -33,23 +33,28 @@ function criarCartaoHTML(item) {
 }
 
 /* ===============================
-   PAGINAÇÃO
+   PAGINAÇÃO (page 1 = /downloads.html)
 ================================ */
+
+function linkPagina(pageNum) {
+  if (pageNum === 1) return `/downloads.html`;
+  return `/downloads/page${pageNum}.html`;
+}
 
 function gerarPaginacao(total, atual) {
   let html = "";
 
   if (atual > 1) {
-    html += `<a class="btn" href="/downloads/page${atual - 1}.html">« Anterior</a>`;
+    html += `<a class="btn" href="${linkPagina(atual - 1)}">« Anterior</a>`;
   }
 
   for (let i = 1; i <= total; i++) {
-    const link = `/downloads/page${i}.html`;
+    const link = linkPagina(i);
     html += `<a class="btn ${i === atual ? "active" : ""}" href="${link}">${i}</a>`;
   }
 
   if (atual < total) {
-    html += `<a class="btn" href="/downloads/page${atual + 1}.html">Próxima »</a>`;
+    html += `<a class="btn" href="${linkPagina(atual + 1)}">Próxima »</a>`;
   }
 
   return html;
@@ -78,7 +83,7 @@ function construirPaginas() {
     let fotos = "";
     let videos = "";
 
-    items.forEach(item => {
+    items.forEach((item) => {
       const card = criarCartaoHTML(item);
 
       todos += card;
@@ -90,17 +95,25 @@ function construirPaginas() {
 
     const pagination = gerarPaginacao(totalPages, page);
 
+    // SEO
     let seoTitle = `Biblioteca de Enfermagem — Página ${page}`;
     let seoDescription = `Biblioteca de Enfermagem com materiais, apostilas e documentos para download — Página ${page} de ${totalPages}.`;
-    let seoKeywords = `biblioteca de enfermagem, apostilas de enfermagem, protocolos clínicos, manuais oficiais, materiais para estudo, documentos para download, enfermagem`;
-    let canonicalUrl = `https://www.calculadorasdeenfermagem.com.br/downloads/page${page}.html`;
+    let seoKeywords =
+      `biblioteca de enfermagem, apostilas de enfermagem, protocolos clínicos, manuais oficiais, materiais para estudo, documentos para download, enfermagem`;
+
+    // Canonical: page 1 = /downloads.html (raiz), demais = /downloads/pageX.html
+    let canonicalUrl =
+      page === 1
+        ? `https://www.calculadorasdeenfermagem.com.br/downloads.html`
+        : `https://www.calculadorasdeenfermagem.com.br/downloads/page${page}.html`;
 
     let html = template
       .replace("<!-- [GERAR_TODOS] -->", todos)
       .replace("<!-- [GERAR_DOCUMENTOS] -->", documentos)
       .replace("<!-- [GERAR_FOTOS] -->", fotos)
       .replace("<!-- [GERAR_VIDEOS] -->", videos)
-      .replace("<!-- [PAGINACAO] -->", pagination)
+      // importante: seu template tem o placeholder 2x (topo e rodapé)
+      .replaceAll("<!-- [PAGINACAO] -->", pagination)
 
       // SEO placeholders do template
       .replace(/<!-- \[SEO_TITLE\] -->/g, seoTitle)
@@ -116,17 +129,47 @@ function construirPaginas() {
 
       // Fallbacks (caso o template não tenha placeholders)
       .replace(/<title>.*<\/title>/, `<title>${seoTitle}</title>`)
-      .replace(/<meta name="description" content="[^"]*"\s*>/i, `<meta name="description" content="${seoDescription}">`)
-      .replace(/<meta name="keywords" content="[^"]*"\s*>/i, `<meta name="keywords" content="${seoKeywords}">`)
-      .replace(/<link rel="canonical" href="[^"]*"\s*>/i, `<link rel="canonical" href="${canonicalUrl}">`)
-      .replace(/<meta property="og:url" content="[^"]*"\s*>/i, `<meta property="og:url" content="${canonicalUrl}">`)
-      .replace(/https:\/\/www\.calculadorasdeenfermagem\.com\.br\/downloads\.template\.html/g, canonicalUrl)
-      .replace(/https:\/\/www\.calculadorasdeenfermagem\.com\.br\/downloads\.html/g, canonicalUrl);
+      .replace(
+        /<meta name="description" content="[^"]*"\s*>/i,
+        `<meta name="description" content="${seoDescription}">`
+      )
+      .replace(
+        /<meta name="keywords" content="[^"]*"\s*>/i,
+        `<meta name="keywords" content="${seoKeywords}">`
+      )
+      .replace(
+        /<link rel="canonical" href="[^"]*"\s*>/i,
+        `<link rel="canonical" href="${canonicalUrl}">`
+      )
+      .replace(
+        /<meta property="og:url" content="[^"]*"\s*>/i,
+        `<meta property="og:url" content="${canonicalUrl}">`
+      )
+      .replace(
+        /https:\/\/www\.calculadorasdeenfermagem\.com\.br\/downloads\.template\.html/g,
+        canonicalUrl
+      )
+      .replace(
+        /https:\/\/www\.calculadorasdeenfermagem\.com\.br\/downloads\.html/g,
+        canonicalUrl
+      );
 
-    const output = path.join(OUTPUT_DIR, `page${page}.html`);
+    // ✅ Saídas:
+    // - Página 1 também gera o arquivo raiz "downloads.html"
+    // - Páginas 2+ ficam em /downloads/pageX.html
+    if (page === 1) {
+      fs.writeFileSync("downloads.html", html);
+      console.log(`📘 Criada página: downloads.html`);
 
-    fs.writeFileSync(output, html);
-    console.log(`📘 Criada página: ${output}`);
+      // (opcional e seguro) mantém /downloads/page1.html caso exista link antigo
+      const outputLegacy = path.join(OUTPUT_DIR, `page1.html`);
+      fs.writeFileSync(outputLegacy, html);
+      console.log(`📘 Criada página: ${outputLegacy}`);
+    } else {
+      const output = path.join(OUTPUT_DIR, `page${page}.html`);
+      fs.writeFileSync(output, html);
+      console.log(`📘 Criada página: ${output}`);
+    }
   }
 
   console.log("✅ Biblioteca gerada com imagens, categorias e paginação corretas!");
