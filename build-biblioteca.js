@@ -6,8 +6,11 @@ const path = require("path");
    CONFIGURAÇÕES
 ================================ */
 const JSON_DATABASE_FILE = "biblioteca.json";
-const TEMPLATE_FILE = "downloads.template.html";
+const TEMPLATE_FILE = "item.template.html";
 const OUTPUT_DIR = "biblioteca";
+
+// Versão do template gerado: se o arquivo já tiver este marker, ele pode ser ignorado em execuções futuras
+const GENERATED_MARKER = "BIBLIOTECA_ITEM_TEMPLATE_V2";
 
 /* ===============================
    UTILIDADES
@@ -21,102 +24,56 @@ function slugify(text) {
     .replace(/(^-|-$)/g, "");
 }
 
-/* ===============================
-   CONSTRUTOR PRINCIPAL
-================================ */
-function construirBiblioteca() {
-  if (!fs.existsSync(JSON_DATABASE_FILE)) {
-    console.error("❌ biblioteca.json não encontrado");
-    return;
-  }
-
-  const data = JSON.parse(fs.readFileSync(JSON_DATABASE_FILE, "utf8"));
-  const template = fs.readFileSync(TEMPLATE_FILE, "utf8");
-
-  if (!fs.existsSync(OUTPUT_DIR)) fs.mkdirSync(OUTPUT_DIR);
-
-  const imagens = data.filter(i => i.categoria === "fotos");
-  let gerados = 0;
-
-  data.forEach(item => {
-    if (!item.titulo || !item.ficheiro) return;
-
-    const slug = item.slug || slugify(item.titulo);
-    const descricao =
-      item.descricao || `Material de enfermagem sobre ${item.titulo}.`;
-    const isImagem = item.categoria === "fotos";
-    const indiceImagem = imagens.findIndex(i => i.ficheiro === item.ficheiro);
-
-    /* ===============================
-       SCHEMA IMAGEOBJECT
-    ================================ */
-    const schemaImage = isImagem
-      ? `
-<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "ImageObject",
-  "name": "${item.titulo}",
-  "description": "${descricao}",
-  "contentUrl": "https://www.calculadorasdeenfermagem.com.br${item.ficheiro}",
-  "caption": "${item.titulo}",
-  "inLanguage": "pt-BR"
+function escapeHtml(str) {
+  return String(str || "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
 }
-</script>`
-      : "";
 
-    /* ===============================
-       CONTEÚDO
-    ================================ */
-    const conteudoItem = `
-<div class="max-w-6xl mx-auto py-12 px-4 text-center">
+function detectarTipoPeloArquivo(ficheiro) {
+  const f = String(ficheiro || "").toLowerCase();
+  const ext = f.split("?")[0].split("#")[0].split(".").pop();
 
-  <button onclick="history.back()"
-    class="mb-8 inline-flex items-center px-6 py-3 bg-blue-900/80 text-white rounded-lg hover:bg-blue-900 transition">
-    ← Voltar
-  </button>
+  if (["jpg", "jpeg", "png", "webp", "gif", "svg"].includes(ext)) return "Imagem";
+  if (["mp4", "webm", "mov", "m4v"].includes(ext)) return "Vídeo";
+  if (["pdf"].includes(ext)) return "PDF";
+  if (["doc", "docx"].includes(ext)) return "Word";
+  if (["ppt", "pptx"].includes(ext)) return "PowerPoint";
+  if (["xls", "xlsx", "csv"].includes(ext)) return "Planilha";
+  return "Arquivo";
+}
 
-  <h1 class="text-3xl md:text-4xl font-bold text-gray-800 mb-4">
-    ${item.titulo}
-  </h1>
+function buildPrevNext(data, idx) {
+  const prev = idx > 0 ? data[idx - 1] : null;
+  const next = idx < data.length - 1 ? data[idx + 1] : null;
 
-  <p class="text-gray-600 text-lg max-w-6xl mx-auto mb-10">
-    ${descricao}
-  </p>
+  const prevSlug = prev ? (prev.slug || slugify(prev.titulo || "")) : "";
+  const nextSlug = next ? (next.slug || slugify(next.titulo || "")) : "";
 
-  ${
-    isImagem
-      ? `
-      <img
-        src="${item.ficheiro}"
-        alt="${item.titulo}"
-        loading="lazy"
-        decoding="async"
-        class="w-full max-w-6xl mx-auto rounded-lg shadow-md cursor-zoom-in"
-        onclick="abrirLightbox(${indiceImagem})"
-      >
+  return {
+    prevUrl: prevSlug ? `/biblioteca/${prevSlug}.html` : "",
+    nextUrl: nextSlug ? `/biblioteca/${nextSlug}.html` : "",
+    prevStyle: prevSlug ? "" : "display:none",
+    nextStyle: nextSlug ? "" : "display:none",
+  };
+}
 
-      <p class="text-sm text-gray-500 mt-4">
-        ${item.titulo} — ${descricao}
-      </p>
-      `
-      : ""
-  }
-
-  <a href="${item.ficheiro}" download
-    class="mt-10 inline-flex px-8 py-4 bg-blue-900/80 text-white rounded-lg hover:bg-blue-900 transition">
-    ⬇️ Baixar arquivo
-  </a>
-</div>
-
+/* ===============================
+   LIGHTBOX (mantém funcionalidades já existentes)
+================================ */
+function montarBlocoLightbox(imagens) {
+  return `
 <!-- LIGHTBOX -->
 <div id="lightbox" class="fixed inset-0 bg-black/90 hidden z-50 flex items-center justify-center animate-fade">
 
-  <button onclick="fecharLightbox()" class="absolute top-6 right-6 text-white text-3xl">✕</button>
-  <button onclick="toggleFullscreen()" class="absolute top-6 left-6 text-white text-xl">⛶</button>
+  <button onclick="fecharLightbox()" class="absolute top-6 right-6 text-white text-3xl" aria-label="Fechar">✕</button>
+  <button onclick="toggleFullscreen()" class="absolute top-6 left-6 text-white text-xl" aria-label="Tela cheia">⛶</button>
 
-  <button onclick="prevImagem()" class="absolute left-6 text-white text-4xl">←</button>
-  <button onclick="nextImagem()" class="absolute right-6 text-white text-4xl">→</button>
+  <button onclick="prevImagem()" class="absolute left-6 text-white text-4xl" aria-label="Anterior">←</button>
+  <button onclick="nextImagem()" class="absolute right-6 text-white text-4xl" aria-label="Próxima">→</button>
 
   <div class="text-center px-4">
     <img id="lightbox-img"
@@ -150,7 +107,7 @@ function construirBiblioteca() {
     const item = imagens[indiceAtual];
     document.getElementById("lightbox-img").src = item.ficheiro;
     document.getElementById("lightbox-legenda").textContent =
-      item.titulo + " — " + item.descricao;
+      item.titulo + " — " + (item.descricao || "");
     document.getElementById("contador").textContent =
       "Imagem " + (indiceAtual + 1) + " / " + imagens.length;
     preload();
@@ -203,38 +160,110 @@ function construirBiblioteca() {
 .animate-fade { animation: fade .25s ease-in-out }
 </style>
 `;
+}
 
-    let html = template
-  // REMOVE COMPLETAMENTE A ÁREA DE GRID
-  .replace(
-    /<div class="bg-white p-6 rounded-lg shadow">[\s\S]*?<\/div>\s*<!-- PAGINAÇÃO -->[\s\S]*?<\/div>/,
-    conteudoItem
-  )
+/* ===============================
+   CONSTRUTOR PRINCIPAL
+================================ */
+function construirBiblioteca() {
+  if (!fs.existsSync(JSON_DATABASE_FILE)) {
+    console.error("❌ biblioteca.json não encontrado");
+    return;
+  }
+  if (!fs.existsSync(TEMPLATE_FILE)) {
+    console.error(`❌ ${TEMPLATE_FILE} não encontrado`);
+    return;
+  }
 
-  // limpa paginação
-  .replace("<!-- [PAGINACAO] -->", "")
+  const data = JSON.parse(fs.readFileSync(JSON_DATABASE_FILE, "utf8"));
+  const template = fs.readFileSync(TEMPLATE_FILE, "utf8");
 
-  // SEO
-  .replace("</head>", schemaImage + "\n</head>")
-  .replace(
-    /<title>.*<\/title>/,
-    `<title>${item.titulo} | Biblioteca de Enfermagem</title>`
-  )
-  .replace(
-    /<meta name="description".*>/,
-    `<meta name="description" content="${descricao}">`
-  )
-  .replace(
-    /<link rel="canonical".*>/,
-    `<link rel="canonical" href="https://www.calculadorasdeenfermagem.com.br/biblioteca/${slug}.html">`
-  );
+  if (!fs.existsSync(OUTPUT_DIR)) fs.mkdirSync(OUTPUT_DIR);
 
+  // Lista de imagens (para lightbox)
+  const imagens = data
+    .filter((i) => i.categoria === "fotos")
+    .map((i) => ({
+      titulo: i.titulo || "",
+      descricao: i.descricao || "",
+      ficheiro: i.ficheiro || "",
+      slug: i.slug || slugify(i.titulo || ""),
+    }));
 
-    fs.writeFileSync(path.join(OUTPUT_DIR, `${slug}.html`), html, "utf8");
+  let gerados = 0;
+  let ignorados = 0;
+
+  data.forEach((item, idx) => {
+    if (!item || !item.titulo || !item.ficheiro) return;
+
+    const slug = item.slug || slugify(item.titulo);
+    const descricao = item.descricao || `Material de enfermagem sobre ${item.titulo}.`;
+    const categoria = item.categoria || "documentos";
+    const tipo = item.tipo || detectarTipoPeloArquivo(item.ficheiro);
+
+    // navegação entre itens (páginas individuais)
+    const nav = buildPrevNext(data, idx);
+
+    // capa: se existir item.capa usa; se não, cai para o próprio ficheiro
+    const capa = item.capa || item.ficheiro;
+
+    const outFile = path.join(OUTPUT_DIR, `${slug}.html`);
+
+    // Se o arquivo já existe e já está na versão atual, ignora (cria apenas novos)
+    if (fs.existsSync(outFile)) {
+      const current = fs.readFileSync(outFile, "utf8");
+      if (current.includes(GENERATED_MARKER)) {
+        ignorados++;
+        return;
+      }
+    }
+
+    let html = template;
+
+    // Substituições seguras (mantém estrutura do template)
+    html = html
+      .replace(/{{TITULO}}/g, escapeHtml(item.titulo))
+      .replace(/{{DESCRICAO}}/g, escapeHtml(descricao))
+      .replace(/{{TAGS}}/g, escapeHtml(item.tags || item.titulo))
+      .replace(/{{SLUG}}/g, escapeHtml(slug))
+      .replace(/{{CAPA}}/g, escapeHtml(capa).replace(/^\/+/, "")) // template já prefixa com /
+      .replace(/{{FICHEIRO}}/g, escapeHtml(item.ficheiro).replace(/^\/+/, ""))
+      .replace(/{{CATEGORIA}}/g, escapeHtml(categoria))
+      .replace(/{{TIPO}}/g, escapeHtml(tipo))
+      .replace(/{{PREV_URL}}/g, escapeHtml(nav.prevUrl))
+      .replace(/{{NEXT_URL}}/g, escapeHtml(nav.nextUrl))
+      .replace(/{{PREV_STYLE}}/g, escapeHtml(nav.prevStyle))
+      .replace(/{{NEXT_STYLE}}/g, escapeHtml(nav.nextStyle));
+
+    // Para categoria "fotos": mantém lightbox e faz a imagem abrir no clique.
+    if (categoria === "fotos") {
+      const indiceImagem = imagens.findIndex((i) => i.slug === slug);
+
+      // substitui a imagem principal para abrir lightbox (mantendo tamanhos do template)
+      html = html.replace(
+        /<img[^>]*class="w-full[^"]*biblioteca-hero-img"[^>]*>/i,
+        `<img src="${item.ficheiro}" alt="Capa de ${escapeHtml(item.titulo)}" class="w-full rounded-xl mb-6 biblioteca-hero-img cursor-zoom-in" loading="lazy" decoding="async" onclick="abrirLightbox(${indiceImagem})">`
+      );
+
+      // injeta bloco de lightbox antes do </body>
+      const bloco = montarBlocoLightbox(imagens);
+      html = html.replace("</body>", `\n${bloco}\n</body>`);
+    }
+
+    // Garante marker de versão (para ignorar no futuro)
+    if (!html.includes(GENERATED_MARKER)) {
+      html = html.replace(
+        "</head>",
+        `\n<!-- ${GENERATED_MARKER} -->\n</head>`
+      );
+    }
+
+    fs.writeFileSync(outFile, html, "utf8");
     gerados++;
   });
 
-  console.log(`✅ ${gerados} páginas da biblioteca geradas com sucesso`);
+  console.log(`✅ ${gerados} páginas da biblioteca geradas/atualizadas com sucesso`);
+  console.log(`⏭️ ${ignorados} páginas já estavam atualizadas e foram ignoradas`);
 }
 
 construirBiblioteca();

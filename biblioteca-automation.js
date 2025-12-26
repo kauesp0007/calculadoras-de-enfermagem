@@ -100,35 +100,13 @@ async function main() {
     console.log('➡ Nenhum PDF sem capa encontrado. Pular geração de capas.');
   }
 
-  // 5) Criar páginas individuais em biblioteca/ apenas para itens novos (não possuir arquivo gerado ainda)
-  if (!fs.existsSync(BIBLIOTECA_DIR)) fs.mkdirSync(BIBLIOTECA_DIR);
-  const itemTemplate = fs.existsSync(ITEM_TEMPLATE) ? fs.readFileSync(ITEM_TEMPLATE, 'utf8') : null;
-  let gerados = 0;
-  for (const item of biblioteca) {
-    if (!item.titulo || !item.ficheiro) continue;
-    const slug = item.slug || slugify(item.titulo);
-    const outPath = path.join(BIBLIOTECA_DIR, `${slug}.html`);
-    if (fs.existsSync(outPath)) continue; // já existe
-
-    // gerar HTML a partir de item.template.html quando disponível
-    if (!itemTemplate) {
-      console.warn('⚠ item.template.html não encontrado — pulando geração de páginas individuais');
-      break;
-    }
-
-    const html = itemTemplate
-      .replace(/{{TITULO}}/g, item.titulo)
-      .replace(/{{DESCRICAO}}/g, item.descricao || descricaoAutomatica(item.titulo))
-      .replace(/{{CAPA}}/g, item.capa ? item.capa.replace(/^\//,'') : (item.capa || 'img/capa-padrao.webp'))
-      .replace(/{{FICHEIRO}}/g, item.ficheiro.replace(/^\//,''))
-      .replace(/{{SLUG}}/g, slug)
-      .replace(/{{CATEGORIA}}/g, item.categoria || '')
-      .replace(/{{TIPO}}/g, path.extname(item.ficheiro).replace('.', '') )
-      .replace(/{{TAGS}}/g, item.tags ? item.tags.join(', ') : (item.slug || ''));
-
-    fs.writeFileSync(outPath, html, 'utf8');
-    gerados++;
-    console.log('📄 Gerada página da biblioteca:', outPath);
+  // 5) Gerar/atualizar páginas individuais via build-biblioteca.js (responsável por prev/next + marker + layout)
+  console.log('📚 Executando build-biblioteca.js para gerar/atualizar páginas individuais da biblioteca...');
+  try {
+    execSync('node build-biblioteca.js', { stdio: 'inherit' });
+  } catch (err) {
+    console.error('❌ Falha ao executar build-biblioteca.js:', err && err.message ? err.message : err);
+    process.exit(1);
   }
 
   // 6) Atualizar downloads (reconstruir páginas de listagem)
@@ -144,7 +122,7 @@ async function main() {
   execSync('node gerar-sw.js', { stdio: 'inherit' });
 
   console.log(`
-🎯 Processo concluído. Páginas individuais geradas: ${gerados} (novas).
+🎯 Processo concluído.
 `);
 }
 
