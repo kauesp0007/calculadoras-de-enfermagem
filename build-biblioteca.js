@@ -9,8 +9,8 @@ const JSON_DATABASE_FILE = "biblioteca.json";
 const TEMPLATE_FILE = "item.template.html";
 const OUTPUT_DIR = "biblioteca";
 
-// Versão do template gerado: se o arquivo já tiver este marker, ele pode ser ignorado em execuções futuras
-const GENERATED_MARKER = "BIBLIOTECA_ITEM_TEMPLATE_V2";
+// ✅ NOVO MARKER: força rebuild uma vez (V3)
+const GENERATED_MARKER = "BIBLIOTECA_ITEM_TEMPLATE_V3";
 
 /* ===============================
    UTILIDADES
@@ -46,6 +46,24 @@ function detectarTipoPeloArquivo(ficheiro) {
   return "Arquivo";
 }
 
+/* ===============================
+   PREV/NEXT (URLS SEMPRE /biblioteca/slug.html)
+================================ */
+function normalizarSlugParaArquivo(slug) {
+  let s = String(slug || "").trim();
+  s = s.replace(/^\/+/, "");
+  s = s.replace(/^biblioteca\//i, "");
+  s = s.split("?")[0].split("#")[0];
+  s = s.replace(/\.html$/i, "");
+  return s;
+}
+
+function montarUrlBiblioteca(slug) {
+  const s = normalizarSlugParaArquivo(slug);
+  if (!s) return "";
+  return `/biblioteca/${s}.html`;
+}
+
 function buildPrevNext(data, idx) {
   const prev = idx > 0 ? data[idx - 1] : null;
   const next = idx < data.length - 1 ? data[idx + 1] : null;
@@ -53,11 +71,14 @@ function buildPrevNext(data, idx) {
   const prevSlug = prev ? (prev.slug || slugify(prev.titulo || "")) : "";
   const nextSlug = next ? (next.slug || slugify(next.titulo || "")) : "";
 
+  const prevUrl = montarUrlBiblioteca(prevSlug);
+  const nextUrl = montarUrlBiblioteca(nextSlug);
+
   return {
-    prevUrl: prevSlug ? `/biblioteca/${prevSlug}.html` : "",
-    nextUrl: nextSlug ? `/biblioteca/${nextSlug}.html` : "",
-    prevStyle: prevSlug ? "" : "display:none",
-    nextStyle: nextSlug ? "" : "display:none",
+    prevUrl,
+    nextUrl,
+    prevStyle: prevUrl ? "" : "display:none",
+    nextStyle: nextUrl ? "" : "display:none",
   };
 }
 
@@ -201,15 +222,12 @@ function construirBiblioteca() {
     const categoria = item.categoria || "documentos";
     const tipo = item.tipo || detectarTipoPeloArquivo(item.ficheiro);
 
-    // navegação entre itens (páginas individuais)
     const nav = buildPrevNext(data, idx);
-
-    // capa: se existir item.capa usa; se não, cai para o próprio ficheiro
     const capa = item.capa || item.ficheiro;
 
     const outFile = path.join(OUTPUT_DIR, `${slug}.html`);
 
-    // Se o arquivo já existe e já está na versão atual, ignora (cria apenas novos)
+    // ✅ Agora só ignora se já for V3
     if (fs.existsSync(outFile)) {
       const current = fs.readFileSync(outFile, "utf8");
       if (current.includes(GENERATED_MARKER)) {
@@ -220,13 +238,12 @@ function construirBiblioteca() {
 
     let html = template;
 
-    // Substituições seguras (mantém estrutura do template)
     html = html
       .replace(/{{TITULO}}/g, escapeHtml(item.titulo))
       .replace(/{{DESCRICAO}}/g, escapeHtml(descricao))
       .replace(/{{TAGS}}/g, escapeHtml(item.tags || item.titulo))
       .replace(/{{SLUG}}/g, escapeHtml(slug))
-      .replace(/{{CAPA}}/g, escapeHtml(capa).replace(/^\/+/, "")) // template já prefixa com /
+      .replace(/{{CAPA}}/g, escapeHtml(capa).replace(/^\/+/, ""))
       .replace(/{{FICHEIRO}}/g, escapeHtml(item.ficheiro).replace(/^\/+/, ""))
       .replace(/{{CATEGORIA}}/g, escapeHtml(categoria))
       .replace(/{{TIPO}}/g, escapeHtml(tipo))
@@ -235,27 +252,21 @@ function construirBiblioteca() {
       .replace(/{{PREV_STYLE}}/g, escapeHtml(nav.prevStyle))
       .replace(/{{NEXT_STYLE}}/g, escapeHtml(nav.nextStyle));
 
-    // Para categoria "fotos": mantém lightbox e faz a imagem abrir no clique.
     if (categoria === "fotos") {
       const indiceImagem = imagens.findIndex((i) => i.slug === slug);
 
-      // substitui a imagem principal para abrir lightbox (mantendo tamanhos do template)
       html = html.replace(
         /<img[^>]*class="w-full[^"]*biblioteca-hero-img"[^>]*>/i,
         `<img src="${item.ficheiro}" alt="Capa de ${escapeHtml(item.titulo)}" class="w-full rounded-xl mb-6 biblioteca-hero-img cursor-zoom-in" loading="lazy" decoding="async" onclick="abrirLightbox(${indiceImagem})">`
       );
 
-      // injeta bloco de lightbox antes do </body>
       const bloco = montarBlocoLightbox(imagens);
       html = html.replace("</body>", `\n${bloco}\n</body>`);
     }
 
-    // Garante marker de versão (para ignorar no futuro)
+    // ✅ Injeta marker V3
     if (!html.includes(GENERATED_MARKER)) {
-      html = html.replace(
-        "</head>",
-        `\n<!-- ${GENERATED_MARKER} -->\n</head>`
-      );
+      html = html.replace("</head>", `\n<!-- ${GENERATED_MARKER} -->\n</head>`);
     }
 
     fs.writeFileSync(outFile, html, "utf8");
