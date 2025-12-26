@@ -73,75 +73,96 @@
     
 
     <style>
-      .resultado.bg-red-custom {
-        background-color: #fee2e2;
-        color: #dc2626;
+      /* Layout de duas colunas */
+      .news-layout-container {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
       }
-      .resultado.bg-yellow-custom {
-        background-color: #fefce8;
-        color: #d97706;
-      }
-      .resultado.bg-green-custom {
-        background-color: #dcfce7;
-        color: #15803d;
-      }
-      .resultado.bg-info-orange-light {
-        background-color: #ffeeba;
-        border-color: #ffb366;
-        color: #856404;
+      @media (min-width: 1024px) {
+        .news-layout-container {
+          grid-template-columns: 1fr 1fr;
+        }
       }
 
+      /* Estilo dos Cards Principais (Esquerda e Direita) */
+      .news-main-card {
+        background-color: #fff;
+        border: 1px solid #e5e7eb; /* Rebordos suaves */
+        border-radius: 12px;
+        padding: 1.5rem;
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); /* Forte sombreamento */
+        height: fit-content;
+      }
+
+      /* Ajuste dos itens internos da escala */
       .news-criteria-container {
         display: flex;
         flex-direction: column;
-        gap: 1.5rem;
+        gap: 1rem;
       }
       .news-criterion-card {
         background-color: #fff;
         border: 1px solid #d1d5db;
-        border-radius: 12px;
-        padding: 1.5rem;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        transition: box-shadow 0.3s ease;
-      }
-      .news-criterion-card:hover {
-        box-shadow: 0 10px 15px rgba(0, 0, 0, 0.15);
+        border-radius: 8px; /* Arredondamento um pouco menor para os internos */
+        padding: 1rem;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
       }
       .news-criterion-header {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        margin-bottom: 0.75rem;
+        margin-bottom: 0.5rem;
         text-align: left;
       }
       .news-criterion-title {
-        font-size: 1.25rem;
+        font-size: 1rem; /* Diminuído para se adequar */
         font-weight: 700;
         color: #1a3e74;
       }
       .news-score-display {
-        font-size: 1.25rem;
+        font-size: 1rem;
         font-weight: 700;
         color: #1fa4e5;
       }
       .news-select {
         width: 100%;
-        padding: 0.75rem;
+        padding: 0.5rem;
         border: 1px solid #ccc;
         border-radius: 0.375rem;
-        font-size: 1rem;
+        font-size: 0.9rem;
         color: #333;
         background-color: #fff;
         appearance: none;
         background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='currentColor'%3E%3Cpath fill-rule='evenodd' d='M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z' clip-rule='evenodd'/%3E%3C/svg%3E");
         background-repeat: no-repeat;
-        background-position: right 0.75rem center;
-        background-size: 1.5em 1.5em;
+        background-position: right 0.5rem center;
+        background-size: 1.2em 1.2em;
       }
       .news-select:focus {
         outline: none;
         border-color: #1fa4e5;
         box-shadow: 0 0 0 3px rgba(31, 164, 229, 0.2);
+      }
+
+      /* Estilo do Card de Resultado */
+      .resultado-news {
+        background-color: rgba(219, 234, 254, 0.9); /* Azul transparente */
+        color: #1e3a8a; /* Azul escuro */
+        border: 1px solid rgba(191, 219, 254, 1);
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin-top: 1.5rem;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); /* Bordas sombreadas */
+      }
+      
+      .resultado-text-normal {
+        font-weight: 400;
+        color: #1e3a8a;
+      }
+      .resultado-text-bold {
+        font-weight: 700;
+        color: #1e3a8a;
       }
     </style>
     <link rel="preconnect" href="https://fonts.googleapis.com?display=swap">
@@ -234,7 +255,7 @@
       </div>
     </div>
     <main id="main-content" class="flex-grow p-4 sm:p-8">
-      <div class="main-content-wrapper max-w-4xl mx-auto px-4 py-8">
+      <div class="main-content-wrapper max-w-7xl mx-auto px-4 py-8">
         <nav class="breadcrumb" aria-label="breadcrumb">
           <ol>
             <li><a href="index.html">Início</a></li>
@@ -253,40 +274,53 @@
         <h2 id="main-subtitle" class="font-inter font-semibold text-light-blue text-xl lg:text-2xl mb-3 text-center">
           National Early Warning Score
         </h2>
-        <p id="description-text" class="text-gray-700 mb-6 text-left">
-          O Protocolo NEWS (National Early Warning Score) é uma ferramenta para
-          detecção precoce de deterioração clínica em pacientes hospitalizados.
-          A pontuação é calculada a partir de variáveis fisiológicas e, se o
-          resultado indica risco, um plano de ação é acionado para garantir a
-          segurança da paciente.
-        </p>
-        <p class="font-inter text-black-custom text-base lg:text-lg text-center sm:text-left">
-          <strong>Ano de Criação:</strong> 2012
-        </p>
-        <p class="font-inter text-black-custom text-base lg:text-lg text-center sm:text-left">
-          <strong>Autores:</strong> Royal College of Physicians, no Reino Unido.
-        </p>
-        <p class="font-inter text-black-custom text-base lg:text-lg text-center sm:text-left">
-          <strong>Área empregada:</strong> Unidades de internação clínica e
-          cirúrgica.
-        </p>
-        <p class="font-inter text-black-custom text-base lg:text-lg text-center sm:text-left">
-          <strong>Critérios avaliados:</strong> Nível de consciência,
-          temperatura, frequência cardíaca, pressão arterial sistólica,
-          frequência respiratória, saturação de oxigênio e uso de oxigênio
-          suplementar.
-        </p>
-        <p class="font-inter text-black-custom text-base lg:text-lg text-center sm:text-left">
-          <strong>Quem utiliza?:</strong> Enfermeiros e médicos.
-        </p>
+        
         <p class="font-inter font-normal text-light-blue text-base lg:text-lg mb-6 text-left">
           Selecione a pontuação correspondente à condição do paciente para cada
           variável:
         </p>
 
-        <div id="conteudo" class="news-criteria-container"></div>
+        <!-- Container do Layout (Esquerda e Direita) -->
+        <div class="news-layout-container">
+          
+          <!-- Card da Esquerda (Critérios) -->
+          <div class="news-main-card">
+            <div id="conteudo" class="news-criteria-container"></div>
+          </div>
 
-        <div id="resultado" class="resultado hidden" aria-live="polite"></div>
+          <!-- Card da Direita (Informações) -->
+          <div class="news-main-card flex flex-col gap-4">
+             <h2 class="text-center font-bold text-2xl text-dark-blue">Escala de NEWS</h2>
+             <h3 class="text-left text-sm font-semibold text-gray-700">Identificar problemas nos padroes fisiológicos e atuar antes de complicações maiores ao paciente.</h3>
+             
+             <div class="text-xs text-justify text-gray-600 space-y-2">
+                <p>O sucesso do atendimento ao paciente crítico dependerá, de seu correto diagnóstico.
+                Porém, seja qual for o seu diagnóstico, se identificado precocemente, medidas
+                implementadas terão maior efetividade, o que acarretará em um melhor prognóstico. Por
+                isto, que se identifique precocemente os pacientes graves.</p>
+                
+                <p>O não reconhecimento precoce destas complicações, levam a piora da doença, e, nesta
+                situação, mesmo adotando um conjunto de medidas complexas e de custo elevado, em um
+                grande número de vezes, a resposta passa a ser lenta e nem sempre resulta em sucesso.</p>
+                
+                <p>É possível identificar precocemente estes pacientes. Os pacientes apresentam “pistas”,
+                totalmente perceptíveis, horas antes do quadro se tornar extremamente grave.</p>
+                
+                <p>Necessitamos aprender a sistematizar o reconhecimento para termos (e não perdermos) a
+                chance de atuar de forma exemplar. Uma ferramenta utilizada para este fim é o “NEWS”
+                (National Early Warning Score – Escore para Alerta Precoce-EPAP).</p>
+             </div>
+
+             <div class="flex justify-center mt-4">
+               <!-- Imagem miniatura -->
+               <img src="img/PROTOCOLO DE NEWS ENFERMAGEM SAUDE.webp" alt="Protocolo NEWS" class="w-32 h-auto rounded-lg shadow-sm border border-gray-200">
+             </div>
+          </div>
+
+        </div>
+        <!-- Fim do Layout Container -->
+
+        <div id="resultado" class="resultado-news hidden" aria-live="polite"></div>
 
         <div class="flex flex-wrap justify-start gap-4 mt-6">
           <button id="btnCalcular" class="btn-primary" aria-label="Calcular Escore NEWS">
@@ -431,42 +465,43 @@
           if (!allItemsSelected) {
             resultadoDiv.innerHTML =
               '⚠️ <strong class="font-bold">Por favor, selecione uma opção para cada item</strong> antes de calcular.';
-            resultadoDiv.className = "resultado bg-info-orange-light";
+            // Mantém estilo de erro/alerta padrão
+            resultadoDiv.className = "resultado-news bg-info-orange-light text-yellow-800";
             delete resultadoDiv.dataset.score;
             return;
           }
 
           let classificacao = "";
           let acaoRecomendada = "";
-          let resultadoClasse = "";
+
+          // Reset da classe para usar apenas a classe base azul transparente
+          resultadoDiv.className = "resultado-news";
 
           if (totalScore >= 7) {
             classificacao = "Alto";
             acaoRecomendada =
-              "Acionar equipe médica imediatamente e iniciar intervenções apropriadas. Monitoramento intensivo (Ex: a cada 5-15 min).";
-            resultadoClasse = "bg-red-custom";
+              "Acionar imediatamente o Time de Resposta Rapida (TRR) e manter monitoramento contínuo.";
           } else if (totalScore >= 5) {
             classificacao = "Moderado";
             acaoRecomendada =
-              "Reavaliar frequentemente (a cada 1-2 horas) e considerar apoio médico. Risco de deterioração clínica.";
-            resultadoClasse = "bg-yellow-custom";
+              "Reavaliar frequentemente (a cada 1-2 horas) Acionar Código Amarelo e Time de Resposta Rápida reavalia paciente após 1 hora da primeira avaliação. Risco de deterioração clínica.";
           } else if (totalScore >= 1 && totalScore <= 4) {
             classificacao = "Baixo";
-            acaoRecomendada = "Monitoramento regular (a cada 4-6 horas).";
-            resultadoClasse = "bg-green-custom";
+            acaoRecomendada = "Monitoramento regular (a cada 4 horas).";
           } else if (totalScore === 0) {
             classificacao = "Muito Baixo";
-            acaoRecomendada = "Monitoramento de rotina (a cada 12 horas).";
-            resultadoClasse = "bg-green-custom";
+            acaoRecomendada = "Monitoramento de rotina (a cada 6 horas).";
           } else {
             classificacao = "Pontuação inválida";
             acaoRecomendada =
               "A pontuação calculada está fora dos limites esperados da escala. Verifique as seleções.";
-            resultadoClasse = "bg-info-orange-light";
           }
 
-          resultadoDiv.innerHTML = `<p>Pontuação Total NEWS: <strong class="font-bold">${totalScore}</strong></p><p>Classificação: <strong class="font-bold">${classificacao}</strong></p><p>Ação Recomendada: <strong class="font-bold">${acaoRecomendada}</strong></p>`;
-          resultadoDiv.className = `resultado ${resultadoClasse}`;
+          resultadoDiv.innerHTML = `
+            <p class="resultado-text-normal">Pontuação Total NEWS: <strong class="resultado-text-bold">${totalScore}</strong></p>
+            <p class="resultado-text-normal">Classificação: <strong class="resultado-text-bold">${classificacao}</strong></p>
+            <p class="resultado-text-normal">Ação Recomendada: <strong class="resultado-text-bold">${acaoRecomendada}</strong></p>
+          `;
 
           resultadoDiv.dataset.score = totalScore;
           resultadoDiv.dataset.classificacao = classificacao;
@@ -483,7 +518,8 @@
             ).innerText = "0";
           });
           resultadoDiv.innerHTML = "";
-          resultadoDiv.className = "resultado hidden";
+          resultadoDiv.className = "resultado-news hidden";
+          resultadoDiv.style.display = "none";
           delete resultadoDiv.dataset.score;
           delete resultadoDiv.dataset.classificacao;
           delete resultadoDiv.dataset.conduta;
