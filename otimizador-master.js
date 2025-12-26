@@ -5,6 +5,7 @@ const glob = require("glob");
 const cheerio = require("cheerio");
 const sizeOf = require("image-size");
 const sharp = require("sharp");
+const { execSync } = require("child_process");
 
 // =====================================================================
 // CONFIGURAÇÕES
@@ -58,18 +59,24 @@ const PASTAS_BLOQUEADAS_GLOBAIS = [
   "css",
 ];
 
-// Marker: se o arquivo já foi processado/tem regra, ignorar
-const MARKER_COMMENT = "OTIMIZADOR_MASTER_V2";
-const MARKER_REGEX = new RegExp(`<!--\\s*${MARKER_COMMENT}\\s*-->`, "i");
+// Markers (compatível com versões antigas)
+const MARKER_V2 = "OTIMIZADOR_MASTER_V2";
+const MARKER_V3 = "OTIMIZADOR_MASTER_V3";
+
+// IDs fixos para evitar duplicar blocos
+const RESPONSIVE_STYLE_ID = "otimizador-master-responsive";
+const SCHEMA_SCRIPT_ID = "otimizador-master-schema";
+
+// ✅ Rodar comandos ao final
+const RODAR_TAILWIND_AO_FINAL = true;
+const RODAR_GERAR_SW_AO_FINAL = true;
 
 // =====================================================================
 // LOCALIZAÇÃO / SEO POR IDIOMA
 // =====================================================================
 const LOCALE_MAP = {
-  // raiz (pt-br) será tratada como pt_BR
   "pt-br": "pt_BR",
   pt: "pt_BR",
-
   en: "en_US",
   es: "es_ES",
   fr: "fr_FR",
@@ -91,9 +98,7 @@ const LOCALE_MAP = {
 };
 
 const IFRAME_TITLE_MAP = {
-  // pt-br
   "pt-br": "Conteúdo incorporado",
-
   en: "Embedded content",
   es: "Contenido incrustado",
   fr: "Contenu intégré",
@@ -136,7 +141,6 @@ function temPastaBloqueadaNoCaminho(filePath) {
 }
 
 function estaNaRaiz(filePath) {
-  // raiz: não pode ter "/" no caminho normalizado
   return !normalizarParaUrl(filePath).includes("/");
 }
 
@@ -151,18 +155,24 @@ function ehArquivoDeIdioma(filePath) {
 }
 
 function obterLangDoArquivo(filePath) {
-  // Se está na raiz: pt-br
   if (estaNaRaiz(filePath)) return "pt-br";
-  // Se está numa pasta de idioma: retorna a pasta
   const top = obterTopFolder(filePath);
   if (IDIOMAS_PERMITIDOS.includes(top)) return top;
-  // fallback
   return "pt-br";
 }
 
 function montarUrlCanonica(filePath) {
   const urlPath = normalizarParaUrl(filePath);
   return `${SITE_URL}/${urlPath}`;
+}
+
+function temClasseQueIndicaOverflow($, el) {
+  const cls = ($(el).attr("class") || "").toLowerCase();
+  return (
+    cls.includes("overflow-x") ||
+    cls.includes("overflow-auto") ||
+    cls.includes("table-responsive")
+  );
 }
 
 // =====================================================================
@@ -205,9 +215,104 @@ const langFiles = langPatterns.flatMap((pattern) =>
 );
 
 files.push(...langFiles);
-
-// remove duplicados
 files = Array.from(new Set(files));
+
+// =====================================================================
+// RESPONSIVIDADE MOBILE (SAFE)
+// =====================================================================
+function garantirViewport(head) {
+  if (head.find('meta[name="viewport"]').length === 0) {
+    head.prepend('<meta name="viewport" content="width=device-width, initial-scale=1.0">');
+    return true;
+  }
+  return false;
+}
+
+function garantirCssResponsivo(head) {
+  if (head.find(`style#${RESPONSIVE_STYLE_ID}`).length > 0) return false;
+
+  const css = `
+/* ${MARKER_V3} - RESPONSIVE SAFE */
+img, video { max-width: 100%; height: auto; }
+iframe { max-width: 100%; }
+body { overflow-x: hidden; }
+.table-responsive { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+`;
+
+  head.append(`\n<style id="${RESPONSIVE_STYLE_ID}">${css}\n</style>\n`);
+  return true;
+}
+
+function enveloparTabelasResponsivas($) {
+  let mudou = false;
+
+  $("table").each((i, table) => {
+    const $table = $(table);
+    const parent = $table.parent();
+
+    // já está em wrapper responsivo?
+    if (parent && parent.length) {
+      const parentTag = (parent[0].tagName || "").toLowerCase();
+      if (parentTag === "div" && temClasseQueIndicaOverflow($, parent)) return;
+    }
+
+    // se algum ancestral próximo já é overflow-x, não mexe
+    let ancestor = parent;
+    let depth = 0;
+    while (ancestor && ancestor.length && depth < 4) {
+      const tag = (ancestor[0].tagName || "").toLowerCase();
+      if (tag === "div" && temClasseQueIndicaOverflow($, ancestor)) return;
+      ancestor = ancestor.parent();
+      depth++;
+    }
+
+    $table.wrap('<div class="table-responsive"></div>');
+    mudou = true;
+  });
+
+  return mudou;
+}
+
+// =====================================================================
+// SEO + PERFORMANCE (mantendo regras antigas)
+// =====================================================================
+function garantirPreconnectFonts(head) {
+  let mudou = false;
+  const preconnects = ["https://fonts.gstatic.com", "https://fonts.googleapis.com"];
+  preconnects.forEach((url) => {
+    if (head.find(`link[rel="preconnect"][href^="${url}"]`).length === 0) {
+      head.prepend(`<link rel="preconnect" href="${url}" crossorigin>`);
+      mudou = true;
+    }
+  });
+  return mudou;
+}
+
+function garantirDisplaySwapGoogleFonts(head) {
+  let mudou = false;
+  head.find('link[href*="fonts.googleapis.com"]').each((i, el) => {
+    let href = head.find(el).attr("href");
+    if (href && !href.includes("display=swap")) {
+      href = href.includes("?") ? `${href}&display=swap` : `${href}?display=swap`;
+      head.find(el).attr("href", href);
+      mudou = true;
+    }
+  });
+  return mudou;
+}
+
+function garantirDeferScripts($) {
+  let mudou = false;
+  $("script[src]").each((i, el) => {
+    const $el = $(el);
+    const src = $el.attr("src");
+    if (src && !$el.attr("async") && !$el.attr("defer") && !$el.attr("type")) {
+      $el.attr("defer", "defer");
+      mudou = true;
+    }
+  });
+  return mudou;
+}
 
 // =====================================================================
 // PROCESSAMENTO
@@ -215,22 +320,16 @@ files = Array.from(new Set(files));
 async function processarArquivo(filePath) {
   const nomeArquivo = path.basename(filePath);
 
-  // segurança global
-  if (path.extname(filePath) !== ".html") return;
-  if (ARQUIVOS_PROIBIDOS.includes(nomeArquivo)) return;
-  if (temPastaBloqueadaNoCaminho(filePath)) return;
+  if (path.extname(filePath) !== ".html") return false;
+  if (ARQUIVOS_PROIBIDOS.includes(nomeArquivo)) return false;
+  if (temPastaBloqueadaNoCaminho(filePath)) return false;
 
-  // ✅ Só permite: raiz OU pastas de idioma
   const permitido =
     (OTIMIZAR_PORTUGUES_RAIZ && estaNaRaiz(filePath)) || ehArquivoDeIdioma(filePath);
+  if (!permitido) return false;
 
-  if (!permitido) return;
-
-  let original = fs.readFileSync(filePath, "utf8");
-  if (!original || original.trim().length === 0) return;
-
-  // Se já tem marker: ignora
-  if (MARKER_REGEX.test(original)) return;
+  const original = fs.readFileSync(filePath, "utf8");
+  if (!original || original.trim().length === 0) return false;
 
   const $ = cheerio.load(original, { decodeEntities: false });
   const lang = obterLangDoArquivo(filePath);
@@ -238,29 +337,35 @@ async function processarArquivo(filePath) {
   const iframeTitle = IFRAME_TITLE_MAP[lang] || "Embedded content";
 
   const head = $("head");
-  if (head.length === 0) return;
+  if (head.length === 0) return false;
+
+  let mudouAlgo = false;
 
   // ==========================================================
   // 0) NÃO MEXER em canonical/hreflang existentes
   // ==========================================================
   const existeCanonical = head.find('link[rel="canonical"]').length > 0;
-  const existemAlternates = head.find('link[rel="alternate"][hreflang]').length > 0;
-  void existemAlternates; // deixa explícito: não mexemos em hreflang
-
   const urlCanonica = montarUrlCanonica(filePath);
 
   // ==========================================================
-  // 1) IMAGENS (alt/width/height/lazy/webp) — sem quebrar layout
+  // 1) RESPONSIVIDADE MOBILE (SAFE)
+  // ==========================================================
+  mudouAlgo = garantirViewport(head) || mudouAlgo;
+  mudouAlgo = garantirCssResponsivo(head) || mudouAlgo;
+  mudouAlgo = enveloparTabelasResponsivas($) || mudouAlgo;
+
+  // ==========================================================
+  // 2) IMAGENS (alt/width/height/lazy/webp)
   // ==========================================================
   let primaryImage = DEFAULT_IMAGE;
 
   const imgPromises = $("img")
     .map(async (i, el) => {
-      let src = $(el).attr("src");
+      const $el = $(el);
+      const src = $el.attr("src");
       if (!src) return;
       if (isExternalOrDataUrl(src)) return;
 
-      // imagem primária (evita logo/icon)
       if (primaryImage === DEFAULT_IMAGE) {
         const low = src.toLowerCase();
         if (!low.includes("logo") && !low.includes("icon")) {
@@ -269,36 +374,39 @@ async function processarArquivo(filePath) {
         }
       }
 
-      // Resolve caminho físico: se estiver na raiz, relativo ao repo;
-      // se estiver em pasta de idioma, relativo ao arquivo.
       const baseDir = path.dirname(filePath);
       const imgPath = path.join(baseDir, src);
-
       if (!fs.existsSync(imgPath)) return;
 
       // alt
-      const alt = $(el).attr("alt");
+      const alt = $el.attr("alt");
       if (!alt || alt.trim() === "") {
         const altText = path.basename(src, path.extname(src)).replace(/[-_]/g, " ");
-        $(el).attr("alt", altText);
+        $el.attr("alt", altText);
+        mudouAlgo = true;
       }
 
-      // loading lazy (não forçar em logos)
+      // loading lazy
       const isLogo = src.toLowerCase().includes("logo");
-      if (!isLogo && !$(el).attr("loading")) {
-        $(el).attr("loading", "lazy");
+      if (!isLogo && !$el.attr("loading")) {
+        $el.attr("loading", "lazy");
+        mudouAlgo = true;
       }
 
       // width/height (CLS)
       try {
         const d = sizeOf(imgPath);
         if (d) {
-          if (!$(el).attr("width")) $(el).attr("width", d.width);
-          if (!$(el).attr("height")) $(el).attr("height", d.height);
+          if (!$el.attr("width")) {
+            $el.attr("width", d.width);
+            mudouAlgo = true;
+          }
+          if (!$el.attr("height")) {
+            $el.attr("height", d.height);
+            mudouAlgo = true;
+          }
         }
-      } catch (_) {
-        // ignora
-      }
+      } catch (_) {}
 
       // webp (somente jpg/png local)
       try {
@@ -309,56 +417,58 @@ async function processarArquivo(filePath) {
           if (!fs.existsSync(webpPath)) {
             await sharp(imgPath).toFile(webpPath);
           }
-          $(el).attr("src", srcWebp);
+          if (src !== srcWebp) {
+            $el.attr("src", srcWebp);
+            mudouAlgo = true;
+          }
         }
-      } catch (_) {
-        // não quebra
-      }
+      } catch (_) {}
     })
     .get();
 
   await Promise.all(imgPromises);
 
   // ==========================================================
-  // 2) IFRAME / VIDEO (loading + title localizado)
+  // 3) IFRAME / VIDEO
   // ==========================================================
   $("iframe, video").each((i, el) => {
-    if (!$(el).attr("loading")) $(el).attr("loading", "lazy");
+    const $el = $(el);
 
-    if (el.tagName === "iframe" && !$(el).attr("title")) {
-      $(el).attr("title", iframeTitle);
+    if (!$el.attr("loading")) {
+      $el.attr("loading", "lazy");
+      mudouAlgo = true;
     }
 
-    const src = $(el).attr("src") || "";
+    if (el.tagName === "iframe" && !$el.attr("title")) {
+      $el.attr("title", iframeTitle);
+      mudouAlgo = true;
+    }
+
+    const src = $el.attr("src") || "";
     if (src.includes("youtube") || src.includes("vimeo")) {
-      const style = $(el).attr("style") || "";
+      const style = $el.attr("style") || "";
       if (!style.includes("aspect-ratio") && !style.includes("height")) {
-        $(el).attr(
+        $el.attr(
           "style",
           `${style}; aspect-ratio: 16 / 9; width: 100%;`.replace(/^; /, "")
         );
+        mudouAlgo = true;
       }
     }
   });
 
   // ==========================================================
-  // 3) HEAD / SEO (SEM tocar canonical/hreflang existentes)
+  // 4) HEAD / SEO (SEM tocar canonical/hreflang)
   // ==========================================================
   const title = $("title").text().trim() || AUTHOR_NAME;
   const rawDesc = head.find('meta[name="description"]').attr("content") || title;
   const description = String(rawDesc).replace(/[\r\n]+/g, " ").substring(0, 320);
 
-  // viewport
-  if (head.find('meta[name="viewport"]').length === 0) {
-    head.prepend('<meta name="viewport" content="width=device-width, initial-scale=1.0">');
-  }
-
-  // author
   if (head.find('meta[name="author"]').length === 0) {
     head.append(`<meta name="author" content="${AUTHOR_NAME}">`);
+    mudouAlgo = true;
   }
 
-  // Open Graph
   const ogTags = {
     "og:locale": ogLocale,
     "og:type": "website",
@@ -372,10 +482,10 @@ async function processarArquivo(filePath) {
   for (const [property, content] of Object.entries(ogTags)) {
     if (head.find(`meta[property="${property}"]`).length === 0) {
       head.append(`<meta property="${property}" content="${content}">`);
+      mudouAlgo = true;
     }
   }
 
-  // Twitter Cards
   const twTags = {
     "twitter:card": "summary_large_image",
     "twitter:title": title,
@@ -386,43 +496,23 @@ async function processarArquivo(filePath) {
   for (const [name, content] of Object.entries(twTags)) {
     if (head.find(`meta[name="${name}"]`).length === 0) {
       head.append(`<meta name="${name}" content="${content}">`);
+      mudouAlgo = true;
     }
   }
 
-  // Canonical: só adiciona se NÃO existir (e não mexe em blocos existentes)
+  // canonical: só cria se NÃO existir (não mexe no que já existe)
   if (!existeCanonical) {
     head.append(`<link rel="canonical" href="${urlCanonica}">`);
+    mudouAlgo = true;
   }
 
-  // font-display swap
-  head.find('link[href*="fonts.googleapis.com"]').each((i, el) => {
-    let href = $(el).attr("href");
-    if (href && !href.includes("display=swap")) {
-      href = href.includes("?") ? `${href}&display=swap` : `${href}?display=swap`;
-      $(el).attr("href", href);
-    }
-  });
+  mudouAlgo = garantirPreconnectFonts(head) || mudouAlgo;
+  mudouAlgo = garantirDisplaySwapGoogleFonts(head) || mudouAlgo;
+  mudouAlgo = garantirDeferScripts($) || mudouAlgo;
 
-  // preconnect
-  const preconnects = ["https://fonts.gstatic.com", "https://fonts.googleapis.com"];
-  preconnects.forEach((url) => {
-    if (head.find(`link[rel="preconnect"][href^="${url}"]`).length === 0) {
-      head.prepend(`<link rel="preconnect" href="${url}" crossorigin>`);
-    }
-  });
-
-  // defer scripts (não mexe em scripts que já tenham async/defer/type)
-  $("script[src]").each((i, el) => {
-    const src = $(el).attr("src");
-    if (src && !$(el).attr("async") && !$(el).attr("defer") && !$(el).attr("type")) {
-      $(el).attr("defer", "defer");
-    }
-  });
-
-  // Schema: só adiciona se NÃO tiver nenhum ld+json
+  // Schema: só cria se não existir nenhum ld+json
   const jaTemSchema = head.find('script[type="application/ld+json"]').length > 0;
-
-  if (!jaTemSchema) {
+  if (!jaTemSchema && head.find(`script#${SCHEMA_SCRIPT_ID}`).length === 0) {
     const stats = fs.statSync(filePath);
     const dateModified = stats.mtime.toISOString();
     const datePublished = stats.birthtime.toISOString();
@@ -465,25 +555,70 @@ async function processarArquivo(filePath) {
     };
 
     head.append(
-      `\n<!-- ${MARKER_COMMENT} -->\n<script type="application/ld+json" id="otimizador-master-v2-schema">${JSON.stringify(
+      `\n<!-- ${MARKER_V3} -->\n<script type="application/ld+json" id="${SCHEMA_SCRIPT_ID}">${JSON.stringify(
         schemaData
       )}</script>\n`
     );
+    mudouAlgo = true;
   } else {
-    // Se já tem schema, ainda marca para pular em próximas rodadas (sem remover nada)
-    if (!head.html().includes(MARKER_COMMENT)) {
-      head.append(`\n<!-- ${MARKER_COMMENT} -->\n`);
+    const headHtml = head.html() || "";
+    if (!headHtml.includes(MARKER_V3) && !headHtml.includes(MARKER_V2)) {
+      head.append(`\n<!-- ${MARKER_V3} -->\n`);
+      mudouAlgo = true;
     }
   }
 
   // ==========================================================
-  // 4) Escrever SOMENTE se mudou
+  // 5) Escrever SOMENTE se mudou
   // ==========================================================
-  const resultado = $.html();
+  if (!mudouAlgo) return false;
 
+  const resultado = $.html();
   if (resultado !== original) {
     fs.writeFileSync(filePath, resultado, "utf8");
     console.log(`✅ Otimizado: ${filePath}`);
+    return true;
+  }
+
+  return false;
+}
+
+// =====================================================================
+// RODAR COMANDOS AO FINAL (Tailwind + gerar-sw.js)
+// =====================================================================
+function rodarComandoNoTerminal(comando) {
+  // Executa usando o shell do sistema (Windows/PowerShell/ CMD)
+  execSync(comando, { stdio: "inherit", shell: true });
+}
+
+function rodarTailwind() {
+  if (!RODAR_TAILWIND_AO_FINAL) return;
+
+  const cmd =
+    ".\\node_modules\\.bin\\tailwindcss -i ./src/input.css -o ./public/output.css --minify";
+
+  console.log("\n--- RODANDO TAILWIND (build/minify) ---");
+  try {
+    rodarComandoNoTerminal(cmd);
+    console.log("--- TAILWIND OK ---\n");
+  } catch (e) {
+    console.error("❌ Falha ao rodar Tailwind. Verifique se tailwindcss está instalado e se ./src/input.css existe.");
+    console.error(String(e?.message || e));
+  }
+}
+
+function rodarGerarSW() {
+  if (!RODAR_GERAR_SW_AO_FINAL) return;
+
+  const cmd = "node gerar-sw.js";
+
+  console.log("\n--- RODANDO gerar-sw.js ---");
+  try {
+    rodarComandoNoTerminal(cmd);
+    console.log("--- gerar-sw.js OK ---\n");
+  } catch (e) {
+    console.error("❌ Falha ao rodar gerar-sw.js. Verifique se o arquivo existe e se não há erros no script.");
+    console.error(String(e?.message || e));
   }
 }
 
@@ -491,18 +626,28 @@ async function processarArquivo(filePath) {
 // EXECUTOR
 // =====================================================================
 (async () => {
-  console.log("--- INICIANDO OTIMIZADOR MASTER V2 (RAIZ PT + PASTAS DE IDIOMA) ---");
+  console.log("--- INICIANDO OTIMIZADOR MASTER (RAIZ PT + IDIOMAS) + RESPONSIVO SAFE ---");
   console.log(`PT na raiz: ${OTIMIZAR_PORTUGUES_RAIZ ? "SIM (somente *.html)" : "NÃO"}`);
   console.log(`Pastas de idioma: ${IDIOMAS_PERMITIDOS.join(", ")}`);
   console.log(`Total de arquivos HTML selecionados: ${files.length}`);
 
+  let totalOtimizados = 0;
+
   for (const file of files) {
     try {
-      await processarArquivo(file);
+      const mudou = await processarArquivo(file);
+      if (mudou) totalOtimizados++;
     } catch (e) {
       console.error(`❌ Erro: ${file}:`, e.message);
     }
   }
 
-  console.log("--- OTIMIZAÇÃO CONCLUÍDA ---");
+  console.log(`--- OTIMIZAÇÃO CONCLUÍDA ---`);
+  console.log(`Arquivos alterados nesta execução: ${totalOtimizados}`);
+
+  // ✅ Após otimizar: rodar Tailwind e gerar SW
+  // (mesmo se não houve mudanças, pode ser útil rodar; se você preferir,
+  // posso condicionar para rodar apenas se totalOtimizados > 0)
+  rodarTailwind();
+  rodarGerarSW();
 })();
