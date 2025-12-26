@@ -90,20 +90,38 @@ function construirPaginas() {
 
     const pagination = gerarPaginacao(totalPages, page);
 
+    let seoTitle = `Biblioteca de Enfermagem — Página ${page}`;
+    let seoDescription = `Biblioteca de Enfermagem com materiais, apostilas e documentos para download — Página ${page} de ${totalPages}.`;
+    let seoKeywords = `biblioteca de enfermagem, apostilas de enfermagem, protocolos clínicos, manuais oficiais, materiais para estudo, documentos para download, enfermagem`;
+    let canonicalUrl = `https://www.calculadorasdeenfermagem.com.br/downloads/page${page}.html`;
+
     let html = template
       .replace("<!-- [GERAR_TODOS] -->", todos)
       .replace("<!-- [GERAR_DOCUMENTOS] -->", documentos)
       .replace("<!-- [GERAR_FOTOS] -->", fotos)
       .replace("<!-- [GERAR_VIDEOS] -->", videos)
       .replace("<!-- [PAGINACAO] -->", pagination)
-      .replace(
-        /<title>.*<\/title>/,
-        `<title>Biblioteca de Enfermagem — Página ${page}</title>`
-      )
-      .replace(
-        /<link rel="canonical".*>/,
-        `<link rel="canonical" href="https://www.calculadorasdeenfermagem.com.br/downloads/page${page}.html">`
-      );
+
+      // SEO placeholders do template
+      .replace(/<!-- \[SEO_TITLE\] -->/g, seoTitle)
+      .replace(/&lt;!-- \[SEO_TITLE\] --&gt;/g, seoTitle)
+      .replace(/<!-- \[SEO_DESCRIPTION\] -->/g, seoDescription)
+      .replace(/&lt;!-- \[SEO_DESCRIPTION\] --&gt;/g, seoDescription)
+      .replace(/<!-- \[SEO_KEYWORDS\] -->/g, seoKeywords)
+      .replace(/&lt;!-- \[SEO_KEYWORDS\] --&gt;/g, seoKeywords)
+
+      // URL placeholders (canonical / og:url / schema)
+      .replace(/<!-- \[CANONICAL_URL\] -->/g, canonicalUrl)
+      .replace(/<!-- \[SEO_URL\] -->/g, canonicalUrl)
+
+      // Fallbacks (caso o template não tenha placeholders)
+      .replace(/<title>.*<\/title>/, `<title>${seoTitle}</title>`)
+      .replace(/<meta name="description" content="[^"]*"\s*>/i, `<meta name="description" content="${seoDescription}">`)
+      .replace(/<meta name="keywords" content="[^"]*"\s*>/i, `<meta name="keywords" content="${seoKeywords}">`)
+      .replace(/<link rel="canonical" href="[^"]*"\s*>/i, `<link rel="canonical" href="${canonicalUrl}">`)
+      .replace(/<meta property="og:url" content="[^"]*"\s*>/i, `<meta property="og:url" content="${canonicalUrl}">`)
+      .replace(/https:\/\/www\.calculadorasdeenfermagem\.com\.br\/downloads\.template\.html/g, canonicalUrl)
+      .replace(/https:\/\/www\.calculadorasdeenfermagem\.com\.br\/downloads\.html/g, canonicalUrl);
 
     const output = path.join(OUTPUT_DIR, `page${page}.html`);
 
