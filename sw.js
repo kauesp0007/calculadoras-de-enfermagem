@@ -1,5 +1,5 @@
 // Define o nome e a versão do cache (AUTOMÁTICO via gerar-sw.js)
-const CACHE_NAME = 'calculadoras-enfermagem-cache-20251227-201705-525';
+const CACHE_NAME = 'calculadoras-enfermagem-cache-20251227-202002-357';
 
 // O SCRIPT DE BUILD VAI INJETAR A LISTA DE ARQUIVOS AQUI
 const urlsToCache = [
@@ -1267,6 +1267,8 @@ const urlsToCache = [
   'img/hipoxia-cuidados-pcr.webp',
   'img/iconecapurro.webp',
   'img/iconemeem.webp',
+  'img/iconrodape1-160.webp',
+  'img/iconrodape1-80.webp',
   'img/ilustraçãogotejamentoalemão.webp',
   'img/ilustraçãogotejamentocoreano.webp',
   'img/ilustraçãogotejamentofrances.webp',
@@ -1293,6 +1295,12 @@ const urlsToCache = [
   'img/o responsavel pelos cuidados na assistencia ventilatoria deve preparar - circuito de aspiração orotraqueal montado e testado, lar.webp',
   'img/o responsável pelo carrinho de emergencia deve ter em mente as 5 causas prováveis H de uma PCR, e assim organizar o carrinho de emerg.webp',
   'img/pentagono_meem.jpg',
+  'img/seloacessibilidade-160.webp',
+  'img/seloacessibilidade-80.webp',
+  'img/selolgpd-160.webp',
+  'img/selolgpd-80.webp',
+  'img/selosustentabilidade-160.webp',
+  'img/selosustentabilidade-80.webp',
   'img/suportebasicodevida.jpg',
   'img/suportebasicodevida.webp',
   'img/tempodegotejamento.webp',
