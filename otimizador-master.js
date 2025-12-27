@@ -69,7 +69,7 @@ const SCHEMA_SCRIPT_ID = "otimizador-master-schema";
 
 // ✅ Rodar comandos ao final
 const RODAR_TAILWIND_AO_FINAL = true;
-const RODAR_GERAR_SW_AO_FINAL = true;
+
 
 // =====================================================================
 // LOCALIZAÇÃO / SEO POR IDIOMA
@@ -584,7 +584,7 @@ async function processarArquivo(filePath) {
 }
 
 // =====================================================================
-// RODAR COMANDOS AO FINAL (Tailwind + gerar-sw.js)
+// RODAR COMANDOS AO FINAL (Tailwind )
 // =====================================================================
 function rodarComandoNoTerminal(comando) {
   // Executa usando o shell do sistema (Windows/PowerShell/ CMD)
@@ -607,20 +607,7 @@ function rodarTailwind() {
   }
 }
 
-function rodarGerarSW() {
-  if (!RODAR_GERAR_SW_AO_FINAL) return;
 
-  const cmd = "node gerar-sw.js";
-
-  console.log("\n--- RODANDO gerar-sw.js ---");
-  try {
-    rodarComandoNoTerminal(cmd);
-    console.log("--- gerar-sw.js OK ---\n");
-  } catch (e) {
-    console.error("❌ Falha ao rodar gerar-sw.js. Verifique se o arquivo existe e se não há erros no script.");
-    console.error(String(e?.message || e));
-  }
-}
 
 // =====================================================================
 // EXECUTOR
@@ -645,9 +632,9 @@ function rodarGerarSW() {
   console.log(`--- OTIMIZAÇÃO CONCLUÍDA ---`);
   console.log(`Arquivos alterados nesta execução: ${totalOtimizados}`);
 
-  // ✅ Após otimizar: rodar Tailwind e gerar SW
+  // ✅ Após otimizar: rodar Tailwind 
   // (mesmo se não houve mudanças, pode ser útil rodar; se você preferir,
   // posso condicionar para rodar apenas se totalOtimizados > 0)
   rodarTailwind();
-  rodarGerarSW();
+  
 })();

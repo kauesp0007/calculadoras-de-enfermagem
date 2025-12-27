@@ -117,9 +117,7 @@ async function main() {
   console.log('🎨 Executando Tailwind CSS Build...');
   execSync('.\\node_modules\\.bin\\tailwindcss -i ./src/input.css -o ./public/output.css --minify', { stdio: 'inherit' });
 
-  // 8) Gerar Service Worker
-  console.log('⚙️ Executando geração do Service Worker...');
-  execSync('node gerar-sw.js', { stdio: 'inherit' });
+
 
   console.log(`
 🎯 Processo concluído.
