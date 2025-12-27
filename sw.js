@@ -1,5 +1,5 @@
 // Define o nome e a versão do cache (AUTOMÁTICO via gerar-sw.js)
-const CACHE_NAME = 'calculadoras-enfermagem-cache-20251227-183510-141';
+const CACHE_NAME = 'calculadoras-enfermagem-cache-20251227-195013-335';
 
 // O SCRIPT DE BUILD VAI INJETAR A LISTA DE ARQUIVOS AQUI
 const urlsToCache = [
@@ -275,6 +275,8 @@ const urlsToCache = [
   'biblioteca/icone-potassio-k.html',
   'biblioteca/icone-sodio-na.html',
   'biblioteca/iconecapurro.html',
+  'biblioteca/iconrodape1-160.html',
+  'biblioteca/iconrodape1-80.html',
   'biblioteca/idade-gestacional-e-data-provavel-do-parto.html',
   'biblioteca/idoso-andador.html',
   'biblioteca/idoso-com-depressao.html',
@@ -339,6 +341,12 @@ const urlsToCache = [
   'biblioteca/regra-de-3-calculo-de-medicamentos-enfermagem.html',
   'biblioteca/saude-do-coracao-enfermagem.html',
   'biblioteca/saude-do-coracao.html',
+  'biblioteca/seloacessibilidade-160.html',
+  'biblioteca/seloacessibilidade-80.html',
+  'biblioteca/selolgpd-160.html',
+  'biblioteca/selolgpd-80.html',
+  'biblioteca/selosustentabilidade-160.html',
+  'biblioteca/selosustentabilidade-80.html',
   'biblioteca/seringa-enfermagem-ilustracao.html',
   'biblioteca/sistema-de-informacao-de-agravos-de-notificacao-sinan.html',
   'biblioteca/sistema-unico-de-saude.html',
@@ -496,6 +504,7 @@ const urlsToCache = [
   'downloads/page12.html',
   'downloads/page13.html',
   'downloads/page14.html',
+  'downloads/page15.html',
   'downloads/page2.html',
   'downloads/page3.html',
   'downloads/page4.html',
@@ -1258,6 +1267,8 @@ const urlsToCache = [
   'img/hipoxia-cuidados-pcr.webp',
   'img/iconecapurro.webp',
   'img/iconemeem.webp',
+  'img/iconrodape1-160.webp',
+  'img/iconrodape1-80.webp',
   'img/ilustraçãogotejamentoalemão.webp',
   'img/ilustraçãogotejamentocoreano.webp',
   'img/ilustraçãogotejamentofrances.webp',
@@ -1284,6 +1295,12 @@ const urlsToCache = [
   'img/o responsavel pelos cuidados na assistencia ventilatoria deve preparar - circuito de aspiração orotraqueal montado e testado, lar.webp',
   'img/o responsável pelo carrinho de emergencia deve ter em mente as 5 causas prováveis H de uma PCR, e assim organizar o carrinho de emerg.webp',
   'img/pentagono_meem.jpg',
+  'img/seloacessibilidade-160.webp',
+  'img/seloacessibilidade-80.webp',
+  'img/selolgpd-160.webp',
+  'img/selolgpd-80.webp',
+  'img/selosustentabilidade-160.webp',
+  'img/selosustentabilidade-80.webp',
   'img/suportebasicodevida.jpg',
   'img/suportebasicodevida.webp',
   'img/tempodegotejamento.webp',
