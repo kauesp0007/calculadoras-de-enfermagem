@@ -1,0 +1,33 @@
+name: Gerar Service Worker (sw.js)
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 1. Baixar o código do repositório
+        uses: actions/checkout@v4
+
+      - name: 2. Configurar o Node.js no "robô"
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: 3. Gerar o sw.js automaticamente
+        run: node gerar-sw.js
+
+      - name: 4. Fazer commit e push automático do sw.js
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "Atualiza sw.js (Automático)"
+          file_pattern: sw.js
+          commit_user_name: "SW Bot"
+          commit_user_email: "bot@calculadorasdeenfermagem.com.br"
