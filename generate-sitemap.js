@@ -32,9 +32,9 @@ const IGNORE_FILES = [
   'testemeem.html',
   'site-de-vagas.html',
   'downloads.template.html',
-  'googlefc0a17cdd552164b.html'
-  'item.template.html'
-  'dowloads.template.html'
+  'googlefc0a17cdd552164b.html',
+  'item.template.html',
+  'dowloads.template.html',
   
 ];
 
