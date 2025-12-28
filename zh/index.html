@@ -990,35 +990,50 @@ body { overflow-x: hidden; }
   </div>
 </div>
 <script>
-  (function(){
-    var banner = document.getElementById('consent-banner');
-    var btnAccept = document.getElementById('consent-accept');
-    var btnReject = document.getElementById('consent-reject');
-    function hideBanner() {
-      banner.style.display = 'none';
+(function(){
+  var banner = document.getElementById('consent-banner');
+  var btnAccept = document.getElementById('consent-accept');
+  var btnReject = document.getElementById('consent-reject');
+
+  function hideBanner() {
+    banner.style.display = 'none';
+  }
+
+  function showBanner() {
+    try {
+      // ✅ usa o MESMO padrão do global-scripts.js
+      var stored = localStorage.getItem('cookieConsent');
+      if (stored === 'accepted' || stored === 'refused' || stored === 'managed') {
+        banner.style.display = 'none';
+        return;
+      }
+    } catch(e){}
+    banner.style.display = 'flex';
+  }
+
+  btnAccept.addEventListener('click', function(){
+    // ✅ chama a função global (que aplica consent e carrega Adsense)
+    if (typeof window.acceptAllCookies === "function") {
+      window.acceptAllCookies();
+    } else {
+      // fallback: só salva (caso o script global ainda não tenha carregado)
+      try { localStorage.setItem('cookieConsent', 'accepted'); } catch(e){}
     }
-    function showBanner() {
-      try {
-        var stored = localStorage.getItem('consent_ads');
-        if (stored === 'accepted' || stored === 'rejected') {
-          banner.style.display = 'none';
-          return;
-        }
-      } catch(e){}
-      banner.style.display = 'flex';
+    hideBanner();
+  });
+
+  btnReject.addEventListener('click', function(){
+    // ✅ chama a função global (nega consent)
+    if (typeof window.rejectAllCookies === "function") {
+      window.rejectAllCookies();
+    } else {
+      try { localStorage.setItem('cookieConsent', 'refused'); } catch(e){}
     }
-    btnAccept.addEventListener('click', function(){
-      try { localStorage.setItem('consent_ads', 'accepted'); } catch(e){}
-      applyConsent(true);
-      hideBanner();
-    });
-    btnReject.addEventListener('click', function(){
-      try { localStorage.setItem('consent_ads', 'rejected'); } catch(e){}
-      applyConsent(false);
-      hideBanner();
-    });
-    showBanner();
-  })();
+    hideBanner();
+  });
+
+  showBanner();
+})();
 </script>
 <script>
 (function initQuickSearch(){
