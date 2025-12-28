@@ -4,8 +4,7 @@
   <link rel="dns-prefetch" href="//googleads.g.doubleclick.net">
   <link rel="dns-prefetch" href="//pagead2.googlesyndication.com">
 
-  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6472730056006847" crossorigin="anonymous"></script>
-
+  
   <!-- SEO -->
   <meta charset="UTF-8">
   <base href="/">
@@ -57,37 +56,152 @@
   <meta name="author" content="Calculadoras de Enfermagem">
 
 <script>
-  // 🛡️ MODO ADMIN: Protege suas métricas e AdSense
+/* =========================================================
+   MODO ADMIN + GOOGLE TAG + CONSENT + ADSENSE
+   (VERSÃO FINAL – SUBSTITUI O BLOCO ANTIGO)
+   ========================================================= */
+
+  // 🛡️ MODO ADMIN — bloqueia tudo
   if (localStorage.getItem('admin_mode') === 'true') {
     console.log('🚧 Modo Admin: Analytics e AdSense NÃO foram carregados.');
   } else {
-    // --- 1. Carrega GOOGLE ANALYTICS e ADS (Gtag) ---
-    var scriptGA = document.createElement('script');
-    scriptGA.async = true;
-    scriptGA.src = "https://www.googletagmanager.com/gtag/js?id=AW-952633102";
-    document.head.appendChild(scriptGA);
 
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-    gtag("js", new Date());
+    // Proteções globais
+    window.__metricsLoaded = window.__metricsLoaded || false;
+    window.__adsenseLoaded = window.__adsenseLoaded || false;
 
-    gtag("consent", "default", {
+    /* -----------------------------------------------------
+       1) GOOGLE TAG (gtag.js)
+       ----------------------------------------------------- */
+    if (!window.__metricsLoaded) {
+      window.__metricsLoaded = true;
+
+      var scriptGA = document.createElement('script');
+      scriptGA.async = true;
+      scriptGA.src = "https://www.googletagmanager.com/gtag/js?id=AW-952633102";
+      document.head.appendChild(scriptGA);
+
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){ dataLayer.push(arguments); }
+      window.gtag = window.gtag || gtag;
+
+      gtag("js", new Date());
+
+      // 🔒 Começa SEM consentimento (LGPD)
+      gtag("consent", "default", {
         analytics_storage: "denied",
         ad_storage: "denied",
-        wait_for_update: 500,
-    });
+        wait_for_update: 500
+      });
 
-    gtag("config", "AW-952633102"); // Google Ads
-    gtag("config", "G-8FLJ59XXDK"); // GA4
+      gtag("config", "AW-952633102"); // Google Ads
+      gtag("config", "G-8FLJ59XXDK"); // GA4
+    }
 
-    // --- 2. Carrega GOOGLE ADSENSE (Dinamicamente) ---
-    var scriptAd = document.createElement('script');
-    scriptAd.async = true;
-    scriptAd.src = "https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6472730056006847";
-    scriptAd.crossOrigin = "anonymous";
-    document.head.appendChild(scriptAd);
+    /* -----------------------------------------------------
+       2) FUNÇÃO INTERNA: carrega AdSense uma única vez
+       ----------------------------------------------------- */
+    function loadAdSenseOnce() {
+      if (window.__adsenseLoaded) return;
+
+      window.__adsenseLoaded = true;
+
+      var scriptAd = document.createElement('script');
+      scriptAd.async = true;
+      scriptAd.src =
+        "https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6472730056006847";
+      scriptAd.crossOrigin = "anonymous";
+
+      document.head.appendChild(scriptAd);
+
+      console.log("🟢 AdSense carregado após consentimento.");
+    }
+
+    /* -----------------------------------------------------
+       3) FUNÇÃO CENTRAL DE CONSENTIMENTO
+       ----------------------------------------------------- */
+    function applyConsent(consent) {
+      if (typeof window.gtag === "function") {
+        gtag("consent", "update", consent);
+      }
+
+      // Se anúncios foram permitidos → carrega Adsense
+      if (consent && consent.ad_storage === "granted") {
+        loadAdSenseOnce();
+      }
+
+      // Persistência (granular)
+      try {
+        localStorage.setItem("analytics_storage", consent.analytics_storage);
+        localStorage.setItem("ad_storage", consent.ad_storage);
+      } catch (e) {}
+    }
+
+    /* -----------------------------------------------------
+       4) REAPLICA CONSENTIMENTO AO ENTRAR NA PÁGINA
+       ----------------------------------------------------- */
+    (function restoreConsent() {
+      try {
+        const saved = localStorage.getItem("cookieConsent");
+
+        if (saved === "accepted") {
+          applyConsent({
+            analytics_storage: "granted",
+            ad_storage: "granted"
+          });
+        }
+
+        if (saved === "refused") {
+          applyConsent({
+            analytics_storage: "denied",
+            ad_storage: "denied"
+          });
+        }
+
+        if (saved === "managed") {
+          applyConsent({
+            analytics_storage: localStorage.getItem("analytics_storage") || "denied",
+            ad_storage: localStorage.getItem("ad_storage") || "denied"
+          });
+        }
+      } catch (e) {}
+    })();
+
+    /* -----------------------------------------------------
+       5) API GLOBAL PARA O BANNER DE COOKIES
+       ----------------------------------------------------- */
+
+    // Aceitar tudo
+    window.acceptAllCookies = function () {
+      localStorage.setItem("cookieConsent", "accepted");
+      applyConsent({
+        analytics_storage: "granted",
+        ad_storage: "granted"
+      });
+    };
+
+    // Recusar tudo
+    window.rejectAllCookies = function () {
+      localStorage.setItem("cookieConsent", "refused");
+      applyConsent({
+        analytics_storage: "denied",
+        ad_storage: "denied"
+      });
+    };
+
+    // Granular (checkboxes)
+    window.applyGranularCookies = function (analyticsGranted, adsGranted) {
+      localStorage.setItem("cookieConsent", "managed");
+      applyConsent({
+        analytics_storage: analyticsGranted ? "granted" : "denied",
+        ad_storage: adsGranted ? "granted" : "denied"
+      });
+    };
+
   }
 </script>
+
+
 
   <!-- OTIMIZADOR_MASTER_V2 -->
   <style id="otimizador-master-responsive">
@@ -175,7 +289,7 @@ body { overflow-x: hidden; }
 
   <!-- BIBLIOTECA_ITEM_TEMPLATE_V2 -->
 
-<!-- BIBLIOTECA_ITEM_TEMPLATE_V4 -->
+  <!-- BIBLIOTECA_ITEM_TEMPLATE_HASH:897301fd31372f86f8ac4ebeb65afa5ca7edf85ca800098c2a029a874e1c29f1 -->
 </head>
 
 <body class="bg-gray-50 font-inter">

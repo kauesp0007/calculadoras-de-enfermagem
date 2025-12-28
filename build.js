@@ -1,23 +1,67 @@
 /* eslint-env node */
 const fs = require("fs");
 const path = require("path");
+const crypto = require("crypto");
 
 const JSON_DATABASE_FILE = "biblioteca.json";
 const TEMPLATE_FILE = "downloads.template.html";
 const ITEMS_PER_PAGE = 20;
 const OUTPUT_DIR = "downloads";
 
+/**
+ * Marker com hash do template.
+ * Ex.: <!-- DOWNLOADS_TEMPLATE_HASH:abc123... -->
+ */
+const TEMPLATE_HASH_MARKER_PREFIX = "DOWNLOADS_TEMPLATE_HASH:";
+
 /* ===============================
    UTILIDADES
 ================================ */
 
 function slugify(text) {
-  return text
+  return String(text || "")
     .toLowerCase()
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/(^-|-$)/g, "");
+}
+
+function sha256(text) {
+  return crypto.createHash("sha256").update(String(text), "utf8").digest("hex");
+}
+
+function ensureTemplateHashMarker(html, templateHash) {
+  const marker = `<!-- ${TEMPLATE_HASH_MARKER_PREFIX}${templateHash} -->`;
+
+  // Se já tem marker, substitui pelo novo hash
+  const re = new RegExp(`<!--\\s*${TEMPLATE_HASH_MARKER_PREFIX}[a-f0-9]{8,64}\\s*-->`, "ig");
+  if (re.test(html)) {
+    return html.replace(re, marker);
+  }
+
+  // Se não tem, injeta antes do </head>
+  if (html.includes("</head>")) {
+    return html.replace("</head>", `\n  ${marker}\n</head>`);
+  }
+
+  // fallback (muito improvável)
+  return `${marker}\n${html}`;
+}
+
+/**
+ * Escreve arquivo somente se o conteúdo mudou.
+ * Retorna: "created" | "updated" | "unchanged"
+ */
+function writeIfChanged(filepath, content) {
+  if (fs.existsSync(filepath)) {
+    const current = fs.readFileSync(filepath, "utf8");
+    if (current === content) return "unchanged";
+    fs.writeFileSync(filepath, content, "utf8");
+    return "updated";
+  }
+  fs.writeFileSync(filepath, content, "utf8");
+  return "created";
 }
 
 /* ===============================
@@ -65,14 +109,30 @@ function gerarPaginacao(total, atual) {
 ================================ */
 
 function construirPaginas() {
+  if (!fs.existsSync(JSON_DATABASE_FILE)) {
+    console.error("❌ biblioteca.json não encontrado");
+    process.exitCode = 1;
+    return;
+  }
+  if (!fs.existsSync(TEMPLATE_FILE)) {
+    console.error(`❌ ${TEMPLATE_FILE} não encontrado`);
+    process.exitCode = 1;
+    return;
+  }
+
   const data = JSON.parse(fs.readFileSync(JSON_DATABASE_FILE, "utf8"));
   const template = fs.readFileSync(TEMPLATE_FILE, "utf8");
+  const templateHash = sha256(template);
 
   const totalPages = Math.ceil(data.length / ITEMS_PER_PAGE);
 
   if (!fs.existsSync(OUTPUT_DIR)) {
     fs.mkdirSync(OUTPUT_DIR);
   }
+
+  let created = 0;
+  let updated = 0;
+  let unchanged = 0;
 
   for (let page = 1; page <= totalPages; page++) {
     const start = (page - 1) * ITEMS_PER_PAGE;
@@ -96,13 +156,13 @@ function construirPaginas() {
     const pagination = gerarPaginacao(totalPages, page);
 
     // SEO
-    let seoTitle = `Biblioteca de Enfermagem — Página ${page}`;
-    let seoDescription = `Biblioteca de Enfermagem com materiais, apostilas e documentos para download — Página ${page} de ${totalPages}.`;
-    let seoKeywords =
+    const seoTitle = `Biblioteca de Enfermagem — Página ${page}`;
+    const seoDescription = `Biblioteca de Enfermagem com materiais, apostilas e documentos para download — Página ${page} de ${totalPages}.`;
+    const seoKeywords =
       `biblioteca de enfermagem, apostilas de enfermagem, protocolos clínicos, manuais oficiais, materiais para estudo, documentos para download, enfermagem`;
 
     // Canonical: page 1 = /downloads.html (raiz), demais = /downloads/pageX.html
-    let canonicalUrl =
+    const canonicalUrl =
       page === 1
         ? `https://www.calculadorasdeenfermagem.com.br/downloads.html`
         : `https://www.calculadorasdeenfermagem.com.br/downloads/page${page}.html`;
@@ -115,7 +175,7 @@ function construirPaginas() {
       // importante: seu template tem o placeholder 2x (topo e rodapé)
       .replaceAll("<!-- [PAGINACAO] -->", pagination)
 
-      // SEO placeholders do template
+      // SEO placeholders do template (alguns aparecem escapados)
       .replace(/<!-- \[SEO_TITLE\] -->/g, seoTitle)
       .replace(/&lt;!-- \[SEO_TITLE\] --&gt;/g, seoTitle)
       .replace(/<!-- \[SEO_DESCRIPTION\] -->/g, seoDescription)
@@ -154,25 +214,38 @@ function construirPaginas() {
         canonicalUrl
       );
 
+    // ✅ injeta marker com hash do template no <head>
+    html = ensureTemplateHashMarker(html, templateHash);
+
     // ✅ Saídas:
     // - Página 1 também gera o arquivo raiz "downloads.html"
     // - Páginas 2+ ficam em /downloads/pageX.html
     if (page === 1) {
-      fs.writeFileSync("downloads.html", html);
-      console.log(`📘 Criada página: downloads.html`);
+      const r1 = writeIfChanged("downloads.html", html);
+      if (r1 === "created") created++;
+      else if (r1 === "updated") updated++;
+      else unchanged++;
 
       // (opcional e seguro) mantém /downloads/page1.html caso exista link antigo
       const outputLegacy = path.join(OUTPUT_DIR, `page1.html`);
-      fs.writeFileSync(outputLegacy, html);
-      console.log(`📘 Criada página: ${outputLegacy}`);
+      const r2 = writeIfChanged(outputLegacy, html);
+      if (r2 === "created") created++;
+      else if (r2 === "updated") updated++;
+      else unchanged++;
     } else {
       const output = path.join(OUTPUT_DIR, `page${page}.html`);
-      fs.writeFileSync(output, html);
-      console.log(`📘 Criada página: ${output}`);
+      const r = writeIfChanged(output, html);
+      if (r === "created") created++;
+      else if (r === "updated") updated++;
+      else unchanged++;
     }
   }
 
-  console.log("✅ Biblioteca gerada com imagens, categorias e paginação corretas!");
+  console.log("✅ Downloads gerados com atualização inteligente por template!");
+  console.log(`➕ Criados: ${created}`);
+  console.log(`♻️ Atualizados: ${updated}`);
+  console.log(`⏭️ Inalterados: ${unchanged}`);
+  console.log(`🔖 Template hash atual: ${templateHash}`);
 }
 
 construirPaginas();

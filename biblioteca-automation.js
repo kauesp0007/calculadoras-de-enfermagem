@@ -41,7 +41,7 @@ async function gerarCapaParaPDF(pdfFile) {
 }
 
 async function main() {
-  // 1) Run scanner to add new files to biblioteca.json (scanner already skips duplicates)
+  // 1) Scanner
   runScanner();
 
   // 2) Load biblioteca.json
@@ -51,10 +51,9 @@ async function main() {
   }
   const biblioteca = JSON.parse(fs.readFileSync(JSON_DB, 'utf8'));
 
-  // index existing ficheiros
   const ficheirosSet = new Set(biblioteca.map(i => i.ficheiro));
 
-  // 3) Garantir que todos os PDFs em docs/ estejam registrados (se houver novos, adiciona)
+  // 3) Garantir PDFs novos
   if (fs.existsSync(DOCS_DIR)) {
     const pdfs = fs.readdirSync(DOCS_DIR).filter(f => f.toLowerCase().endsWith('.pdf'));
     let added = 0;
@@ -80,47 +79,49 @@ async function main() {
     if (added) fs.writeFileSync(JSON_DB, JSON.stringify(biblioteca, null, 2), 'utf8');
   }
 
-  // 4) Se existirem PDFs sem capa, delegar a geração ao script gerarCapasPDF.js
-  const pdfsSemCapa = biblioteca.filter(i => i.categoria === 'documentos' && i.ficheiro && (!i.capa || i.capa === ''));
+  // 4) Geração de capas PDF
+  const pdfsSemCapa = biblioteca.filter(
+    i => i.categoria === 'documentos' && i.ficheiro && (!i.capa || i.capa === '')
+  );
+
   if (pdfsSemCapa.length > 0) {
     console.log(`➡ Há ${pdfsSemCapa.length} PDFs sem capa. Executando gerarCapasPDF.js...`);
     try {
       execSync('node gerarCapasPDF.js', { stdio: 'inherit' });
-      // recarregar biblioteca.json caso o script tenha atualizado capas
       const novaBiblioteca = JSON.parse(fs.readFileSync(JSON_DB, 'utf8'));
-      // substituir referência local
       for (let i = 0; i < biblioteca.length; i++) {
         biblioteca[i] = novaBiblioteca[i] || biblioteca[i];
       }
       console.log('✅ Geração de capas concluída.');
     } catch (err) {
-      console.error('❌ Falha ao executar gerarCapasPDF.js:', err && err.message ? err.message : err);
+      console.error('❌ Falha ao executar gerarCapasPDF.js:', err.message || err);
     }
   } else {
     console.log('➡ Nenhum PDF sem capa encontrado. Pular geração de capas.');
   }
 
-  // 5) Gerar/atualizar páginas individuais via build-biblioteca.js (responsável por prev/next + marker + layout)
-  console.log('📚 Executando build-biblioteca.js para gerar/atualizar páginas individuais da biblioteca...');
-  try {
-    execSync('node build-biblioteca.js', { stdio: 'inherit' });
-  } catch (err) {
-    console.error('❌ Falha ao executar build-biblioteca.js:', err && err.message ? err.message : err);
-    process.exit(1);
-  }
+  // 5) Páginas individuais da biblioteca
+  console.log('📚 Executando build-biblioteca.js...');
+  execSync('node build-biblioteca.js', { stdio: 'inherit' });
 
-  // 6) Atualizar downloads (reconstruir páginas de listagem)
-  console.log('🔧 Executando build.js para atualizar páginas de downloads...');
+  // 6) Páginas de downloads
+  console.log('🔧 Executando build.js...');
   execSync('node build.js', { stdio: 'inherit' });
 
-  // 7) Compilar CSS com Tailwind
+  // 7) Build Tailwind
   console.log('🎨 Executando Tailwind CSS Build...');
-  execSync('.\\node_modules\\.bin\\tailwindcss -i ./src/input.css -o ./public/output.css --minify', { stdio: 'inherit' });
+  execSync(
+    '.\\node_modules\\.bin\\tailwindcss -i ./src/input.css -o ./public/output.css --minify',
+    { stdio: 'inherit' }
+  );
 
-
+  // 8) 🔥 GERAR SERVICE WORKER (NOVO PASSO)
+  console.log('🧩 Executando gerar-sw.js (Service Worker)...');
+  execSync('node gerar-sw.js', { stdio: 'inherit' });
 
   console.log(`
-🎯 Processo concluído.
+🎯 Processo concluído com sucesso.
+📦 Biblioteca, downloads, CSS e Service Worker atualizados.
 `);
 }
 

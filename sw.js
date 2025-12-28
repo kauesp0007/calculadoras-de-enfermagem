@@ -1,5 +1,5 @@
 // Define o nome e a versão do cache (AUTOMÁTICO via gerar-sw.js)
-const CACHE_NAME = 'calculadoras-enfermagem-cache-20251228-035026-377';
+const CACHE_NAME = 'calculadoras-enfermagem-cache-20251228-043101-294';
 
 // O SCRIPT DE BUILD VAI INJETAR A LISTA DE ARQUIVOS AQUI
 const urlsToCache = [
@@ -1077,6 +1077,7 @@ const urlsToCache = [
   'id/waterlow.html',
   'id/zarit.html',
   'imc.html',
+  'img/5 Hs DA PARADA CARDDIORESPIRATORIA - CAUSAS PROVÁVEIS.webp',
   'img/A IMPORTANCIA DA COMPRESSAO ADEQUADA APÓS COLETA DE GASOMETRIA NA UTI ADULTO-01.png',
   'img/A IMPORTANCIA DA COMPRESSAO ADEQUADA APÓS COLETA DE GASOMETRIA NA UTI ADULTO.webp',
   'img/A-HISTÓRIA-DA-SAÚDE.webp',

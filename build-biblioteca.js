@@ -1,6 +1,7 @@
 /* eslint-env node */
 const fs = require("fs");
 const path = require("path");
+const crypto = require("crypto");
 
 /* ===============================
    CONFIGURAÇÕES
@@ -9,14 +10,23 @@ const JSON_DATABASE_FILE = "biblioteca.json";
 const TEMPLATE_FILE = "item.template.html";
 const OUTPUT_DIR = "biblioteca";
 
-// ✅ NOVO MARKER: força rebuild uma vez (V4)
-const GENERATED_MARKER = "BIBLIOTECA_ITEM_TEMPLATE_V4";
+/**
+ * Marker com hash do template.
+ * Ex.: <!-- BIBLIOTECA_ITEM_TEMPLATE_HASH:abc123... -->
+ */
+const TEMPLATE_HASH_MARKER_PREFIX = "BIBLIOTECA_ITEM_TEMPLATE_HASH:";
+
+/**
+ * Se true, remove arquivos órfãos (existem em /biblioteca mas não existem mais no biblioteca.json).
+ * Você NÃO pediu remoção, então deixei false.
+ */
+const DELETE_ORPHANS = false;
 
 /* ===============================
    UTILIDADES
 ================================ */
 function slugify(text) {
-  return text
+  return String(text || "")
     .toLowerCase()
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
@@ -44,6 +54,34 @@ function detectarTipoPeloArquivo(ficheiro) {
   if (["ppt", "pptx"].includes(ext)) return "PowerPoint";
   if (["xls", "xlsx", "csv"].includes(ext)) return "Planilha";
   return "Arquivo";
+}
+
+function sha256(text) {
+  return crypto.createHash("sha256").update(String(text), "utf8").digest("hex");
+}
+
+function extractTemplateHashFromHtml(html) {
+  const re = new RegExp(`${TEMPLATE_HASH_MARKER_PREFIX}([a-f0-9]{8,64})`, "i");
+  const m = String(html || "").match(re);
+  return m ? m[1].toLowerCase() : null;
+}
+
+function ensureTemplateHashMarker(html, templateHash) {
+  const marker = `<!-- ${TEMPLATE_HASH_MARKER_PREFIX}${templateHash} -->`;
+
+  // Se já tem marker, substitui pelo novo hash
+  const re = new RegExp(`<!--\\s*${TEMPLATE_HASH_MARKER_PREFIX}[a-f0-9]{8,64}\\s*-->`, "ig");
+  if (re.test(html)) {
+    return html.replace(re, marker);
+  }
+
+  // Se não tem, injeta antes do </head>
+  if (html.includes("</head>")) {
+    return html.replace("</head>", `\n  ${marker}\n</head>`);
+  }
+
+  // fallback (muito improvável)
+  return `${marker}\n${html}`;
 }
 
 /* ===============================
@@ -184,26 +222,81 @@ function montarBlocoLightbox(imagens) {
 }
 
 /* ===============================
+   GERADOR DE HTML DE UM ITEM
+================================ */
+function gerarHtmlDoItem({ template, templateHash, data, imagens, item, idx }) {
+  const slug = item.slug || slugify(item.titulo);
+  const descricao = item.descricao || `Material de enfermagem sobre ${item.titulo}.`;
+  const categoria = item.categoria || "documentos";
+  const tipo = item.tipo || detectarTipoPeloArquivo(item.ficheiro);
+  const nav = buildPrevNext(data, idx);
+  const capa = item.capa || item.ficheiro;
+
+  let html = template;
+
+  html = html
+    .replace(/{{TITULO}}/g, escapeHtml(item.titulo))
+    .replace(/{{DESCRICAO}}/g, escapeHtml(descricao))
+    .replace(/{{TAGS}}/g, escapeHtml(item.tags || item.titulo))
+    .replace(/{{SLUG}}/g, escapeHtml(slug))
+    .replace(/{{CAPA}}/g, escapeHtml(capa).replace(/^\/+/, ""))
+    .replace(/{{FICHEIRO}}/g, escapeHtml(item.ficheiro).replace(/^\/+/, ""))
+    .replace(/{{CATEGORIA}}/g, escapeHtml(categoria))
+    .replace(/{{TIPO}}/g, escapeHtml(tipo))
+    .replace(/{{PREV_URL}}/g, escapeHtml(nav.prevUrl))
+    .replace(/{{NEXT_URL}}/g, escapeHtml(nav.nextUrl))
+    .replace(/{{PREV_STYLE}}/g, escapeHtml(nav.prevStyle))
+    .replace(/{{NEXT_STYLE}}/g, escapeHtml(nav.nextStyle));
+
+  // Fotos: transforma a hero em “clicável” e injeta lightbox
+  if (categoria === "fotos") {
+    const indiceImagem = imagens.findIndex((i) => i.slug === slug);
+
+    html = html.replace(
+      /<img[^>]*class="w-full[^"]*biblioteca-hero-img"[^>]*>/i,
+      `<img src="${item.ficheiro}" alt="Capa de ${escapeHtml(item.titulo)}" class="w-full rounded-xl mb-6 biblioteca-hero-img cursor-zoom-in" loading="lazy" decoding="async" onclick="abrirLightbox(${indiceImagem})">`
+    );
+
+    const bloco = montarBlocoLightbox(imagens);
+    html = html.replace("</body>", `\n${bloco}\n</body>`);
+  }
+
+  // Marker com hash do template usado
+  html = ensureTemplateHashMarker(html, templateHash);
+
+  return { slug, html };
+}
+
+/* ===============================
    CONSTRUTOR PRINCIPAL
 ================================ */
 function construirBiblioteca() {
   if (!fs.existsSync(JSON_DATABASE_FILE)) {
     console.error("❌ biblioteca.json não encontrado");
+    process.exitCode = 1;
     return;
   }
   if (!fs.existsSync(TEMPLATE_FILE)) {
     console.error(`❌ ${TEMPLATE_FILE} não encontrado`);
+    process.exitCode = 1;
     return;
   }
 
   const data = JSON.parse(fs.readFileSync(JSON_DATABASE_FILE, "utf8"));
   const template = fs.readFileSync(TEMPLATE_FILE, "utf8");
+  const templateHash = sha256(template);
+
+  if (!Array.isArray(data)) {
+    console.error("❌ biblioteca.json precisa ser um ARRAY de itens");
+    process.exitCode = 1;
+    return;
+  }
 
   if (!fs.existsSync(OUTPUT_DIR)) fs.mkdirSync(OUTPUT_DIR);
 
   // Lista de imagens (para lightbox)
   const imagens = data
-    .filter((i) => i.categoria === "fotos")
+    .filter((i) => i && i.categoria === "fotos")
     .map((i) => ({
       titulo: i.titulo || "",
       descricao: i.descricao || "",
@@ -211,70 +304,76 @@ function construirBiblioteca() {
       slug: i.slug || slugify(i.titulo || ""),
     }));
 
-  let gerados = 0;
-  let ignorados = 0;
+  const expectedSlugs = new Set();
+
+  let criados = 0;
+  let atualizados = 0;
+  let inalterados = 0;
+  let puladosPorErro = 0;
 
   data.forEach((item, idx) => {
-    if (!item || !item.titulo || !item.ficheiro) return;
+    if (!item || !item.titulo || !item.ficheiro) {
+      puladosPorErro++;
+      return;
+    }
 
-    const slug = item.slug || slugify(item.titulo);
-    const descricao = item.descricao || `Material de enfermagem sobre ${item.titulo}.`;
-    const categoria = item.categoria || "documentos";
-    const tipo = item.tipo || detectarTipoPeloArquivo(item.ficheiro);
+    const { slug, html } = gerarHtmlDoItem({
+      template,
+      templateHash,
+      data,
+      imagens,
+      item,
+      idx,
+    });
 
-    const nav = buildPrevNext(data, idx);
-    const capa = item.capa || item.ficheiro;
+    expectedSlugs.add(slug);
 
     const outFile = path.join(OUTPUT_DIR, `${slug}.html`);
 
-    // ✅ Agora só ignora se já for V4
+    // Se existe, só reescreve se o CONTEÚDO mudou
     if (fs.existsSync(outFile)) {
       const current = fs.readFileSync(outFile, "utf8");
-      if (current.includes(GENERATED_MARKER)) {
-        ignorados++;
+
+      // comparação direta: se igual, não toca no arquivo
+      if (current === html) {
+        inalterados++;
         return;
+      }
+
+      // (opcional) também dá pra usar hash do marker como “atalho”,
+      // mas a comparação total é mais segura porque inclui dados do item (prev/next, etc.)
+      fs.writeFileSync(outFile, html, "utf8");
+      atualizados++;
+      return;
+    }
+
+    // Não existe → cria
+    fs.writeFileSync(outFile, html, "utf8");
+    criados++;
+  });
+
+  // (Opcional) Remover órfãos
+  if (DELETE_ORPHANS) {
+    const files = fs.readdirSync(OUTPUT_DIR).filter((f) => f.toLowerCase().endsWith(".html"));
+    let removidos = 0;
+
+    for (const f of files) {
+      const slug = f.replace(/\.html$/i, "");
+      if (!expectedSlugs.has(slug)) {
+        fs.unlinkSync(path.join(OUTPUT_DIR, f));
+        removidos++;
       }
     }
 
-    let html = template;
+    console.log(`🧹 ${removidos} arquivos órfãos removidos (DELETE_ORPHANS=true).`);
+  }
 
-    html = html
-      .replace(/{{TITULO}}/g, escapeHtml(item.titulo))
-      .replace(/{{DESCRICAO}}/g, escapeHtml(descricao))
-      .replace(/{{TAGS}}/g, escapeHtml(item.tags || item.titulo))
-      .replace(/{{SLUG}}/g, escapeHtml(slug))
-      .replace(/{{CAPA}}/g, escapeHtml(capa).replace(/^\/+/, ""))
-      .replace(/{{FICHEIRO}}/g, escapeHtml(item.ficheiro).replace(/^\/+/, ""))
-      .replace(/{{CATEGORIA}}/g, escapeHtml(categoria))
-      .replace(/{{TIPO}}/g, escapeHtml(tipo))
-      .replace(/{{PREV_URL}}/g, escapeHtml(nav.prevUrl))
-      .replace(/{{NEXT_URL}}/g, escapeHtml(nav.nextUrl))
-      .replace(/{{PREV_STYLE}}/g, escapeHtml(nav.prevStyle))
-      .replace(/{{NEXT_STYLE}}/g, escapeHtml(nav.nextStyle));
-
-    if (categoria === "fotos") {
-      const indiceImagem = imagens.findIndex((i) => i.slug === slug);
-
-      html = html.replace(
-        /<img[^>]*class="w-full[^"]*biblioteca-hero-img"[^>]*>/i,
-        `<img src="${item.ficheiro}" alt="Capa de ${escapeHtml(item.titulo)}" class="w-full rounded-xl mb-6 biblioteca-hero-img cursor-zoom-in" loading="lazy" decoding="async" onclick="abrirLightbox(${indiceImagem})">`
-      );
-
-      const bloco = montarBlocoLightbox(imagens);
-      html = html.replace("</body>", `\n${bloco}\n</body>`);
-    }
-
-    // ✅ Injeta marker V4
-    if (!html.includes(GENERATED_MARKER)) {
-      html = html.replace("</head>", `\n<!-- ${GENERATED_MARKER} -->\n</head>`);
-    }
-
-    fs.writeFileSync(outFile, html, "utf8");
-    gerados++;
-  });
-
-  console.log(`✅ ${gerados} páginas da biblioteca geradas/atualizadas com sucesso`);
-  console.log(`⏭️ ${ignorados} páginas já estavam atualizadas e foram ignoradas`);
+  console.log("✅ build-biblioteca concluído");
+  console.log(`➕ Criados: ${criados}`);
+  console.log(`♻️ Atualizados: ${atualizados}`);
+  console.log(`⏭️ Inalterados: ${inalterados}`);
+  if (puladosPorErro) console.log(`⚠️ Itens pulados (sem titulo/ficheiro): ${puladosPorErro}`);
+  console.log(`🔖 Template hash atual: ${templateHash}`);
 }
 
 construirBiblioteca();
