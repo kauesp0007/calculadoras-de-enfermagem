@@ -73,33 +73,77 @@
   if (localStorage.getItem('admin_mode') === 'true') {
     console.log('🚧 Modo Admin: Analytics e AdSense NÃO foram carregados.');
   } else {
-    // --- 1. Carrega GOOGLE ANALYTICS e ADS (Gtag) ---
-    var scriptGA = document.createElement('script');
-    scriptGA.async = true;
-    scriptGA.src = "https://www.googletagmanager.com/gtag/js?id=AW-952633102";
-    document.head.appendChild(scriptGA);
 
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-    gtag("js", new Date());
+    // Evita carregamento duplicado (muito importante em site grande)
+    window.__metricsLoaded = window.__metricsLoaded || false;
+    window.__adsenseLoaded = window.__adsenseLoaded || false;
 
-    gtag("consent", "default", {
+    // --- 1) GOOGLE TAG (gtag.js) ---
+    if (!window.__metricsLoaded) {
+      window.__metricsLoaded = true;
+
+      var scriptGA = document.createElement('script');
+      scriptGA.async = true;
+      scriptGA.src = "https://www.googletagmanager.com/gtag/js?id=AW-952633102";
+      document.head.appendChild(scriptGA);
+
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){ dataLayer.push(arguments); }
+      window.gtag = window.gtag || gtag;
+
+      gtag("js", new Date());
+
+      // Começa NEGADO (LGPD)
+      gtag("consent", "default", {
         analytics_storage: "denied",
         ad_storage: "denied",
-        wait_for_update: 500,
-    });
+        wait_for_update: 500
+      });
 
-    gtag("config", "AW-952633102"); // Google Ads
-    gtag("config", "G-8FLJ59XXDK"); // GA4
+      gtag("config", "AW-952633102"); // Google Ads
+      gtag("config", "G-8FLJ59XXDK"); // GA4
+    }
 
-    // --- 2. Carrega GOOGLE ADSENSE (Dinamicamente) ---
-    var scriptAd = document.createElement('script');
-    scriptAd.async = true;
-    scriptAd.src = "https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6472730056006847";
-    scriptAd.crossOrigin = "anonymous";
-    document.head.appendChild(scriptAd);
+    // --- 2) Função para carregar Adsense (só 1 vez) ---
+    function loadAdSenseOnce() {
+      if (window.__adsenseLoaded) return;
+      window.__adsenseLoaded = true;
+
+      var scriptAd = document.createElement('script');
+      scriptAd.async = true;
+      scriptAd.src =
+        "https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6472730056006847";
+      scriptAd.crossOrigin = "anonymous";
+      document.head.appendChild(scriptAd);
+    }
+
+    // --- 3) Estratégia de consentimento ---
+    // Se você já tem um banner/cookies que chama gtag consent update,
+    // basta chamar também: window.__allowAds = true; e loadAdSenseOnce();
+
+    // A) Caso você use CMP/banner e atualize o consent:
+    // Quando o usuário ACEITAR anúncios, rode isso no seu código do banner:
+    //   gtag("consent","update",{ ad_storage:"granted", analytics_storage:"granted" });
+    //   loadAdSenseOnce();
+
+    // B) Fallback: se você ainda não tem CMP, NÃO carregamos Adsense automaticamente.
+    // (Evita risco LGPD e evita métricas/ads antes do consentimento.)
+    // Se você quiser um fallback "carregar após X segundos", eu consigo te montar,
+    // mas o ideal é ligar isso ao seu banner de cookies.
+
+    // Exemplo (opcional) de gatilho manual que você pode chamar do banner:
+    window.enableAdsAndAnalytics = function() {
+      if (typeof window.gtag === "function") {
+        gtag("consent", "update", {
+          analytics_storage: "granted",
+          ad_storage: "granted"
+        });
+      }
+      loadAdSenseOnce();
+    };
   }
 </script>
+
     <script async="" src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9472305505608641" crossorigin="anonymous"></script>
 
     <!-- Schema.org -->
