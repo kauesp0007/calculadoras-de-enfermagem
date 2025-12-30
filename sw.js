@@ -1,5 +1,5 @@
 // Define o nome e a versão do cache (AUTOMÁTICO via gerar-sw.js)
-const CACHE_NAME = 'calculadoras-enfermagem-cache-20251230-041349-507';
+const CACHE_NAME = 'calculadoras-enfermagem-cache-20251230-042536-555';
 
 // O SCRIPT DE BUILD VAI INJETAR A LISTA DE ARQUIVOS AQUI
 const urlsToCache = [
@@ -357,6 +357,7 @@ const urlsToCache = [
   'biblioteca/saude-do-coracao-enfermagem.html',
   'biblioteca/saude-do-coracao.html',
   'biblioteca/screen-5-hs-da-paradacardiorespiratoria.html',
+  'biblioteca/screen-5-ts-da-paradacardiorespiratoria.html',
   'biblioteca/screen-checagem.html',
   'biblioteca/screen-genogramaeecomapa.html',
   'biblioteca/screen-legislacoes.html',
@@ -1348,6 +1349,7 @@ const urlsToCache = [
   'img/o responsável pelo carrinho de emergencia deve ter em mente as 5 causas prováveis H de uma PCR, e assim organizar o carrinho de emerg.webp',
   'img/pentagono_meem.jpg',
   'img/screen-5-hs-da-paradacardiorespiratoria.webp',
+  'img/screen-5-ts-da-paradacardiorespiratoria.webp',
   'img/screen-checagem.webp',
   'img/screen-genogramaeecomapa.webp',
   'img/screen-legislacoes.webp',
