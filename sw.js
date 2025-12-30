@@ -1,5 +1,5 @@
 // Define o nome e a versão do cache (AUTOMÁTICO via gerar-sw.js)
-const CACHE_NAME = 'calculadoras-enfermagem-cache-20251228-061719-660';
+const CACHE_NAME = 'calculadoras-enfermagem-cache-20251229-224339-257';
 
 // O SCRIPT DE BUILD VAI INJETAR A LISTA DE ARQUIVOS AQUI
 const urlsToCache = [
@@ -169,6 +169,7 @@ const urlsToCache = [
   'biblioteca/balanco-hidrico-icone.html',
   'biblioteca/balanco-hidrico-ilustrativo.html',
   'biblioteca/balanco-hidrico.html',
+  'biblioteca/bilancio-idrico-imagem.html',
   'biblioteca/calculadora-de-medicamento.html',
   'biblioteca/calculadorasimagem.html',
   'biblioteca/calculo-de-dosagem-de-medicamentos-enfermagem.html',
@@ -240,6 +241,7 @@ const urlsToCache = [
   'biblioteca/fisioterapia-idoso.html',
   'biblioteca/florence-nightngale-enfermeira-patrona-da-enfermagem.html',
   'biblioteca/florence-nightngale-teoria-ambiental.html',
+  'biblioteca/fluid-balance-illustration.html',
   'biblioteca/formulario-de-registro-do-codigo-amarelo.html',
   'biblioteca/formulario-meem-rio.html',
   'biblioteca/frasco-ampola-de-insulina-ilustracao.html',
@@ -282,6 +284,7 @@ const urlsToCache = [
   'biblioteca/idoso-andador.html',
   'biblioteca/idoso-com-depressao.html',
   'biblioteca/idoso-realizando-avd.html',
+  'biblioteca/illustration-zur-flussigkeitsbilanz.html',
   'biblioteca/ilustracao-educacao-em-saude.html',
   'biblioteca/ilustracao-enfermeira-visita.html',
   'biblioteca/ilustracaogotejamentoalemao.html',
@@ -289,6 +292,7 @@ const urlsToCache = [
   'biblioteca/ilustracaogotejamentofrances.html',
   'biblioteca/ilustracaogotejamentoingles.html',
   'biblioteca/ilustracaogotejamentoitaliano.html',
+  'biblioteca/ilustracion-sobre-balance-hidrico.html',
   'biblioteca/imogene-m-king-teoria-do-sistema-de-metas.html',
   'biblioteca/impresso-de-balanco-hidrico.html',
   'biblioteca/indice-de-bishop.html',
@@ -1095,6 +1099,7 @@ const urlsToCache = [
   'img/AVALIAÇÃO ANTROPOMÉTRICA.png',
   'img/AVALIAÇÃO SAÚDE.png',
   'img/Aquecimento imediato em caso de hipotermia, mantas, aquecedor portátil, manta térmica, solução fisiologica aquecida.webp',
+  'img/BILANCIO-IDRICO-IMAGEM.webp',
   'img/CALCULADORA DE MEDICAMENTO.png',
   'img/CALCULO DE DOSAGEM DE MEDICAMENTOS ENFERMAGEM.webp',
   'img/CALCULO DE DOSAGEM DE MEDICAMENTOS.png',
@@ -1149,6 +1154,7 @@ const urlsToCache = [
   'img/FREQUENCIA CARDIACA ENFERMAGEM.png',
   'img/FUNDAMENTOS-DA-ENFERMAGEM-EM-UTI.webp',
   'img/FUNÇÃO RENAL SAUDE.png',
+  'img/Fluid Balance Illustration.webp',
   'img/GASOMETRIA ARTERIAL ENFERMAGEM.png',
   'img/GENOGRAMA E ECOMAPA COMO FERRAMENTAS TERAPEUTICAS.webp',
   'img/GENOGRAMA E ECOMAPA.webp',
@@ -1166,6 +1172,8 @@ const urlsToCache = [
   'img/ILUSTRAÇÃO ENFERMEIRA VISITA.png',
   'img/INDICE DE BISHOP.png',
   'img/INDICE DE MASSA CORPORAL ILUSTRAÇÃO.png',
+  'img/Illustration zur Flüssigkeitsbilanz.webp',
+  'img/Ilustración sobre Balance Hídrico.webp',
   'img/Imogene M. King - teoria do sistema de metas.jpg',
   'img/Imogene M. King - teoria do sistema de metas.webp',
   'img/KATZ SCALE NURSE.png',
