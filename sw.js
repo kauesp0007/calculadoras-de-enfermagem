@@ -1,5 +1,5 @@
 // Define o nome e a versão do cache (AUTOMÁTICO via gerar-sw.js)
-const CACHE_NAME = 'calculadoras-enfermagem-cache-20251229-224339-257';
+const CACHE_NAME = 'calculadoras-enfermagem-cache-20251229-232222-657';
 
 // O SCRIPT DE BUILD VAI INJETAR A LISTA DE ARQUIVOS AQUI
 const urlsToCache = [
@@ -210,6 +210,7 @@ const urlsToCache = [
   'biblioteca/doencas-de-notificacao-compulsoria.html',
   'biblioteca/dorothea-orem-teoria-do-defict-do-auto-cuidado.html',
   'biblioteca/dosagem-correta-do-medicamento.html',
+  'biblioteca/dreisatz-illustration.html',
   'biblioteca/elton-john-rocket-man-official-music-video.html',
   'biblioteca/enfermagem-em-geriatria.html',
   'biblioteca/enfermagem-em-unidades-de-hemodialise.html',
@@ -217,6 +218,7 @@ const urlsToCache = [
   'biblioteca/enfermagem-verificar-pressao.html',
   'biblioteca/equipe-de-enfermagem-unida.html',
   'biblioteca/equipe-do-time-de-resposta-rapida-hospital.html',
+  'biblioteca/erklarende-infografik-zu-tropfformeln.html',
   'biblioteca/escala-de-aldrete-e-kroulik-enfermagem-srpa.html',
   'biblioteca/escala-de-aldrete-e-kroulik.html',
   'biblioteca/escala-de-apache-ii.html',
@@ -343,6 +345,7 @@ const urlsToCache = [
   'biblioteca/pulmao-enfermagem.html',
   'biblioteca/reabilitacao-do-paciente.html',
   'biblioteca/regla-de-3-calculo-de-medicamentos-enfermagem-espanol.html',
+  'biblioteca/regola-del-tre-illustrata-calcolo-dei-farmaci.html',
   'biblioteca/regra-de-3-calculo-de-medicamentos-enfermagem.html',
   'biblioteca/saude-do-coracao-enfermagem.html',
   'biblioteca/saude-do-coracao.html',
@@ -359,6 +362,7 @@ const urlsToCache = [
   'biblioteca/suportebasicodevida.html',
   'biblioteca/tabela-de-metodo-de-capurro.html',
   'biblioteca/temperatura-sinais-vitais-enfermagem.html',
+  'biblioteca/tempo-di-gocciolamento.html',
   'biblioteca/tempodegotejamento.html',
   'biblioteca/teoria-da-adaptacao-enfermagem.html',
   'biblioteca/teoria-da-incerteza-da-doenca.html',
@@ -1126,6 +1130,7 @@ const urlsToCache = [
   'img/DIMENSIONAMENTO DA EQUIPE DE ENFERMAGEM.png',
   'img/DOENÇAS DE NOTIFICAÇÃO COMPULSORIA.png',
   'img/DOSAGEM CORRETA DO MEDICAMENTO.png',
+  'img/Dreisatz Illustration.webp',
   'img/ENFERMAGEM EM GERIATRIA.png',
   'img/ENFERMAGEM SINAIS VITAIS.png',
   'img/ENFERMAGEM VERIFICAR PRESSAO.png',
@@ -1148,6 +1153,7 @@ const urlsToCache = [
   'img/ESCALA DE DOR BPS.png',
   'img/ESCOVAR OS DENTES.png',
   'img/Enfermagem-em-unidades-de-hemodiálise.webp',
+  'img/Erklärende Infografik zu Tropfformeln.webp',
   'img/FISIOTERAPIA IDOSO.png',
   'img/FORMULARIO DE REGISTRO DO CODIGO AMARELO.webp',
   'img/FRASCO AMPOLA DE INSULINA ILUSTRAÇÃO.png',
@@ -1202,6 +1208,7 @@ const urlsToCache = [
   'img/PULMÃO ENFERMAGEM.png',
   'img/REABILITAÇÃO DO PACIENTE.png',
   'img/Regla de 3 Calculo de medicamentos Enfermagem espanol.webp',
+  'img/Regola del Tre Illustrata calcolo dei farmaci.webp',
   'img/Regra de 3 Calculo de medicamentos Enfermagem.webp',
   'img/SAUDE DO CORAÇÃO ENFERMAGEM.png',
   'img/SAUDE DO CORAÇÃO.png',
@@ -1215,6 +1222,7 @@ const urlsToCache = [
   'img/TRATAMENTO MEDICAMENTOSO.png',
   'img/TRAUMAS-EM-GERAL-E-AVALIAÇÃO-DA-VÍTIMA.webp',
   'img/TROCA GASOSA ENFERMAGEM.png',
+  'img/Tempo di Gocciolamento.webp',
   'img/VANTAGENS DO TIME DE RESPOSTA RÁPIDA NO HOSPITAL.webp',
   'img/VERIFICAR PRESSAO ARTERIAL.png',
   'img/VERIFICAÇÃO PERIODICA DE SINAIS VITAIS.png',
