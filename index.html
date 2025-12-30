@@ -420,6 +420,55 @@
     outline: 2px solid rgba(31, 164, 229, 0.55);
     outline-offset: 2px;
   }
+  .conteudo-carousel-card{
+  background:#fff;
+  border:1px solid rgba(26,62,116,0.18); /* borda fina */
+  border-radius:16px;
+  box-shadow: 0 18px 45px rgba(0,0,0,0.18); /* sombreamento forte */
+  padding: 16px;
+}
+
+/* Cabeçalho: título central + setas à direita (desktop) */
+.conteudo-carousel-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  margin-bottom: 12px;
+}
+
+.conteudo-carousel-title{
+  margin:0;
+  font-family: Nunito Sans, Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+  font-weight: 800;
+  color:#1FA4E5; /* azul mais claro (profissional, diferente do bloco de calculadoras) */
+  font-size: 1.6rem;
+  line-height: 1.15;
+}
+
+.conteudo-carousel-subtitle{
+  margin:6px 0 0 0;
+  color:#4b5563;
+  font-size:0.95rem;
+}
+
+/* Botões setas */
+.conteudo-carousel-actions{
+  display:flex;
+  gap:10px;
+}
+
+/* Mobile: título e setas empilham e ficam centralizados */
+@media (max-width: 640px){
+  .conteudo-carousel-head{
+    flex-direction:column;
+    align-items:center;
+  }
+  .conteudo-carousel-actions{
+    justify-content:center;
+    width:100%;
+  }
+}
 </style>
 
 
@@ -630,46 +679,37 @@ body { overflow-x: hidden; }
 </section>
 
        <!-- =========================
-     CARROSSEL: CONTEÚDOS
+     CARD + CARROSSEL: CONTEÚDOS
 ========================= -->
-<section
-  class="max-w-7xl mx-auto px-4 mt-0 mb-2"
-  aria-label="Conteúdos em destaque"
->
+<section class="max-w-7xl mx-auto px-4 mt-2 mb-3" aria-label="Conteúdos em destaque">
+  <div class="conteudo-carousel-card">
+    <div class="conteudo-carousel-head">
+      <div class="text-center">
+        <h2 class="conteudo-carousel-title">
+          Acesse nossos conteúdos em destaque
+        </h2>
+        <p class="conteudo-carousel-subtitle">
+          Artigos e materiais exclusivos para profissionais de enfermagem.
+        </p>
+      </div>
 
-  <div class="flex items-center justify-between mb-3 gap-3">
-    <div>
-      <h2 class="text-2xl md:text-3xl font-bold text-[#1A3E74] font-nunito">
-        Acesse nossos conteúdos em destaque
-      </h2>
-      <p class="text-sm text-gray-600">
-      Artigos e materiais exclusivos para profissionais de enfermagem.
-      </p>
+      <div class="conteudo-carousel-actions">
+        <button id="slidePrev" type="button" class="carousel-btn" aria-label="Anterior">❮</button>
+        <button id="slideNext" type="button" class="carousel-btn" aria-label="Próximo">❯</button>
+      </div>
     </div>
 
-    <div class="flex gap-2">
-      <button
-        id="slidePrev"
-        type="button"
-        class="carousel-btn"
-        aria-label="Anterior"
-      >❮</button>
-
-      <button
-        id="slideNext"
-        type="button"
-        class="carousel-btn"
-        aria-label="Próximo"
-      >❯</button>
+    <div class="carousel-wrapper" role="region" aria-label="Carrossel de conteúdos">
+      <div id="conteudoSlides" class="carousel-slides">
+        <!-- slides via JS -->
+      </div>
     </div>
-  </div>
 
-  <div class="carousel-wrapper" role="region" aria-label="Carrossel de conteúdos">
-    <div id="conteudoSlides" class="carousel-slides">
-      <!-- slides via JS -->
-    </div>
+    <!-- acessibilidade: status "sr-only" (não aparece, mas leitor de tela lê) -->
+    <p id="carouselA11yStatus" class="sr-only" aria-live="polite" aria-atomic="true"></p>
   </div>
 </section>
+
 
 
 
@@ -1543,8 +1583,15 @@ body { overflow-x: hidden; }
       slide.innerHTML = `
         <a href="${href}" class="carousel-card" aria-label="Abrir: ${meta.h1}">
           <div class="carousel-imageWrap">
-            <img src="${imgSrc}" alt="Prévia: ${meta.h1}" loading="lazy" decoding="async"
-                 onerror="this.src='${FALLBACK_IMG}'">
+            <img src="${imgSrc}"
+     alt="Prévia: ${meta.h1}"
+     loading="lazy"
+     decoding="async"
+     width="1200"
+     height="675"
+     style="width:100%;height:100%;object-fit:cover;"
+     onerror="this.src='${FALLBACK_IMG}'">
+
           </div>
           <div class="carousel-text">
             <h3>${meta.h1}</h3>
