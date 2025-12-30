@@ -1,16 +1,35 @@
 // A função de ajuste de espaço não depende do DOM completo, pode ficar fora.
 (function ajustarEspacoIdioma() {
+  // Variável de controle para não sobrecarregar o navegador no evento resize
+  let agendado = false;
+
   function recalcular() {
     var header = document.getElementById('global-header-container');
     var wrapper = document.getElementById('language-dropdown-wrapper');
+
     if (header && wrapper) {
+      // 1. LEITURA (Fazemos a leitura imediatamente)
       var h = header.offsetHeight || 0;
-      wrapper.style.marginTop = (h ? (h + 12) : 24) + 'px';
+      var novaMargem = (h ? (h + 12) : 24) + 'px';
+
+      // Verifica se já existe uma mudança visual agendada
+      if (!agendado) {
+        // 2. ESCRITA (Agendamos para o próximo quadro de animação)
+        window.requestAnimationFrame(function() {
+          wrapper.style.marginTop = novaMargem;
+          agendado = false; // Libera para a próxima atualização
+        });
+        
+        agendado = true; // Bloqueia novas chamadas até o navegador desenhar esta
+      }
     }
   }
+
   window.addEventListener('load', recalcular);
   window.addEventListener('resize', recalcular);
 })();
+
+// ... Mantenha o restante do código (DOMContentLoaded) igual ...
 
 // A lógica principal DEVE ser executada SOMENTE após o HTML estar carregado.
 document.addEventListener("DOMContentLoaded", function() {
