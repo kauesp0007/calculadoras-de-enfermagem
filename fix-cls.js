@@ -1,36 +1,38 @@
 const fs = require('fs');
 const path = require('path');
-const probe = require('probe-image-size'); // NOVA BIBLIOTECA
+const probe = require('probe-image-size');
 
 // ==========================================
-// CONFIGURAÇÃO GERAL
+// CONFIGURAÇÃO DE SEGURANÇA
 // ==========================================
 const ROOT_DIR = __dirname;
 
+// ARQUIVOS PROIBIDOS (Não serão alterados)
 const IGNORED_FILES = [
     'footer.html', 'menu-global.html', 'global-body-elements.html', 
-    'downloads.html', 'menu-lateral.html'
+    'downloads.html'
 ];
 
-const IGNORED_FOLDERS_INDEXER = ['node_modules', '.git', 'downloads', 'biblioteca', 'dist', 'build'];
+// PASTAS PROIBIDAS (O script ignora completamente)
+const IGNORED_FOLDERS = ['node_modules', '.git', 'downloads', 'biblioteca', 'dist', 'build', 'assets'];
 
+// EXTENSÕES ACEITAS
 const IMG_EXTENSIONS = ['.webp', '.png', '.jpg', '.jpeg', '.gif', '.svg'];
 
 // ==========================================
-// 1. O INDEXADOR (MAPA DO TESOURO)
+// 1. INDEXADOR GLOBAL (Mapa de Imagens)
 // ==========================================
 const imageMap = new Map();
 
 function indexAllImages(directory) {
     try {
         const files = fs.readdirSync(directory);
-
         files.forEach(file => {
             const fullPath = path.join(directory, file);
             const stat = fs.statSync(fullPath);
 
             if (stat.isDirectory()) {
-                if (!IGNORED_FOLDERS_INDEXER.includes(file)) {
+                if (!IGNORED_FOLDERS.includes(file)) {
                     indexAllImages(fullPath);
                 }
             } else {
@@ -40,79 +42,86 @@ function indexAllImages(directory) {
                 }
             }
         });
-    } catch (e) {
-        // Ignora erros de permissão
-    }
+    } catch (e) { /* Ignora erros de permissão */ }
 }
 
 // ==========================================
-// 2. PROCESSAMENTO DO HTML
+// 2. CORRETOR DE HTML (Regras do PageSpeed)
 // ==========================================
 function processFile(filePath) {
     const fileName = path.basename(filePath);
     
+    // Filtros de Segurança
     if (IGNORED_FILES.includes(fileName)) return;
     if (fileName.includes('.template.')) return;
 
     let content = fs.readFileSync(filePath, 'utf8');
     let modified = false;
 
-    // Regex para encontrar tags IMG
+    // Regex para encontrar tags <img>
     const imgRegex = /<img([^>]+)>/gi;
 
     const newContent = content.replace(imgRegex, (match, attributes) => {
-        
-        // Pula se já tem width E height
-        if (attributes.match(/\bwidth\s*=\s*['"]?[0-9]+/) && attributes.match(/\bheight\s*=\s*['"]?[0-9]+/)) {
+        // Verifica se já tem width e height
+        const hasWidth = attributes.match(/\bwidth\s*=\s*['"]?[0-9]+/);
+        const hasHeight = attributes.match(/\bheight\s*=\s*['"]?[0-9]+/);
+        const hasLazy = attributes.match(/\bloading\s*=/i);
+
+        // Se já tem tudo, pula
+        if (hasWidth && hasHeight && hasLazy) {
             return match; 
         }
 
+        // Pega o SRC
         const srcMatch = attributes.match(/src\s*=\s*["']([^"']+)["']/i);
         if (!srcMatch) return match;
 
         let src = srcMatch[1];
         
+        // Ignora imagens externas/dinâmicas
         if (src.startsWith('data:') || src.startsWith('http') || src.includes('{{')) return match;
 
+        // Limpa nome para busca
         let cleanName = path.basename(src.split('?')[0].split('#')[0]);
         cleanName = decodeURIComponent(cleanName).toLowerCase();
 
+        // Busca imagem no mapa
         const realPath = imageMap.get(cleanName);
+        let newAttributes = attributes;
 
-        if (realPath) {
+        // 1. Aplica Dimensões (Se encontrar a imagem)
+        if (realPath && (!hasWidth || !hasHeight)) {
             try {
-                // MUDANÇA AQUI: Lendo o arquivo como Buffer para o probe-image-size analisar
                 const imgBuffer = fs.readFileSync(realPath);
                 const dimensions = probe.sync(imgBuffer);
 
-                if (dimensions && dimensions.width && dimensions.height) {
-                    let newAttributes = attributes;
-                    
-                    if (!newAttributes.match(/\bwidth\s*=/i)) {
-                        newAttributes = ` width="${dimensions.width}"` + newAttributes;
-                    }
-                    if (!newAttributes.match(/\bheight\s*=/i)) {
-                        newAttributes = ` height="${dimensions.height}"` + newAttributes;
-                    }
-
+                if (dimensions) {
+                    if (!hasWidth) newAttributes = ` width="${dimensions.width}"` + newAttributes;
+                    if (!hasHeight) newAttributes = ` height="${dimensions.height}"` + newAttributes;
                     modified = true;
-                    // console.log(`✅ [${fileName}] Corrigido: ${cleanName}`);
-                    return `<img${newAttributes}>`;
                 }
             } catch (err) {
-                console.log(`⚠️  [${fileName}] Arquivo WebP muito complexo ou corrompido: ${cleanName}`);
+                console.log(`⚠️  [${fileName}] Erro ao ler imagem: ${cleanName}`);
             }
-        } else {
-            // A imagem com "X" realmente não existe com esse nome exato no projeto
-            console.log(`❌ [${fileName}] Imagem não encontrada: ${cleanName}`);
         }
 
+        // 2. Aplica Lazy Loading (Regra do Google para performance)
+        // Adiciona em todas as imagens (seguro e recomendado para sites grandes)
+        if (!hasLazy) {
+            newAttributes = ` loading="lazy"` + newAttributes;
+            modified = true;
+        }
+
+        if (modified) {
+            return `<img${newAttributes}>`;
+        }
+        
         return match;
     });
 
     if (modified) {
         fs.writeFileSync(filePath, newContent, 'utf8');
-        console.log(`💾 SALVO: ${fileName}`);
+        console.log(`✅ OTIMIZADO: ${fileName}`);
     }
 }
 
@@ -121,10 +130,11 @@ function processFile(filePath) {
 // ==========================================
 console.log("🕵️  Mapeando imagens...");
 indexAllImages(ROOT_DIR);
-console.log(`🗺️  ${imageMap.size} imagens encontradas.`);
+console.log(`🗺️  ${imageMap.size} imagens indexadas.`);
 
-console.log("🚀 Iniciando correção de CLS...");
+console.log("🚀 Otimizando HTMLs (CLS + Bfcache Friendly)...");
 
+// Pastas permitidas para alteração
 const SCAN_DIRS = [
     '.', 
     'en', 'es', 'de', 'it', 'fr', 'hi', 'zh', 'ar', 'ja', 
@@ -133,10 +143,8 @@ const SCAN_DIRS = [
 
 SCAN_DIRS.forEach(dirName => {
     const dirPath = path.join(ROOT_DIR, dirName);
-    
     if (fs.existsSync(dirPath)) {
         const files = fs.readdirSync(dirPath);
-        
         files.forEach(file => {
             const fullPath = path.join(dirPath, file);
             if (fs.statSync(fullPath).isFile() && file.endsWith('.html')) {
