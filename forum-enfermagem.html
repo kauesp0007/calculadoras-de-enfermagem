@@ -196,15 +196,20 @@
       fetch("footer.html").then(r => r.text()).then(d => document.getElementById("footer-placeholder").innerHTML = d);
     </script>
 
-    <!-- LÓGICA DO SUPABASE COM DIAGNÓSTICO -->
+    <!-- LÓGICA DO SUPABASE COM DIAGNÓSTICO E TIMEOUT -->
     <script>
-        // --- SUAS CHAVES (JÁ INSERIDAS) ---
+        // --- SUAS CHAVES (VERIFICADAS) ---
         const SUPABASE_URL = 'https://asjkftjfbkuuhilnqonx.supabase.co'; 
         const SUPABASE_ANON_KEY = 'sb_publishable_gamkGMtfdZSAsXBVy1oGcQ_vCNcxWUO'; 
 
         let supabase;
 
         document.addEventListener('DOMContentLoaded', async () => {
+            if (!window.supabase) {
+                mostrarErro("A biblioteca do Supabase não foi carregada. Verifique sua conexão com a internet.");
+                return;
+            }
+
             if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
                 mostrarErro("Configuração incompleta. Verifique as chaves no código.");
                 return;
@@ -228,20 +233,81 @@
                     <p>Conectando ao banco de dados...</p>
                 </div>`;
             
-            // 1. Tenta buscar posts
-            const { data, error } = await supabase
-                .from('posts')
-                .select('*')
-                .order('created_at', { ascending: false });
+            try {
+                // CRIA UM TIMEOUT DE 5 SEGUNDOS
+                // Se o Supabase não responder em 5s, lançamos um erro manual
+                const timeoutPromise = new Promise((_, reject) => 
+                    setTimeout(() => reject(new Error("Tempo limite excedido")), 5000)
+                );
 
-            // 2. Verifica erros
-            if (error) {
-                console.error('Erro Supabase:', error);
+                const dataPromise = supabase
+                    .from('posts')
+                    .select('*')
+                    .order('created_at', { ascending: false });
+
+                // Corrida entre os dados e o relógio
+                const { data, error } = await Promise.race([dataPromise, timeoutPromise]);
+
+                // 2. Verifica erros do Supabase
+                if (error) {
+                    throw error; // Joga para o bloco catch abaixo
+                }
+
+                // 3. Sucesso, mas vazio
+                if (!data || data.length === 0) {
+                    container.innerHTML = `
+                        <div class="text-center py-8 bg-gray-50 rounded-lg border border-dashed border-gray-300">
+                            <i class="far fa-comments text-4xl text-gray-300 mb-3"></i>
+                            <p class="text-gray-500">Nenhum tópico encontrado.</p>
+                            <p class="text-sm text-blue-500">Seja o primeiro a postar acima!</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                // 4. Sucesso com dados -> Renderiza
+                container.innerHTML = '';
+                data.forEach(post => {
+                    const dataFormatada = new Date(post.created_at).toLocaleDateString('pt-BR', {
+                        day: '2-digit', month: '2-digit', year: '2-digit', hour: '2-digit', minute: '2-digit'
+                    });
+
+                    const postHTML = `
+                        <div class="bg-white p-5 rounded-lg shadow-sm border border-gray-100 forum-card">
+                            <div class="flex justify-between items-start mb-2">
+                                <h4 class="text-lg font-bold text-dark-blue">
+                                    ${escapeHtml(post.titulo)}
+                                </h4>
+                                <span class="text-xs text-gray-400 whitespace-nowrap ml-2">
+                                    <i class="far fa-clock mr-1"></i>${dataFormatada}
+                                </span>
+                            </div>
+                            <p class="text-gray-600 text-sm mb-3 leading-relaxed">
+                                ${escapeHtml(post.conteudo)}
+                            </p>
+                            <div class="flex items-center text-sm text-gray-500 font-medium border-t border-gray-50 pt-2">
+                                <div class="w-6 h-6 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-xs mr-2 font-bold">
+                                    ${post.nome_usuario ? post.nome_usuario.charAt(0).toUpperCase() : '?'}
+                                </div>
+                                ${escapeHtml(post.nome_usuario)}
+                            </div>
+                        </div>
+                    `;
+                    container.innerHTML += postHTML;
+                });
+
+            } catch (error) {
+                console.error('Erro Capturado:', error);
                 
-                let mensagemAmigavel = "Erro desconhecido ao carregar.";
-                
-                // Diagnóstico de erros comuns
-                if (error.code === 'PGRST301' || error.message.includes('permission denied')) {
+                let mensagemAmigavel = "Erro desconhecido.";
+
+                if (error.message === "Tempo limite excedido") {
+                    mensagemAmigavel = `
+                        <strong>O servidor demorou muito para responder.</strong><br>
+                        Isso pode ser problema na sua internet ou o banco de dados está bloqueado.<br>
+                        Verifique se você <strong>desativou o RLS</strong> na tabela 'posts'.
+                    `;
+                } else if (error.code === 'PGRST301' || error.message.includes('permission denied')) {
                     mensagemAmigavel = `
                         <strong>Acesso Negado (RLS Ativado):</strong><br>
                         O Supabase bloqueou a leitura por segurança.<br>
@@ -252,58 +318,14 @@
                     mensagemAmigavel = `
                         <strong>Tabela não encontrada:</strong><br>
                         A tabela "posts" não existe no seu projeto.<br>
-                        Verifique se você criou com o nome exato (tudo minúsculo).
+                        Verifique se você criou a tabela com o nome exato "posts" (minúsculo).
                     `;
                 } else {
-                    mensagemAmigavel = `Erro técnico: ${error.message} (Código: ${error.code})`;
+                    mensagemAmigavel = `Erro técnico: ${error.message} (Código: ${error.code || 'N/A'})`;
                 }
 
                 mostrarErro(mensagemAmigavel);
-                return;
             }
-
-            // 3. Sucesso, mas vazio
-            if (!data || data.length === 0) {
-                container.innerHTML = `
-                    <div class="text-center py-8 bg-gray-50 rounded-lg border border-dashed border-gray-300">
-                        <i class="far fa-comments text-4xl text-gray-300 mb-3"></i>
-                        <p class="text-gray-500">Nenhum tópico encontrado.</p>
-                        <p class="text-sm text-blue-500">Seja o primeiro a postar acima!</p>
-                    </div>
-                `;
-                return;
-            }
-
-            // 4. Sucesso com dados -> Renderiza
-            container.innerHTML = '';
-            data.forEach(post => {
-                const dataFormatada = new Date(post.created_at).toLocaleDateString('pt-BR', {
-                    day: '2-digit', month: '2-digit', year: '2-digit', hour: '2-digit', minute: '2-digit'
-                });
-
-                const postHTML = `
-                    <div class="bg-white p-5 rounded-lg shadow-sm border border-gray-100 forum-card">
-                        <div class="flex justify-between items-start mb-2">
-                            <h4 class="text-lg font-bold text-dark-blue">
-                                ${escapeHtml(post.titulo)}
-                            </h4>
-                            <span class="text-xs text-gray-400 whitespace-nowrap ml-2">
-                                <i class="far fa-clock mr-1"></i>${dataFormatada}
-                            </span>
-                        </div>
-                        <p class="text-gray-600 text-sm mb-3 leading-relaxed">
-                            ${escapeHtml(post.conteudo)}
-                        </p>
-                        <div class="flex items-center text-sm text-gray-500 font-medium border-t border-gray-50 pt-2">
-                            <div class="w-6 h-6 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-xs mr-2 font-bold">
-                                ${post.nome_usuario ? post.nome_usuario.charAt(0).toUpperCase() : '?'}
-                            </div>
-                            ${escapeHtml(post.nome_usuario)}
-                        </div>
-                    </div>
-                `;
-                container.innerHTML += postHTML;
-            });
         }
 
         // Função de envio (Create)
@@ -327,9 +349,8 @@
             if (error) {
                 console.error("Erro insert:", error);
                 status.innerHTML = `<span class="text-red-600">Erro: ${error.message}</span>`;
-                // Diagnóstico rápido para RLS no insert
                 if (error.message.includes('row-level security') || error.message.includes('permission denied')) {
-                     status.innerHTML = `<span class="text-red-600 font-bold">Erro de Permissão (Desative o RLS no Supabase)</span>`;
+                     status.innerHTML = `<span class="text-red-600 font-bold">Erro de Permissão (Desative o RLS)</span>`;
                 }
             } else {
                 status.innerHTML = `<span class="text-green-600 font-bold">Enviado!</span>`;
