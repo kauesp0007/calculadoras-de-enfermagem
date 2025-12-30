@@ -319,6 +319,25 @@
         #search-wrapper { max-width: 100%; width: 100%; margin-bottom: 0.5rem; }
       }
     </style>
+    <style>
+  /* Carrossel Conteúdo */
+  .conteudo-carousel {
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+  }
+  .conteudo-card {
+    scroll-snap-align: start;
+    min-width: 240px;
+    max-width: 260px;
+  }
+  @media (min-width: 640px) {
+    .conteudo-card { min-width: 260px; max-width: 280px; }
+  }
+  .conteudo-carousel::-webkit-scrollbar { height: 10px; }
+  .conteudo-carousel::-webkit-scrollbar-thumb { background: rgba(26,62,116,.25); border-radius: 999px; }
+  .conteudo-carousel::-webkit-scrollbar-track { background: rgba(0,0,0,.05); border-radius: 999px; }
+</style>
+
 <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"Organization","@id":"https://www.calculadorasdeenfermagem.com.br/#organization","name":"Calculadoras de Enfermagem","url":"https://www.calculadorasdeenfermagem.com.br","logo":{"@type":"ImageObject","url":"https://www.calculadorasdeenfermagem.com.br/assets/logo.png"}},{"@type":"MedicalWebPage","@id":"https://www.calculadorasdeenfermagem.com.br/index.html/#webpage","url":"https://www.calculadorasdeenfermagem.com.br/index.html","name":"Calculadoras de Enfermagem — Escalas Clínicas e Ferramentas de Dosagem para Profissionais de Saúde","description":"Mais de 50 calculadoras e escalas clínicas para profissionais de enfermagem. Calculadoras de dosagem, IMC, gotejamento, risco de queda, vacinas e muito mais. Ferramentas essenciais para otimizar a prática diária e aumentar a segurança do paciente.","isPartOf":{"@id":"https://www.calculadorasdeenfermagem.com.br/#website"},"primaryImageOfPage":{"@id":"https://www.calculadorasdeenfermagem.com.br/index.html/#primaryimage"},"datePublished":"2025-12-19T07:59:49.178Z","dateModified":"2025-12-19T10:29:06.330Z","author":{"@id":"https://www.calculadorasdeenfermagem.com.br/#organization"},"audience":{"@type":"MedicalAudience","audienceType":"Clinician"},"specialty":{"@type":"MedicalSpecialty","name":"Nursing"}},{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://www.calculadorasdeenfermagem.com.br"},{"@type":"ListItem","position":2,"name":"Calculadoras de Enfermagem — Escalas Clínicas e Ferramentas de Dosagem para Profissionais de Saúde","item":"https://www.calculadorasdeenfermagem.com.br/index.html"}]}]}</script>
 <!-- OTIMIZADOR_MASTER_V2 -->
 
@@ -506,6 +525,53 @@ body { overflow-x: hidden; }
                 </div>
             </div>
         </section>
+        <!-- =========================
+     CARROSSEL: CONTEÚDO (menu-global.html)
+     Cole ESTE bloco logo após o </section> do cabeçalho e antes do bloco "Calculadoras"
+========================= -->
+<section class="max-w-7xl mx-auto px-4 mt-2 mb-6" aria-label="Conteúdos em destaque">
+  <div class="flex items-center justify-between gap-3 mb-3">
+    <div>
+      <h2 class="text-2xl md:text-3xl font-bold text-[#1A3E74] font-nunito leading-tight">
+        Conteúdos
+      </h2>
+      <p class="text-sm text-gray-600 mt-1">
+        Deslize para ver os conteúdos do menu “Conteúdo” e toque para abrir.
+      </p>
+    </div>
+
+    <div class="flex gap-2">
+      <button
+        id="conteudoPrev"
+        type="button"
+        class="px-3 py-2 rounded-lg bg-white border border-gray-200 shadow-sm hover:shadow transition"
+        aria-label="Voltar"
+      >
+        <i class="fa-solid fa-chevron-left" aria-hidden="true"></i>
+      </button>
+      <button
+        id="conteudoNext"
+        type="button"
+        class="px-3 py-2 rounded-lg bg-white border border-gray-200 shadow-sm hover:shadow transition"
+        aria-label="Avançar"
+      >
+        <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
+      </button>
+    </div>
+  </div>
+
+  <div
+    id="conteudoCarousel"
+    class="conteudo-carousel flex gap-4 overflow-x-auto pb-2 scroll-smooth"
+    tabindex="0"
+    aria-label="Carrossel de conteúdos"
+  >
+    <!-- cards são inseridos via JS -->
+  </div>
+
+  <p id="conteudoCarouselStatus" class="sr-only" aria-live="polite"></p>
+</section>
+
         
         <!-- Bloco de Título: Calculadoras com Ícone -->
         <div class="flex flex-col md:flex-row items-center justify-center gap-4 mb-6 mt-6">
@@ -1220,5 +1286,198 @@ body { overflow-x: hidden; }
         });
 </script>
 <script src="/filtro-index.js" defer=""></script>
+<script>
+(function initConteudoCarousel(){
+  const carousel = document.getElementById('conteudoCarousel');
+  const btnPrev  = document.getElementById('conteudoPrev');
+  const btnNext  = document.getElementById('conteudoNext');
+  const statusEl = document.getElementById('conteudoCarouselStatus');
+
+  if (!carousel || !btnPrev || !btnNext) return;
+
+  const FALLBACK_IMG = "https://www.calculadorasdeenfermagem.com.br/iconpages.webp";
+
+  function setStatus(msg){
+    if (statusEl) statusEl.textContent = msg;
+  }
+
+  function normalizeUrlMaybeRelative(url){
+    try {
+      return new URL(url, window.location.href).toString();
+    } catch(e){
+      return url || "#";
+    }
+  }
+
+  function cleanText(s){
+    return (s || "").replace(/\s+/g, " ").trim();
+  }
+
+  async function fetchText(url){
+    const res = await fetch(url, { cache: "force-cache" });
+    if (!res.ok) throw new Error("Falha ao carregar: " + url);
+    return await res.text();
+  }
+
+  function extractConteudoLinksFromMenu(html){
+    const doc = new DOMParser().parseFromString(html, "text/html");
+
+    // Preferência: submenu mobile já “pronto”
+    const mobileLinks = Array.from(doc.querySelectorAll('#submenu-conteudo a[href]'));
+    if (mobileLinks.length) {
+      return mobileLinks.map(a => ({
+        title: cleanText(a.textContent),
+        href: a.getAttribute('href')
+      })).filter(i => i.title && i.href);
+    }
+
+    // Fallback: tenta encontrar o dropdown desktop “Conteúdo”
+    const buttons = Array.from(doc.querySelectorAll('button'));
+    const conteudoBtn = buttons.find(b => cleanText(b.textContent) === "Conteúdo");
+    if (conteudoBtn) {
+      const ul = conteudoBtn.parentElement && conteudoBtn.parentElement.querySelector('ul');
+      if (ul) {
+        const links = Array.from(ul.querySelectorAll('a[href]'));
+        return links.map(a => ({
+          title: cleanText(a.textContent),
+          href: a.getAttribute('href')
+        })).filter(i => i.title && i.href);
+      }
+    }
+
+    return [];
+  }
+
+  async function getPreviewImageFromPage(href){
+    const url = normalizeUrlMaybeRelative(href);
+    try{
+      const html = await fetchText(url);
+      const doc = new DOMParser().parseFromString(html, "text/html");
+
+      // 1) tenta og:image
+      const og = doc.querySelector('meta[property="og:image"], meta[name="og:image"]');
+      const ogUrl = og && og.getAttribute("content");
+      if (ogUrl) return normalizeUrlMaybeRelative(ogUrl);
+
+      // 2) tenta primeira imagem da página
+      const img = doc.querySelector('img[src]');
+      const src = img && img.getAttribute("src");
+      if (src) return normalizeUrlMaybeRelative(src);
+
+      return FALLBACK_IMG;
+    } catch(e){
+      return FALLBACK_IMG;
+    }
+  }
+
+  function makeCard({ title, href }){
+    const a = document.createElement('a');
+    a.href = href;
+    a.className = "conteudo-card bg-white rounded-xl shadow-md hover:shadow-lg transition overflow-hidden border border-gray-100 flex flex-col";
+    a.setAttribute("aria-label", "Abrir conteúdo: " + title);
+
+    // imagem (carrega depois)
+    const imgWrap = document.createElement('div');
+    imgWrap.className = "w-full aspect-[16/9] bg-gray-100 overflow-hidden";
+
+    const img = document.createElement('img');
+    img.alt = "Prévia: " + title;
+    img.loading = "lazy";
+    img.decoding = "async";
+    img.src = FALLBACK_IMG; // placeholder
+    img.className = "w-full h-full object-cover";
+    imgWrap.appendChild(img);
+
+    const body = document.createElement('div');
+    body.className = "p-3 flex-1 flex flex-col";
+
+    const h3 = document.createElement('h3');
+    h3.className = "text-sm font-semibold text-gray-800 leading-snug line-clamp-2";
+    h3.textContent = title;
+
+    const small = document.createElement('p');
+    small.className = "text-xs text-gray-500 mt-1";
+    small.textContent = "Toque para abrir";
+
+    body.appendChild(h3);
+    body.appendChild(small);
+
+    a.appendChild(imgWrap);
+    a.appendChild(body);
+
+    // lazy real preview
+    a.dataset.previewHref = href;
+    a._imgEl = img;
+
+    return a;
+  }
+
+  function scrollByCard(dir){
+    const card = carousel.querySelector('.conteudo-card');
+    const amount = card ? (card.getBoundingClientRect().width + 16) : 280;
+    carousel.scrollBy({ left: dir * amount, behavior: "smooth" });
+  }
+
+  btnPrev.addEventListener('click', () => scrollByCard(-1));
+  btnNext.addEventListener('click', () => scrollByCard(1));
+
+  // setas do teclado quando o carrossel está focado
+  carousel.addEventListener('keydown', (e) => {
+    if (e.key === "ArrowLeft")  { e.preventDefault(); scrollByCard(-1); }
+    if (e.key === "ArrowRight") { e.preventDefault(); scrollByCard(1); }
+  });
+
+  async function build(){
+    setStatus("Carregando conteúdos...");
+    carousel.innerHTML = "";
+
+    // Você já faz preload de /menu-global.html no head ✅
+    // <link rel="preload" href="/menu-global.html" as="fetch" ...>
+    // então aqui costuma vir rápido.
+    const menuHtml = await fetchText("/menu-global.html");
+    const items = extractConteudoLinksFromMenu(menuHtml);
+
+    if (!items.length){
+      carousel.innerHTML = '<div class="text-sm text-gray-600">Não encontrei os links do menu “Conteúdo”.</div>';
+      setStatus("Nenhum conteúdo encontrado.");
+      return;
+    }
+
+    // monta cards
+    const frag = document.createDocumentFragment();
+    items.forEach(item => frag.appendChild(makeCard(item)));
+    carousel.appendChild(frag);
+
+    setStatus(items.length + " conteúdos carregados.");
+
+    // Lazy-load das imagens reais usando IntersectionObserver
+    const io = new IntersectionObserver(async (entries) => {
+      for (const ent of entries){
+        if (!ent.isIntersecting) continue;
+        const card = ent.target;
+        io.unobserve(card);
+
+        const href = card.dataset.previewHref;
+        const imgEl = card._imgEl;
+        if (!href || !imgEl) continue;
+
+        const preview = await getPreviewImageFromPage(href);
+        imgEl.src = preview;
+      }
+    }, { root: carousel, threshold: 0.25 });
+
+    Array.from(carousel.querySelectorAll('.conteudo-card')).forEach(card => io.observe(card));
+  }
+
+  // roda após DOM pronto
+  document.addEventListener("DOMContentLoaded", () => {
+    build().catch(() => {
+      carousel.innerHTML = '<div class="text-sm text-gray-600">Falha ao montar o carrossel de conteúdos.</div>';
+      setStatus("Falha ao carregar conteúdos.");
+    });
+  });
+})();
+</script>
+
 
 </body></html>
