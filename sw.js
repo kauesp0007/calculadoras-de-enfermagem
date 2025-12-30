@@ -1,5 +1,5 @@
 // Define o nome e a versão do cache (AUTOMÁTICO via gerar-sw.js)
-const CACHE_NAME = 'calculadoras-enfermagem-cache-20251230-083448-689';
+const CACHE_NAME = 'calculadoras-enfermagem-cache-20251230-135149-931';
 
 // O SCRIPT DE BUILD VAI INJETAR A LISTA DE ARQUIVOS AQUI
 const urlsToCache = [
@@ -333,6 +333,7 @@ const urlsToCache = [
   'biblioteca/micro-e-macro-gotas.html',
   'biblioteca/mini-exame-do-estado-mental-formulario-rio.html',
   'biblioteca/mini-exame-do-estado-mental-meem.html',
+  'biblioteca/missao-visao-e-valores-calculadoras-de-enfermagem.html',
   'biblioteca/myra-estrin-levine-teoria-holistica.html',
   'biblioteca/nivel-de-consciencia-enfermagem.html',
   'biblioteca/o-enfermeiro-em-hipotese-alguma-deve-sair-do-ambiente-onde-esta-acontecendo-a-pcr-se-precisar-de-algo-fora-do-ambiente-ele-pede-se.html',
@@ -542,6 +543,7 @@ const urlsToCache = [
   'downloads/page14.html',
   'downloads/page15.html',
   'downloads/page16.html',
+  'downloads/page17.html',
   'downloads/page2.html',
   'downloads/page3.html',
   'downloads/page4.html',
@@ -1346,6 +1348,7 @@ const urlsToCache = [
   'img/meta6.webp',
   'img/metasinternacionais.webp',
   'img/mini_exame_do_estado_mental_formulario_rio.webp',
+  'img/missao visao e valores calculadoras de enfermagem.webp',
   'img/o responsavel pelos cuidados na assistencia ventilatoria deve preparar - circuito de aspiração orotraqueal montado e testado, lar.webp',
   'img/o responsável pelo carrinho de emergencia deve ter em mente as 5 causas prováveis H de uma PCR, e assim organizar o carrinho de emerg.webp',
   'img/pentagono_meem.jpg',
