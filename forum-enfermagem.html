@@ -202,7 +202,7 @@
         const SUPABASE_URL = 'https://asjkftjfbkuuhilnqonx.supabase.co'; 
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFzamtmdGpmYmt1dWhpbG5xb254Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjcwODMxNjQsImV4cCI6MjA4MjY1OTE2NH0.mly76L5r2zoasonwta8aNND2mWWrkAoXirAAs99mDYo'; 
 
-        let supabase;
+        let supabaseClient;
 
         document.addEventListener('DOMContentLoaded', async () => {
             if (!window.supabase) {
@@ -217,7 +217,11 @@
 
             try {
                 // Inicializa cliente
-                supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+                supabaseClient = window.supabase.createClient(
+  SUPABASE_URL,
+  SUPABASE_ANON_KEY
+);
+
                 console.log("Supabase inicializado.");
                 carregarPosts(); 
             } catch (error) {
@@ -240,7 +244,7 @@
                     setTimeout(() => reject(new Error("Tempo limite excedido")), 5000)
                 );
 
-                const dataPromise = supabase
+                const dataPromise = supabaseClient
                     .from('posts')
                     .select('*')
                     .order('created_at', { ascending: false });
@@ -305,14 +309,14 @@
                     mensagemAmigavel = `
                         <strong>O servidor demorou muito para responder.</strong><br>
                         Isso pode ser problema na sua internet ou o banco de dados está bloqueado.<br>
-                        Verifique se você <strong>desativou o RLS</strong> na tabela 'posts'.
+                        Verifique se o <strong>RLS está ativado</strong> e se existem policies permitindo <strong>SELECT</strong> para <code>anon</code>.
                     `;
                 } else if (error.code === 'PGRST301' || error.message.includes('permission denied')) {
                     mensagemAmigavel = `
                         <strong>Acesso Negado (RLS Ativado):</strong><br>
                         O Supabase bloqueou a leitura por segurança.<br>
                         <br>
-                        <strong>Solução:</strong> Vá no painel do Supabase > Table Editor > Tabela 'posts' > Clique em "RLS" e desative ("Disable RLS") para testar.
+                        <strong>Solução:</strong> No Supabase: Authentication/Policies (ou Table Editor → posts → Policies) e confirme as policies:<br>✅ <code>SELECT</code> para <code>anon</code> com <code>USING (true)</code><br>✅ <code>INSERT</code> para <code>anon</code> com <code>WITH CHECK (true)</code>
                     `;
                 } else if (error.code === '42P01' || error.message.includes('does not exist')) {
                     mensagemAmigavel = `
@@ -342,7 +346,7 @@
             const title = document.getElementById('postTitle').value;
             const content = document.getElementById('postContent').value;
 
-            const { error } = await supabase
+            const { error } = await supabaseClient
                 .from('posts')
                 .insert([{ nome_usuario: user, titulo: title, conteudo: content }]);
 
