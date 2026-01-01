@@ -1,8 +1,9 @@
 // Define o nome e a versão do cache (AUTOMÁTICO via gerar-sw.js)
-const CACHE_NAME = 'calculadoras-enfermagem-cache-20260101-181809-465';
+const CACHE_NAME = 'calculadoras-enfermagem-cache-20260101-202837-643';
 
 // O SCRIPT DE BUILD VAI INJETAR A LISTA DE ARQUIVOS AQUI
 const urlsToCache = [
+  '.vscode/settings.json',
   '5-hs-da-paradacardiorespiratoria.html',
   '5-ts-da-paradacardiorespiratoria.html',
   '_language_selector.html',
