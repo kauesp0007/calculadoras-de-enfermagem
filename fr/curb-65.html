@@ -67,151 +67,148 @@
         href="https://cdn.jsdelivr.net/npm/open-dyslexic@1.0.3/open-dyslexic-regular.min.css"
     /></noscript>
 
-    <!-- Google Analytics & Consent Mode -->
-    <script>
+    <!-- Google Analytics & Consent Mode --><script>
 /* =========================================================
    MODO ADMIN + GOOGLE TAG + CONSENT + ADSENSE
-   (VERSÃO FINAL – SUBSTITUI O BLOCO ANTIGO)
+   (VERSÃO OPT-OUT: Carrega anúncios por padrão)
    ========================================================= */
 
-  // 🛡️ MODO ADMIN — bloqueia tudo
-  if (localStorage.getItem('admin_mode') === 'true') {
-    console.log('🚧 Modo Admin: Analytics e AdSense NÃO foram carregados.');
-  } else {
+// 🛡️ MODO ADMIN — bloqueia tudo
+if (localStorage.getItem('admin_mode') === 'true') {
+  console.log('🚧 Modo Admin: Analytics e AdSense NÃO foram carregados.');
+} else {
 
-    // Proteções globais
-    window.__metricsLoaded = window.__metricsLoaded || false;
-    window.__adsenseLoaded = window.__adsenseLoaded || false;
+  // 0) VERIFICAÇÃO INICIAL (Novo)
+  var savedConsent = localStorage.getItem("cookieConsent");
+  var isRefused = (savedConsent === "refused");
 
-    /* -----------------------------------------------------
-       1) GOOGLE TAG (gtag.js)
-       ----------------------------------------------------- */
-    if (!window.__metricsLoaded) {
-      window.__metricsLoaded = true;
+  // Proteções globais
+  window.__metricsLoaded = window.__metricsLoaded || false;
+  window.__adsenseLoaded = window.__adsenseLoaded || false;
 
-      var scriptGA = document.createElement('script');
-      scriptGA.async = true;
-      scriptGA.src = "https://www.googletagmanager.com/gtag/js?id=AW-952633102";
-      document.head.appendChild(scriptGA);
+  /* -----------------------------------------------------
+     1) GOOGLE TAG (gtag.js)
+     ----------------------------------------------------- */
+  if (!window.__metricsLoaded) {
+    window.__metricsLoaded = true;
 
-      window.dataLayer = window.dataLayer || [];
-      function gtag(){ dataLayer.push(arguments); }
-      window.gtag = window.gtag || gtag;
+    var scriptGA = document.createElement('script');
+    scriptGA.async = true;
+    scriptGA.src = "https://www.googletagmanager.com/gtag/js?id=AW-952633102";
+    document.head.appendChild(scriptGA);
 
-      gtag("js", new Date());
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){ dataLayer.push(arguments); }
+    window.gtag = window.gtag || gtag;
 
-      // 🔒 Começa SEM consentimento (LGPD)
+    gtag("js", new Date());
+
+    // ⚡ MUDANÇA: Lógica de Consentimento Padrão (Opt-out)
+    if (isRefused) {
       gtag("consent", "default", {
         analytics_storage: "denied",
         ad_storage: "denied",
         wait_for_update: 500
       });
-
-      gtag("config", "AW-952633102"); // Google Ads
-      gtag("config", "G-8FLJ59XXDK"); // GA4
-    }
-
-    /* -----------------------------------------------------
-       2) FUNÇÃO INTERNA: carrega AdSense uma única vez
-       ----------------------------------------------------- */
-    function loadAdSenseOnce() {
-      if (window.__adsenseLoaded) return;
-
-      window.__adsenseLoaded = true;
-
-      var scriptAd = document.createElement('script');
-      scriptAd.async = true;
-      scriptAd.src =
-        "https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6472730056006847";
-      scriptAd.crossOrigin = "anonymous";
-
-      document.head.appendChild(scriptAd);
-
-      console.log("🟢 AdSense carregado após consentimento.");
-    }
-
-    /* -----------------------------------------------------
-       3) FUNÇÃO CENTRAL DE CONSENTIMENTO
-       ----------------------------------------------------- */
-    function applyConsent(consent) {
-      if (typeof window.gtag === "function") {
-        gtag("consent", "update", consent);
-      }
-
-      // Se anúncios foram permitidos → carrega Adsense
-      if (consent && consent.ad_storage === "granted") {
-        loadAdSenseOnce();
-      }
-
-      // Persistência (granular)
-      try {
-        localStorage.setItem("analytics_storage", consent.analytics_storage);
-        localStorage.setItem("ad_storage", consent.ad_storage);
-      } catch (e) {}
-    }
-
-    /* -----------------------------------------------------
-       4) REAPLICA CONSENTIMENTO AO ENTRAR NA PÁGINA
-       ----------------------------------------------------- */
-    (function restoreConsent() {
-      try {
-        const saved = localStorage.getItem("cookieConsent");
-
-        if (saved === "accepted") {
-          applyConsent({
-            analytics_storage: "granted",
-            ad_storage: "granted"
-          });
-        }
-
-        if (saved === "refused") {
-          applyConsent({
-            analytics_storage: "denied",
-            ad_storage: "denied"
-          });
-        }
-
-        if (saved === "managed") {
-          applyConsent({
-            analytics_storage: localStorage.getItem("analytics_storage") || "denied",
-            ad_storage: localStorage.getItem("ad_storage") || "denied"
-          });
-        }
-      } catch (e) {}
-    })();
-
-    /* -----------------------------------------------------
-       5) API GLOBAL PARA O BANNER DE COOKIES
-       ----------------------------------------------------- */
-
-    // Aceitar tudo
-    window.acceptAllCookies = function () {
-      localStorage.setItem("cookieConsent", "accepted");
-      applyConsent({
+    } else {
+      gtag("consent", "default", {
         analytics_storage: "granted",
-        ad_storage: "granted"
+        ad_storage: "granted",
+        wait_for_update: 500
       });
-    };
+    }
 
-    // Recusar tudo
-    window.rejectAllCookies = function () {
-      localStorage.setItem("cookieConsent", "refused");
-      applyConsent({
-        analytics_storage: "denied",
-        ad_storage: "denied"
-      });
-    };
-
-    // Granular (checkboxes)
-    window.applyGranularCookies = function (analyticsGranted, adsGranted) {
-      localStorage.setItem("cookieConsent", "managed");
-      applyConsent({
-        analytics_storage: analyticsGranted ? "granted" : "denied",
-        ad_storage: adsGranted ? "granted" : "denied"
-      });
-    };
-
+    gtag("config", "AW-952633102"); // Google Ads
+    gtag("config", "G-8FLJ59XXDK"); // GA4
   }
+
+  /* -----------------------------------------------------
+     2) FUNÇÃO INTERNA: carrega AdSense uma única vez
+     ----------------------------------------------------- */
+  function loadAdSenseOnce() {
+    if (window.__adsenseLoaded) return;
+    window.__adsenseLoaded = true;
+
+    var scriptAd = document.createElement('script');
+    scriptAd.async = true;
+    scriptAd.src = "https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6472730056006847";
+    scriptAd.crossOrigin = "anonymous";
+    document.head.appendChild(scriptAd);
+
+    console.log("🟢 AdSense carregado (Modo Opt-out).");
+  }
+
+  // ⚡ MUDANÇA: Se não estiver recusado, carrega ANÚNCIOS IMEDIATAMENTE
+  if (!isRefused) {
+      loadAdSenseOnce();
+  }
+
+  /* -----------------------------------------------------
+     3) FUNÇÃO CENTRAL DE CONSENTIMENTO
+     ----------------------------------------------------- */
+  function applyConsent(consent) {
+    if (typeof window.gtag === "function") {
+      gtag("consent", "update", consent);
+    }
+    if (consent && consent.ad_storage === "granted") {
+      loadAdSenseOnce();
+    }
+    try {
+      localStorage.setItem("analytics_storage", consent.analytics_storage);
+      localStorage.setItem("ad_storage", consent.ad_storage);
+    } catch (e) {}
+  }
+
+  /* -----------------------------------------------------
+     4) REAPLICA CONSENTIMENTO AO ENTRAR NA PÁGINA
+     ----------------------------------------------------- */
+  (function restoreConsent() {
+    try {
+      const saved = localStorage.getItem("cookieConsent");
+      if (saved === "accepted") {
+        applyConsent({ analytics_storage: "granted", ad_storage: "granted" });
+      }
+      if (saved === "refused") {
+        applyConsent({ analytics_storage: "denied", ad_storage: "denied" });
+      }
+      if (saved === "managed") {
+        applyConsent({
+          analytics_storage: localStorage.getItem("analytics_storage") || "denied",
+          ad_storage: localStorage.getItem("ad_storage") || "denied"
+        });
+      }
+    } catch (e) {}
+  })();
+
+  /* -----------------------------------------------------
+     5) API GLOBAL PARA O BANNER DE COOKIES
+     ----------------------------------------------------- */
+  window.acceptAllCookies = function () {
+    localStorage.setItem("cookieConsent", "accepted");
+    applyConsent({ analytics_storage: "granted", ad_storage: "granted" });
+  };
+
+  window.rejectAllCookies = function () {
+    localStorage.setItem("cookieConsent", "refused");
+    applyConsent({ analytics_storage: "denied", ad_storage: "denied" });
+    // Remove visualmente
+    var ads = document.querySelectorAll('ins.adsbygoogle, .google-auto-placed');
+    ads.forEach(function(ad) { ad.style.display = 'none'; ad.innerHTML = ''; });
+    console.log("🔴 Consentimento revogado e anúncios ocultados.");
+  };
+
+  window.applyGranularCookies = function (analyticsGranted, adsGranted) {
+    localStorage.setItem("cookieConsent", "managed");
+    applyConsent({
+      analytics_storage: analyticsGranted ? "granted" : "denied",
+      ad_storage: adsGranted ? "granted" : "denied"
+    });
+    if (!adsGranted) {
+        var ads = document.querySelectorAll('ins.adsbygoogle, .google-auto-placed');
+        ads.forEach(function(ad) { ad.style.display = 'none'; ad.innerHTML = ''; });
+    }
+  };
+}
 </script>
 
 
@@ -520,437 +517,148 @@ body { overflow-x: hidden; }
     <script src="/global-scripts.js" defer=""></script>
     <!-- Assume script is at root -->
 
-    <!-- Script Spécifique à la Page CURB-65 (avec textes traduits) -->
-    <script>
-      document.addEventListener("DOMContentLoaded", function () {
-        const resultadoDiv = document.getElementById("resultado");
-        const btnCalcular = document.getElementById("btnCalcular");
-        const btnLimpar = document.getElementById("btnLimpar");
-        const btnGerarPDF = document.getElementById("btnGerarPDF");
-        const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
-        const conteudoDiv = document.getElementById("conteudo");
-
-        // Données CURB-65 traduites en Français
-        const curbData = [
-          {
-            title: "Confusion Mentale",
-            nameAttr: "confusion",
-            explain:
-              "Le patient présente-t-il une désorientation temporelle, personnelle ou spatiale ?",
-            options: [
-              { description: "Oui", score: 1 },
-              { description: "Non", score: 0 },
-            ],
-          },
-          {
-            title: "Urée ≥ 7 mmol/L (ou BUN > 19 mg/dL)", // Valeur de référence peut varier légèrement, utilisé ici la valeur commune
-            nameAttr: "uree",
-            explain:
-              "Le taux d'urée sanguine du patient est-il de 7 mmol/L ou plus ?",
-            options: [
-              { description: "Oui", score: 1 },
-              { description: "Non", score: 0 },
-            ],
-          },
-          {
-            title: "Respiration ≥ 30/min",
-            nameAttr: "respiration",
-            explain:
-              "La fréquence respiratoire du patient est-elle de 30 respirations par minute ou plus ?",
-            options: [
-              { description: "Oui", score: 1 },
-              { description: "Non", score: 0 },
-            ],
-          },
-          {
-            title: "Pression Artérielle",
-            nameAttr: "pression_arterielle",
-            explain:
-              "La pression artérielle systolique est-elle inférieure à 90 mmHg ou la diastolique inférieure à 60 mmHg ?",
-            options: [
-              { description: "Oui", score: 1 },
-              { description: "Non", score: 0 },
-            ],
-          },
-          {
-            title: "Âge ≥ 65 ans",
-            nameAttr: "age",
-            explain: "Le patient a-t-il 65 ans ou plus ?",
-            options: [
-              { description: "Oui", score: 1 },
-              { description: "Non", score: 0 },
-            ],
-          },
-        ];
-
-        // Fonction pour créer le formulaire (reste identique, utilise les données traduites)
-        function createForm() {
-          conteudoDiv.innerHTML = ""; // Nettoie le contenu existant
-          curbData.forEach((item) => {
-            const sectionDiv = document.createElement("div");
-            sectionDiv.className = "curb-criterion-section";
-            sectionDiv.id = `section-${item.nameAttr}`;
-
-            const titleH3 = document.createElement("h3");
-            titleH3.className = "curb-criterion-title";
-            titleH3.innerHTML = item.title;
-            sectionDiv.appendChild(titleH3);
-
-            const explainP = document.createElement("p");
-            explainP.className = "curb-criterion-explain";
-            explainP.innerHTML = item.explain;
-            sectionDiv.appendChild(explainP);
-
-            const selectElement = document.createElement("select");
-            selectElement.id = item.nameAttr;
-            selectElement.className = "curb-criterion-select mt-2";
-
-            const defaultOption = document.createElement("option");
-            defaultOption.value = "";
-            defaultOption.text = "Sélectionnez..."; // Traduit
-            selectElement.appendChild(defaultOption);
-
-            item.options.forEach((option) => {
-              const optionElement = document.createElement("option");
-              optionElement.value = option.score;
-              optionElement.text = `${option.description} (points : ${option.score})`; // Traduit
-              selectElement.appendChild(optionElement);
-            });
-
-            sectionDiv.appendChild(selectElement);
-            conteudoDiv.appendChild(sectionDiv);
-          });
-        }
-
-        // Fonction de calcul (reste identique, utilise les textes de recommandation traduits)
-        function calcularCurb() {
-          const selects = document.querySelectorAll("#conteudo select");
-          let allSelected = true;
-          let total = 0;
-
-          selects.forEach((select) => {
-            if (select.value === "") {
-              allSelected = false;
-              select.classList.add("incomplete");
-            } else {
-              select.classList.remove("incomplete");
-              total += Number(select.value);
-            }
-          });
-
-          resultadoDiv.style.display = "block"; // Affiche la div de résultat
-          if (!allSelected) {
-            // Message d'erreur traduit
-            resultadoDiv.innerHTML =
-              '⚠️ <strong class="font-bold">Veuillez sélectionner une option pour tous les items avant de calculer.</strong>';
-            resultadoDiv.className = `resultado bg-red-100`; // Classe pour l'erreur
-            delete resultadoDiv.dataset.score; // Efface le score précédent si présent
-            return;
-          }
-
-          // Recommandations traduites
-          let recomendacao = "";
-
-          if (total <= 1) {
-            recomendacao = `Le score de ${total} indique un faible risque de mortalité. Un traitement ambulatoire peut être envisagé.`;
-          } else if (total === 2) {
-            recomendacao = `Le score de ${total} indique un risque modéré de mortalité. Une hospitalisation en service conventionnel est indiquée pour une surveillance étroite.`;
-          } else {
-            // total >= 3
-            recomendacao = `Le score de ${total} indique un risque élevé de mortalité. Une hospitalisation et une admission en unité de soins intensifs (USI) doivent être envisagées.`;
-          }
-
-          resultadoDiv.innerHTML = `
-                <p>Score total : <strong class="font-bold">${total}</strong></p>
-                <p class="mt-4"><strong>Recommandation :</strong> ${recomendacao}</p>
-            `;
-          resultadoDiv.className = `resultado bg-blue-50`; // Classe standard pour le résultat
-          resultadoDiv.style.display = "block";
-
-          // Stocke le score pour les autres fonctions
-          resultadoDiv.dataset.score = total;
-          resultadoDiv.dataset.scaleName = "Score CURB-65";
-        }
-
-        // Fonction pour effacer les champs (reste identique)
-        function limparCampos() {
-          const selects = document.querySelectorAll("#conteudo select");
-          selects.forEach((select) => {
-            select.selectedIndex = 0;
-            select.classList.remove("incomplete");
-          });
-          resultadoDiv.innerHTML = "";
-          resultadoDiv.className = "resultado hidden"; // Cache la div de résultat
-          delete resultadoDiv.dataset.score;
-          delete resultadoDiv.dataset.scaleName;
-        }
-
-        // Attache les événements aux boutons
-        createForm(); // Crée le formulaire au chargement de la page
-        btnCalcular?.addEventListener("click", calcularCurb);
-        btnLimpar?.addEventListener("click", limparCampos);
-
-        // Logique PDF (reste identique, titres traduits)
-        btnGerarPDF?.addEventListener("click", () => {
-          if (!resultadoDiv.dataset.score) {
-            alert(
-              'Veuillez cliquer sur "Calculer Score" d\'abord pour générer le PDF.',
-            ); // Message traduit
-            return;
-          }
-          if (typeof gerarPDFGlobal === "function") {
-            gerarPDFGlobal({
-              titulo: "Score CURB-65", // Titre traduit
-              subtitulo: "Rapport de Gravité de la Pneumonie", // Sous-titre traduit
-              nomeArquivo: "rapport_score_curb-65.pdf", // Nom de fichier traduit
-              seletorConteudo: ".main-content-wrapper",
-            });
-          } else {
-            console.error("Fonction gerarPDFGlobal non définie.");
-          }
-        });
-
-        // Logique NANDA/NIC/NOC (reste identique, recherche en FR)
-        btnNandaNicNoc?.addEventListener("click", () => {
-          const score = resultadoDiv.dataset.score;
-          const scaleName = resultadoDiv.dataset.scaleName;
-          if (score === undefined) {
-            // Vérifie si le score existe
-            alert("Calculez le résultat pour rechercher la conduite à tenir."); // Message traduit
-            return;
-          }
-          // Détermine le niveau de risque basé sur le score
-          const recomendacaoRisco =
-            score <= 1
-              ? "faible risque"
-              : score === 2
-                ? "risque modéré"
-                : "risque élevé";
-          // Recherche traduite
-          const searchQuery = encodeURIComponent(
-            `plan de soins infirmiers pour pneumonie à ${recomendacaoRisco} selon le Score CURB-65 NANDA NIC NOC`,
-          );
-          window.open(
-            `https://www.google.com/search?q=${searchQuery}`,
-            "_blank",
-          );
-        });
-      });
-    </script>
-
-    <!-- Script du Sélecteur de Langue (chargé depuis la racine) -->
-    <script src="/lang-selector.js" defer=""></script>
-
-    <!-- Script pour charger le Footer -->
-    <script>
-      fetch("/fr/footer.html") // Assume footer translated in /fr/
-        .then((response) =>
-          response.ok ? response.text() : Promise.reject("Footer not found"),
-        )
-        .then((data) => {
-          document.getElementById("footer-placeholder").innerHTML = data;
-        })
-        .catch((error) =>
-          console.error("Erreur lors du chargement du pied de page:", error),
-        );
-    </script>
-  
-
-
-
-  
-
-    <link rel="preconnect" href="https://cdnjs.cloudflare.com">
-    <link rel="preconnect" href="https://cdn.jsdelivr.net">
-
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
-    <link rel="preload" href="/menu-global.html" as="fetch" crossorigin="">
-    <link rel="preload" href="/global-body-elements.html" as="fetch" crossorigin="">
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>
-      Score CURB-65 : Évaluation de la Gravité de la Pneumonie - Calculateurs
-      Infirmiers
-    </title>
-
-    <!-- Metatags et SEO -->
-    <link rel="canonical" href="https://www.calculadorasdeenfermagem.com.br/fr/curb-65.html">
-    <link rel="icon" href="/favicon.ico" type="image/x-icon">
-    <!-- Assume favicon is at root -->
-    <meta name="description" content="Calculez le Score CURB-65 pour évaluer la gravité de la pneumonie acquise en communauté, déterminant le risque de mortalité et la nécessité d'hospitalisation.">
-    <meta property="og:title" content="Score CURB-65 : Évaluation de la Gravité de la Pneumonie - Calculateurs Infirmiers">
-    <meta property="og:description" content="Calculez le Score CURB-65 pour évaluer la gravité de la pneumonie acquise en communauté, déterminant le risque de mortalité et la nécessité d'hospitalisation.">
-    <meta property="og:url" content="https://www.calculadorasdeenfermagem.com.br/fr/curb-65.html">
-    <meta property="og:image" content="https://www.calculadorasdeenfermagem.com.br/iconpages.webp">
-    <!-- Assume image is at root -->
-    <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="Score CURB-65 : Évaluation de la Gravité de la Pneumonie - Calculateurs Infirmiers">
-    <meta name="twitter:description" content="Calculez le Score CURB-65 pour évaluer la gravité de la pneumonie acquise en communauté, déterminant le risque de mortalité et la nécessité d'hospitalisation.">
-    <meta name="twitter:image" content="https://www.calculadorasdeenfermagem.com.br/iconpages.webp">
-    <!-- Assume image is at root -->
-
-    <!-- Scripts et Styles Globaux -->
-    <link href="/public/output.css" rel="stylesheet">
-    <!-- Maintained CDN as requested -->
-    <script async="" src="https://kit.fontawesome.com/083bed182a.js" crossorigin="anonymous"></script>
-    <link rel="stylesheet" href="/global-styles.css" media="print" onload="this.media='all'">
-    <!-- Assume CSS is at root -->
-
-    <!-- Polices -->
-
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
-    <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@700;900&amp;family=Inter:wght@400;600;700&amp;display=swap&amp;display=swap" rel="stylesheet">
-    <link rel="preload" href="https://cdn.jsdelivr.net/npm/open-dyslexic@1.0.3/open-dyslexic-regular.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
-    <noscript><link
-        rel="stylesheet"
-        href="https://cdn.jsdelivr.net/npm/open-dyslexic@1.0.3/open-dyslexic-regular.min.css"
-    /></noscript>
-
-    <!-- Google Analytics & Consent Mode -->
-    <script>
+    <!-- Script Spécifique à la Page CURB-65 (avec textes traduits) --><script>
 /* =========================================================
    MODO ADMIN + GOOGLE TAG + CONSENT + ADSENSE
-   (VERSÃO FINAL – SUBSTITUI O BLOCO ANTIGO)
+   (VERSÃO OPT-OUT: Carrega anúncios por padrão)
    ========================================================= */
 
-  // 🛡️ MODO ADMIN — bloqueia tudo
-  if (localStorage.getItem('admin_mode') === 'true') {
-    console.log('🚧 Modo Admin: Analytics e AdSense NÃO foram carregados.');
-  } else {
+// 🛡️ MODO ADMIN — bloqueia tudo
+if (localStorage.getItem('admin_mode') === 'true') {
+  console.log('🚧 Modo Admin: Analytics e AdSense NÃO foram carregados.');
+} else {
 
-    // Proteções globais
-    window.__metricsLoaded = window.__metricsLoaded || false;
-    window.__adsenseLoaded = window.__adsenseLoaded || false;
+  // 0) VERIFICAÇÃO INICIAL (Novo)
+  var savedConsent = localStorage.getItem("cookieConsent");
+  var isRefused = (savedConsent === "refused");
 
-    /* -----------------------------------------------------
-       1) GOOGLE TAG (gtag.js)
-       ----------------------------------------------------- */
-    if (!window.__metricsLoaded) {
-      window.__metricsLoaded = true;
+  // Proteções globais
+  window.__metricsLoaded = window.__metricsLoaded || false;
+  window.__adsenseLoaded = window.__adsenseLoaded || false;
 
-      var scriptGA = document.createElement('script');
-      scriptGA.async = true;
-      scriptGA.src = "https://www.googletagmanager.com/gtag/js?id=AW-952633102";
-      document.head.appendChild(scriptGA);
+  /* -----------------------------------------------------
+     1) GOOGLE TAG (gtag.js)
+     ----------------------------------------------------- */
+  if (!window.__metricsLoaded) {
+    window.__metricsLoaded = true;
 
-      window.dataLayer = window.dataLayer || [];
-      function gtag(){ dataLayer.push(arguments); }
-      window.gtag = window.gtag || gtag;
+    var scriptGA = document.createElement('script');
+    scriptGA.async = true;
+    scriptGA.src = "https://www.googletagmanager.com/gtag/js?id=AW-952633102";
+    document.head.appendChild(scriptGA);
 
-      gtag("js", new Date());
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){ dataLayer.push(arguments); }
+    window.gtag = window.gtag || gtag;
 
-      // 🔒 Começa SEM consentimento (LGPD)
+    gtag("js", new Date());
+
+    // ⚡ MUDANÇA: Lógica de Consentimento Padrão (Opt-out)
+    if (isRefused) {
       gtag("consent", "default", {
         analytics_storage: "denied",
         ad_storage: "denied",
         wait_for_update: 500
       });
-
-      gtag("config", "AW-952633102"); // Google Ads
-      gtag("config", "G-8FLJ59XXDK"); // GA4
-    }
-
-    /* -----------------------------------------------------
-       2) FUNÇÃO INTERNA: carrega AdSense uma única vez
-       ----------------------------------------------------- */
-    function loadAdSenseOnce() {
-      if (window.__adsenseLoaded) return;
-
-      window.__adsenseLoaded = true;
-
-      var scriptAd = document.createElement('script');
-      scriptAd.async = true;
-      scriptAd.src =
-        "https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6472730056006847";
-      scriptAd.crossOrigin = "anonymous";
-
-      document.head.appendChild(scriptAd);
-
-      console.log("🟢 AdSense carregado após consentimento.");
-    }
-
-    /* -----------------------------------------------------
-       3) FUNÇÃO CENTRAL DE CONSENTIMENTO
-       ----------------------------------------------------- */
-    function applyConsent(consent) {
-      if (typeof window.gtag === "function") {
-        gtag("consent", "update", consent);
-      }
-
-      // Se anúncios foram permitidos → carrega Adsense
-      if (consent && consent.ad_storage === "granted") {
-        loadAdSenseOnce();
-      }
-
-      // Persistência (granular)
-      try {
-        localStorage.setItem("analytics_storage", consent.analytics_storage);
-        localStorage.setItem("ad_storage", consent.ad_storage);
-      } catch (e) {}
-    }
-
-    /* -----------------------------------------------------
-       4) REAPLICA CONSENTIMENTO AO ENTRAR NA PÁGINA
-       ----------------------------------------------------- */
-    (function restoreConsent() {
-      try {
-        const saved = localStorage.getItem("cookieConsent");
-
-        if (saved === "accepted") {
-          applyConsent({
-            analytics_storage: "granted",
-            ad_storage: "granted"
-          });
-        }
-
-        if (saved === "refused") {
-          applyConsent({
-            analytics_storage: "denied",
-            ad_storage: "denied"
-          });
-        }
-
-        if (saved === "managed") {
-          applyConsent({
-            analytics_storage: localStorage.getItem("analytics_storage") || "denied",
-            ad_storage: localStorage.getItem("ad_storage") || "denied"
-          });
-        }
-      } catch (e) {}
-    })();
-
-    /* -----------------------------------------------------
-       5) API GLOBAL PARA O BANNER DE COOKIES
-       ----------------------------------------------------- */
-
-    // Aceitar tudo
-    window.acceptAllCookies = function () {
-      localStorage.setItem("cookieConsent", "accepted");
-      applyConsent({
+    } else {
+      gtag("consent", "default", {
         analytics_storage: "granted",
-        ad_storage: "granted"
+        ad_storage: "granted",
+        wait_for_update: 500
       });
-    };
+    }
 
-    // Recusar tudo
-    window.rejectAllCookies = function () {
-      localStorage.setItem("cookieConsent", "refused");
-      applyConsent({
-        analytics_storage: "denied",
-        ad_storage: "denied"
-      });
-    };
-
-    // Granular (checkboxes)
-    window.applyGranularCookies = function (analyticsGranted, adsGranted) {
-      localStorage.setItem("cookieConsent", "managed");
-      applyConsent({
-        analytics_storage: analyticsGranted ? "granted" : "denied",
-        ad_storage: adsGranted ? "granted" : "denied"
-      });
-    };
-
+    gtag("config", "AW-952633102"); // Google Ads
+    gtag("config", "G-8FLJ59XXDK"); // GA4
   }
+
+  /* -----------------------------------------------------
+     2) FUNÇÃO INTERNA: carrega AdSense uma única vez
+     ----------------------------------------------------- */
+  function loadAdSenseOnce() {
+    if (window.__adsenseLoaded) return;
+    window.__adsenseLoaded = true;
+
+    var scriptAd = document.createElement('script');
+    scriptAd.async = true;
+    scriptAd.src = "https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6472730056006847";
+    scriptAd.crossOrigin = "anonymous";
+    document.head.appendChild(scriptAd);
+
+    console.log("🟢 AdSense carregado (Modo Opt-out).");
+  }
+
+  // ⚡ MUDANÇA: Se não estiver recusado, carrega ANÚNCIOS IMEDIATAMENTE
+  if (!isRefused) {
+      loadAdSenseOnce();
+  }
+
+  /* -----------------------------------------------------
+     3) FUNÇÃO CENTRAL DE CONSENTIMENTO
+     ----------------------------------------------------- */
+  function applyConsent(consent) {
+    if (typeof window.gtag === "function") {
+      gtag("consent", "update", consent);
+    }
+    if (consent && consent.ad_storage === "granted") {
+      loadAdSenseOnce();
+    }
+    try {
+      localStorage.setItem("analytics_storage", consent.analytics_storage);
+      localStorage.setItem("ad_storage", consent.ad_storage);
+    } catch (e) {}
+  }
+
+  /* -----------------------------------------------------
+     4) REAPLICA CONSENTIMENTO AO ENTRAR NA PÁGINA
+     ----------------------------------------------------- */
+  (function restoreConsent() {
+    try {
+      const saved = localStorage.getItem("cookieConsent");
+      if (saved === "accepted") {
+        applyConsent({ analytics_storage: "granted", ad_storage: "granted" });
+      }
+      if (saved === "refused") {
+        applyConsent({ analytics_storage: "denied", ad_storage: "denied" });
+      }
+      if (saved === "managed") {
+        applyConsent({
+          analytics_storage: localStorage.getItem("analytics_storage") || "denied",
+          ad_storage: localStorage.getItem("ad_storage") || "denied"
+        });
+      }
+    } catch (e) {}
+  })();
+
+  /* -----------------------------------------------------
+     5) API GLOBAL PARA O BANNER DE COOKIES
+     ----------------------------------------------------- */
+  window.acceptAllCookies = function () {
+    localStorage.setItem("cookieConsent", "accepted");
+    applyConsent({ analytics_storage: "granted", ad_storage: "granted" });
+  };
+
+  window.rejectAllCookies = function () {
+    localStorage.setItem("cookieConsent", "refused");
+    applyConsent({ analytics_storage: "denied", ad_storage: "denied" });
+    // Remove visualmente
+    var ads = document.querySelectorAll('ins.adsbygoogle, .google-auto-placed');
+    ads.forEach(function(ad) { ad.style.display = 'none'; ad.innerHTML = ''; });
+    console.log("🔴 Consentimento revogado e anúncios ocultados.");
+  };
+
+  window.applyGranularCookies = function (analyticsGranted, adsGranted) {
+    localStorage.setItem("cookieConsent", "managed");
+    applyConsent({
+      analytics_storage: analyticsGranted ? "granted" : "denied",
+      ad_storage: adsGranted ? "granted" : "denied"
+    });
+    if (!adsGranted) {
+        var ads = document.querySelectorAll('ins.adsbygoogle, .google-auto-placed');
+        ads.forEach(function(ad) { ad.style.display = 'none'; ad.innerHTML = ''; });
+    }
+  };
+}
 </script>
 
 
