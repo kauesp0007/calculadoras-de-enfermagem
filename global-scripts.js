@@ -1,24 +1,10 @@
 /* ========================================================================
-   GLOBAL SCRIPTS - VERSÃO FINAL (Menu Corrigido + PageSpeed)
+   GLOBAL SCRIPTS - VERSÃO FINAL (Event Delegation + Fix Conflitos)
    ======================================================================== */
 
-// 1. CARREGAMENTO INTELIGENTE DO ADSENSE
-window.__adsenseLoaded = false;
-
-function loadAdSenseOnce() {
-  if (window.__adsenseLoaded) return;
-  window.__adsenseLoaded = true;
-
-  // Carrega anúncios com pequeno delay para não travar o menu
-  setTimeout(() => {
-      var script = document.createElement("script");
-      script.async = true;
-      script.src = "https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6472730056006847";
-      script.crossOrigin = "anonymous";
-      document.head.appendChild(script);
-      console.log("🟢 AdSense carregado (Lazy Load).");
-  }, 1200);
-}
+// 1. CARREGAMENTO DO ADSENSE
+// REMOVIDO: O AdSense agora é gerenciado exclusivamente pelo script inline do HTML (Opt-out).
+// Isso evita o erro de "TagError: adsbygoogle.push()" causado por carregamento duplo.
 
 // 2. SERVICE WORKER
 if ("serviceWorker" in navigator) {
@@ -29,7 +15,7 @@ if ("serviceWorker" in navigator) {
   });
 }
 
-// 3. FUNÇÕES DE PDF (Mantido)
+// 3. FUNÇÕES DE PDF (html2pdf)
 function gerarPDFGlobal(e) {
   const o = "https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js";
   if (typeof html2pdf === "function") {
@@ -37,8 +23,8 @@ function gerarPDFGlobal(e) {
   } else {
       let script = document.createElement("script");
       script.src = o;
-      script.onload = () => executingLogicaDoHtml2Pdf(e); // Correção de typo anterior
-      // Fallback de segurança
+      script.onload = () => executingLogicaDoHtml2Pdf(e);
+      // Fallback para typo
       script.onload = () => executarLogicaDoHtml2Pdf(e);
       document.head.appendChild(script);
   }
@@ -75,6 +61,7 @@ function executarLogicaDoHtml2Pdf(config) {
   clone.appendChild(header);
 
   const contentClone = element.querySelector("#conteudo") ? element.querySelector("#conteudo").cloneNode(true) : element.cloneNode(true);
+  // Limpeza
   contentClone.querySelectorAll('button, input[type="radio"]:not(:checked), .no-print').forEach(el => el.remove());
   clone.appendChild(contentClone);
 
@@ -98,8 +85,9 @@ function executarLogicaDoHtml2Pdf(config) {
   html2pdf().set(opt).from(clone).save();
 }
 
-// 4. INICIALIZAÇÃO GERAL (Correção do Menu)
+// 4. INICIALIZAÇÃO GERAL
 document.addEventListener("DOMContentLoaded", function () {
+  // Carrega Menu e Footer
   Promise.all([
     fetch("menu-global.html").then(r => r.ok ? r.text() : ""),
     fetch("global-body-elements.html").then(r => r.ok ? r.text() : "")
@@ -108,14 +96,11 @@ document.addEventListener("DOMContentLoaded", function () {
     // Injeta Menu
     if (menuHtml) {
         const container = document.getElementById("global-header-container");
-        if (container) {
-            container.innerHTML = menuHtml;
-            // Aguarda renderização para ligar os eventos
-            setTimeout(initializeNavigationMenu, 100);
-        }
+        if (container) container.innerHTML = menuHtml;
+        // Não precisamos mais chamar initializeMenu aqui, pois usamos Delegação (ver abaixo)
     }
 
-    // Injeta Elementos Globais
+    // Injeta Globais
     if (bodyHtml) {
         document.body.insertAdjacentHTML("beforeend", bodyHtml);
         initializeGlobalFunctions();
@@ -124,90 +109,68 @@ document.addEventListener("DOMContentLoaded", function () {
   }).catch(e => console.warn("Erro ao carregar parciais:", e));
 });
 
-// === FUNÇÃO DO MENU (CORRIGIDA) ===
-function initializeNavigationMenu() {
-  console.log("Inicializando menu de navegação...");
+/* ========================================================================
+   LÓGICA DO MENU (DELEGAÇÃO DE EVENTOS - BLINDADO)
+   ======================================================================== */
+document.addEventListener('click', function(e) {
+    // 1. Botão Hambúrguer (Abrir)
+    // Usa .closest para pegar o clique mesmo se clicar no ícone SVG dentro do botão
+    const hamburgerBtn = e.target.closest('#hamburgerButton');
+    if (hamburgerBtn) {
+        const offCanvasMenu = document.getElementById("offCanvasMenu");
+        const menuOverlay = document.getElementById("menuOverlay");
 
-  const hamburgerBtn = document.getElementById("hamburgerButton");
-  const offCanvasMenu = document.getElementById("offCanvasMenu");
-  const menuOverlay = document.getElementById("menuOverlay");
-  const closeBtn = document.getElementById("closeOffCanvasMenu") || document.getElementById("closeMenuButton");
+        if (offCanvasMenu) {
+            offCanvasMenu.classList.add("is-open");
+            offCanvasMenu.classList.remove("-translate-x-full", "hidden"); // Limpeza de classes antigas
+        }
+        if (menuOverlay) {
+            menuOverlay.style.display = "block";
+            // Pequeno delay para permitir a transição CSS
+            requestAnimationFrame(() => menuOverlay.classList.add("is-open"));
+        }
+    }
 
-  // Função para Abrir
-  const openMenu = () => {
-      if (offCanvasMenu) {
-          offCanvasMenu.classList.add("is-open");
-          // Remove classes antigas que podem estar atrapalhando
-          offCanvasMenu.classList.remove("-translate-x-full", "hidden");
-      }
-      if (menuOverlay) {
-          menuOverlay.style.display = "block";
-          setTimeout(() => menuOverlay.classList.add("is-open"), 10);
-      }
-  };
+    // 2. Botões de Fechar (X ou Overlay)
+    if (e.target.closest('#closeOffCanvasMenu') || e.target.closest('#closeMenuButton') || e.target.id === 'menuOverlay') {
+        const offCanvasMenu = document.getElementById("offCanvasMenu");
+        const menuOverlay = document.getElementById("menuOverlay");
 
-  // Função para Fechar
-  const closeMenu = () => {
-      if (offCanvasMenu) {
-          offCanvasMenu.classList.remove("is-open");
-      }
-      if (menuOverlay) {
-          menuOverlay.classList.remove("is-open");
-          setTimeout(() => menuOverlay.style.display = "none", 300);
-      }
-  };
+        if (offCanvasMenu) offCanvasMenu.classList.remove("is-open");
+        if (menuOverlay) {
+            menuOverlay.classList.remove("is-open");
+            setTimeout(() => menuOverlay.style.display = "none", 300);
+        }
+    }
 
-  // Atribui Eventos
-  if (hamburgerBtn) hamburgerBtn.addEventListener("click", openMenu);
-  if (closeBtn) closeBtn.addEventListener("click", closeMenu);
-  if (menuOverlay) menuOverlay.addEventListener("click", closeMenu);
+    // 3. Dropdowns (Submenus)
+    const dropdownTrigger = e.target.closest('.has-submenu > a') || e.target.closest('.has-submenu > button');
+    if (dropdownTrigger) {
+        e.preventDefault();
+        const submenu = dropdownTrigger.nextElementSibling;
+        if (submenu && submenu.classList.contains("submenu")) {
+            // Fecha outros abertos (opcional, estilo acordeão)
+            // document.querySelectorAll('.submenu.open').forEach(el => { if(el !== submenu) el.classList.remove('open') });
 
-  // Dropdowns (Submenus)
-  const dropdownTriggers = document.querySelectorAll(".has-submenu > a, .has-submenu > button");
-  dropdownTriggers.forEach(trigger => {
-      trigger.addEventListener("click", (e) => {
-          e.preventDefault();
-          const submenu = trigger.nextElementSibling;
-          if (submenu && submenu.classList.contains("submenu")) {
-              submenu.classList.toggle("open");
-              // Garante display block via style se a classe não pegar
-              submenu.style.display = submenu.classList.contains("open") ? "block" : "none";
-          }
-      });
-  });
-}
+            submenu.classList.toggle("open");
+            // Força display caso o CSS falhe
+            submenu.style.display = submenu.classList.contains("open") ? "block" : "none";
+        }
+    }
+});
 
-function inicializarTooltips() {
-  document.querySelectorAll("[data-tooltip]").forEach(el => {
-    const text = el.getAttribute("data-tooltip");
-    const tip = document.createElement("div");
-    tip.className = "tooltip-dinamico";
-    tip.innerText = text;
-    el.appendChild(tip);
-    el.addEventListener("mouseenter", () => tip.style.opacity = "1");
-    el.addEventListener("mouseleave", () => tip.style.opacity = "0");
-    el.addEventListener("touchstart", () => tip.style.opacity = "1", {passive: true});
-  });
-}
 
-// 5. COOKIES (Opt-out / Padrão Permitido)
+// 5. COOKIES (Lógica de UI apenas, o bloqueio real está no HTML)
 function initializeCookieFunctionality() {
   const banner = document.getElementById("cookieConsentBanner");
   const saved = localStorage.getItem("cookieConsent");
-  const isRefused = (saved === "refused");
-
-  // Se não recusou, permite
-  if (!isRefused) {
-      updateConsent({ analytics_storage: "granted", ad_storage: "granted" });
-  } else {
-      updateConsent({ analytics_storage: "denied", ad_storage: "denied" });
-  }
 
   // Se nunca interagiu, mostra banner
   if (!saved && banner) {
       setTimeout(() => banner.classList.add("show"), 500);
   }
 
+  // Listeners dos botões
   document.getElementById("acceptAllCookiesBtn")?.addEventListener("click", () => {
       localStorage.setItem("cookieConsent", "accepted");
       updateConsent({ analytics_storage: "granted", ad_storage: "granted" });
@@ -221,6 +184,7 @@ function initializeCookieFunctionality() {
       document.querySelectorAll('ins.adsbygoogle, .google-auto-placed').forEach(el => el.style.display = 'none');
   });
 
+  // Botão Gerenciar
   const btnManage = document.getElementById("manageCookiesBtn");
   if (btnManage) {
       btnManage.addEventListener("click", () => {
@@ -235,7 +199,7 @@ function initializeCookieFunctionality() {
 
 function updateConsent(consent) {
   if (typeof gtag === "function") gtag("consent", "update", consent);
-  if (consent.ad_storage === "granted") loadAdSenseOnce();
+  // Nota: Não chamamos loadAdSenseOnce() aqui porque o script inline do HTML já cuida disso
 }
 
 function initializeGlobalFunctions() {
@@ -251,13 +215,13 @@ function initializeGlobalFunctions() {
   checkLayout();
   window.addEventListener("resize", checkLayout, { passive: true });
 
-  const body = document.body;
+  const body = document.body; // 🔥 CORREÇÃO: Define 'body' explicitamente
   const srRegion = document.createElement("div");
   srRegion.setAttribute("aria-live", "polite");
   srRegion.className = "sr-only";
   body.appendChild(srRegion);
 
-  // Ações de Acessibilidade (Simples e Diretas)
+  // Ações de Acessibilidade
   const actions = {
       "btnAlternarTamanhoFonte": () => toggleFontSize(srRegion),
       "btnAlternarEspacamentoLinha": () => toggleLineHeight(srRegion),
@@ -350,4 +314,17 @@ function initGoogleTranslate() {
     s.src = "https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit";
     s.async = true;
     document.body.appendChild(s);
+}
+
+function inicializarTooltips() {
+  document.querySelectorAll("[data-tooltip]").forEach(el => {
+    const text = el.getAttribute("data-tooltip");
+    const tip = document.createElement("div");
+    tip.className = "tooltip-dinamico";
+    tip.innerText = text;
+    el.appendChild(tip);
+    el.addEventListener("mouseenter", () => tip.style.opacity = "1");
+    el.addEventListener("mouseleave", () => tip.style.opacity = "0");
+    el.addEventListener("touchstart", () => tip.style.opacity = "1", {passive: true});
+  });
 }
