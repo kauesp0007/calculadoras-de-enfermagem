@@ -20,6 +20,11 @@ const ignoredFiles = [
     'menu-global.html',
     'global-body-elements.html',
     'downloads.html'
+    '_language_selector.html',
+    'footer.html',
+    'menu-global.html',
+    'global-body-elements.html',
+    'downloads.html'
 ];
 
 // 3. Pastas que devem ser ignoradas (segurança adicional)

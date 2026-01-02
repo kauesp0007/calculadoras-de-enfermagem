@@ -1,4 +1,5 @@
 require('dotenv').config();
+require('dotenv').config();
 const axios = require('axios');
 
 const minhaChave = process.env.MINHA_CHAVE_GOOGLE;
@@ -7,14 +8,14 @@ const url = `https://generativelanguage.googleapis.com/v1beta/models?key=${minha
 
 async function descobrirModelos() {
   console.log("🔍 Perguntando ao Google quais 'cérebros' estão disponíveis para sua chave...");
-  
+
   try {
     const resposta = await axios.get(url);
     const lista = resposta.data.models;
 
     console.log("\n✅ SUCESSO! Aqui estão os modelos que você pode usar agora:");
     console.log("-------------------------------------------------------");
-    
+
     // Vamos filtrar apenas os que servem para gerar texto (chat)
     const modelosDeTexto = lista.filter(m => m.supportedGenerationMethods.includes("generateContent"));
 
@@ -23,7 +24,7 @@ async function descobrirModelos() {
       const nomeLimpo = modelo.name.replace("models/", "");
       console.log(`➡️  "${nomeLimpo}"`);
     });
-    
+
     console.log("-------------------------------------------------------");
     console.log("DICA: Copie um dos nomes acima (ex: gemini-1.5-flash) e coloque no seu arquivo teste-ia.js");
 
