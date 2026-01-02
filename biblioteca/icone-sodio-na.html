@@ -1,10 +1,11 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
   <link rel="dns-prefetch" href="//googleads.g.doubleclick.net">
   <link rel="dns-prefetch" href="//pagead2.googlesyndication.com">
 
-  
+
   <!-- SEO -->
   <meta charset="UTF-8">
   <base href="/">
@@ -41,7 +42,9 @@
   <link rel="preload" href="/global-body-elements.html" as="fetch" crossorigin>
 
   <!-- Fonts -->
-  <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;700;900&family=Inter:wght@400;700&display=swap" rel="stylesheet">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;700;900&family=Inter:wght@400;700&display=swap"
+    rel="stylesheet">
 
   <!-- CSS GLOBAL -->
   <link href="/public/output.css" rel="stylesheet">
@@ -53,322 +56,402 @@
   <!-- Schema.org (MANTIDO) -->
   <!-- (todo o schema que você já tinha permanece igual) -->
 
-  <meta name="author" content="Calculadoras de Enfermagem"><script>
-/* =========================================================
-   MODO ADMIN + GOOGLE TAG + CONSENT + ADSENSE
-   (VERSÃO OPT-OUT: Carrega anúncios por padrão)
-   ========================================================= */
+  <meta name="author" content="Calculadoras de Enfermagem">
+  <script>
+    /* =========================================================
+       MODO ADMIN + GOOGLE TAG + CONSENT + ADSENSE
+       (VERSÃO OPT-OUT: Carrega anúncios por padrão)
+       ========================================================= */
 
-// 🛡️ MODO ADMIN — bloqueia tudo
-if (localStorage.getItem('admin_mode') === 'true') {
-  console.log('🚧 Modo Admin: Analytics e AdSense NÃO foram carregados.');
-} else {
-
-  // 0) VERIFICAÇÃO INICIAL (Novo)
-  var savedConsent = localStorage.getItem("cookieConsent");
-  var isRefused = (savedConsent === "refused");
-
-  // Proteções globais
-  window.__metricsLoaded = window.__metricsLoaded || false;
-  window.__adsenseLoaded = window.__adsenseLoaded || false;
-
-  /* -----------------------------------------------------
-     1) GOOGLE TAG (gtag.js)
-     ----------------------------------------------------- */
-  if (!window.__metricsLoaded) {
-    window.__metricsLoaded = true;
-
-    var scriptGA = document.createElement('script');
-    scriptGA.async = true;
-    scriptGA.src = "https://www.googletagmanager.com/gtag/js?id=AW-952633102";
-    document.head.appendChild(scriptGA);
-
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){ dataLayer.push(arguments); }
-    window.gtag = window.gtag || gtag;
-
-    gtag("js", new Date());
-
-    // ⚡ MUDANÇA: Lógica de Consentimento Padrão (Opt-out)
-    if (isRefused) {
-      gtag("consent", "default", {
-        analytics_storage: "denied",
-        ad_storage: "denied",
-        wait_for_update: 500
-      });
+    // 🛡️ MODO ADMIN — bloqueia tudo
+    if (localStorage.getItem('admin_mode') === 'true') {
+      console.log('🚧 Modo Admin: Analytics e AdSense NÃO foram carregados.');
     } else {
-      gtag("consent", "default", {
-        analytics_storage: "granted",
-        ad_storage: "granted",
-        wait_for_update: 500
-      });
-    }
 
-    gtag("config", "AW-952633102"); // Google Ads
-    gtag("config", "G-8FLJ59XXDK"); // GA4
-  }
+      // 0) VERIFICAÇÃO INICIAL (Novo)
+      var savedConsent = localStorage.getItem("cookieConsent");
+      var isRefused = (savedConsent === "refused");
 
-  /* -----------------------------------------------------
-     2) FUNÇÃO INTERNA: carrega AdSense uma única vez
-     ----------------------------------------------------- */
-  function loadAdSenseOnce() {
-    if (window.__adsenseLoaded) return;
-    window.__adsenseLoaded = true;
+      // Proteções globais
+      window.__metricsLoaded = window.__metricsLoaded || false;
+      window.__adsenseLoaded = window.__adsenseLoaded || false;
 
-    var scriptAd = document.createElement('script');
-    scriptAd.async = true;
-    scriptAd.src = "https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6472730056006847";
-    scriptAd.crossOrigin = "anonymous";
-    document.head.appendChild(scriptAd);
+      /* -----------------------------------------------------
+          1) GOOGLE TAG (gtag.js)
+          ----------------------------------------------------- */
+      if (!window.__metricsLoaded) {
+        window.__metricsLoaded = true;
 
-    console.log("🟢 AdSense carregado (Modo Opt-out).");
-  }
+        var scriptGA = document.createElement('script');
+        scriptGA.async = true;
+        // 💡 MELHORIA: Carregar direto da origem do Analytics (G-...) em vez do Ads (AW-...)
+        // Usei o ID G-VVDP5JGEX8 que está no seu print como "Site Principal".
+        // Se você tiver certeza que quer usar o antigo (G-8FLJ...), mantenha o antigo, mas recomendo o do print.
+        scriptGA.src = "https://www.googletagmanager.com/gtag/js?id=G-VVDP5JGEX8";
+        document.head.appendChild(scriptGA);
 
-  // ⚡ MUDANÇA: Se não estiver recusado, carrega ANÚNCIOS IMEDIATAMENTE
-  if (!isRefused) {
-      loadAdSenseOnce();
-  }
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        window.gtag = window.gtag || gtag;
 
-  /* -----------------------------------------------------
-     3) FUNÇÃO CENTRAL DE CONSENTIMENTO
-     ----------------------------------------------------- */
-  function applyConsent(consent) {
-    if (typeof window.gtag === "function") {
-      gtag("consent", "update", consent);
-    }
-    if (consent && consent.ad_storage === "granted") {
-      loadAdSenseOnce();
-    }
-    try {
-      localStorage.setItem("analytics_storage", consent.analytics_storage);
-      localStorage.setItem("ad_storage", consent.ad_storage);
-    } catch (e) {}
-  }
+        // Definir consentimento ANTES de iniciar a config
+        if (isRefused) {
+          gtag("consent", "default", {
+            analytics_storage: "denied",
+            ad_storage: "denied",
+            ad_user_data: "denied",        // Novo parâmetro v2
+            ad_personalization: "denied",  // Novo parâmetro v2
+            wait_for_update: 500
+          });
+        } else {
+          gtag("consent", "default", {
+            analytics_storage: "granted",
+            ad_storage: "granted",
+            ad_user_data: "granted",
+            ad_personalization: "granted",
+            wait_for_update: 500
+          });
+        }
 
-  /* -----------------------------------------------------
-     4) REAPLICA CONSENTIMENTO AO ENTRAR NA PÁGINA
-     ----------------------------------------------------- */
-  (function restoreConsent() {
-    try {
-      const saved = localStorage.getItem("cookieConsent");
-      if (saved === "accepted") {
+        gtag("js", new Date());
+
+        // Configuração dos IDs
+        gtag("config", "G-VVDP5JGEX8"); // ⚡ Atualizado para o ID do "Site Principal"
+        gtag("config", "AW-952633102"); // Google Ads (Mantido)
+      }
+
+      /* -----------------------------------------------------
+         2) FUNÇÃO INTERNA: carrega AdSense uma única vez
+         ----------------------------------------------------- */
+      function loadAdSenseOnce() {
+        if (window.__adsenseLoaded) return;
+        window.__adsenseLoaded = true;
+
+        var scriptAd = document.createElement('script');
+        scriptAd.async = true;
+        scriptAd.src = "https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6472730056006847";
+        scriptAd.crossOrigin = "anonymous";
+        document.head.appendChild(scriptAd);
+
+        console.log("🟢 AdSense carregado (Modo Opt-out).");
+      }
+
+      // ⚡ MUDANÇA: Se não estiver recusado, carrega ANÚNCIOS IMEDIATAMENTE
+      if (!isRefused) {
+        loadAdSenseOnce();
+      }
+
+      /* -----------------------------------------------------
+         3) FUNÇÃO CENTRAL DE CONSENTIMENTO
+         ----------------------------------------------------- */
+      function applyConsent(consent) {
+        if (typeof window.gtag === "function") {
+          gtag("consent", "update", consent);
+        }
+        if (consent && consent.ad_storage === "granted") {
+          loadAdSenseOnce();
+        }
+        try {
+          localStorage.setItem("analytics_storage", consent.analytics_storage);
+          localStorage.setItem("ad_storage", consent.ad_storage);
+        } catch (e) { }
+      }
+
+      /* -----------------------------------------------------
+         4) REAPLICA CONSENTIMENTO AO ENTRAR NA PÁGINA
+         ----------------------------------------------------- */
+      (function restoreConsent() {
+        try {
+          const saved = localStorage.getItem("cookieConsent");
+          if (saved === "accepted") {
+            applyConsent({ analytics_storage: "granted", ad_storage: "granted" });
+          }
+          if (saved === "refused") {
+            applyConsent({ analytics_storage: "denied", ad_storage: "denied" });
+          }
+          if (saved === "managed") {
+            applyConsent({
+              analytics_storage: localStorage.getItem("analytics_storage") || "denied",
+              ad_storage: localStorage.getItem("ad_storage") || "denied"
+            });
+          }
+        } catch (e) { }
+      })();
+
+      /* -----------------------------------------------------
+         5) API GLOBAL PARA O BANNER DE COOKIES
+         ----------------------------------------------------- */
+      window.acceptAllCookies = function () {
+        localStorage.setItem("cookieConsent", "accepted");
         applyConsent({ analytics_storage: "granted", ad_storage: "granted" });
-      }
-      if (saved === "refused") {
+      };
+
+      window.rejectAllCookies = function () {
+        localStorage.setItem("cookieConsent", "refused");
         applyConsent({ analytics_storage: "denied", ad_storage: "denied" });
-      }
-      if (saved === "managed") {
-        applyConsent({
-          analytics_storage: localStorage.getItem("analytics_storage") || "denied",
-          ad_storage: localStorage.getItem("ad_storage") || "denied"
-        });
-      }
-    } catch (e) {}
-  })();
-
-  /* -----------------------------------------------------
-     5) API GLOBAL PARA O BANNER DE COOKIES
-     ----------------------------------------------------- */
-  window.acceptAllCookies = function () {
-    localStorage.setItem("cookieConsent", "accepted");
-    applyConsent({ analytics_storage: "granted", ad_storage: "granted" });
-  };
-
-  window.rejectAllCookies = function () {
-    localStorage.setItem("cookieConsent", "refused");
-    applyConsent({ analytics_storage: "denied", ad_storage: "denied" });
-    // Remove visualmente
-    var ads = document.querySelectorAll('ins.adsbygoogle, .google-auto-placed');
-    ads.forEach(function(ad) { ad.style.display = 'none'; ad.innerHTML = ''; });
-    console.log("🔴 Consentimento revogado e anúncios ocultados.");
-  };
-
-  window.applyGranularCookies = function (analyticsGranted, adsGranted) {
-    localStorage.setItem("cookieConsent", "managed");
-    applyConsent({
-      analytics_storage: analyticsGranted ? "granted" : "denied",
-      ad_storage: adsGranted ? "granted" : "denied"
-    });
-    if (!adsGranted) {
+        // Remove visualmente
         var ads = document.querySelectorAll('ins.adsbygoogle, .google-auto-placed');
-        ads.forEach(function(ad) { ad.style.display = 'none'; ad.innerHTML = ''; });
+        ads.forEach(function (ad) { ad.style.display = 'none'; ad.innerHTML = ''; });
+        console.log("🔴 Consentimento revogado e anúncios ocultados.");
+      };
+
+      window.applyGranularCookies = function (analyticsGranted, adsGranted) {
+        localStorage.setItem("cookieConsent", "managed");
+        applyConsent({
+          analytics_storage: analyticsGranted ? "granted" : "denied",
+          ad_storage: adsGranted ? "granted" : "denied"
+        });
+        if (!adsGranted) {
+          var ads = document.querySelectorAll('ins.adsbygoogle, .google-auto-placed');
+          ads.forEach(function (ad) { ad.style.display = 'none'; ad.innerHTML = ''; });
+        }
+      };
     }
-  };
-}
-</script>
+  </script>
 
 
 
   <!-- OTIMIZADOR_MASTER_V2 -->
   <style id="otimizador-master-responsive">
-/* OTIMIZADOR_MASTER_V3 - RESPONSIVE SAFE */
-img, video { max-width: 100%; height: auto; }
-iframe { max-width: 100%; }
-body { overflow-x: hidden; }
-.table-responsive { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    /* OTIMIZADOR_MASTER_V3 - RESPONSIVE SAFE */
+    img,
+    video {
+      max-width: 100%;
+      height: auto;
+    }
+
+    iframe {
+      max-width: 100%;
+    }
+
+    body {
+      overflow-x: hidden;
+    }
+
+    .table-responsive {
+      width: 100%;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
   </style>
 
 
   <style>
     /* Biblioteca item template */
-    .action-btn{
-      display:inline-flex;
-      align-items:center;
-      justify-content:center;
-      gap:.5rem;
-      padding:.65rem 1.05rem;
-      border-radius:.65rem;
-      border:1px solid rgba(30,58,138,.18);
-      background:rgba(30,58,138,.08);
-      box-shadow:0 8px 22px rgba(15,23,42,.12);
-      transition:transform .15s ease, box-shadow .15s ease, background .15s ease, border-color .15s ease;
-      font-weight:600;
-      color:#1e3a8a;
-      text-decoration:none;
-      cursor:pointer;
-    }
-    .action-btn:hover{
-      transform:translateY(-1px);
-      box-shadow:0 16px 40px rgba(15,23,42,.22);
-      background:rgba(30,58,138,.10);
-      border-color:rgba(30,58,138,.24);
-    }
-    .action-btn.primary{
-      background:#1e3a8a;
-      border-color:#1e3a8a;
-      color:#fff;
-      box-shadow:0 16px 40px rgba(30,58,138,.28);
-    }
-    .action-btn.primary:hover{
-      background:#1b347d;
-      border-color:#1b347d;
+    .action-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: .5rem;
+      padding: .65rem 1.05rem;
+      border-radius: .65rem;
+      border: 1px solid rgba(30, 58, 138, .18);
+      background: rgba(30, 58, 138, .08);
+      box-shadow: 0 8px 22px rgba(15, 23, 42, .12);
+      transition: transform .15s ease, box-shadow .15s ease, background .15s ease, border-color .15s ease;
+      font-weight: 600;
+      color: #1e3a8a;
+      text-decoration: none;
+      cursor: pointer;
     }
 
-    .biblioteca-hero-img{
-      border-radius:1rem;
-      box-shadow:0 18px 44px rgba(15,23,42,.28);
-      overflow:hidden;
+    .action-btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 16px 40px rgba(15, 23, 42, .22);
+      background: rgba(30, 58, 138, .10);
+      border-color: rgba(30, 58, 138, .24);
     }
 
-    .nav-arrow{
-      position:fixed;
-      top:50%;
-      transform:translateY(-50%);
-      width:46px;
-      height:46px;
-      border-radius:999px;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      background:rgba(255,255,255,.65);
-      border:1px solid rgba(30,58,138,.18);
-      box-shadow:0 16px 40px rgba(15,23,42,.22);
+    .action-btn.primary {
+      background: #1e3a8a;
+      border-color: #1e3a8a;
+      color: #fff;
+      box-shadow: 0 16px 40px rgba(30, 58, 138, .28);
+    }
+
+    .action-btn.primary:hover {
+      background: #1b347d;
+      border-color: #1b347d;
+    }
+
+    .biblioteca-hero-img {
+      border-radius: 1rem;
+      box-shadow: 0 18px 44px rgba(15, 23, 42, .28);
+      overflow: hidden;
+    }
+
+    .nav-arrow {
+      position: fixed;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 46px;
+      height: 46px;
+      border-radius: 999px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(255, 255, 255, .65);
+      border: 1px solid rgba(30, 58, 138, .18);
+      box-shadow: 0 16px 40px rgba(15, 23, 42, .22);
       backdrop-filter: blur(8px);
-      color:#1e3a8a;
-      text-decoration:none;
-      z-index:60;
-      transition:transform .15s ease, box-shadow .15s ease, background .15s ease;
+      color: #1e3a8a;
+      text-decoration: none;
+      z-index: 60;
+      transition: transform .15s ease, box-shadow .15s ease, background .15s ease;
     }
-    .nav-arrow:hover{
-      transform:translateY(-50%) scale(1.03);
-      background:rgba(255,255,255,.78);
-      box-shadow:0 22px 56px rgba(15,23,42,.28);
+
+    .nav-arrow:hover {
+      transform: translateY(-50%) scale(1.03);
+      background: rgba(255, 255, 255, .78);
+      box-shadow: 0 22px 56px rgba(15, 23, 42, .28);
     }
-    .nav-arrow.left{ left:14px; }
-    .nav-arrow.right{ right:14px; }
-    @media (max-width: 640px){
-      .nav-arrow{ width:42px; height:42px; }
-      .nav-arrow.left{ left:10px; }
-      .nav-arrow.right{ right:10px; }
+
+    .nav-arrow.left {
+      left: 14px;
+    }
+
+    .nav-arrow.right {
+      right: 14px;
+    }
+
+    @media (max-width: 640px) {
+      .nav-arrow {
+        width: 42px;
+        height: 42px;
+      }
+
+      .nav-arrow.left {
+        left: 10px;
+      }
+
+      .nav-arrow.right {
+        right: 10px;
+      }
     }
   </style>
 
   <!-- BIBLIOTECA_ITEM_TEMPLATE_V2 -->
 
-  <!-- BIBLIOTECA_ITEM_TEMPLATE_HASH:3ea6d858cdfa57fdd99e1f0eb243edf5e944285d1aef6ed50042bedc13cccccc -->
+  <!-- BIBLIOTECA_ITEM_TEMPLATE_HASH:8e11722adfaa511fbbef26fd50b74795627979bd1f33fd805f87f5819ef9749b -->
 </head>
 
 <body class="bg-gray-50 font-inter">
 
   <!-- HEADER -->
-<<<<<<< HEAD
   <div id="global-header-container" style="min-height: 30px;"></div>
-=======
-  <div id="global-header-container" style="min-height: 96px;"></div>
->>>>>>> parent of 2f4ce4b37 (MELHORANDO O ESPAÇAMENTO ENTRE MENU GLOBAL E BARRA DE IDIOMAS)
 
   <!-- IDIOMAS (mesmo bloco do downloads.template.html) -->
-  <div id="language-dropdown-wrapper" class="flex justify-end w-full" style="position: relative; z-index: 100; padding-right: 2rem; top: 3rem;">
-  <div class="relative inline-block text-left z-50" style="pointer-events: auto;">
-    <button id="langButton" class="flex items-center space-x-2 border px-3 py-1 rounded-lg shadow bg-gray-100">
-      <img id="langFlag" width="20" height="16" src="/bandeira-brasil.webp" alt="PT" class="w-5 h-4 rounded-sm" fetchpriority="high">
-      <span id="langText" class="text-gray-700 font-medium">Português</span>
-      <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-      </svg>
-    </button>
+  <div id="language-dropdown-wrapper" class="flex justify-end w-full"
+    style="position: relative; z-index: 100; padding-right: 2rem; top: 3rem;">
+    <div class="relative inline-block text-left z-50" style="pointer-events: auto;">
+      <button id="langButton" class="flex items-center space-x-2 border px-3 py-1 rounded-lg shadow bg-gray-100">
+        <img id="langFlag" width="20" height="16" src="/bandeira-brasil.webp" alt="PT" class="w-5 h-4 rounded-sm"
+          fetchpriority="high">
+        <span id="langText" class="text-gray-700 font-medium">Português</span>
+        <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+        </svg>
+      </button>
 
-    <div id="langMenu" class="hidden absolute right-0 mt-2 w-44 bg-white border rounded-lg shadow-lg">
-      <div class="flex items-center px-3 py-2 hover:bg-gray-100 cursor-pointer space-x-2" data-value="pt" data-flag="/bandeira-brasil.webp">
-        <img src="/bandeira-brasil.webp" class="w-5 h-4 rounded-sm" alt="PT" width="20" height="16" loading="lazy"><span>Português</span>
-      </div>
-      <div class="flex items-center px-3 py-2 hover:bg-gray-100 cursor-pointer space-x-2" data-value="en" data-flag="/bandeira-eua.webp">
-        <img src="/bandeira-eua.webp" class="w-5 h-4 rounded-sm" alt="EN" width="20" height="16" loading="lazy"><span>English</span>
-      </div>
-      <div class="flex items-center px-3 py-2 hover:bg-gray-100 cursor-pointer space-x-2" data-value="es" data-flag="/bandeira-espanha.webp">
-        <img src="/bandeira-espanha.webp" class="w-5 h-4 rounded-sm" alt="ES" width="20" height="16" loading="lazy"><span>Español</span>
-      </div>
-      <div class="flex items-center px-3 py-2 hover:bg-gray-100 cursor-pointer space-x-2" data-value="de" data-flag="/bandeira-alemanha.webp">
-        <img src="/bandeira-alemanha.webp" class="w-5 h-4 rounded-sm" alt="DE" width="20" height="16" loading="lazy"><span>Deutsch</span>
-      </div>
-      <div class="flex items-center px-3 py-2 hover:bg-gray-100 cursor-pointer space-x-2" data-value="it" data-flag="/bandeira-italia.webp">
-        <img src="/bandeira-italia.webp" class="w-5 h-4 rounded-sm" alt="IT" width="20" height="16" loading="lazy"><span>Italiano</span>
-      </div>
-      <div class="flex items-center px-3 py-2 hover:bg-gray-100 cursor-pointer space-x-2" data-value="fr" data-flag="/bandeira-franca.webp">
-        <img src="/bandeira-franca.webp" class="w-5 h-4 rounded-sm" alt="FR" width="20" height="16" loading="lazy"><span>Français</span>
-      </div>
-      <div class="flex items-center px-3 py-2 hover:bg-gray-100 cursor-pointer space-x-2" data-value="hi" data-flag="/bandeira-india.webp">
-        <img src="/bandeira-india.webp" class="w-5 h-4 rounded-sm" alt="HI" width="20" height="16" loading="lazy"><span>हिन्दी</span>
-      </div>
-      <div class="flex items-center px-3 py-2 hover:bg-gray-100 cursor-pointer space-x-2" data-value="zh" data-flag="/bandeira-china.webp">
-        <img src="/bandeira-china.webp" class="w-5 h-4 rounded-sm" alt="ZH" width="20" height="16" loading="lazy"><span>中文</span>
-      </div>
-      <div class="flex items-center px-3 py-2 hover:bg-gray-100 cursor-pointer space-x-2" data-value="ar" data-flag="/bandeira-arabia.webp">
-        <img src="/bandeira-arabia.webp" class="w-5 h-4 rounded-sm" alt="AR" width="20" height="16" loading="lazy"><span>العربية</span>
-      </div>
-      <div class="flex items-center px-3 py-2 hover:bg-gray-100 cursor-pointer space-x-2" data-value="ja" data-flag="/bandeira-japao.webp">
-        <img src="/bandeira-japao.webp" class="w-5 h-4 rounded-sm" alt="JA" width="20" height="16" loading="lazy"><span>日本語</span>
-      </div>
-      <div class="flex items-center px-3 py-2 hover:bg-gray-100 cursor-pointer space-x-2" data-value="ru" data-flag="/bandeira-russia.webp">
-        <img src="/bandeira-russia.webp" class="w-5 h-4 rounded-sm" alt="RU" width="20" height="16" loading="lazy"><span>Русский</span>
-      </div>
-      <div class="flex items-center px-3 py-2 hover:bg-gray-100 cursor-pointer space-x-2" data-value="ko" data-flag="/bandeira-coreia.webp">
-        <img src="/bandeira-coreia.webp" class="w-5 h-4 rounded-sm" alt="KO" width="20" height="16" loading="lazy"><span>한국어</span>
-      </div>
-      <div class="flex items-center px-3 py-2 hover:bg-gray-100 cursor-pointer space-x-2" data-value="tr" data-flag="/bandeira-turquia.webp">
-        <img src="/bandeira-turquia.webp" class="w-5 h-4 rounded-sm" alt="TR" width="20" height="16" loading="lazy"><span>Türkçe</span>
-      </div>
-      <div class="flex items-center px-3 py-2 hover:bg-gray-100 cursor-pointer space-x-2" data-value="nl" data-flag="/bandeira-holanda.webp">
-        <img src="/bandeira-holanda.webp" class="w-5 h-4 rounded-sm" alt="NL" width="20" height="16" loading="lazy"><span>Nederlands</span>
-      </div>
-      <div class="flex items-center px-3 py-2 hover:bg-gray-100 cursor-pointer space-x-2" data-value="pl" data-flag="/bandeira-polonia.webp">
-        <img src="/bandeira-polonia.webp" class="w-5 h-4 rounded-sm" alt="PL" width="20" height="16" loading="lazy"><span>Polski</span>
-      </div>
-      <div class="flex items-center px-3 py-2 hover:bg-gray-100 cursor-pointer space-x-2" data-value="sv" data-flag="/bandeira-suecia.webp">
-        <img src="/bandeira-suecia.webp" class="w-5 h-4 rounded-sm" alt="SV" width="20" height="16" loading="lazy"><span>Suédois</span>
-      </div>
-      <div class="flex items-center px-3 py-2 hover:bg-gray-100 cursor-pointer space-x-2" data-value="id" data-flag="/bandeira-indonesia.webp">
-        <img src="/bandeira-indonesia.webp" class="w-5 h-4 rounded-sm" alt="ID" width="20" height="16" loading="lazy"><span>Indonésien</span>
-      </div>
-      <div class="flex items-center px-3 py-2 hover:bg-gray-100 cursor-pointer space-x-2" data-value="vi" data-flag="/bandeira-vietna.webp">
-        <img src="/bandeira-vietna.webp" class="w-5 h-4 rounded-sm" alt="VI" width="20" height="16" loading="lazy"><span>Tiếng Việt</span>
-      </div>
-      <div class="flex items-center px-3 py-2 hover:bg-gray-100 cursor-pointer space-x-2" data-value="uk" data-flag="/bandeira-ucrania.webp">
-        <img src="/bandeira-ucrania.webp" class="w-5 h-4 rounded-sm" alt="UK" width="20" height="16" loading="lazy"><span>Українська</span>
+      <div id="langMenu" class="hidden absolute right-0 mt-2 w-44 bg-white border rounded-lg shadow-lg">
+        <div class="flex items-center px-3 py-2 hover:bg-gray-100 cursor-pointer space-x-2" data-value="pt"
+          data-flag="/bandeira-brasil.webp">
+          <img src="/bandeira-brasil.webp" class="w-5 h-4 rounded-sm" alt="PT" width="20" height="16"
+            loading="lazy"><span>Português</span>
+        </div>
+        <div class="flex items-center px-3 py-2 hover:bg-gray-100 cursor-pointer space-x-2" data-value="en"
+          data-flag="/bandeira-eua.webp">
+          <img src="/bandeira-eua.webp" class="w-5 h-4 rounded-sm" alt="EN" width="20" height="16"
+            loading="lazy"><span>English</span>
+        </div>
+        <div class="flex items-center px-3 py-2 hover:bg-gray-100 cursor-pointer space-x-2" data-value="es"
+          data-flag="/bandeira-espanha.webp">
+          <img src="/bandeira-espanha.webp" class="w-5 h-4 rounded-sm" alt="ES" width="20" height="16"
+            loading="lazy"><span>Español</span>
+        </div>
+        <div class="flex items-center px-3 py-2 hover:bg-gray-100 cursor-pointer space-x-2" data-value="de"
+          data-flag="/bandeira-alemanha.webp">
+          <img src="/bandeira-alemanha.webp" class="w-5 h-4 rounded-sm" alt="DE" width="20" height="16"
+            loading="lazy"><span>Deutsch</span>
+        </div>
+        <div class="flex items-center px-3 py-2 hover:bg-gray-100 cursor-pointer space-x-2" data-value="it"
+          data-flag="/bandeira-italia.webp">
+          <img src="/bandeira-italia.webp" class="w-5 h-4 rounded-sm" alt="IT" width="20" height="16"
+            loading="lazy"><span>Italiano</span>
+        </div>
+        <div class="flex items-center px-3 py-2 hover:bg-gray-100 cursor-pointer space-x-2" data-value="fr"
+          data-flag="/bandeira-franca.webp">
+          <img src="/bandeira-franca.webp" class="w-5 h-4 rounded-sm" alt="FR" width="20" height="16"
+            loading="lazy"><span>Français</span>
+        </div>
+        <div class="flex items-center px-3 py-2 hover:bg-gray-100 cursor-pointer space-x-2" data-value="hi"
+          data-flag="/bandeira-india.webp">
+          <img src="/bandeira-india.webp" class="w-5 h-4 rounded-sm" alt="HI" width="20" height="16"
+            loading="lazy"><span>हिन्दी</span>
+        </div>
+        <div class="flex items-center px-3 py-2 hover:bg-gray-100 cursor-pointer space-x-2" data-value="zh"
+          data-flag="/bandeira-china.webp">
+          <img src="/bandeira-china.webp" class="w-5 h-4 rounded-sm" alt="ZH" width="20" height="16"
+            loading="lazy"><span>中文</span>
+        </div>
+        <div class="flex items-center px-3 py-2 hover:bg-gray-100 cursor-pointer space-x-2" data-value="ar"
+          data-flag="/bandeira-arabia.webp">
+          <img src="/bandeira-arabia.webp" class="w-5 h-4 rounded-sm" alt="AR" width="20" height="16"
+            loading="lazy"><span>العربية</span>
+        </div>
+        <div class="flex items-center px-3 py-2 hover:bg-gray-100 cursor-pointer space-x-2" data-value="ja"
+          data-flag="/bandeira-japao.webp">
+          <img src="/bandeira-japao.webp" class="w-5 h-4 rounded-sm" alt="JA" width="20" height="16"
+            loading="lazy"><span>日本語</span>
+        </div>
+        <div class="flex items-center px-3 py-2 hover:bg-gray-100 cursor-pointer space-x-2" data-value="ru"
+          data-flag="/bandeira-russia.webp">
+          <img src="/bandeira-russia.webp" class="w-5 h-4 rounded-sm" alt="RU" width="20" height="16"
+            loading="lazy"><span>Русский</span>
+        </div>
+        <div class="flex items-center px-3 py-2 hover:bg-gray-100 cursor-pointer space-x-2" data-value="ko"
+          data-flag="/bandeira-coreia.webp">
+          <img src="/bandeira-coreia.webp" class="w-5 h-4 rounded-sm" alt="KO" width="20" height="16"
+            loading="lazy"><span>한국어</span>
+        </div>
+        <div class="flex items-center px-3 py-2 hover:bg-gray-100 cursor-pointer space-x-2" data-value="tr"
+          data-flag="/bandeira-turquia.webp">
+          <img src="/bandeira-turquia.webp" class="w-5 h-4 rounded-sm" alt="TR" width="20" height="16"
+            loading="lazy"><span>Türkçe</span>
+        </div>
+        <div class="flex items-center px-3 py-2 hover:bg-gray-100 cursor-pointer space-x-2" data-value="nl"
+          data-flag="/bandeira-holanda.webp">
+          <img src="/bandeira-holanda.webp" class="w-5 h-4 rounded-sm" alt="NL" width="20" height="16"
+            loading="lazy"><span>Nederlands</span>
+        </div>
+        <div class="flex items-center px-3 py-2 hover:bg-gray-100 cursor-pointer space-x-2" data-value="pl"
+          data-flag="/bandeira-polonia.webp">
+          <img src="/bandeira-polonia.webp" class="w-5 h-4 rounded-sm" alt="PL" width="20" height="16"
+            loading="lazy"><span>Polski</span>
+        </div>
+        <div class="flex items-center px-3 py-2 hover:bg-gray-100 cursor-pointer space-x-2" data-value="sv"
+          data-flag="/bandeira-suecia.webp">
+          <img src="/bandeira-suecia.webp" class="w-5 h-4 rounded-sm" alt="SV" width="20" height="16"
+            loading="lazy"><span>Suédois</span>
+        </div>
+        <div class="flex items-center px-3 py-2 hover:bg-gray-100 cursor-pointer space-x-2" data-value="id"
+          data-flag="/bandeira-indonesia.webp">
+          <img src="/bandeira-indonesia.webp" class="w-5 h-4 rounded-sm" alt="ID" width="20" height="16"
+            loading="lazy"><span>Indonésien</span>
+        </div>
+        <div class="flex items-center px-3 py-2 hover:bg-gray-100 cursor-pointer space-x-2" data-value="vi"
+          data-flag="/bandeira-vietna.webp">
+          <img src="/bandeira-vietna.webp" class="w-5 h-4 rounded-sm" alt="VI" width="20" height="16"
+            loading="lazy"><span>Tiếng Việt</span>
+        </div>
+        <div class="flex items-center px-3 py-2 hover:bg-gray-100 cursor-pointer space-x-2" data-value="uk"
+          data-flag="/bandeira-ucrania.webp">
+          <img src="/bandeira-ucrania.webp" class="w-5 h-4 rounded-sm" alt="UK" width="20" height="16"
+            loading="lazy"><span>Українська</span>
+        </div>
       </div>
     </div>
   </div>
-</div>
 
   <!-- SETAS (NAVEGAÇÃO ENTRE ITENS) -->
   <a class="nav-arrow left" href="/biblioteca/icone-hematrocito.html" aria-label="Anterior" style="">←</a>
@@ -571,4 +654,5 @@ body { overflow-x: hidden; }
 </style>
 
 </body>
+
 </html>
