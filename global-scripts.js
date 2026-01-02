@@ -1,6 +1,5 @@
 /* ========================================================================
-   GLOBAL SCRIPTS - VERSÃO CORRIGIDA E FINAL
-   (Menu Blindado + Correção de Erros de Console)
+   GLOBAL SCRIPTS - VERSÃO FINAL BLINDADA (Menu por Delegação)
    ======================================================================== */
 
 // 1. SERVICE WORKER
@@ -21,7 +20,7 @@ function gerarPDFGlobal(e) {
       let script = document.createElement("script");
       script.src = libURL;
       script.onload = () => executingLogicaDoHtml2Pdf(e);
-      // Fallback para garantir execução
+      // Fallback de segurança para typo
       script.onload = () => executarLogicaDoHtml2Pdf(e);
       document.head.appendChild(script);
   }
@@ -58,7 +57,6 @@ function executarLogicaDoHtml2Pdf(config) {
   clone.appendChild(header);
 
   const contentClone = element.querySelector("#conteudo") ? element.querySelector("#conteudo").cloneNode(true) : element.cloneNode(true);
-  // Remove botões e elementos desnecessários
   contentClone.querySelectorAll('button, input[type="radio"]:not(:checked), .no-print').forEach(el => el.remove());
   clone.appendChild(contentClone);
 
@@ -82,23 +80,20 @@ function executarLogicaDoHtml2Pdf(config) {
   html2pdf().set(opt).from(clone).save();
 }
 
-// 3. INICIALIZAÇÃO GERAL (Carrega Menu e Footer)
+// 3. INICIALIZAÇÃO GERAL
 document.addEventListener("DOMContentLoaded", function () {
   Promise.all([
     fetch("menu-global.html").then(r => r.ok ? r.text() : ""),
     fetch("global-body-elements.html").then(r => r.ok ? r.text() : "")
   ]).then(([menuHtml, bodyHtml]) => {
 
-    // Injeta Menu
     if (menuHtml) {
         const container = document.getElementById("global-header-container");
         if (container) container.innerHTML = menuHtml;
     }
 
-    // Injeta Elementos Globais
     if (bodyHtml) {
         document.body.insertAdjacentHTML("beforeend", bodyHtml);
-        // Pequeno delay para garantir que o DOM existe antes de iniciar funções
         setTimeout(() => {
             initializeGlobalFunctions();
             initializeCookieFunctionality();
@@ -108,22 +103,18 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 
 /* ========================================================================
-   4. LÓGICA DO MENU (DELEGAÇÃO DE EVENTOS - SOLUÇÃO DEFINITIVA)
+   4. LÓGICA DO MENU (Funciona sempre)
    ======================================================================== */
-// Adiciona o evento ao DOCUMENTO inteiro. Assim, não importa se o botão
-// existe agora ou daqui a 1 segundo, o clique vai funcionar.
 document.addEventListener('click', function(e) {
-
     // 1. Botão Hambúrguer (Abrir)
     const hamburgerBtn = e.target.closest('#hamburgerButton');
     if (hamburgerBtn) {
-        console.log("Menu clicado!"); // Debug para você ver no console
+        console.log("Menu clicado! Tentando abrir...");
         const offCanvasMenu = document.getElementById("offCanvasMenu");
         const menuOverlay = document.getElementById("menuOverlay");
 
         if (offCanvasMenu) {
             offCanvasMenu.classList.add("is-open");
-            // Remove classes que possam estar escondendo o menu
             offCanvasMenu.classList.remove("-translate-x-full", "hidden");
         }
         if (menuOverlay) {
@@ -132,7 +123,7 @@ document.addEventListener('click', function(e) {
         }
     }
 
-    // 2. Botões de Fechar (X ou Overlay)
+    // 2. Botões de Fechar
     if (e.target.closest('#closeOffCanvasMenu') || e.target.closest('#closeMenuButton') || e.target.id === 'menuOverlay') {
         const offCanvasMenu = document.getElementById("offCanvasMenu");
         const menuOverlay = document.getElementById("menuOverlay");
@@ -156,7 +147,6 @@ document.addEventListener('click', function(e) {
     }
 });
 
-
 // 5. COOKIES
 function initializeCookieFunctionality() {
   const banner = document.getElementById("cookieConsentBanner");
@@ -166,7 +156,6 @@ function initializeCookieFunctionality() {
       setTimeout(() => banner.classList.add("show"), 500);
   }
 
-  // Listeners dos botões via ID direto (já que o banner é fixo)
   const btnAccept = document.getElementById("acceptAllCookiesBtn");
   const btnRefuse = document.getElementById("refuseAllCookiesBtn");
   const btnManage = document.getElementById("manageCookiesBtn");
@@ -200,9 +189,7 @@ function updateConsent(consent) {
 }
 
 function initializeGlobalFunctions() {
-  // CORREÇÃO CRÍTICA: Define 'body' aqui para evitar o erro "ReferenceError: body is not defined"
   const body = document.body;
-  if (!body) return; // Segurança extra
 
   // Ajuste de layout desktop
   function checkLayout() {
@@ -223,13 +210,13 @@ function initializeGlobalFunctions() {
 
   // Ações de Acessibilidade
   const actions = {
-      "btnAlternarTamanhoFonte": () => toggleFontSize(srRegion, body),
+      "btnAlternarTamanhoFonte": () => toggleFontSize(srRegion),
       "btnAlternarEspacamentoLinha": () => toggleLineHeight(srRegion),
       "btnAlternarEspacamentoLetra": () => toggleLetterSpacing(srRegion),
-      "btnAlternarContraste": () => { body.classList.toggle("contraste-alto"); notify(srRegion, "Contraste alterado"); },
-      "btnAlternarModoEscuro": () => { body.classList.toggle("dark-mode"); notify(srRegion, "Modo escuro alterado"); },
-      "btnAlternarFonteDislexia": () => { body.classList.toggle("fonte-dislexia"); notify(srRegion, "Fonte dislexia alterada"); },
-      "btnResetarAcessibilidade": () => resetAccessibility(srRegion, body)
+      "btnAlternarContraste": () => { document.body.classList.toggle("contraste-alto"); notify(srRegion, "Contraste alterado"); },
+      "btnAlternarModoEscuro": () => { document.body.classList.toggle("dark-mode"); notify(srRegion, "Modo escuro alterado"); },
+      "btnAlternarFonteDislexia": () => { document.body.classList.toggle("fonte-dislexia"); notify(srRegion, "Fonte dislexia alterada"); },
+      "btnResetarAcessibilidade": () => resetAccessibility(srRegion)
   };
 
   Object.keys(actions).forEach(id => {
@@ -250,18 +237,18 @@ function initializeGlobalFunctions() {
   }
 
   initVLibras();
-  initGoogleTranslate(body); // Passa body
+  initGoogleTranslate(body);
   inicializarTooltips();
 }
 
-// Helpers de Acessibilidade
+// Helpers
 function notify(region, text) { region.textContent = text; setTimeout(() => region.textContent = "", 3000); }
 let currentSize = 1;
 
-function toggleFontSize(region, body) {
+function toggleFontSize(region) {
     const sizes = ["1em", "1.15em", "1.3em", "1.5em", "2em"];
     currentSize = (currentSize % sizes.length);
-    body.style.fontSize = sizes[currentSize]; // Usa a variável body passada
+    document.body.style.fontSize = sizes[currentSize];
     localStorage.setItem("fontSize", currentSize + 1);
     currentSize++;
     notify(region, "Tamanho da fonte alterado");
@@ -285,11 +272,11 @@ function toggleLetterSpacing(region) {
      notify(region, "Espaçamento de letra alterado");
 }
 
-function resetAccessibility(region, body) {
-    body.style.fontSize = "";
+function resetAccessibility(region) {
+    document.body.style.fontSize = "";
     document.documentElement.style.removeProperty("--espacamento-linha");
     document.documentElement.style.removeProperty("--espacamento-letra");
-    body.classList.remove("contraste-alto", "dark-mode", "fonte-dislexia");
+    document.body.classList.remove("contraste-alto", "dark-mode", "fonte-dislexia");
     localStorage.clear();
     notify(region, "Acessibilidade redefinida");
 }
