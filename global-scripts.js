@@ -378,9 +378,13 @@ function initializeGlobalFunctions() {
     c?.classList.remove("is-open"), m?.classList.contains("is-open") || d && (d.style.display = "none")
   });
   const z = document.getElementById("backToTopBtn");
+  // OTIMIZAÇÃO: Adicionado { passive: true } para não bloquear a thread principal durante o scroll
   z && (window.addEventListener("scroll", () => {
-    z.style.display = window.scrollY > 200 ? "block" : "none"
-  }), z.addEventListener("click", () => window.scrollTo({
+    // Usa requestAnimationFrame para performance visual
+    window.requestAnimationFrame(() => {
+        z.style.display = window.scrollY > 200 ? "block" : "none";
+    });
+  }, { passive: true }), z.addEventListener("click", () => window.scrollTo({
     top: 0,
     behavior: "smooth"
   })));
