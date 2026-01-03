@@ -2,6 +2,7 @@
 /* eslint-env node */
 const fs = require("fs");
 const path = require("path");
+const { execSync } = require("child_process"); // Adicionado para rodar comandos do terminal
 
 /**
  * =========================
@@ -42,6 +43,7 @@ const EXCLUDE_FILES = new Set([
   "menu-global.html",
   "global-body-elements.html",
   "_language_selector.html",
+  "googlefc0a17cdd552164b.html",
 ]);
 
 // Só atualizar arquivos que JÁ têm hreflang?
@@ -95,9 +97,9 @@ function getAllHtmlFiles(rootDir) {
  * - "basePath" do arquivo dentro do idioma (ex.: apache.html, calculadoras/foo.html)
  *
  * Ex:
- *  /de/apache.html => langFolder="de", basePath="apache.html"
- *  /apache.html    => langFolder="", basePath="apache.html"
- *  /en/sub/x.html  => langFolder="en", basePath="sub/x.html"
+ * /de/apache.html => langFolder="de", basePath="apache.html"
+ * /apache.html    => langFolder="", basePath="apache.html"
+ * /en/sub/x.html  => langFolder="en", basePath="sub/x.html"
  */
 function detectLangAndBasePath(repoRoot, filePath) {
   const rel = normalizeSlashes(path.relative(repoRoot, filePath));
@@ -240,6 +242,36 @@ function main() {
   console.log(`Pulados (sem <head>): ${skippedNoHead}`);
   console.log(`DRY_RUN: ${DRY_RUN ? "ON" : "OFF"}`);
   console.log(`INCLUDE_MISSING_FILES: ${INCLUDE_MISSING_FILES ? "ON" : "OFF"}`);
+
+  // -------------------------------------------------------------
+  // NOVOS COMANDOS DE AUTOMAÇÃO PÓS-PROCESSAMENTO
+  // -------------------------------------------------------------
+  if (!DRY_RUN) {
+    console.log("\n=== INICIANDO PROCESSOS PÓS-ATUALIZAÇÃO ===");
+
+    try {
+      // 1- node biblioteca-automation.js
+      console.log("> Executando: node biblioteca-automation.js");
+      execSync("node biblioteca-automation.js", { stdio: "inherit" });
+
+      // 2- tailwindcss
+      console.log("> Executando: Tailwind CSS Build");
+      execSync(
+        ".\\node_modules\\.bin\\tailwindcss -i ./src/input.css -o ./public/output.css --minify",
+        { stdio: "inherit" }
+      );
+
+      // 3- node gerar-sw.js
+      console.log("> Executando: node gerar-sw.js");
+      execSync("node gerar-sw.js", { stdio: "inherit" });
+
+      console.log("\n✅ Todos os processos de automação foram concluídos com sucesso.");
+    } catch (error) {
+      console.error("\n❌ Erro durante a execução dos comandos de automação:");
+      console.error(error.message);
+      // Opcional: process.exit(1) se quiser que o script falhe completamente
+    }
+  }
 }
 
 main();
