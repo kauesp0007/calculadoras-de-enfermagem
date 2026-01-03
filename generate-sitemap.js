@@ -5,11 +5,11 @@ const path = require('path');
 // --- Configurações ---
 const BASE_URL = 'https://www.calculadorasdeenfermagem.com.br';
 // O diretório raiz onde seus arquivos HTML estão. '.' significa o diretório atual.
-const ROOT_DIR = path.resolve(__dirname); 
+const ROOT_DIR = path.resolve(__dirname);
 
 // Lista das suas PASTAS de idioma
 const LANG_FOLDERS = [
-  'en', 'es', 'fr', 'de', 'it', 'ja', 'zh', 'hi', 'ar', 
+  'en', 'es', 'fr', 'de', 'it', 'ja', 'zh', 'hi', 'ar',
   'ru', 'tr', 'ko', 'nl', 'pl', 'sv', 'id', 'vi', 'uk'
 ];
 
@@ -35,7 +35,8 @@ const IGNORE_FILES = [
   'googlefc0a17cdd552164b.html',
   'item.template.html',
   'dowloads.template.html',
-  
+  "ativar-admin.html",
+
 ];
 
 // Caminho de saída para o sitemap
@@ -104,11 +105,11 @@ function generateSitemapXml(sitemapEntries) {
 
   for (const pageName of sortedPages) {
     const versions = sitemapEntries[pageName];
-    
+
     // A URL principal (<loc>) e a x-default será a versão em português ('pt')
     // Se não houver 'pt', usa a primeira que encontrar.
     const mainUrl = versions['pt'] || Object.values(versions)[0];
-    
+
     // Se não houver versão em português, não podemos gerar uma entrada válida.
     if (!mainUrl) {
         console.warn(`Aviso: Página ${pageName} não tem versão 'pt' ou qualquer outra. Pulando.`);
@@ -147,7 +148,7 @@ function generateSitemapXml(sitemapEntries) {
  */
 function main() {
   console.log('Iniciando geração do sitemap...');
-  
+
   // Objeto para armazenar todas as páginas e suas versões
   // Ex: { 'index.html': { 'pt': 'url', 'ja': 'url' }, 'aldrete.html': { ... } }
   const sitemapEntries = {};
@@ -155,11 +156,11 @@ function main() {
   // 1. Processa os arquivos da raiz (Português)
   const rootFiles = getHtmlFiles(ROOT_DIR);
   for (const file of rootFiles) {
-    
+
     // Ignora arquivos parciais/de script
-    if (file === 'sitemap.html' || 
+    if (file === 'sitemap.html' ||
         file === 'generate-sitemap.js' ||
-        IGNORE_FILES.includes(file) || 
+        IGNORE_FILES.includes(file) ||
         file.startsWith('_')) {
       continue; // Pula este arquivo
     }
@@ -178,7 +179,7 @@ function main() {
     }
     sitemapEntries[pageKey]['pt'] = url; // Adiciona a versão 'pt'
   }
-  
+
 
   // 2. Processa os arquivos das pastas de idioma
   for (const langKey of LANG_FOLDERS) {
@@ -186,7 +187,7 @@ function main() {
     const langFiles = getHtmlFiles(langDir);
 
     for (const file of langFiles) {
-      
+
       // Ignora arquivos parciais
       if (IGNORE_FILES.includes(file) || file.startsWith('_')) {
         continue; // Pula este arquivo
