@@ -71,16 +71,189 @@
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/open-dyslexic@1.0.3/open-dyslexic-regular.min.css">
     </noscript>
 
-    <!-- Google Analytics & Consent Mode -->
+   <script>
+    /* =========================================================
+       MODO ADMIN + GOOGLE TAG + CONSENT + ADSENSE (LAZY LOAD)
+       (VERSÃO ULTRA RÁPIDA: Adia anúncios para ganho de PageSpeed)
+       ========================================================= */
 
-    <script>
-        window.dataLayer = window.dataLayer || [];
-        function gtag() { dataLayer.push(arguments); }
-        gtag('js', new Date());
-        gtag('consent', 'default', { 'analytics_storage': 'denied', 'ad_storage': 'denied', 'wait_for_update': 500 });
-        gtag('config', 'AW-952633102');
-        gtag('config', 'G-8FLJ59DK');
-    </script>
+    // 🛡️ MODO ADMIN — bloqueia tudo
+    if (localStorage.getItem('admin_mode') === 'true') {
+      console.log('🚧 Modo Admin: Analytics e AdSense NÃO foram carregados.');
+    } else {
+      var savedConsent = localStorage.getItem("cookieConsent");
+      var isRefused = (savedConsent === "refused");
+      var isManaged = (savedConsent === "managed");
+
+      // Define se anúncios começam bloqueados (Recusado ou Gerenciado c/ Ad negado)
+      var adsBlocked = isRefused;
+      if (isManaged) {
+          var savedAdStorage = localStorage.getItem("ad_storage");
+          if (savedAdStorage === "denied") {
+              adsBlocked = true;
+          }
+      }
+
+      // Flags para evitar duplo carregamento
+      window.__metricsLoaded = false;
+      window.__adsenseLoaded = false;
+
+      // Filas globais
+      window.dataLayer = window.dataLayer || [];
+      function gtag() { dataLayer.push(arguments); }
+      window.gtag = window.gtag || gtag;
+
+      /* -----------------------------------------------------
+         1) FUNÇÃO: CARREGAR ANALYTICS (GTAG)
+         ----------------------------------------------------- */
+      function loadAnalytics() {
+        if (window.__metricsLoaded) return;
+        window.__metricsLoaded = true;
+
+        var scriptGA = document.createElement('script');
+        scriptGA.async = true;
+        // ID Principal (G-VVDP5JGEX8)
+        scriptGA.src = "https://www.googletagmanager.com/gtag/js?id=G-VVDP5JGEX8";
+        document.head.appendChild(scriptGA);
+
+        // Define status inicial baseado no histórico
+        var analyticsState = "granted";
+        var adsState = "granted";
+
+        if (isRefused) {
+            analyticsState = "denied";
+            adsState = "denied";
+        } else if (isManaged) {
+            analyticsState = localStorage.getItem("analytics_storage") || "denied";
+            adsState = localStorage.getItem("ad_storage") || "denied";
+        }
+
+        gtag("consent", "default", {
+            analytics_storage: analyticsState,
+            ad_storage: adsState,
+            ad_user_data: adsState,
+            ad_personalization: adsState,
+            wait_for_update: 500
+        });
+
+        gtag("js", new Date());
+
+        // Configs
+        gtag("config", "G-VVDP5JGEX8");
+        gtag("config", "AW-952633102");
+      }
+
+      /* -----------------------------------------------------
+         2) FUNÇÃO: CARREGAR ADSENSE (LAZY LOAD)
+         ----------------------------------------------------- */
+      function loadAdSense() {
+        // Só carrega se não foi carregado E não está bloqueado
+        if (window.__adsenseLoaded || adsBlocked) return;
+        window.__adsenseLoaded = true;
+
+        var scriptAd = document.createElement('script');
+        scriptAd.async = true;
+        scriptAd.src = "https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6472730056006847";
+        scriptAd.crossOrigin = "anonymous";
+        document.head.appendChild(scriptAd);
+
+        console.log("🚀 AdSense iniciado via Lazy Load.");
+      }
+
+      /* -----------------------------------------------------
+         3) GATILHOS DE PERFORMANCE (A Mágica do PageSpeed)
+         ----------------------------------------------------- */
+      // Carrega Analytics imediatamente (é leve e respeita a config acima)
+      loadAnalytics();
+
+      // Carrega AdSense (pesado) apenas na interação do usuário
+      function onUserInteraction() {
+        loadAdSense();
+        // Remove ouvintes para não rodar de novo
+        window.removeEventListener('scroll', onUserInteraction);
+        window.removeEventListener('mousemove', onUserInteraction);
+        window.removeEventListener('touchstart', onUserInteraction);
+      }
+
+      // Se não estiver bloqueado, prepara o carregamento
+      if (!adsBlocked) {
+        // 1. Espera interação (scroll, mouse, toque)
+        window.addEventListener('scroll', onUserInteraction, {passive: true});
+        window.addEventListener('mousemove', onUserInteraction, {passive: true});
+        window.addEventListener('touchstart', onUserInteraction, {passive: true});
+
+        // 2. Fallback: Se usuário ficar parado 3.5s, carrega mesmo assim
+        setTimeout(loadAdSense, 3500);
+      }
+
+      /* -----------------------------------------------------
+         4) FUNÇÕES DE CONSENTIMENTO (Update)
+         ----------------------------------------------------- */
+      function applyConsent(consent) {
+        gtag("consent", "update", consent);
+
+        // Salva localmente
+        try {
+          localStorage.setItem("analytics_storage", consent.analytics_storage);
+          localStorage.setItem("ad_storage", consent.ad_storage);
+        } catch (e) {}
+
+        // Se deu permissão de ads, libera o carregamento
+        if (consent.ad_storage === "granted") {
+            adsBlocked = false;
+            loadAdSense(); // Carrega se ainda não carregou
+        } else {
+            adsBlocked = true;
+            // Nota: O AdSense não tem função de "unload", teria que recarregar a página
+            // para parar de exibir totalmente se já carregou, mas visualmente removemos abaixo.
+        }
+      }
+
+      /* -----------------------------------------------------
+         5) API GLOBAL E RESTAURAÇÃO
+         ----------------------------------------------------- */
+      window.acceptAllCookies = function () {
+        localStorage.setItem("cookieConsent", "accepted");
+        applyConsent({
+            analytics_storage: "granted",
+            ad_storage: "granted",
+            ad_user_data: "granted",
+            ad_personalization: "granted"
+        });
+      };
+
+      window.rejectAllCookies = function () {
+        localStorage.setItem("cookieConsent", "refused");
+        applyConsent({
+            analytics_storage: "denied",
+            ad_storage: "denied",
+            ad_user_data: "denied",
+            ad_personalization: "denied"
+        });
+        // Remove visualmente
+        var ads = document.querySelectorAll('ins.adsbygoogle, .google-auto-placed');
+        ads.forEach(function (ad) { ad.style.display = 'none'; ad.innerHTML = ''; });
+      };
+
+      window.applyGranularCookies = function (analyticsGranted, adsGranted) {
+        localStorage.setItem("cookieConsent", "managed");
+        var statusAnalytics = analyticsGranted ? "granted" : "denied";
+        var statusAds = adsGranted ? "granted" : "denied";
+
+        applyConsent({
+          analytics_storage: statusAnalytics,
+          ad_storage: statusAds,
+          ad_user_data: statusAds,
+          ad_personalization: statusAds
+        });
+
+        if (!adsGranted) {
+          var ads = document.querySelectorAll('ins.adsbygoogle, .google-auto-placed');
+          ads.forEach(function (ad) { ad.style.display = 'none'; ad.innerHTML = ''; });
+        }
+      };
+    }
+</script>
 
     <!-- Schema.org Structured Data -->
 
