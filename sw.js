@@ -1,5 +1,5 @@
 // Define o nome e a versão do cache (AUTOMÁTICO via gerar-sw.js)
-const CACHE_NAME = 'calculadoras-enfermagem-cache-20260104-091219-250';
+const CACHE_NAME = 'calculadoras-enfermagem-cache-20260104-161147-030';
 
 // O SCRIPT DE BUILD VAI INJETAR A LISTA DE ARQUIVOS AQUI
 const urlsToCache = [
@@ -181,6 +181,7 @@ const urlsToCache = [
   'biblioteca/balanco-hidrico-ilustrativo.html',
   'biblioteca/balanco-hidrico.html',
   'biblioteca/bilancio-idrico-imagem.html',
+  'biblioteca/boletim-silverman-anderson-avalia-dificuldade-respiratoria-em-recem-nascidos.html',
   'biblioteca/calculadora-de-medicamento.html',
   'biblioteca/calculadorasimagem.html',
   'biblioteca/calculo-de-dosagem-de-medicamentos-enfermagem.html',
@@ -230,6 +231,7 @@ const urlsToCache = [
   'biblioteca/equipe-de-enfermagem-unida.html',
   'biblioteca/equipe-do-time-de-resposta-rapida-hospital.html',
   'biblioteca/erklarende-infografik-zu-tropfformeln.html',
+  'biblioteca/escala-de-agitacao-e-sedacao-de-richmond-rass.html',
   'biblioteca/escala-de-aldrete-e-kroulik-enfermagem-srpa.html',
   'biblioteca/escala-de-aldrete-e-kroulik.html',
   'biblioteca/escala-de-apache-ii.html',
@@ -249,6 +251,11 @@ const urlsToCache = [
   'biblioteca/escala-de-dor-em-pacientes-criticos-de-bps.html',
   'biblioteca/escala-de-equilibrio-de-berg.html',
   'biblioteca/escala-de-fugulin.html',
+  'biblioteca/escala-de-qsofa-avaliacao-rapidao-de-falencia-de-orgaos-em-uti.html',
+  'biblioteca/escala-de-sedacao-de-ramsay-uti.html',
+  'biblioteca/escala-de-waterlow-avaliacao-de-risco-de-lesao-por-pressao.html',
+  'biblioteca/escala-de-wood-downdes-avaliacao-de-recem-nascidos.html',
+  'biblioteca/escala-de-zarit-avaliacao-de-sobrecarga-do-cuidador.html',
   'biblioteca/escalasimagem.html',
   'biblioteca/escovar-os-dentes.html',
   'biblioteca/fisioterapia-idoso.html',
@@ -1146,6 +1153,7 @@ const urlsToCache = [
   'img/AVALIAÇÃO SAÚDE.png',
   'img/Aquecimento imediato em caso de hipotermia, mantas, aquecedor portátil, manta térmica, solução fisiologica aquecida.webp',
   'img/BILANCIO-IDRICO-IMAGEM.webp',
+  'img/BOLETIM SILVERMAN-ANDERSON AVALIA DIFICULDADE RESPIRATORIA EM RECEM NASCIDOS.png',
   'img/CALCULADORA DE MEDICAMENTO.png',
   'img/CALCULO DE DOSAGEM DE MEDICAMENTOS ENFERMAGEM.webp',
   'img/CALCULO DE DOSAGEM DE MEDICAMENTOS.png',
@@ -1178,6 +1186,7 @@ const urlsToCache = [
   'img/ENFERMAGEM VERIFICAR PRESSAO.png',
   'img/EQUIPE DE ENFERMAGEM UNIDA.png',
   'img/EQUIPE DO TIME DE RESPOSTA RAPIDA HOSPITAL.webp',
+  'img/ESCALA DE AGITAÇÃO E SEDAÇÃO DE RICHMOND RASS.png',
   'img/ESCALA DE ALDRETE E KROULIK ENFERMAGEM SRPA.webp',
   'img/ESCALA DE ALDRETE E KROULIK.jpg',
   'img/ESCALA DE APACHE.jpg',
@@ -1193,6 +1202,11 @@ const urlsToCache = [
   'img/ESCALA DE CRIES.png',
   'img/ESCALA DE CURB-65.png',
   'img/ESCALA DE DOR BPS.png',
+  'img/ESCALA DE QSOFA AVALIAÇÃO RAPIDAO DE FALÊNCIA DE ORGÃOS EM UTI.png',
+  'img/ESCALA DE SEDAÇÃO DE RAMSAY UTI.png',
+  'img/ESCALA DE WATERLOW AVALIAÇÃO DE RISCO DE LESÃO POR PRESSÃO.png',
+  'img/ESCALA DE WOOD-DOWNDES AVALIAÇÃO DE RECEM NASCIDOS.png',
+  'img/ESCALA DE ZARIT AVALIAÇÃO DE SOBRECARGA DO CUIDADOR.png',
   'img/ESCOVAR OS DENTES.png',
   'img/Enfermagem-em-unidades-de-hemodiálise.webp',
   'img/Erklärende Infografik zu Tropfformeln.webp',
