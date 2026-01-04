@@ -27,191 +27,6 @@ const excludedFolders = ['biblioteca', 'downloads', 'node_modules', '.git', '.vs
 const oldCodeBlock = `<script>
     /* =========================================================
        MODO ADMIN + GOOGLE TAG + CONSENT + ADSENSE (LAZY LOAD)
-       (VERSÃO ULTRA RÁPIDA: Adia anúncios para ganho de PageSpeed)
-       ========================================================= */
-
-    // 🛡️ MODO ADMIN — bloqueia tudo
-    if (localStorage.getItem('admin_mode') === 'true') {
-      console.log('🚧 Modo Admin: Analytics e AdSense NÃO foram carregados.');
-    } else {
-      var savedConsent = localStorage.getItem("cookieConsent");
-      var isRefused = (savedConsent === "refused");
-      var isManaged = (savedConsent === "managed");
-
-      // Define se anúncios começam bloqueados (Recusado ou Gerenciado c/ Ad negado)
-      var adsBlocked = isRefused;
-      if (isManaged) {
-        var savedAdStorage = localStorage.getItem("ad_storage");
-        if (savedAdStorage === "denied") {
-          adsBlocked = true;
-        }
-      }
-
-      // Flags para evitar duplo carregamento
-      window.__metricsLoaded = false;
-      window.__adsenseLoaded = false;
-
-      // Filas globais
-      window.dataLayer = window.dataLayer || [];
-      function gtag() { dataLayer.push(arguments); }
-      window.gtag = window.gtag || gtag;
-
-      /* -----------------------------------------------------
-         1) FUNÇÃO: CARREGAR ANALYTICS (GTAG)
-         ----------------------------------------------------- */
-      function loadAnalytics() {
-        if (window.__metricsLoaded) return;
-        window.__metricsLoaded = true;
-
-        var scriptGA = document.createElement('script');
-        scriptGA.async = true;
-        // ID Principal (G-VVDP5JGEX8)
-        scriptGA.src = "https://www.googletagmanager.com/gtag/js?id=G-VVDP5JGEX8";
-        document.head.appendChild(scriptGA);
-
-        // Define status inicial baseado no histórico
-        var analyticsState = "granted";
-        var adsState = "granted";
-
-        if (isRefused) {
-          analyticsState = "denied";
-          adsState = "denied";
-        } else if (isManaged) {
-          analyticsState = localStorage.getItem("analytics_storage") || "denied";
-          adsState = localStorage.getItem("ad_storage") || "denied";
-        }
-
-        gtag("consent", "default", {
-          analytics_storage: analyticsState,
-          ad_storage: adsState,
-          ad_user_data: adsState,
-          ad_personalization: adsState,
-          wait_for_update: 500
-        });
-
-        gtag("js", new Date());
-
-        // Configs
-        gtag("config", "G-VVDP5JGEX8");
-        gtag("config", "AW-952633102");
-      }
-
-      /* -----------------------------------------------------
-         2) FUNÇÃO: CARREGAR ADSENSE (LAZY LOAD)
-         ----------------------------------------------------- */
-      function loadAdSense() {
-        // Só carrega se não foi carregado E não está bloqueado
-        if (window.__adsenseLoaded || adsBlocked) return;
-        window.__adsenseLoaded = true;
-
-        var scriptAd = document.createElement('script');
-        scriptAd.async = true;
-        scriptAd.src = "https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6472730056006847";
-        scriptAd.crossOrigin = "anonymous";
-        document.head.appendChild(scriptAd);
-
-        console.log("🚀 AdSense iniciado via Lazy Load.");
-      }
-
-      /* -----------------------------------------------------
-         3) GATILHOS DE PERFORMANCE (A Mágica do PageSpeed)
-         ----------------------------------------------------- */
-      // Carrega Analytics imediatamente (é leve e respeita a config acima)
-      loadAnalytics();
-
-      // Carrega AdSense (pesado) apenas na interação do usuário
-      function onUserInteraction() {
-        loadAdSense();
-        // Remove ouvintes para não rodar de novo
-        window.removeEventListener('scroll', onUserInteraction);
-        window.removeEventListener('mousemove', onUserInteraction);
-        window.removeEventListener('touchstart', onUserInteraction);
-      }
-
-      // Se não estiver bloqueado, prepara o carregamento
-      if (!adsBlocked) {
-        // 1. Espera interação (scroll, mouse, toque)
-        window.addEventListener('scroll', onUserInteraction, { passive: true });
-        window.addEventListener('mousemove', onUserInteraction, { passive: true });
-        window.addEventListener('touchstart', onUserInteraction, { passive: true });
-
-        // 2. Fallback: Se usuário ficar parado 3.5s, carrega mesmo assim
-        setTimeout(loadAdSense, 3500);
-      }
-
-      /* -----------------------------------------------------
-         4) FUNÇÕES DE CONSENTIMENTO (Update)
-         ----------------------------------------------------- */
-      function applyConsent(consent) {
-        gtag("consent", "update", consent);
-
-        // Salva localmente
-        try {
-          localStorage.setItem("analytics_storage", consent.analytics_storage);
-          localStorage.setItem("ad_storage", consent.ad_storage);
-        } catch (e) { }
-
-        // Se deu permissão de ads, libera o carregamento
-        if (consent.ad_storage === "granted") {
-          adsBlocked = false;
-          loadAdSense(); // Carrega se ainda não carregou
-        } else {
-          adsBlocked = true;
-          // Nota: O AdSense não tem função de "unload", teria que recarregar a página
-          // para parar de exibir totalmente se já carregou, mas visualmente removemos abaixo.
-        }
-      }
-
-      /* -----------------------------------------------------
-         5) API GLOBAL E RESTAURAÇÃO
-         ----------------------------------------------------- */
-      window.acceptAllCookies = function () {
-        localStorage.setItem("cookieConsent", "accepted");
-        applyConsent({
-          analytics_storage: "granted",
-          ad_storage: "granted",
-          ad_user_data: "granted",
-          ad_personalization: "granted"
-        });
-      };
-
-      window.rejectAllCookies = function () {
-        localStorage.setItem("cookieConsent", "refused");
-        applyConsent({
-          analytics_storage: "denied",
-          ad_storage: "denied",
-          ad_user_data: "denied",
-          ad_personalization: "denied"
-        });
-        // Remove visualmente
-        var ads = document.querySelectorAll('ins.adsbygoogle, .google-auto-placed');
-        ads.forEach(function (ad) { ad.style.display = 'none'; ad.innerHTML = ''; });
-      };
-
-      window.applyGranularCookies = function (analyticsGranted, adsGranted) {
-        localStorage.setItem("cookieConsent", "managed");
-        var statusAnalytics = analyticsGranted ? "granted" : "denied";
-        var statusAds = adsGranted ? "granted" : "denied";
-
-        applyConsent({
-          analytics_storage: statusAnalytics,
-          ad_storage: statusAds,
-          ad_user_data: statusAds,
-          ad_personalization: statusAds
-        });
-
-        if (!adsGranted) {
-          var ads = document.querySelectorAll('ins.adsbygoogle, .google-auto-placed');
-          ads.forEach(function (ad) { ad.style.display = 'none'; ad.innerHTML = ''; });
-        }
-      };
-    }
-  </script>`;
-
-// O bloco NOVO (Com G-8FLJ59XXDK como fonte principal e Lazy Load para PageSpeed)
-const newCodeBlock = `<script>
-    /* =========================================================
-       MODO ADMIN + GOOGLE TAG + CONSENT + ADSENSE (LAZY LOAD)
        (VERSÃO OTIMIZADA: Prioridade para o PageSpeed)
        ========================================================= */
 
@@ -297,45 +112,166 @@ const newCodeBlock = `<script>
     }
 </script>`;
 
+// O bloco NOVO (Com G-8FLJ59XXDK como fonte principal e Lazy Load para PageSpeed)
+const newCodeBlock = `<script>
+    /* =========================================================
+       MODO ADMIN + GOOGLE TAG + CONSENT + ADSENSE (LAZY LOAD)
+       (VERSÃO ATUALIZADA: G-8FLJ59XXDK + G-VVDP5JGEX8 + ADS)
+       ========================================================= */
+
+    if (localStorage.getItem('admin_mode') === 'true') {
+      console.log('🚧 Modo Admin: Bloqueado.');
+    } else {
+      var savedConsent = localStorage.getItem("cookieConsent");
+      var isRefused = (savedConsent === "refused");
+      var isManaged = (savedConsent === "managed");
+      var adsBlocked = isRefused || (isManaged && localStorage.getItem("ad_storage") === "denied");
+
+      window.__metricsLoaded = false;
+      window.__adsenseLoaded = false;
+      window.dataLayer = window.dataLayer || [];
+      function gtag() { dataLayer.push(arguments); }
+      window.gtag = gtag;
+
+      function loadAnalytics() {
+        if (window.__metricsLoaded) return;
+        window.__metricsLoaded = true;
+
+        var scriptGA = document.createElement('script');
+        scriptGA.async = true;
+        // ID Primário (G-8FLJ59XXDK) - Conforme seu painel Analytics
+        scriptGA.src = "https://www.googletagmanager.com/gtag/js?id=G-8FLJ59XXDK";
+        document.head.appendChild(scriptGA);
+
+        var aState = isRefused ? "denied" : (localStorage.getItem("analytics_storage") || "granted");
+        var adState = adsBlocked ? "denied" : "granted";
+
+        gtag("consent", "default", {
+          analytics_storage: aState,
+          ad_storage: adState,
+          ad_user_data: adState,
+          ad_personalization: adState,
+          wait_for_update: 500
+        });
+
+        gtag("js", new Date());
+        gtag("config", "G-8FLJ59XXDK"); // Fluxo específico do site
+        gtag("config", "G-VVDP5JGEX8"); // Site Principal
+        gtag("config", "AW-952633102"); // Google Ads
+      }
+
+      function loadAdSenseOnce() {
+        if (window.__adsenseLoaded || adsBlocked) return;
+        window.__adsenseLoaded = true;
+        var scriptAd = document.createElement('script');
+        scriptAd.async = true;
+        scriptAd.src = "https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6472730056006847";
+        scriptAd.crossOrigin = "anonymous";
+        document.head.appendChild(scriptAd);
+        console.log("🚀 AdSense iniciado via Lazy Load.");
+      }
+
+      loadAnalytics();
+
+      function onUserInteraction() {
+        loadAdSenseOnce();
+        window.removeEventListener('scroll', onUserInteraction);
+        window.removeEventListener('mousemove', onUserInteraction);
+        window.removeEventListener('touchstart', onUserInteraction);
+      }
+
+      if (!adsBlocked) {
+        window.addEventListener('scroll', onUserInteraction, {passive: true});
+        window.addEventListener('mousemove', onUserInteraction, {passive: true});
+        window.addEventListener('touchstart', onUserInteraction, {passive: true});
+        setTimeout(loadAdSenseOnce, 3500);
+      }
+
+      function applyConsent(consent) {
+        gtag("consent", "update", consent);
+        if (consent.ad_storage === "granted") {
+          adsBlocked = false;
+          loadAdSenseOnce();
+        } else {
+          adsBlocked = true;
+          var ads = document.querySelectorAll('ins.adsbygoogle, .google-auto-placed');
+          ads.forEach(function (ad) { ad.style.display = 'none'; ad.innerHTML = ''; });
+        }
+        try {
+          localStorage.setItem("analytics_storage", consent.analytics_storage);
+          localStorage.setItem("ad_storage", consent.ad_storage);
+        } catch (e) {}
+      }
+
+      window.acceptAllCookies = function () {
+        localStorage.setItem("cookieConsent", "accepted");
+        applyConsent({ analytics_storage: "granted", ad_storage: "granted", ad_user_data: "granted", ad_personalization: "granted" });
+      };
+
+      window.rejectAllCookies = function () {
+        localStorage.setItem("cookieConsent", "refused");
+        applyConsent({ analytics_storage: "denied", ad_storage: "denied", ad_user_data: "denied", ad_personalization: "denied" });
+      };
+
+      window.applyGranularCookies = function (analyticsGranted, adsGranted) {
+        localStorage.setItem("cookieConsent", "managed");
+        var aSt = analyticsGranted ? "granted" : "denied";
+        var dSt = adsGranted ? "granted" : "denied";
+        applyConsent({ analytics_storage: aSt, ad_storage: dSt, ad_user_data: dSt, ad_personalization: dSt });
+      };
+    }
+</script>`;
+
 // =============================================================================
-// 🚀 LÓGICA DE REGEX E SUBSTITUIÇÃO
+// 🚀 LÓGICA DE REGEX E SUBSTITUIÇÃO (ÂNCORAS ELÁSTICAS)
 // =============================================================================
 
-function escapeRegExp(string) {
-    return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-}
-
-// Normaliza o bloco antigo para uma Regex que ignora variações de espaços/quebras
-const normalizedOldPattern = oldCodeBlock
-    .split(/\r?\n/)
-    .map(line => line.trim())
-    .filter(line => line.length > 0)
-    .map(escapeRegExp)
-    .join('\\s*');
-
-const regexFinder = new RegExp(normalizedOldPattern, 'g');
+/**
+ * Este Regex foi aprimorado para ser "elástico":
+ * 1. Âncora Inicial: Procura o <script> e o cabeçalho de "VERSÃO OTIMIZADA".
+ * 2. Miolo ([\s\S]*?): Captura qualquer caractere (espaços, quebras, abas) de
+ * forma não-gananciosa até encontrar a âncora final.
+ * 3. Âncora Final: Localiza o fechamento da função rejectAllCookies e a tag </script>.
+ */
+const regexFinder = /<script>[\s]*\/\*[\s!=]+MODO ADMIN \+ GOOGLE TAG \+ CONSENT \+ ADSENSE \(LAZY LOAD\)[\s\S]*?\(VERSÃO OTIMIZADA: Prioridade para o PageSpeed\)[\s\S]*?window\.rejectAllCookies = function[\s\S]*?ad\.innerHTML = '';[\s\S]*?};[\s\S]*?}[\s\S]*?<\/script>/g;
 
 function processFile(filePath) {
     try {
         let content = fs.readFileSync(filePath, 'utf8');
+
+        // Resetamos o lastIndex pois o uso da flag /g com .test() move o cursor de busca
+        regexFinder.lastIndex = 0;
+
         if (regexFinder.test(content)) {
+            // Resetamos novamente para garantir que a substituição ocorra em todo o arquivo
+            regexFinder.lastIndex = 0;
             const newContent = content.replace(regexFinder, newCodeBlock);
+
             fs.writeFileSync(filePath, newContent, 'utf8');
             console.log(`✅ Atualizado: ${filePath}`);
             return true;
         }
     } catch (err) {
-        console.error(`❌ Erro em ${filePath}:`, err.message);
+        console.error(`❌ Erro ao processar ${filePath}:`, err.message);
     }
     return false;
 }
 
-// Execução recursiva simples nas pastas permitidas
+// Execução recursiva nas pastas do projeto (Raiz e Idiomas)
 let count = 0;
 targetDirs.forEach(dir => {
     if (!fs.existsSync(dir)) return;
-    const files = fs.readdirSync(dir).filter(f => f.endsWith('.html') && !excludedFiles.includes(f));
-    files.forEach(f => { if(processFile(path.join(dir, f))) count++; });
+
+    // Filtra apenas arquivos HTML e ignora os arquivos excluídos na configuração
+    const files = fs.readdirSync(dir).filter(f =>
+        f.endsWith('.html') && !excludedFiles.includes(f)
+    );
+
+    files.forEach(f => {
+        const fullPath = path.join(dir, f);
+        if (processFile(fullPath)) count++;
+    });
 });
 
-console.log(`-----------------------------------\n🏁 Fim! ${count} arquivos atualizados.`);
+console.log(`-----------------------------------`);
+console.log(`🏁 Fim! ${count} arquivos atualizados no total.`);
