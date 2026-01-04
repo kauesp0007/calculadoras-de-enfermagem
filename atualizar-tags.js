@@ -21,7 +21,8 @@ const excludedFiles = [
     '_language_selector.html',
     'sw.js',
     'package.json',
-    'package-lock.json'
+    'package-lock.json',
+    'googlefc0a17cdd552164b.html'
 ];
 
 const excludedFolders = [
