@@ -149,3 +149,92 @@
       };
     }
   </script>
+
+
+  <script>
+    /* =========================================================
+       MODO ADMIN + GOOGLE TAG + CONSENT + ADSENSE (LAZY LOAD)
+       (VERSÃO OTIMIZADA: Prioridade para o PageSpeed)
+       ========================================================= */
+
+    if (localStorage.getItem('admin_mode') === 'true') {
+      console.log('🚧 Modo Admin: Bloqueado.');
+    } else {
+      var savedConsent = localStorage.getItem("cookieConsent");
+      var isRefused = (savedConsent === "refused");
+      var isManaged = (savedConsent === "managed");
+      var adsBlocked = isRefused || (isManaged && localStorage.getItem("ad_storage") === "denied");
+
+      window.__metricsLoaded = false;
+      window.__adsenseLoaded = false;
+      window.dataLayer = window.dataLayer || [];
+      function gtag() { dataLayer.push(arguments); }
+      window.gtag = gtag;
+
+      function loadAnalytics() {
+        if (window.__metricsLoaded) return;
+        window.__metricsLoaded = true;
+
+        var scriptGA = document.createElement('script');
+        scriptGA.async = true;
+        // ID Primário do seu site de Enfermagem
+        scriptGA.src = "https://www.googletagmanager.com/gtag/js?id=G-8FLJ59XXDK";
+        document.head.appendChild(scriptGA);
+
+        var aState = isRefused ? "denied" : (localStorage.getItem("analytics_storage") || "granted");
+        var adState = adsBlocked ? "denied" : "granted";
+
+        gtag("consent", "default", {
+          analytics_storage: aState,
+          ad_storage: adState,
+          ad_user_data: adState,
+          ad_personalization: adState,
+          wait_for_update: 500
+        });
+
+        gtag("js", new Date());
+        gtag("config", "G-8FLJ59XXDK"); // Site Enfermagem
+        gtag("config", "G-VVDP5JGEX8"); // Site Principal
+        gtag("config", "AW-952633102"); // Ads
+      }
+
+      function loadAdSense() {
+        if (window.__adsenseLoaded || adsBlocked) return;
+        window.__adsenseLoaded = true;
+        var scriptAd = document.createElement('script');
+        scriptAd.async = true;
+        scriptAd.src = "https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6472730056006847";
+        scriptAd.crossOrigin = "anonymous";
+        document.head.appendChild(scriptAd);
+      }
+
+      loadAnalytics();
+
+      function onUserInteraction() {
+        loadAdSense();
+        window.removeEventListener('scroll', onUserInteraction);
+        window.removeEventListener('mousemove', onUserInteraction);
+        window.removeEventListener('touchstart', onUserInteraction);
+      }
+
+      if (!adsBlocked) {
+        window.addEventListener('scroll', onUserInteraction, {passive: true});
+        window.addEventListener('mousemove', onUserInteraction, {passive: true});
+        window.addEventListener('touchstart', onUserInteraction, {passive: true});
+        setTimeout(loadAdSense, 3500);
+      }
+
+      window.acceptAllCookies = function () {
+        localStorage.setItem("cookieConsent", "accepted");
+        gtag("consent", "update", { analytics_storage: "granted", ad_storage: "granted" });
+        loadAdSense();
+      };
+
+      window.rejectAllCookies = function () {
+        localStorage.setItem("cookieConsent", "refused");
+        gtag("consent", "update", { analytics_storage: "denied", ad_storage: "denied" });
+        var ads = document.querySelectorAll('ins.adsbygoogle, .google-auto-placed');
+        ads.forEach(function (ad) { ad.style.display = 'none'; ad.innerHTML = ''; });
+      };
+    }
+</script>
