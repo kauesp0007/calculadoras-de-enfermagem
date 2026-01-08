@@ -595,33 +595,50 @@
 
   <!-- Script específico da página -->
   <script>
-    document.addEventListener("DOMContentLoaded", function () {
-      const resultadoDiv = document.getElementById("resultado");
-      const btnCalcular = document.getElementById("btnCalcular");
-      const btnLimpar = document.getElementById("btnLimpar");
-      const btnGerarPDF = document.getElementById("btnGerarPDF");
-      const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
+// Função utilitária para carregar HTML modular (mantendo consistência com outros scripts)
+function fetchHTML(url, id) {
+    return fetch(url)
+        .then((r) => r.text())
+        .then((html) => {
+            const el = document.getElementById(id);
+            if (el) el.innerHTML = html;
+        });
+}
 
-      function calcularGestacional() {
+document.addEventListener("DOMContentLoaded", function () {
+    // Carregamento dos módulos globais (Menu, Footer, etc.)
+    fetchHTML("/menu-global.html", "global-header-container");
+    fetchHTML("/_language_selector.html", "language-dropdown-wrapper");
+    fetchHTML("/footer.html", "footer-placeholder");
+    fetchHTML("/global-body-elements.html", "global-body-elements-container");
+
+    const resultadoDiv = document.getElementById("resultado");
+    const btnCalcular = document.getElementById("btnCalcular");
+    const btnLimpar = document.getElementById("btnLimpar");
+    const btnGerarPDF = document.getElementById("btnGerarPDF");
+    const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
+
+    function calcularGestacional() {
         const dumInput = document.getElementById("dum").value;
         const resultadoDiv = document.getElementById("resultado");
 
-        resultadoDiv.className = "Результат рамкової програми мт-6";
+        // Correção da classe CSS que estava traduzida incorretamente no input
+        resultadoDiv.className = "result-container mt-6";
         resultadoDiv.style.display = "block";
         btnGerarPDF.setAttribute("disabled", "true");
         btnNandaNicNoc.setAttribute("disabled", "true");
 
         if (!dumInput) {
-          resultadoDiv.innerHTML =
-            '<p class="text-red-600">⚠️ <strong>Por favor, insira a data da última menstruação (DUM).</strong></p>';
-          resultadoDiv.classList.add("bg-danger-red");
-          resultadoDiv.classList.remove(
-            "bg-info-orange-light",
-            "bg-success-green"
-          );
-          delete resultadoDiv.dataset.idadeGestacional;
-          delete resultadoDiv.dataset.dpp;
-          return;
+            resultadoDiv.innerHTML =
+                '<p class="text-red-600">⚠️ <strong>Будь ласка, введіть дату останньої менструації (ДОМ).</strong></p>';
+            resultadoDiv.classList.add("bg-danger-red");
+            resultadoDiv.classList.remove(
+                "bg-info-orange-light",
+                "bg-success-green"
+            );
+            delete resultadoDiv.dataset.idadeGestacional;
+            delete resultadoDiv.dataset.dpp;
+            return;
         }
 
         const dum = new Date(dumInput + "T00:00:00");
@@ -630,16 +647,16 @@
         dum.setHours(0, 0, 0, 0);
 
         if (dum > hoje) {
-          resultadoDiv.innerHTML =
-            '<p class="text-red-600">⚠️ <strong>A Data da Última Menstruação (DUM) não pode ser no futuro.</strong></p>';
-          resultadoDiv.classList.add("bg-danger-red");
-          resultadoDiv.classList.remove(
-            "bg-info-orange-light",
-            "bg-success-green"
-          );
-          delete resultadoDiv.dataset.idadeGestacional;
-          delete resultadoDiv.dataset.dpp;
-          return;
+            resultadoDiv.innerHTML =
+                '<p class="text-red-600">⚠️ <strong>Дата останньої менструації (ДОМ) не може бути в майбутньому.</strong></p>';
+            resultadoDiv.classList.add("bg-danger-red");
+            resultadoDiv.classList.remove(
+                "bg-info-orange-light",
+                "bg-success-green"
+            );
+            delete resultadoDiv.dataset.idadeGestacional;
+            delete resultadoDiv.dataset.dpp;
+            return;
         }
 
         const diffMs = hoje - dum;
@@ -649,17 +666,18 @@
 
         const dpp = new Date(dum.getTime());
         dpp.setDate(dpp.getDate() + 280);
-        const dppFormatada = dpp.toLocaleDateString("pt-BR");
+        // Formata a data para o padrão local (Ucrânia usa dia.mês.ano similar ao PT)
+        const dppFormatada = dpp.toLocaleDateString("uk-UA");
 
         resultadoDiv.innerHTML = `
                   <table class="w-full text-sm">
                       <tbody>
                           <tr>
-                              <td class="font-bold pr-2">Idade Gestacional:</td>
-                              <td>${semanas} semanas e ${dias} dias</td>
+                              <td class="font-bold pr-2">Термін вагітності:</td>
+                              <td>${semanas} тижнів і ${dias} днів</td>
                           </tr>
                           <tr>
-                              <td class="font-bold pr-2">Data Provável do Parto (<abbr title="Data Provável do Parto">DPP</abbr>):</td>
+                              <td class="font-bold pr-2">Передбачувана дата пологів (<abbr title="Передбачувана дата пологів">ПДП</abbr>):</td>
                               <td>${dppFormatada}</td>
                           </tr>
                       </tbody>
@@ -667,19 +685,18 @@
               `;
         resultadoDiv.classList.add("bg-success-green");
         resultadoDiv.classList.remove(
-          "bg-danger-red",
-          "bg-info-orange-light"
+            "bg-danger-red",
+            "bg-info-orange-light"
         );
 
-        resultadoDiv.dataset.idadeGestacional = `${semanas} semanas e ${dias} dias`;
+        resultadoDiv.dataset.idadeGestacional = `${semanas} тижнів і ${dias} днів`;
         resultadoDiv.dataset.dpp = dppFormatada;
-        resultadoDiv.dataset.scaleName =
-          "Калькулятор терміну вагітності та ППД";
+        resultadoDiv.dataset.scaleName = "Калькулятор терміну вагітності та ПДП";
         btnGerarPDF.removeAttribute("disabled");
         btnNandaNicNoc.removeAttribute("disabled");
-      }
+    }
 
-      function limparCampos() {
+    function limparCampos() {
         document.getElementById("dum").value = "";
         const resultadoDiv = document.getElementById("resultado");
         resultadoDiv.innerHTML = "";
@@ -689,46 +706,46 @@
         delete resultadoDiv.dataset.idadeGestacional;
         delete resultadoDiv.dataset.dpp;
         delete resultadoDiv.dataset.scaleName;
-      }
+    }
 
-      // Event Listeners
-      btnCalcular?.addEventListener("click", calcularGestacional);
-      btnLimpar?.addEventListener("click", limparCampos);
+    // Event Listeners
+    btnCalcular?.addEventListener("click", calcularGestacional);
+    btnLimpar?.addEventListener("click", limparCampos);
 
-      btnGerarPDF?.addEventListener("click", () => {
+    btnGerarPDF?.addEventListener("click", () => {
         if (!resultadoDiv.dataset.idadeGestacional) {
-          alert("Будь ласка, спочатку натисніть \"Розрахувати\", щоб згенерувати PDF-файл.");
-          return;
+            alert("Будь ласка, спочатку натисніть 'Розрахувати', щоб згенерувати PDF-файл.");
+            return;
         }
         if (typeof gerarPDFGlobal === "function") {
-          gerarPDFGlobal({
-            titulo: "Калькулятор терміну вагітності та ППД",
-            subtitulo: "Звіт про розрахунок вагітності",
-            nomeArquivo: "relatorio_gestacional.pdf",
-            seletorConteudo: ".main-content-wrapper"
-          });
+            gerarPDFGlobal({
+                titulo: "Калькулятор терміну вагітності та ПДП",
+                subtitulo: "Звіт про розрахунок вагітності",
+                nomeArquivo: "zvit_vahitnist.pdf",
+                seletorConteudo: ".main-content-wrapper"
+            });
         } else {
-          console.error("Функція GeneratePDFGlobal не визначена.");
+            console.error("Функція gerarPDFGlobal не визначена.");
         }
-      });
+    });
 
-      btnNandaNicNoc?.addEventListener("click", () => {
+    btnNandaNicNoc?.addEventListener("click", () => {
         const idadeGestacional = resultadoDiv.dataset.idadeGestacional;
         const dpp = resultadoDiv.dataset.dpp;
         const scaleName = resultadoDiv.dataset.scaleName;
         if (!idadeGestacional || !dpp) {
-          alert("Обчисліть результат для пошуку поведінки.");
-          return;
+            alert("Обчисліть результат, щоб визначити подальші дії.");
+            return;
         }
         const searchQuery = encodeURIComponent(
-          `${scaleName} термін вагітності ${idadeGestacional} DPP ${dpp} gerar taxonomia NANDA, gerar taxonomia NIC e gerar taxonomia de NOC`
+            `${scaleName} термін вагітності ${idadeGestacional} ПДП ${dpp} генерувати таксономію NANDA, генерувати таксономію NIC та генерувати таксономію NOC`
         );
         window.open(
-          `https://www.google.com/search?q=${searchQuery}`,
-          "_blank"
+            `https://www.google.com/search?q=${searchQuery}`,
+            "_blank"
         );
-      });
-    });</script>
+    });
+});</script>
 
   <script src="/lang-selector.js" defer=""></script>
 

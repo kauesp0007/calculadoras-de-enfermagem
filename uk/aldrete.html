@@ -561,223 +561,245 @@
 
   <!-- Script Específico da Página Aldrete -->
   <script>
-    document.addEventListener("DOMContentLoaded", function () {
-      // ... todo o seu JavaScript da calculadora Aldrete permanece inalterado ...
-      const resultadoDiv = document.getElementById("resultado");
-      const conteudoDiv = document.getElementById("conteudo");
-      const btnCalcular = document.getElementById("btnCalcular");
-      const btnLimpar = document.getElementById("btnLimpar");
-      const btnGerarPDF = document.getElementById("btnGerarPDF");
-      const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
+// Função utilitária para carregar HTML modular
+function fetchHTML(url, id) {
+    return fetch(url)
+        .then((r) => r.text())
+        .then((html) => {
+            const el = document.getElementById(id);
+            if (el) el.innerHTML = html;
+        });
+}
 
-      const aldreteData = [
+document.addEventListener("DOMContentLoaded", function () {
+    // Carregamento dos módulos globais
+    fetchHTML("/menu-global.html", "global-header-container");
+    fetchHTML("/_language_selector.html", "language-dropdown-wrapper");
+    fetchHTML("/footer.html", "footer-placeholder");
+    fetchHTML("/global-body-elements.html", "global-body-elements-container");
+
+    const resultadoDiv = document.getElementById("resultado");
+    const conteudoDiv = document.getElementById("conteudo");
+    const btnCalcular = document.getElementById("btnCalcular");
+    const btnLimpar = document.getElementById("btnLimpar");
+    const btnGerarPDF = document.getElementById("btnGerarPDF");
+    const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
+
+    // Dados da Escala de Aldrete traduzidos para Ucraniano
+    const aldreteData = [
         {
-          category: "Діяльність",
-          nameAttr: "активність",
-          options: [
-            { description: "Movimenta 4 membros", score: 2 },
-            { description: "Movimenta 2 membros", score: 1 },
-            { description: "Власність", score: 0 }]
-
+            category: "Активність", // Atividade
+            nameAttr: "atividade",
+            options: [
+                { description: "Рухає 4 кінцівками", score: 2 }, // Movimenta 4 membros
+                { description: "Рухає 2 кінцівками", score: 1 }, // Movimenta 2 membros
+                { description: "Відсутність рухів", score: 0 }   // Sem movimentos
+            ]
         },
         {
-          category: "Дихання",
-          nameAttr: "respiracao",
-          options: [
-            { description: "Respira profundamente e tosse", score: 2 },
-            { description: "Dispneico, respira irregular", score: 1 },
-            { description: "Apneia", score: 0 }]
-
+            category: "Дихання", // Respiração
+            nameAttr: "respiracao",
+            options: [
+                { description: "Дихає глибоко і кашляє", score: 2 }, // Respira profundamente e tosse
+                { description: "Задишка, поверхневе або обмежене дихання", score: 1 }, // Dispneico...
+                { description: "Апное", score: 0 } // Apneia
+            ]
         },
         {
-          category: "Тираж",
-          nameAttr: "circulacao",
-          options: [
-            { description: "Нормальний тиск", score: 2 },
-            { description: "± 20% da PA basal", score: 1 },
-            { description: "± 50% da PA basal", score: 0 }]
-
+            category: "Кровообіг", // Circulação (Corrigido de 'Тираж')
+            nameAttr: "circulacao",
+            options: [
+                { description: "АТ ± 20% від доанестезійного рівня", score: 2 }, // PA +/- 20%
+                { description: "АТ ± 20-50% від доанестезійного рівня", score: 1 }, // PA +/- 20-50%
+                { description: "АТ ± 50% від доанестезійного рівня", score: 0 }  // PA +/- 50%
+            ]
         },
         {
-          category: "Поінформованість",
-          nameAttr: "consciencia",
-          options: [
-            { description: "Acordado e alerta", score: 2 },
-            { description: "Реагує на подразники", score: 1 },
-            { description: "Немає відповіді", score: 0 }]
-
+            category: "Свідомість", // Consciência
+            nameAttr: "consciencia",
+            options: [
+                { description: "У свідомості, орієнтується", score: 2 }, // Acordado e alerta
+                { description: "Реагує на звернення", score: 1 }, // Responde a chamados
+                { description: "Немає реакції", score: 0 } // Sem resposta
+            ]
         },
         {
-          category: "O₂ насиченість",
-          nameAttr: "saturacao",
-          options: [
-            { description: "> 92% em ar ambiente", score: 2 },
-            { description: "Precisa de O₂ para manter > 90%", score: 1 },
-            { description: "< 90% com O₂ suplementar", score: 0 }]
+            category: "Сатурація O₂", // Saturação O2
+            nameAttr: "saturacao",
+            options: [
+                { description: "> 92% при диханні кімнатним повітрям", score: 2 }, // > 92% ar ambiente
+                { description: "Потребує O₂, щоб підтримувати > 90%", score: 1 }, // Precisa de O2...
+                { description: "< 90% навіть з додатковим O₂", score: 0 } // < 90% com O2...
+            ]
+        }
+    ];
 
-        }];
+    let userSelections = {};
 
-
-      let userSelections = {};
-
-      function createCriteriaList() {
+    function createCriteriaList() {
+        if (!conteudoDiv) return;
         conteudoDiv.innerHTML = "";
         aldreteData.forEach((paramGroup) => {
-          const details = document.createElement("details");
-          details.className =
-            "criterion-container bg-white border border-gray-200 rounded-lg shadow-sm transition-all duration-300";
-          details.dataset.name = paramGroup.nameAttr;
+            const details = document.createElement("details");
+            details.className =
+                "criterion-container bg-white border border-gray-200 rounded-lg shadow-sm transition-all duration-300";
+            details.dataset.name = paramGroup.nameAttr;
 
-          const summary = document.createElement("summary");
-          summary.className =
-            "flex justify-between items-center p-4 cursor-pointer hover:bg-gray-50";
-          summary.innerHTML = `
+            const summary = document.createElement("summary");
+            summary.className =
+                "flex justify-between items-center p-4 cursor-pointer hover:bg-gray-50";
+            summary.innerHTML = `
                         <span class="font-bold text-lg text-dark-blue">${paramGroup.category}</span>
                         <div class="flex items-center gap-3">
-                            <span class="selected-value text-gray-500 italic text-right">Selecione uma opção</span>
+                            <span class="selected-value text-gray-500 italic text-right">Виберіть опцію</span>
                             <i class="fas fa-chevron-down chevron-icon text-gray-400"></i>
                         </div>
                     `;
 
-          const optionsContainer = document.createElement("div");
-          optionsContainer.className =
-            "p-4 border-t border-gray-200 bg-gray-50/50";
+            const optionsContainer = document.createElement("div");
+            optionsContainer.className =
+                "p-4 border-t border-gray-200 bg-gray-50/50";
 
-          paramGroup.options.forEach((option) => {
-            const label = document.createElement("label");
-            label.className = "option-label";
+            paramGroup.options.forEach((option) => {
+                const label = document.createElement("label");
+                label.className = "option-label block mb-2 cursor-pointer";
 
-            const radio = document.createElement("input");
-            radio.type = "radio";
-            radio.name = paramGroup.nameAttr;
-            radio.value = option.score;
-            radio.dataset.description = option.description;
+                const radio = document.createElement("input");
+                radio.type = "radio";
+                radio.name = paramGroup.nameAttr;
+                radio.value = option.score;
+                radio.className = "mr-2";
+                radio.dataset.description = option.description;
 
-            radio.addEventListener("change", (event) => {
-              const selectedRadio = event.target;
-              const score = parseInt(selectedRadio.value, 10);
-              const description = selectedRadio.dataset.description;
+                radio.addEventListener("change", (event) => {
+                    const selectedRadio = event.target;
+                    const score = parseInt(selectedRadio.value, 10);
+                    const description = selectedRadio.dataset.description;
 
-              userSelections[paramGroup.nameAttr] = { score, description };
+                    userSelections[paramGroup.nameAttr] = { score, description };
 
-              const summaryValue = details.querySelector(".selected-value");
-              summaryValue.textContent = `${description} (${score} pts)`;
-              summaryValue.classList.remove("text-gray-500", "italic");
-              summaryValue.classList.add("text-blue-600", "font-semibold");
+                    const summaryValue = details.querySelector(".selected-value");
+                    summaryValue.textContent = `${description} (${score} бал(и))`;
+                    summaryValue.classList.remove("text-gray-500", "italic");
+                    summaryValue.classList.add("text-blue-600", "font-semibold");
 
-              details.open = false;
+                    details.open = false;
+                });
+
+                const descriptionSpan = document.createElement("span");
+                descriptionSpan.textContent = `${option.description} (${option.score} бал(и))`;
+
+                label.appendChild(radio);
+                label.appendChild(descriptionSpan);
+                optionsContainer.appendChild(label);
             });
 
-            const descriptionSpan = document.createElement("span");
-            descriptionSpan.textContent = `${option.description} (${option.score} ponto(s))`;
-
-            label.appendChild(radio);
-            label.appendChild(descriptionSpan);
-            optionsContainer.appendChild(label);
-          });
-
-          details.appendChild(summary);
-          details.appendChild(optionsContainer);
-          conteudoDiv.appendChild(details);
+            details.appendChild(summary);
+            details.appendChild(optionsContainer);
+            conteudoDiv.appendChild(details);
         });
-      }
+    }
 
-      function calcular() {
+    function calcular() {
         const totalCriteria = aldreteData.length;
         const selectedCriteriaCount = Object.keys(userSelections).length;
         let total = 0;
 
         resultadoDiv.innerHTML = "";
-        resultadoDiv.className = "результат p-4 mt-6 rounded-lg text-left";
-        resultadoDiv.style.display = "none";
+        resultadoDiv.className = "result-container p-4 mt-6 rounded-lg text-left hidden";
 
         if (selectedCriteriaCount < totalCriteria) {
-          resultadoDiv.style.display = "block";
-          resultadoDiv.innerHTML =
-            '⚠️ <strong class="font-bold">Por favor, selecione uma opção para cada critério.</strong>';
-          resultadoDiv.classList.add("bg-info-orange-light");
-          delete resultadoDiv.dataset.score;
-          return;
+            resultadoDiv.style.display = "block";
+            resultadoDiv.innerHTML =
+                '⚠️ <strong class="font-bold">Будь ласка, виберіть опцію для кожного критерію.</strong>';
+            resultadoDiv.className = "result-container bg-info-orange-light p-4 mt-6 rounded-lg";
+            delete resultadoDiv.dataset.score;
+            return;
         }
 
         for (const key in userSelections) {
-          total += userSelections[key].score;
+            total += userSelections[key].score;
         }
 
         let conduta = "";
+        let bgClass = "";
+
         if (total >= 9) {
-          conduta =
-            "Пацієнт готовий до виведення з наркозу, повідомте про це медсестру та анестезіолога.";
-          resultadoDiv.classList.add("bg-aldrete-alta");
+            conduta = "Пацієнт готовий до виписки з післяопераційної палати. Повідомте медсестру та анестезіолога.";
+            bgClass = "bg-success-green";
         } else if (total >= 7) {
-          conduta = "Тримайте під наглядом і періодично переоцінюйте.";
-          resultadoDiv.classList.add("bg-aldrete-observacao");
+            conduta = "Тримайте під наглядом і періодично переоцінюйте.";
+            bgClass = "bg-info-orange-light";
         } else {
-          conduta =
-            "Нестабільний пацієнт. Повідомте медсестру та анестезіолога, продовжуйте інтенсивну терапію.";
-          resultadoDiv.classList.add("bg-aldrete-instavel");
+            conduta = "Нестабільний пацієнт. Повідомте медсестру та анестезіолога, продовжуйте інтенсивну терапію.";
+            bgClass = "bg-danger-red";
         }
 
         resultadoDiv.style.display = "block";
+        resultadoDiv.className = `result-container ${bgClass} p-4 mt-6 rounded-lg`;
         resultadoDiv.innerHTML = `
-                    <p>Pontuação total: <strong class="font-bold">${total}/10</strong></p>
-                    <p>Conduta: <strong class="font-bold">${conduta}</strong></p>
+                    <p class="mb-2">Загальний бал: <strong class="font-bold text-xl">${total}/10</strong></p>
+                    <p>Рекомендації: <strong class="font-bold">${conduta}</strong></p>
                 `;
+
         resultadoDiv.dataset.conduta = conduta;
         resultadoDiv.dataset.score = total;
-        resultadoDiv.dataset.scaleName = "Escala de Aldrete e Kroulik";
-      }
+        resultadoDiv.dataset.scaleName = "Шкала Алдрета та Кроуліка";
+    }
 
-      function limpar() {
+    function limpar() {
         userSelections = {};
         createCriteriaList();
         resultadoDiv.innerHTML = "";
         resultadoDiv.style.display = "none";
-        resultadoDiv.className = "Прихований результат mt-6";
+        resultadoDiv.className = "hidden";
         delete resultadoDiv.dataset.conduta;
         delete resultadoDiv.dataset.score;
         delete resultadoDiv.dataset.scaleName;
-      }
+    }
 
-      btnCalcular?.addEventListener("click", calcular);
-      btnLimpar?.addEventListener("click", limpar);
+    btnCalcular?.addEventListener("click", calcular);
+    btnLimpar?.addEventListener("click", limpar);
 
-      btnGerarPDF?.addEventListener("click", () => {
+    btnGerarPDF?.addEventListener("click", () => {
         if (!resultadoDiv || !resultadoDiv.dataset.score) {
-          alert("Будь ласка, спочатку натисніть \"Розрахувати\", щоб згенерувати PDF-файл.");
-          return;
+            alert("Будь ласка, спочатку натисніть 'Розрахувати', щоб згенерувати PDF-файл.");
+            return;
         }
 
         if (typeof gerarPDFGlobal === "function") {
-          gerarPDFGlobal({
-            titulo: "Escala de Aldrete e Kroulik",
-            subtitulo: "Звіт про відновлення після анестезії",
-            nomeArquivo: "relatorio_escala_aldrete.pdf",
-            seletorConteudo: ".main-content-wrapper"
-          });
+            gerarPDFGlobal({
+                titulo: "Шкала Алдрета та Кроуліка",
+                subtitulo: "Звіт про відновлення після анестезії",
+                nomeArquivo: "zvit_aldrete.pdf",
+                seletorConteudo: ".main-content-wrapper"
+            });
         } else {
-          alert("Помилка: Не знайдено функцію для створення PDF.");
-          console.error("Функція GeneratePDFGlobal не визначена.");
+            console.error("Функція gerarPDFGlobal не визначена.");
         }
-      });
+    });
 
-      btnNandaNicNoc?.addEventListener("click", () => {
+    btnNandaNicNoc?.addEventListener("click", () => {
         const currentConduta = resultadoDiv.dataset.conduta;
+        const score = resultadoDiv.dataset.score;
+        const scaleName = resultadoDiv.dataset.scaleName;
+
         if (!currentConduta) {
-          alert("Обчисліть результат для пошуку поведінки.");
-          return;
+            alert("Розрахуйте результат для пошуку дій.");
+            return;
         }
         const searchQuery = encodeURIComponent(
-          `${currentConduta} taxonomia NANDA, NIC e NOC`
+            `${scaleName} результат ${score}/10. ${currentConduta}. Генерувати діагнози NANDA, втручання NIC та результати NOC.`
         );
         window.open(
-          `https://www.google.com/search?q=${searchQuery}`,
-          "_blank"
+            `https://www.google.com/search?q=${searchQuery}`,
+            "_blank"
         );
-      });
+    });
 
-      createCriteriaList();
-    });</script>
+    // Inicializa a lista de critérios ao carregar
+    createCriteriaList();
+});</script>
 
   <script src="/lang-selector.js" defer=""></script>
 

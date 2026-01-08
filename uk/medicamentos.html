@@ -593,38 +593,53 @@
   <script src="global-scripts.js" defer=""></script>
 
   <script>
-    document.addEventListener("DOMContentLoaded", function () {
-      const resultadoDiv = document.getElementById("resultado");
-      const btnCalcular = document.getElementById("btnCalcular");
-      const btnLimpar = document.getElementById("btnLimpar");
-      const proporcaoOptionsDiv =
-        document.getElementById("proporcao-options");
+// Função utilitária para carregar HTML modular
+function fetchHTML(url, id) {
+    return fetch(url)
+        .then((r) => r.text())
+        .then((html) => {
+            const el = document.getElementById(id);
+            if (el) el.innerHTML = html;
+        });
+}
 
-      // Removida a lógica JavaScript conflitante para que as opções estáticas (1mg/ml e 2mg/ml) sejam sempre visíveis.
+document.addEventListener("DOMContentLoaded", function () {
+    // Carregamento dos módulos globais
+    fetchHTML("/menu-global.html", "global-header-container");
+    fetchHTML("/_language_selector.html", "language-dropdown-wrapper");
+    fetchHTML("/footer.html", "footer-placeholder");
+    fetchHTML("/global-body-elements.html", "global-body-elements-container");
 
-      function calcularMedicamentos() {
+    const resultadoDiv = document.getElementById("resultado");
+    const btnCalcular = document.getElementById("btnCalcular");
+    const btnLimpar = document.getElementById("btnLimpar");
+
+    // Removida a lógica JavaScript conflitante para que as opções estáticas sejam sempre visíveis.
+
+    function calcularMedicamentos() {
         const prescricao = parseFloat(
-          document.getElementById("prescricao").value
+            document.getElementById("prescricao").value
         );
-        // NOTA: concentracao e volumeTotal são mantidos, mas o cálculo de dosagem X (ml) será baseado na proporção (mg/ml) selecionada.
+        // NOTA: concentracao e volumeTotal são mantidos no HTML, mas o cálculo
+        // de dosagem X (ml) neste script é baseado na proporção (mg/ml) selecionada.
         const concentracaoTotal = parseFloat(
-          document.getElementById("concentracao").value
+            document.getElementById("concentracao").value
         );
         const volumeTotal = parseFloat(
-          document.getElementById("volumeTotal").value
+            document.getElementById("volumeTotal").value
         );
         const proporcaoRadio = document.querySelector(
-          'input[name="proporcao"]:checked'
+            'input[name="proporcao"]:checked'
         );
 
         resultadoDiv.style.display = "block";
 
-        // Usando apenas Prescricao (P) e a Proporção selecionada (C_ratio mg/ml)
+        // Validação
         if (isNaN(prescricao) || !proporcaoRadio) {
-          resultadoDiv.innerHTML =
-            '⚠️ <strong class="font-bold">Por favor, preencha a Prescrição Médica e selecione a Proporção do Frasco.</strong>';
-          resultadoDiv.className = "standard-result-box bg-info-orange-light";
-          return;
+            resultadoDiv.innerHTML =
+                '⚠️ <strong class="font-bold">Будь ласка, введіть призначення лікаря та виберіть пропорцію флакона.</strong>';
+            resultadoDiv.className = "standard-result-box bg-info-orange-light";
+            return;
         }
 
         // C_ratio é a concentração em mg por 1 ml (valor 1 ou 2 do radio button).
@@ -634,41 +649,46 @@
         const resultadoMl = prescricao / cRatio;
 
         const calculoStr = `
-  ${cRatio}мг - для 1 мл
-  ${prescricao}мг - для X мл
+  ${cRatio} мг - на 1 мл
+  ${prescricao} мг - на X мл
 
   ${cRatio} * X = ${prescricao} * 1
   X = ${prescricao} / ${cRatio}
-  X = ${resultadoMl.toFixed(2)} ml
+  X = ${resultadoMl.toFixed(2)} мл
                 `;
 
-        const explicacaoStr = `Термін позовної давності становить ${prescricao} мг. Концентрація розчину становить ${cRatio} мг/мл. Ви повинні аспірувати ${resultadoMl.toFixed(2)} ml.`;
+        // Correção da tradução: "Призначення" (Médica) em vez de "Термін позовної давності" (Jurídica)
+        const explicacaoStr = `Призначення становить ${prescricao} мг. Концентрація розчину — ${cRatio} мг/мл. Необхідно набрати ${resultadoMl.toFixed(2)} мл.`;
 
         resultadoDiv.innerHTML = `
                     <pre>${calculoStr.trim()}</pre>
                     <p class="mt-4 font-sans text-base">${explicacaoStr}</p>
                 `;
         resultadoDiv.className = "standard-result-box";
-      }
 
-      function limparCampos() {
+        // Armazenar dados para uso futuro (PDF/Nanda) se necessário
+        resultadoDiv.dataset.resultadoMl = resultadoMl.toFixed(2);
+        resultadoDiv.dataset.scaleName = "Розрахунок ліків (Фентаніл)";
+    }
+
+    function limparCampos() {
         document.getElementById("prescricao").value = "";
         document.getElementById("concentracao").value = "";
         document.getElementById("volumeTotal").value = "";
 
         // Desmarca o rádio button
-        document.
-          querySelectorAll('input[name="proporcao"]').
-          forEach((radio) => {
-            radio.checked = false;
-          });
+        document
+            .querySelectorAll('input[name="proporcao"]')
+            .forEach((radio) => {
+                radio.checked = false;
+            });
         resultadoDiv.innerHTML = "";
         resultadoDiv.className = "hidden";
-      }
+    }
 
-      btnCalcular?.addEventListener("click", calcularMedicamentos);
-      btnLimpar?.addEventListener("click", limparCampos); // Corrigido o erro de digitação da função
-    });</script>
+    btnCalcular?.addEventListener("click", calcularMedicamentos);
+    btnLimpar?.addEventListener("click", limparCampos);
+});</script>
 
   <script src="/lang-selector.js" defer=""></script>
 

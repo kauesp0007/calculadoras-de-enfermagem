@@ -661,27 +661,44 @@
 
   <!-- Script específico da página -->
   <script>
-    document.addEventListener("DOMContentLoaded", () => {
-      const resultadoDiv = document.getElementById("resultado");
-      const btnCalcular = document.getElementById("btnCalcular");
-      const btnLimpar = document.getElementById("btnLimpar");
-      const btnGerarPDF = document.getElementById("btnGerarPDF");
-      const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
+// Função utilitária para carregar HTML modular
+function fetchHTML(url, id) {
+    return fetch(url)
+        .then((r) => r.text())
+        .then((html) => {
+            const el = document.getElementById(id);
+            if (el) el.innerHTML = html;
+        });
+}
 
-      function calcularIMC() {
+document.addEventListener("DOMContentLoaded", () => {
+    // Carregamento dos módulos globais
+    fetchHTML("/menu-global.html", "global-header-container");
+    fetchHTML("/_language_selector.html", "language-dropdown-wrapper");
+    fetchHTML("/footer.html", "footer-placeholder");
+    fetchHTML("/global-body-elements.html", "global-body-elements-container");
+
+    const resultadoDiv = document.getElementById("resultado");
+    const btnCalcular = document.getElementById("btnCalcular");
+    const btnLimpar = document.getElementById("btnLimpar");
+    const btnGerarPDF = document.getElementById("btnGerarPDF");
+    const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
+
+    function calcularIMC() {
         const peso = parseFloat(document.getElementById("peso").value);
         const altura = parseFloat(document.getElementById("altura").value);
 
-        // Limpa o conteúdo e remove classes de resultado
+        // Limpa o conteúdo e reseta classes.
+        // Nota: As classes CSS devem permanecer em inglês para o estilo funcionar.
         resultadoDiv.innerHTML = "";
-        resultadoDiv.className = "прихований результат фреймворку";
+        resultadoDiv.className = "result-container hidden";
 
         // Validação de entrada
         if (isNaN(peso) || isNaN(altura) || peso <= 0 || altura <= 0) {
-          resultadoDiv.innerHTML = `<p>⚠️ <strong class="text-red-600">Por favor, insira valores numéricos válidos e maiores que zero para peso e altura.</strong></p>`;
-          resultadoDiv.classList.remove("hidden");
-          resultadoDiv.classList.add("bg-danger-red");
-          return;
+            resultadoDiv.innerHTML = `<p>⚠️ <strong class="text-red-600">Будь ласка, введіть дійсні числові значення більше нуля для ваги та зросту.</strong></p>`;
+            resultadoDiv.classList.remove("hidden");
+            resultadoDiv.classList.add("bg-danger-red");
+            return;
         }
 
         const imc = peso / (altura * altura);
@@ -690,54 +707,50 @@
         let resultadoBgClass = "";
 
         if (imc < 18.5) {
-          classificacao = "Недостатня вага";
-          conduta =
-            "Ризик недоїдання. Рекомендується оцінка та моніторинг харчування.";
-          resultadoBgClass = "bg-danger-red";
+            classificacao = "Недостатня вага";
+            conduta = "Ризик недоїдання. Рекомендується оцінка та моніторинг харчування.";
+            resultadoBgClass = "bg-danger-red";
         } else if (imc >= 18.5 && imc < 24.9) {
-          classificacao = "Нормальна вага";
-          conduta =
-            "Підтримувати звички здорового способу життя. Хороший харчовий статус.";
-          resultadoBgClass = "bg-success-green";
+            classificacao = "Нормальна вага";
+            conduta = "Підтримувати звички здорового способу життя. Хороший харчовий статус.";
+            resultadoBgClass = "bg-success-green";
         } else if (imc >= 25 && imc < 29.9) {
-          classificacao = "Надмірна вага";
-          conduta =
-            "Зверніть увагу на зміни у способі життя та раціоні харчування. Може бути показана оцінка харчування.";
-          resultadoBgClass = "bg-info-orange-light";
+            classificacao = "Надмірна вага";
+            conduta = "Зверніть увагу на зміни у способі життя та раціоні харчування. Може бути показана оцінка харчування.";
+            resultadoBgClass = "bg-info-orange-light";
         } else {
-          // Obesidade
-          conduta =
-            "Невідкладне втручання та мультидисциплінарне спостереження. Високий ризик серйозних супутніх захворювань.";
-          resultadoBgClass = "bg-danger-red";
+            // Obesidade
+            conduta = "Невідкладне втручання та мультидисциплінарне спостереження. Високий ризик серйозних супутніх захворювань.";
+            resultadoBgClass = "bg-danger-red";
 
-          if (imc >= 30 && imc < 34.9) {
-            classificacao = "Ожиріння I ступеня";
-          } else if (imc >= 35 && imc < 39.9) {
-            classificacao = "Ожиріння II ступеня";
-          } else {
-            classificacao = "Ожиріння III ступеня (патологічне)";
-          }
+            if (imc >= 30 && imc < 34.9) {
+                classificacao = "Ожиріння I ступеня";
+            } else if (imc >= 35 && imc < 39.9) {
+                classificacao = "Ожиріння II ступеня";
+            } else {
+                classificacao = "Ожиріння III ступеня (патологічне)";
+            }
         }
 
         // Exibe o resultado formatado
         resultadoDiv.innerHTML = `
-                    <table class="w-full">
-                        <tbody>
-                            <tr>
-                                <td class="font-bold pr-2">IMC calculado:</td>
-                                <td>${imc.toFixed(2)} <abbr title="quilogramas por metro quadrado">kg/m²</abbr></td>
-                            </tr>
-                            <tr>
-                                <td class="font-bold pr-2">Classificação:</td>
-                                <td>${classificacao}</td>
-                            </tr>
-                            <tr>
-                                <td class="font-bold pr-2">Conduta de Enfermagem:</td>
-                                <td>${conduta}</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                `;
+                      <table class="w-full">
+                          <tbody>
+                              <tr>
+                                  <td class="font-bold pr-2">Розрахований ІМТ:</td>
+                                  <td>${imc.toFixed(2)} <abbr title="кілограмів на квадратний метр">кг/м²</abbr></td>
+                              </tr>
+                              <tr>
+                                  <td class="font-bold pr-2">Класифікація:</td>
+                                  <td>${classificacao}</td>
+                              </tr>
+                              <tr>
+                                  <td class="font-bold pr-2">Сестринські втручання:</td>
+                                  <td>${conduta}</td>
+                              </tr>
+                          </tbody>
+                      </table>
+                  `;
         resultadoDiv.classList.remove("hidden");
         resultadoDiv.classList.add(resultadoBgClass);
 
@@ -747,10 +760,10 @@
         resultadoDiv.dataset.conduta = conduta;
         resultadoDiv.dataset.peso = peso;
         resultadoDiv.dataset.altura = altura;
-        resultadoDiv.dataset.scaleName = "Calculadora de IMC";
-      }
+        resultadoDiv.dataset.scaleName = "Калькулятор ІМТ";
+    }
 
-      function limparCampos() {
+    function limparCampos() {
         document.getElementById("peso").value = "";
         document.getElementById("altura").value = "";
         resultadoDiv.innerHTML = "";
@@ -762,55 +775,53 @@
         delete resultadoDiv.dataset.peso;
         delete resultadoDiv.dataset.altura;
         delete resultadoDiv.dataset.scaleName;
-      }
+    }
 
-      // Função para gerar PDF
-      function gerarPDF() {
+    // Função para gerar PDF
+    function gerarPDF() {
         if (!resultadoDiv.dataset.imc) {
-          showCustomMessage("Будь ласка, розрахуйте свій ІМТ перед створенням PDF-файлу.");
-          return;
+            alert("Будь ласка, розрахуйте свій ІМТ перед створенням PDF-файлу.");
+            return;
         }
         if (typeof gerarPDFGlobal === "function") {
-          gerarPDFGlobal({
-            titulo: "Калькулятор індексу маси тіла",
-            subtitulo: "Звіт про оцінку ІМТ",
-            nomeArquivo: "relatorio_imc.pdf",
-            seletorConteudo: ".main-content-wrapper"
-          });
+            gerarPDFGlobal({
+                titulo: "Калькулятор індексу маси тіла",
+                subtitulo: "Звіт про оцінку ІМТ",
+                nomeArquivo: "zvit_imc.pdf",
+                seletorConteudo: ".main-content-wrapper"
+            });
         } else {
-          console.error("Функція GeneratePDFGlobal не визначена.");
+            console.error("Функція gerarPDFGlobal не визначена.");
         }
-      }
+    }
 
-      // Adiciona o event listener para o botão NANDA, NIC, NOC
-      if (btnNandaNicNoc) {
+    // Adiciona o event listener para o botão NANDA, NIC, NOC
+    if (btnNandaNicNoc) {
         btnNandaNicNoc.addEventListener("click", () => {
-          const imcValue = resultadoDiv.dataset.imc;
-          const classificacao = resultadoDiv.dataset.classificacao;
-          const conduta = resultadoDiv.dataset.conduta;
-          const scaleName = resultadoDiv.dataset.scaleName;
+            const imcValue = resultadoDiv.dataset.imc;
+            const classificacao = resultadoDiv.dataset.classificacao;
+            const conduta = resultadoDiv.dataset.conduta;
+            const scaleName = resultadoDiv.dataset.scaleName;
 
-          if (!imcValue || !classificacao || !conduta) {
-            showCustomMessage(
-              "Обчисліть результат для пошуку поведінки."
+            if (!imcValue || !classificacao || !conduta) {
+                alert("Обчисліть результат для пошуку подальших дій.");
+                return;
+            }
+            const searchQuery = encodeURIComponent(
+                `ІМТ: ${imcValue} Класифікація: ${classificacao}, Сестринські втручання: ${conduta} - ${scaleName} Згенеруйте медсестринські діагнози NANDA, згенеруйте медсестринські втручання NIC, згенеруйте приклад вимірювання результатів (NOC)`
             );
-            return;
-          }
-          const searchQuery = encodeURIComponent(
-            `IMC: ${imcValue}Класифікація: ${classificacao}, Conduta de Enfermagem: ${conduta} - ${scaleName} Згенеруйте медсестринські діагнози NANDA, згенеруйте медсестринські втручання NIC, згенеруйте приклад вимірювання результатів, впроваджених медсестрою (NOC)`
-          );
-          window.open(
-            `https://www.google.com/search?q=${searchQuery}`,
-            "_blank"
-          );
+            window.open(
+                `https://www.google.com/search?q=${searchQuery}`,
+                "_blank"
+            );
         });
-      }
+    }
 
-      // Anexa os event listeners
-      btnCalcular?.addEventListener("click", calcularIMC);
-      btnLimpar?.addEventListener("click", limparCampos);
-      btnGerarPDF?.addEventListener("click", gerarPDF);
-    });</script>
+    // Anexa os event listeners
+    btnCalcular?.addEventListener("click", calcularIMC);
+    btnLimpar?.addEventListener("click", limparCampos);
+    btnGerarPDF?.addEventListener("click", gerarPDF);
+});</script>
 
   <script src="/lang-selector.js" defer=""></script>
 

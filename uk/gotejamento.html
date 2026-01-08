@@ -832,19 +832,19 @@
 
   <!-- Scripts Traduzidos -->
   <script>
-    // Função para carregar HTML modular
-    // Modificado para garantir que fetchHTML retorne uma Promise
+    // Функція для завантаження модульного HTML
+    // Змінено, щоб переконатися, що fetchHTML повертає Promise
     function fetchHTML(url, id) {
-      return fetch(url).
-        then((r) => r.text()).
-        then((html) => {
+      return fetch(url)
+        .then((r) => r.text())
+        .then((html) => {
           const el = document.getElementById(id);
           if (el) el.innerHTML = html;
         });
     }
 
     document.addEventListener("DOMContentLoaded", () => {
-      // Carrega menu global
+      // Завантаження глобального меню
       fetchHTML("/menu-global.html", "global-header-container");
       fetchHTML("/_language_selector.html", "language-dropdown-wrapper");
       fetchHTML("/footer.html", "footer-placeholder");
@@ -887,7 +887,7 @@
       if (hasError) {
         resultadoDiv.style.display = "block";
         resultadoDiv.innerHTML =
-          '⚠️ <strong class="font-bold">Por favor, corrija os valores inválidos.</strong>';
+          '⚠️ <strong class="font-bold">Будь ласка, виправте неправильні значення.</strong>';
         resultadoDiv.className =
           "result-container bg-info-orange-light";
         delete resultadoDiv.dataset.gotasPorMinuto;
@@ -904,24 +904,25 @@
       }
 
       let tempoEmMinutos = unidadeTempo === "horas" ? tempo * 60 : tempo;
-      gotasPorMinuto = volume * fatorGotejamento / tempoEmMinutos;
+      gotasPorMinuto = (volume * fatorGotejamento) / tempoEmMinutos;
 
       const gotasArredondadas = Math.round(gotasPorMinuto);
-      const equipoTexto = equipo === "macrogotas" ? "Macrogotas" : "Microgotas";
+      const equipoTexto = equipo === "macrogotas" ? "Макрокраплі" : "Мікрокраплі";
 
       // Texto para exibir se é horas ou minutos no resultado
-      const unidadeTexto = unidadeTempo === "horas" ? "horas" : "minutos";
+      // horas -> годин, minutos -> хвилин
+      const unidadeTexto = unidadeTempo === "horas" ? "годин" : "хвилин";
 
-      // Formatação do Resultado em Português
+      // Formatação do Resultado em Ucraniano
       const resultadoTexto = `
                 <p>
-                    <strong>Resultado final:</strong> ${volume} мл призначеного розчину, який потрібно влити в ${tempo} ${unidadeTexto} deve correr a: <br>
-                    <strong>${gotasArredondadas} gotas/minuto</strong>.
+                    <strong>Кінцевий результат:</strong> ${volume} мл призначеного розчину, який потрібно влити за ${tempo} ${unidadeTexto}, має вводитися зі швидкістю: <br>
+                    <strong>${gotasArredondadas} крапель/хвилину</strong>.
                 </p>
             `;
 
       resultadoDiv.innerHTML = resultadoTexto;
-      resultadoDiv.className = "result-контейнер";
+      resultadoDiv.className = "result-container"; // Mantido nome da classe CSS
       resultadoDiv.style.display = "block";
 
       resultadoDiv.dataset.gotasPorMinuto = gotasArredondadas;
@@ -949,19 +950,19 @@
     btnGerarPDF?.addEventListener("click", () => {
       if (!resultadoDiv.dataset.gotasPorMinuto) {
         alert(
-          "Будь ласка, спочатку натисніть \"Розрахувати\", щоб згенерувати PDF-файл."
+          "Будь ласка, спочатку натисніть 'Розрахувати', щоб згенерувати PDF-файл."
         );
         return;
       }
       if (typeof gerarPDFGlobal === "function") {
         gerarPDFGlobal({
           titulo: "Розрахунок крапельного зрошення",
-          subtitulo: "Звіт про крапельне дозування",
-          nomeArquivo: "relatorio_gotejamento.pdf",
+          subtitulo: "Звіт про швидкість інфузії",
+          nomeArquivo: "zvit_krapelne_zroshennya.pdf",
           seletorConteudo: ".main-content-wrapper"
         });
       } else {
-        console.error("Функція GeneratePDFGlobal не визначена.");
+        console.error("Функція gerarPDFGlobal не визначена.");
       }
     });
 
@@ -970,11 +971,11 @@
       const equipo = resultadoDiv.dataset.equipo;
       const scaleName = resultadoDiv.dataset.scaleName;
       if (!gotasPorMinuto || !equipo) {
-        alert("Обчисліть результат, щоб визначити, як діяти далі.");
+        alert("Обчисліть результат, щоб визначити подальші дії.");
         return;
       }
       const searchQuery = encodeURIComponent(
-        `${scaleName} результат ${gotasPorMinuto} gotas/minuto, equipo ${equipo} gerar taxonomia NANDA, gerar taxonomia NIC e gerar taxonomia NOC`
+        `${scaleName} результат ${gotasPorMinuto} крапель/хвилину, тип ${equipo} генерувати таксономію NANDA, генерувати таксономію NIC та генерувати таксономію NOC`
       );
       window.open(
         `https://www.google.com/search?q=${searchQuery}`,

@@ -818,23 +818,23 @@
 
 
   <script>
-    // Função para carregar HTML modular
+    // Функція для завантаження модульного HTML
     function fetchHTML(url, containerId) {
-      fetch(url).
-        then((response) => response.ok ? response.text() : Promise.reject()).
-        then((data) => {
+      fetch(url)
+        .then((response) => (response.ok ? response.text() : Promise.reject()))
+        .then((data) => {
           const container = document.getElementById(containerId);
           if (container) container.innerHTML = data;
-        }).
-        catch((error) => console.error(`Помилка завантаження ${url}:`, error));
+        })
+        .catch((error) => console.error(`Помилка завантаження ${url}:`, error));
     }
 
     document.addEventListener("DOMContentLoaded", () => {
-      // Carrega módulos
+      // Завантаження модулів
       fetchHTML("/menu-global.html", "global-header-container");
       fetchHTML("/footer.html", "footer-placeholder");
 
-      // --- LÓGICA DA SIDEBAR ---
+      // --- ЛОГІКА БІЧНОЇ ПАНЕЛІ (SIDEBAR) ---
       const toggleSidebarBtn = document.getElementById("toggleSidebarBtn");
       const closeSidebarBtn = document.getElementById("closeSidebarBtn");
       const sidebarOverlay = document.getElementById("sidebarOverlay");
@@ -863,7 +863,7 @@
       toggleSidebarBtn?.addEventListener("click", openSidebar);
       closeSidebarBtn?.addEventListener("click", closeSidebar);
       sidebarOverlay?.addEventListener("click", closeSidebar);
-      // --- FIM LÓGICA SIDEBAR ---
+      // --- КІНЕЦЬ ЛОГІКИ БІЧНОЇ ПАНЕЛІ ---
 
       const resultadoDiv = document.getElementById("resultado");
       const btnCalcular = document.getElementById("btnCalcular");
@@ -900,32 +900,31 @@
           eliminacaoOutros;
         const balanco = totalIngestao - totalEliminacao;
 
-        // Exibir
+        // Відображення
         resultadoDiv.style.display = "block";
 
         let classificacao = "";
 
         if (balanco > 0) {
-          classificacao = "Позитивний водний баланс (утримання)";
+          classificacao = "Позитивний водний баланс (Затримка)";
         } else if (balanco < 0) {
-          classificacao = "Негативний водний баланс (втрати)";
+          classificacao = "Негативний водний баланс (Втрати)";
         } else {
-          classificacao = "Нульовий водний баланс (рівновага)";
+          classificacao = "Нульовий водний баланс (Рівновага)";
         }
 
-        // Formato Compacto (Tudo azul escuro e negrito conforme solicitado)
-        // "tudo em letra azul, escura e grossa quando for negrito e simples quando for o resultado"
+        // Компактний формат
         const resultadoTexto = `
             <p style="margin: 0; color: #1a3e74; font-size: 1.05rem; line-height: 1.6;">
-                <span style="font-weight: 800;">Resultado final:</span> Ingestão Total: ${totalIngestao} мл | Повна елімінація: ${totalEliminacao} ml<br>
-                <span style="font-weight: 800;">Balanço:</span> ${balanco} ml<br>
+                <span style="font-weight: 800;">Кінцевий результат:</span> Загальне надходження: ${totalIngestao} мл | Загальне виділення: ${totalEliminacao} мл<br>
+                <span style="font-weight: 800;">Баланс:</span> ${balanco} мл<br>
                 <span style="font-weight: 800;">${classificacao}</span>
             </p>
           `;
 
         resultadoDiv.innerHTML = resultadoTexto;
-        // Garante o estilo da caixa azul semitransparente
-        resultadoDiv.className = "результат"; // classe CSS #resultado já definida para isso
+        // Гарантує стиль напівпрозорого синього блоку
+        resultadoDiv.className = "resultado";
 
         resultadoDiv.dataset.score = balanco;
         resultadoDiv.dataset.classificacao = classificacao;
@@ -934,7 +933,7 @@
 
       function limparCampos() {
         const inputs = document.querySelectorAll("input[type='number']");
-        inputs.forEach((input) => input.value = "");
+        inputs.forEach((input) => (input.value = ""));
         resultadoDiv.innerHTML = "";
         resultadoDiv.style.display = "none";
         delete resultadoDiv.dataset.score;
@@ -947,18 +946,18 @@
 
       btnGerarPDF?.addEventListener("click", () => {
         if (!resultadoDiv.dataset.score) {
-          alert("Будь ласка, спочатку натисніть \"Розрахувати\", щоб згенерувати PDF-файл.");
+          alert("Будь ласка, спочатку натисніть 'Розрахувати', щоб згенерувати PDF-файл.");
           return;
         }
         if (typeof gerarPDFGlobal === "function") {
           gerarPDFGlobal({
             titulo: "Водний баланс",
-            subtitulo: "Звіт про надходження та видалення рідини",
-            nomeArquivo: "relatorio_balanco_hidrico.pdf",
-            seletorConteudo: ".main-content-wrapper"
+            subtitulo: "Звіт про надходження та виділення рідини",
+            nomeArquivo: "zvit_vodnyi_balans.pdf",
+            seletorConteudo: ".main-content-wrapper",
           });
         } else {
-          console.error("Функція GeneratePDFGlobal не визначена.");
+          console.error("Функція gerarPDFGlobal не визначена.");
         }
       });
 
@@ -966,19 +965,23 @@
         const score = resultadoDiv.dataset.score;
         const scaleName = resultadoDiv.dataset.scaleName;
         const classificacao = resultadoDiv.dataset.classificacao;
-        if (!score && score !== 0) {// Verifica se calculou
-          alert("Обчисліть результат для пошуку поведінки.");
+
+        // Перевіряє, чи було проведено розрахунок
+        if (!score && score !== 0) {
+          alert("Розрахуйте результат для пошуку дій.");
           return;
         }
+
         const searchQuery = encodeURIComponent(
-          `${scaleName} результат ${score} мл, класифікація ${classificacao} gerar taxonomia NANDA, gerar taxonomia NIC e gerar taxonomia de NOC`
+          `${scaleName} результат ${score} мл, класифікація ${classificacao} генерувати таксономію NANDA, генерувати таксономію NIC та генерувати таксономію NOC`
         );
         window.open(
           `https://www.google.com/search?q=${searchQuery}`,
           "_blank"
         );
       });
-    });</script>
+    });
+    </script>
 
   <div id="footer-placeholder"></div>
   <script src="/lang-selector.js" defer=""></script>
