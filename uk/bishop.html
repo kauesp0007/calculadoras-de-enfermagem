@@ -608,19 +608,19 @@
       const bishopData = [
         {
           category: "Розширення шийки матки",
-          nameAttr: "dilatacao",
+          nameAttr: "розширення",
           options: [
-            { description: "0 cm", score: 0 },
-            { description: "1-2 cm", score: 1 },
-            { description: "3-4 cm", score: 2 },
-            { description: "≥ 5 cm", score: 3 }],
+            { description: "0 см", score: 0 },
+            { description: "1-2 см", score: 1 },
+            { description: "3-4 см", score: 2 },
+            { description: "≥ 5 см", score: 3 }],
 
           explain:
             "Розкриття шийки матки, вимірюється в сантиметрах. Чим більше розкриття, тим вищий бал."
         },
         {
-          category: "Apagamento Cervical",
-          nameAttr: "apagamento",
+          category: "Стирання шийки матки",
+          nameAttr: "стирання",
           options: [
             { description: "0-30%", score: 0 },
             { description: "40-50%", score: 1 },
@@ -632,34 +632,34 @@
         },
         {
           category: "Консистенція шийки матки",
-          nameAttr: "consistencia",
+          nameAttr: "послідовність",
           options: [
-            { description: "Firme", score: 0 },
+            { description: "Фірма", score: 0 },
             { description: "Середній показник", score: 1 },
-            { description: "Amolecida", score: 2 }],
+            { description: "пом'якшений", score: 2 }],
 
           explain:
             "Вона визначає, наскільки шийка матки тверда на дотик. М'якша шийка матки є більш зрілою і готовою до пологів."
         },
         {
           category: "Положення шийки матки",
-          nameAttr: "posicao",
+          nameAttr: "положення",
           options: [
-            { description: "Posterior", score: 0 },
-            { description: "Mediana", score: 1 },
-            { description: "Anterior", score: 2 }],
+            { description: "Задній", score: 0 },
+            { description: "Медіана", score: 1 },
+            { description: "Попередній", score: 2 }],
 
           explain:
             "Розташування шийки матки по відношенню до осі тазу. Переднє розташування шийки матки свідчить про більшу зрілість."
         },
         {
           category: "Станція презентації плоду",
-          nameAttr: "estacao",
+          nameAttr: "станція",
           options: [
             { description: "-3", score: 0 },
             { description: "-2", score: 1 },
-            { description: "-1 ou 0", score: 2 },
-            { description: "+1 ou +2", score: 3 }],
+            { description: "-1 або 0", score: 2 },
+            { description: "+1 або +2", score: 3 }],
 
           explain:
             "Положення голівки дитини по відношенню до сідничних остей материнського тазу. Станція вимірюється в сантиметрах, 0 є точкою відліку. Чим далі вниз (+), тим вищий бал."
@@ -692,7 +692,7 @@
         item.options.forEach((option) => {
           const optionElement = document.createElement("option");
           optionElement.value = option.score;
-          optionElement.text = `${option.description} (pontos: ${option.score})`;
+          optionElement.text = `${option.description} (бали: ${option.score})`;
           selectElement.appendChild(optionElement);
         });
 
@@ -708,9 +708,9 @@
         selects.forEach((select) => {
           if (select.value === "") {
             allSelected = false;
-            select.classList.add("incomplete");
+            select.classList.add("неповний");
           } else {
-            select.classList.remove("incomplete");
+            select.classList.remove("неповний");
             total += Number(select.value);
           }
         });
@@ -735,7 +735,7 @@
             "Шийка матки не дозріла. Ймовірно, що перед спробою індукції пологів знадобляться методи підготовки шийки матки.";
           resultadoClasse = "bg-red-100";
         } else if (total >= 6 && total <= 7) {
-          classificacao = "Zona de Incerteza";
+          classificacao = "Зона невизначеності";
           recomendacao =
             "Індукцію можна спробувати, але успіх не гарантований. Важливим є ретельний моніторинг.";
           resultadoClasse = "bg-yellow-100";
@@ -752,11 +752,11 @@
                 <p>Classificação: <strong class="font-bold">${classificacao}</strong></p>
                 <p class="mt-4"><strong>Recomendação:</strong> ${recomendacao}</p>
             `;
-        resultadoDiv.className = `результат ${resultadoClasse}`;
+        resultadoDiv.className = `результат ${resultClass}`;
         resultadoDiv.style.display = "block";
 
         resultadoDiv.dataset.score = total;
-        resultadoDiv.dataset.scaleName = "Escala de Bishop";
+        resultadoDiv.dataset.scaleName = "Шкала єпископа";
         resultadoDiv.dataset.classificacao = classificacao;
       }
 
@@ -764,7 +764,7 @@
         const selects = document.querySelectorAll("#conteudo select");
         selects.forEach((select) => {
           select.selectedIndex = 0;
-          select.classList.remove("incomplete");
+          select.classList.remove("неповний");
         });
         resultadoDiv.innerHTML = "";
         resultadoDiv.className = "прихований результат";
@@ -783,9 +783,9 @@
           );
           return;
         }
-        if (typeof gerarPDFGlobal === "function") {
+        if (typeof gerarPDFGlobal === "функція") {
           gerarPDFGlobal({
-            titulo: "Escala de Bishop",
+            titulo: "Шкала єпископа",
             subtitulo: "Звіт про оцінку шийки матки",
             nomeArquivo: "relatorio_escala_bishop.pdf",
             seletorConteudo: ".main-content-wrapper"
@@ -804,7 +804,7 @@
           return;
         }
         const searchQuery = encodeURIComponent(
-          `${scaleName} оцінка ${score} parto ${classificacao} gerar taxonomia NANDA, gerar taxonomia NIC e gerar taxonomia de NOC`
+          `${scaleName} оцінка ${score} parto ${classificacao} створити таксономію NANDA, створити таксономію NIC і створити таксономію NOC`
         );
         window.open(
           `https://www.google.com/search?q=${searchQuery}`,

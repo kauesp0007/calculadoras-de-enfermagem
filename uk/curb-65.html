@@ -626,7 +626,7 @@
       const curbData = [
         {
           title: "Психічна плутанина",
-          nameAttr: "confusao",
+          nameAttr: "спантеличеність",
           explain:
             "Чи виявляє пацієнт дезорієнтацію в часі, людині або місці?",
           options: [
@@ -635,8 +635,8 @@
 
         },
         {
-          title: "Ureia ≥ 50 mg/dL",
-          nameAttr: "ureia",
+          title: "Сечовина ≥ 50 мг/дл",
+          nameAttr: "сечовина",
           explain:
             "Рівень сечовини в крові пацієнта 50 мг/дл або більше?",
           options: [
@@ -646,7 +646,7 @@
         },
         {
           title: "Дихання ≥ 30/хв",
-          nameAttr: "respiracao",
+          nameAttr: "дихання",
           explain:
             "Частота дихання пацієнта становить 30 вдихів на хвилину або більше?",
           options: [
@@ -703,7 +703,7 @@
         item.options.forEach((option) => {
           const optionElement = document.createElement("option");
           optionElement.value = option.score;
-          optionElement.text = `${option.description} (pontos: ${option.score})`;
+          optionElement.text = `${option.description} (бали: ${option.score})`;
           selectElement.appendChild(optionElement);
         });
 
@@ -719,9 +719,9 @@
         selects.forEach((select) => {
           if (select.value === "") {
             allSelected = false;
-            select.classList.add("incomplete");
+            select.classList.add("неповний");
           } else {
-            select.classList.remove("incomplete");
+            select.classList.remove("неповний");
             total += Number(select.value);
           }
         });
@@ -738,12 +738,12 @@
         let recomendacao = "";
 
         if (total <= 1) {
-          recomendacao = `У "The ${total} вказує на низький ризик смертності. Можна розглянути можливість домашнього лікування.`;
+          recomendacao = `У "${total} вказує на низький ризик смертності. Можна вважати можливість домашнього лікування.`;
         } else if (total === 2) {
-          recomendacao = `У "The ${total} вказує на помірний ризик летального результату. Показана госпіталізація в палату для ретельного нагляду.`;
+          recomendacao = `У "${total} вказує на більший ризик летального результату. Показана госпіталізація в палаті для остаточного перегляду.`;
         } else {
           // total >= 3
-          recomendacao = `У "The ${total} вказує на високий ризик летального наслідку. Слід розглянути питання про госпіталізацію та госпіталізацію у відділення інтенсивної терапії.`;
+          recomendacao = `У "The ${total} вказує на високий ризик летального наслідку. Слід розглядати питання про госпіталізацію та госпіталізацію у відділенні інтенсивної терапії.`;
         }
 
         resultadoDiv.innerHTML = `
@@ -754,14 +754,14 @@
         resultadoDiv.style.display = "block";
 
         resultadoDiv.dataset.score = total;
-        resultadoDiv.dataset.scaleName = "Escore CURB-65";
+        resultadoDiv.dataset.scaleName = "Оцінка CURB-65";
       }
 
       function limparCampos() {
         const selects = document.querySelectorAll("#conteudo select");
         selects.forEach((select) => {
           select.selectedIndex = 0;
-          select.classList.remove("incomplete");
+          select.classList.remove("неповний");
         });
         resultadoDiv.innerHTML = "";
         resultadoDiv.className = "прихований результат";
@@ -780,7 +780,7 @@
           );
           return;
         }
-        if (typeof gerarPDFGlobal === "function") {
+        if (typeof gerarPDFGlobal === "функція") {
           const selectedOptions = {};
           document.querySelectorAll("#conteudo select").forEach((select) => {
             const selected = select.options[select.selectedIndex];
@@ -812,7 +812,7 @@
           }
 
           gerarPDFGlobal({
-            titulo: "Escore CURB-65",
+            titulo: "Оцінка CURB-65",
             subtitulo: "Звіт про ступінь тяжкості пневмонії",
             nomeArquivo: "relatorio_escore_curb-65.pdf",
             seletorConteudo: ".main-content-wrapper"
@@ -831,12 +831,12 @@
         }
         const recomendacaoRisco =
           score <= 1 ?
-            "baixo risco" :
+            "низький ризик" :
             score === 2 ?
-              "risco moderado" :
-              "alto risco";
+              "помірний ризик" :
+              "високий ризик";
         const searchQuery = encodeURIComponent(
-          `cuidados enfermagem para pneumonia com ${recomendacaoRisco} segundo o Escore CURB-65 NANDA NIC NOC`
+          `медсестринський догляд за пневмонією з ${recommendationRisco} згідно з оцінкою CURB-65 NANDA NIC NOC`
         );
         window.open(
           `https://www.google.com/search?q=${searchQuery}`,

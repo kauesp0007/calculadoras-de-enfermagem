@@ -622,7 +622,7 @@
       const painadData = [
         {
           title: "1. Дихання",
-          nameAttr: "respiracao",
+          nameAttr: "дихання",
           explain: "Спостерігайте за диханням пацієнта.",
           options: [
             {
@@ -642,11 +642,11 @@
         },
         {
           title: "2. Вокалізація",
-          nameAttr: "vocalizacao",
+          nameAttr: "вокалізація",
           explain: "Оцініть звуки, які видає пацієнт.",
           options: [
-            { description: "Nenhum", score: 0 },
-            { description: "Geme, resmunga, ocasionalmente fala", score: 1 },
+            { description: "Жодного", score: 0 },
+            { description: "Стогне, бурчить, зрідка говорить", score: 1 },
             {
               description:
                 "Кричати, плакати, голосити або повторювати слова",
@@ -659,16 +659,16 @@
           nameAttr: "expressao_facial",
           explain: "Спостерігайте за мімікою пацієнта.",
           options: [
-            { description: "Relaxada, normal", score: 0 },
+            { description: "Розслаблений, нормальний", score: 0 },
             {
-              description: "Triste, assustada, com o cenho franzido",
+              description: "Сумний, наляканий, насуплений",
               score: 1
             },
             { description: "Гримаси, панічний вираз обличчя", score: 2 }]
 
         },
         {
-          title: "4. Linguagem Corporal",
+          title: "4. Мова тіла",
           nameAttr: "linguagem_corporal",
           explain: "Спостерігайте за поставою та рухами пацієнта.",
           options: [
@@ -752,9 +752,9 @@
         selects.forEach((select) => {
           if (select.value === "") {
             allSelected = false;
-            select.classList.add("incomplete");
+            select.classList.add("неповний");
           } else {
-            select.classList.remove("incomplete");
+            select.classList.remove("неповний");
             total += Number(select.value);
           }
         });
@@ -771,12 +771,12 @@
         let recomendacao = "";
 
         if (total <= 3) {
-          recomendacao = `O escore de ${total} вказує на те, що біль відсутній або знаходиться на мінімальному рівні. Продовжуйте регулярно спостерігати за пацієнтом.`;
+          recomendacao = `Оцінка ${total} вказує на те, що біль відсутній або знаходиться на мінімальному рівні. Продовжуйте регулярно спостерігати за пацієнтом.`;
         } else if (total >= 4 && total <= 6) {
-          recomendacao = `O escore de ${total} вказує на помірний біль. Рекомендується оцінити методи знеболення, як фармакологічні, так і немедикаментозні, і спостерігати за реакцією пацієнта.`;
+          recomendacao = `Оцінка ${total} вказує на помірний біль. Рекомендується оцінити методи лікування, як фармакологічні, так і немедикаментозні, і спостерігати за реакцією пацієнта.`;
         } else {
           // total >= 7
-          recomendacao = `O escore de ${total} вказує на сильний біль. Для полегшення болю потрібне негайне втручання, а план лікування повинен бути переглянутий лікарем.`;
+          recomendacao = `Оцінка ${total} вказує на сильний біль. Для полегшення болю шкідливе негайне втручання, а план лікування повинен бути відвіданий лікарем.`;
         }
 
         resultadoDiv.innerHTML = `
@@ -787,14 +787,14 @@
         resultadoDiv.style.display = "block";
 
         resultadoDiv.dataset.score = total;
-        resultadoDiv.dataset.scaleName = "Escala PAINAD";
+        resultadoDiv.dataset.scaleName = "Шкала PAINAD";
       }
 
       function limparCampos() {
         const selects = document.querySelectorAll("#conteudo select");
         selects.forEach((select) => {
           select.selectedIndex = 0;
-          select.classList.remove("incomplete");
+          select.classList.remove("неповний");
         });
         resultadoDiv.innerHTML = "";
         resultadoDiv.className = "прихований результат";
@@ -813,7 +813,7 @@
           );
           return;
         }
-        if (typeof gerarPDFGlobal === "function") {
+        if (typeof gerarPDFGlobal === "функція") {
           const selectedOptions = {};
           document.querySelectorAll("#conteudo select").forEach((select) => {
             const selected = select.options[select.selectedIndex];
@@ -845,7 +845,7 @@
           }
 
           gerarPDFGlobal({
-            titulo: "Escala PAINAD",
+            titulo: "Шкала PAINAD",
             subtitulo: "Поглиблений звіт про оцінку болю при деменції",
             nomeArquivo: "relatorio_escala_painad.pdf",
             seletorConteudo: ".main-content-wrapper"
@@ -863,9 +863,9 @@
           return;
         }
         const recomendacaoRisco =
-          score <= 3 ? "sem dor" : score <= 6 ? "dor moderada" : "dor severa";
+          score <= 3 ? "немає болю" : score <= 6 ? "помірний біль" : "сильний біль";
         const searchQuery = encodeURIComponent(
-          `догляд за пацієнтами з деменцією та ${recomendacaoRisco} segundo a Escala PAINAD NANDA NIC NOC`
+          `погляд за пацієнтами з деменцією та ${recommendationRisk} за шкалою PAINAD NANDA NIC NOC`
         );
         window.open(
           `https://www.google.com/search?q=${searchQuery}`,

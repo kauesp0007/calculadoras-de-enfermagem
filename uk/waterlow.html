@@ -629,15 +629,15 @@
 
       const waterlowData = [
         {
-          category: "Tipo de pele",
+          category: "Тип шкіри",
           nameAttr: "tipoPele",
           options: [
             { description: "Здоровий.", score: 0 },
-            { description: "Fina - Folha de papel", score: 1 },
-            { description: "Seca", score: 1 },
-            { description: "Edematosa", score: 1 },
-            { description: "Viscosa", score: 1 },
-            { description: "Descorada", score: 2 },
+            { description: "Тонкий - аркуш паперу", score: 1 },
+            { description: "Сухий", score: 1 },
+            { description: "Набряковий", score: 1 },
+            { description: "В'язкий", score: 1 },
+            { description: "Відбілений", score: 2 },
             { description: "Ламається", score: 3 }],
 
           type: "radio"
@@ -646,10 +646,10 @@
           category: "Мобільність",
           nameAttr: "мобільність",
           options: [
-            { description: "Total", score: 0 },
-            { description: "Nervoso", score: 1 },
+            { description: "Всього", score: 0 },
+            { description: "нервовий", score: 1 },
             { description: "Апатичний", score: 2 },
-            { description: "Restrita", score: 3 },
+            { description: "Обмежений", score: 3 },
             { description: "Інертний / тяговий", score: 4 },
             { description: "Прикуті до інвалідного візка", score: 5 }],
 
@@ -659,7 +659,7 @@
           category: "Неврологічний результат",
           nameAttr: "debitoNeurologico",
           options: [
-            { description: "Normal", score: 0 },
+            { description: "нормальний", score: 0 },
             {
               description: "РОЗСІЯНИЙ СКЛЕРОЗ. Параплегія (наприклад, інсульт, розсіяний склероз)",
               score: 6
@@ -669,9 +669,9 @@
         },
         {
           category: "Континентальність",
-          nameAttr: "continencia",
+          nameAttr: "стриманість",
           options: [
-            { description: "Normal", score: 0 },
+            { description: "нормальний", score: 0 },
             {
               description: "Епізодичне нетримання сечі (тільки сечі)",
               score: 1
@@ -682,38 +682,38 @@
           type: "radio"
         },
         {
-          category: "Riscos Especiais",
+          category: "Особливі ризики",
           subCategories: [
             {
               name: "Погане живлення тканин",
-              nameAttr: "nutricao",
+              nameAttr: "харчування",
               options: [
-                { description: "Caquexia terminal", score: 8 },
+                { description: "Термінальна кахексія", score: 8 },
                 { description: "Серцева недостатність", score: 5 },
                 { description: "Захворювання периферичних судин", score: 5 },
-                { description: "Anemia", score: 2 },
-                { description: "Fumo", score: 1 }]
+                { description: "анемія", score: 2 },
+                { description: "Дим", score: 1 }]
 
             },
             {
-              name: "Cirurgia grande porte ou trauma",
-              nameAttr: "cirurgia",
+              name: "Серйозна операція або травма",
+              nameAttr: "хірургія",
               options: [
                 {
                   description: "Ортопедичні нижче пояса / хребта",
                   score: 5
                 },
                 {
-                  description: "Na mesa de operação: > que 2 horas",
+                  description: "На операційному столі: > 2 год",
                   score: 5
                 }]
 
             },
             {
               name: "Медикаментозне лікування",
-              nameAttr: "medicacao",
+              nameAttr: "ліки",
               options: [
-                { description: "Esteroides", score: 4 },
+                { description: "Стероїди", score: 4 },
                 { description: "Цитотоксичний", score: 4 },
                 { description: "Протизапальна дія", score: 4 }]
 
@@ -743,7 +743,7 @@
         const radioGroups = [
           "tipoPele",
           "мобільність",
-          "continencia",
+          "стриманість",
           "debitoNeurologico"];
 
         radioGroups.forEach((name) => {
@@ -756,7 +756,7 @@
         });
 
         // Pontuação dos checkboxes (riscos especiais)
-        const checkboxGroups = ["nutricao", "cirurgia", "medicacao"];
+        const checkboxGroups = ["харчування", "хірургія", "ліки"];
         checkboxGroups.forEach((name) => {
           const checkboxes = document.querySelectorAll(
             `input[name="${name}"]:checked`
@@ -779,25 +779,25 @@
         let resultadoClasse = "";
 
         if (total >= 20) {
-          classificacao = "Muito Alto Risco";
+          classificacao = "Дуже високий ризик";
           resultadoClasse = "bg-very-high-risk";
         } else if (total >= 15) {
-          classificacao = "Alto Risco";
+          classificacao = "Високий ризик";
           resultadoClasse = "bg-high-risk";
         } else if (total >= 10) {
           classificacao = "Середній ризик";
           resultadoClasse = "bg-medium-risk";
         } else {
-          classificacao = "Baixo Risco";
+          classificacao = "Низький ризик";
           resultadoClasse = "bg-low-risk";
         }
 
         resultadoDiv.innerHTML = `<p>Pontuação total Waterlow: <strong class="font-bold">${total}</strong></p><p>Classificação: <strong class="font-bold">${classificacao}</strong></p>`;
-        resultadoDiv.className = `результат ${resultadoClasse}`;
+        resultadoDiv.className = `результат ${resultClass}`;
 
         resultadoDiv.dataset.score = total;
         resultadoDiv.dataset.classificacao = classificacao;
-        resultadoDiv.dataset.scaleName = "Escala de Waterlow";
+        resultadoDiv.dataset.scaleName = "Низький накип";
       }
 
       function limparCampos() {
@@ -903,9 +903,9 @@
           alert("Будь ласка, спочатку натисніть \"Розрахувати\", щоб згенерувати PDF-файл.");
           return;
         }
-        if (typeof gerarPDFGlobal === "function") {
+        if (typeof gerarPDFGlobal === "функція") {
           gerarPDFGlobal({
-            titulo: "Escala de Waterlow",
+            titulo: "Низький накип",
             subtitulo:
               "Звіт про оцінку ризику травмування тиском",
             nomeArquivo: "relatorio_escala_waterlow.pdf",
@@ -925,7 +925,7 @@
           return;
         }
         const searchQuery = encodeURIComponent(
-          `${scaleName} оцінка ${score} класифікація ${classificacao} gerar taxonomia NANDA, gerar taxonomia NIC e gerar taxonomia de NOC`
+          `${scaleName} оцінка ${score} класифікація ${classificacao} створити таксономію NANDA, створити таксономію NIC і створити таксономію NOC`
         );
         window.open(
           `https://www.google.com/search?q=${searchQuery}`,

@@ -1,5 +1,5 @@
 // Define o nome e a versão do cache (AUTOMÁTICO via gerar-sw.js)
-const CACHE_NAME = 'calculadoras-enfermagem-cache-20260107-210033-759';
+const CACHE_NAME = 'calculadoras-enfermagem-cache-20260108-001125-342';
 
 // O SCRIPT DE BUILD VAI INJETAR A LISTA DE ARQUIVOS AQUI
 const urlsToCache = [
@@ -274,12 +274,14 @@ const urlsToCache = [
   'biblioteca/genograma-e-ecomapa.html',
   'biblioteca/genogramaeecomapa.html',
   'biblioteca/gesto-1.html',
+  'biblioteca/gotejamento-france.html',
   'biblioteca/gotejamentoimagem.html',
   'biblioteca/gotejamentoko.html',
   'biblioteca/gotejamentoru.html',
   'biblioteca/goteo.html',
   'biblioteca/h-cuidados-pcr.html',
   'biblioteca/heparina-ilustracao.html',
+  'biblioteca/hidricoimagem-france.html',
   'biblioteca/higienizacao-das-maos.html',
   'biblioteca/hildegard-peplau-teoria-das-relacoes-interpessoais.html',
   'biblioteca/hipercalemia-cuidados-pcr.html',
@@ -364,6 +366,7 @@ const urlsToCache = [
   'biblioteca/pulmao-enfermagem.html',
   'biblioteca/reabilitacao-do-paciente.html',
   'biblioteca/regla-de-3-calculo-de-medicamentos-enfermagem-espanol.html',
+  'biblioteca/regle-de-trois-calcul-des-medicaments.html',
   'biblioteca/regola-del-tre-illustrata-calcolo-dei-farmaci.html',
   'biblioteca/regra-de-3-calculo-de-medicamentos-enfermagem.html',
   'biblioteca/saude-do-coracao-enfermagem.html',
@@ -1326,6 +1329,7 @@ const urlsToCache = [
   'img/genogramaeecomapa.webp',
   'img/gestacional.webp',
   'img/gotas.png',
+  'img/gotejamento-france.webp',
   'img/gotejamento.webp',
   'img/gotejamentoimagem.webp',
   'img/gotejamentoko.webp',
@@ -1333,6 +1337,7 @@ const urlsToCache = [
   'img/goteo.webp',
   'img/h+-cuidados-pcr.webp',
   'img/hidricoicone.webp',
+  'img/hidricoimagem-france.webp',
   'img/hidricoimagem.webp',
   'img/hildegard-peplau - teoria das relaçoes interpessoais.webp',
   'img/hipercalemia-cuidados-pcr.webp',
@@ -1371,6 +1376,7 @@ const urlsToCache = [
   'img/o responsavel pelos cuidados na assistencia ventilatoria deve preparar - circuito de aspiração orotraqueal montado e testado, lar.webp',
   'img/o responsável pelo carrinho de emergencia deve ter em mente as 5 causas prováveis H de uma PCR, e assim organizar o carrinho de emerg.webp',
   'img/pentagono_meem.jpg',
+  'img/regle de trois - calcul des medicaments.webp',
   'img/screen-5-hs-da-paradacardiorespiratoria.webp',
   'img/screen-5-ts-da-paradacardiorespiratoria.webp',
   'img/screen-checagem.webp',
