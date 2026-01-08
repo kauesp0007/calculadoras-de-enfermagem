@@ -4,9 +4,9 @@ from deep_translator import GoogleTranslator
 import time
 
 # --- CONFIGURAÇÕES ---
-PASTA_ALVO = 'uk'  # Pasta onde estão os arquivos HTML
+PASTA_ALVO = 'vi'  # Pasta onde estão os arquivos HTML
 IDIOMA_ORIGEM = 'pt'
-IDIOMA_DESTINO = 'uk'
+IDIOMA_DESTINO = 'vi'
 
 # Arquivos que NÃO devem ser alterados
 ARQUIVOS_IGNORADOS = [
