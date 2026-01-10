@@ -255,7 +255,7 @@ function initializeGlobalFunctions() {
         t = ["Normal", "Médio", "Grande", "Extra Grande", "Máximo"];
       u = u % o.length + 1;
       const l = u - 1;
-      body.style.fontSize = o[l], n && (n.textContent = t[l]), localStorage.setItem("fontSize", u), void 0 === e || e && E(`Tamanho da fonte: ${t[l]}`)
+      o.style.fontSize = o[l], n && (n.textContent = t[l]), localStorage.setItem("fontSize", u), void 0 === e || e && E(`Tamanho da fonte: ${t[l]}`)
     },
     k = e => {
       const o = ["1.5", "1.8", "2.2"],
