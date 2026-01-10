@@ -1,5 +1,5 @@
 // Define o nome e a versão do cache (AUTOMÁTICO via gerar-sw.js)
-const CACHE_NAME = 'calculadoras-enfermagem-cache-20260110-030004-207';
+const CACHE_NAME = 'calculadoras-enfermagem-cache-20260110-032534-093';
 
 // O SCRIPT DE BUILD VAI INJETAR A LISTA DE ARQUIVOS AQUI
 const urlsToCache = [
@@ -400,6 +400,7 @@ const urlsToCache = [
   'biblioteca/lamparina-enfermagem.html',
   'biblioteca/leitura-desenho.html',
   'biblioteca/lista-de-diagnosticos-de-enfermagem-da-nanda-1-2018.html',
+  'biblioteca/lista-de-verificacao-de-dupla-e-tripla-checagem.html',
   'biblioteca/livroimagem.html',
   'biblioteca/livronanda.html',
   'biblioteca/madeleine-leininger-teoria-do-cuidado-transcultural.html',
@@ -736,6 +737,7 @@ const urlsToCache = [
   'downloads/page23.html',
   'downloads/page24.html',
   'downloads/page25.html',
+  'downloads/page26.html',
   'downloads/page3.html',
   'downloads/page4.html',
   'downloads/page5.html',
@@ -1492,6 +1494,7 @@ const urlsToCache = [
   'img/Imogene M. King - teoria do sistema de metas.webp',
   'img/KATZ SCALE NURSE.png',
   'img/LEITURA DESENHO.png',
+  'img/LISTA DE VERIFICAÇÃO DE DUPLA E TRIPLA CHECAGEM.webp',
   'img/LÂMINAS LARINCOSCÓPICAS.webp',
   'img/MAOS CUIDADOS DE ENFERMAGEM.png',
   'img/MARTELO E GOIVA.webp',
