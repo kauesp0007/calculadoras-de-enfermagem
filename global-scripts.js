@@ -326,7 +326,7 @@ function initializeGlobalFunctions() {
       b && T((b.textContent || b.ariaLabel || b.alt || b.value)?.trim())
     },
     P = () => {
-      v && v.cancel(), u = 1, g = 1, p = 1, h = 1, document.body.style.fontSize = "", document.documentElement.style.setProperty("--espacamento-linha", "1.5"), document.documentElement.style.setProperty("--espacamento-letra", "0em"), o.classList.remove("contraste-alto", "dark-mode", "fonte-dislexia"), localStorage.clear(), L(!1), k(!1), C(!1), i && (i.textContent = "Normal"), S("yellow", !1), E("Configurações de acessibilidade redefinidas")
+      v && v.cancel(), u = 1, g = 1, p = 1, h = 1, o.style.fontSize = "", document.documentElement.style.setProperty("--espacamento-linha", "1.5"), document.documentElement.style.setProperty("--espacamento-letra", "0em"), o.classList.remove("contraste-alto", "dark-mode", "fonte-dislexia"), localStorage.clear(), L(!1), k(!1), C(!1), i && (i.textContent = "Normal"), S("yellow", !1), E("Configurações de acessibilidade redefinidas")
     };
   [{
     ids: ["btnAlternarTamanhoFonte", "btnAlternarTamanhoFontePWA"],
