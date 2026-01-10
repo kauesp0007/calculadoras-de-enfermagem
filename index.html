@@ -1995,7 +1995,47 @@
         const menuText = await menuRes.text();
         const menuDoc = new DOMParser().parseFromString(menuText, "text/html");
 
-        const links = Array.from(menuDoc.querySelectorAll("#submenu-conteudo a[href]"));
+        // 1) tenta achar o submenu correto pelo toggle do menu mobile
+const toggles = Array.from(menuDoc.querySelectorAll("[data-submenu-toggle]"));
+const conteudoToggle = toggles.find((el) =>
+  (el.textContent || "").trim().toLowerCase().includes("conteúd")
+);
+
+let submenuRoot = null;
+
+if (conteudoToggle) {
+  const key = conteudoToggle.getAttribute("data-submenu-toggle");
+  const submenuId = key ? `submenu-${key}` : null;
+  submenuRoot = submenuId ? menuDoc.getElementById(submenuId) : null;
+}
+
+// 2) fallback: tenta o id antigo, caso exista
+if (!submenuRoot) submenuRoot = menuDoc.querySelector("#submenu-conteudo");
+
+// 3) pega SOMENTE os links finais (.html), ignorando "#", "javascript:", etc.
+let links = [];
+if (submenuRoot) {
+  const all = Array.from(submenuRoot.querySelectorAll("a[href]"));
+
+  links = all
+    .map((a) => ({ a, href: (a.getAttribute("href") || "").trim() }))
+    .filter(({ href }) => {
+      const h = href.toLowerCase();
+      return (
+        h &&
+        h !== "#" &&
+        !h.startsWith("#") &&
+        !h.startsWith("javascript:") &&
+        h.endsWith(".html")
+      );
+    })
+    // remove duplicados por href
+    .filter(
+      ({ href }, i, arr) => arr.findIndex((x) => x.href === href) === i
+    )
+    .map(({ a }) => a);
+}
+
 
         if (!links.length) {
           slidesEl.innerHTML = `
