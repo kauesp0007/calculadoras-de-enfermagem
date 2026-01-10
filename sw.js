@@ -1,5 +1,5 @@
 // Define o nome e a versão do cache (AUTOMÁTICO via gerar-sw.js)
-const CACHE_NAME = 'calculadoras-enfermagem-cache-20260110-131732-693';
+const CACHE_NAME = 'calculadoras-enfermagem-cache-20260110-132304-988';
 
 // O SCRIPT DE BUILD VAI INJETAR A LISTA DE ARQUIVOS AQUI
 const urlsToCache = [
@@ -528,6 +528,7 @@ const urlsToCache = [
   'biblioteca/screen-regrasmedicacoes.html',
   'biblioteca/screen-sinan.html',
   'biblioteca/screen-teorias-de-enfermagem.html',
+  'biblioteca/screen-terminologias-de-enfermagem.html',
   'biblioteca/screen-time-de-resposta-rapida.html',
   'biblioteca/screen-vigilancia.html',
   'biblioteca/segunda-checagem-de-medicamento-entre-enfermeiro-e-tecnico-de-enfermagem.html',
@@ -1754,6 +1755,7 @@ const urlsToCache = [
   'img/screen-regrasmedicacoes.webp',
   'img/screen-sinan.webp',
   'img/screen-teorias-de-enfermagem.webp',
+  'img/screen-terminologias-de-enfermagem.webp',
   'img/screen-time-de-resposta-rapida.webp',
   'img/screen-vigilancia.webp',
   'img/seloacessibilidade-160.webp',
