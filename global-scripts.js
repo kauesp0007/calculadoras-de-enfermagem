@@ -258,7 +258,9 @@ function initializeGlobalFunctions() {
   const idx = u - 1;
 
   // aplica no body (correto)
-  document.body.style.fontSize = tamanhos[idx];
+  const container = document.querySelector("main") || document.querySelector(".main-content-wrapper");
+if (container) container.style.fontSize = tamanhos[idx];
+
 
   // atualiza o texto do indicador, se existir
   n && (n.textContent = labels[idx]);
@@ -326,8 +328,37 @@ function initializeGlobalFunctions() {
       b && T((b.textContent || b.ariaLabel || b.alt || b.value)?.trim())
     },
     P = () => {
-      v && v.cancel(), u = 1, g = 1, p = 1, h = 1, document.body.style.fontSize = "", document.documentElement.style.setProperty("--espacamento-linha", "1.5"), document.documentElement.style.setProperty("--espacamento-letra", "0em"), o.classList.remove("contraste-alto", "dark-mode", "fonte-dislexia"), localStorage.clear(), L(!1), k(!1), C(!1), i && (i.textContent = "Normal"), S("yellow", !1), E("Configurações de acessibilidade redefinidas")
-    };
+  v && v.cancel();
+  u = 1; g = 1; p = 1; h = 1;
+
+  // ✅ Resetar tamanho da fonte APENAS no conteúdo (não mexe no menu)
+  const container = document.querySelector("main") || document.querySelector(".main-content-wrapper");
+  if (container) container.style.fontSize = "";
+
+  document.documentElement.style.setProperty("--espacamento-linha", "1.5");
+  document.documentElement.style.setProperty("--espacamento-letra", "0em");
+  o.classList.remove("contraste-alto", "dark-mode", "fonte-dislexia");
+
+  // ⚠️ Sugestão forte: NÃO limpar tudo (isso pode apagar consentimento e preferências do site)
+  // Se você quiser manter como está, deixe localStorage.clear().
+  // Melhor:
+  localStorage.removeItem("fontSize");
+  localStorage.removeItem("lineHeight");
+  localStorage.removeItem("letterSpacing");
+  localStorage.removeItem("readingSpeed");
+  localStorage.removeItem("highContrast");
+  localStorage.removeItem("darkMode");
+  localStorage.removeItem("dyslexiaFont");
+  localStorage.removeItem("focusColor");
+
+  L(false);
+  k(false);
+  C(false);
+  i && (i.textContent = "Normal");
+  S("yellow", false);
+  E("Configurações de acessibilidade redefinidas");
+};
+
   [{
     ids: ["btnAlternarTamanhoFonte", "btnAlternarTamanhoFontePWA"],
     action: L
@@ -401,15 +432,7 @@ function initializeGlobalFunctions() {
     top: 0,
     behavior: "smooth"
   })));
-  const G = () => {
-    if (document.querySelector("[vw]")) {
-      let e = 0;
-      const o = setInterval(() => {
-        e++, void 0 !== typeof VLibras ? (new VLibras.Widget("https://vlibras.gov.br/app"), clearInterval(o)) : e >= 50 && (console.warn("VLibras widget could not be initialized."), clearInterval(o))
-      }, 200)
-    }
-  };
-  G();
+
   const U = document.getElementById("page-search-input"),
     W = document.getElementById("search-btn"),
     X = e => {
