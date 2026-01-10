@@ -353,6 +353,15 @@
               <textarea id="postContent" rows="4" class="input-field" placeholder="Descreva aqui..."
                 required></textarea>
             </div>
+
+            <!-- CAMPO DE IMAGEM ADICIONADO -->
+            <div>
+              <label for="postImage" class="block text-sm font-medium text-gray-700">Anexar Imagem (Opcional)</label>
+              <input type="file" id="postImage" accept="image/png, image/jpeg, image/jpg, image/webp"
+                class="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
+              <p class="text-xs text-gray-500 mt-1">Máx: 2MB. Formatos: JPG, PNG, WebP.</p>
+            </div>
+
             <div class="flex items-center justify-between mt-4">
               <span id="formStatus" class="text-sm italic"></span>
               <button type="submit" id="submitBtn"
@@ -431,26 +440,20 @@
                 </div>`;
 
       try {
-        // CRIA UM TIMEOUT DE 5 SEGUNDOS
-        // Se o Supabase não responder em 5s, lançamos um erro manual
         const timeoutPromise = new Promise((_, reject) =>
           setTimeout(() => reject(new Error("Tempo limite excedido")), 5000)
         );
 
+        // Seleciona também a nova coluna imagem_url
         const dataPromise = supabaseClient
           .from('posts')
           .select('*')
           .order('created_at', { ascending: false });
 
-        // Corrida entre os dados e o relógio
         const { data, error } = await Promise.race([dataPromise, timeoutPromise]);
 
-        // 2. Verifica erros do Supabase
-        if (error) {
-          throw error; // Joga para o bloco catch abaixo
-        }
+        if (error) throw error;
 
-        // 3. Sucesso, mas vazio
         if (!data || data.length === 0) {
           container.innerHTML = `
                         <div class="text-center py-8 bg-gray-50 rounded-lg border border-dashed border-gray-300">
@@ -462,12 +465,22 @@
           return;
         }
 
-        // 4. Sucesso com dados -> Renderiza
         container.innerHTML = '';
         data.forEach(post => {
           const dataFormatada = new Date(post.created_at).toLocaleDateString('pt-BR', {
             day: '2-digit', month: '2-digit', year: '2-digit', hour: '2-digit', minute: '2-digit'
           });
+
+          // --- LÓGICA DA IMAGEM ---
+          let imagemHTML = '';
+          // Verifica se o campo imagem_url existe e não está vazio
+          if (post.imagem_url && post.imagem_url.trim() !== '') {
+              imagemHTML = `
+                <div class="mt-4 mb-2">
+                   <img src="${escapeHtml(post.imagem_url)}" alt="Anexo do post" class="rounded-lg border border-gray-200 max-h-[400px] w-auto object-contain shadow-sm mx-auto md:mx-0">
+                </div>
+              `;
+          }
 
           const postHTML = `
                         <div class="bg-white p-5 rounded-lg shadow-sm border border-gray-100 forum-card">
@@ -482,7 +495,10 @@
                             <p class="text-gray-600 text-sm mb-3 leading-relaxed">
                                 ${escapeHtml(post.conteudo)}
                             </p>
-                            <div class="flex items-center text-sm text-gray-500 font-medium border-t border-gray-50 pt-2">
+
+                            ${imagemHTML}
+
+                            <div class="flex items-center text-sm text-gray-500 font-medium border-t border-gray-50 pt-2 mt-3">
                                 <div class="w-6 h-6 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-xs mr-2 font-bold">
                                     ${post.nome_usuario ? post.nome_usuario.charAt(0).toUpperCase() : '?'}
                                 </div>
@@ -495,71 +511,117 @@
 
       } catch (error) {
         console.error('Erro Capturado:', error);
-
         let mensagemAmigavel = "Erro desconhecido.";
 
         if (error.message === "Tempo limite excedido") {
-          mensagemAmigavel = `
-                        <strong>O servidor demorou muito para responder.</strong><br>
-                        Isso pode ser problema na sua internet ou o banco de dados está bloqueado.<br>
-                        Verifique se o <strong>RLS está ativado</strong> e se existem policies permitindo <strong>SELECT</strong> para <code>anon</code>.
-                    `;
+          mensagemAmigavel = `<strong>O servidor demorou muito para responder.</strong>`;
         } else if (error.code === 'PGRST301' || error.message.includes('permission denied')) {
-          mensagemAmigavel = `
-                        <strong>Acesso Negado (RLS Ativado):</strong><br>
-                        O Supabase bloqueou a leitura por segurança.<br>
-                        <br>
-                        <strong>Solução:</strong> No Supabase: Authentication/Policies (ou Table Editor → posts → Policies) e confirme as policies:<br>✅ <code>SELECT</code> para <code>anon</code> com <code>USING (true)</code><br>✅ <code>INSERT</code> para <code>anon</code> com <code>WITH CHECK (true)</code>
-                    `;
+          mensagemAmigavel = `<strong>Acesso Negado (RLS Ativado)</strong>`;
         } else if (error.code === '42P01' || error.message.includes('does not exist')) {
-          mensagemAmigavel = `
-                        <strong>Tabela não encontrada:</strong><br>
-                        A tabela "posts" não existe no seu projeto.<br>
-                        Verifique se você criou a tabela com o nome exato "posts" (minúsculo).
-                    `;
+          mensagemAmigavel = `<strong>Tabela não encontrada</strong>`;
         } else {
-          mensagemAmigavel = `Erro técnico: ${error.message} (Código: ${error.code || 'N/A'})`;
+          mensagemAmigavel = `Erro técnico: ${error.message}`;
         }
-
         mostrarErro(mensagemAmigavel);
       }
     }
 
-    // Função de envio (Create)
+    // Função de envio (Create) ATUALIZADA
     const form = document.getElementById('forumForm');
+
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
       const btn = document.getElementById('submitBtn');
       const status = document.getElementById('formStatus');
+      const fileInput = document.getElementById('postImage'); // Pega o campo de arquivo
+
+      // Validação básica de tamanho (ex: 2MB)
+      if (fileInput.files.length > 0) {
+          const fileSize = fileInput.files[0].size / 1024 / 1024; // em MB
+          if (fileSize > 2) {
+              alert("A imagem é muito grande. O máximo permitido é 2MB.");
+              return;
+          }
+      }
 
       btn.disabled = true;
-      btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> ...';
+      btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Enviando...';
+      status.innerHTML = 'Processando...';
 
       const user = document.getElementById('postUser').value;
       const title = document.getElementById('postTitle').value;
       const content = document.getElementById('postContent').value;
+      let imageUrlParaSalvar = null; // Começa nulo
 
-      const { error } = await supabaseClient
-        .from('posts')
-        .insert([{ nome_usuario: user, titulo: title, conteudo: content }]);
+      try {
+        // 1. SE TIVER IMAGEM, FAZ O UPLOAD PRIMEIRO
+        if (fileInput.files.length > 0) {
+          status.innerHTML = 'Fazendo upload da imagem...';
+          const file = fileInput.files[0];
+          // Cria um nome de arquivo único: timestamp_nome-original.ext
+          const fileName = `${Date.now()}_${file.name.replace(/\s+/g, '-')}`;
+          const filePath = `uploads/${fileName}`; // Caminho dentro do bucket
 
-      if (error) {
-        console.error("Erro insert:", error);
-        status.innerHTML = `<span class="text-red-600">Erro: ${error.message}</span>`;
-        if (error.message.includes('row-level security') || error.message.includes('permission denied')) {
-          status.innerHTML = `<span class="text-red-600 font-bold">Erro de Permissão (Desative o RLS)</span>`;
+          // Upload para o Supabase Storage (NOME DO SEU BUCKET AQUI: forum-imagens-enfermagem)
+          const { data: uploadData, error: uploadError } = await supabaseClient
+            .storage
+            .from('forum-imagens-enfermagem')
+            .upload(filePath, file);
+
+          if (uploadError) throw new Error('Erro no upload da imagem (verifique se o Bucket é público e tem Policies): ' + uploadError.message);
+
+          // Pegar a URL pública da imagem enviada
+          const { data: urlData } = supabaseClient
+            .storage
+            .from('forum-imagens-enfermagem')
+            .getPublicUrl(filePath);
+
+          imageUrlParaSalvar = urlData.publicUrl;
         }
-      } else {
-        status.innerHTML = `<span class="text-green-600 font-bold">Enviado!</span>`;
-        form.reset();
-        carregarPosts();
-      }
 
-      setTimeout(() => {
-        btn.disabled = false;
-        btn.innerHTML = '<i class="fas fa-paper-plane mr-2"></i> Publicar';
-        if (!error) status.innerHTML = '';
-      }, 3000);
+        // 2. SALVAR OS DADOS NO BANCO DE DADOS
+        status.innerHTML = 'Salvando postagem...';
+
+        // Objeto a ser salvo
+        const postData = {
+            nome_usuario: user,
+            titulo: title,
+            conteudo: content,
+            imagem_url: imageUrlParaSalvar // Salva a URL ou null
+        };
+
+        const { error: dbError } = await supabaseClient
+          .from('posts')
+          .insert([postData]);
+
+        if (dbError) throw dbError;
+
+        // SUCESSO
+        status.innerHTML = `<span class="text-green-600 font-bold">Postado com sucesso!</span>`;
+        form.reset();
+        fileInput.value = ''; // Limpa o input de arquivo
+        carregarPosts();
+
+      } catch (error) {
+        console.error("Erro no processo:", error);
+        let errorMsg = error.message;
+        // Verificações de erro comuns do Supabase
+        if (error.message.includes('row-level security') || error.message.includes('permission denied')) {
+           errorMsg = "Erro de Permissão. Verifique se criou a Policy no Storage ou na Tabela.";
+        } else if (error.statusCode === '413') {
+           errorMsg = "Imagem muito grande para o servidor.";
+        } else if (error.message.includes('column "imagem_url" does not exist')) {
+           errorMsg = "A coluna 'imagem_url' não existe na tabela 'posts'. Crie ela no Supabase.";
+        }
+
+        status.innerHTML = `<span class="text-red-600">Erro: ${errorMsg}</span>`;
+      } finally {
+        setTimeout(() => {
+          btn.disabled = false;
+          btn.innerHTML = '<i class="fas fa-paper-plane mr-2"></i> Publicar';
+          if (status.innerHTML.includes('sucesso')) status.innerHTML = '';
+        }, 5000);
+      }
     });
 
     function mostrarErro(msg) {
