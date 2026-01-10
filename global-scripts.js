@@ -251,12 +251,25 @@ function initializeGlobalFunctions() {
       t.textContent = e, setTimeout(() => t.textContent = "", 3e3)
     },
     L = e => {
-      const o = ["1em", "1.15em", "1.3em", "1.5em", "2em"],
-        t = ["Normal", "Médio", "Grande", "Extra Grande", "Máximo"];
-      u = u % o.length + 1;
-      const l = u - 1;
-      o.style.fontSize = o[l], n && (n.textContent = t[l]), localStorage.setItem("fontSize", u), void 0 === e || e && E(`Tamanho da fonte: ${t[l]}`)
-    },
+  const tamanhos = ["1em", "1.15em", "1.3em", "1.5em", "2em"],
+        labels = ["Normal", "Médio", "Grande", "Extra Grande", "Máximo"];
+
+  u = u % tamanhos.length + 1;
+  const idx = u - 1;
+
+  // aplica no body (correto)
+  document.body.style.fontSize = tamanhos[idx];
+
+  // atualiza o texto do indicador, se existir
+  n && (n.textContent = labels[idx]);
+
+  // salva preferência
+  localStorage.setItem("fontSize", u);
+
+  // fala/avisa apenas quando for clique (não na inicialização)
+  if (e === undefined || e) E(`Tamanho da fonte: ${labels[idx]}`);
+},
+
     k = e => {
       const o = ["1.5", "1.8", "2.2"],
         t = ["Médio", "Grande", "Extra Grande"];
