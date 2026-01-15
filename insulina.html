@@ -166,96 +166,150 @@
 
 
   <style>
-    .resultado.bg-success-green {
-      background-color: #D4EDDA;
-      color: #006400;
+    /* Estilos Gerais dos Cards Lado a Lado */
+    .cards-wrapper {
+        display: flex;
+        flex-direction: column;
+        gap: 2rem;
     }
 
-    .resultado.bg-danger-red {
-      background-color: #F8D7DA;
-      color: #8B0000;
+    @media (min-width: 1024px) {
+        .cards-wrapper {
+            flex-direction: row;
+            align-items: stretch; /* Garante que tenham a mesma altura visual se o conteúdo permitir */
+        }
+
+        .card-half {
+            width: 50%;
+            display: flex;
+            flex-direction: column;
+        }
     }
 
-    .bg-info-orange-light {
-      background-color: #ffeeba;
-      border-color: #ffb366;
-      color: #856404;
-    }
-
-    .insulina-form-container {
+    /* Card Genérico */
+    .insulina-card {
       background-color: #fff;
       border: 1px solid #d1d5db;
       border-radius: 12px;
       padding: 1.5rem;
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-      transition: box-shadow 0.3s ease;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3); /* Sombra mais escura conforme pedido */
+      transition: all 0.3s ease;
+      height: 100%;
       display: flex;
       flex-direction: column;
-      gap: 1.5rem;
     }
 
-    .insulina-form-container:hover {
-      box-shadow: 0 10px 15px rgba(0, 0, 0, 0.15);
+    .insulina-card:hover {
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.4);
+      transform: translateY(-2px); /* Mexer levemente */
     }
 
+    .card-title {
+        font-family: 'Nunito Sans', sans-serif;
+        font-weight: 800;
+        text-align: center;
+        margin-bottom: 1.5rem;
+        color: #1A3E74;
+        font-size: 1.5rem;
+    }
+
+    /* Inputs */
     .insulina-input-group {
       display: flex;
       flex-direction: column;
       gap: 0.5rem;
       text-align: left;
+      margin-bottom: 1.5rem;
     }
 
     .insulina-input-group label {
       font-weight: 700;
       color: #1A3E74;
-      font-size: 1.25rem;
+      font-size: 1.1rem;
     }
 
+    .insulina-input-group select,
     .insulina-input-group input[type="number"] {
       width: 100%;
       padding: 0.75rem;
-      border: 1px solid #ccc;
-      border-radius: 0.375rem;
+      border: 2px solid #e5e7eb;
+      border-radius: 0.5rem;
       font-size: 1rem;
       color: #333;
-      background-color: #fff;
+      background-color: #f9fafb;
       box-sizing: border-box;
+      transition: border-color 0.2s;
     }
 
-    .insulina-info-box {
-      background-color: #f8fafc;
-      border: 1px solid #e2e8f0;
-      border-radius: 8px;
-      padding: 1rem;
-      margin-top: 2rem;
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-      text-align: left;
+    .insulina-input-group select:focus,
+    .insulina-input-group input:focus {
+        border-color: #1A3E74;
+        outline: none;
     }
 
-    .insulina-info-box h3 {
-      font-size: 1.25rem;
-      font-weight: 700;
-      color: #1A3E74;
-      margin-bottom: 0.5rem;
+    /* Caixa de Resultado Personalizada */
+    .resultado-box {
+        background-color: rgba(173, 216, 230, 0.4); /* Azul claro semi-transparente */
+        border: 2px solid rgba(0, 0, 139, 0.2);
+        border-radius: 8px;
+        padding: 1.5rem;
+        margin-top: 1.5rem;
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3); /* Sombreamento forte */
+        text-align: left;
+        color: #00008B; /* Fonte azul escura */
+        font-family: 'Inter', sans-serif;
+        display: none; /* Oculto inicialmente */
     }
 
-    .insulina-info-box p {
-      font-size: 1rem;
-      color: #374151;
-      line-height: 1.5;
+    .resultado-formula {
+        font-family: 'Caveat', cursive, 'Inter', sans-serif; /* Estilo "escrito a mão" se disponível, fallback Inter */
+        font-size: 1.2rem;
+        margin-bottom: 1rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px dashed #00008B;
     }
 
-    .insulina-info-box img {
-      max-width: 100%;
-      height: auto;
-      margin-top: 1rem;
-      border-radius: 8px;
+    .resultado-explicacao {
+        font-size: 0.95rem;
+        margin-top: 1rem;
+        font-style: italic;
+        background: rgba(255,255,255,0.5);
+        padding: 10px;
+        border-radius: 6px;
+    }
+
+    /* Botão Calcular dentro do Card */
+    .btn-calcular-card {
+        width: 100%;
+        padding: 1rem;
+        background-color: #1A3E74;
+        color: white;
+        font-weight: bold;
+        border-radius: 8px;
+        border: none;
+        cursor: pointer;
+        font-size: 1.1rem;
+        transition: background-color 0.2s;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+    }
+
+    .btn-calcular-card:hover {
+        background-color: #142f57;
+    }
+
+    /* Right Card Image */
+    .right-card-img {
+        width: 100%;
+        height: auto;
+        border-radius: 8px;
+        margin-top: 1rem;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     }
   </style>
   <link rel="preconnect" href="https://fonts.googleapis.com?display=swap">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
   <link
-    href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;700&amp;family=Inter:wght@400;700&amp;display=swap"
+    href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;700;800&amp;family=Inter:wght@400;700&amp;display=swap"
     rel="stylesheet">
 
   <meta name="author" content="Calculadoras de Enfermagem">
@@ -380,10 +434,6 @@
 
 <body class="bg-gray-50 text-gray-800 font-inter">
 
-
-
-
-
   <nav aria-label="Atalhos de Acessibilidade"
     class="sr-only focus-within:not-sr-only focus-within:absolute focus-within:top-0 focus-within:left-0 focus-within:z-50 focus-within:bg-white focus-within:text-blue-700 focus-within:p-4 focus-within:underline">
     <a href="/" accesskey="I" class="block mb-2">Ir para o Início [Alt + Shift + I]</a>
@@ -395,119 +445,299 @@
   <div id="statusMessage" class="sr-only" aria-live="polite" aria-atomic="true"></div>
 
   <div id="global-header-container" style="min-height: 70px;"></div>
-  <div id="language-dropdown-wrapper" class="flex justify-end w-full"
-    style="position:relative; z-index:100; padding-right:2rem;">
-    <div class="relative inline-block text-left z-50" style="pointer-events: auto;">
-      <button id="langButton" class="flex items-center space-x-2 border px-3 py-1 rounded-lg shadow bg-gray-100">
-        <img id="langFlag" width="20" height="16" src="bandeira-brasil.webp" alt="PT" class="w-5 h-4 rounded-sm"
-          fetchpriority="high">
-        <span id="langText" class="text-gray-700 font-medium">Português</span>
-        <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-        </svg>
-      </button>
+  <div
+  id="language-dropdown-wrapper"
+  class="flex justify-end w-full"
+  style="position: relative; z-index: 100; padding-right: 2rem"
+>
+  <div class="relative inline-block text-left z-50">
+    <button
+      id="langButton"
+      class="flex items-center space-x-2 border px-3 py-1 rounded-lg shadow bg-gray-100"
+    >
+      <img loading="lazy"
+        id="langFlag"
+        width="20"
+        height="16"
+        src="bandeira-brasil.webp"
+        alt="PT"
+        class="w-5 h-4 rounded-sm"
+      />
+      <span id="langText" class="text-gray-700 font-medium">Português</span>
+      <svg
+        class="w-4 h-4 text-gray-500"
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+        aria-hidden="true"
+      >
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d="M19 9l-7 7-7-7"
+        />
+      </svg>
+    </button>
 
-      <div id="langMenu" class="hidden absolute right-0 mt-2 w-44 bg-white border rounded-lg shadow-lg">
-        <div class="flex items-center px-3 py-2 hover:bg-gray-100 cursor-pointer space-x-2" data-value="pt"
-          data-flag="bandeira-brasil.webp">
-          <img src="bandeira-brasil.webp" class="w-5 h-4 rounded-sm" alt="PT" width="20" height="16"
-            loading="lazy"><span>Português</span>
-        </div>
-        <div class="flex items-center px-3 py-2 hover:bg-gray-100 cursor-pointer space-x-2" data-value="en"
-          data-flag="bandeira-eua.webp">
-          <img src="bandeira-eua.webp" class="w-5 h-4 rounded-sm" alt="EN" width="20" height="16"
-            loading="lazy"><span>English</span>
-        </div>
-        <div class="flex items-center px-3 py-2 hover:bg-gray-100 cursor-pointer space-x-2" data-value="es"
-          data-flag="bandeira-espanha.webp">
-          <img src="bandeira-espanha.webp" class="w-5 h-4 rounded-sm" alt="ES" width="20" height="16"
-            loading="lazy"><span>Español</span>
-        </div>
-        <div class="flex items-center px-3 py-2 hover:bg-gray-100 cursor-pointer space-x-2" data-value="de"
-          data-flag="bandeira-alemanha.webp">
-          <img src="bandeira-alemanha.webp" class="w-5 h-4 rounded-sm" alt="DE" width="20" height="16"
-            loading="lazy"><span>Deutsch</span>
-        </div>
-        <div class="flex items-center px-3 py-2 hover:bg-gray-100 cursor-pointer space-x-2" data-value="it"
-          data-flag="bandeira-italia.webp">
-          <img src="bandeira-italia.webp" class="w-5 h-4 rounded-sm" alt="IT" width="20" height="16"
-            loading="lazy"><span>Italiano</span>
-        </div>
-        <div class="flex items-center px-3 py-2 hover:bg-gray-100 cursor-pointer space-x-2" data-value="fr"
-          data-flag="bandeira-franca.webp">
-          <img src="bandeira-franca.webp" class="w-5 h-4 rounded-sm" alt="FR" width="20" height="16"
-            loading="lazy"><span>Français</span>
-        </div>
-        <div class="flex items-center px-3 py-2 hover:bg-gray-100 cursor-pointer space-x-2" data-value="hi"
-          data-flag="bandeira-india.webp">
-          <img src="bandeira-india.webp" class="w-5 h-4 rounded-sm" alt="HI" width="20" height="16"
-            loading="lazy"><span>हिन्दी</span>
-        </div>
-        <div class="flex items-center px-3 py-2 hover:bg-gray-100 cursor-pointer space-x-2" data-value="zh"
-          data-flag="bandeira-china.webp">
-          <img src="bandeira-china.webp" class="w-5 h-4 rounded-sm" alt="ZH" width="20" height="16"
-            loading="lazy"><span>中文</span>
-        </div>
-        <div class="flex items-center px-3 py-2 hover:bg-gray-100 cursor-pointer space-x-2" data-value="ar"
-          data-flag="bandeira-arabia.webp">
-          <img src="bandeira-arabia.webp" class="w-5 h-4 rounded-sm" alt="AR" width="20" height="16"
-            loading="lazy"><span>العربية</span>
-        </div>
-        <div class="flex items-center px-3 py-2 hover:bg-gray-100 cursor-pointer space-x-2" data-value="ja"
-          data-flag="bandeira-japao.webp">
-          <img src="bandeira-japao.webp" class="w-5 h-4 rounded-sm" alt="JA" width="20" height="16"
-            loading="lazy"><span>日本語</span>
-        </div>
-        <div class="flex items-center px-3 py-2 hover:bg-gray-100 cursor-pointer space-x-2" data-value="ru"
-          data-flag="bandeira-russia.webp">
-          <img src="bandeira-russia.webp" class="w-5 h-4 rounded-sm" alt="RU" width="20" height="16"
-            loading="lazy"><span>Русский</span>
-        </div>
-        <div class="flex items-center px-3 py-2 hover:bg-gray-100 cursor-pointer space-x-2" data-value="ko"
-          data-flag="bandeira-coreia.webp">
-          <img src="bandeira-coreia.webp" class="w-5 h-4 rounded-sm" alt="KO" width="20" height="16"
-            loading="lazy"><span>한국어</span>
-        </div>
-        <div class="flex items-center px-3 py-2 hover:bg-gray-100 cursor-pointer space-x-2" data-value="tr"
-          data-flag="bandeira-turquia.webp">
-          <img src="bandeira-turquia.webp" class="w-5 h-4 rounded-sm" alt="TR" width="20" height="16"
-            loading="lazy"><span>Türkçe</span>
-        </div>
-        <div class="flex items-center px-3 py-2 hover:bg-gray-100 cursor-pointer space-x-2" data-value="nl"
-          data-flag="bandeira-holanda.webp">
-          <img src="bandeira-holanda.webp" class="w-5 h-4 rounded-sm" alt="NL" width="20" height="16"
-            loading="lazy"><span>Nederlands</span>
-        </div>
-        <div class="flex items-center px-3 py-2 hover:bg-gray-100 cursor-pointer space-x-2" data-value="pl"
-          data-flag="bandeira-polonia.webp">
-          <img src="bandeira-polonia.webp" class="w-5 h-4 rounded-sm" alt="PL" width="20" height="16"
-            loading="lazy"><span>Polski</span>
-        </div>
-        <div class="flex items-center px-3 py-2 hover:bg-gray-100 cursor-pointer space-x-2" data-value="sv"
-          data-flag="bandeira-suecia.webp">
-          <img src="bandeira-suecia.webp" class="w-5 h-4 rounded-sm" alt="SV" width="20" height="16"
-            loading="lazy"><span>Suédois</span>
-        </div>
-        <div class="flex items-center px-3 py-2 hover:bg-gray-100 cursor-pointer space-x-2" data-value="id"
-          data-flag="bandeira-indonesia.webp">
-          <img src="bandeira-indonesia.webp" class="w-5 h-4 rounded-sm" alt="ID" width="20" height="16"
-            loading="lazy"><span>Indonésien</span>
-        </div>
-        <div class="flex items-center px-3 py-2 hover:bg-gray-100 cursor-pointer space-x-2" data-value="vi"
-          data-flag="bandeira-vietna.webp">
-          <img src="bandeira-vietna.webp" class="w-5 h-4 rounded-sm" alt="VI" width="20" height="16"
-            loading="lazy"><span>Tiếng Việt</span>
-        </div>
-        <div class="flex items-center px-3 py-2 hover:bg-gray-100 cursor-pointer space-x-2" data-value="uk"
-          data-flag="bandeira-ucrania.webp">
-          <img src="bandeira-ucrania.webp" class="w-5 h-4 rounded-sm" alt="UK" width="20" height="16"
-            loading="lazy"><span>Українська</span>
-        </div>
+    <div
+      id="langMenu"
+      class="hidden absolute right-0 mt-2 w-44 bg-white border rounded-lg shadow-lg"
+    >
+      <div
+        class="flex items-center px-3 py-2 hover:bg-gray-100 cursor-pointer space-x-2"
+        data-value="pt"
+        data-flag="bandeira-brasil.webp"
+      >
+        <img loading="lazy"
+          src="bandeira-brasil.webp"
+          class="w-5 h-4 rounded-sm"
+          alt="PT"
+          width="20"
+          height="16"
+        /><span>Português</span>
+      </div>
+      <div
+        class="flex items-center px-3 py-2 hover:bg-gray-100 cursor-pointer space-x-2"
+        data-value="en"
+        data-flag="bandeira-eua.webp"
+      >
+        <img loading="lazy"
+          src="bandeira-eua.webp"
+          class="w-5 h-4 rounded-sm"
+          alt="EN"
+          width="20"
+          height="16"
+        /><span>English</span>
+      </div>
+      <div
+        class="flex items-center px-3 py-2 hover:bg-gray-100 cursor-pointer space-x-2"
+        data-value="es"
+        data-flag="bandeira-espanha.webp"
+      >
+        <img loading="lazy"
+          src="bandeira-espanha.webp"
+          class="w-5 h-4 rounded-sm"
+          alt="ES"
+          width="20"
+          height="16"
+        /><span>Español</span>
+      </div>
+      <div
+        class="flex items-center px-3 py-2 hover:bg-gray-100 cursor-pointer space-x-2"
+        data-value="de"
+        data-flag="bandeira-alemanha.webp"
+      >
+        <img loading="lazy"
+          src="bandeira-alemanha.webp"
+          class="w-5 h-4 rounded-sm"
+          alt="DE"
+          width="20"
+          height="16"
+        /><span>Deutsch</span>
+      </div>
+      <div
+        class="flex items-center px-3 py-2 hover:bg-gray-100 cursor-pointer space-x-2"
+        data-value="it"
+        data-flag="bandeira-italia.webp"
+      >
+        <img loading="lazy"
+          src="bandeira-italia.webp"
+          class="w-5 h-4 rounded-sm"
+          alt="IT"
+          width="20"
+          height="16"
+        /><span>Italiano</span>
+      </div>
+      <div
+        class="flex items-center px-3 py-2 hover:bg-gray-100 cursor-pointer space-x-2"
+        data-value="fr"
+        data-flag="bandeira-franca.webp"
+      >
+        <img loading="lazy"
+          src="bandeira-franca.webp"
+          class="w-5 h-4 rounded-sm"
+          alt="FR"
+          width="20"
+          height="16"
+        /><span>Français</span>
+      </div>
+      <div
+        class="flex items-center px-3 py-2 hover:bg-gray-100 cursor-pointer space-x-2"
+        data-value="hi"
+        data-flag="bandeira-india.webp"
+      >
+        <img loading="lazy"
+          src="bandeira-india.webp"
+          class="w-5 h-4 rounded-sm"
+          alt="HI"
+          width="20"
+          height="16"
+        /><span>हिन्दी</span>
+      </div>
+      <div
+        class="flex items-center px-3 py-2 hover:bg-gray-100 cursor-pointer space-x-2"
+        data-value="zh"
+        data-flag="bandeira-china.webp"
+      >
+        <img loading="lazy"
+          src="bandeira-china.webp"
+          class="w-5 h-4 rounded-sm"
+          alt="ZH"
+          width="20"
+          height="16"
+        /><span>中文</span>
+      </div>
+      <div
+        class="flex items-center px-3 py-2 hover:bg-gray-100 cursor-pointer space-x-2"
+        data-value="ar"
+        data-flag="bandeira-arabia.webp"
+      >
+        <img loading="lazy"
+          src="bandeira-arabia.webp"
+          class="w-5 h-4 rounded-sm"
+          alt="AR"
+          width="20"
+          height="16"
+        /><span>العربية</span>
+      </div>
+      <div
+        class="flex items-center px-3 py-2 hover:bg-gray-100 cursor-pointer space-x-2"
+        data-value="ja"
+        data-flag="bandeira-japao.webp"
+      >
+        <img loading="lazy"
+          src="bandeira-japao.webp"
+          class="w-5 h-4 rounded-sm"
+          alt="JA"
+          width="20"
+          height="16"
+        /><span>日本語</span>
+      </div>
+      <div
+        class="flex items-center px-3 py-2 hover:bg-gray-100 cursor-pointer space-x-2"
+        data-value="ru"
+        data-flag="bandeira-russia.webp"
+      >
+        <img loading="lazy"
+          src="bandeira-russia.webp"
+          class="w-5 h-4 rounded-sm"
+          alt="RU"
+          width="20"
+          height="16"
+        /><span>Русский</span>
+      </div>
+      <div
+        class="flex items-center px-3 py-2 hover:bg-gray-100 cursor-pointer space-x-2"
+        data-value="ko"
+        data-flag="bandeira-coreia.webp"
+      >
+        <img loading="lazy"
+          src="bandeira-coreia.webp"
+          class="w-5 h-4 rounded-sm"
+          alt="KO"
+          width="20"
+          height="16"
+        /><span>한국어</span>
+      </div>
+      <div
+        class="flex items-center px-3 py-2 hover:bg-gray-100 cursor-pointer space-x-2"
+        data-value="tr"
+        data-flag="bandeira-turquia.webp"
+      >
+        <img loading="lazy"
+          src="bandeira-turquia.webp"
+          class="w-5 h-4 rounded-sm"
+          alt="TR"
+          width="20"
+          height="16"
+        /><span>Türkçe</span>
+      </div>
+      <div
+        class="flex items-center px-3 py-2 hover:bg-gray-100 cursor-pointer space-x-2"
+        data-value="nl"
+        data-flag="bandeira-holanda.webp"
+      >
+        <img loading="lazy"
+          src="bandeira-holanda.webp"
+          class="w-5 h-4 rounded-sm"
+          alt="NL"
+          width="20"
+          height="16"
+        /><span>Nederlands</span>
+      </div>
+      <div
+        class="flex items-center px-3 py-2 hover:bg-gray-100 cursor-pointer space-x-2"
+        data-value="pl"
+        data-flag="bandeira-polonia.webp"
+      >
+        <img loading="lazy"
+          src="bandeira-polonia.webp"
+          class="w-5 h-4 rounded-sm"
+          alt="PL"
+          width="20"
+          height="16"
+        /><span>Polski</span>
+      </div>
+      <div
+        class="flex items-center px-3 py-2 hover:bg-gray-100 cursor-pointer space-x-2"
+        data-value="sv"
+        data-flag="bandeira-suecia.webp"
+      >
+        <img loading="lazy"
+          src="bandeira-suecia.webp"
+          class="w-5 h-4 rounded-sm"
+          alt="SV"
+          width="20"
+          height="16"
+        /><span>Suédois</span>
+      </div>
+      <div
+        class="flex items-center px-3 py-2 hover:bg-gray-100 cursor-pointer space-x-2"
+        data-value="id"
+        data-flag="bandeira-indonesia.webp"
+      >
+        <img loading="lazy"
+          src="bandeira-indonesia.webp"
+          class="w-5 h-4 rounded-sm"
+          alt="ID"
+          width="20"
+          height="16"
+        /><span>Indonésien</span>
+      </div>
+      <div
+        class="flex items-center px-3 py-2 hover:bg-gray-100 cursor-pointer space-x-2"
+        data-value="vi"
+        data-flag="bandeira-vietna.webp"
+      >
+        <img loading="lazy"
+          src="bandeira-vietna.webp"
+          class="w-5 h-4 rounded-sm"
+          alt="VI"
+          width="20"
+          height="16"
+        /><span>Tiếng Việt</span>
+      </div>
+      <div
+        class="flex items-center px-3 py-2 hover:bg-gray-100 cursor-pointer space-x-2"
+        data-value="uk"
+        data-flag="bandeira-ucrania.webp"
+      >
+        <img loading="lazy"
+          src="bandeira-ucrania.webp"
+          class="w-5 h-4 rounded-sm"
+          alt="UK"
+          width="20"
+          height="16"
+        /><span>Українська</span>
       </div>
     </div>
   </div>
+</div>
+
+
   <main id="main-content" class="flex-grow p-4 sm:p-8">
-    <div class="main-content-wrapper max-w-4xl mx-auto px-4 py-8">
+    <div class="main-content-wrapper max-w-6xl mx-auto px-4 py-8">
       <nav class="breadcrumb" aria-label="breadcrumb">
         <ol>
           <li><a href="index.html">Início</a></li>
@@ -521,281 +751,214 @@
           Cálculo de Insulina
         </h1>
       </div>
-      <div class="title-bar w-full h-1 bg-dark-blue mx-auto mb-6"></div>
+      <div class="title-bar w-full h-1 bg-dark-blue mx-auto mb-8"></div>
 
-      <h2 id="main-subtitle" class="font-inter font-semibold text-light-blue text-xl lg:text-2xl mb-3 text-center">
-        Quanto devo aspirar?
-      </h2>
+      <!-- INÍCIO DO LAYOUT DE CARDS LADO A LADO -->
+      <div class="cards-wrapper mb-8">
 
-      <p class="font-inter font-normal text-light-blue text-base lg:text-lg mb-6 text-left">
-        Insira as informações abaixo e clique em "Calcular":
-      </p>
+        <!-- CARD ESQUERDA: CALCULADORA -->
+        <div class="card-half">
+            <div class="insulina-card">
+                <h3 class="card-title">Calculadora de Insulina</h3>
 
-      <div id="conteudo">
-        <div class="insulina-form-container">
-          <div class="insulina-input-group">
-            <label for="frasco">Frasco disponível (<abbr lang="en" title="Unidade Internacional">UI</abbr>):</label>
+                <div class="insulina-input-group">
+                    <label for="seringaSelect">Tamanho da seringa:</label>
+                    <select id="seringaSelect" name="seringaSelect">
+                        <option value="1">1 mL (100 UI)</option>
+                        <option value="3">3 mL</option>
+                    </select>
+                </div>
 
-            <input type="number" id="frasco" placeholder="Ex: 100" class="shadow-sm">
-          </div>
-          <div class="insulina-input-group">
-            <label for="seringa">Seringa (<abbr lang="en" title="Mililitro">mL</abbr>):</label>
-            <input type="number" id="seringa" placeholder="Ex: 1" class="shadow-sm">
-          </div>
-          <div class="insulina-input-group">
-            <label for="prescricao">Prescrição médica (<abbr lang="en" title="Unidade Internacional">UI</abbr>):</label>
-            <input type="number" id="prescricao" placeholder="Ex: 15" class="shadow-sm">
-          </div>
+                <div class="insulina-input-group">
+                    <label for="prescricao">Prescrição médica (<abbr lang="en" title="Unidade Internacional">UI</abbr>):</label>
+                    <!-- Bloqueio de scroll do mouse adicionado -->
+                    <input type="number" id="prescricao" placeholder="Ex: 25" onwheel="return false;">
+                </div>
+
+                <button id="btnCalcularInterno" class="btn-calcular-card">
+                    Calcular
+                </button>
+
+                <!-- CAIXA DE RESULTADO DENTRO DO CARD -->
+                <div id="resultadoBox" class="resultado-box">
+                    <!-- O conteúdo será injetado pelo JS -->
+                </div>
+            </div>
         </div>
+
+        <!-- CARD DIREITA: INFORMAÇÕES -->
+        <div class="card-half">
+            <div class="insulina-card">
+                <h3 class="card-title" style="font-size: 1.1rem; text-align: left; margin-bottom: 1rem;">
+                    Medidas de seringas para aplicação de medicamentos por via subcutânea - Seringa de Insulina de 1 mL:
+                </h3>
+
+                <div class="text-xs font-inter text-black-custom">
+                    <p class="mt-2"><strong>Exemplos:</strong></p>
+                    <ul class="list-disc pl-4 space-y-1 mt-1">
+                        <li>100 UI equivale a 1 mL</li>
+                        <li>50 UI equivale a 0,5 mL</li>
+                        <li>30 UI equivale a 0,3 mL</li>
+                        <li>10 UI equivale a 0,1 mL</li>
+                    </ul>
+                    <p class="mt-3">
+                        (Dê preferência a seringas de <abbr lang="en" title="Insulin">Insulina</abbr> com capacidade para 100 <abbr lang="en" title="Unidade Internacional">UI</abbr>)
+                    </p>
+                    <p class="mt-3 font-bold text-red-600">
+                        ATENÇÃO: INSULINA É UMA MEDICAÇÃO DE ALTA VIGILÂNCIA (MAV), REALIZE A DUPLA CHECAGEM (DOUBLE CHECK) JUNTO AO SEU ENFERMEIRO.
+                    </p>
+                </div>
+
+                <img src="seringainsulina.webp" alt="Seringa de insulina graduada" class="right-card-img" loading="lazy">
+            </div>
+        </div>
+
       </div>
-      <div class="flex flex-col lg:flex-row justify-start gap-6 mb-6">
-        <!-- QUADRADO ESQUERDO -->
-        <div id="insulina-seringas-info"
-          class="bg-gray-100 p-4 rounded-lg border border-gray-300 w-full lg:w-1/2 text-xs font-inter text-black-custom insulina-info">
-          <strong>Medidas de seringas para aplicação de medicamentos por via subcutânea - Seringa de <abbr lang="en"
-              title="Insulin">Insulina</abbr> de 1 <abbr lang="en" title="Mililitro">mL</abbr>:</strong>
-          <p class="mt-2"><strong>Exemplos:</strong></p>
-          <p>100 <abbr lang="en" title="Unidade Internacional">UI</abbr> equivale a 1 <abbr lang="en"
-              title="Mililitro">mL</abbr> ou 1 <abbr lang="en" title="Centímetro Cúbico">cc</abbr></p>
-          <p>50 <abbr lang="en" title="Unidade Internacional">UI</abbr> equivale a 0,5 <abbr lang="en"
-              title="Mililitro">mL</abbr> ou 0,5 <abbr lang="en" title="Centímetro Cúbico">cc</abbr></p>
-          <p>30 <abbr lang="en" title="Unidade Internacional">UI</abbr> equivale a 0,3 <abbr lang="en"
-              title="Mililitro">mL</abbr> ou 0,3 <abbr lang="en" title="Centímetro Cúbico">cc</abbr></p>
-          <p class="mt-3">(Dê preferência a seringas de <abbr lang="en" title="Insulin">Insulina</abbr> com capacidade
-            para 100 <abbr lang="en" title="Unidade Internacional">UI</abbr>)</p>
-          <p class="mt-3"><strong>Atenção:</strong> 1 <abbr lang="en" title="Unidade Internacional">UI</abbr> de <abbr
-              lang="en" title="Insulin">Insulina</abbr> equivale a 0,01 <abbr lang="en" title="Mililitro">mL</abbr> &gt;
-            10 <abbr lang="en" title="Unidade Internacional">UI</abbr> equivale a 0,1 <abbr lang="en"
-              title="Mililitro">mL</abbr></p>
-          <p class="mt-3 font-bold text-red-600">ATENÇÃO: INSULINA É UMA MEDICAÇÃO DE ALTA VIGILÂNCIA (MAV), REALIZE A
-            DUPLA CHECAGEM (<span lang="en" title="Double Check">DOUBLE CHECK</span>) JUNTO AO SEU ENFERMEIRO.</p>
+      <!-- FIM DO LAYOUT DE CARDS LADO A LADO -->
 
-          <!-- Imagem da seringa -->
-          <img height="221" width="767" src="seringainsulina.webp" alt="Imagem de seringa de insulina graduada"
-            class="w-full h-auto mt-4 rounded-md object-contain" loading="lazy">
-        </div>
-
-        <!-- IMAGENS LADO DIREITO -->
-        <div class="flex flex-col items-center justify-start space-y-4 w-full lg:w-auto">
-          <img src="meta1.webp" alt="Meta 1" class="max-w-[400px] w-full rounded-md shadow object-contain" width="400"
-            height="240" loading="lazy">
-          <img src="meta3.webp" alt="Meta 3" class="max-w-[400px] w-full rounded-md shadow object-contain" width="400"
-            height="240" loading="lazy">
-          <img src="meta5.webp" alt="Meta 5" class="max-w-[400px] w-full rounded-md shadow object-contain" width="400"
-            height="240" loading="lazy">
-        </div>
+      <!-- IMAGENS META 1, 3, 5 -->
+      <div class="flex flex-col lg:flex-row justify-center items-center gap-4 mb-8">
+          <img src="meta1.webp" alt="Meta 1" class="max-w-[300px] w-full rounded-md shadow object-contain" width="400" height="240" loading="lazy">
+          <img src="meta3.webp" alt="Meta 3" class="max-w-[300px] w-full rounded-md shadow object-contain" width="400" height="240" loading="lazy">
+          <img src="meta5.webp" alt="Meta 5" class="max-w-[300px] w-full rounded-md shadow object-contain" width="400" height="240" loading="lazy">
       </div>
 
+      <!-- CHECKLIST 9 CERTOS -->
       <div id="os-9-certos"
-        class="bg-gray-100 p-4 rounded-lg border border-gray-300 w-full lg:w-1/2 text-xs font-inter text-black-custom">
-        <strong class="text-sm block mb-2">Os 9 Certos da Administração de Medicamentos:</strong>
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-y-1 gap-x-4 text-xs leading-tight">
-          <div class="flex items-center">
-            <input type="checkbox" id="certo1" class="h-3 w-3 text-blue-600 rounded mr-2">
-            <label for="certo1" class="whitespace-nowrap">1. Paciente certo</label>
-          </div>
-          <div class="flex items-center">
-            <input type="checkbox" id="certo2" class="h-3 w-3 text-blue-600 rounded mr-2">
-            <label for="certo2" class="whitespace-nowrap">2. Medicamento certo</label>
-          </div>
-          <div class="flex items-center">
-            <input type="checkbox" id="certo3" class="h-3 w-3 text-blue-600 rounded mr-2">
-            <label for="certo3" class="whitespace-nowrap">3. Dose certa</label>
-          </div>
-          <div class="flex items-center">
-            <input type="checkbox" id="certo4" class="h-3 w-3 text-blue-600 rounded mr-2">
-            <label for="certo4" class="whitespace-nowrap">4. Hora certa</label>
-          </div>
-          <div class="flex items-center">
-            <input type="checkbox" id="certo5" class="h-3 w-3 text-blue-600 rounded mr-2">
-            <label for="certo5" class="whitespace-nowrap">5. Via certa</label>
-          </div>
-          <div class="flex items-center">
-            <input type="checkbox" id="certo6" class="h-3 w-3 text-blue-600 rounded mr-2">
-            <label for="certo6" class="whitespace-nowrap">6. Documentação/Registro certo</label>
-          </div>
-          <div class="flex items-center">
-            <input type="checkbox" id="certo7" class="h-3 w-3 text-blue-600 rounded mr-2">
-            <label for="certo7" class="whitespace-nowrap">7. Orientação certa</label>
-          </div>
-          <div class="flex items-center">
-            <input type="checkbox" id="certo8" class="h-3 w-3 text-blue-600 rounded mr-2">
-            <label for="certo8" class="whitespace-nowrap">8. Resposta certa</label>
-          </div>
-          <div class="flex items-center">
-            <input type="checkbox" id="certo9" class="h-3 w-3 text-blue-600 rounded mr-2">
-            <label for="certo9" class="whitespace-nowrap">9. Validade certa</label>
-          </div>
-        </div>
-        <div class="mt-4 pt-2 border-t border-gray-200">
-          <div class="flex items-center mb-1">
-            <label for="meta1" class="text-xs mr-2">Meta 1 =</label>
-            <input type="checkbox" id="meta1" class="h-3 w-3 text-blue-600 rounded">
-            <label for="meta1" class="ml-1 text-xs">Certo</label>
-          </div>
-          <div class="flex items-center mb-1">
-            <label for="meta3" class="text-xs mr-2">Meta 3 =</label>
-            <input type="checkbox" id="meta3" class="h-3 w-3 text-blue-600 rounded">
-            <label for="meta3" class="ml-1 text-xs">Certo</label>
-          </div>
-          <div class="flex items-center">
-            <label for="meta5" class="text-xs mr-2">Meta 5 =</label>
-            <input type="checkbox" id="meta5" class="h-3 w-3 text-blue-600 rounded">
-            <label for="meta5" class="ml-1 text-xs">Certo</label>
-          </div>
-          <div class="flex items-center">
-            <label for="Dupla checagem" class="text-xs mr-2">Dupla checagem =</label>
-            <input type="checkbox" id="duplachecagem" class="h-3 w-3 text-blue-600 rounded">
-            <label for="duplachecagem" class="ml-1 text-xs">Certo</label>
-          </div>
+        class="bg-gray-100 p-6 rounded-lg border border-gray-300 w-full text-xs font-inter text-black-custom mx-auto">
+        <strong class="text-base block mb-4 text-center text-dark-blue">Os 9 Certos da Administração de Medicamentos:</strong>
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-y-2 gap-x-4 text-sm leading-tight">
+          <div class="flex items-center"><input type="checkbox" id="certo1" class="h-4 w-4 text-blue-600 rounded mr-2"><label for="certo1">1. Paciente certo</label></div>
+          <div class="flex items-center"><input type="checkbox" id="certo2" class="h-4 w-4 text-blue-600 rounded mr-2"><label for="certo2">2. Medicamento certo</label></div>
+          <div class="flex items-center"><input type="checkbox" id="certo3" class="h-4 w-4 text-blue-600 rounded mr-2"><label for="certo3">3. Dose certa</label></div>
+          <div class="flex items-center"><input type="checkbox" id="certo4" class="h-4 w-4 text-blue-600 rounded mr-2"><label for="certo4">4. Hora certa</label></div>
+          <div class="flex items-center"><input type="checkbox" id="certo5" class="h-4 w-4 text-blue-600 rounded mr-2"><label for="certo5">5. Via certa</label></div>
+          <div class="flex items-center"><input type="checkbox" id="certo6" class="h-4 w-4 text-blue-600 rounded mr-2"><label for="certo6">6. Registro certo</label></div>
+          <div class="flex items-center"><input type="checkbox" id="certo7" class="h-4 w-4 text-blue-600 rounded mr-2"><label for="certo7">7. Orientação certa</label></div>
+          <div class="flex items-center"><input type="checkbox" id="certo8" class="h-4 w-4 text-blue-600 rounded mr-2"><label for="certo8">8. Resposta certa</label></div>
+          <div class="flex items-center"><input type="checkbox" id="certo9" class="h-4 w-4 text-blue-600 rounded mr-2"><label for="certo9">9. Validade certa</label></div>
         </div>
       </div>
+
+      <!-- Botões de Ação Extras -->
+      <div class="flex flex-wrap justify-center gap-4 mt-8">
+        <button id="btnLimpar" class="btn-primary" aria-label="Limpar campos">Limpar</button>
+        <button id="btnGerarPDF" class="btn-secondary" aria-label="Gerar PDF">Gerar PDF</button>
+        <button id="btnNandaNicNoc" class="btn-primary" aria-label="Pesquisar NANDA, NIC, NOC">NANDA, NIC, NOC</button>
+      </div>
+
+
+      <div class="ref font-inter text-gray-custom text-left mt-8 border-t pt-4">
+        <strong>Referência Bibliográfica:</strong>
+        <p class="mt-2">
+          <a href="https://www.coren-ba.gov.br/wp-content/uploads/2024/07/CALCULO-DE-MEDICAMENTOS-Enfa.-Ana-Carolina-Ayres.pdf"
+            target="_blank" rel="noopener noreferrer" class="text-light-blue hover:underline">
+            Cálculo de Medicamentos. Conselho Regional de Enfermagem da Bahia – Coren-BA. 2024.
+          </a>
+        </p>
+      </div>
     </div>
-
-    <div id="resultado" class="resultado hidden" aria-live="polite"></div>
-
-    <div class="flex flex-wrap justify-start gap-4 mt-6">
-      <button id="btnCalcular" class="btn-primary" aria-label="Calcular dosagem">
-        Calcular
-      </button>
-      <button id="btnLimpar" class="btn-primary" aria-label="Limpar campos">
-        Limpar
-      </button>
-      <button id="btnGerarPDF" class="btn-secondary" aria-label="Gerar PDF">
-        Gerar PDF
-      </button>
-      <button id="btnNandaNicNoc" class="btn-primary" aria-label="Pesquisar NANDA, NIC, NOC">
-        NANDA, NIC, NOC
-      </button>
-    </div>
-
-
-    <div class="ref font-inter text-gray-custom text-left mt-8 border-t pt-4">
-      <strong>Referência Bibliográfica:</strong>
-      <p class="mt-2">
-        <a href="https://www.coren-ba.gov.br/wp-content/uploads/2024/07/CALCULO-DE-MEDICAMENTOS-Enfa.-Ana-Carolina-Ayres.pdf"
-          target="_blank" rel="noopener noreferrer" class="text-light-blue hover:underline">
-          Cálculo de Medicamentos. Conselho Regional de Enfermagem da Bahia – Coren-BA. 2024.
-        </a>
-      </p>
-    </div>
-
   </main>
-
-
-
-
 
   <script src="global-scripts.js" defer=""></script>
 
   <script>
     document.addEventListener('DOMContentLoaded', function () {
-      const resultadoDiv = document.getElementById('resultado');
-      const btnCalcular = document.getElementById('btnCalcular');
+      const btnCalcularInterno = document.getElementById('btnCalcularInterno');
+      const resultadoBox = document.getElementById('resultadoBox');
       const btnLimpar = document.getElementById('btnLimpar');
       const btnGerarPDF = document.getElementById('btnGerarPDF');
       const btnNandaNicNoc = document.getElementById('btnNandaNicNoc');
 
       function calcularInsulina() {
-        const frasco = parseFloat(document.getElementById('frasco').value);
-        const seringa = parseFloat(document.getElementById('seringa').value);
-        const prescricao = parseFloat(document.getElementById('prescricao').value);
+        // Regra: Não importa o frasco (10ml, 3ml), a concentração é 100UI/ml.
+        const prescricaoUI = parseFloat(document.getElementById('prescricao').value);
+        const tamanhoSeringa = document.getElementById('seringaSelect').value; // Apenas informativo/validação visual
 
-        resultadoDiv.className = 'resultado p-4 mt-6 rounded-lg text-left';
-        resultadoDiv.style.display = 'block';
-
-        if (isNaN(frasco) || isNaN(seringa) || isNaN(prescricao) || frasco <= 0 || seringa <= 0) {
-          resultadoDiv.innerHTML = '⚠️ <strong class="font-bold">Por favor, insira valores numéricos válidos e maiores que zero em todos os campos.</strong>';
-          resultadoDiv.classList.add('bg-info-orange-light');
-          resultadoDiv.classList.remove('bg-success-green', 'bg-danger-red');
-          delete resultadoDiv.dataset.score;
-          return;
+        if (isNaN(prescricaoUI) || prescricaoUI <= 0) {
+            alert("Por favor, insira uma prescrição válida em UI.");
+            return;
         }
 
-        const doseDesejada = (prescricao * seringa) / frasco;
+        // FÓRMULA GRAVADA: Volume (mL) = Dose Prescrita (UI) / 100
+        const volumeML = prescricaoUI / 100;
 
-        if (doseDesejada > seringa) {
-          resultadoDiv.innerHTML = '⚠️ <strong class="font-bold">A dose prescrita (${prescricao} UI) é maior do que a capacidade da seringa (${seringa} ml). Verifique os valores ou utilize uma seringa de maior capacidade.</strong>';
-          resultadoDiv.classList.add('bg-danger-red');
-          resultadoDiv.classList.remove('bg-success-green', 'bg-info-orange-light');
-          delete resultadoDiv.dataset.score;
-          return;
-        }
+        // Renderizar Resultado
+        resultadoBox.style.display = 'block';
 
-        let conduta = `Aspirar <strong class="font-bold">${doseDesejada.toFixed(2)} ml</strong> da insulina.`;
+        // Formatar valores para exibição (substituir ponto por vírgula se preferir padrão BR visualmente)
+        const prescricaoFormat = prescricaoUI.toString().replace('.', ',');
+        const volumeFormat = volumeML.toString().replace('.', ',');
 
-        resultadoDiv.innerHTML = `<p><strong>Cálculo Realizado:</strong></p><p>${prescricao} UI (Prescrição) x ${seringa} ml (Seringa) / ${frasco} UI (Frasco) = <strong class="font-bold">${doseDesejada.toFixed(2)} ml</strong></p><p><strong>Conduta:</strong> ${conduta}</p>`;
-        resultadoDiv.classList.add('bg-success-green');
-        resultadoDiv.classList.remove('bg-danger-red', 'bg-info-orange-light');
+        resultadoBox.innerHTML = `
+            <div class="resultado-formula">
+                <p style="font-size: 0.9rem; color: #555; margin-bottom: 5px;">Fórmula:</p>
+                <p><strong>${prescricaoFormat} UI</strong> (Prescrição) ÷ <strong>100</strong> (Concentração U-100) = <strong style="font-size: 1.4rem;">${volumeFormat} mL</strong></p>
+            </div>
+            <p>
+                Deve-se aspirar <strong>${volumeFormat} mL</strong> na seringa.
+            </p>
+            <div class="resultado-explicacao">
+                <p><strong>Nota Importante:</strong> Não importa se o frasco tem 10 mL ou 3 mL, a concentração é o fator determinante (100 UI/mL) dentro do frasco a ser aspirado: 1 mL aspirado do frasco é 1 mL de insulina, ou seja 100 UI.</p>
+            </div>
+        `;
 
-        resultadoDiv.dataset.score = doseDesejada.toFixed(2);
-        resultadoDiv.dataset.conduta = conduta;
-        resultadoDiv.dataset.scaleName = "Cálculo de Insulina";
+        // Armazenar dados para o PDF/NANDA
+        resultadoBox.dataset.score = volumeFormat + " mL";
+        resultadoBox.dataset.conduta = `Aspirar ${volumeFormat} mL de insulina correspondente a ${prescricaoFormat} UI.`;
+        resultadoBox.dataset.scaleName = "Cálculo de Insulina";
       }
 
       function limparCampos() {
-        document.getElementById('frasco').value = '';
-        document.getElementById('seringa').value = '';
         document.getElementById('prescricao').value = '';
-        resultadoDiv.innerHTML = '';
-        resultadoDiv.className = 'resultado hidden mt-6';
-        delete resultadoDiv.dataset.score;
-        delete resultadoDiv.dataset.conduta;
-        delete resultadoDiv.dataset.scaleName;
+        document.getElementById('seringaSelect').value = '1';
+        resultadoBox.style.display = 'none';
+        resultadoBox.innerHTML = '';
+        delete resultadoBox.dataset.score;
       }
 
-      // Adiciona os event listeners aos botões
-      btnCalcular?.addEventListener('click', calcularInsulina);
+      btnCalcularInterno?.addEventListener('click', calcularInsulina);
       btnLimpar?.addEventListener('click', limparCampos);
 
+      // PDF e Nanda mantidos
       btnGerarPDF?.addEventListener('click', () => {
-        if (!resultadoDiv.dataset.score) {
+        if (!resultadoBox.dataset.score) {
           alert('Por favor, clique em "Calcular" primeiro para gerar o PDF.');
           return;
         }
         if (typeof gerarPDFGlobal === 'function') {
           gerarPDFGlobal({
             titulo: 'Cálculo de Insulina',
-            subtitulo: 'Relatório de Dosagem e Diluição de Insulina',
+            subtitulo: 'Relatório de Dosagem',
             nomeArquivo: 'relatorio_insulina.pdf',
             seletorConteudo: '.main-content-wrapper'
           });
-        } else {
-          console.error('Função gerarPDFGlobal não definida.');
         }
       });
 
       btnNandaNicNoc?.addEventListener('click', () => {
-        const score = resultadoDiv.dataset.score;
-        const scaleName = resultadoDiv.dataset.scaleName;
-        const conduta = resultadoDiv.dataset.conduta;
-        if (!score || !conduta) {
-          alert('Calcule o resultado para pesquisar a conduta.');
+        const score = resultadoBox.dataset.score;
+        const conduta = resultadoBox.dataset.conduta;
+        if (!score) {
+          alert('Calcule o resultado para pesquisar.');
           return;
         }
-        const searchQuery = encodeURIComponent(`${scaleName} pontuação ${score} conduta ${conduta} gerar taxonomia NANDA, gerar taxonomia NIC e gerar taxonomia de NOC`);
+        const searchQuery = encodeURIComponent(`Cálculo de Insulina dose ${score} conduta ${conduta} NANDA NIC NOC`);
         window.open(`https://www.google.com/search?q=${searchQuery}`, '_blank');
       });
     });
   </script>
 
-
-
-
-
   <script src="/lang-selector.js" defer=""></script>
 
   <div id="footer-placeholder"></div>
   <script>
-    fetch('footer.html') // 1. Busca o arquivo
-      .then(response => response.text()) // 2. Converte a resposta para texto (HTML)
+    fetch('footer.html')
+      .then(response => response.text())
       .then(data => {
-        // 3. Insere o HTML dentro do seu placeholder
         document.getElementById('footer-placeholder').innerHTML = data;
       });
   </script>
-
-
 
 </body>
 
