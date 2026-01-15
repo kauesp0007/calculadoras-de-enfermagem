@@ -1,5 +1,5 @@
 // Define o nome e a versão do cache (AUTOMÁTICO via gerar-sw.js)
-const CACHE_NAME = 'calculadoras-enfermagem-cache-20260115-180613-690';
+const CACHE_NAME = 'calculadoras-enfermagem-cache-20260115-185229-167';
 
 // O SCRIPT DE BUILD VAI INJETAR A LISTA DE ARQUIVOS AQUI
 const urlsToCache = [
@@ -193,6 +193,7 @@ const urlsToCache = [
   'biblioteca/anatomia-e-fisiologia-humana.html',
   'biblioteca/anoscopio-proctoscopio.html',
   'biblioteca/aquecimento-imediato-em-caso-de-hipotermia-mantas-aquecedor-portatil-manta-termica-solucao-fisiologica-aquecida.html',
+  'biblioteca/armazenamento-de-medicamento-de-alta-vigilancia-mav.html',
   'biblioteca/artroscopio-ortopedia.html',
   'biblioteca/aspirador-de-yankauer.html',
   'biblioteca/atencao-ao-gotejamento.html',
@@ -438,6 +439,7 @@ const urlsToCache = [
   'biblioteca/o-responsavel-pelo-carrinho-de-emergencia-deve-ter-em-mente-as-5-causas-provaveis-h-de-uma-pcr-e-assim-organizar-o-carrinho-de-emerg.html',
   'biblioteca/o-responsavel-pelos-cuidados-na-assistencia-ventilatoria-deve-preparar-circuito-de-aspiracao-orotraqueal-montado-e-testado-lar.html',
   'biblioteca/otoscopio.html',
+  'biblioteca/outros-medicamentos-de-alta-vigilancia-mav.html',
   'biblioteca/pagina-calculadoras-de-enfermagem-protocolo-de-news.html',
   'biblioteca/pentagonos-entrelacados-teste-meem.html',
   'biblioteca/perfurador-de-cornea-trephine.html',
@@ -1368,6 +1370,7 @@ const urlsToCache = [
   'img/ALÇA DE POLIPECTOMIA.webp',
   'img/AMPOLA DE MEDICAMENTO ILUSTRAÇÃO.png',
   'img/ANOSCÓPIO PROCTOSCÓPIO.webp',
+  'img/ARMAZENAMENTO DE MEDICAMENTO DE ALTA VIGILANCIA - MAV.webp',
   'img/ARTROSCÓPIO ORTOPEDIA.webp',
   'img/ASPIRADOR DE YANKAUER.webp',
   'img/ATENDIMENTO-PRÉ-HOSPITALAR-TRANSPORTE-E-CLASSIFICAÇÃO-DE-RISCOS-1.webp',
@@ -1537,6 +1540,7 @@ const urlsToCache = [
   'img/O enfermeiro em hipotese alguma deve sair do ambiente onde está acontecendo a PCR, se precisar de algo fora do ambiente ele pede, se .webp',
   'img/O enfermeiro sempre deve designar um colaborador para providenciar prontuario, puxar exames de laboratorio no sistema, levar tubos de.webp',
   'img/OTOSCÓPIO.webp',
+  'img/OUTROS MEDICAMENTOS DE ALTA VIGILÂNCIA - MAV.webp',
   'img/PAGINA CALCULADORAS DE ENFERMAGEM PROTOCOLO DE NEWS.webp',
   'img/PERFURADOR DE CÔRNEA (Trephine).webp',
   'img/PINÇA ADSON SEM DENTE.webp',
