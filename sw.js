@@ -1,5 +1,5 @@
 // Define o nome e a versão do cache (AUTOMÁTICO via gerar-sw.js)
-const CACHE_NAME = 'calculadoras-enfermagem-cache-20260115-221617-109';
+const CACHE_NAME = 'calculadoras-enfermagem-cache-20260116-003642-212';
 
 // O SCRIPT DE BUILD VAI INJETAR A LISTA DE ARQUIVOS AQUI
 const urlsToCache = [
@@ -418,6 +418,12 @@ const urlsToCache = [
   'biblioteca/medication-calculation-rule-3.html',
   'biblioteca/meemcapa.html',
   'biblioteca/merle-mishel-teoria-da-incerteza-da-doenca.html',
+  'biblioteca/meta-1-identificacao-correta-do-paciente.html',
+  'biblioteca/meta-2-melhorar-a-comunicacao-entre-a-equipe-de-saude.html',
+  'biblioteca/meta-3-melhorar-a-seguranca-na-prescricao-no-uso-e-na-administracao-de-medicamentos.html',
+  'biblioteca/meta-4-assegurar-cirurgia-em-local-de-intervencao-procedimento-e-paciente-correto.html',
+  'biblioteca/meta-5-higienizar-as-maos-para-evitar-infeccoes.html',
+  'biblioteca/meta-6-deduzir-os-riscos-de-quedas-e-de-lesoes-por-pressao.html',
   'biblioteca/meta1.html',
   'biblioteca/meta2.html',
   'biblioteca/meta3.html',
@@ -1528,6 +1534,12 @@ const urlsToCache = [
   'img/MARTELO E GOIVA.webp',
   'img/MEDICATION CALCULATION RULE 3.webp',
   'img/MEDICAÇÃO CERTA NA ENFERMAGEM.png',
+  'img/META 1 - IDENTIFICAÇÃO CORRETA DO PACIENTE.webp',
+  'img/META 2 - MELHORAR A COMUNICAÇÃO ENTRE A EQUIPE DE SAÚDE.webp',
+  'img/META 3 - MELHORAR A SEGURANÇA NA PRESCRIÇÃO, NO USO E NA ADMINISTRAÇÃO DE MEDICAMENTOS.webp',
+  'img/META 4- ASSEGURAR CIRURGIA EM LOCAL DE INTERVENÇÃO, PROCEDIMENTO E PACIENTE CORRETO.webp',
+  'img/META 5- HIGIENIZAR AS MÃOS PARA EVITAR INFECÇÕES.webp',
+  'img/META 6 - DEDUZIR OS RISCOS DE QUEDAS E DE LESÕES POR PRESSÃO.webp',
   'img/MICRODEBRIDADOR.webp',
   'img/MICROSCÓPIO NEUROCIRURGIA.webp',
   'img/Madeleine Leininger - teoria do cuidado transcultural.jpg',
