@@ -8,6 +8,7 @@
   <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
 
+  <!-- Caminhos relativos para evitar erros no GitHub -->
   <link rel="preload" href="menu-global.html" as="fetch" crossorigin="">
   <link rel="preload" href="global-body-elements.html" as="fetch" crossorigin="">
 
@@ -21,34 +22,31 @@
   <link rel="alternate" hreflang="x-default" href="https://www.calculadorasdeenfermagem.com.br/sbar.html">
 
   <link rel="icon" href="favicon.ico" type="image/x-icon">
-  <meta name="description" content="Ferramenta SBAR digital para Passagem de Plantão e Transição de Cuidados em Enfermagem. Formulário completo baseado em protocolos hospitalares para segurança do paciente.">
-  <meta property="og:title" content="SBAR - Passagem de Plantão - Enfermagem">
-  <meta property="og:description" content="Ferramenta digital para passagem de plantão usando o método SBAR.">
-  <meta property="og:url" content="https://www.calculadorasdeenfermagem.com.br/sbar.html">
-  <meta property="og:image" content="https://www.calculadorasdeenfermagem.com.br/iconpages.webp">
-  <meta name="twitter:card" content="summary_large_image">
+  <meta name="description" content="Ferramenta SBAR digital para Passagem de Plantão.">
+  <meta property="og:title" content="SBAR - Passagem de Plantão">
 
-  <!-- Scripts e Estilos Globais -->
-  <!-- Importante: O CSS de impressão abaixo irá sobrescrever estes estilos na hora de gerar o PDF -->
+  <!-- CSS Global (apenas para tela, o de impressão está inline abaixo) -->
   <link href="public/output.css" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" crossorigin="anonymous">
-  <link rel="stylesheet" href="global-styles.css" media="screen">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="global-styles.css">
 
   <!-- Fontes -->
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
   <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@700;900&amp;family=Inter:wght@400;600;700&amp;display=swap" rel="stylesheet">
 
   <style>
-    /* ==========================================================================
-       ESTILOS DE TELA (SCREEN)
-       ========================================================================== */
+    /* CSS EMBUTIDO - GARANTIA DE FUNCIONAMENTO NO GITHUB
+       Isso torna o formulário independente de arquivos externos.
+    */
+
+    /* Estilos Base do Formulário */
     .sbar-container {
       background-color: #fff;
       padding: 1.5rem;
       border-radius: 8px;
       box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
       border: 1px solid #e2e8f0;
-      margin-bottom: 80px;
+      margin-bottom: 100px; /* Espaço para o botão flutuante */
+      max-width: 100%;
     }
 
     .patient-id-box {
@@ -59,6 +57,7 @@
       background-color: #f8fafc;
     }
 
+    /* Linhas e Inputs */
     .form-line {
       display: flex;
       align-items: center;
@@ -71,6 +70,7 @@
       font-weight: 700;
       color: #1a3e74;
       white-space: nowrap;
+      font-family: 'Nunito Sans', sans-serif;
     }
 
     .form-input-line {
@@ -81,6 +81,7 @@
       flex-grow: 1;
       font-family: 'Inter', sans-serif;
       color: #2d3748;
+      font-size: 1rem;
     }
 
     .form-input-line:focus {
@@ -88,11 +89,23 @@
       border-bottom: 2px solid #1a3e74;
     }
 
+    .inline-input {
+      border: none;
+      border-bottom: 1px solid #cbd5e0;
+      margin-left: 0.25rem;
+      padding: 0 0.25rem;
+      font-size: 0.9rem;
+      width: 120px;
+      background: transparent;
+    }
+
+    /* Seções SBAR */
     .sbar-section {
       border: 1px solid #cbd5e0;
       border-radius: 6px;
       margin-bottom: 1.5rem;
       overflow: hidden;
+      background: #fff;
     }
 
     .sbar-header {
@@ -103,11 +116,12 @@
       font-family: 'Nunito Sans', sans-serif;
       text-transform: uppercase;
       font-size: 0.9rem;
+      display: flex;
+      align-items: center;
     }
 
     .sbar-content {
       padding: 1rem;
-      background-color: #fff;
     }
 
     .subsection-title {
@@ -118,8 +132,10 @@
       border-bottom: 1px dashed #cbd5e0;
       padding-bottom: 0.25rem;
       display: block;
+      font-size: 0.95rem;
     }
 
+    /* Checkboxes e Radios */
     .radio-group, .checkbox-group {
       display: flex;
       flex-wrap: wrap;
@@ -135,9 +151,7 @@
       cursor: pointer;
     }
 
-    .radio-item input[type="checkbox"],
-    .checkbox-item input[type="checkbox"],
-    .radio-item input[type="radio"] {
+    input[type="checkbox"], input[type="radio"] {
       margin-right: 0.4rem;
       accent-color: #1a3e74;
       width: 1.1rem;
@@ -145,55 +159,44 @@
       cursor: pointer;
     }
 
-    .inline-input {
-      border: none;
-      border-bottom: 1px solid #cbd5e0;
-      margin-left: 0.5rem;
-      padding: 0 0.25rem;
-      font-size: 0.9rem;
-      width: 150px;
-    }
-
-    .inline-input:focus {
-        outline: none;
-        border-bottom: 1px solid #1a3e74;
-    }
-
+    /* Textareas */
     textarea.observation-box {
       width: 100%;
       border: 1px solid #cbd5e0;
       border-radius: 4px;
       padding: 0.5rem;
-      margin-top: 0.5rem;
+      margin-top: 0.25rem;
       font-size: 0.9rem;
       resize: vertical;
       min-height: 60px;
+      font-family: 'Inter', sans-serif;
     }
 
+    /* Grid Layout */
     .grid-2-cols {
-        display: grid;
-        grid-template-columns: 1fr;
-        gap: 1rem;
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1.5rem;
     }
 
     @media(min-width: 768px) {
-        .grid-2-cols {
-            grid-template-columns: 1fr 1fr;
-        }
+      .grid-2-cols {
+        grid-template-columns: 1fr 1fr;
+      }
     }
 
+    /* Badges */
     .sbar-badge {
-        display: inline-block;
-        width: 24px;
-        height: 24px;
-        background-color: #e53e3e;
-        color: white;
-        text-align: center;
-        border-radius: 50%;
-        font-weight: bold;
-        margin-right: 8px;
-        line-height: 24px;
-        font-size: 0.8rem;
+      display: inline-block;
+      width: 24px;
+      height: 24px;
+      color: white;
+      text-align: center;
+      border-radius: 50%;
+      font-weight: bold;
+      margin-right: 10px;
+      line-height: 24px;
+      font-size: 0.8rem;
     }
     .badge-S { background-color: #e53e3e; }
     .badge-B { background-color: #d69e2e; }
@@ -202,265 +205,197 @@
 
     /* Botão Flutuante */
     .floating-btn {
-        position: fixed;
-        bottom: 30px;
-        right: 30px;
-        background-color: rgba(30, 58, 138, 0.85);
-        color: white;
-        border: 1px solid rgba(255, 255, 255, 0.3);
-        padding: 15px 25px;
-        border-radius: 50px;
-        font-weight: bold;
-        font-size: 1rem;
-        box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
-        backdrop-filter: blur(4px);
-        -webkit-backdrop-filter: blur(4px);
-        cursor: pointer;
-        z-index: 1000;
-        transition: all 0.3s ease;
-        display: flex;
-        align-items: center;
-        gap: 10px;
+      position: fixed;
+      bottom: 30px;
+      right: 30px;
+      background-color: rgba(30, 58, 138, 0.85); /* Azul quase transparente */
+      color: white;
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      padding: 15px 25px;
+      border-radius: 50px;
+      font-weight: bold;
+      font-size: 1rem;
+      box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
+      cursor: pointer;
+      z-index: 9999;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
     }
 
     .floating-btn:hover {
-        background-color: rgba(30, 58, 138, 0.95);
-        transform: translateY(-2px);
-        box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+      background-color: rgba(30, 58, 138, 1);
+      transform: translateY(-2px);
+      box-shadow: 0 12px 24px rgba(0,0,0,0.3);
     }
 
     /* ==========================================================================
-       ESTILOS DE IMPRESSÃO (PDF) - AUTOSSUFICIENTE E BLINDADO
+       ESTILOS EXCLUSIVOS DE IMPRESSÃO (PDF) - "BLINDADO"
+       Estes estilos garantem que o PDF saia correto mesmo sem CSS externo.
        ========================================================================== */
     @media print {
-        /* Reset Total para Impressão - Ignora CSS externo */
-        * {
-            box-sizing: border-box !important;
-            -webkit-print-color-adjust: exact !important;
-            print-color-adjust: exact !important;
-            color-adjust: exact !important;
-        }
+      /* Reset Global */
+      * {
+        box-sizing: border-box !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
 
-        body {
-            font-family: Arial, Helvetica, sans-serif !important;
-            font-size: 10pt !important;
-            color: #000 !important;
-            background: #fff !important;
-            margin: 0 !important;
-            padding: 0 !important;
-            width: 100% !important;
-            height: auto !important;
-            overflow: visible !important;
-        }
+      body {
+        background-color: white !important;
+        font-family: Arial, sans-serif !important;
+        font-size: 10pt !important;
+        color: #000 !important;
+        margin: 0 !important;
+        padding: 0 !important;
+      }
 
-        /* Ocultar elementos desnecessários */
-        .no-print,
-        .breadcrumb,
-        .floating-btn,
-        #btnGerarPDF,
-        #language-dropdown-wrapper,
-        #global-header-container,
-        #main-subtitle,
-        footer,
-        #footer-placeholder,
-        .title-bar {
-            display: none !important;
-        }
+      /* Ocultar elementos desnecessários */
+      .no-print,
+      .breadcrumb,
+      .floating-btn,
+      #global-header-container,
+      #language-dropdown-wrapper,
+      footer,
+      #footer-placeholder,
+      .title-bar,
+      #main-subtitle {
+        display: none !important;
+      }
 
-        .main-content-wrapper {
-            padding: 0 !important;
-            margin: 0 !important;
-            max-width: 100% !important;
-            width: 100% !important;
-            border: none !important;
-            box-shadow: none !important;
-        }
+      /* Ajustar Container Principal */
+      .main-content-wrapper {
+        padding: 0 !important;
+        margin: 0 !important;
+        max-width: 100% !important;
+        width: 100% !important;
+      }
 
-        /* Título Principal */
-        #main-title {
-            margin-top: 0 !important;
-            margin-bottom: 5px !important;
-            padding-bottom: 0 !important;
-            font-size: 14pt !important;
-            font-weight: bold !important;
-            text-align: center !important;
-            color: #000 !important;
-            display: block !important;
-            border: none !important;
-        }
+      /* Título no Topo */
+      #main-title {
+        font-size: 14pt !important;
+        margin: 0 0 10px 0 !important;
+        text-align: center !important;
+        color: #000 !important;
+        display: block !important;
+      }
 
-        /* Layout do Container */
-        .sbar-container {
-            box-shadow: none !important;
-            border: none !important;
-            padding: 0 !important;
-            margin: 0 !important;
-            width: 100% !important;
-            background: transparent !important;
-        }
+      /* Container SBAR */
+      .sbar-container {
+        box-shadow: none !important;
+        border: none !important;
+        padding: 0 !important;
+        margin: 0 !important;
+      }
 
-        /* Etiqueta de Identificação */
-        .patient-id-box {
-            padding: 5px !important;
-            margin-bottom: 5px !important;
-            border: 1px solid #000 !important;
-            background-color: #f0f0f0 !important;
-            border-radius: 4px !important;
-            break-inside: avoid !important;
-        }
+      /* Identificação Paciente */
+      .patient-id-box {
+        border: 1px solid #000 !important;
+        background-color: #f0f0f0 !important;
+        padding: 5px !important;
+        margin-bottom: 5px !important;
+        page-break-inside: avoid !important;
+      }
 
-        .patient-id-box h3 {
-            margin: 0 0 5px 0 !important;
-            font-size: 10pt !important;
-            border-bottom: 1px solid #000 !important;
-            color: #000 !important;
-        }
+      /* Linhas do Formulário */
+      .form-line {
+        margin-bottom: 2px !important;
+      }
 
-        /* Seções SBAR */
-        .sbar-section {
-            margin-bottom: 5px !important;
-            border: 1px solid #000 !important;
-            border-radius: 0 !important;
-            break-inside: avoid !important;
-            background: #fff !important;
-        }
+      .form-label {
+        font-size: 9pt !important;
+        color: #000 !important;
+      }
 
-        .sbar-header {
-            padding: 2px 5px !important;
-            background-color: #ddd !important;
-            color: #000 !important;
-            border-bottom: 1px solid #000 !important;
-            font-weight: bold !important;
-            font-size: 9pt !important;
-        }
+      .form-input-line, .inline-input {
+        border-bottom: 1px solid #000 !important;
+        font-size: 9pt !important;
+        color: #000 !important;
+        height: auto !important;
+        padding: 0 2px !important;
+      }
 
-        .sbar-content {
-            padding: 5px !important;
-        }
+      /* Seções */
+      .sbar-section {
+        border: 1px solid #000 !important;
+        margin-bottom: 5px !important;
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+      }
 
-        /* Campos de Formulário */
-        .form-line {
-            display: flex !important;
-            align-items: center !important;
-            margin-bottom: 2px !important;
-            flex-wrap: wrap !important;
-        }
+      .sbar-header {
+        background-color: #ccc !important;
+        color: #000 !important;
+        border-bottom: 1px solid #000 !important;
+        padding: 2px 5px !important;
+        font-size: 9pt !important;
+      }
 
-        .form-label {
-            font-weight: bold !important;
-            margin-right: 5px !important;
-            color: #000 !important;
-            font-size: 9pt !important;
-        }
+      .sbar-content {
+        padding: 5px !important;
+      }
 
-        .form-input-line, .inline-input {
-            border: none !important;
-            border-bottom: 1px solid #000 !important;
-            padding: 0 2px !important;
-            height: auto !important;
-            font-size: 9pt !important;
-            background: transparent !important;
-            color: #000 !important;
-            flex-grow: 1 !important;
-        }
+      .sbar-badge {
+        color: #000 !important;
+        border: 1px solid #000 !important;
+        background: #fff !important;
+      }
 
-        /* Checkboxes e Radios */
-        .checkbox-group, .radio-group {
-            display: flex !important;
-            flex-wrap: wrap !important;
-            gap: 8px !important;
-            margin-bottom: 2px !important;
-        }
+      /* Grid Lado a Lado (Forçar) */
+      .grid-2-cols {
+        display: grid !important;
+        grid-template-columns: 1fr 1fr !important;
+        gap: 10px !important;
+      }
 
-        .radio-item, .checkbox-item {
-            font-size: 9pt !important;
-            display: flex !important;
-            align-items: center !important;
-        }
+      /* Inputs */
+      input[type="checkbox"], input[type="radio"] {
+        appearance: auto !important;
+        -webkit-appearance: auto !important; /* Mostra o quadrado padrão */
+        border: 1px solid #000 !important;
+        width: 10px !important;
+        height: 10px !important;
+      }
 
-        input[type="checkbox"], input[type="radio"] {
-            border: 1px solid #000 !important;
-            width: 12px !important;
-            height: 12px !important;
-            margin-right: 3px !important;
-            appearance: auto !important; /* Garante que o navegador renderize o controle nativo */
-        }
+      /* Áreas de Texto */
+      textarea {
+        border: 1px solid #999 !important;
+        resize: none !important;
+        overflow: hidden !important;
+        font-size: 9pt !important;
+        min-height: 20px !important;
+      }
 
-        /* Caixas de Texto */
-        #motivoInternacao {
-            min-height: 25px !important;
-            height: auto !important;
-            border: 1px solid #000 !important;
-            width: 100% !important;
-            font-size: 9pt !important;
-            margin-top: 2px !important;
-        }
+      /* Ajuste específico para Motivo Internação na pag 1 */
+      #motivoInternacao {
+        height: 30px !important;
+      }
 
-        .observation-box {
-            border: 1px solid #000 !important;
-            min-height: 25px !important;
-            width: 100% !important;
-            font-size: 9pt !important;
-            margin-top: 2px !important;
-        }
+      /* Ajuste Observações Enfermeiro (Horizontalizadas) */
+      .obs-dia, .obs-tarde, .obs-noite {
+        width: 100% !important;
+        display: block !important;
+        margin-bottom: 2px !important;
+      }
 
-        /* Grid - Forçar colunas lado a lado */
-        .grid-2-cols {
-            display: grid !important;
-            grid-template-columns: 1fr 1fr !important;
-            gap: 10px !important;
-        }
-
-        /* Subtítulos dentro das seções */
-        .subsection-title {
-            font-size: 9pt !important;
-            font-weight: bold !important;
-            border-bottom: none !important;
-            margin-top: 5px !important;
-            margin-bottom: 2px !important;
-            color: #000 !important;
-        }
-
-        /* Cores dos Badges (Simulação em tons de cinza/preto para contraste) */
-        .sbar-badge {
-            background-color: #000 !important;
-            color: #fff !important;
-            border-radius: 50% !important;
-            padding: 0 !important;
-            width: 18px !important;
-            height: 18px !important;
-            display: inline-block !important;
-            text-align: center !important;
-            font-size: 8pt !important;
-            line-height: 18px !important;
-            margin-right: 5px !important;
-        }
-
-        /* Ajustes específicos para observações */
-        .sbar-content .mb-4, .sbar-content .mb-2 {
-            margin-bottom: 5px !important;
-        }
-
-        strong {
-            color: #000 !important;
-        }
+      .obs-box-print {
+        height: 40px !important; /* Altura fixa para caber */
+      }
     }
   </style>
 </head>
 
 <body class="bg-gray-50 text-gray-800 font-inter">
 
-  <!-- Skip Links -->
-  <nav aria-label="Atalhos de Acessibilidade" class="sr-only focus-within:not-sr-only focus-within:absolute focus-within:top-0 focus-within:left-0 focus-within:z-50 focus-within:bg-white focus-within:text-blue-700 focus-within:p-4 focus-within:underline">
-    <a href="/" accesskey="I" class="block mb-2">Ir para o Início [Alt + Shift + I]</a>
-    <a href="#main-content" accesskey="C" class="block mb-2">Pular para o conteúdo principal [Alt + Shift + C]</a>
-    <a href="#backToTopBtn" accesskey="T" class="block">Voltar ao Topo da Página [Alt + Shift + T]</a>
-  </nav>
-
-  <div id="statusMessage" class="sr-only" aria-live="polite" aria-atomic="true"></div>
+  <!-- Menu Global Container -->
   <div id="global-header-container" style="min-height: 70px;"></div>
 
-  <!-- Language Selector Placeholder -->
+  <!-- Placeholder para Seletor de Idiomas -->
   <div id="language-dropdown-wrapper" class="flex justify-end w-full" style="position: relative; z-index: 100; padding-right: 2rem;"></div>
 
   <main id="main-content" class="flex-grow p-4 md:p-8">
@@ -488,19 +423,19 @@
 
         <!-- IDENTIFICAÇÃO DO PACIENTE -->
         <div class="patient-id-box">
-          <h3 class="font-bold text-dark-blue mb-4 border-bottom pb-2">IDENTIFICAÇÃO DO PACIENTE</h3>
+          <h3 class="font-bold text-dark-blue mb-2 border-b border-blue-900 pb-1" style="font-size: 1rem;">IDENTIFICAÇÃO DO PACIENTE</h3>
 
           <div class="form-line">
             <label class="form-label">NOME:</label>
-            <input type="text" class="form-input-line" placeholder="Digite o nome do paciente" id="pacienteNome" style="flex-grow: 2;">
-            <label class="form-label">QT (Quarto/Leito):</label>
-            <input type="text" class="form-input-line" style="width: 80px; flex-grow: 0;" id="pacienteQT">
+            <input type="text" class="form-input-line" placeholder="Nome completo" id="pacienteNome" style="flex-grow: 2;">
+            <label class="form-label ml-2">QT:</label>
+            <input type="text" class="form-input-line" style="width: 60px; flex-grow: 0;" id="pacienteQT">
           </div>
 
           <div class="form-line">
             <label class="form-label">IDADE:</label>
-            <input type="text" class="form-input-line" style="width: 80px; flex-grow: 0;" id="pacienteIdade">
-            <label class="form-label">PRONTUÁRIO:</label>
+            <input type="text" class="form-input-line" style="width: 60px; flex-grow: 0;" id="pacienteIdade">
+            <label class="form-label ml-2">PRONTUÁRIO:</label>
             <input type="text" class="form-input-line" id="pacienteProntuario">
           </div>
 
@@ -514,7 +449,7 @@
         <div class="sbar-section">
             <div class="sbar-header"><span class="sbar-badge badge-S">S</span> SITUATION (SITUAÇÃO)</div>
             <div class="sbar-content">
-                <label class="form-label mb-2 block">Motivos da Internação:</label>
+                <label class="form-label mb-1 block">Motivos da Internação:</label>
                 <textarea class="observation-box" id="motivoInternacao" rows="2"></textarea>
             </div>
         </div>
@@ -525,123 +460,121 @@
             <div class="sbar-content">
 
                 <!-- 1. AVALIAÇÃO -->
-                <strong class="text-lg text-dark-blue block mb-2" style="font-size: 1rem;">1 - AVALIAÇÃO</strong>
+                <strong class="text-dark-blue block mb-2 font-bold text-sm">1 - AVALIAÇÃO</strong>
 
                 <div class="grid-2-cols">
                     <div>
                         <span class="subsection-title">Nível de Consciência:</span>
-                        <div class="radio-group">
-                            <label class="radio-item"><input type="checkbox" name="consciencia" value="Acordado"> Acordado</label>
-                            <label class="radio-item"><input type="checkbox" name="consciencia" value="Orientado"> Orientado</label>
-                            <label class="radio-item"><input type="checkbox" name="consciencia" value="Sonolento"> Sonolento</label>
-                            <label class="radio-item"><input type="checkbox" name="consciencia" value="Agitado/Desorientado"> Agitado/Desorientado</label>
+                        <div class="checkbox-group">
+                            <label class="checkbox-item"><input type="checkbox" name="consciencia"> Acordado</label>
+                            <label class="checkbox-item"><input type="checkbox" name="consciencia"> Orientado</label>
+                            <label class="checkbox-item"><input type="checkbox" name="consciencia"> Sonolento</label>
+                            <label class="checkbox-item"><input type="checkbox" name="consciencia"> Agitado/Desorientado</label>
                         </div>
 
                         <span class="subsection-title">Padrão Respiratório:</span>
-                        <div class="radio-group">
-                            <label class="radio-item"><input type="checkbox" name="resp" value="Ar Ambiente"> Ar Ambiente</label>
-                            <label class="radio-item"><input type="checkbox" name="resp" value="Cateter Nasal"> Cateter Nasal <input type="text" class="inline-input" placeholder="l/m" style="width: 40px"></label>
-                            <label class="radio-item"><input type="checkbox" name="resp" value="Macro"> Macro <input type="text" class="inline-input" placeholder="l/m" style="width: 40px"></label>
-                            <label class="radio-item"><input type="checkbox" name="resp" value="Venturi"> Venturi <input type="text" class="inline-input" placeholder="l/m" style="width: 40px"></label>
+                        <div class="checkbox-group">
+                            <label class="checkbox-item"><input type="checkbox" name="resp"> Ar Ambiente</label>
+                            <label class="checkbox-item"><input type="checkbox" name="resp"> Cateter Nasal <input type="text" class="inline-input" style="width: 30px"></label>
+                            <label class="checkbox-item"><input type="checkbox" name="resp"> Macro <input type="text" class="inline-input" style="width: 30px"></label>
+                            <label class="checkbox-item"><input type="checkbox" name="resp"> Venturi <input type="text" class="inline-input" style="width: 30px"></label>
                         </div>
                     </div>
 
                     <div>
                         <span class="subsection-title">Sinais Vitais (SSVV):</span>
                         <div class="form-line">
-                            <label>Temp:</label> <input type="text" class="inline-input" style="width: 50px">
-                            <label>FC:</label> <input type="text" class="inline-input" style="width: 50px">
-                            <label>PA:</label> <input type="text" class="inline-input" style="width: 70px">
+                            <label>Temp:</label> <input type="text" class="inline-input" style="width: 40px">
+                            <label class="ml-2">FC:</label> <input type="text" class="inline-input" style="width: 40px">
+                            <label class="ml-2">PA:</label> <input type="text" class="inline-input" style="width: 60px">
                         </div>
                         <div class="form-line">
-                            <label>SP02:</label> <input type="text" class="inline-input" style="width: 50px">
-                            <label>Dextro:</label> <input type="text" class="inline-input" style="width: 50px"> mg/dl
+                            <label>SP02:</label> <input type="text" class="inline-input" style="width: 40px">
+                            <label class="ml-2">Dextro:</label> <input type="text" class="inline-input" style="width: 40px"> mg/dl
                         </div>
                     </div>
                 </div>
 
                 <!-- 2. COMORBIDADES -->
-                <strong class="text-lg text-dark-blue block mt-4 mb-2" style="font-size: 1rem;">2 - COMORBIDADES</strong>
+                <strong class="text-dark-blue block mt-3 mb-1 font-bold text-sm">2 - COMORBIDADES</strong>
                 <div class="checkbox-group">
-                    <label class="checkbox-item"><input type="checkbox" name="comorb" value="Nega"> NEGA</label>
-                    <label class="checkbox-item"><input type="checkbox" name="comorb" value="HAS"> HAS</label>
-                    <label class="checkbox-item"><input type="checkbox" name="comorb" value="DM"> DM</label>
-                    <label class="checkbox-item"><input type="checkbox" name="comorb" value="Ins. Renal"> Ins. Renal</label>
-                    <label class="checkbox-item"><input type="checkbox" name="comorb" value="Outros"> Outros <input type="text" class="inline-input"></label>
+                    <label class="checkbox-item"><input type="checkbox" name="comorb"> NEGA</label>
+                    <label class="checkbox-item"><input type="checkbox" name="comorb"> HAS</label>
+                    <label class="checkbox-item"><input type="checkbox" name="comorb"> DM</label>
+                    <label class="checkbox-item"><input type="checkbox" name="comorb"> Ins. Renal</label>
+                    <label class="checkbox-item"><input type="checkbox" name="comorb"> Outros <input type="text" class="inline-input" style="width: 80px"></label>
                 </div>
 
-                <div class="mt-2 bg-gray-50 p-2 rounded" style="padding: 0.5rem;">
-                    <span class="font-bold text-sm">Alergia Medicamentosa/Alimentar?</span>
-                    <div class="radio-group mt-1">
-                        <label class="checkbox-item"><input type="checkbox" name="alergia" value="Sim"> SIM</label>
-                        <label class="checkbox-item"><input type="checkbox" name="alergia" value="Não"> NÃO</label>
+                <div class="mt-2 bg-gray-50 p-2 rounded border border-gray-200">
+                    <div class="form-line">
+                        <span class="font-bold text-sm mr-2">Alergia?</span>
+                        <label class="checkbox-item"><input type="checkbox"> SIM</label>
+                        <label class="checkbox-item ml-2"><input type="checkbox"> NÃO</label>
                     </div>
                     <div class="form-line mt-1">
-                        <label>Reação:</label> <input type="text" class="inline-input" style="width: 120px">
-                        <label class="ml-2">Qual substância?</label> <input type="text" class="inline-input" style="width: 120px">
+                        <label>Reação:</label> <input type="text" class="inline-input" style="width: 100px">
+                        <label class="ml-2">Substância:</label> <input type="text" class="inline-input" style="width: 100px">
                     </div>
                 </div>
 
                 <!-- 3. ISOLAMENTO E DISPOSITIVOS -->
-                <strong class="text-lg text-dark-blue block mt-4 mb-2" style="font-size: 1rem;">3 - ISOLAMENTO E DISPOSITIVOS</strong>
+                <strong class="text-dark-blue block mt-3 mb-1 font-bold text-sm">3 - ISOLAMENTO E DISPOSITIVOS</strong>
                 <div class="grid-2-cols">
                     <div>
                         <span class="subsection-title">Isolamento:</span>
                         <div class="checkbox-group">
-                            <label class="checkbox-item"><input type="checkbox" name="isol" value="Contato"> Contato</label>
-                            <label class="checkbox-item"><input type="checkbox" name="isol" value="Imunodepressão"> Imunodepressão</label>
-                            <label class="checkbox-item"><input type="checkbox" name="isol" value="Respiratório"> Respiratório</label>
-                            <label class="checkbox-item"><input type="checkbox" name="isol" value="N95"> N95</label>
-                            <label class="checkbox-item"><input type="checkbox" name="isol" value="Máscara Comum"> Máscara Comum</label>
+                            <label class="checkbox-item"><input type="checkbox" name="isol"> Contato</label>
+                            <label class="checkbox-item"><input type="checkbox" name="isol"> Imunodep.</label>
+                            <label class="checkbox-item"><input type="checkbox" name="isol"> Respiratório</label>
+                            <label class="checkbox-item"><input type="checkbox" name="isol"> N95</label>
+                            <label class="checkbox-item"><input type="checkbox" name="isol"> Máscara</label>
                         </div>
 
                         <span class="subsection-title">Culturas:</span>
                         <div class="checkbox-group">
-                            <label class="checkbox-item"><input type="checkbox" name="cult" value="Hemo"> Hemo</label>
-                            <label class="checkbox-item"><input type="checkbox" name="cult" value="Uro"> Uro</label>
-                            <label class="checkbox-item">Data: <input type="date" class="inline-input" style="width:100px"></label>
+                            <label class="checkbox-item"><input type="checkbox" name="cult"> Hemo</label>
+                            <label class="checkbox-item"><input type="checkbox" name="cult"> Uro</label>
+                            <label class="checkbox-item">Data: <input type="date" class="inline-input" style="width:90px"></label>
                         </div>
                         <div class="form-line">
-                            <label>Res. Hemo:</label> <input type="text" class="inline-input" style="width: 80px;">
-                            <label class="ml-2">Urocultura:</label> <input type="text" class="inline-input" style="width: 80px;">
+                            <label>Res. Hemo:</label> <input type="text" class="inline-input" style="width: 70px;">
+                            <label class="ml-2">Uro:</label> <input type="text" class="inline-input" style="width: 70px;">
                         </div>
                         <div class="form-line">
-                            <label>Antibióticos:</label> <input type="text" class="inline-input">
+                            <label>ATB:</label> <input type="text" class="inline-input">
                         </div>
                     </div>
 
                     <div>
                         <span class="subsection-title">Dispositivos:</span>
-                        <div class="form-line"><label class="checkbox-item"><input type="checkbox" name="disp" value="AVP"> AVP Local:</label> <input type="text" class="inline-input"></div>
-                        <div class="form-line"><label class="checkbox-item"><input type="checkbox" name="disp" value="AVC"> AVC Local:</label> <input type="text" class="inline-input"></div>
-                        <div class="form-line"><label class="checkbox-item"><input type="checkbox" name="disp" value="Portocath"> PORTH-CATH</label></div>
-                        <div class="form-line"><label class="checkbox-item"><input type="checkbox" name="disp" value="SNG/SOG"> SNG/SOG</label> Aberta? <input type="checkbox" class="ml-2"> Débito: <input type="text" class="inline-input" style="width:50px"></div>
-                        <div class="form-line"><label class="checkbox-item"><input type="checkbox" name="disp" value="SVD"> SVD</label> Débito: <input type="text" class="inline-input" style="width:50px"></div>
-                        <div class="form-line"><label class="checkbox-item"><input type="checkbox" name="disp" value="Dreno"> Dreno:</label> <input type="text" class="inline-input"></div>
-                        <div class="form-line"><label class="checkbox-item"><input type="checkbox" name="disp" value="Curativos"> Curativos Local:</label> <input type="text" class="inline-input"></div>
+                        <div class="form-line"><label class="checkbox-item"><input type="checkbox"> AVP Local:</label> <input type="text" class="inline-input" style="width: 80px"></div>
+                        <div class="form-line"><label class="checkbox-item"><input type="checkbox"> AVC Local:</label> <input type="text" class="inline-input" style="width: 80px"></div>
+                        <div class="form-line"><label class="checkbox-item"><input type="checkbox"> PORTH-CATH</label></div>
+                        <div class="form-line"><label class="checkbox-item"><input type="checkbox"> SNG/SOG</label> Aberta? <input type="checkbox" class="ml-1"> Déb.: <input type="text" class="inline-input" style="width:40px"></div>
+                        <div class="form-line"><label class="checkbox-item"><input type="checkbox"> SVD</label> Déb.: <input type="text" class="inline-input" style="width:40px"></div>
+                        <div class="form-line"><label class="checkbox-item"><input type="checkbox"> Dreno:</label> <input type="text" class="inline-input" style="width: 80px"></div>
+                        <div class="form-line"><label class="checkbox-item"><input type="checkbox"> Curativos:</label> <input type="text" class="inline-input" style="width: 80px"></div>
                     </div>
                 </div>
 
                 <!-- 4. NUTRIÇÃO -->
-                <strong class="text-lg text-dark-blue block mt-4 mb-2" style="font-size: 1rem;">4 - NUTRIÇÃO E ELIMINAÇÃO</strong>
-                <div class="radio-group">
-                    <label class="radio-item"><input type="checkbox" name="nutri" value="VO"> VO</label>
-                    <label class="radio-item"><input type="checkbox" name="nutri" value="SNE"> SNE</label>
-                    <label class="radio-item ml-4"><input type="checkbox" name="nutri_prot" value="Jejum"> Protocolo Jejum?</label>
-                    <label class="checkbox-item"><input type="checkbox"> Sim</label>
-                    <label class="checkbox-item"><input type="checkbox"> Não</label>
-                    <label class="radio-item ml-4">Início: <input type="time" class="inline-input" style="width: 70px"></label>
+                <strong class="text-dark-blue block mt-3 mb-1 font-bold text-sm">4 - NUTRIÇÃO E ELIMINAÇÃO</strong>
+                <div class="checkbox-group">
+                    <label class="checkbox-item"><input type="checkbox" name="nutri"> VO</label>
+                    <label class="checkbox-item"><input type="checkbox" name="nutri"> SNE</label>
+                    <label class="checkbox-item ml-3"><input type="checkbox" name="nutri"> Jejum?</label>
+                    <label class="checkbox-item ml-3">Início: <input type="time" class="inline-input" style="width: 60px"></label>
                 </div>
-                <div class="form-line mt-2">
-                    <span class="mr-2">Evacuação:</span>
-                    <label class="checkbox-item"><input type="checkbox"> Sim</label>
-                    <label class="checkbox-item"><input type="checkbox"> Não</label>
+                <div class="form-line mt-1">
+                    <span class="mr-1 font-bold text-sm">Evacuação:</span>
+                    <label class="checkbox-item"><input type="checkbox"> S</label>
+                    <label class="checkbox-item"><input type="checkbox"> N</label>
 
-                    <span class="ml-4 mr-2">Diurese:</span>
-                    <label class="checkbox-item"><input type="checkbox"> Sim</label>
-                    <label class="checkbox-item"><input type="checkbox"> Não</label>
+                    <span class="ml-3 mr-1 font-bold text-sm">Diurese:</span>
+                    <label class="checkbox-item"><input type="checkbox"> S</label>
+                    <label class="checkbox-item"><input type="checkbox"> N</label>
 
-                    <label class="ml-4">BH 24h:</label> <input type="text" class="inline-input" style="width:60px">
+                    <label class="ml-3 font-bold text-sm">BH 24h:</label> <input type="text" class="inline-input" style="width:50px">
                 </div>
             </div>
         </div>
@@ -651,58 +584,58 @@
             <div class="sbar-header"><span class="sbar-badge badge-A">A</span> ASSESSMENT (AVALIAÇÃO)</div>
             <div class="sbar-content">
 
-                <strong class="text-lg text-dark-blue block mb-2" style="font-size: 1rem;">5 - PROTOCOLO DE HEMOTRANSFUSÃO</strong>
+                <strong class="text-dark-blue block mb-2 font-bold text-sm">5 - PROTOCOLO DE HEMOTRANSFUSÃO</strong>
                 <div class="form-line">
                     <span class="mr-2">Necessita?</span>
                     <label class="checkbox-item"><input type="checkbox"> Sim</label>
                     <label class="checkbox-item"><input type="checkbox"> Não</label>
 
-                    <label class="ml-4">Data:</label> <input type="date" class="inline-input" style="width: 110px;">
+                    <label class="ml-3">Data:</label> <input type="date" class="inline-input" style="width: 90px;">
 
-                    <span class="ml-4 mr-2">Amostra ao Hemo?</span>
+                    <span class="ml-3 mr-1">Amostra Hemo?</span>
                     <label class="checkbox-item"><input type="checkbox"> Sim</label>
                     <label class="checkbox-item"><input type="checkbox"> Não</label>
                 </div>
 
-                <strong class="text-lg text-dark-blue block mt-4 mb-2" style="font-size: 1rem;">6 - RISCOS EVIDENCIADOS</strong>
+                <strong class="text-dark-blue block mt-3 mb-2 font-bold text-sm">6 - RISCOS EVIDENCIADOS</strong>
                 <div class="checkbox-group">
-                    <label class="checkbox-item"><input type="checkbox" name="risco" value="Flebite"> Flebite</label>
-                    <label class="checkbox-item"><input type="checkbox" name="risco" value="Infecção"> Infecção</label>
-                    <label class="checkbox-item"><input type="checkbox" name="risco" value="Broncoaspiração"> Broncoaspiração</label>
-                    <label class="checkbox-item"><input type="checkbox" name="risco" value="Hipoglicemia"> Hipoglicemia</label>
-                    <label class="checkbox-item"><input type="checkbox" name="risco" value="Hipotermia"> Hipotermia</label>
-                    <label class="checkbox-item"><input type="checkbox" name="risco" value="Ansiedade"> Ansiedade</label>
-                    <label class="checkbox-item"><input type="checkbox" name="risco" value="Sangramentos"> Sangramentos</label>
+                    <label class="checkbox-item"><input type="checkbox"> Flebite</label>
+                    <label class="checkbox-item"><input type="checkbox"> Infecção</label>
+                    <label class="checkbox-item"><input type="checkbox"> Broncoaspiração</label>
+                    <label class="checkbox-item"><input type="checkbox"> Hipoglicemia</label>
+                    <label class="checkbox-item"><input type="checkbox"> Hipotermia</label>
+                    <label class="checkbox-item"><input type="checkbox"> Ansiedade</label>
+                    <label class="checkbox-item"><input type="checkbox"> Sangramentos</label>
                 </div>
 
                 <div class="grid-2-cols mt-2">
-                    <div class="border p-2 rounded bg-gray-50" style="border: 1px solid #ccc; padding: 5px;">
+                    <div class="p-2 rounded border border-gray-300">
                         <div class="flex items-center gap-2">
-                            <span class="font-bold">Risco de Queda:</span>
+                            <span class="font-bold text-sm">Risco de Queda:</span>
                             <label class="checkbox-item"><input type="checkbox"> Sim</label>
                             <label class="checkbox-item"><input type="checkbox"> Não</label>
                         </div>
-                        <div class="form-line mt-2">
-                            <label>Escala de Morse:</label> <input type="number" class="inline-input" style="width: 50px">
+                        <div class="form-line mt-1">
+                            <label>Morse:</label> <input type="number" class="inline-input" style="width: 50px">
                         </div>
                     </div>
-                    <div class="border p-2 rounded bg-gray-50" style="border: 1px solid #ccc; padding: 5px;">
+                    <div class="p-2 rounded border border-gray-300">
                         <div class="flex items-center gap-2">
-                            <span class="font-bold">LPP (Lesão Pressão):</span>
+                            <span class="font-bold text-sm">LPP:</span>
                             <label class="checkbox-item"><input type="checkbox"> Sim</label>
                             <label class="checkbox-item"><input type="checkbox"> Não</label>
                         </div>
-                        <div class="form-line mt-2">
-                            <label>Braden:</label> <input type="number" class="inline-input" style="width: 50px">
-                            <label class="ml-2">Local:</label> <input type="text" class="inline-input" style="width: 80px">
+                        <div class="form-line mt-1">
+                            <label>Braden:</label> <input type="number" class="inline-input" style="width: 40px">
+                            <label class="ml-1">Local:</label> <input type="text" class="inline-input" style="width: 70px">
                         </div>
                     </div>
                 </div>
 
-                <div class="form-line mt-4">
-                    <span class="font-bold mr-2">Profilaxias:</span>
-                    <label class="checkbox-item mr-4"><input type="checkbox" name="prof" value="TEV"> TEV (Clexane)</label>
-                    <label class="checkbox-item"><input type="checkbox" name="prof" value="Gastrica"> Gástrica (Omeprazol)</label>
+                <div class="form-line mt-3">
+                    <span class="font-bold mr-2 text-sm">Profilaxias:</span>
+                    <label class="checkbox-item mr-3"><input type="checkbox"> TEV (Clexane)</label>
+                    <label class="checkbox-item"><input type="checkbox"> Gástrica (Omeprazol)</label>
                 </div>
 
             </div>
@@ -712,41 +645,19 @@
         <div class="sbar-section">
             <div class="sbar-header"><span class="sbar-badge badge-R">R</span> RECOMMENDATION (RECOMENDAÇÃO)</div>
             <div class="sbar-content">
-                <strong class="text-lg text-dark-blue block mb-2" style="font-size: 1rem;">7 - CHECK-LIST PRÉ-OP / PENDÊNCIAS</strong>
+                <strong class="text-dark-blue block mb-2 font-bold text-sm">7 - CHECK-LIST PRÉ-OP / PENDÊNCIAS</strong>
 
                 <div class="grid-2-cols">
                     <div>
-                        <div class="form-line">
-                            <span class="mr-2">GAB Autorizada?</span>
-                            <label class="checkbox-item"><input type="checkbox"> Sim</label>
-                            <label class="checkbox-item"><input type="checkbox"> Não</label>
-                        </div>
-                        <div class="form-line">
-                            <span class="mr-2">Exames OK?</span>
-                            <label class="checkbox-item"><input type="checkbox"> Sim</label>
-                            <label class="checkbox-item"><input type="checkbox"> Não</label>
-                        </div>
-                        <div class="form-line">
-                            <span class="mr-2">Reserva de UTI?</span>
-                            <label class="checkbox-item"><input type="checkbox"> Sim</label>
-                            <label class="checkbox-item"><input type="checkbox"> Não</label>
-                        </div>
-                        <div class="form-line">
-                            <span class="mr-2">Reserva Hemocomp.?</span>
-                            <label class="checkbox-item"><input type="checkbox"> Sim</label>
-                            <label class="checkbox-item"><input type="checkbox"> Não</label>
-                        </div>
-                        <div class="form-line">
-                            <span class="mr-2">Consentimento OK?</span>
-                            <label class="checkbox-item"><input type="checkbox"> Sim</label>
-                            <label class="checkbox-item"><input type="checkbox"> Não</label>
-                        </div>
+                        <div class="form-line"><span class="mr-2">GAB Autorizada?</span><label class="checkbox-item"><input type="checkbox"> S</label><label class="checkbox-item ml-1"><input type="checkbox"> N</label></div>
+                        <div class="form-line"><span class="mr-2">Exames OK?</span><label class="checkbox-item"><input type="checkbox"> S</label><label class="checkbox-item ml-1"><input type="checkbox"> N</label></div>
+                        <div class="form-line"><span class="mr-2">Reserva UTI?</span><label class="checkbox-item"><input type="checkbox"> S</label><label class="checkbox-item ml-1"><input type="checkbox"> N</label></div>
+                        <div class="form-line"><span class="mr-2">Reserva Hemo?</span><label class="checkbox-item"><input type="checkbox"> S</label><label class="checkbox-item ml-1"><input type="checkbox"> N</label></div>
+                        <div class="form-line"><span class="mr-2">Consentimento?</span><label class="checkbox-item"><input type="checkbox"> S</label><label class="checkbox-item ml-1"><input type="checkbox"> N</label></div>
                     </div>
                     <div>
-                        <div class="form-line">
-                            <span class="font-bold">Parecer:</span>
-                        </div>
-                        <div class="checkbox-group" style="gap: 0.5rem; flex-direction: column; align-items: flex-start;">
+                        <div class="form-line"><span class="font-bold text-sm">Parecer:</span></div>
+                        <div class="checkbox-group" style="gap: 0.5rem; flex-direction: column;">
                             <label class="checkbox-item"><input type="checkbox"> Anestesista</label>
                             <label class="checkbox-item"><input type="checkbox"> Cardio</label>
                             <label class="checkbox-item"><input type="checkbox"> Assistente Social</label>
@@ -755,12 +666,12 @@
                             <label class="checkbox-item"><input type="checkbox"> Nutricionista</label>
                             <label class="checkbox-item"><input type="checkbox"> Time de Pele</label>
                         </div>
-                        <div class="form-line mt-2"><label>Saída de Ambulância?</label> <input type="text" class="inline-input"></div>
+                        <div class="form-line mt-2"><label>Saída Ambulância?</label> <input type="text" class="inline-input"></div>
                         <div class="form-line"><label>Exame Externo:</label> <input type="text" class="inline-input"></div>
                     </div>
                 </div>
 
-                <div class="form-line mt-4">
+                <div class="form-line mt-3">
                     <label class="form-label w-full">Exames Pendentes:</label>
                     <input type="text" class="form-input-line w-full">
                 </div>
@@ -776,17 +687,17 @@
         <div class="sbar-section">
             <div class="sbar-header">OBSERVAÇÕES DO ENFERMEIRO</div>
             <div class="sbar-content">
-                <div class="mb-4">
+                <div class="obs-dia mb-3">
                     <label class="font-bold block text-sm mb-1">MANHÃ:</label>
-                    <textarea class="observation-box" rows="2" maxlength="12000"></textarea>
+                    <textarea class="observation-box obs-box-print" rows="2" maxlength="2000"></textarea>
                 </div>
-                <div class="mb-4">
+                <div class="obs-tarde mb-3">
                     <label class="font-bold block text-sm mb-1">TARDE:</label>
-                    <textarea class="observation-box" rows="2" maxlength="12000"></textarea>
+                    <textarea class="observation-box obs-box-print" rows="2" maxlength="2000"></textarea>
                 </div>
-                <div class="mb-2">
+                <div class="obs-noite">
                     <label class="font-bold block text-sm mb-1">NOITE:</label>
-                    <textarea class="observation-box" rows="2" maxlength="12000"></textarea>
+                    <textarea class="observation-box obs-box-print" rows="2" maxlength="2000"></textarea>
                 </div>
             </div>
         </div>
@@ -801,49 +712,30 @@
     </div>
   </main>
 
-  <!-- Caminhos relativos corrigidos para JS -->
+  <!-- Scripts -->
   <script src="global-scripts.js" defer=""></script>
   <script src="lang-selector.js" defer=""></script>
 
-  <!-- Script Específico SBAR -->
   <script>
     document.addEventListener("DOMContentLoaded", function () {
       const btnGerarPDF = document.getElementById("btnGerarPDF");
 
-      btnGerarPDF?.addEventListener("click", () => {
-
-        // Preparação para impressão: garantir que valores de inputs sejam visíveis no HTML
+      btnGerarPDF.addEventListener("click", () => {
+        // Prepara campos para impressão (garante que o valor digitado apareça no value do HTML)
         const inputs = document.querySelectorAll('input[type="text"], input[type="number"], input[type="date"], input[type="time"]');
-        inputs.forEach(input => {
-            input.setAttribute('value', input.value);
-        });
+        inputs.forEach(input => input.setAttribute('value', input.value));
 
         const textareas = document.querySelectorAll('textarea');
-        textareas.forEach(area => {
-            area.innerHTML = area.value;
-        });
+        textareas.forEach(area => area.innerHTML = area.value);
 
         const checkboxes = document.querySelectorAll('input[type="checkbox"], input[type="radio"]');
         checkboxes.forEach(box => {
-            if(box.checked) {
-                box.setAttribute('checked', 'checked');
-            } else {
-                box.removeAttribute('checked');
-            }
+            if(box.checked) box.setAttribute('checked', 'checked');
+            else box.removeAttribute('checked');
         });
 
-        if (typeof gerarPDFGlobal === "function") {
-          // Selecionar o wrapper principal para incluir o Título
-          gerarPDFGlobal({
-            titulo: "SBAR - Passagem de Plantão",
-            subtitulo: "Relatório de Transição de Cuidados",
-            nomeArquivo: "sbar_passagem_plantao.pdf",
-            seletorConteudo: ".main-content-wrapper",
-          });
-        } else {
-          // Fallback simples se a função global não estiver carregada
-          window.print();
-        }
+        // Chama a impressão nativa do navegador (mais segura para layout exato)
+        window.print();
       });
     });
   </script>
