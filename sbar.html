@@ -48,6 +48,7 @@
       border-radius: 8px;
       box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
       border: 1px solid #e2e8f0;
+      margin-bottom: 80px; /* Espaço para o botão flutuante não cobrir conteúdo */
     }
 
     .patient-id-box {
@@ -173,7 +174,7 @@
       margin-top: 0.5rem;
       font-size: 0.9rem;
       resize: vertical;
-      min-height: 80px;
+      min-height: 60px; /* Altura reduzida para caber */
     }
 
     /* Layout Grid */
@@ -208,11 +209,41 @@
     .badge-A { background-color: #3182ce; }
     .badge-R { background-color: #38a169; }
 
+    /* Botão Flutuante */
+    .floating-btn {
+        position: fixed;
+        bottom: 30px;
+        right: 30px;
+        background-color: rgba(30, 58, 138, 0.85); /* Azul quase transparente */
+        color: white;
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        padding: 15px 25px;
+        border-radius: 50px;
+        font-weight: bold;
+        font-size: 1rem;
+        box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+        backdrop-filter: blur(4px);
+        -webkit-backdrop-filter: blur(4px);
+        cursor: pointer;
+        z-index: 1000;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .floating-btn:hover {
+        background-color: rgba(30, 58, 138, 0.95);
+        transform: translateY(-2px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+    }
+
     /* ESTILOS DE IMPRESSÃO / PDF */
     @media print {
         /* Ocultar elementos desnecessários */
         .no-print,
         .breadcrumb,
+        .floating-btn, /* Oculta o botão flutuante */
         #btnGerarPDF,
         #language-dropdown-wrapper,
         #global-header-container,
@@ -249,6 +280,7 @@
             box-shadow: none !important;
             border: none !important;
             padding: 0 !important;
+            margin-bottom: 0 !important;
         }
 
         /* Etiqueta de Identificação - Mais compacta */
@@ -280,8 +312,8 @@
 
         /* Caixa de Motivos da Internação - Menor */
         #motivoInternacao {
-            min-height: 40px !important;
-            height: 40px !important;
+            min-height: 35px !important;
+            height: 35px !important;
             margin-top: 0 !important;
         }
 
@@ -300,7 +332,7 @@
         }
 
         .form-line {
-            margin-bottom: 0.4rem !important;
+            margin-bottom: 0.3rem !important;
         }
 
         /* Checkboxes e Radios alinhados */
@@ -622,11 +654,19 @@
                     </div>
                     <div>
                         <div class="form-line">
-                            <label>Parecer:</label>
-                            <label class="checkbox-item ml-2"><input type="checkbox"> Anestesista</label>
-                            <label class="checkbox-item ml-2"><input type="checkbox"> Cardio</label>
+                            <span class="font-bold">Parecer:</span>
                         </div>
-                        <div class="form-line"><label>Saída de Ambulância?</label> <input type="text" class="inline-input"></div>
+                        <div class="checkbox-group" style="gap: 0.5rem; flex-direction: column; align-items: flex-start;">
+                            <label class="checkbox-item"><input type="checkbox"> Anestesista</label>
+                            <label class="checkbox-item"><input type="checkbox"> Cardio</label>
+                            <label class="checkbox-item"><input type="checkbox"> Assistente Social</label>
+                            <label class="checkbox-item"><input type="checkbox"> Fisioterapeuta</label>
+                            <label class="checkbox-item"><input type="checkbox"> Psicólogo</label>
+                            <label class="checkbox-item"><input type="checkbox"> Nutricionista</label>
+                            <label class="checkbox-item"><input type="checkbox"> Time de Pele</label>
+                        </div>
+                        <div class="form-line mt-2"><label>Saída de Ambulância?</label> <input type="text" class="inline-input"></div>
+                        <div class="form-line"><label>Exame Externo:</label> <input type="text" class="inline-input"></div>
                     </div>
                 </div>
 
@@ -642,35 +682,31 @@
             </div>
         </div>
 
-        <!-- OBSERVAÇÕES DE ENFERMAGEM -->
+        <!-- OBSERVAÇÕES DE ENFERMAGEM (Horizontalizadas) -->
         <div class="sbar-section">
             <div class="sbar-header">OBSERVAÇÕES DO ENFERMEIRO</div>
             <div class="sbar-content">
-                <div class="grid md:grid-cols-3 gap-4" style="display: grid; grid-template-columns: 1fr 1fr 1fr;">
-                    <div>
-                        <label class="font-bold block text-sm">MANHÃ:</label>
-                        <textarea class="observation-box" rows="4"></textarea>
-                    </div>
-                    <div>
-                        <label class="font-bold block text-sm">TARDE:</label>
-                        <textarea class="observation-box" rows="4"></textarea>
-                    </div>
-                    <div>
-                        <label class="font-bold block text-sm">NOITE:</label>
-                        <textarea class="observation-box" rows="4"></textarea>
-                    </div>
+                <div class="mb-4">
+                    <label class="font-bold block text-sm mb-1">MANHÃ:</label>
+                    <textarea class="observation-box" rows="2" maxlength="12000"></textarea>
+                </div>
+                <div class="mb-4">
+                    <label class="font-bold block text-sm mb-1">TARDE:</label>
+                    <textarea class="observation-box" rows="2" maxlength="12000"></textarea>
+                </div>
+                <div class="mb-2">
+                    <label class="font-bold block text-sm mb-1">NOITE:</label>
+                    <textarea class="observation-box" rows="2" maxlength="12000"></textarea>
                 </div>
             </div>
         </div>
 
       </div>
 
-      <!-- Botão de Ação -->
-      <div class="flex flex-wrap justify-center gap-4 mt-8 mb-8 no-print">
-        <button id="btnGerarPDF" class="btn-secondary" style="background-color: #e53e3e; border-color: #c53030;">
-          <i class="fas fa-file-pdf mr-2"></i> Gerar PDF da Passagem de Plantão
-        </button>
-      </div>
+      <!-- Botão Flutuante Gerar PDF -->
+      <button id="btnGerarPDF" class="floating-btn">
+        <i class="fas fa-file-pdf"></i> Gerar PDF da Passagem de Plantão
+      </button>
 
     </div>
   </main>
