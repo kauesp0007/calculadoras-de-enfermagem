@@ -27,20 +27,29 @@ function loadAdSenseOnce() {
 });
 
 function gerarPDFGlobal(e) {
-  const o = "https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js";
-  console.log("Verificando a biblioteca html2pdf..."),
-    "function" == typeof html2pdf
-      ? (console.log("Biblioteca já carregada. Gerando PDF..."), executarLogicaDoHtml2Pdf(e))
-      : (console.log("Biblioteca não encontrada. Carregando script..."),
-        script = document.createElement("script"),
-        script.src = o,
-        document.head.appendChild(script),
-        script.onload = () => {
-          console.log("Biblioteca html2pdf carregada com sucesso. Gerando PDF..."), executarLogicaDoHtml2Pdf(e)
-        },
-        script.onerror = () => {
-          console.error("Falha ao carregar o script do html2pdf."), alert("Erro ao carregar a biblioteca de PDF. Por favor, tente novamente.")
-        })
+  const url = "https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js";
+  console.log("Verificando a biblioteca html2pdf...");
+
+  if (typeof html2pdf === "function") {
+    console.log("Biblioteca já carregada. Gerando PDF...");
+    executarLogicaDoHtml2Pdf(e);
+    return;
+  }
+
+  console.log("Biblioteca não encontrada. Carregando script...");
+  const script = document.createElement("script");
+  script.src = url;
+  document.head.appendChild(script);
+
+  script.onload = () => {
+    console.log("Biblioteca html2pdf carregada com sucesso. Gerando PDF...");
+    executarLogicaDoHtml2Pdf(e);
+  };
+
+  script.onerror = () => {
+    console.error("Falha ao carregar o script do html2pdf.");
+    alert("Erro ao carregar a biblioteca de PDF. Por favor, tente novamente.");
+  };
 }
 
 function executarLogicaDoHtml2Pdf(e) {
@@ -250,26 +259,62 @@ function initializeGlobalFunctions() {
   const E = e => {
       t.textContent = e, setTimeout(() => t.textContent = "", 3e3)
     },
+    // =========================================================
+    // ACESSIBILIDADE: ajustes (corrigido)
+    // =========================================================
+    applyFontSize = (level, announce) => {
+      const fontSizes = ["1em", "1.15em", "1.3em", "1.5em", "2em"];
+      const labels = ["Normal", "Médio", "Grande", "Extra Grande", "Máximo"];
+      const idx = Math.min(Math.max(parseInt(level || 1, 10), 1), fontSizes.length);
+      u = idx;
+      const iLevel = idx - 1;
+      document.documentElement.style.fontSize = fontSizes[iLevel];
+      n && (n.textContent = labels[iLevel]);
+      localStorage.setItem("fontSize", String(u));
+      (void 0 === announce || announce) && E(`Tamanho da fonte: ${labels[iLevel]}`);
+    },
+    applyLineHeight = (level, announce) => {
+      const values = ["1.5", "1.8", "2.2"];
+      const labels = ["Médio", "Grande", "Extra Grande"];
+      const idx = Math.min(Math.max(parseInt(level || 1, 10), 1), values.length);
+      g = idx;
+      const iLevel = idx - 1;
+      document.documentElement.style.setProperty("--espacamento-linha", values[iLevel]);
+      l && (l.textContent = labels[iLevel]);
+      localStorage.setItem("lineHeight", String(g));
+      (void 0 === announce || announce) && E(`Espaçamento de linha: ${labels[iLevel]}`);
+    },
+    applyLetterSpacing = (level, announce) => {
+      const values = ["0em", ".05em", ".1em"];
+      const labels = ["Normal", "Médio", "Grande"];
+      const idx = Math.min(Math.max(parseInt(level || 1, 10), 1), values.length);
+      p = idx;
+      const iLevel = idx - 1;
+      document.documentElement.style.setProperty("--espacamento-letra", values[iLevel]);
+      s && (s.textContent = labels[iLevel]);
+      localStorage.setItem("letterSpacing", String(p));
+      (void 0 === announce || announce) && E(`Espaçamento de letra: ${labels[iLevel]}`);
+    },
+    readingSpeeds = [{ rate: .8, label: "Lenta" }, { rate: 1, label: "Normal" }, { rate: 1.5, label: "Rápida" }],
+    applyReadingSpeed = (level, announce) => {
+      const idx = Math.min(Math.max(parseInt(level || 1, 10), 1), readingSpeeds.length);
+      h = idx;
+      const sp = readingSpeeds[h - 1];
+      i && (i.textContent = sp.label);
+      localStorage.setItem("readingSpeed", String(h));
+      (void 0 === announce || announce) && E(`Velocidade de leitura: ${sp.label}`);
+    },
     L = e => {
-      const o = ["1em", "1.15em", "1.3em", "1.5em", "2em"],
-        t = ["Normal", "Médio", "Grande", "Extra Grande", "Máximo"];
-      u = u % o.length + 1;
-      const l = u - 1;
-      o.style.fontSize = o[l], n && (n.textContent = t[l]), localStorage.setItem("fontSize", u), void 0 === e || e && E(`Tamanho da fonte: ${t[l]}`)
+      u = u % 5 + 1;
+      applyFontSize(u, void 0 === e || e);
     },
     k = e => {
-      const o = ["1.5", "1.8", "2.2"],
-        t = ["Médio", "Grande", "Extra Grande"];
-      g = g % o.length + 1;
-      const n = g - 1;
-      document.documentElement.style.setProperty("--espacamento-linha", o[n]), l && (l.textContent = t[n]), localStorage.setItem("lineHeight", g), void 0 === e || e && E(`Espaçamento de linha: ${t[n]}`)
+      g = g % 3 + 1;
+      applyLineHeight(g, void 0 === e || e);
     },
     C = e => {
-      const o = ["0em", ".05em", ".1em"],
-        t = ["Normal", "Médio", "Grande"];
-      p = p % o.length + 1;
-      const n = p - 1;
-      document.documentElement.style.setProperty("--espacamento-letra", o[n]), s && (s.textContent = t[n]), localStorage.setItem("letterSpacing", p), void 0 === e || e && E(`Espaçamento de letra: ${t[n]}`)
+      p = p % 3 + 1;
+      applyLetterSpacing(p, void 0 === e || e);
     },
     S = (e, o) => {
       e && (document.documentElement.style.setProperty("--cor-foco-acessibilidade", e), localStorage.setItem("focusColor", e), document.querySelectorAll(".color-option").forEach(o => {
@@ -289,7 +334,7 @@ function initializeGlobalFunctions() {
       if (e && v) {
         v.speaking && v.cancel();
         const o = new SpeechSynthesisUtterance(e);
-        o.lang = "pt-BR", o.rate = w[h - 1]?.rate || 1, o.onstart = () => {
+        o.lang = "pt-BR", o.rate = readingSpeeds[h - 1]?.rate || 1, o.onstart = () => {
           y = !0, f = !1
         }, o.onend = () => {
           y = !1, f = !1
@@ -305,15 +350,14 @@ function initializeGlobalFunctions() {
       y = !1, f = !1, setTimeout(() => T(document.querySelector("main")?.innerText), 100)
     },
     N = () => {
-      h = h % w.length + 1;
-      const e = w[h - 1];
-      i && (i.textContent = e.label)
+      h = h % readingSpeeds.length + 1;
+      applyReadingSpeed(h, !1);
     },
     F = () => {
       b && T((b.textContent || b.ariaLabel || b.alt || b.value)?.trim())
     },
     P = () => {
-      v && v.cancel(), u = 1, g = 1, p = 1, h = 1, o.style.fontSize = "", document.documentElement.style.setProperty("--espacamento-linha", "1.5"), document.documentElement.style.setProperty("--espacamento-letra", "0em"), o.classList.remove("contraste-alto", "dark-mode", "fonte-dislexia"), localStorage.clear(), L(!1), k(!1), C(!1), i && (i.textContent = "Normal"), S("yellow", !1), E("Configurações de acessibilidade redefinidas")
+      v && v.cancel(), u = 1, g = 1, p = 1, h = 1, document.documentElement.style.fontSize = "", document.documentElement.style.setProperty("--espacamento-linha", "1.5"), document.documentElement.style.setProperty("--espacamento-letra", "0em"), o.classList.remove("contraste-alto", "dark-mode", "fonte-dislexia"), localStorage.clear(), L(!1), k(!1), C(!1), i && (i.textContent = "Normal"), S("yellow", !1), E("Configurações de acessibilidade redefinidas")
     };
   [{
     ids: ["btnAlternarTamanhoFonte", "btnAlternarTamanhoFontePWA"],
@@ -370,7 +414,21 @@ function initializeGlobalFunctions() {
     "Escape" === e.key && M && !M.classList.contains("hidden") && K()
   }), initializeCookieFunctionality();
   const R = () => {
-    currentFontSize = 1, L(!1), currentLineHeight = parseInt(localStorage.getItem("lineHeight") || "1", 10), k(!1), currentLetterSpacing = parseInt(localStorage.getItem("letterSpacing") || "1", 10), C(!1), velocidadeLeituraAtual = parseInt(localStorage.getItem("readingSpeed") || "1", 10), i && N(), "true" === localStorage.getItem("highContrast") && o.classList.add("contraste-alto"), "true" === localStorage.getItem("darkMode") && o.classList.add("dark-mode"), "true" === localStorage.getItem("dyslexiaFont") && o.classList.add("fonte-dislexia"), S(localStorage.getItem("focusColor") || "yellow", !1)
+    const savedFontSize = parseInt(localStorage.getItem("fontSize") || "1", 10);
+    const savedLineHeight = parseInt(localStorage.getItem("lineHeight") || "1", 10);
+    const savedLetterSpacing = parseInt(localStorage.getItem("letterSpacing") || "1", 10);
+    const savedReadingSpeed = parseInt(localStorage.getItem("readingSpeed") || "1", 10);
+
+    applyFontSize(savedFontSize, !1);
+    applyLineHeight(savedLineHeight, !1);
+    applyLetterSpacing(savedLetterSpacing, !1);
+    applyReadingSpeed(savedReadingSpeed, !1);
+
+    "true" === localStorage.getItem("highContrast") && o.classList.add("contraste-alto");
+    "true" === localStorage.getItem("darkMode") && o.classList.add("dark-mode");
+    "true" === localStorage.getItem("dyslexiaFont") && o.classList.add("fonte-dislexia");
+
+    S(localStorage.getItem("focusColor") || "yellow", !1);
   };
   R(), a?.addEventListener("click", () => {
     m?.classList.contains("is-open") && (m.classList.remove("is-open"), m.classList.add("-translate-x-full")), c?.classList.add("is-open"), d && (d.style.display = "block")
@@ -388,52 +446,5 @@ function initializeGlobalFunctions() {
     top: 0,
     behavior: "smooth"
   })));
-  const G = () => {
-    if (document.querySelector("[vw]")) {
-      let e = 0;
-      const o = setInterval(() => {
-        e++, void 0 !== typeof VLibras ? (new VLibras.Widget("https://vlibras.gov.br/app"), clearInterval(o)) : e >= 50 && (console.warn("VLibras widget could not be initialized."), clearInterval(o))
-      }, 200)
-    }
-  };
-  G();
-  const U = document.getElementById("page-search-input"),
-    W = document.getElementById("search-btn"),
-    X = e => {
-      let o = document.body.innerHTML;
-      const t = new RegExp(`(${e})`, "gi");
-      o = o.replace(t, '<span class="highlight">$1</span>'), document.body.innerHTML = o
-    },
-    Y = () => {
-      document.querySelectorAll(".highlight").forEach(e => {
-        const o = e.parentNode;
-        o.replaceChild(document.createTextNode(e.textContent), e)
-      })
-    },
-    V = () => {
-      const e = U.value.trim();
-      if (Y(), e.length > 2) {
-        if (X(e), !document.querySelector(".highlight")) {
-          alert("Nenhum resultado encontrado.")
-        } else e.scrollIntoView({
-          behavior: "smooth",
-          block: "center"
-        })
-      }
-    };
-  W.addEventListener("click", V), U.addEventListener("keypress", e => {
-    "Enter" === e.key && (e.preventDefault(), V())
-  }), window.googleTranslateElementInit = function () {
-    new google.translate.TranslateElement({
-      pageLanguage: "pt",
-      includedLanguages: "en,es,pt",
-      layout: google.translate.TranslateElement.InlineLayout.SIMPLE,
-      autoDisplay: !1
-    }, "language-switcher")
-  };
-  const Z = document.createElement("script");
-  Z.src = "https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit", Z.async = !0, document.body.appendChild(Z), window.translatePage = function (e) {
-    const o = document.querySelector(".goog-te-combo");
-    o && (o.value = e, o.dispatchEvent(new Event("change")))
-  }, inicializarTooltips()
+  inicializarTooltips();
 }
