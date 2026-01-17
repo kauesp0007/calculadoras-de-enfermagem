@@ -1007,76 +1007,368 @@
        COMENTÁRIOS DA PÁGINA
        (SUPABASE)
        ========================= -->
-  <section id="page-comments" class="mt-10 mb-6">
-    <div class="main-content-wrapper">
-      <div class="bg-white p-6 rounded-lg shadow-md border border-gray-200">
-        <h2 class="font-nunito font-extrabold text-dark-blue text-2xl lg:text-3xl">
-          Deixe seus comentários
-        </h2>
-        <p class="font-inter text-gray-700 mt-2">
-          Compartilhe dúvidas, sugestões ou experiências relacionadas a esta página.
-        </p>
+  <!-- =========================
+     COMENTÁRIOS DA PÁGINA
+     (SUPABASE) - SEM MODERAÇÃO
+     ========================= -->
+<section id="page-comments" class="mt-10 mb-6">
+  <!-- Estilo local do card (profissional, compacto, azul escuro) -->
+  <style>
+    #page-comments .comments-card {
+      width: 100%;
+      border: 1px solid rgba(15, 23, 42, 0.20);
+      border-radius: 14px;
+      background: #ffffff;
+      box-shadow: 0 10px 28px rgba(2, 6, 23, 0.28);
+      color: #0b2a4a; /* azul escuro */
+      padding: 14px 16px;
+    }
+    #page-comments .comments-card * {
+      color: #0b2a4a !important; /* garante tudo azul escuro dentro */
+    }
+    #page-comments .comments-title {
+      font-family: Nunito, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      font-weight: 800;
+      font-size: 1.35rem;
+      line-height: 1.15;
+      margin: 0;
+    }
+    #page-comments .comments-subtitle {
+      font-size: 0.92rem;
+      margin-top: 6px;
+      opacity: 0.95;
+    }
+    #page-comments label {
+      font-size: 0.88rem;
+      font-weight: 700;
+      margin-bottom: 4px;
+      display: block;
+    }
+    #page-comments input,
+    #page-comments textarea {
+      width: 100%;
+      border: 1px solid rgba(15, 23, 42, 0.22);
+      border-radius: 10px;
+      padding: 9px 10px;
+      font-size: 0.92rem;
+      outline: none;
+      background: #fff;
+    }
+    #page-comments textarea {
+      resize: vertical;
+      min-height: 130px;
+    }
+    #page-comments .comments-meta {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      margin-top: 6px;
+      font-size: 0.78rem;
+      opacity: 0.9;
+    }
+    #page-comments .comments-actions {
+      margin-top: 10px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    #page-comments .comments-actions .btn-primary,
+    #page-comments .comments-actions .btn-secondary {
+      font-size: 0.88rem;
+      padding: 8px 12px;
+      min-height: 38px;
+      border-radius: 10px;
+    }
+    #page-comments .comments-divider {
+      border-top: 1px solid rgba(15, 23, 42, 0.12);
+      margin-top: 12px;
+      padding-top: 10px;
+    }
+    #page-comments .comments-list-title {
+      font-size: 0.95rem;
+      font-weight: 800;
+      margin: 0;
+    }
+    #page-comments .comment-item {
+      border: 1px solid rgba(15, 23, 42, 0.14);
+      border-radius: 12px;
+      background: #f8fafc;
+      padding: 10px 12px;
+      box-shadow: 0 6px 18px rgba(2, 6, 23, 0.14);
+    }
+    #page-comments .comment-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+      font-size: 0.82rem;
+      opacity: 0.95;
+    }
+    #page-comments .comment-name {
+      font-weight: 800;
+      font-size: 0.92rem;
+    }
+    #page-comments .comment-date {
+      font-size: 0.78rem;
+      opacity: 0.85;
+    }
+    #page-comments .comment-text {
+      margin-top: 6px;
+      font-size: 0.92rem;
+      line-height: 1.45;
+    }
+    #page-comments #comments-status {
+      margin-top: 10px;
+      font-size: 0.85rem;
+      font-weight: 600;
+    }
+  </style>
 
-        <div id="comments-status" class="mt-4 text-sm" aria-live="polite"></div>
+  <div class="main-content-wrapper">
+    <div class="comments-card">
+      <h2 class="comments-title">Deixe seus comentários</h2>
+      <p class="comments-subtitle">
+        Compartilhe dúvidas, sugestões ou experiências relacionadas a esta página.
+      </p>
 
-        <form id="comments-form" class="mt-4">
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label for="comment-name" class="block font-inter font-semibold text-gray-800">
-                Nome (opcional)
-              </label>
-              <input
-                id="comment-name"
-                type="text"
-                maxlength="80"
-                class="w-full mt-1 p-2 rounded border border-gray-300"
-                placeholder="Ex.: Maria"
-                autocomplete="name"
-              />
-            </div>
+      <div id="comments-status" aria-live="polite"></div>
 
-            <!-- Honeypot anti-spam (não mexa) -->
-            <div style="position:absolute;left:-9999px;top:auto;width:1px;height:1px;overflow:hidden;" aria-hidden="true">
-              <label for="company">Company</label>
-              <input id="company" type="text" tabindex="-1" autocomplete="off">
-            </div>
+      <form id="comments-form" class="mt-2">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div>
+            <label for="comment-name">Nome (opcional)</label>
+            <input
+              id="comment-name"
+              type="text"
+              maxlength="80"
+              placeholder="Ex.: Maria"
+              autocomplete="name"
+            />
           </div>
 
-          <div class="mt-4">
-            <label for="comment-text" class="block font-inter font-semibold text-gray-800">
-              Comentário (até 500 linhas)
-            </label>
-            <textarea
-              id="comment-text"
-              class="w-full mt-1 p-2 rounded border border-gray-300"
-              rows="10"
-              maxlength="20000"
-              placeholder="Escreva seu comentário..."
-              required
-            ></textarea>
-            <div class="flex justify-between mt-2 text-xs text-gray-600">
-              <span id="comment-lines">Linhas: 0/500</span>
-              <span id="comment-chars">Caracteres: 0/20000</span>
-            </div>
+          <!-- Honeypot anti-spam (não mexa) -->
+          <div style="position:absolute;left:-9999px;top:auto;width:1px;height:1px;overflow:hidden;" aria-hidden="true">
+            <label for="company">Company</label>
+            <input id="company" type="text" tabindex="-1" autocomplete="off">
           </div>
-
-          <div class="mt-4 flex flex-wrap gap-3">
-            <button id="comment-submit" type="submit" class="btn-primary">
-              Publicar comentário
-            </button>
-            <button id="comment-refresh" type="button" class="btn-secondary">
-              Atualizar
-            </button>
-          </div>
-        </form>
-
-        <div class="mt-6 border-t pt-4">
-          <h3 class="font-inter font-bold text-gray-800">Comentários</h3>
-          <div id="comments-list" class="mt-3 space-y-3"></div>
         </div>
+
+        <div class="mt-3">
+          <label for="comment-text">Comentário (até 500 linhas)</label>
+          <textarea
+            id="comment-text"
+            rows="7"
+            maxlength="20000"
+            placeholder="Escreva seu comentário..."
+            required
+          ></textarea>
+
+          <div class="comments-meta">
+            <span id="comment-lines">Linhas: 0/500</span>
+            <span id="comment-chars">Caracteres: 0/20000</span>
+          </div>
+        </div>
+
+        <div class="comments-actions">
+          <button id="comment-submit" type="submit" class="btn-primary">
+            Publicar comentário
+          </button>
+          <button id="comment-refresh" type="button" class="btn-secondary">
+            Atualizar
+          </button>
+        </div>
+      </form>
+
+      <div class="comments-divider">
+        <h3 class="comments-list-title">Comentários</h3>
+        <div id="comments-list" class="mt-3 space-y-3"></div>
       </div>
     </div>
-  </section>
+  </div>
+</section>
+
+<!-- Supabase (cliente) -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
+
+<!-- Comentários da Página (Supabase) - SEM MODERAÇÃO -->
+<script defer>
+  document.addEventListener("DOMContentLoaded", function () {
+    // ========= CONFIG SUPABASE =========
+    const SUPABASE_URL = "https://asjkftjfbkuuhilnqonx.supabase.co";
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFzamtmdGpmYmt1dWhpbG5xb254Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjcwODMxNjQsImV4cCI6MjA4MjY1OTE2NH0.mly76L5r2zoasonwta8aNND2mWWrkAoXirAAs99mDYo";
+
+    if (!window.supabase || !window.supabase.createClient) {
+      console.error("Supabase JS não carregou.");
+      return;
+    }
+
+    const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    // ========= IDENTIFICAÇÃO DA PÁGINA =========
+    const page_path = window.location.pathname || "/aldrete.html";
+    const lang = (document.documentElement.getAttribute("lang") || "pt-BR").toLowerCase();
+
+    // ========= ELEMENTOS =========
+    const statusEl = document.getElementById("comments-status");
+    const listEl = document.getElementById("comments-list");
+    const formEl = document.getElementById("comments-form");
+    const nameEl = document.getElementById("comment-name");
+    const textEl = document.getElementById("comment-text");
+    const linesEl = document.getElementById("comment-lines");
+    const charsEl = document.getElementById("comment-chars");
+    const refreshBtn = document.getElementById("comment-refresh");
+    const honeypotEl = document.getElementById("company");
+
+    function setStatus(msg, type) {
+      if (!statusEl) return;
+      statusEl.textContent = msg || "";
+      statusEl.className = "";
+      if (type === "ok") statusEl.style.color = "#0b2a4a";
+      if (type === "warn") statusEl.style.color = "#0b2a4a";
+      if (type === "err") statusEl.style.color = "#0b2a4a";
+    }
+
+    function escapeHtml(s) {
+      return String(s)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+    function countLines(value) {
+      if (!value) return 0;
+      return value.split("\n").length;
+    }
+
+    function updateCounters() {
+      const text = textEl?.value || "";
+      const lines = countLines(text);
+      const chars = text.length;
+
+      if (linesEl) linesEl.textContent = `Linhas: ${lines}/500`;
+      if (charsEl) charsEl.textContent = `Caracteres: ${chars}/20000`;
+
+      if (lines > 500) {
+        setStatus("Limite de 500 linhas atingido. Remova algumas quebras de linha para continuar.", "warn");
+        const limited = text.split("\n").slice(0, 500).join("\n");
+        textEl.value = limited;
+      } else {
+        setStatus("", "");
+      }
+    }
+
+    textEl?.addEventListener("input", updateCounters);
+
+    // ========= CARREGAR COMENTÁRIOS =========
+    async function loadComments() {
+      setStatus("Carregando comentários...", "");
+      listEl.innerHTML = "";
+
+      // SEM MODERAÇÃO: não filtra por is_approved
+      const { data, error } = await sb
+        .from("page_comments")
+        .select("id, name, comment, created_at")
+        .eq("page_path", page_path)
+        .eq("lang", lang)
+        .order("created_at", { ascending: false })
+        .limit(50);
+
+      if (error) {
+        console.error(error);
+        setStatus("Não foi possível carregar os comentários agora.", "err");
+        return;
+      }
+
+      if (!data || data.length === 0) {
+        setStatus("Nenhum comentário ainda. Seja o primeiro.", "ok");
+        return;
+      }
+
+      setStatus("", "");
+
+      const html = data.map((c) => {
+        const nm = c.name ? escapeHtml(c.name) : "Anônimo";
+        const dt = c.created_at ? new Date(c.created_at).toLocaleString("pt-BR") : "";
+        const tx = escapeHtml(c.comment).replaceAll("\n", "<br>");
+        return `
+          <div class="comment-item">
+            <div class="comment-head">
+              <span class="comment-name">${nm}</span>
+              <span class="comment-date">${dt}</span>
+            </div>
+            <div class="comment-text">${tx}</div>
+          </div>
+        `;
+      }).join("");
+
+      listEl.innerHTML = html;
+    }
+
+    refreshBtn?.addEventListener("click", loadComments);
+
+    // ========= PUBLICAR COMENTÁRIO =========
+    async function submitComment(e) {
+      e.preventDefault();
+
+      // Honeypot anti-spam
+      if (honeypotEl && honeypotEl.value) return;
+
+      const name = (nameEl?.value || "").trim().slice(0, 80);
+      const comment = (textEl?.value || "").trim();
+
+      if (!comment) {
+        setStatus("Escreva um comentário antes de publicar.", "warn");
+        return;
+      }
+
+      // Rate-limit simples
+      const last = Number(localStorage.getItem("last_comment_ts") || "0");
+      const now = Date.now();
+      if (now - last < 15000) {
+        setStatus("Aguarde alguns segundos antes de enviar outro comentário.", "warn");
+        return;
+      }
+
+      // Garantia de 500 linhas
+      if (countLines(comment) > 500) {
+        setStatus("Seu comentário ultrapassou 500 linhas.", "warn");
+        return;
+      }
+
+      setStatus("Enviando...", "");
+
+      // SEM MODERAÇÃO: is_approved true
+      const { error } = await sb.from("page_comments").insert([{
+        page_path,
+        lang,
+        name: name || null,
+        comment,
+        is_approved: true
+      }]);
+
+      if (error) {
+        console.error(error);
+        setStatus("Não foi possível enviar. Tente novamente.", "err");
+        return;
+      }
+
+      localStorage.setItem("last_comment_ts", String(now));
+      setStatus("Comentário publicado com sucesso.", "ok");
+      textEl.value = "";
+      updateCounters();
+      loadComments();
+    }
+
+    formEl?.addEventListener("submit", submitComment);
+
+    // init
+    updateCounters();
+    loadComments();
+  });
+</script>
+
 
 
   <div id="footer-placeholder"></div>
