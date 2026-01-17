@@ -42,6 +42,21 @@ footer ul li a:hover {
     --espacamento-letra: 0em
 }
 
+
+body {
+    font-family: Inter, sans-serif;
+    line-height: var(--espacamento-linha);
+    letter-spacing: var(--espacamento-letra);
+    display: flex;
+    flex-direction: column;
+    padding-top: 70px;
+    min-height: 100vh;
+    background-color: #f9fafb;
+    color: #1f2937;
+    margin: 0;
+    top: 0 !important
+}
+
 .font-nunito {
     font-family: 'Nunito Sans', sans-serif
 }
@@ -49,16 +64,8 @@ footer ul li a:hover {
 #backToTopBtn,
 #barraAcessibilidade,
 #barraAcessibilidade button,
-.font-inter,
-body {
+.font-inter {
     font-family: Inter, sans-serif
-}
-
-body {
-    line-height: var(--espacamento-linha);
-    letter-spacing: var(--espacamento-letra);
-    display: flex;
-    flex-direction: column
 }
 
 .bg-blue-50 {
@@ -364,18 +371,6 @@ header {
 }
 
 @media (max-width:768px) {
-
-    #pwaAcessibilidadeBar,
-    .off-canvas-menu {
-        top: 0;
-        left: -100%;
-        height: 100vh;
-        z-index: 100000;
-        transition: left .3s ease-in-out;
-        box-shadow: 2px 0 5px rgba(0, 0, 0, .2);
-        position: fixed
-    }
-
 
 
     header {
@@ -769,17 +764,6 @@ header {
 .scrollable-submenu {
     max-height: 300px;
     overflow-y: auto
-}
-
-body {
-    padding-top: 96px;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    background-color: #f9fafb;
-    color: #1f2937;
-    margin: 0;
-    top: 0 !important
 }
 
 main {
@@ -1713,13 +1697,13 @@ footer .vertical-divider-footer-stretched {
     }
 
     body {
-        padding-top: 90px
+        padding-top: 90px;
     }
 }
 
-#offCanvasMenu.is-open {
+/* #offCanvasMenu.is-open {
     transform: translateX(0)
-}
+} */
 
 .submenu.open {
     display: block !important
@@ -1833,7 +1817,90 @@ header .header-content>nav {
     line-height: normal
 }
 
+/* ==============================
+   CLS-SAFE – Reforços Globais
+   ============================== */
+
+/* Fallback global para evitar páginas sem placeholder de header */
+#global-header-container {
+  min-height: 96px; /* 36 (barra) + 60 (header) */
+}
+@media (max-width: 768px) {
+  #global-header-container {
+    min-height: 60px; /* mobile sem barra */
+  }
+}
+
+/* Evita variação brusca do header no mobile (conteúdo injetado/linhas extras) */
+@media (max-width:768px) {
+  header {
+    min-height: 60px;
+  }
+}
+
+/* Proteção geral para mídia (evita reflow estranho) */
+img, video, iframe {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Header: evita "estouro" por logo/imagens sem dimensões */
+header img {
+  height: auto;
+}
+
+header .site-logo,
+header img[alt*="logo" i] {
+  width: 48px;
+  height: 48px;
+  object-fit: contain;
+}
+
+/* Reserva espaço para o AdSense (evita pulo ao carregar anúncio) */
+.adsbygoogle {
+    display: block;
+    min-height: 280px;
+    background-color: #f4f4f4; /* Corzinha cinza para ver onde o anúncio vai ficar */
+}
+/* ==========================================================================
+   OTIMIZAÇÕES PAGESPEED & ACESSIBILIDADE (Adicionar ao final do arquivo)
+   ========================================================================== */
+
+/* 1. Correção de Contraste para Botões (Accessibility Audit)
+   O Azul padrão com fundo branco às vezes falha no contraste.
+   Escurecemos levemente o texto ou o fundo. */
+.btn-primary-contrast {
+  background-color: #163a6f !important; /* Azul um pouco mais escuro que o original #1a3e74 */
+  color: #ffffff !important;
+}
+
+.btn-secondary-light {
+  background-color: #f1f5f9 !important;
+  color: #0f2a50 !important; /* Texto mais escuro para contraste AAA */
+  border: 1px solid #cbd5e1 !important;
+}
+
+/* 2. Otimização de Animações (Avoid non-composited animations)
+   Força a aceleração de hardware (GPU) para animações de menu/modal */
+.off-canvas-menu,
+.menu-overlay,
+.modal-overlay,
+#language-dropdown-wrapper {
+  will-change: transform, opacity;
+  transform: translateZ(0); /* Hack para ativar GPU */
+}
+
+/* 3. Prevenção de CLS em Imagens e Iframes
+   Garante que todos tenham aspect-ratio se não tiverem tamanho definido */
+img:not([width]):not([height]) {
+  aspect-ratio: auto 16 / 9; /* Valor genérico seguro */
+}
+
+/* 4. Estilos de Foco Acessível */
 @font-face {
   font-family: 'Font Awesome 6 Free';
   font-display: swap;
 }
+
+
+
