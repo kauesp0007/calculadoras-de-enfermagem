@@ -106,8 +106,9 @@ function buildPrevNext(data, idx) {
   const prev = idx > 0 ? data[idx - 1] : null;
   const next = idx < data.length - 1 ? data[idx + 1] : null;
 
-  const prevSlug = prev ? (prev.slug || slugify(prev.titulo || "")) : "";
-  const nextSlug = next ? (next.slug || slugify(next.titulo || "")) : "";
+  // Usar sempre slugify do titulo para garantir consistência
+  const prevSlug = prev ? slugify(prev.titulo || "") : "";
+  const nextSlug = next ? slugify(next.titulo || "") : "";
 
   const prevUrl = montarUrlBiblioteca(prevSlug);
   const nextUrl = montarUrlBiblioteca(nextSlug);
