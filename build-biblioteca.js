@@ -118,6 +118,8 @@ function buildPrevNext(data, idx) {
     nextUrl,
     prevStyle: prevUrl ? "" : "display:none",
     nextStyle: nextUrl ? "" : "display:none",
+    prevClass: prevUrl ? "" : "disabled",
+    nextClass: nextUrl ? "" : "disabled",
   };
 }
 
@@ -247,7 +249,9 @@ function gerarHtmlDoItem({ template, templateHash, data, imagens, item, idx }) {
     .replace(/{{PREV_URL}}/g, escapeHtml(nav.prevUrl))
     .replace(/{{NEXT_URL}}/g, escapeHtml(nav.nextUrl))
     .replace(/{{PREV_STYLE}}/g, escapeHtml(nav.prevStyle))
-    .replace(/{{NEXT_STYLE}}/g, escapeHtml(nav.nextStyle));
+    .replace(/{{NEXT_STYLE}}/g, escapeHtml(nav.nextStyle))
+    .replace(/{{PREV_CLASS}}/g, escapeHtml(nav.prevClass))
+    .replace(/{{NEXT_CLASS}}/g, escapeHtml(nav.nextClass));
 
   // Fotos: transforma a hero em “clicável” e injeta lightbox
   if (categoria === "fotos") {
