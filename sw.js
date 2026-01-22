@@ -1,5 +1,5 @@
 // Define o nome e a versão do cache (AUTOMÁTICO via gerar-sw.js)
-const CACHE_NAME = 'calculadoras-enfermagem-cache-20260122-035936-245';
+const CACHE_NAME = 'calculadoras-enfermagem-cache-20260122-044427-531';
 
 // O SCRIPT DE BUILD VAI INJETAR A LISTA DE ARQUIVOS AQUI
 const urlsToCache = [
@@ -471,6 +471,7 @@ const urlsToCache = [
   'biblioteca/missao-visao-e-valores-calculadoras-de-enfermagem.html',
   'biblioteca/myra-estrin-levine-teoria-holistica.html',
   'biblioteca/nivel-de-consciencia-enfermagem.html',
+  'biblioteca/notificacao-compulsoria.html',
   'biblioteca/o-enfermeiro-em-hipotese-alguma-deve-sair-do-ambiente-onde-esta-acontecendo-a-pcr-se-precisar-de-algo-fora-do-ambiente-ele-pede-se.html',
   'biblioteca/o-enfermeiro-sempre-deve-designar-um-colaborador-para-providenciar-prontuario-puxar-exames-de-laboratorio-no-sistema-levar-tubos-de.html',
   'biblioteca/o-responsavel-pelo-carrinho-de-emergencia-deve-ter-em-mente-as-5-causas-provaveis-h-de-uma-pcr-e-assim-organizar-o-carrinho-de-emerg.html',
@@ -569,6 +570,7 @@ const urlsToCache = [
   'biblioteca/screen-metasinternacionais.html',
   'biblioteca/screen-nanda.html',
   'biblioteca/screen-notificacao-compulsoria.html',
+  'biblioteca/screen-notificacao.html',
   'biblioteca/screen-regramedicacoes.html',
   'biblioteca/screen-regrasmedicacoes.html',
   'biblioteca/screen-sbar.html',
@@ -1621,6 +1623,7 @@ const urlsToCache = [
   'img/Myra Estrin Levine - teoria holistica.webp',
   'img/MÉTODO DE CAPURRO.png',
   'img/NIVEL DE CONSCIENCIA ENFERMAGEM.png',
+  'img/NOTIFICAÇÃO-COMPULSÓRIA.webp',
   'img/O enfermeiro em hipotese alguma deve sair do ambiente onde está acontecendo a PCR, se precisar de algo fora do ambiente ele pede, se .webp',
   'img/O enfermeiro sempre deve designar um colaborador para providenciar prontuario, puxar exames de laboratorio no sistema, levar tubos de.webp',
   'img/OTOSCÓPIO.webp',
@@ -1859,6 +1862,7 @@ const urlsToCache = [
   'img/screen-metasinternacionais.webp',
   'img/screen-nanda.webp',
   'img/screen-notificacao-compulsoria.webp',
+  'img/screen-notificação.webp',
   'img/screen-regramedicacoes.webp',
   'img/screen-regrasmedicacoes.webp',
   'img/screen-sbar.webp',
