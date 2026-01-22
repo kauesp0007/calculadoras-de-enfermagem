@@ -555,7 +555,223 @@
 
 
 
-  
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const resultadoDiv = document.getElementById("resultado");
+      const btnCalcular = document.getElementById("btnCalcular");
+      const btnLimpar = document.getElementById("btnLimpar");
+      const btnGerarPDF = document.getElementById("btnGerarPDF");
+      const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
+      const conteudoDiv = document.getElementById("conteudo");
+
+      // Dados da escala de Bishop
+      const bishopData = [
+        {
+          category: "Dilatatie van de baarmoederhals",
+          nameAttr: "dilatacao",
+          options: [
+            { description: "0 cm", score: 0 },
+            { description: "1-2 cm", score: 1 },
+            { description: "3-4 cm", score: 2 },
+            { description: "≥ 5 cm", score: 3 }],
+
+          explain:
+            "Opening van de baarmoederhals, gemeten in centimeters. Hoe groter de ontsluiting, hoe hoger de score."
+        },
+        {
+          category: "Apagamento Cervical",
+          nameAttr: "apagamento",
+          options: [
+            { description: "0-30%", score: 0 },
+            { description: "40-50%", score: 1 },
+            { description: "60-70%", score: 2 },
+            { description: "≥ 80%", score: 3 }],
+
+          explain:
+            "Verdunning en verkorting van de baarmoederhals ten opzichte van de oorspronkelijke lengte. Uitgedrukt als percentage. Hoe hoger het percentage, hoe hoger de score."
+        },
+        {
+          category: "Cervicale consistentie",
+          nameAttr: "consistencia",
+          options: [
+            { description: "Firme", score: 0 },
+            { description: "Gemiddeld", score: 1 },
+            { description: "Amolecida", score: 2 }],
+
+          explain:
+            "Het bepaalt hoe stevig de baarmoedermond aanvoelt. Een zachtere baarmoederhals is rijper en klaar voor de bevalling."
+        },
+        {
+          category: "Positie van de baarmoederhals",
+          nameAttr: "posicao",
+          options: [
+            { description: "Posterior", score: 0 },
+            { description: "Mediana", score: 1 },
+            { description: "Anterior", score: 2 }],
+
+          explain:
+            "Locatie van de baarmoederhals ten opzichte van de bekkenas. Een naar voren geplaatste baarmoederhals duidt op een grotere rijpheid."
+        },
+        {
+          category: "Foetaal presentatiestation",
+          nameAttr: "estacao",
+          options: [
+            { description: "-3", score: 0 },
+            { description: "-2", score: 1 },
+            { description: "-1 ou 0", score: 2 },
+            { description: "+1 ou +2", score: 3 }],
+
+          explain:
+            "Positie van het hoofd van de baby ten opzichte van de zitbeenknobbels van het moederlijk bekken. Het station wordt gemeten in centimeters, waarbij 0 het referentiepunt is. Hoe verder naar beneden (+), hoe hoger de score."
+        }];
+
+
+      // Preenche o formulário dinamicamente
+      bishopData.forEach((item) => {
+        const sectionDiv = document.createElement("div");
+        sectionDiv.className = "bishop-criterion-section";
+        sectionDiv.id = `section-${item.nameAttr}`;
+
+        const titleH3 = document.createElement("h3");
+        titleH3.className = "bishop-criterion-title";
+        titleH3.innerHTML =
+          item.category +
+          `
+              <div class="text-sm font-normal text-gray-500 mt-1">${item.explain}</div>`;
+        sectionDiv.appendChild(titleH3);
+
+        const selectElement = document.createElement("select");
+        selectElement.id = item.nameAttr;
+        selectElement.className = "bishop-criterion-select";
+
+        const defaultOption = document.createElement("option");
+        defaultOption.value = "";
+        defaultOption.text = "Selecteer...";
+        selectElement.appendChild(defaultOption);
+
+        item.options.forEach((option) => {
+          const optionElement = document.createElement("option");
+          optionElement.value = option.score;
+          optionElement.text = `${option.description} (pontos: ${option.score})`;
+          selectElement.appendChild(optionElement);
+        });
+
+        sectionDiv.appendChild(selectElement);
+        conteudoDiv.appendChild(sectionDiv);
+      });
+
+      function calcularBishop() {
+        const selects = document.querySelectorAll("#conteudo select");
+        let allSelected = true;
+        let total = 0;
+
+        selects.forEach((select) => {
+          if (select.value === "") {
+            allSelected = false;
+            select.classList.add("incomplete");
+          } else {
+            select.classList.remove("incomplete");
+            total += Number(select.value);
+          }
+        });
+
+        resultadoDiv.style.display = "block";
+        if (!allSelected) {
+          resultadoDiv.innerHTML =
+            '⚠️ <strong class="font-bold">Por favor, selecione uma opção para todos os itens antes de calcular.</strong>';
+          resultadoDiv.classList.add("bg-red-100");
+          resultadoDiv.classList.remove("bg-yellow-100", "bg-blue-50");
+          delete resultadoDiv.dataset.score;
+          return;
+        }
+
+        let classificacao = "";
+        let recomendacao = "";
+        let resultadoClasse = "";
+
+        if (total < 6) {
+          classificacao = "Ongunstige / Onrijpe nek";
+          recomendacao =
+            "De baarmoederhals is niet rijp. Waarschijnlijk zullen cervixvoorbereidingsmethoden nodig zijn voordat de bevalling wordt geïnduceerd.";
+          resultadoClasse = "bg-red-100";
+        } else if (total >= 6 && total <= 7) {
+          classificacao = "Zona de Incerteza";
+          recomendacao =
+            "Inductie kan worden geprobeerd, maar succes is niet gegarandeerd. Zorgvuldige controle is essentieel.";
+          resultadoClasse = "bg-yellow-100";
+        } else {
+          // total >= 8
+          classificacao = "Colo Gunstig / Volwassen";
+          recomendacao =
+            "De baarmoederhals is rijp, met een grote kans op succesvolle inductie van de bevalling. Spontane bevalling kan dichtbij zijn.";
+          resultadoClasse = "bg-blue-50";
+        }
+
+        resultadoDiv.innerHTML = `
+                <p>Escore total: <strong class="font-bold">${total}</strong></p>
+                <p>Classificação: <strong class="font-bold">${classificacao}</strong></p>
+                <p class="mt-4"><strong>Recomendação:</strong> ${recomendacao}</p>
+            `;
+        resultadoDiv.className = `resultaat ${resultadoClasse}`;
+        resultadoDiv.style.display = "block";
+
+        resultadoDiv.dataset.score = total;
+        resultadoDiv.dataset.scaleName = "Escala de Bishop";
+        resultadoDiv.dataset.classificacao = classificacao;
+      }
+
+      function limparCampos() {
+        const selects = document.querySelectorAll("#conteudo select");
+        selects.forEach((select) => {
+          select.selectedIndex = 0;
+          select.classList.remove("incomplete");
+        });
+        resultadoDiv.innerHTML = "";
+        resultadoDiv.className = "verborgen resultaat";
+        delete resultadoDiv.dataset.score;
+        delete resultadoDiv.dataset.scaleName;
+        delete resultadoDiv.dataset.classificacao;
+      }
+
+      btnCalcular?.addEventListener("click", calcularBishop);
+      btnLimpar?.addEventListener("click", limparCampos);
+
+      btnGerarPDF?.addEventListener("click", () => {
+        if (!resultadoDiv.dataset.score) {
+          alert(
+            "Klik eerst op \"Score berekenen\" om de PDF te genereren."
+          );
+          return;
+        }
+        if (typeof gerarPDFGlobal === "function") {
+          gerarPDFGlobal({
+            titulo: "Escala de Bishop",
+            subtitulo: "Cervicaal beoordelingsrapport",
+            nomeArquivo: "relatorio_escala_bishop.pdf",
+            seletorConteudo: ".main-content-wrapper"
+          });
+        } else {
+          console.error("GeneratePDFGlobal-functie niet gedefinieerd.");
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener("click", () => {
+        const score = resultadoDiv.dataset.score;
+        const scaleName = resultadoDiv.dataset.scaleName;
+        const classificacao = resultadoDiv.dataset.classificacao;
+        if (!score || !classificacao) {
+          alert("Bereken het resultaat om het gedrag te zoeken.");
+          return;
+        }
+        const searchQuery = encodeURIComponent(
+          `${scaleName} score ${score} parto ${classificacao} gerar taxonomia NANDA, gerar taxonomia NIC e gerar taxonomia de NOC`
+        );
+        window.open(
+          `https://www.google.com/search?q=${searchQuery}`,
+          "_blank"
+        );
+      });
+    });</script>
 
   <script src="/lang-selector.js" defer=""></script>
 

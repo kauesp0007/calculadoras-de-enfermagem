@@ -624,7 +624,334 @@
 
 
 
-    
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const resultadoDiv = document.getElementById('resultado');
+            const btnCalcular = document.getElementById('btnCalcular');
+            const btnLimpar = document.getElementById('btnLimpar');
+            const btnGerarPDF = document.getElementById('btnGerarPDF');
+            const btnNandaNicNoc = document.getElementById('btnNandaNicNoc');
+            const conteudoDiv = document.getElementById('conteudo');
+
+            // NIHSS स्केल डेटा
+            const nihssData = [
+                {
+                    domain: "1a - चेतना स्तर",
+                    nameAttr: "nivelConsciencia",
+                    options: [
+                        { text: "सतर्क", score: 0 },
+                        { text: "सतर्क नहीं, जवाब देने या जवाब बनाए रखने के लिए न्यूनतम उत्तेजना की आवश्यकता", score: 1 },
+                        { text: "सतर्क नहीं, जवाब देने के लिए दोहरावदार उत्तेजना या दर्दनाक उत्तेजना की आवश्यकता", score: 2 },
+                        { text: "कोमा", score: 3 }
+                    ]
+                },
+                {
+                    domain: "1b - चेतना स्तर: महीना और उम्र का जवाब दें",
+                    nameAttr: "mesIdade",
+                    options: [
+                        { text: "दोनों का सही जवाब देता है", score: 0 },
+                        { text: "एक का सही जवाब देता है", score: 1 },
+                        { text: "कोई भी सही जवाब नहीं देता", score: 2 }
+                    ]
+                },
+                {
+                    domain: "1c - चेतना स्तर: मोटर कमांड निष्पादित करें",
+                    nameAttr: "comandoMotor",
+                    options: [
+                        { text: "दोनों कार्य सही ढंग से निष्पादित करता है", score: 0 },
+                        { text: "एक कार्य सही ढंग से निष्पादित करता है", score: 1 },
+                        { text: "कोई भी कार्य सही ढंग से निष्पादित नहीं करता", score: 2 }
+                    ]
+                },
+                {
+                    domain: "2 - सर्वश्रेष्ठ संयुग्मित दृष्टि",
+                    nameAttr: "olharConjugado",
+                    options: [
+                        { text: "सामान्य", score: 0 },
+                        { text: "दृष्टि का आंशिक पक्षाघात (एक दिशा में टकटकी)", score: 1 },
+                        { text: "दृष्टि का जबरन विचलन", score: 2 }
+                    ]
+                },
+                {
+                    domain: "3 - दृष्टि क्षेत्र",
+                    nameAttr: "camposVisuais",
+                    options: [
+                        { text: "कोई हानि नहीं", score: 0 },
+                        { text: "आंशिक हेमियानोप्सिया (दृष्टि क्षेत्र के एक हिस्से में अंधापन)", score: 1 },
+                        { text: "पूर्ण हेमियानोप्सिया (दृष्टि क्षेत्र के आधे हिस्से में अंधापन)", score: 2 },
+                        { text: "द्विपक्षीय अंधापन (कुल अंधापन)", score: 3 }
+                    ]
+                },
+                {
+                    domain: "4 - चेहरे का पक्षाघात",
+                    nameAttr: "paralisiaFacial",
+                    options: [
+                        { text: "सममित (कोई पक्षाघात नहीं)", score: 0 },
+                        { text: "हल्का पक्षाघात (मुस्कुराते समय असममिति)", score: 1 },
+                        { text: "आंशिक पक्षाघात (निचले चेहरे का समझौता)", score: 2 },
+                        { text: "पूर्ण पक्षाघात (ऊपरी और निचले चेहरे का समझौता)", score: 3 }
+                    ]
+                },
+                {
+                    domain: "5a - बाएं ऊपरी अंग में मोटर शक्ति",
+                    nameAttr: "msEsq",
+                    options: [
+                        { text: "10 सेकंड तक कोई गिरावट नहीं (सामान्य)", score: 0 },
+                        { text: "10 सेकंड से पहले गिरावट (कुछ प्रयास बनाए रखता है)", score: 1 },
+                        { text: "गुरुत्वाकर्षण पर काबू नहीं पाता (सिर्फ बिस्तर के खिलाफ उठाता है)", score: 2 },
+                        { text: "कोई हलचल नहीं (गुरुत्वाकर्षण के खिलाफ कोई प्रयास नहीं)", score: 3 },
+                        { text: "अंग विच्छेदन, संयुक्त संलयन, या गठिया (मूल्यांकन नहीं किया जा सकता)", score: 4 }
+                    ]
+                },
+                {
+                    domain: "5b - दाएं ऊपरी अंग में मोटर शक्ति",
+                    nameAttr: "msDir",
+                    options: [
+                        { text: "10 सेकंड तक कोई गिरावट नहीं (सामान्य)", score: 0 },
+                        { text: "10 सेकंड से पहले गिरावट (कुछ प्रयास बनाए रखता है)", score: 1 },
+                        { text: "गुरुत्वाकर्षण पर काबू नहीं पाता (सिर्फ बिस्तर के खिलाफ उठाता है)", score: 2 },
+                        { text: "कोई हलचल नहीं (गुरुत्वाकर्षण के खिलाफ कोई प्रयास नहीं)", score: 3 },
+                        { text: "अंग विच्छेदन, संयुक्त संलयन, या गठिया (मूल्यांकन नहीं किया जा सकता)", score: 4 }
+                    ]
+                },
+                {
+                    domain: "6a - बाएं निचले अंग में मोटर शक्ति",
+                    nameAttr: "miEsq",
+                    options: [
+                        { text: "5 सेकंड तक कोई गिरावट नहीं (सामान्य)", score: 0 },
+                        { text: "5 सेकंड से पहले गिरावट (कुछ प्रयास बनाए रखता है)", score: 1 },
+                        { text: "गुरुत्वाकर्षण पर काबू नहीं पाता (सिर्फ बिस्तर के खिलाफ उठाता है)", score: 2 },
+                        { text: "कोई हलचल नहीं (गुरुत्वाकर्षण के खिलाफ कोई प्रयास नहीं)", score: 3 },
+                        { text: "अंग विच्छेदन, संयुक्त संलयन, या गठिया (मूल्यांकन नहीं किया जा सकता)", score: 4 }
+                    ]
+                },
+                {
+                    domain: "6b - दाएं निचले अंग में मोटर शक्ति",
+                    nameAttr: "miDir",
+                    options: [
+                        { text: "5 सेकंड तक कोई गिरावट नहीं (सामान्य)", score: 0 },
+                        { text: "5 सेकंड से पहले गिरावट (कुछ प्रयास बनाए रखता है)", score: 1 },
+                        { text: "गुरुत्वाकर्षण पर काबू नहीं पाता (सिर्फ बिस्तर के खिलाफ उठाता है)", score: 2 },
+                        { text: "कोई हलचल नहीं (गुरुत्वाकर्षण के खिलाफ कोई प्रयास नहीं)", score: 3 },
+                        { text: "अंग विच्छेदन, संयुक्त संलयन, या गठिया (मूल्यांकन नहीं किया जा सकता)", score: 4 }
+                    ]
+                },
+                {
+                    domain: "7 - अंगों की अटैक्सिया",
+                    nameAttr: "ataxia",
+                    options: [
+                        { text: "कोई अटैक्सिया नहीं (सामान्य)", score: 0 },
+                        { text: "एक अंग में अटैक्सिया", score: 1 },
+                        { text: "दो या अधिक अंगों में अटैक्सिया", score: 2 }
+                    ]
+                },
+                {
+                    domain: "8 - संवेदनशीलता",
+                    nameAttr: "sensibilidade",
+                    options: [
+                        { text: "सामान्य (कोई हानि नहीं)", score: 0 },
+                        { text: "हल्की से मध्यम हानि (दर्द महसूस करता है लेकिन कम)", score: 1 },
+                        { text: "गंभीर हानि (दर्द महसूस नहीं करता)", score: 2 }
+                    ]
+                },
+                {
+                    domain: "9 - भाषा (अफेसिया)",
+                    nameAttr: "afasia",
+                    options: [
+                        { text: "कोई अफेसिया नहीं (सामान्य)", score: 0 },
+                        { text: "हल्की से मध्यम अफेसिया (कुछ हानि)", score: 1 },
+                        { text: "गंभीर अफेसिया (संचार असंभव)", score: 2 },
+                        { text: "गूंगा, कोई भाषा नहीं", score: 3 }
+                    ]
+                },
+                {
+                    domain: "10 - डिसार्थ्रिया",
+                    nameAttr: "disartria",
+                    options: [
+                        { text: "सामान्य उच्चारण", score: 0 },
+                        { text: "हल्की से मध्यम डिसार्थ्रिया (कुछ शब्द अस्पष्ट)", score: 1 },
+                        { text: "गंभीर डिसार्थ्रिया (शब्द समझ से बाहर)", score: 2 }
+                    ]
+                },
+                {
+                    domain: "11 - विलोपन और उपेक्षा",
+                    nameAttr: "extincaoNegligencia",
+                    options: [
+                        { text: "कोई हानि नहीं", score: 0 },
+                        { text: "दृष्टि, स्पर्श या श्रवण उत्तेजनाओं में से एक में हानि", score: 1 },
+                        { text: "दृष्टि, स्पर्श और श्रवण उत्तेजनाओं में से एक से अधिक में गंभीर हानि", score: 2 }
+                    ]
+                }
+            ];
+
+            // NIHSS स्केल इंटरफ़ेस बनाएं
+            nihssData.forEach(criterion => {
+                const criterionCard = document.createElement('div');
+                criterionCard.className = 'nihss-criterion-card';
+
+                const criterionHeader = document.createElement('div');
+                criterionHeader.className = 'nihss-criterion-header';
+
+                const criterionTitle = document.createElement('div');
+                criterionTitle.className = 'nihss-criterion-title';
+                criterionTitle.textContent = criterion.domain;
+
+                const scoreDisplay = document.createElement('div');
+                scoreDisplay.className = 'nihss-score-display';
+                scoreDisplay.id = `score-${criterion.nameAttr}`;
+                scoreDisplay.textContent = '0';
+
+                criterionHeader.appendChild(criterionTitle);
+                criterionHeader.appendChild(scoreDisplay);
+
+                const selectElement = document.createElement('select');
+                selectElement.className = 'nihss-select';
+                selectElement.name = criterion.nameAttr;
+                selectElement.id = criterion.nameAttr;
+                selectElement.setAttribute('aria-label', criterion.domain);
+
+                // डिफ़ॉल्ट विकल्प जोड़ें
+                const defaultOption = document.createElement('option');
+                defaultOption.value = '';
+                defaultOption.textContent = 'चुनें...';
+                defaultOption.disabled = true;
+                defaultOption.selected = true;
+                selectElement.appendChild(defaultOption);
+
+                // विकल्प जोड़ें
+                criterion.options.forEach(option => {
+                    const optionElement = document.createElement('option');
+                    optionElement.value = option.score;
+                    optionElement.textContent = `${option.score} - ${option.text}`;
+                    selectElement.appendChild(optionElement);
+                });
+
+                // परिवर्तन घटना जोड़ें
+                selectElement.addEventListener('change', function () {
+                    scoreDisplay.textContent = this.value || '0';
+                });
+
+                criterionCard.appendChild(criterionHeader);
+                criterionCard.appendChild(selectElement);
+                conteudoDiv.appendChild(criterionCard);
+            });
+
+            // NIHSS स्कोर की गणना करें
+            btnCalcular.addEventListener('click', () => {
+                let totalScore = 0;
+                let allSelected = true;
+
+                nihssData.forEach(criterion => {
+                    const selectElement = document.getElementById(criterion.nameAttr);
+                    if (selectElement.value === '') {
+                        allSelected = false;
+                    } else {
+                        totalScore += parseInt(selectElement.value);
+                    }
+                });
+
+                if (!allSelected) {
+                    resultadoDiv.innerHTML = '<p class="text-red-600 font-bold">कृपया सभी मानदंडों के लिए अंक चुनें!</p>';
+                    resultadoDiv.className = 'resultado p-4 rounded-md border-2 border-red-500 bg-red-100 text-center';
+                    resultadoDiv.classList.remove('hidden');
+                    return;
+                }
+
+                // स्कोर व्याख्या
+                let interpretation = '';
+                let bgClass = '';
+
+                if (totalScore === 0) {
+                    interpretation = 'कोई स्ट्रोक लक्षण नहीं';
+                    bgClass = 'bg-success-green-light';
+                } else if (totalScore <= 4) {
+                    interpretation = 'हल्का स्ट्रोक';
+                    bgClass = 'bg-warning-yellow-light';
+                } else if (totalScore <= 15) {
+                    interpretation = 'मध्यम स्ट्रोक';
+                    bgClass = 'bg-info-orange-light';
+                } else if (totalScore <= 20) {
+                    interpretation = 'मध्यम से गंभीर स्ट्रोक';
+                    bgClass = 'bg-danger-red-light';
+                } else {
+                    interpretation = 'गंभीर स्ट्रोक';
+                    bgClass = 'bg-danger-red-light';
+                }
+
+                resultadoDiv.innerHTML = `
+                    <h3 class="text-xl font-bold mb-2">NIHSS स्कोर: ${totalScore}</h3>
+                    <p class="text-lg mb-2">व्याख्या: ${interpretation}</p>
+                    <p class="text-sm">स्कोर सीमा: 0 से 42 (उच्च स्कोर अधिक गंभीर स्ट्रोक का संकेत देता है)</p>
+                `;
+                resultadoDiv.className = `resultado p-4 rounded-md border-2 ${bgClass} text-center`;
+                resultadoDiv.classList.remove('hidden');
+            });
+
+            // फ़ील्ड साफ़ करें
+            btnLimpar.addEventListener('click', () => {
+                nihssData.forEach(criterion => {
+                    const selectElement = document.getElementById(criterion.nameAttr);
+                    selectElement.value = '';
+                    const scoreDisplay = document.getElementById(`score-${criterion.nameAttr}`);
+                    scoreDisplay.textContent = '0';
+                });
+
+                resultadoDiv.innerHTML = '';
+                resultadoDiv.classList.add('hidden');
+            });
+
+            // PDF जनरेट करें
+            btnGerarPDF.addEventListener('click', () => {
+                const element = document.createElement('div');
+                element.innerHTML = `
+                    <div style="padding: 20px; font-family: Arial, sans-serif;">
+                        <h1 style="text-align: center; color: #1A3E74;">NIHSS स्केल - स्ट्रोक मूल्यांकन</h1>
+                        <p style="text-align: center; color: #666;">तिथि: ${new Date().toLocaleDateString('hi-IN')}</p>
+                        <table style="width: 100%; border-collapse: collapse; margin-top: 20px;">
+                            <thead>
+                                <tr style="background-color: #1A3E74; color: white;">
+                                    <th style="padding: 10px; border: 1px solid #ddd; text-align: left;">मानदंड</th>
+                                    <th style="padding: 10px; border: 1px solid #ddd; text-align: center;">स्कोर</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${nihssData.map(criterion => {
+                    const selectElement = document.getElementById(criterion.nameAttr);
+                    const selectedOption = selectElement.options[selectElement.selectedIndex];
+                    return `
+                                        <tr>
+                                            <td style="padding: 10px; border: 1px solid #ddd;">${criterion.domain}</td>
+                                            <td style="padding: 10px; border: 1px solid #ddd; text-align: center;">${selectElement.value || '0'}</td>
+                                        </tr>
+                                    `;
+                }).join('')}
+                            </tbody>
+                        </table>
+                        ${resultadoDiv.innerHTML ? `
+                        <div style="margin-top: 20px; padding: 15px; border-radius: 5px; background-color: #f8f9fa; border: 1px solid #dee2e6;">
+                            ${resultadoDiv.innerHTML}
+                        </div>
+                        ` : ''}
+                    </div>
+                `;
+
+                const opt = {
+                    margin: [10, 10, 10, 10],
+                    filename: `nihss_${new Date().toISOString().slice(0, 10)}.pdf`,
+                    image: { type: 'jpeg', quality: 0.98 },
+                    html2canvas: { scale: 2 },
+                    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+                };
+
+                html2pdf().set(opt).from(element).save();
+            });
+
+            // NANDA, NIC, NOC खोजें
+            btnNandaNicNoc.addEventListener('click', () => {
+                window.open('https://www.scielo.br/j/reben/a/4p3jY8LwjY5vJQcJ8cJ8cJ8/?lang=en&format=pdf', '_blank');
+            });
+        });
+    </script>
 
 
 

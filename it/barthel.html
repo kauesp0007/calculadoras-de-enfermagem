@@ -588,7 +588,123 @@
 
 
 
-    
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const resultadoDiv = document.getElementById('resultado');
+            const conteudoDiv = document.getElementById('conteudo');
+            const btnCalcular = document.getElementById('btnCalcular');
+            const btnLimpar = document.getElementById('btnLimpar');
+            const btnGerarPDF = document.getElementById('btnGerarPDF');
+            const btnNandaNicNoc = document.getElementById('btnNandaNicNoc');
+
+            const barthelData = [
+                { activity: "Alimentazione", nameAttr: "alimentazione", options: [{ score: 10, description: "indipendente" }, { score: 5, description: "necessita di aiuto per tagliare, ecc." }, { score: 0, description: "incapace" }] },
+                { activity: "Bagno", nameAttr: "banho", options: [{ score: 5, description: "indipendente" }, { score: 0, description: "dipendente" }] },
+                { activity: "Igiene personale", nameAttr: "higienePessoal", options: [{ score: 5, description: "indipendente (viso/capelli/denti/barba)" }, { score: 0, description: "necessita di aiuto" }] },
+                { activity: "Vestirsi", nameAttr: "vestir", options: [{ score: 10, description: "indipendente" }, { score: 5, description: "necessita di aiuto" }, { score: 0, description: "dipendente" }] },
+                { activity: "Controllo Intestinale", nameAttr: "controleIntestino", options: [{ score: 10, description: "continente" }, { score: 5, description: "incidente occasionale" }, { score: 0, description: "incontinente" }] },
+                { activity: "Controllo Vescicale", nameAttr: "controleBexiga", options: [{ score: 10, description: "continente" }, { score: 5, description: "incidente occasionale" }, { score: 0, description: "incontinente" }] },
+                { activity: "Uso del WC", nameAttr: "usoToilet", options: [{ score: 10, description: "indipendente" }, { score: 5, description: "necessita di aiuto" }, { score: 0, description: "dipendente" }] },
+                { activity: "Trasferimento", nameAttr: "transferencia", options: [{ score: 15, description: "indipendente" }, { score: 10, description: "aiuto minimo" }, { score: 5, description: "aiuto massimo" }, { score: 0, description: "incapace" }] },
+                { activity: "Mobilità", nameAttr: "mobilidade", options: [{ score: 15, description: "indipendente > 50m" }, { score: 10, description: "cammina con aiuto > 50m" }, { score: 5, description: "sedia a rotelle indipendente > 50m" }, { score: 0, description: "immobile" }] },
+                { activity: "Salire le Scale", nameAttr: "escadas", options: [{ score: 10, description: "indipendente" }, { score: 5, description: "necessita di aiuto" }, { score: 0, description: "incapace" }] }
+            ];
+
+            function createForm() {
+                conteudoDiv.innerHTML = '';
+                barthelData.forEach(activityGroup => {
+                    const card = document.createElement('div');
+                    card.className = 'barthel-criterion-card';
+                    card.innerHTML = `
+                    <h3 class="barthel-criterion-title">${activityGroup.activity}</h3>
+                    <div class="barthel-options-container">
+                        <select id="${activityGroup.nameAttr}-select" class="barthel-select">
+                            <option value="" disabled selected>Seleziona un'opzione...</option>
+                            ${activityGroup.options.map(opt => `<option value="${opt.score}">${opt.description} (${opt.score})</option>`).join('')}
+                        </select>
+                    </div>
+                `;
+                    conteudoDiv.appendChild(card);
+                });
+            }
+
+            function calcola() {
+                let totalScore = 0;
+                let allSelected = true;
+
+                barthelData.forEach(activityGroup => {
+                    const select = document.getElementById(`${activityGroup.nameAttr}-select`);
+                    if (select && select.value !== "") {
+                        totalScore += parseInt(select.value, 10);
+                    } else {
+                        allSelected = false;
+                    }
+                });
+
+                if (!allSelected) {
+                    resultadoDiv.innerHTML = '⚠️ <strong class="font-bold">Per favore, seleziona un\'opzione per ogni attività.</strong>';
+                    resultadoDiv.className = 'standard-result-box bg-info-orange-light';
+                    resultadoDiv.style.display = 'block';
+                    return;
+                }
+
+                let classificazione = "";
+                if (totalScore === 100) { classificazione = "Indipendenza Totale"; }
+                else if (totalScore >= 91) { classificazione = "Dipendenza Lieve"; }
+                else if (totalScore >= 61) { classificazione = "Dipendenza Moderata"; }
+                else if (totalScore >= 21) { classificazione = "Dipendenza Grave"; }
+                else { classificazione = "Dipendenza Completa"; }
+
+                resultadoDiv.innerHTML = `
+                <p class="font-bold text-lg">Punteggio Totale: <span class="font-black">${totalScore} / 100</span></p>
+                <p class="font-bold text-lg">Classificazione: <span class="font-black">${classificazione}</span></p>
+            `;
+                resultadoDiv.className = 'standard-result-box';
+                resultadoDiv.style.display = 'block';
+                resultadoDiv.dataset.score = totalScore;
+                resultadoDiv.dataset.classificazione = classificazione;
+            }
+
+            function pulisci() {
+                createForm();
+                resultadoDiv.innerHTML = '';
+                resultadoDiv.className = 'hidden';
+                delete resultadoDiv.dataset.score;
+                delete resultadoDiv.dataset.classificazione;
+            }
+
+            createForm();
+            btnCalcular?.addEventListener('click', calcola);
+            btnLimpar?.addEventListener('click', pulisci);
+
+            btnGerarPDF?.addEventListener('click', () => {
+                if (resultadoDiv.dataset.score === undefined) {
+                    alert('Per favore, clicca prima su "Calcola" per generare il PDF.');
+                    return;
+                }
+                if (typeof gerarPDFGlobal === 'function') {
+                    gerarPDFGlobal({
+                        titulo: 'Scala di Barthel',
+                        subtitulo: 'Rapporto sulla Dipendenza Funzionale',
+                        nomeArquivo: 'rapporto_scala_barthel.pdf',
+                        seletorConteudo: '.main-content-wrapper'
+                    });
+                } else {
+                    console.error('Funzione gerarPDFGlobal non definita.');
+                }
+            });
+
+            btnNandaNicNoc?.addEventListener('click', () => {
+                const classificazione = resultadoDiv.dataset.classificazione;
+                if (!classificazione) {
+                    alert('Calcola il risultato per cercare la condotta.');
+                    return;
+                }
+                const searchQuery = encodeURIComponent(`Paziente con ${classificazione} nella Scala di Barthel tassonomia NANDA, NIC e NOC`);
+                window.open(`https://www.google.com/search?q=${searchQuery}`, '_blank');
+            });
+        });
+    </script>
 
 
 

@@ -598,7 +598,243 @@
 
 
 
-  
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const resultadoDiv = document.getElementById('resultado');
+      const btnCalcular = document.getElementById('btnCalcular');
+      const btnLimpar = document.getElementById('btnLimpar');
+      const btnGerarPDF = document.getElementById('btnGerarPDF');
+      const btnNandaNicNoc = document.getElementById('btnNandaNicNoc');
+      const conteudoDiv = document.getElementById('conteudo');
+
+      const sofaData = [
+        {
+          category: "Respiratorio (PaO₂/FiO₂)",
+          nameAttr: "respiratorio",
+          explanation: "Valuta il rapporto PaO₂/FiO₂ del paziente. PaO₂ in mmHg.",
+          options: [
+            { description: "≥ 400", score: 0 },
+            { description: "< 400", score: 1 },
+            { description: "< 300", score: 2 },
+            { description: "< 200 con supporto ventilatorio", score: 3 },
+            { description: "< 100 con supporto ventilatorio", score: 4 }
+          ]
+        },
+        {
+          category: "Coagulazione (Piastrine)",
+          nameAttr: "coagulacao",
+          explanation: "Valuta la conta piastrinica del paziente (x10³ /µL).",
+          options: [
+            { description: "≥ 150", score: 0 },
+            { description: "< 150", score: 1 },
+            { description: "< 100", score: 2 },
+            { description: "< 50", score: 3 },
+            { description: "< 20", score: 4 }
+          ]
+        },
+        {
+          category: "Epatico (Bilirubina)",
+          nameAttr: "hepatico",
+          explanation: "Valuta il livello di bilirubina del paziente (mg/dL).",
+          options: [
+            { description: "< 1.2", score: 0 },
+            { description: "1.2 - 1.9", score: 1 },
+            { description: "2.0 - 5.9", score: 2 },
+            { description: "6.0 - 11.9", score: 3 },
+            { description: "≥ 12.0", score: 4 }
+          ]
+        },
+        {
+          category: "Cardiovascolare (PAM e Farmaci Vasoattivi)",
+          nameAttr: "cardiovascular",
+          explanation: "Valuta la Pressione Arteriosa Media (PAM) o l'uso di farmaci vasoattivi.",
+          options: [
+            { description: "PAM ≥ 70 mmHg", score: 0 },
+            { description: "PAM < 70 mmHg", score: 1 },
+            { description: "Dopamina ≤ 5 µg/kg/min o qualsiasi dose di dobutamina", score: 2 },
+            { description: "Dopamina > 5 µg/kg/min o adrenalina ≤ 0.1 µg/kg/min o noradrenalina ≤ 0.1 µg/kg/min", score: 3 },
+            { description: "Dopamina > 15 µg/kg/min o adrenalina > 0.1 µg/kg/min o noradrenalina > 0.1 µg/kg/min", score: 4 }
+          ]
+        },
+        {
+          category: "SNC (Glasgow)",
+          nameAttr: "snc",
+          explanation: "Valuta la Scala del Coma di Glasgow (GCS) del paziente.",
+          options: [
+            { description: "GCS 15", score: 0 },
+            { description: "GCS 13-14", score: 1 },
+            { description: "GCS 10-12", score: 2 },
+            { description: "GCS 6-9", score: 3 },
+            { description: "GCS < 6", score: 4 }
+          ]
+        },
+        {
+          category: "Renale (Creatinina/Flusso Urinario)",
+          nameAttr: "renal",
+          explanation: "Valuta la creatinina sierica (mg/dL) o il flusso urinario (mL/die).",
+          options: [
+            { description: "Creatinina < 1.2", score: 0 },
+            { description: "Creatinina 1.2 - 1.9", score: 1 },
+            { description: "Creatinina 2.0 - 3.4", score: 2 },
+            { description: "Creatinina 3.5 - 4.9 o Flusso urinario < 500 mL/die", score: 3 },
+            { description: "Creatinina ≥ 5.0 o Flusso urinario < 200 mL/die", score: 4 }
+          ]
+        }
+      ];
+
+      function updateScoreDisplay(criterionId) {
+        const selectElement = document.getElementById(criterionId);
+        const scoreDisplayElement = document.getElementById(`${criterionId}_score_display`);
+        if (selectElement && scoreDisplayElement) {
+          scoreDisplayElement.innerText = selectElement.value === "" ? "0" : selectElement.value;
+        }
+      }
+
+      function calcularPontuacao() {
+        let totalSOFAScore = 0;
+        let allItemsSelected = true;
+
+        sofaData.forEach(item => {
+          const selectElement = document.getElementById(item.nameAttr);
+          if (selectElement.value === "") {
+            allItemsSelected = false;
+          } else {
+            totalSOFAScore += parseInt(selectElement.value, 10);
+          }
+        });
+
+        resultadoDiv.style.display = 'block';
+        if (!allItemsSelected) {
+          resultadoDiv.innerHTML = '⚠️ <strong class="font-bold">Seleziona un\'opzione per ogni criterio</strong> prima di calcolare.';
+          resultadoDiv.className = 'resultado bg-info-orange-light';
+          delete resultadoDiv.dataset.score;
+          return;
+        }
+
+        let interpretacao = '';
+        let conduta = '';
+        let resultadoClasse = '';
+
+        if (totalSOFAScore <= 4) {
+          interpretacao = "Bassa disfunzione d'organo. Prognosi generalmente buona.";
+          resultadoClasse = 'bg-sofa-low';
+          conduta = "Mantenere il monitoraggio clinico. Rivalutare in base all'evoluzione del paziente.";
+        } else if (totalSOFAScore <= 9) {
+          interpretacao = "Disfunzione d'organo moderata. Aumentato rischio di mortalità.";
+          resultadoClasse = 'bg-sofa-medium';
+          conduta = "Valutazione e gestione intensiva. Considerare l'indagine per sepsi e altre cause di disfunzione.";
+        } else {
+          interpretacao = "Grave disfunzione d'organo. Alto rischio di mortalità.";
+          resultadoClasse = 'bg-sofa-high';
+          conduta = "Gestione aggressiva della disfunzione d'organo. Supporto vitale avanzato e ricerca attiva di cause reversibili.";
+        }
+
+        resultadoDiv.innerHTML = `<p>Punteggio Totale SOFA: <strong class="font-bold">${totalSOFAScore}</strong></p><p>Interpretazione: <strong class="font-bold">${interpretacao}</strong></p><p>Condotta Suggerita: <strong class="font-bold">${conduta}</strong></p>`;
+        resultadoDiv.className = `resultado ${resultadoClasse}`;
+
+        resultadoDiv.dataset.score = totalSOFAScore;
+        resultadoDiv.dataset.interpretacao = interpretacao;
+        resultadoDiv.dataset.conduta = conduta;
+        resultadoDiv.dataset.scaleName = "Scala SOFA";
+      }
+
+      function limparCampos() {
+        sofaData.forEach(item => {
+          const selectElement = document.getElementById(item.nameAttr);
+          selectElement.selectedIndex = 0;
+          document.getElementById(`${item.nameAttr}_score_display`).innerText = '0';
+        });
+        resultadoDiv.innerHTML = '';
+        resultadoDiv.className = 'resultado hidden';
+        delete resultadoDiv.dataset.score;
+      }
+
+      sofaData.forEach((item, index) => {
+        const sectionDiv = document.createElement('div');
+        sectionDiv.className = 'sofa-criterion-card';
+
+        const headerDiv = document.createElement('div');
+        headerDiv.className = 'sofa-criterion-header';
+
+        const titleH3 = document.createElement('h3');
+        titleH3.className = 'sofa-criterion-title';
+        titleH3.innerText = `${item.category}`;
+        headerDiv.appendChild(titleH3);
+
+        const scoreSpan = document.createElement('span');
+        scoreSpan.className = 'sofa-score-display';
+        scoreSpan.id = `${item.nameAttr}_score_display`;
+        scoreSpan.innerText = '0';
+        headerDiv.appendChild(scoreSpan);
+
+        sectionDiv.appendChild(headerDiv);
+
+        const optionsDiv = document.createElement('div');
+        optionsDiv.className = 'sofa-criterion-options';
+
+        const selectElement = document.createElement('select');
+        selectElement.id = item.nameAttr;
+        selectElement.className = 'sofa-select';
+        selectElement.onchange = () => updateScoreDisplay(item.nameAttr);
+
+        const defaultOption = document.createElement('option');
+        defaultOption.value = "";
+        defaultOption.text = "Seleziona...";
+        defaultOption.disabled = true;
+        defaultOption.selected = true;
+        selectElement.appendChild(defaultOption);
+
+        item.options.forEach(option => {
+          const optionElement = document.createElement('option');
+          optionElement.value = option.score;
+          optionElement.text = `${option.description} (${option.score})`;
+          selectElement.appendChild(optionElement);
+        });
+
+        optionsDiv.appendChild(selectElement);
+        sectionDiv.appendChild(optionsDiv);
+
+        const explanationP = document.createElement('p');
+        explanationP.className = 'text-gray-600 text-sm mt-2 text-left';
+        explanationP.innerText = item.explanation;
+        sectionDiv.appendChild(explanationP);
+
+        conteudoDiv.appendChild(sectionDiv);
+      });
+
+      btnCalcular?.addEventListener('click', calcularPontuacao);
+      btnLimpar?.addEventListener('click', limparCampos);
+
+      btnGerarPDF?.addEventListener('click', () => {
+        if (!resultadoDiv.dataset.score) {
+          alert('Per favore, clicca su "Calcola" prima di generare il PDF.');
+          return;
+        }
+        if (typeof gerarPDFGlobal === 'function') {
+          gerarPDFGlobal({
+            titulo: 'Scala SOFA',
+            subtitulo: 'Rapporto di Valutazione della Disfunzione d\'Organo',
+            nomeArquivo: 'rapporto_scala_sofa.pdf',
+            seletorConteudo: '.main-content-wrapper'
+          });
+        } else {
+          console.error('Funzione gerarPDFGlobal non definita.');
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener('click', () => {
+        const score = resultadoDiv.dataset.score;
+        const scaleName = resultadoDiv.dataset.scaleName;
+        const conduta = resultadoDiv.dataset.conduta;
+        if (!score || !conduta) {
+          alert('Calcola il risultato per cercare la procedura.');
+          return;
+        }
+        const searchQuery = encodeURIComponent(`${scaleName} punteggio ${score} condotta ${conduta} generare tassonomia NANDA, generare tassonomia NIC e generare tassonomia NOC`);
+        window.open(`https://www.google.com/search?q=${searchQuery}`, '_blank');
+      });
+    });
+  </script>
 
 
 

@@ -565,7 +565,222 @@
 
 
 
-  
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const resultadoDiv = document.getElementById("resultado");
+      const btnCalcular = document.getElementById("btnCalcular");
+      const btnLimpar = document.getElementById("btnLimpar");
+      const btnGerarPDF = document.getElementById("btnGerarPDF");
+      const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
+      const conteudoDiv = document.getElementById("conteudo");
+
+      // OFRAS 척도 데이터
+      const ofrasData = [
+        {
+          category: "낙상 병력",
+          nameAttr: "historico",
+          options: [
+            { description: "낙상 병력이나 균형 문제 없음", score: 0 },
+            { description: "낙상 병력이나 균형 문제 있음", score: 1 },
+          ],
+          explain:
+            "낙상 병력과 균형에 영향을 미칠 수 있는 조건을 평가합니다.",
+        },
+        {
+          category: "심장 시스템",
+          nameAttr: "cardiaco",
+          options: [
+            { description: "심장 이상 없음", score: 0 },
+            { description: " 부정맥, 저혈압 또는 기타 심장질환", score: 1 },
+          ],
+          explain: "불안정성을 유발할 수 있는 심장질환을 분석합니다.",
+        },
+        {
+          category: "출혈",
+          nameAttr: "hemorragia",
+          options: [
+            { description: "출혈 위험 없음", score: 0 },
+            { description: "출혈 위험이나 활성 출혈 있음", score: 1 },
+          ],
+          explain: "약화와 어지러움을 유발할 수 있는 출혈 위험을 고려합니다.",
+        },
+        {
+          category: "마취",
+          nameAttr: "anestesia",
+          options: [
+            { description: "마취제 사용 없음", score: 0 },
+            { description: "최근 마취제 사용 (최근 24시간 이내)", score: 1 },
+          ],
+          explain: "기면과 균형 실조와 같은 마취의 잔여 효과를 평가합니다.",
+        },
+        {
+          category: "운동 능력",
+          nameAttr: "motora",
+          options: [
+            { description: "보조기구 없이 안전하게 보행", score: 0 },
+            {
+              description: "보행 어려움, 불안정성 또는 보조기구 필요",
+              score: 1,
+            },
+          ],
+          explain: "환자가 안전하게 이동할 수 있는 능력을 평가합니다.",
+        },
+        {
+          category: "약물 사용",
+          nameAttr: "medicacao",
+          options: [
+            { description: "위험 약물 사용 안함", score: 0 },
+            {
+              description: "기면이나 어지러움을 유발하는 약물 사용",
+              score: 1,
+            },
+          ],
+          explain: "낙상 위험을 증가시킬 수 있는 약물 사용을 고려합니다.",
+        },
+      ];
+
+      // 양식 동적 채우기
+      ofrasData.forEach((item) => {
+        const sectionDiv = document.createElement("div");
+        sectionDiv.className = "ofras-criterion-section";
+        sectionDiv.id = `section-${item.nameAttr}`;
+
+        const titleH3 = document.createElement("h3");
+        titleH3.className = "ofras-criterion-title";
+        titleH3.innerHTML =
+          item.category +
+          `
+              <div class="text-sm font-normal text-gray-500 mt-1">${item.explain}</div>`;
+        sectionDiv.appendChild(titleH3);
+
+        const selectElement = document.createElement("select");
+        selectElement.id = item.nameAttr;
+        selectElement.className = "ofras-criterion-select";
+
+        const defaultOption = document.createElement("option");
+        defaultOption.value = "";
+        defaultOption.text = "선택하세요...";
+        selectElement.appendChild(defaultOption);
+
+        item.options.forEach((option) => {
+          const optionElement = document.createElement("option");
+          optionElement.value = option.score;
+          optionElement.text = `${option.description} (점수: ${option.score})`;
+          selectElement.appendChild(optionElement);
+        });
+
+        sectionDiv.appendChild(selectElement);
+        conteudoDiv.appendChild(sectionDiv);
+      });
+
+      function calcularOFRAS() {
+        const selects = document.querySelectorAll("#conteudo select");
+        let allSelected = true;
+        let total = 0;
+
+        selects.forEach((select) => {
+          if (select.value === "") {
+            allSelected = false;
+            select.classList.add("incomplete");
+          } else {
+            select.classList.remove("incomplete");
+            total += Number(select.value);
+          }
+        });
+
+        if (!allSelected) {
+          resultadoDiv.innerHTML =
+            '⚠️ <strong class="font-bold">계산을 위해 모든 항목의 옵션을 선택해 주세요.</strong>';
+          resultadoDiv.style.display = "block";
+          delete resultadoDiv.dataset.score;
+          return;
+        }
+
+        let classificacao = "";
+        let recomendacao = "";
+
+        // OFRAS 척도 점수 정의 (0-6점 모델 기반)
+        if (total >= 0 && total <= 2) {
+          classificacao = "낮은 위험";
+          recomendacao =
+            "산부인과 환자는 낮은 낙상 위험이 있습니다. 표준 예방 조치를 계속하세요.";
+        } else if (total >= 3 && total <= 4) {
+          classificacao = "중간 위험";
+          recomendacao =
+            "산부인과 환자는 중간 낙상 위험이 있습니다. 낙상 예방 및 모니터링 조치를 시행하세요.";
+        } else if (total >= 5 && total <= 6) {
+          classificacao = "높은 위험";
+          recomendacao =
+            "산부인과 환자는 높은 낙상 위험이 있습니다. 즉시 개인화된 낙상 예방 계획을 시행하세요.";
+        } else {
+          classificacao = "표준 범위 밖 점수";
+          recomendacao =
+            "계산된 점수가 예상 분류 범위를 벗어납니다. 선택한 값을 확인하세요.";
+        }
+
+        resultadoDiv.innerHTML = `
+                <p>총 점수: <strong class="font-bold">${total}</strong></p>
+                <p>분류: <strong class="font-bold">${classificacao}</strong></p>
+                <p class="mt-4"><strong>권장사항:</strong> ${recomendacao}</p>
+            `;
+        resultadoDiv.style.display = "block";
+
+        resultadoDiv.dataset.score = total;
+        resultadoDiv.dataset.scaleName = "OFRAS 척도";
+        resultadoDiv.dataset.classificacao = classificacao;
+      }
+
+      function limparCampos() {
+        const selects = document.querySelectorAll("#conteudo select");
+        selects.forEach((select) => {
+          select.selectedIndex = 0;
+          select.classList.remove("incomplete");
+        });
+        resultadoDiv.innerHTML = "";
+        resultadoDiv.style.display = "none";
+        delete resultadoDiv.dataset.score;
+        delete resultadoDiv.dataset.scaleName;
+        delete resultadoDiv.dataset.classificacao;
+      }
+
+      btnCalcular?.addEventListener("click", calcularOFRAS);
+      btnLimpar?.addEventListener("click", limparCampos);
+
+      btnGerarPDF?.addEventListener("click", () => {
+        if (!resultadoDiv.dataset.score) {
+          alert('PDF 생성을 위해 먼저 "점수 계산"을 클릭해 주세요.');
+          return;
+        }
+        if (typeof gerarPDFGlobal === "function") {
+          gerarPDFGlobal({
+            titulo: "OFRAS 척도",
+            subtitulo: "낙상 위험 평가 보고서",
+            nomeArquivo: "ofras_척도_보고서.pdf",
+            seletorConteudo: ".main-content-wrapper",
+          });
+        } else {
+          console.error("gerarPDFGlobal 함수가 정의되지 않았습니다.");
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener("click", () => {
+        const score = resultadoDiv.dataset.score;
+        const scaleName = resultadoDiv.dataset.scaleName;
+        const classificacao = resultadoDiv.dataset.classificacao;
+        if (!score || !classificacao) {
+          alert("행동을 검색하기 위해 결과를 계산해 주세요.");
+          return;
+        }
+        const searchQuery = encodeURIComponent(
+          `${scaleName} 점수 ${score} 산부인과 환자 ${classificacao} NANDA 분류 생성, NOC 분류 생성 및 NIC 분류 생성`,
+        );
+        window.open(
+          `https://www.google.com/search?q=${searchQuery}`,
+          "_blank",
+        );
+      });
+    });
+  </script>
 
   <script src="/ko/lang-selector.js" defer=""></script>
 

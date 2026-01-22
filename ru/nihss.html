@@ -631,7 +631,312 @@
 
 
 
-    
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const resultadoDiv = document.getElementById('resultado');
+            const btnCalcular = document.getElementById('btnCalcular');
+            const btnLimpar = document.getElementById('btnLimpar');
+            const btnGerarPDF = document.getElementById('btnGerarPDF');
+            const btnNandaNicNoc = document.getElementById('btnNandaNicNoc');
+            const conteudoDiv = document.getElementById('conteudo');
+
+            // Данные шкалы NIHSS
+            const nihssData = [
+                {
+                    domain: "1a - Уровень сознания",
+                    nameAttr: "nivelConsciencia",
+                    options: [
+                        { text: "Бдительный", score: 0 },
+                        { text: "Не бдительный, требуется минимальная стимуляция для ответа или поддержания ответа", score: 1 },
+                        { text: "Не бдительный, требуется повторная стимуляция для ответа или болезненная стимуляция", score: 2 },
+                        { text: "Кома", score: 3 }
+                    ]
+                },
+                {
+                    domain: "1b - Уровень сознания: Отвечает на месяц и возраст",
+                    nameAttr: "mesIdade",
+                    options: [
+                        { text: "Отвечает на оба правильно", score: 0 },
+                        { text: "Отвечает на один правильно", score: 1 },
+                        { text: "Ни один не отвечен правильно", score: 2 }
+                    ]
+                },
+                {
+                    domain: "1c - Уровень сознания: Выполняет моторную команду",
+                    nameAttr: "comandoMotor",
+                    options: [
+                        { text: "Выполняет обе задачи правильно", score: 0 },
+                        { text: "Выполняет одну задачу правильно", score: 1 },
+                        { text: "Ни одна не выполнена правильно", score: 2 }
+                    ]
+                },
+                {
+                    domain: "2 - Лучший содружественный взгляд",
+                    nameAttr: "olharConjugado",
+                    options: [
+                        { text: "Нормальный", score: 0 },
+                        { text: "Частичный паралич взгляда (взгляд фиксирован в одном направлении)", score: 1 },
+                        { text: "Принудительное отклонение взгляда", score: 2 }
+                    ]
+                },
+                {
+                    domain: "3 - Поля зрения",
+                    nameAttr: "camposVisuais",
+                    options: [
+                        { text: "Без потери", score: 0 },
+                        { text: "Частичная гемианопсия (слепота в части поля зрения)", score: 1 },
+                        { text: "Полная гемианопсия (слепота в половине поля зрения)", score: 2 },
+                        { text: "Двусторонняя слепота (полная слепота)", score: 3 }
+                    ]
+                },
+                {
+                    domain: "4 - Паралич лицевого нерва",
+                    nameAttr: "paralisiaFacial",
+                    options: [
+                        { text: "Симметричный (без паралича)", score: 0 },
+                        { text: "Легкий паралич (асимметрия при улыбке)", score: 1 },
+                        { text: "Частичный паралич (поражение нижней части лица)", score: 2 },
+                        { text: "Полный паралич (поражение верхней и нижней частей лица)", score: 3 }
+                    ]
+                },
+                {
+                    domain: "5a - Моторная сила в левой верхней конечности",
+                    nameAttr: "msEsq",
+                    options: [
+                        { text: "Без опускания в течение 10 секунд (норма)", score: 0 },
+                        { text: "Опускается до 10 секунд (сохраняет некоторое усилие)", score: 1 },
+                        { text: "Не преодолевает гравитацию (только поднимает против кровати)", score: 2 },
+                        { text: "Без движения (без усилия против гравитации)", score: 3 },
+                        { text: "Ампутация или сращение сустава (не тестируется)", score: 4 }
+                    ]
+                },
+                {
+                    domain: "5b - Моторная сила в правой верхней конечности",
+                    nameAttr: "msDir",
+                    options: [
+                        { text: "Без опускания в течение 10 секунд (норма)", score: 0 },
+                        { text: "Опускается до 10 секунд (сохраняет некоторое усилие)", score: 1 },
+                        { text: "Не преодолевает гравитацию (только поднимает против кровати)", score: 2 },
+                        { text: "Без движения (без усилия против гравитации)", score: 3 },
+                        { text: "Ампутация или сращение сустава (не тестируется)", score: 4 }
+                    ]
+                },
+                {
+                    domain: "6a - Моторная сила в левой нижней конечности",
+                    nameAttr: "miEsq",
+                    options: [
+                        { text: "Без опускания в течение 5 секунд (норма)", score: 0 },
+                        { text: "Опускается до 5 секунд (сохраняет некоторое усилие)", score: 1 },
+                        { text: "Не преодолевает гравитацию (только поднимает против кровати)", score: 2 },
+                        { text: "Без движения (без усилия против гравитации)", score: 3 },
+                        { text: "Ампутация или сращение сустава (не тестируется)", score: 4 }
+                    ]
+                },
+                {
+                    domain: "6b - Моторная сила в правой нижней конечности",
+                    nameAttr: "miDir",
+                    options: [
+                        { text: "Без опускания в течение 5 секунд (норма)", score: 0 },
+                        { text: "Опускается до 5 секунд (сохраняет некоторое усилие)", score: 1 },
+                        { text: "Не преодолевает гравитацию (только поднимает против кровати)", score: 2 },
+                        { text: "Без движения (без усилия против гравитации)", score: 3 },
+                        { text: "Ампутация или сращение сустава (не тестируется)", score: 4 }
+                    ]
+                },
+                {
+                    domain: "7 - Атаксия конечностей",
+                    nameAttr: "ataxia",
+                    options: [
+                        { text: "Отсутствует", score: 0 },
+                        { text: "Присутствует в 1 конечности", score: 1 },
+                        { text: "Присутствует в 2 конечностях", score: 2 }
+                    ]
+                },
+                {
+                    domain: "8 - Чувствительность",
+                    nameAttr: "sensibilidade",
+                    options: [
+                        { text: "Нормальная", score: 0 },
+                        { text: "Легкая потеря (боль или легкое прикосновение)", score: 1 },
+                        { text: "Тяжелая потеря (не чувствует боль или легкое прикосновение)", score: 2 }
+                    ]
+                },
+                {
+                    domain: "9 - Лучшая речь (Афазия)",
+                    nameAttr: "afasia",
+                    options: [
+                        { text: "Без афазии", score: 0 },
+                        { text: "Легкая до умеренной афазии", score: 1 },
+                        { text: "Тяжелая афазия", score: 2 }
+                    ]
+                },
+                {
+                    domain: "10 - Дизартрия",
+                    nameAttr: "disartria",
+                    options: [
+                        { text: "Нормальная", score: 0 },
+                        { text: "Легкая до умеренной", score: 1 },
+                        { text: "Тяжелая", score: 2 }
+                    ]
+                },
+                {
+                    domain: "11 - Угасание и невнимание",
+                    nameAttr: "extincaoNegligencia",
+                    options: [
+                        { text: "Без аномалии", score: 0 },
+                        { text: "Легкое угасание (невнимание в одной модальности)", score: 1 },
+                        { text: "Тяжелое невнимание (невнимание в более чем одной модальности)", score: 2 }
+                    ]
+                }
+            ];
+
+            // --- Функции калькулятора NIHSS ---
+            function updateScoreDisplay(criterionId) {
+                const selectElement = document.getElementById(criterionId);
+                const scoreDisplayElement = document.getElementById(`${criterionId}_score_display`);
+                if (selectElement && scoreDisplayElement) {
+                    scoreDisplayElement.innerText = selectElement.value === "" ? "0" : selectElement.value;
+                }
+            }
+
+            function calcularPontuacao() {
+                let totalScore = 0;
+                let allItemsSelected = true;
+
+                nihssData.forEach(item => {
+                    const selectElement = document.getElementById(item.nameAttr);
+                    if (selectElement.value === "") {
+                        allItemsSelected = false;
+                    } else {
+                        totalScore += parseInt(selectElement.value, 10);
+                    }
+                });
+
+                resultadoDiv.style.display = 'block';
+                if (!allItemsSelected) {
+                    resultadoDiv.innerHTML = '⚠️ <strong class="font-bold">Пожалуйста, выберите вариант для всех пунктов</strong> перед вычислением.';
+                    resultadoDiv.className = 'resultado bg-info-orange-light';
+                    delete resultadoDiv.dataset.score;
+                    return;
+                }
+
+                let conduta = "";
+                let resultadoClasses = '';
+
+                if (totalScore <= 4) {
+                    conduta = "Низкий риск серьезных осложнений. Тактика: Клиническое мониторирование и базовая поддержка.";
+                    resultadoClasses = 'bg-success-green-light';
+                } else if (totalScore <= 14) {
+                    conduta = "Умеренный риск осложнений. Тактика: Частая неврологическая оценка и обсуждение направления в отделение интенсивной терапии.";
+                    resultadoClasses = 'bg-warning-yellow-light';
+                } else { // total > 14
+                    conduta = "Высокий риск осложнений. Тактика: Интенсивная помощь, возможное показание к тромболизису или нейрохирургическому вмешательству.";
+                    resultadoClasses = 'bg-danger-red-light';
+                }
+
+                resultadoDiv.innerHTML = `<p>Общий балл NIHSS: <strong class="font-bold">${totalScore}</strong></p><p>Тактика: <strong class="font-bold">${conduta}</strong></p>`;
+                resultadoDiv.className = `resultado ${resultadoClasses}`;
+
+                resultadoDiv.dataset.score = totalScore;
+                resultadoDiv.dataset.conduta = conduta;
+                resultadoDiv.dataset.scaleName = "Шкала NIHSS";
+            }
+
+            function limparCampos() {
+                nihssData.forEach(item => {
+                    const selectElement = document.getElementById(item.nameAttr);
+                    selectElement.selectedIndex = 0;
+                    document.getElementById(`${item.nameAttr}_score_display`).innerText = '0';
+                });
+                resultadoDiv.innerHTML = '';
+                resultadoDiv.className = 'resultado hidden';
+                delete resultadoDiv.dataset.score;
+                delete resultadoDiv.dataset.conduta;
+                delete resultadoDiv.dataset.scaleName;
+            }
+
+            // Заполняет форму динамически
+            nihssData.forEach((item, index) => {
+                const sectionDiv = document.createElement('div');
+                sectionDiv.className = 'nihss-criterion-card';
+
+                const headerDiv = document.createElement('div');
+                headerDiv.className = 'nihss-criterion-header';
+
+                const titleH3 = document.createElement('h3');
+                titleH3.className = 'nihss-criterion-title';
+                titleH3.innerText = item.domain;
+                headerDiv.appendChild(titleH3);
+
+                const scoreSpan = document.createElement('span');
+                scoreSpan.className = 'nihss-score-display';
+                scoreSpan.id = `${item.nameAttr}_score_display`;
+                scoreSpan.innerText = '0';
+                headerDiv.appendChild(scoreSpan);
+
+                sectionDiv.appendChild(headerDiv);
+
+                const optionsDiv = document.createElement('div');
+                optionsDiv.className = 'nihss-criterion-options';
+
+                const selectElement = document.createElement('select');
+                selectElement.id = item.nameAttr;
+                selectElement.className = 'nihss-select';
+                selectElement.onchange = () => updateScoreDisplay(item.nameAttr);
+
+                const defaultOption = document.createElement('option');
+                defaultOption.value = "";
+                defaultOption.text = "Выберите...";
+                defaultOption.disabled = true;
+                defaultOption.selected = true;
+                selectElement.appendChild(defaultOption);
+
+                item.options.forEach(option => {
+                    const optionElement = document.createElement('option');
+                    optionElement.value = option.score;
+                    optionElement.text = `${option.text} (${option.score})`;
+                    selectElement.appendChild(optionElement);
+                });
+
+                optionsDiv.appendChild(selectElement);
+                sectionDiv.appendChild(optionsDiv);
+                conteudoDiv.appendChild(sectionDiv);
+            });
+
+            // Добавляет обработчики событий к кнопкам
+            btnCalcular?.addEventListener('click', calcularPontuacao);
+            btnLimpar?.addEventListener('click', limparCampos);
+
+            btnGerarPDF?.addEventListener('click', () => {
+                if (!resultadoDiv.dataset.score) {
+                    alert('Пожалуйста, сначала нажмите "Вычислить" для создания PDF.');
+                    return;
+                }
+                if (typeof gerarPDFGlobal === 'function') {
+                    gerarPDFGlobal({
+                        titulo: 'Шкала NIHSS',
+                        subtitulo: 'Отчет об оценке инсульта',
+                        nomeArquivo: 'relatorio_escala_nihss.pdf',
+                        seletorConteudo: '.main-content-wrapper'
+                    });
+                } else {
+                    console.error('Функция gerarPDFGlobal не определена.');
+                }
+            });
+
+            btnNandaNicNoc?.addEventListener('click', () => {
+                const score = resultadoDiv.dataset.score;
+                const scaleName = resultadoDiv.dataset.scaleName;
+                const conduta = resultadoDiv.dataset.conduta;
+                if (!score || !conduta) {
+                    alert('Вычислите результат для поиска тактики.');
+                    return;
+                }
+                const searchQuery = encodeURIComponent(`${scaleName} балл ${score} тактика ${conduta} генерировать таксономию NANDA, генерировать таксономию NIC и генерировать таксономию NOC`);
+                window.open(`https://www.google.com/search?q=${searchQuery}`, '_blank');
+            });
+        });
+    </script>
 
 
 

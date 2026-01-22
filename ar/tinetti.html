@@ -799,7 +799,342 @@
 
 
 
-    
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const resultadoDiv = document.getElementById('resultado');
+            const btnCalcular = document.getElementById('btnCalcular');
+            const btnLimpar = document.getElementById('btnLimpar');
+            const btnGerarPDF = document.getElementById('btnGerarPDF');
+            const btnNandaNicNoc = document.getElementById('btnNandaNicNoc');
+            const conteudoDiv = document.getElementById('conteudo');
+
+            // بيانات مقياس تينيتي
+            const tinettiData = [
+                {
+                    title: "١. التوازن أثناء الجلوس",
+                    nameAttr: "sentado",
+                    explain: "القدرة على الحفاظ على الاستقرار عند الجلوس على كرسي.",
+                    options: [
+                        { description: "ينزلق، ينزلق للأسفل في الكرسي", score: 0 },
+                        { description: "ثابت وآمن", score: 1 }
+                    ]
+                },
+                {
+                    title: "٢. النهوض",
+                    nameAttr: "levantando",
+                    explain: "القدرة على النهوض من الكرسي.",
+                    options: [
+                        { description: "غير قادر بدون مساعدة", score: 0 },
+                        { description: "قادر، لكن يستخدم ذراعيه للنهوض", score: 1 },
+                        { description: "قادر، دون استخدام الذراعين", score: 2 }
+                    ]
+                },
+                {
+                    title: "٣. محاولة النهوض",
+                    nameAttr: "tentando_levantar",
+                    explain: "مراقبة عدد المحاولات للنهوض.",
+                    options: [
+                        { description: "غير قادر أو أكثر من محاولة واحدة", score: 0 },
+                        { description: "قادر في محاولة واحدة", score: 1 }
+                    ]
+                },
+                {
+                    title: "٤. بمجرد النهوض (أول ٥ ثوانٍ)",
+                    nameAttr: "apos_levantar",
+                    explain: "الاستقرار في الثواني الخمس الأولى بعد النهوض.",
+                    options: [
+                        { description: "غير مستقر (يتمايل، يحرك قدميه، جذع)", score: 0 },
+                        { description: "مستقر بدعم من شخص آخر أو جسم", score: 1 },
+                        { description: "مستقر بدون دعم، لكنه يتأرجح", score: 2 }
+                    ]
+                },
+                {
+                    title: "٥. التوازن أثناء الوقوف",
+                    nameAttr: "em_pe",
+                    explain: "الاستقرار في وضعية الوقوف.",
+                    options: [
+                        { description: "غير متوازن", score: 0 },
+                        { description: "بدعم / قاعدة دعم > ٩ سم", score: 1 },
+                        { description: "بدون دعم / قاعدة دعم صغيرة", score: 2 }
+                    ]
+                },
+                {
+                    title: "٦. اختبار الدفع الخفيف (عظمة القص)",
+                    nameAttr: "teste_3_tempos",
+                    explain: "الاستجابة لدفعة خفيفة على عظمة القص. يجب أن يكون المريض واقفاً، مع مباعدة القدمين بشكل مريح.",
+                    options: [
+                        { description: "يبدأ في السقوط", score: 0 },
+                        { description: "يمسك أو يتأرجح (الذراعان)", score: 1 },
+                        { description: "مستقر", score: 2 }
+                    ]
+                },
+                {
+                    title: "٧. التوازن مع إغلاق العينين",
+                    nameAttr: "olhos_fechados",
+                    explain: "استقرار المريض مع إغلاق العينين.",
+                    options: [
+                        { description: "عدم اتزان", score: 0 },
+                        { description: "اتزان", score: 1 }
+                    ]
+                },
+                {
+                    title: "٨. الدوران ٣٦٠ درجة",
+                    nameAttr: "girando",
+                    explain: "مراقبة القدرة على أداء دورة كاملة والاستقرار.",
+                    options: [
+                        { description: "خطوات غير متصلة / عدم اتزان", score: 0 },
+                        { description: "خطوات متصلة / استقرار", score: 1 }
+                    ]
+                },
+                {
+                    title: "٩. الجلوس على الكرسي",
+                    nameAttr: "sentando",
+                    explain: "القدرة على الجلوس على الكرسي.",
+                    options: [
+                        { description: "غير آمن / يسقط على الكرسي", score: 0 },
+                        { description: "يستخدم الذراعين أو لا يتحرك بسلاسة", score: 1 },
+                        { description: "ثابت وآمن", score: 2 }
+                    ]
+                },
+                {
+                    title: "١٠. بداية المشي",
+                    nameAttr: "inicio_marcha",
+                    explain: "مراقبة بداية المشي.",
+                    options: [
+                        { description: "تردد أو محاولات متعددة", score: 0 },
+                        { description: "بدون تردد", score: 1 }
+                    ]
+                },
+                {
+                    title: "١١. طول وخطوة المشي",
+                    nameAttr: "passo",
+                    explain: "مراقبة طول وارتفاع الخطوة.",
+                    options: [
+                        { description: "القدم اليمنى لا تتجاوز اليسرى أو لا ترفع؛ القدم اليسرى لا تتجاوز اليمنى أو لا ترفع", score: 0 },
+                        { description: "القدم اليمنى تتجاوز اليسرى وترفع؛ القدم اليسرى تتجاوز اليمنى وترفع", score: 1 }
+                    ]
+                },
+                {
+                    title: "١٢. تناسق الخطوة",
+                    nameAttr: "simetria_passo",
+                    explain: "مراقبة ما إذا كانت الخطوات متناظرة.",
+                    options: [
+                        { description: "أطوال غير متساوية", score: 0 },
+                        { description: "أطوال متساوية", score: 1 }
+                    ]
+                },
+                {
+                    title: "١٣. استمرارية الخطوة",
+                    nameAttr: "continuidade_passo",
+                    explain: "مراقبة ما إذا كانت المشية سلسة أو إذا كانت هناك انقطاعات.",
+                    options: [
+                        { description: "توقفات أو انقطاعات", score: 0 },
+                        { description: "خطوات مستمرة", score: 1 }
+                    ]
+                },
+                {
+                    title: "١٤. اتجاه المشي",
+                    nameAttr: "direcao_marcha",
+                    explain: "مراقبة الانحراف عن خط المشي.",
+                    options: [
+                        { description: "انحراف ملحوظ أو استخدام مساعدة للبقاء على الخط", score: 0 },
+                        { description: "انحراف طفيف أو متوسط، لكن بدون مساعدة", score: 1 },
+                        { description: "بدون انحراف، مشي في خط مستقيم", score: 2 }
+                    ]
+                },
+                {
+                    title: "١٥. الجذع",
+                    nameAttr: "tronco_marcha",
+                    explain: "مراقبة تمايل الجذع واستخدام الذراعين أثناء المشي.",
+                    options: [
+                        { description: "تمايل الجذع أو استخدام الذراعين لتحقيق التوازن", score: 0 },
+                        { description: "ثني الركبتين أو الظهر / فتح الذراعين", score: 1 },
+                        { description: "بدون تمايل أو ثني", score: 2 }
+                    ]
+                },
+                {
+                    title: "١٦. قاعدة الدعم أثناء المشي",
+                    nameAttr: "base_marcha",
+                    explain: "المسافة بين الكعبين أثناء المشي.",
+                    options: [
+                        { description: "الكاحلان منفصلان أو غير مستقرين", score: 0 },
+                        { description: "الكاحلان يتلامسان أو قريبان، بدون انحرافات", score: 1 }
+                    ]
+                }
+            ];
+
+            // ملء النموذج ديناميكياً
+            tinettiData.forEach(item => {
+                const sectionDiv = document.createElement('div');
+                sectionDiv.className = 'tinetti-criterion-section';
+                sectionDiv.id = `section-${item.nameAttr}`;
+
+                const titleH3 = document.createElement('h3');
+                titleH3.className = 'tinetti-criterion-title';
+                titleH3.innerHTML = item.title;
+                sectionDiv.appendChild(titleH3);
+
+                const explainP = document.createElement('p');
+                explainP.className = 'tinetti-criterion-explain';
+                explainP.innerHTML = item.explain;
+                sectionDiv.appendChild(explainP);
+
+                const selectElement = document.createElement('select');
+                selectElement.id = item.nameAttr;
+                selectElement.className = 'tinetti-criterion-select mt-2';
+
+                const defaultOption = document.createElement('option');
+                defaultOption.value = "";
+                defaultOption.text = "اختر...";
+                selectElement.appendChild(defaultOption);
+
+                item.options.forEach(option => {
+                    const optionElement = document.createElement('option');
+                    optionElement.value = option.score;
+                    optionElement.text = `${option.description} (النقاط: ${option.score})`;
+                    selectElement.appendChild(optionElement);
+                });
+
+                sectionDiv.appendChild(selectElement);
+                conteudoDiv.appendChild(sectionDiv);
+            });
+
+            function calcularTinetti() {
+                const selects = document.querySelectorAll('#conteudo select');
+                let allSelected = true;
+                let total = 0;
+
+                selects.forEach(select => {
+                    if (select.value === "") {
+                        allSelected = false;
+                        select.classList.add('incomplete');
+                    } else {
+                        select.classList.remove('incomplete');
+                        total += Number(select.value);
+                    }
+                });
+
+                resultadoDiv.style.display = "block";
+                if (!allSelected) {
+                    resultadoDiv.innerHTML = '⚠️ <strong class="font-bold">يرجى اختيار خيار لجميع العناصر قبل الحساب.</strong>';
+                    resultadoDiv.className = `resultado bg-red-100`;
+                    delete resultadoDiv.dataset.score;
+                    return;
+                }
+
+                let recomendacao = '';
+
+                if (total <= 19) {
+                    recomendacao = `تشير النتيجة ${total} إلى ارتفاع خطر السقوط. يوصى بتنفيذ إجراءات السلامة وخطة تدخل للوقاية من السقوط.`;
+                } else {
+                    recomendacao = `تشير النتيجة ${total} إلى انخفاض خطر السقوط. استمر في مراقبة حركة المريض.`;
+                }
+
+                resultadoDiv.innerHTML = `
+                <p>النتيجة الإجمالية: <strong class="font-bold">${total}</strong></p>
+                <p class="mt-4"><strong>التوصية:</strong> ${recomendacao}</p>
+            `;
+                resultadoDiv.className = `resultado bg-blue-50`;
+                resultadoDiv.style.display = "block";
+
+                resultadoDiv.dataset.score = total;
+                resultadoDiv.dataset.scaleName = "مقياس تينيتي";
+            }
+
+            function limparCampos() {
+                const selects = document.querySelectorAll('#conteudo select');
+                selects.forEach(select => {
+                    select.selectedIndex = 0;
+                    select.classList.remove('incomplete');
+                });
+                resultadoDiv.innerHTML = '';
+                resultadoDiv.className = 'resultado hidden';
+                delete resultadoDiv.dataset.score;
+                delete resultadoDiv.dataset.scaleName;
+            }
+
+            // إضافة مستمعي الأحداث للأزرار
+            btnCalcular?.addEventListener('click', calcularTinetti);
+            btnLimpar?.addEventListener('click', limparCampos);
+
+            btnGerarPDF?.addEventListener('click', () => {
+                if (!resultadoDiv.dataset.score) {
+                    alert('يرجى النقر على "احسب النتيجة" أولاً لإنشاء PDF.');
+                    return;
+                }
+                if (typeof gerarPDFGlobal === 'function') {
+                    const selectedOptions = {};
+                    document.querySelectorAll('#conteudo select').forEach(select => {
+                        const selected = select.options[select.selectedIndex];
+                        if (selected.value !== "") {
+                            selectedOptions[select.id] = selected.text;
+                        }
+                    });
+
+                    let contentToPrint = document.querySelector('.main-content-wrapper').cloneNode(true);
+                    let contentContainer = contentToPrint.querySelector('#conteudo');
+
+                    contentContainer.innerHTML = '';
+
+                    let balanceSectionTitle = document.createElement('h3');
+                    balanceSectionTitle.className = 'text-lg font-semibold mt-4 mb-2';
+                    balanceSectionTitle.innerText = `قسم التوازن (الدرجة القصوى: ١٦)`;
+                    contentContainer.appendChild(balanceSectionTitle);
+
+                    tinettiData.slice(0, 9).forEach(item => {
+                        let selectedText = selectedOptions[item.nameAttr];
+                        if (selectedText) {
+                            let itemDiv = document.createElement('div');
+                            itemDiv.className = 'mb-2 p-2 bg-gray-50 rounded';
+                            itemDiv.innerHTML = `<strong>${item.title}:</strong> ${selectedText}`;
+                            contentContainer.appendChild(itemDiv);
+                        }
+                    });
+
+                    let gaitSectionTitle = document.createElement('h3');
+                    gaitSectionTitle.className = 'text-lg font-semibold mt-4 mb-2';
+                    gaitSectionTitle.innerText = `قسم المشي (الدرجة القصوى: ١٢)`;
+                    contentContainer.appendChild(gaitSectionTitle);
+
+                    tinettiData.slice(9, 16).forEach(item => {
+                        let selectedText = selectedOptions[item.nameAttr];
+                        if (selectedText) {
+                            let itemDiv = document.createElement('div');
+                            itemDiv.className = 'mb-2 p-2 bg-gray-50 rounded';
+                            itemDiv.innerHTML = `<strong>${item.title}:</strong> ${selectedText}`;
+                            contentContainer.appendChild(itemDiv);
+                        }
+                    });
+
+                    let resultadoHtml = resultadoDiv.cloneNode(true);
+                    if (resultadoHtml.style.display !== 'none') {
+                        contentContainer.appendChild(resultadoHtml);
+                    }
+
+                    gerarPDFGlobal({
+                        titulo: 'مقياس تينيتي',
+                        subtitulo: 'تقرير تقييم المشي والتوازن',
+                        nomeArquivo: 'تقرير_مقياس_تينيتي.pdf',
+                        seletorConteudo: '.main-content-wrapper'
+                    });
+                } else {
+                    console.error('الدالة gerarPDFGlobal غير محددة.');
+                }
+            });
+
+            btnNandaNicNoc?.addEventListener('click', () => {
+                const score = resultadoDiv.dataset.score;
+                const scaleName = resultadoDiv.dataset.scaleName;
+                if (!score) {
+                    alert('احسب النتيجة للبحث عن الإجراء.');
+                    return;
+                }
+                const recomendacaoRisco = score <= 19 ? 'ارتفاع خطر السقوط' : 'انخفاض خطر السقوط';
+                const searchQuery = encodeURIComponent(`رعاية التمريض لكبار السن مع ${recomendacaoRisco} في مقياس تينيتي NANDA NIC NOC`);
+                window.open(`https://www.google.com/search?q=${searchQuery}`, '_blank');
+            });
+        });
+    </script>
 
 
 

@@ -705,7 +705,221 @@
 
   <script src="../global-scripts.js" defer=""></script>
 
-  
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const resultadoDiv = document.getElementById('resultado');
+      const btnCalcular = document.getElementById('btnCalcular');
+      const btnLimpar = document.getElementById('btnLimpar');
+      const btnGerarPDF = document.getElementById('btnGerarPDF');
+      const btnNandaNicNoc = document.getElementById('btnNandaNicNoc');
+      const conteudoDiv = document.getElementById('conteudo');
+
+      const morseData = [
+        {
+          criterion: "History of falls",
+          nameAttr: "historiaQuedas",
+          options: [
+            { text: "No", score: 0 },
+            { text: "Yes", score: 25 }
+          ]
+        },
+        {
+          criterion: "Secondary diagnosis",
+          nameAttr: "diagnosticoSecundario",
+          options: [
+            { text: "No", score: 0 },
+            { text: "Yes", score: 15 }
+          ]
+        },
+        {
+          criterion: "Ambulatory aid",
+          nameAttr: "auxilioDeambulacao",
+          options: [
+            { text: "None/Bed rest/Nurse assistance", score: 0 },
+            { text: "Cane/Wheelchair/Nurse", score: 15 },
+            { text: "Furniture/Walker/Crutches", score: 30 }
+          ]
+        },
+        {
+          criterion: "IV therapy/Heparin",
+          nameAttr: "terapiaIVHeparina",
+          options: [
+            { text: "No", score: 0 },
+            { text: "Yes", score: 20 }
+          ]
+        },
+        {
+          criterion: "Gait",
+          nameAttr: "marcha",
+          options: [
+            { text: "Normal/Bed rest/Immobile", score: 0 },
+            { text: "Weak", score: 10 },
+            { text: "Impaired", score: 20 }
+          ]
+        },
+        {
+          criterion: "Mental status",
+          nameAttr: "estadoMental",
+          options: [
+            { text: "Oriented", score: 0 },
+            { text: "Forgets limitations", score: 15 }
+          ]
+        }
+      ];
+
+      // --- Morse Calculator Functions ---
+      function updateScoreDisplay(criterionId) {
+        const selectElement = document.getElementById(criterionId);
+        const scoreDisplayElement = document.getElementById(`${criterionId}_score_display`);
+        if (selectElement && scoreDisplayElement) {
+          scoreDisplayElement.innerText = selectElement.value === "" ? "0" : selectElement.value;
+        }
+      }
+
+      function calcularPontuacaoMorse() {
+        let total = 0;
+        let allSelected = true;
+
+        morseData.forEach(item => {
+          const selectElement = document.getElementById(item.nameAttr);
+          if (selectElement.value === "") {
+            allSelected = false;
+          } else {
+            total += parseInt(selectElement.value, 10);
+          }
+        });
+
+        resultadoDiv.style.display = 'block';
+        if (!allSelected) {
+          resultadoDiv.innerHTML = '⚠️ <strong class="font-bold">Please select an option for all items</strong> before calculating.';
+          resultadoDiv.className = 'resultado bg-info-orange-light';
+          delete resultadoDiv.dataset.score;
+          return;
+        }
+
+        let risk = '';
+        let action = '';
+        let resultadoClasses = '';
+
+        if (total >= 45) {
+          risk = 'High Risk';
+          action = 'Implement strict preventive interventions, such as continuous monitoring, bed alarms, and medication review.';
+          resultadoClasses = 'bg-danger-red-light';
+        } else if (total >= 25) {
+          risk = 'Moderate Risk';
+          action = 'Implement standard preventive interventions, such as patient education, non-slip footwear, and assistance with ambulation.';
+          resultadoClasses = 'bg-warning-yellow-light';
+        } else { // 0 to 24
+          risk = 'Low Risk';
+          action = 'Maintain routine monitoring and a safe environment. Consider periodic risk reassessment.';
+          resultadoClasses = 'bg-success-green-light';
+        }
+
+        resultadoDiv.innerHTML = `<p>Total score: <strong class="font-bold">${total}</strong></p><p>Fall Risk: <strong class="font-bold">${risk}</strong></p><p>Recommended Action: <strong class="font-bold">${action}</strong></p>`;
+        resultadoDiv.className = `resultado ${resultadoClasses}`;
+
+        resultadoDiv.dataset.score = total;
+        resultadoDiv.dataset.risk = risk;
+        resultadoDiv.dataset.action = action;
+        resultadoDiv.dataset.scaleName = "Morse Fall Scale";
+      }
+
+      function limparCamposMorse() {
+        morseData.forEach(item => {
+          const selectElement = document.getElementById(item.nameAttr);
+          selectElement.selectedIndex = 0;
+          document.getElementById(`${item.nameAttr}_score_display`).innerText = '0';
+        });
+        resultadoDiv.innerHTML = '';
+        resultadoDiv.className = 'resultado hidden';
+        delete resultadoDiv.dataset.score;
+        delete resultadoDiv.dataset.risk;
+        delete resultadoDiv.dataset.action;
+        delete resultadoDiv.dataset.scaleName;
+      }
+
+      // Dynamically fill the form
+      morseData.forEach((item, index) => {
+        const sectionDiv = document.createElement('div');
+        sectionDiv.className = 'morse-criterion-card';
+
+        const headerDiv = document.createElement('div');
+        headerDiv.className = 'morse-criterion-header';
+
+        const titleH3 = document.createElement('h3');
+        titleH3.className = 'morse-criterion-title';
+        titleH3.innerText = item.criterion;
+        headerDiv.appendChild(titleH3);
+
+        const scoreSpan = document.createElement('span');
+        scoreSpan.className = 'morse-score-display';
+        scoreSpan.id = `${item.nameAttr}_score_display`;
+        scoreSpan.innerText = '0';
+        headerDiv.appendChild(scoreSpan);
+
+        sectionDiv.appendChild(headerDiv);
+
+        const optionsDiv = document.createElement('div');
+        optionsDiv.className = 'morse-criterion-options';
+
+        const selectElement = document.createElement('select');
+        selectElement.id = item.nameAttr;
+        selectElement.className = 'morse-select';
+        selectElement.onchange = () => updateScoreDisplay(item.nameAttr);
+
+        const defaultOption = document.createElement('option');
+        defaultOption.value = "";
+        defaultOption.text = "Select...";
+        defaultOption.disabled = true;
+        defaultOption.selected = true;
+        selectElement.appendChild(defaultOption);
+
+        item.options.forEach(option => {
+          const optionElement = document.createElement('option');
+          optionElement.value = option.score;
+          optionElement.text = `${option.text} (${option.score})`;
+          selectElement.appendChild(optionElement);
+        });
+
+        optionsDiv.appendChild(selectElement);
+        sectionDiv.appendChild(optionsDiv);
+        conteudoDiv.appendChild(sectionDiv);
+      });
+
+      // Add event listeners to buttons
+      btnCalcular?.addEventListener('click', calcularPontuacaoMorse);
+      btnLimpar?.addEventListener('click', limparCamposMorse);
+
+      btnGerarPDF?.addEventListener('click', () => {
+        if (!resultadoDiv.dataset.score) {
+          alert('Please click "Calculate" first to generate the PDF.');
+          return;
+        }
+        if (typeof gerarPDFGlobal === 'function') {
+          gerarPDFGlobal({
+            titulo: 'Morse Fall Scale',
+            subtitulo: 'Fall Risk Assessment Report',
+            nomeArquivo: 'morse_fall_scale_report.pdf',
+            seletorConteudo: '.main-content-wrapper'
+          });
+        } else {
+          console.error('gerarPDFGlobal function not defined.');
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener('click', () => {
+        const score = resultadoDiv.dataset.score;
+        const scaleName = resultadoDiv.dataset.scaleName;
+        const risk = resultadoDiv.dataset.risk;
+        if (!score || !risk) {
+          alert('Calculate the result to search for the conduct.');
+          return;
+        }
+        const searchQuery = encodeURIComponent(`${scaleName} score ${score} risk ${risk} NANDA, NIC and NOC taxonomy`);
+        window.open(`https://www.google.com/search?q=${searchQuery}`, '_blank');
+      });
+    });
+  </script>
 
 
 

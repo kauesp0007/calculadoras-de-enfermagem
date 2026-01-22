@@ -691,7 +691,380 @@
 
 
 
-  
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const resultadoDiv = document.getElementById("resultado");
+      const btnCalcular = document.getElementById("btnCalcular");
+      const btnLimpar = document.getElementById("btnLimpar");
+      const btnGerarPDF = document.getElementById("btnGerarPDF");
+      const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
+      const conteudoDiv = document.getElementById("conteudo");
+
+      const meemData = [
+        {
+          domain: "Orientasi Temporal",
+          nameAttr: "orientacaoTemporal",
+          instructions:
+            "Tanyakan kepada pasien tentang a) hari dalam seminggu (1 poin); b) tanggal bulan (1 poin); c) bulan (1 poin); d) waktu perkiraan (1 poin). Beri nilai 1 untuk setiap jawaban yang benar. (Maksimum: 5 poin)",
+          scoreOptions: [
+            { score: 0, description: "0 jawaban benar" },
+            { score: 1, description: "1 jawaban benar" },
+            { score: 2, description: "2 jawaban benar" },
+            { score: 3, description: "3 jawaban benar" },
+            { score: 4, description: "4 jawaban benar" },
+            { score: 5, description: "5 jawaban benar" },
+          ],
+        },
+        {
+          domain: "Orientasi Spasial",
+          nameAttr: "orientacaoEspacial",
+          instructions:
+            "Tanyakan kepada pasien tentang A) Tempat dia berada saat ini (1 poin); B) Jalan (1 poin); C) Lingkungan (1 poin); D) Kota (1 poin); E) Provinsi (1 poin). Beri nilai 1 untuk setiap jawaban yang benar. (Maksimum: 5 poin)",
+          scoreOptions: [
+            { score: 0, description: "0 jawaban benar" },
+            { score: 1, description: "1 jawaban benar" },
+            { score: 2, description: "2 jawaban benar" },
+            { score: 3, description: "3 jawaban benar" },
+            { score: 4, description: "4 jawaban benar" },
+            { score: 5, description: "5 jawaban benar" },
+          ],
+        },
+        {
+          domain: "Registrasi",
+          nameAttr: "registro",
+          instructions:
+            "Sebutkan 3 kata dengan membutuhkan 1 detik untuk masing-masing. Minta pasien untuk mengulangi 3 kata yang Anda sebutkan. Beri nilai 1 untuk setiap kata yang diulang dengan benar pada percobaan pertama. (Maksimum: 3 poin) CONTOH: 'Apel, Meja, Dolar'",
+          scoreOptions: [
+            { score: 0, description: "0 kata diulang dengan benar" },
+            { score: 1, description: "1 kata diulang dengan benar" },
+            { score: 2, description: "2 kata diulang dengan benar" },
+            { score: 3, description: "3 kata diulang dengan benar" },
+          ],
+        },
+        {
+          domain: "Perhatian dan Kalkulasi",
+          nameAttr: "atencaoCalculo",
+          instructions:
+            "Pertama tanyakan kepada pasien apakah dia tahu cara melakukan pengurangan (-), jika ya, minta pasien untuk mengurangi 7 dari 100 (93), dan terus mengurangi hasilnya dengan 7... 7 dari 93 (86)... 7 dari 86 (79)... 7 dari 79 (72)... 7 dari 72 (65)... 7 dari 65 (58).... Beri nilai 1 untuk setiap pengurangan yang benar. (Maksimum: 5 poin)",
+          scoreOptions: [
+            { score: 0, description: "0 pengurangan benar" },
+            { score: 1, description: "1 pengurangan benar" },
+            { score: 2, description: "2 pengurangan benar" },
+            { score: 3, description: "3 pengurangan benar" },
+            { score: 4, description: "4 pengurangan benar" },
+            { score: 5, description: "5 pengurangan benar" },
+          ],
+        },
+        {
+          domain: "Memori Pemanggilan (Kenangan)",
+          nameAttr: "memoriaEvocacao",
+          instructions:
+            "Tanyakan nama 3 kata yang dipelajari yang disebutkan di item 3 (Registrasi). Beri nilai 1 untuk setiap kata yang dipanggil dengan benar. (Maksimum: 3 poin)",
+          scoreOptions: [
+            { score: 0, description: "0 kata dipanggil dengan benar" },
+            { score: 1, description: "1 kata dipanggil dengan benar" },
+            { score: 2, description: "2 kata dipanggil dengan benar" },
+            { score: 3, description: "3 kata dipanggil dengan benar" },
+          ],
+        },
+        {
+          domain: "Bahasa (Penamaan)",
+          nameAttr: "nomeacao",
+          instructions:
+            "Tunjuk ke pena dan jam tangan. Minta pasien untuk menyebutkan nama objek ini saat Anda menunjuknya. Beri nilai 1 untuk setiap objek yang dinamai dengan benar. (Maksimum: 2 poin)",
+          scoreOptions: [
+            { score: 0, description: "0 objek dinamai dengan benar" },
+            { score: 1, description: "1 objek dinamai dengan benar" },
+            { score: 2, description: "2 objek dinamai dengan benar" },
+          ],
+        },
+        {
+          domain: "Bahasa (Pengulangan)",
+          nameAttr: "repeticao",
+          instructions:
+            "Minta pasien untuk mengulangi kalimat: 'Tidak di sini, tidak di sana, tidak di mana pun'. Beri nilai 1 jika mengulangi dengan benar. (Maksimum: 1 poin)",
+          scoreOptions: [
+            { score: 0, description: "Tidak mengulangi dengan benar" },
+            { score: 1, description: "Mengulangi dengan benar" },
+          ],
+        },
+        {
+          domain: "Bahasa (Pemahaman)",
+          nameAttr: "compreensao",
+          instructions:
+            "Pasien harus melakukan perintah yang diberikan...Berikan selembar kertas kepada pasien dan katakan: 'Ambil kertas ini dengan tangan kanan Anda (1 poin), lipat menjadi dua (1 poin) dan letakkan di lantai (1 poin)'. Beri nilai 1 untuk setiap tahap yang benar. (Maksimum: 3 poin)",
+          scoreOptions: [
+            { score: 0, description: "0 tahap benar" },
+            { score: 1, description: "1 tahap benar" },
+            { score: 2, description: "2 tahap benar" },
+            { score: 3, description: "3 tahap benar" },
+          ],
+        },
+        {
+          domain: "Bahasa (Menulis)",
+          nameAttr: "escrita",
+          instructions:
+            "Minta pasien untuk menulis kalimat lengkap yang masuk akal. Beri nilai 1 jika kalimatnya masuk akal. (Maksimum: 1 poin)",
+          scoreOptions: [
+            {
+              score: 0,
+              description: "Tidak menulis kalimat yang masuk akal",
+            },
+            { score: 1, description: "Menulis kalimat yang masuk akal" },
+          ],
+        },
+        {
+          domain: "Bahasa (Membaca)",
+          nameAttr: "leitura",
+          instructions:
+            "Tulis di selembar kertas: TUTUP MATA ANDA, berikan kertas kepada pasien dan minta dia untuk membaca dan melaksanakan instruksi: 'TUTUP MATA ANDA'. Beri nilai 1 jika membaca dan melaksanakan dengan benar. (Maksimum: 1 poin)",
+          scoreOptions: [
+            {
+              score: 0,
+              description:
+                "Tidak membaca dan/atau tidak melaksanakan dengan benar",
+            },
+            {
+              score: 1,
+              description: "Membaca dan melaksanakan dengan benar",
+            },
+          ],
+        },
+        {
+          domain: "Praxia Konstruktif",
+          nameAttr: "praxiaConstrutiva",
+          instructions:
+            "Gambar dua pentagon berdampingan, tunjukkan kepada pasien dan minta dia untuk menyalin di selembar kertas. Beri nilai 1 jika menyalin dengan benar. (Maksimum: 1 poin)",
+          type: "image",
+          imageSrc: "../pentagono.webp",
+          scoreOptions: [
+            { score: 0, description: "Tidak menyalin dengan benar" },
+            { score: 1, description: "Menyalin dengan benar" },
+          ],
+        },
+      ];
+
+      // --- Fungsi Kalkulator MMSE ---
+      function updateScoreDisplay(criterionId) {
+        const selectElement = document.getElementById(criterionId);
+        const scoreDisplayElement = document.getElementById(
+          `${criterionId}_score_display`,
+        );
+        if (selectElement && scoreDisplayElement) {
+          scoreDisplayElement.innerText =
+            selectElement.value === "" ? "0" : selectElement.value;
+        }
+      }
+
+      function calcularPontuacao() {
+        let totalScore = 0;
+        let allItemsSelected = true;
+
+        meemData.forEach((item) => {
+          const selectElement = document.getElementById(item.nameAttr);
+          if (selectElement.value === "") {
+            allItemsSelected = false;
+          } else {
+            totalScore += parseInt(selectElement.value, 10);
+          }
+        });
+
+        resultadoDiv.style.display = "block";
+        if (!allItemsSelected) {
+          resultadoDiv.innerHTML =
+            '⚠️ <strong class="font-bold">Silakan pilih skor untuk setiap item</strong> sebelum menghitung.';
+          resultadoDiv.className = "resultado bg-info-orange-light";
+          delete resultadoDiv.dataset.score;
+          return;
+        }
+
+        let classificacao = "";
+        let resultadoClasse = "";
+
+        if (totalScore >= 25) {
+          classificacao =
+            "Tidak ada gangguan kognitif yang terdeteksi dalam tes ini";
+          resultadoClasse = "bg-meem-normal";
+        } else if (totalScore >= 21 && totalScore <= 24) {
+          classificacao =
+            "Gangguan Kognitif Ringan yang ditunjukkan dalam tes ini";
+          resultadoClasse = "bg-meem-leve";
+        } else if (totalScore >= 10 && totalScore <= 20) {
+          classificacao =
+            "Gangguan Kognitif Sedang yang ditunjukkan dalam tes ini";
+          resultadoClasse = "bg-meem-moderado";
+        } else if (totalScore >= 0 && totalScore <= 9) {
+          classificacao =
+            "Gangguan Kognitif Berat yang ditunjukkan dalam tes ini";
+          resultadoClasse = "bg-meem-grave";
+        } else {
+          classificacao = "Skor tidak valid";
+          resultadoClasse = "bg-info-orange-light";
+        }
+
+        resultadoDiv.innerHTML = `<p>Skor Total Mini Pemeriksaan Status Mental (MMSE): <strong class="font-bold">${totalScore}</strong></p><p>Klasifikasi: <strong class="font-bold">${classificacao}</strong></p>`;
+        resultadoDiv.className = `resultado ${resultadoClasse}`;
+
+        resultadoDiv.dataset.score = totalScore;
+        resultadoDiv.dataset.classificacao = classificacao;
+        resultadoDiv.dataset.scaleName =
+          "Mini Pemeriksaan Status Mental (MMSE)";
+      }
+
+      function limparCampos() {
+        meemData.forEach((item) => {
+          const selectElement = document.getElementById(item.nameAttr);
+          selectElement.selectedIndex = 0;
+          document.getElementById(
+            `${item.nameAttr}_score_display`,
+          ).innerText = "0";
+        });
+        resultadoDiv.innerHTML = "";
+        resultadoDiv.className = "resultado hidden";
+        delete resultadoDiv.dataset.score;
+        delete resultadoDiv.dataset.classificacao;
+        delete resultadoDiv.dataset.scaleName;
+      }
+
+      // Isi formulir secara dinamis
+      meemData.forEach((item, index) => {
+        const sectionDiv = document.createElement("div");
+        sectionDiv.className = "meem-criterion-card";
+
+        const headerDiv = document.createElement("div");
+        headerDiv.className = "meem-criterion-header";
+
+        const titleH3 = document.createElement("h3");
+        titleH3.className = "meem-criterion-title";
+        titleH3.innerText = item.domain;
+        headerDiv.appendChild(titleH3);
+
+        const scoreSpan = document.createElement("span");
+        scoreSpan.className = "meem-score-display";
+        scoreSpan.id = `${item.nameAttr}_score_display`;
+        scoreSpan.innerText = "0";
+        headerDiv.appendChild(scoreSpan);
+
+        sectionDiv.appendChild(headerDiv);
+
+        const instructionsP = document.createElement("p");
+        instructionsP.className = "text-gray-700 mb-4 text-left";
+        instructionsP.innerText = item.instructions;
+        sectionDiv.appendChild(instructionsP);
+
+        if (item.type === "image" && item.imageSrc) {
+          const imgDiv = document.createElement("div");
+          imgDiv.className = "image-cell mb-4 text-center";
+          const img = document.createElement("img");
+          img.src = item.imageSrc;
+          img.alt = `Diagram untuk ${item.domain}`;
+          img.classList.add(
+            "w-auto",
+            "h-auto",
+            "max-w-[200px]",
+            "mx-auto",
+            "rounded-md",
+            "shadow-sm",
+          );
+          imgDiv.appendChild(img);
+          sectionDiv.appendChild(imgDiv);
+        }
+
+        const optionsDiv = document.createElement("div");
+        optionsDiv.className = "meem-criterion-options";
+
+        const selectElement = document.createElement("select");
+        selectElement.id = item.nameAttr;
+        selectElement.className = "meem-select";
+        selectElement.onchange = () => updateScoreDisplay(item.nameAttr);
+
+        const defaultOption = document.createElement("option");
+        defaultOption.value = "";
+        defaultOption.text = "Pilih...";
+        defaultOption.disabled = true;
+        defaultOption.selected = true;
+        selectElement.appendChild(defaultOption);
+
+        item.scoreOptions.forEach((option) => {
+          const optionElement = document.createElement("option");
+          optionElement.value = option.score;
+          optionElement.text = `${option.description} (${option.score})`;
+          selectElement.appendChild(optionElement);
+        });
+
+        optionsDiv.appendChild(selectElement);
+        sectionDiv.appendChild(optionsDiv);
+        conteudoDiv.appendChild(sectionDiv);
+      });
+
+      // Tambahkan event listener ke tombol
+      btnCalcular?.addEventListener("click", calcularPontuacao);
+      btnLimpar?.addEventListener("click", limparCampos);
+
+      btnGerarPDF?.addEventListener("click", () => {
+        if (!resultadoDiv.dataset.score) {
+          alert('Silakan klik "Hitung" terlebih dahulu untuk membuat PDF.');
+          return;
+        }
+        if (typeof gerarPDFGlobal === "function") {
+          gerarPDFGlobal({
+            titulo: "Mini Pemeriksaan Status Mental (MMSE)",
+            subtitulo: "Laporan Skrining Kognitif",
+            nomeArquivo: "laporan_skala_mmse.pdf",
+            seletorConteudo: ".main-content-wrapper",
+          });
+        } else {
+          console.error("Fungsi gerarPDFGlobal tidak terdefinisi.");
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener("click", () => {
+        const score = resultadoDiv.dataset.score;
+        const scaleName = resultadoDiv.dataset.scaleName;
+        const classificacao = resultadoDiv.dataset.classificacao;
+        if (!score || !classificacao) {
+          alert("Hitung hasil untuk mencari tindakan.");
+          return;
+        }
+        const searchQuery = encodeURIComponent(
+          `${scaleName} score ${score} classification ${classificacao} generate NANDA taxonomy, generate NIC taxonomy and generate NOC taxonomy`,
+        );
+        window.open(
+          `https://www.google.com/search?q=${searchQuery}`,
+          "_blank",
+        );
+      });
+      // Tombol "Tambahkan ke favorit"
+      const addFavoriteBtn = document.getElementById("addFavoriteBtn");
+      if (addFavoriteBtn) {
+        addFavoriteBtn.addEventListener("click", () => {
+          const url = window.location.href;
+          const title = "Skala MMSE";
+
+          try {
+            // IE/Edge Lama
+            if (window.external && "AddFavorite" in window.external) {
+              window.external.AddFavorite(url, title);
+              return;
+            }
+            // Firefox lama
+            if (window.sidebar && window.sidebar.addPanel) {
+              window.sidebar.addPanel(title, url, "");
+              return;
+            }
+            // Chrome/Firefox modern: instruksi pintasan
+            alert(
+              "Tekan Ctrl + D (atau Cmd + D di Mac) untuk menambahkan halaman ini ke favorit.",
+            );
+          } catch (e) {
+            alert(
+              "Tekan Ctrl + D (atau Cmd + D di Mac) untuk menambahkan halaman ini ke favorit.",
+            );
+          }
+        });
+      }
+    });
+  </script>
 
   <script src="/lang-selector.js" defer=""></script>
 

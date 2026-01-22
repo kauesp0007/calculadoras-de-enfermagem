@@ -569,7 +569,134 @@
 
 
 
-  
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const resultadoDiv = document.getElementById("resultado");
+      const conteudoDiv = document.getElementById("conteudo");
+      const btnCalcular = document.getElementById("btnCalcular");
+      const btnLimpar = document.getElementById("btnLimpar");
+      const btnGerarPDF = document.getElementById("btnGerarPDF");
+      const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
+
+      const camData = [
+        {
+          id: "feature1",
+          title: "1. Onset Akut dan Kursus Fluktuatif",
+          description:
+            "Apakah ada perubahan mendadak dalam status mental dan apakah ini berfluktuasi dalam 24 jam terakhir?",
+          options: [
+            { score: 1, text: "Ya" },
+            { score: 0, text: "Tidak" },
+          ],
+        },
+        {
+          id: "feature2",
+          title: "2. Kurang Perhatian",
+          description:
+            "Apakah pasien mengalami kesulitan mempertahankan perhatian?",
+          options: [
+            { score: 1, text: "Ya (dengan kurang perhatian)" },
+            { score: 0, text: "Tidak (tanpa kurang perhatian)" },
+          ],
+        },
+        {
+          id: "feature3",
+          title: "3. Pemikiran Tidak Terorganisir",
+          description:
+            "Apakah pasien menunjukkan pemikiran yang tidak terorganisir atau tidak koheren?",
+          options: [
+            { score: 1, text: "Ya" },
+            { score: 0, text: "Tidak" },
+          ],
+        },
+        {
+          id: "feature4",
+          title: "4. Tingkat Kesadaran yang Berubah",
+          description:
+            "Apakah tingkat kesadaran berbeda dari 'waspada dan tenang' (RASS ≠ 0)?",
+          options: [
+            { score: 1, text: "Ya (berubah)" },
+            { score: 0, text: "Tidak (normal/waspada)" },
+          ],
+        },
+      ];
+
+      function createForm() {
+        conteudoDiv.innerHTML = "";
+        camData.forEach((criterion) => {
+          const card = document.createElement("div");
+          card.className = "criterion-card";
+
+          card.innerHTML = `
+                    <div class="criterion-title-container">
+                        <h3 class="criterion-title">${criterion.title}</h3>
+                        <p class="criterion-description">${criterion.description}</p>
+                    </div>
+                    <div class="options-container">
+                        <select id="${criterion.id}-select" class="custom-select">
+                            <option value="" disabled selected>Pilih satu opsi...</option>
+                            ${criterion.options.map((opt) => `<option value="${opt.score}">${opt.text}</option>`).join("")}
+                        </select>
+                    </div>
+                `;
+          conteudoDiv.appendChild(card);
+        });
+      }
+
+      function calcular() {
+        let allSelected = true;
+        const selections = {};
+
+        camData.forEach((criterion) => {
+          const select = document.getElementById(`${criterion.id}-select`);
+          if (select && select.value) {
+            selections[criterion.id] = parseInt(select.value, 10);
+          } else {
+            allSelected = false;
+          }
+        });
+
+        if (!allSelected) {
+          resultadoDiv.innerHTML =
+            '⚠️ <strong class="font-bold">Silakan pilih satu opsi untuk setiap kriteria.</strong>';
+          resultadoDiv.className = "standard-result-box bg-info-orange-light";
+          resultadoDiv.style.display = "block";
+          delete resultadoDiv.dataset.resultado;
+          return;
+        }
+
+        const feature1 = selections.feature1 === 1;
+        const feature2 = selections.feature2 === 1;
+        const feature3 = selections.feature3 === 1;
+        const feature4 = selections.feature4 === 1;
+
+        let resultadoFinal = "";
+        if (feature1 && feature2 && (feature3 || feature4)) {
+          resultadoFinal = "Delirium Ada";
+        } else {
+          resultadoFinal = "Delirium Tidak Ada";
+        }
+
+        resultadoDiv.innerHTML = `<p class="font-bold text-lg">Hasil: <span class="font-black">${resultadoFinal}</span></p>`;
+        resultadoDiv.className = "standard-result-box";
+        resultadoDiv.style.display = "block";
+        resultadoDiv.dataset.resultado = resultadoFinal;
+      }
+
+      function limpar() {
+        createForm();
+        resultadoDiv.innerHTML = "";
+        resultadoDiv.className = "hidden";
+        delete resultadoDiv.dataset.resultado;
+      }
+
+      createForm();
+      btnCalcular?.addEventListener("click", calcular);
+      btnLimpar?.addEventListener("click", limpar);
+
+      // Funções dos botões de PDF e NANDA permanecem as mesmas
+    });
+  </script>
 
   <script src="/id/lang-selector.js" defer=""></script>
 

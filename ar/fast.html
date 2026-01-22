@@ -610,7 +610,109 @@
 
 
   <!-- Script Específico da Página (traduzido) -->
-  
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const resultadoDiv = document.getElementById("resultado");
+      const btnCalcular = document.getElementById("btnCalcular");
+      const btnLimpar = document.getElementById("btnLimpar");
+      const btnGerarPDF = document.getElementById("btnGerarPDF");
+      const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
+
+      function calcular() {
+        const faceChecked = document.querySelector(
+          'input[name="face"]:checked',
+        );
+        const armChecked = document.querySelector(
+          'input[name="arm"]:checked',
+        );
+        const speechChecked = document.querySelector(
+          'input[name="speech"]:checked',
+        );
+
+        let resultadoTexto = "";
+        let classificacao = "";
+        let resultadoClasse = "";
+
+        if (faceChecked || armChecked || speechChecked) {
+          resultadoTexto =
+            "تم تحديد علامات السكتة الدماغية! تفعيل الفريق الطبي فورًا.";
+          classificacao = "توجد علامات FAST للسكتة الدماغية";
+          resultadoClasse = "bg-fast-positivo";
+        } else {
+          resultadoTexto =
+            "لم يتم تحديد أي علامات للسكتة الدماغية. المريض لا يظهر علامات FAST للسكتة الدماغية.";
+          classificacao = "لا توجد علامات FAST للسكتة الدماغية";
+          resultadoClasse = "bg-fast-negativo";
+        }
+
+        resultadoDiv.innerHTML = `<p><strong class="font-bold">${resultadoTexto}</strong></p>`;
+        resultadoDiv.className = `resultado ${resultadoClasse}`;
+        resultadoDiv.style.display = "block";
+
+        resultadoDiv.dataset.score = classificacao;
+        resultadoDiv.dataset.scaleName = "مقياس FAST";
+      }
+
+      function limpar() {
+        document
+          .querySelectorAll('input[type="checkbox"]')
+          .forEach((checkbox) => (checkbox.checked = false));
+        resultadoDiv.innerHTML = "";
+        resultadoDiv.className = "resultado hidden";
+        delete resultadoDiv.dataset.score;
+        delete resultadoDiv.dataset.scaleName;
+      }
+
+      btnCalcular?.addEventListener("click", calcular);
+      btnLimpar?.addEventListener("click", limpar);
+
+      btnGerarPDF?.addEventListener("click", () => {
+        if (!resultadoDiv.dataset.score) {
+          alert('يرجى النقر على "احسب" أولاً لإنشاء ملف PDF.');
+          return;
+        }
+        if (typeof gerarPDFGlobal === "function") {
+          gerarPDFGlobal({
+            titulo: "مقياس FAST",
+            subtitulo: "تقرير الفرز السريع للجلطة الدماغية",
+            nomeArquivo: "relatorio_escala_fast.pdf",
+            seletorConteudo: ".main-content-wrapper",
+            direcao: "rtl", // Adiciona direção RTL para o PDF
+          });
+        } else {
+          console.error("Função gerarPDFGlobal não definida.");
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener("click", () => {
+        const score = resultadoDiv.dataset.score;
+        const scaleName = resultadoDiv.dataset.scaleName;
+        if (!score) {
+          alert("احسب النتيجة للبحث عن الإجراء.");
+          return;
+        }
+        // Traduz a consulta de pesquisa
+        const searchQuery = encodeURIComponent(
+          `${score} ${scaleName} تصنيف NANDA, NIC و NOC`,
+        );
+        window.open(
+          `https://www.google.com/search?q=${searchQuery}`,
+          "_blank",
+        );
+      });
+
+      // Carrega o footer
+      fetch("footer.html")
+        .then((response) => response.text())
+        .then((data) => {
+          const footerPlaceholder =
+            document.getElementById("footer-placeholder");
+          if (footerPlaceholder) {
+            footerPlaceholder.innerHTML = data;
+          }
+        });
+    });
+  </script>
 
   <!-- Caminho do seletor de idioma ajustado -->
   <script src="../lang-selector.js" defer=""></script>

@@ -592,7 +592,224 @@
 
 
 
-  
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const resultadoDiv = document.getElementById("resultado");
+      const btnCalcular = document.getElementById("btnCalcular");
+      const btnLimpar = document.getElementById("btnLimpar");
+      const btnGerarPDF = document.getElementById("btnGerarPDF");
+      const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
+      const conteudoDiv = document.getElementById("conteudo");
+
+      // Bishop Score data
+      const bishopData = [
+        {
+          category: "Cervical Dilation",
+          nameAttr: "dilation",
+          options: [
+            { description: "0 cm", score: 0 },
+            { description: "1-2 cm", score: 1 },
+            { description: "3-4 cm", score: 2 },
+            { description: "≥ 5 cm", score: 3 },
+          ],
+          explain:
+            "Opening of the cervix measured in centimeters. Greater dilation correlates with higher scores.",
+        },
+        {
+          category: "Cervical Effacement",
+          nameAttr: "effacement",
+          options: [
+            { description: "0-30%", score: 0 },
+            { description: "40-50%", score: 1 },
+            { description: "60-70%", score: 2 },
+            { description: "≥ 80%", score: 3 },
+          ],
+          explain:
+            "Thinning and shortening of the cervix relative to its original length. Expressed as a percentage. Higher percentages yield higher scores.",
+        },
+        {
+          category: "Cervical Consistency",
+          nameAttr: "consistency",
+          options: [
+            { description: "Firm", score: 0 },
+            { description: "Medium", score: 1 },
+            { description: "Soft", score: 2 },
+          ],
+          explain:
+            "Determines the firmness of the cervix upon touch. A softer cervix indicates greater maturity and readiness for labor.",
+        },
+        {
+          category: "Cervical Position",
+          nameAttr: "position",
+          options: [
+            { description: "Posterior", score: 0 },
+            { description: "Midline", score: 1 },
+            { description: "Anterior", score: 2 },
+          ],
+          explain:
+            "Location of the cervix relative to the pelvic axis. An anterior cervix position indicates greater maturity.",
+        },
+        {
+          category: "Fetal Station",
+          nameAttr: "station",
+          options: [
+            { description: "-3", score: 0 },
+            { description: "-2", score: 1 },
+            { description: "-1 or 0", score: 2 },
+            { description: "+1 or +2", score: 3 },
+          ],
+          explain:
+            "Position of the baby's head relative to the maternal pelvic ischial spines. Station is measured in centimeters, with 0 as the reference point. Lower positions (+) yield higher scores.",
+        },
+      ];
+
+      // Dynamically populate the form
+      bishopData.forEach((item) => {
+        const sectionDiv = document.createElement("div");
+        sectionDiv.className = "bishop-criterion-section";
+        sectionDiv.id = `section-${item.nameAttr}`;
+
+        const titleH3 = document.createElement("h3");
+        titleH3.className = "bishop-criterion-title";
+        titleH3.innerHTML =
+          item.category +
+          `
+              <div class="text-sm font-normal text-gray-500 mt-1">${item.explain}</div>`;
+        sectionDiv.appendChild(titleH3);
+
+        const selectElement = document.createElement("select");
+        selectElement.id = item.nameAttr;
+        selectElement.className = "bishop-criterion-select";
+
+        const defaultOption = document.createElement("option");
+        defaultOption.value = "";
+        defaultOption.text = "Select...";
+        selectElement.appendChild(defaultOption);
+
+        item.options.forEach((option) => {
+          const optionElement = document.createElement("option");
+          optionElement.value = option.score;
+          optionElement.text = `${option.description} (points: ${option.score})`;
+          selectElement.appendChild(optionElement);
+        });
+
+        sectionDiv.appendChild(selectElement);
+        conteudoDiv.appendChild(sectionDiv);
+      });
+
+      function calcularBishop() {
+        const selects = document.querySelectorAll("#conteudo select");
+        let allSelected = true;
+        let total = 0;
+
+        selects.forEach((select) => {
+          if (select.value === "") {
+            allSelected = false;
+            select.classList.add("incomplete");
+          } else {
+            select.classList.remove("incomplete");
+            total += Number(select.value);
+          }
+        });
+
+        resultadoDiv.style.display = "block";
+        if (!allSelected) {
+          resultadoDiv.innerHTML =
+            '⚠️ <strong class="font-bold">Please select an option for all items before calculating.</strong>';
+          resultadoDiv.classList.add("bg-red-100");
+          resultadoDiv.classList.remove("bg-yellow-100", "bg-blue-50");
+          delete resultadoDiv.dataset.score;
+          return;
+        }
+
+        let classification = "";
+        let recommendation = "";
+        let resultadoClasse = "";
+
+        if (total < 6) {
+          classification = "Unfavorable/Immature Cervix";
+          recommendation =
+            "The cervix is not mature. Cervical ripening methods are likely needed before attempting labor induction.";
+          resultadoClasse = "bg-red-100";
+        } else if (total >= 6 && total <= 7) {
+          classification = "Gray Zone (Uncertain)";
+          recommendation =
+            "Induction may be attempted, but success is not guaranteed. Careful monitoring is essential.";
+          resultadoClasse = "bg-yellow-100";
+        } else {
+          // total >= 8
+          classification = "Favorable/Mature Cervix";
+          recommendation =
+            "The cervix is mature with high likelihood of successful labor induction. Spontaneous labor may be imminent.";
+          resultadoClasse = "bg-blue-50";
+        }
+
+        resultadoDiv.innerHTML = `
+                <p>Total Score: <strong class="font-bold">${total}</strong></p>
+                <p>Classification: <strong class="font-bold">${classification}</strong></p>
+                <p class="mt-4"><strong>Recommendation:</strong> ${recommendation}</p>
+            `;
+        resultadoDiv.className = `resultado ${resultadoClasse}`;
+        resultadoDiv.style.display = "block";
+
+        resultadoDiv.dataset.score = total;
+        resultadoDiv.dataset.scaleName = "Bishop Score";
+        resultadoDiv.dataset.classification = classification;
+      }
+
+      function limparCampos() {
+        const selects = document.querySelectorAll("#conteudo select");
+        selects.forEach((select) => {
+          select.selectedIndex = 0;
+          select.classList.remove("incomplete");
+        });
+        resultadoDiv.innerHTML = "";
+        resultadoDiv.className = "resultado hidden";
+        delete resultadoDiv.dataset.score;
+        delete resultadoDiv.dataset.scaleName;
+        delete resultadoDiv.dataset.classification;
+      }
+
+      btnCalcular?.addEventListener("click", calcularBishop);
+      btnLimpar?.addEventListener("click", limparCampos);
+
+      btnGerarPDF?.addEventListener("click", () => {
+        if (!resultadoDiv.dataset.score) {
+          alert(
+            'Please click "Calculate Score" first to generate the PDF.',
+          );
+          return;
+        }
+        if (typeof gerarPDFGlobal === "function") {
+          gerarPDFGlobal({
+            titulo: "Bishop Score",
+            subtitulo: "Cervical Assessment Report",
+            nomeArquivo: "bishop_score_report.pdf",
+            seletorConteudo: ".main-content-wrapper",
+          });
+        } else {
+          console.error("gerarPDFGlobal function not defined.");
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener("click", () => {
+        const score = resultadoDiv.dataset.score;
+        const scaleName = resultadoDiv.dataset.scaleName;
+        const classification = resultadoDiv.dataset.classification;
+        if (!score || !classification) {
+          alert("Calculate the result to research the intervention.");
+          return;
+        }
+        const searchQuery = encodeURIComponent(
+          `${scaleName} score ${score} labor ${classification} generate NANDA taxonomy, generate NIC taxonomy and generate NOC taxonomy`,
+        );
+        window.open(
+          `https://www.google.com/search?q=${searchQuery}`,
+          "_blank",
+        );
+      });
+    });
+  </script>
 
   <script src="/lang-selector.js" defer=""></script>
 

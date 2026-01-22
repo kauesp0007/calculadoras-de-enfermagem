@@ -581,7 +581,196 @@
 
 
 
-  
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const resultadoDiv = document.getElementById('resultado');
+      const btnCalcular = document.getElementById('btnCalcular');
+      const btnLimpar = document.getElementById('btnLimpar');
+      const btnGerarPDF = document.getElementById('btnGerarPDF');
+      const btnNandaNicNoc = document.getElementById('btnNandaNicNoc');
+      const conteudoDiv = document.getElementById('conteudo');
+
+      const bpsData = [
+        {
+          title: "표정",
+          nameAttr: "expressao_facial",
+          options: [
+            { description: "이완됨", score: 1 },
+            { description: "부분적으로 긴장됨 (찡그린 눈썹)", score: 2 },
+            { description: "완전히 긴장됨 (수축된 표정)", score: 3 },
+            { description: "얼굴 찡그림", score: 4 }
+          ]
+        },
+        {
+          title: "상지 운동",
+          nameAttr: "movimentos_superiores",
+          options: [
+            { description: "이완됨", score: 1 },
+            { description: "부분적으로 굽힘", score: 2 },
+            { description: "긴장과 함께 완전히 굽힘", score: 3 },
+            { description: "지속적으로 수축", score: 4 }
+          ]
+        },
+        {
+          title: "기계환기 호응도",
+          nameAttr: "conformidade_ventilador",
+          options: [
+            { description: "환기기에 적응됨", score: 1 },
+            { description: "기침 또는 환기기와 투쟁", score: 2 },
+            { description: "적극적으로 투쟁 (환기기 알람)", score: 3 },
+            { description: "환기기에 적응하지 않음 (환기기 알람이 멈추지 않음)", score: 4 }
+          ]
+        }
+      ];
+
+      // 양식을 동적으로 채움
+      bpsData.forEach(item => {
+        const sectionDiv = document.createElement('div');
+        sectionDiv.className = 'bps-criterion-section';
+        sectionDiv.id = `section-${item.nameAttr}`;
+
+        const titleH3 = document.createElement('h3');
+        titleH3.className = 'bps-criterion-title';
+        titleH3.innerHTML = item.title;
+        sectionDiv.appendChild(titleH3);
+
+        const selectElement = document.createElement('select');
+        selectElement.id = item.nameAttr;
+        selectElement.className = 'bps-criterion-select mt-2';
+
+        const defaultOption = document.createElement('option');
+        defaultOption.value = "";
+        defaultOption.text = "선택하세요...";
+        selectElement.appendChild(defaultOption);
+
+        item.options.forEach(option => {
+          const optionElement = document.createElement('option');
+          optionElement.value = option.score;
+          optionElement.text = `${option.description} (점수: ${option.score})`;
+          selectElement.appendChild(optionElement);
+        });
+
+        sectionDiv.appendChild(selectElement);
+        conteudoDiv.appendChild(sectionDiv);
+      });
+
+      function calcularBPS() {
+        const selects = document.querySelectorAll('#conteudo select');
+        let allSelected = true;
+        let total = 0;
+
+        selects.forEach(select => {
+          if (select.value === "") {
+            allSelected = false;
+            select.classList.add('incomplete');
+          } else {
+            select.classList.remove('incomplete');
+            total += Number(select.value);
+          }
+        });
+
+        resultadoDiv.style.display = "block";
+        if (!allSelected) {
+          resultadoDiv.innerHTML = '⚠️ <strong class="font-bold">계산하기 전에 모든 항목의 옵션을 선택해주세요.</strong>';
+          resultadoDiv.className = `resultado bg-red-100`;
+          delete resultadoDiv.dataset.score;
+          return;
+        }
+
+        let recomendacao = '';
+
+        if (total <= 5) {
+          recomendacao = `${total}점은 경미한 통증 또는 통증 없음을 나타냅니다. 환자를 계속 모니터링하세요.`;
+        } else if (total >= 6 && total <= 9) {
+          recomendacao = `${total}점은 중간 정도의 통증을 나타냅니다. 약물성 또는 비약물성 진통 방법의 평가와 환자 반응 모니터링이 권장됩니다.`;
+        } else { // total >= 10
+          recomendacao = `${total}점은 심한 통증을 나타냅니다. 즉시 진통 개입이 필요하며, 의사가 치료 계획을 검토해야 합니다.`;
+        }
+
+        resultadoDiv.innerHTML = `
+                <p>총 점수: <strong class="font-bold">${total}</strong></p>
+                <p class="mt-4"><strong>권장사항:</strong> ${recomendacao}</p>
+            `;
+        resultadoDiv.className = `resultado bg-blue-50`;
+        resultadoDiv.style.display = "block";
+
+        resultadoDiv.dataset.score = total;
+        resultadoDiv.dataset.scaleName = "BPS 척도";
+      }
+
+      function limparCampos() {
+        const selects = document.querySelectorAll('#conteudo select');
+        selects.forEach(select => {
+          select.selectedIndex = 0;
+          select.classList.remove('incomplete');
+        });
+        resultadoDiv.innerHTML = '';
+        resultadoDiv.className = 'resultado hidden';
+        delete resultadoDiv.dataset.score;
+        delete resultadoDiv.dataset.scaleName;
+      }
+
+      // 버튼에 이벤트 리스너 추가
+      btnCalcular?.addEventListener('click', calcularBPS);
+      btnLimpar?.addEventListener('click', limparCampos);
+
+      btnGerarPDF?.addEventListener('click', () => {
+        if (!resultadoDiv.dataset.score) {
+          alert('PDF를 생성하려면 먼저 "점수 계산"을 클릭해주세요.');
+          return;
+        }
+        if (typeof gerarPDFGlobal === 'function') {
+          const selectedOptions = {};
+          document.querySelectorAll('#conteudo select').forEach(select => {
+            const selected = select.options[select.selectedIndex];
+            if (selected.value !== "") {
+              selectedOptions[select.id] = selected.text;
+            }
+          });
+
+          let contentToPrint = document.querySelector('.main-content-wrapper').cloneNode(true);
+          let contentContainer = contentToPrint.querySelector('#conteudo');
+
+          contentContainer.innerHTML = '';
+
+          bpsData.forEach(item => {
+            let selectedText = selectedOptions[item.nameAttr];
+            if (selectedText) {
+              let itemDiv = document.createElement('div');
+              itemDiv.className = 'mb-2 p-2 bg-gray-50 rounded';
+              itemDiv.innerHTML = `<strong>${item.title}:</strong> ${selectedText}`;
+              contentContainer.appendChild(itemDiv);
+            }
+          });
+
+          let resultadoHtml = resultadoDiv.cloneNode(true);
+          if (resultadoHtml.style.display !== 'none') {
+            contentContainer.appendChild(resultadoHtml);
+          }
+
+          gerarPDFGlobal({
+            titulo: 'BPS 척도',
+            subtitulo: '중증 환자 통증 평가 보고서',
+            nomeArquivo: 'relatorio_escala_bps.pdf',
+            seletorConteudo: '.main-content-wrapper'
+          });
+        } else {
+          console.error('함수 gerarPDFGlobal이 정의되지 않았습니다.');
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener('click', () => {
+        const score = resultadoDiv.dataset.score;
+        const scaleName = resultadoDiv.dataset.scaleName;
+        if (!score) {
+          alert('조치를 검색하려면 결과를 계산해주세요.');
+          return;
+        }
+        const searchQuery = encodeURIComponent(`${scaleName} 점수 ${score} NANDA 분류 생성, NOC 분류 생성`);
+        window.open(`https://www.google.com/search?q=${searchQuery}`, '_blank');
+      });
+    });
+  </script>
 
 
 

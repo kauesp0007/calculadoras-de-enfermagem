@@ -741,7 +741,416 @@
 
 
 
-  
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const resultadoDiv = document.getElementById("resultado");
+      const btnCalcular = document.getElementById("btnCalcular");
+      const btnLimpar = document.getElementById("btnLimpar");
+      const btnGerarPDF = document.getElementById("btnGerarPDF");
+      const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
+      const conteudoDiv = document.getElementById("conteudo");
+
+      // Dados da escala de Tinetti
+      const tinettiData = [
+        {
+          title: "1. Sittande balans",
+          nameAttr: "sentado",
+          explain:
+            "Förmåga att hålla sig stabil när man sitter på en stol.",
+          options: [
+            {
+              description: "Den glider, den glider ner i stolen.",
+              score: 0
+            },
+            { description: "Fast och säker.", score: 1 }]
+
+        },
+        {
+          title: "2. Upphöjning",
+          nameAttr: "levantando",
+          explain: "Förmåga att resa sig från en stol.",
+          options: [
+            { description: "Oförmögen utan hjälp", score: 0 },
+            {
+              description: "Kapabel, men använder armarna för att lyfta sig upp.",
+              score: 1
+            },
+            { description: "Kapabel, utan att använda armarna.", score: 2 }]
+
+        },
+        {
+          title: "3. Försöker lyfta",
+          nameAttr: "tentando_levantar",
+          explain: "Observera antalet försök att resa sig upp.",
+          options: [
+            { description: "Misslyckades eller mer än ett försök", score: 0 },
+            { description: "Klarar på ett enda försök", score: 1 }]
+
+        },
+        {
+          title: "4. Så snart du står upp (första 5 sekunderna)",
+          nameAttr: "apos_levantar",
+          explain: "Stabilitet under de första 5 sekunderna efter uppresning.",
+          options: [
+            {
+              description: "Instabil (vacklar, rör fötter, överkropp)",
+              score: 0
+            },
+            {
+              description: "Stabil med stöd från en annan person eller föremål.",
+              score: 1
+            },
+            { description: "Stabil utan stöd, men vinglar.", score: 2 }]
+
+        },
+        {
+          title: "5. Balans i stående",
+          nameAttr: "em_pe",
+          explain: "Stabilitet i en upprätt hållning.",
+          options: [
+            { description: "Obalanserad (0)", score: 0 },
+            {
+              description: "Com suporte / base de sustentação > 9cm (1)",
+              score: 1
+            },
+            {
+              description: "Inget stöd/ liten stödbas (2)",
+              score: 2
+            }]
+
+        },
+        {
+          title: "6. 3-stegstest (externt)",
+          nameAttr: "teste_3_tempos",
+          explain:
+            "Reaktion på en lätt tryckning på bröstbenet. Patienten ska stå med fötterna på ett bekvämt avstånd från varandra.",
+          options: [
+            { description: "Det börjar falla (0)", score: 0 },
+            { description: "Gripa eller svinga (armar) (1)", score: 1 },
+            { description: "Stall (2)", score: 2 }]
+
+        },
+        {
+          title: "7. Balansera med slutna ögon",
+          nameAttr: "olhos_fechados",
+          explain: "Stabilitet hos patienten med slutna ögon.",
+          options: [
+            { description: "Obalans (0)", score: 0 },
+            { description: "Jämvikt (1)", score: 1 }]
+
+        },
+        {
+          title: "8. Roterande 360º",
+          nameAttr: "girando",
+          explain:
+            "Observera förmågan att göra en helomvändning och stabilitet.",
+          options: [
+            {
+              description: "Diskontinuerliga steg / obalans (0)",
+              score: 0
+            },
+            { description: "Kontinuerliga steg / stabilitet (1)", score: 1 }]
+
+        },
+        {
+          title: "9. Sittande i stolen",
+          nameAttr: "sentando",
+          explain: "Förmåga att sitta i en stol.",
+          options: [
+            { description: "Inseguro / cai na cadeira (0)", score: 0 },
+            {
+              description: "Använder armarna eller rör sig inte smidigt (1)",
+              score: 1
+            },
+            { description: "Fast och säker (2)", score: 2 }]
+
+        },
+        {
+          title: "10. Början av marschen",
+          nameAttr: "inicio_marcha",
+          explain: "Titta på början av promenaden.",
+          options: [
+            {
+              description: "Tvekan eller upprepade försök (0)",
+              score: 0
+            },
+            { description: "Utan att tveka (1)", score: 1 }]
+
+        },
+        {
+          title: "11. Steglängd och höjd",
+          nameAttr: "passo",
+          explain: "Notera stegets längd och höjd.",
+          options: [
+            {
+              description:
+                "Höger fot passerar inte vänster fot eller lyfter inte; Vänster fot passerar inte höger fot eller lyfter inte (0)",
+              score: 0
+            },
+            {
+              description:
+                "Höger fot passerar över vänster och lyfter; Vänster fot passerar över höger och lyfter (1)",
+              score: 1
+            }]
+
+        },
+        {
+          title: "12. Stegsymmetri",
+          nameAttr: "symmetri_steg",
+          explain: "Se till att stegen är symmetriska.",
+          options: [
+            { description: "Olika längder (0)", score: 0 },
+            { description: "Lika längder (1)", score: 1 }]
+
+        },
+        {
+          title: "13. Fortsättning av steget",
+          nameAttr: "steg_kontinuitet",
+          explain: "Observera om promenaden är flytande eller om det finns några avbrott.",
+          options: [
+            { description: "Stopp eller diskontinuiteter (0)", score: 0 },
+            { description: "Kontinuerliga steg (1)", score: 1 }]
+
+        },
+        {
+          title: "14. Marschens riktning",
+          nameAttr: "direcao_marcha",
+          explain: "Observar o desvio da linha de caminhada.",
+          options: [
+            {
+              description:
+                "Betydande avvikelse eller användning av assistans för att hålla sig på rätt spår (0)",
+              score: 0
+            },
+            {
+              description: "Mild eller måttlig avvikelse, men utan hjälp (1)",
+              score: 1
+            },
+            {
+              description: "Gå i en rak linje utan avvikelse (2)",
+              score: 2
+            }]
+
+        },
+        {
+          title: "15. Stammen",
+          nameAttr: "tronco_marcha",
+          explain:
+            "Observera hur bålen svänger och hur armarna används när du går.",
+          options: [
+            {
+              description:
+                "Svängning av bålen eller användning av armar för balansering (0)",
+              score: 0
+            },
+            {
+              description:
+                "Knä- eller ryggböjning / armspridning (1)",
+              score: 1
+            },
+            { description: "Utan oscillation eller flexion (2)", score: 2 }]
+
+        },
+        {
+          title: "16. Stödbas för gång",
+          nameAttr: "base_marcha",
+          explain: "Avstånd mellan hälarna vid gång.",
+          options: [
+            {
+              description: "Separerade eller instabila vrister (0)",
+              score: 0
+            },
+            {
+              description:
+                "Vrister vidrör varandra eller ligger nära varandra, utan avvikelse (1)",
+              score: 1
+            }]
+
+        }];
+
+
+      // Preenche o formulário dinamicamente
+      tinettiData.forEach((item) => {
+        const sectionDiv = document.createElement("div");
+        sectionDiv.className = "tinetti-criterion-section";
+        sectionDiv.id = `section-${item.nameAttr}`;
+
+        const titleH3 = document.createElement("h3");
+        titleH3.className = "tinetti-criterion-title";
+        titleH3.innerHTML = item.title;
+        sectionDiv.appendChild(titleH3);
+
+        const explainP = document.createElement("p");
+        explainP.className = "tinetti-criterion-explain";
+        explainP.innerHTML = item.explain;
+        sectionDiv.appendChild(explainP);
+
+        const selectElement = document.createElement("select");
+        selectElement.id = item.nameAttr;
+        selectElement.className = "tinetti-criterion-select mt-2";
+
+        const defaultOption = document.createElement("option");
+        defaultOption.value = "";
+        defaultOption.text = "Välja...";
+        selectElement.appendChild(defaultOption);
+
+        item.options.forEach((option) => {
+          const optionElement = document.createElement("option");
+          optionElement.value = option.score;
+          optionElement.text = `${option.description} (poäng: ${option.score})`;
+          selectElement.appendChild(optionElement);
+        });
+
+        sectionDiv.appendChild(selectElement);
+        conteudoDiv.appendChild(sectionDiv);
+      });
+
+      function calcularTinetti() {
+        const selects = document.querySelectorAll("#conteudo select");
+        let allSelected = true;
+        let total = 0;
+
+        selects.forEach((select) => {
+          if (select.value === "") {
+            allSelected = false;
+            select.classList.add("incomplete");
+          } else {
+            select.classList.remove("incomplete");
+            total += Number(select.value);
+          }
+        });
+
+        resultadoDiv.style.display = "block";
+        if (!allSelected) {
+          resultadoDiv.innerHTML =
+            '⚠️ <strong class="font-bold">Por favor, selecione uma opção para todos os itens antes de calcular.</strong>';
+          resultadoDiv.className = `bg-red-100 resultat`;
+          delete resultadoDiv.dataset.score;
+          return;
+        }
+
+        let recomendacao = "";
+
+        if (total <= 19) {
+          recomendacao = `Den ${total} indikerar en hög risk för fall. Implementering av säkerhetsåtgärder och en interventionsplan för fallprevention rekommenderas.`;
+        } else {
+          recomendacao = `Den ${total} indikerar en låg risk för fall. Fortsätt att övervaka patientens rörlighet.`;
+        }
+
+        resultadoDiv.innerHTML = `
+                <p>Escore total: <strong class="font-bold">${total}</strong></p>
+                <p class="mt-4"><strong>Recomendação:</strong> ${recomendacao}</p>
+            `;
+        resultadoDiv.className = `bg-blå-50 resultat`;
+        resultadoDiv.style.display = "block";
+
+        resultadoDiv.dataset.score = total;
+        resultadoDiv.dataset.scaleName = "Escala de Tinetti";
+      }
+
+      function limparCampos() {
+        const selects = document.querySelectorAll("#conteudo select");
+        selects.forEach((select) => {
+          select.selectedIndex = 0;
+          select.classList.remove("incomplete");
+        });
+        resultadoDiv.innerHTML = "";
+        resultadoDiv.className = "dolt resultat";
+        delete resultadoDiv.dataset.score;
+        delete resultadoDiv.dataset.scaleName;
+      }
+
+      // Adiciona os event listeners aos botões
+      btnCalcular?.addEventListener("click", calcularTinetti);
+      btnLimpar?.addEventListener("click", limparCampos);
+
+      btnGerarPDF?.addEventListener("click", () => {
+        if (!resultadoDiv.dataset.score) {
+          alert(
+            'Klicka först på "Beräkna poäng" för att generera PDF-filen.'
+          );
+          return;
+        }
+        if (typeof gerarPDFGlobal === "function") {
+          const selectedOptions = {};
+          document.querySelectorAll("#conteudo select").forEach((select) => {
+            const selected = select.options[select.selectedIndex];
+            if (selected.value !== "") {
+              selectedOptions[select.id] = selected.text;
+            }
+          });
+
+          let contentToPrint = document.
+            querySelector(".main-content-wrapper").
+            cloneNode(true);
+          let contentContainer = contentToPrint.querySelector("#conteudo");
+
+          contentContainer.innerHTML = "";
+
+          let balanceSectionTitle = document.createElement("h3");
+          balanceSectionTitle.className = "text-lg font-semibold mt-4 mb-2";
+          balanceSectionTitle.innerText = `Balansavsnitt (Maximal poäng: 16)`;
+          contentContainer.appendChild(balanceSectionTitle);
+
+          tinettiData.slice(0, 9).forEach((item) => {
+            let selectedText = selectedOptions[item.nameAttr];
+            if (selectedText) {
+              let itemDiv = document.createElement("div");
+              itemDiv.className = "mb-2 p-2 bg-gray-50 rounded";
+              itemDiv.innerHTML = `<strong>${item.title}:</strong> ${selectedText}`;
+              contentContainer.appendChild(itemDiv);
+            }
+          });
+
+          let gaitSectionTitle = document.createElement("h3");
+          gaitSectionTitle.className = "text-lg font-semibold mt-4 mb-2";
+          gaitSectionTitle.innerText = `Marschsektion (Maximal poäng: 12)`;
+          contentContainer.appendChild(gaitSectionTitle);
+
+          tinettiData.slice(9, 16).forEach((item) => {
+            let selectedText = selectedOptions[item.nameAttr];
+            if (selectedText) {
+              let itemDiv = document.createElement("div");
+              itemDiv.className = "mb-2 p-2 bg-gray-50 rounded";
+              itemDiv.innerHTML = `<strong>${item.title}:</strong> ${selectedText}`;
+              contentContainer.appendChild(itemDiv);
+            }
+          });
+
+          let resultadoHtml = resultadoDiv.cloneNode(true);
+          if (resultadoHtml.style.display !== "none") {
+            contentContainer.appendChild(resultadoHtml);
+          }
+
+          gerarPDFGlobal({
+            titulo: "Tinetti-skalan",
+            subtitulo: "Rapport om gång- och balansbedömning",
+            nomeArquivo: "relatorio_escala_tinetti.pdf",
+            seletorConteudo: ".main-content-wrapper"
+          });
+        } else {
+          console.error("Funktionen GeneratePDFGlobal är inte definierad.");
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener("click", () => {
+        const score = resultadoDiv.dataset.score;
+        const scaleName = resultadoDiv.dataset.scaleName;
+        if (!score) {
+          alert("Beräkna resultatet för att undersöka beteendet.");
+          return;
+        }
+        const recomendacaoRisco =
+          score <= 19 ? "alto risco de queda" : "baixo risco de queda";
+        const searchQuery = encodeURIComponent(
+          `cuidados enfermagem para idoso com ${recomendacaoRisco} na Escala de Tinetti NANDA NIC NOC`
+        );
+        window.open(
+          `https://www.google.com/search?q=${searchQuery}`,
+          "_blank"
+        );
+      });
+    });</script>
 
   <script src="/lang-selector.js" defer=""></script>
 

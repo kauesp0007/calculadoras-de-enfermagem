@@ -627,7 +627,244 @@
 
 
 
-  
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const resultadoDiv = document.getElementById('resultado');
+      const btnCalcular = document.getElementById('btnCalcular');
+      const btnLimpar = document.getElementById('btnLimpar');
+      const btnGerarPDF = document.getElementById('btnGerarPDF');
+      const btnNandaNicNoc = document.getElementById('btnNandaNicNoc');
+      const conteudoDiv = document.getElementById('conteudo');
+
+      const pewsData = [
+        {
+          parameter: "Stato Neurologico",
+          nameAttr: "estadoNeurologico",
+          options: [
+            { description: "Attivo", score: 0 },
+            { description: "Sonnolento/Ipoattivo", score: 1 },
+            { description: "Irritabile", score: 2 },
+            { description: "Letargico/Obnubilato o risposta al dolore ridotta", score: 3 }
+          ]
+        },
+        {
+          parameter: "Cardiovascolare",
+          nameAttr: "cardiovascular",
+          options: [
+            { description: "Colorito roseo o Tempo di riempimento capillare (TRC) 1-2 sec", score: 0 },
+            { description: "Pallido o TRC di 3 sec o FC sopra il limite superiore per l'età", score: 1 },
+            { description: "Marezzato o TRC 4 sec o FC ≥ 20 bpm sopra il limite superiore per l'età", score: 2 },
+            { description: "Grigiastro/Cianotico o TRC ≥ 5 sec o FC ≥ 30 bpm sopra il limite per l'età o bradicardia per l'età", score: 3 }
+          ]
+        },
+        {
+          parameter: "Respiratorio",
+          nameAttr: "respiratorio",
+          options: [
+            { description: "FR normale per l'età, senza retrazioni", score: 0 },
+            { description: "FR sopra il limite superiore per l'età, uso di muscolatura accessoria o FiO₂ ≥ 30% o 6 litri/min di O₂", score: 1 },
+            { description: "FR ≥ 20/min sopra il limite superiore per l'età, retrazioni sottocostali, intercostali e giugulari o FiO₂ ≥ 40% o 6 litri/min di O₂", score: 2 },
+            { description: "FR ≤ 5/min sotto il limite inferiore per l'età, retrazioni sottocostali, intercostali, giugulari, sternali e gemito o FiO₂ ≥ 50% o 8 litri/min di O₂", score: 3 }
+          ]
+        }
+      ];
+
+      const pewsExtraPointsData = {
+        question: "Aggiungere 2 punti extra (se ha ricevuto nebulizzazione almeno 15 minuti prima della valutazione o vomito persistente dopo intervento chirurgico - minimo 3 episodi)",
+        nameAttr: "extraPointsCheckbox"
+      };
+
+      function updateScoreDisplay(criterionId) {
+        const selectElement = document.getElementById(criterionId);
+        const scoreDisplayElement = document.getElementById(`${criterionId}_score_display`);
+        if (selectElement && scoreDisplayElement) {
+          scoreDisplayElement.innerText = selectElement.value === "" ? "0" : selectElement.value;
+        }
+      }
+
+      function calcularPontuacao() {
+        let totalScore = 0;
+        let allItemsSelected = true;
+
+        pewsData.forEach(item => {
+          const selectElement = document.getElementById(item.nameAttr);
+          if (selectElement.value === "") {
+            allItemsSelected = false;
+          } else {
+            totalScore += parseInt(selectElement.value, 10);
+          }
+        });
+
+        const extraPointsCheckbox = document.getElementById(pewsExtraPointsData.nameAttr);
+        if (extraPointsCheckbox && extraPointsCheckbox.checked) {
+          totalScore += 2;
+        }
+
+        resultadoDiv.style.display = 'block';
+        if (!allItemsSelected) {
+          resultadoDiv.innerHTML = '⚠️ <strong class="font-bold">Seleziona un\'opzione per ogni voce</strong> prima di calcolare.';
+          resultadoDiv.className = 'resultado bg-info-orange-light';
+          delete resultadoDiv.dataset.score;
+          return;
+        }
+
+        let classificacao = '';
+        let acaoRecomendada = '';
+        let resultadoClasse = '';
+
+        if (totalScore >= 7) {
+          classificacao = 'Punteggio PEWS: 7+';
+          acaoRecomendada = 'Attivare protocollo per arresto cardiorespiratorio (ACR).';
+          resultadoClasse = 'bg-pews-7-mais';
+        } else if (totalScore >= 4 && totalScore <= 6) {
+          classificacao = `Punteggio PEWS: ${totalScore}`;
+          acaoRecomendada = 'Ripetere PEWS in 20 minuti. Valutazione/follow-up dell\'infermiere. Attivare chiamata di emergenza. Registrare le indicazioni mediche nella cartella infermieristica.';
+          resultadoClasse = 'bg-pews-4-6';
+        } else if (totalScore === 3) {
+          classificacao = `Punteggio PEWS: ${totalScore}`;
+          acaoRecomendada = 'Ripetere PEWS in 30 minuti. Valutazione immediata dell\'infermiere. Comunicare al medico di reparto e definire la necessità di una chiamata di emergenza. Registrare le indicazioni mediche.';
+          resultadoClasse = 'bg-pews-3';
+        } else if (totalScore >= 1 && totalScore <= 2) {
+          classificacao = `Punteggio PEWS: ${totalScore}`;
+          acaoRecomendada = 'Valutazione immediata dell\'infermiere. Ripetere PEWS in 60 minuti, se il punteggio persiste, comunicare al medico di reparto. Registrare le indicazioni mediche.';
+          resultadoClasse = 'bg-pews-1-2';
+        } else if (totalScore === 0) {
+          classificacao = "Punteggio PEWS: 0";
+          acaoRecomendada = "Mantenere la routine di controllo dei segni vitali ogni 6 ore.";
+          resultadoClasse = 'bg-pews-0';
+        } else {
+          classificacao = "Punteggio non valido";
+          acaoRecomendada = "Il punteggio calcolato è al di fuori degli intervalli previsti dalla scala. Verificare le selezioni.";
+          resultadoClasse = 'bg-info-orange-light';
+        }
+
+        resultadoDiv.innerHTML = `<p>${classificacao}</p><p>Azione Raccomandata: <strong class="font-bold">${acaoRecomendada}</strong></p>`;
+        resultadoDiv.className = `resultado ${resultadoClasse}`;
+
+        resultadoDiv.dataset.score = totalScore;
+        resultadoDiv.dataset.classificacao = classificacao;
+        resultadoDiv.dataset.conduta = acaoRecomendada;
+        resultadoDiv.dataset.scaleName = "Scala di PEWS";
+      }
+
+      function limparCampos() {
+        pewsData.forEach(item => {
+          const selectElement = document.getElementById(item.nameAttr);
+          selectElement.selectedIndex = 0;
+          document.getElementById(`${item.nameAttr}_score_display`).innerText = '0';
+        });
+        const extraPointsCheckbox = document.getElementById(pewsExtraPointsData.nameAttr);
+        if (extraPointsCheckbox) {
+          extraPointsCheckbox.checked = false;
+        }
+
+        resultadoDiv.innerHTML = '';
+        resultadoDiv.className = 'resultado hidden';
+        delete resultadoDiv.dataset.score;
+        delete resultadoDiv.dataset.classificacao;
+        delete resultadoDiv.dataset.conduta;
+        delete resultadoDiv.dataset.scaleName;
+      }
+
+      pewsData.forEach((item, index) => {
+        const sectionDiv = document.createElement('div');
+        sectionDiv.className = 'pews-criterion-card';
+
+        const headerDiv = document.createElement('div');
+        headerDiv.className = 'pews-criterion-header';
+
+        const titleH3 = document.createElement('h3');
+        titleH3.className = 'pews-criterion-title';
+        titleH3.innerText = item.parameter;
+        headerDiv.appendChild(titleH3);
+
+        const scoreSpan = document.createElement('span');
+        scoreSpan.className = 'pews-score-display';
+        scoreSpan.id = `${item.nameAttr}_score_display`;
+        scoreSpan.innerText = '0';
+        headerDiv.appendChild(scoreSpan);
+
+        sectionDiv.appendChild(headerDiv);
+
+        const optionsDiv = document.createElement('div');
+        optionsDiv.className = 'pews-criterion-options';
+
+        const selectElement = document.createElement('select');
+        selectElement.id = item.nameAttr;
+        selectElement.className = 'pews-select';
+        selectElement.onchange = () => updateScoreDisplay(item.nameAttr);
+
+        const defaultOption = document.createElement('option');
+        defaultOption.value = "";
+        defaultOption.text = "Seleziona...";
+        defaultOption.disabled = true;
+        defaultOption.selected = true;
+        selectElement.appendChild(defaultOption);
+
+        item.options.forEach(option => {
+          const optionElement = document.createElement('option');
+          optionElement.value = option.score;
+          optionElement.text = `${option.description} (${option.score})`;
+          selectElement.appendChild(optionElement);
+        });
+
+        optionsDiv.appendChild(selectElement);
+        sectionDiv.appendChild(optionsDiv);
+        conteudoDiv.appendChild(sectionDiv);
+      });
+
+      const extraPointsSection = document.createElement('div');
+      extraPointsSection.className = 'pews-extra-points-section';
+      const extraPointsLabel = document.createElement('label');
+      extraPointsLabel.className = 'flex items-center cursor-pointer';
+
+      const extraPointsInput = document.createElement('input');
+      extraPointsInput.type = 'checkbox';
+      extraPointsInput.id = pewsExtraPointsData.nameAttr;
+      extraPointsInput.className = 'form-checkbox h-5 w-5 text-blue-600 rounded-md';
+
+      const extraPointsSpan = document.createElement('span');
+      extraPointsSpan.className = 'ml-2 text-gray-800';
+      extraPointsSpan.innerText = pewsExtraPointsData.question;
+
+      extraPointsLabel.appendChild(extraPointsInput);
+      extraPointsLabel.appendChild(extraPointsSpan);
+      extraPointsSection.appendChild(extraPointsLabel);
+      conteudoDiv.appendChild(extraPointsSection);
+
+      btnCalcular?.addEventListener('click', calcularPontuacao);
+      btnLimpar?.addEventListener('click', limparCampos);
+
+      btnGerarPDF?.addEventListener('click', () => {
+        if (!resultadoDiv.dataset.score) {
+          alert('Per favore, clicca su "Calcola" prima di generare il PDF.');
+          return;
+        }
+        if (typeof gerarPDFGlobal === 'function') {
+          gerarPDFGlobal({
+            titulo: 'Scala di PEWS',
+            subtitulo: 'Rapporto di Valutazione del Deterioramento Clinico Pediatrico',
+            nomeArquivo: 'rapporto_scala_pews.pdf',
+            seletorConteudo: '.main-content-wrapper'
+          });
+        } else {
+          console.error('Funzione gerarPDFGlobal non definita.');
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener('click', () => {
+        const score = resultadoDiv.dataset.score;
+        const scaleName = resultadoDiv.dataset.scaleName;
+        const classificacao = resultadoDiv.dataset.classificacao;
+        if (!score || !classificacao) {
+          alert('Calcola il risultato per cercare la procedura.');
+          return;
+        }
+        const searchQuery = encodeURIComponent(`${scaleName} punteggio ${score} classificazione ${classificacao} generare tassonomia NANDA, generare tassonomia NIC e generare tassonomia NOC`);
+        window.open(`https://www.google.com/search?q=${searchQuery}`, '_blank');
+      });
+    });
+  </script>
 
 
 

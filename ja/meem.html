@@ -752,7 +752,340 @@
 
  <!-- パスをルートに変更 -->
 
-  
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const resultadoDiv = document.getElementById('resultado');
+      const btnCalcular = document.getElementById('btnCalcular');
+      const btnLimpar = document.getElementById('btnLimpar');
+      const btnGerarPDF = document.getElementById('btnGerarPDF');
+      const btnNandaNicNoc = document.getElementById('btnNandaNicNoc');
+      const conteudoDiv = document.getElementById('conteudo');
+
+      // --- JavaScript内のテキストを翻訳 ---
+      const meemData = [
+        {
+          domain: "時間的見当識",
+          nameAttr: "orientacaoTemporal",
+          instructions: "患者に a) 曜日 (1点); b) 日付 (1点); c) 月 (1点); d) 年 (1点); e) 季節 (1点) を尋ねます。各正答に1点を与えます。(最大: 5点)",
+          scoreOptions: [
+            { score: 0, description: "0個の正答" },
+            { score: 1, description: "1個の正答" },
+            { score: 2, description: "2個の正答" },
+            { score: 3, description: "3個の正答" },
+            { score: 4, description: "4個の正答" },
+            { score: 5, description: "5個の正答" }
+          ]
+        },
+        {
+          domain: "空間的見当識",
+          nameAttr: "orientacaoEspacial",
+          instructions: "患者に A) 現在いる場所 (1点); B) 建物名 (1点); C) 市町村 (1点); D) 都道府県 (1点); E) 国 (1点) を尋ねます。各正答に1点を与えます。(最大: 5点)",
+          scoreOptions: [
+            { score: 0, description: "0個の正答" },
+            { score: 1, description: "1個の正答" },
+            { score: 2, description: "2個の正答" },
+            { score: 3, description: "3個の正答" },
+            { score: 4, description: "4個の正答" },
+            { score: 5, description: "5個の正答" }
+          ]
+        },
+        {
+          domain: "記銘 (登録)",
+          nameAttr: "registro",
+          instructions: "それぞれ1秒かけて3つの単語を言います。患者に、あなたが言った3つの単語を繰り返してもらいます。最初の試行で正しく繰り返された単語ごとに1点を与えます。(最大: 3点) 例: '桜、猫、電車'",
+          scoreOptions: [
+            { score: 0, description: "0個の単語を正しく繰り返した" },
+            { score: 1, description: "1個の単語を正しく繰り返した" },
+            { score: 2, description: "2個の単語を正しく繰り返した" },
+            { score: 3, description: "3個の単語を正しく繰り返した" }
+          ]
+        },
+        {
+          domain: "注意と計算",
+          nameAttr: "atencaoCalculo",
+          instructions: "まず患者に引き算ができるか尋ねます。もしできるなら、100から7を引いてもらい (93)、その結果からさらに7を引くよう続けます... 93から7 (86)... 86から7 (79)... 79から7 (72)... 72から7 (65)。各正答に1点を与えます。(最大: 5点)",
+          scoreOptions: [
+            { score: 0, description: "0個の正答" },
+            { score: 1, description: "1個の正答" },
+            { score: 2, description: "2個の正答" },
+            { score: 3, description: "3個の正答" },
+            { score: 4, description: "4個の正答" },
+            { score: 5, description: "5個の正答" }
+          ]
+        },
+        {
+          domain: "想起 (再生)",
+          nameAttr: "memoriaEvocacao",
+          instructions: "項目3 (記銘) で学習した3つの単語の名前を尋ねます。正しく想起できた単語ごとに1点を与えます。(最大: 3点)",
+          scoreOptions: [
+            { score: 0, description: "0個の単語を正しく想起した" },
+            { score: 1, description: "1個の単語を正しく想起した" },
+            { score: 2, description: "2個の単語を正しく想起した" },
+            { score: 3, description: "3個の単語を正しく想起した" }
+          ]
+        },
+        {
+          domain: "言語 (呼称)",
+          nameAttr: "nomeacao",
+          instructions: "ペンと時計を指差します。患者に、あなたが指差したもののが何かを言ってもらいます。正しく呼称できた物品ごとに1点を与えます。(最大: 2点)",
+          scoreOptions: [
+            { score: 0, description: "0個の物品を正しく呼称した" },
+            { score: 1, description: "1個の物品を正しく呼称した" },
+            { score: 2, description: "2個の物品を正しく呼称した" }
+          ]
+        },
+        {
+          domain: "言語 (復唱)",
+          nameAttr: "repeticao",
+          instructions: "患者に「みんなで力を合わせましょう」という文を繰り返してもらいます。正しく繰り返せたら1点を与えます。(最大: 1点)",
+          scoreOptions: [
+            { score: 0, description: "正しく繰り返せなかった" },
+            { score: 1, description: "正しく繰り返した" }
+          ]
+        },
+        {
+          domain: "言語 (理解)",
+          nameAttr: "compreensao",
+          instructions: "患者は与えられた指示を実行しなければなりません... 患者に紙を渡し、「この紙を右手で取って (1点)、半分に折り (1点)、床に置いてください (1点)」と言います。各段階を正しく実行できたら1点を与えます。(最大: 3点)",
+          scoreOptions: [
+            { score: 0, description: "0段階の正解" },
+            { score: 1, description: "1段階の正解" },
+            { score: 2, description: "2段階の正解" },
+            { score: 3, description: "3段階の正解" }
+          ]
+        },
+        {
+          domain: "言語 (書字)",
+          nameAttr: "escrita",
+          instructions: "患者に、意味の通る完全な文を書いてもらいます。文が意味をなしていれば1点を与えます。(最大: 1点)",
+          scoreOptions: [
+            { score: 0, description: "意味の通る文を書けなかった" },
+            { score: 1, description: "意味の通る文を書いた" }
+          ]
+        },
+        {
+          domain: "言語 (読字)",
+          nameAttr: "leitura",
+          instructions: "紙に「目を閉じてください」と書き、患者に渡して、それを読んで指示を実行してもらいます。正しく読み、実行できたら1点を与えます。(最大: 1点)",
+          scoreOptions: [
+            { score: 0, description: "正しく読めなかった、または実行できなかった" },
+            { score: 1, description: "正しく読み、実行した" }
+          ]
+        },
+        {
+          domain: "構成能力 (図形模写)",
+          nameAttr: "praxiaConstrutiva",
+          instructions: "2つの五角形が重なり合う図を描き、患者に見せて、紙に写してもらいます。正しく写せたら1点を与えます。(最大: 1点)",
+          type: "image",
+          imageSrc: "/pentagono.webp", // パスをルートに変更
+          scoreOptions: [
+            { score: 0, description: "正しく写せなかった" },
+            { score: 1, description: "正しく写せた" }
+          ]
+        }
+      ];
+
+      // --- Funções da Calculadora MEEM ---
+      function updateScoreDisplay(criterionId) {
+        const selectElement = document.getElementById(criterionId);
+        const scoreDisplayElement = document.getElementById(`${criterionId}_score_display`);
+        if (selectElement && scoreDisplayElement) {
+          scoreDisplayElement.innerText = selectElement.value === "" ? "0" : selectElement.value;
+        }
+      }
+
+      function calcularPontuacao() {
+        let totalScore = 0;
+        let allItemsSelected = true;
+
+        meemData.forEach(item => {
+          const selectElement = document.getElementById(item.nameAttr);
+          if (selectElement.value === "") {
+            allItemsSelected = false;
+          } else {
+            totalScore += parseInt(selectElement.value, 10);
+          }
+        });
+
+        resultadoDiv.style.display = "block";
+        if (!allItemsSelected) {
+          // アラートメッセージを翻訳
+          resultadoDiv.innerHTML = '⚠️ <strong class="font-bold">計算する前に、各項目で得点を選択してください</strong>。';
+          resultadoDiv.className = 'resultado bg-info-orange-light';
+          delete resultadoDiv.dataset.score;
+          return;
+        }
+
+        let classificacao = "";
+        let resultadoClasse = '';
+
+        // 分類を翻訳
+        if (totalScore >= 25) {
+          classificacao = "このテストでは認知機能の低下は検出されませんでした";
+          resultadoClasse = 'bg-meem-normal';
+        } else if (totalScore >= 21 && totalScore <= 24) {
+          classificacao = "このテストで軽度の認知機能低下が示されました";
+          resultadoClasse = 'bg-meem-leve';
+        } else if (totalScore >= 10 && totalScore <= 20) {
+          classificacao = "このテストで中等度の認知機能低下が示されました";
+          resultadoClasse = 'bg-meem-moderado';
+        } else if (totalScore >= 0 && totalScore <= 9) {
+          classificacao = "このテストで重度の認知機能低下が示されました";
+          resultadoClasse = 'bg-meem-grave';
+        } else {
+          classificacao = "無効なスコア";
+          resultadoClasse = 'bg-info-orange-light';
+        }
+
+        // 結果表示を翻訳
+        resultadoDiv.innerHTML = `<p>精神状態短時間評価 (MMSE) 合計スコア: <strong class="font-bold">${totalScore}</strong></p><p>分類: <strong class="font-bold">${classificacao}</strong></p>`;
+        resultadoDiv.className = `resultado ${resultadoClasse}`;
+
+        resultadoDiv.dataset.score = totalScore;
+        resultadoDiv.dataset.classificacao = classificacao;
+        resultadoDiv.dataset.scaleName = "精神状態短時間評価 (MMSE)"; // スケール名を翻訳
+      }
+
+      function limparCampos() {
+        meemData.forEach(item => {
+          const selectElement = document.getElementById(item.nameAttr);
+          selectElement.selectedIndex = 0;
+          document.getElementById(`${item.nameAttr}_score_display`).innerText = '0';
+        });
+        resultadoDiv.innerHTML = '';
+        resultadoDiv.className = 'resultado hidden';
+        delete resultadoDiv.dataset.score;
+        delete resultadoDiv.dataset.classificacao;
+        delete resultadoDiv.dataset.scaleName;
+      }
+
+      // フォームを動的に入力
+      meemData.forEach((item, index) => {
+        const sectionDiv = document.createElement('div');
+        sectionDiv.className = 'meem-criterion-card';
+
+        const headerDiv = document.createElement('div');
+        headerDiv.className = 'meem-criterion-header';
+
+        const titleH3 = document.createElement('h3');
+        titleH3.className = 'meem-criterion-title';
+        titleH3.innerText = item.domain;
+        headerDiv.appendChild(titleH3);
+
+        const scoreSpan = document.createElement('span');
+        scoreSpan.className = 'meem-score-display';
+        scoreSpan.id = `${item.nameAttr}_score_display`;
+        scoreSpan.innerText = '0';
+        headerDiv.appendChild(scoreSpan);
+
+        sectionDiv.appendChild(headerDiv);
+
+        const instructionsP = document.createElement('p');
+        instructionsP.className = 'text-gray-700 mb-4 text-left';
+        instructionsP.innerText = item.instructions;
+        sectionDiv.appendChild(instructionsP);
+
+        if (item.type === "image" && item.imageSrc) {
+          const imgDiv = document.createElement('div');
+          imgDiv.className = 'image-cell mb-4 text-center';
+          const img = document.createElement('img');
+          img.src = item.imageSrc;
+          img.alt = `${item.domain} のための図`; // altテキストを翻訳
+          img.classList.add('w-auto', 'h-auto', 'max-w-[200px]', 'mx-auto', 'rounded-md', 'shadow-sm');
+          imgDiv.appendChild(img);
+          sectionDiv.appendChild(imgDiv);
+        }
+
+        const optionsDiv = document.createElement('div');
+        optionsDiv.className = 'meem-criterion-options';
+
+        const selectElement = document.createElement('select');
+        selectElement.id = item.nameAttr;
+        selectElement.className = 'meem-select';
+        selectElement.onchange = () => updateScoreDisplay(item.nameAttr);
+
+        const defaultOption = document.createElement('option');
+        defaultOption.value = "";
+        defaultOption.text = "選択してください..."; // デフォルトオプションを翻訳
+        defaultOption.disabled = true;
+        defaultOption.selected = true;
+        selectElement.appendChild(defaultOption);
+
+        item.scoreOptions.forEach(option => {
+          const optionElement = document.createElement('option');
+          optionElement.value = option.score;
+          optionElement.text = `${option.description} (${option.score})`;
+          selectElement.appendChild(optionElement);
+        });
+
+        optionsDiv.appendChild(selectElement);
+        sectionDiv.appendChild(optionsDiv);
+        conteudoDiv.appendChild(sectionDiv);
+      });
+
+      // イベントリスナーをボタンに追加
+      btnCalcular?.addEventListener('click', calcularPontuacao);
+      btnLimpar?.addEventListener('click', limparCampos);
+
+      btnGerarPDF?.addEventListener('click', () => {
+        if (!resultadoDiv.dataset.score) {
+          alert('PDFを生成する前に、まず「計算する」をクリックしてください。'); // アラートを翻訳
+          return;
+        }
+        if (typeof gerarPDFGlobal === 'function') {
+          gerarPDFGlobal({
+            titulo: '精神状態短時間評価 (MMSE)', // PDFタイトルを翻訳
+            subtitulo: '認知機能スクリーニングレポート', // PDFサブタイトルを翻訳
+            nomeArquivo: 'report_mmse_scale.pdf', // ファイル名を英語に
+            seletorConteudo: '.main-content-wrapper'
+          });
+        } else {
+          console.error('gerarPDFGlobal 関数が定義されていません。'); // エラーを翻訳
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener('click', () => {
+        const score = resultadoDiv.dataset.score;
+        const scaleName = resultadoDiv.dataset.scaleName;
+        const classificacao = resultadoDiv.dataset.classificacao;
+        if (!score || !classificacao) {
+          alert('看護計画を検索するために、まず結果を計算してください。'); // アラートを翻訳
+          return;
+        }
+        // 検索クエリを翻訳
+        const searchQuery = encodeURIComponent(`${scaleName} スコア ${score} 分類 ${classificacao} NANDA分類案, NIC分類案, NOC分類案`);
+        window.open(`https://www.google.com/search?q=${searchQuery}`, '_blank');
+      });
+
+      // Botão "Adicionar aos favoritos"
+      const addFavoriteBtn = document.getElementById('addFavoriteBtn');
+      if (addFavoriteBtn) {
+        addFavoriteBtn.addEventListener('click', () => {
+          const url = window.location.href;
+          const title = "MMSE スケール"; // タイトルを翻訳
+
+          try {
+            // IE/Edge Legacy
+            if (window.external && ("AddFavorite" in window.external)) {
+              window.external.AddFavorite(url, title);
+              return;
+            }
+            // Firefox antigo
+            if (window.sidebar && window.sidebar.addPanel) {
+              window.sidebar.addPanel(title, url, "");
+              return;
+            }
+            // Chrome/Firefox modernos: instrução de atalho
+            alert("Ctrl + D (Macの場合は Cmd + D) を押して、このページをお気に入りに追加してください。"); // アラートを翻訳
+          } catch (e) {
+            alert("Ctrl + D (Macの場合は Cmd + D) を押して、このページをお気に入りに追加してください。"); // アラートを翻訳
+          }
+        });
+      }
+
+    });
+
+  </script>
 
 
 

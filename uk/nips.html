@@ -569,7 +569,221 @@
 
 
 
-  
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const resultadoDiv = document.getElementById("resultado");
+      const btnCalcular = document.getElementById("btnCalcular");
+      const btnLimpar = document.getElementById("btnLimpar");
+      const btnGerarPDF = document.getElementById("btnGerarPDF");
+      const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
+      const conteudoDiv = document.getElementById("conteudo");
+
+      // Dados da escala NIPS
+      const nipsData = [
+        {
+          category: "Вираз обличчя",
+          nameAttr: "expressao_facial",
+          options: [
+            { description: "Розслаблений", score: 0 },
+            { description: "Гримаса", score: 1 }],
+
+          explain:
+            "Спостерігайте за мімікою обличчя, наприклад, скорочення або розслаблення. Гримаса вказує на напругу."
+        },
+        {
+          category: "Візерунок плачу",
+          nameAttr: "плакати",
+          options: [
+            { description: "Відсутній", score: 0 },
+            { description: "Бурчання/стогін", score: 1 },
+            { description: "Енергійний крик", score: 2 }],
+
+          explain:
+            "Оцініть наявність та інтенсивність плачу. Гучний, пронизливий плач є ознакою дискомфорту."
+        },
+        {
+          category: "Характер дихання",
+          nameAttr: "дихання",
+          options: [
+            { description: "Розслаблений", score: 0 },
+            { description: "Змінений / Нерегулярний", score: 1 }],
+
+          explain:
+            "Переконайтеся, що ваше дихання спокійне і регулярне. Різкі зміни в ньому можуть свідчити про біль."
+        },
+        {
+          category: "Шаблон двигуна руки",
+          nameAttr: "озброєння",
+          options: [
+            { description: "Розслаблений/Без рухів", score: 0 },
+            { description: "Жорстке згинання / розгинання", score: 1 }],
+
+          explain:
+            "Він оцінює тонус і рухи рук. Напружене згинання або розгинання може бути ознакою болю."
+        },
+        {
+          category: "Руховий патерн ніг",
+          nameAttr: "ноги",
+          options: [
+            { description: "Розслаблений/Без рухів", score: 0 },
+            { description: "Жорстке згинання / розгинання", score: 1 }],
+
+          explain:
+            "Він оцінює тонус і рух ніг. Напружене згинання або розгинання може бути ознакою болю."
+        },
+        {
+          category: "Стан свідомості",
+          nameAttr: "estado_consciencia",
+          options: [
+            { description: "Спокійний / Спить", score: 0 },
+            { description: "Неспокійно / Дискомфортно", score: 1 }],
+
+          explain:
+            "Спостерігайте за загальним станом новонародженого. Збудження та неспокій є загальними ознаками болю."
+        }];
+
+
+      // Preenche o formulário dinamicamente
+      nipsData.forEach((item) => {
+        const sectionDiv = document.createElement("div");
+        sectionDiv.className = "nips-criterion-section";
+        sectionDiv.id = `section-${item.nameAttr}`;
+
+        const titleH3 = document.createElement("h3");
+        titleH3.className = "nips-criterion-title";
+        titleH3.innerHTML =
+          item.category +
+          `
+              <div class="text-sm font-normal text-gray-500 mt-1">${item.explain}</div>`;
+        sectionDiv.appendChild(titleH3);
+
+        const selectElement = document.createElement("select");
+        selectElement.id = item.nameAttr;
+        selectElement.className = "nips-criterion-select";
+
+        const defaultOption = document.createElement("option");
+        defaultOption.value = "";
+        defaultOption.text = "Виберіть...";
+        selectElement.appendChild(defaultOption);
+
+        item.options.forEach((option) => {
+          const optionElement = document.createElement("option");
+          optionElement.value = option.score;
+          optionElement.text = `${option.description} (бали: ${option.score})`;
+          selectElement.appendChild(optionElement);
+        });
+
+        sectionDiv.appendChild(selectElement);
+        conteudoDiv.appendChild(sectionDiv);
+      });
+
+      function calcularNips() {
+        const selects = document.querySelectorAll("#conteudo select");
+        let allSelected = true;
+        let total = 0;
+
+        selects.forEach((select) => {
+          if (select.value === "") {
+            allSelected = false;
+            select.classList.add("неповний");
+          } else {
+            select.classList.remove("неповний");
+            total += Number(select.value);
+          }
+        });
+
+        resultadoDiv.style.display = "block";
+        if (!allSelected) {
+          resultadoDiv.innerHTML =
+            '⚠️ <strong class="font-bold">Por favor, selecione uma opção para todos os itens antes de calcular.</strong>';
+          resultadoDiv.classList.add("bg-red-100");
+          resultadoDiv.classList.remove("bg-blue-50");
+          delete resultadoDiv.dataset.score;
+          return;
+        }
+
+        let classificacao = "";
+        let recomendacao = "";
+        let resultadoClasse = "";
+
+        if (total < 4) {
+          classificacao = "Відсутність болю";
+          recomendacao =
+            "Оцінка свідчить про відсутність болю. Продовжуйте спостерігати за пацієнтом.";
+          resultadoClasse = "bg-blue-50";
+        } else {
+          // total >= 4
+          classificacao = "Наявність болю";
+          recomendacao =
+            "Оцінка вказує на наявність болю. Оцініть необхідність втручання та повідомте педіатра.";
+          resultadoClasse = "bg-red-100";
+        }
+
+        resultadoDiv.innerHTML = `
+                <p>Escore total: <strong class="font-bold">${total}</strong></p>
+                <p>Classificação: <strong class="font-bold">${classificacao}</strong></p>
+                <p class="mt-4"><strong>Recomendação:</strong> ${recomendacao}</p>
+            `;
+        resultadoDiv.className = `результат ${resultClass}`;
+        resultadoDiv.style.display = "block";
+
+        resultadoDiv.dataset.score = total;
+        resultadoDiv.dataset.scaleName = "Шкала NIPS";
+        resultadoDiv.dataset.classificacao = classificacao;
+      }
+
+      function limparCampos() {
+        const selects = document.querySelectorAll("#conteudo select");
+        selects.forEach((select) => {
+          select.selectedIndex = 0;
+          select.classList.remove("неповний");
+        });
+        resultadoDiv.innerHTML = "";
+        resultadoDiv.className = "прихований результат";
+        delete resultadoDiv.dataset.score;
+        delete resultadoDiv.dataset.scaleName;
+        delete resultadoDiv.dataset.classificacao;
+      }
+
+      btnCalcular?.addEventListener("click", calcularNips);
+      btnLimpar?.addEventListener("click", limparCampos);
+
+      btnGerarPDF?.addEventListener("click", () => {
+        if (!resultadoDiv.dataset.score) {
+          alert(
+            "Будь ласка, спочатку натисніть \"Розрахувати бал\", щоб згенерувати PDF-файл."
+          );
+          return;
+        }
+        if (typeof gerarPDFGlobal === "функція") {
+          gerarPDFGlobal({
+            titulo: "Шкала NIPS",
+            subtitulo: "Звіт про оцінку болю у новонароджених",
+            nomeArquivo: "relatorio_escala_nips.pdf",
+            seletorConteudo: ".main-content-wrapper"
+          });
+        } else {
+          console.error("Функція GeneratePDFGlobal не визначена.");
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener("click", () => {
+        const score = resultadoDiv.dataset.score;
+        const scaleName = resultadoDiv.dataset.scaleName;
+        const classificacao = resultadoDiv.dataset.classificacao;
+        if (!score || !classificacao) {
+          alert("Обчисліть результат для пошуку поведінки.");
+          return;
+        }
+        const searchQuery = encodeURIComponent(
+          `сестринський догляд неонатальний біль ${classification} NIPS NANDA NIC NOC`
+        );
+        window.open(
+          `https://www.google.com/search?q=${searchQuery}`,
+          "_blank"
+        );
+      });
+    });</script>
 
   <script src="/lang-selector.js" defer=""></script>
 

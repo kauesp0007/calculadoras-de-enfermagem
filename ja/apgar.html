@@ -590,7 +590,117 @@
 
 
 
-    
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const resultadoDiv = document.getElementById('resultado');
+            const conteudoDiv = document.getElementById('conteudo');
+            const btnCalcular = document.getElementById('btnCalcular');
+            const btnLimpar = document.getElementById('btnLimpar');
+            const btnGerarPDF = document.getElementById('btnGerarPDF');
+            const btnNandaNicNoc = document.getElementById('btnNandaNicNoc');
+
+            const apgarData = [
+                { id: "fc", title: "心拍数", options: [{ score: 0, text: "なし" }, { score: 1, text: "< 100 bpm" }, { score: 2, text: "≥ 100 bpm" }] },
+                { id: "resp", title: "呼吸努力", options: [{ score: 0, text: "なし" }, { score: 1, text: "遅い/不規則" }, { score: 2, text: "元気な泣き声" }] },
+                { id: "tonus", title: "筋緊張", options: [{ score: 0, text: "ぐったりしている" }, { score: 1, text: "四肢の屈曲" }, { score: 2, text: "活発な動き" }] },
+                { id: "reflexo", title: "反射（刺激への反応）", options: [{ score: 0, text: "なし" }, { score: 1, text: "顔をしかめる" }, { score: 2, text: "泣く、くしゃみ、咳" }] },
+                { id: "cor", title: "皮膚の色", options: [{ score: 0, text: "蒼白またはチアノーゼ" }, { score: 1, text: "体幹はピンク、四肢は青い" }, { score: 2, text: "全身ピンク色" }] }
+            ];
+
+            function createForm() {
+                conteudoDiv.innerHTML = '';
+                apgarData.forEach(criterion => {
+                    const card = document.createElement('div');
+                    card.className = 'criterion-card';
+                    card.innerHTML = `
+                    <h3 class="criterion-title">${criterion.title}</h3>
+                    <div class="options-container">
+                        <select id="${criterion.id}-select" class="custom-select" aria-label="${criterion.title} のスコアを選択">
+                            <option value="" disabled selected>選択してください...</option>
+                            ${criterion.options.map(opt => `<option value="${opt.score}">${opt.text} (${opt.score})</option>`).join('')}
+                        </select>
+                    </div>
+                `;
+                    conteudoDiv.appendChild(card);
+                });
+            }
+
+            function calcular() {
+                let total = 0;
+                let allSelected = true;
+
+                apgarData.forEach(criterion => {
+                    const select = document.getElementById(`${criterion.id}-select`);
+                    if (select && select.value) {
+                        total += parseInt(select.value, 10);
+                    } else {
+                        allSelected = false;
+                    }
+                });
+
+                if (!allSelected) {
+                    resultadoDiv.innerHTML = '⚠️ <strong class="font-bold">各基準のオプションを選択してください。</strong>';
+                    resultadoDiv.className = 'standard-result-box bg-info-orange-light';
+                    resultadoDiv.style.display = 'block';
+                    delete resultadoDiv.dataset.score;
+                    return;
+                }
+
+                let conduta = "";
+                if (total >= 8) { conduta = "新生児のバイタリティ良好。ルーチンケア。"; }
+                else if (total >= 4) { conduta = "中等度の抑制。サポートと再評価が必要。"; }
+                else { conduta = "重度の抑制。即時の新生児蘇生が必要。"; }
+
+                resultadoDiv.innerHTML = `<p class="font-bold text-lg">合計スコア: <span class="font-black">${total}/10</span></p><p class="font-bold text-lg">対応: <span class="font-black">${conduta}</span></p>`;
+                resultadoDiv.className = 'standard-result-box';
+                resultadoDiv.style.display = 'block';
+                resultadoDiv.dataset.score = total;
+                resultadoDiv.dataset.conduta = conduta;
+                resultadoDiv.dataset.scaleName = "アプガースコア";
+            }
+
+            function limpar() {
+                createForm();
+                resultadoDiv.innerHTML = '';
+                resultadoDiv.className = 'hidden';
+                delete resultadoDiv.dataset.score;
+                delete resultadoDiv.dataset.conduta;
+            }
+
+            createForm();
+            btnCalcular?.addEventListener('click', calcular);
+            btnLimpar?.addEventListener('click', limpar);
+
+            btnGerarPDF?.addEventListener('click', () => {
+                if (!resultadoDiv.dataset.score) {
+                    alert('PDFを生成する前に、まず「計算」をクリックしてください。');
+                    return;
+                }
+                if (typeof gerarPDFGlobal === 'function') {
+                    gerarPDFGlobal({
+                        titulo: 'アプガースコア',
+                        subtitulo: '新生児評価レポート',
+                        nomeArquivo: 'reporte_apgar.pdf',
+                        seletorConteudo: '.main-content-wrapper'
+                    });
+                } else {
+                    console.error('gerarPDFGlobal 関数が定義されていません。');
+                }
+            });
+
+            btnNandaNicNoc?.addEventListener('click', () => {
+                const score = resultadoDiv.dataset.score;
+                const conduta = resultadoDiv.dataset.conduta;
+                const scaleName = resultadoDiv.dataset.scaleName;
+                if (!score || !conduta) {
+                    alert('行動を検索するために結果を計算してください。');
+                    return;
+                }
+                const searchQuery = encodeURIComponent(`${scaleName} スコア ${score}, 対応: ${conduta} - NANDA看護診断を生成, NIC看護介入を生成, NOC看護成果の測定例を生成`);
+                window.open(`https://www.google.com/search?q=${searchQuery}`, '_blank');
+            });
+        });
+    </script>
 
 
 

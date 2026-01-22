@@ -561,7 +561,259 @@
 
 
 
-  
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const resultadoDiv = document.getElementById("resultado");
+      const btnCalcular = document.getElementById("btnCalcular");
+      const btnLimpar = document.getElementById("btnLimpar");
+      const btnGerarPDF = document.getElementById("btnGerarPDF");
+      const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
+      const conteudoDiv = document.getElementById("conteudo");
+
+      const meowsData = [
+        {
+          variable: "체온 (°C)",
+          nameAttr: "temperatura",
+          options: [
+            { text: "≤ 35", score: 2 },
+            { text: "35.1 - 36", score: 1 },
+            { text: "36.1 - 37.9", score: 0 },
+            { text: "≥ 38", score: 2 },
+          ],
+        },
+        {
+          variable: "수축기 혈압 (mmHg)",
+          nameAttr: "pas",
+          options: [
+            { text: "≤ 90", score: 2 },
+            { text: "91 - 100", score: 1 },
+            { text: "101 - 149", score: 0 },
+            { text: "150 - 159", score: 1 },
+            { text: "≥ 160", score: 2 },
+          ],
+        },
+        {
+          variable: "확장기 혈압 (mmHg)",
+          nameAttr: "pad",
+          options: [
+            { text: "≤ 89", score: 0 },
+            { text: "90 - 99", score: 1 },
+            { text: "≥ 100", score: 2 },
+          ],
+        },
+        {
+          variable: "심박수 (bpm)",
+          nameAttr: "fc",
+          options: [
+            { text: "≤ 40", score: 2 },
+            { text: "41 - 50", score: 1 },
+            { text: "51 - 99", score: 0 },
+            { text: "100 - 119", score: 1 },
+            { text: "≥ 120", score: 2 },
+          ],
+        },
+        {
+          variable: "호흡수 (ipm)",
+          nameAttr: "fr",
+          options: [
+            { text: "≤ 10", score: 2 },
+            { text: "11 - 20", score: 0 },
+            { text: "21 - 29", score: 1 },
+            { text: "≥ 30", score: 2 },
+          ],
+        },
+        {
+          variable: "산소 포화도 (%)",
+          nameAttr: "satO2",
+          options: [
+            { text: "≤ 95%", score: 2 },
+            { text: "96 - 100%", score: 0 },
+          ],
+        },
+        {
+          variable: "통증 (점수 0-10)",
+          nameAttr: "dor",
+          options: [
+            { text: "0 - 1", score: 0 },
+            { text: "2 - 3", score: 1 },
+          ],
+        },
+        {
+          variable: "의식 수준",
+          nameAttr: "consciencia",
+          options: [
+            { text: "통증 유발이나 무의식", score: 2 },
+            { text: "언어 반응", score: 1 },
+            { text: "기민한 반응", score: 0 },
+          ],
+        },
+      ];
+
+      // --- MEOWS 계산기 기능 ---
+      function updateScoreDisplay(criterionId) {
+        const selectElement = document.getElementById(criterionId);
+        const scoreDisplayElement = document.getElementById(
+          `${criterionId}_score_display`,
+        );
+        if (selectElement && scoreDisplayElement) {
+          scoreDisplayElement.innerText =
+            selectElement.value === "" ? "0" : selectElement.value;
+        }
+      }
+
+      function calcularMeows() {
+        let totalScore = 0;
+        let allItemsSelected = true;
+
+        meowsData.forEach((item) => {
+          const selectElement = document.getElementById(item.nameAttr);
+          if (selectElement.value === "") {
+            allItemsSelected = false;
+          } else {
+            totalScore += parseInt(selectElement.value, 10);
+          }
+        });
+
+        resultadoDiv.style.display = "block";
+        if (!allItemsSelected) {
+          resultadoDiv.innerHTML =
+            '⚠️ <strong class="font-bold">계산하기 전에 각 항목에 대해 옵션을 선택해 주세요.</strong>';
+          resultadoDiv.className = "resultado bg-info-orange-light";
+          delete resultadoDiv.dataset.score;
+          return;
+        }
+
+        let classificacao = "";
+        let acaoRecomendada = "";
+        let resultadoClasse = "";
+
+        if (totalScore >= 5) {
+          classificacao = "높은 위험";
+          acaoRecomendada =
+            "의료팀에 즉시 연락하고 적절한 개입을 시작하세요. 지속적 모니터링 (예: 5-15분마다).";
+          resultadoClasse = "bg-red-custom";
+        } else if (totalScore >= 3) {
+          classificacao = "중간 위험";
+          acaoRecomendada =
+            "강화된 모니터링 (예: 30-60분마다) 및 자세한 임상 평가. 의료팀 연락을 고려하세요.";
+          resultadoClasse = "bg-yellow-custom";
+        } else {
+          classificacao = "낮은 위험";
+          acaoRecomendada =
+            "기관 프로토콜에 따라 일상적인 모니터링을 계속하세요.";
+          resultadoClasse = "bg-green-custom";
+        }
+
+        resultadoDiv.innerHTML = `<p>총 점수: <strong class="font-bold">${totalScore}</strong></p><p>분류: <strong class="font-bold">${classificacao}</strong></p><p>권장 조치: <strong class="font-bold">${acaoRecomendada}</strong></p>`;
+        resultadoDiv.className = `resultado ${resultadoClasse}`;
+
+        resultadoDiv.dataset.score = totalScore;
+        resultadoDiv.dataset.classificacao = classificacao;
+        resultadoDiv.dataset.scaleName = "MEOWS 프로토콜";
+      }
+
+      function limparCampos() {
+        meowsData.forEach((item) => {
+          const selectElement = document.getElementById(item.nameAttr);
+          selectElement.selectedIndex = 0;
+          document.getElementById(
+            `${item.nameAttr}_score_display`,
+          ).innerText = "0";
+        });
+        resultadoDiv.innerHTML = "";
+        resultadoDiv.className = "resultado hidden";
+        delete resultadoDiv.dataset.score;
+        delete resultadoDiv.dataset.classificacao;
+        delete resultadoDiv.dataset.scaleName;
+      }
+
+      // 폼을 동적으로 채우기
+      meowsData.forEach((item, index) => {
+        const sectionDiv = document.createElement("div");
+        sectionDiv.className = "meows-criterion-card";
+
+        const headerDiv = document.createElement("div");
+        headerDiv.className = "meows-criterion-header";
+
+        const titleH3 = document.createElement("h3");
+        titleH3.className = "meows-criterion-title";
+        titleH3.innerText = item.variable;
+        headerDiv.appendChild(titleH3);
+
+        const scoreSpan = document.createElement("span");
+        scoreSpan.className = "meows-score-display";
+        scoreSpan.id = `${item.nameAttr}_score_display`;
+        scoreSpan.innerText = "0";
+        headerDiv.appendChild(scoreSpan);
+
+        sectionDiv.appendChild(headerDiv);
+
+        const optionsDiv = document.createElement("div");
+        optionsDiv.className = "meows-criterion-options";
+
+        const selectElement = document.createElement("select");
+        selectElement.id = item.nameAttr;
+        selectElement.className = "meows-select";
+        selectElement.onchange = () => updateScoreDisplay(item.nameAttr);
+
+        const defaultOption = document.createElement("option");
+        defaultOption.value = "";
+        defaultOption.text = "선택하세요...";
+        defaultOption.disabled = true;
+        defaultOption.selected = true;
+        selectElement.appendChild(defaultOption);
+
+        item.options.forEach((option) => {
+          const optionElement = document.createElement("option");
+          optionElement.value = option.score;
+          optionElement.text = `${option.text} (${option.score})`;
+          selectElement.appendChild(optionElement);
+        });
+
+        optionsDiv.appendChild(selectElement);
+        sectionDiv.appendChild(optionsDiv);
+        conteudoDiv.appendChild(sectionDiv);
+      });
+
+      // 버튼에 이벤트 리스너 추가
+      btnCalcular?.addEventListener("click", calcularMeows);
+      btnLimpar?.addEventListener("click", limparCampos);
+
+      btnGerarPDF?.addEventListener("click", () => {
+        if (!resultadoDiv.dataset.score) {
+          alert('PDF 생성을 위해 먼저 "계산하기"를 클릭해 주세요.');
+          return;
+        }
+        if (typeof gerarPDFGlobal === "function") {
+          gerarPDFGlobal({
+            titulo: "MEOWS 프로토콜",
+            subtitulo: "산부인과 임상 악화 보고서",
+            nomeArquivo: "protocolo_meows.pdf",
+            seletorConteudo: ".main-content-wrapper",
+          });
+        } else {
+          console.error("gerarPDFGlobal 함수가 정의되지 않았습니다.");
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener("click", () => {
+        const score = resultadoDiv.dataset.score;
+        const scaleName = resultadoDiv.dataset.scaleName;
+        const classificacao = resultadoDiv.dataset.classificacao;
+        if (!score || !classificacao) {
+          alert("조치를 검색하려면 결과를 계산해 주세요.");
+          return;
+        }
+        const searchQuery = encodeURIComponent(
+          `${scaleName} 점수 ${score} 분류 ${classificacao} NANDA 분류법 생성, NIC 분류법 생성, NOC 분류법 생성`,
+        );
+        window.open(
+          `https://www.google.com/search?q=${searchQuery}`,
+          "_blank",
+        );
+      });
+    });
+  </script>
 
   <script src="/lang-selector.js" defer=""></script>
 

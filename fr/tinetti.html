@@ -668,7 +668,512 @@
       });
   </script>
 
-  
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const resultadoDiv = document.getElementById("resultado");
+      const btnCalcular = document.getElementById("btnCalcular");
+      const btnLimpar = document.getElementById("btnLimpar");
+      const btnGerarPDF = document.getElementById("btnGerarPDF");
+      const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
+      const conteudoEquilibrioDiv = document.getElementById(
+        "conteudo-equilibrio",
+      );
+      const conteudoMarchaDiv = document.getElementById("conteudo-marcha");
+      const statusMessageDiv = document.getElementById("statusMessage"); // Pour lecteur d'écran
+
+      // Données TRADUITES de l'échelle de Tinetti (séparées en équilibre et marche)
+      const tinettiEquilibrioData = [
+        {
+          title: "1. Équilibre assis",
+          nameAttr: "assis",
+          explain:
+            "Capacité à maintenir la stabilité en position assise sur une chaise.",
+          options: [
+            { description: "Se penche, glisse sur la chaise", score: 0 },
+            { description: "Stable et sûr", score: 1 },
+          ],
+        },
+        {
+          title: "2. Se lever",
+          nameAttr: "lever",
+          explain: "Capacité à se lever de la chaise.",
+          options: [
+            { description: "Incapable sans aide", score: 0 },
+            { description: "Capable, mais utilise les bras", score: 1 },
+            { description: "Capable sans utiliser les bras", score: 2 },
+          ],
+        },
+        {
+          title: "3. Tentatives pour se lever",
+          nameAttr: "tentatives_lever",
+          explain: "Observer le nombre de tentatives pour se lever.",
+          options: [
+            { description: "Incapable ou plus d'une tentative", score: 0 },
+            { description: "Capable en une seule tentative", score: 1 },
+          ],
+        },
+        {
+          title:
+            "4. Équilibre immédiatement après s'être levé (5 premières secondes)",
+          nameAttr: "equilibre_immediat",
+          explain: "Stabilité dans les 5 secondes suivant le lever.",
+          options: [
+            {
+              description:
+                "Instable (titube, bouge les pieds, balance le tronc)",
+              score: 0,
+            },
+            {
+              description:
+                "Stable mais utilise une canne/autre support ou écarte les pieds",
+              score: 1,
+            },
+            {
+              description: "Stable sans support, pieds rapprochés",
+              score: 2,
+            },
+          ],
+        },
+        {
+          title: "5. Équilibre debout",
+          nameAttr: "equilibre_debout",
+          explain: "Stabilité en posture debout.",
+          options: [
+            { description: "Instable", score: 0 },
+            {
+              description:
+                "Stable avec support ou base d'appui élargie (>10 cm)",
+              score: 1,
+            },
+            {
+              description: "Stable sans support, base d'appui étroite",
+              score: 2,
+            },
+          ],
+        },
+        {
+          title:
+            "6. Test de poussée sternale (le patient debout, pieds joints, l'examinateur pousse légèrement le sternum 3 fois)",
+          nameAttr: "poussee_sternale",
+          explain:
+            "Réaction à une légère poussée sur le sternum. Patient debout, pieds joints.",
+          options: [
+            { description: "Commence à tomber", score: 0 },
+            { description: "Titube, s'agrippe, mais se rattrape", score: 1 },
+            { description: "Stable", score: 2 },
+          ],
+        },
+        {
+          title: "7. Équilibre debout yeux fermés",
+          nameAttr: "yeux_fermes",
+          explain: "Stabilité du patient les yeux fermés.",
+          options: [
+            { description: "Instable", score: 0 },
+            { description: "Stable", score: 1 },
+          ],
+        },
+        {
+          title: "8. Tourner sur 360 degrés",
+          nameAttr: "tourner",
+          explain:
+            "Observer la capacité à faire un tour complet et la stabilité.",
+          options: [
+            { description: "Pas discontinus / Instable", score: 0 },
+            { description: "Pas continus / Stable", score: 1 },
+          ],
+        },
+        {
+          title: "9. S'asseoir",
+          nameAttr: "asseoir",
+          explain: "Capacité à s'asseoir sur la chaise.",
+          options: [
+            { description: "Dangereux / rate la chaise", score: 0 },
+            {
+              description: "Utilise les bras ou mouvement non fluide",
+              score: 1,
+            },
+            { description: "Sûr, mouvement fluide", score: 2 },
+          ],
+        },
+      ]; // Total max équilibre = 16 points
+
+      const tinettiMarchaData = [
+        {
+          title:
+            "10. Initiation de la marche (immédiatement après avoir dit 'marchez')",
+          nameAttr: "initiation_marche",
+          explain: "Observer le démarrage de la marche.",
+          options: [
+            { description: "Hésitations ou plusieurs tentatives", score: 0 },
+            { description: "Sans hésitation", score: 1 },
+          ],
+        },
+        {
+          title: "11. Longueur et hauteur du pas (pied droit)",
+          nameAttr: "pas_droit",
+          explain: "Observer la longueur et la hauteur du pas droit.",
+          options: [
+            {
+              description:
+                "Le pied droit ne dépasse pas le pied gauche OU le pied droit ne se soulève pas complètement du sol",
+              score: 0,
+            },
+            {
+              description:
+                "Le pied droit dépasse le pied gauche ET se soulève complètement",
+              score: 1,
+            },
+          ],
+        },
+        {
+          title: "12. Longueur et hauteur du pas (pied gauche)",
+          nameAttr: "pas_gauche",
+          explain: "Observer la longueur et la hauteur du pas gauche.",
+          options: [
+            {
+              description:
+                "Le pied gauche ne dépasse pas le pied droit OU le pied gauche ne se soulève pas complètement du sol",
+              score: 0,
+            },
+            {
+              description:
+                "Le pied gauche dépasse le pied droit ET se soulève complètement",
+              score: 1,
+            },
+          ],
+        },
+        {
+          title: "13. Symétrie du pas",
+          nameAttr: "symetrie_pas",
+          explain: "Observer si les pas sont symétriques en longueur.",
+          options: [
+            { description: "Longueurs inégales", score: 0 },
+            { description: "Longueurs égales", score: 1 },
+          ],
+        },
+        {
+          title: "14. Continuité du pas",
+          nameAttr: "continuite_pas",
+          explain: "Observer si la marche est fluide ou s'il y a des arrêts.",
+          options: [
+            { description: "Arrêts ou discontinuités", score: 0 },
+            { description: "Pas continus", score: 1 },
+          ],
+        },
+        {
+          title: "15. Trajectoire (observée sur 3m environ)",
+          nameAttr: "trajectoire_marche",
+          explain: "Observer la déviation par rapport à une ligne droite.",
+          options: [
+            { description: "Déviation marquée", score: 0 },
+            {
+              description:
+                "Déviation légère ou modérée ou utilisation d'aide",
+              score: 1,
+            },
+            {
+              description: "Sans déviation, marche en ligne droite",
+              score: 2,
+            },
+          ],
+        },
+        {
+          title: "16. Tronc",
+          nameAttr: "tronc_marche",
+          explain:
+            "Observer l'oscillation du tronc et l'utilisation des bras pendant la marche.",
+          options: [
+            {
+              description: "Oscillation marquée ou utilisation des bras",
+              score: 0,
+            },
+            {
+              description:
+                "Pas d'oscillation mais flexion des genoux/dos ou écartement des bras",
+              score: 1,
+            },
+            {
+              description:
+                "Pas d'oscillation, ni flexion, ni utilisation des bras, ni aide",
+              score: 2,
+            },
+          ],
+        },
+        {
+          title: "17. Base de sustentation pendant la marche", // Renuméroté mais correspond à l'item 16 original
+          nameAttr: "base_marche",
+          explain: "Distance entre les talons pendant la marche.",
+          options: [
+            { description: "Talons écartés", score: 0 },
+            {
+              description: "Talons se touchent presque pendant la marche",
+              score: 1,
+            },
+          ],
+        },
+      ]; // Total max marche = 12 points (corrigé)
+
+      // Fonction pour créer les sections et selects
+      function créerSectionTinetti(itemData, containerDiv) {
+        itemData.forEach((item) => {
+          const sectionDiv = document.createElement("div");
+          sectionDiv.className = "tinetti-criterion-section";
+          sectionDiv.id = `section-${item.nameAttr}`;
+
+          // Conteneur pour titre et explication
+          const titleExplainDiv = document.createElement("div");
+          titleExplainDiv.className = "tinetti-criterion-title-explain";
+
+          const titleH3 = document.createElement("h3");
+          titleH3.className = "tinetti-criterion-title";
+          titleH3.textContent = item.title; // Utilise textContent
+          titleExplainDiv.appendChild(titleH3);
+
+          if (item.explain) {
+            const explainP = document.createElement("p");
+            explainP.className = "tinetti-criterion-explain";
+            explainP.textContent = item.explain; // Utilise textContent
+            titleExplainDiv.appendChild(explainP);
+          }
+          sectionDiv.appendChild(titleExplainDiv);
+
+          const selectElement = document.createElement("select");
+          selectElement.id = item.nameAttr;
+          selectElement.className = "tinetti-criterion-select";
+          selectElement.setAttribute("aria-label", item.title); // Label pour accessibilité
+
+          const defaultOption = document.createElement("option");
+          defaultOption.value = "";
+          defaultOption.text = "Sélectionnez..."; // TRADUIT
+          defaultOption.disabled = true;
+          defaultOption.selected = true;
+          selectElement.appendChild(defaultOption);
+
+          item.options.forEach((option) => {
+            const optionElement = document.createElement("option");
+            optionElement.value = option.score;
+            // Affichage : Description (Score: X)
+            optionElement.text = `${option.description} (${option.score})`; // TRADUIT
+            selectElement.appendChild(optionElement);
+          });
+
+          sectionDiv.appendChild(selectElement);
+          containerDiv.appendChild(sectionDiv);
+        });
+      }
+
+      // Remplit les sections d'équilibre et de marche
+      créerSectionTinetti(tinettiEquilibrioData, conteudoEquilibrioDiv);
+      créerSectionTinetti(tinettiMarchaData, conteudoMarchaDiv);
+
+      function calculerTinetti() {
+        const selectsEquilibrio =
+          conteudoEquilibrioDiv.querySelectorAll("select");
+        const selectsMarcha = conteudoMarchaDiv.querySelectorAll("select");
+        let allSelected = true;
+        let scoreEquilibre = 0;
+        let scoreMarcha = 0;
+
+        // Vérification et calcul pour l'équilibre
+        selectsEquilibrio.forEach((select) => {
+          select.classList.remove("incomplete"); // Réinitialise
+          if (select.value === "") {
+            allSelected = false;
+            select.classList.add("incomplete"); // Met en évidence
+          } else {
+            scoreEquilibre += Number(select.value);
+          }
+        });
+
+        // Vérification et calcul pour la marche
+        selectsMarcha.forEach((select) => {
+          select.classList.remove("incomplete"); // Réinitialise
+          if (select.value === "") {
+            allSelected = false;
+            select.classList.add("incomplete"); // Met en évidence
+          } else {
+            scoreMarcha += Number(select.value);
+          }
+        });
+
+        resultadoDiv.style.display = "block"; // Assure la visibilité
+        resultadoDiv.classList.remove("hidden");
+
+        if (!allSelected) {
+          resultadoDiv.innerHTML =
+            '⚠️ <strong class="font-bold">Veuillez sélectionner une option pour tous les items</strong> avant de calculer. Les champs manquants sont surlignés.'; // TRADUIT
+          resultadoDiv.className = `resultado bg-red-100`; // Style d'erreur
+          resultadoDiv.setAttribute("tabindex", "-1");
+          resultadoDiv.focus();
+          // Nettoie le dataset
+          delete resultadoDiv.dataset.scoreTotal;
+          delete resultadoDiv.dataset.scoreEquilibre;
+          delete resultadoDiv.dataset.scoreMarcha;
+          delete resultadoDiv.dataset.risque;
+          return;
+        }
+
+        const total = scoreEquilibre + scoreMarcha;
+        let risque = ""; // Renommé de 'recomendacao'
+        let resultadoClasse = "";
+
+        // Interprétation TRADUITE basée sur le score total
+        if (total < 19) {
+          risque = `Le score de ${total} indique un risque élevé de chutes.`;
+          resultadoClasse = "bg-red-100"; // Rouge clair
+        } else if (total >= 19 && total <= 24) {
+          risque = `Le score de ${total} indique un risque modéré de chutes.`;
+          resultadoClasse = "bg-yellow-100"; // Couleur jaune indicative (à définir si besoin)
+          // Si pas de classe jaune définie, utiliser la bleue par défaut :
+          if (!resultadoClasse) resultadoClasse = "bg-blue-50";
+        } else {
+          // total > 24
+          risque = `Le score de ${total} indique un risque faible de chutes.`;
+          resultadoClasse = "bg-blue-50"; // Bleu clair (style par défaut)
+        }
+
+        // Affichage TRADUIT
+        resultadoDiv.innerHTML = `
+                    <p>Score Équilibre : <strong class="font-bold">${scoreEquilibre} / 16</strong></p>
+                    <p>Score Marche : <strong class="font-bold">${scoreMarcha} / 12</strong></p>
+                    <p>Score Total : <strong class="font-bold">${total} / 28</strong></p>
+                    <p class="mt-4"><strong>Interprétation du Risque :</strong> ${risque}</p>
+                `;
+        resultadoDiv.className = `resultado ${resultadoClasse}`;
+        resultadoDiv.setAttribute("tabindex", "-1");
+        resultadoDiv.focus();
+
+        // Stocke les données TRADUITES
+        resultadoDiv.dataset.scoreTotal = total;
+        resultadoDiv.dataset.scoreEquilibre = scoreEquilibre;
+        resultadoDiv.dataset.scoreMarcha = scoreMarcha;
+        resultadoDiv.dataset.risque = risque; // Stocke l'interprétation du risque
+        resultadoDiv.dataset.scaleName = "Échelle de Tinetti"; // TRADUIT
+      }
+
+      function limparCampos() {
+        const selects = document.querySelectorAll("#tinetti-form select"); // Cible tous les selects dans le formulaire
+        selects.forEach((select) => {
+          select.selectedIndex = 0; // Remet à "Sélectionnez..."
+          select.classList.remove("incomplete"); // Enlève le style d'erreur
+        });
+        resultadoDiv.innerHTML = "";
+        resultadoDiv.className = "resultado hidden"; // Cache la div
+        // Nettoie tout le dataset
+        delete resultadoDiv.dataset.scoreTotal;
+        delete resultadoDiv.dataset.scoreEquilibre;
+        delete resultadoDiv.dataset.scoreMarcha;
+        delete resultadoDiv.dataset.risque;
+        delete resultadoDiv.dataset.scaleName;
+        // Annonce pour lecteur d'écran
+        statusMessageDiv.textContent = "Champs effacés.";
+      }
+
+      // Ajoute les écouteurs aux boutons (labels TRADUITS)
+      btnCalcular?.addEventListener("click", calculerTinetti);
+      btnLimpar?.addEventListener("click", limparCampos);
+
+      btnGerarPDF?.addEventListener("click", () => {
+        // Vérifie si un score total a été calculé et stocké
+        if (!resultadoDiv.dataset.scoreTotal) {
+          alert(
+            'Veuillez cliquer sur "Calculer Score" d\'abord pour générer le PDF.',
+          ); // TRADUIT
+          return;
+        }
+        if (typeof gerarPDFGlobal === "function") {
+          // Récupère les scores et l'interprétation
+          const scoreEq = resultadoDiv.dataset.scoreEquilibre;
+          const scoreMar = resultadoDiv.dataset.scoreMarcha;
+          const scoreTotal = resultadoDiv.dataset.scoreTotal;
+          const risque = resultadoDiv.dataset.risque;
+          const selectedOptions = {}; // Pour stocker les sélections
+
+          // Récupère les sélections de l'utilisateur pour le détail
+          document
+            .querySelectorAll("#tinetti-form select")
+            .forEach((select) => {
+              const selected = select.options[select.selectedIndex];
+              if (selected.value !== "") {
+                // Trouve le titre associé à l'ID du select
+                const itemData = [
+                  ...tinettiEquilibrioData,
+                  ...tinettiMarchaData,
+                ].find((item) => item.nameAttr === select.id);
+                const title = itemData ? itemData.title : select.id;
+                selectedOptions[title] = selected.text.replace(/ \(.*\)/, ""); // Enlève le score entre parenthèses
+              }
+            });
+
+          // Construit la section des détails pour le PDF
+          let detailsHtml =
+            '<h3 style="color: #1A3E74; margin-top: 15px; margin-bottom: 10px;">Détails de l\'évaluation :</h3>';
+          for (const [title, description] of Object.entries(
+            selectedOptions,
+          )) {
+            detailsHtml += `<p style="margin-bottom: 5px;"><strong>${title}:</strong> ${description}</p>`;
+          }
+
+          // Crée un contenu HTML simple pour le PDF
+          const pdfContentHtml = `
+                        <div style="font-family: Inter, sans-serif; padding: 20px;">
+                            <h1 style="color: #1A3E74; border-bottom: 2px solid #1A3E74; padding-bottom: 5px;">Échelle de Tinetti (POMA)</h1>
+                            <h2 style="color: #1FA4E5; margin-top: 15px;">Rapport d'Évaluation de la Marche et de l'Équilibre</h2>
+
+                            ${detailsHtml}
+
+                            <div style="margin-top: 20px; background-color: #f3f4f6; border-radius: 8px; padding: 15px; border: 1px solid #e5e7eb;">
+                                <p style="font-size: 1.1em; margin-bottom: 8px;">Score Équilibre : <strong>${scoreEq} / 16</strong></p>
+                                <p style="font-size: 1.1em; margin-bottom: 8px;">Score Marche : <strong>${scoreMar} / 12</strong></p>
+                                <p style="font-size: 1.2em; color: #1A3E74; margin-bottom: 10px;"><strong>Score Total : ${scoreTotal} / 28</strong></p>
+                                <p><strong>Interprétation du Risque :</strong> ${risque}</p>
+                            </div>
+                            <p style="margin-top: 20px; font-size: 0.9em; color: #6b7280;">Généré par Calculatrices de Soins Infirmiers</p>
+                        </div>
+                    `;
+
+          gerarPDFGlobal({
+            // Titres et nom de fichier TRADUITS
+            titulo: "Échelle de Tinetti",
+            subtitulo: "Rapport d'Évaluation de la Marche et de l'Équilibre",
+            nomeArquivo: "rapport_echelle_tinetti.pdf",
+            htmlConteudo: pdfContentHtml, // Utilise le HTML généré
+          });
+        } else {
+          alert(
+            "Erreur : La fonction pour générer le PDF n'a pas été trouvée.",
+          ); // TRADUIT
+          console.error("Fonction gerarPDFGlobal non définie."); // TRADUIT
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener("click", () => {
+        // Vérifie si un score a été calculé
+        if (!resultadoDiv.dataset.scoreTotal) {
+          alert("Calculez le résultat pour rechercher la conduite à tenir."); // TRADUIT
+          return;
+        }
+        const score = resultadoDiv.dataset.scoreTotal;
+        // Détermine le niveau de risque basé sur le score
+        const risqueChute =
+          score < 19
+            ? "risque élevé de chute"
+            : score <= 24
+              ? "risque modéré de chute"
+              : "risque faible de chute";
+        const scaleName = "Échelle de Tinetti"; // TRADUIT
+
+        // TRADUIT la query de recherche
+        const searchQuery = encodeURIComponent(
+          `soins infirmiers pour personne âgée avec ${risqueChute} selon ${scaleName} NANDA NIC NOC`,
+        );
+        window.open(
+          `https://www.google.com/search?q=${searchQuery}`,
+          "_blank",
+        );
+      });
+    });
+  </script>
 
 
 

@@ -684,7 +684,183 @@
 
 
 
-  
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const resultadoDiv = document.getElementById("resultado");
+      const btnCalcular = document.getElementById("btnCalcular");
+      const btnLimpar = document.getElementById("btnLimpar");
+      const btnGerarPDF = document.getElementById("btnGerarPDF");
+      const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
+      const tabelaRASS = document.getElementById("tabelaRASS");
+      let scoreSelecionado = null;
+      let interpretacaoSelecionada = null;
+
+      // Data skala Richmond
+      const rassData = [
+        {
+          score: "+4",
+          description:
+            "Sangat agitatif: Agresif, berbahaya bagi diri sendiri dan orang lain.",
+        },
+        {
+          score: "+3",
+          description:
+            "Agitatif: Menarik atau melepas selang/kateter, perilaku kombatif.",
+        },
+        {
+          score: "+2",
+          description:
+            "Sangat gelisah: Gerakan sering dan tidak terkoordinasi, non-agresif.",
+        },
+        {
+          score: "+1",
+          description: "Gelisah: Cemas, dengan gerakan non-agresif.",
+        },
+        { score: "0", description: "Waspada dan tenang: Kondisi ideal." },
+        {
+          score: "-1",
+          description:
+            "Mengantuk: Bangun >10 detik, kontak mata berkelanjutan.",
+        },
+        { score: "-2", description: "Sedasi ringan: Kontak mata singkat." },
+        {
+          score: "-3",
+          description: "Sedasi sedang: Bergerak tanpa kontak mata.",
+        },
+        {
+          score: "-4",
+          description: "Sedasi dalam: Bereaksi terhadap rangsangan nyeri.",
+        },
+        {
+          score: "-5",
+          description:
+            "Tidak ada respon: Tidak ada respon terhadap rangsangan.",
+        },
+      ];
+
+      // Mengisi tabel secara dinamis dengan data yang diterjemahkan
+      const tbody = tabelaRASS.querySelector("tbody");
+      tbody.innerHTML = ""; // Membersihkan konten statis
+      rassData.forEach((item) => {
+        const tr = document.createElement("tr");
+        tr.setAttribute("data-score", item.score);
+
+        const tdScore = document.createElement("td");
+        tdScore.setAttribute("data-label", "Skor");
+        tdScore.textContent = item.score;
+
+        const tdDesc = document.createElement("td");
+        tdDesc.setAttribute("data-label", "Deskripsi");
+        tdDesc.textContent = item.description;
+
+        tr.appendChild(tdScore);
+        tr.appendChild(tdDesc);
+        tbody.appendChild(tr);
+      });
+
+      // Menambahkan event listener untuk pemilihan baris tabel
+      tabelaRASS?.addEventListener("click", function (e) {
+        const targetRow = e.target.closest("tr");
+        if (targetRow && targetRow.parentElement.tagName === "TBODY") {
+          // Memastikan klik ada di dalam tbody
+          tabelaRASS
+            .querySelectorAll("tbody tr")
+            .forEach((row) => row.classList.remove("selected"));
+          targetRow.classList.add("selected");
+          scoreSelecionado = targetRow.getAttribute("data-score");
+          // Mengambil deskripsi dari data array berdasarkan skor untuk memastikan akurasi
+          const selectedData = rassData.find(
+            (item) => item.score === scoreSelecionado,
+          );
+          interpretacaoSelecionada = selectedData
+            ? selectedData.description
+            : targetRow.cells[1].textContent.trim();
+        }
+      });
+
+      function calcularRASS() {
+        if (scoreSelecionado === null) {
+          resultadoDiv.innerHTML =
+            '⚠️ <strong class="font-bold">Silakan pilih satu tingkat dari skala</strong> sebelum melanjutkan.';
+          resultadoDiv.className = "resultado bg-info-orange-light";
+          resultadoDiv.style.display = "block";
+          delete resultadoDiv.dataset.score;
+          return;
+        }
+
+        let resultadoClasses = "";
+        const scoreNum = parseInt(scoreSelecionado); // Mengkonversi skor menjadi angka
+
+        if (scoreNum >= 2) {
+          resultadoClasses = "bg-danger-red-light"; // Agitasi
+        } else if (scoreNum >= -3 && scoreNum <= 1) {
+          resultadoClasses = "bg-warning-yellow-light"; // Gelisah hingga Sedasi Sedang
+        } else {
+          // Skor -4 atau -5
+          resultadoClasses = "bg-danger-red-light"; // Sedasi Dalam / Tidak Responsif
+        }
+
+        // Menampilkan skor dan interpretasi yang benar
+        resultadoDiv.innerHTML = `<p>Skor RASS: <strong class="font-bold">${scoreSelecionado}</strong></p><p>Interpretasi: <strong class="font-bold">${interpretacaoSelecionada}</strong></p>`;
+        resultadoDiv.className = `resultado ${resultadoClasses}`;
+        resultadoDiv.style.display = "block";
+
+        resultadoDiv.dataset.score = scoreSelecionado;
+        resultadoDiv.dataset.classificacao = interpretacaoSelecionada;
+        resultadoDiv.dataset.scaleName = "Skala Richmond (RASS)";
+      }
+
+      function limparCampos() {
+        tabelaRASS
+          .querySelectorAll("tbody tr")
+          .forEach((row) => row.classList.remove("selected"));
+        scoreSelecionado = null;
+        interpretacaoSelecionada = null;
+        resultadoDiv.innerHTML = "";
+        resultadoDiv.className = "resultado hidden";
+        delete resultadoDiv.dataset.score;
+        delete resultadoDiv.dataset.classificacao;
+        delete resultadoDiv.dataset.scaleName;
+      }
+
+      btnCalcular?.addEventListener("click", calcularRASS);
+      btnLimpar?.addEventListener("click", limparCampos);
+
+      btnGerarPDF?.addEventListener("click", () => {
+        if (!resultadoDiv.dataset.score) {
+          alert('Silakan klik "Hitung" terlebih dahulu untuk membuat PDF.');
+          return;
+        }
+        if (typeof gerarPDFGlobal === "function") {
+          gerarPDFGlobal({
+            titulo: "Skala Richmond (RASS)",
+            subtitulo: "Laporan Penilaian Agitasi dan Sedasi",
+            namaFile: "laporan_skala_richmond.pdf",
+            seletorKonten: ".main-content-wrapper",
+          });
+        } else {
+          console.error("Fungsi gerarPDFGlobal tidak terdefinisi.");
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener("click", () => {
+        const score = resultadoDiv.dataset.score;
+        const scaleName = resultadoDiv.dataset.scaleName;
+        const classificacao = resultadoDiv.dataset.classificacao;
+        if (!score || !classificacao) {
+          alert("Hitung hasilnya untuk mencari tindakan.");
+          return;
+        }
+        const searchQuery = encodeURIComponent(
+          `${scaleName} skor ${score} klasifikasi ${classificacao} buat taksonomi NANDA, buat taksonomi NIC dan buat taksonomi NOC`,
+        );
+        window.open(
+          `https://www.google.com/search?q=${searchQuery}`,
+          "_blank",
+        );
+      });
+    });
+  </script>
 
   <script src="/lang-selector.js" defer=""></script>
 

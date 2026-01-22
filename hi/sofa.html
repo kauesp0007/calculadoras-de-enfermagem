@@ -624,7 +624,222 @@
 
 
 
-    
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const resultadoDiv = document.getElementById('resultado');
+            const btnCalcular = document.getElementById('btnCalcular');
+            const btnLimpar = document.getElementById('btnLimpar');
+            const btnGerarPDF = document.getElementById('btnGerarPDF');
+            const btnNandaNicNoc = document.getElementById('btnNandaNicNoc');
+            const conteudoDiv = document.getElementById('conteudo');
+
+            const sofaData = [
+                {
+                    category: "श्वसन (PaO₂/FiO₂)",
+                    nameAttr: "respiratorio",
+                    explanation: "रोगी के PaO₂/FiO₂ अनुपात का आकलन करें। PaO₂ mmHg में।",
+                    options: [
+                        { description: "> 400 mmHg", score: 0 },
+                        { description: "< 400 mmHg", score: 1 },
+                        { description: "< 300 mmHg", score: 2 },
+                        { description: "< 200 mmHg वेंटिलेटरी सहायता के साथ", score: 3 },
+                        { description: "< 100 mmHg वेंटिलेटरी सहायता के साथ", score: 4 }
+                    ]
+                },
+                {
+                    category: "कोगुलेशन (प्लेटलेट्स)",
+                    nameAttr: "coagulacao",
+                    explanation: "रोगी की प्लेटलेट गिनती का आकलन करें (x10³ /µL)।",
+                    options: [
+                        { description: "≥ 150 x 10³", score: 0 },
+                        { description: "< 150 x 10³", score: 1 },
+                        { description: "< 100 x 10³", score: 2 },
+                        { description: "< 50 x 10³", score: 3 },
+                        { description: "< 20 x 10³", score: 4 }
+                    ]
+                },
+                {
+                    category: "यकृत (बिलीरुबिन)",
+                    nameAttr: "hepatico",
+                    explanation: "रोगी के बिलीरुबिन स्तर का आकलन करें (mg/dL)।",
+                    options: [
+                        { description: "< 1.2 mg/dL", score: 0 },
+                        { description: "1.2-1.9 mg/dL", score: 1 },
+                        { description: "2-5.9 mg/dL", score: 2 },
+                        { description: "6-11.9 mg/dL", score: 3 },
+                        { description: "> 12 mg/dL", score: 4 }
+                    ]
+                },
+                {
+                    category: "हृदयवाहिका (MAP और वेसोएक्टिव ड्रग्स)",
+                    nameAttr: "cardiovascular",
+                    explanation: "माध्य धमनी दबाव (MAP) या वेसोएक्टिव दवाओं के उपयोग का आकलन करें।",
+                    options: [
+                        { description: "MAP ≥ 70 mmHg", score: 0 },
+                        { description: "MAP < 70 mmHg", score: 1 },
+                        { description: "डोपामाइन < 5 µg/kg/min या डोबुटामाइन की कोई भी खुराक", score: 2 },
+                        { description: "डोपामाइन 5.1-15 µg/kg/min या एपिनेफ्रिन ≤ 0.1 µg/kg/min या नोरेपिनेफ्रिन ≤ 0.1 µg/kg/min", score: 3 },
+                        { description: "डोपामाइन > 15 µg/kg/min या एपिनेफ्रिन > 0.1 µg/kg/min या नोरेपिनेफ्रिन > 0.1 µg/kg/min", score: 4 }
+                    ]
+                },
+                {
+                    category: "केंद्रीय तंत्रिका तंत्र (ग्लासगो)",
+                    nameAttr: "snc",
+                    explanation: "रोगी के ग्लासगो कोमा स्केल (GCS) का आकलन करें।",
+                    options: [
+                        { description: "GCS 15", score: 0 },
+                        { description: "GCS 13-14", score: 1 },
+                        { description: "GCS 10-12", score: 2 },
+                        { description: "GCS 6-9", score: 3 },
+                        { description: "GCS < 6", score: 4 }
+                    ]
+                },
+                {
+                    category: "गुर्दा (क्रिएटिनिन या मूत्र उत्पादन)",
+                    nameAttr: "renal",
+                    explanation: "रोगी के क्रिएटिनिन स्तर या मूत्र उत्पादन का आकलन करें।",
+                    options: [
+                        { description: "क्रिएटिनिन < 1.2 mg/dL", score: 0 },
+                        { description: "क्रिएटिनिन 1.2-1.9 mg/dL", score: 1 },
+                        { description: "क्रिएटिनिन 2-3.4 mg/dL", score: 2 },
+                        { description: "क्रिएटिनिन 3.5-4.9 mg/dL या मूत्र उत्पादन < 500 mL/दिन", score: 3 },
+                        { description: "क्रिएटिनिन > 5 mg/dL या मूत्र उत्पादन < 200 mL/दिन", score: 4 }
+                    ]
+                }
+            ];
+
+            sofaData.forEach((criterion, index) => {
+                const card = document.createElement('div');
+                card.className = 'sofa-criterion-card';
+                card.innerHTML = `
+                    <div class="sofa-criterion-header">
+                        <span class="sofa-criterion-title">${criterion.category}</span>
+                        <span class="sofa-score-display" id="score-${criterion.nameAttr}">0</span>
+                    </div>
+                    <p class="text-gray-600 mb-4 text-sm">${criterion.explanation}</p>
+                    <select class="sofa-select" name="${criterion.nameAttr}" id="${criterion.nameAttr}" aria-label="${criterion.category}">
+                        <option value="0" selected>स्कोर चुनें</option>
+                        ${criterion.options.map((option, i) =>
+                    `<option value="${option.score}">${option.description} (${option.score} अंक)</option>`
+                ).join('')}
+                    </select>
+                `;
+                conteudoDiv.appendChild(card);
+
+                const select = card.querySelector('select');
+                select.addEventListener('change', () => {
+                    const scoreDisplay = card.querySelector('.sofa-score-display');
+                    scoreDisplay.textContent = select.value;
+                });
+            });
+
+            btnCalcular.addEventListener('click', () => {
+                let totalScore = 0;
+                const scores = {};
+
+                sofaData.forEach(criterion => {
+                    const select = document.getElementById(criterion.nameAttr);
+                    const score = parseInt(select.value) || 0;
+                    scores[criterion.nameAttr] = score;
+                    totalScore += score;
+                });
+
+                let riskLevel = '';
+                let riskColor = '';
+                let interpretation = '';
+
+                if (totalScore <= 4) {
+                    riskLevel = 'कम जोखिम';
+                    riskColor = 'bg-sofa-low';
+                    interpretation = 'रोगी में अंग विफलता का कम जोखिम है।';
+                } else if (totalScore <= 8) {
+                    riskLevel = 'मध्यम जोखिम';
+                    riskColor = 'bg-sofa-medium';
+                    interpretation = 'रोगी में अंग विफलता का मध्यम जोखिम है।';
+                } else {
+                    riskLevel = 'उच्च जोखिम';
+                    riskColor = 'bg-sofa-high';
+                    interpretation = 'रोगी में अंग विफलता का उच्च जोखिम है।';
+                }
+
+                resultadoDiv.innerHTML = `
+                    <div class="resultado ${riskColor} p-4 rounded-lg shadow-md">
+                        <h3 class="text-xl font-bold mb-2">SOFA स्कोर परिणाम</h3>
+                        <p class="mb-2"><strong>कुल SOFA स्कोर:</strong> ${totalScore}</p>
+                        <p class="mb-2"><strong>जोखिम स्तर:</strong> ${riskLevel}</p>
+                        <p class="mb-2"><strong>व्याख्या:</strong> ${interpretation}</p>
+                        <p class="mb-2"><strong>विस्तृत स्कोर:</strong></p>
+                        <ul class="list-disc pl-5">
+                            ${sofaData.map(criterion =>
+                    `<li>${criterion.category}: ${scores[criterion.nameAttr]} अंक</li>`
+                ).join('')}
+                        </ul>
+                    </div>
+                `;
+                resultadoDiv.classList.remove('hidden');
+            });
+
+            btnLimpar.addEventListener('click', () => {
+                sofaData.forEach(criterion => {
+                    const select = document.getElementById(criterion.nameAttr);
+                    select.value = '0';
+                    const scoreDisplay = document.getElementById(`score-${criterion.nameAttr}`);
+                    scoreDisplay.textContent = '0';
+                });
+                resultadoDiv.classList.add('hidden');
+            });
+
+            btnGerarPDF.addEventListener('click', () => {
+                const element = document.getElementById('resultado');
+                if (element.classList.contains('hidden')) {
+                    alert('कृपया पहले स्कोर की गणना करें।');
+                    return;
+                }
+
+                const options = {
+                    margin: 1,
+                    filename: 'sofa-score-result.pdf',
+                    image: { type: 'jpeg', quality: 0.98 },
+                    html2canvas: { scale: 2 },
+                    jsPDF: { unit: 'cm', format: 'a4', orientation: 'portrait' }
+                };
+
+                html2pdf().set(options).from(element).save();
+            });
+
+            btnNandaNicNoc.addEventListener('click', () => {
+                const totalScore = Array.from(document.querySelectorAll('.sofa-select')).reduce((sum, select) => sum + (parseInt(select.value) || 0), 0);
+
+                let nandaDiagnoses = '';
+                let nicInterventions = '';
+                let nocOutcomes = '';
+
+                if (totalScore <= 4) {
+                    nandaDiagnoses = 'अंग dysfunction का जोखिम';
+                    nicInterventions = 'निगरानी, जोखिम कारकों का आकलन';
+                    nocOutcomes = 'अंग कार्य स्थिरता';
+                } else if (totalScore <= 8) {
+                    nandaDiagnoses = 'अंग dysfunction';
+                    nicInterventions = 'अंग समर्थन, दवा प्रबंधन';
+                    nocOutcomes = 'अंग कार्य में सुधार';
+                } else {
+                    nandaDiagnoses = 'बहु-अंग विफलता';
+                    nicInterventions = 'उन्नत जीवन समर्थन, निरंतर निगरानी';
+                    nocOutcomes = 'अंग कार्य स्थिरीकरण';
+                }
+
+                resultadoDiv.innerHTML = `
+                    <div class="resultado bg-info-orange-light p-4 rounded-lg shadow-md border border-orange-300">
+                        <h3 class="text-xl font-bold mb-2">NANDA, NIC, NOC SOFA स्कोर के लिए</h3>
+                        <p class="mb-2"><strong>NANDA निदान:</strong> ${nandaDiagnoses}</p>
+                        <p class="mb-2"><strong>NIC हस्तक्षेप:</strong> ${nicInterventions}</p>
+                        <p class="mb-2"><strong>NOC परिणाम:</strong> ${nocOutcomes}</p>
+                    </div>
+                `;
+                resultadoDiv.classList.remove('hidden');
+            });
+        });
+    </script>
 
 
 

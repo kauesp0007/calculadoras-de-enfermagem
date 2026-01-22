@@ -581,7 +581,87 @@
 
 
   <!-- ページ固有のスクリプト -->
-  
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const resultadoDiv = document.getElementById('resultado');
+      const btnCalcular = document.getElementById('btnCalcular');
+      const btnLimpar = document.getElementById('btnLimpar');
+      const btnGerarPDF = document.getElementById('btnGerarPDF');
+      const btnNandaNicNoc = document.getElementById('btnNandaNicNoc');
+      const nivelDorInput = document.getElementById('nivelDor');
+
+      function calcular() {
+        const nivelDor = parseInt(nivelDorInput.value, 10);
+        let interpretacao = '';
+        let grauDor = '';
+
+        if (isNaN(nivelDor) || nivelDor < 0 || nivelDor > 10) {
+          resultadoDiv.innerHTML = '⚠️ <strong class="font-bold">0から10までの有効な数値を入力してください。</strong>';
+          resultadoDiv.className = 'resultado bg-info-orange-light';
+          resultadoDiv.style.display = 'block';
+          delete resultadoDiv.dataset.score;
+          return;
+        }
+
+        // 日本語での解釈
+        if (nivelDor === 0) { grauDor = '痛みなし'; }
+        else if (nivelDor <= 3) { grauDor = '軽度の痛み'; }
+        else if (nivelDor <= 6) { grauDor = '中等度の痛み'; }
+        else if (nivelDor <= 9) { grauDor = '重度の痛み'; }
+        else { grauDor = '想像しうる最悪の痛み'; }
+
+        resultadoDiv.innerHTML = `<p>痛みのレベル: <strong class="font-bold">${nivelDor}/10 (${grauDor})</strong></p>`;
+        resultadoDiv.className = 'resultado';
+        resultadoDiv.style.display = 'block';
+
+        resultadoDiv.dataset.score = `${nivelDor} (${grauDor})`;
+        resultadoDiv.dataset.scaleName = "数値的疼痛スケール (NRS)"; // 日本語のスケール名
+      }
+
+      function limpar() {
+        nivelDorInput.value = '';
+        resultadoDiv.innerHTML = '';
+        resultadoDiv.className = 'resultado hidden';
+        delete resultadoDiv.dataset.score;
+        delete resultadoDiv.dataset.scaleName;
+      }
+
+      btnCalcular?.addEventListener('click', calcular);
+      btnLimpar?.addEventListener('click', limpar);
+
+      btnGerarPDF?.addEventListener('click', () => {
+        if (!resultadoDiv.dataset.score) {
+          // アラートテキストを翻訳
+          alert('PDFを生成するには、まず「計算する」をクリックしてください。');
+          return;
+        }
+        if (typeof gerarPDFGlobal === 'function') {
+          gerarPDFGlobal({
+            // PDFのタイトルとファイル名を翻訳
+            titulo: '数値的疼痛スケール (NRS)',
+            subtitulo: '疼痛強度評価レポート',
+            nomeArquivo: 'report_numerical_pain_scale_ja.pdf',
+            seletorConteudo: '.main-content-wrapper'
+          });
+        } else {
+          console.error('関数 gerarPDFGlobal が定義されていません。');
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener('click', () => {
+        const score = resultadoDiv.dataset.score;
+        const scaleName = resultadoDiv.dataset.scaleName;
+        if (!score) {
+          // アラートテキストを翻訳
+          alert('結果を計算して、看護計画を検索してください。');
+          return;
+        }
+        // 日本語での検索クエリに最適化
+        const searchQuery = encodeURIComponent(`${score} ${scaleName} NANDA 看護診断 NIC NOC`);
+        window.open(`https://www.google.com/search?q=${searchQuery}`, '_blank');
+      });
+    });
+  </script>
 
 
 

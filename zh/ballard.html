@@ -618,7 +618,339 @@
 
 
 
-  
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const resultadoDiv = document.getElementById('resultado');
+      const btnCalcular = document.getElementById('btnCalcular');
+      const btnLimpar = document.getElementById('btnLimpar');
+      const btnGerarPDF = document.getElementById('btnGerarPDF');
+      const btnNandaNicNoc = document.getElementById('btnNandaNicNoc');
+      const conteudoDiv = document.getElementById('conteudo');
+
+      const ballardData = [
+        {
+          category: "神经肌肉成熟度",
+          items: [
+            {
+              title: "姿势",
+              nameAttr: "postura",
+              explain: "评估婴儿在休息时肢体的弯曲程度。较成熟的婴儿呈现更弯曲的姿势（肢体屈曲）。",
+              options: [
+                { description: "完全伸展", score: -1 },
+                { description: "轻度/部分屈曲", score: 0 },
+                { description: "中度屈曲", score: 1 },
+                { description: "良好屈曲", score: 2 },
+                { description: "强屈曲", score: 3 },
+                { description: "完全屈曲（非常成熟）", score: 4 },
+              ]
+            },
+            {
+              title: "腕角（方窗）",
+              nameAttr: "square_window",
+              explain: "评估手弯曲时手腕的屈曲角度。较小的角度（手更靠近前臂）表示较高的成熟度。",
+              options: [
+                { description: "< 90°", score: -1 },
+                { description: "90°", score: 0 },
+                { description: "60°", score: 1 },
+                { description: "45°", score: 2 },
+                { description: "30°", score: 3 },
+                { description: "0°（非常接近）", score: 4 },
+              ]
+            },
+            {
+              title: "手臂回缩",
+              nameAttr: "arm_recoil",
+              explain: "评估手臂伸展和释放后回缩的速度和强度。回缩越快、越有力，神经肌肉成熟度越高。",
+              options: [
+                { description: "无回缩", score: 0 },
+                { description: "缓慢回缩", score: 1 },
+                { description: "部分回缩", score: 2 },
+                { description: "快速回缩", score: 3 },
+                { description: "完全和有力回缩", score: 4 },
+              ]
+            },
+            {
+              title: "腘窝角",
+              nameAttr: "popliteo",
+              explain: "评估下肢体伸展时的阻力。较小的角度（更大屈曲）表示更高的成熟度。",
+              options: [
+                { description: "180°", score: -1 },
+                { description: "160°", score: 0 },
+                { description: "140°", score: 1 },
+                { description: "120°", score: 2 },
+                { description: "100°", score: 3 },
+                { description: "90°", score: 4 },
+                { description: "< 90°", score: 5 },
+              ]
+            },
+            {
+              title: "围巾征",
+              nameAttr: "scarf",
+              explain: "当手臂横向拉过胸部时，观察肘部穿过身体中线的程度。交叉越少，成熟度越高。",
+              options: [
+                { description: "肘部穿过中线", score: -1 },
+                { description: "肘部在中线上", score: 0 },
+                { description: "肘部接近肩部", score: 1 },
+                { description: "肘部未触及肩部", score: 2 },
+                { description: "肘部离肩部很远", score: 3 },
+              ]
+            },
+            {
+              title: "脚跟 → 耳朵",
+              nameAttr: "heel_to_ear",
+              explain: "当脚跟接近耳朵时，观察阻力。阻力越大，成熟度越高。",
+              options: [
+                { description: "脚容易触及耳朵", score: -1 },
+                { description: "脚接近耳朵", score: 0 },
+                { description: "中度阻力", score: 1 },
+                { description: "良好阻力", score: 2 },
+                { description: "脚离耳朵远", score: 3 },
+                { description: "强阻力（非常成熟）", score: 4 },
+              ]
+            }
+          ]
+        },
+        {
+          category: "身体成熟度",
+          items: [
+            {
+              title: "皮肤",
+              nameAttr: "pele",
+              explain: "评估皮肤质地：早产儿皮肤薄而透明，过产儿皮肤厚、干燥、有裂纹。",
+              options: [
+                { description: "粘性、透明（非常不成熟）", score: -1 },
+                { description: "胶状/薄", score: 0 },
+                { description: "光滑、均匀、血管可见", score: 1 },
+                { description: "较厚、少量裂纹", score: 2 },
+                { description: "厚、破裂", score: 3 },
+                { description: "厚、干、深度裂纹（过产）", score: 4 },
+              ]
+            },
+            {
+              title: "胎毛",
+              nameAttr: "lanugo",
+              explain: "评估胎毛（细毛）的存在和分布。早产儿胎毛丰富，较成熟的婴儿胎毛减少并消失。",
+              options: [
+                { description: "缺失（过产）", score: -1 },
+                { description: "稀少", score: 0 },
+                { description: "丰富", score: 1 },
+                { description: "细（早产儿特征）", score: 2 },
+                { description: "无毛区域", score: 3 },
+                { description: "几乎缺失（非常不成熟）", score: 4 },
+              ]
+            },
+            {
+              title: "足底皱纹",
+              nameAttr: "plantares",
+              explain: "评估足底皱纹：早产儿皱纹少，成熟婴儿有深皱纹覆盖整个足底。",
+              options: [
+                { description: "缺失/很浅", score: -1 },
+                { description: "前部有标记", score: 0 },
+                { description: "到足底中部", score: 1 },
+                { description: "到2/3", score: 2 },
+                { description: "整个足底有皱纹", score: 3 },
+                { description: "深而明显的皱纹", score: 4 },
+              ]
+            },
+            {
+              title: "乳房",
+              nameAttr: "mamas",
+              explain: "观察乳房芽和乳晕的大小。在较成熟的婴儿中，腺体和乳晕更大、更突出。",
+              options: [
+                { description: "不可察觉", score: -1 },
+                { description: "略微可见", score: 0 },
+                { description: "平坦乳晕、小芽", score: 1 },
+                { description: "乳晕部分升高 1–2毫米腺体", score: 2 },
+                { description: "边缘升高乳晕 3–4毫米腺体", score: 3 },
+                { description: "边缘升高 5–10毫米腺体", score: 4 },
+              ]
+            },
+            {
+              title: "眼睛和耳朵",
+              nameAttr: "olhos_orelhas",
+              explain: "评估耳朵软骨的硬度和眼睑的形状。更硬的耳朵和良好形成的耳廓表示更高的成熟度。",
+              options: [
+                { description: "软骨软/眼睑融合", score: -1 },
+                { description: "一些硬度", score: 0 },
+                { description: "中度硬度", score: 1 },
+                { description: "良好硬度", score: 2 },
+                { description: "完全硬度", score: 3 },
+              ]
+            },
+            {
+              title: "生殖器",
+              nameAttr: "genitalia",
+              explain: "评估生殖器发育：男性观察阴囊的位置和皱褶/女性观察阴蒂的突出和小阴唇的大小。表示性/新生儿成熟度。",
+              options: [
+                { description: "男性：睾丸未下降；女性：阴唇平坦", score: -1 },
+                { description: "男性：部分下降；女性：小阴唇小", score: 0 },
+                { description: "男性：睾丸在阴囊；女性：小阴唇明显", score: 1 },
+                { description: "男性：阴囊有皱褶；女性：小阴唇和大阴唇同样突出", score: 2 },
+                { description: "生殖器完全成熟", score: 3 },
+              ]
+            }
+          ]
+        }
+      ];
+
+      // 动态填充表单
+      ballardData.forEach(section => {
+        const sectionDiv = document.createElement('div');
+        sectionDiv.className = 'ballard-criterion-section';
+
+        const titleH3 = document.createElement('h3');
+        titleH3.className = 'ballard-criterion-title';
+        titleH3.innerText = section.category;
+        sectionDiv.appendChild(titleH3);
+
+        const groupDiv = document.createElement('div');
+        groupDiv.className = 'ballard-criterion-group';
+
+        section.items.forEach(item => {
+          const itemDiv = document.createElement('div');
+          itemDiv.id = `item-${item.nameAttr}`;
+          itemDiv.className = 'ballard-criterion-item';
+
+          const itemTitle = document.createElement('h4');
+          itemTitle.className = 'ballard-item-title';
+          itemTitle.innerText = item.title;
+          itemDiv.appendChild(itemTitle);
+
+          const itemExplain = document.createElement('p');
+          itemExplain.className = 'ballard-item-explain';
+          itemExplain.innerText = item.explain;
+          itemDiv.appendChild(itemExplain);
+
+          item.options.forEach(option => {
+            const optionDiv = document.createElement('div');
+            optionDiv.className = 'ballard-criterion-option';
+
+            const radioInput = document.createElement('input');
+            radioInput.type = 'radio';
+            radioInput.name = item.nameAttr;
+            radioInput.value = option.score;
+            radioInput.id = `${item.nameAttr}_${option.score}`;
+
+            const label = document.createElement('label');
+            label.htmlFor = radioInput.id;
+            label.innerText = `${option.description} (${option.score})`;
+
+            optionDiv.appendChild(radioInput);
+            optionDiv.appendChild(label);
+            itemDiv.appendChild(optionDiv);
+          });
+
+          groupDiv.appendChild(itemDiv);
+        });
+
+        sectionDiv.appendChild(groupDiv);
+        conteudoDiv.appendChild(sectionDiv);
+      });
+
+      // 计算和按钮逻辑
+      const criteriaNames = ballardData.flatMap(s => s.items.map(i => i.nameAttr));
+
+      function calcularBallard() {
+        let allSelected = true;
+        let total = 0;
+        document.querySelectorAll('.ballard-criterion-item').forEach(el => el.classList.remove('incomplete'));
+
+        criteriaNames.forEach(name => {
+          const selected = document.querySelector(`input[name="${name}"]:checked`);
+          if (!selected) {
+            allSelected = false;
+            document.getElementById(`item-${name}`).classList.add('incomplete');
+          } else {
+            total += Number(selected.value);
+          }
+        });
+
+        resultadoDiv.style.display = "block";
+        if (!allSelected) {
+          resultadoDiv.innerHTML = '⚠️ <strong class="font-bold">请在计算前为所有突出显示的项目选择一个选项。</strong>';
+          resultadoDiv.classList.add('bg-red-100');
+          resultadoDiv.classList.remove('bg-blue-50');
+          delete resultadoDiv.dataset.score;
+          return;
+        }
+
+        const semanasFloat = 20 + (total * 0.4);
+        const semanas = Math.floor(semanasFloat);
+        const dias = Math.round((semanasFloat - semanas) * 7);
+
+        let classificacao = '';
+        if (semanas < 37) classificacao = '早产儿';
+        else if (semanas >= 37 && semanas < 42) classificacao = '足月儿';
+        else classificacao = '过产儿';
+
+        let conduta = '';
+        if (classificacao === '早产儿') {
+          conduta = '监测体温调节、血糖和呼吸窘迫迹象。考虑根据需要提供呼吸支持和新生儿科护理。';
+        } else if (classificacao === '足月儿') {
+          conducta = '常规新生儿护理；观察母乳喂养和生命体征。评估新生儿筛查需求。';
+        } else {
+          conduta = '评估过成熟迹象（皮肤、血糖、体温调节），观察缺氧风险和新生儿适应性。';
+        }
+
+        resultadoDiv.innerHTML = `
+              <p>总分： <strong class="font-bold">${total}</strong></p>
+              <p>估计胎龄： <strong class="font-bold">${semanas}周 ${dias}天</strong></p>
+              <p>分类： <strong class="font-bold">${classificacao}</strong></p>
+              <p class="mt-4"><strong>建议护理：</strong> ${conduta}</p>
+            `;
+        resultadoDiv.className = `resultado bg-blue-50`;
+        resultadoDiv.style.display = "block";
+
+        resultadoDiv.dataset.score = total;
+        resultadoDiv.dataset.scaleName = "Ballard量表";
+        resultadoDiv.dataset.classificacao = classificacao;
+      }
+
+      function limparCampos() {
+        criteriaNames.forEach(name => {
+          document.querySelectorAll(`input[name="${name}"]`).forEach(input => input.checked = false);
+        });
+        resultadoDiv.innerHTML = '';
+        resultadoDiv.className = 'resultado hidden';
+        delete resultadoDiv.dataset.score;
+        delete resultadoDiv.dataset.scaleName;
+        delete resultadoDiv.dataset.classificacao;
+        document.querySelectorAll('.ballard-criterion-item').forEach(el => el.classList.remove('incomplete'));
+      }
+
+      btnCalcular?.addEventListener('click', calcularBallard);
+      btnLimpar?.addEventListener('click', limparCampos);
+
+      btnGerarPDF?.addEventListener('click', () => {
+        if (!resultadoDiv.dataset.score) {
+          alert('请先点击"计算分数"以生成PDF。');
+          return;
+        }
+        if (typeof gerarPDFGlobal === 'function') {
+          gerarPDFGlobal({
+            titulo: 'Ballard量表',
+            subtitulo: '胎龄估计报告',
+            nomeArquivo: 'relatorio_ballard.pdf',
+            seletorConteudo: '.main-content-wrapper'
+          });
+        } else {
+          console.error('Função gerarPDFGlobal não definida.');
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener('click', () => {
+        const score = resultadoDiv.dataset.score;
+        const scaleName = resultadoDiv.dataset.scaleName;
+        const classificacao = resultadoDiv.dataset.classificacao;
+        if (!score || !classificacao) {
+          alert('计算结果以搜索护理方案。');
+          return;
+        }
+        const searchQuery = encodeURIComponent(`新生儿护理 ${classificacao} Ballard NANDA NIC NOC`);
+        window.open(`https://www.google.com/search?q=${searchQuery}`, '_blank');
+      });
+    });
+  </script>
 
 
 

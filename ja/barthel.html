@@ -601,7 +601,125 @@
 
 
     <!-- バーセル指数ページ固有のスクリプト -->
-    
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const resultadoDiv = document.getElementById('resultado');
+            const conteudoDiv = document.getElementById('conteudo');
+            const btnCalcular = document.getElementById('btnCalcular');
+            const btnLimpar = document.getElementById('btnLimpar');
+            const btnGerarPDF = document.getElementById('btnGerarPDF');
+            const btnNandaNicNoc = document.getElementById('btnNandaNicNoc');
+
+            const barthelData = [
+                { activity: "食事", nameAttr: "alimentacao", options: [{ score: 10, description: "自立" }, { score: 5, description: "切るなどの助けが必要" }, { score: 0, description: "不能" }] },
+                { activity: "入浴", nameAttr: "banho", options: [{ score: 5, description: "自立" }, { score: 0, description: "依存" }] },
+                { activity: "身だしなみ", nameAttr: "higienePessoal", options: [{ score: 5, description: "自立（顔/髪/歯/ひげ剃り）" }, { score: 0, description: "助けが必要" }] },
+                { activity: "着替え", nameAttr: "vestir", options: [{ score: 10, description: "自立" }, { score: 5, description: "助けが必要" }, { score: 0, description: "依存" }] },
+                { activity: "排便コントロール", nameAttr: "controleIntestino", options: [{ score: 10, description: "失禁なし" }, { score: 5, description: "時折失禁" }, { score: 0, description: "失禁" }] },
+                { activity: "排尿コントロール", nameAttr: "controleBexiga", options: [{ score: 10, description: "失禁なし" }, { score: 5, description: "時折失禁" }, { score: 0, description: "失禁" }] },
+                { activity: "トイレ使用", nameAttr: "usoToilet", options: [{ score: 10, description: "自立" }, { score: 5, description: "助けが必要" }, { score: 0, description: "依存" }] },
+                { activity: "移乗", nameAttr: "transferencia", options: [{ score: 15, description: "自立" }, { score: 10, description: "最小限の助け" }, { score: 5, description: "最大限の助け" }, { score: 0, description: "不能" }] },
+                { activity: "移動", nameAttr: "mobilidade", options: [{ score: 15, description: "自立 > 50m" }, { score: 10, description: "助けがあれば50m以上歩行" }, { score: 5, description: "車椅子で自立 > 50m" }, { score: 0, description: "不動" }] },
+                { activity: "階段昇降", nameAttr: "escadas", options: [{ score: 10, description: "自立" }, { score: 5, description: "助けが必要" }, { score: 0, description: "不能" }] }
+            ];
+
+            function createForm() {
+                conteudoDiv.innerHTML = ''; // 既存のコンテンツをクリア
+                barthelData.forEach(activityGroup => {
+                    const card = document.createElement('div');
+                    card.className = 'barthel-criterion-card';
+
+                    card.innerHTML = `
+                    <h3 class="barthel-criterion-title">${activityGroup.activity}</h3>
+                    <div class="barthel-options-container">
+                        <select id="${activityGroup.nameAttr}-select" class="barthel-select" data-name="${activityGroup.nameAttr}">
+                            <option value="" disabled selected>選択してください...</option>
+                            ${activityGroup.options.map(opt => `<option value="${opt.score}">${opt.description} (${opt.score})</option>`).join('')}
+                        </select>
+                    </div>
+                `;
+                    conteudoDiv.appendChild(card);
+                });
+            }
+
+            function calcular() {
+                let totalScore = 0;
+                let allSelected = true;
+
+                barthelData.forEach(activityGroup => {
+                    const select = document.getElementById(`${activityGroup.nameAttr}-select`);
+                    if (select && select.value !== "") {
+                        totalScore += parseInt(select.value, 10);
+                    } else {
+                        allSelected = false;
+                    }
+                });
+
+                if (!allSelected) {
+                    resultadoDiv.innerHTML = '⚠️ <strong class="font-bold">すべての活動について選択してください。</strong>';
+                    resultadoDiv.className = 'standard-result-box bg-info-orange-light';
+                    resultadoDiv.style.display = 'block';
+                    delete resultadoDiv.dataset.score;
+                    return;
+                }
+
+                let classificacao = "";
+                if (totalScore === 100) { classificacao = "完全自立"; }
+                else if (totalScore >= 91) { classificacao = "軽度依存"; }
+                else if (totalScore >= 61) { classificacao = "中等度依存"; }
+                else if (totalScore >= 21) { classificacao = "重度依存"; }
+                else { classificacao = "完全依存"; }
+
+                resultadoDiv.innerHTML = `
+                <p class="font-bold text-lg">合計スコア: <span class="font-black">${totalScore} / 100</span></p>
+                <p class="font-bold text-lg">分類: <span class="font-black">${classificacao}</span></p>
+            `;
+                resultadoDiv.className = 'standard-result-box';
+                resultadoDiv.style.display = 'block';
+                resultadoDiv.dataset.score = totalScore;
+                resultadoDiv.dataset.classificacao = classificacao;
+            }
+
+            function limpar() {
+                createForm(); // フォームを再作成してセレクトをリセット
+                resultadoDiv.innerHTML = '';
+                resultadoDiv.className = 'hidden';
+                delete resultadoDiv.dataset.score;
+                delete resultadoDiv.dataset.classificacao;
+            }
+
+            createForm();
+            btnCalcular?.addEventListener('click', calcular);
+            btnLimpar?.addEventListener('click', limpar);
+
+            btnGerarPDF?.addEventListener('click', () => {
+                if (resultadoDiv.dataset.score === undefined) {
+                    alert('PDFを生成するにはまず「計算」をクリックしてください。');
+                    return;
+                }
+                if (typeof gerarPDFGlobal === 'function') {
+                    gerarPDFGlobal({
+                        titulo: 'バーセル指数',
+                        subtitulo: '機能的自立度レポート',
+                        nomeArquivo: 'relatorio_escala_barthel.pdf',
+                        seletorConteudo: '.main-content-wrapper'
+                    });
+                } else {
+                    console.error('gerarPDFGlobal関数が定義されていません。');
+                }
+            });
+
+            btnNandaNicNoc?.addEventListener('click', () => {
+                const classificacao = resultadoDiv.dataset.classificacao;
+                if (!classificacao) {
+                    alert('ケア計画を検索するには結果を計算してください。');
+                    return;
+                }
+                const searchQuery = encodeURIComponent(`バーセル指数で${classificacao}の患者 NANDA NIC NOC 看護計画`);
+                window.open(`https://www.google.com/search?q=${searchQuery}`, '_blank');
+            });
+        });
+    </script>
 
 
 

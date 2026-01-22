@@ -691,7 +691,162 @@
 
 
     <!-- Script específico da página -->
-    
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const resultadoDiv = document.getElementById('resultado');
+            const btnCalcular = document.getElementById('btnCalcular');
+            const btnLimpar = document.getElementById('btnLimpar');
+            const btnGerarPDF = document.getElementById('btnGerarPDF');
+            const btnNandaNicNoc = document.getElementById('btnNandaNicNoc');
+
+            function calcularIMC() {
+                const peso = parseFloat(document.getElementById('peso').value);
+                const altura = parseFloat(document.getElementById('altura').value);
+
+                // Limpa o conteúdo e remove classes de resultado
+                resultadoDiv.innerHTML = '';
+                resultadoDiv.className = 'resultado-quadro hidden';
+
+                // Validação de entrada
+                if (isNaN(peso) || isNaN(altura) || peso <= 0 || altura <= 0) {
+                    resultadoDiv.innerHTML = `<p>⚠️ <strong class="text-red-600">请输入大于零的有效体重和身高数值。</strong></p>`;
+                    resultadoDiv.classList.remove('hidden');
+                    resultadoDiv.classList.add('bg-danger-red');
+                    return;
+                }
+
+                const imc = peso / (altura * altura);
+                let classificacao = '';
+                let conduta = '';
+                let resultadoBgClass = '';
+
+                if (imc < 18.5) {
+                    classificacao = '体重过轻';
+                    conduta = '有营养不良风险。建议进行营养评估和随访。';
+                    resultadoBgClass = 'bg-danger-red';
+                } else if (imc >= 18.5 && imc < 24.9) {
+                    classificacao = '体重正常';
+                    conduta = '保持健康的生活习惯。营养状况良好。';
+                    resultadoBgClass = 'bg-success-green';
+                } else if (imc >= 25 && imc < 29.9) {
+                    classificacao = '超重';
+                    conduta = '注意改变生活方式和饮食。可能需要进行营养评估。';
+                    resultadoBgClass = 'bg-info-orange-light';
+                } else { // Obesidade
+                    conduta = '需要紧急干预和多学科随访。严重并发症的高风险。';
+                    resultadoBgClass = 'bg-danger-red';
+
+                    if (imc >= 30 && imc < 34.9) {
+                        classificacao = '肥胖等级一';
+                    } else if (imc >= 35 && imc < 39.9) {
+                        classificacao = '肥胖等级二';
+                    } else {
+                        classificacao = '肥胖等级三 (病态肥胖)';
+                    }
+                }
+
+                // Exibe o resultado formatado
+                resultadoDiv.innerHTML = `
+                    <table class="w-full">
+                        <tbody>
+                            <tr>
+                                <td class="font-bold pr-2">计算的 BMI:</td>
+                                <td>${imc.toFixed(2)} <abbr title="公斤每平方米">kg/m²</abbr></td>
+                            </tr>
+                            <tr>
+                                <td class="font-bold pr-2">分类:</td>
+                                <td>${classificacao}</td>
+                            </tr>
+                            <tr>
+                                <td class="font-bold pr-2">护理建议:</td>
+                                <td>${conduta}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                `;
+                resultadoDiv.classList.remove('hidden');
+                resultadoDiv.classList.add(resultadoBgClass);
+
+                // Armazenar os valores e detalhes para a geração do PDF e NANDA
+                resultadoDiv.dataset.imc = imc.toFixed(2);
+                resultadoDiv.dataset.classificacao = classificacao;
+                resultadoDiv.dataset.conduta = conduta;
+                resultadoDiv.dataset.peso = peso;
+                resultadoDiv.dataset.altura = altura;
+                resultadoDiv.dataset.scaleName = "BMI 计算器";
+            }
+
+            function limparCampos() {
+                document.getElementById('peso').value = '';
+                document.getElementById('altura').value = '';
+                resultadoDiv.innerHTML = '';
+                resultadoDiv.classList.add('hidden');
+                // Clear data attributes
+                delete resultadoDiv.dataset.imc;
+                delete resultadoDiv.dataset.classificacao;
+                delete resultadoDiv.dataset.conduta;
+                delete resultadoDiv.dataset.peso;
+                delete resultadoDiv.dataset.altura;
+                delete resultadoDiv.dataset.scaleName;
+            }
+
+            // Função para gerar PDF
+            function gerarPDF() {
+                if (!resultadoDiv.dataset.imc) {
+                    // Substituindo alert por mensagem customizada (se showCustomMessage existir)
+                    if (typeof showCustomMessage === 'function') {
+                        showCustomMessage('请先计算 BMI 再生成 PDF。');
+                    } else {
+                        alert('请先计算 BMI 再生成 PDF。');
+                    }
+                    return;
+                }
+                if (typeof gerarPDFGlobal === 'function') {
+                    gerarPDFGlobal({
+                        titulo: '身体质量指数 (BMI) 计算器',
+                        subtitulo: 'BMI 评估报告',
+                        nomeArquivo: 'BMI_报告.pdf',
+                        seletorConteudo: '.main-content-wrapper'
+                    });
+                } else {
+                    console.error('函数 gerarPDFGlobal 未定义。');
+                }
+            }
+
+            // Adiciona o event listener para o botão NANDA, NIC, NOC
+            if (btnNandaNicNoc) {
+                btnNandaNicNoc.addEventListener('click', () => {
+                    const imcValue = resultadoDiv.dataset.imc;
+                    const classificacao = resultadoDiv.dataset.classificacao;
+                    const conduta = resultadoDiv.dataset.conduta;
+                    const scaleName = resultadoDiv.dataset.scaleName;
+
+                    if (!imcValue || !classificacao || !conduta) {
+                        if (typeof showCustomMessage === 'function') {
+                            showCustomMessage('请先计算结果以搜索分类。');
+                        } else {
+                            alert('请先计算结果以搜索分类。');
+                        }
+                        return;
+                    }
+                    const searchQuery = encodeURIComponent(`BMI: ${imcValue}, 分类: ${classificacao}, 护理建议: ${conduta} - ${scaleName} 生成 NANDA 护理诊断, 生成 NIC 护理干预, 生成 NOC 护理结果测量示例`);
+                    window.open(`https://www.google.com/search?q=${searchQuery}`, '_blank');
+                });
+            }
+
+            // Anexa os event listeners
+            btnCalcular?.addEventListener('click', calcularIMC);
+            btnLimpar?.addEventListener('click', limparCampos);
+            btnGerarPDF?.addEventListener('click', gerarPDF);
+
+            // Função de placeholder para showCustomMessage se não estiver definida globalmente
+            if (typeof showCustomMessage === 'undefined') {
+                window.showCustomMessage = function (message) {
+                    alert(message);
+                }
+            }
+        });
+    </script>
 
 
 

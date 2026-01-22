@@ -606,7 +606,562 @@
 
 
   <!-- Script Específico da Página (Tradução e numeração árabe) -->
-  
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      // Função para converter números ocidentais para orientais (árabes)
+      function toArabicNumeral(n) {
+        if (n === null || typeof n === "undefined") return "";
+        const arabic = [
+          "٠",
+          "١",
+          "٢",
+          "٣",
+          "٤",
+          "٥",
+          "٦",
+          "٧",
+          "٨",
+          "٩",
+          "٪",
+          ">",
+          "<",
+          ".",
+          "(",
+          ")",
+          "-",
+          "+",
+          "≥",
+          "≤",
+          "°",
+          "م",
+          "ل",
+          "ج",
+          "د",
+          "س",
+          "ش",
+          "ص",
+          "ض",
+          "ط",
+          "ظ",
+          "ع",
+          "غ",
+          "ف",
+          "ق",
+          "ك",
+          "هـ",
+          "و",
+          "ي",
+          "أ",
+          "إ",
+          "آ",
+          "ء",
+          "ؤ",
+          "ئ",
+          "ى",
+          "ة",
+          " ",
+        ];
+        const western = [
+          "0",
+          "1",
+          "2",
+          "3",
+          "4",
+          "5",
+          "6",
+          "7",
+          "8",
+          "9",
+          "%",
+          ">",
+          "<",
+          ".",
+          "(",
+          ")",
+          "-",
+          "+",
+          "≥",
+          "≤",
+          "°",
+          "m",
+          "L",
+          "g",
+          "d",
+          "s",
+          "sh",
+          "s",
+          "d",
+          "t",
+          "z",
+          "a",
+          "gh",
+          "f",
+          "q",
+          "k",
+          "h",
+          "w",
+          "y",
+          "A",
+          "I",
+          "A",
+          "",
+          "O",
+          "Y",
+          "a",
+          "T",
+          " ",
+        ];
+
+        // Tratamento especial para números com decimais ou símbolos
+        let str = String(n);
+
+        // Substitui símbolos comuns primeiro
+        str = str
+          .replace(/°C/g, "°س")
+          .replace(/mmHg/g, " مم زئبق")
+          .replace(/bpm/g, " ن/د") // نبضة في الدقيقة
+          .replace(/rpm/g, " ن/د") // نفس في الدقيقة
+          .replace(/mmol\/L/g, " مليمول/لتر")
+          .replace(/mg\/dL/g, " ملغ/ديسيلتر")
+          .replace(/%/g, "٪")
+          .replace(/≥/g, "≥")
+          .replace(/≤/g, "≤")
+          .replace(/>/g, ">")
+          .replace(/</g, "<")
+          .replace(/\./g, "٫"); // Vírgula árabe
+
+        // Substitui os dígitos
+        return str
+          .split("")
+          .map((char) => {
+            const index = western.indexOf(char);
+            return index !== -1
+              ? arabic[index]
+              : /\d/.test(char)
+                ? arabic[parseInt(char)]
+                : char;
+          })
+          .join("");
+      }
+
+      // Função para determinar a palavra correta para "ponto(s)" em árabe
+      function scoreText(score) {
+        if (score === 0) return "نقطة";
+        if (score === 1) return "نقطة";
+        if (score === 2) return "نقطتان";
+        if (score >= 3 && score <= 10) return "نقاط";
+        return "نقطة"; // Padrão
+      }
+
+      // Elementos da página
+      const resultadoDiv = document.getElementById("resultado");
+      const conteudoDiv = document.getElementById("conteudo");
+      const btnCalcular = document.getElementById("btnCalcular");
+      const btnLimpar = document.getElementById("btnLimpar");
+      const btnGerarPDF = document.getElementById("btnGerarPDF");
+      const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
+
+      // Elementos do Modal
+      const modal = document.getElementById("selection-modal");
+      const modalTitle = document.getElementById("modal-title");
+      const modalContent = document.getElementById("modal-content");
+      const modalCloseBtn = document.getElementById("modal-close-btn");
+
+      // Dados da escala (traduzidos para o árabe)
+      const apacheData = [
+        {
+          category: "درجة الحرارة الشرجية (درجة مئوية)",
+          nameAttr: "tempRetal",
+          options: [
+            { description: "> ٤٠٫٩", score: 4 },
+            { description: "٣٩-٤٠٫٩", score: 3 },
+            { description: "٣٨٫٥-٣٨٫٩", score: 1 },
+            { description: "٣٦-٣٨٫٤", score: 0 },
+            { description: "٣٤-٣٥٫٩", score: 1 },
+            { description: "٣٢-٣٣٫٩", score: 2 },
+            { description: "٣٠-٣١٫٩", score: 3 },
+            { description: "< ٣٠", score: 4 },
+          ],
+        },
+        {
+          category: "متوسط ضغط الدم الشرياني (مم زئبق)",
+          nameAttr: "pam",
+          options: [
+            { description: "> ١٥٩", score: 4 },
+            { description: "١٣٠-١٥٩", score: 3 },
+            { description: "١١٠-١٢٩", score: 2 },
+            { description: "٧٠-١٠٩", score: 0 },
+            { description: "٥٥-٦٩", score: 2 },
+            { description: "٤٠-٥٤", score: 3 },
+            { description: "< ٤٠", score: 4 },
+          ],
+        },
+        {
+          category: "معدل ضربات القلب (ن/د)",
+          nameAttr: "fc",
+          options: [
+            { description: "> ١٧٩", score: 4 },
+            { description: "١٤٠-١٧٩", score: 3 },
+            { description: "١١٠-١٢٩", score: 2 },
+            { description: "٧٠-١٠٩", score: 0 },
+            { description: "٥٥-٦٩", score: 2 },
+            { description: "٤٠-٥٤", score: 3 },
+            { description: "< ٤٠", score: 4 },
+          ],
+        },
+        {
+          category: "معدل التنفس (ن/د)",
+          nameAttr: "fr",
+          options: [
+            { description: "> ٤٩", score: 4 },
+            { description: "٣٥-٤٩", score: 3 },
+            { description: "٢٥-٣٤", score: 1 },
+            { description: "١٢-٢٤", score: 0 },
+            { description: "١٠-١١", score: 1 },
+            { description: "٦-٩", score: 2 },
+            { description: "< ٦", score: 4 },
+          ],
+        },
+        {
+          category: "الأكسجة (PaO2/FiO2 أو A-aDO2)",
+          nameAttr: "oxigenacao",
+          options: [
+            { description: "إذا FiO2 ≥ ٠٫٥ (A-aDO2) > ٤٩٩", score: 4 },
+            { description: "إذا FiO2 ≥ ٠٫٥ (A-aDO2) ٣٥٠-٤٩٩", score: 3 },
+            { description: "إذا FiO2 ≥ ٠٫٥ (A-aDO2) ٢٠٠-٣٤٩", score: 2 },
+            { description: "إذا FiO2 ≥ ٠٫٥ (A-aDO2) < ٢٠٠", score: 0 },
+            { description: "إذا FiO2 < ٠٫٥ (PaO2) > ٧٠", score: 0 },
+            { description: "إذا FiO2 < ٠٫٥ (PaO2) ٦١-٧٠", score: 1 },
+            { description: "إذا FiO2 < ٠٫٥ (PaO2) ٥٦-٦٠", score: 3 },
+            { description: "إذا FiO2 < ٠٫٥ (PaO2) < ٥٦", score: 4 },
+          ],
+        },
+        {
+          category: "درجة الحموضة الشريانية (pH)",
+          nameAttr: "phArterial",
+          options: [
+            { description: "> ٧٫٦٩", score: 4 },
+            { description: "٧٫٦٠-٧٫٦٩", score: 3 },
+            { description: "٧٫٥٠-٧٫٥٩", score: 1 },
+            { description: "٧٫٣٣-٧٫٤٩", score: 0 },
+            { description: "٧٫٢٥-٧٫٣٢", score: 2 },
+            { description: "٧٫١٥-٧٫٢٤", score: 3 },
+            { description: "< ٧٫١٥", score: 4 },
+          ],
+        },
+        {
+          category: "صوديوم البلازما (مليمول/لتر)",
+          nameAttr: "sodioPlasmatico",
+          options: [
+            { description: "> ١٧٩", score: 4 },
+            { description: "١٦٠-١٧٩", score: 3 },
+            { description: "١٥٥-١٥٩", score: 2 },
+            { description: "١٥٠-١٥٤", score: 1 },
+            { description: "١٣٠-١٤٩", score: 0 },
+            { description: "١٢٠-١٢٩", score: 2 },
+            { description: "١١١-١١٩", score: 3 },
+            { description: "< ١١١", score: 4 },
+          ],
+        },
+        {
+          category: "بوتاسيوم البلازما (مليمول/لتر)",
+          nameAttr: "potassioPlasmatico",
+          options: [
+            { description: "> ٦٫٩", score: 4 },
+            { description: "٦٫٠-٦٫٩", score: 3 },
+            { description: "٥٫٥-٥٫٩", score: 1 },
+            { description: "٣٫٥-٥٫٤", score: 0 },
+            { description: "٣٫٠-٣٫٤", score: 1 },
+            { description: "٢٫٥-٢٫٩", score: 2 },
+            { description: "< ٢٫٥", score: 4 },
+          ],
+        },
+        {
+          category: "الكرياتينين (ملغ/ديسيلتر)",
+          nameAttr: "creatinina",
+          options: [
+            { description: "> ٣٫٤", score: 4 },
+            { description: "٢٫٠-٣٫٤", score: 3 },
+            { description: "١٫٥-١٫٩", score: 2 },
+            { description: "٠٫٦-١٫٤", score: 0 },
+            { description: "< ٠٫٦", score: 2 },
+          ],
+        },
+        {
+          category: "الهيماتوكريت (٪)",
+          nameAttr: "hematocrito",
+          options: [
+            { description: "> ٥٩٫٩", score: 4 },
+            { description: "٥٠-٥٩٫٩", score: 2 },
+            { description: "٤٦-٤٩٫٩", score: 1 },
+            { description: "٣٠-٤٥٫٩", score: 0 },
+            { description: "٢٠-٢٩٫٩", score: 2 },
+            { description: "< ٢٠", score: 4 },
+          ],
+        },
+        {
+          category: "خلايا الدم البيضاء (x١٠٠٠)",
+          nameAttr: "globulosBrancos",
+          options: [
+            { description: "> ٣٩٫٩", score: 4 },
+            { description: "٢٠-٣٩٫٩", score: 2 },
+            { description: "١٥-١٩٫٩", score: 1 },
+            { description: "٣-١٤٫٩", score: 0 },
+            { description: "١-٢٫٩", score: 2 },
+            { description: "< ١", score: 4 },
+          ],
+        },
+        {
+          category: "مقياس غلاسكو للغيبوبة (GCS)",
+          nameAttr: "gcs",
+          options: [
+            { description: "١٥ (GCS الحالي)", score: 0 },
+            { description: "١٤ (GCS الحالي)", score: 1 },
+            { description: "١٣ (GCS الحالي)", score: 2 },
+            { description: "١٢ (GCS الحالي)", score: 3 },
+            { description: "١١ (GCS الحالي)", score: 4 },
+            { description: "١٠ (GCS الحالي)", score: 5 },
+            { description: "٩ (GCS الحالي)", score: 6 },
+            { description: "٨ (GCS الحالي)", score: 7 },
+            { description: "٧ (GCS الحالي)", score: 8 },
+            { description: "٦ (GCS الحالي)", score: 9 },
+            { description: "٥ (GCS الحالي)", score: 10 },
+            { description: "٤ (GCS الحالي)", score: 11 },
+            { description: "٣ (GCS الحالي)", score: 12 },
+          ],
+        },
+        {
+          category: "عمر المريض",
+          nameAttr: "idadePaciente",
+          options: [
+            { description: "< ٤٥ سنة", score: 0 },
+            { description: "٤٥-٥٤ سنة", score: 2 },
+            { description: "٥٥-٦٤ سنة", score: 3 },
+            { description: "٦٥-٧٤ سنة", score: 5 },
+            { description: "≥ ٧٥ سنة", score: 6 },
+          ],
+        },
+        {
+          category: "الحالات المزمنة",
+          nameAttr: "condicoesCronicas",
+          options: [
+            { description: "لا يوجد تاريخ لحالات مزمنة", score: 0 },
+            {
+              description:
+                "مع تاريخ لحالات مزمنة، إذا تم قبول المريض بعد جراحة اختيارية",
+              score: 2,
+            },
+            {
+              description:
+                "مع تاريخ لحالات مزمنة، إذا تم قبول المريض لجراحة طارئة أو لسبب آخر",
+              score: 5,
+            },
+          ],
+        },
+      ];
+
+      // Armazena as seleções do usuário
+      let userSelections = {};
+
+      function openModalForCriterion(paramGroup) {
+        modalTitle.textContent = paramGroup.category;
+        modalContent.innerHTML = ""; // Limpa opções anteriores
+
+        paramGroup.options.forEach((option) => {
+          const label = document.createElement("label");
+          label.className = "modal-option-label";
+
+          const radio = document.createElement("input");
+          radio.type = "radio";
+          radio.name = "modal-option";
+          radio.value = option.score;
+
+          // Marca a opção previamente selecionada, se houver
+          if (
+            userSelections[paramGroup.nameAttr] &&
+            userSelections[paramGroup.nameAttr].score === option.score
+          ) {
+            radio.checked = true;
+          }
+
+          radio.addEventListener("click", () =>
+            handleSelection(
+              paramGroup.nameAttr,
+              option.score,
+              option.description,
+            ),
+          );
+
+          const descriptionSpan = document.createElement("span");
+          // Exibe o numeral árabe e o texto de ponto correto
+          descriptionSpan.textContent = `${toArabicNumeral(option.description)} (${toArabicNumeral(option.score)} ${scoreText(option.score)})`;
+
+          label.appendChild(radio);
+          label.appendChild(descriptionSpan);
+          modalContent.appendChild(label);
+        });
+
+        modal.classList.remove("hidden");
+      }
+
+      function handleSelection(nameAttr, score, description) {
+        userSelections[nameAttr] = {
+          score: parseInt(score, 10),
+          description: description,
+        };
+
+        // Atualiza o texto na lista principal
+        const listItem = document.querySelector(
+          `[data-name="${nameAttr}"] .selected-value`,
+        );
+        if (listItem) {
+          listItem.textContent = toArabicNumeral(description);
+          listItem.classList.remove("text-gray-400");
+          listItem.classList.add("text-blue-600", "font-semibold");
+        }
+
+        modal.classList.add("hidden");
+      }
+
+      function createCriteriaList() {
+        conteudoDiv.innerHTML = ""; // Limpa o conteúdo
+        apacheData.forEach((paramGroup, index) => {
+          const itemDiv = document.createElement("div");
+          itemDiv.className =
+            "flex justify-between items-center p-3 bg-gray-50 border rounded-lg shadow-sm cursor-pointer hover:bg-gray-100";
+          itemDiv.dataset.name = paramGroup.nameAttr;
+
+          itemDiv.innerHTML = `
+                    <span class="font-medium text-gray-700">${toArabicNumeral(index + 1)}. ${paramGroup.category}</span>
+                    <span class="selected-value text-gray-400 text-sm text-right">انقر للاختيار</span>
+                `;
+
+          itemDiv.addEventListener("click", () =>
+            openModalForCriterion(paramGroup),
+          );
+          conteudoDiv.appendChild(itemDiv);
+        });
+      }
+
+      function calcular() {
+        let totalScore = 0;
+        const totalCriteria = apacheData.length;
+        const selectedCriteriaCount = Object.keys(userSelections).length;
+
+        if (selectedCriteriaCount < totalCriteria) {
+          resultadoDiv.innerHTML =
+            '⚠️ <strong class="font-bold">يرجى تحديد خيار لكل معيار.</strong>';
+          resultadoDiv.className =
+            "resultado p-4 rounded-md font-medium bg-info-orange-light text-right";
+          resultadoDiv.style.display = "block";
+          delete resultadoDiv.dataset.score;
+          return;
+        }
+
+        for (const key in userSelections) {
+          totalScore += userSelections[key].score;
+        }
+
+        let interpretacao = "";
+        let probabilidadeMorte = "";
+        let resultadoClasse = "";
+
+        // Lógica de JS permanece com numerais ocidentais
+        if (totalScore <= 9) {
+          interpretacao = "خطر منخفض للوفاة في المستشفى.";
+          probabilidadeMorte = "حوالي ٥-١٠٪";
+          resultadoClasse = "bg-apache-low";
+        } else if (totalScore <= 19) {
+          interpretacao = "خطر متوسط للوفاة في المستشفى.";
+          probabilidadeMorte = "حوالي ١٠-٣٠٪";
+          resultadoClasse = "bg-apache-medium";
+        } else {
+          interpretacao = "خطر مرتفع للوفاة في المستشفى.";
+          probabilidadeMorte = "حوالي >٣٠٪";
+          resultadoClasse = "bg-apache-high";
+        }
+
+        resultadoDiv.innerHTML = `
+                <p>إجمالي نقاط أباتشي ٢: <strong class="font-bold">${toArabicNumeral(totalScore)}</strong></p>
+                <p>احتمالية الوفاة المقدرة: <strong class="font-bold">${toArabicNumeral(probabilidadeMorte)}</strong></p>
+                <p>التفسير: <strong class="font-bold">${interpretacao}</strong></p>
+            `;
+        resultadoDiv.className = `resultado p-4 rounded-md font-medium ${resultadoClasse} text-right`;
+        resultadoDiv.style.display = "block";
+        resultadoDiv.dataset.score = totalScore;
+        resultadoDiv.dataset.interpretacao = interpretacao;
+      }
+
+      function limpar() {
+        userSelections = {};
+        createCriteriaList(); // Recria a lista com os valores padrão
+        resultadoDiv.innerHTML = "";
+        resultadoDiv.className = "resultado hidden text-right";
+        delete resultadoDiv.dataset.score;
+        delete resultadoDiv.dataset.interpretacao;
+      }
+
+      // Event Listeners dos Botões e Modal
+      btnCalcular?.addEventListener("click", calcular);
+      btnLimpar?.addEventListener("click", limpar);
+      modalCloseBtn?.addEventListener("click", () =>
+        modal.classList.add("hidden"),
+      );
+      modal?.addEventListener("click", (e) => {
+        if (e.target === modal) {
+          modal.classList.add("hidden");
+        }
+      });
+
+      btnGerarPDF?.addEventListener("click", () => {
+        if (typeof resultadoDiv.dataset.score === "undefined") {
+          alert('يرجى النقر على "احسب" أولاً لإنشاء ملف PDF.');
+          return;
+        }
+        if (typeof gerarPDFGlobal === "function") {
+          gerarPDFGlobal({
+            titulo: "مقياس أباتشي ٢ (APACHE II)",
+            subtitulo: "تقرير تقييم الفسيولوجيا الحادة والصحة المزمنة",
+            nomeArquivo: "relatorio_apache_ii.pdf",
+            seletorConteudo: ".main-content-wrapper",
+            direcao: "rtl", // Adiciona direção RTL para o PDF
+          });
+        } else {
+          console.error("Função gerarPDFGlobal não definida.");
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener("click", () => {
+        const interpretacao = resultadoDiv.dataset.interpretacao;
+        if (!interpretacao) {
+          alert("احسب النتيجة للبحث عن الإجراء.");
+          return;
+        }
+        // Traduz a consulta de pesquisa
+        const searchQuery = encodeURIComponent(
+          `${interpretacao} تصنيف NANDA, NIC و NOC`,
+        );
+        window.open(
+          `https://www.google.com/search?q=${searchQuery}`,
+          "_blank",
+        );
+      });
+
+      // Inicializa a calculadora
+      createCriteriaList();
+
+      // Carrega o footer
+      fetch("footer.html")
+        .then((response) => response.text())
+        .then((data) => {
+          const footerPlaceholder =
+            document.getElementById("footer-placeholder");
+          if (footerPlaceholder) {
+            footerPlaceholder.innerHTML = data;
+          }
+        });
+    });
+  </script>
 
   <!-- Caminho do seletor de idioma ajustado -->
   <script src="../lang-selector.js" defer=""></script>

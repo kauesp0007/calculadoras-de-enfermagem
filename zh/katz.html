@@ -630,7 +630,214 @@
 
 
 
-    
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const resultadoDiv = document.getElementById('resultado');
+            const btnCalcular = document.getElementById('btnCalcular');
+            const btnLimpar = document.getElementById('btnLimpar');
+            const btnGerarPDF = document.getElementById('btnGerarPDF');
+            const btnNandaNicNoc = document.getElementById('btnNandaNicNoc');
+            const conteudoDiv = document.getElementById('conteudo');
+
+            const katzData = [
+                {
+                    item: "1 - 洗澡",
+                    nameAttr: "banho",
+                    options: [
+                        { score: 1, description: "独立 - 仅需要帮助清洗身体的一部分，如背部或四肢" },
+                        { score: 0, description: "依赖 - 需要帮助清洗身体多个部分；需要帮助进入和离开浴缸；不能自己洗澡" }
+                    ]
+                },
+                {
+                    item: "2 - 穿衣",
+                    nameAttr: "vestir",
+                    options: [
+                        { score: 1, description: "独立 - 选择合适的衣服，穿衣并扣紧；不包括系鞋带" },
+                        { score: 0, description: "依赖 - 需要帮助穿衣；不能自己穿衣" }
+                    ]
+                },
+                {
+                    item: "3 - 使用卫生间",
+                    nameAttr: "sanitario",
+                    options: [
+                        { score: 1, description: "独立 - 不需要帮助坐椅子或起床，也不需要帮助进床或离开床；可以使用便壶或便盆" },
+                        { score: 0, description: "依赖 - 使用便壶（尿壶）或便盆或需要帮助进入和使用卫生间" }
+                    ]
+                },
+                {
+                    item: "4 - 转移（床/轮椅）",
+                    nameAttr: "transferencia",
+                    options: [
+                        { score: 1, description: "独立 - 不需要帮助坐椅子或起床，也不需要帮助进床或离开床；可以使用辅助设备，如拐杖" },
+                        { score: 0, description: "依赖 - 需要某种帮助躺下或从床/轮椅起床；卧床" }
+                    ]
+                },
+                {
+                    item: "5 - 大小便控制",
+                    nameAttr: "continencia",
+                    options: [
+                        { score: 1, description: "独立 - 完全控制排尿和排便" },
+                        { score: 0, description: "依赖 - 完全或部分大小便失禁；使用灌肠剂、导尿管、便壶或便盆" }
+                    ]
+                },
+                {
+                    item: "6 - 进食",
+                    nameAttr: "alimentacao",
+                    options: [
+                        { score: 1, description: "独立 - 将食物从盘子拿到嘴里不需要帮助；不包括切食物" },
+                        { score: 0, description: "依赖 - 需要帮助进食；完全不吃或需要肠内/肠外营养" }
+                    ]
+                }
+            ];
+
+            // --- 卡茨计算器功能 ---
+            function updateScoreDisplay(criterionId) {
+                const selectElement = document.getElementById(criterionId);
+                const scoreDisplayElement = document.getElementById(`${criterionId}_score_display`);
+                if (selectElement && scoreDisplayElement) {
+                    scoreDisplayElement.innerText = selectElement.value === "" ? "0" : selectElement.value;
+                }
+            }
+
+            function calcularPontuacao() {
+                let totalScore = 0;
+                let allItemsSelected = true;
+
+                katzData.forEach(item => {
+                    const selectElement = document.getElementById(item.nameAttr);
+                    if (selectElement.value === "") {
+                        allItemsSelected = false;
+                    } else {
+                        totalScore += parseInt(selectElement.value, 10);
+                    }
+                });
+
+                resultadoDiv.style.display = "block";
+                if (!allItemsSelected) {
+                    resultadoDiv.innerHTML = '⚠️ <strong class="font-bold">请在计算前为每个项目选择一个选项</strong>。';
+                    resultadoDiv.className = 'resultado bg-info-orange-light';
+                    delete resultadoDiv.dataset.score;
+                    return;
+                }
+
+                let classificacao = "";
+                let resultadoClasse = '';
+
+                if (totalScore === 6) {
+                    classificacao = "完全独立";
+                    resultadoClasse = 'bg-katz-total';
+                } else if (totalScore === 5) {
+                    classificacao = "轻度依赖";
+                    resultadoClasse = 'bg-katz-ligeira';
+                } else if (totalScore >= 3 && totalScore <= 4) {
+                    classificacao = "中度依赖";
+                    resultadoClasse = 'bg-katz-moderada';
+                } else if (totalScore >= 1 && totalScore <= 2) {
+                    classificacao = "重度依赖";
+                    resultadoClasse = 'bg-katz-grave';
+                } else if (totalScore === 0) {
+                    classificacao = "完全依赖";
+                    resultadoClasse = 'bg-katz-dependente';
+                } else {
+                    classificacao = "无效分数";
+                    resultadoClasse = 'bg-info-orange-light';
+                }
+
+                resultadoDiv.innerHTML = `<p>卡茨量表总分: <strong class="font-bold">${totalScore}</strong></p><p>分类: <strong class="font-bold">${classificacao}</strong></p>`;
+                resultadoDiv.className = `resultado ${resultadoClasse}`;
+
+                resultadoDiv.dataset.score = totalScore;
+                resultadoDiv.dataset.classificacao = classificacao;
+                resultadoDiv.dataset.scaleName = "卡茨量表";
+            }
+
+            function limparCampos() {
+                katzData.forEach(item => {
+                    document.getElementById(item.nameAttr).selectedIndex = 0;
+                });
+                resultadoDiv.innerHTML = '';
+                resultadoDiv.className = 'resultado hidden';
+                delete resultadoDiv.dataset.score;
+                delete resultadoDiv.dataset.classificacao;
+                delete resultadoDiv.dataset.scaleName;
+            }
+
+            // 动态填充表单
+            katzData.forEach((item, index) => {
+                const sectionDiv = document.createElement('div');
+                sectionDiv.className = 'katz-criterion-card';
+
+                const headerDiv = document.createElement('div');
+                headerDiv.className = 'katz-criterion-header';
+
+                const titleH3 = document.createElement('h3');
+                titleH3.className = 'katz-criterion-title';
+                titleH3.innerText = item.item;
+                headerDiv.appendChild(titleH3);
+
+                sectionDiv.appendChild(headerDiv);
+
+                const optionsDiv = document.createElement('div');
+                optionsDiv.className = 'katz-criterion-options';
+
+                const selectElement = document.createElement('select');
+                selectElement.id = item.nameAttr;
+                selectElement.className = 'katz-select';
+                selectElement.onchange = () => updateScoreDisplay(item.nameAttr);
+
+                const defaultOption = document.createElement('option');
+                defaultOption.value = "";
+                defaultOption.text = "请选择...";
+                defaultOption.disabled = true;
+                defaultOption.selected = true;
+                selectElement.appendChild(defaultOption);
+
+                item.options.forEach(option => {
+                    const optionElement = document.createElement('option');
+                    optionElement.value = option.score;
+                    optionElement.text = `${option.description} (${option.score})`;
+                    selectElement.appendChild(optionElement);
+                });
+
+                optionsDiv.appendChild(selectElement);
+                sectionDiv.appendChild(optionsDiv);
+                conteudoDiv.appendChild(sectionDiv);
+            });
+
+            // 为按钮添加事件监听器
+            btnCalcular?.addEventListener('click', calcularPontuacao);
+            btnLimpar?.addEventListener('click', limparCampos);
+
+            btnGerarPDF?.addEventListener('click', () => {
+                if (!resultadoDiv.dataset.score) {
+                    alert('请先点击"计算"按钮生成PDF。');
+                    return;
+                }
+                if (typeof gerarPDFGlobal === 'function') {
+                    gerarPDFGlobal({
+                        titulo: '卡茨量表',
+                        subtitulo: '基本日常生活活动能力评估报告',
+                        nomeArquivo: 'katz_scale_report.pdf',
+                        seletorConteudo: '.main-content-wrapper'
+                    });
+                } else {
+                    console.error('函数gerarPDFGlobal未定义。');
+                }
+            });
+
+            btnNandaNicNoc?.addEventListener('click', () => {
+                const score = resultadoDiv.dataset.score;
+                const scaleName = resultadoDiv.dataset.scaleName;
+                const classificacao = resultadoDiv.dataset.classificacao;
+                if (!score || !classificacao) {
+                    alert('请先计算结果再搜索护理措施。');
+                    return;
+                }
+                const searchQuery = encodeURIComponent(`${scaleName} 分数 ${score} 分类 ${classificacao} NANDA护理诊断 NIC护理干预 NOC护理结局`);
+                window.open(`https://www.google.com/search?q=${searchQuery}`, '_blank');
+            });
+        });
+    </script>
 
 
 

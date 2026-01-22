@@ -639,7 +639,330 @@
 
 
 
-  
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const resultadoDiv = document.getElementById("resultado");
+      const btnCalcular = document.getElementById("btnCalcular");
+      const btnLimpar = document.getElementById("btnLimpar");
+      const btnGerarPDF = document.getElementById("btnGerarPDF");
+      const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
+      const conteudoDiv = document.getElementById("conteudo");
+
+      // دالة لتحويل الأرقام الغربية إلى أرقام هندية (عربية)
+      function toArabicNumerals(num) {
+        const arabicNumerals = [
+          "٠",
+          "١",
+          "٢",
+          "٣",
+          "٤",
+          "٥",
+          "٦",
+          "٧",
+          "٨",
+          "٩",
+        ];
+        return String(num).replace(/[0-9]/g, (d) => arabicNumerals[d]);
+      }
+
+      // تم ترجمة بيانات مقياس PELOD
+      const pelodData = [
+        {
+          domain: "١. الوظيفة العصبية (مقياس غلاسكو للغيبوبة - GCS)",
+          nameAttr: "neuro",
+          options: [
+            { text: "GCS ١٥", score: 0, arabicScore: "٠" },
+            { text: "GCS ١١-١٤", score: 1, arabicScore: "١" },
+            { text: "GCS ٨-١٠", score: 2, arabicScore: "٢" },
+            { text: "GCS < ٨", score: 3, arabicScore: "٣" },
+          ],
+          subtext: "يقيم مستوى وعي المريض.",
+        },
+        {
+          domain: "٢. الوظيفة التنفسية (PaO2/FiO2 أو الدعم التنفسي)",
+          nameAttr: "resp",
+          options: [
+            {
+              text: "PaO2/FiO2 > ٣٠٠ أو بدون دعم",
+              score: 0,
+              arabicScore: "٠",
+            },
+            {
+              text: "PaO2/FiO2 ٢٠١-٣٠٠ أو أكسجين إضافي",
+              score: 1,
+              arabicScore: "١",
+            },
+            {
+              text: "PaO2/FiO2 ١٠١-٢٠٠ أو تهوية ميكانيكية",
+              score: 2,
+              arabicScore: "٢",
+            },
+            {
+              text: "PaO2/FiO2 ≤ ١٠٠ أو VMI مع PEEP عالي",
+              score: 3,
+              arabicScore: "٣",
+            },
+          ],
+          subtext: "يعكس وظيفة الرئة والحاجة إلى دعم التهوية.",
+        },
+        {
+          domain:
+            "٣. الوظيفة القلبية الوعائية (متوسط ضغط الدم - PAM أو رافعات التوتر الوعائي)",
+          nameAttr: "cardio",
+          options: [
+            {
+              text: "PAM طبيعي للعمر، بدون رافعات توتر وعائي",
+              score: 0,
+              arabicScore: "٠",
+            },
+            {
+              text: "PAM متغير قليلاً أو ١ رافع توتر وعائي",
+              score: 1,
+              arabicScore: "١",
+            },
+            {
+              text: "PAM متغير بشكل متوسط أو ٢ رافع توتر وعائي",
+              score: 2,
+              arabicScore: "٢",
+            },
+            {
+              text: "PAM متغير بشدة أو >٢ رافع توتر وعائي",
+              score: 3,
+              arabicScore: "٣",
+            },
+          ],
+          subtext:
+            "يشير إلى التروية والحالة الديناميكية الدموية، بما في ذلك استخدام الأدوية المؤثرة على الأوعية.",
+        },
+        {
+          domain: "٤. الوظيفة الكلوية (الكرياتينين أو إدرار البول)",
+          nameAttr: "renal",
+          options: [
+            {
+              text: "الكرياتينين طبيعي أو إدرار البول طبيعي",
+              score: 0,
+              arabicScore: "٠",
+            },
+            {
+              text: "الكرياتينين ١.٥x الأساسي أو إدرار البول <١ مل/كغم/ساعة",
+              score: 1,
+              arabicScore: "١",
+            },
+            {
+              text: "الكرياتينين ٢x الأساسي أو إدرار البول <٠.٥ مل/كغم/ساعة",
+              score: 2,
+              arabicScore: "٢",
+            },
+            {
+              text: "الكرياتينين >٢x الأساسي أو انقطاع البول/غسيل الكلى",
+              score: 3,
+              arabicScore: "٣",
+            },
+          ],
+          subtext: "يقيم وظيفة الكلى وإنتاج البول.",
+        },
+        {
+          domain: "٥. الوظيفة الكبدية (البيليروبين الكلي أو INR)",
+          nameAttr: "hepatico",
+          options: [
+            {
+              text: "البيليروبين طبيعي أو INR طبيعي",
+              score: 0,
+              arabicScore: "٠",
+            },
+            {
+              text: "البيليروبين ١.٥x الطبيعي أو INR > ١.٥",
+              score: 1,
+              arabicScore: "١",
+            },
+            {
+              text: "البيليروبين ٢x الطبيعي أو INR > ٢.٠",
+              score: 2,
+              arabicScore: "٢",
+            },
+            {
+              text: "البيليروبين >٢x الطبيعي و INR > ٢.٠",
+              score: 3,
+              arabicScore: "٣",
+            },
+          ],
+          subtext: "مؤشرات لوظيفة الكبد وتخثر الدم.",
+        },
+      ];
+
+      // --- وظائف حاسبة PELOD ---
+      function updateScoreDisplay(criterionId) {
+        const selectElement = document.getElementById(criterionId);
+        const scoreDisplayElement = document.getElementById(
+          `${criterionId}_score_display`,
+        );
+        if (selectElement && scoreDisplayElement) {
+          const score =
+            selectElement.value === ""
+              ? 0
+              : parseInt(selectElement.value, 10);
+          scoreDisplayElement.innerText = toArabicNumerals(score);
+        }
+      }
+
+      function calcularPontuacao() {
+        let totalScore = 0;
+        let allItemsSelected = true;
+
+        pelodData.forEach((item) => {
+          const selectElement = document.getElementById(item.nameAttr);
+          if (selectElement.value === "") {
+            allItemsSelected = false;
+          } else {
+            totalScore += parseInt(selectElement.value, 10);
+          }
+        });
+
+        resultadoDiv.style.display = "block";
+        if (!allItemsSelected) {
+          // تم ترجمة رسالة التحذير
+          resultadoDiv.innerHTML =
+            '⚠️ <strong class="font-bold">يرجى اختيار درجة لكل بند</strong> قبل الحساب.';
+          resultadoDiv.className = "resultado bg-info-orange-light";
+          delete resultadoDiv.dataset.score;
+          return;
+        }
+
+        let grauRisco = "";
+        let resultadoClasse = "";
+
+        // تم ترجمة درجات الخطورة
+        if (totalScore <= 5) {
+          grauRisco = "خطر منخفض لخلل الأعضاء";
+          resultadoClasse = "bg-pelod-baixo";
+        } else if (totalScore <= 10) {
+          grauRisco = "خطر متوسط لخلل الأعضاء";
+          resultadoClasse = "bg-pelod-moderado";
+        } else {
+          grauRisco = "خطر مرتفع لخلل الأعضاء";
+          resultadoClasse = "bg-pelod-alto";
+        }
+
+        // تم ترجمة نصوص النتيجة واستخدام الأرقام العربية
+        resultadoDiv.innerHTML = `<p>مجموع نقاط PELOD: <strong class="font-bold">${toArabicNumerals(totalScore)}</strong></p><p>درجة الخطورة: <strong class="font-bold">${grauRisco}</strong></p>`;
+        resultadoDiv.className = `resultado ${resultadoClasse}`;
+
+        resultadoDiv.dataset.score = totalScore;
+        resultadoDiv.dataset.grauRisco = grauRisco;
+        resultadoDiv.dataset.scaleName = "مقياس PELOD";
+      }
+
+      function limparCampos() {
+        pelodData.forEach((item) => {
+          const selectElement = document.getElementById(item.nameAttr);
+          selectElement.selectedIndex = 0;
+          document.getElementById(
+            `${item.nameAttr}_score_display`,
+          ).innerText = toArabicNumerals(0);
+        });
+        resultadoDiv.innerHTML = "";
+        resultadoDiv.className = "resultado hidden";
+        delete resultadoDiv.dataset.score;
+        delete resultadoDiv.dataset.grauRisco;
+        delete resultadoDiv.dataset.scaleName;
+      }
+
+      // يملأ النموذج ديناميكيًا
+      pelodData.forEach((item, index) => {
+        const sectionDiv = document.createElement("div");
+        sectionDiv.className = "pelod-criterion-card";
+
+        const headerDiv = document.createElement("div");
+        headerDiv.className = "pelod-criterion-header";
+
+        const titleH3 = document.createElement("h3");
+        titleH3.className = "pelod-criterion-title";
+        titleH3.innerText = item.domain;
+        headerDiv.appendChild(titleH3);
+
+        const scoreSpan = document.createElement("span");
+        scoreSpan.className = "pelod-score-display";
+        scoreSpan.id = `${item.nameAttr}_score_display`;
+        scoreSpan.innerText = toArabicNumerals(0);
+        headerDiv.appendChild(scoreSpan);
+
+        sectionDiv.appendChild(headerDiv);
+
+        const optionsDiv = document.createElement("div");
+        optionsDiv.className = "pelod-criterion-options";
+
+        const selectElement = document.createElement("select");
+        selectElement.id = item.nameAttr;
+        selectElement.className = "pelod-select";
+        selectElement.onchange = () => updateScoreDisplay(item.nameAttr);
+
+        const defaultOption = document.createElement("option");
+        defaultOption.value = "";
+        defaultOption.text = "اختر...";
+        defaultOption.disabled = true;
+        defaultOption.selected = true;
+        selectElement.appendChild(defaultOption);
+
+        item.options.forEach((option) => {
+          const optionElement = document.createElement("option");
+          optionElement.value = option.score;
+          optionElement.text = `${option.text} (${option.arabicScore})`; // استخدام الأرقام العربية
+          selectElement.appendChild(optionElement);
+        });
+
+        optionsDiv.appendChild(selectElement);
+        sectionDiv.appendChild(optionsDiv);
+
+        const subtextP = document.createElement("p");
+        subtextP.className = "text-gray-600 text-sm mt-2 text-right";
+        subtextP.innerText = item.subtext;
+        sectionDiv.appendChild(subtextP);
+
+        conteudoDiv.appendChild(sectionDiv);
+      });
+
+      // يضيف مستمعي الأحداث إلى الأزرار
+      btnCalcular?.addEventListener("click", calcularPontuacao);
+      btnLimpar?.addEventListener("click", limparCampos);
+
+      btnGerarPDF?.addEventListener("click", () => {
+        if (!resultadoDiv.dataset.score) {
+          // تم ترجمة التنبيه
+          alert('يرجى النقر فوق "احسب" أولاً لإنشاء ملف PDF.');
+          return;
+        }
+        if (typeof gerarPDFGlobal === "function") {
+          gerarPDFGlobal({
+            titulo: "مقياس PELOD",
+            subtitulo: "تقرير تقييم خلل الأعضاء لدى الأطفال",
+            nomeArquivo: "relatorio_escala_pelod.pdf",
+            seletorConteudo: ".main-content-wrapper",
+          });
+        } else {
+          console.error("الدالة gerarPDFGlobal غير معرفة.");
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener("click", () => {
+        const score = resultadoDiv.dataset.score;
+        const scaleName = resultadoDiv.dataset.scaleName;
+        const grauRisco = resultadoDiv.dataset.grauRisco;
+        if (!score || !grauRisco) {
+          // تم ترجمة التنبيه
+          alert("احسب النتيجة للبحث عن الإجراء.");
+          return;
+        }
+        // تم ترجمة استعلام البحث
+        const searchQuery = encodeURIComponent(
+          `${scaleName} نتيجة ${score} خطر ${grauRisco} إنشاء تصنيف NANDA, إنشاء تصنيف NIC وإنشاء تصنيف NOC`,
+        );
+        window.open(
+          `https://www.google.com/search?q=${searchQuery}`,
+          "_blank",
+        );
+      });
+    });
+  </script>
 
   <script src="../lang-selector.js" defer=""></script>
 

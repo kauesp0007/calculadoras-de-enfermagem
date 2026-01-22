@@ -622,7 +622,294 @@
 
 
 
-  
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const resultadoDiv = document.getElementById('resultado');
+      const btnCalcular = document.getElementById('btnCalcular');
+      const btnLimpar = document.getElementById('btnLimpar');
+      const btnGerarPDF = document.getElementById('btnGerarPDF');
+      const btnNandaNicNoc = document.getElementById('btnNandaNicNoc');
+      const conteudoDiv = document.getElementById('conteudo');
+      const introParagraph = document.getElementById('intro-paragraph');
+      const referenceSection = document.getElementById('reference-section');
+
+      // Dados da escala de Fugulin
+      const fugulinData = [
+        {
+          category: "精神状态",
+          nameAttr: "estado_mental",
+          options: [
+            { description: "无意识", score: 4 },
+            { description: "定向障碍", score: 3 },
+            { description: "混乱", score: 2 },
+            { description: "定向良好", score: 1 },
+          ]
+        },
+        {
+          category: "氧合",
+          nameAttr: "oxigenacao",
+          options: [
+            { description: "机械通气", score: 4 },
+            { description: "面罩吸氧", score: 3 },
+            { description: "鼻导管", score: 2 },
+            { description: "室内空气", score: 1 },
+          ]
+        },
+        {
+          category: "生命体征",
+          nameAttr: "sinais_vitais",
+          options: [
+            { description: "非常危重", score: 4 },
+            { description: "危重", score: 3 },
+            { description: "不稳定", score: 2 },
+            { description: "稳定", score: 1 },
+          ]
+        },
+        {
+          category: "运动能力",
+          nameAttr: "motilidade",
+          options: [
+            { description: "无法移动", score: 4 },
+            { description: "需要帮助移动", score: 3 },
+            { description: "需要监督移动", score: 2 },
+            { description: "独立", score: 1 },
+          ]
+        },
+        {
+          category: "行走",
+          nameAttr: "deambulacao",
+          options: [
+            { description: "不能行走", score: 4 },
+            { description: "需要帮助行走", score: 3 },
+            { description: "需要监督行走", score: 2 },
+            { description: "独立", score: 1 },
+          ]
+        },
+        {
+          category: "进食",
+          nameAttr: "alimentacao",
+          options: [
+            { description: "禁食", score: 4 },
+            { description: "肠外营养", score: 3 },
+            { description: "肠内营养", score: 2 },
+            { description: "经口进食", score: 1 },
+          ]
+        },
+        {
+          category: "身体护理",
+          nameAttr: "cuidado_corporal",
+          options: [
+            { description: "完全依赖", score: 4 },
+            { description: "依赖", score: 3 },
+            { description: "部分辅助", score: 2 },
+            { description: "独立", score: 1 },
+          ]
+        },
+        {
+          category: "排泄",
+          nameAttr: "eliminacao",
+          options: [
+            { description: "失禁", score: 4 },
+            { description: "留置导尿", score: 3 },
+            { description: "部分辅助", score: 2 },
+            { description: "独立", score: 1 },
+          ]
+        },
+        {
+          category: "治疗",
+          nameAttr: "terapeutica",
+          options: [
+            { description: "使用血管活性药物", score: 4 },
+            { description: "通过导管持续静脉输液", score: 3 },
+            { description: "间歇静脉输液", score: 2 },
+            { description: "肌注或口服", score: 1 },
+          ]
+        },
+        {
+          category: "换药时间",
+          nameAttr: "tempo_curativo",
+          options: [
+            { description: "15到30分钟", score: 4 },
+            { description: "5到15分钟", score: 3 },
+            { description: "少于5分钟", score: 2 },
+            { description: "无敷料", score: 1 },
+          ]
+        },
+        {
+          category: "敷料",
+          nameAttr: "curativo",
+          options: [
+            { description: "每天3次", score: 4 },
+            { description: "每天2次", score: 3 },
+            { description: "每天1次", score: 2 },
+            { description: "无敷料", score: 1 },
+          ]
+        },
+        {
+          category: "皮肤黏膜完整性/组织损伤",
+          nameAttr: "integridade",
+          options: [
+            { description: "广泛", score: 4 },
+            { description: "中度", score: 3 },
+            { description: "轻微", score: 2 },
+            { description: "无", score: 1 },
+          ]
+        }
+      ];
+
+      // Preenche o formulário dinamicamente
+      fugulinData.forEach((item, index) => {
+        const sectionDiv = document.createElement('div');
+        sectionDiv.className = 'fugulin-criterion-section';
+        sectionDiv.id = `section-${item.nameAttr}`;
+
+        const titleH3 = document.createElement('h3');
+        titleH3.className = 'fugulin-criterion-title';
+        titleH3.innerText = item.category;
+        sectionDiv.appendChild(titleH3);
+
+        const selectElement = document.createElement('select');
+        selectElement.id = item.nameAttr;
+        selectElement.className = 'fugulin-criterion-select';
+
+        const defaultOption = document.createElement('option');
+        defaultOption.value = "";
+        defaultOption.text = "请选择...";
+        selectElement.appendChild(defaultOption);
+
+        item.options.forEach(option => {
+          const optionElement = document.createElement('option');
+          optionElement.value = option.score;
+          optionElement.text = `${option.description} (${option.score})`;
+          selectElement.appendChild(optionElement);
+        });
+
+        sectionDiv.appendChild(selectElement);
+        conteudoDiv.appendChild(sectionDiv);
+      });
+
+      function calcularFugulin() {
+        const selects = document.querySelectorAll('#conteudo select');
+        let allSelected = true;
+        let total = 0;
+
+        selects.forEach(select => {
+          if (select.value === "") {
+            allSelected = false;
+          }
+          total += Number(select.value);
+        });
+
+        resultadoDiv.style.display = "block";
+        if (!allSelected) {
+          resultadoDiv.innerHTML = '⚠️ <strong class="font-bold">请在计算前为所有项目选择选项。</strong>';
+          resultadoDiv.classList.add('bg-info-orange-light');
+          resultadoDiv.classList.remove('bg-red-100', 'bg-blue-50');
+          delete resultadoDiv.dataset.score;
+          return;
+        }
+
+        let classificacao = '';
+        let resultadoClasse = '';
+
+        if (total >= 31) {
+          classificacao = '非常高复杂性';
+          resultadoClasse = 'bg-red-100';
+        } else if (total >= 24) {
+          classificacao = '高复杂性';
+          resultadoClasse = 'bg-red-100';
+        } else if (total >= 17) {
+          classificacao = '中复杂性';
+          resultadoClasse = 'bg-blue-50';
+        } else if (total >= 10) {
+          classificacao = '低复杂性';
+          resultadoClasse = 'bg-blue-50';
+        } else {
+          classificacao = '最低复杂性';
+          resultadoClasse = 'bg-blue-50';
+        }
+
+        resultadoDiv.innerHTML = `<p>总分： <strong class="font-bold">${total}</strong></p><p>分类： <strong class="font-bold">${classificacao}</strong></p>`;
+        resultadoDiv.className = `resultado ${resultadoClasse}`;
+        resultadoDiv.style.display = "block";
+
+        resultadoDiv.dataset.score = total;
+        resultadoDiv.dataset.scaleName = "Fugulin量表";
+        resultadoDiv.dataset.classificacao = classificacao;
+      }
+
+      function limparCampos() {
+        const selects = document.querySelectorAll('#conteudo select');
+        selects.forEach(select => {
+          select.selectedIndex = 0;
+        });
+        resultadoDiv.innerHTML = '';
+        resultadoDiv.className = 'resultado hidden';
+        delete resultadoDiv.dataset.score;
+        delete resultadoDiv.dataset.scaleName;
+        delete resultadoDiv.dataset.classificacao;
+      }
+
+      // Adiciona os event listeners aos botões
+      btnCalcular?.addEventListener('click', calcularFugulin);
+      btnLimpar?.addEventListener('click', limparCampos);
+
+      btnGerarPDF?.addEventListener('click', () => {
+        if (!resultadoDiv.dataset.score) {
+          alert('请先点击"计算分数"以生成PDF。');
+          return;
+        }
+        if (typeof gerarPDFGlobal === 'function') {
+          gerarPDFGlobal({
+            titulo: 'Fugulin量表',
+            subtitulo: '护理复杂性评估报告',
+            nomeArquivo: 'relatorio_escala_fugulin.pdf',
+            seletorConteudo: '.main-content-wrapper'
+          });
+        } else {
+          console.error('Função gerarPDFGlobal não definida.');
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener('click', () => {
+        const score = resultadoDiv.dataset.score;
+        const scaleName = resultadoDiv.dataset.scaleName;
+        const classificacao = resultadoDiv.dataset.classificacao;
+        if (!score || !classificacao) {
+          alert('请先计算结果以搜索护理措施。');
+          return;
+        }
+        const searchQuery = encodeURIComponent(`${scaleName} 分数 ${score} generate NANDA taxonomy generate NIC taxonomy generate NOC taxonomy`);
+        window.open(`https://www.google.com/search?q=${searchQuery}`, '_blank');
+      });
+      // Botão "Adicionar aos favoritos"
+      const addFavoriteBtn = document.getElementById('addFavoriteBtn');
+      if (addFavoriteBtn) {
+        addFavoriteBtn.addEventListener('click', () => {
+          const url = window.location.href;
+          const title = "Fugulin量表";
+
+          try {
+            // IE/Edge Legacy
+            if (window.external && ("AddFavorite" in window.external)) {
+              window.external.AddFavorite(url, title);
+              return;
+            }
+            // Firefox antigo
+            if (window.sidebar && window.sidebar.addPanel) {
+              window.sidebar.addPanel(title, url, "");
+              return;
+            }
+            // Chrome/Firefox modernos: instrução de atalho
+            alert("按 Ctrl + D（或 Mac 上的 Cmd + D）将此页面添加到收藏夹。");
+          } catch (e) {
+            alert("按 Ctrl + D（或 Mac 上的 Cmd + D）将此页面添加到收藏夹。");
+          }
+        });
+      }
+
+    });
+  </script>
 
 
 

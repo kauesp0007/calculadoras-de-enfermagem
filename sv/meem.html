@@ -1000,7 +1000,446 @@
 
 
 
-  
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      // --- INÍCIO DA LÓGICA DA SIDEBAR ---
+      const toggleSidebarBtn = document.getElementById("toggleSidebarBtn");
+      const closeSidebarBtn = document.getElementById("closeSidebarBtn");
+      const sidebarOverlay = document.getElementById("sidebarOverlay");
+      const infoSidebar = document.getElementById("infoSidebar");
+
+      function openSidebar() {
+        if (infoSidebar && sidebarOverlay && toggleSidebarBtn) {
+          infoSidebar.classList.add("open");
+          sidebarOverlay.classList.add("open");
+          infoSidebar.setAttribute("aria-hidden", "false");
+          toggleSidebarBtn.setAttribute("aria-expanded", "true");
+          document.body.style.overflow = "hidden"; // Impede o scroll da página principal
+        }
+      }
+
+      function closeSidebar() {
+        if (infoSidebar && sidebarOverlay && toggleSidebarBtn) {
+          infoSidebar.classList.remove("open");
+          sidebarOverlay.classList.remove("open");
+          infoSidebar.setAttribute("aria-hidden", "true");
+          toggleSidebarBtn.setAttribute("aria-expanded", "false");
+          document.body.style.overflow = ""; // Restaura o scroll
+        }
+      }
+
+      toggleSidebarBtn?.addEventListener("click", openSidebar);
+      closeSidebarBtn?.addEventListener("click", closeSidebar);
+      sidebarOverlay?.addEventListener("click", closeSidebar);
+      // --- FIM DA LÓGICA DA SIDEBAR ---
+
+      // --- LÓGICA DO BOTÃO SCROLL (DIREITA) ---
+      const scrollToCalcBtn = document.getElementById("scrollToCalcBtn");
+      scrollToCalcBtn?.addEventListener("click", function () {
+        const firstSection = document.getElementById("orientacaoTemporal");
+        if (firstSection) {
+          // Rola até o elemento pai (o card) para melhor visualização
+          const parentCard = firstSection.closest('.meem-criterion-card');
+          (parentCard || firstSection).scrollIntoView({ behavior: "smooth", block: "start" });
+        } else {
+          const conteudo = document.getElementById("conteudo");
+          if (conteudo) {
+            conteudo.scrollIntoView({ behavior: "smooth", block: "start" });
+          }
+        }
+      });
+
+      const resultadoDiv = document.getElementById("resultado");
+      const btnCalcular = document.getElementById("btnCalcular");
+      const btnLimpar = document.getElementById("btnLimpar");
+      const btnGerarPDF = document.getElementById("btnGerarPDF");
+      const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
+      const conteudoDiv = document.getElementById("conteudo");
+
+      const meemData = [
+        {
+          domain: "Temporal orientering",
+          nameAttr: "orientacaoTemporal",
+          instructions:
+            "Fråga patienten om a) veckodag (1 poäng); b) dag i månaden (1 poäng); c) månad (1 poäng); d) ungefärlig tid (1 poäng) . Poäng 1 för varje korrekt svar (max: 5 poäng).",
+          scoreOptions: [
+            { score: 0, description: "0 rätta svar" },
+            { score: 1, description: "1 rätt svar" },
+            { score: 2, description: "2 rätta svar" },
+            { score: 3, description: "3 rätta svar" },
+            { score: 4, description: "4 rätta svar" },
+            { score: 5, description: "5 rätta svar" }]
+
+        },
+        {
+          domain: "Spatial orientering",
+          nameAttr: "orientacaoEspacial",
+          instructions:
+            "Fråga patienten om A) Var hen befinner sig för tillfället (1 poäng); B) Gata (1 poäng); C) Grannskap (1 poäng); D) Stad (1 poäng); E) Land (1 poäng). Poäng 1 för varje korrekt svar (max: 5 poäng).",
+          scoreOptions: [
+            { score: 0, description: "0 rätta svar" },
+            { score: 1, description: "1 rätt svar" },
+            { score: 2, description: "2 rätta svar" },
+            { score: 3, description: "3 rätta svar" },
+            { score: 4, description: "4 rätta svar" },
+            { score: 5, description: "5 rätta svar" }]
+
+        },
+        {
+          domain: "Registro",
+          nameAttr: "registro",
+          instructions:
+            "Nämn 3 ord och ta 1 sekund för varje ord. Be patienten att upprepa de 3 ord du nämnde. Ge 1 poäng för varje ord som upprepas korrekt vid första försöket (max: 3 poäng) EX: \"Apple, Table, Dollar\".",
+          scoreOptions: [
+            { score: 0, description: "0 ord upprepade korrekt" },
+            { score: 1, description: "1 ord upprepat korrekt" },
+            { score: 2, description: "2 ord upprepade korrekt" },
+            { score: 3, description: "3 ord upprepade korrekt" }]
+
+        },
+        {
+          domain: "Uppmärksamhet och kalkylering",
+          nameAttr: "uppmärksamhetBeräkning",
+          instructions:
+            "Fråga först patienten om han/hon kan subtrahera (-), om så är fallet, be honom/henne subtrahera 7 från 100 (93) och fortsätt att subtrahera resultatet med 7... 7 av 93 (86)... 7 av 86 (79)... 7 av 79 (72)... 7 av 72 (65)... 7 av 65 (58).... Poäng 1 för varje korrekt subtraktion (Max: 5 poäng)",
+          scoreOptions: [
+            { score: 0, description: "0 korrekta subtraktioner" },
+            { score: 1, description: "1 korrekt subtraktion" },
+            { score: 2, description: "2 korrekta subtraktioner" },
+            { score: 3, description: "3 korrekta subtraktioner" },
+            { score: 4, description: "4 korrekta subtraktioner" },
+            { score: 5, description: "5 korrekta subtraktioner" }]
+
+        },
+        {
+          domain: "Återkalla minne",
+          nameAttr: "memoriaEvocacao",
+          instructions:
+            "Be om namnen på 3 inlärda ord som nämndes i punkt 3 (Inspelning). Poäng 1 för varje ord som nämns korrekt (Maximum: 3 poäng).",
+          scoreOptions: [
+            { score: 0, description: "0 ord korrekt framkallade" },
+            { score: 1, description: "1 ord korrekt framkallat" },
+            { score: 2, description: "2 ord korrekt framkallade" },
+            { score: 3, description: "3 ord korrekt framkallade" }]
+
+        },
+        {
+          domain: "Språk (namngivning)",
+          nameAttr: "nomeacao",
+          instructions:
+            "Peka på en penna och en klocka. Be patienten att namnge dessa föremål när du pekar på dem. Poäng 1 för varje korrekt benämnt föremål (max: 2 poäng).",
+          scoreOptions: [
+            { score: 0, description: "0 objekt namngivna korrekt" },
+            { score: 1, description: "1 korrekt namngivet objekt" },
+            { score: 2, description: "2 korrekt namngivna objekt" }]
+
+        },
+        {
+          domain: "Språk (upprepning)",
+          nameAttr: "repeticao",
+          instructions:
+            "Be patienten upprepa frasen: \"Varken här, eller där, eller där\". Om patienten upprepar frasen korrekt får han/hon 1 poäng (max: 1 poäng).",
+          scoreOptions: [
+            { score: 0, description: "Upprepade inte korrekt." },
+            { score: 1, description: "Upprepad korrekt." }]
+
+        },
+        {
+          domain: "Språk (Förståelse)",
+          nameAttr: "compreensao",
+          instructions:
+            "Patienten måste utföra det kommando som har getts...Ge patienten ett pappersark och säg: \"Ta det här pappersarket i din högra hand (poäng), vik det på mitten (1 poäng) och lägg det på golvet (1 poäng)\". Poäng 1 för varje korrekt steg (max: 3 poäng).",
+          scoreOptions: [
+            { score: 0, description: "0 korrekta etapper" },
+            { score: 1, description: "1 korrekt steg" },
+            { score: 2, description: "2 korrekta etapper" },
+            { score: 3, description: "3 korrekta steg" }]
+
+        },
+        {
+          domain: "Linguagem (Escrita)",
+          nameAttr: "escrita",
+          instructions:
+            "Be patienten att skriva en fullständig mening som är begriplig. Poäng 1 om meningen är begriplig (max: 1 poäng).",
+          scoreOptions: [
+            { score: 0, description: "Han skrev inte en mening som var logisk." },
+            { score: 1, description: "Skrev en meningsfull mening." }]
+
+        },
+        {
+          domain: "Linguagem (Leitura)",
+          nameAttr: "leitura",
+          instructions:
+            "Skriv på ett papper: SLUT DINA ÖGON, ge papperet till patienten och be honom/henne läsa och utföra instruktionen: \"SLUT DINA ÖGON\". Poäng 1 om patienten läste och utförde instruktionen korrekt (Maximum: 1 poäng).",
+          scoreOptions: [
+            {
+              score: 0,
+              description: "Läste och/eller utförde inte korrekt"
+            },
+            { score: 1, description: "Läst och utfört korrekt." }]
+
+        },
+        {
+          domain: "Praxia Construtiva",
+          nameAttr: "praxiaConstrutiva",
+          instructions:
+            "Rita två sammankopplade pentagoner, visa dem för patienten och be dem kopiera dem på ett pappersark. Poäng 1 om de har kopierat korrekt (max: 1 poäng).",
+          type: "image",
+          imageSrc: "/pentagono.webp", // CORRIGIDO: Caminho relativo à raiz
+          scoreOptions: [
+            { score: 0, description: "Kopierade inte korrekt." },
+            { score: 1, description: "Kopierat korrekt" }]
+
+        }];
+
+
+      // --- Funções da Calculadora MEEM ---
+      function updateScoreDisplay(criterionId) {
+        const selectElement = document.getElementById(criterionId);
+        const scoreDisplayElement = document.getElementById(
+          `${criterionId}_score_display`
+        );
+        if (selectElement && scoreDisplayElement) {
+          scoreDisplayElement.innerText =
+            selectElement.value === "" ? "0" : selectElement.value;
+        }
+      }
+
+      function calcularPontuacao() {
+        let totalScore = 0;
+        let allItemsSelected = true;
+
+        meemData.forEach((item) => {
+          const selectElement = document.getElementById(item.nameAttr);
+          if (selectElement.value === "") {
+            allItemsSelected = false;
+          } else {
+            totalScore += parseInt(selectElement.value, 10);
+          }
+        });
+
+        resultadoDiv.style.display = "block";
+        if (!allItemsSelected) {
+          resultadoDiv.innerHTML =
+            '⚠️ <strong class="font-bold">Por favor, selecione uma pontuação para cada item</strong> antes de calcular.';
+          resultadoDiv.className = "bg-info-orange-ljus resultat";
+          delete resultadoDiv.dataset.score;
+          return;
+        }
+
+        let classificacao = "";
+        let resultadoClasse = "";
+
+        if (totalScore >= 25) {
+          classificacao =
+            "Ingen kognitiv funktionsnedsättning upptäcktes i detta test.";
+          resultadoClasse = "bg-meem-normal";
+        } else if (totalScore >= 21 && totalScore <= 24) {
+          classificacao =
+            "Mild kognitiv funktionsnedsättning som visas i detta test.";
+          resultadoClasse = "bg-meem-leve";
+        } else if (totalScore >= 10 && totalScore <= 20) {
+          classificacao =
+            "Måttlig kognitiv funktionsnedsättning observerades i detta test.";
+          resultadoClasse = "bg-meem-moderado";
+        } else if (totalScore >= 0 && totalScore <= 9) {
+          classificacao =
+            "Allvarlig kognitiv funktionsnedsättning påvisades i detta test.";
+          resultadoClasse = "bg-meem-grave";
+        } else {
+          classificacao = "Ogiltig poäng";
+          resultadoClasse = "bg-info-orange-light";
+        }
+
+        resultadoDiv.innerHTML = `<p>Pontuação Total do Mini-Exame do Estado Mental (MEEM): <strong class="font-bold">${totalScore}</strong></p><p>Classificação: <strong class="font-bold">${classificacao}</strong></p>`;
+        resultadoDiv.className = `resultat ${resultadoClasse}`;
+
+        resultadoDiv.dataset.score = totalScore;
+        resultadoDiv.dataset.classificacao = classificacao;
+        resultadoDiv.dataset.scaleName = "Mini-Exame do Estado Mental (MEEM)";
+      }
+
+      function limparCampos() {
+        const selects = document.querySelectorAll("#conteudo select");
+        const pdfTexts = document.querySelectorAll(
+          ".selected-option-for-pdf"
+        );
+        selects.forEach((select) => {
+          select.selectedIndex = 0;
+          // Dispara o evento onchange para resetar o score display e o texto do PDF
+          select.dispatchEvent(new Event("change"));
+        });
+        pdfTexts.forEach((textEl) => {
+          textEl.innerText = ""; // Limpa o texto do PDF
+        });
+        resultadoDiv.innerHTML = "";
+        resultadoDiv.className = "dolt resultat";
+        delete resultadoDiv.dataset.score;
+        delete resultadoDiv.dataset.classificacao;
+        delete resultadoDiv.dataset.scaleName;
+      }
+
+      // Preenche o formulário dinamicamente
+      meemData.forEach((item, index) => {
+        const sectionDiv = document.createElement("div");
+        sectionDiv.className = "meem-criterion-card";
+
+        const headerDiv = document.createElement("div");
+        headerDiv.className = "meem-criterion-header";
+
+        const titleH3 = document.createElement("h3");
+        titleH3.className = "meem-criterion-title";
+        titleH3.innerText = item.domain;
+        headerDiv.appendChild(titleH3);
+
+        const scoreSpan = document.createElement("span");
+        scoreSpan.className = "meem-score-display";
+        scoreSpan.id = `${item.nameAttr}_score_display`;
+        scoreSpan.innerText = "0";
+        headerDiv.appendChild(scoreSpan);
+
+        sectionDiv.appendChild(headerDiv);
+
+        const instructionsP = document.createElement("p");
+        instructionsP.className = "text-gray-700 mb-4 text-left";
+        instructionsP.innerText = item.instructions;
+        sectionDiv.appendChild(instructionsP);
+
+        if (item.type === "image" && item.imageSrc) {
+          const imgDiv = document.createElement("div");
+          imgDiv.className = "image-cell mb-4 text-center";
+          const img = document.createElement("img");
+          img.src = item.imageSrc; // O caminho já está relativo à raiz
+          img.alt = `Diagram för ${item.domain}`;
+          img.classList.add(
+            "w-auto",
+            "h-auto",
+            "max-w-[200px]",
+            "mx-auto",
+            "rounded-md",
+            "shadow-sm"
+          );
+          imgDiv.appendChild(img);
+          sectionDiv.appendChild(imgDiv);
+        }
+
+        const optionsDiv = document.createElement("div");
+        optionsDiv.className = "meem-criterion-options";
+
+        const selectElement = document.createElement("select");
+        selectElement.id = item.nameAttr;
+        selectElement.className = "meem-select";
+
+        // PDF FIX: Cria o elemento de texto para o PDF
+        const pdfSelectionText = document.createElement("p");
+        pdfSelectionText.id = `${item.nameAttr}_pdf_selection`;
+        pdfSelectionText.className = "selected-option-for-pdf";
+
+        // PDF FIX: Atualiza o score E o texto do PDF no evento onchange
+        selectElement.onchange = () => {
+          updateScoreDisplay(item.nameAttr);
+          const selectedIndex = selectElement.selectedIndex;
+          if (selectedIndex > 0) {
+            // Maior que 0 para ignorar o "Selecione..."
+            const selectedText = selectElement.options[selectedIndex].text;
+            pdfSelectionText.innerText = `Urval: ${selectedText}`;
+          } else {
+            pdfSelectionText.innerText = ""; // Limpa se voltar para "Selecione..."
+          }
+        };
+
+        const defaultOption = document.createElement("option");
+        defaultOption.value = "";
+        defaultOption.text = "Välja...";
+        defaultOption.disabled = true;
+        defaultOption.selected = true;
+        selectElement.appendChild(defaultOption);
+
+        item.scoreOptions.forEach((option) => {
+          const optionElement = document.createElement("option");
+          optionElement.value = option.score;
+          optionElement.text = `${option.description} (${option.score})`;
+          selectElement.appendChild(optionElement);
+        });
+
+        optionsDiv.appendChild(selectElement);
+        optionsDiv.appendChild(pdfSelectionText); // PDF FIX: Adiciona o elemento de texto
+        sectionDiv.appendChild(optionsDiv);
+        conteudoDiv.appendChild(sectionDiv);
+      });
+
+      // Adiciona os event listeners aos botões
+      btnCalcular?.addEventListener("click", calcularPontuacao);
+      btnLimpar?.addEventListener("click", limparCampos);
+
+      btnGerarPDF?.addEventListener("click", () => {
+        if (!resultadoDiv.dataset.score) {
+          alert('Klicka först på "Beräkna" för att generera PDF-filen.');
+          return;
+        }
+        if (typeof gerarPDFGlobal === "function") {
+          gerarPDFGlobal({
+            titulo: "Mini-Mental State Examination (MMSE)",
+            subtitulo: "Kognitiv screeningsrapport",
+            nomeArquivo: "relatorio_escala_meem.pdf",
+            seletorConteudo: ".main-content-wrapper"
+          });
+        } else {
+          console.error(
+            "Funktionen generatePDFGlobal är inte definierad. Kontrollera att global-scripts.js laddas."
+          );
+          alert(
+            "Fel vid generering av PDF. Kontrollera konsolen för mer information."
+          );
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener("click", () => {
+        const score = resultadoDiv.dataset.score;
+        const scaleName = resultadoDiv.dataset.scaleName;
+        const classificacao = resultadoDiv.dataset.classificacao;
+        if (!score || !classificacao) {
+          alert("Beräkna resultatet för att undersöka beteendet.");
+          return;
+        }
+        const searchQuery = encodeURIComponent(
+          `${scaleName} poäng ${score} Klassificering ${classificacao} gerar taxonomia NANDA, gerar taxonomia NIC e gerar taxonomia de NOC`
+        );
+        window.open(
+          `https://www.google.com/search?q=${searchQuery}`,
+          "_blank"
+        );
+      });
+      // Botão "Adicionar aos favoritos"
+      const addFavoriteBtn = document.getElementById("addFavoriteBtn");
+      if (addFavoriteBtn) {
+        addFavoriteBtn.addEventListener("click", () => {
+          const url = window.location.href;
+          const title = "Meem-skalan";
+
+          try {
+            // IE/Edge Legacy
+            if (window.external && "AddFavorite" in window.external) {
+              window.external.AddFavorite(url, title);
+              return;
+            }
+            // Firefox antigo
+            if (window.sidebar && window.sidebar.addPanel) {
+              window.sidebar.addPanel(title, url, "");
+              return;
+            }
+            // Chrome/Firefox modernos: instrução de atalho
+            alert(
+              "Tryck Ctrl + D (eller Cmd + D på en Mac) för att lägga till den här sidan i dina favoriter."
+            );
+          } catch (e) {
+            alert(
+              "Tryck Ctrl + D (eller Cmd + D på en Mac) för att lägga till den här sidan i dina favoriter."
+            );
+          }
+        });
+      }
+    });</script>
 
   <!-- CORRIGIDO: Caminho relativo à raiz -->
   <script src="/lang-selector.js" defer=""></script>

@@ -693,7 +693,122 @@
 
 
 
-  
+  <script>
+    // Referencias a los elementos del DOM
+    const resultadoDiv = document.getElementById('resultado');
+    const btnCalcular = document.getElementById('btnCalcular');
+    const btnLimpar = document.getElementById('btnLimpar');
+    const btnGerarPDF = document.getElementById('btnGerarPDF');
+    const btnNandaNicNoc = document.getElementById('btnNandaNicNoc');
+
+    // Función para actualizar la puntuación mostrada y recalcular el total de Glasgow
+    function updateScoreAndCalculate(criterionName) {
+      const selectElement = document.getElementById(`${criterionName}_select`);
+      const scoreDisplayElement = document.getElementById(`${criterionName}_score_display`);
+
+      if (selectElement && scoreDisplayElement) {
+        scoreDisplayElement.innerText = selectElement.value;
+      }
+      calcularEscala();
+    }
+
+    // Función para calcular la puntuación total de Glasgow
+    function calcularEscala() {
+      const ocular = parseInt(document.getElementById("ocular_select").value);
+      const verbal = parseInt(document.getElementById("verbal_select").value);
+      const motora = parseInt(document.getElementById("motora_select").value);
+      const pupilar = parseInt(document.getElementById("pupilar_select").value);
+      const total = ocular + verbal + motora + pupilar;
+      let interpretacion = "";
+      let isRisky = false;
+
+      if (total >= 13) {
+        interpretacion = "Nivel de conciencia: Leve";
+      } else if (total >= 9) {
+        interpretacion = "Nivel de conciencia: Moderado";
+        isRisky = true;
+      } else {
+        interpretacion = "Nivel de conciencia: Grave";
+        isRisky = true;
+      }
+
+      const resultadoDiv = document.getElementById("resultado");
+      resultadoDiv.innerHTML = `<p><strong>Puntuación Total:</strong> <span class="font-bold">${total}</span> puntos</p><p><strong>${interpretacion}</strong></p>`;
+      resultadoDiv.style.display = "block";
+
+      if (isRisky) {
+        resultadoDiv.classList.add('text-red-600', 'bg-red-100');
+        resultadoDiv.classList.remove('text-dark-blue', 'bg-blue-50');
+      } else {
+        resultadoDiv.classList.remove('text-red-600', 'bg-red-100');
+        resultadoDiv.classList.add('text-dark-blue', 'bg-blue-50');
+      }
+      resultadoDiv.dataset.score = total;
+      resultadoDiv.dataset.interpretacion = interpretacion;
+      resultadoDiv.dataset.scaleName = "Escala de Coma de Glasgow";
+    }
+
+    // Función para limpiar todos los campos y el resultado
+    function limparCampos() {
+      document.getElementById('ocular_select').selectedIndex = 0;
+      document.getElementById('verbal_select').selectedIndex = 0;
+      document.getElementById('motora_select').selectedIndex = 0;
+      document.getElementById('pupilar_select').selectedIndex = 0;
+
+      document.getElementById('ocular_score_display').innerText = document.getElementById('ocular_select').value;
+      document.getElementById('verbal_score_display').innerText = document.getElementById('verbal_select').value;
+      document.getElementById('motora_score_display').innerText = document.getElementById('motora_select').value;
+      document.getElementById('pupilar_score_display').innerText = document.getElementById('pupilar_select').value;
+
+      const resultadoDiv = document.getElementById('resultado');
+      resultadoDiv.innerHTML = '';
+      resultadoDiv.className = 'resultado hidden';
+      delete resultadoDiv.dataset.score;
+      delete resultadoDiv.dataset.interpretacion;
+      delete resultadoDiv.dataset.scaleName;
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      // Añade eventos a los botones
+      btnCalcular?.addEventListener('click', calcularEscala);
+      btnLimpar?.addEventListener('click', limparCampos);
+      btnGerarPDF?.addEventListener('click', () => {
+        if (!resultadoDiv.dataset.score) {
+          alert('Por favor, haga clic en "Calcular Puntuación" primero para generar el PDF.');
+          return;
+        }
+        if (typeof gerarPDFGlobal === 'function') {
+          const mainContent = document.querySelector('.main-content-wrapper');
+          gerarPDFGlobal({
+            titulo: 'Escala de Coma de Glasgow',
+            subtitulo: 'Informe de Evaluación del Nivel de Conciencia',
+            nombreArchivo: 'informe_escala_glasgow.pdf',
+            selectorContenido: '.main-content-wrapper'
+          });
+        } else {
+          console.error('Función gerarPDFGlobal no definida.');
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener('click', () => {
+        const score = resultadoDiv.dataset.score;
+        const scaleName = resultadoDiv.dataset.scaleName;
+        const interpretacion = resultadoDiv.dataset.interpretacion;
+        if (!score || !interpretacion) {
+          alert('Calcule el resultado para buscar la conducta.');
+          return;
+        }
+        const searchQuery = encodeURIComponent(`${scaleName} puntuación ${score} generar taxonomía NANDA, generar taxonomía NIC y generar taxonomía de NOC`);
+        window.open(`https://www.google.com/search?q=${searchQuery}`, '_blank');
+      });
+
+      // Inicializa las puntuaciones y calcula el total al cargar la página
+      updateScoreAndCalculate('ocular');
+      updateScoreAndCalculate('verbal');
+      updateScoreAndCalculate('motora');
+      updateScoreAndCalculate('pupilar');
+    });
+  </script>
 
 
 

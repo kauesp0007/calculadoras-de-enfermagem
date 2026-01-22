@@ -644,7 +644,217 @@
 
 
 
-  
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const resultadoDiv = document.getElementById('resultado');
+      const btnCalcular = document.getElementById('btnCalcular');
+      const btnLimpar = document.getElementById('btnLimpar');
+      const btnGerarPDF = document.getElementById('btnGerarPDF');
+      const btnNandaNicNoc = document.getElementById('btnNandaNicNoc');
+      const conteudoDiv = document.getElementById('conteudo');
+
+      const curbData = [
+        {
+          title: "意识模糊",
+          nameAttr: "confusao",
+          explain: "患者是否出现时间、地点或人物定向力障碍？",
+          options: [
+            { description: "是", score: 1 },
+            { description: "否", score: 0 }
+          ]
+        },
+        {
+          title: "尿素 ≥ 50 mg/dL",
+          nameAttr: "ureia",
+          explain: "患者血液中的尿素水平是否在50 mg/dL或以上？",
+          options: [
+            { description: "是", score: 1 },
+            { description: "否", score: 0 }
+          ]
+        },
+        {
+          title: "呼吸频率 ≥ 30/分",
+          nameAttr: "respiracao",
+          explain: "患者的呼吸频率是否在每分钟30次或以上？",
+          options: [
+            { description: "是", score: 1 },
+            { description: "否", score: 0 }
+          ]
+        },
+        {
+          title: "血压",
+          nameAttr: "pressao_arterial",
+          explain: "收缩压是否小于90 mmHg或舒张压是否小于60 mmHg？",
+          options: [
+            { description: "是", score: 1 },
+            { description: "否", score: 0 }
+          ]
+        },
+        {
+          title: "年龄 ≥ 65岁",
+          nameAttr: "idade",
+          explain: "患者是否在65岁或以上？",
+          options: [
+            { description: "是", score: 1 },
+            { description: "否", score: 0 }
+          ]
+        }
+      ];
+
+      // Preenche o formulário dinamicamente
+      curbData.forEach(item => {
+        const sectionDiv = document.createElement('div');
+        sectionDiv.className = 'curb-criterion-section';
+        sectionDiv.id = `section-${item.nameAttr}`;
+
+        const titleH3 = document.createElement('h3');
+        titleH3.className = 'curb-criterion-title';
+        titleH3.innerHTML = item.title;
+        sectionDiv.appendChild(titleH3);
+
+        const explainP = document.createElement('p');
+        explainP.className = 'curb-criterion-explain';
+        explainP.innerHTML = item.explain;
+        sectionDiv.appendChild(explainP);
+
+        const selectElement = document.createElement('select');
+        selectElement.id = item.nameAttr;
+        selectElement.className = 'curb-criterion-select mt-2';
+
+        const defaultOption = document.createElement('option');
+        defaultOption.value = "";
+        defaultOption.text = "请选择...";
+        selectElement.appendChild(defaultOption);
+
+        item.options.forEach(option => {
+          const optionElement = document.createElement('option');
+          optionElement.value = option.score;
+          optionElement.text = `${option.description} (得分: ${option.score})`;
+          selectElement.appendChild(optionElement);
+        });
+
+        sectionDiv.appendChild(selectElement);
+        conteudoDiv.appendChild(sectionDiv);
+      });
+
+      function calcularCurb() {
+        const selects = document.querySelectorAll('#conteudo select');
+        let allSelected = true;
+        let total = 0;
+
+        selects.forEach(select => {
+          if (select.value === "") {
+            allSelected = false;
+            select.classList.add('incomplete');
+          } else {
+            select.classList.remove('incomplete');
+            total += Number(select.value);
+          }
+        });
+
+        resultadoDiv.style.display = "block";
+        if (!allSelected) {
+          resultadoDiv.innerHTML = '⚠️ <strong class="font-bold">请在计算前为所有项目选择选项。</strong>';
+          resultadoDiv.className = `resultado bg-red-100`;
+          delete resultadoDiv.dataset.score;
+          return;
+        }
+
+        let recomendacao = '';
+
+        if (total <= 1) {
+          recomendacao = `得分${total}分表明低死亡风险。可以考虑门诊治疗。`;
+        } else if (total === 2) {
+          recomendacao = `得分${total}分表明中等死亡风险。建议住院进行严格监护。`;
+        } else { // total >= 3
+          recomendacao = `得分${total}分表明高死亡风险。应考虑住院和入住ICU。`;
+        }
+
+        resultadoDiv.innerHTML = `
+                <p>总分：<strong class="font-bold">${total}</strong></p>
+                <p class="mt-4"><strong>建议：</strong> ${recomendacao}</p>
+            `;
+        resultadoDiv.className = `resultado bg-blue-50`;
+        resultadoDiv.style.display = "block";
+
+        resultadoDiv.dataset.score = total;
+        resultadoDiv.dataset.scaleName = "CURB-65评分";
+      }
+
+      function limparCampos() {
+        const selects = document.querySelectorAll('#conteudo select');
+        selects.forEach(select => {
+          select.selectedIndex = 0;
+          select.classList.remove('incomplete');
+        });
+        resultadoDiv.innerHTML = '';
+        resultadoDiv.className = 'resultado hidden';
+        delete resultadoDiv.dataset.score;
+        delete resultadoDiv.dataset.scaleName;
+      }
+
+      // Adiciona os event listeners aos botões
+      btnCalcular?.addEventListener('click', calcularCurb);
+      btnLimpar?.addEventListener('click', limparCampos);
+
+      btnGerarPDF?.addEventListener('click', () => {
+        if (!resultadoDiv.dataset.score) {
+          alert('请先点击"计算得分"来生成PDF。');
+          return;
+        }
+        if (typeof gerarPDFGlobal === 'function') {
+          const selectedOptions = {};
+          document.querySelectorAll('#conteudo select').forEach(select => {
+            const selected = select.options[select.selectedIndex];
+            if (selected.value !== "") {
+              selectedOptions[select.id] = selected.text;
+            }
+          });
+
+          let contentToPrint = document.querySelector('.main-content-wrapper').cloneNode(true);
+          let contentContainer = contentToPrint.querySelector('#conteudo');
+
+          contentContainer.innerHTML = '';
+
+          curbData.forEach(item => {
+            let selectedText = selectedOptions[item.nameAttr];
+            if (selectedText) {
+              let itemDiv = document.createElement('div');
+              itemDiv.className = 'mb-2 p-2 bg-gray-50 rounded';
+              itemDiv.innerHTML = `<strong>${item.title}:</strong> ${selectedText}`;
+              contentContainer.appendChild(itemDiv);
+            }
+          });
+
+          let resultadoHtml = resultadoDiv.cloneNode(true);
+          if (resultadoHtml.style.display !== 'none') {
+            contentContainer.appendChild(resultadoHtml);
+          }
+
+          gerarPDFGlobal({
+            titulo: 'CURB-65评分',
+            subtitulo: '肺炎严重程度报告',
+            nomeArquivo: 'CURB-65评分报告.pdf',
+            seletorConteudo: '.main-content-wrapper'
+          });
+        } else {
+          console.error('生成PDF功能未定义。');
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener('click', () => {
+        const score = resultadoDiv.dataset.score;
+        const scaleName = resultadoDiv.dataset.scaleName;
+        if (!score) {
+          alert('请先计算结果以查找护理建议。');
+          return;
+        }
+        const recomendacaoRisco = score <= 1 ? '低风险' : score === 2 ? '中度风险' : '高风险';
+        const searchQuery = encodeURIComponent(`肺炎 ${recomendacaoRisco} 护理 CURB-65评分 NANDA NIC NOC`);
+        window.open(`https://www.google.com/search?q=${searchQuery}`, '_blank');
+      });
+    });
+  </script>
 
 
 

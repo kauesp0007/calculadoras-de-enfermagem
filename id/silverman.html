@@ -650,7 +650,255 @@
 
 
   <!-- Script Specific Page -->
-  
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const conteudoDiv = document.getElementById("conteudo");
+      const resultadoDiv = document.getElementById("resultado");
+      const btnCalcular = document.getElementById("btnCalcular");
+      const btnLimpar = document.getElementById("btnLimpar");
+      const btnGerarPDF = document.getElementById("btnGerarPDF");
+      const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
+      const statusMessageDiv = document.getElementById("statusMessage");
+
+      const silvermanData = [
+        {
+          parameter: "Gerakan Torakoabdominal",
+          nameAttr: "movimento",
+          tooltip:
+            "Menilai sinkronisasi antara dada dan perut selama pernapasan. 'Seesaw' menunjukkan upaya pernapasan berat.",
+          options: [
+            { score: 0, description: "Sinkron" },
+            { score: 1, description: "Dada tidak bergerak" },
+            { score: 2, description: "Seesaw" },
+          ],
+        },
+        {
+          parameter: "Retraksi Interkostal",
+          nameAttr: "tiragem",
+          tooltip:
+            "Penarikan otot-otot di antara tulang rusuk selama inspirasi, menunjukkan upaya untuk bernapas.",
+          options: [
+            { score: 0, description: "Tidak ada" },
+            { score: 1, description: "Ringan" },
+            { score: 2, description: "Jelas" },
+          ],
+        },
+        {
+          parameter: "Retraksi Sfoid",
+          nameAttr: "retracao",
+          tooltip:
+            "Menjungkirnya daerah prosesus sfoid (ujung bawah tulang dada) selama inspirasi.",
+          options: [
+            { score: 0, description: "Tidak ada" },
+            { score: 1, description: "Ringan" },
+            { score: 2, description: "Jelas" },
+          ],
+        },
+        {
+          parameter: "Gerak Cuping Hidung",
+          nameAttr: "batimento",
+          tooltip:
+            "Melebarnya lubang hidung selama inspirasi, tanda bahwa bayi baru lahir sedang luchan untuk mendapatkan lebih banyak udara.",
+          options: [
+            { score: 0, description: "Tidak ada" },
+            { score: 1, description: "Ringan" },
+            { score: 2, description: "Jelas" },
+          ],
+        },
+        {
+          parameter: "Merintih Ekspiratoar",
+          nameAttr: "gemido",
+          tooltip:
+            "Suara yang dipancarkan selama ekspirasi, mewakili upaya bayi untuk menjaga alveoli tetap terbuka.",
+          options: [
+            { score: 0, description: "Tidak ada" },
+            { score: 1, description: "Dapat didengar dengan stetoskop" },
+            { score: 2, description: "Dapat didengar tanpa stetoskop" },
+          ],
+        },
+      ];
+
+      function criarFormulario() {
+        silvermanData.forEach((item) => {
+          const accordionItem = document.createElement("div");
+          accordionItem.className = "accordion-item";
+
+          const header = document.createElement("div");
+          header.className = "accordion-header";
+          header.setAttribute("aria-expanded", "false");
+          header.setAttribute("tabindex", "0");
+          header.innerHTML = `
+                    <span>${item.parameter}
+                        <span class="tooltip-container">
+                            <button type="button" class="tooltip-icon-button" aria-label="Informasi tentang ${item.parameter}">
+                                <i class="fas fa-info-circle" aria-hidden="true"></i>
+                            </button>
+                            <span class="tooltip-text">${item.tooltip}</span>
+                        </span>
+                    </span>
+                    <i class="fas fa-chevron-down accordion-toggle-icon" aria-hidden="true"></i>
+                `;
+          accordionItem.appendChild(header);
+
+          const content = document.createElement("div");
+          content.className = "accordion-content";
+          content.setAttribute("role", "region");
+
+          item.options.forEach((option) => {
+            const label = document.createElement("label");
+            label.className = "option-label";
+            const input = document.createElement("input");
+            input.type = "radio";
+            input.name = item.nameAttr;
+            input.value = option.score;
+
+            label.appendChild(input);
+            label.innerHTML += `<span>${option.description} (${option.score})</span>`;
+            content.appendChild(label);
+          });
+
+          accordionItem.appendChild(content);
+          conteudoDiv.appendChild(accordionItem);
+
+          header.addEventListener("click", function () {
+            const isExpanded = this.getAttribute("aria-expanded") === "true";
+            document.querySelectorAll(".accordion-header").forEach((h) => {
+              h.setAttribute("aria-expanded", "false");
+              h.nextElementSibling.classList.remove("is-open");
+            });
+            this.setAttribute("aria-expanded", !isExpanded);
+            if (!isExpanded) {
+              content.classList.add("is-open");
+            }
+          });
+        });
+      }
+
+      criarFormulario();
+
+      function calcular() {
+        let total = 0;
+        let allSelected = true;
+
+        silvermanData.forEach((item) => {
+          const selecionado = document.querySelector(
+            `input[name="${item.nameAttr}"]:checked`,
+          );
+          if (selecionado) {
+            total += parseInt(selecionado.value, 10);
+          } else {
+            allSelected = false;
+          }
+        });
+
+        resultadoDiv.classList.remove("hidden");
+        if (!allSelected) {
+          resultadoDiv.className =
+            "resultado p-4 mt-6 rounded-lg text-left bg-info-alerta flex items-start gap-4 visible";
+          resultadoDiv.innerHTML = `<i class="fas fa-exclamation-triangle mt-1" aria-hidden="true"></i><div><strong class="font-bold block">Perhatian!</strong> Mohon pilih salah satu opsi untuk masing-masing dari lima parameter.</div>`;
+          resultadoDiv.setAttribute("tabindex", "0");
+          resultadoDiv.focus();
+          resultadoDiv.scrollIntoView({
+            behavior: "smooth",
+            block: "center",
+          });
+          delete resultadoDiv.dataset.score;
+          return;
+        }
+
+        let classificacao = "";
+        let barClass = "";
+        let resultadoClass = "";
+
+        if (total <= 3) {
+          classificacao = "Gangguan Pernapasan Ringan.";
+          barClass = "bar-low";
+          resultadoClass = "bg-success-green";
+        } else if (total <= 7) {
+          classificacao = "Gangguan Pernapasan Sedang.";
+          barClass = "bar-medium";
+          resultadoClass = "bg-info-alerta";
+        } else {
+          classificacao = "Gangguan Pernapasan Berat.";
+          barClass = "bar-high";
+          resultadoClass = "bg-danger-red";
+        }
+
+        const scorePercentage = (total / 10) * 100;
+
+        resultadoDiv.className = `resultado p-4 mt-6 rounded-lg text-left ${resultadoClass} visible`;
+        resultadoDiv.innerHTML = `
+                <p>Skor Total: <strong class="font-bold">${total}</strong></p>
+                <p>Klasifikasi: <strong class="font-bold">${classificacao}</strong></p>
+                <div class="score-summary-bar-container" role="progressbar" aria-valuenow="${total}" aria-valuemin="0" aria-valuemax="10" aria-label="Bar tingkat keparahan skor.">
+                    <div class="score-summary-bar ${barClass}" style="width: ${scorePercentage}%;"></div>
+                </div>
+            `;
+        resultadoDiv.setAttribute("tabindex", "0");
+        resultadoDiv.focus();
+        resultadoDiv.scrollIntoView({ behavior: "smooth", block: "center" });
+
+        resultadoDiv.dataset.score = total;
+        resultadoDiv.dataset.classificacao = classificacao;
+        resultadoDiv.dataset.scaleName = "Skor Silverman-Anderson";
+      }
+
+      function limpar() {
+        document
+          .querySelectorAll('input[type="radio"]')
+          .forEach((input) => (input.checked = false));
+        resultadoDiv.className = "resultado hidden";
+        resultadoDiv.innerHTML = "";
+        delete resultadoDiv.dataset.score;
+        delete resultadoDiv.dataset.classificacao;
+        // Tutup semua accordions
+        document.querySelectorAll(".accordion-header").forEach((h) => {
+          h.setAttribute("aria-expanded", "false");
+        });
+        document.querySelectorAll(".accordion-content").forEach((c) => {
+          c.classList.remove("is-open");
+        });
+      }
+
+      btnCalcular?.addEventListener("click", calcular);
+      btnLimpar?.addEventListener("click", limpar);
+
+      btnGerarPDF?.addEventListener("click", () => {
+        if (!resultadoDiv || !resultadoDiv.dataset.score) {
+          alert('Mohon klik "Hitung" terlebih dahulu untuk membuat PDF.');
+          return;
+        }
+        if (typeof gerarPDFGlobal === "function") {
+          gerarPDFGlobal({
+            titulo: "Skor Silverman-Anderson",
+            subtitulo: "Evaluasi Gangguan Pernapasan Neonatus",
+            nomeArquivo: "laporan_silverman_anderson.pdf",
+            seletorConteudo: ".main-content-wrapper",
+          });
+        } else {
+          alert("Error: Fungsi untuk membuat PDF tidak ditemukan.");
+          console.error("Fungsi gerarPDFGlobal tidak terdefinisi.");
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener("click", () => {
+        const classificacao = resultadoDiv.dataset.classificacao;
+        if (!classificacao) {
+          alert(
+            'Mohon klik "Hitung" terlebih dahulu untuk mendapatkan interpretasi.',
+          );
+          return;
+        }
+        const searchQuery = encodeURIComponent(
+          `Diagnosa keperawatan NANDA untuk bayi baru lahir dengan "${classificacao}", dan intervensi (NIC) dan hasil (NOC) yang sesuai`,
+        );
+        window.open(
+          `https://www.google.com/search?q=${searchQuery}`,
+          "_blank",
+        );
+      });
+    });
+  </script>
 
   <script src="/lang-selector.js" defer=""></script>
 

@@ -559,7 +559,258 @@
 
 
 
-  
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const resultadoDiv = document.getElementById("resultado");
+      const btnCalcular = document.getElementById("btnCalcular");
+      const btnLimpar = document.getElementById("btnLimpar");
+      const btnGerarPDF = document.getElementById("btnGerarPDF");
+      const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
+      const conteudoDiv = document.getElementById("conteudo");
+
+      // Data skala Humpty Dumpty
+      const humptyData = [
+        {
+          category: "Usia",
+          nameAttr: "idade",
+          options: [
+            { description: "≥ 13 tahun", score: 1 },
+            { description: "7-12 tahun", score: 2 },
+            { description: "3-6 tahun", score: 3 },
+            { description: "< 3 tahun", score: 4 },
+          ],
+          explain:
+            "Usia merupakan faktor risiko jatuh yang penting, dengan anak-anak yang lebih kecil lebih rentan.",
+        },
+        {
+          category: "Jenis Kelamin",
+          nameAttr: "sexo",
+          options: [
+            { description: "Perempuan", score: 1 },
+            { description: "Laki-laki", score: 2 },
+          ],
+          explain:
+            "Jenis kelamin laki-laki dapat memiliki risiko yang sedikit lebih tinggi.",
+        },
+        {
+          category: "Diagnosis",
+          nameAttr: "diagnostico",
+          options: [
+            { description: "Diagnosis lainnya", score: 1 },
+            { description: "Gangguan kejiwaan", score: 2 },
+            {
+              description:
+                "Perubahan oksigenasi (pernapasan, dehidrasi, anemia)",
+              score: 3,
+            },
+            { description: "Neurologis", score: 4 },
+          ],
+          explain: "Beberapa diagnosis meningkatkan predisposisi jatuh.",
+        },
+        {
+          category: "Gangguan Kognitif",
+          nameAttr: "cognitivas",
+          options: [
+            { description: "Orientasi sesuai kemampuan", score: 1 },
+            { description: "Lupa keterbatasannya", score: 2 },
+            { description: "Tidak menyadari keterbatasannya", score: 3 },
+          ],
+          explain:
+            "Kemampuan mengenali keterbatasan dan risiko mempengaruhi kemungkinan jatuh.",
+        },
+        {
+          category: "Faktor Lingkungan",
+          nameAttr: "ambientais",
+          options: [
+            { description: "Anak yang berjalan", score: 1 },
+            { description: "Anak yang tirah baring", score: 2 },
+            {
+              description:
+                "Menggunakan alat bantu, kasur/tempat tidur dengan banyak peralatan, penerangan sedikit",
+              score: 3,
+            },
+            { description: "Riwayat jatuh sebelumnya", score: 4 },
+          ],
+          explain:
+            "Lingkungan rumah sakit dan riwayat pasien relevan untuk risiko jatuh.",
+        },
+        {
+          category: "Penggunaan Obat",
+          nameAttr: "medicacao",
+          options: [
+            {
+              description: "Menggunakan obat lain atau tidak menggunakan",
+              score: 1,
+            },
+            {
+              description: "Menggunakan 1 dari: sedatif, hipnotik, narkotik",
+              score: 2,
+            },
+            {
+              description:
+                "Menggunakan ≥ 2 dari: sedatif, hipnotik, narkotik",
+              score: 3,
+            },
+          ],
+          explain:
+            "Obat-obat tertentu mempengaruhi kesadaran dan keseimbangan, meningkatkan risiko.",
+        },
+        {
+          category: "Bedah / Sedasi / Anestesi",
+          nameAttr: "cirurgia",
+          options: [
+            { description: "Lebih dari 48 jam atau tidak ada", score: 1 },
+            { description: "24-48 jam", score: 2 },
+            { description: "24 jam", score: 3 },
+          ],
+          explain:
+            "Periode pasca prosedur berisiko lebih tinggi karena efek residu.",
+        },
+      ];
+
+      // Mengisi formulir secara dinamis
+      humptyData.forEach((item) => {
+        const sectionDiv = document.createElement("div");
+        sectionDiv.className = "humpty-criterion-section";
+        sectionDiv.id = `section-${item.nameAttr}`;
+
+        const titleH3 = document.createElement("h3");
+        titleH3.className = "humpty-criterion-title";
+        titleH3.innerHTML =
+          item.category +
+          `
+              <div class="text-sm font-normal text-gray-500 mt-1">${item.explain}</div>`;
+        sectionDiv.appendChild(titleH3);
+
+        const selectElement = document.createElement("select");
+        selectElement.id = item.nameAttr;
+        selectElement.className = "humpty-criterion-select";
+
+        const defaultOption = document.createElement("option");
+        defaultOption.value = "";
+        defaultOption.text = "Pilih...";
+        selectElement.appendChild(defaultOption);
+
+        item.options.forEach((option) => {
+          const optionElement = document.createElement("option");
+          optionElement.value = option.score;
+          optionElement.text = `${option.description} (skor: ${option.score})`;
+          selectElement.appendChild(optionElement);
+        });
+
+        sectionDiv.appendChild(selectElement);
+        conteudoDiv.appendChild(sectionDiv);
+      });
+
+      function calcularHumpty() {
+        const selects = document.querySelectorAll("#conteudo select");
+        let allSelected = true;
+        let total = 0;
+
+        selects.forEach((select) => {
+          if (select.value === "") {
+            allSelected = false;
+            select.classList.add("incomplete");
+          } else {
+            select.classList.remove("incomplete");
+            total += Number(select.value);
+          }
+        });
+
+        resultadoDiv.style.display = "block";
+        if (!allSelected) {
+          resultadoDiv.innerHTML =
+            '⚠️ <strong class="font-bold">Silakan pilih opsi untuk semua item sebelum menghitung.</strong>';
+          resultadoDiv.style.display = "block";
+          delete resultadoDiv.dataset.score;
+          return;
+        }
+
+        let classificacao = "";
+        let recomendacao = "";
+
+        // Definisi skor sesuai dokumentasi
+        // Risiko Rendah: 7-11 poin
+        // Risiko Tinggi: 12-22 poin
+        if (total >= 7 && total <= 11) {
+          classificacao = "Risiko Rendah";
+          recomendacao =
+            "Anak memiliki risiko jatuh rendah. Lanjutkan dengan tindakan pencegahan standar dan evaluasi berkala.";
+        } else if (total >= 12 && total <= 22) {
+          classificacao = "Risiko Tinggi";
+          recomendacao =
+            "Anak memiliki risiko jatuh tinggi. Terapkan segera tindakan pencegahan jatuh untuk pasien anak-anak.";
+        } else {
+          classificacao = "Skor Di Luar Standar";
+          recomendacao =
+            "Skor yang dihitung berada di luar rentang klasifikasi yang diharapkan. Periksa nilai yang dipilih.";
+        }
+
+        resultadoDiv.innerHTML = `
+                <p>Skor total: <strong class="font-bold">${total}</strong></p>
+                <p>Klasifikasi: <strong class="font-bold">${classificacao}</strong></p>
+                <p class="mt-4"><strong>Rekomendasi:</strong> ${recomendacao}</p>
+            `;
+        resultadoDiv.style.display = "block";
+
+        resultadoDiv.dataset.score = total;
+        resultadoDiv.dataset.scaleName = "Skala Jatuh Humpty Dumpty";
+        resultadoDiv.dataset.classificacao = classificacao;
+      }
+
+      function limparCampos() {
+        const selects = document.querySelectorAll("#conteudo select");
+        selects.forEach((select) => {
+          select.selectedIndex = 0;
+          select.classList.remove("incomplete");
+        });
+        resultadoDiv.innerHTML = "";
+        resultadoDiv.style.display = "none";
+        delete resultadoDiv.dataset.score;
+        delete resultadoDiv.dataset.scaleName;
+        delete resultadoDiv.dataset.classificacao;
+      }
+
+      btnCalcular?.addEventListener("click", calcularHumpty);
+      btnLimpar?.addEventListener("click", limparCampos);
+
+      btnGerarPDF?.addEventListener("click", () => {
+        if (!resultadoDiv.dataset.score) {
+          alert(
+            'Silakan klik "Hitung Skor" terlebih dahulu untuk membuat PDF.',
+          );
+          return;
+        }
+        if (typeof gerarPDFGlobal === "function") {
+          gerarPDFGlobal({
+            titulo: "Skala Jatuh Humpty Dumpty",
+            subtitulo: "Laporan Penilaian Risiko Jatuh",
+            nomeArquivo: "laporan_skala_humpty_dumpty.pdf",
+            seletorConteudo: ".main-content-wrapper",
+          });
+        } else {
+          console.error("Fungsi gerarPDFGlobal tidak terdefinisi.");
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener("click", () => {
+        const score = resultadoDiv.dataset.score;
+        const scaleName = resultadoDiv.dataset.scaleName;
+        const classificacao = resultadoDiv.dataset.classificacao;
+        if (!score || !classificacao) {
+          alert("Hitung hasil untuk mencari tindakan.");
+          return;
+        }
+        const searchQuery = encodeURIComponent(
+          `${scaleName} skor ${score} pasien anak ${classificacao} menghasilkan taksonomi NANDA, menghasilkan taksonomi NIC dan menghasilkan taksonomi NOC`,
+        );
+        window.open(
+          `https://www.google.com/search?q=${searchQuery}`,
+          "_blank",
+        );
+      });
+    });
+  </script>
 
   <script src="/lang-selector.js" defer=""></script>
 

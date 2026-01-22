@@ -629,7 +629,161 @@
 
 
 
-  
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const resultadoDiv = document.getElementById('resultado');
+      const btnAnzeigen = document.getElementById('btnAnzeigen');
+      const btnLimpar = document.getElementById('btnLimpar');
+      const btnGerarPDF = document.getElementById('btnGerarPDF');
+      const btnNandaNicNoc = document.getElementById('btnNandaNicNoc');
+      const conteudoDiv = document.getElementById('conteudo');
+
+      const rlasData = [
+        {
+          level: 1,
+          title: "Stufe I - Keine Reaktion",
+          description: "Der Patient reagiert nicht auf auditive, visuelle, taktile oder Schmerzreize. Er befindet sich in einem tiefen Koma.",
+          recommendation: "Empfehlung: Fokus auf grundlegende lebenserhaltende Maßnahmen, Lagerung zur Vorbeugung von Druckgeschwüren und Kontrakturen sowie minimale sensorische Reize. Die Kommunikation mit der Familie ist unerlässlich."
+        },
+        {
+          level: 2,
+          title: "Stufe II - Generalisierte Reaktion",
+          description: "Der Patient reagiert inkonsistent, unzweckmäßig und unspezifisch auf Reize. Die Reaktionen sind begrenzt und können unabhängig vom Reiz dieselben sein.",
+          recommendation: "Empfehlung: Eine ruhige und kontrollierte Umgebung aufrechterhalten. Die sensorische Stimulation konsequent, aber ohne Überforderung fortsetzen. Fokus auf das Wecken des Patienten."
+        },
+        {
+          level: 3,
+          title: "Stufe III - Lokalisierte Reaktion",
+          description: "Der Patient reagiert spezifischer auf Reize. Er kann auf einen Lichtreiz blinzeln oder versuchen, einem Objekt zu folgen. Die Reaktionen sind inkonsistent.",
+          recommendation: "Empfehlung: Mit einfachen und sich wiederholenden Befehlen beginnen. Ablenkungen begrenzen. Der Patient kann beginnen, Familienmitglieder zu erkennen. Helfen, die Aufmerksamkeit zu fokussieren."
+        },
+        {
+          level: 4,
+          title: "Stufe IV - Verwirrt und Agitiert",
+          description: "Der Patient befindet sich in einem Zustand der Agitation und Verwirrung. Er kann nicht bei der Untersuchung kooperieren und kann aggressiv handeln. Die Aufmerksamkeit ist kurz.",
+          recommendation: "Empfehlung: Eine sichere und strukturierte Umgebung schaffen, um Verletzungen zu vermeiden. Eine ruhige Stimme verwenden und eine vorhersehbare Routine beibehalten. Dem Patienten helfen, sich bei Bedarf neu zu orientieren."
+        },
+        {
+          level: 5,
+          title: "Stufe V - Verwirrt und Unangemessen",
+          description: "Der Patient kann einfachen Anweisungen folgen, hat aber Schwierigkeiten, die Aufmerksamkeit aufrechtzuerhalten. Die Antworten auf komplexe Fragen sind unangemessen und verwirrt. Das Gedächtnis ist stark beeinträchtigt.",
+          recommendation: "Empfehlung: Mit dem Training einfacher und sich wiederholender Aufgaben beginnen. Die Reorientierung auf Zeit und Ort verstärken. Die Kommunikation sollte klar und direkt sein."
+        },
+        {
+          level: 6,
+          title: "Stufe VI - Verwirrt und Angemessen",
+          description: "Der Patient kann Anweisungen befolgen und zeigt ein Langzeitgedächtnis. Das Kurzzeitgedächtnis ist noch beeinträchtigt und Entscheidungen sind oft falsch.",
+          recommendation: "Empfehlung: Die Komplexität der Aufgaben erhöhen. Erinnerungen an vergangene Ereignisse nutzen und die Selbstständigkeit bei vertrauten Aktivitäten fördern. Den Patienten ermutigen, kleine Entscheidungen zu treffen."
+        },
+        {
+          level: 7,
+          title: "Stufe VII - Automatisch und Angemessen",
+          description: "Der Patient ist wenig verwirrt. Er ist in der Lage, einer täglichen Routine roboterhaft zu folgen, hat aber noch Defizite im Urteilsvermögen und bei der Problemlösung. Die soziale Interaktion ist oberflächlich.",
+          recommendation: "Empfehlung: Fokus auf Planung und Problemlösung. Sozialisation in Gruppen fördern und Strategien zur Kompensation kognitiver Defizite entwickeln."
+        },
+        {
+          level: 8,
+          title: "Stufe VIII - Zielgerichtet und Angemessen",
+          description: "Der Patient ist in der Lage, abstrakt zu denken und Probleme zu lösen. Sein Gedächtnis und Urteilsvermögen sind konsistent, aber die Fähigkeit, mit Emotionen umzugehen, kann beeinträchtigt sein. Die Funktion ist unabhängig.",
+          recommendation: "Empfehlung: Dem Patienten helfen, mit emotionalen und sozialen Veränderungen umzugehen. Fokus auf die Wiedereingliederung in die Gemeinschaft und die Vorbereitung auf die Rückkehr ins Berufs- oder Studienleben."
+        },
+      ];
+
+      rlasData.forEach(item => {
+        const sectionDiv = document.createElement('div');
+        sectionDiv.className = 'rlas-criterion-section';
+        sectionDiv.id = `section-level-${item.level}`;
+
+        const radioContainer = document.createElement('div');
+        radioContainer.className = 'rlas-criterion-option';
+
+        const radioInput = document.createElement('input');
+        radioInput.type = 'radio';
+        radioInput.name = 'rlas_level';
+        radioInput.value = item.level;
+        radioInput.id = `level-${item.level}`;
+
+        const label = document.createElement('label');
+        label.htmlFor = `level-${item.level}`;
+        label.innerHTML = `<strong>${item.title}</strong><br>${item.description}`;
+
+        radioContainer.appendChild(radioInput);
+        radioContainer.appendChild(label);
+        sectionDiv.appendChild(radioContainer);
+
+        conteudoDiv.appendChild(sectionDiv);
+      });
+
+      function zeigeRLASBeschreibung() {
+        const selectedRadio = document.querySelector('input[name="rlas_level"]:checked');
+        resultadoDiv.style.display = "block";
+
+        if (!selectedRadio) {
+          resultadoDiv.innerHTML = '⚠️ <strong class="font-bold">Bitte wählen Sie eine Stufe aus.</strong>';
+          resultadoDiv.classList.add('bg-red-100');
+          resultadoDiv.classList.remove('bg-blue-50');
+          return;
+        }
+
+        const level = selectedRadio.value;
+        const selectedItem = rlasData.find(item => item.level == level);
+
+        if (selectedItem) {
+          resultadoDiv.innerHTML = `
+                    <p>Gewählte Stufe: <strong class="font-bold">${selectedItem.title}</strong></p>
+                    <p class="mt-4"><strong>Empfehlung:</strong> ${selectedItem.recommendation}</p>
+                `;
+          resultadoDiv.className = `resultado bg-blue-50`;
+          resultadoDiv.dataset.levelTitle = selectedItem.title;
+          resultadoDiv.dataset.recommendation = selectedItem.recommendation;
+        }
+
+        resultadoDiv.style.display = "block";
+      }
+
+      function felderLeeren() {
+        const selectedRadio = document.querySelector('input[name="rlas_level"]:checked');
+        if (selectedRadio) {
+          selectedRadio.checked = false;
+        }
+        resultadoDiv.innerHTML = '';
+        resultadoDiv.className = 'resultado';
+        resultadoDiv.style.display = 'none';
+      }
+
+      btnAnzeigen?.addEventListener('click', zeigeRLASBeschreibung);
+      btnLimpar?.addEventListener('click', felderLeeren);
+
+      btnGerarPDF?.addEventListener('click', () => {
+        const selectedRadio = document.querySelector('input[name="rlas_level"]:checked');
+        if (!selectedRadio) {
+          alert('Bitte wählen Sie eine Stufe aus, um das PDF zu generieren.');
+          return;
+        }
+        if (typeof gerarPDFGlobal === 'function') {
+          gerarPDFGlobal({
+            titulo: 'Rancho Los Amigos Skala',
+            subtitulo: 'Bericht zur kognitiven Bewertung',
+            nomeArquivo: 'bericht_rancho_skala.pdf',
+            seletorConteudo: '.main-content-wrapper'
+          });
+        } else {
+          console.error('Funktion gerarPDFGlobal nicht definiert.');
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener('click', () => {
+        const selectedRadio = document.querySelector('input[name="rlas_level"]:checked');
+        if (!selectedRadio) {
+          alert('Wählen Sie eine Stufe aus, um nach Pflegemaßnahmen zu suchen.');
+          return;
+        }
+        const selectedItem = rlasData.find(item => item.level == selectedRadio.value);
+        const searchQuery = encodeURIComponent(`pflegemaßnahmen für patienten mit hirnverletzung Stufe ${selectedItem.level} Taxonomie NANDA NIC NOC`);
+        window.open(`https://www.google.com/search?q=${searchQuery}`, '_blank');
+      });
+    });
+  </script>
 
 
 

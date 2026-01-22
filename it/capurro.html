@@ -564,7 +564,118 @@
 
 
 
-  
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const resultadoDiv = document.getElementById('resultado');
+      const btnCalcular = document.getElementById('btnCalcular');
+      const btnLimpar = document.getElementById('btnLimpar');
+      const btnGerarPDF = document.getElementById('btnGerarPDF');
+      const btnNandaNicNoc = document.getElementById('btnNandaNicNoc');
+      const formContainer = document.getElementById('form-container');
+
+      const capurroData = [
+        { category: "Consistenza della Pelle", description: "Si valuta l'aspetto e l'elasticità della pelle del neonato.", nameAttr: "textura_pele", options: [{ description: "Gelatinosa (0)", score: 0 }, { description: "Sottile e liscia (5)", score: 5 }, { description: "Più spessa (10)", score: 10 }, { description: "Crepe superficiali (15)", score: 15 }, { description: "Crepe profonde (20)", score: 20 }] },
+        { category: "Pieghe Plantari", description: "Si osserva la presenza, la profondità e l'estensione delle pieghe sulla pianta del piede.", nameAttr: "pregas_plantares", options: [{ description: "Senza pieghe (0)", score: 0 }, { description: "Segni mal definiti (5)", score: 5 }, { description: "Segni ben definiti (10)", score: 10 }, { description: "Solchi 1/2 anteriore (15)", score: 15 }, { description: "Solchi > 1/2 anteriore (20)", score: 20 }] },
+        { category: "Formazione del Capezzolo", description: "Si analizza il diametro del capezzolo e il sollevamento dell'areola.", nameAttr: "formacao_mamilo", options: [{ description: "Invisibile (0)", score: 0 }, { description: "Diametro < 7.5mm (5)", score: 5 }, { description: "Diametro > 7.5mm, bordo non sollevato (10)", score: 10 }, { description: "Diametro > 7.5mm, bordo sollevato (15)", score: 15 }] },
+        { category: "Dimensione della Ghiandola Mammaria", description: "Si esamina la dimensione e il sollevamento delle ghiandole mammarie.", nameAttr: "glandula_mamaria", options: [{ description: "Non palpabile (0)", score: 0 }, { description: "< 5mm (5)", score: 5 }, { description: "5-10mm (10)", score: 10 }, { description: "> 10mm (15)", score: 15 }] },
+        { category: "Forma dell'Orecchio (Padiglione)", description: "Si osserva la forma dell'orecchio, inclusa la sua spessore e la cartilagine.", nameAttr: "forma_orelha", options: [{ description: "Piatta, disforme (0)", score: 0 }, { description: "Bordo parziale (8)", score: 8 }, { description: "Bordo totale (16)", score: 16 }, { description: "Padiglione totale (24)", score: 24 }] },
+        { category: "Segno dello Scialle", description: "Si valuta la posizione del gomito quando l'esaminatore lo tira attraverso il torace, misurando la resistenza.", nameAttr: "sinal_xale", options: [{ description: "Gomito sulla linea ascellare opposta (0)", score: 0 }, { description: "Gomito tra linea ascellare e sterno (6)", score: 6 }, { description: "Gomito sullo sterno (12)", score: 12 }, { description: "Gomito oltre lo sterno (18)", score: 18 }] }
+      ];
+
+      function createForm() {
+        formContainer.innerHTML = '';
+        capurroData.forEach(item => {
+          const sectionDiv = document.createElement('div');
+          sectionDiv.className = 'criterion-section';
+          sectionDiv.id = `section-${item.nameAttr}`;
+          sectionDiv.setAttribute('role', 'radiogroup');
+          sectionDiv.setAttribute('aria-labelledby', `title-${item.nameAttr}`);
+
+          sectionDiv.innerHTML = `
+                    <h3 class="criterion-title" id="title-${item.nameAttr}">${item.category}</h3>
+                    <p class="criterion-description">${item.description}</p>
+                    <div class="radio-options-group">
+                        ${item.options.map((option, index) => `
+                            <input type="radio" id="${item.nameAttr}-${index}" name="${item.nameAttr}" value="${option.score}">
+                            <label for="${item.nameAttr}-${index}">${option.description}</label>
+                        `).join('')}
+                    </div>
+                `;
+          formContainer.appendChild(sectionDiv);
+        });
+      }
+
+      function calculateScore() {
+        formContainer.querySelectorAll('.criterion-section.incomplete').forEach(el => el.classList.remove('incomplete'));
+        let allSelected = true;
+        let totalScore = 0;
+
+        capurroData.forEach(item => {
+          const checkedRadio = formContainer.querySelector(`input[name="${item.nameAttr}"]:checked`);
+          if (checkedRadio) {
+            totalScore += Number(checkedRadio.value);
+          } else {
+            allSelected = false;
+            document.getElementById(`section-${item.nameAttr}`).classList.add('incomplete');
+          }
+        });
+
+        resultadoDiv.style.display = "block";
+        if (!allSelected) {
+          resultadoDiv.innerHTML = '⚠️ <strong class="font-bold">Per favore, seleziona un\'opzione per tutte le voci evidenziate.</strong>';
+          resultadoDiv.className = 'resultado bg-yellow-100 text-yellow-800 p-4 rounded-lg';
+          return;
+        }
+
+        const totalDays = 200 + totalScore;
+        const weeks = Math.floor(totalDays / 7);
+        const days = totalDays % 7;
+        const gestationalAgeText = `<strong class="font-bold">${weeks} settimane e ${days} giorni</strong>`;
+
+        resultadoDiv.innerHTML = `<p>Punteggio totale: <strong class="font-bold">${totalScore}</strong></p><p>Età Gestazionale Stimata: ${gestationalAgeText}</p>`;
+        resultadoDiv.className = `resultado`;
+        resultadoDiv.dataset.score = totalScore;
+        resultadoDiv.dataset.classificacao = `${weeks} settimane e ${days} giorni`;
+      }
+
+      function clearFields() {
+        formContainer.querySelectorAll('input[type="radio"]:checked').forEach(radio => radio.checked = false);
+        formContainer.querySelectorAll('.criterion-section.incomplete').forEach(el => el.classList.remove('incomplete'));
+        resultadoDiv.style.display = 'none';
+        delete resultadoDiv.dataset.score;
+      }
+
+      btnCalcular?.addEventListener('click', calculateScore);
+      btnLimpar?.addEventListener('click', clearFields);
+
+      btnGerarPDF?.addEventListener('click', () => {
+        if (!resultadoDiv.dataset.score) {
+          alert('Per favore, clicca prima su "Calcola" per generare il PDF.');
+          return;
+        }
+        if (typeof gerarPDFGlobal === 'function') {
+          gerarPDFGlobal({
+            titulo: 'Stima dell\'Età Gestazionale - Metodo di Capurro',
+            subtitulo: 'Rapporto di Valutazione Neonatale',
+            nomeArquivo: 'rapporto_metodo_capurro.pdf',
+            seletorConteudo: '.main-content-wrapper'
+          });
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener('click', () => {
+        const classificacao = resultadoDiv.dataset.classificacao;
+        if (!classificacao) {
+          alert('Calcola il risultato per cercare la condotta.');
+          return;
+        }
+        const searchQuery = encodeURIComponent(`assistenza infermieristica per neonato con età gestazionale di ${classificacao} NANDA NIC NOC`);
+        window.open(`https://www.google.com/search?q=${searchQuery}`, '_blank');
+      });
+
+      createForm();
+    });
+  </script>
 
 
 

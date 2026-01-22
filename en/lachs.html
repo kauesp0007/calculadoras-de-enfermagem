@@ -657,7 +657,243 @@
 
 
 
-  
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const resultadoDiv = document.getElementById('resultado');
+      const btnCalcular = document.getElementById('btnCalcular');
+      const btnLimpar = document.getElementById('btnLimpar');
+      const btnGerarPDF = document.getElementById('btnGerarPDF');
+      const btnNandaNicNoc = document.getElementById('btnNandaNicNoc');
+      const conteudoDiv = document.getElementById('conteudo');
+
+      const lachsData = [
+        {
+          category: "Vision",
+          nameAttr: "vision",
+          explain: "Can the patient read a Jaeger card at 14 inches (35 cm), with glasses if needed, up to the 20/40 level?",
+          options: [
+            { description: "Yes, can read up to 20/40.", score: 1 },
+            { description: "No, cannot read up to 20/40.", score: 0 },
+          ]
+        },
+        {
+          category: "Hearing",
+          nameAttr: "hearing",
+          explain: "Does the patient respond when asked a whispered question (e.g., 'what is your name?') outside their field of vision?",
+          options: [
+            { description: "Yes, responds to the question.", score: 1 },
+            { description: "No, does not respond to the question.", score: 0 },
+          ]
+        },
+        {
+          category: "Urinary incontinence",
+          nameAttr: "urinary_incontinence",
+          explain: "Does the patient involuntarily lose urine and wet underwear on at least 6 separate days in the last year?",
+          options: [
+            { description: "No", score: 1 },
+            { description: "Yes", score: 0 },
+          ]
+        },
+        {
+          category: "ADLs and IADLs",
+          nameAttr: "adls_iadls",
+          explain: "Can the patient get out of bed, dress, prepare meals, and shop alone?",
+          options: [
+            { description: "Yes, able to perform all activities.", score: 1 },
+            { description: "No, unable to perform at least one activity.", score: 0 },
+          ]
+        },
+        {
+          category: "Grip strength (upper limbs)",
+          nameAttr: "grip_strength",
+          explain: "Can the patient touch the nape of the neck with both hands and hold a spoon?",
+          options: [
+            { description: "Yes, can perform both tasks.", score: 1 },
+            { description: "No, cannot perform one or both tasks.", score: 0 },
+          ]
+        },
+        {
+          category: "Lower limb strength",
+          nameAttr: "lower_limb_strength",
+          explain: "Can the patient get up from a chair, walk 3 meters, return, and sit down in less than 12 seconds?",
+          options: [
+            { description: "Yes, completes the test in ≤ 12 seconds.", score: 1 },
+            { description: "No, does not walk or takes more than 12 seconds to complete the test.", score: 0 },
+          ]
+        },
+        {
+          category: "Nutrition",
+          nameAttr: "nutrition",
+          explain: "Does the patient have a BMI (Body Mass Index) above 22 kg/m² (or 2.2 lbs/in²)?",
+          options: [
+            { description: "Yes, BMI ≥ 22 kg/m² (≥ 2.2 lbs/in²).", score: 1 },
+            { description: "No, BMI < 22 kg/m² (< 2.2 lbs/in²).", score: 0 },
+          ]
+        },
+        {
+          category: "Mental status",
+          nameAttr: "mental_status",
+          explain: "Can the patient repeat three words (e.g., 'car', 'vase', 'ball') after 1 minute?",
+          options: [
+            { description: "Yes, can repeat all words.", score: 1 },
+            { description: "No, cannot repeat at least one word.", score: 0 },
+          ]
+        },
+        {
+          category: "Depression",
+          nameAttr: "depression",
+          explain: "Does the patient often feel sad or depressed?",
+          options: [
+            { description: "No", score: 1 },
+            { description: "Yes", score: 0 },
+          ]
+        },
+        {
+          category: "Home environment",
+          nameAttr: "home_environment",
+          explain: "Does the patient have difficulties with stairs, bathtub, loose rugs, or poor lighting at home?",
+          options: [
+            { description: "No, the environment is safe.", score: 1 },
+            { description: "Yes, there are risks in the home environment.", score: 0 },
+          ]
+        },
+        {
+          category: "Social support",
+          nameAttr: "social_support",
+          explain: "Does the patient have family, friends, or neighbors to rely on in case of illness or emergency?",
+          options: [
+            { description: "Yes, has social support.", score: 1 },
+            { description: "No, does not have social support.", score: 0 },
+          ]
+        }
+      ];
+
+      // Preenche o formulário dinamicamente
+      lachsData.forEach(item => {
+        const sectionDiv = document.createElement('div');
+        sectionDiv.className = 'lachs-criterion-section';
+        sectionDiv.id = `section-${item.nameAttr}`;
+
+        const titleH3 = document.createElement('h3');
+        titleH3.className = 'lachs-criterion-title';
+        titleH3.innerHTML = item.category;
+        sectionDiv.appendChild(titleH3);
+
+        const explainP = document.createElement('p');
+        explainP.className = 'lachs-criterion-explain';
+        explainP.innerHTML = item.explain;
+        sectionDiv.appendChild(explainP);
+
+        const selectElement = document.createElement('select');
+        selectElement.id = item.nameAttr;
+        selectElement.className = 'lachs-criterion-select';
+
+        const defaultOption = document.createElement('option');
+        defaultOption.value = "";
+        defaultOption.text = "Select...";
+        selectElement.appendChild(defaultOption);
+
+        item.options.forEach(option => {
+          const optionElement = document.createElement('option');
+          optionElement.value = option.score;
+          optionElement.text = `${option.description} (points: ${option.score})`;
+          selectElement.appendChild(optionElement);
+        });
+
+        sectionDiv.appendChild(selectElement);
+        conteudoDiv.appendChild(sectionDiv);
+      });
+
+      function calcularLachs() {
+        const selects = document.querySelectorAll('#conteudo select');
+        let allSelected = true;
+        let total = 0;
+
+        selects.forEach(select => {
+          if (select.value === "") {
+            allSelected = false;
+            select.classList.add('incomplete');
+          } else {
+            select.classList.remove('incomplete');
+            total += Number(select.value);
+          }
+        });
+
+        resultadoDiv.style.display = "block";
+        if (!allSelected) {
+          resultadoDiv.innerHTML = '⚠️ <strong class="font-bold">Please select an option for all items before calculating.</strong>';
+          resultadoDiv.classList.add('bg-red-100');
+          resultadoDiv.classList.remove('bg-blue-50');
+          delete resultadoDiv.dataset.score;
+          return;
+        }
+
+        let recommendation = '';
+
+        if (total <= 5) {
+          recommendation = `A score of ${total} suggests a high risk of loss of functional capacity and dependence. A comprehensive geriatric assessment and an individualized care plan are recommended to maximize autonomy and patient safety.`;
+        } else if (total >= 6 && total <= 9) {
+          recommendation = `A score of ${total} indicates a moderate risk of loss of functional capacity. The patient may need support in some areas.`;
+        } else { // total >= 10
+          recommendation = `A score of ${total} suggests that the patient has good functional capacity and a low risk of loss of autonomy.`;
+        }
+
+        resultadoDiv.innerHTML = `
+                <p>Total score: <strong class="font-bold">${total}</strong></p>
+                <p class="mt-4"><strong>Recommendation:</strong> ${recommendation}</p>
+            `;
+        resultadoDiv.className = `resultado bg-blue-50`;
+        resultadoDiv.style.display = "block";
+
+        resultadoDiv.dataset.score = total;
+        resultadoDiv.dataset.scaleName = "Lachs Functional Assessment Tool";
+      }
+
+      function limparCampos() {
+        const selects = document.querySelectorAll('#conteudo select');
+        selects.forEach(select => {
+          select.selectedIndex = 0;
+          select.classList.remove('incomplete');
+        });
+        resultadoDiv.innerHTML = '';
+        resultadoDiv.className = 'resultado hidden';
+        delete resultadoDiv.dataset.score;
+        delete resultadoDiv.dataset.scaleName;
+      }
+
+      // Adiciona os event listeners aos botões
+      btnCalcular?.addEventListener('click', calcularLachs);
+      btnLimpar?.addEventListener('click', limparCampos);
+
+      btnGerarPDF?.addEventListener('click', () => {
+        if (!resultadoDiv.dataset.score) {
+          alert('Please click "Calculate" first to generate the PDF.');
+          return;
+        }
+        if (typeof gerarPDFGlobal === 'function') {
+          gerarPDFGlobal({
+            titulo: 'Lachs Functional Assessment Tool',
+            subtitulo: 'Functional Assessment Report for Older Adults',
+            nomeArquivo: 'report_lachs_functional_assessment.pdf',
+            seletorConteudo: '.main-content-wrapper'
+          });
+        } else {
+          console.error('gerarPDFGlobal function not defined.');
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener('click', () => {
+        const score = resultadoDiv.dataset.score;
+        const scaleName = resultadoDiv.dataset.scaleName;
+        if (!score) {
+          alert('Calculate the result to search for the conduct.');
+          return;
+        }
+        const searchQuery = encodeURIComponent(`${scaleName} score ${score} NANDA, NIC and NOC taxonomy`);
+        window.open(`https://www.google.com/search?q=${searchQuery}`, '_blank');
+      });
+    });
+  </script>
 
 
 

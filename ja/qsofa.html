@@ -613,7 +613,201 @@
 
 
 
-    
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const resultadoDiv = document.getElementById('resultado');
+            const btnCalcular = document.getElementById('btnCalcular');
+            const btnLimpar = document.getElementById('btnLimpar');
+            const btnGerarPDF = document.getElementById('btnGerarPDF');
+            const btnNandaNicNoc = document.getElementById('btnNandaNicNoc');
+            const conteudoDiv = document.getElementById('conteudo');
+
+            const qsofaData = [
+                {
+                    category: "呼吸数 (RR)",
+                    nameAttr: "fr",
+                    explanation: "患者の呼吸数を（回/分）で評価します。",
+                    options: [
+                        { description: "22回/分未満", score: 0 },
+                        { description: "22回/分以上", score: 1 }
+                    ]
+                },
+                {
+                    category: "意識レベル (グラスゴー・コーマ・スケール - GCS)",
+                    nameAttr: "gcs",
+                    explanation: "グラスゴー・コーマ・スケールを使用して患者の意識レベルを評価します。",
+                    options: [
+                        { description: "GCS ≥ 15", score: 0 },
+                        { description: "GCS < 15 (変容あり)", score: 1 }
+                    ]
+                },
+                {
+                    category: "収縮期血圧 (SBP)",
+                    nameAttr: "pas",
+                    explanation: "患者の収縮期血圧を（mmHg）で評価します。",
+                    options: [
+                        { description: "SBP > 100 mmHg", score: 0 },
+                        { description: "SBP ≤ 100 mmHg", score: 1 }
+                    ]
+                }
+            ];
+
+            // --- qSOFA計算機機能 ---
+            function updateScoreDisplay(criterionId) {
+                const selectElement = document.getElementById(criterionId);
+                const scoreDisplayElement = document.getElementById(`${criterionId}_score_display`);
+                if (selectElement && scoreDisplayElement) {
+                    scoreDisplayElement.innerText = selectElement.value === "" ? "0" : selectElement.value;
+                }
+            }
+
+            function calcularPontuacao() {
+                let totalQSOFAScore = 0;
+                let allItemsSelected = true;
+
+                qsofaData.forEach(item => {
+                    const selectElement = document.getElementById(item.nameAttr);
+                    if (selectElement.value === "") {
+                        allItemsSelected = false;
+                    } else {
+                        totalQSOFAScore += parseInt(selectElement.value, 10);
+                    }
+                });
+
+                resultadoDiv.style.display = 'block';
+                if (!allItemsSelected) {
+                    resultadoDiv.innerHTML = '⚠️ <strong class="font-bold">計算する前に、各基準のオプションを選択してください</strong>';
+                    resultadoDiv.className = 'resultado bg-info-orange-light';
+                    delete resultadoDiv.dataset.score;
+                    return;
+                }
+
+                let interpretacao = '';
+                let conduta = '';
+                let resultadoClasse = '';
+
+                if (totalQSOFAScore >= 2) {
+                    interpretacao = "予後不良のリスクが高い（ICU滞在期間の延長、死亡率の増加）。";
+                    conduta = "敗血症の追加評価と迅速な介入を検討する。臨床検査と完全な臨床評価が必要です。";
+                    resultadoClasse = 'bg-qsofa-high';
+                } else {
+                    interpretacao = "現時点での予後不良のリスクは低い。";
+                    conduta = "臨床モニタリングを継続する。状態が悪化した場合は再評価する。";
+                    resultadoClasse = 'bg-qsofa-low';
+                }
+
+                resultadoDiv.innerHTML = `<p>qSOFA合計スコア: <strong class="font-bold">${totalQSOFAScore}</strong></p><p>解釈: <strong class="font-bold">${interpretacao}</strong></p><p>推奨される対応: <strong class="font-bold">${conduta}</strong></p>`;
+                resultadoDiv.className = `resultado ${resultadoClasse}`;
+
+                resultadoDiv.dataset.score = totalQSOFAScore;
+                resultadoDiv.dataset.interpretacao = interpretacao;
+                resultadoDiv.dataset.conduta = conduta;
+                resultadoDiv.dataset.scaleName = "qSOFA";
+            }
+
+            function limparCampos() {
+                qsofaData.forEach(item => {
+                    const selectElement = document.getElementById(item.nameAttr);
+                    selectElement.selectedIndex = 0;
+                    document.getElementById(`${item.nameAttr}_score_display`).innerText = '0';
+                });
+                resultadoDiv.innerHTML = '';
+                resultadoDiv.className = 'resultado hidden';
+                delete resultadoDiv.dataset.score;
+                delete resultadoDiv.dataset.interpretacao;
+                delete resultadoDiv.dataset.conduta;
+                delete resultadoDiv.dataset.scaleName;
+            }
+
+            // フォームを動的に入力
+            qsofaData.forEach((item, index) => {
+                const sectionDiv = document.createElement('div');
+                sectionDiv.className = 'qsofa-criterion-card';
+
+                const headerDiv = document.createElement('div');
+                headerDiv.className = 'qsofa-criterion-header';
+
+                const titleH3 = document.createElement('h3');
+                titleH3.className = 'qsofa-criterion-title';
+                titleH3.innerText = `${item.category}`;
+                headerDiv.appendChild(titleH3);
+
+                const scoreSpan = document.createElement('span');
+                scoreSpan.className = 'qsofa-score-display';
+                scoreSpan.id = `${item.nameAttr}_score_display`;
+                scoreSpan.innerText = '0';
+                headerDiv.appendChild(scoreSpan);
+
+                sectionDiv.appendChild(headerDiv);
+
+                const optionsDiv = document.createElement('div');
+                optionsDiv.className = 'qsofa-criterion-options';
+
+                const selectElement = document.createElement('select');
+                selectElement.id = item.nameAttr;
+                selectElement.className = 'qsofa-select';
+                selectElement.onchange = () => updateScoreDisplay(item.nameAttr);
+
+                const defaultOption = document.createElement('option');
+                defaultOption.value = "";
+                defaultOption.text = "選択してください...";
+                defaultOption.disabled = true;
+                defaultOption.selected = true;
+                selectElement.appendChild(defaultOption);
+
+                item.options.forEach(option => {
+                    const optionElement = document.createElement('option');
+                    optionElement.value = option.score;
+                    optionElement.text = `${option.description} (${option.score})`;
+                    selectElement.appendChild(optionElement);
+                });
+
+                optionsDiv.appendChild(selectElement);
+                sectionDiv.appendChild(optionsDiv);
+
+                const explanationP = document.createElement('p');
+                explanationP.className = 'text-gray-600 text-sm mt-2 text-left';
+                explanationP.innerText = item.explanation;
+                sectionDiv.appendChild(explanationP);
+
+                conteudoDiv.appendChild(sectionDiv);
+            });
+
+            // イベントリスナーをボタンに追加
+            btnCalcular?.addEventListener('click', calcularPontuacao);
+            btnLimpar?.addEventListener('click', limparCampos);
+
+            btnGerarPDF?.addEventListener('click', () => {
+                if (!resultadoDiv.dataset.score) {
+                    alert('PDFを生成するには、まず「計算」をクリックしてください。');
+                    return;
+                }
+                if (typeof gerarPDFGlobal === 'function') {
+                    gerarPDFGlobal({
+                        titulo: 'qSOFAスケール',
+                        subtitulo: '敗血症迅速評価レポート',
+                        nomeArquivo: 'relatorio_escore_qsofa.pdf', // O usuário pediu para não traduzir nomes de arquivos
+                        seletorConteudo: '.main-content-wrapper'
+                    });
+                } else {
+                    console.error('関数 gerarPDFGlobal が定義されていません。');
+                }
+            });
+
+            btnNandaNicNoc?.addEventListener('click', () => {
+                const score = resultadoDiv.dataset.score;
+                const scaleName = resultadoDiv.dataset.scaleName;
+                const interpretacao = resultadoDiv.dataset.interpretacao;
+                if (!score || !interpretacao) {
+                    alert('対策を検索するには、まず結果を計算してください。');
+                    return;
+                }
+                // NANDA、NIC、NOCの分類法を生成
+                const searchQuery = encodeURIComponent(`${scaleName} スコア ${score} 解釈 ${interpretacao} NANDA分類法を生成, NIC分類法を生成, NOC分類法を生成`);
+                window.open(`https://www.google.com/search?q=${searchQuery}`, '_blank');
+            });
+        });
+    </script>
 
 
 

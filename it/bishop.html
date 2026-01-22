@@ -580,7 +580,123 @@
 
 
 
-  
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const resultadoDiv = document.getElementById('resultado');
+      const btnCalcular = document.getElementById('btnCalcular');
+      const btnLimpar = document.getElementById('btnLimpar');
+      const btnGerarPDF = document.getElementById('btnGerarPDF');
+      const btnNandaNicNoc = document.getElementById('btnNandaNicNoc');
+      const conteudoDiv = document.getElementById('conteudo');
+
+      const bishopData = [
+        { category: "Dilatazione Cervicale", nameAttr: "dilatacao", options: [{ description: "0 cm", score: 0 }, { description: "1-2 cm", score: 1 }, { description: "3-4 cm", score: 2 }, { description: "≥ 5 cm", score: 3 }], explain: "Apertura della cervice, misurata in centimetri." },
+        { category: "Appianamento Cervicale", nameAttr: "apagamento", options: [{ description: "0-30%", score: 0 }, { description: "40-50%", score: 1 }, { description: "60-70%", score: 2 }, { description: "≥ 80%", score: 3 }], explain: "Assottigliamento della cervice, espresso in percentuale." },
+        { category: "Consistenza Cervicale", nameAttr: "consistencia", options: [{ description: "Dura", score: 0 }, { description: "Media", score: 1 }, { description: "Morbida", score: 2 }], explain: "La consistenza della cervice al tatto." },
+        { category: "Posizione della Cervice", nameAttr: "posicao", options: [{ description: "Posteriore", score: 0 }, { description: "Mediana", score: 1 }, { description: "Anteriore", score: 2 }], explain: "Posizione della cervice rispetto all'asse pelvico." },
+        { category: "Stazione della Presentazione Fetale", nameAttr: "estacao", options: [{ description: "-3", score: 0 }, { description: "-2", score: 1 }, { description: "-1 o 0", score: 2 }, { description: "+1 o +2", score: 3 }], explain: "Posizione della testa del feto rispetto alle spine ischiatiche." }
+      ];
+
+      bishopData.forEach(item => {
+        const sectionDiv = document.createElement('div');
+        sectionDiv.className = 'bishop-criterion-section';
+        sectionDiv.innerHTML = `
+              <h3 class="bishop-criterion-title">
+                ${item.category}
+                <div class="text-sm font-normal text-gray-500 mt-1">${item.explain}</div>
+              </h3>
+              <select id="${item.nameAttr}" class="bishop-criterion-select">
+                <option value="" disabled selected>Seleziona...</option>
+                ${item.options.map(o => `<option value="${o.score}">${o.description} (punti: ${o.score})</option>`).join('')}
+              </select>
+            `;
+        conteudoDiv.appendChild(sectionDiv);
+      });
+
+      function calcolaBishop() {
+        let total = 0;
+        let allSelected = true;
+        document.querySelectorAll('#conteudo select').forEach(select => {
+          select.classList.remove('incomplete');
+          if (select.value === "") {
+            allSelected = false;
+            select.classList.add('incomplete');
+          } else {
+            total += Number(select.value);
+          }
+        });
+
+        resultadoDiv.style.display = "block";
+        if (!allSelected) {
+          resultadoDiv.innerHTML = '⚠️ <strong class="font-bold">Per favore, seleziona un\'opzione per tutte le voci prima di calcolare.</strong>';
+          resultadoDiv.className = 'resultado bg-red-100';
+          return;
+        }
+
+        let classificazione, raccomandazione, classeRisultato;
+        if (total < 6) {
+          classificazione = 'Cervice Sfavorevole / Immatura';
+          raccomandazione = 'La cervice non è matura. È probabile che siano necessari metodi di maturazione cervicale prima di tentare l\'induzione del travaglio.';
+          classeRisultato = 'bg-red-100';
+        } else if (total <= 7) {
+          classificazione = 'Zona di Incertezza';
+          raccomandazione = 'L\'induzione può essere tentata, ma il successo non è garantito. Un monitoraggio attento è essenziale.';
+          classeRisultato = 'bg-yellow-100';
+        } else {
+          classificazione = 'Cervice Favorevole / Matura';
+          raccomandazione = 'La cervice è matura, con alta probabilità di successo per l\'induzione del travaglio. Il travaglio spontaneo potrebbe essere imminente.';
+          classeRisultato = 'bg-blue-50';
+        }
+
+        resultadoDiv.innerHTML = `
+                <p>Punteggio totale: <strong class="font-bold">${total}</strong></p>
+                <p>Classificazione: <strong class="font-bold">${classificazione}</strong></p>
+                <p class="mt-4"><strong>Raccomandazione:</strong> ${raccomandazione}</p>`;
+        resultadoDiv.className = `resultado ${classeRisultato}`;
+        resultadoDiv.dataset.score = total;
+        resultadoDiv.dataset.classificazione = classificazione;
+      }
+
+      function pulisciCampi() {
+        document.querySelectorAll('#conteudo select').forEach(select => {
+          select.selectedIndex = 0;
+          select.classList.remove('incomplete');
+        });
+        resultadoDiv.style.display = 'none';
+        delete resultadoDiv.dataset.score;
+      }
+
+      btnCalcular?.addEventListener('click', calcolaBishop);
+      btnLimpar?.addEventListener('click', pulisciCampi);
+
+      btnGerarPDF?.addEventListener('click', () => {
+        if (!resultadoDiv.dataset.score) {
+          alert('Per favore, clicca prima su "Calcola Punteggio" per generare il PDF.');
+          return;
+        }
+        if (typeof gerarPDFGlobal === 'function') {
+          gerarPDFGlobal({
+            titulo: 'Punteggio di Bishop',
+            subtitulo: 'Rapporto sulla Valutazione della Cervice Uterina',
+            nomeArquivo: 'rapporto_punteggio_bishop.pdf',
+            seletorConteudo: '.main-content-wrapper'
+          });
+        } else {
+          console.error('Funzione gerarPDFGlobal non definita.');
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener('click', () => {
+        const classificazione = resultadoDiv.dataset.classificazione;
+        if (!classificazione) {
+          alert('Calcola il risultato per cercare la condotta.');
+          return;
+        }
+        const searchQuery = encodeURIComponent(`punteggio Bishop ${resultadoDiv.dataset.score} travaglio ${classificazione} generare tassonomia NANDA, NIC e NOC`);
+        window.open(`https://www.google.com/search?q=${searchQuery}`, '_blank');
+      });
+    });
+  </script>
 
 
 

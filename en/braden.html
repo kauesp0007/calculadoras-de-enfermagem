@@ -696,7 +696,277 @@
   <script src="/lang-selector.js" defer=""></script>
 
   <!-- Main Application Script -->
-  
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const resultadoDiv = document.getElementById("resultado");
+      const conteudoDiv = document.getElementById("conteudo");
+      const btnCalcular = document.getElementById("btnCalcular");
+      const btnLimpar = document.getElementById("btnLimpar");
+      const btnGerarPDF = document.getElementById("btnGerarPDF");
+      const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
+
+      // Braden Scale Data - Updated with American English translations
+      const bradenData = [
+        {
+          id: "sensorial",
+          title: "Sensory Perception",
+          description: "Ability to respond to discomfort related to pressure.",
+          options: [
+            { score: 1, text: "Completely limited" },
+            { score: 2, text: "Very limited" },
+            { score: 3, text: "Slightly limited" },
+            { score: 4, text: "No impairment" },
+          ],
+        },
+        {
+          id: "umidade",
+          title: "Moisture",
+          description: "Degree to which skin is exposed to moisture.",
+          options: [
+            { score: 1, text: "Constantly moist" },
+            { score: 2, text: "Very moist" },
+            { score: 3, text: "Occasionally moist" },
+            { score: 4, text: "Rarely moist" },
+          ],
+        },
+        {
+          id: "atividade",
+          title: "Activity",
+          description: "Degree of physical activity.",
+          options: [
+            { score: 1, text: "Bedfast" },
+            { score: 2, text: "Chairfast" },
+            { score: 3, text: "Walks occasionally" },
+            { score: 4, text: "Walks frequently" },
+          ],
+        },
+        {
+          id: "mobilidade",
+          title: "Mobility",
+          description: "Ability to change and control body position.",
+          options: [
+            { score: 1, text: "Completely immobile" },
+            { score: 2, text: "Very limited" },
+            { score: 3, text: "Slightly limited" },
+            { score: 4, text: "No limitations" },
+          ],
+        },
+        {
+          id: "nutricao",
+          title: "Nutrition",
+          description: "Usual food intake pattern.",
+          options: [
+            { score: 1, text: "Very poor" },
+            { score: 2, text: "Probably inadequate" },
+            { score: 3, text: "Adequate" },
+            { score: 4, text: "Excellent" },
+          ],
+        },
+        {
+          id: "fricacao",
+          title: "Friction and Shear",
+          description: "Presence of abrasions and movements.",
+          options: [
+            { score: 1, text: "Problem" },
+            { score: 2, text: "Potential problem" },
+            { score: 3, text: "No apparent problem" },
+          ],
+        },
+      ];
+
+      function createForm() {
+        conteudoDiv.innerHTML = "";
+        bradenData.forEach((criterion) => {
+          const card = document.createElement("div");
+          card.className = "braden-criterion-card";
+
+          card.innerHTML = `
+                    <div class="braden-criterion-title-container">
+                        <h4 class="braden-criterion-title">${criterion.title}</h4>
+                        <p class="braden-criterion-description">${criterion.description}</p>
+                    </div>
+                    <div class="braden-options-container">
+                        <label for="${criterion.id}-select" class="sr-only">${criterion.title} score</label>
+                        <select id="${criterion.id}-select" class="braden-select" required aria-describedby="${criterion.id}-description">
+                            <option value="" disabled selected>Select an option...</option>
+                            ${criterion.options.map((opt) => `<option value="${opt.score}">${opt.text} (${opt.score})</option>`).join("")}
+                        </select>
+                    </div>
+                `;
+          conteudoDiv.appendChild(card);
+        });
+      }
+
+      function calcular() {
+        // Show loading state
+        btnCalcular.classList.add('loading');
+        btnCalcular.textContent = 'Calculating...';
+
+        let totalScore = 0;
+        let allSelected = true;
+
+        bradenData.forEach((criterion) => {
+          const select = document.getElementById(`${criterion.id}-select`);
+          if (select && select.value) {
+            totalScore += parseInt(select.value, 10);
+          } else {
+            allSelected = false;
+          }
+        });
+
+        // Remove loading state
+        setTimeout(() => {
+          btnCalcular.classList.remove('loading');
+          btnCalcular.textContent = 'Calculate';
+
+          if (!allSelected) {
+            resultadoDiv.innerHTML = `
+                <div role="alert" class="bg-yellow-100 border border-yellow-400 text-yellow-700 px-4 py-3 rounded">
+                  <strong class="font-bold">Please select an option for each criterion.</strong>
+                </div>
+              `;
+            resultadoDiv.className = "standard-result-box bg-info-orange-light";
+            resultadoDiv.style.display = "block";
+            delete resultadoDiv.dataset.score;
+            return;
+          }
+
+          let risk = "";
+          if (totalScore >= 19) {
+            risk = "No Risk";
+          } else if (totalScore >= 15) {
+            risk = "Low Risk";
+          } else if (totalScore >= 13) {
+            risk = "Moderate Risk";
+          } else if (totalScore >= 10) {
+            risk = "High Risk";
+          } else {
+            risk = "Very High Risk";
+          }
+
+          resultadoDiv.innerHTML = `
+                  <div class="space-y-2">
+                    <p class="font-bold text-lg">Total Score: <span class="font-black text-blue-700">${totalScore}</span></p>
+                    <p class="font-bold text-lg">Risk Classification: <span class="font-black ${risk === 'No Risk' ? 'text-green-600' : risk === 'Low Risk' ? 'text-yellow-600' : risk === 'Moderate Risk' ? 'text-orange-600' : 'text-red-600'}">${risk}</span></p>
+                  </div>
+                `;
+          resultadoDiv.className = "standard-result-box";
+          resultadoDiv.style.display = "block";
+          resultadoDiv.dataset.score = totalScore;
+          resultadoDiv.dataset.risk = risk;
+
+          // Announce result to screen readers
+          document.getElementById('statusMessage').textContent = `Braden Scale calculation complete. Total score: ${totalScore}. Risk classification: ${risk}`;
+        }, 500);
+      }
+
+      function limpar() {
+        createForm();
+        resultadoDiv.innerHTML = "";
+        resultadoDiv.className = "hidden";
+        delete resultadoDiv.dataset.score;
+        delete resultadoDiv.dataset.risk;
+        document.getElementById('statusMessage').textContent = "Braden Scale form has been cleared.";
+      }
+
+      createForm();
+      btnCalcular?.addEventListener("click", calcular);
+      btnLimpar?.addEventListener("click", limpar);
+
+      btnGerarPDF?.addEventListener("click", () => {
+        if (resultadoDiv.dataset.score === undefined) {
+          alert('Please click "Calculate" first to generate the PDF.');
+          return;
+        }
+
+        if (typeof window.jspdf === 'undefined') {
+          alert('PDF library not loaded. Please refresh the page and try again.');
+          return;
+        }
+
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+        const primaryColor = "#1A3E74";
+        let y = 10;
+        const pageMargin = 14;
+        const rightMargin = doc.internal.pageSize.getWidth() - pageMargin;
+
+        doc.setDrawColor(primaryColor);
+        doc.setLineWidth(0.5);
+        doc.rect(5, 5, 200, 287);
+        doc.setFillColor(primaryColor);
+        doc.rect(5, 5, 200, 25, "F");
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(18);
+        doc.setTextColor(255, 255, 255);
+        doc.text("Braden Scale", 105, 18, { align: "center" });
+        doc.setFontSize(12);
+        doc.text("Pressure Injury Risk Assessment Report", 105, 25, {
+          align: "center",
+        });
+
+        y = 45;
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(12);
+        doc.setTextColor(primaryColor);
+        doc.text("Braden Scale Result", pageMargin, y);
+        doc.setDrawColor(200);
+        doc.setLineWidth(0.2);
+        doc.line(pageMargin, y + 2, rightMargin, y + 2);
+        y += 10;
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(10);
+        doc.setTextColor(0, 0, 0);
+        doc.text(
+          `Total Score: ${resultadoDiv.dataset.score}`,
+          pageMargin,
+          y,
+        );
+        doc.text(
+          `Risk Classification: ${resultadoDiv.dataset.risk}`,
+          rightMargin,
+          y,
+          { align: "right" },
+        );
+
+        doc.setLineWidth(0.5);
+        doc.setDrawColor(primaryColor);
+        doc.line(5, 272, 205, 272);
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(8);
+        doc.setTextColor(150);
+        doc.text(
+          `Generated by Nursing Calculators on ${new Date().toLocaleString("en-US")}.`,
+          105,
+          278,
+          { align: "center" },
+        );
+        doc.text(
+          `This calculator is a support tool and does not replace clinical judgment. Verify data from external sources.`,
+          105,
+          282,
+          { align: "center" },
+        );
+
+        doc.save("braden_scale_report.pdf");
+      });
+
+      btnNandaNicNoc?.addEventListener("click", () => {
+        const risk = resultadoDiv.dataset.risk;
+        if (!risk) {
+          alert("Please calculate the result to search for interventions.");
+          return;
+        }
+        const searchQuery = encodeURIComponent(
+          `Patient with ${risk} for pressure injury Braden Scale NANDA NIC NOC taxonomy`,
+        );
+        window.open(
+          `https://www.google.com/search?q=${searchQuery}`,
+          "_blank",
+        );
+      });
+    });
+  </script>
 
   <!-- Footer Script -->
   <script>

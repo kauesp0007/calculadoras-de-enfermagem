@@ -623,7 +623,193 @@
 
 
 
-  
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const resultadoDiv = document.getElementById('resultado');
+      const btnCalcular = document.getElementById('btnCalcular');
+      const btnLimpar = document.getElementById('btnLimpar');
+      const btnGerarPDF = document.getElementById('btnGerarPDF');
+      const btnNandaNicNoc = document.getElementById('btnNandaNicNoc');
+      const conteudoDiv = document.getElementById('conteudo');
+
+      const painadData = [
+        {
+          title: "1. Respirazione",
+          nameAttr: "respiracao",
+          explain: "Osservare la respirazione del paziente.",
+          options: [
+            { description: "Normale, nessuna alterazione del pattern respiratorio", score: 0 },
+            { description: "Respiro occasionalmente ansimante, respiro corto o iperpnea", score: 1 },
+            { description: "Respiro ansimante e laborioso, respiro di Cheyne-Stokes", score: 2 }
+          ]
+        },
+        {
+          title: "2. Vocalizzazione",
+          nameAttr: "vocalizacao",
+          explain: "Valutare i suoni emessi dal paziente.",
+          options: [
+            { description: "Nessuna", score: 0 },
+            { description: "Geme, brontola, occasionalmente parla", score: 1 },
+            { description: "Grida, pianto, lamenti o ripetizione di parole in modo ripetitivo", score: 2 }
+          ]
+        },
+        {
+          title: "3. Espressione Facciale",
+          nameAttr: "expressao_facial",
+          explain: "Osservare le espressioni facciali del paziente.",
+          options: [
+            { description: "Rilassata, normale", score: 0 },
+            { description: "Triste, spaventata, con la fronte aggrottata", score: 1 },
+            { description: "Smorfie, espressione di panico", score: 2 }
+          ]
+        },
+        {
+          title: "4. Linguaggio del Corpo",
+          nameAttr: "linguagem_corporal",
+          explain: "Osservare la postura e i movimenti del paziente.",
+          options: [
+            { description: "Rilassata, nessuna tensione negli arti", score: 0 },
+            { description: "Corpo teso, agitato, irrequieto, braccia o gambe tese", score: 1 },
+            { description: "Pugni chiusi, arti rigidi, posizione fetale, agitazione eccessiva", score: 2 }
+          ]
+        },
+        {
+          title: "5. Consolabilità",
+          nameAttr: "consolabilidade",
+          explain: "Valutare se il paziente può essere calmato da un'altra persona.",
+          options: [
+            { description: "Facilmente consolabile, si distrae facilmente", score: 0 },
+            { description: "Confortabile con la voce o il tocco, ma la distrazione non è sostenibile", score: 1 },
+            { description: "Non può essere consolato, rimane agitato", score: 2 }
+          ]
+        }
+      ];
+
+      // Popola il form dinamicamente
+      painadData.forEach(item => {
+        const sectionDiv = document.createElement('div');
+        sectionDiv.className = 'painad-criterion-section';
+        sectionDiv.id = `section-${item.nameAttr}`;
+
+        const titleH3 = document.createElement('h3');
+        titleH3.className = 'painad-criterion-title';
+        titleH3.innerHTML = item.title;
+        sectionDiv.appendChild(titleH3);
+
+        const explainP = document.createElement('p');
+        explainP.className = 'painad-criterion-explain';
+        explainP.innerHTML = item.explain;
+        sectionDiv.appendChild(explainP);
+
+        const selectElement = document.createElement('select');
+        selectElement.id = item.nameAttr;
+        selectElement.className = 'painad-criterion-select mt-2';
+
+        const defaultOption = document.createElement('option');
+        defaultOption.value = "";
+        defaultOption.text = "Seleziona...";
+        selectElement.appendChild(defaultOption);
+
+        item.options.forEach(option => {
+          const optionElement = document.createElement('option');
+          optionElement.value = option.score;
+          optionElement.text = `${option.description} (${option.score})`;
+          selectElement.appendChild(optionElement);
+        });
+
+        sectionDiv.appendChild(selectElement);
+        conteudoDiv.appendChild(sectionDiv);
+      });
+
+      function calcularPainad() {
+        const selects = document.querySelectorAll('#conteudo select');
+        let allSelected = true;
+        let total = 0;
+
+        selects.forEach(select => {
+          if (select.value === "") {
+            allSelected = false;
+            select.classList.add('incomplete');
+          } else {
+            select.classList.remove('incomplete');
+            total += Number(select.value);
+          }
+        });
+
+        resultadoDiv.style.display = "block";
+        if (!allSelected) {
+          resultadoDiv.innerHTML = '⚠️ <strong class="font-bold">Seleziona un\'opzione per tutti gli elementi prima di calcolare.</strong>';
+          resultadoDiv.className = `resultado bg-red-100`;
+          delete resultadoDiv.dataset.score;
+          return;
+        }
+
+        let recomendacao = '';
+
+        if (total <= 3) {
+          recomendacao = `Il punteggio di ${total} indica che il dolore è assente o a un livello minimo. Continuare a monitorare il paziente regolarmente.`;
+        } else if (total >= 4 && total <= 6) {
+          recomendacao = `Il punteggio di ${total} indica dolore moderato. Si raccomanda la valutazione di metodi di sollievo dal dolore, farmacologici o non, e il monitoraggio della risposta del paziente.`;
+        } else { // total >= 7
+          recomendacao = `Il punteggio di ${total} indica dolore severo. È necessario un intervento immediato per il sollievo dal dolore e il piano di trattamento deve essere rivisto dal medico.`;
+        }
+
+        resultadoDiv.innerHTML = `
+                <p>Punteggio totale: <strong class="font-bold">${total}</strong></p>
+                <p class="mt-4"><strong>Raccomandazione:</strong> ${recomendacao}</p>
+            `;
+        resultadoDiv.className = `resultado bg-blue-50`;
+        resultadoDiv.style.display = "block";
+
+        resultadoDiv.dataset.score = total;
+        resultadoDiv.dataset.scaleName = "Scala PAINAD";
+      }
+
+      function limparCampos() {
+        const selects = document.querySelectorAll('#conteudo select');
+        selects.forEach(select => {
+          select.selectedIndex = 0;
+          select.classList.remove('incomplete');
+        });
+        resultadoDiv.innerHTML = '';
+        resultadoDiv.className = 'resultado hidden';
+        delete resultadoDiv.dataset.score;
+        delete resultadoDiv.dataset.scaleName;
+      }
+
+      btnCalcular?.addEventListener('click', calcularPainad);
+      btnLimpar?.addEventListener('click', limparCampos);
+
+      btnGerarPDF?.addEventListener('click', () => {
+        if (!resultadoDiv.dataset.score) {
+          alert('Per favore, clicca su "Calcola Punteggio" prima di generare il PDF.');
+          return;
+        }
+        if (typeof gerarPDFGlobal === 'function') {
+          gerarPDFGlobal({
+            titulo: 'Scala PAINAD',
+            subtitulo: 'Rapporto di Valutazione del Dolore nella Demenza Avanzata',
+            nomeArquivo: 'rapporto_scala_painad.pdf',
+            seletorConteudo: '.main-content-wrapper'
+          });
+        } else {
+          console.error('Funzione gerarPDFGlobal non definita.');
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener('click', () => {
+        const score = resultadoDiv.dataset.score;
+        const scaleName = resultadoDiv.dataset.scaleName;
+        if (!score) {
+          alert('Calcola il risultato per cercare la procedura.');
+          return;
+        }
+        const recomendacaoRisco = score <= 3 ? 'assenza di dolore' : score <= 6 ? 'dolore moderato' : 'dolore severo';
+        const searchQuery = encodeURIComponent(`assistenza infermieristica per paziente con demenza e ${recomendacaoRisco} secondo la Scala PAINAD NANDA NIC NOC`);
+        window.open(`https://www.google.com/search?q=${searchQuery}`, '_blank');
+      });
+    });
+  </script>
 
 
 

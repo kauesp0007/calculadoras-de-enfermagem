@@ -573,7 +573,537 @@
 
 
 
-  
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const resultadoDiv = document.getElementById("resultado");
+      const btnCalcular = document.getElementById("btnCalcular");
+      const btnLimpar = document.getElementById("btnLimpar");
+      const btnGerarPDF = document.getElementById("btnGerarPDF");
+      const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
+      const conteudoDiv = document.getElementById("conteudo");
+
+      const bergData = [
+        {
+          title: "1. Ngồi đứng",
+          nameAttr: "sentar_levantar",
+          options: [
+            {
+              description: "Could not dậy mà không có sự trợ giúp",
+              score: 0
+            },
+            {
+              description:
+                "Bạn có thể thấy điều gì xảy ra khi bạn đọc nó",
+              score: 1
+            },
+            {
+              description: "Bạn có thể thấy những gì bạn nói",
+              score: 2
+            },
+            {
+              description:
+                "Đó là những gì tôi đang làm, tôi không chắc chuyện gì đang xảy ra",
+              score: 3
+            },
+            {
+              description:
+                "Bạn có thể làm gì để xem bạn nói gì, bạn có thể nói gì theo quan điểm của bạn",
+              score: 4
+            }]
+
+        },
+        {
+          title: "2. Stand mà không cần hỗ trợ",
+          nameAttr: "em_pe_sem_apoio",
+          options: [
+            {
+              description: "Unable to struct trong 30 giây",
+              score: 0
+            },
+            {
+              description:
+                "Đứng trong 30 giây, nhưng cần sự trợ giúp",
+              score: 1
+            },
+            {
+              description:
+                "Đứng trong 30 ngày nhưng cần có người giám sát",
+              score: 2
+            },
+            { description: "Ổn định trong 30 giây", score: 3 },
+            {
+              description: "Cố định trong 30 ngày nữa",
+              score: 4
+            }]
+
+        },
+        {
+          title: "3. Ngồi không cần hỗ trợ",
+          nameAttr: "sentar_sem_apoio",
+          options: [
+            {
+              description: "Ngồi không vững, ngã xuống ghế",
+              score: 0
+            },
+            {
+              description: "Ngồi xuống, nhưng cần hỗ trợ tối thiểu",
+              score: 1
+            },
+            {
+              description: "Ngồi an toàn, nhưng sử dụng cánh tay",
+              score: 2
+            },
+            {
+              description:
+                "Ngồi an toàn, không dùng tay, nhưng chuyển động chậm",
+              score: 3
+            },
+            {
+              description: "Ngồi an toàn, không dùng tay",
+              score: 4
+            }]
+
+        },
+        {
+          title: "4. Ngồi xuống và đứng lên",
+          nameAttr: "sentar_e_levantar",
+          options: [
+            {
+              description:
+                "Không thể ngồi và đứng lên 3 lần nếu không có sự hỗ trợ",
+              score: 0
+            },
+            {
+              description:
+                "Ngồi xuống và đứng 3 lần nhưng có người giúp đỡ",
+              score: 1
+            },
+            {
+              description:
+                "Ngồi xuống và đứng 3 lần nhưng phải có người giám sát",
+              score: 2
+            },
+            {
+              description:
+                "Ngồi xuống và đứng 3 lần một cách an toàn nhưng chuyển động chậm.",
+              score: 3
+            },
+            {
+              description: "Ngồi xuống và dậy 3 lần một cách an toàn",
+              score: 4
+            }]
+
+        },
+        {
+          title: "5. Chuyển tài khoản",
+          nameAttr: "transferencia",
+          options: [
+            { description: "Không thể chuyển mà không có sự trợ giúp", score: 0 },
+            { description: "Move with support", score: 1 },
+            {
+              description:
+                "Chuyển giao tiếp với giám đốc hoặc hỗ trợ bằng lời nói",
+              score: 2
+            },
+            {
+              description:
+                "Chuyển giao an toàn nhưng tốc độ chậm",
+              score: 3
+            },
+            {
+              description: "Switch an toàn, không cần hỗ trợ",
+              score: 4
+            }]
+
+        },
+        {
+          title: "6. Đứng với ánh mắt lại",
+          nameAttr: "em_pe_olhos_fechados",
+          options: [
+            {
+              description:
+                "Không thể vững chắc trong 10 giây với mắt lại",
+              score: 0
+            },
+            {
+              description:
+                "Đứng trong 10 giây nhưng cần có người giám sát",
+              score: 1
+            },
+            {
+              description: "Cố định trong 10 ngày",
+              score: 2
+            },
+            {
+              description:
+                "Đứng trong 30 giây nhưng hơi mất thăng bằng",
+              score: 3
+            },
+            {
+              description: "Cố định trong 30 ngày nữa",
+              score: 4
+            }]
+
+        },
+        {
+          title: "7. Đứng với hai chân chụm lại",
+          nameAttr: "em_pe_pes_juntos",
+          options: [
+            {
+              description: "Không thể dựng lại hai chân chụm",
+              score: 0
+            },
+            {
+              description:
+                "Đứng thẳng với hai chân chụm lại, nhưng có người hỗ trợ",
+              score: 1
+            },
+            {
+              description: "Đứng với hai chân chụm lại, nhưng có người giám sát",
+              score: 2
+            },
+            {
+              description: "Chờ hai chân chụm lại trong 30 giây",
+              score: 3
+            },
+            {
+              description:
+                "Đứng với hai chân chụm lại trong 1 phút một cách an toàn",
+              score: 4
+            }]
+
+        },
+        {
+          title: "8. Thế là đủ cho bạn rồi",
+          nameAttr: "alcancar_a_frente",
+          options: [
+            {
+              description: "Không thể đạt được hoặc chuyển động là nguy hiểm",
+              score: 0
+            },
+            {
+              description: "Tiến lên phía trước nhưng có hỗ trợ",
+              score: 1
+            },
+            { description: "Tiến lán phía trước, nhưng dưới giám sát", score: 2 },
+            {
+              description: "Đạt được tiến bộ, nhưng tiến trình chậm",
+              score: 3
+            },
+            {
+              description: "Đúng vậy, bạn biết chuyện gì đang xảy ra",
+              score: 4
+            }]
+
+        },
+        {
+          title: "9. Đừng quên tôi",
+          nameAttr: "pegar_objeto",
+          options: [
+            { description: "Không thể nhặt đồ vật", score: 0 },
+            {
+              description: "Đây nhé, đừng quên đọc nhé",
+              score: 1
+            },
+            { description: "Đây là những gì bạn sẽ thấy", score: 2 },
+            {
+              description: "Lấy vật thể nhưng chuyển động chậm",
+              score: 3
+            },
+            {
+              description:
+                "Bạn không nhìn thấy điều bạn đang nói, điều bạn có thể nói là trợ giúp",
+              score: 4
+            }]
+
+        },
+        {
+          title: "10. Nhìn lại phía sau qua vai",
+          nameAttr: "olhar_para_tras",
+          options: [
+            { description: "Không thể xem lại", score: 0 },
+            { description: "Nhìn lại quá khứ, nhưng được hỗ trợ", score: 1 },
+            { description: "Nhìn lại quá khứ, nhưng với giám sát", score: 2 },
+            {
+              description:
+                "Quay lại phía sau một cách an toàn, nhưng chuyển động chậm",
+              score: 3
+            },
+            {
+              description: "Nhìn lại phía sau một cách an toàn, không cần trợ giúp",
+              score: 4
+            }]
+
+        },
+        {
+          title: "11. Xoay 360 độ",
+          nameAttr: "girar_360",
+          options: [
+            { description: "Không thể xoay 360 độ", score: 0 },
+            { description: "Quay, nhưng được hỗ trợ", score: 1 },
+            { description: "Quay, nhưng có giám sát", score: 2 },
+            {
+              description:
+                "Xoay 360 Bạn tự làm được nhé, đừng quên nhé",
+              score: 3
+            },
+            {
+              description: "Xoay 360 Click vào đây để đọc thêm",
+              score: 4
+            }]
+
+        },
+        {
+          title: "12. Đứng trên một chân",
+          nameAttr: "um_pe_so",
+          options: [
+            {
+              description: "Can't be on a foot",
+              score: 0
+            },
+            {
+              description: "Đứng trên một chân trong 5 ngày",
+              score: 1
+            },
+            {
+              description: "Đứng trên một chân trong 10 ngày",
+              score: 2
+            },
+            {
+              description: "Đứng trên một chan trong 15 ngày",
+              score: 3
+            },
+            {
+              description: "Thêm hơn 30 ngày",
+              score: 4
+            }]
+
+        },
+        {
+          title: "13. Đứng trên một chân với mắt trừng lại",
+          nameAttr: "um_pe_so_olhos_fechados",
+          options: [
+            {
+              description:
+                "Không thể đứng bằng một chân với mắt lại",
+              score: 0
+            },
+            {
+              description:
+                "Đứng trên một chân trong 5 giây với ánh mắt lại",
+              score: 1
+            },
+            {
+              description:
+                "Đứng trên một chân trong 10 giây với mắt lại",
+              score: 2
+            },
+            {
+              description:
+                "Đứng trên một chân trong 15 giây với mắt lại",
+              score: 3
+            },
+            {
+              description:
+                "Đứng trên một chân trong 30 giây với mắt lại",
+              score: 4
+            }]
+
+        },
+        {
+          title: "14. Đứng và ngồi trên ghế",
+          nameAttr: "sentar_e_levantar_cadeira",
+          options: [
+            {
+              description: "Không thể ngồi xuống và đứng dậy khỏi ghế",
+              score: 0
+            },
+            {
+              description: "Ngồi xuống và đứng dậy, nhưng cần hỗ trợ",
+              score: 1
+            },
+            {
+              description: "Ngồi xuống và dậy dậy, nhưng phải có người giám sát",
+              score: 2
+            },
+            {
+              description:
+                "Ngồi xuống và dậy một cách an toàn, nhưng chuyển động chậm.",
+              score: 3
+            },
+            {
+              description:
+                "Ngồi xuống và dậy một cách an toàn, không cần hỗ trợ",
+              score: 4
+            }]
+
+        }];
+
+
+      // Preenche o formulário dinamicamente
+      bergData.forEach((item) => {
+        const sectionDiv = document.createElement("div");
+        sectionDiv.className = "berg-criterion-section";
+        sectionDiv.id = `section-${item.nameAttr}`;
+
+        const titleH3 = document.createElement("h3");
+        titleH3.className = "berg-criterion-title";
+        titleH3.innerHTML = item.title;
+        sectionDiv.appendChild(titleH3);
+
+        const selectElement = document.createElement("select");
+        selectElement.id = item.nameAttr;
+        selectElement.className = "berg-tiêu chí-chọn mt-2";
+
+        const defaultOption = document.createElement("option");
+        defaultOption.value = "";
+        defaultOption.text = "Chọn...";
+        selectElement.appendChild(defaultOption);
+
+        item.options.forEach((option) => {
+          const optionElement = document.createElement("option");
+          optionElement.value = option.score;
+          optionElement.text = `${option.description} (điểm: ${option.score})`;
+          selectElement.appendChild(optionElement);
+        });
+
+        sectionDiv.appendChild(selectElement);
+        conteudoDiv.appendChild(sectionDiv);
+      });
+
+      function calcularBerg() {
+        const selects = document.querySelectorAll("#conteudo select");
+        let allSelected = true;
+        let total = 0;
+
+        selects.forEach((select) => {
+          if (select.value === "") {
+            allSelected = false;
+            select.classList.add("không đầy đủ");
+          } else {
+            select.classList.remove("không đầy đủ");
+            total += Number(select.value);
+          }
+        });
+
+        resultadoDiv.style.display = "block";
+        if (!allSelected) {
+          resultadoDiv.innerHTML =
+            '⚠️ <strong class="font-bold">Por favor, selecione uma opção para todos os itens antes de calcular.</strong>';
+          resultadoDiv.className = `bg-đỏ-100 là gì`;
+          delete resultadoDiv.dataset.score;
+          return;
+        }
+
+        let recomendacao = "";
+
+        if (total <= 20) {
+          recomendacao = `Chỉ là lựa chọn ${total} của bạn không thành vấn đề. Đây là những gì bạn sẽ thấy.`;
+        } else if (total >= 21 && total <= 40) {
+          recomendacao = `Thế thôi. Khuyến khích phục hồi chức năng.`;
+        } else if (total >= 41 && total <= 56) {
+          recomendacao = `Chỉ là ${total} đã chọn sai mà thôi. Bệnh nhân có khả năng thăng bằng và chuyển tiếp tốt.`;
+        }
+
+        resultadoDiv.innerHTML = `
+                <p>Escore total: <strong class="font-bold">${total}</strong></p>
+                <p class="mt-4"><strong>Recomendação:</strong> ${recomendacao}</p>
+            `;
+        resultadoDiv.className = `bg-blue-50 là gì`;
+        resultadoDiv.style.display = "block";
+
+        resultadoDiv.dataset.score = total;
+        resultadoDiv.dataset.scaleName = "Thang đo can bằng Berg";
+      }
+
+      function limparCampos() {
+        const selects = document.querySelectorAll("#conteudo select");
+        selects.forEach((select) => {
+          select.selectedIndex = 0;
+          select.classList.remove("không đầy đủ");
+        });
+        resultadoDiv.innerHTML = "";
+        resultadoDiv.className = "kết quả ẩn";
+        delete resultadoDiv.dataset.score;
+        delete resultadoDiv.dataset.scaleName;
+      }
+
+      // Adiciona os event listeners aos botões
+      btnCalcular?.addEventListener("click", calcularBerg);
+      btnLimpar?.addEventListener("click", limparCampos);
+
+      btnGerarPDF?.addEventListener("click", () => {
+        if (!resultadoDiv.dataset.score) {
+          alert(
+            "Xem những gì bạn có thể thấy \"Tính điểm\" trước để tạo tệp PDF."
+          );
+          return;
+        }
+        if (typeof gerarPDFGlobal === "chức năng") {
+          const selectedOptions = {};
+          document.querySelectorAll("#conteudo select").forEach((select) => {
+            const selected = select.options[select.selectedIndex];
+            if (selected.value !== "") {
+              selectedOptions[select.id] = selected.text;
+            }
+          });
+
+          let contentToPrint = document.
+            querySelector(".main-content-wrapper").
+            cloneNode(true);
+          let contentContainer = contentToPrint.querySelector("#conteudo");
+
+          contentContainer.innerHTML = "";
+
+          bergData.forEach((item) => {
+            let selectedText = selectedOptions[item.nameAttr];
+            if (selectedText) {
+              let itemDiv = document.createElement("div");
+              itemDiv.className = "mb-2 p-2 bg-gray-50 rounded";
+              itemDiv.innerHTML = `<strong>${item.title}:</strong> ${selectedText}`;
+              contentContainer.appendChild(itemDiv);
+            }
+          });
+
+          let resultadoHtml = resultadoDiv.cloneNode(true);
+          if (resultadoHtml.style.display !== "none") {
+            contentContainer.appendChild(resultadoHtml);
+          }
+
+          gerarPDFGlobal({
+            titulo: "Thang đo can bằng Berg",
+            subtitulo:
+              "Báo giá cao có thể bằng tĩnh và động",
+            nomeArquivo: "relatorio_escala_berg.pdf",
+            seletorConteudo: ".main-content-wrapper"
+          });
+        } else {
+          console.error("Bạn không thể tạo PDFGlobal không được xác định.");
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener("click", () => {
+        const score = resultadoDiv.dataset.score;
+        const scaleName = resultadoDiv.dataset.scaleName;
+        if (!score) {
+          alert("Tính toán kết quả để nghiên cứu hành động vi.");
+          return;
+        }
+        let recomendacaoRisco = "nguy cơ té ngã";
+        if (score <= 20) {
+          recomendacaoRisco = "nguy cơ té ngã cao";
+        } else if (score >= 41) {
+          recomendacaoRisco = "nguy cơ té ngã thấp";
+        }
+        const searchQuery = encodeURIComponent(
+          `chăm sóc điều dưỡng cho người già với ${recommendationRisco} theo Thang đo Berg NANDA NIC NOC`
+        );
+        window.open(
+          `https://www.google.com/search?q=${searchQuery}`,
+          "_blank"
+        );
+      });
+    });</script>
 
   <script src="/lang-selector.js" defer=""></script>
 

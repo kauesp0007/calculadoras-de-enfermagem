@@ -539,7 +539,178 @@
 
 
 
-  
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const resultadoDiv = document.getElementById('resultado');
+      const conteudoDiv = document.getElementById('conteudo');
+      const btnCalcular = document.getElementById('btnCalcular');
+      const btnLimpar = document.getElementById('btnLimpar');
+      const btnGerarPDF = document.getElementById('btnGerarPDF');
+      const btnNandaNicNoc = document.getElementById('btnNandaNicNoc');
+      const downtonData = [
+        { category: "Previous Falls", nameAttr: "previousFalls", options: [{ description: "Yes", score: 1 }, { description: "No", score: 0 }] },
+        { category: "Medications", nameAttr: "medications", options: [{ description: "Sedatives", score: 1 }, { description: "Diuretics", score: 1 }, { description: "Antihypertensives", score: 1 }, { description: "Antiparkinsonian drugs", score: 1 }, { description: "Antidepressants", score: 1 }, { description: "Other", score: 1 }, { description: "None", score: 0 }] },
+        { category: "Sensory Deficits", nameAttr: "sensoryDeficits", options: [{ description: "Visual impairment", score: 1 }, { description: "Hearing impairment", score: 1 }, { description: "None", score: 0 }] },
+        { category: "Mental State", nameAttr: "mentalState", options: [{ description: "Confused/Disoriented", score: 1 }, { description: "Normal", score: 0 }] },
+        { category: "Gait", nameAttr: "gait", options: [{ description: "Normal", score: 0 }, { description: "Safe with aid", score: 1 }, { description: "Unsafe", score: 1 }] }
+      ];
+      function createCriteriaList() {
+        conteudoDiv.innerHTML = '';
+        downtonData.forEach((paramGroup) => {
+          const details = document.createElement('details');
+          details.className = 'criterion-container bg-white border border-gray-200 rounded-lg shadow-sm transition-all duration-300';
+          details.dataset.name = paramGroup.nameAttr;
+          const summary = document.createElement('summary');
+          summary.className = 'flex justify-between items-center p-4 cursor-pointer hover:bg-gray-50';
+          summary.innerHTML = `
+                        <span class="font-bold text-lg text-dark-blue">${paramGroup.category}</span>
+                        <div class="flex items-center gap-3">
+                            <span class="selected-value text-gray-500 italic text-right">Select options</span>
+                            <i class="fas fa-chevron-down chevron-icon text-gray-400"></i>
+                        </div>
+                    `;
+          const optionsContainer = document.createElement('div');
+          optionsContainer.className = 'p-4 border-t border-gray-200 bg-gray-50/50';
+          paramGroup.options.forEach(option => {
+            const label = document.createElement('label');
+            label.className = 'option-label';
+            const inputType = paramGroup.options.length > 2 ? 'checkbox' : 'radio';
+            const input = document.createElement('input');
+            input.type = inputType;
+            input.name = paramGroup.nameAttr + (inputType === 'checkbox' ? '[]' : '');
+            input.value = option.score;
+            input.dataset.description = option.description;
+            input.addEventListener('change', (event) => {
+              if (inputType === 'radio') {
+                userSelections[paramGroup.nameAttr] = { score: parseInt(event.target.value, 10), description: event.target.dataset.description };
+                const summaryValue = details.querySelector('.selected-value');
+                summaryValue.textContent = `${event.target.dataset.description} (${event.target.value} pt)`;
+                summaryValue.classList.remove('text-gray-500', 'italic');
+                summaryValue.classList.add('text-blue-600', 'font-semibold');
+                details.open = false;
+              } else {
+                if (!userSelections[paramGroup.nameAttr]) userSelections[paramGroup.nameAttr] = [];
+                if (event.target.checked) {
+                  userSelections[paramGroup.nameAttr].push({ score: parseInt(event.target.value, 10), description: event.target.dataset.description });
+                } else {
+                  userSelections[paramGroup.nameAttr] = userSelections[paramGroup.nameAttr].filter(sel => sel.description !== event.target.dataset.description);
+                }
+                const summaryValue = details.querySelector('.selected-value');
+                const selected = userSelections[paramGroup.nameAttr].map(sel => `${sel.description} (${sel.score} pt)`).join(', ');
+                summaryValue.textContent = selected || 'Select options';
+                summaryValue.classList.remove('text-gray-500', 'italic');
+                summaryValue.classList.add('text-blue-600', 'font-semibold');
+              }
+            });
+            const descriptionSpan = document.createElement('span');
+            descriptionSpan.textContent = `${option.description} (${option.score} point${option.score !== 1 ? 's' : ''})`;
+            label.appendChild(input);
+            label.appendChild(descriptionSpan);
+            optionsContainer.appendChild(label);
+          });
+          details.appendChild(summary);
+          details.appendChild(optionsContainer);
+          conteudoDiv.appendChild(details);
+        });
+      }
+      let userSelections = {};
+      function calcular() {
+        let total = 0;
+        resultadoDiv.innerHTML = '';
+        resultadoDiv.className = 'resultado p-4 mt-6 rounded-lg text-left';
+        resultadoDiv.style.display = 'none';
+        let allSelected = true;
+        for (const param of downtonData) {
+          if (param.options.length > 2) {
+            if (!userSelections[param.nameAttr] || userSelections[param.nameAttr].length === 0) {
+              allSelected = false;
+              break;
+            }
+          } else {
+            if (!userSelections[param.nameAttr]) {
+              allSelected = false;
+              break;
+            }
+          }
+        }
+        if (!allSelected) {
+          resultadoDiv.style.display = "block";
+          resultadoDiv.innerHTML = '⚠️ <strong class="font-bold">Please select an option for each criterion.</strong>';
+          resultadoDiv.classList.add('bg-info-orange-light');
+          delete resultadoDiv.dataset.score;
+          return;
+        }
+        for (const param of downtonData) {
+          if (param.options.length > 2) {
+            total += userSelections[param.nameAttr].reduce((acc, sel) => acc + sel.score, 0);
+          } else {
+            total += userSelections[param.nameAttr].score;
+          }
+        }
+        let risk = '';
+        let comment = '';
+        if (total < 3) {
+          risk = "Low risk of falls";
+          comment = "The patient presents a low risk of falls. Maintain preventive measures.";
+          resultadoDiv.classList.add('bg-downton-low');
+        } else {
+          risk = "High risk of falls";
+          comment = "The patient presents a high risk of falls. Implement fall prevention protocols and monitor closely.";
+          resultadoDiv.classList.add('bg-downton-high');
+        }
+        resultadoDiv.style.display = "block";
+        resultadoDiv.innerHTML = `
+                    <p>Total Score: <strong class="font-bold">${total}</strong></p>
+                    <p>Risk: <strong class="font-bold">${risk}</strong></p>
+                    <p>Comment: <strong class="font-bold">${comment}</strong></p>
+                `;
+        resultadoDiv.dataset.score = total;
+        resultadoDiv.dataset.risk = risk;
+        resultadoDiv.dataset.scaleName = "Downton Fall Risk Index";
+      }
+      function limpar() {
+        userSelections = {};
+        createCriteriaList();
+        resultadoDiv.innerHTML = '';
+        resultadoDiv.style.display = 'none';
+        resultadoDiv.className = 'resultado hidden mt-6';
+        delete resultadoDiv.dataset.score;
+        delete resultadoDiv.dataset.risk;
+        delete resultadoDiv.dataset.scaleName;
+      }
+      btnCalcular?.addEventListener('click', calcular);
+      btnLimpar?.addEventListener('click', limpar);
+      btnGerarPDF?.addEventListener('click', () => {
+        if (!resultadoDiv || !resultadoDiv.dataset.score) {
+          alert('Please click "Calculate" first to generate the PDF.');
+          return;
+        }
+        if (typeof gerarPDFGlobal === 'function') {
+          gerarPDFGlobal({
+            titulo: 'Downton Fall Risk Index',
+            subtitulo: 'Fall Risk Assessment Report',
+            nomeArquivo: 'downton_fall_risk_report.pdf',
+            seletorConteudo: '.main-content-wrapper'
+          });
+        } else {
+          alert('Error: The function to generate PDF was not found.');
+          console.error('gerarPDFGlobal function not defined.');
+        }
+      });
+      btnNandaNicNoc?.addEventListener('click', () => {
+        const score = resultadoDiv.dataset.score;
+        const scaleName = resultadoDiv.dataset.scaleName;
+        const risk = resultadoDiv.dataset.risk;
+        if (!score || !risk) {
+          alert('Calculate the result to search for conduct.');
+          return;
+        }
+        const searchQuery = encodeURIComponent(`${scaleName} score ${score} risk ${risk} generate NANDA taxonomy, generate NIC taxonomy and generate NOC taxonomy`);
+        window.open(`https://www.google.com/search?q=${searchQuery}`, '_blank');
+      });
+      createCriteriaList();
+    });
+  </script>
 
 
 

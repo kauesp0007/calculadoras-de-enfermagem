@@ -618,7 +618,213 @@
 
 
 
-  
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const resultadoDiv = document.getElementById('resultado');
+      const btnCalcular = document.getElementById('btnCalcular');
+      const btnLimpar = document.getElementById('btnLimpar');
+      const btnGerarPDF = document.getElementById('btnGerarPDF');
+      const btnNandaNicNoc = document.getElementById('btnNandaNicNoc');
+      const conteudoDiv = document.getElementById('conteudo');
+
+      // Dados da escala Jouvet (Traduzidos para Hindi)
+      const jouvetData = [
+        {
+          parameter: "बोधगम्यता (Perceptivity)",
+          nameAttr: "perceptividade",
+          options: [
+            { description: "जागरूक, जटिल आदेशों का पालन करता है, लिखित आदेशों का भी", score: 5 },
+            { description: "भ्रमित और लिखित आदेशों का पालन नहीं करता", score: 4 },
+            { description: "केवल मौखिक आदेशों का पालन करता है", score: 3 },
+            { description: "केवल पलक झपकना दिखाता है (blinking)", score: 2 },
+            { description: "पलक झपकना अनुपस्थित", score: 1 }
+          ]
+        },
+        {
+          parameter: "अविशिष्ट प्रतिक्रियाशीलता (Nonspecific Reactivity)",
+          nameAttr: "reatividadeInespecifica",
+          options: [
+            { description: "मौखिक उत्तेजनाओं पर जागता है और उन्मुख होता है", score: 3 },
+            { description: "मौखिक उत्तेजनाओं पर केवल जागता है", score: 2 },
+            { description: "मौखिक उत्तेजनाओं पर नहीं जागता", score: 1 }
+          ]
+        },
+        {
+          parameter: "दर्द के प्रति विशिष्ट प्रतिक्रियाशीलता (Specific Reactivity to Pain)",
+          nameAttr: "reatividadeDor",
+          options: [
+            { description: "जागता है, हटाता है, नक़ल करता है और मुखर होता है", score: 4 },
+            { description: "जागता है, हटाता है, बिना नक़ल और मुखरता के", score: 3 },
+            { description: "केवल मोटर वापसी", score: 2 },
+            { description: "नकारात्मक प्रतिक्रिया", score: 1 }
+          ]
+        },
+        {
+          parameter: "स्वायत्त प्रतिक्रियाशीलता (Autonomic Reactivity)",
+          nameAttr: "reatividadeAutonomica",
+          options: [
+            { description: "तेज हृदय गति, तेज श्वसन दर, पुतली का फैलना (Midriasis)", score: 2 },
+            { description: "नकारात्मक प्रतिक्रिया", score: 1 }
+          ]
+        }
+      ];
+
+      // --- Funções da Calculadora Jouvet ---
+      function updateScoreDisplay(criterionId) {
+        const selectElement = document.getElementById(criterionId);
+        const scoreDisplayElement = document.getElementById(`${criterionId}_score_display`);
+        if (selectElement && scoreDisplayElement) {
+          scoreDisplayElement.innerText = selectElement.value === "" ? "0" : selectElement.value;
+        }
+      }
+
+      function calcularPontuacao() {
+        let totalScore = 0;
+        let allCategoriesSelected = true;
+
+        jouvetData.forEach(item => {
+          const selectElement = document.getElementById(item.nameAttr);
+          if (selectElement.value === "") {
+            allCategoriesSelected = false;
+          } else {
+            totalScore += parseInt(selectElement.value, 10);
+          }
+        });
+
+        resultadoDiv.style.display = "block";
+        if (!allCategoriesSelected) {
+          // Mensagem de erro em Hindi
+          resultadoDiv.innerHTML = '⚠️ <strong class="font-bold">कृपया गणना करने से पहले प्रत्येक पैरामीटर के लिए एक विकल्प चुनें।</strong>';
+          resultadoDiv.className = 'resultado bg-info-orange-light';
+          delete resultadoDiv.dataset.score;
+          return;
+        }
+
+        let nivelJouvet = "";
+        let nivelJouvetTexto = "";
+        let resultadoClasse = '';
+
+        if (totalScore >= 10) {
+          nivelJouvet = "Nível I";
+          nivelJouvetTexto = "स्तर I (Nivel I)"; // चेतना
+          resultadoClasse = 'bg-jouvet-1';
+        } else if (totalScore >= 7) {
+          nivelJouvet = "Nível II";
+          nivelJouvetTexto = "स्तर II (Nivel II)"; // अचेतता / कोमा हल्का
+          resultadoClasse = 'bg-jouvet-2';
+        } else {
+          nivelJouvet = "Nível III";
+          nivelJouvetTexto = "स्तर III (Nivel III)"; // कोमा गहरा
+          resultadoClasse = 'bg-jouvet-3';
+        }
+
+        // Mensagem de resultado em Hindi
+        resultadoDiv.innerHTML = `<p>जोवेट स्केल का कुल स्कोर: <strong class="font-bold">${totalScore}</strong></p><p>जोवेट कोमा स्तर: <strong class="font-bold">${nivelJouvetTexto}</strong></p>`;
+        resultadoDiv.className = `resultado ${resultadoClasse}`;
+
+        resultadoDiv.dataset.score = totalScore;
+        resultadoDiv.dataset.nivel = nivelJouvet; // Mantém em Português para pesquisa NANDA
+        resultadoDiv.dataset.scaleName = "जोवेट कोमा स्केल";
+      }
+
+      function limparCampos() {
+        jouvetData.forEach(item => {
+          const selectElement = document.getElementById(item.nameAttr);
+          selectElement.selectedIndex = 0;
+          document.getElementById(`${item.nameAttr}_score_display`).innerText = '0';
+        });
+        resultadoDiv.innerHTML = '';
+        resultadoDiv.className = 'resultado hidden';
+        delete resultadoDiv.dataset.score;
+        delete resultadoDiv.dataset.nivel;
+        delete resultadoDiv.dataset.scaleName;
+      }
+
+      // Preenche o formulário dinamicamente
+      jouvetData.forEach((item, index) => {
+        const sectionDiv = document.createElement('div');
+        sectionDiv.className = 'jouvet-criterion-card';
+
+        const headerDiv = document.createElement('div');
+        headerDiv.className = 'jouvet-criterion-header';
+
+        const titleH3 = document.createElement('h3');
+        titleH3.className = 'jouvet-criterion-title';
+        titleH3.innerText = item.parameter; // Parâmetro em Hindi
+        headerDiv.appendChild(titleH3);
+
+        const scoreSpan = document.createElement('span');
+        scoreSpan.className = 'jouvet-score-display';
+        scoreSpan.id = `${item.nameAttr}_score_display`;
+        scoreSpan.innerText = '0';
+        headerDiv.appendChild(scoreSpan);
+
+        sectionDiv.appendChild(headerDiv);
+
+        const optionsDiv = document.createElement('div');
+        optionsDiv.className = 'jouvet-criterion-options';
+
+        const selectElement = document.createElement('select');
+        selectElement.id = item.nameAttr;
+        selectElement.className = 'jouvet-select';
+        selectElement.onchange = () => updateScoreDisplay(item.nameAttr);
+
+        const defaultOption = document.createElement('option');
+        defaultOption.value = "";
+        defaultOption.text = "चुनें..."; // Selecione...
+        defaultOption.disabled = true;
+        defaultOption.selected = true;
+        selectElement.appendChild(defaultOption);
+
+        item.options.forEach(option => {
+          const optionElement = document.createElement('option');
+          optionElement.value = option.score;
+          optionElement.text = `${option.description} (${option.score})`; // Opção + Score em Hindi
+          selectElement.appendChild(optionElement);
+        });
+
+        optionsDiv.appendChild(selectElement);
+        sectionDiv.appendChild(optionsDiv);
+        conteudoDiv.appendChild(sectionDiv);
+      });
+
+      // Adiciona os event listeners aos botões
+      btnCalcular?.addEventListener('click', calcularPontuacao);
+      btnLimpar?.addEventListener('click', limparCampos);
+
+      btnGerarPDF?.addEventListener('click', () => {
+        if (!resultadoDiv.dataset.score) {
+          // Mensagem de erro em Hindi
+          alert('कृपया PDF उत्पन्न करने के लिए पहले "गणना करें" पर क्लिक करें।');
+          return;
+        }
+        if (typeof gerarPDFGlobal === 'function') {
+          gerarPDFGlobal({
+            titulo: 'जोवेट कोमा स्केल', // Título do PDF em Hindi
+            subtitulo: 'चेतना स्तर मूल्यांकन रिपोर्ट', // Subtítulo do PDF em Hindi
+            nomeArquivo: 'relatorio_escala_jouvet_hi.pdf',
+            seletorConteudo: '.main-content-wrapper'
+          });
+        } else {
+          console.error('Função gerarPDFGlobal não definida।');
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener('click', () => {
+        const score = resultadoDiv.dataset.score;
+        const scaleName = resultadoDiv.dataset.scaleName;
+        const nivel = resultadoDiv.dataset.nivel; // Mantém a classificação em português (e.g., Nível I) para pesquisa eficaz
+        if (!score || !nivel) {
+          // Mensagem de erro em Hindi
+          alert('आचरण खोजने के लिए परिणाम की गणना करें।');
+          return;
+        }
+        // A consulta de pesquisa deve ser em Hindi e Português/Inglês para melhor resultado
+        const searchQuery = encodeURIComponent(`${scaleName} स्कोर ${score} स्तर ${nivel} NANDA वर्गीकरण उत्पन्न करें, NIC वर्गीकरण उत्पन्न करें और NOC वर्गीकरण उत्पन्न करें`);
+        window.open(`https://www.google.com/search?q=${searchQuery}`, '_blank');
+      });
+    });
+  </script>
 
 
 

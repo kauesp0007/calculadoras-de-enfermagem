@@ -609,7 +609,205 @@
 
 
 
-  
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const resultadoDiv = document.getElementById('resultado');
+      const btnCalcular = document.getElementById('btnCalcular');
+      const btnLimpar = document.getElementById('btnLimpar');
+      const btnGerarPDF = document.getElementById('btnGerarPDF');
+      const btnNandaNicNoc = document.getElementById('btnNandaNicNoc');
+      const conteudoDiv = document.getElementById('conteudo');
+
+      // Dados da escala de Bishop
+      const bishopData = [
+        {
+          category: "Dilatación del Cuello Uterino",
+          nameAttr: "dilatacao",
+          options: [
+            { description: "0 cm", score: 0 },
+            { description: "1-2 cm", score: 1 },
+            { description: "3-4 cm", score: 2 },
+            { description: "≥ 5 cm", score: 3 }
+          ],
+          explain: "Apertura del cuello uterino, medida en centímetros. Cuanto mayor sea la dilatación, mayor será la puntuación."
+        },
+        {
+          category: "Borramiento Cervical",
+          nameAttr: "apagamento",
+          options: [
+            { description: "0-30%", score: 0 },
+            { description: "40-50%", score: 1 },
+            { description: "60-70%", score: 2 },
+            { description: "≥ 80%", score: 3 }
+          ],
+          explain: "Adelgazamiento y acortamiento del cuello uterino en relación con su longitud original. Expresado en porcentaje. Cuanto mayor sea el porcentaje, mayor será la puntuación."
+        },
+        {
+          category: "Consistencia Cervical",
+          nameAttr: "consistencia",
+          options: [
+            { description: "Firme", score: 0 },
+            { description: "Media", score: 1 },
+            { description: "Blanda", score: 2 }
+          ],
+          explain: "Determina la firmeza del cuello uterino al tacto. Un cuello más blando está más maduro y listo para el parto."
+        },
+        {
+          category: "Posición del Cuello Uterino",
+          nameAttr: "posicao",
+          options: [
+            { description: "Posterior", score: 0 },
+            { description: "Mediana", score: 1 },
+            { description: "Anterior", score: 2 }
+          ],
+          explain: "Localización del cuello uterino en relación con el eje pélvico. Un cuello en posición anterior indica mayor madurez."
+        },
+        {
+          category: "Estación de la Presentación Fetal",
+          nameAttr: "estacao",
+          options: [
+            { description: "-3", score: 0 },
+            { description: "-2", score: 1 },
+            { description: "-1 o 0", score: 2 },
+            { description: "+1 o +2", score: 3 }
+          ],
+          explain: "Posición de la cabeza del bebé en relación con las espinas isquiáticas de la pelvis materna. La estación se mide en centímetros, siendo 0 el punto de referencia. Cuanto más abajo (+), mayor será la puntuación."
+        }
+      ];
+
+      // Preenche o formulário dinamicamente
+      bishopData.forEach(item => {
+        const sectionDiv = document.createElement('div');
+        sectionDiv.className = 'bishop-criterion-section';
+        sectionDiv.id = `section-${item.nameAttr}`;
+
+        const titleH3 = document.createElement('h3');
+        titleH3.className = 'bishop-criterion-title';
+        titleH3.innerHTML = item.category + `
+              <div class="text-sm font-normal text-gray-500 mt-1">${item.explain}</div>`;
+        sectionDiv.appendChild(titleH3);
+
+        const selectElement = document.createElement('select');
+        selectElement.id = item.nameAttr;
+        selectElement.className = 'bishop-criterion-select';
+
+        const defaultOption = document.createElement('option');
+        defaultOption.value = "";
+        defaultOption.text = "Seleccione...";
+        selectElement.appendChild(defaultOption);
+
+        item.options.forEach(option => {
+          const optionElement = document.createElement('option');
+          optionElement.value = option.score;
+          optionElement.text = `${option.description} (puntos: ${option.score})`;
+          selectElement.appendChild(optionElement);
+        });
+
+        sectionDiv.appendChild(selectElement);
+        conteudoDiv.appendChild(sectionDiv);
+      });
+
+      function calcularBishop() {
+        const selects = document.querySelectorAll('#conteudo select');
+        let allSelected = true;
+        let total = 0;
+
+        selects.forEach(select => {
+          if (select.value === "") {
+            allSelected = false;
+            select.classList.add('incomplete');
+          } else {
+            select.classList.remove('incomplete');
+            total += Number(select.value);
+          }
+        });
+
+        resultadoDiv.style.display = "block";
+        if (!allSelected) {
+          resultadoDiv.innerHTML = '⚠️ <strong class="font-bold">Por favor, seleccione una opción para todos los ítems antes de calcular.</strong>';
+          resultadoDiv.classList.add('bg-red-100');
+          resultadoDiv.classList.remove('bg-yellow-100', 'bg-blue-50');
+          delete resultadoDiv.dataset.score;
+          return;
+        }
+
+        let classificacao = '';
+        let recomendacao = '';
+        let resultadoClasse = '';
+
+        if (total < 6) {
+          classificacao = 'Cuello Desfavorable / Inmaduro';
+          recomendacao = 'El cuello uterino no está maduro. Es probable que se necesiten métodos de preparación cervical antes de intentar la inducción del parto.';
+          resultadoClasse = 'bg-red-100';
+        } else if (total >= 6 && total <= 7) {
+          classificacao = 'Zona de Incertidumbre';
+          recomendacao = 'La inducción puede intentarse, pero el éxito no está garantizado. La monitorización cuidadosa es esencial.';
+          resultadoClasse = 'bg-yellow-100';
+        } else { // total >= 8
+          classificacao = 'Cuello Favorable / Maduro';
+          recomendacao = 'El cuello uterino está maduro, con alta probabilidad de éxito para la inducción del parto. El parto espontáneo puede estar cerca.';
+          resultadoClasse = 'bg-blue-50';
+        }
+
+        resultadoDiv.innerHTML = `
+                <p>Puntuación total: <strong class="font-bold">${total}</strong></p>
+                <p>Clasificación: <strong class="font-bold">${classificacao}</strong></p>
+                <p class="mt-4"><strong>Recomendación:</strong> ${recomendacao}</p>
+            `;
+        resultadoDiv.className = `resultado ${resultadoClasse}`;
+        resultadoDiv.style.display = "block";
+
+        resultadoDiv.dataset.score = total;
+        resultadoDiv.dataset.scaleName = "Escala de Bishop";
+        resultadoDiv.dataset.classificacao = classificacao;
+      }
+
+      function limparCampos() {
+        const selects = document.querySelectorAll('#conteudo select');
+        selects.forEach(select => {
+          select.selectedIndex = 0;
+          select.classList.remove('incomplete');
+        });
+        resultadoDiv.innerHTML = '';
+        resultadoDiv.className = 'resultado hidden';
+        delete resultadoDiv.dataset.score;
+        delete resultadoDiv.dataset.scaleName;
+        delete resultadoDiv.dataset.classificacao;
+      }
+
+      btnCalcular?.addEventListener('click', calcularBishop);
+      btnLimpar?.addEventListener('click', limparCampos);
+
+      btnGerarPDF?.addEventListener('click', () => {
+        if (!resultadoDiv.dataset.score) {
+          alert('Por favor, haga clic en "Calcular Puntuación" primero para generar el PDF.');
+          return;
+        }
+        if (typeof gerarPDFGlobal === 'function') {
+          gerarPDFGlobal({
+            titulo: 'Escala de Bishop',
+            subtitulo: 'Informe de Evaluación del Cuello Uterino',
+            nomeArquivo: 'informe_escala_bishop.pdf',
+            seletorConteudo: '.main-content-wrapper'
+          });
+        } else {
+          console.error('La función gerarPDFGlobal no está definida.');
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener('click', () => {
+        const score = resultadoDiv.dataset.score;
+        const scaleName = resultadoDiv.dataset.scaleName;
+        const classificacao = resultadoDiv.dataset.classificacao;
+        if (!score || !classificacao) {
+          alert('Calcule el resultado para buscar la conducta.');
+          return;
+        }
+        const searchQuery = encodeURIComponent(`${scaleName} puntuación ${score} parto ${classificacao} generar taxonomía NANDA, generar taxonomía NIC y generar taxonomía de NOC`);
+        window.open(`https://www.google.com/search?q=${searchQuery}`, '_blank');
+      });
+    });
+  </script>
 
 
 

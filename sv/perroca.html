@@ -573,7 +573,427 @@
 
 
 
-  
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const resultadoDiv = document.getElementById("resultado");
+      const btnCalcular = document.getElementById("btnCalcular");
+      const btnLimpar = document.getElementById("btnLimpar");
+      const btnGerarPDF = document.getElementById("btnGerarPDF");
+      const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
+      const conteudoDiv = document.getElementById("conteudo");
+
+      const perrocaData = [
+        {
+          title: "1. Mentalt tillstånd och medvetandenivå",
+          nameAttr: "estado_mental",
+          options: [
+            { description: "Orienterad i tid och rum", score: 1 },
+            { description: "Desorienterad i tid och/eller rum", score: 2 },
+            { description: "Sömnig", score: 3 },
+            { description: "I en dvala", score: 4 },
+            { description: "Komatös", score: 5 }]
+
+        },
+        {
+          title: "2. Syresättning",
+          nameAttr: "oxigenacao",
+          options: [
+            { description: "Andas in omgivande luft.", score: 1 },
+            { description: "Användning av syrgas via kateter eller mask.", score: 2 },
+            { description: "Använda en mekanisk ventilator", score: 3 },
+            {
+              description: "På syrgas med andningsinstabilitet",
+              score: 4
+            },
+            {
+              description:
+                "Syrgaspåverkad i ett kritiskt tillstånd, med hemodynamisk instabilitet.",
+              score: 5
+            }]
+
+        },
+        {
+          title: "3. Vitaltecken",
+          nameAttr: "sinais_vitais",
+          options: [
+            { description: "Stabil", score: 1 },
+            {
+              description: "Instabil, med intermittent övervakning.",
+              score: 2
+            },
+            {
+              description: "Instabil, med kontinuerlig övervakning.",
+              score: 3
+            },
+            { description: "Instabil, kräver farmakologiskt stöd.", score: 4 },
+            { description: "Instabil, med avancerat stöd.", score: 5 }]
+
+        },
+        {
+          title: "4. Näring och hydrering",
+          nameAttr: "nutricao",
+          options: [
+            { description: "Oral administrering", score: 1 },
+            {
+              description:
+                "Oral väg med assistans eller via nasogastrisk/enteral sond",
+              score: 2
+            },
+            { description: "Total enteral och/eller parenteral väg", score: 3 },
+            { description: "Exklusiv parenteral administrering", score: 4 },
+            {
+              description:
+                "Exklusiv parenteral administrering med hemodynamisk instabilitet",
+              score: 5
+            }]
+
+        },
+        {
+          title: "5. Rörlighet",
+          nameAttr: "motilitet",
+          options: [
+            {
+              description: "Oberoende, utan rörelsebegränsningar.",
+              score: 1
+            },
+            {
+              description: "Delvis beroende, med begränsad rörlighet.",
+              score: 2
+            },
+            {
+              description: "Helt beroende, med restriktioner för sängläge.",
+              score: 3
+            },
+            {
+              description:
+                "Helt beroende, med begränsad rörlighet i en eller flera extremiteter.",
+              score: 4
+            },
+            {
+              description:
+                "Immobiliserad i sängen, med risk för kontrakturer och skador.",
+              score: 5
+            }]
+
+        },
+        {
+          title: "6. Förflyttning",
+          nameAttr: "locomocao",
+          options: [
+            { description: "Går utan hjälp.", score: 1 },
+            {
+              description:
+                "Går med hjälp av kryckor, rullator eller käpp.",
+              score: 2
+            },
+            {
+              description: "Hon går runt med hjälp av en rullstol.",
+              score: 3
+            },
+            { description: "Går med hjälp av en annan person.", score: 4 },
+            {
+              description:
+                "Helt beroende av en annan person för att kunna röra sig.",
+              score: 5
+            }]
+
+        },
+        {
+          title: "7. Kroppsvård",
+          nameAttr: "cuidado_corporal",
+          options: [
+            { description: "Helt oberoende", score: 1 },
+            {
+              description: "Hjälp med vissa aktiviteter (bad, hygien)",
+              score: 2
+            },
+            {
+              description: "Hjälp med alla hygienåtgärder.",
+              score: 3
+            },
+            {
+              description:
+                "Totalt beroende av hygien, vilket kräver användning av kateter, förband etc.",
+              score: 4
+            },
+            {
+              description: "Totalt beroende, med hygien i sängen.",
+              score: 5
+            }]
+
+        },
+        {
+          title: "8. Elimineringar",
+          nameAttr: "eliminacoes",
+          options: [
+            { description: "Den är kontrollerad och oberoende.", score: 1 },
+            {
+              description: "Urin- eller fekal inkontinens, men med assistans.",
+              score: 2
+            },
+            {
+              description: "Urin- och avföringsinkontinens, vilket kräver blöjanvändning.",
+              score: 3
+            },
+            {
+              description:
+                "Urin- och fekalinkontinens, med diarré och/eller användning av sond",
+              score: 4
+            },
+            { description: "Inkontinent och i hemodialys", score: 5 }]
+
+        },
+        {
+          title: "9. Terapeutika",
+          nameAttr: "terapeutica",
+          options: [
+            { description: "Oral (PO) eller intramuskulär (IM) administrering.", score: 1 },
+            { description: "Intermittent intravenös (IV) administrering", score: 2 },
+            { description: "Kontinuerlig IV-infusion via infusionspump", score: 3 },
+            {
+              description:
+                "Kontinuerlig intravenös infusion via infusionspump med vasoaktiva läkemedel.",
+              score: 4
+            },
+            {
+              description:
+                "Kontinuerlig intravenös infusion via infusionspump med vasoaktiva läkemedel och ventilationsstöd.",
+              score: 5
+            }]
+
+        },
+        {
+          title: "10. Kutan-slemhinneintegritet",
+          nameAttr: "integritet",
+          options: [
+            { description: "Intakt hud, utan lesioner.", score: 1 },
+            { description: "Ytlig hudlesion", score: 2 },
+            { description: "Hudskada med vävnadsförlust", score: 3 },
+            {
+              description: "Hudskada med vävnadsförlust och infektion.",
+              score: 4
+            },
+            {
+              description:
+                "Hudlesion med vävnadsförlust och allvarlig infektion.",
+              score: 5
+            }]
+
+        },
+        {
+          title: "11. Hälsoinformation",
+          nameAttr: "educacao",
+          options: [
+            { description: "Ingen vägledning behövs", score: 1 },
+            {
+              description: "Behöver vägledning i vissa aktiviteter.",
+              score: 2
+            },
+            {
+              description: "Behov av vägledning i alla aktiviteter.",
+              score: 3
+            },
+            { description: "Kan inte förstå instruktioner", score: 4 },
+            {
+              description: "Oförmögen att förstå och upprörd",
+              score: 5
+            }]
+
+        },
+        {
+          title: "12. Beteende",
+          nameAttr: "comportamento",
+          options: [
+            { description: "Lugn och samarbetsvillig", score: 1 },
+            { description: "Rastlös och orolig", score: 2 },
+            { description: "Upprörd och samarbetsovillig", score: 3 },
+            { description: "Aggressiv och våldsam", score: 4 },
+            {
+              description: "Aggressiv och våldsam, livshotande.",
+              score: 5
+            }]
+
+        },
+        {
+          title: "13. Interpersonella relationer",
+          nameAttr: "relacoes_interpessoais",
+          options: [
+            { description: "Interagerar med personal och familjemedlemmar.", score: 1 },
+            {
+              description:
+                "Interagerar med personal och familjemedlemmar med svårigheter.",
+              score: 2
+            },
+            {
+              description: "Interagerar endast med personal eller familjemedlemmar.",
+              score: 3
+            },
+            { description: "Det interagerar inte.", score: 4 },
+            { description: "Total isolering", score: 5 }]
+
+        }];
+
+
+      // Preenche o formulário dinamicamente
+      perrocaData.forEach((item) => {
+        const sectionDiv = document.createElement("div");
+        sectionDiv.className = "perroca-kriterium-sektion";
+        sectionDiv.id = `section-${item.nameAttr}`;
+
+        const titleH3 = document.createElement("h3");
+        titleH3.className = "perroca-kriterium-titel";
+        titleH3.innerHTML = item.title;
+        sectionDiv.appendChild(titleH3);
+
+        const selectElement = document.createElement("select");
+        selectElement.id = item.nameAttr;
+        selectElement.className = "perroca-kriterium-val mt-2";
+
+        const defaultOption = document.createElement("option");
+        defaultOption.value = "";
+        defaultOption.text = "Välja...";
+        selectElement.appendChild(defaultOption);
+
+        item.options.forEach((option) => {
+          const optionElement = document.createElement("option");
+          optionElement.value = option.score;
+          optionElement.text = `${option.description} (poäng: ${option.score})`;
+          selectElement.appendChild(optionElement);
+        });
+
+        sectionDiv.appendChild(selectElement);
+        conteudoDiv.appendChild(sectionDiv);
+      });
+
+      function calcularPerroca() {
+        const selects = document.querySelectorAll("#conteudo select");
+        let allSelected = true;
+        let total = 0;
+
+        selects.forEach((select) => {
+          if (select.value === "") {
+            allSelected = false;
+            select.classList.add("incomplete");
+          } else {
+            select.classList.remove("incomplete");
+            total += Number(select.value);
+          }
+        });
+
+        resultadoDiv.style.display = "block";
+        if (!allSelected) {
+          resultadoDiv.innerHTML =
+            '⚠️ <strong class="font-bold">Por favor, selecione uma opção para todos os itens antes de calcular.</strong>';
+          resultadoDiv.className = `bg-red-100 resultat`;
+          delete resultadoDiv.dataset.score;
+          return;
+        }
+
+        let recomendacao = "";
+
+        if (total >= 13 && total <= 26) {
+          recomendacao = `O escore de ${total} indikerar en patient med minimala vårdbehov.`;
+        } else if (total >= 27 && total <= 39) {
+          recomendacao = `O escore de ${total} indikerar en patient med intermediära vårdbehov.`;
+        } else if (total >= 40 && total <= 52) {
+          recomendacao = `O escore de ${total} indikerar en patient i behov av semi-intensiv vård.`;
+        } else {
+          // total >= 53
+          recomendacao = `O escore de ${total} indikerar en patient i behov av intensivvård.`;
+        }
+
+        resultadoDiv.innerHTML = `
+                <p>Escore total: <strong class="font-bold">${total}</strong></p>
+                <p class="mt-4"><strong>Recomendação:</strong> ${recomendacao}</p>
+            `;
+        resultadoDiv.className = `bg-blå-50 resultat`;
+        resultadoDiv.style.display = "block";
+
+        resultadoDiv.dataset.score = total;
+        resultadoDiv.dataset.scaleName = "Perroca-skala";
+      }
+
+      function limparCampos() {
+        const selects = document.querySelectorAll("#conteudo select");
+        selects.forEach((select) => {
+          select.selectedIndex = 0;
+          select.classList.remove("incomplete");
+        });
+        resultadoDiv.innerHTML = "";
+        resultadoDiv.className = "dolt resultat";
+        delete resultadoDiv.dataset.score;
+        delete resultadoDiv.dataset.scaleName;
+      }
+
+      // Adiciona os event listeners aos botões
+      btnCalcular?.addEventListener("click", calcularPerroca);
+      btnLimpar?.addEventListener("click", limparCampos);
+
+      btnGerarPDF?.addEventListener("click", () => {
+        if (!resultadoDiv.dataset.score) {
+          alert(
+            'Klicka först på "Beräkna poäng" för att generera PDF-filen.'
+          );
+          return;
+        }
+        if (typeof gerarPDFGlobal === "function") {
+          const selectedOptions = {};
+          document.querySelectorAll("#conteudo select").forEach((select) => {
+            const selected = select.options[select.selectedIndex];
+            if (selected.value !== "") {
+              selectedOptions[select.id] = selected.text;
+            }
+          });
+
+          let contentToPrint = document.
+            querySelector(".main-content-wrapper").
+            cloneNode(true);
+          let contentContainer = contentToPrint.querySelector("#conteudo");
+
+          contentContainer.innerHTML = "";
+
+          perrocaData.forEach((item) => {
+            let selectedText = selectedOptions[item.nameAttr];
+            if (selectedText) {
+              let itemDiv = document.createElement("div");
+              itemDiv.className = "mb-2 p-2 bg-gray-50 rounded";
+              itemDiv.innerHTML = `<strong>${item.title}:</strong> ${selectedText}`;
+              contentContainer.appendChild(itemDiv);
+            }
+          });
+
+          let resultadoHtml = resultadoDiv.cloneNode(true);
+          if (resultadoHtml.style.display !== "none") {
+            contentContainer.appendChild(resultadoHtml);
+          }
+
+          gerarPDFGlobal({
+            titulo: "Perroca-skalan (SCP)",
+            subtitulo: "Patientklassificeringsrapport",
+            nomeArquivo: "relatorio_escala_perroca.pdf",
+            seletorConteudo: ".main-content-wrapper"
+          });
+        } else {
+          console.error("Funktionen GeneratePDFGlobal är inte definierad.");
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener("click", () => {
+        const score = resultadoDiv.dataset.score;
+        const scaleName = resultadoDiv.dataset.scaleName;
+        if (!score) {
+          alert("Beräkna resultatet för att undersöka beteendet.");
+          return;
+        }
+        const searchQuery = encodeURIComponent(
+          `${scaleName} poäng ${score} gerar taxonomia NANDA, gerar taxonomia NIC e gerar taxonomia de NOC`
+        );
+        window.open(
+          `https://www.google.com/search?q=${searchQuery}`,
+          "_blank"
+        );
+      });
+    });</script>
 
   <script src="/lang-selector.js" defer=""></script>
 

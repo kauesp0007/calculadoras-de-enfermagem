@@ -609,7 +609,362 @@
 
 
 
-  
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      // फ़ुटर लोड करें (मॉड्यूलर भाग)
+      fetch("footer.html")
+        .then((response) => response.text())
+        .then((data) => {
+          document.getElementById("footer-placeholder").innerHTML = data;
+        })
+        .catch((error) =>
+          console.error("Error loading modular footer:", error),
+        );
+
+      const resultadoDiv = document.getElementById("resultado");
+      const btnCalcular = document.getElementById("btnCalcular");
+      const btnLimpar = document.getElementById("btnLimpar");
+      const btnGerarPDF = document.getElementById("btnGerarPDF");
+      const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
+      const conteudoDiv = document.getElementById("conteudo");
+      const introParagraph = document.getElementById("intro-paragraph");
+      const referenceSection = document.getElementById("reference-section");
+
+      // Fugulin स्केल डेटा - हिंदी में अनुवादित
+      const fugulinData = [
+        {
+          category: "मानसिक स्थिति (Mental State)",
+          nameAttr: "estado_mental",
+          options: [
+            { description: "अचेतन (Unconscious)", score: 4 },
+            { description: "भ्रमित (Disoriented)", score: 3 },
+            { description: "उलझन में (Confused)", score: 2 },
+            { description: "उन्मुख (Oriented)", score: 1 },
+          ],
+        },
+        {
+          category: "ऑक्सीजनेशन (Oxygenation)",
+          nameAttr: "oxigenacao",
+          options: [
+            {
+              description: "मैकेनिकल वेंटिलेशन (Mechanical Ventilation)",
+              score: 4,
+            },
+            { description: "ऑक्सीजन मास्क (Oxygen Mask)", score: 3 },
+            { description: "नाक का कैथेटर (Nasal Catheter)", score: 2 },
+            { description: "कमरे की हवा (Room Air)", score: 1 },
+          ],
+        },
+        {
+          category: "महत्वपूर्ण संकेत (Vital Signs)",
+          nameAttr: "sinais_vitais",
+          options: [
+            { description: "बहुत गंभीर (Very Critical)", score: 4 },
+            { description: "गंभीर (Critical)", score: 3 },
+            { description: "अस्थिर (Unstable)", score: 2 },
+            { description: "स्थिर (Stable)", score: 1 },
+          ],
+        },
+        {
+          category: "गतिशीलता (Motility)",
+          nameAttr: "motilidade",
+          options: [
+            { description: "स्थिर (Immobilized)", score: 4 },
+            {
+              description: "सहायता से गतिशीलता (Mobilization with help)",
+              score: 3,
+            },
+            {
+              description:
+                "पर्यवेक्षण के साथ गतिशीलता (Mobilization with supervision)",
+              score: 2,
+            },
+            { description: "स्वतंत्र (Independent)", score: 1 },
+          ],
+        },
+        {
+          category: "चलने की क्षमता (Deambulation)",
+          nameAttr: "deambulacao",
+          options: [
+            { description: "चलने में असमर्थ (Cannot ambulate)", score: 4 },
+            { description: "सहायता से चलना (Ambulates with help)", score: 3 },
+            {
+              description:
+                "पर्यवेक्षण के साथ चलना (Ambulates with supervision)",
+              score: 2,
+            },
+            { description: "स्वतंत्र (Independent)", score: 1 },
+          ],
+        },
+        {
+          category: "पोषण (Feeding)",
+          nameAttr: "alimentacao",
+          options: [
+            { description: "उपवास (Fasting)", score: 4 },
+            { description: "पैरेंट्रल (Parenteral)", score: 3 },
+            { description: "एन्टरल (Enteral)", score: 2 },
+            { description: "मौखिक (Oral)", score: 1 },
+          ],
+        },
+        {
+          category: "शारीरिक देखभाल (Body Care)",
+          nameAttr: "cuidado_corporal",
+          options: [
+            {
+              description: "पूरी तरह से आश्रित (Totally dependent)",
+              score: 4,
+            },
+            { description: "आश्रित (Dependent)", score: 3 },
+            { description: "आंशिक सहायता (Partial assistance)", score: 2 },
+            { description: "स्वतंत्र (Independent)", score: 1 },
+          ],
+        },
+        {
+          category: "उन्मूलन (Elimination)",
+          nameAttr: "eliminacao",
+          options: [
+            { description: "असंयमी (Incontinent)", score: 4 },
+            {
+              description: "स्थायी कैथेटर (SVD/Permanent Catheter)",
+              score: 3,
+            },
+            { description: "आंशिक सहायता (Partial assistance)", score: 2 },
+            { description: "स्वतंत्र (Independent)", score: 1 },
+          ],
+        },
+        {
+          category: "चिकित्सीय (Therapeutics)",
+          nameAttr: "terapeutica",
+          options: [
+            {
+              description:
+                "वासोएक्टिव दवाओं का उपयोग (Use of vasoactive drugs)",
+              score: 4,
+            },
+            {
+              description:
+                "कैथेटर द्वारा निरंतर IV (Continuous IV via catheter)",
+              score: 3,
+            },
+            { description: "आंतरायिक IV (Intermittent IV)", score: 2 },
+            { description: "IM या मौखिक (IM or VO)", score: 1 },
+          ],
+        },
+        {
+          category: "ड्रेसिंग बदलने का समय (Dressing Change Time)",
+          nameAttr: "tempo_curativo",
+          options: [
+            { description: "15 से 30 मिनट (15 to 30 minutes)", score: 4 },
+            { description: "5 से 15 मिनट (5 to 15 minutes)", score: 3 },
+            { description: "5 मिनट से कम (Less than 5 minutes)", score: 2 },
+            { description: "कोई ड्रेसिंग नहीं (No dressing)", score: 1 },
+          ],
+        },
+        {
+          category: "ड्रेसिंग (Dressing)",
+          nameAttr: "curativo",
+          options: [
+            { description: "3 बार/दिन बदलना (Change 3 times/day)", score: 4 },
+            { description: "2 बार/दिन बदलना (Change 2 times/day)", score: 3 },
+            { description: "1 बार/दिन बदलना (Change 1 time/day)", score: 2 },
+            { description: "कोई ड्रेसिंग नहीं (No dressing)", score: 1 },
+          ],
+        },
+        {
+          category:
+            "क्यूटेनियस-म्यूकोसल अखंडता/ऊतक क्षति (Cutaneous-Mucosal Integrity / Tissue Compromise)",
+          nameAttr: "integridade",
+          options: [
+            { description: "व्यापक (Extensive)", score: 4 },
+            { description: "मध्यम (Moderate)", score: 3 },
+            { description: "हल्का (Mild)", score: 2 },
+            { description: "कोई नहीं (None)", score: 1 },
+          ],
+        },
+      ];
+
+      // Preenche o formulário dinamicamente
+      fugulinData.forEach((item, index) => {
+        const sectionDiv = document.createElement("div");
+        sectionDiv.className = "fugulin-criterion-section";
+        sectionDiv.id = `section-${item.nameAttr}`;
+
+        const titleH3 = document.createElement("h3");
+        titleH3.className = "fugulin-criterion-title";
+        titleH3.innerText = item.category;
+        sectionDiv.appendChild(titleH3);
+
+        const selectElement = document.createElement("select");
+        selectElement.id = item.nameAttr;
+        selectElement.className = "fugulin-criterion-select";
+
+        const defaultOption = document.createElement("option");
+        defaultOption.value = "";
+        defaultOption.text = "चुनें...";
+        selectElement.appendChild(defaultOption);
+
+        item.options.forEach((option) => {
+          const optionElement = document.createElement("option");
+          optionElement.value = option.score;
+          optionElement.text = `${option.description} (${option.score})`;
+          selectElement.appendChild(optionElement);
+        });
+
+        sectionDiv.appendChild(selectElement);
+        conteudoDiv.appendChild(sectionDiv);
+      });
+
+      function calcularFugulin() {
+        const selects = document.querySelectorAll("#conteudo select");
+        let allSelected = true;
+        let total = 0;
+
+        selects.forEach((select) => {
+          if (select.value === "") {
+            allSelected = false;
+            select.classList.add("border-red-500"); // Foco visual na falta
+          } else {
+            select.classList.remove("border-red-500");
+          }
+          total += Number(select.value);
+        });
+
+        resultadoDiv.style.display = "block";
+        if (!allSelected) {
+          resultadoDiv.innerHTML =
+            '⚠️ <strong class="font-bold">कृपया गणना करने से पहले सभी आइटम के लिए एक विकल्प चुनें।</strong>';
+          resultadoDiv.classList.add("bg-info-orange-light");
+          resultadoDiv.classList.remove("bg-red-100", "bg-blue-50");
+          delete resultadoDiv.dataset.score;
+          return;
+        }
+
+        let classificacao = "";
+        let resultadoClasse = "";
+
+        // Fugulin Classification
+        if (total >= 31) {
+          classificacao = "बहुत उच्च जटिलता (Very High Complexity)";
+          resultadoClasse = "bg-red-100";
+        } else if (total >= 24) {
+          classificacao = "उच्च जटिलता (High Complexity)";
+          resultadoClasse = "bg-red-100";
+        } else if (total >= 17) {
+          classificacao = "मध्यम जटिलता (Medium Complexity)";
+          resultadoClasse = "bg-blue-50";
+        } else if (total >= 10) {
+          classificacao = "कम जटिलता (Low Complexity)";
+          resultadoClasse = "bg-blue-50";
+        } else {
+          classificacao = "न्यूनतम जटिलता (Minimal Complexity)";
+          resultadoClasse = "bg-blue-50";
+        }
+
+        resultadoDiv.innerHTML = `<p>कुल स्कोर: <strong class="font-bold">${total}</strong></p><p>वर्गीकरण: <strong class="font-bold">${classificacao}</strong></p>`;
+        resultadoDiv.className = `resultado ${resultadoClasse}`;
+        resultadoDiv.style.display = "block";
+
+        resultadoDiv.dataset.score = total;
+        resultadoDiv.dataset.scaleName = "फुगुलिन स्केल";
+        resultadoDiv.dataset.classificacao = classificacao;
+      }
+
+      function limparCampos() {
+        const selects = document.querySelectorAll("#conteudo select");
+        selects.forEach((select) => {
+          select.selectedIndex = 0;
+          select.classList.remove("border-red-500");
+        });
+        resultadoDiv.innerHTML = "";
+        resultadoDiv.className = "resultado hidden";
+        delete resultadoDiv.dataset.score;
+        delete resultadoDiv.dataset.scaleName;
+        delete resultadoDiv.dataset.classificacao;
+      }
+
+      // Adiciona os event listeners aos botões
+      btnCalcular?.addEventListener("click", calcularFugulin);
+      btnLimpar?.addEventListener("click", limparCampos);
+
+      btnGerarPDF?.addEventListener("click", () => {
+        if (!resultadoDiv.dataset.score) {
+          // Custom alert (using console.log as a placeholder)
+          console.log(
+            'PDF जनरेट करने से पहले कृपया "गणना करें" पर क्लिक करें।',
+          );
+          return;
+        }
+        if (typeof gerarPDFGlobal === "function") {
+          gerarPDFGlobal({
+            titulo: "फुगुलिन स्केल",
+            subtitulo: "नर्सिंग देखभाल जटिलता रिपोर्ट",
+            nomeArquivo: "fugulin_scale_report.pdf",
+            seletorConteudo: ".main-content-wrapper",
+          });
+        } else {
+          console.error("Função gerarPDFGlobal अपरिभाषित है।");
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener("click", () => {
+        const score = resultadoDiv.dataset.score;
+        const scaleName = resultadoDiv.dataset.scaleName;
+        const classificacao = resultadoDiv.dataset.classificacao;
+        if (!score || !classificacao) {
+          // Custom alert (using console.log as a placeholder)
+          console.log("आचरण खोजने के लिए परिणाम की गणना करें।");
+          return;
+        }
+        const searchQuery = encodeURIComponent(
+          `${scaleName} स्कोर ${score} वर्गीकरण ${classificacao} NANDA, NIC, NOC वर्गीकरण उत्पन्न करें`,
+        );
+        window.open(
+          `https://www.google.com/search?q=${searchQuery}`,
+          "_blank",
+        );
+      });
+
+      // Botão "Adicionar aos favoritos" (Acessibilidade/Usabilidade)
+      const addFavoriteBtn = document.getElementById("addFavoriteBtn");
+      if (addFavoriteBtn) {
+        addFavoriteBtn.addEventListener("click", () => {
+          const url = window.location.href;
+          const title = "फुगुलिन स्केल";
+
+          try {
+            // Navegadores modernos
+            console.log(
+              "Ctrl + D (या Mac पर Cmd + D) दबाकर इस पेज को पसंदीदा में जोड़ें।",
+            );
+          } catch (e) {
+            console.log(
+              "Ctrl + D (या Mac पर Cmd + D) दबाकर इस पेज को पसंदीदा में जोड़ें।",
+            );
+          }
+        });
+      }
+
+      // hi/global-body-elements.html से वैश्विक तत्व लोड करें (lbiras, cookies, back to top)
+      fetch("/hi/global-body-elements.html")
+        .then((response) => response.text())
+        .then((data) => {
+          document.body.insertAdjacentHTML("beforeend", data);
+        })
+        .catch((error) =>
+          console.error("Error loading global body elements:", error),
+        );
+
+      // hi/menu-global.html से वैश्विक मेनू लोड करें
+      fetch("/hi/menu-global.html")
+        .then((response) => response.text())
+        .then((data) => {
+          document.getElementById("global-header-container").innerHTML = data;
+        })
+        .catch((error) =>
+          console.error("Error loading global header menu:", error),
+        );
+    });
+  </script>
 
 
 </body></html>

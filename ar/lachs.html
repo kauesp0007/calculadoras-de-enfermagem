@@ -603,7 +603,243 @@
 
 
 
-  
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const resultadoDiv = document.getElementById('resultado');
+      const btnCalcular = document.getElementById('btnCalcular');
+      const btnLimpar = document.getElementById('btnLimpar');
+      const btnGerarPDF = document.getElementById('btnGerarPDF');
+      const btnNandaNicNoc = document.getElementById('btnNandaNicNoc');
+      const conteudoDiv = document.getElementById('conteudo');
+
+      const lachsData = [
+        {
+          category: "الرؤية",
+          nameAttr: "visao",
+          explain: "هل يستطيع المريض قراءة بطاقة جايجر من مسافة ٣٥ سم، بالنظارات إذا لزم الأمر، حتى مستوى ٢٠/٤٠؟",
+          options: [
+            { description: "نعم، يستطيع القراءة حتى ٢٠/٤٠.", score: 1 },
+            { description: "لا، لا يستطيع القراءة حتى ٢٠/٤٠.", score: 0 },
+          ]
+        },
+        {
+          category: "السمع",
+          nameAttr: "audicao",
+          explain: "هل يستجيب المريض عندما يُطرح عليه سؤال مُهمَس (مثال: 'ما اسمك؟') خارج مجال رؤيته؟",
+          options: [
+            { description: "نعم، يرد على السؤال.", score: 1 },
+            { description: "لا، لا يرد على السؤال.", score: 0 },
+          ]
+        },
+        {
+          category: "سلس البول",
+          nameAttr: "incontinencia_urinaria",
+          explain: "هل يفقد المريض البول عن غير قصد ويبلل ملابسه الداخلية في ٦ أيام منفصلة على الأقل في العام الماضي؟",
+          options: [
+            { description: "لا", score: 1 },
+            { description: "نعم", score: 0 },
+          ]
+        },
+        {
+          category: "الأنشطة اليومية الأساسية والمتقدمة",
+          nameAttr: "avd_aivd",
+          explain: "هل يستطيع المريض النهوض من السرير، وارتداء الملابس، وتحضير الوجبات، والتسوق بمفرده؟",
+          options: [
+            { description: "نعم، قادر على أداء جميع الأنشطة.", score: 1 },
+            { description: "لا، غير قادر على أداء نشاط واحد على الأقل.", score: 0 },
+          ]
+        },
+        {
+          category: "قوة القبض (الأطراف العلوية)",
+          nameAttr: "forca_preensao",
+          explain: "هل يستطيع المريض لمس مؤخرة رقبته بكلتا يديه والإمساك بملعقة؟",
+          options: [
+            { description: "نعم، يستطيع أداء المهمتين.", score: 1 },
+            { description: "لا، لا يستطيع أداء مهمة واحدة أو كليهما.", score: 0 },
+          ]
+        },
+        {
+          category: "قوة الأطراف السفلية",
+          nameAttr: "forca_inferiores",
+          explain: "هل يستطيع المريض النهوض من كرسي، والمشي ٣ أمتار، والعودة والجلوس في أقل من ١٢ ثانية؟",
+          options: [
+            { description: "نعم، يؤدي الاختبار في ≤ ١٢ ثانية.", score: 1 },
+            { description: "لا، لا يمشي أو يستغرق أكثر من ١٢ ثانية لإكمال الاختبار.", score: 0 },
+          ]
+        },
+        {
+          category: "التغذية",
+          nameAttr: "nutricao",
+          explain: "هل مؤشر كتلة الجسم (BMI) للمريض أعلى من ٢٢ كجم/م²؟",
+          options: [
+            { description: "نعم، مؤشر كتلة الجسم ≥ ٢٢ كجم/م².", score: 1 },
+            { description: "لا، مؤشر كتلة الجسم < ٢٢ كجم/م².", score: 0 },
+          ]
+        },
+        {
+          category: "الحالة العقلية",
+          nameAttr: "estado_mental",
+          explain: "هل يستطيع المريض تكرار ثلاث كلمات (مثال: 'سيارة'، 'مزهرية'، 'كرة') بعد دقيقة واحدة؟",
+          options: [
+            { description: "نعم، يستطيع تكرار جميع الكلمات.", score: 1 },
+            { description: "لا، لا يستطيع تكرار كلمة واحدة على الأقل.", score: 0 },
+          ]
+        },
+        {
+          category: "الاكتئاب",
+          nameAttr: "depressao",
+          explain: "هل يشعر المريض بالحزن أو الاكتئاب في كثير من الأحيان؟",
+          options: [
+            { description: "لا", score: 1 },
+            { description: "نعم", score: 0 },
+          ]
+        },
+        {
+          category: "البيئة المنزلية",
+          nameAttr: "ambiente",
+          explain: "هل يواجه المريض صعوبات مع السلالم، حوض الاستحمام، السجاد الفضفاض، أو الإضاءة المنخفضة في المنزل؟",
+          options: [
+            { description: "لا، البيئة آمنة.", score: 1 },
+            { description: "نعم، هناك مخاطر في البيئة المنزلية.", score: 0 },
+          ]
+        },
+        {
+          category: "الدعم الاجتماعي",
+          nameAttr: "apoio_social",
+          explain: "هل لدى المريض أفراد عائلة، أصدقاء أو جيران يمكنه الاعتماد عليهم في حالة المرض أو الطوارئ؟",
+          options: [
+            { description: "نعم، لديه دعم اجتماعي.", score: 1 },
+            { description: "لا، ليس لديه دعم اجتماعي.", score: 0 },
+          ]
+        }
+      ];
+
+      // يملأ النموذج ديناميكيًا
+      lachsData.forEach(item => {
+        const sectionDiv = document.createElement('div');
+        sectionDiv.className = 'lachs-criterion-section';
+        sectionDiv.id = `section-${item.nameAttr}`;
+
+        const titleH3 = document.createElement('h3');
+        titleH3.className = 'lachs-criterion-title';
+        titleH3.innerHTML = item.category;
+        sectionDiv.appendChild(titleH3);
+
+        const explainP = document.createElement('p');
+        explainP.className = 'lachs-criterion-explain';
+        explainP.innerHTML = item.explain;
+        sectionDiv.appendChild(explainP);
+
+        const selectElement = document.createElement('select');
+        selectElement.id = item.nameAttr;
+        selectElement.className = 'lachs-criterion-select';
+
+        const defaultOption = document.createElement('option');
+        defaultOption.value = "";
+        defaultOption.text = "اختر...";
+        selectElement.appendChild(defaultOption);
+
+        item.options.forEach(option => {
+          const optionElement = document.createElement('option');
+          optionElement.value = option.score;
+          optionElement.text = `${option.description} (النقاط: ${option.score})`;
+          selectElement.appendChild(optionElement);
+        });
+
+        sectionDiv.appendChild(selectElement);
+        conteudoDiv.appendChild(sectionDiv);
+      });
+
+      function calcularLachs() {
+        const selects = document.querySelectorAll('#conteudo select');
+        let allSelected = true;
+        let total = 0;
+
+        selects.forEach(select => {
+          if (select.value === "") {
+            allSelected = false;
+            select.classList.add('incomplete');
+          } else {
+            select.classList.remove('incomplete');
+            total += Number(select.value);
+          }
+        });
+
+        resultadoDiv.style.display = "block";
+        if (!allSelected) {
+          resultadoDiv.innerHTML = '⚠️ <strong class="font-bold">يرجى اختيار خيار لجميع العناصر قبل الحساب.</strong>';
+          resultadoDiv.classList.add('bg-red-100');
+          resultadoDiv.classList.remove('bg-blue-50');
+          delete resultadoDiv.dataset.score;
+          return;
+        }
+
+        let recomendacao = '';
+
+        if (total <= 5) {
+          recomendacao = `تشير النتيجة ${total} إلى ارتفاع خطر فقدان القدرة الوظيفية والاعتماد على الآخرين. يوصى بإجراء تقييم شامل للشيخوخة وخطة رعاية فردية لتعظيم استقلالية وسلامة المريض.`;
+        } else if (total >= 6 && total <= 9) {
+          recomendacao = `تشير النتيجة ${total} إلى خطر متوسط لفقدان القدرة الوظيفية. قد يحتاج المريض إلى الدعم في بعض المجالات.`;
+        } else { // total >= 10
+          recomendacao = `تشير النتيجة ${total} إلى أن المريض يتمتع بقدرة وظيفية جيدة ومنخفضة المخاطر لفقدان الاستقلالية.`;
+        }
+
+        resultadoDiv.innerHTML = `
+                <p>النتيجة الإجمالية: <strong class="font-bold">${total}</strong></p>
+                <p class="mt-4"><strong>التوصية:</strong> ${recomendacao}</p>
+            `;
+        resultadoDiv.className = `resultado bg-blue-50`;
+        resultadoDiv.style.display = "block";
+
+        resultadoDiv.dataset.score = total;
+        resultadoDiv.dataset.scaleName = "مقياس لاخس";
+      }
+
+      function limparCampos() {
+        const selects = document.querySelectorAll('#conteudo select');
+        selects.forEach(select => {
+          select.selectedIndex = 0;
+          select.classList.remove('incomplete');
+        });
+        resultadoDiv.innerHTML = '';
+        resultadoDiv.className = 'resultado hidden';
+        delete resultadoDiv.dataset.score;
+        delete resultadoDiv.dataset.scaleName;
+      }
+
+      // يضيف مستمعي الأحداث للأزرار
+      btnCalcular?.addEventListener('click', calcularLachs);
+      btnLimpar?.addEventListener('click', limparCampos);
+
+      btnGerarPDF?.addEventListener('click', () => {
+        if (!resultadoDiv.dataset.score) {
+          alert('يرجى النقر على "حساب النتيجة" أولاً لإنشاء PDF.');
+          return;
+        }
+        if (typeof gerarPDFGlobal === 'function') {
+          gerarPDFGlobal({
+            titulo: 'مقياس لاخس',
+            subtitulo: 'تقرير تقييم القدرة الوظيفية للمسنين',
+            nomeArquivo: 'تقرير_مقياس_لاخس.pdf',
+            seletorConteudo: '.main-content-wrapper'
+          });
+        } else {
+          console.error('الدالة gerarPDFGlobal غير معرفة.');
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener('click', () => {
+        const score = resultadoDiv.dataset.score;
+        const scaleName = resultadoDiv.dataset.scaleName;
+        if (!score) {
+          alert('احسب النتيجة للبحث عن الإجراء.');
+          return;
+        }
+        const searchQuery = encodeURIComponent(`رعاية التمريض لاستقلالية المسنين ${scaleName} نتيجة ${score} NANDA NIC NOC`);
+        window.open(`https://www.google.com/search?q=${searchQuery}`, '_blank');
+      });
+    });
+  </script>
 
 
 

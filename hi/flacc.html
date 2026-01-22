@@ -551,7 +551,211 @@
 
 
 
-  
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      // फ़ुटर लोड करें (मॉड्यूलर भाग)
+      fetch("footer.html")
+        .then((response) => response.text())
+        .then((data) => {
+          document.getElementById("footer-placeholder").innerHTML = data;
+        })
+        .catch((error) =>
+          console.error("Error loading modular footer:", error),
+        );
+
+      const resultadoDiv = document.getElementById("resultado");
+      const conteudoDiv = document.getElementById("conteudo");
+      const btnCalcular = document.getElementById("btnCalcular");
+      const btnLimpar = document.getElementById("btnLimpar");
+
+      // FLACC स्केल डेटा - हिंदी में अनुवादित
+      const flaccData = [
+        {
+          id: "face",
+          title: "Face (चेहरा)",
+          options: [
+            { score: 0, text: "कोई अभिव्यक्ति या मुस्कान नहीं" },
+            { score: 1, text: "अजीब मुँह बनाना, भौंहें सिकोड़ना" },
+            { score: 2, text: "ठोड़ी का कांपना, जबड़े भींचना" },
+          ],
+        },
+        {
+          id: "legs",
+          title: "Legs (पैर)",
+          options: [
+            { score: 0, text: "सामान्य या आराम की स्थिति में" },
+            { score: 1, text: "बेचैन, उत्तेजित, तनावग्रस्त" },
+            { score: 2, text: "लात मारना या फैलाना" },
+          ],
+        },
+        {
+          id: "activity",
+          title: "Activity (गतिविधि)",
+          options: [
+            { score: 0, text: "शांत, आसानी से हिलना" },
+            { score: 1, text: "ऐंठना, तनावग्रस्त" },
+            { score: 2, text: "झुका हुआ, कठोर या अचानक हरकतें" },
+          ],
+        },
+        {
+          id: "cry",
+          title: "Cry (रोना)",
+          options: [
+            { score: 0, text: "कोई रोना नहीं" },
+            { score: 1, text: "कर्राहना, कभी-कभी शिकायत" },
+            { score: 2, text: "लगातार रोना, चीखना" },
+          ],
+        },
+        {
+          id: "consolability",
+          title: "Consolability (सांत्वना)",
+          options: [
+            { score: 0, text: "संतुष्ट, आराम से" },
+            { score: 1, text: "स्पर्श/गले लगाने से शांत" },
+            { score: 2, text: "सांत्वना देना मुश्किल" },
+          ],
+        },
+      ];
+
+      function createForm() {
+        conteudoDiv.innerHTML = "";
+        flaccData.forEach((criterion) => {
+          const card = document.createElement("div");
+          card.className = "criterion-card";
+          card.innerHTML = `
+                    <h3 class="criterion-title">${criterion.title}</h3>
+                    <div class="options-container">
+                        <select id="${criterion.id}-select" class="custom-select">
+                            <option value="" disabled selected>चुनें...</option>
+                            ${criterion.options.map((opt) => `<option value="${opt.score}">${opt.text} (${opt.score})</option>`).join("")}
+                        </select>
+                    </div>
+                `;
+          conteudoDiv.appendChild(card);
+        });
+      }
+
+      function calcular() {
+        let total = 0;
+        let allSelected = true;
+
+        flaccData.forEach((criterion) => {
+          const select = document.getElementById(`${criterion.id}-select`);
+          if (select && select.value) {
+            total += parseInt(select.value, 10);
+          } else {
+            allSelected = false;
+          }
+        });
+
+        if (!allSelected) {
+          resultadoDiv.innerHTML =
+            '⚠️ <strong class="font-bold">कृपया प्रत्येक मानदंड के लिए एक विकल्प चुनें।</strong>';
+          resultadoDiv.className = "standard-result-box bg-info-orange-light";
+          resultadoDiv.style.display = "block";
+          delete resultadoDiv.dataset.score;
+          return;
+        }
+
+        let conduta = "";
+        let condutaNANDA = "";
+        if (total === 0) {
+          conduta = "कोई दर्द नहीं (No Pain)";
+          condutaNANDA = "कोई दर्द नहीं";
+        } else if (total <= 3) {
+          conduta = "हल्का दर्द (Mild Pain)";
+          condutaNANDA = "हल्का दर्द";
+        } else if (total <= 6) {
+          conduta = "मध्यम दर्द (Moderate Pain)";
+          condutaNANDA = "मध्यम दर्द";
+        } else {
+          conduta = "तीव्र दर्द (Intense Pain)";
+          condutaNANDA = "तीव्र दर्द";
+        }
+
+        resultadoDiv.innerHTML = `
+                <p class="font-bold text-lg">कुल स्कोर: <span class="font-black">${total}/10</span></p>
+                <p class="font-bold text-lg">व्याख्या: <span class="font-black">${conduta}</span></p>
+            `;
+        resultadoDiv.className = "standard-result-box";
+        resultadoDiv.style.display = "block";
+        resultadoDiv.dataset.score = total;
+        resultadoDiv.dataset.conduta = condutaNANDA;
+        resultadoDiv.dataset.scaleName = "FLACC स्केल";
+      }
+
+      function limpar() {
+        createForm();
+        resultadoDiv.innerHTML = "";
+        resultadoDiv.className = "hidden";
+        delete resultadoDiv.dataset.score;
+        delete resultadoDiv.dataset.conduta;
+        delete resultadoDiv.dataset.scaleName;
+      }
+
+      btnGerarPDF?.addEventListener("click", () => {
+        if (!resultadoDiv.dataset.score) {
+          // कस्टम अलर्ट का उपयोग करें
+          console.log(
+            'PDF जनरेट करने से पहले कृपया "गणना करें" पर क्लिक करें।',
+          );
+          return;
+        }
+        if (typeof gerarPDFGlobal === "function") {
+          gerarPDFGlobal({
+            titulo: "FLACC स्केल",
+            subtitulo: "बच्चों के दर्द के आकलन की रिपोर्ट",
+            nomeArquivo: "flacc_scale_report.pdf",
+            seletorConteudo: ".main-content-wrapper",
+          });
+        } else {
+          console.error("Função gerarPDFGlobal अपरिभाषित है।");
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener("click", () => {
+        const score = resultadoDiv.dataset.score;
+        const conduta = resultadoDiv.dataset.conduta;
+        const scaleName = resultadoDiv.dataset.scaleName;
+        if (!score || !conduta) {
+          // कस्टम अलर्ट का उपयोग करें
+          console.log("आचरण खोजने के लिए परिणाम की गणना करें।");
+          return;
+        }
+        const searchQuery = encodeURIComponent(
+          `${scaleName} स्कोर ${score} ${conduta} NANDA, NIC, NOC वर्गीकरण उत्पन्न करें`,
+        );
+        window.open(
+          `https://www.google.com/search?q=${searchQuery}`,
+          "_blank",
+        );
+      });
+
+      // hi/global-body-elements.html से वैश्विक तत्व लोड करें (lbiras, cookies, back to top)
+      fetch("/hi/global-body-elements.html")
+        .then((response) => response.text())
+        .then((data) => {
+          document.body.insertAdjacentHTML("beforeend", data);
+        })
+        .catch((error) =>
+          console.error("Error loading global body elements:", error),
+        );
+
+      // hi/menu-global.html से वैश्विक मेनू लोड करें
+      fetch("/hi/menu-global.html")
+        .then((response) => response.text())
+        .then((data) => {
+          document.getElementById("global-header-container").innerHTML = data;
+        })
+        .catch((error) =>
+          console.error("Error loading global header menu:", error),
+        );
+
+      createForm();
+      btnCalcular?.addEventListener("click", calcular);
+      btnLimpar?.addEventListener("click", limpar);
+    });
+  </script>
   <!-- विज्ञापन स्क्रिप्ट -->
 
   <!-- भाषा चयनकर्ता स्क्रिप्ट -->

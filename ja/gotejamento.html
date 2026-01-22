@@ -825,7 +825,138 @@
 
 
 
-  
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const resultadoDiv = document.getElementById("resultado");
+      const btnCalcular = document.getElementById("btnCalcular");
+      const btnLimpar = document.getElementById("btnLimpar");
+      const btnGerarPDF = document.getElementById("btnGerarPDF");
+      const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
+
+      function calcularGotejamento() {
+        const volumeInput = document.getElementById("volume");
+        const tempoInput = document.getElementById("tempo");
+        const unidadeTempo = document.getElementById("unidadeTempo").value;
+        const equipo = document.getElementById("equipo").value;
+
+        let hasError = false;
+        const volume = parseFloat(volumeInput.value);
+        const tempo = parseFloat(tempoInput.value);
+
+        document.getElementById("volume-error").classList.add("hidden");
+        document.getElementById("tempo-error").classList.add("hidden");
+
+        if (isNaN(volume) || volume <= 0) {
+          document.getElementById("volume-error").textContent =
+            "ゼロより大きい有効な容量を入力してください。";
+          document.getElementById("volume-error").classList.remove("hidden");
+          hasError = true;
+        }
+        if (isNaN(tempo) || tempo <= 0) {
+          document.getElementById("tempo-error").textContent =
+            "ゼロより大きい有効な時間を入力してください。";
+          document.getElementById("tempo-error").classList.remove("hidden");
+          hasError = true;
+        }
+
+        if (hasError) {
+          resultadoDiv.style.display = "block";
+          resultadoDiv.innerHTML =
+            '⚠️ <strong class="font-bold">無効な値を修正してください。</strong>';
+          resultadoDiv.className =
+            "resultado bg-info-orange-light mt-6 p-4 rounded-lg";
+          delete resultadoDiv.dataset.gotasPorMinuto;
+          return;
+        }
+
+        let gotasPorMinuto;
+        let fatorGotejamento;
+
+        if (equipo === "macrogotas") {
+          fatorGotejamento = 20;
+        } else {
+          fatorGotejamento = 60;
+        }
+
+        let tempoEmMinutos = unidadeTempo === "horas" ? tempo * 60 : tempo;
+        gotasPorMinuto = (volume * fatorGotejamento) / tempoEmMinutos;
+
+        const gotasArredondadas = Math.round(gotasPorMinuto);
+        const equipoTexto =
+          equipo === "macrogotas" ? "マクロ滴" : "マイクロ滴";
+
+        // ステップバイステップの計算結果
+        const calculoDetalhado = `
+                    <div class="calculo-passos">
+                        <p><strong>ステップバイステップの計算説明（${equipoTexto}）：</strong></p>
+                        <p><strong>ステップ1：</strong> 計算式は（容量（ml）× 器具係数）÷ 時間（分）です。</p>
+                        <p><strong>ステップ2：</strong> あなたの計算：(${volume}ml × ${fatorGotejamento}) ÷ ${tempoEmMinutos} 分。</p>
+                        <p><strong>ステップ3：</strong> 正確な結果は ${gotasPorMinuto.toFixed(2)} 滴/分です。</p>
+                        <p style="margin-top: 0.5rem;"><strong>最終結果： ${gotasArredondadas} 滴/分に丸めました。</strong></p>
+                    </div>
+                `;
+
+        resultadoDiv.innerHTML = calculoDetalhado;
+        resultadoDiv.className = "resultado bg-custom-blue mt-6";
+        resultadoDiv.style.display = "block";
+
+        resultadoDiv.dataset.gotasPorMinuto = gotasArredondadas;
+        resultadoDiv.dataset.equipo = equipoTexto;
+        resultadoDiv.dataset.scaleName = "点滴計算";
+      }
+
+      function limparCampos() {
+        document.getElementById("volume").value = "";
+        document.getElementById("tempo").value = "";
+        document.getElementById("unidadeTempo").value = "horas";
+        document.getElementById("equipo").value = "macrogotas";
+        resultadoDiv.innerHTML = "";
+        resultadoDiv.className = "resultado hidden mt-6";
+        document.getElementById("volume-error").classList.add("hidden");
+        document.getElementById("tempo-error").classList.add("hidden");
+        delete resultadoDiv.dataset.gotasPorMinuto;
+        delete resultadoDiv.dataset.equipo;
+        delete resultadoDiv.dataset.scaleName;
+      }
+
+      btnCalcular?.addEventListener("click", calcularGotejamento);
+      btnLimpar?.addEventListener("click", limparCampos);
+
+      btnGerarPDF?.addEventListener("click", () => {
+        if (!resultadoDiv.dataset.gotasPorMinuto) {
+          alert("PDFを生成するには、まず「計算」をクリックしてください。");
+          return;
+        }
+        if (typeof gerarPDFGlobal === "function") {
+          gerarPDFGlobal({
+            titulo: "点滴計算",
+            subtitulo: "点滴投与量レポート",
+            nomeArquivo: "relatorio_gotejamento.pdf",
+            seletorConteudo: ".main-content-wrapper",
+          });
+        } else {
+          console.error("gerarPDFGlobal関数が定義されていません。");
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener("click", () => {
+        const gotasPorMinuto = resultadoDiv.dataset.gotasPorMinuto;
+        const equipo = resultadoDiv.dataset.equipo;
+        const scaleName = resultadoDiv.dataset.scaleName;
+        if (!gotasPorMinuto || !equipo) {
+          alert("結果を計算して処置を検索してください。");
+          return;
+        }
+        const searchQuery = encodeURIComponent(
+          `${scaleName} 結果 ${gotasPorMinuto} 滴/分, 器具 ${equipo} NANDA分類生成, NIC分類生成, NOC分類生成`,
+        );
+        window.open(
+          `https://www.google.com/search?q=${searchQuery}`,
+          "_blank",
+        );
+      });
+    });
+  </script>
 
   <script src="/ja/lang-selector.js" defer=""></script>
 

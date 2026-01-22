@@ -734,7 +734,191 @@
   <script src="/lang-selector.js" defer=""></script>
 
   <!-- Page Script -->
-  
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const resultadoDiv = document.getElementById("resultado");
+      const btnCalcular = document.getElementById("btnCalcular");
+      const btnLimpar = document.getElementById("btnLimpar");
+      const btnGerarPDF = document.getElementById("btnGerarPDF");
+      const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
+
+      // Inputs
+      const inputs = {
+        ph: document.getElementById("ph"),
+        paco2: document.getElementById("paco2"),
+        hco3: document.getElementById("hco3"),
+        sato2: document.getElementById("sato2"),
+        be: document.getElementById("be"),
+      };
+
+      // Error spans
+      const errors = {
+        ph: document.getElementById("ph-error"),
+        paco2: document.getElementById("paco2-error"),
+        hco3: document.getElementById("hco3-error"),
+        sato2: document.getElementById("sato2-error"),
+        be: document.getElementById("be-error"),
+      };
+
+      function interpretarGasometria() {
+        let hasError = false;
+        const valores = {};
+
+        for (const key in inputs) {
+          const input = inputs[key];
+          const errorSpan = errors[key];
+          const value = parseFloat(input.value);
+
+          errorSpan.classList.add("hidden");
+          if (key !== "be" && (isNaN(value) || value <= 0)) {
+            errorSpan.textContent = "Ungültiger Wert.";
+            errorSpan.classList.remove("hidden");
+            hasError = true;
+          } else if (key === "be" && isNaN(value)) {
+            errorSpan.textContent = "Ungültiger Wert.";
+            errorSpan.classList.remove("hidden");
+            hasError = true;
+          } else {
+            valores[key] = value;
+          }
+        }
+
+        if (hasError) {
+          resultadoDiv.style.display = "block";
+          resultadoDiv.innerHTML =
+            '<strong class="text-red-600">Bitte korrigieren Sie die ungültigen Werte.</strong>';
+          resultadoDiv.className = "resultado bg-info-orange-light mt-4 p-4 rounded-lg";
+          return;
+        }
+
+        const { ph, paco2, hco3, sato2, be } = valores;
+
+        // Interpretation Logic
+        let disturbioFinal = "";
+        let condutas = [];
+
+        const PH_MIN = 7.35, PH_MAX = 7.45;
+        const PACO2_MIN = 35, PACO2_MAX = 45;
+        const HCO3_MIN = 22, HCO3_MAX = 26;
+        const SATO2_MIN = 90;
+
+        if (ph < PH_MIN) {
+          if (paco2 > PACO2_MAX && hco3 >= HCO3_MIN && hco3 <= HCO3_MAX) {
+            disturbioFinal = "Dekompensierte respiratorische Azidose";
+          } else if (hco3 < HCO3_MIN && paco2 >= PACO2_MIN && paco2 <= PACO2_MAX) {
+            disturbioFinal = "Dekompensierte metabolische Azidose";
+          } else if (paco2 > PACO2_MAX && hco3 > HCO3_MAX) {
+            disturbioFinal = "Teilkompensierte respiratorische Azidose";
+          } else if (hco3 < HCO3_MIN && paco2 < PACO2_MIN) {
+            disturbioFinal = "Teilkompensierte metabolische Azidose";
+          } else if (paco2 > PACO2_MAX && hco3 < HCO3_MIN) {
+            disturbioFinal = "Gemischte Störung: Respiratorische und metabolische Azidose";
+          } else {
+            disturbioFinal = "Azidämie (widersprüchliche Parameter)";
+          }
+        } else if (ph > PH_MAX) {
+          if (paco2 < PACO2_MIN && hco3 >= HCO3_MIN && hco3 <= HCO3_MAX) {
+            disturbioFinal = "Dekompensierte respiratorische Alkalose";
+          } else if (hco3 > HCO3_MAX && paco2 >= PACO2_MIN && paco2 <= PACO2_MAX) {
+            disturbioFinal = "Dekompensierte metabolische Alkalose";
+          } else if (paco2 < PACO2_MIN && hco3 < HCO3_MIN) {
+            disturbioFinal = "Teilkompensierte respiratorische Alkalose";
+          } else if (hco3 > HCO3_MAX && paco2 > PACO2_MAX) {
+            disturbioFinal = "Teilkompensierte metabolische Alkalose";
+          } else if (paco2 < PACO2_MIN && hco3 > HCO3_MAX) {
+            disturbioFinal = "Gemischte Störung: Respiratorische und metabolische Alkalose";
+          } else {
+            disturbioFinal = "Alkalämie (widersprüchliche Parameter)";
+          }
+        } else {
+          if (paco2 > PACO2_MAX && hco3 > HCO3_MAX) {
+            disturbioFinal = "Kompensierte respiratorische Azidose";
+          } else if (paco2 < PACO2_MIN && hco3 < HCO3_MIN) {
+            disturbioFinal = "Kompensierte respiratorische Alkalose";
+          } else if (paco2 < PACO2_MIN && hco3 > HCO3_MAX) {
+            disturbioFinal = "Gemischte Störung (pH normal)";
+          } else if (paco2 > PACO2_MAX && hco3 < HCO3_MIN) {
+            disturbioFinal = "Gemischte Störung (pH normal)";
+          } else if (hco3 < HCO3_MIN) {
+            disturbioFinal = "Kompensierte metabolische Azidose";
+          } else if (hco3 > HCO3_MAX) {
+            disturbioFinal = "Kompensierte metabolische Alkalose";
+          } else {
+            disturbioFinal = "Normales Säure-Basen-Gleichgewicht";
+          }
+        }
+
+        if (disturbioFinal.includes("respiratorische Azidose")) condutas.push("Beatmung beurteilen, NIV oder ETI.");
+        if (disturbioFinal.includes("respiratorische Alkalose")) condutas.push("Angst-/Schmerzkontrolle, Beatmung anpassen.");
+        if (disturbioFinal.includes("metabolische Azidose")) condutas.push("Grunderkrankung behandeln (Sepsis, Ketoazidose, Niere).");
+        if (disturbioFinal.includes("metabolische Alkalose")) condutas.push("Volumenersatz und K+, Erbrechen/Diuretika korrigieren.");
+        if (sato2 < SATO2_MIN) condutas.push("Hypoxämie: O₂-Gabe.");
+        if (condutas.length === 0) condutas.push("Überwachung fortsetzen.");
+
+        // Format Result (Compact Style)
+        let htmlResultado = `
+            <div>
+                <span class="res-label">Interpretation:</span>
+                <span class="res-text">${disturbioFinal}</span>
+
+                <span class="res-label">Vorgeschlagene Maßnahme:</span>
+                <span class="res-text">${condutas.join(" ")}</span>
+            </div>
+          `;
+
+        resultadoDiv.innerHTML = htmlResultado;
+        resultadoDiv.className = "resultado";
+        resultadoDiv.style.display = "block";
+
+        resultadoDiv.dataset.resultado = disturbioFinal;
+        resultadoDiv.dataset.scaleName = "BGA Interpretation";
+      }
+
+      function limparCampos() {
+        for (const key in inputs) {
+          inputs[key].value = "";
+          errors[key].classList.add("hidden");
+        }
+        resultadoDiv.innerHTML = "";
+        resultadoDiv.style.display = "none";
+        delete resultadoDiv.dataset.resultado;
+        delete resultadoDiv.dataset.scaleName;
+      }
+
+      btnCalcular?.addEventListener("click", interpretarGasometria);
+      btnLimpar?.addEventListener("click", limparCampos);
+
+      btnGerarPDF?.addEventListener("click", () => {
+        if (!resultadoDiv.dataset.resultado) {
+          alert('Bitte zuerst berechnen, um das PDF zu generieren.');
+          return;
+        }
+        if (typeof gerarPDFGlobal === "function") {
+          gerarPDFGlobal({
+            titulo: "Interpretation der arteriellen Blutgasanalyse",
+            subtitulo: "Bericht zur Säure-Basen-Bewertung",
+            nomeArquivo: "bericht_bga.pdf",
+            seletorConteudo: ".main-content-wrapper",
+          });
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener("click", () => {
+        const resultado = resultadoDiv.dataset.resultado;
+        if (!resultado) {
+          alert('Bitte zuerst berechnen.');
+          return;
+        }
+        const searchQuery = encodeURIComponent(
+          `Pflegediagnose im Zusammenhang mit ${resultado} NANDA NIC NOC`,
+        );
+        window.open(
+          `https://www.google.com/search?q=${searchQuery}`,
+          "_blank",
+        );
+      });
+    });
+  </script>
 
   <div id="footer-placeholder"></div>
   <script>

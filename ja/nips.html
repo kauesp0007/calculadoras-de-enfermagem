@@ -649,7 +649,207 @@
 
  <!-- パスをルートに変更 -->
 
-  
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const resultadoDiv = document.getElementById('resultado');
+      const btnCalcular = document.getElementById('btnCalcular');
+      const btnLimpar = document.getElementById('btnLimpar');
+      const btnGerarPDF = document.getElementById('btnGerarPDF');
+      const btnNandaNicNoc = document.getElementById('btnNandaNicNoc');
+      const conteudoDiv = document.getElementById('conteudo');
+
+      // --- JavaScript内のテキストを翻訳 ---
+      const nipsData = [
+        {
+          category: "表情",
+          nameAttr: "expressao_facial",
+          options: [
+            { description: "リラックス", score: 0 },
+            { description: "しかめ面", score: 1 }
+          ],
+          explain: "顔の表情、例えば収縮や弛緩を観察します。しかめ面（grimace）は緊張を示します。"
+        },
+        {
+          category: "泣き声のパターン",
+          nameAttr: "choro",
+          options: [
+            { description: "なし", score: 0 },
+            { description: "くんくん鳴く / うめき声", score: 1 },
+            { description: "力強い泣き声", score: 2 }
+          ],
+          explain: "泣き声の有無と強さを評価します。大きくて力強い泣き声は不快感のサインです。"
+        },
+        {
+          category: "呼吸パターン",
+          nameAttr: "respiracao",
+          options: [
+            { description: "リラックス", score: 0 },
+            { description: "変化あり / 不規則", score: 1 }
+          ],
+          explain: "呼吸が穏やかで規則的かを確認します。パターンの急激な変化は痛みを示唆することがあります。"
+        },
+        {
+          category: "腕の運動パターン",
+          nameAttr: "bracos",
+          options: [
+            { description: "リラックス / 動きなし", score: 0 },
+            { description: "硬直した屈曲 / 伸展", score: 1 }
+          ],
+          explain: "腕の筋緊張と動きを評価します。緊張した屈曲や伸展は痛みのサインである可能性があります。"
+        },
+        {
+          category: "脚の運動パターン",
+          nameAttr: "pernas",
+          options: [
+            { description: "リラックス / 動きなし", score: 0 },
+            { description: "硬直した屈曲 / 伸展", score: 1 }
+          ],
+          explain: "脚の筋緊張と動きを評価します。緊張した屈曲や伸展は痛みのサインである可能性があります。"
+        },
+        {
+          category: "意識状態",
+          nameAttr: "estado_consciencia",
+          options: [
+            { description: "穏やか / 睡眠中", score: 0 },
+            { description: "不穏 / 不快そう", score: 1 }
+          ],
+          explain: "新生児の全般的な状態を観察します。興奮や不穏は一般的な痛みのサインです。"
+        }
+      ];
+
+      // フォームを動的に入力
+      nipsData.forEach(item => {
+        const sectionDiv = document.createElement('div');
+        sectionDiv.className = 'nips-criterion-section';
+        sectionDiv.id = `section-${item.nameAttr}`;
+
+        const titleH3 = document.createElement('h3');
+        titleH3.className = 'nips-criterion-title';
+        titleH3.innerHTML = item.category + `
+              <div class="text-sm font-normal text-gray-500 mt-1">${item.explain}</div>`;
+        sectionDiv.appendChild(titleH3);
+
+        const selectElement = document.createElement('select');
+        selectElement.id = item.nameAttr;
+        selectElement.className = 'nips-criterion-select';
+
+        const defaultOption = document.createElement('option');
+        defaultOption.value = "";
+        defaultOption.text = "選択してください..."; // デフォルトオプションを翻訳
+        selectElement.appendChild(defaultOption);
+
+        item.options.forEach(option => {
+          const optionElement = document.createElement('option');
+          optionElement.value = option.score;
+          optionElement.text = `${option.description} (点数: ${option.score})`; // "pontos" を "点数" に翻訳
+          selectElement.appendChild(optionElement);
+        });
+
+        sectionDiv.appendChild(selectElement);
+        conteudoDiv.appendChild(sectionDiv);
+      });
+
+      function calcularNips() {
+        const selects = document.querySelectorAll('#conteudo select');
+        let allSelected = true;
+        let total = 0;
+
+        selects.forEach(select => {
+          if (select.value === "") {
+            allSelected = false;
+            select.classList.add('incomplete');
+          } else {
+            select.classList.remove('incomplete');
+            total += Number(select.value);
+          }
+        });
+
+        resultadoDiv.style.display = "block";
+        if (!allSelected) {
+          // アラートメッセージを翻訳
+          resultadoDiv.innerHTML = '⚠️ <strong class="font-bold">計算する前に、すべての項目でオプションを選択してください。</strong>';
+          resultadoDiv.classList.add('bg-red-100');
+          resultadoDiv.classList.remove('bg-blue-50');
+          delete resultadoDiv.dataset.score;
+          return;
+        }
+
+        let classificacao = '';
+        let recomendacao = '';
+        let resultadoClasse = '';
+
+        // 結果と推奨事項を翻訳
+        if (total < 4) {
+          classificacao = '疼痛なし';
+          recomendacao = 'スコアは疼痛がないことを示しています。患者のモニタリングを継続してください。';
+          resultadoClasse = 'bg-blue-50';
+        } else { // total >= 4
+          classificacao = '疼痛あり';
+          recomendacao = 'スコアは疼痛があることを示しています。介入の必要性を評価し、小児科医に報告してください。';
+          resultadoClasse = 'bg-red-100';
+        }
+
+        // 結果表示を翻訳
+        resultadoDiv.innerHTML = `
+                <p>合計スコア: <strong class="font-bold">${total}</strong></p>
+                <p>分類: <strong class="font-bold">${classificacao}</strong></p>
+                <p class="mt-4"><strong>推奨事項:</strong> ${recomendacao}</p>
+            `;
+        resultadoDiv.className = `resultado ${resultadoClasse}`;
+        resultadoDiv.style.display = "block";
+
+        resultadoDiv.dataset.score = total;
+        resultadoDiv.dataset.scaleName = "NIPSスケール"; // スケール名を翻訳
+        resultadoDiv.dataset.classificacao = classificacao;
+      }
+
+      function limparCampos() {
+        const selects = document.querySelectorAll('#conteudo select');
+        selects.forEach(select => {
+          select.selectedIndex = 0;
+          select.classList.remove('incomplete');
+        });
+        resultadoDiv.innerHTML = '';
+        resultadoDiv.className = 'resultado hidden';
+        delete resultadoDiv.dataset.score;
+        delete resultadoDiv.dataset.scaleName;
+        delete resultadoDiv.dataset.classificacao;
+      }
+
+      btnCalcular?.addEventListener('click', calcularNips);
+      btnLimpar?.addEventListener('click', limparCampos);
+
+      btnGerarPDF?.addEventListener('click', () => {
+        if (!resultadoDiv.dataset.score) {
+          alert('PDFを生成する前に、まず「スコアを計算」をクリックしてください。'); // アラートを翻訳
+          return;
+        }
+        if (typeof gerarPDFGlobal === 'function') {
+          gerarPDFGlobal({
+            titulo: 'NIPSスケール', // PDFタイトルを翻訳
+            subtitulo: '新生児疼痛評価レポート', // PDFサブタイトルを翻訳
+            nomeArquivo: 'report_nips_scale.pdf', // ファイル名を英語に
+            seletorConteudo: '.main-content-wrapper'
+          });
+        } else {
+          console.error('gerarPDFGlobal 関数が定義されていません。'); // エラーを翻訳
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener('click', () => {
+        const score = resultadoDiv.dataset.score;
+        const scaleName = resultadoDiv.dataset.scaleName;
+        const classificacao = resultadoDiv.dataset.classificacao;
+        if (!score || !classificacao) {
+          alert('看護計画を検索するために、まず結果を計算してください。'); // アラートを翻訳
+          return;
+        }
+        // 検索クエリを翻訳
+        const searchQuery = encodeURIComponent(`新生児 疼痛ケア ${classificacao} NIPS NANDA NIC NOC`);
+        window.open(`https://www.google.com/search?q=${searchQuery}`, '_blank');
+      });
+    });
+  </script>
 
 
 

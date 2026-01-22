@@ -569,7 +569,105 @@
 
 
 
-  
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const resultadoDiv = document.getElementById('resultado');
+      const btnCalcular = document.getElementById('btnCalcular');
+      const btnLimpar = document.getElementById('btnLimpar');
+      const btnGerarPDF = document.getElementById('btnGerarPDF');
+      const btnNandaNicNoc = document.getElementById('btnNandaNicNoc');
+      const conteudoDiv = document.getElementById('conteudo');
+
+      const bpsData = [
+        { title: "Espressione Facciale", nameAttr: "expressao_facial", options: [{ description: "Rilassata", score: 1 }, { description: "Parzialmente tesa (sopracciglia corrugate)", score: 2 }, { description: "Totalmente tesa (smorfia)", score: 3 }, { description: "Viso contratto", score: 4 }] },
+        { title: "Movimenti degli Arti Superiori", nameAttr: "movimentos_superiores", options: [{ description: "Rilassati", score: 1 }, { description: "Parzialmente flessi", score: 2 }, { description: "Totalmente flessi con tensione", score: 3 }, { description: "Retrazione continua", score: 4 }] },
+        { title: "Adattamento al Ventilatore Meccanico", nameAttr: "conformidade_ventilador", options: [{ description: "Adattato al ventilatore", score: 1 }, { description: "Tosse o lotta contro il ventilatore", score: 2 }, { description: "Lotta attivamente (allarme del ventilatore)", score: 3 }, { description: "Non si adatta al ventilatore (allarme continuo)", score: 4 }] }
+      ];
+
+      bpsData.forEach(item => {
+        const sectionDiv = document.createElement('div');
+        sectionDiv.className = 'bps-criterion-section';
+        sectionDiv.innerHTML = `
+              <h3 class="bps-criterion-title">${item.title}</h3>
+              <select id="${item.nameAttr}" class="bps-criterion-select">
+                <option value="" disabled selected>Seleziona...</option>
+                ${item.options.map(o => `<option value="${o.score}">${o.description} (punti: ${o.score})</option>`).join('')}
+              </select>
+            `;
+        conteudoDiv.appendChild(sectionDiv);
+      });
+
+      function calcolaBPS() {
+        let total = 0;
+        let allSelected = true;
+        document.querySelectorAll('#conteudo select').forEach(select => {
+          select.classList.remove('incomplete');
+          if (select.value === "") {
+            allSelected = false;
+            select.classList.add('incomplete');
+          } else {
+            total += Number(select.value);
+          }
+        });
+
+        resultadoDiv.style.display = "block";
+        if (!allSelected) {
+          resultadoDiv.innerHTML = '⚠️ <strong class="font-bold">Per favore, seleziona un\'opzione per tutte le voci.</strong>';
+          resultadoDiv.className = `resultado bg-red-100`;
+          return;
+        }
+
+        let raccomandazione = '';
+        if (total <= 5) raccomandazione = `Il punteggio di ${total} indica dolore lieve o assenza di dolore. Continuare il monitoraggio.`;
+        else if (total <= 9) raccomandazione = `Il punteggio di ${total} indica dolore moderato. Si raccomanda la valutazione di metodi analgesici e il monitoraggio della risposta.`;
+        else raccomandazione = `Il punteggio di ${total} indica dolore severo. È necessario un intervento immediato per alleviare il dolore e una revisione del piano di trattamento.`;
+
+        resultadoDiv.innerHTML = `<p>Punteggio totale: <strong class="font-bold">${total} / 12</strong></p><p class="mt-4"><strong>Raccomandazione:</strong> ${raccomandazione}</p>`;
+        resultadoDiv.className = `resultado`;
+        resultadoDiv.dataset.score = total;
+        resultadoDiv.dataset.scaleName = "Scala BPS";
+      }
+
+      function pulisciCampi() {
+        document.querySelectorAll('#conteudo select').forEach(select => {
+          select.selectedIndex = 0;
+          select.classList.remove('incomplete');
+        });
+        resultadoDiv.style.display = 'none';
+        delete resultadoDiv.dataset.score;
+      }
+
+      btnCalcular?.addEventListener('click', calcolaBPS);
+      btnLimpar?.addEventListener('click', pulisciCampi);
+
+      btnGerarPDF?.addEventListener('click', () => {
+        if (!resultadoDiv.dataset.score) {
+          alert('Per favore, clicca prima su "Calcola Punteggio" per generare il PDF.');
+          return;
+        }
+        if (typeof gerarPDFGlobal === 'function') {
+          gerarPDFGlobal({
+            titulo: 'Scala BPS',
+            subtitulo: 'Rapporto sulla Valutazione del Dolore in Pazienti Critici',
+            nomeArquivo: 'rapporto_scala_bps.pdf',
+            seletorConteudo: '.main-content-wrapper'
+          });
+        } else {
+          console.error('Funzione gerarPDFGlobal non definita.');
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener('click', () => {
+        const score = resultadoDiv.dataset.score;
+        if (!score) {
+          alert('Calcola il risultato per cercare la condotta.');
+          return;
+        }
+        const searchQuery = encodeURIComponent(`Scala BPS punteggio ${score} generare tassonomia NANDA, NIC e NOC`);
+        window.open(`https://www.google.com/search?q=${searchQuery}`, '_blank');
+      });
+    });
+  </script>
 
 
 

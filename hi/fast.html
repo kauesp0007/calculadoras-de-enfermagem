@@ -596,7 +596,130 @@
 
 
   <!-- FAST पृष्ठ के विशिष्ट स्क्रिप्ट -->
-  
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      // फ़ुटर लोड करें (मॉड्यूलर भाग)
+      fetch("footer.html")
+        .then((response) => response.text())
+        .then((data) => {
+          document.getElementById("footer-placeholder").innerHTML = data;
+        })
+        .catch((error) =>
+          console.error("Error loading modular footer:", error),
+        );
+
+      const resultadoDiv = document.getElementById("resultado");
+      const btnCalcular = document.getElementById("btnCalcular");
+      const btnLimpar = document.getElementById("btnLimpar");
+      const btnGerarPDF = document.getElementById("btnGerarPDF");
+      const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
+
+      function calcular() {
+        const faceChecked = document.querySelector(
+          'input[name="face"]:checked',
+        );
+        const armChecked = document.querySelector(
+          'input[name="arm"]:checked',
+        );
+        const speechChecked = document.querySelector(
+          'input[name="speech"]:checked',
+        );
+
+        let resultadoTexto = "";
+        let classificacao = "";
+        let resultadoClasse = "";
+
+        if (faceChecked || armChecked || speechChecked) {
+          resultadoTexto =
+            "स्ट्रोक के संकेत पहचाने गए! तुरंत मेडिकल टीम को बुलाएं।";
+          classificacao = "FAST स्ट्रोक के संकेत मौजूद";
+          resultadoClasse = "bg-fast-positivo";
+        } else {
+          resultadoTexto =
+            "स्ट्रोक का कोई संकेत नहीं चुना गया। रोगी में FAST स्ट्रोक के संकेत मौजूद नहीं हैं।";
+          classificacao = "FAST स्ट्रोक के कोई संकेत नहीं";
+          resultadoClasse = "bg-fast-negativo";
+        }
+
+        resultadoDiv.innerHTML = `<p><strong class="font-bold">${resultadoTexto}</strong></p>`;
+        resultadoDiv.className = `resultado ${resultadoClasse}`;
+        resultadoDiv.style.display = "block";
+
+        resultadoDiv.dataset.score = classificacao;
+        resultadoDiv.dataset.scaleName = "FAST स्केल";
+      }
+
+      function limpar() {
+        document
+          .querySelectorAll('input[type="checkbox"]')
+          .forEach((checkbox) => (checkbox.checked = false));
+        resultadoDiv.innerHTML = "";
+        resultadoDiv.className = "resultado hidden";
+        delete resultadoDiv.dataset.score;
+        delete resultadoDiv.dataset.scaleName;
+      }
+
+      btnCalcular?.addEventListener("click", calcular);
+      btnLimpar?.addEventListener("click", limpar);
+
+      btnGerarPDF?.addEventListener("click", () => {
+        if (!resultadoDiv.dataset.score) {
+          // कस्टम अलर्ट का उपयोग करें
+          console.log(
+            'PDF जनरेट करने से पहले कृपया "गणना करें" पर क्लिक करें।',
+          );
+          return;
+        }
+        if (typeof gerarPDFGlobal === "function") {
+          gerarPDFGlobal({
+            titulo: "FAST स्केल",
+            subtitulo: "स्ट्रोक त्वरित जांच रिपोर्ट",
+            nomeArquivo: "fast_scale_report.pdf",
+            seletorConteudo: ".main-content-wrapper",
+          });
+        } else {
+          console.error("Função gerarPDFGlobal अपरिभाषित है।");
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener("click", () => {
+        const score = resultadoDiv.dataset.score;
+        const scaleName = resultadoDiv.dataset.scaleName;
+        if (!score) {
+          // कस्टम अलर्ट का उपयोग करें
+          console.log("आचरण खोजने के लिए परिणाम की गणना करें।");
+          return;
+        }
+        const searchQuery = encodeURIComponent(
+          `${score} ${scaleName} NANDA, NIC, NOC वर्गीकरण उत्पन्न करें`,
+        );
+        window.open(
+          `https://www.google.com/search?q=${searchQuery}`,
+          "_blank",
+        );
+      });
+
+      // hi/global-body-elements.html से वैश्विक तत्व लोड करें (lbiras, cookies, back to top)
+      fetch("/hi/global-body-elements.html")
+        .then((response) => response.text())
+        .then((data) => {
+          document.body.insertAdjacentHTML("beforeend", data);
+        })
+        .catch((error) =>
+          console.error("Error loading global body elements:", error),
+        );
+
+      // hi/menu-global.html से वैश्विक मेनू लोड करें
+      fetch("/hi/menu-global.html")
+        .then((response) => response.text())
+        .then((data) => {
+          document.getElementById("global-header-container").innerHTML = data;
+        })
+        .catch((error) =>
+          console.error("Error loading global header menu:", error),
+        );
+    });
+  </script>
   <!-- विज्ञापन स्क्रिप्ट -->
 
   <!-- भाषा चयनकर्ता स्क्रिप्ट -->

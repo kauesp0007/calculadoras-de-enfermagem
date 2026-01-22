@@ -641,7 +641,222 @@
 
 
 
-  
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const resultadoDiv = document.getElementById('resultado');
+      const btnCalcular = document.getElementById('btnCalcular');
+      const btnLimpar = document.getElementById('btnLimpar');
+      const btnGerarPDF = document.getElementById('btnGerarPDF');
+      const btnNandaNicNoc = document.getElementById('btnNandaNicNoc');
+      const conteudoDiv = document.getElementById('conteudo');
+      const introParagraph = document.getElementById('intro-paragraph');
+      const referenceSection = document.getElementById('reference-section');
+
+      // Dados da escala de Lawton (Traduzidos para Hindi)
+      const lawtonData = [
+        {
+          category: "फोन का उपयोग (Use of telephone)",
+          nameAttr: "telefone",
+          options: [
+            { description: "अपनी पहल पर फोन संचालित करता है", score: 1 },
+            { description: "कुछ परिचित नंबर डायल करता है", score: 1 },
+            { description: "फोन का जवाब देता है, लेकिन नंबर डायल नहीं करता", score: 1 },
+            { description: "बिल्कुल भी फोन का उपयोग नहीं करता", score: 0 }
+          ]
+        },
+        {
+          category: "खरीदारी (Shopping)",
+          nameAttr: "compras",
+          options: [
+            { description: "स्वतंत्र रूप से सभी आवश्यक खरीदारी करता है", score: 1 },
+            { description: "स्वतंत्र रूप से छोटी खरीदारी करता है", score: 0 },
+            { description: "किसी भी खरीदारी के लिए साथ की आवश्यकता होती है", score: 0 },
+            { description: "खरीदारी करने में असमर्थ", score: 0 }
+          ]
+        },
+        {
+          category: "भोजन तैयार करना (Meal preparation)",
+          nameAttr: "refeicoes",
+          options: [
+            { description: "पूर्ण भोजन की योजना बनाता है, तैयार करता है और परोसता है", score: 1 },
+            { description: "अगर सामग्री प्रदान की जाए तो भोजन तैयार करता है", score: 0 },
+            { description: "केवल हल्का भोजन तैयार करता है", score: 0 },
+            { description: "भोजन तैयार करने में असमर्थ", score: 0 }
+          ]
+        },
+        {
+          category: "घर की देखभाल (House care)",
+          nameAttr: "cuidado_casa",
+          options: [
+            { description: "अकेले या कभी-कभी मदद से घर का प्रबंधन करता है", score: 1 },
+            { description: "केवल हल्के काम करता है", score: 1 },
+            { description: "घर के कामों में सक्रिय रूप से भाग नहीं लेता", score: 0 },
+            { description: "घर की देखभाल के लिए पूरी मदद की आवश्यकता है", score: 0 }
+          ]
+        },
+        {
+          category: "कपड़े धोना (Washing clothes)",
+          nameAttr: "lavagem_roupa",
+          options: [
+            { description: "अपने कपड़े स्वतंत्र रूप से धोता है", score: 1 },
+            { description: "केवल छोटे कपड़े धोता है", score: 1 },
+            { description: "कपड़े किसी और द्वारा धोने की आवश्यकता है", score: 0 }
+          ]
+        },
+        {
+          category: "घूमना/परिवहन का उपयोग (Locomotion/Use of transport)",
+          nameAttr: "locomocao",
+          options: [
+            { description: "सार्वजनिक परिवहन में स्वतंत्र रूप से यात्रा करता है या अपनी कार चलाता है", score: 1 },
+            { description: "किसी अन्य व्यक्ति की मदद से टैक्सी या सार्वजनिक परिवहन का उपयोग करता है", score: 1 },
+            { description: "केवल किसी अन्य व्यक्ति की मदद से निजी कार में यात्रा करता है", score: 1 },
+            { description: "यात्रा करने में असमर्थ", score: 0 }
+          ]
+        },
+        {
+          category: "दवा (Medication)",
+          nameAttr: "medicao",
+          options: [
+            { description: "अपनी दवा के लिए जिम्मेदार है", score: 1 },
+            { description: "केवल तभी दवा लेता है जब उसे तैयार किया जाता है", score: 0 },
+            { description: "दवा लेने में असमर्थ", score: 0 }
+          ]
+        },
+        {
+          category: "वित्त/पैसा प्रबंधन (Finances/Money management)",
+          nameAttr: "financas",
+          options: [
+            { description: "स्वतंत्र रूप से वित्त का प्रबंधन करता है (बैंक, बिल, आदि)", score: 1 },
+            { description: "छोटी खरीदारी का प्रबंधन करता है, लेकिन बैंक के काम में मदद चाहिए", score: 1 },
+            { description: "पैसा प्रबंधन में असमर्थ", score: 0 }
+          ]
+        }
+      ];
+
+      // Preenche o formulário dinamicamente
+      lawtonData.forEach(item => {
+        const sectionDiv = document.createElement('div');
+        sectionDiv.className = 'lawton-criterion-section';
+        sectionDiv.id = `section-${item.nameAttr}`;
+
+        const titleH3 = document.createElement('h3');
+        titleH3.className = 'lawton-criterion-title';
+        titleH3.innerHTML = item.category;
+        sectionDiv.appendChild(titleH3);
+
+        const selectElement = document.createElement('select');
+        selectElement.id = item.nameAttr;
+        selectElement.className = 'lawton-criterion-select';
+
+        const defaultOption = document.createElement('option');
+        defaultOption.value = "";
+        defaultOption.text = "चुनें..."; // Selecione...
+        selectElement.appendChild(defaultOption);
+
+        item.options.forEach(option => {
+          const optionElement = document.createElement('option');
+          optionElement.value = option.score;
+          optionElement.text = `${option.description} (स्कोर: ${option.score})`; // Opção + Score em Hindi
+          selectElement.appendChild(optionElement);
+        });
+
+        sectionDiv.appendChild(selectElement);
+        conteudoDiv.appendChild(sectionDiv);
+      });
+
+      function calcularLawton() {
+        const selects = document.querySelectorAll('#conteudo select');
+        let allSelected = true;
+        let total = 0;
+
+        selects.forEach(select => {
+          if (select.value === "") {
+            allSelected = false;
+            select.classList.add('incomplete');
+          } else {
+            select.classList.remove('incomplete');
+            total += Number(select.value);
+          }
+        });
+
+        resultadoDiv.style.display = "block";
+        if (!allSelected) {
+          // Mensagem de erro em Hindi
+          resultadoDiv.innerHTML = '⚠️ <strong class="font-bold">कृपया गणना करने से पहले सभी आइटम के लिए एक विकल्प चुनें।</strong>';
+          resultadoDiv.classList.add('bg-red-100');
+          delete resultadoDiv.dataset.score;
+          return;
+        }
+
+        let recomendacao = '';
+        let resultadoClasse = 'bg-blue-50';
+
+        if (total < 8) {
+          recomendacao = 'स्कोर दैनिक जीवन की वाद्य गतिविधियों (AIVDs) को करने के लिए निर्भरता की एक डिग्री का सुझाव देता है। सहायता की आवश्यकताओं को निर्धारित करने के लिए गहन मूल्यांकन की सिफारिश की जाती है।'; // O escore sugere um grau de dependência...
+        } else {
+          recomendacao = 'स्कोर अधिकांश दैनिक जीवन की वाद्य गतिविधियों (AIVDs) को करने के लिए स्वतंत्रता की एक डिग्री का सुझाव देता है।'; // O escore sugere um grau de independência...
+        }
+
+        // Resultado em Hindi
+        resultadoDiv.innerHTML = `
+                <p>कुल स्कोर: <strong class="font-bold">${total}</strong></p>
+                <p class="mt-4"><strong>सिफारिश:</strong> ${recomendacao}</p>
+            `;
+        resultadoDiv.className = `resultado ${resultadoClasse}`;
+        resultadoDiv.style.display = "block";
+
+        resultadoDiv.dataset.score = total;
+        resultadoDiv.dataset.scaleName = "लॉटन स्केल";
+      }
+
+      function limparCampos() {
+        const selects = document.querySelectorAll('#conteudo select');
+        selects.forEach(select => {
+          select.selectedIndex = 0;
+          select.classList.remove('incomplete');
+        });
+        resultadoDiv.innerHTML = '';
+        resultadoDiv.className = 'resultado hidden';
+        delete resultadoDiv.dataset.score;
+        delete resultadoDiv.dataset.scaleName;
+      }
+
+      // Adiciona os event listeners aos botões
+      btnCalcular?.addEventListener('click', calcularLawton);
+      btnLimpar?.addEventListener('click', limparCampos);
+
+      btnGerarPDF?.addEventListener('click', () => {
+        if (!resultadoDiv.dataset.score) {
+          // Mensagem de erro em Hindi
+          alert('कृपया PDF उत्पन्न करने के लिए पहले "स्कोर की गणना करें" पर क्लिक करें।');
+          return;
+        }
+        if (typeof gerarPDFGlobal === 'function') {
+          gerarPDFGlobal({
+            titulo: 'लॉटन स्केल', // Título do PDF em Hindi
+            subtitulo: 'AIVDs मूल्यांकन रिपोर्ट', // Subtítulo do PDF em Hindi
+            nomeArquivo: 'relatorio_escala_lawton_hi.pdf',
+            seletorConteudo: '.main-content-wrapper'
+          });
+        } else {
+          console.error('Função gerarPDFGlobal não definida।');
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener('click', () => {
+        const score = resultadoDiv.dataset.score;
+        const scaleName = resultadoDiv.dataset.scaleName;
+        if (!score) {
+          // Mensagem de erro em Hindi
+          alert('आचरण खोजने के लिए परिणाम की गणना करें।');
+          return;
+        }
+        // A consulta de pesquisa deve ser em Hindi e Português/Inglês para melhor resultado
+        const searchQuery = encodeURIComponent(`बुजुर्गों की स्वतंत्रता के लिए नर्सिंग देखभाल ${scaleName} स्कोर ${score} NANDA NIC NOC`);
+        window.open(`https://www.google.com/search?q=${searchQuery}`, '_blank');
+      });
+    });
+  </script>
 
 
 

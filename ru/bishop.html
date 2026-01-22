@@ -622,7 +622,205 @@
 
 
 
-  
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const resultadoDiv = document.getElementById('resultado');
+      const btnCalcular = document.getElementById('btnCalcular');
+      const btnLimpar = document.getElementById('btnLimpar');
+      const btnGerarPDF = document.getElementById('btnGerarPDF');
+      const btnNandaNicNoc = document.getElementById('btnNandaNicNoc');
+      const conteudoDiv = document.getElementById('conteudo');
+
+      // Данные шкалы Бишопа
+      const bishopData = [
+        {
+          category: "Раскрытие шейки матки",
+          nameAttr: "dilatacao",
+          options: [
+            { description: "0 см", score: 0 },
+            { description: "1-2 см", score: 1 },
+            { description: "3-4 см", score: 2 },
+            { description: "≥ 5 см", score: 3 }
+          ],
+          explain: "Раскрытие шейки матки, измеряется в сантиметрах. Чем больше раскрытие, тем выше балл."
+        },
+        {
+          category: "Сглаживание шейки матки",
+          nameAttr: "apagamento",
+          options: [
+            { description: "0-30%", score: 0 },
+            { description: "40-50%", score: 1 },
+            { description: "60-70%", score: 2 },
+            { description: "≥ 80%", score: 3 }
+          ],
+          explain: "Истончение и укорочение шейки матки по отношению к её первоначальной длине. Выражается в процентах. Чем больше процент, тем выше балл."
+        },
+        {
+          category: "Консистенция шейки матки",
+          nameAttr: "consistencia",
+          options: [
+            { description: "Плотная", score: 0 },
+            { description: "Средняя", score: 1 },
+            { description: "Мягкая", score: 2 }
+          ],
+          explain: "Определяет плотность шейки матки при пальпации. Более мягкая шейка более зрелая и готова к родам."
+        },
+        {
+          category: "Положение шейки матки",
+          nameAttr: "posicao",
+          options: [
+            { description: "Заднее", score: 0 },
+            { description: "Срединное", score: 1 },
+            { description: "Переднее", score: 2 }
+          ],
+          explain: "Расположение шейки матки по отношению к тазовой оси. Переднее положение шейки указывает на большую зрелость."
+        },
+        {
+          category: "Станция предлежащей части плода",
+          nameAttr: "estacao",
+          options: [
+            { description: "-3", score: 0 },
+            { description: "-2", score: 1 },
+            { description: "-1 или 0", score: 2 },
+            { description: "+1 или +2", score: 3 }
+          ],
+          explain: "Положение головки ребёнка по отношению к седалищным ости таза матери. Станция измеряется в сантиметрах, где 0 - исходная точка. Чем ниже (+), тем выше балл."
+        }
+      ];
+
+      // Заполняет форму динамически
+      bishopData.forEach(item => {
+        const sectionDiv = document.createElement('div');
+        sectionDiv.className = 'bishop-criterion-section';
+        sectionDiv.id = `section-${item.nameAttr}`;
+
+        const titleH3 = document.createElement('h3');
+        titleH3.className = 'bishop-criterion-title';
+        titleH3.innerHTML = item.category + `
+              <div class="text-sm font-normal text-gray-500 mt-1">${item.explain}</div>`;
+        sectionDiv.appendChild(titleH3);
+
+        const selectElement = document.createElement('select');
+        selectElement.id = item.nameAttr;
+        selectElement.className = 'bishop-criterion-select';
+
+        const defaultOption = document.createElement('option');
+        defaultOption.value = "";
+        defaultOption.text = "Выберите...";
+        selectElement.appendChild(defaultOption);
+
+        item.options.forEach(option => {
+          const optionElement = document.createElement('option');
+          optionElement.value = option.score;
+          optionElement.text = `${option.description} (баллы: ${option.score})`;
+          selectElement.appendChild(optionElement);
+        });
+
+        sectionDiv.appendChild(selectElement);
+        conteudoDiv.appendChild(sectionDiv);
+      });
+
+      function calcularBishop() {
+        const selects = document.querySelectorAll('#conteudo select');
+        let allSelected = true;
+        let total = 0;
+
+        selects.forEach(select => {
+          if (select.value === "") {
+            allSelected = false;
+            select.classList.add('incomplete');
+          } else {
+            select.classList.remove('incomplete');
+            total += Number(select.value);
+          }
+        });
+
+        resultadoDiv.style.display = "block";
+        if (!allSelected) {
+          resultadoDiv.innerHTML = '⚠️ <strong class="font-bold">Пожалуйста, выберите вариант для всех пунктов перед расчётом.</strong>';
+          resultadoDiv.classList.add('bg-red-100');
+          resultadoDiv.classList.remove('bg-yellow-100', 'bg-blue-50');
+          delete resultadoDiv.dataset.score;
+          return;
+        }
+
+        let classificacao = '';
+        let recomendacao = '';
+        let resultadoClasse = '';
+
+        if (total < 6) {
+          classificacao = 'Неблагоприятная шейка / Незрелая';
+          recomendacao = 'Шейка матки незрелая. Возможно, потребуются методы подготовки шейки матки перед попыткой индукции родов.';
+          resultadoClasse = 'bg-red-100';
+        } else if (total >= 6 && total <= 7) {
+          classificacao = 'Зона неопределённости';
+          recomendacao = 'Можно попытаться индукцию, но успех не гарантирован. Требуется тщательный мониторинг.';
+          resultadoClasse = 'bg-yellow-100';
+        } else { // total >= 8
+          classificacao = 'Благоприятная шейка / Зрелая';
+          recomendacao = 'Шейка матки зрелая, с высокой вероятностью успеха для индукции родов. Спонтанные роды могут быть близко.';
+          resultadoClasse = 'bg-blue-50';
+        }
+
+        resultadoDiv.innerHTML = `
+                <p>Общий балл: <strong class="font-bold">${total}</strong></p>
+                <p>Классификация: <strong class="font-bold">${classificacao}</strong></p>
+                <p class="mt-4"><strong>Рекомендация:</strong> ${recomendacao}</p>
+            `;
+        resultadoDiv.className = `resultado ${resultadoClasse}`;
+        resultadoDiv.style.display = "block";
+
+        resultadoDiv.dataset.score = total;
+        resultadoDiv.dataset.scaleName = "Шкала Бишопа";
+        resultadoDiv.dataset.classificacao = classificacao;
+      }
+
+      function limparCampos() {
+        const selects = document.querySelectorAll('#conteudo select');
+        selects.forEach(select => {
+          select.selectedIndex = 0;
+          select.classList.remove('incomplete');
+        });
+        resultadoDiv.innerHTML = '';
+        resultadoDiv.className = 'resultado hidden';
+        delete resultadoDiv.dataset.score;
+        delete resultadoDiv.dataset.scaleName;
+        delete resultadoDiv.dataset.classificacao;
+      }
+
+      btnCalcular?.addEventListener('click', calcularBishop);
+      btnLimpar?.addEventListener('click', limparCampos);
+
+      btnGerarPDF?.addEventListener('click', () => {
+        if (!resultadoDiv.dataset.score) {
+          alert('Пожалуйста, сначала нажмите "Рассчитать балл" для создания PDF.');
+          return;
+        }
+        if (typeof gerarPDFGlobal === 'function') {
+          gerarPDFGlobal({
+            titulo: 'Шкала Бишопа',
+            subtitulo: 'Отчёт об оценке шейки матки',
+            nomeArquivo: 'relatorio_escala_bishop.pdf',
+            seletorConteudo: '.main-content-wrapper'
+          });
+        } else {
+          console.error('Функция gerarPDFGlobal не определена.');
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener('click', () => {
+        const score = resultadoDiv.dataset.score;
+        const scaleName = resultadoDiv.dataset.scaleName;
+        const classificacao = resultadoDiv.dataset.classificacao;
+        if (!score || !classificacao) {
+          alert('Рассчитайте результат для поиска тактики.');
+          return;
+        }
+        const searchQuery = encodeURIComponent(`${scaleName} балл ${score} роды ${classificacao} генерировать таксономию NANDA, генерировать таксономию NIC и генерировать таксономию NOC`);
+        window.open(`https://www.google.com/search?q=${searchQuery}`, '_blank');
+      });
+    });
+  </script>
 
 
 

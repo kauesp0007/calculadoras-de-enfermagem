@@ -1035,7 +1035,366 @@
 
 
 
-  
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      // --- INÍCIO DA LÓGICA DA SIDEBAR ---
+      const toggleSidebarBtn = document.getElementById("toggleSidebarBtn");
+      const closeSidebarBtn = document.getElementById("closeSidebarBtn");
+      const sidebarOverlay = document.getElementById("sidebarOverlay");
+      const infoSidebar = document.getElementById("infoSidebar");
+
+      function openSidebar() {
+        if (infoSidebar && sidebarOverlay && toggleSidebarBtn) {
+          infoSidebar.classList.add("open");
+          sidebarOverlay.classList.add("open");
+          infoSidebar.setAttribute("aria-hidden", "false");
+          toggleSidebarBtn.setAttribute("aria-expanded", "true");
+          document.body.style.overflow = "hidden"; // Impede o scroll da página principal
+        }
+      }
+
+      function closeSidebar() {
+        if (infoSidebar && sidebarOverlay && toggleSidebarBtn) {
+          infoSidebar.classList.remove("open");
+          sidebarOverlay.classList.remove("open");
+          infoSidebar.setAttribute("aria-hidden", "true");
+          toggleSidebarBtn.setAttribute("aria-expanded", "false");
+          document.body.style.overflow = ""; // Restaura o scroll
+        }
+      }
+
+      toggleSidebarBtn?.addEventListener("click", openSidebar);
+      closeSidebarBtn?.addEventListener("click", closeSidebar);
+      sidebarOverlay?.addEventListener("click", closeSidebar);
+      // --- FIM DA LÓGICA DA SIDEBAR ---
+
+      // --- LÓGICA DO BOTÃO SCROLL (DIREITA) ---
+      const scrollToCalcBtn = document.getElementById("scrollToCalcBtn");
+      scrollToCalcBtn?.addEventListener("click", function () {
+        // O elemento 'section-estado_mental' é gerado dinamicamente abaixo.
+        // Como o script roda após DOMContentLoaded, se os elementos forem gerados síncronamente,
+        // eles já existirão quando o clique ocorrer.
+        const firstSection = document.getElementById("section-estado_mental");
+        if (firstSection) {
+          firstSection.scrollIntoView({ behavior: "smooth", block: "start" });
+        } else {
+          // Fallback: rolar até o container de conteúdo se o item não for encontrado
+          const conteudo = document.getElementById("conteudo");
+          if (conteudo) {
+            conteudo.scrollIntoView({ behavior: "smooth", block: "start" });
+          }
+        }
+      });
+
+      const resultadoDiv = document.getElementById("resultado");
+      const btnCalcular = document.getElementById("btnCalcular");
+      const btnLimpar = document.getElementById("btnLimpar");
+      const btnGerarPDF = document.getElementById("btnGerarPDF");
+      const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
+      const conteudoDiv = document.getElementById("conteudo");
+      const introParagraph = document.getElementById("intro-paragraph");
+      const referenceSection = document.getElementById("reference-section");
+
+      // Dados da escala de Fugulin
+      const fugulinData = [
+        {
+          category: "Estado Mental",
+          nameAttr: "estado_mental",
+          options: [
+            { description: "Inconsciente", score: 4 },
+            { description: "Desorientado", score: 3 },
+            { description: "Confuso", score: 2 },
+            { description: "Orientado", score: 1 },
+          ],
+        },
+        {
+          category: "Oxigenação",
+          nameAttr: "oxigenacao",
+          options: [
+            { description: "Ventilação mecânica", score: 4 },
+            { description: "Máscara de oxigênio", score: 3 },
+            { description: "Cateter nasal", score: 2 },
+            { description: "Ar ambiente", score: 1 },
+          ],
+        },
+        {
+          category: "Sinais Vitais",
+          nameAttr: "sinais_vitais",
+          options: [
+            { description: "Muito críticos", score: 4 },
+            { description: "Críticos", score: 3 },
+            { description: "Instáveis", score: 2 },
+            { description: "Estáveis", score: 1 },
+          ],
+        },
+        {
+          category: "Motilidade",
+          nameAttr: "motilidade",
+          options: [
+            { description: "Imobilizado", score: 4 },
+            { description: "Mobilização com ajuda", score: 3 },
+            { description: "Mobilização com supervisão", score: 2 },
+            { description: "Independente", score: 1 },
+          ],
+        },
+        {
+          category: "Deambulação",
+          nameAttr: "deambulacao",
+          options: [
+            { description: "Não deambula", score: 4 },
+            { description: "Deambula com ajuda", score: 3 },
+            { description: "Deambula com supervisão", score: 2 },
+            { description: "Independente", score: 1 },
+          ],
+        },
+        {
+          category: "Alimentação",
+          nameAttr: "alimentacao",
+          options: [
+            { description: "Jejum", score: 4 },
+            { description: "Parenteral", score: 3 },
+            { description: "Enteral", score: 2 },
+            { description: "Oral", score: 1 },
+          ],
+        },
+        {
+          category: "Cuidado Corporal",
+          nameAttr: "cuidado_corporal",
+          options: [
+            { description: "Totalmente dependente", score: 4 },
+            { description: "Dependente", score: 3 },
+            { description: "Auxílio parcial", score: 2 },
+            { description: "Independente", score: 1 },
+          ],
+        },
+        {
+          category: "Eliminação",
+          nameAttr: "eliminacao",
+          options: [
+            { description: "Incontinente", score: 4 },
+            { description: "SVD", score: 3 },
+            { description: "Auxílio parcial", score: 2 },
+            { description: "Independente", score: 1 },
+          ],
+        },
+        {
+          category: "Terapêutica",
+          nameAttr: "terapeutica",
+          options: [
+            { description: "Uso de drogas vasoativas", score: 4 },
+            { description: "EV contínua por cateter", score: 3 },
+            { description: "EV intermitente", score: 2 },
+            { description: "IM ou VO", score: 1 },
+          ],
+        },
+        {
+          category: "Tempo de Troca de Curativo",
+          nameAttr: "tempo_curativo",
+          options: [
+            { description: "De 15 a 30 minutos", score: 4 },
+            { description: "De 5 a 15 minutos", score: 3 },
+            { description: "Menos de 5 minutos", score: 2 },
+            { description: "Sem curativo", score: 1 },
+          ],
+        },
+        {
+          category: "Curativo",
+          nameAttr: "curativo",
+          options: [
+            { description: "Troca 3x ao dia", score: 4 },
+            { description: "Troca 2x ao dia", score: 3 },
+            { description: "Troca 1x ao dia", score: 2 },
+            { description: "Sem curativo", score: 1 },
+          ],
+        },
+        {
+          category: "Integridade Cutâneo-Mucosa / Comprometimento Tecidual",
+          nameAttr: "integridade",
+          options: [
+            { description: "Extenso", score: 4 },
+            { description: "Moderado", score: 3 },
+            { description: "Leve", score: 2 },
+            { description: "Nenhum", score: 1 },
+          ],
+        },
+      ];
+
+      // --- GERAÇÃO DO CARTÃO DE INSTRUÇÃO ---
+      const instructionDiv = document.createElement("div");
+      instructionDiv.className = "fugulin-criterion-section instruction-card";
+      // Mantém a mesma estrutura interna para consistência visual se necessário, ou apenas texto.
+      // Como o texto deve ser visível e ocupar o espaço, colocamos em um p.
+      const instructionP = document.createElement("p");
+      instructionP.className = "text-base font-medium text-center w-full";
+      instructionP.innerText = "Selecione uma opção para cada item da área de cuidado, a seguir calcule o escore total para classificação do paciente (SCP).";
+      instructionDiv.appendChild(instructionP);
+      conteudoDiv.appendChild(instructionDiv);
+
+      // Preenche o formulário dinamicamente
+      fugulinData.forEach((item, index) => {
+        const sectionDiv = document.createElement("div");
+        sectionDiv.className = "fugulin-criterion-section";
+        sectionDiv.id = `section-${item.nameAttr}`;
+
+        const titleH3 = document.createElement("h3");
+        titleH3.className = "fugulin-criterion-title";
+        titleH3.innerText = item.category;
+        sectionDiv.appendChild(titleH3);
+
+        const selectElement = document.createElement("select");
+        selectElement.id = item.nameAttr;
+        selectElement.className = "fugulin-criterion-select";
+
+        const defaultOption = document.createElement("option");
+        defaultOption.value = "";
+        defaultOption.text = "Selecione...";
+        selectElement.appendChild(defaultOption);
+
+        item.options.forEach((option) => {
+          const optionElement = document.createElement("option");
+          optionElement.value = option.score;
+          optionElement.text = `${option.description} (${option.score})`;
+          selectElement.appendChild(optionElement);
+        });
+
+        sectionDiv.appendChild(selectElement);
+        conteudoDiv.appendChild(sectionDiv);
+      });
+
+      function calcularFugulin() {
+        const selects = document.querySelectorAll("#conteudo select");
+        let allSelected = true;
+        let total = 0;
+
+        selects.forEach((select) => {
+          if (select.value === "") {
+            allSelected = false;
+          }
+          total += Number(select.value);
+        });
+
+        resultadoDiv.style.display = "block";
+        if (!allSelected) {
+          resultadoDiv.innerHTML =
+            '⚠️ <strong class="font-bold">Por favor, selecione uma opção para todos os itens antes de calcular.</strong>';
+          resultadoDiv.classList.add("bg-info-orange-light");
+          resultadoDiv.classList.remove("bg-red-100", "bg-blue-50");
+          delete resultadoDiv.dataset.score;
+          return;
+        }
+
+        let classificacao = "";
+        let resultadoClasse = "";
+
+        if (total >= 31) {
+          classificacao = "Paciente intensivo";
+          resultadoClasse = "bg-red-100";
+        } else if (total >= 24) {
+          classificacao = "Paciente semi-intensivo";
+          resultadoClasse = "bg-red-100";
+        } else if (total >= 17) {
+          classificacao = "Paciente de alta dependência";
+          resultadoClasse = "bg-blue-50";
+        } else if (total >= 10) {
+          classificacao = "Paciente de cuidados intermediários";
+          resultadoClasse = "bg-blue-50";
+        } else {
+          classificacao = "Paciente de cuidados mínimos";
+          resultadoClasse = "bg-blue-50";
+        }
+
+        resultadoDiv.innerHTML = `<p>Escore total: <strong class="font-bold">${total}</strong></p><p>Classificação: <strong class="font-bold">${classificacao}</strong></p>`;
+        resultadoDiv.className = `resultado ${resultadoClasse}`;
+        resultadoDiv.style.display = "block";
+
+        resultadoDiv.dataset.score = total;
+        resultadoDiv.dataset.scaleName = "Escala de Fugulin";
+        resultadoDiv.dataset.classificacao = classificacao;
+      }
+
+      function limparCampos() {
+        const selects = document.querySelectorAll("#conteudo select");
+        selects.forEach((select) => {
+          select.selectedIndex = 0;
+        });
+        resultadoDiv.innerHTML = "";
+        resultadoDiv.className = "resultado hidden";
+        delete resultadoDiv.dataset.score;
+        delete resultadoDiv.dataset.scaleName;
+        delete resultadoDiv.dataset.classificacao;
+      }
+
+      // Adiciona os event listeners aos botões
+      btnCalcular?.addEventListener("click", calcularFugulin);
+      btnLimpar?.addEventListener("click", limparCampos);
+
+      btnGerarPDF?.addEventListener("click", () => {
+        if (!resultadoDiv.dataset.score) {
+          alert(
+            'Por favor, clique em "Calcular Escore" primeiro para gerar o PDF.',
+          );
+          return;
+        }
+        if (typeof gerarPDFGlobal === "function") {
+          gerarPDFGlobal({
+            titulo: "Escala de Fugulin",
+            subtitulo:
+              "Relatório de Complexidade da Assistência de Enfermagem",
+            nomeArquivo: "relatorio_escala_fugulin.pdf",
+            seletorConteudo: ".main-content-wrapper",
+          });
+        } else {
+          console.error("Função gerarPDFGlobal não definida.");
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener("click", () => {
+        const score = resultadoDiv.dataset.score;
+        const scaleName = resultadoDiv.dataset.scaleName;
+        const classificacao = resultadoDiv.dataset.classificacao;
+        if (!score || !classificacao) {
+          alert("Calcule o resultado para pesquisar a conduta.");
+          return;
+        }
+        const searchQuery = encodeURIComponent(
+          `${scaleName} pontuação ${score} gerar taxonomia NANDA, gerar taxonomia NIC e gerar taxonomia de NOC`,
+        );
+        window.open(
+          `https://www.google.com/search?q=${searchQuery}`,
+          "_blank",
+        );
+      });
+      // Botão "Adicionar aos favoritos"
+      const addFavoriteBtn = document.getElementById("addFavoriteBtn");
+      if (addFavoriteBtn) {
+        addFavoriteBtn.addEventListener("click", () => {
+          const url = window.location.href;
+          const title = "Escala de Fugulin";
+
+          try {
+            // IE/Edge Legacy
+            if (window.external && "AddFavorite" in window.external) {
+              window.external.AddFavorite(url, title);
+              return;
+            }
+            // Firefox antigo
+            if (window.sidebar && window.sidebar.addPanel) {
+              window.sidebar.addPanel(title, url, "");
+              return;
+            }
+            // Chrome/Firefox modernos: instrução de atalho
+            alert(
+              "Pressione Ctrl + D (ou Cmd + D no Mac) para adicionar esta página aos favoritos.",
+            );
+          } catch (e) {
+            alert(
+              "Pressione Ctrl + D (ou Cmd + D no Mac) para adicionar esta página aos favoritos.",
+            );
+          }
+        });
+      }
+    });
+  </script>
 
   <script src="/lang-selector.js" defer=""></script>
 

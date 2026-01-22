@@ -741,7 +741,191 @@
   <script src="/lang-selector.js" defer=""></script>
 
   <!-- 페이지 스크립트 -->
-  
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const resultadoDiv = document.getElementById("resultado");
+      const btnCalcular = document.getElementById("btnCalcular");
+      const btnLimpar = document.getElementById("btnLimpar");
+      const btnGerarPDF = document.getElementById("btnGerarPDF");
+      const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
+
+      // 입력 필드
+      const inputs = {
+        ph: document.getElementById("ph"),
+        paco2: document.getElementById("paco2"),
+        hco3: document.getElementById("hco3"),
+        sato2: document.getElementById("sato2"),
+        be: document.getElementById("be"),
+      };
+
+      // 오류 메시지
+      const errors = {
+        ph: document.getElementById("ph-error"),
+        paco2: document.getElementById("paco2-error"),
+        hco3: document.getElementById("hco3-error"),
+        sato2: document.getElementById("sato2-error"),
+        be: document.getElementById("be-error"),
+      };
+
+      function interpretarGasometria() {
+        let hasError = false;
+        const valores = {};
+
+        for (const key in inputs) {
+          const input = inputs[key];
+          const errorSpan = errors[key];
+          const value = parseFloat(input.value);
+
+          errorSpan.classList.add("hidden");
+          if (key !== "be" && (isNaN(value) || value <= 0)) {
+            errorSpan.textContent = "잘못된 값입니다.";
+            errorSpan.classList.remove("hidden");
+            hasError = true;
+          } else if (key === "be" && isNaN(value)) {
+            errorSpan.textContent = "잘못된 값입니다.";
+            errorSpan.classList.remove("hidden");
+            hasError = true;
+          } else {
+            valores[key] = value;
+          }
+        }
+
+        if (hasError) {
+          resultadoDiv.style.display = "block";
+          resultadoDiv.innerHTML =
+            '<strong class="text-red-600">잘못된 값을 수정해 주십시오.</strong>';
+          resultadoDiv.className = "resultado bg-info-orange-light mt-4 p-4 rounded-lg";
+          return;
+        }
+
+        const { ph, paco2, hco3, sato2, be } = valores;
+
+        // 해석 로직
+        let disturbioFinal = "";
+        let condutas = [];
+
+        const PH_MIN = 7.35, PH_MAX = 7.45;
+        const PACO2_MIN = 35, PACO2_MAX = 45;
+        const HCO3_MIN = 22, HCO3_MAX = 26;
+        const SATO2_MIN = 90;
+
+        if (ph < PH_MIN) {
+          if (paco2 > PACO2_MAX && hco3 >= HCO3_MIN && hco3 <= HCO3_MAX) {
+            disturbioFinal = "비보상 호흡기 산증";
+          } else if (hco3 < HCO3_MIN && paco2 >= PACO2_MIN && paco2 <= PACO2_MAX) {
+            disturbioFinal = "비보상 대사성 산증";
+          } else if (paco2 > PACO2_MAX && hco3 > HCO3_MAX) {
+            disturbioFinal = "부분 보상된 호흡기 산증";
+          } else if (hco3 < HCO3_MIN && paco2 < PACO2_MIN) {
+            disturbioFinal = "부분 보상된 대사성 산증";
+          } else if (paco2 > PACO2_MAX && hco3 < HCO3_MIN) {
+            disturbioFinal = "혼합 장애: 호흡기 및 대사성 산증";
+          } else {
+            disturbioFinal = "산혈증 (상충되는 매개변수)";
+          }
+        } else if (ph > PH_MAX) {
+          if (paco2 < PACO2_MIN && hco3 >= HCO3_MIN && hco3 <= HCO3_MAX) {
+            disturbioFinal = "비보상 호흡기 알칼리증";
+          } else if (hco3 > HCO3_MAX && paco2 >= PACO2_MIN && paco2 <= PACO2_MAX) {
+            disturbioFinal = "비보상 대사성 알칼리증";
+          } else if (paco2 < PACO2_MIN && hco3 < HCO3_MIN) {
+            disturbioFinal = "부분 보상된 호흡기 알칼리증";
+          } else if (hco3 > HCO3_MAX && paco2 > PACO2_MAX) {
+            disturbioFinal = "부분 보상된 대사성 알칼리증";
+          } else if (paco2 < PACO2_MIN && hco3 > HCO3_MAX) {
+            disturbioFinal = "혼합 장애: 호흡기 및 대사성 알칼리증";
+          } else {
+            disturbioFinal = "알칼리혈증 (상충되는 매개변수)";
+          }
+        } else {
+          if (paco2 > PACO2_MAX && hco3 > HCO3_MAX) {
+            disturbioFinal = "보상된 호흡기 산증";
+          } else if (paco2 < PACO2_MIN && hco3 < HCO3_MIN) {
+            disturbioFinal = "보상된 호흡기 알칼리증";
+          } else if (paco2 < PACO2_MIN && hco3 > HCO3_MAX) {
+            disturbioFinal = "혼합 장애 (pH 정상)";
+          } else if (paco2 > PACO2_MAX && hco3 < HCO3_MIN) {
+            disturbioFinal = "혼합 장애 (pH 정상)";
+          } else if (hco3 < HCO3_MIN) {
+            disturbioFinal = "보상된 대사성 산증";
+          } else if (hco3 > HCO3_MAX) {
+            disturbioFinal = "보상된 대사성 알칼리증";
+          } else {
+            disturbioFinal = "정상 산-염기 균형";
+          }
+        }
+
+        if (disturbioFinal.includes("호흡기 산증")) condutas.push("환기 평가, NIV 또는 삽관 고려.");
+        if (disturbioFinal.includes("호흡기 알칼리증")) condutas.push("불안/통증 조절, 인공호흡기 조절.");
+        if (disturbioFinal.includes("대사성 산증")) condutas.push("기저 원인 치료(패혈증, 케톤산증, 신장).");
+        if (disturbioFinal.includes("대사성 알칼리증")) condutas.push("수액 및 K+ 보충, 구토/이뇨제 교정.");
+        if (sato2 < SATO2_MIN) condutas.push("저산소혈증: O₂ 공급.");
+        if (condutas.length === 0) condutas.push("모니터링 유지.");
+
+        // 결과 형식 (요청된 컴팩트 스타일)
+        let htmlResultado = `
+            <div>
+                <span class="res-label">해석:</span>
+                <span class="res-text">${disturbioFinal}</span>
+
+                <span class="res-label">제안된 조치:</span>
+                <span class="res-text">${condutas.join(" ")}</span>
+            </div>
+          `;
+
+        resultadoDiv.innerHTML = htmlResultado;
+        resultadoDiv.className = "resultado"; // head에 정의된 CSS 스타일 사용
+        resultadoDiv.style.display = "block";
+
+        resultadoDiv.dataset.resultado = disturbioFinal;
+        resultadoDiv.dataset.scaleName = "동맥혈 가스 분석 해석";
+      }
+
+      function limparCampos() {
+        for (const key in inputs) {
+          inputs[key].value = "";
+          errors[key].classList.add("hidden");
+        }
+        resultadoDiv.innerHTML = "";
+        resultadoDiv.style.display = "none";
+        delete resultadoDiv.dataset.resultado;
+        delete resultadoDiv.dataset.scaleName;
+      }
+
+      btnCalcular?.addEventListener("click", interpretarGasometria);
+      btnLimpar?.addEventListener("click", limparCampos);
+
+      btnGerarPDF?.addEventListener("click", () => {
+        if (!resultadoDiv.dataset.resultado) {
+          alert('PDF를 생성하려면 먼저 계산하십시오.');
+          return;
+        }
+        if (typeof gerarPDFGlobal === "function") {
+          gerarPDFGlobal({
+            titulo: "동맥혈 가스 분석 해석",
+            subtitulo: "산-염기 평가 보고서",
+            nomeArquivo: "abga_report.pdf",
+            seletorConteudo: ".main-content-wrapper",
+          });
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener("click", () => {
+        const resultado = resultadoDiv.dataset.resultado;
+        if (!resultado) {
+          alert('먼저 계산하십시오.');
+          return;
+        }
+        const searchQuery = encodeURIComponent(
+          `${resultado} 관련 간호 진단 NANDA NIC NOC`,
+        );
+        window.open(
+          `https://www.google.com/search?q=${searchQuery}`,
+          "_blank",
+        );
+      });
+    });
+  </script>
 
   
 

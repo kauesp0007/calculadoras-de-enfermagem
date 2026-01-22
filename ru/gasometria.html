@@ -747,7 +747,191 @@
   <script src="/lang-selector.js" defer=""></script>
 
   <!-- Page Script -->
-  
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const resultadoDiv = document.getElementById("resultado");
+      const btnCalcular = document.getElementById("btnCalcular");
+      const btnLimpar = document.getElementById("btnLimpar");
+      const btnGerarPDF = document.getElementById("btnGerarPDF");
+      const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
+
+      // Inputs
+      const inputs = {
+        ph: document.getElementById("ph"),
+        paco2: document.getElementById("paco2"),
+        hco3: document.getElementById("hco3"),
+        sato2: document.getElementById("sato2"),
+        be: document.getElementById("be"),
+      };
+
+      // Error spans
+      const errors = {
+        ph: document.getElementById("ph-error"),
+        paco2: document.getElementById("paco2-error"),
+        hco3: document.getElementById("hco3-error"),
+        sato2: document.getElementById("sato2-error"),
+        be: document.getElementById("be-error"),
+      };
+
+      function interpretarGasometria() {
+        let hasError = false;
+        const valores = {};
+
+        for (const key in inputs) {
+          const input = inputs[key];
+          const errorSpan = errors[key];
+          const value = parseFloat(input.value);
+
+          errorSpan.classList.add("hidden");
+          if (key !== "be" && (isNaN(value) || value <= 0)) {
+            errorSpan.textContent = "Неверное значение.";
+            errorSpan.classList.remove("hidden");
+            hasError = true;
+          } else if (key === "be" && isNaN(value)) {
+            errorSpan.textContent = "Неверное значение.";
+            errorSpan.classList.remove("hidden");
+            hasError = true;
+          } else {
+            valores[key] = value;
+          }
+        }
+
+        if (hasError) {
+          resultadoDiv.style.display = "block";
+          resultadoDiv.innerHTML =
+            '<strong class="text-red-600">Пожалуйста, исправьте неверные значения.</strong>';
+          resultadoDiv.className = "resultado bg-info-orange-light mt-4 p-4 rounded-lg";
+          return;
+        }
+
+        const { ph, paco2, hco3, sato2, be } = valores;
+
+        // Logic of Interpretation
+        let disturbioFinal = "";
+        let condutas = [];
+
+        const PH_MIN = 7.35, PH_MAX = 7.45;
+        const PACO2_MIN = 35, PACO2_MAX = 45;
+        const HCO3_MIN = 22, HCO3_MAX = 26;
+        const SATO2_MIN = 90;
+
+        if (ph < PH_MIN) {
+          if (paco2 > PACO2_MAX && hco3 >= HCO3_MIN && hco3 <= HCO3_MAX) {
+            disturbioFinal = "Декомпенсированный респираторный ацидоз";
+          } else if (hco3 < HCO3_MIN && paco2 >= PACO2_MIN && paco2 <= PACO2_MAX) {
+            disturbioFinal = "Декомпенсированный метаболический ацидоз";
+          } else if (paco2 > PACO2_MAX && hco3 > HCO3_MAX) {
+            disturbioFinal = "Частично компенсированный респираторный ацидоз";
+          } else if (hco3 < HCO3_MIN && paco2 < PACO2_MIN) {
+            disturbioFinal = "Частично компенсированный метаболический ацидоз";
+          } else if (paco2 > PACO2_MAX && hco3 < HCO3_MIN) {
+            disturbioFinal = "Смешанное нарушение: Респираторный и метаболический ацидоз";
+          } else {
+            disturbioFinal = "Ацидемия (противоречивые параметры)";
+          }
+        } else if (ph > PH_MAX) {
+          if (paco2 < PACO2_MIN && hco3 >= HCO3_MIN && hco3 <= HCO3_MAX) {
+            disturbioFinal = "Декомпенсированный респираторный алкалоз";
+          } else if (hco3 > HCO3_MAX && paco2 >= PACO2_MIN && paco2 <= PACO2_MAX) {
+            disturbioFinal = "Декомпенсированный метаболический алкалоз";
+          } else if (paco2 < PACO2_MIN && hco3 < HCO3_MIN) {
+            disturbioFinal = "Частично компенсированный респираторный алкалоз";
+          } else if (hco3 > HCO3_MAX && paco2 > PACO2_MAX) {
+            disturbioFinal = "Частично компенсированный метаболический алкалоз";
+          } else if (paco2 < PACO2_MIN && hco3 > HCO3_MAX) {
+            disturbioFinal = "Смешанное нарушение: Респираторный и метаболический алкалоз";
+          } else {
+            disturbioFinal = "Алкалемия (противоречивые параметры)";
+          }
+        } else {
+          if (paco2 > PACO2_MAX && hco3 > HCO3_MAX) {
+            disturbioFinal = "Компенсированный респираторный ацидоз";
+          } else if (paco2 < PACO2_MIN && hco3 < HCO3_MIN) {
+            disturbioFinal = "Компенсированный респираторный алкалоз";
+          } else if (paco2 < PACO2_MIN && hco3 > HCO3_MAX) {
+            disturbioFinal = "Смешанное нарушение (нормальный pH)";
+          } else if (paco2 > PACO2_MAX && hco3 < HCO3_MIN) {
+            disturbioFinal = "Смешанное нарушение (нормальный pH)";
+          } else if (hco3 < HCO3_MIN) {
+            disturbioFinal = "Компенсированный метаболический ацидоз";
+          } else if (hco3 > HCO3_MAX) {
+            disturbioFinal = "Компенсированный метаболический алкалоз";
+          } else {
+            disturbioFinal = "Нормальный кислотно-щелочной баланс";
+          }
+        }
+
+        if (disturbioFinal.includes("Респираторный ацидоз")) condutas.push("Оценить вентиляцию, НИВЛ или интубацию.");
+        if (disturbioFinal.includes("Респираторный алкалоз")) condutas.push("Контроль тревоги/боли, настройка ИВЛ.");
+        if (disturbioFinal.includes("Метаболический ацидоз")) condutas.push("Лечить основную причину (сепсис, кетоацидоз, почки).");
+        if (disturbioFinal.includes("Метаболический алкалоз")) condutas.push("Восполнить объем и K+, корректировать рвоту/диуретики.");
+        if (sato2 < SATO2_MIN) condutas.push("Гипоксемия: Дополнительный O₂.");
+        if (condutas.length === 0) condutas.push("Продолжать мониторинг.");
+
+        // Format Result (Compact Style Requested)
+        let htmlResultado = `
+            <div>
+                <span class="res-label">Интерпретация:</span>
+                <span class="res-text">${disturbioFinal}</span>
+
+                <span class="res-label">Рекомендуемые действия:</span>
+                <span class="res-text">${condutas.join(" ")}</span>
+            </div>
+          `;
+
+        resultadoDiv.innerHTML = htmlResultado;
+        resultadoDiv.className = "resultado"; // Uses the CSS style defined in head
+        resultadoDiv.style.display = "block";
+
+        resultadoDiv.dataset.resultado = disturbioFinal;
+        resultadoDiv.dataset.scaleName = "Интерпретация газов артериальной крови";
+      }
+
+      function limparCampos() {
+        for (const key in inputs) {
+          inputs[key].value = "";
+          errors[key].classList.add("hidden");
+        }
+        resultadoDiv.innerHTML = "";
+        resultadoDiv.style.display = "none";
+        delete resultadoDiv.dataset.resultado;
+        delete resultadoDiv.dataset.scaleName;
+      }
+
+      btnCalcular?.addEventListener("click", interpretarGasometria);
+      btnLimpar?.addEventListener("click", limparCampos);
+
+      btnGerarPDF?.addEventListener("click", () => {
+        if (!resultadoDiv.dataset.resultado) {
+          alert('Сначала выполните расчет, чтобы создать PDF.');
+          return;
+        }
+        if (typeof gerarPDFGlobal === "function") {
+          gerarPDFGlobal({
+            titulo: "Интерпретация газов артериальной крови",
+            subtitulo: "Отчет о кислотно-щелочной оценке",
+            nomeArquivo: "otchet_gazometriya.pdf",
+            seletorConteudo: ".main-content-wrapper",
+          });
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener("click", () => {
+        const resultado = resultadoDiv.dataset.resultado;
+        if (!resultado) {
+          alert('Сначала выполните расчет.');
+          return;
+        }
+        const searchQuery = encodeURIComponent(
+          `сестринский диагноз, связанный с ${resultado} NANDA NIC NOC`,
+        );
+        window.open(
+          `https://www.google.com/search?q=${searchQuery}`,
+          "_blank",
+        );
+      });
+    });
+  </script>
 
   
 

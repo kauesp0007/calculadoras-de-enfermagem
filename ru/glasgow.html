@@ -705,7 +705,122 @@
 
 
 
-  
+  <script>
+    // Ссылки на элементы DOM
+    const resultadoDiv = document.getElementById('resultado');
+    const btnCalcular = document.getElementById('btnCalcular');
+    const btnLimpar = document.getElementById('btnLimpar');
+    const btnGerarPDF = document.getElementById('btnGerarPDF');
+    const btnNandaNicNoc = document.getElementById('btnNandaNicNoc');
+
+    // Функция для обновления отображаемого балла и пересчета общего балла Глазго
+    function updateScoreAndCalculate(criterionName) {
+      const selectElement = document.getElementById(`${criterionName}_select`);
+      const scoreDisplayElement = document.getElementById(`${criterionName}_score_display`);
+
+      if (selectElement && scoreDisplayElement) {
+        scoreDisplayElement.innerText = selectElement.value;
+      }
+      calcularEscala();
+    }
+
+    // Функция для расчета общего балла Глазго
+    function calcularEscala() {
+      const ocular = parseInt(document.getElementById("ocular_select").value);
+      const verbal = parseInt(document.getElementById("verbal_select").value);
+      const motora = parseInt(document.getElementById("motora_select").value);
+      const pupilar = parseInt(document.getElementById("pupilar_select").value);
+      const total = ocular + verbal + motora + pupilar;
+      let interpretacao = "";
+      let isRisky = false;
+
+      if (total >= 13) {
+        interpretacao = "Уровень сознания: Легкий";
+      } else if (total >= 9) {
+        interpretacao = "Уровень сознания: Умеренный";
+        isRisky = true;
+      } else {
+        interpretacao = "Уровень сознания: Тяжелый";
+        isRisky = true;
+      }
+
+      const resultadoDiv = document.getElementById("resultado");
+      resultadoDiv.innerHTML = `<p><strong>Общий балл:</strong> <span class="font-bold">${total}</span> баллов</p><p><strong>${interpretacao}</strong></p>`;
+      resultadoDiv.style.display = "block";
+
+      if (isRisky) {
+        resultadoDiv.classList.add('text-red-600', 'bg-red-100');
+        resultadoDiv.classList.remove('text-dark-blue', 'bg-blue-50');
+      } else {
+        resultadoDiv.classList.remove('text-red-600', 'bg-red-100');
+        resultadoDiv.classList.add('text-dark-blue', 'bg-blue-50');
+      }
+      resultadoDiv.dataset.score = total;
+      resultadoDiv.dataset.interpretacao = interpretacao;
+      resultadoDiv.dataset.scaleName = "Шкала комы Глазго";
+    }
+
+    // Функция для очистки всех полей и результата
+    function limparCampos() {
+      document.getElementById('ocular_select').selectedIndex = 0;
+      document.getElementById('verbal_select').selectedIndex = 0;
+      document.getElementById('motora_select').selectedIndex = 0;
+      document.getElementById('pupilar_select').selectedIndex = 0;
+
+      document.getElementById('ocular_score_display').innerText = document.getElementById('ocular_select').value;
+      document.getElementById('verbal_score_display').innerText = document.getElementById('verbal_select').value;
+      document.getElementById('motora_score_display').innerText = document.getElementById('motora_select').value;
+      document.getElementById('pupilar_score_display').innerText = document.getElementById('pupilar_select').value;
+
+      const resultadoDiv = document.getElementById('resultado');
+      resultadoDiv.innerHTML = '';
+      resultadoDiv.className = 'resultado hidden';
+      delete resultadoDiv.dataset.score;
+      delete resultadoDiv.dataset.interpretacao;
+      delete resultadoDiv.dataset.scaleName;
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      // Прикрепление событий к кнопкам
+      btnCalcular?.addEventListener('click', calcularEscala);
+      btnLimpar?.addEventListener('click', limparCampos);
+      btnGerarPDF?.addEventListener('click', () => {
+        if (!resultadoDiv.dataset.score) {
+          alert('Пожалуйста, сначала нажмите "Рассчитать балл" для создания PDF.');
+          return;
+        }
+        if (typeof gerarPDFGlobal === 'function') {
+          const mainContent = document.querySelector('.main-content-wrapper');
+          gerarPDFGlobal({
+            titulo: 'Шкала комы Глазго',
+            subtitulo: 'Отчет об оценке уровня сознания',
+            nomeArquivo: 'relatorio_escala_glasgow.pdf',
+            seletorConteudo: '.main-content-wrapper'
+          });
+        } else {
+          console.error('Функция gerarPDFGlobal не определена.');
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener('click', () => {
+        const score = resultadoDiv.dataset.score;
+        const scaleName = resultadoDiv.dataset.scaleName;
+        const interpretacao = resultadoDiv.dataset.interpretacao;
+        if (!score || !interpretacao) {
+          alert('Рассчитайте результат для поиска тактики лечения.');
+          return;
+        }
+        const searchQuery = encodeURIComponent(`${scaleName} балл ${score} создать таксономию NANDA, создать таксономию NIC и создать таксономию NOC`);
+        window.open(`https://www.google.com/search?q=${searchQuery}`, '_blank');
+      });
+
+      // Инициализация баллов и расчет общего балла при загрузке страницы
+      updateScoreAndCalculate('ocular');
+      updateScoreAndCalculate('verbal');
+      updateScoreAndCalculate('motora');
+      updateScoreAndCalculate('pupilar');
+    });
+  </script>
 
 
 

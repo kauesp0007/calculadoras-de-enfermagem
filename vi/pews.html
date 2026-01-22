@@ -562,7 +562,301 @@
 
 
 
-  
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const resultadoDiv = document.getElementById("resultado");
+      const btnCalcular = document.getElementById("btnCalcular");
+      const btnLimpar = document.getElementById("btnLimpar");
+      const btnGerarPDF = document.getElementById("btnGerarPDF");
+      const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
+      const conteudoDiv = document.getElementById("conteudo");
+
+      const pewsData = [
+        {
+          parameter: "Thần kinh trạng thái",
+          nameAttr: "estadoNeurologico",
+          options: [
+            { description: "Tích cực", score: 0 },
+            { description: "Buồn ngủ/giảm hoạt động", score: 1 },
+            { description: "Bị kích thích", score: 2 },
+            {
+              description: "Phản ứng thờ ơ/mờ nhạt hoặc giảm đau",
+              score: 3
+            }]
+
+        },
+        {
+          parameter: "tim mạch",
+          nameAttr: "tim mạch",
+          options: [
+            {
+              description:
+                "Thời gian nạp lại màu hoặc mao mạch (TEC) 1-2 giây",
+              score: 0
+            },
+            {
+              description:
+                "Thông tin thêm về TEC 3 giây hoặc nhịp thời gian trên giới hạn cho độ tuổi",
+              score: 1
+            },
+            {
+              description:
+                "Moteado hoặc TEC 4 giây hoặc HR ≥ 20 bpm trên giới hạn ở độ tuổi",
+              score: 2
+            },
+            {
+              description:
+                "Màu xám/Acianotico hoặc TEC ≥ 5 giây hoặc HR ≥ 30 bpm trên giới hạn tuổi hoặc nhịp thời gian chậm trong tuổi",
+              score: 3
+            }]
+
+        },
+        {
+          parameter: "Hô hấp",
+          nameAttr: "hô hấp",
+          options: [
+            { description: "FR bình thường cho tuổi, không có co rút", score: 0 },
+            {
+              description:
+                "FR vượt quá giới hạn ở độ tuổi, sử dụng cơ sở hỗ trợ hoặc FiO₂ ≥ 30% hoặc 6 lit/phút O₂",
+              score: 1
+            },
+            {
+              description:
+                "FR ≥ 20 vòng/phút trên giới hạn cho tuổi, co rút dưới xương sườn, giữa xương sườn và xương ức (lõm) của xương ức hoặc FiO₂ ≥ 40% hoặc 6 lít/phút O₂",
+              score: 2
+            },
+            {
+              description:
+                "FR ≤ 5 vòng/phút dưới giới hạn dưới cho độ tuổi, co rút dưới xương sườn, giữa xương sườn, xương ức, xương ức và thở khè hoặc FiO₂ ≥ 50% hoặc 8 lít/phút O₂",
+              score: 3
+            }]
+
+        }];
+
+
+      const pewsExtraPointsData = {
+        question:
+          "Thêm 2 điểm nhỏ 3 lần)",
+        nameAttr: "extraPointsCheckbox"
+      };
+
+      // --- Funções da Calculadora PEWS ---
+      function updateScoreDisplay(criterionId) {
+        const selectElement = document.getElementById(criterionId);
+        const scoreDisplayElement = document.getElementById(
+          `${criterionId}_score_display`
+        );
+        if (selectElement && scoreDisplayElement) {
+          scoreDisplayElement.innerText =
+            selectElement.value === "" ? "0" : selectElement.value;
+        }
+      }
+
+      function calcularPontuacao() {
+        let totalScore = 0;
+        let allItemsSelected = true;
+
+        pewsData.forEach((item) => {
+          const selectElement = document.getElementById(item.nameAttr);
+          if (selectElement.value === "") {
+            allItemsSelected = false;
+          } else {
+            totalScore += parseInt(selectElement.value, 10);
+          }
+        });
+
+        const extraPointsCheckbox = document.getElementById(
+          pewsExtraPointsData.nameAttr
+        );
+        if (extraPointsCheckbox && extraPointsCheckbox.checked) {
+          totalScore += 2;
+        }
+
+        resultadoDiv.style.display = "block";
+        if (!allItemsSelected) {
+          resultadoDiv.innerHTML =
+            '⚠️ <strong class="font-bold">Por favor, selecione uma opção para cada item</strong> antes de calcular.';
+          resultadoDiv.className = "Còn bg-info-orange-light thì sao";
+          delete resultadoDiv.dataset.score;
+          return;
+        }
+
+        let classificacao = "";
+        let acaoRecomendada = "";
+        let resultadoClasse = "";
+
+        if (totalScore >= 7) {
+          classificacao = "Điểm PEWS: 7+";
+          acaoRecomendada = "Dòng nhảy PCR (Ngừng thời gian).";
+          resultadoClasse = "bg-pews-7-mais";
+        } else if (totalScore >= 4 && totalScore <= 6) {
+          classificacao = `Điểm PEWS: ${totalScore}`;
+          acaoRecomendada =
+            "Nhấp vào PEWS trong 20 giờ. Đánh giá/theo dõi điều dưỡng. Open the certificate of report phiếu bầu. Ghi lại hướng dẫn y tế trong quá trình theo dõi điều trị.";
+          resultadoClasse = "bg-pews-4-6";
+        } else if (totalScore === 3) {
+          classificacao = `Điểm PEWS: ${totalScore}`;
+          acaoRecomendada =
+            "Nhấp vào PEWS trong 30 giờ. Đánh giá ngay lập tức của bạn. Thông báo cho bác sĩ phụ trách và xác định nhu cầu gọi cấp cứu. Ghi lại hướng dẫn y tế trong quá trình điều trị.";
+          resultadoClasse = "bg-pews-3";
+        } else if (totalScore >= 1 && totalScore <= 2) {
+          classificacao = `Điểm PEWS: ${totalScore}`;
+          acaoRecomendada =
+            "Đánh giá ngay lập tức của bạn. Lặp lại PEWS sau 60 phút, nếu số không thay đổi, thông báo cho bác sĩ phụ trách. Ghi lại hướng dẫn y tế vào hồ sơ điều chỉnh.";
+          resultadoClasse = "bg-pews-1-2";
+        } else if (totalScore === 0) {
+          classificacao = "Điểm PEWS: 0";
+          acaoRecomendada =
+            "Tiếp tục kiểm tra các dấu hiệu sinh tồn tồn tại mỗi 6 giờ.";
+          resultadoClasse = "bg-pews-0";
+        } else {
+          classificacao = "Đây là những gì bạn cần";
+          acaoRecomendada =
+            "Điểm tính toán nằm ngoài giới hạn dự kiến ​​của thang điểm. Kiểm tra các lựa chọn.";
+          resultadoClasse = "bg-info-orange-light";
+        }
+
+        resultadoDiv.innerHTML = `<p>${classificacao}</p><p>Ação Recomendada: <strong class="font-bold">${acaoRecomendada}</strong></p>`;
+        resultadoDiv.className = `kết quả ${resultClass}`;
+
+        resultadoDiv.dataset.score = totalScore;
+        resultadoDiv.dataset.classificacao = classificacao;
+        resultadoDiv.dataset.conduta = acaoRecomendada;
+        resultadoDiv.dataset.scaleName = "Cân PEWS";
+      }
+
+      function limparCampos() {
+        pewsData.forEach((item) => {
+          const selectElement = document.getElementById(item.nameAttr);
+          selectElement.selectedIndex = 0;
+          document.getElementById(
+            `${item.nameAttr}_score_display`
+          ).innerText = "0";
+        });
+        const extraPointsCheckbox = document.getElementById(
+          pewsExtraPointsData.nameAttr
+        );
+        if (extraPointsCheckbox) {
+          extraPointsCheckbox.checked = false;
+        }
+
+        resultadoDiv.innerHTML = "";
+        resultadoDiv.className = "kết quả ẩn";
+        delete resultadoDiv.dataset.score;
+        delete resultadoDiv.dataset.classificacao;
+        delete resultadoDiv.dataset.conduta;
+        delete resultadoDiv.dataset.scaleName;
+      }
+
+      // Preenche o formulário dinamicamente
+      pewsData.forEach((item, index) => {
+        const sectionDiv = document.createElement("div");
+        sectionDiv.className = "pews-criterion-card";
+
+        const headerDiv = document.createElement("div");
+        headerDiv.className = "pews-criterion-header";
+
+        const titleH3 = document.createElement("h3");
+        titleH3.className = "pews-criterion-title";
+        titleH3.innerText = item.parameter;
+        headerDiv.appendChild(titleH3);
+
+        const scoreSpan = document.createElement("span");
+        scoreSpan.className = "pews-score-display";
+        scoreSpan.id = `${item.nameAttr}_score_display`;
+        scoreSpan.innerText = "0";
+        headerDiv.appendChild(scoreSpan);
+
+        sectionDiv.appendChild(headerDiv);
+
+        const optionsDiv = document.createElement("div");
+        optionsDiv.className = "pews-criterion-options";
+
+        const selectElement = document.createElement("select");
+        selectElement.id = item.nameAttr;
+        selectElement.className = "pews-select";
+        selectElement.onchange = () => updateScoreDisplay(item.nameAttr);
+
+        const defaultOption = document.createElement("option");
+        defaultOption.value = "";
+        defaultOption.text = "Chọn...";
+        defaultOption.disabled = true;
+        defaultOption.selected = true;
+        selectElement.appendChild(defaultOption);
+
+        item.options.forEach((option) => {
+          const optionElement = document.createElement("option");
+          optionElement.value = option.score;
+          optionElement.text = `${option.description} (${option.score})`;
+          selectElement.appendChild(optionElement);
+        });
+
+        optionsDiv.appendChild(selectElement);
+        sectionDiv.appendChild(optionsDiv);
+        conteudoDiv.appendChild(sectionDiv);
+      });
+
+      // Adiciona a seção de pontos extras
+      const extraPointsSection = document.createElement("div");
+      extraPointsSection.className = "pews-extra-points-section";
+      const extraPointsLabel = document.createElement("label");
+      extraPointsLabel.className = "flex items-center cursor-pointer";
+
+      const extraPointsInput = document.createElement("input");
+      extraPointsInput.type = "checkbox";
+      extraPointsInput.id = pewsExtraPointsData.nameAttr;
+      extraPointsInput.className =
+        "form-checkbox h-5 w-5 text-blue-600 rounded-md";
+
+      const extraPointsSpan = document.createElement("span");
+      extraPointsSpan.className = "ml-2 text-gray-800";
+      extraPointsSpan.innerText = pewsExtraPointsData.question;
+
+      extraPointsLabel.appendChild(extraPointsInput);
+      extraPointsLabel.appendChild(extraPointsSpan);
+      extraPointsSection.appendChild(extraPointsLabel);
+      conteudoDiv.appendChild(extraPointsSection);
+
+      // Adiciona os event listeners aos botões
+      btnCalcular?.addEventListener("click", calcularPontuacao);
+      btnLimpar?.addEventListener("click", limparCampos);
+
+      btnGerarPDF?.addEventListener("click", () => {
+        if (!resultadoDiv.dataset.score) {
+          alert("Xem những gì bạn có thể thấy \"Tính toán\" trước để tạo thành tệp PDF.");
+          return;
+        }
+        if (typeof gerarPDFGlobal === "chức năng") {
+          gerarPDFGlobal({
+            titulo: "Cân PEWS",
+            subtitulo:
+              "Báo cao đánh giá tình trạng suy giảm sức khỏe lâm sàng ở trẻ em",
+            nomeArquivo: "relatorio_escala_pews.pdf",
+            seletorConteudo: ".main-content-wrapper"
+          });
+        } else {
+          console.error("Bạn không thể tạo PDFGlobal không được xác định.");
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener("click", () => {
+        const score = resultadoDiv.dataset.score;
+        const scaleName = resultadoDiv.dataset.scaleName;
+        const classificacao = resultadoDiv.dataset.classificacao;
+        if (!score || !classificacao) {
+          alert("Tính toán kết quả để nghiên cứu hành động vi.");
+          return;
+        }
+        const searchQuery = encodeURIComponent(
+          `${scaleName} điểm số ${score} phân loại ${classificacao} tạo phân loại NANDA, tạo phân loại NIC và tạo phân loại NOC`
+        );
+        window.open(
+          `https://www.google.com/search?q=${searchQuery}`,
+          "_blank"
+        );
+      });
+    });</script>
 
   <script src="/lang-selector.js" defer=""></script>
 

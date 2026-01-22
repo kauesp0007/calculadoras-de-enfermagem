@@ -539,7 +539,260 @@
 
 
 
-  
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const resultadoDiv = document.getElementById("resultado");
+      const btnCalcular = document.getElementById("btnCalcular");
+      const btnLimpar = document.getElementById("btnLimpar");
+      const btnGerarPDF = document.getElementById("btnGerarPDF");
+      const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
+      const conteudoDiv = document.getElementById("conteudo");
+
+      // Dados da escala de Humpty Dumpty
+      const humptyData = [
+        {
+          category: "Åldras",
+          nameAttr: "ålder",
+          options: [
+            { description: "≥ 13 år", score: 1 },
+            { description: "7–12 år", score: 2 },
+            { description: "3–6 år", score: 3 },
+            { description: "< 3 år", score: 4 }],
+
+          explain:
+            "Ålder är en viktig riskfaktor för fallolyckor, och yngre barn är mer sårbara."
+        },
+        {
+          category: "Sex",
+          nameAttr: "sexo",
+          options: [
+            { description: "Feminin", score: 1 },
+            { description: "Maskulin", score: 2 }],
+
+          explain: "O sexo masculino pode ter um risco ligeiramente maior."
+        },
+        {
+          category: "Diagnos",
+          nameAttr: "diagnostico",
+          options: [
+            { description: "Andra diagnoser", score: 1 },
+            { description: "Psykiska störningar", score: 2 },
+            {
+              description:
+                "Förändringar i syresättning (andningsproblem, uttorkning, anemi)",
+              score: 3
+            },
+            { description: "Neurologisk", score: 4 }],
+
+          explain: "Vissa diagnoser ökar risken för fallolyckor."
+        },
+        {
+          category: "Kognitiva brister",
+          nameAttr: "cognitivas",
+          options: [
+            {
+              description: "Vägled efter dina förmågor.",
+              score: 1
+            },
+            { description: "Glöm dina begränsningar.", score: 2 },
+            { description: "Omedveten om sina begränsningar", score: 3 }],
+
+          explain:
+            "Förmågan att känna igen begränsningar och risker påverkar sannolikheten för fallolyckor."
+        },
+        {
+          category: "Miljöfaktorer",
+          nameAttr: "ambientais",
+          options: [
+            { description: "Vandrande barn", score: 1 },
+            { description: "Sängliggande barn", score: 2 },
+            {
+              description:
+                "Använder hjälpmedel, brits/säng med mycket utrustning, dålig belysning",
+              score: 3
+            },
+            { description: "Historik över tidigare nedgång", score: 4 }],
+
+          explain:
+            "Sjukhusmiljön och patientens sjukdomshistoria har betydelse för fallrisken."
+        },
+        {
+          category: "Användning av medicinering",
+          nameAttr: "medicacao",
+          options: [
+            {
+              description: "Använder du andra mediciner eller inte?",
+              score: 1
+            },
+            {
+              description:
+                "Använder något av följande: lugnande medel, hypnotika, narkotika",
+              score: 2
+            },
+            {
+              description:
+                "Använder ≥ 2 av följande: lugnande medel, hypnotika, narkotika",
+              score: 3
+            }],
+
+          explain:
+            "Vissa läkemedel påverkar medvetandet och balansen, vilket ökar risken."
+        },
+        {
+          category: "Kirurgi / Sedering / Anestesi",
+          nameAttr: "cirurgia",
+          options: [
+            { description: "För mer än 48 timmar sedan eller ingen alls", score: 1 },
+            { description: "För 48 timmar sedan", score: 2 },
+            { description: "För 24 timmar sedan", score: 3 }],
+
+          explain:
+            "Tiden efter ingreppet är mer riskfylld på grund av kvarstående effekter."
+        }];
+
+
+      // Preenche o formulário dinamicamente
+      humptyData.forEach((item) => {
+        const sectionDiv = document.createElement("div");
+        sectionDiv.className = "humpty-criterion-section";
+        sectionDiv.id = `section-${item.nameAttr}`;
+
+        const titleH3 = document.createElement("h3");
+        titleH3.className = "humpty-criterion-title";
+        titleH3.innerHTML =
+          item.category +
+          `
+              <div class="text-sm font-normal text-gray-500 mt-1">${item.explain}</div>`;
+        sectionDiv.appendChild(titleH3);
+
+        const selectElement = document.createElement("select");
+        selectElement.id = item.nameAttr;
+        selectElement.className = "humpty-criterion-select";
+
+        const defaultOption = document.createElement("option");
+        defaultOption.value = "";
+        defaultOption.text = "Välja...";
+        selectElement.appendChild(defaultOption);
+
+        item.options.forEach((option) => {
+          const optionElement = document.createElement("option");
+          optionElement.value = option.score;
+          optionElement.text = `${option.description} (poäng: ${option.score})`;
+          selectElement.appendChild(optionElement);
+        });
+
+        sectionDiv.appendChild(selectElement);
+        conteudoDiv.appendChild(sectionDiv);
+      });
+
+      function calcularHumpty() {
+        const selects = document.querySelectorAll("#conteudo select");
+        let allSelected = true;
+        let total = 0;
+
+        selects.forEach((select) => {
+          if (select.value === "") {
+            allSelected = false;
+            select.classList.add("incomplete");
+          } else {
+            select.classList.remove("incomplete");
+            total += Number(select.value);
+          }
+        });
+
+        resultadoDiv.style.display = "block";
+        if (!allSelected) {
+          resultadoDiv.innerHTML =
+            '⚠️ <strong class="font-bold">Por favor, selecione uma opção para todos os itens antes de calcular.</strong>';
+          resultadoDiv.style.display = "block";
+          delete resultadoDiv.dataset.score;
+          return;
+        }
+
+        let classificacao = "";
+        let recomendacao = "";
+
+        // Definições de pontuação conforme a documentação
+        // Baixo Risco: 7-11 pontos
+        // Alto Risco: 12-22 pontos
+        if (total >= 7 && total <= 11) {
+          classificacao = "Låg risk";
+          recomendacao =
+            "Barnet löper låg risk att falla. Fortsätt med vanliga förebyggande åtgärder och gör en ny bedömning med jämna mellanrum.";
+        } else if (total >= 12 && total <= 22) {
+          classificacao = "Hög risk";
+          recomendacao =
+            "Barnet löper hög risk att falla. Genomför omedelbart fallförebyggande åtgärder för pediatriska patienter.";
+        } else {
+          classificacao = "Icke-standardpoäng";
+          recomendacao =
+            "Den beräknade poängen ligger utanför det förväntade klassificeringsintervallet. Kontrollera de valda värdena.";
+        }
+
+        resultadoDiv.innerHTML = `
+                <p>Escore total: <strong class="font-bold">${total}</strong></p>
+                <p>Classificação: <strong class="font-bold">${classificacao}</strong></p>
+                <p class="mt-4"><strong>Recomendação:</strong> ${recomendacao}</p>
+            `;
+        resultadoDiv.style.display = "block";
+
+        resultadoDiv.dataset.score = total;
+        resultadoDiv.dataset.scaleName = "Escala de Queda Humpty Dumpty";
+        resultadoDiv.dataset.classificacao = classificacao;
+      }
+
+      function limparCampos() {
+        const selects = document.querySelectorAll("#conteudo select");
+        selects.forEach((select) => {
+          select.selectedIndex = 0;
+          select.classList.remove("incomplete");
+        });
+        resultadoDiv.innerHTML = "";
+        resultadoDiv.style.display = "none";
+        delete resultadoDiv.dataset.score;
+        delete resultadoDiv.dataset.scaleName;
+        delete resultadoDiv.dataset.classificacao;
+      }
+
+      btnCalcular?.addEventListener("click", calcularHumpty);
+      btnLimpar?.addEventListener("click", limparCampos);
+
+      btnGerarPDF?.addEventListener("click", () => {
+        if (!resultadoDiv.dataset.score) {
+          alert(
+            'Klicka först på "Beräkna poäng" för att generera PDF-filen.'
+          );
+          return;
+        }
+        if (typeof gerarPDFGlobal === "function") {
+          gerarPDFGlobal({
+            titulo: "Humpty Dumpty Fallande Våg",
+            subtitulo: "Rapport om riskbedömning av fall",
+            nomeArquivo: "relatorio_escala_humpty_dumpty.pdf",
+            seletorConteudo: ".main-content-wrapper"
+          });
+        } else {
+          console.error("Funktionen GeneratePDFGlobal är inte definierad.");
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener("click", () => {
+        const score = resultadoDiv.dataset.score;
+        const scaleName = resultadoDiv.dataset.scaleName;
+        const classificacao = resultadoDiv.dataset.classificacao;
+        if (!score || !classificacao) {
+          alert("Beräkna resultatet för att undersöka beteendet.");
+          return;
+        }
+        const searchQuery = encodeURIComponent(
+          `${scaleName} poäng ${score} pediatrisk patient ${classificacao} gerar taxonomia NANDA, gerar taxonomia NIC e gerar taxonomia de NOC`
+        );
+        window.open(
+          `https://www.google.com/search?q=${searchQuery}`,
+          "_blank"
+        );
+      });
+    });</script>
 
   <script src="/lang-selector.js" defer=""></script>
 

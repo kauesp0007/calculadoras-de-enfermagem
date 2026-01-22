@@ -581,7 +581,127 @@
 
 
   <!-- Script Específico da Página ELPO -->
-  
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const resultadoDiv = document.getElementById('resultado');
+      const conteudoDiv = document.getElementById('conteudo');
+      const btnCalcular = document.getElementById('btnCalcular');
+      const btnLimpar = document.getElementById('btnLimpar');
+      const btnGerarPDF = document.getElementById('btnGerarPDF');
+      const btnNandaNicNoc = document.getElementById('btnNandaNicNoc');
+
+      const elpoData = [
+        { id: "item1", title: "1. 手術体位", options: [{ value: "5", text: "5 - リスク最高" }, { value: "4", text: "4" }, { value: "3", text: "3" }, { value: "2", text: "2" }, { value: "1", text: "1 - リスク最低" }] },
+        { id: "item2", title: "2. 手術時間", options: [{ value: "5", text: "5 - ≥ 5時間" }, { value: "4", text: "4 - 4時間～4時間59分" }, { value: "3", text: "3 - 3時間～3時間59分" }, { value: "2", text: "2 - 2時間～2時間59分" }, { value: "1", text: "1 - ≤ 1時間59分" }] },
+        { id: "item3", title: "3. 麻酔種類", options: [{ value: "5", text: "5 - 全身麻酔＋ブロック" }, { value: "4", text: "4 - 全身麻酔" }, { value: "3", text: "3 - 脊髄麻酔" }, { value: "2", text: "2 - 硬膜外麻酔" }, { value: "1", text: "1 - 局所麻酔" }] },
+        { id: "item4", title: "4. 支持体種類", options: [{ value: "5", text: "5 - なし" }, { value: "4", text: "4 - 最小限" }, { value: "3", text: "3 - 部分的" }, { value: "2", text: "2 - 完全な硬質" }, { value: "1", text: "1 - 完全な解剖学的" }] },
+        { id: "item5", title: "5. 皮膚状態", options: [{ value: "5", text: "5 - 非常に薄く、脆弱" }, { value: "4", text: "4 - 薄い" }, { value: "3", text: "3 - 正常" }, { value: "2", text: "2 - 厚い" }, { value: "1", text: "1 - 健全で抵抗力あり" }] },
+        { id: "item6", title: "6. 合併症", options: [{ value: "5", text: "5 - 複数" }, { value: "4", text: "4 - 3つ以上" }, { value: "3", text: "3 - 2つ" }, { value: "2", text: "2 - 1つ" }, { value: "1", text: "1 - なし" }] },
+        { id: "item7", title: "7. 栄養状態", options: [{ value: "5", text: "5 - 重度栄養不良" }, { value: "4", text: "4 - 栄養不良" }, { value: "3", text: "3 - 軽度栄養不良" }, { value: "2", text: "2 - 正常" }, { value: "1", text: "1 - 栄養良好" }] }
+      ];
+
+      function createForm() {
+        elpoData.forEach(item => {
+          const section = document.createElement('div');
+          section.className = 'criterion-section';
+
+          const title = document.createElement('h3');
+          title.className = 'criterion-title';
+          title.textContent = item.title;
+          section.appendChild(title);
+
+          const select = document.createElement('select');
+          select.id = item.id;
+          select.className = 'criterion-select';
+          select.innerHTML = `<option value="">選択してください</option>` +
+            item.options.map(opt => `<option value="${opt.value}">${opt.text}</option>`).join('');
+          section.appendChild(select);
+          conteudoDiv.appendChild(section);
+        });
+      }
+
+      function calcular() {
+        let total = 0;
+        let allSelected = true;
+
+        elpoData.forEach(item => {
+          const select = document.getElementById(item.id);
+          if (select.value === "") {
+            allSelected = false;
+          }
+          total += parseInt(select.value || 0);
+        });
+
+        if (!allSelected) {
+          resultadoDiv.innerHTML = '⚠️ <strong class="font-bold">すべての項目を選択してください。</strong>';
+          resultadoDiv.className = 'resultado bg-info-orange-light';
+          resultadoDiv.style.display = 'block';
+          delete resultadoDiv.dataset.score;
+          return;
+        }
+
+        let classificacao = "";
+        let resultadoClasse = '';
+
+        if (total >= 20) {
+          classificacao = "褥瘡の高いリスク";
+          resultadoClasse = 'bg-elpo-risco';
+        } else {
+          classificacao = "褥瘡の低いリスク";
+          resultadoClasse = 'bg-elpo-sem-risco';
+        }
+
+        resultadoDiv.innerHTML = `
+                <p>合計スコア: <strong class="font-bold">${total}</strong></p>
+                <p>分類: <strong class="font-bold">${classificacao}</strong></p>
+            `;
+        resultadoDiv.className = `resultado ${resultadoClasse}`;
+        resultadoDiv.style.display = 'block';
+        resultadoDiv.dataset.score = `${total} (${classificacao})`;
+        resultadoDiv.dataset.scaleName = "ELPOスケール";
+      }
+
+      function limpar() {
+        document.querySelectorAll('.criterion-select').forEach(select => select.selectedIndex = 0);
+        resultadoDiv.innerHTML = '';
+        resultadoDiv.className = 'resultado hidden';
+        delete resultadoDiv.dataset.score;
+        delete resultadoDiv.dataset.scaleName;
+      }
+
+      createForm();
+      btnCalcular?.addEventListener('click', calcular);
+      btnLimpar?.addEventListener('click', limpar);
+
+      btnGerarPDF?.addEventListener('click', () => {
+        if (!resultadoDiv.dataset.score) {
+          alert('PDFを生成するにはまず「計算」をクリックしてください。');
+          return;
+        }
+        if (typeof gerarPDFGlobal === 'function') {
+          gerarPDFGlobal({
+            titulo: 'ELPOスケール',
+            subtitulo: '手術室における褥瘡リスク評価レポート',
+            nomeArquivo: 'elpo_scale_report.pdf',
+            seletorConteudo: '.main-content-wrapper'
+          });
+        } else {
+          console.error('gerarPDFGlobal関数が定義されていません。');
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener('click', () => {
+        const score = resultadoDiv.dataset.score;
+        const scaleName = resultadoDiv.dataset.scaleName;
+        if (!score) {
+          alert('ケア計画を検索するには結果を計算してください。');
+          return;
+        }
+        const searchQuery = encodeURIComponent(`${score} ${scaleName} NANDA分類生成 NIC分類生成 NOC分類生成`);
+        window.open(`https://www.google.com/search?q=${searchQuery}`, '_blank');
+      });
+    });
+  </script>
 
 
 

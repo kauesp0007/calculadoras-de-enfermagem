@@ -603,7 +603,200 @@
 
 
 
-  
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const resultadoDiv = document.getElementById('resultado');
+      const btnCalcular = document.getElementById('btnCalcular');
+      const btnLimpar = document.getElementById('btnLimpar');
+      const btnGerarPDF = document.getElementById('btnGerarPDF');
+      const btnNandaNicNoc = document.getElementById('btnNandaNicNoc');
+      const conteudoDiv = document.getElementById('conteudo');
+
+      const qsofaData = [
+        {
+          category: "Respiratory Rate (RR)",
+          nameAttr: "fr",
+          explanation: "Assess the patient's respiratory rate in breaths per minute.",
+          options: [
+            { description: "Less than 22 rpm", score: 0 },
+            { description: "Greater than or equal to 22 rpm", score: 1 }
+          ]
+        },
+        {
+          category: "Level of Consciousness (Glasgow Coma Scale - GCS)",
+          nameAttr: "gcs",
+          explanation: "Assess the patient's level of consciousness using the Glasgow Coma Scale.",
+          options: [
+            { description: "GCS ≥ 15", score: 0 },
+            { description: "GCS < 15 (altered)", score: 1 }
+          ]
+        },
+        {
+          category: "Systolic Blood Pressure (SBP)",
+          nameAttr: "pas",
+          explanation: "Assess the patient's systolic blood pressure in mmHg.",
+          options: [
+            { description: "SBP > 100 mmHg", score: 0 },
+            { description: "SBP ≤ 100 mmHg", score: 1 }
+          ]
+        }
+      ];
+
+      // --- qSOFA Calculator Functions ---
+      function updateScoreDisplay(criterionId) {
+        const selectElement = document.getElementById(criterionId);
+        const scoreDisplayElement = document.getElementById(`${criterionId}_score_display`);
+        if (selectElement && scoreDisplayElement) {
+          scoreDisplayElement.innerText = selectElement.value === "" ? "0" : selectElement.value;
+        }
+      }
+
+      function calcularPontuacao() {
+        let totalQSOFAScore = 0;
+        let allItemsSelected = true;
+
+        qsofaData.forEach(item => {
+          const selectElement = document.getElementById(item.nameAttr);
+          if (selectElement.value === "") {
+            allItemsSelected = false;
+          } else {
+            totalQSOFAScore += parseInt(selectElement.value, 10);
+          }
+        });
+
+        resultadoDiv.style.display = 'block';
+        if (!allItemsSelected) {
+          resultadoDiv.innerHTML = '⚠️ <strong class="font-bold">Please, select an option for each criterion</strong> before calculating.';
+          resultadoDiv.className = 'resultado bg-info-orange-light';
+          delete resultadoDiv.dataset.score;
+          return;
+        }
+
+        let interpretacao = '';
+        let conduta = '';
+        let resultadoClasse = '';
+
+        if (totalQSOFAScore >= 2) {
+          interpretacao = "High risk of unfavorable outcomes (longer ICU stay and mortality).";
+          conduta = "Consider additional sepsis evaluation and rapid intervention. Requires laboratory investigation and a complete clinical assessment.";
+          resultadoClasse = 'bg-qsofa-high';
+        } else {
+          interpretacao = "Low risk of unfavorable outcomes at the moment.";
+          conduta = "Maintain clinical monitoring. Reassess if the patient's condition worsens.";
+          resultadoClasse = 'bg-qsofa-low';
+        }
+
+        resultadoDiv.innerHTML = `<p>Total qSOFA Score: <strong class="font-bold">${totalQSOFAScore}</strong></p><p>Interpretation: <strong class="font-bold">${interpretacao}</strong></p><p>Suggested Action: <strong class="font-bold">${conduta}</strong></p>`;
+        resultadoDiv.className = `resultado ${resultadoClasse}`;
+
+        resultadoDiv.dataset.score = totalQSOFAScore;
+        resultadoDiv.dataset.interpretacao = interpretacao;
+        resultadoDiv.dataset.conduta = conduta;
+        resultadoDiv.dataset.scaleName = "qSOFA";
+      }
+
+      function limparCampos() {
+        qsofaData.forEach(item => {
+          const selectElement = document.getElementById(item.nameAttr);
+          selectElement.selectedIndex = 0;
+          document.getElementById(`${item.nameAttr}_score_display`).innerText = '0';
+        });
+        resultadoDiv.innerHTML = '';
+        resultadoDiv.className = 'resultado hidden';
+        delete resultadoDiv.dataset.score;
+        delete resultadoDiv.dataset.interpretacao;
+        delete resultadoDiv.dataset.conduta;
+        delete resultadoDiv.dataset.scaleName;
+      }
+
+      // Populates the form dynamically
+      qsofaData.forEach((item, index) => {
+        const sectionDiv = document.createElement('div');
+        sectionDiv.className = 'qsofa-criterion-card';
+
+        const headerDiv = document.createElement('div');
+        headerDiv.className = 'qsofa-criterion-header';
+
+        const titleH3 = document.createElement('h3');
+        titleH3.className = 'qsofa-criterion-title';
+        titleH3.innerText = `${item.category}`;
+        headerDiv.appendChild(titleH3);
+
+        const scoreSpan = document.createElement('span');
+        scoreSpan.className = 'qsofa-score-display';
+        scoreSpan.id = `${item.nameAttr}_score_display`;
+        scoreSpan.innerText = '0';
+        headerDiv.appendChild(scoreSpan);
+
+        sectionDiv.appendChild(headerDiv);
+
+        const optionsDiv = document.createElement('div');
+        optionsDiv.className = 'qsofa-criterion-options';
+
+        const selectElement = document.createElement('select');
+        selectElement.id = item.nameAttr;
+        selectElement.className = 'qsofa-select';
+        selectElement.onchange = () => updateScoreDisplay(item.nameAttr);
+
+        const defaultOption = document.createElement('option');
+        defaultOption.value = "";
+        defaultOption.text = "Select...";
+        defaultOption.disabled = true;
+        defaultOption.selected = true;
+        selectElement.appendChild(defaultOption);
+
+        item.options.forEach(option => {
+          const optionElement = document.createElement('option');
+          optionElement.value = option.score;
+          optionElement.text = `${option.description} (${option.score})`;
+          selectElement.appendChild(optionElement);
+        });
+
+        optionsDiv.appendChild(selectElement);
+        sectionDiv.appendChild(optionsDiv);
+
+        const explanationP = document.createElement('p');
+        explanationP.className = 'text-gray-600 text-sm mt-2 text-left';
+        explanationP.innerText = item.explanation;
+        sectionDiv.appendChild(explanationP);
+
+        conteudoDiv.appendChild(sectionDiv);
+      });
+
+      // Add event listeners to buttons
+      btnCalcular?.addEventListener('click', calcularPontuacao);
+      btnLimpar?.addEventListener('click', limparCampos);
+
+      btnGerarPDF?.addEventListener('click', () => {
+        if (!resultadoDiv.dataset.score) {
+          alert('Please, click on "Calculate" first to generate the PDF.');
+          return;
+        }
+        if (typeof gerarPDFGlobal === 'function') {
+          gerarPDFGlobal({
+            titulo: 'qSOFA Score',
+            subtitulo: 'Quick Sepsis Assessment Report',
+            nomeArquivo: 'qsofa_score_report.pdf',
+            seletorConteudo: '.main-content-wrapper'
+          });
+        } else {
+          console.error('Function gerarPDFGlobal not defined.');
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener('click', () => {
+        const score = resultadoDiv.dataset.score;
+        const scaleName = resultadoDiv.dataset.scaleName;
+        const interpretacao = resultadoDiv.dataset.interpretacao;
+        if (!score || !interpretacao) {
+          alert('Calculate the result to search for the nursing care plan.');
+          return;
+        }
+        const searchQuery = encodeURIComponent(`${scaleName} score ${score} interpretation ${interpretacao} NANDA NIC NOC`);
+        window.open(`https://www.google.com/search?q=${searchQuery}`, '_blank');
+      });
+    });
+  </script>
 
 
 

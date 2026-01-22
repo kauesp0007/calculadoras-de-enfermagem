@@ -557,7 +557,248 @@
 
 
 
-  
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const resultadoDiv = document.getElementById("resultado");
+      const btnCalcular = document.getElementById("btnCalcular");
+      const btnLimpar = document.getElementById("btnLimpar");
+      const btnGerarPDF = document.getElementById("btnGerarPDF");
+      const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
+      const conteudoDiv = document.getElementById("conteudo");
+
+      // Data skala Johns Hopkins
+      const johnsData = [
+        {
+          category: "Usia",
+          nameAttr: "idade",
+          options: [
+            { description: "Di bawah 60 tahun", score: 0 },
+            { description: "60–69 tahun", score: 5 },
+            { description: "70–79 tahun", score: 10 },
+            { description: "80 tahun atau lebih", score: 15 },
+          ],
+        },
+        {
+          category: "Jatuh sebelumnya",
+          nameAttr: "quedas",
+          options: [
+            { description: "Tidak ada", score: 0 },
+            { description: "Ya, dalam 6 bulan terakhir", score: 15 },
+          ],
+        },
+        {
+          category: "Eliminasi",
+          nameAttr: "eliminacao",
+          options: [
+            { description: "Normal", score: 0 },
+            { description: "Urgensi atau frekuensi", score: 5 },
+            { description: "Inkontinensia", score: 10 },
+          ],
+        },
+        {
+          category: "Obat",
+          nameAttr: "medicacao",
+          options: [
+            { description: "Tidak ada", score: 0 },
+            {
+              description: "Sedatif, diuretik, laksatif, narkotik",
+              score: 10,
+            },
+          ],
+        },
+        {
+          category: "Pasien dengan peralatan bantu",
+          nameAttr: "equipamentos",
+          options: [
+            { description: "Tempat tidur atau kursi", score: 0 },
+            { description: "Kruk, tongkat, walker", score: 5 },
+            { description: "Dukungan dari furniture", score: 10 },
+          ],
+        },
+        {
+          category: "Mobilitas",
+          nameAttr: "mobilidade",
+          options: [
+            { description: "Lengkap", score: 0 },
+            { description: "Terbatas atau lemah", score: 10 },
+          ],
+        },
+        {
+          category: "Kognisi",
+          nameAttr: "cognicao",
+          options: [
+            { description: "Menyadari keterbatasan", score: 0 },
+            { description: "Lupa keterbatasannya", score: 15 },
+          ],
+        },
+      ];
+
+      // --- Fungsi Kalkulator Johns Hopkins ---
+      function updateScoreDisplay(criterionId) {
+        const selectElement = document.getElementById(criterionId);
+        const scoreDisplayElement = document.getElementById(
+          `${criterionId}_score_display`,
+        );
+        if (selectElement && scoreDisplayElement) {
+          scoreDisplayElement.innerText =
+            selectElement.value === "" ? "0" : selectElement.value;
+        }
+        calcular(); // Menghitung ulang skor total secara otomatis
+      }
+
+      function calcular() {
+        let total = 0;
+        let allCategoriesSelected = true;
+
+        johnsData.forEach((item) => {
+          const selectElement = document.getElementById(item.nameAttr);
+          if (selectElement.value === "") {
+            allCategoriesSelected = false;
+          } else {
+            total += parseInt(selectElement.value, 10);
+          }
+        });
+
+        resultadoDiv.style.display = "block";
+        if (!allCategoriesSelected) {
+          resultadoDiv.innerHTML =
+            '⚠️ <strong class="font-bold">Silakan pilih opsi untuk setiap kategori untuk menghitung risiko.</strong>';
+          resultadoDiv.className = "resultado bg-info-orange-light";
+          delete resultadoDiv.dataset.score;
+          return;
+        }
+
+        let risco = "";
+        let plano = "";
+        let resultadoClass = "";
+
+        if (total < 6) {
+          risco = "Risiko rendah";
+          plano =
+            "Mempertahankan pengawasan standar dan memberikan edukasi kepada pasien tentang mobilitas yang aman.";
+          resultadoClass = "bg-green-100";
+        } else if (total <= 13) {
+          risiko = "Risiko sedang";
+          plano =
+            "Menerapkan langkah-langkah pencegahan seperti pensinyalan dan dukungan mobilitas.";
+          resultadoClass = "bg-yellow-100";
+        } else {
+          risiko = "Risiko tinggi";
+          plano =
+            "Menerapkan protokol pencegahan jatuh dengan pengawasan berkelanjutan dan adaptasi lingkungan.";
+          resultadoClass = "bg-red-100";
+        }
+
+        resultadoDiv.innerHTML = `<p>Skor total: <strong class="font-bold">${total}</strong></p><p>Risiko: <strong class="font-bold">${risco}</strong></p><p>Rencana: <strong class="font-bold">${plano}</strong></p>`;
+        resultadoDiv.className = `resultado ${resultadoClass}`;
+        resultadoDiv.dataset.score = total;
+        resultadoDiv.dataset.risco = risco;
+        resultadoDiv.dataset.plano = plano;
+        resultadoDiv.dataset.scaleName = "Skala Johns Hopkins Risiko Jatuh";
+      }
+
+      function limparCampos() {
+        johnsData.forEach((item) => {
+          document.getElementById(item.nameAttr).selectedIndex = 0;
+          document.getElementById(
+            `${item.nameAttr}_score_display`,
+          ).innerText = "0";
+        });
+        resultadoDiv.innerHTML = "";
+        resultadoDiv.className = "resultado hidden";
+        delete resultadoDiv.dataset.score;
+        delete resultadoDiv.dataset.risco;
+        delete resultadoDiv.dataset.plano;
+        delete resultadoDiv.dataset.scaleName;
+      }
+
+      // Mengisi formulir secara dinamis
+      johnsData.forEach((item, index) => {
+        const sectionDiv = document.createElement("div");
+        sectionDiv.className = "johns-criterion-card";
+
+        const headerDiv = document.createElement("div");
+        headerDiv.className = "johns-criterion-header";
+
+        const titleH3 = document.createElement("h3");
+        titleH3.className = "johns-criterion-title";
+        titleH3.innerText = item.category;
+        headerDiv.appendChild(titleH3);
+
+        const scoreSpan = document.createElement("span");
+        scoreSpan.className = "johns-score-display";
+        scoreSpan.id = `${item.nameAttr}_score_display`;
+        scoreSpan.innerText = "0";
+        headerDiv.appendChild(scoreSpan);
+
+        sectionDiv.appendChild(headerDiv);
+
+        const optionsDiv = document.createElement("div");
+        optionsDiv.className = "johns-criterion-options";
+
+        const selectElement = document.createElement("select");
+        selectElement.id = item.nameAttr;
+        selectElement.className = "johns-select";
+        selectElement.onchange = () => updateScoreDisplay(item.nameAttr);
+
+        const defaultOption = document.createElement("option");
+        defaultOption.value = "";
+        defaultOption.text = "Pilih...";
+        defaultOption.disabled = true;
+        defaultOption.selected = true;
+        selectElement.appendChild(defaultOption);
+
+        item.options.forEach((option) => {
+          const optionElement = document.createElement("option");
+          optionElement.value = option.score;
+          optionElement.text = `${option.description} (${option.score})`;
+          selectElement.appendChild(optionElement);
+        });
+
+        optionsDiv.appendChild(selectElement);
+        sectionDiv.appendChild(optionsDiv);
+        conteudoDiv.appendChild(sectionDiv);
+      });
+
+      // Menambahkan event listener ke tombol
+      btnCalcular?.addEventListener("click", calcular);
+      btnLimpar?.addEventListener("click", limparCampos);
+
+      btnGerarPDF?.addEventListener("click", () => {
+        if (!resultadoDiv.dataset.score) {
+          alert('Silakan klik "Hitung" terlebih dahulu untuk membuat PDF.');
+          return;
+        }
+        if (typeof gerarPDFGlobal === "function") {
+          gerarPDFGlobal({
+            titulo: "Skala Johns Hopkins Risiko Jatuh",
+            subtitulo: "Laporan Penilaian Risiko Jatuh",
+            nomeArquivo: "laporan_skala_johns_hopkins.pdf",
+            seletorConteudo: ".main-content-wrapper",
+          });
+        } else {
+          console.error("Fungsi gerarPDFGlobal tidak terdefinisi.");
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener("click", () => {
+        const score = resultadoDiv.dataset.score;
+        const scaleName = resultadoDiv.dataset.scaleName;
+        const risco = resultadoDiv.dataset.risco;
+        if (!score || !risco) {
+          alert("Hitung hasil untuk mencari tindakan.");
+          return;
+        }
+        const searchQuery = encodeURIComponent(
+          `${scaleName} skor ${score} risiko ${risco} menghasilkan taksonomi NANDA, menghasilkan taksonomi NIC dan menghasilkan taksonomi NOC`,
+        );
+        window.open(
+          `https://www.google.com/search?q=${searchQuery}`,
+          "_blank",
+        );
+      });
+    });
+  </script>
 
   <script src="/lang-selector.js" defer=""></script>
 

@@ -581,7 +581,221 @@
 
 
   <!-- Script Específico da Página Barthel -->
-  
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const resultadoDiv = document.getElementById("resultado");
+      const conteudoDiv = document.getElementById("conteudo");
+      const btnCalcular = document.getElementById("btnCalcular");
+      const btnLimpar = document.getElementById("btnLimpar");
+      const btnGerarPDF = document.getElementById("btnGerarPDF");
+      const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
+
+      const barthelData = [
+        {
+          activity: "Żywność",
+          nameAttr: "alimentacao",
+          options: [
+            { score: 10, description: "independente" },
+            { score: 5, description: "precisa de ajuda para cortar, etc." },
+            { score: 0, description: "incapacitado" }]
+
+        },
+        {
+          activity: "Banho",
+          nameAttr: "banho",
+          options: [
+            { score: 5, description: "independente" },
+            { score: 0, description: "dependente" }]
+
+        },
+        {
+          activity: "Higiene pessoal",
+          nameAttr: "higienePessoal",
+          options: [
+            {
+              score: 5,
+              description: "independente (rosto/cabelo/dentes/barbear)"
+            },
+            { score: 0, description: "precisa de ajuda" }]
+
+        },
+        {
+          activity: "Vestir-se",
+          nameAttr: "vestir",
+          options: [
+            { score: 10, description: "independente" },
+            { score: 5, description: "precisa de ajuda" },
+            { score: 0, description: "dependente" }]
+
+        },
+        {
+          activity: "Controle Intestinal",
+          nameAttr: "controleIntestino",
+          options: [
+            { score: 10, description: "continente" },
+            { score: 5, description: "acidente ocasional" },
+            { score: 0, description: "incontinente" }]
+
+        },
+        {
+          activity: "Controle Vesical",
+          nameAttr: "controleBexiga",
+          options: [
+            { score: 10, description: "continente" },
+            { score: 5, description: "acidente ocasional" },
+            { score: 0, description: "incontinente" }]
+
+        },
+        {
+          activity: "Korzystanie z toalety",
+          nameAttr: "usoToilet",
+          options: [
+            { score: 10, description: "independente" },
+            { score: 5, description: "precisa de ajuda" },
+            { score: 0, description: "dependente" }]
+
+        },
+        {
+          activity: "Transfer",
+          nameAttr: "transferencia",
+          options: [
+            { score: 15, description: "independente" },
+            { score: 10, description: "minimalna pomoc" },
+            { score: 5, description: "maksymalna pomoc" },
+            { score: 0, description: "incapacitado" }]
+
+        },
+        {
+          activity: "Mobilność",
+          nameAttr: "mobilność",
+          options: [
+            { score: 15, description: "independente > 50m" },
+            { score: 10, description: "caminha com ajuda > 50m" },
+            { score: 5, description: "cadeira de rodas independente > 50m" },
+            { score: 0, description: "własność" }]
+
+        },
+        {
+          activity: "Subir Escadas",
+          nameAttr: "escadas",
+          options: [
+            { score: 10, description: "independente" },
+            { score: 5, description: "precisa de ajuda" },
+            { score: 0, description: "incapaz" }]
+
+        }];
+
+
+      function createForm() {
+        conteudoDiv.innerHTML = ""; // Limpa o conteúdo existente
+        barthelData.forEach((activityGroup) => {
+          const card = document.createElement("div");
+          card.className = "barthel-criterion-card";
+
+          card.innerHTML = `
+                    <h3 class="barthel-criterion-title">${activityGroup.activity}</h3>
+                    <div class="barthel-options-container">
+                        <select id="${activityGroup.nameAttr}-select" class="barthel-select" data-name="${activityGroup.nameAttr}">
+                            <option value="" disabled selected>Selecione uma opção...</option>
+                            ${activityGroup.options.map((opt) => `<option value="${opt.score}">${opt.description} (${opt.score})</option>`).join("")}
+                        </select>
+                    </div>
+                `;
+          conteudoDiv.appendChild(card);
+        });
+      }
+
+      function calcular() {
+        let totalScore = 0;
+        let allSelected = true;
+
+        barthelData.forEach((activityGroup) => {
+          const select = document.getElementById(
+            `${activityGroup.nameAttr}-select`
+          );
+          if (select && select.value !== "") {
+            totalScore += parseInt(select.value, 10);
+          } else {
+            allSelected = false;
+          }
+        });
+
+        if (!allSelected) {
+          resultadoDiv.innerHTML =
+            '⚠️ <strong class="font-bold">Por favor, selecione uma opção para cada atividade.</strong>';
+          resultadoDiv.className = "standard-result-box bg-info-orange-light";
+          resultadoDiv.style.display = "block";
+          delete resultadoDiv.dataset.score;
+          return;
+        }
+
+        let classificacao = "";
+        if (totalScore === 100) {
+          classificacao = "Całkowita niezależność";
+        } else if (totalScore >= 91) {
+          classificacao = "Łagodne uzależnienie";
+        } else if (totalScore >= 61) {
+          classificacao = "Umiarkowana zależność";
+        } else if (totalScore >= 21) {
+          classificacao = "Poważne uzależnienie";
+        } else {
+          classificacao = "Całkowita zależność";
+        }
+
+        resultadoDiv.innerHTML = `
+                <p class="font-bold text-lg">Pontuação Total: <span class="font-black">${totalScore} / 100</span></p>
+                <p class="font-bold text-lg">Classificação: <span class="font-black">${classificacao}</span></p>
+            `;
+        resultadoDiv.className = "standard-result-box";
+        resultadoDiv.style.display = "block";
+        resultadoDiv.dataset.score = totalScore;
+        resultadoDiv.dataset.classificacao = classificacao;
+      }
+
+      function limpar() {
+        createForm(); // Recria o formulário para resetar os selects
+        resultadoDiv.innerHTML = "";
+        resultadoDiv.className = "hidden";
+        delete resultadoDiv.dataset.score;
+        delete resultadoDiv.dataset.classificacao;
+      }
+
+      createForm();
+      btnCalcular?.addEventListener("click", calcular);
+      btnLimpar?.addEventListener("click", limpar);
+
+      btnGerarPDF?.addEventListener("click", () => {
+        if (resultadoDiv.dataset.score === undefined) {
+          alert("Kliknij najpierw \"Oblicz\", aby wygenerować plik PDF.");
+          return;
+        }
+        if (typeof gerarPDFGlobal === "function") {
+          gerarPDFGlobal({
+            titulo: "Escala de Barthel",
+            subtitulo: "Raport zależności funkcjonalnych",
+            nomeArquivo: "relatorio_escala_barthel.pdf",
+            seletorConteudo: ".main-content-wrapper"
+          });
+        } else {
+          console.error("Funkcja GeneratePDFGlobal nie została zdefiniowana.");
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener("click", () => {
+        const classificacao = resultadoDiv.dataset.classificacao;
+        if (!classificacao) {
+          alert("Oblicz wynik, aby wyszukać zachowanie.");
+          return;
+        }
+        const searchQuery = encodeURIComponent(
+          `Pacjent z ${classificacao} na Escala de Barthel taxonomia NANDA, NIC e NOC`
+        );
+        window.open(
+          `https://www.google.com/search?q=${searchQuery}`,
+          "_blank"
+        );
+      });
+    });</script>
 
   <script src="/lang-selector.js" defer=""></script>
 

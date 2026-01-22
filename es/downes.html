@@ -605,7 +605,192 @@
 
 
 
-  
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const downesCriteria = [
+        {
+          title: "Cianosis",
+          options: [
+            { text: "Ausente", score: 0 },
+            { text: "Presente, al respirar en el ambiente", score: 1 },
+            { text: "Presente, con oxigenoterapia", score: 2 }
+          ]
+        },
+        {
+          title: "Retracción Xifoidea",
+          options: [
+            { text: "Ausente", score: 0 },
+            { text: "Moderada", score: 1 },
+            { text: "Marcada", score: 2 }
+          ]
+        },
+        {
+          title: "Sibilancias",
+          options: [
+            { text: "Ausentes", score: 0 },
+            { text: "Expiratorias (con o sin estetoscopio)", score: 1 },
+            { text: "Inspiratorias y espiratorias", score: 2 }
+          ]
+        },
+        {
+          title: "Aleteo Nasal",
+          options: [
+            { text: "Ausente", score: 0 },
+            { text: "Discreto", score: 1 },
+            { text: "Marcado", score: 2 }
+          ]
+        },
+        {
+          title: "Frecuencia Respiratoria",
+          options: [
+            { text: "< 60 resp./min", score: 0 },
+            { text: "60 - 80 resp./min", score: 1 },
+            { text: "> 80 resp./min o apnea", score: 2 }
+          ]
+        }
+      ];
+
+      const conteudoDiv = document.getElementById('conteudo');
+      const resultadoDiv = document.getElementById('resultado');
+      const btnCalcular = document.getElementById('btnCalcular');
+      const btnLimpar = document.getElementById('btnLimpar');
+      const btnGerarPDF = document.getElementById('btnGerarPDF');
+      const btnNandaNicNoc = document.getElementById('btnNandaNicNoc');
+
+      function showMessage(msg, className) {
+        resultadoDiv.innerHTML = msg;
+        resultadoDiv.className = `resultado ${className}`;
+        resultadoDiv.style.display = 'block';
+        resultadoDiv.focus();
+      }
+
+      function calcularDownes() {
+        const selectElements = document.querySelectorAll('.downes-select');
+        let totalScore = 0;
+        let allAnswered = true;
+
+        selectElements.forEach((select, index) => {
+          const card = select.closest('.downes-criterion-card');
+          card.classList.remove('incomplete');
+          if (select.value === "") {
+            card.classList.add('incomplete');
+            allAnswered = false;
+          } else {
+            totalScore += parseInt(select.value, 10);
+          }
+        });
+
+        if (!allAnswered) {
+          showMessage('⚠️ <strong>Por favor, responda a todas las preguntas</strong> para calcular la puntuación.', 'bg-info-orange-light');
+          delete resultadoDiv.dataset.score;
+          return;
+        }
+
+        let classification = "";
+        let colorClass = "";
+        if (totalScore >= 0 && totalScore <= 3) {
+          classification = "Leve";
+          colorClass = "bg-downes-leve";
+        } else if (totalScore >= 4 && totalScore <= 6) {
+          classification = "Moderada";
+          colorClass = "bg-downes-moderado";
+        } else {
+          classification = "Grave";
+          colorClass = "bg-downes-grave";
+        }
+
+        showMessage(`
+                    <h3 class="font-bold text-lg mb-2">Resultado de la Escala de Wood-Downes</h3>
+                    <p class="mb-1"><strong>Puntuación Total:</strong> <span class="text-xl font-bold">${totalScore}</span> puntos</p>
+                    <p><strong>Clasificación:</strong> ${classification} dificultad respiratoria</p>
+                `, colorClass);
+
+        resultadoDiv.dataset.score = totalScore;
+        resultadoDiv.dataset.scaleName = "Escala de Wood-Downes";
+        resultadoDiv.dataset.classificacao = classification;
+      }
+
+      function limparCampos() {
+        document.querySelectorAll('.downes-select').forEach(select => {
+          select.selectedIndex = 0;
+          select.closest('.downes-criterion-card').classList.remove('incomplete');
+        });
+        resultadoDiv.style.display = 'none';
+        resultadoDiv.innerHTML = '';
+        delete resultadoDiv.dataset.score;
+        delete resultadoDiv.dataset.classificacao;
+      }
+
+      downesCriteria.forEach((criterion, index) => {
+        const cardDiv = document.createElement('div');
+        cardDiv.className = 'downes-criterion-card';
+
+        const headerDiv = document.createElement('div');
+        headerDiv.className = 'downes-criterion-header';
+
+        const titleSpan = document.createElement('span');
+        titleSpan.className = 'downes-criterion-title';
+        titleSpan.textContent = criterion.title;
+
+        headerDiv.appendChild(titleSpan);
+        cardDiv.appendChild(headerDiv);
+
+        const selectElement = document.createElement('select');
+        selectElement.className = 'downes-select';
+        selectElement.id = `q${index + 1}`;
+        selectElement.setAttribute('aria-label', `Seleccione puntuación para ${criterion.title}`);
+
+        const defaultOption = document.createElement('option');
+        defaultOption.value = "";
+        defaultOption.text = "Seleccione una opción...";
+        defaultOption.selected = true;
+        defaultOption.disabled = true;
+        selectElement.appendChild(defaultOption);
+
+        criterion.options.forEach(option => {
+          const optionElement = document.createElement('option');
+          optionElement.value = option.score;
+          optionElement.text = option.text;
+          selectElement.appendChild(optionElement);
+        });
+
+        cardDiv.appendChild(selectElement);
+        conteudoDiv.appendChild(cardDiv);
+      });
+
+      btnCalcular.addEventListener('click', calcularDownes);
+      btnLimpar.addEventListener('click', limparCampos);
+
+      btnGerarPDF?.addEventListener('click', () => {
+        if (!resultadoDiv.dataset.score) {
+          alert('Por favor, haga clic en "Calcular" primero para generar el PDF.');
+          return;
+        }
+        if (typeof gerarPDFGlobal === 'function') {
+          gerarPDFGlobal({
+            titulo: 'Escala de Wood-Downes',
+            subtitulo: 'Informe de Evaluación de la Dificultad Respiratoria',
+            nomeArquivo: 'informe_escala_downes.pdf',
+            seletorConteudo: '.main-content-wrapper'
+          });
+        } else {
+          console.error('Función gerarPDFGlobal no definida.');
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener('click', () => {
+        const score = resultadoDiv.dataset.score;
+        const scaleName = resultadoDiv.dataset.scaleName;
+        const classificacao = resultadoDiv.dataset.classificacao;
+        if (!score || !classificacao) {
+          alert('Calcule el resultado para buscar la conducta.');
+          return;
+        }
+        const searchQuery = encodeURIComponent(`${scaleName} puntuación ${score} clasificación ${classificacao} generar taxonomía NANDA, generar taxonomía NIC y generar taxonomía de NOC`);
+        window.open(`https://www.google.com/search?q=${searchQuery}`, '_blank');
+      });
+    });
+  </script>
 
 
 

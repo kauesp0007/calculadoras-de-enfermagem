@@ -625,7 +625,117 @@
 
 
   <!-- Script Específico da Página FAST (Traduzido) -->
-  
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      // Carrega os elementos globais da pasta /fr/
+      fetch("/fr/global-body-elements.html")
+        .then((response) => response.text())
+        .then((html) => {
+          document.getElementById(
+            "global-body-elements-container",
+          ).innerHTML = html;
+          // Ativa o VLibras e outros scripts globais DEPOIS de carregar o conteúdo
+          if (typeof initVLibras === "function") {
+            initVLibras();
+          }
+          if (typeof setupGlobalElements === "function") {
+            setupGlobalElements();
+          }
+        });
+
+      const resultadoDiv = document.getElementById("resultado");
+      const btnCalcular = document.getElementById("btnCalcular");
+      const btnLimpar = document.getElementById("btnLimpar");
+      const btnGerarPDF = document.getElementById("btnGerarPDF");
+      const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
+
+      function calculer() {
+        const faceChecked = document.querySelector(
+          'input[name="face"]:checked',
+        );
+        const armChecked = document.querySelector(
+          'input[name="arm"]:checked',
+        );
+        const speechChecked = document.querySelector(
+          'input[name="speech"]:checked',
+        );
+
+        let resultadoTexto = "";
+        let classificacao = "";
+        let resultadoClasse = "";
+
+        // Lógica FAST: Qualquer um dos 3 sinais positivos = suspeita de AVC
+        if (faceChecked || armChecked || speechChecked) {
+          resultadoTexto =
+            "Signes d'AVC identifiés ! Alerter immédiatement l'équipe médicale (le T dans FAST signifie Temps - Time).";
+          classificacao = "Signes FAST d'AVC Présents";
+          resultadoClasse = "bg-fast-positivo";
+        } else {
+          resultadoTexto =
+            "Aucun signe d'AVC n'a été sélectionné. Le patient ne présente pas de signes FAST d'AVC.";
+          classificacao = "Absence de Signes FAST d'AVC";
+          resultadoClasse = "bg-fast-negativo";
+        }
+
+        resultadoDiv.innerHTML = `<p><strong class="font-bold">${resultadoTexto}</strong></p>`;
+        resultadoDiv.className = `resultado ${resultadoClasse}`;
+        resultadoDiv.style.display = "block";
+
+        // Armazenar dados para PDF e NANDA
+        resultadoDiv.dataset.score = classificacao; // Usar a classificação como 'score' descritivo
+        resultadoDiv.dataset.scaleName = "Échelle FAST";
+      }
+
+      function limpar() {
+        document
+          .querySelectorAll('input[type="checkbox"]')
+          .forEach((checkbox) => (checkbox.checked = false));
+        resultadoDiv.innerHTML = "";
+        resultadoDiv.className = "resultado hidden";
+        delete resultadoDiv.dataset.score;
+        delete resultadoDiv.dataset.scaleName;
+      }
+
+      btnCalcular?.addEventListener("click", calculer);
+      btnLimpar?.addEventListener("click", limpar);
+
+      btnGerarPDF?.addEventListener("click", () => {
+        if (!resultadoDiv.dataset.score) {
+          alert(
+            'Veuillez cliquer sur "Calculer" d\'abord pour générer le PDF.',
+          );
+          return;
+        }
+        if (typeof gerarPDFGlobal === "function") {
+          gerarPDFGlobal({
+            titulo: "Échelle FAST",
+            subtitulo: "Rapport de Dépistage Rapide d'AVC",
+            nomeArquivo: "rapport_echelle_fast.pdf",
+            seletorConteudo: ".main-content-wrapper",
+          });
+        } else {
+          console.error("Fonction gerarPDFGlobal non définie.");
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener("click", () => {
+        const score = resultadoDiv.dataset.score; // Que será a classificação (ex: "Signes FAST d'AVC Présents")
+        const scaleName = resultadoDiv.dataset.scaleName;
+        if (!score) {
+          alert("Calculez le résultat pour rechercher la conduite à tenir.");
+          return;
+        }
+        // Traduzido para consulta em francês
+        const searchQuery = encodeURIComponent(
+          `${score} ${scaleName} générer taxonomie NANDA générer taxonomie NIC générer taxonomie NOC`,
+        );
+        window.open(
+          `https://www.google.com/search?q=${searchQuery}`,
+          "_blank",
+        );
+      });
+    });
+  </script>
 
   <!-- CHEMIN DU SCRIPT CORRIGÉ -->
   <script src="../lang-selector.js" defer=""></script>

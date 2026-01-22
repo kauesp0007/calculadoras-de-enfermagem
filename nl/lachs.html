@@ -577,7 +577,292 @@
 
 
 
-  
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const resultadoDiv = document.getElementById("resultado");
+      const btnCalcular = document.getElementById("btnCalcular");
+      const btnLimpar = document.getElementById("btnLimpar");
+      const btnGerarPDF = document.getElementById("btnGerarPDF");
+      const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
+      const conteudoDiv = document.getElementById("conteudo");
+
+      const lachsData = [
+        {
+          category: "Visie",
+          nameAttr: "visao",
+          explain:
+            "Kan de patiënt een Jaeguer-kaart lezen op 35 cm, indien nodig met bril, tot niveau 20/40?",
+          options: [
+            { description: "Ja, hij kan tot 20/40 lezen.", score: 1 },
+            { description: "Nee, je kunt niet lezen tot 20/40.", score: 0 }]
+
+        },
+        {
+          category: "Hoor",
+          nameAttr: "audicao",
+          explain:
+            "Reageert de patiënt als hem een fluistervraag wordt gesteld (bijv. 'hoe heet u?') buiten zijn gezichtsveld?",
+          options: [
+            { description: "Ja, het beantwoordt de vraag.", score: 1 },
+            { description: "Nee, het beantwoordt de vraag niet.", score: 0 }]
+
+        },
+        {
+          category: "Urinaire incontinentie",
+          nameAttr: "incontinencia_urinaria",
+          explain:
+            "Heeft de patiënt het afgelopen jaar op minstens 6 afzonderlijke dagen per ongeluk urine verloren en in zijn ondergoed geplast?",
+          options: [
+            { description: "Geen", score: 1 },
+            { description: "Ja", score: 0 }]
+
+        },
+        {
+          category: "AVD e AIVD",
+          nameAttr: "avd_aivd",
+          explain:
+            "Kan de patiënt zelf uit bed komen, zich aankleden, maaltijden bereiden en boodschappen doen?",
+          options: [
+            {
+              description: "Ja, het kan alle activiteiten uitvoeren.",
+              score: 1
+            },
+            {
+              description:
+                "Nee, ze zijn niet in staat om minstens één van de activiteiten uit te voeren.",
+              score: 0
+            }]
+
+        },
+        {
+          category: "Gripkracht (bovenste ledematen)",
+          nameAttr: "forca_preensao",
+          explain:
+            "Kan de patiënt met beide handen de achterkant van zijn hoofd aanraken en een lepel vasthouden?",
+          options: [
+            {
+              description: "Ja, je kunt het allebei doen.",
+              score: 1
+            },
+            {
+              description:
+                "Nee, je kunt niet één of beide taken vervullen.",
+              score: 0
+            }]
+
+        },
+        {
+          category: "Kracht van de onderste ledematen",
+          nameAttr: "forca_inferiores",
+          explain:
+            "Kan de patiënt opstaan uit een stoel, 3 meter lopen, terugkomen en gaan zitten in minder dan 12 seconden?",
+          options: [
+            {
+              description: "Ja, hij voert de test uit in ≤ 12 seconden.",
+              score: 1
+            },
+            {
+              description:
+                "Nee, het gaat niet of het duurt meer dan 12 seconden om de test te voltooien.",
+              score: 0
+            }]
+
+        },
+        {
+          category: "Voeding",
+          nameAttr: "nutricao",
+          explain:
+            "Heeft de patiënt een BMI (Body Mass Index) van meer dan 22 kg/m²?",
+          options: [
+            { description: "Ja, BMI ≥ 22 kg/m².", score: 1 },
+            { description: "Não, IMC < 22 kg/m².", score: 0 }]
+
+        },
+        {
+          category: "Estado mental",
+          nameAttr: "estado_mental",
+          explain:
+            "Kan de patiënt drie woorden (bijv. 'auto', 'vaas', 'bal') na 1 minuut herhalen?",
+          options: [
+            {
+              description: "Ja, hij kan alle woorden herhalen.",
+              score: 1
+            },
+            {
+              description:
+                "Nee, hij kan minstens één van de woorden niet herhalen.",
+              score: 0
+            }]
+
+        },
+        {
+          category: "Depressie",
+          nameAttr: "depressao",
+          explain: "Voelt de patiënt zich vaak verdrietig of depressief?",
+          options: [
+            { description: "Geen", score: 1 },
+            { description: "Ja", score: 0 }]
+
+        },
+        {
+          category: "Thuisomgeving",
+          nameAttr: "ambiente",
+          explain:
+            "Heeft de patiënt thuis problemen met trappen, een badkuip, losse kleden of slechte verlichting?",
+          options: [
+            { description: "Nee, de omgeving is veilig.", score: 1 },
+            {
+              description: "Ja, er zijn risico's in de binnenlandse omgeving.",
+              score: 0
+            }]
+
+        },
+        {
+          category: "Apoio social",
+          nameAttr: "apoio_social",
+          explain:
+            "Heeft de patiënt familie, vrienden of buren op wie hij of zij kan rekenen in geval van ziekte of nood?",
+          options: [
+            { description: "Ja, het heeft sociale steun.", score: 1 },
+            { description: "Nee, er is geen sociale steun.", score: 0 }]
+
+        }];
+
+
+      // Preenche o formulário dinamicamente
+      lachsData.forEach((item) => {
+        const sectionDiv = document.createElement("div");
+        sectionDiv.className = "lachs-criterion-section";
+        sectionDiv.id = `section-${item.nameAttr}`;
+
+        const titleH3 = document.createElement("h3");
+        titleH3.className = "lachs-criterion-title";
+        titleH3.innerHTML = item.category;
+        sectionDiv.appendChild(titleH3);
+
+        const explainP = document.createElement("p");
+        explainP.className = "lachs-criterion-explain";
+        explainP.innerHTML = item.explain;
+        sectionDiv.appendChild(explainP);
+
+        const selectElement = document.createElement("select");
+        selectElement.id = item.nameAttr;
+        selectElement.className = "lachs-criterion-select";
+
+        const defaultOption = document.createElement("option");
+        defaultOption.value = "";
+        defaultOption.text = "Selecteer...";
+        selectElement.appendChild(defaultOption);
+
+        item.options.forEach((option) => {
+          const optionElement = document.createElement("option");
+          optionElement.value = option.score;
+          optionElement.text = `${option.description} (pontos: ${option.score})`;
+          selectElement.appendChild(optionElement);
+        });
+
+        sectionDiv.appendChild(selectElement);
+        conteudoDiv.appendChild(sectionDiv);
+      });
+
+      function calcularLachs() {
+        const selects = document.querySelectorAll("#conteudo select");
+        let allSelected = true;
+        let total = 0;
+
+        selects.forEach((select) => {
+          if (select.value === "") {
+            allSelected = false;
+            select.classList.add("incomplete");
+          } else {
+            select.classList.remove("incomplete");
+            total += Number(select.value);
+          }
+        });
+
+        resultadoDiv.style.display = "block";
+        if (!allSelected) {
+          resultadoDiv.innerHTML =
+            '⚠️ <strong class="font-bold">Por favor, selecione uma opção para todos os itens antes de calcular.</strong>';
+          resultadoDiv.classList.add("bg-red-100");
+          resultadoDiv.classList.remove("bg-blue-50");
+          delete resultadoDiv.dataset.score;
+          return;
+        }
+
+        let recomendacao = "";
+
+        if (total <= 5) {
+          recomendacao = `O escore de ${total} wijst op een hoog risico op verlies van functionele capaciteit en afhankelijkheid. Een uitgebreide geriatrische beoordeling en een geïndividualiseerd zorgplan worden aanbevolen om de autonomie en veiligheid van de patiënt te maximaliseren.`;
+        } else if (total >= 6 && total <= 9) {
+          recomendacao = `O escore de ${total} geeft een matig risico op verlies van functionele capaciteit aan. De patiënt kan op sommige gebieden ondersteuning nodig hebben.`;
+        } else {
+          // total >= 10
+          recomendacao = `O escore de ${total} suggereert dat de patiënt een goede functionele capaciteit heeft en een laag risico op verlies van autonomie.`;
+        }
+
+        resultadoDiv.innerHTML = `
+                <p>Escore total: <strong class="font-bold">${total}</strong></p>
+                <p class="mt-4"><strong>Recomendação:</strong> ${recomendacao}</p>
+            `;
+        resultadoDiv.className = `bg-blauw-50 resultaat`;
+        resultadoDiv.style.display = "block";
+
+        resultadoDiv.dataset.score = total;
+        resultadoDiv.dataset.scaleName = "Escala de Lachs";
+      }
+
+      function limparCampos() {
+        const selects = document.querySelectorAll("#conteudo select");
+        selects.forEach((select) => {
+          select.selectedIndex = 0;
+          select.classList.remove("incomplete");
+        });
+        resultadoDiv.innerHTML = "";
+        resultadoDiv.className = "verborgen resultaat";
+        delete resultadoDiv.dataset.score;
+        delete resultadoDiv.dataset.scaleName;
+      }
+
+      // Adiciona os event listeners aos botões
+      btnCalcular?.addEventListener("click", calcularLachs);
+      btnLimpar?.addEventListener("click", limparCampos);
+
+      btnGerarPDF?.addEventListener("click", () => {
+        if (!resultadoDiv.dataset.score) {
+          alert(
+            "Klik eerst op \"Score berekenen\" om de PDF te genereren."
+          );
+          return;
+        }
+        if (typeof gerarPDFGlobal === "function") {
+          gerarPDFGlobal({
+            titulo: "Escala de Lachs",
+            subtitulo: "Rapportage functionele beoordeling ouderen",
+            nomeArquivo: "relatorio_escala_lachs.pdf",
+            seletorConteudo: ".main-content-wrapper"
+          });
+        } else {
+          console.error("GeneratePDFGlobal-functie niet gedefinieerd.");
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener("click", () => {
+        const score = resultadoDiv.dataset.score;
+        const scaleName = resultadoDiv.dataset.scaleName;
+        if (!score) {
+          alert("Bereken het resultaat om het gedrag te zoeken.");
+          return;
+        }
+        const searchQuery = encodeURIComponent(
+          `verpleegkundige zorg voor de onafhankelijkheid van ouderen ${scaleName} score ${score} NANDA NIC NOC`
+        );
+        window.open(
+          `https://www.google.com/search?q=${searchQuery}`,
+          "_blank"
+        );
+      });
+    });</script>
 
   <script src="/lang-selector.js" defer=""></script>
 

@@ -577,7 +577,292 @@
 
 
 
-  
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const resultadoDiv = document.getElementById("resultado");
+      const btnCalcular = document.getElementById("btnCalcular");
+      const btnLimpar = document.getElementById("btnLimpar");
+      const btnGerarPDF = document.getElementById("btnGerarPDF");
+      const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
+      const conteudoDiv = document.getElementById("conteudo");
+
+      const lachsData = [
+        {
+          category: "Wizja",
+          nameAttr: "visao",
+          explain:
+            "Czy pacjent może odczytać kartę Jaeguer z odległości 35 cm, w razie potrzeby w okularach, do poziomu 20/40?",
+          options: [
+            { description: "Tak, może odczytać do 20/40.", score: 1 },
+            { description: "Nie, nie można czytać do 20/40.", score: 0 }]
+
+        },
+        {
+          category: "Przesłuchanie",
+          nameAttr: "audicao",
+          explain:
+            "Czy pacjent reaguje na zadane szeptem pytanie (np. \"Jak masz na imię?\") poza polem widzenia?",
+          options: [
+            { description: "Tak, to odpowiedź na pytanie.", score: 1 },
+            { description: "Nie, to nie odpowiada na pytanie.", score: 0 }]
+
+        },
+        {
+          category: "Nietrzymanie moczu",
+          nameAttr: "incontinencia_urinaria",
+          explain:
+            "Czy pacjent przypadkowo gubił mocz i moczył bieliznę przez co najmniej 6 oddzielnych dni w ciągu ostatniego roku?",
+          options: [
+            { description: "Nie", score: 1 },
+            { description: "Tak", score: 0 }]
+
+        },
+        {
+          category: "AVD e AIVD",
+          nameAttr: "avd_aivd",
+          explain:
+            "Czy pacjent może samodzielnie wstawać z łóżka, ubierać się, przygotowywać posiłki i robić zakupy?",
+          options: [
+            {
+              description: "Tak, może wykonywać wszystkie czynności.",
+              score: 1
+            },
+            {
+              description:
+                "Nie, nie są w stanie wykonać co najmniej jednej z czynności.",
+              score: 0
+            }]
+
+        },
+        {
+          category: "Siła chwytu (kończyny górne)",
+          nameAttr: "forca_preensao",
+          explain:
+            "Czy pacjent może dotykać tyłu głowy obiema rękami i trzymać łyżkę?",
+          options: [
+            {
+              description: "Tak, można robić obie te rzeczy.",
+              score: 1
+            },
+            {
+              description:
+                "Nie, nie możesz wykonać jednego lub obu zadań.",
+              score: 0
+            }]
+
+        },
+        {
+          category: "Siła kończyn dolnych",
+          nameAttr: "forca_inferiores",
+          explain:
+            "Czy pacjent może wstać z krzesła, przejść 3 metry, wrócić i usiąść w czasie krótszym niż 12 sekund?",
+          options: [
+            {
+              description: "Tak, wykonuje test w czasie ≤ 12 sekund.",
+              score: 1
+            },
+            {
+              description:
+                "Nie, nie działa lub test trwa dłużej niż 12 sekund.",
+              score: 0
+            }]
+
+        },
+        {
+          category: "Odżywianie",
+          nameAttr: "nutricao",
+          explain:
+            "Czy pacjent ma wskaźnik masy ciała (BMI) powyżej 22 kg/m²?",
+          options: [
+            { description: "Tak, BMI ≥ 22 kg/m².", score: 1 },
+            { description: "Não, IMC < 22 kg/m².", score: 0 }]
+
+        },
+        {
+          category: "Estado mental",
+          nameAttr: "estado_mental",
+          explain:
+            "Czy pacjent jest w stanie powtórzyć trzy słowa (np. \"samochód\", \"wazon\", \"piłka\") po upływie 1 minuty?",
+          options: [
+            {
+              description: "Tak, potrafi powtórzyć wszystkie słowa.",
+              score: 1
+            },
+            {
+              description:
+                "Nie, nie może powtórzyć przynajmniej jednego słowa.",
+              score: 0
+            }]
+
+        },
+        {
+          category: "Depresja",
+          nameAttr: "depressao",
+          explain: "Czy pacjent często odczuwa smutek lub przygnębienie?",
+          options: [
+            { description: "Nie", score: 1 },
+            { description: "Tak", score: 0 }]
+
+        },
+        {
+          category: "Środowisko domowe",
+          nameAttr: "ambiente",
+          explain:
+            "Czy pacjent ma trudności ze schodami, wanną, luźnymi dywanikami lub słabym oświetleniem w domu?",
+          options: [
+            { description: "Nie, środowisko jest bezpieczne.", score: 1 },
+            {
+              description: "Tak, istnieje ryzyko w środowisku krajowym.",
+              score: 0
+            }]
+
+        },
+        {
+          category: "Apoio social",
+          nameAttr: "apoio_social",
+          explain:
+            "Czy pacjent ma rodzinę, przyjaciół lub sąsiadów, na których może polegać w przypadku choroby lub nagłego wypadku?",
+          options: [
+            { description: "Tak, ma wsparcie społeczne.", score: 1 },
+            { description: "Nie, nie ma wsparcia społecznego.", score: 0 }]
+
+        }];
+
+
+      // Preenche o formulário dinamicamente
+      lachsData.forEach((item) => {
+        const sectionDiv = document.createElement("div");
+        sectionDiv.className = "lachs-criterion-section";
+        sectionDiv.id = `section-${item.nameAttr}`;
+
+        const titleH3 = document.createElement("h3");
+        titleH3.className = "lachs-criterion-title";
+        titleH3.innerHTML = item.category;
+        sectionDiv.appendChild(titleH3);
+
+        const explainP = document.createElement("p");
+        explainP.className = "lachs-criterion-explain";
+        explainP.innerHTML = item.explain;
+        sectionDiv.appendChild(explainP);
+
+        const selectElement = document.createElement("select");
+        selectElement.id = item.nameAttr;
+        selectElement.className = "lachs-criterion-select";
+
+        const defaultOption = document.createElement("option");
+        defaultOption.value = "";
+        defaultOption.text = "Wybierz...";
+        selectElement.appendChild(defaultOption);
+
+        item.options.forEach((option) => {
+          const optionElement = document.createElement("option");
+          optionElement.value = option.score;
+          optionElement.text = `${option.description} (pontos: ${option.score})`;
+          selectElement.appendChild(optionElement);
+        });
+
+        sectionDiv.appendChild(selectElement);
+        conteudoDiv.appendChild(sectionDiv);
+      });
+
+      function calcularLachs() {
+        const selects = document.querySelectorAll("#conteudo select");
+        let allSelected = true;
+        let total = 0;
+
+        selects.forEach((select) => {
+          if (select.value === "") {
+            allSelected = false;
+            select.classList.add("incomplete");
+          } else {
+            select.classList.remove("incomplete");
+            total += Number(select.value);
+          }
+        });
+
+        resultadoDiv.style.display = "block";
+        if (!allSelected) {
+          resultadoDiv.innerHTML =
+            '⚠️ <strong class="font-bold">Por favor, selecione uma opção para todos os itens antes de calcular.</strong>';
+          resultadoDiv.classList.add("bg-red-100");
+          resultadoDiv.classList.remove("bg-blue-50");
+          delete resultadoDiv.dataset.score;
+          return;
+        }
+
+        let recomendacao = "";
+
+        if (total <= 5) {
+          recomendacao = `O escore de ${total} sugeruje wysokie ryzyko utraty zdolności funkcjonalnych i zależności. Zaleca się kompleksową ocenę geriatryczną i indywidualny plan opieki, aby zmaksymalizować autonomię i bezpieczeństwo pacjenta.`;
+        } else if (total >= 6 && total <= 9) {
+          recomendacao = `O escore de ${total} wskazuje na umiarkowane ryzyko utraty sprawności funkcjonalnej. Pacjent może potrzebować wsparcia w niektórych obszarach.`;
+        } else {
+          // total >= 10
+          recomendacao = `O escore de ${total} sugeruje, że pacjent ma dobrą sprawność funkcjonalną i niskie ryzyko utraty autonomii.`;
+        }
+
+        resultadoDiv.innerHTML = `
+                <p>Escore total: <strong class="font-bold">${total}</strong></p>
+                <p class="mt-4"><strong>Recomendação:</strong> ${recomendacao}</p>
+            `;
+        resultadoDiv.className = `Wynik bg-blue-50`;
+        resultadoDiv.style.display = "block";
+
+        resultadoDiv.dataset.score = total;
+        resultadoDiv.dataset.scaleName = "Escala de Lachs";
+      }
+
+      function limparCampos() {
+        const selects = document.querySelectorAll("#conteudo select");
+        selects.forEach((select) => {
+          select.selectedIndex = 0;
+          select.classList.remove("incomplete");
+        });
+        resultadoDiv.innerHTML = "";
+        resultadoDiv.className = "ukryty wynik";
+        delete resultadoDiv.dataset.score;
+        delete resultadoDiv.dataset.scaleName;
+      }
+
+      // Adiciona os event listeners aos botões
+      btnCalcular?.addEventListener("click", calcularLachs);
+      btnLimpar?.addEventListener("click", limparCampos);
+
+      btnGerarPDF?.addEventListener("click", () => {
+        if (!resultadoDiv.dataset.score) {
+          alert(
+            "Kliknij najpierw \"Oblicz wynik\", aby wygenerować plik PDF."
+          );
+          return;
+        }
+        if (typeof gerarPDFGlobal === "function") {
+          gerarPDFGlobal({
+            titulo: "Escala de Lachs",
+            subtitulo: "Raport z oceny funkcjonalnej osób starszych",
+            nomeArquivo: "relatorio_escala_lachs.pdf",
+            seletorConteudo: ".main-content-wrapper"
+          });
+        } else {
+          console.error("Funkcja GeneratePDFGlobal nie została zdefiniowana.");
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener("click", () => {
+        const score = resultadoDiv.dataset.score;
+        const scaleName = resultadoDiv.dataset.scaleName;
+        if (!score) {
+          alert("Oblicz wynik, aby wyszukać zachowanie.");
+          return;
+        }
+        const searchQuery = encodeURIComponent(
+          `opieka pielęgniarska na rzecz niezależności osób starszych ${scaleName} wynik ${score} NANDA NIC NOC`
+        );
+        window.open(
+          `https://www.google.com/search?q=${searchQuery}`,
+          "_blank"
+        );
+      });
+    });</script>
 
   <script src="/lang-selector.js" defer=""></script>
 

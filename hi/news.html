@@ -612,7 +612,270 @@
 
 
 
-  
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const resultadoDiv = document.getElementById('resultado');
+      const btnCalcular = document.getElementById('btnCalcular');
+      const btnLimpar = document.getElementById('btnLimpar');
+      const btnGerarPDF = document.getElementById('btnGerarPDF');
+      const btnNandaNicNoc = document.getElementById('btnNandaNicNoc');
+      const conteudoDiv = document.getElementById('conteudo');
+
+      // NEWS प्रोटोकॉल डेटा
+      const newsData = [
+        {
+          parameter: "चेतना स्तर",
+          nameAttr: "consciencia",
+          options: [
+            { text: "आवाज/दर्द/कोई प्रतिक्रिया नहीं", score: 3 },
+            { text: "सचेत", score: 0 }
+          ]
+        },
+        {
+          parameter: "तापमान (°C)",
+          nameAttr: "temperatura",
+          options: [
+            { text: "< 35.0", score: 3 },
+            { text: "35.1 - 36.0", score: 1 },
+            { text: "36.1 - 38.0", score: 0 },
+            { text: "38.1 - 39.0", score: 1 },
+            { text: "> 39.1", score: 2 }
+          ]
+        },
+        {
+          parameter: "हृदय गति (bpm)",
+          nameAttr: "fc",
+          options: [
+            { text: "< 40", score: 3 },
+            { text: "41 - 50", score: 1 },
+            { text: "51 - 90", score: 0 },
+            { text: "91 - 110", score: 1 },
+            { text: "111 - 130", score: 2 },
+            { text: "> 131", score: 3 }
+          ]
+        },
+        {
+          parameter: "सिस्टोलिक रक्तचाप (mmHg)",
+          nameAttr: "pas",
+          options: [
+            { text: "< 90", score: 3 },
+            { text: "91 - 100", score: 2 },
+            { text: "101 - 110", score: 1 },
+            { text: "111 - 219", score: 0 },
+            { text: "> 220", score: 3 }
+          ]
+        },
+        {
+          parameter: "श्वसन दर (ipm)",
+          nameAttr: "fr",
+          options: [
+            { text: "< 8", score: 3 },
+            { text: "9 - 11", score: 1 },
+            { text: "12 - 20", score: 0 },
+            { text: "21 - 24", score: 2 },
+            { text: "> 25", score: 3 }
+          ]
+        },
+        {
+          parameter: "ऑक्सीजन संतृप्ति (%)",
+          nameAttr: "satO2",
+          options: [
+            { text: "< 91", score: 3 },
+            { text: "92 - 93", score: 2 },
+            { text: "94 - 95", score: 1 },
+            { text: "> 96", score: 0 }
+          ]
+        },
+        {
+          parameter: "पूरक ऑक्सीजन",
+          nameAttr: "suplementacaoO2",
+          options: [
+            { text: "हाँ", score: 2 },
+            { text: "नहीं", score: 0 }
+          ]
+        }
+      ];
+
+      // --- NEWS कैलकुलेटर फ़ंक्शन ---
+      function updateScoreDisplay(criterionId) {
+        const selectElement = document.getElementById(criterionId);
+        const scoreDisplayElement = document.getElementById(`${criterionId}_score_display`);
+        if (selectElement && scoreDisplayElement) {
+          scoreDisplayElement.innerText = selectElement.value === "" ? "0" : selectElement.value;
+        }
+      }
+
+      function calcularNews() {
+        let totalScore = 0;
+        let allItemsSelected = true;
+
+        newsData.forEach(item => {
+          const selectElement = document.getElementById(item.nameAttr);
+          if (selectElement.value === "") {
+            allItemsSelected = false;
+          } else {
+            totalScore += parseInt(selectElement.value, 10);
+          }
+        });
+
+        resultadoDiv.style.display = 'block';
+        if (!allItemsSelected) {
+          resultadoDiv.innerHTML = '⚠️ <strong class="font-bold">कृपया गणना करने से पहले प्रत्येक आइटम के लिए एक विकल्प चुनें</strong>';
+          resultadoDiv.className = 'resultado bg-info-orange-light';
+          delete resultadoDiv.dataset.score;
+          return;
+        }
+
+        let classificacao = '';
+        let acaoRecomendada = '';
+        let resultadoClasse = '';
+
+        if (totalScore >= 7) {
+          classificacao = 'उच्च';
+          acaoRecomendada = 'तुरंत चिकित्सा टीम को सक्रिय करें और उचित हस्तक्षेप शुरू करें। गहन निगरानी (उदाहरण: हर 5-15 मिनट)।';
+          resultadoClasse = 'bg-red-custom';
+        } else if (totalScore >= 5) {
+          classificacao = 'मध्यम';
+          acaoRecomendada = 'चिकित्सा टीम से परामर्श करें और निगरानी बढ़ाएं (उदाहरण: हर 30-60 मिनट)।';
+          resultadoClasse = 'bg-yellow-custom';
+        } else if (totalScore >= 1) {
+          classificacao = 'निम्न';
+          acaoRecomendada = 'नियमित निगरानी जारी रखें (उदाहरण: हर 4-6 घंटे)।';
+          resultadoClasse = 'bg-green-custom';
+        } else {
+          classificacao = 'न्यूनतम';
+          acaoRecomendada = 'नियमित निगरानी जारी रखें (उदाहरण: हर 12 घंटे)।';
+          resultadoClasse = 'bg-green-custom';
+        }
+
+        resultadoDiv.innerHTML = `
+                <h2 class="text-2xl font-bold mb-4">NEWS स्कोर परिणाम</h2>
+                <p><strong>कुल स्कोर:</strong> <span class="text-3xl font-bold">${totalScore}</span></p>
+                <p><strong>वर्गीकरण:</strong> <span class="text-xl font-bold">${classificacao}</span></p>
+                <p><strong>अनुशंसित कार्रवाई:</strong> ${acaoRecomendada}</p>
+            `;
+        resultadoDiv.className = `resultado ${resultadoClasse}`;
+        resultadoDiv.dataset.score = totalScore;
+      }
+
+      function limparSelecoes() {
+        newsData.forEach(item => {
+          const selectElement = document.getElementById(item.nameAttr);
+          selectElement.value = "";
+          updateScoreDisplay(item.nameAttr);
+        });
+        resultadoDiv.style.display = 'none';
+        resultadoDiv.innerHTML = '';
+        delete resultadoDiv.dataset.score;
+      }
+
+      function gerarPDF() {
+        const score = resultadoDiv.dataset.score;
+        if (score === undefined) {
+          alert("कृपया पहले NEWS स्कोर की गणना करें।");
+          return;
+        }
+
+        const element = document.createElement('div');
+        element.className = 'p-6 bg-white rounded-lg shadow-lg';
+        element.innerHTML = `
+                <h2 class="text-2xl font-bold mb-4">NEWS स्कोर परिणाम</h2>
+                <p><strong>कुल स्कोर:</strong> ${score}</p>
+                <p><strong>वर्गीकरण:</strong> ${resultadoDiv.querySelector('p:nth-child(2) span').textContent}</p>
+                <p><strong>अनुशंसित कार्रवाई:</strong> ${resultadoDiv.querySelector('p:nth-child(3)').textContent.replace('अनुशंसित कार्रवाई: ', '')}</p>
+                <p class="mt-4 text-sm text-gray-600">तिथि: ${new Date().toLocaleDateString('hi-IN')}</p>
+            `;
+
+        const opt = {
+          margin: 10,
+          filename: `news_score_${score}_${new Date().toISOString().slice(0, 10)}.pdf`,
+          image: { type: 'jpeg', quality: 0.98 },
+          html2canvas: { scale: 2 },
+          jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        };
+
+        html2pdf().set(opt).from(element).save();
+      }
+
+      function buscarNandaNicNoc() {
+        const score = resultadoDiv.dataset.score;
+        if (score === undefined) {
+          alert("कृपया पहले NEWS स्कोर की गणना करें।");
+          return;
+        }
+
+        let classificacao = '';
+        if (score >= 7) {
+          classificacao = 'उच्च';
+        } else if (score >= 5) {
+          classificacao = 'मध्यम';
+        } else if (score >= 1) {
+          classificacao = 'निम्न';
+        } else {
+          classificacao = 'न्यूनतम';
+        }
+
+        const nandaNicNocData = {
+          'उच्च': {
+            nanda: 'गंभीर स्वास्थ्य संकट का खतरा',
+            nic: 'गंभीर स्थिति प्रबंधन',
+            noc: 'गंभीर स्थिति स्थिरीकरण'
+          },
+          'मध्यम': {
+            nanda: 'स्वास्थ्य संकट का खतरा',
+            nic: 'निगरानी और मूल्यांकन',
+            noc: 'स्वास्थ्य स्थिति सुधार'
+          },
+          'निम्न': {
+            nanda: 'स्वास्थ्य जोखिम',
+            nic: 'शिक्षा और रोकथाम',
+            noc: 'स्वास्थ्य जागरूकता'
+          },
+          'न्यूनतम': {
+            nanda: 'स्वास्थ्य रखरखाव आवश्यकता',
+            nic: 'नियमित निगरानी',
+            noc: 'स्वास्थ्य स्थिरता'
+          }
+        };
+
+        const data = nandaNicNocData[classificacao];
+        resultadoDiv.innerHTML += `
+                <div class="mt-4 p-4 bg-blue-50 rounded-lg">
+                    <h3 class="text-xl font-bold mb-2">NANDA, NIC, NOC</h3>
+                    <p><strong>NANDA:</strong> ${data.nanda}</p>
+                    <p><strong>NIC:</strong> ${data.nic}</p>
+                    <p><strong>NOC:</strong> ${data.noc}</p>
+                </div>
+            `;
+      }
+
+      // UI प्रारंभ करें
+      newsData.forEach(item => {
+        const criterionCard = document.createElement('div');
+        criterionCard.className = 'news-criterion-card';
+        criterionCard.innerHTML = `
+                <div class="news-criterion-header">
+                    <span class="news-criterion-title">${item.parameter}</span>
+                    <span id="${item.nameAttr}_score_display" class="news-score-display">0</span>
+                </div>
+                <select id="${item.nameAttr}" class="news-select" aria-label="${item.parameter} चुनें">
+                    <option value="">चुनें...</option>
+                    ${item.options.map(opt => `<option value="${opt.score}">${opt.text}</option>`).join('')}
+                </select>
+            `;
+        conteudoDiv.appendChild(criterionCard);
+
+        const selectElement = document.getElementById(item.nameAttr);
+        selectElement.addEventListener('change', () => updateScoreDisplay(item.nameAttr));
+      });
+
+      // इवेंट लिसनर्स जोड़ें
+      btnCalcular.addEventListener('click', calcularNews);
+      btnLimpar.addEventListener('click', limparSelecoes);
+      btnGerarPDF.addEventListener('click', gerarPDF);
+      btnNandaNicNoc.addEventListener('click', buscarNandaNicNoc);
+    });
+  </script>
 
 
 

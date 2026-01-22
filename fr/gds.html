@@ -648,7 +648,260 @@
 
 
   <!-- Script Específico da Página GDS (Traduzido) -->
-  
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      // Carrega o rodapé da pasta /fr/ via fetch
+      fetch("footer.html")
+        .then((response) => response.text())
+        .then((data) => {
+          document.getElementById("footer-placeholder").innerHTML = data;
+        });
+
+      // Carrega os elementos globais da pasta /fr/
+      fetch("/fr/global-body-elements.html")
+        .then((response) => response.text())
+        .then((html) => {
+          document.getElementById(
+            "global-body-elements-container",
+          ).innerHTML = html;
+          // Ativa o VLibras e outros scripts globais DEPOIS de carregar o conteúdo
+          if (typeof initVLibras === "function") {
+            initVLibras();
+          }
+          if (typeof setupGlobalElements === "function") {
+            setupGlobalElements();
+          }
+        });
+
+      const resultadoDiv = document.getElementById("resultado");
+      const conteudoDiv = document.getElementById("conteudo");
+      const btnCalcular = document.getElementById("btnCalcular");
+      const btnLimpar = document.getElementById("btnLimpar");
+      const btnGerarPDF = document.getElementById("btnGerarPDF"); // Adicionado
+      const btnNandaNicNoc = document.getElementById("btnNandaNicNoc"); // Adicionado
+
+      // Données GDS traduites (avec logique de points)
+      const gdsData = [
+        {
+          question:
+            "1. Êtes-vous fondamentalement satisfait(e) de votre vie ?",
+          nameAttr: "q1",
+          pointsForNo: 1,
+        },
+        {
+          question:
+            "2. Avez-vous abandonné beaucoup de vos activités et intérêts ?",
+          nameAttr: "q2",
+          pointsForYes: 1,
+        },
+        {
+          question: "3. Sentez-vous que votre vie est vide ?",
+          nameAttr: "q3",
+          pointsForYes: 1,
+        },
+        {
+          question: "4. Vous ennuyez-vous souvent ?",
+          nameAttr: "q4",
+          pointsForYes: 1,
+        },
+        {
+          question: "5. Êtes-vous de bonne humeur la plupart du temps ?",
+          nameAttr: "q5",
+          pointsForNo: 1,
+        },
+        {
+          question:
+            "6. Craignez-vous que quelque chose de mauvais vous arrive ?",
+          nameAttr: "q6",
+          pointsForYes: 1,
+        },
+        {
+          question: "7. Vous sentez-vous heureux(se) la plupart du temps ?",
+          nameAttr: "q7",
+          pointsForNo: 1,
+        },
+        {
+          question: "8. Vous sentez-vous souvent impuissant(e) ?",
+          nameAttr: "q8",
+          pointsForYes: 1,
+        },
+        {
+          question:
+            "9. Préférez-vous rester à la maison plutôt que de sortir et faire de nouvelles choses ?",
+          nameAttr: "q9",
+          pointsForYes: 1,
+        },
+        {
+          question:
+            "10. Pensez-vous avoir plus de problèmes de mémoire que la plupart des gens ?",
+          nameAttr: "q10",
+          pointsForYes: 1,
+        },
+        {
+          question: "11. Pensez-vous que c'est merveilleux d'être en vie ?",
+          nameAttr: "q11",
+          pointsForNo: 1,
+        },
+        {
+          question:
+            "12. Vous sentez-vous plutôt inutile dans votre état actuel ?",
+          nameAttr: "q12",
+          pointsForYes: 1,
+        },
+        {
+          question: "13. Vous sentez-vous plein(e) d'énergie ?",
+          nameAttr: "q13",
+          pointsForNo: 1,
+        },
+        {
+          question: "14. Pensez-vous que votre situation est désespérée ?",
+          nameAttr: "q14",
+          pointsForYes: 1,
+        },
+        {
+          question:
+            "15. Pensez-vous que la plupart des gens sont mieux lotis que vous ?",
+          nameAttr: "q15",
+          pointsForYes: 1,
+        },
+      ];
+
+      function createForm() {
+        conteudoDiv.innerHTML = ""; // Nettoie avant de recréer
+        gdsData.forEach((item) => {
+          const card = document.createElement("div");
+          card.className = "criterion-card";
+          card.id = `card-${item.nameAttr}`; // Ajoute un ID pour le ciblage
+          card.innerHTML = `
+                    <p class="criterion-title">${item.question}</p>
+                    <div class="options-group">
+                        <label class="option-label">
+                            <input type="radio" name="${item.nameAttr}" value="oui">
+                            <span>Oui</span>
+                        </label>
+                        <label class="option-label">
+                            <input type="radio" name="${item.nameAttr}" value="non">
+                            <span>Non</span>
+                        </label>
+                    </div>
+                `;
+          conteudoDiv.appendChild(card);
+        });
+      }
+
+      function calculer() {
+        let totalScore = 0;
+        let allSelected = true;
+
+        gdsData.forEach((item) => {
+          const selected = document.querySelector(
+            `input[name="${item.nameAttr}"]:checked`,
+          );
+          const card = document.getElementById(`card-${item.nameAttr}`); // Cible la carte
+
+          if (selected) {
+            if (selected.value === "oui" && item.pointsForYes) {
+              totalScore += item.pointsForYes;
+            } else if (selected.value === "non" && item.pointsForNo) {
+              totalScore += item.pointsForNo;
+            }
+            card?.classList.remove("incomplete"); // Retire la classe d'erreur si répondu
+          } else {
+            allSelected = false;
+            card?.classList.add("incomplete"); // Ajoute la classe d'erreur si non répondu
+          }
+        });
+
+        if (!allSelected) {
+          resultadoDiv.innerHTML =
+            '⚠️ <strong class="font-bold">Veuillez répondre à toutes les questions.</strong>'; // Traduzido
+          resultadoDiv.className = "standard-result-box bg-info-orange-light";
+          resultadoDiv.style.display = "block";
+          delete resultadoDiv.dataset.score; // Efface les données précédentes
+          delete resultadoDiv.dataset.classificacao; // Efface les données précédentes
+          return;
+        }
+
+        // Classification traduite
+        let classificacao = "";
+        if (totalScore <= 5) {
+          classificacao = "Normal";
+        } else if (totalScore <= 10) {
+          classificacao = "Dépression légère";
+        } else {
+          classificacao = "Dépression sévère";
+        }
+
+        resultadoDiv.innerHTML = `
+                <p class="font-bold text-lg">Score Total: <span class="font-black">${totalScore} / 15</span></p>
+                <p class="font-bold text-lg">Classification: <span class="font-black">${classificacao}</span></p>
+            `;
+        resultadoDiv.className = "standard-result-box"; // Classe standard
+        resultadoDiv.style.display = "block";
+
+        // Stocke les données pour PDF et NANDA
+        resultadoDiv.dataset.score = totalScore;
+        resultadoDiv.dataset.classificacao = classificacao;
+        resultadoDiv.dataset.scaleName =
+          "Échelle de Dépression Gériatrique (GDS)"; // Nom pour NANDA
+      }
+
+      function limpar() {
+        // Recrée le formulaire pour resetter les radios
+        createForm();
+        // Nettoie le résultat
+        resultadoDiv.innerHTML = "";
+        resultadoDiv.className = "hidden"; // Masque la div résultat
+        delete resultadoDiv.dataset.score;
+        delete resultadoDiv.dataset.classificacao;
+        delete resultadoDiv.dataset.scaleName;
+      }
+
+      createForm(); // Crée le formulaire initial
+      btnCalcular?.addEventListener("click", calculer);
+      btnLimpar?.addEventListener("click", limpar);
+
+      // Funcionalidade PDF (se gerarPDFGlobal existir)
+      btnGerarPDF?.addEventListener("click", () => {
+        if (!resultadoDiv.dataset.score) {
+          alert(
+            'Veuillez cliquer sur "Calculer" d\'abord pour générer le PDF.',
+          ); // Traduzido
+          return;
+        }
+        if (typeof gerarPDFGlobal === "function") {
+          gerarPDFGlobal({
+            titulo: "Échelle de Dépression Gériatrique (GDS)", // Traduzido
+            subtitulo:
+              "Rapport de Dépistage de la Dépression chez les Personnes Âgées", // Traduzido
+            nomeArquivo: "rapport_echelle_gds.pdf", // Traduzido
+            seletorConteudo: ".main-content-wrapper", // Seleciona o container principal
+          });
+        } else {
+          console.error("Fonction gerarPDFGlobal non définie.");
+        }
+      });
+
+      // Funcionalidade NANDA/NIC/NOC
+      btnNandaNicNoc?.addEventListener("click", () => {
+        const score = resultadoDiv.dataset.score;
+        const classificacao = resultadoDiv.dataset.classificacao;
+        const scaleName = resultadoDiv.dataset.scaleName;
+        if (!score || !classificacao) {
+          alert("Calculez le résultat pour rechercher la conduite à tenir."); // Traduzido
+          return;
+        }
+        // Traduzido para consulta em francês
+        const searchQuery = encodeURIComponent(
+          `${scaleName} score ${score} classification ${classificacao} générer taxonomie NANDA générer taxonomie NIC générer taxonomie NOC`,
+        );
+        window.open(
+          `https://www.google.com/search?q=${searchQuery}`,
+          "_blank",
+        );
+      });
+    });
+  </script>
 
   <!-- CHEMIN DU SCRIPT CORRIGÉ -->
   <script src="../lang-selector.js" defer=""></script>

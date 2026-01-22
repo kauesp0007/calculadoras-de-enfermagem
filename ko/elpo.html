@@ -558,7 +558,210 @@
 
 
   <!-- ELPO 페이지 전용 스크립트 -->
-  
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const resultadoDiv = document.getElementById("resultado");
+      const conteudoDiv = document.getElementById("conteudo");
+      const btnCalcular = document.getElementById("btnCalcular");
+      const btnLimpar = document.getElementById("btnLimpar");
+      const btnGerarPDF = document.getElementById("btnGerarPDF");
+      const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
+
+      const elpoData = [
+        {
+          id: "item1",
+          title: "1. 수술 자세",
+          options: [
+            { value: "5", text: "5 - 위험도 높음" },
+            { value: "4", text: "4" },
+            { value: "3", text: "3" },
+            { value: "2", text: "2" },
+            { value: "1", text: "1 - 위험도 낮음" },
+          ],
+        },
+        {
+          id: "item2",
+          title: "2. 수술 시간",
+          options: [
+            { value: "5", text: "5 - ≥ 5시간" },
+            { value: "4", text: "4 - 4~4시간 59분" },
+            { value: "3", text: "3 - 3~3시간 59분" },
+            { value: "2", text: "2 - 2~2시간 59분" },
+            { value: "1", text: "1 - ≤ 1시간 59분" },
+          ],
+        },
+        {
+          id: "item3",
+          title: "3. 마취 유형",
+          options: [
+            { value: "5", text: "5 - 전신 마취 + 차단" },
+            { value: "4", text: "4 - 전신 마취" },
+            { value: "3", text: "3 -척수 마취" },
+            { value: "2", text: "2 - 경막외 마취" },
+            { value: "1", text: "1 - 국소 마취" },
+          ],
+        },
+        {
+          id: "item4",
+          title: "4. 지지 유형",
+          options: [
+            { value: "5", text: "5 - 없음" },
+            { value: "4", text: "4 - 최소" },
+            { value: "3", text: "3 - 부분적" },
+            { value: "2", text: "2 - 완전한 경성 지지" },
+            { value: "1", text: "1 - 완전한 해부학적 지지" },
+          ],
+        },
+        {
+          id: "item5",
+          title: "5. 피부 상태",
+          options: [
+            { value: "5", text: "5 - 매우 얇고 취약함" },
+            { value: "4", text: "4 - 얇음" },
+            { value: "3", text: "3 - 정상" },
+            { value: "2", text: "2 - 두꺼움" },
+            { value: "1", text: "1 - 건전하고 견고함" },
+          ],
+        },
+        {
+          id: "item6",
+          title: "6. 동반질환",
+          options: [
+            { value: "5", text: "5 - 다수" },
+            { value: "4", text: "4 - 3개 이상" },
+            { value: "3", text: "3 - 2개" },
+            { value: "2", text: "2 - 1개" },
+            { value: "1", text: "1 - 없음" },
+          ],
+        },
+        {
+          id: "item7",
+          title: "7. 영양 상태",
+          options: [
+            { value: "5", text: "5 - 심각한 영양불량" },
+            { value: "4", text: "4 - 영양불량" },
+            { value: "3", text: "3 - 경증 영양불량" },
+            { value: "2", text: "2 - 정상" },
+            { value: "1", text: "1 - 양호한 영양상태" },
+          ],
+        },
+      ];
+
+      function createForm() {
+        elpoData.forEach((item) => {
+          const section = document.createElement("div");
+          section.className = "criterion-section";
+
+          const title = document.createElement("h3");
+          title.className = "criterion-title";
+          title.textContent = item.title;
+          section.appendChild(title);
+
+          const select = document.createElement("select");
+          select.id = item.id;
+          select.className = "criterion-select";
+          select.innerHTML =
+            `<option value="">옵션 선택</option>` +
+            item.options
+              .map(
+                (opt) => `<option value="${opt.value}">${opt.text}</option>`,
+              )
+              .join("");
+          section.appendChild(select);
+          conteudoDiv.appendChild(section);
+        });
+      }
+
+      function calcular() {
+        let total = 0;
+        let allSelected = true;
+
+        elpoData.forEach((item) => {
+          const select = document.getElementById(item.id);
+          if (select.value === "") {
+            allSelected = false;
+          }
+          total += parseInt(select.value || 0);
+        });
+
+        if (!allSelected) {
+          resultadoDiv.innerHTML =
+            '⚠️ <strong class="font-bold">모든 항목에 대해 옵션을 선택해주세요.</strong>';
+          resultadoDiv.className = "resultado bg-info-orange-light";
+          resultadoDiv.style.display = "block";
+          delete resultadoDiv.dataset.score;
+          return;
+        }
+
+        let classificacao = "";
+        let resultadoClasse = "";
+
+        if (total >= 20) {
+          classificacao = "압박상처 위험도 높음";
+          resultadoClasse = "bg-elpo-risco";
+        } else {
+          classificacao = "압박상처 위험도 낮음";
+          resultadoClasse = "bg-elpo-sem-risco";
+        }
+
+        resultadoDiv.innerHTML = `
+                <p>총 점수: <strong class="font-bold">${total}</strong></p>
+                <p>분류: <strong class="font-bold">${classificacao}</strong></p>
+            `;
+        resultadoDiv.className = `resultado ${resultadoClasse}`;
+        resultadoDiv.style.display = "block";
+        resultadoDiv.dataset.score = `${total} (${classificacao})`;
+        resultadoDiv.dataset.scaleName = "ELPO 척도";
+      }
+
+      function limpar() {
+        document
+          .querySelectorAll(".criterion-select")
+          .forEach((select) => (select.selectedIndex = 0));
+        resultadoDiv.innerHTML = "";
+        resultadoDiv.className = "resultado hidden";
+        delete resultadoDiv.dataset.score;
+        delete resultadoDiv.dataset.scaleName;
+      }
+
+      createForm();
+      btnCalcular?.addEventListener("click", calcular);
+      btnLimpar?.addEventListener("click", limpar);
+
+      btnGerarPDF?.addEventListener("click", () => {
+        if (!resultadoDiv.dataset.score) {
+          alert('PDF를 생성하려면 먼저 "계산"을 클릭해주세요.');
+          return;
+        }
+        if (typeof gerarPDFGlobal === "function") {
+          gerarPDFGlobal({
+            titulo: "ELPO 척도",
+            subtitulo: "수술실 압박상처 위험도 보고서",
+            nomeArquivo: "elpo_scale_report.pdf",
+            seletorConteudo: ".main-content-wrapper",
+          });
+        } else {
+          console.error(" gerarPDFGlobal 함수가 정의되지 않았습니다.");
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener("click", () => {
+        const score = resultadoDiv.dataset.score;
+        const scaleName = resultadoDiv.dataset.scaleName;
+        if (!score) {
+          alert("치료를 검색하려면 결과를 계산해주세요.");
+          return;
+        }
+        const searchQuery = encodeURIComponent(
+          `${score} ${scaleName} NANDA taxonmy generate NIC taxonomy generate NOC taxonomy`,
+        );
+        window.open(
+          `https://www.google.com/search?q=${searchQuery}`,
+          "_blank",
+        );
+      });
+    });
+  </script>
 
   <script src="/lang-selector.js" defer=""></script>
 

@@ -629,7 +629,175 @@
 
 
 
-  
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const resultadoDiv = document.getElementById('resultado');
+      const btnCalcular = document.getElementById('btnCalcular');
+      const btnLimpar = document.getElementById('btnLimpar');
+      const btnGerarPDF = document.getElementById('btnGerarPDF');
+      const btnNandaNicNoc = document.getElementById('btnNandaNicNoc');
+      const conteudoDiv = document.getElementById('conteudo');
+
+      const rlasData = [
+        {
+          level: 1,
+          title: "级别 I - 无反应",
+          description: "患者对听觉、视觉、触觉或疼痛刺激无反应。处于深度昏迷状态。",
+          recommendation: "建议：重点支持基本生命体征，摆放体位以预防压疮和挛缩，最小化感官刺激。与家属的沟通至关重要。"
+        },
+        {
+          level: 2,
+          title: "级别 II - 全身反应",
+          description: "患者对刺激的反应不一致、无目的且非特异性。反应受限，可能无论刺激如何都相同。",
+          recommendation: "建议：保持平静和控制的环境。继续一致的感官刺激，但不要过度。专注于唤醒患者。"
+        },
+        {
+          level: 3,
+          title: "级别 III - 局部反应",
+          description: "患者对刺激的反应更具体。可能对光线刺激眨眼或试图跟随物体。反应不一致。",
+          recommendation: "建议：开始简单重复的命令。限制干扰。患者可能开始识别家人。帮助集中注意力。"
+        },
+        {
+          level: 4,
+          title: "级别 IV - 困惑和激动",
+          description: "患者处于激动和困惑状态。无法配合评估，可能表现攻击性。注意力短暂。",
+          recommendation: "建议：提供安全和结构化的环境以防止受伤。使用平静的声音并保持可预测的例程。在需要时帮助患者重新定向。"
+        },
+        {
+          level: 5,
+          title: "级别 V - 困惑和不适当",
+          description: "患者可以遵循简单命令，但难以保持注意力。对复杂问题的回答不适当和混乱。记忆严重受损。",
+          recommendation: "建议：开始简单重复任务的训练。加强时间和地点的重新定向。沟通应清晰直接。"
+        },
+        {
+          level: 6,
+          title: "级别 VI - 困惑和适当",
+          description: "患者能够遵循命令并显示长期记忆。短期记忆仍受影响，决策经常不正确。",
+          recommendation: "建议：增加任务复杂性。使用过去事件的回忆，促进在熟悉活动中的独立性。鼓励患者做出小决定。"
+        },
+        {
+          level: 7,
+          title: "级别 VII - 自动和适当",
+          description: "患者困惑较少。能够像机器人一样遵循日常例程，但仍有判断和解决问题的缺陷。社交互动肤浅。",
+          recommendation: "建议：关注计划和解决问题。鼓励小组社交和发展补偿认知缺陷的策略。"
+        },
+        {
+          level: 8,
+          title: "级别 VIII - 定向和适当",
+          description: "患者能够抽象思维和解决问题。记忆和判断一致，但处理情绪的能力可能受影响。功能独立。",
+          recommendation: "建议：帮助患者处理情绪和社会变化。关注社区重整合和准备回归工作或学术生活。"
+        },
+      ];
+
+      rlasData.forEach(item => {
+        const sectionDiv = document.createElement('div');
+        sectionDiv.className = 'rlas-criterion-section';
+        sectionDiv.id = `section-level-${item.level}`;
+
+        const radioContainer = document.createElement('div');
+        radioContainer.className = 'rlas-criterion-option';
+
+        const radioInput = document.createElement('input');
+        radioInput.type = 'radio';
+        radioInput.name = 'rlas_level';
+        radioInput.value = item.level;
+        radioInput.id = `level-${item.level}`;
+
+        const label = document.createElement('label');
+        label.htmlFor = `level-${item.level}`;
+        label.innerHTML = `<strong>${item.title}</strong><br>${item.description}`;
+
+        radioContainer.appendChild(radioInput);
+        radioContainer.appendChild(label);
+        sectionDiv.appendChild(radioContainer);
+
+        conteudoDiv.appendChild(sectionDiv);
+      });
+
+      function calcularRLAS() {
+        const selectedRadio = document.querySelector('input[name="rlas_level"]:checked');
+        resultadoDiv.style.display = "block";
+
+        if (!selectedRadio) {
+          resultadoDiv.innerHTML = '⚠️ <strong class="font-bold">请选择一个级别来计算。</strong>';
+          resultadoDiv.classList.add('bg-red-100');
+          resultadoDiv.classList.remove('bg-blue-50');
+          return;
+        }
+
+        const level = selectedRadio.value;
+        const selectedItem = rlasData.find(item => item.level == level);
+
+        if (selectedItem) {
+          resultadoDiv.innerHTML = `
+                    <p>选择的级别：<strong class="font-bold">${selectedItem.title}</strong></p>
+                    <p class="mt-4"><strong>建议：</strong> ${selectedItem.recommendation}</p>
+                `;
+          resultadoDiv.className = `resultado bg-blue-50`;
+        }
+
+        resultadoDiv.style.display = "block";
+      }
+
+      function limparCampos() {
+        const selectedRadio = document.querySelector('input[name="rlas_level"]:checked');
+        if (selectedRadio) {
+          selectedRadio.checked = false;
+        }
+        resultadoDiv.innerHTML = '';
+        resultadoDiv.className = 'resultado hidden';
+      }
+
+      btnCalcular?.addEventListener('click', calcularRLAS);
+      btnLimpar?.addEventListener('click', limparCampos);
+
+      btnGerarPDF?.addEventListener('click', () => {
+        const selectedRadio = document.querySelector('input[name="rlas_level"]:checked');
+        if (!selectedRadio) {
+          alert('请选择一个级别以生成PDF。');
+          return;
+        }
+        if (typeof gerarPDFGlobal === 'function') {
+          const selectedItem = rlasData.find(item => item.level == selectedRadio.value);
+
+          let contentToPrint = document.querySelector('.main-content-wrapper').cloneNode(true);
+          let contentContainer = contentToPrint.querySelector('#conteudo');
+
+          contentContainer.innerHTML = '';
+
+          let itemDiv = document.createElement('div');
+          itemDiv.className = 'mb-2 p-2 bg-gray-50 rounded';
+          itemDiv.innerHTML = `<strong>选择的级别：</strong> ${selectedItem.title}<br><strong>描述：</strong> ${selectedItem.description}`;
+          contentContainer.appendChild(itemDiv);
+
+          let resultadoHtml = resultadoDiv.cloneNode(true);
+          if (resultadoHtml.style.display !== 'none') {
+            contentContainer.appendChild(resultadoHtml);
+          }
+
+          gerarPDFGlobal({
+            titulo: '兰乔洛萨米戈斯量表',
+            subtitulo: '认知评估报告',
+            nomeArquivo: 'rancho_los_amigos_assessment_zh.pdf',
+            seletorConteudo: '.main-content-wrapper'
+          });
+        } else {
+          console.error('gerarPDFGlobal函数未定义。');
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener('click', () => {
+        const selectedRadio = document.querySelector('input[name="rlas_level"]:checked');
+        if (!selectedRadio) {
+          alert('请选择一个级别以搜索处理方法。');
+          return;
+        }
+        const selectedItem = rlasData.find(item => item.level == selectedRadio.value);
+        const searchQuery = encodeURIComponent(`脑损伤患者护理 级别 ${selectedItem.level} NANDA NIC NOC`);
+        window.open(`https://www.google.com/search?q=${searchQuery}`, '_blank');
+      });
+    });
+  </script>
 
 
 

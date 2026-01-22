@@ -628,7 +628,178 @@
 
 
 
-  
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const zaritQuestions = [
+        "Siente que su pariente pide más ayuda de la que necesita?",
+        "Siente que, debido al tiempo que dedica a su pariente, no tiene suficiente tiempo para usted?",
+        "Siente que está estresado al cuidar a su pariente y las demandas que ello implica?",
+        "Siente vergüenza por el comportamiento de su pariente?",
+        "Siente rabia con su pariente?",
+        "Siente que la salud de su pariente estresa su vida social o lo hace sentir diferente de sus amigos?",
+        "Siente que su pariente tiene efectos negativos en su relación con otros miembros de la familia?",
+        "Siente miedo por su futuro con su pariente?",
+        "Siente que su pariente depende de usted?",
+        "Siente que está tenso cuando está cerca de su pariente?",
+        "Siente que su salud se ha visto afectada por su participación con su pariente?",
+        "Siente que no tiene suficiente dinero para los gastos de su pariente, además de los suyos propios?",
+        "Siente que no tendrá la fuerza suficiente para cuidar a su pariente por mucho más tiempo?",
+        "Siente que ha perdido el control de su vida, ya que no puede controlar lo que le pasa a su pariente?",
+        "Siente que sería un cuidador mejor si tuviera más entrenamiento?",
+        "Siente que no tiene suficientes opciones para hacer lo que le gusta?",
+        "Siente que no tiene tiempo libre para sí mismo?",
+        "Siente que, en general, tiene más opciones para su vida de las que tendría si no estuviera cuidando a su pariente?",
+        "Siente que su pariente está mejor cuando está cerca de usted?",
+        "Siente que su pariente le busca o se molesta cuando no lo encuentra cerca de usted?",
+        "Siente que ha tenido que dejar otras actividades para cuidar a su pariente?",
+        "Siente que es un cuidador mejor de lo que nadie más podría ser?",
+      ];
+
+      const answers = [
+        "Nunca (0)",
+        "Raramente (1)",
+        "A veces (2)",
+        "A menudo (3)",
+        "Siempre (4)",
+      ];
+
+      const conteudoDiv = document.getElementById('conteudo');
+      const resultadoDiv = document.getElementById('resultado');
+      const btnCalcular = document.getElementById('btnCalcular');
+      const btnLimpar = document.getElementById('btnLimpar');
+      const btnGerarPDF = document.getElementById('btnGerarPDF');
+      const btnNandaNicNoc = document.getElementById('btnNandaNicNoc');
+
+      // Llenar el formulario dinámicamente
+      zaritQuestions.forEach((question, index) => {
+        const sectionDiv = document.createElement('div');
+        sectionDiv.className = 'zarit-criterion-section';
+        sectionDiv.id = `section-${index}`;
+
+        const titleDiv = document.createElement('div');
+        titleDiv.className = 'zarit-criterion-title';
+        titleDiv.innerText = `${index + 1}. ${question}`;
+
+        const selectElement = document.createElement('select');
+        selectElement.className = 'zarit-criterion-select';
+        selectElement.id = `q${index + 1}`;
+        selectElement.setAttribute('aria-label', `Respuesta para la pregunta ${index + 1}`);
+
+        const defaultOption = document.createElement('option');
+        defaultOption.value = "";
+        defaultOption.text = "Seleccione una opción...";
+        defaultOption.selected = true;
+        defaultOption.disabled = true;
+        selectElement.appendChild(defaultOption);
+
+        answers.forEach((answer, score) => {
+          const option = document.createElement('option');
+          option.value = score;
+          option.text = answer;
+          selectElement.appendChild(option);
+        });
+
+        sectionDiv.appendChild(titleDiv);
+        sectionDiv.appendChild(selectElement);
+        conteudoDiv.appendChild(sectionDiv);
+      });
+
+      function showMessage(msg, className) {
+        resultadoDiv.innerHTML = msg;
+        resultadoDiv.className = `resultado ${className}`;
+        resultadoDiv.style.display = 'block';
+        resultadoDiv.focus();
+      }
+
+      function calcularZarit() {
+        const selectElements = document.querySelectorAll('.zarit-criterion-select');
+        let totalScore = 0;
+        let allAnswered = true;
+
+        selectElements.forEach(select => {
+          select.classList.remove('incomplete');
+          if (select.value === "") {
+            select.classList.add('incomplete');
+            allAnswered = false;
+          } else {
+            totalScore += parseInt(select.value, 10);
+          }
+        });
+
+        if (!allAnswered) {
+          showMessage('⚠️ <strong class="font-bold">Por favor, responda a todas las preguntas</strong> para calcular la puntuación.', 'bg-red-100');
+          delete resultadoDiv.dataset.score;
+          return;
+        }
+
+        let interpretation = "";
+        if (totalScore >= 0 && totalScore <= 21) {
+          interpretation = "Sin Sobrecarga";
+        } else if (totalScore >= 22 && totalScore <= 41) {
+          interpretation = "Sobrecarga Leve a Moderada";
+        } else if (totalScore >= 42 && totalScore <= 60) {
+          interpretation = "Sobrecarga Moderada a Severa";
+        } else {
+          interpretation = "Sobrecarga Severa";
+        }
+
+        showMessage(`<p>Puntuación Total de Zarit: <strong class="font-bold">${totalScore}</strong></p><p>Interpretación: <strong class="font-bold">${interpretation}</strong></p>`, '');
+        resultadoDiv.dataset.score = totalScore;
+        resultadoDiv.dataset.scaleName = "Escala de Zarit";
+        resultadoDiv.dataset.sobrecarga = interpretation;
+      }
+
+      function limparCampos() {
+        document.querySelectorAll('.zarit-criterion-select').forEach(select => {
+          select.selectedIndex = 0;
+          select.classList.remove('incomplete');
+        });
+        resultadoDiv.style.display = 'none';
+        resultadoDiv.innerHTML = '';
+        delete resultadoDiv.dataset.score;
+        delete resultadoDiv.dataset.sobrecarga;
+      }
+
+      btnCalcular.addEventListener('click', calcularZarit);
+      btnLimpar.addEventListener('click', limparCampos);
+
+      btnGerarPDF.addEventListener('click', () => {
+        if (!resultadoDiv.dataset.score) {
+          alert('Por favor, haga clic en "Calcular Puntuación" primero para generar el PDF.');
+          return;
+        }
+        if (typeof gerarPDFGlobal === 'function') {
+          gerarPDFGlobal({
+            titulo: 'Escala de Zarit',
+            subtitulo: 'Informe de Evaluación de Sobrecarga del Cuidador',
+            nomeArquivo: 'informe_escala_zarit.pdf',
+            seletorConteudo: '.main-content-wrapper'
+          });
+        } else {
+          console.error('Función gerarPDFGlobal no definida.');
+        }
+      });
+
+      btnNandaNicNoc.addEventListener('click', () => {
+        const score = resultadoDiv.dataset.score;
+        const scaleName = resultadoDiv.dataset.scaleName;
+        if (!score) {
+          alert('Calcule el resultado para buscar la conducta.');
+          return;
+        }
+        let sobrecarga = 'sin sobrecarga';
+        if (score >= 22 && score <= 41) {
+          sobrecarga = 'sobrecarga leve a moderada';
+        } else if (score >= 42 && score <= 60) {
+          sobrecarga = 'sobrecarga moderada a severa';
+        } else if (score >= 61) {
+          sobrecarga = 'sobrecarga severa';
+        }
+        const searchQuery = encodeURIComponent(`cuidados de enfermería para cuidador con ${sobrecarga} según la Escala de Zarit NANDA NIC NOC`);
+        window.open(`https://www.google.com/search?q=${searchQuery}`, '_blank');
+      });
+    });
+  </script>
 
 
 

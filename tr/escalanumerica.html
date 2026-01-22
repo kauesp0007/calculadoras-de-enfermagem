@@ -548,7 +548,94 @@
 
 
   <!-- Sayfaya Özel Script -->
-  
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const resultadoDiv = document.getElementById("resultado");
+      const btnCalcular = document.getElementById("btnCalcular");
+      const btnLimpar = document.getElementById("btnLimpar");
+      const btnGerarPDF = document.getElementById("btnGerarPDF");
+      const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
+      const nivelDorInput = document.getElementById("nivelDor");
+
+      function calcular() {
+        const nivelDor = parseInt(nivelDorInput.value, 10);
+        let interpretacao = "";
+        let grauDor = "";
+
+        if (isNaN(nivelDor) || nivelDor < 0 || nivelDor > 10) {
+          resultadoDiv.innerHTML =
+            '⚠️ <strong class="font-bold">Lütfen 0 ile 10 arasında geçerli bir sayı girin.</strong>';
+          resultadoDiv.className = "resultado bg-info-orange-light";
+          resultadoDiv.style.display = "block";
+          delete resultadoDiv.dataset.score;
+          return;
+        }
+
+        if (nivelDor === 0) {
+          grauDor = "Ağrısız";
+        } else if (nivelDor <= 3) {
+          grauDor = "Hafif ağrı";
+        } else if (nivelDor <= 6) {
+          grauDor = "Orta düzey ağrı";
+        } else if (nivelDor <= 9) {
+          grauDor = "Şiddetli ağrı";
+        } else {
+          grauDor = "Olası en kötü ağrı";
+        }
+
+        resultadoDiv.innerHTML = `<p>Ağrı Düzeyi: <strong class="font-bold">${nivelDor}/10 (${grauDor})</strong></p>`;
+        resultadoDiv.className = "resultado";
+        resultadoDiv.style.display = "block";
+
+        resultadoDiv.dataset.score = `${nivelDor} (${grauDor})`;
+        resultadoDiv.dataset.scaleName = "Sayısal Ağrı Ölçeği (SA)";
+      }
+
+      function limpar() {
+        nivelDorInput.value = "";
+        resultadoDiv.innerHTML = "";
+        resultadoDiv.className = "resultado hidden";
+        delete resultadoDiv.dataset.score;
+        delete resultadoDiv.dataset.scaleName;
+      }
+
+      btnCalcular?.addEventListener("click", calcular);
+      btnLimpar?.addEventListener("click", limpar);
+
+      btnGerarPDF?.addEventListener("click", () => {
+        if (!resultadoDiv.dataset.score) {
+          alert('Lütfen PDF oluşturmak için önce "Hesapla"ya tıklayın.');
+          return;
+        }
+        if (typeof gerarPDFGlobal === "function") {
+          gerarPDFGlobal({
+            titulo: "Sayısal Ağrı Ölçeği (SA)",
+            subtitulo: "Ağrı Yoğunluğu Değerlendirmesi Raporu",
+            nomeArquivo: "sayisal_agiri_olcegi_raporu.pdf",
+            seletorConteudo: ".main-content-wrapper",
+          });
+        } else {
+          console.error("gerarPDFGlobal fonksiyonu tanımlı değil.");
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener("click", () => {
+        const score = resultadoDiv.dataset.score;
+        const scaleName = resultadoDiv.dataset.scaleName;
+        if (!score) {
+          alert("Davranışı araştırmak için sonucu hesaplayın.");
+          return;
+        }
+        const searchQuery = encodeURIComponent(
+          `${score} ${scaleName} NANDA taksonomisi oluştur NIC taksonomisi oluştur NOC taksonomisi oluştur`,
+        );
+        window.open(
+          `https://www.google.com/search?q=${searchQuery}`,
+          "_blank",
+        );
+      });
+    });
+  </script>
 
   <script src="/lang-selector.js" defer=""></script>
 

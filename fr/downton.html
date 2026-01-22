@@ -611,7 +611,233 @@
 
 
 
-  
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      // Carrega o rodapé da pasta /fr/
+      fetch("/fr/global-body-elements.html")
+        .then((response) => response.text())
+        .then((html) => {
+          document.getElementById(
+            "global-body-elements-container",
+          ).innerHTML = html;
+          // Ativa o VLibras e outros scripts globais DEPOIS de carregar o conteúdo
+          if (typeof initVLibras === "function") {
+            initVLibras();
+          }
+          if (typeof setupGlobalElements === "function") {
+            setupGlobalElements();
+          }
+        });
+
+      const resultadoDiv = document.getElementById("resultado");
+      const btnCalcular = document.getElementById("btnCalcular");
+      const btnLimpar = document.getElementById("btnLimpar");
+      const btnGerarPDF = document.getElementById("btnGerarPDF");
+      const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
+      const conteudoDiv = document.getElementById("conteudo");
+
+      // Dados da escala de Downton (Traduzidos)
+      const downtonData = [
+        {
+          category: "Chutes Antérieures",
+          nameAttr: "quedas",
+          options: [
+            { description: "Non", score: 0 },
+            { description: "Oui", score: 1 },
+          ],
+          explain: "Occurrence de chutes au cours des 12 derniers mois.",
+        },
+        {
+          category: "Médicaments",
+          nameAttr: "medicamentos",
+          options: [
+            {
+              description: "N'utilise pas de médicaments à risque",
+              score: 0,
+            },
+            {
+              description:
+                "Utilisation de médicaments à risque (ex: tranquillisants, sédatifs, diurétiques)",
+              score: 1,
+            },
+          ],
+          explain:
+            "Certains médicaments peuvent provoquer des vertiges et un déséquilibre.",
+        },
+        {
+          category: "Déficits Sensoriels",
+          nameAttr: "deficits_sensoriais",
+          options: [
+            { description: "Aucun déficit", score: 0 },
+            { description: "Tout déficit visuel ou auditif", score: 1 },
+          ],
+          explain:
+            "Difficulté de vision ou d'audition pouvant compromettre la perception des obstacles.",
+        },
+        {
+          category: "État Mental",
+          nameAttr: "estado_mental",
+          options: [
+            { description: "Orienté", score: 0 },
+            { description: "Désorienté / Confus", score: 1 },
+          ],
+          explain: "État de conscience et capacité cognitive du patient.",
+        },
+        {
+          category: "Déambulation",
+          nameAttr: "deambulacao",
+          options: [
+            { description: "Déambulation normale / Autonome", score: 0 },
+            {
+              description:
+                "Marche avec difficulté ou utilise une aide (canne, déambulateur)",
+              score: 1,
+            },
+          ],
+          explain:
+            "Évaluation de la démarche, de l'équilibre et de l'utilisation d'aides à la marche.",
+        },
+      ];
+
+      // Preenche o formulário dinamicamente
+      downtonData.forEach((item) => {
+        const sectionDiv = document.createElement("div");
+        sectionDiv.className = "downton-criterion-section";
+        sectionDiv.id = `section-${item.nameAttr}`;
+
+        const titleH3 = document.createElement("h3");
+        titleH3.className = "downton-criterion-title";
+        titleH3.innerHTML =
+          item.category +
+          `
+              <div class="text-sm font-normal text-gray-500 mt-1">${item.explain}</div>`;
+        sectionDiv.appendChild(titleH3);
+
+        const selectElement = document.createElement("select");
+        selectElement.id = item.nameAttr;
+        selectElement.className = "downton-criterion-select";
+
+        const defaultOption = document.createElement("option");
+        defaultOption.value = "";
+        defaultOption.text = "Sélectionnez...";
+        selectElement.appendChild(defaultOption);
+
+        item.options.forEach((option) => {
+          const optionElement = document.createElement("option");
+          optionElement.value = option.score;
+          optionElement.text = `${option.description} (points: ${option.score})`;
+          selectElement.appendChild(optionElement);
+        });
+
+        sectionDiv.appendChild(selectElement);
+        conteudoDiv.appendChild(sectionDiv);
+      });
+
+      function calcularDownton() {
+        const selects = document.querySelectorAll("#conteudo select");
+        let allSelected = true;
+        let total = 0;
+
+        selects.forEach((select) => {
+          if (select.value === "") {
+            allSelected = false;
+            select.classList.add("incomplete");
+          } else {
+            select.classList.remove("incomplete");
+            total += Number(select.value);
+          }
+        });
+
+        if (!allSelected) {
+          resultadoDiv.innerHTML =
+            '⚠️ <strong class="font-bold">Veuillez sélectionner une option pour tous les articles avant de calculer.</strong>';
+          resultadoDiv.style.display = "block";
+          delete resultadoDiv.dataset.score;
+          return;
+        }
+
+        let classificacao = "";
+        let recomendacao = "";
+
+        // Pontuação da Escala de Downton (Standard)
+        // 0-2 pontos: Faible Risque
+        // 3+ pontos: Risque Élevé
+        // Vou usar a classificação mais comum de 2 pontos (baixo/alto risco)
+        if (total >= 0 && total <= 2) {
+          classificacao = "Faible Risque";
+          recomendacao =
+            "Le patient présente un faible risque de chute. Maintenir les mesures de prévention standard et réévaluer périodiquement.";
+        } else if (total >= 3) {
+          classificacao = "Risque Élevé";
+          recomendacao =
+            "Le patient présente un risque élevé de chute. Mettre en œuvre immédiatement un plan de prévention des chutes individualisé.";
+        }
+
+        resultadoDiv.innerHTML = `
+                <p>Score total: <strong class="font-bold">${total}</strong></p>
+                <p>Classification: <strong class="font-bold">${classificacao}</strong></p>
+                <p class="mt-4"><strong>Recommandation:</strong> ${recomendacao}</p>
+            `;
+        resultadoDiv.style.display = "block";
+
+        resultadoDiv.dataset.score = total;
+        resultadoDiv.dataset.scaleName = "Échelle de Downton";
+        resultadoDiv.dataset.classificacao = classificacao;
+      }
+
+      function limparCampos() {
+        const selects = document.querySelectorAll("#conteudo select");
+        selects.forEach((select) => {
+          select.selectedIndex = 0;
+          select.classList.remove("incomplete");
+        });
+        resultadoDiv.innerHTML = "";
+        resultadoDiv.style.display = "none";
+        delete resultadoDiv.dataset.score;
+        delete resultadoDiv.dataset.scaleName;
+        delete resultadoDiv.dataset.classificacao;
+      }
+
+      btnCalcular?.addEventListener("click", calcularDownton);
+      btnLimpar?.addEventListener("click", limparCampos);
+
+      btnGerarPDF?.addEventListener("click", () => {
+        if (!resultadoDiv.dataset.score) {
+          alert(
+            'Veuillez cliquer sur "Calculer le Score" d\'abord pour générer le PDF.',
+          );
+          return;
+        }
+        if (typeof gerarPDFGlobal === "function") {
+          gerarPDFGlobal({
+            titulo: "Échelle de Downton",
+            subtitulo: "Rapport d'Évaluation du Risque de Chute",
+            nomeArquivo: "rapport_echelle_downton.pdf",
+            seletorConteudo: ".main-content-wrapper",
+          });
+        } else {
+          console.error("Fonction gerarPDFGlobal non définie.");
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener("click", () => {
+        const score = resultadoDiv.dataset.score;
+        const scaleName = resultadoDiv.dataset.scaleName;
+        const classificacao = resultadoDiv.dataset.classificacao;
+        if (!score || !classificacao) {
+          alert("Calculez le résultat pour rechercher la conduite à tenir.");
+          return;
+        }
+        const searchQuery = encodeURIComponent(
+          `${scaleName} score ${score} patient adulte ${classificacao} générer taxonomie NANDA, générer taxonomie NIC et générer taxonomie NOC`,
+        );
+        window.open(
+          `https://www.google.com/search?q=${searchQuery}`,
+          "_blank",
+        );
+      });
+    });
+  </script>
 
   <!-- CAMINHO DO SCRIPT CORRIGIDO -->
   <script src="../lang-selector.js" defer=""></script>

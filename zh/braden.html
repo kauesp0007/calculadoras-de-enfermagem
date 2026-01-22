@@ -604,7 +604,158 @@
 
 
 
-  
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const resultadoDiv = document.getElementById('resultado');
+      const conteudoDiv = document.getElementById('conteudo');
+      const btnCalcular = document.getElementById('btnCalcular');
+      const btnLimpar = document.getElementById('btnLimpar');
+      const btnGerarPDF = document.getElementById('btnGerarPDF');
+      const btnNandaNicNoc = document.getElementById('btnNandaNicNoc');
+
+      const bradenData = [
+        { id: "sensorial", title: "感觉感知", description: "对压力相关不适反应的能力。", options: [{ score: 1, text: "完全受限" }, { score: 2, text: "非常受限" }, { score: 3, text: "轻度受限" }, { score: 4, text: "无受限" }] },
+        { id: "umidade", title: "湿度", description: "皮肤暴露于湿度的程度。", options: [{ score: 1, text: "持续潮湿" }, { score: 2, text: "非常潮湿" }, { score: 3, text: "偶尔潮湿" }, { score: 4, text: "很少潮湿" }] },
+        { id: "atividade", title: "活动性", description: "患者的体力活动程度。", options: [{ score: 1, text: "卧床" }, { score: 2, text: "限制在椅子上" }, { score: 3, text: "偶尔行走" }, { score: 4, text: "经常行走" }] },
+        { id: "mobilidade", title: "移动性", description: "改变和控制身体姿势的能力。", options: [{ score: 1, text: "完全不动" }, { score: 2, text: "非常受限" }, { score: 3, text: "轻度受限" }, { score: 4, text: "无受限" }] },
+        { id: "nutricao", title: "营养", description: "通常的饮食模式。", options: [{ score: 1, text: "非常差" }, { score: 2, text: "可能不足" }, { score: 3, text: "充足" }, { score: 4, text: "优秀" }] },
+        { id: "friccao", title: "摩擦和剪切力", description: "擦伤和移动的存在。", options: [{ score: 1, text: "有问题" }, { score: 2, text: "潜在问题" }, { score: 3, text: "无问题" }] }
+      ];
+
+      function createForm() {
+        conteudoDiv.innerHTML = '';
+        bradenData.forEach(criterion => {
+          const card = document.createElement('div');
+          card.className = 'braden-criterion-card';
+
+          card.innerHTML = `
+                    <div class="braden-criterion-title-container">
+                        <h3 class="braden-criterion-title">${criterion.title}</h3>
+                        <p class="braden-criterion-description">${criterion.description}</p>
+                    </div>
+                    <div class="braden-options-container">
+                        <select id="${criterion.id}-select" class="braden-select">
+                            <option value="" disabled selected>请选择选项...</option>
+                            ${criterion.options.map(opt => `<option value="${opt.score}">${opt.text} (${opt.score})</option>`).join('')}
+                        </select>
+                    </div>
+                `;
+          conteudoDiv.appendChild(card);
+        });
+      }
+
+      function calcular() {
+        let totalScore = 0;
+        let allSelected = true;
+
+        bradenData.forEach(criterion => {
+          const select = document.getElementById(`${criterion.id}-select`);
+          if (select && select.value) {
+            totalScore += parseInt(select.value, 10);
+          } else {
+            allSelected = false;
+          }
+        });
+
+        if (!allSelected) {
+          resultadoDiv.innerHTML = '⚠️ <strong class="font-bold">请为每个标准选择一个选项。</strong>';
+          resultadoDiv.className = 'standard-result-box bg-info-orange-light';
+          resultadoDiv.style.display = 'block';
+          delete resultadoDiv.dataset.score;
+          return;
+        }
+
+        let risco = "";
+        if (totalScore >= 19) { risco = "无风险"; }
+        else if (totalScore >= 15) { risco = "低风险"; }
+        else if (totalScore >= 13) { risco = "中等风险"; }
+        else if (totalScore >= 10) { risco = "高风险"; }
+        else { risco = "极高风险"; }
+
+        resultadoDiv.innerHTML = `
+                <p class="font-bold text-lg">总分：<span class="font-black">${totalScore}</span></p>
+                <p class="font-bold text-lg">风险分类：<span class="font-black">${risco}</span></p>
+            `;
+        resultadoDiv.className = 'standard-result-box';
+        resultadoDiv.style.display = 'block';
+        resultadoDiv.dataset.score = totalScore;
+        resultadoDiv.dataset.risco = risco;
+      }
+
+      function limpar() {
+        createForm();
+        resultadoDiv.innerHTML = '';
+        resultadoDiv.className = 'hidden';
+        delete resultadoDiv.dataset.score;
+        delete resultadoDiv.dataset.risco;
+      }
+
+      createForm();
+      btnCalcular?.addEventListener('click', calcular);
+      btnLimpar?.addEventListener('click', limpar);
+
+      btnGerarPDF?.addEventListener('click', () => {
+        if (resultadoDiv.dataset.score === undefined) {
+          alert('请先点击"计算"生成PDF。');
+          return;
+        }
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+        const primaryColor = '#1A3E74';
+        let y = 10;
+        const pageMargin = 14;
+        const rightMargin = doc.internal.pageSize.getWidth() - pageMargin;
+
+        doc.setDrawColor(primaryColor);
+        doc.setLineWidth(0.5);
+        doc.rect(5, 5, 200, 287);
+        doc.setFillColor(primaryColor);
+        doc.rect(5, 5, 200, 25, 'F');
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(18);
+        doc.setTextColor(255, 255, 255);
+        doc.text('Braden量表', 105, 18, { align: 'center' });
+        doc.setFontSize(12);
+        doc.text('压疮风险报告', 105, 25, { align: 'center' });
+
+        y = 45;
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(12);
+        doc.setTextColor(primaryColor);
+        doc.text('Braden量表结果', pageMargin, y);
+        doc.setDrawColor(200);
+        doc.setLineWidth(0.2);
+        doc.line(pageMargin, y + 2, rightMargin, y + 2);
+        y += 10;
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(10);
+        doc.setTextColor(0, 0, 0);
+        doc.text(`总分: ${resultadoDiv.dataset.score}`, pageMargin, y);
+        doc.text(`风险分类: ${resultadoDiv.dataset.risco}`, rightMargin, y, { align: 'right' });
+
+        doc.setLineWidth(0.5);
+        doc.setDrawColor(primaryColor);
+        doc.line(5, 272, 205, 272);
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(8);
+        doc.setTextColor(150);
+        doc.text(`护理门户于 ${new Date().toLocaleString('zh-CN')} 生成。`, 105, 278, { align: 'center' });
+        doc.text(`此计算器是辅助工具，不能替代临床判断。请检查外部数据源。`, 105, 282, { align: 'center' });
+
+        doc.save('braden_scale_report.pdf');
+      });
+
+      btnNandaNicNoc?.addEventListener('click', () => {
+        const risco = resultadoDiv.dataset.risco;
+        if (!risco) {
+          alert('请先计算结果以搜索护理措施。');
+          return;
+        }
+        const searchQuery = encodeURIComponent(`Braden量表 ${risco} 压疮风险 NANDA NIC NOC 护理诊断`);
+        window.open(`https://www.google.com/search?q=${searchQuery}`, '_blank');
+      });
+    });
+  </script>
 
 
 

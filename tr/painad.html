@@ -595,7 +595,266 @@
 
 
 
-  
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const resultadoDiv = document.getElementById("resultado");
+      const btnCalcular = document.getElementById("btnCalcular");
+      const btnLimpar = document.getElementById("btnLimpar");
+      const btnGerarPDF = document.getElementById("btnGerarPDF");
+      const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
+      const conteudoDiv = document.getElementById("conteudo");
+
+      const painadData = [
+        {
+          title: "1. Solunum",
+          nameAttr: "respiracao",
+          explain: "Hastanın solunumunu gözlemleyin.",
+          options: [
+            {
+              description: "Normal, solunum paterninde değişiklik yok",
+              score: 0,
+            },
+            {
+              description:
+                "Ara sıra nefes nefese, kısa nefes veya hiperventilasyon",
+              score: 1,
+            },
+            {
+              description: "Nefes nefese ve zorlu solunum, cheyne-stokes",
+              score: 2,
+            },
+          ],
+        },
+        {
+          title: "2. Ses Çıkarma",
+          nameAttr: "vocalizacao",
+          explain: "Hastanın çıkardığı sesleri değerlendirin.",
+          options: [
+            { description: "Yok", score: 0 },
+            { description: "İnler, homurdanır, ara sıra konuşur", score: 1 },
+            {
+              description:
+                "Çığlık atar, ağlar, yakınır veya kelimeleri tekrarlar",
+              score: 2,
+            },
+          ],
+        },
+        {
+          title: "3. Yüz İfadesi",
+          nameAttr: "expressao_facial",
+          explain: "Hastanın yüz ifadelerini gözlemleyin.",
+          options: [
+            { description: "Rahat, normal", score: 0 },
+            { description: "Üzgün, korkmuş, kaşları çatık", score: 1 },
+            { description: "Yüz buruşturma, panik ifadesi", score: 2 },
+          ],
+        },
+        {
+          title: "4. Beden Dili",
+          nameAttr: "linguagem_corporal",
+          explain: "Hastanın duruş ve hareketlerini gözlemleyin.",
+          options: [
+            { description: "Rahat, uzuvlarda gerginlik yok", score: 0 },
+            {
+              description:
+                "Gergin vücut, ajite, huzursuz, gergin kollar veya bacaklar",
+              score: 1,
+            },
+            {
+              description:
+                "Kapalı yumruklar, katı uzuvlar, fetal pozisyon, aşırı ajitasyon",
+              score: 2,
+            },
+          ],
+        },
+        {
+          title: "5. Sakinleştirilebilirlik",
+          nameAttr: "consolabilidade",
+          explain:
+            "Hastanın başka biri tarafından sakinleştirilip sakinleştirilemediğini değerlendirin.",
+          options: [
+            {
+              description: "Kolayca sakinleşir, dikkati kolayca dağılır",
+              score: 0,
+            },
+            {
+              description:
+                "Ses veya dokunuşla rahatlatır ama dikkat dağıtma sürdürülebilir değil",
+              score: 1,
+            },
+            { description: "Sakinleştirilemez, ajite kalır", score: 2 },
+          ],
+        },
+      ];
+
+      // Formu dinamik olarak doldur
+      painadData.forEach((item) => {
+        const sectionDiv = document.createElement("div");
+        sectionDiv.className = "painad-criterion-section";
+        sectionDiv.id = `section-${item.nameAttr}`;
+
+        const titleH3 = document.createElement("h3");
+        titleH3.className = "painad-criterion-title";
+        titleH3.innerHTML = item.title;
+        sectionDiv.appendChild(titleH3);
+
+        const explainP = document.createElement("p");
+        explainP.className = "painad-criterion-explain";
+        explainP.innerHTML = item.explain;
+        sectionDiv.appendChild(explainP);
+
+        const selectElement = document.createElement("select");
+        selectElement.id = item.nameAttr;
+        selectElement.className = "painad-criterion-select mt-2";
+
+        const defaultOption = document.createElement("option");
+        defaultOption.value = "";
+        defaultOption.text = "Seçiniz...";
+        selectElement.appendChild(defaultOption);
+
+        item.options.forEach((option) => {
+          const optionElement = document.createElement("option");
+          optionElement.value = option.score;
+          optionElement.text = `${option.description} (${option.score})`;
+          selectElement.appendChild(optionElement);
+        });
+
+        sectionDiv.appendChild(selectElement);
+        conteudoDiv.appendChild(sectionDiv);
+      });
+
+      function calcularPainad() {
+        const selects = document.querySelectorAll("#conteudo select");
+        let allSelected = true;
+        let total = 0;
+
+        selects.forEach((select) => {
+          if (select.value === "") {
+            allSelected = false;
+            select.classList.add("incomplete");
+          } else {
+            select.classList.remove("incomplete");
+            total += Number(select.value);
+          }
+        });
+
+        resultadoDiv.style.display = "block";
+        if (!allSelected) {
+          resultadoDiv.innerHTML =
+            '⚠️ <strong class="font-bold">Lütfen hesaplamadan önce tüm maddeler için bir seçenek belirleyin.</strong>';
+          resultadoDiv.className = `resultado bg-red-100`;
+          delete resultadoDiv.dataset.score;
+          return;
+        }
+
+        let recomendacao = "";
+
+        if (total <= 3) {
+          recomendacao = `${total} puanı ağrının olmadığını veya minimal düzeyde olduğunu gösterir. Hastayı düzenli olarak izlemeye devam edin.`;
+        } else if (total >= 4 && total <= 6) {
+          recomendacao = `${total} puanı orta düzeyde ağrıyı gösterir. Farmakolojik veya farmakolojik olmayan ağrı giderme yöntemlerinin değerlendirilmesi ve hastanın yanıtının izlenmesi önerilir.`;
+        } else {
+          // total >= 7
+          recomendacao = `${total} puanı şiddetli ağrıyı gösterir. Ağrının giderilmesi için derhal müdahale gereklidir ve tedavi planı hekim tarafından gözden geçirilmelidir.`;
+        }
+
+        resultadoDiv.innerHTML = `
+                <p>Toplam skor: <strong class="font-bold">${total}</strong></p>
+                <p class="mt-4"><strong>Öneri:</strong> ${recomendacao}</p>
+            `;
+        resultadoDiv.className = `resultado bg-blue-50`;
+        resultadoDiv.style.display = "block";
+
+        resultadoDiv.dataset.score = total;
+        resultadoDiv.dataset.scaleName = "PAINAD Ölçeği";
+      }
+
+      function limparCampos() {
+        const selects = document.querySelectorAll("#conteudo select");
+        selects.forEach((select) => {
+          select.selectedIndex = 0;
+          select.classList.remove("incomplete");
+        });
+        resultadoDiv.innerHTML = "";
+        resultadoDiv.className = "resultado hidden";
+        delete resultadoDiv.dataset.score;
+        delete resultadoDiv.dataset.scaleName;
+      }
+
+      // Butonlara event listener'ları ekle
+      btnCalcular?.addEventListener("click", calcularPainad);
+      btnLimpar?.addEventListener("click", limparCampos);
+
+      btnGerarPDF?.addEventListener("click", () => {
+        if (!resultadoDiv.dataset.score) {
+          alert('Lütfen önce PDF oluşturmak için "Skor Hesapla"ya tıklayın.');
+          return;
+        }
+        if (typeof gerarPDFGlobal === "function") {
+          const selectedOptions = {};
+          document.querySelectorAll("#conteudo select").forEach((select) => {
+            const selected = select.options[select.selectedIndex];
+            if (selected.value !== "") {
+              selectedOptions[select.id] = selected.text;
+            }
+          });
+
+          let contentToPrint = document
+            .querySelector(".main-content-wrapper")
+            .cloneNode(true);
+          let contentContainer = contentToPrint.querySelector("#conteudo");
+
+          contentContainer.innerHTML = "";
+
+          painadData.forEach((item) => {
+            let selectedText = selectedOptions[item.nameAttr];
+            if (selectedText) {
+              let itemDiv = document.createElement("div");
+              itemDiv.className = "mb-2 p-2 bg-gray-50 rounded";
+              itemDiv.innerHTML = `<strong>${item.title}:</strong> ${selectedText}`;
+              contentContainer.appendChild(itemDiv);
+            }
+          });
+
+          let resultadoHtml = resultadoDiv.cloneNode(true);
+          if (resultadoHtml.style.display !== "none") {
+            contentContainer.appendChild(resultadoHtml);
+          }
+
+          gerarPDFGlobal({
+            titulo: "PAINAD Ölçeği",
+            subtitulo: "İleri Demanslarda Ağrı Değerlendirmesi Raporu",
+            nomeArquivo: "painad_olcegi_raporu.pdf",
+            seletorConteudo: ".main-content-wrapper",
+          });
+        } else {
+          console.error("gerarPDFGlobal fonksiyonu tanımlı değil.");
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener("click", () => {
+        const score = resultadoDiv.dataset.score;
+        const scaleName = resultadoDiv.dataset.scaleName;
+        if (!score) {
+          alert("Davranışı araştırmak için sonucu hesaplayın.");
+          return;
+        }
+        const recomendacaoRisco =
+          score <= 3
+            ? "ağrısız"
+            : score <= 6
+              ? "orta düzey ağrı"
+              : "şiddetli ağrı";
+        const searchQuery = encodeURIComponent(
+          `demanslı hasta için hemşirelik bakımı ${recomendacaoRisco} PAINAD Ölçeği NANDA NIC NOC`,
+        );
+        window.open(
+          `https://www.google.com/search?q=${searchQuery}`,
+          "_blank",
+        );
+      });
+    });
+  </script>
 
   <script src="/lang-selector.js" defer=""></script>
 

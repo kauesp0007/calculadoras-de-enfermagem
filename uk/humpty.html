@@ -542,7 +542,260 @@
 
 
 
-  
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const resultadoDiv = document.getElementById("resultado");
+      const btnCalcular = document.getElementById("btnCalcular");
+      const btnLimpar = document.getElementById("btnLimpar");
+      const btnGerarPDF = document.getElementById("btnGerarPDF");
+      const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
+      const conteudoDiv = document.getElementById("conteudo");
+
+      // Dados da escala de Humpty Dumpty
+      const humptyData = [
+        {
+          category: "Вік",
+          nameAttr: "вік",
+          options: [
+            { description: "≥ 13 років", score: 1 },
+            { description: "7-12 років", score: 2 },
+            { description: "3-6 років", score: 3 },
+            { description: "< 3 років", score: 4 }],
+
+          explain:
+            "Вік є важливим фактором ризику падінь, причому молодші діти є більш вразливими."
+        },
+        {
+          category: "секс",
+          nameAttr: "секс",
+          options: [
+            { description: "Жіночий", score: 1 },
+            { description: "чоловічого роду", score: 2 }],
+
+          explain: "Чоловіки можуть мати дещо вищий ризик."
+        },
+        {
+          category: "Діагноз",
+          nameAttr: "діагностика",
+          options: [
+            { description: "Інші діагнози", score: 1 },
+            { description: "Психічні розлади", score: 2 },
+            {
+              description:
+                "Порушення оксигенації (респіраторні, зневоднення, анемія)",
+              score: 3
+            },
+            { description: "Неврологічний", score: 4 }],
+
+          explain: "Деякі діагнози підвищують схильність до падінь."
+        },
+        {
+          category: "Когнітивні порушення",
+          nameAttr: "когнітивний",
+          options: [
+            {
+              description: "Орієнтується відповідно до ваших можливостей",
+              score: 1
+            },
+            { description: "Забудьте про свої обмеження", score: 2 },
+            { description: "Не усвідомлюючи своїх обмежень", score: 3 }],
+
+          explain:
+            "Здатність розпізнавати обмеження та ризики впливає на ймовірність падінь."
+        },
+        {
+          category: "Фактори навколишнього середовища",
+          nameAttr: "екологічні",
+          options: [
+            { description: "Дитина, яка мандрує", score: 1 },
+            { description: "Прикуті до ліжка діти", score: 2 },
+            {
+              description:
+                "Використовує допоміжні засоби, ліжечко/ліжко з великою кількістю обладнання, погане освітлення",
+              score: 3
+            },
+            { description: "Історія попередніх падінь", score: 4 }],
+
+          explain:
+            "Обстановка в лікарні та історія хвороби пацієнта мають відношення до ризику падіння."
+        },
+        {
+          category: "Вживання ліків",
+          nameAttr: "ліки",
+          options: [
+            {
+              description: "Ви вживаєте інші ліки чи ні",
+              score: 1
+            },
+            {
+              description:
+                "Вживають 1 з наступних засобів: заспокійливі, снодійні, наркотики",
+              score: 2
+            },
+            {
+              description:
+                "Вживайте ≥ 2 з наступних препаратів: заспокійливі, снодійні, наркотики",
+              score: 3
+            }],
+
+          explain:
+            "Деякі наркотики впливають на свідомість і рівновагу, збільшуючи ризик."
+        },
+        {
+          category: "Хірургія / Седація / Анестезія",
+          nameAttr: "хірургія",
+          options: [
+            { description: "Більше 48 годин або жодного", score: 1 },
+            { description: "48 годин тому", score: 2 },
+            { description: "24 години тому", score: 3 }],
+
+          explain:
+            "Постпроцедурний період є більш ризикованим через залишкові ефекти."
+        }];
+
+
+      // Preenche o formulário dinamicamente
+      humptyData.forEach((item) => {
+        const sectionDiv = document.createElement("div");
+        sectionDiv.className = "humpty-criterion-section";
+        sectionDiv.id = `section-${item.nameAttr}`;
+
+        const titleH3 = document.createElement("h3");
+        titleH3.className = "humpty-criterion-title";
+        titleH3.innerHTML =
+          item.category +
+          `
+              <div class="text-sm font-normal text-gray-500 mt-1">${item.explain}</div>`;
+        sectionDiv.appendChild(titleH3);
+
+        const selectElement = document.createElement("select");
+        selectElement.id = item.nameAttr;
+        selectElement.className = "humpty-criterion-select";
+
+        const defaultOption = document.createElement("option");
+        defaultOption.value = "";
+        defaultOption.text = "Виберіть...";
+        selectElement.appendChild(defaultOption);
+
+        item.options.forEach((option) => {
+          const optionElement = document.createElement("option");
+          optionElement.value = option.score;
+          optionElement.text = `${option.description} (бали: ${option.score})`;
+          selectElement.appendChild(optionElement);
+        });
+
+        sectionDiv.appendChild(selectElement);
+        conteudoDiv.appendChild(sectionDiv);
+      });
+
+      function calcularHumpty() {
+        const selects = document.querySelectorAll("#conteudo select");
+        let allSelected = true;
+        let total = 0;
+
+        selects.forEach((select) => {
+          if (select.value === "") {
+            allSelected = false;
+            select.classList.add("неповний");
+          } else {
+            select.classList.remove("неповний");
+            total += Number(select.value);
+          }
+        });
+
+        resultadoDiv.style.display = "block";
+        if (!allSelected) {
+          resultadoDiv.innerHTML =
+            '⚠️ <strong class="font-bold">Por favor, selecione uma opção para todos os itens antes de calcular.</strong>';
+          resultadoDiv.style.display = "block";
+          delete resultadoDiv.dataset.score;
+          return;
+        }
+
+        let classificacao = "";
+        let recomendacao = "";
+
+        // Definições de pontuação conforme a documentação
+        // Baixo Risco: 7-11 pontos
+        // Alto Risco: 12-22 pontos
+        if (total >= 7 && total <= 11) {
+          classificacao = "Низький ризик";
+          recomendacao =
+            "Дитина має низький ризик падіння. Продовжуйте застосовувати стандартні профілактичні заходи та періодично проводьте переоцінку.";
+        } else if (total >= 12 && total <= 22) {
+          classificacao = "Високий ризик";
+          recomendacao =
+            "Дитина має високий ризик падіння. Негайно вживіть заходів щодо запобігання падінню для педіатричних пацієнтів.";
+        } else {
+          classificacao = "За межами стандартного балу";
+          recomendacao =
+            "Розрахований бал знаходиться за межами очікуваного діапазону класифікації. Перевірте вибрані значення.";
+        }
+
+        resultadoDiv.innerHTML = `
+                <p>Escore total: <strong class="font-bold">${total}</strong></p>
+                <p>Classificação: <strong class="font-bold">${classificacao}</strong></p>
+                <p class="mt-4"><strong>Recomendação:</strong> ${recomendacao}</p>
+            `;
+        resultadoDiv.style.display = "block";
+
+        resultadoDiv.dataset.score = total;
+        resultadoDiv.dataset.scaleName = "Humpty Dumpty Fall Scale";
+        resultadoDiv.dataset.classificacao = classificacao;
+      }
+
+      function limparCampos() {
+        const selects = document.querySelectorAll("#conteudo select");
+        selects.forEach((select) => {
+          select.selectedIndex = 0;
+          select.classList.remove("неповний");
+        });
+        resultadoDiv.innerHTML = "";
+        resultadoDiv.style.display = "none";
+        delete resultadoDiv.dataset.score;
+        delete resultadoDiv.dataset.scaleName;
+        delete resultadoDiv.dataset.classificacao;
+      }
+
+      btnCalcular?.addEventListener("click", calcularHumpty);
+      btnLimpar?.addEventListener("click", limparCampos);
+
+      btnGerarPDF?.addEventListener("click", () => {
+        if (!resultadoDiv.dataset.score) {
+          alert(
+            "Будь ласка, спочатку натисніть \"Розрахувати бал\", щоб згенерувати PDF-файл."
+          );
+          return;
+        }
+        if (typeof gerarPDFGlobal === "функція") {
+          gerarPDFGlobal({
+            titulo: "Humpty Dumpty Fall Scale",
+            subtitulo: "Звіт про оцінку ризику падіння",
+            nomeArquivo: "relatorio_escala_humpty_dumpty.pdf",
+            seletorConteudo: ".main-content-wrapper"
+          });
+        } else {
+          console.error("Функція GeneratePDFGlobal не визначена.");
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener("click", () => {
+        const score = resultadoDiv.dataset.score;
+        const scaleName = resultadoDiv.dataset.scaleName;
+        const classificacao = resultadoDiv.dataset.classificacao;
+        if (!score || !classificacao) {
+          alert("Обчисліть результат для пошуку поведінки.");
+          return;
+        }
+        const searchQuery = encodeURIComponent(
+          `${scaleName} оцінка ${score} дитячий пацієнт ${classificacao} створити таксономію NANDA, створити таксономію NIC і створити таксономію NOC`
+        );
+        window.open(
+          `https://www.google.com/search?q=${searchQuery}`,
+          "_blank"
+        );
+      });
+    });</script>
 
   <script src="/lang-selector.js" defer=""></script>
 

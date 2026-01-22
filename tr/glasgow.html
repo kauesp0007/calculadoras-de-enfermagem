@@ -643,7 +643,122 @@
 
 
 
-  
+  <script>
+    // DOM elemanlarına referanslar
+    const resultadoDiv = document.getElementById('resultado');
+    const btnCalcular = document.getElementById('btnCalcular');
+    const btnLimpar = document.getElementById('btnLimpar');
+    const btnGerarPDF = document.getElementById('btnGerarPDF');
+    const btnNandaNicNoc = document.getElementById('btnNandaNicNoc');
+
+    // Gösterilen skoru güncellemek ve Glasgow toplamını yeniden hesaplamak için fonksiyon
+    function updateScoreAndCalculate(criterionName) {
+      const selectElement = document.getElementById(`${criterionName}_select`);
+      const scoreDisplayElement = document.getElementById(`${criterionName}_score_display`);
+
+      if (selectElement && scoreDisplayElement) {
+        scoreDisplayElement.innerText = selectElement.value;
+      }
+      calcularEscala();
+    }
+
+    // Glasgow toplam skorunu hesaplamak için fonksiyon
+    function calcularEscala() {
+      const ocular = parseInt(document.getElementById("ocular_select").value);
+      const verbal = parseInt(document.getElementById("verbal_select").value);
+      const motora = parseInt(document.getElementById("motora_select").value);
+      const pupilar = parseInt(document.getElementById("pupilar_select").value);
+      const total = ocular + verbal + motora + pupilar;
+      let interpretacao = "";
+      let isRisky = false;
+
+      if (total >= 13) {
+        interpretacao = "Bilinç seviyesi: Hafif";
+      } else if (total >= 9) {
+        interpretacao = "Bilinç seviyesi: Orta";
+        isRisky = true;
+      } else {
+        interpretacao = "Bilinç seviyesi: Şiddetli";
+        isRisky = true;
+      }
+
+      const resultadoDiv = document.getElementById("resultado");
+      resultadoDiv.innerHTML = `<p><strong>Toplam Skor:</strong> <span class="font-bold">${total}</span> puan</p><p><strong>${interpretacao}</strong></p>`;
+      resultadoDiv.style.display = "block";
+
+      if (isRisky) {
+        resultadoDiv.classList.add('text-red-600', 'bg-red-100');
+        resultadoDiv.classList.remove('text-dark-blue', 'bg-blue-50');
+      } else {
+        resultadoDiv.classList.remove('text-red-600', 'bg-red-100');
+        resultadoDiv.classList.add('text-dark-blue', 'bg-blue-50');
+      }
+      resultadoDiv.dataset.score = total;
+      resultadoDiv.dataset.interpretacao = interpretacao;
+      resultadoDiv.dataset.scaleName = "Glasgow Koma Ölçeği";
+    }
+
+    // Tüm alanları ve sonucu temizlemek için fonksiyon
+    function limparCampos() {
+      document.getElementById('ocular_select').selectedIndex = 0;
+      document.getElementById('verbal_select').selectedIndex = 0;
+      document.getElementById('motora_select').selectedIndex = 0;
+      document.getElementById('pupilar_select').selectedIndex = 0;
+
+      document.getElementById('ocular_score_display').innerText = document.getElementById('ocular_select').value;
+      document.getElementById('verbal_score_display').innerText = document.getElementById('verbal_select').value;
+      document.getElementById('motora_score_display').innerText = document.getElementById('motora_select').value;
+      document.getElementById('pupilar_score_display').innerText = document.getElementById('pupilar_select').value;
+
+      const resultadoDiv = document.getElementById('resultado');
+      resultadoDiv.innerHTML = '';
+      resultadoDiv.className = 'resultado hidden';
+      delete resultadoDiv.dataset.score;
+      delete resultadoDiv.dataset.interpretacao;
+      delete resultadoDiv.dataset.scaleName;
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      // Butonlara olayları ekle
+      btnCalcular?.addEventListener('click', calcularEscala);
+      btnLimpar?.addEventListener('click', limparCampos);
+      btnGerarPDF?.addEventListener('click', () => {
+        if (!resultadoDiv.dataset.score) {
+          alert('Lütfen PDF oluşturmak için önce "Skoru Hesapla" butonuna tıklayın.');
+          return;
+        }
+        if (typeof gerarPDFGlobal === 'function') {
+          const mainContent = document.querySelector('.main-content-wrapper');
+          gerarPDFGlobal({
+            titulo: 'Glasgow Koma Ölçeği',
+            subtitulo: 'Bilinç Seviyesi Değerlendirme Raporu',
+            nomeArquivo: 'glasgow_koma_olcegi_raporu.pdf',
+            seletorConteudo: '.main-content-wrapper'
+          });
+        } else {
+          console.error('gerarPDFGlobal fonksiyonu tanımlı değil.');
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener('click', () => {
+        const score = resultadoDiv.dataset.score;
+        const scaleName = resultadoDiv.dataset.scaleName;
+        const interpretacao = resultadoDiv.dataset.interpretacao;
+        if (!score || !interpretacao) {
+          alert('Davranışı araştırmak için sonucu hesaplayın.');
+          return;
+        }
+        const searchQuery = encodeURIComponent(`${scaleName} skor ${score} NANDA taksonomisi oluştur, NIC taksonomisi oluştur ve NOC taksonomisi oluştur`);
+        window.open(`https://www.google.com/search?q=${searchQuery}`, '_blank');
+      });
+
+      // Skorları başlat ve sayfa yüklendiğinde toplamı hesapla
+      updateScoreAndCalculate('ocular');
+      updateScoreAndCalculate('verbal');
+      updateScoreAndCalculate('motora');
+      updateScoreAndCalculate('pupilar');
+    });
+  </script>
 
 
 

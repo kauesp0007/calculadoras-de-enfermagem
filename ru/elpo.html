@@ -613,7 +613,127 @@
 
 
   <!-- Скрипт, специфичный для страницы ELPO -->
-  
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const resultadoDiv = document.getElementById('resultado');
+      const conteudoDiv = document.getElementById('conteudo');
+      const btnCalcular = document.getElementById('btnCalcular');
+      const btnLimpar = document.getElementById('btnLimpar');
+      const btnGerarPDF = document.getElementById('btnGerarPDF');
+      const btnNandaNicNoc = document.getElementById('btnNandaNicNoc');
+
+      const elpoData = [
+        { id: "item1", title: "I. Хирургическое положение", options: [{ value: "5", text: "5 - Больший риск" }, { value: "4", text: "4" }, { value: "3", text: "3" }, { value: "2", text: "2" }, { value: "1", text: "1 - Меньший риск" }] },
+        { id: "item2", title: "II. Время операции", options: [{ value: "5", text: "5 - ≥ 5ч" }, { value: "4", text: "4 - 4-4ч59м" }, { value: "3", text: "3 - 3-3ч59м" }, { value: "2", text: "2 - 2-2ч59м" }, { value: "1", text: "1 - ≤ 1ч59м" }] },
+        { id: "item3", title: "III. Тип анестезии", options: [{ value: "5", text: "5 - Общая + блокада" }, { value: "4", text: "4 - Общая" }, { value: "3", text: "3 - Спинномозговая" }, { value: "2", text: "2 - Эпидуральная" }, { value: "1", text: "1 - Местная" }] },
+        { id: "item4", title: "IV. Тип опоры", options: [{ value: "5", text: "5 - Никакой" }, { value: "4", text: "4 - Минимальная" }, { value: "3", text: "3 - Частичная" }, { value: "2", text: "2 - Полная жесткая" }, { value: "1", text: "1 - Полная анатомическая" }] },
+        { id: "item5", title: "V. Состояние кожи", options: [{ value: "5", text: "5 - Очень тонкая, хрупкая" }, { value: "4", text: "4 - Тонкая" }, { value: "3", text: "3 - Нормальная" }, { value: "2", text: "2 - Толстая" }, { value: "1", text: "1 - Целостная и устойчивая" }] },
+        { id: "item6", title: "VI. Сопутствующие заболевания", options: [{ value: "5", text: "5 - Множественные" }, { value: "4", text: "4 - 3 или более" }, { value: "3", text: "3 - 2" }, { value: "2", text: "2 - 1" }, { value: "1", text: "1 - Никаких" }] },
+        { id: "item7", title: "VII. Нутритивный статус", options: [{ value: "5", text: "5 - Тяжелое недоедание" }, { value: "4", text: "4 - Недоедание" }, { value: "3", text: "3 - Легкое недоедание" }, { value: "2", text: "2 - Нормальный" }, { value: "1", text: "1 - Хорошо питается" }] }
+      ];
+
+      function createForm() {
+        elpoData.forEach(item => {
+          const section = document.createElement('div');
+          section.className = 'criterion-section';
+
+          const title = document.createElement('h3');
+          title.className = 'criterion-title';
+          title.textContent = item.title;
+          section.appendChild(title);
+
+          const select = document.createElement('select');
+          select.id = item.id;
+          select.className = 'criterion-select';
+          select.innerHTML = `<option value="">Выберите опцию</option>` +
+            item.options.map(opt => `<option value="${opt.value}">${opt.text}</option>`).join('');
+          section.appendChild(select);
+          conteudoDiv.appendChild(section);
+        });
+      }
+
+      function calcular() {
+        let total = 0;
+        let allSelected = true;
+
+        elpoData.forEach(item => {
+          const select = document.getElementById(item.id);
+          if (select.value === "") {
+            allSelected = false;
+          }
+          total += parseInt(select.value || 0);
+        });
+
+        if (!allSelected) {
+          resultadoDiv.innerHTML = '⚠️ <strong class="font-bold">Пожалуйста, выберите опцию для всех пунктов.</strong>';
+          resultadoDiv.className = 'resultado bg-info-orange-light';
+          resultadoDiv.style.display = 'block';
+          delete resultadoDiv.dataset.score;
+          return;
+        }
+
+        let classificacao = "";
+        let resultadoClasse = '';
+
+        if (total >= 20) {
+          classificacao = "Высокий риск пролежней";
+          resultadoClasse = 'bg-elpo-risco';
+        } else {
+          classificacao = "Низкий риск пролежней";
+          resultadoClasse = 'bg-elpo-sem-risco';
+        }
+
+        resultadoDiv.innerHTML = `
+                <p>Общий балл: <strong class="font-bold">${total}</strong></p>
+                <p>Классификация: <strong class="font-bold">${classificacao}</strong></p>
+            `;
+        resultadoDiv.className = `resultado ${resultadoClasse}`;
+        resultadoDiv.style.display = 'block';
+        resultadoDiv.dataset.score = `${total} (${classificacao})`;
+        resultadoDiv.dataset.scaleName = "Шкала ELPO";
+      }
+
+      function limpar() {
+        document.querySelectorAll('.criterion-select').forEach(select => select.selectedIndex = 0);
+        resultadoDiv.innerHTML = '';
+        resultadoDiv.className = 'resultado hidden';
+        delete resultadoDiv.dataset.score;
+        delete resultadoDiv.dataset.scaleName;
+      }
+
+      createForm();
+      btnCalcular?.addEventListener('click', calcular);
+      btnLimpar?.addEventListener('click', limpar);
+
+      btnGerarPDF?.addEventListener('click', () => {
+        if (!resultadoDiv.dataset.score) {
+          alert('Пожалуйста, сначала нажмите "Рассчитать" для создания PDF.');
+          return;
+        }
+        if (typeof gerarPDFGlobal === 'function') {
+          gerarPDFGlobal({
+            titulo: 'Шкала ELPO',
+            subtitulo: 'Отчет о риске пролежней в операционной',
+            nomeArquivo: 'relatorio_escala_elpo.pdf',
+            seletorConteudo: '.main-content-wrapper'
+          });
+        } else {
+          console.error('Функция gerarPDFGlobal не определена.');
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener('click', () => {
+        const score = resultadoDiv.dataset.score;
+        const scaleName = resultadoDiv.dataset.scaleName;
+        if (!score) {
+          alert('Рассчитайте результат для поиска тактики лечения.');
+          return;
+        }
+        const searchQuery = encodeURIComponent(`${score} ${scaleName} generate NANDA taxonomy generate NIC taxonomy generate NOC taxonomy`);
+        window.open(`https://www.google.com/search?q=${searchQuery}`, '_blank');
+      });
+    });
+  </script>
 
 
 

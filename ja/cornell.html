@@ -595,7 +595,167 @@
 
 
 
-    
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const resultadoDiv = document.getElementById('resultado');
+            const conteudoDiv = document.getElementById('conteudo');
+            const btnCalcular = document.getElementById('btnCalcular');
+            const btnLimpar = document.getElementById('btnLimpar');
+            const btnGerarPDF = document.getElementById('btnGerarPDF');
+            const btnNandaNicNoc = document.getElementById('btnNandaNicNoc');
+
+            const cornellData = [
+                {
+                    section: "A. 気分関連の兆候", items: [
+                        { item: "1. 不安", nameAttr: "ansiedade", options: [{ score: 0, description: "なし" }, { score: 1, description: "軽度～中等度" }, { score: 2, description: "重度" }] },
+                        { item: "2. 悲しみ", nameAttr: "tristeza", options: [{ score: 0, description: "なし" }, { score: 1, description: "軽度～中等度" }, { score: 2, description: "重度" }] },
+                        { item: "3. 楽しいことへの反応欠如", nameAttr: "faltaReacaoPrazer", options: [{ score: 0, description: "なし" }, { score: 1, description: "軽度～中等度" }, { score: 2, description: "重度" }] },
+                        { item: "4. 過敏性", nameAttr: "irritabilidade", options: [{ score: 0, description: "なし" }, { score: 1, description: "軽度～中等度" }, { score: 2, description: "重度" }] }
+                    ]
+                },
+                {
+                    section: "B. 行動障害", items: [
+                        { item: "5. 焦燥", nameAttr: "agitacao", options: [{ score: 0, description: "なし" }, { score: 1, description: "軽度～中等度" }, { score: 2, description: "重度" }] },
+                        { item: "6. 精神運動遅滞", nameAttr: "atrasoPsicomotor", options: [{ score: 0, description: "なし" }, { score: 1, description: "軽度～中等度" }, { score: 2, description: "重度" }] },
+                        { item: "7. 複数の身体的愁訴", nameAttr: "queixasFisicas", options: [{ score: 0, description: "なし" }, { score: 1, description: "軽度～中等度" }, { score: 2, description: "重度" }] },
+                        { item: "8. 興味の喪失", nameAttr: "perdaInteresse", options: [{ score: 0, description: "なし" }, { score: 1, description: "軽度～中等度" }, { score: 2, description: "重度" }] }
+                    ]
+                },
+                {
+                    section: "C. 身体的兆候", items: [
+                        { item: "9. 食欲不振", nameAttr: "perdaApetite", options: [{ score: 0, description: "なし" }, { score: 1, description: "軽度～中等度" }, { score: 2, description: "重度" }] },
+                        { item: "10. 体重減少", nameAttr: "perdaPeso", options: [{ score: 0, description: "なし" }, { score: 1, description: "軽度～中等度" }, { score: 2, description: "重度" }] },
+                        { item: "11. エネルギー不足", nameAttr: "faltaEnergia", options: [{ score: 0, description: "なし" }, { score: 1, description: "軽度～中等度" }, { score: 2, description: "重度" }] }
+                    ]
+                },
+                {
+                    section: "D. 周期変動", items: [
+                        { item: "12. 気分の日内変動", nameAttr: "variacaoHumor", options: [{ score: 0, description: "なし" }, { score: 1, description: "軽度～中等度" }, { score: 2, description: "重度" }] },
+                        { item: "13. 入眠困難", nameAttr: "dificuldadeAdormecer", options: [{ score: 0, description: "なし" }, { score: 1, description: "軽度～中等度" }, { score: 2, description: "重度" }] },
+                        { item: "14. 頻回の中途覚醒", nameAttr: "multiplosDespertares", options: [{ score: 0, description: "なし" }, { score: 1, description: "軽度～中等度" }, { score: 2, description: "重度" }] },
+                        { item: "15. 早朝覚醒", nameAttr: "despertarPrecoce", options: [{ score: 0, description: "なし" }, { score: 1, description: "軽度～中等度" }, { score: 2, description: "重度" }] }
+                    ]
+                },
+                {
+                    section: "E. 観念障害", items: [
+                        { item: "16. 自殺", nameAttr: "suicidio", options: [{ score: 0, description: "なし" }, { score: 1, description: "軽度～中等度" }, { score: 2, description: "重度" }] },
+                        { item: "17. 低い自尊心", nameAttr: "baixaAutoEstima", options: [{ score: 0, description: "なし" }, { score: 1, description: "軽度～中等度" }, { score: 2, description: "重度" }] },
+                        { item: "18. 悲観主義", nameAttr: "pessimismo", options: [{ score: 0, description: "なし" }, { score: 1, description: "軽度～中等度" }, { score: 2, description: "重度" }] },
+                        { item: "19. 抑うつ的内容の妄想", nameAttr: "deliriosDepressivos", options: [{ score: 0, description: "なし" }, { score: 1, description: "軽度～中等度" }, { score: 2, description: "重度" }] }
+                    ]
+                }
+            ];
+
+            function createForm() {
+                conteudoDiv.innerHTML = '';
+                cornellData.forEach(sectionData => {
+                    const sectionTitle = document.createElement('h3');
+                    sectionTitle.className = 'section-title';
+                    sectionTitle.textContent = sectionData.section;
+                    conteudoDiv.appendChild(sectionTitle);
+
+                    const sectionItemsContainer = document.createElement('div');
+                    sectionItemsContainer.className = 'space-y-4';
+
+                    sectionData.items.forEach(item => {
+                        const card = document.createElement('div');
+                        card.className = 'criterion-card';
+                        card.innerHTML = `
+                        <h4 class="criterion-title">${item.item}</h4>
+                        <div class="options-container">
+                            <select id="${item.nameAttr}-select" class="custom-select" aria-label="${item.item} のスコアを選択">
+                                <option value="" disabled selected>選択してください...</option>
+                                ${item.options.map(opt => `<option value="${opt.score}">${opt.description} (${opt.score})</option>`).join('')}
+                            </select>
+                        </div>
+                    `;
+                        sectionItemsContainer.appendChild(card);
+                    });
+                    conteudoDiv.appendChild(sectionItemsContainer);
+                });
+            }
+
+            function calcular() {
+                let totalScore = 0;
+                let allSelected = true;
+
+                cornellData.forEach(sectionData => {
+                    sectionData.items.forEach(item => {
+                        const select = document.getElementById(`${item.nameAttr}-select`);
+                        if (select && select.value) {
+                            totalScore += parseInt(select.value, 10);
+                        } else {
+                            allSelected = false;
+                            select.classList.add('incomplete'); // Mark incomplete selects
+                        }
+                    });
+                });
+
+                if (!allSelected) {
+                    resultadoDiv.innerHTML = '⚠️ <strong class="font-bold">各項目についてオプションを選択してください。</strong>';
+                    resultadoDiv.className = 'standard-result-box bg-info-orange-light';
+                    resultadoDiv.style.display = 'block';
+                    delete resultadoDiv.dataset.score;
+                    return;
+                }
+
+                let classificacao = "";
+                if (totalScore <= 7) { classificacao = "有意なうつ病なし"; }
+                else if (totalScore <= 12) { classificacao = "軽度から中等度のうつ病"; }
+                else { classificacao = "重度のうつ病"; }
+
+                resultadoDiv.innerHTML = `
+                <p class="font-bold text-lg">合計スコア: <span class="font-black">${totalScore}</span></p>
+                <p class="font-bold text-lg">分類: <span class="font-black">${classificacao}</span></p>
+            `;
+                resultadoDiv.className = 'standard-result-box';
+                resultadoDiv.style.display = 'block';
+                resultadoDiv.dataset.score = totalScore;
+                resultadoDiv.dataset.classificacao = classificacao;
+                resultadoDiv.dataset.scaleName = "コーネルスケール";
+            }
+
+            function limpar() {
+                createForm();
+                resultadoDiv.innerHTML = '';
+                resultadoDiv.className = 'hidden';
+                delete resultadoDiv.dataset.score;
+                delete resultadoDiv.dataset.classificacao;
+            }
+
+            createForm();
+            btnCalcular?.addEventListener('click', calcular);
+            btnLimpar?.addEventListener('click', limpar);
+
+            btnGerarPDF?.addEventListener('click', () => {
+                if (!resultadoDiv.dataset.score) {
+                    alert('PDFを生成する前に、まず「計算」をクリックしてください。');
+                    return;
+                }
+                if (typeof gerarPDFGlobal === 'function') {
+                    gerarPDFGlobal({
+                        titulo: 'コーネルスケール（認知症のうつ病評価）(CSDD)',
+                        subtitulo: 'うつ病評価レポート',
+                        nomeArquivo: 'reporte_escala_cornell.pdf',
+                        seletorConteudo: '.main-content-wrapper'
+                    });
+                } else {
+                    console.error('gerarPDFGlobal 関数が定義されていません。');
+                }
+            });
+
+            btnNandaNicNoc?.addEventListener('click', () => {
+                const score = resultadoDiv.dataset.score;
+                const classificacao = resultadoDiv.dataset.classificacao;
+                if (!score || !classificacao) {
+                    alert('行動を検索するために結果を計算してください。');
+                    return;
+                }
+                const searchQuery = encodeURIComponent(`認知症 ${classificacao} コーネルスケール NANDA看護診断, NIC看護介入, NOC看護成果`);
+                window.open(`https://www.google.com/search?q=${searchQuery}`, '_blank');
+            });
+        });
+    </script>
 
 
 

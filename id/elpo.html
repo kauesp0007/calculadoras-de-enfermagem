@@ -564,7 +564,210 @@
 
 
   <!-- Script Khusus Halaman ELPO -->
-  
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const resultadoDiv = document.getElementById("resultado");
+      const conteudoDiv = document.getElementById("conteudo");
+      const btnCalcular = document.getElementById("btnCalcular");
+      const btnLimpar = document.getElementById("btnLimpar");
+      const btnGerarPDF = document.getElementById("btnGerarPDF");
+      const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
+
+      const elpoData = [
+        {
+          id: "item1",
+          title: "1. Posisi Bedah",
+          options: [
+            { value: "5", text: "5 - Lebih beresiko" },
+            { value: "4", text: "4" },
+            { value: "3", text: "3" },
+            { value: "2", text: "2" },
+            { value: "1", text: "1 - Lebih aman" },
+          ],
+        },
+        {
+          id: "item2",
+          title: "2. Waktu Operasi",
+          options: [
+            { value: "5", text: "5 - ≥ 5j" },
+            { value: "4", text: "4 - 4 hingga 4j59" },
+            { value: "3", text: "3 - 3 hingga 3j59" },
+            { value: "2", text: "2 - 2 hingga 2j59" },
+            { value: "1", text: "1 - ≤ 1j59" },
+          ],
+        },
+        {
+          id: "item3",
+          title: "3. Jenis Anestesi",
+          options: [
+            { value: "5", text: "5 - Umum + blok" },
+            { value: "4", text: "4 - Umum" },
+            { value: "3", text: "3 - Spinal" },
+            { value: "2", text: "2 - Epidural" },
+            { value: "1", text: "1 - Lokal" },
+          ],
+        },
+        {
+          id: "item4",
+          title: "4. Jenis Sokongan",
+          options: [
+            { value: "5", text: "5 - Tidak ada" },
+            { value: "4", text: "4 - Minimal" },
+            { value: "3", text: "3 - Parsial" },
+            { value: "2", text: "2 - Penyangga kaku lengkap" },
+            { value: "1", text: "1 - Penyangga anatomi lengkap" },
+          ],
+        },
+        {
+          id: "item5",
+          title: "5. Kondisi Kulit",
+          options: [
+            { value: "5", text: "5 - Sangat tipis, rapuh" },
+            { value: "4", text: "4 - Tipis" },
+            { value: "3", text: "3 - Normal" },
+            { value: "2", text: "2 - Tebal" },
+            { value: "1", text: "1 - Utuh dan kuat" },
+          ],
+        },
+        {
+          id: "item6",
+          title: "6. Komorbiditas",
+          options: [
+            { value: "5", text: "5 - multiple" },
+            { value: "4", text: "4 - 3 atau lebih" },
+            { value: "3", text: "3 - 2" },
+            { value: "2", text: "2 - 1" },
+            { value: "1", text: "1 - Tidak ada" },
+          ],
+        },
+        {
+          id: "item7",
+          title: "7. Status Nutrisi",
+          options: [
+            { value: "5", text: "5 - Malnutrisi berat" },
+            { value: "4", text: "4 - Malnutrisi" },
+            { value: "3", text: "3 - Malnutrisi ringan" },
+            { value: "2", text: "2 - Normal" },
+            { value: "1", text: "1 - Gizi baik" },
+          ],
+        },
+      ];
+
+      function createForm() {
+        elpoData.forEach((item) => {
+          const section = document.createElement("div");
+          section.className = "criterion-section";
+
+          const title = document.createElement("h3");
+          title.className = "criterion-title";
+          title.textContent = item.title;
+          section.appendChild(title);
+
+          const select = document.createElement("select");
+          select.id = item.id;
+          select.className = "criterion-select";
+          select.innerHTML =
+            `<option value="">Pilih opsi</option>` +
+            item.options
+              .map(
+                (opt) => `<option value="${opt.value}">${opt.text}</option>`,
+              )
+              .join("");
+          section.appendChild(select);
+          conteudoDiv.appendChild(section);
+        });
+      }
+
+      function calcular() {
+        let total = 0;
+        let allSelected = true;
+
+        elpoData.forEach((item) => {
+          const select = document.getElementById(item.id);
+          if (select.value === "") {
+            allSelected = false;
+          }
+          total += parseInt(select.value || 0);
+        });
+
+        if (!allSelected) {
+          resultadoDiv.innerHTML =
+            '⚠️ <strong class="font-bold">Silakan pilih opsi untuk semua item.</strong>';
+          resultadoDiv.className = "resultado bg-info-orange-light";
+          resultadoDiv.style.display = "block";
+          delete resultadoDiv.dataset.score;
+          return;
+        }
+
+        let classificacao = "";
+        let resultadoClasse = "";
+
+        if (total >= 20) {
+          classificacao = "Risiko tinggi untuk luka tekan";
+          resultadoClasse = "bg-elpo-risk";
+        } else {
+          classificacao = "Risiko rendah untuk luka tekan";
+          resultadoClasse = "bg-elpo-no-risk";
+        }
+
+        resultadoDiv.innerHTML = `
+                <p>Skor Total: <strong class="font-bold">${total}</strong></p>
+                <p>Klasifikasi: <strong class="font-bold">${classificacao}</strong></p>
+            `;
+        resultadoDiv.className = `resultado ${resultadoClasse}`;
+        resultadoDiv.style.display = "block";
+        resultadoDiv.dataset.score = `${total} (${classificacao})`;
+        resultadoDiv.dataset.scaleName = "Skala ELPO";
+      }
+
+      function limpar() {
+        document
+          .querySelectorAll(".criterion-select")
+          .forEach((select) => (select.selectedIndex = 0));
+        resultadoDiv.innerHTML = "";
+        resultadoDiv.className = "resultado hidden";
+        delete resultadoDiv.dataset.score;
+        delete resultadoDiv.dataset.scaleName;
+      }
+
+      createForm();
+      btnCalcular?.addEventListener("click", calcular);
+      btnLimpar?.addEventListener("click", limpar);
+
+      btnGerarPDF?.addEventListener("click", () => {
+        if (!resultadoDiv.dataset.score) {
+          alert('Silakan klik "Hitung" terlebih dahulu untuk membuat PDF.');
+          return;
+        }
+        if (typeof gerarPDFGlobal === "function") {
+          gerarPDFGlobal({
+            titulo: "Skala ELPO",
+            subtitulo: "Laporan Risiko Luka Tekan di Kamar Operasi",
+            nomeArquivo: "laporan_skala_elpo.pdf",
+            seletorConteudo: ".main-content-wrapper",
+          });
+        } else {
+          console.error("Fungsi gerarPDFGlobal tidak terdefinisi.");
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener("click", () => {
+        const score = resultadoDiv.dataset.score;
+        const scaleName = resultadoDiv.dataset.scaleName;
+        if (!score) {
+          alert("Hitung hasil untuk mencari tindakan.");
+          return;
+        }
+        const searchQuery = encodeURIComponent(
+          `${score} ${scaleName} menghasilkan taksonomi NANDA menghasilkan taksonomi NIC menghasilkan taksonomi NOC`,
+        );
+        window.open(
+          `https://www.google.com/search?q=${searchQuery}`,
+          "_blank",
+        );
+      });
+    });
+  </script>
 
   <script src="/lang-selector.js" defer=""></script>
 

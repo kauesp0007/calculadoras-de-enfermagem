@@ -628,7 +628,206 @@
 
 
 
-  
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const resultadoDiv = document.getElementById('resultado');
+      const btnCalcular = document.getElementById('btnCalcular');
+      const btnLimpar = document.getElementById('btnLimpar');
+      const btnGerarPDF = document.getElementById('btnGerarPDF');
+      const btnNandaNicNoc = document.getElementById('btnNandaNicNoc');
+      const conteudoDiv = document.getElementById('conteudo');
+
+      // Escala de Bishopの日本語データ
+      const bishopData = [
+        {
+          category: "子宮頸管開大度",
+          nameAttr: "dilatacao",
+          options: [
+            { description: "0 cm", score: 0 },
+            { description: "1-2 cm", score: 1 },
+            { description: "3-4 cm", score: 2 },
+            { description: "≥ 5 cm", score: 3 }
+          ],
+          explain: "子宮頸管の開き具合をセンチメートルで測定します。開大度が高いほど、スコアが高くなります。"
+        },
+        {
+          category: "頸管展退度",
+          nameAttr: "apagamento",
+          options: [
+            { description: "0-30%", score: 0 },
+            { description: "40-50%", score: 1 },
+            { description: "60-70%", score: 2 },
+            { description: "≥ 80%", score: 3 }
+          ],
+          explain: "子宮頸管が元の長さに比べて薄く、短くなること。パーセンテージで表されます。パーセンテージが高いほど、スコアが高くなります。"
+        },
+        {
+          category: "頸管硬度",
+          nameAttr: "consistencia",
+          options: [
+            { description: "硬い", score: 0 },
+            { description: "中等度", score: 1 },
+            { description: "柔らかい", score: 2 }
+          ],
+          explain: "触診による子宮頸管の硬さを判断します。頸管が柔らかいほど、分娩の準備が整っており、成熟しているとされます。"
+        },
+        {
+          category: "子宮頸管の位置",
+          nameAttr: "posicao",
+          options: [
+            { description: "後方", score: 0 },
+            { description: "中央", score: 1 },
+            { description: "前方", score: 2 }
+          ],
+          explain: "骨盤軸に対する子宮頸管の位置。頸管が前方に位置しているほど、成熟度が高いことを示します。"
+        },
+        {
+          category: "児頭下降度",
+          nameAttr: "estacao",
+          options: [
+            { description: "-3", score: 0 },
+            { description: "-2", score: 1 },
+            { description: "-1 または 0", score: 2 },
+            { description: "+1 または +2", score: 3 }
+          ],
+          explain: "母体の坐骨棘に対する児頭の位置。ステーションはセンチメートルで測定され、0が基準点です。より下降している（+）ほど、スコアが高くなります。"
+        }
+      ];
+
+      // フォームを動的に生成
+      bishopData.forEach(item => {
+        const sectionDiv = document.createElement('div');
+        sectionDiv.className = 'bishop-criterion-section';
+        sectionDiv.id = `section-${item.nameAttr}`;
+
+        const titleH3 = document.createElement('h3');
+        titleH3.className = 'bishop-criterion-title';
+        titleH3.innerHTML = item.category + `
+              <div class="text-sm font-normal text-gray-500 mt-1">${item.explain}</div>`;
+        sectionDiv.appendChild(titleH3);
+
+        const selectElement = document.createElement('select');
+        selectElement.id = item.nameAttr;
+        selectElement.className = 'bishop-criterion-select';
+        selectElement.setAttribute('aria-label', item.category);
+
+        const defaultOption = document.createElement('option');
+        defaultOption.value = "";
+        defaultOption.text = "選択してください...";
+        selectElement.appendChild(defaultOption);
+
+        item.options.forEach(option => {
+          const optionElement = document.createElement('option');
+          optionElement.value = option.score;
+          optionElement.text = `${option.description} (点数: ${option.score})`;
+          selectElement.appendChild(optionElement);
+        });
+
+        sectionDiv.appendChild(selectElement);
+        conteudoDiv.appendChild(sectionDiv);
+      });
+
+      function calcularBishop() {
+        const selects = document.querySelectorAll('#conteudo select');
+        let allSelected = true;
+        let total = 0;
+
+        selects.forEach(select => {
+          if (select.value === "") {
+            allSelected = false;
+            select.classList.add('incomplete');
+          } else {
+            select.classList.remove('incomplete');
+            total += Number(select.value);
+          }
+        });
+
+        resultadoDiv.style.display = "block";
+        if (!allSelected) {
+          resultadoDiv.innerHTML = '⚠️ <strong class="font-bold">計算する前に、すべての項目を選択してください。</strong>';
+          resultadoDiv.classList.add('bg-red-100');
+          resultadoDiv.classList.remove('bg-yellow-100', 'bg-blue-50');
+          delete resultadoDiv.dataset.score;
+          return;
+        }
+
+        let classificacao = '';
+        let recomendacao = '';
+        let resultadoClasse = '';
+
+        if (total < 6) {
+          classificacao = '頸管未熟';
+          recomendacao = '子宮頸管は成熟していません。分娩誘発を試みる前に、頸管熟化の方法が必要となる可能性が高いです。';
+          resultadoClasse = 'bg-red-100';
+        } else if (total >= 6 && total <= 7) {
+          classificacao = '中間ゾーン';
+          recomendacao = '誘発を試みることはできますが、成功は保証されません。慎重なモニタリングが不可欠です。';
+          resultadoClasse = 'bg-yellow-100';
+        } else { // total >= 8
+          classificacao = '頸管成熟';
+          recomendacao = '子宮頸管は成熟しており、分娩誘発の成功率が高いです。自然分娩が近い可能性もあります。';
+          resultadoClasse = 'bg-blue-50';
+        }
+
+        resultadoDiv.innerHTML = `
+                <p>合計スコア: <strong class="font-bold">${total}</strong></p>
+                <p>分類: <strong class="font-bold">${classificacao}</strong></p>
+                <p class="mt-4"><strong>推奨事項:</strong> ${recomendacao}</p>
+            `;
+        resultadoDiv.className = `resultado ${resultadoClasse} p-4 rounded-lg`; // Base classes added
+        resultadoDiv.style.display = "block";
+
+        resultadoDiv.dataset.score = total;
+        resultadoDiv.dataset.scaleName = "ビショップスコア";
+        resultadoDiv.dataset.classificacao = classificacao;
+      }
+
+      function limparCampos() {
+        const selects = document.querySelectorAll('#conteudo select');
+        selects.forEach(select => {
+          select.selectedIndex = 0;
+          select.classList.remove('incomplete');
+        });
+        resultadoDiv.innerHTML = '';
+        resultadoDiv.className = 'resultado hidden';
+        delete resultadoDiv.dataset.score;
+        delete resultadoDiv.dataset.scaleName;
+        delete resultadoDiv.dataset.classificacao;
+      }
+
+      btnCalcular?.addEventListener('click', calcularBishop);
+      btnLimpar?.addEventListener('click', limparCampos);
+
+      btnGerarPDF?.addEventListener('click', () => {
+        if (!resultadoDiv.dataset.score) {
+          alert('PDFを生成する前に、まず「スコアを計算」をクリックしてください。');
+          return;
+        }
+        if (typeof gerarPDFGlobal === 'function') {
+          gerarPDFGlobal({
+            titulo: 'ビショップスコア',
+            subtitulo: '子宮頸部評価レポート',
+            nomeArquivo: 'reporte_escala_bishop.pdf',
+            seletorConteudo: '.main-content-wrapper'
+          });
+        } else {
+          console.error('gerarPDFGlobal 関数が定義されていません。');
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener('click', () => {
+        const score = resultadoDiv.dataset.score;
+        const scaleName = resultadoDiv.dataset.scaleName;
+        const classificacao = resultadoDiv.dataset.classificacao;
+        if (!score || !classificacao) {
+          alert('行動を検索するために結果を計算してください。');
+          return;
+        }
+        const searchQuery = encodeURIComponent(`${scaleName} スコア ${score} 分娩 ${classificacao} NANDA分類を生成, NIC分類を生成, NOC分類を生成`);
+        window.open(`https://www.google.com/search?q=${searchQuery}`, '_blank');
+      });
+    });
+  </script>
 
 
 

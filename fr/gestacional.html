@@ -607,7 +607,111 @@
 
 
   <!-- Script específico da página -->
-  
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const resultadoDiv = document.getElementById('resultado');
+      const btnCalcular = document.getElementById('btnCalcular');
+      const btnLimpar = document.getElementById('btnLimpar');
+      const btnPdf = document.getElementById('btnGerarPDF');
+      const btnNanda = document.getElementById('btnNandaNicNoc');
+
+      function calcular() {
+        const dumInput = document.getElementById('dum').value;
+        const resultadoDiv = document.getElementById('resultado');
+
+        resultadoDiv.className = 'resultado-quadro mt-6';
+        resultadoDiv.style.display = 'block';
+        btnPdf.setAttribute('disabled', 'true');
+        btnNanda.setAttribute('disabled', 'true');
+
+        if (!dumInput) {
+          resultadoDiv.innerHTML = '<p class="text-red-600">⚠️ <strong>Veuillez entrer la date des Dernières Règles (DDR).</strong></p>';
+          resultadoDiv.classList.add('bg-danger-red');
+          resultadoDiv.classList.remove('bg-info-orange-light', 'bg-success-green');
+          delete resultadoDiv.dataset.gestationalAge;
+          delete resultadoDiv.dataset.edd;
+          return;
+        }
+
+        const dum = new Date(dumInput + 'T00:00:00');
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        dum.setHours(0, 0, 0, 0);
+
+        if (dum > today) {
+          resultadoDiv.innerHTML = '<p class="text-red-600">⚠️ <strong>La Date des Dernières Règles (DDR) ne peut pas être future.</strong></p>';
+          resultadoDiv.classList.add('bg-danger-red');
+          resultadoDiv.classList.remove('bg-info-orange-light', 'bg-success-green');
+          delete resultadoDiv.dataset.gestationalAge;
+          delete resultadoDiv.dataset.edd;
+          return;
+        }
+
+        const diffMs = today - dum;
+        const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+        const weeks = Math.floor(diffDays / 7);
+        const days = diffDays % 7;
+
+        const edd = new Date(dum.getTime());
+        edd.setDate(edd.getDate() + 280);
+        // Formato de data em francês (ex: 21/10/2025)
+        const eddFormatted = edd.toLocaleDateString('fr-FR');
+
+        resultadoDiv.innerHTML = `
+                  <table class="w-full text-sm">
+                      <tbody>
+                          <tr>
+                              <td class="font-bold pr-2">Âge Gestationnel :</td>
+                              <td>${weeks} semaines et ${days} jours</td>
+                          </tr>
+                          <tr>
+                              <td class="font-bold pr-2">Date Prévue d'Accouchement (<abbr title="Date Prévue d'Accouchement">DPA</abbr>) :</td>
+                              <td>${eddFormatted}</td>
+                          </tr>
+                      </tbody>
+                  </table>
+              `;
+        resultadoDiv.classList.add('bg-success-green');
+        resultadoDiv.classList.remove('bg-danger-red', 'bg-info-orange-light');
+
+        resultadoDiv.dataset.gestationalAge = `${weeks} semaines et ${days} jours`;
+        resultadoDiv.dataset.edd = eddFormatted;
+        resultadoDiv.dataset.scaleName = "Calculateur d'Âge Gestationnel et DPA";
+        btnPdf.removeAttribute('disabled');
+        btnNanda.removeAttribute('disabled');
+      }
+
+      function limpar() {
+        document.getElementById('dum').value = '';
+        const resultadoDiv = document.getElementById('resultado');
+        resultadoDiv.innerHTML = '';
+        resultadoDiv.classList.add('hidden');
+        btnPdf.setAttribute('disabled', 'true');
+        btnNanda.setAttribute('disabled', 'true');
+        delete resultadoDiv.dataset.gestationalAge;
+        delete resultadoDiv.dataset.edd;
+        delete resultadoDiv.dataset.scaleName;
+      }
+
+      // Event Listeners
+      btnCalcular?.addEventListener('click', calcular);
+      btnLimpar?.addEventListener('click', limpar);
+      btnPdf?.addEventListener('click', function () {
+        // A impressão usa o recurso nativo do navegador, que traduz os cabeçalhos.
+        window.print();
+      });
+      btnNanda?.addEventListener('click', function () {
+        // Esta funcionalidade geralmente é mantida em inglês, mas o título da escala será em francês para fins de busca
+        const scaleName = resultadoDiv.dataset.scaleName;
+        if (scaleName) {
+          const searchQuery = encodeURIComponent(`${scaleName} générer taxonomie NANDA, NIC et NOC`);
+          window.open(`https://www.google.com/search?q=${searchQuery}`, '_blank');
+        } else {
+          window.open('nanda.html', '_blank'); // Abre página de busca genérica ou a página nanda se o cálculo não foi feito
+        }
+      });
+    });
+  </script>
   <script src="/lang-selector.js" defer=""></script>
 
 

@@ -694,7 +694,365 @@
 
 
 
-  
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const resultadoDiv = document.getElementById("resultado");
+      const btnCalcular = document.getElementById("btnCalcular");
+      const btnLimpar = document.getElementById("btnLimpar");
+      const btnGerarPDF = document.getElementById("btnGerarPDF");
+      const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
+      const conteudoDiv = document.getElementById("conteudo");
+
+      const meemData = [
+        {
+          domain: "시간적 방향성",
+          nameAttr: "orientacaoTemporal",
+          instructions:
+            "환자에게 다음을 질문하세요: a) 요일 (1점); b) 날짜 (1점); c) 달 (1점); d) 대략적인 시간 (1점). 올바른 답변마다 1점을 부여하세요. (최대: 5점)",
+          scoreOptions: [
+            { score: 0, description: "0개 정답" },
+            { score: 1, description: "1개 정답" },
+            { score: 2, description: "2개 정답" },
+            { score: 3, description: "3개 정답" },
+            { score: 4, description: "4개 정답" },
+            { score: 5, description: "5개 정답" },
+          ],
+        },
+        {
+          domain: "공간적 방향성",
+          nameAttr: "orientacaoEspacial",
+          instructions:
+            "환자에게 다음을 질문하세요: A) 지금 있는 곳 (1점); B) 거리 (1점); C) 지역 (1점); D) 도시 (1점); E) 주 (1점). 올바른 답변마다 1점을 부여하세요. (최대: 5점)",
+          scoreOptions: [
+            { score: 0, description: "0개 정답" },
+            { score: 1, description: "1개 정답" },
+            { score: 2, description: "2개 정답" },
+            { score: 3, description: "3개 정답" },
+            { score: 4, description: "4개 정답" },
+            { score: 5, description: "5개 정답" },
+          ],
+        },
+        {
+          domain: "등록",
+          nameAttr: "registro",
+          instructions:
+            "3개의 단어를 각각 1초 간격으로 언급하세요. 환자가 언급한 3개의 단어를 반복하도록 요청하세요. 첫 시도에서 올바르게 반복된 각 단어에 대해 1점을 부여하세요. (최대: 3점) 예: '사과, 책상, 달러'",
+          scoreOptions: [
+            { score: 0, description: "0개 단어 올바르게 반복" },
+            { score: 1, description: "1개 단어 올바르게 반복" },
+            { score: 2, description: "2개 단어 올바르게 반복" },
+            { score: 3, description: "3개 단어 올바르게 반복" },
+          ],
+        },
+        {
+          domain: "주의력 및 계산",
+          nameAttr: "atencaoCalculo",
+          instructions:
+            "먼저 환자에게 뺄셈을 할 수 있는지 물어보세요. 만약 할 수 있다면, 환자에게 100에서 7을 빼도록 요청하고 (93), 결과를 계속 7로 빼도록 하세요... 93에서 7 (86)... 86에서 7 (79)... 79에서 7 (72)... 72에서 7 (65)... 65에서 7 (58).... 올바른 뺄셈마다 1점을 부여하세요. (최대: 5점)",
+          scoreOptions: [
+            { score: 0, description: "0개 정답 뺄셈" },
+            { score: 1, description: "1개 정답 뺄셈" },
+            { score: 2, description: "2개 정답 뺄셈" },
+            { score: 3, description: "3개 정답 뺄셈" },
+            { score: 4, description: "4개 정답 뺄셈" },
+            { score: 5, description: "5개 정답 뺄셈" },
+          ],
+        },
+        {
+          domain: "회상 기억",
+          nameAttr: "memoriaEvocacao",
+          instructions:
+            "3번 항목(등록)에서 언급된 3개의 학습된 단어의 이름을 물어보세요. 올바르게 회상된 각 단어에 대해 1점을 부여하세요. (최대: 3점)",
+          scoreOptions: [
+            { score: 0, description: "0개 단어 올바르게 회상" },
+            { score: 1, description: "1개 단어 올바르게 회상" },
+            { score: 2, description: "2개 단어 올바르게 회상" },
+            { score: 3, description: "3개 단어 올바르게 회상" },
+          ],
+        },
+        {
+          domain: "언어 (명명)",
+          nameAttr: "nomeacao",
+          instructions:
+            "펜과 시계를 가리키며 환자에게 가리키는 물체의 이름을 말하도록 요청하세요. 올바르게 명명된 각 물체에 대해 1점을 부여하세요. (최대: 2점)",
+          scoreOptions: [
+            { score: 0, description: "0개 물체 올바르게 명명" },
+            { score: 1, description: "1개 물체 올바르게 명명" },
+            { score: 2, description: "2개 물체 올바르게 명명" },
+          ],
+        },
+        {
+          domain: "언어 (반복)",
+          nameAttr: "repeticao",
+          instructions:
+            "환자에게 다음 문장을 반복하도록 요청하세요: '여기도, 저기도, 거기도'. 올바르게 반복하면 1점을 부여하세요. (최대: 1점)",
+          scoreOptions: [
+            { score: 0, description: "올바르게 반복하지 않음" },
+            { score: 1, description: "올바르게 반복함" },
+          ],
+        },
+        {
+          domain: "언어 (이해)",
+          nameAttr: "compreensao",
+          instructions:
+            "환자가 주어진 명령을 수행해야 합니다... 환자에게 종이一块를 주고 말하세요: '이 종이를 오른쪽 손으로 잡고 (1점), 반으로 접고 (1점), 바닥에 놓으세요 (1점)'. 올바른 각 단계마다 1점을 부여하세요. (최대: 3점)",
+          scoreOptions: [
+            { score: 0, description: "0개 단계 정답" },
+            { score: 1, description: "1개 단계 정답" },
+            { score: 2, description: "2개 단계 정답" },
+            { score: 3, description: "3개 단계 정답" },
+          ],
+        },
+        {
+          domain: "언어 (쓰기)",
+          nameAttr: "escrita",
+          instructions:
+            "환자에게 의미가 있는 완전한 문장을 쓰도록 요청하세요. 문장에 의미가 있으면 1점을 부여하세요. (최대: 1점)",
+          scoreOptions: [
+            { score: 0, description: "의미 있는 문장 작성하지 않음" },
+            { score: 1, description: "의미 있는 문장 작성함" },
+          ],
+        },
+        {
+          domain: "언어 (읽기)",
+          nameAttr: "leitura",
+          instructions:
+            "종이에 다음을 쓰세요: '눈을 감으세요', 환자에게 종이를 건네고 지시사항을 읽고 실행하도록 요청하세요: '눈을 감으세요'. 읽고 올바르게 실행하면 1점을 부여하세요. (최대: 1점)",
+          scoreOptions: [
+            { score: 0, description: "읽지 않았거나 올바르게 실행하지 않음" },
+            { score: 1, description: "읽고 올바르게 실행함" },
+          ],
+        },
+        {
+          domain: "구성적praxia",
+          nameAttr: "praxiaConstrutiva",
+          instructions:
+            "서로挨挨 있는 두 개의 오각형을 그리고, 환자에게 보여주고 종이에 복사하도록 요청하세요. 올바르게 복사하면 1점을 부여하세요. (최대: 1점)",
+          type: "image",
+          imageSrc: "pentagono.webp",
+          scoreOptions: [
+            { score: 0, description: "올바르게 복사하지 않음" },
+            { score: 1, description: "올바르게 복사함" },
+          ],
+        },
+      ];
+
+      // --- MEEM 계산기 기능 ---
+      function updateScoreDisplay(criterionId) {
+        const selectElement = document.getElementById(criterionId);
+        const scoreDisplayElement = document.getElementById(
+          `${criterionId}_score_display`,
+        );
+        if (selectElement && scoreDisplayElement) {
+          scoreDisplayElement.innerText =
+            selectElement.value === "" ? "0" : selectElement.value;
+        }
+      }
+
+      function calcularPontuacao() {
+        let totalScore = 0;
+        let allItemsSelected = true;
+
+        meemData.forEach((item) => {
+          const selectElement = document.getElementById(item.nameAttr);
+          if (selectElement.value === "") {
+            allItemsSelected = false;
+          } else {
+            totalScore += parseInt(selectElement.value, 10);
+          }
+        });
+
+        resultadoDiv.style.display = "block";
+        if (!allItemsSelected) {
+          resultadoDiv.innerHTML =
+            '⚠️ <strong class="font-bold">계산하기 전에 각 항목에 대해 점수를 선택해 주세요.</strong>';
+          resultadoDiv.className = "resultado bg-info-orange-light";
+          delete resultadoDiv.dataset.score;
+          return;
+        }
+
+        let classificacao = "";
+        let resultadoClasse = "";
+
+        if (totalScore >= 25) {
+          classificacao = "이 테스트에서는 인지 손상이 검출되지 않음";
+          resultadoClasse = "bg-meem-normal";
+        } else if (totalScore >= 21 && totalScore <= 24) {
+          classificacao = "이 테스트에서 가벼운 인지 손상이 발견됨";
+          resultadoClasse = "bg-meem-leve";
+        } else if (totalScore >= 10 && totalScore <= 20) {
+          classificacao = "이 테스트에서 중간 정도의 인지 손상이 발견됨";
+          resultadoClasse = "bg-meem-moderado";
+        } else if (totalScore >= 0 && totalScore <= 9) {
+          classificacao = "이 테스트에서 심한 인지 손상이 발견됨";
+          resultadoClasse = "bg-meem-grave";
+        } else {
+          classificacao = "無効なスコア";
+          resultadoClasse = "bg-info-orange-light";
+        }
+
+        resultadoDiv.innerHTML = `<p>MEEM 총 점수: <strong class="font-bold">${totalScore}</strong></p><p>분류: <strong class="font-bold">${classificacao}</strong></p>`;
+        resultadoDiv.className = `resultado ${resultadoClasse}`;
+
+        resultadoDiv.dataset.score = totalScore;
+        resultadoDiv.dataset.classificacao = classificacao;
+        resultadoDiv.dataset.scaleName = "간단한 정신 상태 검사 (MEEM)";
+      }
+
+      function limparCampos() {
+        meemData.forEach((item) => {
+          const selectElement = document.getElementById(item.nameAttr);
+          selectElement.selectedIndex = 0;
+          document.getElementById(
+            `${item.nameAttr}_score_display`,
+          ).innerText = "0";
+        });
+        resultadoDiv.innerHTML = "";
+        resultadoDiv.className = "resultado hidden";
+        delete resultadoDiv.dataset.score;
+        delete resultadoDiv.dataset.classificacao;
+        delete resultadoDiv.dataset.scaleName;
+      }
+
+      // 폼을 동적으로 채우기
+      meemData.forEach((item, index) => {
+        const sectionDiv = document.createElement("div");
+        sectionDiv.className = "meem-criterion-card";
+
+        const headerDiv = document.createElement("div");
+        headerDiv.className = "meem-criterion-header";
+
+        const titleH3 = document.createElement("h3");
+        titleH3.className = "meem-criterion-title";
+        titleH3.innerText = item.domain;
+        headerDiv.appendChild(titleH3);
+
+        const scoreSpan = document.createElement("span");
+        scoreSpan.className = "meem-score-display";
+        scoreSpan.id = `${item.nameAttr}_score_display`;
+        scoreSpan.innerText = "0";
+        headerDiv.appendChild(scoreSpan);
+
+        sectionDiv.appendChild(headerDiv);
+
+        const instructionsP = document.createElement("p");
+        instructionsP.className = "text-gray-700 mb-4 text-left";
+        instructionsP.innerText = item.instructions;
+        sectionDiv.appendChild(instructionsP);
+
+        if (item.type === "image" && item.imageSrc) {
+          const imgDiv = document.createElement("div");
+          imgDiv.className = "image-cell mb-4 text-center";
+          const img = document.createElement("img");
+          img.src = item.imageSrc;
+          img.alt = `${item.domain}용 다이어그램`;
+          img.classList.add(
+            "w-auto",
+            "h-auto",
+            "max-w-[200px]",
+            "mx-auto",
+            "rounded-md",
+            "shadow-sm",
+          );
+          imgDiv.appendChild(img);
+          sectionDiv.appendChild(imgDiv);
+        }
+
+        const optionsDiv = document.createElement("div");
+        optionsDiv.className = "meem-criterion-options";
+
+        const selectElement = document.createElement("select");
+        selectElement.id = item.nameAttr;
+        selectElement.className = "meem-select";
+        selectElement.onchange = () => updateScoreDisplay(item.nameAttr);
+
+        const defaultOption = document.createElement("option");
+        defaultOption.value = "";
+        defaultOption.text = "선택하세요...";
+        defaultOption.disabled = true;
+        defaultOption.selected = true;
+        selectElement.appendChild(defaultOption);
+
+        item.scoreOptions.forEach((option) => {
+          const optionElement = document.createElement("option");
+          optionElement.value = option.score;
+          optionElement.text = `${option.description} (${option.score})`;
+          selectElement.appendChild(optionElement);
+        });
+
+        optionsDiv.appendChild(selectElement);
+        sectionDiv.appendChild(optionsDiv);
+        conteudoDiv.appendChild(sectionDiv);
+      });
+
+      // 버튼에 이벤트 리스너 추가
+      btnCalcular?.addEventListener("click", calcularPontuacao);
+      btnLimpar?.addEventListener("click", limparCampos);
+
+      btnGerarPDF?.addEventListener("click", () => {
+        if (!resultadoDiv.dataset.score) {
+          alert('PDF 생성을 위해 먼저 "계산하기"를 클릭해 주세요.');
+          return;
+        }
+        if (typeof gerarPDFGlobal === "function") {
+          gerarPDFGlobal({
+            titulo: "간단한 정신 상태 검사 (MEEM)",
+            subtitulo: "인지 선별 검사 보고서",
+            nomeArquivo: "relatorio_escala_meem.pdf",
+            seletorConteudo: ".main-content-wrapper",
+          });
+        } else {
+          console.error("gerarPDFGlobal 함수가 정의되지 않았습니다.");
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener("click", () => {
+        const score = resultadoDiv.dataset.score;
+        const scaleName = resultadoDiv.dataset.scaleName;
+        const classificacao = resultadoDiv.dataset.classificacao;
+        if (!score || !classificacao) {
+          alert("조치를 검색하려면 결과를 계산해 주세요.");
+          return;
+        }
+        const searchQuery = encodeURIComponent(
+          `${scaleName} 점수 ${score} 분류 ${classificacao} NANDA 분류법 생성, NIC 분류법 생성, NOC 분류법 생성`,
+        );
+        window.open(
+          `https://www.google.com/search?q=${searchQuery}`,
+          "_blank",
+        );
+      });
+      // "즐겨찾기에 추가" 버튼
+      const addFavoriteBtn = document.getElementById("addFavoriteBtn");
+      if (addFavoriteBtn) {
+        addFavoriteBtn.addEventListener("click", () => {
+          const url = window.location.href;
+          const title = "Meem 척도";
+
+          try {
+            // IE/Edge 레거시
+            if (window.external && "AddFavorite" in window.external) {
+              window.external.AddFavorite(url, title);
+              return;
+            }
+            // 구식 Firefox
+            if (window.sidebar && window.sidebar.addPanel) {
+              window.sidebar.addPanel(title, url, "");
+              return;
+            }
+            // 현대 Chrome/Firefox: 단축키 지침
+            alert(
+              "이 페이지를 즐겨찾기에 추가하려면 Ctrl + D (Mac에서는 Cmd + D)를 누르세요.",
+            );
+          } catch (e) {
+            alert(
+              "이 페이지를 즐겨찾기에 추가하려면 Ctrl + D (Mac에서는 Cmd + D)를 누르세요.",
+            );
+          }
+        });
+      }
+    });
+  </script>
 
   <script src="/lang-selector.js" defer=""></script>
 

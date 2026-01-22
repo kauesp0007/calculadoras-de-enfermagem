@@ -616,7 +616,135 @@
 
 
 
-  
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const resultadoDiv = document.getElementById('resultado');
+      const conteudoDiv = document.getElementById('conteudo');
+      const btnCalcular = document.getElementById('btnCalcular');
+      const btnLimpar = document.getElementById('btnLimpar');
+      const btnGerarPDF = document.getElementById('btnGerarPDF');
+      const btnNandaNicNoc = document.getElementById('btnNandaNicNoc');
+
+      const barthelData = [
+        { activity: "भोजन", nameAttr: "alimentacao", options: [{ score: 10, description: "स्वतंत्र" }, { score: 5, description: "काटने आदि के लिए सहायता चाहिए।" }, { score: 0, description: "अक्षम" }] },
+        { activity: "स्नान", nameAttr: "banho", options: [{ score: 5, description: "स्वतंत्र" }, { score: 0, description: "निर्भर" }] },
+        { activity: "व्यक्तिगत स्वच्छता", nameAttr: "higienePessoal", options: [{ score: 5, description: "स्वतंत्र (चेहरा/बाल/दांत/दाढ़ी बनाना)" }, { score: 0, description: "सहायता चाहिए" }] },
+        { activity: "कपड़े पहनना", nameAttr: "vestir", options: [{ score: 10, description: "स्वतंत्र" }, { score: 5, description: "सहायता चाहिए" }, { score: 0, description: "निर्भर" }] },
+        { activity: "आंत्र नियंत्रण", nameAttr: "controleIntestino", options: [{ score: 10, description: "संयमी" }, { score: 5, description: "कभी-कभी दुर्घटना" }, { score: 0, description: "असंयमी" }] },
+        { activity: "मूत्राशय नियंत्रण", nameAttr: "controleBexiga", options: [{ score: 10, description: "संयमी" }, { score: 5, description: "कभी-कभी दुर्घटना" }, { score: 0, description: "असंयमी" }] },
+        { activity: "शौचालय का उपयोग", nameAttr: "usoToilet", options: [{ score: 10, description: "स्वतंत्र" }, { score: 5, description: "सहायता चाहिए" }, { score: 0, description: "निर्भर" }] },
+        { activity: "स्थानांतरण", nameAttr: "transferencia", options: [{ score: 15, description: "स्वतंत्र" }, { score: 10, description: "न्यूनतम सहायता" }, { score: 5, description: "अधिकतम सहायता" }, { score: 0, description: "अक्षम" }] },
+        { activity: "गतिशीलता", nameAttr: "mobilidade", options: [{ score: 15, description: "स्वतंत्र > 50 मीटर" }, { score: 10, description: "सहायता से चलता है > 50 मीटर" }, { score: 5, description: "व्हीलचेयर स्वतंत्र > 50 मीटर" }, { score: 0, description: "स्थिर" }] },
+        { activity: "सीढ़ियां चढ़ना", nameAttr: "escadas", options: [{ score: 10, description: "स्वतंत्र" }, { score: 5, description: "सहायता चाहिए" }, { score: 0, description: "अक्षम" }] }
+      ];
+
+      function createForm() {
+        conteudoDiv.innerHTML = ''; // Limpa o conteúdo existente
+        barthelData.forEach(activityGroup => {
+          const card = document.createElement('div');
+          card.className = 'barthel-criterion-card';
+
+          card.innerHTML = `
+                    <h3 class="barthel-criterion-title">${activityGroup.activity}</h3>
+                    <div class="barthel-options-container">
+                        <select id="${activityGroup.nameAttr}-select" class="barthel-select" data-name="${activityGroup.nameAttr}">
+                            <option value="" disabled selected>एक विकल्प चुनें...</option>
+                            ${activityGroup.options.map(opt => `<option value="${opt.score}">${opt.description} (${opt.score})</option>`).join('')}
+                        </select>
+                    </div>
+                `;
+          conteudoDiv.appendChild(card);
+        });
+      }
+
+      function calcular() {
+        let totalScore = 0;
+        let allSelected = true;
+
+        barthelData.forEach(activityGroup => {
+          const select = document.getElementById(`${activityGroup.nameAttr}-select`);
+          if (select && select.value !== "") {
+            totalScore += parseInt(select.value, 10);
+          } else {
+            allSelected = false;
+          }
+        });
+
+        if (!allSelected) {
+          resultadoDiv.innerHTML = '⚠️ <strong class="font-bold">कृपया, प्रत्येक गतिविधि के लिए एक विकल्प चुनें।</strong>';
+          resultadoDiv.className = 'standard-result-box bg-info-orange-light';
+          resultadoDiv.style.display = 'block';
+          delete resultadoDiv.dataset.score;
+          return;
+        }
+
+        let classificacao = "";
+        let classificacaoHindi = "";
+        if (totalScore === 100) { classificacao = "Independência Total"; classificacaoHindi = "पूर्ण स्वतंत्रता"; }
+        else if (totalScore >= 91) { classificacao = "Dependência Leve"; classificacaoHindi = "हल्की निर्भरता"; }
+        else if (totalScore >= 61) { classificacao = "Dependência Moderada"; classificacaoHindi = "मध्यम निर्भरता"; }
+        else if (totalScore >= 21) { classificacao = "Dependência Grave"; classificacaoHindi = "गंभीर निर्भरता"; }
+        else { classificacao = "Dependência Completa"; classificacaoHindi = "पूर्ण निर्भरता"; }
+
+        resultadoDiv.innerHTML = `
+                <p class="font-bold text-lg">कुल स्कोर: <span class="font-black">${totalScore} / 100</span></p>
+                <p class="font-bold text-lg">वर्गीकरण: <span class="font-black">${classificacaoHindi}</span></p>
+            `;
+        resultadoDiv.className = 'standard-result-box';
+        resultadoDiv.style.display = 'block';
+        resultadoDiv.dataset.score = totalScore;
+        resultadoDiv.dataset.classificacao = classificacao;
+      }
+
+      function limpar() {
+        createForm(); // Recria o formulário para resetar os selects
+        resultadoDiv.innerHTML = '';
+        resultadoDiv.className = 'hidden';
+        delete resultadoDiv.dataset.score;
+        delete resultadoDiv.dataset.classificacao;
+      }
+
+      createForm();
+      btnCalcular?.addEventListener('click', calcular);
+      btnLimpar?.addEventListener('click', limpar);
+
+      btnGerarPDF?.addEventListener('click', () => {
+        if (resultadoDiv.dataset.score === undefined) {
+          alert('पीडीएफ जनरेट करने के लिए, कृपया पहले "गणना करें" पर क्लिक करें।');
+          return;
+        }
+        if (typeof gerarPDFGlobal === 'function') {
+          gerarPDFGlobal({
+            titulo: 'बार्थेल स्केल',
+            subtitulo: 'कार्यात्मक निर्भरता रिपोर्ट',
+            nomeArquivo: 'relatorio_escala_barthel_hi.pdf',
+            seletorConteudo: '.main-content-wrapper'
+          });
+        } else {
+          console.error('Função gerarPDFGlobal não definida।');
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener('click', () => {
+        const classificacao = resultadoDiv.dataset.classificacao;
+        if (!classificacao) {
+          alert('आचरण की खोज के लिए परिणाम की गणना करें।');
+          return;
+        }
+        // Mapeia a classificação em Português para uso na query em Hindi (ou usa a tradução como base)
+        let classificacaoQuery = "";
+        if (classificacao === "Independência Total") classificacaoQuery = "पूर्ण स्वतंत्र";
+        else if (classificacao === "Dependência Leve") classificacaoQuery = "हल्की निर्भरता";
+        else if (classificacao === "Dependência Moderada") classificacaoQuery = "मध्यम निर्भरता";
+        else if (classificacao === "Dependência Grave") classificacaoQuery = "गंभीर निर्भरता";
+        else if (classificacao === "Dependência Completa") classificacaoQuery = "पूर्ण निर्भरता";
+        else classificacaoQuery = classificacao;
+
+        const searchQuery = encodeURIComponent(`बार्थेल स्केल में ${classificacaoQuery} वाले रोगी के लिए NANDA, NIC और NOC वर्गीकरण`);
+        window.open(`https://www.google.com/search?q=${searchQuery}`, '_blank');
+      });
+    });
+  </script>
 
 
 

@@ -569,7 +569,101 @@
 
 
 
-  
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const resultadoDiv = document.getElementById('resultado');
+      const btnCalcular = document.getElementById('btnCalcular');
+      const btnLimpar = document.getElementById('btnLimpar');
+      const conteudoDiv = document.getElementById('conteudo');
+
+      const lawtonData = [
+        { category: "Uso del telefono", nameAttr: "telefono", options: [{ description: "Usa il telefono di propria iniziativa", score: 1 }, { description: "Compone numeri familiari", score: 1 }, { description: "Risponde al telefono, ma non compone", score: 1 }, { description: "Non usa affatto il telefono", score: 0 }] },
+        { category: "Acquisti", nameAttr: "acquisti", options: [{ description: "Fa tutti gli acquisti necessari in modo indipendente", score: 1 }, { description: "Fa piccoli acquisti in modo indipendente", score: 0 }, { description: "Deve essere accompagnato per qualsiasi acquisto", score: 0 }, { description: "Incapace di fare acquisti", score: 0 }] },
+        { category: "Preparazione dei pasti", nameAttr: "pasti", options: [{ description: "Pianifica, prepara e serve pasti completi", score: 1 }, { description: "Prepara i pasti se gli ingredienti sono forniti", score: 0 }, { description: "Prepara solo pasti leggeri", score: 0 }, { description: "Incapace di preparare i pasti", score: 0 }] },
+        { category: "Cura della casa", nameAttr: "cura_casa", options: [{ description: "Mantiene la casa da solo o con aiuto occasionale", score: 1 }, { description: "Svolge solo lavori leggeri", score: 1 }, { description: "Non partecipa attivamente ai lavori domestici", score: 0 }, { description: "Necessita di aiuto totale per la cura della casa", score: 0 }] },
+        { category: "Lavaggio della biancheria", nameAttr: "lavaggio_biancheria", options: [{ description: "Lava i propri vestiti in modo indipendente", score: 1 }, { description: "Lava solo piccoli capi", score: 1 }, { description: "Necessita che qualcun altro lavi i suoi vestiti", score: 0 }] },
+        { category: "Spostamenti/Uso dei trasporti", nameAttr: "spostamenti", options: [{ description: "Viaggia autonomamente con i mezzi pubblici o guida la propria auto", score: 1 }, { description: "Usa taxi o mezzi pubblici con l'aiuto di un'altra persona", score: 1 }, { description: "Viaggia solo in auto privata con l'aiuto di un'altra persona", score: 1 }, { description: "Incapace di viaggiare", score: 0 }] },
+        { category: "Gestione dei farmaci", nameAttr: "farmaci", options: [{ description: "È responsabile della propria terapia farmacologica", score: 1 }, { description: "Assume i farmaci solo se preparati da altri", score: 0 }, { description: "Incapace di assumere farmaci", score: 0 }] },
+        { category: "Gestione delle finanze", nameAttr: "finanze", options: [{ description: "Gestisce le finanze in modo indipendente (banche, conti, ecc.)", score: 1 }, { description: "Gestisce piccoli acquisti, ma necessita di aiuto con le banche", score: 1 }, { description: "Incapace di gestire il denaro", score: 0 }] }
+      ];
+
+      lawtonData.forEach(item => {
+        const sectionDiv = document.createElement('div');
+        sectionDiv.className = 'lawton-criterion-section';
+        sectionDiv.innerHTML = `
+                <h3 class="lawton-criterion-title">${item.category}</h3>
+                <select id="${item.nameAttr}" class="lawton-criterion-select">
+                    <option value="" disabled selected>Seleziona...</option>
+                    ${item.options.map(o => `<option value="${o.score}">${o.description}</option>`).join('')}
+                </select>`;
+        conteudoDiv.appendChild(sectionDiv);
+      });
+
+      function calcolaLawton() {
+        let total = 0;
+        let allSelected = true;
+        document.querySelectorAll('#conteudo select').forEach(select => {
+          select.classList.remove('incomplete');
+          if (select.value === "") {
+            allSelected = false;
+            select.classList.add('incomplete');
+          } else {
+            total += Number(select.value);
+          }
+        });
+
+        resultadoDiv.style.display = "block";
+        if (!allSelected) {
+          resultadoDiv.innerHTML = '⚠️ <strong class="font-bold">Per favore, seleziona un\'opzione per tutte le voci.</strong>';
+          resultadoDiv.className = 'resultado bg-red-100';
+          return;
+        }
+
+        let raccomandazione = (total < 8) ? 'Il punteggio suggerisce un grado di dipendenza per lo svolgimento delle attività strumentali della vita quotidiana (IADL). Si raccomanda una valutazione più approfondita.' : 'Il punteggio suggerisce un grado di indipendenza per lo svolgimento della maggior parte delle attività strumentali della vita quotidiana (IADL).';
+
+        resultadoDiv.innerHTML = `<p>Punteggio totale: <strong class="font-bold">${total}</strong></p><p class="mt-4"><strong>Raccomandazione:</strong> ${raccomandazione}</p>`;
+        resultadoDiv.className = 'resultado';
+        resultadoDiv.dataset.score = total;
+      }
+
+      function pulisciCampi() {
+        document.querySelectorAll('#conteudo select').forEach(select => {
+          select.selectedIndex = 0;
+          select.classList.remove('incomplete');
+        });
+        resultadoDiv.style.display = 'none';
+        delete resultadoDiv.dataset.score;
+      }
+
+      btnCalcular?.addEventListener('click', calcolaLawton);
+      btnLimpar?.addEventListener('click', pulisciCampi);
+
+      document.getElementById('btnGerarPDF')?.addEventListener('click', () => {
+        if (!resultadoDiv.dataset.score) {
+          alert('Per favore, calcola prima il punteggio per generare il PDF.');
+          return;
+        }
+        if (typeof gerarPDFGlobal === 'function') {
+          gerarPDFGlobal({
+            titulo: 'Scala di Lawton',
+            subtitulo: 'Rapporto di Valutazione delle IADL',
+            nomeArquivo: 'rapporto_scala_lawton.pdf',
+            seletorConteudo: '.main-content-wrapper'
+          });
+        }
+      });
+
+      document.getElementById('btnNandaNicNoc')?.addEventListener('click', () => {
+        const score = resultadoDiv.dataset.score;
+        if (!score) {
+          alert('Calcola il risultato per cercare la condotta.');
+          return;
+        }
+        const searchQuery = encodeURIComponent(`punteggio scala di Lawton ${score} assistenza infermieristica anziano NANDA NIC NOC`);
+        window.open(`https://www.google.com/search?q=${searchQuery}`, '_blank');
+      });
+    });
+  </script>
 
 
 

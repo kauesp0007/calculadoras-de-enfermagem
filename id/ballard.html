@@ -553,7 +553,415 @@
 
 
 
-  
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const resultadoDiv = document.getElementById("resultado");
+      const btnCalcular = document.getElementById("btnCalcular");
+      const btnLimpar = document.getElementById("btnLimpar");
+      const btnGerarPDF = document.getElementById("btnGerarPDF");
+      const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
+      const conteudoDiv = document.getElementById("conteudo");
+
+      const ballardData = [
+        {
+          category: "Kematangan Neuromuskular",
+          items: [
+            {
+              title: "Postur",
+              nameAttr: "postura",
+              explain:
+                "Mengevaluasi tingkat fleksi anggota badan ketika bayi dalam keadaan istirahat. Bayi yang lebih matur menunjukkan postur lebih fleksi (anggota badan dalam posisi fleksi).",
+              options: [
+                { description: "Ekstensi total", score: -1 },
+                { description: "Fleksi ringan / parsial", score: 0 },
+                { description: "Fleksi sedang", score: 1 },
+                { description: "Fleksi baik", score: 2 },
+                { description: "Fleksi kuat", score: 3 },
+                { description: "Fleksi total (sangat matur)", score: 4 },
+              ],
+            },
+            {
+              title: "Sudut Pergelangan Tangan (Square Window)",
+              nameAttr: "square_window",
+              explain:
+                "Mengevaluasi fleksi pergelangan tangan ketika tangan ditekuk ke lengan bawah. Sudut yang lebih kecil (tangan lebih dekat dengan lengan bawah) menunjukkan kematangan yang lebih tinggi.",
+              options: [
+                { description: "< 90°", score: -1 },
+                { description: " 90°", score: 0 },
+                { description: " 60°", score: 1 },
+                { description: " 45°", score: 2 },
+                { description: " 30°", score: 3 },
+                { description: "0° (sangat dekat)", score: 4 },
+              ],
+            },
+            {
+              title: "Retraksi Lengan (Arm Recoil)",
+              nameAttr: "arm_recoil",
+              explain:
+                "Mengevaluasi kecepatan dan intensitas pemulihan lengan setelah direntangkan dan dilepaskan. Semakin cepat dan vigoros pemulihan, semakin tinggi kematangan neuromuskular.",
+              options: [
+                { description: "Tanpa pemulihan", score: 0 },
+                { description: "Pemulihan lambat", score: 1 },
+                { description: "Pemulihan parsial", score: 2 },
+                { description: "Pemulihan cepat", score: 3 },
+                { description: "Pemulihan lengkap dan vigoros", score: 4 },
+              ],
+            },
+            {
+              title: "Sudut Popliteal",
+              nameAttr: "popliteo",
+              explain:
+                "Mengevaluasi tingkat resistensi ketika merentangkan anggota badan bawah. Sudut yang lebih kecil (fleksi lebih besar) menunjukkan kematangan yang lebih tinggi.",
+              options: [
+                { description: "180°", score: -1 },
+                { description: "160°", score: 0 },
+                { description: "140°", score: 1 },
+                { description: "120°", score: 2 },
+                { description: "100°", score: 3 },
+                { description: "90°", score: 4 },
+                { description: "< 90°", score: 5 },
+              ],
+            },
+            {
+              title: "Tanda Scarf (Scarf Sign)",
+              nameAttr: "scarf",
+              explain:
+                "Ketika menarik satu lengan melintang di dada, amati seberapa jauh siku melintasi garis tengah tubuh. Semakin kecil persilangan, semakin tinggi kematangan.",
+              options: [
+                { description: "Siku melintasi garis tengah", score: -1 },
+                { description: "Siku di garis tengah", score: 0 },
+                { description: "Siku dekat dengan bahu", score: 1 },
+                { description: "Siku tidak mencapai bahu", score: 2 },
+                { description: "Siku sangat jauh dari bahu", score: 3 },
+              ],
+            },
+            {
+              title: "Tumit → Telinga (Heel to Ear)",
+              nameAttr: "heel_to_ear",
+              explain:
+                "Ketika mendekatkan tumit ke telinga, amati resistensi. Resistensi lebih tinggi = kematangan lebih tinggi.",
+              options: [
+                {
+                  description: "Kaki mencapai telinga dengan mudah",
+                  score: -1,
+                },
+                { description: "Kaki dekat dengan telinga", score: 0 },
+                { description: "Resistensi sedang", score: 1 },
+                { description: "Resistensi baik", score: 2 },
+                { description: "Kaki jauh dari telinga", score: 3 },
+                { description: "Resistensi kuat (sangat matur)", score: 4 },
+              ],
+            },
+          ],
+        },
+        {
+          category: "Kematangan Fisik",
+          items: [
+            {
+              title: "Kulit",
+              nameAttr: "pele",
+              explain:
+                "Mengevaluasi tekstur kulit: dari halus dan tembus pandang pada prematur hingga tebal, kering dan retak pada bayi post-term.",
+              options: [
+                {
+                  description: "Lengket, tembus pandang (sangat immatur)",
+                  score: -1,
+                },
+                { description: "Berjeli / halus", score: 0 },
+                { description: "homogen dan vena terlihat", score: 1 },
+                { description: "Lebih tebal, sedikit retakan", score: 2 },
+                { description: "Tebal, retak", score: 3 },
+                {
+                  description:
+                    "Tebal, kering dengan retakan dalam (post-term)",
+                  score: 4,
+                },
+              ],
+            },
+            {
+              title: "Lanugo",
+              nameAttr: "lanugo",
+              explain:
+                "Mengevaluasi kehadiran dan distribusi lanugo (rambut halus). Pada prematur melimpah; pada bayi yang lebih matur cenderung berkurang dan menghilang.",
+              options: [
+                { description: "Tidak ada (sangat post-term)", score: -1 },
+                { description: "Jarang", score: 0 },
+                { description: "Melimpah", score: 1 },
+                {
+                  description: "Halus (karakteristik prematuritas)",
+                  score: 2,
+                },
+                { description: "Area tanpa rambut", score: 3 },
+                {
+                  description: "Hampir tidak ada (sangat immatur)",
+                  score: 4,
+                },
+              ],
+            },
+            {
+              title: "Lipatan Plantar",
+              nameAttr: "plantares",
+              explain:
+                "Mengevaluasi lipatan di telapak kaki: prematur memiliki sedikit lipatan; bayi matur memiliki lipatan dalam yang menutupi seluruh telapak.",
+              options: [
+                { description: "Tidak ada / sangat dangkal", score: -1 },
+                { description: "Tanda di bagian anterior", score: 0 },
+                { description: "Hasta setengah telapak", score: 1 },
+                { description: "Hasta 2/3", score: 2 },
+                { description: "Lipatan di seluruh telapak", score: 3 },
+                { description: "Lipatan dalam dan jelas", score: 4 },
+              ],
+            },
+            {
+              title: "Susu",
+              nameAttr: "mamas",
+              explain:
+                "Amati ukuran tunas susu dan areola. Pada bayi yang lebih matur, kelenjar dan areola lebih besar dan lebih menonjol.",
+              options: [
+                { description: "Tidak terlihat", score: -1 },
+                { description: "Sedikit terlihat", score: 0 },
+                { description: "Areola datar, tunas kecil", score: 1 },
+                {
+                  description: "Areola sebagian terangkat 1–2 mm kelenjar",
+                  score: 2,
+                },
+                {
+                  description: "Areola tepi terangkat 3–4 mm kelenjar",
+                  score: 3,
+                },
+                { description: "tepi terangkat 5–10 mm kelenjar", score: 4 },
+              ],
+            },
+            {
+              title: "Mata dan Telinga",
+              nameAttr: "olhos_orelhas",
+              explain:
+                "Mengevaluasi kekerasan kartilago telinga dan pembentukan kelopak mata. Telinga yang lebih keras dan pavilion yang terbentuk dengan baik menunjukkan kematangan lebih tinggi.",
+              options: [
+                {
+                  description: "Kartilago lunak / kelopak mata menyatu",
+                  score: -1,
+                },
+                { description: "Kekerasan sebagian", score: 0 },
+                { description: "Kekerasan sedang", score: 1 },
+                { description: "Kekerasan baik", score: 2 },
+                { description: "Kekerasan lengkap", score: 3 },
+              ],
+            },
+            {
+              title: "Genitalia",
+              nameAttr: "genitalia",
+              explain:
+                "Mengevaluasi perkembangan genital: pada laki-laki amati posisi dan kekasaran skrotum / pada perempuan, tonjolan klitoris dan ukuran bibir. Menunjukkan kematangan seksual/neonatal.",
+              options: [
+                {
+                  description:
+                    "Laki-laki: testis tidak turun; Perempuan: bibir datar",
+                  score: -1,
+                },
+                {
+                  description:
+                    "Laki-laki: sebagian turun; Perempuan: bibir kecil",
+                  score: 0,
+                },
+                {
+                  description:
+                    "Laki-laki: testis di kantung; Perempuan: bibir menorah jelas",
+                  score: 1,
+                },
+                {
+                  description:
+                    "Laki-laki: skrotum kasar; Perempuan: bibir menorah dan mayor sama-sama menonjol",
+                  score: 2,
+                },
+                { description: "Genitalia sepenuhnya matur", score: 3 },
+              ],
+            },
+          ],
+        },
+      ];
+
+      // Mengisi form secara dinamis
+      ballardData.forEach((section) => {
+        const sectionDiv = document.createElement("div");
+        sectionDiv.className = "ballard-criterion-section";
+
+        const titleH3 = document.createElement("h3");
+        titleH3.className = "ballard-criterion-title";
+        titleH3.innerText = section.category;
+        sectionDiv.appendChild(titleH3);
+
+        const groupDiv = document.createElement("div");
+        groupDiv.className = "ballard-criterion-group";
+
+        section.items.forEach((item) => {
+          const itemDiv = document.createElement("div");
+          itemDiv.id = `item-${item.nameAttr}`;
+          itemDiv.className = "ballard-criterion-item";
+
+          const itemTitle = document.createElement("h4");
+          itemTitle.className = "ballard-item-title";
+          itemTitle.innerText = item.title;
+          itemDiv.appendChild(itemTitle);
+
+          const itemExplain = document.createElement("p");
+          itemExplain.className = "ballard-item-explain";
+          itemExplain.innerText = item.explain;
+          itemDiv.appendChild(itemExplain);
+
+          item.options.forEach((option) => {
+            const optionDiv = document.createElement("div");
+            optionDiv.className = "ballard-criterion-option";
+
+            const radioInput = document.createElement("input");
+            radioInput.type = "radio";
+            radioInput.name = item.nameAttr;
+            radioInput.value = option.score;
+            radioInput.id = `${item.nameAttr}_${option.score}`;
+
+            const label = document.createElement("label");
+            label.htmlFor = radioInput.id;
+            label.innerText = `${option.description} (${option.score})`;
+
+            optionDiv.appendChild(radioInput);
+            optionDiv.appendChild(label);
+            itemDiv.appendChild(optionDiv);
+          });
+
+          groupDiv.appendChild(itemDiv);
+        });
+
+        sectionDiv.appendChild(groupDiv);
+        conteudoDiv.appendChild(sectionDiv);
+      });
+
+      // Logika perhitungan dan tombol
+      const criteriaNames = ballardData.flatMap((s) =>
+        s.items.map((i) => i.nameAttr),
+      );
+
+      function calcularBallard() {
+        let allSelected = true;
+        let total = 0;
+        document
+          .querySelectorAll(".ballard-criterion-item")
+          .forEach((el) => el.classList.remove("incomplete"));
+
+        criteriaNames.forEach((name) => {
+          const selected = document.querySelector(
+            `input[name="${name}"]:checked`,
+          );
+          if (!selected) {
+            allSelected = false;
+            document
+              .getElementById(`item-${name}`)
+              .classList.add("incomplete");
+          } else {
+            total += Number(selected.value);
+          }
+        });
+
+        resultadoDiv.style.display = "block";
+        if (!allSelected) {
+          resultadoDiv.innerHTML =
+            '⚠️ <strong class="font-bold">Silakan pilih opsi untuk semua item yang disorot sebelum menghitung.</strong>';
+          resultadoDiv.classList.add("bg-red-100");
+          resultadoDiv.classList.remove("bg-blue-50");
+          delete resultadoDiv.dataset.score;
+          return;
+        }
+
+        const semanasFloat = 20 + total * 0.4;
+        const semanas = Math.floor(semanasFloat);
+        const dias = Math.round((semanasFloat - semanas) * 7);
+
+        let classificacao = "";
+        if (semanas < 37) classificacao = "Prematur";
+        else if (semanas >= 37 && semanas < 42) classificacao = "A termo";
+        else classificacao = "Post-term";
+
+        let conduta = "";
+        if (classificacao === "Prematur") {
+          conduta =
+            "Monitor termoregulasi, glukosa darah dan tanda-tanda distress pernapasan. Pertimbangkan dukungan ventilasi dan perawatan di unit neonatal sesuai kebutuhan.";
+        } else if (classificacao === "A termo") {
+          conduta =
+            "Perawatan neonatal rutin; amati menyusui dan tanda-tanda vital. Evaluasi kebutuhan skrining neonatal.";
+        } else {
+          conduta =
+            "Evaluasi tanda-tanda post-maturitas (kulit, glukosa darah, termoregulasi), amati risiko hipoksia dan adaptabilitas neonatal.";
+        }
+
+        resultadoDiv.innerHTML = `
+              <p>Skor total: <strong class="font-bold">${total}</strong></p>
+              <p>Usia gestasional yang diestimasi: <strong class="font-bold">${semanas} minggu dan ${dias} hari</strong></p>
+              <p>Klasifikasi: <strong class="font-bold">${classificacao}</strong></p>
+              <p class="mt-4"><strong>Tindakan yang disarankan:</strong> ${conduta}</p>
+            `;
+        resultadoDiv.className = `resultado bg-blue-50`;
+        resultadoDiv.style.display = "block";
+
+        resultadoDiv.dataset.score = total;
+        resultadoDiv.dataset.scaleName = "Skala Ballard";
+        resultadoDiv.dataset.classificacao = classificacao;
+      }
+
+      function limparCampos() {
+        criteriaNames.forEach((name) => {
+          document
+            .querySelectorAll(`input[name="${name}"]`)
+            .forEach((input) => (input.checked = false));
+        });
+        resultadoDiv.innerHTML = "";
+        resultadoDiv.className = "resultado hidden";
+        delete resultadoDiv.dataset.score;
+        delete resultadoDiv.dataset.scaleName;
+        delete resultadoDiv.dataset.classificacao;
+        document
+          .querySelectorAll(".ballard-criterion-item")
+          .forEach((el) => el.classList.remove("incomplete"));
+      }
+
+      btnCalcular?.addEventListener("click", calcularBallard);
+      btnLimpar?.addEventListener("click", limparCampos);
+
+      btnGerarPDF?.addEventListener("click", () => {
+        if (!resultadoDiv.dataset.score) {
+          alert(
+            'Silakan klik "Hitung Skor" terlebih dahulu untuk membuat PDF.',
+          );
+          return;
+        }
+        if (typeof gerarPDFGlobal === "function") {
+          gerarPDFGlobal({
+            titulo: "Skala Ballard",
+            subtitulo: "Laporan Usia Gestasional",
+            nomeArquivo: "laporan_skala_ballard.pdf",
+            seletorConteudo: ".main-content-wrapper",
+          });
+        } else {
+          console.error("Fungsi gerarPDFGlobal tidak didefinisikan.");
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener("click", () => {
+        const score = resultadoDiv.dataset.score;
+        const scaleName = resultadoDiv.dataset.scaleName;
+        const classificacao = resultadoDiv.dataset.classificacao;
+        if (!score || !classificacao) {
+          alert("Hitung hasil untuk mencari tindakan.");
+          return;
+        }
+        const searchQuery = encodeURIComponent(
+          `perawatan bayi baru lahir ${classificacao} Ballard NANDA NIC NOC`,
+        );
+        window.open(
+          `https://www.google.com/search?q=${searchQuery}`,
+          "_blank",
+        );
+      });
+    });
+  </script>
 
   <script src="/lang-selector.js" defer=""></script>
 

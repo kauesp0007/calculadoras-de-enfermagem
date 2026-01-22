@@ -563,7 +563,371 @@
 
 
 
-  
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const resultadoDiv = document.getElementById("resultado");
+      const btnCalcular = document.getElementById("btnCalcular");
+      const btnLimpar = document.getElementById("btnLimpar");
+      const btnGerarPDF = document.getElementById("btnGerarPDF");
+      const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
+      const conteudoDiv = document.getElementById("conteudo");
+
+      const perrocaData = [
+        {
+          title: "١. الحالة العقلية ومستوى الوعي",
+          nameAttr: "estado_mental",
+          options: [
+            { description: "مُتَوَجِّه في الزمان والمكان", score: 1 },
+            { description: "غير مُتَوَجِّه في الزمان و/أو المكان", score: 2 },
+            { description: "نَعْسَان", score: 3 },
+            { description: "في حالة ذُهول", score: 4 },
+            { description: "في حالة غَيْبُوبَة", score: 5 },
+          ],
+        },
+        {
+          title: "٢. الأكسجة",
+          nameAttr: "oxigenacao",
+          options: [
+            { description: "يتنفس في الهواء المحيط", score: 1 },
+            {
+              description: "يستخدم الأكسجين عن طريق القسطرة أو القناع",
+              score: 2,
+            },
+            { description: "يستخدم جهاز التنفس الاصطناعي", score: 3 },
+            { description: "يستخدم الأكسجين مع عدم استقرار تنفسي", score: 4 },
+            {
+              description:
+                "يستخدم الأكسجين في حالة حرجة، مع عدم استقرار ديناميكي دموي",
+              score: 5,
+            },
+          ],
+        },
+        {
+          title: "٣. العلامات الحيوية",
+          nameAttr: "sinais_vitais",
+          options: [
+            { description: "مستقرة", score: 1 },
+            { description: "غير مستقرة، مع مراقبة متقطعة", score: 2 },
+            { description: "غير مستقرة، مع مراقبة مستمرة", score: 3 },
+            { description: "غير مستقرة، مع دعم دوائي", score: 4 },
+            { description: "غير مستقرة، مع دعم متقدم", score: 5 },
+          ],
+        },
+        {
+          title: "٤. التغذية والترطيب",
+          nameAttr: "nutricao",
+          options: [
+            { description: "عن طريق الفم", score: 1 },
+            {
+              description:
+                "عن طريق الفم بمساعدة أو عن طريق الأنف المعدي/المعوي",
+              score: 2,
+            },
+            {
+              description: "عن طريق الأنف المعوي و/أو الوريدي الكلي",
+              score: 3,
+            },
+            { description: "عن طريق الوريد حصرياً", score: 4 },
+            {
+              description:
+                "عن طريق الوريد حصرياً مع عدم استقرار ديناميكي دموي",
+              score: 5,
+            },
+          ],
+        },
+        {
+          title: "٥. الحركة",
+          nameAttr: "motilidade",
+          options: [
+            { description: "مستقل، بدون قيود في الحركة", score: 1 },
+            { description: "معتمد جزئياً، مع قيود في الحركة", score: 2 },
+            { description: "معتمد كلياً، مع قيود في السرير", score: 3 },
+            {
+              description: "معتمد كلياً، مع قيود حركة في طرف واحد أو أكثر",
+              score: 4,
+            },
+            {
+              description: "مُثَبَّت في السرير، مع خطر التقلصات والإصابات",
+              score: 5,
+            },
+          ],
+        },
+        {
+          title: "٦. التنقل",
+          nameAttr: "locomocao",
+          options: [
+            { description: "يمشي بدون مساعدة", score: 1 },
+            { description: "يمشي بمساعدة عكازات أو مشاية أو عصا", score: 2 },
+            { description: "يمشي بمساعدة كرسي متحرك", score: 3 },
+            { description: "يمشي بمساعدة شخص آخر", score: 4 },
+            { description: "معتمد كلياً على شخص آخر للتنقل", score: 5 },
+          ],
+        },
+        {
+          title: "٧. العناية بالجسم",
+          nameAttr: "cuidado_corporal",
+          options: [
+            { description: "مستقل تماماً", score: 1 },
+            {
+              description: "مساعدة في بعض الأنشطة (الاستحمام، النظافة)",
+              score: 2,
+            },
+            { description: "مساعدة في جميع أنشطة النظافة", score: 3 },
+            {
+              description:
+                "اعتماد كلي على النظافة، مع استخدام قسطرة، ضمادات، إلخ",
+              score: 4,
+            },
+            { description: "اعتماد كلي، مع النظافة في السرير", score: 5 },
+          ],
+        },
+        {
+          title: "٨. الإخراج",
+          nameAttr: "eliminacoes",
+          options: [
+            { description: "يتحكم وهو مستقل", score: 1 },
+            { description: "سلس البول أو البراز، ولكن بمساعدة", score: 2 },
+            { description: "سلس البول والبراز، مع استخدام حفاضات", score: 3 },
+            {
+              description: "سلس البول والبراز، مع إسهال و/أو استخدام قسطرة",
+              score: 4,
+            },
+            { description: "سلس ويخضع لغسيل الكلى", score: 5 },
+          ],
+        },
+        {
+          title: "٩. العلاج",
+          nameAttr: "terapeutica",
+          options: [
+            { description: "عن طريق الفم (VO) أو العضلي (IM)", score: 1 },
+            { description: "عن طريق الوريد (EV) متقطع", score: 2 },
+            {
+              description: "عن طريق الوريد (EV) مستمر بمضخة التسريب",
+              score: 3,
+            },
+            {
+              description:
+                "عن طريق الوريد (EV) مستمر بمضخة التسريب مع أدوية وعائية",
+              score: 4,
+            },
+            {
+              description:
+                "عن طريق الوريد (EV) مستمر بمضخة التسريب مع أدوية وعائية ودعم تنفسي",
+              score: 5,
+            },
+          ],
+        },
+        {
+          title: "١٠. سلامة الجلد والأغشية المخاطية",
+          nameAttr: "integridade",
+          options: [
+            { description: "جلد سليم، بدون إصابات", score: 1 },
+            { description: "إصابة جلدية سطحية", score: 2 },
+            { description: "إصابة جلدية مع فقدان الأنسجة", score: 3 },
+            { description: "إصابة جلدية مع فقدان الأنسجة وعدوى", score: 4 },
+            {
+              description: "إصابة جلدية مع فقدان الأنسجة وعدوى شديدة",
+              score: 5,
+            },
+          ],
+        },
+        {
+          title: "١١. التثقيف الصحي",
+          nameAttr: "educacao",
+          options: [
+            { description: "لا حاجة للتوجيه", score: 1 },
+            { description: "حاجة للتوجيه في بعض الأنشطة", score: 2 },
+            { description: "حاجة للتوجيه في جميع الأنشطة", score: 3 },
+            { description: "غير قادر على فهم التوجيهات", score: 4 },
+            { description: "غير قادر على الفهم ومع هياج", score: 5 },
+          ],
+        },
+        {
+          title: "١٢. السلوك",
+          nameAttr: "comportamento",
+          options: [
+            { description: "هادئ ومتعاون", score: 1 },
+            { description: "مضطرب وقلق", score: 2 },
+            { description: "هائج وغير متعاون", score: 3 },
+            { description: "عدواني وعنيف", score: 4 },
+            { description: "عدواني وعنيف مع خطر على الحياة", score: 5 },
+          ],
+        },
+        {
+          title: "١٣. العلاقات الشخصية",
+          nameAttr: "relacoes_interpessoais",
+          options: [
+            { description: "يتفاعل مع الفريق وأفراد الأسرة", score: 1 },
+            {
+              description: "يتفاعل مع الفريق وأفراد الأسرة بصعوبة",
+              score: 2,
+            },
+            { description: "يتفاعل فقط مع الفريق أو أفراد الأسرة", score: 3 },
+            { description: "لا يتفاعل", score: 4 },
+            { description: "عزلة تامة", score: 5 },
+          ],
+        },
+      ];
+
+      // ملء النموذج ديناميكياً
+      perrocaData.forEach((item) => {
+        const sectionDiv = document.createElement("div");
+        sectionDiv.className = "perroca-criterion-section";
+        sectionDiv.id = `section-${item.nameAttr}`;
+
+        const titleH3 = document.createElement("h3");
+        titleH3.className = "perroca-criterion-title";
+        titleH3.innerHTML = item.title;
+        sectionDiv.appendChild(titleH3);
+
+        const selectElement = document.createElement("select");
+        selectElement.id = item.nameAttr;
+        selectElement.className = "perroca-criterion-select mt-2";
+
+        const defaultOption = document.createElement("option");
+        defaultOption.value = "";
+        defaultOption.text = "اختر...";
+        selectElement.appendChild(defaultOption);
+
+        item.options.forEach((option) => {
+          const optionElement = document.createElement("option");
+          optionElement.value = option.score;
+          optionElement.text = `${option.description} (النقاط: ${option.score})`;
+          selectElement.appendChild(optionElement);
+        });
+
+        sectionDiv.appendChild(selectElement);
+        conteudoDiv.appendChild(sectionDiv);
+      });
+
+      function calcularPerroca() {
+        const selects = document.querySelectorAll("#conteudo select");
+        let allSelected = true;
+        let total = 0;
+
+        selects.forEach((select) => {
+          if (select.value === "") {
+            allSelected = false;
+            select.classList.add("incomplete");
+          } else {
+            select.classList.remove("incomplete");
+            total += Number(select.value);
+          }
+        });
+
+        resultadoDiv.style.display = "block";
+        if (!allSelected) {
+          resultadoDiv.innerHTML =
+            '⚠️ <strong class="font-bold">يرجى اختيار خيار لجميع البنود قبل الحساب.</strong>';
+          resultadoDiv.className = `resultado bg-red-100`;
+          delete resultadoDiv.dataset.score;
+          return;
+        }
+
+        let recomendacao = "";
+
+        if (total >= 13 && total <= 26) {
+          recomendacao = `النتيجة ${total} تشير إلى مريض بحاجة إلى رعاية دنيا.`;
+        } else if (total >= 27 && total <= 39) {
+          recomendacao = `النتيجة ${total} تشير إلى مريض بحاجة إلى رعاية متوسطة.`;
+        } else if (total >= 40 && total <= 52) {
+          recomendacao = `النتيجة ${total} تشير إلى مريض بحاجة إلى رعاية شبه مكثفة.`;
+        } else {
+          // total >= 53
+          recomendacao = `النتيجة ${total} تشير إلى مريض بحاجة إلى رعاية مكثفة.`;
+        }
+
+        resultadoDiv.innerHTML = `
+                <p>النتيجة الإجمالية: <strong class="font-bold">${total}</strong></p>
+                <p class="mt-4"><strong>التوصية:</strong> ${recomendacao}</p>
+            `;
+        resultadoDiv.className = `resultado bg-blue-50`;
+        resultadoDiv.style.display = "block";
+
+        resultadoDiv.dataset.score = total;
+        resultadoDiv.dataset.scaleName = "مقياس بيروكا";
+      }
+
+      function limparCampos() {
+        const selects = document.querySelectorAll("#conteudo select");
+        selects.forEach((select) => {
+          select.selectedIndex = 0;
+          select.classList.remove("incomplete");
+        });
+        resultadoDiv.innerHTML = "";
+        resultadoDiv.className = "resultado hidden";
+        delete resultadoDiv.dataset.score;
+        delete resultadoDiv.dataset.scaleName;
+      }
+
+      // إضافة مستمعي الأحداث للأزرار
+      btnCalcular?.addEventListener("click", calcularPerroca);
+      btnLimpar?.addEventListener("click", limparCampos);
+
+      btnGerarPDF?.addEventListener("click", () => {
+        if (!resultadoDiv.dataset.score) {
+          alert('يرجى النقر على "حساب النتيجة" أولاً لإنشاء PDF.');
+          return;
+        }
+        if (typeof gerarPDFGlobal === "function") {
+          const selectedOptions = {};
+          document.querySelectorAll("#conteudo select").forEach((select) => {
+            const selected = select.options[select.selectedIndex];
+            if (selected.value !== "") {
+              selectedOptions[select.id] = selected.text;
+            }
+          });
+
+          let contentToPrint = document
+            .querySelector(".main-content-wrapper")
+            .cloneNode(true);
+          let contentContainer = contentToPrint.querySelector("#conteudo");
+
+          contentContainer.innerHTML = "";
+
+          perrocaData.forEach((item) => {
+            let selectedText = selectedOptions[item.nameAttr];
+            if (selectedText) {
+              let itemDiv = document.createElement("div");
+              itemDiv.className = "mb-2 p-2 bg-gray-50 rounded";
+              itemDiv.innerHTML = `<strong>${item.title}:</strong> ${selectedText}`;
+              contentContainer.appendChild(itemDiv);
+            }
+          });
+
+          let resultadoHtml = resultadoDiv.cloneNode(true);
+          if (resultadoHtml.style.display !== "none") {
+            contentContainer.appendChild(resultadoHtml);
+          }
+
+          gerarPDFGlobal({
+            titulo: "مقياس بيروكا (SCP)",
+            subtitulo: "تقرير تصنيف المرضى",
+            nomeArquivo: "تقرير_مقياس_بيروكا.pdf",
+            seletorConteudo: ".main-content-wrapper",
+          });
+        } else {
+          console.error("الدالة gerarPDFGlobal غير معرفة.");
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener("click", () => {
+        const score = resultadoDiv.dataset.score;
+        const scaleName = resultadoDiv.dataset.scaleName;
+        if (!score) {
+          alert("احسب النتيجة للبحث عن الإجراء.");
+          return;
+        }
+        const searchQuery = encodeURIComponent(
+          `${scaleName} نتيجة ${score} إنشاء تصنيف NANDA، إنشاء تصنيف NIC وإنشاء تصنيف NOC`,
+        );
+        window.open(
+          `https://www.google.com/search?q=${searchQuery}`,
+          "_blank",
+        );
+      });
+    });
+  </script>
 
   <script src="../lang-selector.js" defer=""></script>
 

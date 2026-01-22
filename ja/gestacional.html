@@ -608,7 +608,126 @@
 
 
   <!-- Script específico da página -->
-  
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const resultadoDiv = document.getElementById('resultado');
+      const btnCalcular = document.getElementById('btnCalcular');
+      const btnLimpar = document.getElementById('btnLimpar');
+      const btnGerarPDF = document.getElementById('btnGerarPDF');
+      const btnNandaNicNoc = document.getElementById('btnNandaNicNoc');
+
+      function calcularGestacional() {
+        const dumInput = document.getElementById('dum').value;
+        const resultadoDiv = document.getElementById('resultado');
+
+        resultadoDiv.className = 'resultado-quadro mt-6';
+        resultadoDiv.style.display = 'block';
+        btnGerarPDF.setAttribute('disabled', 'true');
+        btnNandaNicNoc.setAttribute('disabled', 'true');
+
+        if (!dumInput) {
+          resultadoDiv.innerHTML = '<p class="text-red-600">⚠️ <strong>最終月経日（LMP）を入力してください。</strong></p>';
+          resultadoDiv.classList.add('bg-danger-red');
+          resultadoDiv.classList.remove('bg-info-orange-light', 'bg-success-green');
+          delete resultadoDiv.dataset.idadeGestacional;
+          delete resultadoDiv.dataset.dpp;
+          return;
+        }
+
+        const dum = new Date(dumInput + 'T00:00:00');
+        const hoje = new Date();
+        hoje.setHours(0, 0, 0, 0);
+        dum.setHours(0, 0, 0, 0);
+
+        if (dum > hoje) {
+          resultadoDiv.innerHTML = '<p class="text-red-600">⚠️ <strong>最終月経日（LMP）を未来の日付にすることはできません。</strong></p>';
+          resultadoDiv.classList.add('bg-danger-red');
+          resultadoDiv.classList.remove('bg-info-orange-light', 'bg-success-green');
+          delete resultadoDiv.dataset.idadeGestacional;
+          delete resultadoDiv.dataset.dpp;
+          return;
+        }
+
+        const diffMs = hoje - dum;
+        const diffDias = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+        const semanas = Math.floor(diffDias / 7);
+        const dias = diffDias % 7;
+
+        const dpp = new Date(dum.getTime());
+        dpp.setDate(dpp.getDate() + 280);
+        // Format date to Japanese locale
+        const dppFormatada = dpp.toLocaleDateString('ja-JP', { year: 'numeric', month: 'long', day: 'numeric' });
+
+        resultadoDiv.innerHTML = `
+                  <table class="w-full text-sm">
+                      <tbody>
+                          <tr>
+                              <td class="font-bold pr-2">在胎週数:</td>
+                              <td>${semanas} 週 と ${dias} 日</td>
+                          </tr>
+                          <tr>
+                              <td class="font-bold pr-2">出産予定日 (<abbr title="出産予定日">EDD</abbr>):</td>
+                              <td>${dppFormatada}</td>
+                          </tr>
+                      </tbody>
+                  </table>
+              `;
+        resultadoDiv.classList.add('bg-success-green');
+        resultadoDiv.classList.remove('bg-danger-red', 'bg-info-orange-light');
+
+        resultadoDiv.dataset.idadeGestacional = `${semanas} 週 と ${dias} 日`;
+        resultadoDiv.dataset.dpp = dppFormatada;
+        resultadoDiv.dataset.scaleName = "在胎週数とEDD計算機";
+        btnGerarPDF.removeAttribute('disabled');
+        btnNandaNicNoc.removeAttribute('disabled');
+      }
+
+      function limparCampos() {
+        document.getElementById('dum').value = '';
+        const resultadoDiv = document.getElementById('resultado');
+        resultadoDiv.innerHTML = '';
+        resultadoDiv.classList.add('hidden');
+        btnGerarPDF.setAttribute('disabled', 'true');
+        btnNandaNicNoc.setAttribute('disabled', 'true');
+        delete resultadoDiv.dataset.idadeGestacional;
+        delete resultadoDiv.dataset.dpp;
+        delete resultadoDiv.dataset.scaleName;
+      }
+
+      // Event Listeners
+      btnCalcular?.addEventListener('click', calcularGestacional);
+      btnLimpar?.addEventListener('click', limparCampos);
+
+      btnGerarPDF?.addEventListener('click', () => {
+        if (!resultadoDiv.dataset.idadeGestacional) {
+          alert('PDFを生成する前に、まず「計算」をクリックしてください。');
+          return;
+        }
+        if (typeof gerarPDFGlobal === 'function') {
+          gerarPDFGlobal({
+            titulo: '在胎週数とEDD計算機',
+            subtitulo: '妊娠計算レポート',
+            nomeArquivo: 'reporte_gestacional.pdf',
+            seletorConteudo: '.main-content-wrapper'
+          });
+        } else {
+          console.error('gerarPDFGlobal 関数が定義されていません。');
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener('click', () => {
+        const idadeGestacional = resultadoDiv.dataset.idadeGestacional;
+        const dpp = resultadoDiv.dataset.dpp;
+        const scaleName = resultadoDiv.dataset.scaleName;
+        if (!idadeGestacional || !dpp) {
+          alert('行動を検索するために結果を計算してください。');
+          return;
+        }
+        const searchQuery = encodeURIComponent(`${scaleName} 在胎週数 ${idadeGestacional} EDD ${dpp} NANDA分類を生成, NIC分類を生成, NOC分類を生成`);
+        window.open(`https://www.google.com/search?q=${searchQuery}`, '_blank');
+      });
+    });
+  </script>
 
 
 

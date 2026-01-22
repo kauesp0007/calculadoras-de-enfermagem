@@ -602,7 +602,186 @@
 
 
 
-  
+  <script>
+    // Função para gerar PDF, alterada para evitar alert e usar log
+    function gerarPDF(data) {
+      console.log("Simulação de Geração de PDF com os dados:", data);
+
+      const resultDiv = document.getElementById('resultado');
+      const score = resultDiv.dataset.score;
+      const classificacao = resultDiv.dataset.classificacao;
+
+      if (!score || !classificacao) {
+        // Substitui alert() por mensagem visível na tela
+        const msg = document.createElement('div');
+        msg.className = 'standard-result-box bg-info-orange-light mb-4';
+        msg.innerHTML = '⚠️ <strong class="font-bold">Veuillez calculer le score avant de générer le PDF.</strong>';
+        resultDiv.parentNode.insertBefore(msg, resultDiv);
+        setTimeout(() => msg.remove(), 5000); // Remove a mensagem após 5 segundos
+        return;
+      }
+
+      // Simulação de geração de PDF
+      console.log(`Génération du PDF pour l'Échelle de Bishop: Score ${score}, Classification: ${classificacao}`);
+      // Ici, vous inséreriez le code réel de génération de PDF
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+      const resultadoDiv = document.getElementById('resultado');
+      const conteudoDiv = document.getElementById('conteudo');
+      const btnCalcular = document.getElementById('btnCalcular');
+      const btnLimpar = document.getElementById('btnLimpar');
+      const btnGerarPDF = document.getElementById('btnGerarPDF');
+      const btnNandaNicNoc = document.getElementById('btnNandaNicNoc');
+
+      const bishopData = [
+        {
+          id: "dilatacao", title: "Dilatation Cervicale (cm)", options: [
+            { score: 0, text: "0 cm" },
+            { score: 1, text: "1-2 cm" },
+            { score: 2, text: "3-4 cm" },
+            { score: 3, text: "≥ 5 cm" }
+          ]
+        },
+        {
+          id: "apagamento", title: "Effacement Cervical (%)", options: [
+            { score: 0, text: "0-30%" },
+            { score: 1, text: "40-50%" },
+            { score: 2, text: "60-70%" },
+            { score: 3, text: "≥ 80%" }
+          ]
+        },
+        {
+          id: "altura", title: "Station Fœtale (Plano de De Lee)", options: [
+            { score: 0, text: "-3" },
+            { score: 1, text: "-2" },
+            { score: 2, text: "-1 ou 0" },
+            { score: 3, text: "+1 ou +2" }
+          ]
+        },
+        {
+          id: "consistencia", title: "Consistance du Col", options: [
+            { score: 0, text: "Ferme" },
+            { score: 1, text: "Moyenne" },
+            { score: 2, text: "Molle" }
+          ]
+        },
+        {
+          id: "posicao", title: "Position du Col", options: [
+            { score: 0, text: "Postérieure" },
+            { score: 1, text: "Intermédiaire" },
+            { score: 2, text: "Antérieure" }
+          ]
+        }
+      ];
+
+      function createForm() {
+        conteudoDiv.innerHTML = '';
+        bishopData.forEach(criterion => {
+          const card = document.createElement('div');
+          card.className = 'criterion-card';
+
+          card.innerHTML = `
+                      <div class="criterion-title-container">
+                          <h3 class="criterion-title">${criterion.title}</h3>
+                      </div>
+                      <div class="options-container">
+                          <select id="${criterion.id}-select" class="custom-select">
+                              <option value="" disabled selected>Sélectionnez une option...</option>
+                              ${criterion.options.map(opt => `<option value="${opt.score}">${opt.text}</option>`).join('')}
+                          </select>
+                      </div>
+                  `;
+          conteudoDiv.appendChild(card);
+        });
+      }
+
+      function calcular() {
+        let scoreTotal = 0;
+        let allSelected = true;
+
+        bishopData.forEach(criterion => {
+          const select = document.getElementById(`${criterion.id}-select`);
+          if (select && select.value) {
+            scoreTotal += parseInt(select.value, 10);
+          } else {
+            allSelected = false;
+          }
+        });
+
+        if (!allSelected) {
+          resultadoDiv.innerHTML = '⚠️ <strong class="font-bold">Veuillez sélectionner une option pour chaque critère.</strong>';
+          resultadoDiv.className = 'standard-result-box bg-info-orange-light';
+          resultadoDiv.style.display = 'block';
+          delete resultadoDiv.dataset.score;
+          delete resultadoDiv.dataset.classificacao;
+          delete resultadoDiv.dataset.scaleName;
+          return;
+        }
+
+        let classificacao;
+        let conduta;
+        let probVaginal;
+
+        if (scoreTotal >= 9) {
+          classificacao = "Favorable";
+          conduta = "Le col est mûr (indiqué) pour l'accouchement par voie vaginale.";
+          probVaginal = "Probabilité de succès de l'accouchement par voie vaginale : 90-100%";
+        } else if (scoreTotal >= 5) {
+          classificacao = "Intermédiaire";
+          conduta = "La maturité cervicale est intermédiaire. L'induction peut être tentée.";
+          probVaginal = "Probabilité de succès de l'accouchement par voie vaginale : 45-80%";
+        } else {
+          classificacao = "Défavorable";
+          conduta = "Le col n'est pas mûr (non indiqué) pour l'induction du travail. La maturation cervicale est nécessaire.";
+          probVaginal = "Probabilité de succès de l'accouchement par voie vaginale : < 45%";
+        }
+
+        resultadoDiv.innerHTML = `
+                  <p class="font-bold text-lg">Score Total de Bishop: <span class="font-black">${scoreTotal}</span> points</p>
+                  <p class="mt-2"><strong>Classification:</strong> ${classificacao}</p>
+                  <p class="mt-2"><strong>Conduta:</strong> ${conduta}</p>
+                  <p class="mt-2"><strong>Probabilité:</strong> ${probVaginal}</p>
+              `;
+        resultadoDiv.className = 'standard-result-box';
+        resultadoDiv.style.display = 'block';
+        resultadoDiv.dataset.score = scoreTotal;
+        resultadoDiv.dataset.classificacao = classificacao;
+        resultadoDiv.dataset.scaleName = "Échelle de Bishop";
+      }
+
+      function limpar() {
+        createForm();
+        resultadoDiv.innerHTML = '';
+        resultadoDiv.className = 'hidden';
+        delete resultadoDiv.dataset.score;
+        delete resultadoDiv.dataset.classificacao;
+        delete resultadoDiv.dataset.scaleName;
+      }
+
+      createForm();
+      btnCalcular?.addEventListener('click', calcular);
+      btnLimpar?.addEventListener('click', limpar);
+      btnGerarPDF?.addEventListener('click', gerarPDF);
+
+      btnNandaNicNoc?.addEventListener('click', () => {
+        const score = resultadoDiv.dataset.score;
+        const scaleName = resultadoDiv.dataset.scaleName;
+        const classificacao = resultadoDiv.dataset.classificacao;
+        if (!score || !classificacao) {
+          // Substitui alert() por mensagem visível na tela
+          const msg = document.createElement('div');
+          msg.className = 'standard-result-box bg-info-orange-light mb-4';
+          msg.innerHTML = '⚠️ <strong class="font-bold">Veuillez calculer le score pour rechercher la conduite.</strong>';
+          resultadoDiv.parentNode.insertBefore(msg, resultadoDiv);
+          setTimeout(() => msg.remove(), 5000);
+          return;
+        }
+        const searchQuery = encodeURIComponent(`${scaleName} score ${score} accouchement ${classificacao} générer taxonomie NANDA, générer taxonomie NIC et générer taxonomie de NOC`);
+        window.open(`https://www.google.com/search?q=${searchQuery}`, '_blank');
+      });
+    });
+  </script>
   <!-- Scripts de rastreio/anúncios mantidos inalterados -->
 
 

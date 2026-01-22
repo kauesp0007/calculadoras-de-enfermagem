@@ -646,7 +646,222 @@
 
 
 
-  
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const resultadoDiv = document.getElementById('resultado');
+      const btnCalcular = document.getElementById('btnCalcular');
+      const btnLimpar = document.getElementById('btnLimpar');
+      const btnGerarPDF = document.getElementById('btnGerarPDF');
+      const btnNandaNicNoc = document.getElementById('btnNandaNicNoc');
+      const conteudoDiv = document.getElementById('conteudo');
+
+      const painadData = [
+        {
+          title: "1. Дыхание",
+          nameAttr: "respiracao",
+          explain: "Наблюдать за дыханием пациента.",
+          options: [
+            { description: "Нормальное, без изменений в дыхательном паттерне", score: 0 },
+            { description: "Одышка время от времени, короткое дыхание или гиперпноэ", score: 1 },
+            { description: "Тяжёлое и затруднённое дыхание, дыхание Чейн-Стокса", score: 2 }
+          ]
+        },
+        {
+          title: "2. Вокализация",
+          nameAttr: "vocalizacao",
+          explain: "Оценить звуки, издаваемые пациентом.",
+          options: [
+            { description: "Отсутствует", score: 0 },
+            { description: "Стоны, ворчание, время от времени говорит", score: 1 },
+            { description: "Крики, плач, жалобы или повторение слов", score: 2 }
+          ]
+        },
+        {
+          title: "3. Выражение лица",
+          nameAttr: "expressao_facial",
+          explain: "Наблюдать за выражением лица пациента.",
+          options: [
+            { description: "Расслабленное, нормальное", score: 0 },
+            { description: "Грустное, испуганное, с нахмуренными бровями", score: 1 },
+            { description: "Гримаса, выражение паники", score: 2 }
+          ]
+        },
+        {
+          title: "4. Язык тела",
+          nameAttr: "linguagem_corporal",
+          explain: "Наблюдать за позой и движениями пациента.",
+          options: [
+            { description: "Расслабленная, без напряжения в конечностях", score: 0 },
+            { description: "Напряжённое тело, беспокойство, тревожность, напряжённые руки или ноги", score: 1 },
+            { description: "Сжатые кулаки, жёсткие конечности, поза эмбриона, чрезмерное беспокойство", score: 2 }
+          ]
+        },
+        {
+          title: "5. Успокаиваемость",
+          nameAttr: "consolabilidade",
+          explain: "Оценить, можно ли успокоить пациента другой персоной.",
+          options: [
+            { description: "Легко успокаивается, легко отвлекается", score: 0 },
+            { description: "Утешается голосом или прикосновением, но отвлечение неустойчиво", score: 1 },
+            { description: "Невозможно успокоить, остаётся возбуждённым", score: 2 }
+          ]
+        }
+      ];
+
+      // Preenche o formulário dinamicamente
+      painadData.forEach(item => {
+        const sectionDiv = document.createElement('div');
+        sectionDiv.className = 'painad-criterion-section';
+        sectionDiv.id = `section-${item.nameAttr}`;
+
+        const titleH3 = document.createElement('h3');
+        titleH3.className = 'painad-criterion-title';
+        titleH3.innerHTML = item.title;
+        sectionDiv.appendChild(titleH3);
+
+        const explainP = document.createElement('p');
+        explainP.className = 'painad-criterion-explain';
+        explainP.innerHTML = item.explain;
+        sectionDiv.appendChild(explainP);
+
+        const selectElement = document.createElement('select');
+        selectElement.id = item.nameAttr;
+        selectElement.className = 'painad-criterion-select mt-2';
+
+        const defaultOption = document.createElement('option');
+        defaultOption.value = "";
+        defaultOption.text = "Выберите...";
+        selectElement.appendChild(defaultOption);
+
+        item.options.forEach(option => {
+          const optionElement = document.createElement('option');
+          optionElement.value = option.score;
+          optionElement.text = `${option.description} (${option.score})`;
+          selectElement.appendChild(optionElement);
+        });
+
+        sectionDiv.appendChild(selectElement);
+        conteudoDiv.appendChild(sectionDiv);
+      });
+
+      function calcularPainad() {
+        const selects = document.querySelectorAll('#conteudo select');
+        let allSelected = true;
+        let total = 0;
+
+        selects.forEach(select => {
+          if (select.value === "") {
+            allSelected = false;
+            select.classList.add('incomplete');
+          } else {
+            select.classList.remove('incomplete');
+            total += Number(select.value);
+          }
+        });
+
+        resultadoDiv.style.display = "block";
+        if (!allSelected) {
+          resultadoDiv.innerHTML = '⚠️ <strong class="font-bold">Пожалуйста, выберите опцию для всех пунктов перед расчётом.</strong>';
+          resultadoDiv.className = `resultado bg-red-100`;
+          delete resultadoDiv.dataset.score;
+          return;
+        }
+
+        let recomendacao = '';
+
+        if (total <= 3) {
+          recomendacao = `Балл ${total} указывает на отсутствие боли или минимальный уровень. Продолжайте регулярно наблюдать за пациентом.`;
+        } else if (total >= 4 && total <= 6) {
+          recomendacao = `Балл ${total} указывает на умеренную боль. Рекомендуется оценить методы обезболивания, фармакологические или нефармакологические, и контролировать реакцию пациента.`;
+        } else { // total >= 7
+          recomendacao = `Балл ${total} указывает на сильную боль. Необходимо немедленное вмешательство для обезболивания, а план лечения должен быть пересмотрен врачом.`;
+        }
+
+        resultadoDiv.innerHTML = `
+                <p>Общий балл: <strong class="font-bold">${total}</strong></p>
+                <p class="mt-4"><strong>Рекомендация:</strong> ${recomendacao}</p>
+            `;
+        resultadoDiv.className = `resultado bg-blue-50`;
+        resultadoDiv.style.display = "block";
+
+        resultadoDiv.dataset.score = total;
+        resultadoDiv.dataset.scaleName = "Шкала PAINAD";
+      }
+
+      function limparCampos() {
+        const selects = document.querySelectorAll('#conteudo select');
+        selects.forEach(select => {
+          select.selectedIndex = 0;
+          select.classList.remove('incomplete');
+        });
+        resultadoDiv.innerHTML = '';
+        resultadoDiv.className = 'resultado hidden';
+        delete resultadoDiv.dataset.score;
+        delete resultadoDiv.dataset.scaleName;
+      }
+
+      // Adiciona os event listeners aos botões
+      btnCalcular?.addEventListener('click', calcularPainad);
+      btnLimpar?.addEventListener('click', limparCampos);
+
+      btnGerarPDF?.addEventListener('click', () => {
+        if (!resultadoDiv.dataset.score) {
+          alert('Пожалуйста, сначала нажмите "Рассчитать балл" для создания PDF.');
+          return;
+        }
+        if (typeof gerarPDFGlobal === 'function') {
+          const selectedOptions = {};
+          document.querySelectorAll('#conteudo select').forEach(select => {
+            const selected = select.options[select.selectedIndex];
+            if (selected.value !== "") {
+              selectedOptions[select.id] = selected.text;
+            }
+          });
+
+          let contentToPrint = document.querySelector('.main-content-wrapper').cloneNode(true);
+          let contentContainer = contentToPrint.querySelector('#conteudo');
+
+          contentContainer.innerHTML = '';
+
+          painadData.forEach(item => {
+            let selectedText = selectedOptions[item.nameAttr];
+            if (selectedText) {
+              let itemDiv = document.createElement('div');
+              itemDiv.className = 'mb-2 p-2 bg-gray-50 rounded';
+              itemDiv.innerHTML = `<strong>${item.title}:</strong> ${selectedText}`;
+              contentContainer.appendChild(itemDiv);
+            }
+          });
+
+          let resultadoHtml = resultadoDiv.cloneNode(true);
+          if (resultadoHtml.style.display !== 'none') {
+            contentContainer.appendChild(resultadoHtml);
+          }
+
+          gerarPDFGlobal({
+            titulo: 'Шкала PAINAD',
+            subtitulo: 'Отчёт об оценке боли при деменции',
+            nomeArquivo: 'relatorio_escala_painad.pdf',
+            seletorConteudo: '.main-content-wrapper'
+          });
+        } else {
+          console.error('Função gerarPDFGlobal não definida.');
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener('click', () => {
+        const score = resultadoDiv.dataset.score;
+        const scaleName = resultadoDiv.dataset.scaleName;
+        if (!score) {
+          alert('Рассчитайте результат для поиска подхода.');
+          return;
+        }
+        const recomendacaoRisco = score <= 3 ? 'без боли' : score <= 6 ? 'умеренная боль' : 'сильная боль';
+        const searchQuery = encodeURIComponent(`уход за пациентом с деменцией и ${recomendacaoRisco} по шкале PAINAD NANDA NIC NOC`);
+        window.open(`https://www.google.com/search?q=${searchQuery}`, '_blank');
+      });
+    });
+  </script>
 
 
 

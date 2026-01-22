@@ -630,7 +630,254 @@ Omvårdnadskalkylatorer">
 
 
   <!-- Script Específico da Página -->
-  
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const conteudoDiv = document.getElementById("conteudo");
+      const resultadoDiv = document.getElementById("resultado");
+      const btnCalcular = document.getElementById("btnCalcular");
+      const btnLimpar = document.getElementById("btnLimpar");
+      const btnGerarPDF = document.getElementById("btnGerarPDF");
+      const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
+      const statusMessageDiv = document.getElementById("statusMessage");
+
+      const silvermanData = [
+        {
+          parameter: "Movimento Toracoabdominal",
+          nameAttr: "movimento",
+          tooltip:
+            "Den bedömer synkroniseringen mellan bröstkorgen och buken under andningen. \"Rocker\" indikerar svår andningsansträngning.",
+          options: [
+            { score: 0, description: "Synkroniserad" },
+            { score: 1, description: "Orörlig bröstkorg" },
+            { score: 2, description: "Rocker" }]
+
+        },
+        {
+          parameter: "Tiragem Intercostal",
+          nameAttr: "tiragem",
+          tooltip:
+            "Tillbakadragande av musklerna mellan revbenen under inandning, vilket indikerar en ansträngning att andas.",
+          options: [
+            { score: 0, description: "Frånvarande" },
+            { score: 1, description: "Ljus" },
+            { score: 2, description: "Uttalad" }]
+
+        },
+        {
+          parameter: "Retraktion av xiphoid",
+          nameAttr: "retracao",
+          tooltip:
+            "Sänkning av området kring xiphoid-appendix (den nedre spetsen av bröstbenet) under inandning.",
+          options: [
+            { score: 0, description: "Frånvarande" },
+            { score: 1, description: "Ljus" },
+            { score: 2, description: "Uttalad" }]
+
+        },
+        {
+          parameter: "Batimento de Asa de Nariz",
+          nameAttr: "batimento",
+          tooltip:
+            "Öppning av näsborrarna vid inandning, ett tecken på att den nyfödda kämpar för att få mer luft.",
+          options: [
+            { score: 0, description: "Frånvarande" },
+            { score: 1, description: "Ljus" },
+            { score: 2, description: "Accentuerad" }]
+
+        },
+        {
+          parameter: "Utandningsstön",
+          nameAttr: "gemido",
+          tooltip:
+            "Ljud som avges under utandning och som representerar barnets ansträngning att hålla alveolerna öppna.",
+          options: [
+            { score: 0, description: "Frånvarande" },
+            { score: 1, description: "Hörbart med stetoskop." },
+            { score: 2, description: "Hörbart utan stetoskop." }]
+
+        }];
+
+
+      function criarFormulario() {
+        silvermanData.forEach((item) => {
+          const accordionItem = document.createElement("div");
+          accordionItem.className = "accordion-item";
+
+          const header = document.createElement("div");
+          header.className = "accordion-header";
+          header.setAttribute("aria-expanded", "false");
+          header.setAttribute("tabindex", "0");
+          header.innerHTML = `
+                    <span>${item.parameter}
+                        <span class="tooltip-container">
+                            <button type="button" class="tooltip-icon-button" aria-label="Informações sobre ${item.parameter}">
+                                <i class="fas fa-info-circle" aria-hidden="true"></i>
+                            </button>
+                            <span class="tooltip-text">${item.tooltip}</span>
+                        </span>
+                    </span>
+                    <i class="fas fa-chevron-down accordion-toggle-icon" aria-hidden="true"></i>
+                `;
+          accordionItem.appendChild(header);
+
+          const content = document.createElement("div");
+          content.className = "accordion-content";
+          content.setAttribute("role", "region");
+
+          item.options.forEach((option) => {
+            const label = document.createElement("label");
+            label.className = "option-label";
+            const input = document.createElement("input");
+            input.type = "radio";
+            input.name = item.nameAttr;
+            input.value = option.score;
+
+            label.appendChild(input);
+            label.innerHTML += `<span>${option.description} (${option.score})</span>`;
+            content.appendChild(label);
+          });
+
+          accordionItem.appendChild(content);
+          conteudoDiv.appendChild(accordionItem);
+
+          header.addEventListener("click", function () {
+            const isExpanded = this.getAttribute("aria-expanded") === "true";
+            document.querySelectorAll(".accordion-header").forEach((h) => {
+              h.setAttribute("aria-expanded", "false");
+              h.nextElementSibling.classList.remove("is-open");
+            });
+            this.setAttribute("aria-expanded", !isExpanded);
+            if (!isExpanded) {
+              content.classList.add("is-open");
+            }
+          });
+        });
+      }
+
+      criarFormulario();
+
+      function calcular() {
+        let total = 0;
+        let allSelected = true;
+
+        silvermanData.forEach((item) => {
+          const selecionado = document.querySelector(
+            `input[name="${item.nameAttr}"]:checked`
+          );
+          if (selecionado) {
+            total += parseInt(selecionado.value, 10);
+          } else {
+            allSelected = false;
+          }
+        });
+
+        resultadoDiv.classList.remove("hidden");
+        if (!allSelected) {
+          resultadoDiv.className =
+            "result p-4 mt-6 rounded-lg text-left bg-info-alert flex items-start gap-4 visible";
+          resultadoDiv.innerHTML = `<i class="fas fa-exclamation-triangle mt-1" aria-hidden="true"></i><div><strong class="font-bold block">Atenção!</strong> Por favor, selecione uma opção para cada um dos cinco parâmetros.</div>`;
+          resultadoDiv.setAttribute("tabindex", "0");
+          resultadoDiv.focus();
+          resultadoDiv.scrollIntoView({
+            behavior: "smooth",
+            block: "center"
+          });
+          delete resultadoDiv.dataset.score;
+          return;
+        }
+
+        let classificacao = "";
+        let barClass = "";
+        let resultadoClass = "";
+
+        if (total <= 3) {
+          classificacao = "Lindrigt andningsbesvär.";
+          barClass = "bar-low";
+          resultadoClass = "bg-success-green";
+        } else if (total <= 7) {
+          classificacao = "Måttligt andningsbesvär.";
+          barClass = "bar-medium";
+          resultadoClass = "bg-info-alerta";
+        } else {
+          classificacao = "Svår andningsnöd.";
+          barClass = "bar-high";
+          resultadoClass = "bg-danger-red";
+        }
+
+        const scorePercentage = total / 10 * 100;
+
+        resultadoDiv.className = `resultat p-4 mt-6 rundad-lg text-vänster ${resultadoClass} visible`;
+        resultadoDiv.innerHTML = `
+                <p>Pontuação Total: <strong class="font-bold">${total}</strong></p>
+                <p>Classificação: <strong class="font-bold">${classificacao}</strong></p>
+                <div class="score-summary-bar-container" role="progressbar" aria-valuenow="${total}" aria-valuemin="0" aria-valuemax="10" aria-label="Barra de gravidade da pontuação.">
+                    <div class="score-summary-bar ${barClass}" style="width: ${scorePercentage}%;"></div>
+                </div>
+            `;
+        resultadoDiv.setAttribute("tabindex", "0");
+        resultadoDiv.focus();
+        resultadoDiv.scrollIntoView({ behavior: "smooth", block: "center" });
+
+        resultadoDiv.dataset.score = total;
+        resultadoDiv.dataset.classificacao = classificacao;
+        resultadoDiv.dataset.scaleName = "Boletim de Silverman-Anderson";
+      }
+
+      function limpar() {
+        document.
+          querySelectorAll('input[type="radio"]').
+          forEach((input) => input.checked = false);
+        resultadoDiv.className = "dolt resultat";
+        resultadoDiv.innerHTML = "";
+        delete resultadoDiv.dataset.score;
+        delete resultadoDiv.dataset.classificacao;
+        // Fecha todos os accordions
+        document.querySelectorAll(".accordion-header").forEach((h) => {
+          h.setAttribute("aria-expanded", "false");
+        });
+        document.querySelectorAll(".accordion-content").forEach((c) => {
+          c.classList.remove("is-open");
+        });
+      }
+
+      btnCalcular?.addEventListener("click", calcular);
+      btnLimpar?.addEventListener("click", limpar);
+
+      btnGerarPDF?.addEventListener("click", () => {
+        if (!resultadoDiv || !resultadoDiv.dataset.score) {
+          alert('Klicka först på "Beräkna" för att generera PDF-filen.');
+          return;
+        }
+        if (typeof gerarPDFGlobal === "function") {
+          gerarPDFGlobal({
+            titulo: "Silverman-Anderson Bulletin",
+            subtitulo: "Bedömning av neonatal andnöd",
+            nomeArquivo: "relatorio_silverman_anderson.pdf",
+            seletorConteudo: ".main-content-wrapper"
+          });
+        } else {
+          alert("Fel: Funktionen för att generera PDF hittades inte.");
+          console.error("Funktionen GeneratePDFGlobal är inte definierad.");
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener("click", () => {
+        const classificacao = resultadoDiv.dataset.classificacao;
+        if (!classificacao) {
+          alert(
+            'Klicka först på "Beräkna" för att få tolkningen.'
+          );
+          return;
+        }
+        const searchQuery = encodeURIComponent(
+          `NANDA omvårdnadsdiagnoser för nyfödda med "${classificacao}", och deras respektive åtgärder (NCI) och resultat (NOC)`
+        );
+        window.open(
+          `https://www.google.com/search?q=${searchQuery}`,
+          "_blank"
+        );
+      });
+    });</script>
 
   <script src="/lang-selector.js" defer=""></script>
 

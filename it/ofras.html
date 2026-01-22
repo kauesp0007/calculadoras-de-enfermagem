@@ -597,7 +597,202 @@
 
 
 
-  
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const resultadoDiv = document.getElementById('resultado');
+      const btnCalcular = document.getElementById('btnCalcular');
+      const btnLimpar = document.getElementById('btnLimpar');
+      const btnGerarPDF = document.getElementById('btnGerarPDF');
+      const btnNandaNicNoc = document.getElementById('btnNandaNicNoc');
+      const conteudoDiv = document.getElementById('conteudo');
+
+      // Dati della scala OFRAS
+      const ofrasData = [
+        {
+          category: "Anamnesi",
+          nameAttr: "historico",
+          options: [
+            { description: "Nessuna anamnesi di cadute o problemi di equilibrio", score: 0 },
+            { description: "Anamnesi di cadute o problemi di equilibrio", score: 1 }
+          ],
+          explain: "Valuta l'anamnesi di cadute e le condizioni che possono influenzare l'equilibrio."
+        },
+        {
+          category: "Sistema Cardiaco",
+          nameAttr: "cardiaco",
+          options: [
+            { description: "Nessuna alterazione cardiaca", score: 0 },
+            { description: "Aritmie, ipotensione o altre condizioni cardiache", score: 1 }
+          ],
+          explain: "Analizza le condizioni cardiache che possono portare a instabilità."
+        },
+        {
+          category: "Emorragia",
+          nameAttr: "hemorragia",
+          options: [
+            { description: "Nessun rischio di emorragia", score: 0 },
+            { description: "Con rischio di emorragia o sanguinamento attivo", score: 1 }
+          ],
+          explain: "Considera il rischio di emorragia che può causare debolezza e vertigini."
+        },
+        {
+          category: "Anestesia",
+          nameAttr: "anestesia",
+          options: [
+            { description: "Nessun uso di anestesia", score: 0 },
+            { description: "Uso recente di anestesia (nelle ultime 24 ore)", score: 1 }
+          ],
+          explain: "Valuta gli effetti residui dell'anestesia, come sonnolenza e squilibrio."
+        },
+        {
+          category: "Attività Motoria",
+          nameAttr: "motora",
+          options: [
+            { description: "Deambula in sicurezza e senza aiuto", score: 0 },
+            { description: "Deambula con difficoltà, instabilità o necessita di aiuto", score: 1 }
+          ],
+          explain: "Valuta la capacità della paziente di muoversi in modo sicuro."
+        },
+        {
+          category: "Uso di Farmaci",
+          nameAttr: "medicacao",
+          options: [
+            { description: "Non utilizza farmaci a rischio", score: 0 },
+            { description: "Uso di farmaci che causano sonnolenza o vertigini", score: 1 }
+          ],
+          explain: "Considera l'uso di farmaci che possono aumentare il rischio di cadute."
+        }
+      ];
+
+      // Popola il form dinamicamente
+      ofrasData.forEach(item => {
+        const sectionDiv = document.createElement('div');
+        sectionDiv.className = 'ofras-criterion-section';
+        sectionDiv.id = `section-${item.nameAttr}`;
+
+        const titleH3 = document.createElement('h3');
+        titleH3.className = 'ofras-criterion-title';
+        titleH3.innerHTML = item.category + `
+              <div class="text-sm font-normal text-gray-500 mt-1">${item.explain}</div>`;
+        sectionDiv.appendChild(titleH3);
+
+        const selectElement = document.createElement('select');
+        selectElement.id = item.nameAttr;
+        selectElement.className = 'ofras-criterion-select';
+
+        const defaultOption = document.createElement('option');
+        defaultOption.value = "";
+        defaultOption.text = "Seleziona...";
+        selectElement.appendChild(defaultOption);
+
+        item.options.forEach(option => {
+          const optionElement = document.createElement('option');
+          optionElement.value = option.score;
+          optionElement.text = `${option.description} (punti: ${option.score})`;
+          selectElement.appendChild(optionElement);
+        });
+
+        sectionDiv.appendChild(selectElement);
+        conteudoDiv.appendChild(sectionDiv);
+      });
+
+      function calcularOFRAS() {
+        const selects = document.querySelectorAll('#conteudo select');
+        let allSelected = true;
+        let total = 0;
+
+        selects.forEach(select => {
+          if (select.value === "") {
+            allSelected = false;
+            select.classList.add('incomplete');
+          } else {
+            select.classList.remove('incomplete');
+            total += Number(select.value);
+          }
+        });
+
+        if (!allSelected) {
+          resultadoDiv.innerHTML = '⚠️ <strong class="font-bold">Seleziona un\'opzione per tutti gli elementi prima di calcolare.</strong>';
+          resultadoDiv.style.display = "block";
+          delete resultadoDiv.dataset.score;
+          return;
+        }
+
+        let classificacao = '';
+        let recomendacao = '';
+
+        if (total >= 0 && total <= 2) {
+          classificacao = 'Basso Rischio';
+          recomendacao = 'La paziente ostetrica ha un basso rischio di caduta. Continuare con le misure preventive standard.';
+        } else if (total >= 3 && total <= 4) {
+          classificacao = 'Medio Rischio';
+          recomendacao = 'La paziente ostetrica ha un medio rischio di caduta. Implementare misure di prevenzione e monitoraggio delle cadute.';
+        } else if (total >= 5 && total <= 6) {
+          classificacao = 'Alto Rischio';
+          recomendacao = 'La paziente ostetrica ha un alto rischio di caduta. Implementare immediatamente un piano di prevenzione delle cadute individualizzato.';
+        } else {
+          classificacao = 'Punteggio Fuori Standard';
+          recomendacao = 'Il punteggio calcolato è al di fuori dell\'intervallo di classificazione previsto. Verificare i valori selezionati.';
+        }
+
+        resultadoDiv.innerHTML = `
+                <p>Punteggio totale: <strong class="font-bold">${total}</strong></p>
+                <p>Classificazione: <strong class="font-bold">${classificacao}</strong></p>
+                <p class="mt-4"><strong>Raccomandazione:</strong> ${recomendacao}</p>
+            `;
+        resultadoDiv.style.display = "block";
+
+        resultadoDiv.dataset.score = total;
+        resultadoDiv.dataset.scaleName = "Scala OFRAS";
+        resultadoDiv.dataset.classificacao = classificacao;
+      }
+
+      function limparCampos() {
+        const selects = document.querySelectorAll('#conteudo select');
+        selects.forEach(select => {
+          select.selectedIndex = 0;
+          select.classList.remove('incomplete');
+        });
+        resultadoDiv.innerHTML = '';
+        resultadoDiv.style.display = "none";
+        delete resultadoDiv.dataset.score;
+        delete resultadoDiv.dataset.scaleName;
+        delete resultadoDiv.dataset.classificacao;
+      }
+
+      btnCalcular?.addEventListener('click', calcularOFRAS);
+      btnLimpar?.addEventListener('click', limparCampos);
+
+      btnGerarPDF?.addEventListener('click', () => {
+        if (!resultadoDiv.dataset.score) {
+          alert('Per favore, clicca su "Calcola Punteggio" prima di generare il PDF.');
+          return;
+        }
+        if (typeof gerarPDFGlobal === 'function') {
+          gerarPDFGlobal({
+            titulo: 'Scala OFRAS',
+            subtitulo: 'Rapporto di Valutazione del Rischio di Caduta',
+            nomeArquivo: 'rapporto_scala_ofras.pdf',
+            seletorConteudo: '.main-content-wrapper'
+          });
+        } else {
+          console.error('Funzione gerarPDFGlobal non definita.');
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener('click', () => {
+        const score = resultadoDiv.dataset.score;
+        const scaleName = resultadoDiv.dataset.scaleName;
+        const classificacao = resultadoDiv.dataset.classificacao;
+        if (!score || !classificacao) {
+          alert('Calcola il risultato per cercare la procedura.');
+          return;
+        }
+        const searchQuery = encodeURIComponent(`${scaleName} punteggio ${score} paziente ostetrica ${classificacao} generare tassonomia NANDA, generare tassonomia NIC e generare tassonomia NOC`);
+        window.open(`https://www.google.com/search?q=${searchQuery}`, '_blank');
+      });
+    });
+  </script>
 
 
 

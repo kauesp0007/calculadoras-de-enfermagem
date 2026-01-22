@@ -542,7 +542,415 @@
 
 
 
-  
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const resultadoDiv = document.getElementById("resultado");
+      const btnCalcular = document.getElementById("btnCalcular");
+      const btnLimpar = document.getElementById("btnLimpar");
+      const btnGerarPDF = document.getElementById("btnGerarPDF");
+      const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
+      const conteudoDiv = document.getElementById("conteudo");
+
+      const ballardData = [
+        {
+          category: "Нервово-м'язова зрілість",
+          items: [
+            {
+              title: "Постава",
+              nameAttr: "поза",
+              explain:
+                "Він оцінює ступінь згинання кінцівок, коли дитина перебуває в стані спокою. Більш зрілі діти мають більш зігнуту поставу (кінцівки зігнуті).",
+              options: [
+                { description: "Загальна довжина", score: -1 },
+                { description: "Легке / часткове згинання", score: 0 },
+                { description: "Помірний вигин", score: 1 },
+                { description: "Добре згинається", score: 2 },
+                { description: "Сильне згинання", score: 3 },
+                { description: "Повне згинання (дуже зріла)", score: 4 }]
+
+            },
+            {
+              title: "Квадратне вікно",
+              nameAttr: "квадратне_вікно",
+              explain:
+                "Він оцінює згинання зап'ястя, коли кисть зігнута над передпліччям. Менший кут (кисть ближче до передпліччя) свідчить про більшу зрілість.",
+              options: [
+                { description: "< 90°", score: -1 },
+                { description: " 90°", score: 0 },
+                { description: " 60°", score: 1 },
+                { description: " 45°", score: 2 },
+                { description: " 30°", score: 3 },
+                { description: "0° (дуже близько)", score: 4 }]
+
+            },
+            {
+              title: "Віддача руки",
+              nameAttr: "arm_recoil",
+              explain:
+                "Він оцінює швидкість та інтенсивність повернення руки після розтягування та відпускання. Чим швидше та енергійніше повернення, тим вища нервово-м'язова зрілість.",
+              options: [
+                { description: "Повернення немає", score: 0 },
+                { description: "Повільне повернення", score: 1 },
+                { description: "Часткове повернення", score: 2 },
+                { description: "Швидке виконання замовлення", score: 3 },
+                { description: "Повне і енергійне повернення", score: 4 }]
+
+            },
+            {
+              title: "Підколінний кут",
+              nameAttr: "підколінний",
+              explain:
+                "Оцінює ступінь опору при розгинанні нижньої кінцівки. Менший кут (більше згинання) свідчить про більшу зрілість.",
+              options: [
+                { description: "180°", score: -1 },
+                { description: "160°", score: 0 },
+                { description: "140°", score: 1 },
+                { description: "120°", score: 2 },
+                { description: "100°", score: 3 },
+                { description: "90°", score: 4 },
+                { description: "< 90°", score: 5 }]
+
+            },
+            {
+              title: "Знак шарфа",
+              nameAttr: "шарф",
+              explain:
+                "Витягнувши руку на грудях, можна побачити, де лікоть перетинає середню лінію тіла. Чим нижче перетин, тим більша зрілість.",
+              options: [
+                { description: "Лікоть перетинає середню лінію", score: -1 },
+                { description: "Лікоть по середній лінії", score: 0 },
+                { description: "Лікоть близько до плеча", score: 1 },
+                { description: "Лікоть не зачіпає плече", score: 2 },
+                { description: "Лікоть занадто далеко від плеча", score: 3 }]
+
+            },
+            {
+              title: "Каблук → Вухо",
+              nameAttr: "каблук_до_вуха",
+              explain:
+                "Коли ви підносите п'яту близько до вуха, ви бачите опір. Більший опір = більша зрілість.",
+              options: [
+                { description: "Лапка легко досягає вуха", score: -1 },
+                { description: "Нога біля вуха", score: 0 },
+                { description: "Помірна стійкість", score: 1 },
+                { description: "Хороша стійкість", score: 2 },
+                { description: "Нога подалі від вуха", score: 3 },
+                { description: "Сильна стійкість (дуже зріла)", score: 4 }]
+
+            }]
+
+        },
+        {
+          category: "Фізична зрілість",
+          items: [
+            {
+              title: "Шкіра",
+              nameAttr: "шкіри",
+              explain:
+                "Він оцінює текстуру шкіри: від тонкої і напівпрозорої у недоношених дітей до товстої, сухої і потрісканої у доношених.",
+              options: [
+                {
+                  description: "Липка, напівпрозора (дуже незріла)",
+                  score: -1
+                },
+                { description: "Желатинова / тонка", score: 0 },
+                { description: "однорідні та видимі вени", score: 1 },
+                { description: "Товщі, мало тріщин", score: 2 },
+                { description: "Товстий, потрісканий", score: 3 },
+                {
+                  description:
+                    "Товстий, сухий, з глибокими тріщинами (після закінчення терміну)",
+                  score: 4
+                }]
+
+            },
+            {
+              title: "Лануго",
+              nameAttr: "lanugo",
+              explain:
+                "Він оцінює наявність і розподіл лануго (тонкого волосся). У недоношених дітей вони рясні; у більш зрілих дітей вони мають тенденцію до зменшення і зникнення.",
+              options: [
+                { description: "Відсутні (дуже після закінчення терміну)", score: -1 },
+                { description: "дефіцитний", score: 0 },
+                { description: "рясний", score: 1 },
+                {
+                  description: "Тонкий (характерний для недоношених)",
+                  score: 2
+                },
+                { description: "Безволосі ділянки", score: 3 },
+                {
+                  description: "Практично відсутні (дуже незрілі)",
+                  score: 4
+                }]
+
+            },
+            {
+              title: "Підошовні складки",
+              nameAttr: "рослини",
+              explain:
+                "Він оцінює складки на підошві стопи: недоношені діти мають мало складок; зрілі діти мають глибокі складки, що покривають всю підошву.",
+              options: [
+                { description: "Відсутній / дуже неглибокий", score: -1 },
+                { description: "Позначки спереду", score: 0 },
+                { description: "До половини рослини", score: 1 },
+                { description: "До 2/3", score: 2 },
+                { description: "Складається по всій рослині", score: 3 },
+                { description: "Глибокі та виражені складки", score: 4 }]
+
+            },
+            {
+              title: "Груди",
+              nameAttr: "грудей",
+              explain:
+                "Спостерігається розмір молочної залози та ареоли. У більш зрілих дітей залоза і ареола більші і більш опуклі.",
+              options: [
+                { description: "Непомітно.", score: -1 },
+                { description: "Не дуже помітно", score: 0 },
+                { description: "Плоска ареола, маленький бутон", score: 1 },
+                {
+                  description:
+                    "Частково піднята ареола 1-2 мм залози",
+                  score: 2
+                },
+                {
+                  description: "Ареола з піднятим краєм 3-4 мм залози",
+                  score: 3
+                },
+                {
+                  description: "рельєфний край 5-10 мм сальника",
+                  score: 4
+                }]
+
+            },
+            {
+              title: "Очі та вуха",
+              nameAttr: "очі_вуха",
+              explain:
+                "Він оцінює твердість вушних хрящів і форму повік. Більш тверді вуха і добре сформовані повіки свідчать про більшу зрілість.",
+              options: [
+                {
+                  description: "М'який хрящ / зрощені повіки",
+                  score: -1
+                },
+                { description: "Якась твердість", score: 0 },
+                { description: "Помірна жорсткість", score: 1 },
+                { description: "Хороша твердість", score: 2 },
+                { description: "Повна стійкість", score: 3 }]
+
+            },
+            {
+              title: "Геніталії",
+              nameAttr: "геніталій",
+              explain:
+                "Оцінює розвиток статевих органів: у хлопчиків - положення і шорсткість мошонки / у дівчаток - рельєфність клітора і розмір статевих губ. Вказує на статеву/неонатальну зрілість.",
+              options: [
+                {
+                  description:
+                    "Чоловік: неопущені яєчка; Самка: плоскі статеві губи",
+                  score: -1
+                },
+                {
+                  description:
+                    "Самець: частково опущені; Самка: малі статеві губи малі",
+                  score: 0
+                },
+                {
+                  description:
+                    "Самець: яєчка в сумці; Самка: малі статеві губи видно",
+                  score: 1
+                },
+                {
+                  description:
+                    "Чоловік: шорстка мошонка; Жінка: однаково видатні малі та великі статеві губи",
+                  score: 2
+                },
+                { description: "Повністю зрілі геніталії", score: 3 }]
+
+            }]
+
+        }];
+
+
+      // Preenche o formulário dinamicamente
+      ballardData.forEach((section) => {
+        const sectionDiv = document.createElement("div");
+        sectionDiv.className = "ballard-criterion-section";
+
+        const titleH3 = document.createElement("h3");
+        titleH3.className = "ballard-criterion-title";
+        titleH3.innerText = section.category;
+        sectionDiv.appendChild(titleH3);
+
+        const groupDiv = document.createElement("div");
+        groupDiv.className = "балард-критерій-група";
+
+        section.items.forEach((item) => {
+          const itemDiv = document.createElement("div");
+          itemDiv.id = `item-${item.nameAttr}`;
+          itemDiv.className = "ballard-criterion-item";
+
+          const itemTitle = document.createElement("h4");
+          itemTitle.className = "ballard-item-title";
+          itemTitle.innerText = item.title;
+          itemDiv.appendChild(itemTitle);
+
+          const itemExplain = document.createElement("p");
+          itemExplain.className = "ballard-item-explain";
+          itemExplain.innerText = item.explain;
+          itemDiv.appendChild(itemExplain);
+
+          item.options.forEach((option) => {
+            const optionDiv = document.createElement("div");
+            optionDiv.className = "ballard-criterion-option";
+
+            const radioInput = document.createElement("input");
+            radioInput.type = "radio";
+            radioInput.name = item.nameAttr;
+            radioInput.value = option.score;
+            radioInput.id = `${item.nameAttr}_${option.score}`;
+
+            const label = document.createElement("label");
+            label.htmlFor = radioInput.id;
+            label.innerText = `${option.description} (${option.score})`;
+
+            optionDiv.appendChild(radioInput);
+            optionDiv.appendChild(label);
+            itemDiv.appendChild(optionDiv);
+          });
+
+          groupDiv.appendChild(itemDiv);
+        });
+
+        sectionDiv.appendChild(groupDiv);
+        conteudoDiv.appendChild(sectionDiv);
+      });
+
+      // Lógica de cálculo e botões
+      const criteriaNames = ballardData.flatMap((s) =>
+        s.items.map((i) => i.nameAttr)
+      );
+
+      function calcularBallard() {
+        let allSelected = true;
+        let total = 0;
+        document.
+          querySelectorAll(".ballard-criterion-item").
+          forEach((el) => el.classList.remove("неповний"));
+
+        criteriaNames.forEach((name) => {
+          const selected = document.querySelector(
+            `input[name="${name}"]:checked`
+          );
+          if (!selected) {
+            allSelected = false;
+            document.
+              getElementById(`item-${name}`).
+              classList.add("неповний");
+          } else {
+            total += Number(selected.value);
+          }
+        });
+
+        resultadoDiv.style.display = "block";
+        if (!allSelected) {
+          resultadoDiv.innerHTML =
+            '⚠️ <strong class="font-bold">Por favor, selecione uma opção para todos os itens destacados antes de calcular.</strong>';
+          resultadoDiv.classList.add("bg-red-100");
+          resultadoDiv.classList.remove("bg-blue-50");
+          delete resultadoDiv.dataset.score;
+          return;
+        }
+
+        const semanasFloat = 20 + total * 0.4;
+        const semanas = Math.floor(semanasFloat);
+        const dias = Math.round((semanasFloat - semanas) * 7);
+
+        let classificacao = "";
+        if (semanas < 37) classificacao = "Передчасні пологи"; else
+          if (semanas >= 37 && semanas < 42) classificacao = "термін"; else
+            classificacao = "Після закінчення терміну";
+
+        let conduta = "";
+        if (classificacao === "Передчасні пологи") {
+          conduta =
+            "Слідкуйте за терморегуляцією, глікемією та ознаками респіраторного дистресу. За необхідності розгляньте можливість вентиляційної підтримки та догляду у неонатальному відділенні.";
+        } else if (classificacao === "термін") {
+          conduta =
+            "Рутинний догляд за новонародженими; спостереження за грудним вигодовуванням та життєво важливими показниками. Оцініть потреби в неонатальному скринінгу.";
+        } else {
+          conduta =
+            "Оцініть ознаки постзрілості (шкіра, глікемія, терморегуляція), спостерігайте за ризиком гіпоксії та неонатальною адаптацією.";
+        }
+
+        resultadoDiv.innerHTML = `
+              <p>Escore total: <strong class="font-bold">${total}</strong></p>
+              <p>Idade gestacional estimada: <strong class="font-bold">${semanas} semanas e ${dias} dias</strong></p>
+              <p>Classificação: <strong class="font-bold">${classificacao}</strong></p>
+              <p class="mt-4"><strong>Conduta sugerida:</strong> ${conduta}</p>
+            `;
+        resultadoDiv.className = `bg-blue-50 результат`;
+        resultadoDiv.style.display = "block";
+
+        resultadoDiv.dataset.score = total;
+        resultadoDiv.dataset.scaleName = "Шкала Балларда";
+        resultadoDiv.dataset.classificacao = classificacao;
+      }
+
+      function limparCampos() {
+        criteriaNames.forEach((name) => {
+          document.
+            querySelectorAll(`input[name="${name}"]`).
+            forEach((input) => input.checked = false);
+        });
+        resultadoDiv.innerHTML = "";
+        resultadoDiv.className = "прихований результат";
+        delete resultadoDiv.dataset.score;
+        delete resultadoDiv.dataset.scaleName;
+        delete resultadoDiv.dataset.classificacao;
+        document.
+          querySelectorAll(".ballard-criterion-item").
+          forEach((el) => el.classList.remove("неповний"));
+      }
+
+      btnCalcular?.addEventListener("click", calcularBallard);
+      btnLimpar?.addEventListener("click", limparCampos);
+
+      btnGerarPDF?.addEventListener("click", () => {
+        if (!resultadoDiv.dataset.score) {
+          alert(
+            "Будь ласка, спочатку натисніть \"Розрахувати бал\", щоб згенерувати PDF-файл."
+          );
+          return;
+        }
+        if (typeof gerarPDFGlobal === "функція") {
+          gerarPDFGlobal({
+            titulo: "Шкала Балларда",
+            subtitulo: "Звіт про термін вагітності",
+            nomeArquivo: "report_escala_ballard.pdf",
+            seletorConteudo: ".main-content-wrapper"
+          });
+        } else {
+          console.error("Функція GeneratePDFGlobal не визначена.");
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener("click", () => {
+        const score = resultadoDiv.dataset.score;
+        const scaleName = resultadoDiv.dataset.scaleName;
+        const classificacao = resultadoDiv.dataset.classificacao;
+        if (!score || !classificacao) {
+          alert("Обчисліть результат для пошуку поведінки.");
+          return;
+        }
+        const searchQuery = encodeURIComponent(
+          `догляд за новонародженими ${classification} Ballard NANDA NIC NOC`
+        );
+        window.open(
+          `https://www.google.com/search?q=${searchQuery}`,
+          "_порожній"
+        );
+      });
+    });</script>
 
   <script src="/lang-selector.js" defer=""></script>
 

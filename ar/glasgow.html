@@ -681,7 +681,152 @@
 
 
   <!-- Script Específico da Página (Tradução e numeração árabe) -->
-  
+  <script>
+
+    // Função para converter números ocidentais para orientais (árabes)
+    function toArabicNumeral(n) {
+      if (n === null || typeof n === 'undefined') return '';
+      const arabic = ['٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩', '-'];
+      return String(n).split('').map(digit => {
+        if (digit >= '0' && digit <= '9') {
+          return arabic[parseInt(digit, 10)];
+        } else if (digit === '-') {
+          return '−'; // Sinal de menos árabe
+        }
+        return digit;
+      }).join('');
+    }
+
+    // Referências aos elementos do DOM
+    const resultadoDiv = document.getElementById('resultado');
+    const btnCalcular = document.getElementById('btnCalcular');
+    const btnLimpar = document.getElementById('btnLimpar');
+    const btnGerarPDF = document.getElementById('btnGerarPDF');
+    const btnNandaNicNoc = document.getElementById('btnNandaNicNoc');
+
+    // Função para atualizar o score exibido e recalcular o total de Glasgow
+    function updateScoreAndCalculate(criterionName) {
+      const selectElement = document.getElementById(`${criterionName}_select`);
+      const scoreDisplayElement = document.getElementById(`${criterionName}_score_display`);
+
+      if (selectElement && scoreDisplayElement) {
+        // Exibe o numeral árabe
+        scoreDisplayElement.innerText = toArabicNumeral(selectElement.value);
+      }
+      // A função calcularEscala() será chamada explicitamente pelo botão
+    }
+
+    // Função para calcular o escore total de Glasgow
+    function calcularEscala() {
+      const ocular = parseInt(document.getElementById("ocular_select").value);
+      const verbal = parseInt(document.getElementById("verbal_select").value);
+      const motora = parseInt(document.getElementById("motora_select").value);
+      const pupilar = parseInt(document.getElementById("pupilar_select").value);
+      const total = ocular + verbal + motora + pupilar;
+      let interpretacao = "";
+      let isRisky = false;
+
+      // Lógica JS com números ocidentais
+      if (total >= 13) {
+        interpretacao = "مستوى الوعي: خفيف";
+      } else if (total >= 9) {
+        interpretacao = "مستوى الوعي: متوسط";
+        isRisky = true;
+      } else {
+        interpretacao = "مستوى الوعي: شديد";
+        isRisky = true;
+      }
+
+      const resultadoDiv = document.getElementById("resultado");
+      // Exibe numerais árabes
+      resultadoDiv.innerHTML = `<p><strong>النتيجة الإجمالية:</strong> <span class="font-bold">${toArabicNumeral(total)}</span> نقاط</p><p><strong>${interpretacao}</strong></p>`;
+      resultadoDiv.style.display = "block";
+
+      if (isRisky) {
+        resultadoDiv.classList.add('text-red-600', 'bg-red-100');
+        resultadoDiv.classList.remove('text-dark-blue', 'bg-blue-50');
+      } else {
+        resultadoDiv.classList.remove('text-red-600', 'bg-red-100');
+        resultadoDiv.classList.add('text-dark-blue', 'bg-blue-50');
+      }
+      resultadoDiv.dataset.score = total;
+      resultadoDiv.dataset.interpretacao = interpretacao;
+      resultadoDiv.dataset.scaleName = "مقياس غلاسكو للغيبوبة";
+    }
+
+    // Função para limpar todos os campos e o resultado
+    function limparCampos() {
+      document.getElementById('ocular_select').selectedIndex = 0;
+      document.getElementById('verbal_select').selectedIndex = 0;
+      document.getElementById('motora_select').selectedIndex = 0;
+      document.getElementById('pupilar_select').selectedIndex = 0;
+
+      // Atualiza os displays para os valores padrão (em árabe)
+      updateScoreAndCalculate('ocular');
+      updateScoreAndCalculate('verbal');
+      updateScoreAndCalculate('motora');
+      updateScoreAndCalculate('pupilar');
+
+      const resultadoDiv = document.getElementById('resultado');
+      resultadoDiv.innerHTML = '';
+      resultadoDiv.className = 'resultado hidden';
+      delete resultadoDiv.dataset.score;
+      delete resultadoDiv.dataset.interpretacao;
+      delete resultadoDiv.dataset.scaleName;
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      // Anexa eventos aos botões
+      btnCalcular?.addEventListener('click', calcularEscala);
+      btnLimpar?.addEventListener('click', limparCampos);
+      btnGerarPDF?.addEventListener('click', () => {
+        if (!resultadoDiv.dataset.score) {
+          alert('يرجى النقر على "احسب النتيجة" أولاً لإنشاء ملف PDF.');
+          return;
+        }
+        if (typeof gerarPDFGlobal === 'function') {
+          gerarPDFGlobal({
+            titulo: 'مقياس غلاسكو للغيبوبة',
+            subtitulo: 'تقرير تقييم مستوى الوعي',
+            nomeArquivo: 'relatorio_escala_glasgow.pdf',
+            seletorConteudo: '.main-content-wrapper',
+            direcao: 'rtl' // Adiciona direção RTL para o PDF
+          });
+        } else {
+          console.error('Função gerarPDFGlobal não definida.');
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener('click', () => {
+        const score = resultadoDiv.dataset.score;
+        const scaleName = resultadoDiv.dataset.scaleName;
+        const interpretacao = resultadoDiv.dataset.interpretacao;
+        if (!score || !interpretacao) {
+          alert('احسب النتيجة للبحث عن الإجراء.');
+          return;
+        }
+        // Traduz a consulta de pesquisa
+        const searchQuery = encodeURIComponent(`${scaleName} النتيجة ${toArabicNumeral(score)} ${interpretacao} تصنيف NANDA, NIC و NOC`);
+        window.open(`https://www.google.com/search?q=${searchQuery}`, '_blank');
+      });
+
+      // Inicializa os scores (em árabe)
+      updateScoreAndCalculate('ocular');
+      updateScoreAndCalculate('verbal');
+      updateScoreAndCalculate('motora');
+      updateScoreAndCalculate('pupilar');
+
+      // Carrega o footer
+      fetch('footer.html')
+        .then(response => response.text())
+        .then(data => {
+          const footerPlaceholder = document.getElementById('footer-placeholder');
+          if (footerPlaceholder) {
+            footerPlaceholder.innerHTML = data;
+          }
+        });
+    });
+  </script>
 
 
 

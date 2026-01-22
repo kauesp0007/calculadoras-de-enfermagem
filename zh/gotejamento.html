@@ -837,7 +837,138 @@
 
 
 
-    
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const resultadoDiv = document.getElementById('resultado');
+            const btnCalcular = document.getElementById('btnCalcular');
+            const btnLimpar = document.getElementById('btnLimpar');
+            const btnGerarPDF = document.getElementById('btnGerarPDF');
+            const btnNandaNicNoc = document.getElementById('btnNandaNicNoc');
+
+            function calcularGotejamento() {
+                const volumeInput = document.getElementById('volume');
+                const tempoInput = document.getElementById('tempo');
+                const unidadeTempo = document.getElementById('unidadeTempo').value;
+                const equipo = document.getElementById('equipo').value;
+
+                let hasError = false;
+                const volume = parseFloat(volumeInput.value);
+                const tempo = parseFloat(tempoInput.value);
+
+                document.getElementById('volume-error').classList.add('hidden');
+                document.getElementById('tempo-error').classList.add('hidden');
+
+                if (isNaN(volume) || volume <= 0) {
+                    document.getElementById('volume-error').textContent = "请输入大于零的有效容量。";
+                    document.getElementById('volume-error').classList.remove('hidden');
+                    hasError = true;
+                }
+                if (isNaN(tempo) || tempo <= 0) {
+                    document.getElementById('tempo-error').textContent = "请输入大于零的有效时间。";
+                    document.getElementById('tempo-error').classList.remove('hidden');
+                    hasError = true;
+                }
+
+                if (hasError) {
+                    resultadoDiv.style.display = 'block';
+                    resultadoDiv.innerHTML = '⚠️ <strong class="font-bold">请修正无效数值。</strong>';
+                    resultadoDiv.className = 'resultado bg-info-orange-light mt-6 p-4 rounded-lg';
+                    delete resultadoDiv.dataset.gotasPorMinuto;
+                    return;
+                }
+
+                let gotasPorMinuto;
+                let fatorGotejamento;
+                let equipoTexto;
+
+                if (equipo === "macrogotas") {
+                    fatorGotejamento = 20;
+                    equipoTexto = "大滴管";
+                } else {
+                    fatorGotejamento = 60;
+                    equipoTexto = "小滴管";
+                }
+
+                let tempoEmMinutos = (unidadeTempo === "horas") ? tempo * 60 : tempo;
+                gotasPorMinuto = (volume * fatorGotejamento) / tempoEmMinutos;
+
+                const gotasArredondadas = Math.round(gotasPorMinuto);
+
+                // Conteúdo do resultado com cálculo passo a passo
+                const calculoDetalhado = `
+                    <div class="calculo-passos">
+                        <p><strong>分步详解计算 (${equipoTexto}):</strong></p>
+                        <p><strong>步骤 1:</strong> 公式为 (容量 ml × 输液器系数) ÷ 时间（分钟）。</p>
+                        <p><strong>步骤 2:</strong> 您的计算： (${volume}ml × ${fatorGotejamento}) ÷ ${tempoEmMinutos} 分钟。</p>
+                        <p><strong>步骤 3:</strong> 确切结果为每分钟 ${gotasPorMinuto.toFixed(2)} 滴。</p>
+                        <p style="margin-top: 0.5rem;"><strong>最终结果: 四舍五入为 ${gotasArredondadas} 滴/分钟。</strong></p>
+                    </div>
+                `;
+
+                resultadoDiv.innerHTML = calculoDetalhado;
+                // Aplica a nova classe de estilo
+                resultadoDiv.className = 'resultado bg-custom-blue mt-6';
+                resultadoDiv.style.display = 'block';
+
+                resultadoDiv.dataset.gotasPorMinuto = gotasArredondadas;
+                resultadoDiv.dataset.equipo = equipoTexto;
+                resultadoDiv.dataset.scaleName = "滴速计算"; // Nome da escala traduzido
+            }
+
+            function limparCampos() {
+                document.getElementById('volume').value = '';
+                document.getElementById('tempo').value = '';
+                document.getElementById('unidadeTempo').value = 'horas';
+                document.getElementById('equipo').value = 'macrogotas';
+                resultadoDiv.innerHTML = '';
+                resultadoDiv.className = 'resultado hidden mt-6';
+                document.getElementById('volume-error').classList.add('hidden');
+                document.getElementById('tempo-error').classList.add('hidden');
+                delete resultadoDiv.dataset.gotasPorMinuto;
+                delete resultadoDiv.dataset.equipo;
+                delete resultadoDiv.dataset.scaleName;
+            }
+
+            btnCalcular?.addEventListener('click', calcularGotejamento);
+            btnLimpar?.addEventListener('click', limparCampos);
+
+            btnGerarPDF?.addEventListener('click', () => {
+                if (!resultadoDiv.dataset.gotasPorMinuto) {
+                    // Substituindo alert() por uma mensagem não bloqueante, se possível, ou mantendo para simplicidade
+                    // Para este exemplo, manteremos a lógica, mas idealmente seria um modal.
+                    // A tradução do alerta é: "请先点击“计算”以生成 PDF。"
+                    console.warn("请先点击“计算”以生成 PDF。");
+                    // Se um sistema de modal/notificação existir em global-scripts.js, seria melhor usá-lo.
+                    // Por enquanto, vamos usar um 'alert' traduzido, embora não seja o ideal.
+                    alert('请先点击“计算”以生成 PDF。');
+                    return;
+                }
+                if (typeof gerarPDFGlobal === 'function') {
+                    gerarPDFGlobal({
+                        titulo: '滴速计算',
+                        subtitulo: '滴速剂量报告',
+                        nomeArquivo: '滴速报告.pdf',
+                        seletorConteudo: '.main-content-wrapper'
+                    });
+                } else {
+                    console.error('Função gerarPDFGlobal não definida.');
+                }
+            });
+
+            btnNandaNicNoc?.addEventListener('click', () => {
+                const gotasPorMinuto = resultadoDiv.dataset.gotasPorMinuto;
+                const equipo = resultadoDiv.dataset.equipo;
+                const scaleName = resultadoDiv.dataset.scaleName;
+                if (!gotasPorMinuto || !equipo) {
+                    alert('请先计算结果以搜索分类。');
+                    return;
+                }
+                // Query de busca traduzida e otimizada
+                const searchQuery = encodeURIComponent(`"${scaleName}" 结果 ${gotasPorMinuto} 滴/分钟, 输液器 ${equipo} 生成 NANDA 分类, NIC 分类, 和 NOC 分类`);
+                window.open(`https://www.google.com/search?q=${searchQuery}`, '_blank');
+            });
+        });
+    </script>
 
 
 

@@ -610,7 +610,90 @@
 
 
 
-  
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const resultadoDiv = document.getElementById('resultado');
+      const btnCalcular = document.getElementById('btnCalcular');
+      const btnLimpar = document.getElementById('btnLimpar');
+      const proporcaoOptionsDiv = document.getElementById('proporcao-options');
+
+      // JavaScriptのロジックは静的オプション（1mg/mlと2mg/ml）が常に表示されるように維持されます。
+
+      function calcularMedicamentos() {
+        const prescricao = parseFloat(document.getElementById('prescricao').value);
+        // 注：concentracaoとvolumeTotalは維持されますが、X (ml)の投与量計算は選択された比率(mg/ml)に基づきます。
+        const concentracaoTotal = parseFloat(document.getElementById('concentracao').value);
+        const volumeTotal = parseFloat(document.getElementById('volumeTotal').value);
+        const proporcaoRadio = document.querySelector('input[name="proporcao"]:checked');
+
+        resultadoDiv.style.display = 'block';
+
+        // 処方箋(P)と選択された比率(C_ratio mg/ml)のみを使用
+        if (isNaN(prescricao) || !proporcaoRadio) {
+          resultadoDiv.innerHTML = '⚠️ <strong class="font-bold">医師の処方箋を入力し、バイアルの比率を選択してください。</strong>';
+          resultadoDiv.className = 'standard-result-box bg-info-orange-light';
+          return;
+        }
+
+        // C_ratioは1 mlあたりの濃度(mg) (ラジオボタンの値1または2)。
+        const cRatio = parseFloat(proporcaoRadio.value); // 1または2になります
+
+        // 投与量計算: X (ml) = 処方箋 (P) / C_ratio (mg/ml)
+        const resultadoMl = prescricao / cRatio;
+
+        const calculoStr = `
+  ${cRatio}mg は 1ml に相当
+  ${prescricao}mg は X ml に相当
+
+  ${cRatio} * X = ${prescricao} * 1
+  X = ${prescricao} / ${cRatio}
+  X = ${resultadoMl.toFixed(2)} ml
+                `;
+
+        const explicacaoStr = `処方箋は ${prescricao} mg です。溶液の濃度は ${cRatio} mg/ml です。${resultadoMl.toFixed(2)} ml を吸引する必要があります。`;
+
+        resultadoDiv.innerHTML = `
+                    <pre>${calculoStr.trim()}</pre>
+                    <p class="mt-4 font-sans text-base">${explicacaoStr}</p>
+                `;
+        resultadoDiv.className = 'standard-result-box';
+      }
+
+      function limparCampos() {
+        document.getElementById('prescricao').value = '';
+        document.getElementById('concentracao').value = '';
+        document.getElementById('volumeTotal').value = '';
+
+        // ラジオボタンの選択を解除
+        document.querySelectorAll('input[name="proporcao"]').forEach(radio => {
+          radio.checked = false;
+        });
+        resultadoDiv.innerHTML = '';
+        resultadoDiv.className = 'hidden';
+      }
+
+      btnCalcular?.addEventListener('click', calcularMedicamentos);
+      btnLimpar?.addEventListener('click', limparCampos);
+
+      // PDF生成機能は、結果が計算された後にのみ利用可能になるべきです
+      btnGerarPDF?.addEventListener('click', () => {
+        if (resultadoDiv.classList.contains('hidden') || !resultadoDiv.textContent) {
+          alert('PDFを生成する前に、まず「計算」をクリックしてください。');
+          return;
+        }
+        if (typeof gerarPDFGlobal === 'function') {
+          gerarPDFGlobal({
+            titulo: '薬剤計算',
+            subtitulo: '投与量計算レポート',
+            nomeArquivo: 'reporte_medicamento.pdf',
+            seletorConteudo: '.main-content-wrapper'
+          });
+        } else {
+          console.error('gerarPDFGlobal 関数が定義されていません。');
+        }
+      });
+    });
+  </script>
 
 
 

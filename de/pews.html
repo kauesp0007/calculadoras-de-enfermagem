@@ -650,7 +650,244 @@
 
 
 
-    
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const resultadoDiv = document.getElementById('resultado');
+            const btnCalcular = document.getElementById('btnCalcular');
+            const btnLimpar = document.getElementById('btnLimpar');
+            const btnGerarPDF = document.getElementById('btnGerarPDF');
+            const btnNandaNicNoc = document.getElementById('btnNandaNicNoc');
+            const conteudoDiv = document.getElementById('conteudo');
+
+            const pewsData = [
+                {
+                    parameter: "Neurologischer Zustand",
+                    nameAttr: "estadoNeurologico",
+                    options: [
+                        { description: "Aktiv", score: 0 },
+                        { description: "Schläfrig/Hypoaktiv", score: 1 },
+                        { description: "Gereizt", score: 2 },
+                        { description: "Lethargisch/Benommen oder reduzierte Schmerzreaktion", score: 3 }
+                    ]
+                },
+                {
+                    parameter: "Kardiovaskulär",
+                    nameAttr: "cardiovascular",
+                    options: [
+                        { description: "Rosig oder Rekapillarisierungszeit (CRT) 1-2 Sek.", score: 0 },
+                        { description: "Blass oder CRT von 3 Sek. oder HF über dem altersentsprechenden oberen Grenzwert", score: 1 },
+                        { description: "Marmoriert oder CRT 4 Sek. oder HF ≥ 20/min über dem altersentsprechenden oberen Grenzwert", score: 2 },
+                        { description: "Gräulich/Zyanotisch oder CRT ≥ 5 Sek. oder HF ≥ 30/min über dem Grenzwert oder Bradykardie für das Alter", score: 3 }
+                    ]
+                },
+                {
+                    parameter: "Respiratorisch",
+                    nameAttr: "respiratorio",
+                    options: [
+                        { description: "AF altersentsprechend normal, keine Einziehungen", score: 0 },
+                        { description: "AF über dem altersentsprechenden oberen Grenzwert, Einsatz von Atemhilfsmuskulatur oder FiO₂ ≥ 30% oder 6 l/min O₂", score: 1 },
+                        { description: "AF ≥ 20/min über dem oberen Grenzwert, subkostale, interkostale und juguläre Einziehungen oder FiO₂ ≥ 40% oder 6 l/min O₂", score: 2 },
+                        { description: "AF ≤ 5/min unter dem unteren Grenzwert, Einziehungen und Stöhnen oder FiO₂ ≥ 50% oder 8 l/min O₂", score: 3 }
+                    ]
+                }
+            ];
+
+            const pewsExtraPointsData = {
+                question: "2 Extrapunkte hinzufügen (wenn mindestens 15 Minuten vor der Bewertung eine Verneblung erfolgte oder bei anhaltendem Erbrechen nach einer Operation - mindestens 3 Episoden)",
+                nameAttr: "extraPointsCheckbox"
+            };
+
+            function updateScoreDisplay(criterionId) {
+                const selectElement = document.getElementById(criterionId);
+                const scoreDisplayElement = document.getElementById(`${criterionId}_score_display`);
+                if (selectElement && scoreDisplayElement) {
+                    scoreDisplayElement.innerText = selectElement.value === "" ? "0" : selectElement.value;
+                }
+            }
+
+            function berechnePunktzahl() {
+                let totalScore = 0;
+                let allItemsSelected = true;
+
+                pewsData.forEach(item => {
+                    const selectElement = document.getElementById(item.nameAttr);
+                    if (selectElement.value === "") {
+                        allItemsSelected = false;
+                    } else {
+                        totalScore += parseInt(selectElement.value, 10);
+                    }
+                });
+
+                const extraPointsCheckbox = document.getElementById(pewsExtraPointsData.nameAttr);
+                if (extraPointsCheckbox && extraPointsCheckbox.checked) {
+                    totalScore += 2;
+                }
+
+                resultadoDiv.style.display = 'block';
+                if (!allItemsSelected) {
+                    resultadoDiv.innerHTML = '⚠️ <strong class="font-bold">Bitte wählen Sie für jeden Punkt eine Option aus</strong>, bevor Sie berechnen.';
+                    resultadoDiv.className = 'resultado bg-info-orange-light';
+                    delete resultadoDiv.dataset.score;
+                    return;
+                }
+
+                let klassifikation = '';
+                let empfohleneAktion = '';
+                let ergebnisKlasse = '';
+
+                if (totalScore >= 7) {
+                    klassifikation = 'PEWS-Punktzahl: 7+';
+                    empfohleneAktion = 'Ablauf für Herz-Lungen-Wiederbelebung (HLW).';
+                    ergebnisKlasse = 'bg-pews-7-mais';
+                } else if (totalScore >= 4 && totalScore <= 6) {
+                    klassifikation = `PEWS-Punktzahl: ${totalScore}`;
+                    empfohleneAktion = 'PEWS in 20 Minuten wiederholen. Beurteilung/Überwachung durch Pflegefachkraft. Notfall-Team alarmieren. Ärztliche Anweisungen in der Pflegedokumentation festhalten.';
+                    ergebnisKlasse = 'bg-pews-4-6';
+                } else if (totalScore === 3) {
+                    klassifikation = `PEWS-Punktzahl: ${totalScore}`;
+                    empfohleneAktion = 'PEWS in 30 Minuten wiederholen. Sofortige Beurteilung durch Pflegefachkraft. Behandelnden Arzt informieren und Notwendigkeit eines Notrufs klären. Ärztliche Anweisungen festhalten.';
+                    ergebnisKlasse = 'bg-pews-3';
+                } else if (totalScore >= 1 && totalScore <= 2) {
+                    klassifikation = `PEWS-Punktzahl: ${totalScore}`;
+                    empfohleneAktion = 'Sofortige Beurteilung durch Pflegefachkraft. PEWS in 60 Minuten wiederholen, bei gleichbleibendem Score den Arzt informieren. Ärztliche Anweisungen festhalten.';
+                    ergebnisKlasse = 'bg-pews-1-2';
+                } else if (totalScore === 0) {
+                    klassifikation = "PEWS-Punktzahl: 0";
+                    empfohleneAktion = "Routine der Vitalzeichenkontrolle alle 6 Stunden beibehalten.";
+                    ergebnisKlasse = 'bg-pews-0';
+                } else {
+                    klassifikation = "Ungültige Punktzahl";
+                    empfohleneAktion = "Die berechnete Punktzahl liegt außerhalb der erwarteten Grenzen der Skala. Bitte überprüfen Sie die Auswahl.";
+                    ergebnisKlasse = 'bg-info-orange-light';
+                }
+
+                resultadoDiv.innerHTML = `<p>${klassifikation}</p><p>Empfohlene Aktion: <strong class="font-bold">${empfohleneAktion}</strong></p>`;
+                resultadoDiv.className = `resultado ${ergebnisKlasse}`;
+
+                resultadoDiv.dataset.score = totalScore;
+                resultadoDiv.dataset.classificacao = klassifikation;
+                resultadoDiv.dataset.conduta = empfohleneAktion;
+                resultadoDiv.dataset.scaleName = "PEWS-Skala";
+            }
+
+            function felderLeeren() {
+                pewsData.forEach(item => {
+                    const selectElement = document.getElementById(item.nameAttr);
+                    selectElement.selectedIndex = 0;
+                    document.getElementById(`${item.nameAttr}_score_display`).innerText = '0';
+                });
+                const extraPointsCheckbox = document.getElementById(pewsExtraPointsData.nameAttr);
+                if (extraPointsCheckbox) {
+                    extraPointsCheckbox.checked = false;
+                }
+
+                resultadoDiv.innerHTML = '';
+                resultadoDiv.className = 'resultado hidden';
+                delete resultadoDiv.dataset.score;
+                delete resultadoDiv.dataset.classificacao;
+                delete resultadoDiv.dataset.conduta;
+                delete resultadoDiv.dataset.scaleName;
+            }
+
+            pewsData.forEach((item, index) => {
+                const sectionDiv = document.createElement('div');
+                sectionDiv.className = 'pews-criterion-card';
+
+                const headerDiv = document.createElement('div');
+                headerDiv.className = 'pews-criterion-header';
+
+                const titleH3 = document.createElement('h3');
+                titleH3.className = 'pews-criterion-title';
+                titleH3.innerText = item.parameter;
+                headerDiv.appendChild(titleH3);
+
+                const scoreSpan = document.createElement('span');
+                scoreSpan.className = 'pews-score-display';
+                scoreSpan.id = `${item.nameAttr}_score_display`;
+                scoreSpan.innerText = '0';
+                headerDiv.appendChild(scoreSpan);
+
+                sectionDiv.appendChild(headerDiv);
+
+                const optionsDiv = document.createElement('div');
+                optionsDiv.className = 'pews-criterion-options';
+
+                const selectElement = document.createElement('select');
+                selectElement.id = item.nameAttr;
+                selectElement.className = 'pews-select';
+                selectElement.onchange = () => updateScoreDisplay(item.nameAttr);
+
+                const defaultOption = document.createElement('option');
+                defaultOption.value = "";
+                defaultOption.text = "Auswählen...";
+                defaultOption.disabled = true;
+                defaultOption.selected = true;
+                selectElement.appendChild(defaultOption);
+
+                item.options.forEach(option => {
+                    const optionElement = document.createElement('option');
+                    optionElement.value = option.score;
+                    optionElement.text = `${option.description} (${option.score})`;
+                    selectElement.appendChild(optionElement);
+                });
+
+                optionsDiv.appendChild(selectElement);
+                sectionDiv.appendChild(optionsDiv);
+                conteudoDiv.appendChild(sectionDiv);
+            });
+
+            const extraPointsSection = document.createElement('div');
+            extraPointsSection.className = 'pews-extra-points-section';
+            const extraPointsLabel = document.createElement('label');
+            extraPointsLabel.className = 'flex items-center cursor-pointer';
+
+            const extraPointsInput = document.createElement('input');
+            extraPointsInput.type = 'checkbox';
+            extraPointsInput.id = pewsExtraPointsData.nameAttr;
+            extraPointsInput.className = 'form-checkbox h-5 w-5 text-blue-600 rounded-md';
+
+            const extraPointsSpan = document.createElement('span');
+            extraPointsSpan.className = 'ml-2 text-gray-800';
+            extraPointsSpan.innerText = pewsExtraPointsData.question;
+
+            extraPointsLabel.appendChild(extraPointsInput);
+            extraPointsLabel.appendChild(extraPointsSpan);
+            extraPointsSection.appendChild(extraPointsLabel);
+            conteudoDiv.appendChild(extraPointsSection);
+
+            btnCalcular?.addEventListener('click', berechnePunktzahl);
+            btnLimpar?.addEventListener('click', felderLeeren);
+
+            btnGerarPDF?.addEventListener('click', () => {
+                if (!resultadoDiv.dataset.score) {
+                    alert('Bitte klicken Sie zuerst auf "Berechnen", um das PDF zu generieren.');
+                    return;
+                }
+                if (typeof gerarPDFGlobal === 'function') {
+                    gerarPDFGlobal({
+                        titulo: 'PEWS-Skala',
+                        subtitulo: 'Bericht zur Bewertung der klinischen Verschlechterung bei Kindern',
+                        nomeArquivo: 'bericht_pews_skala.pdf',
+                        seletorConteudo: '.main-content-wrapper'
+                    });
+                } else {
+                    console.error('Funktion gerarPDFGlobal nicht definiert.');
+                }
+            });
+
+            btnNandaNicNoc?.addEventListener('click', () => {
+                const score = resultadoDiv.dataset.score;
+                const scaleName = resultadoDiv.dataset.scaleName;
+                const klassifikation = resultadoDiv.dataset.classificacao;
+                if (!score || !klassifikation) {
+                    alert('Berechnen Sie das Ergebnis, um nach der Vorgehensweise zu suchen.');
+                    return;
+                }
+                const searchQuery = encodeURIComponent(`${scaleName} Punktzahl ${score} Klassifikation ${klassifikation} Taxonomie NANDA, NIC und NOC generieren`);
+                window.open(`https://www.google.com/search?q=${searchQuery}`, '_blank');
+            });
+        });
+    </script>
 
 
 

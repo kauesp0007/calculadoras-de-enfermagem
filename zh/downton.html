@@ -610,7 +610,197 @@
 
 
 
-  
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const resultadoDiv = document.getElementById('resultado');
+      const btnCalcular = document.getElementById('btnCalcular');
+      const btnLimpar = document.getElementById('btnLimpar');
+      const btnGerarPDF = document.getElementById('btnGerarPDF');
+      const btnNandaNicNoc = document.getElementById('btnNandaNicNoc');
+      const conteudoDiv = document.getElementById('conteudo');
+
+      // Dados da escala de Downton
+      const downtonData = [
+        {
+          category: "既往跌倒",
+          nameAttr: "quedas",
+          options: [
+            { description: "否", score: 0 },
+            { description: "是", score: 1 }
+          ],
+          explain: "过去12个月内发生跌倒。"
+        },
+        {
+          category: "药物使用",
+          nameAttr: "medicamentos",
+          options: [
+            { description: "不使用风险药物", score: 0 },
+            { description: "使用风险药物（如：镇静剂、安眠药、利尿剂）", score: 1 }
+          ],
+          explain: "某些药物可能导致头晕和失衡。"
+        },
+        {
+          category: "感觉缺陷",
+          nameAttr: "deficits_sensoriais",
+          options: [
+            { description: "无缺陷", score: 0 },
+            { description: "任何视觉或听觉缺陷", score: 1 }
+          ],
+          explain: "视觉或听觉困难可能影响对障碍物的感知。"
+        },
+        {
+          category: "意识状态",
+          nameAttr: "estado_mental",
+          options: [
+            { description: "定向力正常", score: 0 },
+            { description: "定向力障碍", score: 1 }
+          ],
+          explain: "患者的意识状态和认知能力。"
+        },
+        {
+          category: "行走能力",
+          nameAttr: "deambulacao",
+          options: [
+            { description: "正常行走", score: 0 },
+            { description: "行走困难或使用辅助设备（拐杖、助行器）", score: 1 }
+          ],
+          explain: "评估行走方式、平衡和使用支撑设备的情况。"
+        }
+      ];
+
+      // Preenche o formulário dinamicamente
+      downtonData.forEach(item => {
+        const sectionDiv = document.createElement('div');
+        sectionDiv.className = 'downton-criterion-section';
+        sectionDiv.id = `section-${item.nameAttr}`;
+
+        const titleH3 = document.createElement('h3');
+        titleH3.className = 'downton-criterion-title';
+        titleH3.innerHTML = item.category + `
+              <div class="text-sm font-normal text-gray-500 mt-1">${item.explain}</div>`;
+        sectionDiv.appendChild(titleH3);
+
+        const selectElement = document.createElement('select');
+        selectElement.id = item.nameAttr;
+        selectElement.className = 'downton-criterion-select';
+
+        const defaultOption = document.createElement('option');
+        defaultOption.value = "";
+        defaultOption.text = "选择...";
+        selectElement.appendChild(defaultOption);
+
+        item.options.forEach(option => {
+          const optionElement = document.createElement('option');
+          optionElement.value = option.score;
+          optionElement.text = `${option.description} (分值: ${option.score})`;
+          selectElement.appendChild(optionElement);
+        });
+
+        sectionDiv.appendChild(selectElement);
+        conteudoDiv.appendChild(sectionDiv);
+      });
+
+      function calcularDownton() {
+        const selects = document.querySelectorAll('#conteudo select');
+        let allSelected = true;
+        let total = 0;
+
+        selects.forEach(select => {
+          if (select.value === "") {
+            allSelected = false;
+            select.classList.add('incomplete');
+          } else {
+            select.classList.remove('incomplete');
+            total += Number(select.value);
+          }
+        });
+
+        if (!allSelected) {
+          resultadoDiv.innerHTML = '⚠️ <strong class="font-bold">请在计算之前为所有项目选择一个选项。</strong>';
+          resultadoDiv.style.display = "block";
+          delete resultadoDiv.dataset.score;
+          return;
+        }
+
+        let classificacao = '';
+        let recomendacao = '';
+
+        // Definições de pontuação da Escala de Downton
+        // 0-2 pontos: Baixo Risco
+        // 3-5 pontos: Médio Risco
+        // > 5 pontos: Alto Risco (6 ou mais)
+        if (total >= 0 && total <= 2) {
+          classificacao = '低风险';
+          recomendacao = '患者显示低跌倒风险。继续进行标准预防措施并定期重新评估。';
+        } else if (total >= 3 && total <= 5) {
+          classificacao = '中风险';
+          recomendacao = '患者显示中等跌倒风险。实施预防措施和跌倒监测。';
+        } else if (total > 5) {
+          classificacao = '高风险';
+          recomendacao = '患者显示高跌倒风险。立即实施个性化跌倒预防计划。';
+        } else {
+          classificacao = '分数超出标准范围';
+          recomendacao = '计算的分数超出预期分类范围。请检查所选值。';
+        }
+
+        resultadoDiv.innerHTML = `
+                <p>总分: <strong class="font-bold">${total}</strong></p>
+                <p>分级: <strong class="font-bold">${classificacao}</strong></p>
+                <p class="mt-4"><strong>建议:</strong> ${recomendacao}</p>
+            `;
+        resultadoDiv.style.display = "block";
+
+        resultadoDiv.dataset.score = total;
+        resultadoDiv.dataset.scaleName = "Downton量表";
+        resultadoDiv.dataset.classificacao = classificacao;
+      }
+
+      function limparCampos() {
+        const selects = document.querySelectorAll('#conteudo select');
+        selects.forEach(select => {
+          select.selectedIndex = 0;
+          select.classList.remove('incomplete');
+        });
+        resultadoDiv.innerHTML = '';
+        resultadoDiv.style.display = "none";
+        delete resultadoDiv.dataset.score;
+        delete resultadoDiv.dataset.scaleName;
+        delete resultadoDiv.dataset.classificacao;
+      }
+
+      btnCalcular?.addEventListener('click', calcularDownton);
+      btnLimpar?.addEventListener('click', limparCampos);
+
+      btnGerarPDF?.addEventListener('click', () => {
+        if (!resultadoDiv.dataset.score) {
+          alert('请先点击"计算分数"来生成PDF。');
+          return;
+        }
+        if (typeof gerarPDFGlobal === 'function') {
+          gerarPDFGlobal({
+            titulo: 'Downton量表',
+            subtitulo: '跌倒风险评估报告',
+            nomeArquivo: 'relatorio_escala_downton.pdf',
+            seletorConteudo: '.main-content-wrapper'
+          });
+        } else {
+          console.error('Função gerarPDFGlobal não definida。');
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener('click', () => {
+        const score = resultadoDiv.dataset.score;
+        const scaleName = resultadoDiv.dataset.scaleName;
+        const classificacao = resultadoDiv.dataset.classificacao;
+        if (!score || !classificacao) {
+          alert('请先计算结果以搜索护理措施。');
+          return;
+        }
+        const searchQuery = encodeURIComponent(`${scaleName} 分数 ${score} 成人患者 ${classificacao} 生成NANDA分类法，生成NIC分类法和生成NOC分类法`);
+        window.open(`https://www.google.com/search?q=${searchQuery}`, '_blank');
+      });
+    });
+  </script>
 
 
 

@@ -623,7 +623,163 @@
 
 
 
-  
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const resultadoDiv = document.getElementById('resultado');
+      const btnCalcular = document.getElementById('btnCalcular');
+      const btnLimpar = document.getElementById('btnLimpar');
+      const btnGerarPDF = document.getElementById('btnGerarPDF');
+      const btnNandaNicNoc = document.getElementById('btnNandaNicNoc');
+      const formContainer = document.getElementById('form-container');
+
+      const capurroData = [
+        { category: "Texture de la Peau", description: "Évalue l'apparence et l'élasticité de la peau du nouveau-né.", nameAttr: "textura_pele", options: [{ description: "Gélatineuse (0)", score: 0 }, { description: "Fine et lisse (5)", score: 5 }, { description: "Plus épaisse (10)", score: 10 }, { description: "Fissures superficielles (15)", score: 15 }, { description: "Fissures profondes (20)", score: 20 }] },
+        { category: "Plis Plantaires", description: "Observe la présence, la profondeur et l'étendue des plis sur la plante du pied du bébé.", nameAttr: "pregas_plantares", options: [{ description: "Sans plis (0)", score: 0 }, { description: "Marques mal définies (5)", score: 5 }, { description: "Marques bien définies (10)", score: 10 }, { description: "Sillons 1/2 antérieur (15)", score: 15 }, { description: "Sillons > 1/2 antérieur (20)", score: 20 }] },
+        { category: "Formation du Mamelon", description: "Analyse le diamètre du mamelon et l'élévation de l'aréole.", nameAttr: "formacao_mamilo", options: [{ description: "Invisible (0)", score: 0 }, { description: "Diamètre < 7.5mm (5)", score: 5 }, { description: "Diamètre > 7.5mm, bord non élevé (10)", score: 10 }, { description: "Diamètre > 7.5mm, bord élevé (15)", score: 15 }] },
+        { category: "Taille de la Glande Mammaire", description: "Examine la taille et l'élévation des glandes mammaires.", nameAttr: "glandula_mamaria", options: [{ description: "Non palpable (0)", score: 0 }, { description: "< 5mm (5)", score: 5 }, { description: "5-10mm (10)", score: 10 }, { description: "> 10mm (15)", score: 15 }] },
+        { category: "Forme de l'Oreille (Pavillon)", description: "Observe la forme de l'oreille, y compris son épaisseur et son cartilage.", nameAttr: "forma_orelha", options: [{ description: "Plate, difforme (0)", score: 0 }, { description: "Bord partiel (8)", score: 8 }, { description: "Bord total (16)", score: 16 }, { description: "Pavillon total (24)", score: 24 }] },
+        { category: "Signe du Châle", description: "Évalue la position du coude lorsque l'examinateur le tire à travers la poitrine, mesurant la résistance.", nameAttr: "sinal_xale", options: [{ description: "Coude sur la ligne axillaire opposée (0)", score: 0 }, { description: "Coude entre ligne axillaire et sternum (6)", score: 6 }, { description: "Coude sur le sternum (12)", score: 12 }, { description: "Coude au-delà du sternum (18)", score: 18 }] }
+      ];
+
+      function createForm() {
+        formContainer.innerHTML = '';
+        capurroData.forEach(item => buildSection(item));
+      }
+
+      function buildSection(item) {
+        const sectionDiv = document.createElement('div');
+        sectionDiv.className = 'criterion-section';
+        sectionDiv.id = `section-${item.nameAttr}`;
+        sectionDiv.setAttribute('role', 'radiogroup');
+        sectionDiv.setAttribute('aria-labelledby', `title-${item.nameAttr}`);
+
+        const titleH3 = document.createElement('h3');
+        titleH3.className = 'criterion-title';
+        titleH3.id = `title-${item.nameAttr}`;
+        titleH3.innerText = item.category;
+        sectionDiv.appendChild(titleH3);
+
+        const descriptionP = document.createElement('p');
+        descriptionP.className = 'criterion-description';
+        descriptionP.textContent = item.description;
+        sectionDiv.appendChild(descriptionP);
+
+        const optionsGroup = document.createElement('div');
+        optionsGroup.className = 'radio-options-group';
+
+        item.options.forEach((option, index) => {
+          const radioId = `${item.nameAttr}-${index}`;
+          const radioInput = document.createElement('input');
+          radioInput.type = 'radio';
+          radioInput.id = radioId;
+          radioInput.name = item.nameAttr;
+          radioInput.value = option.score;
+
+          const radioLabel = document.createElement('label');
+          radioLabel.htmlFor = radioId;
+          radioLabel.textContent = option.description;
+
+          optionsGroup.appendChild(radioInput);
+          optionsGroup.appendChild(radioLabel);
+        });
+
+        sectionDiv.appendChild(optionsGroup);
+        formContainer.appendChild(sectionDiv);
+      }
+
+      function calculateScore() {
+        formContainer.querySelectorAll('.criterion-section.incomplete').forEach(el => el.classList.remove('incomplete'));
+
+        const groups = formContainer.querySelectorAll('.criterion-section');
+        let allSelected = true;
+        let totalScore = 0;
+
+        groups.forEach(group => {
+          const checkedRadio = group.querySelector('input[type="radio"]:checked');
+          if (checkedRadio) {
+            totalScore += Number(checkedRadio.value);
+          } else {
+            allSelected = false;
+            group.classList.add('incomplete');
+          }
+        });
+
+        resultadoDiv.style.display = "block";
+        if (!allSelected) {
+          resultadoDiv.innerHTML = '⚠️ <strong class="font-bold">Veuillez sélectionner une option pour tous les éléments mis en évidence avant de calculer.</strong>';
+          resultadoDiv.className = 'resultado bg-yellow-100 text-yellow-800';
+          delete resultadoDiv.dataset.score;
+          return;
+        }
+
+        const totalDays = 200 + totalScore;
+        const weeks = Math.floor(totalDays / 7);
+        const days = totalDays % 7;
+        const gestationalAgeText = `<strong class="font-bold">${weeks} semaines et ${days} jours</strong>`;
+
+        resultadoDiv.innerHTML = `<p>Score total : <strong class="font-bold">${totalScore}</strong></p><p>Âge Gestationnel Estimé : ${gestationalAgeText}</p>`;
+        resultadoDiv.className = `resultado`;
+
+        resultadoDiv.dataset.score = totalScore;
+        resultadoDiv.dataset.scaleName = "Méthode de Capurro";
+        resultadoDiv.dataset.classificacao = gestationalAgeText.replace(/<[^>]*>/g, "");
+      }
+
+      function clearFields() {
+        formContainer.querySelectorAll('input[type="radio"]').forEach(radio => {
+          radio.checked = false;
+        });
+        formContainer.querySelectorAll('.criterion-section.incomplete').forEach(el => el.classList.remove('incomplete'));
+        resultadoDiv.innerHTML = '';
+        resultadoDiv.style.display = 'none';
+        resultadoDiv.className = 'resultado';
+        delete resultadoDiv.dataset.score;
+      }
+
+      btnCalcular?.addEventListener('click', calculateScore);
+      btnLimpar?.addEventListener('click', clearFields);
+
+      btnGerarPDF?.addEventListener('click', () => {
+        if (!resultadoDiv.dataset.score) {
+          // Substitui alert()
+          const msg = document.createElement('div');
+          msg.className = 'standard-result-box bg-info-orange-light mb-4';
+          msg.innerHTML = '⚠️ <strong class="font-bold">Veuillez cliquer sur "Calculer" d\'abord pour générer le PDF.</strong>';
+          resultadoDiv.parentNode.insertBefore(msg, resultadoDiv);
+          setTimeout(() => msg.remove(), 5000);
+          return;
+        }
+        // Chama a função global de PDF (supondo que esteja em global-scripts.js ou definida globalmente)
+        if (typeof gerarPDFGlobal === 'function') {
+          gerarPDFGlobal({
+            titulo: 'Estimation de l\'Âge Gestationnel - Méthode de Capurro',
+            subtitulo: 'Rapport d\'Évaluation Néonatale',
+            nomeArquivo: 'rapport_methode_capurro.pdf',
+            seletorConteudo: '.main-content-wrapper'
+          });
+        } else {
+          console.error('Função gerarPDFGlobal não definida.');
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener('click', () => {
+        const classificacao = resultadoDiv.dataset.classificacao;
+        if (!classificacao) {
+          // Substitui alert()
+          const msg = document.createElement('div');
+          msg.className = 'standard-result-box bg-info-orange-light mb-4';
+          msg.innerHTML = '⚠️ <strong class="font-bold">Veuillez calculer le résultat pour rechercher la conduite.</strong>';
+          resultadoDiv.parentNode.insertBefore(msg, resultadoDiv);
+          setTimeout(() => msg.remove(), 5000);
+          return;
+        }
+        const searchQuery = encodeURIComponent(`soins infirmiers pour nouveau-né avec âge gestationnel de ${classificacao} NANDA NIC NOC`);
+        window.open(`https://www.google.com/search?q=${searchQuery}`, '_blank');
+      });
+
+      createForm();
+    });
+  </script>
 
 
 

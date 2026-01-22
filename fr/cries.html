@@ -586,7 +586,182 @@
   <!-- Assume script is at root -->
 
   <!-- Script Spécifique à la Page CRIES (avec textes traduits) -->
-  
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const resultadoDiv = document.getElementById("resultado");
+      const conteudoDiv = document.getElementById("conteudo");
+      const btnCalcular = document.getElementById("btnCalcular");
+      const btnLimpar = document.getElementById("btnLimpar");
+      const btnGerarPDF = document.getElementById("btnGerarPDF"); // Ajouté
+      const btnNandaNicNoc = document.getElementById("btnNandaNicNoc"); // Ajouté
+
+      // Données CRIES traduites en Français
+      const criesData = [
+        {
+          id: "pleurs",
+          title: "Pleurs",
+          options: [
+            { score: 0, text: "Absents" },
+            { score: 1, text: "Aigus" },
+            { score: 2, text: "Incontrôlables" },
+          ],
+        },
+        {
+          id: "oxygene",
+          title: "Besoin en O₂",
+          options: [
+            { score: 0, text: "SpO₂ > 95%" },
+            { score: 1, text: "SpO₂ 21%-30%" },
+            { score: 2, text: "SpO₂ > 30%" },
+          ],
+        },
+        {
+          id: "signes_vitaux",
+          title: "Augmentation des Signes Vitaux",
+          options: [
+            { score: 0, text: "Pas d'augmentation" },
+            { score: 1, text: "Augmentation jusqu'à 20%" },
+            { score: 2, text: "Augmentation > 20%" },
+          ],
+        },
+        {
+          id: "expression_faciale",
+          title: "Expression Faciale",
+          options: [
+            { score: 0, text: "Détendue" },
+            { score: 1, text: "Grimace sporadique" },
+            { score: 2, text: "Contractée" },
+          ],
+        },
+        {
+          id: "insomnie",
+          title: "Insomnie",
+          options: [
+            { score: 0, text: "Normale" },
+            { score: 1, text: "Courts intervalles" },
+            { score: 2, text: "Absente" },
+          ],
+        },
+      ];
+
+      function createForm() {
+        // Logique pour créer le formulaire (reste identique)
+        conteudoDiv.innerHTML = "";
+        criesData.forEach((criterion) => {
+          const card = document.createElement("div");
+          card.className = "criterion-card";
+          card.innerHTML = `
+                    <h3 class="criterion-title">${criterion.title}</h3>
+                    <div class="options-container">
+                        <select id="${criterion.id}-select" class="custom-select">
+                            <option value="" disabled selected>Sélectionnez...</option>
+                            ${criterion.options.map((opt) => `<option value="${opt.score}">${opt.text} (${opt.score})</option>`).join("")}
+                        </select>
+                    </div>
+                `;
+          conteudoDiv.appendChild(card);
+        });
+      }
+
+      function calcular() {
+        // Logique de calcul (reste identique, mais les textes de résultat sont traduits)
+        let total = 0;
+        let allSelected = true;
+
+        criesData.forEach((criterion) => {
+          const select = document.getElementById(`${criterion.id}-select`);
+          if (select && select.value !== "") {
+            // Assure qu'une option est sélectionnée
+            total += parseInt(select.value, 10);
+          } else {
+            allSelected = false;
+          }
+        });
+
+        if (!allSelected) {
+          // Message d'erreur traduit
+          resultadoDiv.innerHTML =
+            '⚠️ <strong class="font-bold">Veuillez sélectionner une option pour chaque critère.</strong>';
+          resultadoDiv.className = "standard-result-box bg-info-orange-light";
+          resultadoDiv.style.display = "block";
+          delete resultadoDiv.dataset.score;
+          return;
+        }
+
+        // Interprétation traduite
+        let conduta = "";
+        if (total >= 7) {
+          conduta = "Douleur intense";
+        } else if (total >= 4) {
+          conduta = "Douleur modérée";
+        } else {
+          conduta = "Douleur minimale ou absente";
+        }
+
+        resultadoDiv.innerHTML = `
+                <p class="font-bold text-lg">Score total : <span class="font-black">${total}/10</span></p>
+                <p class="font-bold text-lg">Interprétation : <span class="font-black">${conduta}</span></p>
+            `;
+        resultadoDiv.className = "standard-result-box";
+        resultadoDiv.style.display = "block";
+        resultadoDiv.dataset.score = total;
+        resultadoDiv.dataset.conduta = conduta;
+      }
+
+      function limpar() {
+        // Logique de nettoyage (reste identique)
+        createForm();
+        resultadoDiv.innerHTML = "";
+        resultadoDiv.className = "hidden";
+        delete resultadoDiv.dataset.score;
+        delete resultadoDiv.dataset.conduta;
+      }
+
+      // Initialise et attache les événements
+      createForm();
+      btnCalcular?.addEventListener("click", calcular);
+      btnLimpar?.addEventListener("click", limpar);
+
+      // Logique PDF (reste identique, titres déjà traduits)
+      btnGerarPDF?.addEventListener("click", () => {
+        if (resultadoDiv.dataset.score === undefined) {
+          // Check if score is calculated
+          alert(
+            'Veuillez cliquer sur "Calculer" d\'abord pour générer le PDF.',
+          );
+          return;
+        }
+        if (typeof gerarPDFGlobal === "function") {
+          gerarPDFGlobal({
+            titulo: "Échelle CRIES - Évaluation de la Douleur Néonatale",
+            subtitulo: "Rapport d'Évaluation",
+            nomeArquivo: "rapport_echelle_cries.pdf",
+            seletorConteudo: ".main-content-wrapper",
+          });
+        } else {
+          console.error("Fonction gerarPDFGlobal non définie.");
+        }
+      });
+
+      // Logique NANDA/NIC/NOC (reste identique, recherche en FR)
+      btnNandaNicNoc?.addEventListener("click", () => {
+        const score = resultadoDiv.dataset.score;
+        const interpretation = resultadoDiv.dataset.conduta;
+        if (interpretation === undefined) {
+          // Check if interpretation exists
+          alert("Calculez le résultat pour rechercher la conduite à tenir.");
+          return;
+        }
+        const searchQuery = encodeURIComponent(
+          `plan de soins infirmiers pour ${interpretation} chez le nouveau-né selon échelle CRIES NANDA NIC NOC`,
+        );
+        window.open(
+          `https://www.google.com/search?q=${searchQuery}`,
+          "_blank",
+        );
+      });
+    });
+  </script>
 
   <!-- Script du Sélecteur de Langue (chargé depuis la racine) -->
   <script src="/lang-selector.js" defer=""></script>

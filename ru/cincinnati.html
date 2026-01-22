@@ -625,7 +625,96 @@
 
 
   <!-- Специфический скрипт для страницы Cincinnati -->
-  
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const resultadoDiv = document.getElementById('resultado');
+      const btnCalcular = document.getElementById('btnCalcular');
+      const btnLimpar = document.getElementById('btnLimpar');
+      const btnGerarPDF = document.getElementById('btnGerarPDF');
+      const btnNandaNicNoc = document.getElementById('btnNandaNicNoc');
+      const cincinnatiTable = document.getElementById('cincinnatiTable');
+
+      cincinnatiTable?.addEventListener('click', function (e) {
+        if (e.target.tagName === 'TD' && e.target.hasAttribute('data-value')) {
+          const row = e.target.parentElement;
+          [...row.children].forEach(td => td.classList.remove('selected'));
+          e.target.classList.add('selected');
+        }
+      });
+
+      function calcular() {
+        const rows = cincinnatiTable.querySelectorAll("tbody tr");
+        let positivo = false;
+        let incompleto = false;
+
+        rows.forEach(row => {
+          const selectedCell = row.querySelector(".selected");
+          if (!selectedCell) {
+            incompleto = true;
+          } else if (selectedCell.dataset.value === "1") {
+            positivo = true;
+          }
+        });
+
+        if (incompleto) {
+          resultadoDiv.innerHTML = '⚠️ <strong class="font-bold">Пожалуйста, выберите вариант для каждого критерия.</strong>';
+          resultadoDiv.className = 'resultado bg-info-orange-light';
+          resultadoDiv.style.display = 'block';
+          delete resultadoDiv.dataset.score;
+          return;
+        }
+
+        const resultadoTexto = positivo ? "ПОЛОЖИТЕЛЬНЫЙ на подозрение инсульта" : "ОТРИЦАТЕЛЬНЫЙ на подозрение инсульта";
+        const resultadoClasse = positivo ? 'bg-cincinnati-positivo' : 'bg-cincinnati-negativo';
+
+        resultadoDiv.innerHTML = `<p>Результат: <strong class="font-bold">${resultadoTexto}</strong></p>`;
+        resultadoDiv.className = `resultado ${resultadoClasse}`;
+        resultadoDiv.style.display = 'block';
+
+        resultadoDiv.dataset.score = resultadoTexto;
+        resultadoDiv.dataset.scaleName = "Шкала Цинциннати";
+      }
+
+      function limpar() {
+        cincinnatiTable.querySelectorAll("td.selected").forEach(cell => cell.classList.remove("selected"));
+        resultadoDiv.innerHTML = '';
+        resultadoDiv.className = 'resultado hidden';
+        delete resultadoDiv.dataset.score;
+        delete resultadoDiv.dataset.scaleName;
+      }
+
+      btnCalcular?.addEventListener('click', calcular);
+      btnLimpar?.addEventListener('click', limpar);
+
+      btnGerarPDF?.addEventListener('click', () => {
+        if (!resultadoDiv.dataset.score) {
+          alert('Пожалуйста, сначала нажмите "Рассчитать", чтобы создать PDF.');
+          return;
+        }
+        if (typeof gerarPDFGlobal === 'function') {
+          gerarPDFGlobal({
+            titulo: 'Шкала Цинциннати',
+            subtitulo: 'Отчет о быстрой оценке инсульта',
+            nomeArquivo: 'relatorio_escala_cincinnati.pdf',
+            seletorConteudo: '.main-content-wrapper'
+          });
+        } else {
+          console.error('Функция gerarPDFGlobal не определена.');
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener('click', () => {
+        const score = resultadoDiv.dataset.score;
+        const scaleName = resultadoDiv.dataset.scaleName;
+        if (!score) {
+          alert('Рассчитайте результат для поиска ухода.');
+          return;
+        }
+        const searchQuery = encodeURIComponent(`${score} ${scaleName} создать таксономию NANDA создать таксономию NIC создать таксономию NOC`);
+        window.open(`https://www.google.com/search?q=${searchQuery}`, '_blank');
+      });
+    });
+  </script>
   <script src="/lang-selector.js" defer=""></script>
 
 

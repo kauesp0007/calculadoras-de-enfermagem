@@ -618,7 +618,222 @@
 
 
 
-    
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const resultadoDiv = document.getElementById('resultado');
+            const btnCalcular = document.getElementById('btnCalcular');
+            const btnLimpar = document.getElementById('btnLimpar');
+            const btnGerarPDF = document.getElementById('btnGerarPDF');
+            const btnNandaNicNoc = document.getElementById('btnNandaNicNoc');
+            const conteudoDiv = document.getElementById('conteudo');
+
+            const morseData = [
+                {
+                    criterion: "跌倒史",
+                    nameAttr: "historiaQuedas",
+                    options: [
+                        { text: "否", score: 0 },
+                        { text: "是", score: 25 }
+                    ]
+                },
+                {
+                    criterion: "次要诊断",
+                    nameAttr: "diagnosticoSecundario",
+                    options: [
+                        { text: "否", score: 0 },
+                        { text: "是", score: 15 }
+                    ]
+                },
+                {
+                    criterion: "行走辅助",
+                    nameAttr: "auxilioDeambulacao",
+                    options: [
+                        { text: "无/卧床/护理协助", score: 0 },
+                        { text: "拐杖/轮椅/护士", score: 15 },
+                        { text: "家具/助行器/拐杖", score: 30 }
+                    ]
+                },
+                {
+                    criterion: "IV/肝素治疗",
+                    nameAttr: "terapiaIVHeparina",
+                    options: [
+                        { text: "否", score: 0 },
+                        { text: "是", score: 20 }
+                    ]
+                },
+                {
+                    criterion: "步态",
+                    nameAttr: "marcha",
+                    options: [
+                        { text: "正常/卧床/不动", score: 0 },
+                        { text: "虚弱", score: 10 },
+                        { text: "受损", score: 20 }
+                    ]
+                },
+                {
+                    criterion: "心理状态",
+                    nameAttr: "estadoMental",
+                    options: [
+                        { text: "定向力", score: 0 },
+                        { text: "忘记限制", score: 15 }
+                    ]
+                }
+            ];
+
+            // --- 莫尔斯计算器功能 ---
+            function updateScoreDisplay(criterionId) {
+                const selectElement = document.getElementById(criterionId);
+                const scoreDisplayElement = document.getElementById(`${criterionId}_score_display`);
+                if (selectElement && scoreDisplayElement) {
+                    scoreDisplayElement.innerText = selectElement.value === "" ? "0" : selectElement.value;
+                }
+            }
+
+            function calcularPontuacaoMorse() {
+                let total = 0;
+                let allSelected = true;
+
+                morseData.forEach(item => {
+                    const selectElement = document.getElementById(item.nameAttr);
+                    if (selectElement.value === "") {
+                        allSelected = false;
+                    } else {
+                        total += parseInt(selectElement.value, 10);
+                    }
+                });
+
+                resultadoDiv.style.display = 'block';
+                if (!allSelected) {
+                    resultadoDiv.innerHTML = '⚠️ <strong class="font-bold">请在计算前为所有项目选择一个选项</strong>。';
+                    resultadoDiv.className = 'resultado bg-info-orange-light';
+                    delete resultadoDiv.dataset.score;
+                    return;
+                }
+
+                let risco = '';
+                let conduta = '';
+                let resultadoClasses = '';
+                let riscoTexto = '';
+
+                if (total >= 45) {
+                    risco = '高风险';
+                    conduta = '实施严格预防性干预措施，如持续监测、床位警报和药物审查。';
+                    resultadoClasses = 'bg-danger-red-light';
+                } else if (total >= 25) {
+                    risco = '中等风险';
+                    conduta = '实施标准预防性干预措施，如患者教育、防滑鞋和使用行走辅助工具。';
+                    resultadoClasses = 'bg-warning-yellow-light';
+                } else { // 0 到 24
+                    risco = '低风险';
+                    conduta = '保持常规监测和安全环境。考虑定期重新评估风险。';
+                    resultadoClasses = 'bg-success-green-light';
+                }
+
+                resultadoDiv.innerHTML = `<p>总评分：<strong class="font-bold">${total}</strong></p><p>跌倒风险：<strong class="font-bold">${risco}</strong></p><p>措施：<strong class="font-bold">${conduta}</strong></p>`;
+                resultadoDiv.className = `resultado ${resultadoClasses}`;
+
+                resultadoDiv.dataset.score = total;
+                resultadoDiv.dataset.risco = risco;
+                resultadoDiv.dataset.conduta = conduta;
+                resultadoDiv.dataset.scaleName = "莫尔斯跌倒量表";
+            }
+
+            function limparCamposMorse() {
+                morseData.forEach(item => {
+                    const selectElement = document.getElementById(item.nameAttr);
+                    selectElement.selectedIndex = 0;
+                    document.getElementById(`${item.nameAttr}_score_display`).innerText = '0';
+                });
+                resultadoDiv.innerHTML = '';
+                resultadoDiv.className = 'resultado hidden';
+                delete resultadoDiv.dataset.score;
+                delete resultadoDiv.dataset.risco;
+                delete resultadoDiv.dataset.conduta;
+                delete resultadoDiv.dataset.scaleName;
+            }
+
+            // 动态填充表单
+            morseData.forEach((item, index) => {
+                const sectionDiv = document.createElement('div');
+                sectionDiv.className = 'morse-criterion-card';
+
+                const headerDiv = document.createElement('div');
+                headerDiv.className = 'morse-criterion-header';
+
+                const titleH3 = document.createElement('h3');
+                titleH3.className = 'morse-criterion-title';
+                titleH3.innerText = item.criterion;
+                headerDiv.appendChild(titleH3);
+
+                const scoreSpan = document.createElement('span');
+                scoreSpan.className = 'morse-score-display';
+                scoreSpan.id = `${item.nameAttr}_score_display`;
+                scoreSpan.innerText = '0';
+                headerDiv.appendChild(scoreSpan);
+
+                sectionDiv.appendChild(headerDiv);
+
+                const optionsDiv = document.createElement('div');
+                optionsDiv.className = 'morse-criterion-options';
+
+                const selectElement = document.createElement('select');
+                selectElement.id = item.nameAttr;
+                selectElement.className = 'morse-select';
+                selectElement.onchange = () => updateScoreDisplay(item.nameAttr);
+
+                const defaultOption = document.createElement('option');
+                defaultOption.value = "";
+                defaultOption.text = "请选择...";
+                defaultOption.disabled = true;
+                defaultOption.selected = true;
+                selectElement.appendChild(defaultOption);
+
+                item.options.forEach(option => {
+                    const optionElement = document.createElement('option');
+                    optionElement.value = option.score;
+                    optionElement.text = `${option.text} (${option.score})`;
+                    selectElement.appendChild(optionElement);
+                });
+
+                optionsDiv.appendChild(selectElement);
+                sectionDiv.appendChild(optionsDiv);
+                conteudoDiv.appendChild(sectionDiv);
+            });
+
+            // 为按钮添加事件监听器
+            btnCalcular?.addEventListener('click', calcularPontuacaoMorse);
+            btnLimpar?.addEventListener('click', limparCamposMorse);
+
+            btnGerarPDF?.addEventListener('click', () => {
+                if (!resultadoDiv.dataset.score) {
+                    alert('请先点击"计算"生成PDF。');
+                    return;
+                }
+                if (typeof gerarPDFGlobal === 'function') {
+                    gerarPDFGlobal({
+                        titulo: '莫尔斯跌倒量表',
+                        subtitulo: '跌倒风险评估报告',
+                        nomeArquivo: 'morse_fall_scale_report.pdf',
+                        seletorConteudo: '.main-content-wrapper'
+                    });
+                } else {
+                    console.error('gerarPDFGlobal函数未定义。');
+                }
+            });
+
+            btnNandaNicNoc?.addEventListener('click', () => {
+                const score = resultadoDiv.dataset.score;
+                const scaleName = resultadoDiv.dataset.scaleName;
+                const risco = resultadoDiv.dataset.risco;
+                if (!score || !risco) {
+                    alert('请先计算结果以搜索措施。');
+                    return;
+                }
+                const searchQuery = encodeURIComponent(`${scaleName} 评分 ${score} 风险 ${risco} 生成NADA分类法，生成NIC分类法，生成NOC分类法`);
+                window.open(`https://www.google.com/search?q=${searchQuery}`, '_blank');
+            });
+        });
+    </script>
 
 
 

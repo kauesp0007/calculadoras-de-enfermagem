@@ -587,7 +587,82 @@
 
 
   <!-- Script Específico da Página -->
-  
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const resultadoDiv = document.getElementById('resultado');
+      const btnCalcular = document.getElementById('btnCalcular');
+      const btnLimpar = document.getElementById('btnLimpar');
+      const btnGerarPDF = document.getElementById('btnGerarPDF');
+      const btnNandaNicNoc = document.getElementById('btnNandaNicNoc');
+      const nivelDorInput = document.getElementById('nivelDor');
+
+      function calcular() {
+        const nivelDor = parseInt(nivelDorInput.value, 10);
+        let interpretacao = '';
+        let grauDor = '';
+
+        if (isNaN(nivelDor) || nivelDor < 0 || nivelDor > 10) {
+          resultadoDiv.innerHTML = '⚠️ <strong class="font-bold">请输入0到10之间的有效数字。</strong>';
+          resultadoDiv.className = 'resultado bg-info-orange-light';
+          resultadoDiv.style.display = 'block';
+          delete resultadoDiv.dataset.score;
+          return;
+        }
+
+        if (nivelDor === 0) { grauDor = '无疼痛'; }
+        else if (nivelDor <= 3) { grauDor = '轻度疼痛'; }
+        else if (nivelDor <= 6) { grauDor = '中度疼痛'; }
+        else if (nivelDor <= 9) { grauDor = '重度疼痛'; }
+        else { grauDor = '最严重疼痛'; }
+
+        resultadoDiv.innerHTML = `<p>疼痛水平： <strong class="font-bold">${nivelDor}/10 (${grauDor})</strong></p>`;
+        resultadoDiv.className = 'resultado';
+        resultadoDiv.style.display = 'block';
+
+        resultadoDiv.dataset.score = `${nivelDor} (${grauDor})`;
+        resultadoDiv.dataset.scaleName = "数字疼痛量表 (EN)";
+      }
+
+      function limpar() {
+        nivelDorInput.value = '';
+        resultadoDiv.innerHTML = '';
+        resultadoDiv.className = 'resultado hidden';
+        delete resultadoDiv.dataset.score;
+        delete resultadoDiv.dataset.scaleName;
+      }
+
+      btnCalcular?.addEventListener('click', calcular);
+      btnLimpar?.addEventListener('click', limpar);
+
+      btnGerarPDF?.addEventListener('click', () => {
+        if (!resultadoDiv.dataset.score) {
+          alert('请先点击"计算"生成PDF。');
+          return;
+        }
+        if (typeof gerarPDFGlobal === 'function') {
+          gerarPDFGlobal({
+            titulo: '数字疼痛量表 (EN)',
+            subtitulo: '疼痛强度评估报告',
+            nomeArquivo: 'numeric_pain_scale_report.pdf',
+            seletorConteudo: '.main-content-wrapper'
+          });
+        } else {
+          console.error('Função gerarPDFGlobal não definida.');
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener('click', () => {
+        const score = resultadoDiv.dataset.score;
+        const scaleName = resultadoDiv.dataset.scaleName;
+        if (!score) {
+          alert('请计算结果以搜索护理措施。');
+          return;
+        }
+        const searchQuery = encodeURIComponent(`${score} ${scaleName} generate NANDA taxonomy generate NIC taxonomy generate NOC taxonomy`);
+        window.open(`https://www.google.com/search?q=${searchQuery}`, '_blank');
+      });
+    });
+  </script>
 
 
 

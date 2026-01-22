@@ -690,7 +690,308 @@
 
 
   <!-- Script Específico da Página Humpty Dumpty (Traduzido) -->
-  
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      // Carrega o rodapé da pasta /fr/ via fetch
+      fetch("footer.html")
+        .then((response) => response.text())
+        .then((data) => {
+          document.getElementById("footer-placeholder").innerHTML = data;
+        });
+
+      // Carrega os elementos globais da pasta /fr/
+      fetch("/fr/global-body-elements.html")
+        .then((response) => response.text())
+        .then((html) => {
+          document.getElementById(
+            "global-body-elements-container",
+          ).innerHTML = html;
+          // Ativa o VLibras e outros scripts globais DEPOIS de carregar o contenu
+          if (typeof initVLibras === "function") {
+            initVLibras();
+          }
+          if (typeof setupGlobalElements === "function") {
+            setupGlobalElements();
+          }
+        });
+
+      const resultadoDiv = document.getElementById("resultado");
+      const btnCalcular = document.getElementById("btnCalcular");
+      const btnLimpar = document.getElementById("btnLimpar");
+      const btnGerarPDF = document.getElementById("btnGerarPDF");
+      const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
+      const conteudoDiv = document.getElementById("conteudo");
+
+      // Données de l'échelle Humpty Dumpty traduites
+      const humptyData = [
+        {
+          category: "Âge",
+          nameAttr: "age",
+          options: [
+            { description: "≥ 13 ans", score: 1 },
+            { description: "7-12 ans", score: 2 },
+            { description: "3-6 ans", score: 3 },
+            { description: "< 3 ans", score: 4 },
+          ],
+          explain:
+            "L'âge est un facteur de risque important de chute, les enfants plus jeunes étant plus vulnérables.",
+        },
+        {
+          category: "Sexe",
+          nameAttr: "sexe",
+          options: [
+            { description: "Féminin", score: 1 },
+            { description: "Masculin", score: 2 },
+          ],
+          explain:
+            "Le sexe masculin peut présenter un risque légèrement plus élevé.",
+        },
+        {
+          category: "Diagnostic",
+          nameAttr: "diagnostic",
+          options: [
+            { description: "Autres diagnostics", score: 1 },
+            { description: "Troubles psychiques", score: 2 },
+            {
+              description:
+                "Altération de l'oxygénation (respiratoire, déshydratation, anémie)",
+              score: 3,
+            },
+            { description: "Neurologique", score: 4 },
+          ],
+          explain:
+            "Certains diagnostics augmentent la prédisposition aux chutes.",
+        },
+        {
+          category: "Déficits Cognitifs",
+          nameAttr: "cognitifs",
+          options: [
+            { description: "Orienté selon ses capacités", score: 1 },
+            { description: "Oublie ses limitations", score: 2 },
+            { description: "Non conscient de ses limitations", score: 3 },
+          ],
+          explain:
+            "La capacité à reconnaître les limitations et les risques affecte la probabilité de chutes.",
+        },
+        {
+          category: "Facteurs Environnementaux",
+          nameAttr: "environnementaux",
+          options: [
+            { description: "Enfant qui déambule", score: 1 },
+            { description: "Enfant alité", score: 2 },
+            {
+              description:
+                "Utilise un appareil auxiliaire, lit/berceau avec beaucoup d'équipements, faible éclairage",
+              score: 3,
+            },
+            { description: "Antécédent de chute", score: 4 },
+          ],
+          explain:
+            "L'environnement hospitalier et les antécédents du patient sont pertinents pour le risque de chute.",
+        },
+        {
+          category: "Utilisation de Médicaments",
+          nameAttr: "medicaments",
+          options: [
+            {
+              description: "Utilise d'autres médicaments ou n'en utilise pas",
+              score: 1,
+            },
+            {
+              description:
+                "Utilise 1 des suivants : sédatifs, hypnotiques, narcotiques",
+              score: 2,
+            },
+            {
+              description:
+                "Utilise ≥ 2 des suivants : sédatifs, hypnotiques, narcotiques",
+              score: 3,
+            },
+          ],
+          explain:
+            "Certains médicaments affectent la conscience et l'équilibre, augmentant le risque.",
+        },
+        {
+          category: "Chirurgie / Sédation / Anesthésie",
+          nameAttr: "chirurgie",
+          options: [
+            { description: "Il y a plus de 48h ou aucune", score: 1 },
+            { description: "Il y a 48h", score: 2 },
+            { description: "Il y a 24h", score: 3 },
+          ],
+          explain:
+            "La période post-procédure présente un risque plus élevé en raison des effets résiduels.",
+        },
+      ];
+
+      // Remplit le formulaire dynamiquement
+      humptyData.forEach((item) => {
+        const sectionDiv = document.createElement("div");
+        sectionDiv.className = "humpty-criterion-section";
+        sectionDiv.id = `section-${item.nameAttr}`;
+
+        const titleContainer = document.createElement("div");
+        titleContainer.className = "humpty-criterion-title-container";
+
+        const titleH3 = document.createElement("h3");
+        titleH3.className = "humpty-criterion-title";
+        titleH3.textContent = item.category;
+        titleContainer.appendChild(titleH3);
+
+        const explainP = document.createElement("p");
+        explainP.className = "humpty-criterion-explain";
+        explainP.textContent = item.explain;
+        titleContainer.appendChild(explainP);
+
+        sectionDiv.appendChild(titleContainer);
+
+        const optionsContainer = document.createElement("div");
+        optionsContainer.className = "options-container";
+
+        const selectElement = document.createElement("select");
+        selectElement.id = item.nameAttr;
+        selectElement.className = "humpty-criterion-select";
+
+        const defaultOption = document.createElement("option");
+        defaultOption.value = "";
+        defaultOption.text = "Sélectionnez..."; // Traduzido
+        selectElement.appendChild(defaultOption);
+
+        item.options.forEach((option) => {
+          const optionElement = document.createElement("option");
+          optionElement.value = option.score;
+          optionElement.text = `${option.description} (points: ${option.score})`;
+          selectElement.appendChild(optionElement);
+        });
+
+        optionsContainer.appendChild(selectElement);
+        sectionDiv.appendChild(optionsContainer);
+        conteudoDiv.appendChild(sectionDiv);
+      });
+
+      function calculerHumpty() {
+        const selects = document.querySelectorAll("#conteudo select");
+        let allSelected = true;
+        let total = 0;
+
+        selects.forEach((select) => {
+          const section = select.closest(".humpty-criterion-section");
+          if (select.value === "") {
+            allSelected = false;
+            select.classList.add("incomplete");
+            section?.classList.add("incomplete"); // Ajoute à la section aussi
+          } else {
+            select.classList.remove("incomplete");
+            section?.classList.remove("incomplete");
+            total += Number(select.value);
+          }
+        });
+
+        resultadoDiv.style.display = "block"; // Affiche la div résultat
+        if (!allSelected) {
+          resultadoDiv.innerHTML =
+            '⚠️ <strong class="font-bold">Veuillez sélectionner une option pour tous les items avant de calculer.</strong>'; // Traduzido
+          resultadoDiv.className = "resultado bg-info-orange-light"; // Classe d'erreur
+          delete resultadoDiv.dataset.score; // Efface les données précédentes
+          return;
+        }
+
+        // Classification traduite
+        let classificacao = "";
+        let recomendacao = "";
+        let resultadoClasse = "";
+
+        // Définitions de score selon la documentation
+        // Faible Risque : 7-11 points
+        // Risque Élevé : 12-22 points
+        if (total >= 7 && total <= 11) {
+          classificacao = "Faible Risque";
+          recomendacao =
+            "L'enfant présente un faible risque de chute. Poursuivre les mesures préventives standard et réévaluer périodiquement.";
+          resultadoClasse = ""; // Classe standard (bleue)
+        } else if (total >= 12 && total <= 22) {
+          classificacao = "Risque Élevé";
+          recomendacao =
+            "L'enfant présente un risque élevé de chute. Mettre en œuvre immédiatement les mesures de prévention des chutes pour les patients pédiatriques.";
+          resultadoClasse = "high-risk"; // Classe pour le style rouge
+        } else {
+          classificacao = "Score Hors Norme";
+          recomendacao =
+            "Le score calculé est en dehors de la plage de classification attendue. Vérifiez les valeurs sélectionnées.";
+          resultadoClasse = "bg-info-orange-light"; // Classe d'erreur
+        }
+
+        resultadoDiv.innerHTML = `
+                    <p>Score total : <strong class="font-bold">${total}</strong></p>
+                    <p>Classification : <strong class="font-bold">${classificacao}</strong></p>
+                    <p class="mt-4"><strong>Recommandation :</strong> ${recomendacao}</p>
+                `;
+        resultadoDiv.className = `resultado ${resultadoClasse}`; // Applique la classe appropriée
+
+        // Stocke les données pour PDF et NANDA
+        resultadoDiv.dataset.score = total;
+        resultadoDiv.dataset.scaleName = "Échelle de Chute Humpty Dumpty";
+        resultadoDiv.dataset.classificacao = classificacao;
+      }
+
+      function limparCampos() {
+        const selects = document.querySelectorAll("#conteudo select");
+        selects.forEach((select) => {
+          select.selectedIndex = 0;
+          select.classList.remove("incomplete");
+          const section = select.closest(".humpty-criterion-section");
+          section?.classList.remove("incomplete");
+        });
+        resultadoDiv.innerHTML = "";
+        resultadoDiv.className = "resultado hidden"; // Cache et reset la classe
+        delete resultadoDiv.dataset.score;
+        delete resultadoDiv.dataset.scaleName;
+        delete resultadoDiv.dataset.classificacao;
+      }
+
+      btnCalcular?.addEventListener("click", calculerHumpty);
+      btnLimpar?.addEventListener("click", limparCampos);
+
+      // Funcionalidade PDF
+      btnGerarPDF?.addEventListener("click", () => {
+        if (!resultadoDiv.dataset.score) {
+          alert(
+            'Veuillez cliquer sur "Calculer le Score" d\'abord pour générer le PDF.',
+          ); // Traduzido
+          return;
+        }
+        if (typeof gerarPDFGlobal === "function") {
+          gerarPDFGlobal({
+            titulo: "Échelle de Chute Humpty Dumpty", // Traduzido
+            subtitulo: "Rapport d'Évaluation du Risque de Chute", // Traduzido
+            nomeArquivo: "rapport_echelle_humpty_dumpty.pdf", // Traduzido
+            seletorConteudo: ".main-content-wrapper",
+          });
+        } else {
+          console.error("Fonction gerarPDFGlobal non définie.");
+        }
+      });
+
+      // Funcionalidade NANDA/NIC/NOC
+      btnNandaNicNoc?.addEventListener("click", () => {
+        const score = resultadoDiv.dataset.score;
+        const scaleName = resultadoDiv.dataset.scaleName;
+        const classificacao = resultadoDiv.dataset.classificacao;
+        if (!score || !classificacao) {
+          alert("Calculez le résultat pour rechercher la conduite à tenir."); // Traduzido
+          return;
+        }
+        // Traduzido pour recherche en français
+        const searchQuery = encodeURIComponent(
+          `${scaleName} score ${score} patient pédiatrique ${classificacao} générer taxonomie NANDA générer taxonomie NIC générer taxonomie NOC`,
+        );
+        window.open(
+          `https://www.google.com/search?q=${searchQuery}`,
+          "_blank",
+        );
+      });
+    });
+  </script>
 
   <!-- CHEMIN DU SCRIPT CORRIGÉ -->
   <script src="../lang-selector.js" defer=""></script>

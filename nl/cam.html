@@ -555,7 +555,132 @@
 
 
 
-  
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const resultadoDiv = document.getElementById("resultado");
+      const conteudoDiv = document.getElementById("conteudo");
+      const btnCalcular = document.getElementById("btnCalcular");
+      const btnLimpar = document.getElementById("btnLimpar");
+      const btnGerarPDF = document.getElementById("btnGerarPDF");
+      const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
+
+      const camData = [
+        {
+          id: "feature1",
+          title: "1. scherpe start en fluctuerende slag",
+          description:
+            "Is er een plotselinge verandering geweest in de mentale toestand en schommelde deze de afgelopen 24 uur?",
+          options: [
+            { score: 1, text: "Ja" },
+            { score: 0, text: "Geen" }]
+
+        },
+        {
+          id: "feature2",
+          title: "2. Onoplettendheid",
+          description: "Heeft de patiënt moeite om zijn aandacht erbij te houden?",
+          options: [
+            { score: 1, text: "Ja (met onoplettendheid)" },
+            { score: 0, text: "Nee (zonder onoplettendheid)" }]
+
+        },
+        {
+          id: "feature3",
+          title: "3. Pensamento Desorganizado",
+          description:
+            "Denkt de patiënt ongeorganiseerd of onsamenhangend?",
+          options: [
+            { score: 1, text: "Ja" },
+            { score: 0, text: "Geen" }]
+
+        },
+        {
+          id: "feature4",
+          title: "4. Veranderd niveau van bewustzijn",
+          description:
+            "Verschilt het bewustzijnsniveau van 'alert en kalm' (RASS ≠ 0)?",
+          options: [
+            { score: 1, text: "Ja (gewijzigd)" },
+            { score: 0, text: "Nee (normaal/alert)" }]
+
+        }];
+
+
+      function createForm() {
+        conteudoDiv.innerHTML = "";
+        camData.forEach((criterion) => {
+          const card = document.createElement("div");
+          card.className = "criterion-card";
+
+          card.innerHTML = `
+                    <div class="criterion-title-container">
+                        <h3 class="criterion-title">${criterion.title}</h3>
+                        <p class="criterion-description">${criterion.description}</p>
+                    </div>
+                    <div class="options-container">
+                        <select id="${criterion.id}-select" class="custom-select">
+                            <option value="" disabled selected>Selecione uma opção...</option>
+                            ${criterion.options.map((opt) => `<option value="${opt.score}">${opt.text}</option>`).join("")}
+                        </select>
+                    </div>
+                `;
+          conteudoDiv.appendChild(card);
+        });
+      }
+
+      function calcular() {
+        let allSelected = true;
+        const selections = {};
+
+        camData.forEach((criterion) => {
+          const select = document.getElementById(`${criterion.id}-select`);
+          if (select && select.value) {
+            selections[criterion.id] = parseInt(select.value, 10);
+          } else {
+            allSelected = false;
+          }
+        });
+
+        if (!allSelected) {
+          resultadoDiv.innerHTML =
+            '⚠️ <strong class="font-bold">Por favor, selecione uma opção para cada critério.</strong>';
+          resultadoDiv.className = "standard-result-box bg-info-orange-light";
+          resultadoDiv.style.display = "block";
+          delete resultadoDiv.dataset.resultado;
+          return;
+        }
+
+        const feature1 = selections.feature1 === 1;
+        const feature2 = selections.feature2 === 1;
+        const feature3 = selections.feature3 === 1;
+        const feature4 = selections.feature4 === 1;
+
+        let resultadoFinal = "";
+        if (feature1 && feature2 && (feature3 || feature4)) {
+          resultadoFinal = "Delirium Presente";
+        } else {
+          resultadoFinal = "Delirium Ausente";
+        }
+
+        resultadoDiv.innerHTML = `<p class="font-bold text-lg">Resultado: <span class="font-black">${resultadoFinal}</span></p>`;
+        resultadoDiv.className = "standard-result-box";
+        resultadoDiv.style.display = "block";
+        resultadoDiv.dataset.resultado = resultadoFinal;
+      }
+
+      function limpar() {
+        createForm();
+        resultadoDiv.innerHTML = "";
+        resultadoDiv.className = "hidden";
+        delete resultadoDiv.dataset.resultado;
+      }
+
+      createForm();
+      btnCalcular?.addEventListener("click", calcular);
+      btnLimpar?.addEventListener("click", limpar);
+
+      // Funções dos botões de PDF e NANDA permanecem as mesmas
+    });</script>
 
   <script src="/lang-selector.js" defer=""></script>
 

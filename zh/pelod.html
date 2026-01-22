@@ -625,7 +625,226 @@
 
 
 
-    
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const resultadoDiv = document.getElementById('resultado');
+            const btnCalcular = document.getElementById('btnCalcular');
+            const btnLimpar = document.getElementById('btnLimpar');
+            const btnGerarPDF = document.getElementById('btnGerarPDF');
+            const btnNandaNicNoc = document.getElementById('btnNandaNicNoc');
+            const conteudoDiv = document.getElementById('conteudo');
+
+            const pelodData = [
+                {
+                    domain: "1. 神经功能（格拉斯哥昏迷量表 - GCS）",
+                    nameAttr: "neuro",
+                    options: [
+                        { text: "GCS 15", score: 0 },
+                        { text: "GCS 11-14", score: 1 },
+                        { text: "GCS 8-10", score: 2 },
+                        { text: "GCS < 8", score: 3 }
+                    ],
+                    subtext: "评估患者的意识水平。"
+                },
+                {
+                    domain: "2. 呼吸功能（PaO2/FiO2 或呼吸支持）",
+                    nameAttr: "resp",
+                    options: [
+                        { text: "PaO2/FiO2 > 300 或无支持", score: 0 },
+                        { text: "PaO2/FiO2 201-300 或补氧", score: 1 },
+                        { text: "PaO2/FiO2 101-200 或机械通气", score: 2 },
+                        { text: "PaO2/FiO2 ≤ 100 或机械通气伴高PEEP", score: 3 }
+                    ],
+                    subtext: "反映肺功能和通气支持需求。"
+                },
+                {
+                    domain: "3. 心血管功能（平均动脉压 - MAP 或血管活性药物）",
+                    nameAttr: "cardio",
+                    options: [
+                        { text: "该年龄MAP正常，无血管活性药物", score: 0 },
+                        { text: "MAP轻度异常或1种血管活性药物", score: 1 },
+                        { text: "MAP中度异常或2种血管活性药物", score: 2 },
+                        { text: "MAP重度异常或>2种血管活性药物", score: 3 }
+                    ],
+                    subtext: "指示灌注和血流动力学状态，包括血管活性药物使用。"
+                },
+                {
+                    domain: "4. 肾功能（肌酐或尿量）",
+                    nameAttr: "renal",
+                    options: [
+                        { text: "肌酐正常或尿量正常", score: 0 },
+                        { text: "肌酐 1.5倍基线或尿量 <1 ml/kg/h", score: 1 },
+                        { text: "肌酐 2倍基线或尿量 <0.5 ml/kg/h", score: 2 },
+                        { text: "肌酐 >2倍基线或无尿/透析", score: 3 }
+                    ],
+                    subtext: "评估肾功能和尿量产生。"
+                },
+                {
+                    domain: "5. 肝功能（总胆红素或INR）",
+                    nameAttr: "hepatico",
+                    options: [
+                        { text: "胆红素正常或INR正常", score: 0 },
+                        { text: "胆红素 1.5倍正常或INR >1.5", score: 1 },
+                        { text: "胆红素 2倍正常或INR >2.0", score: 2 },
+                        { text: "胆红素 >2倍正常且INR >2.0", score: 3 }
+                    ],
+                    subtext: "肝功能和凝血功能的指标。"
+                }
+            ];
+
+            // --- PELOD计算器功能 ---
+            function updateScoreDisplay(criterionId) {
+                const selectElement = document.getElementById(criterionId);
+                const scoreDisplayElement = document.getElementById(`${criterionId}_score_display`);
+                if (selectElement && scoreDisplayElement) {
+                    scoreDisplayElement.innerText = selectElement.value === "" ? "0" : selectElement.value;
+                }
+            }
+
+            function calcularPontuacao() {
+                let totalScore = 0;
+                let allItemsSelected = true;
+
+                pelodData.forEach(item => {
+                    const selectElement = document.getElementById(item.nameAttr);
+                    if (selectElement.value === "") {
+                        allItemsSelected = false;
+                    } else {
+                        totalScore += parseInt(selectElement.value, 10);
+                    }
+                });
+
+                resultadoDiv.style.display = 'block';
+                if (!allItemsSelected) {
+                    resultadoDiv.innerHTML = '⚠️ <strong class="font-bold">请为每项选择评分</strong>后再计算。';
+                    resultadoDiv.className = 'resultado bg-info-orange-light';
+                    delete resultadoDiv.dataset.score;
+                    return;
+                }
+
+                let grauRisco = '';
+                let resultadoClasse = '';
+
+                if (totalScore <= 5) {
+                    grauRisco = '器官功能障碍低风险';
+                    resultadoClasse = 'bg-pelod-baixo';
+                } else if (totalScore <= 10) {
+                    grauRisco = '器官功能障碍中等风险';
+                    resultadoClasse = 'bg-pelod-moderado';
+                } else {
+                    grauRisco = '器官功能障碍高风险';
+                    resultadoClasse = 'bg-pelod-alto';
+                }
+
+                resultadoDiv.innerHTML = `<p>PELOD总评分：<strong class="font-bold">${totalScore}</strong></p><p>风险等级：<strong class="font-bold">${grauRisco}</strong></p>`;
+                resultadoDiv.className = `resultado ${resultadoClasse}`;
+
+                resultadoDiv.dataset.score = totalScore;
+                resultadoDiv.dataset.grauRisco = grauRisco;
+                resultadoDiv.dataset.scaleName = "PELOD量表";
+            }
+
+            function limparCampos() {
+                pelodData.forEach(item => {
+                    const selectElement = document.getElementById(item.nameAttr);
+                    selectElement.selectedIndex = 0;
+                    document.getElementById(`${item.nameAttr}_score_display`).innerText = '0';
+                });
+                resultadoDiv.innerHTML = '';
+                resultadoDiv.className = 'resultado hidden';
+                delete resultadoDiv.dataset.score;
+                delete resultadoDiv.dataset.grauRisco;
+                delete resultadoDiv.dataset.scaleName;
+            }
+
+            // 动态填充表单
+            pelodData.forEach((item, index) => {
+                const sectionDiv = document.createElement('div');
+                sectionDiv.className = 'pelod-criterion-card';
+
+                const headerDiv = document.createElement('div');
+                headerDiv.className = 'pelod-criterion-header';
+
+                const titleH3 = document.createElement('h3');
+                titleH3.className = 'pelod-criterion-title';
+                titleH3.innerText = item.domain;
+                headerDiv.appendChild(titleH3);
+
+                const scoreSpan = document.createElement('span');
+                scoreSpan.className = 'pelod-score-display';
+                scoreSpan.id = `${item.nameAttr}_score_display`;
+                scoreSpan.innerText = '0';
+                headerDiv.appendChild(scoreSpan);
+
+                sectionDiv.appendChild(headerDiv);
+
+                const optionsDiv = document.createElement('div');
+                optionsDiv.className = 'pelod-criterion-options';
+
+                const selectElement = document.createElement('select');
+                selectElement.id = item.nameAttr;
+                selectElement.className = 'pelod-select';
+                selectElement.onchange = () => updateScoreDisplay(item.nameAttr);
+
+                const defaultOption = document.createElement('option');
+                defaultOption.value = "";
+                defaultOption.text = "请选择...";
+                defaultOption.disabled = true;
+                defaultOption.selected = true;
+                selectElement.appendChild(defaultOption);
+
+                item.options.forEach(option => {
+                    const optionElement = document.createElement('option');
+                    optionElement.value = option.score;
+                    optionElement.text = `${option.text} (${option.score})`;
+                    selectElement.appendChild(optionElement);
+                });
+
+                optionsDiv.appendChild(selectElement);
+                sectionDiv.appendChild(optionsDiv);
+
+                const subtextP = document.createElement('p');
+                subtextP.className = 'text-gray-600 text-sm mt-2 text-left';
+                subtextP.innerText = item.subtext;
+                sectionDiv.appendChild(subtextP);
+
+                conteudoDiv.appendChild(sectionDiv);
+            });
+
+            // 为按钮添加事件监听器
+            btnCalcular?.addEventListener('click', calcularPontuacao);
+            btnLimpar?.addEventListener('click', limparCampos);
+
+            btnGerarPDF?.addEventListener('click', () => {
+                if (!resultadoDiv.dataset.score) {
+                    alert('请先点击"计算"按钮再生成PDF。');
+                    return;
+                }
+                if (typeof gerarPDFGlobal === 'function') {
+                    gerarPDFGlobal({
+                        titulo: 'PELOD量表',
+                        subtitulo: '儿科器官功能障碍评估报告',
+                        nomeArquivo: 'pelod_scale_report.pdf',
+                        seletorConteudo: '.main-content-wrapper'
+                    });
+                } else {
+                    console.error('函数gerarPDFGlobal未定义。');
+                }
+            });
+
+            btnNandaNicNoc?.addEventListener('click', () => {
+                const score = resultadoDiv.dataset.score;
+                const scaleName = resultadoDiv.dataset.scaleName;
+                const grauRisco = resultadoDiv.dataset.grauRisco;
+                if (!score || !grauRisco) {
+                    alert('请计算结果以搜索处理方案。');
+                    return;
+                }
+                const searchQuery = encodeURIComponent(`${scaleName} 评分 ${score} 风险 ${grauRisco} 生成NANDA分类 生成NIC分类 生成NOC分类`);
+                window.open(`https://www.google.com/search?q=${searchQuery}`, '_blank');
+            });
+        });
+    </script>
 
 
 

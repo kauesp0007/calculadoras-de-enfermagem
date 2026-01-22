@@ -657,7 +657,190 @@
 
 
 
-  
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const conteudoDiv = document.getElementById('conteudo');
+      const resultadoDiv = document.getElementById('resultado');
+      const btnCalcular = document.getElementById('btnCalcular');
+      const btnLimpar = document.getElementById('btnLimpar');
+      const btnGerarPDF = document.getElementById('btnGerarPDF');
+      const btnNandaNicNoc = document.getElementById('btnNandaNicNoc');
+      const statusMessageDiv = document.getElementById('statusMessage');
+
+      const silvermanData = [
+        { parameter: "Movimiento Toracoabdominal", nameAttr: "movimento", tooltip: "Evalúa la sincronía entre el tórax y el abdomen durante la respiración. 'Balancín' indica un esfuerzo respiratorio grave.", options: [{ score: 0, description: "Sincronizado" }, { score: 1, description: "Tórax inmóvil" }, { score: 2, description: "Balancín" }] },
+        { parameter: "Tiraje Intercostal", nameAttr: "tiragem", tooltip: "Retracción de los músculos entre las costillas durante la inspiración, indicando un esfuerzo para respirar.", options: [{ score: 0, description: "Ausente" }, { score: 1, description: "Leve" }, { score: 2, description: "Acentuada" }] },
+        { parameter: "Retracción Xifoidea", nameAttr: "retracao", tooltip: "Hundimiento de la región del apéndice xifoideo (la punta inferior del hueso esternón) durante la inspiración.", options: [{ score: 0, description: "Ausente" }, { score: 1, description: "Leve" }, { score: 2, description: "Acentuada" }] },
+        { parameter: "Aleteo Nasal", nameAttr: "batimento", tooltip: "Apertura de las fosas nasales durante la inspiración, una señal de que el recién nacido está luchando para obtener más aire.", options: [{ score: 0, description: "Ausente" }, { score: 1, description: "Leve" }, { score: 2, description: "Acentuado" }] },
+        { parameter: "Quejido Espiratorio", nameAttr: "gemido", tooltip: "Sonido emitido durante la espiración, que representa el esfuerzo del bebé para mantener los alvéolos abiertos.", options: [{ score: 0, description: "Ausente" }, { score: 1, description: "Audible con estetoscopio" }, { score: 2, description: "Audible sin estetoscopio" }] }
+      ];
+
+      function criarFormulario() {
+        silvermanData.forEach(item => {
+          const accordionItem = document.createElement('div');
+          accordionItem.className = 'accordion-item';
+
+          const header = document.createElement('div');
+          header.className = 'accordion-header';
+          header.setAttribute('aria-expanded', 'false');
+          header.setAttribute('tabindex', '0');
+          header.innerHTML = `
+                    <span>${item.parameter}
+                        <span class="tooltip-container">
+                            <button type="button" class="tooltip-icon-button" aria-label="Información sobre ${item.parameter}">
+                                <i class="fas fa-info-circle" aria-hidden="true"></i>
+                            </button>
+                            <span class="tooltip-text">${item.tooltip}</span>
+                        </span>
+                    </span>
+                    <i class="fas fa-chevron-down accordion-toggle-icon" aria-hidden="true"></i>
+                `;
+          accordionItem.appendChild(header);
+
+          const content = document.createElement('div');
+          content.className = 'accordion-content';
+          content.setAttribute('role', 'region');
+
+          item.options.forEach(option => {
+            const label = document.createElement('label');
+            label.className = 'option-label';
+            const input = document.createElement('input');
+            input.type = 'radio';
+            input.name = item.nameAttr;
+            input.value = option.score;
+
+            label.appendChild(input);
+            label.innerHTML += `<span>${option.description} (${option.score})</span>`;
+            content.appendChild(label);
+          });
+
+          accordionItem.appendChild(content);
+          conteudoDiv.appendChild(accordionItem);
+
+          header.addEventListener('click', function () {
+            const isExpanded = this.getAttribute('aria-expanded') === 'true';
+            document.querySelectorAll('.accordion-header').forEach(h => {
+              h.setAttribute('aria-expanded', 'false');
+              h.nextElementSibling.classList.remove('is-open');
+            });
+            this.setAttribute('aria-expanded', !isExpanded);
+            if (!isExpanded) {
+              content.classList.add('is-open');
+            }
+          });
+        });
+      }
+
+      criarFormulario();
+
+      function calcular() {
+        let total = 0;
+        let allSelected = true;
+
+        silvermanData.forEach(item => {
+          const selecionado = document.querySelector(`input[name="${item.nameAttr}"]:checked`);
+          if (selecionado) {
+            total += parseInt(selecionado.value, 10);
+          } else {
+            allSelected = false;
+          }
+        });
+
+        resultadoDiv.classList.remove('hidden');
+        if (!allSelected) {
+          resultadoDiv.className = 'resultado p-4 mt-6 rounded-lg text-left bg-info-alerta flex items-start gap-4 visible';
+          resultadoDiv.innerHTML = `<i class="fas fa-exclamation-triangle mt-1" aria-hidden="true"></i><div><strong class="font-bold block">¡Atención!</strong> Por favor, seleccione una opción para cada uno de los cinco parámetros.</div>`;
+          resultadoDiv.setAttribute('tabindex', '0');
+          resultadoDiv.focus();
+          resultadoDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          delete resultadoDiv.dataset.score;
+          return;
+        }
+
+        let classificacao = "";
+        let barClass = "";
+        let resultadoClass = "";
+
+        if (total <= 3) {
+          classificacao = "Dificultad Respiratoria Leve.";
+          barClass = "bar-low";
+          resultadoClass = "bg-success-green";
+        } else if (total <= 7) {
+          classificacao = "Dificultad Respiratoria Moderada.";
+          barClass = "bar-medium";
+          resultadoClass = "bg-info-alerta";
+        } else {
+          classificacao = "Dificultad Respiratoria Grave.";
+          barClass = "bar-high";
+          resultadoClass = "bg-danger-red";
+        }
+
+        const scorePercentage = (total / 10) * 100;
+
+        resultadoDiv.className = `resultado p-4 mt-6 rounded-lg text-left ${resultadoClass} visible`;
+        resultadoDiv.innerHTML = `
+                <p>Puntuación Total: <strong class="font-bold">${total}</strong></p>
+                <p>Clasificación: <strong class="font-bold">${classificacao}</strong></p>
+                <div class="score-summary-bar-container" role="progressbar" aria-valuenow="${total}" aria-valuemin="0" aria-valuemax="10" aria-label="Barra de gravedad de la puntuación.">
+                    <div class="score-summary-bar ${barClass}" style="width: ${scorePercentage}%;"></div>
+                </div>
+            `;
+        resultadoDiv.setAttribute('tabindex', '0');
+        resultadoDiv.focus();
+        resultadoDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+        resultadoDiv.dataset.score = total;
+        resultadoDiv.dataset.classificacao = classificacao;
+        resultadoDiv.dataset.scaleName = "Boletín de Silverman-Anderson";
+      }
+
+      function limpiar() {
+        document.querySelectorAll('input[type="radio"]').forEach(input => input.checked = false);
+        resultadoDiv.className = 'resultado hidden';
+        resultadoDiv.innerHTML = '';
+        delete resultadoDiv.dataset.score;
+        delete resultadoDiv.dataset.classificacao;
+        // Cierra todos los acordeones
+        document.querySelectorAll('.accordion-header').forEach(h => {
+          h.setAttribute('aria-expanded', 'false');
+        });
+        document.querySelectorAll('.accordion-content').forEach(c => {
+          c.classList.remove('is-open');
+        });
+      }
+
+      btnCalcular?.addEventListener('click', calcular);
+      btnLimpar?.addEventListener('click', limpiar);
+
+      btnGerarPDF?.addEventListener('click', () => {
+        if (!resultadoDiv || !resultadoDiv.dataset.score) {
+          alert('Por favor, haga clic en "Calcular" primero para generar el PDF.');
+          return;
+        }
+        if (typeof gerarPDFGlobal === 'function') {
+          gerarPDFGlobal({
+            titulo: 'Boletín de Silverman-Anderson',
+            subtitulo: 'Evaluación de la Dificultad Respiratoria Neonatal',
+            nomeArquivo: 'informe_silverman_anderson.pdf',
+            seletorConteudo: '.main-content-wrapper'
+          });
+        } else {
+          alert('Error: La función para generar PDF no fue encontrada.');
+          console.error('Función gerarPDFGlobal no definida.');
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener('click', () => {
+        const classificacao = resultadoDiv.dataset.classificacao;
+        if (!classificacao) {
+          alert('Por favor, haga clic en "Calcular" primero para obtener la interpretación.');
+          return;
+        }
+        const searchQuery = encodeURIComponent(`Diagnósticos de enfermería NANDA para recién nacido con "${classificacao}", y sus respectivas intervenciones (NIC) y resultados (NOC)`);
+        window.open(`https://www.google.com/search?q=${searchQuery}`, '_blank');
+      });
+    });
+  </script>
 
 
 

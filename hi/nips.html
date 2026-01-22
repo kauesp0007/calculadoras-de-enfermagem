@@ -636,7 +636,287 @@
 
 
 
-  
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const resultadoDiv = document.getElementById('resultado');
+      const btnCalcular = document.getElementById('btnCalcular');
+      const btnLimpar = document.getElementById('btnLimpar');
+      const btnGerarPDF = document.getElementById('btnGerarPDF');
+      const btnNandaNicNoc = document.getElementById('btnNandaNicNoc');
+      const conteudoDiv = document.getElementById('conteudo');
+
+      // NIPS स्केल डेटा
+      const nipsData = [
+        {
+          category: "चेहरे की अभिव्यक्ति",
+          nameAttr: "expressao_facial",
+          options: [
+            { description: "आरामदायक", score: 0 },
+            { description: "मुंह बनाना", score: 1 }
+          ],
+          explain: "चेहरे की हाव-भाव देखें, जैसे संकुचन या विश्राम। मुंह बनाना तनाव का संकेत देता है।"
+        },
+        {
+          category: "रोने का पैटर्न",
+          nameAttr: "choro",
+          options: [
+            { description: "अनुपस्थित", score: 0 },
+            { description: "विलाप / कराह", score: 1 },
+            { description: "जोरदार रोना", score: 2 }
+          ],
+          explain: "रोने की उपस्थिति और तीव्रता का आकलन करें। जोरदार और तेज रोना बेचैनी का संकेत है।"
+        },
+        {
+          category: "श्वसन पैटर्न",
+          nameAttr: "respiracao",
+          options: [
+            { description: "आरामदायक", score: 0 },
+            { description: "परिवर्तित / अनियमित", score: 1 }
+          ],
+          explain: "जांचें कि श्वसन शांत और नियमित है या नहीं। पैटर्न में अचानक परिवर्तन दर्द का संकेत दे सकता है।"
+        },
+        {
+          category: "बाहों की मोटर गतिविधि",
+          nameAttr: "bracos",
+          options: [
+            { description: "आरामदायक / कोई हलचल नहीं", score: 0 },
+            { description: "कठोर मोड़ / फैलाव", score: 1 }
+          ],
+          explain: "बाहों की टोन और गतिविधि का आकलन करें। तनावपूर्ण मोड़ या फैलाव दर्द का संकेत हो सकता है।"
+        },
+        {
+          category: "पैरों की मोटर गतिविधि",
+          nameAttr: "pernas",
+          options: [
+            { description: "आरामदायक / कोई हलचल नहीं", score: 0 },
+            { description: "कठोर मोड़ / फैलाव", score: 1 }
+          ],
+          explain: "पैरों की टोन और गतिविधि का आकलन करें। तनावपूर्ण मोड़ या फैलाव दर्द का संकेत हो सकता है।"
+        },
+        {
+          category: "चेतना की स्थिति",
+          nameAttr: "estado_consciencia",
+          options: [
+            { description: "शांत / सो रहा", score: 0 },
+            { description: "बेचैन / असहज", score: 1 }
+          ],
+          explain: "नवजात की सामान्य स्थिति देखें। बेचैनी और घबराहट दर्द के सामान्य संकेत हैं।"
+        }
+      ];
+
+      // फॉर्म को डायनामिक रूप से भरें
+      nipsData.forEach(item => {
+        const sectionDiv = document.createElement('div');
+        sectionDiv.className = 'nips-criterion-section';
+        sectionDiv.id = `section-${item.nameAttr}`;
+
+        const titleH3 = document.createElement('h3');
+        titleH3.className = 'nips-criterion-title';
+        titleH3.innerHTML = item.category + `
+              <div class="text-sm font-normal text-gray-500 mt-1">${item.explain}</div>`;
+        sectionDiv.appendChild(titleH3);
+
+        const selectElement = document.createElement('select');
+        selectElement.id = item.nameAttr;
+        selectElement.className = 'nips-criterion-select';
+
+        const defaultOption = document.createElement('option');
+        defaultOption.value = "";
+        defaultOption.text = "चयन करें...";
+        selectElement.appendChild(defaultOption);
+
+        item.options.forEach(option => {
+          const optionElement = document.createElement('option');
+          optionElement.value = option.score;
+          optionElement.text = option.description;
+          selectElement.appendChild(optionElement);
+        });
+
+        sectionDiv.appendChild(selectElement);
+        conteudoDiv.appendChild(sectionDiv);
+      });
+
+      // स्कोर की गणना करें
+      btnCalcular.addEventListener('click', function () {
+        let totalScore = 0;
+        let incomplete = false;
+
+        nipsData.forEach(item => {
+          const selectElement = document.getElementById(item.nameAttr);
+          const sectionDiv = document.getElementById(`section-${item.nameAttr}`);
+
+          if (selectElement.value === "") {
+            sectionDiv.classList.add('incomplete');
+            incomplete = true;
+          } else {
+            sectionDiv.classList.remove('incomplete');
+            totalScore += parseInt(selectElement.value);
+          }
+        });
+
+        if (incomplete) {
+          resultadoDiv.style.display = 'none';
+          alert("कृपया सभी मापदंडों के लिए एक विकल्प चुनें।");
+          return;
+        }
+
+        let message = "";
+        let colorClass = "";
+
+        if (totalScore >= 4) {
+          message = `कुल NIPS स्कोर: ${totalScore} - दर्द मौजूद है। दर्द प्रबंधन हस्तक्षेप पर विचार करें।`;
+          colorClass = "bg-red-100";
+        } else if (totalScore >= 2) {
+          message = `कुल NIPS स्कोर: ${totalScore} - हल्का दर्द हो सकता है। नवजात शिशु की निगरानी जारी रखें।`;
+          colorClass = "bg-yellow-100";
+        } else {
+          message = `कुल NIPS स्कोर: ${totalScore} - दर्द नहीं है। नवजात शिशु आराम से है।`;
+          colorClass = "bg-blue-50";
+        }
+
+        resultadoDiv.innerHTML = `<p>${message}</p>`;
+        resultadoDiv.className = `resultado ${colorClass}`;
+        resultadoDiv.style.display = 'block';
+      });
+
+      // फॉर्म साफ़ करें
+      btnLimpar.addEventListener('click', function () {
+        nipsData.forEach(item => {
+          const selectElement = document.getElementById(item.nameAttr);
+          const sectionDiv = document.getElementById(`section-${item.nameAttr}`);
+          selectElement.value = "";
+          sectionDiv.classList.remove('incomplete');
+        });
+        resultadoDiv.style.display = 'none';
+      });
+
+      // PDF जनरेट करें
+      btnGerarPDF.addEventListener('click', function () {
+        const element = document.createElement('div');
+        element.className = 'p-8 bg-white text-gray-800';
+
+        let content = `
+                <h2 class="text-2xl font-bold mb-4">NIPS स्केल - नवजात शिशु दर्द स्केल</h2>
+                <p class="mb-4"><strong>मूल्यांकन तिथि:</strong> ${new Date().toLocaleDateString('hi-IN')}</p>
+                <table class="w-full border-collapse border border-gray-300 mb-4">
+                    <thead>
+                        <tr class="bg-gray-100">
+                            <th class="border border-gray-300 p-2 text-left">मापदंड</th>
+                            <th class="border border-gray-300 p-2 text-left">चयन</th>
+                            <th class="border border-gray-300 p-2 text-left">स्कोर</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+
+        nipsData.forEach(item => {
+          const selectElement = document.getElementById(item.nameAttr);
+          const selectedOption = selectElement.options[selectElement.selectedIndex];
+          content += `
+                    <tr>
+                        <td class="border border-gray-300 p-2">${item.category}</td>
+                        <td class="border border-gray-300 p-2">${selectedOption.text || "चयनित नहीं"}</td>
+                        <td class="border border-gray-300 p-2">${selectedOption.value || "0"}</td>
+                    </tr>
+                `;
+        });
+
+        const totalScore = nipsData.reduce((sum, item) => {
+          const selectElement = document.getElementById(item.nameAttr);
+          return sum + (parseInt(selectElement.value) || 0);
+        }, 0);
+
+        let interpretation = "";
+        if (totalScore >= 4) {
+          interpretation = "दर्द मौजूद है। दर्द प्रबंधन हस्तक्षेप पर विचार करें।";
+        } else if (totalScore >= 2) {
+          interpretation = "हल्का दर्द हो सकता है। नवजात शिशु की निगरानी जारी रखें।";
+        } else {
+          interpretation = "दर्द नहीं है। नवजात शिशु आराम से है।";
+        }
+
+        content += `
+                    </tbody>
+                    <tfoot>
+                        <tr class="bg-gray-50">
+                            <td class="border border-gray-300 p-2 font-bold" colspan="2">कुल स्कोर</td>
+                            <td class="border border-gray-300 p-2 font-bold">${totalScore}</td>
+                        </tr>
+                    </tfoot>
+                </table>
+                <div class="mt-4">
+                    <h3 class="text-lg font-bold mb-2">व्याख्या:</h3>
+                    <p>${interpretation}</p>
+                </div>
+                <div class="mt-6 text-sm text-gray-600">
+                    <p><strong>संदर्भ:</strong> LAWRENCE, J. et al. The development of a tool to assess neonatal pain. Neonatal Network, v. 12, n. 6, p. 59-66, 1993.</p>
+                </div>
+            `;
+
+        element.innerHTML = content;
+
+        const opt = {
+          margin: [10, 10, 10, 10],
+          filename: 'nips-scale-report.pdf',
+          image: { type: 'jpeg', quality: 0.98 },
+          html2canvas: { scale: 2 },
+          jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        };
+
+        html2pdf().set(opt).from(element).save();
+      });
+
+      // NANDA, NIC, NOC खोजें
+      btnNandaNicNoc.addEventListener('click', function () {
+        const totalScore = nipsData.reduce((sum, item) => {
+          const selectElement = document.getElementById(item.nameAttr);
+          return sum + (parseInt(selectElement.value) || 0);
+        }, 0);
+
+        let nandaDiagnosis = "";
+        let nicInterventions = "";
+        let nocIndicators = "";
+
+        if (totalScore >= 4) {
+          nandaDiagnosis = "तीव्र दर्द (00132)";
+          nicInterventions = "दर्द प्रबंधन (1400), दर्द मूल्यांकन (3590), पर्यावरण आराम बढ़ाना (6480)";
+          nocIndicators = "दर्द नियंत्रण (1605), दर्द स्तर (2102)";
+        } else if (totalScore >= 2) {
+          nandaDiagnosis = "जोखिम में आराम (00068)";
+          nicInterventions = "चिंता कम करना (5820), पर्यावरण आराम बढ़ाना (6480), स्थिति (0840)";
+          nocIndicators = "आराम स्तर (2002), दर्द नियंत्रण (1605)";
+        } else {
+          nandaDiagnosis = "प्रभावी आराम (00065)";
+          nicInterventions = "आराम बढ़ाना (1910), पर्यावरण प्रबंधन (6486)";
+          nocIndicators = "आराम स्तर (2002), दर्द: नियंत्रित लक्षण (1608)";
+        }
+
+        const nandaNicNocContent = `
+                <div class="bg-white p-6 rounded-lg shadow-lg">
+                    <h3 class="text-xl font-bold mb-4">NANDA, NIC, NOC सुझाव</h3>
+                    <div class="space-y-3">
+                        <div>
+                            <strong>NANDA निदान:</strong> ${nandaDiagnosis}
+                        </div>
+                        <div>
+                            <strong>NIC हस्तक्षेप:</strong> ${nicInterventions}
+                        </div>
+                        <div>
+                            <strong>NOC संकेतक:</strong> ${nocIndicators}
+                        </div>
+                    </div>
+                    <div class="mt-4 text-sm text-gray-600">
+                        <p><strong>स्रोत:</strong> NANDA International, Inc. (2021). नर्सिंग निदान: परिभाषाएं और वर्गीकरण 2021-2023।</p>
+                    </div>
+                </div>
+            `;
+
+        resultadoDiv.innerHTML = nandaNicNocContent;
+        resultadoDiv.className = "resultado bg-blue-50";
+        resultadoDiv.style.display = 'block';
+      });
+    });
+  </script>
 
 
 

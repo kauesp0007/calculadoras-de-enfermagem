@@ -651,7 +651,314 @@
 
 
 
-    
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const resultadoDiv = document.getElementById('resultado');
+            const btnCalcular = document.getElementById('btnCalcular');
+            const btnLimpar = document.getElementById('btnLimpar');
+            const btnGerarPDF = document.getElementById('btnGerarPDF');
+            const btnNandaNicNoc = document.getElementById('btnNandaNicNoc');
+            const conteudoDiv = document.getElementById('conteudo');
+
+            // NIHSS Scale Data
+            const nihssData = [
+                {
+                    domain: "1a - Level of Consciousness",
+                    nameAttr: "nivelConsciencia",
+                    options: [
+                        { text: "Alert", score: 0 },
+                        { text: "Not alert, requires minimal stimulation to respond or maintain response", score: 1 },
+                        { text: "Not alert, requires repeated stimulation or painful stimulus", score: 2 },
+                        { text: "Coma", score: 3 }
+                    ]
+                },
+                {
+                    domain: "1b - Level of Consciousness: Answers Month and Age",
+                    nameAttr: "mesIdade",
+                    options: [
+                        { text: "Answers both correctly", score: 0 },
+                        { text: "Answers one correctly", score: 1 },
+                        { text: "Neither answered correctly", score: 2 }
+                    ]
+                },
+                {
+                    domain: "1c - Level of Consciousness: Performs Motor Command",
+                    nameAttr: "comandoMotor",
+                    options: [
+                        { text: "Performs both tasks correctly", score: 0 },
+                        { text: "Performs one task correctly", score: 1 },
+                        { text: "Neither performed correctly", score: 2 }
+                    ]
+                },
+                {
+                    domain: "2 - Best Gaze",
+                    nameAttr: "olharConjugado",
+                    options: [
+                        { text: "Normal", score: 0 },
+                        { text: "Partial gaze palsy (fixed gaze in one direction)", score: 1 },
+                        { text: "Forced deviation of gaze", score: 2 }
+                    ]
+                },
+                {
+                    domain: "3 - Visual Fields",
+                    nameAttr: "camposVisuais",
+                    options: [
+                        { text: "No loss", score: 0 },
+                        { text: "Partial hemianopia (blindness in part of the visual field)", score: 1 },
+                        { text: "Complete hemianopia (blindness in half of the visual field)", score: 2 },
+                        { text: "Bilateral blindness (total blindness)", score: 3 }
+                    ]
+                },
+                {
+                    domain: "4 - Facial Palsy",
+                    nameAttr: "paralisiaFacial",
+                    options: [
+                        { text: "Symmetric (no palsy)", score: 0 },
+                        { text: "Mild palsy (asymmetry when smiling)", score: 1 },
+                        { text: "Partial palsy (lower face involvement)", score: 2 },
+                        { text: "Complete palsy (upper and lower face involvement)", score: 3 }
+                    ]
+                },
+                {
+                    domain: "5a - Motor Arm Left",
+                    nameAttr: "msEsq",
+                    options: [
+                        { text: "No drift for 10 seconds (normal)", score: 0 },
+                        { text: "Drifts before 10 seconds (some effort against gravity)", score: 1 },
+                        { text: "Cannot overcome gravity (only moves against bed)", score: 2 },
+                        { text: "No movement (no effort against gravity)", score: 3 },
+                        { text: "Amputation or joint fusion (not testable)", score: 4 }
+                    ]
+                },
+                {
+                    domain: "5b - Motor Arm Right",
+                    nameAttr: "msDir",
+                    options: [
+                        { text: "No drift for 10 seconds (normal)", score: 0 },
+                        { text: "Drifts before 10 seconds (some effort against gravity)", score: 1 },
+                        { text: "Cannot overcome gravity (only moves against bed)", score: 2 },
+                        { text: "No movement (no effort against gravity)", score: 3 },
+                        { text: "Amputation or joint fusion (not testable)", score: 4 }
+                    ]
+                },
+                {
+                    domain: "6a - Motor Leg Left",
+                    nameAttr: "miEsq",
+                    options: [
+                        { text: "No drift for 5 seconds (normal)", score: 0 },
+                        { text: "Drifts before 5 seconds (some effort against gravity)", score: 1 },
+                        { text: "Cannot overcome gravity (only moves against bed)", score: 2 },
+                        { text: "No movement (no effort against gravity)", score: 3 },
+                        { text: "Amputation or joint fusion (not testable)", score: 4 }
+                    ]
+                },
+                {
+                    domain: "6b - Motor Leg Right",
+                    nameAttr: "miDir",
+                    options: [
+                        { text: "No drift for 5 seconds (normal)", score: 0 },
+                        { text: "Drifts before 5 seconds (some effort against gravity)", score: 1 },
+                        { text: "Cannot overcome gravity (only moves against bed)", score: 2 },
+                        { text: "No movement (no effort against gravity)", score: 3 },
+                        { text: "Amputation or joint fusion (not testable)", score: 4 }
+                    ]
+                },
+                {
+                    domain: "7 - Limb Ataxia",
+                    nameAttr: "ataxia",
+                    options: [
+                        { text: "Absent", score: 0 },
+                        { text: "Present in 1 limb", score: 1 },
+                        { text: "Present in 2 limbs", score: 2 }
+                    ]
+                },
+                {
+                    domain: "8 - Sensory",
+                    nameAttr: "sensibilidade",
+                    options: [
+                        { text: "Normal", score: 0 },
+                        { text: "Mild loss (pain or light touch)", score: 1 },
+                        { text: "Severe loss (does not feel pain or light touch)", score: 2 }
+                    ]
+                },
+                {
+                    domain: "9 - Best Language (Aphasia)",
+                    nameAttr: "afasia",
+                    options: [
+                        { text: "No aphasia", score: 0 },
+                        { text: "Mild to moderate aphasia", score: 1 },
+                        { text: "Severe aphasia", score: 2 }
+                    ]
+                },
+                {
+                    domain: "10 - Dysarthria",
+                    nameAttr: "disartria",
+                    options: [
+                        { text: "Normal", score: 0 },
+                        { text: "Mild to moderate", score: 1 },
+                        { text: "Severe", score: 2 }
+                    ]
+                },
+                {
+                    domain: "11 - Extinction and Inattention",
+                    nameAttr: "extincaoNegligencia",
+                    options: [
+                        { text: "No abnormality", score: 0 },
+                        { text: "Mild extinction (inattention in one modality)", score: 1 },
+                        { text: "Severe inattention (inattention in more than one modality)", score: 2 }
+                    ]
+                }
+            ];
+
+            // --- Funções da Calculadora NIHSS ---
+            function updateScoreDisplay(criterionId) {
+                const selectElement = document.getElementById(criterionId);
+                const scoreDisplayElement = document.getElementById(`${criterionId}_score_display`);
+                if (selectElement && scoreDisplayElement) {
+                    scoreDisplayElement.innerText = selectElement.value === "" ? "0" : selectElement.value;
+                }
+            }
+
+            function calcularPontuacao() {
+                let totalScore = 0;
+                let allItemsSelected = true;
+
+                nihssData.forEach(item => {
+                    const selectElement = document.getElementById(item.nameAttr);
+                    if (selectElement.value === "") {
+                        allItemsSelected = false;
+                    } else {
+                        totalScore += parseInt(selectElement.value, 10);
+                    }
+                });
+
+                resultadoDiv.style.display = 'block';
+                if (!allItemsSelected) {
+                    resultadoDiv.innerHTML = '⚠️ <strong class="font-bold">Please select an option for all items</strong> before calculating.';
+                    resultadoDiv.className = 'resultado bg-info-orange-light';
+                    delete resultadoDiv.dataset.score;
+                    return;
+                }
+
+                let conduct = "";
+                let resultadoClasses = '';
+
+                if (totalScore <= 4) {
+                    conduct = "Low risk of severe complications. Management: Clinical monitoring and basic support.";
+                    resultadoClasses = 'bg-success-green-light';
+                } else if (totalScore <= 14) {
+                    conduct = "Moderate risk of complications. Management: Frequent neurological assessment and consider referral to intensive care unit.";
+                    resultadoClasses = 'bg-warning-yellow-light';
+                } else { // total > 14
+                    conduct = "High risk of complications. Management: Intensive care, possible indication for thrombolysis or neurosurgical intervention.";
+                    resultadoClasses = 'bg-danger-red-light';
+                }
+
+                resultadoDiv.innerHTML = `<p>Total NIHSS Score: <strong class="font-bold">${totalScore}</strong></p><p>Management: <strong class="font-bold">${conduct}</strong></p>`;
+                resultadoDiv.className = `resultado ${resultadoClasses}`;
+
+                resultadoDiv.dataset.score = totalScore;
+                resultadoDiv.dataset.conduta = conduct;
+                resultadoDiv.dataset.scaleName = "NIHSS Scale";
+            }
+
+            function limparCampos() {
+                nihssData.forEach(item => {
+                    const selectElement = document.getElementById(item.nameAttr);
+                    selectElement.selectedIndex = 0;
+                    document.getElementById(`${item.nameAttr}_score_display`).innerText = '0';
+                });
+                resultadoDiv.innerHTML = '';
+                resultadoDiv.className = 'resultado hidden';
+                delete resultadoDiv.dataset.score;
+                delete resultadoDiv.dataset.conduta;
+                delete resultadoDiv.dataset.scaleName;
+            }
+
+            // Preenche o formulário dinamicamente
+            nihssData.forEach((item, index) => {
+                const sectionDiv = document.createElement('div');
+                sectionDiv.className = 'nihss-criterion-card';
+
+                const headerDiv = document.createElement('div');
+                headerDiv.className = 'nihss-criterion-header';
+
+                const titleH3 = document.createElement('h3');
+                titleH3.className = 'nihss-criterion-title';
+                titleH3.innerText = item.domain;
+                headerDiv.appendChild(titleH3);
+
+                const scoreSpan = document.createElement('span');
+                scoreSpan.className = 'nihss-score-display';
+                scoreSpan.id = `${item.nameAttr}_score_display`;
+                scoreSpan.innerText = '0';
+                headerDiv.appendChild(scoreSpan);
+
+                sectionDiv.appendChild(headerDiv);
+
+                const optionsDiv = document.createElement('div');
+                optionsDiv.className = 'nihss-criterion-options';
+
+                const selectElement = document.createElement('select');
+                selectElement.id = item.nameAttr;
+                selectElement.className = 'nihss-select';
+                selectElement.onchange = () => updateScoreDisplay(item.nameAttr);
+
+
+                const defaultOption = document.createElement('option');
+                defaultOption.value = "";
+                defaultOption.text = "Select...";
+                defaultOption.disabled = true;
+                defaultOption.selected = true;
+                selectElement.appendChild(defaultOption);
+
+                item.options.forEach(option => {
+                    const optionElement = document.createElement('option');
+                    optionElement.value = option.score;
+                    optionElement.text = `${option.text} (${option.score})`;
+                    selectElement.appendChild(optionElement);
+                });
+
+                optionsDiv.appendChild(selectElement);
+                sectionDiv.appendChild(optionsDiv);
+                conteudoDiv.appendChild(sectionDiv);
+            });
+
+            // Adiciona os event listeners aos botões
+            btnCalcular?.addEventListener('click', calcularPontuacao);
+            btnLimpar?.addEventListener('click', limparCampos);
+
+
+            btnGerarPDF?.addEventListener('click', () => {
+                if (!resultadoDiv.dataset.score) {
+                    alert('Please click "Calculate" first to generate the PDF.');
+                    return;
+                }
+                if (typeof gerarPDFGlobal === 'function') {
+                    gerarPDFGlobal({
+                        titulo: 'NIHSS Scale',
+                        subtitulo: 'Stroke Assessment Report',
+                        nomeArquivo: 'nihss_scale_report.pdf',
+                        seletorConteudo: '.main-content-wrapper'
+                    });
+                } else {
+                    console.error('Function gerarPDFGlobal not defined.');
+                }
+            });
+
+            btnNandaNicNoc?.addEventListener('click', () => {
+                const score = resultadoDiv.dataset.score;
+                const scaleName = resultadoDiv.dataset.scaleName;
+                const conduct = resultadoDiv.dataset.conduta;
+                if (!score || !conduct) {
+                    alert('Calculate the result to search for management.');
+                    return;
+                }
+                const searchQuery = encodeURIComponent(`${scaleName} score ${score} management ${conduct} generate NANDA taxonomy, generate NIC taxonomy, generate NOC taxonomy`);
+                window.open(`https://www.google.com/search?q=${searchQuery}`, '_blank');
+            });
+        });
+    </script>
 
 
 

@@ -634,7 +634,311 @@
 
 
 
-  
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const resultadoDiv = document.getElementById('resultado');
+      const btnCalcular = document.getElementById('btnCalcular');
+      const btnLimpar = document.getElementById('btnLimpar');
+      const btnGerarPDF = document.getElementById('btnGerarPDF');
+      const btnNandaNicNoc = document.getElementById('btnNandaNicNoc');
+      const conteudoDiv = document.getElementById('conteudo');
+
+      const perrocaData = [
+        {
+          title: "1. मानसिक स्थिति और चेतना स्तर",
+          nameAttr: "estado_mental",
+          options: [
+            { description: "समय और स्थान में उन्मुख", score: 1 },
+            { description: "समय और/या स्थान में विचलित", score: 2 },
+            { description: "नींद आना", score: 3 },
+            { description: "स्तब्धता में", score: 4 },
+            { description: "कोमा में", score: 5 }
+          ]
+        },
+        {
+          title: "2. ऑक्सीजनकरण",
+          nameAttr: "oxigenacao",
+          options: [
+            { description: "वायुमंडलीय हवा में सांस लेता है", score: 1 },
+            { description: "कैथेटर या मास्क द्वारा O2 का उपयोग", score: 2 },
+            { description: "मैकेनिकल वेंटिलेटर पर", score: 3 },
+            { description: "श्वसन अस्थिरता के साथ O2 का उपयोग", score: 4 },
+            { description: "हेमोडायनामिक अस्थिरता के साथ गंभीर स्थिति में O2 का उपयोग", score: 5 }
+          ]
+        },
+        {
+          title: "3. जीवन संकेत",
+          nameAttr: "sinais_vitais",
+          options: [
+            { description: "स्थिर", score: 1 },
+            { description: "अस्थिर, रुक-रुक कर निगरानी के साथ", score: 2 },
+            { description: "अस्थिर, निरंतर निगरानी के साथ", score: 3 },
+            { description: "अस्थिर, फार्माकोलॉजिकल समर्थन के साथ", score: 4 },
+            { description: "अस्थिर, उन्नत समर्थन के साथ", score: 5 }
+          ]
+        },
+        {
+          title: "4. पोषण और जलयोजन",
+          nameAttr: "nutricao",
+          options: [
+            { description: "मौखिक मार्ग", score: 1 },
+            { description: "सहायता के साथ मौखिक या नासोगैस्ट्रिक/एंटरल ट्यूब के माध्यम से", score: 2 },
+            { description: "कुल एंटरल और/या पैरेंटरल मार्ग", score: 3 },
+            { description: "विशिष्ट पैरेंटरल मार्ग", score: 4 },
+            { description: "हेमोडायनामिक अस्थिरता के साथ विशिष्ट पैरेंटरल मार्ग", score: 5 }
+          ]
+        },
+        {
+          title: "5. गतिशीलता",
+          nameAttr: "motilidade",
+          options: [
+            { description: "स्वतंत्र, आंदोलनों पर कोई प्रतिबंध नहीं", score: 1 },
+            { description: "आंशिक रूप से निर्भर, आंदोलनों पर प्रतिबंध के साथ", score: 2 },
+            { description: "पूर्ण रूप से निर्भर, बिस्तर पर प्रतिबंध के साथ", score: 3 },
+            { description: "पूर्ण रूप से निर्भर, एक या अधिक अंगों के आंदोलनों पर प्रतिबंध के साथ", score: 4 },
+            { description: "बिस्तर पर अचल, संकुचन और चोट के जोखिम के साथ", score: 5 }
+          ]
+        },
+        {
+          title: "6. संचलन",
+          nameAttr: "locomocao",
+          options: [
+            { description: "बिना सहायता के चलता है", score: 1 },
+            { description: "बैसाखी, वॉकर या छड़ी की सहायता से चलता है", score: 2 },
+            { description: "व्हीलचेयर की सहायता से चलता है", score: 3 },
+            { description: "कमर से नीचे लकवाग्रस्त, बिस्तर से व्हीलचेयर में स्थानांतरित होता है", score: 4 },
+            { description: "बिस्तर पर अचल, स्थानांतरण के लिए पूरी तरह से निर्भर", score: 5 }
+          ]
+        },
+        {
+          title: "7. शारीरिक देखभाल",
+          nameAttr: "cuidados_corporais",
+          options: [
+            { description: "स्वतंत्र", score: 1 },
+            { description: "आंशिक रूप से निर्भर", score: 2 },
+            { description: "पूर्ण रूप से निर्भर", score: 3 },
+            { description: "पूर्ण रूप से निर्भर, विशेष देखभाल की आवश्यकता", score: 4 },
+            { description: "पूर्ण रूप से निर्भर, आक्रामक प्रक्रियाओं के साथ", score: 5 }
+          ]
+        },
+        {
+          title: "8. उत्सर्जन",
+          nameAttr: "eliminacao",
+          options: [
+            { description: "स्वतंत्र, आंत्र और मूत्राशय पर नियंत्रण", score: 1 },
+            { description: "आंत्र और/या मूत्राशय पर नियंत्रण में कठिनाई", score: 2 },
+            { description: "मूत्र कैथेटर के साथ", score: 3 },
+            { description: "आंत्र और मूत्राशय पर नियंत्रण का नुकसान", score: 4 },
+            { description: "आंत्र और मूत्राशय पर नियंत्रण का नुकसान, जटिलताओं के साथ", score: 5 }
+          ]
+        },
+        {
+          title: "9. चिकित्सा",
+          nameAttr: "terapeutica",
+          options: [
+            { description: "कोई दवा नहीं", score: 1 },
+            { description: "1-3 मौखिक दवाएं", score: 2 },
+            { description: "4 या अधिक मौखिक दवाएं", score: 3 },
+            { description: "अंतःशिरा दवाएं", score: 4 },
+            { description: "निरंतर अंतःशिरा दवाएं", score: 5 }
+          ]
+        },
+        {
+          title: "10. त्वचा-श्लेष्मा अखंडता",
+          nameAttr: "integumentar",
+          options: [
+            { description: "संरक्षित", score: 1 },
+            { description: "जोखिम में", score: 2 },
+            { description: "क्षतिग्रस्त", score: 3 },
+            { description: "क्षतिग्रस्त, विशेष देखभाल की आवश्यकता", score: 4 },
+            { description: "क्षतिग्रस्त, आक्रामक प्रक्रियाओं की आवश्यकता", score: 5 }
+          ]
+        },
+        {
+          title: "11. स्वास्थ्य शिक्षा",
+          nameAttr: "educacao",
+          options: [
+            { description: "जानकारी की आवश्यकता नहीं है", score: 1 },
+            { description: "स्वास्थ्य शिक्षा की आवश्यकता है", score: 2 },
+            { description: "स्वास्थ्य शिक्षा की आवश्यकता है, सीमित समझ के साथ", score: 3 },
+            { description: "स्वास्थ्य शिक्षा की आवश्यकता है, जटिल स्थिति के साथ", score: 4 },
+            { description: "स्वास्थ्य शिक्षा की आवश्यकता है, गंभीर स्थिति के साथ", score: 5 }
+          ]
+        },
+        {
+          title: "12. व्यवहार",
+          nameAttr: "comportamento",
+          options: [
+            { description: "सहयोगी", score: 1 },
+            { description: "चिंतित", score: 2 },
+            { description: "अवसादग्रस्त", score: 3 },
+            { description: "आक्रामक", score: 4 },
+            { description: "अवरोधक", score: 5 }
+          ]
+        },
+        {
+          title: "13. पारस्परिक संबंध",
+          nameAttr: "relacionamento",
+          options: [
+            { description: "सामाजिक रूप से एकीकृत", score: 1 },
+            { description: "सामाजिक रूप से अस्थिर", score: 2 },
+            { description: "सामाजिक रूप से अलग-थलग", score: 3 },
+            { description: "सामाजिक रूप से अलग-थलग, पारिवारिक समर्थन के बिना", score: 4 },
+            { description: "सामाजिक रूप से अलग-थलग, पेशेवर समर्थन की आवश्यकता", score: 5 }
+          ]
+        }
+      ];
+
+      function createPerrocaForm() {
+        perrocaData.forEach(criterion => {
+          const section = document.createElement('div');
+          section.className = 'perroca-criterion-section';
+
+          const title = document.createElement('h3');
+          title.className = 'perroca-criterion-title';
+          title.textContent = criterion.title;
+
+          const select = document.createElement('select');
+          select.className = 'perroca-criterion-select';
+          select.name = criterion.nameAttr;
+          select.setAttribute('aria-label', criterion.title);
+
+          const defaultOption = document.createElement('option');
+          defaultOption.value = '';
+          defaultOption.textContent = 'एक विकल्प चुनें';
+          defaultOption.disabled = true;
+          defaultOption.selected = true;
+          select.appendChild(defaultOption);
+
+          criterion.options.forEach(option => {
+            const optionElement = document.createElement('option');
+            optionElement.value = option.score;
+            optionElement.textContent = `${option.score} - ${option.description}`;
+            select.appendChild(optionElement);
+          });
+
+          section.appendChild(title);
+          section.appendChild(select);
+          conteudoDiv.appendChild(section);
+        });
+      }
+
+      function calcularPerroca() {
+        const selects = document.querySelectorAll('.perroca-criterion-select');
+        let totalScore = 0;
+        let incomplete = false;
+
+        selects.forEach(select => {
+          if (select.value === '') {
+            incomplete = true;
+            select.classList.add('incomplete');
+          } else {
+            select.classList.remove('incomplete');
+            totalScore += parseInt(select.value);
+          }
+        });
+
+        if (incomplete) {
+          resultadoDiv.textContent = 'कृपया सभी मानदंडों के लिए स्कोर चुनें।';
+          resultadoDiv.className = 'resultado bg-red-100';
+          resultadoDiv.style.display = 'block';
+          return;
+        }
+
+        let classification = '';
+        let careLevel = '';
+
+        if (totalScore >= 13 && totalScore <= 19) {
+          classification = 'न्यूनतम देखभाल';
+          careLevel = 'न्यूनतम';
+        } else if (totalScore >= 20 && totalScore <= 34) {
+          classification = 'मध्यवर्ती देखभाल';
+          careLevel = 'मध्यम';
+        } else if (totalScore >= 35 && totalScore <= 49) {
+          classification = 'उच्च-निर्भरता देखभाल';
+          careLevel = 'उच्च';
+        } else if (totalScore >= 50 && totalScore <= 65) {
+          classification = 'अर्ध-गहन देखभाल';
+          careLevel = 'बहुत उच्च';
+        } else {
+          classification = 'गहन देखभाल';
+          careLevel = 'गहन';
+        }
+
+        resultadoDiv.innerHTML = `
+                <p><strong>कुल स्कोर:</strong> ${totalScore}</p>
+                <p><strong>वर्गीकरण:</strong> ${classification}</p>
+                <p><strong>आवश्यक देखभाल स्तर:</strong> ${careLevel}</p>
+            `;
+        resultadoDiv.className = 'resultado';
+        resultadoDiv.style.display = 'block';
+      }
+
+      function limparFormulario() {
+        const selects = document.querySelectorAll('.perroca-criterion-select');
+        selects.forEach(select => {
+          select.value = '';
+          select.classList.remove('incomplete');
+        });
+        resultadoDiv.style.display = 'none';
+      }
+
+      function gerarPDF() {
+        const selects = document.querySelectorAll('.perroca-criterion-select');
+        let incomplete = false;
+
+        selects.forEach(select => {
+          if (select.value === '') {
+            incomplete = true;
+            select.classList.add('incomplete');
+          }
+        });
+
+        if (incomplete) {
+          resultadoDiv.textContent = 'PDF जनरेट करने से पहले कृपया सभी मानदंडों के लिए स्कोर चुनें।';
+          resultadoDiv.className = 'resultado bg-red-100';
+          resultadoDiv.style.display = 'block';
+          return;
+        }
+
+        const element = document.createElement('div');
+        element.innerHTML = `
+                <h2>पेरोका स्केल (एससीपी) - परिणाम</h2>
+                <p><strong>दिनांक:</strong> ${new Date().toLocaleDateString('hi-IN')}</p>
+                ${resultadoDiv.innerHTML}
+                <h3>विवरण:</h3>
+                <ul>
+                    ${Array.from(selects).map(select => {
+          const criterionTitle = select.previousElementSibling.textContent;
+          const selectedOption = select.options[select.selectedIndex].text;
+          return `<li><strong>${criterionTitle}:</strong> ${selectedOption}</li>`;
+        }).join('')}
+                </ul>
+            `;
+
+        const opt = {
+          margin: 1,
+          filename: 'perroca_scale_results.pdf',
+          image: { type: 'jpeg', quality: 0.98 },
+          html2canvas: { scale: 2 },
+          jsPDF: { unit: 'cm', format: 'a4', orientation: 'portrait' }
+        };
+
+        html2pdf().set(opt).from(element).save();
+      }
+
+      function buscarNandaNicNoc() {
+        window.open('https://example.com/nanda-nic-noc?scale=perroca', '_blank');
+      }
+
+      btnCalcular.addEventListener('click', calcularPerroca);
+      btnLimpar.addEventListener('click', limparFormulario);
+      btnGerarPDF.addEventListener('click', gerarPDF);
+      btnNandaNicNoc.addEventListener('click', buscarNandaNicNoc);
+
+      createPerrocaForm();
+    });
+  </script>
 
 
 

@@ -579,7 +579,247 @@
 
 
 
-  
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const resultadoDiv = document.getElementById("resultado");
+      const btnCalcular = document.getElementById("btnCalcular");
+      const btnLimpar = document.getElementById("btnLimpar");
+      const btnGerarPDF = document.getElementById("btnGerarPDF");
+      const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
+      const conteudoDiv = document.getElementById("conteudo");
+
+      const pelodData = [
+        {
+          domain: "1. Nörolojik (Glaskow Koma Ölçeği - GKS)",
+          nameAttr: "neuro",
+          options: [
+            { text: "GKS 15", score: 0 },
+            { text: "GKS 11-14", score: 1 },
+            { text: "GKS 8-10", score: 2 },
+            { text: "GKS < 8", score: 3 },
+          ],
+          subtext: "Hastanın bilinç düzeyini değerlendirir.",
+        },
+        {
+          domain: "2. Solunumsal (PaO2/FiO2 veya Solunum Desteği)",
+          nameAttr: "resp",
+          options: [
+            { text: "PaO2/FiO2 > 300 veya destek yok", score: 0 },
+            { text: "PaO2/FiO2 201-300 veya ek O2", score: 1 },
+            { text: "PaO2/FiO2 101-200 veya mekanik ventilasyon", score: 2 },
+            { text: "PaO2/FiO2 ≤ 100 veya yüksek PEEP ile MV", score: 3 },
+          ],
+          subtext:
+            "Akciğer fonksiyonunu ve ventilatör desteği ihtiyacını yansıtır.",
+        },
+        {
+          domain:
+            "3. Kardiyovasküler (Ortalama Arter Basıncı - OAB veya Vazoaktifler)",
+          nameAttr: "cardio",
+          options: [
+            { text: "Yaş için normal OAB, vazoaktif yok", score: 0 },
+            { text: "OAB hafifçe bozuk veya 1 vazoaktif", score: 1 },
+            { text: "OAB orta derecede bozuk veya 2 vazoaktif", score: 2 },
+            { text: "OAB ciddi bozuk veya >2 vazoaktif", score: 3 },
+          ],
+          subtext:
+            "Perfüzyonu ve hemodinamik durumu, vazoaktif ilaç kullanımını dahil ederek belirtir.",
+        },
+        {
+          domain: "4. Renal (Kreatinin veya Diürez)",
+          nameAttr: "renal",
+          options: [
+            { text: "Normal kreatinin veya normal diürez", score: 0 },
+            {
+              text: "Kreatinin 1.5x baseline veya diürez <1 ml/kg/s",
+              score: 1,
+            },
+            {
+              text: "Kreatinin 2x baseline veya diürez <0.5 ml/kg/s",
+              score: 2,
+            },
+            { text: "Kreatinin >2x baseline veya anüri/diyaliz", score: 3 },
+          ],
+          subtext: "Böbrek fonksiyonunu ve idrar üretimini değerlendirir.",
+        },
+        {
+          domain: "5. Hepatik (Total Bilirübin veya INR)",
+          nameAttr: "hepatico",
+          options: [
+            { text: "Normal bilirübin veya normal INR", score: 0 },
+            { text: "Bilirübin 1.5x normal veya INR >1.5", score: 1 },
+            { text: "Bilirübin 2x normal veya INR >2.0", score: 2 },
+            { text: "Bilirübin >2x normal ve INR >2.0", score: 3 },
+          ],
+          subtext: "Karaciğer fonksiyonu ve koagulasyon göstergeleri.",
+        },
+      ];
+
+      // --- PELOD Hesaplayıcı Fonksiyonları ---
+      function updateScoreDisplay(criterionId) {
+        const selectElement = document.getElementById(criterionId);
+        const scoreDisplayElement = document.getElementById(
+          `${criterionId}_score_display`,
+        );
+        if (selectElement && scoreDisplayElement) {
+          scoreDisplayElement.innerText =
+            selectElement.value === "" ? "0" : selectElement.value;
+        }
+      }
+
+      function calcularPontuacao() {
+        let totalScore = 0;
+        let allItemsSelected = true;
+
+        pelodData.forEach((item) => {
+          const selectElement = document.getElementById(item.nameAttr);
+          if (selectElement.value === "") {
+            allItemsSelected = false;
+          } else {
+            totalScore += parseInt(selectElement.value, 10);
+          }
+        });
+
+        resultadoDiv.style.display = "block";
+        if (!allItemsSelected) {
+          resultadoDiv.innerHTML =
+            '⚠️ <strong class="font-bold">Lütfen hesaplamadan önce her öğe için bir puan seçiniz</strong>.';
+          resultadoDiv.className = "resultado bg-info-orange-light";
+          delete resultadoDiv.dataset.score;
+          return;
+        }
+
+        let grauRisco = "";
+        let resultadoClasse = "";
+
+        if (totalScore <= 5) {
+          grauRisco = "Düşük organ disfonksiyonu riski";
+          resultadoClasse = "bg-pelod-baixo";
+        } else if (totalScore <= 10) {
+          grauRisco = "Orta organ disfonksiyonu riski";
+          resultadoClasse = "bg-pelod-moderado";
+        } else {
+          grauRisco = "Yüksek organ disfonksiyonu riski";
+          resultadoClasse = "bg-pelod-alto";
+        }
+
+        resultadoDiv.innerHTML = `<p>Toplam PELOD Puanı: <strong class="font-bold">${totalScore}</strong></p><p>Risk Düzeyi: <strong class="font-bold">${grauRisco}</strong></p>`;
+        resultadoDiv.className = `resultado ${resultadoClasse}`;
+
+        resultadoDiv.dataset.score = totalScore;
+        resultadoDiv.dataset.grauRisco = grauRisco;
+        resultadoDiv.dataset.scaleName = "PELOD Ölçeği";
+      }
+
+      function limparCampos() {
+        pelodData.forEach((item) => {
+          const selectElement = document.getElementById(item.nameAttr);
+          selectElement.selectedIndex = 0;
+          document.getElementById(
+            `${item.nameAttr}_score_display`,
+          ).innerText = "0";
+        });
+        resultadoDiv.innerHTML = "";
+        resultadoDiv.className = "resultado hidden";
+        delete resultadoDiv.dataset.score;
+        delete resultadoDiv.dataset.grauRisco;
+        delete resultadoDiv.dataset.scaleName;
+      }
+
+      // Formu dinamik olarak doldur
+      pelodData.forEach((item, index) => {
+        const sectionDiv = document.createElement("div");
+        sectionDiv.className = "pelod-criterion-card";
+
+        const headerDiv = document.createElement("div");
+        headerDiv.className = "pelod-criterion-header";
+
+        const titleH3 = document.createElement("h3");
+        titleH3.className = "pelod-criterion-title";
+        titleH3.innerText = item.domain;
+        headerDiv.appendChild(titleH3);
+
+        const scoreSpan = document.createElement("span");
+        scoreSpan.className = "pelod-score-display";
+        scoreSpan.id = `${item.nameAttr}_score_display`;
+        scoreSpan.innerText = "0";
+        headerDiv.appendChild(scoreSpan);
+
+        sectionDiv.appendChild(headerDiv);
+
+        const optionsDiv = document.createElement("div");
+        optionsDiv.className = "pelod-criterion-options";
+
+        const selectElement = document.createElement("select");
+        selectElement.id = item.nameAttr;
+        selectElement.className = "pelod-select";
+        selectElement.onchange = () => updateScoreDisplay(item.nameAttr);
+
+        const defaultOption = document.createElement("option");
+        defaultOption.value = "";
+        defaultOption.text = "Seçiniz...";
+        defaultOption.disabled = true;
+        defaultOption.selected = true;
+        selectElement.appendChild(defaultOption);
+
+        item.options.forEach((option) => {
+          const optionElement = document.createElement("option");
+          optionElement.value = option.score;
+          optionElement.text = `${option.text} (${option.score})`;
+          selectElement.appendChild(optionElement);
+        });
+
+        optionsDiv.appendChild(selectElement);
+        sectionDiv.appendChild(optionsDiv);
+
+        const subtextP = document.createElement("p");
+        subtextP.className = "text-gray-600 text-sm mt-2 text-left";
+        subtextP.innerText = item.subtext;
+        sectionDiv.appendChild(subtextP);
+
+        conteudoDiv.appendChild(sectionDiv);
+      });
+
+      // Butonlara event listener'ları ekle
+      btnCalcular?.addEventListener("click", calcularPontuacao);
+      btnLimpar?.addEventListener("click", limparCampos);
+
+      btnGerarPDF?.addEventListener("click", () => {
+        if (!resultadoDiv.dataset.score) {
+          alert('Lütfen PDF oluşturmak için önce "Hesapla" ya tıklayınız.');
+          return;
+        }
+        if (typeof gerarPDFGlobal === "function") {
+          gerarPDFGlobal({
+            titulo: "PELOD Ölçeği",
+            subtitulo:
+              "Çocukluk Çağı Organ Disfonksiyonu Değerlendirme Raporu",
+            nomeArquivo: "pelod_olcegi_raporu.pdf",
+            seletorConteudo: ".main-content-wrapper",
+          });
+        } else {
+          console.error("gerarPDFGlobal fonksiyonu tanımlı değil.");
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener("click", () => {
+        const score = resultadoDiv.dataset.score;
+        const scaleName = resultadoDiv.dataset.scaleName;
+        const grauRisco = resultadoDiv.dataset.grauRisco;
+        if (!score || !grauRisco) {
+          alert("Davranışı araştırmak için sonucu hesaplayınız.");
+          return;
+        }
+        const searchQuery = encodeURIComponent(
+          `${scaleName} puanı ${score} riski ${grauRisco} NANDA taksonomisi oluştur, NIC taksonomisi oluştur ve NOC taksonomisi oluştur`,
+        );
+        window.open(
+          `https://www.google.com/search?q=${searchQuery}`,
+          "_blank",
+        );
+      });
+    });
+  </script>
 
   <script src="/lang-selector.js" defer=""></script>
 

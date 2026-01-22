@@ -561,7 +561,112 @@
 
 
 
-  
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const resultadoDiv = document.getElementById('resultado');
+      const btnCalcular = document.getElementById('btnCalcular');
+      const btnLimpar = document.getElementById('btnLimpar');
+      const conteudoDiv = document.getElementById('conteudo');
+
+      const downtonData = [
+        { category: "Cadute Precedenti", nameAttr: "quedas", options: [{ description: "No", score: 0 }, { description: "Sì", score: 1 }], explain: "Cadute negli ultimi 12 mesi." },
+        { category: "Farmaci", nameAttr: "medicamentos", options: [{ description: "Nessun farmaco a rischio", score: 0 }, { description: "Uso di farmaci a rischio (es. tranquillanti, sedativi, diuretici)", score: 1 }], explain: "Alcuni farmaci possono causare vertigini e squilibrio." },
+        { category: "Deficit Sensoriali", nameAttr: "deficits_sensoriais", options: [{ description: "Nessun deficit", score: 0 }, { description: "Qualsiasi deficit visivo o uditivo", score: 1 }], explain: "Difficoltà visive o uditive." },
+        { category: "Stato Mentale", nameAttr: "estado_mental", options: [{ description: "Orientato", score: 0 }, { description: "Disorientato/Confuso", score: 1 }], explain: "Stato di coscienza e capacità cognitive." },
+        { category: "Deambulazione", nameAttr: "deambulacao", options: [{ description: "Normale/Sicura", score: 0 }, { description: "Insicura o con ausilio", score: 1 }], explain: "Valutazione del modo di camminare e dell'equilibrio." }
+      ];
+
+      downtonData.forEach(item => {
+        const sectionDiv = document.createElement('div');
+        sectionDiv.className = 'downton-criterion-section';
+        sectionDiv.innerHTML = `
+              <div>
+                <h3 class="downton-criterion-title">${item.category}</h3>
+                <p class="text-sm text-gray-500">${item.explain}</p>
+              </div>
+              <select id="${item.nameAttr}" class="downton-criterion-select">
+                <option value="" disabled selected>Seleziona...</option>
+                ${item.options.map(o => `<option value="${o.score}">${o.description}</option>`).join('')}
+              </select>`;
+        conteudoDiv.appendChild(sectionDiv);
+      });
+
+      function calcolaDownton() {
+        let total = 0;
+        let allSelected = true;
+        document.querySelectorAll('#conteudo select').forEach(select => {
+          select.classList.remove('incomplete');
+          if (select.value === "") {
+            allSelected = false;
+            select.classList.add('incomplete');
+          } else {
+            total += Number(select.value);
+          }
+        });
+
+        resultadoDiv.style.display = "block";
+        if (!allSelected) {
+          resultadoDiv.innerHTML = '⚠️ <strong class="font-bold">Per favore, seleziona un\'opzione per tutte le voci.</strong>';
+          resultadoDiv.className = "resultado bg-red-100 text-red-700";
+          return;
+        }
+
+        let classificazione, raccomandazione;
+        if (total <= 2) {
+          classificazione = 'Basso Rischio';
+          raccomandazione = 'Il paziente presenta un basso rischio di caduta. Continuare con le misure di prevenzione standard e rivalutare periodicamente.';
+        } else {
+          classificazione = 'Alto Rischio';
+          raccomandazione = 'Il paziente presenta un alto rischio di caduta. Implementare immediatamente un piano di prevenzione personalizzato.';
+        }
+
+        resultadoDiv.innerHTML = `
+                <p>Punteggio totale: <strong class="font-bold">${total}</strong></p>
+                <p>Classificazione: <strong class="font-bold">${classificazione}</strong></p>
+                <p class="mt-4"><strong>Raccomandazione:</strong> ${raccomandazione}</p>`;
+        resultadoDiv.className = "resultado";
+        resultadoDiv.dataset.score = total;
+        resultadoDiv.dataset.classificazione = classificazione;
+      }
+
+      function pulisciCampi() {
+        document.querySelectorAll('#conteudo select').forEach(select => {
+          select.selectedIndex = 0;
+          select.classList.remove('incomplete');
+        });
+        resultadoDiv.style.display = "none";
+        delete resultadoDiv.dataset.score;
+      }
+
+      btnCalcular?.addEventListener('click', calcolaDownton);
+      btnLimpar?.addEventListener('click', pulisciCampi);
+
+      document.getElementById('btnGerarPDF')?.addEventListener('click', () => {
+        if (!resultadoDiv.dataset.score) {
+          alert('Per favore, clicca prima su "Calcola Punteggio" per generare il PDF.');
+          return;
+        }
+        if (typeof gerarPDFGlobal === 'function') {
+          gerarPDFGlobal({
+            titulo: 'Scala di Downton',
+            subtitulo: 'Rapporto di Valutazione del Rischio di Caduta',
+            nomeArquivo: 'rapporto_scala_downton.pdf',
+            seletorConteudo: '.main-content-wrapper'
+          });
+        }
+      });
+
+      document.getElementById('btnNandaNicNoc')?.addEventListener('click', () => {
+        const classificazione = resultadoDiv.dataset.classificazione;
+        if (!classificazione) {
+          alert('Calcola il risultato per cercare la condotta.');
+          return;
+        }
+        const searchQuery = encodeURIComponent(`paziente adulto con ${classificazione} di caduta secondo la Scala di Downton NANDA NIC NOC`);
+        window.open(`https://www.google.com/search?q=${searchQuery}`, '_blank');
+      });
+    });
+  </script>
 
 
 

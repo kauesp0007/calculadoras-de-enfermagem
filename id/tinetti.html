@@ -825,7 +825,415 @@
 
 
 
-  
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const resultadoDiv = document.getElementById("resultado");
+      const btnCalcular = document.getElementById("btnCalcular");
+      const btnLimpar = document.getElementById("btnLimpar");
+      const btnGerarPDF = document.getElementById("btnGerarPDF");
+      const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
+      const conteudoDiv = document.getElementById("conteudo");
+
+      // Data skala Tinetti
+      const tinettiData = [
+        {
+          title: "1. Keseimbangan Duduk",
+          nameAttr: "duduk",
+          explain:
+            "Kemampuan mempertahankan stabilitas ketika duduk di kursi.",
+          options: [
+            { description: "Tergelincir, meluncur ke bawah kursi", score: 0 },
+            { description: "Kukuh dan aman", score: 1 },
+          ],
+        },
+        {
+          title: "2. Berdiri",
+          nameAttr: "berdiri",
+          explain: "Kemampuan bangun dari kursi.",
+          options: [
+            { description: "Tidak mampu tanpa bantuan", score: 0 },
+            {
+              description: "Mampu, tetapi menggunakan lengan untuk bangun",
+              score: 1,
+            },
+            { description: "Mampu, tanpa menggunakan lengan", score: 2 },
+          ],
+        },
+        {
+          title: "3. Mencoba Berdiri",
+          nameAttr: "mencoba_berdiri",
+          explain: "Mengamati jumlah percobaan untuk bangun.",
+          options: [
+            {
+              description: "Tidak mampu atau lebih dari satu percobaan",
+              score: 0,
+            },
+            { description: "Mampu dalam satu percobaan", score: 1 },
+          ],
+        },
+        {
+          title: "4. Segera setelah berdiri (5 detik pertama)",
+          nameAttr: "setelah_berdiri",
+          explain: "Stabilitas dalam 5 detik pertama setelah berdiri.",
+          options: [
+            {
+              description:
+                "Tidak stabil (tergojang, menggerakkan kaki, badan)",
+              score: 0,
+            },
+            {
+              description: "Stabil dengan dukungan orang lain atau objek",
+              score: 1,
+            },
+            {
+              description: "Stabil tanpa dukungan, tetapi bergoyang",
+              score: 2,
+            },
+          ],
+        },
+        {
+          title: "5. Keseimbangan Berdiri",
+          nameAttr: "berdiri_keseimbangan",
+          explain: "Stabilitas dalam postur tegak.",
+          options: [
+            { description: "Tidak seimbang", score: 0 },
+            {
+              description: "Dengan dukungan / basis sokongan > 9cm",
+              score: 1,
+            },
+            {
+              description: "Tanpa dukungan / basis sokongan kecil",
+              score: 2,
+            },
+          ],
+        },
+        {
+          title: "6. Uji 3 waktu (sternum)",
+          nameAttr: "uji_3_waktu",
+          explain:
+            "Reaksi terhadap dorongan ringan di sternum. Pasien harus berdiri, dengan kaki pada jarak yang nyaman.",
+          options: [
+            { description: "Mulai terjatuh", score: 0 },
+            { description: "Bergenggam atau bergoyang (lengan)", score: 1 },
+            { description: "Stabil", score: 2 },
+          ],
+        },
+        {
+          title: "7. Keseimbangan dengan mata tertutup",
+          nameAttr: "mata_tertutup",
+          explain: "Stabilitas pasien dengan mata tertutup.",
+          options: [
+            { description: "Tidak seimbang", score: 0 },
+            { description: "Seimbang", score: 1 },
+          ],
+        },
+        {
+          title: "8. Berputar 360º",
+          nameAttr: "berputar",
+          explain: "Mengamati kemampuan berputar penuh dan stabilitas.",
+          options: [
+            { description: "Langkah terputus / tidak seimbang", score: 0 },
+            { description: "Langkah terus / stabil", score: 1 },
+          ],
+        },
+        {
+          title: "9. Duduk di kursi",
+          nameAttr: "duduk_kursi",
+          explain: "Kemampuan duduk di kursi.",
+          options: [
+            { description: "Tidak aman / jatuh ke kursi", score: 0 },
+            {
+              description:
+                "Menggunakan lengan atau tidak bergerak dengan mulus",
+              score: 1,
+            },
+            { description: "Kukuh dan aman", score: 2 },
+          ],
+        },
+        {
+          title: "10. Awal Berjalan",
+          nameAttr: "awal_berjalan",
+          explain: "Mengamati awal berjalan.",
+          options: [
+            { description: "Hesitasi atau percobaan ganda", score: 0 },
+            { description: "Tanpa hesitasi", score: 1 },
+          ],
+        },
+        {
+          title: "11. Panjang dan tinggi langkah",
+          nameAttr: "langkah",
+          explain: "Mengamati panjang dan tinggi langkah.",
+          options: [
+            {
+              description:
+                "Kaki kanan tidak melewati kaki kiri atau tidak terangkat; Kaki kiri tidak melewati kaki kanan atau tidak terangkat",
+              score: 0,
+            },
+            {
+              description:
+                "Kaki kanan melewati kaki kiri dan terangkat; Kaki kiri melewati kaki kanan dan terangkat",
+              score: 1,
+            },
+          ],
+        },
+        {
+          title: "12. Simetri langkah",
+          nameAttr: "simetri_langkah",
+          explain: "Mengamati apakah langkah simetris.",
+          options: [
+            { description: "Panjang tidak sama", score: 0 },
+            { description: "Panjang sama", score: 1 },
+          ],
+        },
+        {
+          title: "13. Kelangsungan langkah",
+          nameAttr: "kelangsungan_langkah",
+          explain: "Mengamati apakah berjalan lancar atau ada gangguan.",
+          options: [
+            { description: "Berhenti atau tidak lanjut", score: 0 },
+            { description: "Langkah terus", score: 1 },
+          ],
+        },
+        {
+          title: "14. Arah Berjalan",
+          nameAttr: "arah_berjalan",
+          explain: "Mengamati penyimpangan garis berjalan.",
+          options: [
+            {
+              description:
+                "Penyimpangan berat atau menggunakan bantuan untuk tetap pada garis",
+              score: 0,
+            },
+            {
+              description:
+                "Penyimpangan ringan atau sedang, tetapi tanpa bantuan",
+              score: 1,
+            },
+            {
+              description: "Tanpa penyimpangan, berjalan dalam garis lurus",
+              score: 2,
+            },
+          ],
+        },
+        {
+          title: "15. Badang",
+          nameAttr: "badang_berjalan",
+          explain:
+            "Mengamati osilasi badang dan penggunaan lengan saat berjalan.",
+          options: [
+            {
+              description:
+                "Osilasi badang atau menggunakan lengan untuk menyeimbangkan",
+              score: 0,
+            },
+            {
+              description: "Fleksi lutut atau punggung / pembukaan lengan",
+              score: 1,
+            },
+            { description: "Tanpa osilasi atau fleksi", score: 2 },
+          ],
+        },
+        {
+          title: "16. Basis sokongan saat berjalan",
+          nameAttr: "basis_berjalan",
+          explain: "Jarak antara tumit saat berjalan.",
+          options: [
+            {
+              description: "Pergelangan kaki terpisah atau tidak stabil",
+              score: 0,
+            },
+            {
+              description:
+                "Pergelangan kaki bersentuhan atau berdekatan, tanpa penyimpangan",
+              score: 1,
+            },
+          ],
+        },
+      ];
+
+      // Mengisi formulir secara dinamis
+      tinettiData.forEach((item) => {
+        const sectionDiv = document.createElement("div");
+        sectionDiv.className = "tinetti-criterion-section";
+        sectionDiv.id = `section-${item.nameAttr}`;
+
+        const titleH3 = document.createElement("h3");
+        titleH3.className = "tinetti-criterion-title";
+        titleH3.innerHTML = item.title;
+        sectionDiv.appendChild(titleH3);
+
+        const explainP = document.createElement("p");
+        explainP.className = "tinetti-criterion-explain";
+        explainP.innerHTML = item.explain;
+        sectionDiv.appendChild(explainP);
+
+        const selectElement = document.createElement("select");
+        selectElement.id = item.nameAttr;
+        selectElement.className = "tinetti-criterion-select mt-2";
+
+        const defaultOption = document.createElement("option");
+        defaultOption.value = "";
+        defaultOption.text = "Pilih...";
+        selectElement.appendChild(defaultOption);
+
+        item.options.forEach((option) => {
+          const optionElement = document.createElement("option");
+          optionElement.value = option.score;
+          optionElement.text = `${option.description} (poin: ${option.score})`;
+          selectElement.appendChild(optionElement);
+        });
+
+        sectionDiv.appendChild(selectElement);
+        conteudoDiv.appendChild(sectionDiv);
+      });
+
+      function calcularTinetti() {
+        const selects = document.querySelectorAll("#conteudo select");
+        let allSelected = true;
+        let total = 0;
+
+        selects.forEach((select) => {
+          if (select.value === "") {
+            allSelected = false;
+            select.classList.add("incomplete");
+          } else {
+            select.classList.remove("incomplete");
+            total += Number(select.value);
+          }
+        });
+
+        resultadoDiv.style.display = "block";
+        if (!allSelected) {
+          resultadoDiv.innerHTML =
+            '⚠️ <strong class="font-bold">Silakan pilih opsi untuk semua item sebelum menghitung.</strong>';
+          resultadoDiv.className = `resultado bg-red-100`;
+          delete resultadoDiv.dataset.score;
+          return;
+        }
+
+        let recomendacao = "";
+
+        if (total <= 19) {
+          recomendacao = `Skor ${total} menunjukkan risiko tinggi jatuh. Disarankan implementasi tindakan keamanan dan rencana intervensi untuk pencegahan jatuh.`;
+        } else {
+          recomendacao = `Skor ${total} menunjukkan risiko rendah jatuh. Lanjutkan pemantauan mobilitas pasien.`;
+        }
+
+        resultadoDiv.innerHTML = `
+                <p>Skor total: <strong class="font-bold">${total}</strong></p>
+                <p class="mt-4"><strong>Rekomendasi:</strong> ${recomendacao}</p>
+            `;
+        resultadoDiv.className = `resultado bg-blue-50`;
+        resultadoDiv.style.display = "block";
+
+        resultadoDiv.dataset.score = total;
+        resultadoDiv.dataset.scaleName = "Skala Tinetti";
+      }
+
+      function limparCampos() {
+        const selects = document.querySelectorAll("#conteudo select");
+        selects.forEach((select) => {
+          select.selectedIndex = 0;
+          select.classList.remove("incomplete");
+        });
+        resultadoDiv.innerHTML = "";
+        resultadoDiv.className = "resultado hidden";
+        delete resultadoDiv.dataset.score;
+        delete resultadoDiv.dataset.scaleName;
+      }
+
+      // Menambahkan event listener ke tombol
+      btnCalcular?.addEventListener("click", calcularTinetti);
+      btnLimpar?.addEventListener("click", limparCampos);
+
+      btnGerarPDF?.addEventListener("click", () => {
+        if (!resultadoDiv.dataset.score) {
+          alert(
+            'Silakan klik "Hitung Skor" terlebih dahulu untuk membuat PDF.',
+          );
+          return;
+        }
+        if (typeof gerarPDFGlobal === "function") {
+          const selectedOptions = {};
+          document.querySelectorAll("#conteudo select").forEach((select) => {
+            const selected = select.options[select.selectedIndex];
+            if (selected.value !== "") {
+              selectedOptions[select.id] = selected.text;
+            }
+          });
+
+          let contentToPrint = document
+            .querySelector(".main-content-wrapper")
+            .cloneNode(true);
+          let contentContainer = contentToPrint.querySelector("#conteudo");
+
+          contentContainer.innerHTML = "";
+
+          let balanceSectionTitle = document.createElement("h3");
+          balanceSectionTitle.className = "text-lg font-semibold mt-4 mb-2";
+          balanceSectionTitle.innerText = `Bagian Keseimbangan (Skor Maksimum: 16)`;
+          contentContainer.appendChild(balanceSectionTitle);
+
+          tinettiData.slice(0, 9).forEach((item) => {
+            let selectedText = selectedOptions[item.nameAttr];
+            if (selectedText) {
+              let itemDiv = document.createElement("div");
+              itemDiv.className = "mb-2 p-2 bg-gray-50 rounded";
+              itemDiv.innerHTML = `<strong>${item.title}:</strong> ${selectedText}`;
+              contentContainer.appendChild(itemDiv);
+            }
+          });
+
+          let gaitSectionTitle = document.createElement("h3");
+          gaitSectionTitle.className = "text-lg font-semibold mt-4 mb-2";
+          gaitSectionTitle.innerText = `Bagian Berjalan (Skor Maksimum: 12)`;
+          contentContainer.appendChild(gaitSectionTitle);
+
+          tinettiData.slice(9, 16).forEach((item) => {
+            let selectedText = selectedOptions[item.nameAttr];
+            if (selectedText) {
+              let itemDiv = document.createElement("div");
+              itemDiv.className = "mb-2 p-2 bg-gray-50 rounded";
+              itemDiv.innerHTML = `<strong>${item.title}:</strong> ${selectedText}`;
+              contentContainer.appendChild(itemDiv);
+            }
+          });
+
+          let resultadoHtml = resultadoDiv.cloneNode(true);
+          if (resultadoHtml.style.display !== "none") {
+            contentContainer.appendChild(resultadoHtml);
+          }
+
+          gerarPDFGlobal({
+            titulo: "Skala Tinetti",
+            subtitulo: "Laporan Evaluasi Berjalan dan Keseimbangan",
+            nomeArquivo: "laporan_skala_tinetti.pdf",
+            seletorConteudo: ".main-content-wrapper",
+          });
+        } else {
+          console.error("Fungsi gerarPDFGlobal tidak didefinisikan.");
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener("click", () => {
+        const score = resultadoDiv.dataset.score;
+        const scaleName = resultadoDiv.dataset.scaleName;
+        if (!score) {
+          alert("Hitung hasil untuk mencari tindakan medis.");
+          return;
+        }
+        const recomendacaoRisco =
+          score <= 19 ? "risiko tinggi jatuh" : "risiko rendah jatuh";
+        const searchQuery = encodeURIComponent(
+          `perawatan keperawatan untuk lansia dengan ${recomendacaoRisco} pada Skala Tinetti NANDA NIC NOC`,
+        );
+        window.open(
+          `https://www.google.com/search?q=${searchQuery}`,
+          "_blank",
+        );
+      });
+    });
+  </script>
 
   <script src="/lang-selector.js" defer=""></script>
 

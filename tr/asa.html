@@ -597,7 +597,86 @@
 
 
   <!-- ASA Sayfa Özel Script -->
-  
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const resultadoDiv = document.getElementById("resultado");
+      const btnCalcular = document.getElementById("btnCalcular");
+      const btnLimpar = document.getElementById("btnLimpar");
+      const btnGerarPDF = document.getElementById("btnGerarPDF");
+      const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
+
+      function calcular() {
+        const selectedRadio = document.querySelector(
+          'input[name="asa"]:checked',
+        );
+
+        if (!selectedRadio) {
+          resultadoDiv.innerHTML =
+            '⚠️ <strong class="font-bold">Lütfen bir sınıflandırma belirleyin.</strong>';
+          resultadoDiv.className = "resultado bg-info-orange-light";
+          resultadoDiv.style.display = "block";
+          delete resultadoDiv.dataset.score;
+          return;
+        }
+
+        const selectedFullValue = selectedRadio.value;
+        const selectedClassification = selectedFullValue.split(":")[0]; // "ASA I", "ASA II", vs.
+
+        resultadoDiv.innerHTML = `<p>Seçilen sınıflandırma: <strong class="font-bold">${selectedFullValue}</strong></p>`;
+        resultadoDiv.className = "resultado"; // Varsayılan stile sıfırla, gerektiğinde özel renkler eklenebilir
+        resultadoDiv.style.display = "block";
+
+        resultadoDiv.dataset.score = selectedClassification;
+        resultadoDiv.dataset.scaleName = "ASA Sınıflandırması";
+      }
+
+      function limpar() {
+        document
+          .querySelectorAll('input[name="asa"]')
+          .forEach((radio) => (radio.checked = false));
+        resultadoDiv.innerHTML = "";
+        resultadoDiv.className = "resultado hidden";
+        delete resultadoDiv.dataset.score;
+        delete resultadoDiv.dataset.scaleName;
+      }
+
+      btnCalcular?.addEventListener("click", calcular);
+      btnLimpar?.addEventListener("click", limpar);
+
+      btnGerarPDF?.addEventListener("click", () => {
+        if (!resultadoDiv.dataset.score) {
+          alert('PDF oluşturmak için lütfen önce "Hesapla"ya tıklayın.');
+          return;
+        }
+        if (typeof gerarPDFGlobal === "function") {
+          gerarPDFGlobal({
+            titulo: "Anestezi Risk Skalası - ASA",
+            subtitulo: "Fiziksel Risk Sınıflandırma Raporu",
+            nomeArquivo: "asa_siniflandirma_raporu.pdf",
+            seletorConteudo: ".main-content-wrapper",
+          });
+        } else {
+          console.error("gerarPDFGlobal fonksiyonu tanımlı değil.");
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener("click", () => {
+        const score = resultadoDiv.dataset.score;
+        const scaleName = resultadoDiv.dataset.scaleName;
+        if (!score) {
+          alert("Davranışı araştırmak için sonucu hesaplayın.");
+          return;
+        }
+        const searchQuery = encodeURIComponent(
+          `${score} ${scaleName} NANDA taksonomisi oluştur NIC taksonomisi oluştur NOC taksonomisi oluştur`,
+        );
+        window.open(
+          `https://www.google.com/search?q=${searchQuery}`,
+          "_blank",
+        );
+      });
+    });
+  </script>
 
   <script src="/lang-selector.js" defer=""></script>
 

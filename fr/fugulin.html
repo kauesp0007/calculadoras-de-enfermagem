@@ -652,7 +652,357 @@
 
 
   <!-- Script Específico da Página Fugulin (Traduzido) -->
-  
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      // Carrega o rodapé da pasta /fr/ via fetch
+      fetch("footer.html")
+        .then((response) => response.text())
+        .then((data) => {
+          document.getElementById("footer-placeholder").innerHTML = data;
+        });
+
+      // Carrega os elementos globais da pasta /fr/
+      fetch("/fr/global-body-elements.html")
+        .then((response) => response.text())
+        .then((html) => {
+          document.getElementById(
+            "global-body-elements-container",
+          ).innerHTML = html;
+          // Ativa o VLibras e outros scripts globais DEPOIS de carregar o conteúdo
+          if (typeof initVLibras === "function") {
+            initVLibras();
+          }
+          if (typeof setupGlobalElements === "function") {
+            setupGlobalElements();
+          }
+        });
+
+      const resultadoDiv = document.getElementById("resultado");
+      const btnCalcular = document.getElementById("btnCalcular");
+      const btnLimpar = document.getElementById("btnLimpar");
+      const btnGerarPDF = document.getElementById("btnGerarPDF");
+      const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
+      const conteudoDiv = document.getElementById("conteudo");
+
+      // Données de l'échelle de Fugulin traduites
+      const fugulinData = [
+        {
+          category: "État Mental",
+          nameAttr: "etat_mental",
+          options: [
+            { description: "Inconscient", score: 4 },
+            { description: "Désorienté", score: 3 },
+            { description: "Confus", score: 2 },
+            { description: "Orienté", score: 1 },
+          ],
+        },
+        {
+          category: "Oxygénation",
+          nameAttr: "oxygenation",
+          options: [
+            { description: "Ventilation mécanique", score: 4 },
+            { description: "Masque à oxygène", score: 3 },
+            { description: "Cathéter nasal", score: 2 },
+            { description: "Air ambiant", score: 1 },
+          ],
+        },
+        {
+          category: "Signes Vitaux",
+          nameAttr: "signes_vitaux",
+          options: [
+            { description: "Très critiques", score: 4 },
+            { description: "Critiques", score: 3 },
+            { description: "Instables", score: 2 },
+            { description: "Stables", score: 1 },
+          ],
+        },
+        {
+          category: "Motilité",
+          nameAttr: "motilite",
+          options: [
+            { description: "Immobilisé", score: 4 },
+            { description: "Mobilisation avec aide", score: 3 },
+            { description: "Mobilisation avec surveillance", score: 2 },
+            { description: "Indépendant", score: 1 },
+          ],
+        },
+        {
+          category: "Déambulation",
+          nameAttr: "deambulation",
+          options: [
+            { description: "Ne déambule pas", score: 4 },
+            { description: "Déambule avec aide", score: 3 },
+            { description: "Déambule avec surveillance", score: 2 },
+            { description: "Indépendant", score: 1 },
+          ],
+        },
+        {
+          category: "Alimentation",
+          nameAttr: "alimentation",
+          options: [
+            { description: "À jeun", score: 4 },
+            { description: "Parentérale", score: 3 },
+            { description: "Entérale", score: 2 },
+            { description: "Orale", score: 1 },
+          ],
+        },
+        {
+          category: "Soins Corporels",
+          nameAttr: "soins_corporels",
+          options: [
+            { description: "Totalement dépendant", score: 4 },
+            { description: "Dépendant", score: 3 },
+            { description: "Aide partielle", score: 2 },
+            { description: "Indépendant", score: 1 },
+          ],
+        },
+        {
+          category: "Élimination",
+          nameAttr: "elimination",
+          options: [
+            { description: "Incontinent", score: 4 },
+            { description: "Sonde vésicale à demeure (SVD)", score: 3 },
+            { description: "Aide partielle", score: 2 },
+            { description: "Indépendant", score: 1 },
+          ],
+        },
+        {
+          category: "Thérapeutique",
+          nameAttr: "therapeutique",
+          options: [
+            { description: "Utilisation de drogues vasoactives", score: 4 },
+            { description: "IV continue par cathéter", score: 3 },
+            { description: "IV intermittente", score: 2 },
+            { description: "IM ou VO", score: 1 },
+          ],
+        },
+        {
+          category: "Temps de Changement de Pansement",
+          nameAttr: "temps_pansement",
+          options: [
+            { description: "De 15 à 30 minutes", score: 4 },
+            { description: "De 5 à 15 minutes", score: 3 },
+            { description: "Moins de 5 minutes", score: 2 },
+            { description: "Pas de pansement", score: 1 },
+          ],
+        },
+        {
+          category: "Pansement",
+          nameAttr: "pansement",
+          options: [
+            { description: "Changement 3x par jour", score: 4 },
+            { description: "Changement 2x par jour", score: 3 },
+            { description: "Changement 1x par jour", score: 2 },
+            { description: "Pas de pansement", score: 1 },
+          ],
+        },
+        {
+          category: "Intégrité Cutanéo-Muqueuse / Atteinte Tissulaire",
+          nameAttr: "integrite",
+          options: [
+            { description: "Étendue", score: 4 },
+            { description: "Modérée", score: 3 },
+            { description: "Légère", score: 2 },
+            { description: "Aucune", score: 1 },
+          ],
+        },
+      ];
+
+      // Remplit le formulaire dynamiquement
+      fugulinData.forEach((item, index) => {
+        const sectionDiv = document.createElement("div");
+        sectionDiv.className = "fugulin-criterion-section";
+        sectionDiv.id = `section-${item.nameAttr}`;
+
+        const titleH3 = document.createElement("h3");
+        titleH3.className = "fugulin-criterion-title";
+        titleH3.innerText = item.category;
+        sectionDiv.appendChild(titleH3);
+
+        const selectElement = document.createElement("select");
+        selectElement.id = item.nameAttr;
+        selectElement.className = "fugulin-criterion-select";
+
+        const defaultOption = document.createElement("option");
+        defaultOption.value = "";
+        defaultOption.text = "Sélectionnez..."; // Traduzido
+        selectElement.appendChild(defaultOption);
+
+        item.options.forEach((option) => {
+          const optionElement = document.createElement("option");
+          optionElement.value = option.score;
+          optionElement.text = `${option.description} (${option.score})`;
+          selectElement.appendChild(optionElement);
+        });
+
+        sectionDiv.appendChild(selectElement);
+        conteudoDiv.appendChild(sectionDiv);
+      });
+
+      function calculerFugulin() {
+        const selects = document.querySelectorAll("#conteudo select");
+        let allSelected = true;
+        let total = 0;
+
+        selects.forEach((select) => {
+          if (select.value === "") {
+            allSelected = false;
+            select.classList.add("incomplete"); // Ajoute la classe si non sélectionné
+          } else {
+            select.classList.remove("incomplete"); // Retire la classe si sélectionné
+            total += Number(select.value);
+          }
+        });
+
+        resultadoDiv.style.display = "block";
+        if (!allSelected) {
+          resultadoDiv.innerHTML =
+            '⚠️ <strong class="font-bold">Veuillez sélectionner une option pour tous les éléments avant de calculer.</strong>'; // Traduzido
+          resultadoDiv.className = "resultado bg-info-orange-light";
+          delete resultadoDiv.dataset.score; // Efface les données précédentes
+          delete resultadoDiv.dataset.classificacao; // Efface les données précédentes
+          return;
+        }
+
+        let classificacao = "";
+        let resultadoClasse = "";
+
+        // Classifications traduites
+        if (total >= 31) {
+          classificacao = "Complexité Très Élevée";
+          resultadoClasse = "bg-red-100 text-red-600"; // Utilise les deux classes pour cohérence
+        } else if (total >= 24) {
+          classificacao = "Complexité Élevée";
+          resultadoClasse = "bg-red-100 text-red-600";
+        } else if (total >= 17) {
+          classificacao = "Complexité Moyenne";
+          resultadoClasse = "bg-blue-50";
+        } else if (total >= 10) {
+          // Ajusté pour >= 10
+          classificacao = "Faible Complexité";
+          resultadoClasse = "bg-blue-50";
+        } else {
+          // Ajusté pour < 10 (ou plutôt <= 11 basé sur les limites)
+          classificacao = "Complexité Minimale"; // Point de départ est 12 (12*1), donc score min est 12. Ajuster si nécessaire.
+          resultadoClasse = "bg-blue-50";
+        }
+        // Correction logique de classification (score mínimo é 12)
+        if (total < 12) {
+          // Não deveria acontecer se todas opções têm score >= 1
+          classificacao = "Score Invalide (<12)";
+          resultadoClasse = "bg-info-orange-light";
+        } else if (total <= 16) {
+          classificacao = "Soins Minimaux";
+          resultadoClasse = "bg-blue-50";
+        } else if (total <= 22) {
+          classificacao = "Soins Intermédiaires";
+          resultadoClasse = "bg-blue-50";
+        } else if (total <= 28) {
+          classificacao = "Soins de Haute Dépendance";
+          resultadoClasse = "bg-red-100 text-red-600";
+        } else if (total <= 34) {
+          classificacao = "Soins Semi-Intensifs";
+          resultadoClasse = "bg-red-100 text-red-600";
+        } else {
+          // >= 35
+          classificacao = "Soins Intensifs";
+          resultadoClasse = "bg-red-100 text-red-600";
+        }
+
+        resultadoDiv.innerHTML = `<p>Score total: <strong class="font-bold">${total}</strong></p><p>Classification: <strong class="font-bold">${classificacao}</strong></p>`;
+        resultadoDiv.className = `resultado ${resultadoClasse}`;
+        resultadoDiv.style.display = "block";
+
+        // Stocke les données pour PDF et NANDA
+        resultadoDiv.dataset.score = total;
+        resultadoDiv.dataset.scaleName = "Échelle de Fugulin";
+        resultadoDiv.dataset.classificacao = classificacao;
+      }
+
+      function limparCampos() {
+        const selects = document.querySelectorAll("#conteudo select");
+        selects.forEach((select) => {
+          select.selectedIndex = 0;
+          select.classList.remove("incomplete"); // Retire la classe d'erreur
+        });
+        resultadoDiv.innerHTML = "";
+        resultadoDiv.className = "resultado hidden"; // Utilise hidden pour masquer
+        delete resultadoDiv.dataset.score;
+        delete resultadoDiv.dataset.scaleName;
+        delete resultadoDiv.dataset.classificacao;
+      }
+
+      // Ajoute les écouteurs d'événements aux boutons
+      btnCalcular?.addEventListener("click", calculerFugulin);
+      btnLimpar?.addEventListener("click", limparCampos);
+
+      btnGerarPDF?.addEventListener("click", () => {
+        if (!resultadoDiv.dataset.score) {
+          alert(
+            'Veuillez cliquer sur "Calculer le Score" d\'abord pour générer le PDF.',
+          ); // Traduzido
+          return;
+        }
+        if (typeof gerarPDFGlobal === "function") {
+          gerarPDFGlobal({
+            titulo: "Échelle de Fugulin", // Traduzido
+            subtitulo: "Rapport de Complexité des Soins Infirmiers", // Traduzido
+            nomeArquivo: "rapport_echelle_fugulin.pdf", // Traduzido
+            seletorConteudo: ".main-content-wrapper",
+          });
+        } else {
+          console.error("Fonction gerarPDFGlobal non définie.");
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener("click", () => {
+        const score = resultadoDiv.dataset.score;
+        const scaleName = resultadoDiv.dataset.scaleName;
+        const classificacao = resultadoDiv.dataset.classificacao;
+        if (!score || !classificacao) {
+          alert("Calculez le résultat pour rechercher la conduite à tenir."); // Traduzido
+          return;
+        }
+        // Traduzido para consulta em francês
+        const searchQuery = encodeURIComponent(
+          `${scaleName} score ${score} classification ${classificacao} générer taxonomie NANDA générer taxonomie NIC générer taxonomie NOC`,
+        );
+        window.open(
+          `https://www.google.com/search?q=${searchQuery}`,
+          "_blank",
+        );
+      });
+      // Bouton "Ajouter aux favoris"
+      const addFavoriteBtn = document.getElementById("addFavoriteBtn");
+      if (addFavoriteBtn) {
+        addFavoriteBtn.addEventListener("click", () => {
+          const url = window.location.href;
+          const title = "Échelle de Fugulin"; // Traduzido
+
+          try {
+            // IE/Edge Legacy
+            if (window.external && "AddFavorite" in window.external) {
+              window.external.AddFavorite(url, title);
+              return;
+            }
+            // Firefox ancien
+            if (window.sidebar && window.sidebar.addPanel) {
+              window.sidebar.addPanel(title, url, "");
+              return;
+            }
+            // Chrome/Firefox modernes : instruction de raccourci
+            alert(
+              "Appuyez sur Ctrl + D (ou Cmd + D sur Mac) pour ajouter cette page aux favoris.",
+            ); // Traduzido
+          } catch (e) {
+            alert(
+              "Appuyez sur Ctrl + D (ou Cmd + D sur Mac) pour ajouter cette page aux favoris.",
+            ); // Traduzido
+          }
+        });
+      }
+    });
+  </script>
   <!-- CHEMIN DU SCRIPT CORRIGÉ -->
   <script src="../lang-selector.js" defer=""></script>
 

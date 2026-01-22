@@ -556,7 +556,244 @@
 
 
 
-  
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const resultadoDiv = document.getElementById("resultado");
+      const btnCalcular = document.getElementById("btnCalcular");
+      const btnLimpar = document.getElementById("btnLimpar");
+      const btnGerarPDF = document.getElementById("btnGerarPDF");
+      const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
+      const conteudoDiv = document.getElementById("conteudo");
+
+      const downesData = [
+        {
+          parameter: "천명음",
+          nameAttr: "sibilancia",
+          options: [
+            { description: "없음", score: 0 },
+            { description: "호기 말기", score: 1 },
+            { description: "전체 호기", score: 2 },
+            { description: "흡기 + 호기", score: 3 },
+          ],
+        },
+        {
+          parameter: "함몰호흡",
+          nameAttr: "tiragem",
+          options: [
+            { description: "없음", score: 0 },
+            { description: "늑골하 + 늑간하부", score: 1 },
+            { description: '"1" + 쇄골상 + 비익호흡', score: 2 },
+            { description: '"2" + 늑간상부 + 흉골상', score: 3 },
+          ],
+        },
+        {
+          parameter: "환기 (공기 유입)",
+          nameAttr: "ventilacao",
+          options: [
+            { description: "양호, 대칭적", score: 0 },
+            { description: "규칙적, 대칭적", score: 1 },
+            { description: "매우 감소됨", score: 2 },
+            { description: "무음 흉부 (천명음 없음)", score: 3 },
+          ],
+        },
+        {
+          parameter: "청색증",
+          nameAttr: "cianose",
+          options: [
+            { description: "없음", score: 0 },
+            { description: "있음", score: 1 },
+          ],
+        },
+        {
+          parameter: "호흡수",
+          nameAttr: "frequenciaRespiratoria",
+          options: [
+            { description: "<30", score: 0 },
+            { description: "31-45", score: 1 },
+            { description: "46-60", score: 2 },
+            { description: ">60", score: 3 },
+          ],
+        },
+        {
+          parameter: "심박수",
+          nameAttr: "frequenciaCardiaca",
+          options: [
+            { description: "<120", score: 0 },
+            { description: ">120", score: 1 },
+          ],
+        },
+      ];
+
+      // --- Downes 계산기 함수 ---
+      function updateScoreDisplay(criterionId) {
+        const selectElement = document.getElementById(criterionId);
+        const scoreDisplayElement = document.getElementById(
+          `${criterionId}_score_display`,
+        );
+        if (selectElement && scoreDisplayElement) {
+          scoreDisplayElement.innerText =
+            selectElement.value === "" ? "0" : selectElement.value;
+        }
+      }
+
+      function calcularPontuacao() {
+        let totalScore = 0;
+        let allItemsSelected = true;
+
+        downesData.forEach((item) => {
+          const selectElement = document.getElementById(item.nameAttr);
+          if (selectElement.value === "") {
+            allItemsSelected = false;
+          } else {
+            totalScore += parseInt(selectElement.value, 10);
+          }
+        });
+
+        resultadoDiv.style.display = "block";
+        if (!allItemsSelected) {
+          resultadoDiv.innerHTML =
+            '⚠️ <strong class="font-bold">계산하기 전에 각 항목에 대한 옵션을 선택하십시오</strong>.';
+          resultadoDiv.className = "resultado bg-info-orange-light";
+          delete resultadoDiv.dataset.score;
+          return;
+        }
+
+        let classificacao = "";
+        let comentario = "";
+        let resultadoClasse = "";
+
+        if (totalScore >= 1 && totalScore <= 3) {
+          classificacao = "경증 호흡곤란";
+          resultadoClasse = "bg-downes-leve";
+          comentario =
+            "신생아는 경증 호흡곤란을 나타내며 모니터링 및 기본 지원이 필요합니다.";
+        } else if (totalScore >= 4 && totalScore <= 7) {
+          classificacao = "중등도 호흡곤란";
+          resultadoClasse = "bg-downes-moderado";
+          comentario =
+            "신생아는 중등도 호흡곤란을 나타내며 환기 지원 및 면밀한 관찰이 필요합니다.";
+        } else if (totalScore >= 8 && totalScore <= 14) {
+          classificacao = "중증 호흡곤란";
+          resultadoClasse = "bg-downes-grave";
+          comentario =
+            "신생아는 중증 호흡곤란을 나타내며 기관 삽관 및 기계 환기가 필요할 수 있습니다. 즉각적인 중재가 필요합니다.";
+        } else {
+          classificacao = "유효하지 않은 점수";
+          resultadoClasse = "bg-info-orange-light";
+          comentario =
+            "계산된 점수가 척도의 예상 한계를 벗어납니다. 선택 사항을 확인하십시오.";
+        }
+
+        resultadoDiv.innerHTML = `<p>Wood-Downes 척도 총점: <strong class="font-bold">${totalScore}</strong></p><p>분류: <strong class="font-bold">${classificacao}</strong></p><p>코멘트: <strong class="font-bold">${comentario}</strong></p>`;
+        resultadoDiv.className = `resultado ${resultadoClasse}`;
+
+        resultadoDiv.dataset.score = totalScore;
+        resultadoDiv.dataset.classificacao = classificacao;
+        resultadoDiv.dataset.scaleName = "Wood-Downes 척도";
+      }
+
+      function limparCampos() {
+        downesData.forEach((item) => {
+          const selectElement = document.getElementById(item.nameAttr);
+          selectElement.selectedIndex = 0;
+          document.getElementById(
+            `${item.nameAttr}_score_display`,
+          ).innerText = "0";
+        });
+        resultadoDiv.innerHTML = "";
+        resultadoDiv.className = "resultado hidden";
+        delete resultadoDiv.dataset.score;
+        delete resultadoDiv.dataset.classificacao;
+        delete resultadoDiv.dataset.scaleName;
+      }
+
+      // 양식을 동적으로 채웁니다
+      downesData.forEach((item, index) => {
+        const sectionDiv = document.createElement("div");
+        sectionDiv.className = "downes-criterion-card";
+
+        const headerDiv = document.createElement("div");
+        headerDiv.className = "downes-criterion-header";
+
+        const titleH3 = document.createElement("h3");
+        titleH3.className = "downes-criterion-title";
+        titleH3.innerText = item.parameter;
+        headerDiv.appendChild(titleH3);
+
+        const scoreSpan = document.createElement("span");
+        scoreSpan.className = "downes-score-display";
+        scoreSpan.id = `${item.nameAttr}_score_display`;
+        scoreSpan.innerText = "0";
+        headerDiv.appendChild(scoreSpan);
+
+        sectionDiv.appendChild(headerDiv);
+
+        const optionsDiv = document.createElement("div");
+        optionsDiv.className = "downes-criterion-options";
+
+        const selectElement = document.createElement("select");
+        selectElement.id = item.nameAttr;
+        selectElement.className = "downes-select";
+        selectElement.onchange = () => updateScoreDisplay(item.nameAttr);
+
+        const defaultOption = document.createElement("option");
+        defaultOption.value = "";
+        defaultOption.text = "선택...";
+        defaultOption.disabled = true;
+        defaultOption.selected = true;
+        selectElement.appendChild(defaultOption);
+
+        item.options.forEach((option) => {
+          const optionElement = document.createElement("option");
+          optionElement.value = option.score;
+          optionElement.text = `${option.description} (${option.score})`;
+          selectElement.appendChild(optionElement);
+        });
+
+        optionsDiv.appendChild(selectElement);
+        sectionDiv.appendChild(optionsDiv);
+        conteudoDiv.appendChild(sectionDiv);
+      });
+
+      // 버튼에 이벤트 리스너 추가
+      btnCalcular?.addEventListener("click", calcularPontuacao);
+      btnLimpar?.addEventListener("click", limparCampos);
+
+      btnGerarPDF?.addEventListener("click", () => {
+        if (!resultadoDiv.dataset.score) {
+          alert('PDF를 생성하려면 먼저 "계산"을 클릭하십시오.');
+          return;
+        }
+        if (typeof gerarPDFGlobal === "function") {
+          gerarPDFGlobal({
+            titulo: "Wood-Downes 척도",
+            subtitulo: "호흡곤란 평가 보고서",
+            nomeArquivo: "relatorio_escala_downes.pdf",
+            seletorConteudo: ".main-content-wrapper",
+          });
+        } else {
+          console.error("gerarPDFGlobal 함수가 정의되지 않았습니다.");
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener("click", () => {
+        const score = resultadoDiv.dataset.score;
+        const scaleName = resultadoDiv.dataset.scaleName;
+        const classificacao = resultadoDiv.dataset.classificacao;
+        if (!score || !classificacao) {
+          alert("치료 방법을 검색하려면 결과를 계산하십시오.");
+          return;
+        }
+        const searchQuery = encodeURIComponent(
+          `${scaleName} 점수 ${score} 분류 ${classificacao} NANDA 분류 생성, NIC 분류 생성 및 NOC 분류 생성`,
+        );
+        window.open(
+          `https://www.google.com/search?q=${searchQuery}`,
+          "_blank",
+        );
+      });
+    });
+  </script>
 
   <script src="/ko/lang-selector.js" defer=""></script>
 

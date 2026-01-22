@@ -627,7 +627,317 @@
 
 
 
-  
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const resultadoDiv = document.getElementById('resultado');
+      const btnCalcular = document.getElementById('btnCalcular');
+      const btnLimpar = document.getElementById('btnLimpar');
+      const btnGerarPDF = document.getElementById('btnGerarPDF');
+      const btnNandaNicNoc = document.getElementById('btnNandaNicNoc');
+      const conteudoDiv = document.getElementById('conteudo');
+
+      const bergData = [
+        {
+          title: "1. Sentarse para levantarse",
+          nameAttr: "sentar_levantar",
+          options: [
+            { description: "Incapaz de levantarse sin asistencia", score: 0 },
+            { description: "Necesita ayuda verbal y/o supervisión para levantarse", score: 1 },
+            { description: "Necesita asistencia mínima para levantarse", score: 2 },
+            { description: "Se levanta con seguridad, pero necesita asistencia verbal para la estabilidad", score: 3 },
+            { description: "Se levanta con seguridad y estabilidad, sin asistencia", score: 4 }
+          ]
+        },
+        {
+          title: "2. Estar de pie sin apoyo",
+          nameAttr: "em_pe_sem_apoio",
+          options: [
+            { description: "Incapaz de mantenerse de pie durante 30 segundos", score: 0 },
+            { description: "Se mantiene de pie 30 segundos, pero necesita asistencia", score: 1 },
+            { description: "Se mantiene de pie 30 segundos, pero necesita supervisión", score: 2 },
+            { description: "Se mantiene de pie 30 segundos con seguridad", score: 3 },
+            { description: "Se mantiene de pie 30 segundos con seguridad, sin apoyo", score: 4 }
+          ]
+        },
+        {
+          title: "3. Sentarse sin apoyo",
+          nameAttr: "sentar_sem_apoio",
+          options: [
+            { description: "Se sienta de forma insegura, se cae en la silla", score: 0 },
+            { description: "Se sienta, pero necesita asistencia mínima", score: 1 },
+            { description: "Se sienta de forma segura, pero usa los brazos", score: 2 },
+            { description: "Se sienta de forma segura, sin usar los brazos, pero el movimiento es lento", score: 3 },
+            { description: "Se sienta de forma segura, sin usar los brazos", score: 4 }
+          ]
+        },
+        {
+          title: "4. Nada más levantarse (primeros 5 segundos)",
+          nameAttr: "apos_levantar",
+          options: [
+            { description: "Inestable (se tambalea, mueve los pies, el tronco)", score: 0 },
+            { description: "Estable con el apoyo de otra persona u objeto", score: 1 },
+            { description: "Estable sin apoyo, pero se tambalea", score: 2 }
+          ]
+        },
+        {
+          title: "5. Equilibrio de pie",
+          nameAttr: "em_pe",
+          options: [
+            { description: "Desequilibrado", score: 0 },
+            { description: "Con apoyo / base de sustentación > 9cm", score: 1 },
+            { description: "Sin apoyo / base de sustentación pequeña", score: 2 }
+          ]
+        },
+        {
+          title: "6. Prueba de 3 tiempos (esternón)",
+          nameAttr: "teste_3_tempos",
+          options: [
+            { description: "Comienza a caerse", score: 0 },
+            { description: "Se agarra o se tambalea (brazos)", score: 1 },
+            { description: "Estable", score: 2 }
+          ]
+        },
+        {
+          title: "7. Equilibrio con los ojos cerrados",
+          nameAttr: "olhos_fechados",
+          options: [
+            { description: "Desequilibrio", score: 0 },
+            { description: "Equilibrio", score: 1 }
+          ]
+        },
+        {
+          title: "8. Girando 360 grados",
+          nameAttr: "girando",
+          options: [
+            { description: "Pasos discontinuos / desequilibrio", score: 0 },
+            { description: "Pasos continuos / estabilidad", score: 1 }
+          ]
+        },
+        {
+          title: "9. Sentarse en la silla",
+          nameAttr: "sentando",
+          options: [
+            { description: "Inseguro / se cae en la silla", score: 0 },
+            { description: "Usa los brazos o no se mueve suavemente", score: 1 },
+            { description: "Firme y seguro", score: 2 }
+          ]
+        },
+        {
+          title: "10. Inicio de la Marcha",
+          nameAttr: "inicio_marcha",
+          options: [
+            { description: "Vacilación o múltiples intentos", score: 0 },
+            { description: "Sin vacilación", score: 1 }
+          ]
+        },
+        {
+          title: "11. Longitud y altura del paso",
+          nameAttr: "passo",
+          options: [
+            { description: "El pie derecho no pasa del izquierdo o no se levanta; El pie izquierdo no pasa del derecho o no se levanta", score: 0 },
+            { description: "El pie derecho pasa del izquierdo y se levanta; El pie izquierdo pasa del derecho y se levanta", score: 1 }
+          ]
+        },
+        {
+          title: "12. Simetría del paso",
+          nameAttr: "simetria_passo",
+          options: [
+            { description: "Longitudes desiguales", score: 0 },
+            { description: "Longitudes iguales", score: 1 }
+          ]
+        },
+        {
+          title: "13. Continuidad del paso",
+          nameAttr: "continuidade_passo",
+          options: [
+            { description: "Paradas o discontinuidades", score: 0 },
+            { description: "Pasos continuos", score: 1 }
+          ]
+        },
+        {
+          title: "14. Dirección de la Marcha",
+          nameAttr: "direcao_marcha",
+          options: [
+            { description: "Desviación acentuada o uso de ayuda para mantenerse en la línea", score: 0 },
+            { description: "Desviación leve o moderada, pero sin ayuda", score: 1 },
+            { description: "Sin desviación, camina en línea recta", score: 2 }
+          ]
+        },
+        {
+          title: "15. Tronco",
+          nameAttr: "tronco_marcha",
+          explain: "Observar la oscilación del tronco y el uso de los brazos durante la marcha.",
+          options: [
+            { description: "Oscilación del tronco o usa los brazos para equilibrarse", score: 0 },
+            { description: "Flexión de rodillas o espalda / apertura de brazos", score: 1 },
+            { description: "Sin oscilación o flexión", score: 2 }
+          ]
+        },
+        {
+          title: "16. Base de apoyo al andar",
+          nameAttr: "base_marcha",
+          explain: "Distancia entre los talones durante la marcha.",
+          options: [
+            { description: "Tobillos separados o inestables", score: 0 },
+            { description: "Tobillos se tocan o están cerca, sin desviaciones", score: 1 }
+          ]
+        }
+      ];
+
+      // Rellena el formulario dinámicamente
+      bergData.forEach(item => {
+        const sectionDiv = document.createElement('div');
+        sectionDiv.className = 'berg-criterion-section';
+        sectionDiv.id = `section-${item.nameAttr}`;
+
+        const titleH3 = document.createElement('h3');
+        titleH3.className = 'berg-criterion-title';
+        titleH3.innerHTML = item.title;
+        sectionDiv.appendChild(titleH3);
+
+        const selectElement = document.createElement('select');
+        selectElement.id = item.nameAttr;
+        selectElement.className = 'berg-criterion-select mt-2';
+
+        const defaultOption = document.createElement('option');
+        defaultOption.value = "";
+        defaultOption.text = "Seleccione...";
+        selectElement.appendChild(defaultOption);
+
+        item.options.forEach(option => {
+          const optionElement = document.createElement('option');
+          optionElement.value = option.score;
+          optionElement.text = `${option.description} (puntos: ${option.score})`;
+          selectElement.appendChild(optionElement);
+        });
+
+        sectionDiv.appendChild(selectElement);
+        conteudoDiv.appendChild(sectionDiv);
+      });
+
+      function calcularBerg() {
+        const selects = document.querySelectorAll('#conteudo select');
+        let allSelected = true;
+        let total = 0;
+
+        selects.forEach(select => {
+          if (select.value === "") {
+            allSelected = false;
+            select.classList.add('incomplete');
+          } else {
+            select.classList.remove('incomplete');
+            total += Number(select.value);
+          }
+        });
+
+        resultadoDiv.style.display = "block";
+        if (!allSelected) {
+          resultadoDiv.innerHTML = '⚠️ <strong class="font-bold">Por favor, seleccione una opción para todos los ítems antes de calcular.</strong>';
+          resultadoDiv.className = `resultado bg-red-100`;
+          delete resultadoDiv.dataset.score;
+          return;
+        }
+
+        let recomendacao = '';
+
+        if (total <= 20) {
+          recomendacao = `La puntuación de ${total} indica un alto riesgo de caídas. Se recomienda asistencia y supervisión continua.`;
+        } else if (total >= 21 && total <= 40) {
+          recomendacao = `La puntuación de ${total} indica que el paciente tiene movilidad funcional, pero puede tener un riesgo moderado de caídas. Se recomienda la rehabilitación.`;
+        } else if (total >= 41 && total <= 56) {
+          recomendacao = `La puntuación de ${total} indica bajo riesgo de caídas. El paciente tiene un buen equilibrio y movilidad funcional.`;
+        }
+
+        resultadoDiv.innerHTML = `
+                <p>Puntuación total: <strong class="font-bold">${total}</strong></p>
+                <p class="mt-4"><strong>Recomendación:</strong> ${recomendacao}</p>
+            `;
+        resultadoDiv.className = `resultado bg-blue-50`;
+        resultadoDiv.style.display = "block";
+
+        resultadoDiv.dataset.score = total;
+        resultadoDiv.dataset.scaleName = "Escala de Equilibrio de Berg";
+      }
+
+      function limparCampos() {
+        const selects = document.querySelectorAll('#conteudo select');
+        selects.forEach(select => {
+          select.selectedIndex = 0;
+          select.classList.remove('incomplete');
+        });
+        resultadoDiv.innerHTML = '';
+        resultadoDiv.className = 'resultado hidden';
+        delete resultadoDiv.dataset.score;
+        delete resultadoDiv.dataset.scaleName;
+      }
+
+      // Agrega los event listeners a los botones
+      btnCalcular?.addEventListener('click', calcularBerg);
+      btnLimpar?.addEventListener('click', limparCampos);
+
+      btnGerarPDF?.addEventListener('click', () => {
+        if (!resultadoDiv.dataset.score) {
+          alert('Por favor, haga clic en "Calcular Puntuación" primero para generar el PDF.');
+          return;
+        }
+        if (typeof gerarPDFGlobal === 'function') {
+          const selectedOptions = {};
+          document.querySelectorAll('#conteudo select').forEach(select => {
+            const selected = select.options[select.selectedIndex];
+            if (selected.value !== "") {
+              selectedOptions[select.id] = selected.text;
+            }
+          });
+
+          let contentToPrint = document.querySelector('.main-content-wrapper').cloneNode(true);
+          let contentContainer = contentToPrint.querySelector('#conteudo');
+
+          contentContainer.innerHTML = '';
+
+          bergData.forEach(item => {
+            let selectedText = selectedOptions[item.nameAttr];
+            if (selectedText) {
+              let itemDiv = document.createElement('div');
+              itemDiv.className = 'mb-2 p-2 bg-gray-50 rounded';
+              itemDiv.innerHTML = `<strong>${item.title}:</strong> ${selectedText}`;
+              contentContainer.appendChild(itemDiv);
+            }
+          });
+
+          let resultadoHtml = resultadoDiv.cloneNode(true);
+          if (resultadoHtml.style.display !== 'none') {
+            contentContainer.appendChild(resultadoHtml);
+          }
+
+          gerarPDFGlobal({
+            titulo: 'Escala de Equilibrio de Berg',
+            subtitulo: 'Informe de Evaluación de Equilibrio Estático y Dinámico',
+            nomeArquivo: 'informe_escala_berg.pdf',
+            seletorConteudo: '.main-content-wrapper'
+          });
+        } else {
+          console.error('La función gerarPDFGlobal no está definida.');
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener('click', () => {
+        const score = resultadoDiv.dataset.score;
+        const scaleName = resultadoDiv.dataset.scaleName;
+        if (!score) {
+          alert('Calcule el resultado para buscar la conducta.');
+          return;
+        }
+        let recomendacaoRisco = 'riesgo de caídas';
+        if (score <= 20) {
+          recomendacaoRisco = 'alto riesgo de caídas';
+        } else if (score >= 41) {
+          recomendacaoRisco = 'bajo riesgo de caídas';
+        }
+        const searchQuery = encodeURIComponent(`cuidados de enfermería para adulto mayor con ${recomendacaoRisco} en la Escala de Berg NANDA NIC NOC`);
+        window.open(`https://www.google.com/search?q=${searchQuery}`, '_blank');
+      });
+    });
+  </script>
 
 
 

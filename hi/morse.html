@@ -620,7 +620,309 @@
 
 
 
-    
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const resultadoDiv = document.getElementById('resultado');
+            const btnCalcular = document.getElementById('btnCalcular');
+            const btnLimpar = document.getElementById('btnLimpar');
+            const btnGerarPDF = document.getElementById('btnGerarPDF');
+            const btnNandaNicNoc = document.getElementById('btnNandaNicNoc');
+            const conteudoDiv = document.getElementById('conteudo');
+
+            const morseData = [
+                {
+                    criterion: "गिरने का इतिहास",
+                    nameAttr: "historiaQuedas",
+                    options: [
+                        { text: "नहीं", score: 0 },
+                        { text: "हाँ", score: 25 }
+                    ]
+                },
+                {
+                    criterion: "द्वितीयक निदान",
+                    nameAttr: "diagnosticoSecundario",
+                    options: [
+                        { text: "नहीं", score: 0 },
+                        { text: "हाँ", score: 15 }
+                    ]
+                },
+                {
+                    criterion: "चलने में सहायता",
+                    nameAttr: "auxilioDeambulacao",
+                    options: [
+                        { text: "कोई नहीं/बेड रेस्ट/नर्सिंग सहायता", score: 0 },
+                        { text: "बेंत/व्हीलचेयर/नर्स", score: 15 },
+                        { text: "फर्नीचर/वॉकर/बैसाखी", score: 30 }
+                    ]
+                },
+                {
+                    criterion: "IV/हेपरिन थेरेपी",
+                    nameAttr: "terapiaIVHeparina",
+                    options: [
+                        { text: "नहीं", score: 0 },
+                        { text: "हाँ", score: 20 }
+                    ]
+                },
+                {
+                    criterion: "चाल",
+                    nameAttr: "marcha",
+                    options: [
+                        { text: "सामान्य/बेड रेस्ट/अचल", score: 0 },
+                        { text: "कमजोर", score: 10 },
+                        { text: "अक्षम", score: 20 }
+                    ]
+                },
+                {
+                    criterion: "मानसिक स्थिति",
+                    nameAttr: "estadoMental",
+                    options: [
+                        { text: "उन्मुख", score: 0 },
+                        { text: "सीमाएं भूल जाता है", score: 15 }
+                    ]
+                }
+            ];
+
+            // --- मोर्स कैलकुलेटर फ़ंक्शन ---
+            function updateScoreDisplay(criterionId) {
+                const selectElement = document.getElementById(criterionId);
+                const scoreDisplayElement = document.getElementById(`${criterionId}_score_display`);
+                if (selectElement && scoreDisplayElement) {
+                    scoreDisplayElement.innerText = selectElement.value === "" ? "0" : selectElement.value;
+                }
+            }
+
+            function calcularPontuacaoMorse() {
+                let total = 0;
+                let allSelected = true;
+
+                morseData.forEach(item => {
+                    const selectElement = document.getElementById(item.nameAttr);
+                    if (selectElement.value === "") {
+                        allSelected = false;
+                    } else {
+                        total += parseInt(selectElement.value, 10);
+                    }
+                });
+
+                resultadoDiv.style.display = 'block';
+                if (!allSelected) {
+                    resultadoDiv.innerHTML = '⚠️ <strong class="font-bold">कृपया गणना करने से पहले सभी आइटमों के लिए एक विकल्प चुनें</strong>';
+                    resultadoDiv.className = 'resultado bg-info-orange-light';
+                    delete resultadoDiv.dataset.score;
+                    return;
+                }
+
+                let risco = '';
+                let conduta = '';
+                let resultadoClasses = '';
+                let riscoTexto = '';
+
+                if (total >= 45) {
+                    risco = 'उच्च जोखिम';
+                    conduta = 'कड़ी निवारक हस्तक्षेप लागू करें, जैसे निरंतर निगरानी, बेड अलार्म का उपयोग, और दवा की समीक्षा।';
+                    resultadoClasses = 'bg-danger-red-light';
+                } else if (total >= 25) {
+                    risco = 'मध्यम जोखिम';
+                    conduta = 'मानक निवारक हस्तक्षेप लागू करें, जैसे रोगी शिक्षा, नॉन-स्लिप जूते का उपयोग और चलने में सहायता।';
+                    resultadoClasses = 'bg-warning-yellow-light';
+                } else { // 0 to 24
+                    risco = 'कम जोखिम';
+                    conduta = 'नियमित निगरानी और सुरक्षित वातावरण बनाए रखें। जोखिम की आवधिक पुनर्मूल्यांकन पर विचार करें।';
+                    resultadoClasses = 'bg-success-green-light';
+                }
+
+                resultadoDiv.innerHTML = `<p>कुल स्कोर: <strong class="font-bold">${total}</strong></p><p>गिरने का जोखिम: <strong class="font-bold">${risco}</strong></p><p>कार्यवाही: <strong class="font-bold">${conduta}</strong></p>`;
+                resultadoDiv.className = `resultado ${resultadoClasses}`;
+
+                resultadoDiv.dataset.score = total;
+                resultadoDiv.dataset.risco = risco;
+                resultadoDiv.dataset.conduta = conduta;
+                resultadoDiv.dataset.scaleName = "मोर्स फॉल स्केल";
+            }
+
+            function limparCamposMorse() {
+                morseData.forEach(item => {
+                    const selectElement = document.getElementById(item.nameAttr);
+                    selectElement.selectedIndex = 0;
+                    document.getElementById(`${item.nameAttr}_score_display`).innerText = '0';
+                });
+                resultadoDiv.innerHTML = '';
+                resultadoDiv.className = 'resultado hidden';
+                delete resultadoDiv.dataset.score;
+                delete resultadoDiv.dataset.risco;
+                delete resultadoDiv.dataset.conduta;
+                delete resultadoDiv.dataset.scaleName;
+            }
+
+            // डायनामिक फॉर्म भरें
+            morseData.forEach((item, index) => {
+                const sectionDiv = document.createElement('div');
+                sectionDiv.className = 'morse-criterion-card';
+                sectionDiv.innerHTML = `
+                    <div class="morse-criterion-header">
+                        <h3 class="morse-criterion-title">${index + 1}. ${item.criterion}</h3>
+                        <div class="morse-score-display">
+                            <span id="${item.nameAttr}_score_display">0</span>
+                        </div>
+                    </div>
+                    <select id="${item.nameAttr}" name="${item.nameAttr}" class="morse-select" aria-label="${item.criterion}">
+                        <option value="" selected disabled>एक विकल्प चुनें</option>
+                        ${item.options.map(option => `<option value="${option.score}">${option.text} (${option.score} अंक)</option>`).join('')}
+                    </select>
+                `;
+                conteudoDiv.appendChild(sectionDiv);
+            });
+
+            // इवेंट लिसनर्स जोड़ें
+            morseData.forEach(item => {
+                const selectElement = document.getElementById(item.nameAttr);
+                if (selectElement) {
+                    selectElement.addEventListener('change', () => updateScoreDisplay(item.nameAttr));
+                }
+            });
+
+            btnCalcular.addEventListener('click', calcularPontuacaoMorse);
+            btnLimpar.addEventListener('click', limparCamposMorse);
+
+            btnGerarPDF.addEventListener('click', function () {
+                const resultadoScore = resultadoDiv.dataset.score;
+                if (resultadoScore === undefined) {
+                    alert("कृपया पहले स्कोर की गणना करें।");
+                    return;
+                }
+                gerarPDF();
+            });
+
+            btnNandaNicNoc.addEventListener('click', function () {
+                const resultadoScore = resultadoDiv.dataset.score;
+                if (resultadoScore === undefined) {
+                    alert("कृपया पहले स्कोर की गणना करें।");
+                    return;
+                }
+                buscarNandaNicNoc();
+            });
+
+            function gerarPDF() {
+                const resultadoScore = resultadoDiv.dataset.score;
+                const risco = resultadoDiv.dataset.risco;
+                const conduta = resultadoDiv.dataset.conduta;
+                const scaleName = resultadoDiv.dataset.scaleName;
+                const date = new Date().toLocaleDateString('hi-IN');
+
+                let criteriosHTML = '';
+                morseData.forEach(item => {
+                    const selectElement = document.getElementById(item.nameAttr);
+                    const selectedOption = selectElement.options[selectElement.selectedIndex];
+                    criteriosHTML += `<p><strong>${item.criterion}:</strong> ${selectedOption.text} (${selectedOption.value} अंक)</p>`;
+                });
+
+                const content = `
+                    <div style="font-family: Arial, sans-serif; padding: 20px;">
+                        <h1 style="color: #1A3E74; text-align: center;">${scaleName}</h1>
+                        <h2 style="color: #1FA4E5; text-align: center;">गिरने का जोखिम मूल्यांकन</h2>
+                        <p style="text-align: center;"><strong>तिथि:</strong> ${date}</p>
+                        <div style="margin: 20px 0;">
+                            <h3 style="color: #1A3E74;">मूल्यांकन मानदंड:</h3>
+                            ${criteriosHTML}
+                        </div>
+                        <div style="margin: 20px 0;">
+                            <h3 style="color: #1A3E74;">परिणाम:</h3>
+                            <p><strong>कुल स्कोर:</strong> ${resultadoScore}</p>
+                            <p><strong>गिरने का जोखिम:</strong> ${risco}</p>
+                            <p><strong>कार्यवाही:</strong> ${conduta}</p>
+                        </div>
+                        <div style="margin-top: 30px; font-size: 12px; color: #666;">
+                            <p>नर्सिंग कैलकुलेटर द्वारा उत्पन्न - calculadorasdeenfermagem.com.br</p>
+                        </div>
+                    </div>
+                `;
+
+                const opt = {
+                    margin: 10,
+                    filename: `morse-fall-scale-${date}.pdf`,
+                    image: { type: 'jpeg', quality: 0.98 },
+                    html2canvas: { scale: 2 },
+                    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+                };
+
+                html2pdf().set(opt).from(content).save();
+            }
+
+            function buscarNandaNicNoc() {
+                const resultadoScore = resultadoDiv.dataset.score;
+                let risco = resultadoDiv.dataset.risco;
+                let nandaDiagnostico = '';
+                let nicIntervencoes = '';
+                let nocResultados = '';
+
+                if (resultadoScore >= 45) {
+                    nandaDiagnostico = 'गिरने का उच्च जोखिम';
+                    nicIntervencoes = 'गिरने की रोकथाम, पर्यावरण प्रबंधन, रोगी शिक्षा, निगरानी';
+                    nocResultados = 'गिरने की रोकथाम, सुरक्षा व्यवहार';
+                } else if (resultadoScore >= 25) {
+                    nandaDiagnostico = 'गिरने का जोखिम';
+                    nicIntervencoes = 'गिरने की रोकथाम, रोगी शिक्षा, चलने में सहायता';
+                    nocResultados = 'गिरने की रोकथाम, सुरक्षा व्यवहार';
+                } else {
+                    nandaDiagnostico = 'गिरने का जोखिम';
+                    nicIntervencoes = 'सुरक्षा निगरानी, रोगी शिक्षा';
+                    nocResultados = 'सुरक्षा व्यवहार, जोखिम पहचान';
+                }
+
+                const modalContent = `
+                    <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                        <div class="bg-white rounded-lg p-6 max-w-2xl w-full mx-4 max-h-[80vh] overflow-y-auto">
+                            <div class="flex justify-between items-center mb-4">
+                                <h3 class="text-xl font-bold text-dark-blue">NANDA-I / NIC / NOC</h3>
+                                <button id="closeNandaModal" class="text-gray-500 hover:text-gray-700">
+                                    <i class="fas fa-times text-2xl"></i>
+                                </button>
+                            </div>
+                            <div class="space-y-4">
+                                <div>
+                                    <h4 class="font-semibold text-light-blue">NANDA-I निदान:</h4>
+                                    <p>${nandaDiagnostico}</p>
+                                </div>
+                                <div>
+                                    <h4 class="font-semibold text-light-blue">NIC हस्तक्षेप:</h4>
+                                    <p>${nicIntervencoes}</p>
+                                </div>
+                                <div>
+                                    <h4 class="font-semibold text-light-blue">NOC परिणाम:</h4>
+                                    <p>${nocResultados}</p>
+                                </div>
+                            </div>
+                            <div class="mt-6 text-right">
+                                <button id="closeNandaModalBtn" class="btn-primary">बंद करें</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                const existingModal = document.getElementById('nandaNicNocModal');
+                if (existingModal) {
+                    existingModal.remove();
+                }
+
+                const modalDiv = document.createElement('div');
+                modalDiv.id = 'nandaNicNocModal';
+                modalDiv.innerHTML = modalContent;
+                document.body.appendChild(modalDiv);
+
+                const closeModal = () => {
+                    modalDiv.remove();
+                };
+
+                document.getElementById('closeNandaModal').addEventListener('click', closeModal);
+                document.getElementById('closeNandaModalBtn').addEventListener('click', closeModal);
+                modalDiv.addEventListener('click', (e) => {
+                    if (e.target === modalDiv) {
+                        closeModal();
+                    }
+                });
+            }
+        });
+    </script>
 
 
 

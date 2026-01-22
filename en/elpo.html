@@ -738,7 +738,220 @@
   </script>
 
   <!-- ELPO Scale Specific Script -->
-  
+  <script defer="">
+    document.addEventListener("DOMContentLoaded", function () {
+      const resultadoDiv = document.getElementById("resultado");
+      const conteudoDiv = document.getElementById("conteudo");
+      const btnCalcular = document.getElementById("btnCalcular");
+      const btnLimpar = document.getElementById("btnLimpar");
+      const btnGerarPDF = document.getElementById("btnGerarPDF");
+      const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
+
+      const elpoData = [
+        {
+          id: "item1",
+          title: "1. Surgical Position",
+          options: [
+            { value: "5", text: "5 - Highest risk" },
+            { value: "4", text: "4" },
+            { value: "3", text: "3" },
+            { value: "2", text: "2" },
+            { value: "1", text: "1 - Lowest risk" },
+          ],
+        },
+        {
+          id: "item2",
+          title: "2. Surgery Duration",
+          options: [
+            { value: "5", text: "5 - ≥ 5h" },
+            { value: "4", text: "4 - 4 to 4h59" },
+            { value: "3", text: "3 - 3 to 3h59" },
+            { value: "2", text: "2 - 2 to 2h59" },
+            { value: "1", text: "1 - ≤ 1h59" },
+          ],
+        },
+        {
+          id: "item3",
+          title: "3. Type of Anesthesia",
+          options: [
+            { value: "5", text: "5 - General + block" },
+            { value: "4", text: "4 - General" },
+            { value: "3", text: "3 - Spinal" },
+            { value: "2", text: "2 - Epidural" },
+            { value: "1", text: "1 - Local" },
+          ],
+        },
+        {
+          id: "item4",
+          title: "4. Support Type",
+          options: [
+            { value: "5", text: "5 - None" },
+            { value: "4", text: "4 - Minimal" },
+            { value: "3", text: "3 - Partial" },
+            { value: "2", text: "2 - Complete rigid" },
+            { value: "1", text: "1 - Complete anatomical" },
+          ],
+        },
+        {
+          id: "item5",
+          title: "5. Skin Condition",
+          options: [
+            { value: "5", text: "5 - Very thin, fragile" },
+            { value: "4", text: "4 - Thin" },
+            { value: "3", text: "3 - Normal" },
+            { value: "2", text: "2 - Thick" },
+            { value: "1", text: "1 - Intact and resistant" },
+          ],
+        },
+        {
+          id: "item6",
+          title: "6. Comorbidities",
+          options: [
+            { value: "5", text: "5 - Multiple" },
+            { value: "4", text: "4 - 3 or more" },
+            { value: "3", text: "3 - 2" },
+            { value: "2", text: "2 - 1" },
+            { value: "1", text: "1 - None" },
+          ],
+        },
+        {
+          id: "item7",
+          title: "7. Nutritional Status",
+          options: [
+            { value: "5", text: "5 - Severe malnutrition" },
+            { value: "4", text: "4 - Malnourished" },
+            { value: "3", text: "3 - Mild malnutrition" },
+            { value: "2", text: "2 - Normal" },
+            { value: "1", text: "1 - Well nourished" },
+          ],
+        },
+      ];
+
+      function createForm() {
+        elpoData.forEach((item) => {
+          const section = document.createElement("div");
+          section.className = "criterion-section";
+
+          const title = document.createElement("h3");
+          title.className = "criterion-title";
+          title.textContent = item.title;
+          section.appendChild(title);
+
+          const select = document.createElement("select");
+          select.id = item.id;
+          select.className = "criterion-select";
+          select.innerHTML =
+            `<option value="">Select an option</option>` +
+            item.options
+              .map(
+                (opt) => `<option value="${opt.value}">${opt.text}</option>`,
+              )
+              .join("");
+          section.appendChild(select);
+          conteudoDiv.appendChild(section);
+        });
+      }
+
+      function calcular() {
+        let total = 0;
+        let allSelected = true;
+
+        elpoData.forEach((item) => {
+          const select = document.getElementById(item.id);
+          if (select.value === "") {
+            allSelected = false;
+          }
+          total += parseInt(select.value || 0);
+        });
+
+        if (!allSelected) {
+          resultadoDiv.innerHTML =
+            '<div class="bg-yellow-50 border border-yellow-200 p-4 rounded-lg"><p class="text-yellow-800"><strong>Please select an option for all items.</strong></p></div>';
+          resultadoDiv.className = "resultado bg-info-orange-light";
+          resultadoDiv.style.display = "block";
+          delete resultadoDiv.dataset.score;
+          return;
+        }
+
+        let classificacao = "";
+        let resultadoClasse = "";
+
+        if (total >= 20) {
+          classificacao = "High risk for pressure injury";
+          resultadoClasse = "bg-elpo-risco";
+        } else {
+          classificacao = "Low risk for pressure injury";
+          resultadoClasse = "bg-elpo-sem-risco";
+        }
+
+        resultadoDiv.innerHTML = `
+                <div class="space-y-4">
+                  <p class="text-lg"><strong>Total Score:</strong> <span class="text-2xl font-bold text-blue-600">${total}</span></p>
+                  <p class="text-lg"><strong>Classification:</strong> <span class="text-xl font-semibold">${classificacao}</span></p>
+                  <div class="mt-4 p-4 bg-blue-50 rounded-lg">
+                    <p class="text-sm text-blue-800"><strong>Clinical Recommendation:</strong>
+                    ${total >= 20 ? 'Implement comprehensive pressure injury prevention measures including frequent position changes, pressure-redistribution surfaces, and enhanced skin monitoring.' : 'Maintain standard pressure injury prevention protocols with regular monitoring.'}
+                    </p>
+                  </div>
+                </div>
+            `;
+        resultadoDiv.className = `resultado ${resultadoClasse}`;
+        resultadoDiv.style.display = "block";
+        resultadoDiv.dataset.score = `${total} (${classificacao})`;
+        resultadoDiv.dataset.scaleName = "ELPO Scale";
+
+        // Scroll to result
+        resultadoDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }
+
+      function limpar() {
+        document
+          .querySelectorAll(".criterion-select")
+          .forEach((select) => (select.selectedIndex = 0));
+        resultadoDiv.innerHTML = "";
+        resultadoDiv.className = "resultado hidden";
+        delete resultadoDiv.dataset.score;
+        delete resultadoDiv.dataset.scaleName;
+      }
+
+      createForm();
+      btnCalcular?.addEventListener("click", calcular);
+      btnLimpar?.addEventListener("click", limpar);
+
+      btnGerarPDF?.addEventListener("click", () => {
+        if (!resultadoDiv.dataset.score) {
+          alert('Please click "Calculate" first to generate the PDF.');
+          return;
+        }
+        if (typeof gerarPDFGlobal === "function") {
+          gerarPDFGlobal({
+            titulo: "ELPO Scale Assessment",
+            subtitulo: "Pressure Injury Risk Report for Operating Room",
+            nomeArquivo: "elpo_scale_assessment_report.pdf",
+            seletorConteudo: ".main-content-wrapper",
+          });
+        } else {
+          console.error("generatePDFGlobal function not defined.");
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener("click", () => {
+        const score = resultadoDiv.dataset.score;
+        const scaleName = resultadoDiv.dataset.scaleName;
+        if (!score) {
+          alert("Calculate the result to research the intervention.");
+          return;
+        }
+        const searchQuery = encodeURIComponent(
+          `${score} ${scaleName} generate NANDA taxonomy generate NIC taxonomy generate NOC taxonomy pressure injury nursing interventions`,
+        );
+        window.open(
+          `https://www.google.com/search?q=${searchQuery}`,
+          "_blank",
+        );
+      });
+    });
+  </script>
 
   <script src="/lang-selector.js" defer=""></script>
 

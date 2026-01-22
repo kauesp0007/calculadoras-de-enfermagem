@@ -618,7 +618,158 @@
 
 
 
-    
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const resultadoDiv = document.getElementById('resultado');
+            const conteudoDiv = document.getElementById('conteudo');
+            const btnCalcular = document.getElementById('btnCalcular');
+            const btnLimpar = document.getElementById('btnLimpar');
+            const btnGerarPDF = document.getElementById('btnGerarPDF');
+            const btnNandaNicNoc = document.getElementById('btnNandaNicNoc');
+
+            const bradenData = [
+                { id: "sensorial", title: "Сенсорное восприятие", description: "Способность реагировать на дискомфорт, связанный с давлением.", options: [{ score: 1, text: "Полностью ограничен" }, { score: 2, text: "Сильно ограничен" }, { score: 3, text: "Слегка ограничен" }, { score: 4, text: "Нет ограничений" }] },
+                { id: "umidade", title: "Влажность", description: "Степень воздействия влаги на кожу.", options: [{ score: 1, text: "Постоянно влажная" }, { score: 2, text: "Очень влажная" }, { score: 3, text: "Иногда влажная" }, { score: 4, text: "Редко влажная" }] },
+                { id: "atividade", title: "Активность", description: "Степень физической активности пациента.", options: [{ score: 1, text: "Прикован к постели" }, { score: 2, text: "Прикован к креслу" }, { score: 3, text: "Ходит иногда" }, { score: 4, text: "Ходит часто" }] },
+                { id: "mobilidade", title: "Подвижность", description: "Способность изменять и контролировать положение тела.", options: [{ score: 1, text: "Полностью неподвижен" }, { score: 2, text: "Сильно ограничен" }, { score: 3, text: "Слегка ограничен" }, { score: 4, text: "Нет ограничений" }] },
+                { id: "nutricao", title: "Питание", description: "Обычный режим питания.", options: [{ score: 1, text: "Очень плохое" }, { score: 2, text: "Вероятно неадекватное" }, { score: 3, text: "Адекватное" }, { score: 4, text: "Отличное" }] },
+                { id: "friccao", title: "Трение и Сдвиг", description: "Наличие потертостей и движений.", options: [{ score: 1, text: "Проблема" }, { score: 2, text: "Потенциальная проблема" }, { score: 3, text: "Нет проблем" }] }
+            ];
+
+            function createForm() {
+                conteudoDiv.innerHTML = '';
+                bradenData.forEach(criterion => {
+                    const card = document.createElement('div');
+                    card.className = 'braden-criterion-card';
+
+                    card.innerHTML = `
+                    <div class="braden-criterion-title-container">
+                        <h3 class="braden-criterion-title">${criterion.title}</h3>
+                        <p class="braden-criterion-description">${criterion.description}</p>
+                    </div>
+                    <div class="braden-options-container">
+                        <select id="${criterion.id}-select" class="braden-select">
+                            <option value="" disabled selected>Выберите опцию...</option>
+                            ${criterion.options.map(opt => `<option value="${opt.score}">${opt.text} (${opt.score})</option>`).join('')}
+                        </select>
+                    </div>
+                `;
+                    conteudoDiv.appendChild(card);
+                });
+            }
+
+            function calcular() {
+                let totalScore = 0;
+                let allSelected = true;
+
+                bradenData.forEach(criterion => {
+                    const select = document.getElementById(`${criterion.id}-select`);
+                    if (select && select.value) {
+                        totalScore += parseInt(select.value, 10);
+                    } else {
+                        allSelected = false;
+                    }
+                });
+
+                if (!allSelected) {
+                    resultadoDiv.innerHTML = '⚠️ <strong class="font-bold">Пожалуйста, выберите опцию для каждого критерия.</strong>';
+                    resultadoDiv.className = 'standard-result-box bg-info-orange-light';
+                    resultadoDiv.style.display = 'block';
+                    delete resultadoDiv.dataset.score;
+                    return;
+                }
+
+                let risco = "";
+                if (totalScore >= 19) { risco = "Нет риска"; }
+                else if (totalScore >= 15) { risco = "Небольшой риск"; }
+                else if (totalScore >= 13) { risco = "Умеренный риск"; }
+                else if (totalScore >= 10) { risco = "Высокий риск"; }
+                else { risco = "Очень высокий риск"; }
+
+                resultadoDiv.innerHTML = `
+                <p class="font-bold text-lg">Общий балл: <span class="font-black">${totalScore}</span></p>
+                <p class="font-bold text-lg">Классификация риска: <span class="font-black">${risco}</span></p>
+            `;
+                resultadoDiv.className = 'standard-result-box';
+                resultadoDiv.style.display = 'block';
+                resultadoDiv.dataset.score = totalScore;
+                resultadoDiv.dataset.risco = risco;
+            }
+
+            function limpar() {
+                createForm();
+                resultadoDiv.innerHTML = '';
+                resultadoDiv.className = 'hidden';
+                delete resultadoDiv.dataset.score;
+                delete resultadoDiv.dataset.risco;
+            }
+
+            createForm();
+            btnCalcular?.addEventListener('click', calcular);
+            btnLimpar?.addEventListener('click', limpar);
+
+            btnGerarPDF?.addEventListener('click', () => {
+                if (resultadoDiv.dataset.score === undefined) {
+                    alert('Пожалуйста, сначала нажмите "Рассчитать" для создания PDF.');
+                    return;
+                }
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF();
+                const primaryColor = '#1A3E74';
+                let y = 10;
+                const pageMargin = 14;
+                const rightMargin = doc.internal.pageSize.getWidth() - pageMargin;
+
+                doc.setDrawColor(primaryColor);
+                doc.setLineWidth(0.5);
+                doc.rect(5, 5, 200, 287);
+                doc.setFillColor(primaryColor);
+                doc.rect(5, 5, 200, 25, 'F');
+                doc.setFont('helvetica', 'bold');
+                doc.setFontSize(18);
+                doc.setTextColor(255, 255, 255);
+                doc.text('Шкала Брэден', 105, 18, { align: 'center' });
+                doc.setFontSize(12);
+                doc.text('Отчет о риске пролежней', 105, 25, { align: 'center' });
+
+                y = 45;
+                doc.setFont('helvetica', 'bold');
+                doc.setFontSize(12);
+                doc.setTextColor(primaryColor);
+                doc.text('Результат шкалы Брэден', pageMargin, y);
+                doc.setDrawColor(200);
+                doc.setLineWidth(0.2);
+                doc.line(pageMargin, y + 2, rightMargin, y + 2);
+                y += 10;
+                doc.setFont('helvetica', 'normal');
+                doc.setFontSize(10);
+                doc.setTextColor(0, 0, 0);
+                doc.text(`Общий балл: ${resultadoDiv.dataset.score}`, pageMargin, y);
+                doc.text(`Классификация риска: ${resultadoDiv.dataset.risco}`, rightMargin, y, { align: 'right' });
+
+                doc.setLineWidth(0.5);
+                doc.setDrawColor(primaryColor);
+                doc.line(5, 272, 205, 272);
+                doc.setFont('helvetica', 'normal');
+                doc.setFontSize(8);
+                doc.setTextColor(150);
+                doc.text(`Создано на Медицинском Портале ${new Date().toLocaleString('ru')}.`, 105, 278, { align: 'center' });
+                doc.text(`Этот калькулятор является источником поддержки и не заменяет клиническое суждение. Проверьте данные из внешних источников.`, 105, 282, { align: 'center' });
+
+                doc.save('отчет_шкала_брэден.pdf');
+            });
+
+            btnNandaNicNoc?.addEventListener('click', () => {
+                const risco = resultadoDiv.dataset.risco;
+                if (!risco) {
+                    alert('Рассчитайте результат для поиска тактики лечения.');
+                    return;
+                }
+                const searchQuery = encodeURIComponent(`Пациент с ${risco} риском пролежней по шкале Брэден таксономия NANDA NIC NOC`);
+                window.open(`https://www.google.com/search?q=${searchQuery}`, '_blank');
+            });
+        });
+    </script>
 
 
 

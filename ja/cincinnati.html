@@ -598,7 +598,96 @@
 
 
     <!-- Script Específico da Página Cincinnati -->
-    
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const resultadoDiv = document.getElementById('resultado');
+            const btnCalcular = document.getElementById('btnCalcular');
+            const btnLimpar = document.getElementById('btnLimpar');
+            const btnGerarPDF = document.getElementById('btnGerarPDF');
+            const btnNandaNicNoc = document.getElementById('btnNandaNicNoc');
+            const cincinnatiTable = document.getElementById('cincinnatiTable');
+
+            cincinnatiTable?.addEventListener('click', function (e) {
+                if (e.target.tagName === 'TD' && e.target.hasAttribute('data-value')) {
+                    const row = e.target.parentElement;
+                    [...row.children].forEach(td => td.classList.remove('selected'));
+                    e.target.classList.add('selected');
+                }
+            });
+
+            function calcular() {
+                const rows = cincinnatiTable.querySelectorAll("tbody tr");
+                let positivo = false;
+                let incompleto = false;
+
+                rows.forEach(row => {
+                    const selectedCell = row.querySelector(".selected");
+                    if (!selectedCell) {
+                        incompleto = true;
+                    } else if (selectedCell.dataset.value === "1") {
+                        positivo = true;
+                    }
+                });
+
+                if (incompleto) {
+                    resultadoDiv.innerHTML = '⚠️ <strong class="font-bold">すべての基準でオプションを選択してください。</strong>';
+                    resultadoDiv.className = 'resultado bg-info-orange-light';
+                    resultadoDiv.style.display = 'block';
+                    delete resultadoDiv.dataset.score;
+                    return;
+                }
+
+                const resultadoTexto = positivo ? "脳卒中疑い陽性" : "脳卒中疑い陰性";
+                const resultadoClasse = positivo ? 'bg-cincinnati-positivo' : 'bg-cincinnati-negativo';
+
+                resultadoDiv.innerHTML = `<p>結果: <strong class="font-bold">${resultadoTexto}</strong></p>`;
+                resultadoDiv.className = `resultado ${resultadoClasse}`;
+                resultadoDiv.style.display = 'block';
+
+                resultadoDiv.dataset.score = resultadoTexto;
+                resultadoDiv.dataset.scaleName = "シンシナティスケール";
+            }
+
+            function limpar() {
+                cincinnatiTable.querySelectorAll("td.selected").forEach(cell => cell.classList.remove("selected"));
+                resultadoDiv.innerHTML = '';
+                resultadoDiv.className = 'resultado hidden';
+                delete resultadoDiv.dataset.score;
+                delete resultadoDiv.dataset.scaleName;
+            }
+
+            btnCalcular?.addEventListener('click', calcular);
+            btnLimpar?.addEventListener('click', limpar);
+
+            btnGerarPDF?.addEventListener('click', () => {
+                if (!resultadoDiv.dataset.score) {
+                    alert('PDFを生成するには、まず「計算」をクリックしてください。');
+                    return;
+                }
+                if (typeof gerarPDFGlobal === 'function') {
+                    gerarPDFGlobal({
+                        titulo: 'シンシナティスケール',
+                        subtitulo: '脳卒中迅速評価レポート',
+                        nomeArquivo: 'シンシナティスケール_評価レポート.pdf',
+                        seletorConteudo: '.main-content-wrapper'
+                    });
+                } else {
+                    console.error('gerarPDFGlobal関数が定義されていません。');
+                }
+            });
+
+            btnNandaNicNoc?.addEventListener('click', () => {
+                const score = resultadoDiv.dataset.score;
+                const scaleName = resultadoDiv.dataset.scaleName;
+                if (!score) {
+                    alert('対策を検索するには結果を計算してください。');
+                    return;
+                }
+                const searchQuery = encodeURIComponent(`${score} ${scaleName} NANDA分類生成 NIC分類生成 NOC分類生成`);
+                window.open(`https://www.google.com/search?q=${searchQuery}`, '_blank');
+            });
+        });
+    </script>
 
 
 

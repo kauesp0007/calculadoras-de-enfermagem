@@ -585,7 +585,295 @@
 
 
 
-  
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const resultadoDiv = document.getElementById("resultado");
+      const btnCalcular = document.getElementById("btnCalcular");
+      const btnLimpar = document.getElementById("btnLimpar");
+      const btnGerarPDF = document.getElementById("btnGerarPDF");
+      const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
+      const conteudoDiv = document.getElementById("conteudo");
+      const introParagraph = document.getElementById("intro-paragraph");
+      const referenceSection = document.getElementById("reference-section");
+
+      const lawtonData = [
+        {
+          category: "Penggunaan telepon",
+          nameAttr: "telefone",
+          options: [
+            {
+              description: "Mengoperasikan telepon atas inisiatif sendiri",
+              score: 1,
+            },
+            {
+              description: "Menelepon beberapa nomor yang familiar",
+              score: 1,
+            },
+            {
+              description: "Menjawab telepon, tetapi tidak menelepon",
+              score: 1,
+            },
+            {
+              description: "Tidak menggunakan telepon sama sekali",
+              score: 0,
+            },
+          ],
+        },
+        {
+          category: "Berbelanja",
+          nameAttr: "compras",
+          options: [
+            {
+              description:
+                "Melakukan semua belanja yang diperlukan secara mandiri",
+              score: 1,
+            },
+            {
+              description: "Melakukan belanja kecil secara mandiri",
+              score: 0,
+            },
+            { description: "Perlu ditemani untuk berbelanja", score: 0 },
+            { description: "Tidak mampu berbelanja", score: 0 },
+          ],
+        },
+        {
+          category: "Persiapan makanan",
+          nameAttr: "refeicoes",
+          options: [
+            {
+              description:
+                "Merencanakan, menyiapkan dan menyajikan makanan lengkap",
+              score: 1,
+            },
+            {
+              description: "Menyiapkan makanan jika bahan disediakan",
+              score: 0,
+            },
+            { description: "Hanya menyiapkan makanan ringan", score: 0 },
+            { description: "Tidak mampu menyiapkan makanan", score: 0 },
+          ],
+        },
+        {
+          category: "Perawatan rumah",
+          nameAttr: "cuidado_casa",
+          options: [
+            {
+              description:
+                "Memelihara rumah sendiri atau dengan bantuan sesekali",
+              score: 1,
+            },
+            { description: "Hanya melakukan tugas ringan", score: 1 },
+            {
+              description:
+                "Tidak berpartisipasi aktif dalam pekerjaan rumah tangga",
+              score: 0,
+            },
+            {
+              description: "Memerlukan bantuan total untuk perawatan rumah",
+              score: 0,
+            },
+          ],
+        },
+        {
+          category: "Pencucian pakaian",
+          nameAttr: "lavagem_roupa",
+          options: [
+            {
+              description: "Mencuci pakaian sendiri secara mandiri",
+              score: 1,
+            },
+            { description: "Hanya mencuci pakaian kecil", score: 1 },
+            {
+              description: "Perlu orang lain untuk mencuci pakaian",
+              score: 0,
+            },
+          ],
+        },
+        {
+          category: "Mobilitas/Penggunaan transportasi",
+          nameAttr: "locomocao",
+          options: [
+            {
+              description:
+                "Bepergian secara mandiri dengan transportasi umum atau mengemudikan mobil sendiri",
+              score: 1,
+            },
+            {
+              description:
+                "Menggunakan taksi atau transportasi umum dengan bantuan orang lain",
+              score: 1,
+            },
+            {
+              description:
+                "Hanya bepergian dengan mobil pribadi dengan bantuan orang lain",
+              score: 1,
+            },
+            { description: "Tidak mampu bepergian", score: 0 },
+          ],
+        },
+        {
+          category: "Obat-obatan",
+          nameAttr: "medicao",
+          options: [
+            {
+              description: "Bertanggung jawab atas pengobatannya sendiri",
+              score: 1,
+            },
+            {
+              description: "Hanya minum obat ketika disiapkan untuknya",
+              score: 0,
+            },
+            { description: "Tidak mampu minum obat", score: 0 },
+          ],
+        },
+        {
+          category: "Keuangan/Pengelolaan uang",
+          nameAttr: "financas",
+          options: [
+            {
+              description:
+                "Mengelola keuangan secara mandiri (bank, tagihan, dll.)",
+              score: 1,
+            },
+            {
+              description:
+                "Mengelola pembelian kecil, tetapi memerlukan bantuan dengan bank",
+              score: 1,
+            },
+            { description: "Tidak mampu mengelola uang", score: 0 },
+          ],
+        },
+      ];
+
+      // Isi formulir secara dinamis
+      lawtonData.forEach((item) => {
+        const sectionDiv = document.createElement("div");
+        sectionDiv.className = "lawton-criterion-section";
+        sectionDiv.id = `section-${item.nameAttr}`;
+
+        const titleH3 = document.createElement("h3");
+        titleH3.className = "lawton-criterion-title";
+        titleH3.innerHTML = item.category;
+        sectionDiv.appendChild(titleH3);
+
+        const selectElement = document.createElement("select");
+        selectElement.id = item.nameAttr;
+        selectElement.className = "lawton-criterion-select";
+
+        const defaultOption = document.createElement("option");
+        defaultOption.value = "";
+        defaultOption.text = "Pilih...";
+        selectElement.appendChild(defaultOption);
+
+        item.options.forEach((option) => {
+          const optionElement = document.createElement("option");
+          optionElement.value = option.score;
+          optionElement.text = `${option.description} (poin: ${option.score})`;
+          selectElement.appendChild(optionElement);
+        });
+
+        sectionDiv.appendChild(selectElement);
+        conteudoDiv.appendChild(sectionDiv);
+      });
+
+      function calcularLawton() {
+        const selects = document.querySelectorAll("#conteudo select");
+        let allSelected = true;
+        let total = 0;
+
+        selects.forEach((select) => {
+          if (select.value === "") {
+            allSelected = false;
+            select.classList.add("incomplete");
+          } else {
+            select.classList.remove("incomplete");
+            total += Number(select.value);
+          }
+        });
+
+        resultadoDiv.style.display = "block";
+        if (!allSelected) {
+          resultadoDiv.innerHTML =
+            '⚠️ <strong class="font-bold">Silakan pilih opsi untuk semua item sebelum menghitung.</strong>';
+          resultadoDiv.classList.add("bg-red-100");
+          delete resultadoDiv.dataset.score;
+          return;
+        }
+
+        let recomendacao = "";
+        let resultadoClasse = "bg-blue-50";
+
+        if (total < 8) {
+          recomendacao =
+            "Skor menunjukkan tingkat ketergantungan untuk melakukan aktivitas hidup sehari-hari instrumental (IADL). Penilaian lebih mendalam direkomendasikan untuk menentukan kebutuhan bantuan.";
+        } else {
+          recomendacao =
+            "Skor menunjukkan tingkat kemandirian untuk melakukan sebagian besar aktivitas hidup sehari-hari instrumental (IADL).";
+        }
+
+        resultadoDiv.innerHTML = `
+                <p>Skor total: <strong class="font-bold">${total}</strong></p>
+                <p class="mt-4"><strong>Rekomendasi:</strong> ${recomendacao}</p>
+            `;
+        resultadoDiv.className = `resultado ${resultadoClasse}`;
+        resultadoDiv.style.display = "block";
+
+        resultadoDiv.dataset.score = total;
+        resultadoDiv.dataset.scaleName = "Skala Lawton";
+      }
+
+      function limparCampos() {
+        const selects = document.querySelectorAll("#conteudo select");
+        selects.forEach((select) => {
+          select.selectedIndex = 0;
+          select.classList.remove("incomplete");
+        });
+        resultadoDiv.innerHTML = "";
+        resultadoDiv.className = "resultado hidden";
+        delete resultadoDiv.dataset.score;
+        delete resultadoDiv.dataset.scaleName;
+      }
+
+      // Tambahkan event listener ke tombol
+      btnCalcular?.addEventListener("click", calcularLawton);
+      btnLimpar?.addEventListener("click", limparCampos);
+
+      btnGerarPDF?.addEventListener("click", () => {
+        if (!resultadoDiv.dataset.score) {
+          alert(
+            'Silakan klik "Hitung Skor" terlebih dahulu untuk membuat PDF.',
+          );
+          return;
+        }
+        if (typeof gerarPDFGlobal === "function") {
+          gerarPDFGlobal({
+            titulo: "Skala Lawton",
+            subtitulo: "Laporan Penilaian IADL",
+            nomeArquivo: "laporan_skala_lawton.pdf",
+            seletorConteudo: ".main-content-wrapper",
+          });
+        } else {
+          console.error("Fungsi gerarPDFGlobal tidak terdefinisi.");
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener("click", () => {
+        const score = resultadoDiv.dataset.score;
+        const scaleName = resultadoDiv.dataset.scaleName;
+        if (!score) {
+          alert("Hitung hasil untuk mencari tindakan.");
+          return;
+        }
+        const searchQuery = encodeURIComponent(
+          `nursing care for elderly independence ${scaleName} score ${score} NANDA NIC NOC`,
+        );
+        window.open(
+          `https://www.google.com/search?q=${searchQuery}`,
+          "_blank",
+        );
+      });
+    });
+  </script>
 
   <script src="/lang-selector.js" defer=""></script>
 

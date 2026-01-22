@@ -560,7 +560,396 @@
 
 
 
-  
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const resultadoDiv = document.getElementById("resultado");
+      const btnCalcular = document.getElementById("btnCalcular");
+      const btnLimpar = document.getElementById("btnLimpar");
+      const btnGerarPDF = document.getElementById("btnGerarPDF");
+      const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
+      const conteudoDiv = document.getElementById("conteudo");
+
+      const ballardData = [
+        {
+          category: "Nöromüsküler Olgunluk",
+          items: [
+            {
+              title: "Postür (Duruş)",
+              nameAttr: "postura",
+              explain:
+                "Bebek istirahat halindeyken uzuvlarının fleksiyon derecesini değerlendirir. Daha olgun bebekler daha fleksiyonda bir duruş sergiler (uzuvlar fleksiyonda).",
+              options: [
+                { description: "Tam ekstansiyon", score: -1 },
+                { description: "Hafif / kısmi fleksiyon", score: 0 },
+                { description: "Orta derecede fleksiyon", score: 1 },
+                { description: "İyi fleksiyon", score: 2 },
+                { description: "Güçlü fleksiyon", score: 3 },
+                { description: "Tam fleksiyon (çok olgun)", score: 4 },
+              ],
+            },
+            {
+              title: "El Bileği Açısı (Kare Pencere)",
+              nameAttr: "square_window",
+              explain:
+                "El ön kola doğru büküldüğünde el bileğinin fleksiyonunu değerlendirir. Daha küçük bir açı (el ön kola daha yakın) daha fazla olgunluk gösterir.",
+              options: [
+                { description: "< 90°", score: -1 },
+                { description: " 90°", score: 0 },
+                { description: " 60°", score: 1 },
+                { description: " 45°", score: 2 },
+                { description: " 30°", score: 3 },
+                { description: "0° (çok yakın)", score: 4 },
+              ],
+            },
+            {
+              title: "Kol Geri Çekilmesi (Arm Recoil)",
+              nameAttr: "arm_recoil",
+              explain:
+                "Kol gerilip bırakıldıktan sonra geri dönüş hızını ve yoğunluğunu değerlendirir. Geri dönüş ne kadar hızlı ve güçlü olursa, nöromüsküler olgunluk o kadar fazladır.",
+              options: [
+                { description: "Geri dönüş yok", score: 0 },
+                { description: "Yavaş geri dönüş", score: 1 },
+                { description: "Kısmi geri dönüş", score: 2 },
+                { description: "Hızlı geri dönüş", score: 3 },
+                { description: "Tam ve güçlü geri dönüş", score: 4 },
+              ],
+            },
+            {
+              title: "Popliteal Açı",
+              nameAttr: "popliteo",
+              explain:
+                "Alt ekstremiteyi uzatırken direnç derecesini değerlendirir. Daha küçük açı (daha fazla fleksiyon) daha fazla olgunluk gösterir.",
+              options: [
+                { description: "180°", score: -1 },
+                { description: "160°", score: 0 },
+                { description: "140°", score: 1 },
+                { description: "120°", score: 2 },
+                { description: "100°", score: 3 },
+                { description: "90°", score: 4 },
+                { description: "< 90°", score: 5 },
+              ],
+            },
+            {
+              title: "Eşarp Belirtisi (Scarf Sign)",
+              nameAttr: "scarf",
+              explain:
+                "Bir kol göğüs üzerinden çaprazlama çekildiğinde, dirseğin vücudun orta hattını ne kadar geçtiği gözlemlenir. Çaprazlama ne kadar azsa, olgunluk o kadar fazladır.",
+              options: [
+                { description: "Dirsek orta hattı geçer", score: -1 },
+                { description: "Dirsek orta hatta", score: 0 },
+                { description: "Dirsek omuza yakın", score: 1 },
+                { description: "Dirsek omuza ulaşmaz", score: 2 },
+                { description: "Dirsek omuzdan çok uzak", score: 3 },
+              ],
+            },
+            {
+              title: "Topuktan Kulağa (Heel to Ear)",
+              nameAttr: "heel_to_ear",
+              explain:
+                "Topuk kulağa yaklaştırılırken direnç gözlemlenir. Daha fazla direnç = daha fazla olgunluk.",
+              options: [
+                { description: "Ayak kulağa kolayca ulaşır", score: -1 },
+                { description: "Ayak kulağa yakın", score: 0 },
+                { description: "Orta derecede direnç", score: 1 },
+                { description: "İyi direnç", score: 2 },
+                { description: "Ayak kulaktan uzak", score: 3 },
+                { description: "Güçlü direnç (çok olgun)", score: 4 },
+              ],
+            },
+          ],
+        },
+        {
+          category: "Fiziksel Olgunluk",
+          items: [
+            {
+              title: "Cilt",
+              nameAttr: "pele",
+              explain:
+                "Cildin dokusunu değerlendirir: prematürelerde ince ve yarı saydamdan, post-term bebeklerde kalın, kuru ve çatlaklara kadar.",
+              options: [
+                {
+                  description: "Yapışkan, yarı saydam (çok immatür)",
+                  score: -1,
+                },
+                { description: "Jelatinimsi / ince", score: 0 },
+                { description: "homojen ve damarlar görünür", score: 1 },
+                { description: "Daha kalın, az çatlak", score: 2 },
+                { description: "Kalın, çatlak", score: 3 },
+                {
+                  description: "Kalın, kuru, derin çatlaklı (post-term)",
+                  score: 4,
+                },
+              ],
+            },
+            {
+              title: "Lanugo",
+              nameAttr: "lanugo",
+              explain:
+                "Lanugo'nun (ince tüyler) varlığını ve dağılımını değerlendirir. Prematürelerde bol miktarda bulunur; daha olgun bebeklerde azalma ve kaybolma eğilimindedir.",
+              options: [
+                { description: "Yok (çok post-term)", score: -1 },
+                { description: "Az miktarda", score: 0 },
+                { description: "Bol miktarda", score: 1 },
+                { description: "İnce (prematüreliğe özgü)", score: 2 },
+                { description: "Tüysüz alanlar", score: 3 },
+                { description: "Neredeyse yok (çok immatür)", score: 4 },
+              ],
+            },
+            {
+              title: "Plantar Çizgiler (Ayak Tabanı)",
+              nameAttr: "plantares",
+              explain:
+                "Ayak tabanındaki çizgileri değerlendirir: prematürelerin az çizgisi vardır; olgun bebeklerin tüm tabanı kaplayan derin çizgileri vardır.",
+              options: [
+                { description: "Yok / çok yüzeysel", score: -1 },
+                { description: "Ön kısımda izler", score: 0 },
+                { description: "Tabanın yarısına kadar", score: 1 },
+                { description: "2/3'üne kadar", score: 2 },
+                { description: "Tüm tabanda çizgiler", score: 3 },
+                { description: "Derin ve belirgin çizgiler", score: 4 },
+              ],
+            },
+            {
+              title: "Memeler",
+              nameAttr: "mamas",
+              explain:
+                "Meme tomurcuğunun ve areolanın boyutu gözlemlenir. Daha olgun bebeklerde bez ve areola daha büyük ve daha belirgindir.",
+              options: [
+                { description: "Algılanamaz", score: -1 },
+                { description: "Az görünür", score: 0 },
+                { description: "Düz areola, küçük tomurcuk", score: 1 },
+                { description: "Kısmen kalkık areola 1–2 mm bez", score: 2 },
+                { description: "Kenarı kalkık areola 3–4 mm bez", score: 3 },
+                { description: "kenarı kalkık 5–10 mm bez", score: 4 },
+              ],
+            },
+            {
+              title: "Gözler ve Kulaklar",
+              nameAttr: "olhos_orelhas",
+              explain:
+                "Kulak kıkırdağının sıkılığını ve göz kapaklarının yapısını değerlendirir. Daha sıkı kulaklar ve iyi şekillenmiş pavilyon daha fazla olgunluk gösterir.",
+              options: [
+                {
+                  description: "Yumuşak kıkırdak / göz kapakları yapışık",
+                  score: -1,
+                },
+                { description: "Biraz sıkılık", score: 0 },
+                { description: "Orta derecede sıkılık", score: 1 },
+                { description: "İyi sıkılık", score: 2 },
+                { description: "Tam sıkılık", score: 3 },
+              ],
+            },
+            {
+              title: "Genital Bölge",
+              nameAttr: "genitalia",
+              explain:
+                "Genital gelişimi değerlendirir: erkeklerde testislerin pozisyonu ve skrotumun pürüzlülüğü / kızlarda klitorisin belirginliği ve labia'nın boyutu. Cinsel/neonatal olgunluğu gösterir.",
+              options: [
+                {
+                  description: "Erkek: testisler inmemiş; Kadın: labia düz",
+                  score: -1,
+                },
+                {
+                  description:
+                    "Erkek: kısmen inmiş; Kadın: küçük labia minora",
+                  score: 0,
+                },
+                {
+                  description:
+                    "Erkek: testisler torbada; Kadın: belirgin labia minora",
+                  score: 1,
+                },
+                {
+                  description:
+                    "Erkek: pürüzlü skrotum; Kadın: labia minora ve majora eşit derecede belirgin",
+                  score: 2,
+                },
+                { description: "Tamamen olgun genital bölge", score: 3 },
+              ],
+            },
+          ],
+        },
+      ];
+
+      // Formu dinamik olarak doldur
+      ballardData.forEach((section) => {
+        const sectionDiv = document.createElement("div");
+        sectionDiv.className = "ballard-criterion-section";
+
+        const titleH3 = document.createElement("h3");
+        titleH3.className = "ballard-criterion-title";
+        titleH3.innerText = section.category;
+        sectionDiv.appendChild(titleH3);
+
+        const groupDiv = document.createElement("div");
+        groupDiv.className = "ballard-criterion-group";
+
+        section.items.forEach((item) => {
+          const itemDiv = document.createElement("div");
+          itemDiv.id = `item-${item.nameAttr}`;
+          itemDiv.className = "ballard-criterion-item";
+
+          const itemTitle = document.createElement("h4");
+          itemTitle.className = "ballard-item-title";
+          itemTitle.innerText = item.title;
+          itemDiv.appendChild(itemTitle);
+
+          const itemExplain = document.createElement("p");
+          itemExplain.className = "ballard-item-explain";
+          itemExplain.innerText = item.explain;
+          itemDiv.appendChild(itemExplain);
+
+          item.options.forEach((option) => {
+            const optionDiv = document.createElement("div");
+            optionDiv.className = "ballard-criterion-option";
+
+            const radioInput = document.createElement("input");
+            radioInput.type = "radio";
+            radioInput.name = item.nameAttr;
+            radioInput.value = option.score;
+            radioInput.id = `${item.nameAttr}_${option.score}`;
+
+            const label = document.createElement("label");
+            label.htmlFor = radioInput.id;
+            label.innerText = `${option.description} (${option.score})`;
+
+            optionDiv.appendChild(radioInput);
+            optionDiv.appendChild(label);
+            itemDiv.appendChild(optionDiv);
+          });
+
+          groupDiv.appendChild(itemDiv);
+        });
+
+        sectionDiv.appendChild(groupDiv);
+        conteudoDiv.appendChild(sectionDiv);
+      });
+
+      // Hesaplama mantığı ve butonlar
+      const criteriaNames = ballardData.flatMap((s) =>
+        s.items.map((i) => i.nameAttr),
+      );
+
+      function calcularBallard() {
+        let allSelected = true;
+        let total = 0;
+        document
+          .querySelectorAll(".ballard-criterion-item")
+          .forEach((el) => el.classList.remove("incomplete"));
+
+        criteriaNames.forEach((name) => {
+          const selected = document.querySelector(
+            `input[name="${name}"]:checked`,
+          );
+          if (!selected) {
+            allSelected = false;
+            document
+              .getElementById(`item-${name}`)
+              .classList.add("incomplete");
+          } else {
+            total += Number(selected.value);
+          }
+        });
+
+        resultadoDiv.style.display = "block";
+        if (!allSelected) {
+          resultadoDiv.innerHTML =
+            '⚠️ <strong class="font-bold">Lütfen hesaplamadan önce vurgulanan tüm maddeler için bir seçenek belirleyin.</strong>';
+          resultadoDiv.classList.add("bg-red-100");
+          resultadoDiv.classList.remove("bg-blue-50");
+          delete resultadoDiv.dataset.score;
+          return;
+        }
+
+        const semanasFloat = 20 + total * 0.4;
+        const semanas = Math.floor(semanasFloat);
+        const dias = Math.round((semanasFloat - semanas) * 7);
+
+        let classificacao = "";
+        if (semanas < 37) classificacao = "Preterm";
+        else if (semanas >= 37 && semanas < 42) classificacao = "Term";
+        else classificacao = "Post-term";
+
+        let conduta = "";
+        if (classificacao === "Preterm") {
+          conduta =
+            "Termoregülasyon, glisemi ve solunum sıkıntısı belirtilerini izleyin. Gerektiğinde ventilatör desteği ve yenidoğan ünitesinde bakımı düşünün.";
+        } else if (classificacao === "Term") {
+          conduta =
+            "Rutin yenidoğan bakımı; emzirme ve yaşamsal belirtileri gözlemleyin. Yenidoğan tarama ihtiyaçlarını değerlendirin.";
+        } else {
+          conduta =
+            "Post-matürite belirtilerini (cilt, glisemi, termoregülasyon) değerlendirin, hipoksi riskini ve neonatal adaptasyonu gözlemleyin.";
+        }
+
+        resultadoDiv.innerHTML = `
+              <p>Toplam skor: <strong class="font-bold">${total}</strong></p>
+              <p>Tahmini gebelik yaşı: <strong class="font-bold">${semanas} hafta ve ${dias} gün</strong></p>
+              <p>Sınıflandırma: <strong class="font-bold">${classificacao}</strong></p>
+              <p class="mt-4"><strong>Önerilen yaklaşım:</strong> ${conduta}</p>
+            `;
+        resultadoDiv.className = `resultado bg-blue-50`;
+        resultadoDiv.style.display = "block";
+
+        resultadoDiv.dataset.score = total;
+        resultadoDiv.dataset.scaleName = "Ballard Skalası";
+        resultadoDiv.dataset.classificacao = classificacao;
+      }
+
+      function limparCampos() {
+        criteriaNames.forEach((name) => {
+          document
+            .querySelectorAll(`input[name="${name}"]`)
+            .forEach((input) => (input.checked = false));
+        });
+        resultadoDiv.innerHTML = "";
+        resultadoDiv.className = "resultado hidden";
+        delete resultadoDiv.dataset.score;
+        delete resultadoDiv.dataset.scaleName;
+        delete resultadoDiv.dataset.classificacao;
+        document
+          .querySelectorAll(".ballard-criterion-item")
+          .forEach((el) => el.classList.remove("incomplete"));
+      }
+
+      btnCalcular?.addEventListener("click", calcularBallard);
+      btnLimpar?.addEventListener("click", limparCampos);
+
+      btnGerarPDF?.addEventListener("click", () => {
+        if (!resultadoDiv.dataset.score) {
+          alert('Lütfen PDF oluşturmadan önce "Skoru Hesapla"ya tıklayın.');
+          return;
+        }
+        if (typeof gerarPDFGlobal === "function") {
+          gerarPDFGlobal({
+            titulo: "Ballard Skalası",
+            subtitulo: "Gebelik Yaşı Raporu",
+            nomeArquivo: "rapor_ballard_skalasi.pdf",
+            seletorConteudo: ".main-content-wrapper",
+          });
+        } else {
+          console.error("gerarPDFGlobal işlevi tanımlanmadı.");
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener("click", () => {
+        const score = resultadoDiv.dataset.score;
+        const scaleName = resultadoDiv.dataset.scaleName;
+        const classificacao = resultadoDiv.dataset.classificacao;
+        if (!score || !classificacao) {
+          alert("Yaklaşımı aramak için sonucu hesaplayın.");
+          return;
+        }
+        const searchQuery = encodeURIComponent(
+          `yenidoğan ${classificacao} Ballard hemşirelik bakımı NANDA NIC NOC`,
+        );
+        window.open(
+          `https://www.google.com/search?q=${searchQuery}`,
+          "_blank",
+        );
+      });
+    });
+  </script>
 
   <script src="/lang-selector.js" defer=""></script>
 

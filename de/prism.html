@@ -639,7 +639,236 @@
 
 
 
-    
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const resultadoDiv = document.getElementById('resultado');
+            const btnCalcular = document.getElementById('btnCalcular');
+            const btnLimpar = document.getElementById('btnLimpar');
+            const btnGerarPDF = document.getElementById('btnGerarPDF');
+            const btnNandaNicNoc = document.getElementById('btnNandaNicNoc');
+            const conteudoDiv = document.getElementById('conteudo');
+
+            const prismData = [
+                {
+                    domain: "Glasgow Coma Scale (GCS)",
+                    nameAttr: "gcs",
+                    options: [
+                        { text: "15", score: 0 },
+                        { text: "13-14", score: 1 },
+                        { text: "10-12", score: 2 },
+                        { text: "7-9", score: 3 },
+                        { text: "< 7", score: 4 }
+                    ]
+                },
+                {
+                    domain: "Herzfrequenz (HF - S/min)",
+                    nameAttr: "fc",
+                    options: [
+                        { text: "70-160", score: 0 },
+                        { text: "161-180 oder 60-69", score: 1 },
+                        { text: "181-200 oder 50-59", score: 2 },
+                        { text: "> 200 oder < 50", score: 4 }
+                    ]
+                },
+                {
+                    domain: "Systolischer Blutdruck (SBD - mmHg)",
+                    nameAttr: "pas",
+                    options: [
+                        { text: "80-110", score: 0 },
+                        { text: "111-120 oder 70-79", score: 1 },
+                        { text: "121-130 oder 60-69", score: 2 },
+                        { text: "> 130 oder < 60", score: 4 }
+                    ]
+                },
+                {
+                    domain: "Atemfrequenz (AF - Z/min)",
+                    nameAttr: "fr",
+                    options: [
+                        { text: "15-40", score: 0 },
+                        { text: "41-50 oder 10-14", score: 1 },
+                        { text: "51-60 oder 6-9", score: 2 },
+                        { text: "> 60 oder < 6", score: 4 }
+                    ]
+                },
+                {
+                    domain: "Temperatur (°C)",
+                    nameAttr: "temp",
+                    options: [
+                        { text: "36.0-37.5", score: 0 },
+                        { text: "37.6-38.0 oder 35.5-35.9", score: 1 },
+                        { text: "38.1-39.0 oder 34.0-35.4", score: 2 },
+                        { text: "> 39.0 oder < 34.0", score: 4 }
+                    ]
+                },
+                {
+                    domain: "Arterieller pH",
+                    nameAttr: "ph",
+                    options: [
+                        { text: "7.35-7.45", score: 0 },
+                        { text: "7.30-7.34 oder 7.46-7.50", score: 1 },
+                        { text: "7.20-7.29 oder 7.51-7.60", score: 2 },
+                        { text: "< 7.20 oder > 7.60", score: 4 }
+                    ]
+                },
+                {
+                    domain: "Glukose (mg/dL)",
+                    nameAttr: "glicose",
+                    options: [
+                        { text: "70-150", score: 0 },
+                        { text: "151-200 oder 50-69", score: 1 },
+                        { text: "201-300 oder 30-49", score: 2 },
+                        { text: "> 300 oder < 30", score: 4 }
+                    ]
+                }
+            ];
+
+            function updateScoreDisplay(criterionId) {
+                const selectElement = document.getElementById(criterionId);
+                const scoreDisplayElement = document.getElementById(`${criterionId}_score_display`);
+                if (selectElement && scoreDisplayElement) {
+                    scoreDisplayElement.innerText = selectElement.value === "" ? "0" : selectElement.value;
+                }
+            }
+
+            function berechnePunktzahl() {
+                let totalScore = 0;
+                let allItemsSelected = true;
+
+                prismData.forEach(item => {
+                    const selectElement = document.getElementById(item.nameAttr);
+                    if (selectElement.value === "") {
+                        allItemsSelected = false;
+                    } else {
+                        totalScore += parseInt(selectElement.value, 10);
+                    }
+                });
+
+                resultadoDiv.style.display = 'block';
+                if (!allItemsSelected) {
+                    resultadoDiv.innerHTML = '⚠️ <strong class="font-bold">Bitte wählen Sie für jeden Punkt eine Bewertung aus</strong>, bevor Sie berechnen.';
+                    resultadoDiv.className = 'resultado bg-info-orange-light';
+                    delete resultadoDiv.dataset.score;
+                    return;
+                }
+
+                let risikograd = '';
+                let ergebnisKlasse = '';
+
+                if (totalScore <= 5) {
+                    risikograd = 'Geringes Risiko für Organdysfunktion';
+                    ergebnisKlasse = 'bg-pelod-baixo';
+                } else if (totalScore <= 15) {
+                    risikograd = 'Mäßiges Risiko für Organdysfunktion';
+                    ergebnisKlasse = 'bg-pelod-moderado';
+                } else if (totalScore <= 25) {
+                    risikograd = 'Hohes Risiko für Organdysfunktion';
+                    ergebnisKlasse = 'bg-pelod-alto';
+                } else {
+                    risikograd = 'Sehr hohes Risiko für Organdysfunktion';
+                    ergebnisKlasse = 'bg-pelod-muito-alto';
+                }
+
+                resultadoDiv.innerHTML = `<p>PRISM-Gesamtpunktzahl: <strong class="font-bold">${totalScore}</strong></p><p>Risikograd: <strong class="font-bold">${risikograd}</strong></p>`;
+                resultadoDiv.className = `resultado ${ergebnisKlasse}`;
+
+                resultadoDiv.dataset.score = totalScore;
+                resultadoDiv.dataset.grauRisco = risikograd;
+                resultadoDiv.dataset.scaleName = "PRISM-Skala";
+            }
+
+            function felderLeeren() {
+                prismData.forEach(item => {
+                    const selectElement = document.getElementById(item.nameAttr);
+                    selectElement.selectedIndex = 0;
+                    document.getElementById(`${item.nameAttr}_score_display`).innerText = '0';
+                });
+                resultadoDiv.innerHTML = '';
+                resultadoDiv.className = 'resultado hidden';
+                delete resultadoDiv.dataset.score;
+                delete resultadoDiv.dataset.grauRisco;
+                delete resultadoDiv.dataset.scaleName;
+            }
+
+            prismData.forEach((item, index) => {
+                const sectionDiv = document.createElement('div');
+                sectionDiv.className = 'prism-criterion-card';
+
+                const headerDiv = document.createElement('div');
+                headerDiv.className = 'prism-criterion-header';
+
+                const titleH3 = document.createElement('h3');
+                titleH3.className = 'prism-criterion-title';
+                titleH3.innerText = item.domain;
+                headerDiv.appendChild(titleH3);
+
+                const scoreSpan = document.createElement('span');
+                scoreSpan.className = 'prism-score-display';
+                scoreSpan.id = `${item.nameAttr}_score_display`;
+                scoreSpan.innerText = '0';
+                headerDiv.appendChild(scoreSpan);
+
+                sectionDiv.appendChild(headerDiv);
+
+                const optionsDiv = document.createElement('div');
+                optionsDiv.className = 'prism-criterion-options';
+
+                const selectElement = document.createElement('select');
+                selectElement.id = item.nameAttr;
+                selectElement.className = 'prism-select';
+                selectElement.onchange = () => updateScoreDisplay(item.nameAttr);
+
+                const defaultOption = document.createElement('option');
+                defaultOption.value = "";
+                defaultOption.text = "Auswählen...";
+                defaultOption.disabled = true;
+                defaultOption.selected = true;
+                selectElement.appendChild(defaultOption);
+
+                item.options.forEach(option => {
+                    const optionElement = document.createElement('option');
+                    optionElement.value = option.score;
+                    optionElement.text = `${option.text} (${option.score})`;
+                    selectElement.appendChild(optionElement);
+                });
+
+                optionsDiv.appendChild(selectElement);
+                sectionDiv.appendChild(optionsDiv);
+                conteudoDiv.appendChild(sectionDiv);
+            });
+
+            btnCalcular?.addEventListener('click', berechnePunktzahl);
+            btnLimpar?.addEventListener('click', felderLeeren);
+
+            btnGerarPDF?.addEventListener('click', () => {
+                if (!resultadoDiv.dataset.score) {
+                    alert('Bitte klicken Sie zuerst auf "Berechnen", um das PDF zu generieren.');
+                    return;
+                }
+                if (typeof gerarPDFGlobal === 'function') {
+                    gerarPDFGlobal({
+                        titulo: 'PRISM-Skala',
+                        subtitulo: 'Bericht zur Bewertung des pädiatrischen Mortalitätsrisikos',
+                        nomeArquivo: 'bericht_prism_skala.pdf',
+                        seletorConteudo: '.main-content-wrapper'
+                    });
+                } else {
+                    console.error('Funktion gerarPDFGlobal nicht definiert.');
+                }
+            });
+
+            btnNandaNicNoc?.addEventListener('click', () => {
+                const score = resultadoDiv.dataset.score;
+                const scaleName = resultadoDiv.dataset.scaleName;
+                const grauRisco = resultadoDiv.dataset.grauRisco;
+                if (!score || !grauRisco) {
+                    alert('Berechnen Sie das Ergebnis, um nach der Vorgehensweise zu suchen.');
+                    return;
+                }
+                const searchQuery = encodeURIComponent(`${scaleName} Punktzahl ${score} Risiko ${grauRisco} Taxonomie NANDA, NIC und NOC generieren`);
+                window.open(`https://www.google.com/search?q=${searchQuery}`, '_blank');
+            });
+        });
+    </script>
 
 
 

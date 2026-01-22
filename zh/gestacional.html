@@ -680,7 +680,133 @@
 
 
   <!-- Script específico da página -->
-  
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const resultadoDiv = document.getElementById('resultado');
+      const btnCalcular = document.getElementById('btnCalcular');
+      const btnLimpar = document.getElementById('btnLimpar');
+      const btnGerarPDF = document.getElementById('btnGerarPDF');
+      const btnNandaNicNoc = document.getElementById('btnNandaNicNoc');
+
+      function calcularGestacional() {
+        const dumInput = document.getElementById('dum').value;
+        const resultadoDiv = document.getElementById('resultado');
+
+        resultadoDiv.className = 'resultado-quadro mt-6';
+        resultadoDiv.style.display = 'block';
+        btnGerarPDF.setAttribute('disabled', 'true');
+        btnNandaNicNoc.setAttribute('disabled', 'true');
+
+        if (!dumInput) {
+          resultadoDiv.innerHTML = '<p class="text-red-600">⚠️ <strong>请输入末次月经日期 (LMP)。</strong></p>';
+          resultadoDiv.classList.add('bg-danger-red');
+          resultadoDiv.classList.remove('bg-info-orange-light', 'bg-success-green');
+          delete resultadoDiv.dataset.idadeGestacional;
+          delete resultadoDiv.dataset.dpp;
+          return;
+        }
+
+        const dum = new Date(dumInput + 'T00:00:00');
+        const hoje = new Date();
+        hoje.setHours(0, 0, 0, 0);
+        dum.setHours(0, 0, 0, 0);
+
+        if (dum > hoje) {
+          resultadoDiv.innerHTML = '<p class="text-red-600">⚠️ <strong>末次月经日期 (LMP) 不能是未来日期。</strong></p>';
+          resultadoDiv.classList.add('bg-danger-red');
+          resultadoDiv.classList.remove('bg-info-orange-light', 'bg-success-green');
+          delete resultadoDiv.dataset.idadeGestacional;
+          delete resultadoDiv.dataset.dpp;
+          return;
+        }
+
+        const diffMs = hoje - dum;
+        const diffDias = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+        const semanas = Math.floor(diffDias / 7);
+        const dias = diffDias % 7;
+
+        const dpp = new Date(dum.getTime());
+        dpp.setDate(dpp.getDate() + 280); // 280 天 (40 周)
+
+        // 使用 'zh-CN' 并指定选项以获得 YYYY/MM/DD 格式
+        const dppFormatada = dpp.toLocaleDateString('zh-CN', {
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit'
+        });
+
+        const idadeGestacionalTexto = `${semanas} 周 ${dias} 天`;
+
+        resultadoDiv.innerHTML = `
+                  <table class="w-full text-sm">
+                      <tbody>
+                          <tr>
+                              <td class="font-bold pr-2">妊娠周数:</td>
+                              <td>${idadeGestacionalTexto}</td>
+                          </tr>
+                          <tr>
+                              <td class="font-bold pr-2">预产期 (<abbr title="预产期">EDD</abbr>):</td>
+                              <td>${dppFormatada}</td>
+                          </tr>
+                      </tbody>
+                  </table>
+              `;
+        resultadoDiv.classList.add('bg-success-green');
+        resultadoDiv.classList.remove('bg-danger-red', 'bg-info-orange-light');
+
+        resultadoDiv.dataset.idadeGestacional = idadeGestacionalTexto;
+        resultadoDiv.dataset.dpp = dppFormatada;
+        resultadoDiv.dataset.scaleName = "妊娠周数和预产期计算器";
+        btnGerarPDF.removeAttribute('disabled');
+        btnNandaNicNoc.removeAttribute('disabled');
+      }
+
+      function limparCampos() {
+        document.getElementById('dum').value = '';
+        const resultadoDiv = document.getElementById('resultado');
+        resultadoDiv.innerHTML = '';
+        resultadoDiv.classList.add('hidden');
+        btnGerarPDF.setAttribute('disabled', 'true');
+        btnNandaNicNoc.setAttribute('disabled', 'true');
+        delete resultadoDiv.dataset.idadeGestacional;
+        delete resultadoDiv.dataset.dpp;
+        delete resultadoDiv.dataset.scaleName;
+      }
+
+      // Event Listeners
+      btnCalcular?.addEventListener('click', calcularGestacional);
+      btnLimpar?.addEventListener('click', limparCampos);
+
+      btnGerarPDF?.addEventListener('click', () => {
+        if (!resultadoDiv.dataset.idadeGestacional) {
+          alert('请先点击“计算”以生成 PDF。');
+          return;
+        }
+        if (typeof gerarPDFGlobal === 'function') {
+          gerarPDFGlobal({
+            titulo: '妊娠周数和预产期 (EDD) 计算器',
+            subtitulo: '妊娠计算报告',
+            nomeArquivo: '妊娠报告.pdf',
+            seletorConteudo: '.main-content-wrapper'
+          });
+        } else {
+          console.error('函数 gerarPDFGlobal 未定义。');
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener('click', () => {
+        const idadeGestacional = resultadoDiv.dataset.idadeGestacional;
+        const dpp = resultadoDiv.dataset.dpp;
+        const scaleName = resultadoDiv.dataset.scaleName;
+        if (!idadeGestacional || !dpp) {
+          alert('请先计算结果以搜索分类。');
+          return;
+        }
+        const searchQuery = encodeURIComponent(`"${scaleName}" 妊娠周数 ${idadeGestacional} 预产期 ${dpp} 生成 NANDA 分类, NIC 分类, 和 NOC 分类`);
+        window.open(`https://www.google.com/search?q=${searchQuery}`, '_blank');
+      });
+    });
+  </script>
 
 
 

@@ -605,7 +605,197 @@
 
 
 
-  
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const resultadoDiv = document.getElementById('resultado');
+      const btnCalcular = document.getElementById('btnCalcular');
+      const btnLimpar = document.getElementById('btnLimpar');
+      const btnGerarPDF = document.getElementById('btnGerarPDF');
+      const btnNandaNicNoc = document.getElementById('btnNandaNicNoc');
+      const conteudoDiv = document.getElementById('conteudo');
+
+      const qsofaData = [
+        {
+          category: "Frequenza Respiratoria (FR)",
+          nameAttr: "fr",
+          explanation: "Valuta la frequenza respiratoria del paziente in atti al minuto.",
+          options: [
+            { description: "Minore di 22 atti/min", score: 0 },
+            { description: "Maggiore o uguale a 22 atti/min", score: 1 }
+          ]
+        },
+        {
+          category: "Livello di Coscienza (Scala del Coma di Glasgow - GCS)",
+          nameAttr: "gcs",
+          explanation: "Valuta il livello di coscienza del paziente utilizzando la Scala del Coma di Glasgow.",
+          options: [
+            { description: "GCS ≥ 15", score: 0 },
+            { description: "GCS < 15 (alterato)", score: 1 }
+          ]
+        },
+        {
+          category: "Pressione Arteriosa Sistolica (PAS)",
+          nameAttr: "pas",
+          explanation: "Valuta la pressione arteriosa sistolica del paziente in mmHg.",
+          options: [
+            { description: "PAS > 100 mmHg", score: 0 },
+            { description: "PAS ≤ 100 mmHg", score: 1 }
+          ]
+        }
+      ];
+
+      function updateScoreDisplay(criterionId) {
+        const selectElement = document.getElementById(criterionId);
+        const scoreDisplayElement = document.getElementById(`${criterionId}_score_display`);
+        if (selectElement && scoreDisplayElement) {
+          scoreDisplayElement.innerText = selectElement.value === "" ? "0" : selectElement.value;
+        }
+      }
+
+      function calcularPontuacao() {
+        let totalQSOFAScore = 0;
+        let allItemsSelected = true;
+
+        qsofaData.forEach(item => {
+          const selectElement = document.getElementById(item.nameAttr);
+          if (selectElement.value === "") {
+            allItemsSelected = false;
+          } else {
+            totalQSOFAScore += parseInt(selectElement.value, 10);
+          }
+        });
+
+        resultadoDiv.style.display = 'block';
+        if (!allItemsSelected) {
+          resultadoDiv.innerHTML = '⚠️ <strong class="font-bold">Seleziona un\'opzione per ogni criterio</strong> prima di calcolare.';
+          resultadoDiv.className = 'resultado bg-info-orange-light';
+          delete resultadoDiv.dataset.score;
+          return;
+        }
+
+        let interpretacao = '';
+        let conduta = '';
+        let resultadoClasse = '';
+
+        if (totalQSOFAScore >= 2) {
+          interpretacao = "Alto rischio di esiti sfavorevoli (maggiore permanenza in Terapia Intensiva e mortalità).";
+          conduta = "Considerare una valutazione aggiuntiva per la sepsi e un intervento rapido. Sono necessarie indagini di laboratorio e una valutazione clinica completa.";
+          resultadoClasse = 'bg-qsofa-high';
+        } else {
+          interpretacao = "Basso rischio di esiti sfavorevoli al momento.";
+          conduta = "Mantenere il monitoraggio clinico. Rivalutare in caso di peggioramento del quadro clinico.";
+          resultadoClasse = 'bg-qsofa-low';
+        }
+
+        resultadoDiv.innerHTML = `<p>Punteggio Totale qSOFA: <strong class="font-bold">${totalQSOFAScore}</strong></p><p>Interpretazione: <strong class="font-bold">${interpretacao}</strong></p><p>Azione Suggerita: <strong class="font-bold">${conduta}</strong></p>`;
+        resultadoDiv.className = `resultado ${resultadoClasse}`;
+
+        resultadoDiv.dataset.score = totalQSOFAScore;
+        resultadoDiv.dataset.interpretacao = interpretacao;
+        resultadoDiv.dataset.conduta = conduta;
+        resultadoDiv.dataset.scaleName = "qSOFA";
+      }
+
+      function limparCampos() {
+        qsofaData.forEach(item => {
+          const selectElement = document.getElementById(item.nameAttr);
+          selectElement.selectedIndex = 0;
+          document.getElementById(`${item.nameAttr}_score_display`).innerText = '0';
+        });
+        resultadoDiv.innerHTML = '';
+        resultadoDiv.className = 'resultado hidden';
+        delete resultadoDiv.dataset.score;
+        delete resultadoDiv.dataset.interpretacao;
+        delete resultadoDiv.dataset.conduta;
+        delete resultadoDiv.dataset.scaleName;
+      }
+
+      qsofaData.forEach((item, index) => {
+        const sectionDiv = document.createElement('div');
+        sectionDiv.className = 'qsofa-criterion-card';
+
+        const headerDiv = document.createElement('div');
+        headerDiv.className = 'qsofa-criterion-header';
+
+        const titleH3 = document.createElement('h3');
+        titleH3.className = 'qsofa-criterion-title';
+        titleH3.innerText = `${item.category}`;
+        headerDiv.appendChild(titleH3);
+
+        const scoreSpan = document.createElement('span');
+        scoreSpan.className = 'qsofa-score-display';
+        scoreSpan.id = `${item.nameAttr}_score_display`;
+        scoreSpan.innerText = '0';
+        headerDiv.appendChild(scoreSpan);
+
+        sectionDiv.appendChild(headerDiv);
+
+        const optionsDiv = document.createElement('div');
+        optionsDiv.className = 'qsofa-criterion-options';
+
+        const selectElement = document.createElement('select');
+        selectElement.id = item.nameAttr;
+        selectElement.className = 'qsofa-select';
+        selectElement.onchange = () => updateScoreDisplay(item.nameAttr);
+
+        const defaultOption = document.createElement('option');
+        defaultOption.value = "";
+        defaultOption.text = "Seleziona...";
+        defaultOption.disabled = true;
+        defaultOption.selected = true;
+        selectElement.appendChild(defaultOption);
+
+        item.options.forEach(option => {
+          const optionElement = document.createElement('option');
+          optionElement.value = option.score;
+          optionElement.text = `${option.description} (${option.score})`;
+          selectElement.appendChild(optionElement);
+        });
+
+        optionsDiv.appendChild(selectElement);
+        sectionDiv.appendChild(optionsDiv);
+
+        const explanationP = document.createElement('p');
+        explanationP.className = 'text-gray-600 text-sm mt-2 text-left';
+        explanationP.innerText = item.explanation;
+        sectionDiv.appendChild(explanationP);
+
+        conteudoDiv.appendChild(sectionDiv);
+      });
+
+      btnCalcular?.addEventListener('click', calcularPontuacao);
+      btnLimpar?.addEventListener('click', limparCampos);
+
+      btnGerarPDF?.addEventListener('click', () => {
+        if (!resultadoDiv.dataset.score) {
+          alert('Per favore, clicca su "Calcola" prima di generare il PDF.');
+          return;
+        }
+        if (typeof gerarPDFGlobal === 'function') {
+          gerarPDFGlobal({
+            titulo: 'Scala qSOFA',
+            subtitulo: 'Rapporto di Valutazione Rapida della Sepsi',
+            nomeArquivo: 'rapporto_punteggio_qsofa.pdf',
+            seletorConteudo: '.main-content-wrapper'
+          });
+        } else {
+          console.error('Funzione gerarPDFGlobal non definita.');
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener('click', () => {
+        const score = resultadoDiv.dataset.score;
+        const scaleName = resultadoDiv.dataset.scaleName;
+        const interpretacao = resultadoDiv.dataset.interpretacao;
+        if (!score || !interpretacao) {
+          alert('Calcola il risultato per cercare la procedura.');
+          return;
+        }
+        const searchQuery = encodeURIComponent(`${scaleName} punteggio ${score} interpretazione ${interpretacao} generare tassonomia NANDA, generare tassonomia NIC e generare tassonomia NOC`);
+        window.open(`https://www.google.com/search?q=${searchQuery}`, '_blank');
+      });
+    });
+  </script>
 
 
 

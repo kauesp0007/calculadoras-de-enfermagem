@@ -639,7 +639,335 @@
 
 
 
-  
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const resultadoDiv = document.getElementById('resultado');
+      const btnCalcular = document.getElementById('btnCalcular');
+      const btnLimpar = document.getElementById('btnLimpar');
+      const btnGerarPDF = document.getElementById('btnGerarPDF');
+      const btnNandaNicNoc = document.getElementById('btnNandaNicNoc');
+      const conteudoDiv = document.getElementById('conteudo');
+
+      const bergData = [
+        {
+          title: "1. बैठने से खड़े होना", // Sentar para levantar
+          nameAttr: "sentar_levantar",
+          options: [
+            { description: "सहायता के बिना खड़े होने में असमर्थ", score: 0 }, // Incapaz de levantar-se sem assistência
+            { description: "खड़े होने के लिए मौखिक सहायता और/या पर्यवेक्षण की आवश्यकता है", score: 1 }, // Precisa de ajuda verbal e/ou supervisão para levantar-se
+            { description: "खड़े होने के लिए न्यूनतम सहायता की आवश्यकता है", score: 2 }, // Precisa de assistência mínima para levantar-se
+            { description: "सुरक्षित रूप से खड़ा होता है, लेकिन स्थिरता के लिए मौखिक सहायता की आवश्यकता है", score: 3 }, // Levanta-se com segurança, mas precisa de assistência verbal para a estabilidade
+            { description: "सुरक्षित रूप से और स्थिरता के साथ, बिना सहायता के खड़ा होता है", score: 4 } // Levanta-se com segurança e estabilidade, sem assistência
+          ]
+        },
+        {
+          title: "2. बिना सहारे के खड़े रहना", // Ficar de pé sem apoio
+          nameAttr: "em_pe_sem_apoio",
+          options: [
+            { description: "30 सेकंड तक खड़े रहने में असमर्थ", score: 0 }, // Incapaz de manter-se em pé por 30 segundos
+            { description: "30 सेकंड तक खड़ा रहता है, लेकिन सहायता की आवश्यकता है", score: 1 }, // Fica em pé 30 segundos, mas precisa de assistência
+            { description: "30 सेकंड तक खड़ा रहता है, लेकिन पर्यवेक्षण की आवश्यकता है", score: 2 }, // Fica em pé 30 segundos, mas precisa de supervisão
+            { description: "30 सेकंड तक सुरक्षित रूप से खड़ा रहता है", score: 3 }, // Fica em pé 30 segundos com segurança
+            { description: "30 सेकंड तक सुरक्षित रूप से खड़ा रहता है, बिना सहारे के", score: 4 } // Fica em pé 30 segundos com segurança, sem apoio
+          ]
+        },
+        {
+          title: "3. बिना सहारे के बैठना", // Sentar sem apoio
+          nameAttr: "sentar_sem_apoio",
+          options: [
+            { description: "असुरक्षित रूप से बैठता है, कुर्सी पर गिर जाता है", score: 0 }, // Senta-se de forma insegura, cai na cadeira
+            { description: "बैठता है, लेकिन न्यूनतम सहायता की आवश्यकता है", score: 1 }, // Senta-se, mas precisa de assistência mínima
+            { description: "सुरक्षित रूप से बैठता है, लेकिन हाथों का उपयोग करता है", score: 2 }, // Senta-se de forma segura, mas usa os braços
+            { description: "सुरक्षित रूप से बैठता है, हाथों का उपयोग किए बिना, लेकिन गतिविधि धीमी है", score: 3 }, // Senta-se de forma segura, sem usar os braços, mas o movimento é lento
+            { description: "सुरक्षित रूप से बैठता है, हाथों का उपयोग किए बिना", score: 4 } // Senta-se de forma segura, sem usar os braços
+          ]
+        },
+        {
+          title: "4. बैठना और खड़ा होना", // Sentar-se e levantar-se
+          nameAttr: "sentar_e_levantar",
+          options: [
+            { description: "बिना सहारे के 3 बार बैठने और खड़े होने में असमर्थ", score: 0 }, // Incapaz de sentar-se e levantar-se 3 vezes sem apoio
+            { description: "3 बार बैठता और खड़ा होता है, लेकिन सहायता से", score: 1 }, // Senta-se e levanta-se 3 vezes, mas com assistência
+            { description: "3 बार बैठता और खड़ा होता है, लेकिन पर्यवेक्षण से", score: 2 }, // Senta-se e levanta-se 3 vezes, mas com supervisão
+            { description: "3 बार सुरक्षित रूप से बैठता और खड़ा होता है, लेकिन गतिविधि धीमी है", score: 3 }, // Senta-se e levanta-se 3 vezes com segurança, mas o movimento é lento
+            { description: "3 बार सुरक्षित रूप से बैठता और खड़ा होता है", score: 4 } // Senta-se e levanta-se 3 vezes com segurança
+          ]
+        },
+        {
+          title: "5. स्थानांतरण", // Transferência
+          nameAttr: "transferencia",
+          options: [
+            { description: "सहायता के बिना स्थानांतरित करने में असमर्थ", score: 0 }, // Incapaz de transferir-se sem ajuda
+            { description: "सहायता से स्थानांतरित करता है", score: 1 }, // Transfere-se com assistência
+            { description: "पर्यवेक्षण या मौखिक सहायता से स्थानांतरित करता है", score: 2 }, // Transfere-se com supervisão ou assistência verbal
+            { description: "सुरक्षित रूप से स्थानांतरित करता है, लेकिन गतिविधि धीमी है", score: 3 }, // Transfere-se de forma segura, mas o movimento é lento
+            { description: "सुरक्षित रूप से स्थानांतरित करता है, बिना सहायता के", score: 4 } // Transfere-se de forma segura, sem assistência
+          ]
+        },
+        {
+          title: "6. आँखें बंद करके खड़े रहना", // Ficar em pé com olhos fechados
+          nameAttr: "em_pe_olhos_fechados",
+          options: [
+            { description: "आँखें बंद करके 10 सेकंड तक खड़े रहने में असमर्थ", score: 0 }, // Incapaz de manter-se em pé por 10 segundos com os olhos fechados
+            { description: "10 सेकंड तक खड़ा रहता है, लेकिन पर्यवेक्षण की आवश्यकता है", score: 1 }, // Fica em pé por 10 segundos, mas precisa de supervisão
+            { description: "10 सेकंड तक सुरक्षित रूप से खड़ा रहता है", score: 2 }, // Fica em pé por 10 segundos com segurança
+            { description: "30 सेकंड तक खड़ा रहता है, लेकिन हल्की अस्थिरता के साथ", score: 3 }, // Fica em pé por 30 segundos, mas com ligeira instabilidade
+            { description: "30 सेकंड तक सुरक्षित रूप से खड़ा रहता है, बिना सहारे के", score: 4 } // Fica em pé 30 segundos com segurança, sem apoio
+          ]
+        },
+        {
+          title: "7. पैर एक साथ रखकर खड़े रहना", // Ficar em pé com pés juntos
+          nameAttr: "em_pe_pes_juntos",
+          options: [
+            { description: "पैर एक साथ रखकर खड़े रहने में असमर्थ", score: 0 }, // Incapaz de manter-se em pé com os pés juntos
+            { description: "पैर एक साथ रखकर खड़ा रहता है, लेकिन सहायता से", score: 1 }, // Fica em pé com os pés juntos, mas com assistência
+            { description: "पैर एक साथ रखकर खड़ा रहता है, लेकिन पर्यवेक्षण से", score: 2 }, // Fica em pé com os pés juntos, mas com supervisão
+            { description: "30 सेकंड तक पैर एक साथ रखकर खड़ा रहता है", score: 3 }, // Fica em pé com os pés juntos por 30 segundos
+            { description: "1 मिनट तक सुरक्षित रूप से पैर एक साथ रखकर खड़ा रहता है", score: 4 } // Fica em pé com os pés juntos por 1 minuto com segurança
+          ]
+        },
+        {
+          title: "8. बांह फैलाकर आगे पहुँचना", // Alcançar a frente com o braço estendido
+          nameAttr: "alcancar_a_frente",
+          options: [
+            { description: "पहुँचने में असमर्थ या गतिविधि खतरनाक है", score: 0 }, // Incapaz de alcançar ou o movimento é perigoso
+            { description: "आगे पहुँचता है, लेकिन सहायता से", score: 1 }, // Alcança a frente, mas com assistência
+            { description: "आगे पहुँचता है, लेकिन पर्यवेक्षण से", score: 2 }, // Alcança a frente, mas com supervisão
+            { description: "आगे पहुँचता है, लेकिन गतिविधि धीमी है", score: 3 }, // Alcança a frente, mas o movimento é lento
+            { description: "सुरक्षित रूप से आगे पहुँचता है, बिना सहायता के", score: 4 } // Alcança a frente com segurança, sem assistência
+          ]
+        },
+        {
+          title: "9. फर्श से वस्तु उठाना", // Pegar um objeto do chão
+          nameAttr: "pegar_objeto",
+          options: [
+            { description: "वस्तु उठाने में असमर्थ", score: 0 }, // Incapaz de pegar o objeto
+            { description: "वस्तु उठाता है, लेकिन सहायता की आवश्यकता है", score: 1 }, // Pega o objeto, mas precisa de assistência
+            { description: "वस्तु उठाता है, लेकिन पर्यवेक्षण से", score: 2 }, // Pega o objeto, mas com supervisão
+            { description: "वस्तु उठाता है, लेकिन गतिविधि धीमी है", score: 3 }, // Pega o objeto, mas o movimento é lento
+            { description: "सुरक्षित रूप से फर्श से वस्तु उठाता है, बिना सहायता के", score: 4 } // Pega o objeto do chão com segurança, sem assistência
+          ]
+        },
+        {
+          title: "10. कंधों पर पीछे देखना", // Olhar para trás sobre os ombros
+          nameAttr: "olhar_para_tras",
+          options: [
+            { description: "पीछे देखने में असमर्थ", score: 0 }, // Incapaz de olhar para trás
+            { description: "पीछे देखता है, लेकिन सहायता से", score: 1 }, // Olha para trás, mas com assistência
+            { description: "पीछे देखता है, लेकिन पर्यवेक्षण से", score: 2 }, // Olha para trás, mas com supervisão
+            { description: "सुरक्षित रूप से पीछे देखता है, लेकिन गतिविधि धीमी है", score: 3 }, // Olha para trás com segurança, mas o movimento é lento
+            { description: "सुरक्षित रूप से पीछे देखता है, बिना सहायता के", score: 4 } // Olha para trás com segurança, sem assistência
+          ]
+        },
+        {
+          title: "11. 360 डिग्री घूमना", // Girar 360 graus
+          nameAttr: "girar_360",
+          options: [
+            { description: "360 डिग्री घूमने में असमर्थ", score: 0 }, // Incapaz de girar 360 graus
+            { description: "घूमता है, लेकिन सहायता से", score: 1 }, // Gira, mas com assistência
+            { description: "घूमता है, लेकिन पर्यवेक्षण से", score: 2 }, // Gira, mas com supervisão
+            { description: "सुरक्षित रूप से 360 डिग्री घूमता है, लेकिन गतिविधि धीमी है", score: 3 }, // Gira 360 graus com segurança, mas o movimento é lento
+            { description: "सुरक्षित रूप से 360 डिग्री घूमता है, बिना सहायता के", score: 4 } // Gira 360 graus com segurança, sem assistência
+          ]
+        },
+        {
+          title: "12. एक पैर पर खड़े रहना", // Permanecer em pé em um pé só
+          nameAttr: "um_pe_so",
+          options: [
+            { description: "एक पैर पर खड़े रहने में असमर्थ", score: 0 }, // Incapaz de permanecer em pé em um pé só
+            { description: "5 सेकंड तक एक पैर पर खड़ा रहता है", score: 1 }, // Fica em pé em um pé só por 5 segundos
+            { description: "10 सेकंड तक एक पैर पर खड़ा रहता है", score: 2 }, // Fica em pé em um pé só por 10 segundos
+            { description: "15 सेकंड तक एक पैर पर खड़ा रहता है", score: 3 }, // Fica em pé em um pé só por 15 segundos
+            { description: "30 सेकंड तक एक पैर पर खड़ा रहता है", score: 4 } // Fica em pé em um pé só por 30 segundos
+          ]
+        },
+        {
+          title: "13. आँखें बंद करके एक पैर पर खड़े रहना", // Ficar em pé em um pé só com olhos fechados
+          nameAttr: "um_pe_so_olhos_fechados",
+          options: [
+            { description: "आँखें बंद करके एक पैर पर खड़े रहने में असमर्थ", score: 0 }, // Incapaz de permanecer em pé em um pé só com os olhos fechados
+            { description: "आँखें बंद करके 5 सेकंड तक एक पैर पर खड़ा रहता है", score: 1 }, // Fica em pé em um pé só por 5 segundos com os olhos fechados
+            { description: "आँखें बंद करके 10 सेकंड तक एक पैर पर खड़ा रहता है", score: 2 }, // Fica em pé em um pé só por 10 segundos com os olhos fechados
+            { description: "आँखें बंद करके 15 सेकंड तक एक पैर पर खड़ा रहता है", score: 3 }, // Fica em pé em um pé só por 15 segundos com os olhos fechados
+            { description: "आँखें बंद करके 30 सेकंड तक एक पैर पर खड़ा रहता है", score: 4 } // Fica em pé em um pé só por 30 segundos com os olhos fechados
+          ]
+        },
+        {
+          title: "14. कुर्सी पर खड़े होना और बैठना", // Ficar em pé e sentar em uma cadeira
+          nameAttr: "sentar_e_levantar_cadeira",
+          options: [
+            { description: "कुर्सी से बैठने और खड़े होने में असमर्थ", score: 0 }, // Incapaz de sentar-se e levantar-se da cadeira
+            { description: "बैठता और खड़ा होता है, लेकिन सहायता से", score: 1 }, // Senta-se e levanta-se, mas com assistência
+            { description: "बैठता और खड़ा होता है, लेकिन पर्यवेक्षण से", score: 2 }, // Senta-se e levanta-se, mas com supervisão
+            { description: "सुरक्षित रूप से बैठता और खड़ा होता है, लेकिन गतिविधि धीमी है", score: 3 }, // Senta-se e levanta-se com segurança, mas o movimento é lento
+            { description: "सुरक्षित रूप से बैठता और खड़ा होता है, बिना सहायता के", score: 4 } // Senta-se e levanta-se com segurança, sem assistência
+          ]
+        }
+      ];
+
+      // Função para criar o formulário (corrigido para ser chamado no DOMContentLoaded)
+      function createForm() {
+        conteudoDiv.innerHTML = ''; // Limpa o conteúdo existente
+        bergData.forEach(item => {
+          const sectionDiv = document.createElement('div');
+          sectionDiv.className = 'berg-criterion-section';
+          sectionDiv.id = `section-${item.nameAttr}`;
+
+          const titleH3 = document.createElement('h3');
+          titleH3.className = 'berg-criterion-title';
+          titleH3.innerHTML = item.title;
+          sectionDiv.appendChild(titleH3);
+
+          const selectElement = document.createElement('select');
+          selectElement.id = item.nameAttr;
+          selectElement.className = 'berg-criterion-select mt-2';
+
+          const defaultOption = document.createElement('option');
+          defaultOption.value = "";
+          defaultOption.text = "चुनें..."; // Selecione...
+          selectElement.appendChild(defaultOption);
+
+          item.options.forEach(option => {
+            const optionElement = document.createElement('option');
+            optionElement.value = option.score;
+            optionElement.text = `${option.description} (अंक: ${option.score})`; // (pontos: ${option.score})
+            selectElement.appendChild(optionElement);
+          });
+
+          sectionDiv.appendChild(selectElement);
+          conteudoDiv.appendChild(sectionDiv);
+        });
+      }
+
+
+      function calcularBerg() {
+        const selects = document.querySelectorAll('#conteudo select');
+        let allSelected = true;
+        let total = 0;
+
+        selects.forEach(select => {
+          if (select.value === "") {
+            allSelected = false;
+            select.classList.add('incomplete');
+          } else {
+            select.classList.remove('incomplete');
+            total += Number(select.value);
+          }
+        });
+
+        resultadoDiv.style.display = "block";
+        if (!allSelected) {
+          resultadoDiv.innerHTML = '⚠️ <strong class="font-bold">कृपया, गणना करने से पहले सभी मदों के लिए एक विकल्प चुनें।</strong>'; // Por favor, selecione uma opção para todos os itens antes de calcular.
+          resultadoDiv.className = `resultado bg-red-100`;
+          delete resultadoDiv.dataset.score;
+          return;
+        }
+
+        let recomendacao = '';
+
+        if (total <= 20) {
+          recomendacao = `स्कोर ${total} गिरने का उच्च जोखिम इंगित करता है। निरंतर सहायता और पर्यवेक्षण की सिफारिश की जाती है।`; // A pontuação de ${total} indica um alto risco de quedas. É recomendada a assistência e a supervisão contínua.
+        } else if (total >= 21 && total <= 40) {
+          recomendacao = `स्कोर ${total} इंगित करता है कि रोगी में कार्यात्मक गतिशीलता है, लेकिन गिरने का मध्यम जोखिम हो सकता है। पुनर्वास की सिफारिश की जाती है।`; // A pontuação de ${total} indica que o paciente tem mobilidade funcional, mas pode ter um risco moderado de quedas. É recomendada a reabilitação.
+        } else if (total >= 41 && total <= 56) {
+          recomendacao = `स्कोर ${total} गिरने का कम जोखिम इंगित करता है। रोगी का संतुलन और कार्यात्मक गतिशीलता अच्छी है।`; // A pontuação de ${total} indica baixo risco de quedas. O paciente tem um bom equilíbrio e mobilidade funcional.
+        }
+
+        resultadoDiv.innerHTML = `
+                <p>कुल स्कोर: <strong class="font-bold">${total}</strong></p>
+                <p class="mt-4"><strong>सिफारिश:</strong> ${recomendacao}</p>
+            `;
+        resultadoDiv.className = `resultado bg-blue-50`;
+        resultadoDiv.style.display = "block";
+
+        resultadoDiv.dataset.score = total;
+        resultadoDiv.dataset.scaleName = "बर्ग बैलेंस स्केल"; // Escala de Equilíbrio de Berg em Hindi
+      }
+
+      function limparCampos() {
+        const selects = document.querySelectorAll('#conteudo select');
+        selects.forEach(select => {
+          select.selectedIndex = 0;
+          select.classList.remove('incomplete');
+        });
+        resultadoDiv.innerHTML = '';
+        resultadoDiv.className = 'resultado hidden';
+        delete resultadoDiv.dataset.score;
+        delete resultadoDiv.dataset.scaleName;
+      }
+
+      // Chama a função para criar o formulário quando o DOM estiver pronto
+      createForm();
+
+      // Adiciona os event listeners aos botões
+      btnCalcular?.addEventListener('click', calcularBerg);
+      btnLimpar?.addEventListener('click', limparCampos);
+
+      btnGerarPDF?.addEventListener('click', () => {
+        if (!resultadoDiv.dataset.score) {
+          alert('पीडीएफ जनरेट करने के लिए, कृपया पहले "स्कोर की गणना करें" पर क्लिक करें।'); // Por favor, clique em "Calcular Escore" primeiro para gerar o PDF.
+          return;
+        }
+        if (typeof gerarPDFGlobal === 'function') {
+          const selectedOptions = {};
+          document.querySelectorAll('#conteudo select').forEach(select => {
+            const selected = select.options[select.selectedIndex];
+            if (selected.value !== "") {
+              selectedOptions[select.id] = selected.text;
+            }
+          });
+
+          let contentToPrint = document.querySelector('.main-content-wrapper').cloneNode(true);
+          let contentContainer = contentToPrint.querySelector('#conteudo');
+
+          // Remove os selects e substitui pela lista de itens/pontuações selecionadas
+          contentContainer.innerHTML = '';
+
+          bergData.forEach(item => {
+            let selectedText = selectedOptions[item.nameAttr];
+            if (selectedText) {
+              let itemDiv = document.createElement('div');
+              itemDiv.className = 'mb-2 p-2 bg-gray-50 rounded';
+              itemDiv.innerHTML = `<strong>${item.title}:</strong> ${selectedText}`;
+              contentContainer.appendChild(itemDiv);
+            }
+          });
+
+          let resultadoHtml = resultadoDiv.cloneNode(true);
+          if (resultadoHtml.style.display !== 'none') {
+            contentContainer.appendChild(resultadoHtml);
+          }
+
+          // Chama a função global de geração de PDF com os títulos em Hindi
+          gerarPDFGlobal({
+            titulo: 'बर्ग बैलेंस स्केल',
+            subtitulo: 'स्थैतिक और गतिशील संतुलन मूल्यांकन रिपोर्ट',
+            nomeArquivo: 'relatorio_escala_berg_hi.pdf',
+            seletorConteudo: '.main-content-wrapper'
+          });
+        } else {
+          console.error('Função gerarPDFGlobal नहीं मिली।'); // Função gerarPDFGlobal não definida.
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener('click', () => {
+        const score = resultadoDiv.dataset.score;
+        const scaleName = resultadoDiv.dataset.scaleName;
+        if (!score) {
+          alert('आचरण की खोज के लिए परिणाम की गणना करें।'); // Calcule o resultado para pesquisar a conduta.
+          return;
+        }
+        let recomendacaoRisco = 'गिरने का जोखिम'; // risco de quedas
+        if (score <= 20) {
+          recomendacaoRisco = 'गिरने का उच्च जोखिम'; // alto risco de quedas
+        } else if (score >= 41) {
+          recomendacaoRisco = 'गिरने का कम जोखिम'; // baixo risco de quedas
+        }
+        const searchQuery = encodeURIComponent(`बर्ग स्केल में ${recomendacaoRisco} वाले बुजुर्ग रोगी के लिए NANDA, NIC, NOC नर्सिंग देखभाल`); // cuidados enfermagem para idoso com ${recomendacaoRisco} na Escala de Berg NANDA NIC NOC
+        window.open(`https://www.google.com/search?q=${searchQuery}`, '_blank');
+      });
+    });
+  </script>
 
 
 

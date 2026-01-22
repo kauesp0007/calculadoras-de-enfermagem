@@ -614,7 +614,157 @@
 
 
   <!-- Script específico da página -->
-  
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const resultadoDiv = document.getElementById("resultado");
+      const btnCalcular = document.getElementById("btnCalcular");
+      const btnLimpar = document.getElementById("btnLimpar");
+      const btnGerarPDF = document.getElementById("btnGerarPDF");
+      const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
+
+      function calcularIMC() {
+        const peso = parseFloat(document.getElementById("peso").value);
+        const altura = parseFloat(document.getElementById("altura").value);
+
+        // Limpa o conteúdo e remove classes de resultado
+        resultadoDiv.innerHTML = "";
+        resultadoDiv.className = "kết quả-bảng ẩn";
+
+        // Validação de entrada
+        if (isNaN(peso) || isNaN(altura) || peso <= 0 || altura <= 0) {
+          resultadoDiv.innerHTML = `<p>⚠️ <strong class="text-red-600">Por favor, insira valores numéricos válidos e maiores que zero para peso e altura.</strong></p>`;
+          resultadoDiv.classList.remove("hidden");
+          resultadoDiv.classList.add("bg-danger-red");
+          return;
+        }
+
+        const imc = peso / (altura * altura);
+        let classificacao = "";
+        let conduta = "";
+        let resultadoBgClass = "";
+
+        if (imc < 18.5) {
+          classificacao = "Thiếu cân";
+          conduta =
+            "Nguy cơ suy dinh dưỡng. Đánh giá và theo dõi dinh dưỡng được khuyến nghị.";
+          resultadoBgClass = "bg-danger-red";
+        } else if (imc >= 18.5 && imc < 24.9) {
+          classificacao = "Cân nặng bình thường";
+          conduta =
+            "Duy trì thói quen sống lành mạnh. Tình trạng dinh dưỡng tốt.";
+          resultadoBgClass = "bg-success-green";
+        } else if (imc >= 25 && imc < 29.9) {
+          classificacao = "Thừa cân";
+          conduta =
+            "Chú ý đến những thay đổi trong lối sống và chế độ ăn uống. Có thể cần đánh giá dinh dưỡng.";
+          resultadoBgClass = "bg-info-orange-light";
+        } else {
+          // Obesidade
+          conduta =
+            "Can thiệp khẩn cấp và theo dõi đa ngành. Nguy cơ cao đối với các bệnh lý nghiêm trọng.";
+          resultadoBgClass = "bg-danger-red";
+
+          if (imc >= 30 && imc < 34.9) {
+            classificacao = "Béo phì cấp độ I";
+          } else if (imc >= 35 && imc < 39.9) {
+            classificacao = "Béo phì cấp độ II";
+          } else {
+            classificacao = "Béo phì cấp độ III (béo phì bệnh lý)";
+          }
+        }
+
+        // Exibe o resultado formatado
+        resultadoDiv.innerHTML = `
+                    <table class="w-full">
+                        <tbody>
+                            <tr>
+                                <td class="font-bold pr-2">IMC calculado:</td>
+                                <td>${imc.toFixed(2)} <abbr title="quilogramas por metro quadrado">kg/m²</abbr></td>
+                            </tr>
+                            <tr>
+                                <td class="font-bold pr-2">Classificação:</td>
+                                <td>${classificacao}</td>
+                            </tr>
+                            <tr>
+                                <td class="font-bold pr-2">Conduta de Enfermagem:</td>
+                                <td>${conduta}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                `;
+        resultadoDiv.classList.remove("hidden");
+        resultadoDiv.classList.add(resultadoBgClass);
+
+        // Armazenar os valores e detalhes para a geração do PDF e NANDA
+        resultadoDiv.dataset.imc = imc.toFixed(2);
+        resultadoDiv.dataset.classificacao = classificacao;
+        resultadoDiv.dataset.conduta = conduta;
+        resultadoDiv.dataset.peso = peso;
+        resultadoDiv.dataset.altura = altura;
+        resultadoDiv.dataset.scaleName = "Calculadora de IMC";
+      }
+
+      function limparCampos() {
+        document.getElementById("peso").value = "";
+        document.getElementById("altura").value = "";
+        resultadoDiv.innerHTML = "";
+        resultadoDiv.classList.add("hidden");
+        // Clear data attributes
+        delete resultadoDiv.dataset.imc;
+        delete resultadoDiv.dataset.classificacao;
+        delete resultadoDiv.dataset.conduta;
+        delete resultadoDiv.dataset.peso;
+        delete resultadoDiv.dataset.altura;
+        delete resultadoDiv.dataset.scaleName;
+      }
+
+      // Função para gerar PDF
+      function gerarPDF() {
+        if (!resultadoDiv.dataset.imc) {
+          showCustomMessage("Vui lòng tính toán chỉ số BMI trước khi tạo tệp PDF.");
+          return;
+        }
+        if (typeof gerarPDFGlobal === "function") {
+          gerarPDFGlobal({
+            titulo: "Máy tính chỉ số khối cơ thể",
+            subtitulo: "Báo cáo đánh giá IMC",
+            nomeArquivo: "relatorio_imc.pdf",
+            seletorConteudo: ".main-content-wrapper"
+          });
+        } else {
+          console.error("Chức năng gerarPDFGlobal không được định nghĩa.");
+        }
+      }
+
+      // Adiciona o event listener para o botão NANDA, NIC, NOC
+      if (btnNandaNicNoc) {
+        btnNandaNicNoc.addEventListener("click", () => {
+          const imcValue = resultadoDiv.dataset.imc;
+          const classificacao = resultadoDiv.dataset.classificacao;
+          const conduta = resultadoDiv.dataset.conduta;
+          const scaleName = resultadoDiv.dataset.scaleName;
+
+          if (!imcValue || !classificacao || !conduta) {
+            showCustomMessage(
+              "Tính toán kết quả để nghiên cứu hành vi."
+            );
+            return;
+          }
+          const searchQuery = encodeURIComponent(
+            `IMC: ${imcValue}, Xếp hạng: ${classificacao}, Conduta de Enfermagem: ${conduta} - ${scaleName} Tạo chẩn đoán điều dưỡng của NANDA, tạo can thiệp điều dưỡng của NIC, tạo ví dụ về đo lường kết quả được thực hiện bởi điều dưỡng (NOC)`
+          );
+          window.open(
+            `https://www.google.com/search?q=${searchQuery}`,
+            "_blank"
+          );
+        });
+      }
+
+      // Anexa os event listeners
+      btnCalcular?.addEventListener("click", calcularIMC);
+      btnLimpar?.addEventListener("click", limparCampos);
+      btnGerarPDF?.addEventListener("click", gerarPDF);
+    });</script>
 
   <script src="/lang-selector.js" defer=""></script>
 

@@ -579,7 +579,133 @@
 
 
 
-  
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const resultadoDiv = document.getElementById("resultado");
+      const conteudoDiv = document.getElementById("conteudo");
+      const btnCalcular = document.getElementById("btnCalcular");
+      const btnLimpar = document.getElementById("btnLimpar");
+      const btnGerarPDF = document.getElementById("btnGerarPDF");
+      const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
+
+      const camData = [
+        {
+          id: "feature1",
+          title: "1. Острое начало и флюктуирующее течение",
+          description:
+            "Было ли внезапное изменение психического состояния, и колебалось ли оно за последние 24 часа?",
+          options: [
+            { score: 1, text: "Да" },
+            { score: 0, text: "Нет" },
+          ],
+        },
+        {
+          id: "feature2",
+          title: "2. Невнимательность",
+          description: "У пациента есть трудности с поддержанием внимания?",
+          options: [
+            { score: 1, text: "Да (с невнимательностью)" },
+            { score: 0, text: "Нет (без невнимательности)" },
+          ],
+        },
+        {
+          id: "feature3",
+          title: "3. Дезорганизованное мышление",
+          description:
+            "У пациента наблюдается дезорганизованное или бессвязное мышление?",
+          options: [
+            { score: 1, text: "Да" },
+            { score: 0, text: "Нет" },
+          ],
+        },
+        {
+          id: "feature4",
+          title: "4. Измененный уровень сознания",
+          description:
+            "Уровень сознания отличается от 'бодрствующий и спокойный' (RASS ≠ 0)?",
+          options: [
+            { score: 1, text: "Да (изменен)" },
+            { score: 0, text: "Нет (нормальный/бодрствующий)" },
+          ],
+        },
+      ];
+
+      function createForm() {
+        conteudoDiv.innerHTML = "";
+        camData.forEach((criterion) => {
+          const card = document.createElement("div");
+          card.className = "criterion-card";
+
+          card.innerHTML = `
+                    <div class="criterion-title-container">
+                        <h3 class="criterion-title">${criterion.title}</h3>
+                        <p class="criterion-description">${criterion.description}</p>
+                    </div>
+                    <div class="options-container">
+                        <select id="${criterion.id}-select" class="custom-select">
+                            <option value="" disabled selected>Выберите вариант...</option>
+                            ${criterion.options.map((opt) => `<option value="${opt.score}">${opt.text}</option>`).join("")}
+                        </select>
+                    </div>
+                `;
+          conteudoDiv.appendChild(card);
+        });
+      }
+
+      function calcular() {
+        let allSelected = true;
+        const selections = {};
+
+        camData.forEach((criterion) => {
+          const select = document.getElementById(`${criterion.id}-select`);
+          if (select && select.value) {
+            selections[criterion.id] = parseInt(select.value, 10);
+          } else {
+            allSelected = false;
+          }
+        });
+
+        if (!allSelected) {
+          resultadoDiv.innerHTML =
+            '⚠️ <strong class="font-bold">Пожалуйста, выберите вариант для каждого критерия.</strong>';
+          resultadoDiv.className = "standard-result-box bg-info-orange-light";
+          resultadoDiv.style.display = "block";
+          delete resultadoDiv.dataset.resultado;
+          return;
+        }
+
+        const feature1 = selections.feature1 === 1;
+        const feature2 = selections.feature2 === 1;
+        const feature3 = selections.feature3 === 1;
+        const feature4 = selections.feature4 === 1;
+
+        let resultadoFinal = "";
+        if (feature1 && feature2 && (feature3 || feature4)) {
+          resultadoFinal = "Делирий присутствует";
+        } else {
+          resultadoFinal = "Делирий отсутствует";
+        }
+
+        resultadoDiv.innerHTML = `<p class="font-bold text-lg">Результат: <span class="font-black">${resultadoFinal}</span></p>`;
+        resultadoDiv.className = "standard-result-box";
+        resultadoDiv.style.display = "block";
+        resultadoDiv.dataset.resultado = resultadoFinal;
+      }
+
+      function limpar() {
+        createForm();
+        resultadoDiv.innerHTML = "";
+        resultadoDiv.className = "hidden";
+        delete resultadoDiv.dataset.resultado;
+      }
+
+      createForm();
+      btnCalcular?.addEventListener("click", calcular);
+      btnLimpar?.addEventListener("click", limpar);
+
+      // Функции кнопок PDF и NANDA остаются прежними
+    });
+  </script>
 
   <script src="/lang-selector.js" defer=""></script>
 

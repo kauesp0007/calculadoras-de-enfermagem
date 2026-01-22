@@ -602,7 +602,122 @@
 
 
 
-  
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const resultadoDiv = document.getElementById('resultado');
+      const conteudoDiv = document.getElementById('conteudo');
+      const btnCalcular = document.getElementById('btnCalcular');
+      const btnLimpar = document.getElementById('btnLimpar');
+      const btnGerarPDF = document.getElementById('btnGerarPDF');
+      const btnNandaNicNoc = document.getElementById('btnNandaNicNoc');
+
+      const camData = [
+        { id: "feature1", title: "1. तीव्र शुरुआत और उतार-चढ़ाव वाला कोर्स (Início Agudo e Curso Flutuante)", description: "क्या मानसिक स्थिति में अचानक बदलाव आया है और क्या यह पिछले 24 घंटों में उतार-चढ़ाव वाला रहा है?", options: [{ score: 1, text: "हां (Sim)" }, { score: 0, text: "नहीं (Não)" }] },
+        { id: "feature2", title: "2. असावधानी (Desatenção)", description: "क्या रोगी को ध्यान बनाए रखने में कठिनाई होती है?", options: [{ score: 1, text: "हां (असावधानी के साथ)" }, { score: 0, text: "नहीं (असावधानी के बिना)" }] },
+        { id: "feature3", title: "3. अव्यवस्थित सोच (Pensamento Desorganizado)", description: "क्या रोगी अव्यवस्थित या असंगत तर्क प्रस्तुत करता है?", options: [{ score: 1, text: "हां (Sim)" }, { score: 0, text: "नहीं (Não)" }] },
+        { id: "feature4", title: "4. चेतना का परिवर्तित स्तर (Nível de Consciência Alterado)", description: "क्या चेतना का स्तर 'सतर्क और शांत' (RASS ≠ 0) से भिन्न है?", options: [{ score: 1, text: "हां (परिवर्तित)" }, { score: 0, text: "नहीं (सामान्य/सतर्क)" }] }
+      ];
+
+      function createForm() {
+        conteudoDiv.innerHTML = '';
+        camData.forEach(criterion => {
+          const card = document.createElement('div');
+          card.className = 'criterion-card';
+
+          card.innerHTML = `
+                    <div class="criterion-title-container">
+                        <h3 class="criterion-title">${criterion.title}</h3>
+                        <p class="criterion-description">${criterion.description}</p>
+                    </div>
+                    <div class="options-container">
+                        <select id="${criterion.id}-select" class="custom-select">
+                            <option value="" disabled selected>एक विकल्प चुनें...</option>
+                            ${criterion.options.map(opt => `<option value="${opt.score}">${opt.text}</option>`).join('')}
+                        </select>
+                    </div>
+                `;
+          conteudoDiv.appendChild(card);
+        });
+      }
+
+      function calcular() {
+        let allSelected = true;
+        const selections = {};
+
+        camData.forEach(criterion => {
+          const select = document.getElementById(`${criterion.id}-select`);
+          if (select && select.value) {
+            selections[criterion.id] = parseInt(select.value, 10);
+          } else {
+            allSelected = false;
+          }
+        });
+
+        if (!allSelected) {
+          resultadoDiv.innerHTML = '⚠️ <strong class="font-bold">कृपया प्रत्येक मानदंड के लिए एक विकल्प चुनें।</strong>';
+          resultadoDiv.className = 'standard-result-box bg-info-orange-light';
+          resultadoDiv.style.display = 'block';
+          delete resultadoDiv.dataset.resultado;
+          return;
+        }
+
+        const feature1 = selections.feature1 === 1;
+        const feature2 = selections.feature2 === 1;
+        const feature3 = selections.feature3 === 1;
+        const feature4 = selections.feature4 === 1;
+
+        let resultadoFinal = "";
+        if (feature1 && feature2 && (feature3 || feature4)) {
+          resultadoFinal = "डेलीरियम उपस्थित";
+        } else {
+          resultadoFinal = "डेलीरियम अनुपस्थित";
+        }
+
+        resultadoDiv.innerHTML = `<p class="font-bold text-lg">परिणाम: <span class="font-black">${resultadoFinal}</span></p>`;
+        resultadoDiv.className = 'standard-result-box';
+        resultadoDiv.style.display = 'block';
+        resultadoDiv.dataset.resultado = resultadoFinal;
+      }
+
+      function limpar() {
+        createForm();
+        resultadoDiv.innerHTML = '';
+        resultadoDiv.className = 'hidden';
+        delete resultadoDiv.dataset.resultado;
+      }
+
+      createForm();
+      btnCalcular?.addEventListener('click', calcular);
+      btnLimpar?.addEventListener('click', limpar);
+
+      btnGerarPDF?.addEventListener('click', () => {
+        if (!resultadoDiv.dataset.resultado) {
+          alert('पीडीएफ बनाने के लिए कृपया पहले "गणना करें" पर क्लिक करें।');
+          return;
+        }
+        if (typeof gerarPDFGlobal === 'function') {
+          gerarPDFGlobal({
+            titulo: 'CAM-ICU स्केल',
+            subtitulo: 'आईसीयू में डेलीरियम मूल्यांकन रिपोर्ट',
+            nomeArquivo: 'relatorio_escala_cam_icu.pdf',
+            seletorConteudo: '.main-content-wrapper'
+          });
+        } else {
+          console.error('Função gerarPDFGlobal não definida.');
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener('click', () => {
+        const resultado = resultadoDiv.dataset.resultado;
+        if (!resultado) {
+          alert('आचरण खोजने के लिए परिणाम की गणना करें।');
+          return;
+        }
+        const searchQuery = encodeURIComponent(`CAM-ICU resultado ${resultado} gerar taxonomia NANDA, gerar taxonomia NIC e gerar taxonomia de NOC`);
+        window.open(`https://www.google.com/search?q=${searchQuery}`, '_blank');
+      });
+    });
+  </script>
 
 
 

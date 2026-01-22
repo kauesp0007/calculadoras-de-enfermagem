@@ -627,7 +627,164 @@
 
 
   <!-- Sayfaya özel betik -->
-  
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const resultadoDiv = document.getElementById("resultado");
+      const btnCalcular = document.getElementById("btnCalcular");
+      const btnLimpar = document.getElementById("btnLimpar");
+      const btnGerarPDF = document.getElementById("btnGerarPDF");
+      const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
+
+      function calcularIMC() {
+        const peso = parseFloat(document.getElementById("peso").value);
+        const altura = parseFloat(document.getElementById("altura").value);
+
+        // İçeriği temizle ve sonuç sınıflarını kaldır
+        resultadoDiv.innerHTML = "";
+        resultadoDiv.className = "resultado-quadro hidden";
+
+        // Giriş doğrulaması
+        if (isNaN(peso) || isNaN(altura) || peso <= 0 || altura <= 0) {
+          resultadoDiv.innerHTML = `<p>⚠️ <strong class="text-red-600">Lütfen ağırlık ve boy için sıfırdan büyük geçerli sayısal değerler girin.</strong></p>`;
+          resultadoDiv.classList.remove("hidden");
+          resultadoDiv.classList.add("bg-danger-red");
+          return;
+        }
+
+        const imc = peso / (altura * altura);
+        let classificacao = "";
+        let conduta = "";
+        let resultadoBgClass = "";
+
+        if (imc < 18.5) {
+          classificacao = "Düşük kilolu";
+          conduta =
+            "Yetersiz beslenme riski. Beslenme değerlendirmesi ve takibi önerilir.";
+          resultadoBgClass = "bg-danger-red";
+        } else if (imc >= 18.5 && imc < 24.9) {
+          classificacao = "Normal kilolu";
+          conduta =
+            "Sağlıklı yaşam alışkanlıklarını sürdürün. İyi beslenme durumu.";
+          resultadoBgClass = "bg-success-green";
+        } else if (imc >= 25 && imc < 29.9) {
+          classificacao = "Fazla kilolu";
+          conduta =
+            "Yaşam tarzı ve beslenme değişikliklerine dikkat edin. Beslenme değerlendirmesi endike olabilir.";
+          resultadoBgClass = "bg-info-orange-light";
+        } else {
+          // Obezite
+          conduta =
+            "Acil müdahale ve multidisipliner takip. Ciddi komorbiditeler için yüksek risk.";
+          resultadoBgClass = "bg-danger-red";
+
+          if (imc >= 30 && imc < 34.9) {
+            classificacao = "Obezite Sınıf I";
+          } else if (imc >= 35 && imc < 39.9) {
+            classificacao = "Obezite Sınıf II";
+          } else {
+            classificacao = "Obezite Sınıf III (Morbid)";
+          }
+        }
+
+        // Formatlanmış sonucu göster
+        resultadoDiv.innerHTML = `
+                    <table class="w-full">
+                        <tbody>
+                            <tr>
+                                <td class="font-bold pr-2">Hesaplanan VKE:</td>
+                                <td>${imc.toFixed(2)} <abbr title="kilogram bölü metrekare">kg/m²</abbr></td>
+                            </tr>
+                            <tr>
+                                <td class="font-bold pr-2">Sınıflandırma:</td>
+                                <td>${classificacao}</td>
+                            </tr>
+                            <tr>
+                                <td class="font-bold pr-2">Hemşirelik Yaklaşımı:</td>
+                                <td>${conduta}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                `;
+        resultadoDiv.classList.remove("hidden");
+        resultadoDiv.classList.add(resultadoBgClass);
+
+        // PDF ve NANDA oluşturma için değerleri ve ayrıntıları sakla
+        resultadoDiv.dataset.imc = imc.toFixed(2);
+        resultadoDiv.dataset.classificacao = classificacao;
+        resultadoDiv.dataset.conduta = conduta;
+        resultadoDiv.dataset.peso = peso;
+        resultadoDiv.dataset.altura = altura;
+        resultadoDiv.dataset.scaleName = "VKE Hesaplayıcısı";
+      }
+
+      function limparCampos() {
+        document.getElementById("peso").value = "";
+        document.getElementById("altura").value = "";
+        resultadoDiv.innerHTML = "";
+        resultadoDiv.classList.add("hidden");
+        // Veri özniteliklerini temizle
+        delete resultadoDiv.dataset.imc;
+        delete resultadoDiv.dataset.classificacao;
+        delete resultadoDiv.dataset.conduta;
+        delete resultadoDiv.dataset.peso;
+        delete resultadoDiv.dataset.altura;
+        delete resultadoDiv.dataset.scaleName;
+      }
+
+      // PDF oluşturma işlevi
+      function gerarPDF() {
+        if (!resultadoDiv.dataset.imc) {
+          showCustomMessage(
+            "Lütfen PDF oluşturmadan önce VKE'yi hesaplayın.",
+          );
+          return;
+        }
+        if (typeof gerarPDFGlobal === "function") {
+          gerarPDFGlobal({
+            titulo: "Vücut Kitle Endeksi Hesaplayıcısı",
+            subtitulo: "VKE Değerlendirme Raporu",
+            nomeArquivo: "rapor_vke.pdf",
+            seletorConteudo: ".main-content-wrapper",
+          });
+        } else {
+          console.error("gerarPDFGlobal işlevi tanımlanmadı.");
+        }
+      }
+
+      // NANDA, NIC, NOC butonu için olay dinleyicisi ekle
+      if (btnNandaNicNoc) {
+        btnNandaNicNoc.addEventListener("click", () => {
+          const imcValue = resultadoDiv.dataset.imc;
+          const classificacao = resultadoDiv.dataset.classificacao;
+          const conduta = resultadoDiv.dataset.conduta;
+          const scaleName = resultadoDiv.dataset.scaleName;
+
+          if (!imcValue || !classificacao || !conduta) {
+            showCustomMessage("Yaklaşımı aramak için sonucu hesaplayın.");
+            return;
+          }
+          const searchQuery = encodeURIComponent(
+            `VKE: ${imcValue}, Sınıflandırma: ${classificacao}, Hemşirelik Yaklaşımı: ${conduta} - ${scaleName} NANDA hemşirelik tanıları OLUŞTUR, NIC hemşirelik girişimleri OLUŞTUR, Hemşire tarafından uygulanan sonuçların ölçümüne bir örnek (NOC) Oluştur`,
+          );
+          window.open(
+            `https://www.google.com/search?q=${searchQuery}`,
+            "_blank",
+          );
+        });
+      }
+
+      // showCustomMessage'in (global-scripts.js'de olması gereken) tanımlı olduğunu varsayarak
+      function showCustomMessage(message) {
+        // Geçici olarak alert kullanıyoruz, global-scripts.js'de daha iyi bir modal olmalı
+        alert(message);
+      }
+
+      // Olay dinleyicilerini ekle
+      btnCalcular?.addEventListener("click", calcularIMC);
+      btnLimpar?.addEventListener("click", limparCampos);
+      btnGerarPDF?.addEventListener("click", gerarPDF);
+    });
+  </script>
 
   <script src="/lang-selector.js" defer=""></script>
 

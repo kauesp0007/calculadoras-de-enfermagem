@@ -573,7 +573,427 @@
 
 
 
-  
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const resultadoDiv = document.getElementById("resultado");
+      const btnCalcular = document.getElementById("btnCalcular");
+      const btnLimpar = document.getElementById("btnLimpar");
+      const btnGerarPDF = document.getElementById("btnGerarPDF");
+      const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
+      const conteudoDiv = document.getElementById("conteudo");
+
+      const perrocaData = [
+        {
+          title: "1. Tình trạng tinh thần và mức độ ý thức",
+          nameAttr: "estado_mental",
+          options: [
+            { description: "Định hướng theo thời gian và không thời gian", score: 1 },
+            { description: "Mất phương hướng về thời gian và/hoặc không thời gian", score: 2 },
+            { description: "Buồn ngủ", score: 3 },
+            { description: "Trong cơn mê", score: 4 },
+            { description: "Hôn mê", score: 5 }]
+
+        },
+        {
+          title: "2. Oxy hóa",
+          nameAttr: "sự oxy hóa",
+          options: [
+            { description: "Hít thở không khí xung quanh", score: 1 },
+            { description: "Use O2 quaống thông tin hoặc mặt nạ", score: 2 },
+            { description: "Sử dụng máy chấm công cơ bản", score: 3 },
+            {
+              description: "Sử dụng O2 trong trường hợp hô hấp không ổn định",
+              score: 4
+            },
+            {
+              description:
+                "Sử dụng O2 trong tình trạng nguy kịch, với tình trạng huyết động bất ổn",
+              score: 5
+            }]
+
+        },
+        {
+          title: "3. Dấu hiệu sinh tồn",
+          nameAttr: "sinais_vitais",
+          options: [
+            { description: "Ổn định", score: 1 },
+            {
+              description: "Không ổn định, công việc theo dõi không liên tục",
+              score: 2
+            },
+            {
+              description: "Không ổn định, cần theo dõi liên tục",
+              score: 3
+            },
+            { description: "Không ổn định, cần hỗ trợ dược phẩm", score: 4 },
+            { description: "Không ổn định, có hỗ trợ nâng cao", score: 5 }]
+
+        },
+        {
+          title: "4. Dinh dưỡng và dưỡng ẩm",
+          nameAttr: "dinh dưỡng",
+          options: [
+            { description: "Uống", score: 1 },
+            {
+              description:
+                "Uống bằng cách hỗ trợ hoặc qua ống thông dạ dày/ống thông dã",
+              score: 2
+            },
+            { description: "Toàn bộ phần đường tĩnh và/hoặc đường tĩnh", score: 3 },
+            { description: "Đúng rồi", score: 4 },
+            {
+              description:
+                "Đường tĩnh mạch duy nhất với trạng thái động lực không ổn định",
+              score: 5
+            }]
+
+        },
+        {
+          title: "5. Khả năng vận hành",
+          nameAttr: "khả năng vận động",
+          options: [
+            {
+              description: "Cài đặt độc lập, không giới hạn chế độ chuyển động",
+              score: 1
+            },
+            {
+              description: "Phụ thuộc một phần, hạn chế hoạt động",
+              score: 2
+            },
+            {
+              description: "Hoàn toàn phụ thuộc, được giới hạn trên giường",
+              score: 3
+            },
+            {
+              description:
+                "Hoàn toàn phụ thuộc, được giới hạn vận hành một hoặc nhiều chi",
+              score: 4
+            },
+            {
+              description:
+                "Bị bất động trên giường, có cơ sở nguy hiểm và chấn thương",
+              score: 5
+            }]
+
+        },
+        {
+          title: "6. Vận chuyển",
+          nameAttr: "sự vận động",
+          options: [
+            { description: "Đây là những gì bạn có thể tìm thấy trong trợ giúp", score: 1 },
+            {
+              description:
+                "Đây là những gì bạn sẽ thấy, đây là những gì bạn sẽ nghe",
+              score: 2
+            },
+            {
+              description: "Di chuyển bằng xe lăn",
+              score: 3
+            },
+            { description: "Đây là những gì bạn sẽ thấy trong tin nhắn của mình", score: 4 },
+            {
+              description:
+                "Đây là những gì bạn cần biết",
+              score: 5
+            }]
+
+        },
+        {
+          title: "7. Chăm sóc cơ thể",
+          nameAttr: "cuidado_corporal",
+          options: [
+            { description: "Hoàn toàn độc lập", score: 1 },
+            {
+              description: "Hỗ trợ một số hoạt động (tắm rửa, bảo vệ cá nhân)",
+              score: 2
+            },
+            {
+              description: "Đây là những gì bạn sẽ tìm thấy ngay bây giờ",
+              score: 3
+            },
+            {
+              description:
+                "Hoàn toàn phụ thuộc vào vệ sinh, sử dụng ống thông, băng bó, v.v.",
+              score: 4
+            },
+            {
+              description: "Đó là tất cả những gì bạn cần làm, xem chuyện gì đang xảy ra",
+              score: 5
+            }]
+
+        },
+        {
+          title: "8. Loại bỏ",
+          nameAttr: "sự loại bỏ",
+          options: [
+            { description: "Đây là những gì bạn sẽ thấy", score: 1 },
+            {
+              description: "Tiểu không tự chủ hoặc đại tiện không chủ, nhưng có sự trợ giúp",
+              score: 2
+            },
+            {
+              description: "Tiện ích tiểu tiện và đại tiện không chủ, phải sử dụng rộng rãi",
+              score: 3
+            },
+            {
+              description:
+                "Tiện ích tiểu tiện và đại tiện không chủ, kèm theo tiêu chuẩn và/hoặc sử dụng ống thông tin",
+              score: 4
+            },
+            { description: "Bịt tiểu tự động và chạy nhân viên", score: 5 }]
+
+        },
+        {
+          title: "9. Điều trị",
+          nameAttr: "trị liệu",
+          options: [
+            { description: "Uống (PO) hoặc tiêm (IM)", score: 1 },
+            { description: "Bạn có đoạn mạch (IV) bị gián đoạn", score: 2 },
+            { description: "EV liên tục trong quá trình truyền tải", score: 3 },
+            {
+              description:
+                "EV liên tục truyền dịch với thuốc tác động mạch máu",
+              score: 4
+            },
+            {
+              description:
+                "EV liên tục truyền dịch với thuốc giãn mạch và máy hỗ trợ",
+              score: 5
+            }]
+
+        },
+        {
+          title: "10. Bạn không liên quan gì đến tôi",
+          nameAttr: "toàn bộ tính năng",
+          options: [
+            { description: "Da nguyên, không có dấu vết", score: 1 },
+            { description: "Tổng bề mặt thương mại", score: 2 },
+            { description: "Tổn thương da kèm theo bị mất mô", score: 3 },
+            {
+              description: "Điều đó đúng với bạn",
+              score: 4
+            },
+            {
+              description:
+                "Tổn thương da bị mất mô và nhiễm trùng nặng",
+              score: 5
+            }]
+
+        },
+        {
+          title: "11. Giáo dục sức khỏe",
+          nameAttr: "giáo dục",
+          options: [
+            { description: "Không cần hướng dẫn", score: 1 },
+            {
+              description: "Bạn có thể làm gì khi ở một mình",
+              score: 2
+            },
+            {
+              description: "Làm thế nào để đến đó ngay bây giờ",
+              score: 3
+            },
+            { description: "Không thể hiểu hướng dẫn", score: 4 },
+            {
+              description: "Không thể hiểu và cân",
+              score: 5
+            }]
+
+        },
+        {
+          title: "12. Hành vi",
+          nameAttr: "hành vi",
+          options: [
+            { description: "Bình tĩnh và hợp tác", score: 1 },
+            { description: "Bồn chồn và lo lắng", score: 2 },
+            { description: "Đừng quên đến đây", score: 3 },
+            { description: "Hung hăng và bạo lực", score: 4 },
+            {
+              description: "Hung hãn và bạo lực, nguy hiểm đến tính mạng",
+              score: 5
+            }]
+
+        },
+        {
+          title: "13. Quan hệ giữa các cá nhân",
+          nameAttr: "relacoes_interpessoais",
+          options: [
+            { description: "Tương tác với nhân viên và gia đình", score: 1 },
+            {
+              description:
+                "Tương tác với nhân viên và gia đình gặp khó khăn",
+              score: 2
+            },
+            {
+              description: "Chỉ tương tác với nhóm hoặc gia đình",
+              score: 3
+            },
+            { description: "Không tương thích", score: 4 },
+            { description: "Cách ly hoàn toàn", score: 5 }]
+
+        }];
+
+
+      // Preenche o formulário dinamicamente
+      perrocaData.forEach((item) => {
+        const sectionDiv = document.createElement("div");
+        sectionDiv.className = "perroca-tiêu-phần";
+        sectionDiv.id = `section-${item.nameAttr}`;
+
+        const titleH3 = document.createElement("h3");
+        titleH3.className = "perroca-tiêu chí-tiêu đề";
+        titleH3.innerHTML = item.title;
+        sectionDiv.appendChild(titleH3);
+
+        const selectElement = document.createElement("select");
+        selectElement.id = item.nameAttr;
+        selectElement.className = "perroca-tiêu chí-chọn mt-2";
+
+        const defaultOption = document.createElement("option");
+        defaultOption.value = "";
+        defaultOption.text = "Chọn...";
+        selectElement.appendChild(defaultOption);
+
+        item.options.forEach((option) => {
+          const optionElement = document.createElement("option");
+          optionElement.value = option.score;
+          optionElement.text = `${option.description} (điểm: ${option.score})`;
+          selectElement.appendChild(optionElement);
+        });
+
+        sectionDiv.appendChild(selectElement);
+        conteudoDiv.appendChild(sectionDiv);
+      });
+
+      function calcularPerroca() {
+        const selects = document.querySelectorAll("#conteudo select");
+        let allSelected = true;
+        let total = 0;
+
+        selects.forEach((select) => {
+          if (select.value === "") {
+            allSelected = false;
+            select.classList.add("không đầy đủ");
+          } else {
+            select.classList.remove("không đầy đủ");
+            total += Number(select.value);
+          }
+        });
+
+        resultadoDiv.style.display = "block";
+        if (!allSelected) {
+          resultadoDiv.innerHTML =
+            '⚠️ <strong class="font-bold">Por favor, selecione uma opção para todos os itens antes de calcular.</strong>';
+          resultadoDiv.className = `bg-đỏ-100 là gì`;
+          delete resultadoDiv.dataset.score;
+          return;
+        }
+
+        let recomendacao = "";
+
+        if (total >= 13 && total <= 26) {
+          recomendacao = `Điểm ${total} chỉ định một bệnh nhân cần chăm sóc tối thiểu.`;
+        } else if (total >= 27 && total <= 39) {
+          recomendacao = `Điểm ${total} chỉ định một bệnh nhân cần chăm sóc Trung Gian.`;
+        } else if (total >= 40 && total <= 52) {
+          recomendacao = `Điểm ${total} chỉ định một bệnh nhân cần chăm sóc chuyên sâu.`;
+        } else {
+          // total >= 53
+          recomendacao = `Điểm ${total} chỉ định một bệnh nhân cần chăm sóc đặc biệt.`;
+        }
+
+        resultadoDiv.innerHTML = `
+                <p>Escore total: <strong class="font-bold">${total}</strong></p>
+                <p class="mt-4"><strong>Recomendação:</strong> ${recomendacao}</p>
+            `;
+        resultadoDiv.className = `bg-blue-50 là gì`;
+        resultadoDiv.style.display = "block";
+
+        resultadoDiv.dataset.score = total;
+        resultadoDiv.dataset.scaleName = "Thang điểm Perroca";
+      }
+
+      function limparCampos() {
+        const selects = document.querySelectorAll("#conteudo select");
+        selects.forEach((select) => {
+          select.selectedIndex = 0;
+          select.classList.remove("không đầy đủ");
+        });
+        resultadoDiv.innerHTML = "";
+        resultadoDiv.className = "kết quả ẩn";
+        delete resultadoDiv.dataset.score;
+        delete resultadoDiv.dataset.scaleName;
+      }
+
+      // Adiciona os event listeners aos botões
+      btnCalcular?.addEventListener("click", calcularPerroca);
+      btnLimpar?.addEventListener("click", limparCampos);
+
+      btnGerarPDF?.addEventListener("click", () => {
+        if (!resultadoDiv.dataset.score) {
+          alert(
+            "Xem những gì bạn có thể thấy \"Tính điểm\" trước để tạo tệp PDF."
+          );
+          return;
+        }
+        if (typeof gerarPDFGlobal === "chức năng") {
+          const selectedOptions = {};
+          document.querySelectorAll("#conteudo select").forEach((select) => {
+            const selected = select.options[select.selectedIndex];
+            if (selected.value !== "") {
+              selectedOptions[select.id] = selected.text;
+            }
+          });
+
+          let contentToPrint = document.
+            querySelector(".main-content-wrapper").
+            cloneNode(true);
+          let contentContainer = contentToPrint.querySelector("#conteudo");
+
+          contentContainer.innerHTML = "";
+
+          perrocaData.forEach((item) => {
+            let selectedText = selectedOptions[item.nameAttr];
+            if (selectedText) {
+              let itemDiv = document.createElement("div");
+              itemDiv.className = "mb-2 p-2 bg-gray-50 rounded";
+              itemDiv.innerHTML = `<strong>${item.title}:</strong> ${selectedText}`;
+              contentContainer.appendChild(itemDiv);
+            }
+          });
+
+          let resultadoHtml = resultadoDiv.cloneNode(true);
+          if (resultadoHtml.style.display !== "none") {
+            contentContainer.appendChild(resultadoHtml);
+          }
+
+          gerarPDFGlobal({
+            titulo: "Thang điểm Perroca (SCP)",
+            subtitulo: "Báo cao phân loại bệnh nhân",
+            nomeArquivo: "relatorio_escala_perroca.pdf",
+            seletorConteudo: ".main-content-wrapper"
+          });
+        } else {
+          console.error("Bạn không thể tạo PDFGlobal không được xác định.");
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener("click", () => {
+        const score = resultadoDiv.dataset.score;
+        const scaleName = resultadoDiv.dataset.scaleName;
+        if (!score) {
+          alert("Tính toán kết quả để nghiên cứu hành động vi.");
+          return;
+        }
+        const searchQuery = encodeURIComponent(
+          `${scaleName} có thể tạo phân loại NANDA, tạo phân loại NIC và tạo phân loại NOC`
+        );
+        window.open(
+          `https://www.google.com/search?q=${searchQuery}`,
+          "_blank"
+        );
+      });
+    });</script>
 
   <script src="/lang-selector.js" defer=""></script>
 

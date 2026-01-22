@@ -586,7 +586,449 @@
 
 
 
-  
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const resultadoDiv = document.getElementById("resultado");
+      const btnCalcular = document.getElementById("btnCalcular");
+      const btnLimpar = document.getElementById("btnLimpar");
+      const btnGerarPDF = document.getElementById("btnGerarPDF");
+      const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
+      const conteudoDiv = document.getElementById("conteudo");
+
+      const zaritData = [
+        {
+          title:
+            "1. Akıl hastalığı olan birine bakım vermekten rahatsızlık duyuyor musunuz?",
+          nameAttr: "zarit_q1",
+          options: [
+            { description: "Hiçbir Zaman", score: 0 },
+            { description: "Nadiren", score: 1 },
+            { description: "Bazen", score: 2 },
+            { description: "Oldukça Sık", score: 3 },
+            { description: "Her Zaman", score: 4 },
+          ],
+        },
+        {
+          title:
+            "2. Kendiniz için ayırdığınız zamanın yeterli olmadığını hissediyor musunuz?",
+          nameAttr: "zarit_q2",
+          options: [
+            { description: "Hiçbir Zaman", score: 0 },
+            { description: "Nadiren", score: 1 },
+            { description: "Bazen", score: 2 },
+            { description: "Oldukça Sık", score: 3 },
+            { description: "Her Zaman", score: 4 },
+          ],
+        },
+        {
+          title:
+            "3. Aile üyenizin yakınında olduğunuzda stresli hissediyor musunuz?",
+          nameAttr: "zarit_q3",
+          options: [
+            { description: "Hiçbir Zaman", score: 0 },
+            { description: "Nadiren", score: 1 },
+            { description: "Bazen", score: 2 },
+            { description: "Oldukça Sık", score: 3 },
+            { description: "Her Zaman", score: 4 },
+          ],
+        },
+        {
+          title: "4. Aile üyenizin davranışlarından utanç duyuyor musunuz?",
+          nameAttr: "zarit_q4",
+          options: [
+            { description: "Hiçbir Zaman", score: 0 },
+            { description: "Nadiren", score: 1 },
+            { description: "Bazen", score: 2 },
+            { description: "Oldukça Sık", score: 3 },
+            { description: "Her Zaman", score: 4 },
+          ],
+        },
+        {
+          title: "5. Aile üyenize kızgın hissediyor musunuz?",
+          nameAttr: "zarit_q5",
+          options: [
+            { description: "Hiçbir Zaman", score: 0 },
+            { description: "Nadiren", score: 1 },
+            { description: "Bazen", score: 2 },
+            { description: "Oldukça Sık", score: 3 },
+            { description: "Her Zaman", score: 4 },
+          ],
+        },
+        {
+          title:
+            "6. Aile üyenize bakmanın diğer insanlarla ilişkilerinizi etkilediğini hissediyor musunuz?",
+          nameAttr: "zarit_q6",
+          options: [
+            { description: "Hiçbir Zaman", score: 0 },
+            { description: "Nadiren", score: 1 },
+            { description: "Bazen", score: 2 },
+            { description: "Oldukça Sık", score: 3 },
+            { description: "Her Zaman", score: 4 },
+          ],
+        },
+        {
+          title:
+            "7. Aile üyenize bakmanın sağlığınızı etkilediğini hissediyor musunuz?",
+          nameAttr: "zarit_q7",
+          options: [
+            { description: "Hiçbir Zaman", score: 0 },
+            { description: "Nadiren", score: 1 },
+            { description: "Bazen", score: 2 },
+            { description: "Oldukça Sık", score: 3 },
+            { description: "Her Zaman", score: 4 },
+          ],
+        },
+        {
+          title:
+            "8. Aile üyenize bakmanın hayatınızı olumsuz yönde değiştirdiğini hissediyor musunuz?",
+          nameAttr: "zarit_q8",
+          options: [
+            { description: "Hiçbir Zaman", score: 0 },
+            { description: "Nadiren", score: 1 },
+            { description: "Bazen", score: 2 },
+            { description: "Oldukça Sık", score: 3 },
+            { description: "Her Zaman", score: 4 },
+          ],
+        },
+        {
+          title:
+            "9. Hayatınız üzerindeki kontrolü kaybettiğinizi hissediyor musunuz?",
+          nameAttr: "zarit_q9",
+          options: [
+            { description: "Hiçbir Zaman", score: 0 },
+            { description: "Nadiren", score: 1 },
+            { description: "Bazen", score: 2 },
+            { description: "Oldukça Sık", score: 3 },
+            { description: "Her Zaman", score: 4 },
+          ],
+        },
+        {
+          title:
+            "10. Aile üyenizin geleceği konusunda endişeli hissediyor musunuz?",
+          nameAttr: "zarit_q10",
+          options: [
+            { description: "Hiçbir Zaman", score: 0 },
+            { description: "Nadiren", score: 1 },
+            { description: "Bazen", score: 2 },
+            { description: "Oldukça Sık", score: 3 },
+            { description: "Her Zaman", score: 4 },
+          ],
+        },
+        {
+          title:
+            "11. Aile üyenizin size bağımlı olduğunu hissediyor musunuz?",
+          nameAttr: "zarit_q11",
+          options: [
+            { description: "Hiçbir Zaman", score: 0 },
+            { description: "Nadiren", score: 1 },
+            { description: "Bazen", score: 2 },
+            { description: "Oldukça Sık", score: 3 },
+            { description: "Her Zaman", score: 4 },
+          ],
+        },
+        {
+          title:
+            "12. Aile üyenize bakmak için yardıma ihtiyacınız olduğunu hissediyor musunuz?",
+          nameAttr: "zarit_q12",
+          options: [
+            { description: "Hiçbir Zaman", score: 0 },
+            { description: "Nadiren", score: 1 },
+            { description: "Bazen", score: 2 },
+            { description: "Oldukça Sık", score: 3 },
+            { description: "Her Zaman", score: 4 },
+          ],
+        },
+        {
+          title:
+            "13. Aile üyenizin sizin için bir yük olduğunu hissediyor musunuz?",
+          nameAttr: "zarit_q13",
+          options: [
+            { description: "Hiçbir Zaman", score: 0 },
+            { description: "Nadiren", score: 1 },
+            { description: "Bazen", score: 2 },
+            { description: "Oldukça Sık", score: 3 },
+            { description: "Her Zaman", score: 4 },
+          ],
+        },
+        {
+          title:
+            "14. Aile üyenizin sizi eleştirdiğini veya azarladığını hissediyor musunuz?",
+          nameAttr: "zarit_q14",
+          options: [
+            { description: "Hiçbir Zaman", score: 0 },
+            { description: "Nadiren", score: 1 },
+            { description: "Bazen", score: 2 },
+            { description: "Oldukça Sık", score: 3 },
+            { description: "Her Zaman", score: 4 },
+          ],
+        },
+        {
+          title:
+            "15. Aile üyenize bakmanın kişisel hayatınızı etkilediğini hissediyor musunuz?",
+          nameAttr: "zarit_q15",
+          options: [
+            { description: "Hiçbir Zaman", score: 0 },
+            { description: "Nadiren", score: 1 },
+            { description: "Bazen", score: 2 },
+            { description: "Oldukça Sık", score: 3 },
+            { description: "Her Zaman", score: 4 },
+          ],
+        },
+        {
+          title:
+            "16. Aile üyenizin sizden gerçekçi olmayan beklentilere sahip olduğunu hissediyor musunuz?",
+          nameAttr: "zarit_q16",
+          options: [
+            { description: "Hiçbir Zaman", score: 0 },
+            { description: "Nadiren", score: 1 },
+            { description: "Bazen", score: 2 },
+            { description: "Oldukça Sık", score: 3 },
+            { description: "Her Zaman", score: 4 },
+          ],
+        },
+        {
+          title:
+            "17. Aile üyenize bakmadan önce sahip olduğunuzdan daha az paranız olduğunu hissediyor musunuz?",
+          nameAttr: "zarit_q17",
+          options: [
+            { description: "Hiçbir Zaman", score: 0 },
+            { description: "Nadiren", score: 1 },
+            { description: "Bazen", score: 2 },
+            { description: "Oldukça Sık", score: 3 },
+            { description: "Her Zaman", score: 4 },
+          ],
+        },
+        {
+          title:
+            "18. Eskiden yaptığınız sosyal aktiviteleri yapamadığınızı hissediyor musunuz?",
+          nameAttr: "zarit_q18",
+          options: [
+            { description: "Hiçbir Zaman", score: 0 },
+            { description: "Nadiren", score: 1 },
+            { description: "Bazen", score: 2 },
+            { description: "Oldukça Sık", score: 3 },
+            { description: "Her Zaman", score: 4 },
+          ],
+        },
+        {
+          title:
+            "19. Şu anda sahip olduğunuzdan daha fazla mahremiyete ihtiyacınız olduğunu hissediyor musunuz?",
+          nameAttr: "zarit_q19",
+          options: [
+            { description: "Hiçbir Zaman", score: 0 },
+            { description: "Nadiren", score: 1 },
+            { description: "Bazen", score: 2 },
+            { description: "Oldukça Sık", score: 3 },
+            { description: "Her Zaman", score: 4 },
+          ],
+        },
+        {
+          title:
+            "20. Kişisel ve profesyonel hayatınızdaki rolünüzü kaybettiğinizi hissediyor musunuz?",
+          nameAttr: "zarit_q20",
+          options: [
+            { description: "Hiçbir Zaman", score: 0 },
+            { description: "Nadiren", score: 1 },
+            { description: "Bazen", score: 2 },
+            { description: "Oldukça Sık", score: 3 },
+            { description: "Her Zaman", score: 4 },
+          ],
+        },
+        {
+          title:
+            "21. Aile üyenizin sizin için duygusal bir yük olduğunu hissediyor musunuz?",
+          nameAttr: "zarit_q21",
+          options: [
+            { description: "Hiçbir Zaman", score: 0 },
+            { description: "Nadiren", score: 1 },
+            { description: "Bazen", score: 2 },
+            { description: "Oldukça Sık", score: 3 },
+            { description: "Her Zaman", score: 4 },
+          ],
+        },
+        {
+          title:
+            "22. Aile üyenizle olan ilişkinizin kötüye gittiğini hissediyor musunuz?",
+          nameAttr: "zarit_q22",
+          options: [
+            { description: "Hiçbir Zaman", score: 0 },
+            { description: "Nadiren", score: 1 },
+            { description: "Bazen", score: 2 },
+            { description: "Oldukça Sık", score: 3 },
+            { description: "Her Zaman", score: 4 },
+          ],
+        },
+      ];
+
+      // Formu dinamik olarak doldur
+      zaritData.forEach((item) => {
+        const sectionDiv = document.createElement("div");
+        sectionDiv.className = "zarit-criterion-section";
+        sectionDiv.id = `section-${item.nameAttr}`;
+
+        const titleH3 = document.createElement("h3");
+        titleH3.className = "zarit-criterion-title";
+        titleH3.innerHTML = item.title;
+        sectionDiv.appendChild(titleH3);
+
+        const selectElement = document.createElement("select");
+        selectElement.id = item.nameAttr;
+        selectElement.className = "zarit-criterion-select mt-2";
+
+        const defaultOption = document.createElement("option");
+        defaultOption.value = "";
+        defaultOption.text = "Seçiniz...";
+        selectElement.appendChild(defaultOption);
+
+        item.options.forEach((option) => {
+          const optionElement = document.createElement("option");
+          optionElement.value = option.score;
+          optionElement.text = `${option.description} (puan: ${option.score})`;
+          selectElement.appendChild(optionElement);
+        });
+
+        sectionDiv.appendChild(selectElement);
+        conteudoDiv.appendChild(sectionDiv);
+      });
+
+      function calcularZarit() {
+        const selects = document.querySelectorAll("#conteudo select");
+        let allSelected = true;
+        let total = 0;
+
+        selects.forEach((select) => {
+          if (select.value === "") {
+            allSelected = false;
+            select.classList.add("incomplete");
+          } else {
+            select.classList.remove("incomplete");
+            total += Number(select.value);
+          }
+        });
+
+        resultadoDiv.style.display = "block";
+        if (!allSelected) {
+          resultadoDiv.innerHTML =
+            '⚠️ <strong class="font-bold">Lütfen hesaplamadan önce tüm maddeler için bir seçenek seçin.</strong>';
+          resultadoDiv.className = `resultado bg-red-100`;
+          delete resultadoDiv.dataset.score;
+          return;
+        }
+
+        let recomendacao = "";
+
+        if (total <= 21) {
+          recomendacao = `${total} puanı yük bulunmadığını göstermektedir.`;
+        } else if (total >= 22 && total <= 41) {
+          recomendacao = `${total} puanı hafif ila orta düzeyde yük olduğunu göstermektedir. Bakım verene destek ve kaynaklar sunulması önerilir.`;
+        } else if (total >= 42 && total <= 60) {
+          recomendacao = `${total} puanı orta ila şiddetli düzeyde yük olduğunu göstermektedir. Bakım veren psikolojik destek, yardım grupları ve/veya profesyonel yardıma ihtiyaç duyabilir.`;
+        } else {
+          // total >= 61
+          recomendacao = `${total} puanı şiddetli yük olduğunu göstermektedir. Bakım verenin fiziksel ve ruhsal sağlığını korumak için çok disiplinli destekle acil müdahale gereklidir.`;
+        }
+
+        resultadoDiv.innerHTML = `
+                <p>Toplam Skor: <strong class="font-bold">${total}</strong></p>
+                <p class="mt-4"><strong>Öneri:</strong> ${recomendacao}</p>
+            `;
+        resultadoDiv.className = `resultado bg-blue-50`;
+        resultadoDiv.style.display = "block";
+
+        resultadoDiv.dataset.score = total;
+        resultadoDiv.dataset.scaleName = "Zarit Bakıcı Yükü Ölçeği";
+      }
+
+      function limparCampos() {
+        const selects = document.querySelectorAll("#conteudo select");
+        selects.forEach((select) => {
+          select.selectedIndex = 0;
+          select.classList.remove("incomplete");
+        });
+        resultadoDiv.innerHTML = "";
+        resultadoDiv.className = "resultado hidden";
+        delete resultadoDiv.dataset.score;
+        delete resultadoDiv.dataset.scaleName;
+      }
+
+      // Butonlara olay dinleyicileri ekle
+      btnCalcular?.addEventListener("click", calcularZarit);
+      btnLimpar?.addEventListener("click", limparCampos);
+
+      btnGerarPDF?.addEventListener("click", () => {
+        if (!resultadoDiv.dataset.score) {
+          alert(
+            'Lütfen PDF oluşturmak için önce "Skoru Hesapla" düğmesine tıklayın.',
+          );
+          return;
+        }
+        if (typeof gerarPDFGlobal === "function") {
+          const selectedOptions = {};
+          document.querySelectorAll("#conteudo select").forEach((select) => {
+            const selected = select.options[select.selectedIndex];
+            if (selected.value !== "") {
+              selectedOptions[select.id] = selected.text;
+            }
+          });
+
+          let contentToPrint = document
+            .querySelector(".main-content-wrapper")
+            .cloneNode(true);
+          let contentContainer = contentToPrint.querySelector("#conteudo");
+
+          contentContainer.innerHTML = "";
+
+          zaritData.forEach((item) => {
+            let selectedText = selectedOptions[item.nameAttr];
+            if (selectedText) {
+              let itemDiv = document.createElement("div");
+              itemDiv.className = "mb-2 p-2 bg-gray-50 rounded";
+              itemDiv.innerHTML = `<strong>${item.title}:</strong> ${selectedText}`;
+              contentContainer.appendChild(itemDiv);
+            }
+          });
+
+          let resultadoHtml = resultadoDiv.cloneNode(true);
+          if (resultadoHtml.style.display !== "none") {
+            contentContainer.appendChild(resultadoHtml);
+          }
+
+          gerarPDFGlobal({
+            titulo: "Zarit Bakıcı Yükü Ölçeği",
+            subtitulo: "Bakım Veren Yükü Değerlendirme Raporu",
+            nomeArquivo: "zarit_olcegi_raporu.pdf",
+            seletorConteudo: ".main-content-wrapper",
+          });
+        } else {
+          console.error("gerarPDFGlobal fonksiyonu tanımlı değil.");
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener("click", () => {
+        const score = resultadoDiv.dataset.score;
+        const scaleName = resultadoDiv.dataset.scaleName;
+        if (!score) {
+          alert("Tedavi araması yapmak için sonucu hesaplayın.");
+          return;
+        }
+        let sobrecarga = "yük yok";
+        if (score >= 22 && score <= 41) {
+          sobrecarga = "hafif ila orta yük";
+        } else if (score >= 42 && score <= 60) {
+          sobrecarga = "orta ila şiddetli yük";
+        } else if (score >= 61) {
+          sobrecarga = "şiddetli yük";
+        }
+        const searchQuery = encodeURIComponent(
+          `Zarit Ölçeği ${sobrecarga} bakım veren için hemşirelik bakımı NANDA NIC NOC`,
+        );
+        window.open(
+          `https://www.google.com/search?q=${searchQuery}`,
+          "_blank",
+        );
+      });
+    });
+  </script>
 
   <script src="/lang-selector.js" defer=""></script>
 

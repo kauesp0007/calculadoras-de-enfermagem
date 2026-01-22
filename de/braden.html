@@ -611,7 +611,124 @@
 
 
 
-  
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const resultadoDiv = document.getElementById('resultado');
+      const conteudoDiv = document.getElementById('conteudo');
+      const btnCalcular = document.getElementById('btnCalcular');
+      const btnLimpar = document.getElementById('btnLimpar');
+      const btnGerarPDF = document.getElementById('btnGerarPDF');
+      const btnNandaNicNoc = document.getElementById('btnNandaNicNoc');
+
+      const bradenData = [
+        { id: "sensorial", title: "Sensorische Wahrnehmung", description: "Fähigkeit, auf druckbedingte Beschwerden zu reagieren.", options: [{ score: 1, text: "Vollständig eingeschränkt" }, { score: 2, text: "Stark eingeschränkt" }, { score: 3, text: "Leicht eingeschränkt" }, { score: 4, text: "Keine Einschränkung" }] },
+        { id: "umidade", title: "Feuchtigkeit", description: "Grad der Hautexposition gegenüber Feuchtigkeit.", options: [{ score: 1, text: "Ständig nass" }, { score: 2, text: "Sehr nass" }, { score: 3, text: "Gelegentlich nass" }, { score: 4, text: "Selten nass" }] },
+        { id: "atividade", title: "Aktivität", description: "Grad der körperlichen Aktivität des Patienten.", options: [{ score: 1, text: "Bettlägerig" }, { score: 2, text: "Stuhlgebunden" }, { score: 3, text: "Geht gelegentlich" }, { score: 4, text: "Geht häufig" }] },
+        { id: "mobilidade", title: "Mobilität", description: "Fähigkeit, die Körperposition zu ändern und zu kontrollieren.", options: [{ score: 1, text: "Vollständig immobil" }, { score: 2, text: "Stark eingeschränkt" }, { score: 3, text: "Leicht eingeschränkt" }, { score: 4, text: "Keine Einschränkungen" }] },
+        { id: "nutricao", title: "Ernährung", description: "Übliches Essverhalten.", options: [{ score: 1, text: "Sehr schlecht" }, { score: 2, text: "Wahrscheinlich unzureichend" }, { score: 3, text: "Angemessen" }, { score: 4, text: "Ausgezeichnet" }] },
+        { id: "friccao", title: "Reibung und Scherkräfte", description: "Vorhandensein von Reibung und Bewegung.", options: [{ score: 1, text: "Problem" }, { score: 2, text: "Potenzielles Problem" }, { score: 3, text: "Kein Problem" }] }
+      ];
+
+      function createForm() {
+        conteudoDiv.innerHTML = '';
+        bradenData.forEach(criterion => {
+          const card = document.createElement('div');
+          card.className = 'braden-criterion-card';
+
+          card.innerHTML = `
+                    <div class="braden-criterion-title-container">
+                        <h3 class="braden-criterion-title">${criterion.title}</h3>
+                        <p class="braden-criterion-description">${criterion.description}</p>
+                    </div>
+                    <div class="braden-options-container">
+                        <select id="${criterion.id}-select" class="braden-select">
+                            <option value="" disabled selected>Option auswählen...</option>
+                            ${criterion.options.map(opt => `<option value="${opt.score}">${opt.text} (${opt.score})</option>`).join('')}
+                        </select>
+                    </div>
+                `;
+          conteudoDiv.appendChild(card);
+        });
+      }
+
+      function calculate() {
+        let totalScore = 0;
+        let allSelected = true;
+
+        bradenData.forEach(criterion => {
+          const select = document.getElementById(`${criterion.id}-select`);
+          if (select && select.value) {
+            totalScore += parseInt(select.value, 10);
+          } else {
+            allSelected = false;
+          }
+        });
+
+        if (!allSelected) {
+          resultadoDiv.innerHTML = '⚠️ <strong class="font-bold">Bitte wählen Sie eine Option für jedes Kriterium.</strong>';
+          resultadoDiv.className = 'standard-result-box bg-info-orange-light';
+          resultadoDiv.style.display = 'block';
+          delete resultadoDiv.dataset.score;
+          return;
+        }
+
+        let risiko = "";
+        if (totalScore >= 19) { risiko = "Kein Risiko"; }
+        else if (totalScore >= 15) { risiko = "Geringes Risiko"; }
+        else if (totalScore >= 13) { risiko = "Mäßiges Risiko"; }
+        else if (totalScore >= 10) { risiko = "Hohes Risiko"; }
+        else { risiko = "Sehr hohes Risiko"; }
+
+        resultadoDiv.innerHTML = `
+                <p class="font-bold text-lg">Gesamtpunktzahl: <span class="font-black">${totalScore}</span></p>
+                <p class="font-bold text-lg">Risikoklassifikation: <span class="font-black">${risiko}</span></p>
+            `;
+        resultadoDiv.className = 'standard-result-box';
+        resultadoDiv.style.display = 'block';
+        resultadoDiv.dataset.score = totalScore;
+        resultadoDiv.dataset.risiko = risiko;
+      }
+
+      function clear() {
+        createForm();
+        resultadoDiv.innerHTML = '';
+        resultadoDiv.className = 'hidden';
+        delete resultadoDiv.dataset.score;
+        delete resultadoDiv.dataset.risiko;
+      }
+
+      createForm();
+      btnCalcular?.addEventListener('click', calculate);
+      btnLimpar?.addEventListener('click', clear);
+
+      btnGerarPDF?.addEventListener('click', () => {
+        if (resultadoDiv.dataset.score === undefined) {
+          alert('Bitte klicken Sie zuerst auf "Berechnen", um das PDF zu erstellen.');
+          return;
+        }
+        if (typeof gerarPDFGlobal === 'function') {
+          gerarPDFGlobal({
+            titulo: 'Braden-Skala',
+            subtitulo: 'Bericht zum Risiko für Druckgeschwüre',
+            nomeArquivo: 'bericht_braden_skala.pdf',
+            seletorConteudo: '.main-content-wrapper'
+          });
+        } else {
+          console.error('Funktion gerarPDFGlobal nicht definiert.');
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener('click', () => {
+        const risco = resultadoDiv.dataset.risiko;
+        if (!risco) {
+          alert('Berechnen Sie das Ergebnis, um nach Maßnahmen zu suchen.');
+          return;
+        }
+        const searchQuery = encodeURIComponent(`Patient mit ${risco} für Druckgeschwüre nach Braden-Skala Pflegediagnosen NANDA, Pflegeinterventionen NIC und Pflegeergebnisse NOC`);
+        window.open(`https://www.google.com/search?q=${searchQuery}`, '_blank');
+      });
+    });
+  </script>
 
 
 

@@ -562,7 +562,306 @@
 
 
 
-  
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const resultadoDiv = document.getElementById("resultado");
+      const btnCalcular = document.getElementById("btnCalcular");
+      const btnLimpar = document.getElementById("btnLimpar");
+      const btnGerarPDF = document.getElementById("btnGerarPDF");
+      const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
+      const conteudoDiv = document.getElementById("conteudo");
+      const introParagraph = document.getElementById("intro-paragraph");
+      const referenceSection = document.getElementById("reference-section");
+
+      // Dados da escala de Fugulin
+      const fugulinData = [
+        {
+          category: "정신 상태",
+          nameAttr: "estado_mental",
+          options: [
+            { description: "의식 불명", score: 4 },
+            { description: "지남력 상실", score: 3 },
+            { description: "혼란", score: 2 },
+            { description: "지남력 있음", score: 1 },
+          ],
+        },
+        {
+          category: "산소 공급",
+          nameAttr: "oxigenacao",
+          options: [
+            { description: "기계 환기", score: 4 },
+            { description: "산소 마스크", score: 3 },
+            { description: "비강 캐뉼라", score: 2 },
+            { description: "실내 공기", score: 1 },
+          ],
+        },
+        {
+          category: "활력 징후",
+          nameAttr: "sinais_vitais",
+          options: [
+            { description: "매우 위험", score: 4 },
+            { description: "위험", score: 3 },
+            { description: "불안정", score: 2 },
+            { description: "안정", score: 1 },
+          ],
+        },
+        {
+          category: "운동성",
+          nameAttr: "motilidade",
+          options: [
+            { description: "부동", score: 4 },
+            { description: "도움 받아 움직임", score: 3 },
+            { description: "감독 하에 움직임", score: 2 },
+            { description: "독립적", score: 1 },
+          ],
+        },
+        {
+          category: "보행",
+          nameAttr: "deambulacao",
+          options: [
+            { description: "보행 불가", score: 4 },
+            { description: "도움 받아 보행", score: 3 },
+            { description: "감독 하에 보행", score: 2 },
+            { description: "독립적", score: 1 },
+          ],
+        },
+        {
+          category: "식사",
+          nameAttr: "alimentacao",
+          options: [
+            { description: "금식", score: 4 },
+            { description: "비경구", score: 3 },
+            { description: "경장", score: 2 },
+            { description: "경구", score: 1 },
+          ],
+        },
+        {
+          category: "신체 관리",
+          nameAttr: "cuidado_corporal",
+          options: [
+            { description: "완전 의존", score: 4 },
+            { description: "의존", score: 3 },
+            { description: "부분 도움", score: 2 },
+            { description: "독립적", score: 1 },
+          ],
+        },
+        {
+          category: "배설",
+          nameAttr: "eliminacao",
+          options: [
+            { description: "실금", score: 4 },
+            { description: "유치 도뇨관", score: 3 },
+            { description: "부분 도움", score: 2 },
+            { description: "독립적", score: 1 },
+          ],
+        },
+        {
+          category: "치료",
+          nameAttr: "terapeutica",
+          options: [
+            { description: "혈관 작용 약물 사용", score: 4 },
+            { description: "카테터를 통한 지속적 정맥 주사", score: 3 },
+            { description: "간헐적 정맥 주사", score: 2 },
+            { description: "근육 주사 또는 경구", score: 1 },
+          ],
+        },
+        {
+          category: "드레싱 교환 시간",
+          nameAttr: "tempo_curativo",
+          options: [
+            { description: "15~30분", score: 4 },
+            { description: "5~15분", score: 3 },
+            { description: "5분 미만", score: 2 },
+            { description: "드레싱 없음", score: 1 },
+          ],
+        },
+        {
+          category: "드레싱",
+          nameAttr: "curativo",
+          options: [
+            { description: "하루 3회 교환", score: 4 },
+            { description: "하루 2회 교환", score: 3 },
+            { description: "하루 1회 교환", score: 2 },
+            { description: "드레싱 없음", score: 1 },
+          ],
+        },
+        {
+          category: "피부-점막 통합성 / 조직 손상",
+          nameAttr: "integridade",
+          options: [
+            { description: "광범위", score: 4 },
+            { description: "중등도", score: 3 },
+            { description: "경미", score: 2 },
+            { description: "없음", score: 1 },
+          ],
+        },
+      ];
+
+      // Preenche o formulário dinamicamente
+      fugulinData.forEach((item, index) => {
+        const sectionDiv = document.createElement("div");
+        sectionDiv.className = "fugulin-criterion-section";
+        sectionDiv.id = `section-${item.nameAttr}`;
+
+        const titleH3 = document.createElement("h3");
+        titleH3.className = "fugulin-criterion-title";
+        titleH3.innerText = item.category;
+        sectionDiv.appendChild(titleH3);
+
+        const selectElement = document.createElement("select");
+        selectElement.id = item.nameAttr;
+        selectElement.className = "fugulin-criterion-select";
+        selectElement.setAttribute("aria-label", `${item.category} 선택`);
+
+        const defaultOption = document.createElement("option");
+        defaultOption.value = "";
+        defaultOption.text = "선택...";
+        defaultOption.disabled = true;
+        defaultOption.selected = true;
+        selectElement.appendChild(defaultOption);
+
+        item.options.forEach((option) => {
+          const optionElement = document.createElement("option");
+          optionElement.value = option.score;
+          optionElement.text = `${option.description} (${option.score})`;
+          selectElement.appendChild(optionElement);
+        });
+
+        sectionDiv.appendChild(selectElement);
+        conteudoDiv.appendChild(sectionDiv);
+      });
+
+      function calcularFugulin() {
+        const selects = document.querySelectorAll("#conteudo select");
+        let allSelected = true;
+        let total = 0;
+
+        selects.forEach((select) => {
+          if (select.value === "") {
+            allSelected = false;
+          }
+          total += Number(select.value);
+        });
+
+        resultadoDiv.style.display = "block";
+        if (!allSelected) {
+          resultadoDiv.innerHTML =
+            '⚠️ <strong class="font-bold">계산하기 전에 모든 항목에 대한 옵션을 선택하십시오.</strong>';
+          resultadoDiv.classList.add("bg-info-orange-light");
+          resultadoDiv.classList.remove("bg-red-100", "bg-blue-50");
+          delete resultadoDiv.dataset.score;
+          return;
+        }
+
+        let classificacao = "";
+        let resultadoClasse = "";
+
+        if (total >= 31) {
+          classificacao = "매우 높은 복잡도";
+          resultadoClasse = "bg-red-100";
+        } else if (total >= 24) {
+          classificacao = "높은 복잡도";
+          resultadoClasse = "bg-red-100";
+        } else if (total >= 17) {
+          classificacao = "중간 복잡도";
+          resultadoClasse = "bg-blue-50";
+        } else if (total >= 10) {
+          classificacao = "낮은 복잡도";
+          resultadoClasse = "bg-blue-50";
+        } else {
+          classificacao = "최소 복잡도"; // 10점 미만 (각 항목이 1점일 경우 12점)
+          resultadoClasse = "bg-blue-50";
+        }
+
+        resultadoDiv.innerHTML = `<p>총 점수: <strong class="font-bold">${total}</strong></p><p>분류: <strong class="font-bold">${classificacao}</strong></p>`;
+        resultadoDiv.className = `resultado ${resultadoClasse}`;
+        resultadoDiv.style.display = "block";
+
+        resultadoDiv.dataset.score = total;
+        resultadoDiv.dataset.scaleName = "푸줄린 척도";
+        resultadoDiv.dataset.classificacao = classificacao;
+      }
+
+      function limparCampos() {
+        const selects = document.querySelectorAll("#conteudo select");
+        selects.forEach((select) => {
+          select.selectedIndex = 0;
+        });
+        resultadoDiv.innerHTML = "";
+        resultadoDiv.className = "resultado hidden";
+        delete resultadoDiv.dataset.score;
+        delete resultadoDiv.dataset.scaleName;
+        delete resultadoDiv.dataset.classificacao;
+      }
+
+      // Adiciona os event listeners aos botões
+      btnCalcular?.addEventListener("click", calcularFugulin);
+      btnLimpar?.addEventListener("click", limparCampos);
+
+      btnGerarPDF?.addEventListener("click", () => {
+        if (!resultadoDiv.dataset.score) {
+          alert('PDF를 생성하려면 먼저 "점수 계산하기"를 클릭하십시오.');
+          return;
+        }
+        if (typeof gerarPDFGlobal === "function") {
+          gerarPDFGlobal({
+            titulo: "푸줄린 척도",
+            subtitulo: "간호 지원 복잡도 보고서",
+            nomeArquivo: "보고서_푸줄린_척도.pdf",
+            seletorConteudo: ".main-content-wrapper",
+          });
+        } else {
+          console.error("gerarPDFGlobal 함수가 정의되지 않았습니다.");
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener("click", () => {
+        const score = resultadoDiv.dataset.score;
+        const scaleName = resultadoDiv.dataset.scaleName;
+        const classificacao = resultadoDiv.dataset.classificacao;
+        if (!score || !classificacao) {
+          alert("조치를 검색하려면 결과를 계산하십시오.");
+          return;
+        }
+        const searchQuery = encodeURIComponent(
+          `${scaleName} 점수 ${score} NANDA 분류 생성, NIC 분류 생성 및 NOC 분류 생성`,
+        );
+        window.open(
+          `https://www.google.com/search?q=${searchQuery}`,
+          "_blank",
+        );
+      });
+      // Botão "Adicionar aos favoritos"
+      const addFavoriteBtn = document.getElementById("addFavoriteBtn");
+      if (addFavoriteBtn) {
+        addFavoriteBtn.addEventListener("click", () => {
+          const url = window.location.href;
+          const title = "푸줄린 척도";
+
+          try {
+            // IE/Edge Legacy
+            if (window.external && "AddFavorite" in window.external) {
+              window.external.AddFavorite(url, title);
+              return;
+            }
+            // Firefox antigo
+            if (window.sidebar && window.sidebar.addPanel) {
+              window.sidebar.addPanel(title, url, "");
+              return;
+            }
+            // Chrome/Firefox modernos: instrução de atalho
+            alert(
+              "이 페이지를 즐겨찾기에 추가하려면 Ctrl + D (Mac의 경우 Cmd + D)를 누르십시오.",
+            );
+          } catch (e) {
+            alert(
+              "이 페이지를 즐겨찾기에 추가하려면 Ctrl + D (Mac의 경우 Cmd + D)를 누르십시오.",
+            );
+          }
+        });
+      }
+    });
+  </script>
 
   <script src="../lang-selector.js" defer=""></script>
 

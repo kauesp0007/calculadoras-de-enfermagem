@@ -557,7 +557,241 @@
 
 
 
-  
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const resultadoDiv = document.getElementById("resultado");
+      const btnCalcular = document.getElementById("btnCalcular");
+      const btnLimpar = document.getElementById("btnLimpar");
+      const btnGerarPDF = document.getElementById("btnGerarPDF");
+      const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
+      const conteudoDiv = document.getElementById("conteudo");
+
+      // تحويل الأرقام الغربية إلى عربية شرقية للنص
+      function toArabicNumerals(numStr) {
+        return numStr
+          .toString()
+          .replace(/0/g, "٠")
+          .replace(/1/g, "١")
+          .replace(/2/g, "٢")
+          .replace(/3/g, "٣")
+          .replace(/4/g, "٤")
+          .replace(/5/g, "٥")
+          .replace(/6/g, "٦")
+          .replace(/7/g, "٧")
+          .replace(/8/g, "٨")
+          .replace(/9/g, "٩");
+      }
+
+      const qsofaData = [
+        {
+          category: "معدل التنفس (FR)",
+          nameAttr: "fr",
+          explanation: "قيّم معدل تنفس المريض (عدد الأنفاس في الدقيقة).",
+          options: [
+            { description: "أقل من ٢٢ ن/دقيقة", score: 0 },
+            { description: "أكبر من أو يساوي ٢٢ ن/دقيقة", score: 1 },
+          ],
+        },
+        {
+          category: "مستوى الوعي (مقياس غلاسكو للغيبوبة - GCS)",
+          nameAttr: "gcs",
+          explanation:
+            "قيّم مستوى وعي المريض باستخدام مقياس غلاسكو للغيبوبة.",
+          options: [
+            { description: "GCS ≥ ١٥", score: 0 },
+            { description: "GCS < ١٥ (متغير)", score: 1 },
+          ],
+        },
+        {
+          category: "ضغط الدم الانقباضي (PAS)",
+          nameAttr: "pas",
+          explanation: "قيّم ضغط الدم الانقباضي للمريض (مم زئبق).",
+          options: [
+            { description: "PAS > ١٠٠ مم زئبق", score: 0 },
+            { description: "PAS ≤ ١٠٠ مم زئبق", score: 1 },
+          ],
+        },
+      ];
+
+      // --- وظائف حاسبة qSOFA ---
+      function updateScoreDisplay(criterionId) {
+        const selectElement = document.getElementById(criterionId);
+        const scoreDisplayElement = document.getElementById(
+          `${criterionId}_score_display`,
+        );
+        if (selectElement && scoreDisplayElement) {
+          scoreDisplayElement.innerText =
+            selectElement.value === ""
+              ? "٠"
+              : toArabicNumerals(selectElement.value);
+        }
+      }
+
+      function calcularPontuacao() {
+        let totalQSOFAScore = 0;
+        let allItemsSelected = true;
+
+        qsofaData.forEach((item) => {
+          const selectElement = document.getElementById(item.nameAttr);
+          if (selectElement.value === "") {
+            allItemsSelected = false;
+          } else {
+            totalQSOFAScore += parseInt(selectElement.value, 10);
+          }
+        });
+
+        resultadoDiv.style.display = "block";
+        if (!allItemsSelected) {
+          resultadoDiv.innerHTML =
+            '⚠️ <strong class="font-bold">يرجى تحديد خيار لكل معيار</strong> قبل الحساب.';
+          resultadoDiv.className = "resultado bg-info-orange-light";
+          delete resultadoDiv.dataset.score;
+          return;
+        }
+
+        let interpretacao = "";
+        let conduta = "";
+        let resultadoClasse = "";
+        let displayScore = toArabicNumerals(totalQSOFAScore.toString());
+
+        if (totalQSOFAScore >= 2) {
+          interpretacao =
+            "خطورة عالية لنتائج سلبية (إقامة أطول في وحدة العناية المركزة ووفيات).";
+          conduta =
+            "النظر في تقييم إضافي لإنتان الدم والتدخل السريع. مطلوب تحقيق مخبري وتقييم سريري كامل.";
+          resultadoClasse = "bg-qsofa-high";
+        } else {
+          interpretacao = "خطورة منخفضة لنتائج سلبية في الوقت الحالي.";
+          conduta =
+            "الحفاظ على المراقبة السريرية. إعادة التقييم إذا ساءت الحالة.";
+          resultadoClasse = "bg-qsofa-low";
+        }
+
+        resultadoDiv.innerHTML = `<p>إجمالي نقاط qSOFA: <strong class="font-bold">${displayScore}</strong></p><p>التفسير: <strong class="font-bold">${interpretacao}</strong></p><p>الإجراء المقترح: <strong class="font-bold">${conduta}</strong></p>`;
+        resultadoDiv.className = `resultado ${resultadoClasse}`;
+
+        resultadoDiv.dataset.score = totalQSOFAScore;
+        resultadoDiv.dataset.interpretacao = interpretacao;
+        resultadoDiv.dataset.conduta = conduta;
+        resultadoDiv.dataset.scaleName = "qSOFA";
+      }
+
+      function limparCampos() {
+        qsofaData.forEach((item) => {
+          const selectElement = document.getElementById(item.nameAttr);
+          selectElement.selectedIndex = 0;
+          document.getElementById(
+            `${item.nameAttr}_score_display`,
+          ).innerText = "٠";
+        });
+        resultadoDiv.innerHTML = "";
+        resultadoDiv.className = "resultado hidden";
+        delete resultadoDiv.dataset.score;
+        delete resultadoDiv.dataset.interpretacao;
+        delete resultadoDiv.dataset.conduta;
+        delete resultadoDiv.dataset.scaleName;
+      }
+
+      // يملأ النموذج ديناميكيًا
+      qsofaData.forEach((item, index) => {
+        const sectionDiv = document.createElement("div");
+        sectionDiv.className = "qsofa-criterion-card";
+
+        const headerDiv = document.createElement("div");
+        headerDiv.className = "qsofa-criterion-header";
+
+        const titleH3 = document.createElement("h3");
+        titleH3.className = "qsofa-criterion-title";
+        titleH3.innerText = `${item.category}`;
+        headerDiv.appendChild(titleH3);
+
+        const scoreSpan = document.createElement("span");
+        scoreSpan.className = "qsofa-score-display";
+        scoreSpan.id = `${item.nameAttr}_score_display`;
+        scoreSpan.innerText = "٠";
+        headerDiv.appendChild(scoreSpan);
+
+        sectionDiv.appendChild(headerDiv);
+
+        const optionsDiv = document.createElement("div");
+        optionsDiv.className = "qsofa-criterion-options";
+
+        const selectElement = document.createElement("select");
+        selectElement.id = item.nameAttr;
+        selectElement.className = "qsofa-select";
+        selectElement.onchange = () => updateScoreDisplay(item.nameAttr);
+
+        const defaultOption = document.createElement("option");
+        defaultOption.value = "";
+        defaultOption.text = "اختر...";
+        defaultOption.disabled = true;
+        defaultOption.selected = true;
+        selectElement.appendChild(defaultOption);
+
+        item.options.forEach((option) => {
+          const optionElement = document.createElement("option");
+          optionElement.value = option.score;
+          let scoreDisplay = toArabicNumerals(option.score.toString());
+          optionElement.text = `${option.description} (${scoreDisplay})`;
+          selectElement.appendChild(optionElement);
+        });
+
+        optionsDiv.appendChild(selectElement);
+        sectionDiv.appendChild(optionsDiv);
+
+        const explanationP = document.createElement("p");
+        explanationP.className = "text-gray-600 text-sm mt-2 text-right";
+        explanationP.innerText = item.explanation;
+        sectionDiv.appendChild(explanationP);
+
+        conteudoDiv.appendChild(sectionDiv);
+      });
+
+      // يضيف مستمعي الأحداث إلى الأزرار
+      btnCalcular?.addEventListener("click", calcularPontuacao);
+      btnLimpar?.addEventListener("click", limparCampos);
+
+      btnGerarPDF?.addEventListener("click", () => {
+        if (!resultadoDiv.dataset.score) {
+          resultadoDiv.innerHTML =
+            '⚠️ <strong class="font-bold">يرجى النقر فوق "احسب" أولاً</strong> لإنشاء ملف PDF.';
+          resultadoDiv.className = "resultado bg-info-orange-light";
+          resultadoDiv.style.display = "block";
+          return;
+        }
+        if (typeof gerarPDFGlobal === "function") {
+          gerarPDFGlobal({
+            titulo: "مقياس qSOFA",
+            subtitulo: "تقرير التقييم السريع لإنتان الدم",
+            nomeArquivo: "relatorio_escore_qsofa.pdf",
+            seletorConteudo: ".main-content-wrapper",
+          });
+        } else {
+          console.error("الوظيفة gerarPDFGlobal غير معرفة.");
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener("click", () => {
+        const score = resultadoDiv.dataset.score;
+        const scaleName = resultadoDiv.dataset.scaleName;
+        const interpretacao = resultadoDiv.dataset.interpretacao;
+        if (!score || !interpretacao) {
+          resultadoDiv.innerHTML =
+            '⚠️ <strong class="font-bold">احسب النتيجة أولاً</strong> للبحث عن NANDA, NIC, NOC.';
+          resultadoDiv.className = "resultado bg-info-orange-light";
+          resultadoDiv.style.display = "block";
+          return;
+        }
+        const searchQuery = encodeURIComponent(
+          `${scaleName} نتيجة ${score} تفسير ${interpretacao} إنشاء تصنيف NANDA, إنشاء تصنيف NIC وإنشاء تصنيف NOC`,
+        );
+        window.open(
+          `https://www.google.com/search?q=${searchQuery}`,
+          "_blank",
+        );
+      });
+    });
+  </script>
 
   <script src="../lang-selector.js" defer=""></script>
 

@@ -572,7 +572,219 @@
 
 
 
-  
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const resultadoDiv = document.getElementById("resultado");
+      const btnCalcular = document.getElementById("btnCalcular");
+      const btnLimpar = document.getElementById("btnLimpar");
+      const btnGerarPDF = document.getElementById("btnGerarPDF");
+      const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
+      const conteudoDiv = document.getElementById("conteudo");
+
+      const bpsData = [
+        {
+          title: "Вираз обличчя",
+          nameAttr: "expressao_facial",
+          options: [
+            { description: "Розслаблений", score: 1 },
+            {
+              description: "Частково напружений (брови насуплені)",
+              score: 2
+            },
+            {
+              description: "Абсолютно напружені (стиснуті риси)",
+              score: 3
+            },
+            { description: "Гримаса", score: 4 }]
+
+        },
+        {
+          title: "Рухи верхніх кінцівок",
+          nameAttr: "movimentos_superiores",
+          options: [
+            { description: "Розслаблений", score: 1 },
+            { description: "Частково зігнутий", score: 2 },
+            { description: "Повністю зігнутий з натягом", score: 3 },
+            { description: "Безперервно втягнутий", score: 4 }]
+
+        },
+        {
+          title: "Відповідність вимогам до механічних вентиляторів",
+          nameAttr: "fan_compliance",
+          options: [
+            { description: "Адаптований під вентилятор", score: 1 },
+            { description: "Кашель або боротьба з вентилятором", score: 2 },
+            {
+              description: "Активно бореться (сигналізація вентилятора)",
+              score: 3
+            },
+            {
+              description:
+                "Не адаптується до вентилятора (тривога вентилятора не вимикається)",
+              score: 4
+            }]
+
+        }];
+
+
+      // Preenche o formulário dinamicamente
+      bpsData.forEach((item) => {
+        const sectionDiv = document.createElement("div");
+        sectionDiv.className = "bps-criterion-section";
+        sectionDiv.id = `section-${item.nameAttr}`;
+
+        const titleH3 = document.createElement("h3");
+        titleH3.className = "bps-criterion-title";
+        titleH3.innerHTML = item.title;
+        sectionDiv.appendChild(titleH3);
+
+        const selectElement = document.createElement("select");
+        selectElement.id = item.nameAttr;
+        selectElement.className = "bps-criterion-select mt-2";
+
+        const defaultOption = document.createElement("option");
+        defaultOption.value = "";
+        defaultOption.text = "Виберіть...";
+        selectElement.appendChild(defaultOption);
+
+        item.options.forEach((option) => {
+          const optionElement = document.createElement("option");
+          optionElement.value = option.score;
+          optionElement.text = `${option.description} (бали: ${option.score})`;
+          selectElement.appendChild(optionElement);
+        });
+
+        sectionDiv.appendChild(selectElement);
+        conteudoDiv.appendChild(sectionDiv);
+      });
+
+      function calcularBPS() {
+        const selects = document.querySelectorAll("#conteudo select");
+        let allSelected = true;
+        let total = 0;
+
+        selects.forEach((select) => {
+          if (select.value === "") {
+            allSelected = false;
+            select.classList.add("неповний");
+          } else {
+            select.classList.remove("неповний");
+            total += Number(select.value);
+          }
+        });
+
+        resultadoDiv.style.display = "block";
+        if (!allSelected) {
+          resultadoDiv.innerHTML =
+            '⚠️ <strong class="font-bold">Por favor, selecione uma opção para todos os itens antes de calcular.</strong>';
+          resultadoDiv.className = `bg-red-100 результат`;
+          delete resultadoDiv.dataset.score;
+          return;
+        }
+
+        let recomendacao = "";
+
+        if (total <= 5) {
+          recomendacao = `Оцінка ${total} вказує на слабкий біль або його враження. Продовжуйте спостерігати за пацієнтом.`;
+        } else if (total >= 6 && total <= 9) {
+          recomendacao = `Оцінка ${total} вказує на помірний біль. Рекомендується оцінити методи лікування, як фармакологічні, так і немедикаментозні, і спостерігати за реакцією пацієнта.`;
+        } else {
+          // total >= 10
+          recomendacao = `Оцінка ${total} вказує на сильний біль. Для полегшення болю шкідливе негайне втручання, а план лікування повинен бути відвіданий лікарем.`;
+        }
+
+        resultadoDiv.innerHTML = `
+                <p>Escore total: <strong class="font-bold">${total}</strong></p>
+                <p class="mt-4"><strong>Recomendação:</strong> ${recomendacao}</p>
+            `;
+        resultadoDiv.className = `bg-blue-50 результат`;
+        resultadoDiv.style.display = "block";
+
+        resultadoDiv.dataset.score = total;
+        resultadoDiv.dataset.scaleName = "Шкала BPS";
+      }
+
+      function limparCampos() {
+        const selects = document.querySelectorAll("#conteudo select");
+        selects.forEach((select) => {
+          select.selectedIndex = 0;
+          select.classList.remove("неповний");
+        });
+        resultadoDiv.innerHTML = "";
+        resultadoDiv.className = "прихований результат";
+        delete resultadoDiv.dataset.score;
+        delete resultadoDiv.dataset.scaleName;
+      }
+
+      // Adiciona os event listeners aos botões
+      btnCalcular?.addEventListener("click", calcularBPS);
+      btnLimpar?.addEventListener("click", limparCampos);
+
+      btnGerarPDF?.addEventListener("click", () => {
+        if (!resultadoDiv.dataset.score) {
+          alert(
+            "Будь ласка, спочатку натисніть \"Розрахувати бал\", щоб згенерувати PDF-файл."
+          );
+          return;
+        }
+        if (typeof gerarPDFGlobal === "функція") {
+          const selectedOptions = {};
+          document.querySelectorAll("#conteudo select").forEach((select) => {
+            const selected = select.options[select.selectedIndex];
+            if (selected.value !== "") {
+              selectedOptions[select.id] = selected.text;
+            }
+          });
+
+          let contentToPrint = document.
+            querySelector(".main-content-wrapper").
+            cloneNode(true);
+          let contentContainer = contentToPrint.querySelector("#conteudo");
+
+          contentContainer.innerHTML = "";
+
+          bpsData.forEach((item) => {
+            let selectedText = selectedOptions[item.nameAttr];
+            if (selectedText) {
+              let itemDiv = document.createElement("div");
+              itemDiv.className = "mb-2 p-2 bg-gray-50 rounded";
+              itemDiv.innerHTML = `<strong>${item.title}:</strong> ${selectedText}`;
+              contentContainer.appendChild(itemDiv);
+            }
+          });
+
+          let resultadoHtml = resultadoDiv.cloneNode(true);
+          if (resultadoHtml.style.display !== "none") {
+            contentContainer.appendChild(resultadoHtml);
+          }
+
+          gerarPDFGlobal({
+            titulo: "Шкала BPS",
+            subtitulo: "Звіт про оцінку болю у важкохворих пацієнтів",
+            nomeArquivo: "relatorio_escala_bps.pdf",
+            seletorConteudo: ".main-content-wrapper"
+          });
+        } else {
+          console.error("Функція GeneratePDFGlobal не визначена.");
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener("click", () => {
+        const score = resultadoDiv.dataset.score;
+        const scaleName = resultadoDiv.dataset.scaleName;
+        if (!score) {
+          alert("Обчисліть результат для пошуку поведінки.");
+          return;
+        }
+        const searchQuery = encodeURIComponent(
+          `${scaleName} оцінка ${score} створити таксономію NANDA, створити таксономію NIC і створити таксономію NOC`
+        );
+        window.open(
+          `https://www.google.com/search?q=${searchQuery}`,
+          "_blank"
+        );
+      });
+    });</script>
 
   <script src="/lang-selector.js" defer=""></script>
 

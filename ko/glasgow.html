@@ -641,7 +641,122 @@
 
 
 
-  
+  <script>
+    // Referências aos elementos do DOM
+    const resultadoDiv = document.getElementById('resultado');
+    const btnCalcular = document.getElementById('btnCalcular');
+    const btnLimpar = document.getElementById('btnLimpar');
+    const btnGerarPDF = document.getElementById('btnGerarPDF');
+    const btnNandaNicNoc = document.getElementById('btnNandaNicNoc');
+
+    // Função para atualizar o score exibido e recalcular o total de Glasgow
+    function updateScoreAndCalculate(criterionName) {
+      const selectElement = document.getElementById(`${criterionName}_select`);
+      const scoreDisplayElement = document.getElementById(`${criterionName}_score_display`);
+
+      if (selectElement && scoreDisplayElement) {
+        scoreDisplayElement.innerText = selectElement.value;
+      }
+      calcularEscala();
+    }
+
+    // Função para calcular o escore total de Glasgow
+    function calcularEscala() {
+      const ocular = parseInt(document.getElementById("ocular_select").value);
+      const verbal = parseInt(document.getElementById("verbal_select").value);
+      const motora = parseInt(document.getElementById("motora_select").value);
+      const pupilar = parseInt(document.getElementById("pupilar_select").value);
+      const total = ocular + verbal + motora + pupilar;
+      let interpretacao = "";
+      let isRisky = false;
+
+      if (total >= 13) {
+        interpretacao = "의식 수준: 경증";
+      } else if (total >= 9) {
+        interpretacao = "의식 수준: 중등도";
+        isRisky = true;
+      } else {
+        interpretacao = "의식 수준: 중증";
+        isRisky = true;
+      }
+
+      const resultadoDiv = document.getElementById("resultado");
+      resultadoDiv.innerHTML = `<p><strong>총 점수:</strong> <span class="font-bold">${total}</span> 점</p><p><strong>${interpretacao}</strong></p>`;
+      resultadoDiv.style.display = "block";
+
+      if (isRisky) {
+        resultadoDiv.classList.add('text-red-600', 'bg-red-100');
+        resultadoDiv.classList.remove('text-dark-blue', 'bg-blue-50');
+      } else {
+        resultadoDiv.classList.remove('text-red-600', 'bg-red-100');
+        resultadoDiv.classList.add('text-dark-blue', 'bg-blue-50');
+      }
+      resultadoDiv.dataset.score = total;
+      resultadoDiv.dataset.interpretacao = interpretacao;
+      resultadoDiv.dataset.scaleName = "글래스고 혼수 척도";
+    }
+
+    // Função para limpar todos os campos e o resultado
+    function limparCampos() {
+      document.getElementById('ocular_select').selectedIndex = 0;
+      document.getElementById('verbal_select').selectedIndex = 0;
+      document.getElementById('motora_select').selectedIndex = 0;
+      document.getElementById('pupilar_select').selectedIndex = 0;
+
+      document.getElementById('ocular_score_display').innerText = document.getElementById('ocular_select').value;
+      document.getElementById('verbal_score_display').innerText = document.getElementById('verbal_select').value;
+      document.getElementById('motora_score_display').innerText = document.getElementById('motora_select').value;
+      document.getElementById('pupilar_score_display').innerText = document.getElementById('pupilar_select').value;
+
+      const resultadoDiv = document.getElementById('resultado');
+      resultadoDiv.innerHTML = '';
+      resultadoDiv.className = 'resultado hidden';
+      delete resultadoDiv.dataset.score;
+      delete resultadoDiv.dataset.interpretacao;
+      delete resultadoDiv.dataset.scaleName;
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      // Anexa eventos aos botões
+      btnCalcular?.addEventListener('click', calcularEscala);
+      btnLimpar?.addEventListener('click', limparCampos);
+      btnGerarPDF?.addEventListener('click', () => {
+        if (!resultadoDiv.dataset.score) {
+          alert('PDF를 생성하려면 먼저 "점수 계산하기"를 클릭하십시오.');
+          return;
+        }
+        if (typeof gerarPDFGlobal === 'function') {
+          const mainContent = document.querySelector('.main-content-wrapper');
+          gerarPDFGlobal({
+            titulo: '글래스고 혼수 척도',
+            subtitulo: '의식 수준 평가 보고서',
+            nomeArquivo: '보고서_글래스고_척도.pdf',
+            seletorConteudo: '.main-content-wrapper'
+          });
+        } else {
+          console.error('gerarPDFGlobal 함수가 정의되지 않았습니다.');
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener('click', () => {
+        const score = resultadoDiv.dataset.score;
+        const scaleName = resultadoDiv.dataset.scaleName;
+        const interpretacao = resultadoDiv.dataset.interpretacao;
+        if (!score || !interpretacao) {
+          alert('조치를 검색하려면 결과를 계산하십시오.');
+          return;
+        }
+        const searchQuery = encodeURIComponent(`${scaleName} 점수 ${score} NANDA 분류 생성, NIC 분류 생성 및 NOC 분류 생성`);
+        window.open(`https://www.google.com/search?q=${searchQuery}`, '_blank');
+      });
+
+      // Inicializa os scores e calcula o total ao carregar a página
+      updateScoreAndCalculate('ocular');
+      updateScoreAndCalculate('verbal');
+      updateScoreAndCalculate('motora');
+      updateScoreAndCalculate('pupilar');
+    });
+  </script>
 
 
 

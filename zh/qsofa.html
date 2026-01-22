@@ -610,7 +610,200 @@
 
 
 
-  
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const resultadoDiv = document.getElementById('resultado');
+      const btnCalcular = document.getElementById('btnCalcular');
+      const btnLimpar = document.getElementById('btnLimpar');
+      const btnGerarPDF = document.getElementById('btnGerarPDF');
+      const btnNandaNicNoc = document.getElementById('btnNandaNicNoc');
+      const conteudoDiv = document.getElementById('conteudo');
+
+      const qsofaData = [
+        {
+          category: "呼吸频率 (RR)",
+          nameAttr: "fr",
+          explanation: "评估患者的呼吸频率，以每分钟呼吸次数为单位。",
+          options: [
+            { description: "小于22次/分钟", score: 0 },
+            { description: "大于或等于22次/分钟", score: 1 }
+          ]
+        },
+        {
+          category: "意识水平 (格拉斯哥昏迷量表 - GCS)",
+          nameAttr: "gcs",
+          explanation: "使用格拉斯哥昏迷量表评估患者的意识水平。",
+          options: [
+            { description: "GCS ≥ 15", score: 0 },
+            { description: "GCS < 15 (异常)", score: 1 }
+          ]
+        },
+        {
+          category: "收缩压 (SBP)",
+          nameAttr: "pas",
+          explanation: "评估患者的收缩压，以毫米汞柱为单位。",
+          options: [
+            { description: "SBP > 100 mmHg", score: 0 },
+            { description: "SBP ≤ 100 mmHg", score: 1 }
+          ]
+        }
+      ];
+
+      // --- qSOFA计算器功能 ---
+      function updateScoreDisplay(criterionId) {
+        const selectElement = document.getElementById(criterionId);
+        const scoreDisplayElement = document.getElementById(`${criterionId}_score_display`);
+        if (selectElement && scoreDisplayElement) {
+          scoreDisplayElement.innerText = selectElement.value === "" ? "0" : selectElement.value;
+        }
+      }
+
+      function calcularPontuacao() {
+        let totalQSOFAScore = 0;
+        let allItemsSelected = true;
+
+        qsofaData.forEach(item => {
+          const selectElement = document.getElementById(item.nameAttr);
+          if (selectElement.value === "") {
+            allItemsSelected = false;
+          } else {
+            totalQSOFAScore += parseInt(selectElement.value, 10);
+          }
+        });
+
+        resultadoDiv.style.display = 'block';
+        if (!allItemsSelected) {
+          resultadoDiv.innerHTML = '⚠️ <strong class="font-bold">请在计算前为每项标准选择一个选项</strong>。';
+          resultadoDiv.className = 'resultado bg-info-orange-light';
+          delete resultadoDiv.dataset.score;
+          return;
+        }
+
+        let interpretacao = '';
+        let conduta = '';
+        let resultadoClasse = '';
+
+        if (totalQSOFAScore >= 2) {
+          interpretacao = "不良结局的高风险（ICU住院时间延长和死亡率增加）。";
+          conduta = "考虑进行脓毒症附加评估和快速干预。需要进行实验室检查和完整的临床评估。";
+          resultadoClasse = 'bg-qsofa-high';
+        } else {
+          interpretacao = "目前不良结局的风险较低。";
+          conduta = "保持临床监测。如果病情恶化，请重新评估。";
+          resultadoClasse = 'bg-qsofa-low';
+        }
+
+        resultadoDiv.innerHTML = `<p>qSOFA总分：<strong class="font-bold">${totalQSOFAScore}</strong></p><p>解释：<strong class="font-bold">${interpretacao}</strong></p><p>建议处理：<strong class="font-bold">${conduta}</strong></p>`;
+        resultadoDiv.className = `resultado ${resultadoClasse}`;
+
+        resultadoDiv.dataset.score = totalQSOFAScore;
+        resultadoDiv.dataset.interpretacao = interpretacao;
+        resultadoDiv.dataset.conduta = conduta;
+        resultadoDiv.dataset.scaleName = "qSOFA";
+      }
+
+      function limparCampos() {
+        qsofaData.forEach(item => {
+          const selectElement = document.getElementById(item.nameAttr);
+          selectElement.selectedIndex = 0;
+          document.getElementById(`${item.nameAttr}_score_display`).innerText = '0';
+        });
+        resultadoDiv.innerHTML = '';
+        resultadoDiv.className = 'resultado hidden';
+        delete resultadoDiv.dataset.score;
+        delete resultadoDiv.dataset.interpretacao;
+        delete resultadoDiv.dataset.conduta;
+        delete resultadoDiv.dataset.scaleName;
+      }
+
+      // 动态填充表单
+      qsofaData.forEach((item, index) => {
+        const sectionDiv = document.createElement('div');
+        sectionDiv.className = 'qsofa-criterion-card';
+
+        const headerDiv = document.createElement('div');
+        headerDiv.className = 'qsofa-criterion-header';
+
+        const titleH3 = document.createElement('h3');
+        titleH3.className = 'qsofa-criterion-title';
+        titleH3.innerText = `${item.category}`;
+        headerDiv.appendChild(titleH3);
+
+        const scoreSpan = document.createElement('span');
+        scoreSpan.className = 'qsofa-score-display';
+        scoreSpan.id = `${item.nameAttr}_score_display`;
+        scoreSpan.innerText = '0';
+        headerDiv.appendChild(scoreSpan);
+
+        sectionDiv.appendChild(headerDiv);
+
+        const optionsDiv = document.createElement('div');
+        optionsDiv.className = 'qsofa-criterion-options';
+
+        const selectElement = document.createElement('select');
+        selectElement.id = item.nameAttr;
+        selectElement.className = 'qsofa-select';
+        selectElement.onchange = () => updateScoreDisplay(item.nameAttr);
+
+        const defaultOption = document.createElement('option');
+        defaultOption.value = "";
+        defaultOption.text = "请选择...";
+        defaultOption.disabled = true;
+        defaultOption.selected = true;
+        selectElement.appendChild(defaultOption);
+
+        item.options.forEach(option => {
+          const optionElement = document.createElement('option');
+          optionElement.value = option.score;
+          optionElement.text = `${option.description} (${option.score})`;
+          selectElement.appendChild(optionElement);
+        });
+
+        optionsDiv.appendChild(selectElement);
+        sectionDiv.appendChild(optionsDiv);
+
+        const explanationP = document.createElement('p');
+        explanationP.className = 'text-gray-600 text-sm mt-2 text-left';
+        explanationP.innerText = item.explanation;
+        sectionDiv.appendChild(explanationP);
+
+        conteudoDiv.appendChild(sectionDiv);
+      });
+
+      // 为按钮添加事件监听器
+      btnCalcular?.addEventListener('click', calcularPontuacao);
+      btnLimpar?.addEventListener('click', limparCampos);
+
+      btnGerarPDF?.addEventListener('click', () => {
+        if (!resultadoDiv.dataset.score) {
+          alert('请先点击"计算"按钮以生成PDF。');
+          return;
+        }
+        if (typeof gerarPDFGlobal === 'function') {
+          gerarPDFGlobal({
+            titulo: 'qSOFA量表',
+            subtitulo: '快速脓毒症评估报告',
+            nomeArquivo: 'qsofa_assessment_zh.pdf',
+            seletorConteudo: '.main-content-wrapper'
+          });
+        } else {
+          console.error('gerarPDFGlobal函数未定义。');
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener('click', () => {
+        const score = resultadoDiv.dataset.score;
+        const scaleName = resultadoDiv.dataset.scaleName;
+        const interpretacao = resultadoDiv.dataset.interpretacao;
+        if (!score || !interpretacao) {
+          alert('请计算结果以搜索处理方法。');
+          return;
+        }
+        const searchQuery = encodeURIComponent(`${scaleName} 评分 ${score} 解释 ${interpretacao} 生成 NANDA 分类, 生成 NIC 分类 和 生成 NOC 分类`);
+        window.open(`https://www.google.com/search?q=${searchQuery}`, '_blank');
+      });
+    });
+  </script>
 
 
 

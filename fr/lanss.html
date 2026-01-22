@@ -701,7 +701,266 @@
 
 
   <!-- Script Específico da Página LANSS (Traduzido) -->
-  
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      // Carrega le rodapé da pasta /fr/ via fetch
+      fetch("footer.html")
+        .then((response) => response.text())
+        .then((data) => {
+          document.getElementById("footer-placeholder").innerHTML = data;
+        });
+
+      // Carrega les éléments globaux da pasta /fr/
+      fetch("/fr/global-body-elements.html")
+        .then((response) => response.text())
+        .then((html) => {
+          document.getElementById(
+            "global-body-elements-container",
+          ).innerHTML = html;
+          // Ativa o VLibras et autres scripts globaux APRÈS carregar le contenu
+          if (typeof initVLibras === "function") {
+            initVLibras();
+          }
+          if (typeof setupGlobalElements === "function") {
+            setupGlobalElements();
+          }
+        });
+
+      const resultadoDiv = document.getElementById("resultado");
+      const btnCalcular = document.getElementById("btnCalcular");
+      const btnLimpar = document.getElementById("btnLimpar");
+      const btnGerarPDF = document.getElementById("btnGerarPDF");
+      const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
+      const conteudoDiv = document.getElementById("conteudo");
+
+      // Données de l'échelle LANSS traduites
+      const lanssData = [
+        {
+          question:
+            "1. La douleur a-t-elle un caractère de brûlure, comme de l'eau bouillante ?",
+          nameAttr: "brulure", // Modifié pour éviter conflits
+          options: [
+            { text: "Non", score: 0 },
+            { text: "Oui", score: 5 },
+          ],
+        },
+        {
+          question:
+            "2. La douleur ressemble-t-elle à des piqûres d'épingles, d'aiguilles ou à des fourmillements ?",
+          nameAttr: "piqures", // Modifié
+          options: [
+            { text: "Non", score: 0 },
+            { text: "Oui", score: 5 },
+          ],
+        },
+        {
+          question:
+            "3. La zone douloureuse est-elle associée à une hypersensibilité tactile ?",
+          nameAttr: "hypersensibilite",
+          options: [
+            { text: "Non", score: 0 },
+            { text: "Oui", score: 3 },
+          ],
+        },
+        {
+          question:
+            "4. La peau de la zone douloureuse a-t-elle une couleur différente ou est-elle plus pâle ?",
+          nameAttr: "couleurPeau", // Modifié
+          options: [
+            { text: "Non", score: 0 },
+            { text: "Oui", score: 2 },
+          ],
+        },
+        {
+          question:
+            "5. Y a-t-il une absence de sensibilité au toucher dans la zone douloureuse ?",
+          nameAttr: "absenceSensibilite", // Modifié
+          options: [
+            { text: "Non", score: 0 },
+            { text: "Oui", score: -4 }, // Notez le score négatif
+          ],
+        },
+      ];
+
+      // --- Fonctions de la Calculatrice LANSS ---
+      function updateScoreDisplay(criterionId) {
+        const selectElement = document.getElementById(criterionId);
+        const scoreDisplayElement = document.getElementById(
+          `${criterionId}_score_display`,
+        );
+        if (selectElement && scoreDisplayElement) {
+          // Affiche le score sélectionné, ou 0 si rien n'est sélectionné
+          scoreDisplayElement.innerText =
+            selectElement.value !== ""
+              ? selectElement.options[selectElement.selectedIndex].text.match(
+                /\((-?\d+)\)/,
+              )[1]
+              : "0";
+        }
+      }
+
+      function calculerPontuacao() {
+        let totalScore = 0;
+        let allItemsSelected = true;
+
+        lanssData.forEach((item) => {
+          const selectElement = document.getElementById(item.nameAttr);
+          const card = selectElement.closest(".lanss-criterion-card");
+          if (selectElement.value === "") {
+            allItemsSelected = false;
+            selectElement.classList.add("incomplete");
+            card?.classList.add("incomplete");
+          } else {
+            selectElement.classList.remove("incomplete");
+            card?.classList.remove("incomplete");
+            totalScore += parseInt(selectElement.value, 10);
+          }
+        });
+
+        resultadoDiv.style.display = "block"; // Affiche la div
+        if (!allItemsSelected) {
+          resultadoDiv.innerHTML =
+            '⚠️ <strong class="font-bold">Veuillez sélectionner une option pour chaque item</strong> avant de calculer.'; // Traduzido
+          resultadoDiv.className = "resultado bg-info-orange-light"; // Classe d'erreur
+          delete resultadoDiv.dataset.score; // Efface les données
+          return;
+        }
+
+        // Classification traduite
+        let classification = "";
+        let resultadoClasse = "";
+
+        if (totalScore >= 12) {
+          classification = "Douleur neuropathique probable"; // Probable
+          resultadoClasse = "bg-lanss-positive"; // Rouge
+        } else {
+          classification = "Douleur neuropathique improbable"; // Improbable
+          resultadoClasse = "bg-lanss-negative"; // Vert
+        }
+
+        resultadoDiv.innerHTML = `<p>Score Total de l'Échelle LANSS : <strong class="font-bold">${totalScore} / 20</strong></p><p>Classification : <strong class="font-bold">${classification}</strong></p>`;
+        resultadoDiv.className = `resultado ${resultadoClasse}`; // Applique la classe de couleur
+
+        // Stocke les données pour PDF et NANDA
+        resultadoDiv.dataset.score = totalScore;
+        resultadoDiv.dataset.classification = classification;
+        resultadoDiv.dataset.scaleName = "Échelle LANSS"; // Nom pour NANDA
+      }
+
+      function limparCampos() {
+        lanssData.forEach((item) => {
+          const selectElement = document.getElementById(item.nameAttr);
+          const scoreDisplay = document.getElementById(
+            `${item.nameAttr}_score_display`,
+          );
+          const card = selectElement.closest(".lanss-criterion-card");
+          selectElement.selectedIndex = 0; // Réinitialise à "Sélectionnez..."
+          scoreDisplay.innerText = "0"; // Réinitialise l'affichage du score
+          selectElement.classList.remove("incomplete");
+          card?.classList.remove("incomplete");
+        });
+        resultadoDiv.innerHTML = "";
+        resultadoDiv.className = "resultado hidden"; // Cache et reset
+        // Efface les données stockées
+        delete resultadoDiv.dataset.score;
+        delete resultadoDiv.dataset.classification;
+        delete resultadoDiv.dataset.scaleName;
+      }
+
+      // Remplit le formulaire dynamiquement
+      lanssData.forEach((item, index) => {
+        const sectionDiv = document.createElement("div");
+        sectionDiv.className = "lanss-criterion-card";
+
+        const headerDiv = document.createElement("div");
+        headerDiv.className = "lanss-criterion-header";
+
+        const titleH3 = document.createElement("h3");
+        titleH3.className = "lanss-criterion-title";
+        titleH3.innerText = item.question; // Utilise 'question'
+        headerDiv.appendChild(titleH3);
+
+        const scoreSpan = document.createElement("span");
+        scoreSpan.className = "lanss-score-display";
+        scoreSpan.id = `${item.nameAttr}_score_display`; // ID pour la mise à jour
+        scoreSpan.innerText = "0"; // Initialise à 0
+        headerDiv.appendChild(scoreSpan);
+
+        sectionDiv.appendChild(headerDiv);
+
+        // Crée le container pour le select
+        const optionsDiv = document.createElement("div");
+        optionsDiv.className = "lanss-criterion-options";
+
+        const selectElement = document.createElement("select");
+        selectElement.id = item.nameAttr;
+        selectElement.className = "lanss-select";
+        selectElement.onchange = () => updateScoreDisplay(item.nameAttr); // Met à jour l'affichage du score
+
+        const defaultOption = document.createElement("option");
+        defaultOption.value = "";
+        defaultOption.text = "Sélectionnez..."; // Traduzido
+        defaultOption.disabled = true;
+        defaultOption.selected = true;
+        selectElement.appendChild(defaultOption);
+
+        item.options.forEach((option) => {
+          const optionElement = document.createElement("option");
+          optionElement.value = option.score;
+          // Texte traduit : description + score entre parenthèses
+          optionElement.text = `${option.text} (${option.score > 0 ? "+" : ""}${option.score})`;
+          selectElement.appendChild(optionElement);
+        });
+
+        optionsDiv.appendChild(selectElement); // Ajoute le select au container
+        sectionDiv.appendChild(optionsDiv); // Ajoute le container à la carte
+        conteudoDiv.appendChild(sectionDiv);
+      });
+
+      // Ajoute les event listeners aux boutons
+      btnCalcular?.addEventListener("click", calculerPontuacao);
+      btnLimpar?.addEventListener("click", limparCampos);
+
+      // Funcionalidade PDF
+      btnGerarPDF?.addEventListener("click", () => {
+        if (!resultadoDiv.dataset.score) {
+          alert(
+            'Veuillez cliquer sur "Calculer" d\'abord pour générer le PDF.',
+          ); // Traduzido
+          return;
+        }
+        if (typeof gerarPDFGlobal === "function") {
+          gerarPDFGlobal({
+            titulo: "Échelle LANSS", // Traduzido
+            subtitulo: "Rapport d'Évaluation de la Douleur Neuropathique", // Traduzido
+            nomeArquivo: "rapport_echelle_lanss.pdf", // Traduzido
+            seletorConteudo: ".main-content-wrapper",
+          });
+        } else {
+          console.error("Fonction gerarPDFGlobal non définie.");
+        }
+      });
+
+      // Funcionalidade NANDA/NIC/NOC
+      btnNandaNicNoc?.addEventListener("click", () => {
+        const score = resultadoDiv.dataset.score;
+        const scaleName = resultadoDiv.dataset.scaleName;
+        const classification = resultadoDiv.dataset.classification; // Utilise 'classification'
+        if (!score || !classification) {
+          alert("Calculez le résultat pour rechercher la conduite à tenir."); // Traduzido
+          return;
+        }
+        // Recherche traduite
+        const searchQuery = encodeURIComponent(
+          `${scaleName} score ${score} classification ${classification} générer taxonomie NANDA générer taxonomie NIC générer taxonomie NOC`,
+        );
+        window.open(
+          `https://www.google.com/search?q=${searchQuery}`,
+          "_blank",
+        );
+      });
+    });
+  </script>
 
   <!-- CHEMIN DU SCRIPT CORRIGÉ -->
   <script src="../lang-selector.js" defer=""></script>

@@ -626,7 +626,294 @@
 
 
 
-  
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const resultadoDiv = document.getElementById('resultado');
+      const btnCalcular = document.getElementById('btnCalcular');
+      const btnLimpar = document.getElementById('btnLimpar');
+      const btnGerarPDF = document.getElementById('btnGerarPDF');
+      const btnNandaNicNoc = document.getElementById('btnNandaNicNoc');
+      const conteudoDiv = document.getElementById('conteudo');
+      const introParagraph = document.getElementById('intro-paragraph');
+      const referenceSection = document.getElementById('reference-section');
+
+      // Fugulin scale data
+      const fugulinData = [
+        {
+          category: "Mental State",
+          nameAttr: "estado_mental",
+          options: [
+            { description: "Unconscious", score: 4 },
+            { description: "Disoriented", score: 3 },
+            { description: "Confused", score: 2 },
+            { description: "Oriented", score: 1 },
+          ]
+        },
+        {
+          category: "Oxygenation",
+          nameAttr: "oxigenacao",
+          options: [
+            { description: "Mechanical ventilation", score: 4 },
+            { description: "Oxygen mask", score: 3 },
+            { description: "Nasal cannula", score: 2 },
+            { description: "Room air", score: 1 },
+          ]
+        },
+        {
+          category: "Vital Signs",
+          nameAttr: "sinais_vitais",
+          options: [
+            { description: "Very critical", score: 4 },
+            { description: "Critical", score: 3 },
+            { description: "Unstable", score: 2 },
+            { description: "Stable", score: 1 },
+          ]
+        },
+        {
+          category: "Motility",
+          nameAttr: "motilidade",
+          options: [
+            { description: "Immobile", score: 4 },
+            { description: "Mobilization with help", score: 3 },
+            { description: "Mobilization with supervision", score: 2 },
+            { description: "Independent", score: 1 },
+          ]
+        },
+        {
+          category: "Ambulation",
+          nameAttr: "deambulacao",
+          options: [
+            { description: "Does not ambulate", score: 4 },
+            { description: "Ambulates with help", score: 3 },
+            { description: "Ambulates with supervision", score: 2 },
+            { description: "Independent", score: 1 },
+          ]
+        },
+        {
+          category: "Feeding",
+          nameAttr: "alimentacao",
+          options: [
+            { description: "NPO (Nothing by mouth)", score: 4 },
+            { description: "Parenteral", score: 3 },
+            { description: "Enteral", score: 2 },
+            { description: "Oral", score: 1 },
+          ]
+        },
+        {
+          category: "Body Care",
+          nameAttr: "cuidado_corporal",
+          options: [
+            { description: "Totally dependent", score: 4 },
+            { description: "Dependent", score: 3 },
+            { description: "Partial help", score: 2 },
+            { description: "Independent", score: 1 },
+          ]
+        },
+        {
+          category: "Elimination",
+          nameAttr: "eliminacao",
+          options: [
+            { description: "Incontinent", score: 4 },
+            { description: "Indwelling catheter (Foley)", score: 3 },
+            { description: "Partial help", score: 2 },
+            { description: "Independent", score: 1 },
+          ]
+        },
+        {
+          category: "Therapeutics",
+          nameAttr: "terapeutica",
+          options: [
+            { description: "Use of vasoactive drugs", score: 4 },
+            { description: "Continuous IV via catheter", score: 3 },
+            { description: "Intermittent IV", score: 2 },
+            { description: "IM or PO", score: 1 },
+          ]
+        },
+        {
+          category: "Dressing Change Time",
+          nameAttr: "tempo_curativo",
+          options: [
+            { description: "15 to 30 minutes", score: 4 },
+            { description: "5 to 15 minutes", score: 3 },
+            { description: "Less than 5 minutes", score: 2 },
+            { description: "No dressing", score: 1 },
+          ]
+        },
+        {
+          category: "Dressing",
+          nameAttr: "curativo",
+          options: [
+            { description: "Change 3x/day", score: 4 },
+            { description: "Change 2x/day", score: 3 },
+            { description: "Change 1x/day", score: 2 },
+            { description: "No dressing", score: 1 },
+          ]
+        },
+        {
+          category: "Skin/Mucosal Integrity / Tissue Impairment",
+          nameAttr: "integridade",
+          options: [
+            { description: "Extensive", score: 4 },
+            { description: "Moderate", score: 3 },
+            { description: "Mild", score: 2 },
+            { description: "None", score: 1 },
+          ]
+        }
+      ];
+
+      // Dynamically populates the form
+      fugulinData.forEach((item, index) => {
+        const sectionDiv = document.createElement('div');
+        sectionDiv.className = 'fugulin-criterion-section';
+        sectionDiv.id = `section-${item.nameAttr}`;
+
+        const titleH3 = document.createElement('h3');
+        titleH3.className = 'fugulin-criterion-title';
+        titleH3.innerText = item.category;
+        sectionDiv.appendChild(titleH3);
+
+        const selectElement = document.createElement('select');
+        selectElement.id = item.nameAttr;
+        selectElement.className = 'fugulin-criterion-select';
+
+        const defaultOption = document.createElement('option');
+        defaultOption.value = "";
+        defaultOption.text = "Select...";
+        selectElement.appendChild(defaultOption);
+
+        item.options.forEach(option => {
+          const optionElement = document.createElement('option');
+          optionElement.value = option.score;
+          optionElement.text = `${option.description} (${option.score})`;
+          selectElement.appendChild(optionElement);
+        });
+
+        sectionDiv.appendChild(selectElement);
+        conteudoDiv.appendChild(sectionDiv);
+      });
+
+      function calcularFugulin() {
+        const selects = document.querySelectorAll('#conteudo select');
+        let allSelected = true;
+        let total = 0;
+
+        selects.forEach(select => {
+          if (select.value === "") {
+            allSelected = false;
+          }
+          total += Number(select.value);
+        });
+
+        resultadoDiv.style.display = "block";
+        if (!allSelected) {
+          resultadoDiv.innerHTML = '⚠️ <strong class="font-bold">Please select an option for all items before calculating.</strong>';
+          resultadoDiv.classList.add('bg-info-orange-light');
+          resultadoDiv.classList.remove('bg-red-100', 'bg-blue-50');
+          delete resultadoDiv.dataset.score;
+          return;
+        }
+
+        let classificacao = '';
+        let resultadoClasse = '';
+
+        if (total >= 31) {
+          classificacao = 'Very High Complexity';
+          resultadoClasse = 'bg-red-100';
+        } else if (total >= 24) {
+          classificacao = 'High Complexity';
+          resultadoClasse = 'bg-red-100';
+        } else if (total >= 17) {
+          classificacao = 'Medium Complexity';
+          resultadoClasse = 'bg-blue-50';
+        } else if (total >= 10) {
+          classificacao = 'Low Complexity';
+          resultadoClasse = 'bg-blue-50';
+        } else {
+          classificacao = 'Minimal Complexity';
+          resultadoClasse = 'bg-blue-50';
+        }
+
+        resultadoDiv.innerHTML = `<p>Total Score: <strong class="font-bold">${total}</strong></p><p>Classification: <strong class="font-bold">${classificacao}</strong></p>`;
+        resultadoDiv.className = `resultado ${resultadoClasse}`;
+        resultadoDiv.style.display = "block";
+
+        resultadoDiv.dataset.score = total;
+        resultadoDiv.dataset.scaleName = "Fugulin Scale";
+        resultadoDiv.dataset.classificacao = classificacao;
+      }
+
+      function limparCampos() {
+        const selects = document.querySelectorAll('#conteudo select');
+        selects.forEach(select => {
+          select.selectedIndex = 0;
+        });
+        resultadoDiv.innerHTML = '';
+        resultadoDiv.className = 'resultado hidden';
+        delete resultadoDiv.dataset.score;
+        delete resultadoDiv.dataset.scaleName;
+        delete resultadoDiv.dataset.classificacao;
+      }
+
+      // Add event listeners to buttons
+      btnCalcular?.addEventListener('click', calcularFugulin);
+      btnLimpar?.addEventListener('click', limparCampos);
+
+      btnGerarPDF?.addEventListener('click', () => {
+        if (!resultadoDiv.dataset.score) {
+          alert('Please click "Calculate Score" first to generate the PDF.');
+          return;
+        }
+        if (typeof gerarPDFGlobal === 'function') {
+          gerarPDFGlobal({
+            titulo: 'Fugulin Scale',
+            subtitulo: 'Nursing Care Complexity Report',
+            nomeArquivo: 'fugulin_scale_report.pdf',
+            seletorConteudo: '.main-content-wrapper'
+          });
+        } else {
+          console.error('gerarPDFGlobal function not defined.');
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener('click', () => {
+        const score = resultadoDiv.dataset.score;
+        const scaleName = resultadoDiv.dataset.scaleName;
+        const classificacao = resultadoDiv.dataset.classificacao;
+        if (!score || !classificacao) {
+          alert('Calculate the result to search for interventions.');
+          return;
+        }
+        const searchQuery = encodeURIComponent(`${scaleName} score ${score} generate NANDA taxonomy, generate NIC taxonomy, and generate NOC taxonomy`);
+        window.open(`https://www.google.com/search?q=${searchQuery}`, '_blank');
+      });
+      // "Add to favorites" button
+      const addFavoriteBtn = document.getElementById('addFavoriteBtn');
+      if (addFavoriteBtn) {
+        addFavoriteBtn.addEventListener('click', () => {
+          const url = window.location.href;
+          const title = "Fugulin Scale";
+
+          try {
+            // IE/Edge Legacy
+            if (window.external && ("AddFavorite" in window.external)) {
+              window.external.AddFavorite(url, title);
+              return;
+            }
+            // Old Firefox
+            if (window.sidebar && window.sidebar.addPanel) {
+              window.sidebar.addPanel(title, url, "");
+              return;
+            }
+            // Modern Chrome/Firefox: shortcut instruction
+            alert("Press Ctrl + D (or Cmd + D on Mac) to add this page to your favorites.");
+          } catch (e) {
+            alert("Press Ctrl + D (or Cmd + D on Mac) to add this page to your favorites.");
+          }
+        });
+      }
+
+    });
+  </script>
 
 
 

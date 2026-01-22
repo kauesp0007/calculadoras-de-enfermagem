@@ -599,7 +599,344 @@
   <!-- Assume script is at root -->
 
   <!-- Script Spécifique à la Page Cornell (avec textes traduits) -->
-  
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const resultadoDiv = document.getElementById("resultado");
+      const conteudoDiv = document.getElementById("conteudo");
+      const btnCalcular = document.getElementById("btnCalcular");
+      const btnLimpar = document.getElementById("btnLimpar");
+      const btnGerarPDF = document.getElementById("btnGerarPDF"); // Ajouté
+      const btnNandaNicNoc = document.getElementById("btnNandaNicNoc"); // Ajouté
+
+      // Données de l'échelle traduites en Français
+      const cornellData = [
+        {
+          section: "A. Signes liés à l'humeur",
+          items: [
+            {
+              item: "1. Anxiété",
+              nameAttr: "anxiete",
+              options: [
+                { score: 0, description: "Absent" },
+                { score: 1, description: "Léger à modéré" },
+                { score: 2, description: "Sévère" },
+              ],
+            },
+            {
+              item: "2. Tristesse",
+              nameAttr: "tristesse",
+              options: [
+                { score: 0, description: "Absent" },
+                { score: 1, description: "Léger à modéré" },
+                { score: 2, description: "Sévère" },
+              ],
+            },
+            {
+              item: "3. Manque de réaction aux choses agréables",
+              nameAttr: "manqueReacPlaisir",
+              options: [
+                { score: 0, description: "Absent" },
+                { score: 1, description: "Léger à modéré" },
+                { score: 2, description: "Sévère" },
+              ],
+            },
+            {
+              item: "4. Irritabilité",
+              nameAttr: "irritabilite",
+              options: [
+                { score: 0, description: "Absent" },
+                { score: 1, description: "Léger à modéré" },
+                { score: 2, description: "Sévère" },
+              ],
+            },
+          ],
+        },
+        {
+          section: "B. Troubles comportementaux",
+          items: [
+            {
+              item: "5. Agitation",
+              nameAttr: "agitation",
+              options: [
+                { score: 0, description: "Absent" },
+                { score: 1, description: "Léger à modéré" },
+                { score: 2, description: "Sévère" },
+              ],
+            },
+            {
+              item: "6. Ralentissement psychomoteur",
+              nameAttr: "ralentissPsycho",
+              options: [
+                { score: 0, description: "Absent" },
+                { score: 1, description: "Léger à modéré" },
+                { score: 2, description: "Sévère" },
+              ],
+            },
+            {
+              item: "7. Plaintes somatiques multiples",
+              nameAttr: "plaintesSomatiques",
+              options: [
+                { score: 0, description: "Absent" },
+                { score: 1, description: "Léger à modéré" },
+                { score: 2, description: "Sévère" },
+              ],
+            },
+            {
+              item: "8. Perte d'intérêt",
+              nameAttr: "perteInteret",
+              options: [
+                { score: 0, description: "Absent" },
+                { score: 1, description: "Léger à modéré" },
+                { score: 2, description: "Sévère" },
+              ],
+            },
+          ],
+        },
+        {
+          section: "C. Signes physiques",
+          items: [
+            {
+              item: "9. Perte d'appétit",
+              nameAttr: "perteAppetit",
+              options: [
+                { score: 0, description: "Absent" },
+                { score: 1, description: "Léger à modéré" },
+                { score: 2, description: "Sévère" },
+              ],
+            },
+            {
+              item: "10. Perte de poids",
+              nameAttr: "pertePoids",
+              options: [
+                { score: 0, description: "Absent" },
+                { score: 1, description: "Léger à modéré" },
+                { score: 2, description: "Sévère" },
+              ],
+            },
+            {
+              item: "11. Manque d'énergie",
+              nameAttr: "manqueEnergie",
+              options: [
+                { score: 0, description: "Absent" },
+                { score: 1, description: "Léger à modéré" },
+                { score: 2, description: "Sévère" },
+              ],
+            },
+          ],
+        },
+        {
+          section: "D. Variations cycliques",
+          items: [
+            {
+              item: "12. Variation diurne de l'humeur",
+              nameAttr: "variationHumeur",
+              options: [
+                { score: 0, description: "Absent" },
+                { score: 1, description: "Léger à modéré" },
+                { score: 2, description: "Sévère" },
+              ],
+            },
+            {
+              item: "13. Difficulté à s'endormir",
+              nameAttr: "difficulteEndormir",
+              options: [
+                { score: 0, description: "Absent" },
+                { score: 1, description: "Léger à modéré" },
+                { score: 2, description: "Sévère" },
+              ],
+            },
+            {
+              item: "14. Réveils multiples",
+              nameAttr: "reveilsMultiples",
+              options: [
+                { score: 0, description: "Absent" },
+                { score: 1, description: "Léger à modéré" },
+                { score: 2, description: "Sévère" },
+              ],
+            },
+            {
+              item: "15. Réveil précoce",
+              nameAttr: "reveilPrecoce",
+              options: [
+                { score: 0, description: "Absent" },
+                { score: 1, description: "Léger à modéré" },
+                { score: 2, description: "Sévère" },
+              ],
+            },
+          ],
+        },
+        {
+          section: "E. Troubles idéatoires",
+          items: [
+            {
+              item: "16. Idées suicidaires",
+              nameAttr: "ideesSuicidaires",
+              options: [
+                { score: 0, description: "Absent" },
+                { score: 1, description: "Léger à modéré" },
+                { score: 2, description: "Sévère" },
+              ],
+            },
+            {
+              item: "17. Faible estime de soi",
+              nameAttr: "faibleEstime",
+              options: [
+                { score: 0, description: "Absent" },
+                { score: 1, description: "Léger à modéré" },
+                { score: 2, description: "Sévère" },
+              ],
+            },
+            {
+              item: "18. Pessimisme",
+              nameAttr: "pessimisme",
+              options: [
+                { score: 0, description: "Absent" },
+                { score: 1, description: "Léger à modéré" },
+                { score: 2, description: "Sévère" },
+              ],
+            },
+            {
+              item: "19. Idées délirantes à contenu dépressif",
+              nameAttr: "ideesDelirantes",
+              options: [
+                { score: 0, description: "Absent" },
+                { score: 1, description: "Léger à modéré" },
+                { score: 2, description: "Sévère" },
+              ],
+            },
+          ],
+        },
+      ];
+
+      function createForm() {
+        // Logique pour créer le formulaire (reste identique)
+        conteudoDiv.innerHTML = "";
+        cornellData.forEach((sectionData) => {
+          const sectionTitle = document.createElement("h3");
+          sectionTitle.className = "section-title";
+          sectionTitle.textContent = sectionData.section;
+          conteudoDiv.appendChild(sectionTitle);
+
+          const sectionItemsContainer = document.createElement("div");
+          sectionItemsContainer.className = "space-y-4";
+
+          sectionData.items.forEach((item) => {
+            const card = document.createElement("div");
+            card.className = "criterion-card";
+            card.innerHTML = `
+                        <h4 class="criterion-title">${item.item}</h4>
+                        <div class="options-container">
+                            <select id="${item.nameAttr}-select" class="custom-select">
+                                <option value="" disabled selected>Sélectionnez...</option>
+                                ${item.options.map((opt) => `<option value="${opt.score}">${opt.description} (${opt.score})</option>`).join("")}
+                            </select>
+                        </div>
+                    `;
+            sectionItemsContainer.appendChild(card);
+          });
+          conteudoDiv.appendChild(sectionItemsContainer);
+        });
+      }
+
+      function calcular() {
+        // Logique de calcul (reste identique, mais les textes de résultat sont traduits)
+        let totalScore = 0;
+        let allSelected = true;
+
+        cornellData.forEach((sectionData) => {
+          sectionData.items.forEach((item) => {
+            const select = document.getElementById(`${item.nameAttr}-select`);
+            if (select && select.value !== "") {
+              // Assure que une option est sélectionnée
+              totalScore += parseInt(select.value, 10);
+            } else {
+              allSelected = false;
+            }
+          });
+        });
+
+        if (!allSelected) {
+          // Message d'erreur traduit
+          resultadoDiv.innerHTML =
+            '⚠️ <strong class="font-bold">Veuillez sélectionner une option pour chaque item.</strong>';
+          resultadoDiv.className = "standard-result-box bg-info-orange-light";
+          resultadoDiv.style.display = "block";
+          delete resultadoDiv.dataset.score;
+          return;
+        }
+
+        // Classification traduite
+        let classificacao = "";
+        if (totalScore <= 7) {
+          classificacao = "Absence de Dépression Significative";
+        } else if (totalScore <= 12) {
+          classificacao = "Dépression Légère à Modérée";
+        } else {
+          classificacao = "Dépression Sévère";
+        }
+
+        resultadoDiv.innerHTML = `
+                <p class="font-bold text-lg">Score Total : <span class="font-black">${totalScore}</span></p>
+                <p class="font-bold text-lg">Classification : <span class="font-black">${classificacao}</span></p>
+            `;
+        resultadoDiv.className = "standard-result-box";
+        resultadoDiv.style.display = "block";
+        resultadoDiv.dataset.score = totalScore;
+        resultadoDiv.dataset.classificacao = classificacao;
+      }
+
+      function limpar() {
+        // Logique de nettoyage (reste identique)
+        createForm();
+        resultadoDiv.innerHTML = "";
+        resultadoDiv.className = "hidden";
+        delete resultadoDiv.dataset.score;
+        delete resultadoDiv.dataset.classificacao;
+      }
+
+      // Initialise et attache les événements
+      createForm();
+      btnCalcular?.addEventListener("click", calcular);
+      btnLimpar?.addEventListener("click", limpar);
+
+      // Logique PDF (reste identique, titres déjà traduits)
+      btnGerarPDF?.addEventListener("click", () => {
+        if (!resultadoDiv.dataset.score) {
+          alert(
+            'Veuillez cliquer sur "Calculer" d\'abord pour générer le PDF.',
+          );
+          return;
+        }
+        if (typeof gerarPDFGlobal === "function") {
+          gerarPDFGlobal({
+            titulo: "Échelle de Cornell pour la Dépression dans la Démence",
+            subtitulo: "Rapport d'Évaluation",
+            nomeArquivo: "rapport_echelle_cornell.pdf",
+            seletorConteudo: ".main-content-wrapper",
+          });
+        } else {
+          console.error("Fonction gerarPDFGlobal non définie.");
+        }
+      });
+
+      // Logique NANDA/NIC/NOC (reste identique, recherche en FR)
+      btnNandaNicNoc?.addEventListener("click", () => {
+        const score = resultadoDiv.dataset.score;
+        const classification = resultadoDiv.dataset.classificacao;
+        if (!classification) {
+          alert("Calculez le résultat pour rechercher la conduite à tenir.");
+          return;
+        }
+        const searchQuery = encodeURIComponent(
+          `plan de soins infirmiers ${classification} selon l'Échelle de Cornell NANDA NIC NOC`,
+        );
+        window.open(
+          `https://www.google.com/search?q=${searchQuery}`,
+          "_blank",
+        );
+      });
+    });
+  </script>
 
   <!-- Script du Sélecteur de Langue (chargé depuis la racine) -->
   <script src="/lang-selector.js" defer=""></script>

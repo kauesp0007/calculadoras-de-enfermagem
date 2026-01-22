@@ -612,7 +612,100 @@
 
 
 
-  
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const resultadoDiv = document.getElementById('resultado');
+      const btnCalcular = document.getElementById('btnCalcular');
+      const btnLimpar = document.getElementById('btnLimpar');
+      const btnGerarPDF = document.getElementById('btnGerarPDF');
+      const btnNandaNicNoc = document.getElementById('btnNandaNicNoc');
+      const cincinnatiTable = document.getElementById('cincinnatiTable');
+
+      cincinnatiTable?.addEventListener('click', function (e) {
+        if (e.target.tagName === 'TD' && e.target.hasAttribute('data-value')) {
+          const row = e.target.parentElement;
+          // Remove a classe 'selected' de todas as células na mesma linha
+          [...row.children].forEach(td => td.classList.remove('selected'));
+          // Adiciona a classe 'selected' à célula clicada
+          e.target.classList.add('selected');
+        }
+      });
+
+      function calcular() {
+        const rows = cincinnatiTable.querySelectorAll("tbody tr");
+        let positivo = false;
+        let incompleto = false;
+
+        rows.forEach(row => {
+          const selectedCell = row.querySelector(".selected");
+          if (!selectedCell) {
+            incompleto = true;
+          } else if (selectedCell.dataset.value === "1") {
+            positivo = true;
+          }
+        });
+
+        if (incompleto) {
+          resultadoDiv.innerHTML = '⚠️ <strong class="font-bold">कृपया प्रत्येक मानदंड के लिए एक विकल्प चुनें।</strong>';
+          resultadoDiv.className = 'resultado bg-info-orange-light';
+          resultadoDiv.style.display = 'block';
+          delete resultadoDiv.dataset.score;
+          return;
+        }
+
+        const resultadoTexto = positivo ? "स्ट्रोक (AVE) संदेह के लिए सकारात्मक" : "स्ट्रोक (AVE) संदेह के लिए नकारात्मक";
+        const resultadoClasse = positivo ? 'bg-cincinnati-positivo' : 'bg-cincinnati-negativo';
+
+        resultadoDiv.innerHTML = `<p>परिणाम: <strong class="font-bold">${resultadoTexto}</strong></p>`;
+        resultadoDiv.className = `resultado ${resultadoClasse}`;
+        resultadoDiv.style.display = 'block';
+
+        resultadoDiv.dataset.score = resultadoTexto;
+        resultadoDiv.dataset.scaleName = "सिनसिनाटी स्केल";
+      }
+
+      function limpar() {
+        cincinnatiTable.querySelectorAll("td.selected").forEach(cell => cell.classList.remove("selected"));
+        resultadoDiv.innerHTML = '';
+        resultadoDiv.className = 'resultado hidden';
+        delete resultadoDiv.dataset.score;
+        delete resultadoDiv.dataset.scaleName;
+      }
+
+      btnCalcular?.addEventListener('click', calcular);
+      btnLimpar?.addEventListener('click', limpar);
+
+      btnGerarPDF?.addEventListener('click', () => {
+        if (!resultadoDiv.dataset.score) {
+          alert('पीडीएफ बनाने के लिए कृपया पहले "गणना करें" पर क्लिक करें।');
+          return;
+        }
+        if (typeof gerarPDFGlobal === 'function') {
+          gerarPDFGlobal({
+            titulo: 'सिनसिनाटी स्केल',
+            // Título e subtítulo do PDF
+            subtitulo: 'तीव्र स्ट्रोक (AVE) त्वरित मूल्यांकन रिपोर्ट',
+            nomeArquivo: 'relatorio_escala_cincinnati.pdf',
+            seletorConteudo: '.main-content-wrapper'
+          });
+        } else {
+          console.error('Função gerarPDFGlobal não definida.');
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener('click', () => {
+        const score = resultadoDiv.dataset.score;
+        const scaleName = resultadoDiv.dataset.scaleName;
+        if (!score) {
+          alert('आचरण खोजने के लिए परिणाम की गणना करें।');
+          return;
+        }
+        // A consulta de pesquisa usa termos em português para garantir a relevância da taxonomia NANDA/NIC/NOC
+        const searchQuery = encodeURIComponent(`${score} ${scaleName} gerar taxonomia de NANDA gerar taxonomia de NIC gerar Taxonomia de NOC`);
+        window.open(`https://www.google.com/search?q=${searchQuery}`, '_blank');
+      });
+    });
+  </script>
 
 
 

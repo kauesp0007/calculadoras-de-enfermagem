@@ -566,7 +566,111 @@
 
 
 
-  
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const resultadoDiv = document.getElementById('resultado');
+      const btnCalcular = document.getElementById('btnCalcular');
+      const btnLimpar = document.getElementById('btnLimpar');
+      const conteudoDiv = document.getElementById('conteudo');
+
+      const lachsData = [
+        { category: "Vista", nameAttr: "vista", explain: "Il paziente riesce a leggere un testo standard a 35 cm?", options: [{ description: "Sì", score: 1 }, { description: "No", score: 0 }] },
+        { category: "Udito", nameAttr: "udito", explain: "Il paziente risponde a una domanda sussurrata?", options: [{ description: "Sì", score: 1 }, { description: "No", score: 0 }] },
+        { category: "Incontinenza urinaria", nameAttr: "incontinenza_urinaria", explain: "Il paziente ha avuto perdite di urina almeno 6 volte nell'ultimo anno?", options: [{ description: "No", score: 1 }, { description: "Sì", score: 0 }] },
+        { category: "ADL e IADL", nameAttr: "adl_iadl", explain: "Il paziente riesce ad alzarsi, vestirsi, preparare i pasti e fare la spesa da solo?", options: [{ description: "Sì, tutte", score: 1 }, { description: "No, almeno una no", score: 0 }] },
+        { category: "Forza degli arti superiori", nameAttr: "forza_superiori", explain: "Il paziente riesce a toccarsi la nuca con entrambe le mani?", options: [{ description: "Sì", score: 1 }, { description: "No", score: 0 }] },
+        { category: "Forza degli arti inferiori", nameAttr: "forza_inferiori", explain: "Il paziente si alza, cammina per 3m, torna e si siede in < 12 sec?", options: [{ description: "Sì, ≤ 12 sec", score: 1 }, { description: "No, > 12 sec", score: 0 }] },
+        { category: "Nutrizione", nameAttr: "nutrizione", explain: "L'IMC del paziente è superiore a 22 kg/m²?", options: [{ description: "Sì, IMC ≥ 22", score: 1 }, { description: "No, IMC < 22", score: 0 }] },
+        { category: "Stato mentale", nameAttr: "stato_mentale", explain: "Il paziente riesce a ripetere tre parole dopo 1 minuto?", options: [{ description: "Sì", score: 1 }, { description: "No", score: 0 }] },
+        { category: "Depressione", nameAttr: "depressione", explain: "Il paziente si sente spesso triste o depresso?", options: [{ description: "No", score: 1 }, { description: "Sì", score: 0 }] },
+        { category: "Ambiente domestico", nameAttr: "ambiente", explain: "Ci sono rischi ambientali in casa (scale, tappeti, scarsa illuminazione)?", options: [{ description: "No, ambiente sicuro", score: 1 }, { description: "Sì, ci sono rischi", score: 0 }] },
+        { category: "Supporto sociale", nameAttr: "supporto_sociale", explain: "Il paziente ha qualcuno su cui contare in caso di emergenza?", options: [{ description: "Sì", score: 1 }, { description: "No", score: 0 }] }
+      ];
+
+      lachsData.forEach(item => {
+        const sectionDiv = document.createElement('div');
+        sectionDiv.className = 'lachs-criterion-section';
+        sectionDiv.innerHTML = `
+                <div>
+                    <h3 class="lachs-criterion-title">${item.category}</h3>
+                    <p class="lachs-criterion-explain">${item.explain}</p>
+                </div>
+                <select id="${item.nameAttr}" class="lachs-criterion-select">
+                    <option value="" disabled selected>Seleziona...</option>
+                    ${item.options.map(o => `<option value="${o.score}">${o.description}</option>`).join('')}
+                </select>
+            `;
+        conteudoDiv.appendChild(sectionDiv);
+      });
+
+      function calcolaLachs() {
+        let total = 0;
+        let allSelected = true;
+        document.querySelectorAll('#conteudo select').forEach(select => {
+          select.classList.remove('incomplete');
+          if (select.value === "") {
+            allSelected = false;
+            select.classList.add('incomplete');
+          } else {
+            total += Number(select.value);
+          }
+        });
+
+        resultadoDiv.style.display = "block";
+        if (!allSelected) {
+          resultadoDiv.innerHTML = '⚠️ <strong class="font-bold">Per favore, seleziona un\'opzione per tutte le voci.</strong>';
+          resultadoDiv.className = 'resultado bg-red-100';
+          return;
+        }
+
+        let raccomandazione = '';
+        if (total <= 5) raccomandazione = `Un punteggio di ${total} suggerisce un alto rischio di perdita di capacità funzionale. Si raccomanda una valutazione geriatrica completa.`;
+        else if (total <= 9) raccomandazione = `Un punteggio di ${total} indica un rischio moderato. Il paziente potrebbe aver bisogno di supporto in alcune aree.`;
+        else raccomandazione = `Un punteggio di ${total} suggerisce una buona capacità funzionale e un basso rischio di perdita di autonomia.`;
+
+        resultadoDiv.innerHTML = `<p>Punteggio totale: <strong class="font-bold">${total} / 11</strong></p><p class="mt-4"><strong>Raccomandazione:</strong> ${raccomandazione}</p>`;
+        resultadoDiv.className = 'resultado';
+        resultadoDiv.dataset.score = total;
+      }
+
+      function pulisciCampi() {
+        document.querySelectorAll('#conteudo select').forEach(select => {
+          select.selectedIndex = 0;
+          select.classList.remove('incomplete');
+        });
+        resultadoDiv.style.display = 'none';
+        delete resultadoDiv.dataset.score;
+      }
+
+      btnCalcular?.addEventListener('click', calcolaLachs);
+      btnLimpar?.addEventListener('click', pulisciCampi);
+
+      document.getElementById('btnGerarPDF')?.addEventListener('click', () => {
+        if (!resultadoDiv.dataset.score) {
+          alert('Per favore, calcola prima il punteggio per generare il PDF.');
+          return;
+        }
+        if (typeof gerarPDFGlobal === 'function') {
+          gerarPDFGlobal({
+            titulo: 'Scala di Lachs',
+            subtitulo: 'Rapporto di Valutazione Funzionale dell\'Anziano',
+            nomeArquivo: 'rapporto_scala_lachs.pdf',
+            seletorConteudo: '.main-content-wrapper'
+          });
+        }
+      });
+
+      document.getElementById('btnNandaNicNoc')?.addEventListener('click', () => {
+        const score = resultadoDiv.dataset.score;
+        if (!score) {
+          alert('Calcola il risultato per cercare la condotta.');
+          return;
+        }
+        const searchQuery = encodeURIComponent(`punteggio scala Lachs ${score} assistenza infermieristica anziano NANDA NIC NOC`);
+        window.open(`https://www.google.com/search?q=${searchQuery}`, '_blank');
+      });
+    });
+  </script>
 
 
 

@@ -667,7 +667,252 @@
 
 
 
-  
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const resultadoDiv = document.getElementById("resultado");
+      const btnCalcular = document.getElementById("btnCalcular");
+      const btnLimpar = document.getElementById("btnLimpar");
+      const btnGerarPDF = document.getElementById("btnGerarPDF");
+      const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
+      const conteudoDiv = document.getElementById("conteudo");
+
+      const painadData = [
+        {
+          title: "1. التنفس",
+          nameAttr: "respiracao",
+          explain: "مراقبة تنفس المريض.",
+          options: [
+            { description: "طبيعي، بدون تغييرات في نمط التنفس", score: 0 },
+            {
+              description: "تنفس متقطع متسرع، تنفس قصير أو فرط التنفس",
+              score: 1,
+            },
+            { description: "تنفس متسرع ومجهد، تنفس شاين-ستوكس", score: 2 },
+          ],
+        },
+        {
+          title: "2. التصويت",
+          nameAttr: "vocalizacao",
+          explain: "تقييم الأصوات الصادرة من المريض.",
+          options: [
+            { description: "لا شيء", score: 0 },
+            { description: "يئن، يتمتم، يتحدث أحيانًا", score: 1 },
+            {
+              description: "يصرخ، يبكي، يتأوه أو يكرر الكلمات بشكل متكرر",
+              score: 2,
+            },
+          ],
+        },
+        {
+          title: "3. تعبيرات الوجه",
+          nameAttr: "expressao_facial",
+          explain: "مراقبة تعبيرات وجه المريض.",
+          options: [
+            { description: "مسترخي، طبيعي", score: 0 },
+            { description: "حزين، خائف، مع تجعيد الجبين", score: 1 },
+            { description: "يتكشّر، تعبير ذعر", score: 2 },
+          ],
+        },
+        {
+          title: "4. لغة الجسد",
+          nameAttr: "linguagem_corporal",
+          explain: "مراقبة وضعية الجسم وحركات المريض.",
+          options: [
+            { description: "مسترخي، بدون توتر في الأطراف", score: 0 },
+            {
+              description: "جسم متوتر، مضطرب، قلق، أذرع أو أرجل متوترة",
+              score: 1,
+            },
+            {
+              description:
+                "قبضات اليد مغلقة، أطراف متصلبة، وضعية الجنين، هياج مفرط",
+              score: 2,
+            },
+          ],
+        },
+        {
+          title: "5. القابلية للتهدئة",
+          nameAttr: "consolabilidade",
+          explain: "تقييم ما إذا كان يمكن تهدئة المريض من قبل شخص آخر.",
+          options: [
+            {
+              description: "يمكن تهدئته بسهولة، يمكن تشتيته بسهولة",
+              score: 0,
+            },
+            {
+              description:
+                "يمكن مواساته بالصوت أو اللمس، لكن التشتيت غير مستدام",
+              score: 1,
+            },
+            { description: "لا يمكن تهدئته، يبقى مضطربًا", score: 2 },
+          ],
+        },
+      ];
+
+      // ملء النموذج ديناميكيًا
+      painadData.forEach((item) => {
+        const sectionDiv = document.createElement("div");
+        sectionDiv.className = "painad-criterion-section";
+        sectionDiv.id = `section-${item.nameAttr}`;
+
+        const titleH3 = document.createElement("h3");
+        titleH3.className = "painad-criterion-title";
+        titleH3.innerHTML = item.title;
+        sectionDiv.appendChild(titleH3);
+
+        const explainP = document.createElement("p");
+        explainP.className = "painad-criterion-explain";
+        explainP.innerHTML = item.explain;
+        sectionDiv.appendChild(explainP);
+
+        const selectElement = document.createElement("select");
+        selectElement.id = item.nameAttr;
+        selectElement.className = "painad-criterion-select mt-2";
+
+        const defaultOption = document.createElement("option");
+        defaultOption.value = "";
+        defaultOption.text = "اختر...";
+        selectElement.appendChild(defaultOption);
+
+        item.options.forEach((option) => {
+          const optionElement = document.createElement("option");
+          optionElement.value = option.score;
+          optionElement.text = `${option.description} (${option.score})`;
+          selectElement.appendChild(optionElement);
+        });
+
+        sectionDiv.appendChild(selectElement);
+        conteudoDiv.appendChild(sectionDiv);
+      });
+
+      function calcularPainad() {
+        const selects = document.querySelectorAll("#conteudo select");
+        let allSelected = true;
+        let total = 0;
+
+        selects.forEach((select) => {
+          if (select.value === "") {
+            allSelected = false;
+            select.classList.add("incomplete");
+          } else {
+            select.classList.remove("incomplete");
+            total += Number(select.value);
+          }
+        });
+
+        resultadoDiv.style.display = "block";
+        if (!allSelected) {
+          resultadoDiv.innerHTML =
+            '⚠️ <strong class="font-bold">يرجى اختيار خيار لجميع البنود قبل الحساب.</strong>';
+          resultadoDiv.className = `resultado bg-red-100`;
+          delete resultadoDiv.dataset.score;
+          return;
+        }
+
+        let recomendacao = "";
+
+        if (total <= 3) {
+          recomendacao = `تشير النتيجة ${total} إلى أن الألم غائب أو في مستوى أدنى. استمر في مراقبة المريض بانتظام.`;
+        } else if (total >= 4 && total <= 6) {
+          recomendacao = `تشير النتيجة ${total} إلى ألم معتدل. يوصى بتقييم طرق تخفيف الألم، الدوائية أو غير الدوائية، ومراقبة استجابة المريض.`;
+        } else {
+          // total >= 7
+          recomendacao = `تشير النتيجة ${total} إلى ألم شديد. هناك حاجة إلى تدخل فوري لتخفيف الألم، ويجب على الطبيب مراجعة خطة العلاج.`;
+        }
+
+        resultadoDiv.innerHTML = `
+                <p>إجمالي النتيجة: <strong class="font-bold">${total}</strong></p>
+                <p class="mt-4"><strong>التوصية:</strong> ${recomendacao}</p>
+            `;
+        resultadoDiv.className = `resultado bg-blue-50`;
+        resultadoDiv.style.display = "block";
+
+        resultadoDiv.dataset.score = total;
+        resultadoDiv.dataset.scaleName = "مقياس PAINAD";
+      }
+
+      function limparCampos() {
+        const selects = document.querySelectorAll("#conteudo select");
+        selects.forEach((select) => {
+          select.selectedIndex = 0;
+          select.classList.remove("incomplete");
+        });
+        resultadoDiv.innerHTML = "";
+        resultadoDiv.className = "resultado hidden";
+        delete resultadoDiv.dataset.score;
+        delete resultadoDiv.dataset.scaleName;
+      }
+
+      // إضافة مستمعي الأحداث للأزرار
+      btnCalcular?.addEventListener("click", calcularPainad);
+      btnLimpar?.addEventListener("click", limparCampos);
+
+      btnGerarPDF?.addEventListener("click", () => {
+        if (!resultadoDiv.dataset.score) {
+          alert('يرجى النقر على "حساب النتيجة" أولاً لإنشاء PDF.');
+          return;
+        }
+        if (typeof gerarPDFGlobal === "function") {
+          const selectedOptions = {};
+          document.querySelectorAll("#conteudo select").forEach((select) => {
+            const selected = select.options[select.selectedIndex];
+            if (selected.value !== "") {
+              selectedOptions[select.id] = selected.text;
+            }
+          });
+
+          let contentToPrint = document
+            .querySelector(".main-content-wrapper")
+            .cloneNode(true);
+          let contentContainer = contentToPrint.querySelector("#conteudo");
+
+          contentContainer.innerHTML = "";
+
+          painadData.forEach((item) => {
+            let selectedText = selectedOptions[item.nameAttr];
+            if (selectedText) {
+              let itemDiv = document.createElement("div");
+              itemDiv.className = "mb-2 p-2 bg-gray-50 rounded";
+              itemDiv.innerHTML = `<strong>${item.title}:</strong> ${selectedText}`;
+              contentContainer.appendChild(itemDiv);
+            }
+          });
+
+          let resultadoHtml = resultadoDiv.cloneNode(true);
+          if (resultadoHtml.style.display !== "none") {
+            contentContainer.appendChild(resultadoHtml);
+          }
+
+          gerarPDFGlobal({
+            titulo: "مقياس PAINAD",
+            subtitulo: "تقرير تقييم الألم في الخرف المتقدم",
+            nomeArquivo: "تقرير_مقياس_PAINAD.pdf",
+            seletorConteudo: ".main-content-wrapper",
+          });
+        } else {
+          console.error("الدالة gerarPDFGlobal غير معرفة.");
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener("click", () => {
+        const score = resultadoDiv.dataset.score;
+        const scaleName = resultadoDiv.dataset.scaleName;
+        if (!score) {
+          alert("احسب النتيجة للبحث عن الإجراء.");
+          return;
+        }
+        const recomendacaoRisco =
+          score <= 3 ? "بدون ألم" : score <= 6 ? "ألم معتدل" : "ألم شديد";
+        const searchQuery = encodeURIComponent(
+          `رعاية التمريض لمريض الخرف مع ${recomendacaoRisco} وفقًا لمقياس PAINAD NANDA NIC NOC`,
+        );
+        window.open(
+          `https://www.google.com/search?q=${searchQuery}`,
+          "_blank",
+        );
+      });
+    });
+  </script>
 
   <script src="../lang-selector.js" defer=""></script>
 

@@ -557,7 +557,403 @@
 
 
 
-  
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      // 페이지 요소들
+      const resultadoDiv = document.getElementById("resultado");
+      const conteudoDiv = document.getElementById("conteudo");
+      const btnCalcular = document.getElementById("btnCalcular");
+      const btnLimpar = document.getElementById("btnLimpar");
+      const btnGerarPDF = document.getElementById("btnGerarPDF");
+      const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
+
+      // 모달 요소들
+      const modal = document.getElementById("selection-modal");
+      const modalTitle = document.getElementById("modal-title");
+      const modalContent = document.getElementById("modal-content");
+      const modalCloseBtn = document.getElementById("modal-close-btn");
+
+      // 스케일 데이터
+      const apacheData = [
+        {
+          category: "직장 온도 (°C)",
+          nameAttr: "tempRetal",
+          options: [
+            { description: "> 40.9", score: 4 },
+            { description: "39-40.9", score: 3 },
+            { description: "38.5-38.9", score: 1 },
+            { description: "36-38.4", score: 0 },
+            { description: "34-35.9", score: 1 },
+            { description: "32-33.9", score: 2 },
+            { description: "30-31.9", score: 3 },
+            { description: "< 30", score: 4 },
+          ],
+        },
+        {
+          category: "평균 동맥압 (MAP) (mmHg)",
+          nameAttr: "pam",
+          options: [
+            { description: "> 159", score: 4 },
+            { description: "130-159", score: 3 },
+            { description: "110-129", score: 2 },
+            { description: "70-109", score: 0 },
+            { description: "55-69", score: 2 },
+            { description: "40-54", score: 3 },
+            { description: "< 40", score: 4 },
+          ],
+        },
+        {
+          category: "심박동수 (bpm)",
+          nameAttr: "fc",
+          options: [
+            { description: "> 179", score: 4 },
+            { description: "140-179", score: 3 },
+            { description: "110-129", score: 2 },
+            { description: "70-109", score: 0 },
+            { description: "55-69", score: 2 },
+            { description: "40-54", score: 3 },
+            { description: "< 40", score: 4 },
+          ],
+        },
+        {
+          category: "호흡수 (rpm)",
+          nameAttr: "fr",
+          options: [
+            { description: "> 49", score: 4 },
+            { description: "35-49", score: 3 },
+            { description: "25-34", score: 1 },
+            { description: "12-24", score: 0 },
+            { description: "10-11", score: 1 },
+            { description: "6-9", score: 2 },
+            { description: "< 6", score: 4 },
+          ],
+        },
+        {
+          category: "산소화 (PaO2/FiO2 또는 A-aDO2)",
+          nameAttr: "oxigenacao",
+          options: [
+            { description: "SiFiO2 ≥ 0.5 (A-aDO2) > 499", score: 4 },
+            { description: "SiFiO2 ≥ 0.5 (A-aDO2) 350-499", score: 3 },
+            { description: "SiFiO2 ≥ 0.5 (A-aDO2) 200-349", score: 2 },
+            { description: "SiFiO2 ≥ 0.5 (A-aDO2) < 200", score: 0 },
+            { description: "SiFiO2 < 0.5 (PaO2) > 70", score: 0 },
+            { description: "SiFiO2 < 0.5 (PaO2) 61-70", score: 1 },
+            { description: "SiFiO2 < 0.5 (PaO2) 56-60", score: 3 },
+            { description: "SiFiO2 < 0.5 (PaO2) < 56", score: 4 },
+          ],
+        },
+        {
+          category: "동맥 pH",
+          nameAttr: "phArterial",
+          options: [
+            { description: "> 7.69", score: 4 },
+            { description: "7.60-7.69", score: 3 },
+            { description: "7.50-7.59", score: 1 },
+            { description: "7.33-7.49", score: 0 },
+            { description: "7.25-7.32", score: 2 },
+            { description: "7.15-7.24", score: 3 },
+            { description: "< 7.15", score: 4 },
+          ],
+        },
+        {
+          category: "혈장 나트륨 (mmol/L)",
+          nameAttr: "sodioPlasmatico",
+          options: [
+            { description: "> 179", score: 4 },
+            { description: "160-179", score: 3 },
+            { description: "155-159", score: 2 },
+            { description: "150-154", score: 1 },
+            { description: "130-149", score: 0 },
+            { description: "120-129", score: 2 },
+            { description: "111-119", score: 3 },
+            { description: "< 111", score: 4 },
+          ],
+        },
+        {
+          category: "혈장 칼륨 (mmol/L)",
+          nameAttr: "potassioPlasmatico",
+          options: [
+            { description: "> 6.9", score: 4 },
+            { description: "6.0-6.9", score: 3 },
+            { description: "5.5-5.9", score: 1 },
+            { description: "3.5-5.4", score: 0 },
+            { description: "3.0-3.4", score: 1 },
+            { description: "2.5-2.9", score: 2 },
+            { description: "< 2.5", score: 4 },
+          ],
+        },
+        {
+          category: "크레아티닌 (mg/dL)",
+          nameAttr: "creatinina",
+          options: [
+            { description: "> 3.4", score: 4 },
+            { description: "2.0-3.4", score: 3 },
+            { description: "1.5-1.9", score: 2 },
+            { description: "0.6-1.4", score: 0 },
+            { description: "< 0.6", score: 2 },
+          ],
+        },
+        {
+          category: "헤마토크릿 (%)",
+          nameAttr: "hematocrito",
+          options: [
+            { description: "> 59.9", score: 4 },
+            { description: "50-59.9", score: 2 },
+            { description: "46-49.9", score: 1 },
+            { description: "30-45.9", score: 0 },
+            { description: "20-29.9", score: 2 },
+            { description: "< 20", score: 4 },
+          ],
+        },
+        {
+          category: "백혈구 (x1000)",
+          nameAttr: "globulosBrancos",
+          options: [
+            { description: "> 39.9", score: 4 },
+            { description: "20-39.9", score: 2 },
+            { description: "15-19.9", score: 1 },
+            { description: "3-14.9", score: 0 },
+            { description: "1-2.9", score: 2 },
+            { description: "< 1", score: 4 },
+          ],
+        },
+        {
+          category: "글래스고 혼수척도 (GCS)",
+          nameAttr: "gcs",
+          options: [
+            { description: "15 (현재 GCS)", score: 0 },
+            { description: "14 (현재 GCS)", score: 1 },
+            { description: "13 (현재 GCS)", score: 2 },
+            { description: "12 (현재 GCS)", score: 3 },
+            { description: "11 (현재 GCS)", score: 4 },
+            { description: "10 (현재 GCS)", score: 5 },
+            { description: "9 (현재 GCS)", score: 6 },
+            { description: "8 (현재 GCS)", score: 7 },
+            { description: "7 (현재 GCS)", score: 8 },
+            { description: "6 (현재 GCS)", score: 9 },
+            { description: "5 (현재 GCS)", score: 10 },
+            { description: "4 (현재 GCS)", score: 11 },
+            { description: "3 (현재 GCS)", score: 12 },
+          ],
+        },
+        {
+          category: "환자 연령",
+          nameAttr: "idadePaciente",
+          options: [
+            { description: "< 45세", score: 0 },
+            { description: "45-54세", score: 2 },
+            { description: "55-64세", score: 3 },
+            { description: "65-74세", score: 5 },
+            { description: "≥ 75세", score: 6 },
+          ],
+        },
+        {
+          category: "만성 상태",
+          nameAttr: "condicoesCronicas",
+          options: [
+            { description: "만성 상태 병력 없음", score: 0 },
+            {
+              description:
+                "만성 상태 병력 있음, 환자가 계획된 수술 후 입원한 경우",
+              score: 2,
+            },
+            {
+              description:
+                "만성 상태 병력 있음, 환자가 응급 수술 또는 다른 사유로 입원한 경우",
+              score: 5,
+            },
+          ],
+        },
+      ];
+
+      // 사용자 선택 항목 저장
+      let userSelections = {};
+
+      function openModalForCriterion(paramGroup) {
+        modalTitle.textContent = paramGroup.category;
+        modalContent.innerHTML = ""; // 이전 옵션 지우기
+
+        paramGroup.options.forEach((option) => {
+          const label = document.createElement("label");
+          label.className = "modal-option-label";
+
+          const radio = document.createElement("input");
+          radio.type = "radio";
+          radio.name = "modal-option";
+          radio.value = option.score;
+
+          // 이전에 선택된 항목이 있으면 표시
+          if (
+            userSelections[paramGroup.nameAttr] &&
+            userSelections[paramGroup.nameAttr].score === option.score
+          ) {
+            radio.checked = true;
+          }
+
+          radio.addEventListener("click", () =>
+            handleSelection(
+              paramGroup.nameAttr,
+              option.score,
+              option.description,
+            ),
+          );
+
+          const descriptionSpan = document.createElement("span");
+          descriptionSpan.textContent = `${option.description} (${option.score}점)`;
+
+          label.appendChild(radio);
+          label.appendChild(descriptionSpan);
+          modalContent.appendChild(label);
+        });
+
+        modal.classList.remove("hidden");
+      }
+
+      function handleSelection(nameAttr, score, description) {
+        userSelections[nameAttr] = {
+          score: parseInt(score, 10),
+          description: description,
+        };
+
+        // 메인 목록에서 텍스트 업데이트
+        const listItem = document.querySelector(
+          `[data-name="${nameAttr}"] .selected-value`,
+        );
+        if (listItem) {
+          listItem.textContent = description;
+          listItem.classList.remove("text-gray-400");
+          listItem.classList.add("text-blue-600", "font-semibold");
+        }
+
+        modal.classList.add("hidden");
+      }
+
+      function createCriteriaList() {
+        conteudoDiv.innerHTML = ""; // 내용 지우기
+        apacheData.forEach((paramGroup, index) => {
+          const itemDiv = document.createElement("div");
+          itemDiv.className =
+            "flex justify-between items-center p-3 bg-gray-50 border rounded-lg shadow-sm cursor-pointer hover:bg-gray-100";
+          itemDiv.dataset.name = paramGroup.nameAttr;
+
+          itemDiv.innerHTML = `
+                    <span class="font-medium text-gray-700">${index + 1}. ${paramGroup.category}</span>
+                    <span class="selected-value text-gray-400 text-sm text-right">선택하려면 클릭하세요</span>
+                `;
+
+          itemDiv.addEventListener("click", () =>
+            openModalForCriterion(paramGroup),
+          );
+          conteudoDiv.appendChild(itemDiv);
+        });
+      }
+
+      function calcular() {
+        let totalScore = 0;
+        const totalCriteria = apacheData.length;
+        const selectedCriteriaCount = Object.keys(userSelections).length;
+
+        if (selectedCriteriaCount < totalCriteria) {
+          resultadoDiv.innerHTML =
+            '⚠️ <strong class="font-bold">각 기준마다 옵션을 선택해 주세요.</strong>';
+          resultadoDiv.className =
+            "resultado p-4 rounded-md font-medium bg-info-orange-light";
+          resultadoDiv.style.display = "block";
+          delete resultadoDiv.dataset.score;
+          return;
+        }
+
+        for (const key in userSelections) {
+          totalScore += userSelections[key].score;
+        }
+
+        let interpretacao = "";
+        let probabilidadeMorte = "";
+        let resultadoClasse = "";
+
+        if (totalScore <= 9) {
+          interpretacao = "낮은 병원 사망 위험.";
+          probabilidadeMorte = "약 5-10%";
+          resultadoClasse = "bg-apache-low";
+        } else if (totalScore <= 19) {
+          interpretacao = "중간 병원 사망 위험.";
+          probabilidadeMorte = "약 10-30%";
+          resultadoClasse = "bg-apache-medium";
+        } else {
+          interpretacao = "높은 병원 사망 위험.";
+          probabilidadeMorte = "약 >30%";
+          resultadoClasse = "bg-apache-high";
+        }
+
+        resultadoDiv.innerHTML = `
+                <p>APACHE II 총 점수: <strong class="font-bold">${totalScore}</strong></p>
+                <p>예상 사망 확률: <strong class="font-bold">${probabilidadeMorte}</strong></p>
+                <p>해석: <strong class="font-bold">${interpretacao}</strong></p>
+            `;
+        resultadoDiv.className = `resultado p-4 rounded-md font-medium ${resultadoClasse}`;
+        resultadoDiv.style.display = "block";
+        resultadoDiv.dataset.score = totalScore;
+        resultadoDiv.dataset.interpretacao = interpretacao;
+      }
+
+      function limpar() {
+        userSelections = {};
+        createCriteriaList(); // 기본값으로 목록 재구성
+        resultadoDiv.innerHTML = "";
+        resultadoDiv.className = "resultado hidden";
+        delete resultadoDiv.dataset.score;
+        delete resultadoDiv.dataset.interpretacao;
+      }
+
+      // 버튼 및 모달 이벤트 리스너
+      btnCalcular?.addEventListener("click", calcular);
+      btnLimpar?.addEventListener("click", limpar);
+      modalCloseBtn?.addEventListener("click", () =>
+        modal.classList.add("hidden"),
+      );
+      modal?.addEventListener("click", (e) => {
+        if (e.target === modal) {
+          modal.classList.add("hidden");
+        }
+      });
+
+      btnGerarPDF?.addEventListener("click", () => {
+        if (!resultadoDiv.dataset.score) {
+          alert('PDF 생성을 위해 먼저 "계산"을 클릭해 주세요.');
+          return;
+        }
+        // PDF 생성 로직은 동일하게 유지
+        if (typeof gerarPDFGlobal === "function") {
+          gerarPDFGlobal({
+            titulo: "APACHE II 스케일",
+            subtitulo: "급성 생리학 및 만성 건강 평가 보고서",
+            nomeArquivo: "relatorio_apache_ii.pdf",
+            seletorConteudo: ".main-content-wrapper",
+          });
+        } else {
+          console.error("gerarPDFGlobal 함수가 정의되지 않았습니다.");
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener("click", () => {
+        const interpretacao = resultadoDiv.dataset.interpretacao;
+        if (!interpretacao) {
+          alert("조치를 조사하기 위해 결과를 계산해 주세요.");
+          return;
+        }
+        const searchQuery = encodeURIComponent(
+          `${interpretacao} NANDA, NIC 및 NOC 분류법`,
+        );
+        window.open(
+          `https://www.google.com/search?q=${searchQuery}`,
+          "_blank",
+        );
+      });
+
+      // 계산기 초기화
+      createCriteriaList();
+    });
+  </script>
 
   <script src="/lang-selector.js" defer=""></script>
 

@@ -614,7 +614,279 @@
 
 
 
-  
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const resultadoDiv = document.getElementById("resultado");
+      const btnCalcular = document.getElementById("btnCalcular");
+      const btnLimpar = document.getElementById("btnLimpar");
+      const btnGerarPDF = document.getElementById("btnGerarPDF");
+      const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
+      const conteudoDiv = document.getElementById("conteudo");
+
+      // دالة لتحويل الأرقام الغربية إلى أرقام هندية (عربية)
+      function toArabicNumerals(num) {
+        const arabicNumerals = [
+          "٠",
+          "١",
+          "٢",
+          "٣",
+          "٤",
+          "٥",
+          "٦",
+          "٧",
+          "٨",
+          "٩",
+        ];
+        return num.toString().replace(/[0-9]/g, (d) => arabicNumerals[d]);
+      }
+
+      // تم ترجمة بيانات مقياس همبتي دمبتي
+      const humptyData = [
+        {
+          category: "العمر",
+          nameAttr: "idade",
+          options: [
+            { description: "≥ ١٣ سنة", score: 1, arabicScore: "١" },
+            { description: "٧-١٢ سنة", score: 2, arabicScore: "٢" },
+            { description: "٣-٦ سنوات", score: 3, arabicScore: "٣" },
+            { description: "< ٣ سنوات", score: 4, arabicScore: "٤" },
+          ],
+          explain:
+            "العمر عامل خطر مهم للسقوط، حيث يكون الأطفال الأصغر سناً أكثر عرضة للخطر.",
+        },
+        {
+          category: "الجنس",
+          nameAttr: "sexo",
+          options: [
+            { description: "أنثى", score: 1, arabicScore: "١" },
+            { description: "ذكر", score: 2, arabicScore: "٢" },
+          ],
+          explain: "قد يكون لدى الذكور خطر أعلى قليلاً.",
+        },
+        {
+          category: "التشخيص",
+          nameAttr: "diagnostico",
+          options: [
+            { description: "تشخيصات أخرى", score: 1, arabicScore: "١" },
+            { description: "اضطرابات نفسية", score: 2, arabicScore: "٢" },
+            {
+              description: "تغير في الأوكسجين (تنفسي، جفاف، فقر دم)",
+              score: 3,
+              arabicScore: "٣",
+            },
+            { description: "عصبي", score: 4, arabicScore: "٤" },
+          ],
+          explain: "بعض التشخيصات تزيد من الاستعداد للسقوط.",
+        },
+        {
+          category: "الإعاقات المعرفية",
+          nameAttr: "cognitivas",
+          options: [
+            { description: "موجه وفقًا لقدراته", score: 1, arabicScore: "١" },
+            { description: "ينسى حدوده", score: 2, arabicScore: "٢" },
+            { description: "غير مدرك لحدوده", score: 3, arabicScore: "٣" },
+          ],
+          explain:
+            "القدرة على إدراك الحدود والمخاطر تؤثر على احتمالية السقوط.",
+        },
+        {
+          category: "العوامل البيئية",
+          nameAttr: "ambientais",
+          options: [
+            { description: "طفل يمشي", score: 1, arabicScore: "١" },
+            { description: "طفل طريح الفراش", score: 2, arabicScore: "٢" },
+            {
+              description:
+                "يستخدم جهازًا مساعدًا، سرير/مهد به الكثير من المعدات، إضاءة خافتة",
+              score: 3,
+              arabicScore: "٣",
+            },
+            { description: "تاريخ سابق للسقوط", score: 4, arabicScore: "٤" },
+          ],
+          explain: "بيئة المستشفى وتاريخ المريض مهمان لخطر السقوط.",
+        },
+        {
+          category: "استخدام الأدوية",
+          nameAttr: "medicacao",
+          options: [
+            {
+              description: "يستخدم أدوية أخرى أو لا يستخدم",
+              score: 1,
+              arabicScore: "١",
+            },
+            {
+              description: "يستخدم ١ مما يلي: مهدئات، منومات، مخدرات",
+              score: 2,
+              arabicScore: "٢",
+            },
+            {
+              description: "يستخدم ≥ ٢ مما يلي: مهدئات، منومات، مخدرات",
+              score: 3,
+              arabicScore: "٣",
+            },
+          ],
+          explain: "بعض الأدوية تؤثر على الوعي والتوازن، مما يزيد الخطر.",
+        },
+        {
+          category: "الجراحة / التهدئة / التخدير",
+          nameAttr: "cirurgia",
+          options: [
+            {
+              description: "أكثر من ٤٨ ساعة أو لا يوجد",
+              score: 1,
+              arabicScore: "١",
+            },
+            { description: "خلال ٤٨ ساعة", score: 2, arabicScore: "٢" },
+            { description: "خلال ٢٤ ساعة", score: 3, arabicScore: "٣" },
+          ],
+          explain:
+            "فترة ما بعد الإجراء تكون ذات خطر أعلى بسبب التأثيرات المتبقية.",
+        },
+      ];
+
+      // يملأ النموذج ديناميكيًا
+      humptyData.forEach((item) => {
+        const sectionDiv = document.createElement("div");
+        sectionDiv.className = "humpty-criterion-section";
+        sectionDiv.id = `section-${item.nameAttr}`;
+
+        const titleH3 = document.createElement("h3");
+        titleH3.className = "humpty-criterion-title";
+        titleH3.innerHTML =
+          item.category +
+          `
+              <div class="text-sm font-normal text-gray-500 mt-1">${item.explain}</div>`;
+        sectionDiv.appendChild(titleH3);
+
+        const selectElement = document.createElement("select");
+        selectElement.id = item.nameAttr;
+        selectElement.className = "humpty-criterion-select";
+
+        const defaultOption = document.createElement("option");
+        defaultOption.value = "";
+        defaultOption.text = "اختر...";
+        selectElement.appendChild(defaultOption);
+
+        item.options.forEach((option) => {
+          const optionElement = document.createElement("option");
+          optionElement.value = option.score;
+          optionElement.text = `${option.description} (نقاط: ${option.arabicScore})`;
+          selectElement.appendChild(optionElement);
+        });
+
+        sectionDiv.appendChild(selectElement);
+        conteudoDiv.appendChild(sectionDiv);
+      });
+
+      function calcularHumpty() {
+        const selects = document.querySelectorAll("#conteudo select");
+        let allSelected = true;
+        let total = 0;
+
+        selects.forEach((select) => {
+          if (select.value === "") {
+            allSelected = false;
+            select.classList.add("incomplete");
+          } else {
+            select.classList.remove("incomplete");
+            total += Number(select.value);
+          }
+        });
+
+        resultadoDiv.style.display = "block";
+        if (!allSelected) {
+          // تم ترجمة رسالة التحذير
+          resultadoDiv.innerHTML =
+            '⚠️ <strong class="font-bold">يرجى اختيار خيار لجميع البنود قبل الحساب.</strong>';
+          resultadoDiv.style.display = "block";
+          delete resultadoDiv.dataset.score;
+          return;
+        }
+
+        let classificacao = "";
+        let recomendacao = "";
+
+        // تعريفات النقاط وفقًا للوثائق
+        // خطر منخفض: ٧-١١ نقطة
+        // خطر مرتفع: ١٢-٢٢ نقطة
+        if (total >= 7 && total <= 11) {
+          classificacao = "خطر منخفض";
+          recomendacao =
+            "الطفل لديه خطر منخفض للسقوط. استمر في الإجراءات الوقائية القياسية وأعد التقييم بشكل دوري.";
+        } else if (total >= 12 && total <= 22) {
+          classificacao = "خطر مرتفع";
+          recomendacao =
+            "الطفل لديه خطر مرتفع للسقوط. نفذ فورًا إجراءات الوقاية من السقوط للمرضى الأطفال.";
+        } else {
+          classificacao = "النتيجة خارج النطاق القياسي";
+          recomendacao =
+            "النتيجة المحسوبة خارج نطاق التصنيف المتوقع. تحقق من القيم المحددة.";
+        }
+
+        resultadoDiv.innerHTML = `
+                <p>إجمالي النقاط: <strong class="font-bold">${toArabicNumerals(total)}</strong></p>
+                <p>التصنيف: <strong class="font-bold">${classificacao}</strong></p>
+                <p class="mt-4"><strong>التوصية:</strong> ${recomendacao}</p>
+            `;
+        resultadoDiv.style.display = "block";
+
+        resultadoDiv.dataset.score = total;
+        resultadoDiv.dataset.scaleName = "مقياس همبتي دمبتي للسقوط";
+        resultadoDiv.dataset.classificacao = classificacao;
+      }
+
+      function limparCampos() {
+        const selects = document.querySelectorAll("#conteudo select");
+        selects.forEach((select) => {
+          select.selectedIndex = 0;
+          select.classList.remove("incomplete");
+        });
+        resultadoDiv.innerHTML = "";
+        resultadoDiv.style.display = "none";
+        delete resultadoDiv.dataset.score;
+        delete resultadoDiv.dataset.scaleName;
+        delete resultadoDiv.dataset.classificacao;
+      }
+
+      btnCalcular?.addEventListener("click", calcularHumpty);
+      btnLimpar?.addEventListener("click", limparCampos);
+
+      btnGerarPDF?.addEventListener("click", () => {
+        if (!resultadoDiv.dataset.score) {
+          alert('يرجى النقر فوق "حساب النتيجة" أولاً لإنشاء ملف PDF.');
+          return;
+        }
+        if (typeof gerarPDFGlobal === "function") {
+          gerarPDFGlobal({
+            titulo: "مقياس همبتي دمبتي للسقوط",
+            subtitulo: "تقرير تقييم مخاطر السقوط",
+            nomeArquivo: "relatorio_escala_humpty_dumpty.pdf",
+            seletorConteudo: ".main-content-wrapper",
+          });
+        } else {
+          console.error("الدالة gerarPDFGlobal غير معرفة.");
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener("click", () => {
+        const score = resultadoDiv.dataset.score;
+        const scaleName = "مقياس همبتي دمبتي للسقوط"; // استخدام الاسم المترجم
+        const classificacao = resultadoDiv.dataset.classificacao;
+        if (!score || !classificacao) {
+          alert("احسب النتيجة للبحث عن الإجراء.");
+          return;
+        }
+        // تم ترجمة استعلام البحث
+        const searchQuery = encodeURIComponent(
+          `${scaleName} نتيجة ${score} مريض أطفال ${classificacao} إنشاء تصنيف NANDA, إنشاء تصنيف NIC وإنشاء تصنيف NOC`,
+        );
+        window.open(
+          `https://www.google.com/search?q=${searchQuery}`,
+          "_blank",
+        );
+      });
+    });
+  </script>
 
   <script src="/lang-selector.js" defer=""></script>
 

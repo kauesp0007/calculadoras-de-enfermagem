@@ -554,7 +554,241 @@
 
 
 
-  
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const resultadoDiv = document.getElementById("resultado");
+      const conteudoDiv = document.getElementById("conteudo");
+      const btnCalcular = document.getElementById("btnCalcular");
+      const btnLimpar = document.getElementById("btnLimpar");
+      const btnGerarPDF = document.getElementById("btnGerarPDF");
+      const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
+
+      const bradenData = [
+        {
+          id: "sensorial",
+          title: "감각 지각",
+          description: "압력에 따른 불편함에 반응하는 능력.",
+          options: [
+            { score: 1, text: "완전히 제한됨" },
+            { score: 2, text: "매우 제한됨" },
+            { score: 3, text: "약간 제한됨" },
+            { score: 4, text: "제한 없음" },
+          ],
+        },
+        {
+          id: "umidade",
+          title: "습도",
+          description: "피부가 습기에 노출되는 정도.",
+          options: [
+            { score: 1, text: "완전히 젖음" },
+            { score: 2, text: "매우 젖음" },
+            { score: 3, text: "가끔 젖음" },
+            { score: 4, text: "드물게 젖음" },
+          ],
+        },
+        {
+          id: "atividade",
+          title: "활동성",
+          description: "환자의 신체 활동 정도.",
+          options: [
+            { score: 1, text: "침상 고정" },
+            { score: 2, text: "의자에 제한됨" },
+            { score: 3, text: "가끔 걸음" },
+            { score: 4, text: "자주 걸음" },
+          ],
+        },
+        {
+          id: "mobilidade",
+          title: "이동성",
+          description: "신체 위치를 바꾸고 통제하는 능력.",
+          options: [
+            { score: 1, text: "완전히 부동" },
+            { score: 2, text: "매우 제한됨" },
+            { score: 3, text: "약간 제한됨" },
+            { score: 4, text: "제한 없음" },
+          ],
+        },
+        {
+          id: "nutricao",
+          title: "영양",
+          description: "식사 패턴.",
+          options: [
+            { score: 1, text: "매우 나쁨" },
+            { score: 2, text: "부족할 가능성" },
+            { score: 3, text: "적당함" },
+            { score: 4, text: "우수함" },
+          ],
+        },
+        {
+          id: "friccao",
+          title: "마찰 및 전단",
+          description: "상처 및 움직임의 존재.",
+          options: [
+            { score: 1, text: "문제 있음" },
+            { score: 2, text: "잠재적 문제" },
+            { score: 3, text: "문제 없음" },
+          ],
+        },
+      ];
+
+      function createForm() {
+        conteudoDiv.innerHTML = "";
+        bradenData.forEach((criterion) => {
+          const card = document.createElement("div");
+          card.className = "braden-criterion-card";
+
+          card.innerHTML = `
+                    <div class="braden-criterion-title-container">
+                        <h3 class="braden-criterion-title">${criterion.title}</h3>
+                        <p class="braden-criterion-description">${criterion.description}</p>
+                    </div>
+                    <div class="braden-options-container">
+                        <select id="${criterion.id}-select" class="braden-select">
+                            <option value="" disabled selected>옵션을 선택하세요...</option>
+                            ${criterion.options.map((opt) => `<option value="${opt.score}">${opt.text} (${opt.score})</option>`).join("")}
+                        </select>
+                    </div>
+                `;
+          conteudoDiv.appendChild(card);
+        });
+      }
+
+      function calcular() {
+        let totalScore = 0;
+        let allSelected = true;
+
+        bradenData.forEach((criterion) => {
+          const select = document.getElementById(`${criterion.id}-select`);
+          if (select && select.value) {
+            totalScore += parseInt(select.value, 10);
+          } else {
+            allSelected = false;
+          }
+        });
+
+        if (!allSelected) {
+          resultadoDiv.innerHTML =
+            '⚠️ <strong class="font-bold">각 기준에 대해 옵션을 선택해 주세요.</strong>';
+          resultadoDiv.className = "standard-result-box bg-info-orange-light";
+          resultadoDiv.style.display = "block";
+          delete resultadoDiv.dataset.score;
+          return;
+        }
+
+        let risco = "";
+        if (totalScore >= 19) {
+          risco = "위험 없음";
+        } else if (totalScore >= 15) {
+          risco = "경도 위험";
+        } else if (totalScore >= 13) {
+          risco = "중간 위험";
+        } else if (totalScore >= 10) {
+          risco = "고위험";
+        } else {
+          risco = "초고위험";
+        }
+
+        resultadoDiv.innerHTML = `
+                <p class="font-bold text-lg">총 점수: <span class="font-black">${totalScore}</span></p>
+                <p class="font-bold text-lg">위험 분류: <span class="font-black">${risco}</span></p>
+            `;
+        resultadoDiv.className = "standard-result-box";
+        resultadoDiv.style.display = "block";
+        resultadoDiv.dataset.score = totalScore;
+        resultadoDiv.dataset.risco = risco;
+      }
+
+      function limpar() {
+        createForm();
+        resultadoDiv.innerHTML = "";
+        resultadoDiv.className = "hidden";
+        delete resultadoDiv.dataset.score;
+        delete resultadoDiv.dataset.risco;
+      }
+
+      createForm();
+      btnCalcular?.addEventListener("click", calcular);
+      btnLimpar?.addEventListener("click", limpar);
+
+      btnGerarPDF?.addEventListener("click", () => {
+        if (resultadoDiv.dataset.score === undefined) {
+          alert('PDF를 생성하려면 먼저 "계산"을 클릭해 주세요.');
+          return;
+        }
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+        const primaryColor = "#1A3E74";
+        let y = 10;
+        const pageMargin = 14;
+        const rightMargin = doc.internal.pageSize.getWidth() - pageMargin;
+
+        doc.setDrawColor(primaryColor);
+        doc.setLineWidth(0.5);
+        doc.rect(5, 5, 200, 287);
+        doc.setFillColor(primaryColor);
+        doc.rect(5, 5, 200, 25, "F");
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(18);
+        doc.setTextColor(255, 255, 255);
+        doc.text("브라덴 척도", 105, 18, { align: "center" });
+        doc.setFontSize(12);
+        doc.text("욕창 위험 보고서", 105, 25, { align: "center" });
+
+        y = 45;
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(12);
+        doc.setTextColor(primaryColor);
+        doc.text("브라덴 척도 결과", pageMargin, y);
+        doc.setDrawColor(200);
+        doc.setLineWidth(0.2);
+        doc.line(pageMargin, y + 2, rightMargin, y + 2);
+        y += 10;
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(10);
+        doc.setTextColor(0, 0, 0);
+        doc.text(`총 점수: ${resultadoDiv.dataset.score}`, pageMargin, y);
+        doc.text(`위험 분류: ${resultadoDiv.dataset.risco}`, rightMargin, y, {
+          align: "right",
+        });
+
+        doc.setLineWidth(0.5);
+        doc.setDrawColor(primaryColor);
+        doc.line(5, 272, 205, 272);
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(8);
+        doc.setTextColor(150);
+        doc.text(
+          `간호 포털에서 ${new Date().toLocaleString("ko-KR")}에 생성됨.`,
+          105,
+          278,
+          { align: "center" },
+        );
+        doc.text(
+          `이 계산기는 지원 도구이며 임상 판단을 대체하지 않습니다. 외부 데이터의 정확성을 확인하세요.`,
+          105,
+          282,
+          { align: "center" },
+        );
+
+        doc.save("브라덴_척도_보고서.pdf");
+      });
+
+      btnNandaNicNoc?.addEventListener("click", () => {
+        const risco = resultadoDiv.dataset.risco;
+        if (!risco) {
+          alert(" conduta를 검색하려면 결과를 계산해 주세요.");
+          return;
+        }
+        const searchQuery = encodeURIComponent(
+          `브라덴 척도 ${risco} 위험의 환자 NANDA 택소노미, NIC 및 NOC`,
+        );
+        window.open(
+          `https://www.google.com/search?q=${searchQuery}`,
+          "_blank",
+        );
+      });
+    });
+  </script>
 
   <script src="/lang-selector.js" defer=""></script>
 

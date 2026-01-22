@@ -591,7 +591,312 @@
 
 
 
-  
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const resultadoDiv = document.getElementById("resultado");
+      const btnCalcular = document.getElementById("btnCalcular");
+      const btnLimpar = document.getElementById("btnLimpar");
+      const btnGerarPDF = document.getElementById("btnGerarPDF");
+      const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
+      const conteudoDiv = document.getElementById("conteudo");
+
+      const waterlowData = [
+        {
+          category: "피부 유형",
+          nameAttr: "tipoPele",
+          options: [
+            { description: "건강함", score: 0 },
+            { description: "박층성 - 휴지 지류", score: 1 },
+            { description: "건조함", score: 1 },
+            { description: "부종", score: 1 },
+            { description: "점액성", score: 1 },
+            { description: "창백함", score: 2 },
+            { description: "취약함", score: 3 },
+          ],
+          type: "radio",
+        },
+        {
+          category: "이동성",
+          nameAttr: "mobilidade",
+          options: [
+            { description: "완전함", score: 0 },
+            { description: "신경학적", score: 1 },
+            { description: "무감함", score: 2 },
+            { description: "제한됨", score: 3 },
+            { description: "불기능/견인", score: 4 },
+            { description: "휠체어 의존", score: 5 },
+          ],
+          type: "radio",
+        },
+        {
+          category: "신경학적 결손",
+          nameAttr: "debitoNeurologico",
+          options: [
+            { description: "정상", score: 0 },
+            {
+              description: "마. 반마비 (예: 뇌졸중, 다발성 경화증)",
+              score: 6,
+            },
+          ],
+          type: "radio",
+        },
+        {
+          category: "대소변 관리",
+          nameAttr: "continencia",
+          options: [
+            { description: "정상", score: 0 },
+            { description: "간헐적 실금 (오직 소변)", score: 1 },
+            { description: "실금 (소변 또는 변)", score: 2 },
+            { description: "복합 실금 (소변과 변)", score: 3 },
+          ],
+          type: "radio",
+        },
+        {
+          category: "특별 위험요인",
+          subCategories: [
+            {
+              name: "조직 영양상태 악화",
+              nameAttr: "nutricao",
+              options: [
+                { description: "말기 악액질증", score: 8 },
+                { description: "심부전", score: 5 },
+                { description: "말초혈관질환", score: 5 },
+                { description: "빈혈", score: 2 },
+                { description: "흡연", score: 1 },
+              ],
+            },
+            {
+              name: "대수술 또는 외상",
+              nameAttr: "cirurgia",
+              options: [
+                { description: "허리/척추 이하 정형외과적 수술", score: 5 },
+                { description: "수술대에서의 시간: 2시간 초과", score: 5 },
+              ],
+            },
+            {
+              name: "약물 복용",
+              nameAttr: "medicacao",
+              options: [
+                { description: "스테로이드", score: 4 },
+                { description: "세포독성 약물", score: 4 },
+                { description: "항염제", score: 4 },
+              ],
+            },
+          ],
+          type: "checkbox",
+        },
+      ];
+
+      // --- 워터로우 계산기 기능 ---
+      function updateScoreDisplay(criterionId) {
+        const selectElement = document.getElementById(criterionId);
+        const scoreDisplayElement = document.getElementById(
+          `${criterionId}_score_display`,
+        );
+        if (selectElement && scoreDisplayElement) {
+          scoreDisplayElement.innerText =
+            selectElement.value === "" ? "0" : selectElement.value;
+        }
+      }
+
+      function calcularPontuacao() {
+        let total = 0;
+        let allRadioSelected = true;
+
+        // 라디오 버튼 점수 (단일 선택 항목)
+        const radioGroups = [
+          "tipoPele",
+          "mobilidade",
+          "continencia",
+          "debitoNeurologico",
+        ];
+        radioGroups.forEach((name) => {
+          const selectElement = document.getElementById(name);
+          if (selectElement.value === "") {
+            allRadioSelected = false;
+          } else {
+            total += parseInt(selectElement.value, 10);
+          }
+        });
+
+        // 체크박스 점수 (특별 위험요인)
+        const checkboxGroups = ["nutricao", "cirurgia", "medicacao"];
+        checkboxGroups.forEach((name) => {
+          const checkboxes = document.querySelectorAll(
+            `input[name="${name}"]:checked`,
+          );
+          checkboxes.forEach((checkbox) => {
+            total += parseInt(checkbox.value, 10);
+          });
+        });
+
+        resultadoDiv.style.display = "block";
+        if (!allRadioSelected) {
+          resultadoDiv.innerHTML =
+            '⚠️ <strong class="font-bold">계산하기 전에 필수 기준 (피부 유형, 이동성, 신경학적 결손, 대소변 관리)에 대해 하나의 옵션을 선택하세요.</strong>';
+          resultadoDiv.className = "resultado bg-info-orange-light";
+          delete resultadoDiv.dataset.score;
+          return;
+        }
+
+        let classificacao = "";
+        let resultadoClasse = "";
+
+        if (total >= 20) {
+          classificacao = "매우 높은 위험";
+          resultadoClasse = "bg-very-high-risk";
+        } else if (total >= 15) {
+          classificacao = "높은 위험";
+          resultadoClasse = "bg-high-risk";
+        } else if (total >= 10) {
+          classificacao = "보통 위험";
+          resultadoClasse = "bg-medium-risk";
+        } else {
+          classificacao = "낮은 위험";
+          resultadoClasse = "bg-low-risk";
+        }
+
+        resultadoDiv.innerHTML = `<p>워터로우 총 점수: <strong class="font-bold">${total}</strong></p><p>분류: <strong class="font-bold">${classificacao}</strong></p>`;
+        resultadoDiv.className = `resultado ${resultadoClasse}`;
+
+        resultadoDiv.dataset.score = total;
+        resultadoDiv.dataset.classificacao = classificacao;
+        resultadoDiv.dataset.scaleName = "워터로우 척도";
+      }
+
+      function limparCampos() {
+        document
+          .querySelectorAll("select")
+          .forEach((select) => (select.selectedIndex = 0));
+        document
+          .querySelectorAll('input[type="checkbox"]')
+          .forEach((checkbox) => (checkbox.checked = false));
+        document
+          .querySelectorAll(".waterlow-score-display")
+          .forEach((span) => (span.innerText = "0"));
+
+        resultadoDiv.innerHTML = "";
+        resultadoDiv.className = "resultado hidden";
+        delete resultadoDiv.dataset.score;
+        delete resultadoDiv.dataset.classificacao;
+        delete resultadoDiv.dataset.scaleName;
+      }
+
+      // 양식을 동적으로 채우기
+      waterlowData.forEach((item, index) => {
+        const sectionDiv = document.createElement("div");
+        sectionDiv.className = "waterlow-criterion-card";
+
+        const headerDiv = document.createElement("div");
+        headerDiv.className = "waterlow-criterion-header";
+
+        const titleH3 = document.createElement("h3");
+        titleH3.className = "waterlow-criterion-title";
+        titleH3.innerText = item.category;
+        headerDiv.appendChild(titleH3);
+
+        if (item.type === "radio") {
+          const scoreSpan = document.createElement("span");
+          scoreSpan.className = "waterlow-score-display";
+          scoreSpan.id = `${item.nameAttr}_score_display`;
+          scoreSpan.innerText = "0";
+          headerDiv.appendChild(scoreSpan);
+        }
+
+        sectionDiv.appendChild(headerDiv);
+
+        const optionsGroupDiv = document.createElement("div");
+        optionsGroupDiv.className = "options-group";
+
+        if (item.type === "radio") {
+          const selectElement = document.createElement("select");
+          selectElement.id = item.nameAttr;
+          selectElement.className = "waterlow-select";
+          selectElement.onchange = () => updateScoreDisplay(item.nameAttr);
+
+          const defaultOption = document.createElement("option");
+          defaultOption.value = "";
+          defaultOption.text = "선택하세요...";
+          defaultOption.disabled = true;
+          defaultOption.selected = true;
+          selectElement.appendChild(defaultOption);
+
+          item.options.forEach((option) => {
+            const optionElement = document.createElement("option");
+            optionElement.value = option.score;
+            optionElement.text = `${option.description} (${option.score})`;
+            selectElement.appendChild(optionElement);
+          });
+          optionsGroupDiv.appendChild(selectElement);
+          sectionDiv.appendChild(optionsGroupDiv);
+        } else if (item.type === "checkbox") {
+          item.subCategories.forEach((subCat) => {
+            const subCatTitle = document.createElement("p");
+            subCatTitle.className = "waterlow-sub-category";
+            subCatTitle.innerText = subCat.name + ":";
+            optionsGroupDiv.appendChild(subCatTitle);
+
+            subCat.options.forEach((option) => {
+              const label = document.createElement("label");
+              label.className = "waterlow-option-label";
+              const input = document.createElement("input");
+              input.type = "checkbox";
+              input.name = subCat.nameAttr;
+              input.value = option.score;
+
+              const span = document.createElement("span");
+              span.innerText = `${option.description} (${option.score})`;
+
+              label.appendChild(input);
+              label.appendChild(span);
+              optionsGroupDiv.appendChild(label);
+            });
+          });
+          sectionDiv.appendChild(optionsGroupDiv);
+        }
+
+        conteudoDiv.appendChild(sectionDiv);
+      });
+
+      // 버튼에 이벤트 리스너 추가
+      btnCalcular?.addEventListener("click", calcularPontuacao);
+      btnLimpar?.addEventListener("click", limparCampos);
+
+      btnGerarPDF?.addEventListener("click", () => {
+        if (!resultadoDiv.dataset.score) {
+          alert('PDF를 생성하려면 먼저 "계산"을 클릭하세요.');
+          return;
+        }
+        if (typeof gerarPDFGlobal === "function") {
+          gerarPDFGlobal({
+            titulo: "워터로우 척도",
+            subtitulo: "욕창 위험도 평가 보고서",
+            nomeArquivo: "워터로우_척도_보고서.pdf",
+            seletorConteudo: ".main-content-wrapper",
+          });
+        } else {
+          console.error(" gerarPDFGlobal 함수가 정의되지 않았습니다.");
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener("click", () => {
+        const score = resultadoDiv.dataset.score;
+        const scaleName = resultadoDiv.dataset.scaleName;
+        const classificacao = resultadoDiv.dataset.classificacao;
+        if (!score || !classificacao) {
+          alert("대처법을 검색하려면 결과를 계산하세요.");
+          return;
+        }
+        const searchQuery = encodeURIComponent(
+          `${scaleName} 점수 ${score} 분류 ${classificacao} NANDA 분류학 생성, NOC 분류학 생성`,
+        );
+        window.open(
+          `https://www.google.com/search?q=${searchQuery}`,
+          "_blank",
+        );
+      });
+    });
+  </script>
 
   <script src="/ko/lang-selector.js" defer=""></script>
 

@@ -586,7 +586,435 @@
 
 
 
-  
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const resultadoDiv = document.getElementById("resultado");
+      const btnCalcular = document.getElementById("btnCalcular");
+      const btnLimpar = document.getElementById("btnLimpar");
+      const btnGerarPDF = document.getElementById("btnGerarPDF");
+      const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
+      const conteudoDiv = document.getElementById("conteudo");
+
+      const zaritData = [
+        {
+          title:
+            "1. 정신 질환이 있는 사람을 돌보는 것이 당신에게 불편함을 느끼게 합니까?",
+          nameAttr: "zarit_q1",
+          options: [
+            { description: "전혀", score: 0 },
+            { description: "거의 없음", score: 1 },
+            { description: "때때로", score: 2 },
+            { description: "거의 항상", score: 3 },
+            { description: "항상", score: 4 },
+          ],
+        },
+        {
+          title: "2. 자신을 위한 시간이 충분하지 않다고 느끼십니까?",
+          nameAttr: "zarit_q2",
+          options: [
+            { description: "전혀", score: 0 },
+            { description: "거의 없음", score: 1 },
+            { description: "때때로", score: 2 },
+            { description: "거의 항상", score: 3 },
+            { description: "항상", score: 4 },
+          ],
+        },
+        {
+          title: "3. 가족 구성원과 가까이 있을 때 스트레스를 느끼십니까?",
+          nameAttr: "zarit_q3",
+          options: [
+            { description: "전혀", score: 0 },
+            { description: "거의 없음", score: 1 },
+            { description: "때때로", score: 2 },
+            { description: "거의 항상", score: 3 },
+            { description: "항상", score: 4 },
+          ],
+        },
+        {
+          title: "4. 가족 구성원의 행동에 대해 부끄러움을 느끼십니까?",
+          nameAttr: "zarit_q4",
+          options: [
+            { description: "전혀", score: 0 },
+            { description: "거의 없음", score: 1 },
+            { description: "때때로", score: 2 },
+            { description: "거의 항상", score: 3 },
+            { description: "항상", score: 4 },
+          ],
+        },
+        {
+          title: "5. 가족 구성원에게 화가 나십니까?",
+          nameAttr: "zarit_q5",
+          options: [
+            { description: "전혀", score: 0 },
+            { description: "거의 없음", score: 1 },
+            { description: "때때로", score: 2 },
+            { description: "거의 항상", score: 3 },
+            { description: "항상", score: 4 },
+          ],
+        },
+        {
+          title:
+            "6. 가족 구성원을 돌보는 것이 다른 사람들과의 관계에 영향을 미친다고 느끼십니까?",
+          nameAttr: "zarit_q6",
+          options: [
+            { description: "전혀", score: 0 },
+            { description: "거의 없음", score: 1 },
+            { description: "때때로", score: 2 },
+            { description: "거의 항상", score: 3 },
+            { description: "항상", score: 4 },
+          ],
+        },
+        {
+          title:
+            "7. 가족 구성원을 돌보면서 건강이 영향을 받았다고 느끼십니까?",
+          nameAttr: "zarit_q7",
+          options: [
+            { description: "전혀", score: 0 },
+            { description: "거의 없음", score: 1 },
+            { description: "때때로", score: 2 },
+            { description: "거의 항상", score: 3 },
+            { description: "항상", score: 4 },
+          ],
+        },
+        {
+          title:
+            "8. 가족 구성원을 돌보면서 삶이 부정적으로 변했다고 느끼십니까?",
+          nameAttr: "zarit_q8",
+          options: [
+            { description: "전혀", score: 0 },
+            { description: "거의 없음", score: 1 },
+            { description: "때때로", score: 2 },
+            { description: "거의 항상", score: 3 },
+            { description: "항상", score: 4 },
+          ],
+        },
+        {
+          title: "9. 삶에 대한 통제력을 잃었다고 느끼십니까?",
+          nameAttr: "zarit_q9",
+          options: [
+            { description: "전혀", score: 0 },
+            { description: "거의 없음", score: 1 },
+            { description: "때때로", score: 2 },
+            { description: "거의 항상", score: 3 },
+            { description: "항상", score: 4 },
+          ],
+        },
+        {
+          title: "10. 가족 구성원의 미래에 대해 불안감을 느끼십니까?",
+          nameAttr: "zarit_q10",
+          options: [
+            { description: "전혀", score: 0 },
+            { description: "거의 없음", score: 1 },
+            { description: "때때로", score: 2 },
+            { description: "거의 항상", score: 3 },
+            { description: "항상", score: 4 },
+          ],
+        },
+        {
+          title: "11. 가족 구성원이 당신에게 의존한다고 느끼십니까?",
+          nameAttr: "zarit_q11",
+          options: [
+            { description: "전혀", score: 0 },
+            { description: "거의 없음", score: 1 },
+            { description: "때때로", score: 2 },
+            { description: "거의 항상", score: 3 },
+            { description: "항상", score: 4 },
+          ],
+        },
+        {
+          title: "12. 가족 구성원을 돌보는 데 도움이 필요하다고 느끼십니까?",
+          nameAttr: "zarit_q12",
+          options: [
+            { description: "전혀", score: 0 },
+            { description: "거의 없음", score: 1 },
+            { description: "때때로", score: 2 },
+            { description: "거의 항상", score: 3 },
+            { description: "항상", score: 4 },
+          ],
+        },
+        {
+          title: "13. 가족 구성원이 당신에게 부담이 된다고 느끼십니까?",
+          nameAttr: "zarit_q13",
+          options: [
+            { description: "전혀", score: 0 },
+            { description: "거의 없음", score: 1 },
+            { description: "때때로", score: 2 },
+            { description: "거의 항상", score: 3 },
+            { description: "항상", score: 4 },
+          ],
+        },
+        {
+          title: "14. 가족 구성원이 당신을 비판하거나 꾸짖는다고 느끼십니까?",
+          nameAttr: "zarit_q14",
+          options: [
+            { description: "전혀", score: 0 },
+            { description: "거의 없음", score: 1 },
+            { description: "때때로", score: 2 },
+            { description: "거의 항상", score: 3 },
+            { description: "항상", score: 4 },
+          ],
+        },
+        {
+          title:
+            "15. 가족 구성원을 돌보면서 개인 생활이 영향을 받았다고 느끼십니까?",
+          nameAttr: "zarit_q15",
+          options: [
+            { description: "전혀", score: 0 },
+            { description: "거의 없음", score: 1 },
+            { description: "때때로", score: 2 },
+            { description: "거의 항상", score: 3 },
+            { description: "항상", score: 4 },
+          ],
+        },
+        {
+          title:
+            "16. 가족 구성원이 당신에게 비현실적인 기대를 가지고 있다고 느끼십니까?",
+          nameAttr: "zarit_q16",
+          options: [
+            { description: "전혀", score: 0 },
+            { description: "거의 없음", score: 1 },
+            { description: "때때로", score: 2 },
+            { description: "거의 항상", score: 3 },
+            { description: "항상", score: 4 },
+          ],
+        },
+        {
+          title: "17. 가족 구성원을 돌보기 전보다 돈이 적다고 느끼십니까?",
+          nameAttr: "zarit_q17",
+          options: [
+            { description: "전혀", score: 0 },
+            { description: "거의 없음", score: 1 },
+            { description: "때때로", score: 2 },
+            { description: "거의 항상", score: 3 },
+            { description: "항상", score: 4 },
+          ],
+        },
+        {
+          title: "18. 이전에 하던 사회 활동을 할 수 없다고 느끼십니까?",
+          nameAttr: "zarit_q18",
+          options: [
+            { description: "전혀", score: 0 },
+            { description: "거의 없음", score: 1 },
+            { description: "때때로", score: 2 },
+            { description: "거의 항상", score: 3 },
+            { description: "항상", score: 4 },
+          ],
+        },
+        {
+          title: "19. 지금보다 더 많은 프라이버시가 필요하다고 느끼십니까?",
+          nameAttr: "zarit_q19",
+          options: [
+            { description: "전혀", score: 0 },
+            { description: "거의 없음", score: 1 },
+            { description: "때때로", score: 2 },
+            { description: "거의 항상", score: 3 },
+            { description: "항상", score: 4 },
+          ],
+        },
+        {
+          title:
+            "20. 개인 및 직업 생활에서 자신의 역할을 잃었다고 느끼십니까?",
+          nameAttr: "zarit_q20",
+          options: [
+            { description: "전혀", score: 0 },
+            { description: "거의 없음", score: 1 },
+            { description: "때때로", score: 2 },
+            { description: "거의 항상", score: 3 },
+            { description: "항상", score: 4 },
+          ],
+        },
+        {
+          title:
+            "21. 가족 구성원이 당신에게 정서적 부담이 된다고 느끼십니까?",
+          nameAttr: "zarit_q21",
+          options: [
+            { description: "전혀", score: 0 },
+            { description: "거의 없음", score: 1 },
+            { description: "때때로", score: 2 },
+            { description: "거의 항상", score: 3 },
+            { description: "항상", score: 4 },
+          ],
+        },
+        {
+          title: "22. 가족 구성원과의 관계가 악화되었다고 느끼십니까?",
+          nameAttr: "zarit_q22",
+          options: [
+            { description: "전혀", score: 0 },
+            { description: "거의 없음", score: 1 },
+            { description: "때때로", score: 2 },
+            { description: "거의 항상", score: 3 },
+            { description: "항상", score: 4 },
+          ],
+        },
+      ];
+
+      // 양식을 동적으로 채웁니다
+      zaritData.forEach((item) => {
+        const sectionDiv = document.createElement("div");
+        sectionDiv.className = "zarit-criterion-section";
+        sectionDiv.id = `section-${item.nameAttr}`;
+
+        const titleH3 = document.createElement("h3");
+        titleH3.className = "zarit-criterion-title";
+        titleH3.innerHTML = item.title;
+        sectionDiv.appendChild(titleH3);
+
+        const selectElement = document.createElement("select");
+        selectElement.id = item.nameAttr;
+        selectElement.className = "zarit-criterion-select mt-2";
+
+        const defaultOption = document.createElement("option");
+        defaultOption.value = "";
+        defaultOption.text = "선택...";
+        selectElement.appendChild(defaultOption);
+
+        item.options.forEach((option) => {
+          const optionElement = document.createElement("option");
+          optionElement.value = option.score;
+          optionElement.text = `${option.description} (점수: ${option.score})`;
+          selectElement.appendChild(optionElement);
+        });
+
+        sectionDiv.appendChild(selectElement);
+        conteudoDiv.appendChild(sectionDiv);
+      });
+
+      function calcularZarit() {
+        const selects = document.querySelectorAll("#conteudo select");
+        let allSelected = true;
+        let total = 0;
+
+        selects.forEach((select) => {
+          if (select.value === "") {
+            allSelected = false;
+            select.classList.add("incomplete");
+          } else {
+            select.classList.remove("incomplete");
+            total += Number(select.value);
+          }
+        });
+
+        resultadoDiv.style.display = "block";
+        if (!allSelected) {
+          resultadoDiv.innerHTML =
+            '⚠️ <strong class="font-bold">계산하기 전에 모든 항목에 대한 옵션을 선택하십시오.</strong>';
+          resultadoDiv.className = `resultado bg-red-100`;
+          delete resultadoDiv.dataset.score;
+          return;
+        }
+
+        let recomendacao = "";
+
+        if (total <= 21) {
+          recomendacao = `${total}점은 부담 없음을 나타냅니다.`;
+        } else if (total >= 22 && total <= 41) {
+          recomendacao = `${total}점은 경증에서 중등도 부담을 나타냅니다. 간병인에게 지원과 자원을 제공하는 것이 좋습니다.`;
+        } else if (total >= 42 && total <= 60) {
+          recomendacao = `${total}점은 중등도에서 중증 부담을 나타냅니다. 간병인은 심리적 지원, 지원 그룹 및/또는 전문가의 도움이 필요할 수 있습니다.`;
+        } else {
+          // total >= 61
+          recomendacao = `${total}점은 중증 부담을 나타냅니다. 간병인의 신체적 및 정신적 건강을 보호하기 위해 다학제적 지원을 통한 긴급 개입이 필수적입니다.`;
+        }
+
+        resultadoDiv.innerHTML = `
+                <p>총점: <strong class="font-bold">${total}</strong></p>
+                <p class="mt-4"><strong>권장 사항:</strong> ${recomendacao}</p>
+            `;
+        resultadoDiv.className = `resultado bg-blue-50`;
+        resultadoDiv.style.display = "block";
+
+        resultadoDiv.dataset.score = total;
+        resultadoDiv.dataset.scaleName = "Zarit 척도";
+      }
+
+      function limparCampos() {
+        const selects = document.querySelectorAll("#conteudo select");
+        selects.forEach((select) => {
+          select.selectedIndex = 0;
+          select.classList.remove("incomplete");
+        });
+        resultadoDiv.innerHTML = "";
+        resultadoDiv.className = "resultado hidden";
+        delete resultadoDiv.dataset.score;
+        delete resultadoDiv.dataset.scaleName;
+      }
+
+      // 버튼에 이벤트 리스너 추가
+      btnCalcular?.addEventListener("click", calcularZarit);
+      btnLimpar?.addEventListener("click", limparCampos);
+
+      btnGerarPDF?.addEventListener("click", () => {
+        if (!resultadoDiv.dataset.score) {
+          alert('PDF를 생성하려면 먼저 "점수 계산"을 클릭하십시오.');
+          return;
+        }
+        if (typeof gerarPDFGlobal === "function") {
+          const selectedOptions = {};
+          document.querySelectorAll("#conteudo select").forEach((select) => {
+            const selected = select.options[select.selectedIndex];
+            if (selected.value !== "") {
+              selectedOptions[select.id] = selected.text;
+            }
+          });
+
+          let contentToPrint = document
+            .querySelector(".main-content-wrapper")
+            .cloneNode(true);
+          let contentContainer = contentToPrint.querySelector("#conteudo");
+
+          contentContainer.innerHTML = "";
+
+          zaritData.forEach((item) => {
+            let selectedText = selectedOptions[item.nameAttr];
+            if (selectedText) {
+              let itemDiv = document.createElement("div");
+              itemDiv.className = "mb-2 p-2 bg-gray-50 rounded";
+              itemDiv.innerHTML = `<strong>${item.title}:</strong> ${selectedText}`;
+              contentContainer.appendChild(itemDiv);
+            }
+          });
+
+          let resultadoHtml = resultadoDiv.cloneNode(true);
+          if (resultadoHtml.style.display !== "none") {
+            contentContainer.appendChild(resultadoHtml);
+          }
+
+          gerarPDFGlobal({
+            titulo: "Zarit 척도",
+            subtitulo: "간병인 부담 평가 보고서",
+            nomeArquivo: "relatorio_escala_zarit.pdf",
+            seletorConteudo: ".main-content-wrapper",
+          });
+        } else {
+          console.error("gerarPDFGlobal 함수가 정의되지 않았습니다.");
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener("click", () => {
+        const score = resultadoDiv.dataset.score;
+        const scaleName = resultadoDiv.dataset.scaleName;
+        if (!score) {
+          alert("치료 방법을 검색하려면 결과를 계산하십시오.");
+          return;
+        }
+        let sobrecarga = "부담 없음";
+        if (score >= 22 && score <= 41) {
+          sobrecarga = "경증에서 중등도 부담";
+        } else if (score >= 42 && score <= 60) {
+          sobrecarga = "중등도에서 중증 부담";
+        } else if (score >= 61) {
+          sobrecarga = "중증 부담";
+        }
+        const searchQuery = encodeURIComponent(
+          `Zarit 척도에 따른 ${sobrecarga}을 가진 간병인을 위한 간호 치료 NANDA NIC NOC`,
+        );
+        window.open(
+          `https://www.google.com/search?q=${searchQuery}`,
+          "_blank",
+        );
+      });
+    });
+  </script>
 
   <script src="/ko/lang-selector.js" defer=""></script>
 

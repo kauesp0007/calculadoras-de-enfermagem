@@ -581,7 +581,118 @@
 
 
 
-    
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const resultadoDiv = document.getElementById('resultado');
+            const conteudoDiv = document.getElementById('conteudo');
+            const btnCalcular = document.getElementById('btnCalcular');
+            const btnLimpar = document.getElementById('btnLimpar');
+            const btnGerarPDF = document.getElementById('btnGerarPDF');
+            const btnNandaNicNoc = document.getElementById('btnNandaNicNoc');
+
+            const gosnellData = [
+                { category: "精神状態", nameAttr: "estadoMental", options: [{ description: "明瞭", score: 1 }, { description: "無関心", score: 2 }, { description: "混乱", score: 3 }, { description: "昏迷", score: 4 }, { description: "無意識", score: 5 }] },
+                { category: "失禁", nameAttr: "continencia", options: [{ description: "完全自制", score: 1 }, { description: "通常自制", score: 2 }, { description: "最小限の自制", score: 3 }, { description: "自制なし", score: 4 }] },
+                { category: "可動性", nameAttr: "mobilidade", options: [{ description: "完全", score: 1 }, { description: "軽度制限", score: 2 }, { description: "高度制限", score: 3 }, { description: "不動", score: 4 }] },
+                { category: "活動性", nameAttr: "atividade", options: [{ description: "歩行可能", score: 1 }, { description: "介助歩行", score: 2 }, { description: "車椅子", score: 3 }, { description: "ベッド上", score: 4 }] },
+                { category: "栄養", nameAttr: "nutricao", options: [{ description: "良好", score: 1 }, { description: "普通", score: 2 }, { description: "不良", score: 3 }] }
+            ];
+
+            function createForm() {
+                conteudoDiv.innerHTML = '';
+                gosnellData.forEach(item => {
+                    const card = document.createElement('div');
+                    card.className = 'criterion-card';
+                    card.innerHTML = `
+                        <h3 class="criterion-title">${item.category}</h3>
+                        <div class="options-container">
+                            <select id="${item.nameAttr}-select" class="custom-select" aria-label="${item.category} のスコアを選択">
+                                <option value="" disabled selected>選択してください...</option>
+                                ${item.options.map(opt => `<option value="${opt.score}">${opt.description} (${opt.score})</option>`).join('')}
+                            </select>
+                        </div>
+                    `;
+                    conteudoDiv.appendChild(card);
+                });
+            }
+
+            function calcularPontuacao() {
+                let total = 0;
+                let allCategoriesSelected = true;
+
+                gosnellData.forEach(item => {
+                    const select = document.getElementById(`${item.nameAttr}-select`);
+                    if (select && select.value) {
+                        select.classList.remove('incomplete');
+                        total += parseInt(select.value, 10);
+                    } else {
+                        allCategoriesSelected = false;
+                        select.classList.add('incomplete');
+                    }
+                });
+
+                if (!allCategoriesSelected) {
+                    resultadoDiv.innerHTML = '⚠️ <strong class="font-bold">各リスク要因のオプションを選択してください。</strong>';
+                    resultadoDiv.className = 'standard-result-box bg-info-orange-light';
+                    resultadoDiv.style.display = 'block';
+                    delete resultadoDiv.dataset.score;
+                    return;
+                }
+
+                let classificacao = "";
+                if (total >= 15) { classificacao = "高リスク"; }
+                else if (total >= 10) { classificacao = "中リスク"; }
+                else { classificacao = "低リスク"; }
+
+                resultadoDiv.innerHTML = `<p class="font-bold text-lg">ゴスネル合計スコア: <span class="font-black">${total}</span></p><p class="font-bold text-lg">分類: <span class="font-black">${classificacao}</span></p>`;
+                resultadoDiv.className = `standard-result-box`;
+                resultadoDiv.style.display = 'block';
+                resultadoDiv.dataset.score = total;
+                resultadoDiv.dataset.classificacao = classificacao;
+                resultadoDiv.dataset.scaleName = "ゴスネルスケール";
+            }
+
+            function limparCampos() {
+                createForm();
+                resultadoDiv.innerHTML = '';
+                resultadoDiv.className = 'hidden';
+                delete resultadoDiv.dataset.score;
+                delete resultadoDiv.dataset.classificacao;
+            }
+
+            createForm();
+            btnCalcular?.addEventListener('click', calcularPontuacao);
+            btnLimpar?.addEventListener('click', limparCampos);
+
+            btnGerarPDF?.addEventListener('click', () => {
+                if (!resultadoDiv.dataset.score) {
+                    alert('PDFを生成する前に、まず「計算」をクリックしてください。');
+                    return;
+                }
+                if (typeof gerarPDFGlobal === 'function') {
+                    gerarPDFGlobal({
+                        titulo: 'ゴスネルスケール - 褥瘡リスク',
+                        subtitulo: 'リスク評価レポート',
+                        nomeArquivo: 'reporte_escala_gosnell.pdf',
+                        seletorConteudo: '.main-content-wrapper'
+                    });
+                } else {
+                    console.error('gerarPDFGlobal 関数が定義されていません。');
+                }
+            });
+
+            btnNandaNicNoc?.addEventListener('click', () => {
+                const score = resultadoDiv.dataset.score;
+                const classificacao = resultadoDiv.dataset.classificacao;
+                if (!score || !classificacao) {
+                    alert('行動を検索するために結果を計算してください。');
+                    return;
+                }
+                const searchQuery = encodeURIComponent(`褥瘡 ${classificacao} ゴスネルスケール NANDA看護診断, NIC看護介入, NOC看護成果`);
+                window.open(`https://www.google.com/search?q=${searchQuery}`, '_blank');
+            });
+        });
+    </script>
 
 
 

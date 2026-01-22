@@ -626,7 +626,175 @@
 
 
 
-  
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const resultadoDiv = document.getElementById('resultado');
+      const btnCalcular = document.getElementById('btnCalcular');
+      const btnLimpar = document.getElementById('btnLimpar');
+      const btnGerarPDF = document.getElementById('btnGerarPDF');
+      const btnNandaNicNoc = document.getElementById('btnNandaNicNoc');
+      const conteudoDiv = document.getElementById('conteudo');
+
+      const rlasData = [
+        {
+          level: 1,
+          title: "Уровень I - Нет реакции",
+          description: "Пациент не отвечает на слуховые, зрительные, тактильные или болевые раздражители. Находится в состоянии глубокой комы.",
+          recommendation: "Рекомендация: Фокус на базовой жизнеобеспечении, позиционировании для предотвращения пролежней и контрактур, минимальной сенсорной стимуляции. Общение с семьёй крайне важно."
+        },
+        {
+          level: 2,
+          title: "Уровень II - Общая реакция",
+          description: "Пациент реагирует непоследовательно, бессмысленно и неспецифично на раздражители. Реакции ограничены и могут быть одинаковыми независимо от стимула.",
+          recommendation: "Рекомендация: Поддерживать спокойную и контролируемую среду. Продолжать сенсорную стимуляцию последовательно, но не перегружая. Фокус на пробуждении пациента."
+        },
+        {
+          level: 3,
+          title: "Уровень III - Локализованная реакция",
+          description: "Пациент реагирует более специфично на раздражители. Может моргать в ответ на световой стимул или пытаться следить за объектом. Реакции непоследовательны.",
+          recommendation: "Рекомендация: Начинать с простых и повторяющихся команд. Ограничивать отвлекающие факторы. Пациент может начать узнавать членов семьи. Помогать фокусировать внимание."
+        },
+        {
+          level: 4,
+          title: "Уровень IV - Спутанность и возбуждение",
+          description: "Пациент находится в состоянии возбуждения и спутанности. Не может сотрудничать с оценкой и может вести себя агрессивно. Внимание кратковременное.",
+          recommendation: "Рекомендация: Обеспечивать безопасную и структурированную среду для предотвращения травм. Использовать спокойный голос и поддерживать предсказуемый распорядок. Помогать пациенту ориентироваться когда необходимо."
+        },
+        {
+          level: 5,
+          title: "Уровень V - Спутанность и неуместность",
+          description: "Пациент может следовать простым командам, но испытывает трудности с поддержанием внимания. Ответы на сложные вопросы неуместны и спутаны. Память серьёзно нарушена.",
+          recommendation: "Рекомендация: Начинать с обучения простым и повторяющимся задачам. Укреплять реориентацию во времени и месте. Коммуникация должна быть ясной и прямой."
+        },
+        {
+          level: 6,
+          title: "Уровень VI - Спутанность и уместность",
+          description: "Пациент может следовать командам и демонстрирует долговременную память. Кратковременная память всё ещё нарушена, и решения часто неверны.",
+          recommendation: "Рекомендация: Увеличивать сложность задач. Использовать воспоминания о прошлых событиях и способствовать независимости в знакомых действиях. Поощрять пациента принимать небольшие решения."
+        },
+        {
+          level: 7,
+          title: "Уровень VII - Автоматизм и уместность",
+          description: "У пациента незначительная спутанность. Способен следовать ежедневному распорядку роботически, но всё ещё имеет дефициты суждения и решения проблем. Социальное взаимодействие поверхностное.",
+          recommendation: "Рекомендация: Фокусироваться на планировании и решении проблем. Поощрять социализацию в группах и развитие стратегий для компенсации когнитивных дефицитов."
+        },
+        {
+          level: 8,
+          title: "Уровень VIII - Направленность и уместность",
+          description: "Пациент способен мыслить абстрактно и решать проблемы. Его память и суждение последовательны, но способность справляться с эмоциями может быть нарушена. Функция независима.",
+          recommendation: "Рекомендация: Помогать пациенту справляться с эмоциональными и социальными изменениями. Фокусироваться на реинтеграции в сообщество и подготовке к возвращению к профессиональной или академической деятельности."
+        },
+      ];
+
+      rlasData.forEach(item => {
+        const sectionDiv = document.createElement('div');
+        sectionDiv.className = 'rlas-criterion-section';
+        sectionDiv.id = `section-level-${item.level}`;
+
+        const radioContainer = document.createElement('div');
+        radioContainer.className = 'rlas-criterion-option';
+
+        const radioInput = document.createElement('input');
+        radioInput.type = 'radio';
+        radioInput.name = 'rlas_level';
+        radioInput.value = item.level;
+        radioInput.id = `level-${item.level}`;
+
+        const label = document.createElement('label');
+        label.htmlFor = `level-${item.level}`;
+        label.innerHTML = `<strong>${item.title}</strong><br>${item.description}`;
+
+        radioContainer.appendChild(radioInput);
+        radioContainer.appendChild(label);
+        sectionDiv.appendChild(radioContainer);
+
+        conteudoDiv.appendChild(sectionDiv);
+      });
+
+      function calcularRLAS() {
+        const selectedRadio = document.querySelector('input[name="rlas_level"]:checked');
+        resultadoDiv.style.display = "block";
+
+        if (!selectedRadio) {
+          resultadoDiv.innerHTML = '⚠️ <strong class="font-bold">Пожалуйста, выберите уровень для расчёта.</strong>';
+          resultadoDiv.classList.add('bg-red-100');
+          resultadoDiv.classList.remove('bg-blue-50');
+          return;
+        }
+
+        const level = selectedRadio.value;
+        const selectedItem = rlasData.find(item => item.level == level);
+
+        if (selectedItem) {
+          resultadoDiv.innerHTML = `
+                    <p>Выбранный уровень: <strong class="font-bold">${selectedItem.title}</strong></p>
+                    <p class="mt-4"><strong>Рекомендация:</strong> ${selectedItem.recommendation}</p>
+                `;
+          resultadoDiv.className = `resultado bg-blue-50`;
+        }
+
+        resultadoDiv.style.display = "block";
+      }
+
+      function limparCampos() {
+        const selectedRadio = document.querySelector('input[name="rlas_level"]:checked');
+        if (selectedRadio) {
+          selectedRadio.checked = false;
+        }
+        resultadoDiv.innerHTML = '';
+        resultadoDiv.className = 'resultado hidden';
+      }
+
+      btnCalcular?.addEventListener('click', calcularRLAS);
+      btnLimpar?.addEventListener('click', limparCampos);
+
+      btnGerarPDF?.addEventListener('click', () => {
+        const selectedRadio = document.querySelector('input[name="rlas_level"]:checked');
+        if (!selectedRadio) {
+          alert('Пожалуйста, выберите уровень для создания PDF.');
+          return;
+        }
+        if (typeof gerarPDFGlobal === 'function') {
+          const selectedItem = rlasData.find(item => item.level == selectedRadio.value);
+
+          let contentToPrint = document.querySelector('.main-content-wrapper').cloneNode(true);
+          let contentContainer = contentToPrint.querySelector('#conteudo');
+
+          contentContainer.innerHTML = '';
+
+          let itemDiv = document.createElement('div');
+          itemDiv.className = 'mb-2 p-2 bg-gray-50 rounded';
+          itemDiv.innerHTML = `<strong>Выбранный уровень:</strong> ${selectedItem.title}<br><strong>Описание:</strong> ${selectedItem.description}`;
+          contentContainer.appendChild(itemDiv);
+
+          let resultadoHtml = resultadoDiv.cloneNode(true);
+          if (resultadoHtml.style.display !== 'none') {
+            contentContainer.appendChild(resultadoHtml);
+          }
+
+          gerarPDFGlobal({
+            titulo: 'Шкала Ранчо Лос Амигос',
+            subtitulo: 'Отчёт о когнитивной оценке',
+            nomeArquivo: 'raport_shkala_rancho.pdf',
+            seletorConteudo: '.main-content-wrapper'
+          });
+        } else {
+          console.error('Функция gerarPDFGlobal не определена.');
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener('click', () => {
+        const selectedRadio = document.querySelector('input[name="rlas_level"]:checked');
+        if (!selectedRadio) {
+          alert('Выберите уровень для поиска тактики ведения.');
+          return;
+        }
+        const selectedItem = rlasData.find(item => item.level == selectedRadio.value);
+        const searchQuery = encodeURIComponent(`уход за пациентом с черепно-мозговой травмой Уровень ${selectedItem.level} NANDA NIC NOC`);
+        window.open(`https://www.google.com/search?q=${searchQuery}`, '_blank');
+      });
+    });
+  </script>
 
 
 

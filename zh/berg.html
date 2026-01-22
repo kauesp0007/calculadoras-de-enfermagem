@@ -643,7 +643,326 @@
 
 
 
-  
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const resultadoDiv = document.getElementById('resultado');
+      const btnCalcular = document.getElementById('btnCalcular');
+      const btnLimpar = document.getElementById('btnLimpar');
+      const btnGerarPDF = document.getElementById('btnGerarPDF');
+      const btnNandaNicNoc = document.getElementById('btnNandaNicNoc');
+      const conteudoDiv = document.getElementById('conteudo');
+
+      const bergData = [
+        {
+          title: "1. 从坐位到站立",
+          nameAttr: "sentar_levantar",
+          options: [
+            { description: "无法无需协助站立", score: 0 },
+            { description: "需要语言指导和/或监督才能站立", score: 1 },
+            { description: "需要少量协助才能站立", score: 2 },
+            { description: "能够安全站立，但需要语言指导以确保稳定", score: 3 },
+            { description: "能够安全稳定地站立，无需协助", score: 4 }
+          ]
+        },
+        {
+          title: "2. 无支撑站立",
+          nameAttr: "em_pe_sem_apoio",
+          options: [
+            { description: "无法保持站立30秒", score: 0 },
+            { description: "能站立30秒，但需要协助", score: 1 },
+            { description: "能站立30秒，但需要监督", score: 2 },
+            { description: "能安全站立30秒", score: 3 },
+            { description: "能安全站立30秒，无支撑", score: 4 }
+          ]
+        },
+        {
+          title: "3. 无支撑坐位",
+          nameAttr: "sentar_sem_apoio",
+          options: [
+            { description: "坐位不安全，滑向椅子", score: 0 },
+            { description: "能坐位，但需要少量协助", score: 1 },
+            { description: "坐位安全，但需要使用手臂", score: 2 },
+            { description: "坐位安全，不使用手臂，但动作缓慢", score: 3 },
+            { description: "坐位安全，不使用手臂", score: 4 }
+          ]
+        },
+        {
+          title: "4. 坐位到站立",
+          nameAttr: "sentar_e_levantar",
+          options: [
+            { description: "无法无需支撑完成3次坐立", score: 0 },
+            { description: "能坐立3次，但需要协助", score: 1 },
+            { description: "能坐立3次，但需要监督", score: 2 },
+            { description: "能安全坐立3次，但动作缓慢", score: 3 },
+            { description: "能安全坐立3次", score: 4 }
+          ]
+        },
+        {
+          title: "5. 转移",
+          nameAttr: "transferencia",
+          options: [
+            { description: "无法无需帮助转移", score: 0 },
+            { description: "需要协助转移", score: 1 },
+            { description: "需要监督或语言协助转移", score: 2 },
+            { description: "能安全转移，但动作缓慢", score: 3 },
+            { description: "能安全转移，无需协助", score: 4 }
+          ]
+        },
+        {
+          title: "6. 闭眼站立",
+          nameAttr: "em_pe_olhos_fechados",
+          options: [
+            { description: "无法闭眼保持站立10秒", score: 0 },
+            { description: "能站立10秒，但需要监督", score: 1 },
+            { description: "能安全站立10秒", score: 2 },
+            { description: "能站立30秒，但有轻微不稳定", score: 3 },
+            { description: "能安全站立30秒，无支撑", score: 4 }
+          ]
+        },
+        {
+          title: "7. 双脚并拢站立",
+          nameAttr: "em_pe_pes_juntos",
+          options: [
+            { description: "无法双脚并拢站立", score: 0 },
+            { description: "能双脚并拢站立，但需要协助", score: 1 },
+            { description: "能双脚并拢站立，但需要监督", score: 2 },
+            { description: "能双脚并拢站立30秒", score: 3 },
+            { description: "能安全双脚并拢站立1分钟", score: 4 }
+          ]
+        },
+        {
+          title: "8. 向前伸手臂",
+          nameAttr: "alcancar_a_frente",
+          options: [
+            { description: "无法伸手或动作危险", score: 0 },
+            { description: "能向前伸手，但需要协助", score: 1 },
+            { description: "能向前伸手，但需要监督", score: 2 },
+            { description: "能向前伸手，但动作缓慢", score: 3 },
+            { description: "能安全向前伸手，无需协助", score: 4 }
+          ]
+        },
+        {
+          title: "9. 从地面拾取物品",
+          nameAttr: "pegar_objeto",
+          options: [
+            { description: "无法拾取物品", score: 0 },
+            { description: "能拾取物品，但需要协助", score: 1 },
+            { description: "能拾取物品，但需要监督", score: 2 },
+            { description: "能拾取物品，但动作缓慢", score: 3 },
+            { description: "能安全从地面拾取物品，无需协助", score: 4 }
+          ]
+        },
+        {
+          title: "10. 转头向后看",
+          nameAttr: "olhar_para_tras",
+          options: [
+            { description: "无法转头向后看", score: 0 },
+            { description: "能转头向后看，但需要协助", score: 1 },
+            { description: "能转头向后看，但需要监督", score: 2 },
+            { description: "能安全转头向后看，但动作缓慢", score: 3 },
+            { description: "能安全转头向后看，无需协助", score: 4 }
+          ]
+        },
+        {
+          title: "11. 原地转圈360度",
+          nameAttr: "girar_360",
+          options: [
+            { description: "无法转圈360度", score: 0 },
+            { description: "能转圈，但需要协助", score: 1 },
+            { description: "能转圈，但需要监督", score: 2 },
+            { description: "能安全转圈360度，但动作缓慢", score: 3 },
+            { description: "能安全转圈360度，无需协助", score: 4 }
+          ]
+        },
+        {
+          title: "12. 单脚站立",
+          nameAttr: "um_pe_so",
+          options: [
+            { description: "无法单脚站立", score: 0 },
+            { description: "能单脚站立5秒", score: 1 },
+            { description: "能单脚站立10秒", score: 2 },
+            { description: "能单脚站立15秒", score: 3 },
+            { description: "能单脚站立30秒", score: 4 }
+          ]
+        },
+        {
+          title: "13. 闭眼单脚站立",
+          nameAttr: "um_pe_so_olhos_fechados",
+          options: [
+            { description: "无法闭眼单脚站立", score: 0 },
+            { description: "能闭眼单脚站立5秒", score: 1 },
+            { description: "能闭眼单脚站立10秒", score: 2 },
+            { description: "能闭眼单脚站立15秒", score: 3 },
+            { description: "能闭眼单脚站立30秒", score: 4 }
+          ]
+        },
+        {
+          title: "14. 站立和坐回椅子",
+          nameAttr: "sentar_e_levantar_cadeira",
+          options: [
+            { description: "无法坐回椅子和从椅子站立", score: 0 },
+            { description: "能从椅子坐立，但需要协助", score: 1 },
+            { description: "能从椅子坐立，但需要监督", score: 2 },
+            { description: "能安全坐立，但动作缓慢", score: 3 },
+            { description: "能安全坐立，无需协助", score: 4 }
+          ]
+        }
+      ];
+
+      // Preenche o formulário dinamicamente
+      bergData.forEach(item => {
+        const sectionDiv = document.createElement('div');
+        sectionDiv.className = 'berg-criterion-section';
+        sectionDiv.id = `section-${item.nameAttr}`;
+
+        const titleH3 = document.createElement('h3');
+        titleH3.className = 'berg-criterion-title';
+        titleH3.innerHTML = item.title;
+        sectionDiv.appendChild(titleH3);
+
+        const selectElement = document.createElement('select');
+        selectElement.id = item.nameAttr;
+        selectElement.className = 'berg-criterion-select mt-2';
+
+        const defaultOption = document.createElement('option');
+        defaultOption.value = "";
+        defaultOption.text = "请选择...";
+        selectElement.appendChild(defaultOption);
+
+        item.options.forEach(option => {
+          const optionElement = document.createElement('option');
+          optionElement.value = option.score;
+          optionElement.text = `${option.description} (得分: ${option.score})`;
+          selectElement.appendChild(optionElement);
+        });
+
+        sectionDiv.appendChild(selectElement);
+        conteudoDiv.appendChild(sectionDiv);
+      });
+
+      function calcularBerg() {
+        const selects = document.querySelectorAll('#conteudo select');
+        let allSelected = true;
+        let total = 0;
+
+        selects.forEach(select => {
+          if (select.value === "") {
+            allSelected = false;
+            select.classList.add('incomplete');
+          } else {
+            select.classList.remove('incomplete');
+            total += Number(select.value);
+          }
+        });
+
+        resultadoDiv.style.display = "block";
+        if (!allSelected) {
+          resultadoDiv.innerHTML = '⚠️ <strong class="font-bold">请在计算前为所有项目选择选项。</strong>';
+          resultadoDiv.className = `resultado bg-red-100`;
+          delete resultadoDiv.dataset.score;
+          return;
+        }
+
+        let recomendacao = '';
+
+        if (total <= 20) {
+          recomendacao = `得分${total}分表明存在高跌倒风险。建议持续协助和监督。`;
+        } else if (total >= 21 && total <= 40) {
+          recomendacao = `得分${total}分表明患者具有功能性移动能力，但可能有中度跌倒风险。建议进行康复治疗。`;
+        } else if (total >= 41 && total <= 56) {
+          recomendacao = `得分${total}分表明低跌倒风险。患者具有良好的平衡能力和功能性移动能力。`;
+        }
+
+        resultadoDiv.innerHTML = `
+                <p>总分：<strong class="font-bold">${total}</strong></p>
+                <p class="mt-4"><strong>建议：</strong> ${recomendacao}</p>
+            `;
+        resultadoDiv.className = `resultado bg-blue-50`;
+        resultadoDiv.style.display = "block";
+
+        resultadoDiv.dataset.score = total;
+        resultadoDiv.dataset.scaleName = "伯格平衡量表";
+      }
+
+      function limparCampos() {
+        const selects = document.querySelectorAll('#conteudo select');
+        selects.forEach(select => {
+          select.selectedIndex = 0;
+          select.classList.remove('incomplete');
+        });
+        resultadoDiv.innerHTML = '';
+        resultadoDiv.className = 'resultado hidden';
+        delete resultadoDiv.dataset.score;
+        delete resultadoDiv.dataset.scaleName;
+      }
+
+      // Adiciona os event listeners aos botões
+      btnCalcular?.addEventListener('click', calcularBerg);
+      btnLimpar?.addEventListener('click', limparCampos);
+
+      btnGerarPDF?.addEventListener('click', () => {
+        if (!resultadoDiv.dataset.score) {
+          alert('请先点击"计算得分"来生成PDF。');
+          return;
+        }
+        if (typeof gerarPDFGlobal === 'function') {
+          const selectedOptions = {};
+          document.querySelectorAll('#conteudo select').forEach(select => {
+            const selected = select.options[select.selectedIndex];
+            if (selected.value !== "") {
+              selectedOptions[select.id] = selected.text;
+            }
+          });
+
+          let contentToPrint = document.querySelector('.main-content-wrapper').cloneNode(true);
+          let contentContainer = contentToPrint.querySelector('#conteudo');
+
+          contentContainer.innerHTML = '';
+
+          bergData.forEach(item => {
+            let selectedText = selectedOptions[item.nameAttr];
+            if (selectedText) {
+              let itemDiv = document.createElement('div');
+              itemDiv.className = 'mb-2 p-2 bg-gray-50 rounded';
+              itemDiv.innerHTML = `<strong>${item.title}:</strong> ${selectedText}`;
+              contentContainer.appendChild(itemDiv);
+            }
+          });
+
+          let resultadoHtml = resultadoDiv.cloneNode(true);
+          if (resultadoHtml.style.display !== 'none') {
+            contentContainer.appendChild(resultadoHtml);
+          }
+
+          gerarPDFGlobal({
+            titulo: '伯格平衡量表',
+            subtitulo: '静态和动态平衡评估报告',
+            nomeArquivo: '伯格平衡量表报告.pdf',
+            seletorConteudo: '.main-content-wrapper'
+          });
+        } else {
+          console.error('生成PDF功能未定义。');
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener('click', () => {
+        const score = resultadoDiv.dataset.score;
+        const scaleName = resultadoDiv.dataset.scaleName;
+        if (!score) {
+          alert('请先计算结果以查找护理建议。');
+          return;
+        }
+        let recomendacaoRisco = '跌倒风险';
+        if (score <= 20) {
+          recomendacaoRisco = '高跌倒风险';
+        } else if (score >= 41) {
+          recomendacaoRisco = '低跌倒风险';
+        }
+        const searchQuery = encodeURIComponent(`老年人伯格平衡量表 ${recomendacaoRisco} 护理 NANDA NIC NOC`);
+        window.open(`https://www.google.com/search?q=${searchQuery}`, '_blank');
+      });
+    });
+  </script>
 
 
 

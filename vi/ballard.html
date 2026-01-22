@@ -542,7 +542,415 @@
 
 
 
-  
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const resultadoDiv = document.getElementById("resultado");
+      const btnCalcular = document.getElementById("btnCalcular");
+      const btnLimpar = document.getElementById("btnLimpar");
+      const btnGerarPDF = document.getElementById("btnGerarPDF");
+      const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
+      const conteudoDiv = document.getElementById("conteudo");
+
+      const ballardData = [
+        {
+          category: "Cơ sở kinh nghiệm thành công chính",
+          items: [
+            {
+              title: "tư thế",
+              nameAttr: "postura",
+              explain:
+                "Đánh giá mức độ bình thường của các chi khi em đang nghỉ ngơi. Em bé trưởng thành hơn có tư thế cong hơn (các chi bên cạnh).",
+              options: [
+                { description: "Tổng chiều dài", score: -1 },
+                { description: "Relaxing / one part", score: 0 },
+                { description: "Phải vào bụng vừa phải", score: 1 },
+                { description: "Tập bụng tốt", score: 2 },
+                { description: "Gập mạnh", score: 3 },
+                { description: "Tổng số lần dư thừa ( Rất chín muồi)", score: 4 }]
+
+            },
+            {
+              title: "Góc của tay cầm (Cửa cửa sổ vuông)",
+              nameAttr: "square_window",
+              explain:
+                "Đánh giá tốc độ của cổ tay khi nhìn tay trên cánh tay. Góc nhỏ hơn (tay gần cẳng tay hơn) cho thấy sự trưởng thành hơn.",
+              options: [
+                { description: "< 90°", score: -1 },
+                { description: " 90°", score: 0 },
+                { description: " 60°", score: 1 },
+                { description: " 45°", score: 2 },
+                { description: " 30°", score: 3 },
+                { description: "0° (Rất gần)", score: 4 }]
+
+            },
+            {
+              title: "Hãy cho tôi biết bạn muốn gì (Arm Recoil)",
+              nameAttr: "arm_recoil",
+              explain:
+                "Thật dễ dàng để xem những gì đang xảy ra trong cuộc sống của bạn. Càng nhanh và mạnh càng trở lại, càng cao độ phát triển thần kinh cơ sở.",
+              options: [
+                { description: "Không trả lại", score: 0 },
+                { description: "Trở lại chậm", score: 1 },
+                { description: "Hoàn trả một phần", score: 2 },
+                { description: "Quay lại nhanh", score: 3 },
+                { description: "Sự trở lại đầy đủ và mạnh mẽ", score: 4 }]
+
+            },
+            {
+              title: "Goc gối",
+              nameAttr: "popliteo",
+              explain:
+                "Đánh giá sức mạnh khi đi chân dưới. Góc nhỏ hơn (phương pháp lớn hơn) cho thấy mức độ trưởng thành cao hơn.",
+              options: [
+                { description: "180°", score: -1 },
+                { description: "160°", score: 0 },
+                { description: "140°", score: 1 },
+                { description: "120°", score: 2 },
+                { description: "100°", score: 3 },
+                { description: "90°", score: 4 },
+                { description: "< 90°", score: 5 }]
+
+            },
+            {
+              title: "Dấu hiệu khăn quàng cổ",
+              nameAttr: "scarf",
+              explain:
+                "Thế thôi. Vượt qua càng ít, trưởng thành càng cao.",
+              options: [
+                { description: "Khuỷu tay vượt qua đường giữa", score: -1 },
+                { description: "Khuỷu tay ở giữa", score: 0 },
+                { description: "Khuỷu tay gần đi", score: 1 },
+                { description: "Elbow không đạt đến mức độ nào", score: 2 },
+                { description: "Khuỷu tay quá xa vai", score: 3 }]
+
+            },
+            {
+              title: "Gót chân → Tai",
+              nameAttr: "heel_to_ear",
+              explain:
+                "Khi đưa gót chân gần tai, có thể cảm nhận được sự kháng cự. Kháng cự càng lớn = độ chín càng cao.",
+              options: [
+                { description: "Chân dễ dàng Chạm tới tai", score: -1 },
+                { description: "Chân gần tai", score: 0 },
+                { description: "Kích thước phải vừa phải", score: 1 },
+                { description: "Khả năng chịu đựng tốt", score: 2 },
+                { description: "Cách xa xa", score: 3 },
+                { description: "Khả năng mạnh mẽ mạnh mẽ (Rất chín muồi)", score: 4 }]
+
+            }]
+
+        },
+        {
+          category: "Thành phần chính",
+          items: [
+            {
+              title: "Da",
+              nameAttr: "pele",
+              explain:
+                "Đánh giá kết cấu da: từ móng và trong suốt ở trẻ sinh non đến dày, khô và nứt ở trẻ sinh đủ tháng.",
+              options: [
+                {
+                  description: "Củng cố, trong suốt (Rất không)",
+                  score: -1
+                },
+                { description: "Gelatin/mỏng", score: 0 },
+                { description: "Nếu bạn không biết mình đang tìm kiếm điều gì", score: 1 },
+                { description: "Dày hơn, ít vết nứt", score: 2 },
+                { description: "Dày, nứt", score: 3 },
+                {
+                  description:
+                    "Dày, khô với vết nứt sâu (sau khi nung)",
+                  score: 4
+                }]
+
+            },
+            {
+              title: "Lanugo",
+              nameAttr: "lanugo",
+              explain:
+                "Đánh giá sự hiện diện và phân tích của lông tơ (dài lùn). Ở trẻ sinh non, lông tơ rất nhiều; ở trẻ sinh đủ tháng, lông tơ có xu hướng giảm dần và biến mất.",
+              options: [
+                { description: "Vắng mặt (quá rất lâu)", score: -1 },
+                { description: "khan hiếm", score: 0 },
+                { description: "Dồi dào", score: 1 },
+                {
+                  description: "Ẩn (cụ thể của non nớt)",
+                  score: 2
+                },
+                { description: "Vùng không có lông", score: 3 },
+                {
+                  description: "Thực tế vắng mặt (rất non nớt)",
+                  score: 4
+                }]
+
+            },
+            {
+              title: "nếp gấp thực vật",
+              nameAttr: "plantares",
+              explain:
+                "Đánh giá các gấp gấp ở lòng bàn chân: trẻ sinh non có ít nếp gấp; trẻ sinh đủ tháng có các gấp gấp sâu bao toàn bộ bộ lòng bàn chân.",
+              options: [
+                { description: "Vắng mặt/rất nông", score: -1 },
+                { description: "Dấu hiệu ở mặt trước", score: 0 },
+                { description: "Cho đến nửa cây", score: 1 },
+                { description: "Cho đến 2/3", score: 2 },
+                { description: "Nếp gấp khắp cây", score: 3 },
+                { description: "Nếp gấp sâu và rõ rệt", score: 4 }]
+
+            },
+            {
+              title: "Vú",
+              nameAttr: "mamas",
+              explain:
+                "Khi bạn cảm thấy như bạn không nhìn thấy nó khi bạn nhìn thấy nó. Ở trẻ sơ sinh lớn hơn, tuyến vú và quầng vú lớn hơn và nhô ra hơn.",
+              options: [
+                { description: "Không thể nhận ra", score: -1 },
+                { description: "Không thể dễ dàng nhận thấy", score: 0 },
+                { description: "Quầng vú vật, núm vú nhỏ", score: 1 },
+                {
+                  description:
+                    "Khu vực quần ngọc mỏ rồng một phần tuyến 1–2 mm",
+                  score: 2
+                },
+                {
+                  description: "Vùng quần ngọc có viền cao 3–4 mm tuyến vú của bạn",
+                  score: 3
+                },
+                {
+                  description: "đi kèm với 5–10 mm tuyến tuyến của bạn",
+                  score: 4
+                }]
+
+            },
+            {
+              title: "Mắt và Tai",
+              nameAttr: "olhos_orelhas",
+              explain:
+                "Đánh giá cứng của tai và hình dạng mí mắt. Tai cứng hơn và dạng tai tốt cho sự thành công lớn hơn.",
+              options: [
+                {
+                  description: "Sụn ​​mềm / mí mắt",
+                  score: -1
+                },
+                { description: "Alguma firmeza", score: 0 },
+                { description: "Độ cứng vừa phải", score: 1 },
+                { description: "Độ cứng tốt", score: 2 },
+                { description: "Độ cứng hoàn toàn", score: 3 }]
+
+            },
+            {
+              title: "Bộ phận sinh dục",
+              nameAttr: "genitalia",
+              explain:
+                "Đánh giá sự phát triển cơ sở sinh dục: ở bé trai, quan sát vị trí và độ đất của bìu / ở bé gái, độ nhô của vật âm và kích thước của môi trường âm hộ. Cho biết trưởng thành về mặt giáo dục/sơ sinh.",
+              options: [
+                {
+                  description:
+                    "Nam: tinh hoàn không xuống; Nữ: môi trường âm thanh",
+                  score: -1
+                },
+                {
+                  description:
+                    "Nam: một phần xuống; Nữ: môi nhỏ",
+                  score: 0
+                },
+                {
+                  description:
+                    "Nam: tinh hoàn trong bìu; Nữ: môi trường tối thiểu",
+                  score: 1
+                },
+                {
+                  description:
+                    "Nam giới: bìu lửa; Nữ giới: môi nhỏ và môi lớn đều nổi bật",
+                  score: 2
+                },
+                { description: "Làm thế nào để làm một cái gì đó như thế này", score: 3 }]
+
+            }]
+
+        }];
+
+
+      // Preenche o formulário dinamicamente
+      ballardData.forEach((section) => {
+        const sectionDiv = document.createElement("div");
+        sectionDiv.className = "ballard-criterion-section";
+
+        const titleH3 = document.createElement("h3");
+        titleH3.className = "ballard-criterion-title";
+        titleH3.innerText = section.category;
+        sectionDiv.appendChild(titleH3);
+
+        const groupDiv = document.createElement("div");
+        groupDiv.className = "ballard-criterion-group";
+
+        section.items.forEach((item) => {
+          const itemDiv = document.createElement("div");
+          itemDiv.id = `item-${item.nameAttr}`;
+          itemDiv.className = "ballard-criterion-item";
+
+          const itemTitle = document.createElement("h4");
+          itemTitle.className = "ballard-item-title";
+          itemTitle.innerText = item.title;
+          itemDiv.appendChild(itemTitle);
+
+          const itemExplain = document.createElement("p");
+          itemExplain.className = "ballard-item-explain";
+          itemExplain.innerText = item.explain;
+          itemDiv.appendChild(itemExplain);
+
+          item.options.forEach((option) => {
+            const optionDiv = document.createElement("div");
+            optionDiv.className = "ballard-criterion-option";
+
+            const radioInput = document.createElement("input");
+            radioInput.type = "radio";
+            radioInput.name = item.nameAttr;
+            radioInput.value = option.score;
+            radioInput.id = `${item.nameAttr}_${option.score}`;
+
+            const label = document.createElement("label");
+            label.htmlFor = radioInput.id;
+            label.innerText = `${option.description} (${option.score})`;
+
+            optionDiv.appendChild(radioInput);
+            optionDiv.appendChild(label);
+            itemDiv.appendChild(optionDiv);
+          });
+
+          groupDiv.appendChild(itemDiv);
+        });
+
+        sectionDiv.appendChild(groupDiv);
+        conteudoDiv.appendChild(sectionDiv);
+      });
+
+      // Lógica de cálculo e botões
+      const criteriaNames = ballardData.flatMap((s) =>
+        s.items.map((i) => i.nameAttr)
+      );
+
+      function calcularBallard() {
+        let allSelected = true;
+        let total = 0;
+        document.
+          querySelectorAll(".ballard-criterion-item").
+          forEach((el) => el.classList.remove("không đầy đủ"));
+
+        criteriaNames.forEach((name) => {
+          const selected = document.querySelector(
+            `input[name="${name}"]:checked`
+          );
+          if (!selected) {
+            allSelected = false;
+            document.
+              getElementById(`item-${name}`).
+              classList.add("không đầy đủ");
+          } else {
+            total += Number(selected.value);
+          }
+        });
+
+        resultadoDiv.style.display = "block";
+        if (!allSelected) {
+          resultadoDiv.innerHTML =
+            '⚠️ <strong class="font-bold">Por favor, selecione uma opção para todos os itens destacados antes de calcular.</strong>';
+          resultadoDiv.classList.add("bg-red-100");
+          resultadoDiv.classList.remove("bg-blue-50");
+          delete resultadoDiv.dataset.score;
+          return;
+        }
+
+        const semanasFloat = 20 + total * 0.4;
+        const semanas = Math.floor(semanasFloat);
+        const dias = Math.round((semanasFloat - semanas) * 7);
+
+        let classificacao = "";
+        if (semanas < 37) classificacao = "Trước thời hạn"; else
+          if (semanas >= 37 && semanas < 42) classificacao = "Thuật ngữ"; else
+            classificacao = "Hậu kỳ";
+
+        let conduta = "";
+        if (classificacao === "Trước thời hạn") {
+          conduta =
+            "Theo dõi điều hòa nhiệt độ, đường huyết và các dấu hiệu khó thở. Bạn không thể đi sai mà không nói bất cứ điều gì.";
+        } else if (classificacao === "Thuật ngữ") {
+          conduta =
+            "chăm sóc solo sơ sinh thường quy; theo dõi công việc cho bú và các dấu hiệu sinh tồn tồn tại. Đánh giá nhu cầu sàng lọc sơ sinh.";
+        } else {
+          conduta =
+            "Đánh giá các dấu hiệu sau khi sinh (da, đường huyết, điều hòa nhiệt độ), quan sát nguy cơ thiếu oxy và khả năng thích ứng của trẻ sơ sinh.";
+        }
+
+        resultadoDiv.innerHTML = `
+              <p>Escore total: <strong class="font-bold">${total}</strong></p>
+              <p>Idade gestacional estimada: <strong class="font-bold">${semanas} semanas e ${dias} dias</strong></p>
+              <p>Classificação: <strong class="font-bold">${classificacao}</strong></p>
+              <p class="mt-4"><strong>Conduta sugerida:</strong> ${conduta}</p>
+            `;
+        resultadoDiv.className = `bg-blue-50 là gì`;
+        resultadoDiv.style.display = "block";
+
+        resultadoDiv.dataset.score = total;
+        resultadoDiv.dataset.scaleName = "Cân Ballard";
+        resultadoDiv.dataset.classificacao = classificacao;
+      }
+
+      function limparCampos() {
+        criteriaNames.forEach((name) => {
+          document.
+            querySelectorAll(`input[name="${name}"]`).
+            forEach((input) => input.checked = false);
+        });
+        resultadoDiv.innerHTML = "";
+        resultadoDiv.className = "kết quả ẩn";
+        delete resultadoDiv.dataset.score;
+        delete resultadoDiv.dataset.scaleName;
+        delete resultadoDiv.dataset.classificacao;
+        document.
+          querySelectorAll(".ballard-criterion-item").
+          forEach((el) => el.classList.remove("không đầy đủ"));
+      }
+
+      btnCalcular?.addEventListener("click", calcularBallard);
+      btnLimpar?.addEventListener("click", limparCampos);
+
+      btnGerarPDF?.addEventListener("click", () => {
+        if (!resultadoDiv.dataset.score) {
+          alert(
+            "Xem những gì bạn có thể thấy \"Tính điểm\" trước để tạo tệp PDF."
+          );
+          return;
+        }
+        if (typeof gerarPDFGlobal === "chức năng") {
+          gerarPDFGlobal({
+            titulo: "Cân Ballard",
+            subtitulo: "Báo cao tuổi thái",
+            nomeArquivo: "relatorio_escala_ballard.pdf",
+            seletorConteudo: ".main-content-wrapper"
+          });
+        } else {
+          console.error("Bạn không thể tạo PDFGlobal không được xác định.");
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener("click", () => {
+        const score = resultadoDiv.dataset.score;
+        const scaleName = resultadoDiv.dataset.scaleName;
+        const classificacao = resultadoDiv.dataset.classificacao;
+        if (!score || !classificacao) {
+          alert("Tính toán kết quả để nghiên cứu hành động vi.");
+          return;
+        }
+        const searchQuery = encodeURIComponent(
+          `gọi một mình và bạn ở ngay đó chỉ sinh ${classificacao} Ballard NANDA NIC NOC`
+        );
+        window.open(
+          `https://www.google.com/search?q=${searchQuery}`,
+          "_blank"
+        );
+      });
+    });</script>
 
   <script src="/lang-selector.js" defer=""></script>
 

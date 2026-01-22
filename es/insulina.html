@@ -639,7 +639,92 @@
 
 
 
-  
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const btnCalcularInterno = document.getElementById('btnCalcularInterno');
+      const resultadoBox = document.getElementById('resultadoBox');
+      const btnLimpar = document.getElementById('btnLimpar');
+      const btnGerarPDF = document.getElementById('btnGerarPDF');
+      const btnNandaNicNoc = document.getElementById('btnNandaNicNoc');
+
+      function calcularInsulina() {
+        // Regla: No importa el tamaño del frasco (10ml, 3ml), la concentración es 100UI/ml.
+        const prescricaoUI = parseFloat(document.getElementById('prescricao').value);
+        const tamanhoSeringa = document.getElementById('seringaSelect').value; // Solo validación visual/informativa
+
+        if (isNaN(prescricaoUI) || prescricaoUI <= 0) {
+            alert("Por favor, introduzca una prescripción válida en UI.");
+            return;
+        }
+
+        // FÓRMULA REGISTRADA: Volumen (mL) = Dosis Prescrita (UI) / 100
+        const volumeML = prescricaoUI / 100;
+
+        // Renderizar Resultado
+        resultadoBox.style.display = 'block';
+
+        // Formatear valores para visualización (usando coma para ES)
+        const prescricaoFormat = prescricaoUI.toString().replace('.', ',');
+        const volumeFormat = volumeML.toString().replace('.', ',');
+
+        resultadoBox.innerHTML = `
+            <div class="resultado-formula">
+                <p style="font-size: 0.9rem; color: #555; margin-bottom: 5px;">Fórmula:</p>
+                <p><strong>${prescricaoFormat} UI</strong> (Prescripción) ÷ <strong>100</strong> (Concentración U-100) = <strong style="font-size: 1.4rem;">${volumeFormat} mL</strong></p>
+            </div>
+            <p>
+                Debe aspirar <strong>${volumeFormat} mL</strong> en la jeringa.
+            </p>
+            <div class="resultado-explicacao">
+                <p><strong>Nota Importante:</strong> No importa si el frasco tiene 10 mL o 3 mL, la concentración es el factor determinante (100 UI/mL) dentro del frasco a aspirar: 1 mL aspirado del frasco es 1 mL de insulina, es decir, 100 UI.</p>
+            </div>
+        `;
+
+        // Almacenar datos para PDF/NANDA
+        resultadoBox.dataset.score = volumeFormat + " mL";
+        resultadoBox.dataset.conduta = `Aspirar ${volumeFormat} mL de insulina correspondiente a ${prescricaoFormat} UI.`;
+        resultadoBox.dataset.scaleName = "Cálculo de Insulina";
+      }
+
+      function limparCampos() {
+        document.getElementById('prescricao').value = '';
+        document.getElementById('seringaSelect').value = '1';
+        resultadoBox.style.display = 'none';
+        resultadoBox.innerHTML = '';
+        delete resultadoBox.dataset.score;
+      }
+
+      btnCalcularInterno?.addEventListener('click', calcularInsulina);
+      btnLimpar?.addEventListener('click', limparCampos);
+
+      // PDF y Nanda mantenidos
+      btnGerarPDF?.addEventListener('click', () => {
+        if (!resultadoBox.dataset.score) {
+          alert('Por favor, haga clic en "Calcular" primero para generar el PDF.');
+          return;
+        }
+        if (typeof gerarPDFGlobal === 'function') {
+          gerarPDFGlobal({
+            titulo: 'Cálculo de Insulina',
+            subtitulo: 'Informe de Dosificación',
+            nomeArquivo: 'informe_insulina.pdf',
+            seletorConteudo: '.main-content-wrapper'
+          });
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener('click', () => {
+        const score = resultadoBox.dataset.score;
+        const conduta = resultadoBox.dataset.conduta;
+        if (!score) {
+          alert('Calcule el resultado para buscar.');
+          return;
+        }
+        const searchQuery = encodeURIComponent(`Cálculo de Insulina dosis ${score} conducta ${conduta} NANDA NIC NOC`);
+        window.open(`https://www.google.com/search?q=${searchQuery}`, '_blank');
+      });
+    });
+  </script>
 
   <script src="/lang-selector.js" defer=""></script>
 

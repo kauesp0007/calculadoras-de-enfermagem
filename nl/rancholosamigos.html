@@ -565,7 +565,210 @@
 
 
 
-  
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const resultadoDiv = document.getElementById("resultado");
+      const btnCalcular = document.getElementById("btnCalcular");
+      const btnLimpar = document.getElementById("btnLimpar");
+      const btnGerarPDF = document.getElementById("btnGerarPDF");
+      const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
+      const conteudoDiv = document.getElementById("conteudo");
+
+      const rlasData = [
+        {
+          level: 1,
+          title: "Niveau I - Geen antwoord",
+          description:
+            "De patiënt reageert niet op auditieve, visuele, tactiele of pijnprikkels. Ze verkeren in een diepe coma.",
+          recommendation:
+            "Aanbeveling: Focus op elementaire levensondersteuning, positionering om zweren en contracturen te voorkomen en minimale sensorische stimulatie. Communicatie met de familie is essentieel."
+        },
+        {
+          level: 2,
+          title: "Niveau II - Algemeen antwoord",
+          description:
+            "De patiënt reageert inconsistent, zonder doel en niet-specifiek op stimuli. De reacties zijn beperkt en kunnen hetzelfde zijn ongeacht de stimulus.",
+          recommendation:
+            "Aanbeveling: Zorg voor een rustige en gecontroleerde omgeving. Ga consequent door met zintuiglijke stimulatie, maar zonder overbelasting. Focus op het ontwaken van de patiënt."
+        },
+        {
+          level: 3,
+          title: "Niveau III - Plaatselijke reactie",
+          description:
+            "De patiënt reageert specifieker op stimuli. Ze kunnen knipperen bij een lichtprikkel of proberen een voorwerp te volgen. De reacties zijn inconsistent.",
+          recommendation:
+            "Aanbeveling: Begin met eenvoudige, repetitieve commando's. Beperk afleiding. De patiënt kan familieleden gaan herkennen. Help de aandacht te richten."
+        },
+        {
+          level: 4,
+          title: "Niveau IV - Verward en geagiteerd",
+          description:
+            "De patiënt is geagiteerd en verward. Ze zijn niet in staat om mee te werken aan de beoordeling en kunnen zich agressief gedragen. De aandachtsspanne is kort.",
+          recommendation:
+            "Aanbeveling: Zorg voor een veilige en gestructureerde omgeving om letsel te voorkomen. Gebruik een rustige stem en houd een voorspelbare routine aan. Help de patiënt zich te heroriënteren als dat nodig is."
+        },
+        {
+          level: 5,
+          title: "Niveau V - Verwarrend en ongepast",
+          description:
+            "De patiënt kan eenvoudige commando's opvolgen, maar heeft moeite om zijn aandacht erbij te houden. Antwoorden op complexe vragen zijn ongepast en verwarrend. Het geheugen is ernstig aangetast.",
+          recommendation:
+            "Aanbeveling: Begin met het trainen van eenvoudige, repetitieve taken. Versterk de heroriëntatie op tijd en plaats. Communicatie moet duidelijk en direct zijn."
+        },
+        {
+          level: 6,
+          title: "Niveau VI - Verward en geschikt",
+          description:
+            "De patiënt kan commando's opvolgen en laat een langetermijngeheugen zien. Het kortetermijngeheugen is nog steeds aangetast en beslissingen zijn vaak onjuist.",
+          recommendation:
+            "Aanbeveling: Verhoog de complexiteit van taken. Gebruik herinneringen aan gebeurtenissen uit het verleden en bevorder onafhankelijkheid in vertrouwde activiteiten. Moedig de patiënt aan om kleine beslissingen te nemen."
+        },
+        {
+          level: 7,
+          title: "Niveau VII - Automatisch en passend",
+          description:
+            "De patiënt heeft weinig verwardheid. Hij is in staat om een dagelijkse routine robotisch te volgen, maar heeft nog steeds tekortkomingen in het beoordelingsvermogen en het oplossen van problemen. Sociale interactie is oppervlakkig.",
+          recommendation:
+            "Aanbeveling: Focus op planning en probleemoplossing. Stimuleer socialisatie in groepen en de ontwikkeling van strategieën om cognitieve tekortkomingen te compenseren."
+        },
+        {
+          level: 8,
+          title: "Niveau VIII - Doelgericht en passend",
+          description:
+            "De patiënt kan abstract denken en problemen oplossen. Hun geheugen en beoordelingsvermogen zijn consistent, maar hun vermogen om met emoties om te gaan kan aangetast zijn. Het functioneren is onafhankelijk.",
+          recommendation:
+            "Aanbeveling: Help de patiënt om te gaan met emotionele en sociale veranderingen. Focus op re-integratie in de gemeenschap en voorbereiding op een terugkeer naar het professionele of academische leven."
+        }];
+
+
+      rlasData.forEach((item) => {
+        const sectionDiv = document.createElement("div");
+        sectionDiv.className = "rlas-criterion-section";
+        sectionDiv.id = `section-level-${item.level}`;
+
+        const radioContainer = document.createElement("div");
+        radioContainer.className = "rlas-criterion-option";
+
+        const radioInput = document.createElement("input");
+        radioInput.type = "radio";
+        radioInput.name = "rlas_level";
+        radioInput.value = item.level;
+        radioInput.id = `level-${item.level}`;
+
+        const label = document.createElement("label");
+        label.htmlFor = `level-${item.level}`;
+        label.innerHTML = `<strong>${item.title}</strong><br>${item.description}`;
+
+        radioContainer.appendChild(radioInput);
+        radioContainer.appendChild(label);
+        sectionDiv.appendChild(radioContainer);
+
+        conteudoDiv.appendChild(sectionDiv);
+      });
+
+      function calcularRLAS() {
+        const selectedRadio = document.querySelector(
+          'input[name="rlas_level"]:checked'
+        );
+        resultadoDiv.style.display = "block";
+
+        if (!selectedRadio) {
+          resultadoDiv.innerHTML =
+            '⚠️ <strong class="font-bold">Por favor, selecione um nível para calcular.</strong>';
+          resultadoDiv.classList.add("bg-red-100");
+          resultadoDiv.classList.remove("bg-blue-50");
+          return;
+        }
+
+        const level = selectedRadio.value;
+        const selectedItem = rlasData.find((item) => item.level == level);
+
+        if (selectedItem) {
+          resultadoDiv.innerHTML = `
+                    <p>Nível selecionado: <strong class="font-bold">${selectedItem.title}</strong></p>
+                    <p class="mt-4"><strong>Recomendação:</strong> ${selectedItem.recommendation}</p>
+                `;
+          resultadoDiv.className = `bg-blauw-50 resultaat`;
+        }
+
+        resultadoDiv.style.display = "block";
+      }
+
+      function limparCampos() {
+        const selectedRadio = document.querySelector(
+          'input[name="rlas_level"]:checked'
+        );
+        if (selectedRadio) {
+          selectedRadio.checked = false;
+        }
+        resultadoDiv.innerHTML = "";
+        resultadoDiv.className = "verborgen resultaat";
+      }
+
+      btnCalcular?.addEventListener("click", calcularRLAS);
+      btnLimpar?.addEventListener("click", limparCampos);
+
+      btnGerarPDF?.addEventListener("click", () => {
+        const selectedRadio = document.querySelector(
+          'input[name="rlas_level"]:checked'
+        );
+        if (!selectedRadio) {
+          alert("Selecteer een niveau om de PDF te genereren.");
+          return;
+        }
+        if (typeof gerarPDFGlobal === "function") {
+          const selectedItem = rlasData.find(
+            (item) => item.level == selectedRadio.value
+          );
+
+          let contentToPrint = document.
+            querySelector(".main-content-wrapper").
+            cloneNode(true);
+          let contentContainer = contentToPrint.querySelector("#conteudo");
+
+          contentContainer.innerHTML = "";
+
+          let itemDiv = document.createElement("div");
+          itemDiv.className = "mb-2 p-2 bg-gray-50 rounded";
+          itemDiv.innerHTML = `<strong>Nível selecionado:</strong> ${selectedItem.title}<br><strong>Descrição:</strong> ${selectedItem.description}`;
+          contentContainer.appendChild(itemDiv);
+
+          let resultadoHtml = resultadoDiv.cloneNode(true);
+          if (resultadoHtml.style.display !== "none") {
+            contentContainer.appendChild(resultadoHtml);
+          }
+
+          gerarPDFGlobal({
+            titulo: "Escala Rancho Los Amigos",
+            subtitulo: "Cognitief beoordelingsrapport",
+            nomeArquivo: "relatorio_escala_rancho.pdf",
+            seletorConteudo: ".main-content-wrapper"
+          });
+        } else {
+          console.error("GeneratePDFGlobal-functie niet gedefinieerd.");
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener("click", () => {
+        const selectedRadio = document.querySelector(
+          'input[name="rlas_level"]:checked'
+        );
+        if (!selectedRadio) {
+          alert("Selecteer een niveau om het gedrag te zoeken.");
+          return;
+        }
+        const selectedItem = rlasData.find(
+          (item) => item.level == selectedRadio.value
+        );
+        const searchQuery = encodeURIComponent(
+          `verpleegkundige zorg voor patiënten met hersenletsel Niveau ${selectedItem.level} NANDA NIC NOC`
+        );
+        window.open(
+          `https://www.google.com/search?q=${searchQuery}`,
+          "_blank"
+        );
+      });
+    });</script>
 
   <script src="/lang-selector.js" defer=""></script>
 

@@ -643,7 +643,311 @@
 
 
 
-  
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const resultadoDiv = document.getElementById('resultado');
+      const btnCalcular = document.getElementById('btnCalcular');
+      const btnLimpar = document.getElementById('btnLimpar');
+      const btnGerarPDF = document.getElementById('btnGerarPDF');
+      const btnNandaNicNoc = document.getElementById('btnNandaNicNoc');
+      const conteudoDiv = document.getElementById('conteudo');
+
+      const perrocaData = [
+        {
+          title: "1. Психическое состояние и уровень сознания",
+          nameAttr: "estado_mental",
+          options: [
+            { description: "Ориентирован во времени и пространстве", score: 1 },
+            { description: "Дезориентирован во времени и/или пространстве", score: 2 },
+            { description: "Сонливый", score: 3 },
+            { description: "В ступоре", score: 4 },
+            { description: "Коматозный", score: 5 }
+          ]
+        },
+        {
+          title: "2. Оксигенация",
+          nameAttr: "oxigenacao",
+          options: [
+            { description: "Дышит на воздухе", score: 1 },
+            { description: "Использует O2 через катетер или маску", score: 2 },
+            { description: "Использует аппарат ИВЛ", score: 3 },
+            { description: "Использует O2 с дыхательной нестабильностью", score: 4 },
+            { description: "Использует O2 в критическом состоянии, с гемодинамической нестабильностью", score: 5 }
+          ]
+        },
+        {
+          title: "3. Жизненные показатели",
+          nameAttr: "sinais_vitais",
+          options: [
+            { description: "Стабильные", score: 1 },
+            { description: "Нестабильные, с прерывистым мониторингом", score: 2 },
+            { description: "Нестабильные, с непрерывным мониторингом", score: 3 },
+            { description: "Нестабильные, с фармакологической поддержкой", score: 4 },
+            { description: "Нестабильные, с продвинутой поддержкой", score: 5 }
+          ]
+        },
+        {
+          title: "4. Питание и гидратация",
+          nameAttr: "nutricao",
+          options: [
+            { description: "Перорально", score: 1 },
+            { description: "Перорально с помощью или через назогастральный/энтеральный зонд", score: 2 },
+            { description: "Энтерально и/или парентерально полностью", score: 3 },
+            { description: "Только парентерально", score: 4 },
+            { description: "Только парентерально с гемодинамической нестабильностью", score: 5 }
+          ]
+        },
+        {
+          title: "5. Моторика",
+          nameAttr: "motilidade",
+          options: [
+            { description: "Независимый, без ограничения движений", score: 1 },
+            { description: "Частично зависимый, с ограничением движений", score: 2 },
+            { description: "Полностью зависимый, с ограничением в постели", score: 3 },
+            { description: "Полностью зависимый, с ограничением движений одной или более конечностей", score: 4 },
+            { description: "Иммобилизован в постели, с риском контрактур и повреждений", score: 5 }
+          ]
+        },
+        {
+          title: "6. Передвижение",
+          nameAttr: "locomocao",
+          options: [
+            { description: "Ходит без посторонней помощи", score: 1 },
+            { description: "Ходит с помощью костылей, ходунков или трости", score: 2 },
+            { description: "Ходит с помощью инвалидной коляски", score: 3 },
+            { description: "Ходит с помощью другого человека", score: 4 },
+            { description: "Полностью зависит от другого человека для передвижения", score: 5 }
+          ]
+        },
+        {
+          title: "7. Уход за телом",
+          nameAttr: "cuidado_corporal",
+          options: [
+            { description: "Полностью независимый", score: 1 },
+            { description: "Помощь в некоторых действиях (купание, гигиена)", score: 2 },
+            { description: "Помощь во всех действиях гигиены", score: 3 },
+            { description: "Полная зависимость в гигиене, с использованием катетера, повязок и т.д.", score: 4 },
+            { description: "Полная зависимость, с гигиеной в постели", score: 5 }
+          ]
+        },
+        {
+          title: "8. Выделения",
+          nameAttr: "eliminacoes",
+          options: [
+            { description: "Контролирует и независим", score: 1 },
+            { description: "Недержание мочи или кала, но с помощью", score: 2 },
+            { description: "Недержание мочи и кала, с использованием подгузника", score: 3 },
+            { description: "Недержание мочи и кала, с диареей и/или использованием катетера", score: 4 },
+            { description: "Недержание и на гемодиализе", score: 5 }
+          ]
+        },
+        {
+          title: "9. Терапия",
+          nameAttr: "terapeutica",
+          options: [
+            { description: "Перорально (PO) или внутримышечно (IM)", score: 1 },
+            { description: "Внутривенно (IV) прерывисто", score: 2 },
+            { description: "Непрерывное IV на насосе для инфузий", score: 3 },
+            { description: "Непрерывное IV на насосе для инфузий с вазоактивными препаратами", score: 4 },
+            { description: "Непрерывное IV на насосе для инфузий с вазоактивными препаратами и дыхательной поддержкой", score: 5 }
+          ]
+        },
+        {
+          title: "10. Целостность кожно-слизистых покровов",
+          nameAttr: "integridade",
+          options: [
+            { description: "Кожа неповрежденная, без ран", score: 1 },
+            { description: "Поверхностное повреждение кожи", score: 2 },
+            { description: "Повреждение кожи с потерей ткани", score: 3 },
+            { description: "Повреждение кожи с потерей ткани и инфекцией", score: 4 },
+            { description: "Повреждение кожи с потерей ткани и тяжелой инфекцией", score: 5 }
+          ]
+        },
+        {
+          title: "11. Санитарное просвещение",
+          nameAttr: "educacao",
+          options: [
+            { description: "Без необходимости в руководстве", score: 1 },
+            { description: "Необходимость в руководстве в некоторых действиях", score: 2 },
+            { description: "Необходимость в руководстве во всех действиях", score: 3 },
+            { description: "Неспособен понять руководства", score: 4 },
+            { description: "Неспособен понять и с возбуждением", score: 5 }
+          ]
+        },
+        {
+          title: "12. Поведение",
+          nameAttr: "comportamento",
+          options: [
+            { description: "Спокойный и сотрудничающий", score: 1 },
+            { description: "Беспокойный и тревожный", score: 2 },
+            { description: "Возбужденный и не сотрудничающий", score: 3 },
+            { description: "Агрессивный и жестокий", score: 4 },
+            { description: "Агрессивный и жестокий с угрозой для жизни", score: 5 }
+          ]
+        },
+        {
+          title: "13. Межличностные отношения",
+          nameAttr: "relacoes_interpessoais",
+          options: [
+            { description: "Взаимодействует с командой и семьей", score: 1 },
+            { description: "Взаимодействует с командой и семьей с трудностями", score: 2 },
+            { description: "Взаимодействует только с командой или семьей", score: 3 },
+            { description: "Не взаимодействует", score: 4 },
+            { description: "Полная изоляция", score: 5 }
+          ]
+        }
+      ];
+
+      // Заполняет форму динамически
+      perrocaData.forEach(item => {
+        const sectionDiv = document.createElement('div');
+        sectionDiv.className = 'perroca-criterion-section';
+        sectionDiv.id = `section-${item.nameAttr}`;
+
+        const titleH3 = document.createElement('h3');
+        titleH3.className = 'perroca-criterion-title';
+        titleH3.innerHTML = item.title;
+        sectionDiv.appendChild(titleH3);
+
+        const selectElement = document.createElement('select');
+        selectElement.id = item.nameAttr;
+        selectElement.className = 'perroca-criterion-select mt-2';
+
+        const defaultOption = document.createElement('option');
+        defaultOption.value = "";
+        defaultOption.text = "Выберите...";
+        selectElement.appendChild(defaultOption);
+
+        item.options.forEach(option => {
+          const optionElement = document.createElement('option');
+          optionElement.value = option.score;
+          optionElement.text = `${option.description} (баллы: ${option.score})`;
+          selectElement.appendChild(optionElement);
+        });
+
+        sectionDiv.appendChild(selectElement);
+        conteudoDiv.appendChild(sectionDiv);
+      });
+
+      function calcularPerroca() {
+        const selects = document.querySelectorAll('#conteudo select');
+        let allSelected = true;
+        let total = 0;
+
+        selects.forEach(select => {
+          if (select.value === "") {
+            allSelected = false;
+            select.classList.add('incomplete');
+          } else {
+            select.classList.remove('incomplete');
+            total += Number(select.value);
+          }
+        });
+
+        resultadoDiv.style.display = "block";
+        if (!allSelected) {
+          resultadoDiv.innerHTML = '⚠️ <strong class="font-bold">Пожалуйста, выберите опцию для всех пунктов перед расчетом.</strong>';
+          resultadoDiv.className = `resultado bg-red-100`;
+          delete resultadoDiv.dataset.score;
+          return;
+        }
+
+        let recomendacao = '';
+
+        if (total >= 13 && total <= 26) {
+          recomendacao = `Балл ${total} указывает на пациента с потребностями в минимальном уходе.`;
+        } else if (total >= 27 && total <= 39) {
+          recomendacao = `Балл ${total} указывает на пациента с потребностями в промежуточном уходе.`;
+        } else if (total >= 40 && total <= 52) {
+          recomendacao = `Балл ${total} указывает на пациента с потребностями в полуинтенсивном уходе.`;
+        } else { // total >= 53
+          recomendacao = `Балл ${total} указывает на пациента с потребностями в интенсивном уходе.`;
+        }
+
+        resultadoDiv.innerHTML = `
+                <p>Общий балл: <strong class="font-bold">${total}</strong></p>
+                <p class="mt-4"><strong>Рекомендация:</strong> ${recomendacao}</p>
+            `;
+        resultadoDiv.className = `resultado bg-blue-50`;
+        resultadoDiv.style.display = "block";
+
+        resultadoDiv.dataset.score = total;
+        resultadoDiv.dataset.scaleName = "Шкала Перрокка";
+      }
+
+      function limparCampos() {
+        const selects = document.querySelectorAll('#conteudo select');
+        selects.forEach(select => {
+          select.selectedIndex = 0;
+          select.classList.remove('incomplete');
+        });
+        resultadoDiv.innerHTML = '';
+        resultadoDiv.className = 'resultado hidden';
+        delete resultadoDiv.dataset.score;
+        delete resultadoDiv.dataset.scaleName;
+      }
+
+      // Добавляет обработчики событий к кнопкам
+      btnCalcular?.addEventListener('click', calcularPerroca);
+      btnLimpar?.addEventListener('click', limparCampos);
+
+      btnGerarPDF?.addEventListener('click', () => {
+        if (!resultadoDiv.dataset.score) {
+          alert('Пожалуйста, сначала нажмите "Рассчитать балл" для создания PDF.');
+          return;
+        }
+        if (typeof gerarPDFGlobal === 'function') {
+          const selectedOptions = {};
+          document.querySelectorAll('#conteudo select').forEach(select => {
+            const selected = select.options[select.selectedIndex];
+            if (selected.value !== "") {
+              selectedOptions[select.id] = selected.text;
+            }
+          });
+
+          let contentToPrint = document.querySelector('.main-content-wrapper').cloneNode(true);
+          let contentContainer = contentToPrint.querySelector('#conteudo');
+
+          contentContainer.innerHTML = '';
+
+          perrocaData.forEach(item => {
+            let selectedText = selectedOptions[item.nameAttr];
+            if (selectedText) {
+              let itemDiv = document.createElement('div');
+              itemDiv.className = 'mb-2 p-2 bg-gray-50 rounded';
+              itemDiv.innerHTML = `<strong>${item.title}:</strong> ${selectedText}`;
+              contentContainer.appendChild(itemDiv);
+            }
+          });
+
+          let resultadoHtml = resultadoDiv.cloneNode(true);
+          if (resultadoHtml.style.display !== 'none') {
+            contentContainer.appendChild(resultadoHtml);
+          }
+
+          gerarPDFGlobal({
+            titulo: 'Шкала Перрокка (SCP)',
+            subtitulo: 'Отчет о классификации пациентов',
+            nomeArquivo: 'relatorio_escala_perroca.pdf',
+            seletorConteudo: '.main-content-wrapper'
+          });
+        } else {
+          console.error('Функция gerarPDFGlobal не определена.');
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener('click', () => {
+        const score = resultadoDiv.dataset.score;
+        const scaleName = resultadoDiv.dataset.scaleName;
+        if (!score) {
+          alert('Рассчитайте результат для поиска рекомендаций.');
+          return;
+        }
+        const searchQuery = encodeURIComponent(`${scaleName} балл ${score} генерировать таксономию NANDA, генерировать таксономию NIC и генерировать таксономию NOC`);
+        window.open(`https://www.google.com/search?q=${searchQuery}`, '_blank');
+      });
+    });
+  </script>
 
 
 

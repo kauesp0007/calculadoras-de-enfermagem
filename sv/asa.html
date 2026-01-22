@@ -571,7 +571,85 @@
 
 
   <!-- Script Específico da Página ASA -->
-  
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const resultadoDiv = document.getElementById("resultado");
+      const btnCalcular = document.getElementById("btnCalcular");
+      const btnLimpar = document.getElementById("btnLimpar");
+      const btnGerarPDF = document.getElementById("btnGerarPDF");
+      const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
+
+      function calcular() {
+        const selectedRadio = document.querySelector(
+          'input[name="asa"]:checked'
+        );
+
+        if (!selectedRadio) {
+          resultadoDiv.innerHTML =
+            '⚠️ <strong class="font-bold">Vänligen välj en klassificering.</strong>';
+          resultadoDiv.className = "bg-info-orange-ljus resultat";
+          resultadoDiv.style.display = "block";
+          delete resultadoDiv.dataset.score;
+          return;
+        }
+
+        const selectedFullValue = selectedRadio.value;
+        const selectedClassification = selectedFullValue.split(":")[0]; // Extrai "ASA I", "ASA II", etc.
+
+        resultadoDiv.innerHTML = `<p>Vald klassificering: <strong class="font-bold">${selectedFullValue}</strong></p>`;
+        resultadoDiv.className = "resultat"; // Reset to default style
+        resultadoDiv.style.display = "block";
+
+        resultadoDiv.dataset.score = selectedClassification;
+        resultadoDiv.dataset.scaleName = "ASA-klassificering";
+      }
+
+      function limpar() {
+        document.
+          querySelectorAll('input[name="asa"]').
+          forEach((radio) => radio.checked = false);
+        resultadoDiv.innerHTML = "";
+        resultadoDiv.className = "dolt resultat";
+        delete resultadoDiv.dataset.score;
+        delete resultadoDiv.dataset.scaleName;
+      }
+
+      btnCalcular?.addEventListener("click", calcular);
+      btnLimpar?.addEventListener("click", limpar);
+
+      btnGerarPDF?.addEventListener("click", () => {
+        if (!resultadoDiv.dataset.score) {
+          alert('Klicka först på "Beräkna" för att generera PDF-filen.');
+          return;
+        }
+        if (typeof gerarPDFGlobal === "function") {
+          gerarPDFGlobal({
+            titulo: "ASA - Klassificering av fysisk status",
+            subtitulo: "Rapport om preoperativ risk",
+            nomeArquivo: "asa_klassificering_rapport.pdf",
+            seletorConteudo: ".main-content-wrapper"
+          });
+        } else {
+          console.error("Funktionen gerarPDFGlobal är inte definierad.");
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener("click", () => {
+        const score = resultadoDiv.dataset.score;
+        const scaleName = resultadoDiv.dataset.scaleName;
+        if (!score) {
+          alert("Beräkna resultatet för att undersöka åtgärder.");
+          return;
+        }
+        const searchQuery = encodeURIComponent(
+          `${score} ${scaleName} NANDA nursing diagnosis NIC NOC swedish`
+        );
+        window.open(
+          `https://www.google.com/search?q=${searchQuery}`,
+          "_blank"
+        );
+      });
+    });</script>
 
   <script src="/lang-selector.js" defer=""></script>
 

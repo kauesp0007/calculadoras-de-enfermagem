@@ -579,7 +579,96 @@
 
 
   <!-- Script Khusus Halaman FAST -->
-  
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const resultadoDiv = document.getElementById("resultado");
+      const btnCalcular = document.getElementById("btnCalcular");
+      const btnLimpar = document.getElementById("btnLimpar");
+      const btnGerarPDF = document.getElementById("btnGerarPDF");
+      const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
+
+      function calcular() {
+        const faceChecked = document.querySelector(
+          'input[name="face"]:checked',
+        );
+        const armChecked = document.querySelector(
+          'input[name="arm"]:checked',
+        );
+        const speechChecked = document.querySelector(
+          'input[name="speech"]:checked',
+        );
+
+        let resultadoTexto = "";
+        let classificacao = "";
+        let resultadoClasse = "";
+
+        if (faceChecked || armChecked || speechChecked) {
+          resultadoTexto =
+            "Tanda-tanda stroke teridentifikasi! Hubungi tim medis segera.";
+          classificacao = "Tanda FAST Stroke Terdeteksi";
+          resultadoClasse = "bg-fast-positif";
+        } else {
+          resultadoTexto =
+            "Tidak ada tanda stroke yang dipilih. Pasien tidak menunjukkan tanda-tanda FAST stroke.";
+          classificacao = "Tidak Ada Tanda FAST Stroke";
+          resultadoClasse = "bg-fast-negatif";
+        }
+
+        resultadoDiv.innerHTML = `<p><strong class="font-bold">${resultadoTexto}</strong></p>`;
+        resultadoDiv.className = `resultado ${resultadoClasse}`;
+        resultadoDiv.style.display = "block";
+
+        resultadoDiv.dataset.score = classificacao;
+        resultadoDiv.dataset.scaleName = "Skala FAST";
+      }
+
+      function limpar() {
+        document
+          .querySelectorAll('input[type="checkbox"]')
+          .forEach((checkbox) => (checkbox.checked = false));
+        resultadoDiv.innerHTML = "";
+        resultadoDiv.className = "resultado hidden";
+        delete resultadoDiv.dataset.score;
+        delete resultadoDiv.dataset.scaleName;
+      }
+
+      btnCalcular?.addEventListener("click", calcular);
+      btnLimpar?.addEventListener("click", limpar);
+
+      btnGerarPDF?.addEventListener("click", () => {
+        if (!resultadoDiv.dataset.score) {
+          alert('Silakan klik "Hitung" terlebih dahulu untuk membuat PDF.');
+          return;
+        }
+        if (typeof gerarPDFGlobal === "function") {
+          gerarPDFGlobal({
+            titulo: "Skala FAST",
+            subtitulo: "Laporan Skrining Cepat Stroke",
+            nomeArquivo: "laporan_skala_fast.pdf",
+            seletorConteudo: ".main-content-wrapper",
+          });
+        } else {
+          console.error("Fungsi gerarPDFGlobal tidak terdefinisi.");
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener("click", () => {
+        const score = resultadoDiv.dataset.score;
+        const scaleName = resultadoDiv.dataset.scaleName;
+        if (!score) {
+          alert("Hitung hasil untuk mencari tindakan.");
+          return;
+        }
+        const searchQuery = encodeURIComponent(
+          `${score} ${scaleName} menghasilkan taksonomi NANDA menghasilkan taksonomi NIC menghasilkan taksonomi NOC`,
+        );
+        window.open(
+          `https://www.google.com/search?q=${searchQuery}`,
+          "_blank",
+        );
+      });
+    });
+  </script>
 
   <script src="/lang-selector.js" defer=""></script>
 

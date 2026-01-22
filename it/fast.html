@@ -570,7 +570,70 @@
 
 
 
-  
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const resultadoDiv = document.getElementById('resultado');
+      const btnCalcular = document.getElementById('btnCalcular');
+      const btnLimpar = document.getElementById('btnLimpar');
+
+      function calcola() {
+        const faceChecked = document.querySelector('input[name="face"]:checked');
+        const armChecked = document.querySelector('input[name="arm"]:checked');
+        const speechChecked = document.querySelector('input[name="speech"]:checked');
+
+        let risultatoTesto, classificazione, classeRisultato;
+
+        if (faceChecked || armChecked || speechChecked) {
+          risultatoTesto = 'Segni di Ictus identificati! Attivare immediatamente l\'équipe medica.';
+          classificazione = 'Segni FAST di Ictus Presenti';
+          classeRisultato = 'bg-fast-positivo';
+        } else {
+          risultatoTesto = 'Nessun segno di Ictus selezionato. Il paziente non presenta segni FAST di Ictus.';
+          classificazione = 'Senza Segni FAST di Ictus';
+          classeRisultato = 'bg-fast-negativo';
+        }
+
+        resultadoDiv.innerHTML = `<p><strong class="font-bold">${risultatoTesto}</strong></p>`;
+        resultadoDiv.className = `resultado ${classeRisultato}`;
+        resultadoDiv.style.display = 'block';
+        resultadoDiv.dataset.score = classificazione;
+      }
+
+      function pulisci() {
+        document.querySelectorAll('input[type="checkbox"]').forEach(checkbox => checkbox.checked = false);
+        resultadoDiv.style.display = 'none';
+        delete resultadoDiv.dataset.score;
+      }
+
+      btnCalcular?.addEventListener('click', calcola);
+      btnLimpar?.addEventListener('click', pulisci);
+
+      document.getElementById('btnGerarPDF')?.addEventListener('click', () => {
+        if (!resultadoDiv.dataset.score) {
+          alert('Per favore, clicca prima su "Calcola" per generare il PDF.');
+          return;
+        }
+        if (typeof gerarPDFGlobal === 'function') {
+          gerarPDFGlobal({
+            titulo: 'Scala FAST',
+            subtitulo: 'Rapporto di Screening Rapido per Ictus',
+            nomeArquivo: 'rapporto_scala_fast.pdf',
+            seletorConteudo: '.main-content-wrapper'
+          });
+        }
+      });
+
+      document.getElementById('btnNandaNicNoc')?.addEventListener('click', () => {
+        const score = resultadoDiv.dataset.score;
+        if (!score) {
+          alert('Calcola il risultato per cercare la condotta.');
+          return;
+        }
+        const searchQuery = encodeURIComponent(`${score} Scala FAST generare tassonomia NANDA, NIC e NOC`);
+        window.open(`https://www.google.com/search?q=${searchQuery}`, '_blank');
+      });
+    });
+  </script>
 
 
 

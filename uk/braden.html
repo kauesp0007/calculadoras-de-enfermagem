@@ -550,7 +550,250 @@
 
 
 
-  
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const resultadoDiv = document.getElementById("resultado");
+      const conteudoDiv = document.getElementById("conteudo");
+      const btnCalcular = document.getElementById("btnCalcular");
+      const btnLimpar = document.getElementById("btnLimpar");
+      const btnGerarPDF = document.getElementById("btnGerarPDF");
+      const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
+
+      const bradenData = [
+        {
+          id: "сенсорний",
+          title: "Сенсорне сприйняття",
+          description:
+            "Здатність реагувати на дискомфорт, пов'язаний з тиском.",
+          options: [
+            { score: 1, text: "Повністю обмежений" },
+            { score: 2, text: "Дуже обмежений" },
+            { score: 3, text: "Трохи обмежений" },
+            { score: 4, text: "Без обмежень" }]
+
+        },
+        {
+          id: "вологість",
+          title: "Вологість",
+          description: "Ступінь впливу вологи на шкіру.",
+          options: [
+            { score: 1, text: "Повністю мокрий" },
+            { score: 2, text: "Дуже мокрий" },
+            { score: 3, text: "Зрідка мокрий" },
+            { score: 4, text: "Рідко мокрий" }]
+
+        },
+        {
+          id: "активність",
+          title: "Діяльність",
+          description: "Рівень фізичної активності пацієнта.",
+          options: [
+            { score: 1, text: "Прикутий до ліжка" },
+            { score: 2, text: "Прикутий до стільця" },
+            { score: 3, text: "Час від часу гуляйте" },
+            { score: 4, text: "Часто гуляйте" }]
+
+        },
+        {
+          id: "мобільність",
+          title: "Мобільність",
+          description: "Можливість змінювати та контролювати положення тіла.",
+          options: [
+            { score: 1, text: "Абсолютно нерухомий." },
+            { score: 2, text: "Досить обмежений" },
+            { score: 3, text: "Трохи обмежений" },
+            { score: 4, text: "Без обмежень" }]
+
+        },
+        {
+          id: "харчування",
+          title: "Харчування",
+          description: "Звичайна схема годування.",
+          options: [
+            { score: 1, text: "Дуже бідний" },
+            { score: 2, text: "Напевно, недоречно" },
+            { score: 3, text: "Адекватний" },
+            { score: 4, text: "Чудово" }]
+
+        },
+        {
+          id: "тертя",
+          title: "Тертя та зсув",
+          description: "Наявність саден і переміщень.",
+          options: [
+            { score: 1, text: "проблема" },
+            { score: 2, text: "Потенційна проблема" },
+            { score: 3, text: "немає проблем" }]
+
+        }];
+
+
+      function createForm() {
+        conteudoDiv.innerHTML = "";
+        bradenData.forEach((criterion) => {
+          const card = document.createElement("div");
+          card.className = "braden-criterion-card";
+
+          card.innerHTML = `
+                    <div class="braden-criterion-title-container">
+                        <h3 class="braden-criterion-title">${criterion.title}</h3>
+                        <p class="braden-criterion-description">${criterion.description}</p>
+                    </div>
+                    <div class="braden-options-container">
+                        <select id="${criterion.id}-select" class="braden-select">
+                            <option value="" disabled selected>Selecione uma opção...</option>
+                            ${criterion.options.map((opt) => `<option value="${opt.score}">${opt.text} (${opt.score})</option>`).join("")}
+                        </select>
+                    </div>
+                `;
+          conteudoDiv.appendChild(card);
+        });
+      }
+
+      function calcular() {
+        let totalScore = 0;
+        let allSelected = true;
+
+        bradenData.forEach((criterion) => {
+          const select = document.getElementById(`${criterion.id}-select`);
+          if (select && select.value) {
+            totalScore += parseInt(select.value, 10);
+          } else {
+            allSelected = false;
+          }
+        });
+
+        if (!allSelected) {
+          resultadoDiv.innerHTML =
+            '⚠️ <strong class="font-bold">Por favor, selecione uma opção para cada critério.</strong>';
+          resultadoDiv.className = "standard-result-box bg-info-orange-light";
+          resultadoDiv.style.display = "block";
+          delete resultadoDiv.dataset.score;
+          return;
+        }
+
+        let risco = "";
+        if (totalScore >= 19) {
+          risco = "Жодного ризику";
+        } else if (totalScore >= 15) {
+          risco = "Помірний ризик";
+        } else if (totalScore >= 13) {
+          risco = "Помірний ризик";
+        } else if (totalScore >= 10) {
+          risco = "Високий ризик";
+        } else {
+          risco = "Дуже високий ризик";
+        }
+
+        resultadoDiv.innerHTML = `
+                <p class="font-bold text-lg">Pontuação Total: <span class="font-black">${totalScore}</span></p>
+                <p class="font-bold text-lg">Classificação de Risco: <span class="font-black">${risco}</span></p>
+            `;
+        resultadoDiv.className = "standard-result-box";
+        resultadoDiv.style.display = "block";
+        resultadoDiv.dataset.score = totalScore;
+        resultadoDiv.dataset.risco = risco;
+      }
+
+      function limpar() {
+        createForm();
+        resultadoDiv.innerHTML = "";
+        resultadoDiv.className = "hidden";
+        delete resultadoDiv.dataset.score;
+        delete resultadoDiv.dataset.risco;
+      }
+
+      createForm();
+      btnCalcular?.addEventListener("click", calcular);
+      btnLimpar?.addEventListener("click", limpar);
+
+      btnGerarPDF?.addEventListener("click", () => {
+        if (resultadoDiv.dataset.score === undefined) {
+          alert("Будь ласка, спочатку натисніть \"Розрахувати\", щоб згенерувати PDF-файл.");
+          return;
+        }
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+        const primaryColor = "#1A3E74";
+        let y = 10;
+        const pageMargin = 14;
+        const rightMargin = doc.internal.pageSize.getWidth() - pageMargin;
+
+        doc.setDrawColor(primaryColor);
+        doc.setLineWidth(0.5);
+        doc.rect(5, 5, 200, 287);
+        doc.setFillColor(primaryColor);
+        doc.rect(5, 5, 200, 25, "F");
+        doc.setFont("helvetica", "жирний");
+        doc.setFontSize(18);
+        doc.setTextColor(255, 255, 255);
+        doc.text("Шкала Брейдена", 105, 18, { align: "центр" });
+        doc.setFontSize(12);
+        doc.text("Звіт про ризик травмування тиском", 105, 25, {
+          align: "центр"
+        });
+
+        y = 45;
+        doc.setFont("helvetica", "жирний");
+        doc.setFontSize(12);
+        doc.setTextColor(primaryColor);
+        doc.text("Результати за шкалою Брейдена", pageMargin, y);
+        doc.setDrawColor(200);
+        doc.setLineWidth(0.2);
+        doc.line(pageMargin, y + 2, rightMargin, y + 2);
+        y += 10;
+        doc.setFont("helvetica", "нормально");
+        doc.setFontSize(10);
+        doc.setTextColor(0, 0, 0);
+        doc.text(
+          `Загальний рахунок: ${resultadoDiv.dataset.score}`,
+          pageMargin,
+          y
+        );
+        doc.text(
+          `Класифікація ризиків: ${resultadoDiv.dataset.risk}`,
+          rightMargin,
+          y,
+          { align: "правильно" }
+        );
+
+        doc.setLineWidth(0.5);
+        doc.setDrawColor(primaryColor);
+        doc.line(5, 272, 205, 272);
+        doc.setFont("helvetica", "нормально");
+        doc.setFontSize(8);
+        doc.setTextColor(150);
+        doc.text(
+          `Згенеровано Порталом медсестер у ${new Date().toLocaleString("pt-BR")}.`,
+          105,
+          278,
+          { align: "центр" }
+        );
+        doc.text(
+          `Цей калькулятор є допоміжним джерелом і не замінює клінічне рішення. Перевірте дані із зовнішніх джерел.`,
+          105,
+          282,
+          { align: "центр" }
+        );
+
+        doc.save("relatorio_escala_braden.pdf");
+      });
+
+      btnNandaNicNoc?.addEventListener("click", () => {
+        const risco = resultadoDiv.dataset.risco;
+        if (!risco) {
+          alert("Обчисліть результат для пошуку поведінки.");
+          return;
+        }
+        const searchQuery = encodeURIComponent(
+          `Пацієнти з ${risk} для травми від тиску в таксономії за шкалою Брейдена NANDA, NIC is NOC`
+        );
+        window.open(
+          `https://www.google.com/search?q=${searchQuery}`,
+          "_blank"
+        );
+      });
+    });</script>
 
   <script src="/lang-selector.js" defer=""></script>
 

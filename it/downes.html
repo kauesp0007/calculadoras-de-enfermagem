@@ -594,7 +594,174 @@
 
 
 
-  
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const resultadoDiv = document.getElementById('resultado');
+      const btnCalcular = document.getElementById('btnCalcular');
+      const btnLimpar = document.getElementById('btnLimpar');
+      const btnGerarPDF = document.getElementById('btnGerarPDF');
+      const btnNandaNicNoc = document.getElementById('btnNandaNicNoc');
+      const conteudoDiv = document.getElementById('conteudo');
+
+      const downesData = [
+        { parameter: "Sibilo", nameAttr: "sibilancia", options: [{ description: "No", score: 0 }, { description: "Fine espirazione", score: 1 }, { description: "Tutta l'espirazione", score: 2 }, { description: "Inspirazione + espirazione", score: 3 }] },
+        { parameter: "Tirage", nameAttr: "tiragem", options: [{ description: "No", score: 0 }, { description: "Sottocostale + intercostale inferiore", score: 1 }, { description: "\"1\" + sovraclaveare + alitamento pinne nasali", score: 2 }, { description: "\"2\" + intercostale superiore + soprasternale", score: 3 }] },
+        { parameter: "Ventilazione (ingresso d'aria)", nameAttr: "ventilacao", options: [{ description: "Buona, simmetrica", score: 0 }, { description: "Regolare, simmetrica", score: 1 }, { description: "Molto diminuita", score: 2 }, { description: "Torace silenzioso (assenza di sibili)", score: 3 }] },
+        { parameter: "Cianosi", nameAttr: "cianose", options: [{ description: "No", score: 0 }, { description: "Sì", score: 1 }] },
+        { parameter: "Frequenza respiratoria", nameAttr: "frequenciaRespiratoria", options: [{ description: "<30", score: 0 }, { description: "31-45", score: 1 }, { description: "46-60", score: 2 }, { description: ">60", score: 3 }] },
+        { parameter: "Frequenza Cardiaca", nameAttr: "frequenciaCardiaca", options: [{ description: "<120", score: 0 }, { description: ">120", score: 1 }] }
+      ];
+
+      function updateScoreDisplay(criterionId) {
+        const selectElement = document.getElementById(criterionId);
+        const scoreDisplayElement = document.getElementById(`${criterionId}_score_display`);
+        if (selectElement && scoreDisplayElement) {
+          scoreDisplayElement.innerText = selectElement.value === "" ? "0" : selectElement.value;
+        }
+      }
+
+      function calculateScore() {
+        let totalScore = 0;
+        let allItemsSelected = true;
+
+        downesData.forEach(item => {
+          const selectElement = document.getElementById(item.nameAttr);
+          if (selectElement.value === "") {
+            allItemsSelected = false;
+          } else {
+            totalScore += parseInt(selectElement.value, 10);
+          }
+        });
+
+        resultadoDiv.style.display = 'block';
+        if (!allItemsSelected) {
+          resultadoDiv.innerHTML = '⚠️ <strong class="font-bold">Per favore, seleziona un\'opzione per ogni item</strong> prima di calcolare.';
+          resultadoDiv.className = 'resultado bg-info-orange-light';
+          delete resultadoDiv.dataset.score;
+          return;
+        }
+
+        let classification = "";
+        let comment = "";
+        let resultClass = '';
+
+        if (totalScore <= 3) {
+          classification = "Disagio Respiratorio Lieve";
+          resultClass = 'bg-downes-leve';
+          comment = "Il neonato presenta un lieve disagio respiratorio, che richiede monitoraggio e supporto di base.";
+        } else if (totalScore <= 7) {
+          classification = "Disagio Respiratorio Moderato";
+          resultClass = 'bg-downes-moderado';
+          comment = "Il neonato presenta un moderato disagio respiratorio, indicando la necessità di supporto ventilatorio e un'osservazione più attenta.";
+        } else if (totalScore >= 8) {
+          classification = "Disagio Respiratorio Grave";
+          resultClass = 'bg-downes-grave';
+          comment = "Il neonato presenta un grave disagio respiratorio, che può indicare la necessità di intubazione tracheale e ventilazione meccanica. Richiede un intervento immediato.";
+        } else {
+          classification = "Punteggio non valido";
+          resultClass = 'bg-info-orange-light';
+          comment = "Il punteggio calcolato è al di fuori dei limiti previsti dalla scala. Controlla le selezioni.";
+        }
+
+        resultadoDiv.innerHTML = `<p>Punteggio Totale Scala di Wood-Downes: <strong class="font-bold">${totalScore}</strong></p><p>Classificazione: <strong class="font-bold">${classification}</strong></p><p>Commento: <strong class="font-bold">${comment}</strong></p>`;
+        resultadoDiv.className = `resultado ${resultClass}`;
+
+        resultadoDiv.dataset.score = totalScore;
+        resultadoDiv.dataset.classification = classification;
+        resultadoDiv.dataset.scaleName = "Scala di Wood-Downes";
+      }
+
+      function clearFields() {
+        downesData.forEach(item => {
+          const selectElement = document.getElementById(item.nameAttr);
+          selectElement.selectedIndex = 0;
+          document.getElementById(`${item.nameAttr}_score_display`).innerText = '0';
+        });
+        resultadoDiv.innerHTML = '';
+        resultadoDiv.className = 'resultado hidden';
+        delete resultadoDiv.dataset.score;
+      }
+
+      downesData.forEach((item, index) => {
+        const sectionDiv = document.createElement('div');
+        sectionDiv.className = 'downes-criterion-card';
+
+        const headerDiv = document.createElement('div');
+        headerDiv.className = 'downes-criterion-header';
+
+        const titleH3 = document.createElement('h3');
+        titleH3.className = 'downes-criterion-title';
+        titleH3.innerText = item.parameter;
+        headerDiv.appendChild(titleH3);
+
+        const scoreSpan = document.createElement('span');
+        scoreSpan.className = 'downes-score-display';
+        scoreSpan.id = `${item.nameAttr}_score_display`;
+        scoreSpan.innerText = '0';
+        headerDiv.appendChild(scoreSpan);
+
+        sectionDiv.appendChild(headerDiv);
+
+        const optionsDiv = document.createElement('div');
+        optionsDiv.className = 'downes-criterion-options';
+
+        const selectElement = document.createElement('select');
+        selectElement.id = item.nameAttr;
+        selectElement.className = 'downes-select';
+        selectElement.onchange = () => updateScoreDisplay(item.nameAttr);
+
+        const defaultOption = document.createElement('option');
+        defaultOption.value = "";
+        defaultOption.text = "Seleziona...";
+        defaultOption.disabled = true;
+        defaultOption.selected = true;
+        selectElement.appendChild(defaultOption);
+
+        item.options.forEach(option => {
+          const optionElement = document.createElement('option');
+          optionElement.value = option.score;
+          optionElement.text = `${option.description} (${option.score})`;
+          selectElement.appendChild(optionElement);
+        });
+
+        optionsDiv.appendChild(selectElement);
+        sectionDiv.appendChild(optionsDiv);
+        conteudoDiv.appendChild(sectionDiv);
+      });
+
+      btnCalcular?.addEventListener('click', calculateScore);
+      btnLimpar?.addEventListener('click', clearFields);
+
+      btnGerarPDF?.addEventListener('click', () => {
+        if (!resultadoDiv.dataset.score) {
+          alert('Per favore, clicca su "Calcola" prima di generare il PDF.');
+          return;
+        }
+        if (typeof gerarPDFGlobal === 'function') {
+          gerarPDFGlobal({
+            titulo: 'Scala di Wood-Downes',
+            subtitulo: 'Rapporto di Valutazione del Disagio Respiratorio',
+            nomeArquivo: 'rapporto_scala_downes.pdf',
+            seletorConteudo: '.main-content-wrapper'
+          });
+        } else {
+          console.error('Funzione gerarPDFGlobal non definita.');
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener('click', () => {
+        const score = resultadoDiv.dataset.score;
+        const scaleName = resultadoDiv.dataset.scaleName;
+        const classification = resultadoDiv.dataset.classification;
+        if (!score || !classification) {
+          alert('Calcola il risultato per cercare la procedura.');
+          return;
+        }
+        const searchQuery = encodeURIComponent(`piani di assistenza infermieristica NANDA NIC NOC per neonato con ${classification} secondo la Scala di Wood-Downes`);
+        window.open(`https://www.google.com/search?q=${searchQuery}`, '_blank');
+      });
+    });
+  </script>
 
 
 

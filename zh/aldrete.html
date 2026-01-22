@@ -524,7 +524,223 @@
 
 
   <!-- Script Específico da Página Aldrete -->
-  
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      // ... todo o seu JavaScript da calculadora Aldrete permanece inalterado ...
+      const resultadoDiv = document.getElementById("resultado");
+      const conteudoDiv = document.getElementById("conteudo");
+      const btnCalcular = document.getElementById("btnCalcular");
+      const btnLimpar = document.getElementById("btnLimpar");
+      const btnGerarPDF = document.getElementById("btnGerarPDF");
+      const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
+
+      const aldreteData = [
+        {
+          category: "活动能力",
+          nameAttr: "atividade",
+          options: [
+            { description: "能活动4个肢体", score: 2 },
+            { description: "能活动2个肢体", score: 1 },
+            { description: "不能活动", score: 0 },
+          ],
+        },
+        {
+          category: "呼吸",
+          nameAttr: "respiracao",
+          options: [
+            { description: "能深呼吸和咳嗽", score: 2 },
+            { description: "呼吸困难，呼吸不规则", score: 1 },
+            { description: "呼吸暂停", score: 0 },
+          ],
+        },
+        {
+          category: "循环",
+          nameAttr: "circulacao",
+          options: [
+            { description: "血压正常", score: 2 },
+            { description: "血压波动在基础值±20%以内", score: 1 },
+            { description: "血压波动在基础值±50%以内", score: 0 },
+          ],
+        },
+        {
+          category: "意识状态",
+          nameAttr: "consciencia",
+          options: [
+            { description: "清醒且警觉", score: 2 },
+            { description: "对刺激有反应", score: 1 },
+            { description: "无反应", score: 0 },
+          ],
+        },
+        {
+          category: "血氧饱和度",
+          nameAttr: "saturacao",
+          options: [
+            { description: "室内空气下>92%", score: 2 },
+            { description: "需吸氧维持>90%", score: 1 },
+            { description: "吸氧状态下<90%", score: 0 },
+          ],
+        },
+      ];
+
+      let userSelections = {};
+
+      function createCriteriaList() {
+        conteudoDiv.innerHTML = "";
+        aldreteData.forEach((paramGroup) => {
+          const details = document.createElement("details");
+          details.className =
+            "criterion-container bg-white border border-gray-200 rounded-lg shadow-sm transition-all duration-300";
+          details.dataset.name = paramGroup.nameAttr;
+
+          const summary = document.createElement("summary");
+          summary.className =
+            "flex justify-between items-center p-4 cursor-pointer hover:bg-gray-50";
+          summary.innerHTML = `
+                        <span class="font-bold text-lg text-dark-blue">${paramGroup.category}</span>
+                        <div class="flex items-center gap-3">
+                            <span class="selected-value text-gray-500 italic text-right">请选择一个选项</span>
+                            <i class="fas fa-chevron-down chevron-icon text-gray-400"></i>
+                        </div>
+                    `;
+
+          const optionsContainer = document.createElement("div");
+          optionsContainer.className =
+            "p-4 border-t border-gray-200 bg-gray-50/50";
+
+          paramGroup.options.forEach((option) => {
+            const label = document.createElement("label");
+            label.className = "option-label";
+
+            const radio = document.createElement("input");
+            radio.type = "radio";
+            radio.name = paramGroup.nameAttr;
+            radio.value = option.score;
+            radio.dataset.description = option.description;
+
+            radio.addEventListener("change", (event) => {
+              const selectedRadio = event.target;
+              const score = parseInt(selectedRadio.value, 10);
+              const description = selectedRadio.dataset.description;
+
+              userSelections[paramGroup.nameAttr] = { score, description };
+
+              const summaryValue = details.querySelector(".selected-value");
+              summaryValue.textContent = `${description} (${score} 分)`;
+              summaryValue.classList.remove("text-gray-500", "italic");
+              summaryValue.classList.add("text-blue-600", "font-semibold");
+
+              details.open = false;
+            });
+
+            const descriptionSpan = document.createElement("span");
+            descriptionSpan.textContent = `${option.description} (${option.score} 分)`;
+
+            label.appendChild(radio);
+            label.appendChild(descriptionSpan);
+            optionsContainer.appendChild(label);
+          });
+
+          details.appendChild(summary);
+          details.appendChild(optionsContainer);
+          conteudoDiv.appendChild(details);
+        });
+      }
+
+      function calcular() {
+        const totalCriteria = aldreteData.length;
+        const selectedCriteriaCount = Object.keys(userSelections).length;
+        let total = 0;
+
+        resultadoDiv.innerHTML = "";
+        resultadoDiv.className = "resultado p-4 mt-6 rounded-lg text-left";
+        resultadoDiv.style.display = "none";
+
+        if (selectedCriteriaCount < totalCriteria) {
+          resultadoDiv.style.display = "block";
+          resultadoDiv.innerHTML =
+            '⚠️ <strong class="font-bold">请为每个标准选择一个选项。</strong>';
+          resultadoDiv.classList.add("bg-info-orange-light");
+          delete resultadoDiv.dataset.score;
+          return;
+        }
+
+        for (const key in userSelections) {
+          total += userSelections[key].score;
+        }
+
+        let conduta = "";
+        if (total >= 9) {
+          conduta = "患者符合麻醉恢复室出院标准，通知护士和麻醉医师。";
+          resultadoDiv.classList.add("bg-aldrete-alta");
+        } else if (total >= 7) {
+          conduta = "继续观察并定期重新评估。";
+          resultadoDiv.classList.add("bg-aldrete-observacao");
+        } else {
+          conduta = "患者状态不稳定。立即通知护士和麻醉医师，加强监护。";
+          resultadoDiv.classList.add("bg-aldrete-instavel");
+        }
+
+        resultadoDiv.style.display = "block";
+        resultadoDiv.innerHTML = `
+                    <p>总分：<strong class="font-bold">${total}/10</strong></p>
+                    <p>处理建议：<strong class="font-bold">${conduta}</strong></p>
+                `;
+        resultadoDiv.dataset.conduta = conduta;
+        resultadoDiv.dataset.score = total;
+        resultadoDiv.dataset.scaleName = "Aldrete和Kroulik评分量表";
+      }
+
+      function limpar() {
+        userSelections = {};
+        createCriteriaList();
+        resultadoDiv.innerHTML = "";
+        resultadoDiv.style.display = "none";
+        resultadoDiv.className = "resultado hidden mt-6";
+        delete resultadoDiv.dataset.conduta;
+        delete resultadoDiv.dataset.score;
+        delete resultadoDiv.dataset.scaleName;
+      }
+
+      btnCalcular?.addEventListener("click", calcular);
+      btnLimpar?.addEventListener("click", limpar);
+
+      btnGerarPDF?.addEventListener("click", () => {
+        if (!resultadoDiv || !resultadoDiv.dataset.score) {
+          alert('请先点击"计算"按钮以生成PDF报告。');
+          return;
+        }
+
+        if (typeof gerarPDFGlobal === "function") {
+          gerarPDFGlobal({
+            titulo: "Aldrete和Kroulik评分量表",
+            subtitulo: "麻醉后恢复评估报告",
+            nomeArquivo: "aldrete评分报告.pdf",
+            seletorConteudo: ".main-content-wrapper",
+          });
+        } else {
+          alert("错误：未找到生成PDF的功能。");
+          console.error("未定义gerarPDFGlobal函数。");
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener("click", () => {
+        const currentConduta = resultadoDiv.dataset.conduta;
+        if (!currentConduta) {
+          alert("请先计算结果以查询相关处理建议。");
+          return;
+        }
+        const searchQuery = encodeURIComponent(
+          `${currentConduta} NANDA、NIC和NOC分类法`,
+        );
+        window.open(
+          `https://www.google.com/search?q=${searchQuery}`,
+          "_blank",
+        );
+      });
+
+      createCriteriaList();
+    });
+  </script>
 
   <script src="/lang-selector.js" defer=""></script>
 

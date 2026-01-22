@@ -598,7 +598,221 @@
 
 
 
-  
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const resultadoDiv = document.getElementById('resultado');
+      const btnCalcular = document.getElementById('btnCalcular');
+      const btnLimpar = document.getElementById('btnLimpar');
+      const btnGerarPDF = document.getElementById('btnGerarPDF');
+      const btnNandaNicNoc = document.getElementById('btnNandaNicNoc');
+      const conteudoDiv = document.getElementById('conteudo');
+
+      // Datos de la escala de Humpty Dumpty
+      const humptyData = [
+        {
+          category: "Edad",
+          nameAttr: "edad",
+          options: [
+            { description: "≥ 13 años", score: 1 },
+            { description: "7-12 años", score: 2 },
+            { description: "3-6 años", score: 3 },
+            { description: "< 3 años", score: 4 }
+          ],
+          explain: "La edad es un factor importante de riesgo de caída, con los niños más pequeños siendo más vulnerables."
+        },
+        {
+          category: "Sexo",
+          nameAttr: "sexo",
+          options: [
+            { description: "Femenino", score: 1 },
+            { description: "Masculino", score: 2 }
+          ],
+          explain: "El sexo masculino puede tener un riesgo ligeramente mayor."
+        },
+        {
+          category: "Diagnóstico",
+          nameAttr: "diagnostico",
+          options: [
+            { description: "Otros diagnósticos", score: 1 },
+            { description: "Trastornos psíquicos", score: 2 },
+            { description: "Alteración en la oxigenación (respiratorio, deshidratación, anemia)", score: 3 },
+            { description: "Neurológico", score: 4 }
+          ],
+          explain: "Algunos diagnósticos aumentan la predisposición a caídas."
+        },
+        {
+          category: "Deficiencias Cognitivas",
+          nameAttr: "cognitivas",
+          options: [
+            { description: "Orientado de acuerdo con sus capacidades", score: 1 },
+            { description: "Olvida sus limitaciones", score: 2 },
+            { description: "No consciente de sus limitaciones", score: 3 }
+          ],
+          explain: "La capacidad de reconocer limitaciones y riesgos afecta la probabilidad de caídas."
+        },
+        {
+          category: "Factores Ambientales",
+          nameAttr: "ambientales",
+          options: [
+            { description: "Niño que deambula", score: 1 },
+            { description: "Niño encamado", score: 2 },
+            { description: "Hace uso de aparato auxiliar, cuna/cama con muchos equipos, poca iluminación", score: 3 },
+            { description: "Historial de caída anterior", score: 4 }
+          ],
+          explain: "El ambiente hospitalario y el historial del paciente son relevantes para el riesgo de caída."
+        },
+        {
+          category: "Uso de Medicación",
+          nameAttr: "medicacion",
+          options: [
+            { description: "Hace uso de otros medicamentos o no usa", score: 1 },
+            { description: "Hace uso de 1 de los siguientes: sedantes, hipnóticos, narcóticos", score: 2 },
+            { description: "Hace uso de ≥ 2 de los siguientes: sedantes, hipnóticos, narcóticos", score: 3 }
+          ],
+          explain: "Ciertos medicamentos afectan la consciencia y el equilibrio, aumentando el riesgo."
+        },
+        {
+          category: "Cirugía / Sedación / Anestesia",
+          nameAttr: "cirugia",
+          options: [
+            { description: "Hace más de 48h o ninguno", score: 1 },
+            { description: "Hace 48h", score: 2 },
+            { description: "Hace 24h", score: 3 }
+          ],
+          explain: "El período post-procedimiento es de mayor riesgo debido a los efectos residuales."
+        }
+      ];
+
+      // Llena el formulario dinámicamente
+      humptyData.forEach(item => {
+        const sectionDiv = document.createElement('div');
+        sectionDiv.className = 'humpty-criterion-section';
+        sectionDiv.id = `section-${item.nameAttr}`;
+
+        const titleH3 = document.createElement('h3');
+        titleH3.className = 'humpty-criterion-title';
+        titleH3.innerHTML = item.category + `
+              <div class="text-sm font-normal text-gray-500 mt-1">${item.explain}</div>`;
+        sectionDiv.appendChild(titleH3);
+
+        const selectElement = document.createElement('select');
+        selectElement.id = item.nameAttr;
+        selectElement.className = 'humpty-criterion-select';
+
+        const defaultOption = document.createElement('option');
+        defaultOption.value = "";
+        defaultOption.text = "Seleccione...";
+        selectElement.appendChild(defaultOption);
+
+        item.options.forEach(option => {
+          const optionElement = document.createElement('option');
+          optionElement.value = option.score;
+          optionElement.text = `${option.description} (puntos: ${option.score})`;
+          selectElement.appendChild(optionElement);
+        });
+
+        sectionDiv.appendChild(selectElement);
+        conteudoDiv.appendChild(sectionDiv);
+      });
+
+      function calcularHumpty() {
+        const selects = document.querySelectorAll('#conteudo select');
+        let allSelected = true;
+        let total = 0;
+
+        selects.forEach(select => {
+          if (select.value === "") {
+            allSelected = false;
+            select.classList.add('incomplete');
+          } else {
+            select.classList.remove('incomplete');
+            total += Number(select.value);
+          }
+        });
+
+        resultadoDiv.style.display = "block";
+        if (!allSelected) {
+          resultadoDiv.innerHTML = '⚠️ <strong class="font-bold">Por favor, seleccione una opción para todos los ítems antes de calcular.</strong>';
+          resultadoDiv.style.display = "block";
+          delete resultadoDiv.dataset.score;
+          return;
+        }
+
+        let classificacao = '';
+        let recomendacao = '';
+
+        // Definiciones de puntuación según la documentación
+        // Bajo Riesgo: 7-11 puntos
+        // Alto Riesgo: 12-22 puntos
+        if (total >= 7 && total <= 11) {
+          classificacao = 'Bajo Riesgo';
+          recomendacao = 'El niño tiene bajo riesgo de caída. Continúe con las medidas preventivas estándar y reevalúe periódicamente.';
+        } else if (total >= 12 && total <= 22) {
+          classificacao = 'Alto Riesgo';
+          recomendacao = 'El niño tiene alto riesgo de caída. Implemente inmediatamente las medidas de prevención de caídas para pacientes pediátricos.';
+        } else {
+          classificacao = 'Puntuación Fuera del Patrón';
+          recomendacao = 'La puntuación calculada está fuera del rango de clasificación esperado. Verifique los valores seleccionados.';
+        }
+
+        resultadoDiv.innerHTML = `
+                <p>Puntuación total: <strong class="font-bold">${total}</strong></p>
+                <p>Clasificación: <strong class="font-bold">${classificacao}</strong></p>
+                <p class="mt-4"><strong>Recomendación:</strong> ${recomendacao}</p>
+            `;
+        resultadoDiv.style.display = "block";
+
+        resultadoDiv.dataset.score = total;
+        resultadoDiv.dataset.scaleName = "Escala de Caída Humpty Dumpty";
+        resultadoDiv.dataset.classificacao = classificacao;
+      }
+
+      function limparCampos() {
+        const selects = document.querySelectorAll('#conteudo select');
+        selects.forEach(select => {
+          select.selectedIndex = 0;
+          select.classList.remove('incomplete');
+        });
+        resultadoDiv.innerHTML = '';
+        resultadoDiv.style.display = "none";
+        delete resultadoDiv.dataset.score;
+        delete resultadoDiv.dataset.scaleName;
+        delete resultadoDiv.dataset.classificacao;
+      }
+
+      btnCalcular?.addEventListener('click', calcularHumpty);
+      btnLimpar?.addEventListener('click', limparCampos);
+
+      btnGerarPDF?.addEventListener('click', () => {
+        if (!resultadoDiv.dataset.score) {
+          alert('Por favor, haga clic en "Calcular Puntuación" primero para generar el PDF.');
+          return;
+        }
+        if (typeof gerarPDFGlobal === 'function') {
+          gerarPDFGlobal({
+            titulo: 'Escala de Caída Humpty Dumpty',
+            subtitulo: 'Informe de Evaluación de Riesgo de Caída',
+            nombreArquivo: 'informe_escala_humpty_dumpty.pdf',
+            seletorConteudo: '.main-content-wrapper'
+          });
+        } else {
+          console.error('Función gerarPDFGlobal no definida.');
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener('click', () => {
+        const score = resultadoDiv.dataset.score;
+        const scaleName = resultadoDiv.dataset.scaleName;
+        const classificacao = resultadoDiv.dataset.classificacao;
+        if (!score || !classificacao) {
+          alert('Calcule el resultado para buscar la conducta.');
+          return;
+        }
+        const searchQuery = encodeURIComponent(`${scaleName} puntuación ${score} paciente pediátrico ${classificacao} generar taxonomía NANDA, generar taxonomía NIC y generar taxonomía de NOC`);
+        window.open(`https://www.google.com/search?q=${searchQuery}`, '_blank');
+      });
+    });
+  </script>
 
 
 

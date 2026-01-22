@@ -632,7 +632,125 @@
 
 
   <!-- Script Específico da Página Barthel -->
-  
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const resultadoDiv = document.getElementById('resultado');
+      const conteudoDiv = document.getElementById('conteudo');
+      const btnCalcular = document.getElementById('btnCalcular');
+      const btnLimpar = document.getElementById('btnLimpar');
+      const btnGerarPDF = document.getElementById('btnGerarPDF');
+      const btnNandaNicNoc = document.getElementById('btnNandaNicNoc');
+
+      const barthelData = [
+        { activity: "进食", nameAttr: "alimentacao", options: [{ score: 10, description: "独立" }, { score: 5, description: "需要帮助切食物等" }, { score: 0, description: "不能" }] },
+        { activity: "洗澡", nameAttr: "banho", options: [{ score: 5, description: "独立" }, { score: 0, description: "依赖" }] },
+        { activity: "个人卫生", nameAttr: "higienePessoal", options: [{ score: 5, description: "独立（脸/头发/牙齿/剃须）" }, { score: 0, description: "需要帮助" }] },
+        { activity: "穿衣", nameAttr: "vestir", options: [{ score: 10, description: "独立" }, { score: 5, description: "需要帮助" }, { score: 0, description: "依赖" }] },
+        { activity: "排便控制", nameAttr: "controleIntestino", options: [{ score: 10, description: "控制" }, { score: 5, description: "偶尔意外" }, { score: 0, description: "失禁" }] },
+        { activity: "膀胱控制", nameAttr: "controleBexiga", options: [{ score: 10, description: "控制" }, { score: 5, description: "偶尔意外" }, { score: 0, description: "失禁" }] },
+        { activity: "如厕使用", nameAttr: "usoToilet", options: [{ score: 10, description: "独立" }, { score: 5, description: "需要帮助" }, { score: 0, description: "依赖" }] },
+        { activity: "转移", nameAttr: "transferencia", options: [{ score: 15, description: "独立" }, { score: 10, description: "最小帮助" }, { score: 5, description: "最大帮助" }, { score: 0, description: "不能" }] },
+        { activity: "行动能力", nameAttr: "mobilidade", options: [{ score: 15, description: "独立 > 50米" }, { score: 10, description: "需要帮助行走 > 50米" }, { score: 5, description: "轮椅独立 > 50米" }, { score: 0, description: "不能移动" }] },
+        { activity: "上楼梯", nameAttr: "escadas", options: [{ score: 10, description: "独立" }, { score: 5, description: "需要帮助" }, { score: 0, description: "不能" }] }
+      ];
+
+      function createForm() {
+        conteudoDiv.innerHTML = ''; // Limpa o conteúdo existente
+        barthelData.forEach(activityGroup => {
+          const card = document.createElement('div');
+          card.className = 'barthel-criterion-card';
+
+          card.innerHTML = `
+                    <h3 class="barthel-criterion-title">${activityGroup.activity}</h3>
+                    <div class="barthel-options-container">
+                        <select id="${activityGroup.nameAttr}-select" class="barthel-select" data-name="${activityGroup.nameAttr}">
+                            <option value="" disabled selected>请选择一个选项...</option>
+                            ${activityGroup.options.map(opt => `<option value="${opt.score}">${opt.description} (${opt.score})</option>`).join('')}
+                        </select>
+                    </div>
+                `;
+          conteudoDiv.appendChild(card);
+        });
+      }
+
+      function calcular() {
+        let totalScore = 0;
+        let allSelected = true;
+
+        barthelData.forEach(activityGroup => {
+          const select = document.getElementById(`${activityGroup.nameAttr}-select`);
+          if (select && select.value !== "") {
+            totalScore += parseInt(select.value, 10);
+          } else {
+            allSelected = false;
+          }
+        });
+
+        if (!allSelected) {
+          resultadoDiv.innerHTML = '⚠️ <strong class="font-bold">请为每项活动选择一个选项。</strong>';
+          resultadoDiv.className = 'standard-result-box bg-info-orange-light';
+          resultadoDiv.style.display = 'block';
+          delete resultadoDiv.dataset.score;
+          return;
+        }
+
+        let classificacao = "";
+        if (totalScore === 100) { classificacao = "完全独立"; }
+        else if (totalScore >= 91) { classificacao = "轻度依赖"; }
+        else if (totalScore >= 61) { classificacao = "中度依赖"; }
+        else if (totalScore >= 21) { classificacao = "重度依赖"; }
+        else { classificacao = "完全依赖"; }
+
+        resultadoDiv.innerHTML = `
+                <p class="font-bold text-lg">总分： <span class="font-black">${totalScore} / 100</span></p>
+                <p class="font-bold text-lg">分类： <span class="font-black">${classificacao}</span></p>
+            `;
+        resultadoDiv.className = 'standard-result-box';
+        resultadoDiv.style.display = 'block';
+        resultadoDiv.dataset.score = totalScore;
+        resultadoDiv.dataset.classificacao = classificacao;
+      }
+
+      function limpar() {
+        createForm(); // Recria o formulário para resetar os selects
+        resultadoDiv.innerHTML = '';
+        resultadoDiv.className = 'hidden';
+        delete resultadoDiv.dataset.score;
+        delete resultadoDiv.dataset.classificacao;
+      }
+
+      createForm();
+      btnCalcular?.addEventListener('click', calcular);
+      btnLimpar?.addEventListener('click', limpar);
+
+      btnGerarPDF?.addEventListener('click', () => {
+        if (resultadoDiv.dataset.score === undefined) {
+          alert('请先点击"计算"以生成PDF。');
+          return;
+        }
+        if (typeof gerarPDFGlobal === 'function') {
+          gerarPDFGlobal({
+            titulo: 'Barthel指数',
+            subtitulo: '功能依赖性报告',
+            nomeArquivo: 'relatorio_barthel_index.pdf',
+            seletorConteudo: '.main-content-wrapper'
+          });
+        } else {
+          console.error('Função gerarPDFGlobal não definida.');
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener('click', () => {
+        const classificacao = resultadoDiv.dataset.classificacao;
+        if (!classificacao) {
+          alert('计算结果以搜索护理方案。');
+          return;
+        }
+        const searchQuery = encodeURIComponent(`患者 ${classificacao} Barthel指数 护理诊断 NANDA NIC NOC`);
+        window.open(`https://www.google.com/search?q=${searchQuery}`, '_blank');
+      });
+    });
+  </script>
 
 
 

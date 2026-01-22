@@ -704,7 +704,358 @@
 
 
   <!-- Script Específico da Página Hamilton (Traduzido) -->
-  
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      // Carrega o rodapé da pasta /fr/ via fetch
+      fetch("footer.html")
+        .then((response) => response.text())
+        .then((data) => {
+          document.getElementById("footer-placeholder").innerHTML = data;
+        });
+
+      // Carrega os elementos globais da pasta /fr/
+      fetch("/fr/global-body-elements.html")
+        .then((response) => response.text())
+        .then((html) => {
+          document.getElementById(
+            "global-body-elements-container",
+          ).innerHTML = html;
+          // Ativa o VLibras e outros scripts globais DEPOIS de carregar o conteúdo
+          if (typeof initVLibras === "function") {
+            initVLibras();
+          }
+          if (typeof setupGlobalElements === "function") {
+            setupGlobalElements();
+          }
+        });
+
+      const resultadoDiv = document.getElementById("resultado");
+      const conteudoDiv = document.getElementById("conteudo");
+      const btnCalcular = document.getElementById("btnCalcular");
+      const btnLimpar = document.getElementById("btnLimpar");
+      const btnGerarPDF = document.getElementById("btnGerarPDF"); // Adicionado
+      const btnNandaNicNoc = document.getElementById("btnNandaNicNoc"); // Adicionado
+
+      // Données de l'échelle Hamilton traduites
+      const hamiltonData = [
+        {
+          item: "1. Humeur anxieuse",
+          nameAttr: "humeurAnxieuse",
+          instruction:
+            "Inquiétudes, anticipation du pire, appréhension, irritabilité.",
+          options: [
+            { score: 0, description: "Absent" },
+            { score: 1, description: "Léger" },
+            { score: 2, description: "Modéré" },
+            { score: 3, description: "Sévère" },
+            { score: 4, description: "Très sévère" },
+          ],
+        },
+        {
+          item: "2. Tension",
+          nameAttr: "tension",
+          instruction:
+            "Sensation de tension, incapacité à se détendre, tremblements, fatigue.",
+          options: [
+            { score: 0, description: "Absent" },
+            { score: 1, description: "Léger" },
+            { score: 2, description: "Modéré" },
+            { score: 3, description: "Sévère" },
+            { score: 4, description: "Très sévère" },
+          ],
+        },
+        {
+          item: "3. Peurs",
+          nameAttr: "peurs",
+          instruction:
+            "Peur des foules, de sortir seul, des animaux, de l'obscurité, etc.",
+          options: [
+            { score: 0, description: "Absent" },
+            { score: 1, description: "Léger" },
+            { score: 2, description: "Modéré" },
+            { score: 3, description: "Sévère" },
+            { score: 4, description: "Très sévère" },
+          ],
+        },
+        {
+          item: "4. Insomnie",
+          nameAttr: "insomnie",
+          instruction:
+            "Difficulté à s'endormir, sommeil interrompu, réveil précoce.",
+          options: [
+            { score: 0, description: "Absent" },
+            { score: 1, description: "Léger" },
+            { score: 2, description: "Modéré" },
+            { score: 3, description: "Sévère" },
+            { score: 4, description: "Très sévère" },
+          ],
+        },
+        {
+          item: "5. Difficultés intellectuelles",
+          nameAttr: "difficultesIntellectuelles",
+          instruction: "Difficulté de concentration, mémoire faible.",
+          options: [
+            { score: 0, description: "Absent" },
+            { score: 1, description: "Léger" },
+            { score: 2, description: "Modéré" },
+            { score: 3, description: "Sévère" },
+            { score: 4, description: "Très sévère" },
+          ],
+        },
+        {
+          item: "6. Humeur déprimée",
+          nameAttr: "humeurDeprimee",
+          instruction:
+            "Perte d'intérêt, manque de plaisir, dépression, réveil précoce.",
+          options: [
+            { score: 0, description: "Absent" },
+            { score: 1, description: "Léger" },
+            { score: 2, description: "Modéré" },
+            { score: 3, description: "Sévère" },
+            { score: 4, description: "Très sévère" },
+          ],
+        },
+        {
+          item: "7. Symptômes somatiques musculaires",
+          nameAttr: "somatiquesMusculaires",
+          instruction:
+            "Douleurs musculaires, raideur, grincement des dents, voix tendue.",
+          options: [
+            { score: 0, description: "Absent" },
+            { score: 1, description: "Léger" },
+            { score: 2, description: "Modéré" },
+            { score: 3, description: "Sévère" },
+            { score: 4, description: "Très sévère" },
+          ],
+        },
+        {
+          item: "8. Symptômes somatiques sensoriels",
+          nameAttr: "somatiquesSensoriels",
+          instruction:
+            "Acouphènes, vision floue, bouffées de chaleur/froid, fourmillements.",
+          options: [
+            { score: 0, description: "Absent" },
+            { score: 1, description: "Léger" },
+            { score: 2, description: "Modéré" },
+            { score: 3, description: "Sévère" },
+            { score: 4, description: "Très sévère" },
+          ],
+        },
+        {
+          item: "9. Symptômes cardiovasculaires",
+          nameAttr: "cardiovasculaires",
+          instruction:
+            "Palpitations, tachycardie, douleurs thoraciques, pouls faible.",
+          options: [
+            { score: 0, description: "Absent" },
+            { score: 1, description: "Léger" },
+            { score: 2, description: "Modéré" },
+            { score: 3, description: "Sévère" },
+            { score: 4, description: "Très sévère" },
+          ],
+        },
+        {
+          item: "10. Symptômes respiratoires",
+          nameAttr: "respiratoires",
+          instruction:
+            "Oppression thoracique, sensation d'étouffement, soupirs.",
+          options: [
+            { score: 0, description: "Absent" },
+            { score: 1, description: "Léger" },
+            { score: 2, description: "Modéré" },
+            { score: 3, description: "Sévère" },
+            { score: 4, description: "Très sévère" },
+          ],
+        },
+        {
+          item: "11. Symptômes gastro-intestinaux",
+          nameAttr: "gastrointestinaux",
+          instruction:
+            "Difficulté à avaler, douleurs, brûlures, nausées, diarrhée.",
+          options: [
+            { score: 0, description: "Absent" },
+            { score: 1, description: "Léger" },
+            { score: 2, description: "Modéré" },
+            { score: 3, description: "Sévère" },
+            { score: 4, description: "Très sévère" },
+          ],
+        },
+        {
+          item: "12. Symptômes génito-urinaires",
+          nameAttr: "genitourinaires",
+          instruction:
+            "Miction fréquente, urgence, aménorrhée, frigidité, éjaculation précoce.",
+          options: [
+            { score: 0, description: "Absent" },
+            { score: 1, description: "Léger" },
+            { score: 2, description: "Modéré" },
+            { score: 3, description: "Sévère" },
+            { score: 4, description: "Très sévère" },
+          ],
+        },
+        {
+          item: "13. Symptômes autonomes",
+          nameAttr: "autonomes",
+          instruction:
+            "Bouche sèche, rougeur, pâleur, transpiration, vertiges, céphalées.",
+          options: [
+            { score: 0, description: "Absent" },
+            { score: 1, description: "Léger" },
+            { score: 2, description: "Modéré" },
+            { score: 3, description: "Sévère" },
+            { score: 4, description: "Très sévère" },
+          ],
+        },
+        {
+          item: "14. Comportement lors de l'entretien",
+          nameAttr: "comportementEntretien",
+          instruction:
+            "Tension, agitation, pâleur, transpiration, respiration rapide.",
+          options: [
+            { score: 0, description: "Absent" },
+            { score: 1, description: "Léger" },
+            { score: 2, description: "Modéré" },
+            { score: 3, description: "Sévère" },
+            { score: 4, description: "Très sévère" },
+          ],
+        },
+      ];
+
+      function createForm() {
+        conteudoDiv.innerHTML = ""; // Nettoie avant de recréer
+        hamiltonData.forEach((itemGroup) => {
+          const card = document.createElement("div");
+          card.className = "criterion-card";
+          card.id = `card-${itemGroup.nameAttr}`; // Ajoute ID pour ciblage
+          card.innerHTML = `
+                        <div class="criterion-title-container">
+                            <h3 class="criterion-title">${itemGroup.item}</h3>
+                            <p class="criterion-description">${itemGroup.instruction}</p>
+                        </div>
+                        <div class="options-container">
+                            <select id="${itemGroup.nameAttr}-select" class="custom-select">
+                                <option value="" disabled selected>Sélectionnez...</option> <!-- Traduzido -->
+                                ${itemGroup.options.map((opt) => `<option value="${opt.score}">${opt.description} (${opt.score})</option>`).join("")}
+                            </select>
+                        </div>
+                    `;
+          conteudoDiv.appendChild(card);
+        });
+      }
+
+      function calculerPontuacao() {
+        let totalScore = 0;
+        let allItemsSelected = true;
+
+        hamiltonData.forEach((itemGroup) => {
+          const select = document.getElementById(
+            `${itemGroup.nameAttr}-select`,
+          );
+          const card = document.getElementById(`card-${itemGroup.nameAttr}`);
+
+          if (select && select.value) {
+            totalScore += parseInt(select.value, 10);
+            card?.classList.remove("incomplete"); // Retire l'erreur
+          } else {
+            allItemsSelected = false;
+            card?.classList.add("incomplete"); // Ajoute l'erreur
+          }
+        });
+
+        if (!allItemsSelected) {
+          resultadoDiv.innerHTML =
+            '⚠️ <strong class="font-bold">Veuillez sélectionner une option pour chaque item.</strong>'; // Traduzido
+          resultadoDiv.className = "standard-result-box bg-info-orange-light";
+          resultadoDiv.style.display = "block";
+          delete resultadoDiv.dataset.score; // Efface les données
+          delete resultadoDiv.dataset.classificacao; // Efface les données
+          return;
+        }
+
+        // Classification traduite
+        let classificacao = "";
+        let resultadoClasse = "";
+        if (totalScore <= 17) {
+          classificacao = "Anxiété Légère";
+          resultadoClasse = "anxiety-mild"; // Bleu
+        } else if (totalScore <= 24) {
+          classificacao = "Anxiété Légère à Modérée";
+          resultadoClasse = "anxiety-moderate"; // Jaune/Orange
+        } else if (totalScore <= 30) {
+          classificacao = "Anxiété Modérée à Sévère";
+          resultadoClasse = "anxiety-severe"; // Rouge
+        } else {
+          // >= 31
+          classificacao = "Anxiété Sévère";
+          resultadoClasse = "anxiety-severe"; // Rouge
+        }
+
+        resultadoDiv.innerHTML = `<p class="font-bold text-lg">Score Total (HAM-A): <span class="font-black">${totalScore}</span></p><p class="font-bold text-lg">Classification: <span class="font-black">${classificacao}</span></p>`;
+        resultadoDiv.className = `standard-result-box resultado ${resultadoClasse}`; // Applique la classe de style
+        resultadoDiv.style.display = "block";
+
+        // Stocke les données pour PDF et NANDA
+        resultadoDiv.dataset.score = totalScore;
+        resultadoDiv.dataset.classificacao = classificacao;
+        resultadoDiv.dataset.scaleName =
+          "Échelle d'Anxiété de Hamilton (HAM-A)"; // Nom pour NANDA
+      }
+
+      function limparCampos() {
+        // Recrée le formulaire pour resetter
+        createForm();
+        // Nettoie le résultat
+        resultadoDiv.innerHTML = "";
+        resultadoDiv.className = "hidden standard-result-box"; // Cache et reset
+        delete resultadoDiv.dataset.score;
+        delete resultadoDiv.dataset.classificacao;
+        delete resultadoDiv.dataset.scaleName;
+      }
+
+      createForm(); // Crée le formulaire initial
+      btnCalcular?.addEventListener("click", calculerPontuacao);
+      btnLimpar?.addEventListener("click", limparCampos);
+
+      // Funcionalidade PDF (se gerarPDFGlobal existir)
+      btnGerarPDF?.addEventListener("click", () => {
+        if (!resultadoDiv.dataset.score) {
+          alert(
+            'Veuillez cliquer sur "Calculer" d\'abord pour générer le PDF.',
+          ); // Traduzido
+          return;
+        }
+        if (typeof gerarPDFGlobal === "function") {
+          gerarPDFGlobal({
+            titulo: "Échelle d'Anxiété de Hamilton (HAM-A)", // Traduzido
+            subtitulo: "Rapport d'Évaluation de la Sévérité de l'Anxiété", // Traduzido
+            nomeArquivo: "rapport_echelle_hamilton_a.pdf", // Traduzido
+            seletorConteudo: ".main-content-wrapper", // Seleciona o container principal
+          });
+        } else {
+          console.error("Fonction gerarPDFGlobal non définie.");
+        }
+      });
+
+      // Funcionalidade NANDA/NIC/NOC
+      btnNandaNicNoc?.addEventListener("click", () => {
+        const score = resultadoDiv.dataset.score;
+        const classificacao = resultadoDiv.dataset.classificacao;
+        const scaleName = resultadoDiv.dataset.scaleName;
+        if (!score || !classificacao) {
+          alert("Calculez le résultat pour rechercher la conduite à tenir."); // Traduzido
+          return;
+        }
+        // Traduzido para consulta em francês
+        const searchQuery = encodeURIComponent(
+          `${scaleName} score ${score} classification ${classificacao} générer taxonomie NANDA générer taxonomie NIC générer taxonomie NOC`,
+        );
+        window.open(
+          `https://www.google.com/search?q=${searchQuery}`,
+          "_blank",
+        );
+      });
+    });
+  </script>
 
   <!-- CHEMIN DU SCRIPT CORRIGÉ -->
   <script src="../lang-selector.js" defer=""></script>

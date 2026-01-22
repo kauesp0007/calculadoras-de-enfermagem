@@ -640,7 +640,75 @@
 
 
 
-  
+  <script>
+    function updateScoreAndCalculate(criterionName) {
+      document.getElementById(`${criterionName}_score_display`).innerText = document.getElementById(`${criterionName}_select`).value;
+      calcolaScala();
+    }
+
+    function calcolaScala() {
+      const oculare = parseInt(document.getElementById("ocular_select").value);
+      const verbale = parseInt(document.getElementById("verbal_select").value);
+      const motoria = parseInt(document.getElementById("motora_select").value);
+      const pupillare = parseInt(document.getElementById("pupilar_select").value);
+      const totale = oculare + verbale + motoria + pupillare;
+
+      let interpretazione = "";
+      if (totale >= 13) interpretazione = "Trauma cranico lieve";
+      else if (totale >= 9) interpretazione = "Trauma cranico moderato";
+      else interpretazione = "Trauma cranico grave";
+
+      const risultatoDiv = document.getElementById("resultado");
+      risultatoDiv.innerHTML = `<p><strong>Punteggio Totale:</strong> <span class="font-bold">${totale}</span> punti</p><p><strong>Interpretazione:</strong> ${interpretazione}</p>`;
+      risultatoDiv.className = `resultado ${(totale < 9) ? 'bg-red-100' : 'bg-blue-50'} p-4 rounded-lg mt-6`;
+      risultatoDiv.style.display = "block";
+      risultatoDiv.dataset.score = totale;
+      risultatoDiv.dataset.interpretazione = interpretazione;
+    }
+
+    function pulisciCampi() {
+      ['ocular', 'verbal', 'motora', 'pupilar'].forEach(type => {
+        const select = document.getElementById(`${type}_select`);
+        select.selectedIndex = 0;
+        document.getElementById(`${type}_score_display`).innerText = select.value;
+      });
+      const risultatoDiv = document.getElementById('resultado');
+      risultatoDiv.style.display = 'none';
+      delete risultatoDiv.dataset.score;
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      document.getElementById('btnCalcular')?.addEventListener('click', calcolaScala);
+      document.getElementById('btnLimpar')?.addEventListener('click', pulisciCampi);
+
+      ['ocular', 'verbal', 'motora', 'pupilar'].forEach(type => updateScoreAndCalculate(type));
+
+      document.getElementById('btnGerarPDF')?.addEventListener('click', () => {
+        if (!document.getElementById('resultado').dataset.score) {
+          alert('Per favore, clicca prima su "Calcola Punteggio" per generare il PDF.');
+          return;
+        }
+        if (typeof gerarPDFGlobal === 'function') {
+          gerarPDFGlobal({
+            titulo: 'Scala del Coma di Glasgow',
+            subtitulo: 'Rapporto di Valutazione del Livello di Coscienza',
+            nomeArquivo: 'rapporto_scala_glasgow.pdf',
+            seletorConteudo: '.main-content-wrapper'
+          });
+        }
+      });
+
+      document.getElementById('btnNandaNicNoc')?.addEventListener('click', () => {
+        const interpretazione = document.getElementById('resultado').dataset.interpretazione;
+        if (!interpretazione) {
+          alert('Calcola il risultato per cercare la condotta.');
+          return;
+        }
+        const searchQuery = encodeURIComponent(`paziente con ${interpretazione} secondo la Scala di Glasgow NANDA NIC NOC`);
+        window.open(`https://www.google.com/search?q=${searchQuery}`, '_blank');
+      });
+    });
+  </script>
 
 
 

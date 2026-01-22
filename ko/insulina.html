@@ -629,7 +629,96 @@
 
 
 
-  
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const resultadoDiv = document.getElementById('resultado');
+      const btnCalcular = document.getElementById('btnCalcular');
+      const btnLimpar = document.getElementById('btnLimpar');
+      const btnGerarPDF = document.getElementById('btnGerarPDF');
+      const btnNandaNicNoc = document.getElementById('btnNandaNicNoc');
+
+      function calcularInsulina() {
+        const frasco = parseFloat(document.getElementById('frasco').value);
+        const seringa = parseFloat(document.getElementById('seringa').value);
+        const prescricao = parseFloat(document.getElementById('prescricao').value);
+
+        resultadoDiv.className = 'resultado p-4 mt-6 rounded-lg text-left';
+        resultadoDiv.style.display = 'block';
+
+        if (isNaN(frasco) || isNaN(seringa) || isNaN(prescricao) || frasco <= 0 || seringa <= 0) {
+          resultadoDiv.innerHTML = '⚠️ <strong class="font-bold">모든 필드에 유효한 0보다 큰 숫자 값을 입력하십시오.</strong>';
+          resultadoDiv.classList.add('bg-info-orange-light');
+          resultadoDiv.classList.remove('bg-success-green', 'bg-danger-red');
+          delete resultadoDiv.dataset.score;
+          return;
+        }
+
+        const doseDesejada = (prescricao * seringa) / frasco;
+
+        if (doseDesejada > seringa) {
+          resultadoDiv.innerHTML = `⚠️ <strong class="font-bold">처방된 용량(${prescricao} UI)이 주사기 용량(${seringa} ml)보다 큽니다. 값을 확인하거나 더 큰 용량의 주사기를 사용하십시오.</strong>`;
+          resultadoDiv.classList.add('bg-danger-red');
+          resultadoDiv.classList.remove('bg-success-green', 'bg-info-orange-light');
+          delete resultadoDiv.dataset.score;
+          return;
+        }
+
+        let conduta = `인슐린 <strong class="font-bold">${doseDesejada.toFixed(2)} ml</strong>를 흡인하십시오.`;
+
+        resultadoDiv.innerHTML = `<p><strong>계산 완료:</strong></p><p>${prescricao} UI (처방) x ${seringa} ml (주사기) / ${frasco} UI (바이알) = <strong class="font-bold">${doseDesejada.toFixed(2)} ml</strong></p><p><strong>조치:</strong> ${conduta}</p>`;
+        resultadoDiv.classList.add('bg-success-green');
+        resultadoDiv.classList.remove('bg-danger-red', 'bg-info-orange-light');
+
+        resultadoDiv.dataset.score = doseDesejada.toFixed(2);
+        resultadoDiv.dataset.conduta = conduta;
+        resultadoDiv.dataset.scaleName = "인슐린 계산";
+      }
+
+      function limparCampos() {
+        document.getElementById('frasco').value = '';
+        document.getElementById('seringa').value = '';
+        document.getElementById('prescricao').value = '';
+        resultadoDiv.innerHTML = '';
+        resultadoDiv.className = 'resultado hidden mt-6';
+        delete resultadoDiv.dataset.score;
+        delete resultadoDiv.dataset.conduta;
+        delete resultadoDiv.dataset.scaleName;
+      }
+
+      // Adiciona os event listeners aos botões
+      btnCalcular?.addEventListener('click', calcularInsulina);
+      btnLimpar?.addEventListener('click', limparCampos);
+
+      btnGerarPDF?.addEventListener('click', () => {
+        if (!resultadoDiv.dataset.score) {
+          alert('PDF를 생성하려면 먼저 "계산하기"를 클릭하십시오.');
+          return;
+        }
+        if (typeof gerarPDFGlobal === 'function') {
+          gerarPDFGlobal({
+            titulo: '인슐린 계산',
+            subtitulo: '인슐린 용량 및 희석 보고서',
+            nomeArquivo: '보고서_인슐린.pdf',
+            seletorConteudo: '.main-content-wrapper'
+          });
+        } else {
+          console.error('gerarPDFGlobal 함수가 정의되지 않았습니다.');
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener('click', () => {
+        const score = resultadoDiv.dataset.score;
+        const scaleName = resultadoDiv.dataset.scaleName;
+        const conduta = resultadoDiv.dataset.conduta;
+        if (!score || !conduta) {
+          alert('조치를 검색하려면 결과를 계산하십시오.');
+          return;
+        }
+        const searchQuery = encodeURIComponent(`${scaleName} 점수 ${score} 조치 ${conduta} NANDA 분류 생성, NIC 분류 생성 및 NOC 분류 생성`);
+        window.open(`https://www.google.com/search?q=${searchQuery}`, '_blank');
+      });
+    });
+  </script>
 
 
 

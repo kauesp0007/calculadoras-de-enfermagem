@@ -596,7 +596,312 @@
 
 
 
-  
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const resultadoDiv = document.getElementById("resultado");
+      const btnCalcular = document.getElementById("btnCalcular");
+      const btnLimpar = document.getElementById("btnLimpar");
+      const btnGerarPDF = document.getElementById("btnGerarPDF");
+      const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
+      const conteudoDiv = document.getElementById("conteudo");
+
+      const waterlowData = [
+        {
+          category: "Cilt Türü",
+          nameAttr: "tipoPele",
+          options: [
+            { description: "Sağlıklı", score: 0 },
+            { description: "İnce - Kâğıt Gibi", score: 1 },
+            { description: "Kuru", score: 1 },
+            { description: "Ödemli", score: 1 },
+            { description: "Visköz", score: 1 },
+            { description: "Soluk", score: 2 },
+            { description: "Kırılgan", score: 3 },
+          ],
+          type: "radio",
+        },
+        {
+          category: "Hareket Kabiliyeti",
+          nameAttr: "mobilidade",
+          options: [
+            { description: "Tam", score: 0 },
+            { description: "Sinirsel", score: 1 },
+            { description: "Apatik", score: 2 },
+            { description: "Kısıtlı", score: 3 },
+            { description: "Hareketsiz / Çekme", score: 4 },
+            { description: "Tekerlekli Sandalyeye Bağlı", score: 5 },
+          ],
+          type: "radio",
+        },
+        {
+          category: "Nörolojik Açık",
+          nameAttr: "debitoNeurologico",
+          options: [
+            { description: "Normal", score: 0 },
+            {
+              description: "MS. Parapleji (örn. İnme, Multipl Skleroz)",
+              score: 6,
+            },
+          ],
+          type: "radio",
+        },
+        {
+          category: "Kontinans",
+          nameAttr: "continencia",
+          options: [
+            { description: "Normal", score: 0 },
+            { description: "Ara Sıra İnkontinans (sadece idrar)", score: 1 },
+            { description: "İnkontinans (idrar veya dışkı)", score: 2 },
+            { description: "Çift İnkontinans (idrar ve dışkı)", score: 3 },
+          ],
+          type: "radio",
+        },
+        {
+          category: "Özel Riskler",
+          subCategories: [
+            {
+              name: "Doku Beslenme Bozukluğu",
+              nameAttr: "nutricao",
+              options: [
+                { description: "Terminal Kaşeksi", score: 8 },
+                { description: "Kalp Yetmezliği", score: 5 },
+                { description: "Periferik Vasküler Hastalık", score: 5 },
+                { description: "Anemi", score: 2 },
+                { description: "Sigara", score: 1 },
+              ],
+            },
+            {
+              name: "Büyük Ameliyat veya Travma",
+              nameAttr: "cirurgia",
+              options: [
+                { description: "Bel altı ortopedik / omurga", score: 5 },
+                { description: "Ameliyat Masasında: > 2 saat", score: 5 },
+              ],
+            },
+            {
+              name: "İlaç",
+              nameAttr: "medicacao",
+              options: [
+                { description: "Steroidler", score: 4 },
+                { description: "Sitotoksikler", score: 4 },
+                { description: "Anti-inflamatuar", score: 4 },
+              ],
+            },
+          ],
+          type: "checkbox",
+        },
+      ];
+
+      // --- Waterlow Hesaplayıcısı Fonksiyonları ---
+      function updateScoreDisplay(criterionId) {
+        const selectElement = document.getElementById(criterionId);
+        const scoreDisplayElement = document.getElementById(
+          `${criterionId}_score_display`,
+        );
+        if (selectElement && scoreDisplayElement) {
+          scoreDisplayElement.innerText =
+            selectElement.value === "" ? "0" : selectElement.value;
+        }
+      }
+
+      function calcularPontuacao() {
+        let total = 0;
+        let allRadioSelected = true;
+
+        // Radio button puanları (tek seçim öğeleri)
+        const radioGroups = [
+          "tipoPele",
+          "mobilidade",
+          "continencia",
+          "debitoNeurologico",
+        ];
+        radioGroups.forEach((name) => {
+          const selectElement = document.getElementById(name);
+          if (selectElement.value === "") {
+            allRadioSelected = false;
+          } else {
+            total += parseInt(selectElement.value, 10);
+          }
+        });
+
+        // Checkbox puanları (özel riskler)
+        const checkboxGroups = ["nutricao", "cirurgia", "medicacao"];
+        checkboxGroups.forEach((name) => {
+          const checkboxes = document.querySelectorAll(
+            `input[name="${name}"]:checked`,
+          );
+          checkboxes.forEach((checkbox) => {
+            total += parseInt(checkbox.value, 10);
+          });
+        });
+
+        resultadoDiv.style.display = "block";
+        if (!allRadioSelected) {
+          resultadoDiv.innerHTML =
+            '⚠️ <strong class="font-bold">Hesaplamadan önce lütfen tüm zorunlu kriterler için bir seçenek seçin</strong> (Cilt Türü, Hareket Kabiliyeti, Nörolojik Açık, Kontinans).';
+          resultadoDiv.className = "resultado bg-info-orange-light";
+          delete resultadoDiv.dataset.score;
+          return;
+        }
+
+        let classificacao = "";
+        let resultadoClasse = "";
+
+        if (total >= 20) {
+          classificacao = "Çok Yüksek Risk";
+          resultadoClasse = "bg-very-high-risk";
+        } else if (total >= 15) {
+          classificacao = "Yüksek Risk";
+          resultadoClasse = "bg-high-risk";
+        } else if (total >= 10) {
+          classificacao = "Orta Risk";
+          resultadoClasse = "bg-medium-risk";
+        } else {
+          classificacao = "Düşük Risk";
+          resultadoClasse = "bg-low-risk";
+        }
+
+        resultadoDiv.innerHTML = `<p>Waterlow toplam puanı: <strong class="font-bold">${total}</strong></p><p>Sınıflandırma: <strong class="font-bold">${classificacao}</strong></p>`;
+        resultadoDiv.className = `resultado ${resultadoClasse}`;
+
+        resultadoDiv.dataset.score = total;
+        resultadoDiv.dataset.classificacao = classificacao;
+        resultadoDiv.dataset.scaleName = "Waterlow Ölçeği";
+      }
+
+      function limparCampos() {
+        document
+          .querySelectorAll("select")
+          .forEach((select) => (select.selectedIndex = 0));
+        document
+          .querySelectorAll('input[type="checkbox"]')
+          .forEach((checkbox) => (checkbox.checked = false));
+        document
+          .querySelectorAll(".waterlow-score-display")
+          .forEach((span) => (span.innerText = "0"));
+
+        resultadoDiv.innerHTML = "";
+        resultadoDiv.className = "resultado hidden";
+        delete resultadoDiv.dataset.score;
+        delete resultadoDiv.dataset.classificacao;
+        delete resultadoDiv.dataset.scaleName;
+      }
+
+      // Formu dinamik olarak doldurur
+      waterlowData.forEach((item, index) => {
+        const sectionDiv = document.createElement("div");
+        sectionDiv.className = "waterlow-criterion-card";
+
+        const headerDiv = document.createElement("div");
+        headerDiv.className = "waterlow-criterion-header";
+
+        const titleH3 = document.createElement("h3");
+        titleH3.className = "waterlow-criterion-title";
+        titleH3.innerText = item.category;
+        headerDiv.appendChild(titleH3);
+
+        if (item.type === "radio") {
+          const scoreSpan = document.createElement("span");
+          scoreSpan.className = "waterlow-score-display";
+          scoreSpan.id = `${item.nameAttr}_score_display`;
+          scoreSpan.innerText = "0";
+          headerDiv.appendChild(scoreSpan);
+        }
+
+        sectionDiv.appendChild(headerDiv);
+
+        const optionsGroupDiv = document.createElement("div");
+        optionsGroupDiv.className = "options-group";
+
+        if (item.type === "radio") {
+          const selectElement = document.createElement("select");
+          selectElement.id = item.nameAttr;
+          selectElement.className = "waterlow-select";
+          selectElement.onchange = () => updateScoreDisplay(item.nameAttr);
+
+          const defaultOption = document.createElement("option");
+          defaultOption.value = "";
+          defaultOption.text = "Seçiniz...";
+          defaultOption.disabled = true;
+          defaultOption.selected = true;
+          selectElement.appendChild(defaultOption);
+
+          item.options.forEach((option) => {
+            const optionElement = document.createElement("option");
+            optionElement.value = option.score;
+            optionElement.text = `${option.description} (${option.score})`;
+            selectElement.appendChild(optionElement);
+          });
+          optionsGroupDiv.appendChild(selectElement);
+          sectionDiv.appendChild(optionsGroupDiv);
+        } else if (item.type === "checkbox") {
+          item.subCategories.forEach((subCat) => {
+            const subCatTitle = document.createElement("p");
+            subCatTitle.className = "waterlow-sub-category";
+            subCatTitle.innerText = subCat.name + ":";
+            optionsGroupDiv.appendChild(subCatTitle);
+
+            subCat.options.forEach((option) => {
+              const label = document.createElement("label");
+              label.className = "waterlow-option-label";
+              const input = document.createElement("input");
+              input.type = "checkbox";
+              input.name = subCat.nameAttr;
+              input.value = option.score;
+
+              const span = document.createElement("span");
+              span.innerText = `${option.description} (${option.score})`;
+
+              label.appendChild(input);
+              label.appendChild(span);
+              optionsGroupDiv.appendChild(label);
+            });
+          });
+          sectionDiv.appendChild(optionsGroupDiv);
+        }
+
+        conteudoDiv.appendChild(sectionDiv);
+      });
+
+      // Butonlara event listener'ları ekle
+      btnCalcular?.addEventListener("click", calcularPontuacao);
+      btnLimpar?.addEventListener("click", limparCampos);
+
+      btnGerarPDF?.addEventListener("click", () => {
+        if (!resultadoDiv.dataset.score) {
+          alert('PDF oluşturmak için önce "Hesapla"ya tıklayın.');
+          return;
+        }
+        if (typeof gerarPDFGlobal === "function") {
+          gerarPDFGlobal({
+            titulo: "Waterlow Ölçeği",
+            subtitulo: "Basınç Yarası Riski Değerlendirmesi Raporu",
+            nomeArquivo: "waterlow_olcegi_raporu.pdf",
+            seletorConteudo: ".main-content-wrapper",
+          });
+        } else {
+          console.error("gerarPDFGlobal fonksiyonu tanımlı değil.");
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener("click", () => {
+        const score = resultadoDiv.dataset.score;
+        const scaleName = resultadoDiv.dataset.scaleName;
+        const classificacao = resultadoDiv.dataset.classificacao;
+        if (!score || !classificacao) {
+          alert("Davanış araştırmak için sonucu hesaplayın.");
+          return;
+        }
+        const searchQuery = encodeURIComponent(
+          `${scaleName} puan ${score} sınıflandırma ${classificacao} NANDA taksonomisi oluştur, NIC taksonomisi oluştur ve NOC taksonomisi oluştur`,
+        );
+        window.open(
+          `https://www.google.com/search?q=${searchQuery}`,
+          "_blank",
+        );
+      });
+    });
+  </script>
 
   <script src="/lang-selector.js" defer=""></script>
 

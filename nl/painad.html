@@ -572,7 +572,269 @@
 
 
 
-  
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const resultadoDiv = document.getElementById("resultado");
+      const btnCalcular = document.getElementById("btnCalcular");
+      const btnLimpar = document.getElementById("btnLimpar");
+      const btnGerarPDF = document.getElementById("btnGerarPDF");
+      const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
+      const conteudoDiv = document.getElementById("conteudo");
+
+      const painadData = [
+        {
+          title: "1. Adem",
+          nameAttr: "respiracao",
+          explain: "Observeer de ademhaling van de patiënt.",
+          options: [
+            {
+              description: "Normaal, geen veranderingen in adempatroon",
+              score: 0
+            },
+            {
+              description:
+                "Af en toe een piepende ademhaling, kortademigheid of hyperpneu",
+              score: 1
+            },
+            {
+              description: "Hijgen en moeizaam ademhalen, cheyne-stokes",
+              score: 2
+            }]
+
+        },
+        {
+          title: "2. Vocalisatie",
+          nameAttr: "vocalizacao",
+          explain: "Evalueer de geluiden die de patiënt maakt.",
+          options: [
+            { description: "Nenhum", score: 0 },
+            { description: "Geme, resmunga, ocasionalmente fala", score: 1 },
+            {
+              description:
+                "Schreeuwen, huilen, jammeren of woorden herhaaldelijk herhalen",
+              score: 2
+            }]
+
+        },
+        {
+          title: "3. Gezichtsuitdrukking",
+          nameAttr: "expressao_facial",
+          explain: "Let op de gezichtsuitdrukkingen van de patiënt.",
+          options: [
+            { description: "Relaxada, normal", score: 0 },
+            {
+              description: "Triste, assustada, com o cenho franzido",
+              score: 1
+            },
+            { description: "Grimassen, paniekerige uitdrukking", score: 2 }]
+
+        },
+        {
+          title: "4. Linguagem Corporal",
+          nameAttr: "linguagem_corporal",
+          explain: "Observeer de houding en bewegingen van de patiënt.",
+          options: [
+            { description: "Ontspannen, zonder spanning in de ledematen", score: 0 },
+            {
+              description:
+                "Lichaam gespannen, onrustig, rusteloos, armen of benen gespannen",
+              score: 1
+            },
+            {
+              description:
+                "Gebalde vuisten, stijve ledematen, foetushouding, overmatige opwinding",
+              score: 2
+            }]
+
+        },
+        {
+          title: "5. Troostbaarheid",
+          nameAttr: "troostbaarheid",
+          explain:
+            "Beoordeel of de patiënt door een andere persoon kan worden gekalmeerd.",
+          options: [
+            {
+              description: "Gemakkelijk getroost, gemakkelijk afgeleid",
+              score: 0
+            },
+            {
+              description:
+                "Comfortabel met stem of aanraking, maar afleiding is niet duurzaam",
+              score: 1
+            },
+            {
+              description: "Kan niet getroost worden, blijft onrustig",
+              score: 2
+            }]
+
+        }];
+
+
+      // Preenche o formulário dinamicamente
+      painadData.forEach((item) => {
+        const sectionDiv = document.createElement("div");
+        sectionDiv.className = "painad-criterion-section";
+        sectionDiv.id = `section-${item.nameAttr}`;
+
+        const titleH3 = document.createElement("h3");
+        titleH3.className = "painad-criterion-title";
+        titleH3.innerHTML = item.title;
+        sectionDiv.appendChild(titleH3);
+
+        const explainP = document.createElement("p");
+        explainP.className = "painad-criterion-explain";
+        explainP.innerHTML = item.explain;
+        sectionDiv.appendChild(explainP);
+
+        const selectElement = document.createElement("select");
+        selectElement.id = item.nameAttr;
+        selectElement.className = "painad-criterion-select mt-2";
+
+        const defaultOption = document.createElement("option");
+        defaultOption.value = "";
+        defaultOption.text = "Selecteer...";
+        selectElement.appendChild(defaultOption);
+
+        item.options.forEach((option) => {
+          const optionElement = document.createElement("option");
+          optionElement.value = option.score;
+          optionElement.text = `${option.description} (${option.score})`;
+          selectElement.appendChild(optionElement);
+        });
+
+        sectionDiv.appendChild(selectElement);
+        conteudoDiv.appendChild(sectionDiv);
+      });
+
+      function calcularPainad() {
+        const selects = document.querySelectorAll("#conteudo select");
+        let allSelected = true;
+        let total = 0;
+
+        selects.forEach((select) => {
+          if (select.value === "") {
+            allSelected = false;
+            select.classList.add("incomplete");
+          } else {
+            select.classList.remove("incomplete");
+            total += Number(select.value);
+          }
+        });
+
+        resultadoDiv.style.display = "block";
+        if (!allSelected) {
+          resultadoDiv.innerHTML =
+            '⚠️ <strong class="font-bold">Por favor, selecione uma opção para todos os itens antes de calcular.</strong>';
+          resultadoDiv.className = `bg-rood-100 resultaat`;
+          delete resultadoDiv.dataset.score;
+          return;
+        }
+
+        let recomendacao = "";
+
+        if (total <= 3) {
+          recomendacao = `O escore de ${total} geeft aan dat de pijn afwezig of minimaal is. Blijf de patiënt regelmatig controleren.`;
+        } else if (total >= 4 && total <= 6) {
+          recomendacao = `O escore de ${total} duidt op matige pijn. Het wordt aanbevolen om de pijnbestrijdingsmethoden, zowel farmacologisch als niet-farmacologisch, te evalueren en de reactie van de patiënt te volgen.`;
+        } else {
+          // total >= 7
+          recomendacao = `O escore de ${total} wijst op ernstige pijn. Er moet onmiddellijk worden ingegrepen om de pijn te verlichten en het behandelplan moet door de arts worden bekeken.`;
+        }
+
+        resultadoDiv.innerHTML = `
+                <p>Escore total: <strong class="font-bold">${total}</strong></p>
+                <p class="mt-4"><strong>Recomendação:</strong> ${recomendacao}</p>
+            `;
+        resultadoDiv.className = `bg-blauw-50 resultaat`;
+        resultadoDiv.style.display = "block";
+
+        resultadoDiv.dataset.score = total;
+        resultadoDiv.dataset.scaleName = "Escala PAINAD";
+      }
+
+      function limparCampos() {
+        const selects = document.querySelectorAll("#conteudo select");
+        selects.forEach((select) => {
+          select.selectedIndex = 0;
+          select.classList.remove("incomplete");
+        });
+        resultadoDiv.innerHTML = "";
+        resultadoDiv.className = "verborgen resultaat";
+        delete resultadoDiv.dataset.score;
+        delete resultadoDiv.dataset.scaleName;
+      }
+
+      // Adiciona os event listeners aos botões
+      btnCalcular?.addEventListener("click", calcularPainad);
+      btnLimpar?.addEventListener("click", limparCampos);
+
+      btnGerarPDF?.addEventListener("click", () => {
+        if (!resultadoDiv.dataset.score) {
+          alert(
+            "Klik eerst op \"Score berekenen\" om de PDF te genereren."
+          );
+          return;
+        }
+        if (typeof gerarPDFGlobal === "function") {
+          const selectedOptions = {};
+          document.querySelectorAll("#conteudo select").forEach((select) => {
+            const selected = select.options[select.selectedIndex];
+            if (selected.value !== "") {
+              selectedOptions[select.id] = selected.text;
+            }
+          });
+
+          let contentToPrint = document.
+            querySelector(".main-content-wrapper").
+            cloneNode(true);
+          let contentContainer = contentToPrint.querySelector("#conteudo");
+
+          contentContainer.innerHTML = "";
+
+          painadData.forEach((item) => {
+            let selectedText = selectedOptions[item.nameAttr];
+            if (selectedText) {
+              let itemDiv = document.createElement("div");
+              itemDiv.className = "mb-2 p-2 bg-gray-50 rounded";
+              itemDiv.innerHTML = `<strong>${item.title}:</strong> ${selectedText}`;
+              contentContainer.appendChild(itemDiv);
+            }
+          });
+
+          let resultadoHtml = resultadoDiv.cloneNode(true);
+          if (resultadoHtml.style.display !== "none") {
+            contentContainer.appendChild(resultadoHtml);
+          }
+
+          gerarPDFGlobal({
+            titulo: "Escala PAINAD",
+            subtitulo: "Pijnbeoordelingsrapport bij gevorderde dementie",
+            nomeArquivo: "relatorio_escala_painad.pdf",
+            seletorConteudo: ".main-content-wrapper"
+          });
+        } else {
+          console.error("GeneratePDFGlobal-functie niet gedefinieerd.");
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener("click", () => {
+        const score = resultadoDiv.dataset.score;
+        const scaleName = resultadoDiv.dataset.scaleName;
+        if (!score) {
+          alert("Bereken het resultaat om het gedrag te zoeken.");
+          return;
+        }
+        const recomendacaoRisco =
+          score <= 3 ? "sem dor" : score <= 6 ? "dor moderada" : "dor severa";
+        const searchQuery = encodeURIComponent(
+          `verpleegkundige zorg voor patiënten met dementie en ${recomendacaoRisco} segundo a Escala PAINAD NANDA NIC NOC`
+        );
+        window.open(
+          `https://www.google.com/search?q=${searchQuery}`,
+          "_blank"
+        );
+      });
+    });</script>
 
   <script src="/lang-selector.js" defer=""></script>
 

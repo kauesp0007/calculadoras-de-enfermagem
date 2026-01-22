@@ -758,7 +758,289 @@
 
 
 
-  
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const resultadoDiv = document.getElementById("resultado");
+      const btnCalcular = document.getElementById("btnCalcular");
+      const btnLimpar = document.getElementById("btnLimpar");
+      const btnGerarPDF = document.getElementById("btnGerarPDF");
+      const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
+      const conteudoDiv = document.getElementById("conteudo");
+      const introParagraph = document.getElementById("intro-paragraph");
+      const referenceSection = document.getElementById("reference-section");
+
+      const lawtonData = [
+        {
+          category: "Uso do telefone",
+          nameAttr: "telefone",
+          options: [
+            {
+              description: "Opera o telefone por iniciativa própria",
+              score: 1,
+            },
+            { description: "Marca alguns números familiares", score: 1 },
+            {
+              description: "Atende o telefone, mas não marca números",
+              score: 1,
+            },
+            { description: "Não usa o telefone de forma alguma", score: 0 },
+          ],
+        },
+        {
+          category: "Compras",
+          nameAttr: "compras",
+          options: [
+            {
+              description:
+                "Faz todas as compras necessárias de forma independente",
+              score: 1,
+            },
+            {
+              description: "Faz pequenas compras de forma independente",
+              score: 0,
+            },
+            {
+              description: "Precisa ser acompanhado para qualquer compra",
+              score: 0,
+            },
+            { description: "Incapaz de fazer compras", score: 0 },
+          ],
+        },
+        {
+          category: "Preparo de refeições",
+          nameAttr: "refeicoes",
+          options: [
+            {
+              description: "Planeia, prepara e serve refeições completas",
+              score: 1,
+            },
+            {
+              description:
+                "Prepara refeições se os ingredientes forem fornecidos",
+              score: 0,
+            },
+            { description: "Prepara apenas refeições ligeiras", score: 0 },
+            { description: "Incapaz de preparar refeições", score: 0 },
+          ],
+        },
+        {
+          category: "Cuidado com a casa",
+          nameAttr: "cuidado_casa",
+          options: [
+            {
+              description: "Mantém a casa sozinha ou com ajuda ocasional",
+              score: 1,
+            },
+            { description: "Realiza apenas tarefas leves", score: 1 },
+            {
+              description:
+                "Não participa ativamente nos trabalhos domésticos",
+              score: 0,
+            },
+            {
+              description: "Precisa de ajuda total para o cuidado da casa",
+              score: 0,
+            },
+          ],
+        },
+        {
+          category: "Lavagem de roupa",
+          nameAttr: "lavagem_roupa",
+          options: [
+            {
+              description: "Lava a própria roupa de forma independente",
+              score: 1,
+            },
+            { description: "Lava apenas pequenas peças de roupa", score: 1 },
+            {
+              description: "Precisa que a roupa seja lavada por outra pessoa",
+              score: 0,
+            },
+          ],
+        },
+        {
+          category: "Locomoção/Uso de transporte",
+          nameAttr: "locomocao",
+          options: [
+            {
+              description:
+                "Viaja de forma independente em transporte público ou conduz o próprio carro",
+              score: 1,
+            },
+            {
+              description:
+                "Usa táxi ou transporte público com ajuda de outra pessoa",
+              score: 1,
+            },
+            {
+              description:
+                "Viaja apenas em carro particular com a ajuda de outra pessoa",
+              score: 1,
+            },
+            { description: "Incapaz de viajar", score: 0 },
+          ],
+        },
+        {
+          category: "Medicação",
+          nameAttr: "medicao",
+          options: [
+            { description: "É responsável por sua medicação", score: 1 },
+            {
+              description:
+                "Apenas toma os medicamentos quando os preparam para ele",
+              score: 0,
+            },
+            { description: "Incapaz de tomar medicamentos", score: 0 },
+          ],
+        },
+        {
+          category: "Finanças/Administração do dinheiro",
+          nameAttr: "financas",
+          options: [
+            {
+              description:
+                "Gere as finanças de forma independente (bancos, contas, etc.)",
+              score: 1,
+            },
+            {
+              description:
+                "Gere pequenas compras, mas precisa de ajuda com bancos",
+              score: 1,
+            },
+            { description: "Incapaz de gerir o dinheiro", score: 0 },
+          ],
+        },
+      ];
+
+      // Preenche o formulário dinamicamente
+      lawtonData.forEach((item) => {
+        const sectionDiv = document.createElement("div");
+        sectionDiv.className = "lawton-criterion-section";
+        sectionDiv.id = `section-${item.nameAttr}`;
+
+        const titleH3 = document.createElement("h3");
+        titleH3.className = "lawton-criterion-title";
+        titleH3.innerHTML = item.category;
+        sectionDiv.appendChild(titleH3);
+
+        const selectElement = document.createElement("select");
+        selectElement.id = item.nameAttr;
+        selectElement.className = "lawton-criterion-select";
+
+        const defaultOption = document.createElement("option");
+        defaultOption.value = "";
+        defaultOption.text = "Selecione...";
+        selectElement.appendChild(defaultOption);
+
+        item.options.forEach((option) => {
+          const optionElement = document.createElement("option");
+          optionElement.value = option.score;
+          optionElement.text = `${option.description} (pontos: ${option.score})`;
+          selectElement.appendChild(optionElement);
+        });
+
+        sectionDiv.appendChild(selectElement);
+        conteudoDiv.appendChild(sectionDiv);
+      });
+
+      function calcularLawton() {
+        const selects = document.querySelectorAll("#conteudo select");
+        let allSelected = true;
+        let total = 0;
+
+        selects.forEach((select) => {
+          if (select.value === "") {
+            allSelected = false;
+            select.classList.add("incomplete");
+          } else {
+            select.classList.remove("incomplete");
+            total += Number(select.value);
+          }
+        });
+
+        resultadoDiv.style.display = "block";
+        if (!allSelected) {
+          resultadoDiv.innerHTML =
+            '⚠️ <strong class="font-bold">Por favor, selecione uma opção para todos os itens antes de calcular.</strong>';
+          resultadoDiv.classList.add("bg-red-100");
+          delete resultadoDiv.dataset.score;
+          return;
+        }
+
+        let recomendacao = "";
+        let resultadoClasse = "bg-blue-50";
+
+        if (total < 8) {
+          recomendacao =
+            "O escore sugere um grau de dependência para a realização das atividades instrumentais da vida diária (AIVDs). É recomendada uma avaliação mais aprofundada para determinar as necessidades de assistência.";
+        } else {
+          recomendacao =
+            "O escore sugere um grau de independência para a realização da maioria das atividades instrumentais da vida diária (AIVDs).";
+        }
+
+        resultadoDiv.innerHTML = `
+                <p>Escore total: <strong class="font-bold">${total}</strong></p>
+                <p class="mt-4"><strong>Recomendação:</strong> ${recomendacao}</p>
+            `;
+        resultadoDiv.className = `resultado ${resultadoClasse}`;
+        resultadoDiv.style.display = "block";
+
+        resultadoDiv.dataset.score = total;
+        resultadoDiv.dataset.scaleName = "Escala de Lawton";
+      }
+
+      function limparCampos() {
+        const selects = document.querySelectorAll("#conteudo select");
+        selects.forEach((select) => {
+          select.selectedIndex = 0;
+          select.classList.remove("incomplete");
+        });
+        resultadoDiv.innerHTML = "";
+        resultadoDiv.className = "resultado hidden";
+        delete resultadoDiv.dataset.score;
+        delete resultadoDiv.dataset.scaleName;
+      }
+
+      // Adiciona os event listeners aos botões
+      btnCalcular?.addEventListener("click", calcularLawton);
+      btnLimpar?.addEventListener("click", limparCampos);
+
+      btnGerarPDF?.addEventListener("click", () => {
+        if (!resultadoDiv.dataset.score) {
+          alert(
+            'Por favor, clique em "Calcular Escore" primeiro para gerar o PDF.',
+          );
+          return;
+        }
+        if (typeof gerarPDFGlobal === "function") {
+          gerarPDFGlobal({
+            titulo: "Escala de Lawton",
+            subtitulo: "Relatório de Avaliação de AIVDs",
+            nomeArquivo: "relatorio_escala_lawton.pdf",
+            seletorConteudo: ".main-content-wrapper",
+          });
+        } else {
+          console.error("Função gerarPDFGlobal não definida.");
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener("click", () => {
+        const score = resultadoDiv.dataset.score;
+        const scaleName = resultadoDiv.dataset.scaleName;
+        if (!score) {
+          alert("Calcule o resultado para pesquisar a conduta.");
+          return;
+        }
+        const searchQuery = encodeURIComponent(
+          `cuidados enfermagem para independência do idoso ${scaleName} pontuação ${score} NANDA NIC NOC`,
+        );
+        window.open(
+          `https://www.google.com/search?q=${searchQuery}`,
+          "_blank",
+        );
+      });
+    });
+  </script>
 
   <script src="/lang-selector.js" defer=""></script>
 

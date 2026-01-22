@@ -542,7 +542,415 @@
 
 
 
-  
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const resultadoDiv = document.getElementById("resultado");
+      const btnCalcular = document.getElementById("btnCalcular");
+      const btnLimpar = document.getElementById("btnLimpar");
+      const btnGerarPDF = document.getElementById("btnGerarPDF");
+      const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
+      const conteudoDiv = document.getElementById("conteudo");
+
+      const ballardData = [
+        {
+          category: "Dojrzałość nerwowo-mięśniowa",
+          items: [
+            {
+              title: "Postura",
+              nameAttr: "postura",
+              explain:
+                "Ocenia stopień zgięcia kończyn, gdy dziecko jest w spoczynku. Bardziej dojrzałe dzieci mają bardziej zgiętą postawę (zgięte kończyny).",
+              options: [
+                { description: "Całkowita długość", score: -1 },
+                { description: "Lekkie / częściowe zgięcie", score: 0 },
+                { description: "Umiarkowane zginanie", score: 1 },
+                { description: "Dobre gięcie", score: 2 },
+                { description: "Silne zgięcie", score: 3 },
+                { description: "Pełne zgięcie (bardzo dojrzałe)", score: 4 }]
+
+            },
+            {
+              title: "Kwadratowe okno",
+              nameAttr: "square_window",
+              explain:
+                "Ocenia zgięcie nadgarstka, gdy dłoń jest zgięta nad przedramieniem. Mniejszy kąt (dłoń bliżej przedramienia) wskazuje na większą dojrzałość.",
+              options: [
+                { description: "< 90°", score: -1 },
+                { description: " 90°", score: 0 },
+                { description: " 60°", score: 1 },
+                { description: " 45°", score: 2 },
+                { description: " 30°", score: 3 },
+                { description: "0° (bardzo blisko)", score: 4 }]
+
+            },
+            {
+              title: "Odrzut ramienia",
+              nameAttr: "arm_recoil",
+              explain:
+                "Ocenia szybkość i intensywność powrotu ramienia po rozciągnięciu i zwolnieniu. Im szybszy i bardziej energiczny powrót, tym większa dojrzałość nerwowo-mięśniowa.",
+              options: [
+                { description: "Sem retorno", score: 0 },
+                { description: "Retorno lento", score: 1 },
+                { description: "Retorno parcial", score: 2 },
+                { description: "Szybka realizacja", score: 3 },
+                { description: "Retorno completo e vigoroso", score: 4 }]
+
+            },
+            {
+              title: "Kąt podkolanowy",
+              nameAttr: "popliteo",
+              explain:
+                "Ocenia stopień oporu podczas wyprostu kończyny dolnej. Mniejszy kąt (większe zgięcie) wskazuje na większą dojrzałość.",
+              options: [
+                { description: "180°", score: -1 },
+                { description: "160°", score: 0 },
+                { description: "140°", score: 1 },
+                { description: "120°", score: 2 },
+                { description: "100°", score: 3 },
+                { description: "90°", score: 4 },
+                { description: "< 90°", score: 5 }]
+
+            },
+            {
+              title: "Znak szalika",
+              nameAttr: "scarf",
+              explain:
+                "Przeciągając ramię przez klatkę piersiową, można zobaczyć, gdzie łokieć przecina linię środkową ciała. Im niżej, tym większa dojrzałość.",
+              options: [
+                { description: "Łokieć przekracza linię środkową", score: -1 },
+                { description: "Łokieć w linii środkowej", score: 0 },
+                { description: "Łokieć blisko ramienia", score: 1 },
+                { description: "Łokieć nie uderza w bark", score: 2 },
+                { description: "Cotovelo muito distante do ombro", score: 3 }]
+
+            },
+            {
+              title: "Calcanhar → Orelha (Heel to Ear)",
+              nameAttr: "heel_to_ear",
+              explain:
+                "Kiedy zbliżasz piętę do ucha, widzisz opór. Większy opór = większa dojrzałość.",
+              options: [
+                { description: "Stopa łatwo dociera do ucha", score: -1 },
+                { description: "Stopa w pobliżu ucha", score: 0 },
+                { description: "Umiarkowana odporność", score: 1 },
+                { description: "Dobra odporność", score: 2 },
+                { description: "Stopa z dala od ucha", score: 3 },
+                { description: "Silna odporność (bardzo dojrzała)", score: 4 }]
+
+            }]
+
+        },
+        {
+          category: "Dojrzałość fizyczna",
+          items: [
+            {
+              title: "Pele",
+              nameAttr: "pele",
+              explain:
+                "Ocenia teksturę skóry: od cienkiej i przezroczystej u wcześniaków do grubej, suchej i popękanej u dzieci po porodzie.",
+              options: [
+                {
+                  description: "Lepki, półprzezroczysty (bardzo niedojrzały)",
+                  score: -1
+                },
+                { description: "Gelatinosa / fina", score: 0 },
+                { description: "jednorodne i widoczne żyły", score: 1 },
+                { description: "Mais espessa, poucas fissuras", score: 2 },
+                { description: "Espessa, rachada", score: 3 },
+                {
+                  description:
+                    "Gruba, sucha z głębokimi pęknięciami (po terminie)",
+                  score: 4
+                }]
+
+            },
+            {
+              title: "Lanugo",
+              nameAttr: "lanugo",
+              explain:
+                "Ocenia obecność i rozmieszczenie lanugo (cienkich włosków). U wcześniaków są one obfite; u bardziej dojrzałych dzieci mają tendencję do zmniejszania się i zanikania.",
+              options: [
+                { description: "Nieobecny (bardzo po terminie)", score: -1 },
+                { description: "Escasso", score: 0 },
+                { description: "Abundante", score: 1 },
+                {
+                  description: "Cienki (charakterystyczny dla wcześniactwa)",
+                  score: 2
+                },
+                { description: "Obszary pozbawione włosów", score: 3 },
+                {
+                  description: "Praticamente ausente (muito imaturo)",
+                  score: 4
+                }]
+
+            },
+            {
+              title: "Pregas Plantares",
+              nameAttr: "plantares",
+              explain:
+                "Ocenia fałdy na podeszwie stopy: wcześniaki mają niewiele fałdów; dojrzałe dzieci mają głębokie fałdy pokrywające całą podeszwę.",
+              options: [
+                { description: "Ausentes / muito rasas", score: -1 },
+                { description: "Marcas na parte anterior", score: 0 },
+                { description: "Do połowy rośliny", score: 1 },
+                { description: "Do 2/3", score: 2 },
+                { description: "Pregas em toda a planta", score: 3 },
+                { description: "Pregas profundas e pronunciadas", score: 4 }]
+
+            },
+            {
+              title: "Mamas",
+              nameAttr: "mamas",
+              explain:
+                "Obserwuje się wielkość gruczołu piersiowego i otoczki. U bardziej dojrzałych dzieci gruczoł i otoczka są większe i bardziej wypukłe.",
+              options: [
+                { description: "Niezauważalny", score: -1 },
+                { description: "Niezbyt widoczne", score: 0 },
+                { description: "Płaska otoczka, mały pączek", score: 1 },
+                {
+                  description:
+                    "Częściowo uniesiona otoczka 1-2 mm gruczołu",
+                  score: 2
+                },
+                {
+                  description: "Otoczka z uniesioną krawędzią 3-4 mm gruczołu",
+                  score: 3
+                },
+                {
+                  description: "podniesiona krawędź 5-10 mm dławnicy",
+                  score: 4
+                }]
+
+            },
+            {
+              title: "Olhos e Orelhas",
+              nameAttr: "olhos_orelhas",
+              explain:
+                "Ocenia jędrność chrząstki ucha i kształt powiek. Jędrniejsze uszy i dobrze uformowana powieka wskazują na większą dojrzałość.",
+              options: [
+                {
+                  description: "Miękka chrząstka / zrośnięte powieki",
+                  score: -1
+                },
+                { description: "Alguma firmeza", score: 0 },
+                { description: "Firmeza moderada", score: 1 },
+                { description: "Boa firmeza", score: 2 },
+                { description: "Firmeza completa", score: 3 }]
+
+            },
+            {
+              title: "Genitalia",
+              nameAttr: "genitalia",
+              explain:
+                "Ocenia rozwój narządów płciowych: u chłopców obserwuje się położenie i szorstkość moszny / u dziewcząt widoczność łechtaczki i rozmiar warg sromowych. Wskazuje dojrzałość płciową/neonatalną.",
+              options: [
+                {
+                  description:
+                    "Mężczyzna: niezstąpione jądra; Kobieta: płaskie wargi sromowe",
+                  score: -1
+                },
+                {
+                  description:
+                    "Mężczyzna: częściowo opadnięte; Kobieta: wargi sromowe mniejsze",
+                  score: 0
+                },
+                {
+                  description:
+                    "Mężczyzna: jądra w woreczku; Kobieta: widoczne wargi sromowe mniejsze",
+                  score: 1
+                },
+                {
+                  description:
+                    "Mężczyzna: szorstka moszna; Kobieta: jednakowo wydatne wargi sromowe mniejsze i większe",
+                  score: 2
+                },
+                { description: "W pełni dojrzałe genitalia", score: 3 }]
+
+            }]
+
+        }];
+
+
+      // Preenche o formulário dinamicamente
+      ballardData.forEach((section) => {
+        const sectionDiv = document.createElement("div");
+        sectionDiv.className = "ballard-criterion-section";
+
+        const titleH3 = document.createElement("h3");
+        titleH3.className = "ballard-criterion-title";
+        titleH3.innerText = section.category;
+        sectionDiv.appendChild(titleH3);
+
+        const groupDiv = document.createElement("div");
+        groupDiv.className = "ballard-criterion-group";
+
+        section.items.forEach((item) => {
+          const itemDiv = document.createElement("div");
+          itemDiv.id = `item-${item.nameAttr}`;
+          itemDiv.className = "ballard-criterion-item";
+
+          const itemTitle = document.createElement("h4");
+          itemTitle.className = "ballard-item-title";
+          itemTitle.innerText = item.title;
+          itemDiv.appendChild(itemTitle);
+
+          const itemExplain = document.createElement("p");
+          itemExplain.className = "ballard-item-explain";
+          itemExplain.innerText = item.explain;
+          itemDiv.appendChild(itemExplain);
+
+          item.options.forEach((option) => {
+            const optionDiv = document.createElement("div");
+            optionDiv.className = "ballard-criterion-option";
+
+            const radioInput = document.createElement("input");
+            radioInput.type = "radio";
+            radioInput.name = item.nameAttr;
+            radioInput.value = option.score;
+            radioInput.id = `${item.nameAttr}_${option.score}`;
+
+            const label = document.createElement("label");
+            label.htmlFor = radioInput.id;
+            label.innerText = `${option.description} (${option.score})`;
+
+            optionDiv.appendChild(radioInput);
+            optionDiv.appendChild(label);
+            itemDiv.appendChild(optionDiv);
+          });
+
+          groupDiv.appendChild(itemDiv);
+        });
+
+        sectionDiv.appendChild(groupDiv);
+        conteudoDiv.appendChild(sectionDiv);
+      });
+
+      // Lógica de cálculo e botões
+      const criteriaNames = ballardData.flatMap((s) =>
+        s.items.map((i) => i.nameAttr)
+      );
+
+      function calcularBallard() {
+        let allSelected = true;
+        let total = 0;
+        document.
+          querySelectorAll(".ballard-criterion-item").
+          forEach((el) => el.classList.remove("incomplete"));
+
+        criteriaNames.forEach((name) => {
+          const selected = document.querySelector(
+            `input[name="${name}"]:checked`
+          );
+          if (!selected) {
+            allSelected = false;
+            document.
+              getElementById(`item-${name}`).
+              classList.add("incomplete");
+          } else {
+            total += Number(selected.value);
+          }
+        });
+
+        resultadoDiv.style.display = "block";
+        if (!allSelected) {
+          resultadoDiv.innerHTML =
+            '⚠️ <strong class="font-bold">Por favor, selecione uma opção para todos os itens destacados antes de calcular.</strong>';
+          resultadoDiv.classList.add("bg-red-100");
+          resultadoDiv.classList.remove("bg-blue-50");
+          delete resultadoDiv.dataset.score;
+          return;
+        }
+
+        const semanasFloat = 20 + total * 0.4;
+        const semanas = Math.floor(semanasFloat);
+        const dias = Math.round((semanasFloat - semanas) * 7);
+
+        let classificacao = "";
+        if (semanas < 37) classificacao = "Przedwczesny"; else
+          if (semanas >= 37 && semanas < 42) classificacao = "A termo"; else
+            classificacao = "Po terminie";
+
+        let conduta = "";
+        if (classificacao === "Przedwczesny") {
+          conduta =
+            "Monitorować termoregulację, glikemię i objawy niewydolności oddechowej. W razie potrzeby rozważyć wsparcie wentylacyjne i opiekę na oddziale noworodkowym.";
+        } else if (classificacao === "A termo") {
+          conduta =
+            "Rutynowa opieka nad noworodkiem; obserwacja karmienia piersią i parametrów życiowych. Ocena potrzeb w zakresie badań przesiewowych noworodków.";
+        } else {
+          conduta =
+            "Ocenić oznaki niedojrzałości (skóra, glikemia, termoregulacja), obserwować ryzyko niedotlenienia i zdolności adaptacyjne noworodków.";
+        }
+
+        resultadoDiv.innerHTML = `
+              <p>Escore total: <strong class="font-bold">${total}</strong></p>
+              <p>Idade gestacional estimada: <strong class="font-bold">${semanas} semanas e ${dias} dias</strong></p>
+              <p>Classificação: <strong class="font-bold">${classificacao}</strong></p>
+              <p class="mt-4"><strong>Conduta sugerida:</strong> ${conduta}</p>
+            `;
+        resultadoDiv.className = `Wynik bg-blue-50`;
+        resultadoDiv.style.display = "block";
+
+        resultadoDiv.dataset.score = total;
+        resultadoDiv.dataset.scaleName = "Escala de Ballard";
+        resultadoDiv.dataset.classificacao = classificacao;
+      }
+
+      function limparCampos() {
+        criteriaNames.forEach((name) => {
+          document.
+            querySelectorAll(`input[name="${name}"]`).
+            forEach((input) => input.checked = false);
+        });
+        resultadoDiv.innerHTML = "";
+        resultadoDiv.className = "ukryty wynik";
+        delete resultadoDiv.dataset.score;
+        delete resultadoDiv.dataset.scaleName;
+        delete resultadoDiv.dataset.classificacao;
+        document.
+          querySelectorAll(".ballard-criterion-item").
+          forEach((el) => el.classList.remove("incomplete"));
+      }
+
+      btnCalcular?.addEventListener("click", calcularBallard);
+      btnLimpar?.addEventListener("click", limparCampos);
+
+      btnGerarPDF?.addEventListener("click", () => {
+        if (!resultadoDiv.dataset.score) {
+          alert(
+            "Kliknij najpierw \"Oblicz wynik\", aby wygenerować plik PDF."
+          );
+          return;
+        }
+        if (typeof gerarPDFGlobal === "function") {
+          gerarPDFGlobal({
+            titulo: "Escala de Ballard",
+            subtitulo: "Raport dotyczący wieku ciążowego",
+            nomeArquivo: "relatorio_escala_ballard.pdf",
+            seletorConteudo: ".main-content-wrapper"
+          });
+        } else {
+          console.error("Funkcja GeneratePDFGlobal nie została zdefiniowana.");
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener("click", () => {
+        const score = resultadoDiv.dataset.score;
+        const scaleName = resultadoDiv.dataset.scaleName;
+        const classificacao = resultadoDiv.dataset.classificacao;
+        if (!score || !classificacao) {
+          alert("Oblicz wynik, aby wyszukać zachowanie.");
+          return;
+        }
+        const searchQuery = encodeURIComponent(
+          `opieka pielęgniarska nad noworodkiem ${classificacao} Ballard NANDA NIC NOC`
+        );
+        window.open(
+          `https://www.google.com/search?q=${searchQuery}`,
+          "_blank"
+        );
+      });
+    });</script>
 
   <script src="/lang-selector.js" defer=""></script>
 

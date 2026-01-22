@@ -634,7 +634,111 @@
 
 
 
-  
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const resultadoDiv = document.getElementById('resultado');
+      const btnCalcular = document.getElementById('btnCalcular');
+      const btnLimpar = document.getElementById('btnLimpar');
+      const btnGerarPDF = document.getElementById('btnGerarPDF');
+      const btnNandaNicNoc = document.getElementById('btnNandaNicNoc');
+
+      function calcolaIMC() {
+        const peso = parseFloat(document.getElementById('peso').value);
+        const altezza = parseFloat(document.getElementById('altezza').value);
+
+        resultadoDiv.innerHTML = '';
+        resultadoDiv.className = 'resultado-quadro hidden';
+
+        if (isNaN(peso) || isNaN(altezza) || peso <= 0 || altezza <= 0) {
+          resultadoDiv.innerHTML = `<p class="text-red-600">⚠️ <strong>Per favore, inserisci valori numerici validi e maggiori di zero per peso e altezza.</strong></p>`;
+          resultadoDiv.classList.remove('hidden');
+          resultadoDiv.classList.add('bg-danger-red');
+          return;
+        }
+
+        const imc = peso / (altezza * altezza);
+        let classificazione = '';
+        let condotta = '';
+        let bgClasse = '';
+
+        if (imc < 18.5) {
+          classificazione = 'Sottopeso';
+          condotta = 'Rischio di malnutrizione. Si raccomanda una valutazione e un follow-up nutrizionale.';
+          bgClasse = 'bg-danger-red';
+        } else if (imc < 25) {
+          classificazione = 'Normopeso';
+          condotta = 'Mantenere uno stile di vita sano. Buono stato nutrizionale.';
+          bgClasse = 'bg-success-green';
+        } else if (imc < 30) {
+          classificazione = 'Sovrappeso';
+          condotta = 'Attenzione a cambiamenti nello stile di vita e nell\'alimentazione. Può essere indicata una valutazione nutrizionale.';
+          bgClasse = 'bg-info-orange-light';
+        } else {
+          condotta = 'Intervento urgente e follow-up multidisciplinare. Alto rischio di comorbidità gravi.';
+          bgClasse = 'bg-danger-red';
+          if (imc < 35) classificazione = 'Obesità di Grado I';
+          else if (imc < 40) classificazione = 'Obesità di Grado II';
+          else classificazione = 'Obesità di Grado III (Morbida)';
+        }
+
+        resultadoDiv.innerHTML = `
+                    <table class="w-full">
+                        <tbody>
+                            <tr><td class="font-bold pr-2">IMC calcolato:</td><td>${imc.toFixed(2)} <abbr title="chilogrammi per metro quadro">kg/m²</abbr></td></tr>
+                            <tr><td class="font-bold pr-2">Classificazione:</td><td>${classificazione}</td></tr>
+                            <tr><td class="font-bold pr-2">Approccio infermieristico:</td><td>${condotta}</td></tr>
+                        </tbody>
+                    </table>`;
+        resultadoDiv.classList.remove('hidden');
+        resultadoDiv.classList.add(bgClasse);
+
+        resultadoDiv.dataset.imc = imc.toFixed(2);
+        resultadoDiv.dataset.classificazione = classificazione;
+        resultadoDiv.dataset.condotta = condotta;
+      }
+
+      function pulisciCampi() {
+        document.getElementById('peso').value = '';
+        document.getElementById('altezza').value = '';
+        resultadoDiv.innerHTML = '';
+        resultadoDiv.className = 'resultado-quadro hidden';
+        delete resultadoDiv.dataset.imc;
+        delete resultadoDiv.dataset.classificazione;
+        delete resultadoDiv.dataset.condotta;
+      }
+
+      btnCalcular?.addEventListener('click', calcolaIMC);
+      btnLimpar?.addEventListener('click', pulisciCampi);
+
+      btnGerarPDF?.addEventListener('click', () => {
+        if (!resultadoDiv.dataset.imc) {
+          alert('Per favore, calcola l\'IMC prima di generare il PDF.');
+          return;
+        }
+        if (typeof gerarPDFGlobal === 'function') {
+          gerarPDFGlobal({
+            titulo: 'Calcolatore di Indice di Massa Corporea',
+            subtitulo: 'Rapporto di Valutazione dell\'IMC',
+            nomeArquivo: 'rapporto_imc.pdf',
+            seletorConteudo: '.main-content-wrapper'
+          });
+        } else {
+          console.error('Funzione gerarPDFGlobal non definita.');
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener('click', () => {
+        const imc = resultadoDiv.dataset.imc;
+        const classificazione = resultadoDiv.dataset.classificazione;
+        if (!imc) {
+          alert('Calcola il risultato per cercare la condotta.');
+          return;
+        }
+        const searchQuery = encodeURIComponent(`IMC: ${imc}, Classificazione: ${classificazione} - generare diagnosi infermieristiche NANDA, interventi NIC e risultati NOC`);
+        window.open(`https://www.google.com/search?q=${searchQuery}`, '_blank');
+      });
+    });
+  </script>
 
 
 

@@ -642,7 +642,122 @@
 
 
 
-  
+  <script>
+    // Referensi ke elemen DOM
+    const resultadoDiv = document.getElementById('resultado');
+    const btnCalcular = document.getElementById('btnCalcular');
+    const btnLimpar = document.getElementById('btnLimpar');
+    const btnGerarPDF = document.getElementById('btnGerarPDF');
+    const btnNandaNicNoc = document.getElementById('btnNandaNicNoc');
+
+    // Fungsi untuk memperbarui skor yang ditampilkan dan menghitung ulang total Glasgow
+    function updateScoreAndCalculate(criterionName) {
+      const selectElement = document.getElementById(`${criterionName}_select`);
+      const scoreDisplayElement = document.getElementById(`${criterionName}_score_display`);
+
+      if (selectElement && scoreDisplayElement) {
+        scoreDisplayElement.innerText = selectElement.value;
+      }
+      calcularEscala();
+    }
+
+    // Fungsi untuk menghitung skor total Glasgow
+    function calcularEscala() {
+      const ocular = parseInt(document.getElementById("ocular_select").value);
+      const verbal = parseInt(document.getElementById("verbal_select").value);
+      const motora = parseInt(document.getElementById("motora_select").value);
+      const pupilar = parseInt(document.getElementById("pupilar_select").value);
+      const total = ocular + verbal + motora + pupilar;
+      let interpretacao = "";
+      let isRisky = false;
+
+      if (total >= 13) {
+        interpretacao = "Tingkat kesadaran: Ringan";
+      } else if (total >= 9) {
+        interpretacao = "Tingkat kesadaran: Sedang";
+        isRisky = true;
+      } else {
+        interpretacao = "Tingkat kesadaran: Berat";
+        isRisky = true;
+      }
+
+      const resultadoDiv = document.getElementById("resultado");
+      resultadoDiv.innerHTML = `<p><strong>Skor Total:</strong> <span class="font-bold">${total}</span> poin</p><p><strong>${interpretacao}</strong></p>`;
+      resultadoDiv.style.display = "block";
+
+      if (isRisky) {
+        resultadoDiv.classList.add('text-red-600', 'bg-red-100');
+        resultadoDiv.classList.remove('text-dark-blue', 'bg-blue-50');
+      } else {
+        resultadoDiv.classList.remove('text-red-600', 'bg-red-100');
+        resultadoDiv.classList.add('text-dark-blue', 'bg-blue-50');
+      }
+      resultadoDiv.dataset.score = total;
+      resultadoDiv.dataset.interpretacao = interpretacao;
+      resultadoDiv.dataset.scaleName = "Skala Koma Glasgow";
+    }
+
+    // Fungsi untuk membersihkan semua kolom dan hasil
+    function limparCampos() {
+      document.getElementById('ocular_select').selectedIndex = 0;
+      document.getElementById('verbal_select').selectedIndex = 0;
+      document.getElementById('motora_select').selectedIndex = 0;
+      document.getElementById('pupilar_select').selectedIndex = 0;
+
+      document.getElementById('ocular_score_display').innerText = document.getElementById('ocular_select').value;
+      document.getElementById('verbal_score_display').innerText = document.getElementById('verbal_select').value;
+      document.getElementById('motora_score_display').innerText = document.getElementById('motora_select').value;
+      document.getElementById('pupilar_score_display').innerText = document.getElementById('pupilar_select').value;
+
+      const resultadoDiv = document.getElementById('resultado');
+      resultadoDiv.innerHTML = '';
+      resultadoDiv.className = 'resultado hidden';
+      delete resultadoDiv.dataset.score;
+      delete resultadoDiv.dataset.interpretacao;
+      delete resultadoDiv.dataset.scaleName;
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      // Menambahkan event ke tombol
+      btnCalcular?.addEventListener('click', calcularEscala);
+      btnLimpar?.addEventListener('click', limparCampos);
+      btnGerarPDF?.addEventListener('click', () => {
+        if (!resultadoDiv.dataset.score) {
+          alert('Silakan klik "Hitung Skor" terlebih dahulu untuk membuat PDF.');
+          return;
+        }
+        if (typeof gerarPDFGlobal === 'function') {
+          const mainContent = document.querySelector('.main-content-wrapper');
+          gerarPDFGlobal({
+            titulo: 'Skala Koma Glasgow',
+            subtitulo: 'Laporan Evaluasi Tingkat Kesadaran',
+            nomeArquivo: 'laporan_skala_glasgow.pdf',
+            seletorConteudo: '.main-content-wrapper'
+          });
+        } else {
+          console.error('Fungsi gerarPDFGlobal tidak didefinisikan.');
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener('click', () => {
+        const score = resultadoDiv.dataset.score;
+        const scaleName = resultadoDiv.dataset.scaleName;
+        const interpretacao = resultadoDiv.dataset.interpretacao;
+        if (!score || !interpretacao) {
+          alert('Hitung hasilnya untuk mencari tindakan.');
+          return;
+        }
+        const searchQuery = encodeURIComponent(`${scaleName} skor ${score} membuat taksonomi NANDA, membuat taksonomi NIC dan membuat taksonomi NOC`);
+        window.open(`https://www.google.com/search?q=${searchQuery}`, '_blank');
+      });
+
+      // Menginisialisasi skor dan menghitung total saat memuat halaman
+      updateScoreAndCalculate('ocular');
+      updateScoreAndCalculate('verbal');
+      updateScoreAndCalculate('motora');
+      updateScoreAndCalculate('pupilar');
+    });
+  </script>
 
 
 

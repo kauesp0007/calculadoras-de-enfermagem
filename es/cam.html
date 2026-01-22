@@ -596,7 +596,123 @@
 
 
 
-  
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const resultadoDiv = document.getElementById('resultado');
+      const conteudoDiv = document.getElementById('conteudo');
+      const btnCalcular = document.getElementById('btnCalcular');
+      const btnLimpar = document.getElementById('btnLimpar');
+      const btnGerarPDF = document.getElementById('btnGerarPDF');
+      const btnNandaNicNoc = document.getElementById('btnNandaNicNoc');
+
+      const camData = [
+        { id: "feature1", title: "1. Inicio Agudo y Curso Fluctuante", description: "¿Ha habido un cambio repentino en el estado mental y ha fluctuado en las últimas 24h?", options: [{ score: 1, text: "Sí" }, { score: 0, text: "No" }] },
+        { id: "feature2", title: "2. Falta de Atención", description: "¿El paciente tiene dificultad para mantener la atención?", options: [{ score: 1, text: "Sí (con falta de atención)" }, { score: 0, text: "No (sin falta de atención)" }] },
+        { id: "feature3", title: "3. Pensamiento Desorganizado", description: "¿El paciente presenta razonamiento desorganizado o incoherente?", options: [{ score: 1, text: "Sí" }, { score: 0, text: "No" }] },
+        { id: "feature4", title: "4. Nivel de Conciencia Alterado", description: "¿El nivel de conciencia es diferente a 'alerta y tranquilo' (RASS ≠ 0)?", options: [{ score: 1, text: "Sí (alterado)" }, { score: 0, text: "No (normal/alerta)" }] }
+      ];
+
+      function createForm() {
+        conteudoDiv.innerHTML = '';
+        camData.forEach(criterion => {
+          const card = document.createElement('div');
+          card.className = 'criterion-card';
+
+          card.innerHTML = `
+                    <div class="criterion-title-container">
+                        <h3 class="criterion-title">${criterion.title}</h3>
+                        <p class="criterion-description">${criterion.description}</p>
+                    </div>
+                    <div class="options-container">
+                        <select id="${criterion.id}-select" class="custom-select">
+                            <option value="" disabled selected>Seleccione una opción...</option>
+                            ${criterion.options.map(opt => `<option value="${opt.score}">${opt.text}</option>`).join('')}
+                        </select>
+                    </div>
+                `;
+          conteudoDiv.appendChild(card);
+        });
+      }
+
+      function calcular() {
+        let allSelected = true;
+        const selections = {};
+
+        camData.forEach(criterion => {
+          const select = document.getElementById(`${criterion.id}-select`);
+          if (select && select.value) {
+            selections[criterion.id] = parseInt(select.value, 10);
+          } else {
+            allSelected = false;
+          }
+        });
+
+        if (!allSelected) {
+          resultadoDiv.innerHTML = '⚠️ <strong class="font-bold">Por favor, seleccione una opción para cada criterio.</strong>';
+          resultadoDiv.className = 'standard-result-box bg-info-orange-light';
+          resultadoDiv.style.display = 'block';
+          delete resultadoDiv.dataset.resultado;
+          return;
+        }
+
+        const feature1 = selections.feature1 === 1;
+        const feature2 = selections.feature2 === 1;
+        const feature3 = selections.feature3 === 1;
+        const feature4 = selections.feature4 === 1;
+
+        let resultadoFinal = "";
+        if (feature1 && feature2 && (feature3 || feature4)) {
+          resultadoFinal = "Delirio Presente";
+        } else {
+          resultadoFinal = "Delirio Ausente";
+        }
+
+        resultadoDiv.innerHTML = `<p class="font-bold text-lg">Resultado: <span class="font-black">${resultadoFinal}</span></p>`;
+        resultadoDiv.className = 'standard-result-box';
+        resultadoDiv.style.display = 'block';
+        resultadoDiv.dataset.resultado = resultadoFinal;
+      }
+
+      function limpar() {
+        createForm();
+        resultadoDiv.innerHTML = '';
+        resultadoDiv.className = 'hidden';
+        delete resultadoDiv.dataset.resultado;
+      }
+
+      createForm();
+      btnCalcular?.addEventListener('click', calcular);
+      btnLimpar?.addEventListener('click', limpar);
+
+      btnGerarPDF?.addEventListener('click', () => {
+        const resultadoFinal = resultadoDiv.dataset.resultado;
+        if (!resultadoFinal) {
+          alert('Por favor, haga clic en "Calcular" primero para generar el PDF.');
+          return;
+        }
+        if (typeof gerarPDFGlobal === 'function') {
+          gerarPDFGlobal({
+            titulo: 'Escala de CAM-ICU',
+            subtitulo: 'Informe de Evaluación de Delirio en UCI',
+            nomeArquivo: 'informe_cam_icu.pdf',
+            seletorConteudo: '.main-content-wrapper'
+          });
+        } else {
+          console.error('La función gerarPDFGlobal no está definida.');
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener('click', () => {
+        const resultadoFinal = resultadoDiv.dataset.resultado;
+        if (!resultadoFinal) {
+          alert('Calcule el resultado para buscar la conducta.');
+          return;
+        }
+        const searchQuery = encodeURIComponent(`cuidados de enfermería para paciente con ${resultadoFinal.toLowerCase()} según CAM-ICU NANDA NIC NOC`);
+        window.open(`https://www.google.com/search?q=${searchQuery}`, '_blank');
+      });
+    });
+  </script>
 
 
 

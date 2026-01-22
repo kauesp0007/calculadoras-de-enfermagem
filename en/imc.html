@@ -680,7 +680,146 @@
 
 
     <!-- Page-specific script -->
-    
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const resultadoDiv = document.getElementById('resultado');
+            const btnCalcular = document.getElementById('btnCalcular');
+            const btnLimpar = document.getElementById('btnLimpar');
+            const btnGerarPDF = document.getElementById('btnGerarPDF');
+            const btnNandaNicNoc = document.getElementById('btnNandaNicNoc');
+
+            function calcularIMC() {
+                const peso = parseFloat(document.getElementById('peso').value);
+                const altura = parseFloat(document.getElementById('altura').value);
+
+                // Clear content and remove result classes
+                resultadoDiv.innerHTML = '';
+                resultadoDiv.className = 'resultado-quadro hidden';
+
+                // Input validation
+                if (isNaN(peso) || isNaN(altura) || peso <= 0 || altura <= 0) {
+                    resultadoDiv.innerHTML = `<p>⚠️ <strong class="text-red-600">Please enter valid numeric values greater than zero for weight and height.</strong></p>`;
+                    resultadoDiv.classList.remove('hidden');
+                    resultadoDiv.classList.add('bg-danger-red');
+                    return;
+                }
+
+                const imc = peso / (altura * altura);
+                let classificacao = '';
+                let conduta = '';
+                let resultadoBgClass = '';
+
+                if (imc < 18.5) {
+                    classificacao = 'Underweight';
+                    conduta = 'Risk of malnutrition. Nutritional assessment and monitoring are recommended.';
+                    resultadoBgClass = 'bg-danger-red';
+                } else if (imc >= 18.5 && imc < 24.9) {
+                    classificacao = 'Normal weight';
+                    conduta = 'Maintain healthy lifestyle habits. Good nutritional status.';
+                    resultadoBgClass = 'bg-success-green';
+                } else if (imc >= 25 && imc < 29.9) {
+                    classificacao = 'Overweight';
+                    conduta = 'Attention to lifestyle and dietary changes. Nutritional assessment may be indicated.';
+                    resultadoBgClass = 'bg-info-orange-light';
+                } else { // Obesity
+                    conduta = 'Urgent intervention and multidisciplinary follow-up. High risk for serious comorbidities.';
+                    resultadoBgClass = 'bg-danger-red';
+
+                    if (imc >= 30 && imc < 34.9) {
+                        classificacao = 'Obesity Class I';
+                    } else if (imc >= 35 && imc < 39.9) {
+                        classificacao = 'Obesity Class II';
+                    } else {
+                        classificacao = 'Obesity Class III (Morbid)';
+                    }
+                }
+
+                // Display formatted result
+                resultadoDiv.innerHTML = `
+                    <table class="w-full">
+                        <tbody>
+                            <tr>
+                                <td class="font-bold pr-2">Calculated BMI:</td>
+                                <td>${imc.toFixed(2)} <abbr title="kilograms per square meter">kg/m²</abbr></td>
+                            </tr>
+                            <tr>
+                                <td class="font-bold pr-2">Classification:</td>
+                                <td>${classificacao}</td>
+                            </tr>
+                            <tr>
+                                <td class="font-bold pr-2">Nursing Guidance:</td>
+                                <td>${conduta}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                `;
+                resultadoDiv.classList.remove('hidden');
+                resultadoDiv.classList.add(resultadoBgClass);
+
+                // Store values and details for PDF generation and NANDA
+                resultadoDiv.dataset.imc = imc.toFixed(2);
+                resultadoDiv.dataset.classificacao = classificacao;
+                resultadoDiv.dataset.conduta = conduta;
+                resultadoDiv.dataset.peso = peso;
+                resultadoDiv.dataset.altura = altura;
+                resultadoDiv.dataset.scaleName = "BMI Calculator";
+            }
+
+            function limparCampos() {
+                document.getElementById('peso').value = '';
+                document.getElementById('altura').value = '';
+                resultadoDiv.innerHTML = '';
+                resultadoDiv.classList.add('hidden');
+                // Clear data attributes
+                delete resultadoDiv.dataset.imc;
+                delete resultadoDiv.dataset.classificacao;
+                delete resultadoDiv.dataset.conduta;
+                delete resultadoDiv.dataset.peso;
+                delete resultadoDiv.dataset.altura;
+                delete resultadoDiv.dataset.scaleName;
+            }
+
+            // Function to generate PDF
+            function gerarPDF() {
+                if (!resultadoDiv.dataset.imc) {
+                    showCustomMessage('Please calculate the BMI before generating the PDF.');
+                    return;
+                }
+                if (typeof gerarPDFGlobal === 'function') {
+                    gerarPDFGlobal({
+                        titulo: 'Body Mass Index Calculator',
+                        subtitulo: 'BMI Assessment Report',
+                        nomeArquivo: 'bmi_report.pdf',
+                        seletorConteudo: '.main-content-wrapper'
+                    });
+                } else {
+                    console.error('Function gerarPDFGlobal not defined.');
+                }
+            }
+
+            // Add event listener for NANDA, NIC, NOC button
+            if (btnNandaNicNoc) {
+                btnNandaNicNoc.addEventListener('click', () => {
+                    const imcValue = resultadoDiv.dataset.imc;
+                    const classificacao = resultadoDiv.dataset.classificacao;
+                    const conduta = resultadoDiv.dataset.conduta;
+                    const scaleName = resultadoDiv.dataset.scaleName;
+
+                    if (!imcValue || !classificacao || !conduta) {
+                        showCustomMessage('Calculate the result to search for guidance.');
+                        return;
+                    }
+                    const searchQuery = encodeURIComponent(`BMI: ${imcValue}, Classification: ${classificacao}, Nursing Guidance: ${conduta} - ${scaleName} GENERATE NANDA nursing diagnoses, GENERATE NIC nursing interventions, Generate an example of outcome measurement implemented by the nurse (NOC)`);
+                    window.open(`https://www.google.com/search?q=${searchQuery}`, '_blank');
+                });
+            }
+
+            // Attach event listeners
+            btnCalcular?.addEventListener('click', calcularIMC);
+            btnLimpar?.addEventListener('click', limparCampos);
+            btnGerarPDF?.addEventListener('click', gerarPDF);
+        });
+    </script>
 
 
 

@@ -580,7 +580,218 @@
 
 
 
-  
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const resultadoDiv = document.getElementById("resultado");
+      const btnCalcular = document.getElementById("btnCalcular");
+      const btnLimpar = document.getElementById("btnLimpar");
+      const btnGerarPDF = document.getElementById("btnGerarPDF");
+      const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
+      const conteudoDiv = document.getElementById("conteudo");
+
+      const rlasData = [
+        {
+          level: 1,
+          title: "Tingkat I - Tidak Ada Respon",
+          description:
+            "Pasien tidak merespons rangsangan pendengaran, visual, taktil, atau nyeri. Berada dalam keadaan koma yang dalam.",
+          recommendation:
+            "Rekomendasi: Fokus pada dukungan hidup dasar, penentuan posisi untuk mencegah ulkus dan kontraktur, dan rangsangan sensorik minimal. Komunikasi dengan keluarga sangat penting.",
+        },
+        {
+          level: 2,
+          title: "Tingkat II - Respon Umum",
+          description:
+            "Pasien merespons rangsangan secara tidak konsisten, tidak bertujuan, dan tidak spesifik. Respons terbatas dan mungkin sama, terlepas dari rangsangannya.",
+          recommendation:
+            "Rekomendasi: Jaga lingkungan tetap tenang dan terkendali. Lanjutkan stimulasi sensorik secara konsisten, tetapi tanpa berlebihan. Fokus untuk membangunkan pasien.",
+        },
+        {
+          level: 3,
+          title: "Tingkat III - Respon Lokal",
+          description:
+            "Pasien merespons rangsangan secara lebih spesifik. Mungkin berkedip terhadap rangsangan cahaya atau mencoba mengikuti suatu objek. Respons tidak konsisten.",
+          recommendation:
+            "Rekomendasi: Mulailah dengan perintah sederhana dan berulang. Batasi gangguan. Pasien mungkin mulai mengenali anggota keluarga. Bantu memfokuskan perhatian.",
+        },
+        {
+          level: 4,
+          title: "Tingkat IV - Bingung dan Agitasi",
+          description:
+            "Pasien dalam keadaan agitasi dan kebingungan. Tidak dapat bekerja sama dengan penilaian dan mungkin bertindak agresif. Perhatiannya singkat.",
+          recommendation:
+            "Rekomendasi: Sediakan lingkungan yang aman dan terstruktur untuk menghindari cedera. Gunakan suara yang tenang dan pertahankan rutinitas yang dapat diprediksi. Bantu pasien untuk reorientasi bila perlu.",
+        },
+        {
+          level: 5,
+          title: "Tingkat V - Bingung dan Tidak Tepat",
+          description:
+            "Pasien dapat mengikuti perintah sederhana, tetapi mengalami kesulitan mempertahankan perhatian. Respons terhadap pertanyaan kompleks tidak tepat dan membingungkan. Memori sangat terpengaruh.",
+          recommendation:
+            "Rekomendasi: Mulailah dengan pelatihan tugas sederhana dan berulang. Perkuat reorientasi terhadap waktu dan tempat. Komunikasi harus jelas dan langsung.",
+        },
+        {
+          level: 6,
+          title: "Tingkat VI - Bingung dan Tepat",
+          description:
+            "Pasien dapat mengikuti perintah dan menunjukkan memori jangka panjang. Memori jangka pendek masih terpengaruh dan keputusan seringkali salah.",
+          recommendation:
+            "Rekomendasi: Tingkatkan kompleksitas tugas. Gunakan ingatan peristiwa masa lalu dan promosikan kemandirian dalam aktivitas yang dikenal. Dorong pasien untuk membuat keputusan kecil.",
+        },
+        {
+          level: 7,
+          title: "Tingkat VII - Otomatis dan Tepat",
+          description:
+            "Pasien mengalami sedikit kebingungan. Mampu mengikuti rutinitas harian secara robotik, tetapi masih memiliki defisit dalam penilaian dan pemecahan masalah. Interaksi sosial bersifat dangkal.",
+          recommendation:
+            "Rekomendasi: Fokus pada perencanaan dan pemecahan masalah. Dorong sosialisasi dalam kelompok dan pengembangan strategi untuk mengkompensasi defisit kognitif.",
+        },
+        {
+          level: 8,
+          title: "Tingkat VIII - Terarah dan Tepat",
+          description:
+            "Pasien mampu berpikir abstrak dan memecahkan masalah. Memori dan penilaiannya konsisten, tetapi kemampuan untuk mengatasi emosi mungkin terpengaruh. Fungsi mandiri.",
+          recommendation:
+            "Rekomendasi: Bantu pasien mengatasi perubahan emosional dan sosial. Fokus pada reintegrasi ke komunitas dan persiapan untuk kembali ke kehidupan profesional atau akademik.",
+        },
+      ];
+
+      rlasData.forEach((item) => {
+        const sectionDiv = document.createElement("div");
+        sectionDiv.className = "rlas-criterion-section";
+        sectionDiv.id = `section-level-${item.level}`;
+
+        const radioContainer = document.createElement("div");
+        radioContainer.className = "rlas-criterion-option";
+
+        const radioInput = document.createElement("input");
+        radioInput.type = "radio";
+        radioInput.name = "rlas_level";
+        radioInput.value = item.level;
+        radioInput.id = `level-${item.level}`;
+
+        const label = document.createElement("label");
+        label.htmlFor = `level-${item.level}`;
+        label.innerHTML = `<strong>${item.title}</strong><br>${item.description}`;
+
+        radioContainer.appendChild(radioInput);
+        radioContainer.appendChild(label);
+        sectionDiv.appendChild(radioContainer);
+
+        conteudoDiv.appendChild(sectionDiv);
+      });
+
+      function calcularRLAS() {
+        const selectedRadio = document.querySelector(
+          'input[name="rlas_level"]:checked',
+        );
+        resultadoDiv.style.display = "block";
+
+        if (!selectedRadio) {
+          resultadoDiv.innerHTML =
+            '⚠️ <strong class="font-bold">Silakan pilih satu tingkat untuk menghitung.</strong>';
+          resultadoDiv.classList.add("bg-red-100");
+          resultadoDiv.classList.remove("bg-blue-50");
+          return;
+        }
+
+        const level = selectedRadio.value;
+        const selectedItem = rlasData.find((item) => item.level == level);
+
+        if (selectedItem) {
+          resultadoDiv.innerHTML = `
+                    <p>Tingkat yang dipilih: <strong class="font-bold">${selectedItem.title}</strong></p>
+                    <p class="mt-4"><strong>Rekomendasi:</strong> ${selectedItem.recommendation}</p>
+                `;
+          resultadoDiv.className = `resultado bg-blue-50`;
+        }
+
+        resultadoDiv.style.display = "block";
+
+        resultadoDiv.dataset.level = selectedItem.level;
+        resultadoDiv.dataset.title = selectedItem.title;
+        resultadoDiv.dataset.recommendation = selectedItem.recommendation;
+      }
+
+      function limparCampos() {
+        const selectedRadio = document.querySelector(
+          'input[name="rlas_level"]:checked',
+        );
+        if (selectedRadio) {
+          selectedRadio.checked = false;
+        }
+        resultadoDiv.innerHTML = "";
+        resultadoDiv.className = "resultado hidden";
+        delete resultadoDiv.dataset.level;
+        delete resultadoDiv.dataset.title;
+        delete resultadoDiv.dataset.recommendation;
+      }
+
+      btnCalcular?.addEventListener("click", calcularRLAS);
+      btnLimpar?.addEventListener("click", limparCampos);
+
+      btnGerarPDF?.addEventListener("click", () => {
+        const selectedRadio = document.querySelector(
+          'input[name="rlas_level"]:checked',
+        );
+        if (!selectedRadio) {
+          alert("Silakan pilih satu tingkat untuk membuat PDF.");
+          return;
+        }
+        if (typeof gerarPDFGlobal === "function") {
+          const selectedItem = rlasData.find(
+            (item) => item.level == selectedRadio.value,
+          );
+
+          let contentToPrint = document
+            .querySelector(".main-content-wrapper")
+            .cloneNode(true);
+          let contentContainer = contentToPrint.querySelector("#conteudo");
+
+          contentContainer.innerHTML = "";
+
+          let itemDiv = document.createElement("div");
+          itemDiv.className = "mb-2 p-2 bg-gray-50 rounded";
+          itemDiv.innerHTML = `<strong>Tingkat yang dipilih:</strong> ${selectedItem.title}<br><strong>Deskripsi:</strong> ${selectedItem.description}`;
+          contentContainer.appendChild(itemDiv);
+
+          let resultadoHtml = resultadoDiv.cloneNode(true);
+          if (resultadoHtml.style.display !== "none") {
+            contentContainer.appendChild(resultadoHtml);
+          }
+
+          gerarPDFGlobal({
+            titulo: "Skala Rancho Los Amigos",
+            subtitulo: "Laporan Penilaian Kognitif",
+            namaFile: "laporan_skala_rancho.pdf",
+            seletorKonten: ".main-content-wrapper",
+          });
+        } else {
+          console.error("Fungsi gerarPDFGlobal tidak terdefinisi.");
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener("click", () => {
+        const selectedRadio = document.querySelector(
+          'input[name="rlas_level"]:checked',
+        );
+        if (!selectedRadio) {
+          alert("Pilih satu tingkat untuk mencari tindakan.");
+          return;
+        }
+        const selectedItem = rlasData.find(
+          (item) => item.level == selectedRadio.value,
+        );
+        const searchQuery = encodeURIComponent(
+          `perawatan keperawatan untuk pasien cedera otak Tingkat ${selectedItem.level} NANDA NIC NOC`,
+        );
+        window.open(
+          `https://www.google.com/search?q=${searchQuery}`,
+          "_blank",
+        );
+      });
+    });
+  </script>
 
   <script src="/lang-selector.js" defer=""></script>
 

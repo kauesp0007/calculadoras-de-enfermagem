@@ -578,7 +578,257 @@
 
 
 
-  
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      // फ़ुटर लोड करें (मॉड्यूलर भाग)
+      fetch("footer.html")
+        .then((response) => response.text())
+        .then((data) => {
+          document.getElementById("footer-placeholder").innerHTML = data;
+        })
+        .catch((error) =>
+          console.error("Error loading modular footer:", error),
+        );
+
+      const resultadoDiv = document.getElementById("resultado");
+      const btnCalcular = document.getElementById("btnCalcular");
+      const btnLimpar = document.getElementById("btnLimpar");
+      const btnGerarPDF = document.getElementById("btnGerarPDF");
+      const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
+      const conteudoDiv = document.getElementById("conteudo");
+
+      // डाउंटन स्केल डेटा - हिंदी में अनुवादित
+      const downtonData = [
+        {
+          category: "पिछली बार गिरना (Previous Falls)",
+          nameAttr: "quedas",
+          options: [
+            { description: "नहीं (No)", score: 0 },
+            { description: "हाँ (Yes)", score: 1 },
+          ],
+          explain: "पिछले 12 महीनों में गिरने की घटना।",
+        },
+        {
+          category: "दवाएं (Medications)",
+          nameAttr: "medicamentos",
+          options: [
+            { description: "जोखिम वाली दवाएं उपयोग नहीं करता", score: 0 },
+            {
+              description:
+                "जोखिम वाली दवाओं का उपयोग (उदा. ट्रैंक्विलाइज़र, शामक, मूत्रवर्धक)",
+              score: 1,
+            },
+          ],
+          explain: "कुछ दवाएं चक्कर आना और संतुलन खोने का कारण बन सकती हैं।",
+        },
+        {
+          category: "संवेदी घाटे (Sensory Deficits)",
+          nameAttr: "deficits_sensoriais",
+          options: [
+            { description: "कोई कमी नहीं (No deficiencies)", score: 0 },
+            {
+              description:
+                "कोई भी दृश्य या श्रवण दोष (Any visual or auditory deficit)",
+              score: 1,
+            },
+          ],
+          explain:
+            "दृष्टि या श्रवण में कठिनाई जो बाधाओं की समझ को बाधित कर सकती है।",
+        },
+        {
+          category: "मानसिक स्थिति (Mental State)",
+          nameAttr: "estado_mental",
+          options: [
+            { description: "उन्मुख (Oriented)", score: 0 },
+            { description: "भटका हुआ (Disoriented)", score: 1 },
+          ],
+          explain: "रोगी की चेतना की स्थिति और संज्ञानात्मक क्षमता।",
+        },
+        {
+          category: "चलने की क्षमता (Ambulation)",
+          nameAttr: "deambulacao",
+          options: [
+            { description: "सामान्य चलना (Normal ambulation)", score: 0 },
+            {
+              description:
+                "कठिनाई से चलता है या सहायक उपकरण का उपयोग करता है (छड़ी, वॉकर)",
+              score: 1,
+            },
+          ],
+          explain:
+            "चलने के तरीके, संतुलन और सहायक उपकरणों के उपयोग का मूल्यांकन।",
+        },
+      ];
+
+      // फ़ॉर्म को गतिशील रूप से भरें
+      downtonData.forEach((item) => {
+        const sectionDiv = document.createElement("div");
+        sectionDiv.className = "downton-criterion-section";
+        sectionDiv.id = `section-${item.nameAttr}`;
+
+        const titleH3 = document.createElement("h3");
+        titleH3.className = "downton-criterion-title";
+        titleH3.innerHTML =
+          item.category +
+          `
+              <div class="text-sm font-normal text-gray-500 mt-1">${item.explain}</div>`;
+        sectionDiv.appendChild(titleH3);
+
+        const selectElement = document.createElement("select");
+        selectElement.id = item.nameAttr;
+        selectElement.className = "downton-criterion-select";
+
+        const defaultOption = document.createElement("option");
+        defaultOption.value = "";
+        defaultOption.text = "चुनें...";
+        selectElement.appendChild(defaultOption);
+
+        item.options.forEach((option) => {
+          const optionElement = document.createElement("option");
+          optionElement.value = option.score;
+          optionElement.text = `${option.description} (स्कोर: ${option.score})`;
+          selectElement.appendChild(optionElement);
+        });
+
+        sectionDiv.appendChild(selectElement);
+        conteudoDiv.appendChild(sectionDiv);
+      });
+
+      function calcularDownton() {
+        const selects = document.querySelectorAll("#conteudo select");
+        let allSelected = true;
+        let total = 0;
+
+        selects.forEach((select) => {
+          if (select.value === "") {
+            allSelected = false;
+            select.classList.add("incomplete");
+          } else {
+            select.classList.remove("incomplete");
+            total += Number(select.value);
+          }
+        });
+
+        if (!allSelected) {
+          resultadoDiv.innerHTML =
+            '⚠️ <strong class="font-bold">कृपया गणना करने से पहले सभी आइटम के लिए एक विकल्प चुनें।</strong>';
+          resultadoDiv.style.display = "block";
+          delete resultadoDiv.dataset.score;
+          return;
+        }
+
+        let classificacao = "";
+        let recomendacao = "";
+
+        // डाउंटन स्केल स्कोर परिभाषाएँ
+        // 0-2 अंक: कम जोखिम
+        // 3-5 अंक: मध्यम जोखिम
+        // > 5 अंक: उच्च जोखिम (6 या अधिक)
+        if (total >= 0 && total <= 2) {
+          classificacao = "कम जोखिम (Low Risk)";
+          recomendacao =
+            "रोगी में गिरने का जोखिम कम है। मानक रोकथाम उपायों के साथ जारी रखें और समय-समय पर पुनर्मूल्यांकन करें।";
+        } else if (total >= 3 && total <= 5) {
+          classificacao = "मध्यम जोखिम (Medium Risk)";
+          recomendacao =
+            "रोगी में गिरने का मध्यम जोखिम है। रोकथाम और गिरने की निगरानी के उपाय लागू करें।";
+        } else if (total > 5) {
+          classificacao = "उच्च जोखिम (High Risk)";
+          recomendacao =
+            "रोगी में गिरने का उच्च जोखिम है। तुरंत एक व्यक्तिगत गिरने की रोकथाम योजना लागू करें।";
+        } else {
+          classificacao = "मानक से बाहर स्कोर";
+          recomendacao =
+            "गणना किया गया स्कोर अपेक्षित वर्गीकरण सीमा से बाहर है। चुने गए मूल्यों की जाँच करें।";
+        }
+
+        resultadoDiv.innerHTML = `
+                <p>कुल स्कोर: <strong class="font-bold">${total}</strong></p>
+                <p>वर्गीकरण: <strong class="font-bold">${classificacao}</strong></p>
+                <p class="mt-4"><strong>सिफारिश:</strong> ${recomendacao}</p>
+            `;
+        resultadoDiv.style.display = "block";
+
+        resultadoDiv.dataset.score = total;
+        resultadoDiv.dataset.scaleName = "डाउंटन स्केल";
+        resultadoDiv.dataset.classificacao = classificacao;
+      }
+
+      function limparCampos() {
+        const selects = document.querySelectorAll("#conteudo select");
+        selects.forEach((select) => {
+          select.selectedIndex = 0;
+          select.classList.remove("incomplete");
+        });
+        resultadoDiv.innerHTML = "";
+        resultadoDiv.style.display = "none";
+        delete resultadoDiv.dataset.score;
+        delete resultadoDiv.dataset.scaleName;
+        delete resultadoDiv.dataset.classificacao;
+      }
+
+      btnCalcular?.addEventListener("click", calcularDownton);
+      btnLimpar?.addEventListener("click", limparCampos);
+
+      btnGerarPDF?.addEventListener("click", () => {
+        if (!resultadoDiv.dataset.score) {
+          // कस्टम अलर्ट का उपयोग करें
+          console.log(
+            'PDF जनरेट करने से पहले कृपया "स्कोर की गणना करें" पर क्लिक करें।',
+          );
+          return;
+        }
+        if (typeof gerarPDFGlobal === "function") {
+          gerarPDFGlobal({
+            titulo: "डाउंटन स्केल",
+            subtitulo: "गिरने के जोखिम मूल्यांकन रिपोर्ट",
+            nomeArquivo: "downton_scale_report.pdf",
+            seletorConteudo: ".main-content-wrapper",
+          });
+        } else {
+          console.error("Função gerarPDFGlobal अपरिभाषित है।");
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener("click", () => {
+        const score = resultadoDiv.dataset.score;
+        const scaleName = resultadoDiv.dataset.scaleName;
+        const classificacao = resultadoDiv.dataset.classificacao;
+        if (!score || !classificacao) {
+          // कस्टम अलर्ट का उपयोग करें
+          console.log("आचरण खोजने के लिए परिणाम की गणना करें।");
+          return;
+        }
+        const searchQuery = encodeURIComponent(
+          `${scaleName} स्कोर ${score} वयस्क रोगी ${classificacao} NANDA, NIC, NOC वर्गीकरण उत्पन्न करें`,
+        );
+        window.open(
+          `https://www.google.com/search?q=${searchQuery}`,
+          "_blank",
+        );
+      });
+
+      // hi/global-body-elements.html से वैश्विक तत्व लोड करें (lbiras, cookies, back to top)
+      fetch("/hi/global-body-elements.html")
+        .then((response) => response.text())
+        .then((data) => {
+          document.body.insertAdjacentHTML("beforeend", data);
+        })
+        .catch((error) =>
+          console.error("Error loading global body elements:", error),
+        );
+
+      // hi/menu-global.html से वैश्विक मेनू लोड करें
+      fetch("/hi/menu-global.html")
+        .then((response) => response.text())
+        .then((data) => {
+          document.getElementById("global-header-container").innerHTML = data;
+        })
+        .catch((error) =>
+          console.error("Error loading global header menu:", error),
+        );
+    });
+  </script>
   <!-- विज्ञापन स्क्रिप्ट -->
 
   <!-- भाषा चयनकर्ता स्क्रिप्ट -->

@@ -611,7 +611,203 @@
 
 
 
-  
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const resultadoDiv = document.getElementById('resultado');
+      const btnCalcular = document.getElementById('btnCalcular');
+      const btnLimpar = document.getElementById('btnLimpar');
+      const btnGerarPDF = document.getElementById('btnGerarPDF');
+      const btnNandaNicNoc = document.getElementById('btnNandaNicNoc');
+      const conteudoDiv = document.getElementById('conteudo');
+
+      // OFRAS量表数据
+      const ofrasData = [
+        {
+          category: "跌倒史",
+          nameAttr: "historico",
+          options: [
+            { description: "无跌倒史或平衡问题", score: 0 },
+            { description: "有跌倒史或平衡问题", score: 1 }
+          ],
+          explain: "评估跌倒史和可能影响平衡的状况。"
+        },
+        {
+          category: "心脏系统",
+          nameAttr: "cardiaco",
+          options: [
+            { description: "无心脏异常", score: 0 },
+            { description: "心律失常、低血压或其他心脏状况", score: 1 }
+          ],
+          explain: "分析可能导致不稳定的心脏状况。"
+        },
+        {
+          category: "出血",
+          nameAttr: "hemorragia",
+          options: [
+            { description: "无出血风险", score: 0 },
+            { description: "有出血风险或活动性出血", score: 1 }
+          ],
+          explain: "考虑可能导致虚弱和头晕的出血风险。"
+        },
+        {
+          category: "麻醉",
+          nameAttr: "anestesia",
+          options: [
+            { description: "未使用麻醉剂", score: 0 },
+            { description: "最近使用过麻醉剂（过去24小时内）", score: 1 }
+          ],
+          explain: "评估麻醉的残留效应，如嗜睡和失衡。"
+        },
+        {
+          category: "运动活动",
+          nameAttr: "motora",
+          options: [
+            { description: "安全行走且无需辅助", score: 0 },
+            { description: "行走困难、不稳定或需要辅助", score: 1 }
+          ],
+          explain: "评估患者安全移动的能力。"
+        },
+        {
+          category: "药物使用",
+          nameAttr: "medicacao",
+          options: [
+            { description: "未使用风险药物", score: 0 },
+            { description: "使用导致嗜睡或头晕的药物", score: 1 }
+          ],
+          explain: "考虑可能增加跌倒风险的药物使用。"
+        }
+      ];
+
+      // 动态填充表单
+      ofrasData.forEach(item => {
+        const sectionDiv = document.createElement('div');
+        sectionDiv.className = 'ofras-criterion-section';
+        sectionDiv.id = `section-${item.nameAttr}`;
+
+        const titleH3 = document.createElement('h3');
+        titleH3.className = 'ofras-criterion-title';
+        titleH3.innerHTML = item.category + `
+              <div class="text-sm font-normal text-gray-500 mt-1">${item.explain}</div>`;
+        sectionDiv.appendChild(titleH3);
+
+        const selectElement = document.createElement('select');
+        selectElement.id = item.nameAttr;
+        selectElement.className = 'ofras-criterion-select';
+
+        const defaultOption = document.createElement('option');
+        defaultOption.value = "";
+        defaultOption.text = "请选择...";
+        selectElement.appendChild(defaultOption);
+
+        item.options.forEach(option => {
+          const optionElement = document.createElement('option');
+          optionElement.value = option.score;
+          optionElement.text = `${option.description} (分值: ${option.score})`;
+          selectElement.appendChild(optionElement);
+        });
+
+        sectionDiv.appendChild(selectElement);
+        conteudoDiv.appendChild(sectionDiv);
+      });
+
+      function calcularOFRAS() {
+        const selects = document.querySelectorAll('#conteudo select');
+        let allSelected = true;
+        let total = 0;
+
+        selects.forEach(select => {
+          if (select.value === "") {
+            allSelected = false;
+            select.classList.add('incomplete');
+          } else {
+            select.classList.remove('incomplete');
+            total += Number(select.value);
+          }
+        });
+
+        if (!allSelected) {
+          resultadoDiv.innerHTML = '⚠️ <strong class="font-bold">请在计算前为所有项目选择选项。</strong>';
+          resultadoDiv.style.display = "block";
+          delete resultadoDiv.dataset.score;
+          return;
+        }
+
+        let classificacao = '';
+        let recomendacao = '';
+
+        // OFRAS量表评分定义（基于0-6分模型）
+        if (total >= 0 && total <= 2) {
+          classificacao = '低风险';
+          recomendacao = '产科患者跌倒风险较低。继续标准预防措施。';
+        } else if (total >= 3 && total <= 4) {
+          classificacao = '中等风险';
+          recomendacao = '产科患者跌倒风险中等。实施预防措施和跌倒监测。';
+        } else if (total >= 5 && total <= 6) {
+          classificacao = '高风险';
+          recomendacao = '产科患者跌倒风险高。立即实施个体化跌倒预防计划。';
+        } else {
+          classificacao = '评分超出标准';
+          recomendacao = '计算的评分超出预期分类范围。请检查所选值。';
+        }
+
+        resultadoDiv.innerHTML = `
+                <p>总分：<strong class="font-bold">${total}</strong></p>
+                <p>分类：<strong class="font-bold">${classificacao}</strong></p>
+                <p class="mt-4"><strong>建议：</strong> ${recomendacao}</p>
+            `;
+        resultadoDiv.style.display = "block";
+
+        resultadoDiv.dataset.score = total;
+        resultadoDiv.dataset.scaleName = "OFRAS量表";
+        resultadoDiv.dataset.classificacao = classificacao;
+      }
+
+      function limparCampos() {
+        const selects = document.querySelectorAll('#conteudo select');
+        selects.forEach(select => {
+          select.selectedIndex = 0;
+          select.classList.remove('incomplete');
+        });
+        resultadoDiv.innerHTML = '';
+        resultadoDiv.style.display = "none";
+        delete resultadoDiv.dataset.score;
+        delete resultadoDiv.dataset.scaleName;
+        delete resultadoDiv.dataset.classificacao;
+      }
+
+      btnCalcular?.addEventListener('click', calcularOFRAS);
+      btnLimpar?.addEventListener('click', limparCampos);
+
+      btnGerarPDF?.addEventListener('click', () => {
+        if (!resultadoDiv.dataset.score) {
+          alert('请先点击"计算评分"按钮再生成PDF。');
+          return;
+        }
+        if (typeof gerarPDFGlobal === 'function') {
+          gerarPDFGlobal({
+            titulo: 'OFRAS量表',
+            subtitulo: '跌倒风险评估报告',
+            nomeArquivo: 'ofras_scale_report.pdf',
+            seletorConteudo: '.main-content-wrapper'
+          });
+        } else {
+          console.error('函数gerarPDFGlobal未定义。');
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener('click', () => {
+        const score = resultadoDiv.dataset.score;
+        const scaleName = resultadoDiv.dataset.scaleName;
+        const classificacao = resultadoDiv.dataset.classificacao;
+        if (!score || !classificacao) {
+          alert('请计算结果以搜索处理方案。');
+          return;
+        }
+        const searchQuery = encodeURIComponent(`${scaleName} 评分 ${score} 产科患者 ${classificacao} 生成NANDA分类 生成NIC分类 生成NOC分类`);
+        window.open(`https://www.google.com/search?q=${searchQuery}`, '_blank');
+      });
+    });
+  </script>
 
 
 

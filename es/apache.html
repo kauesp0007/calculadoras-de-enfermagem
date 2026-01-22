@@ -593,7 +593,202 @@
 
 
 
-  
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      // Elementos da página
+      const resultadoDiv = document.getElementById('resultado');
+      const conteudoDiv = document.getElementById('conteudo');
+      const btnCalcular = document.getElementById('btnCalcular');
+      const btnLimpar = document.getElementById('btnLimpar');
+      const btnGerarPDF = document.getElementById('btnGerarPDF');
+      const btnNandaNicNoc = document.getElementById('btnNandaNicNoc');
+
+      // Elementos do Modal
+      const modal = document.getElementById('selection-modal');
+      const modalTitle = document.getElementById('modal-title');
+      const modalContent = document.getElementById('modal-content');
+      const modalCloseBtn = document.getElementById('modal-close-btn');
+
+      // Dados da escala
+      const apacheData = [
+        { category: "Temperatura Rectal (°C)", nameAttr: "tempRetal", options: [{ description: "> 40.9", score: 4 }, { description: "39-40.9", score: 3 }, { description: "38.5-38.9", score: 1 }, { description: "36-38.4", score: 0 }, { description: "34-35.9", score: 1 }, { description: "32-33.9", score: 2 }, { description: "30-31.9", score: 3 }, { description: "< 30", score: 4 }] },
+        { category: "Presión Arterial Media (PAM) (mmHg)", nameAttr: "pam", options: [{ description: "> 159", score: 4 }, { description: "130-159", score: 3 }, { description: "110-129", score: 2 }, { description: "70-109", score: 0 }, { description: "55-69", score: 2 }, { description: "40-54", score: 3 }, { description: "< 40", score: 4 }] },
+        { category: "Frecuencia Cardíaca (lpm)", nameAttr: "fc", options: [{ description: "> 179", score: 4 }, { description: "140-179", score: 3 }, { description: "110-129", score: 2 }, { description: "70-109", score: 0 }, { description: "55-69", score: 2 }, { description: "40-54", score: 3 }, { description: "< 40", score: 4 }] },
+        { category: "Frecuencia Respiratoria (rpm)", nameAttr: "fr", options: [{ description: "> 49", score: 4 }, { description: "35-49", score: 3 }, { description: "25-34", score: 1 }, { description: "12-24", score: 0 }, { description: "10-11", score: 1 }, { description: "6-9", score: 2 }, { description: "< 6", score: 4 }] },
+        { category: "Oxigenación (PaO2/FiO2 o A-aDO2)", nameAttr: "oxigenacao", options: [{ description: "SiFiO2 ≥ 0.5 (A-aDO2) > 499", score: 4 }, { description: "SiFiO2 ≥ 0.5 (A-aDO2) 350-499", score: 3 }, { description: "SiFiO2 ≥ 0.5 (A-aDO2) 200-349", score: 2 }, { description: "SiFiO2 ≥ 0.5 (A-aDO2) < 200", score: 0 }, { description: "SiFiO2 < 0.5 (PaO2) > 70", score: 0 }, { description: "SiFiO2 < 0.5 (PaO2) 61-70", score: 1 }, { description: "SiFiO2 < 0.5 (PaO2) 56-60", score: 3 }, { description: "SiFiO2 < 0.5 (PaO2) < 56", score: 4 }] },
+        { category: "pH Arterial", nameAttr: "phArterial", options: [{ description: "> 7.69", score: 4 }, { description: "7.60-7.69", score: 3 }, { description: "7.50-7.59", score: 1 }, { description: "7.33-7.49", score: 0 }, { description: "7.25-7.32", score: 2 }, { description: "7.15-7.24", score: 3 }, { description: "< 7.15", score: 4 }] },
+        { category: "Sodio Plasmático (mmol/L)", nameAttr: "sodioPlasmatico", options: [{ description: "> 179", score: 4 }, { description: "160-179", score: 3 }, { description: "155-159", score: 2 }, { description: "150-154", score: 1 }, { description: "130-149", score: 0 }, { description: "120-129", score: 2 }, { description: "111-119", score: 3 }, { description: "< 111", score: 4 }] },
+        { category: "Potasio Plasmático (mmol/L)", nameAttr: "potassioPlasmatico", options: [{ description: "> 6.9", score: 4 }, { description: "6.0-6.9", score: 3 }, { description: "5.5-5.9", score: 1 }, { description: "3.5-5.4", score: 0 }, { description: "3.0-3.4", score: 1 }, { description: "2.5-2.9", score: 2 }, { description: "< 2.5", score: 4 }] },
+        { category: "Creatinina (mg/dL)", nameAttr: "creatinina", options: [{ description: "> 3.4", score: 4 }, { description: "2.0-3.4", score: 3 }, { description: "1.5-1.9", score: 2 }, { description: "0.6-1.4", score: 0 }, { description: "< 0.6", score: 2 }] },
+        { category: "Hematocrito (%)", nameAttr: "hematocrito", options: [{ description: "> 59.9", score: 4 }, { description: "50-59.9", score: 2 }, { description: "46-49.9", score: 1 }, { description: "30-45.9", score: 0 }, { description: "20-29.9", score: 2 }, { description: "< 20", score: 4 }] },
+        { category: "Glóbulos Blancos (x1000)", nameAttr: "globulosBrancos", options: [{ description: "> 39.9", score: 4 }, { description: "20-39.9", score: 2 }, { description: "15-19.9", score: 1 }, { description: "3-14.9", score: 0 }, { description: "1-2.9", score: 2 }, { description: "< 1", score: 4 }] },
+        { category: "Escala de Coma de Glasgow (GCS)", nameAttr: "gcs", options: [{ description: "15 (GCS actual)", score: 0 }, { description: "14 (GCS actual)", score: 1 }, { description: "13 (GCS actual)", score: 2 }, { description: "12 (GCS actual)", score: 3 }, { description: "11 (GCS actual)", score: 4 }, { description: "10 (GCS actual)", score: 5 }, { description: "9 (GCS actual)", score: 6 }, { description: "8 (GCS actual)", score: 7 }, { description: "7 (GCS actual)", score: 8 }, { description: "6 (GCS actual)", score: 9 }, { description: "5 (GCS actual)", score: 10 }, { description: "4 (GCS actual)", score: 11 }, { description: "3 (GCS actual)", score: 12 }] },
+        { category: "Edad del Paciente", nameAttr: "idadePaciente", options: [{ description: "< 45 años", score: 0 }, { description: "45-54 años", score: 2 }, { description: "55-64 años", score: 3 }, { description: "65-74 años", score: 5 }, { description: "≥ 75 años", score: 6 }] },
+        { category: "Condiciones Crónicas", nameAttr: "condicoesCronicas", options: [{ description: "Sin historia de condiciones crónicas", score: 0 }, { description: "Con historia de condiciones crónicas, si el paciente es admitido después de cirugía electiva", score: 2 }, { description: "Con historia de condiciones crónicas, si el paciente es admitido por cirugía de urgencia o por otro motivo", score: 5 }] }
+      ];
+
+      // Armazena as seleções do usuário
+      let userSelections = {};
+
+      function openModalForCriterion(paramGroup) {
+        modalTitle.textContent = paramGroup.category;
+        modalContent.innerHTML = ''; // Limpa opções anteriores
+
+        paramGroup.options.forEach(option => {
+          const label = document.createElement('label');
+          label.className = 'modal-option-label';
+
+          const radio = document.createElement('input');
+          radio.type = 'radio';
+          radio.name = 'modal-option';
+          radio.value = option.score;
+
+          // Marca a opção previamente selecionada, se houver
+          if (userSelections[paramGroup.nameAttr] && userSelections[paramGroup.nameAttr].score === option.score) {
+            radio.checked = true;
+          }
+
+          radio.addEventListener('click', () => handleSelection(paramGroup.nameAttr, option.score, option.description));
+
+          const descriptionSpan = document.createElement('span');
+          descriptionSpan.textContent = `${option.description} (${option.score} punto(s))`;
+
+          label.appendChild(radio);
+          label.appendChild(descriptionSpan);
+          modalContent.appendChild(label);
+        });
+
+        modal.classList.remove('hidden');
+      }
+
+      function handleSelection(nameAttr, score, description) {
+        userSelections[nameAttr] = { score: parseInt(score, 10), description: description };
+
+        // Atualiza o texto na lista principal
+        const listItem = document.querySelector(`[data-name="${nameAttr}"] .selected-value`);
+        if (listItem) {
+          listItem.textContent = description;
+          listItem.classList.remove('text-gray-400');
+          listItem.classList.add('text-blue-600', 'font-semibold');
+        }
+
+        modal.classList.add('hidden');
+      }
+
+      function createCriteriaList() {
+        conteudoDiv.innerHTML = ''; // Limpa o conteúdo
+        apacheData.forEach((paramGroup, index) => {
+          const itemDiv = document.createElement('div');
+          itemDiv.className = 'flex justify-between items-center p-3 bg-gray-50 border rounded-lg shadow-sm cursor-pointer hover:bg-gray-100';
+          itemDiv.dataset.name = paramGroup.nameAttr;
+
+          itemDiv.innerHTML = `
+                    <span class="font-medium text-gray-700">${index + 1}. ${paramGroup.category}</span>
+                    <span class="selected-value text-gray-400 text-sm text-right">Haga clic para seleccionar</span>
+                `;
+
+          itemDiv.addEventListener('click', () => openModalForCriterion(paramGroup));
+          conteudoDiv.appendChild(itemDiv);
+        });
+      }
+
+      function calcular() {
+        let totalScore = 0;
+        const totalCriteria = apacheData.length;
+        const selectedCriteriaCount = Object.keys(userSelections).length;
+
+        if (selectedCriteriaCount < totalCriteria) {
+          resultadoDiv.innerHTML = '⚠️ <strong class="font-bold">Por favor, seleccione una opción para cada criterio.</strong>';
+          resultadoDiv.className = 'resultado p-4 rounded-md font-medium bg-info-orange-light';
+          resultadoDiv.style.display = 'block';
+          delete resultadoDiv.dataset.score;
+          return;
+        }
+
+        for (const key in userSelections) {
+          totalScore += userSelections[key].score;
+        }
+
+        let interpretacao = '';
+        let probabilidadeMorte = '';
+        let resultadoClasse = '';
+
+        if (totalScore <= 9) {
+          interpretacao = "Bajo riesgo de mortalidad hospitalaria.";
+          probabilidadeMorte = "Aproximadamente 5-10%";
+          resultadoClasse = 'bg-apache-low';
+        } else if (totalScore <= 19) {
+          interpretacao = "Riesgo moderado de mortalidad hospitalaria.";
+          probabilidadeMorte = "Aproximadamente 10-30%";
+          resultadoClasse = 'bg-apache-medium';
+        } else {
+          interpretacao = "Alto riesgo de mortalidad hospitalaria.";
+          probabilidadeMorte = "Aproximadamente >30%";
+          resultadoClasse = 'bg-apache-high';
+        }
+
+        resultadoDiv.innerHTML = `
+                <p>Puntuación Total APACHE II: <strong class="font-bold">${totalScore}</strong></p>
+                <p>Probabilidad Estimada de Mortalidad: <strong class="font-bold">${probabilidadeMorte}</strong></p>
+                <p>Interpretación: <strong class="font-bold">${interpretacao}</strong></p>
+            `;
+        resultadoDiv.className = `resultado p-4 rounded-md font-medium ${resultadoClasse}`;
+        resultadoDiv.style.display = 'block';
+        resultadoDiv.dataset.score = totalScore;
+        resultadoDiv.dataset.interpretacao = interpretacao;
+      }
+
+      function limpar() {
+        userSelections = {};
+        createCriteriaList(); // Recria a lista com os valores padrão
+        resultadoDiv.innerHTML = '';
+        resultadoDiv.className = 'resultado hidden';
+        delete resultadoDiv.dataset.score;
+        delete resultadoDiv.dataset.interpretacao;
+      }
+
+      // Event Listeners dos Botões e Modal
+      btnCalcular?.addEventListener('click', calcular);
+      btnLimpar?.addEventListener('click', limpar);
+      modalCloseBtn?.addEventListener('click', () => modal.classList.add('hidden'));
+      modal?.addEventListener('click', (e) => {
+        if (e.target === modal) {
+          modal.classList.add('hidden');
+        }
+      });
+
+      btnGerarPDF?.addEventListener('click', () => {
+        if (!resultadoDiv.dataset.score) {
+          alert('Por favor, haga clic en "Calcular" primero para generar el PDF.');
+          return;
+        }
+        // A lógica de geração de PDF permanece a mesma
+        if (typeof gerarPDFGlobal === 'function') {
+          gerarPDFGlobal({
+            titulo: 'Escala de APACHE II',
+            subtitulo: 'Informe de Evaluación de Fisiología Aguda y Salud Crónica',
+            nomeArquivo: 'informe_apache_ii.pdf',
+            seletorConteudo: '.main-content-wrapper'
+          });
+        } else {
+          console.error('Função gerarPDFGlobal não definida.');
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener('click', () => {
+        const interpretacao = resultadoDiv.dataset.interpretacao;
+        if (!interpretacao) {
+          alert('Calcule el resultado para buscar la conducta.');
+          return;
+        }
+        const searchQuery = encodeURIComponent(`${interpretacao} taxonomia NANDA, NIC y NOC`);
+        window.open(`https://www.google.com/search?q=${searchQuery}`, '_blank');
+      });
+
+      // Inicializa a calculadora
+      createCriteriaList();
+    });
+  </script>
 
 
 

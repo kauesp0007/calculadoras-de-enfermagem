@@ -803,7 +803,249 @@
     <!-- <script src="/ja/lang-selector.js" defer></script> --> <!-- ここから削除 -->
 
     <!-- ページスクリプト -->
-    
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const resultadoDiv = document.getElementById('resultado');
+            const btnCalcular = document.getElementById('btnCalcular');
+            const btnLimpar = document.getElementById('btnLimpar');
+            const btnGerarPDF = document.getElementById('btnGerarPDF');
+            const btnNandaNicNoc = document.getElementById('btnNandaNicNoc');
+
+            // 入力
+            const inputs = {
+                ph: document.getElementById('ph'),
+                paco2: document.getElementById('paco2'),
+                hco3: document.getElementById('hco3'),
+                sato2: document.getElementById('sato2'),
+                be: document.getElementById('be')
+            };
+
+            // エラースパン
+            const errors = {
+                ph: document.getElementById('ph-error'),
+                paco2: document.getElementById('paco2-error'),
+                hco3: document.getElementById('hco3-error'),
+                sato2: document.getElementById('sato2-error'),
+                be: document.getElementById('be-error')
+            };
+
+            function interpretarGasometria() {
+                let hasError = false;
+                const valores = {};
+
+                // 1. 検証と値の取得
+                for (const key in inputs) {
+                    const input = inputs[key];
+                    const errorSpan = errors[key];
+                    const value = parseFloat(input.value);
+
+                    errorSpan.classList.add('hidden');
+                    // BEは負の値になる可能性があるため、<= 0のチェックは適用されない
+                    if (key !== 'be' && (isNaN(value) || value <= 0)) {
+                        errorSpan.textContent = "無効な値です。正の数を入力してください。";
+                        errorSpan.classList.remove('hidden');
+                        hasError = true;
+                    } else if (key === 'be' && isNaN(value)) {
+                        errorSpan.textContent = "無効な値です。数値を入力してください。";
+                        errorSpan.classList.remove('hidden');
+                        hasError = true;
+                    } else {
+                        valores[key] = value;
+                    }
+                }
+
+                if (hasError) {
+                    resultadoDiv.style.display = 'block';
+                    resultadoDiv.innerHTML = '⚠️ <strong class="font-bold">無効な値を修正してください。</strong>';
+                    resultadoDiv.className = 'resultado bg-info-orange-light mt-6 p-4 rounded-lg';
+                    // 以前の結果データを削除
+                    delete resultadoDiv.dataset.resultado;
+                    delete resultadoDiv.dataset.scaleName;
+                    return;
+                }
+
+                const { ph, paco2, hco3, sato2, be } = valores;
+
+                // 2. 簡略化された解釈ロジック
+                let interpretacoes = [];
+                let sugestoes = [];
+                let disturbioFinal = "";
+
+                // 基準値
+                const PH_MIN = 7.35, PH_MAX = 7.45;
+                const PACO2_MIN = 35, PACO2_MAX = 45;
+                const HCO3_MIN = 22, HCO3_MAX = 26;
+                const BE_MIN = -2, BE_MAX = 2;
+                const SATO2_MIN = 90;
+
+                // 3. 酸塩基平衡の解釈
+                if (ph < PH_MIN) { // --- アシドーシス ---
+                    if (paco2 > PACO2_MAX && hco3 >= HCO3_MIN && hco3 <= HCO3_MAX) {
+                        disturbioFinal = "非代償性呼吸性アシドーシス";
+                    } else if (hco3 < HCO3_MIN && paco2 >= PACO2_MIN && paco2 <= PACO2_MAX) {
+                        disturbioFinal = "非代償性代謝性アシドーシス";
+                    } else if (paco2 > PACO2_MAX && hco3 > HCO3_MAX) {
+                        disturbioFinal = "部分代償性呼吸性アシドーシス";
+                    } else if (hco3 < HCO3_MIN && paco2 < PACO2_MIN) {
+                        disturbioFinal = "部分代償性代謝性アシドーシス";
+                    } else if (paco2 > PACO2_MAX && hco3 < HCO3_MIN) {
+                        disturbioFinal = "混合性障害：呼吸性および代謝性アシドーシス";
+                    } else {
+                        disturbioFinal = "アシドーシス（矛盾するパラメータ）";
+                    }
+                } else if (ph > PH_MAX) { // --- アルカローシス ---
+                    if (paco2 < PACO2_MIN && hco3 >= HCO3_MIN && hco3 <= HCO3_MAX) {
+                        disturbioFinal = "非代償性呼吸性アルカローシス";
+                    } else if (hco3 > HCO3_MAX && paco2 >= PACO2_MIN && paco2 <= PACO2_MAX) {
+                        disturbioFinal = "非代償性代謝性アルカローシス";
+                    } else if (paco2 < PACO2_MIN && hco3 < HCO3_MIN) {
+                        disturbioFinal = "部分代償性呼吸性アルカローシス";
+                    } else if (hco3 > HCO3_MAX && paco2 > PACO2_MAX) {
+                        disturbioFinal = "部分代償性代謝性アルカローシス";
+                    } else if (paco2 < PACO2_MIN && hco3 > HCO3_MAX) {
+                        disturbioFinal = "混合性障害：呼吸性および代謝性アルカローシス";
+                    } else {
+                        disturbioFinal = "アルカローシス（矛盾するパラメータ）";
+                    }
+                } else { // --- 正常pH（代償性または正常） ---
+                    if (paco2 > PACO2_MAX && hco3 > HCO3_MAX) {
+                        disturbioFinal = "代償性呼吸性アシドーシス";
+                    } else if (paco2 < PACO2_MIN && hco3 < HCO3_MIN) {
+                        disturbioFinal = "代償性呼吸性アルカローシス";
+                    } else if (paco2 < PACO2_MIN && hco3 > HCO3_MAX) {
+                        disturbioFinal = "混合性障害（正常pH）";
+                    } else if (paco2 > PACO2_MAX && hco3 < HCO3_MIN) {
+                        disturbioFinal = "混合性障害（正常pH）";
+                    } else if (hco3 < HCO3_MIN) {
+                        disturbioFinal = "代償性代謝性アシドーシス";
+                    } else if (hco3 > HCO3_MAX) {
+                        disturbioFinal = "代償性代謝性アルカローシス";
+                    } else {
+                        disturbioFinal = "正常な酸塩基平衡";
+                    }
+                }
+
+                interpretacoes.push(`<strong>酸塩基平衡障害：</strong> ${disturbioFinal}`);
+
+                // 4. BEとSatO₂の分析
+                if (be < BE_MIN) {
+                    interpretacoes.push(`<strong>塩基過剰（BE）：</strong> ${be.toFixed(1)} mEq/L（塩基不足、代謝性アシドーシスの要素を示唆）。`);
+                } else if (be > BE_MAX) {
+                    interpretacoes.push(`<strong>塩基過剰（BE）：</strong> ${be.toFixed(1)} mEq/L（塩基過剰、代謝性アルカローシスの要素を示唆）。`);
+                } else {
+                    interpretacoes.push(`<strong>塩基過剰（BE）：</strong> ${be.toFixed(1)} mEq/L（正常範囲内）。`);
+                }
+
+                if (sato2 < SATO2_MIN) {
+                    interpretacoes.push(`<strong>SatO₂：</strong> ${sato2.toFixed(1)}%（低酸素血症）。`);
+                } else {
+                    interpretacoes.push(`<strong>SatO₂：</strong> ${sato2.toFixed(1)}%（正常な酸素飽和度）。`);
+                }
+
+                // 5. 対応の提案
+                if (disturbioFinal.includes("呼吸性アシドーシス")) {
+                    sugestoes.push("換気の評価と最適化（例：NIV、気管挿管）、基礎原因の治療（例：鎮静の解除、気管支拡張薬）。");
+                }
+                if (disturbioFinal.includes("呼吸性アルカローシス")) {
+                    sugestoes.push("過換気の原因を修正（例：疼痛管理、不安、人工呼吸器パラメータの調整）。");
+                }
+                if (disturbioFinal.includes("代謝性アシドーシス")) {
+                    sugestoes.push("基礎原因の治療（例：低灌流に対する輸液、ケトアシドーシスに対するインスリン）。pH < 7.1-7.2または重度の喪失の場合、重炭酸補充を検討。");
+                }
+                if (disturbioFinal.includes("代謝性アルカローシス")) {
+                    sugestoes.push("基礎原因の修正（例：嘔吐に対する制吐薬）、輸液（生理食塩水0.9%）と電解質（特にカリウムK+）の補充。");
+                }
+
+                if (sato2 < SATO2_MIN) {
+                    sugestoes.push("低酸素血症：SatO₂ > 92-94%（またはCO₂貯留性COPDの場合は88-92%）を維持するための酸素補給を検討。");
+                }
+
+                if (disturbioFinal === "正常な酸塩基平衡" && sato2 >= SATO2_MIN) {
+                    sugestoes.push("酸塩基平衡または酸素化に明らかな異常のない血液ガス分析。モニタリングを継続。");
+                } else if (sugestoes.length > 0) {
+                    sugestoes.push("<strong>注意：</strong>解釈は補助です。患者の臨床症状と関連付け、障害の基礎原因を治療してください。");
+                }
+
+                // 6. 結果のフォーマットと表示
+                let htmlResultado = '<div class="calculo-passos">';
+                htmlResultado += '<h4>解釈：</h4>';
+                htmlResultado += interpretacoes.map(item => `<p>${item}</p>`).join('');
+                if (sugestoes.length > 0) {
+                    htmlResultado += '<h4 class="mt-4">推奨対応：</h4>';
+                    htmlResultado += sugestoes.map(item => `<p>${item}</p>`).join('');
+                }
+                htmlResultado += '</div>';
+
+                resultadoDiv.innerHTML = htmlResultado;
+                resultadoDiv.className = 'resultado bg-custom-blue mt-6';
+                resultadoDiv.style.display = 'block';
+
+                // NANDAとPDF用にデータを保存
+                resultadoDiv.dataset.resultado = disturbioFinal;
+                resultadoDiv.dataset.scaleName = "動脈血液ガス分析の解釈";
+            }
+
+            function limparCampos() {
+                for (const key in inputs) {
+                    inputs[key].value = '';
+                    errors[key].classList.add('hidden');
+                    errors[key].textContent = '';
+                }
+                resultadoDiv.innerHTML = '';
+                resultadoDiv.className = 'resultado hidden mt-6';
+                delete resultadoDiv.dataset.resultado;
+                delete resultadoDiv.dataset.scaleName;
+            }
+
+            // イベントリスナー
+            btnCalcular?.addEventListener('click', interpretarGasometria);
+            btnLimpar?.addEventListener('click', limparCampos);
+
+            btnGerarPDF?.addEventListener('click', () => {
+                if (!resultadoDiv.dataset.resultado) {
+                    // カスタムアラートのシミュレーションまたは状態変更
+                    resultadoDiv.style.display = 'block';
+                    resultadoDiv.innerHTML = '⚠️ <strong class="font-bold">PDFを生成するには、まず「計算」をクリックしてください。</strong>';
+                    resultadoDiv.className = 'resultado bg-info-orange-light mt-6 p-4 rounded-lg';
+                    return;
+                }
+                if (typeof gerarPDFGlobal === 'function') {
+                    gerarPDFGlobal({
+                        titulo: '動脈血液ガス分析の解釈',
+                        subtitulo: '酸塩基平衡評価レポート',
+                        nomeArquivo: '血液ガス分析レポート.pdf',
+                        seletorConteudo: '.main-content-wrapper'
+                    });
+                } else {
+                    console.error('gerarPDFGlobal関数が定義されていません。');
+                    resultadoDiv.style.display = 'block';
+                    resultadoDiv.innerHTML = '⚠️ <strong class="font-bold">PDF生成エラー。関数が見つかりません。</strong>';
+                    resultadoDiv.className = 'resultado bg-danger-red mt-6 p-4 rounded-lg';
+                }
+            });
+
+            btnNandaNicNoc?.addEventListener('click', () => {
+                const resultado = resultadoDiv.dataset.resultado;
+                if (!resultado || resultado === "正常な酸塩基平衡") {
+                    resultadoDiv.style.display = 'block';
+                    resultadoDiv.innerHTML = '⚠️ <strong class="font-bold">看護計画を検索するには、有効な障害を計算してください。</strong>';
+                    resultadoDiv.className = 'resultado bg-info-orange-light mt-6 p-4 rounded-lg';
+                    return;
+                }
+
+                // 結果をNANDA検索語にマッピング
+                let termoPesquisa = "水電解質障害"; // デフォルト
+                if (resultado.includes("呼吸性アシドーシス")) { termoPesquisa = "ガス交換障害"; }
+                else if (resultado.includes("呼吸性アルカローシス")) { termoPesquisa = "非効果的呼吸パターン"; }
+                else if (resultado.includes("代謝性アシドーシス")) { termoPesquisa = "水電解質平衡障害"; }
+                else if (resultado.includes("代謝性アルカローシス")) { termoPesquisa = "電解質不均衡リスク"; }
+                else if (resultado.includes("低酸素血症")) { termoPesquisa = "ガス交換障害"; }
+
+                const searchQuery = encodeURIComponent(`看護診断 ${termoPesquisa} ${resultado} 関連 NANDA NIC NOC`);
+                window.open(`https://www.google.com/search?q=${searchQuery}`, '_blank');
+            });
+        });
+    </script>
 
     <!-- 下部広告 -->
 

@@ -635,7 +635,78 @@
   <script src="global-scripts.js" defer=""></script>
 
   <!-- Specific ASA Page Script -->
-  
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const resultadoDiv = document.getElementById('resultado');
+      const btnCalcular = document.getElementById('btnCalcular');
+      const btnLimpar = document.getElementById('btnLimpar');
+      const btnGerarPDF = document.getElementById('btnGerarPDF');
+      const btnNandaNicNoc = document.getElementById('btnNandaNicNoc');
+
+      function calcular() {
+        const selectedRadio = document.querySelector('input[name="asa"]:checked');
+
+        if (!selectedRadio) {
+          // Altera o estilo para a cor de alerta (laranja)
+          resultadoDiv.innerHTML = '⚠️ <strong class="font-bold">Please select a classification.</strong>';
+          resultadoDiv.className = 'bg-orange-100 border-2 border-orange-500 text-orange-800 p-4 rounded-md mt-6 shadow-lg';
+          resultadoDiv.style.display = 'block';
+          delete resultadoDiv.dataset.score;
+          return;
+        }
+
+        const selectedFullValue = selectedRadio.value;
+        const selectedClassification = selectedFullValue.split(':')[0]; // Extracts "ASA I", "ASA II", etc.
+
+        // Altera o estilo para a cor de resultado (azul)
+        resultadoDiv.innerHTML = `<p>Selected classification: <strong class="font-bold">${selectedFullValue}</strong></p>`;
+        resultadoDiv.className = 'bg-blue-100 border-2 border-blue-500 text-blue-800 p-4 rounded-md mt-6 shadow-lg';
+        resultadoDiv.style.display = 'block';
+
+        resultadoDiv.dataset.score = selectedClassification;
+        resultadoDiv.dataset.scaleName = "ASA Classification";
+      }
+
+      function limpar() {
+        document.querySelectorAll('input[name="asa"]').forEach(radio => radio.checked = false);
+        resultadoDiv.innerHTML = '';
+        resultadoDiv.className = 'hidden';
+        delete resultadoDiv.dataset.score;
+        delete resultadoDiv.dataset.scaleName;
+      }
+
+      btnCalcular?.addEventListener('click', calcular);
+      btnLimpar?.addEventListener('click', limpar);
+
+      btnGerarPDF?.addEventListener('click', () => {
+        if (!resultadoDiv.dataset.score) {
+          alert('Please click "Calculate" first to generate the PDF.');
+          return;
+        }
+        if (typeof gerarPDFGlobal === 'function') {
+          gerarPDFGlobal({
+            titulo: 'Anesthetic Risk Scale - ASA',
+            subtitulo: 'Physical Status Classification Report',
+            nomeArquivo: 'relatorio_classificacao_asa.pdf',
+            seletorConteudo: '.main-content-wrapper'
+          });
+        } else {
+          console.error('Function gerarPDFGlobal is not defined.');
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener('click', () => {
+        const score = resultadoDiv.dataset.score;
+        const scaleName = resultadoDiv.dataset.scaleName;
+        if (!score) {
+          alert('Calculate the result to search for the procedure.');
+          return;
+        }
+        const searchQuery = encodeURIComponent(`${score} ${scaleName} generate NANDA, NIC and NOC taxonomy`);
+        window.open(`https://www.google.com/search?q=${searchQuery}`, '_blank');
+      });
+    });
+  </script>
 
 
 

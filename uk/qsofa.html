@@ -540,7 +540,217 @@
 
 
 
-  
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const resultadoDiv = document.getElementById("resultado");
+      const btnCalcular = document.getElementById("btnCalcular");
+      const btnLimpar = document.getElementById("btnLimpar");
+      const btnGerarPDF = document.getElementById("btnGerarPDF");
+      const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
+      const conteudoDiv = document.getElementById("conteudo");
+
+      const qsofaData = [
+        {
+          category: "Частота дихання (ЧД)",
+          nameAttr: "фр",
+          explanation:
+            "Оцініть частоту дихання пацієнта у вдихах за хвилину.",
+          options: [
+            { description: "Менше 22 об/хв", score: 0 },
+            { description: "Більше або дорівнює 22 об/хв", score: 1 }]
+
+        },
+        {
+          category: "Рівень свідомості (шкала коми Глазго - ШКГ)",
+          nameAttr: "gcs",
+          explanation:
+            "Оцініть рівень свідомості пацієнта за шкалою коми Глазго.",
+          options: [
+            { description: "ШКЛ ≥ 15", score: 0 },
+            { description: "ШКЛ < 15 (змінено)", score: 1 }]
+
+        },
+        {
+          category: "Систолічний артеріальний тиск (САТ)",
+          nameAttr: "пропуск",
+          explanation:
+            "Оцініть систолічний артеріальний тиск пацієнта в мм рт.ст.",
+          options: [
+            { description: "САТ > 100 мм рт.ст", score: 0 },
+            { description: "САТ ≤ 100 мм рт.ст", score: 1 }]
+
+        }];
+
+
+      // --- Funções da Calculadora qSOFA ---
+      function updateScoreDisplay(criterionId) {
+        const selectElement = document.getElementById(criterionId);
+        const scoreDisplayElement = document.getElementById(
+          `${criterionId}_score_display`
+        );
+        if (selectElement && scoreDisplayElement) {
+          scoreDisplayElement.innerText =
+            selectElement.value === "" ? "0" : selectElement.value;
+        }
+      }
+
+      function calcularPontuacao() {
+        let totalQSOFAScore = 0;
+        let allItemsSelected = true;
+
+        qsofaData.forEach((item) => {
+          const selectElement = document.getElementById(item.nameAttr);
+          if (selectElement.value === "") {
+            allItemsSelected = false;
+          } else {
+            totalQSOFAScore += parseInt(selectElement.value, 10);
+          }
+        });
+
+        resultadoDiv.style.display = "block";
+        if (!allItemsSelected) {
+          resultadoDiv.innerHTML =
+            '⚠️ <strong class="font-bold">Por favor, selecione uma opção para cada critério</strong> antes de calcular.';
+          resultadoDiv.className = "bg-info-orange-light результат";
+          delete resultadoDiv.dataset.score;
+          return;
+        }
+
+        let interpretacao = "";
+        let conduta = "";
+        let resultadoClasse = "";
+
+        if (totalQSOFAScore >= 2) {
+          interpretacao =
+            "Високий ризик несприятливих наслідків (довше перебування у відділенні інтенсивної терапії та смертність).";
+          conduta =
+            "Розглянути можливість подальшого обстеження на сепсис та швидкого втручання. Необхідні лабораторні дослідження та повне клінічне обстеження.";
+          resultadoClasse = "bg-qsofa-high";
+        } else {
+          interpretacao =
+            "Низький ризик несприятливих наслідків на даний момент.";
+          conduta =
+            "Здійснювати клінічне спостереження. Повторне обстеження у разі погіршення стану.";
+          resultadoClasse = "bg-qsofa-low";
+        }
+
+        resultadoDiv.innerHTML = `<p>Pontuação Total qSOFA: <strong class="font-bold">${totalQSOFAScore}</strong></p><p>Interpretação: <strong class="font-bold">${interpretacao}</strong></p><p>Conduta Sugerida: <strong class="font-bold">${conduta}</strong></p>`;
+        resultadoDiv.className = `результат ${resultClass}`;
+
+        resultadoDiv.dataset.score = totalQSOFAScore;
+        resultadoDiv.dataset.interpretacao = interpretacao;
+        resultadoDiv.dataset.conduta = conduta;
+        resultadoDiv.dataset.scaleName = "qSOFA";
+      }
+
+      function limparCampos() {
+        qsofaData.forEach((item) => {
+          const selectElement = document.getElementById(item.nameAttr);
+          selectElement.selectedIndex = 0;
+          document.getElementById(
+            `${item.nameAttr}_score_display`
+          ).innerText = "0";
+        });
+        resultadoDiv.innerHTML = "";
+        resultadoDiv.className = "прихований результат";
+        delete resultadoDiv.dataset.score;
+        delete resultadoDiv.dataset.interpretacao;
+        delete resultadoDiv.dataset.conduta;
+        delete resultadoDiv.dataset.scaleName;
+      }
+
+      // Preenche o formulário dinamicamente
+      qsofaData.forEach((item, index) => {
+        const sectionDiv = document.createElement("div");
+        sectionDiv.className = "qsofa-criterion-card";
+
+        const headerDiv = document.createElement("div");
+        headerDiv.className = "qsofa-criterion-header";
+
+        const titleH3 = document.createElement("h3");
+        titleH3.className = "qsofa-criterion-title";
+        titleH3.innerText = `${item.category}`;
+        headerDiv.appendChild(titleH3);
+
+        const scoreSpan = document.createElement("span");
+        scoreSpan.className = "qsofa-score-display";
+        scoreSpan.id = `${item.nameAttr}_score_display`;
+        scoreSpan.innerText = "0";
+        headerDiv.appendChild(scoreSpan);
+
+        sectionDiv.appendChild(headerDiv);
+
+        const optionsDiv = document.createElement("div");
+        optionsDiv.className = "qsofa-criterion-options";
+
+        const selectElement = document.createElement("select");
+        selectElement.id = item.nameAttr;
+        selectElement.className = "qsofa-select";
+        selectElement.onchange = () => updateScoreDisplay(item.nameAttr);
+
+        const defaultOption = document.createElement("option");
+        defaultOption.value = "";
+        defaultOption.text = "Виберіть...";
+        defaultOption.disabled = true;
+        defaultOption.selected = true;
+        selectElement.appendChild(defaultOption);
+
+        item.options.forEach((option) => {
+          const optionElement = document.createElement("option");
+          optionElement.value = option.score;
+          optionElement.text = `${option.description} (${option.score})`;
+          selectElement.appendChild(optionElement);
+        });
+
+        optionsDiv.appendChild(selectElement);
+        sectionDiv.appendChild(optionsDiv);
+
+        const explanationP = document.createElement("p");
+        explanationP.className = "text-gray-600 text-sm mt-2 text-left";
+        explanationP.innerText = item.explanation;
+        sectionDiv.appendChild(explanationP);
+
+        conteudoDiv.appendChild(sectionDiv);
+      });
+
+      // Adiciona os event listeners aos botões
+      btnCalcular?.addEventListener("click", calcularPontuacao);
+      btnLimpar?.addEventListener("click", limparCampos);
+
+      btnGerarPDF?.addEventListener("click", () => {
+        if (!resultadoDiv.dataset.score) {
+          alert("Будь ласка, спочатку натисніть \"Розрахувати\", щоб згенерувати PDF-файл.");
+          return;
+        }
+        if (typeof gerarPDFGlobal === "функція") {
+          gerarPDFGlobal({
+            titulo: "Шкала qSOFA",
+            subtitulo: "Звіт про експрес-оцінку сепсису",
+            nomeArquivo: "relatorio_escore_qsofa.pdf",
+            seletorConteudo: ".main-content-wrapper"
+          });
+        } else {
+          console.error("Функція GeneratePDFGlobal не визначена.");
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener("click", () => {
+        const score = resultadoDiv.dataset.score;
+        const scaleName = resultadoDiv.dataset.scaleName;
+        const interpretacao = resultadoDiv.dataset.interpretacao;
+        if (!score || !interpretacao) {
+          alert("Обчисліть результат для пошуку поведінки.");
+          return;
+        }
+        const searchQuery = encodeURIComponent(
+          `${scaleName} оцінка ${score} усний переклад ${interpretacao} генерувати таксономію NANDA, генерувати таксономію NIC і генерувати таксономію NOC`
+        );
+        window.open(
+          `https://www.google.com/search?q=${searchQuery}`,
+          "_blank"
+        );
+      });
+    });</script>
 
   <script src="/lang-selector.js" defer=""></script>
 

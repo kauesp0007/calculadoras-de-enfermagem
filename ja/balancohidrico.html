@@ -684,7 +684,106 @@
 
 
 
-  
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const resultadoDiv = document.getElementById('resultado');
+      const btnCalcular = document.getElementById('btnCalcular');
+      const btnLimpar = document.getElementById('btnLimpar');
+      const btnGerarPDF = document.getElementById('btnGerarPDF');
+      const btnNandaNicNoc = document.getElementById('btnNandaNicNoc');
+
+      function calcularBalanco() {
+        const ingestaoOral = parseFloat(document.getElementById('ingestaoOral').value) || 0;
+        const ingestaoSonda = parseFloat(document.getElementById('ingestaoSonda').value) || 0;
+        const ingestaoParenteral = parseFloat(document.getElementById('ingestaoParenteral').value) || 0;
+        const ingestaoOutros = parseFloat(document.getElementById('ingestaoOutros').value) || 0;
+
+        const eliminacaoUrina = parseFloat(document.getElementById('eliminacaoUrina').value) || 0;
+        const eliminacaoVomito = parseFloat(document.getElementById('eliminacaoVomito').value) || 0;
+        const eliminacaoDrenos = parseFloat(document.getElementById('eliminacaoDrenos').value) || 0;
+        const eliminacaoOutros = parseFloat(document.getElementById('eliminacaoOutros').value) || 0;
+
+        const totalIngestao = ingestaoOral + ingestaoSonda + ingestaoParenteral + ingestaoOutros;
+        const totalEliminacao = eliminacaoUrina + eliminacaoVomito + eliminacaoDrenos + eliminacaoOutros;
+        const balanco = totalIngestao - totalEliminacao;
+
+        resultadoDiv.className = 'resultado p-4 mt-6 rounded-lg text-left';
+        resultadoDiv.style.display = 'block';
+
+        let classificacao = '';
+        let resultadoClasse = '';
+
+        if (balanco > 0) {
+          classificacao = '水分バランス ポジティブ'; // Positive Water Balance
+          resultadoClasse = 'bg-balanco-positivo';
+        } else if (balanco < 0) {
+          classificacao = '水分バランス ネガティブ'; // Negative Water Balance
+          resultadoClasse = 'bg-balanco-negativo';
+        } else {
+          classificacao = '水分バランス ゼロ'; // Zero Water Balance
+          resultadoClasse = 'bg-balanco-zerado';
+        }
+
+        resultadoDiv.innerHTML = `<p><strong>総水分バランス: <span class="font-bold">${balanco} ml</span></strong></p><p>分類: <strong class="font-bold">${classificacao}</strong></p>`;
+        resultadoDiv.classList.add(resultadoClasse);
+        resultadoDiv.classList.remove('bg-info-orange-light');
+
+        resultadoDiv.dataset.score = balanco;
+        resultadoDiv.dataset.classificacao = classificacao;
+        resultadoDiv.dataset.scaleName = "水分出納バランス"; // Water Balance
+      }
+
+      function limparCampos() {
+        document.getElementById('ingestaoOral').value = '0';
+        document.getElementById('ingestaoSonda').value = '0';
+        document.getElementById('ingestaoParenteral').value = '0';
+        document.getElementById('ingestaoOutros').value = '0';
+        document.getElementById('eliminacaoUrina').value = '0';
+        document.getElementById('eliminacaoVomito').value = '0';
+        document.getElementById('eliminacaoDrenos').value = '0';
+        document.getElementById('eliminacaoOutros').value = '0';
+        resultadoDiv.innerHTML = '';
+        resultadoDiv.className = 'resultado hidden mt-6';
+        delete resultadoDiv.dataset.score;
+        delete resultadoDiv.dataset.classificacao;
+        delete resultadoDiv.dataset.scaleName;
+      }
+
+      // Adiciona os event listeners aos botões
+      btnCalcular?.addEventListener('click', calcularBalanco);
+      btnLimpar?.addEventListener('click', limparCampos);
+
+      btnGerarPDF?.addEventListener('click', () => {
+        if (!resultadoDiv.dataset.score) {
+          alert('PDFを生成する前に、まず「計算」をクリックしてください。'); // Please click "Calculate" first to generate the PDF.
+          return;
+        }
+        if (typeof gerarPDFGlobal === 'function') {
+          gerarPDFGlobal({
+            titulo: '水分出納バランス', // Water Balance
+            subtitulo: '水分摂取と排出の報告', // Report of Fluid Intake and Elimination
+            nomeArquivo: 'reporte_balanco_hidrico.pdf', // report_water_balance.pdf
+            seletorConteudo: '.main-content-wrapper'
+          });
+        } else {
+          console.error('gerarPDFGlobal 関数が定義されていません。'); // gerarPDFGlobal function not defined.
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener('click', () => {
+        const score = resultadoDiv.dataset.score;
+        const scaleName = resultadoDiv.dataset.scaleName;
+        const classificacao = resultadoDiv.dataset.classificacao;
+        if (!score || !classificacao) {
+          alert('行動を検索するために結果を計算してください。'); // Please calculate the result to search for conduct.
+          return;
+        }
+        // Translated search query for Japanese
+        const searchQuery = encodeURIComponent(`${scaleName} 結果 ${score} ml, 分類 ${classificacao} NANDA分類を生成, NIC分類を生成, NOC分類を生成`);
+        window.open(`https://www.google.com/search?q=${searchQuery}`, '_blank');
+      });
+    });
+  </script>
 
 
 

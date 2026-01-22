@@ -561,7 +561,105 @@
 
 
 
-  
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const resultadoDiv = document.getElementById('resultado');
+      const btnCalcular = document.getElementById('btnCalcular');
+      const btnLimpar = document.getElementById('btnLimpar');
+      const conteudoDiv = document.getElementById('conteudo');
+
+      const humptyData = [
+        { category: "Età", nameAttr: "eta", options: [{ description: "< 3 anni", score: 4 }, { description: "3-6 anni", score: 3 }, { description: "7-12 anni", score: 2 }, { description: "≥ 13 anni", score: 1 }] },
+        { category: "Sesso", nameAttr: "sesso", options: [{ description: "Maschio", score: 2 }, { description: "Femmina", score: 1 }] },
+        { category: "Diagnosi", nameAttr: "diagnosi", options: [{ description: "Neurologica", score: 4 }, { description: "Alterazione dell'ossigenazione", score: 3 }, { description: "Disturbi psichici/comportamentali", score: 2 }, { description: "Altre diagnosi", score: 1 }] },
+        { category: "Deficit Cognitivi", nameAttr: "cognitivi", options: [{ description: "Non consapevole delle limitazioni", score: 3 }, { description: "Dimentica le limitazioni", score: 2 }, { description: "Orientato secondo le proprie capacità", score: 1 }] },
+        { category: "Fattori Ambientali", nameAttr: "ambientali", options: [{ description: "Storia di cadute", score: 4 }, { description: "Uso di ausili, letto/culla con molte attrezzature", score: 3 }, { description: "Bambino allettato", score: 2 }, { description: "Bambino che deambula", score: 1 }] },
+        { category: "Uso di Farmaci", nameAttr: "farmaci", options: [{ description: "Uso di ≥ 2 farmaci a rischio", score: 3 }, { description: "Uso di 1 farmaco a rischio (sedativi, ipnotici, narcotici)", score: 2 }, { description: "Altri farmaci o nessun farmaco", score: 1 }] },
+        { category: "Chirurgia / Sedazione / Anestesia", nameAttr: "chirurgia", options: [{ description: "Nelle ultime 24 ore", score: 3 }, { description: "Nelle ultime 48 ore", score: 2 }, { description: "Più di 48 ore fa o nessuna", score: 1 }] }
+      ];
+
+      humptyData.forEach(item => {
+        const sectionDiv = document.createElement('div');
+        sectionDiv.className = 'humpty-criterion-section';
+        sectionDiv.innerHTML = `
+              <h3 class="humpty-criterion-title">${item.category}</h3>
+              <select id="${item.nameAttr}" class="humpty-criterion-select">
+                <option value="" disabled selected>Seleziona...</option>
+                ${item.options.map(o => `<option value="${o.score}">${o.description} (punti: ${o.score})</option>`).join('')}
+              </select>`;
+        conteudoDiv.appendChild(sectionDiv);
+      });
+
+      function calcolaHumpty() {
+        let total = 0;
+        let allSelected = true;
+        document.querySelectorAll('#conteudo select').forEach(select => {
+          select.classList.remove('incomplete');
+          if (select.value === "") {
+            allSelected = false;
+            select.classList.add('incomplete');
+          } else {
+            total += Number(select.value);
+          }
+        });
+
+        resultadoDiv.style.display = "block";
+        if (!allSelected) {
+          resultadoDiv.innerHTML = '⚠️ <strong class="font-bold">Per favore, seleziona un\'opzione per tutte le voci.</strong>';
+          resultadoDiv.className = "resultado bg-red-100";
+          return;
+        }
+
+        let classificazione = (total >= 12) ? 'Alto Rischio' : 'Basso Rischio';
+        let raccomandazione = (total >= 12) ? 'Il bambino ha un alto rischio di caduta. Implementare immediatamente le misure di prevenzione delle cadute pediatriche.' : 'Il bambino ha un basso rischio di caduta. Continuare con le misure preventive standard e rivalutare periodicamente.';
+
+        resultadoDiv.innerHTML = `
+                <p>Punteggio totale: <strong class="font-bold">${total}</strong></p>
+                <p>Classificazione: <strong class="font-bold">${classificazione}</strong></p>
+                <p class="mt-4"><strong>Raccomandazione:</strong> ${raccomandazione}</p>`;
+        resultadoDiv.className = "resultado";
+        resultadoDiv.dataset.score = total;
+        resultadoDiv.dataset.classificazione = classificazione;
+      }
+
+      function pulisciCampi() {
+        document.querySelectorAll('#conteudo select').forEach(select => {
+          select.selectedIndex = 0;
+          select.classList.remove('incomplete');
+        });
+        resultadoDiv.style.display = "none";
+        delete resultadoDiv.dataset.score;
+      }
+
+      btnCalcular?.addEventListener('click', calcolaHumpty);
+      btnLimpar?.addEventListener('click', pulisciCampi);
+
+      document.getElementById('btnGerarPDF')?.addEventListener('click', () => {
+        if (!resultadoDiv.dataset.score) {
+          alert('Per favore, clicca prima su "Calcola Punteggio" per generare il PDF.');
+          return;
+        }
+        if (typeof gerarPDFGlobal === 'function') {
+          gerarPDFGlobal({
+            titulo: 'Scala di Caduta Humpty Dumpty',
+            subtitulo: 'Rapporto sulla Valutazione del Rischio di Caduta',
+            nomeArquivo: 'rapporto_scala_humpty_dumpty.pdf',
+            seletorConteudo: '.main-content-wrapper'
+          });
+        }
+      });
+
+      document.getElementById('btnNandaNicNoc')?.addEventListener('click', () => {
+        const classificazione = resultadoDiv.dataset.classificazione;
+        if (!classificazione) {
+          alert('Calcola il risultato per cercare la condotta.');
+          return;
+        }
+        const searchQuery = encodeURIComponent(`paziente pediatrico con ${classificazione} di caduta secondo la Scala Humpty Dumpty NANDA NIC NOC`);
+        window.open(`https://www.google.com/search?q=${searchQuery}`, '_blank');
+      });
+    });
+  </script>
 
 
 

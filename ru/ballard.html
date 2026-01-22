@@ -614,7 +614,339 @@
 
 
 
-  
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const resultadoDiv = document.getElementById('resultado');
+      const btnCalcular = document.getElementById('btnCalcular');
+      const btnLimpar = document.getElementById('btnLimpar');
+      const btnGerarPDF = document.getElementById('btnGerarPDF');
+      const btnNandaNicNoc = document.getElementById('btnNandaNicNoc');
+      const conteudoDiv = document.getElementById('conteudo');
+
+      const ballardData = [
+        {
+          category: "Нервно-мышечная зрелость",
+          items: [
+            {
+              title: "Поза",
+              nameAttr: "postura",
+              explain: "Оценивает степень сгибания конечностей, когда ребенок находится в покое. Более зрелые дети имеют более согнутую позу (конечности согнуты).",
+              options: [
+                { description: "Полное разгибание", score: -1 },
+                { description: "Легкое / частичное сгибание", score: 0 },
+                { description: "Умеренное сгибание", score: 1 },
+                { description: "Хорошее сгибание", score: 2 },
+                { description: "Сильное сгибание", score: 3 },
+                { description: "Полное сгибание (очень зрелый)", score: 4 },
+              ]
+            },
+            {
+              title: "Угол запястья (квадратное окно)",
+              nameAttr: "square_window",
+              explain: "Оценивает сгибание запястья при сгибании руки к предплечью. Меньший угол (рука ближе к предплечью) указывает на большую зрелость.",
+              options: [
+                { description: "< 90°", score: -1 },
+                { description: " 90°", score: 0 },
+                { description: " 60°", score: 1 },
+                { description: " 45°", score: 2 },
+                { description: " 30°", score: 3 },
+                { description: "0° (очень близко)", score: 4 },
+              ]
+            },
+            {
+              title: "Ретракция руки (возврат руки)",
+              nameAttr: "arm_recoil",
+              explain: "Оценивает скорость и интенсивность возврата руки после выпрямления и отпускания. Чем быстрее и сильнее возврат, тем больше нервно-мышечная зрелость.",
+              options: [
+                { description: "Без возврата", score: 0 },
+                { description: "Медленный возврат", score: 1 },
+                { description: "Частичный возврат", score: 2 },
+                { description: "Быстрый возврат", score: 3 },
+                { description: "Полный и энергичный возврат", score: 4 },
+              ]
+            },
+            {
+              title: "Подколенный угол",
+              nameAttr: "popliteo",
+              explain: "Оценивает степень сопротивления разгибанию нижней конечности. Меньший угол (большее сгибание) указывает на большую зрелость.",
+              options: [
+                { description: "180°", score: -1 },
+                { description: "160°", score: 0 },
+                { description: "140°", score: 1 },
+                { description: "120°", score: 2 },
+                { description: "100°", score: 3 },
+                { description: "90°", score: 4 },
+                { description: "< 90°", score: 5 },
+              ]
+            },
+            {
+              title: "Признак шарфа (scarf sign)",
+              nameAttr: "scarf",
+              explain: "При протягивании руки поперек груди наблюдают, насколько локоть пересекает среднюю линию тела. Чем меньше пересечение, тем больше зрелость.",
+              options: [
+                { description: "Локоть пересекает среднюю линию", score: -1 },
+                { description: "Локоть на средней линии", score: 0 },
+                { description: "Локоть близко к плечу", score: 1 },
+                { description: "Локоть не достигает плеча", score: 2 },
+                { description: "Локоть очень далеко от плеча", score: 3 },
+              ]
+            },
+            {
+              title: "Пятка → Ухо (heel to ear)",
+              nameAttr: "heel_to_ear",
+              explain: "При приближении пятки к уху наблюдают сопротивление. Большее сопротивление = большая зрелость.",
+              options: [
+                { description: "Стопа легко достигает уха", score: -1 },
+                { description: "Стопа близко к уху", score: 0 },
+                { description: "Умеренное сопротивление", score: 1 },
+                { description: "Хорошее сопротивление", score: 2 },
+                { description: "Стопа далеко от уха", score: 3 },
+                { description: "Сильное сопротивление (очень зрелый)", score: 4 },
+              ]
+            }
+          ]
+        },
+        {
+          category: "Физическая зрелость",
+          items: [
+            {
+              title: "Кожа",
+              nameAttr: "pele",
+              explain: "Оценивает текстуру кожи: от тонкой и полупрозрачной у недоношенных до толстой, сухой и потрескавшейся у переношенных детей.",
+              options: [
+                { description: "Липкая, полупрозрачная (очень незрелый)", score: -1 },
+                { description: "Желатинозная / тонкая", score: 0 },
+                { description: "Гладкая с видимыми венами", score: 1 },
+                { description: "Более толстая, немного трещин", score: 2 },
+                { description: "Толстая, потрескавшаяся", score: 3 },
+                { description: "Толстая, сухая с глубокими трещинами (переношенный)", score: 4 },
+              ]
+            },
+            {
+              title: "Пушковые волосы (lanugo)",
+              nameAttr: "lanugo",
+              explain: "Оценивает наличие и распределение пушковых волос (тонких волосков). У недоношенных они обильны; у более зрелых детей уменьшаются и исчезают.",
+              options: [
+                { description: "Отсутствуют (очень переношенный)", score: -1 },
+                { description: "Скудные", score: 0 },
+                { description: "Обильные", score: 1 },
+                { description: "Тонкие (характерно для недоношенности)", score: 2 },
+                { description: "Участки без волос", score: 3 },
+                { description: "Практически отсутствуют (очень незрелый)", score: 4 },
+              ]
+            },
+            {
+              title: "Подошвенные складки",
+              nameAttr: "plantares",
+              explain: "Оценивает складки на подошве стопы: у недоношенных мало складок; у зрелых детей глубокие складки покрывают всю подошву.",
+              options: [
+                { description: "Отсутствуют / очень мелкие", score: -1 },
+                { description: "Отметки на передней части", score: 0 },
+                { description: "До половины подошвы", score: 1 },
+                { description: "До 2/3", score: 2 },
+                { description: "Складки по всей подошве", score: 3 },
+                { description: "Глубокие и выраженные складки", score: 4 },
+              ]
+            },
+            {
+              title: "Молочные железы",
+              nameAttr: "mamas",
+              explain: "Наблюдают размер молочной железы и ареолы. У более зрелых детей железа и ареола больше и более выступающие.",
+              options: [
+                { description: "Незаметная", score: -1 },
+                { description: "Слабо видимая", score: 0 },
+                { description: "Плоская ареола, маленький бугорок", score: 1 },
+                { description: "Ареола частично приподнята 1–2 мм железы", score: 2 },
+                { description: "Ареола с приподнятым краем 3–4 мм железы", score: 3 },
+                { description: "Приподнятый край 5–10 мм железы", score: 4 },
+              ]
+            },
+            {
+              title: "Глаза и уши",
+              nameAttr: "olhos_orelhas",
+              explain: "Оценивает плотность хряща ушей и формирование век. Более плотные уши и хорошо сформированная раковина указывают на большую зрелость.",
+              options: [
+                { description: "Мягкий хряж / сросшиеся веки", score: -1 },
+                { description: "Некоторое уплотнение", score: 0 },
+                { description: "Умеренное уплотнение", score: 1 },
+                { description: "Хорошее уплотнение", score: 2 },
+                { description: "Полное уплотнение", score: 3 },
+              ]
+            },
+            {
+              title: "Гениталии",
+              nameAttr: "genitalia",
+              explain: "Оценивает развитие гениталий: у мальчиков наблюдают положение и морщинистость мошонки / у девочек, выступание клитора и размер губ. Указывает на половую/неонатальную зрелость.",
+              options: [
+                { description: "Мужской: яички не опущены; Женский: плоские губы", score: -1 },
+                { description: "Мужской: частично опущены; Женский: маленькие малые губы", score: 0 },
+                { description: "Мужской: яички в мошонке; Женский: выраженные малые губы", score: 1 },
+                { description: "Мужской: морщинистая мошонка; Женский: малые и большие губы одинаково выступающие", score: 2 },
+                { description: "Гениталии полностью зрелые", score: 3 },
+              ]
+            }
+          ]
+        }
+      ];
+
+      // Заполнение формы динамически
+      ballardData.forEach(section => {
+        const sectionDiv = document.createElement('div');
+        sectionDiv.className = 'ballard-criterion-section';
+
+        const titleH3 = document.createElement('h3');
+        titleH3.className = 'ballard-criterion-title';
+        titleH3.innerText = section.category;
+        sectionDiv.appendChild(titleH3);
+
+        const groupDiv = document.createElement('div');
+        groupDiv.className = 'ballard-criterion-group';
+
+        section.items.forEach(item => {
+          const itemDiv = document.createElement('div');
+          itemDiv.id = `item-${item.nameAttr}`;
+          itemDiv.className = 'ballard-criterion-item';
+
+          const itemTitle = document.createElement('h4');
+          itemTitle.className = 'ballard-item-title';
+          itemTitle.innerText = item.title;
+          itemDiv.appendChild(itemTitle);
+
+          const itemExplain = document.createElement('p');
+          itemExplain.className = 'ballard-item-explain';
+          itemExplain.innerText = item.explain;
+          itemDiv.appendChild(itemExplain);
+
+          item.options.forEach(option => {
+            const optionDiv = document.createElement('div');
+            optionDiv.className = 'ballard-criterion-option';
+
+            const radioInput = document.createElement('input');
+            radioInput.type = 'radio';
+            radioInput.name = item.nameAttr;
+            radioInput.value = option.score;
+            radioInput.id = `${item.nameAttr}_${option.score}`;
+
+            const label = document.createElement('label');
+            label.htmlFor = radioInput.id;
+            label.innerText = `${option.description} (${option.score})`;
+
+            optionDiv.appendChild(radioInput);
+            optionDiv.appendChild(label);
+            itemDiv.appendChild(optionDiv);
+          });
+
+          groupDiv.appendChild(itemDiv);
+        });
+
+        sectionDiv.appendChild(groupDiv);
+        conteudoDiv.appendChild(sectionDiv);
+      });
+
+      // Логика расчета и кнопок
+      const criteriaNames = ballardData.flatMap(s => s.items.map(i => i.nameAttr));
+
+      function calcularBallard() {
+        let allSelected = true;
+        let total = 0;
+        document.querySelectorAll('.ballard-criterion-item').forEach(el => el.classList.remove('incomplete'));
+
+        criteriaNames.forEach(name => {
+          const selected = document.querySelector(`input[name="${name}"]:checked`);
+          if (!selected) {
+            allSelected = false;
+            document.getElementById(`item-${name}`).classList.add('incomplete');
+          } else {
+            total += Number(selected.value);
+          }
+        });
+
+        resultadoDiv.style.display = "block";
+        if (!allSelected) {
+          resultadoDiv.innerHTML = '⚠️ <strong class="font-bold">Пожалуйста, выберите вариант для всех выделенных пунктов перед расчетом.</strong>';
+          resultadoDiv.classList.add('bg-red-100');
+          resultadoDiv.classList.remove('bg-blue-50');
+          delete resultadoDiv.dataset.score;
+          return;
+        }
+
+        const semanasFloat = 20 + (total * 0.4);
+        const semanas = Math.floor(semanasFloat);
+        const dias = Math.round((semanasFloat - semanas) * 7);
+
+        let classificacao = '';
+        if (semanas < 37) classificacao = 'Недоношенный';
+        else if (semanas >= 37 && semanas < 42) classificacao = 'Доношенный';
+        else classificacao = 'Переношенный';
+
+        let conduta = '';
+        if (classificacao === 'Недоношенный') {
+          conduta = 'Контролировать терморегуляцию, гликемию и признаки дыхательного дискомфорта. Рассмотреть респираторную поддержку и уход в отделении для новорожденных по мере необходимости.';
+        } else if (classificacao === 'Доношенный') {
+          conduta = 'Обычный неонатальный уход; наблюдать кормление и жизненные показатели. Оценить потребности в неонатальном скрининге.';
+        } else {
+          conduta = 'Оценить признаки перезрелости (кожа, гликемия, терморегуляция), наблюдать риск гипоксии и адаптацию новорожденного.';
+        }
+
+        resultadoDiv.innerHTML = `
+              <p>Общий балл: <strong class="font-bold">${total}</strong></p>
+              <p>Оценочный гестационный возраст: <strong class="font-bold">${semanas} недель и ${dias} дней</strong></p>
+              <p>Классификация: <strong class="font-bold">${classificacao}</strong></p>
+              <p class="mt-4"><strong>Рекомендуемая тактика:</strong> ${conduta}</p>
+            `;
+        resultadoDiv.className = `resultado bg-blue-50`;
+        resultadoDiv.style.display = "block";
+
+        resultadoDiv.dataset.score = total;
+        resultadoDiv.dataset.scaleName = "Шкала Балларда";
+        resultadoDiv.dataset.classificacao = classificacao;
+      }
+
+      function limparCampos() {
+        criteriaNames.forEach(name => {
+          document.querySelectorAll(`input[name="${name}"]`).forEach(input => input.checked = false);
+        });
+        resultadoDiv.innerHTML = '';
+        resultadoDiv.className = 'resultado hidden';
+        delete resultadoDiv.dataset.score;
+        delete resultadoDiv.dataset.scaleName;
+        delete resultadoDiv.dataset.classificacao;
+        document.querySelectorAll('.ballard-criterion-item').forEach(el => el.classList.remove('incomplete'));
+      }
+
+      btnCalcular?.addEventListener('click', calcularBallard);
+      btnLimpar?.addEventListener('click', limparCampos);
+
+      btnGerarPDF?.addEventListener('click', () => {
+        if (!resultadoDiv.dataset.score) {
+          alert('Пожалуйста, сначала нажмите "Рассчитать балл", чтобы создать PDF.');
+          return;
+        }
+        if (typeof gerarPDFGlobal === 'function') {
+          gerarPDFGlobal({
+            titulo: 'Шкала Балларда',
+            subtitulo: 'Отчет о гестационном возрасте',
+            nomeArquivo: 'relatorio_escala_ballard.pdf',
+            seletorConteudo: '.main-content-wrapper'
+          });
+        } else {
+          console.error('Функция gerarPDFGlobal не определена.');
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener('click', () => {
+        const score = resultadoDiv.dataset.score;
+        const scaleName = resultadoDiv.dataset.scaleName;
+        const classificacao = resultadoDiv.dataset.classificacao;
+        if (!score || !classificacao) {
+          alert('Рассчитайте результат для поиска тактики ведения.');
+          return;
+        }
+        const searchQuery = encodeURIComponent(`уход за новорожденным ${classificacao} Ballard NANDA NIC NOC`);
+        window.open(`https://www.google.com/search?q=${searchQuery}`, '_blank');
+      });
+    });
+  </script>
 
 
 

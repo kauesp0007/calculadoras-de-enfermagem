@@ -552,7 +552,270 @@
 
 
 
-  
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const resultadoDiv = document.getElementById("resultado");
+      const btnCalcular = document.getElementById("btnCalcular");
+      const btnLimpar = document.getElementById("btnLimpar");
+      const btnGerarPDF = document.getElementById("btnGerarPDF");
+      const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
+      const conteudoDiv = document.getElementById("conteudo");
+
+      const katzData = [
+        {
+          item: "1 - Banho",
+          nameAttr: "banho",
+          options: [
+            {
+              score: 1,
+              description:
+                "Oberoende - behöver bara hjälp för att tvätta en del av kroppen, t.ex. rygg eller extremiteter."
+            },
+            {
+              score: 0,
+              description:
+                "Beroende - behöver hjälp med att tvätta mer än en del av kroppen; behöver hjälp med att komma i och ur badkaret; kan inte tvätta sig själva."
+            }]
+
+        },
+        {
+          item: "2 - Vestir",
+          nameAttr: "vestir",
+          options: [
+            {
+              score: 1,
+              description:
+                "Oberoende - väljer lämpliga kläder, tar på sig dem och knäpper dem; utesluter att knyta skor."
+            },
+            {
+              score: 0,
+              description:
+                "Beroende - behöver hjälp med att klä på sig; kan inte klä på sig själva."
+            }]
+
+        },
+        {
+          item: "3 - Användning av toaletten",
+          nameAttr: "sanitario",
+          options: [
+            {
+              score: 1,
+              description:
+                "Oberoende - behöver inte hjälp för att sitta ner eller resa sig från en stol, inte heller för att komma i eller ur sängen; kan använda en urinoar eller potta."
+            },
+            {
+              score: 0,
+              description:
+                "Beroende - använder urinoar eller bäcken eller behöver hjälp med att komma till och använda toaletten."
+            }]
+
+        },
+        {
+          item: "4 - Förflyttning (säng/rullstol)",
+          nameAttr: "transferencia",
+          options: [
+            {
+              score: 1,
+              description:
+                "Oberoende - behöver inte hjälp för att sitta ner eller resa sig från en stol eller för att komma i eller ur sängen; kan använda hjälpmedel, t.ex. en käpp."
+            },
+            {
+              score: 0,
+              description:
+                "Beroende - behöver hjälp med att lägga sig ner eller ta sig upp ur sängen/rullstolen; är sängliggande"
+            }]
+
+        },
+        {
+          item: "5 - Kontinens (fekal/vesikal)",
+          nameAttr: "continencia",
+          options: [
+            {
+              score: 1,
+              description:
+                "Oberoende - fullständig kontroll över urinering och avföring."
+            },
+            {
+              score: 0,
+              description:
+                "Beroende - total eller partiell blås- och/eller fekalinkontinens; användning av lavemang, sonder, urinaler eller comadres"
+            }]
+
+        },
+        {
+          item: "6 - Livsmedel",
+          nameAttr: "alimentacao",
+          options: [
+            {
+              score: 1,
+              description:
+                "Självständig - för mat från tallrik till mun utan hjälp; utesluter att skära mat."
+            },
+            {
+              score: 0,
+              description:
+                "Beroende - behöver hjälp med att äta, äter inte alls eller behöver enteral/parenteral nutrition"
+            }]
+
+        }];
+
+
+      // --- Funções da Calculadora Katz ---
+      function updateScoreDisplay(criterionId) {
+        const selectElement = document.getElementById(criterionId);
+        const scoreDisplayElement = document.getElementById(
+          `${criterionId}_score_display`
+        );
+        if (selectElement && scoreDisplayElement) {
+          scoreDisplayElement.innerText =
+            selectElement.value === "" ? "0" : selectElement.value;
+        }
+      }
+
+      function calcularPontuacao() {
+        let totalScore = 0;
+        let allItemsSelected = true;
+
+        katzData.forEach((item) => {
+          const selectElement = document.getElementById(item.nameAttr);
+          if (selectElement.value === "") {
+            allItemsSelected = false;
+          } else {
+            totalScore += parseInt(selectElement.value, 10);
+          }
+        });
+
+        resultadoDiv.style.display = "block";
+        if (!allItemsSelected) {
+          resultadoDiv.innerHTML =
+            '⚠️ <strong class="font-bold">Por favor, selecione uma opção para cada item</strong> antes de calcular.';
+          resultadoDiv.className = "bg-info-orange-ljus resultat";
+          delete resultadoDiv.dataset.score;
+          return;
+        }
+
+        let classificacao = "";
+        let resultadoClasse = "";
+
+        if (totalScore === 6) {
+          classificacao = "Total självständighet";
+          resultadoClasse = "bg-katz-total";
+        } else if (totalScore === 5) {
+          classificacao = "Milt beroende";
+          resultadoClasse = "bg-katz-ligeira";
+        } else if (totalScore >= 3 && totalScore <= 4) {
+          classificacao = "Måttligt beroende";
+          resultadoClasse = "bg-katz-moderada";
+        } else if (totalScore >= 1 && totalScore <= 2) {
+          classificacao = "Allvarligt beroende";
+          resultadoClasse = "bg-katz-grave";
+        } else if (totalScore === 0) {
+          classificacao = "Totalt beroende";
+          resultadoClasse = "bg-katz-dependente";
+        } else {
+          classificacao = "Ogiltig poäng";
+          resultadoClasse = "bg-info-orange-light";
+        }
+
+        resultadoDiv.innerHTML = `<p>Pontuação Total da Escala de Katz: <strong class="font-bold">${totalScore}</strong></p><p>Classificação: <strong class="font-bold">${classificacao}</strong></p>`;
+        resultadoDiv.className = `resultat ${resultadoClasse}`;
+
+        resultadoDiv.dataset.score = totalScore;
+        resultadoDiv.dataset.classificacao = classificacao;
+        resultadoDiv.dataset.scaleName = "Escala de Katz";
+      }
+
+      function limparCampos() {
+        katzData.forEach((item) => {
+          document.getElementById(item.nameAttr).selectedIndex = 0;
+        });
+        resultadoDiv.innerHTML = "";
+        resultadoDiv.className = "dolt resultat";
+        delete resultadoDiv.dataset.score;
+        delete resultadoDiv.dataset.classificacao;
+        delete resultadoDiv.dataset.scaleName;
+      }
+
+      // Preenche o formulário dinamicamente
+      katzData.forEach((item, index) => {
+        const sectionDiv = document.createElement("div");
+        sectionDiv.className = "katz-criterion-card";
+
+        const headerDiv = document.createElement("div");
+        headerDiv.className = "katz-criterion-header";
+
+        const titleH3 = document.createElement("h3");
+        titleH3.className = "katz-criterion-title";
+        titleH3.innerText = item.item;
+        headerDiv.appendChild(titleH3);
+
+        sectionDiv.appendChild(headerDiv);
+
+        const optionsDiv = document.createElement("div");
+        optionsDiv.className = "katz-criterion-options";
+
+        const selectElement = document.createElement("select");
+        selectElement.id = item.nameAttr;
+        selectElement.className = "katz-select";
+        selectElement.onchange = () => updateScoreDisplay(item.nameAttr);
+
+        const defaultOption = document.createElement("option");
+        defaultOption.value = "";
+        defaultOption.text = "Välja...";
+        defaultOption.disabled = true;
+        defaultOption.selected = true;
+        selectElement.appendChild(defaultOption);
+
+        item.options.forEach((option) => {
+          const optionElement = document.createElement("option");
+          optionElement.value = option.score;
+          optionElement.text = `${option.description} (${option.score})`;
+          selectElement.appendChild(optionElement);
+        });
+
+        optionsDiv.appendChild(selectElement);
+        sectionDiv.appendChild(optionsDiv);
+        conteudoDiv.appendChild(sectionDiv);
+      });
+
+      // Adiciona os event listeners aos botões
+      btnCalcular?.addEventListener("click", calcularPontuacao);
+      btnLimpar?.addEventListener("click", limparCampos);
+
+      btnGerarPDF?.addEventListener("click", () => {
+        if (!resultadoDiv.dataset.score) {
+          alert('Klicka först på "Beräkna" för att generera PDF-filen.');
+          return;
+        }
+        if (typeof gerarPDFGlobal === "function") {
+          gerarPDFGlobal({
+            titulo: "Katz-skalan",
+            subtitulo: "Utvärderingsrapport om autonomi hos ADL-personer",
+            nomeArquivo: "relatorio_escala_katz.pdf",
+            seletorConteudo: ".main-content-wrapper"
+          });
+        } else {
+          console.error("Funktionen GeneratePDFGlobal är inte definierad.");
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener("click", () => {
+        const score = resultadoDiv.dataset.score;
+        const scaleName = resultadoDiv.dataset.scaleName;
+        const classificacao = resultadoDiv.dataset.classificacao;
+        if (!score || !classificacao) {
+          alert("Beräkna resultatet för att undersöka beteendet.");
+          return;
+        }
+        const searchQuery = encodeURIComponent(
+          `${scaleName} poäng ${score} Klassificering ${classificacao} gerar taxonomia NANDA, gerar taxonomia NIC e gerar taxonomia de NOC`
+        );
+        window.open(
+          `https://www.google.com/search?q=${searchQuery}`,
+          "_blank"
+        );
+      });
+    });</script>
 
   <script src="/lang-selector.js" defer=""></script>
 

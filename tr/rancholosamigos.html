@@ -582,7 +582,211 @@
 
 
 
-  
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const resultadoDiv = document.getElementById("resultado");
+      const btnCalcular = document.getElementById("btnCalcular");
+      const btnLimpar = document.getElementById("btnLimpar");
+      const btnGerarPDF = document.getElementById("btnGerarPDF");
+      const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
+      const conteudoDiv = document.getElementById("conteudo");
+
+      const rlasData = [
+        {
+          level: 1,
+          title: "Seviye I - Yanıt Yok",
+          description:
+            "Hasta işitsel, görsel, dokunsal veya ağrı uyarılarına yanıt vermez. Derin koma durumundadır.",
+          recommendation:
+            "Öneri: Yaşam desteğine odaklanma, ülser ve kontratürleri önlemek için pozisyonlama ve minimal duyusal uyarılar. Aile ile iletişim şarttır.",
+        },
+        {
+          level: 2,
+          title: "Seviye II - Genel Yanıt",
+          description:
+            "Hasta uyarılara karşı tutarsız, amaçsız ve spesifik olmayan şekilde yanıt verir. Yanıtlar sınırlıdır ve uyarıya bakılmaksızın aynı olabilir.",
+          recommendation:
+            "Öneri: Sakin ve kontrollü bir ortam sağlama. Aşırı yüklemeden tutarlı duyusal uyarımla devam etme. Hastayı uyandırmaya odaklanma.",
+        },
+        {
+          level: 3,
+          title: "Seviye III - Lokalize Yanıt",
+          description:
+            "Hasta uyarılara karşı daha spesifik şekilde yanıt verir. Işıklı bir uyarıya göz kırpabilir veya bir nesneyi takip etmeye çalışabilir. Yanıtlar tutarsızdır.",
+          recommendation:
+            "Öneri: Basit ve tekrarlayan komutlarla başlama. Dikkat dağıtıcı unsurları sınırlama. Hasta tanıdık kişileri tanımaya başlayabilir. Dikkati odaklamada yardımcı olma.",
+        },
+        {
+          level: 4,
+          title: "Seviye IV - Karışık ve Ajite",
+          description:
+            "Hasta ajitasyon ve karışıklık durumundadır. Değerlendirmeyle işbirliği yapamaz ve agresif davranış gösterebilir. Dikkat süresi kısadır.",
+          recommendation:
+            "Öneri: Yaralanmaları önlemek için güvenli ve yapılandırılmış bir ortam sağlama. Sakin bir ses tonu kullanma ve öngörülebilir bir rutin sürdürme. Gerektiğinde hastayı yönlendirmede yardımcı olma.",
+        },
+        {
+          level: 5,
+          title: "Seviye V - Karışık ve Uygunsuz",
+          description:
+            "Hasta basit komutları takip edebilir, ancak dikkatini sürdürmekte zorlanır. Karmaşık sorulara verdiği yanıtlar uygunsuz ve karışıktır. Hafıza ciddi şekilde etkilenmiştir.",
+          recommendation:
+            "Öneri: Basit ve tekrarlayan görevlerle eğitime başlama. Zaman ve mekan için yeniden yönlendirmeyi pekiştirme. İletişim açık ve doğrudan olmalı.",
+        },
+        {
+          level: 6,
+          title: "Seviye VI - Karışık ve Uygun",
+          description:
+            "Hasta komutları takip edebilir ve uzun süreli hafıza gösterir. Kısa süreli hafıza hala etkilenmiştir ve kararlar sıklıkla yanlıştır.",
+          recommendation:
+            "Öneri: Görevlerin karmaşıklığını artırma. Geçmiş olayların hatırlatmalarını kullanma ve aile aktivitelerinde bağımsızlığı teşvik etme. Hastayı küçük kararlar almaya teşvik etme.",
+        },
+        {
+          level: 7,
+          title: "Seviye VII - Otomatik ve Uygun",
+          description:
+            "Hasta çok az karışıklık yaşar. Robotik şekilde günlük rutini takip edebilir, ancak hala yargı ve problem çözme eksiklikleri vardır. Sosyal etkileşim yüzeyseldir.",
+          recommendation:
+            "Öneri: Planlama ve problem çözmeye odaklanma. Gruplarla sosyalleşmeyi ve bilişsel eksiklikleri telafi etme stratejilerinin geliştirilmesini teşvik etme.",
+        },
+        {
+          level: 8,
+          title: "Seviye VIII - Yönlendirilmiş ve Uygun",
+          description:
+            "Hasta soyut düşünebilir ve problem çözebilir. Hafıza ve yargısı tutarlıdır, ancak duygularla başa çıkma kapasitesi etkilenmiş olabilir. İşlev bağımsızdır.",
+          recommendation:
+            "Öneri: Hastanın duygusal ve sosyal değişikliklerle başa çıkmasına yardımcı olma. Topluma reintegrasyon ve iş veya akademik yaşama dönüş için hazırlığa odaklanma.",
+        },
+      ];
+
+      rlasData.forEach((item) => {
+        const sectionDiv = document.createElement("div");
+        sectionDiv.className = "rlas-criterion-section";
+        sectionDiv.id = `section-level-${item.level}`;
+
+        const radioContainer = document.createElement("div");
+        radioContainer.className = "rlas-criterion-option";
+
+        const radioInput = document.createElement("input");
+        radioInput.type = "radio";
+        radioInput.name = "rlas_level";
+        radioInput.value = item.level;
+        radioInput.id = `level-${item.level}`;
+
+        const label = document.createElement("label");
+        label.htmlFor = `level-${item.level}`;
+        label.innerHTML = `<strong>${item.title}</strong><br>${item.description}`;
+
+        radioContainer.appendChild(radioInput);
+        radioContainer.appendChild(label);
+        sectionDiv.appendChild(radioContainer);
+
+        conteudoDiv.appendChild(sectionDiv);
+      });
+
+      function calcularRLAS() {
+        const selectedRadio = document.querySelector(
+          'input[name="rlas_level"]:checked',
+        );
+        resultadoDiv.style.display = "block";
+
+        if (!selectedRadio) {
+          resultadoDiv.innerHTML =
+            '⚠️ <strong class="font-bold">Lütfen hesaplama için bir seviye seçin.</strong>';
+          resultadoDiv.classList.add("bg-red-100");
+          resultadoDiv.classList.remove("bg-blue-50");
+          return;
+        }
+
+        const level = selectedRadio.value;
+        const selectedItem = rlasData.find((item) => item.level == level);
+
+        if (selectedItem) {
+          resultadoDiv.innerHTML = `
+                    <p>Seçilen seviye: <strong class="font-bold">${selectedItem.title}</strong></p>
+                    <p class="mt-4"><strong>Öneri:</strong> ${selectedItem.recommendation}</p>
+                `;
+          resultadoDiv.className = `resultado bg-blue-50`;
+        }
+
+        resultadoDiv.style.display = "block";
+      }
+
+      function limparCampos() {
+        const selectedRadio = document.querySelector(
+          'input[name="rlas_level"]:checked',
+        );
+        if (selectedRadio) {
+          selectedRadio.checked = false;
+        }
+        resultadoDiv.innerHTML = "";
+        resultadoDiv.className = "resultado hidden";
+      }
+
+      btnCalcular?.addEventListener("click", calcularRLAS);
+      btnLimpar?.addEventListener("click", limparCampos);
+
+      btnGerarPDF?.addEventListener("click", () => {
+        const selectedRadio = document.querySelector(
+          'input[name="rlas_level"]:checked',
+        );
+        if (!selectedRadio) {
+          alert("PDF oluşturmak için lütfen bir seviye seçin.");
+          return;
+        }
+        if (typeof gerarPDFGlobal === "function") {
+          const selectedItem = rlasData.find(
+            (item) => item.level == selectedRadio.value,
+          );
+
+          let contentToPrint = document
+            .querySelector(".main-content-wrapper")
+            .cloneNode(true);
+          let contentContainer = contentToPrint.querySelector("#conteudo");
+
+          contentContainer.innerHTML = "";
+
+          let itemDiv = document.createElement("div");
+          itemDiv.className = "mb-2 p-2 bg-gray-50 rounded";
+          itemDiv.innerHTML = `<strong>Seçilen seviye:</strong> ${selectedItem.title}<br><strong>Açıklama:</strong> ${selectedItem.description}`;
+          contentContainer.appendChild(itemDiv);
+
+          let resultadoHtml = resultadoDiv.cloneNode(true);
+          if (resultadoHtml.style.display !== "none") {
+            contentContainer.appendChild(resultadoHtml);
+          }
+
+          gerarPDFGlobal({
+            titulo: "Rancho Los Amigos Skalası",
+            subtitulo: "Bilişsel Değerlendirme Raporu",
+            nomeArquivo: "rancho_los_amigos_raporu.pdf",
+            seletorConteudo: ".main-content-wrapper",
+          });
+        } else {
+          console.error("gerarPDFGlobal fonksiyonu tanımlı değil.");
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener("click", () => {
+        const selectedRadio = document.querySelector(
+          'input[name="rlas_level"]:checked',
+        );
+        if (!selectedRadio) {
+          alert("Klinik yaklaşımı araştırmak için bir seviye seçin.");
+          return;
+        }
+        const selectedItem = rlasData.find(
+          (item) => item.level == selectedRadio.value,
+        );
+        const searchQuery = encodeURIComponent(
+          `beyin hasarlı hasta için hemşirelik bakımı Seviye ${selectedItem.level} NANDA NIC NOC`,
+        );
+        window.open(
+          `https://www.google.com/search?q=${searchQuery}`,
+          "_blank",
+        );
+      });
+    });
+  </script>
 
   <script src="/lang-selector.js" defer=""></script>
 

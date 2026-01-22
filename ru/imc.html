@@ -686,7 +686,146 @@
 
 
     <!-- Script específico da página -->
-    
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const resultadoDiv = document.getElementById('resultado');
+            const btnCalcular = document.getElementById('btnCalcular');
+            const btnLimpar = document.getElementById('btnLimpar');
+            const btnGerarPDF = document.getElementById('btnGerarPDF');
+            const btnNandaNicNoc = document.getElementById('btnNandaNicNoc');
+
+            function calcularIMC() {
+                const peso = parseFloat(document.getElementById('peso').value);
+                const altura = parseFloat(document.getElementById('altura').value);
+
+                // Limpa o conteúdo e remove classes de resultado
+                resultadoDiv.innerHTML = '';
+                resultadoDiv.className = 'resultado-quadro hidden';
+
+                // Validação de entrada
+                if (isNaN(peso) || isNaN(altura) || peso <= 0 || altura <= 0) {
+                    resultadoDiv.innerHTML = `<p>⚠️ <strong class="text-red-600">Пожалуйста, введите действительные числовые значения больше нуля для веса и роста.</strong></p>`;
+                    resultadoDiv.classList.remove('hidden');
+                    resultadoDiv.classList.add('bg-danger-red');
+                    return;
+                }
+
+                const imc = peso / (altura * altura);
+                let classificacao = '';
+                let conduta = '';
+                let resultadoBgClass = '';
+
+                if (imc < 18.5) {
+                    classificacao = 'Недостаточный вес';
+                    conduta = 'Риск недоедания. Рекомендуются оценка и нутриционное наблюдение.';
+                    resultadoBgClass = 'bg-danger-red';
+                } else if (imc >= 18.5 && imc < 24.9) {
+                    classificacao = 'Нормальный вес';
+                    conduta = 'Поддерживайте здоровый образ жизни. Хорошее нутриционное состояние.';
+                    resultadoBgClass = 'bg-success-green';
+                } else if (imc >= 25 && imc < 29.9) {
+                    classificacao = 'Избыточный вес';
+                    conducta = 'Внимание к изменениям в образе жизни и питании. Может быть показана нутриционная оценка.';
+                    resultadoBgClass = 'bg-info-orange-light';
+                } else { // Obesidade
+                    conduta = 'Срочное вмешательство и мультидисциплинарное наблюдение. Высокий риск серьёзных сопутствующих заболеваний.';
+                    resultadoBgClass = 'bg-danger-red';
+
+                    if (imc >= 30 && imc < 34.9) {
+                        classificacao = 'Ожирение I степени';
+                    } else if (imc >= 35 && imc < 39.9) {
+                        classificacao = 'Ожирение II степени';
+                    } else {
+                        classificacao = 'Ожирение III степени (Морбидное)';
+                    }
+                }
+
+                // Exibe o resultado formatado
+                resultadoDiv.innerHTML = `
+                    <table class="w-full">
+                        <tbody>
+                            <tr>
+                                <td class="font-bold pr-2">Рассчитанный ИМТ:</td>
+                                <td>${imc.toFixed(2)} <abbr title="килограммы на метр в квадрате">кг/м²</abbr></td>
+                            </tr>
+                            <tr>
+                                <td class="font-bold pr-2">Классификация:</td>
+                                <td>${classificacao}</td>
+                            </tr>
+                            <tr>
+                                <td class="font-bold pr-2">Тактика Медсестёр:</td>
+                                <td>${conduta}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                `;
+                resultadoDiv.classList.remove('hidden');
+                resultadoDiv.classList.add(resultadoBgClass);
+
+                // Armazenar os valores e detalhes para a geração do PDF e NANDA
+                resultadoDiv.dataset.imc = imc.toFixed(2);
+                resultadoDiv.dataset.classificacao = classificacao;
+                resultadoDiv.dataset.conduta = conduta;
+                resultadoDiv.dataset.peso = peso;
+                resultadoDiv.dataset.altura = altura;
+                resultadoDiv.dataset.scaleName = "Калькулятор ИМТ";
+            }
+
+            function limparCampos() {
+                document.getElementById('peso').value = '';
+                document.getElementById('altura').value = '';
+                resultadoDiv.innerHTML = '';
+                resultadoDiv.classList.add('hidden');
+                // Clear data attributes
+                delete resultadoDiv.dataset.imc;
+                delete resultadoDiv.dataset.classificacao;
+                delete resultadoDiv.dataset.conduta;
+                delete resultadoDiv.dataset.peso;
+                delete resultadoDiv.dataset.altura;
+                delete resultadoDiv.dataset.scaleName;
+            }
+
+            // Função para gerar PDF
+            function gerarPDF() {
+                if (!resultadoDiv.dataset.imc) {
+                    showCustomMessage('Пожалуйста, рассчитайте ИМТ перед созданием PDF.');
+                    return;
+                }
+                if (typeof gerarPDFGlobal === 'function') {
+                    gerarPDFGlobal({
+                        titulo: 'Калькулятор Индекса Массы Тела',
+                        subtitulo: 'Отчёт об Оценке ИМТ',
+                        nomeArquivo: 'отчёт_имт.pdf',
+                        seletorConteudo: '.main-content-wrapper'
+                    });
+                } else {
+                    console.error('Функция gerarPDFGlobal не определена.');
+                }
+            }
+
+            // Adiciona o event listener para o botão NANDA, NIC, NOC
+            if (btnNandaNicNoc) {
+                btnNandaNicNoc.addEventListener('click', () => {
+                    const imcValue = resultadoDiv.dataset.imc;
+                    const classificacao = resultadoDiv.dataset.classificacao;
+                    const conduta = resultadoDiv.dataset.conduta;
+                    const scaleName = resultadoDiv.dataset.scaleName;
+
+                    if (!imcValue || !classificacao || !conduta) {
+                        showCustomMessage('Рассчитайте результат для поиска тактики лечения.');
+                        return;
+                    }
+                    const searchQuery = encodeURIComponent(`ИМТ: ${imcValue}, Классификация: ${classificacao}, Тактика Медсестёр: ${conduta} - ${scaleName} СОЗДАТЬ диагнозы медсестёр NANDA, СОЗДАТЬ вмешательства медсестёр NIC, Создать пример измерения результатов, внедрённых медсестрой (NOC)`);
+                    window.open(`https://www.google.com/search?q=${searchQuery}`, '_blank');
+                });
+            }
+
+            // Anexa os event listeners
+            btnCalcular?.addEventListener('click', calcularIMC);
+            btnLimpar?.addEventListener('click', limparCampos);
+            btnGerarPDF?.addEventListener('click', gerarPDF);
+        });
+    </script>
 
 
 

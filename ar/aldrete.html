@@ -560,7 +560,250 @@
 
 
   <!-- Script Específico da Página Aldrete (Tradução e numeração árabe) -->
-  
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      // Função para converter números ocidentais para orientais (árabes)
+      function toArabicNumeral(n) {
+        if (n === null || typeof n === "undefined") return "";
+        const arabic = ["٠", "١", "٢", "٣", "٤", "٥", "٦", "٧", "٨", "٩"];
+        return String(n)
+          .split("")
+          .map((digit) => arabic[parseInt(digit, 10)])
+          .join("");
+      }
+
+      // Função para determinar a palavra correta para "ponto(s)" em árabe
+      function scoreText(score) {
+        if (score === 1) return "نقطة";
+        if (score === 2) return "نقطتان";
+        return "نقاط"; // Para 0 e 3+ (embora aqui só vá até 2)
+      }
+
+      const resultadoDiv = document.getElementById("resultado");
+      const conteudoDiv = document.getElementById("conteudo");
+      const btnCalcular = document.getElementById("btnCalcular");
+      const btnLimpar = document.getElementById("btnLimpar");
+      const btnGerarPDF = document.getElementById("btnGerarPDF");
+      const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
+
+      // Dados da escala traduzidos para o árabe (incluindo numerais)
+      const aldreteData = [
+        {
+          category: "النشاط",
+          nameAttr: "atividade",
+          options: [
+            { description: "يحرك ٤ أطراف", score: 2 },
+            { description: "يحرك طرفين", score: 1 },
+            { description: "لا يتحرك", score: 0 },
+          ],
+        },
+        {
+          category: "التنفس",
+          nameAttr: "respiracao",
+          options: [
+            { description: "يتنفس بعمق ويسعل", score: 2 },
+            { description: "زلة تنفسية، تنفس غير منتظم", score: 1 },
+            { description: "انقطاع التنفس", score: 0 },
+          ],
+        },
+        {
+          category: "الدورة الدموية",
+          nameAttr: "circulacao",
+          options: [
+            { description: "ضغط دم طبيعي", score: 2 },
+            { description: "± ٢٠٪ من ضغط الدم الأساسي", score: 1 },
+            { description: "± ٥٠٪ من ضغط الدم الأساسي", score: 0 },
+          ],
+        },
+        {
+          category: "الوعي",
+          nameAttr: "consciencia",
+          options: [
+            { description: "مستيقظ ومتنبه", score: 2 },
+            { description: "يستجيب للمحفزات", score: 1 },
+            { description: "لا يستجيب", score: 0 },
+          ],
+        },
+        {
+          category: "تشبع الأكسجين (O₂)",
+          nameAttr: "saturacao",
+          options: [
+            { description: "> ٩٢٪ في هواء الغرفة", score: 2 },
+            { description: "يحتاج أكسجين للحفاظ على > ٩٠٪", score: 1 },
+            { description: "< ٩٠٪ مع أكسجين إضافي", score: 0 },
+          ],
+        },
+      ];
+
+      let userSelections = {};
+
+      function createCriteriaList() {
+        conteudoDiv.innerHTML = "";
+        aldreteData.forEach((paramGroup) => {
+          const details = document.createElement("details");
+          details.className =
+            "criterion-container bg-white border border-gray-200 rounded-lg shadow-sm transition-all duration-300";
+          details.dataset.name = paramGroup.nameAttr;
+
+          const summary = document.createElement("summary");
+          summary.className =
+            "flex justify-between items-center p-4 cursor-pointer hover:bg-gray-50";
+          summary.innerHTML = `
+                        <span class="font-bold text-lg text-dark-blue">${paramGroup.category}</span>
+                        <div class="flex items-center gap-3">
+                            <span class="selected-value text-gray-500 italic text-end">اختر خيارًا</span>
+                            <i class="fas fa-chevron-down chevron-icon text-gray-400"></i>
+                        </div>
+                    `;
+
+          const optionsContainer = document.createElement("div");
+          optionsContainer.className =
+            "p-4 border-t border-gray-200 bg-gray-50/50";
+
+          paramGroup.options.forEach((option) => {
+            const label = document.createElement("label");
+            label.className = "option-label";
+
+            const radio = document.createElement("input");
+            radio.type = "radio";
+            radio.name = paramGroup.nameAttr;
+            radio.value = option.score; // O 'value' permanece como número ocidental para o JS
+            radio.dataset.description = option.description;
+
+            radio.addEventListener("change", (event) => {
+              const selectedRadio = event.target;
+              const score = parseInt(selectedRadio.value, 10);
+              const description = selectedRadio.dataset.description;
+
+              userSelections[paramGroup.nameAttr] = { score, description };
+
+              const summaryValue = details.querySelector(".selected-value");
+              // Exibe o numeral árabe e o texto de ponto correto
+              summaryValue.textContent = `${description} (${toArabicNumeral(score)} ${scoreText(score)})`;
+              summaryValue.classList.remove("text-gray-500", "italic");
+              summaryValue.classList.add("text-blue-600", "font-semibold");
+
+              details.open = false;
+            });
+
+            const descriptionSpan = document.createElement("span");
+            // Exibe o numeral árabe e o texto de ponto correto
+            descriptionSpan.textContent = `${option.description} (${toArabicNumeral(option.score)} ${scoreText(option.score)})`;
+
+            label.appendChild(radio);
+            label.appendChild(descriptionSpan);
+            optionsContainer.appendChild(label);
+          });
+
+          details.appendChild(summary);
+          details.appendChild(optionsContainer);
+          conteudoDiv.appendChild(details);
+        });
+      }
+
+      function calcular() {
+        const totalCriteria = aldreteData.length;
+        const selectedCriteriaCount = Object.keys(userSelections).length;
+        let total = 0;
+
+        resultadoDiv.innerHTML = "";
+        resultadoDiv.className = "resultado p-4 mt-6 rounded-lg text-right"; // Alinhado à direita
+        resultadoDiv.style.display = "none";
+
+        if (selectedCriteriaCount < totalCriteria) {
+          resultadoDiv.style.display = "block";
+          resultadoDiv.innerHTML =
+            '⚠️ <strong class="font-bold">يرجى تحديد خيار لكل معيار.</strong>';
+          resultadoDiv.classList.add("bg-info-orange-light");
+          delete resultadoDiv.dataset.score;
+          return;
+        }
+
+        for (const key in userSelections) {
+          total += userSelections[key].score;
+        }
+
+        let conduta = "";
+        // Lógica de JS permanece com numerais ocidentais
+        if (total >= 9) {
+          conduta =
+            "المريض جاهز للخروج من غرفة الإفاقة، أبلغ الممرض وطبيب التخدير.";
+          resultadoDiv.classList.add("bg-aldrete-alta");
+        } else if (total >= 7) {
+          conduta = "يبقى تحت الملاحظة ويعاد تقييمه بشكل دوري.";
+          resultadoDiv.classList.add("bg-aldrete-observacao");
+        } else {
+          conduta =
+            "المريض غير مستقر. أبلغ الممرض وطبيب التخدير، واستمر في الرعاية المركزة.";
+          resultadoDiv.classList.add("bg-aldrete-instavel");
+        }
+
+        resultadoDiv.style.display = "block";
+        resultadoDiv.innerHTML = `
+                    <p>النتيجة الإجمالية: <strong class="font-bold">${toArabicNumeral(total)}/${toArabicNumeral(10)}</strong></p>
+                    <p>الإجراء: <strong class="font-bold">${conduta}</strong></p>
+                `;
+        resultadoDiv.dataset.conduta = conduta;
+        resultadoDiv.dataset.score = total;
+        resultadoDiv.dataset.scaleName = "مقياس ألدرتي وكروليك";
+      }
+
+      function limpar() {
+        userSelections = {};
+        createCriteriaList();
+        resultadoDiv.innerHTML = "";
+        resultadoDiv.style.display = "none";
+        resultadoDiv.className = "resultado hidden mt-6 text-right";
+        delete resultadoDiv.dataset.conduta;
+        delete resultadoDiv.dataset.score;
+        delete resultadoDiv.dataset.scaleName;
+      }
+
+      btnCalcular?.addEventListener("click", calcular);
+      btnLimpar?.addEventListener("click", limpar);
+
+      btnGerarPDF?.addEventListener("click", () => {
+        if (
+          !resultadoDiv ||
+          typeof resultadoDiv.dataset.score === "undefined"
+        ) {
+          alert('يرجى النقر على "احسب" أولاً لإنشاء ملف PDF.');
+          return;
+        }
+
+        if (typeof gerarPDFGlobal === "function") {
+          gerarPDFGlobal({
+            titulo: "مقياس ألدرتي وكروليك",
+            subtitulo: "تقرير التعافي بعد التخدير",
+            nomeArquivo: "relatorio_escala_aldrete.pdf",
+            seletorConteudo: ".main-content-wrapper",
+            direcao: "rtl", // Adiciona direção RTL para o PDF
+          });
+        } else {
+          alert("خطأ: لم يتم العثور على وظيفة إنشاء PDF.");
+          console.error("Função gerarPDFGlobal não definida.");
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener("click", () => {
+        const currentConduta = resultadoDiv.dataset.conduta;
+        if (!currentConduta) {
+          alert("احسب النتيجة للبحث عن الإجراء.");
+          return;
+        }
+        // Traduz a consulta de pesquisa
+        const searchQuery = encodeURIComponent(
+          `${currentConduta} تصنيف NANDA, NIC و NOC`,
+        );
+        window.open(
+          `https://www.google.com/search?q=${searchQuery}`,
+          "_blank",
+        );
+      });
+
+      createCriteriaList();
+    });
+  </script>
 
   <!-- Caminho do seletor de idioma ajustado -->
   <script src="../lang-selector.js" defer=""></script>

@@ -578,7 +578,416 @@
 
 
 
-  
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const resultadoDiv = document.getElementById("resultado");
+      const btnCalcular = document.getElementById("btnCalcular");
+      const btnLimpar = document.getElementById("btnLimpar");
+      const btnGerarPDF = document.getElementById("btnGerarPDF");
+      const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
+      const conteudoDiv = document.getElementById("conteudo");
+
+      const ballardData = [
+        {
+          category: "Neuromuscular Maturity",
+          items: [
+            {
+              title: "Posture",
+              nameAttr: "posture",
+              explain:
+                "Assesses the degree of limb flexion when the baby is at rest. More mature babies show a more flexed posture (limbs in flexion).",
+              options: [
+                { description: "Complete extension", score: -1 },
+                { description: "Mild/partial flexion", score: 0 },
+                { description: "Moderate flexion", score: 1 },
+                { description: "Good flexion", score: 2 },
+                { description: "Strong flexion", score: 3 },
+                { description: "Complete flexion (very mature)", score: 4 },
+              ],
+            },
+            {
+              title: "Wrist Angle (Square Window)",
+              nameAttr: "square_window",
+              explain:
+                "Assesses wrist flexion when the hand is bent over the forearm. A smaller angle (hand closer to forearm) indicates greater maturity.",
+              options: [
+                { description: "< 90°", score: -1 },
+                { description: " 90°", score: 0 },
+                { description: " 60°", score: 1 },
+                { description: " 45°", score: 2 },
+                { description: " 30°", score: 3 },
+                { description: "0° (very close)", score: 4 },
+              ],
+            },
+            {
+              title: "Arm Recoil",
+              nameAttr: "arm_recoil",
+              explain:
+                "Assesses the speed and intensity of arm return after stretching and releasing. The faster and more vigorous the return, the greater the neuromuscular maturity.",
+              options: [
+                { description: "No return", score: 0 },
+                { description: "Slow return", score: 1 },
+                { description: "Partial return", score: 2 },
+                { description: "Quick return", score: 3 },
+                { description: "Complete and vigorous return", score: 4 },
+              ],
+            },
+            {
+              title: "Popliteal Angle",
+              nameAttr: "popliteo",
+              explain:
+                "Assesses the degree of resistance when extending the lower limb. A smaller angle (greater flexion) indicates more maturity.",
+              options: [
+                { description: "180°", score: -1 },
+                { description: "160°", score: 0 },
+                { description: "140°", score: 1 },
+                { description: "120°", score: 2 },
+                { description: "100°", score: 3 },
+                { description: "90°", score: 4 },
+                { description: "< 90°", score: 5 },
+              ],
+            },
+            {
+              title: "Scarf Sign",
+              nameAttr: "scarf",
+              explain:
+                "When pulling an arm across the chest, observe how far the elbow crosses the body's midline. The smaller the crossing, the greater the maturity.",
+              options: [
+                { description: "Elbow crosses midline", score: -1 },
+                { description: "Elbow at midline", score: 0 },
+                { description: "Elbow near shoulder", score: 1 },
+                { description: "Elbow does not reach shoulder", score: 2 },
+                { description: "Elbow very distant from shoulder", score: 3 },
+              ],
+            },
+            {
+              title: "Heel to Ear",
+              nameAttr: "heel_to_ear",
+              explain:
+                "When bringing the heel to the ear, observe resistance. Greater resistance = greater maturity.",
+              options: [
+                { description: "Foot reaches ear easily", score: -1 },
+                { description: "Foot near ear", score: 0 },
+                { description: "Moderate resistance", score: 1 },
+                { description: "Good resistance", score: 2 },
+                { description: "Foot distant from ear", score: 3 },
+                { description: "Strong resistance (very mature)", score: 4 },
+              ],
+            },
+          ],
+        },
+        {
+          category: "Physical Maturity",
+          items: [
+            {
+              title: "Skin",
+              nameAttr: "skin",
+              explain:
+                "Assesses skin texture: from thin and translucent in premature infants to thick, dry, and cracked in post-term babies.",
+              options: [
+                {
+                  description: "Sticky, translucent (very immature)",
+                  score: -1,
+                },
+                { description: "Gelatinous/thin", score: 0 },
+                { description: "Smooth with visible veins", score: 1 },
+                { description: "Thicker, few cracks", score: 2 },
+                { description: "Thick, cracked", score: 3 },
+                {
+                  description:
+                    "Thick, dry with deep cracks (post-term)",
+                  score: 4,
+                },
+              ],
+            },
+            {
+              title: "Lanugo",
+              nameAttr: "lanugo",
+              explain:
+                "Assesses the presence and distribution of lanugo (fine hair). It is abundant in premature infants; in more mature babies it tends to decrease and disappear.",
+              options: [
+                { description: "Absent (very post-term)", score: -1 },
+                { description: "Sparse", score: 0 },
+                { description: "Abundant", score: 1 },
+                {
+                  description: "Fine (characteristic of prematurity)",
+                  score: 2,
+                },
+                { description: "Hairless areas", score: 3 },
+                {
+                  description: "Almost absent (very immature)",
+                  score: 4,
+                },
+              ],
+            },
+            {
+              title: "Plantar Creasts",
+              nameAttr: "plantar",
+              explain:
+                "Assesses creasts on the sole of the foot: premature babies have few creasts; mature babies have deep creasts covering the entire sole.",
+              options: [
+                { description: "Absent/very shallow", score: -1 },
+                { description: "Marks on anterior part", score: 0 },
+                { description: "Up to half the sole", score: 1 },
+                { description: "Up to 2/3", score: 2 },
+                { description: "Creasts throughout the sole", score: 3 },
+                { description: "Deep and pronounced creasts", score: 4 },
+              ],
+            },
+            {
+              title: "Breasts",
+              nameAttr: "breasts",
+              explain:
+                "Observe the size of the breast bud and areola. In more mature babies, the gland and areola are larger and more prominent.",
+              options: [
+                { description: "Imperceptible", score: -1 },
+                { description: "Slightly visible", score: 0 },
+                { description: "Flat areola, small bud", score: 1 },
+                {
+                  description:
+                    "Partially raised areola 1–2 mm of gland",
+                  score: 2,
+                },
+                {
+                  description: "Raised edge areola 3–4 mm of gland",
+                  score: 3,
+                },
+                {
+                  description: "raised edge 5–10 mm of gland",
+                  score: 4,
+                },
+              ],
+            },
+            {
+              title: "Eyes and Ears",
+              nameAttr: "eyes_ears",
+              explain:
+                "Assesses the firmness of ear cartilage and eyelid conformation. Firmer ears and well-formed pinna indicate greater maturity.",
+              options: [
+                {
+                  description: "Soft cartilage/fused eyelids",
+                  score: -1,
+                },
+                { description: "Some firmness", score: 0 },
+                { description: "Moderate firmness", score: 1 },
+                { description: "Good firmness", score: 2 },
+                { description: "Complete firmness", score: 3 },
+              ],
+            },
+            {
+              title: "Genitalia",
+              nameAttr: "genitalia",
+              explain:
+                "Assesses genital development: in boys observe position and rugosity of scrotum / in girls, prominence of clitoris and size of labia. Indicates sexual/neonatal maturity.",
+              options: [
+                {
+                  description:
+                    "Male: testes undescended; Female: flat labia",
+                  score: -1,
+                },
+                {
+                  description:
+                    "Male: partially descended; Female: small minor labia",
+                  score: 0,
+                },
+                {
+                  description:
+                    "Male: testes in scrotum; Female: evident minor labia",
+                  score: 1,
+                },
+                {
+                  description:
+                    "Male: rugous scrotum; Female: minor and major labia equally prominent",
+                  score: 2,
+                },
+                { description: "Totally mature genitalia", score: 3 },
+              ],
+            },
+          ],
+        },
+      ];
+
+      // Populate form dynamically
+      ballardData.forEach((section) => {
+        const sectionDiv = document.createElement("div");
+        sectionDiv.className = "ballard-criterion-section";
+
+        const titleH3 = document.createElement("h3");
+        titleH3.className = "ballard-criterion-title";
+        titleH3.innerText = section.category;
+        sectionDiv.appendChild(titleH3);
+
+        const groupDiv = document.createElement("div");
+        groupDiv.className = "ballard-criterion-group";
+
+        section.items.forEach((item) => {
+          const itemDiv = document.createElement("div");
+          itemDiv.id = `item-${item.nameAttr}`;
+          itemDiv.className = "ballard-criterion-item";
+
+          const itemTitle = document.createElement("h4");
+          itemTitle.className = "ballard-item-title";
+          itemTitle.innerText = item.title;
+          itemDiv.appendChild(itemTitle);
+
+          const itemExplain = document.createElement("p");
+          itemExplain.className = "ballard-item-explain";
+          itemExplain.innerText = item.explain;
+          itemDiv.appendChild(itemExplain);
+
+          item.options.forEach((option) => {
+            const optionDiv = document.createElement("div");
+            optionDiv.className = "ballard-criterion-option";
+
+            const radioInput = document.createElement("input");
+            radioInput.type = "radio";
+            radioInput.name = item.nameAttr;
+            radioInput.value = option.score;
+            radioInput.id = `${item.nameAttr}_${option.score}`;
+
+            const label = document.createElement("label");
+            label.htmlFor = radioInput.id;
+            label.innerText = `${option.description} (${option.score})`;
+
+            optionDiv.appendChild(radioInput);
+            optionDiv.appendChild(label);
+            itemDiv.appendChild(optionDiv);
+          });
+
+          groupDiv.appendChild(itemDiv);
+        });
+
+        sectionDiv.appendChild(groupDiv);
+        conteudoDiv.appendChild(sectionDiv);
+      });
+
+      // Calculation logic and buttons
+      const criteriaNames = ballardData.flatMap((s) =>
+        s.items.map((i) => i.nameAttr),
+      );
+
+      function calculateBallard() {
+        let allSelected = true;
+        let total = 0;
+        document
+          .querySelectorAll(".ballard-criterion-item")
+          .forEach((el) => el.classList.remove("incomplete"));
+
+        criteriaNames.forEach((name) => {
+          const selected = document.querySelector(
+            `input[name="${name}"]:checked`,
+          );
+          if (!selected) {
+            allSelected = false;
+            document
+              .getElementById(`item-${name}`)
+              .classList.add("incomplete");
+          } else {
+            total += Number(selected.value);
+          }
+        });
+
+        resultadoDiv.style.display = "block";
+        if (!allSelected) {
+          resultadoDiv.innerHTML =
+            '⚠️ <strong class="font-bold">Please select an option for all highlighted items before calculating.</strong>';
+          resultadoDiv.classList.add("bg-red-100");
+          resultadoDiv.classList.remove("bg-blue-50");
+          delete resultadoDiv.dataset.score;
+          return;
+        }
+
+        const semanasFloat = 20 + total * 0.4;
+        const semanas = Math.floor(semanasFloat);
+        const dias = Math.round((semanasFloat - semanas) * 7);
+
+        let classificacao = "";
+        if (semanas < 37) classificacao = "Preterm";
+        else if (semanas >= 37 && semanas < 42) classificacao = "Term";
+        else classificacao = "Post-term";
+
+        let conduta = "";
+        if (classificacao === "Preterm") {
+          conduta =
+            "Monitor thermoregulation, glucose levels, and signs of respiratory distress. Consider ventilatory support and neonatal unit care as needed.";
+        } else if (classificacao === "Term") {
+          conduta =
+            "Routine neonatal care; observe breastfeeding and vital signs. Assess need for neonatal screening.";
+        } else {
+          conduta =
+            "Assess signs of post-maturity (skin, glucose, thermoregulation), observe risk of hypoxia and neonatal adaptability.";
+        }
+
+        resultadoDiv.innerHTML = `
+              <p>Total Score: <strong class="font-bold">${total}</strong></p>
+              <p>Estimated Gestational Age: <strong class="font-bold">${semanas} weeks and ${dias} days</strong></p>
+              <p>Classification: <strong class="font-bold">${classificacao}</strong></p>
+              <p class="mt-4"><strong>Suggested Management:</strong> ${conduta}</p>
+            `;
+        resultadoDiv.className = `resultado bg-blue-50`;
+        resultadoDiv.style.display = "block";
+
+        resultadoDiv.dataset.score = total;
+        resultadoDiv.dataset.scaleName = "Ballard Score";
+        resultadoDiv.dataset.classificacao = classificacao;
+      }
+
+      function clearFields() {
+        criteriaNames.forEach((name) => {
+          document
+            .querySelectorAll(`input[name="${name}"]`)
+            .forEach((input) => (input.checked = false));
+        });
+        resultadoDiv.innerHTML = "";
+        resultadoDiv.className = "resultado hidden";
+        delete resultadoDiv.dataset.score;
+        delete resultadoDiv.dataset.scaleName;
+        delete resultadoDiv.dataset.classificacao;
+        document
+          .querySelectorAll(".ballard-criterion-item")
+          .forEach((el) => el.classList.remove("incomplete"));
+      }
+
+      btnCalcular?.addEventListener("click", calculateBallard);
+      btnLimpar?.addEventListener("click", clearFields);
+
+      btnGerarPDF?.addEventListener("click", () => {
+        if (!resultadoDiv.dataset.score) {
+          alert(
+            'Please click "Calculate Score" first to generate the PDF.',
+          );
+          return;
+        }
+        if (typeof gerarPDFGlobal === "function") {
+          gerarPDFGlobal({
+            titulo: "Ballard Score",
+            subtitulo: "Gestational Age Report",
+            nomeArquivo: "ballard_score_report.pdf",
+            seletorConteudo: ".main-content-wrapper",
+          });
+        } else {
+          console.error("Function gerarPDFGlobal not defined.");
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener("click", () => {
+        const score = resultadoDiv.dataset.score;
+        const scaleName = resultadoDiv.dataset.scaleName;
+        const classificacao = resultadoDiv.dataset.classificacao;
+        if (!score || !classificacao) {
+          alert("Calculate the result to search for management.");
+          return;
+        }
+        const searchQuery = encodeURIComponent(
+          `newborn nursing care ${classificacao} Ballard NANDA NIC NOC`,
+        );
+        window.open(
+          `https://www.google.com/search?q=${searchQuery}`,
+          "_blank",
+        );
+      });
+    });
+  </script>
 
   <script src="/lang-selector.js" defer=""></script>
 

@@ -612,7 +612,325 @@
 
 
   <!-- Script Específico da Página (Tradução e numeração árabe) -->
-  
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      // Função para converter números ocidentais para orientais (árabes)
+      function toArabicNumeral(n) {
+        if (n === null || typeof n === "undefined") return "";
+        const arabic = [
+          "٠",
+          "١",
+          "٢",
+          "٣",
+          "٤",
+          "٥",
+          "٦",
+          "٧",
+          "٨",
+          "٩",
+          "٪",
+          ">",
+          "<",
+          ".",
+          "(",
+          ")",
+          "-",
+          "+",
+          "≥",
+          "≤",
+        ];
+        const western = [
+          "0",
+          "1",
+          "2",
+          "3",
+          "4",
+          "5",
+          "6",
+          "7",
+          "8",
+          "9",
+          "%",
+          ">",
+          "<",
+          ".",
+          "(",
+          ")",
+          "-",
+          "+",
+          "≥",
+          "≤",
+        ];
+
+        let str = String(n);
+
+        // Substitui símbolos comuns primeiro
+        str = str
+          .replace(/cm/g, "سم")
+          .replace(/%/g, "٪")
+          .replace(/≥/g, "≥")
+          .replace(/≤/g, "≤")
+          .replace(/>/g, ">")
+          .replace(/</g, "<")
+          .replace(/\+1/g, "١+") // Inverte para RTL
+          .replace(/\+2/g, "٢+") // Inverte para RTL
+          .replace(/-1/g, "١-") // Inverte para RTL
+          .replace(/-2/g, "٢-") // Inverte para RTL
+          .replace(/-3/g, "٣-"); // Inverte para RTL
+
+        // Substitui os dígitos
+        return str
+          .split("")
+          .map((char) => {
+            const index = western.indexOf(char);
+            return index !== -1
+              ? arabic[index]
+              : /\d/.test(char)
+                ? arabic[parseInt(char)]
+                : char;
+          })
+          .join("");
+      }
+
+      // Função para determinar a palavra correta para "ponto(s)" em árabe
+      function scoreText(score) {
+        if (score === 0) return "نقطة";
+        if (score === 1) return "نقطة";
+        if (score === 2) return "نقطتان";
+        if (score >= 3 && score <= 10) return "نقاط";
+        return "نقطة"; // Padrão
+      }
+
+      const resultadoDiv = document.getElementById("resultado");
+      const btnCalcular = document.getElementById("btnCalcular");
+      const btnLimpar = document.getElementById("btnLimpar");
+      const btnGerarPDF = document.getElementById("btnGerarPDF");
+      const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
+      const conteudoDiv = document.getElementById("conteudo");
+
+      // Dados da escala de Bishop (traduzidos para o árabe)
+      const bishopData = [
+        {
+          category: "توسع عنق الرحم",
+          nameAttr: "dilatacao",
+          options: [
+            { description: "٠ سم", score: 0 },
+            { description: "١-٢ سم", score: 1 },
+            { description: "٣-٤ سم", score: 2 },
+            { description: "≥ ٥ سم", score: 3 },
+          ],
+          explain:
+            "انفتاح عنق الرحم، يُقاس بالسنتيمتر. كلما زاد التوسع، زادت النتيجة.",
+        },
+        {
+          category: "محو عنق الرحم",
+          nameAttr: "apagamento",
+          options: [
+            { description: "٠-٣٠٪", score: 0 },
+            { description: "٤٠-٥٠٪", score: 1 },
+            { description: "٦٠-٧٠٪", score: 2 },
+            { description: "≥ ٨٠٪", score: 3 },
+          ],
+          explain:
+            "ترقق وقصر عنق الرحم بالنسبة لطوله الأصلي. يُعبر عنه كنسبة مئوية. كلما زادت النسبة، زادت النتيجة.",
+        },
+        {
+          category: "قوام عنق الرحم",
+          nameAttr: "consistencia",
+          options: [
+            { description: "صلب", score: 0 },
+            { description: "متوسط", score: 1 },
+            { description: "لين", score: 2 },
+          ],
+          explain:
+            "يحدد صلابة عنق الرحم عند اللمس. عنق الرحم الأكثر ليونة يكون أكثر نضجًا وجاهزية للولادة.",
+        },
+        {
+          category: "موضع عنق الرحم",
+          nameAttr: "posicao",
+          options: [
+            { description: "خلفي", score: 0 },
+            { description: "متوسط", score: 1 },
+            { description: "أمامي", score: 2 },
+          ],
+          explain:
+            "موقع عنق الرحم بالنسبة لمحور الحوض. عنق الرحم في موضع أمامي يشير إلى نضج أكبر.",
+        },
+        {
+          category: "محطة العرض الجنيني",
+          nameAttr: "estacao",
+          options: [
+            { description: "-٣", score: 0 },
+            { description: "-٢", score: 1 },
+            { description: "-١ أو ٠", score: 2 },
+            { description: "+١ أو +٢", score: 3 },
+          ],
+          explain:
+            "موضع رأس الطفل بالنسبة للشوكتين الإسكيتين في حوض الأم. تُقاس المحطة بالسنتيمتر، حيث ٠ هي النقطة المرجعية. كلما كان أسفل (+)، زادت النتيجة.",
+        },
+      ];
+
+      // Preenche o formulário dinamicamente
+      bishopData.forEach((item) => {
+        const sectionDiv = document.createElement("div");
+        sectionDiv.className = "bishop-criterion-section";
+        sectionDiv.id = `section-${item.nameAttr}`;
+
+        const titleH3 = document.createElement("h3");
+        titleH3.className = "bishop-criterion-title";
+        titleH3.innerHTML =
+          item.category +
+          `
+              <div class="text-sm font-normal text-gray-500 mt-1">${item.explain}</div>`;
+        sectionDiv.appendChild(titleH3);
+
+        const selectElement = document.createElement("select");
+        selectElement.id = item.nameAttr;
+        selectElement.className = "bishop-criterion-select";
+        selectElement.setAttribute("aria-label", item.category);
+
+        const defaultOption = document.createElement("option");
+        defaultOption.value = "";
+        defaultOption.text = "اختر...";
+        selectElement.appendChild(defaultOption);
+
+        item.options.forEach((option) => {
+          const optionElement = document.createElement("option");
+          optionElement.value = option.score; // Valor ocidental para JS
+          // Exibe numerais árabes
+          optionElement.text = `${toArabicNumeral(option.description)} (${scoreText(option.score)}: ${toArabicNumeral(option.score)})`;
+          selectElement.appendChild(optionElement);
+        });
+
+        sectionDiv.appendChild(selectElement);
+        conteudoDiv.appendChild(sectionDiv);
+      });
+
+      function calcularBishop() {
+        const selects = document.querySelectorAll("#conteudo select");
+        let allSelected = true;
+        let total = 0;
+
+        selects.forEach((select) => {
+          if (select.value === "") {
+            allSelected = false;
+            select.classList.add("incomplete");
+          } else {
+            select.classList.remove("incomplete");
+            total += Number(select.value);
+          }
+        });
+
+        resultadoDiv.style.display = "block";
+        if (!allSelected) {
+          resultadoDiv.innerHTML =
+            '⚠️ <strong class="font-bold">يرجى تحديد خيار لجميع البنود قبل الحساب.</strong>';
+          resultadoDiv.classList.add("bg-red-100");
+          resultadoDiv.classList.remove("bg-yellow-100", "bg-blue-50");
+          delete resultadoDiv.dataset.score;
+          return;
+        }
+
+        let classificacao = "";
+        let recomendacao = "";
+        let resultadoClasse = "";
+
+        // Lógica JS com números ocidentais
+        if (total < 6) {
+          classificacao = "عنق رحم غير ملائم / غير ناضج";
+          recomendacao =
+            "عنق الرحم ليس ناضجًا. من المحتمل أن تكون هناك حاجة لطرق تحضير عنق الرحم قبل محاولة تحريض المخاض.";
+          resultadoClasse = "bg-red-100";
+        } else if (total >= 6 && total <= 7) {
+          classificacao = "منطقة غير مؤكدة";
+          recomendacao =
+            "يمكن محاولة التحريض، لكن النجاح غير مضمون. المراقبة الدقيقة ضرورية.";
+          resultadoClasse = "bg-yellow-100";
+        } else {
+          // total >= 8
+          classificacao = "عنق رحم ملائم / ناضج";
+          recomendacao =
+            "عنق الرحم ناضج، مع احتمالية عالية لنجاح تحريض المخاض. قد تكون الولادة التلقائية قريبة.";
+          resultadoClasse = "bg-blue-50";
+        }
+
+        resultadoDiv.innerHTML = `
+                <p>النتيجة الإجمالية: <strong class="font-bold">${toArabicNumeral(total)}</strong></p>
+                <p>التصنيف: <strong class="font-bold">${classificacao}</strong></p>
+                <p class="mt-4"><strong>التوصية:</strong> ${recomendacao}</p>
+            `;
+        resultadoDiv.className = `resultado ${resultadoClasse}`;
+        resultadoDiv.style.display = "block";
+
+        resultadoDiv.dataset.score = total;
+        resultadoDiv.dataset.scaleName = "مقياس بيشوب";
+        resultadoDiv.dataset.classificacao = classificacao;
+      }
+
+      function limparCampos() {
+        const selects = document.querySelectorAll("#conteudo select");
+        selects.forEach((select) => {
+          select.selectedIndex = 0;
+          select.classList.remove("incomplete");
+        });
+        resultadoDiv.innerHTML = "";
+        resultadoDiv.className = "resultado hidden";
+        delete resultadoDiv.dataset.score;
+        delete resultadoDiv.dataset.scaleName;
+        delete resultadoDiv.dataset.classificacao;
+      }
+
+      btnCalcular?.addEventListener("click", calcularBishop);
+      btnLimpar?.addEventListener("click", limparCampos);
+
+      btnGerarPDF?.addEventListener("click", () => {
+        if (!resultadoDiv.dataset.score) {
+          alert('يرجى النقر على "احسب النتيجة" أولاً لإنشاء ملف PDF.');
+          return;
+        }
+        if (typeof gerarPDFGlobal === "function") {
+          gerarPDFGlobal({
+            titulo: "مقياس بيشوب",
+            subtitulo: "تقرير تقييم نضج عنق الرحم",
+            nomeArquivo: "relatorio_escala_bishop.pdf",
+            seletorConteudo: ".main-content-wrapper",
+            direcao: "rtl", // Adiciona direção RTL para o PDF
+          });
+        } else {
+          console.error("Função gerarPDFGlobal não definida.");
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener("click", () => {
+        const score = resultadoDiv.dataset.score;
+        const scaleName = resultadoDiv.dataset.scaleName;
+        const classificacao = resultadoDiv.dataset.classificacao;
+        if (!score || !classificacao) {
+          alert("احسب النتيجة للبحث عن الإجراء.");
+          return;
+        }
+        // Traduz a consulta de pesquisa
+        const searchQuery = encodeURIComponent(
+          `${scaleName} نتيجة ${toArabicNumeral(score)} مخاض ${classificacao} تصنيف NANDA, NIC و NOC`,
+        );
+        window.open(
+          `https://www.google.com/search?q=${searchQuery}`,
+          "_blank",
+        );
+      });
+
+      // Carrega o footer
+      fetch("footer.html")
+        .then((response) => response.text())
+        .then((data) => {
+          const footerPlaceholder =
+            document.getElementById("footer-placeholder");
+          if (footerPlaceholder) {
+            footerPlaceholder.innerHTML = data;
+          }
+        });
+    });
+  </script>
 
   <!-- Caminho do seletor de idioma ajustado -->
   <script src="../lang-selector.js" defer=""></script>

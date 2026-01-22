@@ -871,7 +871,250 @@
  <!-- Caminho corrigido -->
 
     <!-- Script da Página -->
-    
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const resultadoDiv = document.getElementById('resultado');
+            const btnCalcular = document.getElementById('btnCalcular');
+            const btnLimpar = document.getElementById('btnLimpar');
+            const btnGerarPDF = document.getElementById('btnGerarPDF');
+            const btnNandaNicNoc = document.getElementById('btnNandaNicNoc');
+
+            // Inputs
+            const inputs = {
+                ph: document.getElementById('ph'),
+                paco2: document.getElementById('paco2'),
+                hco3: document.getElementById('hco3'),
+                sato2: document.getElementById('sato2'),
+                be: document.getElementById('be')
+            };
+
+            // Spans de erro
+            const errors = {
+                ph: document.getElementById('ph-error'),
+                paco2: document.getElementById('paco2-error'),
+                hco3: document.getElementById('hco3-error'),
+                sato2: document.getElementById('sato2-error'),
+                be: document.getElementById('be-error')
+            };
+
+            function interpretarGasometria() {
+                let hasError = false;
+                const valores = {};
+
+                // 1. Validar e obter valores
+                for (const key in inputs) {
+                    const input = inputs[key];
+                    const errorSpan = errors[key];
+                    const value = parseFloat(input.value);
+
+                    errorSpan.classList.add('hidden');
+                    // O BE pode ser negativo, então a checagem de <= 0 não se aplica a ele.
+                    if (key !== 'be' && (isNaN(value) || value <= 0)) {
+                        errorSpan.textContent = "قيمة غير صالحة. أدخل رقمًا موجبًا.";
+                        errorSpan.classList.remove('hidden');
+                        hasError = true;
+                    } else if (key === 'be' && isNaN(value)) {
+                        errorSpan.textContent = "قيمة غير صالحة. أدخل رقمًا.";
+                        errorSpan.classList.remove('hidden');
+                        hasError = true;
+                    } else {
+                        valores[key] = value;
+                    }
+                }
+
+                if (hasError) {
+                    resultadoDiv.style.display = 'block';
+                    resultadoDiv.innerHTML = '⚠️ <strong class="font-bold">يرجى تصحيح القيم غير الصالحة.</strong>';
+                    resultadoDiv.className = 'resultado bg-info-orange-light mt-6 p-4 rounded-lg';
+                    // Limpar dados antigos do resultado
+                    delete resultadoDiv.dataset.resultado;
+                    delete resultadoDiv.dataset.scaleName;
+                    return;
+                }
+
+                const { ph, paco2, hco3, sato2, be } = valores;
+
+                // 2. Lógica de Interpretação Simplificada
+                let interpretacoes = [];
+                let sugestoes = [];
+                let disturbioFinal = "";
+
+                // Constantes de Referência
+                const PH_MIN = 7.35, PH_MAX = 7.45;
+                const PACO2_MIN = 35, PACO2_MAX = 45;
+                const HCO3_MIN = 22, HCO3_MAX = 26;
+                const BE_MIN = -2, BE_MAX = 2;
+                const SATO2_MIN = 90;
+
+                // 3. Interpretação Acidobásica
+                if (ph < PH_MIN) { // --- حماض الدم ---
+                    if (paco2 > PACO2_MAX && hco3 >= HCO3_MIN && hco3 <= HCO3_MAX) {
+                        disturbioFinal = "حماض تنفسي غير معوض";
+                    } else if (hco3 < HCO3_MIN && paco2 >= PACO2_MIN && paco2 <= PACO2_MAX) {
+                        disturbioFinal = "حماض استقلابي غير معوض";
+                    } else if (paco2 > PACO2_MAX && hco3 > HCO3_MAX) {
+                        disturbioFinal = "حماض تنفسي معوض جزئيًا";
+                    } else if (hco3 < HCO3_MIN && paco2 < PACO2_MIN) {
+                        disturbioFinal = "حماض استقلابي معوض جزئيًا";
+                    } else if (paco2 > PACO2_MAX && hco3 < HCO3_MIN) {
+                        disturbioFinal = "اضطراب مختلط: حماض تنفسي واستقلابي";
+                    } else {
+                        disturbioFinal = "حماض الدم (معايير متعارضة)";
+                    }
+                } else if (ph > PH_MAX) { // --- قلاء الدم ---
+                    if (paco2 < PACO2_MIN && hco3 >= HCO3_MIN && hco3 <= HCO3_MAX) {
+                        disturbioFinal = "قلاء تنفسي غير معوض";
+                    } else if (hco3 > HCO3_MAX && paco2 >= PACO2_MIN && paco2 <= PACO2_MAX) {
+                        disturbioFinal = "قلاء استقلابي غير معوض";
+                    } else if (paco2 < PACO2_MIN && hco3 < HCO3_MIN) {
+                        disturbioFinal = "قلاء تنفسي معوض جزئيًا";
+                    } else if (hco3 > HCO3_MAX && paco2 > PACO2_MAX) {
+                        disturbioFinal = "قلاء استقلابي معوض جزئيًا";
+                    } else if (paco2 < PACO2_MIN && hco3 > HCO3_MAX) {
+                        disturbioFinal = "اضطراب مختلط: قلاء تنفسي واستقلابي";
+                    } else {
+                        disturbioFinal = "قلاء الدم (معايير متعارضة)";
+                    }
+                } else { // --- pH طبيعي (معوض أو طبيعي) ---
+                    if (paco2 > PACO2_MAX && hco3 > HCO3_MAX) {
+                        disturbioFinal = "حماض تنفسي معوض";
+                    } else if (paco2 < PACO2_MIN && hco3 < HCO3_MIN) {
+                        disturbioFinal = "قلاء تنفسي معوض";
+                    } else if (paco2 < PACO2_MIN && hco3 > HCO3_MAX) {
+                        disturbioFinal = "اضطراب مختلط (pH طبيعي)";
+                    } else if (paco2 > PACO2_MAX && hco3 < HCO3_MIN) {
+                        disturbioFinal = "اضطراب مختلط (pH طبيعي)";
+                    } else if (hco3 < HCO3_MIN) {
+                        disturbioFinal = "حماض استقلابي معوض";
+                    } else if (hco3 > HCO3_MAX) {
+                        disturbioFinal = "قلاء استقلابي معوض";
+                    } else {
+                        disturbioFinal = "توازن حمضي-قلوي طبيعي";
+                    }
+                }
+
+                interpretacoes.push(`<strong>الاضطراب الحمضي القاعدي:</strong> ${disturbioFinal}`);
+
+                // 4. Análise de BE e SatO₂
+                if (be < BE_MIN) {
+                    interpretacoes.push(`<strong>فائض القاعدة (BE):</strong> ${be.toFixed(1)} ملي مكافئ/لتر (نقص القاعدة، يشير إلى مكون استقلابي للحماض).`);
+                } else if (be > BE_MAX) {
+                    interpretacoes.push(`<strong>فائض القاعدة (BE):</strong> ${be.toFixed(1)} ملي مكافئ/لتر (فائض القاعدة، يشير إلى مكون استقلابي للقلاء).`);
+                } else {
+                    interpretacoes.push(`<strong>فائض القاعدة (BE):</strong> ${be.toFixed(1)} ملي مكافئ/لتر (ضمن المعدل الطبيعي).`);
+                }
+
+                if (sato2 < SATO2_MIN) {
+                    interpretacoes.push(`<strong>تشبع الأكسجين (SatO₂):</strong> ${sato2.toFixed(1)}% (نقص الأكسجة).`);
+                } else {
+                    interpretacoes.push(`<strong>تشبع الأكسجين (SatO₂):</strong> ${sato2.toFixed(1)}% (تشبع طبيعي).`);
+                }
+
+                // 5. Sugestões de Conduta
+                if (disturbioFinal.includes("حماض تنفسي")) {
+                    sugestoes.push("تقييم وتحسين التهوية (مثل: VNI, IOT)، علاج السبب الأساسي (مثل: عكس التخدير، موسع قصبي).");
+                }
+                if (disturbioFinal.includes("قلاء تنفسي")) {
+                    sugestoes.push("تصحيح سبب فرط التهوية (مثل: السيطرة على الألم، القلق، تعديل إعدادات التهوية الميكانيكية).");
+                }
+                if (disturbioFinal.includes("حماض استقلابي")) {
+                    sugestoes.push("علاج السبب الأساسي (مثل: الإماهة لنقص التروية، الأنسولين للحماض الكيتوني). النظر في تعويض البيكربونات إذا كان pH < ٧.١-٧.٢ أو في حالات الفقدان الشديد.");
+                }
+                if (disturbioFinal.includes("قلاء استقلابي")) {
+                    sugestoes.push("تصحيح السبب الأساسي (مثل: مضادات القيء للقيء)، تعويض الحجم (SF 0.9%) والكهارل (خاصة البوتاسيوم K+).");
+                }
+
+                if (sato2 < SATO2_MIN) {
+                    sugestoes.push("نقص الأكسجة: النظر في إعطاء أكسجين إضافي للحفاظ على SatO₂ > ٩٢-٩٤% (أو ٨٨-٩٢% إذا كان المريض مصابًا بـ COPD مع احتباس CO₂).");
+                }
+
+                if (disturbioFinal === "توازن حمضي-قلوي طبيعي" && sato2 >= SATO2_MIN) {
+                    sugestoes.push("غازات الدم لا تظهر تغيرات حمضية قاعدية أو أكسجة واضحة. الحفاظ على المراقبة.");
+                } else if (sugestoes.length > 0) {
+                    sugestoes.push("<strong>انتباه:</strong> التفسير هو أداة مساعدة. يجب ربطه بالحالة السريرية للمريض وعلاج السبب الأساسي للاضطراب.");
+                }
+
+
+                // 6. Formatar e Exibir Resultado
+                let htmlResultado = '<div class="calculo-passos">';
+                htmlResultado += '<h4>التفسير:</h4>';
+                htmlResultado += interpretacoes.map(item => `<p>${item}</p>`).join('');
+                if (sugestoes.length > 0) {
+                    htmlResultado += '<h4 class="mt-4">الإجراء المقترح:</h4>';
+                    htmlResultado += sugestoes.map(item => `<p>${item}</p>`).join('');
+                }
+                htmlResultado += '</div>';
+
+                resultadoDiv.innerHTML = htmlResultado;
+                resultadoDiv.className = 'resultado bg-custom-blue mt-6';
+                resultadoDiv.style.display = 'block';
+
+                // Salvar dados para NANDA e PDF
+                resultadoDiv.dataset.resultado = disturbioFinal;
+                resultadoDiv.dataset.scaleName = "تفسير غازات الدم الشرياني";
+            }
+
+            function limparCampos() {
+                for (const key in inputs) {
+                    inputs[key].value = '';
+                    errors[key].classList.add('hidden');
+                    errors[key].textContent = '';
+                }
+                resultadoDiv.innerHTML = '';
+                resultadoDiv.className = 'resultado hidden mt-6';
+                delete resultadoDiv.dataset.resultado;
+                delete resultadoDiv.dataset.scaleName;
+            }
+
+            // Event Listeners
+            btnCalcular?.addEventListener('click', interpretarGasometria);
+            btnLimpar?.addEventListener('click', limparCampos);
+
+            btnGerarPDF?.addEventListener('click', () => {
+                if (!resultadoDiv.dataset.resultado) {
+                    // Simular um alerta customizado ou mudar o estado
+                    resultadoDiv.style.display = 'block';
+                    resultadoDiv.innerHTML = '⚠️ <strong class="font-bold">يرجى النقر على "احسب" أولاً لإنشاء ملف PDF.</strong>';
+                    resultadoDiv.className = 'resultado bg-info-orange-light mt-6 p-4 rounded-lg';
+                    return;
+                }
+                if (typeof gerarPDFGlobal === 'function') {
+                    gerarPDFGlobal({
+                        titulo: 'تفسير غازات الدم الشرياني',
+                        subtitulo: 'تقرير التقييم الحمضي القاعدي',
+                        nomeArquivo: 'تقرير_غازات_الدم.pdf',
+                        seletorConteudo: '.main-content-wrapper'
+                    });
+                } else {
+                    console.error('Função gerarPDFGlobal não definida.');
+                    resultadoDiv.style.display = 'block';
+                    resultadoDiv.innerHTML = '⚠️ <strong class="font-bold">خطأ في إنشاء PDF. الوظيفة غير معرفة.</strong>';
+                    resultadoDiv.className = 'resultado bg-danger-red mt-6 p-4 rounded-lg';
+                }
+            });
+
+            btnNandaNicNoc?.addEventListener('click', () => {
+                const resultado = resultadoDiv.dataset.resultado;
+                if (!resultado || resultado === "توازن حمضي-قلوي طبيعي") {
+                    resultadoDiv.style.display = 'block';
+                    resultadoDiv.innerHTML = '⚠️ <strong class="font-bold">احسب اضطرابًا صالحًا للبحث عن الإجراء.</strong>';
+                    resultadoDiv.className = 'resultado bg-info-orange-light mt-6 p-4 rounded-lg';
+                    return;
+                }
+
+                // Mapear o resultado para um termo de pesquisa NANDA
+                let termoPesquisa = "اضطراب الكهارل والسوائل"; // Padrão
+                if (resultado.includes("حماض تنفسي")) { termoPesquisa = "ضعف تبادل الغازات"; }
+                else if (resultado.includes("قلاء تنفسي")) { termoPesquisa = "نمط تنفسي غير فعال"; }
+                else if (resultado.includes("حماض استقلابي")) { termoPesquisa = "ضعف توازن الكهارل والسوائل"; }
+                else if (resultado.includes("قلاء استقلابي")) { termoPesquisa = "خطر عدم توازن الكهارل"; }
+                else if (resultado.includes("نقص الأكسجة")) { termoPesquisa = "ضعف تبادل الغازات"; }
+
+                const searchQuery = encodeURIComponent(`تشخيص تمريضي ${termoPesquisa} متعلق بـ ${resultado} NANDA NIC NOC`);
+                window.open(`https://www.google.com/search?q=${searchQuery}`, '_blank');
+            });
+        });
+    </script>
 
     <!-- Publicidade Inferior -->
 

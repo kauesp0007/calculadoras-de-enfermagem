@@ -563,7 +563,336 @@
 
 
 
-  
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const resultadoDiv = document.getElementById("resultado");
+      const btnCalcular = document.getElementById("btnCalcular");
+      const btnLimpar = document.getElementById("btnLimpar");
+      const btnGerarPDF = document.getElementById("btnGerarPDF");
+      const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
+      const conteudoDiv = document.getElementById("conteudo");
+
+      // NIHSS 척도 데이터
+      const nihssData = [
+        {
+          domain: "1a - 의식 수준",
+          nameAttr: "nivelConsciencia",
+          options: [
+            { text: " alertas", score: 0 },
+            {
+              text: "alert하지 않음, 최소한의 자극으로 응답하거나 응답 유지 필요",
+              score: 1,
+            },
+            {
+              text: "alert하지 않음, 반복적인 자극으로 응답하거나 고통스러운 자극 필요",
+              score: 2,
+            },
+            { text: "혼수", score: 3 },
+          ],
+        },
+        {
+          domain: "1b - 의식 수준: 달과 나이 대답",
+          nameAttr: "mesIdade",
+          options: [
+            { text: "둘 다 정확히 대답", score: 0 },
+            { text: "하나만 정확히 대답", score: 1 },
+            { text: "정확히 대답한 것이 없음", score: 2 },
+          ],
+        },
+        {
+          domain: "1c - 의식 수준: 운동 명령 실행",
+          nameAttr: "comandoMotor",
+          options: [
+            { text: "두 과제를 모두 정확히 실행", score: 0 },
+            { text: "한 과제만 정확히 실행", score: 1 },
+            { text: "정확히 실행한 것이 없음", score: 2 },
+          ],
+        },
+        {
+          domain: "2 - 가장 좋은 동시 시선",
+          nameAttr: "olharConjugado",
+          options: [
+            { text: "정상", score: 0 },
+            { text: "부분적 안구 마비 (한 방향으로만 응시)", score: 1 },
+            { text: "강제적 시선 편향", score: 2 },
+          ],
+        },
+        {
+          domain: "3 - 시야 결함",
+          nameAttr: "camposVisuais",
+          options: [
+            { text: "시야 결함 없음", score: 0 },
+            { text: "부분적 반맹 (시야의 일부 실명)", score: 1 },
+            { text: "완전 반맹 (시야의 절반 실명)", score: 2 },
+            { text: "양측 실명 (전체 실명)", score: 3 },
+          ],
+        },
+        {
+          domain: "4 - 안면 마비",
+          nameAttr: "paralisiaFacial",
+          options: [
+            { text: "대칭적 (마비 없음)", score: 0 },
+            { text: "경미한 마비 (웃을 때 비대칭)", score: 1 },
+            { text: "부분적 마비 (하안면 영향)", score: 2 },
+            { text: "완전 마비 (상안면과 하안면 모두 영향)", score: 3 },
+          ],
+        },
+        {
+          domain: "5a -左上肢의 근력",
+          nameAttr: "msEsq",
+          options: [
+            { text: "10초간下落하지 않음 (정상)", score: 0 },
+            { text: "10초 이전에下落 (일부 힘을 유지)", score: 1 },
+            { text: "중력을 이길 수 없음 (침대에 대해 들기만 함)", score: 2 },
+            { text: "운동 없음 (중력에 대한 노력 없음)", score: 3 },
+            { text: "사지 절단 또는 관절 융합 (검사 불가)", score: 4 },
+          ],
+        },
+        {
+          domain: "5b -右上肢의 근력",
+          nameAttr: "msDir",
+          options: [
+            { text: "10초간下落하지 않음 (정상)", score: 0 },
+            { text: "10초 이전에下落 (일부 힘을 유지)", score: 1 },
+            { text: "중력을 이길 수 없음 (침대에 대해 들기만 함)", score: 2 },
+            { text: "운동 없음 (중력에 대한 노력 없음)", score: 3 },
+            { text: "사지 절단 또는 관절 융합 (검사 불가)", score: 4 },
+          ],
+        },
+        {
+          domain: "6a -左下肢의 근력",
+          nameAttr: "miEsq",
+          options: [
+            { text: "5초간下落하지 않음 (정상)", score: 0 },
+            { text: "5초 이전에下落 (일부 힘을 유지)", score: 1 },
+            { text: "중력을 이길 수 없음 (침대에 대해 들기만 함)", score: 2 },
+            { text: "운동 없음 (중력에 대한 노력 없음)", score: 3 },
+            { text: "사지 절단 또는 관절 융합 (검사 불가)", score: 4 },
+          ],
+        },
+        {
+          domain: "6b -右下肢의 근력",
+          nameAttr: "miDir",
+          options: [
+            { text: "5초간下落하지 않음 (정상)", score: 0 },
+            { text: "5초 이전에下落 (일부 힘을 유지)", score: 1 },
+            { text: "중력을 이길 수 없음 (침대에 대해 들기만 함)", score: 2 },
+            { text: "운동 없음 (중력에 대한 노력 없음)", score: 3 },
+            { text: "사지 절단 또는 관절 융합 (검사 불가)", score: 4 },
+          ],
+        },
+        {
+          domain: "7 - 팔 다리 운동실조",
+          nameAttr: "ataxia",
+          options: [
+            { text: "없음", score: 0 },
+            { text: "한 팔에 존재", score: 1 },
+            { text: "두 팔에 존재", score: 2 },
+          ],
+        },
+        {
+          domain: "8 - 감각",
+          nameAttr: "sensibilidade",
+          options: [
+            { text: "정상", score: 0 },
+            { text: "경미한 상실 (가벼운 통증 또는 터치)", score: 1 },
+            {
+              text: "심한 상실 (가벼운 통증 또는 터치를 느끼지 못함)",
+              score: 2,
+            },
+          ],
+        },
+        {
+          domain: "9 - 가장 좋은 언어 (실어증)",
+          nameAttr: "afasia",
+          options: [
+            { text: "실어증 없음", score: 0 },
+            { text: "경미한 실어증", score: 1 },
+            { text: "심한 실어증", score: 2 },
+          ],
+        },
+        {
+          domain: "10 - 조음곤란",
+          nameAttr: "disartria",
+          options: [
+            { text: "정상", score: 0 },
+            { text: "경미한 중간", score: 1 },
+            { text: "심한", score: 2 },
+          ],
+        },
+        {
+          domain: "11 - 소실 및 무시",
+          nameAttr: "extincaoNegligencia",
+          options: [
+            { text: "비정상 없음", score: 0 },
+            { text: "경미한 소실 (한 양식의 무시)", score: 1 },
+            { text: "심한 무시 (두 양식 이상의 무시)", score: 2 },
+          ],
+        },
+      ];
+
+      // --- NIHSS 계산기 함수 ---
+      function updateScoreDisplay(criterionId) {
+        const selectElement = document.getElementById(criterionId);
+        const scoreDisplayElement = document.getElementById(
+          `${criterionId}_score_display`,
+        );
+        if (selectElement && scoreDisplayElement) {
+          scoreDisplayElement.innerText =
+            selectElement.value === "" ? "0" : selectElement.value;
+        }
+      }
+
+      function calcularPontuacao() {
+        let totalScore = 0;
+        let allItemsSelected = true;
+
+        nihssData.forEach((item) => {
+          const selectElement = document.getElementById(item.nameAttr);
+          if (selectElement.value === "") {
+            allItemsSelected = false;
+          } else {
+            totalScore += parseInt(selectElement.value, 10);
+          }
+        });
+
+        resultadoDiv.style.display = "block";
+        if (!allItemsSelected) {
+          resultadoDiv.innerHTML =
+            '⚠️ <strong class="font-bold">계산하기 전에 모든 항목에 대해 옵션을 선택해 주세요.</strong>';
+          resultadoDiv.className = "resultado bg-info-orange-light";
+          delete resultadoDiv.dataset.score;
+          return;
+        }
+
+        let conduta = "";
+        let resultadoClasses = "";
+
+        if (totalScore <= 4) {
+          conduta =
+            "심한 합병증의 낮은 위험. 대응: 임상 모니터링 및 기본 지지.";
+          resultadoClasses = "bg-success-green-light";
+        } else if (totalScore <= 14) {
+          conduta =
+            "중간 정도 합병증 위험. 대응: 빈번한 신경학적 평가 및 중환자실로의 이송을 논의하세요.";
+          resultadoClasses = "bg-warning-yellow-light";
+        } else {
+          // total > 14
+          conduta =
+            "심한 합병증의 높은 위험. 대응: 집중 관리, 트롬볼리제스 또는 신경외과적 개입의 가능성.";
+          resultadoClasses = "bg-danger-red-light";
+        }
+
+        resultadoDiv.innerHTML = `<p>NIHSS 총 점수: <strong class="font-bold">${totalScore}</strong></p><p>대응: <strong class="font-bold">${conduta}</strong></p>`;
+        resultadoDiv.className = `resultado ${resultadoClasses}`;
+
+        resultadoDiv.dataset.score = totalScore;
+        resultadoDiv.dataset.conduta = conduta;
+        resultadoDiv.dataset.scaleName = "NIHSS 척도";
+      }
+
+      function limparCampos() {
+        nihssData.forEach((item) => {
+          const selectElement = document.getElementById(item.nameAttr);
+          selectElement.selectedIndex = 0;
+          document.getElementById(
+            `${item.nameAttr}_score_display`,
+          ).innerText = "0";
+        });
+        resultadoDiv.innerHTML = "";
+        resultadoDiv.className = "resultado hidden";
+        delete resultadoDiv.dataset.score;
+        delete resultadoDiv.dataset.conduta;
+        delete resultadoDiv.dataset.scaleName;
+      }
+
+      // 양식을 동적으로 채우기
+      nihssData.forEach((item, index) => {
+        const sectionDiv = document.createElement("div");
+        sectionDiv.className = "nihss-criterion-card";
+
+        const headerDiv = document.createElement("div");
+        headerDiv.className = "nihss-criterion-header";
+
+        const titleH3 = document.createElement("h3");
+        titleH3.className = "nihss-criterion-title";
+        titleH3.innerText = item.domain;
+        headerDiv.appendChild(titleH3);
+
+        const scoreSpan = document.createElement("span");
+        scoreSpan.className = "nihss-score-display";
+        scoreSpan.id = `${item.nameAttr}_score_display`;
+        scoreSpan.innerText = "0";
+        headerDiv.appendChild(scoreSpan);
+
+        sectionDiv.appendChild(headerDiv);
+
+        const optionsDiv = document.createElement("div");
+        optionsDiv.className = "nihss-criterion-options";
+
+        const selectElement = document.createElement("select");
+        selectElement.id = item.nameAttr;
+        selectElement.className = "nihss-select";
+        selectElement.onchange = () => updateScoreDisplay(item.nameAttr);
+
+        const defaultOption = document.createElement("option");
+        defaultOption.value = "";
+        defaultOption.text = "선택하세요...";
+        defaultOption.disabled = true;
+        defaultOption.selected = true;
+        selectElement.appendChild(defaultOption);
+
+        item.options.forEach((option) => {
+          const optionElement = document.createElement("option");
+          optionElement.value = option.score;
+          optionElement.text = `${option.text} (${option.score})`;
+          selectElement.appendChild(optionElement);
+        });
+
+        optionsDiv.appendChild(selectElement);
+        sectionDiv.appendChild(optionsDiv);
+        conteudoDiv.appendChild(sectionDiv);
+      });
+
+      // 버튼에 이벤트 리스너 추가
+      btnCalcular?.addEventListener("click", calcularPontuacao);
+      btnLimpar?.addEventListener("click", limparCampos);
+
+      btnGerarPDF?.addEventListener("click", () => {
+        if (!resultadoDiv.dataset.score) {
+          alert('PDF를 생성하려면 먼저 "계산"을 클릭해 주세요.');
+          return;
+        }
+        if (typeof gerarPDFGlobal === "function") {
+          gerarPDFGlobal({
+            titulo: "NIHSS 척도",
+            subtitulo: "뇌졸중 평가 보고서",
+            nomeArquivo: "relatorio_escala_nihss.pdf",
+            seletorConteudo: ".main-content-wrapper",
+          });
+        } else {
+          console.error("gerarPDFGlobal 함수가 정의되지 않았습니다.");
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener("click", () => {
+        const score = resultadoDiv.dataset.score;
+        const scaleName = resultadoDiv.dataset.scaleName;
+        const conduta = resultadoDiv.dataset.conduta;
+        if (!score || !conduta) {
+          alert("대응을 검색하려면 결과를 계산해 주세요.");
+          return;
+        }
+        const searchQuery = encodeURIComponent(
+          `${scaleName} 점수 ${score} 대응 ${conduta} NANDA 분류법 생성, NIC 분류법 생성 및 NOC 분류법 생성`,
+        );
+        window.open(
+          `https://www.google.com/search?q=${searchQuery}`,
+          "_blank",
+        );
+      });
+    });
+  </script>
 
   <script src="/lang-selector.js" defer=""></script>
 

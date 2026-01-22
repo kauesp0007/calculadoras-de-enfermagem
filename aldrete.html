@@ -715,7 +715,230 @@
 
 
   <!-- Script Específico da Página Aldrete -->
-  
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const resultadoDiv = document.getElementById("resultado");
+      const conteudoDiv = document.getElementById("conteudo");
+      const btnCalcular = document.getElementById("btnCalcular");
+      const btnLimpar = document.getElementById("btnLimpar");
+      const btnGerarPDF = document.getElementById("btnGerarPDF");
+      const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
+
+      const aldreteData = [
+        {
+          category: "Atividade",
+          nameAttr: "atividade",
+          options: [
+            { description: "Movimenta 4 extremidades voluntariamente ou sob comando", score: 2 },
+            { description: "Movimenta 2 extremidades voluntariamente ou sob comando", score: 1 },
+            { description: "Incapaz de mover extremidades voluntariamente ou sob comando", score: 0 },
+          ],
+        },
+        {
+          category: "Respiração",
+          nameAttr: "respiracao",
+          options: [
+            { description: "Capaz de respirar profundamente e tossir", score: 2 },
+            { description: "Dispneia ou limitação à respiração", score: 1 },
+            { description: "Apneia", score: 0 },
+          ],
+        },
+        {
+          category: "Circulação",
+          nameAttr: "circulacao",
+          options: [
+            { description: "Até 20% do nível pré-anestésico", score: 2 },
+            { description: "20-49% do nível pré-anestésico", score: 1 },
+            { description: "50% do nível pré-anestésico", score: 0 },
+          ],
+        },
+        {
+          category: "Consciência",
+          nameAttr: "consciencia",
+          options: [
+            { description: "Completamente acordado", score: 2 },
+            { description: "Desperta ao chamado", score: 1 },
+            { description: "Não responde", score: 0 },
+          ],
+        },
+        {
+          category: "Saturação de O₂",
+          nameAttr: "saturacao",
+          options: [
+            { description: "Mantém SpO₂ > 92% em ar ambiente", score: 2 },
+            { description: "Necessita de O₂ para manter SpO₂ > 90%", score: 1 },
+            { description: "SpO₂ < 90% com suplementação de O₂", score: 0 },
+          ],
+        },
+      ];
+
+      function updateScoreDisplay(criterionId) {
+        const selectElement = document.getElementById(criterionId);
+        const scoreDisplayElement = document.getElementById(
+          `${criterionId}_score_display`,
+        );
+        if (selectElement && scoreDisplayElement) {
+          scoreDisplayElement.innerText =
+            selectElement.value === "" ? "0" : selectElement.value;
+        }
+      }
+
+      function createCriteriaList() {
+        conteudoDiv.innerHTML = "";
+        aldreteData.forEach((paramGroup) => {
+          const cardDiv = document.createElement("div");
+          cardDiv.className = "aldrete-criterion-card";
+
+          const headerDiv = document.createElement("div");
+          headerDiv.className = "aldrete-criterion-header";
+
+          const titleH3 = document.createElement("h3");
+          titleH3.className = "aldrete-criterion-title";
+          titleH3.innerText = paramGroup.category;
+          headerDiv.appendChild(titleH3);
+
+          const scoreSpan = document.createElement("span");
+          scoreSpan.className = "aldrete-score-display";
+          scoreSpan.id = `${paramGroup.nameAttr}_score_display`;
+          scoreSpan.innerText = "0";
+          headerDiv.appendChild(scoreSpan);
+
+          cardDiv.appendChild(headerDiv);
+
+          const optionsDiv = document.createElement("div");
+          const selectElement = document.createElement("select");
+          selectElement.id = paramGroup.nameAttr;
+          selectElement.className = "aldrete-select";
+          selectElement.onchange = () => updateScoreDisplay(paramGroup.nameAttr);
+
+          const defaultOption = document.createElement("option");
+          defaultOption.value = "";
+          defaultOption.text = "Selecione...";
+          defaultOption.disabled = true;
+          defaultOption.selected = true;
+          selectElement.appendChild(defaultOption);
+
+          paramGroup.options.forEach((option) => {
+            const optionElement = document.createElement("option");
+            optionElement.value = option.score;
+            optionElement.text = `${option.description} (${option.score})`;
+            selectElement.appendChild(optionElement);
+          });
+
+          optionsDiv.appendChild(selectElement);
+          cardDiv.appendChild(optionsDiv);
+          conteudoDiv.appendChild(cardDiv);
+        });
+      }
+
+      function calcular() {
+        let total = 0;
+        let allSelected = true;
+
+        aldreteData.forEach((item) => {
+          const selectElement = document.getElementById(item.nameAttr);
+          if (selectElement.value === "") {
+            allSelected = false;
+          } else {
+            total += parseInt(selectElement.value, 10);
+          }
+        });
+
+        resultadoDiv.innerHTML = "";
+        resultadoDiv.className = "resultado p-4 mt-6 rounded-lg text-left";
+
+        if (!allSelected) {
+          resultadoDiv.style.display = "block";
+          resultadoDiv.innerHTML =
+            '⚠️ <strong class="font-bold">Por favor, selecione uma opção para cada critério.</strong>';
+          resultadoDiv.classList.add("bg-info-orange-light");
+          delete resultadoDiv.dataset.score;
+          return;
+        }
+
+        let conduta = "";
+        if (total >= 9) {
+          conduta =
+            "Paciente apto para alta da recuperação anestésica, comunique o enfermeiro e o anestesista.";
+          resultadoDiv.classList.add("bg-aldrete-alta");
+        } else if (total >= 7) {
+          conduta = "Manter em observação e reavaliar periodicamente.";
+          resultadoDiv.classList.add("bg-aldrete-observacao");
+        } else {
+          conduta =
+            "Paciente instável. Comunicar o enfermeiro e o anestesista, manter cuidados intensivos.";
+          resultadoDiv.classList.add("bg-aldrete-instavel");
+        }
+
+        resultadoDiv.style.display = "block";
+        resultadoDiv.innerHTML = `
+                    <p>Pontuação total: <strong class="font-bold">${total}/10</strong></p>
+                    <p>Conduta: <strong class="font-bold">${conduta}</strong></p>
+                `;
+        resultadoDiv.dataset.conduta = conduta;
+        resultadoDiv.dataset.score = total;
+        resultadoDiv.dataset.scaleName = "Escala de Aldrete e Kroulik";
+      }
+
+      function limpar() {
+        aldreteData.forEach((item) => {
+          const selectElement = document.getElementById(item.nameAttr);
+          if (selectElement) {
+            selectElement.selectedIndex = 0;
+          }
+          const display = document.getElementById(`${item.nameAttr}_score_display`);
+          if (display) {
+            display.innerText = "0";
+          }
+        });
+        resultadoDiv.innerHTML = "";
+        resultadoDiv.style.display = "none";
+        resultadoDiv.className = "resultado hidden mt-6";
+        delete resultadoDiv.dataset.conduta;
+        delete resultadoDiv.dataset.score;
+        delete resultadoDiv.dataset.scaleName;
+      }
+
+      btnCalcular?.addEventListener("click", calcular);
+      btnLimpar?.addEventListener("click", limpar);
+
+      btnGerarPDF?.addEventListener("click", () => {
+        if (!resultadoDiv || !resultadoDiv.dataset.score) {
+          alert('Por favor, clique em "Calcular" primeiro para gerar o PDF.');
+          return;
+        }
+
+        if (typeof gerarPDFGlobal === "function") {
+          gerarPDFGlobal({
+            titulo: "Escala de Aldrete – Avaliação da Recuperação Pós-Anestésica (SRPA)",
+            subtitulo: "Avalia a recuperação pós-anestésica de pacientes em sala de SRPA",
+            nomeArquivo: "relatorio_escala_aldrete.pdf",
+            seletorConteudo: ".main-content-wrapper",
+          });
+        } else {
+          alert("Erro: A função para gerar PDF não foi encontrada.");
+          console.error("Função gerarPDFGlobal não definida.");
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener("click", () => {
+        const currentConduta = resultadoDiv.dataset.conduta;
+        if (!currentConduta) {
+          alert("Calcule o resultado para pesquisar a conduta.");
+          return;
+        }
+        const searchQuery = encodeURIComponent(
+          `${currentConduta} taxonomia NANDA, NIC e NOC`,
+        );
+        window.open(
+          `https://www.google.com/search?q=${searchQuery}`,
+          "_blank",
+        );
+      });
+
+      createCriteriaList();
+    });
+  </script>
 
   <script src="/lang-selector.js" defer=""></script>
     <!-- =========================

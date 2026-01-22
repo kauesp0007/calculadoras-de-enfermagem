@@ -668,7 +668,123 @@
 
 
 
-  
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const resultadoDiv = document.getElementById('resultado');
+      const btnCalcular = document.getElementById('btnCalcular');
+      const btnLimpar = document.getElementById('btnLimpar');
+      const btnGerarPDF = document.getElementById('btnGerarPDF');
+      const btnNandaNicNoc = document.getElementById('btnNandaNicNoc');
+
+      // Variáveis e mensagens em Hindi
+      const msgFillRequired = '⚠️ <strong class="font-bold">कृपया चिकित्सा प्रिस्क्रिप्शन (Medical Prescription) भरें और शीशी का अनुपात (Vial Ratio) चुनें।</strong>';
+      const pdfTitle = 'दवा गणना (Drug Calculation)';
+      const pdfSubtitle = 'दवा प्रशासन खुराक रिपोर्ट';
+
+      function calcularMedicamentos() {
+        const prescricao = parseFloat(document.getElementById('prescricao').value);
+        const concentracaoTotal = parseFloat(document.getElementById('concentracao').value);
+        const volumeTotal = parseFloat(document.getElementById('volumeTotal').value);
+        const proporcaoRadio = document.querySelector('input[name="proporcao"]:checked');
+
+        resultadoDiv.style.display = 'block';
+        resultadoDiv.classList.remove('bg-info-orange-light'); // Limpa classe de alerta
+
+        // Validação
+        if (isNaN(prescricao) || !proporcaoRadio) {
+          resultadoDiv.innerHTML = msgFillRequired;
+          resultadoDiv.className = 'standard-result-box bg-info-orange-light';
+          // Limpar data attributes em caso de erro
+          delete resultadoDiv.dataset.resultadoMl;
+          delete resultadoDiv.dataset.prescricao;
+          return;
+        }
+
+        // C_ratio é a concentração em mg por 1 ml (valor 1 ou 2 do radio button).
+        const cRatio = parseFloat(proporcaoRadio.value); // Será 1 ou 2
+
+        // Cálculo de dosagem: X (ml) = Prescricao (P) / C_ratio (mg/ml)
+        const resultadoMl = prescricao / cRatio;
+        const resultadoMlArredondado = resultadoMl.toFixed(2);
+
+        const calculoStr = `
+  ${cRatio} मिलीग्राम (mg) = 1 मिलीलीटर (ml)
+  ${prescricao} मिलीग्राम (mg) = X मिलीलीटर (ml)
+
+  ${cRatio} * X = ${prescricao} * 1
+  X = ${prescricao} / ${cRatio}
+  X = ${resultadoMlArredondado} मिलीलीटर (ml)
+                `;
+
+        const explicacaoStr = `प्रिस्क्रिप्शन ${prescricao} मिलीग्राम का है। घोल की एकाग्रता ${cRatio} मिलीग्राम/मिली है। आपको ${resultadoMlArredondado} मिलीलीटर निकालना चाहिए।`;
+
+        resultadoDiv.innerHTML = `
+                    <pre>${calculoStr.trim()}</pre>
+                    <p class="mt-4 font-sans text-base">${explicacaoStr}</p>
+                `;
+        resultadoDiv.className = 'standard-result-box';
+
+        // Armazenar os valores e detalhes para a geração do PDF e NANDA
+        resultadoDiv.dataset.resultadoMl = resultadoMlArredondado;
+        resultadoDiv.dataset.prescricao = prescricao;
+        resultadoDiv.dataset.scaleName = "दवा गणना";
+      }
+
+      function limparCampos() {
+        document.getElementById('prescricao').value = '';
+        document.getElementById('concentracao').value = '';
+        document.getElementById('volumeTotal').value = '';
+
+        // Desmarca o rádio button
+        document.querySelectorAll('input[name="proporcao"]').forEach(radio => {
+          radio.checked = false;
+        });
+        resultadoDiv.innerHTML = '';
+        resultadoDiv.className = 'hidden';
+
+        // Limpar data attributes
+        delete resultadoDiv.dataset.resultadoMl;
+        delete resultadoDiv.dataset.prescricao;
+        delete resultadoDiv.dataset.scaleName;
+      }
+
+      // Adiciona a funcionalidade de Gerar PDF
+      btnGerarPDF?.addEventListener('click', () => {
+        if (!resultadoDiv.dataset.resultadoMl) {
+          console.error('कृपया पीडीएफ बनाने के लिए पहले "गणना करें" पर क्लिक करें।');
+          return;
+        }
+        if (typeof gerarPDFGlobal === 'function') {
+          gerarPDFGlobal({
+            titulo: pdfTitle,
+            subtitulo: pdfSubtitle,
+            nomeArquivo: 'relatorio_calculo_medicamento_hi.pdf',
+            seletorConteudo: '.main-content-wrapper'
+          });
+        } else {
+          console.error('gerarPDFGlobal फ़ंक्शन परिभाषित नहीं है।');
+        }
+      });
+
+      // Adiciona o event listener para o botão NANDA, NIC, NOC
+      btnNandaNicNoc?.addEventListener('click', () => {
+        const resultadoMl = resultadoDiv.dataset.resultadoMl;
+        const prescricao = resultadoDiv.dataset.prescricao;
+        const scaleName = resultadoDiv.dataset.scaleName;
+        if (!resultadoMl || !prescricao) {
+          console.error('कंडक्ट खोजने के लिए परिणाम की गणना करें।');
+          return;
+        }
+        // Mantendo a query em Português para melhor acerto na base de dados de taxonomia
+        const searchQuery = encodeURIComponent(`${scaleName} resultado ${resultadoMl} ml, prescrição ${prescricao} mg, GERAR diagnosticos de enfermagem da NANDA, GERAR intervenções de enfermagem do NIC, Gerar um exemplo de mensuração dos resultados implementados pelo enfermeiro (NOC)`);
+        window.open(`https://www.google.com/search?q=${searchQuery}`, '_blank');
+      });
+
+
+      btnCalcular?.addEventListener('click', calcularMedicamentos);
+      btnLimpar?.addEventListener('click', limparCampos);
+    });
+  </script>
 
 
 

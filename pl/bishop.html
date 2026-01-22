@@ -554,7 +554,223 @@
 
 
 
-  
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const resultadoDiv = document.getElementById("resultado");
+      const btnCalcular = document.getElementById("btnCalcular");
+      const btnLimpar = document.getElementById("btnLimpar");
+      const btnGerarPDF = document.getElementById("btnGerarPDF");
+      const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
+      const conteudoDiv = document.getElementById("conteudo");
+
+      // Dados da escala de Bishop
+      const bishopData = [
+        {
+          category: "Rozszerzenie szyjki macicy",
+          nameAttr: "dilatacao",
+          options: [
+            { description: "0 cm", score: 0 },
+            { description: "1-2 cm", score: 1 },
+            { description: "3-4 cm", score: 2 },
+            { description: "≥ 5 cm", score: 3 }],
+
+          explain:
+            "Rozwarcie szyjki macicy mierzone w centymetrach. Im większe rozwarcie, tym wyższy wynik."
+        },
+        {
+          category: "Apagamento Cervical",
+          nameAttr: "apagamento",
+          options: [
+            { description: "0-30%", score: 0 },
+            { description: "40-50%", score: 1 },
+            { description: "60-70%", score: 2 },
+            { description: "≥ 80%", score: 3 }],
+
+          explain:
+            "Przerzedzenie i skrócenie szyjki macicy w stosunku do jej pierwotnej długości. Wyrażone w procentach. Im wyższa wartość procentowa, tym wyższy wynik."
+        },
+        {
+          category: "Konsystencja szyjki macicy",
+          nameAttr: "consistencia",
+          options: [
+            { description: "Firme", score: 0 },
+            { description: "Średnia", score: 1 },
+            { description: "Amolecida", score: 2 }],
+
+          explain:
+            "Określa, jak twarda jest szyjka macicy w dotyku. Bardziej miękka szyjka macicy jest bardziej dojrzała i gotowa do porodu."
+        },
+        {
+          category: "Położenie szyjki macicy",
+          nameAttr: "posicao",
+          options: [
+            { description: "Posterior", score: 0 },
+            { description: "Mediana", score: 1 },
+            { description: "Anterior", score: 2 }],
+
+          explain:
+            "Położenie szyjki macicy w stosunku do osi miednicy. Szyjka macicy położona do przodu wskazuje na większą dojrzałość."
+        },
+        {
+          category: "Stacja prezentacji płodu",
+          nameAttr: "estacao",
+          options: [
+            { description: "-3", score: 0 },
+            { description: "-2", score: 1 },
+            { description: "-1 ou 0", score: 2 },
+            { description: "+1 ou +2", score: 3 }],
+
+          explain:
+            "Pozycja główki dziecka w stosunku do kolców kulszowych miednicy matki. Pozycja mierzona jest w centymetrach, gdzie 0 jest punktem odniesienia. Im dalej w dół (+), tym wyższy wynik."
+        }];
+
+
+      // Preenche o formulário dinamicamente
+      bishopData.forEach((item) => {
+        const sectionDiv = document.createElement("div");
+        sectionDiv.className = "bishop-criterion-section";
+        sectionDiv.id = `section-${item.nameAttr}`;
+
+        const titleH3 = document.createElement("h3");
+        titleH3.className = "bishop-criterion-title";
+        titleH3.innerHTML =
+          item.category +
+          `
+              <div class="text-sm font-normal text-gray-500 mt-1">${item.explain}</div>`;
+        sectionDiv.appendChild(titleH3);
+
+        const selectElement = document.createElement("select");
+        selectElement.id = item.nameAttr;
+        selectElement.className = "bishop-criterion-select";
+
+        const defaultOption = document.createElement("option");
+        defaultOption.value = "";
+        defaultOption.text = "Wybierz...";
+        selectElement.appendChild(defaultOption);
+
+        item.options.forEach((option) => {
+          const optionElement = document.createElement("option");
+          optionElement.value = option.score;
+          optionElement.text = `${option.description} (pontos: ${option.score})`;
+          selectElement.appendChild(optionElement);
+        });
+
+        sectionDiv.appendChild(selectElement);
+        conteudoDiv.appendChild(sectionDiv);
+      });
+
+      function calcularBishop() {
+        const selects = document.querySelectorAll("#conteudo select");
+        let allSelected = true;
+        let total = 0;
+
+        selects.forEach((select) => {
+          if (select.value === "") {
+            allSelected = false;
+            select.classList.add("incomplete");
+          } else {
+            select.classList.remove("incomplete");
+            total += Number(select.value);
+          }
+        });
+
+        resultadoDiv.style.display = "block";
+        if (!allSelected) {
+          resultadoDiv.innerHTML =
+            '⚠️ <strong class="font-bold">Por favor, selecione uma opção para todos os itens antes de calcular.</strong>';
+          resultadoDiv.classList.add("bg-red-100");
+          resultadoDiv.classList.remove("bg-yellow-100", "bg-blue-50");
+          delete resultadoDiv.dataset.score;
+          return;
+        }
+
+        let classificacao = "";
+        let recomendacao = "";
+        let resultadoClasse = "";
+
+        if (total < 6) {
+          classificacao = "Niekorzystna / niedojrzała szyja";
+          recomendacao =
+            "Szyjka macicy nie jest dojrzała. Prawdopodobnie konieczne będzie zastosowanie metod przygotowania szyjki macicy przed próbą indukcji porodu.";
+          resultadoClasse = "bg-red-100";
+        } else if (total >= 6 && total <= 7) {
+          classificacao = "Zona de Incerteza";
+          recomendacao =
+            "Można podjąć próbę indukcji, ale sukces nie jest gwarantowany. Niezbędne jest uważne monitorowanie.";
+          resultadoClasse = "bg-yellow-100";
+        } else {
+          // total >= 8
+          classificacao = "Colo Korzystny / Dojrzały";
+          recomendacao =
+            "Szyjka macicy jest dojrzała, z dużym prawdopodobieństwem udanej indukcji porodu. Poród spontaniczny może być bliski.";
+          resultadoClasse = "bg-blue-50";
+        }
+
+        resultadoDiv.innerHTML = `
+                <p>Escore total: <strong class="font-bold">${total}</strong></p>
+                <p>Classificação: <strong class="font-bold">${classificacao}</strong></p>
+                <p class="mt-4"><strong>Recomendação:</strong> ${recomendacao}</p>
+            `;
+        resultadoDiv.className = `wynik ${resultadoClasse}`;
+        resultadoDiv.style.display = "block";
+
+        resultadoDiv.dataset.score = total;
+        resultadoDiv.dataset.scaleName = "Escala de Bishop";
+        resultadoDiv.dataset.classificacao = classificacao;
+      }
+
+      function limparCampos() {
+        const selects = document.querySelectorAll("#conteudo select");
+        selects.forEach((select) => {
+          select.selectedIndex = 0;
+          select.classList.remove("incomplete");
+        });
+        resultadoDiv.innerHTML = "";
+        resultadoDiv.className = "ukryty wynik";
+        delete resultadoDiv.dataset.score;
+        delete resultadoDiv.dataset.scaleName;
+        delete resultadoDiv.dataset.classificacao;
+      }
+
+      btnCalcular?.addEventListener("click", calcularBishop);
+      btnLimpar?.addEventListener("click", limparCampos);
+
+      btnGerarPDF?.addEventListener("click", () => {
+        if (!resultadoDiv.dataset.score) {
+          alert(
+            "Kliknij najpierw \"Oblicz wynik\", aby wygenerować plik PDF."
+          );
+          return;
+        }
+        if (typeof gerarPDFGlobal === "function") {
+          gerarPDFGlobal({
+            titulo: "Escala de Bishop",
+            subtitulo: "Raport z oceny szyjki macicy",
+            nomeArquivo: "relatorio_escala_bishop.pdf",
+            seletorConteudo: ".main-content-wrapper"
+          });
+        } else {
+          console.error("Funkcja GeneratePDFGlobal nie została zdefiniowana.");
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener("click", () => {
+        const score = resultadoDiv.dataset.score;
+        const scaleName = resultadoDiv.dataset.scaleName;
+        const classificacao = resultadoDiv.dataset.classificacao;
+        if (!score || !classificacao) {
+          alert("Oblicz wynik, aby wyszukać zachowanie.");
+          return;
+        }
+        const searchQuery = encodeURIComponent(
+          `${scaleName} wynik ${score} parto ${classificacao} gerar taxonomia NANDA, gerar taxonomia NIC e gerar taxonomia de NOC`
+        );
+        window.open(
+          `https://www.google.com/search?q=${searchQuery}`,
+          "_blank"
+        );
+      });
+    });</script>
 
   <script src="/lang-selector.js" defer=""></script>
 

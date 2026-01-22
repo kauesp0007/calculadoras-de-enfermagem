@@ -770,7 +770,120 @@
 
 
 
-  
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const resultadoDiv = document.getElementById('resultado');
+      const btnCalcular = document.getElementById('btnCalcular');
+      const btnLimpar = document.getElementById('btnLimpar');
+      const btnGerarPDF = document.getElementById('btnGerarPDF');
+      const btnNandaNicNoc = document.getElementById('btnNandaNicNoc');
+
+      // O código JavaScript (JS) de cálculo não precisa ser traduzido,
+      // apenas as strings de saída e alerta.
+
+      function calcularBalanco() {
+        const ingestaoOral = parseFloat(document.getElementById('ingestaoOral').value) || 0;
+        const ingestaoSonda = parseFloat(document.getElementById('ingestaoSonda').value) || 0;
+        const ingestaoParenteral = parseFloat(document.getElementById('ingestaoParenteral').value) || 0;
+        const ingestaoOutros = parseFloat(document.getElementById('ingestaoOutros').value) || 0;
+
+        const eliminacaoUrina = parseFloat(document.getElementById('eliminacaoUrina').value) || 0;
+        const eliminacaoVomito = parseFloat(document.getElementById('eliminacaoVomito').value) || 0;
+        const eliminacaoDrenos = parseFloat(document.getElementById('eliminacaoDrenos').value) || 0;
+        const eliminacaoOutros = parseFloat(document.getElementById('eliminacaoOutros').value) || 0;
+
+        const totalIngestao = ingestaoOral + ingestaoSonda + ingestaoParenteral + ingestaoOutros;
+        const totalEliminacao = eliminacaoUrina + eliminacaoVomito + eliminacaoDrenos + eliminacaoOutros;
+        const balanco = totalIngestao - totalEliminacao;
+
+        resultadoDiv.className = 'resultado p-4 mt-6 rounded-lg text-left';
+        resultadoDiv.style.display = 'block';
+
+        let classificacao = '';
+        let resultadoClasse = '';
+        let classificacao_hindi = '';
+
+        if (balanco > 0) {
+          classificacao = 'Balanço Hídrico Positivo';
+          classificacao_hindi = 'सकारात्मक द्रव संतुलन (Positive Fluid Balance)';
+          resultadoClasse = 'bg-balanco-positivo';
+        } else if (balanco < 0) {
+          classificacao = 'Balanço Hídrico Negativo';
+          classificacao_hindi = 'नकारात्मक द्रव संतुलन (Negative Fluid Balance)';
+          resultadoClasse = 'bg-balanco-negativo';
+        } else {
+          classificacao = 'Balanço Hídrico Zerado';
+          classificacao_hindi = 'शून्य द्रव संतुलन (Zero Fluid Balance)';
+          resultadoClasse = 'bg-balanco-zerado';
+        }
+
+        resultadoDiv.innerHTML = `<p><strong>कुल द्रव संतुलन: <span class="font-bold">${balanco} मिलीलीटर</span></strong></p><p>वर्गीकरण: <strong class="font-bold">${classificacao_hindi}</strong></p>`;
+        resultadoDiv.classList.add(resultadoClasse);
+        resultadoDiv.classList.remove('bg-info-orange-light');
+
+        // Adiciona dados para o NANDA/PDF
+        resultadoDiv.dataset.score = balanco;
+        resultadoDiv.dataset.classificacao = classificacao; // Mantém a classificação em português para o NANDA Search Query
+        resultadoDiv.dataset.scaleName = "द्रव संतुलन (Fluid Balance)";
+      }
+
+      function limparCampos() {
+        document.getElementById('ingestaoOral').value = '0';
+        document.getElementById('ingestaoSonda').value = '0';
+        document.getElementById('ingestaoParenteral').value = '0';
+        document.getElementById('ingestaoOutros').value = '0';
+        document.getElementById('eliminacaoUrina').value = '0';
+        document.getElementById('eliminacaoVomito').value = '0';
+        document.getElementById('eliminacaoDrenos').value = '0';
+        document.getElementById('eliminacaoOutros').value = '0';
+        resultadoDiv.innerHTML = '';
+        resultadoDiv.className = 'resultado hidden mt-6';
+        delete resultadoDiv.dataset.score;
+        delete resultadoDiv.dataset.classificacao;
+        delete resultadoDiv.dataset.scaleName;
+      }
+
+      // Adiciona os event listeners aos botões
+      btnCalcular?.addEventListener('click', calcularBalanco);
+      btnLimpar?.addEventListener('click', limparCampos);
+
+      btnGerarPDF?.addEventListener('click', () => {
+        if (!resultadoDiv.dataset.score) {
+          // Usando console.error em vez de alert, conforme as regras
+          console.error('कृपया पीडीएफ बनाने के लिए पहले "गणना करें" पर क्लिक करें।');
+          return;
+        }
+
+        // Texto do Título/Subtítulo do PDF em Hindi
+        const pdfTitle = "द्रव संतुलन (Fluid Balance)";
+        const pdfSubtitle = "तरल पदार्थ सेवन और उत्सर्जन रिपोर्ट";
+
+        if (typeof gerarPDFGlobal === 'function') {
+          gerarPDFGlobal({
+            titulo: pdfTitle,
+            subtitulo: pdfSubtitle,
+            nomeArquivo: 'relatorio_balanco_hidrico_hi.pdf',
+            seletorConteudo: '.main-content-wrapper'
+          });
+        } else {
+          console.error('gerarPDFGlobal फ़ंक्शन परिभाषित नहीं है।');
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener('click', () => {
+        const score = resultadoDiv.dataset.score;
+        const scaleName = resultadoDiv.dataset.scaleName;
+        const classificacao = resultadoDiv.dataset.classificacao; // Usa a classificação em Português (original) para a query de taxonomia
+        if (!score || !classificacao) {
+          console.error('कंडक्ट खोजने के लिए परिणाम की गणना करें।');
+          return;
+        }
+        // Mantém a query em Português para o NANDA/NIC/NOC para resultados mais precisos na base de dados (embora a busca seja pelo Google)
+        const searchQuery = encodeURIComponent(`${scaleName} resultado ${score} ml, classificação ${classificacao} gerar taxonomia NANDA, gerar taxonomia NIC e gerar taxonomia de NOC`);
+        window.open(`https://www.google.com/search?q=${searchQuery}`, '_blank');
+      });
+    });
+  </script>
 
 
 

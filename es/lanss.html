@@ -604,7 +604,202 @@
 
 
 
-  
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const resultadoDiv = document.getElementById('resultado');
+      const btnCalcular = document.getElementById('btnCalcular');
+      const btnLimpar = document.getElementById('btnLimpar');
+      const btnGerarPDF = document.getElementById('btnGerarPDF');
+      const btnNandaNicNoc = document.getElementById('btnNandaNicNoc');
+      const conteudoDiv = document.getElementById('conteudo');
+
+      const lanssData = [
+        {
+          question: "1. ¿El dolor tiene un carácter de quemazón, como agua hirviendo?",
+          nameAttr: "quemazon",
+          options: [
+            { text: "No", score: 0 },
+            { text: "Sí", score: 5 }
+          ]
+        },
+        {
+          question: "2. ¿El dolor se asemeja a pinchazos, punzadas u hormigueo?",
+          nameAttr: "pinchazos",
+          options: [
+            { text: "No", score: 0 },
+            { text: "Sí", score: 5 }
+          ]
+        },
+        {
+          question: "3. ¿El área dolorosa está asociada a hipersensibilidad táctil?",
+          nameAttr: "hipersensibilidad",
+          options: [
+            { text: "No", score: 0 },
+            { text: "Sí", score: 3 }
+          ]
+        },
+        {
+          question: "4. ¿La piel del área dolorosa tiene un color diferente o está más pálida?",
+          nameAttr: "colorPiel",
+          options: [
+            { text: "No", score: 0 },
+            { text: "Sí", score: 2 }
+          ]
+        },
+        {
+          question: "5. ¿Hay ausencia de sensibilidad al tacto en el área dolorosa?",
+          nameAttr: "ausenciaSensibilidad",
+          options: [
+            { text: "No", score: 0 },
+            { text: "Sí", score: -4 }
+          ]
+        }
+      ];
+
+      // --- Funciones de la Calculadora LANSS ---
+      function updateScoreDisplay(criterionId) {
+        const selectElement = document.getElementById(criterionId);
+        const scoreDisplayElement = document.getElementById(`${criterionId}_score_display`);
+        if (selectElement && scoreDisplayElement) {
+          scoreDisplayElement.innerText = selectElement.value === "" ? "0" : selectElement.value;
+        }
+      }
+
+      function calcularPuntuacion() {
+        let totalScore = 0;
+        let allItemsSelected = true;
+
+        lanssData.forEach(item => {
+          const selectElement = document.getElementById(item.nameAttr);
+          if (selectElement.value === "") {
+            allItemsSelected = false;
+          } else {
+            totalScore += parseInt(selectElement.value, 10);
+          }
+        });
+
+        resultadoDiv.style.display = "block";
+        if (!allItemsSelected) {
+          resultadoDiv.innerHTML = '⚠️ <strong class="font-bold">Por favor, seleccione una opción para cada ítem</strong> antes de calcular.';
+          resultadoDiv.className = 'resultado bg-info-orange-light';
+          delete resultadoDiv.dataset.score;
+          return;
+        }
+
+        let clasificacion = "";
+        let resultadoClase = '';
+
+        if (totalScore >= 12) {
+          clasificacion = "Dolor neuropático";
+          resultadoClase = 'bg-lanss-positiva';
+        } else {
+          clasificacion = "Dolor nociceptivo";
+          resultadoClase = 'bg-lanss-negativa';
+        }
+
+        resultadoDiv.innerHTML = `<p>Puntuación Total de la Escala LANSS: <strong class="font-bold">${totalScore}</strong></p><p>Clasificación: <strong class="font-bold">${clasificacion}</strong></p>`;
+        resultadoDiv.className = `resultado ${resultadoClase}`;
+
+        resultadoDiv.dataset.score = totalScore;
+        resultadoDiv.dataset.clasificacion = clasificacion;
+        resultadoDiv.dataset.scaleName = "Escala LANSS";
+      }
+
+      function limpiarCampos() {
+        lanssData.forEach(item => {
+          const selectElement = document.getElementById(item.nameAttr);
+          selectElement.selectedIndex = 0;
+          document.getElementById(`${item.nameAttr}_score_display`).innerText = '0';
+        });
+        resultadoDiv.innerHTML = '';
+        resultadoDiv.className = 'resultado hidden';
+        delete resultadoDiv.dataset.score;
+        delete resultadoDiv.dataset.clasificacion;
+        delete resultadoDiv.dataset.scaleName;
+      }
+
+      // Llena el formulario dinámicamente
+      lanssData.forEach((item, index) => {
+        const sectionDiv = document.createElement('div');
+        sectionDiv.className = 'lanss-criterion-card';
+
+        const headerDiv = document.createElement('div');
+        headerDiv.className = 'lanss-criterion-header';
+
+        const titleH3 = document.createElement('h3');
+        titleH3.className = 'lanss-criterion-title';
+        titleH3.innerText = item.question;
+        headerDiv.appendChild(titleH3);
+
+        const scoreSpan = document.createElement('span');
+        scoreSpan.className = 'lanss-score-display';
+        scoreSpan.id = `${item.nameAttr}_score_display`;
+        scoreSpan.innerText = '0';
+        headerDiv.appendChild(scoreSpan);
+
+        sectionDiv.appendChild(headerDiv);
+
+        const optionsDiv = document.createElement('div');
+        optionsDiv.className = 'lanss-criterion-options';
+
+        const selectElement = document.createElement('select');
+        selectElement.id = item.nameAttr;
+        selectElement.className = 'lanss-select';
+        selectElement.onchange = () => updateScoreDisplay(item.nameAttr);
+
+        const defaultOption = document.createElement('option');
+        defaultOption.value = "";
+        defaultOption.text = "Seleccione...";
+        defaultOption.disabled = true;
+        defaultOption.selected = true;
+        selectElement.appendChild(defaultOption);
+
+        item.options.forEach(option => {
+          const optionElement = document.createElement('option');
+          optionElement.value = option.score;
+          optionElement.text = `${option.text} (${option.score})`;
+          selectElement.appendChild(optionElement);
+        });
+
+        optionsDiv.appendChild(selectElement);
+        sectionDiv.appendChild(optionsDiv);
+        conteudoDiv.appendChild(sectionDiv);
+      });
+
+      // Añade los event listeners a los botones
+      btnCalcular?.addEventListener('click', calcularPuntuacion);
+      btnLimpar?.addEventListener('click', limpiarCampos);
+
+      btnGerarPDF?.addEventListener('click', () => {
+        if (!resultadoDiv.dataset.score) {
+          alert('Por favor, haga clic en "Calcular" primero para generar el PDF.');
+          return;
+        }
+        if (typeof gerarPDFGlobal === 'function') {
+          gerarPDFGlobal({
+            titulo: 'Escala LANSS',
+            subtitulo: 'Informe de Evaluación del Dolor Neuropático',
+            nombreArquivo: 'informe_escala_lanss.pdf',
+            seletorConteudo: '.main-content-wrapper'
+          });
+        } else {
+          console.error('Función gerarPDFGlobal no definida.');
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener('click', () => {
+        const score = resultadoDiv.dataset.score;
+        const scaleName = resultadoDiv.dataset.scaleName;
+        const clasificacion = resultadoDiv.dataset.clasificacion;
+        if (!score || !clasificacion) {
+          alert('Calcule el resultado para buscar la conducta.');
+          return;
+        }
+        const searchQuery = encodeURIComponent(`${scaleName} puntuación ${score} clasificación ${clasificacion} generar taxonomía NANDA, generar taxonomía NIC y generar taxonomía de NOC`);
+        window.open(`https://www.google.com/search?q=${searchQuery}`, '_blank');
+      });
+    });
+  </script>
 
 
 

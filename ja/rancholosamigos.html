@@ -590,7 +590,175 @@
 
 
 
-  
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const resultadoDiv = document.getElementById('resultado');
+      const btnCalcular = document.getElementById('btnCalcular');
+      const btnLimpar = document.getElementById('btnLimpar');
+      const btnGerarPDF = document.getElementById('btnGerarPDF');
+      const btnNandaNicNoc = document.getElementById('btnNandaNicNoc');
+      const conteudoDiv = document.getElementById('conteudo');
+
+      const rlasData = [
+        {
+          level: 1,
+          title: "レベル I - 無反応",
+          description: "患者は聴覚、視覚、触覚、または痛みの刺激に反応しません。深い昏睡状態にあります。",
+          recommendation: "推奨事項：生命維持サポート、褥瘡や拘縮予防の体位変換、最小限の感覚刺激に焦点を当てます。家族とのコミュニケーションが不可欠です。"
+        },
+        {
+          level: 2,
+          title: "レベル II - 全般的反応",
+          description: "患者は一貫性がなく、目的を持たず、非特異的な方法で刺激に反応します。反応は限定的で、刺激に関わらず同じ場合があります。",
+          recommendation: "推奨事項：落ち着いた制御された環境を維持します。過負荷にならないように一貫した感覚刺激を継続します。患者の覚醒に焦点を当てます。"
+        },
+        {
+          level: 3,
+          title: "レベル III - 局所的反応",
+          description: "患者は刺激に対してより特異的に反応します。光刺激に対してまばたきをしたり、物体を追跡しようとしたりする場合があります。反応は一貫性がありません。",
+          recommendation: "推奨事項：シンプルで反復的な命令から始めます。気が散るものを制限します。患者は家族を認識し始める可能性があります。注意を集中させるのを助けます。"
+        },
+        {
+          level: 4,
+          title: "レベル IV - 混乱と興奮",
+          description: "患者は興奮と混乱状態にあります。評価に協力できず、攻撃的に行動する場合があります。注意力は短時間です。",
+          recommendation: "推奨事項：負傷を避けるための安全で構造化された環境を提供します。落ち着いた声を使用し、予測可能なルーチンを維持します。必要に応じて患者の再見当識を助けます。"
+        },
+        {
+          level: 5,
+          title: "レベル V - 混乱と不適切",
+          description: "患者は単純な命令に従うことができますが、注意力を維持するのが困難です。複雑な質問に対する反応は不適切で混乱しています。記憶は重度に障害されています。",
+          recommendation: "推奨事項：シンプルで反復的なタスクのトレーニングを開始します。時間と場所に対する再見当識を強化します。コミュニケーションは明確で直接的であるべきです。"
+        },
+        {
+          level: 6,
+          title: "レベル VI - 混乱と適切",
+          description: "患者は命令に従うことができ、長期記憶を示します。短期記憶はまだ障害されており、判断はしばしば不正確です。",
+          recommendation: "推奨事項：タスクの複雑さを増します。過去の出来事の想起を利用し、慣れた活動における自立を促進します。患者が小さな決定をするよう奨励します。"
+        },
+        {
+          level: 7,
+          title: "レベル VII - 自動的かつ適切",
+          description: "患者の混乱はほとんどありません。ロボット的に日課をこなすことができますが、判断と問題解決にはまだ欠陥があります。社会的相互作用は表面的です。",
+          recommendation: "推奨事項：計画と問題解決に焦点を当てます。グループでの社会化と認知欠陥を補う戦略の開発を奨励します。"
+        },
+        {
+          level: 8,
+          title: "レベル VIII - 目的指向かつ適切",
+          description: "患者は抽象的に考え、問題を解決することができます。記憶と判断は一貫していますが、感情に対処する能力は影響を受けている可能性があります。機能は独立しています。",
+          recommendation: "推奨事項：患者が感情的および社会的変化に対処するのを助けます。コミュニティへの再統合と職業または学業への復帰の準備に焦点を当てます。"
+        },
+      ];
+
+      rlasData.forEach(item => {
+        const sectionDiv = document.createElement('div');
+        sectionDiv.className = 'rlas-criterion-section';
+        sectionDiv.id = `section-level-${item.level}`;
+
+        const radioContainer = document.createElement('div');
+        radioContainer.className = 'rlas-criterion-option';
+
+        const radioInput = document.createElement('input');
+        radioInput.type = 'radio';
+        radioInput.name = 'rlas_level';
+        radioInput.value = item.level;
+        radioInput.id = `level-${item.level}`;
+
+        const label = document.createElement('label');
+        label.htmlFor = `level-${item.level}`;
+        label.innerHTML = `<strong>${item.title}</strong><br>${item.description}`;
+
+        radioContainer.appendChild(radioInput);
+        radioContainer.appendChild(label);
+        sectionDiv.appendChild(radioContainer);
+
+        conteudoDiv.appendChild(sectionDiv);
+      });
+
+      function calcularRLAS() {
+        const selectedRadio = document.querySelector('input[name="rlas_level"]:checked');
+        resultadoDiv.style.display = "block";
+
+        if (!selectedRadio) {
+          resultadoDiv.innerHTML = '⚠️ <strong class="font-bold">計算するレベルを選択してください。</strong>';
+          resultadoDiv.classList.add('bg-red-100');
+          resultadoDiv.classList.remove('bg-blue-50');
+          return;
+        }
+
+        const level = selectedRadio.value;
+        const selectedItem = rlasData.find(item => item.level == level);
+
+        if (selectedItem) {
+          resultadoDiv.innerHTML = `
+                    <p>選択されたレベル: <strong class="font-bold">${selectedItem.title}</strong></p>
+                    <p class="mt-4"><strong>推奨事項:</strong> ${selectedItem.recommendation}</p>
+                `;
+          resultadoDiv.className = `resultado bg-blue-50`;
+        }
+
+        resultadoDiv.style.display = "block";
+      }
+
+      function limparCampos() {
+        const selectedRadio = document.querySelector('input[name="rlas_level"]:checked');
+        if (selectedRadio) {
+          selectedRadio.checked = false;
+        }
+        resultadoDiv.innerHTML = '';
+        resultadoDiv.className = 'resultado hidden';
+      }
+
+      btnCalcular?.addEventListener('click', calcularRLAS);
+      btnLimpar?.addEventListener('click', limparCampos);
+
+      btnGerarPDF?.addEventListener('click', () => {
+        const selectedRadio = document.querySelector('input[name="rlas_level"]:checked');
+        if (!selectedRadio) {
+          alert('PDFを生成するレベルを選択してください。');
+          return;
+        }
+        if (typeof gerarPDFGlobal === 'function') {
+          const selectedItem = rlasData.find(item => item.level == selectedRadio.value);
+
+          let contentToPrint = document.querySelector('.main-content-wrapper').cloneNode(true);
+          let contentContainer = contentToPrint.querySelector('#conteudo');
+
+          contentContainer.innerHTML = '';
+
+          let itemDiv = document.createElement('div');
+          itemDiv.className = 'mb-2 p-2 bg-gray-50 rounded';
+          itemDiv.innerHTML = `<strong>選択されたレベル:</strong> ${selectedItem.title}<br><strong>説明:</strong> ${selectedItem.description}`;
+          contentContainer.appendChild(itemDiv);
+
+          let resultadoHtml = resultadoDiv.cloneNode(true);
+          if (resultadoHtml.style.display !== 'none') {
+            contentContainer.appendChild(resultadoHtml);
+          }
+
+          gerarPDFGlobal({
+            titulo: 'ランチョ・ロス・アミーゴススケール',
+            subtitulo: '認知評価レポート',
+            nomeArquivo: 'rancho_scale_report.pdf',
+            seletorConteudo: '.main-content-wrapper'
+          });
+        } else {
+          console.error('gerarPDFGlobal関数が定義されていません。');
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener('click', () => {
+        const selectedRadio = document.querySelector('input[name="rlas_level"]:checked');
+        if (!selectedRadio) {
+          alert('ケアを検索するレベルを選択してください。');
+          return;
+        }
+        const selectedItem = rlasData.find(item => item.level == selectedRadio.value);
+        const searchQuery = encodeURIComponent(`脳損傷患者 レベル ${selectedItem.level} 看護ケア NANDA NIC NOC`);
+        window.open(`https://www.google.com/search?q=${searchQuery}`, '_blank');
+      });
+    });
+  </script>
 
 
 

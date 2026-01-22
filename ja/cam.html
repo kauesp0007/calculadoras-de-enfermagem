@@ -533,7 +533,132 @@
 
 
 
-  
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const resultadoDiv = document.getElementById("resultado");
+      const conteudoDiv = document.getElementById("conteudo");
+      const btnCalcular = document.getElementById("btnCalcular");
+      const btnLimpar = document.getElementById("btnLimpar");
+      const btnGerarPDF = document.getElementById("btnGerarPDF");
+      const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
+
+      const camData = [
+        {
+          id: "feature1",
+          title: "1. 急性発症と変動経過",
+          description:
+            "精神状態に急激な変化があり、過去24時間以内に変動しましたか？",
+          options: [
+            { score: 1, text: "はい" },
+            { score: 0, text: "いいえ" },
+          ],
+        },
+        {
+          id: "feature2",
+          title: "2. 注意障害",
+          description: "患者は注意力を維持するのが困難ですか？",
+          options: [
+            { score: 1, text: "はい（注意障害あり）" },
+            { score: 0, text: "いいえ（注意障害なし）" },
+          ],
+        },
+        {
+          id: "feature3",
+          title: "3. 思考の混乱",
+          description: "患者の思考はまとまりがなく支離滅裂ですか？",
+          options: [
+            { score: 1, text: "はい" },
+            { score: 0, text: "いいえ" },
+          ],
+        },
+        {
+          id: "feature4",
+          title: "4. 意識レベルの変化",
+          description:
+            "意識レベルが「清明で落ち着いている」状態（RASS ≠ 0）と異なりますか？",
+          options: [
+            { score: 1, text: "はい（変化あり）" },
+            { score: 0, text: "いいえ（正常/清明）" },
+          ],
+        },
+      ];
+
+      function createForm() {
+        conteudoDiv.innerHTML = "";
+        camData.forEach((criterion) => {
+          const card = document.createElement("div");
+          card.className = "criterion-card";
+
+          card.innerHTML = `
+                    <div class="criterion-title-container">
+                        <h3 class="criterion-title">${criterion.title}</h3>
+                        <p class="criterion-description">${criterion.description}</p>
+                    </div>
+                    <div class="options-container">
+                        <select id="${criterion.id}-select" class="custom-select">
+                            <option value="" disabled selected>選択してください...</option>
+                            ${criterion.options.map((opt) => `<option value="${opt.score}">${opt.text}</option>`).join("")}
+                        </select>
+                    </div>
+                `;
+          conteudoDiv.appendChild(card);
+        });
+      }
+
+      function calcular() {
+        let allSelected = true;
+        const selections = {};
+
+        camData.forEach((criterion) => {
+          const select = document.getElementById(`${criterion.id}-select`);
+          if (select && select.value) {
+            selections[criterion.id] = parseInt(select.value, 10);
+          } else {
+            allSelected = false;
+          }
+        });
+
+        if (!allSelected) {
+          resultadoDiv.innerHTML =
+            '⚠️ <strong class="font-bold">すべての基準について選択してください。</strong>';
+          resultadoDiv.className = "standard-result-box bg-info-orange-light";
+          resultadoDiv.style.display = "block";
+          delete resultadoDiv.dataset.resultado;
+          return;
+        }
+
+        const feature1 = selections.feature1 === 1;
+        const feature2 = selections.feature2 === 1;
+        const feature3 = selections.feature3 === 1;
+        const feature4 = selections.feature4 === 1;
+
+        let resultadoFinal = "";
+        if (feature1 && feature2 && (feature3 || feature4)) {
+          resultadoFinal = "せん妄あり";
+        } else {
+          resultadoFinal = "せん妄なし";
+        }
+
+        resultadoDiv.innerHTML = `<p class="font-bold text-lg">結果: <span class="font-black">${resultadoFinal}</span></p>`;
+        resultadoDiv.className = "standard-result-box";
+        resultadoDiv.style.display = "block";
+        resultadoDiv.dataset.resultado = resultadoFinal;
+      }
+
+      function limpar() {
+        createForm();
+        resultadoDiv.innerHTML = "";
+        resultadoDiv.className = "hidden";
+        delete resultadoDiv.dataset.resultado;
+      }
+
+      createForm();
+      btnCalcular?.addEventListener("click", calcular);
+      btnLimpar?.addEventListener("click", limpar);
+
+      // PDF生成とNANDAボタンの機能は変更なし
+    });
+  </script>
 
   <script src="/ja/lang-selector.js" defer=""></script>
   

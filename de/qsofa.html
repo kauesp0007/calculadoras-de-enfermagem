@@ -628,7 +628,197 @@
 
 
 
-  
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const resultadoDiv = document.getElementById('resultado');
+      const btnCalcular = document.getElementById('btnCalcular');
+      const btnLimpar = document.getElementById('btnLimpar');
+      const btnGerarPDF = document.getElementById('btnGerarPDF');
+      const btnNandaNicNoc = document.getElementById('btnNandaNicNoc');
+      const conteudoDiv = document.getElementById('conteudo');
+
+      const qsofaData = [
+        {
+          category: "Atemfrequenz (AF)",
+          nameAttr: "fr",
+          explanation: "Bewerten Sie die Atemfrequenz des Patienten in Atemzügen pro Minute.",
+          options: [
+            { description: "Weniger als 22 AZ/min", score: 0 },
+            { description: "Größer oder gleich 22 AZ/min", score: 1 }
+          ]
+        },
+        {
+          category: "Bewusstseinszustand (Glasgow Coma Scale - GCS)",
+          nameAttr: "gcs",
+          explanation: "Bewerten Sie den Bewusstseinszustand des Patienten mit der Glasgow Coma Scale.",
+          options: [
+            { description: "GCS ≥ 15", score: 0 },
+            { description: "GCS < 15 (verändert)", score: 1 }
+          ]
+        },
+        {
+          category: "Systolischer Blutdruck (SBD)",
+          nameAttr: "pas",
+          explanation: "Bewerten Sie den systolischen Blutdruck des Patienten in mmHg.",
+          options: [
+            { description: "SBD > 100 mmHg", score: 0 },
+            { description: "SBD ≤ 100 mmHg", score: 1 }
+          ]
+        }
+      ];
+
+      function updateScoreDisplay(criterionId) {
+        const selectElement = document.getElementById(criterionId);
+        const scoreDisplayElement = document.getElementById(`${criterionId}_score_display`);
+        if (selectElement && scoreDisplayElement) {
+          scoreDisplayElement.innerText = selectElement.value === "" ? "0" : selectElement.value;
+        }
+      }
+
+      function berechnePunktzahl() {
+        let totalQSOFAScore = 0;
+        let allItemsSelected = true;
+
+        qsofaData.forEach(item => {
+          const selectElement = document.getElementById(item.nameAttr);
+          if (selectElement.value === "") {
+            allItemsSelected = false;
+          } else {
+            totalQSOFAScore += parseInt(selectElement.value, 10);
+          }
+        });
+
+        resultadoDiv.style.display = 'block';
+        if (!allItemsSelected) {
+          resultadoDiv.innerHTML = '⚠️ <strong class="font-bold">Bitte wählen Sie für jedes Kriterium eine Option aus</strong>, bevor Sie berechnen.';
+          resultadoDiv.className = 'resultado bg-info-orange-light';
+          delete resultadoDiv.dataset.score;
+          return;
+        }
+
+        let interpretation = '';
+        let vorschlag = '';
+        let ergebnisKlasse = '';
+
+        if (totalQSOFAScore >= 2) {
+          interpretation = "Hohes Risiko für ungünstige Verläufe (längere Verweildauer auf der Intensivstation und Mortalität).";
+          vorschlag = "Zusätzliche Sepsis-Diagnostik und schnelle Intervention in Betracht ziehen. Laboruntersuchungen und eine vollständige klinische Bewertung sind erforderlich.";
+          ergebnisKlasse = 'bg-qsofa-high';
+        } else {
+          interpretation = "Derzeit geringes Risiko für ungünstige Verläufe.";
+          vorschlag = "Klinische Überwachung fortsetzen. Bei Verschlechterung des Zustands neu bewerten.";
+          ergebnisKlasse = 'bg-qsofa-low';
+        }
+
+        resultadoDiv.innerHTML = `<p>qSOFA-Gesamtpunktzahl: <strong class="font-bold">${totalQSOFAScore}</strong></p><p>Interpretation: <strong class="font-bold">${interpretation}</strong></p><p>Vorgeschlagenes Vorgehen: <strong class="font-bold">${vorschlag}</strong></p>`;
+        resultadoDiv.className = `resultado ${ergebnisKlasse}`;
+
+        resultadoDiv.dataset.score = totalQSOFAScore;
+        resultadoDiv.dataset.interpretacao = interpretation;
+        resultadoDiv.dataset.conduta = vorschlag;
+        resultadoDiv.dataset.scaleName = "qSOFA";
+      }
+
+      function felderLeeren() {
+        qsofaData.forEach(item => {
+          const selectElement = document.getElementById(item.nameAttr);
+          selectElement.selectedIndex = 0;
+          document.getElementById(`${item.nameAttr}_score_display`).innerText = '0';
+        });
+        resultadoDiv.innerHTML = '';
+        resultadoDiv.className = 'resultado hidden';
+        delete resultadoDiv.dataset.score;
+        delete resultadoDiv.dataset.interpretacao;
+        delete resultadoDiv.dataset.conduta;
+        delete resultadoDiv.dataset.scaleName;
+      }
+
+      qsofaData.forEach((item, index) => {
+        const sectionDiv = document.createElement('div');
+        sectionDiv.className = 'qsofa-criterion-card';
+
+        const headerDiv = document.createElement('div');
+        headerDiv.className = 'qsofa-criterion-header';
+
+        const titleH3 = document.createElement('h3');
+        titleH3.className = 'qsofa-criterion-title';
+        titleH3.innerText = `${item.category}`;
+        headerDiv.appendChild(titleH3);
+
+        const scoreSpan = document.createElement('span');
+        scoreSpan.className = 'qsofa-score-display';
+        scoreSpan.id = `${item.nameAttr}_score_display`;
+        scoreSpan.innerText = '0';
+        headerDiv.appendChild(scoreSpan);
+
+        sectionDiv.appendChild(headerDiv);
+
+        const optionsDiv = document.createElement('div');
+        optionsDiv.className = 'qsofa-criterion-options';
+
+        const selectElement = document.createElement('select');
+        selectElement.id = item.nameAttr;
+        selectElement.className = 'qsofa-select';
+        selectElement.onchange = () => updateScoreDisplay(item.nameAttr);
+
+        const defaultOption = document.createElement('option');
+        defaultOption.value = "";
+        defaultOption.text = "Auswählen...";
+        defaultOption.disabled = true;
+        defaultOption.selected = true;
+        selectElement.appendChild(defaultOption);
+
+        item.options.forEach(option => {
+          const optionElement = document.createElement('option');
+          optionElement.value = option.score;
+          optionElement.text = `${option.description} (${option.score})`;
+          selectElement.appendChild(optionElement);
+        });
+
+        optionsDiv.appendChild(selectElement);
+        sectionDiv.appendChild(optionsDiv);
+
+        const explanationP = document.createElement('p');
+        explanationP.className = 'text-gray-600 text-sm mt-2 text-left';
+        explanationP.innerText = item.explanation;
+        sectionDiv.appendChild(explanationP);
+
+        conteudoDiv.appendChild(sectionDiv);
+      });
+
+      btnCalcular?.addEventListener('click', berechnePunktzahl);
+      btnLimpar?.addEventListener('click', felderLeeren);
+
+      btnGerarPDF?.addEventListener('click', () => {
+        if (!resultadoDiv.dataset.score) {
+          alert('Bitte klicken Sie zuerst auf "Berechnen", um das PDF zu generieren.');
+          return;
+        }
+        if (typeof gerarPDFGlobal === 'function') {
+          gerarPDFGlobal({
+            titulo: 'qSOFA-Skala',
+            subtitulo: 'Bericht zur schnellen Sepsis-Bewertung',
+            nomeArquivo: 'bericht_qsofa_score.pdf',
+            seletorConteudo: '.main-content-wrapper'
+          });
+        } else {
+          console.error('Funktion gerarPDFGlobal nicht definiert.');
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener('click', () => {
+        const score = resultadoDiv.dataset.score;
+        const scaleName = resultadoDiv.dataset.scaleName;
+        const interpretation = resultadoDiv.dataset.interpretacao;
+        if (!score || !interpretation) {
+          alert('Berechnen Sie das Ergebnis, um nach der Vorgehensweise zu suchen.');
+          return;
+        }
+        const searchQuery = encodeURIComponent(`${scaleName} Punktzahl ${score} Interpretation ${interpretation} Taxonomie NANDA, NIC und NOC generieren`);
+        window.open(`https://www.google.com/search?q=${searchQuery}`, '_blank');
+      });
+    });
+  </script>
 
 
 

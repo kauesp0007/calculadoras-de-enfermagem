@@ -620,7 +620,82 @@
 
 
   <!-- Script Específico da Página ASA (Tradução dos textos) -->
-  
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const resultadoDiv = document.getElementById('resultado');
+      const btnCalcular = document.getElementById('btnCalcular');
+      const btnLimpar = document.getElementById('btnLimpar');
+      const btnGerarPDF = document.getElementById('btnGerarPDF');
+      const btnNandaNicNoc = document.getElementById('btnNandaNicNoc');
+
+      function calcular() {
+        const selectedRadio = document.querySelector('input[name="asa"]:checked');
+
+        if (!selectedRadio) {
+          // Tradução: "Veuillez sélectionner une classification."
+          resultadoDiv.innerHTML = '⚠️ <strong class="font-bold">Veuillez sélectionner une classification.</strong>';
+          resultadoDiv.className = 'resultado bg-info-orange-light';
+          resultadoDiv.style.display = 'block';
+          delete resultadoDiv.dataset.score;
+          return;
+        }
+
+        const selectedFullValue = selectedRadio.value;
+        const selectedClassification = selectedFullValue.split(':')[0]; // Extrai "ASA I", "ASA II", etc.
+
+        // Tradução: "Classification sélectionnée"
+        resultadoDiv.innerHTML = `<p>Classification sélectionnée : <strong class="font-bold">${selectedFullValue}</strong></p>`;
+        resultadoDiv.className = 'resultado p-4 rounded-lg bg-gray-100 border border-gray-300';
+        resultadoDiv.style.display = 'block';
+
+        resultadoDiv.dataset.score = selectedClassification;
+        resultadoDiv.dataset.scaleName = "Classification ASA";
+      }
+
+      function limpar() {
+        document.querySelectorAll('input[name="asa"]').forEach(radio => radio.checked = false);
+        resultadoDiv.innerHTML = '';
+        resultadoDiv.className = 'resultado hidden';
+        delete resultadoDiv.dataset.score;
+        delete resultadoDiv.dataset.scaleName;
+      }
+
+      btnCalcular?.addEventListener('click', calcular);
+      btnLimpar?.addEventListener('click', limpar);
+
+      btnGerarPDF?.addEventListener('click', () => {
+        if (!resultadoDiv.dataset.score) {
+          // Tradução: "Veuillez cliquer sur 'Calculer' d'abord pour générer le PDF."
+          alert('Veuillez cliquer sur "Calculer" d\'abord pour générer le PDF.');
+          return;
+        }
+        if (typeof gerarPDFGlobal === 'function') {
+          gerarPDFGlobal({
+            // Tradução: Título e Subtítulo para o PDF
+            titulo: 'Échelle de Risque Anesthésique - ASA',
+            subtitulo: 'Rapport de Classification de Risque Physique',
+            nomeArquivo: 'rapport_classification_asa.pdf',
+            seletorConteudo: '.main-content-wrapper'
+          });
+        } else {
+          console.error('Fonction gerarPDFGlobal non définie.');
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener('click', () => {
+        const score = resultadoDiv.dataset.score;
+        const scaleName = resultadoDiv.dataset.scaleName;
+        if (!score) {
+          // Tradução: "Calculez le résultat pour rechercher la conduite à tenir."
+          alert('Calculez le résultat pour rechercher la conduite à tenir.');
+          return;
+        }
+        // Tradução da string de busca
+        const searchQuery = encodeURIComponent(`${score} ${scaleName} générer taxonomie NANDA, NIC et NOC`);
+        window.open(`https://www.google.com/search?q=${searchQuery}`, '_blank');
+      });
+    });
+  </script>
   <script src="/lang-selector.js" defer=""></script>
 
 

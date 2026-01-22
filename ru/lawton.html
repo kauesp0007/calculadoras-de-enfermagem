@@ -649,7 +649,216 @@
 
 
 
-  
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const resultadoDiv = document.getElementById('resultado');
+      const btnCalcular = document.getElementById('btnCalcular');
+      const btnLimpar = document.getElementById('btnLimpar');
+      const btnGerarPDF = document.getElementById('btnGerarPDF');
+      const btnNandaNicNoc = document.getElementById('btnNandaNicNoc');
+      const conteudoDiv = document.getElementById('conteudo');
+      const introParagraph = document.getElementById('intro-paragraph');
+      const referenceSection = document.getElementById('reference-section');
+
+      const lawtonData = [
+        {
+          category: "Использование телефона",
+          nameAttr: "telefone",
+          options: [
+            { description: "Пользуется телефоном по собственной инициативе", score: 1 },
+            { description: "Набирает некоторые знакомые номера", score: 1 },
+            { description: "Отвечает на звонки, но не набирает номера", score: 1 },
+            { description: "Не пользуется телефоном", score: 0 }
+          ]
+        },
+        {
+          category: "Покупки",
+          nameAttr: "compras",
+          options: [
+            { description: "Самостоятельно делает все необходимые покупки", score: 1 },
+            { description: "Самостоятельно делает небольшие покупки", score: 0 },
+            { description: "Нуждается в сопровождении для любых покупок", score: 0 },
+            { description: "Не способен делать покупки", score: 0 }
+          ]
+        },
+        {
+          category: "Приготовление пищи",
+          nameAttr: "refeicoes",
+          options: [
+            { description: "Планирует, готовит и подаёт полные блюда", score: 1 },
+            { description: "Готовит блюда, если ингредиенты предоставлены", score: 0 },
+            { description: "Готовит только лёгкие блюда", score: 0 },
+            { description: "Не способен готовить пищу", score: 0 }
+          ]
+        },
+        {
+          category: "Уход за домом",
+          nameAttr: "cuidado_casa",
+          options: [
+            { description: "Поддерживает дом в одиночку или с эпизодической помощью", score: 1 },
+            { description: "Выполняет только лёгкие работы по дому", score: 1 },
+            { description: "Не принимает активного участия в домашних делах", score: 0 },
+            { description: "Нуждается в полной помощи по уходу за домом", score: 0 }
+          ]
+        },
+        {
+          category: "Стирка",
+          nameAttr: "lavagem_roupa",
+          options: [
+            { description: "Стирает свою одежду самостоятельно", score: 1 },
+            { description: "Стирает только мелкие вещи", score: 1 },
+            { description: "Нуждается в том, чтобы кто-то стирал его одежду", score: 0 }
+          ]
+        },
+        {
+          category: "Передвижение/Использование транспорта",
+          nameAttr: "locomocao",
+          options: [
+            { description: "Путешествует самостоятельно на общественном транспорте или водит собственный автомобиль", score: 1 },
+            { description: "Пользуется такси или общественным транспортом с помощью другого человека", score: 1 },
+            { description: "Путешествует только в частном автомобиле с помощью другого человека", score: 1 },
+            { description: "Не способен путешествовать", score: 0 }
+          ]
+        },
+        {
+          category: "Приём лекарств",
+          nameAttr: "medicao",
+          options: [
+            { description: "Отвечает за приём собственных лекарств", score: 1 },
+            { description: "Только принимает лекарства, когда их готовят для него", score: 0 },
+            { description: "Не способен принимать лекарства", score: 0 }
+          ]
+        },
+        {
+          category: "Финансы/Управление деньгами",
+          nameAttr: "financas",
+          options: [
+            { description: "Управляет финансами самостоятельно (банки, счета и т.д.)", score: 1 },
+            { description: "Управляет небольшими покупками, но нуждается в помощи с банками", score: 1 },
+            { description: "Не способен управлять деньгами", score: 0 }
+          ]
+        }
+      ];
+
+      // Preenche o formulário dinamicamente
+      lawtonData.forEach(item => {
+        const sectionDiv = document.createElement('div');
+        sectionDiv.className = 'lawton-criterion-section';
+        sectionDiv.id = `section-${item.nameAttr}`;
+
+        const titleH3 = document.createElement('h3');
+        titleH3.className = 'lawton-criterion-title';
+        titleH3.innerHTML = item.category;
+        sectionDiv.appendChild(titleH3);
+
+        const selectElement = document.createElement('select');
+        selectElement.id = item.nameAttr;
+        selectElement.className = 'lawton-criterion-select';
+
+        const defaultOption = document.createElement('option');
+        defaultOption.value = "";
+        defaultOption.text = "Выберите...";
+        selectElement.appendChild(defaultOption);
+
+        item.options.forEach(option => {
+          const optionElement = document.createElement('option');
+          optionElement.value = option.score;
+          optionElement.text = `${option.description} (баллы: ${option.score})`;
+          selectElement.appendChild(optionElement);
+        });
+
+        sectionDiv.appendChild(selectElement);
+        conteudoDiv.appendChild(sectionDiv);
+      });
+
+      function calcularLawton() {
+        const selects = document.querySelectorAll('#conteudo select');
+        let allSelected = true;
+        let total = 0;
+
+        selects.forEach(select => {
+          if (select.value === "") {
+            allSelected = false;
+            select.classList.add('incomplete');
+          } else {
+            select.classList.remove('incomplete');
+            total += Number(select.value);
+          }
+        });
+
+        resultadoDiv.style.display = "block";
+        if (!allSelected) {
+          resultadoDiv.innerHTML = '⚠️ <strong class="font-bold">Пожалуйста, выберите вариант для всех пунктов перед расчётом.</strong>';
+          resultadoDiv.classList.add('bg-red-100');
+          delete resultadoDiv.dataset.score;
+          return;
+        }
+
+        let recomendacao = '';
+        let resultadoClasse = 'bg-blue-50';
+
+        if (total < 8) {
+          recomendacao = 'Оценка указывает на степень зависимости для выполнения инструментальных повседневных жизненных активностей (ИПЖА). Рекомендуется более глубокая оценка для определения потребностей в помощи.';
+        } else {
+          recomendacao = 'Оценка указывает на степень независимости для выполнения большинства инструментальных повседневных жизненных активностей (ИПЖА).';
+        }
+
+        resultadoDiv.innerHTML = `
+                <p>Общий балл: <strong class="font-bold">${total}</strong></p>
+                <p class="mt-4"><strong>Рекомендация:</strong> ${recomendacao}</p>
+            `;
+        resultadoDiv.className = `resultado ${resultadoClasse}`;
+        resultadoDiv.style.display = "block";
+
+        resultadoDiv.dataset.score = total;
+        resultadoDiv.dataset.scaleName = "Шкала Лоутона";
+      }
+
+      function limparCampos() {
+        const selects = document.querySelectorAll('#conteudo select');
+        selects.forEach(select => {
+          select.selectedIndex = 0;
+          select.classList.remove('incomplete');
+        });
+        resultadoDiv.innerHTML = '';
+        resultadoDiv.className = 'resultado hidden';
+        delete resultadoDiv.dataset.score;
+        delete resultadoDiv.dataset.scaleName;
+      }
+
+      // Adiciona os event listeners aos botões
+      btnCalcular?.addEventListener('click', calcularLawton);
+      btnLimpar?.addEventListener('click', limparCampos);
+
+      btnGerarPDF?.addEventListener('click', () => {
+        if (!resultadoDiv.dataset.score) {
+          alert('Пожалуйста, сначала нажмите "Вычислить Оценку" для создания PDF.');
+          return;
+        }
+        if (typeof gerarPDFGlobal === 'function') {
+          gerarPDFGlobal({
+            titulo: 'Шкала Лоутона',
+            subtitulo: 'Отчёт об оценке ИПЖА',
+            nomeArquivo: 'lawton_scale_report.pdf',
+            seletorConteudo: '.main-content-wrapper'
+          });
+        } else {
+          console.error('Функция gerarPDFGlobal не определена.');
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener('click', () => {
+        const score = resultadoDiv.dataset.score;
+        const scaleName = resultadoDiv.dataset.scaleName;
+        if (!score) {
+          alert('Вычислите результат для поиска лечения.');
+          return;
+        }
+        const searchQuery = encodeURIComponent(`уход пожилых люди независимость ${scaleName} балл ${score} NANDA NIC NOC`);
+        window.open(`https://www.google.com/search?q=${searchQuery}`, '_blank');
+      });
+    });
+  </script>
 
 
 

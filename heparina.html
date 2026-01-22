@@ -771,7 +771,96 @@
 
 
 
-  
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const resultadoDiv = document.getElementById('resultado');
+      const btnCalcular = document.getElementById('btnCalcular');
+      const btnLimpar = document.getElementById('btnLimpar');
+      const btnGerarPDF = document.getElementById('btnGerarPDF');
+      const btnNandaNicNoc = document.getElementById('btnNandaNicNoc');
+
+      function calcularHeparina() {
+        const concentracaoAmpola = parseFloat(document.getElementById('heparinaConcentracao').value);
+        const volumeAmpola = parseFloat(document.getElementById('heparinaVolume').value);
+        const prescricaoMedica = parseFloat(document.getElementById('heparinaPrescricao').value);
+
+        resultadoDiv.className = 'resultado p-4 mt-6 rounded-lg text-left';
+        resultadoDiv.style.display = 'block';
+
+        if (isNaN(concentracaoAmpola) || isNaN(volumeAmpola) || isNaN(prescricaoMedica) || volumeAmpola <= 0 || concentracaoAmpola <= 0) {
+          resultadoDiv.innerHTML = '⚠️ <strong class="font-bold">Por favor, insira valores numéricos válidos e maiores que zero em todos os campos.</strong>';
+          resultadoDiv.classList.add('bg-info-orange-light');
+          resultadoDiv.classList.remove('bg-success-green', 'bg-danger-red');
+          delete resultadoDiv.dataset.score;
+          return;
+        }
+
+        if (prescricaoMedica > concentracaoAmpola) {
+          resultadoDiv.innerHTML = '⚠️ <strong class="font-bold">A dose prescrita é maior que a concentração total da ampola. Verifique os valores.</strong>';
+          resultadoDiv.classList.add('bg-danger-red');
+          resultadoDiv.classList.remove('bg-success-green', 'bg-info-orange-light');
+          delete resultadoDiv.dataset.score;
+          return;
+        }
+
+        const doseDesejada = (prescricaoMedica * volumeAmpola) / concentracaoAmpola;
+
+        let conduta = `Aspirar <strong class="font-bold">${doseDesejada.toFixed(2)} ml</strong> da ampola de Heparina.`;
+
+        resultadoDiv.innerHTML = `<p><strong>Cálculo Realizado:</strong></p><p>${prescricaoMedica} UI (Prescrição) x ${volumeAmpola} ml (Volume) / ${concentracaoAmpola} UI (Concentração) = <strong class="font-bold">${doseDesejada.toFixed(2)} ml</strong></p><p><strong>Conduta:</strong> ${conduta}</p>`;
+        resultadoDiv.classList.add('bg-success-green');
+        resultadoDiv.classList.remove('bg-danger-red', 'bg-info-orange-light');
+
+        resultadoDiv.dataset.score = doseDesejada.toFixed(2);
+        resultadoDiv.dataset.conduta = conduta;
+        resultadoDiv.dataset.scaleName = "Cálculo de Heparina";
+      }
+
+      function limparCampos() {
+        document.getElementById('heparinaConcentracao').value = '';
+        document.getElementById('heparinaVolume').value = '';
+        document.getElementById('heparinaPrescricao').value = '';
+        resultadoDiv.innerHTML = '';
+        resultadoDiv.className = 'resultado hidden mt-6';
+        delete resultadoDiv.dataset.score;
+        delete resultadoDiv.dataset.conduta;
+        delete resultadoDiv.dataset.scaleName;
+      }
+
+      // Adiciona os event listeners aos botões
+      btnCalcular?.addEventListener('click', calcularHeparina);
+      btnLimpar?.addEventListener('click', limparCampos);
+
+      btnGerarPDF?.addEventListener('click', () => {
+        if (!resultadoDiv.dataset.score) {
+          alert('Por favor, clique em "Calcular" primeiro para gerar o PDF.');
+          return;
+        }
+        if (typeof gerarPDFGlobal === 'function') {
+          gerarPDFGlobal({
+            titulo: 'Cálculo de Heparina',
+            subtitulo: 'Relatório de Dosagem e Diluição de Heparina',
+            nomeArquivo: 'relatorio_heparina.pdf',
+            seletorConteudo: '.main-content-wrapper'
+          });
+        } else {
+          console.error('Função gerarPDFGlobal não definida.');
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener('click', () => {
+        const score = resultadoDiv.dataset.score;
+        const scaleName = resultadoDiv.dataset.scaleName;
+        const conduta = resultadoDiv.dataset.conduta;
+        if (!score || !conduta) {
+          alert('Calcule o resultado para pesquisar a conduta.');
+          return;
+        }
+        const searchQuery = encodeURIComponent(`${scaleName} pontuação ${score} conduta ${conduta} gerar taxonomia NANDA, gerar taxonomia NIC e gerar taxonomia de NOC`);
+        window.open(`https://www.google.com/search?q=${searchQuery}`, '_blank');
+      });
+    });
+  </script>
 
 
 

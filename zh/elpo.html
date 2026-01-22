@@ -611,7 +611,127 @@
 
 
   <!-- Script Específico da Página ELPO -->
-  
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const resultadoDiv = document.getElementById('resultado');
+      const conteudoDiv = document.getElementById('conteudo');
+      const btnCalcular = document.getElementById('btnCalcular');
+      const btnLimpar = document.getElementById('btnLimpar');
+      const btnGerarPDF = document.getElementById('btnGerarPDF');
+      const btnNandaNicNoc = document.getElementById('btnNandaNicNoc');
+
+      const elpoData = [
+        { id: "item1", title: "一、手术体位", options: [{ value: "5", text: "5 - 最高风险" }, { value: "4", text: "4" }, { value: "3", text: "3" }, { value: "2", text: "2" }, { value: "1", text: "1 - 最低风险" }] },
+        { id: "item2", title: "二、手术时间", options: [{ value: "5", text: "5 - ≥ 5小时" }, { value: "4", text: "4 - 4到4小时59分" }, { value: "3", text: "3 - 3到3小时59分" }, { value: "2", text: "2 - 2到2小时59分" }, { value: "1", text: "1 - ≤ 1小时59分" }] },
+        { id: "item3", title: "三、麻醉类型", options: [{ value: "5", text: "5 - 全身+阻滞" }, { value: "4", text: "4 - 全身" }, { value: "3", text: "3 - 腰麻" }, { value: "2", text: "2 - 硬膜外" }, { value: "1", text: "1 - 局部" }] },
+        { id: "item4", title: "四、支撑类型", options: [{ value: "5", text: "5 - 无" }, { value: "4", text: "4 - 最小" }, { value: "3", text: "3 - 部分" }, { value: "2", text: "2 - 完全刚性" }, { value: "1", text: "1 - 完全解剖" }] },
+        { id: "item5", title: "五、皮肤状况", options: [{ value: "5", text: "5 - 非常薄，脆弱" }, { value: "4", text: "4 - 薄" }, { value: "3", text: "3 - 正常" }, { value: "2", text: "2 - 厚" }, { value: "1", text: "1 - 完整和有弹性" }] },
+        { id: "item6", title: "六、合并症", options: [{ value: "5", text: "5 - 多个" }, { value: "4", text: "4 - 3个或更多" }, { value: "3", text: "3 - 2个" }, { value: "2", text: "2 - 1个" }, { value: "1", text: "1 - 无" }] },
+        { id: "item7", title: "七、营养状态", options: [{ value: "5", text: "5 - 严重营养不良" }, { value: "4", text: "4 - 营养不良" }, { value: "3", text: "3 - 轻度营养不良" }, { value: "2", text: "2 - 正常" }, { value: "1", text: "1 - 营养良好" }] }
+      ];
+
+      function createForm() {
+        elpoData.forEach(item => {
+          const section = document.createElement('div');
+          section.className = 'criterion-section';
+
+          const title = document.createElement('h3');
+          title.className = 'criterion-title';
+          title.textContent = item.title;
+          section.appendChild(title);
+
+          const select = document.createElement('select');
+          select.id = item.id;
+          select.className = 'criterion-select';
+          select.innerHTML = `<option value="">请选择选项</option>` +
+            item.options.map(opt => `<option value="${opt.value}">${opt.text}</option>`).join('');
+          section.appendChild(select);
+          conteudoDiv.appendChild(section);
+        });
+      }
+
+      function calcular() {
+        let total = 0;
+        let allSelected = true;
+
+        elpoData.forEach(item => {
+          const select = document.getElementById(item.id);
+          if (select.value === "") {
+            allSelected = false;
+          }
+          total += parseInt(select.value || 0);
+        });
+
+        if (!allSelected) {
+          resultadoDiv.innerHTML = '⚠️ <strong class="font-bold">请为所有项目选择选项。</strong>';
+          resultadoDiv.className = 'resultado bg-info-orange-light';
+          resultadoDiv.style.display = 'block';
+          delete resultadoDiv.dataset.score;
+          return;
+        }
+
+        let classificacao = "";
+        let resultadoClasse = '';
+
+        if (total >= 20) {
+          classificacao = "压疮高风险";
+          resultadoClasse = 'bg-elpo-risco';
+        } else {
+          classificacao = "压疮低风险";
+          resultadoClasse = 'bg-elpo-sem-risco';
+        }
+
+        resultadoDiv.innerHTML = `
+                <p>总分： <strong class="font-bold">${total}</strong></p>
+                <p>分类： <strong class="font-bold">${classificacao}</strong></p>
+            `;
+        resultadoDiv.className = `resultado ${resultadoClasse}`;
+        resultadoDiv.style.display = 'block';
+        resultadoDiv.dataset.score = `${total} (${classificacao})`;
+        resultadoDiv.dataset.scaleName = "ELPO量表";
+      }
+
+      function limpar() {
+        document.querySelectorAll('.criterion-select').forEach(select => select.selectedIndex = 0);
+        resultadoDiv.innerHTML = '';
+        resultadoDiv.className = 'resultado hidden';
+        delete resultadoDiv.dataset.score;
+        delete resultadoDiv.dataset.scaleName;
+      }
+
+      createForm();
+      btnCalcular?.addEventListener('click', calcular);
+      btnLimpar?.addEventListener('click', limpar);
+
+      btnGerarPDF?.addEventListener('click', () => {
+        if (!resultadoDiv.dataset.score) {
+          alert('请先点击"计算"以生成PDF。');
+          return;
+        }
+        if (typeof gerarPDFGlobal === 'function') {
+          gerarPDFGlobal({
+            titulo: 'ELPO量表',
+            subtitulo: '手术室压疮风险评估报告',
+            nomeArquivo: 'relatorio_escala_elpo.pdf',
+            seletorConteudo: '.main-content-wrapper'
+          });
+        } else {
+          console.error('Função gerarPDFGlobal não definida.');
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener('click', () => {
+        const score = resultadoDiv.dataset.score;
+        const scaleName = resultadoDiv.dataset.scaleName;
+        if (!score) {
+          alert('请先计算结果以搜索护理措施。');
+          return;
+        }
+        const searchQuery = encodeURIComponent(`${score} ${scaleName} generate NANDA taxonomy generate NIC taxonomy generate NOC taxonomy`);
+        window.open(`https://www.google.com/search?q=${searchQuery}`, '_blank');
+      });
+    });
+  </script>
 
 
 

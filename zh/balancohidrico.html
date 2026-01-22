@@ -692,7 +692,150 @@
 
 
 
-    
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const resultadoDiv = document.getElementById('resultado');
+            const btnCalcular = document.getElementById('btnCalcular');
+            const btnLimpar = document.getElementById('btnLimpar');
+            const btnGerarPDF = document.getElementById('btnGerarPDF');
+            const btnNandaNicNoc = document.getElementById('btnNandaNicNoc');
+
+            const CHINESE_MESSAGES = {
+                CALCULATE: "计算",
+                CLEAR: "清除",
+                GENERATE_PDF: "生成 PDF",
+                NANDA_NIC_NOC: "NANDA, NIC, NOC",
+                TOTAL_INTAKE: "液体总摄入量",
+                TOTAL_OUTPUT: "液体总排出量",
+                BALANCE_TOTAL: "液体平衡总量",
+                POSITIVE_BALANCE: "液体平衡为正值",
+                NEGATIVE_BALANCE: "液体平衡为负值",
+                ZERO_BALANCE: "液体平衡为零",
+                ORAL_INTAKE: "口服",
+                TUBE_INTAKE: "肠内管喂养",
+                PARENTERAL_INTAKE: "肠外途径 (EV)",
+                OTHER_INTAKE: "其他",
+                URINE_OUTPUT: "尿液",
+                VOMIT_OUTPUT: "呕吐物",
+                DRAIN_OUTPUT: "引流液",
+                OTHER_OUTPUT: "其他",
+                ALERT_CALCULATE_FIRST: "请先点击“计算”以生成 PDF。",
+                ALERT_CALCULATE_CONDUCT: "请先计算结果以搜索护理方案。",
+                PDF_TITLE: "液体平衡",
+                PDF_SUBTITLE: "液体摄入和排出报告",
+                PDF_FILENAME: "relatorio_balanco_hidrico.pdf",
+                NANDA_QUERY_POSITIVE: "液体量过多",
+                NANDA_QUERY_NEGATIVE: "液体量缺乏风险"
+            };
+
+            function calcularBalanco() {
+                const ingestaoOral = parseFloat(document.getElementById('ingestaoOral').value) || 0;
+                const ingestaoSonda = parseFloat(document.getElementById('ingestaoSonda').value) || 0;
+                const ingestaoParenteral = parseFloat(document.getElementById('ingestaoParenteral').value) || 0;
+                const ingestaoOutros = parseFloat(document.getElementById('ingestaoOutros').value) || 0;
+
+                const eliminacaoUrina = parseFloat(document.getElementById('eliminacaoUrina').value) || 0;
+                const eliminacaoVomito = parseFloat(document.getElementById('eliminacaoVomito').value) || 0;
+                const eliminacaoDrenos = parseFloat(document.getElementById('eliminacaoDrenos').value) || 0;
+                const eliminacaoOutros = parseFloat(document.getElementById('eliminacaoOutros').value) || 0;
+
+                const totalIngestao = ingestaoOral + ingestaoSonda + ingestaoParenteral + ingestaoOutros;
+                const totalEliminacao = eliminacaoUrina + eliminacaoVomito + eliminacaoDrenos + eliminacaoOutros;
+                const balanco = totalIngestao - totalEliminacao;
+
+                resultadoDiv.className = 'resultado p-4 mt-6 rounded-lg text-left';
+                resultadoDiv.style.display = 'block';
+
+                let classificacao = '';
+                let resultadoClasse = '';
+
+                if (balanco > 0) {
+                    classificacao = CHINESE_MESSAGES.POSITIVE_BALANCE;
+                    resultadoClasse = 'bg-balanco-positivo';
+                } else if (balanco < 0) {
+                    classificacao = CHINESE_MESSAGES.NEGATIVE_BALANCE;
+                    resultadoClasse = 'bg-balanco-negativo';
+                } else {
+                    classificacao = CHINESE_MESSAGES.ZERO_BALANCE;
+                    resultadoClasse = 'bg-balanco-zerado';
+                }
+
+                resultadoDiv.innerHTML = `<p><strong>${CHINESE_MESSAGES.BALANCE_TOTAL}: <span class="font-bold">${balanco} ml</span></strong></p><p>${CHINESE_MESSAGES.TOTAL_INTAKE}: <span class="font-bold">${totalIngestao} ml</span></p><p>${CHINESE_MESSAGES.TOTAL_OUTPUT}: <span class="font-bold">${totalEliminacao} ml</span></p><p>分类: <strong class="font-bold">${classificacao}</strong></p>`;
+                resultadoDiv.classList.add(resultadoClasse);
+                resultadoDiv.classList.remove('bg-info-orange-light');
+
+                resultadoDiv.dataset.score = balanco;
+                resultadoDiv.dataset.classificacao = classificacao;
+                resultadoDiv.dataset.scaleName = CHINESE_MESSAGES.PDF_TITLE;
+            }
+
+            function limparCampos() {
+                document.getElementById('ingestaoOral').value = '0';
+                document.getElementById('ingestaoSonda').value = '0';
+                document.getElementById('ingestaoParenteral').value = '0';
+                document.getElementById('ingestaoOutros').value = '0';
+                document.getElementById('eliminacaoUrina').value = '0';
+                document.getElementById('eliminacaoVomito').value = '0';
+                document.getElementById('eliminacaoDrenos').value = '0';
+                document.getElementById('eliminacaoOutros').value = '0';
+                resultadoDiv.innerHTML = '';
+                resultadoDiv.className = 'resultado hidden mt-6';
+                delete resultadoDiv.dataset.score;
+                delete resultadoDiv.dataset.classificacao;
+                delete resultadoDiv.dataset.scaleName;
+            }
+
+            // Adiciona os event listeners aos botões
+            btnCalcular?.addEventListener('click', calcularBalanco);
+            btnLimpar?.addEventListener('click', limparCampos);
+
+            btnGerarPDF?.addEventListener('click', () => {
+                if (!resultadoDiv.dataset.score) {
+                    // Substituir alert() por manipulação de DOM para conformidade
+                    resultadoDiv.style.display = 'block';
+                    resultadoDiv.innerHTML = `⚠️ <strong class="font-bold">${CHINESE_MESSAGES.ALERT_CALCULATE_FIRST}</strong>`;
+                    resultadoDiv.className = 'resultado bg-info-orange-light mt-6 p-4 rounded-lg text-left';
+                    return;
+                }
+                if (typeof gerarPDFGlobal === 'function') {
+                    gerarPDFGlobal({
+                        titulo: CHINESE_MESSAGES.PDF_TITLE,
+                        subtitulo: CHINESE_MESSAGES.PDF_SUBTITLE,
+                        nomeArquivo: CHINESE_MESSAGES.PDF_FILENAME,
+                        seletorConteudo: '.main-content-wrapper'
+                    });
+                } else {
+                    console.error('Função gerarPDFGlobal não definida.');
+                }
+            });
+
+            btnNandaNicNoc?.addEventListener('click', () => {
+                const score = resultadoDiv.dataset.score;
+                const scaleName = resultadoDiv.dataset.scaleName;
+                const classificacao = resultadoDiv.dataset.classificacao;
+                if (!score || !classificacao) {
+                    // Substituir alert() por manipulação de DOM para conformidade
+                    resultadoDiv.style.display = 'block';
+                    resultadoDiv.innerHTML = `⚠️ <strong class="font-bold">${CHINESE_MESSAGES.ALERT_CALCULATE_CONDUCT}</strong>`;
+                    resultadoDiv.className = 'resultado bg-info-orange-light mt-6 p-4 rounded-lg text-left';
+                    return;
+                }
+
+                let termoPesquisaNANDA;
+                if (classificacao === CHINESE_MESSAGES.POSITIVE_BALANCE) {
+                    termoPesquisaNANDA = CHINESE_MESSAGES.NANDA_QUERY_POSITIVE; // 液体量过多
+                } else if (classificacao === CHINESE_MESSAGES.NEGATIVE_BALANCE) {
+                    termoPesquisaNANDA = CHINESE_MESSAGES.NANDA_QUERY_NEGATIVE; // 液体量缺乏风险
+                } else {
+                    termoPesquisaNANDA = "Fluid Balance Management"; // 液体平衡管理 (Neutro)
+                }
+
+                // Usando termo em inglês para melhor pesquisa do NANDA
+                const searchQuery = encodeURIComponent(`${scaleName} ${termoPesquisaNANDA} score ${score} ml classification ${classificacao} NANDA NIC NOC`);
+                window.open(`https://www.google.com/search?q=${searchQuery}`, '_blank');
+            });
+        });
+    </script>
 
 
 

@@ -581,7 +581,296 @@
 
 
 
-  
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const resultadoDiv = document.getElementById("resultado");
+      const btnCalcular = document.getElementById("btnCalcular");
+      const btnLimpar = document.getElementById("btnLimpar");
+      const btnGerarPDF = document.getElementById("btnGerarPDF");
+      const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
+      const conteudoDiv = document.getElementById("conteudo");
+
+      const pewsData = [
+        {
+          parameter: "신경학적 상태",
+          nameAttr: "estadoNeurologico",
+          options: [
+            { description: "활발함", score: 0 },
+            { description: "졸림/과소 활동", score: 1 },
+            { description: "과민함", score: 2 },
+            { description: "기면/둔감 또는 통증 반응 감소", score: 3 },
+          ],
+        },
+        {
+          parameter: "심혈관",
+          nameAttr: "cardiovascular",
+          options: [
+            {
+              description: "홍조 또는 모세혈관 재충전 시간(CRT) 1-2초",
+              score: 0,
+            },
+            {
+              description: "창백 또는 CRT 3초 또는 연령별 상한치 초과 심박수",
+              score: 1,
+            },
+            {
+              description:
+                "얼룩덜룩함 또는 CRT 4초 또는 연령별 상한치보다 ≥ 20 bpm 높은 심박수",
+              score: 2,
+            },
+            {
+              description:
+                "회색빛/청색증 또는 CRT ≥ 5초 또는 연령별 상한치보다 ≥ 30 bpm 높은 심박수 또는 연령별 서맥",
+              score: 3,
+            },
+          ],
+        },
+        {
+          parameter: "호흡기",
+          nameAttr: "respiratorio",
+          options: [
+            { description: "연령별 정상 호흡수, 견축 없음", score: 0 },
+            {
+              description:
+                "연령별 상한치 초과 호흡수, 보조 근육 사용 또는 FiO₂ ≥ 30% 또는 O₂ 6 리터/분",
+              score: 1,
+            },
+            {
+              description:
+                "연령별 상한치보다 ≥ 20 rpm 높은 호흡수, 늑골간/검상돌기하 견축 또는 FiO₂ ≥ 40% 또는 O₂ 6 리터/분",
+              score: 2,
+            },
+            {
+              description:
+                "연령별 하한치보다 ≤ 5 rpm 낮은 호흡수, 늑골간/검상돌기하/흉골상부 견축 및 신음 또는 FiO₂ ≥ 50% 또는 O₂ 8 리터/분",
+              score: 3,
+            },
+          ],
+        },
+      ];
+
+      const pewsExtraPointsData = {
+        question:
+          "추가 2점 (평가 최소 15분 전에 분무요법을 받았거나 수술 후 지속적인 구토(최소 3회)가 있는 경우)",
+        nameAttr: "extraPointsCheckbox",
+      };
+
+      // --- Funções da Calculadora PEWS ---
+      function updateScoreDisplay(criterionId) {
+        const selectElement = document.getElementById(criterionId);
+        const scoreDisplayElement = document.getElementById(
+          `${criterionId}_score_display`,
+        );
+        if (selectElement && scoreDisplayElement) {
+          scoreDisplayElement.innerText =
+            selectElement.value === "" ? "0" : selectElement.value;
+        }
+      }
+
+      function calcularPontuacao() {
+        let totalScore = 0;
+        let allItemsSelected = true;
+
+        pewsData.forEach((item) => {
+          const selectElement = document.getElementById(item.nameAttr);
+          if (selectElement.value === "") {
+            allItemsSelected = false;
+          } else {
+            totalScore += parseInt(selectElement.value, 10);
+          }
+        });
+
+        const extraPointsCheckbox = document.getElementById(
+          pewsExtraPointsData.nameAttr,
+        );
+        if (extraPointsCheckbox && extraPointsCheckbox.checked) {
+          totalScore += 2;
+        }
+
+        resultadoDiv.style.display = "block";
+        if (!allItemsSelected) {
+          resultadoDiv.innerHTML =
+            '⚠️ <strong class="font-bold">계산하기 전에 각 항목에 대한 옵션을 선택하십시오.</strong>';
+          resultadoDiv.className = "resultado bg-info-orange-light";
+          delete resultadoDiv.dataset.score;
+          return;
+        }
+
+        let classificacao = "";
+        let acaoRecomendada = "";
+        let resultadoClasse = "";
+
+        if (totalScore >= 7) {
+          classificacao = "PEWS 점수: 7+";
+          acaoRecomendada = "심폐소생술(CPR) 프로토콜 시작.";
+          resultadoClasse = "bg-pews-7-mais";
+        } else if (totalScore >= 4 && totalScore <= 6) {
+          classificacao = `PEWS 점수: ${totalScore}`;
+          acaoRecomendada =
+            "20분 후 PEWS 반복. 간호사 평가/추적 관찰. 응급 상황 호출. 간호 경과 기록지에 의사 지시 사항 기록.";
+          resultadoClasse = "bg-pews-4-6";
+        } else if (totalScore === 3) {
+          classificacao = `PEWS 점수: ${totalScore}`;
+          acaoRecomendada =
+            "30분 후 PEWS 반복. 간호사 즉시 평가. 담당 의사에게 보고하고 응급 상황 호출 필요성 결정. 간호 경과 기록지에 의사 지시 사항 기록.";
+          resultadoClasse = "bg-pews-3";
+        } else if (totalScore >= 1 && totalScore <= 2) {
+          classificacao = `PEWS 점수: ${totalScore}`;
+          acaoRecomendada =
+            "간호사 즉시 평가. 60분 후 PEWS 반복, 점수 유지 시 담당 의사에게 보고. 간호 경과 기록지에 의사 지시 사항 기록.";
+          resultadoClasse = "bg-pews-1-2";
+        } else if (totalScore === 0) {
+          classificacao = "PEWS 점수: 0";
+          acaoRecomendada = "6시간마다 활력 징후 확인 루틴 유지.";
+          resultadoClasse = "bg-pews-0";
+        } else {
+          classificacao = "유효하지 않은 점수";
+          acaoRecomendada =
+            "계산된 점수가 예상 범위를 벗어났습니다. 선택 사항을 확인하십시오.";
+          resultadoClasse = "bg-info-orange-light";
+        }
+
+        resultadoDiv.innerHTML = `<p>${classificacao}</p><p>권장 조치: <strong class="font-bold">${acaoRecomendada}</strong></p>`;
+        resultadoDiv.className = `resultado ${resultadoClasse}`;
+
+        resultadoDiv.dataset.score = totalScore;
+        resultadoDiv.dataset.classificacao = classificacao;
+        resultadoDiv.dataset.conduta = acaoRecomendada;
+        resultadoDiv.dataset.scaleName = "PEWS 척도";
+      }
+
+      function limparCampos() {
+        pewsData.forEach((item) => {
+          const selectElement = document.getElementById(item.nameAttr);
+          selectElement.selectedIndex = 0;
+          document.getElementById(
+            `${item.nameAttr}_score_display`,
+          ).innerText = "0";
+        });
+        const extraPointsCheckbox = document.getElementById(
+          pewsExtraPointsData.nameAttr,
+        );
+        if (extraPointsCheckbox) {
+          extraPointsCheckbox.checked = false;
+        }
+
+        resultadoDiv.innerHTML = "";
+        resultadoDiv.className = "resultado hidden";
+        delete resultadoDiv.dataset.score;
+        delete resultadoDiv.dataset.classificacao;
+        delete resultadoDiv.dataset.conduta;
+        delete resultadoDiv.dataset.scaleName;
+      }
+
+      // Preenche o formulário dinamicamente
+      pewsData.forEach((item, index) => {
+        const sectionDiv = document.createElement("div");
+        sectionDiv.className = "pews-criterion-card";
+
+        const headerDiv = document.createElement("div");
+        headerDiv.className = "pews-criterion-header";
+
+        const titleH3 = document.createElement("h3");
+        titleH3.className = "pews-criterion-title";
+        titleH3.innerText = item.parameter;
+        headerDiv.appendChild(titleH3);
+
+        const scoreSpan = document.createElement("span");
+        scoreSpan.className = "pews-score-display";
+        scoreSpan.id = `${item.nameAttr}_score_display`;
+        scoreSpan.innerText = "0";
+        headerDiv.appendChild(scoreSpan);
+
+        sectionDiv.appendChild(headerDiv);
+
+        const optionsDiv = document.createElement("div");
+        optionsDiv.className = "pews-criterion-options";
+
+        const selectElement = document.createElement("select");
+        selectElement.id = item.nameAttr;
+        selectElement.className = "pews-select";
+        selectElement.onchange = () => updateScoreDisplay(item.nameAttr);
+        selectElement.setAttribute("aria-label", `${item.parameter} 선택`);
+
+        const defaultOption = document.createElement("option");
+        defaultOption.value = "";
+        defaultOption.text = "선택...";
+        defaultOption.disabled = true;
+        defaultOption.selected = true;
+        selectElement.appendChild(defaultOption);
+
+        item.options.forEach((option) => {
+          const optionElement = document.createElement("option");
+          optionElement.value = option.score;
+          optionElement.text = `${option.description} (${option.score})`;
+          selectElement.appendChild(optionElement);
+        });
+
+        optionsDiv.appendChild(selectElement);
+        sectionDiv.appendChild(optionsDiv);
+        conteudoDiv.appendChild(sectionDiv);
+      });
+
+      // Adiciona a seção de pontos extras
+      const extraPointsSection = document.createElement("div");
+      extraPointsSection.className = "pews-extra-points-section";
+      const extraPointsLabel = document.createElement("label");
+      extraPointsLabel.className = "flex items-center cursor-pointer";
+
+      const extraPointsInput = document.createElement("input");
+      extraPointsInput.type = "checkbox";
+      extraPointsInput.id = pewsExtraPointsData.nameAttr;
+      extraPointsInput.className =
+        "form-checkbox h-5 w-5 text-blue-600 rounded-md";
+
+      const extraPointsSpan = document.createElement("span");
+      extraPointsSpan.className = "ml-2 text-gray-800";
+      extraPointsSpan.innerText = pewsExtraPointsData.question;
+
+      extraPointsLabel.appendChild(extraPointsInput);
+      extraPointsLabel.appendChild(extraPointsSpan);
+      extraPointsSection.appendChild(extraPointsLabel);
+      conteudoDiv.appendChild(extraPointsSection);
+
+      // Adiciona os event listeners aos botões
+      btnCalcular?.addEventListener("click", calcularPontuacao);
+      btnLimpar?.addEventListener("click", limparCampos);
+
+      btnGerarPDF?.addEventListener("click", () => {
+        if (!resultadoDiv.dataset.score) {
+          alert('PDF를 생성하려면 먼저 "계산하기"를 클릭하십시오.');
+          return;
+        }
+        if (typeof gerarPDFGlobal === "function") {
+          gerarPDFGlobal({
+            titulo: "PEWS 척도",
+            subtitulo: "소아 임상 악화 평가 보고서",
+            nomeArquivo: "보고서_PEWS_척도.pdf",
+            seletorConteudo: ".main-content-wrapper",
+          });
+        } else {
+          console.error("gerarPDFGlobal 함수가 정의되지 않았습니다.");
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener("click", () => {
+        const score = resultadoDiv.dataset.score;
+        const scaleName = resultadoDiv.dataset.scaleName;
+        const classificacao = resultadoDiv.dataset.classificacao;
+        if (!score || !classificacao) {
+          alert("조치를 검색하려면 결과를 계산하십시오.");
+          return;
+        }
+        const searchQuery = encodeURIComponent(
+          `${scaleName} 점수 ${score} 분류 ${classificacao} NANDA 분류 생성, NIC 분류 생성 및 NOC 분류 생성`,
+        );
+        window.open(
+          `https://www.google.com/search?q=${searchQuery}`,
+          "_blank",
+        );
+      });
+    });
+  </script>
 
   <script src="../lang-selector.js" defer=""></script>
 

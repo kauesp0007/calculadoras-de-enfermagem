@@ -623,7 +623,208 @@
 
 
 
-  
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const resultadoDiv = document.getElementById('resultado');
+      const btnCalcular = document.getElementById('btnCalcular');
+      const btnLimpar = document.getElementById('btnLimpar');
+      const btnGerarPDF = document.getElementById('btnGerarPDF');
+      const btnNandaNicNoc = document.getElementById('btnNandaNicNoc');
+      const conteudoDiv = document.getElementById('conteudo');
+
+      const rlasData = [
+        {
+          level: 1,
+          title: "स्तर I - कोई प्रतिक्रिया नहीं",
+          description: "रोगी श्रवण, दृश्य, स्पर्श या दर्द उत्तेजनाओं का जवाब नहीं देता। गहरी कोमा में है।",
+          recommendation: "सिफारिश: बुनियादी जीवन समर्थन, अल्सर और कॉन्ट्रैक्चर को रोकने के लिए पोजिशनिंग, और न्यूनतम संवेदी उत्तेजना पर ध्यान दें। परिवार के साथ संचार आवश्यक है।"
+        },
+        {
+          level: 2,
+          title: "स्तर II - सामान्यीकृत प्रतिक्रिया",
+          description: "रोगी उत्तेजनाओं के प्रति असंगत, उद्देश्यहीन और गैर-विशिष्ट तरीके से प्रतिक्रिया करता है। प्रतिक्रियाएं सीमित हैं और उत्तेजना के बावजूद समान हो सकती हैं।",
+          recommendation: "सिफारिश: शांत और नियंत्रित वातावरण बनाए रखें। संवेदी उत्तेजना को लगातार जारी रखें, लेकिन अधिभार न डालें। रोगी को जगाने पर ध्यान दें।"
+        },
+        {
+          level: 3,
+          title: "स्तर III - स्थानीयकृत प्रतिक्रिया",
+          description: "रोगी उत्तेजनाओं के प्रति अधिक विशिष्ट तरीके से प्रतिक्रिया करता है। प्रकाश उत्तेजना पर पलक झपक सकता है या किसी वस्तु का पालन करने का प्रयास कर सकता है। प्रतिक्रियाएं असंगत हैं।",
+          recommendation: "सिफारिश: सरल और दोहराव वाले आदेशों से शुरुआत करें। विकर्षणों को सीमित करें। रोगी परिचितों को पहचानना शुरू कर सकता है। ध्यान केंद्रित करने में मदद करें।"
+        },
+        {
+          level: 4,
+          title: "स्तर IV - भ्रमित और बेचैन",
+          description: "रोगी बेचैनी और भ्रम की स्थिति में है। मूल्यांकन के साथ सहयोग नहीं कर सकता और आक्रामक तरीके से कार्य कर सकता है। ध्यान अवधि कम है।",
+          recommendation: "सिफारिश: चोटों से बचने के लिए एक सुरक्षित और संरचित वातावरण प्रदान करें। शांत आवाज का उपयोग करें और एक अनुमानित दिनचर्या बनाए रखें। आवश्यकता पड़ने पर रोगी को पुन: उन्मुख करने में मदद करें।"
+        },
+        {
+          level: 5,
+          title: "स्तर V - भ्रमित और अनुचित",
+          description: "रोगी सरल आदेशों का पालन कर सकता है, लेकिन ध्यान बनाए रखने में कठिनाई होती है। जटिल प्रश्नों के उत्तर अनुचित और भ्रमित करने वाले होते हैं। स्मृति गंभीर रूप से प्रभावित होती है।",
+          recommendation: "सिफारिश: सरल और दोहराव वाले कार्यों के प्रशिक्षण से शुरुआत करें। समय और स्थान के लिए पुन: उन्मुखीकरण को मजबूत करें। संचार स्पष्ट और सीधा होना चाहिए।"
+        },
+        {
+          level: 6,
+          title: "स्तर VI - भ्रमित और उचित",
+          description: "रोगी आदेशों का पालन कर सकता है और दीर्घकालिक स्मृति प्रदर्शित करता है। अल्पकालिक स्मृति अभी भी प्रभावित है और निर्णय अक्सर गलत होते हैं।",
+          recommendation: "सिफारिश: कार्यों की जटिलता बढ़ाएं। पिछली घटनाओं की यादों का उपयोग करें और परिचित गतिविधियों में आजादी को बढ़ावा दें। रोगी को छोटे निर्णय लेने के लिए प्रोत्साहित करें।"
+        },
+        {
+          level: 7,
+          title: "स्तर VII - स्वचालित और उचित",
+          description: "रोगी में थोड़ा भ्रम होता है और दैनिक गतिविधियों को सामान्य रूप से कर सकता है। अभी भी नई जानकारी सीखने में कठिनाई होती है। निर्णय लेने में कठिनाई होती है।",
+          recommendation: "सिफारिश: रोगी को नई गतिविधियों को सीखने में मदद करें। रणनीतियों का उपयोग करके स्मृति को मजबूत करें। जटिल स्थितियों में निर्णय लेने में मदद करें।"
+        },
+        {
+          level: 8,
+          title: "स्तर VIII - उद्देश्यपूर्ण और उचित",
+          description: "रोगी सामान्य रूप से कार्य करता है, लेकिन अमूर्त सोच में कठिनाई हो सकती है। नई स्थितियों में अनुकूलन करने में कठिनाई हो सकती है।",
+          recommendation: "सिफारिश: रोगी को जीवन में वापसी के लिए तैयार करें। सामाजिक और व्यावसायिक पुन: एकीकरण को बढ़ावा दें। भावनात्मक समर्थन प्रदान करें।"
+        }
+      ];
+
+      // RLAS स्तरों को डायनामिक रूप से जोड़ें
+      rlasData.forEach(item => {
+        const section = document.createElement('div');
+        section.className = 'rlas-criterion-section';
+        section.innerHTML = `
+                <div class="flex-grow">
+                    <h3 class="rlas-criterion-title">${item.title}</h3>
+                    <p class="rlas-criterion-explain">${item.description}</p>
+                </div>
+                <div class="flex items-center">
+                    <label class="rlas-criterion-option">
+                        <input type="radio" name="rlasLevel" value="${item.level}" aria-label="${item.title} चुनें">
+                        <span>चुनें</span>
+                    </label>
+                </div>
+            `;
+        conteudoDiv.appendChild(section);
+      });
+
+      // गणना फ़ंक्शन
+      btnCalcular.addEventListener('click', function () {
+        const selectedLevel = document.querySelector('input[name="rlasLevel"]:checked');
+        if (!selectedLevel) {
+          resultadoDiv.innerHTML = '<p class="text-red-600">कृपया रैंचो लॉस एमिगोस स्केल का एक स्तर चुनें।</p>';
+          resultadoDiv.style.display = 'block';
+          return;
+        }
+
+        const level = parseInt(selectedLevel.value);
+        const selectedData = rlasData.find(item => item.level === level);
+
+        resultadoDiv.innerHTML = `
+                <p><strong>चयनित स्तर:</strong> ${selectedData.title}</p>
+                <p><strong>विवरण:</strong> ${selectedData.description}</p>
+                <p><strong>सिफारिश:</strong> ${selectedData.recommendation}</p>
+            `;
+        resultadoDiv.style.display = 'block';
+      });
+
+      // साफ़ करें फ़ंक्शन
+      btnLimpar.addEventListener('click', function () {
+        document.querySelectorAll('input[name="rlasLevel"]').forEach(radio => {
+          radio.checked = false;
+        });
+        resultadoDiv.style.display = 'none';
+      });
+
+      // PDF जनरेट करें फ़ंक्शन
+      btnGerarPDF.addEventListener('click', function () {
+        const selectedLevel = document.querySelector('input[name="rlasLevel"]:checked');
+        if (!selectedLevel) {
+          resultadoDiv.innerHTML = '<p class="text-red-600">कृपया PDF जनरेट करने से पहले एक स्तर चुनें।</p>';
+          resultadoDiv.style.display = 'block';
+          return;
+        }
+
+        const level = parseInt(selectedLevel.value);
+        const selectedData = rlasData.find(item => item.level === level);
+
+        const element = document.createElement('div');
+        element.innerHTML = `
+                <h2>रैंचो लॉस एमिगोस स्केल (RLAS) परिणाम</h2>
+                <p><strong>चयनित स्तर:</strong> ${selectedData.title}</p>
+                <p><strong>विवरण:</strong> ${selectedData.description}</p>
+                <p><strong>सिफारिश:</strong> ${selectedData.recommendation}</p>
+                <p><strong>तिथि:</strong> ${new Date().toLocaleDateString('hi-IN')}</p>
+            `;
+
+        const opt = {
+          margin: 1,
+          filename: `rancho_los_amigos_scale_level_${level}.pdf`,
+          image: { type: 'jpeg', quality: 0.98 },
+          html2canvas: { scale: 2 },
+          jsPDF: { unit: 'cm', format: 'a4', orientation: 'portrait' }
+        };
+
+        html2pdf().set(opt).from(element).save();
+      });
+
+      // NANDA, NIC, NOC फ़ंक्शन
+      btnNandaNicNoc.addEventListener('click', function () {
+        const selectedLevel = document.querySelector('input[name="rlasLevel"]:checked');
+        if (!selectedLevel) {
+          resultadoDiv.innerHTML = '<p class="text-red-600">कृपया NANDA, NIC, NOC देखने से पहले एक स्तर चुनें।</p>';
+          resultadoDiv.style.display = 'block';
+          return;
+        }
+
+        const level = parseInt(selectedLevel.value);
+        let nandaNicNoc = '';
+
+        switch (level) {
+          case 1:
+            nandaNicNoc = `
+                        <p><strong>NANDA:</strong> चोट का जोखिम</p>
+                        <p><strong>NIC:</strong> सुरक्षा बढ़ाना</p>
+                        <p><strong>NOC:</strong> सुरक्षा स्थिति</p>
+                    `;
+            break;
+          case 2:
+          case 3:
+            nandaNicNoc = `
+                        <p><strong>NANDA:</strong> संवेदी धारणा में बदलाव</p>
+                        <p><strong>NIC:</strong> संज्ञानात्मक उत्तेजना</p>
+                        <p><strong>NOC:</strong> संज्ञानात्मक अभिविन्यास</p>
+                    `;
+            break;
+          case 4:
+          case 5:
+            nandaNicNoc = `
+                        <p><strong>NANDA:</strong> भ्रम का जोखिम</p>
+                        <p><strong>NIC:</strong> भ्रम प्रबंधन</p>
+                        <p><strong>NOC:</strong> संज्ञानात्मक कार्यप्रणाली</p>
+                    `;
+            break;
+          case 6:
+          case 7:
+            nandaNicNoc = `
+                        <p><strong>NANDA:</strong> स्मृति में बदलाव</p>
+                        <p><strong>NIC:</strong> स्मृति प्रशिक्षण</p>
+                        <p><strong>NOC:</strong> स्मृति</p>
+                    `;
+            break;
+          case 8:
+            nandaNicNoc = `
+                        <p><strong>NANDA:</strong> जीवन की गुणवत्ता में बदलाव</p>
+                        <p><strong>NIC:</strong> समर्थन प्रणाली बढ़ाना</p>
+                        <p><strong>NOC:</strong> जीवन की गुणवत्ता</p>
+                    `;
+            break;
+          default:
+            nandaNicNoc = `<p>NANDA, NIC, NOC जानकारी उपलब्ध नहीं है।</p>`;
+        }
+
+        resultadoDiv.innerHTML = `
+                <h3>NANDA, NIC, NOC</h3>
+                ${nandaNicNoc}
+            `;
+        resultadoDiv.style.display = 'block';
+      });
+    });
+  </script>
 
 
 

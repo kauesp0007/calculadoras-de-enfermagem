@@ -653,7 +653,203 @@
 
 
 
-  
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const resultadoDiv = document.getElementById('resultado');
+      const btnCalcular = document.getElementById('btnCalcular');
+      const btnLimpar = document.getElementById('btnLimpar');
+      const btnGerarPDF = document.getElementById('btnGerarPDF');
+      const btnNandaNicNoc = document.getElementById('btnNandaNicNoc');
+      const conteudoDiv = document.getElementById('conteudo');
+
+      // OFRAS Scale Data
+      const ofrasData = [
+        {
+          category: "History",
+          nameAttr: "history",
+          options: [
+            { description: "No history of falls or balance problems", score: 0 },
+            { description: "History of falls or balance problems", score: 1 }
+          ],
+          explain: "Assesses history of falls and conditions that may affect balance."
+        },
+        {
+          category: "Cardiac System",
+          nameAttr: "cardiac",
+          options: [
+            { description: "No cardiac alterations", score: 0 },
+            { description: "Arrhythmias, low blood pressure, or other cardiac conditions", score: 1 }
+          ],
+          explain: "Analyzes cardiac conditions that may lead to instability."
+        },
+        {
+          category: "Hemorrhage",
+          nameAttr: "hemorrhage",
+          options: [
+            { description: "No risk of hemorrhage", score: 0 },
+            { description: "At risk of hemorrhage or active bleeding", score: 1 }
+          ],
+          explain: "Considers risk of hemorrhage that may cause weakness and dizziness."
+        },
+        {
+          category: "Anesthesia",
+          nameAttr: "anesthesia",
+          options: [
+            { description: "No use of anesthesia", score: 0 },
+            { description: "Recent use of anesthesia (within the last 24h)", score: 1 }
+          ],
+          explain: "Assesses residual effects of anesthesia, such as drowsiness and imbalance."
+        },
+        {
+          category: "Motor Activity",
+          nameAttr: "motor",
+          options: [
+            { description: "Ambulates safely and unaided", score: 0 },
+            { description: "Ambulates with difficulty, instability, or needs assistance", score: 1 }
+          ],
+          explain: "Assesses the patient's ability to move safely."
+        },
+        {
+          category: "Medication Use",
+          nameAttr: "medication",
+          options: [
+            { description: "Does not use risk medications", score: 0 },
+            { description: "Uses medications that cause drowsiness or dizziness", score: 1 }
+          ],
+          explain: "Considers use of medications that may increase fall risk."
+        }
+      ];
+
+      // Fill the form dynamically
+      ofrasData.forEach(item => {
+        const sectionDiv = document.createElement('div');
+        sectionDiv.className = 'ofras-criterion-section';
+        sectionDiv.id = `section-${item.nameAttr}`;
+
+        const titleH3 = document.createElement('h3');
+        titleH3.className = 'ofras-criterion-title';
+        titleH3.innerHTML = item.category + `
+              <div class="text-sm font-normal text-gray-500 mt-1">${item.explain}</div>`;
+        sectionDiv.appendChild(titleH3);
+
+        const selectElement = document.createElement('select');
+        selectElement.id = item.nameAttr;
+        selectElement.className = 'ofras-criterion-select';
+
+        const defaultOption = document.createElement('option');
+        defaultOption.value = "";
+        defaultOption.text = "Select...";
+        selectElement.appendChild(defaultOption);
+
+        item.options.forEach(option => {
+          const optionElement = document.createElement('option');
+          optionElement.value = option.score;
+          optionElement.text = `${option.description} (points: ${option.score})`;
+          selectElement.appendChild(optionElement);
+        });
+
+        sectionDiv.appendChild(selectElement);
+        conteudoDiv.appendChild(sectionDiv);
+      });
+
+      function calculateOFRAS() {
+        const selects = document.querySelectorAll('#conteudo select');
+        let allSelected = true;
+        let total = 0;
+
+        selects.forEach(select => {
+          if (select.value === "") {
+            allSelected = false;
+            select.classList.add('incomplete');
+          } else {
+            select.classList.remove('incomplete');
+            total += Number(select.value);
+          }
+        });
+
+        if (!allSelected) {
+          resultadoDiv.innerHTML = '⚠️ <strong class="font-bold">Please select an option for all items before calculating.</strong>';
+          resultadoDiv.style.display = "block";
+          delete resultadoDiv.dataset.score;
+          return;
+        }
+
+        let classification = '';
+        let recommendation = '';
+
+        // OFRAS Scale scoring definitions (0 to 6 points)
+        if (total >= 0 && total <= 2) {
+          classification = 'Low Risk';
+          recommendation = 'The obstetric patient has a low risk of falling. Continue with standard preventive measures.';
+        } else if (total >= 3 && total <= 4) {
+          classification = 'Moderate Risk';
+          recommendation = 'The obstetric patient has a moderate risk of falling. Implement fall prevention and monitoring measures.';
+        } else if (total >= 5 && total <= 6) {
+          classification = 'High Risk';
+          recommendation = 'The obstetric patient has a high risk of falling. Immediately implement an individualized fall prevention plan.';
+        } else {
+          classification = 'Score Out of Range';
+          recommendation = 'The calculated score is outside the expected classification range. Check the selected values.';
+        }
+
+        resultadoDiv.innerHTML = `
+                <p>Total score: <strong class="font-bold">${total}</strong></p>
+                <p>Classification: <strong class="font-bold">${classification}</strong></p>
+                <p class="mt-4"><strong>Recommendation:</strong> ${recommendation}</p>
+            `;
+        resultadoDiv.style.display = "block";
+
+        resultadoDiv.dataset.score = total;
+        resultadoDiv.dataset.scaleName = "OFRAS Scale";
+        resultadoDiv.dataset.classification = classification;
+      }
+
+      function clearFields() {
+        const selects = document.querySelectorAll('#conteudo select');
+        selects.forEach(select => {
+          select.selectedIndex = 0;
+          select.classList.remove('incomplete');
+        });
+        resultadoDiv.innerHTML = '';
+        resultadoDiv.style.display = "none";
+        delete resultadoDiv.dataset.score;
+        delete resultadoDiv.dataset.scaleName;
+        delete resultadoDiv.dataset.classification;
+      }
+
+      btnCalcular?.addEventListener('click', calculateOFRAS);
+      btnLimpar?.addEventListener('click', clearFields);
+
+      btnGerarPDF?.addEventListener('click', () => {
+        if (!resultadoDiv.dataset.score) {
+          alert('Please click "Calculate Score" first to generate the PDF.');
+          return;
+        }
+        if (typeof gerarPDFGlobal === 'function') {
+          gerarPDFGlobal({
+            titulo: 'OFRAS Scale',
+            subtitulo: 'Obstetric Fall Risk Assessment Report',
+            nomeArquivo: 'ofras_scale_report.pdf',
+            seletorConteudo: '.main-content-wrapper'
+          });
+        } else {
+          console.error('Function gerarPDFGlobal not defined.');
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener('click', () => {
+        const score = resultadoDiv.dataset.score;
+        const scaleName = resultadoDiv.dataset.scaleName;
+        const classification = resultadoDiv.dataset.classification;
+        if (!score || !classification) {
+          alert('Calculate the result to search for management.');
+          return;
+        }
+        const searchQuery = encodeURIComponent(`${scaleName} score ${score} obstetric patient ${classification} generate NANDA taxonomy, generate NIC taxonomy, generate NOC taxonomy`);
+        window.open(`https://www.google.com/search?q=${searchQuery}`, '_blank');
+      });
+    });
+  </script>
 
 
 

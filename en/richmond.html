@@ -735,7 +735,113 @@
 
 
 
-    
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const resultadoDiv = document.getElementById('resultado');
+            const btnCalcular = document.getElementById('btnCalcular');
+            const btnLimpar = document.getElementById('btnLimpar');
+            const btnGerarPDF = document.getElementById('btnGerarPDF');
+            const btnNandaNicNoc = document.getElementById('btnNandaNicNoc');
+            const tabelaRASS = document.getElementById('tabelaRASS');
+            let scoreSelecionado = null;
+            let interpretacaoSelecionada = null;
+
+            // Dados da escala de Richmond
+            const rassData = [
+                { score: '+4', description: "Very agitated: Aggressive, dangerous to self and others." },
+                { score: '+3', description: "Agitated: Pulls or removes tubes/catheters, combative behavior." },
+                { score: '+2', description: "Restless: Frequent, non-purposeful movements, without aggression." },
+                { score: '+1', description: "Anxious/Restless: Anxious, with non-aggressive movements." },
+                { score: '0', description: "Alert and calm: Ideal state." },
+                { score: '-1', description: "Drowsy: Awakens to voice for >10s, sustained eye contact." },
+                { score: '-2', description: "Light sedation: Brief eye contact." },
+                { score: '-3', description: "Moderate sedation: Moves without eye contact." },
+                { score: '-4', description: "Deep sedation: Reacts to painful stimulus." },
+                { score: '-5', description: "Unresponsive: No response to any stimulus." }
+            ];
+
+            // Adiciona event listeners para a seleção das linhas da tabela
+            tabelaRASS?.addEventListener('click', function (e) {
+                const targetRow = e.target.closest('tr');
+                if (targetRow) {
+                    tabelaRASS.querySelectorAll('tr').forEach(row => row.classList.remove('selected'));
+                    targetRow.classList.add('selected');
+                    scoreSelecionado = targetRow.getAttribute('data-score');
+                    interpretacaoSelecionada = targetRow.cells[1].textContent.trim();
+                }
+            });
+
+            function calcularRASS() {
+                if (scoreSelecionado === null) {
+                    resultadoDiv.innerHTML = '⚠️ <strong class="font-bold">Please select a level on the scale</strong> before continuing.';
+                    resultadoDiv.className = 'resultado bg-info-orange-light';
+                    resultadoDiv.style.display = 'block';
+                    delete resultadoDiv.dataset.score;
+                    return;
+                }
+
+                let resultadoClasses = '';
+                if (parseInt(scoreSelecionado) >= 2) {
+                    resultadoClasses = 'bg-danger-red-light';
+                } else if (parseInt(scoreSelecionado) >= -3 && parseInt(scoreSelecionado) <= 1) {
+                    resultadoClasses = 'bg-warning-yellow-light';
+                } else { // Score -4 or -5
+                    resultadoClasses = 'bg-danger-red-light';
+                }
+
+                resultadoDiv.innerHTML = `<p>RASS Score: <strong class="font-bold">${scoreSelecionado}</strong></p><p>Interpretation: <strong class="font-bold">${interpretacaoSelecionada}</strong></p>`;
+                resultadoDiv.className = `resultado ${resultadoClasses}`;
+                resultadoDiv.style.display = 'block';
+
+                resultadoDiv.dataset.score = scoreSelecionado;
+                resultadoDiv.dataset.classificacao = interpretacaoSelecionada;
+                resultadoDiv.dataset.scaleName = "Richmond Agitation-Sedation Scale (RASS)";
+            }
+
+            function limparCampos() {
+                tabelaRASS.querySelectorAll('tr').forEach(row => row.classList.remove('selected'));
+                scoreSelecionado = null;
+                interpretacaoSelecionada = null;
+                resultadoDiv.innerHTML = '';
+                resultadoDiv.className = 'resultado hidden';
+                delete resultadoDiv.dataset.score;
+                delete resultadoDiv.dataset.classificacao;
+                delete resultadoDiv.dataset.scaleName;
+            }
+
+            btnCalcular?.addEventListener('click', calcularRASS);
+            btnLimpar?.addEventListener('click', limparCampos);
+
+            btnGerarPDF?.addEventListener('click', () => {
+                if (!resultadoDiv.dataset.score) {
+                    alert('Please, click on "Calculate" first to generate the PDF.');
+                    return;
+                }
+                if (typeof gerarPDFGlobal === 'function') {
+                    gerarPDFGlobal({
+                        titulo: 'Richmond Agitation-Sedation Scale (RASS)',
+                        subtitulo: 'Agitation and Sedation Assessment Report',
+                        nomeArquivo: 'richmond_scale_report.pdf',
+                        seletorConteudo: '.main-content-wrapper'
+                    });
+                } else {
+                    console.error('Function gerarPDFGlobal not defined.');
+                }
+            });
+
+            btnNandaNicNoc?.addEventListener('click', () => {
+                const score = resultadoDiv.dataset.score;
+                const scaleName = resultadoDiv.dataset.scaleName;
+                const classificacao = resultadoDiv.dataset.classificacao;
+                if (!score || !classificacao) {
+                    alert('Calculate the result to search for the nursing care plan.');
+                    return;
+                }
+                const searchQuery = encodeURIComponent(`${scaleName} score ${score} classification ${classificacao} NANDA NIC NOC`);
+                window.open(`https://www.google.com/search?q=${searchQuery}`, '_blank');
+            });
+        });
+    </script>
 
 
 

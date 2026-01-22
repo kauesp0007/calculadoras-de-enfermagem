@@ -571,7 +571,116 @@
 
 
 
-    
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const resultadoDiv = document.getElementById('resultado');
+            const conteudoDiv = document.getElementById('conteudo');
+            const btnCalcular = document.getElementById('btnCalcular');
+            const btnLimpar = document.getElementById('btnLimpar');
+            const btnGerarPDF = document.getElementById('btnGerarPDF');
+            const btnNandaNicNoc = document.getElementById('btnNandaNicNoc');
+
+            const criesData = [
+                { id: "choro", title: "Llanto", options: [{ score: 0, text: "Ausente" }, { score: 1, text: "Alto" }, { score: 2, text: "Incontrolable" }] },
+                { id: "oxigenio", title: "Necesidad de O₂", options: [{ score: 0, text: "SpO₂ > 95%" }, { score: 1, text: "SpO₂ 21%-30%" }, { score: 2, text: "SpO₂ > 30%" }] },
+                { id: "sinais_vitais", title: "Aumento de los Signos Vitales", options: [{ score: 0, text: "Sin aumento" }, { score: 1, text: "Aumento de hasta 20%" }, { score: 2, text: "Aumento > 20%" }] },
+                { id: "expressao_facial", title: "Expresión Facial", options: [{ score: 0, text: "Relajada" }, { score: 1, text: "Mueca esporádica" }, { score: 2, text: "Contorsionada" }] },
+                { id: "insonia", title: "Insomnio", options: [{ score: 0, text: "Normal" }, { score: 1, text: "Intervalos cortos" }, { score: 2, text: "Ausente" }] }
+            ];
+
+            function createForm() {
+                conteudoDiv.innerHTML = '';
+                criesData.forEach(criterion => {
+                    const card = document.createElement('div');
+                    card.className = 'criterion-card';
+                    card.innerHTML = `
+                    <h3 class="criterion-title">${criterion.title}</h3>
+                    <div class="options-container">
+                        <select id="${criterion.id}-select" class="custom-select">
+                            <option value="" disabled selected>Seleccione...</option>
+                            ${criterion.options.map(opt => `<option value="${opt.score}">${opt.text} (puntos: ${opt.score})</option>`).join('')}
+                        </select>
+                    </div>
+                `;
+                    conteudoDiv.appendChild(card);
+                });
+            }
+
+            function calcular() {
+                let total = 0;
+                let allSelected = true;
+
+                criesData.forEach(criterion => {
+                    const select = document.getElementById(`${criterion.id}-select`);
+                    if (select && select.value) {
+                        total += parseInt(select.value, 10);
+                    } else {
+                        allSelected = false;
+                    }
+                });
+
+                if (!allSelected) {
+                    resultadoDiv.innerHTML = '⚠️ <strong class="font-bold">Por favor, seleccione una opción para cada criterio.</strong>';
+                    resultadoDiv.className = 'standard-result-box bg-info-orange-light';
+                    resultadoDiv.style.display = 'block';
+                    delete resultadoDiv.dataset.score;
+                    return;
+                }
+
+                let conduta = '';
+                if (total >= 7) { conduta = 'Dolor intenso'; }
+                else if (total >= 4) { conduta = 'Dolor moderado'; }
+                else { conduta = 'Dolor mínimo o ausente'; }
+
+                resultadoDiv.innerHTML = `<p class="font-bold text-lg">Puntuación total: <span class="font-black">${total}/10</span></p><p class="font-bold text-lg">Interpretación: <span class="font-black">${conduta}</span></p>`;
+                resultadoDiv.className = 'standard-result-box';
+                resultadoDiv.style.display = 'block';
+                resultadoDiv.dataset.score = total;
+                resultadoDiv.dataset.conduta = conduta;
+            }
+
+            function limpar() {
+                createForm();
+                resultadoDiv.innerHTML = '';
+                resultadoDiv.className = 'hidden';
+                delete resultadoDiv.dataset.score;
+                delete resultadoDiv.dataset.conduta;
+            }
+
+            createForm();
+            btnCalcular?.addEventListener('click', calcular);
+            btnLimpar?.addEventListener('click', limpar);
+
+            btnGerarPDF?.addEventListener('click', () => {
+                const score = resultadoDiv.dataset.score;
+                const conduta = resultadoDiv.dataset.conduta;
+                if (!score) {
+                    alert('Por favor, haga clic en "Calcular" primero para generar el PDF.');
+                    return;
+                }
+                if (typeof gerarPDFGlobal === 'function') {
+                    gerarPDFGlobal({
+                        titulo: 'Escala CRIES',
+                        subtitulo: 'Informe de Evaluación del Dolor en Recién Nacidos',
+                        nomeArquivo: 'informe_escala_cries.pdf',
+                        seletorConteudo: '.main-content-wrapper'
+                    });
+                } else {
+                    console.error('La función gerarPDFGlobal no está definida.');
+                }
+            });
+
+            btnNandaNicNoc?.addEventListener('click', () => {
+                const conduta = resultadoDiv.dataset.conduta;
+                if (!conduta) {
+                    alert('Calcule el resultado para buscar la conducta.');
+                    return;
+                }
+                const searchQuery = encodeURIComponent(`cuidados de enfermería para recién nacido con ${conduta.toLowerCase()} según la Escala CRIES NANDA NIC NOC`);
+                window.open(`https://www.google.com/search?q=${searchQuery}`, '_blank');
+            });
+        });
+    </script>
 
 
 

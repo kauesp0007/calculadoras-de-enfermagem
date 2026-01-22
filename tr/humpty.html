@@ -562,7 +562,221 @@
 
 
 
-  
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const resultadoDiv = document.getElementById('resultado');
+      const btnCalcular = document.getElementById('btnCalcular');
+      const btnLimpar = document.getElementById('btnLimpar');
+      const btnGerarPDF = document.getElementById('btnGerarPDF');
+      const btnNandaNicNoc = document.getElementById('btnNandaNicNoc');
+      const conteudoDiv = document.getElementById('conteudo');
+
+      // Humpty Dumpty ölçeği verileri
+      const humptyData = [
+        {
+          category: "Yaş",
+          nameAttr: "idade",
+          options: [
+            { description: "≥ ۱۳ yaş", score: ۱ },
+            { description: "۷-۱۲ yaş", score: ۲ },
+            { description: "۳-۶ yaş", score: ۳ },
+            { description: "< ۳ yaş", score: ۴ }
+          ],
+          explain: "Yaş, düşme riskinde önemli bir faktör olup, küçük çocuklar daha savunmasızdır."
+        },
+        {
+          category: "Cinsiyet",
+          nameAttr: "sexo",
+          options: [
+            { description: "Kadın", score: ۱ },
+            { description: "Erkek", score: ۲ }
+          ],
+          explain: "Erkek cinsiyet biraz daha yüksek risk taşıyabilir."
+        },
+        {
+          category: "Tanı",
+          nameAttr: "diagnostico",
+          options: [
+            { description: "Diğer tanılar", score: ۱ },
+            { description: "Ruhsal bozukluklar", score: ۲ },
+            { description: "Oksijenasyon bozukluğu (solunum, dehidrasyon, anemi)", score: ۳ },
+            { description: "Nörolojik", score: ۴ }
+          ],
+          explain: "Bazı tanılar düşmeye yatkınlığı artırır."
+        },
+        {
+          category: "Bilişsel Yetersizlikler",
+          nameAttr: "cognitivas",
+          options: [
+            { description: "Kapasitelerine göre yönelimli", score: ۱ },
+            { description: "Sınırlılıklarını unutuyor", score: ۲ },
+            { description: "Sınırlılıklarının farkında değil", score: ۳ }
+          ],
+          explain: "Sınırlılıkları ve riskleri tanıma kapasitesi düşme olasılığını etkiler."
+        },
+        {
+          category: "Çevresel Faktörler",
+          nameAttr: "ambientais",
+          options: [
+            { description: "Yürüyen çocuk", score: ۱ },
+            { description: "Yatağa bağımlı çocuk", score: ۲ },
+            { description: "Yardımcı cihaz kullanımı, çok ekipmanlı beşik/yatak, az ışık", score: ۳ },
+            { description: "Önceki düşme öyküsü", score: ۴ }
+          ],
+          explain: "Hastane ortamı ve hastanın öyküsü düşme riski için önemlidir."
+        },
+        {
+          category: "İlaç Kullanımı",
+          nameAttr: "medicacao",
+          options: [
+            { description: "Başka ilaçlar kullanıyor veya kullanmıyor", score: ۱ },
+            { description: "Şunlardan birini kullanıyor: sedatifler, hipnotikler, narkotikler", score: ۲ },
+            { description: "Şunlardan ≥ ۲'sini kullanıyor: sedatifler, hipnotikler, narkotikler", score: ۳ }
+          ],
+          explain: "Bazı ilaçlar bilinci ve dengesi etkileyerek riski artırır."
+        },
+        {
+          category: "Ameliyat / Sedasyon / Anestezi",
+          nameAttr: "cirurgia",
+          options: [
+            { description: "۴۸ saatten fazla veya yok", score: ۱ },
+            { description: "۴۸ saat var", score: ۲ },
+            { description: "۲۴ saat var", score: ۳ }
+          ],
+          explain: "Prosedür sonrası dönem, kalıntı etkiler nedeniyle daha yüksek riskli dönemdir."
+        }
+      ];
+
+      // Formu dinamik olarak doldur
+      humptyData.forEach(item => {
+        const sectionDiv = document.createElement('div');
+        sectionDiv.className = 'humpty-criterion-section';
+        sectionDiv.id = `section-${item.nameAttr}`;
+
+        const titleH3 = document.createElement('h3');
+        titleH3.className = 'humpty-criterion-title';
+        titleH3.innerHTML = item.category + `
+                <div class="text-sm font-normal text-gray-500 mt-1">${item.explain}</div>`;
+        sectionDiv.appendChild(titleH3);
+
+        const selectElement = document.createElement('select');
+        selectElement.id = item.nameAttr;
+        selectElement.className = 'humpty-criterion-select';
+
+        const defaultOption = document.createElement('option');
+        defaultOption.value = "";
+        defaultOption.text = "Seçiniz...";
+        selectElement.appendChild(defaultOption);
+
+        item.options.forEach(option => {
+          const optionElement = document.createElement('option');
+          optionElement.value = option.score;
+          optionElement.text = `${option.description} (puan: ${option.score})`;
+          selectElement.appendChild(optionElement);
+        });
+
+        sectionDiv.appendChild(selectElement);
+        conteudoDiv.appendChild(sectionDiv);
+      });
+
+      function calcularHumpty() {
+        const selects = document.querySelectorAll('#conteudo select');
+        let allSelected = true;
+        let total = 0;
+
+        selects.forEach(select => {
+          if (select.value === "") {
+            allSelected = false;
+            select.classList.add('incomplete');
+          } else {
+            select.classList.remove('incomplete');
+            total += Number(select.value);
+          }
+        });
+
+        resultadoDiv.style.display = "block";
+        if (!allSelected) {
+          resultadoDiv.innerHTML = '⚠️ <strong class="font-bold">Lütfen hesaplama yapmadan önce tüm öğeler için bir seçenek belirleyin.</strong>';
+          resultadoDiv.style.display = "block";
+          delete resultadoDiv.dataset.score;
+          return;
+        }
+
+        let classificacao = '';
+        let recomendacao = '';
+
+        // Dökümantasyona göre puan tanımları
+        // Düşük Risk: ۷-۱۱ puan
+        // Yüksek Risk: ۱۲-۲۲ puan
+        if (total >= 7 && total <= 11) {
+          classificacao = 'Düşük Risk';
+          recomendacao = 'Çocuğun düşme riski düşüktür. Standart önleyici tedbirleri sürdürün ve periyodik olarak yeniden değerlendirin.';
+        } else if (total >= 12 && total <= 22) {
+          classificacao = 'Yüksek Risk';
+          recomendacao = 'Çocuğun düşme riski yüksektir. Pediyatrik hastalar için düşme önleme tedbirlerini derhal uygulayın.';
+        } else {
+          classificacao = 'Standart Dışı Puan';
+          recomendacao = 'Hesaplanan puan beklenen sınıflandırma aralığı dışındadır. Seçilen değerleri kontrol edin.';
+        }
+
+        resultadoDiv.innerHTML = `
+                  <p>Toplam puan: <strong class="font-bold">${total}</strong></p>
+                  <p>Sınıflandırma: <strong class="font-bold">${classificacao}</strong></p>
+                  <p class="mt-4"><strong>Öneri:</strong> ${recomendacao}</p>
+              `;
+        resultadoDiv.style.display = "block";
+
+        resultadoDiv.dataset.score = total;
+        resultadoDiv.dataset.scaleName = "Humpty Dumpty Düşme Ölçeği";
+        resultadoDiv.dataset.classificacao = classificacao;
+      }
+
+      function limparCampos() {
+        const selects = document.querySelectorAll('#conteudo select');
+        selects.forEach(select => {
+          select.selectedIndex = 0;
+          select.classList.remove('incomplete');
+        });
+        resultadoDiv.innerHTML = '';
+        resultadoDiv.style.display = "none";
+        delete resultadoDiv.dataset.score;
+        delete resultadoDiv.dataset.scaleName;
+        delete resultadoDiv.dataset.classificacao;
+      }
+
+      btnCalcular?.addEventListener('click', calcularHumpty);
+      btnLimpar?.addEventListener('click', limparCampos);
+
+      btnGerarPDF?.addEventListener('click', () => {
+        if (!resultadoDiv.dataset.score) {
+          alert('Lütfen önce PDF oluşturmak için "Puanı Hesapla"ya tıklayın.');
+          return;
+        }
+        if (typeof gerarPDFGlobal === 'function') {
+          gerarPDFGlobal({
+            titulo: 'Humpty Dumpty Düşme Ölçeği',
+            subtitulo: 'Düşme Riski Değerlendirme Raporu',
+            nomeArquivo: 'humpty_dumpty_olcegi_raporu.pdf',
+            seletorConteudo: '.main-content-wrapper'
+          });
+        } else {
+          console.error('gerarPDFGlobal fonksiyonu tanımlı değil.');
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener('click', () => {
+        const score = resultadoDiv.dataset.score;
+        const scaleName = resultadoDiv.dataset.scaleName;
+        const classificacao = resultadoDiv.dataset.classificacao;
+        if (!score || !classificacao) {
+          alert('Davranışı araştırmak için sonucu hesaplayın.');
+          return;
+        }
+        const searchQuery = encodeURIComponent(`${scaleName} puan ${score} pediyatrik hasta ${classificacao} NANDA taksonomisi oluştur, NIC taksonomisi oluştur ve NOC taksonomisi oluştur`);
+        window.open(`https://www.google.com/search?q=${searchQuery}`, '_blank');
+      });
+    });
+  </script>
 
   <script src="/lang-selector.js" defer=""></script>
 

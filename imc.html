@@ -789,7 +789,158 @@
 
 
   <!-- Script específico da página -->
-  
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const resultadoDiv = document.getElementById("resultado");
+      const btnCalcular = document.getElementById("btnCalcular");
+      const btnLimpar = document.getElementById("btnLimpar");
+      const btnGerarPDF = document.getElementById("btnGerarPDF");
+      const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
+
+      function calcularIMC() {
+        const peso = parseFloat(document.getElementById("peso").value);
+        const altura = parseFloat(document.getElementById("altura").value);
+
+        // Limpa o conteúdo e remove classes de resultado
+        resultadoDiv.innerHTML = "";
+        resultadoDiv.className = "resultado-quadro hidden";
+
+        // Validação de entrada
+        if (isNaN(peso) || isNaN(altura) || peso <= 0 || altura <= 0) {
+          resultadoDiv.innerHTML = `<p>⚠️ <strong class="text-red-600">Por favor, insira valores numéricos válidos e maiores que zero para peso e altura.</strong></p>`;
+          resultadoDiv.classList.remove("hidden");
+          resultadoDiv.classList.add("bg-danger-red");
+          return;
+        }
+
+        const imc = peso / (altura * altura);
+        let classificacao = "";
+        let conduta = "";
+        let resultadoBgClass = "";
+
+        if (imc < 18.5) {
+          classificacao = "Abaixo do peso";
+          conduta =
+            "Risco de desnutrição. Avaliação e acompanhamento nutricional são recomendados.";
+          resultadoBgClass = "bg-danger-red";
+        } else if (imc >= 18.5 && imc < 24.9) {
+          classificacao = "Peso normal";
+          conduta =
+            "Manter hábitos de vida saudáveis. Bom estado nutricional.";
+          resultadoBgClass = "bg-success-green";
+        } else if (imc >= 25 && imc < 29.9) {
+          classificacao = "Sobrepeso";
+          conduta =
+            "Atenção para mudanças no estilo de vida e alimentação. Avaliação nutricional pode ser indicada.";
+          resultadoBgClass = "bg-info-orange-light";
+        } else {
+          // Obesidade
+          conduta =
+            "Intervenção urgente e acompanhamento multidisciplinar. Alto risco para comorbidades graves.";
+          resultadoBgClass = "bg-danger-red";
+
+          if (imc >= 30 && imc < 34.9) {
+            classificacao = "Obesidade Grau I";
+          } else if (imc >= 35 && imc < 39.9) {
+            classificacao = "Obesidade Grau II";
+          } else {
+            classificacao = "Obesidade Grau III (Mórbida)";
+          }
+        }
+
+        // Exibe o resultado formatado
+        resultadoDiv.innerHTML = `
+                    <table class="w-full">
+                        <tbody>
+                            <tr>
+                                <td class="font-bold pr-2">IMC calculado:</td>
+                                <td>${imc.toFixed(2)} <abbr title="quilogramas por metro quadrado">kg/m²</abbr></td>
+                            </tr>
+                            <tr>
+                                <td class="font-bold pr-2">Classificação:</td>
+                                <td>${classificacao}</td>
+                            </tr>
+                            <tr>
+                                <td class="font-bold pr-2">Conduta de Enfermagem:</td>
+                                <td>${conduta}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                `;
+        resultadoDiv.classList.remove("hidden");
+        resultadoDiv.classList.add(resultadoBgClass);
+
+        // Armazenar os valores e detalhes para a geração do PDF e NANDA
+        resultadoDiv.dataset.imc = imc.toFixed(2);
+        resultadoDiv.dataset.classificacao = classificacao;
+        resultadoDiv.dataset.conduta = conduta;
+        resultadoDiv.dataset.peso = peso;
+        resultadoDiv.dataset.altura = altura;
+        resultadoDiv.dataset.scaleName = "Calculadora de IMC";
+      }
+
+      function limparCampos() {
+        document.getElementById("peso").value = "";
+        document.getElementById("altura").value = "";
+        resultadoDiv.innerHTML = "";
+        resultadoDiv.classList.add("hidden");
+        // Clear data attributes
+        delete resultadoDiv.dataset.imc;
+        delete resultadoDiv.dataset.classificacao;
+        delete resultadoDiv.dataset.conduta;
+        delete resultadoDiv.dataset.peso;
+        delete resultadoDiv.dataset.altura;
+        delete resultadoDiv.dataset.scaleName;
+      }
+
+      // Função para gerar PDF
+      function gerarPDF() {
+        if (!resultadoDiv.dataset.imc) {
+          showCustomMessage("Por favor, calcule o IMC antes de gerar o PDF.");
+          return;
+        }
+        if (typeof gerarPDFGlobal === "function") {
+          gerarPDFGlobal({
+            titulo: "Calculadora de Índice de Massa Corporal",
+            subtitulo: "Relatório de Avaliação do IMC",
+            nomeArquivo: "relatorio_imc.pdf",
+            seletorConteudo: ".main-content-wrapper",
+          });
+        } else {
+          console.error("Função gerarPDFGlobal não definida.");
+        }
+      }
+
+      // Adiciona o event listener para o botão NANDA, NIC, NOC
+      if (btnNandaNicNoc) {
+        btnNandaNicNoc.addEventListener("click", () => {
+          const imcValue = resultadoDiv.dataset.imc;
+          const classificacao = resultadoDiv.dataset.classificacao;
+          const conduta = resultadoDiv.dataset.conduta;
+          const scaleName = resultadoDiv.dataset.scaleName;
+
+          if (!imcValue || !classificacao || !conduta) {
+            showCustomMessage(
+              "Calcule o resultado para pesquisar a conduta.",
+            );
+            return;
+          }
+          const searchQuery = encodeURIComponent(
+            `IMC: ${imcValue}, Classificação: ${classificacao}, Conduta de Enfermagem: ${conduta} - ${scaleName} GERAR diagnosticos de enfermagem da NANDA, GERAR intervenções de enfermagem do NIC, Gerar um exemplo de mensuração dos resultados implementados pelo enfermeiro (NOC)`,
+          );
+          window.open(
+            `https://www.google.com/search?q=${searchQuery}`,
+            "_blank",
+          );
+        });
+      }
+
+      // Anexa os event listeners
+      btnCalcular?.addEventListener("click", calcularIMC);
+      btnLimpar?.addEventListener("click", limparCampos);
+      btnGerarPDF?.addEventListener("click", gerarPDF);
+    });
+  </script>
 
   <script src="/lang-selector.js" defer=""></script>
 

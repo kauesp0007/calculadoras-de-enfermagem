@@ -609,7 +609,228 @@
 
 
 
-  
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const resultadoDiv = document.getElementById('resultado');
+      const btnCalcular = document.getElementById('btnCalcular');
+      const btnLimpar = document.getElementById('btnLimpar');
+      const btnGerarPDF = document.getElementById('btnGerarPDF');
+      const btnNandaNicNoc = document.getElementById('btnNandaNicNoc');
+      const conteudoDiv = document.getElementById('conteudo');
+
+      // Dados da escala de Humpty Dumpty (Traduzidos para Hindi)
+      const humptyData = [
+        {
+          category: "आयु (Age)",
+          nameAttr: "idade",
+          options: [
+            { description: "≥ 13 वर्ष", score: 1 },
+            { description: "7-12 वर्ष", score: 2 },
+            { description: "3-6 वर्ष", score: 3 },
+            { description: "< 3 वर्ष", score: 4 }
+          ],
+          explain: "आयु गिरने के जोखिम का एक महत्वपूर्ण कारक है, जिसमें छोटे बच्चे अधिक असुरक्षित होते हैं।"
+        },
+        {
+          category: "लिंग (Gender)",
+          nameAttr: "sexo",
+          options: [
+            { description: "महिला", score: 1 },
+            { description: "पुरुष", score: 2 }
+          ],
+          explain: "पुरुष लिंग में थोड़ा अधिक जोखिम हो सकता है।"
+        },
+        {
+          category: "निदान (Diagnosis)",
+          nameAttr: "diagnostico",
+          options: [
+            { description: "अन्य निदान", score: 1 },
+            { description: "मानसिक विकार", score: 2 },
+            { description: "ऑक्सीजन में परिवर्तन (श्वसन, निर्जलीकरण, एनीमिया)", score: 3 },
+            { description: "तंत्रिका संबंधी", score: 4 }
+          ],
+          explain: "कुछ निदान गिरने की प्रवृत्ति को बढ़ाते हैं।"
+        },
+        {
+          category: "संज्ञानात्मक अक्षमताएँ (Cognitive Deficiencies)",
+          nameAttr: "cognitivas",
+          options: [
+            { description: "अपनी क्षमताओं के अनुसार उन्मुख", score: 1 },
+            { description: "अपनी सीमाएं भूल जाता है", score: 2 },
+            { description: "अपनी सीमाओं से अवगत नहीं है", score: 3 }
+          ],
+          explain: "सीमाओं और जोखिमों को पहचानने की क्षमता गिरने की संभावना को प्रभावित करती है।"
+        },
+        {
+          category: "पर्यावरणीय कारक (Environmental Factors)",
+          nameAttr: "ambientais",
+          options: [
+            { description: "चलने वाला बच्चा", score: 1 },
+            { description: "बेड पर रहने वाला बच्चा", score: 2 },
+            { description: "सहायक उपकरण का उपयोग करता है, बहुत सारे उपकरणों के साथ पालना/बिस्तर, कम रोशनी", score: 3 },
+            { description: "पहले गिरने का इतिहास", score: 4 }
+          ],
+          explain: "अस्पताल का वातावरण और रोगी का इतिहास गिरने के जोखिम के लिए प्रासंगिक हैं।"
+        },
+        {
+          category: "दवा का उपयोग (Medication Use)",
+          nameAttr: "medicacao",
+          options: [
+            { description: "अन्य दवाओं का उपयोग करता है या उपयोग नहीं करता है", score: 1 },
+            { description: "निम्नलिखित में से 1 का उपयोग करता है: सिडेशन, हिप्नोटिक्स, नशीले पदार्थ", score: 2 },
+            { description: "निम्नलिखित में से ≥ 2 का उपयोग करता है: सिडेशन, हिप्नोटिक्स, नशीले पदार्थ", score: 3 }
+          ],
+          explain: "कुछ दवाएं चेतना और संतुलन को प्रभावित करती हैं, जिससे जोखिम बढ़ जाता है।"
+        },
+        {
+          category: "सर्जरी / सिडेशन / एनेस्थीसिया (Surgery / Sedation / Anesthesia)",
+          nameAttr: "cirurgia",
+          options: [
+            { description: "48 घंटे से अधिक पहले या कोई नहीं", score: 1 },
+            { description: "48 घंटे पहले", score: 2 },
+            { description: "24 घंटे पहले", score: 3 }
+          ],
+          explain: "अवशिष्ट प्रभावों के कारण पोस्ट-प्रक्रिया अवधि में अधिक जोखिम होता है।"
+        }
+      ];
+
+      // Preenche o formulário dinamicamente
+      humptyData.forEach(item => {
+        const sectionDiv = document.createElement('div');
+        sectionDiv.className = 'humpty-criterion-section';
+        sectionDiv.id = `section-${item.nameAttr}`;
+
+        const titleH3 = document.createElement('h3');
+        titleH3.className = 'humpty-criterion-title';
+        titleH3.innerHTML = item.category + `
+              <div class="text-sm font-normal text-gray-500 mt-1">${item.explain}</div>`;
+        sectionDiv.appendChild(titleH3);
+
+        const selectElement = document.createElement('select');
+        selectElement.id = item.nameAttr;
+        selectElement.className = 'humpty-criterion-select';
+
+        const defaultOption = document.createElement('option');
+        defaultOption.value = "";
+        defaultOption.text = "चुनें...";
+        selectElement.appendChild(defaultOption);
+
+        item.options.forEach(option => {
+          const optionElement = document.createElement('option');
+          optionElement.value = option.score;
+          optionElement.text = `${option.description} (अंक: ${option.score})`;
+          selectElement.appendChild(optionElement);
+        });
+
+        sectionDiv.appendChild(selectElement);
+        conteudoDiv.appendChild(sectionDiv);
+      });
+
+      function calcularHumpty() {
+        const selects = document.querySelectorAll('#conteudo select');
+        let allSelected = true;
+        let total = 0;
+
+        selects.forEach(select => {
+          if (select.value === "") {
+            allSelected = false;
+            select.classList.add('incomplete');
+          } else {
+            select.classList.remove('incomplete');
+            total += Number(select.value);
+          }
+        });
+
+        resultadoDiv.style.display = "block";
+        if (!allSelected) {
+          resultadoDiv.innerHTML = '⚠️ <strong class="font-bold">कृपया गणना करने से पहले सभी आइटमों के लिए एक विकल्प चुनें।</strong>';
+          resultadoDiv.style.display = "block";
+          delete resultadoDiv.dataset.score;
+          return;
+        }
+
+        let classificacao = '';
+        let classificacaoTexto = '';
+        let recomendacao = '';
+
+        // Definições de pontuação conforme a documentação
+        // Baixo Risco: 7-11 pontos
+        // Alto Risco: 12-22 pontos
+        if (total >= 7 && total <= 11) {
+          classificacao = 'Baixo Risco';
+          classificacaoTexto = 'कम जोखिम';
+          recomendacao = 'बच्चे में गिरने का जोखिम कम है। मानक निवारक उपायों के साथ जारी रखें और समय-समय पर पुनर्मूल्यांकन करें।';
+        } else if (total >= 12 && total <= 22) {
+          classificacao = 'Alto Risco';
+          classificacaoTexto = 'उच्च जोखिम';
+          recomendacao = 'बच्चे में गिरने का जोखिम अधिक है। बाल रोगियों के लिए गिरने की रोकथाम के उपाय तुरंत लागू करें।';
+        } else {
+          classificacao = 'Pontuação Fora do Padrão';
+          classificacaoTexto = 'मानक से बाहर स्कोर';
+          recomendacao = 'गणना किया गया स्कोर अपेक्षित वर्गीकरण सीमा से बाहर है। चयनित मानों की जाँच करें।';
+        }
+
+        resultadoDiv.innerHTML = `
+                <p>कुल स्कोर: <strong class="font-bold">${total}</strong></p>
+                <p>वर्गीकरण: <strong class="font-bold">${classificacaoTexto}</strong></p>
+                <p class="mt-4"><strong>सिफारिश:</strong> ${recomendacao}</p>
+            `;
+        resultadoDiv.style.display = "block";
+
+        resultadoDiv.dataset.score = total;
+        resultadoDiv.dataset.scaleName = "हम्प्टी डम्प्टी फॉल स्केल";
+        resultadoDiv.dataset.classificacao = classificacao;
+      }
+
+      function limparCampos() {
+        const selects = document.querySelectorAll('#conteudo select');
+        selects.forEach(select => {
+          select.selectedIndex = 0;
+          select.classList.remove('incomplete');
+        });
+        resultadoDiv.innerHTML = '';
+        resultadoDiv.style.display = "none";
+        delete resultadoDiv.dataset.score;
+        delete resultadoDiv.dataset.scaleName;
+        delete resultadoDiv.dataset.classificacao;
+      }
+
+      btnCalcular?.addEventListener('click', calcularHumpty);
+      btnLimpar?.addEventListener('click', limparCampos);
+
+      btnGerarPDF?.addEventListener('click', () => {
+        if (!resultadoDiv.dataset.score) {
+          // Mensagem de erro em Hindi
+          alert('कृपया PDF उत्पन्न करने के लिए पहले "स्कोर की गणना करें" पर क्लिक करें।');
+          return;
+        }
+        if (typeof gerarPDFGlobal === 'function') {
+          gerarPDFGlobal({
+            titulo: 'हम्प्टी डम्प्टी फॉल स्केल', // Título do PDF em Hindi
+            subtitulo: 'जोखिम मूल्यांकन रिपोर्ट', // Subtítulo do PDF em Hindi
+            nomeArquivo: 'relatorio_escala_humpty_dumpty_hi.pdf',
+            seletorConteudo: '.main-content-wrapper'
+          });
+        } else {
+          console.error('Função gerarPDFGlobal não definida।'); // Mensagem de erro em Hindi
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener('click', () => {
+        const score = resultadoDiv.dataset.score;
+        const scaleName = resultadoDiv.dataset.scaleName;
+        const classificacao = resultadoDiv.dataset.classificacao; // Mantém a classificação em português (e.g., Alto Risco) para pesquisa eficaz
+        if (!score || !classificacao) {
+          // Mensagem de erro em Hindi
+          alert('आचरण खोजने के लिए परिणाम की गणना करें।');
+          return;
+        }
+        // A consulta de pesquisa deve ser em Hindi e Português/Inglês para melhor resultado
+        const searchQuery = encodeURIComponent(`${scaleName} स्कोर ${score} बाल रोगी ${classificacao} NANDA वर्गीकरण उत्पन्न करें, NIC वर्गीकरण उत्पन्न करें और NOC वर्गीकरण उत्पन्न करें`);
+        window.open(`https://www.google.com/search?q=${searchQuery}`, '_blank');
+      });
+    });
+  </script>
 
 
 

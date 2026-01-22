@@ -576,7 +576,292 @@
 
 
 
-  
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const resultadoDiv = document.getElementById("resultado");
+      const btnCalcular = document.getElementById("btnCalcular");
+      const btnLimpar = document.getElementById("btnLimpar");
+      const btnGerarPDF = document.getElementById("btnGerarPDF");
+      const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
+      const conteudoDiv = document.getElementById("conteudo");
+
+      const lachsData = [
+        {
+          category: "Tầm nhìn",
+          nameAttr: "tầm nhìn",
+          explain:
+            "Size 35 cm cũng dùng được 20/40 phải không ạ?",
+          options: [
+            { description: "Vâng, can may be read to 20/40.", score: 1 },
+            { description: "Không, anh ấy không thể đọc được 20/40.", score: 0 }]
+
+        },
+        {
+          category: "Nghe ngày",
+          nameAttr: "thính giác",
+          explain:
+            "Bạn nghĩ gì?",
+          options: [
+            { description: "Vâng, trả lời câu hỏi.", score: 1 },
+            { description: "Không, đừng trả lời câu hỏi đó.", score: 0 }]
+
+        },
+        {
+          category: "Tiểu chủ không tự chủ",
+          nameAttr: "incontinencia_urinaria",
+          explain:
+            "Bệnh nhân bị tiểu không chủ và làm ướt quần lót trong ít nhất 6 ngày riêng biệt trong năm qua?",
+          options: [
+            { description: "Không", score: 1 },
+            { description: "Có", score: 0 }]
+
+        },
+        {
+          category: "ADL và IADL",
+          nameAttr: "avd_aivd",
+          explain:
+            "Ý của bạn là gì?",
+          options: [
+            {
+              description: "Không thể thực hiện tất cả các hoạt động.",
+              score: 1
+            },
+            {
+              description:
+                "Không, không thể thực hiện ít nhất một trong các hoạt động.",
+              score: 0
+            }]
+
+        },
+        {
+          category: "Sức mạnh mạnh mẽ (các chi trên)",
+          nameAttr: "forca_preensao",
+          explain:
+            "Bệnh nhân có thể vuốt ve gáy bằng cả hai tay và cầm một cái kẹp không?",
+          options: [
+            {
+              description: "Bạn có thể thực hiện cả hai nhiệm vụ.",
+              score: 1
+            },
+            {
+              description:
+                "Không, bạn không thể thực hiện một hoặc cả hai nhiệm vụ.",
+              score: 0
+            }]
+
+        },
+        {
+          category: "Bạn biết gì không?",
+          nameAttr: "forca_inferiores",
+          explain:
+            "Bệnh nhân có thể đứng dậy, đi bộ 3 mét, quay lại và ngồi xuống trong vòng chưa đầy 12 giây không?",
+          options: [
+            {
+              description: ", thực hiện kiểm tra trong ≤ 12 giây.",
+              score: 1
+            },
+            {
+              description:
+                "Không, không thể chuyển hoặc mất hơn 12 giây để hoàn thành bài kiểm tra.",
+              score: 0
+            }]
+
+        },
+        {
+          category: "Dinh dưỡng",
+          nameAttr: "dinh dưỡng",
+          explain:
+            "Bệnh nhân có chỉ số BMI (Chỉ số khối cơ học) trên 22 kg/m2?",
+          options: [
+            { description: "Có chỉ số khối cơ thể (BMI) ≥ 22 kg/m2.", score: 1 },
+            { description: "Không, BMI < 22 kg/m2.", score: 0 }]
+
+        },
+        {
+          category: "trạng thái tinh thần",
+          nameAttr: "estado_mental",
+          explain:
+            "Bệnh nhân có thể lặp lại ba từ (ví dụ: 'xe', 'bình', 'quả bóng') sau 1 phút không?",
+          options: [
+            {
+              description: "Bạn có thể lặp lại tất cả các từ Vâng.",
+              score: 1
+            },
+            {
+              description:
+                "Không, bạn không thể lặp lại ít nhất một từ nào đó.",
+              score: 0
+            }]
+
+        },
+        {
+          category: "trầm cảm",
+          nameAttr: "trầm cảm",
+          explain: "Bệnh nhân có thường cảm thấy buồn hay chán nản không?",
+          options: [
+            { description: "Không", score: 1 },
+            { description: "Có", score: 0 }]
+
+        },
+        {
+          category: "Mới trường tại nhà",
+          nameAttr: "môi trường",
+          explain:
+            "Có chuyện gì vậy?",
+          options: [
+            { description: "Không, môi trường này an toàn.", score: 1 },
+            {
+              description: "Có những rủi ro xảy ra trong môi trường Vâng gia đình.",
+              score: 0
+            }]
+
+        },
+        {
+          category: "Hỗ trợ xã hội",
+          nameAttr: "apoio_social",
+          explain:
+            "Bạn nghĩ gì?",
+          options: [
+            { description: "Vâng, có hỗ trợ xã hội.", score: 1 },
+            { description: "Không, không có xã hội hỗ trợ.", score: 0 }]
+
+        }];
+
+
+      // Preenche o formulário dinamicamente
+      lachsData.forEach((item) => {
+        const sectionDiv = document.createElement("div");
+        sectionDiv.className = "lachs-criterion-section";
+        sectionDiv.id = `section-${item.nameAttr}`;
+
+        const titleH3 = document.createElement("h3");
+        titleH3.className = "lachs-criterion-title";
+        titleH3.innerHTML = item.category;
+        sectionDiv.appendChild(titleH3);
+
+        const explainP = document.createElement("p");
+        explainP.className = "lachs-criterion-explain";
+        explainP.innerHTML = item.explain;
+        sectionDiv.appendChild(explainP);
+
+        const selectElement = document.createElement("select");
+        selectElement.id = item.nameAttr;
+        selectElement.className = "lachs-criterion-select";
+
+        const defaultOption = document.createElement("option");
+        defaultOption.value = "";
+        defaultOption.text = "Chọn...";
+        selectElement.appendChild(defaultOption);
+
+        item.options.forEach((option) => {
+          const optionElement = document.createElement("option");
+          optionElement.value = option.score;
+          optionElement.text = `${option.description} (điểm: ${option.score})`;
+          selectElement.appendChild(optionElement);
+        });
+
+        sectionDiv.appendChild(selectElement);
+        conteudoDiv.appendChild(sectionDiv);
+      });
+
+      function calcularLachs() {
+        const selects = document.querySelectorAll("#conteudo select");
+        let allSelected = true;
+        let total = 0;
+
+        selects.forEach((select) => {
+          if (select.value === "") {
+            allSelected = false;
+            select.classList.add("không đầy đủ");
+          } else {
+            select.classList.remove("không đầy đủ");
+            total += Number(select.value);
+          }
+        });
+
+        resultadoDiv.style.display = "block";
+        if (!allSelected) {
+          resultadoDiv.innerHTML =
+            '⚠️ <strong class="font-bold">Por favor, selecione uma opção para todos os itens antes de calcular.</strong>';
+          resultadoDiv.classList.add("bg-red-100");
+          resultadoDiv.classList.remove("bg-blue-50");
+          delete resultadoDiv.dataset.score;
+          return;
+        }
+
+        let recomendacao = "";
+
+        if (total <= 5) {
+          recomendacao = `Điểm ${total} của đề xuất nguy cơ cao về mất khả năng chức năng và phụ thuộc. Đó là tất cả những gì bạn có thể làm để xem điều gì sẽ xảy ra nếu bạn không biết phải làm gì. nhân.`;
+        } else if (total >= 6 && total <= 9) {
+          recomendacao = `Điểm ${total} cho thấy nguy cơ mất khả năng hoạt động ở mức độ trung bình. Bệnh nhân có thể cần được hỗ trợ trong một số lĩnh vực.`;
+        } else {
+          // total >= 10
+          recomendacao = `Điểm ${total} cho thấy bệnh nhân có khả năng phục vụ tốt và nguy cơ mất tự chủ thấp.`;
+        }
+
+        resultadoDiv.innerHTML = `
+                <p>Escore total: <strong class="font-bold">${total}</strong></p>
+                <p class="mt-4"><strong>Recomendação:</strong> ${recomendacao}</p>
+            `;
+        resultadoDiv.className = `bg-blue-50 là gì`;
+        resultadoDiv.style.display = "block";
+
+        resultadoDiv.dataset.score = total;
+        resultadoDiv.dataset.scaleName = "thang Lach";
+      }
+
+      function limparCampos() {
+        const selects = document.querySelectorAll("#conteudo select");
+        selects.forEach((select) => {
+          select.selectedIndex = 0;
+          select.classList.remove("không đầy đủ");
+        });
+        resultadoDiv.innerHTML = "";
+        resultadoDiv.className = "kết quả ẩn";
+        delete resultadoDiv.dataset.score;
+        delete resultadoDiv.dataset.scaleName;
+      }
+
+      // Adiciona os event listeners aos botões
+      btnCalcular?.addEventListener("click", calcularLachs);
+      btnLimpar?.addEventListener("click", limparCampos);
+
+      btnGerarPDF?.addEventListener("click", () => {
+        if (!resultadoDiv.dataset.score) {
+          alert(
+            "Xem những gì bạn có thể thấy \"Tính điểm\" trước để tạo tệp PDF."
+          );
+          return;
+        }
+        if (typeof gerarPDFGlobal === "chức năng") {
+          gerarPDFGlobal({
+            titulo: "thang Lach",
+            subtitulo: "Báo cao đánh giá chức năng của người cao tuổi",
+            nomeArquivo: "relatorio_escala_lachs.pdf",
+            seletorConteudo: ".main-content-wrapper"
+          });
+        } else {
+          console.error("Bạn không thể tạo PDFGlobal không được xác định.");
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener("click", () => {
+        const score = resultadoDiv.dataset.score;
+        const scaleName = resultadoDiv.dataset.scaleName;
+        if (!score) {
+          alert("Tính toán kết quả để nghiên cứu hành động vi.");
+          return;
+        }
+        const searchQuery = encodeURIComponent(
+          `Gọi cho đối tác của bạn để xem bạn gọi ${scaleName} ${score} NANDA NIC NOC`
+        );
+        window.open(
+          `https://www.google.com/search?q=${searchQuery}`,
+          "_blank"
+        );
+      });
+    });</script>
 
   <script src="/lang-selector.js" defer=""></script>
 

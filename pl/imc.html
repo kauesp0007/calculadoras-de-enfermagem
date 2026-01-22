@@ -613,7 +613,157 @@
 
 
   <!-- Script específico da página -->
-  
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const resultadoDiv = document.getElementById("resultado");
+      const btnCalcular = document.getElementById("btnCalcular");
+      const btnLimpar = document.getElementById("btnLimpar");
+      const btnGerarPDF = document.getElementById("btnGerarPDF");
+      const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
+
+      function calcularIMC() {
+        const peso = parseFloat(document.getElementById("peso").value);
+        const altura = parseFloat(document.getElementById("altura").value);
+
+        // Limpa o conteúdo e remove classes de resultado
+        resultadoDiv.innerHTML = "";
+        resultadoDiv.className = "ukryte ramy wyników";
+
+        // Validação de entrada
+        if (isNaN(peso) || isNaN(altura) || peso <= 0 || altura <= 0) {
+          resultadoDiv.innerHTML = `<p>⚠️ <strong class="text-red-600">Por favor, insira valores numéricos válidos e maiores que zero para peso e altura.</strong></p>`;
+          resultadoDiv.classList.remove("hidden");
+          resultadoDiv.classList.add("bg-danger-red");
+          return;
+        }
+
+        const imc = peso / (altura * altura);
+        let classificacao = "";
+        let conduta = "";
+        let resultadoBgClass = "";
+
+        if (imc < 18.5) {
+          classificacao = "Niedowaga";
+          conduta =
+            "Ryzyko niedożywienia. Zaleca się ocenę i monitorowanie stanu odżywienia.";
+          resultadoBgClass = "bg-danger-red";
+        } else if (imc >= 18.5 && imc < 24.9) {
+          classificacao = "Normalna waga";
+          conduta =
+            "Utrzymanie zdrowego stylu życia. Dobry stan odżywienia.";
+          resultadoBgClass = "bg-success-green";
+        } else if (imc >= 25 && imc < 29.9) {
+          classificacao = "Nadwaga";
+          conduta =
+            "Należy zwrócić uwagę na zmiany w stylu życia i diecie. Wskazana może być ocena stanu odżywienia.";
+          resultadoBgClass = "bg-info-orange-light";
+        } else {
+          // Obesidade
+          conduta =
+            "Pilna interwencja i wielodyscyplinarna obserwacja. Wysokie ryzyko poważnych chorób współistniejących.";
+          resultadoBgClass = "bg-danger-red";
+
+          if (imc >= 30 && imc < 34.9) {
+            classificacao = "Otyłość stopnia I";
+          } else if (imc >= 35 && imc < 39.9) {
+            classificacao = "Otyłość stopnia II";
+          } else {
+            classificacao = "Otyłość stopnia III (chorobliwa)";
+          }
+        }
+
+        // Exibe o resultado formatado
+        resultadoDiv.innerHTML = `
+                    <table class="w-full">
+                        <tbody>
+                            <tr>
+                                <td class="font-bold pr-2">IMC calculado:</td>
+                                <td>${imc.toFixed(2)} <abbr title="quilogramas por metro quadrado">kg/m²</abbr></td>
+                            </tr>
+                            <tr>
+                                <td class="font-bold pr-2">Classificação:</td>
+                                <td>${classificacao}</td>
+                            </tr>
+                            <tr>
+                                <td class="font-bold pr-2">Conduta de Enfermagem:</td>
+                                <td>${conduta}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                `;
+        resultadoDiv.classList.remove("hidden");
+        resultadoDiv.classList.add(resultadoBgClass);
+
+        // Armazenar os valores e detalhes para a geração do PDF e NANDA
+        resultadoDiv.dataset.imc = imc.toFixed(2);
+        resultadoDiv.dataset.classificacao = classificacao;
+        resultadoDiv.dataset.conduta = conduta;
+        resultadoDiv.dataset.peso = peso;
+        resultadoDiv.dataset.altura = altura;
+        resultadoDiv.dataset.scaleName = "Calculadora de IMC";
+      }
+
+      function limparCampos() {
+        document.getElementById("peso").value = "";
+        document.getElementById("altura").value = "";
+        resultadoDiv.innerHTML = "";
+        resultadoDiv.classList.add("hidden");
+        // Clear data attributes
+        delete resultadoDiv.dataset.imc;
+        delete resultadoDiv.dataset.classificacao;
+        delete resultadoDiv.dataset.conduta;
+        delete resultadoDiv.dataset.peso;
+        delete resultadoDiv.dataset.altura;
+        delete resultadoDiv.dataset.scaleName;
+      }
+
+      // Função para gerar PDF
+      function gerarPDF() {
+        if (!resultadoDiv.dataset.imc) {
+          showCustomMessage("Przed wygenerowaniem pliku PDF należy obliczyć swój wskaźnik BMI.");
+          return;
+        }
+        if (typeof gerarPDFGlobal === "function") {
+          gerarPDFGlobal({
+            titulo: "Kalkulator wskaźnika masy ciała",
+            subtitulo: "Raport z oceny BMI",
+            nomeArquivo: "relatorio_imc.pdf",
+            seletorConteudo: ".main-content-wrapper"
+          });
+        } else {
+          console.error("Funkcja GeneratePDFGlobal nie została zdefiniowana.");
+        }
+      }
+
+      // Adiciona o event listener para o botão NANDA, NIC, NOC
+      if (btnNandaNicNoc) {
+        btnNandaNicNoc.addEventListener("click", () => {
+          const imcValue = resultadoDiv.dataset.imc;
+          const classificacao = resultadoDiv.dataset.classificacao;
+          const conduta = resultadoDiv.dataset.conduta;
+          const scaleName = resultadoDiv.dataset.scaleName;
+
+          if (!imcValue || !classificacao || !conduta) {
+            showCustomMessage(
+              "Oblicz wynik, aby wyszukać zachowanie."
+            );
+            return;
+          }
+          const searchQuery = encodeURIComponent(
+            `IMC: ${imcValue}Klasyfikacja: ${classificacao}, Conduta de Enfermagem: ${conduta} - ${scaleName} Generowanie diagnoz pielęgniarskich NANDA, Generowanie interwencji pielęgniarskich NIC, Generowanie przykładu pomiaru wyników wdrożonych przez pielęgniarkę (NOC)`
+          );
+          window.open(
+            `https://www.google.com/search?q=${searchQuery}`,
+            "_blank"
+          );
+        });
+      }
+
+      // Anexa os event listeners
+      btnCalcular?.addEventListener("click", calcularIMC);
+      btnLimpar?.addEventListener("click", limparCampos);
+      btnGerarPDF?.addEventListener("click", gerarPDF);
+    });</script>
 
   <script src="/lang-selector.js" defer=""></script>
 

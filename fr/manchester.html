@@ -672,7 +672,206 @@
 
 
   <!-- Script Específico da Página Manchester (Traduzido) -->
-  
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      // Carrega le rodapé da pasta /fr/ via fetch
+      fetch("footer.html")
+        .then((response) => response.text())
+        .then((data) => {
+          document.getElementById("footer-placeholder").innerHTML = data;
+        });
+
+      // Carrega les éléments globaux da pasta /fr/
+      fetch("/fr/global-body-elements.html")
+        .then((response) => response.text())
+        .then((html) => {
+          document.getElementById(
+            "global-body-elements-container",
+          ).innerHTML = html;
+          // Ativa o VLibras et autres scripts globaux APRÈS carregar le contenu
+          if (typeof initVLibras === "function") {
+            initVLibras();
+          }
+          if (typeof setupGlobalElements === "function") {
+            setupGlobalElements();
+          }
+        });
+
+      const resultadoDiv = document.getElementById("resultado");
+      const btnCalcular = document.getElementById("btnCalcular");
+      const btnLimpar = document.getElementById("btnLimpar");
+      const btnGerarPDF = document.getElementById("btnGerarPDF");
+      const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
+      const conteudoDiv = document.getElementById("conteudo");
+
+      // Données du Protocole de Manchester traduites (Exemple simplifié)
+      // IMPORTANT : Ces scores sont ILLUSTRATIFS et peuvent ne pas correspondre
+      // exactement au protocole officiel ou à ses adaptations locales.
+      const manchesterData = [
+        { question: "Obstruction des voies aériennes", score: 5 }, // Score ajusté pour représenter l'urgence maximale (Rouge)
+        { question: "Difficulté respiratoire sévère", score: 5 }, // Rouge
+        { question: "Confusion/agitation", score: 3 }, // Orange/Jaune selon contexte
+        { question: "Somnolence/désorientation", score: 4 }, // Orange
+        { question: "Inconscience", score: 5 }, // Rouge
+        { question: "Douleur légère (EVA 1–3)", score: 1 }, // Bleu/Vert
+        { question: "Douleur modérée (EVA 4–6)", score: 2 }, // Vert/Jaune
+        { question: "Douleur intense (EVA 7–10)", score: 4 }, // Orange
+        { question: "PA < 90 ou FC > 130", score: 4 }, // Orange
+        { question: "Extrémités froides/sueurs", score: 3 }, // Jaune/Orange
+        { question: "Saignement léger", score: 1 }, // Bleu/Vert
+        { question: "Saignement modéré", score: 3 }, // Jaune
+        { question: "Saignement sévère", score: 4 }, // Orange/Rouge
+        { question: "Fièvre modérée (38–39℃)", score: 2 }, // Vert
+        { question: "Fièvre élevée (>39℃)", score: 3 }, // Jaune
+        { question: "Hypothermie (<36℃)", score: 3 }, // Jaune/Orange
+        { question: "Faiblesse/paralysie focale", score: 4 }, // Orange
+        { question: "Convulsion récente", score: 4 }, // Orange/Rouge
+        { question: "Altération visuelle/auditive soudaine", score: 3 }, // Jaune
+      ];
+
+      // Remplit le formulaire dynamiquement
+      manchesterData.forEach((item, index) => {
+        const sectionDiv = document.createElement("div");
+        sectionDiv.className = "manchester-criterion-card";
+
+        const itemLabel = document.createElement("label");
+        itemLabel.className = "manchester-criterion-item";
+
+        const inputCheckbox = document.createElement("input");
+        inputCheckbox.type = "checkbox";
+        inputCheckbox.name = "symptome"; // 'symptome' au lieu de 'sintoma'
+        inputCheckbox.value = item.score;
+        inputCheckbox.id = `symptome-${index}`; // ID unique
+
+        const textSpan = document.createElement("span");
+        // Texte traduit : question + score
+        textSpan.innerText = `${item.question} (${item.score} points)`;
+        textSpan.htmlFor = inputCheckbox.id; // Associe le label à l'input
+
+        itemLabel.appendChild(inputCheckbox);
+        itemLabel.appendChild(textSpan);
+        sectionDiv.appendChild(itemLabel);
+        conteudoDiv.appendChild(sectionDiv);
+      });
+
+      function calculerManchester() {
+        const checkboxes = document.querySelectorAll(
+          '#conteudo input[type="checkbox"]:checked',
+        );
+        // Dans Manchester, c'est le score LE PLUS ÉLEVÉ qui détermine la priorité, pas la somme.
+        let highestScore = 0;
+        checkboxes.forEach((c) => {
+          const currentScore = parseInt(c.value);
+          if (currentScore > highestScore) {
+            highestScore = currentScore;
+          }
+        });
+
+        let classification = "";
+        let couleurClasse = ""; // 'couleur' au lieu de 'cor'
+        let tempsAttente = ""; // Temps d'attente cible
+
+        // Classification basée sur le score le plus élevé (APPROXIMATIVE)
+        // Les vrais discriminateurs sont plus complexes.
+        if (highestScore >= 5) {
+          classification = "Rouge – Immédiat";
+          couleurClasse = "bg-red";
+          tempsAttente = "0 min";
+        } else if (highestScore >= 4) {
+          classification = "Orange – Très Urgent";
+          couleurClasse = "bg-orange";
+          tempsAttente = "10 min";
+        } else if (highestScore >= 3) {
+          classification = "Jaune – Urgent";
+          couleurClasse = "bg-yellow";
+          tempsAttente = "60 min";
+        } else if (highestScore >= 2) {
+          classification = "Vert – Standard";
+          couleurClasse = "bg-green";
+          tempsAttente = "120 min";
+        } else if (highestScore >= 1) {
+          // Si au moins 1 est coché avec score 1
+          classification = "Bleu – Non Urgent";
+          couleurClasse = "bg-blue";
+          tempsAttente = "240 min";
+        } else {
+          // Si rien n'est coché
+          classification = "Aucun critère d'urgence sélectionné";
+          couleurClasse = "bg-blue"; // Ou une autre couleur par défaut
+          tempsAttente = "N/A";
+          highestScore = 0; // Réinitialise pour l'affichage
+        }
+
+        resultadoDiv.innerHTML = `<p><strong>${classification}</strong></p><p>Score maximum détecté : <strong class="font-bold">${highestScore}</strong></p><p>Délai d'attente cible : <strong>${tempsAttente}</strong></p>`; // Texte traduit
+        resultadoDiv.className = `resultado ${couleurClasse}`; // Applique la classe de couleur
+        resultadoDiv.style.display = "block";
+
+        // Stocke les données pour PDF et NANDA
+        resultadoDiv.dataset.classification = classification;
+        resultadoDiv.dataset.score = highestScore; // Stocke le score maximum
+        resultadoDiv.dataset.scaleName = "Protocole de Manchester"; // Nom pour NANDA
+      }
+
+      function limparCampos() {
+        const checkboxes = document.querySelectorAll(
+          '#conteudo input[type="checkbox"]',
+        );
+        checkboxes.forEach((c) => (c.checked = false)); // Décoche tout
+
+        resultadoDiv.innerHTML = "";
+        resultadoDiv.className = "resultado hidden"; // Cache et reset
+        // Efface les données stockées
+        delete resultadoDiv.dataset.classification;
+        delete resultadoDiv.dataset.score; // Utilise 'score'
+        delete resultadoDiv.dataset.scaleName;
+      }
+
+      // Ajoute les event listeners aux boutons
+      btnCalcular?.addEventListener("click", calculerManchester);
+      btnLimpar?.addEventListener("click", limparCampos);
+
+      // Funcionalidade PDF
+      btnGerarPDF?.addEventListener("click", () => {
+        if (resultadoDiv.dataset.score === undefined) {
+          // Vérifie si 'score' existe
+          alert(
+            'Veuillez cliquer sur "Calculer" d\'abord pour générer le PDF.',
+          ); // Traduzido
+          return;
+        }
+        if (typeof gerarPDFGlobal === "function") {
+          gerarPDFGlobal({
+            titulo: "Protocole de Manchester", // Traduzido
+            subtitulo: "Rapport de Triage", // Traduzido
+            nomeArquivo: "protocole_manchester.pdf", // Traduzido
+            seletorConteudo: ".main-content-wrapper",
+          });
+        } else {
+          console.error("Fonction gerarPDFGlobal non définie.");
+        }
+      });
+
+      // Funcionalidade NANDA/NIC/NOC
+      btnNandaNicNoc?.addEventListener("click", () => {
+        const score = resultadoDiv.dataset.score; // Utilise 'score'
+        const classification = resultadoDiv.dataset.classification; // Utilise 'classification'
+        const scaleName = resultadoDiv.dataset.scaleName;
+        if (score === undefined || !classification) {
+          // Vérifie si les données existent
+          alert("Calculez le résultat pour rechercher la conduite à tenir."); // Traduzido
+          return;
+        }
+        // Recherche traduite et adaptée
+        const searchQuery = encodeURIComponent(
+          `${scaleName} score max ${score} classification ${classification} générer taxonomie NANDA générer taxonomie NIC générer taxonomie NOC`,
+        );
+        window.open(
+          `https://www.google.com/search?q=${searchQuery}`,
+          "_blank",
+        );
+      });
+    });
+  </script>
 
   <!-- CHEMIN DU SCRIPT CORRIGÉ -->
   <script src="../lang-selector.js" defer=""></script>

@@ -617,7 +617,151 @@
 
 
 
-  
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const resultadoDiv = document.getElementById('resultado');
+      const btnCalcular = document.getElementById('btnCalcular');
+      const btnLimpar = document.getElementById('btnLimpar');
+      const btnGerarPDF = document.getElementById('btnGerarPDF');
+      const btnNandaNicNoc = document.getElementById('btnNandaNicNoc');
+      const formContainer = document.getElementById('form-container');
+
+      const capurroData = [
+        { category: "त्वचा की बनावट (Textura da Pele)", description: "नवजात शिशु की त्वचा की उपस्थिति और लोच का मूल्यांकन किया जाता है।", nameAttr: "textura_pele", options: [{ description: "जिलेटिनस (0)", score: 0 }, { description: "पतली और चिकनी (5)", score: 5 }, { description: "अधिक मोटी (10)", score: 10 }, { description: "सतही दरारें (15)", score: 15 }, { description: "गहरी दरारें (20)", score: 20 }] },
+        { category: "तल संबंधी सिलवटें (Pregas Plantares)", description: "शिशु के पैर के तलवे पर सिलवटों की उपस्थिति, गहराई और विस्तार देखा जाता है।", nameAttr: "pregas_plantares", options: [{ description: "सिलवटों के बिना (0)", score: 0 }, { description: "सामने के 1/2 भाग पर अस्पष्ट निशान (5)", score: 5 }, { description: "सामने के 1/2 भाग पर अच्छी तरह से परिभाषित निशान (10)", score: 10 }, { description: "सामने के 1/2 भाग पर गड्ढे (15)", score: 15 }, { description: "सामने के 1/2 भाग से अधिक पर गड्ढे (20)", score: 20 }] },
+        { category: "निप्पल का निर्माण (Formação do Mamilo)", description: "निप्पल का व्यास और एरिओला का उठाव विश्लेषण किया जाता है।", nameAttr: "formacao_mamilo", options: [{ description: "अदृश्य (0)", score: 0 }, { description: "व्यास < 7.5 मिमी (5)", score: 5 }, { description: "व्यास > 7.5 मिमी, किनारा ऊपर नहीं उठा हुआ (10)", score: 10 }, { description: "व्यास > 7.5 मिमी, किनारा ऊपर उठा हुआ (15)", score: 15 }] },
+        { category: "स्तन ग्रंथि का आकार (Tamanho da Glândula Mamária)", description: "स्तन ग्रंथियों के आकार और उठाव की जांच की जाती है।", nameAttr: "glandula_mamaria", options: [{ description: "अस्पर्शनीय (0)", score: 0 }, { description: "< 5 मिमी (5)", score: 5 }, { description: "5-10 मिमी (10)", score: 10 }, { description: "> 10 मिमी (15)", score: 15 }] },
+        { category: "कान का आकार (पिन्ना) (Formato da Orelha (Pavilhão))", description: "कान के आकार, उसकी मोटाई और उपास्थि (कार्टिलेज) का अवलोकन किया जाता है।", nameAttr: "forma_orelha", options: [{ description: "चपटा, विकृत (0)", score: 0 }, { description: "आंशिक किनारा (8)", score: 8 }, { description: "संपूर्ण किनारा (16)", score: 16 }, { description: "संपूर्ण पिन्ना (24)", score: 24 }] },
+        { category: "शॉल का निशान (Sinal do Xale)", description: "जब परीक्षक कोहनी को छाती के पार खींचता है, तो प्रतिरोध को मापते हुए, कोहनी की स्थिति का मूल्यांकन किया जाता है।", nameAttr: "sinal_xale", options: [{ description: "कोहनी विपरीत बगल रेखा पर (0)", score: 0 }, { description: "कोहनी बगल रेखा और उरोस्थि (स्टर्नम) के बीच (6)", score: 6 }, { description: "कोहनी उरोस्थि पर (12)", score: 12 }, { description: "कोहनी उरोस्थि से परे (18)", score: 18 }] }
+      ];
+
+      function createForm() {
+        formContainer.innerHTML = '';
+        capurroData.forEach(item => buildSection(item));
+      }
+
+      function buildSection(item) {
+        const sectionDiv = document.createElement('div');
+        sectionDiv.className = 'criterion-section';
+        sectionDiv.id = `section-${item.nameAttr}`;
+        sectionDiv.setAttribute('role', 'radiogroup');
+        sectionDiv.setAttribute('aria-labelledby', `title-${item.nameAttr}`);
+
+        const titleH3 = document.createElement('h3');
+        titleH3.className = 'criterion-title';
+        titleH3.id = `title-${item.nameAttr}`;
+        titleH3.innerText = item.category;
+        sectionDiv.appendChild(titleH3);
+
+        const descriptionP = document.createElement('p');
+        descriptionP.className = 'criterion-description';
+        descriptionP.textContent = item.description;
+        sectionDiv.appendChild(descriptionP);
+
+        const optionsGroup = document.createElement('div');
+        optionsGroup.className = 'radio-options-group';
+
+        item.options.forEach((option, index) => {
+          const radioId = `${item.nameAttr}-${index}`;
+          const radioInput = document.createElement('input');
+          radioInput.type = 'radio';
+          radioInput.id = radioId;
+          radioInput.name = item.nameAttr;
+          radioInput.value = option.score;
+
+          const radioLabel = document.createElement('label');
+          radioLabel.htmlFor = radioId;
+          radioLabel.textContent = option.description;
+
+          optionsGroup.appendChild(radioInput);
+          optionsGroup.appendChild(radioLabel);
+        });
+
+        sectionDiv.appendChild(optionsGroup);
+        formContainer.appendChild(sectionDiv);
+      }
+
+      function calculateScore() {
+        formContainer.querySelectorAll('.criterion-section.incomplete').forEach(el => el.classList.remove('incomplete'));
+
+        const groups = formContainer.querySelectorAll('.criterion-section');
+        let allSelected = true;
+        let totalScore = 0;
+
+        groups.forEach(group => {
+          const checkedRadio = group.querySelector('input[type="radio"]:checked');
+          if (checkedRadio) {
+            totalScore += Number(checkedRadio.value);
+          } else {
+            allSelected = false;
+            group.classList.add('incomplete');
+          }
+        });
+
+        resultadoDiv.style.display = "block";
+        if (!allSelected) {
+          resultadoDiv.innerHTML = '⚠️ <strong class="font-bold">कृपया गणना करने से पहले सभी हाइलाइट किए गए आइटम के लिए एक विकल्प चुनें।</strong>';
+          resultadoDiv.className = 'resultado bg-yellow-100 text-yellow-800';
+          delete resultadoDiv.dataset.score;
+          return;
+        }
+
+        const totalDays = 200 + totalScore;
+        const weeks = Math.floor(totalDays / 7);
+        const days = totalDays % 7;
+        const gestationalAgeText = `<strong class="font-bold">${weeks} सप्ताह और ${days} दिन</strong>`;
+
+        resultadoDiv.innerHTML = `<p>कुल स्कोर: <strong class="font-bold">${totalScore}</strong></p><p>अनुमानित गर्भकालीन आयु: ${gestationalAgeText}</p>`;
+        resultadoDiv.className = `resultado`;
+
+        resultadoDiv.dataset.score = totalScore;
+        resultadoDiv.dataset.scaleName = "कैपुरो विधि";
+        // Remove as tags HTML para armazenar apenas o texto puro da classificação
+        resultadoDiv.dataset.classificacao = `${weeks} सप्ताह और ${days} दिन`;
+      }
+
+      function clearFields() {
+        formContainer.querySelectorAll('input[type="radio"]').forEach(radio => {
+          radio.checked = false;
+        });
+        formContainer.querySelectorAll('.criterion-section.incomplete').forEach(el => el.classList.remove('incomplete'));
+        resultadoDiv.innerHTML = '';
+        resultadoDiv.style.display = 'none';
+        resultadoDiv.className = 'resultado';
+        delete resultadoDiv.dataset.score;
+        delete resultadoDiv.dataset.classificacao;
+      }
+
+      btnCalcular?.addEventListener('click', calculateScore);
+      btnLimpar?.addEventListener('click', clearFields);
+
+      btnGerarPDF?.addEventListener('click', () => {
+        if (!resultadoDiv.dataset.score) {
+          alert('पीडीएफ बनाने के लिए कृपया पहले "गणना करें" पर क्लिक करें।');
+          return;
+        }
+        gerarPDFGlobal({
+          titulo: 'गर्भकालीन आयु का अनुमान - कैपुरो विधि',
+          subtitulo: 'नवजात मूल्यांकन रिपोर्ट',
+          nomeArquivo: 'relatorio_metodo_capurro.pdf',
+          seletorConteudo: '.main-content-wrapper'
+        });
+      });
+
+      btnNandaNicNoc?.addEventListener('click', () => {
+        const classificacao = resultadoDiv.dataset.classificacao;
+        if (!classificacao) {
+          alert('आचरण खोजने के लिए परिणाम की गणना करें।');
+          return;
+        }
+        // A consulta de pesquisa usa termos em português para garantir a relevância da taxonomia NANDA/NIC/NOC
+        const searchQuery = encodeURIComponent(`cuidados de enfermagem para recém-nascido com idade gestacional de ${classificacao} NANDA NIC NOC`);
+        window.open(`https://www.google.com/search?q=${searchQuery}`, '_blank');
+      });
+
+      createForm();
+    });
+  </script>
 
 
 

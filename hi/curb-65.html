@@ -606,7 +606,269 @@
 
 
 
-  
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      // फ़ुटर लोड करें (मॉड्यूलर भाग)
+      fetch("footer.html")
+        .then((response) => response.text())
+        .then((data) => {
+          document.getElementById("footer-placeholder").innerHTML = data;
+        })
+        .catch((error) =>
+          console.error("Error loading modular footer:", error),
+        );
+
+      const resultadoDiv = document.getElementById("resultado");
+      const btnCalcular = document.getElementById("btnCalcular");
+      const btnLimpar = document.getElementById("btnLimpar");
+      const btnGerarPDF = document.getElementById("btnGerarPDF");
+      const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
+      const conteudoDiv = document.getElementById("conteudo");
+
+      // CURB-65 डेटा - हिंदी में अनुवादित शीर्षक और स्पष्टीकरण
+      const curbData = [
+        {
+          title: "मानसिक भ्रम (Confusion)",
+          nameAttr: "confusao",
+          explain:
+            "क्या रोगी समय, व्यक्ति या स्थान के प्रति भटकाव दिखाता है?",
+          options: [
+            { description: "हाँ (Sim)", score: 1 },
+            { description: "नहीं (Não)", score: 0 },
+          ],
+        },
+        {
+          title: "यूरिया $\\ge$ 50 mg/dL (Urea)",
+          nameAttr: "ureia",
+          explain:
+            "क्या रोगी के रक्त में यूरिया का स्तर 50 mg/dL या उससे अधिक है?",
+          options: [
+            { description: "हाँ (Sim)", score: 1 },
+            { description: "नहीं (Não)", score: 0 },
+          ],
+        },
+        {
+          title: "श्वसन $\\ge$ 30/मिनट (Respiration)",
+          nameAttr: "respiracao",
+          explain:
+            "क्या रोगी की श्वसन दर 30 श्वास प्रति मिनट या उससे अधिक है?",
+          options: [
+            { description: "हाँ (Sim)", score: 1 },
+            { description: "नहीं (Não)", score: 0 },
+          ],
+        },
+        {
+          title: "रक्तचाप (Blood Pressure)",
+          nameAttr: "pressao_arterial",
+          explain:
+            "क्या सिस्टोलिक रक्तचाप 90 mmHg से कम है या डायस्टोलिक 60 mmHg से कम है?",
+          options: [
+            { description: "हाँ (Sim)", score: 1 },
+            { description: "नहीं (Não)", score: 0 },
+          ],
+        },
+        {
+          title: "आयु $\\ge$ 65 वर्ष (Age)",
+          nameAttr: "idade",
+          explain: "क्या रोगी 65 वर्ष या उससे अधिक आयु का है?",
+          options: [
+            { description: "हाँ (Sim)", score: 1 },
+            { description: "नहीं (Não)", score: 0 },
+          ],
+        },
+      ];
+
+      // फ़ॉर्म को गतिशील रूप से भरें
+      curbData.forEach((item) => {
+        const sectionDiv = document.createElement("div");
+        sectionDiv.className = "curb-criterion-section";
+        sectionDiv.id = `section-${item.nameAttr}`;
+
+        const titleH3 = document.createElement("h3");
+        titleH3.className = "curb-criterion-title";
+        titleH3.innerHTML = item.title;
+        sectionDiv.appendChild(titleH3);
+
+        const explainP = document.createElement("p");
+        explainP.className = "curb-criterion-explain";
+        explainP.innerHTML = item.explain;
+        sectionDiv.appendChild(explainP);
+
+        const selectElement = document.createElement("select");
+        selectElement.id = item.nameAttr;
+        selectElement.className = "curb-criterion-select mt-2";
+
+        const defaultOption = document.createElement("option");
+        defaultOption.value = "";
+        defaultOption.text = "चुनें...";
+        selectElement.appendChild(defaultOption);
+
+        item.options.forEach((option) => {
+          const optionElement = document.createElement("option");
+          optionElement.value = option.score;
+          optionElement.text = `${option.description} (स्कोर: ${option.score})`;
+          selectElement.appendChild(optionElement);
+        });
+
+        sectionDiv.appendChild(selectElement);
+        conteudoDiv.appendChild(sectionDiv);
+      });
+
+      function calcularCurb() {
+        const selects = document.querySelectorAll("#conteudo select");
+        let allSelected = true;
+        let total = 0;
+
+        selects.forEach((select) => {
+          if (select.value === "") {
+            allSelected = false;
+            select.classList.add("incomplete");
+          } else {
+            select.classList.remove("incomplete");
+            total += Number(select.value);
+          }
+        });
+
+        resultadoDiv.style.display = "block";
+        if (!allSelected) {
+          resultadoDiv.innerHTML =
+            '⚠️ <strong class="font-bold">कृपया गणना करने से पहले सभी आइटम के लिए एक विकल्प चुनें।</strong>';
+          resultadoDiv.className = `resultado bg-red-100`;
+          delete resultadoDiv.dataset.score;
+          return;
+        }
+
+        let recomendacao = "";
+
+        if (total <= 1) {
+          recomendacao = `स्कोर ${total} मृत्यु दर के कम जोखिम को दर्शाता है। घर पर उपचार पर विचार किया जा सकता है।`;
+        } else if (total === 2) {
+          recomendacao = `स्कोर ${total} मृत्यु दर के मध्यम जोखिम को दर्शाता है। कड़ी निगरानी के लिए इनपेशेंट वार्ड में भर्ती होने का संकेत दिया जाता है।`;
+        } else {
+          // total >= 3
+          recomendacao = `स्कोर ${total} मृत्यु दर के उच्च जोखिम को दर्शाता है। अस्पताल में भर्ती और आईसीयू में प्रवेश पर विचार किया जाना चाहिए।`;
+        }
+
+        resultadoDiv.innerHTML = `
+                <p>कुल स्कोर: <strong class="font-bold">${total}</strong></p>
+                <p class="mt-4"><strong>सिफारिश:</strong> ${recomendacao}</p>
+            `;
+        resultadoDiv.className = `resultado bg-blue-50`;
+        resultadoDiv.style.display = "block";
+
+        resultadoDiv.dataset.score = total;
+        resultadoDiv.dataset.scaleName = "CURB-65 स्कोर";
+      }
+
+      function limparCampos() {
+        const selects = document.querySelectorAll("#conteudo select");
+        selects.forEach((select) => {
+          select.selectedIndex = 0;
+          select.classList.remove("incomplete");
+        });
+        resultadoDiv.innerHTML = "";
+        resultadoDiv.className = "resultado hidden";
+        delete resultadoDiv.dataset.score;
+        delete resultadoDiv.dataset.scaleName;
+      }
+
+      // बटन इवेंट श्रोता
+      btnCalcular?.addEventListener("click", calcularCurb);
+      btnLimpar?.addEventListener("click", limparCampos);
+
+      btnGerarPDF?.addEventListener("click", () => {
+        if (!resultadoDiv.dataset.score) {
+          // कस्टम अलर्ट का उपयोग करें
+          console.log(
+            'PDF जनरेट करने से पहले कृपया "स्कोर की गणना करें" पर क्लिक करें।',
+          );
+          return;
+        }
+        if (typeof gerarPDFGlobal === "function") {
+          const selectedOptions = {};
+          document.querySelectorAll("#conteudo select").forEach((select) => {
+            const selected = select.options[select.selectedIndex];
+            if (selected.value !== "") {
+              selectedOptions[select.id] = selected.text;
+            }
+          });
+
+          let contentToPrint = document
+            .querySelector(".main-content-wrapper")
+            .cloneNode(true);
+          let contentContainer = contentToPrint.querySelector("#conteudo");
+
+          contentContainer.innerHTML = "";
+
+          curbData.forEach((item) => {
+            let selectedText = selectedOptions[item.nameAttr];
+            if (selectedText) {
+              let itemDiv = document.createElement("div");
+              itemDiv.className = "mb-2 p-2 bg-gray-50 rounded";
+              itemDiv.innerHTML = `<strong>${item.title}:</strong> ${selectedText}`;
+              contentContainer.appendChild(itemDiv);
+            }
+          });
+
+          let resultadoHtml = resultadoDiv.cloneNode(true);
+          if (resultadoHtml.style.display !== "none") {
+            contentContainer.appendChild(resultadoHtml);
+          }
+
+          gerarPDFGlobal({
+            titulo: "CURB-65 स्कोर",
+            subtitulo: "निमोनिया गंभीरता रिपोर्ट",
+            nomeArquivo: "curb-65_score_report.pdf",
+            seletorConteudo: ".main-content-wrapper",
+          });
+        } else {
+          console.error("Função gerarPDFGlobal अपरिभाषित है।");
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener("click", () => {
+        const score = resultadoDiv.dataset.score;
+        if (!score) {
+          // कस्टम अलर्ट का उपयोग करें
+          console.log("आचरण खोजने के लिए परिणाम की गणना करें।");
+          return;
+        }
+        const recomendacaoRisco =
+          score <= 1
+            ? "कम जोखिम"
+            : score === 2
+              ? "मध्यम जोखिम"
+              : "उच्च जोखिम";
+        const searchQuery = encodeURIComponent(
+          `CURB-65 स्कोर NANDA NIC NOC के अनुसार ${recomendacaoRisco} वाले निमोनिया के लिए नर्सिंग देखभाल`,
+        );
+        window.open(
+          `https://www.google.com/search?q=${searchQuery}`,
+          "_blank",
+        );
+      });
+
+      // hi/global-body-elements.html से वैश्विक तत्व लोड करें (lbiras, cookies, back to top)
+      fetch("/hi/global-body-elements.html")
+        .then((response) => response.text())
+        .then((data) => {
+          document.body.insertAdjacentHTML("beforeend", data);
+        })
+        .catch((error) =>
+          console.error("Error loading global body elements:", error),
+        );
+
+      // hi/menu-global.html से वैश्विक मेनू लोड करें
+      fetch("/hi/menu-global.html")
+        .then((response) => response.text())
+        .then((data) => {
+          document.getElementById("global-header-container").innerHTML = data;
+        })
+        .catch((error) =>
+          console.error("Error loading global header menu:", error),
+        );
+    });
+  </script>
   <!-- विज्ञापन स्क्रिप्ट -->
 
   <!-- भाषा चयनकर्ता स्क्रिप्ट -->

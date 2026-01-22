@@ -584,7 +584,219 @@
 
 
   <!-- 바르첼 페이지 전용 스크립트 -->
-  
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const resultadoDiv = document.getElementById("resultado");
+      const conteudoDiv = document.getElementById("conteudo");
+      const btnCalcular = document.getElementById("btnCalcular");
+      const btnLimpar = document.getElementById("btnLimpar");
+      const btnGerarPDF = document.getElementById("btnGerarPDF");
+      const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
+
+      const barthelData = [
+        {
+          activity: "식사",
+          nameAttr: "alimentacao",
+          options: [
+            { score: 10, description: "독립적" },
+            { score: 5, description: "음식 자르기 등에 도움이 필요" },
+            { score: 0, description: "불가능" },
+          ],
+        },
+        {
+          activity: "목욕",
+          nameAttr: "banho",
+          options: [
+            { score: 5, description: "독립적" },
+            { score: 0, description: "의존적" },
+          ],
+        },
+        {
+          activity: "개인 위생",
+          nameAttr: "higienePessoal",
+          options: [
+            { score: 5, description: "독립적 (얼굴/머리/이빨/면도)" },
+            { score: 0, description: "도움이 필요" },
+          ],
+        },
+        {
+          activity: "옷 입기",
+          nameAttr: "vestir",
+          options: [
+            { score: 10, description: "독립적" },
+            { score: 5, description: "도움이 필요" },
+            { score: 0, description: "의존적" },
+          ],
+        },
+        {
+          activity: "장 제어",
+          nameAttr: "controleIntestino",
+          options: [
+            { score: 10, description: "자제력 있음" },
+            { score: 5, description: "가끔 실수" },
+            { score: 0, description: "실금" },
+          ],
+        },
+        {
+          activity: "방광 제어",
+          nameAttr: "controleBexiga",
+          options: [
+            { score: 10, description: "자제력 있음" },
+            { score: 5, description: "가끔 실수" },
+            { score: 0, description: "실금" },
+          ],
+        },
+        {
+          activity: "화장실 사용",
+          nameAttr: "usoToilet",
+          options: [
+            { score: 10, description: "독립적" },
+            { score: 5, description: "도움이 필요" },
+            { score: 0, description: "의존적" },
+          ],
+        },
+        {
+          activity: "이동",
+          nameAttr: "transferencia",
+          options: [
+            { score: 15, description: "독립적" },
+            { score: 10, description: "최소한의 도움" },
+            { score: 5, description: "최대한의 도움" },
+            { score: 0, description: "불가능" },
+          ],
+        },
+        {
+          activity: "이동성",
+          nameAttr: "mobilidade",
+          options: [
+            { score: 15, description: "독립적 > 50m" },
+            { score: 10, description: "도움과 함께 보행 > 50m" },
+            { score: 5, description: "독립적 휠체어 > 50m" },
+            { score: 0, description: "부동" },
+          ],
+        },
+        {
+          activity: "계단 오르기",
+          nameAttr: "escadas",
+          options: [
+            { score: 10, description: "독립적" },
+            { score: 5, description: "도움이 필요" },
+            { score: 0, description: "불가능" },
+          ],
+        },
+      ];
+
+      function createForm() {
+        conteudoDiv.innerHTML = ""; // 기존 콘텐츠 초기화
+        barthelData.forEach((activityGroup) => {
+          const card = document.createElement("div");
+          card.className = "barthel-criterion-card";
+
+          card.innerHTML = `
+                    <h3 class="barthel-criterion-title">${activityGroup.activity}</h3>
+                    <div class="barthel-options-container">
+                        <select id="${activityGroup.nameAttr}-select" class="barthel-select" data-name="${activityGroup.nameAttr}">
+                            <option value="" disabled selected>옵션을 선택하세요...</option>
+                            ${activityGroup.options.map((opt) => `<option value="${opt.score}">${opt.description} (${opt.score})</option>`).join("")}
+                        </select>
+                    </div>
+                `;
+          conteudoDiv.appendChild(card);
+        });
+      }
+
+      function calcular() {
+        let totalScore = 0;
+        let allSelected = true;
+
+        barthelData.forEach((activityGroup) => {
+          const select = document.getElementById(
+            `${activityGroup.nameAttr}-select`,
+          );
+          if (select && select.value !== "") {
+            totalScore += parseInt(select.value, 10);
+          } else {
+            allSelected = false;
+          }
+        });
+
+        if (!allSelected) {
+          resultadoDiv.innerHTML =
+            '⚠️ <strong class="font-bold">각 활동에 대해 옵션을 선택해주세요.</strong>';
+          resultadoDiv.className = "standard-result-box bg-info-orange-light";
+          resultadoDiv.style.display = "block";
+          delete resultadoDiv.dataset.score;
+          return;
+        }
+
+        let classificacao = "";
+        if (totalScore === 100) {
+          classificacao = "완전한 독립성";
+        } else if (totalScore >= 91) {
+          classificacao = "경한 의존성";
+        } else if (totalScore >= 61) {
+          classificacao = "중간 의존성";
+        } else if (totalScore >= 21) {
+          classificacao = "심한 의존성";
+        } else {
+          classificacao = "완전한 의존성";
+        }
+
+        resultadoDiv.innerHTML = `
+                <p class="font-bold text-lg">총 점수: <span class="font-black">${totalScore} / 100</span></p>
+                <p class="font-bold text-lg">분류: <span class="font-black">${classificacao}</span></p>
+            `;
+        resultadoDiv.className = "standard-result-box";
+        resultadoDiv.style.display = "block";
+        resultadoDiv.dataset.score = totalScore;
+        resultadoDiv.dataset.classificacao = classificacao;
+      }
+
+      function limpar() {
+        createForm(); // 선택을 초기화하기 위해 양식을 다시 생성
+        resultadoDiv.innerHTML = "";
+        resultadoDiv.className = "hidden";
+        delete resultadoDiv.dataset.score;
+        delete resultadoDiv.dataset.classificacao;
+      }
+
+      createForm();
+      btnCalcular?.addEventListener("click", calcular);
+      btnLimpar?.addEventListener("click", limpar);
+
+      btnGerarPDF?.addEventListener("click", () => {
+        if (resultadoDiv.dataset.score === undefined) {
+          alert('PDF를 생성하려면 먼저 "계산"을 클릭해주세요.');
+          return;
+        }
+        if (typeof gerarPDFGlobal === "function") {
+          gerarPDFGlobal({
+            titulo: "바르첼 척도",
+            subtitulo: "기능적 의존성 보고서",
+            nomeArquivo: "relatorio_escala_barthel.pdf",
+            seletorConteudo: ".main-content-wrapper",
+          });
+        } else {
+          console.error("함수 gerarPDFGlobal이 정의되지 않았습니다.");
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener("click", () => {
+        const classificacao = resultadoDiv.dataset.classificacao;
+        if (!classificacao) {
+          alert("조치를 검색하려면 결과를 계산해주세요.");
+          return;
+        }
+        const searchQuery = encodeURIComponent(
+          `바르첼 척도에서 ${classificacao}가 있는 환자 NANDA, NIC 및 NOC 분류`,
+        );
+        window.open(
+          `https://www.google.com/search?q=${searchQuery}`,
+          "_blank",
+        );
+      });
+    });
+  </script>
 
   <script src="/lang-selector.js" defer=""></script>
 

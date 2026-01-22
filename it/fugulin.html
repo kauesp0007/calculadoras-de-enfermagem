@@ -568,7 +568,106 @@
 
 
 
-  
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const resultadoDiv = document.getElementById('resultado');
+      const btnCalcular = document.getElementById('btnCalcular');
+      const btnLimpar = document.getElementById('btnLimpar');
+      const conteudoDiv = document.getElementById('conteudo');
+
+      const fugulinData = [
+        { category: "Stato Mentale", nameAttr: "stato_mentale", options: [{ description: "Incosciente", score: 4 }, { description: "Disorientato", score: 3 }, { description: "Confuso", score: 2 }, { description: "Orientato", score: 1 }] },
+        { category: "Ossigenazione", nameAttr: "ossigenazione", options: [{ description: "Ventilazione meccanica", score: 4 }, { description: "Maschera di ossigeno", score: 3 }, { description: "Cannula nasale", score: 2 }, { description: "Aria ambiente", score: 1 }] },
+        { category: "Segni Vitali", nameAttr: "ssegni_vitali", options: [{ description: "Molto critici", score: 4 }, { description: "Critici", score: 3 }, { description: "Instabili", score: 2 }, { description: "Stabili", score: 1 }] },
+        { category: "Motilità", nameAttr: "motilita", options: [{ description: "Immobilizzato", score: 4 }, { description: "Mobilizzazione con aiuto", score: 3 }, { description: "Mobilizzazione con supervisione", score: 2 }, { description: "Indipendente", score: 1 }] },
+        { category: "Deambulazione", nameAttr: "deambulazione", options: [{ description: "Non deambula", score: 4 }, { description: "Deambula con aiuto", score: 3 }, { description: "Deambula con supervisione", score: 2 }, { description: "Indipendente", score: 1 }] },
+        { category: "Alimentazione", nameAttr: "alimentazione", options: [{ description: "Digiuno", score: 4 }, { description: "Parenterale", score: 3 }, { description: "Enterale", score: 2 }, { description: "Orale", score: 1 }] },
+        { category: "Cura del Corpo", nameAttr: "cura_corpo", options: [{ description: "Totalmente dipendente", score: 4 }, { description: "Dipendente", score: 3 }, { description: "Aiuto parziale", score: 2 }, { description: "Indipendente", score: 1 }] },
+        { category: "Eliminazione", nameAttr: "eliminazione", options: [{ description: "Incontinente", score: 4 }, { description: "Catetere a permanenza", score: 3 }, { description: "Aiuto parziale", score: 2 }, { description: "Indipendente", score: 1 }] },
+        { category: "Terapeutica", nameAttr: "terapeutica", options: [{ description: "Uso di farmaci vasoattivi", score: 4 }, { description: "EV continua tramite catetere", score: 3 }, { description: "EV intermittente", score: 2 }, { description: "IM o VO", score: 1 }] },
+        { category: "Tempo Cambio Medicazione", nameAttr: "tempo_medicazione", options: [{ description: "Da 15 a 30 minuti", score: 4 }, { description: "Da 5 a 15 minuti", score: 3 }, { description: "Meno di 5 minuti", score: 2 }, { description: "Senza medicazione", score: 1 }] },
+        { category: "Medicazione", nameAttr: "medicazione", options: [{ description: "Cambio 3 volte/giorno", score: 4 }, { description: "Cambio 2 volte/giorno", score: 3 }, { description: "Cambio 1 volta/giorno", score: 2 }, { description: "Senza medicazione", score: 1 }] },
+        { category: "Integrità Cutaneo-Mucosa", nameAttr: "integrita", options: [{ description: "Estesa", score: 4 }, { description: "Moderata", score: 3 }, { description: "Lieve", score: 2 }, { description: "Nessuna", score: 1 }] }
+      ];
+
+      fugulinData.forEach(item => {
+        const sectionDiv = document.createElement('div');
+        sectionDiv.className = 'fugulin-criterion-section';
+        sectionDiv.innerHTML = `
+                <h3 class="fugulin-criterion-title">${item.category}</h3>
+                <select id="${item.nameAttr}" class="fugulin-criterion-select">
+                    <option value="" disabled selected>Seleziona...</option>
+                    ${item.options.map(o => `<option value="${o.score}">${o.description} (${o.score})</option>`).join('')}
+                </select>
+            `;
+        conteudoDiv.appendChild(sectionDiv);
+      });
+
+      function calcolaFugulin() {
+        let total = 0;
+        let allSelected = true;
+        document.querySelectorAll('#conteudo select').forEach(select => {
+          if (select.value === "") {
+            allSelected = false;
+          }
+          total += Number(select.value);
+        });
+
+        resultadoDiv.style.display = "block";
+        if (!allSelected) {
+          resultadoDiv.innerHTML = '⚠️ <strong class="font-bold">Per favore, seleziona un\'opzione per tutte le voci.</strong>';
+          resultadoDiv.className = 'resultado bg-info-orange-light';
+          return;
+        }
+
+        let classificazione, classeRisultato;
+        if (total >= 34) { classificazione = 'Terapia Intensiva'; classeRisultato = 'bg-red-100'; }
+        else if (total >= 28) { classificazione = 'Terapia Semi-intensiva'; classeRisultato = 'bg-red-100'; }
+        else if (total >= 22) { classificazione = 'Alta Dipendenza'; classeRisultato = 'bg-yellow-100'; }
+        else if (total >= 16) { classificazione = 'Media Dipendenza'; classeRisultato = 'bg-blue-50'; }
+        else { classificazione = 'Cure Minime'; classeRisultato = 'bg-blue-50'; }
+
+        resultadoDiv.innerHTML = `<p>Punteggio totale: <strong class="font-bold">${total}</strong></p><p>Classificazione: <strong class="font-bold">${classificazione}</strong></p>`;
+        resultadoDiv.className = `resultado ${classeRisultato}`;
+        resultadoDiv.dataset.score = total;
+        resultadoDiv.dataset.classificazione = classificazione;
+      }
+
+      function pulisciCampi() {
+        document.querySelectorAll('#conteudo select').forEach(select => select.selectedIndex = 0);
+        resultadoDiv.style.display = 'none';
+        delete resultadoDiv.dataset.score;
+      }
+
+      btnCalcular?.addEventListener('click', calcolaFugulin);
+      btnLimpar?.addEventListener('click', pulisciCampi);
+
+      document.getElementById('btnGerarPDF')?.addEventListener('click', () => {
+        if (!resultadoDiv.dataset.score) {
+          alert('Per favore, calcola prima il punteggio per generare il PDF.');
+          return;
+        }
+        if (typeof gerarPDFGlobal === 'function') {
+          gerarPDFGlobal({
+            titulo: 'Scala di Fugulin',
+            subtitulo: 'Rapporto sulla Complessità dell\'Assistenza Infermieristica',
+            nomeArquivo: 'rapporto_scala_fugulin.pdf',
+            seletorConteudo: '.main-content-wrapper'
+          });
+        }
+      });
+
+      document.getElementById('btnNandaNicNoc')?.addEventListener('click', () => {
+        const classificazione = resultadoDiv.dataset.classificazione;
+        if (!classificazione) {
+          alert('Calcola il risultato per cercare la condotta.');
+          return;
+        }
+        const searchQuery = encodeURIComponent(`paziente con ${classificazione} secondo la Scala di Fugulin generare tassonomia NANDA, NIC, NOC`);
+        window.open(`https://www.google.com/search?q=${searchQuery}`, '_blank');
+      });
+    });
+  </script>
 
 
 

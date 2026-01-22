@@ -585,7 +585,338 @@
 
 
 
-  
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const resultadoDiv = document.getElementById("resultado");
+      const btnCalcular = document.getElementById("btnCalcular");
+      const btnLimpar = document.getElementById("btnLimpar");
+      const btnGerarPDF = document.getElementById("btnGerarPDF");
+      const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
+      const conteudoDiv = document.getElementById("conteudo");
+
+      const pewsData = [
+        {
+          parameter: "الحالة العصبية",
+          nameAttr: "estadoNeurologico",
+          options: [
+            { description: "نشط", score: 0 },
+            { description: "نعسان/غير نشط", score: 1 },
+            { description: "متهيج", score: 2 },
+            {
+              description: "خامل/متبلد الذهن أو استجابة منخفضة للألم",
+              score: 3,
+            },
+          ],
+        },
+        {
+          parameter: "القلب والأوعية الدموية",
+          nameAttr: "cardiovascular",
+          options: [
+            {
+              description: "وردي أو زمن امتلاء الشعيرات الدموية ١-٢ ثانية",
+              score: 0,
+            },
+            {
+              description:
+                "شاحب أو زمن امتلاء الشعيرات الدموية ٣ ثوانٍ أو معدل ضربات القلب أعلى من الحد الأعلى للعمر",
+              score: 1,
+            },
+            {
+              description:
+                "مبقع أو زمن امتلاء الشعيرات الدموية ٤ ثوانٍ أو معدل ضربات القلب ≥ ٢٠ نبضة/دقيقة فوق الحد الأعلى للعمر",
+              score: 2,
+            },
+            {
+              description:
+                "رمادي/مزرق أو زمن امتلاء الشعيرات الدموية ≥ ٥ ثوانٍ أو معدل ضربات القلب ≥ ٣٠ نبضة/دقيقة فوق الحد الأعلى للعمر أو بطء ضربات القلب بالنسبة للعمر",
+              score: 3,
+            },
+          ],
+        },
+        {
+          parameter: "الجهاز التنفسي",
+          nameAttr: "respiratorio",
+          options: [
+            {
+              description: "معدل التنفس طبيعي للعمر، لا توجد سحوبات",
+              score: 0,
+            },
+            {
+              description:
+                "معدل التنفس أعلى من الحد الأعلى للعمر، استخدام العضلات المساعدة أو FiO₂ ≥ ٣٠٪ أو ٦ لتر/دقيقة من الأكسجين",
+              score: 1,
+            },
+            {
+              description:
+                "معدل التنفس ≥ ٢٠ مرة/دقيقة فوق الحد الأعلى للعمر، سحوبات تحت الضلوع، بين الضلوع، وفوق الترقوة (انخفاض) عظمة القص أو FiO₂ ≥ ٤٠٪ أو ٦ لتر/دقيقة من الأكسجين",
+              score: 2,
+            },
+            {
+              description:
+                "معدل التنفس ≤ ٥ مرات/دقيقة أقل من الحد الأدنى للعمر، سحوبات تحت الضلوع، بين الضلوع، فوق الترقوة، عظمة القص وأنين أو FiO₂ ≥ ٥٠٪ أو ٨ لتر/دقيقة من الأكسجين",
+              score: 3,
+            },
+          ],
+        },
+      ];
+
+      const pewsExtraPointsData = {
+        question:
+          "إضافة ٢ نقطتين إضافيتين (إذا تلقى رذاذًا قبل ١٥ دقيقة على الأقل من التقييم أو قيء مستمر بعد الجراحة - ٣ نوبات على الأقل)",
+        nameAttr: "extraPointsCheckbox",
+      };
+
+      // --- وظائف حاسبة PEWS ---
+      function updateScoreDisplay(criterionId) {
+        const selectElement = document.getElementById(criterionId);
+        const scoreDisplayElement = document.getElementById(
+          `${criterionId}_score_display`,
+        );
+        if (selectElement && scoreDisplayElement) {
+          scoreDisplayElement.innerText =
+            selectElement.value === ""
+              ? "٠"
+              : selectElement.value
+                .replace(/0/g, "٠")
+                .replace(/1/g, "١")
+                .replace(/2/g, "٢")
+                .replace(/3/g, "٣");
+        }
+      }
+
+      // تحويل الأرقام الغربية إلى عربية شرقية للنص
+      function toArabicNumerals(numStr) {
+        if (numStr === "7+") return "+٧"; // حالة خاصة
+        return numStr
+          .toString()
+          .replace(/0/g, "٠")
+          .replace(/1/g, "١")
+          .replace(/2/g, "٢")
+          .replace(/3/g, "٣")
+          .replace(/4/g, "٤")
+          .replace(/5/g, "٥")
+          .replace(/6/g, "٦")
+          .replace(/7/g, "٧")
+          .replace(/8/g, "٨")
+          .replace(/9/g, "٩");
+      }
+
+      function calcularPontuacao() {
+        let totalScore = 0;
+        let allItemsSelected = true;
+
+        pewsData.forEach((item) => {
+          const selectElement = document.getElementById(item.nameAttr);
+          if (selectElement.value === "") {
+            allItemsSelected = false;
+          } else {
+            totalScore += parseInt(selectElement.value, 10);
+          }
+        });
+
+        const extraPointsCheckbox = document.getElementById(
+          pewsExtraPointsData.nameAttr,
+        );
+        if (extraPointsCheckbox && extraPointsCheckbox.checked) {
+          totalScore += 2;
+        }
+
+        resultadoDiv.style.display = "block";
+        if (!allItemsSelected) {
+          resultadoDiv.innerHTML =
+            '⚠️ <strong class="font-bold">يرجى تحديد خيار لكل عنصر</strong> قبل الحساب.';
+          resultadoDiv.className = "resultado bg-info-orange-light";
+          delete resultadoDiv.dataset.score;
+          return;
+        }
+
+        let classificacao = "";
+        let acaoRecomendada = "";
+        let resultadoClasse = "";
+        let displayScore = toArabicNumerals(totalScore.toString());
+
+        if (totalScore >= 7) {
+          classificacao = "نتيجة PEWS: +٧";
+          acaoRecomendada =
+            "تدفق الإنعاش القلبي الرئوي (توقف القلب والجهاز التنفسي).";
+          resultadoClasse = "bg-pews-7-mais";
+        } else if (totalScore >= 4 && totalScore <= 6) {
+          classificacao = `نتيجة PEWS: ${displayScore}`;
+          acaoRecomendada =
+            "إعادة PEWS خلال ٢٠ دقيقة. تقييم/متابعة من قبل الممرض. فتح دعوة للتدخل. تسجيل التوجيهات الطبية في تطور التمريض.";
+          resultadoClasse = "bg-pews-4-6";
+        } else if (totalScore === 3) {
+          classificacao = `نتيجة PEWS: ${displayScore}`;
+          acaoRecomendada =
+            "إعادة PEWS خلال ٣٠ دقيقة. تقييم فوري من قبل الممرض. إبلاغ الطبيب المعالج وتحديد الحاجة إلى دعوة للتدخل. تسجيل التوجيهات الطبية في تطور التمريض.";
+          resultadoClasse = "bg-pews-3";
+        } else if (totalScore >= 1 && totalScore <= 2) {
+          classificacao = `نتيجة PEWS: ${displayScore}`;
+          acaoRecomendada =
+            "تقييم فوري من قبل الممرض. إعادة PEWS خلال ٦٠ دقيقة، إذا استمرت النتيجة، إبلاغ الطبيب المعالج. تسجيل التوجيهات الطبية في تطور التمريض.";
+          resultadoClasse = "bg-pews-1-2";
+        } else if (totalScore === 0) {
+          classificacao = "نتيجة PEWS: ٠";
+          acaoRecomendada =
+            "الحفاظ على روتين فحص العلامات الحيوية كل ٦ ساعات.";
+          resultadoClasse = "bg-pews-0";
+        } else {
+          classificacao = "نتيجة غير صالحة";
+          acaoRecomendada =
+            "النتيجة المحسوبة خارج الحدود المتوقعة للمقياس. تحقق من الاختيارات.";
+          resultadoClasse = "bg-info-orange-light";
+        }
+
+        resultadoDiv.innerHTML = `<p>${classificacao}</p><p>الإجراء الموصى به: <strong class="font-bold">${acaoRecomendada}</strong></p>`;
+        resultadoDiv.className = `resultado ${resultadoClasse}`;
+
+        resultadoDiv.dataset.score = totalScore;
+        resultadoDiv.dataset.classificacao = classificacao;
+        resultadoDiv.dataset.conduta = acaoRecomendada;
+        resultadoDiv.dataset.scaleName = "مقياس PEWS";
+      }
+
+      function limparCampos() {
+        pewsData.forEach((item) => {
+          const selectElement = document.getElementById(item.nameAttr);
+          selectElement.selectedIndex = 0;
+          document.getElementById(
+            `${item.nameAttr}_score_display`,
+          ).innerText = "٠";
+        });
+        const extraPointsCheckbox = document.getElementById(
+          pewsExtraPointsData.nameAttr,
+        );
+        if (extraPointsCheckbox) {
+          extraPointsCheckbox.checked = false;
+        }
+
+        resultadoDiv.innerHTML = "";
+        resultadoDiv.className = "resultado hidden";
+        delete resultadoDiv.dataset.score;
+        delete resultadoDiv.dataset.classificacao;
+        delete resultadoDiv.dataset.conduta;
+        delete resultadoDiv.dataset.scaleName;
+      }
+
+      // يملأ النموذج ديناميكيًا
+      pewsData.forEach((item, index) => {
+        const sectionDiv = document.createElement("div");
+        sectionDiv.className = "pews-criterion-card";
+
+        const headerDiv = document.createElement("div");
+        headerDiv.className = "pews-criterion-header";
+
+        const titleH3 = document.createElement("h3");
+        titleH3.className = "pews-criterion-title";
+        titleH3.innerText = item.parameter;
+        headerDiv.appendChild(titleH3);
+
+        const scoreSpan = document.createElement("span");
+        scoreSpan.className = "pews-score-display";
+        scoreSpan.id = `${item.nameAttr}_score_display`;
+        scoreSpan.innerText = "٠";
+        headerDiv.appendChild(scoreSpan);
+
+        sectionDiv.appendChild(headerDiv);
+
+        const optionsDiv = document.createElement("div");
+        optionsDiv.className = "pews-criterion-options";
+
+        const selectElement = document.createElement("select");
+        selectElement.id = item.nameAttr;
+        selectElement.className = "pews-select";
+        selectElement.onchange = () => updateScoreDisplay(item.nameAttr);
+
+        const defaultOption = document.createElement("option");
+        defaultOption.value = "";
+        defaultOption.text = "اختر...";
+        defaultOption.disabled = true;
+        defaultOption.selected = true;
+        selectElement.appendChild(defaultOption);
+
+        item.options.forEach((option) => {
+          const optionElement = document.createElement("option");
+          optionElement.value = option.score;
+          // Monta o texto da opção, usando numerais arábicos orientais
+          let scoreDisplay = toArabicNumerals(option.score.toString());
+          optionElement.text = `${option.description} (${scoreDisplay})`;
+          selectElement.appendChild(optionElement);
+        });
+
+        optionsDiv.appendChild(selectElement);
+        sectionDiv.appendChild(optionsDiv);
+        conteudoDiv.appendChild(sectionDiv);
+      });
+
+      // يضيف قسم النقاط الإضافية
+      const extraPointsSection = document.createElement("div");
+      extraPointsSection.className = "pews-extra-points-section";
+      const extraPointsLabel = document.createElement("label");
+      extraPointsLabel.className = "flex items-center cursor-pointer";
+
+      const extraPointsInput = document.createElement("input");
+      extraPointsInput.type = "checkbox";
+      extraPointsInput.id = pewsExtraPointsData.nameAttr;
+      extraPointsInput.className =
+        "form-checkbox h-5 w-5 text-blue-600 rounded-md";
+
+      const extraPointsSpan = document.createElement("span");
+      extraPointsSpan.className = "mr-2 text-gray-800"; // RTL: ml-2 -> mr-2
+      extraPointsSpan.innerText = pewsExtraPointsData.question;
+
+      extraPointsLabel.appendChild(extraPointsInput);
+      extraPointsLabel.appendChild(extraPointsSpan);
+      extraPointsSection.appendChild(extraPointsLabel);
+      conteudoDiv.appendChild(extraPointsSection);
+
+      // يضيف مستمعي الأحداث إلى الأزرار
+      btnCalcular?.addEventListener("click", calcularPontuacao);
+      btnLimpar?.addEventListener("click", limparCampos);
+
+      btnGerarPDF?.addEventListener("click", () => {
+        if (!resultadoDiv.dataset.score) {
+          // Substitui o alert por uma mensagem no div de resultado
+          resultadoDiv.innerHTML =
+            '⚠️ <strong class="font-bold">يرجى النقر فوق "احسب" أولاً</strong> لإنشاء ملف PDF.';
+          resultadoDiv.className = "resultado bg-info-orange-light";
+          resultadoDiv.style.display = "block";
+          return;
+        }
+        if (typeof gerarPDFGlobal === "function") {
+          gerarPDFGlobal({
+            titulo: "مقياس PEWS",
+            subtitulo: "تقرير تقييم التدهور السريري للأطفال",
+            nomeArquivo: "relatorio_escala_pews.pdf",
+            seletorConteudo: ".main-content-wrapper",
+          });
+        } else {
+          console.error("الوظيفة gerarPDFGlobal غير معرفة.");
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener("click", () => {
+        const score = resultadoDiv.dataset.score;
+        const scaleName = resultadoDiv.dataset.scaleName;
+        const classificacao = resultadoDiv.dataset.classificacao;
+        if (!score || !classificacao) {
+          // Substitui o alert por uma mensagem no div de resultado
+          resultadoDiv.innerHTML =
+            '⚠️ <strong class="font-bold">احسب النتيجة أولاً</strong> للبحث عن NANDA, NIC, NOC.';
+          resultadoDiv.className = "resultado bg-info-orange-light";
+          resultadoDiv.style.display = "block";
+          return;
+        }
+        const searchQuery = encodeURIComponent(
+          `${scaleName} نتيجة ${score} تصنيف ${classificacao} إنشاء تصنيف NANDA, إنشاء تصنيف NIC وإنشاء تصنيف NOC`,
+        );
+        window.open(
+          `https://www.google.com/search?q=${searchQuery}`,
+          "_blank",
+        );
+      });
+    });
+  </script>
 
   <script src="../lang-selector.js" defer=""></script>
 

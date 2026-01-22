@@ -569,7 +569,149 @@
 
 
 
-  
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const resultadoDiv = document.getElementById("resultado");
+      const btnCalcular = document.getElementById("btnCalcular");
+      const btnLimpar = document.getElementById("btnLimpar");
+      const btnGerarPDF = document.getElementById("btnGerarPDF");
+      const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
+      const conteudoDiv = document.getElementById("conteudo");
+
+      // Data Protokol Manchester
+      const manchesterData = [
+        { question: "Obstruksi jalan napas", score: 3 },
+        { question: "Kesulitan bernapas berat", score: 5 },
+        { question: "Kebingungan/agitasi", score: 2 },
+        { question: "Mengantuk/disorientasi", score: 3 },
+        { question: "Tidak sadar", score: 5 },
+        { question: "Nyeri ringan (1–3)", score: 1 },
+        { question: "Nyeri sedang (4–6)", score: 2 },
+        { question: "Nyeri berat (7–10)", score: 3 },
+        { question: "TD < 90 atau HR > 130", score: 3 },
+        { question: "Ekstremitas dingin/berkeringat", score: 2 },
+        { question: "Pendarahan ringan", score: 1 },
+        { question: "Pendarahan sedang", score: 2 },
+        { question: "Pendarahan berat", score: 3 },
+        { question: "Demam sedang (38–39℃)", score: 1 },
+        { question: "Demam tinggi (>39℃)", score: 2 },
+        { question: "Hipotermia (<36℃)", score: 2 },
+        { question: "Kelemahan/kelumpuhan fokal", score: 3 },
+        { question: "Kejang baru-baru ini", score: 4 },
+        { question: "Perubahan visual/pendengaran mendadak", score: 2 },
+      ];
+
+      // Isi formulir secara dinamis
+      manchesterData.forEach((item, index) => {
+        const sectionDiv = document.createElement("div");
+        sectionDiv.className = "manchester-criterion-card";
+
+        const itemLabel = document.createElement("label");
+        itemLabel.className = "manchester-criterion-item";
+
+        const inputCheckbox = document.createElement("input");
+        inputCheckbox.type = "checkbox";
+        inputCheckbox.name = "sintoma";
+        inputCheckbox.value = item.score;
+        inputCheckbox.id = `sintoma-${index}`;
+
+        const textSpan = document.createElement("span");
+        textSpan.innerText = `${item.question} (${item.score} poin)`;
+
+        itemLabel.appendChild(inputCheckbox);
+        itemLabel.appendChild(textSpan);
+        sectionDiv.appendChild(itemLabel);
+        conteudoDiv.appendChild(sectionDiv);
+      });
+
+      function calcularManchester() {
+        const checkboxes = document.querySelectorAll(
+          '#conteudo input[type="checkbox"]:checked',
+        );
+        let total = 0;
+        checkboxes.forEach((c) => (total += parseInt(c.value)));
+
+        let classificacao = "";
+        let corClasse = "";
+
+        if (total >= 12) {
+          classificacao = "Merah – Segera";
+          corClasse = "bg-red";
+        } else if (total >= 9) {
+          classificacao = "Oranye – Hingga 10 menit";
+          corClasse = "bg-orange";
+        } else if (total >= 6) {
+          classificacao = "Kuning – Hingga 60 menit";
+          corClasse = "bg-yellow";
+        } else if (total >= 3) {
+          classificacao = "Hijau – Hingga 120 menit";
+          corClasse = "bg-green";
+        } else {
+          classificacao = "Biru – Hingga 240 menit";
+          corClasse = "bg-blue";
+        }
+
+        resultadoDiv.innerHTML = `<p><strong>${classificacao}</strong></p><p>Skor total: <strong class="font-bold">${total}</strong></p>`;
+        resultadoDiv.className = `resultado ${corClasse}`;
+        resultadoDiv.style.display = "block";
+
+        resultadoDiv.dataset.classificacao = classificacao;
+        resultadoDiv.dataset.escore = total;
+        resultadoDiv.dataset.scaleName = "Protokol Manchester";
+      }
+
+      function limparCampos() {
+        const checkboxes = document.querySelectorAll(
+          '#conteudo input[type="checkbox"]',
+        );
+        checkboxes.forEach((c) => (c.checked = false));
+
+        resultadoDiv.innerHTML = "";
+        resultadoDiv.className = "resultado hidden";
+        delete resultadoDiv.dataset.classificacao;
+        delete resultadoDiv.dataset.escore;
+        delete resultadoDiv.dataset.scaleName;
+      }
+
+      // Tambahkan event listener ke tombol
+      btnCalcular?.addEventListener("click", calcularManchester);
+      btnLimpar?.addEventListener("click", limparCampos);
+
+      btnGerarPDF?.addEventListener("click", () => {
+        if (!resultadoDiv.dataset.escore) {
+          alert('Silakan klik "Hitung" terlebih dahulu untuk membuat PDF.');
+          return;
+        }
+        if (typeof gerarPDFGlobal === "function") {
+          gerarPDFGlobal({
+            titulo: "Protokol Manchester",
+            subtitulo: "Laporan Klasifikasi Risiko",
+            nomeArquivo: "protokol_manchester.pdf",
+            seletorConteudo: ".main-content-wrapper",
+          });
+        } else {
+          console.error("Fungsi gerarPDFGlobal tidak terdefinisi.");
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener("click", () => {
+        const escore = resultadoDiv.dataset.escore;
+        const classificacao = resultadoDiv.dataset.classificacao;
+        const scaleName = resultadoDiv.dataset.scaleName;
+        if (!escore || !classificacao) {
+          alert("Hitung hasil untuk mencari tindakan.");
+          return;
+        }
+        const searchQuery = encodeURIComponent(
+          `${scaleName} score ${escore} classification ${classificacao} generate NANDA taxonomy, generate NIC taxonomy and generate NOC taxonomy`,
+        );
+        window.open(
+          `https://www.google.com/search?q=${searchQuery}`,
+          "_blank",
+        );
+      });
+    });
+  </script>
 
   <script src="/lang-selector.js" defer=""></script>
 

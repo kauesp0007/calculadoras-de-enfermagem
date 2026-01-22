@@ -751,7 +751,334 @@
 
 
 
-  
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const resultadoDiv = document.getElementById('resultado');
+      const btnCalcular = document.getElementById('btnCalcular');
+      const btnLimpar = document.getElementById('btnLimpar');
+      const btnGerarPDF = document.getElementById('btnGerarPDF');
+      const btnNandaNicNoc = document.getElementById('btnNandaNicNoc');
+      const conteudoDiv = document.getElementById('conteudo');
+
+      const meemData = [
+        {
+          domain: "Временная ориентация",
+          nameAttr: "orientacaoTemporal",
+          instructions: "Спросите пациента о: а) дне недели (1 балл); б) дате (1 балл); в) месяце (1 балл); г) примерном времени (1 балл). Поставьте 1 балл за каждый правильный ответ. (Максимум: 5 баллов)",
+          scoreOptions: [
+            { score: 0, description: "0 правильных ответов" },
+            { score: 1, description: "1 правильный ответ" },
+            { score: 2, description: "2 правильных ответа" },
+            { score: 3, description: "3 правильных ответа" },
+            { score: 4, description: "4 правильных ответа" },
+            { score: 5, description: "5 правильных ответов" }
+          ]
+        },
+        {
+          domain: "Пространственная ориентация",
+          nameAttr: "orientacaoEspacial",
+          instructions: "Спросите пациента о А) Месте, где он находится в данный момент (1 балл); Б) Улице (1 балл); В) Районе (1 балл); Г) Городе (1 балл); Д) Области (1 балл). Поставьте 1 балл за каждый правильный ответ. (Максимум: 5 баллов)",
+          scoreOptions: [
+            { score: 0, description: "0 правильных ответов" },
+            { score: 1, description: "1 правильный ответ" },
+            { score: 2, description: "2 правильных ответа" },
+            { score: 3, description: "3 правильных ответа" },
+            { score: 4, description: "4 правильных ответа" },
+            { score: 5, description: "5 правильных ответов" }
+          ]
+        },
+        {
+          domain: "Регистрация",
+          nameAttr: "registro",
+          instructions: "Назовите 3 слова, затрачивая 1 секунду на каждое. Попросите пациента повторить 3 слова, которые вы назвали. Поставьте 1 балл за каждое слово, правильно повторенное с первой попытки. (Максимум: 3 балла) ПРИМЕР: 'Яблоко, Стол, Доллар'",
+          scoreOptions: [
+            { score: 0, description: "0 слов повторено правильно" },
+            { score: 1, description: "1 слово повторено правильно" },
+            { score: 2, description: "2 слова повторено правильно" },
+            { score: 3, description: "3 слова повторено правильно" }
+          ]
+        },
+        {
+          domain: "Внимание и счет",
+          nameAttr: "atencaoCalculo",
+          instructions: "Сначала спросите пациента, умеет ли он выполнять вычитание (-), если да, попросите пациента вычесть 7 из 100 (93), и продолжать вычитать 7 из результата... 7 из 93 (86)... 7 из 86 (79)... 7 из 79 (72)... 7 из 72 (65)... 7 из 65 (58).... Поставьте 1 балл за каждое правильное вычитание. (Максимум: 5 баллов)",
+          scoreOptions: [
+            { score: 0, description: "0 правильных вычитаний" },
+            { score: 1, description: "1 правильное вычитание" },
+            { score: 2, description: "2 правильных вычитания" },
+            { score: 3, description: "3 правильных вычитания" },
+            { score: 4, description: "4 правильных вычитания" },
+            { score: 5, description: "5 правильных вычитаний" }
+          ]
+        },
+        {
+          domain: "Память воспроизведения (Воспоминания)",
+          nameAttr: "memoriaEvocacao",
+          instructions: "Спросите названия 3 слов, выученных, которые были упомянуты в пункте 3 (Регистрация). Поставьте 1 балл за каждое правильно воспроизведенное слово. (Максимум: 3 балла)",
+          scoreOptions: [
+            { score: 0, description: "0 слов воспроизведено правильно" },
+            { score: 1, description: "1 слово воспроизведено правильно" },
+            { score: 2, description: "2 слова воспроизведено правильно" },
+            { score: 3, description: "3 слова воспроизведено правильно" }
+          ]
+        },
+        {
+          domain: "Речь (Называние)",
+          nameAttr: "nomeacao",
+          instructions: "Укажите на ручку и часы. Попросите пациента назвать эти предметы, пока вы на них указываете. Поставьте 1 балл за каждый правильно названный предмет. (Максимум: 2 балла)",
+          scoreOptions: [
+            { score: 0, description: "0 предметов названо правильно" },
+            { score: 1, description: "1 предмет назван правильно" },
+            { score: 2, description: "2 предмета названо правильно" }
+          ]
+        },
+        {
+          domain: "Речь (Повторение)",
+          nameAttr: "repeticao",
+          instructions: "Попросите пациента повторить фразу: 'Ни здесь, ни там, ни там'. Поставьте 1 балл, если повторил правильно. (Максимум: 1 балл)",
+          scoreOptions: [
+            { score: 0, description: "Не повторил правильно" },
+            { score: 1, description: "Повторил правильно" }
+          ]
+        },
+        {
+          domain: "Речь (Понимание)",
+          nameAttr: "compreensao",
+          instructions: "Пациент должен выполнить данную команду... Дайте пациенту лист бумаги и скажите: 'Возьмите этот лист бумаги правой рукой (точка), сложите его пополам (1 балл) и положите на пол (1 балл)'. Поставьте 1 балл за каждый правильный этап. (Максимум: 3 балла)",
+          scoreOptions: [
+            { score: 0, description: "0 правильных этапов" },
+            { score: 1, description: "1 правильный этап" },
+            { score: 2, description: "2 правильных этапа" },
+            { score: 3, description: "3 правильных этапа" }
+          ]
+        },
+        {
+          domain: "Речь (Письмо)",
+          nameAttr: "escrita",
+          instructions: "Попросите пациента написать полное предложение, имеющее смысл. Поставьте 1 балл, если предложение имеет смысл. (Максимум: 1 балл)",
+          scoreOptions: [
+            { score: 0, description: "Не написал предложение с смыслом" },
+            { score: 1, description: "Написал предложение с смыслом" }
+          ]
+        },
+        {
+          domain: "Речь (Чтение)",
+          nameAttr: "leitura",
+          instructions: "Напишите на бумаге: ЗАКРОЙТЕ ГЛАЗА, отдайте бумагу пациенту и попросите его прочитать и выполнить инструкцию: 'ЗАКРОЙТЕ ГЛАЗА'. Поставьте 1 балл, если прочитал и выполнил правильно. (Максимум: 1 балл)",
+          scoreOptions: [
+            { score: 0, description: "Не прочитал и/или не выполнил правильно" },
+            { score: 1, description: "Прочитал и выполнил правильно" }
+          ]
+        },
+        {
+          domain: "Конструктивная праксия",
+          nameAttr: "praxiaConstrutiva",
+          instructions: "Нарисуйте два пятиугольника рядом друг с другом, покажите пациенту и попросите его скопировать на листе бумаги. Поставьте 1 балл, если скопировал правильно. (Максимум: 1 балл)",
+          type: "image",
+          imageSrc: "pentagono.webp",
+          scoreOptions: [
+            { score: 0, description: "Не скопировал правильно" },
+            { score: 1, description: "Скопировал правильно" }
+          ]
+        }
+      ];
+
+      // --- Функции калькулятора MMSE ---
+      function updateScoreDisplay(criterionId) {
+        const selectElement = document.getElementById(criterionId);
+        const scoreDisplayElement = document.getElementById(`${criterionId}_score_display`);
+        if (selectElement && scoreDisplayElement) {
+          scoreDisplayElement.innerText = selectElement.value === "" ? "0" : selectElement.value;
+        }
+      }
+
+      function calcularPontuacao() {
+        let totalScore = 0;
+        let allItemsSelected = true;
+
+        meemData.forEach(item => {
+          const selectElement = document.getElementById(item.nameAttr);
+          if (selectElement.value === "") {
+            allItemsSelected = false;
+          } else {
+            totalScore += parseInt(selectElement.value, 10);
+          }
+        });
+
+        resultadoDiv.style.display = "block";
+        if (!allItemsSelected) {
+          resultadoDiv.innerHTML = '⚠️ <strong class="font-bold">Пожалуйста, выберите оценку для каждого пункта</strong> перед вычислением.';
+          resultadoDiv.className = 'resultado bg-info-orange-light';
+          delete resultadoDiv.dataset.score;
+          return;
+        }
+
+        let classificacao = "";
+        let resultadoClasse = '';
+
+        if (totalScore >= 25) {
+          classificacao = "Когнитивных нарушений в этом тесте не обнаружено";
+          resultadoClasse = 'bg-meem-normal';
+        } else if (totalScore >= 21 && totalScore <= 24) {
+          classificacao = "Легкие когнитивные нарушения, выявленные в этом тесте";
+          resultadoClasse = 'bg-meem-leve';
+        } else if (totalScore >= 10 && totalScore <= 20) {
+          classificacao = "Умеренные когнитивные нарушения, выявленные в этом тесте";
+          resultadoClasse = 'bg-meem-moderado';
+        } else if (totalScore >= 0 && totalScore <= 9) {
+          classificacao = "Тяжелые когнитивные нарушения, выявленные в этом тесте";
+          resultadoClasse = 'bg-meem-grave';
+        } else {
+          classificacao = "Недействительная оценка";
+          resultadoClasse = 'bg-info-orange-light';
+        }
+
+        resultadoDiv.innerHTML = `<p>Общая оценка Краткого исследования психического состояния (MMSE): <strong class="font-bold">${totalScore}</strong></p><p>Классификация: <strong class="font-bold">${classificacao}</strong></p>`;
+        resultadoDiv.className = `resultado ${resultadoClasse}`;
+
+        resultadoDiv.dataset.score = totalScore;
+        resultadoDiv.dataset.classificacao = classificacao;
+        resultadoDiv.dataset.scaleName = "Краткое исследование психического состояния (MMSE)";
+      }
+
+      function limparCampos() {
+        meemData.forEach(item => {
+          const selectElement = document.getElementById(item.nameAttr);
+          selectElement.selectedIndex = 0;
+          document.getElementById(`${item.nameAttr}_score_display`).innerText = '0';
+        });
+        resultadoDiv.innerHTML = '';
+        resultadoDiv.className = 'resultado hidden';
+        delete resultadoDiv.dataset.score;
+        delete resultadoDiv.dataset.classificacao;
+        delete resultadoDiv.dataset.scaleName;
+      }
+
+      // Заполняет форму динамически
+      meemData.forEach((item, index) => {
+        const sectionDiv = document.createElement('div');
+        sectionDiv.className = 'meem-criterion-card';
+
+        const headerDiv = document.createElement('div');
+        headerDiv.className = 'meem-criterion-header';
+
+        const titleH3 = document.createElement('h3');
+        titleH3.className = 'meem-criterion-title';
+        titleH3.innerText = item.domain;
+        headerDiv.appendChild(titleH3);
+
+        const scoreSpan = document.createElement('span');
+        scoreSpan.className = 'meem-score-display';
+        scoreSpan.id = `${item.nameAttr}_score_display`;
+        scoreSpan.innerText = '0';
+        headerDiv.appendChild(scoreSpan);
+
+        sectionDiv.appendChild(headerDiv);
+
+        const instructionsP = document.createElement('p');
+        instructionsP.className = 'text-gray-700 mb-4 text-left';
+        instructionsP.innerText = item.instructions;
+        sectionDiv.appendChild(instructionsP);
+
+        if (item.type === "image" && item.imageSrc) {
+          const imgDiv = document.createElement('div');
+          imgDiv.className = 'image-cell mb-4 text-center';
+          const img = document.createElement('img');
+          img.src = item.imageSrc;
+          img.alt = `Диаграмма для ${item.domain}`;
+          img.classList.add('w-auto', 'h-auto', 'max-w-[200px]', 'mx-auto', 'rounded-md', 'shadow-sm');
+          imgDiv.appendChild(img);
+          sectionDiv.appendChild(imgDiv);
+        }
+
+        const optionsDiv = document.createElement('div');
+        optionsDiv.className = 'meem-criterion-options';
+
+        const selectElement = document.createElement('select');
+        selectElement.id = item.nameAttr;
+        selectElement.className = 'meem-select';
+        selectElement.onchange = () => updateScoreDisplay(item.nameAttr);
+
+        const defaultOption = document.createElement('option');
+        defaultOption.value = "";
+        defaultOption.text = "Выберите...";
+        defaultOption.disabled = true;
+        defaultOption.selected = true;
+        selectElement.appendChild(defaultOption);
+
+        item.scoreOptions.forEach(option => {
+          const optionElement = document.createElement('option');
+          optionElement.value = option.score;
+          optionElement.text = `${option.description} (${option.score})`;
+          selectElement.appendChild(optionElement);
+        });
+
+        optionsDiv.appendChild(selectElement);
+        sectionDiv.appendChild(optionsDiv);
+        conteudoDiv.appendChild(sectionDiv);
+      });
+
+      // Добавляет обработчики событий к кнопкам
+      btnCalcular?.addEventListener('click', calcularPontuacao);
+      btnLimpar?.addEventListener('click', limparCampos);
+
+      btnGerarPDF?.addEventListener('click', () => {
+        if (!resultadoDiv.dataset.score) {
+          alert('Пожалуйста, сначала нажмите "Вычислить" для создания PDF.');
+          return;
+        }
+        if (typeof gerarPDFGlobal === 'function') {
+          gerarPDFGlobal({
+            titulo: 'Краткое исследование психического состояния (MMSE)',
+            subtitulo: 'Отчет о скрининге когнитивных функций',
+            nomeArquivo: 'relatorio_escala_meem.pdf',
+            seletorConteudo: '.main-content-wrapper'
+          });
+        } else {
+          console.error('Функция gerarPDFGlobal не определена.');
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener('click', () => {
+        const score = resultadoDiv.dataset.score;
+        const scaleName = resultadoDiv.dataset.scaleName;
+        const classificacao = resultadoDiv.dataset.classificacao;
+        if (!score || !classificacao) {
+          alert('Вычислите результат для поиска рекомендации.');
+          return;
+        }
+        const searchQuery = encodeURIComponent(`${scaleName} оценка ${score} классификация ${classificacao} генерировать таксономию NANDA, генерировать таксономию NIC и генерировать таксономию NOC`);
+        window.open(`https://www.google.com/search?q=${searchQuery}`, '_blank');
+      });
+      // Кнопка "Добавить в избранное"
+      const addFavoriteBtn = document.getElementById('addFavoriteBtn');
+      if (addFavoriteBtn) {
+        addFavoriteBtn.addEventListener('click', () => {
+          const url = window.location.href;
+          const title = "Шкала MMSE";
+
+          try {
+            // IE/Edge Legacy
+            if (window.external && ("AddFavorite" in window.external)) {
+              window.external.AddFavorite(url, title);
+              return;
+            }
+            // Старый Firefox
+            if (window.sidebar && window.sidebar.addPanel) {
+              window.sidebar.addPanel(title, url, "");
+              return;
+            }
+            // Современные Chrome/Firefox: инструкция по сочетанию клавиш
+            alert("Нажмите Ctrl + D (или Cmd + D на Mac), чтобы добавить эту страницу в избранное.");
+          } catch (e) {
+            alert("Нажмите Ctrl + D (или Cmd + D на Mac), чтобы добавить эту страницу в избранное.");
+          }
+        });
+      }
+
+    });
+
+  </script>
 
 
 

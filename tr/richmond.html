@@ -683,7 +683,157 @@
 
 
 
-  
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const resultadoDiv = document.getElementById("resultado");
+      const btnCalcular = document.getElementById("btnCalcular");
+      const btnLimpar = document.getElementById("btnLimpar");
+      const btnGerarPDF = document.getElementById("btnGerarPDF");
+      const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
+      const tabelaRASS = document.getElementById("tabelaRASS");
+      let scoreSelecionado = null;
+      let interpretacaoSelecionada = null;
+
+      // Richmond skalası verileri
+      const rassData = [
+        {
+          score: "+4",
+          description:
+            "Çok ajite: Kendisi ve diğerleri için agresif, tehlikeli.",
+        },
+        {
+          score: "+3",
+          description:
+            "Ajite: Tüpleri/kateterleri çekiyor veya çıkarıyor, saldırgan davranış.",
+        },
+        {
+          score: "+2",
+          description:
+            "Çok huzursuz: Sık ve koordinesiz hareketler, saldırgan değil.",
+        },
+        {
+          score: "+1",
+          description: "Huzursuz: Endişeli, saldırgan olmayan hareketler.",
+        },
+        { score: "0", description: "Uyanık ve sakin: İdeal durum." },
+        {
+          score: "-1",
+          description: "Uykulu: >10s uyanır, sürdürülen göz teması.",
+        },
+        {
+          score: "-2",
+          description: "Hafif sedasyon: Kısa süreli göz teması.",
+        },
+        {
+          score: "-3",
+          description: "Orta sedasyon: Göz teması olmadan hareket eder.",
+        },
+        {
+          score: "-4",
+          description: "Derin sedasyon: Ağrılı uyarıya tepki verir.",
+        },
+        { score: "-5", description: "Yanıt yok: Hiçbir uyarıya yanıt yok." },
+      ];
+
+      // Tablo satır seçimi için event listener'ları ekle
+      tabelaRASS?.addEventListener("click", function (e) {
+        const targetRow = e.target.closest("tr");
+        if (targetRow) {
+          tabelaRASS
+            .querySelectorAll("tr")
+            .forEach((row) => row.classList.remove("selected"));
+          targetRow.classList.add("selected");
+          scoreSelecionado = targetRow.getAttribute("data-score");
+          interpretacaoSelecionada = targetRow.cells[1].textContent.trim();
+        }
+      });
+
+      function calcularRASS() {
+        if (scoreSelecionado === null) {
+          resultadoDiv.innerHTML =
+            '⚠️ <strong class="font-bold">Lütfen devam etmeden önce bir skala düzeyi seçin.</strong>';
+          resultadoDiv.className = "resultado bg-info-orange-light";
+          resultadoDiv.style.display = "block";
+          delete resultadoDiv.dataset.score;
+          return;
+        }
+
+        let resultadoClasses = "";
+        if (parseInt(scoreSelecionado) >= 2) {
+          resultadoClasses = "bg-danger-red-light";
+        } else if (
+          parseInt(scoreSelecionado) >= -3 &&
+          parseInt(scoreSelecionado) <= 1
+        ) {
+          resultadoClasses = "bg-warning-yellow-light";
+        } else {
+          // Score -4 veya -5
+          resultadoClasses = "bg-danger-red-light";
+        }
+
+        resultadoDiv.innerHTML = `<p>RASS Puanı: <strong class="font-bold">${scoreSelecionado}</strong></p><p>Yorumlama: <strong class="font-bold">${interpretacaoSelecionada}</strong></p>`;
+        resultadoDiv.className = `resultado ${resultadoClasses}`;
+        resultadoDiv.style.display = "block";
+
+        resultadoDiv.dataset.score = scoreSelecionado;
+        resultadoDiv.dataset.classificacao = interpretacaoSelecionada;
+        resultadoDiv.dataset.scaleName =
+          "Richmond Agitasyon ve Sedasyon Skalası (RASS)";
+      }
+
+      function limparCampos() {
+        tabelaRASS
+          .querySelectorAll("tr")
+          .forEach((row) => row.classList.remove("selected"));
+        scoreSelecionado = null;
+        interpretacaoSelecionada = null;
+        resultadoDiv.innerHTML = "";
+        resultadoDiv.className = "resultado hidden";
+        delete resultadoDiv.dataset.score;
+        delete resultadoDiv.dataset.classificacao;
+        delete resultadoDiv.dataset.scaleName;
+      }
+
+      btnCalcular?.addEventListener("click", calcularRASS);
+      btnLimpar?.addEventListener("click", limparCampos);
+
+      btnGerarPDF?.addEventListener("click", () => {
+        if (!resultadoDiv.dataset.score) {
+          alert(
+            'PDF oluşturmak için lütfen önce "Hesapla" butonuna tıklayın.',
+          );
+          return;
+        }
+        if (typeof gerarPDFGlobal === "function") {
+          gerarPDFGlobal({
+            titulo: "Richmond Agitasyon ve Sedasyon Skalası (RASS)",
+            subtitulo: "Agitasyon ve Sedasyon Değerlendirme Raporu",
+            nomeArquivo: "richmond_rass_raporu.pdf",
+            seletorConteudo: ".main-content-wrapper",
+          });
+        } else {
+          console.error("gerarPDFGlobal fonksiyonu tanımlı değil.");
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener("click", () => {
+        const score = resultadoDiv.dataset.score;
+        const scaleName = resultadoDiv.dataset.scaleName;
+        const classificacao = resultadoDiv.dataset.classificacao;
+        if (!score || !classificacao) {
+          alert("Klinik yaklaşımı araştırmak için sonucu hesaplayın.");
+          return;
+        }
+        const searchQuery = encodeURIComponent(
+          `${scaleName} puan ${score} sınıflandırma ${classificacao} NANDA taksonomisi oluştur, NICO taksonomisi oluştur ve NOC taksonomisi oluştur`,
+        );
+        window.open(
+          `https://www.google.com/search?q=${searchQuery}`,
+          "_blank",
+        );
+      });
+    });
+  </script>
 
   <script src="/lang-selector.js" defer=""></script>
 

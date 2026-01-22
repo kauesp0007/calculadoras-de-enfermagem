@@ -831,7 +831,342 @@
 
 
 
-    
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const resultadoDiv = document.getElementById('resultado');
+            const btnCalcular = document.getElementById('btnCalcular');
+            const btnLimpar = document.getElementById('btnLimpar');
+            const btnGerarPDF = document.getElementById('btnGerarPDF');
+            const btnNandaNicNoc = document.getElementById('btnNandaNicNoc');
+            const conteudoDiv = document.getElementById('conteudo');
+
+            // Tinetti scale data
+            const tinettiData = [
+                {
+                    title: "1. Sitting Balance",
+                    nameAttr: "sentado",
+                    explain: "Ability to maintain stability when seated in a chair. ",
+                    options: [
+                        { description: "Slips, slides down in the chair", score: 0 },
+                        { description: "Firm and secure", score: 1 }
+                    ]
+                },
+                {
+                    title: "2. Rising",
+                    nameAttr: "levantando",
+                    explain: "Ability to stand up from a chair.",
+                    options: [
+                        { description: "Unable without help", score: 0 },
+                        { description: "Able, but uses arms to stand up", score: 1 },
+                        { description: "Able, without using arms", score: 2 }
+                    ]
+                },
+                {
+                    title: "3. Attempts to Rise",
+                    nameAttr: "tentando_levantar",
+                    explain: "Observe the number of attempts to stand up. ",
+                    options: [
+                        { description: "Unable or more than one attempt", score: 0 },
+                        { description: "Able in a single attempt", score: 1 }
+                    ]
+                },
+                {
+                    title: "4. Immediate Standing Balance (first 5 seconds)",
+                    nameAttr: "apos_levantar",
+                    explain: "Stability in the initial 5 seconds after standing up.",
+                    options: [
+                        { description: "Unstable (staggers, moves feet, trunk)", score: 0 },
+                        { description: "Stable with support from another person or object", score: 1 },
+                        { description: "Stable without support, but sways", score: 2 }
+                    ]
+                },
+                {
+                    title: "5. Standing Balance",
+                    nameAttr: "em_pe",
+                    explain: "Stability in an upright posture.",
+                    options: [
+                        { description: "Unbalanced", score: 0 },
+                        { description: "With support / base of support > 9cm", score: 1 },
+                        { description: "Without support / small base of support", score: 2 }
+                    ]
+                },
+                {
+                    title: "6. Three-time Test (sternum)",
+                    nameAttr: "teste_3_tempos",
+                    explain: "Reaction to a slight push on the sternum. The patient should be standing, with feet a comfortable distance apart.",
+                    options: [
+                        { description: "Starts to fall", score: 0 },
+                        { description: "Grabs or sways (arms)", score: 1 },
+                        { description: "Stable", score: 2 }
+                    ]
+                },
+                {
+                    title: "7. Balance with Eyes Closed",
+                    nameAttr: "olhos_fechados",
+                    explain: "Patient's stability with eyes closed.",
+                    options: [
+                        { description: "Unbalanced", score: 0 },
+                        { description: "Balanced", score: 1 }
+                    ]
+                },
+                {
+                    title: "8. Turning 360º",
+                    nameAttr: "girando",
+                    explain: "Observe the ability to turn a full circle and stability.",
+                    options: [
+                        { description: "Discontinuous steps / unbalanced", score: 0 },
+                        { description: "Continuous steps / stable", score: 1 }
+                    ]
+                },
+                {
+                    title: "9. Sitting Down",
+                    nameAttr: "sentando",
+                    explain: "Ability to sit down in a chair.",
+                    options: [
+                        { description: "Unsure / falls into the chair", score: 0 },
+                        { description: "Uses arms or doesn't move smoothly", score: 1 },
+                        { description: "Firm and secure", score: 2 }
+                    ]
+                },
+                {
+                    title: "10. Initiation of Gait",
+                    nameAttr: "inicio_marcha",
+                    explain: "Observes the start of walking.",
+                    options: [
+                        { description: "Hesitation or multiple attempts", score: 0 },
+                        { description: "No hesitation", score: 1 }
+                    ]
+                },
+                {
+                    title: "11. Step Length and Height",
+                    nameAttr: "passo",
+                    explain: "Observe the length and height of the step.",
+                    options: [
+                        { description: "Right foot does not pass left or does not lift; Left foot does not pass right or does not lift", score: 0 },
+                        { description: "Right foot passes left and lifts; Left foot passes right and lifts", score: 1 }
+                    ]
+                },
+                {
+                    title: "12. Step Symmetry",
+                    nameAttr: "simetria_passo",
+                    explain: "Observe if the steps are symmetrical.",
+                    options: [
+                        { description: "Unequal lengths", score: 0 },
+                        { description: "Equal lengths", score: 1 }
+                    ]
+                },
+                {
+                    title: "13. Step Continuity",
+                    nameAttr: "continuidade_passo",
+                    explain: "Observe if the walk is fluid or if there are interruptions.",
+                    options: [
+                        { description: "Stops or discontinuities", score: 0 },
+                        { description: "Continuous steps", score: 1 }
+                    ]
+                },
+                {
+                    title: "14. Gait Direction",
+                    nameAttr: "direcao_marcha",
+                    explain: "Observe the deviation from the walking line.",
+                    options: [
+                        { description: "Marked deviation or uses help to stay on the line", score: 0 },
+                        { description: "Slight or moderate deviation, but without help", score: 1 },
+                        { description: "No deviation, walks in a straight line", score: 2 }
+                    ]
+                },
+                {
+                    title: "15. Trunk",
+                    nameAttr: "tronco_marcha",
+                    explain: "Observe the trunk's sway and use of arms during gait.",
+                    options: [
+                        { description: "Trunk sways or uses arms to balance", score: 0 },
+                        { description: "Bends knees or back / spreads arms", score: 1 },
+                        { description: "No sway or bend", score: 2 }
+                    ]
+                },
+                {
+                    title: "16. Base of Support during Walking",
+                    nameAttr: "base_marcha",
+                    explain: "Distance between the heels during gait.",
+                    options: [
+                        { description: "Ankles apart or unstable", score: 0 },
+                        { description: "Ankles touch or are close, without deviation", score: 1 }
+                    ]
+                }
+            ];
+
+            // Dynamically populates the form
+            tinettiData.forEach(item => {
+                const sectionDiv = document.createElement('div');
+                sectionDiv.className = 'tinetti-criterion-section';
+                sectionDiv.id = `section-${item.nameAttr}`;
+
+                const titleH3 = document.createElement('h3');
+                titleH3.className = 'tinetti-criterion-title';
+                titleH3.innerHTML = item.title;
+                sectionDiv.appendChild(titleH3);
+
+                const explainP = document.createElement('p');
+                explainP.className = 'tinetti-criterion-explain';
+                explainP.innerHTML = item.explain;
+                sectionDiv.appendChild(explainP);
+
+                const selectElement = document.createElement('select');
+                selectElement.id = item.nameAttr;
+                selectElement.className = 'tinetti-criterion-select mt-2';
+
+                const defaultOption = document.createElement('option');
+                defaultOption.value = "";
+                defaultOption.text = "Select...";
+                selectElement.appendChild(defaultOption);
+
+                item.options.forEach(option => {
+                    const optionElement = document.createElement('option');
+                    optionElement.value = option.score;
+                    optionElement.text = `${option.description} (points: ${option.score})`;
+                    selectElement.appendChild(optionElement);
+                });
+
+                sectionDiv.appendChild(selectElement);
+                conteudoDiv.appendChild(sectionDiv);
+            });
+
+            function calcularTinetti() {
+                const selects = document.querySelectorAll('#conteudo select');
+                let allSelected = true;
+                let total = 0;
+
+                selects.forEach(select => {
+                    if (select.value === "") {
+                        allSelected = false;
+                        select.classList.add('incomplete');
+                    } else {
+                        select.classList.remove('incomplete');
+                        total += Number(select.value);
+                    }
+                });
+
+                resultadoDiv.style.display = "block";
+                if (!allSelected) {
+                    resultadoDiv.innerHTML = '⚠️ <strong class="font-bold">Please select an option for all items before calculating.</strong>';
+                    resultadoDiv.className = `resultado bg-red-100`;
+                    delete resultadoDiv.dataset.score;
+                    return;
+                }
+
+                let recomendacao = '';
+
+                if (total <= 19) {
+                    recomendacao = `A score of ${total} indicates a high risk of falls. The implementation of safety measures and a fall prevention intervention plan is recommended.`;
+                } else {
+                    recomendacao = `A score of ${total} indicates a low risk of falls. Continue to monitor the patient's mobility.`;
+                }
+
+                resultadoDiv.innerHTML = `
+                <p>Total score: <strong class="font-bold">${total}</strong></p>
+                <p class="mt-4"><strong>Recommendation:</strong> ${recomendacao}</p>
+            `;
+                resultadoDiv.className = `resultado bg-blue-50`;
+                resultadoDiv.style.display = "block";
+
+                resultadoDiv.dataset.score = total;
+                resultadoDiv.dataset.scaleName = "Tinetti Scale";
+            }
+
+            function limparCampos() {
+                const selects = document.querySelectorAll('#conteudo select');
+                selects.forEach(select => {
+                    select.selectedIndex = 0;
+                    select.classList.remove('incomplete');
+                });
+                resultadoDiv.innerHTML = '';
+                resultadoDiv.className = 'resultado hidden';
+                delete resultadoDiv.dataset.score;
+                delete resultadoDiv.dataset.scaleName;
+            }
+
+            // Add event listeners to buttons
+            btnCalcular?.addEventListener('click', calcularTinetti);
+            btnLimpar?.addEventListener('click', limparCampos);
+
+            btnGerarPDF?.addEventListener('click', () => {
+                if (!resultadoDiv.dataset.score) {
+                    alert('Please, click on "Calculate Score" first to generate the PDF.');
+                    return;
+                }
+                if (typeof gerarPDFGlobal === 'function') {
+                    const selectedOptions = {};
+                    document.querySelectorAll('#conteudo select').forEach(select => {
+                        const selected = select.options[select.selectedIndex];
+                        if (selected.value !== "") {
+                            selectedOptions[select.id] = selected.text;
+                        }
+                    });
+
+                    let contentToPrint = document.querySelector('.main-content-wrapper').cloneNode(true);
+                    let contentContainer = contentToPrint.querySelector('#conteudo');
+
+                    contentContainer.innerHTML = '';
+
+                    let balanceSectionTitle = document.createElement('h3');
+                    balanceSectionTitle.className = 'text-lg font-semibold mt-4 mb-2';
+                    balanceSectionTitle.innerText = `Balance Section (Maximum Score: 16)`;
+                    contentContainer.appendChild(balanceSectionTitle);
+
+                    tinettiData.slice(0, 9).forEach(item => {
+                        let selectedText = selectedOptions[item.nameAttr];
+                        if (selectedText) {
+                            let itemDiv = document.createElement('div');
+                            itemDiv.className = 'mb-2 p-2 bg-gray-50 rounded';
+                            itemDiv.innerHTML = `<strong>${item.title}:</strong> ${selectedText}`;
+                            contentContainer.appendChild(itemDiv);
+                        }
+                    });
+
+                    let gaitSectionTitle = document.createElement('h3');
+                    gaitSectionTitle.className = 'text-lg font-semibold mt-4 mb-2';
+                    gaitSectionTitle.innerText = `Gait Section (Maximum Score: 12)`;
+                    contentContainer.appendChild(gaitSectionTitle);
+
+                    tinettiData.slice(9, 16).forEach(item => {
+                        let selectedText = selectedOptions[item.nameAttr];
+                        if (selectedText) {
+                            let itemDiv = document.createElement('div');
+                            itemDiv.className = 'mb-2 p-2 bg-gray-50 rounded';
+                            itemDiv.innerHTML = `<strong>${item.title}:</strong> ${selectedText}`;
+                            contentContainer.appendChild(itemDiv);
+                        }
+                    });
+
+                    let resultadoHtml = resultadoDiv.cloneNode(true);
+                    if (resultadoHtml.style.display !== 'none') {
+                        contentContainer.appendChild(resultadoHtml);
+                    }
+
+                    gerarPDFGlobal({
+                        titulo: 'Tinetti Scale',
+                        subtitulo: 'Gait and Balance Assessment Report',
+                        nomeArquivo: 'tinetti_scale_report.pdf',
+                        seletorConteudo: '.main-content-wrapper'
+                    });
+                } else {
+                    console.error('Function gerarPDFGlobal not defined.');
+                }
+            });
+
+            btnNandaNicNoc?.addEventListener('click', () => {
+                const score = resultadoDiv.dataset.score;
+                const scaleName = resultadoDiv.dataset.scaleName;
+                if (!score) {
+                    alert('Calculate the result to search for the nursing care plan.');
+                    return;
+                }
+                const recomendacaoRisco = score <= 19 ? 'high risk of falls' : 'low risk of falls';
+                const searchQuery = encodeURIComponent(`nursing care plan for elderly patient with ${recomendacaoRisco} on Tinetti Scale NANDA NIC NOC`);
+                window.open(`https://www.google.com/search?q=${searchQuery}`, '_blank');
+            });
+        });
+    </script>
 
 
 

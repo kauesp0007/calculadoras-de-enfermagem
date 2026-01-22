@@ -635,7 +635,219 @@
 
 
 
-    
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const resultadoDiv = document.getElementById('resultado');
+            const btnCalcular = document.getElementById('btnCalcular');
+            const btnLimpar = document.getElementById('btnLimpar');
+            const btnGerarPDF = document.getElementById('btnGerarPDF');
+            const btnNandaNicNoc = document.getElementById('btnNandaNicNoc');
+            const conteudoDiv = document.getElementById('conteudo');
+
+            // --- JavaScript内のテキストを翻訳 ---
+            const katzData = [
+                {
+                    item: "一、入浴", // 番号を日本語に
+                    nameAttr: "banho",
+                    options: [
+                        { score: 1, description: "自立 - 体の一部（例：背中や四肢）を洗う際にのみ介助を必要とする" },
+                        { score: 0, description: "依存 - 体の複数箇所を洗う際に介助を必要とする。浴槽への出入りに介助が必要。自分一人で入浴できない" }
+                    ]
+                },
+                {
+                    item: "二、更衣",
+                    nameAttr: "vestir",
+                    options: [
+                        { score: 1, description: "自立 - 適切な衣服を選び、着用し、ボタンなどを留める。靴紐を結ぶことは除く" },
+                        { score: 0, description: "依存 - 更衣に介助が必要。自分一人で更衣ができない" }
+                    ]
+                },
+                {
+                    item: "三、トイレ使用",
+                    nameAttr: "sanitario",
+                    options: [
+                        { score: 1, description: "自立 - 椅子からの立ち座り、ベッドへの出入りに介助は不要。尿器や便器を使用できる" },
+                        { score: 0, description: "依存 - 尿器（しびん）や便器を使用するか、トイレへの移動および使用に介助が必要" }
+                    ]
+                },
+                {
+                    item: "四、移乗（ベッド/車椅子）",
+                    nameAttr: "transferencia",
+                    options: [
+                        { score: 1, description: "自立 - 椅子からの立ち座り、ベッドへの出入りに介助は不要。杖などの補助具を使用してもよい" },
+                        { score: 0, description: "依存 - ベッド/車椅子への移乗に何らかの介助が必要。寝たきりである" }
+                    ]
+                },
+                {
+                    item: "五、失禁（便/尿）",
+                    nameAttr: "continencia",
+                    options: [
+                        { score: 1, description: "自立 - 排尿および排便のコントロールが完全にできている" },
+                        { score: 0, description: "依存 - 尿および/または便の失禁が完全または部分的にある。浣腸、カテーテル、尿器、便器を使用している" }
+                    ]
+                },
+                {
+                    item: "六、食事",
+                    nameAttr: "alimentacao",
+                    options: [
+                        { score: 1, description: "自立 - 介助なしで皿から口へ食べ物を運べる。食べ物を切ることは除く" },
+                        { score: 0, description: "依存 - 食事に介助が必要。全く食べられない、または経管栄養/静脈栄養が必要" }
+                    ]
+                }
+            ];
+
+            // --- Funções da Calculadora Katz ---
+            function updateScoreDisplay(criterionId) {
+                const selectElement = document.getElementById(criterionId);
+                const scoreDisplayElement = document.getElementById(`${criterionId}_score_display`);
+                if (selectElement && scoreDisplayElement) {
+                    scoreDisplayElement.innerText = selectElement.value === "" ? "0" : selectElement.value;
+                }
+            }
+
+            function calcularPontuacao() {
+                let totalScore = 0;
+                let allItemsSelected = true;
+
+                katzData.forEach(item => {
+                    const selectElement = document.getElementById(item.nameAttr);
+                    if (selectElement.value === "") {
+                        allItemsSelected = false;
+                    } else {
+                        totalScore += parseInt(selectElement.value, 10);
+                    }
+                });
+
+                resultadoDiv.style.display = "block";
+                if (!allItemsSelected) {
+                    // アラートメッセージを翻訳
+                    resultadoDiv.innerHTML = '⚠️ <strong class="font-bold">計算する前に、各項目でオプションを選択してください</strong>。';
+                    resultadoDiv.className = 'resultado bg-info-orange-light';
+                    delete resultadoDiv.dataset.score;
+                    return;
+                }
+
+                let classificacao = "";
+                let resultadoClasse = '';
+
+                // 分類を翻訳
+                if (totalScore === 6) {
+                    classificacao = "完全自立";
+                    resultadoClasse = 'bg-katz-total';
+                } else if (totalScore === 5) {
+                    classificacao = "軽度依存";
+                    resultadoClasse = 'bg-katz-ligeira';
+                } else if (totalScore >= 3 && totalScore <= 4) {
+                    classificacao = "中等度依存";
+                    resultadoClasse = 'bg-katz-moderada';
+                } else if (totalScore >= 1 && totalScore <= 2) {
+                    classificacao = "高度依存";
+                    resultadoClasse = 'bg-katz-grave';
+                } else if (totalScore === 0) {
+                    classificacao = "完全依存";
+                    resultadoClasse = 'bg-katz-dependente';
+                } else {
+                    classificacao = "無効なスコア";
+                    resultadoClasse = 'bg-info-orange-light';
+                }
+
+                // 結果表示を翻訳
+                resultadoDiv.innerHTML = `<p>カッツインデックス合計スコア: <strong class="font-bold">${totalScore}</strong></p><p>分類: <strong class="font-bold">${classificacao}</strong></p>`;
+                resultadoDiv.className = `resultado ${resultadoClasse}`;
+
+                resultadoDiv.dataset.score = totalScore;
+                resultadoDiv.dataset.classificacao = classificacao;
+                resultadoDiv.dataset.scaleName = "カッツインデックス"; // スケール名を翻訳
+            }
+
+            function limparCampos() {
+                katzData.forEach(item => {
+                    document.getElementById(item.nameAttr).selectedIndex = 0;
+                });
+                resultadoDiv.innerHTML = '';
+                resultadoDiv.className = 'resultado hidden';
+                delete resultadoDiv.dataset.score;
+                delete resultadoDiv.dataset.classificacao;
+                delete resultadoDiv.dataset.scaleName;
+            }
+
+            // フォームを動的に入力
+            katzData.forEach((item, index) => {
+                const sectionDiv = document.createElement('div');
+                sectionDiv.className = 'katz-criterion-card';
+
+                const headerDiv = document.createElement('div');
+                headerDiv.className = 'katz-criterion-header';
+
+                const titleH3 = document.createElement('h3');
+                titleH3.className = 'katz-criterion-title';
+                titleH3.innerText = item.item;
+                headerDiv.appendChild(titleH3);
+
+                sectionDiv.appendChild(headerDiv);
+
+                const optionsDiv = document.createElement('div');
+                optionsDiv.className = 'katz-criterion-options';
+
+                const selectElement = document.createElement('select');
+                selectElement.id = item.nameAttr;
+                selectElement.className = 'katz-select';
+                selectElement.onchange = () => updateScoreDisplay(item.nameAttr);
+
+                const defaultOption = document.createElement('option');
+                defaultOption.value = "";
+                defaultOption.text = "選択してください..."; // デフォルトオプションを翻訳
+                defaultOption.disabled = true;
+                defaultOption.selected = true;
+                selectElement.appendChild(defaultOption);
+
+                item.options.forEach(option => {
+                    const optionElement = document.createElement('option');
+                    optionElement.value = option.score;
+                    optionElement.text = `${option.description} (${option.score})`;
+                    selectElement.appendChild(optionElement);
+                });
+
+                optionsDiv.appendChild(selectElement);
+                sectionDiv.appendChild(optionsDiv);
+                conteudoDiv.appendChild(sectionDiv);
+            });
+
+            // イベントリスナーをボタンに追加
+            btnCalcular?.addEventListener('click', calcularPontuacao);
+            btnLimpar?.addEventListener('click', limparCampos);
+
+            btnGerarPDF?.addEventListener('click', () => {
+                if (!resultadoDiv.dataset.score) {
+                    alert('PDFを生成する前に、まず「計算する」をクリックしてください。'); // アラートを翻訳
+                    return;
+                }
+                if (typeof gerarPDFGlobal === 'function') {
+                    gerarPDFGlobal({
+                        titulo: 'カッツインデックス', // PDFタイトルを翻訳
+                        subtitulo: 'ADL自立度評価レポート', // PDFサブタイトルを翻訳
+                        nomeArquivo: 'report_katz_index.pdf', // ファイル名を英語に
+                        seletorConteudo: '.main-content-wrapper'
+                    });
+                } else {
+                    console.error('gerarPDFGlobal 関数が定義されていません。'); // エラーを翻訳
+                }
+            });
+
+            btnNandaNicNoc?.addEventListener('click', () => {
+                const score = resultadoDiv.dataset.score;
+                const scaleName = resultadoDiv.dataset.scaleName;
+                const classificacao = resultadoDiv.dataset.classificacao;
+                if (!score || !classificacao) {
+                    alert('看護計画を検索するために、まず結果を計算してください。'); // アラートを翻訳
+                    return;
+                }
+                // 検索クエリを翻訳
+                const searchQuery = encodeURIComponent(`${scaleName} スコア ${score} 分類 ${classificacao} NANDA分類案, NIC分類案, NOC分類案`);
+                window.open(`https://www.google.com/search?q=${searchQuery}`, '_blank');
+            });
+        });
+    </script>
 
 
 

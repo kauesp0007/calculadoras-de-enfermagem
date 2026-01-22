@@ -573,7 +573,287 @@
 
 
 
-  
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const resultadoDiv = document.getElementById("resultado");
+      const btnCalcular = document.getElementById("btnCalcular");
+      const btnLimpar = document.getElementById("btnLimpar");
+      const btnGerarPDF = document.getElementById("btnGerarPDF");
+      const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
+      const conteudoDiv = document.getElementById("conteudo");
+
+      const sofaData = [
+        {
+          category: "Pernapasan (PaO₂/FiO₂)",
+          nameAttr: "respiratorio",
+          explanation: "Evaluasi hubungan PaO₂/FiO₂ pasien. PaO₂ dalam mmHg.",
+          options: [
+            { description: "> 400 mmHg", score: 0 },
+            { description: "< 400 mmHg", score: 1 },
+            { description: "< 300 mmHg", score: 2 },
+            { description: "< 200 mmHg dengan dukungan ventilasi", score: 3 },
+            { description: "< 100 mmHg dengan dukungan ventilasi", score: 4 },
+          ],
+        },
+        {
+          category: "Koagulasi (Trombosit)",
+          nameAttr: "coagulacao",
+          explanation: "Evaluasi jumlah trombosit pasien (x10³ /µL).",
+          options: [
+            { description: "≥ 150 x 10³", score: 0 },
+            { description: "< 150 x 10³", score: 1 },
+            { description: "< 100 x 10³", score: 2 },
+            { description: "< 50 x 10³", score: 3 },
+            { description: "< 20 x 10³", score: 4 },
+          ],
+        },
+        {
+          category: "Hati (Bilirubin)",
+          nameAttr: "hepatico",
+          explanation: "Evaluasi tingkat bilirubin pasien (mg/dL).",
+          options: [
+            { description: "< 1.2 mg/dL", score: 0 },
+            { description: "1.2-1.9 mg/dL", score: 1 },
+            { description: "2-5.9 mg/dL", score: 2 },
+            { description: "6-11.9 mg/dL", score: 3 },
+            { description: "> 12 mg/dL", score: 4 },
+          ],
+        },
+        {
+          category: "Kardiovaskular (PAM dan Obat Vasoaktif)",
+          nameAttr: "cardiovascular",
+          explanation:
+            "Evaluasi Tekanan Arteri Rata-rata (MAP) atau penggunaan obat vasoaktif.",
+          options: [
+            { description: "MAP ≥ 70 mmHg", score: 0 },
+            { description: "MAP < 70 mmHg", score: 1 },
+            {
+              description:
+                "Dopamin < 5 µg/kg/min atau dosis apapun dobutamin",
+              score: 2,
+            },
+            {
+              description:
+                "Dopamin 5.1-15 µg/kg/min atau epinefrin ≤ 0.1 µg/kg/min atau norepinefrin ≤ 0.1 µg/kg/min",
+              score: 3,
+            },
+            {
+              description:
+                "Dopamin > 15 µg/kg/min atau epinefrin > 0.1 µg/kg/min atau norepinefrin > 0.1 µg/kg/min",
+              score: 4,
+            },
+          ],
+        },
+        {
+          category: "SSP (Glasgow)",
+          nameAttr: "snc",
+          explanation: "Evaluasi Skala Koma Glasgow (GCS) pasien.",
+          options: [
+            { description: "GCS 15", score: 0 },
+            { description: "GCS 13-14", score: 1 },
+            { description: "GCS 10-12", score: 2 },
+            { description: "GCS 6-9", score: 3 },
+            { description: "GCS < 6", score: 4 },
+          ],
+        },
+        {
+          category: "Ginjal (Kreatinin/Aliran Urin)",
+          nameAttr: "renal",
+          explanation:
+            "Evaluasi kreatinin serum (mg/dL) atau aliran urin (mL/24 jam).",
+          options: [
+            { description: "Kr serum < 1.2 mg/dL", score: 0 },
+            { description: "Kr serum 1.2-1.9 mg/dL", score: 1 },
+            { description: "Kr serum 2-3.4 mg/dL", score: 2 },
+            {
+              description:
+                "Kr serum 3.5-4.9 mg/dL atau Aliran urin < 500 mL/24 jam",
+              score: 3,
+            },
+            {
+              description:
+                "Kr serum > 5 mg/dL atau Aliran urin < 200 mL/24 jam",
+              score: 4,
+            },
+          ],
+        },
+      ];
+
+      // --- Fungsi Kalkulator SOFA ---
+      function updateScoreDisplay(criterionId) {
+        const selectElement = document.getElementById(criterionId);
+        const scoreDisplayElement = document.getElementById(
+          `${criterionId}_score_display`,
+        );
+        if (selectElement && scoreDisplayElement) {
+          scoreDisplayElement.innerText =
+            selectElement.value === "" ? "0" : selectElement.value;
+        }
+      }
+
+      function calcularPontuacao() {
+        let totalSOFAScore = 0;
+        let allItemsSelected = true;
+
+        sofaData.forEach((item) => {
+          const selectElement = document.getElementById(item.nameAttr);
+          if (selectElement.value === "") {
+            allItemsSelected = false;
+          } else {
+            totalSOFAScore += parseInt(selectElement.value, 10);
+          }
+        });
+
+        resultadoDiv.style.display = "block";
+        if (!allItemsSelected) {
+          resultadoDiv.innerHTML =
+            '⚠️ <strong class="font-bold">Mohon pilih salah satu opsi untuk setiap kriteria</strong> sebelum menghitung.';
+          resultadoDiv.className = "resultado bg-info-orange-light";
+          delete resultadoDiv.dataset.score;
+          return;
+        }
+
+        let interpretacao = "";
+        let conduta = "";
+        let resultadoClasse = "";
+
+        if (totalSOFAScore >= 0 && totalSOFAScore <= 4) {
+          interpretacao = "Kegagalan organ ringan. Prognosis biasanya baik.";
+          resultadoClasse = "bg-sofa-low";
+          conduta =
+            "Pertahankan pemantauan klinis. Evaluasi ulang sesuai perkembangan pasien.";
+        } else if (totalSOFAScore >= 5 && totalSOFAScore <= 9) {
+          interpretacao =
+            "Kegagalan organ sedang. Risiko mortalitas meningkat.";
+          resultadoClasse = "bg-sofa-medium";
+          conduta =
+            "Evaluasi dan manajemen intensif. Pertimbangkan investigasi sepsis dan penyebab kegagalan lainnya.";
+        } else {
+          // totalSOFAScore >= 10
+          interpretacao = "Kegagalan organ berat. Risiko mortalitas tinggi.";
+          resultadoClasse = "bg-sofa-high";
+          conduta =
+            "Manajemen agresif kegagalan organ. Dukungan hidup lanjut dan pencarian aktif penyebab reversibel.";
+        }
+
+        resultadoDiv.innerHTML = `<p>Skor Total SOFA: <strong class="font-bold">${totalSOFAScore}</strong></p><p>Interpretasi: <strong class="font-bold">${interpretacao}</strong></p><p>Tindakan yang Disarankan: <strong class="font-bold">${conduta}</strong></p>`;
+        resultadoDiv.className = `resultado ${resultadoClasse}`;
+
+        resultadoDiv.dataset.score = totalSOFAScore;
+        resultadoDiv.dataset.interpretacao = interpretacao;
+        resultadoDiv.dataset.conduta = conduta;
+        resultadoDiv.dataset.scaleName = "Skala SOFA";
+      }
+
+      function limparCampos() {
+        sofaData.forEach((item) => {
+          const selectElement = document.getElementById(item.nameAttr);
+          selectElement.selectedIndex = 0;
+          document.getElementById(
+            `${item.nameAttr}_score_display`,
+          ).innerText = "0";
+        });
+        resultadoDiv.innerHTML = "";
+        resultadoDiv.className = "resultado hidden";
+        delete resultadoDiv.dataset.score;
+        delete resultadoDiv.dataset.interpretacao;
+        delete resultadoDiv.dataset.conduta;
+        delete resultadoDiv.dataset.scaleName;
+      }
+
+      // Mengisi formulir secara dinamis
+      sofaData.forEach((item, index) => {
+        const sectionDiv = document.createElement("div");
+        sectionDiv.className = "sofa-criterion-card";
+
+        const headerDiv = document.createElement("div");
+        headerDiv.className = "sofa-criterion-header";
+
+        const titleH3 = document.createElement("h3");
+        titleH3.className = "sofa-criterion-title";
+        titleH3.innerText = `${item.category}`;
+        headerDiv.appendChild(titleH3);
+
+        const scoreSpan = document.createElement("span");
+        scoreSpan.className = "sofa-score-display";
+        scoreSpan.id = `${item.nameAttr}_score_display`;
+        scoreSpan.innerText = "0";
+        headerDiv.appendChild(scoreSpan);
+
+        sectionDiv.appendChild(headerDiv);
+
+        const optionsDiv = document.createElement("div");
+        optionsDiv.className = "sofa-criterion-options";
+
+        const selectElement = document.createElement("select");
+        selectElement.id = item.nameAttr;
+        selectElement.className = "sofa-select";
+        selectElement.onchange = () => updateScoreDisplay(item.nameAttr);
+
+        const defaultOption = document.createElement("option");
+        defaultOption.value = "";
+        defaultOption.text = "Pilih...";
+        defaultOption.disabled = true;
+        defaultOption.selected = true;
+        selectElement.appendChild(defaultOption);
+
+        item.options.forEach((option) => {
+          const optionElement = document.createElement("option");
+          optionElement.value = option.score;
+          optionElement.text = `${option.description} (${option.score})`;
+          selectElement.appendChild(optionElement);
+        });
+
+        optionsDiv.appendChild(selectElement);
+        sectionDiv.appendChild(optionsDiv);
+
+        const explanationP = document.createElement("p");
+        explanationP.className = "text-gray-600 text-sm mt-2 text-left";
+        explanationP.innerText = item.explanation;
+        sectionDiv.appendChild(explanationP);
+
+        conteudoDiv.appendChild(sectionDiv);
+      });
+
+      // Menambahkan event listeners ke tombol
+      btnCalcular?.addEventListener("click", calcularPontuacao);
+      btnLimpar?.addEventListener("click", limparCampos);
+
+      btnGerarPDF?.addEventListener("click", () => {
+        if (!resultadoDiv.dataset.score) {
+          alert('Mohon klik "Hitung" terlebih dahulu untuk membuat PDF.');
+          return;
+        }
+        if (typeof gerarPDFGlobal === "function") {
+          gerarPDFGlobal({
+            titulo: "Skala SOFA",
+            subtitulo: "Laporan Evaluasi Kegagalan Organ",
+            nomeArquivo: "laporan_skala_sofa.pdf",
+            seletorConteudo: ".main-content-wrapper",
+          });
+        } else {
+          console.error("Fungsi gerarPDFGlobal tidak terdefinisi.");
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener("click", () => {
+        const score = resultadoDiv.dataset.score;
+        const scaleName = resultadoDiv.dataset.scaleName;
+        const conduta = resultadoDiv.dataset.conduta;
+        if (!score || !conduta) {
+          alert("Hitung hasil untuk mencari tindakan.");
+          return;
+        }
+        const searchQuery = encodeURIComponent(
+          `${scaleName} skor ${score} tindakan ${conduta} menghasilkan taksonomi NANDA, menghasilkan taksonomi NIC dan menghasilkan taksonomi NOC`,
+        );
+        window.open(
+          `https://www.google.com/search?q=${searchQuery}`,
+          "_blank",
+        );
+      });
+    });
+  </script>
 
   <script src="/lang-selector.js" defer=""></script>
 

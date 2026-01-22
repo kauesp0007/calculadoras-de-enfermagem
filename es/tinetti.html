@@ -794,7 +794,109 @@
 
 
 
-  
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const btnCalcular = document.getElementById('btnCalcular');
+      const btnLimpar = document.getElementById('btnLimpar');
+      const btnGerarPDF = document.getElementById('btnGerarPDF');
+      const btnNandaNicNoc = document.getElementById('btnNandaNicNoc');
+      const resultadoDiv = document.getElementById('resultado');
+      const contentDiv = document.getElementById('conteudo');
+      const allSelects = document.querySelectorAll('.tinetti-criterion-select');
+
+      function calcularEscore() {
+        let totalScore = 0;
+        let incompleteFields = 0;
+
+        allSelects.forEach(select => {
+          if (select.value === "") {
+            select.classList.add('incomplete');
+            incompleteFields++;
+          } else {
+            select.classList.remove('incomplete');
+            totalScore += parseInt(select.value, 10);
+          }
+        });
+
+        resultadoDiv.style.display = 'block';
+        if (incompleteFields > 0) {
+          resultadoDiv.innerHTML = '⚠️ <strong class="font-bold">Por favor, complete todos los criterios</strong> antes de calcular la puntuación.';
+          resultadoDiv.className = 'resultado bg-red-100';
+          delete resultadoDiv.dataset.score;
+          return;
+        }
+
+        let interpretacion = '';
+        let recomendacion = '';
+        let resultadoClass = '';
+
+        if (totalScore <= 19) {
+          interpretacion = 'Alto riesgo de caídas';
+          recomendacion = 'Recomendaciones: Evaluar la necesidad de un andador o bastón, revisar la medicación, recomendar fisioterapia, y adaptar el entorno domiciliario para prevenir caídas (eliminar alfombras sueltas, instalar pasamanos, etc.).';
+          resultadoClass = 'bg-red-100';
+        } else if (totalScore >= 20 && totalScore <= 23) {
+          interpretacion = 'Riesgo moderado de caídas';
+          recomendacion = 'Recomendaciones: Educar sobre la prevención de caídas, animar a la práctica de ejercicios para el equilibrio y la fuerza, y realizar evaluaciones periódicas.';
+          resultadoClass = 'bg-blue-100';
+        } else { // totalScore >= 24
+          interpretacion = 'Bajo riesgo de caídas';
+          recomendacion = 'Recomendaciones: Mantener el monitoreo regular y continuar con las actividades que promuevan la movilidad y la fuerza.';
+          resultadoClass = 'bg-green-100';
+        }
+
+        resultadoDiv.innerHTML = `<p>Puntuación Total de la Escala de Tinetti: <strong class="font-bold">${totalScore}</strong></p><p>Interpretación: <strong class="font-bold">${interpretacion}</strong></p><p>Recomendación: <strong class="font-bold">${recomendacion}</strong></p>`;
+        resultadoDiv.className = `resultado ${resultadoClass}`;
+
+        resultadoDiv.dataset.score = totalScore;
+        resultadoDiv.dataset.scaleName = "Escala de Tinetti";
+      }
+
+      function limparCampos() {
+        allSelects.forEach(select => {
+          select.selectedIndex = 0;
+          select.classList.remove('incomplete');
+        });
+        resultadoDiv.innerHTML = '';
+        resultadoDiv.style.display = 'none';
+        delete resultadoDiv.dataset.score;
+        delete resultadoDiv.dataset.interpretacao;
+        delete resultadoDiv.dataset.conduta;
+        delete resultadoDiv.dataset.scaleName;
+      }
+
+      btnCalcular?.addEventListener('click', calcularEscore);
+      btnLimpar?.addEventListener('click', limparCampos);
+
+      btnGerarPDF?.addEventListener('click', () => {
+        if (!resultadoDiv.dataset.score) {
+          alert('Por favor, haga clic en "Calcular" primero para generar el PDF.');
+          return;
+        }
+        if (typeof gerarPDFGlobal === 'function') {
+          gerarPDFGlobal({
+            titulo: 'Escala de Tinetti',
+            subtitulo: 'Informe de Evaluación de Marcha y Equilibrio',
+            nomeArquivo: 'informe_escala_tinetti.pdf',
+            seletorConteudo: '.main-content-wrapper'
+          });
+        } else {
+          console.error('La función gerarPDFGlobal no está definida.');
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener('click', () => {
+        const score = resultadoDiv.dataset.score;
+        const scaleName = resultadoDiv.dataset.scaleName;
+        if (!score) {
+          alert('Calcule el resultado para buscar la conducta.');
+          return;
+        }
+        const recomendacionRisco = score <= 19 ? 'alto riesgo de caída' : 'bajo riesgo de caída';
+        const searchQuery = encodeURIComponent(`cuidados de enfermería para anciano con ${recomendacionRisco} en la Escala de Tinetti NANDA NIC NOC`);
+        window.open(`https://www.google.com/search?q=${searchQuery}`, '_blank');
+      });
+    });
+  </script>
 
 
 

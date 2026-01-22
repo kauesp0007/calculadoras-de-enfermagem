@@ -564,7 +564,131 @@
 
 
 
-  
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const resultadoDiv = document.getElementById("resultado");
+      const conteudoDiv = document.getElementById("conteudo");
+      const btnCalcular = document.getElementById("btnCalcular");
+      const btnLimpar = document.getElementById("btnLimpar");
+      const btnGerarPDF = document.getElementById("btnGerarPDF");
+      const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
+
+      const camData = [
+        {
+          id: "feature1",
+          title: "1. 급성 시작 및 변동성 과정",
+          description:
+            "최근 24시간 동안 정신상태에 갑작스러운 변화가 있었으며 변동했습니까?",
+          options: [
+            { score: 1, text: "예" },
+            { score: 0, text: "아니오" },
+          ],
+        },
+        {
+          id: "feature2",
+          title: "2. 주의력 결핍",
+          description: "환자가 주의를 유지하는 데 어려움이 있습니까?",
+          options: [
+            { score: 1, text: "예 (주의력 결핍 포함)" },
+            { score: 0, text: "아니오 (주의력 결핍 없음)" },
+          ],
+        },
+        {
+          id: "feature3",
+          title: "3. 무조직적 사고",
+          description: "환자가 무조직적이거나 부조화된 추론을 보입니까?",
+          options: [
+            { score: 1, text: "예" },
+            { score: 0, text: "아니오" },
+          ],
+        },
+        {
+          id: "feature4",
+          title: "4. 의식수준 변화",
+          description: "의식수준이 '기민하고 차분함'과 다릅니까 (RASS ≠ 0)?",
+          options: [
+            { score: 1, text: "예 (변화됨)" },
+            { score: 0, text: "아니오 (정상/기민함)" },
+          ],
+        },
+      ];
+
+      function createForm() {
+        conteudoDiv.innerHTML = "";
+        camData.forEach((criterion) => {
+          const card = document.createElement("div");
+          card.className = "criterion-card";
+
+          card.innerHTML = `
+                    <div class="criterion-title-container">
+                        <h3 class="criterion-title">${criterion.title}</h3>
+                        <p class="criterion-description">${criterion.description}</p>
+                    </div>
+                    <div class="options-container">
+                        <select id="${criterion.id}-select" class="custom-select">
+                            <option value="" disabled selected>옵션을 선택하세요...</option>
+                            ${criterion.options.map((opt) => `<option value="${opt.score}">${opt.text}</option>`).join("")}
+                        </select>
+                    </div>
+                `;
+          conteudoDiv.appendChild(card);
+        });
+      }
+
+      function calcular() {
+        let allSelected = true;
+        const selections = {};
+
+        camData.forEach((criterion) => {
+          const select = document.getElementById(`${criterion.id}-select`);
+          if (select && select.value) {
+            selections[criterion.id] = parseInt(select.value, 10);
+          } else {
+            allSelected = false;
+          }
+        });
+
+        if (!allSelected) {
+          resultadoDiv.innerHTML =
+            '⚠️ <strong class="font-bold">각 기준에 대해 옵션을 선택해 주세요.</strong>';
+          resultadoDiv.className = "standard-result-box bg-info-orange-light";
+          resultadoDiv.style.display = "block";
+          delete resultadoDiv.dataset.resultado;
+          return;
+        }
+
+        const feature1 = selections.feature1 === 1;
+        const feature2 = selections.feature2 === 1;
+        const feature3 = selections.feature3 === 1;
+        const feature4 = selections.feature4 === 1;
+
+        let resultadoFinal = "";
+        if (feature1 && feature2 && (feature3 || feature4)) {
+          resultadoFinal = "Delirium 존재";
+        } else {
+          resultadoFinal = "Delirium 없음";
+        }
+
+        resultadoDiv.innerHTML = `<p class="font-bold text-lg">결과: <span class="font-black">${resultadoFinal}</span></p>`;
+        resultadoDiv.className = "standard-result-box";
+        resultadoDiv.style.display = "block";
+        resultadoDiv.dataset.resultado = resultadoFinal;
+      }
+
+      function limpar() {
+        createForm();
+        resultadoDiv.innerHTML = "";
+        resultadoDiv.className = "hidden";
+        delete resultadoDiv.dataset.resultado;
+      }
+
+      createForm();
+      btnCalcular?.addEventListener("click", calcular);
+      btnLimpar?.addEventListener("click", limpar);
+
+      // PDF 및 NANDA 버튼 기능은 동일하게 유지
+    });
+  </script>
 
   <script src="/lang-selector.js" defer=""></script>
 

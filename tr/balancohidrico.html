@@ -792,7 +792,168 @@
 
 
 
-  
+  <script>
+    // Modüler HTML yükleme fonksiyonu
+    function fetchHTML(url, containerId) {
+      fetch(url)
+        .then((response) => (response.ok ? response.text() : Promise.reject()))
+        .then((data) => {
+          const container = document.getElementById(containerId);
+          if (container) container.innerHTML = data;
+        })
+        .catch((error) => console.error(`Yükleme hatası ${url}:`, error));
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      // Modülleri yükle
+      fetchHTML("/menu-global.html", "global-header-container");
+
+
+      // --- KENAR ÇUBUĞU MANTIĞI ---
+      const toggleSidebarBtn = document.getElementById("toggleSidebarBtn");
+      const closeSidebarBtn = document.getElementById("closeSidebarBtn");
+      const sidebarOverlay = document.getElementById("sidebarOverlay");
+      const infoSidebar = document.getElementById("infoSidebar");
+
+      function openSidebar() {
+        if (infoSidebar && sidebarOverlay && toggleSidebarBtn) {
+          infoSidebar.classList.add("open");
+          sidebarOverlay.classList.add("open");
+          infoSidebar.setAttribute("aria-hidden", "false");
+          toggleSidebarBtn.setAttribute("aria-expanded", "true");
+          document.body.style.overflow = "hidden";
+        }
+      }
+
+      function closeSidebar() {
+        if (infoSidebar && sidebarOverlay && toggleSidebarBtn) {
+          infoSidebar.classList.remove("open");
+          sidebarOverlay.classList.remove("open");
+          infoSidebar.setAttribute("aria-hidden", "true");
+          toggleSidebarBtn.setAttribute("aria-expanded", "false");
+          document.body.style.overflow = "";
+        }
+      }
+
+      toggleSidebarBtn?.addEventListener("click", openSidebar);
+      closeSidebarBtn?.addEventListener("click", closeSidebar);
+      sidebarOverlay?.addEventListener("click", closeSidebar);
+      // --- KENAR ÇUBUĞU MANTIĞI SONU ---
+
+      const resultadoDiv = document.getElementById("resultado");
+      const btnCalcular = document.getElementById("btnCalcular");
+      const btnLimpar = document.getElementById("btnLimpar");
+      const btnGerarPDF = document.getElementById("btnGerarPDF");
+      const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
+
+      function calcularBalanco() {
+        const ingestaoOral =
+          parseFloat(document.getElementById("ingestaoOral").value) || 0;
+        const ingestaoSonda =
+          parseFloat(document.getElementById("ingestaoSonda").value) || 0;
+        const ingestaoParenteral =
+          parseFloat(document.getElementById("ingestaoParenteral").value) ||
+          0;
+        const ingestaoOutros =
+          parseFloat(document.getElementById("ingestaoOutros").value) || 0;
+
+        const eliminacaoUrina =
+          parseFloat(document.getElementById("eliminacaoUrina").value) || 0;
+        const eliminacaoVomito =
+          parseFloat(document.getElementById("eliminacaoVomito").value) || 0;
+        const eliminacaoDrenos =
+          parseFloat(document.getElementById("eliminacaoDrenos").value) || 0;
+        const eliminacaoOutros =
+          parseFloat(document.getElementById("eliminacaoOutros").value) || 0;
+
+        const totalIngestao =
+          ingestaoOral + ingestaoSonda + ingestaoParenteral + ingestaoOutros;
+        const totalEliminacao =
+          eliminacaoUrina +
+          eliminacaoVomito +
+          eliminacaoDrenos +
+          eliminacaoOutros;
+        const balanco = totalIngestao - totalEliminacao;
+
+        // Göster
+        resultadoDiv.style.display = "block";
+
+        let classificacao = "";
+
+        if (balanco > 0) {
+          classificacao = "Pozitif Sıvı Dengesi (Sıvı Tutulumu)";
+        } else if (balanco < 0) {
+          classificacao = "Negatif Sıvı Dengesi (Sıvı Kaybı)";
+        } else {
+          classificacao = "Dengeli Sıvı Dengesi (Sıfır)";
+        }
+
+        // Kompakt Format (İstek üzerine hepsi koyu mavi ve kalın)
+        const resultadoTexto = `
+            <p style="margin: 0; color: #1a3e74; font-size: 1.05rem; line-height: 1.6;">
+                <span style="font-weight: 800;">Nihai Sonuç:</span> Toplam Alım: ${totalIngestao} ml | Toplam Çıkarılan: ${totalEliminacao} ml<br>
+                <span style="font-weight: 800;">Denge:</span> ${balanco} ml<br>
+                <span style="font-weight: 800;">${classificacao}</span>
+            </p>
+          `;
+
+        resultadoDiv.innerHTML = resultadoTexto;
+        // Yarı saydam mavi kutu stilini uygula
+        resultadoDiv.className = "resultado"; // CSS sınıfı #resultado zaten tanımlı
+
+        resultadoDiv.dataset.score = balanco;
+        resultadoDiv.dataset.classificacao = classificacao;
+        resultadoDiv.dataset.scaleName = "Sıvı Dengesi";
+      }
+
+      function limparCampos() {
+        const inputs = document.querySelectorAll("input[type='number']");
+        inputs.forEach(input => input.value = "");
+        resultadoDiv.innerHTML = "";
+        resultadoDiv.style.display = "none";
+        delete resultadoDiv.dataset.score;
+        delete resultadoDiv.dataset.classificacao;
+        delete resultadoDiv.dataset.scaleName;
+      }
+
+      btnCalcular?.addEventListener("click", calcularBalanco);
+      btnLimpar?.addEventListener("click", limparCampos);
+
+      btnGerarPDF?.addEventListener("click", () => {
+        if (!resultadoDiv.dataset.score) {
+          alert('PDF oluşturmak için önce lütfen "Hesapla"ya tıklayın.');
+          return;
+        }
+        if (typeof gerarPDFGlobal === "function") {
+          gerarPDFGlobal({
+            titulo: "Sıvı Dengesi",
+            subtitulo: "Sıvı Alım ve Atılım Raporu",
+            nomeArquivo: "sivi_dengesi_raporu.pdf",
+            seletorConteudo: ".main-content-wrapper",
+          });
+        } else {
+          console.error("gerarPDFGlobal fonksiyonu tanımlanmamış.");
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener("click", () => {
+        const score = resultadoDiv.dataset.score;
+        const scaleName = resultadoDiv.dataset.scaleName;
+        const classificacao = resultadoDiv.dataset.classificacao;
+        if (!score && score !== 0) { // Hesaplanıp hesaplanmadığını kontrol et
+          alert("Eylemleri aramak için sonucu hesaplayın.");
+          return;
+        }
+        const searchQuery = encodeURIComponent(
+          `${scaleName} sonuç ${score} ml, sınıflandırma ${classificacao} NANDA taksonomisi oluştur, NIC taksonomisi oluştur ve NOC taksonomisi oluştur`,
+        );
+        window.open(
+          `https://www.google.com/search?q=${searchQuery}`,
+          "_blank",
+        );
+      });
+    });
+  </script>
 
   <div id="footer-placeholder"></div>
   <script src="/lang-selector.js" defer=""></script>

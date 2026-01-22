@@ -551,7 +551,148 @@
 
 
 
-  
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const resultadoDiv = document.getElementById("resultado");
+      const btnCalcular = document.getElementById("btnCalcular");
+      const btnLimpar = document.getElementById("btnLimpar");
+      const btnGerarPDF = document.getElementById("btnGerarPDF");
+      const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
+      const conteudoDiv = document.getElementById("conteudo");
+
+      // Dados do Protocolo de Manchester
+      const manchesterData = [
+        { question: "Block block", score: 3 },
+        { question: "Fatal Khó", score: 5 },
+        { question: "Sự nhầm lẫn/kích thước", score: 2 },
+        { question: "Buồn ngủ/mất phương hướng", score: 3 },
+        { question: "Ông thức", score: 5 },
+        { question: "Đau nhẹ (1–3)", score: 1 },
+        { question: "Đau vừa phải (4–6)", score: 2 },
+        { question: "Đau dữ dội (7–10)", score: 3 },
+        { question: "HA < 90 hoặc HR > 130", score: 3 },
+        { question: "Tay chân lạnh/mồ hôi", score: 2 },
+        { question: "Chảy máu nhẹ", score: 1 },
+        { question: "Chảy máu vừa phải", score: 2 },
+        { question: "Chảy máu nặng", score: 3 },
+        { question: "Sốt vừa phải (38–39oC)", score: 1 },
+        { question: "Sốt cao (>39oC)", score: 2 },
+        { question: "Hạ thân nhiệt (<36oC)", score: 2 },
+        { question: "Điểm yếu/tê liệt khu trú", score: 3 },
+        { question: "Cơn co giật gần đây", score: 4 },
+        { question: "Thay đổi giác giác/hình giác giác đột ngột", score: 2 }];
+
+
+      // Preenche o formulário dinamicamente
+      manchesterData.forEach((item, index) => {
+        const sectionDiv = document.createElement("div");
+        sectionDiv.className = "manchester-criterion-card";
+
+        const itemLabel = document.createElement("label");
+        itemLabel.className = "manchester-criterion-item";
+
+        const inputCheckbox = document.createElement("input");
+        inputCheckbox.type = "checkbox";
+        inputCheckbox.name = "triệu chứng";
+        inputCheckbox.value = item.score;
+        inputCheckbox.id = `sintoma-${index}`;
+
+        const textSpan = document.createElement("span");
+        textSpan.innerText = `${item.question} (${item.score} điểm)`;
+
+        itemLabel.appendChild(inputCheckbox);
+        itemLabel.appendChild(textSpan);
+        sectionDiv.appendChild(itemLabel);
+        conteudoDiv.appendChild(sectionDiv);
+      });
+
+      function calcularManchester() {
+        const checkboxes = document.querySelectorAll(
+          '#conteudo input[type="checkbox"]:checked'
+        );
+        let total = 0;
+        checkboxes.forEach((c) => total += parseInt(c.value));
+
+        let classificacao = "";
+        let corClasse = "";
+
+        if (total >= 12) {
+          classificacao = "Đỏ – Ngay lập tức";
+          corClasse = "bg-red";
+        } else if (total >= 9) {
+          classificacao = "Cam – Tối đa 10 phút";
+          corClasse = "bg-orange";
+        } else if (total >= 6) {
+          classificacao = "Vàng – Tối đa 60 phút";
+          corClasse = "bg-yellow";
+        } else if (total >= 3) {
+          classificacao = "Xanh lá cây – Tối đa 120 phút";
+          corClasse = "bg-green";
+        } else {
+          classificacao = "Xanh lam – Tối đa 240 phút";
+          corClasse = "bg-blue";
+        }
+
+        resultadoDiv.innerHTML = `<p><strong>${classificacao}</strong></p><p>Escore total: <strong class="font-bold">${total}</strong></p>`;
+        resultadoDiv.className = `kết quả ${colorClass}`;
+        resultadoDiv.style.display = "block";
+
+        resultadoDiv.dataset.classificacao = classificacao;
+        resultadoDiv.dataset.escore = total;
+        resultadoDiv.dataset.scaleName = "Nghị định thư Manchester";
+      }
+
+      function limparCampos() {
+        const checkboxes = document.querySelectorAll(
+          '#conteudo input[type="checkbox"]'
+        );
+        checkboxes.forEach((c) => c.checked = false);
+
+        resultadoDiv.innerHTML = "";
+        resultadoDiv.className = "kết quả ẩn";
+        delete resultadoDiv.dataset.classificacao;
+        delete resultadoDiv.dataset.escore;
+        delete resultadoDiv.dataset.scaleName;
+      }
+
+      // Adiciona os event listeners aos botões
+      btnCalcular?.addEventListener("click", calcularManchester);
+      btnLimpar?.addEventListener("click", limparCampos);
+
+      btnGerarPDF?.addEventListener("click", () => {
+        if (!resultadoDiv.dataset.escore) {
+          alert("Xem những gì bạn có thể thấy \"Tính toán\" trước để tạo thành tệp PDF.");
+          return;
+        }
+        if (typeof gerarPDFGlobal === "chức năng") {
+          gerarPDFGlobal({
+            titulo: "Nghị định thư Manchester",
+            subtitulo: "Báo cáo rủi ro phân loại cao",
+            nomeArquivo: "protocolo_manchester.pdf",
+            seletorConteudo: ".main-content-wrapper"
+          });
+        } else {
+          console.error("Bạn không thể tạo PDFGlobal không được xác định.");
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener("click", () => {
+        const escore = resultadoDiv.dataset.escore;
+        const classificacao = resultadoDiv.dataset.classificacao;
+        const scaleName = resultadoDiv.dataset.scaleName;
+        if (!escore || !classificacao) {
+          alert("Tính toán kết quả để nghiên cứu hành động vi.");
+          return;
+        }
+        const searchQuery = encodeURIComponent(
+          `${scaleName} điểm ${score} phân loại ${classificacao} tạo phân loại NANDA, tạo phân loại NIC và tạo phân loại NOC`
+        );
+        window.open(
+          `https://www.google.com/search?q=${searchQuery}`,
+          "_blank"
+        );
+      });
+    });</script>
 
   <script src="/lang-selector.js" defer=""></script>
 

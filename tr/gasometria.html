@@ -747,7 +747,191 @@
   <script src="/lang-selector.js" defer=""></script>
 
   <!-- Script da Página -->
-  
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const resultadoDiv = document.getElementById("resultado");
+      const btnCalcular = document.getElementById("btnCalcular");
+      const btnLimpar = document.getElementById("btnLimpar");
+      const btnGerarPDF = document.getElementById("btnGerarPDF");
+      const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
+
+      // Inputs
+      const inputs = {
+        ph: document.getElementById("ph"),
+        paco2: document.getElementById("paco2"),
+        hco3: document.getElementById("hco3"),
+        sato2: document.getElementById("sato2"),
+        be: document.getElementById("be"),
+      };
+
+      // Spans de erro
+      const errors = {
+        ph: document.getElementById("ph-error"),
+        paco2: document.getElementById("paco2-error"),
+        hco3: document.getElementById("hco3-error"),
+        sato2: document.getElementById("sato2-error"),
+        be: document.getElementById("be-error"),
+      };
+
+      function interpretarGasometria() {
+        let hasError = false;
+        const valores = {};
+
+        for (const key in inputs) {
+          const input = inputs[key];
+          const errorSpan = errors[key];
+          const value = parseFloat(input.value);
+
+          errorSpan.classList.add("hidden");
+          if (key !== "be" && (isNaN(value) || value <= 0)) {
+            errorSpan.textContent = "Geçersiz değer.";
+            errorSpan.classList.remove("hidden");
+            hasError = true;
+          } else if (key === "be" && isNaN(value)) {
+            errorSpan.textContent = "Geçersiz değer.";
+            errorSpan.classList.remove("hidden");
+            hasError = true;
+          } else {
+            valores[key] = value;
+          }
+        }
+
+        if (hasError) {
+          resultadoDiv.style.display = "block";
+          resultadoDiv.innerHTML =
+            '<strong class="text-red-600">Lütfen geçersiz değerleri düzeltin.</strong>';
+          resultadoDiv.className = "resultado bg-info-orange-light mt-4 p-4 rounded-lg";
+          return;
+        }
+
+        const { ph, paco2, hco3, sato2, be } = valores;
+
+        // Lógica de Interpretação
+        let disturbioFinal = "";
+        let condutas = [];
+
+        const PH_MIN = 7.35, PH_MAX = 7.45;
+        const PACO2_MIN = 35, PACO2_MAX = 45;
+        const HCO3_MIN = 22, HCO3_MAX = 26;
+        const SATO2_MIN = 90;
+
+        if (ph < PH_MIN) {
+          if (paco2 > PACO2_MAX && hco3 >= HCO3_MIN && hco3 <= HCO3_MAX) {
+            disturbioFinal = "Dekompanse Solunumsal Asidoz";
+          } else if (hco3 < HCO3_MIN && paco2 >= PACO2_MIN && paco2 <= PACO2_MAX) {
+            disturbioFinal = "Dekompanse Metabolik Asidoz";
+          } else if (paco2 > PACO2_MAX && hco3 > HCO3_MAX) {
+            disturbioFinal = "Kısmen Kompanse Solunumsal Asidoz";
+          } else if (hco3 < HCO3_MIN && paco2 < PACO2_MIN) {
+            disturbioFinal = "Kısmen Kompanse Metabolik Asidoz";
+          } else if (paco2 > PACO2_MAX && hco3 < HCO3_MIN) {
+            disturbioFinal = "Karışık Bozukluk: Solunumsal ve Metabolik Asidoz";
+          } else {
+            disturbioFinal = "Asidemi (çelişkili parametreler)";
+          }
+        } else if (ph > PH_MAX) {
+          if (paco2 < PACO2_MIN && hco3 >= HCO3_MIN && hco3 <= HCO3_MAX) {
+            disturbioFinal = "Dekompanse Solunumsal Alkaloz";
+          } else if (hco3 > HCO3_MAX && paco2 >= PACO2_MIN && paco2 <= PACO2_MAX) {
+            disturbioFinal = "Dekompanse Metabolik Alkaloz";
+          } else if (paco2 < PACO2_MIN && hco3 < HCO3_MIN) {
+            disturbioFinal = "Kısmen Kompanse Solunumsal Alkaloz";
+          } else if (hco3 > HCO3_MAX && paco2 > PACO2_MAX) {
+            disturbioFinal = "Kısmen Kompanse Metabolik Alkaloz";
+          } else if (paco2 < PACO2_MIN && hco3 > HCO3_MAX) {
+            disturbioFinal = "Karışık Bozukluk: Solunumsal ve Metabolik Alkaloz";
+          } else {
+            disturbioFinal = "Alkalemi (çelişkili parametreler)";
+          }
+        } else {
+          if (paco2 > PACO2_MAX && hco3 > HCO3_MAX) {
+            disturbioFinal = "Kompanse Solunumsal Asidoz";
+          } else if (paco2 < PACO2_MIN && hco3 < HCO3_MIN) {
+            disturbioFinal = "Kompanse Solunumsal Alkaloz";
+          } else if (paco2 < PACO2_MIN && hco3 > HCO3_MAX) {
+            disturbioFinal = "Karışık Bozukluk (pH normal)";
+          } else if (paco2 > PACO2_MAX && hco3 < HCO3_MIN) {
+            disturbioFinal = "Karışık Bozukluk (pH normal)";
+          } else if (hco3 < HCO3_MIN) {
+            disturbioFinal = "Kompanse Metabolik Asidoz";
+          } else if (hco3 > HCO3_MAX) {
+            disturbioFinal = "Kompanse Metabolik Alkaloz";
+          } else {
+            disturbioFinal = "Normal Asit-Baz Dengesi";
+          }
+        }
+
+        if (disturbioFinal.includes("Solunumsal Asidoz")) condutas.push("Ventilasyonu değerlendirin, NIV veya entübasyon düşünün.");
+        if (disturbioFinal.includes("Solunumsal Alkaloz")) condutas.push("Anksiyete/ağrı kontrolü, ventilatör ayarı.");
+        if (disturbioFinal.includes("Metabolik Asidoz")) condutas.push("Altta yatan nedeni tedavi edin (sepsis, ketoasidoz, böbrek).");
+        if (disturbioFinal.includes("Metabolik Alkaloz")) condutas.push("Hacim ve K+ replasmanı, kusma/diüretikleri düzeltin.");
+        if (sato2 < SATO2_MIN) condutas.push("Hipoksemi: O₂ desteği sağlayın.");
+        if (condutas.length === 0) condutas.push("İzlemeye devam edin.");
+
+        // Formatar Resultado (Estilo Solicitado Compacto)
+        let htmlResultado = `
+            <div>
+                <span class="res-label">Yorumlama:</span>
+                <span class="res-text">${disturbioFinal}</span>
+
+                <span class="res-label">Önerilen Yaklaşım:</span>
+                <span class="res-text">${condutas.join(" ")}</span>
+            </div>
+          `;
+
+        resultadoDiv.innerHTML = htmlResultado;
+        resultadoDiv.className = "resultado"; // Usa o estilo CSS definido no head
+        resultadoDiv.style.display = "block";
+
+        resultadoDiv.dataset.resultado = disturbioFinal;
+        resultadoDiv.dataset.scaleName = "Arter Kan Gazı Yorumlama";
+      }
+
+      function limparCampos() {
+        for (const key in inputs) {
+          inputs[key].value = "";
+          errors[key].classList.add("hidden");
+        }
+        resultadoDiv.innerHTML = "";
+        resultadoDiv.style.display = "none";
+        delete resultadoDiv.dataset.resultado;
+        delete resultadoDiv.dataset.scaleName;
+      }
+
+      btnCalcular?.addEventListener("click", interpretarGasometria);
+      btnLimpar?.addEventListener("click", limparCampos);
+
+      btnGerarPDF?.addEventListener("click", () => {
+        if (!resultadoDiv.dataset.resultado) {
+          alert('PDF oluşturmak için önce hesaplama yapın.');
+          return;
+        }
+        if (typeof gerarPDFGlobal === "function") {
+          gerarPDFGlobal({
+            titulo: "Arter Kan Gazı Yorumlama",
+            subtitulo: "Asit-Baz Değerlendirme Raporu",
+            nomeArquivo: "kan_gazi_raporu.pdf",
+            seletorConteudo: ".main-content-wrapper",
+          });
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener("click", () => {
+        const resultado = resultadoDiv.dataset.resultado;
+        if (!resultado) {
+          alert('Önce hesaplama yapın.');
+          return;
+        }
+        const searchQuery = encodeURIComponent(
+          `${resultado} ile ilgili hemşirelik tanısı NANDA NIC NOC`,
+        );
+        window.open(
+          `https://www.google.com/search?q=${searchQuery}`,
+          "_blank",
+        );
+      });
+    });
+  </script>
 
   
 

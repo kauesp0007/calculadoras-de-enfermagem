@@ -567,7 +567,224 @@
 
 
 
-  
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const resultadoDiv = document.getElementById("resultado");
+      const btnCalcular = document.getElementById("btnCalcular");
+      const btnLimpar = document.getElementById("btnLimpar");
+      const btnGerarPDF = document.getElementById("btnGerarPDF");
+      const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
+      const conteudoDiv = document.getElementById("conteudo");
+
+      // Data Skor Bishop
+      const bishopData = [
+        {
+          category: "Dilatasi Serviks",
+          nameAttr: "dilatacao",
+          options: [
+            { description: "0 cm", score: 0 },
+            { description: "1-2 cm", score: 1 },
+            { description: "3-4 cm", score: 2 },
+            { description: "≥ 5 cm", score: 3 },
+          ],
+          explain:
+            "Pembukaan serviks, diukur dalam sentimeter. Semakin besar dilatasi, semakin tinggi skornya.",
+        },
+        {
+          category: "Penipisan Serviks",
+          nameAttr: "apagamento",
+          options: [
+            { description: "0-30%", score: 0 },
+            { description: "40-50%", score: 1 },
+            { description: "60-70%", score: 2 },
+            { description: "≥ 80%", score: 3 },
+          ],
+          explain:
+            "Penipisan dan pemendekan serviks dibandingkan dengan panjang aslinya. Dinyatakan dalam persentase. Semakin tinggi persentase, semakin tinggi skornya.",
+        },
+        {
+          category: "Konsistensi Serviks",
+          nameAttr: "consistencia",
+          options: [
+            { description: "Keras", score: 0 },
+            { description: "Sedang", score: 1 },
+            { description: "Lunak", score: 2 },
+          ],
+          explain:
+            "Menentukan kekerasan serviks saat palpasi. Serviks yang lebih lunak lebih matang dan siap untuk persalinan.",
+        },
+        {
+          category: "Posisi Serviks",
+          nameAttr: "posicao",
+          options: [
+            { description: "Posterior", score: 0 },
+            { description: "Tengah", score: 1 },
+            { description: "Anterior", score: 2 },
+          ],
+          explain:
+            "Lokasi serviks relatif terhadap sumbu panggul. Serviks dalam posisi anterior menunjukkan kematangan yang lebih baik.",
+        },
+        {
+          category: "Stasion Presentasi Janin",
+          nameAttr: "estacao",
+          options: [
+            { description: "-3", score: 0 },
+            { description: "-2", score: 1 },
+            { description: "-1 atau 0", score: 2 },
+            { description: "+1 atau +2", score: 3 },
+          ],
+          explain:
+            "Posisi kepala bayi relatif terhadap spina iskiadika panggul ibu. Stasion diukur dalam sentimeter, dengan 0 sebagai titik referensi. Semakin ke bawah (+), semakin tinggi skornya.",
+        },
+      ];
+
+      // Isi formulir secara dinamis
+      bishopData.forEach((item) => {
+        const sectionDiv = document.createElement("div");
+        sectionDiv.className = "bishop-criterion-section";
+        sectionDiv.id = `section-${item.nameAttr}`;
+
+        const titleH3 = document.createElement("h3");
+        titleH3.className = "bishop-criterion-title";
+        titleH3.innerHTML =
+          item.category +
+          `
+              <div class="text-sm font-normal text-gray-500 mt-1">${item.explain}</div>`;
+        sectionDiv.appendChild(titleH3);
+
+        const selectElement = document.createElement("select");
+        selectElement.id = item.nameAttr;
+        selectElement.className = "bishop-criterion-select";
+
+        const defaultOption = document.createElement("option");
+        defaultOption.value = "";
+        defaultOption.text = "Pilih...";
+        selectElement.appendChild(defaultOption);
+
+        item.options.forEach((option) => {
+          const optionElement = document.createElement("option");
+          optionElement.value = option.score;
+          optionElement.text = `${option.description} (poin: ${option.score})`;
+          selectElement.appendChild(optionElement);
+        });
+
+        sectionDiv.appendChild(selectElement);
+        conteudoDiv.appendChild(sectionDiv);
+      });
+
+      function calcularBishop() {
+        const selects = document.querySelectorAll("#conteudo select");
+        let allSelected = true;
+        let total = 0;
+
+        selects.forEach((select) => {
+          if (select.value === "") {
+            allSelected = false;
+            select.classList.add("incomplete");
+          } else {
+            select.classList.remove("incomplete");
+            total += Number(select.value);
+          }
+        });
+
+        resultadoDiv.style.display = "block";
+        if (!allSelected) {
+          resultadoDiv.innerHTML =
+            '⚠️ <strong class="font-bold">Silakan pilih satu opsi untuk semua item sebelum menghitung.</strong>';
+          resultadoDiv.classList.add("bg-red-100");
+          resultadoDiv.classList.remove("bg-yellow-100", "bg-blue-50");
+          delete resultadoDiv.dataset.score;
+          return;
+        }
+
+        let classificacao = "";
+        let recomendacao = "";
+        let resultadoClasse = "";
+
+        if (total < 6) {
+          classificacao = "Serviks Tidak Menguntungkan / Belum Matang";
+          recomendacao =
+            "Serviks belum matang. Mungkin diperlukan metode pematangan serviks sebelum mencoba induksi persalinan.";
+          resultadoClasse = "bg-red-100";
+        } else if (total >= 6 && total <= 7) {
+          classificacao = "Zona Ketidakpastian";
+          recomendacao =
+            "Induksi dapat dicoba, tetapi keberhasilan tidak dijamin. Pemantauan yang cermat sangat penting.";
+          resultadoClasse = "bg-yellow-100";
+        } else {
+          // total >= 8
+          classificacao = "Serviks Menguntungkan / Matang";
+          recomendacao =
+            "Serviks sudah matang, dengan kemungkinan tinggi keberhasilan induksi persalinan. Persalinan spontan mungkin akan segera terjadi.";
+          resultadoClasse = "bg-blue-50";
+        }
+
+        resultadoDiv.innerHTML = `
+                <p>Skor total: <strong class="font-bold">${total}</strong></p>
+                <p>Klasifikasi: <strong class="font-bold">${classificacao}</strong></p>
+                <p class="mt-4"><strong>Rekomendasi:</strong> ${recomendacao}</p>
+            `;
+        resultadoDiv.className = `resultado ${resultadoClasse}`;
+        resultadoDiv.style.display = "block";
+
+        resultadoDiv.dataset.score = total;
+        resultadoDiv.dataset.scaleName = "Skor Bishop";
+        resultadoDiv.dataset.classificacao = classificacao;
+      }
+
+      function limparCampos() {
+        const selects = document.querySelectorAll("#conteudo select");
+        selects.forEach((select) => {
+          select.selectedIndex = 0;
+          select.classList.remove("incomplete");
+        });
+        resultadoDiv.innerHTML = "";
+        resultadoDiv.className = "resultado hidden";
+        delete resultadoDiv.dataset.score;
+        delete resultadoDiv.dataset.scaleName;
+        delete resultadoDiv.dataset.classificacao;
+      }
+
+      btnCalcular?.addEventListener("click", calcularBishop);
+      btnLimpar?.addEventListener("click", limparCampos);
+
+      btnGerarPDF?.addEventListener("click", () => {
+        if (!resultadoDiv.dataset.score) {
+          alert(
+            'Silakan klik "Hitung Skor" terlebih dahulu untuk membuat PDF.',
+          );
+          return;
+        }
+        if (typeof gerarPDFGlobal === "function") {
+          gerarPDFGlobal({
+            titulo: "Skor Bishop",
+            subtitulo: "Laporan Penilaian Serviks",
+            nomeArquivo: "laporan_skor_bishop.pdf",
+            seletorConteudo: ".main-content-wrapper",
+          });
+        } else {
+          console.error("Fungsi gerarPDFGlobal tidak didefinisikan.");
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener("click", () => {
+        const score = resultadoDiv.dataset.score;
+        const scaleName = resultadoDiv.dataset.scaleName;
+        const classificacao = resultadoDiv.dataset.classificacao;
+        if (!score || !classificacao) {
+          alert("Hitung hasil untuk mencari tindakan.");
+          return;
+        }
+        const searchQuery = encodeURIComponent(
+          `${scaleName} skor ${score} persalinan ${classificacao} buat taksonomi NANDA, buat taksonomi NIC dan buat taksonomi NOC`,
+        );
+        window.open(
+          `https://www.google.com/search?q=${searchQuery}`,
+          "_blank",
+        );
+      });
+    });
+  </script>
 
   <script src="/id/lang-selector.js" defer=""></script>
 

@@ -619,7 +619,203 @@
 
 
 
-  
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const resultadoDiv = document.getElementById('resultado');
+      const btnCalcular = document.getElementById('btnCalcular');
+      const btnLimpar = document.getElementById('btnLimpar');
+      const btnGerarPDF = document.getElementById('btnGerarPDF');
+      const btnNandaNicNoc = document.getElementById('btnNandaNicNoc');
+      const conteudoDiv = document.getElementById('conteudo');
+
+      const jouvetData = [
+        {
+          parameter: "感知性",
+          nameAttr: "perceptividade",
+          options: [
+            { description: "清醒，服从复杂命令，包括书面命令", score: 5 },
+            { description: "意识模糊，不服从书面命令", score: 4 },
+            { description: "只服从口头命令", score: 3 },
+            { description: "只呈现眨眼反应", score: 2 },
+            { description: "无眨眼反应", score: 1 }
+          ]
+        },
+        {
+          parameter: "非特异性反应性",
+          nameAttr: "reatividadeInespecifica",
+          options: [
+            { description: "对语言刺激醒来并定向", score: 3 },
+            { description: "对语言刺激仅醒来", score: 2 },
+            { description: "对语言刺激不醒来", score: 1 }
+          ]
+        },
+        {
+          parameter: "疼痛特异性反应性",
+          nameAttr: "reatividadeDor",
+          options: [
+            { description: "醒来、回避、表现手势和发声", score: 4 },
+            { description: "醒来、回避，无手势和发声", score: 3 },
+            { description: "仅运动性回避", score: 2 },
+            { description: "阴性反应", score: 1 }
+          ]
+        },
+        {
+          parameter: "自主神经反应性",
+          nameAttr: "reatividadeAutonomica",
+          options: [
+            { description: "心动过速、呼吸急促、瞳孔散大", score: 2 },
+            { description: "阴性反应", score: 1 }
+          ]
+        }
+      ];
+
+      // --- 朱韦计算器功能 ---
+      function updateScoreDisplay(criterionId) {
+        const selectElement = document.getElementById(criterionId);
+        const scoreDisplayElement = document.getElementById(`${criterionId}_score_display`);
+        if (selectElement && scoreDisplayElement) {
+          scoreDisplayElement.innerText = selectElement.value === "" ? "0" : selectElement.value;
+        }
+      }
+
+      function calcularPontuacao() {
+        let totalScore = 0;
+        let allCategoriesSelected = true;
+
+        jouvetData.forEach(item => {
+          const selectElement = document.getElementById(item.nameAttr);
+          if (selectElement.value === "") {
+            allCategoriesSelected = false;
+          } else {
+            totalScore += parseInt(selectElement.value, 10);
+          }
+        });
+
+        resultadoDiv.style.display = "block";
+        if (!allCategoriesSelected) {
+          resultadoDiv.innerHTML = '⚠️ <strong class="font-bold">请在计算前为每个参数选择一个选项。</strong>';
+          resultadoDiv.className = 'resultado bg-info-orange-light';
+          delete resultadoDiv.dataset.score;
+          return;
+        }
+
+        let nivelJouvet = "";
+        let resultadoClasse = '';
+
+        if (totalScore >= 10) {
+          nivelJouvet = "第一级";
+          resultadoClasse = 'bg-jouvet-1';
+        } else if (totalScore >= 7) {
+          nivelJouvet = "第二级";
+          resultadoClasse = 'bg-jouvet-2';
+        } else {
+          nivelJouvet = "第三级";
+          resultadoClasse = 'bg-jouvet-3';
+        }
+
+        resultadoDiv.innerHTML = `<p>朱韦量表总分: <strong class="font-bold">${totalScore}</strong></p><p>朱韦昏迷级别: <strong class="font-bold">${nivelJouvet}</strong></p>`;
+        resultadoDiv.className = `resultado ${resultadoClasse}`;
+
+        resultadoDiv.dataset.score = totalScore;
+        resultadoDiv.dataset.nivel = nivelJouvet;
+        resultadoDiv.dataset.scaleName = "朱韦昏迷量表";
+      }
+
+      function limparCampos() {
+        jouvetData.forEach(item => {
+          const selectElement = document.getElementById(item.nameAttr);
+          selectElement.selectedIndex = 0;
+          document.getElementById(`${item.nameAttr}_score_display`).innerText = '0';
+        });
+        resultadoDiv.innerHTML = '';
+        resultadoDiv.className = 'resultado hidden';
+        delete resultadoDiv.dataset.score;
+        delete resultadoDiv.dataset.nivel;
+        delete resultadoDiv.dataset.scaleName;
+      }
+
+      // 动态填充表单
+      jouvetData.forEach((item, index) => {
+        const sectionDiv = document.createElement('div');
+        sectionDiv.className = 'jouvet-criterion-card';
+
+        const headerDiv = document.createElement('div');
+        headerDiv.className = 'jouvet-criterion-header';
+
+        const titleH3 = document.createElement('h3');
+        titleH3.className = 'jouvet-criterion-title';
+        titleH3.innerText = item.parameter;
+        headerDiv.appendChild(titleH3);
+
+        const scoreSpan = document.createElement('span');
+        scoreSpan.className = 'jouvet-score-display';
+        scoreSpan.id = `${item.nameAttr}_score_display`;
+        scoreSpan.innerText = '0';
+        headerDiv.appendChild(scoreSpan);
+
+        sectionDiv.appendChild(headerDiv);
+
+        const optionsDiv = document.createElement('div');
+        optionsDiv.className = 'jouvet-criterion-options';
+
+        const selectElement = document.createElement('select');
+        selectElement.id = item.nameAttr;
+        selectElement.className = 'jouvet-select';
+        selectElement.onchange = () => updateScoreDisplay(item.nameAttr);
+
+        const defaultOption = document.createElement('option');
+        defaultOption.value = "";
+        defaultOption.text = "请选择...";
+        defaultOption.disabled = true;
+        defaultOption.selected = true;
+        selectElement.appendChild(defaultOption);
+
+        item.options.forEach(option => {
+          const optionElement = document.createElement('option');
+          optionElement.value = option.score;
+          optionElement.text = `${option.description} (${option.score})`;
+          selectElement.appendChild(optionElement);
+        });
+
+        optionsDiv.appendChild(selectElement);
+        sectionDiv.appendChild(optionsDiv);
+        conteudoDiv.appendChild(sectionDiv);
+      });
+
+      // 为按钮添加事件监听器
+      btnCalcular?.addEventListener('click', calcularPontuacao);
+      btnLimpar?.addEventListener('click', limparCampos);
+
+      btnGerarPDF?.addEventListener('click', () => {
+        if (!resultadoDiv.dataset.score) {
+          alert('请先点击"计算"按钮生成PDF。');
+          return;
+        }
+        if (typeof gerarPDFGlobal === 'function') {
+          gerarPDFGlobal({
+            titulo: '朱韦昏迷量表',
+            subtitulo: '意识水平评估报告',
+            nomeArquivo: 'jouvet_scale_report.pdf',
+            seletorConteudo: '.main-content-wrapper'
+          });
+        } else {
+          console.error('函数gerarPDFGlobal未定义。');
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener('click', () => {
+        const score = resultadoDiv.dataset.score;
+        const scaleName = resultadoDiv.dataset.scaleName;
+        const nivel = resultadoDiv.dataset.nivel;
+        if (!score || !nivel) {
+          alert('请先计算结果再搜索护理措施。');
+          return;
+        }
+        const searchQuery = encodeURIComponent(`${scaleName} 分数 ${score} 级别 ${nivel} NANDA护理诊断 NIC护理干预 NOC护理结局`);
+        window.open(`https://www.google.com/search?q=${searchQuery}`, '_blank');
+      });
+    });
+  </script>
 
 
 

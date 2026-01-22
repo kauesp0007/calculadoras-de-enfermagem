@@ -688,7 +688,138 @@
 
 
     <!-- Seitenspezifisches Skript -->
-    
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const resultadoDiv = document.getElementById('resultado');
+            const btnCalcular = document.getElementById('btnCalcular');
+            const btnLimpar = document.getElementById('btnLimpar');
+            const btnGerarPDF = document.getElementById('btnGerarPDF');
+            const btnNandaNicNoc = document.getElementById('btnNandaNicNoc');
+
+            function calcularIMC() {
+                const peso = parseFloat(document.getElementById('peso').value);
+                const altura = parseFloat(document.getElementById('altura').value);
+
+                resultadoDiv.innerHTML = '';
+                resultadoDiv.className = 'resultado-quadro hidden';
+
+                if (isNaN(peso) || isNaN(altura) || peso <= 0 || altura <= 0) {
+                    resultadoDiv.innerHTML = `<p>⚠️ <strong class="text-red-600">Bitte geben Sie gültige numerische Werte größer als Null für Gewicht und Größe ein.</strong></p>`;
+                    resultadoDiv.classList.remove('hidden');
+                    resultadoDiv.classList.add('bg-danger-red');
+                    return;
+                }
+
+                const imc = peso / (altura * altura);
+                let classificacao = '';
+                let conduta = '';
+                let resultadoBgClass = '';
+
+                if (imc < 18.5) {
+                    classificacao = 'Untergewicht';
+                    conduta = 'Risiko für Mangelernährung. Eine Ernährungsbewertung und -begleitung wird empfohlen.';
+                    resultadoBgClass = 'bg-danger-red';
+                } else if (imc >= 18.5 && imc < 24.9) {
+                    classificacao = 'Normalgewicht';
+                    conduta = 'Gesunde Lebensgewohnheiten beibehalten. Guter Ernährungszustand.';
+                    resultadoBgClass = 'bg-success-green';
+                } else if (imc >= 25 && imc < 29.9) {
+                    classificacao = 'Übergewicht';
+                    conduta = 'Achtung auf Änderungen des Lebensstils und der Ernährung. Eine Ernährungsbewertung kann angezeigt sein.';
+                    resultadoBgClass = 'bg-info-orange-light';
+                } else {
+                    conduta = 'Dringende Intervention und multidisziplinäre Betreuung. Hohes Risiko für schwere Begleiterkrankungen.';
+                    resultadoBgClass = 'bg-danger-red';
+
+                    if (imc >= 30 && imc < 34.9) {
+                        classificacao = 'Adipositas Grad I';
+                    } else if (imc >= 35 && imc < 39.9) {
+                        classificacao = 'Adipositas Grad II';
+                    } else {
+                        classificacao = 'Adipositas Grad III (Morbide)';
+                    }
+                }
+
+                resultadoDiv.innerHTML = `
+                    <table class="w-full">
+                        <tbody>
+                            <tr>
+                                <td class="font-bold pr-2">Berechneter BMI:</td>
+                                <td>${imc.toFixed(2)} <abbr title="Kilogramm pro Quadratmeter">kg/m²</abbr></td>
+                            </tr>
+                            <tr>
+                                <td class="font-bold pr-2">Klassifikation:</td>
+                                <td>${classificacao}</td>
+                            </tr>
+                            <tr>
+                                <td class="font-bold pr-2">Pflegerische Maßnahmen:</td>
+                                <td>${conduta}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                `;
+                resultadoDiv.classList.remove('hidden');
+                resultadoDiv.classList.add(resultadoBgClass);
+
+                resultadoDiv.dataset.imc = imc.toFixed(2);
+                resultadoDiv.dataset.classificacao = classificacao;
+                resultadoDiv.dataset.conduta = conduta;
+                resultadoDiv.dataset.peso = peso;
+                resultadoDiv.dataset.altura = altura;
+                resultadoDiv.dataset.scaleName = "BMI-Rechner";
+            }
+
+            function limparCampos() {
+                document.getElementById('peso').value = '';
+                document.getElementById('altura').value = '';
+                resultadoDiv.innerHTML = '';
+                resultadoDiv.classList.add('hidden');
+                delete resultadoDiv.dataset.imc;
+                delete resultadoDiv.dataset.classificacao;
+                delete resultadoDiv.dataset.conduta;
+                delete resultadoDiv.dataset.peso;
+                delete resultadoDiv.dataset.altura;
+                delete resultadoDiv.dataset.scaleName;
+            }
+
+            function gerarPDF() {
+                if (!resultadoDiv.dataset.imc) {
+                    alert('Bitte berechnen Sie zuerst den BMI, um ein PDF zu erstellen.');
+                    return;
+                }
+                if (typeof gerarPDFGlobal === 'function') {
+                    gerarPDFGlobal({
+                        titulo: 'Body-Mass-Index (BMI) Rechner',
+                        subtitulo: 'BMI-Bewertungsbericht',
+                        nomeArquivo: 'bmi_bericht.pdf',
+                        seletorConteudo: '.main-content-wrapper'
+                    });
+                } else {
+                    console.error('Globale PDF-Funktion (gerarPDFGlobal) nicht definiert.');
+                }
+            }
+
+            if (btnNandaNicNoc) {
+                btnNandaNicNoc.addEventListener('click', () => {
+                    const imcValue = resultadoDiv.dataset.imc;
+                    const classificacao = resultadoDiv.dataset.classificacao;
+                    const conduta = resultadoDiv.dataset.conduta;
+                    const scaleName = resultadoDiv.dataset.scaleName;
+
+                    if (!imcValue || !classificacao || !conduta) {
+                        alert('Berechnen Sie das Ergebnis, um nach Maßnahmen zu suchen.');
+                        return;
+                    }
+                    const searchQuery = encodeURIComponent(`BMI: ${imcValue}, Klassifikation: ${classificacao}, Pflegerische Maßnahmen: ${conduta} - ${scaleName} ERSTELLE Pflegediagnosen (NANDA), ERSTELLE Pflegeinterventionen (NIC), Erstelle ein Beispiel für die Messung der Ergebnisse (NOC)`);
+                    window.open(`https://www.google.com/search?q=${searchQuery}`, '_blank');
+                });
+            }
+
+            btnCalcular?.addEventListener('click', calcularIMC);
+            btnLimpar?.addEventListener('click', limparCampos);
+            btnGerarPDF?.addEventListener('click', gerarPDF);
+        });
+    </script>
 
 
 

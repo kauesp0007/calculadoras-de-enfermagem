@@ -612,7 +612,197 @@
 
 
 
-  
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const resultadoDiv = document.getElementById('resultado');
+      const btnCalcular = document.getElementById('btnCalcular');
+      const btnLimpar = document.getElementById('btnLimpar');
+      const btnGerarPDF = document.getElementById('btnGerarPDF');
+      const btnNandaNicNoc = document.getElementById('btnNandaNicNoc');
+      const conteudoDiv = document.getElementById('conteudo');
+
+      // Данные шкалы Даунтона
+      const downtonData = [
+        {
+          category: "Предыдущие падения",
+          nameAttr: "quedas",
+          options: [
+            { description: "Нет", score: 0 },
+            { description: "Да", score: 1 }
+          ],
+          explain: "Случаи падений за последние 12 месяцев."
+        },
+        {
+          category: "Лекарства",
+          nameAttr: "medicamentos",
+          options: [
+            { description: "Не использует лекарства с риском", score: 0 },
+            { description: "Использует лекарства с риском (например: транквилизаторы, седативные, диуретики)", score: 1 }
+          ],
+          explain: "Некоторые лекарства могут вызывать головокружение и неустойчивость."
+        },
+        {
+          category: "Сенсорные дефициты",
+          nameAttr: "deficits_sensoriais",
+          options: [
+            { description: "Без дефицитов", score: 0 },
+            { description: "Любой зрительный или слуховой дефицит", score: 1 }
+          ],
+          explain: "Затрудненное зрение или слух, которые могут ухудшить восприятие препятствий."
+        },
+        {
+          category: "Умственное состояние",
+          nameAttr: "estado_mental",
+          options: [
+            { description: "Ориентирован", score: 0 },
+            { description: "Дезориентирован", score: 1 }
+          ],
+          explain: "Состояние сознания и когнитивные способности пациента."
+        },
+        {
+          category: "Способность ходить",
+          nameAttr: "deambulacao",
+          options: [
+            { description: "Нормальная ходьба", score: 0 },
+            { description: "Ходит с трудом или использует вспомогательное средство (трость, ходунки)", score: 1 }
+          ],
+          explain: "Оценка способа ходьбы, равновесия и использования опорных средств."
+        }
+      ];
+
+      // Заполняет форму динамически
+      downtonData.forEach(item => {
+        const sectionDiv = document.createElement('div');
+        sectionDiv.className = 'downton-criterion-section';
+        sectionDiv.id = `section-${item.nameAttr}`;
+
+        const titleH3 = document.createElement('h3');
+        titleH3.className = 'downton-criterion-title';
+        titleH3.innerHTML = item.category + `
+              <div class="text-sm font-normal text-gray-500 mt-1">${item.explain}</div>`;
+        sectionDiv.appendChild(titleH3);
+
+        const selectElement = document.createElement('select');
+        selectElement.id = item.nameAttr;
+        selectElement.className = 'downton-criterion-select';
+
+        const defaultOption = document.createElement('option');
+        defaultOption.value = "";
+        defaultOption.text = "Выберите...";
+        selectElement.appendChild(defaultOption);
+
+        item.options.forEach(option => {
+          const optionElement = document.createElement('option');
+          optionElement.value = option.score;
+          optionElement.text = `${option.description} (баллы: ${option.score})`;
+          selectElement.appendChild(optionElement);
+        });
+
+        sectionDiv.appendChild(selectElement);
+        conteudoDiv.appendChild(sectionDiv);
+      });
+
+      function calcularDownton() {
+        const selects = document.querySelectorAll('#conteudo select');
+        let allSelected = true;
+        let total = 0;
+
+        selects.forEach(select => {
+          if (select.value === "") {
+            allSelected = false;
+            select.classList.add('incomplete');
+          } else {
+            select.classList.remove('incomplete');
+            total += Number(select.value);
+          }
+        });
+
+        if (!allSelected) {
+          resultadoDiv.innerHTML = '⚠️ <strong class="font-bold">Пожалуйста, выберите опцию для всех пунктов перед расчетом.</strong>';
+          resultadoDiv.style.display = "block";
+          delete resultadoDiv.dataset.score;
+          return;
+        }
+
+        let classificacao = '';
+        let recomendacao = '';
+
+        // Определения баллов шкалы Даунтона
+        // 0-2 балла: Низкий риск
+        // 3-5 баллов: Средний риск
+        // > 5 баллов: Высокий риск (6 или больше)
+        if (total >= 0 && total <= 2) {
+          classificacao = 'Низкий риск';
+          recomendacao = 'У пациента низкий риск падения. Продолжайте со стандартными мерами профилактики и периодически переоценивайте.';
+        } else if (total >= 3 && total <= 5) {
+          classificacao = 'Средний риск';
+          recomendacao = 'У пациента средний риск падения. Внедрите меры профилактики и мониторинг падений.';
+        } else if (total > 5) {
+          classificacao = 'Высокий риск';
+          recomendacao = 'У пациента высокий риск падения. Немедленно внедрите индивидуальный план профилактики падений.';
+        } else {
+          classificacao = 'Балл вне стандартного диапазона';
+          recomendacao = 'Рассчитанный балл находится вне ожидаемого диапазона классификации. Проверьте выбранные значения.';
+        }
+
+        resultadoDiv.innerHTML = `
+                <p>Общий балл: <strong class="font-bold">${total}</strong></p>
+                <p>Классификация: <strong class="font-bold">${classificacao}</strong></p>
+                <p class="mt-4"><strong>Рекомендация:</strong> ${recomendacao}</p>
+            `;
+        resultadoDiv.style.display = "block";
+
+        resultadoDiv.dataset.score = total;
+        resultadoDiv.dataset.scaleName = "Шкала Даунтона";
+        resultadoDiv.dataset.classificacao = classificacao;
+      }
+
+      function limparCampos() {
+        const selects = document.querySelectorAll('#conteudo select');
+        selects.forEach(select => {
+          select.selectedIndex = 0;
+          select.classList.remove('incomplete');
+        });
+        resultadoDiv.innerHTML = '';
+        resultadoDiv.style.display = "none";
+        delete resultadoDiv.dataset.score;
+        delete resultadoDiv.dataset.scaleName;
+        delete resultadoDiv.dataset.classificacao;
+      }
+
+      btnCalcular?.addEventListener('click', calcularDownton);
+      btnLimpar?.addEventListener('click', limparCampos);
+
+      btnGerarPDF?.addEventListener('click', () => {
+        if (!resultadoDiv.dataset.score) {
+          alert('Пожалуйста, сначала нажмите "Рассчитать балл" для создания PDF.');
+          return;
+        }
+        if (typeof gerarPDFGlobal === 'function') {
+          gerarPDFGlobal({
+            titulo: 'Шкала Даунтона',
+            subtitulo: 'Отчет об оценке риска падений',
+            nomeArquivo: 'relatorio_escala_downton.pdf',
+            seletorConteudo: '.main-content-wrapper'
+          });
+        } else {
+          console.error('Функция gerarPDFGlobal не определена.');
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener('click', () => {
+        const score = resultadoDiv.dataset.score;
+        const scaleName = resultadoDiv.dataset.scaleName;
+        const classificacao = resultadoDiv.dataset.classificacao;
+        if (!score || !classificacao) {
+          alert('Рассчитайте результат для поиска тактики лечения.');
+          return;
+        }
+        const searchQuery = encodeURIComponent(`${scaleName} балл ${score} взрослый пациент ${classificacao} generate NANDA taxonomy, generate NIC taxonomy and generate NOC taxonomy`);
+        window.open(`https://www.google.com/search?q=${searchQuery}`, '_blank');
+      });
+    });
+  </script>
 
 
 

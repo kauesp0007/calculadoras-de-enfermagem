@@ -680,7 +680,349 @@
 
 
   <!-- Script Específico da Página Lawton (Traduzido) -->
-  
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      // Carrega le rodapé da pasta /fr/ via fetch
+      fetch("footer.html")
+        .then((response) => response.text())
+        .then((data) => {
+          document.getElementById("footer-placeholder").innerHTML = data;
+        });
+
+      // Carrega les éléments globaux da pasta /fr/
+      fetch("/fr/global-body-elements.html")
+        .then((response) => response.text())
+        .then((html) => {
+          document.getElementById(
+            "global-body-elements-container",
+          ).innerHTML = html;
+          // Ativa o VLibras et autres scripts globaux APRÈS carregar le contenu
+          if (typeof initVLibras === "function") {
+            initVLibras();
+          }
+          if (typeof setupGlobalElements === "function") {
+            setupGlobalElements();
+          }
+        });
+
+      const resultadoDiv = document.getElementById("resultado");
+      const btnCalcular = document.getElementById("btnCalcular");
+      const btnLimpar = document.getElementById("btnLimpar");
+      const btnGerarPDF = document.getElementById("btnGerarPDF");
+      const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
+      const conteudoDiv = document.getElementById("conteudo");
+
+      // Données de l'échelle Lawton traduites
+      const lawtonData = [
+        {
+          category: "Utilisation du téléphone",
+          nameAttr: "telephone",
+          options: [
+            {
+              description: "Utilise le téléphone de sa propre initiative",
+              score: 1,
+            },
+            { description: "Compose quelques numéros familiers", score: 1 },
+            {
+              description:
+                "Répond au téléphone, mais ne compose pas de numéros",
+              score: 1,
+            },
+            { description: "N'utilise pas du tout le téléphone", score: 0 },
+          ],
+        },
+        {
+          category: "Achats",
+          nameAttr: "achats",
+          options: [
+            {
+              description:
+                "Fait tous les achats nécessaires de manière indépendante",
+              score: 1,
+            },
+            {
+              description: "Fait de petits achats de manière indépendante",
+              score: 0,
+            },
+            { description: "Doit être accompagné pour tout achat", score: 0 },
+            { description: "Incapable de faire des achats", score: 0 },
+          ],
+        },
+        {
+          category: "Préparation des repas",
+          nameAttr: "repas",
+          options: [
+            {
+              description: "Planifie, prépare et sert des repas complets",
+              score: 1,
+            },
+            {
+              description:
+                "Prépare les repas si les ingrédients sont fournis",
+              score: 0,
+            },
+            { description: "Prépare uniquement des repas légers", score: 0 },
+            { description: "Incapable de préparer les repas", score: 0 },
+          ],
+        },
+        {
+          category: "Entretien ménager",
+          nameAttr: "entretien_maison", // Modifié
+          options: [
+            {
+              description:
+                "Entretient la maison seul(e) ou avec une aide occasionnelle",
+              score: 1,
+            },
+            { description: "N'effectue que des tâches légères", score: 1 },
+            {
+              description: "Ne participe pas activement aux travaux ménagers",
+              score: 0,
+            },
+            {
+              description:
+                "A besoin d'une aide totale pour l'entretien de la maison",
+              score: 0,
+            },
+          ],
+        },
+        {
+          category: "Lessive",
+          nameAttr: "lessive",
+          options: [
+            {
+              description:
+                "Lave ses propres vêtements de manière indépendante",
+              score: 1,
+            },
+            {
+              description: "Lave seulement de petites pièces de linge",
+              score: 1,
+            },
+            {
+              description:
+                "A besoin que le linge soit lavé par quelqu'un d'autre",
+              score: 0,
+            },
+          ],
+        },
+        {
+          category: "Locomotion/Utilisation des transports",
+          nameAttr: "locomotion",
+          options: [
+            {
+              description:
+                "Voyage de manière indépendante en transports publics ou conduit sa propre voiture",
+              score: 1,
+            },
+            {
+              description:
+                "Utilise un taxi ou les transports publics avec l'aide d'une autre personne",
+              score: 1,
+            },
+            {
+              description:
+                "Voyage uniquement en voiture particulière avec l'aide d'une autre personne",
+              score: 1,
+            },
+            { description: "Incapable de voyager", score: 0 },
+          ],
+        },
+        {
+          category: "Prise de médicaments",
+          nameAttr: "medicaments", // Modifié
+          options: [
+            { description: "Est responsable de sa médication", score: 1 },
+            {
+              description:
+                "Prend les médicaments seulement s'ils sont préparés pour lui/elle",
+              score: 0,
+            },
+            { description: "Incapable de prendre des médicaments", score: 0 },
+          ],
+        },
+        {
+          category: "Finances/Gestion de l'argent",
+          nameAttr: "finances",
+          options: [
+            {
+              description:
+                "Gère les finances de manière indépendante (banques, factures, etc.)",
+              score: 1,
+            },
+            {
+              description:
+                "Gère les petits achats, mais a besoin d'aide pour les banques",
+              score: 1,
+            },
+            { description: "Incapable de gérer l'argent", score: 0 },
+          ],
+        },
+      ];
+
+      // Remplit le formulaire dynamiquement
+      lawtonData.forEach((item) => {
+        const sectionDiv = document.createElement("div");
+        sectionDiv.className = "lawton-criterion-section";
+        sectionDiv.id = `section-${item.nameAttr}`;
+
+        // Container pour titre
+        const contentDiv = document.createElement("div");
+        contentDiv.className = "lawton-criterion-content";
+
+        const titleH3 = document.createElement("h3");
+        titleH3.className = "lawton-criterion-title";
+        titleH3.innerHTML = item.category;
+        contentDiv.appendChild(titleH3);
+
+        sectionDiv.appendChild(contentDiv); // Ajoute le contenu
+
+        // Container pour le select
+        const selectContainer = document.createElement("div");
+        selectContainer.className = "lawton-criterion-select-container";
+
+        const selectElement = document.createElement("select");
+        selectElement.id = item.nameAttr;
+        selectElement.className = "lawton-criterion-select";
+
+        const defaultOption = document.createElement("option");
+        defaultOption.value = "";
+        defaultOption.text = "Sélectionnez..."; // Traduzido
+        defaultOption.disabled = true;
+        defaultOption.selected = true;
+        selectElement.appendChild(defaultOption);
+
+        item.options.forEach((option) => {
+          const optionElement = document.createElement("option");
+          optionElement.value = option.score;
+          // Texte traduit : description + score
+          optionElement.text = `${option.description} (points : ${option.score})`;
+          selectElement.appendChild(optionElement);
+        });
+
+        selectContainer.appendChild(selectElement); // Ajoute le select au container
+        sectionDiv.appendChild(selectContainer); // Ajoute le container à la section
+        conteudoDiv.appendChild(sectionDiv); // Ajoute la section au contenu principal
+      });
+
+      function calculerLawton() {
+        const selects = document.querySelectorAll("#conteudo select");
+        let allSelected = true;
+        let total = 0;
+
+        selects.forEach((select) => {
+          const card = select.closest(".lawton-criterion-section");
+          if (select.value === "") {
+            allSelected = false;
+            select.classList.add("incomplete");
+            card?.classList.add("incomplete"); // Marque la carte aussi
+          } else {
+            select.classList.remove("incomplete");
+            card?.classList.remove("incomplete");
+            total += Number(select.value);
+          }
+        });
+
+        resultadoDiv.style.display = "block"; // Affiche la div
+        if (!allSelected) {
+          resultadoDiv.innerHTML =
+            '⚠️ <strong class="font-bold">Veuillez sélectionner une option pour tous les items avant de calculer.</strong>'; // Traduzido
+          resultadoDiv.className = "resultado bg-red-100"; // Classe rouge pour erreur
+          delete resultadoDiv.dataset.score; // Efface les données
+          return;
+        }
+
+        // Interprétation traduite
+        let recommandation = "";
+        let resultadoClasse = "bg-blue-50"; // Classe bleue par défaut
+
+        // L'échelle de Lawton est souvent interprétée qualitativement, mais un seuil commun est utilisé.
+        // Score de 8 = Indépendant. Moins de 8 = Dépendant à divers degrés.
+        if (total < 8) {
+          recommandation =
+            "Le score suggère un degré de dépendance pour la réalisation des activités instrumentales de la vie quotidienne (AIVQ). Une évaluation plus approfondie est recommandée pour déterminer les besoins d'assistance.";
+        } else {
+          // total == 8
+          recommandation =
+            "Le score suggère un degré d'indépendance pour la réalisation de la plupart des activités instrumentales de la vie quotidienne (AIVQ).";
+        }
+
+        resultadoDiv.innerHTML = `
+                    <p>Score total : <strong class="font-bold">${total} / 8</strong></p>
+                    <p class="mt-4"><strong>Interprétation :</strong> ${recommandation}</p>
+                `;
+        resultadoDiv.className = `resultado ${resultadoClasse}`; // Applique la classe de couleur
+        resultadoDiv.style.display = "block";
+
+        // Stocke les données
+        resultadoDiv.dataset.score = total;
+        resultadoDiv.dataset.scaleName = "Échelle de Lawton"; // Nom pour NANDA
+      }
+
+      function limparCampos() {
+        const selects = document.querySelectorAll("#conteudo select");
+        selects.forEach((select) => {
+          const card = select.closest(".lawton-criterion-section");
+          select.selectedIndex = 0; // Réinitialise à "Sélectionnez..."
+          select.classList.remove("incomplete");
+          card?.classList.remove("incomplete");
+        });
+        resultadoDiv.innerHTML = "";
+        resultadoDiv.className = "resultado hidden"; // Cache et reset
+        // Efface les données stockées
+        delete resultadoDiv.dataset.score;
+        delete resultadoDiv.dataset.scaleName;
+      }
+
+      // Ajoute les event listeners aux boutons
+      btnCalcular?.addEventListener("click", calculerLawton);
+      btnLimpar?.addEventListener("click", limparCampos);
+
+      // Funcionalidade PDF
+      btnGerarPDF?.addEventListener("click", () => {
+        if (resultadoDiv.dataset.score === undefined) {
+          // Vérifie si le score existe
+          alert(
+            'Veuillez cliquer sur "Calculer le Score" d\'abord pour générer le PDF.',
+          ); // Traduzido
+          return;
+        }
+        if (typeof gerarPDFGlobal === "function") {
+          gerarPDFGlobal({
+            titulo: "Échelle de Lawton", // Traduzido
+            subtitulo: "Rapport d'Évaluation des AIVQ", // Traduzido
+            nomeArquivo: "rapport_echelle_lawton.pdf", // Traduzido
+            seletorConteudo: ".main-content-wrapper",
+          });
+        } else {
+          console.error("Fonction gerarPDFGlobal non définie.");
+        }
+      });
+
+      // Funcionalidade NANDA/NIC/NOC
+      btnNandaNicNoc?.addEventListener("click", () => {
+        const score = resultadoDiv.dataset.score;
+        const scaleName = resultadoDiv.dataset.scaleName;
+        if (score === undefined) {
+          // Vérifie si le score existe
+          alert("Calculez le résultat pour rechercher la conduite à tenir."); // Traduzido
+          return;
+        }
+        let dependance =
+          score < 8
+            ? "dépendance fonctionnelle"
+            : "indépendance fonctionnelle"; // Détermine le niveau de dépendance
+        // Recherche traduite
+        const searchQuery = encodeURIComponent(
+          `soins infirmiers pour ${dependance} personne âgée ${scaleName} score ${score} NANDA NIC NOC`,
+        );
+        window.open(
+          `https://www.google.com/search?q=${searchQuery}`,
+          "_blank",
+        );
+      });
+    });
+  </script>
 
   <!-- CHEMIN DU SCRIPT CORRIGÉ -->
   <script src="../lang-selector.js" defer=""></script>

@@ -649,7 +649,321 @@
 
 
 
-  
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const resultadoDiv = document.getElementById('resultado');
+      const btnCalcular = document.getElementById('btnCalcular');
+      const btnLimpar = document.getElementById('btnLimpar');
+      const btnGerarPDF = document.getElementById('btnGerarPDF');
+      const btnNandaNicNoc = document.getElementById('btnNandaNicNoc');
+      const conteudoDiv = document.getElementById('conteudo');
+
+      // Translated data
+      const perrocaData = [
+        {
+          title: "1. Mental Status and Level of Consciousness",
+          nameAttr: "estado_mental",
+          options: [
+            { description: "Oriented in time and space", score: 1 },
+            { description: "Disoriented in time and/or space", score: 2 },
+            { description: "Drowsy", score: 3 },
+            { description: "In stupor", score: 4 },
+            { description: "Comatose", score: 5 }
+          ]
+        },
+        {
+          title: "2. Oxygenation",
+          nameAttr: "oxigenacao",
+          options: [
+            { description: "Breathing room air", score: 1 },
+            { description: "Using O2 via catheter or mask", score: 2 },
+            { description: "Using mechanical ventilator", score: 3 },
+            { description: "Using O2 with respiratory instability", score: 4 },
+            { description: "Using O2 in critical state, with hemodynamic instability", score: 5 }
+          ]
+        },
+        {
+          title: "3. Vital Signs",
+          nameAttr: "sinais_vitais",
+          options: [
+            { description: "Stable", score: 1 },
+            { description: "Unstable, with intermittent monitoring", score: 2 },
+            { description: "Unstable, with continuous monitoring", score: 3 },
+            { description: "Unstable, with pharmacological support", score: 4 },
+            { description: "Unstable, with advanced support", score: 5 }
+          ]
+        },
+        {
+          title: "4. Nutrition and Hydration",
+          nameAttr: "nutricao",
+          options: [
+            { description: "Oral intake", score: 1 },
+            { description: "Oral intake with assistance or via NG/enteral tube", score: 2 },
+            { description: "Enteral and/or total parenteral nutrition (TPN)", score: 3 },
+            { description: "Exclusive TPN", score: 4 },
+            { description: "Exclusive TPN with hemodynamic instability", score: 5 }
+          ]
+        },
+        {
+          title: "5. Motility",
+          nameAttr: "motilidade",
+          options: [
+            { description: "Independent, no movement restriction", score: 1 },
+            { description: "Partially dependent, with movement restriction", score: 2 },
+            { description: "Totally dependent, restricted to bed", score: 3 },
+            { description: "Totally dependent, with restriction of one or more limbs", score: 4 },
+            { description: "Immobilized in bed, at risk for contractures and injuries", score: 5 }
+          ]
+        },
+        {
+          title: "6. Locomotion",
+          nameAttr: "locomocao",
+          options: [
+            { description: "Ambulates without assistance", score: 1 },
+            { description: "Ambulates with crutches, walker, or cane", score: 2 },
+            { description: "Ambulates with wheelchair assistance", score: 3 },
+            { description: "Ambulates with assistance from another person", score: 4 },
+            { description: "Totally dependent on another person for locomotion", score: 5 }
+          ]
+        },
+        {
+          title: "7. Body Care",
+          nameAttr: "cuidado_corporal",
+          options: [
+            { description: "Totally independent", score: 1 },
+            { description: "Assistance with some activities (bathing, hygiene)", score: 2 },
+            { description: "Assistance with all hygiene activities", score: 3 },
+            { description: "Total dependence for hygiene, with catheter, dressings, etc.", score: 4 },
+            { description: "Total dependence, with bed bath", score: 5 }
+          ]
+        },
+        {
+          title: "8. Eliminations",
+          nameAttr: "eliminacoes",
+          options: [
+            { description: "Continent and independent", score: 1 },
+            { description: "Urinary or fecal incontinence, but with assistance", score: 2 },
+            { description: "Urinary and fecal incontinence, using diaper", score: 3 },
+            { description: "Urinary and fecal incontinence, with diarrhea and/or catheter", score: 4 },
+            { description: "Incontinent and on hemodialysis", score: 5 }
+          ]
+        },
+        {
+          title: "9. Therapeutics",
+          nameAttr: "terapeutica",
+          options: [
+            { description: "Oral (PO) or intramuscular (IM)", score: 1 },
+            { description: "Intermittent intravenous (IV)", score: 2 },
+            { description: "Continuous IV via infusion pump", score: 3 },
+            { description: "Continuous IV via infusion pump with vasoactive drugs", score: 4 },
+            { description: "Continuous IV via infusion pump with vasoactive drugs and ventilatory support", score: 5 }
+          ]
+        },
+        {
+          title: "10. Skin and Mucosal Integrity",
+          nameAttr: "integridade",
+          options: [
+            { description: "Skin intact, no lesions", score: 1 },
+            { description: "Superficial skin lesion", score: 2 },
+            { description: "Skin lesion with tissue loss", score: 3 },
+            { description: "Skin lesion with tissue loss and infection", score: 4 },
+            { description: "Skin lesion with tissue loss and severe infection", score: 5 }
+          ]
+        },
+        {
+          title: "11. Health Education",
+          nameAttr: "educacao",
+          options: [
+            { description: "No guidance needed", score: 1 },
+            { description: "Needs guidance in some activities", score: 2 },
+            { description: "Needs guidance in all activities", score: 3 },
+            { description: "Unable to understand guidance", score: 4 },
+            { description: "Unable to understand and agitated", score: 5 }
+          ]
+        },
+        {
+          title: "12. Behavior",
+          nameAttr: "comportamento",
+          options: [
+            { description: "Calm and cooperative", score: 1 },
+            { description: "Restless and anxious", score: 2 },
+            { description: "Agitated and uncooperative", score: 3 },
+            { description: "Aggressive and violent", score: 4 },
+            { description: "Aggressive and violent with risk to life", score: 5 }
+          ]
+        },
+        {
+          title: "13. Interpersonal Relationships",
+          nameAttr: "relacoes_interpessoais",
+          options: [
+            { description: "Interacts with staff and family", score: 1 },
+            { description: "Interacts with staff and family with difficulty", score: 2 },
+            { description: "Interacts only with staff or family", score: 3 },
+            { description: "Does not interact", score: 4 },
+            { description: "Total isolation", score: 5 }
+          ]
+        }
+      ];
+
+      // Fill the form dynamically
+      perrocaData.forEach(item => {
+        const sectionDiv = document.createElement('div');
+        sectionDiv.className = 'perroca-criterion-section';
+        sectionDiv.id = `section-${item.nameAttr}`;
+
+        const titleH3 = document.createElement('h3');
+        titleH3.className = 'perroca-criterion-title';
+        titleH3.innerHTML = item.title;
+        sectionDiv.appendChild(titleH3);
+
+        const selectElement = document.createElement('select');
+        selectElement.id = item.nameAttr;
+        selectElement.className = 'perroca-criterion-select mt-2';
+
+        const defaultOption = document.createElement('option');
+        defaultOption.value = "";
+        defaultOption.text = "Select...";
+        selectElement.appendChild(defaultOption);
+
+        item.options.forEach(option => {
+          const optionElement = document.createElement('option');
+          optionElement.value = option.score;
+          optionElement.text = `${option.description} (score: ${option.score})`;
+          selectElement.appendChild(optionElement);
+        });
+
+        sectionDiv.appendChild(selectElement);
+        conteudoDiv.appendChild(sectionDiv);
+      });
+
+      function calcularPerroca() {
+        const selects = document.querySelectorAll('#conteudo select');
+        let allSelected = true;
+        let total = 0;
+
+        selects.forEach(select => {
+          if (select.value === "") {
+            allSelected = false;
+            select.classList.add('incomplete');
+          } else {
+            select.classList.remove('incomplete');
+            total += Number(select.value);
+          }
+        });
+
+        resultadoDiv.style.display = "block";
+        if (!allSelected) {
+          resultadoDiv.innerHTML = '⚠️ <strong class="font-bold">Please select an option for all items before calculating.</strong>';
+          resultadoDiv.className = `resultado bg-red-100`;
+          delete resultadoDiv.dataset.score;
+          return;
+        }
+
+        let recomendacao = '';
+
+        if (total >= 13 && total <= 26) {
+          recomendacao = `The score of ${total} indicates a patient with minimal care needs.`;
+        } else if (total >= 27 && total <= 39) {
+          recomendacao = `The score of ${total} indicates a patient with intermediate care needs.`;
+        } else if (total >= 40 && total <= 52) {
+          recomendacao = `The score of ${total} indicates a patient with semi-intensive care needs.`;
+        } else { // total >= 53
+          recomendacao = `The score of ${total} indicates a patient with intensive care needs.`;
+        }
+
+        resultadoDiv.innerHTML = `
+                <p>Total Score: <strong class="font-bold">${total}</strong></p>
+                <p class="mt-4"><strong>Recommendation:</strong> ${recomendacao}</p>
+            `;
+        resultadoDiv.className = `resultado bg-blue-50`;
+        resultadoDiv.style.display = "block";
+
+        resultadoDiv.dataset.score = total;
+        resultadoDiv.dataset.classification = recomendacao; // Save classification for NANDA
+        resultadoDiv.dataset.scaleName = "Perroca Scale";
+      }
+
+      function limparCampos() {
+        const selects = document.querySelectorAll('#conteudo select');
+        selects.forEach(select => {
+          select.selectedIndex = 0;
+          select.classList.remove('incomplete');
+        });
+        resultadoDiv.innerHTML = '';
+        resultadoDiv.className = 'resultado hidden';
+        delete resultadoDiv.dataset.score;
+        delete resultadoDiv.dataset.classification;
+        delete resultadoDiv.dataset.scaleName;
+      }
+
+      // Add event listeners to buttons
+      btnCalcular?.addEventListener('click', calcularPerroca);
+      btnLimpar?.addEventListener('click', limparCampos);
+
+      btnGerarPDF?.addEventListener('click', () => {
+        if (!resultadoDiv.dataset.score) {
+          alert('Please click "Calculate Score" first to generate the PDF.');
+          return;
+        }
+        if (typeof gerarPDFGlobal === 'function') {
+          const selectedOptions = {};
+          document.querySelectorAll('#conteudo select').forEach(select => {
+            const selected = select.options[select.selectedIndex];
+            if (selected.value !== "") {
+              selectedOptions[select.id] = selected.text;
+            }
+          });
+
+          let contentToPrint = document.querySelector('.main-content-wrapper').cloneNode(true);
+          let contentContainer = contentToPrint.querySelector('#conteudo');
+
+          contentContainer.innerHTML = '';
+
+          perrocaData.forEach(item => {
+            let selectedText = selectedOptions[item.nameAttr];
+            if (selectedText) {
+              let itemDiv = document.createElement('div');
+              itemDiv.className = 'mb-2 p-2 bg-gray-50 rounded';
+              itemDiv.innerHTML = `<strong>${item.title}:</strong> ${selectedText}`;
+              contentContainer.appendChild(itemDiv);
+            }
+          });
+
+          let resultadoHtml = resultadoDiv.cloneNode(true);
+          if (resultadoHtml.style.display !== 'none') {
+            contentContainer.appendChild(resultadoHtml);
+          }
+
+          gerarPDFGlobal({
+            titulo: 'Perroca Scale (PCS)',
+            subtitulo: 'Patient Classification Report',
+            nomeArquivo: 'perroca_scale_report.pdf',
+            seletorConteudo: '.main-content-wrapper'
+          });
+        } else {
+          console.error('Global PDF function (gerarPDFGlobal) not defined.');
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener('click', () => {
+        const score = resultadoDiv.dataset.score;
+        const classification = resultadoDiv.dataset.classification;
+        const scaleName = resultadoDiv.dataset.scaleName;
+        if (!score || !classification) {
+          alert('Calculate the result to search for interventions.');
+          return;
+        }
+        // Use classification for a more relevant search
+        const diagnosisSearch = classification.includes('intensive') ? "Self-Care Deficit, Total" :
+          classification.includes('semi-intensive') ? "Self-Care Deficit, Bathing/Hygiene" :
+            classification.includes('intermediate') ? "Impaired Physical Mobility" :
+              "Readiness for Enhanced Self-Care";
+
+        const searchQuery = encodeURIComponent(`${scaleName} score ${score}, Classification ${classification}, NANDA diagnosis for ${diagnosisSearch}, NIC interventions, NOC outcomes`);
+        window.open(`https://www.google.com/search?q=${searchQuery}`, '_blank');
+      });
+    });
+  </script>
 
 
 

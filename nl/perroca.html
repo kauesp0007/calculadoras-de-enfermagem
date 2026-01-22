@@ -573,7 +573,427 @@
 
 
 
-  
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const resultadoDiv = document.getElementById("resultado");
+      const btnCalcular = document.getElementById("btnCalcular");
+      const btnLimpar = document.getElementById("btnLimpar");
+      const btnGerarPDF = document.getElementById("btnGerarPDF");
+      const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
+      const conteudoDiv = document.getElementById("conteudo");
+
+      const perrocaData = [
+        {
+          title: "1. mentale toestand en bewustzijnsniveau",
+          nameAttr: "estado_mental",
+          options: [
+            { description: "Georiënteerd in tijd en ruimte", score: 1 },
+            { description: "Gedesoriënteerd in tijd en/of ruimte", score: 2 },
+            { description: "Sonolento", score: 3 },
+            { description: "Em estupor", score: 4 },
+            { description: "Comatoso", score: 5 }]
+
+        },
+        {
+          title: "2. Zuurstofinvoer",
+          nameAttr: "oxigenacao",
+          options: [
+            { description: "Respira em ar ambiente", score: 1 },
+            { description: "O2 gebruiken via katheter of masker", score: 2 },
+            { description: "Een mechanische ventilator gebruiken", score: 3 },
+            {
+              description: "Op O2 met ademhalingsinstabiliteit",
+              score: 4
+            },
+            {
+              description:
+                "Gebruik van O2 in kritieke toestand, met hemodynamische instabiliteit",
+              score: 5
+            }]
+
+        },
+        {
+          title: "3. Sinais Vitais",
+          nameAttr: "sinais_vitais",
+          options: [
+            { description: "Stabiel", score: 1 },
+            {
+              description: "Instabiel, met intermitterende monitoring",
+              score: 2
+            },
+            {
+              description: "Instabiel, met voortdurende monitoring",
+              score: 3
+            },
+            { description: "Instabiel, met farmacologische ondersteuning", score: 4 },
+            { description: "Instabiel, met geavanceerde ondersteuning", score: 5 }]
+
+        },
+        {
+          title: "4. Voeding en hydratatie",
+          nameAttr: "nutricao",
+          options: [
+            { description: "Oraal gebruik", score: 1 },
+            {
+              description:
+                "Orale route met hulp of via nasogastrische/entale sonde",
+              score: 2
+            },
+            { description: "Totale enterale en/of parenterale route", score: 3 },
+            { description: "Uitsluitend parenterale route", score: 4 },
+            {
+              description:
+                "Uitsluitend parenterale route met hemodynamische instabiliteit",
+              score: 5
+            }]
+
+        },
+        {
+          title: "5. Motiliteit",
+          nameAttr: "motiliteit",
+          options: [
+            {
+              description: "Onafhankelijk, zonder bewegingsbeperking",
+              score: 1
+            },
+            {
+              description: "Gedeeltelijk afhankelijk, met beperkte bewegingsvrijheid",
+              score: 2
+            },
+            {
+              description: "Volledig afhankelijk, aan bed gebonden",
+              score: 3
+            },
+            {
+              description:
+                "Volledig afhankelijk, met beperkte beweging van een of meer ledematen",
+              score: 4
+            },
+            {
+              description:
+                "Geimmobiliseerd in bed, met risico op contracturen en verwondingen",
+              score: 5
+            }]
+
+        },
+        {
+          title: "6. Voortbeweging",
+          nameAttr: "locomocao",
+          options: [
+            { description: "Lopen zonder hulp", score: 1 },
+            {
+              description:
+                "Loopt met behulp van krukken, rollator of wandelstok",
+              score: 2
+            },
+            {
+              description: "Zich voortbeweegt met behulp van een rolstoel",
+              score: 3
+            },
+            { description: "Lopen met de hulp van een andere persoon", score: 4 },
+            {
+              description:
+                "Volledig afhankelijk van een andere persoon voor mobiliteit",
+              score: 5
+            }]
+
+        },
+        {
+          title: "7. Cuidado Corporal",
+          nameAttr: "cuidado_corporal",
+          options: [
+            { description: "Totalmente independente", score: 1 },
+            {
+              description: "Hulp bij sommige activiteiten (baden, hygiëne)",
+              score: 2
+            },
+            {
+              description: "Helpen met alle hygiënische activiteiten",
+              score: 3
+            },
+            {
+              description:
+                "Totale afhankelijkheid voor hygiëne, sondevoeding, verband enz.",
+              score: 4
+            },
+            {
+              description: "Totale afhankelijkheid, met hygiëne in bed",
+              score: 5
+            }]
+
+        },
+        {
+          title: "8. Verwijdering",
+          nameAttr: "eliminacoes",
+          options: [
+            { description: "Controleert en is onafhankelijk", score: 1 },
+            {
+              description: "Urine- of fecale incontinentie, maar met hulp",
+              score: 2
+            },
+            {
+              description: "Incontinentie voor urine en ontlasting, met luiergebruik",
+              score: 3
+            },
+            {
+              description:
+                "Urine- en fecale incontinentie, met diarree en/of sondegebruik",
+              score: 4
+            },
+            { description: "Incontinent en hemodialyse", score: 5 }]
+
+        },
+        {
+          title: "9. Therapeutica",
+          nameAttr: "terapeutica",
+          options: [
+            { description: "Oraal (VO) of intramusculair (IM)", score: 1 },
+            { description: "Intermitterende intraveneuze (IV) route", score: 2 },
+            { description: "Continu IV in infuuspomp", score: 3 },
+            {
+              description:
+                "Continue IV-infuuspomp met vasoactieve geneesmiddelen",
+              score: 4
+            },
+            {
+              description:
+                "Continue IV infuuspomp met vasoactieve medicijnen en beademingsondersteuning",
+              score: 5
+            }]
+
+        },
+        {
+          title: "10. Integriteit huid-mucosa",
+          nameAttr: "integriteit",
+          options: [
+            { description: "Gezonde huid, geen laesies", score: 1 },
+            { description: "Oppervlakkige huidlaesie", score: 2 },
+            { description: "Huidlaesie met weefselverlies", score: 3 },
+            {
+              description: "Huidlaesie met weefselverlies en infectie",
+              score: 4
+            },
+            {
+              description:
+                "Huidlaesie met weefselverlies en ernstige infectie",
+              score: 5
+            }]
+
+        },
+        {
+          title: "11. Gezondheidseducatie",
+          nameAttr: "educacao",
+          options: [
+            { description: "Geen begeleiding nodig", score: 1 },
+            {
+              description: "Behoefte aan begeleiding bij sommige activiteiten",
+              score: 2
+            },
+            {
+              description: "Behoefte aan begeleiding bij alle activiteiten",
+              score: 3
+            },
+            { description: "Niet in staat om richtlijnen te begrijpen", score: 4 },
+            {
+              description: "Onbegrijpelijk en geagiteerd",
+              score: 5
+            }]
+
+        },
+        {
+          title: "12. Comportamento",
+          nameAttr: "comportamento",
+          options: [
+            { description: "Calmo e cooperativo", score: 1 },
+            { description: "Inquieto e ansioso", score: 2 },
+            { description: "Geagiteerd en niet meewerkend", score: 3 },
+            { description: "Agressivo e violento", score: 4 },
+            {
+              description: "Agressivo e violento com risco de vida",
+              score: 5
+            }]
+
+        },
+        {
+          title: "13. Interpersoonlijke relaties",
+          nameAttr: "relacoes_interpessoais",
+          options: [
+            { description: "Interage com a equipe e familiares", score: 1 },
+            {
+              description:
+                "Interage com a equipe e familiares com dificuldade",
+              score: 2
+            },
+            {
+              description: "Interage apenas com a equipe ou familiares",
+              score: 3
+            },
+            { description: "Geen interactie", score: 4 },
+            { description: "Isolamento total", score: 5 }]
+
+        }];
+
+
+      // Preenche o formulário dinamicamente
+      perrocaData.forEach((item) => {
+        const sectionDiv = document.createElement("div");
+        sectionDiv.className = "perroca-criterium-sectie";
+        sectionDiv.id = `section-${item.nameAttr}`;
+
+        const titleH3 = document.createElement("h3");
+        titleH3.className = "perroca-criterium-titel";
+        titleH3.innerHTML = item.title;
+        sectionDiv.appendChild(titleH3);
+
+        const selectElement = document.createElement("select");
+        selectElement.id = item.nameAttr;
+        selectElement.className = "perroca-criterium-select mt-2";
+
+        const defaultOption = document.createElement("option");
+        defaultOption.value = "";
+        defaultOption.text = "Selecteer...";
+        selectElement.appendChild(defaultOption);
+
+        item.options.forEach((option) => {
+          const optionElement = document.createElement("option");
+          optionElement.value = option.score;
+          optionElement.text = `${option.description} (pontos: ${option.score})`;
+          selectElement.appendChild(optionElement);
+        });
+
+        sectionDiv.appendChild(selectElement);
+        conteudoDiv.appendChild(sectionDiv);
+      });
+
+      function calcularPerroca() {
+        const selects = document.querySelectorAll("#conteudo select");
+        let allSelected = true;
+        let total = 0;
+
+        selects.forEach((select) => {
+          if (select.value === "") {
+            allSelected = false;
+            select.classList.add("incomplete");
+          } else {
+            select.classList.remove("incomplete");
+            total += Number(select.value);
+          }
+        });
+
+        resultadoDiv.style.display = "block";
+        if (!allSelected) {
+          resultadoDiv.innerHTML =
+            '⚠️ <strong class="font-bold">Por favor, selecione uma opção para todos os itens antes de calcular.</strong>';
+          resultadoDiv.className = `bg-rood-100 resultaat`;
+          delete resultadoDiv.dataset.score;
+          return;
+        }
+
+        let recomendacao = "";
+
+        if (total >= 13 && total <= 26) {
+          recomendacao = `O escore de ${total} duidt op een patiënt met minimale zorgbehoeften.`;
+        } else if (total >= 27 && total <= 39) {
+          recomendacao = `O escore de ${total} duidt op een patiënt met intermediaire zorgbehoeften.`;
+        } else if (total >= 40 && total <= 52) {
+          recomendacao = `O escore de ${total} duidt op een patiënt die semi-intensieve zorg nodig heeft.`;
+        } else {
+          // total >= 53
+          recomendacao = `O escore de ${total} duidt op een patiënt die intensieve zorg nodig heeft.`;
+        }
+
+        resultadoDiv.innerHTML = `
+                <p>Escore total: <strong class="font-bold">${total}</strong></p>
+                <p class="mt-4"><strong>Recomendação:</strong> ${recomendacao}</p>
+            `;
+        resultadoDiv.className = `bg-blauw-50 resultaat`;
+        resultadoDiv.style.display = "block";
+
+        resultadoDiv.dataset.score = total;
+        resultadoDiv.dataset.scaleName = "Schaal Perroca";
+      }
+
+      function limparCampos() {
+        const selects = document.querySelectorAll("#conteudo select");
+        selects.forEach((select) => {
+          select.selectedIndex = 0;
+          select.classList.remove("incomplete");
+        });
+        resultadoDiv.innerHTML = "";
+        resultadoDiv.className = "verborgen resultaat";
+        delete resultadoDiv.dataset.score;
+        delete resultadoDiv.dataset.scaleName;
+      }
+
+      // Adiciona os event listeners aos botões
+      btnCalcular?.addEventListener("click", calcularPerroca);
+      btnLimpar?.addEventListener("click", limparCampos);
+
+      btnGerarPDF?.addEventListener("click", () => {
+        if (!resultadoDiv.dataset.score) {
+          alert(
+            "Klik eerst op \"Score berekenen\" om de PDF te genereren."
+          );
+          return;
+        }
+        if (typeof gerarPDFGlobal === "function") {
+          const selectedOptions = {};
+          document.querySelectorAll("#conteudo select").forEach((select) => {
+            const selected = select.options[select.selectedIndex];
+            if (selected.value !== "") {
+              selectedOptions[select.id] = selected.text;
+            }
+          });
+
+          let contentToPrint = document.
+            querySelector(".main-content-wrapper").
+            cloneNode(true);
+          let contentContainer = contentToPrint.querySelector("#conteudo");
+
+          contentContainer.innerHTML = "";
+
+          perrocaData.forEach((item) => {
+            let selectedText = selectedOptions[item.nameAttr];
+            if (selectedText) {
+              let itemDiv = document.createElement("div");
+              itemDiv.className = "mb-2 p-2 bg-gray-50 rounded";
+              itemDiv.innerHTML = `<strong>${item.title}:</strong> ${selectedText}`;
+              contentContainer.appendChild(itemDiv);
+            }
+          });
+
+          let resultadoHtml = resultadoDiv.cloneNode(true);
+          if (resultadoHtml.style.display !== "none") {
+            contentContainer.appendChild(resultadoHtml);
+          }
+
+          gerarPDFGlobal({
+            titulo: "Schaal van Perroca (SCP)",
+            subtitulo: "Patiëntenclassificatierapport",
+            nomeArquivo: "relatorio_escala_perroca.pdf",
+            seletorConteudo: ".main-content-wrapper"
+          });
+        } else {
+          console.error("GeneratePDFGlobal-functie niet gedefinieerd.");
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener("click", () => {
+        const score = resultadoDiv.dataset.score;
+        const scaleName = resultadoDiv.dataset.scaleName;
+        if (!score) {
+          alert("Bereken het resultaat om het gedrag te zoeken.");
+          return;
+        }
+        const searchQuery = encodeURIComponent(
+          `${scaleName} score ${score} gerar taxonomia NANDA, gerar taxonomia NIC e gerar taxonomia de NOC`
+        );
+        window.open(
+          `https://www.google.com/search?q=${searchQuery}`,
+          "_blank"
+        );
+      });
+    });</script>
 
   <script src="/lang-selector.js" defer=""></script>
 

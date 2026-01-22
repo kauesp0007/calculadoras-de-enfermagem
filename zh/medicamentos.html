@@ -618,7 +618,86 @@
 
  <!-- Caminho corrigido -->
 
-  
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const resultadoDiv = document.getElementById('resultado');
+      const btnCalcular = document.getElementById('btnCalcular');
+      const btnLimpar = document.getElementById('btnLimpar');
+      const proporcaoOptionsDiv = document.getElementById('proporcao-options');
+
+      // Lógica da calculadora traduzida
+      function calcularMedicamentos() {
+        const prescricao = parseFloat(document.getElementById('prescricao').value);
+        const concentracaoTotal = parseFloat(document.getElementById('concentracao').value);
+        const volumeTotal = parseFloat(document.getElementById('volumeTotal').value);
+        const proporcaoRadio = document.querySelector('input[name="proporcao"]:checked');
+
+        resultadoDiv.style.display = 'block';
+
+        if (isNaN(prescricao) || !proporcaoRadio) {
+          resultadoDiv.innerHTML = '⚠️ <strong class="font-bold">请输入医嘱剂量并选择药瓶比例。</strong>';
+          resultadoDiv.className = 'standard-result-box bg-info-orange-light';
+          return;
+        }
+
+        const cRatio = parseFloat(proporcaoRadio.value); // Será 1 ou 2
+
+        const resultadoMl = prescricao / cRatio;
+
+        const calculoStr = `
+  ${cRatio}毫克 对应 1毫升
+  ${prescricao}毫克 对应 X 毫升
+
+  ${cRatio} * X = ${prescricao} * 1
+  X = ${prescricao} / ${cRatio}
+  X = ${resultadoMl.toFixed(2)} 毫升
+                `;
+
+        const explicacaoStr = `医嘱为 ${prescricao} 毫克。溶液浓度为 ${cRatio} 毫克/毫升。应抽取 ${resultadoMl.toFixed(2)} 毫升。`;
+
+        resultadoDiv.innerHTML = `
+                    <pre>${calculoStr.trim()}</pre>
+                    <p class="mt-4 font-sans text-base">${explicacaoStr}</p>
+                `;
+        resultadoDiv.className = 'standard-result-box';
+      }
+
+      function limparCampos() {
+        document.getElementById('prescricao').value = '';
+        document.getElementById('concentracao').value = '';
+        document.getElementById('volumeTotal').value = '';
+
+        document.querySelectorAll('input[name="proporcao"]').forEach(radio => {
+          radio.checked = false;
+        });
+        resultadoDiv.innerHTML = '';
+        resultadoDiv.className = 'hidden';
+      }
+
+      btnCalcular?.addEventListener('click', calcularMedicamentos);
+      btnLimpar?.addEventListener('click', limparCampos);
+
+      // Gerar PDF (botão traduzido, funcionalidade mantida)
+      const btnGerarPDF = document.getElementById('btnGerarPDF');
+      btnGerarPDF?.addEventListener('click', () => {
+        if (resultadoDiv.classList.contains('hidden') || !resultadoDiv.innerHTML.includes('X =')) {
+          alert('请先计算结果才能生成 PDF。');
+          return;
+        }
+        if (typeof gerarPDFGlobal === 'function') {
+          gerarPDFGlobal({
+            titulo: '药物计算',
+            subtitulo: '药物剂量报告',
+            nomeArquivo: 'relatorio_medicamentos.pdf',
+            seletorConteudo: '.main-content-wrapper'
+          });
+        } else {
+          console.error('未定义 gerarPDFGlobal 函数。');
+          alert('生成 PDF 时出错。');
+        }
+      });
+    });
+  </script>
 
 
 

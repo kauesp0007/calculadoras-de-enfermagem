@@ -941,7 +941,250 @@
   <script src="/lang-selector.js" defer=""></script>
 
   <!-- Script da Página -->
-  
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const resultadoDiv = document.getElementById("resultado");
+      const btnCalcular = document.getElementById("btnCalcular");
+      const btnLimpar = document.getElementById("btnLimpar");
+      const btnGerarPDF = document.getElementById("btnGerarPDF");
+      const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
+      const globalError = document.getElementById("global-error");
+
+      // Mapeamento de todos os inputs
+      const inputs = {
+        ph: document.getElementById("ph"),
+        paco2: document.getElementById("paco2"),
+        po2: document.getElementById("po2"),
+        hco3: document.getElementById("hco3"),
+        be: document.getElementById("be"),
+        ctco2: document.getElementById("ctco2"),
+        sato2: document.getElementById("sato2"),
+        na: document.getElementById("na"),
+        k: document.getElementById("k"),
+        ca: document.getElementById("ca"),
+        cl: document.getElementById("cl"),
+        glu: document.getElementById("glu"),
+        lactato: document.getElementById("lactato"),
+        thb: document.getElementById("thb"),
+        fo2hb: document.getElementById("fo2hb"),
+        fcohb: document.getElementById("fcohb"),
+        fmethb: document.getElementById("fmethb"),
+        fhhb: document.getElementById("fhhb"),
+      };
+
+      function interpretarGasometria() {
+        const valores = {};
+
+        // Coleta de valores (permite nulos para análise parcial, mas exige os principais)
+        for (const key in inputs) {
+          const val = parseFloat(inputs[key].value);
+          valores[key] = isNaN(val) ? null : val;
+        }
+
+        // Validação mínima: pH, pCO2 e HCO3 são essenciais para análise ácido-base
+        if (valores.ph === null || valores.paco2 === null || valores.hco3 === null) {
+            globalError.classList.remove("hidden");
+            resultadoDiv.style.display = "none";
+            return;
+        } else {
+            globalError.classList.add("hidden");
+        }
+
+        let diagnosticos = [];
+        let condutas = [];
+        let detalhes = [];
+
+        // --- PASSO A: Avaliar o pH ---
+        let statusPH = "Normal";
+        if (valores.ph < 7.35) statusPH = "Acidose";
+        else if (valores.ph > 7.45) statusPH = "Alcalose";
+
+        // --- PASSO B: Distúrbio Primário & C: Compensação ---
+        let disturbio = "";
+
+        // Acidose
+        if (statusPH === "Acidose") {
+            const acidoseResp = valores.paco2 > 45; // pCO2 alto causa acidez
+            const acidoseMet = valores.hco3 < 22 || (valores.be !== null && valores.be < -3); // HCO3 baixo causa acidez
+
+            if (acidoseResp && !acidoseMet) {
+                // Respiratória Pura ou Compensando
+                if (valores.hco3 > 26) disturbio = "Acidose Respiratória Parcialmente Compensada";
+                else disturbio = "Acidose Respiratória Descompensada (Aguda)";
+                condutas.push("Avaliar ventilação (VNI/IOT), tratar causa pulmonar.");
+            } else if (acidoseMet && !acidoseResp) {
+                // Metabólica Pura ou Compensando
+                if (valores.paco2 < 35) disturbio = "Acidose Metabólica Parcialmente Compensada";
+                else disturbio = "Acidose Metabólica Descompensada";
+                condutas.push("Investigar causa (lactato, cetose, renal), considerar reposição de base se grave.");
+            } else if (acidoseResp && acidoseMet) {
+                disturbio = "Acidose Mista (Respiratória + Metabólica)";
+                condutas.push("Emergência: Suporte ventilatório e correção metabólica agressiva.");
+            } else {
+                disturbio = "Acidose (Distúrbio não classificado)";
+            }
+        }
+        // Alcalose
+        else if (statusPH === "Alcalose") {
+            const alcaloseResp = valores.paco2 < 35; // pCO2 baixo causa alcalinidade
+            const alcaloseMet = valores.hco3 > 26 || (valores.be !== null && valores.be > 3); // HCO3 alto causa alcalinidade
+
+            if (alcaloseResp && !alcaloseMet) {
+                if (valores.hco3 < 22) disturbio = "Alcalose Respiratória Parcialmente Compensada";
+                else disturbio = "Alcalose Respiratória Descompensada";
+                condutas.push("Avaliar ansiedade, dor, ajuste ventilatório.");
+            } else if (alcaloseMet && !alcaloseResp) {
+                if (valores.paco2 > 45) disturbio = "Alcalose Metabólica Parcialmente Compensada";
+                else disturbio = "Alcalose Metabólica Descompensada";
+                condutas.push("Corrigir K+, Cl-, volume, suspender diuréticos se indicado.");
+            } else if (alcaloseResp && alcaloseMet) {
+                disturbio = "Alcalose Mista";
+                condutas.push("Tratar causas base simultâneas.");
+            } else {
+                disturbio = "Alcalose (Distúrbio não classificado)";
+            }
+        }
+        // pH Normal
+        else {
+            // pH normal mas paCO2 e HCO3 alterados?
+            if (valores.paco2 > 45 && valores.hco3 > 26) disturbio = "Acidose Respiratória Compensada (pH normalizado)";
+            else if (valores.paco2 < 35 && valores.hco3 < 22) disturbio = "Alcalose Respiratória Compensada (pH normalizado)";
+            else if (valores.paco2 >= 35 && valores.paco2 <= 45 && valores.hco3 >= 22 && valores.hco3 <= 26) disturbio = "Equilíbrio Ácido-Básico Normal";
+            else disturbio = "Distúrbio Misto compensado ou mascarado";
+        }
+
+        diagnosticos.push(disturbio);
+
+        // --- PASSO D: Oxigenação ---
+        if (valores.po2 !== null) {
+            if (valores.po2 < 80) {
+                diagnosticos.push("Hipoxemia");
+                condutas.push("Suplementar O₂.");
+            }
+            if (valores.po2 > 100) {
+                detalhes.push("Hiperoxemia (O₂ elevado).");
+            }
+        }
+
+        if (valores.sato2 !== null && valores.sato2 < 95) {
+            detalhes.push("Saturação de O₂ Baixa.");
+        }
+
+        if (valores.thb !== null) {
+             // Homens: 13.5-17.5, Mulheres 12-16. Usando média geral para alerta simples
+             if (valores.thb < 12) detalhes.push("Anemia possível (tHb baixo).");
+             if (valores.thb > 17.5) detalhes.push("Policitemia possível (tHb alto).");
+        }
+
+        // --- PASSO E: Co-oximetria ---
+        if (valores.fcohb !== null && valores.fcohb > 1.5) {
+            diagnosticos.push("Elevação de Carboxiemoglobina (Intoxicação CO/Tabagismo?)");
+        }
+        if (valores.fmethb !== null && valores.fmethb > 1.5) {
+            diagnosticos.push("Metahemoglobinemia");
+        }
+
+        // --- PASSO F: Eletrólitos e Lactato ---
+        // Lactato
+        if (valores.lactato !== null && valores.lactato > 2.0) {
+            diagnosticos.push("Hiperlactatemia (Hipóxia tecidual/Sepse?)");
+        }
+
+        // Sódio
+        if (valores.na !== null) {
+            if (valores.na < 135) detalhes.push("Hiponatremia");
+            if (valores.na > 145) detalhes.push("Hipernatremia");
+        }
+        // Potássio
+        if (valores.k !== null) {
+            if (valores.k < 3.5) detalhes.push("Hipocalemia");
+            if (valores.k > 5.0) detalhes.push("Hipercalemia");
+        }
+        // Cálcio
+        if (valores.ca !== null) {
+            if (valores.ca < 1.1) detalhes.push("Hipocalcemia");
+            if (valores.ca > 1.35) detalhes.push("Hipercalcemia");
+        }
+        // Cloro
+        if (valores.cl !== null) {
+            if (valores.cl < 96) detalhes.push("Hipocloremia");
+            if (valores.cl > 106) detalhes.push("Hipercloremia");
+        }
+        // Glicose
+        if (valores.glu !== null) {
+            if (valores.glu < 70) detalhes.push("Hipoglicemia");
+            if (valores.glu > 110) detalhes.push("Hiperglicemia");
+        }
+
+        // Formatação Final
+        if (condutas.length === 0) condutas.push("Manter monitoramento.");
+
+        let htmlResultado = `
+            <div>
+                <span class="res-label">Diagnóstico Principal:</span>
+                <span class="res-text text-lg font-bold">${diagnosticos.join("<br>")}</span>
+
+                ${detalhes.length > 0 ? `
+                <span class="res-label">Achados Adicionais:</span>
+                <span class="res-text">${detalhes.join(", ")}</span>
+                ` : ''}
+
+                <span class="res-label">Conduta Sugerida:</span>
+                <span class="res-text">${condutas.join("<br>")}</span>
+            </div>
+          `;
+
+        resultadoDiv.innerHTML = htmlResultado;
+        resultadoDiv.style.display = "block";
+
+        resultadoDiv.dataset.resultado = disturbio;
+      }
+
+      function limparCampos() {
+        for (const key in inputs) {
+          inputs[key].value = "";
+        }
+        globalError.classList.add("hidden");
+        resultadoDiv.innerHTML = "";
+        resultadoDiv.style.display = "none";
+        delete resultadoDiv.dataset.resultado;
+      }
+
+      btnCalcular?.addEventListener("click", interpretarGasometria);
+      btnLimpar?.addEventListener("click", limparCampos);
+
+      btnGerarPDF?.addEventListener("click", () => {
+        if (!resultadoDiv.dataset.resultado) {
+          alert('Calcule primeiro para gerar PDF.');
+          return;
+        }
+        if (typeof gerarPDFGlobal === "function") {
+          gerarPDFGlobal({
+            titulo: "Relatório de Gasometria Completa",
+            subtitulo: "Análise Acidobásica, Oxigenação e Eletrólitos",
+            nomeArquivo: "gasometria_completa.pdf",
+            seletorConteudo: ".gasometria-card", // Captura o card preenchido
+            conteudoExtra: resultadoDiv.innerHTML
+          });
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener("click", () => {
+        const resultado = resultadoDiv.dataset.resultado;
+        if (!resultado) {
+          alert('Calcule primeiro.');
+          return;
+        }
+        const searchQuery = encodeURIComponent(
+          `diagnóstico de enfermagem relacionado a ${resultado} NANDA NIC NOC`,
+        );
+        window.open(
+          `https://www.google.com/search?q=${searchQuery}`,
+          "_blank",
+        );
+      });
+    });
+  </script>
 
 
 

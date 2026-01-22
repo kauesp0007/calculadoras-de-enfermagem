@@ -608,7 +608,203 @@
 
 
 
-  
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const resultadoDiv = document.getElementById('resultado');
+      const btnCalcular = document.getElementById('btnCalcular');
+      const btnLimpar = document.getElementById('btnLimpar');
+      const btnGerarPDF = document.getElementById('btnGerarPDF');
+      const btnNandaNicNoc = document.getElementById('btnNandaNicNoc');
+      const conteudoDiv = document.getElementById('conteudo');
+
+      const jouvetData = [
+        {
+          parameter: "Perceptivity",
+          nameAttr: "perceptividade",
+          options: [
+            { description: "Lucid, obeys complex commands, even written", score: 5 },
+            { description: "Disoriented and does not obey written commands", score: 4 },
+            { description: "Obeys only verbal commands", score: 3 },
+            { description: "Shows only blinking", score: 2 },
+            { description: "No blinking", score: 1 }
+          ]
+        },
+        {
+          parameter: "Non-specific Reactivity",
+          nameAttr: "reatividadeInespecifica",
+          options: [
+            { description: "Wakes up and is oriented to verbal stimuli", score: 3 },
+            { description: "Wakes up to verbal stimuli only", score: 2 },
+            { description: "Does not wake up to verbal stimuli", score: 1 }
+          ]
+        },
+        {
+          parameter: "Specific Reactivity to Pain",
+          nameAttr: "reatividadeDor",
+          options: [
+            { description: "Wakes up, withdraws, mimics and vocalizes", score: 4 },
+            { description: "Wakes up, withdraws, no mimic or vocalization", score: 3 },
+            { description: "Only motor withdrawal", score: 2 },
+            { description: "Negative response", score: 1 }
+          ]
+        },
+        {
+          parameter: "Autonomic Reactivity",
+          nameAttr: "reatividadeAutonomica",
+          options: [
+            { description: "Tachycardia, tachypnea, mydriasis", score: 2 },
+            { description: "Negative response", score: 1 }
+          ]
+        }
+      ];
+
+      // --- Funções da Calculadora Jouvet ---
+      function updateScoreDisplay(criterionId) {
+        const selectElement = document.getElementById(criterionId);
+        const scoreDisplayElement = document.getElementById(`${criterionId}_score_display`);
+        if (selectElement && scoreDisplayElement) {
+          scoreDisplayElement.innerText = selectElement.value === "" ? "0" : selectElement.value;
+        }
+      }
+
+      function calcularPontuacao() {
+        let totalScore = 0;
+        let allCategoriesSelected = true;
+
+        jouvetData.forEach(item => {
+          const selectElement = document.getElementById(item.nameAttr);
+          if (selectElement.value === "") {
+            allCategoriesSelected = false;
+          } else {
+            totalScore += parseInt(selectElement.value, 10);
+          }
+        });
+
+        resultadoDiv.style.display = "block";
+        if (!allCategoriesSelected) {
+          resultadoDiv.innerHTML = '⚠️ <strong class="font-bold">Please select an option for each parameter before calculating.</strong>';
+          resultadoDiv.className = 'resultado bg-info-orange-light';
+          delete resultadoDiv.dataset.score;
+          return;
+        }
+
+        let nivelJouvet = "";
+        let resultadoClasse = '';
+
+        if (totalScore >= 10) {
+          nivelJouvet = "Level I";
+          resultadoClasse = 'bg-jouvet-1';
+        } else if (totalScore >= 7) {
+          nivelJouvet = "Level II";
+          resultadoClasse = 'bg-jouvet-2';
+        } else {
+          nivelJouvet = "Level III";
+          resultadoClasse = 'bg-jouvet-3';
+        }
+
+        resultadoDiv.innerHTML = `<p>Total Jouvet Scale Score: <strong class=\"font-bold\">${totalScore}</strong></p><p>Jouvet Coma Level: <strong class=\"font-bold\">${nivelJouvet}</strong></p>`;
+        resultadoDiv.className = `resultado ${resultadoClasse}`;
+
+        resultadoDiv.dataset.score = totalScore;
+        resultadoDiv.dataset.nivel = nivelJouvet;
+        resultadoDiv.dataset.scaleName = "Jouvet Coma Scale";
+      }
+
+      function limparCampos() {
+        jouvetData.forEach(item => {
+          const selectElement = document.getElementById(item.nameAttr);
+          selectElement.selectedIndex = 0;
+          document.getElementById(`${item.nameAttr}_score_display`).innerText = '0';
+        });
+        resultadoDiv.innerHTML = '';
+        resultadoDiv.className = 'resultado hidden';
+        delete resultadoDiv.dataset.score;
+        delete resultadoDiv.dataset.nivel;
+        delete resultadoDiv.dataset.scaleName;
+      }
+
+      // Preenche o formulário dinamicamente
+      jouvetData.forEach((item, index) => {
+        const sectionDiv = document.createElement('div');
+        sectionDiv.className = 'jouvet-criterion-card';
+
+        const headerDiv = document.createElement('div');
+        headerDiv.className = 'jouvet-criterion-header';
+
+        const titleH3 = document.createElement('h3');
+        titleH3.className = 'jouvet-criterion-title';
+        titleH3.innerText = item.parameter;
+        headerDiv.appendChild(titleH3);
+
+        const scoreSpan = document.createElement('span');
+        scoreSpan.className = 'jouvet-score-display';
+        scoreSpan.id = `${item.nameAttr}_score_display`;
+        scoreSpan.innerText = '0';
+        headerDiv.appendChild(scoreSpan);
+
+        sectionDiv.appendChild(headerDiv);
+
+        const optionsDiv = document.createElement('div');
+        optionsDiv.className = 'jouvet-criterion-options';
+
+        const selectElement = document.createElement('select');
+        selectElement.id = item.nameAttr;
+        selectElement.className = 'jouvet-select';
+        selectElement.onchange = () => updateScoreDisplay(item.nameAttr);
+
+        const defaultOption = document.createElement('option');
+        defaultOption.value = "";
+        defaultOption.text = "Select...";
+        defaultOption.disabled = true;
+        defaultOption.selected = true;
+        selectElement.appendChild(defaultOption);
+
+        item.options.forEach(option => {
+          const optionElement = document.createElement('option');
+          optionElement.value = option.score;
+          optionElement.text = `${option.description} (${option.score})`;
+          selectElement.appendChild(optionElement);
+        });
+
+        optionsDiv.appendChild(selectElement);
+        sectionDiv.appendChild(optionsDiv);
+        conteudoDiv.appendChild(sectionDiv);
+      });
+
+      // Adiciona os event listeners aos botões
+      btnCalcular?.addEventListener('click', calcularPontuacao);
+      btnLimpar?.addEventListener('click', limparCampos);
+
+      btnGerarPDF?.addEventListener('click', () => {
+        if (!resultadoDiv.dataset.score) {
+          alert('Por favor, clique em "Calcular" primeiro para gerar o PDF.');
+          return;
+        }
+        if (typeof gerarPDFGlobal === 'function') {
+          gerarPDFGlobal({
+            titulo: 'Escala de Coma de Jouvet',
+            subtitulo: 'Relatório de Avaliação do Nível de Consciência',
+            nomeArquivo: 'relatorio_escala_jouvet.pdf',
+            seletorConteudo: '.main-content-wrapper'
+          });
+        } else {
+          console.error('Função gerarPDFGlobal não definida.');
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener('click', () => {
+        const score = resultadoDiv.dataset.score;
+        const scaleName = resultadoDiv.dataset.scaleName;
+        const nivel = resultadoDiv.dataset.nivel;
+        if (!score || !nivel) {
+          alert('Calcule o resultado para pesquisar a conduta.');
+          return;
+        }
+        const searchQuery = encodeURIComponent(`${scaleName} pontuação ${score} nível ${nivel} gerar taxonomia NANDA, gerar taxonomia NIC e gerar taxonomia de NOC`);
+        window.open(`https://www.google.com/search?q=${searchQuery}`, '_blank');
+      });
+    });
+  </script>
 
 
 

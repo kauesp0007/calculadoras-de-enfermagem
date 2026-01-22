@@ -600,7 +600,94 @@
 
 
   <!-- Page Specific Script -->
-  
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const resultadoDiv = document.getElementById("resultado");
+      const btnCalcular = document.getElementById("btnCalcular");
+      const btnLimpar = document.getElementById("btnLimpar");
+      const btnGerarPDF = document.getElementById("btnGerarPDF");
+      const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
+      const nivelDorInput = document.getElementById("nivelDor");
+
+      function calcular() {
+        const nivelDor = parseInt(nivelDorInput.value, 10);
+        let interpretacao = "";
+        let grauDor = "";
+
+        if (isNaN(nivelDor) || nivelDor < 0 || nivelDor > 10) {
+          resultadoDiv.innerHTML =
+            '⚠️ <strong class="font-bold">يرجى إدخال رقم صحيح بين ٠ و ١٠.</strong>';
+          resultadoDiv.className = "resultado bg-info-orange-light";
+          resultadoDiv.style.display = "block";
+          delete resultadoDiv.dataset.score;
+          return;
+        }
+
+        if (nivelDor === 0) {
+          grauDor = "لا ألم";
+        } else if (nivelDor <= 3) {
+          grauDor = "ألم خفيف";
+        } else if (nivelDor <= 6) {
+          grauDor = "ألم متوسط";
+        } else if (nivelDor <= 9) {
+          grauDor = "ألم شديد";
+        } else {
+          grauDor = "أسوأ ألم ممكن";
+        }
+
+        resultadoDiv.innerHTML = `<p>مستوى الألم: <strong class="font-bold">${nivelDor}/١٠ (${grauDor})</strong></p>`;
+        resultadoDiv.className = "resultado";
+        resultadoDiv.style.display = "block";
+
+        resultadoDiv.dataset.score = `${nivelDor} (${grauDor})`;
+        resultadoDiv.dataset.scaleName = "مقياس الألم الرقمي (EN)";
+      }
+
+      function limpar() {
+        nivelDorInput.value = "";
+        resultadoDiv.innerHTML = "";
+        resultadoDiv.className = "resultado hidden";
+        delete resultadoDiv.dataset.score;
+        delete resultadoDiv.dataset.scaleName;
+      }
+
+      btnCalcular?.addEventListener("click", calcular);
+      btnLimpar?.addEventListener("click", limpar);
+
+      btnGerarPDF?.addEventListener("click", () => {
+        if (!resultadoDiv.dataset.score) {
+          alert('يرجى النقر على "احسب" أولاً لإنشاء PDF.');
+          return;
+        }
+        if (typeof gerarPDFGlobal === "function") {
+          gerarPDFGlobal({
+            titulo: "مقياس الألم الرقمي (EN)",
+            subtitulo: "تقرير تقييم شدة الألم",
+            nomeArquivo: "relatorio_escala_numerica_dor.pdf",
+            seletorConteudo: ".main-content-wrapper",
+          });
+        } else {
+          console.error("الدالة gerarPDFGlobal غير معرفة.");
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener("click", () => {
+        const score = resultadoDiv.dataset.score;
+        const scaleName = resultadoDiv.dataset.scaleName;
+        if (!score) {
+          alert("احسب النتيجة للبحث عن الإجراء.");
+          return;
+        }
+        const searchQuery = encodeURIComponent(
+          `${score} ${scaleName} generate NANDA taxonomy generate NIC taxonomy generate NOC taxonomy`,
+        );
+        window.open(
+          `https://www.google.com/search?q=${searchQuery}`,
+          "_blank",
+        );
+      });
+    });
+  </script>
   <script src="../lang-selector.js" defer=""></script>
 
 

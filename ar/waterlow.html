@@ -626,7 +626,287 @@
 
 
 
-    
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const resultadoDiv = document.getElementById('resultado');
+            const btnCalcular = document.getElementById('btnCalcular');
+            const btnLimpar = document.getElementById('btnLimpar');
+            const btnGerarPDF = document.getElementById('btnGerarPDF');
+            const btnNandaNicNoc = document.getElementById('btnNandaNicNoc');
+            const conteudoDiv = document.getElementById('conteudo');
+
+            const waterlowData = [
+                {
+                    category: "نوع الجلد",
+                    nameAttr: "tipoPele",
+                    options: [
+                        { description: "صحي", score: 0 },
+                        { description: "رقيق - كالورق", score: 1 },
+                        { description: "جاف", score: 1 },
+                        { description: "متوذم", score: 1 },
+                        { description: "لزج", score: 1 },
+                        { description: "شاحب", score: 2 },
+                        { description: "هش", score: 3 }
+                    ],
+                    type: 'radio'
+                },
+                {
+                    category: "الحركة",
+                    nameAttr: "mobilidade",
+                    options: [
+                        { description: "كاملة", score: 0 },
+                        { description: "مضطرب", score: 1 },
+                        { description: "خامل", score: 2 },
+                        { description: "مقيد", score: 3 },
+                        { description: "غير متحرك / تحت الجر", score: 4 },
+                        { description: "ملازم للكرسي المتحرك", score: 5 }
+                    ],
+                    type: 'radio'
+                },
+                {
+                    category: "العجز العصبي",
+                    nameAttr: "debitoNeurologico",
+                    options: [
+                        { description: "طبيعي", score: 0 },
+                        { description: "MS. شلل النصف السفلي (مثل السكتة الدماغية، التصلب المتعدد)", score: 6 }
+                    ],
+                    type: 'radio'
+                },
+                {
+                    category: "السلس",
+                    nameAttr: "continencia",
+                    options: [
+                        { description: "طبيعي", score: 0 },
+                        { description: "سلس عرضي (بول فقط)", score: 1 },
+                        { description: "سلس (بول أو براز)", score: 2 },
+                        { description: "سلس مزدوج (بول وبراز)", score: 3 }
+                    ],
+                    type: 'radio'
+                },
+                {
+                    category: "المخاطر الخاصة",
+                    subCategories: [
+                        {
+                            name: "سوء التغذية النسيجي",
+                            nameAttr: "nutricao",
+                            options: [
+                                { description: "هزال نهائي", score: 8 },
+                                { description: "قصور قلبي", score: 5 },
+                                { description: "مرض وعائي محيطي", score: 5 },
+                                { description: "فقر دم", score: 2 },
+                                { description: "تدخين", score: 1 }
+                            ]
+                        },
+                        {
+                            name: "جراحة كبرى أو رضح",
+                            nameAttr: "cirurgia",
+                            options: [
+                                { description: "جراحة عظمية تحت الخصر/ العمود الفقري", score: 5 },
+                                { description: "على طاولة العمليات: أكثر من ساعتين", score: 5 }
+                            ]
+                        },
+                        {
+                            name: "الأدوية",
+                            nameAttr: "medicacao",
+                            options: [
+                                { description: "الستيرويدات", score: 4 },
+                                { description: "الأدوية السامة للخلايا", score: 4 },
+                                { description: "مضادات الالتهاب", score: 4 }
+                            ]
+                        }
+                    ],
+                    type: 'checkbox'
+                }
+            ];
+
+            // --- وظائف حاسبة واترلو ---
+            function updateScoreDisplay(criterionId) {
+                const selectElement = document.getElementById(criterionId);
+                const scoreDisplayElement = document.getElementById(`${criterionId}_score_display`);
+                if (selectElement && scoreDisplayElement) {
+                    scoreDisplayElement.innerText = selectElement.value === "" ? "٠" : selectElement.value;
+                }
+            }
+
+            function calcularPontuacao() {
+                let total = 0;
+                let allRadioSelected = true;
+
+                // نقاط أزرار الراديو (بنود اختيار فردي)
+                const radioGroups = ["tipoPele", "mobilidade", "continencia", "debitoNeurologico"];
+                radioGroups.forEach(name => {
+                    const selectElement = document.getElementById(name);
+                    if (selectElement.value === "") {
+                        allRadioSelected = false;
+                    } else {
+                        total += parseInt(selectElement.value, 10);
+                    }
+                });
+
+                // نقاط صناديق الاختيار (المخاطر الخاصة)
+                const checkboxGroups = ["nutricao", "cirurgia", "medicacao"];
+                checkboxGroups.forEach(name => {
+                    const checkboxes = document.querySelectorAll(`input[name="${name}"]:checked`);
+                    checkboxes.forEach(checkbox => {
+                        total += parseInt(checkbox.value, 10);
+                    });
+                });
+
+                resultadoDiv.style.display = 'block';
+                if (!allRadioSelected) {
+                    resultadoDiv.innerHTML = '⚠️ <strong class="font-bold">يرجى اختيار خيار لجميع المعايير الإلزامية</strong> (نوع الجلد، الحركة، العجز العصبي، السلس) قبل الحساب.';
+                    resultadoDiv.className = 'resultado bg-info-orange-light';
+                    delete resultadoDiv.dataset.score;
+                    return;
+                }
+
+                let classificacao = "";
+                let resultadoClasse = '';
+
+                if (total >= 20) {
+                    classificacao = "خطر مرتفع جداً";
+                    resultadoClasse = 'bg-very-high-risk';
+                } else if (total >= 15) {
+                    classificacao = "خطر مرتفع";
+                    resultadoClasse = 'bg-high-risk';
+                } else if (total >= 10) {
+                    classificacao = "خطر متوسط";
+                    resultadoClasse = 'bg-medium-risk';
+                } else {
+                    classificacao = "خطر منخفض";
+                    resultadoClasse = 'bg-low-risk';
+                }
+
+                resultadoDiv.innerHTML = `<p>إجمالي نقاط واترلو: <strong class="font-bold">${total}</strong></p><p>التصنيف: <strong class="font-bold">${classificacao}</strong></p>`;
+                resultadoDiv.className = `resultado ${resultadoClasse}`;
+
+                resultadoDiv.dataset.score = total;
+                resultadoDiv.dataset.classificacao = classificacao;
+                resultadoDiv.dataset.scaleName = "مقياس واترلو";
+            }
+
+            function limparCampos() {
+                document.querySelectorAll('select').forEach(select => select.selectedIndex = 0);
+                document.querySelectorAll('input[type="checkbox"]').forEach(checkbox => checkbox.checked = false);
+                document.querySelectorAll('.waterlow-score-display').forEach(span => span.innerText = '٠');
+
+                resultadoDiv.innerHTML = '';
+                resultadoDiv.className = 'resultado hidden';
+                delete resultadoDiv.dataset.score;
+                delete resultadoDiv.dataset.classificacao;
+                delete resultadoDiv.dataset.scaleName;
+            }
+
+            // يملأ النموذج ديناميكياً
+            waterlowData.forEach((item, index) => {
+                const sectionDiv = document.createElement('div');
+                sectionDiv.className = 'waterlow-criterion-card';
+
+                const headerDiv = document.createElement('div');
+                headerDiv.className = 'waterlow-criterion-header';
+
+                const titleH3 = document.createElement('h3');
+                titleH3.className = 'waterlow-criterion-title';
+                titleH3.innerText = item.category;
+                headerDiv.appendChild(titleH3);
+
+                if (item.type === 'radio') {
+                    const scoreSpan = document.createElement('span');
+                    scoreSpan.className = 'waterlow-score-display';
+                    scoreSpan.id = `${item.nameAttr}_score_display`;
+                    scoreSpan.innerText = '٠';
+                    headerDiv.appendChild(scoreSpan);
+                }
+
+                sectionDiv.appendChild(headerDiv);
+
+                const optionsGroupDiv = document.createElement('div');
+                optionsGroupDiv.className = 'options-group';
+
+                if (item.type === "radio") {
+                    const selectElement = document.createElement('select');
+                    selectElement.id = item.nameAttr;
+                    selectElement.className = 'waterlow-select';
+                    selectElement.onchange = () => updateScoreDisplay(item.nameAttr);
+
+                    const defaultOption = document.createElement('option');
+                    defaultOption.value = "";
+                    defaultOption.text = "اختر...";
+                    defaultOption.disabled = true;
+                    defaultOption.selected = true;
+                    selectElement.appendChild(defaultOption);
+
+                    item.options.forEach(option => {
+                        const optionElement = document.createElement('option');
+                        optionElement.value = option.score;
+                        optionElement.text = `${option.description} (${option.score})`;
+                        selectElement.appendChild(optionElement);
+                    });
+                    optionsGroupDiv.appendChild(selectElement);
+                    sectionDiv.appendChild(optionsGroupDiv);
+                } else if (item.type === "checkbox") {
+                    item.subCategories.forEach(subCat => {
+                        const subCatTitle = document.createElement('p');
+                        subCatTitle.className = 'waterlow-sub-category';
+                        subCatTitle.innerText = subCat.name + ":";
+                        optionsGroupDiv.appendChild(subCatTitle);
+
+                        subCat.options.forEach(option => {
+                            const label = document.createElement('label');
+                            label.className = 'waterlow-option-label';
+                            const input = document.createElement('input');
+                            input.type = 'checkbox';
+                            input.name = subCat.nameAttr;
+                            input.value = option.score;
+
+                            const span = document.createElement('span');
+                            span.innerText = `${option.description} (${option.score})`;
+
+                            label.appendChild(input);
+                            label.appendChild(span);
+                            optionsGroupDiv.appendChild(label);
+                        });
+                    });
+                    sectionDiv.appendChild(optionsGroupDiv);
+                }
+
+                conteudoDiv.appendChild(sectionDiv);
+            });
+
+            // إضافة مستمعي الأحداث للأزرار
+            btnCalcular?.addEventListener('click', calcularPontuacao);
+            btnLimpar?.addEventListener('click', limparCampos);
+
+            btnGerarPDF?.addEventListener('click', () => {
+                if (!resultadoDiv.dataset.score) {
+                    alert('يرجى النقر على "احسب" أولاً لإنشاء PDF.');
+                    return;
+                }
+                if (typeof gerarPDFGlobal === 'function') {
+                    gerarPDFGlobal({
+                        titulo: 'مقياس واترلو',
+                        subtitulo: 'تقرير تقييم خطر قرح الضغط',
+                        nomeArquivo: 'تقرير_مقياس_واترلو.pdf',
+                        seletorConteudo: '.main-content-wrapper'
+                    });
+                } else {
+                    console.error('الدالة gerarPDFGlobal غير معرفة.');
+                }
+            });
+
+            btnNandaNicNoc?.addEventListener('click', () => {
+                const score = resultadoDiv.dataset.score;
+                const scaleName = resultadoDiv.dataset.scaleName;
+                const classificacao = resultadoDiv.dataset.classificacao;
+                if (!score || !classificacao) {
+                    alert('احسب النتيجة للبحث عن الإجراء.');
+                    return;
+                }
+                const searchQuery = encodeURIComponent(`${scaleName} نقاط ${score} تصنيف ${classificacao} إنشاء تصنيف NANDA، إنشاء تصنيف NIC وإنشاء تصنيف NOC`);
+                window.open(`https://www.google.com/search?q=${searchQuery}`, '_blank');
+            });
+        });
+    </script>
 
 
 

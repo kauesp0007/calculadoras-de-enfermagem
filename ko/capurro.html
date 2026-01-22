@@ -553,7 +553,232 @@
 
 
 
-  
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const resultadoDiv = document.getElementById("resultado");
+      const btnCalcular = document.getElementById("btnCalcular");
+      const btnLimpar = document.getElementById("btnLimpar");
+      const btnGerarPDF = document.getElementById("btnGerarPDF");
+      const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
+      const formContainer = document.getElementById("form-container");
+
+      const capurroData = [
+        {
+          category: "피부 조직",
+          description: "신생아의 피부의 모양과 탄력성을 평가합니다.",
+          nameAttr: "textura_pele",
+          options: [
+            { description: "겔라틴상 (0)", score: 0 },
+            { description: "얇고 매끄럽다 (5)", score: 5 },
+            { description: "더 두꺼움 (10)", score: 10 },
+            { description: "표면 균열 (15)", score: 15 },
+            { description: "깊은 균열 (20)", score: 20 },
+          ],
+        },
+        {
+          category: "발 뒤꿈치 주름",
+          description:
+            "아기의 발바닥에 주름의 존재, 깊이 및 범위를 관찰합니다.",
+          nameAttr: "pregas_plantares",
+          options: [
+            { description: "주름 없음 (0)", score: 0 },
+            { description: "모호한 흔적 (5)", score: 5 },
+            { description: "명확한 흔적 (10)", score: 10 },
+            { description: "1/2 전방 고랑 (15)", score: 15 },
+            { description: "> 1/2 전방 고랑 (20)", score: 20 },
+          ],
+        },
+        {
+          category: "유두 형성",
+          description: "유두의 직경과 유륜의 올림을 분석합니다.",
+          nameAttr: "formacao_mamilo",
+          options: [
+            { description: "보이지 않음 (0)", score: 0 },
+            { description: "직경 < 7.5mm (5)", score: 5 },
+            {
+              description: "직경 > 7.5mm, 가장자리 올리지 않음 (10)",
+              score: 10,
+            },
+            { description: "직경 > 7.5mm, 가장자리 올림 (15)", score: 15 },
+          ],
+        },
+        {
+          category: "유방腺 크기",
+          description: "유방腺의 크기 및 올림을 검사합니다.",
+          nameAttr: "glandula_mamaria",
+          options: [
+            { description: "촉진되지 않음 (0)", score: 0 },
+            { description: "< 5mm (5)", score: 5 },
+            { description: "5-10mm (10)", score: 10 },
+            { description: "> 10mm (15)", score: 15 },
+          ],
+        },
+        {
+          category: "귀 형태 (외이개)",
+          description: "귀의 형태, 두께 및 연골을 관찰합니다.",
+          nameAttr: "forma_orelha",
+          options: [
+            { description: "평탄, 기형 (0)", score: 0 },
+            { description: "부분 가장자리 (8)", score: 8 },
+            { description: "전체 가장자리 (16)", score: 16 },
+            { description: "전체 외이개 (24)", score: 24 },
+          ],
+        },
+        {
+          category: "스카프 신호",
+          description:
+            "검사자가 가슴을 통해 당길 때 팔꿈치의 위치를 평가하여 저항을 측정합니다.",
+          nameAttr: "sinal_xale",
+          options: [
+            { description: "반대측 겨드랑이선에 팔꿈치 (0)", score: 0 },
+            { description: "겨드랑이선과 흉골 사이 팔꿈치 (6)", score: 6 },
+            { description: "흉골에서 팔꿈치 (12)", score: 12 },
+            { description: "흉골 너머 팔꿈치 (18)", score: 18 },
+          ],
+        },
+      ];
+
+      function createForm() {
+        formContainer.innerHTML = "";
+        capurroData.forEach((item) => buildSection(item));
+      }
+
+      function buildSection(item) {
+        const sectionDiv = document.createElement("div");
+        sectionDiv.className = "criterion-section";
+        sectionDiv.id = `section-${item.nameAttr}`;
+        sectionDiv.setAttribute("role", "radiogroup");
+        sectionDiv.setAttribute("aria-labelledby", `title-${item.nameAttr}`);
+
+        const titleH3 = document.createElement("h3");
+        titleH3.className = "criterion-title";
+        titleH3.id = `title-${item.nameAttr}`;
+        titleH3.innerText = item.category;
+        sectionDiv.appendChild(titleH3);
+
+        const descriptionP = document.createElement("p");
+        descriptionP.className = "criterion-description";
+        descriptionP.textContent = item.description;
+        sectionDiv.appendChild(descriptionP);
+
+        const optionsGroup = document.createElement("div");
+        optionsGroup.className = "radio-options-group";
+
+        item.options.forEach((option, index) => {
+          const radioId = `${item.nameAttr}-${index}`;
+          const radioInput = document.createElement("input");
+          radioInput.type = "radio";
+          radioInput.id = radioId;
+          radioInput.name = item.nameAttr;
+          radioInput.value = option.score;
+
+          const radioLabel = document.createElement("label");
+          radioLabel.htmlFor = radioId;
+          radioLabel.textContent = option.description;
+
+          optionsGroup.appendChild(radioInput);
+          optionsGroup.appendChild(radioLabel);
+        });
+
+        sectionDiv.appendChild(optionsGroup);
+        formContainer.appendChild(sectionDiv);
+      }
+
+      function calculateScore() {
+        formContainer
+          .querySelectorAll(".criterion-section.incomplete")
+          .forEach((el) => el.classList.remove("incomplete"));
+
+        const groups = formContainer.querySelectorAll(".criterion-section");
+        let allSelected = true;
+        let totalScore = 0;
+
+        groups.forEach((group) => {
+          const checkedRadio = group.querySelector(
+            'input[type="radio"]:checked',
+          );
+          if (checkedRadio) {
+            totalScore += Number(checkedRadio.value);
+          } else {
+            allSelected = false;
+            group.classList.add("incomplete");
+          }
+        });
+
+        resultadoDiv.style.display = "block";
+        if (!allSelected) {
+          resultadoDiv.innerHTML =
+            '⚠️ <strong class="font-bold">계산하기 전에 표시된 모든 항목에 대해 옵션을 선택해 주세요.</strong>';
+          resultadoDiv.className = "resultado bg-yellow-100 text-yellow-800";
+          delete resultadoDiv.dataset.score;
+          return;
+        }
+
+        const totalDays = 200 + totalScore;
+        const weeks = Math.floor(totalDays / 7);
+        const days = totalDays % 7;
+        const gestationalAgeText = `<strong class="font-bold">${weeks}주 ${days}일</strong>`;
+
+        resultadoDiv.innerHTML = `<p>총 점수: <strong class="font-bold">${totalScore}</strong></p><p>추정 재태기: ${gestationalAgeText}</p>`;
+        resultadoDiv.className = `resultado`;
+
+        resultadoDiv.dataset.score = totalScore;
+        resultadoDiv.dataset.scaleName = "카푸로 방법";
+        resultadoDiv.dataset.classificacao = gestationalAgeText.replace(
+          /<[^>]*>/g,
+          "",
+        );
+      }
+
+      function clearFields() {
+        formContainer
+          .querySelectorAll('input[type="radio"]')
+          .forEach((radio) => {
+            radio.checked = false;
+          });
+        formContainer
+          .querySelectorAll(".criterion-section.incomplete")
+          .forEach((el) => el.classList.remove("incomplete"));
+        resultadoDiv.innerHTML = "";
+        resultadoDiv.style.display = "none";
+        resultadoDiv.className = "resultado";
+        delete resultadoDiv.dataset.score;
+      }
+
+      btnCalcular?.addEventListener("click", calculateScore);
+      btnLimpar?.addEventListener("click", clearFields);
+
+      btnGerarPDF?.addEventListener("click", () => {
+        if (!resultadoDiv.dataset.score) {
+          alert('PDF를 생성하려면 먼저 "계산"을 클릭해 주세요.');
+          return;
+        }
+        gerarPDFGlobal({
+          titulo: "재태기 추정 - 카푸로 방법",
+          subtitulo: "신생아 평가 보고서",
+          nomeArquivo: "카푸로_방법_보고서.pdf",
+          seletorConteudo: ".main-content-wrapper",
+        });
+      });
+
+      btnNandaNicNoc?.addEventListener("click", () => {
+        const classificacao = resultadoDiv.dataset.classificacao;
+        if (!classificacao) {
+          alert(" conduta를 검색하려면 결과를 계산해 주세요.");
+          return;
+        }
+        const searchQuery = encodeURIComponent(
+          `${classificacao} 재태기를 가진 신생아 간호 관리 NANDA NIC NOC`,
+        );
+        window.open(
+          `https://www.google.com/search?q=${searchQuery}`,
+          "_blank",
+        );
+      });
+
+      createForm();
+    });
+  </script>
 
   <script src="/lang-selector.js" defer=""></script>
 

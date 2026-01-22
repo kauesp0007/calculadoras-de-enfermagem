@@ -609,7 +609,199 @@
 
 
 
-  
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const resultadoDiv = document.getElementById('resultado');
+      const btnCalcular = document.getElementById('btnCalcular');
+      const btnLimpar = document.getElementById('btnLimpar');
+      const btnGerarPDF = document.getElementById('btnGerarPDF');
+      const btnNandaNicNoc = document.getElementById('btnNandaNicNoc');
+      const conteudoDiv = document.getElementById('conteudo');
+
+      // OFRAS स्केल डेटा
+      const ofrasData = [
+        {
+          category: "इतिहास",
+          nameAttr: "historico",
+          options: [
+            { description: "गिरने या संतुलन संबंधी समस्याओं का कोई इतिहास नहीं", score: 0 },
+            { description: "गिरने या संतुलन संबंधी समस्याओं का इतिहास", score: 1 }
+          ],
+          explain: "गिरने के इतिहास और ऐसी स्थितियों का आकलन करता है जो संतुलन को प्रभावित कर सकती हैं।"
+        },
+        {
+          category: "हृदय प्रणाली",
+          nameAttr: "cardiaco",
+          options: [
+            { description: "कोई हृदय संबंधी परिवर्तन नहीं", score: 0 },
+            { description: "अतालता, निम्न रक्तचाप या अन्य हृदय संबंधी स्थितियां", score: 1 }
+          ],
+          explain: "ऐसी हृदय संबंधी स्थितियों का विश्लेषण करता है जो अस्थिरता का कारण बन सकती हैं।"
+        },
+        {
+          category: "रक्तस्राव",
+          nameAttr: "hemorragia",
+          options: [
+            { description: "रक्तस्राव का कोई जोखिम नहीं", score: 0 },
+            { description: "रक्तस्राव का जोखिम या सक्रिय रक्तस्राव", score: 1 }
+          ],
+          explain: "रक्तस्राव के जोखिम पर विचार करता है जो कमजोरी और चक्कर का कारण बन सकता है।"
+        },
+        {
+          category: "संज्ञाहरण",
+          nameAttr: "anestesia",
+          options: [
+            { description: "संज्ञाहरण का उपयोग नहीं", score: 0 },
+            { description: "हालिया संज्ञाहरण का उपयोग (पिछले 24 घंटों में)", score: 1 }
+          ],
+          explain: "संज्ञाहरण के अवशिष्ट प्रभावों का आकलन करता है, जैसे नींद और असंतुलन।"
+        },
+        {
+          category: "मोटर गतिविधि",
+          nameAttr: "motora",
+          options: [
+            { description: "सुरक्षित रूप से और बिना सहायता के चलता है", score: 0 },
+            { description: "कठिनाई, अस्थिरता के साथ चलता है या सहायता की आवश्यकता है", score: 1 }
+          ],
+          explain: "रोगी की सुरक्षित रूप से आगे बढ़ने की क्षमता का आकलन करता है।"
+        },
+        {
+          category: "दवाओं का उपयोग",
+          nameAttr: "medicacao",
+          options: [
+            { description: "जोखिम वाली दवाओं का उपयोग नहीं करता", score: 0 },
+            { description: "ऐसी दवाओं का उपयोग जो नींद या चक्कर का कारण बनती हैं", score: 1 }
+          ],
+          explain: "ऐसी दवाओं के उपयोग पर विचार करता है जो गिरने के जोखिम को बढ़ा सकती हैं।"
+        }
+      ];
+
+      // फॉर्म को डायनामिक रूप से भरें
+      ofrasData.forEach(item => {
+        const sectionDiv = document.createElement('div');
+        sectionDiv.className = 'ofras-criterion-section';
+        sectionDiv.id = `section-${item.nameAttr}`;
+
+        const titleH3 = document.createElement('h3');
+        titleH3.className = 'ofras-criterion-title';
+        titleH3.innerHTML = item.category + `
+              <div class="text-sm font-normal text-gray-500 mt-1">${item.explain}</div>`;
+        sectionDiv.appendChild(titleH3);
+
+        const selectElement = document.createElement('select');
+        selectElement.id = item.nameAttr;
+        selectElement.className = 'ofras-criterion-select';
+
+        const defaultOption = document.createElement('option');
+        defaultOption.value = "";
+        defaultOption.text = "चयन करें...";
+        selectElement.appendChild(defaultOption);
+
+        item.options.forEach(option => {
+          const optionElement = document.createElement('option');
+          optionElement.value = option.score;
+          optionElement.text = `${option.description} (अंक: ${option.score})`;
+          selectElement.appendChild(optionElement);
+        });
+
+        sectionDiv.appendChild(selectElement);
+        conteudoDiv.appendChild(sectionDiv);
+      });
+
+      // स्कोर की गणना करें
+      btnCalcular.addEventListener('click', function () {
+        let totalScore = 0;
+        let incompleteFields = false;
+
+        ofrasData.forEach(item => {
+          const selectElement = document.getElementById(item.nameAttr);
+          const selectedValue = selectElement.value;
+
+          if (selectedValue === "") {
+            selectElement.classList.add('incomplete');
+            incompleteFields = true;
+          } else {
+            selectElement.classList.remove('incomplete');
+            totalScore += parseInt(selectedValue);
+          }
+        });
+
+        if (incompleteFields) {
+          resultadoDiv.style.display = 'block';
+          resultadoDiv.innerHTML = '<p class="text-red-600 font-bold">कृपया सभी मानदंडों का चयन करें।</p>';
+          return;
+        }
+
+        let riskLevel = "";
+        let interpretation = "";
+        let recommendations = "";
+
+        if (totalScore === 0) {
+          riskLevel = "कम जोखिम";
+          interpretation = "रोगी में गिरने का कम जोखिम है।";
+          recommendations = "मानक सावधानियां बनाए रखें।";
+        } else if (totalScore >= 1 && totalScore <= 2) {
+          riskLevel = "मध्यम जोखिम";
+          interpretation = "रोगी में गिरने का मध्यम जोखिम है।";
+          recommendations = "बिस्तर के पास बेल लगाएं, चलने में सहायता करें, नियमित रूप से मूल्यांकन करें।";
+        } else {
+          riskLevel = "उच्च जोखिम";
+          interpretation = "रोगी में गिरने का उच्च जोखिम है।";
+          recommendations = "निरंतर निगरानी, पर्यावरण में सुधार, गिरने से बचाव के उपाय लागू करें।";
+        }
+
+        resultadoDiv.style.display = 'block';
+        resultadoDiv.innerHTML = `
+                <h3 class="text-xl font-bold mb-3">परिणाम</h3>
+                <p><strong>कुल स्कोर:</strong> ${totalScore}</p>
+                <p><strong>जोखिम स्तर:</strong> ${riskLevel}</p>
+                <p><strong>व्याख्या:</strong> ${interpretation}</p>
+                <p><strong>सिफारिशें:</strong> ${recommendations}</p>
+            `;
+      });
+
+      // फॉर्म साफ़ करें
+      btnLimpar.addEventListener('click', function () {
+        ofrasData.forEach(item => {
+          const selectElement = document.getElementById(item.nameAttr);
+          selectElement.value = "";
+          selectElement.classList.remove('incomplete');
+        });
+        resultadoDiv.style.display = 'none';
+      });
+
+      // PDF जनरेट करें
+      btnGerarPDF.addEventListener('click', function () {
+        const element = document.getElementById('resultado');
+        if (element.style.display === 'none' || element.innerHTML.trim() === '') {
+          alert('कृपया पहले स्कोर की गणना करें।');
+          return;
+        }
+
+        const options = {
+          margin: 10,
+          filename: 'ofras-scale-result.pdf',
+          image: { type: 'jpeg', quality: 0.98 },
+          html2canvas: { scale: 2 },
+          jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        };
+
+        html2pdf().set(options).from(element).save();
+      });
+
+      // NANDA, NIC, NOC बटन
+      btnNandaNicNoc.addEventListener('click', function () {
+        resultadoDiv.style.display = 'block';
+        resultadoDiv.innerHTML = `
+                <h3 class="text-xl font-bold mb-3">OFRAS स्केल के लिए NANDA, NIC, NOC</h3>
+                <p><strong>NANDA:</strong> गिरने का जोखिम (00155)</p>
+                <p><strong>NIC:</strong> गिरने से बचाव (6490)</p>
+                <p><strong>NOC:</strong> गिरने से बचाव का व्यवहार (1908)</p>
+                <p class="mt-3"><strong>सिफारिशें:</strong> गिरने के जोखिम वाले रोगियों के लिए पर्यावरण में सुधार करें, सहायक उपकरण प्रदान करें, और नियमित रूप से जोखिम का मूल्यांकन करें।</p>
+            `;
+      });
+    });
+  </script>
 
 
 

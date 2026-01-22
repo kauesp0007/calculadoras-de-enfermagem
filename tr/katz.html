@@ -574,7 +574,270 @@
 
 
 
-  
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const resultadoDiv = document.getElementById("resultado");
+      const btnCalcular = document.getElementById("btnCalcular");
+      const btnLimpar = document.getElementById("btnLimpar");
+      const btnGerarPDF = document.getElementById("btnGerarPDF");
+      const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
+      const conteudoDiv = document.getElementById("conteudo");
+
+      const katzData = [
+        {
+          item: "1 - Banyo",
+          nameAttr: "banho",
+          options: [
+            {
+              score: 1,
+              description:
+                "Bağımsız - vücudun sadece bir bölümünü yıkamak için yardıma ihtiyaç duyar, ör. sırt veya ekstremiteler",
+            },
+            {
+              score: 0,
+              description:
+                "Bağımlı - vücudun birden fazla bölümünü yıkamak için yardıma ihtiyaç duyar; küvete girmek ve çıkmak için yardıma ihtiyaç duyar; kendi başına yıkanmaz",
+            },
+          ],
+        },
+        {
+          item: "2 - Giyinme",
+          nameAttr: "vestir",
+          options: [
+            {
+              score: 1,
+              description:
+                "Bağımsız - uygun kıyafetleri seçer, giyer ve bağlar; ayakkabı bağlamayı hariç tutar",
+            },
+            {
+              score: 0,
+              description:
+                "Bağımlı - giyinmek için yardıma ihtiyaç duyar; kendi başına giyinemez",
+            },
+          ],
+        },
+        {
+          item: "3 - Tuvaleti kullanma",
+          nameAttr: "sanitario",
+          options: [
+            {
+              score: 1,
+              description:
+                "Bağımsız - sandalyeye oturmak veya kalkmak için yardıma ihtiyaç duymaz, yatağa girmek veya çıkmak için yardıma ihtiyaç duymaz; ördek veya sürgü kullanabilir",
+            },
+            {
+              score: 0,
+              description:
+                "Bağımlı - ördek veya sürgü kullanır veya tuvalete erişmek ve kullanmak için yardıma ihtiyaç duyar",
+            },
+          ],
+        },
+        {
+          item: "4 - Transfer (Yatak/Tekerlekli sandalye)",
+          nameAttr: "transferencia",
+          options: [
+            {
+              score: 1,
+              description:
+                "Bağımsız - sandalyeye oturmak veya kalkmak için yardıma ihtiyaç duymaz, yatağa girmek veya çıkmak için yardıma ihtiyaç duymaz; yardımcı cihazlar kullanabilir, ör. baston",
+            },
+            {
+              score: 0,
+              description:
+                "Bağımlı - yatağa/tekerlekli sandalyeye uzanmak veya kalkmak için yardıma ihtiyaç duyar; yatağa bağlı",
+            },
+          ],
+        },
+        {
+          item: "5 - Kontinans (Fekal/Üriner)",
+          nameAttr: "continencia",
+          options: [
+            {
+              score: 1,
+              description:
+                "Bağımsız - idrar ve dışkılama üzerinde tam kontrol",
+            },
+            {
+              score: 0,
+              description:
+                "Bağımlı - tam veya kısmi mesane ve/veya bağırsak inkontinansı; lavman, kateter, ördek veya sürgü kullanımı",
+            },
+          ],
+        },
+        {
+          item: "6 - Beslenme",
+          nameAttr: "alimentacao",
+          options: [
+            {
+              score: 1,
+              description:
+                "Bağımsız - yiyeceği tabaktan ağza yardım almadan götürür; yiyecekleri kesmeyi hariç tutar",
+            },
+            {
+              score: 0,
+              description:
+                "Bağımlı - yemek için yardıma ihtiyaç duyar; hiç yemez veya enteral/parenteral beslenmeye ihtiyaç duyar",
+            },
+          ],
+        },
+      ];
+
+      function updateScoreDisplay(criterionId) {
+        const selectElement = document.getElementById(criterionId);
+        const scoreDisplayElement = document.getElementById(
+          `${criterionId}_score_display`,
+        );
+        if (selectElement && scoreDisplayElement) {
+          scoreDisplayElement.innerText =
+            selectElement.value === "" ? "0" : selectElement.value;
+        }
+      }
+
+      function calcularPontuacao() {
+        let totalScore = 0;
+        let allItemsSelected = true;
+
+        katzData.forEach((item) => {
+          const selectElement = document.getElementById(item.nameAttr);
+          if (selectElement.value === "") {
+            allItemsSelected = false;
+          } else {
+            totalScore += parseInt(selectElement.value, 10);
+          }
+        });
+
+        resultadoDiv.style.display = "block";
+        if (!allItemsSelected) {
+          resultadoDiv.innerHTML =
+            '⚠️ <strong class="font-bold">Lütfen hesaplamadan önce her madde için bir seçenek belirleyin</strong>.';
+          resultadoDiv.className = "resultado bg-info-orange-light";
+          delete resultadoDiv.dataset.score;
+          return;
+        }
+
+        let classificacao = "";
+        let resultadoClasse = "";
+
+        if (totalScore === 6) {
+          classificacao = "Tam Bağımsızlık";
+          resultadoClasse = "bg-katz-total";
+        } else if (totalScore === 5) {
+          classificacao = "Hafif Bağımlılık";
+          resultadoClasse = "bg-katz-ligeira";
+        } else if (totalScore >= 3 && totalScore <= 4) {
+          classificacao = "Orta Derecede Bağımlılık";
+          resultadoClasse = "bg-katz-moderada";
+        } else if (totalScore >= 1 && totalScore <= 2) {
+          classificacao = "Ciddi Bağımlılık";
+          resultadoClasse = "bg-katz-grave";
+        } else if (totalScore === 0) {
+          classificacao = "Tam Bağımlılık";
+          resultadoClasse = "bg-katz-dependente";
+        } else {
+          classificacao = "Geçersiz puan";
+          resultadoClasse = "bg-info-orange-light";
+        }
+
+        resultadoDiv.innerHTML = `<p>Katz Ölçeği Toplam Puanı: <strong class="font-bold">${totalScore}</strong></p><p>Sınıflandırma: <strong class="font-bold">${classificacao}</strong></p>`;
+        resultadoDiv.className = `resultado ${resultadoClasse}`;
+
+        resultadoDiv.dataset.score = totalScore;
+        resultadoDiv.dataset.classificacao = classificacao;
+        resultadoDiv.dataset.scaleName = "Katz Ölçeği";
+      }
+
+      function limparCampos() {
+        katzData.forEach((item) => {
+          document.getElementById(item.nameAttr).selectedIndex = 0;
+        });
+        resultadoDiv.innerHTML = "";
+        resultadoDiv.className = "resultado hidden";
+        delete resultadoDiv.dataset.score;
+        delete resultadoDiv.dataset.classificacao;
+        delete resultadoDiv.dataset.scaleName;
+      }
+
+      katzData.forEach((item, index) => {
+        const sectionDiv = document.createElement("div");
+        sectionDiv.className = "katz-criterion-card";
+
+        const headerDiv = document.createElement("div");
+        headerDiv.className = "katz-criterion-header";
+
+        const titleH3 = document.createElement("h3");
+        titleH3.className = "katz-criterion-title";
+        titleH3.innerText = item.item;
+        headerDiv.appendChild(titleH3);
+
+        sectionDiv.appendChild(headerDiv);
+
+        const optionsDiv = document.createElement("div");
+        optionsDiv.className = "katz-criterion-options";
+
+        const selectElement = document.createElement("select");
+        selectElement.id = item.nameAttr;
+        selectElement.className = "katz-select";
+        selectElement.onchange = () => updateScoreDisplay(item.nameAttr);
+
+        const defaultOption = document.createElement("option");
+        defaultOption.value = "";
+        defaultOption.text = "Seçiniz...";
+        defaultOption.disabled = true;
+        defaultOption.selected = true;
+        selectElement.appendChild(defaultOption);
+
+        item.options.forEach((option) => {
+          const optionElement = document.createElement("option");
+          optionElement.value = option.score;
+          optionElement.text = `${option.description} (${option.score})`;
+          selectElement.appendChild(optionElement);
+        });
+
+        optionsDiv.appendChild(selectElement);
+        sectionDiv.appendChild(optionsDiv);
+        conteudoDiv.appendChild(sectionDiv);
+      });
+
+      btnCalcular?.addEventListener("click", calcularPontuacao);
+      btnLimpar?.addEventListener("click", limparCampos);
+
+      btnGerarPDF?.addEventListener("click", () => {
+        if (!resultadoDiv.dataset.score) {
+          alert(
+            'PDF oluşturmak için lütfen önce "Hesapla" butonuna tıklayın.',
+          );
+          return;
+        }
+        if (typeof gerarPDFGlobal === "function") {
+          gerarPDFGlobal({
+            titulo: "Katz Ölçeği",
+            subtitulo: "GYA'larda Özerklik Değerlendirme Raporu",
+            nomeArquivo: "katz_olcegi_raporu.pdf",
+            seletorConteudo: ".main-content-wrapper",
+          });
+        } else {
+          console.error("gerarPDFGlobal fonksiyonu tanımlı değil.");
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener("click", () => {
+        const score = resultadoDiv.dataset.score;
+        const scaleName = resultadoDiv.dataset.scaleName;
+        const classificacao = resultadoDiv.dataset.classificacao;
+        if (!score || !classificacao) {
+          alert("Bakım planını aramak için sonucu hesaplayın.");
+          return;
+        }
+        const searchQuery = encodeURIComponent(
+          `${scaleName} puan ${score} sınıflandırma ${classificacao} NANDA taksonomisi oluştur, NIC taksonomisi oluştur ve NOC taksonomisi oluştur`,
+        );
+        window.open(
+          `https://www.google.com/search?q=${searchQuery}`,
+          "_blank",
+        );
+      });
+    });
+  </script>
 
   <script src="/tr/lang-selector.js" defer=""></script>
 

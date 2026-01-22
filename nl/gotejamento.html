@@ -781,7 +781,156 @@
   <div id="global-body-elements-container"></div>
 
   <!-- Scripts Traduzidos -->
-  
+  <script>
+    // Função para carregar HTML modular
+    // Modificado para garantir que fetchHTML retorne uma Promise
+    function fetchHTML(url, id) {
+      return fetch(url).
+        then((r) => r.text()).
+        then((html) => {
+          const el = document.getElementById(id);
+          if (el) el.innerHTML = html;
+        });
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      // Carrega menu global
+      fetchHTML("/menu-global.html", "global-header-container");
+      fetchHTML("/_language_selector.html", "language-dropdown-wrapper");
+
+      fetchHTML("/global-body-elements.html", "global-body-elements-container");
+    });
+
+
+    const resultadoDiv = document.getElementById("resultado");
+    const btnCalcular = document.getElementById("btnCalcular");
+    const btnLimpar = document.getElementById("btnLimpar");
+    const btnGerarPDF = document.getElementById("btnGerarPDF");
+    const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
+
+    function calcularGotejamento() {
+      const volumeInput = document.getElementById("volume");
+      const tempoInput = document.getElementById("tempo");
+      const unidadeTempo = document.getElementById("unidadeTempo").value;
+      const equipo = document.getElementById("equipo").value;
+
+      let hasError = false;
+      const volume = parseFloat(volumeInput.value);
+      const tempo = parseFloat(tempoInput.value);
+
+      document.getElementById("volume-error").classList.add("hidden");
+      document.getElementById("tempo-error").classList.add("hidden");
+
+      if (isNaN(volume) || volume <= 0) {
+        document.getElementById("volume-error").textContent =
+          "Voer een geldig volume groter dan nul in.";
+        document.getElementById("volume-error").classList.remove("hidden");
+        hasError = true;
+      }
+      if (isNaN(tempo) || tempo <= 0) {
+        document.getElementById("tempo-error").textContent =
+          "Voer een geldige tijd in die groter is dan nul.";
+        document.getElementById("tempo-error").classList.remove("hidden");
+        hasError = true;
+      }
+
+      if (hasError) {
+        resultadoDiv.style.display = "block";
+        resultadoDiv.innerHTML =
+          '⚠️ <strong class="font-bold">Por favor, corrija os valores inválidos.</strong>';
+        resultadoDiv.className =
+          "resultaatcontainer bg-info-oranje-licht";
+        delete resultadoDiv.dataset.gotasPorMinuto;
+        return;
+      }
+
+      let gotasPorMinuto;
+      let fatorGotejamento;
+
+      if (equipo === "macrogotas") {
+        fatorGotejamento = 20;
+      } else {
+        fatorGotejamento = 60;
+      }
+
+      let tempoEmMinutos = unidadeTempo === "horas" ? tempo * 60 : tempo;
+      gotasPorMinuto = volume * fatorGotejamento / tempoEmMinutos;
+
+      const gotasArredondadas = Math.round(gotasPorMinuto);
+      const equipoTexto = equipo === "macrogotas" ? "Macrogotas" : "Microgotas";
+
+      // Texto para exibir se é horas ou minutos no resultado
+      const unidadeTexto = unidadeTempo === "horas" ? "horas" : "minutos";
+
+      // Formatação do Resultado em Português
+      const resultadoTexto = `
+                <p>
+                    <strong>Resultado final:</strong> ${volume} ml van de voorgeschreven oplossing die moet worden ingebracht in ${tempo} ${unidadeTexto} deve correr a: <br>
+                    <strong>${gotasArredondadas} gotas/minuto</strong>.
+                </p>
+            `;
+
+      resultadoDiv.innerHTML = resultadoTexto;
+      resultadoDiv.className = "resultaatcontainer";
+      resultadoDiv.style.display = "block";
+
+      resultadoDiv.dataset.gotasPorMinuto = gotasArredondadas;
+      resultadoDiv.dataset.equipo = equipoTexto;
+      resultadoDiv.dataset.scaleName = "Berekening druppelen";
+    }
+
+    function limparCampos() {
+      document.getElementById("volume").value = "";
+      document.getElementById("tempo").value = "";
+      document.getElementById("unidadeTempo").value = "horas";
+      document.getElementById("equipo").value = "macrogotas";
+      resultadoDiv.innerHTML = "";
+      resultadoDiv.style.display = "none";
+      document.getElementById("volume-error").classList.add("hidden");
+      document.getElementById("tempo-error").classList.add("hidden");
+      delete resultadoDiv.dataset.gotasPorMinuto;
+      delete resultadoDiv.dataset.equipo;
+      delete resultadoDiv.dataset.scaleName;
+    }
+
+    btnCalcular?.addEventListener("click", calcularGotejamento);
+    btnLimpar?.addEventListener("click", limparCampos);
+
+    btnGerarPDF?.addEventListener("click", () => {
+      if (!resultadoDiv.dataset.gotasPorMinuto) {
+        alert(
+          "Klik eerst op \"Bereken\" om de PDF te genereren."
+        );
+        return;
+      }
+      if (typeof gerarPDFGlobal === "function") {
+        gerarPDFGlobal({
+          titulo: "Berekening druppelen",
+          subtitulo: "Rapport druppeldosering",
+          nomeArquivo: "relatorio_gotejamento.pdf",
+          seletorConteudo: ".main-content-wrapper"
+        });
+      } else {
+        console.error("GeneratePDFGlobal-functie niet gedefinieerd.");
+      }
+    });
+
+    btnNandaNicNoc?.addEventListener("click", () => {
+      const gotasPorMinuto = resultadoDiv.dataset.gotasPorMinuto;
+      const equipo = resultadoDiv.dataset.equipo;
+      const scaleName = resultadoDiv.dataset.scaleName;
+      if (!gotasPorMinuto || !equipo) {
+        alert("Bereken het resultaat om een actie te vinden.");
+        return;
+      }
+      const searchQuery = encodeURIComponent(
+        `${scaleName} resultaat ${gotasPorMinuto} gotas/minuto, equipo ${equipo} gerar taxonomia NANDA, gerar taxonomia NIC e gerar taxonomia NOC`
+      );
+      window.open(
+        `https://www.google.com/search?q=${searchQuery}`,
+        "_blank"
+      );
+    });</script>
 
   <script src="/lang-selector.js" defer=""></script>
   <script src="/global-scripts.js" defer=""></script>

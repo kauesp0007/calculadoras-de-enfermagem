@@ -638,7 +638,317 @@
 
 
 
-  
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const resultadoDiv = document.getElementById('resultado');
+      const btnCalcular = document.getElementById('btnCalcular');
+      const btnLimpar = document.getElementById('btnLimpar');
+      const btnGerarPDF = document.getElementById('btnGerarPDF');
+      const btnNandaNicNoc = document.getElementById('btnNandaNicNoc');
+      const conteudoDiv = document.getElementById('conteudo');
+      const introParagraph = document.getElementById('intro-paragraph');
+      const referenceSection = document.getElementById('reference-section');
+
+      // Escala de Fugulinの日本語データ
+      const fugulinData = [
+        {
+          category: "精神状態",
+          nameAttr: "estado_mental",
+          options: [
+            { description: "無意識", score: 4 },
+            { description: "見当識障害", score: 3 },
+            { description: "混乱", score: 2 },
+            { description: "見当識あり", score: 1 },
+          ]
+        },
+        {
+          category: "酸素化",
+          nameAttr: "oxigenacao",
+          options: [
+            { description: "機械換気", score: 4 },
+            { description: "酸素マスク", score: 3 },
+            { description: "経鼻カニューレ", score: 2 },
+            { description: "室内気", score: 1 },
+          ]
+        },
+        {
+          category: "バイタルサイン",
+          nameAttr: "sinais_vitais",
+          options: [
+            { description: "非常に危険", score: 4 },
+            { description: "危険", score: 3 },
+            { description: "不安定", score: 2 },
+            { description: "安定", score: 1 },
+          ]
+        },
+        {
+          category: "運動性",
+          nameAttr: "motilidade",
+          options: [
+            { description: "不動", score: 4 },
+            { description: "介助で移動", score: 3 },
+            { description: "監督下で移動", score: 2 },
+            { description: "自立", score: 1 },
+          ]
+        },
+        {
+          category: "歩行",
+          nameAttr: "deambulacao",
+          options: [
+            { description: "歩行不能", score: 4 },
+            { description: "介助で歩行", score: 3 },
+            { description: "監督下で歩行", score: 2 },
+            { description: "自立", score: 1 },
+          ]
+        },
+        {
+          category: "食事",
+          nameAttr: "alimentacao",
+          options: [
+            { description: "絶食", score: 4 },
+            { description: "非経口", score: 3 },
+            { description: "経管", score: 2 },
+            { description: "経口", score: 1 },
+          ]
+        },
+        {
+          category: "身体ケア",
+          nameAttr: "cuidado_corporal",
+          options: [
+            { description: "全介助", score: 4 },
+            { description: "依存", score: 3 },
+            { description: "部分的介助", score: 2 },
+            { description: "自立", score: 1 },
+          ]
+        },
+        {
+          category: "排泄",
+          nameAttr: "eliminacao",
+          options: [
+            { description: "失禁", score: 4 },
+            { description: "SVD (尿道カテーテル)", score: 3 },
+            { description: "部分的介助", score: 2 },
+            { description: "自立", score: 1 },
+          ]
+        },
+        {
+          category: "治療",
+          nameAttr: "terapeutica",
+          options: [
+            { description: "血管作動薬の使用", score: 4 },
+            { description: "カテーテルによる持続点滴", score: 3 },
+            { description: "間欠的静注", score: 2 },
+            { description: "筋注または経口", score: 1 },
+          ]
+        },
+        {
+          category: "創傷処置時間",
+          nameAttr: "tempo_curativo",
+          options: [
+            { description: "15～30分", score: 4 },
+            { description: "5～15分", score: 3 },
+            { description: "5分未満", score: 2 },
+            { description: "創傷処置なし", score: 1 },
+          ]
+        },
+        {
+          category: "創傷処置",
+          nameAttr: "curativo",
+          options: [
+            { description: "1日3回交換", score: 4 },
+            { description: "1日2回交換", score: 3 },
+            { description: "1日1回交換", score: 2 },
+            { description: "創傷処置なし", score: 1 },
+          ]
+        },
+        {
+          category: "皮膚・粘膜の統合性 / 組織障害",
+          nameAttr: "integridade",
+          options: [
+            { description: "広範", score: 4 },
+            { description: "中等度", score: 3 },
+            { description: "軽度", score: 2 },
+            { description: "なし", score: 1 },
+          ]
+        }
+      ];
+
+      // フォームを動的に生成
+      fugulinData.forEach((item, index) => {
+        const sectionDiv = document.createElement('div');
+        sectionDiv.className = 'fugulin-criterion-section';
+        sectionDiv.id = `section-${item.nameAttr}`;
+
+        const titleH3 = document.createElement('h3');
+        titleH3.className = 'fugulin-criterion-title';
+        titleH3.innerText = item.category;
+        sectionDiv.appendChild(titleH3);
+
+        const selectElement = document.createElement('select');
+        selectElement.id = item.nameAttr;
+        selectElement.className = 'fugulin-criterion-select';
+        selectElement.setAttribute('aria-label', item.category);
+
+        const defaultOption = document.createElement('option');
+        defaultOption.value = "";
+        defaultOption.text = "選択してください...";
+        selectElement.appendChild(defaultOption);
+
+        item.options.forEach(option => {
+          const optionElement = document.createElement('option');
+          optionElement.value = option.score;
+          optionElement.text = `${option.description} (${option.score}点)`;
+          selectElement.appendChild(optionElement);
+        });
+
+        sectionDiv.appendChild(selectElement);
+        conteudoDiv.appendChild(sectionDiv);
+      });
+
+      function calcularFugulin() {
+        const selects = document.querySelectorAll('#conteudo select');
+        let allSelected = true;
+        let total = 0;
+
+        selects.forEach(select => {
+          const parentSection = select.closest('.fugulin-criterion-section');
+          if (select.value === "") {
+            allSelected = false;
+            parentSection.classList.add('incomplete'); // Add incomplete class to section
+          } else {
+            parentSection.classList.remove('incomplete'); // Remove incomplete class
+            total += Number(select.value);
+          }
+        });
+
+        resultadoDiv.style.display = "block";
+        if (!allSelected) {
+          resultadoDiv.innerHTML = '⚠️ <strong class="font-bold">計算する前に、すべての項目を選択してください。</strong>';
+          resultadoDiv.className = 'resultado bg-red-100 text-red-700';
+          delete resultadoDiv.dataset.score;
+          return;
+        }
+
+        let classificacao = '';
+        let resultadoClasse = '';
+
+        if (total >= 31) {
+          classificacao = '非常に高い複雑度';
+          resultadoClasse = 'bg-red-100';
+        } else if (total >= 24) {
+          classificacao = '高い複雑度';
+          resultadoClasse = 'bg-red-100';
+        } else if (total >= 17) {
+          classificacao = '中程度の複雑度';
+          resultadoClasse = 'bg-blue-50';
+        } else if (total >= 10) { // Changed from >= 10 to match pt version logic (10-16)
+          classificacao = '低い複雑度'; // Should be 'Mínima Complexidade' (Minimal) based on pt
+          resultadoClasse = 'bg-blue-50';
+        } else { // This part seems off based on pt logic (<=9?)
+          classificacao = '最小限の複雑度'; // Pt version has 10-16 as Baixa, and < 10? No, pt version starts at 10.
+          resultadoClasse = 'bg-blue-50';
+        }
+
+        // Re-checking pt logic: 10-16 = Mínima, 17-23 = Média, 24-30 = Alta, >= 31 = Muito Alta
+        // Let's adjust Japanese translation to match this logic
+        if (total >= 31) {
+          classificacao = '非常に高い複雑度'; // Muito Alta Complexidade
+          resultadoClasse = 'bg-red-100';
+        } else if (total >= 24) { // 24-30
+          classificacao = '高い複雑度'; // Alta Complexidade
+          resultadoClasse = 'bg-red-100'; // Kept red for high
+        } else if (total >= 17) { // 17-23
+          classificacao = '中程度の複雑度'; // Média Complexidade
+          resultadoClasse = 'bg-blue-50'; // Kept blue for medium
+        } else { // total <= 16 (Assuming 10 is min, although scale items start at 1)
+          classificacao = '最小限の複雑度'; // Mínima Complexidade
+          resultadoClasse = 'bg-blue-50'; // Kept blue for minimal/low
+        }
+
+
+        resultadoDiv.innerHTML = `<p>合計スコア: <strong class="font-bold">${total}</strong></p><p>分類: <strong class="font-bold">${classificacao}</strong></p>`;
+        resultadoDiv.className = `resultado ${resultadoClasse}`;
+        resultadoDiv.style.display = "block";
+
+        resultadoDiv.dataset.score = total;
+        resultadoDiv.dataset.scaleName = "フグリンスケール";
+        resultadoDiv.dataset.classificacao = classificacao;
+      }
+
+      function limparCampos() {
+        const selects = document.querySelectorAll('#conteudo select');
+        selects.forEach(select => {
+          select.selectedIndex = 0;
+          select.closest('.fugulin-criterion-section').classList.remove('incomplete');
+        });
+        resultadoDiv.innerHTML = '';
+        resultadoDiv.className = 'resultado hidden';
+        delete resultadoDiv.dataset.score;
+        delete resultadoDiv.dataset.scaleName;
+        delete resultadoDiv.dataset.classificacao;
+      }
+
+      // Adiciona os event listeners aos botões
+      btnCalcular?.addEventListener('click', calcularFugulin);
+      btnLimpar?.addEventListener('click', limparCampos);
+
+      btnGerarPDF?.addEventListener('click', () => {
+        if (!resultadoDiv.dataset.score) {
+          alert('PDFを生成する前に、まず「スコアを計算」をクリックしてください。');
+          return;
+        }
+        if (typeof gerarPDFGlobal === 'function') {
+          gerarPDFGlobal({
+            titulo: 'フグリンスケール',
+            subtitulo: '看護ケアの複雑度レポート',
+            nomeArquivo: 'reporte_escala_fugulin.pdf',
+            seletorConteudo: '.main-content-wrapper'
+          });
+        } else {
+          console.error('gerarPDFGlobal 関数が定義されていません。');
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener('click', () => {
+        const score = resultadoDiv.dataset.score;
+        const scaleName = resultadoDiv.dataset.scaleName;
+        const classificacao = resultadoDiv.dataset.classificacao;
+        if (!score || !classificacao) {
+          alert('行動を検索するために結果を計算してください。');
+          return;
+        }
+        const searchQuery = encodeURIComponent(`${scaleName} スコア ${score} NANDA分類を生成, NIC分類を生成, NOC分類を生成`);
+        window.open(`https://www.google.com/search?q=${searchQuery}`, '_blank');
+      });
+
+      // Botão "Adicionar aos favoritos"
+      const addFavoriteBtn = document.getElementById('addFavoriteBtn');
+      if (addFavoriteBtn) {
+        addFavoriteBtn.addEventListener('click', () => {
+          const url = window.location.href;
+          const title = "フグリンスケール";
+
+          try {
+            // IE/Edge Legacy
+            if (window.external && ("AddFavorite" in window.external)) {
+              window.external.AddFavorite(url, title);
+              return;
+            }
+            // Firefox antigo
+            if (window.sidebar && window.sidebar.addPanel) {
+              window.sidebar.addPanel(title, url, "");
+              return;
+            }
+            // Chrome/Firefox modernos: instrução de atalho
+            alert("Ctrl + D (Macでは Cmd + D) を押して、このページをお気に入りに追加してください。");
+          } catch (e) {
+            alert("Ctrl + D (Macでは Cmd + D) を押して、このページをお気に入りに追加してください。");
+          }
+        });
+      }
+
+    });
+  </script>
 
 
 

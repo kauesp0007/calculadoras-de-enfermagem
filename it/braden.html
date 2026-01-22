@@ -571,7 +571,122 @@
 
 
 
-  
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const resultadoDiv = document.getElementById('resultado');
+      const conteudoDiv = document.getElementById('conteudo');
+      const btnCalcular = document.getElementById('btnCalcular');
+      const btnLimpar = document.getElementById('btnLimpar');
+      const btnGerarPDF = document.getElementById('btnGerarPDF');
+      const btnNandaNicNoc = document.getElementById('btnNandaNicNoc');
+
+      const bradenData = [
+        { id: "sensorial", title: "Percezione Sensoriale", description: "Capacità di reagire a un disagio legato alla pressione.", options: [{ score: 1, text: "Totalmente limitata" }, { score: 2, text: "Molto limitata" }, { score: 3, text: "Leggermente limitata" }, { score: 4, text: "Nessuna limitazione" }] },
+        { id: "umidade", title: "Umidità", description: "Grado di esposizione della pelle all'umidità.", options: [{ score: 1, text: "Costantemente umida" }, { score: 2, text: "Spesso umida" }, { score: 3, text: "Occasionalmente umida" }, { score: 4, text: "Raramente umida" }] },
+        { id: "atividade", title: "Attività", description: "Grado di attività fisica del paziente.", options: [{ score: 1, text: "Allettato" }, { score: 2, text: "Costretto in sedia" }, { score: 3, text: "Cammina occasionalmente" }, { score: 4, text: "Cammina frequentemente" }] },
+        { id: "mobilidade", title: "Mobilità", description: "Capacità di cambiare e controllare la posizione del corpo.", options: [{ score: 1, text: "Totalmente immobile" }, { score: 2, text: "Molto limitata" }, { score: 3, text: "Leggermente limitata" }, { score: 4, text: "Nessuna limitazione" }] },
+        { id: "nutricao", title: "Nutrizione", description: "Abitudini alimentari usuali.", options: [{ score: 1, text: "Molto scarsa" }, { score: 2, text: "Probabilmente inadeguata" }, { score: 3, text: "Adeguata" }, { score: 4, text: "Eccellente" }] },
+        { id: "friccao", title: "Frizione e Scivolamento", description: "Presenza di escoriazioni e movimenti.", options: [{ score: 1, text: "Problema" }, { score: 2, text: "Problema potenziale" }, { score: 3, text: "Nessun problema apparente" }] }
+      ];
+
+      function createForm() {
+        conteudoDiv.innerHTML = '';
+        bradenData.forEach(criterion => {
+          const card = document.createElement('div');
+          card.className = 'braden-criterion-card';
+          card.innerHTML = `
+                    <div class="braden-criterion-title-container">
+                        <h3 class="braden-criterion-title">${criterion.title}</h3>
+                        <p class="braden-criterion-description">${criterion.description}</p>
+                    </div>
+                    <div class="braden-options-container">
+                        <select id="${criterion.id}-select" class="braden-select">
+                            <option value="" disabled selected>Seleziona un'opzione...</option>
+                            ${criterion.options.map(opt => `<option value="${opt.score}">${opt.text} (${opt.score})</option>`).join('')}
+                        </select>
+                    </div>
+                `;
+          conteudoDiv.appendChild(card);
+        });
+      }
+
+      function calcola() {
+        let totalScore = 0;
+        let allSelected = true;
+
+        bradenData.forEach(criterion => {
+          const select = document.getElementById(`${criterion.id}-select`);
+          if (select && select.value) {
+            totalScore += parseInt(select.value, 10);
+          } else {
+            allSelected = false;
+          }
+        });
+
+        if (!allSelected) {
+          resultadoDiv.innerHTML = '⚠️ <strong class="font-bold">Per favore, seleziona un\'opzione per ogni criterio.</strong>';
+          resultadoDiv.className = 'standard-result-box bg-info-orange-light';
+          resultadoDiv.style.display = 'block';
+          return;
+        }
+
+        let rischio = "";
+        if (totalScore >= 19) rischio = "Nessun Rischio";
+        else if (totalScore >= 15) rischio = "Rischio Lieve";
+        else if (totalScore >= 13) rischio = "Rischio Moderato";
+        else if (totalScore >= 10) rischio = "Rischio Alto";
+        else rischio = "Rischio Molto Alto";
+
+        resultadoDiv.innerHTML = `
+                <p class="font-bold text-lg">Punteggio Totale: <span class="font-black">${totalScore}</span></p>
+                <p class="font-bold text-lg">Classificazione del Rischio: <span class="font-black">${rischio}</span></p>
+            `;
+        resultadoDiv.className = 'standard-result-box';
+        resultadoDiv.style.display = 'block';
+        resultadoDiv.dataset.score = totalScore;
+        resultadoDiv.dataset.risco = rischio;
+      }
+
+      function pulisci() {
+        createForm();
+        resultadoDiv.innerHTML = '';
+        resultadoDiv.className = 'hidden';
+        delete resultadoDiv.dataset.score;
+        delete resultadoDiv.dataset.risco;
+      }
+
+      createForm();
+      btnCalcular?.addEventListener('click', calcola);
+      btnLimpar?.addEventListener('click', pulisci);
+
+      btnGerarPDF?.addEventListener('click', () => {
+        if (resultadoDiv.dataset.score === undefined) {
+          alert('Per favore, clicca prima su "Calcola" per generare il PDF.');
+          return;
+        }
+        if (typeof gerarPDFGlobal === 'function') {
+          gerarPDFGlobal({
+            titulo: 'Scala di Braden',
+            subtitulo: 'Rapporto sul Rischio di Lesioni da Pressione',
+            nomeArquivo: 'rapporto_scala_braden.pdf',
+            seletorConteudo: '.main-content-wrapper'
+          });
+        } else {
+          console.error('Funzione gerarPDFGlobal non definita.');
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener('click', () => {
+        const rischio = resultadoDiv.dataset.risco;
+        if (!risco) {
+          alert('Calcola il risultato per cercare la condotta.');
+          return;
+        }
+        const searchQuery = encodeURIComponent(`Paziente con ${risco} per lesioni da pressione sulla Scala di Braden tassonomia NANDA, NIC e NOC`);
+        window.open(`https://www.google.com/search?q=${searchQuery}`, '_blank');
+      });
+    });
+  </script>
 
 
 

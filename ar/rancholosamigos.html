@@ -578,7 +578,216 @@
 
 
 
-  
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const resultadoDiv = document.getElementById("resultado");
+      const btnCalcular = document.getElementById("btnCalcular");
+      const btnLimpar = document.getElementById("btnLimpar");
+      const btnGerarPDF = document.getElementById("btnGerarPDF");
+      const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
+      const conteudoDiv = document.getElementById("conteudo");
+
+      const rlasData = [
+        {
+          level: 1,
+          title: "المستوى ١ - لا استجابة",
+          description:
+            "المريض لا يستجيب للمنبهات السمعية، البصرية، اللمسية أو الألم. في حالة غيبوبة عميقة.",
+          recommendation:
+            "التوصية: التركيز على دعم الحياة الأساسي، تغيير الوضعية لمنع القرح والتقلصات، والحد الأدنى من التحفيز الحسي. التواصل مع الأسرة ضروري.",
+        },
+        {
+          level: 2,
+          title: "المستوى ٢ - استجابة عامة",
+          description:
+            "يستجيب المريض بشكل غير متسق، غير هادف وغير محدد للمنبهات. الاستجابات محدودة وقد تكون هي نفسها، بغض النظر عن المنبه.",
+          recommendation:
+            "التوصية: الحفاظ على بيئة هادئة ومنضبطة. الاستمرار في التحفيز الحسي بشكل متسق، ولكن دون إرهاق. التركيز على إيقاظ المريض.",
+        },
+        {
+          level: 3,
+          title: "المستوى ٣ - استجابة موضعية",
+          description:
+            "يستجيب المريض بشكل أكثر تحديدًا للمنبهات. قد يرمش لمنبه ضوئي أو يحاول تتبع شيء. الاستجابات غير متسقة.",
+          recommendation:
+            "التوصية: البدء بأوامر بسيطة ومتكررة. تقليل المشتتات. قد يبدأ المريض في التعرف على أفراد الأسرة. المساعدة في تركيز الانتباه.",
+        },
+        {
+          level: 4,
+          title: "المستوى ٤ - مرتبك ومضطرب",
+          description:
+            "المريض في حالة من الهياج والارتباك. لا يستطيع التعاون مع التقييم وقد يتصرف بعدوانية. الانتباه قصير.",
+          recommendation:
+            "التوصية: توفير بيئة آمنة ومنظمة لتجنب الإصابات. استخدام صوت هادئ والحفاظ على روتين متوقع. مساعدة المريض على إعادة توجيه نفسه عند الضرورة.",
+        },
+        {
+          level: 5,
+          title: "المستوى ٥ - مرتبك وغير مناسب",
+          description:
+            "يمكن للمريض اتباع الأوامر البسيطة، ولكن يجد صعوبة في الحفاظ على الانتباه. الاستجابات للأسئلة المعقدة غير مناسبة ومربكة. الذاكرة متأثرة بشدة.",
+          recommendation:
+            "التوصية: البدء بتدريب المهام البسيطة والمتكررة. تعزيز إعادة التوجيه للزمان والمكان. يجب أن يكون التواصل واضحًا ومباشرًا.",
+        },
+        {
+          level: 6,
+          title: "المستوى ٦ - مرتبك ومناسب",
+          description:
+            "يستطيع المريض اتباع الأوامر ويظهر ذاكرة طويلة المدى. لا تزال الذاكرة قصيرة المدى متأثرة والقرارات غالبًا ما تكون غير صحيحة.",
+          recommendation:
+            "التوصية: زيادة تعقيد المهام. استخدام ذكريات الأحداث الماضية وتعزيز الاستقلالية في الأنشطة المألوفة. تشجيع المريض على اتخاذ قرارات صغيرة.",
+        },
+        {
+          level: 7,
+          title: "المستوى ٧ - آلي ومناسب",
+          description:
+            "لدى المريض ارتباك قليل. قادر على اتباع روتين يومي بشكل آلي، ولكن لا يزال لديه قصور في الحكم وحل المشكلات. التفاعل الاجتماعي سطحي.",
+          recommendation:
+            "التوصية: التركيز على التخطيط وحل المشكلات. تشجيع التنشئة الاجتماعية في مجموعات وتطوير استراتيجيات لتعويض القصور المعرفي.",
+        },
+        {
+          level: 8,
+          title: "المستوى ٨ - هادف ومناسب",
+          description:
+            "المريض قادر على التفكير بشكل مجرد وحل المشكلات. ذاكرته وحكمه متسقان، ولكن قد تتأثر قدرته على التعامل مع العواطف. الوظيفة مستقلة.",
+          recommendation:
+            "التوصية: مساعدة المريض على التعامل مع التغيرات العاطفية والاجتماعية. التركيز على إعادة الاندماج في المجتمع والتحضير للعودة إلى الحياة المهنية أو الأكاديمية.",
+        },
+      ];
+
+      rlasData.forEach((item) => {
+        const sectionDiv = document.createElement("div");
+        sectionDiv.className = "rlas-criterion-section";
+        sectionDiv.id = `section-level-${item.level}`;
+
+        const radioContainer = document.createElement("div");
+        radioContainer.className = "rlas-criterion-option";
+
+        const radioInput = document.createElement("input");
+        radioInput.type = "radio";
+        radioInput.name = "rlas_level";
+        radioInput.value = item.level;
+        radioInput.id = `level-${item.level}`;
+
+        const label = document.createElement("label");
+        label.htmlFor = `level-${item.level}`;
+        label.innerHTML = `<strong>${item.title}</strong><br>${item.description}`;
+
+        radioContainer.appendChild(radioInput);
+        radioContainer.appendChild(label);
+        sectionDiv.appendChild(radioContainer);
+
+        conteudoDiv.appendChild(sectionDiv);
+      });
+
+      function calcularRLAS() {
+        const selectedRadio = document.querySelector(
+          'input[name="rlas_level"]:checked',
+        );
+        resultadoDiv.style.display = "block";
+
+        if (!selectedRadio) {
+          resultadoDiv.innerHTML =
+            '⚠️ <strong class="font-bold">يرجى تحديد مستوى للحساب.</strong>';
+          resultadoDiv.className = "resultado bg-info-orange-light";
+          return;
+        }
+
+        const level = selectedRadio.value;
+        const selectedItem = rlasData.find((item) => item.level == level);
+
+        if (selectedItem) {
+          resultadoDiv.innerHTML = `
+                    <p>المستوى المختار: <strong class="font-bold">${selectedItem.title}</strong></p>
+                    <p class="mt-4"><strong>التوصية:</strong> ${selectedItem.recommendation}</p>
+                `;
+          resultadoDiv.className = `resultado bg-blue-50`;
+        }
+
+        resultadoDiv.style.display = "block";
+      }
+
+      function limparCampos() {
+        const selectedRadio = document.querySelector(
+          'input[name="rlas_level"]:checked',
+        );
+        if (selectedRadio) {
+          selectedRadio.checked = false;
+        }
+        resultadoDiv.innerHTML = "";
+        resultadoDiv.className = "resultado hidden";
+      }
+
+      btnCalcular?.addEventListener("click", calcularRLAS);
+      btnLimpar?.addEventListener("click", limparCampos);
+
+      btnGerarPDF?.addEventListener("click", () => {
+        const selectedRadio = document.querySelector(
+          'input[name="rlas_level"]:checked',
+        );
+        if (!selectedRadio) {
+          resultadoDiv.innerHTML =
+            '⚠️ <strong class="font-bold">يرجى تحديد مستوى لإنشاء ملف PDF.</strong>';
+          resultadoDiv.className = "resultado bg-info-orange-light";
+          resultadoDiv.style.display = "block";
+          return;
+        }
+        if (typeof gerarPDFGlobal === "function") {
+          const selectedItem = rlasData.find(
+            (item) => item.level == selectedRadio.value,
+          );
+
+          let contentToPrint = document
+            .querySelector(".main-content-wrapper")
+            .cloneNode(true);
+          let contentContainer = contentToPrint.querySelector("#conteudo");
+
+          contentContainer.innerHTML = "";
+
+          let itemDiv = document.createElement("div");
+          itemDiv.className = "mb-2 p-2 bg-gray-50 rounded";
+          itemDiv.innerHTML = `<strong>المستوى المختار:</strong> ${selectedItem.title}<br><strong>الوصف:</strong> ${selectedItem.description}`;
+          contentContainer.appendChild(itemDiv);
+
+          let resultadoHtml = resultadoDiv.cloneNode(true);
+          if (resultadoHtml.style.display !== "none") {
+            contentContainer.appendChild(resultadoHtml);
+          }
+
+          gerarPDFGlobal({
+            titulo: "مقياس رانشو لوس أميجوس",
+            subtitulo: "تقرير التقييم المعرفي",
+            nomeArquivo: "relatorio_escala_rancho.pdf",
+            seletorConteudo: ".main-content-wrapper",
+          });
+        } else {
+          console.error("الوظيفة gerarPDFGlobal غير معرفة.");
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener("click", () => {
+        const selectedRadio = document.querySelector(
+          'input[name="rlas_level"]:checked',
+        );
+        if (!selectedRadio) {
+          resultadoDiv.innerHTML =
+            '⚠️ <strong class="font-bold">يرجى تحديد مستوى للبحث عن الإجراء.</strong>';
+          resultadoDiv.className = "resultado bg-info-orange-light";
+          resultadoDiv.style.display = "block";
+          return;
+        }
+        const selectedItem = rlasData.find(
+          (item) => item.level == selectedRadio.value,
+        );
+        const searchQuery = encodeURIComponent(
+          `رعاية تمريضية لمريض مصاب بإصابة في الدماغ ${selectedItem.title} NANDA NIC NOC`,
+        );
+        window.open(
+          `https://www.google.com/search?q=${searchQuery}`,
+          "_blank",
+        );
+      });
+    });
+  </script>
 
   <script src="../lang-selector.js" defer=""></script>
 

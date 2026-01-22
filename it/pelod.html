@@ -612,7 +612,226 @@
 
 
 
-  
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const resultadoDiv = document.getElementById('resultado');
+      const btnCalcular = document.getElementById('btnCalcular');
+      const btnLimpar = document.getElementById('btnLimpar');
+      const btnGerarPDF = document.getElementById('btnGerarPDF');
+      const btnNandaNicNoc = document.getElementById('btnNandaNicNoc');
+      const conteudoDiv = document.getElementById('conteudo');
+
+      const pelodData = [
+        {
+          domain: "1. Neurologico (Scala del Coma di Glasgow - GCS)",
+          nameAttr: "neuro",
+          options: [
+            { text: "GCS 15", score: 0 },
+            { text: "GCS 11-14", score: 1 },
+            { text: "GCS 8-10", score: 2 },
+            { text: "GCS < 8", score: 3 }
+          ],
+          subtext: "Valuta il livello di coscienza del paziente."
+        },
+        {
+          domain: "2. Respiratorio (PaO2/FiO2 o Supporto Respiratorio)",
+          nameAttr: "resp",
+          options: [
+            { text: "PaO2/FiO2 > 300 o senza supporto", score: 0 },
+            { text: "PaO2/FiO2 201-300 o O2 supplementare", score: 1 },
+            { text: "PaO2/FiO2 101-200 o ventilazione meccanica", score: 2 },
+            { text: "PaO2/FiO2 ≤ 100 o VMI con PEEP alta", score: 3 }
+          ],
+          subtext: "Riflette la funzione polmonare e la necessità di supporto ventilatorio."
+        },
+        {
+          domain: "3. Cardiovascolare (Pressione Arteriosa Media - PAM o Vasopressori)",
+          nameAttr: "cardio",
+          options: [
+            { text: "PAM normale per età, senza vasopressori", score: 0 },
+            { text: "PAM leggermente alterata o 1 vasopressore", score: 1 },
+            { text: "PAM moderatamente alterata o 2 vasopressori", score: 2 },
+            { text: "PAM gravemente alterata o >2 vasopressori", score: 3 }
+          ],
+          subtext: "Indica la perfusione e lo stato emodinamico, incluso l'uso di farmaci vasoattivi."
+        },
+        {
+          domain: "4. Renale (Creatinina o Diuresi)",
+          nameAttr: "renal",
+          options: [
+            { text: "Creatinina normale o diuresi normale", score: 0 },
+            { text: "Creatinina 1.5x baseline o diuresi <1 ml/kg/h", score: 1 },
+            { text: "Creatinina 2x baseline o diuresi <0.5 ml/kg/h", score: 2 },
+            { text: "Creatinina >2x baseline o anuria/dialisi", score: 3 }
+          ],
+          subtext: "Valuta la funzione renale e la produzione di urina."
+        },
+        {
+          domain: "5. Epatico (Bilirubina Totale o INR)",
+          nameAttr: "hepatico",
+          options: [
+            { text: "Bilirubina normale o INR normale", score: 0 },
+            { text: "Bilirubina 1.5x normale o INR >1.5", score: 1 },
+            { text: "Bilirubina 2x normale o INR >2.0", score: 2 },
+            { text: "Bilirubina >2x normale e INR >2.0", score: 3 }
+          ],
+          subtext: "Indicatori della funzione epatica e della coagulazione."
+        }
+      ];
+
+      // --- Funzioni del Calcolatore PELOD ---
+      function updateScoreDisplay(criterionId) {
+        const selectElement = document.getElementById(criterionId);
+        const scoreDisplayElement = document.getElementById(`${criterionId}_score_display`);
+        if (selectElement && scoreDisplayElement) {
+          scoreDisplayElement.innerText = selectElement.value === "" ? "0" : selectElement.value;
+        }
+      }
+
+      function calcularPontuacao() {
+        let totalScore = 0;
+        let allItemsSelected = true;
+
+        pelodData.forEach(item => {
+          const selectElement = document.getElementById(item.nameAttr);
+          if (selectElement.value === "") {
+            allItemsSelected = false;
+          } else {
+            totalScore += parseInt(selectElement.value, 10);
+          }
+        });
+
+        resultadoDiv.style.display = 'block';
+        if (!allItemsSelected) {
+          resultadoDiv.innerHTML = '⚠️ <strong class="font-bold">Per favore, seleziona un punteggio per ogni voce</strong> prima di calcolare.';
+          resultadoDiv.className = 'resultado bg-info-orange-light';
+          delete resultadoDiv.dataset.score;
+          return;
+        }
+
+        let grauRisco = '';
+        let resultadoClasse = '';
+
+        if (totalScore <= 5) {
+          grauRisco = 'Basso rischio di disfunzione d\'organo';
+          resultadoClasse = 'bg-pelod-baixo';
+        } else if (totalScore <= 10) {
+          grauRisco = 'Rischio moderato di disfunzione d\'organo';
+          resultadoClasse = 'bg-pelod-moderado';
+        } else {
+          grauRisco = 'Alto rischio di disfunzione d\'organo';
+          resultadoClasse = 'bg-pelod-alto';
+        }
+
+        resultadoDiv.innerHTML = `<p>Punteggio Totale PELOD: <strong class="font-bold">${totalScore}</strong></p><p>Livello di Rischio: <strong class="font-bold">${grauRisco}</strong></p>`;
+        resultadoDiv.className = `resultado ${resultadoClasse}`;
+
+        resultadoDiv.dataset.score = totalScore;
+        resultadoDiv.dataset.grauRisco = grauRisco;
+        resultadoDiv.dataset.scaleName = "Scala PELOD";
+      }
+
+      function limparCampos() {
+        pelodData.forEach(item => {
+          const selectElement = document.getElementById(item.nameAttr);
+          selectElement.selectedIndex = 0;
+          document.getElementById(`${item.nameAttr}_score_display`).innerText = '0';
+        });
+        resultadoDiv.innerHTML = '';
+        resultadoDiv.className = 'resultado hidden';
+        delete resultadoDiv.dataset.score;
+        delete resultadoDiv.dataset.grauRisco;
+        delete resultadoDiv.dataset.scaleName;
+      }
+
+      // Popola il form dinamicamente
+      pelodData.forEach((item, index) => {
+        const sectionDiv = document.createElement('div');
+        sectionDiv.className = 'pelod-criterion-card';
+
+        const headerDiv = document.createElement('div');
+        headerDiv.className = 'pelod-criterion-header';
+
+        const titleH3 = document.createElement('h3');
+        titleH3.className = 'pelod-criterion-title';
+        titleH3.innerText = item.domain;
+        headerDiv.appendChild(titleH3);
+
+        const scoreSpan = document.createElement('span');
+        scoreSpan.className = 'pelod-score-display';
+        scoreSpan.id = `${item.nameAttr}_score_display`;
+        scoreSpan.innerText = '0';
+        headerDiv.appendChild(scoreSpan);
+
+        sectionDiv.appendChild(headerDiv);
+
+        const optionsDiv = document.createElement('div');
+        optionsDiv.className = 'pelod-criterion-options';
+
+        const selectElement = document.createElement('select');
+        selectElement.id = item.nameAttr;
+        selectElement.className = 'pelod-select';
+        selectElement.onchange = () => updateScoreDisplay(item.nameAttr);
+
+        const defaultOption = document.createElement('option');
+        defaultOption.value = "";
+        defaultOption.text = "Seleziona...";
+        defaultOption.disabled = true;
+        defaultOption.selected = true;
+        selectElement.appendChild(defaultOption);
+
+        item.options.forEach(option => {
+          const optionElement = document.createElement('option');
+          optionElement.value = option.score;
+          optionElement.text = `${option.text} (${option.score})`;
+          selectElement.appendChild(optionElement);
+        });
+
+        optionsDiv.appendChild(selectElement);
+        sectionDiv.appendChild(optionsDiv);
+
+        const subtextP = document.createElement('p');
+        subtextP.className = 'text-gray-600 text-sm mt-2 text-left';
+        subtextP.innerText = item.subtext;
+        sectionDiv.appendChild(subtextP);
+
+        conteudoDiv.appendChild(sectionDiv);
+      });
+
+      // Aggiunge gli event listeners ai pulsanti
+      btnCalcular?.addEventListener('click', calcularPontuacao);
+      btnLimpar?.addEventListener('click', limparCampos);
+
+      btnGerarPDF?.addEventListener('click', () => {
+        if (!resultadoDiv.dataset.score) {
+          alert('Per favore, clicca su "Calcola" prima di generare il PDF.');
+          return;
+        }
+        if (typeof gerarPDFGlobal === 'function') {
+          gerarPDFGlobal({
+            titulo: 'Scala PELOD',
+            subtitulo: 'Rapporto di Valutazione della Disfunzione d\'Organo Pediatrica',
+            nomeArquivo: 'rapporto_scala_pelod.pdf',
+            seletorConteudo: '.main-content-wrapper'
+          });
+        } else {
+          console.error('Funzione gerarPDFGlobal non definita.');
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener('click', () => {
+        const score = resultadoDiv.dataset.score;
+        const scaleName = resultadoDiv.dataset.scaleName;
+        const grauRisco = resultadoDiv.dataset.grauRisco;
+        if (!score || !grauRisco) {
+          alert('Calcola il risultato per cercare la procedura.');
+          return;
+        }
+        const searchQuery = encodeURIComponent(`${scaleName} punteggio ${score} rischio ${grauRisco} generare tassonomia NANDA, generare tassonomia NIC e generare tassonomia NOC`);
+        window.open(`https://www.google.com/search?q=${searchQuery}`, '_blank');
+      });
+    });
+  </script>
 
 
 

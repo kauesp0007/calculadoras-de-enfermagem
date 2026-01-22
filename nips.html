@@ -758,7 +758,222 @@
 
 
 
-  
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const resultadoDiv = document.getElementById("resultado");
+      const btnCalcular = document.getElementById("btnCalcular");
+      const btnLimpar = document.getElementById("btnLimpar");
+      const btnGerarPDF = document.getElementById("btnGerarPDF");
+      const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
+      const conteudoDiv = document.getElementById("conteudo");
+
+      // Dados da escala NIPS
+      const nipsData = [
+        {
+          category: "Expressão Facial",
+          nameAttr: "expressao_facial",
+          options: [
+            { description: "Relaxada", score: 0 },
+            { description: "Careta", score: 1 },
+          ],
+          explain:
+            "Observa a mímica facial, como contrações ou relaxamento. Uma careta (grimace) indica tensão.",
+        },
+        {
+          category: "Padrão de Choro",
+          nameAttr: "choro",
+          options: [
+            { description: "Ausente", score: 0 },
+            { description: "Resmungos / Gemidos", score: 1 },
+            { description: "Choro Vigoroso", score: 2 },
+          ],
+          explain:
+            "Avalia a presença e a intensidade do choro. Um choro alto e forte é um sinal de desconforto.",
+        },
+        {
+          category: "Padrão Respiratório",
+          nameAttr: "respiracao",
+          options: [
+            { description: "Relaxado", score: 0 },
+            { description: "Alterado / Irregular", score: 1 },
+          ],
+          explain:
+            "Verifica se a respiração está calma e regular. Mudanças abruptas no padrão podem indicar dor.",
+        },
+        {
+          category: "Padrão Motor dos Braços",
+          nameAttr: "bracos",
+          options: [
+            { description: "Relaxados / Sem movimentos", score: 0 },
+            { description: "Flexão / Extensão rígida", score: 1 },
+          ],
+          explain:
+            "Avalia o tônus e o movimento dos braços. A flexão ou extensão tensa pode ser um sinal de dor.",
+        },
+        {
+          category: "Padrão Motor das Pernas",
+          nameAttr: "pernas",
+          options: [
+            { description: "Relaxadas / Sem movimentos", score: 0 },
+            { description: "Flexão / Extensão rígida", score: 1 },
+          ],
+          explain:
+            "Avalia o tônus e o movimento das pernas. A flexão ou extensão tensa pode ser um sinal de dor.",
+        },
+        {
+          category: "Estado de Consciência",
+          nameAttr: "estado_consciencia",
+          options: [
+            { description: "Calmo / Dormindo", score: 0 },
+            { description: "Inquieto / Desconfortável", score: 1 },
+          ],
+          explain:
+            "Observa o estado geral do recém-nascido. A agitação e a inquietação são sinais comuns de dor.",
+        },
+      ];
+
+      // Preenche o formulário dinamicamente
+      nipsData.forEach((item) => {
+        const sectionDiv = document.createElement("div");
+        sectionDiv.className = "nips-criterion-section";
+        sectionDiv.id = `section-${item.nameAttr}`;
+
+        const titleH3 = document.createElement("h3");
+        titleH3.className = "nips-criterion-title";
+        titleH3.innerHTML =
+          item.category +
+          `
+              <div class="text-sm font-normal text-gray-500 mt-1">${item.explain}</div>`;
+        sectionDiv.appendChild(titleH3);
+
+        const selectElement = document.createElement("select");
+        selectElement.id = item.nameAttr;
+        selectElement.className = "nips-criterion-select";
+
+        const defaultOption = document.createElement("option");
+        defaultOption.value = "";
+        defaultOption.text = "Selecione...";
+        selectElement.appendChild(defaultOption);
+
+        item.options.forEach((option) => {
+          const optionElement = document.createElement("option");
+          optionElement.value = option.score;
+          optionElement.text = `${option.description} (pontos: ${option.score})`;
+          selectElement.appendChild(optionElement);
+        });
+
+        sectionDiv.appendChild(selectElement);
+        conteudoDiv.appendChild(sectionDiv);
+      });
+
+      function calcularNips() {
+        const selects = document.querySelectorAll("#conteudo select");
+        let allSelected = true;
+        let total = 0;
+
+        selects.forEach((select) => {
+          if (select.value === "") {
+            allSelected = false;
+            select.classList.add("incomplete");
+          } else {
+            select.classList.remove("incomplete");
+            total += Number(select.value);
+          }
+        });
+
+        resultadoDiv.style.display = "block";
+        if (!allSelected) {
+          resultadoDiv.innerHTML =
+            '⚠️ <strong class="font-bold">Por favor, selecione uma opção para todos os itens antes de calcular.</strong>';
+          resultadoDiv.classList.add("bg-red-100");
+          resultadoDiv.classList.remove("bg-blue-50");
+          delete resultadoDiv.dataset.score;
+          return;
+        }
+
+        let classificacao = "";
+        let recomendacao = "";
+        let resultadoClasse = "";
+
+        if (total < 4) {
+          classificacao = "Ausência de Dor";
+          recomendacao =
+            "O escore indica ausência de dor. Continue monitorando o paciente.";
+          resultadoClasse = "bg-blue-50";
+        } else {
+          // total >= 4
+          classificacao = "Presença de Dor";
+          recomendacao =
+            "O escore indica presença de dor. Avalie a necessidade de intervenção e comunique o médico pediatra.";
+          resultadoClasse = "bg-red-100";
+        }
+
+        resultadoDiv.innerHTML = `
+                <p>Escore total: <strong class="font-bold">${total}</strong></p>
+                <p>Classificação: <strong class="font-bold">${classificacao}</strong></p>
+                <p class="mt-4"><strong>Recomendação:</strong> ${recomendacao}</p>
+            `;
+        resultadoDiv.className = `resultado ${resultadoClasse}`;
+        resultadoDiv.style.display = "block";
+
+        resultadoDiv.dataset.score = total;
+        resultadoDiv.dataset.scaleName = "Escala NIPS";
+        resultadoDiv.dataset.classificacao = classificacao;
+      }
+
+      function limparCampos() {
+        const selects = document.querySelectorAll("#conteudo select");
+        selects.forEach((select) => {
+          select.selectedIndex = 0;
+          select.classList.remove("incomplete");
+        });
+        resultadoDiv.innerHTML = "";
+        resultadoDiv.className = "resultado hidden";
+        delete resultadoDiv.dataset.score;
+        delete resultadoDiv.dataset.scaleName;
+        delete resultadoDiv.dataset.classificacao;
+      }
+
+      btnCalcular?.addEventListener("click", calcularNips);
+      btnLimpar?.addEventListener("click", limparCampos);
+
+      btnGerarPDF?.addEventListener("click", () => {
+        if (!resultadoDiv.dataset.score) {
+          alert(
+            'Por favor, clique em "Calcular Escore" primeiro para gerar o PDF.',
+          );
+          return;
+        }
+        if (typeof gerarPDFGlobal === "function") {
+          gerarPDFGlobal({
+            titulo: "Escala NIPS",
+            subtitulo: "Relatório de Avaliação de Dor Neonatal",
+            nomeArquivo: "relatorio_escala_nips.pdf",
+            seletorConteudo: ".main-content-wrapper",
+          });
+        } else {
+          console.error("Função gerarPDFGlobal não definida.");
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener("click", () => {
+        const score = resultadoDiv.dataset.score;
+        const scaleName = resultadoDiv.dataset.scaleName;
+        const classificacao = resultadoDiv.dataset.classificacao;
+        if (!score || !classificacao) {
+          alert("Calcule o resultado para pesquisar a conduta.");
+          return;
+        }
+        const searchQuery = encodeURIComponent(
+          `cuidados enfermagem dor neonatal ${classificacao} NIPS NANDA NIC NOC`,
+        );
+        window.open(
+          `https://www.google.com/search?q=${searchQuery}`,
+          "_blank",
+        );
+      });
+    });
+  </script>
 
   <script src="/lang-selector.js" defer=""></script>
 

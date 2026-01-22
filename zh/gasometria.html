@@ -844,7 +844,289 @@
     <!-- <script src="/lang-selector.js" defer></script> --> <!-- Removido daqui -->
 
     <!-- Script da Página (Traduzido) -->
-    
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const resultadoDiv = document.getElementById('resultado');
+            const btnCalcular = document.getElementById('btnCalcular');
+            const btnLimpar = document.getElementById('btnLimpar');
+            const btnGerarPDF = document.getElementById('btnGerarPDF');
+            const btnNandaNicNoc = document.getElementById('btnNandaNicNoc');
+
+            // Inputs
+            const inputs = {
+                ph: document.getElementById('ph'),
+                paco2: document.getElementById('paco2'),
+                hco3: document.getElementById('hco3'),
+                sato2: document.getElementById('sato2'),
+                be: document.getElementById('be')
+            };
+
+            // Spans de erro
+            const errors = {
+                ph: document.getElementById('ph-error'),
+                paco2: document.getElementById('paco2-error'),
+                hco3: document.getElementById('hco3-error'),
+                sato2: document.getElementById('sato2-error'),
+                be: document.getElementById('be-error')
+            };
+
+            const CHINESE_MESSAGES = {
+                INVALID_VALUE_POSITIVE: "无效值。请输入一个正数。",
+                INVALID_VALUE_ANY: "无效值。请输入一个数字。",
+                CORRECT_VALUES: "⚠️ <strong class='font-bold'>请修正无效值。</strong>",
+                INTERPRETATION: "解读：",
+                DISTURBANCE: "<strong>酸碱紊乱：</strong>",
+                ACIDOSIS_RESP_UNCOMP: "未代偿性呼吸性酸中毒",
+                ACIDOSIS_MET_UNCOMP: "未代偿性代谢性酸中毒",
+                ACIDOSIS_RESP_PARTIAL: "部分代偿性呼吸性酸中毒",
+                ACIDOSIS_MET_PARTIAL: "部分代偿性代谢性酸中毒",
+                MIXED_RESP_MET_ACID: "混合性紊乱：呼吸性和代谢性酸中毒",
+                ACIDEMIA_CONFLICT: "酸血症（参数冲突）",
+                ALKALOSIS_RESP_UNCOMP: "未代偿性呼吸性碱中毒",
+                ALKALOSIS_MET_UNCOMP: "未代偿性代谢性碱中毒",
+                ALKALOSIS_RESP_PARTIAL: "部分代偿性呼吸性碱中毒",
+                ALKALOSIS_MET_PARTIAL: "部分代偿性代谢性碱中毒",
+                MIXED_RESP_MET_ALKAL: "混合性紊乱：呼吸性和代谢性碱中毒",
+                ALKALEMIA_CONFLICT: "碱血症（参数冲突）",
+                ACIDOSIS_RESP_COMP: "代偿性呼吸性酸中毒",
+                ALKALOSIS_RESP_COMP: "代偿性呼吸性碱中毒",
+                ACIDOSIS_MET_COMP: "代偿性代谢性酸中毒",
+                ALKALOSIS_MET_COMP: "代偿性代谢性碱中毒",
+                NORMAL_AB: "正常酸碱平衡",
+                MIXED_NORMAL_PH: "混合性紊乱（pH 正常）",
+                BE_DEFICIT: "<strong>碱缺失 (BE)：</strong> %s mEq/L（碱缺乏，提示代谢性酸中毒成分）。",
+                BE_EXCESS: "<strong>碱缺失 (BE)：</strong> %s mEq/L（碱过多，提示代谢性碱中毒成分）。",
+                BE_NORMAL: "<strong>碱缺失 (BE)：</strong> %s mEq/L（在正常范围内）。",
+                SATO2_HYPOXEMIA: "<strong>SatO₂：</strong> %s%%（低氧血症）。",
+                SATO2_NORMAL: "<strong>SatO₂：</strong> %s%%（饱和度正常）。",
+                SUGGESTED_CONDUCT: "建议处理：",
+                CONDUCT_RESP_ACID: "评估和优化通气（例如：NIV, IOT），治疗根本原因（例如：逆转镇静，支气管扩张剂）。",
+                CONDUCT_RESP_ALKAL: "纠正过度通气的根本原因（例如：疼痛控制、焦虑、机械通气参数调整）。",
+                CONDUCT_MET_ACID: "治疗根本原因（例如：灌注不良的水合作用，酮症酸中毒的胰岛素）。如果 pH < 7.1-7.2 或严重失血，考虑补充碳酸氢盐。",
+                CONDUCT_MET_ALKAL: "纠正根本原因（例如：呕吐的止吐药），补充容量（SF 0.9%）和电解质（尤其是钾 K+）。",
+                CONDUCT_HYPOXEMIA: "低氧血症：考虑吸氧以维持 SatO₂ > 92-94%（如果 CO₂ 潴留型 COPD 则为 88-92%）。",
+                CONDUCT_NORMAL: "ABG 无明显酸碱或氧合异常。继续监测。",
+                CONDUCT_ATTENTION: "<strong>注意：</strong> 解读仅为辅助。请结合患者临床情况并治疗紊乱的根本原因。",
+                PDF_ALERT: "⚠️ <strong class='font-bold'>请先点击“计算”生成PDF。</strong>",
+                NANDA_ALERT: "⚠️ <strong class='font-bold'>请计算出有效的紊乱结果以搜索护理方案。</strong>",
+            };
+
+            function interpretarGasometria() {
+                let hasError = false;
+                const valores = {};
+
+                // 1. Validar e obter valores
+                for (const key in inputs) {
+                    const input = inputs[key];
+                    const errorSpan = errors[key];
+                    const value = parseFloat(input.value);
+
+                    errorSpan.classList.add('hidden');
+                    // BE 可以是负数
+                    if (key !== 'be' && (isNaN(value) || value <= 0)) {
+                        errorSpan.textContent = CHINESE_MESSAGES.INVALID_VALUE_POSITIVE;
+                        errorSpan.classList.remove('hidden');
+                        hasError = true;
+                    } else if (key === 'be' && isNaN(value)) {
+                        errorSpan.textContent = CHINESE_MESSAGES.INVALID_VALUE_ANY;
+                        errorSpan.classList.remove('hidden');
+                        hasError = true;
+                    } else {
+                        valores[key] = value;
+                    }
+                }
+
+                if (hasError) {
+                    resultadoDiv.style.display = 'block';
+                    resultadoDiv.innerHTML = CHINESE_MESSAGES.CORRECT_VALUES;
+                    resultadoDiv.className = 'resultado bg-info-orange-light mt-6 p-4 rounded-lg';
+                    delete resultadoDiv.dataset.resultado;
+                    delete resultadoDiv.dataset.scaleName;
+                    return;
+                }
+
+                const { ph, paco2, hco3, sato2, be } = valores;
+
+                // 2. Lógica de Interpretação Simplificada
+                let interpretacoes = [];
+                let sugestoes = [];
+                let disturbioFinal = "";
+
+                // Constantes de Referência
+                const PH_MIN = 7.35, PH_MAX = 7.45;
+                const PACO2_MIN = 35, PACO2_MAX = 45;
+                const HCO3_MIN = 22, HCO3_MAX = 26;
+                const BE_MIN = -2, BE_MAX = 2;
+                const SATO2_MIN = 90;
+
+                // 3. Interpretação Acidobásica
+                if (ph < PH_MIN) { // --- ACIDEMIA ---
+                    if (paco2 > PACO2_MAX && hco3 >= HCO3_MIN && hco3 <= HCO3_MAX) {
+                        disturbioFinal = CHINESE_MESSAGES.ACIDOSIS_RESP_UNCOMP;
+                    } else if (hco3 < HCO3_MIN && paco2 >= PACO2_MIN && paco2 <= PACO2_MAX) {
+                        disturbioFinal = CHINESE_MESSAGES.ACIDOSIS_MET_UNCOMP;
+                    } else if (paco2 > PACO2_MAX && hco3 > HCO3_MAX) {
+                        disturbioFinal = CHINESE_MESSAGES.ACIDOSIS_RESP_PARTIAL;
+                    } else if (hco3 < HCO3_MIN && paco2 < PACO2_MIN) {
+                        disturbioFinal = CHINESE_MESSAGES.ACIDOSIS_MET_PARTIAL;
+                    } else if (paco2 > PACO2_MAX && hco3 < HCO3_MIN) {
+                        disturbioFinal = CHINESE_MESSAGES.MIXED_RESP_MET_ACID;
+                    } else {
+                        disturbioFinal = CHINESE_MESSAGES.ACIDEMIA_CONFLICT;
+                    }
+                } else if (ph > PH_MAX) { // --- ALCALEMIA ---
+                    if (paco2 < PACO2_MIN && hco3 >= HCO3_MIN && hco3 <= HCO3_MAX) {
+                        disturbioFinal = CHINESE_MESSAGES.ALKALOSIS_RESP_UNCOMP;
+                    } else if (hco3 > HCO3_MAX && paco2 >= PACO2_MIN && paco2 <= PACO2_MAX) {
+                        disturbioFinal = CHINESE_MESSAGES.ALKALOSIS_MET_UNCOMP;
+                    } else if (paco2 < PACO2_MIN && hco3 < HCO3_MIN) {
+                        disturbioFinal = CHINESE_MESSAGES.ALKALOSIS_RESP_PARTIAL;
+                    } else if (hco3 > HCO3_MAX && paco2 > PACO2_MAX) {
+                        disturbioFinal = CHINESE_MESSAGES.ALKALOSIS_MET_PARTIAL;
+                    } else if (paco2 < PACO2_MIN && hco3 > HCO3_MAX) {
+                        disturbioFinal = CHINESE_MESSAGES.MIXED_RESP_MET_ALKAL;
+                    } else {
+                        disturbioFinal = CHINESE_MESSAGES.ALKALEMIA_CONFLICT;
+                    }
+                } else { // --- pH NORMALE (COMPENSATO O NORMALE) ---
+                    if (paco2 > PACO2_MAX && hco3 > HCO3_MAX) {
+                        disturbioFinal = CHINESE_MESSAGES.ACIDOSIS_RESP_COMP;
+                    } else if (paco2 < PACO2_MIN && hco3 < HCO3_MIN) {
+                        disturbioFinal = CHINESE_MESSAGES.ALKALOSIS_RESP_COMP;
+                    } else if (paco2 < PACO2_MIN && hco3 > HCO3_MAX) {
+                        disturbioFinal = CHINESE_MESSAGES.MIXED_NORMAL_PH;
+                    } else if (paco2 > PACO2_MAX && hco3 < HCO3_MIN) {
+                        disturbioFinal = CHINESE_MESSAGES.MIXED_NORMAL_PH;
+                    } else if (hco3 < HCO3_MIN) {
+                        disturbioFinal = CHINESE_MESSAGES.ACIDOSIS_MET_COMP;
+                    } else if (hco3 > HCO3_MAX) {
+                        disturbioFinal = CHINESE_MESSAGES.ALKALOSIS_MET_COMP;
+                    } else {
+                        disturbioFinal = CHINESE_MESSAGES.NORMAL_AB;
+                    }
+                }
+
+                interpretacoes.push(`${CHINESE_MESSAGES.DISTURBANCE} ${disturbioFinal}`);
+
+                // 4. Análise de BE e SatO₂
+                if (be < BE_MIN) {
+                    interpretacoes.push(CHINESE_MESSAGES.BE_DEFICIT.replace('%s', be.toFixed(1)));
+                } else if (be > BE_MAX) {
+                    interpretacoes.push(CHINESE_MESSAGES.BE_EXCESS.replace('%s', be.toFixed(1)));
+                } else {
+                    interpretacoes.push(CHINESE_MESSAGES.BE_NORMAL.replace('%s', be.toFixed(1)));
+                }
+
+                if (sato2 < SATO2_MIN) {
+                    interpretacoes.push(CHINESE_MESSAGES.SATO2_HYPOXEMIA.replace('%s', sato2.toFixed(1)));
+                } else {
+                    interpretacoes.push(CHINESE_MESSAGES.SATO2_NORMAL.replace('%s', sato2.toFixed(1)));
+                }
+
+                // 5. Sugestões de Conduta
+                if (disturbioFinal.includes("呼吸性酸中毒") || disturbioFinal.includes("代偿性呼吸性酸中毒")) {
+                    sugestoes.push(CHINESE_MESSAGES.CONDUCT_RESP_ACID);
+                }
+                if (disturbioFinal.includes("呼吸性碱中毒") || disturbioFinal.includes("代偿性呼吸性碱中毒")) {
+                    sugestoes.push(CHINESE_MESSAGES.CONDUCT_RESP_ALKAL);
+                }
+                if (disturbioFinal.includes("代谢性酸中毒") || disturbioFinal.includes("代偿性代谢性酸中毒")) {
+                    sugestoes.push(CHINESE_MESSAGES.CONDUCT_MET_ACID);
+                }
+                if (disturbioFinal.includes("代谢性碱中毒") || disturbioFinal.includes("代偿性代谢性碱中毒")) {
+                    sugestoes.push(CHINESE_MESSAGES.CONDUCT_MET_ALKAL);
+                }
+
+                if (sato2 < SATO2_MIN) {
+                    sugestoes.push(CHINESE_MESSAGES.CONDUCT_HYPOXEMIA);
+                }
+
+                if (disturbioFinal === CHINESE_MESSAGES.NORMAL_AB && sato2 >= SATO2_MIN) {
+                    sugestoes.push(CHINESE_MESSAGES.CONDUCT_NORMAL);
+                } else if (sugestoes.length > 0) {
+                    sugestoes.push(CHINESE_MESSAGES.CONDUCT_ATTENTION);
+                }
+
+
+                // 6. Formatar e Exibir Resultado
+                let htmlResultado = '<div class="calculo-passos">';
+                htmlResultado += `<h4>${CHINESE_MESSAGES.INTERPRETATION}</h4>`;
+                htmlResultado += interpretacoes.map(item => `<p>${item}</p>`).join('');
+                if (sugestoes.length > 0) {
+                    htmlResultado += `<h4 class="mt-4">${CHINESE_MESSAGES.SUGGESTED_CONDUCT}</h4>`;
+                    htmlResultado += sugestoes.map(item => `<p>${item}</p>`).join('');
+                }
+                htmlResultado += '</div>';
+
+                resultadoDiv.innerHTML = htmlResultado;
+                resultadoDiv.className = 'resultado bg-custom-blue mt-6';
+                resultadoDiv.style.display = 'block';
+
+                // Salvar dados para NANDA e PDF
+                resultadoDiv.dataset.resultado = disturbioFinal;
+                resultadoDiv.dataset.scaleName = "动脉血气分析解读";
+            }
+
+            function limparCampos() {
+                for (const key in inputs) {
+                    inputs[key].value = '';
+                    errors[key].classList.add('hidden');
+                    errors[key].textContent = '';
+                }
+                resultadoDiv.innerHTML = '';
+                resultadoDiv.className = 'resultado hidden mt-6';
+                delete resultadoDiv.dataset.resultado;
+                delete resultadoDiv.dataset.scaleName;
+            }
+
+            // Event Listeners
+            btnCalcular?.addEventListener('click', interpretarGasometria);
+            btnLimpar?.addEventListener('click', limparCampos);
+
+            btnGerarPDF?.addEventListener('click', () => {
+                if (!resultadoDiv.dataset.resultado) {
+                    resultadoDiv.style.display = 'block';
+                    resultadoDiv.innerHTML = CHINESE_MESSAGES.PDF_ALERT;
+                    resultadoDiv.className = 'resultado bg-info-orange-light mt-6 p-4 rounded-lg';
+                    return;
+                }
+                if (typeof gerarPDFGlobal === 'function') {
+                    gerarPDFGlobal({
+                        titulo: '动脉血气分析解读',
+                        subtitulo: "酸碱评估报告",
+                        nomeArquivo: 'rapporto_emogasanalisi.pdf',
+                        seletorConteudo: '.main-content-wrapper'
+                    });
+                } else {
+                    console.error("Fonction gerarPDFGlobal n'est pas définie.");
+                    resultadoDiv.style.display = 'block';
+                    resultadoDiv.innerHTML = '⚠️ <strong class="font-bold">生成 PDF 时出错。未找到函数。</strong>';
+                    resultadoDiv.className = 'resultado bg-danger-red mt-6 p-4 rounded-lg';
+                }
+            });
+
+            btnNandaNicNoc?.addEventListener('click', () => {
+                const resultado = resultadoDiv.dataset.resultado;
+                if (!resultado || resultado === CHINESE_MESSAGES.NORMAL_AB) {
+                    resultadoDiv.style.display = 'block';
+                    resultadoDiv.innerHTML = CHINESE_MESSAGES.NANDA_ALERT;
+                    resultadoDiv.className = 'resultado bg-info-orange-light mt-6 p-4 rounded-lg';
+                    return;
+                }
+
+                // Mapear o resultado para um termo de pesquisa NANDA (em Inglês para melhor pesquisa)
+                let termoPesquisa = "Electrolyte Imbalance"; // Padrão
+                if (resultado.includes("呼吸性酸中毒")) { termoPesquisa = "Impaired Gas Exchange"; }
+                else if (resultado.includes("呼吸性碱中毒")) { termoPesquisa = "Ineffective Breathing Pattern"; }
+                else if (resultado.includes("代谢性酸中毒")) { termoPesquisa = "Impaired Fluid and Electrolyte Balance"; }
+                else if (resultado.includes("代谢性碱中毒")) { termoPesquisa = "Risk for Electrolyte Imbalance"; }
+                else if (resultado.includes("低氧血症")) { termoPesquisa = "Impaired Gas Exchange"; }
+
+                const searchQuery = encodeURIComponent(`nursing diagnosis ${termoPesquisa} related to ${resultado} NANDA NIC NOC`);
+                window.open(`https://www.google.com/search?q=${searchQuery}`, '_blank');
+            });
+        });
+    </script>
 
     <!-- Publicidade Inferior -->
 

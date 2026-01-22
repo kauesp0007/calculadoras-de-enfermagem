@@ -643,7 +643,326 @@
 
 
 
-  
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const resultadoDiv = document.getElementById('resultado');
+      const btnCalcular = document.getElementById('btnCalcular');
+      const btnLimpar = document.getElementById('btnLimpar');
+      const btnGerarPDF = document.getElementById('btnGerarPDF');
+      const btnNandaNicNoc = document.getElementById('btnNandaNicNoc');
+      const conteudoDiv = document.getElementById('conteudo');
+
+      const bergData = [
+        {
+          title: "1. Встать с кресла",
+          nameAttr: "sentar_levantar",
+          options: [
+            { description: "Неспособен встать без помощи", score: 0 },
+            { description: "Нуждается в словесной помощи и/или наблюдении для вставания", score: 1 },
+            { description: "Нуждается в минимальной помощи для вставания", score: 2 },
+            { description: "Встает безопасно, но нуждается в словесной помощи для устойчивости", score: 3 },
+            { description: "Встает безопасно и устойчиво, без помощи", score: 4 }
+          ]
+        },
+        {
+          title: "2. Стоять без поддержки",
+          nameAttr: "em_pe_sem_apoio",
+          options: [
+            { description: "Неспособен стоять в течение 30 секунд", score: 0 },
+            { description: "Стоит 30 секунд, но нуждается в помощи", score: 1 },
+            { description: "Стоит 30 секунд, но нуждается в наблюдении", score: 2 },
+            { description: "Стоит 30 секунд безопасно", score: 3 },
+            { description: "Стоит 30 секунд безопасно, без поддержки", score: 4 }
+          ]
+        },
+        {
+          title: "3. Сидеть без поддержки",
+          nameAttr: "sentar_sem_apoio",
+          options: [
+            { description: "Сидит небезопасно, падает на стул", score: 0 },
+            { description: "Сидит, но нуждается в минимальной помощи", score: 1 },
+            { description: "Сидит безопасно, но использует руки", score: 2 },
+            { description: "Сидит безопасно, не используя руки, но движение медленное", score: 3 },
+            { description: "Сидит безопасно, не используя руки", score: 4 }
+          ]
+        },
+        {
+          title: "4. Сесть и встать",
+          nameAttr: "sentar_e_levantar",
+          options: [
+            { description: "Неспособен сесть и встать 3 раза без поддержки", score: 0 },
+            { description: "Сидит и встает 3 раза, но с помощью", score: 1 },
+            { description: "Сидит и встает 3 раза, но с наблюдением", score: 2 },
+            { description: "Сидит и встает 3 раза безопасно, но движение медленное", score: 3 },
+            { description: "Сидит и встает 3 раза безопасно", score: 4 }
+          ]
+        },
+        {
+          title: "5. Перемещение",
+          nameAttr: "transferencia",
+          options: [
+            { description: "Неспособен перемещаться без помощи", score: 0 },
+            { description: "Перемещается с помощью", score: 1 },
+            { description: "Перемещается с наблюдением или словесной помощью", score: 2 },
+            { description: "Перемещается безопасно, но движение медленное", score: 3 },
+            { description: "Перемещается безопасно, без помощи", score: 4 }
+          ]
+        },
+        {
+          title: "6. Стоять с закрытыми глазами",
+          nameAttr: "em_pe_olhos_fechados",
+          options: [
+            { description: "Неспособен стоять 10 секунд с закрытыми глазами", score: 0 },
+            { description: "Стоит 10 секунд, но нуждается в наблюдении", score: 1 },
+            { description: "Стоит 10 секунд безопасно", score: 2 },
+            { description: "Стоит 30 секунд, но с легкой неустойчивостью", score: 3 },
+            { description: "Стоит 30 секунд безопасно, без поддержки", score: 4 }
+          ]
+        },
+        {
+          title: "7. Стоять со сведенными ногами",
+          nameAttr: "em_pe_pes_juntos",
+          options: [
+            { description: "Неспособен стоять со сведенными ногами", score: 0 },
+            { description: "Стоит со сведенными ногами, но с помощью", score: 1 },
+            { description: "Стоит со сведенными ногами, но с наблюдением", score: 2 },
+            { description: "Стоит со сведенными ногами 30 секунд", score: 3 },
+            { description: "Стоит со сведенными ногами 1 минуту безопасно", score: 4 }
+          ]
+        },
+        {
+          title: "8. Дотянуться вперед вытянутой рукой",
+          nameAttr: "alcancar_a_frente",
+          options: [
+            { description: "Неспособен дотянуться или движение опасно", score: 0 },
+            { description: "Тянется вперед, но с помощью", score: 1 },
+            { description: "Тянется вперед, но с наблюдением", score: 2 },
+            { description: "Тянется вперед, но движение медленное", score: 3 },
+            { description: "Тянется вперед безопасно, без помощи", score: 4 }
+          ]
+        },
+        {
+          title: "9. Поднять объект с пола",
+          nameAttr: "pegar_objeto",
+          options: [
+            { description: "Неспособен поднять объект", score: 0 },
+            { description: "Поднимает объект, но нуждается в помощи", score: 1 },
+            { description: "Поднимает объект, но с наблюдением", score: 2 },
+            { description: "Поднимает объект, но движение медленное", score: 3 },
+            { description: "Поднимает объект с пола безопасно, без помощи", score: 4 }
+          ]
+        },
+        {
+          title: "10. Оглянуться через плечо",
+          nameAttr: "olhar_para_tras",
+          options: [
+            { description: "Неспособен оглянуться", score: 0 },
+            { description: "Оглядывается, но с помощью", score: 1 },
+            { description: "Оглядывается, но с наблюдением", score: 2 },
+            { description: "Оглядывается безопасно, но движение медленное", score: 3 },
+            { description: "Оглядывается безопасно, без помощи", score: 4 }
+          ]
+        },
+        {
+          title: "11. Повернуться на 360 градусов",
+          nameAttr: "girar_360",
+          options: [
+            { description: "Неспособен повернуться на 360 градусов", score: 0 },
+            { description: "Поворачивается, но с помощью", score: 1 },
+            { description: "Поворачивается, но с наблюдением", score: 2 },
+            { description: "Поворачивается на 360 градусов безопасно, но движение медленное", score: 3 },
+            { description: "Поворачивается на 360 градусов безопасно, без помощи", score: 4 }
+          ]
+        },
+        {
+          title: "12. Стоять на одной ноге",
+          nameAttr: "um_pe_so",
+          options: [
+            { description: "Неспособен стоять на одной ноге", score: 0 },
+            { description: "Стоит на одной ноге 5 секунд", score: 1 },
+            { description: "Стоит на одной ноге 10 секунд", score: 2 },
+            { description: "Стоит на одной ноге 15 секунд", score: 3 },
+            { description: "Стоит на одной ноге 30 секунд", score: 4 }
+          ]
+        },
+        {
+          title: "13. Стоять на одной ноге с закрытыми глазами",
+          nameAttr: "um_pe_so_olhos_fechados",
+          options: [
+            { description: "Неспособен стоять на одной ноге с закрытыми глазами", score: 0 },
+            { description: "Стоит на одной ноге 5 секунд с закрытыми глазами", score: 1 },
+            { description: "Стоит на одной ноге 10 секунд с закрытыми глазами", score: 2 },
+            { description: "Стоит на одной ноге 15 секунд с закрытыми глазами", score: 3 },
+            { description: "Стоит на одной ноге 30 секунд с закрытыми глазами", score: 4 }
+          ]
+        },
+        {
+          title: "14. Стоять и садиться на стул",
+          nameAttr: "sentar_e_levantar_cadeira",
+          options: [
+            { description: "Неспособен сидеть и вставать со стула", score: 0 },
+            { description: "Сидит и встает, но с помощью", score: 1 },
+            { description: "Сидит и встает, но с наблюдением", score: 2 },
+            { description: "Сидит и встает безопасно, но движение медленное", score: 3 },
+            { description: "Сидит и встает безопасно, без помощи", score: 4 }
+          ]
+        }
+      ];
+
+      // Preenche o formulário dinamicamente
+      bergData.forEach(item => {
+        const sectionDiv = document.createElement('div');
+        sectionDiv.className = 'berg-criterion-section';
+        sectionDiv.id = `section-${item.nameAttr}`;
+
+        const titleH3 = document.createElement('h3');
+        titleH3.className = 'berg-criterion-title';
+        titleH3.innerHTML = item.title;
+        sectionDiv.appendChild(titleH3);
+
+        const selectElement = document.createElement('select');
+        selectElement.id = item.nameAttr;
+        selectElement.className = 'berg-criterion-select mt-2';
+
+        const defaultOption = document.createElement('option');
+        defaultOption.value = "";
+        defaultOption.text = "Выберите...";
+        selectElement.appendChild(defaultOption);
+
+        item.options.forEach(option => {
+          const optionElement = document.createElement('option');
+          optionElement.value = option.score;
+          optionElement.text = `${option.description} (баллы: ${option.score})`;
+          selectElement.appendChild(optionElement);
+        });
+
+        sectionDiv.appendChild(selectElement);
+        conteudoDiv.appendChild(sectionDiv);
+      });
+
+      function calcularBerg() {
+        const selects = document.querySelectorAll('#conteudo select');
+        let allSelected = true;
+        let total = 0;
+
+        selects.forEach(select => {
+          if (select.value === "") {
+            allSelected = false;
+            select.classList.add('incomplete');
+          } else {
+            select.classList.remove('incomplete');
+            total += Number(select.value);
+          }
+        });
+
+        resultadoDiv.style.display = "block";
+        if (!allSelected) {
+          resultadoDiv.innerHTML = '⚠️ <strong class="font-bold">Пожалуйста, выберите вариант для всех пунктов перед расчетом.</strong>';
+          resultadoDiv.className = `resultado bg-red-100`;
+          delete resultadoDiv.dataset.score;
+          return;
+        }
+
+        let recomendacao = '';
+
+        if (total <= 20) {
+          recomendacao = `Балл ${total} указывает на высокий риск падений. Рекомендуется постоянная помощь и наблюдение.`;
+        } else if (total >= 21 && total <= 40) {
+          recomendacao = `Балл ${total} указывает на то, что пациент имеет функциональную подвижность, но может иметь умеренный риск падений. Рекомендуется реабилитация.`;
+        } else if (total >= 41 && total <= 56) {
+          recomendacao = `Балл ${total} указывает на низкий риск падений. Пациент имеет хорошее равновесие и функциональную подвижность.`;
+        }
+
+        resultadoDiv.innerHTML = `
+                <p>Общий балл: <strong class="font-bold">${total}</strong></p>
+                <p class="mt-4"><strong>Рекомендация:</strong> ${recomendacao}</p>
+            `;
+        resultadoDiv.className = `resultado bg-blue-50`;
+        resultadoDiv.style.display = "block";
+
+        resultadoDiv.dataset.score = total;
+        resultadoDiv.dataset.scaleName = "Шкала равновесия Берга";
+      }
+
+      function limparCampos() {
+        const selects = document.querySelectorAll('#conteudo select');
+        selects.forEach(select => {
+          select.selectedIndex = 0;
+          select.classList.remove('incomplete');
+        });
+        resultadoDiv.innerHTML = '';
+        resultadoDiv.className = 'resultado hidden';
+        delete resultadoDiv.dataset.score;
+        delete resultadoDiv.dataset.scaleName;
+      }
+
+      // Adiciona os event listeners aos botões
+      btnCalcular?.addEventListener('click', calcularBerg);
+      btnLimpar?.addEventListener('click', limparCampos);
+
+      btnGerarPDF?.addEventListener('click', () => {
+        if (!resultadoDiv.dataset.score) {
+          alert('Пожалуйста, сначала нажмите "Рассчитать балл" для создания PDF.');
+          return;
+        }
+        if (typeof gerarPDFGlobal === 'function') {
+          const selectedOptions = {};
+          document.querySelectorAll('#conteudo select').forEach(select => {
+            const selected = select.options[select.selectedIndex];
+            if (selected.value !== "") {
+              selectedOptions[select.id] = selected.text;
+            }
+          });
+
+          let contentToPrint = document.querySelector('.main-content-wrapper').cloneNode(true);
+          let contentContainer = contentToPrint.querySelector('#conteudo');
+
+          contentContainer.innerHTML = '';
+
+          bergData.forEach(item => {
+            let selectedText = selectedOptions[item.nameAttr];
+            if (selectedText) {
+              let itemDiv = document.createElement('div');
+              itemDiv.className = 'mb-2 p-2 bg-gray-50 rounded';
+              itemDiv.innerHTML = `<strong>${item.title}:</strong> ${selectedText}`;
+              contentContainer.appendChild(itemDiv);
+            }
+          });
+
+          let resultadoHtml = resultadoDiv.cloneNode(true);
+          if (resultadoHtml.style.display !== 'none') {
+            contentContainer.appendChild(resultadoHtml);
+          }
+
+          gerarPDFGlobal({
+            titulo: 'Шкала равновесия Берга',
+            subtitulo: 'Отчет об оценке статического и динамического равновесия',
+            nomeArquivo: 'relatorio_escala_berg.pdf',
+            seletorConteudo: '.main-content-wrapper'
+          });
+        } else {
+          console.error('Функция gerarPDFGlobal не определена.');
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener('click', () => {
+        const score = resultadoDiv.dataset.score;
+        const scaleName = resultadoDiv.dataset.scaleName;
+        if (!score) {
+          alert('Рассчитайте результат для поиска рекомендации.');
+          return;
+        }
+        let recomendacaoRisco = 'риск падений';
+        if (score <= 20) {
+          recomendacaoRisco = 'высокий риск падений';
+        } else if (score >= 41) {
+          recomendacaoRisco = 'низкий риск падений';
+        }
+        const searchQuery = encodeURIComponent(`уход за пожилыми с ${recomendacaoRisco} по шкале Берга NANDA NIC NOC`);
+        window.open(`https://www.google.com/search?q=${searchQuery}`, '_blank');
+      });
+    });
+  </script>
 
 
 

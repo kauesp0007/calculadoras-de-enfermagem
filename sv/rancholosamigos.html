@@ -561,7 +561,210 @@
 
 
 
-  
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const resultadoDiv = document.getElementById("resultado");
+      const btnCalcular = document.getElementById("btnCalcular");
+      const btnLimpar = document.getElementById("btnLimpar");
+      const btnGerarPDF = document.getElementById("btnGerarPDF");
+      const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
+      const conteudoDiv = document.getElementById("conteudo");
+
+      const rlasData = [
+        {
+          level: 1,
+          title: "Nivå I - Inget svar",
+          description:
+            "Patienten reagerar inte på hörsel-, syn-, taktila eller smärtstimuli. Patienten är i djup koma.",
+          recommendation:
+            "Rekommendation: Fokusera på grundläggande livsuppehållande åtgärder, positionering för att förhindra sår och kontrakturer samt minimal sensorisk stimulering. Kommunikation med familjen är av största vikt."
+        },
+        {
+          level: 2,
+          title: "Nivå II - Generaliserat svar",
+          description:
+            "Patienten reagerar inkonsekvent, mållöst och ospecifikt på stimuli. Reaktionerna är begränsade och kan vara desamma oavsett stimulus.",
+          recommendation:
+            "Rekommendation: Upprätthåll en lugn och kontrollerad miljö. Fortsätt med sensorisk stimulering konsekvent, men utan att överbelasta. Fokusera på att väcka patienten."
+        },
+        {
+          level: 3,
+          title: "Nivå III - Lokaliserad respons",
+          description:
+            "Patienten reagerar mer specifikt på stimuli. De kan blinka vid en ljusstimulus eller försöka följa ett objekt. Reaktionerna är inkonsekventa.",
+          recommendation:
+            "Rekommendation: Börja med enkla, repetitiva kommandon. Begränsa distraktioner. Patienten kan börja känna igen familjemedlemmar. Hjälp till att fokusera uppmärksamheten."
+        },
+        {
+          level: 4,
+          title: "Nivå IV - Förvirrad och upprörd",
+          description:
+            "Patienten är upprörd och förvirrad. De kan inte samarbeta under bedömningen och kan agera aggressivt. Deras uppmärksamhetsspann är kort.",
+          recommendation:
+            "Rekommendation: Skapa en säker och strukturerad miljö för att undvika skador. Använd en lugn röst och upprätthåll en förutsägbar rutin. Hjälp patienten att omorientera sig vid behov."
+        },
+        {
+          level: 5,
+          title: "Nivå V - Förvirrad och olämplig",
+          description:
+            "Patienten kan följa enkla kommandon men har svårt att bibehålla uppmärksamheten. Svaren på komplexa frågor är olämpliga och förvirrande. Minnet är allvarligt nedsatt.",
+          recommendation:
+            "Rekommendation: Börja med att träna enkla, repetitiva uppgifter. Förstärk omorienteringen till tid och plats. Kommunikationen måste vara tydlig och direkt."
+        },
+        {
+          level: 6,
+          title: "Nivå VI - Förvirrad och lämplig",
+          description:
+            "Patienten kan följa kommandon och uppvisar långtidsminne. Korttidsminnet påverkas fortfarande och besluten är ofta felaktiga.",
+          recommendation:
+            "Rekommendation: Öka uppgifternas komplexitet. Använd minnen av tidigare händelser och främja självständighet i bekanta aktiviteter. Uppmuntra patienten att fatta små beslut."
+        },
+        {
+          level: 7,
+          title: "Nivå VII - Automatisk och lämplig",
+          description:
+            "Patienten uppvisar liten förvirring. Han kan följa en daglig rutin automatiskt, men har fortfarande brister i omdöme och problemlösning. Social interaktion är ytlig.",
+          recommendation:
+            "Rekommendation: Fokusera på planering och problemlösning. Uppmuntra socialisering i grupp och utveckling av strategier för att kompensera för kognitiva brister."
+        },
+        {
+          level: 8,
+          title: "Nivå VIII - Riktad och lämplig",
+          description:
+            "Patienten är kapabel till abstrakt tänkande och problemlösning. Deras minne och omdöme är konsekvent, men deras förmåga att hantera känslor kan vara nedsatt. Funktionen är oberoende.",
+          recommendation:
+            "Rekommendation: Hjälp patienten att hantera känslomässiga och sociala förändringar. Fokusera på återintegrering i samhället och förberedelse för återgång till yrkesliv eller studier."
+        }];
+
+
+      rlasData.forEach((item) => {
+        const sectionDiv = document.createElement("div");
+        sectionDiv.className = "rlas-criterion-section";
+        sectionDiv.id = `section-level-${item.level}`;
+
+        const radioContainer = document.createElement("div");
+        radioContainer.className = "rlas-criterion-option";
+
+        const radioInput = document.createElement("input");
+        radioInput.type = "radio";
+        radioInput.name = "rlas_level";
+        radioInput.value = item.level;
+        radioInput.id = `level-${item.level}`;
+
+        const label = document.createElement("label");
+        label.htmlFor = `level-${item.level}`;
+        label.innerHTML = `<strong>${item.title}</strong><br>${item.description}`;
+
+        radioContainer.appendChild(radioInput);
+        radioContainer.appendChild(label);
+        sectionDiv.appendChild(radioContainer);
+
+        conteudoDiv.appendChild(sectionDiv);
+      });
+
+      function calcularRLAS() {
+        const selectedRadio = document.querySelector(
+          'input[name="rlas_level"]:checked'
+        );
+        resultadoDiv.style.display = "block";
+
+        if (!selectedRadio) {
+          resultadoDiv.innerHTML =
+            '⚠️ <strong class="font-bold">Por favor, selecione um nível para calcular.</strong>';
+          resultadoDiv.classList.add("bg-red-100");
+          resultadoDiv.classList.remove("bg-blue-50");
+          return;
+        }
+
+        const level = selectedRadio.value;
+        const selectedItem = rlasData.find((item) => item.level == level);
+
+        if (selectedItem) {
+          resultadoDiv.innerHTML = `
+                    <p>Nível selecionado: <strong class="font-bold">${selectedItem.title}</strong></p>
+                    <p class="mt-4"><strong>Recomendação:</strong> ${selectedItem.recommendation}</p>
+                `;
+          resultadoDiv.className = `bg-blå-50 resultat`;
+        }
+
+        resultadoDiv.style.display = "block";
+      }
+
+      function limparCampos() {
+        const selectedRadio = document.querySelector(
+          'input[name="rlas_level"]:checked'
+        );
+        if (selectedRadio) {
+          selectedRadio.checked = false;
+        }
+        resultadoDiv.innerHTML = "";
+        resultadoDiv.className = "dolt resultat";
+      }
+
+      btnCalcular?.addEventListener("click", calcularRLAS);
+      btnLimpar?.addEventListener("click", limparCampos);
+
+      btnGerarPDF?.addEventListener("click", () => {
+        const selectedRadio = document.querySelector(
+          'input[name="rlas_level"]:checked'
+        );
+        if (!selectedRadio) {
+          alert("Välj en nivå för att generera PDF-filen.");
+          return;
+        }
+        if (typeof gerarPDFGlobal === "function") {
+          const selectedItem = rlasData.find(
+            (item) => item.level == selectedRadio.value
+          );
+
+          let contentToPrint = document.
+            querySelector(".main-content-wrapper").
+            cloneNode(true);
+          let contentContainer = contentToPrint.querySelector("#conteudo");
+
+          contentContainer.innerHTML = "";
+
+          let itemDiv = document.createElement("div");
+          itemDiv.className = "mb-2 p-2 bg-gray-50 rounded";
+          itemDiv.innerHTML = `<strong>Nível selecionado:</strong> ${selectedItem.title}<br><strong>Descrição:</strong> ${selectedItem.description}`;
+          contentContainer.appendChild(itemDiv);
+
+          let resultadoHtml = resultadoDiv.cloneNode(true);
+          if (resultadoHtml.style.display !== "none") {
+            contentContainer.appendChild(resultadoHtml);
+          }
+
+          gerarPDFGlobal({
+            titulo: "Rancho Los Amigos-skalan",
+            subtitulo: "Kognitiv bedömningsrapport",
+            nomeArquivo: "relatorio_escala_rancho.pdf",
+            seletorConteudo: ".main-content-wrapper"
+          });
+        } else {
+          console.error("Funktionen GeneratePDFGlobal är inte definierad.");
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener("click", () => {
+        const selectedRadio = document.querySelector(
+          'input[name="rlas_level"]:checked'
+        );
+        if (!selectedRadio) {
+          alert("Välj en nivå för att söka efter beteende.");
+          return;
+        }
+        const selectedItem = rlasData.find(
+          (item) => item.level == selectedRadio.value
+        );
+        const searchQuery = encodeURIComponent(
+          `omvårdnad för patienter med hjärnskada Nivå ${selectedItem.level} NANDA NIC NOC`
+        );
+        window.open(
+          `https://www.google.com/search?q=${searchQuery}`,
+          "_blank"
+        );
+      });
+    });</script>
 
   <script src="/lang-selector.js" defer=""></script>
 

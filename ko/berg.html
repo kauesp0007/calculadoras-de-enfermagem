@@ -580,7 +580,326 @@
 
 
 
-  
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const resultadoDiv = document.getElementById('resultado');
+      const btnCalcular = document.getElementById('btnCalcular');
+      const btnLimpar = document.getElementById('btnLimpar');
+      const btnGerarPDF = document.getElementById('btnGerarPDF');
+      const btnNandaNicNoc = document.getElementById('btnNandaNicNoc');
+      const conteudoDiv = document.getElementById('conteudo');
+
+      const bergData = [
+        {
+          title: "1. 앉은 자세에서 일어나기",
+          nameAttr: "sentar_levantar",
+          options: [
+            { description: "도움 없이 일어나기 불가능", score: 0 },
+            { description: "일어나기 위해 언어적 도움 및/또는 감독 필요", score: 1 },
+            { description: "일어나기 위해 최소 도움 필요", score: 2 },
+            { description: "안정성은 있지만 균형을 위해 언어적 도움 필요", score: 3 },
+            { description: "안전하게 안정성을 위해 도움 없이 일어나기", score: 4 }
+          ]
+        },
+        {
+          title: "2. 지원 없이 서있기",
+          nameAttr: "em_pe_sem_apoio",
+          options: [
+            { description: "30초간 서있기 불가능", score: 0 },
+            { description: "30초간 서있지만 도움 필요", score: 1 },
+            { description: "30초간 서있지만 감독 필요", score: 2 },
+            { description: "30초간 안전하게 서있기", score: 3 },
+            { description: "30초간 지원 없이 안전하게 서있기", score: 4 }
+          ]
+        },
+        {
+          title: "3. 지원 없이 앉기",
+          nameAttr: "sentar_sem_apoio",
+          options: [
+            { description: "불안전하게 앉으며 의자에 넘어짐", score: 0 },
+            { description: "앉지만 최소 도움 필요", score: 1 },
+            { description: "안전하게 앉지만 팔 사용", score: 2 },
+            { description: "팔을 사용하지 않고 안전하게 앉지만 움직임이 느림", score: 3 },
+            { description: "팔을 사용하지 않고 안전하게 앉기", score: 4 }
+          ]
+        },
+        {
+          title: "4. 앉고 일어나기",
+          nameAttr: "sentar_e_levantar",
+          options: [
+            { description: "지원 없이 3번 앉고 일어나기 불가능", score: 0 },
+            { description: "3번 앉고 일어나지만 도움 필요", score: 1 },
+            { description: "3번 앉고 일어나지만 감독 필요", score: 2 },
+            { description: "안전하게 3번 앉고 일어나지만 움직임이 느림", score: 3 },
+            { description: "안전하게 3번 앉고 일어나기", score: 4 }
+          ]
+        },
+        {
+          title: "5. 이동",
+          nameAttr: "transferencia",
+          options: [
+            { description: "도움 없이 이동 불가능", score: 0 },
+            { description: "도움으로 이동", score: 1 },
+            { description: "감독 또는 언어적 도움으로 이동", score: 2 },
+            { description: "안전하게 이동하지만 움직임이 느림", score: 3 },
+            { description: "안전하게 도움 없이 이동", score: 4 }
+          ]
+        },
+        {
+          title: "6. 눈을 감고 서있기",
+          nameAttr: "em_pe_olhos_fechados",
+          options: [
+            { description: "눈을 감고 10초간 서있기 불가능", score: 0 },
+            { description: "10초간 서있지만 감독 필요", score: 1 },
+            { description: "10초간 안전하게 서있기", score: 2 },
+            { description: "30초간 서있지만 약간 불안정", score: 3 },
+            { description: "지원 없이 30초간 안전하게 서있기", score: 4 }
+          ]
+        },
+        {
+          title: "7. 발을 모으고 서있기",
+          nameAttr: "em_pe_pes_juntos",
+          options: [
+            { description: "발을 모으고 서있기 불가능", score: 0 },
+            { description: "발을 모으고 서있지만 도움 필요", score: 1 },
+            { description: "발을 모으고 서있지만 감독 필요", score: 2 },
+            { description: "30초간 발을 모으고 서있기", score: 3 },
+            { description: "안전하게 1분간 발을 모으고 서있기", score: 4 }
+          ]
+        },
+        {
+          title: "8. 팔을 뻗어前方 alcançar",
+          nameAttr: "alcancar_a_frente",
+          options: [
+            { description: "뻗거나 움직임이 위험함", score: 0 },
+            { description: "전방으로 뻗지만 도움 필요", score: 1 },
+            { description: "전방으로 뻗지만 감독 필요", score: 2 },
+            { description: "전방으로 뻗지만 움직임이 느림", score: 3 },
+            { description: "안전하게 도움 없이 전방으로 뻗기", score: 4 }
+          ]
+        },
+        {
+          title: "9. 바닥에서 물건 줍기",
+          nameAttr: "pegar_objeto",
+          options: [
+            { description: "물건을 줍기 불가능", score: 0 },
+            { description: "물건을 줍지만 도움 필요", score: 1 },
+            { description: "물건을 주지만 감독 필요", score: 2 },
+            { description: "물건을 주지만 움직임이 느림", score: 3 },
+            { description: "안전하게 도움 없이 바닥에서 물건 주기", score: 4 }
+          ]
+        },
+        {
+          title: "10. 뒤를 돌아보기",
+          nameAttr: "olhar_para_tras",
+          options: [
+            { description: "뒤를 보기 불가능", score: 0 },
+            { description: "뒤를 보지만 도움 필요", score: 1 },
+            { description: "뒤를 보지만 감독 필요", score: 2 },
+            { description: "안전하게 뒤를 보지만 움직임이 느림", score: 3 },
+            { description: "안전하게 도움 없이 뒤를 보기", score: 4 }
+          ]
+        },
+        {
+          title: "11. 360도 돌기",
+          nameAttr: "girar_360",
+          options: [
+            { description: "360도 돌기 불가능", score: 0 },
+            { description: "돌지만 도움 필요", score: 1 },
+            { description: "돌지만 감독 필요", score: 2 },
+            { description: "안전하게 360도 돌지만 움직임이 느림", score: 3 },
+            { description: "안전하게 도움 없이 360도 돌기", score: 4 }
+          ]
+        },
+        {
+          title: "12. 한 발로 서있기",
+          nameAttr: "um_pe_so",
+          options: [
+            { description: "한 발로 서있기 불가능", score: 0 },
+            { description: "한 발로 5초간 서있기", score: 1 },
+            { description: "한 발로 10초간 서있기", score: 2 },
+            { description: "한 발로 15초간 서있기", score: 3 },
+            { description: "한 발로 30초간 서있기", score: 4 }
+          ]
+        },
+        {
+          title: "13. 눈을 감고 한 발로 서있기",
+          nameAttr: "um_pe_so_olhos_fechados",
+          options: [
+            { description: "눈을 감고 한 발로 서있기 불가능", score: 0 },
+            { description: "눈을 감고 한 발로 5초간 서있기", score: 1 },
+            { description: "눈을 감고 한 발로 10초간 서있기", score: 2 },
+            { description: "눈을 감고 한 발로 15초간 서있기", score: 3 },
+            { description: "눈을 감고 한 발로 30초간 서있기", score: 4 }
+          ]
+        },
+        {
+          title: "14. 의자에 앉고 일어나기",
+          nameAttr: "sentar_e_levantar_cadeira",
+          options: [
+            { description: "의자에서 앉고 일어나기 불가능", score: 0 },
+            { description: "앉고 일어나지만 도움 필요", score: 1 },
+            { description: "앉고 일어나지만 감독 필요", score: 2 },
+            { description: "안전하게 앉고 일어나지만 움직임이 느림", score: 3 },
+            { description: "안전하게 도움 없이 앉고 일어나기", score: 4 }
+          ]
+        }
+      ];
+
+      // 양식을 동적으로 채움
+      bergData.forEach(item => {
+        const sectionDiv = document.createElement('div');
+        sectionDiv.className = 'berg-criterion-section';
+        sectionDiv.id = `section-${item.nameAttr}`;
+
+        const titleH3 = document.createElement('h3');
+        titleH3.className = 'berg-criterion-title';
+        titleH3.innerHTML = item.title;
+        sectionDiv.appendChild(titleH3);
+
+        const selectElement = document.createElement('select');
+        selectElement.id = item.nameAttr;
+        selectElement.className = 'berg-criterion-select mt-2';
+
+        const defaultOption = document.createElement('option');
+        defaultOption.value = "";
+        defaultOption.text = "선택하세요...";
+        selectElement.appendChild(defaultOption);
+
+        item.options.forEach(option => {
+          const optionElement = document.createElement('option');
+          optionElement.value = option.score;
+          optionElement.text = `${option.description} (점수: ${option.score})`;
+          selectElement.appendChild(optionElement);
+        });
+
+        sectionDiv.appendChild(selectElement);
+        conteudoDiv.appendChild(sectionDiv);
+      });
+
+      function calcularBerg() {
+        const selects = document.querySelectorAll('#conteudo select');
+        let allSelected = true;
+        let total = 0;
+
+        selects.forEach(select => {
+          if (select.value === "") {
+            allSelected = false;
+            select.classList.add('incomplete');
+          } else {
+            select.classList.remove('incomplete');
+            total += Number(select.value);
+          }
+        });
+
+        resultadoDiv.style.display = "block";
+        if (!allSelected) {
+          resultadoDiv.innerHTML = '⚠️ <strong class="font-bold">계산하기 전에 모든 항목의 옵션을 선택해주세요.</strong>';
+          resultadoDiv.className = `resultado bg-red-100`;
+          delete resultadoDiv.dataset.score;
+          return;
+        }
+
+        let recomendacao = '';
+
+        if (total <= 20) {
+          recomendacao = `${total}점은 높은 낙상 위험을 나타냅니다. 지속적인 도움과 감독이 권장됩니다.`;
+        } else if (total >= 21 && total <= 40) {
+          recomendacao = `${total}점은 환자가 기능적 이동성을 가지고 있지만 낙상의 중간 위험이 있을 수 있음을 나타냅니다. 재활이 권장됩니다.`;
+        } else if (total >= 41 && total <= 56) {
+          recomendacao = `${total}점은 낮은 낙상 위험을 나타냅니다. 환자는 좋은 균형과 기능적 이동성을 가지고 있습니다.`;
+        }
+
+        resultadoDiv.innerHTML = `
+                <p>총 점수: <strong class="font-bold">${total}</strong></p>
+                <p class="mt-4"><strong>권장사항:</strong> ${recomendacao}</p>
+            `;
+        resultadoDiv.className = `resultado bg-blue-50`;
+        resultadoDiv.style.display = "block";
+
+        resultadoDiv.dataset.score = total;
+        resultadoDiv.dataset.scaleName = "버그 균형 척도";
+      }
+
+      function limparCampos() {
+        const selects = document.querySelectorAll('#conteudo select');
+        selects.forEach(select => {
+          select.selectedIndex = 0;
+          select.classList.remove('incomplete');
+        });
+        resultadoDiv.innerHTML = '';
+        resultadoDiv.className = 'resultado hidden';
+        delete resultadoDiv.dataset.score;
+        delete resultadoDiv.dataset.scaleName;
+      }
+
+      // 버튼에 이벤트 리스너 추가
+      btnCalcular?.addEventListener('click', calcularBerg);
+      btnLimpar?.addEventListener('click', limparCampos);
+
+      btnGerarPDF?.addEventListener('click', () => {
+        if (!resultadoDiv.dataset.score) {
+          alert('PDF를 생성하려면 먼저 "점수 계산"을 클릭해주세요.');
+          return;
+        }
+        if (typeof gerarPDFGlobal === 'function') {
+          const selectedOptions = {};
+          document.querySelectorAll('#conteudo select').forEach(select => {
+            const selected = select.options[select.selectedIndex];
+            if (selected.value !== "") {
+              selectedOptions[select.id] = selected.text;
+            }
+          });
+
+          let contentToPrint = document.querySelector('.main-content-wrapper').cloneNode(true);
+          let contentContainer = contentToPrint.querySelector('#conteudo');
+
+          contentContainer.innerHTML = '';
+
+          bergData.forEach(item => {
+            let selectedText = selectedOptions[item.nameAttr];
+            if (selectedText) {
+              let itemDiv = document.createElement('div');
+              itemDiv.className = 'mb-2 p-2 bg-gray-50 rounded';
+              itemDiv.innerHTML = `<strong>${item.title}:</strong> ${selectedText}`;
+              contentContainer.appendChild(itemDiv);
+            }
+          });
+
+          let resultadoHtml = resultadoDiv.cloneNode(true);
+          if (resultadoHtml.style.display !== 'none') {
+            contentContainer.appendChild(resultadoHtml);
+          }
+
+          gerarPDFGlobal({
+            titulo: '버그 균형 척도',
+            subtitulo: '정적 및 동적 균형 평가 보고서',
+            nomeArquivo: 'relatorio_escala_berg.pdf',
+            seletorConteudo: '.main-content-wrapper'
+          });
+        } else {
+          console.error('함수 gerarPDFGlobal이 정의되지 않았습니다.');
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener('click', () => {
+        const score = resultadoDiv.dataset.score;
+        const scaleName = resultadoDiv.dataset.scaleName;
+        if (!score) {
+          alert('조치를 검색하려면 결과를 계산해주세요.');
+          return;
+        }
+        let recomendacaoRisco = '낙상 위험';
+        if (score <= 20) {
+          recomendacaoRisco = '높은 낙상 위험';
+        } else if (score >= 41) {
+          recomendacaoRisco = '낮은 낙상 위험';
+        }
+        const searchQuery = encodeURIComponent(`노인에게 ${recomendacaoRisco}가 있는 간호 관리 NANDA NIC NOC 버그 척도`);
+        window.open(`https://www.google.com/search?q=${searchQuery}`, '_blank');
+      });
+    });
+  </script>
 
 
 

@@ -623,7 +623,149 @@
 
 
 
-  
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const resultadoDiv = document.getElementById("resultado");
+      const btnCalcular = document.getElementById("btnCalcular");
+      const btnLimpar = document.getElementById("btnLimpar");
+      const btnGerarPDF = document.getElementById("btnGerarPDF");
+      const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
+      const conteudoDiv = document.getElementById("conteudo");
+
+      // بيانات بروتوكول مانشستر
+      const manchesterData = [
+        { question: "انسداد مجرى الهواء", score: 3 },
+        { question: "صعوبة تنفس شديدة", score: 5 },
+        { question: "ارتباك/تهيج", score: 2 },
+        { question: "نعاس/توهان", score: 3 },
+        { question: "فقدان الوعي", score: 5 },
+        { question: "ألم خفيف (١–٣)", score: 1 },
+        { question: "ألم متوسط (٤–٦)", score: 2 },
+        { question: "ألم شديد (٧–١٠)", score: 3 },
+        { question: "ضغط الدم < ٩٠ أو معدل ضربات القلب > ١٣٠", score: 3 },
+        { question: "أطراف باردة/تعرق", score: 2 },
+        { question: "نزيف خفيف", score: 1 },
+        { question: "نزيف متوسط", score: 2 },
+        { question: "نزيف شديد", score: 3 },
+        { question: "حمى متوسطة (٣٨–٣٩℃)", score: 1 },
+        { question: "حمى شديدة (>٣٩℃)", score: 2 },
+        { question: "انخفاض حرارة الجسم (<٣٦℃)", score: 2 },
+        { question: "ضعف/شلل بؤري", score: 3 },
+        { question: "نوبة حديثة", score: 4 },
+        { question: "تغير مفاجئ في الرؤية/السمع", score: 2 },
+      ];
+
+      // يملأ النموذج ديناميكيًا
+      manchesterData.forEach((item, index) => {
+        const sectionDiv = document.createElement("div");
+        sectionDiv.className = "manchester-criterion-card";
+
+        const itemLabel = document.createElement("label");
+        itemLabel.className = "manchester-criterion-item";
+
+        const inputCheckbox = document.createElement("input");
+        inputCheckbox.type = "checkbox";
+        inputCheckbox.name = "sintoma";
+        inputCheckbox.value = item.score;
+        inputCheckbox.id = `sintoma-${index}`;
+
+        const textSpan = document.createElement("span");
+        textSpan.innerText = `${item.question} (${item.score} نقاط)`;
+
+        itemLabel.appendChild(inputCheckbox);
+        itemLabel.appendChild(textSpan);
+        sectionDiv.appendChild(itemLabel);
+        conteudoDiv.appendChild(sectionDiv);
+      });
+
+      function calcularManchester() {
+        const checkboxes = document.querySelectorAll(
+          '#conteudo input[type="checkbox"]:checked',
+        );
+        let total = 0;
+        checkboxes.forEach((c) => (total += parseInt(c.value)));
+
+        let classificacao = "";
+        let corClasse = "";
+
+        if (total >= 12) {
+          classificacao = "أحمر – فوري";
+          corClasse = "bg-red";
+        } else if (total >= 9) {
+          classificacao = "برتقالي – حتى ١٠ دقائق";
+          corClasse = "bg-orange";
+        } else if (total >= 6) {
+          classificacao = "أصفر – حتى ٦٠ دقيقة";
+          corClasse = "bg-yellow";
+        } else if (total >= 3) {
+          classificacao = "أخضر – حتى ١٢٠ دقيقة";
+          corClasse = "bg-green";
+        } else {
+          classificacao = "أزرق – حتى ٢٤٠ دقيقة";
+          corClasse = "bg-blue";
+        }
+
+        resultadoDiv.innerHTML = `<p><strong>${classificacao}</strong></p><p>المجموع الكلي: <strong class="font-bold">${total}</strong></p>`;
+        resultadoDiv.className = `resultado ${corClasse}`;
+        resultadoDiv.style.display = "block";
+
+        resultadoDiv.dataset.classificacao = classificacao;
+        resultadoDiv.dataset.escore = total;
+        resultadoDiv.dataset.scaleName = "بروتوكول مانشستر";
+      }
+
+      function limparCampos() {
+        const checkboxes = document.querySelectorAll(
+          '#conteudo input[type="checkbox"]',
+        );
+        checkboxes.forEach((c) => (c.checked = false));
+
+        resultadoDiv.innerHTML = "";
+        resultadoDiv.className = "resultado hidden";
+        delete resultadoDiv.dataset.classificacao;
+        delete resultadoDiv.dataset.escore;
+        delete resultadoDiv.dataset.scaleName;
+      }
+
+      // إضافة مستمعي الأحداث للأزرار
+      btnCalcular?.addEventListener("click", calcularManchester);
+      btnLimpar?.addEventListener("click", limparCampos);
+
+      btnGerarPDF?.addEventListener("click", () => {
+        if (!resultadoDiv.dataset.escore) {
+          alert('الرجاء النقر على "حساب" أولاً لإنشاء PDF.');
+          return;
+        }
+        if (typeof gerarPDFGlobal === "function") {
+          gerarPDFGlobal({
+            titulo: "بروتوكول مانشستر",
+            subtitulo: "تقرير تصنيف المخاطر",
+            nomeArquivo: "protocolo_manchester.pdf",
+            seletorConteudo: ".main-content-wrapper",
+          });
+        } else {
+          console.error("الدالة gerarPDFGlobal غير معرفة.");
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener("click", () => {
+        const escore = resultadoDiv.dataset.escore;
+        const classificacao = resultadoDiv.dataset.classificacao;
+        const scaleName = resultadoDiv.dataset.scaleName;
+        if (!escore || !classificacao) {
+          alert("احسب النتيجة للبحث عن الإجراء.");
+          return;
+        }
+        const searchQuery = encodeURIComponent(
+          `${scaleName} escore ${escore} classificação ${classificacao} gerar taxonomia NANDA, gerar taxonomia NIC e gerar taxonomia de NOC`,
+        );
+        window.open(
+          `https://www.google.com/search?q=${searchQuery}`,
+          "_blank",
+        );
+      });
+    });
+  </script>
 
   <script src="../lang-selector.js" defer=""></script>
 

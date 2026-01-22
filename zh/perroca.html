@@ -641,7 +641,311 @@
 
 
 
-  
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const resultadoDiv = document.getElementById('resultado');
+      const btnCalcular = document.getElementById('btnCalcular');
+      const btnLimpar = document.getElementById('btnLimpar');
+      const btnGerarPDF = document.getElementById('btnGerarPDF');
+      const btnNandaNicNoc = document.getElementById('btnNandaNicNoc');
+      const conteudoDiv = document.getElementById('conteudo');
+
+      const perrocaData = [
+        {
+          title: "1. 精神状态和意识水平",
+          nameAttr: "estado_mental",
+          options: [
+            { description: "时间和空间定向力好", score: 1 },
+            { description: "时间和/或空间定向力障碍", score: 2 },
+            { description: "嗜睡", score: 3 },
+            { description: "昏睡", score: 4 },
+            { description: "昏迷", score: 5 }
+          ]
+        },
+        {
+          title: "2. 氧合",
+          nameAttr: "oxigenacao",
+          options: [
+            { description: "呼吸环境空气", score: 1 },
+            { description: "使用鼻导管或面罩吸氧", score: 2 },
+            { description: "使用机械通气", score: 3 },
+            { description: "使用吸氧伴呼吸不稳定", score: 4 },
+            { description: "使用吸氧伴危重状态和血流动力学不稳定", score: 5 }
+          ]
+        },
+        {
+          title: "3. 生命体征",
+          nameAttr: "sinais_vitais",
+          options: [
+            { description: "稳定", score: 1 },
+            { description: "不稳定，需间歇监测", score: 2 },
+            { description: "不稳定，需持续监测", score: 3 },
+            { description: "不稳定，需药物支持", score: 4 },
+            { description: "不稳定，需高级支持", score: 5 }
+          ]
+        },
+        {
+          title: "4. 营养和水分",
+          nameAttr: "nutricao",
+          options: [
+            { description: "口服", score: 1 },
+            { description: "口服需协助或鼻胃管/肠内营养", score: 2 },
+            { description: "肠内和/或完全胃肠外营养", score: 3 },
+            { description: "完全胃肠外营养", score: 4 },
+            { description: "完全胃肠外营养伴血流动力学不稳定", score: 5 }
+          ]
+        },
+        {
+          title: "5. 活动能力",
+          nameAttr: "motilidade",
+          options: [
+            { description: "独立，行动无限制", score: 1 },
+            { description: "部分依赖，行动受限", score: 2 },
+            { description: "完全依赖，卧床限制", score: 3 },
+            { description: "完全依赖，一个或多个肢体活动受限", score: 4 },
+            { description: "卧床不动，有挛缩和损伤风险", score: 5 }
+          ]
+        },
+        {
+          title: "6. 运动",
+          nameAttr: "locomocao",
+          options: [
+            { description: "无需协助行走", score: 1 },
+            { description: "使用拐杖、助行器或手杖协助行走", score: 2 },
+            { description: "使用轮椅协助行走", score: 3 },
+            { description: "他人协助行走", score: 4 },
+            { description: "完全依赖他人协助运动", score: 5 }
+          ]
+        },
+        {
+          title: "7. 身体护理",
+          nameAttr: "cuidado_corporal",
+          options: [
+            { description: "完全独立", score: 1 },
+            { description: "部分活动需协助（洗澡、卫生）", score: 2 },
+            { description: "所有卫生活动需协助", score: 3 },
+            { description: "完全依赖卫生护理，使用导管、敷料等", score: 4 },
+            { description: "完全依赖，床上卫生护理", score: 5 }
+          ]
+        },
+        {
+          title: "8. 排泄",
+          nameAttr: "eliminacoes",
+          options: [
+            { description: "控制良好且独立", score: 1 },
+            { description: "尿失禁或便失禁，但有协助", score: 2 },
+            { description: "尿便失禁，使用尿布", score: 3 },
+            { description: "尿便失禁，伴腹泻和/或使用导管", score: 4 },
+            { description: "失禁并接受血液透析", score: 5 }
+          ]
+        },
+        {
+          title: "9. 治疗",
+          nameAttr: "terapeutica",
+          options: [
+            { description: "口服 (PO) 或肌肉注射 (IM)", score: 1 },
+            { description: "间歇性静脉注射 (IV)", score: 2 },
+            { description: "连续静脉注射用输液泵", score: 3 },
+            { description: "连续静脉注射用输液泵伴血管活性药物", score: 4 },
+            { description: "连续静脉注射用输液泵伴血管活性药物和呼吸支持", score: 5 }
+          ]
+        },
+        {
+          title: "10. 皮肤粘膜完整性",
+          nameAttr: "integridade",
+          options: [
+            { description: "皮肤完整，无损伤", score: 1 },
+            { description: "浅表皮肤损伤", score: 2 },
+            { description: "皮肤损伤伴组织缺失", score: 3 },
+            { description: "皮肤损伤伴组织缺失和感染", score: 4 },
+            { description: "皮肤损伤伴组织缺失和严重感染", score: 5 }
+          ]
+        },
+        {
+          title: "11. 健康教育",
+          nameAttr: "educacao",
+          options: [
+            { description: "无需指导", score: 1 },
+            { description: "部分活动需指导", score: 2 },
+            { description: "所有活动需指导", score: 3 },
+            { description: "无法理解指导", score: 4 },
+            { description: "无法理解指导并伴激动", score: 5 }
+          ]
+        },
+        {
+          title: "12. 行为",
+          nameAttr: "comportamento",
+          options: [
+            { description: "平静且配合", score: 1 },
+            { description: "不安且焦虑", score: 2 },
+            { description: "激动且不配合", score: 3 },
+            { description: "攻击性和暴力", score: 4 },
+            { description: "攻击性和暴力伴生命威胁", score: 5 }
+          ]
+        },
+        {
+          title: "13. 人际关系",
+          nameAttr: "relacoes_interpessoais",
+          options: [
+            { description: "与团队和家人互动", score: 1 },
+            { description: "与团队和家人互动有困难", score: 2 },
+            { description: "仅与团队或家人互动", score: 3 },
+            { description: "不互动", score: 4 },
+            { description: "完全隔离", score: 5 }
+          ]
+        }
+      ];
+
+      // 动态填充表单
+      perrocaData.forEach(item => {
+        const sectionDiv = document.createElement('div');
+        sectionDiv.className = 'perroca-criterion-section';
+        sectionDiv.id = `section-${item.nameAttr}`;
+
+        const titleH3 = document.createElement('h3');
+        titleH3.className = 'perroca-criterion-title';
+        titleH3.innerHTML = item.title;
+        sectionDiv.appendChild(titleH3);
+
+        const selectElement = document.createElement('select');
+        selectElement.id = item.nameAttr;
+        selectElement.className = 'perroca-criterion-select mt-2';
+
+        const defaultOption = document.createElement('option');
+        defaultOption.value = "";
+        defaultOption.text = "请选择...";
+        selectElement.appendChild(defaultOption);
+
+        item.options.forEach(option => {
+          const optionElement = document.createElement('option');
+          optionElement.value = option.score;
+          optionElement.text = `${option.description} (分数: ${option.score})`;
+          selectElement.appendChild(optionElement);
+        });
+
+        sectionDiv.appendChild(selectElement);
+        conteudoDiv.appendChild(sectionDiv);
+      });
+
+      function calcularPerroca() {
+        const selects = document.querySelectorAll('#conteudo select');
+        let allSelected = true;
+        let total = 0;
+
+        selects.forEach(select => {
+          if (select.value === "") {
+            allSelected = false;
+            select.classList.add('incomplete');
+          } else {
+            select.classList.remove('incomplete');
+            total += Number(select.value);
+          }
+        });
+
+        resultadoDiv.style.display = "block";
+        if (!allSelected) {
+          resultadoDiv.innerHTML = '⚠️ <strong class="font-bold">请在计算前为所有项目选择一个选项。</strong>';
+          resultadoDiv.className = `resultado bg-red-100`;
+          delete resultadoDiv.dataset.score;
+          return;
+        }
+
+        let recomendacao = '';
+
+        if (total >= 13 && total <= 26) {
+          recomendacao = `评分为 ${total} 表明患者需要最低护理。`;
+        } else if (total >= 27 && total <= 39) {
+          recomendacao = `评分为 ${total} 表明患者需要中等护理。`;
+        } else if (total >= 40 && total <= 52) {
+          recomendacao = `评分为 ${total} 表明患者需要半重症护理。`;
+        } else { // total >= 53
+          recomendacao = `评分为 ${total} 表明患者需要重症护理。`;
+        }
+
+        resultadoDiv.innerHTML = `
+                <p>总分：<strong class="font-bold">${total}</strong></p>
+                <p class="mt-4"><strong>建议：</strong> ${recomendacao}</p>
+            `;
+        resultadoDiv.className = `resultado bg-blue-50`;
+        resultadoDiv.style.display = "block";
+
+        resultadoDiv.dataset.score = total;
+        resultadoDiv.dataset.scaleName = "佩罗卡量表";
+      }
+
+      function limparCampos() {
+        const selects = document.querySelectorAll('#conteudo select');
+        selects.forEach(select => {
+          select.selectedIndex = 0;
+          select.classList.remove('incomplete');
+        });
+        resultadoDiv.innerHTML = '';
+        resultadoDiv.className = 'resultado hidden';
+        delete resultadoDiv.dataset.score;
+        delete resultadoDiv.dataset.scaleName;
+      }
+
+      // 为按钮添加事件监听器
+      btnCalcular?.addEventListener('click', calcularPerroca);
+      btnLimpar?.addEventListener('click', limparCampos);
+
+      btnGerarPDF?.addEventListener('click', () => {
+        if (!resultadoDiv.dataset.score) {
+          alert('请先点击"计算评分"按钮以生成PDF。');
+          return;
+        }
+        if (typeof gerarPDFGlobal === 'function') {
+          const selectedOptions = {};
+          document.querySelectorAll('#conteudo select').forEach(select => {
+            const selected = select.options[select.selectedIndex];
+            if (selected.value !== "") {
+              selectedOptions[select.id] = selected.text;
+            }
+          });
+
+          let contentToPrint = document.querySelector('.main-content-wrapper').cloneNode(true);
+          let contentContainer = contentToPrint.querySelector('#conteudo');
+
+          contentContainer.innerHTML = '';
+
+          perrocaData.forEach(item => {
+            let selectedText = selectedOptions[item.nameAttr];
+            if (selectedText) {
+              let itemDiv = document.createElement('div');
+              itemDiv.className = 'mb-2 p-2 bg-gray-50 rounded';
+              itemDiv.innerHTML = `<strong>${item.title}:</strong> ${selectedText}`;
+              contentContainer.appendChild(itemDiv);
+            }
+          });
+
+          let resultadoHtml = resultadoDiv.cloneNode(true);
+          if (resultadoHtml.style.display !== 'none') {
+            contentContainer.appendChild(resultadoHtml);
+          }
+
+          gerarPDFGlobal({
+            titulo: '佩罗卡量表 (SCP)',
+            subtitulo: '患者分类报告',
+            nomeArquivo: 'perroca_patient_classification_zh.pdf',
+            seletorConteudo: '.main-content-wrapper'
+          });
+        } else {
+          console.error('gerarPDFGlobal函数未定义。');
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener('click', () => {
+        const score = resultadoDiv.dataset.score;
+        const scaleName = resultadoDiv.dataset.scaleName;
+        if (!score) {
+          alert('请计算结果以搜索处理方法。');
+          return;
+        }
+        const searchQuery = encodeURIComponent(`${scaleName} 评分 ${score} 生成 NANDA 分类, 生成 NIC 分类 和 生成 NOC 分类`);
+        window.open(`https://www.google.com/search?q=${searchQuery}`, '_blank');
+      });
+    });
+  </script>
 
 
 

@@ -552,7 +552,339 @@
 
 
 
-  
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const resultadoDiv = document.getElementById('resultado');
+      const btnCalcular = document.getElementById('btnCalcular');
+      const btnLimpar = document.getElementById('btnLimpar');
+      const btnGerarPDF = document.getElementById('btnGerarPDF');
+      const btnNandaNicNoc = document.getElementById('btnNandaNicNoc');
+      const conteudoDiv = document.getElementById('conteudo');
+
+      const ballardData = [
+        {
+          category: "신경근 성숙도",
+          items: [
+            {
+              title: "자세",
+              nameAttr: "postura",
+              explain: "아기가 휴식 시에 사지의 굽힘 정도를 평가합니다. 더 성숙한 아기는 더 굽은 자세를 보입니다(사지 굴곡).",
+              options: [
+                { description: "완전 신전", score: -1 },
+                { description: "가벼운/부분적 굽힘", score: 0 },
+                { description: "중간 굽힘", score: 1 },
+                { description: "좋은 굽힘", score: 2 },
+                { description: "강한 굽힘", score: 3 },
+                { description: "완전 굽힘 (매우 성숙)", score: 4 },
+              ]
+            },
+            {
+              title: "손목 각도 (Square Window)",
+              nameAttr: "square_window",
+              explain: "손을 전박에 대해 굽힐 때의 손목 굽힘을 평가합니다. 더 작은 각도(손이 전박에 더 가까움)는 더 큰 성숙도를 나타냅니다.",
+              options: [
+                { description: "< 90°", score: -1 },
+                { description: " 90°", score: 0 },
+                { description: " 60°", score: 1 },
+                { description: " 45°", score: 2 },
+                { description: " 30°", score: 3 },
+                { description: "0° (매우 가깝)", score: 4 },
+              ]
+            },
+            {
+              title: "팔 후퇴 (Arm Recoil)",
+              nameAttr: "arm_recoil",
+              explain: "팔을 뻗고 놓은 후의 팔의 회복 속도와 강도를 평가합니다. 회복이 더 빠르고 강할수록 신경근 성숙도가 더 큽니다.",
+              options: [
+                { description: "회복 없음", score: 0 },
+                { description: "느린 회복", score: 1 },
+                { description: "부분 회복", score: 2 },
+                { description: "빠른 회복", score: 3 },
+                { description: "완전하고 강한 회복", score: 4 },
+              ]
+            },
+            {
+              title: "슬와 각도",
+              nameAttr: "popliteo",
+              explain: "하지를 펴는 데 대한 저항 정도를 평가합니다. 더 작은 각도(더 큰 굽힘)는 더 큰 성숙도를 나타냅니다.",
+              options: [
+                { description: "180°", score: -1 },
+                { description: "160°", score: 0 },
+                { description: "140°", score: 1 },
+                { description: "120°", score: 2 },
+                { description: "100°", score: 3 },
+                { description: "90°", score: 4 },
+                { description: "< 90°", score: 5 },
+              ]
+            },
+            {
+              title: "천 Sheetsign",
+              nameAttr: "scarf",
+              explain: "팔을 횡단으로 가슴에 넘길 때, 팔꿈치가 몸의 중앙선을 얼마나 넘는지 관찰합니다. 더 작은 교차점일수록 성숙도가 더 큽니다.",
+              options: [
+                { description: "팔꿈치가 중앙선 넘김", score: -1 },
+                { description: "팔꿈치가 중앙선", score: 0 },
+                { description: "팔꺼치가 어깨 근처", score: 1 },
+                { description: "팔꺼치가 어깨에 도달하지 않음", score: 2 },
+                { description: "팔꺼치가 어깨에서 매우 멀음", score: 3 },
+              ]
+            },
+            {
+              title: "뒤꿈치 → 귀 (Heel to Ear)",
+              nameAttr: "heel_to_ear",
+              explain: "뒤꿈치를 귀에 가까이 할 때 저항을 관찰합니다. 더 큰 저항 = 더 큰 성숙도.",
+              options: [
+                { description: "발이 쉽게 귀에 도달", score: -1 },
+                { description: "발이 귀에 근접", score: 0 },
+                { description: "중간 저항", score: 1 },
+                { description: "좋은 저항", score: 2 },
+                { description: "발이 귀에서 멀리", score: 3 },
+                { description: "강한 저항 (매우 성숙)", score: 4 },
+              ]
+            }
+          ]
+        },
+        {
+          category: "신체 성숙도",
+          items: [
+            {
+              title: "피부",
+              nameAttr: "pele",
+              explain: "피부의 질감을 평가합니다: 조산아에서는 얇고 반투명부터, 후 기아에서는 두껍고 건조하고 균열이 있는 피부까지.",
+              options: [
+                { description: "끈적하고 반투명 (매우 미성숙)", score: -1 },
+                { description: "겔/얇음", score: 0 },
+                { description: "균질적이며 정맥 보임", score: 1 },
+                { description: "더 두껍고 약간의 균열", score: 2 },
+                { description: "두껍고 골절", score: 3 },
+                { description: "굵고 건조하며 깊은 균열 (후 기)", score: 4 },
+              ]
+            },
+            {
+              title: "털",
+              nameAttr: "lanugo",
+              explain: " 털(어린 털)의 존재와 분포를 평가합니다. 조산아에서는 풍부하고, 더 성숙한 아기에서는 감소하고 사라지는 경향이 있습니다.",
+              options: [
+                { description: "없음 (매우 후 기)", score: -1 },
+                { description: "드묾", score: 0 },
+                { description: "풍부함", score: 1 },
+                { description: "얇음 (조산의 특징)", score: 2 },
+                { description: "털 없는 부분", score: 3 },
+                { description: "거의 없음 (매우 미성숙)", score: 4 },
+              ]
+            },
+            {
+              title: "발바닥 주름",
+              nameAttr: "plantares",
+              explain: "발바닥의 주름을 평가합니다: 조산아는 드묾한 주름을, 성숙한 아기는 발바닥 전체를 덮는 깊은 주름을 보입니다.",
+              options: [
+                { description: "없음/매우 얕음", score: -1 },
+                { description: "앞부분의 표시", score: 0 },
+                { description: "발바닥의 반까지", score: 1 },
+                { description: "2/3까지", score: 2 },
+                { description: "발바닥 전체에 주름", score: 3 },
+                { description: "깊고 뚜렷한 주름", score: 4 },
+              ]
+            },
+            {
+              title: "유방",
+              nameAttr: "mamas",
+              explain: "유방 싹과 유두의 크기를 관찰합니다. 더 성숙한 아기에서는 샘과 유두가 더 크고 돌출됩니다.",
+              options: [
+                { description: "인지할 수 없음", score: -1 },
+                { description: "약간 보임", score: 0 },
+                { description: "평평한 유두, 작은 싹", score: 1 },
+                { description: "부분적으로 돌출된 유두 1-2mm 샘", score: 2 },
+                { description: "돌출된 가장자리 3-4mm 샘", score: 3 },
+                { description: "돌출된 가장자리 5-10mm 샘", score: 4 },
+              ]
+            },
+            {
+              title: "눈과 귀",
+              nameAttr: "olhos_orelhas",
+              explain: "귀의 연골의 견고함과 눈꺼풀의 형성을 평가합니다. 더 견고한 귀와 잘 형성된 외이각은 더 큰 성숙도를 나타냅니다.",
+              options: [
+                { description: "연한 연골/ 융합된 눈꺼풀", score: -1 },
+                { description: "약간의 견고함", score: 0 },
+                { description: "중간 견고함", score: 1 },
+                { description: "좋은 견고함", score: 2 },
+                { description: "완전한 견고함", score: 3 },
+              ]
+            },
+            {
+              title: "성기",
+              nameAttr: "genitalia",
+              explain: "성기 발달을 평가합니다: 남아에서는 고환의 위치와 음낭의 거칠기, 여아에서는 음핵의 돌출과 입술의 크기를 평가합니다. 성/neonatal 성숙도를 나타냅니다.",
+              options: [
+                { description: "남아: 고환 미하강; 여아: 평평한 입술", score: -1 },
+                { description: "남아: 부분 하강; 여아: 작은 작은 입술", score: 0 },
+                { description: "남아: 고환이囊袋에; 여아: 분명한 작은 입술", score: 1 },
+                { description: "남아: 거친 음낭; 여아: 작은 입술과 큰 입술이 동일하게 돌출", score: 2 },
+                { description: "완전히 성숙한 성기", score: 3 },
+              ]
+            }
+          ]
+        }
+      ];
+
+      // 양식을 동적으로 채움
+      ballardData.forEach(section => {
+        const sectionDiv = document.createElement('div');
+        sectionDiv.className = 'ballard-criterion-section';
+
+        const titleH3 = document.createElement('h3');
+        titleH3.className = 'ballard-criterion-title';
+        titleH3.innerText = section.category;
+        sectionDiv.appendChild(titleH3);
+
+        const groupDiv = document.createElement('div');
+        groupDiv.className = 'ballard-criterion-group';
+
+        section.items.forEach(item => {
+          const itemDiv = document.createElement('div');
+          itemDiv.id = `item-${item.nameAttr}`;
+          itemDiv.className = 'ballard-criterion-item';
+
+          const itemTitle = document.createElement('h4');
+          itemTitle.className = 'ballard-item-title';
+          itemTitle.innerText = item.title;
+          itemDiv.appendChild(itemTitle);
+
+          const itemExplain = document.createElement('p');
+          itemExplain.className = 'ballard-item-explain';
+          itemExplain.innerText = item.explain;
+          itemDiv.appendChild(itemExplain);
+
+          item.options.forEach(option => {
+            const optionDiv = document.createElement('div');
+            optionDiv.className = 'ballard-criterion-option';
+
+            const radioInput = document.createElement('input');
+            radioInput.type = 'radio';
+            radioInput.name = item.nameAttr;
+            radioInput.value = option.score;
+            radioInput.id = `${item.nameAttr}_${option.score}`;
+
+            const label = document.createElement('label');
+            label.htmlFor = radioInput.id;
+            label.innerText = `${option.description} (${option.score})`;
+
+            optionDiv.appendChild(radioInput);
+            optionDiv.appendChild(label);
+            itemDiv.appendChild(optionDiv);
+          });
+
+          groupDiv.appendChild(itemDiv);
+        });
+
+        sectionDiv.appendChild(groupDiv);
+        conteudoDiv.appendChild(sectionDiv);
+      });
+
+      // 계산 및 버튼 논리
+      const criteriaNames = ballardData.flatMap(s => s.items.map(i => i.nameAttr));
+
+      function calcularBallard() {
+        let allSelected = true;
+        let total = 0;
+        document.querySelectorAll('.ballard-criterion-item').forEach(el => el.classList.remove('incomplete'));
+
+        criteriaNames.forEach(name => {
+          const selected = document.querySelector(`input[name="${name}"]:checked`);
+          if (!selected) {
+            allSelected = false;
+            document.getElementById(`item-${name}`).classList.add('incomplete');
+          } else {
+            total += Number(selected.value);
+          }
+        });
+
+        resultadoDiv.style.display = "block";
+        if (!allSelected) {
+          resultadoDiv.innerHTML = '⚠️ <strong class="font-bold">계산하기 전에 강조된 모든 항목의 옵션을 선택해주세요.</strong>';
+          resultadoDiv.classList.add('bg-red-100');
+          resultadoDiv.classList.remove('bg-blue-50');
+          delete resultadoDiv.dataset.score;
+          return;
+        }
+
+        const semanasFloat = 20 + (total * 0.4);
+        const semanas = Math.floor(semanasFloat);
+        const dias = Math.round((semanasFloat - semanas) * 7);
+
+        let classificacao = '';
+        if (semanas < 37) classificacao = '조산';
+        else if (semanas >= 37 && semanas < 42) classificacao = '정시';
+        else classificacao = '후기';
+
+        let conduta = '';
+        if (classificacao === '조산') {
+          conduta = '체온조절, 혈당 및 호흡곤란 징후를 모니터링하세요. 필요에 따라 호흡 지원 및 신생아 병동에서의 치료를 고려하세요.';
+        } else if (classificacao === '정시') {
+          conduta = '평상적 신생아 관리; 수유 및 생명징후를 관찰하세요. 신생아 선별검사의 필요성을 평가하세요.';
+        } else {
+          conduta = '후기 성숙의 징후(피부, 혈당, 체온조절)를 평가하고, 저산소증 위험 및 신생아 적응력을 관찰하세요.';
+        }
+
+        resultadoDiv.innerHTML = `
+              <p>총 점수: <strong class="font-bold">${total}</strong></p>
+              <p>추정 임신연령: <strong class="font-bold">${semanas}주 ${dias}일</strong></p>
+              <p>분류: <strong class="font-bold">${classificacao}</strong></p>
+              <p class="mt-4"><strong>제안된 조처:</strong> ${conduta}</p>
+            `;
+        resultadoDiv.className = `resultado bg-blue-50`;
+        resultadoDiv.style.display = "block";
+
+        resultadoDiv.dataset.score = total;
+        resultadoDiv.dataset.scaleName = "발러드 척도";
+        resultadoDiv.dataset.classificacao = classificacao;
+      }
+
+      function limparCampos() {
+        criteriaNames.forEach(name => {
+          document.querySelectorAll(`input[name="${name}"]`).forEach(input => input.checked = false);
+        });
+        resultadoDiv.innerHTML = '';
+        resultadoDiv.className = 'resultado hidden';
+        delete resultadoDiv.dataset.score;
+        delete resultadoDiv.dataset.scaleName;
+        delete resultadoDiv.dataset.classificacao;
+        document.querySelectorAll('.ballard-criterion-item').forEach(el => el.classList.remove('incomplete'));
+      }
+
+      btnCalcular?.addEventListener('click', calcularBallard);
+      btnLimpar?.addEventListener('click', limparCampos);
+
+      btnGerarPDF?.addEventListener('click', () => {
+        if (!resultadoDiv.dataset.score) {
+          alert('PDF를 생성하려면 먼저 "점수 계산"을 클릭해주세요.');
+          return;
+        }
+        if (typeof gerarPDFGlobal === 'function') {
+          gerarPDFGlobal({
+            titulo: '발러드 척도',
+            subtitulo: '임신연령 보고서',
+            nomeArquivo: 'relatorio_escala_ballard.pdf',
+            seletorConteudo: '.main-content-wrapper'
+          });
+        } else {
+          console.error('함수 gerarPDFGlobal이 정의되지 않았습니다.');
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener('click', () => {
+        const score = resultadoDiv.dataset.score;
+        const scaleName = resultadoDiv.dataset.scaleName;
+        const classificacao = resultadoDiv.dataset.classificacao;
+        if (!score || !classificacao) {
+          alert('조치를 검색하려면 결과를 계산해주세요.');
+          return;
+        }
+        const searchQuery = encodeURIComponent(`신생아 간호 관리 ${classificacao} 발러드 NANDA NIC NOC`);
+        window.open(`https://www.google.com/search?q=${searchQuery}`, '_blank');
+      });
+    });
+  </script>
 
 
 

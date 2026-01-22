@@ -821,7 +821,342 @@
 
 
 
-    
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const resultadoDiv = document.getElementById('resultado');
+            const btnCalcular = document.getElementById('btnCalcular');
+            const btnLimpar = document.getElementById('btnLimpar');
+            const btnGerarPDF = document.getElementById('btnGerarPDF');
+            const btnNandaNicNoc = document.getElementById('btnNandaNicNoc');
+            const conteudoDiv = document.getElementById('conteudo');
+
+            // Данные шкалы Тинетти
+            const tinettiData = [
+                {
+                    title: "1. Равновесие сидя",
+                    nameAttr: "sentado",
+                    explain: "Способность поддерживать устойчивость при сидении на стуле.",
+                    options: [
+                        { description: "Скользит, сползает вниз по стулу", score: 0 },
+                        { description: "Прочный и безопасный", score: 1 }
+                    ]
+                },
+                {
+                    title: "2. Вставание",
+                    nameAttr: "levantando",
+                    explain: "Способность встать со стула.",
+                    options: [
+                        { description: "Не способен без помощи", score: 0 },
+                        { description: "Способен, но использует руки для подъема", score: 1 },
+                        { description: "Способен, не используя руки", score: 2 }
+                    ]
+                },
+                {
+                    title: "3. Попытка встать",
+                    nameAttr: "tentando_levantar",
+                    explain: "Наблюдать количество попыток для вставания.",
+                    options: [
+                        { description: "Не способен или более одной попытки", score: 0 },
+                        { description: "Способен за одну попытку", score: 1 }
+                    ]
+                },
+                {
+                    title: "4. Сразу после вставания (первые 5 секунд)",
+                    nameAttr: "apos_levantar",
+                    explain: "Устойчивость в первые 5 секунд после вставания.",
+                    options: [
+                        { description: "Неустойчив (шатается, двигает ноги, туловище)", score: 0 },
+                        { description: "Устойчив с поддержкой другого человека или объекта", score: 1 },
+                        { description: "Устойчив без поддержки, но покачивается", score: 2 }
+                    ]
+                },
+                {
+                    title: "5. Равновесие стоя",
+                    nameAttr: "em_pe",
+                    explain: "Устойчивость в вертикальном положении.",
+                    options: [
+                        { description: "Несбалансированный", score: 0 },
+                        { description: "С поддержкой / база опоры > 9см", score: 1 },
+                        { description: "Без поддержки / небольшая база опоры", score: 2 }
+                    ]
+                },
+                {
+                    title: "6. Тест с толчком 3 раза (грудина)",
+                    nameAttr: "teste_3_tempos",
+                    explain: "Реакция на легкий толчок в грудь. Пациент должен стоять, ноги на удобном расстоянии.",
+                    options: [
+                        { description: "Начинает падать", score: 0 },
+                        { description: "Хватается или покачивается (руки)", score: 1 },
+                        { description: "Устойчив", score: 2 }
+                    ]
+                },
+                {
+                    title: "7. Равновесие с закрытыми глазами",
+                    nameAttr: "olhos_fechados",
+                    explain: "Устойчивость пациента с закрытыми глазами.",
+                    options: [
+                        { description: "Несбалансированный", score: 0 },
+                        { description: "Сбалансированный", score: 1 }
+                    ]
+                },
+                {
+                    title: "8. Поворот на 360°",
+                    nameAttr: "girando",
+                    explain: "Наблюдать способность сделать полный поворот и устойчивость.",
+                    options: [
+                        { description: "Прерывистые шаги / неустойчивость", score: 0 },
+                        { description: "Непрерывные шаги / устойчивость", score: 1 }
+                    ]
+                },
+                {
+                    title: "9. Садится на стул",
+                    nameAttr: "sentando",
+                    explain: "Способность сесть на стул.",
+                    options: [
+                        { description: "Небезопасно / падает на стул", score: 0 },
+                        { description: "Использует руки или не движется плавно", score: 1 },
+                        { description: "Прочный и безопасный", score: 2 }
+                    ]
+                },
+                {
+                    title: "10. Начало походки",
+                    nameAttr: "inicio_marcha",
+                    explain: "Наблюдать начало ходьбы.",
+                    options: [
+                        { description: "Колебания или множественные попытки", score: 0 },
+                        { description: "Без колебаний", score: 1 }
+                    ]
+                },
+                {
+                    title: "11. Длина и высота шага",
+                    nameAttr: "passo",
+                    explain: "Наблюдать длину и высоту шага.",
+                    options: [
+                        { description: "Правой ногой не пересекает левую или не поднимает; Левой ногой не пересекает правую или не поднимает", score: 0 },
+                        { description: "Правой ногой пересекает левую и поднимает; Левой ногой пересекает правую и поднимает", score: 1 }
+                    ]
+                },
+                {
+                    title: "12. Симметрия шага",
+                    nameAttr: "simetria_passo",
+                    explain: "Наблюдать, являются ли шаги симметричными.",
+                    options: [
+                        { description: "Неравные длины", score: 0 },
+                        { description: "Равные длины", score: 1 }
+                    ]
+                },
+                {
+                    title: "13. Непрерывность шага",
+                    nameAttr: "continuidade_passo",
+                    explain: "Наблюдать, является ли ходьба плавной или есть прерывания.",
+                    options: [
+                        { description: "Остановки или разрывы", score: 0 },
+                        { description: "Непрерывные шаги", score: 1 }
+                    ]
+                },
+                {
+                    title: "14. Направление походки",
+                    nameAttr: "direcao_marcha",
+                    explain: "Наблюдать отклонение от линии ходьбы.",
+                    options: [
+                        { description: "Сильное отклонение или использование поддержки для поддержания линии", score: 0 },
+                        { description: "Легкое или умеренное отклонение, но без поддержки", score: 1 },
+                        { description: "Без отклонения, ходьба по прямой линии", score: 2 }
+                    ]
+                },
+                {
+                    title: "15. Туловище",
+                    nameAttr: "tronco_marcha",
+                    explain: "Наблюдать колебания туловища и использование рук во время ходьбы.",
+                    options: [
+                        { description: "Колебания туловища или использует руки для поддержания равновесия", score: 0 },
+                        { description: "Сгибание коленей или спины / разведение рук", score: 1 },
+                        { description: "Без колебаний или сгибания", score: 2 }
+                    ]
+                },
+                {
+                    title: "16. База опоры при ходьбе",
+                    nameAttr: "base_marcha",
+                    explain: "Расстояние между пятками во время ходьбы.",
+                    options: [
+                        { description: "Лодыжки разделены или неустойчивы", score: 0 },
+                        { description: "Лодыжки соприкасаются или близки, без отклонений", score: 1 }
+                    ]
+                }
+            ];
+
+            // Заполняет форму динамически
+            tinettiData.forEach(item => {
+                const sectionDiv = document.createElement('div');
+                sectionDiv.className = 'tinetti-criterion-section';
+                sectionDiv.id = `section-${item.nameAttr}`;
+
+                const titleH3 = document.createElement('h3');
+                titleH3.className = 'tinetti-criterion-title';
+                titleH3.innerHTML = item.title;
+                sectionDiv.appendChild(titleH3);
+
+                const explainP = document.createElement('p');
+                explainP.className = 'tinetti-criterion-explain';
+                explainP.innerHTML = item.explain;
+                sectionDiv.appendChild(explainP);
+
+                const selectElement = document.createElement('select');
+                selectElement.id = item.nameAttr;
+                selectElement.className = 'tinetti-criterion-select mt-2';
+
+                const defaultOption = document.createElement('option');
+                defaultOption.value = "";
+                defaultOption.text = "Выберите...";
+                selectElement.appendChild(defaultOption);
+
+                item.options.forEach(option => {
+                    const optionElement = document.createElement('option');
+                    optionElement.value = option.score;
+                    optionElement.text = `${option.description} (баллы: ${option.score})`;
+                    selectElement.appendChild(optionElement);
+                });
+
+                sectionDiv.appendChild(selectElement);
+                conteudoDiv.appendChild(sectionDiv);
+            });
+
+            function calcularTinetti() {
+                const selects = document.querySelectorAll('#conteudo select');
+                let allSelected = true;
+                let total = 0;
+
+                selects.forEach(select => {
+                    if (select.value === "") {
+                        allSelected = false;
+                        select.classList.add('incomplete');
+                    } else {
+                        select.classList.remove('incomplete');
+                        total += Number(select.value);
+                    }
+                });
+
+                resultadoDiv.style.display = "block";
+                if (!allSelected) {
+                    resultadoDiv.innerHTML = '⚠️ <strong class="font-bold">Пожалуйста, выберите вариант для всех пунктов перед расчетом.</strong>';
+                    resultadoDiv.className = `resultado bg-red-100`;
+                    delete resultadoDiv.dataset.score;
+                    return;
+                }
+
+                let recomendacao = '';
+
+                if (total <= 19) {
+                    recomendacao = `Оценка ${total} указывает на высокий риск падений. Рекомендуется внедрение мер безопасности и плана вмешательства для предотвращения падений.`;
+                } else {
+                    recomendacao = `Оценка ${total} указывает на низкий риск падений. Продолжайте мониторинг мобильности пациента.`;
+                }
+
+                resultadoDiv.innerHTML = `
+                <p>Общий счет: <strong class="font-bold">${total}</strong></p>
+                <p class="mt-4"><strong>Рекомендация:</strong> ${recomendacao}</p>
+            `;
+                resultadoDiv.className = `resultado bg-blue-50`;
+                resultadoDiv.style.display = "block";
+
+                resultadoDiv.dataset.score = total;
+                resultadoDiv.dataset.scaleName = "Шкала Тинетти";
+            }
+
+            function limparCampos() {
+                const selects = document.querySelectorAll('#conteudo select');
+                selects.forEach(select => {
+                    select.selectedIndex = 0;
+                    select.classList.remove('incomplete');
+                });
+                resultadoDiv.innerHTML = '';
+                resultadoDiv.className = 'resultado hidden';
+                delete resultadoDiv.dataset.score;
+                delete resultadoDiv.dataset.scaleName;
+            }
+
+            // Добавляет обработчики событий к кнопкам
+            btnCalcular?.addEventListener('click', calcularTinetti);
+            btnLimpar?.addEventListener('click', limparCampos);
+
+            btnGerarPDF?.addEventListener('click', () => {
+                if (!resultadoDiv.dataset.score) {
+                    alert('Сначала нажмите "Рассчитать Счет" для создания PDF.');
+                    return;
+                }
+                if (typeof gerarPDFGlobal === 'function') {
+                    const selectedOptions = {};
+                    document.querySelectorAll('#conteudo select').forEach(select => {
+                        const selected = select.options[select.selectedIndex];
+                        if (selected.value !== "") {
+                            selectedOptions[select.id] = selected.text;
+                        }
+                    });
+
+                    let contentToPrint = document.querySelector('.main-content-wrapper').cloneNode(true);
+                    let contentContainer = contentToPrint.querySelector('#conteudo');
+
+                    contentContainer.innerHTML = '';
+
+                    let balanceSectionTitle = document.createElement('h3');
+                    balanceSectionTitle.className = 'text-lg font-semibold mt-4 mb-2';
+                    balanceSectionTitle.innerText = `Секция равновесия (Максимальная оценка: 16)`;
+                    contentContainer.appendChild(balanceSectionTitle);
+
+                    tinettiData.slice(0, 9).forEach(item => {
+                        let selectedText = selectedOptions[item.nameAttr];
+                        if (selectedText) {
+                            let itemDiv = document.createElement('div');
+                            itemDiv.className = 'mb-2 p-2 bg-gray-50 rounded';
+                            itemDiv.innerHTML = `<strong>${item.title}:</strong> ${selectedText}`;
+                            contentContainer.appendChild(itemDiv);
+                        }
+                    });
+
+                    let gaitSectionTitle = document.createElement('h3');
+                    gaitSectionTitle.className = 'text-lg font-semibold mt-4 mb-2';
+                    gaitSectionTitle.innerText = `Секция походки (Максимальная оценка: 12)`;
+                    contentContainer.appendChild(gaitSectionTitle);
+
+                    tinettiData.slice(9, 16).forEach(item => {
+                        let selectedText = selectedOptions[item.nameAttr];
+                        if (selectedText) {
+                            let itemDiv = document.createElement('div');
+                            itemDiv.className = 'mb-2 p-2 bg-gray-50 rounded';
+                            itemDiv.innerHTML = `<strong>${item.title}:</strong> ${selectedText}`;
+                            contentContainer.appendChild(itemDiv);
+                        }
+                    });
+
+                    let resultadoHtml = resultadoDiv.cloneNode(true);
+                    if (resultadoHtml.style.display !== 'none') {
+                        contentContainer.appendChild(resultadoHtml);
+                    }
+
+                    gerarPDFGlobal({
+                        titulo: 'Шкала Тинетти',
+                        subtitulo: 'Отчет по оценке походки и равновесия',
+                        nomeArquivo: 'relatorio_escala_tinetti.pdf',
+                        seletorConteudo: '.main-content-wrapper'
+                    });
+                } else {
+                    console.error('Функция gerarPDFGlobal не определена.');
+                }
+            });
+
+            btnNandaNicNoc?.addEventListener('click', () => {
+                const score = resultadoDiv.dataset.score;
+                const scaleName = resultadoDiv.dataset.scaleName;
+                if (!score) {
+                    alert('Рассчитайте результат для поиска рекомендации.');
+                    return;
+                }
+                const recomendacaoRisco = score <= 19 ? 'высокий риск падений' : 'низкий риск падений';
+                const searchQuery = encodeURIComponent(`уход за пожилыми для пациента с ${recomendacaoRisco} по шкале Тинетти NANDA NIC NOC`);
+                window.open(`https://www.google.com/search?q=${searchQuery}`, '_blank');
+            });
+        });
+    </script>
 
 
 

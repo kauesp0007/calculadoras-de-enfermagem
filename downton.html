@@ -726,7 +726,223 @@
 
 
 
-  
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const resultadoDiv = document.getElementById("resultado");
+      const btnCalcular = document.getElementById("btnCalcular");
+      const btnLimpar = document.getElementById("btnLimpar");
+      const btnGerarPDF = document.getElementById("btnGerarPDF");
+      const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
+      const conteudoDiv = document.getElementById("conteudo");
+
+      // Dados da escala de Downton
+      const downtonData = [
+        {
+          category: "Quedas Prévias",
+          nameAttr: "quedas",
+          options: [
+            { description: "Não", score: 0 },
+            { description: "Sim", score: 1 },
+          ],
+          explain: "Ocorrência de quedas nos últimos 12 meses.",
+        },
+        {
+          category: "Medicamentos",
+          nameAttr: "medicamentos",
+          options: [
+            { description: "Não utiliza medicamentos de risco", score: 0 },
+            {
+              description:
+                "Uso de medicamentos de risco (ex: tranquilizantes, sedativos, diuréticos)",
+              score: 1,
+            },
+          ],
+          explain:
+            "Alguns medicamentos podem causar tontura e desequilíbrio.",
+        },
+        {
+          category: "Déficits Sensoriais",
+          nameAttr: "deficits_sensoriais",
+          options: [
+            { description: "Sem deficiências", score: 0 },
+            { description: "Qualquer déficit visual ou auditivo", score: 1 },
+          ],
+          explain:
+            "Dificuldade na visão ou audição que pode comprometer a percepção de obstáculos.",
+        },
+        {
+          category: "Estado Mental",
+          nameAttr: "estado_mental",
+          options: [
+            { description: "Orientado", score: 0 },
+            { description: "Desorientado", score: 1 },
+          ],
+          explain:
+            "Estado de consciência e capacidade cognitiva do paciente.",
+        },
+        {
+          category: "Deambulação",
+          nameAttr: "deambulacao",
+          options: [
+            { description: "Deambulação normal", score: 0 },
+            {
+              description:
+                "Deambula com dificuldade ou usa dispositivo de auxílio (bengala, andador)",
+              score: 1,
+            },
+          ],
+          explain:
+            "Avaliação do modo de caminhar, equilíbrio e uso de dispositivos de apoio.",
+        },
+      ];
+
+      // Preenche o formulário dinamicamente
+      downtonData.forEach((item) => {
+        const sectionDiv = document.createElement("div");
+        sectionDiv.className = "downton-criterion-section";
+        sectionDiv.id = `section-${item.nameAttr}`;
+
+        const titleH3 = document.createElement("h3");
+        titleH3.className = "downton-criterion-title";
+        titleH3.innerHTML =
+          item.category +
+          `
+              <div class="text-sm font-normal text-gray-500 mt-1">${item.explain}</div>`;
+        sectionDiv.appendChild(titleH3);
+
+        const selectElement = document.createElement("select");
+        selectElement.id = item.nameAttr;
+        selectElement.className = "downton-criterion-select";
+
+        const defaultOption = document.createElement("option");
+        defaultOption.value = "";
+        defaultOption.text = "Selecione...";
+        selectElement.appendChild(defaultOption);
+
+        item.options.forEach((option) => {
+          const optionElement = document.createElement("option");
+          optionElement.value = option.score;
+          optionElement.text = `${option.description} (pontos: ${option.score})`;
+          selectElement.appendChild(optionElement);
+        });
+
+        sectionDiv.appendChild(selectElement);
+        conteudoDiv.appendChild(sectionDiv);
+      });
+
+      function calcularDownton() {
+        const selects = document.querySelectorAll("#conteudo select");
+        let allSelected = true;
+        let total = 0;
+
+        selects.forEach((select) => {
+          if (select.value === "") {
+            allSelected = false;
+            select.classList.add("incomplete");
+          } else {
+            select.classList.remove("incomplete");
+            total += Number(select.value);
+          }
+        });
+
+        if (!allSelected) {
+          resultadoDiv.innerHTML =
+            '⚠️ <strong class="font-bold">Por favor, selecione uma opção para todos os itens antes de calcular.</strong>';
+          resultadoDiv.style.display = "block";
+          delete resultadoDiv.dataset.score;
+          return;
+        }
+
+        let classificacao = "";
+        let recomendacao = "";
+
+        // Definições de pontuação da Escala de Downton
+        // 0-2 pontos: Baixo Risco
+        // 3-5 pontos: Médio Risco
+        // > 5 pontos: Alto Risco (6 ou mais)
+        if (total >= 0 && total <= 2) {
+          classificacao = "Baixo Risco";
+          recomendacao =
+            "O paciente apresenta baixo risco de queda. Continue com as medidas de prevenção padrão e reavalie periodicamente.";
+        } else if (total >= 3 && total <= 5) {
+          classificacao = "Médio Risco";
+          recomendacao =
+            "O paciente apresenta médio risco de queda. Implemente medidas de prevenção e monitoramento de quedas.";
+        } else if (total > 5) {
+          classificacao = "Alto Risco";
+          recomendacao =
+            "O paciente apresenta alto risco de queda. Implemente imediatamente um plano de prevenção de quedas individualizado.";
+        } else {
+          classificacao = "Pontuação Fora do Padrão";
+          recomendacao =
+            "A pontuação calculada está fora da faixa de classificação esperada. Verifique os valores selecionados.";
+        }
+
+        resultadoDiv.innerHTML = `
+                <p>Escore total: <strong class="font-bold">${total}</strong></p>
+                <p>Classificação: <strong class="font-bold">${classificacao}</strong></p>
+                <p class="mt-4"><strong>Recomendação:</strong> ${recomendacao}</p>
+            `;
+        resultadoDiv.style.display = "block";
+
+        resultadoDiv.dataset.score = total;
+        resultadoDiv.dataset.scaleName = "Escala de Downton";
+        resultadoDiv.dataset.classificacao = classificacao;
+      }
+
+      function limparCampos() {
+        const selects = document.querySelectorAll("#conteudo select");
+        selects.forEach((select) => {
+          select.selectedIndex = 0;
+          select.classList.remove("incomplete");
+        });
+        resultadoDiv.innerHTML = "";
+        resultadoDiv.style.display = "none";
+        delete resultadoDiv.dataset.score;
+        delete resultadoDiv.dataset.scaleName;
+        delete resultadoDiv.dataset.classificacao;
+      }
+
+      btnCalcular?.addEventListener("click", calcularDownton);
+      btnLimpar?.addEventListener("click", limparCampos);
+
+      btnGerarPDF?.addEventListener("click", () => {
+        if (!resultadoDiv.dataset.score) {
+          alert(
+            'Por favor, clique em "Calcular Escore" primeiro para gerar o PDF.',
+          );
+          return;
+        }
+        if (typeof gerarPDFGlobal === "function") {
+          gerarPDFGlobal({
+            titulo: "Escala de Downton",
+            subtitulo: "Relatório de Avaliação de Risco de Queda",
+            nomeArquivo: "relatorio_escala_downton.pdf",
+            seletorConteudo: ".main-content-wrapper",
+          });
+        } else {
+          console.error("Função gerarPDFGlobal não definida.");
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener("click", () => {
+        const score = resultadoDiv.dataset.score;
+        const scaleName = resultadoDiv.dataset.scaleName;
+        const classificacao = resultadoDiv.dataset.classificacao;
+        if (!score || !classificacao) {
+          alert("Calcule o resultado para pesquisar a conduta.");
+          return;
+        }
+        const searchQuery = encodeURIComponent(
+          `${scaleName} pontuação ${score} paciente adulto ${classificacao} gerar taxonomia NANDA, gerar taxonomia NIC e gerar taxonomia de NOC`,
+        );
+        window.open(
+          `https://www.google.com/search?q=${searchQuery}`,
+          "_blank",
+        );
+      });
+    });
+  </script>
 
   <script src="/lang-selector.js" defer=""></script>
 

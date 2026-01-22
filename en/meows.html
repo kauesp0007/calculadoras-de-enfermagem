@@ -619,7 +619,241 @@
     <script src="/lang-selector.js" defer=""></script>
 
 
-    
+    <script>
+        // Garante que o script rode após o DOM estar pronto
+        window.addEventListener('DOMContentLoaded', function () {
+            const resultadoDiv = document.getElementById('resultado');
+            const btnCalcular = document.getElementById('btnCalcular');
+            const btnLimpar = document.getElementById('btnLimpar');
+            const btnGerarPDF = document.getElementById('btnGerarPDF');
+            const btnNandaNicNoc = document.getElementById('btnNandaNicNoc');
+            const conteudoDiv = document.getElementById('conteudo');
+            if (!conteudoDiv) {
+                console.error('ConteudoDiv not found!');
+                return;
+            }
+
+            const meowsData = [
+                {
+                    variable: "Temperature (°F)",
+                    nameAttr: "temperatura",
+                    options: [
+                        { text: "≤ 95°F (Severe Hypothermia)", score: 2 },
+                        { text: "95.1 - 96.8°F (Mild Hypothermia)", score: 1 },
+                        { text: "96.9 - 100.2°F (Normal)", score: 0 },
+                        { text: "≥ 100.3°F (Fever)", score: 2 }
+                    ]
+                },
+                {
+                    variable: "Systolic Blood Pressure (mmHg)",
+                    nameAttr: "pas",
+                    options: [
+                        { text: "≤ 90 mmHg (Severe Hypotension)", score: 2 },
+                        { text: "91 - 100 mmHg (Mild Hypotension)", score: 1 },
+                        { text: "101 - 149 mmHg (Normal)", score: 0 },
+                        { text: "150 - 159 mmHg (Mild Hypertension)", score: 1 },
+                        { text: "≥ 160 mmHg (Severe Hypertension)", score: 2 }
+                    ]
+                },
+                {
+                    variable: "Diastolic Blood Pressure (mmHg)",
+                    nameAttr: "pad",
+                    options: [
+                        { text: "≤ 89 mmHg (Normal)", score: 0 },
+                        { text: "90 - 99 mmHg (Mild Hypertension)", score: 1 },
+                        { text: "≥ 100 mmHg (Severe Hypertension)", score: 2 }
+                    ]
+                },
+                {
+                    variable: "Heart Rate (bpm)",
+                    nameAttr: "fc",
+                    options: [
+                        { text: "≤ 40 bpm (Bradycardia)", score: 2 },
+                        { text: "41 - 50 bpm (Mild Bradycardia)", score: 1 },
+                        { text: "51 - 99 bpm (Normal)", score: 0 },
+                        { text: "100 - 119 bpm (Mild Tachycardia)", score: 1 },
+                        { text: "≥ 120 bpm (Severe Tachycardia)", score: 2 }
+                    ]
+                },
+                {
+                    variable: "Respiratory Rate (rpm)",
+                    nameAttr: "fr",
+                    options: [
+                        { text: "≤ 10 rpm (Bradypnea)", score: 2 },
+                        { text: "11 - 20 rpm (Normal)", score: 0 },
+                        { text: "21 - 29 rpm (Mild Tachypnea)", score: 1 },
+                        { text: "≥ 30 rpm (Severe Tachypnea)", score: 2 }
+                    ]
+                },
+                {
+                    variable: "O2 Saturation (%)",
+                    nameAttr: "satO2",
+                    options: [
+                        { text: "≤ 95% (Low)", score: 2 },
+                        { text: "96 - 100% (Normal)", score: 0 }
+                    ]
+                },
+                {
+                    variable: "Pain (score 0-10)",
+                    nameAttr: "dor",
+                    options: [
+                        { text: "0 - 1 (No or Minimal Pain)", score: 0 },
+                        { text: "2 - 3 (Mild Pain)", score: 1 }
+                    ]
+                },
+                {
+                    variable: "Level of Consciousness",
+                    nameAttr: "consciencia",
+                    options: [
+                        { text: "Painful or Unconscious", score: 2 },
+                        { text: "Verbal Response", score: 1 },
+                        { text: "Alert", score: 0 }
+                    ]
+                }
+            ];
+
+            // --- Funções da Calculadora MEOWS ---
+            function updateScoreDisplay(criterionId) {
+                const selectElement = document.getElementById(criterionId);
+                const scoreDisplayElement = document.getElementById(`${criterionId}_score_display`);
+                if (selectElement && scoreDisplayElement) {
+                    scoreDisplayElement.innerText = selectElement.value === "" ? "0" : selectElement.value;
+                }
+            }
+
+            function calcularMeows() {
+                let totalScore = 0;
+                let allItemsSelected = true;
+
+                meowsData.forEach(item => {
+                    const selectElement = document.getElementById(item.nameAttr);
+                    if (selectElement.value === "") {
+                        allItemsSelected = false;
+                    } else {
+                        totalScore += parseInt(selectElement.value, 10);
+                    }
+                });
+                let classification = '';
+                let recommendedAction = '';
+                let resultClass = '';
+
+                if (totalScore >= 5) {
+                    classification = 'High Risk';
+                    recommendedAction = 'Call the medical team immediately and start appropriate interventions. Continuous monitoring (e.g., every 5-15 min).';
+                    resultClass = 'bg-red-custom';
+                } else if (totalScore >= 3) {
+                    classification = 'Moderate Risk';
+                    recommendedAction = 'Enhanced monitoring (e.g., every 30-60 min) and detailed clinical assessment. Consider calling the medical team.';
+                    resultClass = 'bg-yellow-custom';
+                } else {
+                    classification = 'Low Risk';
+                    recommendedAction = 'Continue routine monitoring as per institutional protocol.';
+                    resultClass = 'bg-green-custom';
+                }
+
+                resultadoDiv.innerHTML = `<p>Total score: <strong class="font-bold">${totalScore}</strong></p><p>Classification: <strong class="font-bold">${classification}</strong></p><p>Recommended Action: <strong class="font-bold">${recommendedAction}</strong></p>`;
+                resultadoDiv.className = `resultado ${resultClass}`;
+
+                resultadoDiv.dataset.score = totalScore;
+                resultadoDiv.dataset.classification = classification;
+                resultadoDiv.dataset.scaleName = "MEOWS Protocol";
+            }
+
+            function limparCampos() {
+                meowsData.forEach(item => {
+                    const selectElement = document.getElementById(item.nameAttr);
+                    selectElement.selectedIndex = 0;
+                    document.getElementById(`${item.nameAttr}_score_display`).innerText = '0';
+                });
+                resultadoDiv.innerHTML = '';
+                resultadoDiv.className = 'resultado hidden';
+                delete resultadoDiv.dataset.score;
+                delete resultadoDiv.dataset.classification;
+                delete resultadoDiv.dataset.scaleName;
+            }
+
+            // Preenche o formulário dinamicamente
+            meowsData.forEach((item, index) => {
+                const sectionDiv = document.createElement('div');
+                sectionDiv.className = 'meows-criterion-card';
+
+                const headerDiv = document.createElement('div');
+                headerDiv.className = 'meows-criterion-header';
+
+                const titleH3 = document.createElement('h3');
+                titleH3.className = 'meows-criterion-title';
+                titleH3.innerText = item.variable;
+                headerDiv.appendChild(titleH3);
+
+                const scoreSpan = document.createElement('span');
+                scoreSpan.className = 'meows-score-display';
+                scoreSpan.id = `${item.nameAttr}_score_display`;
+                scoreSpan.innerText = '0';
+                headerDiv.appendChild(scoreSpan);
+
+                sectionDiv.appendChild(headerDiv);
+
+                const optionsDiv = document.createElement('div');
+                optionsDiv.className = 'meows-criterion-options';
+
+                const selectElement = document.createElement('select');
+                selectElement.id = item.nameAttr;
+                selectElement.className = 'meows-select';
+                selectElement.onchange = () => updateScoreDisplay(item.nameAttr);
+
+                const defaultOption = document.createElement('option');
+                defaultOption.value = "";
+                defaultOption.text = "Select...";
+                defaultOption.disabled = true;
+                defaultOption.selected = true;
+                selectElement.appendChild(defaultOption);
+
+                item.options.forEach(option => {
+                    const optionElement = document.createElement('option');
+                    optionElement.value = option.score;
+                    optionElement.text = `${option.text} (${option.score})`;
+                    selectElement.appendChild(optionElement);
+                });
+
+                optionsDiv.appendChild(selectElement);
+                sectionDiv.appendChild(optionsDiv);
+                conteudoDiv.appendChild(sectionDiv);
+            });
+
+            // Adiciona os event listeners aos botões
+            btnCalcular?.addEventListener('click', calcularMeows);
+            btnLimpar?.addEventListener('click', limparCampos);
+
+            btnGerarPDF?.addEventListener('click', () => {
+                if (!resultadoDiv.dataset.score) {
+                    alert('Please click "Calculate" first to generate the PDF.');
+                    return;
+                }
+                if (typeof gerarPDFGlobal === 'function') {
+                    gerarPDFGlobal({
+                        titulo: 'MEOWS Protocol',
+                        subtitulo: 'Early Obstetric Warning Score Report',
+                        nomeArquivo: 'meows_protocol_report.pdf',
+                        seletorConteudo: '.main-content-wrapper'
+                    });
+                } else {
+                    console.error('gerarPDFGlobal function not defined.');
+                }
+            });
+
+            btnNandaNicNoc?.addEventListener('click', () => {
+                const score = resultadoDiv.dataset.score;
+                const scaleName = resultadoDiv.dataset.scaleName;
+                const classification = resultadoDiv.dataset.classification;
+                if (!score || !classification) {
+                    alert('Calculate the result to search for the conduct.');
+                    return;
+                }
+                const searchQuery = encodeURIComponent(`${scaleName} score ${score} classification ${classification} NANDA, NIC and NOC diagnosis taxonomy`);
+                window.open(`https://www.google.com/search?q=${searchQuery}`, '_blank');
+            });
+        });
+    </script>
 
 
 

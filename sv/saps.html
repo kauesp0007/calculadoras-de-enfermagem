@@ -541,7 +541,398 @@
 
 
 
-  
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const resultadoDiv = document.getElementById("resultado");
+      const btnCalcular = document.getElementById("btnCalcular");
+      const btnLimpar = document.getElementById("btnLimpar");
+      const btnGerarPDF = document.getElementById("btnGerarPDF");
+      const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
+      const conteudoDiv = document.getElementById("conteudo");
+
+      // Dados da Escala SAPS III
+      const sapsData = [
+        {
+          category: "Åldras",
+          nameAttr: "ålder",
+          options: [
+            { description: "Upp till 40 år gammal", score: 0 },
+            { description: "40-59 år gammal", score: 5 },
+            { description: "60-69 år gamla", score: 13 },
+            { description: "70-74 år gammal", score: 15 },
+            { description: "75–79 år gammal", score: 18 },
+            { description: "80+ år", score: 20 }]
+
+        },
+        {
+          category: "Komorbiditeter",
+          nameAttr: "samsjuklighet",
+          options: [
+            {
+              description: "Kemoterapi / Radioterapi / Immunosuppression / Steroider",
+              score: 3
+            },
+            { description: "Kronisk hjärtsvikt", score: 6 },
+            { description: "Hematologisk cancer", score: 6 },
+            { description: "Cirros", score: 8 },
+            { description: "AIDS", score: 11 },
+            { description: "Metastatisk cancer", score: 11 }]
+
+        },
+        {
+          category: "Dagar på sjukhusvistelse före inläggning",
+          nameAttr: "diasHospitalizacao",
+          options: [
+            { description: "Upp till 14 dagar", score: 0 },
+            { description: "14–27 dagar", score: 6 },
+            { description: "28+ dagar", score: 7 }]
+
+        },
+        {
+          category: "Plats på sjukhuset före inläggning.",
+          nameAttr: "localizacaoIntraHospitalar",
+          options: [
+            { description: "Inga", score: 0 },
+            { description: "akutmottagning", score: 5 },
+            { description: "En annan intensivvårdsavdelning", score: 7 },
+            { description: "Andra", score: 8 }]
+
+        },
+        {
+          category: "Användning av vasoaktiva läkemedel före inläggning",
+          nameAttr: "drogasVasoativas",
+          options: [
+            { description: "Inga", score: 0 },
+            { description: "Ja", score: 3 }]
+
+        },
+        {
+          category: "Var sjukhusvistelsen planerad?",
+          nameAttr: "internamentoPlanejado",
+          options: [
+            { description: "Inga", score: 0 },
+            { description: "Ja", score: 3 }]
+
+        },
+        {
+          category: "Skäl för antagning",
+          nameAttr: "razoesAdmissao",
+          options: [
+            { description: "Kardiovaskulära rytmrubbningar", score: -5 },
+            { description: "Anfall", score: -4 },
+            { description: "Rytmstörningar och kramper", score: -4 },
+            {
+              description: "Hypovolemisk chock (hemorragisk eller inte)",
+              score: 0
+            },
+            { description: "Septisk chock", score: 5 },
+            {
+              description: "Anafylaktisk, blandad eller odefinierad chock",
+              score: 3
+            },
+            {
+              description:
+                "Koma / stupor / obnubilerad patient / vigilansstörningar / förvirring / agitation / delirium",
+              score: 4
+            },
+            { description: "Fokal neurologisk funktionsnedsättning", score: 7 },
+            { description: "Intrakraniell masseffekt", score: 10 },
+            { description: "Matsmältningsförändringar", score: 3 },
+            { description: "Svår pankreatit", score: 9 },
+            { description: "Leversvikt", score: 6 }]
+
+        },
+        {
+          category: "Kirurgiskt ingrepp före inläggning",
+          nameAttr: "procedimentoCirurgico",
+          options: [
+            { description: "Planerad", score: 0 },
+            { description: "Utan operation", score: 0 },
+            { description: "Nödsituation", score: 6 }]
+
+        },
+        {
+          category: "Kirurgiskt område",
+          nameAttr: "localCirurgia",
+          options: [
+            { description: "Transplantation", score: -11 },
+            { description: "Trauma", score: -8 },
+            { description: "Hjärt, utan klaffreparation", score: -6 },
+            { description: "Neurokirurgi (stroke)", score: 5 },
+            { description: "Andra", score: 0 }]
+
+        },
+        {
+          category: "Akut infektion vid inläggning",
+          nameAttr: "infeccaoAguda",
+          options: [
+            { description: "Inga", score: 0 },
+            { description: "Sjukhus", score: 4 },
+            { description: "Andningsvägar", score: 5 }]
+
+        },
+        {
+          category: "Glasgow Coma Scale",
+          nameAttr: "glasgow",
+          options: [
+            { description: "Större än 13", score: 0 },
+            { description: "7-12", score: 2 },
+            { description: "6", score: 7.5 },
+            { description: "5", score: 10 },
+            { description: "3-4", score: 15 }]
+
+        },
+        {
+          category: "Kroppstemperatur",
+          nameAttr: "temperaturaCorporal",
+          options: [
+            { description: "Högre än 35°C", score: 1 },
+            { description: "Under 35°C", score: 7.5 }]
+
+        },
+        {
+          category: "Hjärtfrekvens",
+          nameAttr: "frequenciaCardiaca",
+          options: [
+            { description: "< 120 slag/min", score: 1 },
+            { description: "120–159 slag/min", score: 5 },
+            { description: "> 160 slag/min", score: 7.5 }]
+
+        },
+        {
+          category: "Systoliskt blodtryck (mmHg)",
+          nameAttr: "pressaoSistolica",
+          options: [
+            { description: "< 120 mmHg", score: 1 },
+            { description: "70–119 mmHg", score: 3 },
+            { description: "< 40 mmHg", score: 12 }]
+
+        },
+        {
+          category: "Bilirrubina total (mg/dL)",
+          nameAttr: "bilirrubinaTotal",
+          options: [
+            { description: "< 2 mg/dL", score: 1 },
+            { description: "2-5,9 mg/dL", score: 4 },
+            { description: "> 6 mg/dL", score: 5 }]
+
+        },
+        {
+          category: "Creatinina (µmol/L)",
+          nameAttr: "creatinina",
+          options: [
+            { description: "< 106,1 µmol/L", score: 1 },
+            { description: "106,1-176,7 µmol/L", score: 2 },
+            { description: "176,8-309,3 µmol/L", score: 7 },
+            { description: "> 309,4 µmol/L", score: 8 },
+            { description: "5 µmol/L", score: 10 },
+            { description: "3-4 µmol/L", score: 15 }]
+
+        },
+        {
+          category: "Leukocyter (G/L)",
+          nameAttr: "leucocitos",
+          options: [
+            { description: "< 15 G/L", score: 1 },
+            { description: "> 15 G/L", score: 2 }]
+
+        },
+        {
+          category: "pH-värde",
+          nameAttr: "ph",
+          options: [
+            { description: "> 7,25", score: 1 },
+            { description: "< 7,25", score: 3 }]
+
+        },
+        {
+          category: "Plaquetas (G/L)",
+          nameAttr: "plaquetas",
+          options: [
+            { description: "< 100 G/L", score: 1 },
+            { description: "50-99 G/L", score: 5 },
+            { description: "20-49 G/L", score: 8 },
+            { description: "< 20 G/L", score: 13 }]
+
+        },
+        {
+          category: "Syresättning (PaO₂ och FiO₂)",
+          nameAttr: "oxigenacao",
+          options: [
+            { description: "PaO₂ > 60", score: 1 },
+            { description: "PaO₂ < 60", score: 5 },
+            { description: "PaO₂/FiO₂ > ou igual a 100", score: 7 },
+            { description: "PaO₂/FiO₂ < 100", score: 11 }]
+
+        }];
+
+
+      // --- Funções da Calculadora SAPS III ---
+      function updateScoreDisplay(criterionId) {
+        const selectElement = document.getElementById(criterionId);
+        const scoreDisplayElement = document.getElementById(
+          `${criterionId}_score_display`
+        );
+        if (selectElement && scoreDisplayElement) {
+          scoreDisplayElement.innerText =
+            selectElement.value === "" ? "0" : selectElement.value;
+        }
+      }
+
+      function calcularPontuacao() {
+        let totalSAPSScore = 0;
+        let allItemsSelected = true;
+
+        sapsData.forEach((item) => {
+          const selectElement = document.getElementById(item.nameAttr);
+          if (selectElement.value === "") {
+            allItemsSelected = false;
+          } else {
+            totalSAPSScore += parseFloat(selectElement.value);
+          }
+        });
+
+        resultadoDiv.style.display = "block";
+        if (!allItemsSelected) {
+          resultadoDiv.innerHTML =
+            '⚠️ <strong class="font-bold">Por favor, selecione uma opção para cada critério</strong> antes de calcular.';
+          resultadoDiv.className = "bg-info-orange-ljus resultat";
+          delete resultadoDiv.dataset.score;
+          return;
+        }
+
+        // Fórmula para predizer a probabilidade de morte
+        const X = -32.6659 + Math.log(totalSAPSScore + 20.5958) * 7.3068;
+        const probabilidadeMorte = Math.exp(X) / (1 + Math.exp(X)) * 100;
+
+        let resultadoClasse = "";
+        let interpretacao = "";
+
+        if (probabilidadeMorte < 20) {
+          interpretacao = "Låg sannolikhet för sjukhusdödlighet.";
+          resultadoClasse = "bg-saps-low";
+        } else if (probabilidadeMorte >= 20 && probabilidadeMorte < 50) {
+          interpretacao = "Medelhög sannolikhet för dödlighet på sjukhus.";
+          resultadoClasse = "bg-saps-medium";
+        } else {
+          interpretacao = "Hög sannolikhet för sjukhusdödlighet.";
+          resultadoClasse = "bg-saps-high";
+        }
+
+        resultadoDiv.innerHTML = `<p>Pontuação Total SAPS III: <strong class="font-bold">${totalSAPSScore.toFixed(2)}</strong></p><p>Probabilidade de Mortalidade Hospitalar: <strong class="font-bold">${probabilidadeMorte.toFixed(2)}%</strong></p><p>Interpretação: <strong class="font-bold">${interpretacao}</strong></p>`;
+        resultadoDiv.className = `resultat ${resultadoClasse}`;
+
+        resultadoDiv.dataset.score = totalSAPSScore.toFixed(2);
+        resultadoDiv.dataset.probabilidadeMorte =
+          probabilidadeMorte.toFixed(2);
+        resultadoDiv.dataset.interpretacao = interpretacao;
+        resultadoDiv.dataset.scaleName = "SAPS III";
+      }
+
+      function limparCampos() {
+        sapsData.forEach((item) => {
+          const selectElement = document.getElementById(item.nameAttr);
+          selectElement.selectedIndex = 0;
+          document.getElementById(
+            `${item.nameAttr}_score_display`
+          ).innerText = "0";
+        });
+        resultadoDiv.innerHTML = "";
+        resultadoDiv.className = "dolt resultat";
+        delete resultadoDiv.dataset.score;
+        delete resultadoDiv.dataset.probabilidadeMorte;
+        delete resultadoDiv.dataset.interpretacao;
+        delete resultadoDiv.dataset.scaleName;
+      }
+
+      // Preenche o formulário dinamicamente
+      sapsData.forEach((item, index) => {
+        const sectionDiv = document.createElement("div");
+        sectionDiv.className = "saps-criterion-card";
+
+        const headerDiv = document.createElement("div");
+        headerDiv.className = "saps-criterion-header";
+
+        const titleH3 = document.createElement("h3");
+        titleH3.className = "saps-criterion-title";
+        titleH3.innerText = `${index + 1}. ${artikel.kategori}`;
+        headerDiv.appendChild(titleH3);
+
+        const scoreSpan = document.createElement("span");
+        scoreSpan.className = "saps-score-display";
+        scoreSpan.id = `${item.nameAttr}_score_display`;
+        scoreSpan.innerText = "0";
+        headerDiv.appendChild(scoreSpan);
+
+        sectionDiv.appendChild(headerDiv);
+
+        const optionsDiv = document.createElement("div");
+        optionsDiv.className = "saps-criterion-options";
+
+        const selectElement = document.createElement("select");
+        selectElement.id = item.nameAttr;
+        selectElement.className = "saps-select";
+        selectElement.onchange = () => updateScoreDisplay(item.nameAttr);
+
+        const defaultOption = document.createElement("option");
+        defaultOption.value = "";
+        defaultOption.text = "Välja...";
+        defaultOption.disabled = true;
+        defaultOption.selected = true;
+        selectElement.appendChild(defaultOption);
+
+        item.options.forEach((option) => {
+          const optionElement = document.createElement("option");
+          optionElement.value = option.score;
+          optionElement.text = `${option.description} (${option.score})`;
+          selectElement.appendChild(optionElement);
+        });
+
+        optionsDiv.appendChild(selectElement);
+        sectionDiv.appendChild(optionsDiv);
+        conteudoDiv.appendChild(sectionDiv);
+      });
+
+      // Adiciona os event listeners aos botões
+      btnCalcular?.addEventListener("click", calcularPontuacao);
+      btnLimpar?.addEventListener("click", limparCampos);
+
+      btnGerarPDF?.addEventListener("click", () => {
+        if (!resultadoDiv.dataset.score) {
+          alert('Klicka först på "Beräkna" för att generera PDF-filen.');
+          return;
+        }
+        if (typeof gerarPDFGlobal === "function") {
+          gerarPDFGlobal({
+            titulo: "SAPS III",
+            subtitulo:
+              "Förenklad rapport om akut fysiologipoängsättning",
+            nomeArquivo: "relatorio_escala_saps3.pdf",
+            seletorConteudo: ".main-content-wrapper"
+          });
+        } else {
+          console.error("Funktionen GeneratePDFGlobal är inte definierad.");
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener("click", () => {
+        const score = resultadoDiv.dataset.score;
+        const scaleName = resultadoDiv.dataset.scaleName;
+        const interpretacao = resultadoDiv.dataset.interpretacao;
+        const probabilidadeMorte = resultadoDiv.dataset.probabilidadeMorte;
+        if (!score || !interpretacao) {
+          alert("Beräkna resultatet för att undersöka beteendet.");
+          return;
+        }
+        const searchQuery = encodeURIComponent(
+          `${scaleName} poäng ${score} sannolikhet för död ${probabilidadeMorte}% tolkning ${interpretacao} gerar taxonomia NANDA, gerar taxonomia NIC e gerar taxonomia de NOC`
+        );
+        window.open(
+          `https://www.google.com/search?q=${searchQuery}`,
+          "_blank"
+        );
+      });
+    });</script>
 
   <script src="/lang-selector.js" defer=""></script>
 

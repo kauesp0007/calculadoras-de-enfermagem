@@ -638,7 +638,246 @@
 
 
 
-    
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const resultadoDiv = document.getElementById('resultado');
+            const btnCalcular = document.getElementById('btnCalcular');
+            const btnLimpar = document.getElementById('btnLimpar');
+            const btnGerarPDF = document.getElementById('btnGerarPDF');
+            const btnNandaNicNoc = document.getElementById('btnNandaNicNoc');
+            const conteudoDiv = document.getElementById('conteudo');
+
+            // データを日本語に翻訳
+            const prismData = [
+                {
+                    domain: "グラスゴー・コーマ・スケール (GCS)",
+                    nameAttr: "gcs",
+                    options: [
+                        { text: "15", score: 0 },
+                        { text: "13-14", score: 1 },
+                        { text: "10-12", score: 2 },
+                        { text: "7-9", score: 3 },
+                        { text: "< 7", score: 4 }
+                    ]
+                },
+                {
+                    domain: "心拍数 (HR - bpm)",
+                    nameAttr: "fc",
+                    options: [
+                        { text: "70-160", score: 0 },
+                        { text: "161-180 または 60-69", score: 1 },
+                        { text: "181-200 または 50-59", score: 2 },
+                        { text: "> 200 または < 50", score: 4 }
+                    ]
+                },
+                {
+                    domain: "収縮期血圧 (SBP - mmHg)",
+                    nameAttr: "pas",
+                    options: [
+                        { text: "80-110", score: 0 },
+                        { text: "111-120 または 70-79", score: 1 },
+                        { text: "121-130 または 60-69", score: 2 },
+                        { text: "> 130 または < 60", score: 4 }
+                    ]
+                },
+                {
+                    domain: "呼吸数 (RR - rpm)",
+                    nameAttr: "fr",
+                    options: [
+                        { text: "15-40", score: 0 },
+                        { text: "41-50 または 10-14", score: 1 },
+                        { text: "51-60 または 6-9", score: 2 },
+                        { text: "> 60 または < 6", score: 4 }
+                    ]
+                },
+                {
+                    domain: "体温 (°C)",
+                    nameAttr: "temp",
+                    options: [
+                        { text: "36.0-37.5", score: 0 },
+                        { text: "37.6-38.0 または 35.5-35.9", score: 1 },
+                        { text: "38.1-39.0 または 34.0-35.4", score: 2 },
+                        { text: "> 39.0 または < 34.0", score: 4 }
+                    ]
+                },
+                {
+                    domain: "動脈血pH",
+                    nameAttr: "ph",
+                    options: [
+                        { text: "7.35-7.45", score: 0 },
+                        { text: "7.30-7.34 または 7.46-7.50", score: 1 },
+                        { text: "7.20-7.29 または 7.51-7.60", score: 2 },
+                        { text: "< 7.20 または > 7.60", score: 4 }
+                    ]
+                },
+                {
+                    domain: "血糖値 (mg/dL)",
+                    nameAttr: "glicose",
+                    options: [
+                        { text: "70-150", score: 0 },
+                        { text: "151-200 または 50-69", score: 1 },
+                        { text: "201-300 または 30-49", score: 2 },
+                        { text: "> 300 または < 30", score: 4 }
+                    ]
+                }
+            ];
+
+            // --- PRISM計算機機能 ---
+            function updateScoreDisplay(criterionId) {
+                const selectElement = document.getElementById(criterionId);
+                const scoreDisplayElement = document.getElementById(`${criterionId}_score_display`);
+                if (selectElement && scoreDisplayElement) {
+                    scoreDisplayElement.innerText = selectElement.value === "" ? "0" : selectElement.value;
+                }
+            }
+
+            function calcularPontuacao() {
+                let totalScore = 0;
+                let allItemsSelected = true;
+
+                prismData.forEach(item => {
+                    const selectElement = document.getElementById(item.nameAttr);
+                    if (selectElement.value === "") {
+                        allItemsSelected = false;
+                    } else {
+                        totalScore += parseInt(selectElement.value, 10);
+                    }
+                });
+
+                resultadoDiv.style.display = 'block';
+                if (!allItemsSelected) {
+                    // メッセージを日本語に翻訳
+                    resultadoDiv.innerHTML = '⚠️ <strong class="font-bold">計算する前に、各項目のスコアを選択してください</strong>。';
+                    resultadoDiv.className = 'resultado bg-info-orange-light';
+                    delete resultadoDiv.dataset.score;
+                    return;
+                }
+
+                // リスクの程度を日本語に翻訳
+                let grauRisco = '';
+                let resultadoClasse = '';
+
+                if (totalScore <= 5) {
+                    grauRisco = '臓器機能不全のリスクが低い';
+                    resultadoClasse = 'bg-pelod-baixo';
+                } else if (totalScore <= 15) {
+                    grauRisco = '臓器機能不全の中程度のリスク';
+                    resultadoClasse = 'bg-pelod-moderado';
+                } else if (totalScore <= 25) {
+                    grauRisco = '臓器機能不全の高いリスク';
+                    resultadoClasse = 'bg-pelod-alto';
+                } else {
+                    grauRisco = '臓器機能不全の非常に高いリスク';
+                    resultadoClasse = 'bg-pelod-muito-alto';
+                }
+
+                resultadoDiv.innerHTML = `<p>PRISM 合計スコア: <strong class="font-bold">${totalScore}</strong></p><p>リスクの程度: <strong class="font-bold">${grauRisco}</strong></p>`;
+                resultadoDiv.className = `resultado ${resultadoClasse}`;
+
+                resultadoDiv.dataset.score = totalScore;
+                resultadoDiv.dataset.grauRisco = grauRisco;
+                resultadoDiv.dataset.scaleName = "PRISM スケール"; // 日本語のスケール名
+            }
+
+            function limparCampos() {
+                prismData.forEach(item => {
+                    const selectElement = document.getElementById(item.nameAttr);
+                    selectElement.selectedIndex = 0;
+                    document.getElementById(`${item.nameAttr}_score_display`).innerText = '0';
+                });
+                resultadoDiv.innerHTML = '';
+                resultadoDiv.className = 'resultado hidden';
+                delete resultadoDiv.dataset.score;
+                delete resultadoDiv.dataset.grauRisco;
+                delete resultadoDiv.dataset.scaleName;
+            }
+
+            // フォームを動的に入力
+            prismData.forEach((item, index) => {
+                const sectionDiv = document.createElement('div');
+                sectionDiv.className = 'prism-criterion-card';
+
+                const headerDiv = document.createElement('div');
+                headerDiv.className = 'prism-criterion-header';
+
+                const titleH3 = document.createElement('h3');
+                titleH3.className = 'prism-criterion-title';
+                titleH3.innerText = item.domain;
+                headerDiv.appendChild(titleH3);
+
+                const scoreSpan = document.createElement('span');
+                scoreSpan.className = 'prism-score-display';
+                scoreSpan.id = `${item.nameAttr}_score_display`;
+                scoreSpan.innerText = '0';
+                headerDiv.appendChild(scoreSpan);
+
+                sectionDiv.appendChild(headerDiv);
+
+                const optionsDiv = document.createElement('div');
+                optionsDiv.className = 'prism-criterion-options';
+
+                const selectElement = document.createElement('select');
+                selectElement.id = item.nameAttr;
+                selectElement.className = 'prism-select';
+                selectElement.onchange = () => updateScoreDisplay(item.nameAttr);
+
+                const defaultOption = document.createElement('option');
+                defaultOption.value = "";
+                defaultOption.text = "選択してください..."; // 日本語に翻訳
+                defaultOption.disabled = true;
+                defaultOption.selected = true;
+                selectElement.appendChild(defaultOption);
+
+                item.options.forEach(option => {
+                    const optionElement = document.createElement('option');
+                    optionElement.value = option.score;
+                    optionElement.text = `${option.text} (${option.score})`;
+                    selectElement.appendChild(optionElement);
+                });
+
+                optionsDiv.appendChild(selectElement);
+                sectionDiv.appendChild(optionsDiv);
+                conteudoDiv.appendChild(sectionDiv);
+            });
+
+            // ボタンにイベントリスナーを追加
+            btnCalcular?.addEventListener('click', calcularPontuacao);
+            btnLimpar?.addEventListener('click', limparCampos);
+
+            btnGerarPDF?.addEventListener('click', () => {
+                if (!resultadoDiv.dataset.score) {
+                    // アラートテキストを翻訳
+                    alert('PDFを生成するには、まず「計算する」をクリックしてください。');
+                    return;
+                }
+                if (typeof gerarPDFGlobal === 'function') {
+                    // PDFのタイトルとファイル名を翻訳
+                    gerarPDFGlobal({
+                        titulo: 'PRISM スケール',
+                        subtitulo: '小児死亡リスク評価レポート',
+                        nomeArquivo: 'report_prism_scale_ja.pdf',
+                        seletorConteudo: '.main-content-wrapper'
+                    });
+                } else {
+                    console.error('関数 gerarPDFGlobal が定義されていません。');
+                }
+            });
+
+            btnNandaNicNoc?.addEventListener('click', () => {
+                const score = resultadoDiv.dataset.score;
+                const scaleName = resultadoDiv.dataset.scaleName;
+                const grauRisco = resultadoDiv.dataset.grauRisco;
+                if (!score || !grauRisco) {
+                    // アラートテキストを翻訳
+                    alert('結果を計算して、看護計画を検索してください。');
+                    return;
+                }
+                // 日本語での検索クエリに最適化
+                const searchQuery = encodeURIComponent(`${scaleName} スコア ${score} リスク ${grauRisco} NANDA 看護診断 NIC NOC`);
+                window.open(`https://www.google.com/search?q=${searchQuery}`, '_blank');
+            });
+        });
+    </script>
 
 
 

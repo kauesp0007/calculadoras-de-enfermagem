@@ -1059,7 +1059,222 @@
   <!-- Assume script is at root -->
 
   <!-- Script Spécifique à la Page CURB-65 (avec textes traduits) -->
-  
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const resultadoDiv = document.getElementById("resultado");
+      const btnCalcular = document.getElementById("btnCalcular");
+      const btnLimpar = document.getElementById("btnLimpar");
+      const btnGerarPDF = document.getElementById("btnGerarPDF");
+      const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
+      const conteudoDiv = document.getElementById("conteudo");
+
+      // Données CURB-65 traduites en Français
+      const curbData = [
+        {
+          title: "Confusion Mentale",
+          nameAttr: "confusion",
+          explain:
+            "Le patient présente-t-il une désorientation temporelle, personnelle ou spatiale ?",
+          options: [
+            { description: "Oui", score: 1 },
+            { description: "Non", score: 0 },
+          ],
+        },
+        {
+          title: "Urée ≥ 7 mmol/L (ou BUN > 19 mg/dL)", // Valeur de référence peut varier légèrement, utilisé ici la valeur commune
+          nameAttr: "uree",
+          explain:
+            "Le taux d'urée sanguine du patient est-il de 7 mmol/L ou plus ?",
+          options: [
+            { description: "Oui", score: 1 },
+            { description: "Non", score: 0 },
+          ],
+        },
+        {
+          title: "Respiration ≥ 30/min",
+          nameAttr: "respiration",
+          explain:
+            "La fréquence respiratoire du patient est-elle de 30 respirations par minute ou plus ?",
+          options: [
+            { description: "Oui", score: 1 },
+            { description: "Non", score: 0 },
+          ],
+        },
+        {
+          title: "Pression Artérielle",
+          nameAttr: "pression_arterielle",
+          explain:
+            "La pression artérielle systolique est-elle inférieure à 90 mmHg ou la diastolique inférieure à 60 mmHg ?",
+          options: [
+            { description: "Oui", score: 1 },
+            { description: "Non", score: 0 },
+          ],
+        },
+        {
+          title: "Âge ≥ 65 ans",
+          nameAttr: "age",
+          explain: "Le patient a-t-il 65 ans ou plus ?",
+          options: [
+            { description: "Oui", score: 1 },
+            { description: "Non", score: 0 },
+          ],
+        },
+      ];
+
+      // Fonction pour créer le formulaire (reste identique, utilise les données traduites)
+      function createForm() {
+        conteudoDiv.innerHTML = ""; // Nettoie le contenu existant
+        curbData.forEach((item) => {
+          const sectionDiv = document.createElement("div");
+          sectionDiv.className = "curb-criterion-section";
+          sectionDiv.id = `section-${item.nameAttr}`;
+
+          const titleH3 = document.createElement("h3");
+          titleH3.className = "curb-criterion-title";
+          titleH3.innerHTML = item.title;
+          sectionDiv.appendChild(titleH3);
+
+          const explainP = document.createElement("p");
+          explainP.className = "curb-criterion-explain";
+          explainP.innerHTML = item.explain;
+          sectionDiv.appendChild(explainP);
+
+          const selectElement = document.createElement("select");
+          selectElement.id = item.nameAttr;
+          selectElement.className = "curb-criterion-select mt-2";
+
+          const defaultOption = document.createElement("option");
+          defaultOption.value = "";
+          defaultOption.text = "Sélectionnez..."; // Traduit
+          selectElement.appendChild(defaultOption);
+
+          item.options.forEach((option) => {
+            const optionElement = document.createElement("option");
+            optionElement.value = option.score;
+            optionElement.text = `${option.description} (points : ${option.score})`; // Traduit
+            selectElement.appendChild(optionElement);
+          });
+
+          sectionDiv.appendChild(selectElement);
+          conteudoDiv.appendChild(sectionDiv);
+        });
+      }
+
+      // Fonction de calcul (reste identique, utilise les textes de recommandation traduits)
+      function calcularCurb() {
+        const selects = document.querySelectorAll("#conteudo select");
+        let allSelected = true;
+        let total = 0;
+
+        selects.forEach((select) => {
+          if (select.value === "") {
+            allSelected = false;
+            select.classList.add("incomplete");
+          } else {
+            select.classList.remove("incomplete");
+            total += Number(select.value);
+          }
+        });
+
+        resultadoDiv.style.display = "block"; // Affiche la div de résultat
+        if (!allSelected) {
+          // Message d'erreur traduit
+          resultadoDiv.innerHTML =
+            '⚠️ <strong class="font-bold">Veuillez sélectionner une option pour tous les items avant de calculer.</strong>';
+          resultadoDiv.className = `resultado bg-red-100`; // Classe pour l'erreur
+          delete resultadoDiv.dataset.score; // Efface le score précédent si présent
+          return;
+        }
+
+        // Recommandations traduites
+        let recomendacao = "";
+
+        if (total <= 1) {
+          recomendacao = `Le score de ${total} indique un faible risque de mortalité. Un traitement ambulatoire peut être envisagé.`;
+        } else if (total === 2) {
+          recomendacao = `Le score de ${total} indique un risque modéré de mortalité. Une hospitalisation en service conventionnel est indiquée pour une surveillance étroite.`;
+        } else {
+          // total >= 3
+          recomendacao = `Le score de ${total} indique un risque élevé de mortalité. Une hospitalisation et une admission en unité de soins intensifs (USI) doivent être envisagées.`;
+        }
+
+        resultadoDiv.innerHTML = `
+                <p>Score total : <strong class="font-bold">${total}</strong></p>
+                <p class="mt-4"><strong>Recommandation :</strong> ${recomendacao}</p>
+            `;
+        resultadoDiv.className = `resultado bg-blue-50`; // Classe standard pour le résultat
+        resultadoDiv.style.display = "block";
+
+        // Stocke le score pour les autres fonctions
+        resultadoDiv.dataset.score = total;
+        resultadoDiv.dataset.scaleName = "Score CURB-65";
+      }
+
+      // Fonction pour effacer les champs (reste identique)
+      function limparCampos() {
+        const selects = document.querySelectorAll("#conteudo select");
+        selects.forEach((select) => {
+          select.selectedIndex = 0;
+          select.classList.remove("incomplete");
+        });
+        resultadoDiv.innerHTML = "";
+        resultadoDiv.className = "resultado hidden"; // Cache la div de résultat
+        delete resultadoDiv.dataset.score;
+        delete resultadoDiv.dataset.scaleName;
+      }
+
+      // Attache les événements aux boutons
+      createForm(); // Crée le formulaire au chargement de la page
+      btnCalcular?.addEventListener("click", calcularCurb);
+      btnLimpar?.addEventListener("click", limparCampos);
+
+      // Logique PDF (reste identique, titres traduits)
+      btnGerarPDF?.addEventListener("click", () => {
+        if (!resultadoDiv.dataset.score) {
+          alert(
+            'Veuillez cliquer sur "Calculer Score" d\'abord pour générer le PDF.',
+          ); // Message traduit
+          return;
+        }
+        if (typeof gerarPDFGlobal === "function") {
+          gerarPDFGlobal({
+            titulo: "Score CURB-65", // Titre traduit
+            subtitulo: "Rapport de Gravité de la Pneumonie", // Sous-titre traduit
+            nomeArquivo: "rapport_score_curb-65.pdf", // Nom de fichier traduit
+            seletorConteudo: ".main-content-wrapper",
+          });
+        } else {
+          console.error("Fonction gerarPDFGlobal non définie.");
+        }
+      });
+
+      // Logique NANDA/NIC/NOC (reste identique, recherche en FR)
+      btnNandaNicNoc?.addEventListener("click", () => {
+        const score = resultadoDiv.dataset.score;
+        const scaleName = resultadoDiv.dataset.scaleName;
+        if (score === undefined) {
+          // Vérifie si le score existe
+          alert("Calculez le résultat pour rechercher la conduite à tenir."); // Message traduit
+          return;
+        }
+        // Détermine le niveau de risque basé sur le score
+        const recomendacaoRisco =
+          score <= 1
+            ? "faible risque"
+            : score === 2
+              ? "risque modéré"
+              : "risque élevé";
+        // Recherche traduite
+        const searchQuery = encodeURIComponent(
+          `plan de soins infirmiers pour pneumonie à ${recomendacaoRisco} selon le Score CURB-65 NANDA NIC NOC`,
+        );
+        window.open(
+          `https://www.google.com/search?q=${searchQuery}`,
+          "_blank",
+        );
+      });
+    });
+  </script>
 
   <!-- Script du Sélecteur de Langue (chargé depuis la racine) -->
   <script src="/lang-selector.js" defer=""></script>

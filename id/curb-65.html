@@ -586,7 +586,236 @@
 
 
 
-  
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const resultadoDiv = document.getElementById("resultado");
+      const btnCalcular = document.getElementById("btnCalcular");
+      const btnLimpar = document.getElementById("btnLimpar");
+      const btnGerarPDF = document.getElementById("btnGerarPDF");
+      const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
+      const conteudoDiv = document.getElementById("conteudo");
+
+      const curbData = [
+        {
+          title: "Kebingungan Mental",
+          nameAttr: "confusao",
+          explain:
+            "Apakah pasien menunjukkan disorientasi waktu, orang, atau tempat?",
+          options: [
+            { description: "Ya", score: 1 },
+            { description: "Tidak", score: 0 },
+          ],
+        },
+        {
+          title: "Urea ≥ 50 mg/dL",
+          nameAttr: "ureia",
+          explain:
+            "Apakah tingkat urea dalam darah pasien 50 mg/dL atau lebih?",
+          options: [
+            { description: "Ya", score: 1 },
+            { description: "Tidak", score: 0 },
+          ],
+        },
+        {
+          title: "Pernapasan ≥ 30/menit",
+          nameAttr: "respiracao",
+          explain:
+            "Apakah frekuensi pernapasan pasien 30 napas per menit atau lebih?",
+          options: [
+            { description: "Ya", score: 1 },
+            { description: "Tidak", score: 0 },
+          ],
+        },
+        {
+          title: "Tekanan Darah",
+          nameAttr: "pressao_arterial",
+          explain:
+            "Apakah tekanan darah sistolik kurang dari 90 mmHg atau diastolik kurang dari 60 mmHg?",
+          options: [
+            { description: "Ya", score: 1 },
+            { description: "Tidak", score: 0 },
+          ],
+        },
+        {
+          title: "Usia ≥ 65 tahun",
+          nameAttr: "idade",
+          explain: "Apakah pasien berusia 65 tahun atau lebih?",
+          options: [
+            { description: "Ya", score: 1 },
+            { description: "Tidak", score: 0 },
+          ],
+        },
+      ];
+
+      // Preenche o formulário dinamicamente
+      curbData.forEach((item) => {
+        const sectionDiv = document.createElement("div");
+        sectionDiv.className = "curb-criterion-section";
+        sectionDiv.id = `section-${item.nameAttr}`;
+
+        const titleH3 = document.createElement("h3");
+        titleH3.className = "curb-criterion-title";
+        titleH3.innerHTML = item.title;
+        sectionDiv.appendChild(titleH3);
+
+        const explainP = document.createElement("p");
+        explainP.className = "curb-criterion-explain";
+        explainP.innerHTML = item.explain;
+        sectionDiv.appendChild(explainP);
+
+        const selectElement = document.createElement("select");
+        selectElement.id = item.nameAttr;
+        selectElement.className = "curb-criterion-select mt-2";
+
+        const defaultOption = document.createElement("option");
+        defaultOption.value = "";
+        defaultOption.text = "Pilih...";
+        selectElement.appendChild(defaultOption);
+
+        item.options.forEach((option) => {
+          const optionElement = document.createElement("option");
+          optionElement.value = option.score;
+          optionElement.text = `${option.description} (poin: ${option.score})`;
+          selectElement.appendChild(optionElement);
+        });
+
+        sectionDiv.appendChild(selectElement);
+        conteudoDiv.appendChild(sectionDiv);
+      });
+
+      function calcularCurb() {
+        const selects = document.querySelectorAll("#conteudo select");
+        let allSelected = true;
+        let total = 0;
+
+        selects.forEach((select) => {
+          if (select.value === "") {
+            allSelected = false;
+            select.classList.add("incomplete");
+          } else {
+            select.classList.remove("incomplete");
+            total += Number(select.value);
+          }
+        });
+
+        resultadoDiv.style.display = "block";
+        if (!allSelected) {
+          resultadoDiv.innerHTML =
+            '⚠️ <strong class="font-bold">Harap pilih opsi untuk semua item sebelum menghitung.</strong>';
+          resultadoDiv.className = `resultado bg-red-100`;
+          delete resultadoDiv.dataset.score;
+          return;
+        }
+
+        let recomendacao = "";
+
+        if (total <= 1) {
+          recomendacao = `Skor ${total} menunjukkan risiko kematian rendah. Perawatan di rumah dapat dipertimbangkan.`;
+        } else if (total === 2) {
+          recomendacao = `Skor ${total} menunjukkan risiko kematian sedang. Rawat inap di bangsal diindikasikan untuk pengawasan ketat.`;
+        } else {
+          recomendacao = `Skor ${total} menunjukkan risiko kematian tinggi. Rawat inap dan penerimaan ke ICU harus dipertimbangkan.`;
+        }
+
+        resultadoDiv.innerHTML = `
+                <p>Skor total: <strong class="font-bold">${total}</strong></p>
+                <p class="mt-4"><strong>Rekomendasi:</strong> ${recomendacao}</p>
+            `;
+        resultadoDiv.className = `resultado bg-blue-50`;
+        resultadoDiv.style.display = "block";
+
+        resultadoDiv.dataset.score = total;
+        resultadoDiv.dataset.scaleName = "Skor CURB-65";
+      }
+
+      function limparCampos() {
+        const selects = document.querySelectorAll("#conteudo select");
+        selects.forEach((select) => {
+          select.selectedIndex = 0;
+          select.classList.remove("incomplete");
+        });
+        resultadoDiv.innerHTML = "";
+        resultadoDiv.className = "resultado hidden";
+        delete resultadoDiv.dataset.score;
+        delete resultadoDiv.dataset.scaleName;
+      }
+
+      // Adiciona os event listeners aos botões
+      btnCalcular?.addEventListener("click", calcularCurb);
+      btnLimpar?.addEventListener("click", limparCampos);
+
+      btnGerarPDF?.addEventListener("click", () => {
+        if (!resultadoDiv.dataset.score) {
+          alert(
+            'Harap klik "Hitung Skor" terlebih dahulu untuk membuat PDF.',
+          );
+          return;
+        }
+        if (typeof gerarPDFGlobal === "function") {
+          const selectedOptions = {};
+          document.querySelectorAll("#conteudo select").forEach((select) => {
+            const selected = select.options[select.selectedIndex];
+            if (selected.value !== "") {
+              selectedOptions[select.id] = selected.text;
+            }
+          });
+
+          let contentToPrint = document
+            .querySelector(".main-content-wrapper")
+            .cloneNode(true);
+          let contentContainer = contentToPrint.querySelector("#conteudo");
+
+          contentContainer.innerHTML = "";
+
+          curbData.forEach((item) => {
+            let selectedText = selectedOptions[item.nameAttr];
+            if (selectedText) {
+              let itemDiv = document.createElement("div");
+              itemDiv.className = "mb-2 p-2 bg-gray-50 rounded";
+              itemDiv.innerHTML = `<strong>${item.title}:</strong> ${selectedText}`;
+              contentContainer.appendChild(itemDiv);
+            }
+          });
+
+          let resultadoHtml = resultadoDiv.cloneNode(true);
+          if (resultadoHtml.style.display !== "none") {
+            contentContainer.appendChild(resultadoHtml);
+          }
+
+          gerarPDFGlobal({
+            titulo: "Skor CURB-65",
+            subtitulo: "Laporan Tingkat Keparahan Pneumonia",
+            nomeArquivo: "relatorio_escore_curb-65.pdf",
+            seletorConteudo: ".main-content-wrapper",
+          });
+        } else {
+          console.error("Fungsi gerarPDFGlobal tidak terdefinisi.");
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener("click", () => {
+        const score = resultadoDiv.dataset.score;
+        const scaleName = resultadoDiv.dataset.scaleName;
+        if (!score) {
+          alert("Hitung hasilnya untuk mencari tindakan.");
+          return;
+        }
+        const recomendacaoRisco =
+          score <= 1
+            ? "risiko rendah"
+            : score === 2
+              ? "risiko sedang"
+              : "risiko tinggi";
+        const searchQuery = encodeURIComponent(
+          `nursing care for pneumonia with ${recomendacaoRisco} according to CURB-65 Score NANDA NIC NOC`,
+        );
+        window.open(
+          `https://www.google.com/search?q=${searchQuery}`,
+          "_blank",
+        );
+      });
+    });
+  </script>
 
   <script src="/lang-selector.js" defer=""></script>
 

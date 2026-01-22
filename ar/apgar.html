@@ -597,7 +597,216 @@
 
 
   <!-- Script Específico da Página (Tradução e numeração árabe) -->
-  
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      // Função para converter números ocidentais para orientais (árabes)
+      function toArabicNumeral(n) {
+        if (n === null || typeof n === "undefined") return "";
+        const arabic = [
+          "٠",
+          "١",
+          "٢",
+          "٣",
+          "٤",
+          "٥",
+          "٦",
+          "٧",
+          "٨",
+          "٩",
+          "١٠",
+        ];
+        // Converte o número para string e substitui cada dígito
+        return String(n)
+          .split("")
+          .map((digit) => {
+            if (digit >= "0" && digit <= "9") {
+              return arabic[parseInt(digit, 10)];
+            }
+            return digit; // Retorna outros caracteres como '/'
+          })
+          .join("");
+      }
+
+      // Função para determinar a palavra correta para "ponto(s)" em árabe
+      function scoreText(score) {
+        if (score === 0) return "نقطة";
+        if (score === 1) return "نقطة";
+        if (score === 2) return "نقطتان";
+        return "نقاط"; // Padrão
+      }
+
+      const resultadoDiv = document.getElementById("resultado");
+      const conteudoDiv = document.getElementById("conteudo");
+      const btnCalcular = document.getElementById("btnCalcular");
+      const btnLimpar = document.getElementById("btnLimpar");
+      const btnGerarPDF = document.getElementById("btnGerarPDF");
+      const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
+
+      // Dados da escala (traduzidos para o árabe)
+      const apgarData = [
+        {
+          id: "fc",
+          title: "معدل ضربات القلب",
+          options: [
+            { score: 0, text: "غائب" },
+            { score: 1, text: "< ١٠٠ ن/د" },
+            { score: 2, text: "≥ ١٠٠ ن/د" },
+          ],
+        },
+        {
+          id: "resp",
+          title: "الجهد التنفسي",
+          options: [
+            { score: 0, text: "غائب" },
+            { score: 1, text: "بطيء/غير منتظم" },
+            { score: 2, text: "بكاء قوي" },
+          ],
+        },
+        {
+          id: "tonus",
+          title: "توتر العضلات",
+          options: [
+            { score: 0, text: "رخو" },
+            { score: 1, text: "انثناء الأطراف" },
+            { score: 2, text: "حركات نشطة" },
+          ],
+        },
+        {
+          id: "reflexo",
+          title: "الاستجابة للمنبهات",
+          options: [
+            { score: 0, text: "غائبة" },
+            { score: 1, text: "تكشير" },
+            { score: 2, text: "بكاء، عطس أو سعال" },
+          ],
+        },
+        {
+          id: "cor",
+          title: "لون الجلد",
+          options: [
+            { score: 0, text: "شاحب أو مزرق" },
+            { score: 1, text: "الجسم وردي، الأطراف مزرقة" },
+            { score: 2, text: "وردي بالكامل" },
+          ],
+        },
+      ];
+
+      function createForm() {
+        conteudoDiv.innerHTML = "";
+        apgarData.forEach((criterion) => {
+          const card = document.createElement("div");
+          card.className = "criterion-card";
+          card.innerHTML = `
+                    <h3 class="criterion-title">${criterion.title}</h3>
+                    <div class="options-container">
+                        <select id="${criterion.id}-select" class="custom-select" aria-label="${criterion.title}">
+                            <option value="" disabled selected>اختر...</option>
+                            ${criterion.options.map((opt) => `<option value="${opt.score}">${opt.text} (${toArabicNumeral(opt.score)})</option>`).join("")}
+                        </select>
+                    </div>
+                `;
+          conteudoDiv.appendChild(card);
+        });
+      }
+
+      function calcular() {
+        let total = 0;
+        let allSelected = true;
+
+        apgarData.forEach((criterion) => {
+          const select = document.getElementById(`${criterion.id}-select`);
+          if (select && select.value) {
+            total += parseInt(select.value, 10);
+          } else {
+            allSelected = false;
+          }
+        });
+
+        if (!allSelected) {
+          resultadoDiv.innerHTML =
+            '⚠️ <strong class="font-bold">يرجى تحديد خيار لكل معيار.</strong>';
+          resultadoDiv.className = "standard-result-box bg-info-orange-light";
+          resultadoDiv.style.display = "block";
+          delete resultadoDiv.dataset.score;
+          return;
+        }
+
+        let conduta = "";
+        // Lógica de JS permanece com numerais ocidentais
+        if (total >= 8) {
+          conduta = "حديث ولادة بحيوية جيدة. رعاية روتينية.";
+        } else if (total >= 4) {
+          conduta = "انخفاض متوسط. الدعم وإعادة التقييم ضروريان.";
+        } else {
+          conduta = "انخفاض حاد. إنعاش فوري لحديثي الولادة.";
+        }
+
+        // Exibe o numeral árabe
+        resultadoDiv.innerHTML = `<p class="font-bold text-lg">النتيجة الإجمالية: <span class="font-black">${toArabicNumeral(total)}/${toArabicNumeral(10)}</span></p><p class="font-bold text-lg">الإجراء: <span class="font-black">${conduta}</span></p>`;
+        resultadoDiv.className = "standard-result-box";
+        resultadoDiv.style.display = "block";
+        resultadoDiv.dataset.score = total;
+        resultadoDiv.dataset.conduta = conduta;
+      }
+
+      function limpar() {
+        createForm();
+        resultadoDiv.innerHTML = "";
+        resultadoDiv.className = "hidden";
+        delete resultadoDiv.dataset.score;
+        delete resultadoDiv.dataset.conduta;
+      }
+
+      createForm();
+      btnCalcular?.addEventListener("click", calcular);
+      btnLimpar?.addEventListener("click", limpar);
+
+      btnGerarPDF?.addEventListener("click", () => {
+        if (typeof resultadoDiv.dataset.score === "undefined") {
+          alert('يرجى النقر على "احسب" أولاً لإنشاء ملف PDF.');
+          return;
+        }
+        if (typeof gerarPDFGlobal === "function") {
+          gerarPDFGlobal({
+            titulo: "مقياس أبغار",
+            subtitulo: "تقرير تقييم حديثي الولادة",
+            nomeArquivo: "relatorio_apgar.pdf",
+            seletorConteudo: ".main-content-wrapper",
+            direcao: "rtl", // Adiciona direção RTL para o PDF
+          });
+        } else {
+          console.error("Função gerarPDFGlobal não definida.");
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener("click", () => {
+        const conduta = resultadoDiv.dataset.conduta;
+        if (!conduta) {
+          alert("احسب النتيجة للبحث عن الإجراء.");
+          return;
+        }
+        // Traduz a consulta de pesquisa
+        const searchQuery = encodeURIComponent(
+          `${conduta} تصنيف NANDA, NIC و NOC`,
+        );
+        window.open(
+          `https://www.google.com/search?q=${searchQuery}`,
+          "_blank",
+        );
+      });
+
+      // Carrega o footer
+      fetch("footer.html")
+        .then((response) => response.text())
+        .then((data) => {
+          const footerPlaceholder =
+            document.getElementById("footer-placeholder");
+          if (footerPlaceholder) {
+            footerPlaceholder.innerHTML = data;
+          }
+        });
+    });
+  </script>
 
   <!-- Caminho do seletor de idioma ajustado -->
   <script src="../lang-selector.js" defer=""></script>

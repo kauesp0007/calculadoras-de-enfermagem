@@ -573,7 +573,427 @@
 
 
 
-  
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const resultadoDiv = document.getElementById("resultado");
+      const btnCalcular = document.getElementById("btnCalcular");
+      const btnLimpar = document.getElementById("btnLimpar");
+      const btnGerarPDF = document.getElementById("btnGerarPDF");
+      const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
+      const conteudoDiv = document.getElementById("conteudo");
+
+      const perrocaData = [
+        {
+          title: "1. психічний стан і рівень свідомості",
+          nameAttr: "estado_mental",
+          options: [
+            { description: "Орієнтуватися в часі та просторі", score: 1 },
+            { description: "Дезорієнтовані в часі та/або просторі", score: 2 },
+            { description: "Сонний", score: 3 },
+            { description: "В ступорі", score: 4 },
+            { description: "Коматозний", score: 5 }]
+
+        },
+        {
+          title: "2. Оксигенація",
+          nameAttr: "оксигенація",
+          options: [
+            { description: "Вдихніть навколишнє повітря", score: 1 },
+            { description: "Використання O2 через катетер або маску", score: 2 },
+            { description: "Використання апарату штучної вентиляції легень", score: 3 },
+            {
+              description: "На О2 при нестабільності дихання",
+              score: 4
+            },
+            {
+              description:
+                "Використання O2 у криптовалютному стані, при нестабільності гемемодинаміки",
+              score: 5
+            }]
+
+        },
+        {
+          title: "3. Життєво важливі ознаки",
+          nameAttr: "sinais_vitais",
+          options: [
+            { description: "Стабільно.", score: 1 },
+            {
+              description: "Нестабільний, з періодичним моніторингом",
+              score: 2
+            },
+            {
+              description: "Нестабільний, з постійним моніторингом",
+              score: 3
+            },
+            { description: "Нестабільний, з фармакологічною підтримкою", score: 4 },
+            { description: "Нестабільний, з розширеною підтримкою", score: 5 }]
+
+        },
+        {
+          title: "4. Харчування та гідратація",
+          nameAttr: "харчування",
+          options: [
+            { description: "Пероральне застосування", score: 1 },
+            {
+              description:
+                "Пероральний шлях з підтримкою або через назогастральний/ентеральний зонд",
+              score: 2
+            },
+            { description: "Загальний ентеральний та/або парентеральний шлях введення", score: 3 },
+            { description: "Ексклюзивний парентеральний шлях введення", score: 4 },
+            {
+              description:
+                "Ексклюзивний парентеральний шлях введення при гемодинамічній нестабільності",
+              score: 5
+            }]
+
+        },
+        {
+          title: "5. Рухливість",
+          nameAttr: "рухливість",
+          options: [
+            {
+              description: "Незалежні, без обмеження пересування",
+              score: 1
+            },
+            {
+              description: "Частково залежні, з обмеженими можливостями пересування",
+              score: 2
+            },
+            {
+              description: "Повністю залежний, прикутий до ліжка",
+              score: 3
+            },
+            {
+              description:
+                "Повністю залежний, з обмеженим рухом однієї або декількох кінцівок",
+              score: 4
+            },
+            {
+              description:
+                "Знерухомлені в ліжку, з ризиком контрактур і травм",
+              score: 5
+            }]
+
+        },
+        {
+          title: "6. Локомоція",
+          nameAttr: "пересування",
+          options: [
+            { description: "Пересування без сторонньої допомоги", score: 1 },
+            {
+              description:
+                "Пересувається за допомогою милиць, ходунків або тростини",
+              score: 2
+            },
+            {
+              description: "Пересувається за допомогою інвалідного візка",
+              score: 3
+            },
+            { description: "Ходьба з допомогою іншої людини", score: 4 },
+            {
+              description:
+                "Повністю залежні від іншої людини в плані мобільності",
+              score: 5
+            }]
+
+        },
+        {
+          title: "7. Догляд за тілом",
+          nameAttr: "cuidado_corporal",
+          options: [
+            { description: "Цілком незалежна", score: 1 },
+            {
+              description: "Допомога з деякими видами діяльності (купання, гігієна)",
+              score: 2
+            },
+            {
+              description: "Допомагати з усіма гігієнічними заходами",
+              score: 3
+            },
+            {
+              description:
+                "Повна залежність від гігієни, використання тюбика, перев'язок тощо.",
+              score: 4
+            },
+            {
+              description: "Повна залежність, з гігієною в ліжку",
+              score: 5
+            }]
+
+        },
+        {
+          title: "8. Утилізація",
+          nameAttr: "елімінації",
+          options: [
+            { description: "Контролює та є незалежним", score: 1 },
+            {
+              description: "Нетримання сечі або калу, але з підтримкою",
+              score: 2
+            },
+            {
+              description: "Нетримання сечі та калу, при використанні підгузків",
+              score: 3
+            },
+            {
+              description:
+                "Нетримання сечі та калу, з діареєю та/або використанням калоприймача",
+              score: 4
+            },
+            { description: "Нетримання сечі та перебування на гемодіалізі", score: 5 }]
+
+        },
+        {
+          title: "9. Терапія",
+          nameAttr: "терапія",
+          options: [
+            { description: "Перорально (VO) або внутрішньом'язово (IM)", score: 1 },
+            { description: "Переривчастий внутрішньовенний (В/В) шлях введення", score: 2 },
+            { description: "Безперервна внутрішньовенна інфузія в інфузійному насосі", score: 3 },
+            {
+              description:
+                "Насос для безперервної внутрішньовенної інфузії вазоактивних препаратів",
+              score: 4
+            },
+            {
+              description:
+                "Насос для безперервної внутрішньовенної інфузії з вазоактивними препаратами та вентиляційною підтримкою",
+              score: 5
+            }]
+
+        },
+        {
+          title: "10. Цілісність шкіри та слизових оболонок",
+          nameAttr: "цілісність",
+          options: [
+            { description: "Здорова шкіра, без пошкоджень", score: 1 },
+            { description: "Поверхневе ураження шкіри", score: 2 },
+            { description: "Ураження шкіри з втратою тканин", score: 3 },
+            {
+              description: "Ураження шкіри з втратою тканин та інфікуванням",
+              score: 4
+            },
+            {
+              description:
+                "Ураження шкіри з втратою тканин та тяжкою інфекцією",
+              score: 5
+            }]
+
+        },
+        {
+          title: "11. Медична освіта",
+          nameAttr: "освіти",
+          options: [
+            { description: "Немає потреби в настановах", score: 1 },
+            {
+              description: "Потреба в керівництві в деяких видах діяльності",
+              score: 2
+            },
+            {
+              description: "Потреба в керівництві в усіх видах діяльності",
+              score: 3
+            },
+            { description: "Нездатність зрозуміти інструкції", score: 4 },
+            {
+              description: "Нездатні зрозуміти і схвильовані",
+              score: 5
+            }]
+
+        },
+        {
+          title: "12. Поведінка",
+          nameAttr: "поведінка",
+          options: [
+            { description: "Спокійно та кооперативно", score: 1 },
+            { description: "Неспокійний і тривожний", score: 2 },
+            { description: "Занепокоєні та не схильні до співпраці", score: 3 },
+            { description: "Агресивний і жорстокий", score: 4 },
+            {
+              description: "Агресивний і жорстокий, небезпечний для життя",
+              score: 5
+            }]
+
+        },
+        {
+          title: "13. Міжособистісні стосунки",
+          nameAttr: "relacoes_interpessoais",
+          options: [
+            { description: "Взаємодіє з персоналом і родиною", score: 1 },
+            {
+              description:
+                "Важко взаємодіє з персоналом і родиною",
+              score: 2
+            },
+            {
+              description: "Взаємодіє тільки з командою або сім'єю",
+              score: 3
+            },
+            { description: "Відсутність взаємодії", score: 4 },
+            { description: "Повна ізоляція", score: 5 }]
+
+        }];
+
+
+      // Preenche o formulário dinamicamente
+      perrocaData.forEach((item) => {
+        const sectionDiv = document.createElement("div");
+        sectionDiv.className = "perroca-criterion-section";
+        sectionDiv.id = `section-${item.nameAttr}`;
+
+        const titleH3 = document.createElement("h3");
+        titleH3.className = "perroca-criterion-title";
+        titleH3.innerHTML = item.title;
+        sectionDiv.appendChild(titleH3);
+
+        const selectElement = document.createElement("select");
+        selectElement.id = item.nameAttr;
+        selectElement.className = "perroca-criterion-select mt-2";
+
+        const defaultOption = document.createElement("option");
+        defaultOption.value = "";
+        defaultOption.text = "Виберіть...";
+        selectElement.appendChild(defaultOption);
+
+        item.options.forEach((option) => {
+          const optionElement = document.createElement("option");
+          optionElement.value = option.score;
+          optionElement.text = `${option.description} (бали: ${option.score})`;
+          selectElement.appendChild(optionElement);
+        });
+
+        sectionDiv.appendChild(selectElement);
+        conteudoDiv.appendChild(sectionDiv);
+      });
+
+      function calcularPerroca() {
+        const selects = document.querySelectorAll("#conteudo select");
+        let allSelected = true;
+        let total = 0;
+
+        selects.forEach((select) => {
+          if (select.value === "") {
+            allSelected = false;
+            select.classList.add("неповний");
+          } else {
+            select.classList.remove("неповний");
+            total += Number(select.value);
+          }
+        });
+
+        resultadoDiv.style.display = "block";
+        if (!allSelected) {
+          resultadoDiv.innerHTML =
+            '⚠️ <strong class="font-bold">Por favor, selecione uma opção para todos os itens antes de calcular.</strong>';
+          resultadoDiv.className = `bg-red-100 результат`;
+          delete resultadoDiv.dataset.score;
+          return;
+        }
+
+        let recomendacao = "";
+
+        if (total >= 13 && total <= 26) {
+          recomendacao = `Оцінка ${total} дорівнює кількості учасників.`;
+        } else if (total >= 27 && total <= 39) {
+          recomendacao = `Оцінка ${total} на пацієнта із середніми потребами у погляді.`;
+        } else if (total >= 40 && total <= 52) {
+          recomendacao = `Оцінка ${total} вказує на пацієнта, який потребує напівінтенсивної терапії.`;
+        } else {
+          // total >= 53
+          recomendacao = `Оцінка ${total} дорівнює загальному балу.`;
+        }
+
+        resultadoDiv.innerHTML = `
+                <p>Escore total: <strong class="font-bold">${total}</strong></p>
+                <p class="mt-4"><strong>Recomendação:</strong> ${recomendacao}</p>
+            `;
+        resultadoDiv.className = `bg-blue-50 результат`;
+        resultadoDiv.style.display = "block";
+
+        resultadoDiv.dataset.score = total;
+        resultadoDiv.dataset.scaleName = "Шкала Перрока";
+      }
+
+      function limparCampos() {
+        const selects = document.querySelectorAll("#conteudo select");
+        selects.forEach((select) => {
+          select.selectedIndex = 0;
+          select.classList.remove("неповний");
+        });
+        resultadoDiv.innerHTML = "";
+        resultadoDiv.className = "прихований результат";
+        delete resultadoDiv.dataset.score;
+        delete resultadoDiv.dataset.scaleName;
+      }
+
+      // Adiciona os event listeners aos botões
+      btnCalcular?.addEventListener("click", calcularPerroca);
+      btnLimpar?.addEventListener("click", limparCampos);
+
+      btnGerarPDF?.addEventListener("click", () => {
+        if (!resultadoDiv.dataset.score) {
+          alert(
+            "Будь ласка, спочатку натисніть \"Розрахувати бал\", щоб згенерувати PDF-файл."
+          );
+          return;
+        }
+        if (typeof gerarPDFGlobal === "функція") {
+          const selectedOptions = {};
+          document.querySelectorAll("#conteudo select").forEach((select) => {
+            const selected = select.options[select.selectedIndex];
+            if (selected.value !== "") {
+              selectedOptions[select.id] = selected.text;
+            }
+          });
+
+          let contentToPrint = document.
+            querySelector(".main-content-wrapper").
+            cloneNode(true);
+          let contentContainer = contentToPrint.querySelector("#conteudo");
+
+          contentContainer.innerHTML = "";
+
+          perrocaData.forEach((item) => {
+            let selectedText = selectedOptions[item.nameAttr];
+            if (selectedText) {
+              let itemDiv = document.createElement("div");
+              itemDiv.className = "mb-2 p-2 bg-gray-50 rounded";
+              itemDiv.innerHTML = `<strong>${item.title}:</strong> ${selectedText}`;
+              contentContainer.appendChild(itemDiv);
+            }
+          });
+
+          let resultadoHtml = resultadoDiv.cloneNode(true);
+          if (resultadoHtml.style.display !== "none") {
+            contentContainer.appendChild(resultadoHtml);
+          }
+
+          gerarPDFGlobal({
+            titulo: "Шкала Перрока (SCP)",
+            subtitulo: "Звіт про класифікацію пацієнтів",
+            nomeArquivo: "relatorio_escala_perroca.pdf",
+            seletorConteudo: ".main-content-wrapper"
+          });
+        } else {
+          console.error("Функція GeneratePDFGlobal не визначена.");
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener("click", () => {
+        const score = resultadoDiv.dataset.score;
+        const scaleName = resultadoDiv.dataset.scaleName;
+        if (!score) {
+          alert("Обчисліть результат для пошуку поведінки.");
+          return;
+        }
+        const searchQuery = encodeURIComponent(
+          `${scaleName} оцінка ${score} створити таксономію NANDA, створити таксономію NIC і створити таксономію NOC`
+        );
+        window.open(
+          `https://www.google.com/search?q=${searchQuery}`,
+          "_blank"
+        );
+      });
+    });</script>
 
   <script src="/lang-selector.js" defer=""></script>
 

@@ -622,7 +622,135 @@
 
 
 
-  
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const resultadoDiv = document.getElementById('resultado');
+      const btnCalcular = document.getElementById('btnCalcular');
+      const btnLimpar = document.getElementById('btnLimpar');
+      const btnGerarPDF = document.getElementById('btnGerarPDF');
+      const btnNandaNicNoc = document.getElementById('btnNandaNicNoc');
+      const conteudoDiv = document.getElementById('conteudo');
+
+      // मैनचेस्टर प्रोटोकॉल डेटा
+      const manchesterData = [
+        { question: "वायुमार्ग में रुकावट", score: 3 },
+        { question: "गंभीर सांस लेने में कठिनाई", score: 5 },
+        { question: "भ्रम/उत्तेजना", score: 2 },
+        { question: "नींद आना/असंतुलन", score: 3 },
+        { question: "बेहोशी", score: 5 },
+        { question: "हल्का दर्द (1–3)", score: 1 },
+        { question: "मध्यम दर्द (4–6)", score: 2 },
+        { question: "तीव्र दर्द (7–10)", score: 3 },
+        { question: "बीपी < 90 या हृदय गति > 130", score: 3 },
+        { question: "ठंडे अंग/पसीना", score: 2 },
+        { question: "हल्का रक्तस्राव", score: 1 },
+        { question: "मध्यम रक्तस्राव", score: 2 },
+        { question: "गंभीर रक्तस्राव", score: 3 },
+        { question: "मध्यम बुखार (38–39℃)", score: 1 },
+        { question: "उच्च बुखार (>39℃)", score: 2 },
+        { question: "हाइपोथर्मिया (<36℃)", score: 2 },
+        { question: "कमजोरी/फोकल पक्षाघात", score: 3 },
+        { question: "हाल की ऐंठन", score: 4 },
+        { question: "अचानक दृष्टि/श्रवण परिवर्तन", score: 2 }
+      ];
+
+      // फॉर्म को गतिशील रूप से भरें
+      manchesterData.forEach((item, index) => {
+        const sectionDiv = document.createElement('div');
+        sectionDiv.className = 'manchester-criterion-card';
+
+        const itemLabel = document.createElement('label');
+        itemLabel.className = 'manchester-criterion-item';
+
+        const inputCheckbox = document.createElement('input');
+        inputCheckbox.type = 'checkbox';
+        inputCheckbox.name = 'sintoma';
+        inputCheckbox.value = item.score;
+        inputCheckbox.id = `sintoma-${index}`;
+
+        const textSpan = document.createElement('span');
+        textSpan.innerText = `${item.question} (${item.score} अंक)`;
+
+        itemLabel.appendChild(inputCheckbox);
+        itemLabel.appendChild(textSpan);
+        sectionDiv.appendChild(itemLabel);
+        conteudoDiv.appendChild(sectionDiv);
+      });
+
+      function calcularManchester() {
+        const checkboxes = document.querySelectorAll('#conteudo input[type="checkbox"]:checked');
+        let total = 0;
+        checkboxes.forEach(c => total += parseInt(c.value));
+
+        let classificacao = '';
+        let corClasse = '';
+
+        if (total >= 12) {
+          classificacao = "लाल – तत्काल";
+          corClasse = "bg-red";
+        } else if (total >= 9) {
+          classificacao = "नारंगी – 10 मिनट के भीतर";
+          corClasse = "bg-orange";
+        } else if (total >= 6) {
+          classificacao = "पीला – 60 मिनट के भीतर";
+          corClasse = "bg-yellow";
+        } else if (total >= 3) {
+          classificacao = "हरा – 120 मिनट के भीतर";
+          corClasse = "bg-green";
+        } else {
+          classificacao = "नीला – 240 मिनट के भीतर";
+          corClasse = "bg-blue";
+        }
+
+        resultadoDiv.innerHTML = `<p><strong>${classificacao}</strong></p><p>कुल स्कोर: <strong class="font-bold">${total}</strong></p>`;
+        resultadoDiv.className = `resultado ${corClasse}`;
+        resultadoDiv.style.display = 'block';
+
+        resultadoDiv.dataset.classificacao = classificacao;
+        resultadoDiv.dataset.escore = total;
+        resultadoDiv.dataset.scaleName = "मैनचेस्टर प्रोटोकॉल";
+      }
+
+      function limparCampos() {
+        const checkboxes = document.querySelectorAll('#conteudo input[type="checkbox"]');
+        checkboxes.forEach(c => c.checked = false);
+
+        resultadoDiv.innerHTML = '';
+        resultadoDiv.className = 'resultado hidden';
+        delete resultadoDiv.dataset.classificacao;
+        delete resultadoDiv.dataset.escore;
+        delete resultadoDiv.dataset.scaleName;
+      }
+
+      // बटनों पर इवेंट लिसनर जोड़ें
+      btnCalcular?.addEventListener('click', calcularManchester);
+      btnLimpar?.addEventListener('click', limparCampos);
+
+      btnGerarPDF?.addEventListener('click', () => {
+        if (!resultadoDiv.dataset.escore) {
+          alert('कृपया PDF जनरेट करने के लिए पहले "गणना करें" पर क्लिक करें।');
+          return;
+        }
+        if (typeof gerarPDFGlobal === 'function') {
+          gerarPDFGlobal('मैनचेस्टर प्रोटोकॉल', resultadoDiv.dataset.scaleName, resultadoDiv.dataset.classificacao, resultadoDiv.dataset.escore, '');
+        } else {
+          alert('PDF जनरेटर उपलब्ध नहीं है।');
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener('click', () => {
+        if (!resultadoDiv.dataset.escore) {
+          alert('कृपया NANDA, NIC, NOC खोजने के लिए पहले "गणना करें" पर क्लिक करें।');
+          return;
+        }
+        if (typeof buscarNandaNicNocGlobal === 'function') {
+          buscarNandaNicNocGlobal(resultadoDiv.dataset.scaleName, resultadoDiv.dataset.escore);
+        } else {
+          alert('NANDA, NIC, NOC खोजकर्ता उपलब्ध नहीं है।');
+        }
+      });
+    });
+  </script>
 
 
 <!-- =========================

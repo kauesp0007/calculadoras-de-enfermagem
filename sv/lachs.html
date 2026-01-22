@@ -572,7 +572,292 @@
 
 
 
-  
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const resultadoDiv = document.getElementById("resultado");
+      const btnCalcular = document.getElementById("btnCalcular");
+      const btnLimpar = document.getElementById("btnLimpar");
+      const btnGerarPDF = document.getElementById("btnGerarPDF");
+      const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
+      const conteudoDiv = document.getElementById("conteudo");
+
+      const lachsData = [
+        {
+          category: "Vision",
+          nameAttr: "visao",
+          explain:
+            "Kan patienten läsa ett Jaeguer-kort på 35 cm avstånd, vid behov med glasögon, upp till nivå 20/40?",
+          options: [
+            { description: "Ja, den kan läsa upp till 20/40.", score: 1 },
+            { description: "Nej, du kan inte läsa upp till 20/40.", score: 0 }]
+
+        },
+        {
+          category: "Hörsel",
+          nameAttr: "audicao",
+          explain:
+            "Svarar patienten när man ställer en viskande fråga (t.ex. \"Vad heter du?\") utanför synfältet?",
+          options: [
+            { description: "Ja, det besvarar frågan.", score: 1 },
+            { description: "Nej, det besvarar inte frågan.", score: 0 }]
+
+        },
+        {
+          category: "Urininkontinens",
+          nameAttr: "incontinencia_urinaria",
+          explain:
+            "Har patienten av misstag förlorat urin och kissat i underkläderna minst 6 olika dagar under det senaste året?",
+          options: [
+            { description: "Inga", score: 1 },
+            { description: "Ja", score: 0 }]
+
+        },
+        {
+          category: "ADL och IADL",
+          nameAttr: "avd_aivd",
+          explain:
+            "Kan patienten ta sig upp ur sängen, klä på sig, laga mat och gå och handla på egen hand?",
+          options: [
+            {
+              description: "Ja, den klarar av alla aktiviteter.",
+              score: 1
+            },
+            {
+              description:
+                "Nej, han/hon kan inte utföra minst en av aktiviteterna.",
+              score: 0
+            }]
+
+        },
+        {
+          category: "Greppstyrka (övre extremiteter)",
+          nameAttr: "forca_preensao",
+          explain:
+            "Kan patienten röra vid bakhuvudet med båda händerna och hålla i en sked?",
+          options: [
+            {
+              description: "Ja, den kan utföra båda uppgifterna.",
+              score: 1
+            },
+            {
+              description:
+                "Nej, du kan inte utföra en eller båda uppgifterna.",
+              score: 0
+            }]
+
+        },
+        {
+          category: "Styrka i nedre extremiteterna",
+          nameAttr: "forca_inferiores",
+          explain:
+            "Kan patienten resa sig från en stol, gå 3 meter, komma tillbaka och sätta sig på mindre än 12 sekunder?",
+          options: [
+            {
+              description: "Ja, den utför testet på cirka 12 sekunder.",
+              score: 1
+            },
+            {
+              description:
+                "Nej, den går inte och tar inte mer än 12 sekunder att slutföra testet.",
+              score: 0
+            }]
+
+        },
+        {
+          category: "Näring",
+          nameAttr: "nutricao",
+          explain:
+            "Har patienten ett BMI (Body Mass Index) på över 22 kg/m²?",
+          options: [
+            { description: "Ja, BMI ≥ 22 kg/m².", score: 1 },
+            { description: "Não, IMC < 22 kg/m².", score: 0 }]
+
+        },
+        {
+          category: "Mentalt tillstånd",
+          nameAttr: "estado_mental",
+          explain:
+            "Kan patienten upprepa tre ord (t.ex. \"bil\", \"vas\", \"boll\") efter 1 minut?",
+          options: [
+            {
+              description: "Ja, hon kan upprepa alla orden.",
+              score: 1
+            },
+            {
+              description:
+                "Nej, hon kan inte upprepa åtminstone ett av orden.",
+              score: 0
+            }]
+
+        },
+        {
+          category: "Depression",
+          nameAttr: "depressao",
+          explain: "Känner sig patienten ofta ledsen eller deprimerad?",
+          options: [
+            { description: "Inga", score: 1 },
+            { description: "Ja", score: 0 }]
+
+        },
+        {
+          category: "Hemmiljö",
+          nameAttr: "ambiente",
+          explain:
+            "Har patienten svårigheter med trappor, badkar, lösa mattor eller dålig belysning i hemmet?",
+          options: [
+            { description: "Nej, miljön är säker.", score: 1 },
+            {
+              description: "Ja, det finns risker i hemmiljön.",
+              score: 0
+            }]
+
+        },
+        {
+          category: "Socialt stöd",
+          nameAttr: "apoio_social",
+          explain:
+            "Har patienten familj, vänner eller grannar som de kan lita på i händelse av sjukdom eller nödsituation?",
+          options: [
+            { description: "Ja, det finns socialt stöd.", score: 1 },
+            { description: "Nej, den har inget socialt stöd.", score: 0 }]
+
+        }];
+
+
+      // Preenche o formulário dinamicamente
+      lachsData.forEach((item) => {
+        const sectionDiv = document.createElement("div");
+        sectionDiv.className = "lachs-criterion-section";
+        sectionDiv.id = `section-${item.nameAttr}`;
+
+        const titleH3 = document.createElement("h3");
+        titleH3.className = "lachs-criterion-title";
+        titleH3.innerHTML = item.category;
+        sectionDiv.appendChild(titleH3);
+
+        const explainP = document.createElement("p");
+        explainP.className = "lachs-criterion-explain";
+        explainP.innerHTML = item.explain;
+        sectionDiv.appendChild(explainP);
+
+        const selectElement = document.createElement("select");
+        selectElement.id = item.nameAttr;
+        selectElement.className = "lachs-criterion-select";
+
+        const defaultOption = document.createElement("option");
+        defaultOption.value = "";
+        defaultOption.text = "Välja...";
+        selectElement.appendChild(defaultOption);
+
+        item.options.forEach((option) => {
+          const optionElement = document.createElement("option");
+          optionElement.value = option.score;
+          optionElement.text = `${option.description} (poäng: ${option.score})`;
+          selectElement.appendChild(optionElement);
+        });
+
+        sectionDiv.appendChild(selectElement);
+        conteudoDiv.appendChild(sectionDiv);
+      });
+
+      function calcularLachs() {
+        const selects = document.querySelectorAll("#conteudo select");
+        let allSelected = true;
+        let total = 0;
+
+        selects.forEach((select) => {
+          if (select.value === "") {
+            allSelected = false;
+            select.classList.add("incomplete");
+          } else {
+            select.classList.remove("incomplete");
+            total += Number(select.value);
+          }
+        });
+
+        resultadoDiv.style.display = "block";
+        if (!allSelected) {
+          resultadoDiv.innerHTML =
+            '⚠️ <strong class="font-bold">Por favor, selecione uma opção para todos os itens antes de calcular.</strong>';
+          resultadoDiv.classList.add("bg-red-100");
+          resultadoDiv.classList.remove("bg-blue-50");
+          delete resultadoDiv.dataset.score;
+          return;
+        }
+
+        let recomendacao = "";
+
+        if (total <= 5) {
+          recomendacao = `O escore de ${total} tyder på en hög risk för förlust av funktionsförmåga och beroende. En omfattande geriatrisk bedömning och en individualiserad vårdplan rekommenderas för att maximera patientens autonomi och säkerhet.`;
+        } else if (total >= 6 && total <= 9) {
+          recomendacao = `O escore de ${total} indikerar en måttlig risk för förlust av funktionsförmåga. Patienten kan behöva stöd inom vissa områden.`;
+        } else {
+          // total >= 10
+          recomendacao = `O escore de ${total} tyder på att patienten har en god funktionsförmåga och en låg risk för förlust av autonomi.`;
+        }
+
+        resultadoDiv.innerHTML = `
+                <p>Escore total: <strong class="font-bold">${total}</strong></p>
+                <p class="mt-4"><strong>Recomendação:</strong> ${recomendacao}</p>
+            `;
+        resultadoDiv.className = `bg-blå-50 resultat`;
+        resultadoDiv.style.display = "block";
+
+        resultadoDiv.dataset.score = total;
+        resultadoDiv.dataset.scaleName = "Escala de Lachs";
+      }
+
+      function limparCampos() {
+        const selects = document.querySelectorAll("#conteudo select");
+        selects.forEach((select) => {
+          select.selectedIndex = 0;
+          select.classList.remove("incomplete");
+        });
+        resultadoDiv.innerHTML = "";
+        resultadoDiv.className = "dolt resultat";
+        delete resultadoDiv.dataset.score;
+        delete resultadoDiv.dataset.scaleName;
+      }
+
+      // Adiciona os event listeners aos botões
+      btnCalcular?.addEventListener("click", calcularLachs);
+      btnLimpar?.addEventListener("click", limparCampos);
+
+      btnGerarPDF?.addEventListener("click", () => {
+        if (!resultadoDiv.dataset.score) {
+          alert(
+            'Klicka först på "Beräkna poäng" för att generera PDF-filen.'
+          );
+          return;
+        }
+        if (typeof gerarPDFGlobal === "function") {
+          gerarPDFGlobal({
+            titulo: "Lachs-skalan",
+            subtitulo: "Funktionsbedömningsrapport för äldre",
+            nomeArquivo: "relatorio_escala_lachs.pdf",
+            seletorConteudo: ".main-content-wrapper"
+          });
+        } else {
+          console.error("Funktionen GeneratePDFGlobal är inte definierad.");
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener("click", () => {
+        const score = resultadoDiv.dataset.score;
+        const scaleName = resultadoDiv.dataset.scaleName;
+        if (!score) {
+          alert("Beräkna resultatet för att undersöka beteendet.");
+          return;
+        }
+        const searchQuery = encodeURIComponent(
+          `omvårdnad för oberoende äldre ${scaleName} poäng ${score} NANDA NIC NOC`
+        );
+        window.open(
+          `https://www.google.com/search?q=${searchQuery}`,
+          "_blank"
+        );
+      });
+    });</script>
 
   <script src="/lang-selector.js" defer=""></script>
 

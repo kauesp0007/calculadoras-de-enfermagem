@@ -685,7 +685,127 @@
 
 
   <!-- Seitenspezifisches Skript -->
-  
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const resultadoDiv = document.getElementById('resultado');
+      const btnCalcular = document.getElementById('btnCalcular');
+      const btnLimpar = document.getElementById('btnLimpar');
+      const btnGerarPDF = document.getElementById('btnGerarPDF');
+      const btnNandaNicNoc = document.getElementById('btnNandaNicNoc');
+
+      function calcularGestacional() {
+        const dumInput = document.getElementById('dum').value;
+        const resultadoDiv = document.getElementById('resultado');
+
+        resultadoDiv.className = 'resultado-quadro mt-6';
+        resultadoDiv.style.display = 'block';
+        btnGerarPDF.setAttribute('disabled', 'true');
+        btnNandaNicNoc.setAttribute('disabled', 'true');
+
+        if (!dumInput) {
+          resultadoDiv.innerHTML = '<p class="text-red-600">⚠️ <strong>Bitte geben Sie das Datum der letzten Menstruation (LMP) ein.</strong></p>';
+          resultadoDiv.classList.add('bg-danger-red');
+          resultadoDiv.classList.remove('bg-info-orange-light', 'bg-success-green');
+          delete resultadoDiv.dataset.idadeGestacional;
+          delete resultadoDiv.dataset.dpp;
+          return;
+        }
+
+        // Das Datum wird als YYYY-MM-DD eingelesen, was JS Date korrekt interpretiert
+        const dum = new Date(dumInput + 'T00:00:00');
+        const hoje = new Date();
+        hoje.setHours(0, 0, 0, 0);
+        dum.setHours(0, 0, 0, 0);
+
+        if (dum > hoje) {
+          resultadoDiv.innerHTML = '<p class="text-red-600">⚠️ <strong>Das Datum der letzten Menstruation (LMP) kann nicht in der Zukunft liegen.</strong></p>';
+          resultadoDiv.classList.add('bg-danger-red');
+          resultadoDiv.classList.remove('bg-info-orange-light', 'bg-success-green');
+          delete resultadoDiv.dataset.idadeGestacional;
+          delete resultadoDiv.dataset.dpp;
+          return;
+        }
+
+        const diffMs = hoje - dum;
+        const diffDias = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+        const semanas = Math.floor(diffDias / 7);
+        const dias = diffDias % 7;
+
+        const dpp = new Date(dum.getTime());
+        dpp.setDate(dpp.getDate() + 280); // Naegele's Rule (angepasst)
+        // Datumsformat für Deutsch (DD.MM.YYYY)
+        const dppFormatada = dpp.toLocaleDateString('de-DE');
+
+        resultadoDiv.innerHTML = `
+                  <table class="w-full text-sm">
+                      <tbody>
+                          <tr>
+                              <td class="font-bold pr-2">Schwangerschaftsalter:</td>
+                              <td>${semanas} Wochen und ${dias} Tage</td>
+                          </tr>
+                          <tr>
+                              <td class="font-bold pr-2">Voraussichtlicher Entbindungstermin (<abbr title="Voraussichtlicher Entbindungstermin">ET</abbr>):</td>
+                              <td>${dppFormatada}</td>
+                          </tr>
+                      </tbody>
+                  </table>
+              `;
+        resultadoDiv.classList.add('bg-success-green');
+        resultadoDiv.classList.remove('bg-danger-red', 'bg-info-orange-light');
+
+        resultadoDiv.dataset.idadeGestacional = `${semanas} Wochen und ${dias} Tage`;
+        resultadoDiv.dataset.dpp = dppFormatada;
+        resultadoDiv.dataset.scaleName = "Rechner für Schwangerschaftsalter und ET";
+        btnGerarPDF.removeAttribute('disabled');
+        btnNandaNicNoc.removeAttribute('disabled');
+      }
+
+      function limparCampos() {
+        document.getElementById('dum').value = '';
+        const resultadoDiv = document.getElementById('resultado');
+        resultadoDiv.innerHTML = '';
+        resultadoDiv.classList.add('hidden');
+        btnGerarPDF.setAttribute('disabled', 'true');
+        btnNandaNicNoc.setAttribute('disabled', 'true');
+        delete resultadoDiv.dataset.idadeGestacional;
+        delete resultadoDiv.dataset.dpp;
+        delete resultadoDiv.dataset.scaleName;
+      }
+
+      // Event Listeners
+      btnCalcular?.addEventListener('click', calcularGestacional);
+      btnLimpar?.addEventListener('click', limparCampos);
+
+      btnGerarPDF?.addEventListener('click', () => {
+        if (!resultadoDiv.dataset.idadeGestacional) {
+          alert('Bitte berechnen Sie zuerst das Ergebnis, um ein PDF zu erstellen.');
+          return;
+        }
+        if (typeof gerarPDFGlobal === 'function') {
+          gerarPDFGlobal({
+            titulo: 'Rechner für Schwangerschaftsalter und ET',
+            subtitulo: 'Bericht zur Schwangerschaftsberechnung',
+            nomeArquivo: 'schwangerschafts_bericht.pdf',
+            seletorConteudo: '.main-content-wrapper'
+          });
+        } else {
+          console.error('Globale PDF-Funktion (gerarPDFGlobal) nicht definiert.');
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener('click', () => {
+        const idadeGestacional = resultadoDiv.dataset.idadeGestacional;
+        const dpp = resultadoDiv.dataset.dpp;
+        const scaleName = resultadoDiv.dataset.scaleName;
+        if (!idadeGestacional || !dpp) {
+          alert('Berechnen Sie das Ergebnis, um nach Maßnahmen zu suchen.');
+          return;
+        }
+        const searchQuery = encodeURIComponent(`${scaleName} Schwangerschaftsalter ${idadeGestacional} ET ${dpp} erstelle NANDA Pflegediagnosen, erstelle NIC Pflegeinterventionen, erstelle NOC Pflegeergebnisse`);
+        window.open(`https://www.google.com/search?q=${searchQuery}`, '_blank');
+      });
+    });
+  </script>
 
 
 

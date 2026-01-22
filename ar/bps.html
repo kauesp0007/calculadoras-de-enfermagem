@@ -629,7 +629,253 @@
 
 
   <!-- Script Específico da Página (Tradução e numeração árabe) -->
-  
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      // Função para converter números ocidentais para orientais (árabes)
+      function toArabicNumeral(n) {
+        if (n === null || typeof n === "undefined") return "";
+        const arabic = ["٠", "١", "٢", "٣", "٤", "٥", "٦", "٧", "٨", "٩"];
+        return String(n)
+          .split("")
+          .map((digit) =>
+            digit >= "0" && digit <= "9" ? arabic[parseInt(digit)] : digit,
+          )
+          .join("");
+      }
+
+      // Função para determinar a palavra correta para "ponto(s)" em árabe
+      function scoreText(score) {
+        if (score === 1) return "نقطة";
+        if (score === 2) return "نقطتان";
+        if (score >= 3 && score <= 10) return "نقاط";
+        return "نقطة"; // Padrão
+      }
+
+      const resultadoDiv = document.getElementById("resultado");
+      const btnCalcular = document.getElementById("btnCalcular");
+      const btnLimpar = document.getElementById("btnLimpar");
+      const btnGerarPDF = document.getElementById("btnGerarPDF");
+      const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
+      const conteudoDiv = document.getElementById("conteudo");
+
+      // Dados da escala (traduzidos para o árabe)
+      const bpsData = [
+        {
+          title: "تعبيرات الوجه",
+          nameAttr: "expressao_facial",
+          options: [
+            { description: "مرتاح", score: 1 },
+            { description: "متوتر جزئيًا (تقطيب الحاجبين)", score: 2 },
+            { description: "متوتر تمامًا (ملامح متقلصة)", score: 3 },
+            { description: "تكشير", score: 4 },
+          ],
+        },
+        {
+          title: "حركات الأطراف العلوية",
+          nameAttr: "movimentos_superiores",
+          options: [
+            { description: "مرتاحة", score: 1 },
+            { description: "منثنية جزئيًا", score: 2 },
+            { description: "منثنية تمامًا مع توتر", score: 3 },
+            { description: "انسحاب مستمر", score: 4 },
+          ],
+        },
+        {
+          title: "التكيف مع جهاز التنفس الاصطناعي",
+          nameAttr: "conformidade_ventilador",
+          options: [
+            { description: "متكيف مع الجهاز", score: 1 },
+            { description: "سعال أو مقاومة للجهاز", score: 2 },
+            { description: "مقاومة نشطة (إنذار الجهاز)", score: 3 },
+            { description: "عدم تكيف (إنذار الجهاز لا يتوقف)", score: 4 },
+          ],
+        },
+      ];
+
+      // Preenche o formulário dinamicamente
+      bpsData.forEach((item) => {
+        const sectionDiv = document.createElement("div");
+        sectionDiv.className = "bps-criterion-section";
+        sectionDiv.id = `section-${item.nameAttr}`;
+
+        const titleH3 = document.createElement("h3");
+        titleH3.className = "bps-criterion-title";
+        titleH3.innerHTML = item.title;
+        sectionDiv.appendChild(titleH3);
+
+        const selectElement = document.createElement("select");
+        selectElement.id = item.nameAttr;
+        selectElement.className = "bps-criterion-select mt-2";
+        selectElement.setAttribute("aria-label", item.title);
+
+        const defaultOption = document.createElement("option");
+        defaultOption.value = "";
+        defaultOption.text = "اختر...";
+        selectElement.appendChild(defaultOption);
+
+        item.options.forEach((option) => {
+          const optionElement = document.createElement("option");
+          optionElement.value = option.score; // Valor ocidental para JS
+          // Exibe numerais árabes
+          optionElement.text = `${option.description} (${scoreText(option.score)}: ${toArabicNumeral(option.score)})`;
+          selectElement.appendChild(optionElement);
+        });
+
+        sectionDiv.appendChild(selectElement);
+        conteudoDiv.appendChild(sectionDiv);
+      });
+
+      function calcularBPS() {
+        const selects = document.querySelectorAll("#conteudo select");
+        let allSelected = true;
+        let total = 0;
+
+        selects.forEach((select) => {
+          if (select.value === "") {
+            allSelected = false;
+            select.classList.add("incomplete");
+          } else {
+            select.classList.remove("incomplete");
+            total += Number(select.value);
+          }
+        });
+
+        resultadoDiv.style.display = "block";
+        if (!allSelected) {
+          resultadoDiv.innerHTML =
+            '⚠️ <strong class="font-bold">يرجى تحديد خيار لجميع البنود قبل الحساب.</strong>';
+          resultadoDiv.className = `resultado bg-red-100`;
+          delete resultadoDiv.dataset.score;
+          return;
+        }
+
+        let recomendacao = "";
+
+        // Lógica JS com numerais ocidentais
+        if (total <= 5) {
+          recomendacao = `النتيجة ${toArabicNumeral(total)} تشير إلى ألم خفيف أو غياب الألم. استمر في مراقبة المريض.`;
+        } else if (total >= 6 && total <= 9) {
+          recomendacao = `النتيجة ${toArabicNumeral(total)} تشير إلى ألم متوسط. يوصى بتقييم طرق تخفيف الألم، الدوائية أو غير الدوائية، ومراقبة استجابة المريض.`;
+        } else {
+          // total >= 10
+          recomendacao = `النتيجة ${toArabicNumeral(total)} تشير إلى ألم شديد. يلزم تدخل فوري لتخفيف الألم، ويجب مراجعة خطة العلاج من قبل الطبيب.`;
+        }
+
+        resultadoDiv.innerHTML = `
+                <p>النتيجة الإجمالية: <strong class="font-bold">${toArabicNumeral(total)}</strong></p>
+                <p class="mt-4"><strong>توصية:</strong> ${recomendacao}</p>
+            `;
+        resultadoDiv.className = `resultado bg-blue-50`;
+        resultadoDiv.style.display = "block";
+
+        resultadoDiv.dataset.score = total;
+        resultadoDiv.dataset.scaleName = "مقياس BPS";
+        resultadoDiv.dataset.recomendacao = recomendacao; // Salva a recomendação para o NANDA
+      }
+
+      function limparCampos() {
+        const selects = document.querySelectorAll("#conteudo select");
+        selects.forEach((select) => {
+          select.selectedIndex = 0;
+          select.classList.remove("incomplete");
+        });
+        resultadoDiv.innerHTML = "";
+        resultadoDiv.className = "resultado hidden";
+        delete resultadoDiv.dataset.score;
+        delete resultadoDiv.dataset.scaleName;
+        delete resultadoDiv.dataset.recomendacao;
+      }
+
+      // Adiciona os event listeners aos botões
+      btnCalcular?.addEventListener("click", calcularBPS);
+      btnLimpar?.addEventListener("click", limparCampos);
+
+      btnGerarPDF?.addEventListener("click", () => {
+        if (!resultadoDiv.dataset.score) {
+          alert('يرجى النقر على "احسب النتيجة" أولاً لإنشاء ملف PDF.');
+          return;
+        }
+        if (typeof gerarPDFGlobal === "function") {
+          // Clona o conteúdo principal para não alterar a página
+          let contentToPrint = document
+            .querySelector(".main-content-wrapper")
+            .cloneNode(true);
+
+          // Encontra o container dos selects no clone
+          let contentContainer = contentToPrint.querySelector("#conteudo");
+          contentContainer.innerHTML = ""; // Limpa os selects
+
+          // Adiciona os valores selecionados formatados
+          bpsData.forEach((item) => {
+            const select = document.getElementById(item.nameAttr);
+            const selected = select.options[select.selectedIndex];
+            if (selected.value !== "") {
+              let itemDiv = document.createElement("div");
+              itemDiv.className = "mb-2 p-2 bg-gray-50 rounded";
+              // Usa o texto da opção que já está formatado em árabe
+              itemDiv.innerHTML = `<strong style="font-family: 'Cairo', sans-serif;">${item.title}:</strong> <span style="font-family: 'Cairo', sans-serif;">${selected.text}</span>`;
+              contentContainer.appendChild(itemDiv);
+            }
+          });
+
+          // Adiciona o resultado
+          let resultadoHtml = resultadoDiv.cloneNode(true);
+          if (resultadoHtml.style.display !== "none") {
+            // Garante que a fonte no PDF esteja correta
+            resultadoHtml
+              .querySelectorAll("p, strong")
+              .forEach((el) => (el.style.fontFamily = "'Cairo', sans-serif"));
+            contentContainer.appendChild(resultadoHtml);
+          }
+
+          // Esconde botões e referências no clone
+          contentToPrint.querySelector(
+            ".flex.flex-wrap.justify-start",
+          ).style.display = "none";
+          contentToPrint.querySelector("#reference-section").style.display =
+            "none";
+
+          // Passa o HTML clonado e modificado para a função de PDF
+          gerarPDFGlobal({
+            titulo: "مقياس BPS (مقياس الألم السلوكي)",
+            subtitulo: "تقرير تقييم الألم لدى المرضى الحرجين",
+            nomeArquivo: "relatorio_escala_bps.pdf",
+            htmlContent: contentToPrint.innerHTML, // Passa o HTML modificado
+            direcao: "rtl", // Adiciona direção RTL para o PDF
+          });
+        } else {
+          console.error("Função gerarPDFGlobal não definida.");
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener("click", () => {
+        const recomendacao = resultadoDiv.dataset.recomendacao;
+        if (!recomendacao) {
+          alert("احسب النتيجة للبحث عن الإجراء.");
+          return;
+        }
+        // Usa a recomendação (que contém o nível de dor) para a pesquisa
+        const searchQuery = encodeURIComponent(
+          `${recomendacao} تصنيف NANDA, NIC و NOC`,
+        );
+        window.open(
+          `https://www.google.com/search?q=${searchQuery}`,
+          "_blank",
+        );
+      });
+
+      // Carrega o footer
+      fetch("footer.html")
+        .then((response) => response.text())
+        .then((data) => {
+          const footerPlaceholder =
+            document.getElementById("footer-placeholder");
+          if (footerPlaceholder) {
+            footerPlaceholder.innerHTML = data;
+          }
+        });
+    });
+  </script>
 
   <!-- Caminho do seletor de idioma ajustado -->
   <script src="../lang-selector.js" defer=""></script>

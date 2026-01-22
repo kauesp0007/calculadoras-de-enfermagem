@@ -560,7 +560,246 @@
 
 
 
-  
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const resultadoDiv = document.getElementById("resultado");
+      const conteudoDiv = document.getElementById("conteudo");
+      const btnCalcular = document.getElementById("btnCalcular");
+      const btnLimpar = document.getElementById("btnLimpar");
+      const btnGerarPDF = document.getElementById("btnGerarPDF");
+      const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
+
+      const bradenData = [
+        {
+          id: "sensorial",
+          title: "Persepsi Sensorik",
+          description:
+            "Kemampuan untuk bereaksi terhadap ketidaknyamanan terkait tekanan.",
+          options: [
+            { score: 1, text: "Sangat terbatas" },
+            { score: 2, text: "Sangat terbatas" },
+            { score: 3, text: "Sedikit terbatas" },
+            { score: 4, text: "Tidak ada batasan" },
+          ],
+        },
+        {
+          id: "umidade",
+          title: "Kelembaban",
+          description: "Tingkat paparan kulit terhadap kelembaban.",
+          options: [
+            { score: 1, text: "Selalu basah" },
+            { score: 2, text: "Sangat basah" },
+            { score: 3, text: "Kadang basah" },
+            { score: 4, text: "Jarang basah" },
+          ],
+        },
+        {
+          id: "atividade",
+          title: "Aktivitas",
+          description: "Tingkat aktivitas fisik pasien.",
+          options: [
+            { score: 1, text: "Terbaring di tempat tidur" },
+            { score: 2, text: "Terbatas di kursi" },
+            { score: 3, text: "Berjalan sesekali" },
+            { score: 4, text: "Berjalan sering" },
+          ],
+        },
+        {
+          id: "mobilidade",
+          title: "Mobilitas",
+          description:
+            "Kemampuan untuk mengubah dan mengendalikan posisi tubuh.",
+          options: [
+            { score: 1, text: "Sangat tidak mobile" },
+            { score: 2, text: "Sangat terbatas" },
+            { score: 3, text: "Sedikit terbatas" },
+            { score: 4, text: "Tanpa batasan" },
+          ],
+        },
+        {
+          id: "nutricao",
+          title: "Nutrisi",
+          description: "Pola makan yang biasa.",
+          options: [
+            { score: 1, text: "Sangat buruk" },
+            { score: 2, text: "Mungkin tidak memadai" },
+            { score: 3, text: "Memadai" },
+            { score: 4, text: "Sangat baik" },
+          ],
+        },
+        {
+          id: "friccao",
+          title: "Gesekan dan Gaya Geser",
+          description: "Adanya lecet dan pergerakan.",
+          options: [
+            { score: 1, text: "Masalah" },
+            { score: 2, text: "Masalah potensial" },
+            { score: 3, text: "Tidak ada masalah" },
+          ],
+        },
+      ];
+
+      function createForm() {
+        conteudoDiv.innerHTML = "";
+        bradenData.forEach((criterion) => {
+          const card = document.createElement("div");
+          card.className = "braden-criterion-card";
+
+          card.innerHTML = `
+                    <div class="braden-criterion-title-container">
+                        <h3 class="braden-criterion-title">${criterion.title}</h3>
+                        <p class="braden-criterion-description">${criterion.description}</p>
+                    </div>
+                    <div class="braden-options-container">
+                        <select id="${criterion.id}-select" class="braden-select">
+                            <option value="" disabled selected>Pilih satu opsi...</option>
+                            ${criterion.options.map((opt) => `<option value="${opt.score}">${opt.text} (${opt.score})</option>`).join("")}
+                        </select>
+                    </div>
+                `;
+          conteudoDiv.appendChild(card);
+        });
+      }
+
+      function calcular() {
+        let totalScore = 0;
+        let allSelected = true;
+
+        bradenData.forEach((criterion) => {
+          const select = document.getElementById(`${criterion.id}-select`);
+          if (select && select.value) {
+            totalScore += parseInt(select.value, 10);
+          } else {
+            allSelected = false;
+          }
+        });
+
+        if (!allSelected) {
+          resultadoDiv.innerHTML =
+            '⚠️ <strong class="font-bold">Silakan pilih satu opsi untuk setiap kriteria.</strong>';
+          resultadoDiv.className = "standard-result-box bg-info-orange-light";
+          resultadoDiv.style.display = "block";
+          delete resultadoDiv.dataset.score;
+          return;
+        }
+
+        let risco = "";
+        if (totalScore >= 19) {
+          risco = "Tanpa Risiko";
+        } else if (totalScore >= 15) {
+          risco = "Risiko Ringan";
+        } else if (totalScore >= 13) {
+          risco = "Risiko Sedang";
+        } else if (totalScore >= 10) {
+          risco = "Risiko Tinggi";
+        } else {
+          risco = "Risiko Sangat Tinggi";
+        }
+
+        resultadoDiv.innerHTML = `
+                <p class="font-bold text-lg">Skor Total: <span class="font-black">${totalScore}</span></p>
+                <p class="font-bold text-lg">Klasifikasi Risiko: <span class="font-black">${risco}</span></p>
+            `;
+        resultadoDiv.className = "standard-result-box";
+        resultadoDiv.style.display = "block";
+        resultadoDiv.dataset.score = totalScore;
+        resultadoDiv.dataset.risco = risco;
+      }
+
+      function limpar() {
+        createForm();
+        resultadoDiv.innerHTML = "";
+        resultadoDiv.className = "hidden";
+        delete resultadoDiv.dataset.score;
+        delete resultadoDiv.dataset.risco;
+      }
+
+      createForm();
+      btnCalcular?.addEventListener("click", calcular);
+      btnLimpar?.addEventListener("click", limpar);
+
+      btnGerarPDF?.addEventListener("click", () => {
+        if (resultadoDiv.dataset.score === undefined) {
+          alert('Silakan klik "Hitung" terlebih dahulu untuk membuat PDF.');
+          return;
+        }
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+        const primaryColor = "#1A3E74";
+        let y = 10;
+        const pageMargin = 14;
+        const rightMargin = doc.internal.pageSize.getWidth() - pageMargin;
+
+        doc.setDrawColor(primaryColor);
+        doc.setLineWidth(0.5);
+        doc.rect(5, 5, 200, 287);
+        doc.setFillColor(primaryColor);
+        doc.rect(5, 5, 200, 25, "F");
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(18);
+        doc.setTextColor(255, 255, 255);
+        doc.text("Skala Braden", 105, 18, { align: "center" });
+        doc.setFontSize(12);
+        doc.text("Laporan Risiko Luka Tekanan", 105, 25, { align: "center" });
+
+        y = 45;
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(12);
+        doc.setTextColor(primaryColor);
+        doc.text("Hasil Skala Braden", pageMargin, y);
+        doc.setDrawColor(200);
+        doc.setLineWidth(0.2);
+        doc.line(pageMargin, y + 2, rightMargin, y + 2);
+        y += 10;
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(10);
+        doc.setTextColor(0, 0, 0);
+        doc.text(`Skor Total: ${resultadoDiv.dataset.score}`, pageMargin, y);
+        doc.text(
+          `Klasifikasi Risiko: ${resultadoDiv.dataset.risco}`,
+          rightMargin,
+          y,
+          { align: "right" },
+        );
+
+        doc.setLineWidth(0.5);
+        doc.setDrawColor(primaryColor);
+        doc.line(5, 272, 205, 272);
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(8);
+        doc.setTextColor(150);
+        doc.text(
+          `Dibuat oleh Portal Keperawatan pada ${new Date().toLocaleString("id-ID")}.`,
+          105,
+          278,
+          { align: "center" },
+        );
+        doc.text(
+          `Kalkulator ini adalah sumber pendukung dan tidak menggantikan penilaian klinis. Periksa data dari sumber eksternal.`,
+          105,
+          282,
+          { align: "center" },
+        );
+
+        doc.save("laporan_skala_braden.pdf");
+      });
+
+      btnNandaNicNoc?.addEventListener("click", () => {
+        const risco = resultadoDiv.dataset.risco;
+        if (!risco) {
+          alert("Hitung hasil untuk mencari tindakan.");
+          return;
+        }
+        const searchQuery = encodeURIComponent(
+          `Pasien dengan ${risco} untuk luka tekanan pada Skala Braden taksonomi NANDA, NIC dan NOC`,
+        );
+        window.open(
+          `https://www.google.com/search?q=${searchQuery}`,
+          "_blank",
+        );
+      });
+    });
+  </script>
 
   <script src="/id/lang-selector.js" defer=""></script>
 

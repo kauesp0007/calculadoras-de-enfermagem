@@ -571,7 +571,427 @@
 
 
 
-  
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const resultadoDiv = document.getElementById("resultado");
+      const btnCalcular = document.getElementById("btnCalcular");
+      const btnLimpar = document.getElementById("btnLimpar");
+      const btnGerarPDF = document.getElementById("btnGerarPDF");
+      const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
+      const conteudoDiv = document.getElementById("conteudo");
+
+      const perrocaData = [
+        {
+          title: "1. stan psychiczny i poziom świadomości",
+          nameAttr: "estado_mental",
+          options: [
+            { description: "Zorientowany w czasie i przestrzeni", score: 1 },
+            { description: "Dezorientacja w czasie i/lub przestrzeni", score: 2 },
+            { description: "Sonolento", score: 3 },
+            { description: "Em estupor", score: 4 },
+            { description: "Comatoso", score: 5 }]
+
+        },
+        {
+          title: "2. Natlenienie",
+          nameAttr: "oxigenacao",
+          options: [
+            { description: "Respira em ar ambiente", score: 1 },
+            { description: "Korzystanie z O2 przez cewnik lub maskę", score: 2 },
+            { description: "Korzystanie z respiratora mechanicznego", score: 3 },
+            {
+              description: "Na O2 z niestabilnością oddechową",
+              score: 4
+            },
+            {
+              description:
+                "Stosowanie O2 w stanie krytycznym z niestabilnością hemodynamiczną",
+              score: 5
+            }]
+
+        },
+        {
+          title: "3. Sinais Vitais",
+          nameAttr: "sinais_vitais",
+          options: [
+            { description: "Stabilny", score: 1 },
+            {
+              description: "Niestabilny, z przerywanym monitorowaniem",
+              score: 2
+            },
+            {
+              description: "Niestabilny, z ciągłym monitorowaniem",
+              score: 3
+            },
+            { description: "Niestabilny, ze wsparciem farmakologicznym", score: 4 },
+            { description: "Niestabilny, z zaawansowanym wsparciem", score: 5 }]
+
+        },
+        {
+          title: "4. Odżywianie i nawodnienie",
+          nameAttr: "nutricao",
+          options: [
+            { description: "Stosowanie doustne", score: 1 },
+            {
+              description:
+                "Droga doustna z asystą lub przez zgłębnik nosowo-żołądkowy/jelitowy",
+              score: 2
+            },
+            { description: "Całkowita droga dojelitowa i/lub pozajelitowa", score: 3 },
+            { description: "Wyłączna droga pozajelitowa", score: 4 },
+            {
+              description:
+                "Wyłączna droga pozajelitowa z niestabilnością hemodynamiczną",
+              score: 5
+            }]
+
+        },
+        {
+          title: "5. Ruchliwość",
+          nameAttr: "ruchliwość",
+          options: [
+            {
+              description: "Niezależny, bez ograniczeń ruchowych",
+              score: 1
+            },
+            {
+              description: "Częściowo zależny, z ograniczonymi ruchami",
+              score: 2
+            },
+            {
+              description: "Całkowicie zależny, przykuty do łóżka",
+              score: 3
+            },
+            {
+              description:
+                "Całkowicie zależny, z ograniczonym ruchem jednej lub więcej kończyn",
+              score: 4
+            },
+            {
+              description:
+                "Unieruchomienie w łóżku, ryzyko przykurczów i urazów",
+              score: 5
+            }]
+
+        },
+        {
+          title: "6. Lokomocja",
+          nameAttr: "locomocao",
+          options: [
+            { description: "Chodzenie bez pomocy", score: 1 },
+            {
+              description:
+                "chodzi przy pomocy kul, chodzika lub laski",
+              score: 2
+            },
+            {
+              description: "Porusza się z pomocą wózka inwalidzkiego",
+              score: 3
+            },
+            { description: "Chodzenie z pomocą innej osoby", score: 4 },
+            {
+              description:
+                "Całkowita zależność od innej osoby w zakresie mobilności",
+              score: 5
+            }]
+
+        },
+        {
+          title: "7. Cuidado Corporal",
+          nameAttr: "cuidado_corporal",
+          options: [
+            { description: "Totalmente independente", score: 1 },
+            {
+              description: "Pomoc w niektórych czynnościach (kąpiel, higiena)",
+              score: 2
+            },
+            {
+              description: "Pomoc we wszystkich czynnościach higienicznych",
+              score: 3
+            },
+            {
+              description:
+                "Całkowita zależność w zakresie higieny, korzystania z rurki, opatrunków itp.",
+              score: 4
+            },
+            {
+              description: "Całkowita zależność, z higieną w łóżku",
+              score: 5
+            }]
+
+        },
+        {
+          title: "8. Dyspozycje",
+          nameAttr: "eliminacoes",
+          options: [
+            { description: "Kontroluje i jest niezależny", score: 1 },
+            {
+              description: "Nietrzymanie moczu lub kału, ale z pomocą",
+              score: 2
+            },
+            {
+              description: "Nietrzymanie moczu i kału z użyciem pieluch",
+              score: 3
+            },
+            {
+              description:
+                "Nietrzymanie moczu i kału, z biegunką i/lub użyciem rurki",
+              score: 4
+            },
+            { description: "Nietrzymanie moczu i hemodializa", score: 5 }]
+
+        },
+        {
+          title: "9. Terapia",
+          nameAttr: "terapeutica",
+          options: [
+            { description: "Doustnie (VO) lub domięśniowo (IM)", score: 1 },
+            { description: "Przerywana droga dożylna (IV)", score: 2 },
+            { description: "Ciągła infuzja dożylna w pompie infuzyjnej", score: 3 },
+            {
+              description:
+                "Pompa do ciągłego wlewu dożylnego z lekami wazoaktywnymi",
+              score: 4
+            },
+            {
+              description:
+                "Pompa infuzyjna do ciągłego wlewu dożylnego z lekami wazoaktywnymi i wspomaganiem wentylacji",
+              score: 5
+            }]
+
+        },
+        {
+          title: "10. Integralność skóry i błon śluzowych",
+          nameAttr: "integralność",
+          options: [
+            { description: "Zdrowa skóra, bez zmian chorobowych", score: 1 },
+            { description: "Powierzchowne uszkodzenie skóry", score: 2 },
+            { description: "Uszkodzenie skóry z utratą tkanki", score: 3 },
+            {
+              description: "Uszkodzenie skóry z utratą tkanki i infekcją",
+              score: 4
+            },
+            {
+              description:
+                "Uszkodzenie skóry z utratą tkanki i ciężką infekcją",
+              score: 5
+            }]
+
+        },
+        {
+          title: "11. Edukacja zdrowotna",
+          nameAttr: "educacao",
+          options: [
+            { description: "Nie potrzeba wskazówek", score: 1 },
+            {
+              description: "Potrzeba wskazówek w niektórych działaniach",
+              score: 2
+            },
+            {
+              description: "Potrzeba wskazówek we wszystkich działaniach",
+              score: 3
+            },
+            { description: "Brak możliwości zrozumienia wytycznych", score: 4 },
+            {
+              description: "Niemożność zrozumienia i pobudzenie",
+              score: 5
+            }]
+
+        },
+        {
+          title: "12. Comportamento",
+          nameAttr: "comportamento",
+          options: [
+            { description: "Calmo e cooperativo", score: 1 },
+            { description: "Inquieto e ansioso", score: 2 },
+            { description: "Niespokojny i niechętny do współpracy", score: 3 },
+            { description: "Agressivo e violento", score: 4 },
+            {
+              description: "Agressivo e violento com risco de vida",
+              score: 5
+            }]
+
+        },
+        {
+          title: "13. Relacje interpersonalne",
+          nameAttr: "relacoes_interpessoais",
+          options: [
+            { description: "Interage com a equipe e familiares", score: 1 },
+            {
+              description:
+                "Interage com a equipe e familiares com dificuldade",
+              score: 2
+            },
+            {
+              description: "Interage apenas com a equipe ou familiares",
+              score: 3
+            },
+            { description: "Brak interakcji", score: 4 },
+            { description: "Isolamento total", score: 5 }]
+
+        }];
+
+
+      // Preenche o formulário dinamicamente
+      perrocaData.forEach((item) => {
+        const sectionDiv = document.createElement("div");
+        sectionDiv.className = "perroca-kryterium-sekcja";
+        sectionDiv.id = `section-${item.nameAttr}`;
+
+        const titleH3 = document.createElement("h3");
+        titleH3.className = "perroca-criterion-title";
+        titleH3.innerHTML = item.title;
+        sectionDiv.appendChild(titleH3);
+
+        const selectElement = document.createElement("select");
+        selectElement.id = item.nameAttr;
+        selectElement.className = "perroca-criterion-select mt-2";
+
+        const defaultOption = document.createElement("option");
+        defaultOption.value = "";
+        defaultOption.text = "Wybierz...";
+        selectElement.appendChild(defaultOption);
+
+        item.options.forEach((option) => {
+          const optionElement = document.createElement("option");
+          optionElement.value = option.score;
+          optionElement.text = `${option.description} (pontos: ${option.score})`;
+          selectElement.appendChild(optionElement);
+        });
+
+        sectionDiv.appendChild(selectElement);
+        conteudoDiv.appendChild(sectionDiv);
+      });
+
+      function calcularPerroca() {
+        const selects = document.querySelectorAll("#conteudo select");
+        let allSelected = true;
+        let total = 0;
+
+        selects.forEach((select) => {
+          if (select.value === "") {
+            allSelected = false;
+            select.classList.add("incomplete");
+          } else {
+            select.classList.remove("incomplete");
+            total += Number(select.value);
+          }
+        });
+
+        resultadoDiv.style.display = "block";
+        if (!allSelected) {
+          resultadoDiv.innerHTML =
+            '⚠️ <strong class="font-bold">Por favor, selecione uma opção para todos os itens antes de calcular.</strong>';
+          resultadoDiv.className = `Wynik bg-red-100`;
+          delete resultadoDiv.dataset.score;
+          return;
+        }
+
+        let recomendacao = "";
+
+        if (total >= 13 && total <= 26) {
+          recomendacao = `O escore de ${total} oznacza pacjenta wymagającego minimalnej opieki.`;
+        } else if (total >= 27 && total <= 39) {
+          recomendacao = `O escore de ${total} oznacza pacjenta wymagającego opieki pośredniej.`;
+        } else if (total >= 40 && total <= 52) {
+          recomendacao = `O escore de ${total} oznacza pacjenta wymagającego półintensywnej opieki.`;
+        } else {
+          // total >= 53
+          recomendacao = `O escore de ${total} oznacza pacjenta wymagającego intensywnej opieki.`;
+        }
+
+        resultadoDiv.innerHTML = `
+                <p>Escore total: <strong class="font-bold">${total}</strong></p>
+                <p class="mt-4"><strong>Recomendação:</strong> ${recomendacao}</p>
+            `;
+        resultadoDiv.className = `Wynik bg-blue-50`;
+        resultadoDiv.style.display = "block";
+
+        resultadoDiv.dataset.score = total;
+        resultadoDiv.dataset.scaleName = "Skala Perroca";
+      }
+
+      function limparCampos() {
+        const selects = document.querySelectorAll("#conteudo select");
+        selects.forEach((select) => {
+          select.selectedIndex = 0;
+          select.classList.remove("incomplete");
+        });
+        resultadoDiv.innerHTML = "";
+        resultadoDiv.className = "ukryty wynik";
+        delete resultadoDiv.dataset.score;
+        delete resultadoDiv.dataset.scaleName;
+      }
+
+      // Adiciona os event listeners aos botões
+      btnCalcular?.addEventListener("click", calcularPerroca);
+      btnLimpar?.addEventListener("click", limparCampos);
+
+      btnGerarPDF?.addEventListener("click", () => {
+        if (!resultadoDiv.dataset.score) {
+          alert(
+            "Kliknij najpierw \"Oblicz wynik\", aby wygenerować plik PDF."
+          );
+          return;
+        }
+        if (typeof gerarPDFGlobal === "function") {
+          const selectedOptions = {};
+          document.querySelectorAll("#conteudo select").forEach((select) => {
+            const selected = select.options[select.selectedIndex];
+            if (selected.value !== "") {
+              selectedOptions[select.id] = selected.text;
+            }
+          });
+
+          let contentToPrint = document.
+            querySelector(".main-content-wrapper").
+            cloneNode(true);
+          let contentContainer = contentToPrint.querySelector("#conteudo");
+
+          contentContainer.innerHTML = "";
+
+          perrocaData.forEach((item) => {
+            let selectedText = selectedOptions[item.nameAttr];
+            if (selectedText) {
+              let itemDiv = document.createElement("div");
+              itemDiv.className = "mb-2 p-2 bg-gray-50 rounded";
+              itemDiv.innerHTML = `<strong>${item.title}:</strong> ${selectedText}`;
+              contentContainer.appendChild(itemDiv);
+            }
+          });
+
+          let resultadoHtml = resultadoDiv.cloneNode(true);
+          if (resultadoHtml.style.display !== "none") {
+            contentContainer.appendChild(resultadoHtml);
+          }
+
+          gerarPDFGlobal({
+            titulo: "Skala Perroca (SCP)",
+            subtitulo: "Raport klasyfikacji pacjentów",
+            nomeArquivo: "relatorio_escala_perroca.pdf",
+            seletorConteudo: ".main-content-wrapper"
+          });
+        } else {
+          console.error("Funkcja GeneratePDFGlobal nie została zdefiniowana.");
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener("click", () => {
+        const score = resultadoDiv.dataset.score;
+        const scaleName = resultadoDiv.dataset.scaleName;
+        if (!score) {
+          alert("Oblicz wynik, aby wyszukać zachowanie.");
+          return;
+        }
+        const searchQuery = encodeURIComponent(
+          `${scaleName} wynik ${score} gerar taxonomia NANDA, gerar taxonomia NIC e gerar taxonomia de NOC`
+        );
+        window.open(
+          `https://www.google.com/search?q=${searchQuery}`,
+          "_blank"
+        );
+      });
+    });</script>
 
   <script src="/lang-selector.js" defer=""></script>
 

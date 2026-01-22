@@ -584,7 +584,249 @@
 
 
 
-  
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const resultadoDiv = document.getElementById('resultado');
+      const btnCalcular = document.getElementById('btnCalcular');
+      const btnLimpar = document.getElementById('btnLimpar');
+      const btnGerarPDF = document.getElementById('btnGerarPDF');
+      const btnNandaNicNoc = document.getElementById('btnNandaNicNoc');
+      const conteudoDiv = document.getElementById('conteudo');
+
+      // بيانات مقياس جونز هوبكنز
+      const johnsData = [
+        {
+          category: "العمر",
+          nameAttr: "idade",
+          options: [
+            { description: "أقل من ٦٠ سنة", score: 0 },
+            { description: "٦٠-٦٩ سنة", score: 5 },
+            { description: "٧٠-٧٩ سنة", score: 10 },
+            { description: "٨٠ سنة أو أكثر", score: 15 }
+          ]
+        },
+        {
+          category: "السقوط السابق",
+          nameAttr: "quedas",
+          options: [
+            { description: "لا شيء", score: 0 },
+            { description: "نعم، خلال آخر ٦ أشهر", score: 15 }
+          ]
+        },
+        {
+          category: "الإخراج",
+          nameAttr: "eliminacao",
+          options: [
+            { description: "طبيعي", score: 0 },
+            { description: "الحاح أو تكرار", score: 5 },
+            { description: "سلس", score: 10 }
+          ]
+        },
+        {
+          category: "الأدوية",
+          nameAttr: "medicacao",
+          options: [
+            { description: "لا شيء", score: 0 },
+            { description: "مهدئات، مدرات البول، مسهلات، مخدرات", score: 10 }
+          ]
+        },
+        {
+          category: "المريض يستخدم معدات مساعدة",
+          nameAttr: "equipamentos",
+          options: [
+            { description: "السرير أو الكرسي", score: 0 },
+            { description: "عكاز، عصا، مشاية", score: 5 },
+            { description: "الاتكاء على الأثاث", score: 10 }
+          ]
+        },
+        {
+          category: "الحركة",
+          nameAttr: "mobilidade",
+          options: [
+            { description: "كاملة", score: 0 },
+            { description: "مقيدة أو ضعيفة", score: 10 }
+          ]
+        },
+        {
+          category: "الإدراك",
+          nameAttr: "cognicao",
+          options: [
+            { description: "واعي بالقيود", score: 0 },
+            { description: "ينسى القيود", score: 15 }
+          ]
+        }
+      ];
+
+      // --- وظائف حاسبة جونز هوبكنز ---
+      function updateScoreDisplay(criterionId) {
+        const selectElement = document.getElementById(criterionId);
+        const scoreDisplayElement = document.getElementById(`${criterionId}_score_display`);
+        if (selectElement && scoreDisplayElement) {
+          scoreDisplayElement.innerText = selectElement.value === "" ? "٠" : selectElement.value;
+        }
+        calcular(); // إعادة حساب المجموع التلقائي
+      }
+
+      function calcular() {
+        let total = 0;
+        let allCategoriesSelected = true;
+
+        johnsData.forEach(item => {
+          const selectElement = document.getElementById(item.nameAttr);
+          if (selectElement.value === "") {
+            allCategoriesSelected = false;
+          } else {
+            total += parseInt(selectElement.value, 10);
+          }
+        });
+
+        resultadoDiv.style.display = 'block';
+        if (!allCategoriesSelected) {
+          resultadoDiv.innerHTML = '⚠️ <strong class="font-bold">يرجى اختيار خيار لكل فئة لحساب المخاطر.</strong>';
+          resultadoDiv.className = 'resultado bg-info-orange-light';
+          delete resultadoDiv.dataset.score;
+          return;
+        }
+
+        let risco = '';
+        let plano = '';
+        let resultadoClass = '';
+
+        if (total < 6) {
+          risco = 'مخاطر منخفضة';
+          plano = 'الحفاظ على المراقبة القياسية وتوجيه المريض حول الحركة الآمنة.';
+          resultadoClass = 'bg-green-100';
+        } else if (total <= 13) {
+          risco = 'مخاطر متوسطة';
+          plano = 'تنفيذ إجراءات احترازية مثل الإشارات والدعم في الحركة.';
+          resultadoClass = 'bg-yellow-100';
+        } else {
+          risco = 'مخاطر عالية';
+          plano = 'تطبيق بروتوكول الوقاية من السقوط مع الإشراف المستمر والتكيف البيئي.';
+          resultadoClass = 'bg-red-100';
+        }
+
+        resultadoDiv.innerHTML = `<p>المجموع الكلي: <strong class="font-bold">${total}</strong></p><p>المخاطر: <strong class="font-bold">${risco}</strong></p><p>الخطة: <strong class="font-bold">${plano}</strong></p>`;
+        resultadoDiv.className = `resultado ${resultadoClass}`;
+        resultadoDiv.dataset.score = total;
+        resultadoDiv.dataset.risco = risco;
+        resultadoDiv.dataset.plano = plano;
+        resultadoDiv.dataset.scaleName = "مقياس جونز هوبكنز لمخاطر السقوط";
+      }
+
+      function limparCampos() {
+        johnsData.forEach(item => {
+          document.getElementById(item.nameAttr).selectedIndex = 0;
+          document.getElementById(`${item.nameAttr}_score_display`).innerText = '٠';
+        });
+        resultadoDiv.innerHTML = '';
+        resultadoDiv.className = 'resultado hidden';
+        delete resultadoDiv.dataset.score;
+        delete resultadoDiv.dataset.risco;
+        delete resultadoDiv.dataset.plano;
+        delete resultadoDiv.dataset.scaleName;
+      }
+
+      // ملء النموذج ديناميكيًا
+      johnsData.forEach((item, index) => {
+        const sectionDiv = document.createElement('div');
+        sectionDiv.className = 'johns-criterion-card';
+
+        const headerDiv = document.createElement('div');
+        headerDiv.className = 'johns-criterion-header';
+
+        const titleH3 = document.createElement('h3');
+        titleH3.className = 'johns-criterion-title';
+        titleH3.innerText = item.category;
+        headerDiv.appendChild(titleH3);
+
+        const scoreSpan = document.createElement('span');
+        scoreSpan.className = 'johns-score-display';
+        scoreSpan.id = `${item.nameAttr}_score_display`;
+        scoreSpan.innerText = '٠';
+        headerDiv.appendChild(scoreSpan);
+
+        sectionDiv.appendChild(headerDiv);
+
+        const optionsDiv = document.createElement('div');
+        optionsDiv.className = 'johns-criterion-options';
+
+        const selectElement = document.createElement('select');
+        selectElement.id = item.nameAttr;
+        selectElement.className = 'johns-select';
+        selectElement.onchange = () => updateScoreDisplay(item.nameAttr);
+
+        const defaultOption = document.createElement('option');
+        defaultOption.value = "";
+        defaultOption.text = "اختر...";
+        defaultOption.disabled = true;
+        defaultOption.selected = true;
+        selectElement.appendChild(defaultOption);
+
+        item.options.forEach(option => {
+          const optionElement = document.createElement('option');
+          optionElement.value = option.score;
+          optionElement.text = `${option.description} (${option.score})`;
+          selectElement.appendChild(optionElement);
+        });
+
+        optionsDiv.appendChild(selectElement);
+        sectionDiv.appendChild(optionsDiv);
+        conteudoDiv.appendChild(sectionDiv);
+      });
+
+      // إضافة مستمعي الأحداث للأزرار
+      btnCalcular?.addEventListener('click', calcular);
+      btnLimpar?.addEventListener('click', limparCampos);
+
+      btnGerarPDF?.addEventListener('click', () => {
+        if (!resultadoDiv.dataset.score) {
+          alert('يرجى النقر على "احسب" أولاً لإنشاء ملف PDF.');
+          return;
+        }
+        if (typeof gerarPDFGlobal === 'function') {
+          gerarPDFGlobal({
+            titulo: 'مقياس جونز هوبكنز لمخاطر السقوط',
+            subtitulo: 'تقرير تقييم مخاطر السقوط',
+            nomeArquivo: 'relatorio_escala_johns_hopkins.pdf',
+            pontuacao: resultadoDiv.dataset.score,
+            classificacao: resultadoDiv.dataset.risco,
+            plano: resultadoDiv.dataset.plano,
+            nomeEscala: resultadoDiv.dataset.scaleName,
+            criterios: johnsData.map(item => {
+              const selectElement = document.getElementById(item.nameAttr);
+              const selectedOption = selectElement.options[selectElement.selectedIndex];
+              return {
+                nome: item.category,
+                valor: selectedOption.text.split(' (')[0],
+                pontuacao: selectElement.value
+              };
+            })
+          });
+        } else {
+          alert('وظيفة إنشاء PDF غير متوفرة حالياً.');
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener('click', () => {
+        if (!resultadoDiv.dataset.score) {
+          alert('يرجى النقر على "احسب" أولاً للحصول على تصنيف المخاطر.');
+          return;
+        }
+        const score = parseInt(resultadoDiv.dataset.score, 10);
+        let nivelRisco = '';
+        if (score < 6) nivelRisco = 'منخفض';
+        else if (score <= 13) nivelRisco = 'متوسط';
+        else nivelRisco = 'مرتفع';
+
+        if (typeof abrirModalNandaNicNocGlobal === 'function') {
+          abrirModalNandaNicNocGlobal('مخاطر السقوط', nivelRisco);
+        } else {
+          alert('وظيفة NANDA/NIC/NOC غير متوفرة حالياً.');
+        }
+      });
+    });
+  </script>
 
 
 <!-- =========================

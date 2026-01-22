@@ -580,7 +580,275 @@
 
 
 
-  
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const resultadoDiv = document.getElementById("resultado");
+      const btnCalcular = document.getElementById("btnCalcular");
+      const btnLimpar = document.getElementById("btnLimpar");
+      const btnGerarPDF = document.getElementById("btnGerarPDF");
+      const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
+      const conteudoDiv = document.getElementById("conteudo");
+
+      const lachsData = [
+        {
+          category: "시력",
+          nameAttr: "visao",
+          explain:
+            "환자가 필요시 안경을 착용하고 35cm 거리에서 제거 카드(자게러 카드)를 20/40 수준까지 읽을 수 있습니까?",
+          options: [
+            { description: "예, 20/40까지 읽을 수 있습니다.", score: 1 },
+            { description: "아니오, 20/40까지 읽을 수 없습니다.", score: 0 },
+          ],
+        },
+        {
+          category: "청력",
+          nameAttr: "audicao",
+          explain:
+            "환자가 시야 밖에서 속삭여 질문(예: '이름이 무엇입니까?')에 답할 수 있습니까?",
+          options: [
+            { description: "예, 질문에 답합니다.", score: 1 },
+            { description: "아니오, 질문에 답하지 않습니다.", score: 0 },
+          ],
+        },
+        {
+          category: "요실금",
+          nameAttr: "incontinencia_urinaria",
+          explain:
+            "환자가 의도하지 않고 소변을 잃어，过去 1년에 적어도 6일 동안 잠수복을 적시셨습니까?",
+          options: [
+            { description: "아니오", score: 1 },
+            { description: "예", score: 0 },
+          ],
+        },
+        {
+          category: "기본/도구적 일상활동",
+          nameAttr: "avd_aivd",
+          explain:
+            "환자가 침대에서 일어나 독립적으로 옷을 입고, 식사를 준비하고, 쇼핑을 할 수 있습니까?",
+          options: [
+            { description: "예, 모든 활동을 수행할 수 있습니다.", score: 1 },
+            {
+              description: "아니오, 적어도 하나의 활동을 수행할 수 없습니다.",
+              score: 0,
+            },
+          ],
+        },
+        {
+          category: "상지 쥐기력",
+          nameAttr: "forca_preensao",
+          explain:
+            "환자가 두 손으로 목 뒤를 터치하고 숟가락을 잡을 수 있습니까?",
+          options: [
+            {
+              description: "예, 두 작업을 모두 수행할 수 있습니다.",
+              score: 1,
+            },
+            {
+              description: "아니오, 하나 또는 두 작업을 수행할 수 없습니다.",
+              score: 0,
+            },
+          ],
+        },
+        {
+          category: "하지 근력",
+          nameAttr: "forca_inferiores",
+          explain:
+            "환자가 의자에서 일어나 3미터 걸어가서 돌아와 12초 이내에 앉을 수 있습니까?",
+          options: [
+            { description: "예, 12초 이내에 테스트를 수행합니다.", score: 1 },
+            {
+              description:
+                "아니오, 걷지 못하거나 12초 초과로 테스트를 완료합니다.",
+              score: 0,
+            },
+          ],
+        },
+        {
+          category: "영양",
+          nameAttr: "nutricao",
+          explain: "환자가 체질량지수(BMI)가 22 kg/m² 이상입니까?",
+          options: [
+            { description: "예, BMI ≥ 22 kg/m².", score: 1 },
+            { description: "아니오, BMI < 22 kg/m².", score: 0 },
+          ],
+        },
+        {
+          category: "정신상태",
+          nameAttr: "estado_mental",
+          explain:
+            "환자가 1분 후 세 단어(예: '자동차', '꽃병', '공')를 반복할 수 있습니까?",
+          options: [
+            { description: "예, 모든 단어를 반복할 수 있습니다.", score: 1 },
+            {
+              description: "아니오, 적어도 하나의 단어를 반복할 수 없습니다.",
+              score: 0,
+            },
+          ],
+        },
+        {
+          category: "우울",
+          nameAttr: "depressao",
+          explain: "환자가 자주 슬프거나 우울함 느끼십니까?",
+          options: [
+            { description: "아니오", score: 1 },
+            { description: "예", score: 0 },
+          ],
+        },
+        {
+          category: "주거 환경",
+          nameAttr: "ambiente",
+          explain:
+            "환자가 집에서 계단, 목욕통, 느슨한 카펫 또는 불충분한 조명으로 인해 어려움이 있습니까?",
+          options: [
+            { description: "아니오, 환경이 안전합니다.", score: 1 },
+            { description: "예, 주거 환경에 위험이 있습니다.", score: 0 },
+          ],
+        },
+        {
+          category: "사회적 지지",
+          nameAttr: "apoio_social",
+          explain:
+            "환자가 질병이나 긴급시 의지할 가족, 친구 또는 이웃이 있습니까?",
+          options: [
+            { description: "예, 사회적 지지가 있습니다.", score: 1 },
+            { description: "아니오, 사회적 지지가 없습니다.", score: 0 },
+          ],
+        },
+      ];
+
+      // 폼을 동적으로 채우기
+      lachsData.forEach((item) => {
+        const sectionDiv = document.createElement("div");
+        sectionDiv.className = "lachs-criterion-section";
+        sectionDiv.id = `section-${item.nameAttr}`;
+
+        const titleH3 = document.createElement("h3");
+        titleH3.className = "lachs-criterion-title";
+        titleH3.innerHTML = item.category;
+        sectionDiv.appendChild(titleH3);
+
+        const explainP = document.createElement("p");
+        explainP.className = "lachs-criterion-explain";
+        explainP.innerHTML = item.explain;
+        sectionDiv.appendChild(explainP);
+
+        const selectElement = document.createElement("select");
+        selectElement.id = item.nameAttr;
+        selectElement.className = "lachs-criterion-select";
+
+        const defaultOption = document.createElement("option");
+        defaultOption.value = "";
+        defaultOption.text = "선택하세요...";
+        selectElement.appendChild(defaultOption);
+
+        item.options.forEach((option) => {
+          const optionElement = document.createElement("option");
+          optionElement.value = option.score;
+          optionElement.text = `${option.description} (점수: ${option.score})`;
+          selectElement.appendChild(optionElement);
+        });
+
+        sectionDiv.appendChild(selectElement);
+        conteudoDiv.appendChild(sectionDiv);
+      });
+
+      function calcularLachs() {
+        const selects = document.querySelectorAll("#conteudo select");
+        let allSelected = true;
+        let total = 0;
+
+        selects.forEach((select) => {
+          if (select.value === "") {
+            allSelected = false;
+            select.classList.add("incomplete");
+          } else {
+            select.classList.remove("incomplete");
+            total += Number(select.value);
+          }
+        });
+
+        resultadoDiv.style.display = "block";
+        if (!allSelected) {
+          resultadoDiv.innerHTML =
+            '⚠️ <strong class="font-bold">계산하기 전에 모든 항목의 옵션을 선택해주세요.</strong>';
+          resultadoDiv.classList.add("bg-red-100");
+          resultadoDiv.classList.remove("bg-blue-50");
+          delete resultadoDiv.dataset.score;
+          return;
+        }
+
+        let recomendacao = "";
+
+        if (total <= 5) {
+          recomendacao = `${total}점의 점수는 기능 능력 상실 및 의존성의 높은 위험을 시사합니다. 자율성과 안전을 극대화하기 위한 광범위한 노인 평가 및 개인화된 케어 플랜이 권장됩니다.`;
+        } else if (total >= 6 && total <= 9) {
+          recomendacao = `${total}점의 점수는 기능 능력 상실의 중간 위험을 나타냅니다. 환자가 일부 영역에서 도움이 필요할 수 있습니다.`;
+        } else {
+          // total >= 10
+          recomendacao = `${total}점의 점수는 환자가 양호한 기능 능력과 자율성 상실의 낮은 위험을 가짐을 시사합니다.`;
+        }
+
+        resultadoDiv.innerHTML = `
+                <p>총 점수: <strong class="font-bold">${total}</strong></p>
+                <p class="mt-4"><strong>권장사항:</strong> ${recomendacao}</p>
+            `;
+        resultadoDiv.className = `resultado bg-blue-50`;
+        resultadoDiv.style.display = "block";
+
+        resultadoDiv.dataset.score = total;
+        resultadoDiv.dataset.scaleName = "랙스 척도";
+      }
+
+      function limparCampos() {
+        const selects = document.querySelectorAll("#conteudo select");
+        selects.forEach((select) => {
+          select.selectedIndex = 0;
+          select.classList.remove("incomplete");
+        });
+        resultadoDiv.innerHTML = "";
+        resultadoDiv.className = "resultado hidden";
+        delete resultadoDiv.dataset.score;
+        delete resultadoDiv.dataset.scaleName;
+      }
+
+      // 버튼에 이벤트 리스너 추가
+      btnCalcular?.addEventListener("click", calcularLachs);
+      btnLimpar?.addEventListener("click", limparCampos);
+
+      btnGerarPDF?.addEventListener("click", () => {
+        if (!resultadoDiv.dataset.score) {
+          alert('PDF를 생성하려면 먼저 "점수 계산"을 클릭하세요.');
+          return;
+        }
+        if (typeof gerarPDFGlobal === "function") {
+          gerarPDFGlobal({
+            titulo: "랙스 척도",
+            subtitulo: "노인 기능 평가 보고서",
+            nomeArquivo: "report_lachs_scale_ko.pdf",
+            seletorConteudo: ".main-content-wrapper",
+          });
+        } else {
+          console.error("gerarPDFGlobal 함수가 정의되지 않았습니다.");
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener("click", () => {
+        const score = resultadoDiv.dataset.score;
+        const scaleName = resultadoDiv.dataset.scaleName;
+        if (!score) {
+          alert("NANDA, NIC, NOC 조사를 위해 결과를 먼저 계산하세요.");
+          return;
+        }
+        const searchQuery = encodeURIComponent(
+          `노인의 독립성을 위한 간호 케어 ${scaleName} 점수 ${score} NANDA NIC NOC`,
+        );
+        window.open(
+          `https://www.google.com/search?q=${searchQuery}`,
+          "_blank",
+        );
+      });
+    });
+  </script>
 
   <script src="/lang-selector.js" defer=""></script>
 

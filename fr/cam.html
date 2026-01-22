@@ -617,7 +617,130 @@
 
 
 
-  
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const resultadoDiv = document.getElementById('resultado');
+      const conteudoDiv = document.getElementById('conteudo');
+      const btnCalcular = document.getElementById('btnCalcular');
+      const btnLimpar = document.getElementById('btnLimpar');
+      const btnGerarPDF = document.getElementById('btnGerarPDF');
+      const btnNandaNicNoc = document.getElementById('btnNandaNicNoc');
+
+      const camData = [
+        { id: "feature1", title: "1. Début Aigu et Cours Fluctuation", description: "Y a-t-il eu un changement soudain dans l'état mental et a-t-il fluctué au cours des dernières 24 heures ?", options: [{ score: 1, text: "Oui" }, { score: 0, text: "Non" }] },
+        { id: "feature2", title: "2. Inattention", description: "Le patient a-t-il des difficultés à maintenir son attention ?", options: [{ score: 1, text: "Oui (avec inattention)" }, { score: 0, text: "Non (sans inattention)" }] },
+        { id: "feature3", title: "3. Pensée Désorganisée", description: "Le patient présente-t-il un raisonnement désorganisé ou incohérent ?", options: [{ score: 1, text: "Oui" }, { score: 0, text: "Non" }] },
+        { id: "feature4", title: "4. Niveau de Conscience Altéré", description: "Le niveau de conscience est-il différent de 'éveillé et calme' (RASS ≠ 0) ?", options: [{ score: 1, text: "Oui (altéré)" }, { score: 0, text: "Non (normal/éveillé)" }] }
+      ];
+
+      function createForm() {
+        conteudoDiv.innerHTML = '';
+        camData.forEach(criterion => {
+          const card = document.createElement('div');
+          card.className = 'criterion-card';
+
+          card.innerHTML = `
+                    <div class="criterion-title-container">
+                        <h3 class="criterion-title">${criterion.title}</h3>
+                        <p class="criterion-description">${criterion.description}</p>
+                    </div>
+                    <div class="options-container">
+                        <select id="${criterion.id}-select" class="custom-select">
+                            <option value="" disabled selected>Sélectionnez une option...</option>
+                            ${criterion.options.map(opt => `<option value="${opt.score}">${opt.text}</option>`).join('')}
+                        </select>
+                    </div>
+                `;
+          conteudoDiv.appendChild(card);
+        });
+      }
+
+      function calcular() {
+        let allSelected = true;
+        const selections = {};
+
+        camData.forEach(criterion => {
+          const select = document.getElementById(`${criterion.id}-select`);
+          if (select && select.value) {
+            selections[criterion.id] = parseInt(select.value, 10);
+          } else {
+            allSelected = false;
+          }
+        });
+
+        if (!allSelected) {
+          resultadoDiv.innerHTML = '⚠️ <strong class="font-bold">Veuillez sélectionner une option pour chaque critère.</strong>';
+          resultadoDiv.className = 'standard-result-box bg-info-orange-light';
+          resultadoDiv.style.display = 'block';
+          delete resultadoDiv.dataset.resultado;
+          return;
+        }
+
+        const feature1 = selections.feature1 === 1;
+        const feature2 = selections.feature2 === 1;
+        const feature3 = selections.feature3 === 1;
+        const feature4 = selections.feature4 === 1;
+
+        let resultadoFinal = "";
+        if (feature1 && feature2 && (feature3 || feature4)) {
+          resultadoFinal = "Delirium Présent";
+        } else {
+          resultadoFinal = "Delirium Absent";
+        }
+
+        resultadoDiv.innerHTML = `<p class="font-bold text-lg">Résultat: <span class="font-black">${resultadoFinal}</span></p>`;
+        resultadoDiv.className = 'standard-result-box';
+        resultadoDiv.style.display = 'block';
+        resultadoDiv.dataset.resultado = resultadoFinal;
+      }
+
+      function limpar() {
+        createForm();
+        resultadoDiv.innerHTML = '';
+        resultadoDiv.className = 'hidden';
+        delete resultadoDiv.dataset.resultado;
+      }
+
+      createForm();
+      btnCalcular?.addEventListener('click', calcular);
+      btnLimpar?.addEventListener('click', limpar);
+
+      // As funções de PDF e NANDA precisam ser adaptadas para o CAM-ICU se o PDF for gerado.
+      // O código de PDF não foi fornecido para CAM-ICU, então a função será mantida genérica ou adaptada
+
+      // Simulação da função gerarPDF (baseada em Aldrete/Bishop)
+      btnGerarPDF?.addEventListener('click', () => {
+        const resultado = resultadoDiv.dataset.resultado;
+        if (resultado === undefined) {
+          // Substitui alert() por mensagem visível na tela
+          const msg = document.createElement('div');
+          msg.className = 'standard-result-box bg-info-orange-light mb-4';
+          msg.innerHTML = '⚠️ <strong class="font-bold">Veuillez calculer le score avant de générer le PDF.</strong>';
+          resultadoDiv.parentNode.insertBefore(msg, resultadoDiv);
+          setTimeout(() => msg.remove(), 5000);
+          return;
+        }
+        // Simulação de geração de PDF
+        console.log(`Génération du PDF pour l'Échelle CAM-ICU. Résultat: ${resultado}`);
+        // A implementação real do PDF deve ser adicionada aqui
+      });
+
+      btnNandaNicNoc?.addEventListener('click', () => {
+        const resultado = resultadoDiv.dataset.resultado;
+        if (!resultado) {
+          // Substitui alert() por mensagem visível na tela
+          const msg = document.createElement('div');
+          msg.className = 'standard-result-box bg-info-orange-light mb-4';
+          msg.innerHTML = '⚠️ <strong class="font-bold">Veuillez calculer le score pour rechercher la conduite.</strong>';
+          resultadoDiv.parentNode.insertBefore(msg, resultadoDiv);
+          setTimeout(() => msg.remove(), 5000);
+          return;
+        }
+        const searchQuery = encodeURIComponent(`CAM-ICU résultat ${resultado} générer taxonomie NANDA, générer taxonomie NIC et générer taxonomie de NOC`);
+        window.open(`https://www.google.com/search?q=${searchQuery}`, '_blank');
+      });
+    });
+  </script>
 
 
 

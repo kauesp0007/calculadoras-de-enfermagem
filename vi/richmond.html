@@ -646,7 +646,153 @@
 
 
 
-  
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const resultadoDiv = document.getElementById("resultado");
+      const btnCalcular = document.getElementById("btnCalcular");
+      const btnLimpar = document.getElementById("btnLimpar");
+      const btnGerarPDF = document.getElementById("btnGerarPDF");
+      const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
+      const tabelaRASS = document.getElementById("tabelaRASS");
+      let scoreSelecionado = null;
+      let interpretacaoSelecionada = null;
+
+      // Dados da escala de Richmond
+      const rassData = [
+        {
+          score: "+4",
+          description:
+            "Rất kích động: hung hãn, nguy hiểm cho bản thân và người khác."
+        },
+        {
+          score: "+3",
+          description:
+            "Kích động: Kéo hoặc tháo ống/ống thông, có hành vi gây hấn."
+        },
+        {
+          score: "+2",
+          description:
+            "Rất bồn chồn: Di chuyển thường xuyên và thiếu phối hợp, không có tính hung hăng."
+        },
+        {
+          score: "+1",
+          description: "Bồn chồn: Lo lắng, có những cử động không hung hăng."
+        },
+        { score: "0", description: "Cảnh giác và bình tĩnh: Trạng thái lý tưởng." },
+        {
+          score: "-1",
+          description:
+            "Buồn ngủ: Thức dậy trong >10 giây, liên tục giao tiếp bằng mắt."
+        },
+        { score: "-2", description: "Gay mê nhẹ: Tiếp xúc giác mắt trong thời gian ngắn." },
+        {
+          score: "-3",
+          description: "Gay mê vừa phải: Di ​​​​chuyển mà không cần tiếp xúc bằng mắt."
+        },
+        {
+          score: "-4",
+          description: "Độ sâu sâu: Đáp ứng với kích thích đau."
+        },
+        {
+          score: "-5",
+          description: "Không có phản ứng: Không có phản ứng với các kích thước."
+        }];
+
+
+      // Adiciona event listeners para a seleção das linhas da tabela
+      tabelaRASS?.addEventListener("click", function (e) {
+        const targetRow = e.target.closest("tr");
+        if (targetRow) {
+          tabelaRASS.
+            querySelectorAll("tr").
+            forEach((row) => row.classList.remove("đã chọn"));
+          targetRow.classList.add("đã chọn");
+          scoreSelecionado = targetRow.getAttribute("data-score");
+          interpretacaoSelecionada = targetRow.cells[1].textContent.trim();
+        }
+      });
+
+      function calcularRASS() {
+        if (scoreSelecionado === null) {
+          resultadoDiv.innerHTML =
+            '⚠️ <strong class="font-bold">Por favor, selecione um nível da escala</strong> antes de continuar.';
+          resultadoDiv.className = "Còn bg-info-orange-light thì sao";
+          resultadoDiv.style.display = "block";
+          delete resultadoDiv.dataset.score;
+          return;
+        }
+
+        let resultadoClasses = "";
+        if (parseInt(scoreSelecionado) >= 2) {
+          resultadoClasses = "bg-danger-red-light";
+        } else if (
+          parseInt(scoreSelecionado) >= -3 &&
+          parseInt(scoreSelecionado) <= 1) {
+          resultadoClasses = "bg-warning-yellow-light";
+        } else {
+          // Score -4 ou -5
+          resultadoClasses = "bg-danger-red-light";
+        }
+
+        resultadoDiv.innerHTML = `<p>Pontuação RASS: <strong class="font-bold">${scoreSelecionado}</strong></p><p>Interpretação: <strong class="font-bold">${interpretacaoSelecionada}</strong></p>`;
+        resultadoDiv.className = `kết quả ${resultClasses}`;
+        resultadoDiv.style.display = "block";
+
+        resultadoDiv.dataset.score = scoreSelecionado;
+        resultadoDiv.dataset.classificacao = interpretacaoSelecionada;
+        resultadoDiv.dataset.scaleName = "Thang đo Richmond (RASS)";
+      }
+
+      function limparCampos() {
+        tabelaRASS.
+          querySelectorAll("tr").
+          forEach((row) => row.classList.remove("đã chọn"));
+        scoreSelecionado = null;
+        interpretacaoSelecionada = null;
+        resultadoDiv.innerHTML = "";
+        resultadoDiv.className = "kết quả ẩn";
+        delete resultadoDiv.dataset.score;
+        delete resultadoDiv.dataset.classificacao;
+        delete resultadoDiv.dataset.scaleName;
+      }
+
+      btnCalcular?.addEventListener("click", calcularRASS);
+      btnLimpar?.addEventListener("click", limparCampos);
+
+      btnGerarPDF?.addEventListener("click", () => {
+        if (!resultadoDiv.dataset.score) {
+          alert("Xem những gì bạn có thể thấy \"Tính toán\" trước để tạo thành tệp PDF.");
+          return;
+        }
+        if (typeof gerarPDFGlobal === "chức năng") {
+          gerarPDFGlobal({
+            titulo: "Thang đo Richmond (RASS)",
+            subtitulo: "Báo giá cao về kích hoạt và thần tượng",
+            nomeArquivo: "relatorio_escala_richmond.pdf",
+            seletorConteudo: ".main-content-wrapper"
+          });
+        } else {
+          console.error("Bạn không thể tạo PDFGlobal không được xác định.");
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener("click", () => {
+        const score = resultadoDiv.dataset.score;
+        const scaleName = resultadoDiv.dataset.scaleName;
+        const classificacao = resultadoDiv.dataset.classificacao;
+        if (!score || !classificacao) {
+          alert("Tính toán kết quả để nghiên cứu hành động vi.");
+          return;
+        }
+        const searchQuery = encodeURIComponent(
+          `${scaleName} điểm số ${score} phân loại ${classificacao} tạo phân loại NANDA, tạo phân loại NIC và tạo phân loại NOC`
+        );
+        window.open(
+          `https://www.google.com/search?q=${searchQuery}`,
+          "_blank"
+        );
+      });
+    });</script>
 
   <script src="/lang-selector.js" defer=""></script>
 

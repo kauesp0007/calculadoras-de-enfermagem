@@ -611,7 +611,221 @@
 
 
 
-  
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const resultadoDiv = document.getElementById('resultado');
+      const btnCalcular = document.getElementById('btnCalcular');
+      const btnLimpar = document.getElementById('btnLimpar');
+      const btnGerarPDF = document.getElementById('btnGerarPDF');
+      const btnNandaNicNoc = document.getElementById('btnNandaNicNoc');
+      const conteudoDiv = document.getElementById('conteudo');
+
+      // Данные шкалы Хампти Дампти
+      const humptyData = [
+        {
+          category: "Возраст",
+          nameAttr: "idade",
+          options: [
+            { description: "≥ 13 лет", score: 1 },
+            { description: "7-12 лет", score: 2 },
+            { description: "3-6 лет", score: 3 },
+            { description: "< 3 лет", score: 4 }
+          ],
+          explain: "Возраст является важным фактором риска падений, при этом младшие дети более уязвимы."
+        },
+        {
+          category: "Пол",
+          nameAttr: "sexo",
+          options: [
+            { description: "Женский", score: 1 },
+            { description: "Мужской", score: 2 }
+          ],
+          explain: "Мужской пол может иметь несколько больший риск."
+        },
+        {
+          category: "Диагноз",
+          nameAttr: "diagnostico",
+          options: [
+            { description: "Другие диагнозы", score: 1 },
+            { description: "Психические расстройства", score: 2 },
+            { description: "Нарушение оксигенации (дыхание, обезвоживание, анемия)", score: 3 },
+            { description: "Неврологический", score: 4 }
+          ],
+          explain: "Некоторые диагнозы увеличивают предрасположенность к падениям."
+        },
+        {
+          category: "Когнитивные нарушения",
+          nameAttr: "cognitivas",
+          options: [
+            { description: "Ориентирован согласно своим способностям", score: 1 },
+            { description: "Забывает о своих ограничениях", score: 2 },
+            { description: "Не осознаёт своих ограничений", score: 3 }
+          ],
+          explain: "Способность распознавать ограничения и риски влияет на вероятность падений."
+        },
+        {
+          category: "Факторы окружающей среды",
+          nameAttr: "ambientais",
+          options: [
+            { description: "Ходящий ребёнок", score: 1 },
+            { description: "Прикованный к постели ребёнок", score: 2 },
+            { description: "Использует вспомогательные приспособления, кроватка/кровать с большим количеством оборудования, слабое освещение", score: 3 },
+            { description: "История предыдущих падений", score: 4 }
+          ],
+          explain: "Больничная среда и история пациента важны для риска падений."
+        },
+        {
+          category: "Применение лекарств",
+          nameAttr: "medicacao",
+          options: [
+            { description: "Применяет другие лекарства или не применяет", score: 1 },
+            { description: "Применяет 1 из следующих: седативные, снотворные, наркотические", score: 2 },
+            { description: "Применяет ≥ 2 из следующих: седативные, снотворные, наркотические", score: 3 }
+          ],
+          explain: "Определённые лекарства влияют на сознание и равновесие, увеличивая риск."
+        },
+        {
+          category: "Хирургия / Седация / Анестезия",
+          nameAttr: "cirurgia",
+          options: [
+            { description: "Более 48 часов назад или никаких", score: 1 },
+            { description: "48 часов назад", score: 2 },
+            { description: "24 часа назад", score: 3 }
+          ],
+          explain: "Постпроцедурный период несёт больший риск из-за остаточных эффектов."
+        }
+      ];
+
+      // Заполняет форму динамически
+      humptyData.forEach(item => {
+        const sectionDiv = document.createElement('div');
+        sectionDiv.className = 'humpty-criterion-section';
+        sectionDiv.id = `section-${item.nameAttr}`;
+
+        const titleH3 = document.createElement('h3');
+        titleH3.className = 'humpty-criterion-title';
+        titleH3.innerHTML = item.category + `
+              <div class="text-sm font-normal text-gray-500 mt-1">${item.explain}</div>`;
+        sectionDiv.appendChild(titleH3);
+
+        const selectElement = document.createElement('select');
+        selectElement.id = item.nameAttr;
+        selectElement.className = 'humpty-criterion-select';
+
+        const defaultOption = document.createElement('option');
+        defaultOption.value = "";
+        defaultOption.text = "Выберите...";
+        selectElement.appendChild(defaultOption);
+
+        item.options.forEach(option => {
+          const optionElement = document.createElement('option');
+          optionElement.value = option.score;
+          optionElement.text = `${option.description} (баллы: ${option.score})`;
+          selectElement.appendChild(optionElement);
+        });
+
+        sectionDiv.appendChild(selectElement);
+        conteudoDiv.appendChild(sectionDiv);
+      });
+
+      function calcularHumpty() {
+        const selects = document.querySelectorAll('#conteudo select');
+        let allSelected = true;
+        let total = 0;
+
+        selects.forEach(select => {
+          if (select.value === "") {
+            allSelected = false;
+            select.classList.add('incomplete');
+          } else {
+            select.classList.remove('incomplete');
+            total += Number(select.value);
+          }
+        });
+
+        resultadoDiv.style.display = "block";
+        if (!allSelected) {
+          resultadoDiv.innerHTML = '⚠️ <strong class="font-bold">Пожалуйста, выберите вариант для всех пунктов перед расчётом.</strong>';
+          resultadoDiv.style.display = "block";
+          delete resultadoDiv.dataset.score;
+          return;
+        }
+
+        let classificacao = '';
+        let recomendacao = '';
+
+        // Определения оценки согласно документации
+        // Низкий риск: 7-11 баллов
+        // Высокий риск: 12-22 баллов
+        if (total >= 7 && total <= 11) {
+          classificacao = 'Низкий риск';
+          recomendacao = 'У ребёнка низкий риск падения. Продолжайте со стандартными превентивными мерами и периодически переоценивайте.';
+        } else if (total >= 12 && total <= 22) {
+          classificacao = 'Высокий риск';
+          recomendacao = 'У ребёнка высокий риск падения. Немедленно внедрите меры по предотвращению падений для педиатрических пациентов.';
+        } else {
+          classificacao = 'Оценка вне стандарта';
+          recomendacao = 'Рассчитанная оценка находится вне ожидаемого диапазона классификации. Проверьте выбранные значения.';
+        }
+
+        resultadoDiv.innerHTML = `
+                <p>Общая оценка: <strong class="font-bold">${total}</strong></p>
+                <p>Классификация: <strong class="font-bold">${classificacao}</strong></p>
+                <p class="mt-4"><strong>Рекомендация:</strong> ${recomendacao}</p>
+            `;
+        resultadoDiv.style.display = "block";
+
+        resultadoDiv.dataset.score = total;
+        resultadoDiv.dataset.scaleName = "Шкала падений Хампти Дампти";
+        resultadoDiv.dataset.classificacao = classificacao;
+      }
+
+      function limparCampos() {
+        const selects = document.querySelectorAll('#conteudo select');
+        selects.forEach(select => {
+          select.selectedIndex = 0;
+          select.classList.remove('incomplete');
+        });
+        resultadoDiv.innerHTML = '';
+        resultadoDiv.style.display = "none";
+        delete resultadoDiv.dataset.score;
+        delete resultadoDiv.dataset.scaleName;
+        delete resultadoDiv.dataset.classificacao;
+      }
+
+      btnCalcular?.addEventListener('click', calcularHumpty);
+      btnLimpar?.addEventListener('click', limparCampos);
+
+      btnGerarPDF?.addEventListener('click', () => {
+        if (!resultadoDiv.dataset.score) {
+          alert('Пожалуйста, сначала нажмите "Рассчитать Оценку" для создания PDF.');
+          return;
+        }
+        if (typeof gerarPDFGlobal === 'function') {
+          gerarPDFGlobal({
+            titulo: 'Шкала падений Хампти Дампти',
+            subtitulo: 'Отчёт об оценке риска падений',
+            nomeArquivo: 'relatorio_escala_humpty_dumpty.pdf',
+            seletorConteudo: '.main-content-wrapper'
+          });
+        } else {
+          console.error('Функция gerarPDFGlobal не определена.');
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener('click', () => {
+        const score = resultadoDiv.dataset.score;
+        const scaleName = resultadoDiv.dataset.scaleName;
+        const classificacao = resultadoDiv.dataset.classificacao;
+        if (!score || !classificacao) {
+          alert('Рассчитайте результат для поиска рекомендаций.');
+          return;
+        }
+        const searchQuery = encodeURIComponent(`${scaleName} оценка ${score} педиатрический пациент ${classificacao} генерировать таксономию NANDA, генерировать таксономию NIC и генерировать таксономию NOC`);
+        window.open(`https://www.google.com/search?q=${searchQuery}`, '_blank');
+      });
+    });
+  </script>
 
 
 

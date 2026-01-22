@@ -527,7 +527,247 @@
 
 
 
-  
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      fetch("footer.html")
+        .then((response) => response.text())
+        .then((data) => {
+          document.getElementById("footer-placeholder").innerHTML = data;
+        });
+      const criteria = [
+        {
+          title: "Aktivität",
+          options: [
+            { text: "Kann alle Gliedmaßen bewegen", score: 2 },
+            { text: "Kann zwei Gliedmaßen bewegen", score: 1 },
+            { text: "Kann keine Gliedmaßen bewegen", score: 0 },
+          ],
+        },
+        {
+          title: "Atmung",
+          options: [
+            { text: "Kann tief atmen und husten", score: 2 },
+            { text: "Dyspnoe oder flache Atmung", score: 1 },
+            { text: "Apnoe", score: 0 },
+          ],
+        },
+        {
+          title: "Kreislauf",
+          options: [
+            {
+              text: "Blutdruck (BP) ± 20% des präanästhetischen Wertes",
+              score: 2,
+            },
+            {
+              text: "Blutdruck (BP) ± 20-50% des präanästhetischen Wertes",
+              score: 1,
+            },
+            {
+              text: "Blutdruck (BP) > 50% des präanästhetischen Wertes",
+              score: 0,
+            },
+          ],
+        },
+        {
+          title: "Bewusstsein",
+          options: [
+            { text: "Vollständig wach", score: 2 },
+            { text: "Reagiert nur auf Stimuli", score: 1 },
+            { text: "Reagiert nicht", score: 0 },
+          ],
+        },
+        {
+          title: "Sauerstoffsättigung (SpO₂)",
+          options: [
+            { text: "SpO₂ > 92% bei Raumluft", score: 2 },
+            {
+              text: "SpO₂ < 92% bei Raumluft (Sauerstoff erforderlich)",
+              score: 1,
+            },
+            { text: "SpO₂ < 92% mit Sauerstoffzufuhr", score: 0 },
+          ],
+        },
+      ];
+
+      const contentDiv = document.getElementById("conteudo");
+      const resultadoDiv = document.getElementById("resultado");
+      const btnCalcular = document.getElementById("btnCalcular");
+      const btnLimpar = document.getElementById("btnLimpar");
+      const btnGerarPDF = document.getElementById("btnGerarPDF");
+      const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
+
+      function showMessage(msg, className) {
+        resultadoDiv.innerHTML = msg;
+        resultadoDiv.className = `resultado ${className} mt-6 p-4 rounded-lg`;
+        resultadoDiv.style.display = "block";
+        resultadoDiv.focus();
+      }
+
+      function calcularAldrete() {
+        const radios = document.querySelectorAll('input[name^="q"]');
+        let totalScore = 0;
+        let allAnswered = true;
+
+        radios.forEach((radio) => {
+          if (radio.checked) {
+            totalScore += parseInt(radio.value, 10);
+            const criterionCard = radio.closest(".criterion-container");
+            criterionCard.classList.remove("incomplete");
+          }
+        });
+
+        const criterionGroups = document.querySelectorAll(
+          ".criterion-container",
+        );
+        criterionGroups.forEach((group) => {
+          const groupRadios = group.querySelectorAll('input[type="radio"]');
+          const isGroupAnswered = Array.from(groupRadios).some(
+            (radio) => radio.checked,
+          );
+          if (!isGroupAnswered) {
+            group.classList.add("incomplete");
+            allAnswered = false;
+          }
+        });
+
+        if (!allAnswered) {
+          showMessage(
+            "⚠️ <strong>Bitte beantworten Sie alle Fragen</strong>, um die Punktzahl zu berechnen.",
+            "bg-info-orange-light",
+          );
+          delete resultadoDiv.dataset.score;
+          return;
+        }
+
+        let classification = "";
+        let colorClass = "";
+        let conduta = "";
+        if (totalScore >= 9) {
+          classification = "Stabile Erholung - Entlassung möglich";
+          colorClass = "bg-aldrete-alta";
+          conduta = "Entlassung aus dem PACU";
+        } else if (totalScore >= 7) {
+          classification = "Instabile Erholung - Beobachtung erforderlich";
+          colorClass = "bg-aldrete-observacao";
+          conduta =
+            "Beobachtung und erneute Bewertung des Patienten in 15 Minuten";
+        } else {
+          classification =
+            "Instabile Erholung - Instabil, Rückkehr in den Operationssaal oder Fortsetzung der Intensivpflege erforderlich";
+          colorClass = "bg-aldrete-instavel";
+          conduta =
+            "Rückkehr in den Operationssaal oder fortgesetzte Intensivpflege";
+        }
+
+        showMessage(
+          `
+                    <h3 class="font-bold text-lg mb-2">Ergebnis der Aldrete- und Kroulik-Skala</h3>
+                    <p class="mb-1"><strong>Gesamtpunktzahl:</strong> <span class="text-xl font-bold">${totalScore}</span> Punkte</p>
+                    <p><strong>Klassifikation:</strong> ${classification}</p>
+                `,
+          colorClass,
+        );
+
+        resultadoDiv.dataset.score = totalScore;
+        resultadoDiv.dataset.conduta = conduta;
+      }
+
+      function limparCampos() {
+        document.querySelectorAll('input[type="radio"]').forEach((radio) => {
+          radio.checked = false;
+        });
+        document.querySelectorAll(".criterion-container").forEach((card) => {
+          card.classList.remove("incomplete");
+        });
+        resultadoDiv.style.display = "none";
+        resultadoDiv.innerHTML = "";
+        delete resultadoDiv.dataset.score;
+        delete resultadoDiv.dataset.conduta;
+      }
+
+      function createCriteriaList() {
+        const contentDiv = document.getElementById("conteudo");
+        contentDiv.innerHTML = "";
+        criteria.forEach((criterion, index) => {
+          const details = document.createElement("details");
+          details.className =
+            "criterion-container bg-white rounded-lg shadow-md p-4 mb-4 border border-gray-200";
+
+          const summary = document.createElement("summary");
+          summary.className =
+            "flex justify-between items-center cursor-pointer font-bold text-dark-blue text-lg p-2 -m-2";
+          summary.innerHTML = `
+                        <span>${criterion.title}</span>
+                        <i class="fas fa-chevron-down chevron-icon"></i>
+                    `;
+
+          const optionsDiv = document.createElement("div");
+          optionsDiv.className = "mt-4 space-y-2 text-gray-700";
+
+          criterion.options.forEach((option, optionIndex) => {
+            const optionId = `q${index + 1}_opt${optionIndex + 1}`;
+            const optionDiv = document.createElement("div");
+            optionDiv.className = "flex items-center space-x-2";
+            optionDiv.innerHTML = `
+                            <input type="radio" id="${optionId}" name="q${index + 1}" value="${option.score}" class="radio-input h-4 w-4 text-light-blue" aria-labelledby="label-${optionId}" />
+                            <label for="${optionId}" class="option-label" id="label-${optionId}">${option.text} (${option.score} Punkte)</label>
+                        `;
+            optionsDiv.appendChild(optionDiv);
+          });
+
+          details.appendChild(summary);
+          details.appendChild(optionsDiv);
+          contentDiv.appendChild(details);
+        });
+      }
+
+      btnCalcular.addEventListener("click", calcularAldrete);
+      btnLimpar.addEventListener("click", limparCampos);
+
+      btnGerarPDF?.addEventListener("click", () => {
+        if (!resultadoDiv || !resultadoDiv.dataset.score) {
+          alert(
+            'Bitte klicken Sie zuerst auf "Berechnen", um das PDF zu generieren.',
+          );
+          return;
+        }
+
+        if (typeof gerarPDFGlobal === "function") {
+          gerarPDFGlobal({
+            titulo: "Aldrete- und Kroulik-Skala",
+            subtitulo: "Bericht zur postanästhetischen Erholung",
+            nomeArquivo: "bericht_aldrete_skala.pdf",
+            seletorConteudo: ".main-content-wrapper",
+          });
+        } else {
+          alert(
+            "Fehler: Die Funktion zum Generieren des PDF wurde nicht gefunden.",
+          );
+          console.error("Funktion gerarPDFGlobal nicht definiert.");
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener("click", () => {
+        const currentConduta = resultadoDiv.dataset.conduta;
+        if (!currentConduta) {
+          alert(
+            "Berechnen Sie das Ergebnis, um nach der Vorgehensweise zu suchen.",
+          );
+          return;
+        }
+        const searchQuery = encodeURIComponent(
+          `${currentConduta} Taxonomie NANDA, NIC und NOC`,
+        );
+        window.open(
+          `https://www.google.com/search?q=${searchQuery}`,
+          "_blank",
+        );
+      });
+
+      // Initialisiert den Rechner
+      createCriteriaList();
+    });
+  </script>
 
   <script src="/lang-selector.js" defer=""></script>
   <div id="footer-placeholder"></div>

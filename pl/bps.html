@@ -572,7 +572,219 @@
 
 
 
-  
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const resultadoDiv = document.getElementById("resultado");
+      const btnCalcular = document.getElementById("btnCalcular");
+      const btnLimpar = document.getElementById("btnLimpar");
+      const btnGerarPDF = document.getElementById("btnGerarPDF");
+      const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
+      const conteudoDiv = document.getElementById("conteudo");
+
+      const bpsData = [
+        {
+          title: "Wyraz twarzy",
+          nameAttr: "expressao_facial",
+          options: [
+            { description: "Relaxada", score: 1 },
+            {
+              description: "Parcialmente tensa (sobrancelhas franzidas)",
+              score: 2
+            },
+            {
+              description: "Całkowicie spięty (zakontraktowane cechy)",
+              score: 3
+            },
+            { description: "Careta", score: 4 }]
+
+        },
+        {
+          title: "Movimentos de Membros Superiores",
+          nameAttr: "movimentos_superiores",
+          options: [
+            { description: "Relaxados", score: 1 },
+            { description: "Parcialmente fletidos", score: 2 },
+            { description: "Pełne zgięcie z naprężeniem", score: 3 },
+            { description: "Ciągle schowany", score: 4 }]
+
+        },
+        {
+          title: "Zgodność z wentylatorami mechanicznymi",
+          nameAttr: "fan_compliance",
+          options: [
+            { description: "Adaptado ao ventilador", score: 1 },
+            { description: "Tosse ou luta contra o ventilador", score: 2 },
+            {
+              description: "Luta ativamente (alarme do ventilador)",
+              score: 3
+            },
+            {
+              description:
+                "Nie dostosowuje się do wentylatora (alarm wentylatora nie zatrzymuje się)",
+              score: 4
+            }]
+
+        }];
+
+
+      // Preenche o formulário dinamicamente
+      bpsData.forEach((item) => {
+        const sectionDiv = document.createElement("div");
+        sectionDiv.className = "bps-criterion-section";
+        sectionDiv.id = `section-${item.nameAttr}`;
+
+        const titleH3 = document.createElement("h3");
+        titleH3.className = "bps-criterion-title";
+        titleH3.innerHTML = item.title;
+        sectionDiv.appendChild(titleH3);
+
+        const selectElement = document.createElement("select");
+        selectElement.id = item.nameAttr;
+        selectElement.className = "bps-criterion-select mt-2";
+
+        const defaultOption = document.createElement("option");
+        defaultOption.value = "";
+        defaultOption.text = "Wybierz...";
+        selectElement.appendChild(defaultOption);
+
+        item.options.forEach((option) => {
+          const optionElement = document.createElement("option");
+          optionElement.value = option.score;
+          optionElement.text = `${option.description} (pontos: ${option.score})`;
+          selectElement.appendChild(optionElement);
+        });
+
+        sectionDiv.appendChild(selectElement);
+        conteudoDiv.appendChild(sectionDiv);
+      });
+
+      function calcularBPS() {
+        const selects = document.querySelectorAll("#conteudo select");
+        let allSelected = true;
+        let total = 0;
+
+        selects.forEach((select) => {
+          if (select.value === "") {
+            allSelected = false;
+            select.classList.add("incomplete");
+          } else {
+            select.classList.remove("incomplete");
+            total += Number(select.value);
+          }
+        });
+
+        resultadoDiv.style.display = "block";
+        if (!allSelected) {
+          resultadoDiv.innerHTML =
+            '⚠️ <strong class="font-bold">Por favor, selecione uma opção para todos os itens antes de calcular.</strong>';
+          resultadoDiv.className = `Wynik bg-red-100`;
+          delete resultadoDiv.dataset.score;
+          return;
+        }
+
+        let recomendacao = "";
+
+        if (total <= 5) {
+          recomendacao = `O escore de ${total} wskazuje na łagodny ból lub jego brak. Należy kontynuować monitorowanie pacjenta.`;
+        } else if (total >= 6 && total <= 9) {
+          recomendacao = `O escore de ${total} wskazuje na umiarkowany ból. Zaleca się ocenę metod łagodzenia bólu, zarówno farmakologicznych, jak i niefarmakologicznych, oraz monitorowanie reakcji pacjenta.`;
+        } else {
+          // total >= 10
+          recomendacao = `O escore de ${total} wskazuje na silny ból. Konieczna jest natychmiastowa interwencja w celu złagodzenia bólu, a plan leczenia powinien zostać zweryfikowany przez lekarza.`;
+        }
+
+        resultadoDiv.innerHTML = `
+                <p>Escore total: <strong class="font-bold">${total}</strong></p>
+                <p class="mt-4"><strong>Recomendação:</strong> ${recomendacao}</p>
+            `;
+        resultadoDiv.className = `Wynik bg-blue-50`;
+        resultadoDiv.style.display = "block";
+
+        resultadoDiv.dataset.score = total;
+        resultadoDiv.dataset.scaleName = "Escala BPS";
+      }
+
+      function limparCampos() {
+        const selects = document.querySelectorAll("#conteudo select");
+        selects.forEach((select) => {
+          select.selectedIndex = 0;
+          select.classList.remove("incomplete");
+        });
+        resultadoDiv.innerHTML = "";
+        resultadoDiv.className = "ukryty wynik";
+        delete resultadoDiv.dataset.score;
+        delete resultadoDiv.dataset.scaleName;
+      }
+
+      // Adiciona os event listeners aos botões
+      btnCalcular?.addEventListener("click", calcularBPS);
+      btnLimpar?.addEventListener("click", limparCampos);
+
+      btnGerarPDF?.addEventListener("click", () => {
+        if (!resultadoDiv.dataset.score) {
+          alert(
+            "Kliknij najpierw \"Oblicz wynik\", aby wygenerować plik PDF."
+          );
+          return;
+        }
+        if (typeof gerarPDFGlobal === "function") {
+          const selectedOptions = {};
+          document.querySelectorAll("#conteudo select").forEach((select) => {
+            const selected = select.options[select.selectedIndex];
+            if (selected.value !== "") {
+              selectedOptions[select.id] = selected.text;
+            }
+          });
+
+          let contentToPrint = document.
+            querySelector(".main-content-wrapper").
+            cloneNode(true);
+          let contentContainer = contentToPrint.querySelector("#conteudo");
+
+          contentContainer.innerHTML = "";
+
+          bpsData.forEach((item) => {
+            let selectedText = selectedOptions[item.nameAttr];
+            if (selectedText) {
+              let itemDiv = document.createElement("div");
+              itemDiv.className = "mb-2 p-2 bg-gray-50 rounded";
+              itemDiv.innerHTML = `<strong>${item.title}:</strong> ${selectedText}`;
+              contentContainer.appendChild(itemDiv);
+            }
+          });
+
+          let resultadoHtml = resultadoDiv.cloneNode(true);
+          if (resultadoHtml.style.display !== "none") {
+            contentContainer.appendChild(resultadoHtml);
+          }
+
+          gerarPDFGlobal({
+            titulo: "Escala BPS",
+            subtitulo: "Raport z oceny bólu u pacjentów w stanie krytycznym",
+            nomeArquivo: "relatorio_escala_bps.pdf",
+            seletorConteudo: ".main-content-wrapper"
+          });
+        } else {
+          console.error("Funkcja GeneratePDFGlobal nie została zdefiniowana.");
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener("click", () => {
+        const score = resultadoDiv.dataset.score;
+        const scaleName = resultadoDiv.dataset.scaleName;
+        if (!score) {
+          alert("Oblicz wynik, aby wyszukać zachowanie.");
+          return;
+        }
+        const searchQuery = encodeURIComponent(
+          `${scaleName} wynik ${score} gerar taxonomia NANDA, gerar taxonomia NIC e gerar taxonomia de NOC`
+        );
+        window.open(
+          `https://www.google.com/search?q=${searchQuery}`,
+          "_blank"
+        );
+      });
+    });</script>
 
   <script src="/lang-selector.js" defer=""></script>
 

@@ -820,7 +820,409 @@
 
 
 
-  
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const resultadoDiv = document.getElementById("resultado");
+      const btnCalcular = document.getElementById("btnCalcular");
+      const btnLimpar = document.getElementById("btnLimpar");
+      const btnGerarPDF = document.getElementById("btnGerarPDF");
+      const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
+      const conteudoDiv = document.getElementById("conteudo");
+
+      // Tinetti ölçeği verileri
+      const tinettiData = [
+        {
+          title: "1. Oturma Dengesi",
+          nameAttr: "sentado",
+          explain: "Bir sandalyede otururken stabiliteyi koruma yeteneği.",
+          options: [
+            { description: "Kayıyor, sandalyede aşağı kayıyor", score: 0 },
+            { description: "Sağlam ve güvenli", score: 1 },
+          ],
+        },
+        {
+          title: "2. Kalkma",
+          nameAttr: "levantando",
+          explain: "Sandalyeden kalkma yeteneği.",
+          options: [
+            { description: "Yardım olmaksızın kalkamıyor", score: 0 },
+            {
+              description:
+                "Kalkabilir, ancak kalkmak için kollarını kullanır",
+              score: 1,
+            },
+            { description: "Kalkabilir, kollarını kullanmaz", score: 2 },
+          ],
+        },
+        {
+          title: "3. Kalkmaya Çalışma",
+          nameAttr: "tentando_levantar",
+          explain: "Kalkmak için deneme sayısını gözlemleyin.",
+          options: [
+            { description: "Kalkamıyor veya birden fazla deneme", score: 0 },
+            { description: "Tek denemede kalkabiliyor", score: 1 },
+          ],
+        },
+        {
+          title: "4. Kalkar kalkmaz (ilk 5 saniye)",
+          nameAttr: "apos_levantar",
+          explain: "Kalktıktan sonraki ilk 5 saniyede stabilite.",
+          options: [
+            {
+              description:
+                "Dengesiz (sallanıyor, ayaklarını ve gövdesini oynatıyor)",
+              score: 0,
+            },
+            {
+              description: "Başka bir kişi veya nesnenin desteğiyle dengeli",
+              score: 1,
+            },
+            {
+              description: "Destek olmaksızın dengeli, ancak sallanıyor",
+              score: 2,
+            },
+          ],
+        },
+        {
+          title: "5. Ayakta Durma Dengesi",
+          nameAttr: "em_pe",
+          explain: "Dik duruşta stabilite.",
+          options: [
+            { description: "Dengesi yok (0)", score: 0 },
+            { description: "Destek ile / destek tabanı > 9cm (1)", score: 1 },
+            {
+              description: "Destek olmaksızın / küçük destek tabanı (2)",
+              score: 2,
+            },
+          ],
+        },
+        {
+          title: "6. 3 Zaman Testi (göğüs)",
+          nameAttr: "teste_3_tempos",
+          explain:
+            "Göğse hafif bir itmeye karşı reaksiyon. Hasta ayakta olmalı, ayakları rahat mesafede.",
+          options: [
+            { description: "Düşmeye başlıyor (0)", score: 0 },
+            {
+              description: "Tutunuyor veya sallanıyor (kollar) (1)",
+              score: 1,
+            },
+            { description: "Dengeli (2)", score: 2 },
+          ],
+        },
+        {
+          title: "7. Gözler kapalıyken denge",
+          nameAttr: "olhos_fechados",
+          explain: "Gözler kapalıyken hastanın stabilitesi.",
+          options: [
+            { description: "Dengesizlik (0)", score: 0 },
+            { description: "Dengeli (1)", score: 1 },
+          ],
+        },
+        {
+          title: "8. 360° Döndürme",
+          nameAttr: "girando",
+          explain: "Tam bir tur atma ve stabilite yeteneğini gözlemleyin.",
+          options: [
+            { description: "Kesintili adımlar / dengesizlik (0)", score: 0 },
+            { description: "Sürekli adımlar / stabilite (1)", score: 1 },
+          ],
+        },
+        {
+          title: "9. Sandalyeye Oturma",
+          nameAttr: "sentando",
+          explain: "Sandalyeye oturma yeteneği.",
+          options: [
+            { description: "Güvensiz / sandalyeye düşüyor (0)", score: 0 },
+            {
+              description:
+                "Kollarını kullanır veya yumuşak hareket etmez (1)",
+              score: 1,
+            },
+            { description: "Sağlam ve güvenli (2)", score: 2 },
+          ],
+        },
+        {
+          title: "10. Yürüyüş Başlangıcı",
+          nameAttr: "inicio_marcha",
+          explain: "Yürüyüşün başlangıcını gözlemler.",
+          options: [
+            { description: "Çekinme veya çoklu denemeler (0)", score: 0 },
+            { description: "Çekinme yok (1)", score: 1 },
+          ],
+        },
+        {
+          title: "11. Adım uzunluğu ve yüksekliği",
+          nameAttr: "passo",
+          explain: "Adımın uzunluğunu ve yüksekliğini gözlemleyin.",
+          options: [
+            {
+              description:
+                "Sağ ayak sol ayak geçmiyor veya kaldırmıyor; Sol ayak sağ ayak geçmiyor veya kaldırmıyor (0)",
+              score: 0,
+            },
+            {
+              description:
+                "Sağ ayak sol ayak geçiyor ve kaldırıyor; Sol ayak sağ ayak geçiyor ve kaldırıyor (1)",
+              score: 1,
+            },
+          ],
+        },
+        {
+          title: "12. Adım simetrisi",
+          nameAttr: "simetria_passo",
+          explain: "Adımların simetrik olup olmadığını gözlemleyin.",
+          options: [
+            { description: "Eşitsiz uzunluklar (0)", score: 0 },
+            { description: "Eşit uzunluklar (1)", score: 1 },
+          ],
+        },
+        {
+          title: "13. Adım sürekliliği",
+          nameAttr: "continuidade_passo",
+          explain:
+            "Yürüyüşün akıcı olup olmadığını veya kesintiler olup olmadığını gözlemleyin.",
+          options: [
+            { description: "Duraklamalar veya süreksizlikler (0)", score: 0 },
+            { description: "Sürekli adımlar (1)", score: 1 },
+          ],
+        },
+        {
+          title: "14. Yürüyüş Yönü",
+          nameAttr: "direcao_marcha",
+          explain: "Yürüyüş çizgisinden sapmayı gözlemleyin.",
+          options: [
+            {
+              description:
+                "Büyük sapma veya çizgiyi korumak için yardım kullanımı (0)",
+              score: 0,
+            },
+            {
+              description: "Hafif veya orta sapma, ancak yardımsız (1)",
+              score: 1,
+            },
+            { description: "Sapma yok, düz çizgide yürüyüş (2)", score: 2 },
+          ],
+        },
+        {
+          title: "15. Gövde",
+          nameAttr: "tronco_marcha",
+          explain:
+            "Yürüyüş sırasında gövde salınımı ve kol kullanımını gözlemleyin.",
+          options: [
+            {
+              description:
+                "Gövde salınımı veya dengede kalmak için kolları kullanır (0)",
+              score: 0,
+            },
+            {
+              description: "Diz veya sırt fleksiyonu / kol açma (1)",
+              score: 1,
+            },
+            { description: "Salınım veya fleksiyon yok (2)", score: 2 },
+          ],
+        },
+        {
+          title: "16. Yürüyüşte destek tabanı",
+          nameAttr: "base_marcha",
+          explain: "Yürüyüş sırasında topuklar arasındaki mesafe.",
+          options: [
+            {
+              description: "Ayak bilekleri ayrık veya dengesiz (0)",
+              score: 0,
+            },
+            {
+              description:
+                "Ayak bilekleri birbirine değiyor veya yakın, sapmasız (1)",
+              score: 1,
+            },
+          ],
+        },
+      ];
+
+      // Formu dinamik olarak doldur
+      tinettiData.forEach((item) => {
+        const sectionDiv = document.createElement("div");
+        sectionDiv.className = "tinetti-criterion-section";
+        sectionDiv.id = `section-${item.nameAttr}`;
+
+        const titleH3 = document.createElement("h3");
+        titleH3.className = "tinetti-criterion-title";
+        titleH3.innerHTML = item.title;
+        sectionDiv.appendChild(titleH3);
+
+        const explainP = document.createElement("p");
+        explainP.className = "tinetti-criterion-explain";
+        explainP.innerHTML = item.explain;
+        sectionDiv.appendChild(explainP);
+
+        const selectElement = document.createElement("select");
+        selectElement.id = item.nameAttr;
+        selectElement.className = "tinetti-criterion-select mt-2";
+
+        const defaultOption = document.createElement("option");
+        defaultOption.value = "";
+        defaultOption.text = "Seçiniz...";
+        selectElement.appendChild(defaultOption);
+
+        item.options.forEach((option) => {
+          const optionElement = document.createElement("option");
+          optionElement.value = option.score;
+          optionElement.text = `${option.description} (puan: ${option.score})`;
+          selectElement.appendChild(optionElement);
+        });
+
+        sectionDiv.appendChild(selectElement);
+        conteudoDiv.appendChild(sectionDiv);
+      });
+
+      function calcularTinetti() {
+        const selects = document.querySelectorAll("#conteudo select");
+        let allSelected = true;
+        let total = 0;
+
+        selects.forEach((select) => {
+          if (select.value === "") {
+            allSelected = false;
+            select.classList.add("incomplete");
+          } else {
+            select.classList.remove("incomplete");
+            total += Number(select.value);
+          }
+        });
+
+        resultadoDiv.style.display = "block";
+        if (!allSelected) {
+          resultadoDiv.innerHTML =
+            '⚠️ <strong class="font-bold">Lütfen hesaplamadan önce tüm öğeler için bir seçenek belirleyin.</strong>';
+          resultadoDiv.className = `resultado bg-red-100`;
+          delete resultadoDiv.dataset.score;
+          return;
+        }
+
+        let recomendacao = "";
+
+        if (total <= 19) {
+          recomendacao = `${total} puanı yüksek düşme riskini gösterir. Güvenlik önlemlerinin uygulanması ve düşme önleme için müdahale planı önerilir.`;
+        } else {
+          recomendacao = `${total} puanı düşük düşme riskini gösterir. Hastanın mobilitesinin izlenmesine devam edin.`;
+        }
+
+        resultadoDiv.innerHTML = `
+                <p>Toplam skor: <strong class="font-bold">${total}</strong></p>
+                <p class="mt-4"><strong>Öneri:</strong> ${recomendacao}</p>
+            `;
+        resultadoDiv.className = `resultado bg-blue-50`;
+        resultadoDiv.style.display = "block";
+
+        resultadoDiv.dataset.score = total;
+        resultadoDiv.dataset.scaleName = "Tinetti Ölçeği";
+      }
+
+      function limparCampos() {
+        const selects = document.querySelectorAll("#conteudo select");
+        selects.forEach((select) => {
+          select.selectedIndex = 0;
+          select.classList.remove("incomplete");
+        });
+        resultadoDiv.innerHTML = "";
+        resultadoDiv.className = "resultado hidden";
+        delete resultadoDiv.dataset.score;
+        delete resultadoDiv.dataset.scaleName;
+      }
+
+      // Butonlara event listener'ları ekle
+      btnCalcular?.addEventListener("click", calcularTinetti);
+      btnLimpar?.addEventListener("click", limparCampos);
+
+      btnGerarPDF?.addEventListener("click", () => {
+        if (!resultadoDiv.dataset.score) {
+          alert(
+            'Lütfen önce PDF oluşturmak için "Skoru Hesapla" ya tıklayın.',
+          );
+          return;
+        }
+        if (typeof gerarPDFGlobal === "function") {
+          const selectedOptions = {};
+          document.querySelectorAll("#conteudo select").forEach((select) => {
+            const selected = select.options[select.selectedIndex];
+            if (selected.value !== "") {
+              selectedOptions[select.id] = selected.text;
+            }
+          });
+
+          let contentToPrint = document
+            .querySelector(".main-content-wrapper")
+            .cloneNode(true);
+          let contentContainer = contentToPrint.querySelector("#conteudo");
+
+          contentContainer.innerHTML = "";
+
+          let balanceSectionTitle = document.createElement("h3");
+          balanceSectionTitle.className = "text-lg font-semibold mt-4 mb-2";
+          balanceSectionTitle.innerText = `Denge Bölümü (Maksimum Puan: 16)`;
+          contentContainer.appendChild(balanceSectionTitle);
+
+          tinettiData.slice(0, 9).forEach((item) => {
+            let selectedText = selectedOptions[item.nameAttr];
+            if (selectedText) {
+              let itemDiv = document.createElement("div");
+              itemDiv.className = "mb-2 p-2 bg-gray-50 rounded";
+              itemDiv.innerHTML = `<strong>${item.title}:</strong> ${selectedText}`;
+              contentContainer.appendChild(itemDiv);
+            }
+          });
+
+          let gaitSectionTitle = document.createElement("h3");
+          gaitSectionTitle.className = "text-lg font-semibold mt-4 mb-2";
+          gaitSectionTitle.innerText = `Yürüyüş Bölümü (Maksimum Puan: 12)`;
+          contentContainer.appendChild(gaitSectionTitle);
+
+          tinettiData.slice(9, 16).forEach((item) => {
+            let selectedText = selectedOptions[item.nameAttr];
+            if (selectedText) {
+              let itemDiv = document.createElement("div");
+              itemDiv.className = "mb-2 p-2 bg-gray-50 rounded";
+              itemDiv.innerHTML = `<strong>${item.title}:</strong> ${selectedText}`;
+              contentContainer.appendChild(itemDiv);
+            }
+          });
+
+          let resultadoHtml = resultadoDiv.cloneNode(true);
+          if (resultadoHtml.style.display !== "none") {
+            contentContainer.appendChild(resultadoHtml);
+          }
+
+          gerarPDFGlobal({
+            titulo: "Tinetti Ölçeği",
+            subtitulo: "Yürüyüş ve Denge Değerlendirmesi Raporu",
+            nomeArquivo: "tinetti_olcegi_raporu.pdf",
+            seletorConteudo: ".main-content-wrapper",
+          });
+        } else {
+          console.error("gerarPDFGlobal fonksiyonu tanımlı değil.");
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener("click", () => {
+        const score = resultadoDiv.dataset.score;
+        const scaleName = resultadoDiv.dataset.scaleName;
+        if (!score) {
+          alert("Çareyi araştırmak için sonucu hesaplayın.");
+          return;
+        }
+        const recomendacaoRisco =
+          score <= 19 ? "yüksek düşme riski" : "düşük düşme riski";
+        const searchQuery = encodeURIComponent(
+          `Tinetti Ölçeğinde ${recomendacaoRisco} yaşlı hasta için hemşirelik bakımı NANDA NIC NOC`,
+        );
+        window.open(
+          `https://www.google.com/search?q=${searchQuery}`,
+          "_blank",
+        );
+      });
+    });
+  </script>
 
   <script src="/lang-selector.js" defer=""></script>
 

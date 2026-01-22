@@ -627,7 +627,197 @@
 
 
 
-    
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const resultadoDiv = document.getElementById('resultado');
+            const btnCalcular = document.getElementById('btnCalcular');
+            const btnLimpar = document.getElementById('btnLimpar');
+            const btnGerarPDF = document.getElementById('btnGerarPDF');
+            const btnNandaNicNoc = document.getElementById('btnNandaNicNoc');
+            const conteudoDiv = document.getElementById('conteudo');
+
+            const pelodData = [
+                {
+                    domain: "1. न्यूरोलॉजिकल (ग्लासगो कोमा स्केल - GCS)",
+                    nameAttr: "neuro",
+                    options: [
+                        { text: "GCS 15", score: 0 },
+                        { text: "GCS 11-14", score: 1 },
+                        { text: "GCS 8-10", score: 2 },
+                        { text: "GCS < 8", score: 3 }
+                    ],
+                    subtext: "रोगी की चेतना के स्तर का आकलन करता है।"
+                },
+                {
+                    domain: "2. श्वसन (PaO2/FiO2 या श्वसन सहायता)",
+                    nameAttr: "resp",
+                    options: [
+                        { text: "PaO2/FiO2 > 300 या बिना सहायता", score: 0 },
+                        { text: "PaO2/FiO2 201-300 या पूरक O2", score: 1 },
+                        { text: "PaO2/FiO2 101-200 या मैकेनिकल वेंटिलेशन", score: 2 },
+                        { text: "PaO2/FiO2 ≤ 100 या उच्च PEEP के साथ VMI", score: 3 }
+                    ],
+                    subtext: "फेफड़ों के कार्य और वेंटिलेटरी सहायता की आवश्यकता को दर्शाता है।"
+                },
+                {
+                    domain: "3. हृदय संबंधी (माध्य धमनी दबाव - MAP या वेसोप्रेसर)",
+                    nameAttr: "cardio",
+                    options: [
+                        { text: "उम्र के लिए सामान्य MAP, बिना वेसोप्रेसर", score: 0 },
+                        { text: "हल्का बदला हुआ MAP या 1 वेसोप्रेसर", score: 1 },
+                        { text: "मध्यम रूप से बदला हुआ MAP या 2 वेसोप्रेसर", score: 2 },
+                        { text: "गंभीर रूप से बदला हुआ MAP या >2 वेसोप्रेसर", score: 3 }
+                    ],
+                    subtext: "परफ्यूजन और हेमोडायनामिक स्थिति को इंगित करता है, जिसमें वासोएक्टिव दवाओं का उपयोग शामिल है।"
+                },
+                {
+                    domain: "4. रीनल (क्रिएटिनिन या मूत्र उत्पादन)",
+                    nameAttr: "renal",
+                    options: [
+                        { text: "सामान्य क्रिएटिनिन या सामान्य मूत्र उत्पादन", score: 0 },
+                        { text: "क्रिएटिनिन 1.5x बेसलाइन या मूत्र उत्पादन <1 मिली/किग्रा/घंटा", score: 1 },
+                        { text: "क्रिएटिनिन 2x बेसलाइन या मूत्र उत्पादन <0.5 मिली/किग्रा/घंटा", score: 2 },
+                        { text: "क्रिएटिनिन >2x बेसलाइन या अनुरिया/डायलिसिस", score: 3 }
+                    ],
+                    subtext: "गुर्दे के कार्य और मूत्र उत्पादन का आकलन करता है।"
+                },
+                {
+                    domain: "5. हेपेटिक (बिलीरुबिन या ALT)",
+                    nameAttr: "hepatic",
+                    options: [
+                        { text: "सामान्य बिलीरुबिन और ALT", score: 0 },
+                        { text: "बिलीरुबिन 2-5 मिलीग्राम/डीएल या ALT 2-5x सामान्य", score: 1 },
+                        { text: "बिलीरुबिन 5-10 मिलीग्राम/डीएल या ALT 5-10x सामान्य", score: 2 },
+                        { text: "बिलीरुबिन >10 मिलीग्राम/डीएल या ALT >10x सामान्य", score: 3 }
+                    ],
+                    subtext: "यकृत के कार्य और कोशिका क्षति को दर्शाता है।"
+                },
+                {
+                    domain: "6. हेमेटोलॉजिकल (प्लेटलेट्स)",
+                    nameAttr: "hemato",
+                    options: [
+                        { text: "प्लेटलेट्स >150,000/मिमी³", score: 0 },
+                        { text: "प्लेटलेट्स 100,000-150,000/मिमी³", score: 1 },
+                        { text: "प्लेटलेट्स 50,000-99,000/मिमी³", score: 2 },
+                        { text: "प्लेटलेट्स <50,000/मिमी³", score: 3 }
+                    ],
+                    subtext: "कोगुलेशन और थ्रोम्बोसाइटोपेनिया के जोखिम का आकलन करता है।"
+                }
+            ];
+
+            pelodData.forEach(criterion => {
+                const criterionCard = document.createElement('div');
+                criterionCard.className = 'pelod-criterion-card';
+
+                criterionCard.innerHTML = `
+                    <div class="pelod-criterion-header">
+                        <div class="pelod-criterion-title">${criterion.domain}</div>
+                        <div class="pelod-score-display" id="score-${criterion.nameAttr}">0</div>
+                    </div>
+                    <select class="pelod-select" name="${criterion.nameAttr}" id="${criterion.nameAttr}">
+                        ${criterion.options.map(opt => `<option value="${opt.score}">${opt.text}</option>`).join('')}
+                    </select>
+                    <div class="text-sm text-gray-600 mt-2">${criterion.subtext}</div>
+                `;
+
+                conteudoDiv.appendChild(criterionCard);
+            });
+
+            document.querySelectorAll('.pelod-select').forEach(select => {
+                select.addEventListener('change', function () {
+                    const scoreDisplay = document.getElementById(`score-${this.name}`);
+                    scoreDisplay.textContent = this.value;
+                });
+            });
+
+            function calcularPelod() {
+                let totalScore = 0;
+                const scores = {};
+
+                pelodData.forEach(criterion => {
+                    const select = document.getElementById(criterion.nameAttr);
+                    const score = parseInt(select.value);
+                    scores[criterion.nameAttr] = score;
+                    totalScore += score;
+                });
+
+                let riskLevel = '';
+                let riskColor = '';
+                let riskDescription = '';
+
+                if (totalScore <= 5) {
+                    riskLevel = 'कम जोखिम';
+                    riskColor = 'bg-pelod-baixo';
+                    riskDescription = 'मृत्यु दर का कम जोखिम।';
+                } else if (totalScore <= 10) {
+                    riskLevel = 'मध्यम जोखिम';
+                    riskColor = 'bg-pelod-moderado';
+                    riskDescription = 'मृत्यु दर का मध्यम जोखिम।';
+                } else {
+                    riskLevel = 'उच्च जोखिम';
+                    riskColor = 'bg-pelod-alto';
+                    riskDescription = 'मृत्यु दर का उच्च जोखिम।';
+                }
+
+                resultadoDiv.innerHTML = `
+                    <div class="${riskColor} p-4 rounded-lg shadow-md">
+                        <h3 class="font-bold text-lg mb-2">PELOD स्कोर परिणाम</h3>
+                        <p class="mb-2"><strong>कुल स्कोर:</strong> ${totalScore}</p>
+                        <p class="mb-2"><strong>जोखिम स्तर:</strong> ${riskLevel}</p>
+                        <p class="mb-2">${riskDescription}</p>
+                        <p class="text-sm mt-2"><strong>व्याख्या:</strong> उच्च PELOD स्कोर बहु-अंग विफलता और मृत्यु दर के बढ़ते जोखिम से संबंधित है।</p>
+                    </div>
+                `;
+                resultadoDiv.classList.remove('hidden');
+            }
+
+            function limparCampos() {
+                document.querySelectorAll('.pelod-select').forEach(select => {
+                    select.selectedIndex = 0;
+                    const scoreDisplay = document.getElementById(`score-${select.name}`);
+                    scoreDisplay.textContent = '0';
+                });
+                resultadoDiv.classList.add('hidden');
+            }
+
+            function gerarPDF() {
+                const element = document.getElementById('resultado');
+                if (element.classList.contains('hidden')) {
+                    alert('कृपया पहले स्कोर की गणना करें।');
+                    return;
+                }
+
+                const options = {
+                    margin: 1,
+                    filename: 'pelod-score-result.pdf',
+                    image: { type: 'jpeg', quality: 0.98 },
+                    html2canvas: { scale: 2 },
+                    jsPDF: { unit: 'cm', format: 'a4', orientation: 'portrait' }
+                };
+
+                html2pdf().set(options).from(element).save();
+            }
+
+            function buscarNandaNicNoc() {
+                const nandaNicNocInfo = `
+                    <div class="bg-info-orange-light border-l-4 border-orange-500 p-4 rounded-lg shadow-md mt-4">
+                        <h3 class="font-bold text-lg mb-2">NANDA-I, NIC, NOC PELOD स्केल से संबंधित</h3>
+                        <p class="mb-2"><strong>NANDA-I:</strong> बहु-अंग विफलता का जोखिम, गंभीर बीमारी से संबंधित।</p>
+                        <p class="mb-2"><strong>NOC:</strong> अंग कार्य, जीवन संकेत, चेतना का स्तर।</p>
+                        <p class="mb-2"><strong>NIC:</strong> गहन चिकित्सा इकाई में निगरानी, हेमोडायनामिक सहायता, वेंटिलेटर प्रबंधन, तरल पदार्थ और इलेक्ट्रोलाइट प्रबंधन।</p>
+                    </div>
+                `;
+
+                resultadoDiv.innerHTML += nandaNicNocInfo;
+                resultadoDiv.classList.remove('hidden');
+            }
+
+            btnCalcular.addEventListener('click', calcularPelod);
+            btnLimpar.addEventListener('click', limparCampos);
+            btnGerarPDF.addEventListener('click', gerarPDF);
+            btnNandaNicNoc.addEventListener('click', buscarNandaNicNoc);
+        });
+    </script>
 
 
 

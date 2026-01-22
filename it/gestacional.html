@@ -560,7 +560,112 @@
 
 
 
-  
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const resultadoDiv = document.getElementById('resultado');
+      const btnCalcular = document.getElementById('btnCalcular');
+      const btnLimpar = document.getElementById('btnLimpar');
+      const btnGerarPDF = document.getElementById('btnGerarPDF');
+      const btnNandaNicNoc = document.getElementById('btnNandaNicNoc');
+
+      function calcularGestacional() {
+        const dumInput = document.getElementById('dum').value;
+        resultadoDiv.classList.remove('hidden');
+        resultadoDiv.classList.remove('bg-success-green', 'bg-danger-red');
+        btnGerarPDF.setAttribute('disabled', 'true');
+        btnNandaNicNoc.setAttribute('disabled', 'true');
+
+        if (!dumInput) {
+          resultadoDiv.innerHTML = '<p>⚠️ <strong>Per favore, inserisci la data dell\'ultima mestruazione (DUM).</strong></p>';
+          resultadoDiv.classList.add('bg-danger-red');
+          return;
+        }
+
+        const dum = new Date(dumInput + 'T00:00:00');
+        const oggi = new Date();
+        oggi.setHours(0, 0, 0, 0);
+        dum.setHours(0, 0, 0, 0);
+
+        if (dum > oggi) {
+          resultadoDiv.innerHTML = '<p>⚠️ <strong>La Data dell\'Ultima Mestruazione (DUM) non può essere nel futuro.</strong></p>';
+          resultadoDiv.classList.add('bg-danger-red');
+          return;
+        }
+
+        const diffMs = oggi - dum;
+        const diffGiorni = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+        const settimane = Math.floor(diffGiorni / 7);
+        const giorni = diffGiorni % 7;
+
+        const dpp = new Date(dum.getTime());
+        dpp.setDate(dpp.getDate() + 280);
+        const dppFormatada = dpp.toLocaleDateString('it-IT');
+
+        resultadoDiv.innerHTML = `
+                  <table class="w-full">
+                      <tbody>
+                          <tr>
+                              <td class="font-bold pr-2">Età Gestazionale:</td>
+                              <td>${settimane} settimane e ${giorni} giorni</td>
+                          </tr>
+                          <tr>
+                              <td class="font-bold pr-2">Data Presunta del Parto (<abbr title="Data Presunta del Parto">DPP</abbr>):</td>
+                              <td>${dppFormatada}</td>
+                          </tr>
+                      </tbody>
+                  </table>
+              `;
+        resultadoDiv.classList.add('bg-success-green');
+
+        resultadoDiv.dataset.idadeGestacional = `${settimane} settimane e ${giorni} giorni`;
+        resultadoDiv.dataset.dpp = dppFormatada;
+        resultadoDiv.dataset.scaleName = "Calcolatore di Età Gestazionale e DPP";
+        btnGerarPDF.removeAttribute('disabled');
+        btnNandaNicNoc.removeAttribute('disabled');
+      }
+
+      function limparCampos() {
+        document.getElementById('dum').value = '';
+        resultadoDiv.innerHTML = '';
+        resultadoDiv.classList.add('hidden');
+        btnGerarPDF.setAttribute('disabled', 'true');
+        btnNandaNicNoc.setAttribute('disabled', 'true');
+        delete resultadoDiv.dataset.idadeGestacional;
+        delete resultadoDiv.dataset.dpp;
+      }
+
+      btnCalcular?.addEventListener('click', calcularGestacional);
+      btnLimpar?.addEventListener('click', limparCampos);
+
+      btnGerarPDF?.addEventListener('click', () => {
+        if (!resultadoDiv.dataset.idadeGestacional) {
+          alert("Per favore, clicca prima su 'Calcolare' per generare il PDF.");
+          return;
+        }
+        if (typeof gerarPDFGlobal === 'function') {
+          gerarPDFGlobal({
+            titulo: 'Calcolatore di Età Gestazionale e DPP',
+            subtitulo: 'Rapporto di Calcolo della Gestazione',
+            nomeArquivo: 'rapporto_gestazionale.pdf',
+            seletorConteudo: '.main-content-wrapper'
+          });
+        } else {
+          console.error('Funzione gerarPDFGlobal non definita.');
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener('click', () => {
+        const idadeGestacional = resultadoDiv.dataset.idadeGestacional;
+        const dpp = resultadoDiv.dataset.dpp;
+        if (!idadeGestacional || !dpp) {
+          alert('Calcola il risultato per cercare la condotta.');
+          return;
+        }
+        const searchQuery = encodeURIComponent(`Età gestazionale ${idadeGestacional} DPP ${dpp} generare tassonomia NANDA, NIC e NOC`);
+        window.open(`https://www.google.com/search?q=${searchQuery}`, '_blank');
+      });
+    });
+  </script>
 
 
 

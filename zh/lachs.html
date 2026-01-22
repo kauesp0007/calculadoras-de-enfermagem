@@ -640,7 +640,243 @@
 
 
 
-  
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const resultadoDiv = document.getElementById('resultado');
+      const btnCalcular = document.getElementById('btnCalcular');
+      const btnLimpar = document.getElementById('btnLimpar');
+      const btnGerarPDF = document.getElementById('btnGerarPDF');
+      const btnNandaNicNoc = document.getElementById('btnNandaNicNoc');
+      const conteudoDiv = document.getElementById('conteudo');
+
+      const lachsData = [
+        {
+          category: "视力",
+          nameAttr: "visao",
+          explain: "患者能否在35厘米距离用或不用眼镜阅读Jaeger卡片到20/40水平？",
+          options: [
+            { description: "是，能读到20/40。", score: 1 },
+            { description: "否，不能读到20/40。", score: 0 },
+          ]
+        },
+        {
+          category: "听力",
+          nameAttr: "audicao",
+          explain: "当在患者视野外轻声提问（如：'您叫什么名字？'）时，患者能否回应？",
+          options: [
+            { description: "是，能回应问题。", score: 1 },
+            { description: "否，不能回应问题。", score: 0 },
+          ]
+        },
+        {
+          category: "尿失禁",
+          nameAttr: "incontinencia_urinaria",
+          explain: "患者在过去一年中至少有6天意外失尿并弄湿内衣吗？",
+          options: [
+            { description: "否", score: 1 },
+            { description: "是", score: 0 },
+          ]
+        },
+        {
+          category: "基础和工具性日常生活活动",
+          nameAttr: "avd_aivd",
+          explain: "患者能否独立起床、穿衣服、准备餐食和购物？",
+          options: [
+            { description: "是，能够进行所有活动。", score: 1 },
+            { description: "否，不能进行至少一项活动。", score: 0 },
+          ]
+        },
+        {
+          category: "上肢握力",
+          nameAttr: "forca_preensao",
+          explain: "患者能否用双手触摸后颈并握住勺子？",
+          options: [
+            { description: "是，能完成两项任务。", score: 1 },
+            { description: "否，不能完成一项或两项任务。", score: 0 },
+          ]
+        },
+        {
+          category: "下肢力量",
+          nameAttr: "forca_inferiores",
+          explain: "患者能否从椅子上站起，走3米，返回并在12秒内坐下？",
+          options: [
+            { description: "是，在≤12秒内完成测试。", score: 1 },
+            { description: "否，不能行走或需要超过12秒完成测试。", score: 0 },
+          ]
+        },
+        {
+          category: "营养",
+          nameAttr: "nutricao",
+          explain: "患者是否体重指数（BMI）高于22kg/m²？",
+          options: [
+            { description: "是，BMI≥22kg/m²。", score: 1 },
+            { description: "否，BMI<22kg/m²。", score: 0 },
+          ]
+        },
+        {
+          category: "精神状态",
+          nameAttr: "estado_mental",
+          explain: "患者能否在1分钟后重复三个词（如：'汽车'、'花瓶'、'球'）？",
+          options: [
+            { description: "是，能重复所有词。", score: 1 },
+            { description: "否，不能重复至少一个词。", score: 0 },
+          ]
+        },
+        {
+          category: "抑郁",
+          nameAttr: "depressao",
+          explain: "患者是否经常感到悲伤或抑郁？",
+          options: [
+            { description: "否", score: 1 },
+            { description: "是", score: 0 },
+          ]
+        },
+        {
+          category: "家庭环境",
+          nameAttr: "ambiente",
+          explain: "患者在家中是否对楼梯、浴缸、松散地毯或照明不足有困难？",
+          options: [
+            { description: "否，环境是安全的。", score: 1 },
+            { description: "是，家庭环境有风险。", score: 0 },
+          ]
+        },
+        {
+          category: "社会支持",
+          nameAttr: "apoio_social",
+          explain: "患者是否有家人、朋友或邻居可以在疾病或紧急情况下依靠？",
+          options: [
+            { description: "是，有社会支持。", score: 1 },
+            { description: "否，没有社会支持。", score: 0 },
+          ]
+        }
+      ];
+
+      // 动态填充表单
+      lachsData.forEach(item => {
+        const sectionDiv = document.createElement('div');
+        sectionDiv.className = 'lachs-criterion-section';
+        sectionDiv.id = `section-${item.nameAttr}`;
+
+        const titleH3 = document.createElement('h3');
+        titleH3.className = 'lachs-criterion-title';
+        titleH3.innerHTML = item.category;
+        sectionDiv.appendChild(titleH3);
+
+        const explainP = document.createElement('p');
+        explainP.className = 'lachs-criterion-explain';
+        explainP.innerHTML = item.explain;
+        sectionDiv.appendChild(explainP);
+
+        const selectElement = document.createElement('select');
+        selectElement.id = item.nameAttr;
+        selectElement.className = 'lachs-criterion-select';
+
+        const defaultOption = document.createElement('option');
+        defaultOption.value = "";
+        defaultOption.text = "请选择...";
+        selectElement.appendChild(defaultOption);
+
+        item.options.forEach(option => {
+          const optionElement = document.createElement('option');
+          optionElement.value = option.score;
+          optionElement.text = `${option.description} (分数: ${option.score})`;
+          selectElement.appendChild(optionElement);
+        });
+
+        sectionDiv.appendChild(selectElement);
+        conteudoDiv.appendChild(sectionDiv);
+      });
+
+      function calcularLachs() {
+        const selects = document.querySelectorAll('#conteudo select');
+        let allSelected = true;
+        let total = 0;
+
+        selects.forEach(select => {
+          if (select.value === "") {
+            allSelected = false;
+            select.classList.add('incomplete');
+          } else {
+            select.classList.remove('incomplete');
+            total += Number(select.value);
+          }
+        });
+
+        resultadoDiv.style.display = "block";
+        if (!allSelected) {
+          resultadoDiv.innerHTML = '⚠️ <strong class="font-bold">请在计算前为所有项目选择一个选项。</strong>';
+          resultadoDiv.classList.add('bg-red-100');
+          resultadoDiv.classList.remove('bg-blue-50');
+          delete resultadoDiv.dataset.score;
+          return;
+        }
+
+        let recomendacao = '';
+
+        if (total <= 5) {
+          recomendacao = `分数${total}表明功能能力丧失和依赖的高风险。建议进行全面的老年评估和个性化护理计划，以最大化患者的自主能力和安全性。`;
+        } else if (total >= 6 && total <= 9) {
+          recomendacao = `分数${total}表明功能能力丧失的中等风险。患者可能需要在某些方面获得支持。`;
+        } else { // total >= 10
+          recomendacao = `分数${total}表明患者具有良好的功能能力和自主能力丧失的低风险。`;
+        }
+
+        resultadoDiv.innerHTML = `
+                <p>总分: <strong class="font-bold">${total}</strong></p>
+                <p class="mt-4"><strong>建议:</strong> ${recomendacao}</p>
+            `;
+        resultadoDiv.className = `resultado bg-blue-50`;
+        resultadoDiv.style.display = "block";
+
+        resultadoDiv.dataset.score = total;
+        resultadoDiv.dataset.scaleName = "拉克斯量表";
+      }
+
+      function limparCampos() {
+        const selects = document.querySelectorAll('#conteudo select');
+        selects.forEach(select => {
+          select.selectedIndex = 0;
+          select.classList.remove('incomplete');
+        });
+        resultadoDiv.innerHTML = '';
+        resultadoDiv.className = 'resultado hidden';
+        delete resultadoDiv.dataset.score;
+        delete resultadoDiv.dataset.scaleName;
+      }
+
+      // 为按钮添加事件监听器
+      btnCalcular?.addEventListener('click', calcularLachs);
+      btnLimpar?.addEventListener('click', limparCampos);
+
+      btnGerarPDF?.addEventListener('click', () => {
+        if (!resultadoDiv.dataset.score) {
+          alert('请先点击"计算分数"按钮生成PDF。');
+          return;
+        }
+        if (typeof gerarPDFGlobal === 'function') {
+          gerarPDFGlobal({
+            titulo: '拉克斯量表',
+            subtitulo: '老年人功能评估报告',
+            nomeArquivo: 'lachs_scale_report.pdf',
+            seletorConteudo: '.main-content-wrapper'
+          });
+        } else {
+          console.error('函数gerarPDFGlobal未定义。');
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener('click', () => {
+        const score = resultadoDiv.dataset.score;
+        const scaleName = resultadoDiv.dataset.scaleName;
+        if (!score) {
+          alert('请先计算结果再搜索护理措施。');
+          return;
+        }
+        const searchQuery = encodeURIComponent(`老年人独立护理 ${scaleName} 分数 ${score} NANDA护理诊断 NIC护理干预 NOC护理结局`);
+        window.open(`https://www.google.com/search?q=${searchQuery}`, '_blank');
+      });
+    });
+  </script>
 
 
 

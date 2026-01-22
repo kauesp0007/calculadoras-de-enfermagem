@@ -742,7 +742,416 @@
 
 
 
-  
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const resultadoDiv = document.getElementById("resultado");
+      const btnCalcular = document.getElementById("btnCalcular");
+      const btnLimpar = document.getElementById("btnLimpar");
+      const btnGerarPDF = document.getElementById("btnGerarPDF");
+      const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
+      const conteudoDiv = document.getElementById("conteudo");
+
+      // Dados da escala de Tinetti
+      const tinettiData = [
+        {
+          title: "1. рівновага сидячи",
+          nameAttr: "сидячи",
+          explain:
+            "Здатність зберігати стійкість при сидінні на стільці.",
+          options: [
+            {
+              description: "Сповзати, сповзати на стільці",
+              score: 0
+            },
+            { description: "Міцний і безпечний", score: 1 }]
+
+        },
+        {
+          title: "2. Підйом",
+          nameAttr: "підйом",
+          explain: "Здатність вставати зі стільця.",
+          options: [
+            { description: "Без допомоги неможливо", score: 0 },
+            {
+              description: "Здатний, але спирається на руки, щоб встати",
+              score: 1
+            },
+            { description: "Вміти, не використовуючи руки", score: 2 }]
+
+        },
+        {
+          title: "3. Спроба встати",
+          nameAttr: "tentando_levantar",
+          explain: "Слідкуйте за кількістю спроб встати.",
+          options: [
+            { description: "Неможливо або більше однієї спроби", score: 0 },
+            { description: "Здатний з однієї спроби", score: 1 }]
+
+        },
+        {
+          title: "4. Як тільки ви встаєте (перші 5 секунд)",
+          nameAttr: "apos_levantar",
+          explain: "Стабільність у перші 5 секунд після вставання.",
+          options: [
+            {
+              description: "Нестійкий (хитається, рухає ногами, тулубом)",
+              score: 0
+            },
+            {
+              description: "Стабільний з підтримкою іншої людини або предмета",
+              score: 1
+            },
+            { description: "Стабільний без опори, але хитається", score: 2 }]
+
+        },
+        {
+          title: "5. Постійний баланс",
+          nameAttr: "em_pe",
+          explain: "Стійкість у вертикальному положенні.",
+          options: [
+            { description: "Незбалансований (0)", score: 0 },
+            {
+              description: "З опорою / опорною основою > 9 см (1)",
+              score: 1
+            },
+            {
+              description: "Немає опори / мала опорна база (2)",
+              score: 2
+            }]
+
+        },
+        {
+          title: "6. 3-ударний тест (грудина)",
+          nameAttr: "teste_3_tempos",
+          explain:
+            "Реакція на легке натискання на грудину. Пацієнт повинен стояти, розставивши ноги на зручній відстані.",
+          options: [
+            { description: "Починає падати (0)", score: 0 },
+            { description: "Захоплення або махи (руками) (1)", score: 1 },
+            { description: "Стабільний (2)", score: 2 }]
+
+        },
+        {
+          title: "7. Баланс із заплющеними очима",
+          nameAttr: "olhos_fechados",
+          explain: "Стабільність пацієнта з закритими очима.",
+          options: [
+            { description: "Дисбаланс (0)", score: 0 },
+            { description: "Баланс (1)", score: 1 }]
+
+        },
+        {
+          title: "8. Обертання на 360º",
+          nameAttr: "спінінг",
+          explain:
+            "Зверніть увагу на здатність зробити повний розворот і стійкість.",
+          options: [
+            {
+              description: "Переривчасті сходинки / дисбаланс (0)",
+              score: 0
+            },
+            { description: "Безперервні кроки / стабільність (1)", score: 1 }]
+
+        },
+        {
+          title: "9. Сидячи на стільці",
+          nameAttr: "сидячи",
+          explain: "Вміння сидіти в кріслі.",
+          options: [
+            { description: "Невпевнено / падає в крісло (0)", score: 0 },
+            {
+              description: "Використовує руки або рухається не плавно (1)",
+              score: 1
+            },
+            { description: "Міцний і безпечний (2)", score: 2 }]
+
+        },
+        {
+          title: "10. Початок маршу",
+          nameAttr: "inicio_marcha",
+          explain: "Дивіться початок прогулянки.",
+          options: [
+            {
+              description: "Вагання або кілька спроб (0)",
+              score: 0
+            },
+            { description: "Без вагань (1)", score: 1 }]
+
+        },
+        {
+          title: "11. Довжина та висота сходинки",
+          nameAttr: "крок",
+          explain: "Зверніть увагу на довжину і висоту сходинки.",
+          options: [
+            {
+              description:
+                "Права нога не переступає через ліву або не піднімається; Ліва нога не переступає через праву або не піднімається (0)",
+              score: 0
+            },
+            {
+              description:
+                "Права нога пропускає ліву ногу і піднімає; Ліва нога пропускає праву ногу і піднімає (1)",
+              score: 1
+            }]
+
+        },
+        {
+          title: "12. Симетрія кроку",
+          nameAttr: "symmetry_step",
+          explain: "Переконайтеся, що кроки симетричні.",
+          options: [
+            { description: "Нерівна довжина (0)", score: 0 },
+            { description: "Рівної довжини (1)", score: 1 }]
+
+        },
+        {
+          title: "13. Безперервність кроків",
+          nameAttr: "step_continuity",
+          explain: "Поспостерігайте, чи прогулянка плавна, чи є якісь перерви.",
+          options: [
+            { description: "Зупинки або перерви (0)", score: 0 },
+            { description: "Безперервні кроки (1)", score: 1 }]
+
+        },
+        {
+          title: "14. Напрямок маршу",
+          nameAttr: "direcao_marcha",
+          explain: "Зверніть увагу на відхилення від лінії ходьби.",
+          options: [
+            {
+              description:
+                "Помітне відхилення або використання допомоги, щоб залишатися на зв’язку (0)",
+              score: 0
+            },
+            {
+              description: "Легке або помірне відхилення, але без допомоги (1)",
+              score: 1
+            },
+            {
+              description: "Без відхилень, прямо (2)",
+              score: 2
+            }]
+
+        },
+        {
+          title: "15. Стовбур",
+          nameAttr: "tronco_marcha",
+          explain:
+            "Спостерігайте за погойдуванням тулуба і використанням рук під час ходьби.",
+          options: [
+            {
+              description:
+                "Коливання тулуба або використання рук для балансування (0)",
+              score: 0
+            },
+            {
+              description:
+                "Згинання коліна або спини / розведення рук (1)",
+              score: 1
+            },
+            { description: "Не гойдатися і не згинатися (2)", score: 2 }]
+
+        },
+        {
+          title: "16. Опорна основа при ходьбі",
+          nameAttr: "base_marcha",
+          explain: "Відстань між п'ятами під час ходьби.",
+          options: [
+            {
+              description: "Роз'єднані або нестабільні гомілковостопні суглоби (0)",
+              score: 0
+            },
+            {
+              description:
+                "Щиколотки торкаються або близько розташовані одна до одної, без відхилень (1)",
+              score: 1
+            }]
+
+        }];
+
+
+      // Preenche o formulário dinamicamente
+      tinettiData.forEach((item) => {
+        const sectionDiv = document.createElement("div");
+        sectionDiv.className = "tinetti-criterion-section";
+        sectionDiv.id = `section-${item.nameAttr}`;
+
+        const titleH3 = document.createElement("h3");
+        titleH3.className = "tinetti-criterion-title";
+        titleH3.innerHTML = item.title;
+        sectionDiv.appendChild(titleH3);
+
+        const explainP = document.createElement("p");
+        explainP.className = "tinetti-criterion-explain";
+        explainP.innerHTML = item.explain;
+        sectionDiv.appendChild(explainP);
+
+        const selectElement = document.createElement("select");
+        selectElement.id = item.nameAttr;
+        selectElement.className = "tinetti-criterion-select mt-2";
+
+        const defaultOption = document.createElement("option");
+        defaultOption.value = "";
+        defaultOption.text = "Виберіть...";
+        selectElement.appendChild(defaultOption);
+
+        item.options.forEach((option) => {
+          const optionElement = document.createElement("option");
+          optionElement.value = option.score;
+          optionElement.text = `${option.description} (бали: ${option.score})`;
+          selectElement.appendChild(optionElement);
+        });
+
+        sectionDiv.appendChild(selectElement);
+        conteudoDiv.appendChild(sectionDiv);
+      });
+
+      function calcularTinetti() {
+        const selects = document.querySelectorAll("#conteudo select");
+        let allSelected = true;
+        let total = 0;
+
+        selects.forEach((select) => {
+          if (select.value === "") {
+            allSelected = false;
+            select.classList.add("неповний");
+          } else {
+            select.classList.remove("неповний");
+            total += Number(select.value);
+          }
+        });
+
+        resultadoDiv.style.display = "block";
+        if (!allSelected) {
+          resultadoDiv.innerHTML =
+            '⚠️ <strong class="font-bold">Por favor, selecione uma opção para todos os itens antes de calcular.</strong>';
+          resultadoDiv.className = `bg-red-100 результат`;
+          delete resultadoDiv.dataset.score;
+          return;
+        }
+
+        let recomendacao = "";
+
+        if (total <= 19) {
+          recomendacao = `У "${total} вказує на високий ризик падіння. Рекомендується вжити заходи безпеки та скласти план дій щодо запобігання падінню.`;
+        } else {
+          recomendacao = `У "The ${total} вказує на низький ризик падіння. Продовжуйте стежити за рухливістю пацієнта.`;
+        }
+
+        resultadoDiv.innerHTML = `
+                <p>Escore total: <strong class="font-bold">${total}</strong></p>
+                <p class="mt-4"><strong>Recomendação:</strong> ${recomendacao}</p>
+            `;
+        resultadoDiv.className = `bg-blue-50 результат`;
+        resultadoDiv.style.display = "block";
+
+        resultadoDiv.dataset.score = total;
+        resultadoDiv.dataset.scaleName = "Шкала Тінетті";
+      }
+
+      function limparCampos() {
+        const selects = document.querySelectorAll("#conteudo select");
+        selects.forEach((select) => {
+          select.selectedIndex = 0;
+          select.classList.remove("неповний");
+        });
+        resultadoDiv.innerHTML = "";
+        resultadoDiv.className = "прихований результат";
+        delete resultadoDiv.dataset.score;
+        delete resultadoDiv.dataset.scaleName;
+      }
+
+      // Adiciona os event listeners aos botões
+      btnCalcular?.addEventListener("click", calcularTinetti);
+      btnLimpar?.addEventListener("click", limparCampos);
+
+      btnGerarPDF?.addEventListener("click", () => {
+        if (!resultadoDiv.dataset.score) {
+          alert(
+            "Будь ласка, спочатку натисніть \"Розрахувати бал\", щоб згенерувати PDF-файл."
+          );
+          return;
+        }
+        if (typeof gerarPDFGlobal === "функція") {
+          const selectedOptions = {};
+          document.querySelectorAll("#conteudo select").forEach((select) => {
+            const selected = select.options[select.selectedIndex];
+            if (selected.value !== "") {
+              selectedOptions[select.id] = selected.text;
+            }
+          });
+
+          let contentToPrint = document.
+            querySelector(".main-content-wrapper").
+            cloneNode(true);
+          let contentContainer = contentToPrint.querySelector("#conteudo");
+
+          contentContainer.innerHTML = "";
+
+          let balanceSectionTitle = document.createElement("h3");
+          balanceSectionTitle.className = "text-lg font-semibold mt-4 mb-2";
+          balanceSectionTitle.innerText = `Розділ "Баланс" (максимальний бал: 16)`;
+          contentContainer.appendChild(balanceSectionTitle);
+
+          tinettiData.slice(0, 9).forEach((item) => {
+            let selectedText = selectedOptions[item.nameAttr];
+            if (selectedText) {
+              let itemDiv = document.createElement("div");
+              itemDiv.className = "mb-2 p-2 bg-gray-50 rounded";
+              itemDiv.innerHTML = `<strong>${item.title}:</strong> ${selectedText}`;
+              contentContainer.appendChild(itemDiv);
+            }
+          });
+
+          let gaitSectionTitle = document.createElement("h3");
+          gaitSectionTitle.className = "text-lg font-semibold mt-4 mb-2";
+          gaitSectionTitle.innerText = `Маршовий розділ (максимальна кількість балів: 12)`;
+          contentContainer.appendChild(gaitSectionTitle);
+
+          tinettiData.slice(9, 16).forEach((item) => {
+            let selectedText = selectedOptions[item.nameAttr];
+            if (selectedText) {
+              let itemDiv = document.createElement("div");
+              itemDiv.className = "mb-2 p-2 bg-gray-50 rounded";
+              itemDiv.innerHTML = `<strong>${item.title}:</strong> ${selectedText}`;
+              contentContainer.appendChild(itemDiv);
+            }
+          });
+
+          let resultadoHtml = resultadoDiv.cloneNode(true);
+          if (resultadoHtml.style.display !== "none") {
+            contentContainer.appendChild(resultadoHtml);
+          }
+
+          gerarPDFGlobal({
+            titulo: "Шкала Тінетті",
+            subtitulo: "Звіт про оцінку ходи та рівноваги",
+            nomeArquivo: "relatorio_escala_tinetti.pdf",
+            seletorConteudo: ".main-content-wrapper"
+          });
+        } else {
+          console.error("Функція GeneratePDFGlobal не визначена.");
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener("click", () => {
+        const score = resultadoDiv.dataset.score;
+        const scaleName = resultadoDiv.dataset.scaleName;
+        if (!score) {
+          alert("Обчисліть результат для пошуку поведінки.");
+          return;
+        }
+        const recomendacaoRisco =
+          score <= 19 ? "високий ризик падіння" : "низький ризик падіння";
+        const searchQuery = encodeURIComponent(
+          `сестринський догляд за людьми похилого віку з ${recommendationRisco} за шкалою Тінетті NANDA NIC NOC`
+        );
+        window.open(
+          `https://www.google.com/search?q=${searchQuery}`,
+          "_blank"
+        );
+      });
+    });</script>
 
   <script src="/lang-selector.js" defer=""></script>
 

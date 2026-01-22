@@ -650,7 +650,253 @@
 
 
   <!-- Sayfa Spesifik Script -->
-  
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const conteudoDiv = document.getElementById("conteudo");
+      const resultadoDiv = document.getElementById("resultado");
+      const btnCalcular = document.getElementById("btnCalcular");
+      const btnLimpar = document.getElementById("btnLimpar");
+      const btnGerarPDF = document.getElementById("btnGerarPDF");
+      const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
+      const statusMessageDiv = document.getElementById("statusMessage");
+
+      const silvermanData = [
+        {
+          parameter: "Torakoabdominal Hareket",
+          nameAttr: "movimento",
+          tooltip:
+            "Solunum sırasında göğüs ve karın arasındaki senkroniyi değerlendirir. 'Salınım' ciddi solunum eforunu gösterir.",
+          options: [
+            { score: 0, description: "Senkronize" },
+            { score: 1, description: "Göğüs hareketsiz" },
+            { score: 2, description: "Salınım" },
+          ],
+        },
+        {
+          parameter: "İnterkostal Çekilme",
+          nameAttr: "tiragem",
+          tooltip:
+            "İç nefes alma sırasında kaburgalar arası kasların çekilmesi, nefes alma eforunu gösterir.",
+          options: [
+            { score: 0, description: "Yok" },
+            { score: 1, description: "Hafif" },
+            { score: 2, description: "Belirgin" },
+          ],
+        },
+        {
+          parameter: "Ksifoid Çekilme",
+          nameAttr: "retracao",
+          tooltip:
+            "İç nefes alma sırasında ksifoid çıkıntının (sternumun alt ucu) çökmesi.",
+          options: [
+            { score: 0, description: "Yok" },
+            { score: 1, description: "Hafif" },
+            { score: 2, description: "Belirgin" },
+          ],
+        },
+        {
+          parameter: "Burun Kanadı Açılması",
+          nameAttr: "batimento",
+          tooltip:
+            "İç nefes alma sırasında burun deliklerinin açılması, yenidoğanın daha fazla hava almak için mücadele ettiğinin işareti.",
+          options: [
+            { score: 0, description: "Yok" },
+            { score: 1, description: "Hafif" },
+            { score: 2, description: "Belirgin" },
+          ],
+        },
+        {
+          parameter: "Ekspiratuvar İnleme",
+          nameAttr: "gemido",
+          tooltip:
+            "Solunumun sonunda çıkan ses, bebeğin alveolleri açık tutma eforunu temsil eder.",
+          options: [
+            { score: 0, description: "Yok" },
+            { score: 1, description: "Stetoskopla duyulabilir" },
+            { score: 2, description: "Stetoskopsuz duyulabilir" },
+          ],
+        },
+      ];
+
+      function criarFormulario() {
+        silvermanData.forEach((item) => {
+          const accordionItem = document.createElement("div");
+          accordionItem.className = "accordion-item";
+
+          const header = document.createElement("div");
+          header.className = "accordion-header";
+          header.setAttribute("aria-expanded", "false");
+          header.setAttribute("tabindex", "0");
+          header.innerHTML = `
+                    <span>${item.parameter}
+                        <span class="tooltip-container">
+                            <button type="button" class="tooltip-icon-button" aria-label="${item.parameter} hakkında bilgi">
+                                <i class="fas fa-info-circle" aria-hidden="true"></i>
+                            </button>
+                            <span class="tooltip-text">${item.tooltip}</span>
+                        </span>
+                    </span>
+                    <i class="fas fa-chevron-down accordion-toggle-icon" aria-hidden="true"></i>
+                `;
+          accordionItem.appendChild(header);
+
+          const content = document.createElement("div");
+          content.className = "accordion-content";
+          content.setAttribute("role", "region");
+
+          item.options.forEach((option) => {
+            const label = document.createElement("label");
+            label.className = "option-label";
+            const input = document.createElement("input");
+            input.type = "radio";
+            input.name = item.nameAttr;
+            input.value = option.score;
+
+            label.appendChild(input);
+            label.innerHTML += `<span>${option.description} (${option.score})</span>`;
+            content.appendChild(label);
+          });
+
+          accordionItem.appendChild(content);
+          conteudoDiv.appendChild(accordionItem);
+
+          header.addEventListener("click", function () {
+            const isExpanded = this.getAttribute("aria-expanded") === "true";
+            document.querySelectorAll(".accordion-header").forEach((h) => {
+              h.setAttribute("aria-expanded", "false");
+              h.nextElementSibling.classList.remove("is-open");
+            });
+            this.setAttribute("aria-expanded", !isExpanded);
+            if (!isExpanded) {
+              content.classList.add("is-open");
+            }
+          });
+        });
+      }
+
+      criarFormulario();
+
+      function calcular() {
+        let total = 0;
+        let allSelected = true;
+
+        silvermanData.forEach((item) => {
+          const selecionado = document.querySelector(
+            `input[name="${item.nameAttr}"]:checked`,
+          );
+          if (selecionado) {
+            total += parseInt(selecionado.value, 10);
+          } else {
+            allSelected = false;
+          }
+        });
+
+        resultadoDiv.classList.remove("hidden");
+        if (!allSelected) {
+          resultadoDiv.className =
+            "resultado p-4 mt-6 rounded-lg text-left bg-info-alerta flex items-start gap-4 visible";
+          resultadoDiv.innerHTML = `<i class="fas fa-exclamation-triangle mt-1" aria-hidden="true"></i><div><strong class="font-bold block">Dikkat!</strong> Lütfen beş parametrenin her biri için bir seçenek belirleyin.</div>`;
+          resultadoDiv.setAttribute("tabindex", "0");
+          resultadoDiv.focus();
+          resultadoDiv.scrollIntoView({
+            behavior: "smooth",
+            block: "center",
+          });
+          delete resultadoDiv.dataset.score;
+          return;
+        }
+
+        let classificacao = "";
+        let barClass = "";
+        let resultadoClass = "";
+
+        if (total <= 3) {
+          classificacao = "Hafif Solunum Sıkıntısı.";
+          barClass = "bar-low";
+          resultadoClass = "bg-success-green";
+        } else if (total <= 7) {
+          classificacao = "Orta Solunum Sıkıntısı.";
+          barClass = "bar-medium";
+          resultadoClass = "bg-info-alerta";
+        } else {
+          classificacao = "Şiddetli Solunum Sıkıntısı.";
+          barClass = "bar-high";
+          resultadoClass = "bg-danger-red";
+        }
+
+        const scorePercentage = (total / 10) * 100;
+
+        resultadoDiv.className = `resultado p-4 mt-6 rounded-lg text-left ${resultadoClass} visible`;
+        resultadoDiv.innerHTML = `
+                <p>Toplam Puan: <strong class="font-bold">${total}</strong></p>
+                <p>Sınıflandırma: <strong class="font-bold">${classificacao}</strong></p>
+                <div class="score-summary-bar-container" role="progressbar" aria-valuenow="${total}" aria-valuemin="0" aria-valuemax="10" aria-label="Puan şiddet çubuğu.">
+                    <div class="score-summary-bar ${barClass}" style="width: ${scorePercentage}%;"></div>
+                </div>
+            `;
+        resultadoDiv.setAttribute("tabindex", "0");
+        resultadoDiv.focus();
+        resultadoDiv.scrollIntoView({ behavior: "smooth", block: "center" });
+
+        resultadoDiv.dataset.score = total;
+        resultadoDiv.dataset.classificacao = classificacao;
+        resultadoDiv.dataset.scaleName = "Silverman-Anderson Skoru";
+      }
+
+      function limpar() {
+        document
+          .querySelectorAll('input[type="radio"]')
+          .forEach((input) => (input.checked = false));
+        resultadoDiv.className = "resultado hidden";
+        resultadoDiv.innerHTML = "";
+        delete resultadoDiv.dataset.score;
+        delete resultadoDiv.dataset.classificacao;
+        // Tüm accordion'ları kapat
+        document.querySelectorAll(".accordion-header").forEach((h) => {
+          h.setAttribute("aria-expanded", "false");
+        });
+        document.querySelectorAll(".accordion-content").forEach((c) => {
+          c.classList.remove("is-open");
+        });
+      }
+
+      btnCalcular?.addEventListener("click", calcular);
+      btnLimpar?.addEventListener("click", limpar);
+
+      btnGerarPDF?.addEventListener("click", () => {
+        if (!resultadoDiv || !resultadoDiv.dataset.score) {
+          alert('Lütfen önce PDF oluşturmak için "Hesapla" ya tıklayın.');
+          return;
+        }
+        if (typeof gerarPDFGlobal === "function") {
+          gerarPDFGlobal({
+            titulo: "Silverman-Anderson Skoru",
+            subtitulo: "Yenidoğan Solunum Sıkıntısı Değerlendirmesi",
+            nomeArquivo: "silverman_anderson_raporu.pdf",
+            seletorConteudo: ".main-content-wrapper",
+          });
+        } else {
+          alert("Hata: PDF oluşturma fonksiyonu bulunamadı.");
+          console.error("gerarPDFGlobal fonksiyonu tanımlı değil.");
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener("click", () => {
+        const classificacao = resultadoDiv.dataset.classificacao;
+        if (!classificacao) {
+          alert('Lütfen önce yorumu almak için "Hesapla" ya tıklayın.');
+          return;
+        }
+        const searchQuery = encodeURIComponent(
+          `Yenidoğan için hemşirelik tanıları NANDA "${classificacao}" ve ilgili müdahaleler (NIC) ve sonuçlar (NOC)`,
+        );
+        window.open(
+          `https://www.google.com/search?q=${searchQuery}`,
+          "_blank",
+        );
+      });
+    });
+  </script>
 
   <script src="/lang-selector.js" defer=""></script>
 

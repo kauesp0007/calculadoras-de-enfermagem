@@ -611,7 +611,303 @@
 
 
   <!-- Script Específico da Página Barthel (Tradução e numeração árabe) -->
-  
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      // Função para converter números ocidentais para orientais (árabes)
+      function toArabicNumeral(n) {
+        if (n === null || typeof n === "undefined") return "";
+        const arabic = [
+          "٠",
+          "١",
+          "٢",
+          "٣",
+          "٤",
+          "٥",
+          "٦",
+          "٧",
+          "٨",
+          "٩",
+          "١٠",
+          "١٥",
+          "٢٠",
+          "٢١",
+          "٥٠",
+          "٦١",
+          "٩١",
+          "١٠٠",
+        ]; // Incluindo números comuns
+        const western = [
+          "0",
+          "1",
+          "2",
+          "3",
+          "4",
+          "5",
+          "6",
+          "7",
+          "8",
+          "9",
+          "10",
+          "15",
+          "20",
+          "21",
+          "50",
+          "61",
+          "91",
+          "100",
+        ];
+
+        let strN = String(n);
+        let index = western.indexOf(strN);
+        if (index !== -1) {
+          return arabic[index];
+        }
+        // Fallback para números não listados (embora todos os usados estejam listados)
+        return strN
+          .split("")
+          .map((digit) =>
+            digit >= "0" && digit <= "9" ? arabic[parseInt(digit)] : digit,
+          )
+          .join("");
+      }
+
+      // Função para determinar a palavra correta para "ponto(s)" em árabe
+      function scoreText(score) {
+        if (score === 0) return "نقطة";
+        if (score === 1) return "نقطة";
+        if (score === 2) return "نقطتان";
+        if (score >= 3 && score <= 10) return "نقاط";
+        if (score > 10) return "نقطة"; // 15 نقطة
+        return "نقاط"; // Padrão
+      }
+
+      const resultadoDiv = document.getElementById("resultado");
+      const conteudoDiv = document.getElementById("conteudo");
+      const btnCalcular = document.getElementById("btnCalcular");
+      const btnLimpar = document.getElementById("btnLimpar");
+      const btnGerarPDF = document.getElementById("btnGerarPDF");
+      const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
+
+      // Dados da escala (traduzidos para o árabe)
+      const barthelData = [
+        {
+          activity: "التغذية",
+          nameAttr: "alimentacao",
+          options: [
+            { score: 10, description: "مستقل" },
+            { score: 5, description: "يحتاج مساعدة في التقطيع، إلخ." },
+            { score: 0, description: "غير قادر" },
+          ],
+        },
+        {
+          activity: "الاستحمام",
+          nameAttr: "banho",
+          options: [
+            { score: 5, description: "مستقل" },
+            { score: 0, description: "معتمد" },
+          ],
+        },
+        {
+          activity: "النظافة الشخصية",
+          nameAttr: "higienePessoal",
+          options: [
+            { score: 5, description: "مستقل (وجه/شعر/أسنان/حلاقة)" },
+            { score: 0, description: "يحتاج مساعدة" },
+          ],
+        },
+        {
+          activity: "ارتداء الملابس",
+          nameAttr: "vestir",
+          options: [
+            { score: 10, description: "مستقل" },
+            { score: 5, description: "يحتاج مساعدة" },
+            { score: 0, description: "معتمد" },
+          ],
+        },
+        {
+          activity: "التحكم في الأمعاء",
+          nameAttr: "controleIntestino",
+          options: [
+            { score: 10, description: "متحكم" },
+            { score: 5, description: "حادث عرضي" },
+            { score: 0, description: "سلس" },
+          ],
+        },
+        {
+          activity: "التحكم في المثانة",
+          nameAttr: "controleBexiga",
+          options: [
+            { score: 10, description: "متحكم" },
+            { score: 5, description: "حادث عرضي" },
+            { score: 0, description: "سلس" },
+          ],
+        },
+        {
+          activity: "استخدام المرحاض",
+          nameAttr: "usoToilet",
+          options: [
+            { score: 10, description: "مستقل" },
+            { score: 5, description: "يحتاج مساعدة" },
+            { score: 0, description: "معتمد" },
+          ],
+        },
+        {
+          activity: "التنقل (سرير/كرسي)",
+          nameAttr: "transferencia",
+          options: [
+            { score: 15, description: "مستقل" },
+            { score: 10, description: "مساعدة بسيطة" },
+            { score: 5, description: "مساعدة قصوى" },
+            { score: 0, description: "غير قادر" },
+          ],
+        },
+        {
+          activity: "الحركة (المشي)",
+          nameAttr: "mobilidade",
+          options: [
+            { score: 15, description: "مستقل > ٥٠م" },
+            { score: 10, description: "يمشي بمساعدة > ٥٠م" },
+            { score: 5, description: "كرسي متحرك مستقل > ٥٠م" },
+            { score: 0, description: "طريح الفراش" },
+          ],
+        },
+        {
+          activity: "صعود الدرج",
+          nameAttr: "escadas",
+          options: [
+            { score: 10, description: "مستقل" },
+            { score: 5, description: "يحتاج مساعدة" },
+            { score: 0, description: "غير قادر" },
+          ],
+        },
+      ];
+
+      function createForm() {
+        conteudoDiv.innerHTML = ""; // Limpa o conteúdo existente
+        barthelData.forEach((activityGroup) => {
+          const card = document.createElement("div");
+          card.className = "barthel-criterion-card";
+
+          card.innerHTML = `
+                    <h3 class="barthel-criterion-title">${activityGroup.activity}</h3>
+                    <div class="barthel-options-container">
+                        <select id="${activityGroup.nameAttr}-select" class="barthel-select" data-name="${activityGroup.nameAttr}" aria-label="${activityGroup.activity}">
+                            <option value="" disabled selected>اختر خيارًا...</option>
+                            ${activityGroup.options.map((opt) => `<option value="${opt.score}">${opt.description} (${toArabicNumeral(opt.score)})</option>`).join("")}
+                        </select>
+                    </div>
+                `;
+          conteudoDiv.appendChild(card);
+        });
+      }
+
+      function calcular() {
+        let totalScore = 0;
+        let allSelected = true;
+
+        barthelData.forEach((activityGroup) => {
+          const select = document.getElementById(
+            `${activityGroup.nameAttr}-select`,
+          );
+          if (select && select.value !== "") {
+            totalScore += parseInt(select.value, 10);
+          } else {
+            allSelected = false;
+          }
+        });
+
+        if (!allSelected) {
+          resultadoDiv.innerHTML =
+            '⚠️ <strong class="font-bold">يرجى تحديد خيار لكل نشاط.</strong>';
+          resultadoDiv.className = "standard-result-box bg-info-orange-light";
+          resultadoDiv.style.display = "block";
+          delete resultadoDiv.dataset.score;
+          return;
+        }
+
+        let classificacao = "";
+        // Lógica JS com números ocidentais
+        if (totalScore === 100) {
+          classificacao = "استقلالية تامة";
+        } else if (totalScore >= 91) {
+          classificacao = "اعتماد طفيف";
+        } else if (totalScore >= 61) {
+          classificacao = "اعتماد متوسط";
+        } else if (totalScore >= 21) {
+          classificacao = "اعتماد شديد";
+        } else {
+          classificacao = "اعتماد كامل";
+        }
+
+        // Exibe numerais árabes
+        resultadoDiv.innerHTML = `
+                <p class="font-bold text-lg">النتيجة الإجمالية: <span class="font-black">${toArabicNumeral(totalScore)} / ${toArabicNumeral(100)}</span></p>
+                <p class="font-bold text-lg">التصنيف: <span class="font-black">${classificacao}</span></p>
+            `;
+        resultadoDiv.className = "standard-result-box";
+        resultadoDiv.style.display = "block";
+        resultadoDiv.dataset.score = totalScore;
+        resultadoDiv.dataset.classificacao = classificacao;
+      }
+
+      function limpar() {
+        createForm(); // Recria o formulário para resetar os selects
+        resultadoDiv.innerHTML = "";
+        resultadoDiv.className = "hidden";
+        delete resultadoDiv.dataset.score;
+        delete resultadoDiv.dataset.classificacao;
+      }
+
+      createForm();
+      btnCalcular?.addEventListener("click", calcular);
+      btnLimpar?.addEventListener("click", limpar);
+
+      btnGerarPDF?.addEventListener("click", () => {
+        if (typeof resultadoDiv.dataset.score === "undefined") {
+          alert('يرجى النقر على "احسب" أولاً لإنشاء ملف PDF.');
+          return;
+        }
+        if (typeof gerarPDFGlobal === "function") {
+          gerarPDFGlobal({
+            titulo: "مقياس بارثل",
+            subtitulo: "تقرير الاعتماد الوظيفي",
+            nomeArquivo: "relatorio_escala_barthel.pdf",
+            seletorConteudo: ".main-content-wrapper",
+            direcao: "rtl", // Adiciona direção RTL para o PDF
+          });
+        } else {
+          console.error("Função gerarPDFGlobal não definida.");
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener("click", () => {
+        const classificacao = resultadoDiv.dataset.classificacao;
+        if (!classificacao) {
+          alert("احسب النتيجة للبحث عن الإجراء.");
+          return;
+        }
+        // Traduz a consulta de pesquisa
+        const searchQuery = encodeURIComponent(
+          `مريض لديه ${classificacao} في مقياس بارثل تصنيف NANDA, NIC و NOC`,
+        );
+        window.open(
+          `https://www.google.com/search?q=${searchQuery}`,
+          "_blank",
+        );
+      });
+
+      // Carrega o footer
+      fetch("footer.html")
+        .then((response) => response.text())
+        .then((data) => {
+          const footerPlaceholder =
+            document.getElementById("footer-placeholder");
+          if (footerPlaceholder) {
+            footerPlaceholder.innerHTML = data;
+          }
+        });
+    });
+  </script>
 
   <!-- Caminho do seletor de idioma ajustado -->
   <script src="../lang-selector.js" defer=""></script>

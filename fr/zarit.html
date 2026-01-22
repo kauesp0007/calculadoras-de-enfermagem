@@ -659,7 +659,510 @@
       });
   </script>
 
-  
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const resultadoDiv = document.getElementById("resultado");
+      const btnCalcular = document.getElementById("btnCalcular");
+      const btnLimpar = document.getElementById("btnLimpar");
+      const btnGerarPDF = document.getElementById("btnGerarPDF");
+      const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
+      const conteudoDiv = document.getElementById("conteudo");
+      const statusMessageDiv = document.getElementById("statusMessage"); // Pour lecteur d'écran
+
+      // Données TRADUITES de l'échelle de Zarit
+      const zaritData = [
+        {
+          title:
+            "1. Trouvez-vous que votre parent vous demande plus d'aide qu'il (elle) n'en a réellement besoin ?",
+          nameAttr: "zarit_q1",
+          options: [
+            { description: "Jamais", score: 0 },
+            { description: "Rarement", score: 1 },
+            { description: "Quelquefois", score: 2 },
+            { description: "Très souvent", score: 3 },
+            { description: "Presque toujours", score: 4 },
+          ],
+        },
+        {
+          title:
+            "2. Trouvez-vous que vous n'avez pas assez de temps pour vous à cause du temps consacré à votre parent ?",
+          nameAttr: "zarit_q2",
+          options: [
+            { description: "Jamais", score: 0 },
+            { description: "Rarement", score: 1 },
+            { description: "Quelquefois", score: 2 },
+            { description: "Très souvent", score: 3 },
+            { description: "Presque toujours", score: 4 },
+          ],
+        },
+        {
+          title:
+            "3. Vous sentez-vous stressé(e) d'avoir à vous occuper à la fois de votre parent et de vos autres responsabilités (familiales et professionnelles) ?",
+          nameAttr: "zarit_q3",
+          options: [
+            { description: "Jamais", score: 0 },
+            { description: "Rarement", score: 1 },
+            { description: "Quelquefois", score: 2 },
+            { description: "Très souvent", score: 3 },
+            { description: "Presque toujours", score: 4 },
+          ],
+        },
+        {
+          title:
+            "4. Vous sentez-vous gêné(e) par le comportement de votre parent ?",
+          nameAttr: "zarit_q4",
+          options: [
+            { description: "Jamais", score: 0 },
+            { description: "Rarement", score: 1 },
+            { description: "Quelquefois", score: 2 },
+            { description: "Très souvent", score: 3 },
+            { description: "Presque toujours", score: 4 },
+          ],
+        },
+        {
+          title:
+            "5. Vous sentez-vous en colère lorsque vous êtes avec votre parent ?",
+          nameAttr: "zarit_q5",
+          options: [
+            { description: "Jamais", score: 0 },
+            { description: "Rarement", score: 1 },
+            { description: "Quelquefois", score: 2 },
+            { description: "Très souvent", score: 3 },
+            { description: "Presque toujours", score: 4 },
+          ],
+        },
+        {
+          title:
+            "6. Trouvez-vous que le fait de vous occuper de votre parent a des conséquences négatives sur vos relations avec d'autres membres de votre famille ?",
+          nameAttr: "zarit_q6",
+          options: [
+            { description: "Jamais", score: 0 },
+            { description: "Rarement", score: 1 },
+            { description: "Quelquefois", score: 2 },
+            { description: "Très souvent", score: 3 },
+            { description: "Presque toujours", score: 4 },
+          ],
+        },
+        {
+          title:
+            "7. Avez-vous peur de ce que l'avenir réserve à votre parent ?",
+          nameAttr: "zarit_q7",
+          options: [
+            { description: "Jamais", score: 0 },
+            { description: "Rarement", score: 1 },
+            { description: "Quelquefois", score: 2 },
+            { description: "Très souvent", score: 3 },
+            { description: "Presque toujours", score: 4 },
+          ],
+        },
+        {
+          title: "8. Trouvez-vous que votre parent dépend de vous ?",
+          nameAttr: "zarit_q8",
+          options: [
+            { description: "Jamais", score: 0 },
+            { description: "Rarement", score: 1 },
+            { description: "Quelquefois", score: 2 },
+            { description: "Très souvent", score: 3 },
+            { description: "Presque toujours", score: 4 },
+          ],
+        },
+        {
+          title:
+            "9. Vous sentez-vous tendu(e) lorsque vous êtes avec votre parent ?",
+          nameAttr: "zarit_q9",
+          options: [
+            { description: "Jamais", score: 0 },
+            { description: "Rarement", score: 1 },
+            { description: "Quelquefois", score: 2 },
+            { description: "Très souvent", score: 3 },
+            { description: "Presque toujours", score: 4 },
+          ],
+        },
+        {
+          title:
+            "10. Trouvez-vous que votre santé a souffert du fait de vous occuper de votre parent ?",
+          nameAttr: "zarit_q10",
+          options: [
+            { description: "Jamais", score: 0 },
+            { description: "Rarement", score: 1 },
+            { description: "Quelquefois", score: 2 },
+            { description: "Très souvent", score: 3 },
+            { description: "Presque toujours", score: 4 },
+          ],
+        },
+        {
+          title:
+            "11. Trouvez-vous que vous n'avez pas autant d'intimité que vous le souhaiteriez à cause de votre parent ?",
+          nameAttr: "zarit_q11",
+          options: [
+            { description: "Jamais", score: 0 },
+            { description: "Rarement", score: 1 },
+            { description: "Quelquefois", score: 2 },
+            { description: "Très souvent", score: 3 },
+            { description: "Presque toujours", score: 4 },
+          ],
+        },
+        {
+          title:
+            "12. Trouvez-vous que votre vie sociale a souffert du fait que vous vous occupez de votre parent ?",
+          nameAttr: "zarit_q12",
+          options: [
+            { description: "Jamais", score: 0 },
+            { description: "Rarement", score: 1 },
+            { description: "Quelquefois", score: 2 },
+            { description: "Très souvent", score: 3 },
+            { description: "Presque toujours", score: 4 },
+          ],
+        },
+        {
+          title:
+            "13. Vous sentez-vous mal à l'aise à l'idée de recevoir des amis à cause de votre parent ?",
+          nameAttr: "zarit_q13",
+          options: [
+            { description: "Jamais", score: 0 },
+            { description: "Rarement", score: 1 },
+            { description: "Quelquefois", score: 2 },
+            { description: "Très souvent", score: 3 },
+            { description: "Presque toujours", score: 4 },
+          ],
+        },
+        {
+          title:
+            "14. Trouvez-vous que votre parent semble attendre de vous que vous vous occupiez de lui (elle) comme si vous étiez la seule personne dont il (elle) dépend ?",
+          nameAttr: "zarit_q14",
+          options: [
+            { description: "Jamais", score: 0 },
+            { description: "Rarement", score: 1 },
+            { description: "Quelquefois", score: 2 },
+            { description: "Très souvent", score: 3 },
+            { description: "Presque toujours", score: 4 },
+          ],
+        },
+        {
+          title:
+            "15. Trouvez-vous que vous n'avez pas assez d'argent pour vous occuper de votre parent en plus du reste de vos dépenses ?",
+          nameAttr: "zarit_q15",
+          options: [
+            { description: "Jamais", score: 0 },
+            { description: "Rarement", score: 1 },
+            { description: "Quelquefois", score: 2 },
+            { description: "Très souvent", score: 3 },
+            { description: "Presque toujours", score: 4 },
+          ],
+        },
+        {
+          title:
+            "16. Trouvez-vous que vous n'êtes plus capable de vous occuper de votre parent encore bien longtemps ?",
+          nameAttr: "zarit_q16",
+          options: [
+            { description: "Jamais", score: 0 },
+            { description: "Rarement", score: 1 },
+            { description: "Quelquefois", score: 2 },
+            { description: "Très souvent", score: 3 },
+            { description: "Presque toujours", score: 4 },
+          ],
+        },
+        {
+          title: "17. Vous sentez-vous dépassé(e) ?",
+          nameAttr: "zarit_q17",
+          options: [
+            { description: "Jamais", score: 0 },
+            { description: "Rarement", score: 1 },
+            { description: "Quelquefois", score: 2 },
+            { description: "Très souvent", score: 3 },
+            { description: "Presque toujours", score: 4 },
+          ],
+        },
+        {
+          title:
+            "18. Souhaitez-vous pouvoir confier les soins de votre parent à quelqu'un d'autre ?",
+          nameAttr: "zarit_q18",
+          options: [
+            { description: "Jamais", score: 0 },
+            { description: "Rarement", score: 1 },
+            { description: "Quelquefois", score: 2 },
+            { description: "Très souvent", score: 3 },
+            { description: "Presque toujours", score: 4 },
+          ],
+        },
+        {
+          title:
+            "19. Vous sentez-vous incertain(e) sur ce que vous avez à faire ?",
+          nameAttr: "zarit_q19",
+          options: [
+            { description: "Jamais", score: 0 },
+            { description: "Rarement", score: 1 },
+            { description: "Quelquefois", score: 2 },
+            { description: "Très souvent", score: 3 },
+            { description: "Presque toujours", score: 4 },
+          ],
+        },
+        {
+          title:
+            "20. Trouvez-vous que vous devriez en faire plus pour votre parent ?",
+          nameAttr: "zarit_q20",
+          options: [
+            { description: "Jamais", score: 0 },
+            { description: "Rarement", score: 1 },
+            { description: "Quelquefois", score: 2 },
+            { description: "Très souvent", score: 3 },
+            { description: "Presque toujours", score: 4 },
+          ],
+        },
+        {
+          title:
+            "21. Trouvez-vous que vous pourriez mieux vous occuper de votre parent ?",
+          nameAttr: "zarit_q21",
+          options: [
+            { description: "Jamais", score: 0 },
+            { description: "Rarement", score: 1 },
+            { description: "Quelquefois", score: 2 },
+            { description: "Très souvent", score: 3 },
+            { description: "Presque toujours", score: 4 },
+          ],
+        },
+        {
+          title:
+            "22. Globalement, comment évaluez-vous le fardeau lié à la charge que représente pour vous le fait de vous occuper de votre parent ?",
+          nameAttr: "zarit_q22",
+          options: [
+            { description: "Pas du tout", score: 0 },
+            { description: "Un peu", score: 1 },
+            { description: "Modérément", score: 2 },
+            { description: "Beaucoup", score: 3 },
+            { description: "Énormément", score: 4 },
+          ],
+        },
+      ];
+
+      // Remplit le formulaire dynamiquement
+      zaritData.forEach((item) => {
+        const sectionDiv = document.createElement("div");
+        sectionDiv.className = "zarit-criterion-section";
+        sectionDiv.id = `section-${item.nameAttr}`;
+
+        // Met le titre dans un conteneur pour le layout responsive
+        const titleContainer = document.createElement("div");
+        titleContainer.className = "zarit-criterion-title"; // Utilise la classe pour le flex-basis
+        const titleH3 = document.createElement("h3");
+        // Utilise textContent pour éviter les problèmes d'interprétation HTML
+        titleH3.textContent = item.title;
+        titleContainer.appendChild(titleH3);
+        sectionDiv.appendChild(titleContainer);
+
+        const selectElement = document.createElement("select");
+        selectElement.id = item.nameAttr;
+        selectElement.className = "zarit-criterion-select"; // Applique la classe pour le flex-basis
+        selectElement.setAttribute("aria-label", item.title); // Label pour accessibilité
+
+        const defaultOption = document.createElement("option");
+        defaultOption.value = "";
+        defaultOption.text = "Sélectionnez..."; // TRADUIT
+        defaultOption.disabled = true;
+        defaultOption.selected = true;
+        selectElement.appendChild(defaultOption);
+
+        item.options.forEach((option) => {
+          const optionElement = document.createElement("option");
+          optionElement.value = option.score;
+          // Affiche : Description (Score : X)
+          optionElement.text = `${option.description} (${option.score})`; // TRADUIT
+          selectElement.appendChild(optionElement);
+        });
+
+        sectionDiv.appendChild(selectElement);
+        conteudoDiv.appendChild(sectionDiv);
+      });
+
+      function calculerZarit() {
+        const selects = document.querySelectorAll("#zarit-form select"); // Cible les selects dans le formulaire
+        let allSelected = true;
+        let total = 0;
+
+        selects.forEach((select) => {
+          select.classList.remove("incomplete"); // Réinitialise
+          if (select.value === "") {
+            allSelected = false;
+            select.classList.add("incomplete"); // Met en évidence
+          } else {
+            total += Number(select.value);
+          }
+        });
+
+        resultadoDiv.style.display = "block"; // Assure la visibilité
+        resultadoDiv.classList.remove("hidden");
+
+        if (!allSelected) {
+          resultadoDiv.innerHTML =
+            '⚠️ <strong class="font-bold">Veuillez sélectionner une option pour tous les items</strong> avant de calculer. Les champs manquants sont surlignés.'; // TRADUIT
+          resultadoDiv.className = `resultado bg-red-100`; // Style d'erreur rouge
+          resultadoDiv.setAttribute("tabindex", "-1");
+          resultadoDiv.focus();
+          // Nettoie le dataset
+          delete resultadoDiv.dataset.score;
+          delete resultadoDiv.dataset.fardeau;
+          return;
+        }
+
+        let fardeau = ""; // Renommé de 'recomendacao'
+        let resultadoClasse = "";
+
+        // Interprétation TRADUITE basée sur les seuils standards
+        if (total <= 20) {
+          // Seuil souvent utilisé pour 'absence'
+          fardeau = `Le score de ${total} indique une absence de fardeau ou un fardeau léger.`;
+          resultadoClasse = "bg-blue-50"; // Bleu clair (pas de surcharge)
+        } else if (total >= 21 && total <= 40) {
+          // Seuil pour 'léger à modéré'
+          fardeau = `Le score de ${total} indique un fardeau léger à modéré. Un soutien et des ressources peuvent être bénéfiques pour l'aidant.`;
+          resultadoClasse = "bg-yellow-100"; // Jaune
+        } else if (total >= 41 && total <= 60) {
+          // Seuil pour 'modéré à sévère'
+          fardeau = `Le score de ${total} indique un fardeau modéré à sévère. L'aidant pourrait avoir besoin d'un soutien psychologique, de groupes d'aide et/ou d'une assistance professionnelle.`;
+          resultadoClasse = "bg-orange-100"; // Orange
+        } else {
+          // total >= 61
+          fardeau = `Le score de ${total} indique un fardeau sévère. Une intervention urgente avec un soutien multidisciplinaire est essentielle pour protéger la santé physique et mentale de l'aidant.`;
+          resultadoClasse = "bg-red-100"; // Rouge
+        }
+
+        // Affichage TRADUIT
+        resultadoDiv.innerHTML = `
+                    <p>Score total : <strong class="font-bold">${total} / 88</strong></p>
+                    <p class="mt-4"><strong>Interprétation :</strong> ${fardeau}</p>
+                `;
+        resultadoDiv.className = `resultado ${resultadoClasse}`;
+        resultadoDiv.setAttribute("tabindex", "-1");
+        resultadoDiv.focus();
+
+        // Stocke les données TRADUITES
+        resultadoDiv.dataset.score = total;
+        resultadoDiv.dataset.fardeau = fardeau; // Stocke l'interprétation
+        resultadoDiv.dataset.scaleName = "Échelle de Zarit"; // TRADUIT
+      }
+
+      function limparCampos() {
+        const selects = document.querySelectorAll("#zarit-form select"); // Cible les selects
+        selects.forEach((select) => {
+          select.selectedIndex = 0; // Remet à "Sélectionnez..."
+          select.classList.remove("incomplete"); // Enlève le style d'erreur
+        });
+        resultadoDiv.innerHTML = "";
+        resultadoDiv.className = "resultado hidden"; // Cache la div
+        // Nettoie tout le dataset
+        delete resultadoDiv.dataset.score;
+        delete resultadoDiv.dataset.fardeau;
+        delete resultadoDiv.dataset.scaleName;
+        // Annonce pour lecteur d'écran
+        statusMessageDiv.textContent = "Champs effacés.";
+      }
+
+      // Ajoute les écouteurs aux boutons (labels TRADUITS)
+      btnCalcular?.addEventListener("click", calculerZarit);
+      btnLimpar?.addEventListener("click", limparCampos);
+
+      btnGerarPDF?.addEventListener("click", () => {
+        // Vérifie si un score a été calculé
+        if (!resultadoDiv.dataset.score) {
+          alert(
+            'Veuillez cliquer sur "Calculer Score" d\'abord pour générer le PDF.',
+          ); // TRADUIT
+          return;
+        }
+        if (typeof gerarPDFGlobal === "function") {
+          // Récupère les données
+          const score = resultadoDiv.dataset.score;
+          const fardeau = resultadoDiv.dataset.fardeau;
+          const selectedOptions = {}; // Pour stocker les sélections détaillées
+
+          // Récupère les sélections de l'utilisateur
+          document
+            .querySelectorAll("#zarit-form select")
+            .forEach((select) => {
+              const selected = select.options[select.selectedIndex];
+              if (selected.value !== "") {
+                // Trouve le titre associé à l'ID du select
+                const itemData = zaritData.find(
+                  (item) => item.nameAttr === select.id,
+                );
+                const title = itemData ? itemData.title : select.id;
+                // Enlève le score entre parenthèses
+                selectedOptions[title] = selected.text.replace(
+                  / \(\d+\)$/,
+                  "",
+                );
+              }
+            });
+
+          // Construit la section des détails pour le PDF
+          let detailsHtml =
+            '<h3 style="color: #1A3E74; margin-top: 15px; margin-bottom: 10px;">Réponses détaillées :</h3>';
+          for (const [title, description] of Object.entries(
+            selectedOptions,
+          )) {
+            detailsHtml += `<p style="margin-bottom: 5px;"><strong>${title}:</strong> ${description}</p>`;
+          }
+
+          // Crée un contenu HTML simple pour le PDF
+          const pdfContentHtml = `
+                        <div style="font-family: Inter, sans-serif; padding: 20px;">
+                            <h1 style="color: #1A3E74; border-bottom: 2px solid #1A3E74; padding-bottom: 5px;">Échelle de Zarit</h1>
+                            <h2 style="color: #1FA4E5; margin-top: 15px;">Rapport d'Évaluation du Fardeau de l'Aidant</h2>
+
+                            ${detailsHtml}
+
+                            <div style="margin-top: 20px; background-color: #f3f4f6; border-radius: 8px; padding: 15px; border: 1px solid #e5e7eb;">
+                                <p style="font-size: 1.2em; color: #1A3E74; margin-bottom: 10px;"><strong>Score Total : ${score} / 88</strong></p>
+                                <p><strong>Interprétation :</strong> ${fardeau}</p>
+                            </div>
+                            <p style="margin-top: 20px; font-size: 0.9em; color: #6b7280;">Généré par Calculatrices de Soins Infirmiers</p>
+                        </div>
+                    `;
+
+          gerarPDFGlobal({
+            // Titres et nom de fichier TRADUITS
+            titulo: "Échelle de Zarit",
+            subtitulo: "Rapport d'Évaluation du Fardeau de l'Aidant",
+            nomeArquivo: "rapport_echelle_zarit.pdf",
+            htmlConteudo: pdfContentHtml, // Utilise le HTML généré
+          });
+        } else {
+          alert(
+            "Erreur : La fonction pour générer le PDF n'a pas été trouvée.",
+          ); // TRADUIT
+          console.error("Fonction gerarPDFGlobal non définie."); // TRADUIT
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener("click", () => {
+        // Vérifie si un score a été calculé
+        if (!resultadoDiv.dataset.score) {
+          alert("Calculez le résultat pour rechercher la conduite à tenir."); // TRADUIT
+          return;
+        }
+        const score = resultadoDiv.dataset.score;
+        const scaleName = "Échelle de Zarit"; // TRADUIT
+        // Détermine le niveau de fardeau basé sur le score
+        let niveauFardeau = "absence de fardeau ou fardeau léger";
+        if (score >= 21 && score <= 40) {
+          niveauFardeau = "fardeau léger à modéré";
+        } else if (score >= 41 && score <= 60) {
+          niveauFardeau = "fardeau modéré à sévère";
+        } else if (score >= 61) {
+          niveauFardeau = "fardeau sévère";
+        }
+
+        // TRADUIT la query de recherche
+        const searchQuery = encodeURIComponent(
+          `plan de soins infirmiers pour aidant familial avec ${niveauFardeau} selon ${scaleName} NANDA NIC NOC`,
+        );
+        window.open(
+          `https://www.google.com/search?q=${searchQuery}`,
+          "_blank",
+        );
+      });
+    });
+  </script>
 
 
 

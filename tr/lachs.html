@@ -587,7 +587,283 @@
 
 
 
-  
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const resultadoDiv = document.getElementById("resultado");
+      const btnCalcular = document.getElementById("btnCalcular");
+      const btnLimpar = document.getElementById("btnLimpar");
+      const btnGerarPDF = document.getElementById("btnGerarPDF");
+      const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
+      const conteudoDiv = document.getElementById("conteudo");
+
+      const lachsData = [
+        {
+          category: "Görme",
+          nameAttr: "visao",
+          explain:
+            "Hasta, gerekirse gözlükle, 35 cm mesafeden 20/40 seviyesine kadar Jaeguer kartını okuyabiliyor mu?",
+          options: [
+            { description: "Evet, 20/40'a kadar okuyabiliyor.", score: 1 },
+            { description: "Hayır, 20/40'a kadar okuyamıyor.", score: 0 },
+          ],
+        },
+        {
+          category: "İşitme",
+          nameAttr: "audicao",
+          explain:
+            "Hasta, görüş alanının dışında fısıldanan bir soruya (Örn.: 'Adınız nedir?') cevap veriyor mu?",
+          options: [
+            { description: "Evet, soruyu yanıtlıyor.", score: 1 },
+            { description: "Hayır, soruyu yanıtlamıyor.", score: 0 },
+          ],
+        },
+        {
+          category: "İdrar kaçırma",
+          nameAttr: "incontinencia_urinaria",
+          explain:
+            "Hasta, son bir yılda en az 6 ayrı günde istemsiz olarak idrar kaçırıp iç çamaşırlarını ıslatıyor mu?",
+          options: [
+            { description: "Hayır", score: 1 },
+            { description: "Evet", score: 0 },
+          ],
+        },
+        {
+          category: "GYA ve EGYA",
+          nameAttr: "avd_aivd",
+          explain:
+            "Hasta yataktan kalkabiliyor, giyinebiliyor, yemek hazırlayabiliyor ve tek başına alışveriş yapabiliyor mu?",
+          options: [
+            { description: "Evet, tüm aktiviteleri yapabiliyor.", score: 1 },
+            {
+              description: "Hayır, aktivitelerden en az birini yapamıyor.",
+              score: 0,
+            },
+          ],
+        },
+        {
+          category: "Kavrama kuvveti (üst ekstremiteler)",
+          nameAttr: "forca_preensao",
+          explain:
+            "Hasta her iki eliyle ensesine dokunabiliyor ve kaşık tutabiliyor mu?",
+          options: [
+            {
+              description: "Evet, her iki görevi de yerine getirebiliyor.",
+              score: 1,
+            },
+            {
+              description:
+                "Hayır, görevlerden birini veya her ikisini yerine getiremiyor.",
+              score: 0,
+            },
+          ],
+        },
+        {
+          category: "Alt ekstremite kuvveti",
+          nameAttr: "forca_inferiores",
+          explain:
+            "Hasta sandalyeden kalkabiliyor, 3 metre yürüyüp geri dönebiliyor ve 12 saniyeden kısa sürede oturabiliyor mu?",
+          options: [
+            {
+              description: "Evet, testi ≤ 12 saniyede tamamlıyor.",
+              score: 1,
+            },
+            {
+              description:
+                "Hayır, yürümüyor veya testi tamamlamak 12 saniyeden fazla sürüyor.",
+              score: 0,
+            },
+          ],
+        },
+        {
+          category: "Beslenme",
+          nameAttr: "nutricao",
+          explain:
+            "Hastanın Vücut Kitle İndeksi (VKİ) 22 kg/m²'nin üzerinde mi?",
+          options: [
+            { description: "Evet, VKİ ≥ 22 kg/m².", score: 1 },
+            { description: "Hayır, VKİ < 22 kg/m².", score: 0 },
+          ],
+        },
+        {
+          category: "Zihinsel durum",
+          nameAttr: "estado_mental",
+          explain:
+            "Hasta 1 dakika sonra üç kelimeyi (örn: 'araba', 'vazo', 'top') tekrarlayabiliyor mu?",
+          options: [
+            {
+              description: "Evet, tüm kelimeleri tekrarlayabiliyor.",
+              score: 1,
+            },
+            {
+              description:
+                "Hayır, kelimelerden en az birini tekrarlayamıyor.",
+              score: 0,
+            },
+          ],
+        },
+        {
+          category: "Depresyon",
+          nameAttr: "depressao",
+          explain: "Hasta kendini sık sık üzgün veya depresif hissediyor mu?",
+          options: [
+            { description: "Hayır", score: 1 },
+            { description: "Evet", score: 0 },
+          ],
+        },
+        {
+          category: "Ev ortamı",
+          nameAttr: "ambiente",
+          explain:
+            "Hastanın evde merdivenler, küvet, gevşek halılar veya yetersiz aydınlatma ile ilgili zorlukları var mı?",
+          options: [
+            { description: "Hayır, ortam güvenli.", score: 1 },
+            { description: "Evet, ev ortamında riskler var.", score: 0 },
+          ],
+        },
+        {
+          category: "Sosyal destek",
+          nameAttr: "apoio_social",
+          explain:
+            "Hastanın hastalık veya acil durum halinde güvenebileceği aile üyeleri, arkadaşları veya komşuları var mı?",
+          options: [
+            { description: "Evet, sosyal desteği var.", score: 1 },
+            { description: "Hayır, sosyal desteği yok.", score: 0 },
+          ],
+        },
+      ];
+
+      lachsData.forEach((item) => {
+        const sectionDiv = document.createElement("div");
+        sectionDiv.className = "lachs-criterion-section";
+        sectionDiv.id = `section-${item.nameAttr}`;
+
+        const titleH3 = document.createElement("h3");
+        titleH3.className = "lachs-criterion-title";
+        titleH3.innerHTML = item.category;
+        sectionDiv.appendChild(titleH3);
+
+        const explainP = document.createElement("p");
+        explainP.className = "lachs-criterion-explain";
+        explainP.innerHTML = item.explain;
+        sectionDiv.appendChild(explainP);
+
+        const selectElement = document.createElement("select");
+        selectElement.id = item.nameAttr;
+        selectElement.className = "lachs-criterion-select";
+
+        const defaultOption = document.createElement("option");
+        defaultOption.value = "";
+        defaultOption.text = "Seçiniz...";
+        selectElement.appendChild(defaultOption);
+
+        item.options.forEach((option) => {
+          const optionElement = document.createElement("option");
+          optionElement.value = option.score;
+          optionElement.text = `${option.description} (puan: ${option.score})`;
+          selectElement.appendChild(optionElement);
+        });
+
+        sectionDiv.appendChild(selectElement);
+        conteudoDiv.appendChild(sectionDiv);
+      });
+
+      function calcularLachs() {
+        const selects = document.querySelectorAll("#conteudo select");
+        let allSelected = true;
+        let total = 0;
+
+        selects.forEach((select) => {
+          if (select.value === "") {
+            allSelected = false;
+            select.classList.add("incomplete");
+          } else {
+            select.classList.remove("incomplete");
+            total += Number(select.value);
+          }
+        });
+
+        resultadoDiv.style.display = "block";
+        if (!allSelected) {
+          resultadoDiv.innerHTML =
+            '⚠️ <strong class="font-bold">Lütfen hesaplamadan önce tüm maddeler için bir seçenek belirleyin.</strong>';
+          resultadoDiv.classList.add("bg-red-100");
+          resultadoDiv.classList.remove("bg-blue-50");
+          delete resultadoDiv.dataset.score;
+          return;
+        }
+
+        let recomendacao = "";
+
+        if (total <= 5) {
+          recomendacao = `${total} skoru, yüksek fonksiyonel kapasite kaybı ve bağımlılık riski olduğunu göstermektedir. Hastanın özerkliğini ve güvenliğini maksimize etmek için kapsamlı bir geriatrik değerlendirme ve bireyselleştirilmiş bir bakım planı önerilir.`;
+        } else if (total >= 6 && total <= 9) {
+          recomendacao = `${total} skoru, orta derecede fonksiyonel kapasite kaybı riskini göstermektedir. Hasta bazı alanlarda desteğe ihtiyaç duyabilir.`;
+        } else {
+          recomendacao = `${total} skoru, hastanın iyi bir fonksiyonel kapasiteye ve düşük özerklik kaybı riskine sahip olduğunu göstermektedir.`;
+        }
+
+        resultadoDiv.innerHTML = `
+                <p>Toplam Skor: <strong class="font-bold">${total}</strong></p>
+                <p class="mt-4"><strong>Öneri:</strong> ${recomendacao}</p>
+            `;
+        resultadoDiv.className = `resultado bg-blue-50`;
+        resultadoDiv.style.display = "block";
+
+        resultadoDiv.dataset.score = total;
+        resultadoDiv.dataset.scaleName = "Lachs Ölçeği";
+      }
+
+      function limparCampos() {
+        const selects = document.querySelectorAll("#conteudo select");
+        selects.forEach((select) => {
+          select.selectedIndex = 0;
+          select.classList.remove("incomplete");
+        });
+        resultadoDiv.innerHTML = "";
+        resultadoDiv.className = "resultado hidden";
+        delete resultadoDiv.dataset.score;
+        delete resultadoDiv.dataset.scaleName;
+      }
+
+      btnCalcular?.addEventListener("click", calcularLachs);
+      btnLimpar?.addEventListener("click", limparCampos);
+
+      btnGerarPDF?.addEventListener("click", () => {
+        if (!resultadoDiv.dataset.score) {
+          alert(
+            'PDF oluşturmak için lütfen önce "Skoru Hesapla" butonuna tıklayın.',
+          );
+          return;
+        }
+        if (typeof gerarPDFGlobal === "function") {
+          gerarPDFGlobal({
+            titulo: "Lachs Ölçeği",
+            subtitulo: "Yaşlı Fonksiyonel Değerlendirme Raporu",
+            nomeArquivo: "lachs_olcegi_raporu.pdf",
+            seletorConteudo: ".main-content-wrapper",
+          });
+        } else {
+          console.error("gerarPDFGlobal fonksiyonu tanımlı değil.");
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener("click", () => {
+        const score = resultadoDiv.dataset.score;
+        const scaleName = resultadoDiv.dataset.scaleName;
+        if (!score) {
+          alert("Bakım planını aramak için sonucu hesaplayın.");
+          return;
+        }
+        const searchQuery = encodeURIComponent(
+          `yaşlı bağımsızlığı için hemşirelik bakımı ${scaleName} puan ${score} NANDA NIC NOC`,
+        );
+        window.open(
+          `https://www.google.com/search?q=${searchQuery}`,
+          "_blank",
+        );
+      });
+    });
+  </script>
 
   <script src="/tr/lang-selector.js" defer=""></script>
 

@@ -644,7 +644,203 @@
 
 
 
-  
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const resultadoDiv = document.getElementById('resultado');
+      const btnCalcular = document.getElementById('btnCalcular');
+      const btnLimpar = document.getElementById('btnLimpar');
+      const btnGerarPDF = document.getElementById('btnGerarPDF');
+      const btnNandaNicNoc = document.getElementById('btnNandaNicNoc');
+      const conteudoDiv = document.getElementById('conteudo');
+
+      // Данные шкалы NIPS
+      const nipsData = [
+        {
+          category: "Выражение лица",
+          nameAttr: "expressao_facial",
+          options: [
+            { description: "Расслабленное", score: 0 },
+            { description: "Гримаса", score: 1 }
+          ],
+          explain: "Наблюдайте за мимикой лица, такими как сокращения или расслабление. Гримаса указывает на напряжение."
+        },
+        {
+          category: "Характер плача",
+          nameAttr: "choro",
+          options: [
+            { description: "Отсутствует", score: 0 },
+            { description: "Ворчание / Стоны", score: 1 },
+            { description: "Громкий плач", score: 2 }
+          ],
+          explain: "Оценивает наличие и интенсивность плача. Громкий и сильный плач является признаком дискомфорта."
+        },
+        {
+          category: "Дыхательный паттерн",
+          nameAttr: "respiracao",
+          options: [
+            { description: "Спокойное", score: 0 },
+            { description: "Изменённый / Нерегулярный", score: 1 }
+          ],
+          explain: "Проверяет, спокойное ли и регулярное дыхание. Внезапные изменения паттерна могут указывать на боль."
+        },
+        {
+          category: "Движение рук",
+          nameAttr: "bracos",
+          options: [
+            { description: "Расслабленные / Без движений", score: 0 },
+            { description: "Напряжённое сгибание / разгибание", score: 1 }
+          ],
+          explain: "Оценивает тонус и движение рук. Напряжённое сгибание или разгибание может быть признаком боли."
+        },
+        {
+          category: "Движение ног",
+          nameAttr: "pernas",
+          options: [
+            { description: "Расслабленные / Без движений", score: 0 },
+            { description: "Напряжённое сгибание / разгибание", score: 1 }
+          ],
+          explain: "Оценивает тонус и движение ног. Напряжённое сгибание или разгибание может быть признаком боли."
+        },
+        {
+          category: "Состояние бодрствования",
+          nameAttr: "estado_consciencia",
+          options: [
+            { description: "Спокойный / Спящий", score: 0 },
+            { description: "Беспокойный / Дискомфорт", score: 1 }
+          ],
+          explain: "Наблюдает за общим состоянием новорожденного. Возбуждение и беспокойство являются частыми признаками боли."
+        }
+      ];
+
+      // Заполняет форму динамически
+      nipsData.forEach(item => {
+        const sectionDiv = document.createElement('div');
+        sectionDiv.className = 'nips-criterion-section';
+        sectionDiv.id = `section-${item.nameAttr}`;
+
+        const titleH3 = document.createElement('h3');
+        titleH3.className = 'nips-criterion-title';
+        titleH3.innerHTML = item.category + `
+              <div class="text-sm font-normal text-gray-500 mt-1">${item.explain}</div>`;
+        sectionDiv.appendChild(titleH3);
+
+        const selectElement = document.createElement('select');
+        selectElement.id = item.nameAttr;
+        selectElement.className = 'nips-criterion-select';
+
+        const defaultOption = document.createElement('option');
+        defaultOption.value = "";
+        defaultOption.text = "Выберите...";
+        selectElement.appendChild(defaultOption);
+
+        item.options.forEach(option => {
+          const optionElement = document.createElement('option');
+          optionElement.value = option.score;
+          optionElement.text = `${option.description} (баллы: ${option.score})`;
+          selectElement.appendChild(optionElement);
+        });
+
+        sectionDiv.appendChild(selectElement);
+        conteudoDiv.appendChild(sectionDiv);
+      });
+
+      function calcularNips() {
+        const selects = document.querySelectorAll('#conteudo select');
+        let allSelected = true;
+        let total = 0;
+
+        selects.forEach(select => {
+          if (select.value === "") {
+            allSelected = false;
+            select.classList.add('incomplete');
+          } else {
+            select.classList.remove('incomplete');
+            total += Number(select.value);
+          }
+        });
+
+        resultadoDiv.style.display = "block";
+        if (!allSelected) {
+          resultadoDiv.innerHTML = '⚠️ <strong class="font-bold">Пожалуйста, выберите опцию для всех элементов перед расчётом.</strong>';
+          resultadoDiv.classList.add('bg-red-100');
+          resultadoDiv.classList.remove('bg-blue-50');
+          delete resultadoDiv.dataset.score;
+          return;
+        }
+
+        let classificacao = '';
+        let recomendacao = '';
+        let resultadoClasse = '';
+
+        if (total < 4) {
+          classificacao = 'Отсутствие боли';
+          recomendacao = 'Балл указывает на отсутствие боли. Продолжайте мониторинг пациента.';
+          resultadoClasse = 'bg-blue-50';
+        } else { // total >= 4
+          classificacao = 'Наличие боли';
+          recomendacao = 'Балл указывает на наличие боли. Оцените необходимость вмешательства и сообщите врачу-педиатру.';
+          resultadoClasse = 'bg-red-100';
+        }
+
+        resultadoDiv.innerHTML = `
+                <p>Общий балл: <strong class="font-bold">${total}</strong></p>
+                <p>Классификация: <strong class="font-bold">${classificacao}</strong></p>
+                <p class="mt-4"><strong>Рекомендация:</strong> ${recomendacao}</p>
+            `;
+        resultadoDiv.className = `resultado ${resultadoClasse}`;
+        resultadoDiv.style.display = "block";
+
+        resultadoDiv.dataset.score = total;
+        resultadoDiv.dataset.scaleName = "Шкала NIPS";
+        resultadoDiv.dataset.classificacao = classificacao;
+      }
+
+      function limparCampos() {
+        const selects = document.querySelectorAll('#conteudo select');
+        selects.forEach(select => {
+          select.selectedIndex = 0;
+          select.classList.remove('incomplete');
+        });
+        resultadoDiv.innerHTML = '';
+        resultadoDiv.className = 'resultado hidden';
+        delete resultadoDiv.dataset.score;
+        delete resultadoDiv.dataset.scaleName;
+        delete resultadoDiv.dataset.classificacao;
+      }
+
+      btnCalcular?.addEventListener('click', calcularNips);
+      btnLimpar?.addEventListener('click', limparCampos);
+
+      btnGerarPDF?.addEventListener('click', () => {
+        if (!resultadoDiv.dataset.score) {
+          alert('Пожалуйста, сначала нажмите "Рассчитать балл" для создания PDF.');
+          return;
+        }
+        if (typeof gerarPDFGlobal === 'function') {
+          gerarPDFGlobal({
+            titulo: 'Шкала NIPS',
+            subtitulo: 'Отчёт об оценке неонатальной боли',
+            nomeArquivo: 'relatorio_escala_nips.pdf',
+            seletorConteudo: '.main-content-wrapper'
+          });
+        } else {
+          console.error('Функция gerarPDFGlobal не определена.');
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener('click', () => {
+        const score = resultadoDiv.dataset.score;
+        const scaleName = resultadoDiv.dataset.scaleName;
+        const classificacao = resultadoDiv.dataset.classificacao;
+        if (!score || !classificacao) {
+          alert('Рассчитайте результат для поиска тактики ведения.');
+          return;
+        }
+        const searchQuery = encodeURIComponent(`уход сестринское дело неонатальная боль ${classificacao} NIPS NANDA NIC NOC`);
+        window.open(`https://www.google.com/search?q=${searchQuery}`, '_blank');
+      });
+    });
+  </script>
 
 
 

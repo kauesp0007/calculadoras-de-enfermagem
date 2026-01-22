@@ -570,7 +570,221 @@
 
 
 
-  
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const resultadoDiv = document.getElementById("resultado");
+      const btnCalcular = document.getElementById("btnCalcular");
+      const btnLimpar = document.getElementById("btnLimpar");
+      const btnGerarPDF = document.getElementById("btnGerarPDF");
+      const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
+      const conteudoDiv = document.getElementById("conteudo");
+
+      // Dados da escala NIPS
+      const nipsData = [
+        {
+          category: "Mặt biểu tượng",
+          nameAttr: "expressao_facial",
+          options: [
+            { description: "Thư giãn", score: 0 },
+            { description: "nhăn mặt", score: 1 }],
+
+          explain:
+            "Khi bạn ngồi đó, bạn không biết phải làm gì. Một nhóm nhăn nheo cho thấy sự căng thẳng."
+        },
+        {
+          category: "Sample",
+          nameAttr: "khóc",
+          options: [
+            { description: "Vắng mặt", score: 0 },
+            { description: "Tiếng càu nhàu/Rên rỉ", score: 1 },
+            { description: "Khóc mạnh mẽ", score: 2 }],
+
+          explain:
+            "Thật dễ dàng để xem những gì bạn đang tìm kiếm. Tiếng Việt to và mạnh là dấu hiệu của sự khó chịu."
+        },
+        {
+          category: "Mô hình hô hấp",
+          nameAttr: "thở",
+          options: [
+            { description: "Thư giãn", score: 0 },
+            { description: "Đã thay đổi/Không thường xuyên", score: 1 }],
+
+          explain:
+            "Kiểm tra nhịp xem nhịp bình tĩnh và đều không. Những thay đổi đột ngột trong thở có thể là dấu hiệu của cơn đau."
+        },
+        {
+          category: "Tiêu chuẩn động cơ cánh tay",
+          nameAttr: "cánh tay",
+          options: [
+            { description: "Thư giãn / Không cử động", score: 0 },
+            { description: "File / Hardware", score: 1 }],
+
+          explain:
+            "Đánh giá căng thẳng và chuyển động của cánh tay. Căng thẳng hoặc căng thẳng có thể là dấu hiệu của cơn đau."
+        },
+        {
+          category: "Mô hình cơ sở động cơ",
+          nameAttr: "chân",
+          options: [
+            { description: "Thư giãn / Không cử động", score: 0 },
+            { description: "File / Hardware", score: 1 }],
+
+          explain:
+            "Đánh giá mức độ căng thẳng và chuyển động của chân. Căng thẳng hoặc căng thẳng có thể là dấu hiệu của cơn đau."
+        },
+        {
+          category: "Biểu thức trạng thái",
+          nameAttr: "estado_consciencia",
+          options: [
+            { description: "Bình tĩnh / Ngủ", score: 0 },
+            { description: "Bồn chồn / Khó chịu", score: 1 }],
+
+          explain:
+            "Khi bạn đã ở đó rồi thì chỉ vậy thôi. Sự kích thích và bồn chồn là những dấu hiệu thường thấy của cơn đau."
+        }];
+
+
+      // Preenche o formulário dinamicamente
+      nipsData.forEach((item) => {
+        const sectionDiv = document.createElement("div");
+        sectionDiv.className = "nips-criterion-section";
+        sectionDiv.id = `section-${item.nameAttr}`;
+
+        const titleH3 = document.createElement("h3");
+        titleH3.className = "nips-criterion-title";
+        titleH3.innerHTML =
+          item.category +
+          `
+              <div class="text-sm font-normal text-gray-500 mt-1">${item.explain}</div>`;
+        sectionDiv.appendChild(titleH3);
+
+        const selectElement = document.createElement("select");
+        selectElement.id = item.nameAttr;
+        selectElement.className = "nips-criterion-select";
+
+        const defaultOption = document.createElement("option");
+        defaultOption.value = "";
+        defaultOption.text = "Chọn...";
+        selectElement.appendChild(defaultOption);
+
+        item.options.forEach((option) => {
+          const optionElement = document.createElement("option");
+          optionElement.value = option.score;
+          optionElement.text = `${option.description} (điểm: ${option.score})`;
+          selectElement.appendChild(optionElement);
+        });
+
+        sectionDiv.appendChild(selectElement);
+        conteudoDiv.appendChild(sectionDiv);
+      });
+
+      function calcularNips() {
+        const selects = document.querySelectorAll("#conteudo select");
+        let allSelected = true;
+        let total = 0;
+
+        selects.forEach((select) => {
+          if (select.value === "") {
+            allSelected = false;
+            select.classList.add("không đầy đủ");
+          } else {
+            select.classList.remove("không đầy đủ");
+            total += Number(select.value);
+          }
+        });
+
+        resultadoDiv.style.display = "block";
+        if (!allSelected) {
+          resultadoDiv.innerHTML =
+            '⚠️ <strong class="font-bold">Por favor, selecione uma opção para todos os itens antes de calcular.</strong>';
+          resultadoDiv.classList.add("bg-red-100");
+          resultadoDiv.classList.remove("bg-blue-50");
+          delete resultadoDiv.dataset.score;
+          return;
+        }
+
+        let classificacao = "";
+        let recomendacao = "";
+        let resultadoClasse = "";
+
+        if (total < 4) {
+          classificacao = "No pain";
+          recomendacao =
+            "Số điểm được tìm thấy không có đau. Tiếp tục theo dõi bệnh nhân.";
+          resultadoClasse = "bg-blue-50";
+        } else {
+          // total >= 4
+          classificacao = "Thông điệp của bạn là gì?";
+          recomendacao =
+            "Đó là điều tôi đang nói với bạn. Đánh giá nhu cầu can thiệp và thông báo cho bác sĩ nhi khoa.";
+          resultadoClasse = "bg-red-100";
+        }
+
+        resultadoDiv.innerHTML = `
+                <p>Escore total: <strong class="font-bold">${total}</strong></p>
+                <p>Classificação: <strong class="font-bold">${classificacao}</strong></p>
+                <p class="mt-4"><strong>Recomendação:</strong> ${recomendacao}</p>
+            `;
+        resultadoDiv.className = `kết quả ${resultClass}`;
+        resultadoDiv.style.display = "block";
+
+        resultadoDiv.dataset.score = total;
+        resultadoDiv.dataset.scaleName = "Thang đo NIPS";
+        resultadoDiv.dataset.classificacao = classificacao;
+      }
+
+      function limparCampos() {
+        const selects = document.querySelectorAll("#conteudo select");
+        selects.forEach((select) => {
+          select.selectedIndex = 0;
+          select.classList.remove("không đầy đủ");
+        });
+        resultadoDiv.innerHTML = "";
+        resultadoDiv.className = "kết quả ẩn";
+        delete resultadoDiv.dataset.score;
+        delete resultadoDiv.dataset.scaleName;
+        delete resultadoDiv.dataset.classificacao;
+      }
+
+      btnCalcular?.addEventListener("click", calcularNips);
+      btnLimpar?.addEventListener("click", limparCampos);
+
+      btnGerarPDF?.addEventListener("click", () => {
+        if (!resultadoDiv.dataset.score) {
+          alert(
+            "Xem những gì bạn có thể thấy \"Tính điểm\" trước để tạo tệp PDF."
+          );
+          return;
+        }
+        if (typeof gerarPDFGlobal === "chức năng") {
+          gerarPDFGlobal({
+            titulo: "Thang đo NIPS",
+            subtitulo: "Báo cao đánh giá ở trẻ sơ sinh",
+            nomeArquivo: "relatorio_escala_nips.pdf",
+            seletorConteudo: ".main-content-wrapper"
+          });
+        } else {
+          console.error("Bạn không thể tạo PDFGlobal không được xác định.");
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener("click", () => {
+        const score = resultadoDiv.dataset.score;
+        const scaleName = resultadoDiv.dataset.scaleName;
+        const classificacao = resultadoDiv.dataset.classificacao;
+        if (!score || !classificacao) {
+          alert("Tính toán kết quả để nghiên cứu hành động vi.");
+          return;
+        }
+        const searchQuery = encodeURIComponent(
+          `chăm sóc điều dưỡng cơn đau sơ sinh ${classification} NIPS NANDA NIC NOC`
+        );
+        window.open(
+          `https://www.google.com/search?q=${searchQuery}`,
+          "_blank"
+        );
+      });
+    });</script>
 
   <script src="/lang-selector.js" defer=""></script>
 

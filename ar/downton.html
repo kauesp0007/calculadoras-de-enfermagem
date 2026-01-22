@@ -615,7 +615,248 @@
 
 
   <!-- Script Específico da Página (Tradução e numeração árabe) -->
-  
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      // Função para converter números ocidentais para orientais (árabes)
+      function toArabicNumeral(n) {
+        if (n === null || typeof n === "undefined") return "";
+        const arabic = ["٠", "١", "٢", "٣", "٤", "٥", "٦", "٧", "٨", "٩"];
+        return String(n)
+          .split("")
+          .map((digit) =>
+            digit >= "0" && digit <= "9"
+              ? arabic[parseInt(digit, 10)]
+              : digit,
+          )
+          .join("");
+      }
+
+      // Função para determinar a palavra correta para "ponto(s)" em árabe
+      function scoreText(score) {
+        if (score === 0) return "نقطة";
+        if (score === 1) return "نقطة";
+        if (score === 2) return "نقطتان";
+        return "نقاط"; // Padrão
+      }
+
+      const resultadoDiv = document.getElementById("resultado");
+      const btnCalcular = document.getElementById("btnCalcular");
+      const btnLimpar = document.getElementById("btnLimpar");
+      const btnGerarPDF = document.getElementById("btnGerarPDF");
+      const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
+      const conteudoDiv = document.getElementById("conteudo");
+
+      // Dados da escala (traduzidos para o árabe)
+      const downtonData = [
+        {
+          category: "السقوط السابق",
+          nameAttr: "quedas",
+          options: [
+            { description: "لا", score: 0 },
+            { description: "نعم", score: 1 },
+          ],
+          explain: "حدوث سقوط في آخر ١٢ شهرًا.",
+        },
+        {
+          category: "الأدوية",
+          nameAttr: "medicamentos",
+          options: [
+            { description: "لا يستخدم أدوية خطرة", score: 0 },
+            {
+              description:
+                "استخدام أدوية خطرة (مثل: المهدئات، المسكنات، مدرات البول)",
+              score: 1,
+            },
+          ],
+          explain: "بعض الأدوية يمكن أن تسبب الدوخة وعدم التوازن.",
+        },
+        {
+          category: "العجز الحسي",
+          nameAttr: "deficits_sensoriais",
+          options: [
+            { description: "لا يوجد عجز", score: 0 },
+            { description: "أي عجز بصري أو سمعي", score: 1 },
+          ],
+          explain: "صعوبة في الرؤية أو السمع قد تؤثر على إدراك العقبات.",
+        },
+        {
+          category: "الحالة العقلية",
+          nameAttr: "estado_mental",
+          options: [
+            { description: "واعي ومدرك", score: 0 },
+            { description: "مرتبك أو مشوش", score: 1 },
+          ],
+          explain: "حالة الوعي والقدرة المعرفية للمريض.",
+        },
+        {
+          category: "المشي",
+          nameAttr: "deambulacao",
+          options: [
+            { description: "مشي طبيعي", score: 0 },
+            {
+              description: "يمشي بصعوبة أو يستخدم جهاز مساعد (عكاز، مشاية)",
+              score: 1,
+            },
+          ],
+          explain: "تقييم طريقة المشي، التوازن، واستخدام أجهزة الدعم.",
+        },
+      ];
+
+      // Preenche o formulário dinamicamente
+      downtonData.forEach((item) => {
+        const sectionDiv = document.createElement("div");
+        sectionDiv.className = "downton-criterion-section";
+        sectionDiv.id = `section-${item.nameAttr}`;
+
+        const titleH3 = document.createElement("h3");
+        titleH3.className = "downton-criterion-title";
+        titleH3.innerHTML =
+          item.category +
+          `
+              <div class="text-sm font-normal text-gray-500 mt-1">${item.explain}</div>`;
+        sectionDiv.appendChild(titleH3);
+
+        const selectElement = document.createElement("select");
+        selectElement.id = item.nameAttr;
+        selectElement.className = "downton-criterion-select";
+        selectElement.setAttribute("aria-label", item.category);
+
+        const defaultOption = document.createElement("option");
+        defaultOption.value = "";
+        defaultOption.text = "اختر...";
+        selectElement.appendChild(defaultOption);
+
+        item.options.forEach((option) => {
+          const optionElement = document.createElement("option");
+          optionElement.value = option.score; // Valor ocidental para JS
+          // Exibe numerais árabes
+          optionElement.text = `${option.description} (${scoreText(option.score)}: ${toArabicNumeral(option.score)})`;
+          selectElement.appendChild(optionElement);
+        });
+
+        sectionDiv.appendChild(selectElement);
+        conteudoDiv.appendChild(sectionDiv);
+      });
+
+      function calcularDownton() {
+        const selects = document.querySelectorAll("#conteudo select");
+        let allSelected = true;
+        let total = 0;
+
+        selects.forEach((select) => {
+          if (select.value === "") {
+            allSelected = false;
+            select.classList.add("incomplete");
+          } else {
+            select.classList.remove("incomplete");
+            total += Number(select.value);
+          }
+        });
+
+        if (!allSelected) {
+          resultadoDiv.innerHTML =
+            '⚠️ <strong class="font-bold">يرجى تحديد خيار لجميع البنود قبل الحساب.</strong>';
+          resultadoDiv.className = `resultado bg-red-100`; // Mostra erro
+          resultadoDiv.style.display = "block";
+          delete resultadoDiv.dataset.score;
+          return;
+        }
+
+        let classificacao = "";
+        let recomendacao = "";
+
+        // Lógica JS com números ocidentais
+        // A pontuação original é >= 3 = Alto Risco. Vamos usar a versão comum de 3 níveis.
+        if (total >= 3) {
+          classificacao = "خطر مرتفع";
+          recomendacao =
+            "المريض لديه خطر مرتفع للسقوط. قم بتنفيذ خطة فردية للوقاية من السقوط فورًا ومراقبة مكثفة.";
+        } else {
+          // total 0-2
+          classificacao = "خطر منخفض";
+          recomendacao =
+            "المريض لديه خطر منخفض للسقوط. استمر في إجراءات الوقاية القياسية وأعد التقييم بشكل دوري.";
+        }
+
+        resultadoDiv.innerHTML = `
+                <p>النتيجة الإجمالية: <strong class="font-bold">${toArabicNumeral(total)}</strong></p>
+                <p>التصنيف: <strong class="font-bold">${classificacao}</strong></p>
+                <p class="mt-4"><strong>التوصية:</strong> ${recomendacao}</p>
+            `;
+        resultadoDiv.className = `resultado`; // Reseta para o azul padrão
+        resultadoDiv.style.display = "block";
+
+        resultadoDiv.dataset.score = total;
+        resultadoDiv.dataset.scaleName = "مقياس داونتون";
+        resultadoDiv.dataset.classificacao = classificacao;
+      }
+
+      function limparCampos() {
+        const selects = document.querySelectorAll("#conteudo select");
+        selects.forEach((select) => {
+          select.selectedIndex = 0;
+          select.classList.remove("incomplete");
+        });
+        resultadoDiv.innerHTML = "";
+        resultadoDiv.style.display = "none";
+        delete resultadoDiv.dataset.score;
+        delete resultadoDiv.dataset.scaleName;
+        delete resultadoDiv.dataset.classificacao;
+      }
+
+      btnCalcular?.addEventListener("click", calcularDownton);
+      btnLimpar?.addEventListener("click", limparCampos);
+
+      btnGerarPDF?.addEventListener("click", () => {
+        if (!resultadoDiv.dataset.score) {
+          alert('يرجى النقر على "احسب النتيجة" أولاً لإنشاء ملف PDF.');
+          return;
+        }
+        if (typeof gerarPDFGlobal === "function") {
+          gerarPDFGlobal({
+            titulo: "مقياس داونتون",
+            subtitulo: "تقرير تقييم مخاطر السقوط",
+            nomeArquivo: "relatorio_escala_downton.pdf",
+            seletorConteudo: ".main-content-wrapper",
+            direcao: "rtl", // Adiciona direção RTL para o PDF
+          });
+        } else {
+          console.error("Função gerarPDFGlobal não definida.");
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener("click", () => {
+        const score = resultadoDiv.dataset.score;
+        const scaleName = resultadoDiv.dataset.scaleName;
+        const classificacao = resultadoDiv.dataset.classificacao;
+        if (!score || !classificacao) {
+          alert("احسب النتيجة للبحث عن الإجراء.");
+          return;
+        }
+        // Traduz a consulta de pesquisa
+        const searchQuery = encodeURIComponent(
+          `رعاية تمريضية لمريض بالغ لديه ${classificacao} للسقوط في مقياس داونتون NANDA NIC NOC`,
+        );
+        window.open(
+          `https://www.google.com/search?q=${searchQuery}`,
+          "_blank",
+        );
+      });
+
+      createForm();
+
+      // Carrega o footer
+      fetch("footer.html")
+        .then((response) => response.text())
+        .then((data) => {
+          const footerPlaceholder =
+            document.getElementById("footer-placeholder");
+          if (footerPlaceholder) {
+            footerPlaceholder.innerHTML = data;
+          }
+        });
+    });
+  </script>
 
   <!-- Caminho do seletor de idioma ajustado -->
   <script src="../lang-selector.js" defer=""></script>

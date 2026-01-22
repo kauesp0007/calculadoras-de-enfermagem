@@ -656,7 +656,231 @@
       });
   </script>
 
-  
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const resultadoDiv = document.getElementById("resultado");
+      const btnCalcular = document.getElementById("btnCalcular"); // Renommé pour la clarté
+      const btnLimpar = document.getElementById("btnLimpar");
+      const btnGerarPDF = document.getElementById("btnGerarPDF");
+      const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
+      const conteudoDiv = document.getElementById("conteudo");
+
+      // Données RLAS (TRADUITES)
+      const rlasData = [
+        {
+          level: 1,
+          title: "Niveau I - Pas de Réponse",
+          description:
+            "Le patient ne répond pas aux stimuli auditifs, visuels, tactiles ou douloureux. Est dans un état de coma profond.",
+          recommendation:
+            "Recommandation : Se concentrer sur le maintien des fonctions vitales, le positionnement pour prévenir les escarres et les contractures, et les stimulations sensorielles minimales. La communication avec la famille est essentielle.",
+        },
+        {
+          level: 2,
+          title: "Niveau II - Réponse Généralisée",
+          description:
+            "Le patient réagit de manière inconsistante, non intentionnelle et non spécifique aux stimuli. Les réponses sont limitées et peuvent être les mêmes quel que soit le stimulus.",
+          recommendation:
+            "Recommandation : Maintenir un environnement calme et contrôlé. Continuer la stimulation sensorielle de manière cohérente, mais sans surcharger. Se concentrer sur l'éveil du patient.",
+        },
+        {
+          level: 3,
+          title: "Niveau III - Réponse Localisée",
+          description:
+            "Le patient réagit de manière plus spécifique aux stimuli. Peut cligner des yeux à une lumière vive ou essayer de suivre un objet. Les réponses sont inconstantes.",
+          recommendation:
+            "Recommandation : Commencer par des commandes simples et répétitives. Limiter les distractions. Le patient peut commencer à reconnaître les membres de sa famille. Aider à focaliser l'attention.",
+        },
+        {
+          level: 4,
+          title: "Niveau IV - Confus et Agité",
+          description:
+            "Le patient est dans un état d'agitation et de confusion. Ne peut pas coopérer à l'évaluation et peut agir de manière agressive. L'attention est brève.",
+          recommendation:
+            "Recommandation : Fournir un environnement sûr et structuré pour éviter les blessures. Utiliser une voix calme et maintenir une routine prévisible. Aider le patient à se réorienter si nécessaire.",
+        },
+        {
+          level: 5,
+          title: "Niveau V - Confus et Inapproprié",
+          description:
+            "Le patient peut suivre des commandes simples mais a du mal à maintenir son attention. Les réponses aux questions complexes sont inappropriées et confuses. La mémoire est gravement affectée.",
+          recommendation:
+            "Recommandation : Commencer par l'entraînement à des tâches simples et répétitives. Renforcer la réorientation temporelle et spatiale. La communication doit être claire et directe.",
+        },
+        {
+          level: 6,
+          title: "Niveau VI - Confus et Approprié",
+          description:
+            "Le patient peut suivre des commandes et montre une mémoire à long terme. La mémoire à court terme est encore affectée et les décisions sont souvent incorrectes.",
+          recommendation:
+            "Recommandation : Augmenter la complexité des tâches. Utiliser les souvenirs d'événements passés et promouvoir l'indépendance dans les activités familières. Encourager le patient à prendre de petites décisions.",
+        },
+        {
+          level: 7,
+          title: "Niveau VII - Automatique et Approprié",
+          description:
+            "Le patient est peu confus. Capable de suivre une routine quotidienne de manière robotique, mais présente encore des déficits de jugement et de résolution de problèmes. L'interaction sociale est superficielle.",
+          recommendation:
+            "Recommandation : Se concentrer sur la planification et la résolution de problèmes. Encourager la socialisation en groupe et le développement de stratégies pour compenser les déficits cognitifs.",
+        },
+        {
+          level: 8,
+          title: "Niveau VIII - Orienté et Approprié",
+          description:
+            "Le patient est capable de pensée abstraite et de résolution de problèmes. Sa mémoire et son jugement sont cohérents, mais la capacité à gérer les émotions peut être affectée. La fonction est indépendante.",
+          recommendation:
+            "Recommandation : Aider le patient à gérer les changements émotionnels et sociaux. Se concentrer sur la réintégration communautaire et la préparation au retour à la vie professionnelle ou académique.",
+        },
+      ];
+
+      // Remplit dynamiquement les options radio
+      rlasData.forEach((item) => {
+        const sectionDiv = document.createElement("div");
+        // sectionDiv.className = 'rlas-criterion-section'; // Retiré pour ne pas avoir le cadre autour
+        sectionDiv.id = `section-level-${item.level}`;
+
+        const radioContainer = document.createElement("div");
+        radioContainer.className = "rlas-criterion-option"; // Garde le style pour l'option
+
+        const radioInput = document.createElement("input");
+        radioInput.type = "radio";
+        radioInput.name = "rlas_level";
+        radioInput.value = item.level;
+        radioInput.id = `level-${item.level}`;
+
+        const label = document.createElement("label");
+        label.htmlFor = `level-${item.level}`;
+        // Structure du label : Titre en gras, puis description
+        label.innerHTML = `<strong>${item.title}</strong>${item.description}`; // TRADUIT (dans rlasData)
+
+        radioContainer.appendChild(radioInput);
+        radioContainer.appendChild(label);
+        sectionDiv.appendChild(radioContainer);
+
+        conteudoDiv.appendChild(sectionDiv);
+      });
+
+      function afficherNiveau() {
+        // Renommée de 'calcularRLAS'
+        const selectedRadio = document.querySelector(
+          'input[name="rlas_level"]:checked',
+        );
+        resultadoDiv.style.display = "block"; // Affiche toujours la div résultat
+
+        if (!selectedRadio) {
+          resultadoDiv.innerHTML =
+            '⚠️ <strong class="font-bold">Veuillez sélectionner un niveau pour afficher les détails.</strong>'; // TRADUIT
+          resultadoDiv.className = "resultado bg-red-100"; // Style d'erreur
+          delete resultadoDiv.dataset.level; // Nettoie le dataset
+          return;
+        }
+
+        const level = selectedRadio.value;
+        const selectedItem = rlasData.find((item) => item.level == level);
+
+        if (selectedItem) {
+          // Affichage formaté TRADUIT
+          resultadoDiv.innerHTML = `
+                        <p class="level-title"><strong>${selectedItem.title}</strong></p>
+                        <p>${selectedItem.description}</p>
+                        <p><strong class="recommendation-title">Recommandation :</strong> ${selectedItem.recommendation}</p>
+                    `;
+          resultadoDiv.className = `resultado bg-blue-50`; // Style normal
+          resultadoDiv.dataset.level = selectedItem.level; // Stocke le niveau
+          resultadoDiv.dataset.title = selectedItem.title; // Stocke le titre pour PDF
+          resultadoDiv.dataset.description = selectedItem.description; // Stocke la description pour PDF
+          resultadoDiv.dataset.recommendation = selectedItem.recommendation; // Stocke la reco pour PDF
+        }
+
+        resultadoDiv.style.display = "block";
+      }
+
+      function limparCampos() {
+        const selectedRadio = document.querySelector(
+          'input[name="rlas_level"]:checked',
+        );
+        if (selectedRadio) {
+          selectedRadio.checked = false;
+        }
+        resultadoDiv.innerHTML = "";
+        resultadoDiv.className = "resultado hidden"; // Cache la div
+        delete resultadoDiv.dataset.level; // Nettoie le dataset
+        delete resultadoDiv.dataset.title;
+        delete resultadoDiv.dataset.description;
+        delete resultadoDiv.dataset.recommendation;
+      }
+
+      // Attache les fonctions aux boutons
+      btnCalcular?.addEventListener("click", afficherNiveau);
+      btnLimpar?.addEventListener("click", limparCampos);
+
+      btnGerarPDF?.addEventListener("click", () => {
+        const selectedRadio = document.querySelector(
+          'input[name="rlas_level"]:checked',
+        );
+        if (!selectedRadio || !resultadoDiv.dataset.level) {
+          // Vérifie aussi si le résultat est affiché
+          alert(
+            'Veuillez sélectionner un niveau et cliquer sur "Afficher le Niveau" pour générer le PDF.',
+          ); // TRADUIT
+          return;
+        }
+        if (typeof gerarPDFGlobal === "function") {
+          // Utilise les données stockées dans dataset pour le PDF
+          const levelTitle = resultadoDiv.dataset.title;
+          const levelDescription = resultadoDiv.dataset.description;
+          const levelRecommendation = resultadoDiv.dataset.recommendation;
+
+          // Crée un contenu HTML simple pour le PDF
+          const pdfContentHtml = `
+                        <div style="font-family: Inter, sans-serif; padding: 20px;">
+                            <h1 style="color: #1A3E74; border-bottom: 2px solid #1A3E74; padding-bottom: 5px;">Échelle Rancho Los Amigos (RLAS)</h1>
+                            <h2 style="color: #1FA4E5; margin-top: 15px;">Rapport d'Évaluation Cognitive</h2>
+                            <div style="margin-top: 25px; background-color: #f3f4f6; border-radius: 8px; padding: 15px; border: 1px solid #e5e7eb;">
+                                <p style="font-size: 1.2em; color: #1A3E74; margin-bottom: 10px;"><strong>Niveau Sélectionné : ${levelTitle}</strong></p>
+                                <p style="margin-bottom: 15px;">${levelDescription}</p>
+                                <p><strong>Recommandation :</strong> ${levelRecommendation}</p>
+                            </div>
+                        </div>
+                    `;
+
+          gerarPDFGlobal({
+            // Titres et nom de fichier TRADUITS
+            titulo: "Échelle Rancho Los Amigos", // Titre interne, moins important
+            subtitulo: "Rapport d'Évaluation Cognitive", // idem
+            nomeArquivo: "rapport_echelle_rancho.pdf",
+            // Utilise le HTML généré directement
+            htmlConteudo: pdfContentHtml,
+            // seletorConteudo: '.main-content-wrapper' // Moins précis ici
+          });
+        } else {
+          console.error("Fonction gerarPDFGlobal non définie."); // TRADUIT
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener("click", () => {
+        const selectedRadio = document.querySelector(
+          'input[name="rlas_level"]:checked',
+        );
+        if (!selectedRadio || !resultadoDiv.dataset.level) {
+          // Vérifie aussi si le résultat est affiché
+          alert(
+            'Sélectionnez un niveau et cliquez sur "Afficher le Niveau" pour rechercher la conduite.',
+          ); // TRADUIT
+          return;
+        }
+        const selectedLevel = resultadoDiv.dataset.level; // Utilise le niveau stocké
+        // TRADUIT la query de recherche
+        const searchQuery = encodeURIComponent(
+          `soins infirmiers pour patient avec lésion cérébrale Niveau ${selectedLevel} Rancho Los Amigos NANDA NIC NOC`,
+        );
+        window.open(
+          `https://www.google.com/search?q=${searchQuery}`,
+          "_blank",
+        );
+      });
+    });
+  </script>
 
 
 

@@ -630,7 +630,216 @@
 
 
 
-  
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const resultadoDiv = document.getElementById('resultado');
+      const btnCalcular = document.getElementById('btnCalcular');
+      const btnLimpar = document.getElementById('btnLimpar');
+      const btnGerarPDF = document.getElementById('btnGerarPDF');
+      const btnNandaNicNoc = document.getElementById('btnNandaNicNoc');
+      const conteudoDiv = document.getElementById('conteudo');
+      const introParagraph = document.getElementById('intro-paragraph');
+      const referenceSection = document.getElementById('reference-section');
+
+      const lawtonData = [
+        {
+          category: "Uso del teléfono",
+          nameAttr: "telefono",
+          options: [
+            { description: "Opera el teléfono por iniciativa propia", score: 1 },
+            { description: "Marca algunos números familiares", score: 1 },
+            { description: "Atiende el teléfono, pero no marca números", score: 1 },
+            { description: "No usa el teléfono de ninguna forma", score: 0 }
+          ]
+        },
+        {
+          category: "Compras",
+          nameAttr: "compras",
+          options: [
+            { description: "Hace todas las compras necesarias de forma independiente", score: 1 },
+            { description: "Hace pequeñas compras de forma independiente", score: 0 },
+            { description: "Necesita ser acompañado para cualquier compra", score: 0 },
+            { description: "Incapaz de hacer compras", score: 0 }
+          ]
+        },
+        {
+          category: "Preparación de comidas",
+          nameAttr: "comidas",
+          options: [
+            { description: "Planea, prepara y sirve comidas completas", score: 1 },
+            { description: "Prepara comidas si los ingredientes son proporcionados", score: 0 },
+            { description: "Prepara solo comidas ligeras", score: 0 },
+            { description: "Incapaz de preparar comidas", score: 0 }
+          ]
+        },
+        {
+          category: "Cuidado de la casa",
+          nameAttr: "cuidado_casa",
+          options: [
+            { description: "Mantiene la casa sola o con ayuda ocasional", score: 1 },
+            { description: "Realiza solo tareas ligeras", score: 1 },
+            { description: "No participa activamente en los trabajos domésticos", score: 0 },
+            { description: "Necesita ayuda total para el cuidado de la casa", score: 0 }
+          ]
+        },
+        {
+          category: "Lavado de ropa",
+          nameAttr: "lavado_ropa",
+          options: [
+            { description: "Lava su propia ropa de forma independiente", score: 1 },
+            { description: "Lava solo pequeñas prendas de ropa", score: 1 },
+            { description: "Necesita que la ropa sea lavada por otra persona", score: 0 }
+          ]
+        },
+        {
+          category: "Locomoción/Uso de transporte",
+          nameAttr: "locomocion",
+          options: [
+            { description: "Viaja de forma independiente en transporte público o conduce su propio coche", score: 1 },
+            { description: "Usa taxi o transporte público con ayuda de otra persona", score: 1 },
+            { description: "Viaja solo en coche particular con la ayuda de otra persona", score: 1 },
+            { description: "Incapaz de viajar", score: 0 }
+          ]
+        },
+        {
+          category: "Medicación",
+          nameAttr: "medicacion",
+          options: [
+            { description: "Es responsable de su medicación", score: 1 },
+            { description: "Solo toma los medicamentos cuando se los preparan", score: 0 },
+            { description: "Incapaz de tomar medicamentos", score: 0 }
+          ]
+        },
+        {
+          category: "Finanzas/Administración del dinero",
+          nameAttr: "finanzas",
+          options: [
+            { description: "Gestiona las finanzas de forma independiente (bancos, cuentas, etc.)", score: 1 },
+            { description: "Gestiona pequeñas compras, pero necesita ayuda con bancos", score: 1 },
+            { description: "Incapaz de gestionar el dinero", score: 0 }
+          ]
+        }
+      ];
+
+      // Llena el formulario dinámicamente
+      lawtonData.forEach(item => {
+        const sectionDiv = document.createElement('div');
+        sectionDiv.className = 'lawton-criterion-section';
+        sectionDiv.id = `section-${item.nameAttr}`;
+
+        const titleH3 = document.createElement('h3');
+        titleH3.className = 'lawton-criterion-title';
+        titleH3.innerHTML = item.category;
+        sectionDiv.appendChild(titleH3);
+
+        const selectElement = document.createElement('select');
+        selectElement.id = item.nameAttr;
+        selectElement.className = 'lawton-criterion-select';
+
+        const defaultOption = document.createElement('option');
+        defaultOption.value = "";
+        defaultOption.text = "Seleccione...";
+        selectElement.appendChild(defaultOption);
+
+        item.options.forEach(option => {
+          const optionElement = document.createElement('option');
+          optionElement.value = option.score;
+          optionElement.text = `${option.description} (puntos: ${option.score})`;
+          selectElement.appendChild(optionElement);
+        });
+
+        sectionDiv.appendChild(selectElement);
+        conteudoDiv.appendChild(sectionDiv);
+      });
+
+      function calcularLawton() {
+        const selects = document.querySelectorAll('#conteudo select');
+        let allSelected = true;
+        let total = 0;
+
+        selects.forEach(select => {
+          if (select.value === "") {
+            allSelected = false;
+            select.classList.add('incomplete');
+          } else {
+            select.classList.remove('incomplete');
+            total += Number(select.value);
+          }
+        });
+
+        resultadoDiv.style.display = "block";
+        if (!allSelected) {
+          resultadoDiv.innerHTML = '⚠️ <strong class="font-bold">Por favor, seleccione una opción para todos los ítems antes de calcular.</strong>';
+          resultadoDiv.classList.add('bg-red-100');
+          delete resultadoDiv.dataset.score;
+          return;
+        }
+
+        let recomendacion = '';
+        let resultadoClase = 'bg-blue-50';
+
+        if (total < 8) {
+          recomendacion = 'La puntuación sugiere un grado de dependencia para la realización de las actividades instrumentales de la vida diaria (AIVDs). Se recomienda una evaluación más profunda para determinar las necesidades de asistencia.';
+        } else {
+          recomendacion = 'La puntuación sugiere un grado de independencia para la realización de la mayoría de las actividades instrumentales de la vida diaria (AIVDs).';
+        }
+
+        resultadoDiv.innerHTML = `
+                <p>Puntuación total: <strong class="font-bold">${total}</strong></p>
+                <p class="mt-4"><strong>Recomendación:</strong> ${recomendacion}</p>
+            `;
+        resultadoDiv.className = `resultado ${resultadoClase}`;
+        resultadoDiv.style.display = "block";
+
+        resultadoDiv.dataset.score = total;
+        resultadoDiv.dataset.scaleName = "Escala de Lawton";
+      }
+
+      function limpiarCampos() {
+        const selects = document.querySelectorAll('#conteudo select');
+        selects.forEach(select => {
+          select.selectedIndex = 0;
+          select.classList.remove('incomplete');
+        });
+        resultadoDiv.innerHTML = '';
+        resultadoDiv.className = 'resultado hidden';
+        delete resultadoDiv.dataset.score;
+        delete resultadoDiv.dataset.scaleName;
+      }
+
+      // Añade los event listeners a los botones
+      btnCalcular?.addEventListener('click', calcularLawton);
+      btnLimpar?.addEventListener('click', limpiarCampos);
+
+      btnGerarPDF?.addEventListener('click', () => {
+        if (!resultadoDiv.dataset.score) {
+          alert('Por favor, haga clic en "Calcular Puntuación" primero para generar el PDF.');
+          return;
+        }
+        if (typeof gerarPDFGlobal === 'function') {
+          gerarPDFGlobal({
+            titulo: 'Escala de Lawton',
+            subtitulo: 'Informe de Evaluación de AIVDs',
+            nombreArquivo: 'informe_escala_lawton.pdf',
+            seletorConteudo: '.main-content-wrapper'
+          });
+        } else {
+          console.error('Función gerarPDFGlobal no definida.');
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener('click', () => {
+        const score = resultadoDiv.dataset.score;
+        const scaleName = resultadoDiv.dataset.scaleName;
+        if (!score) {
+          alert('Calcule el resultado para buscar la conducta.');
+          return;
+        }
+        const searchQuery = encodeURIComponent(`cuidados enfermería para independencia del anciano ${scaleName} puntuación ${score} NANDA NIC NOC`);
+        window.open(`https://www.google.com/search?q=${searchQuery}`, '_blank');
+      });
+    });
+  </script>
 
 
 

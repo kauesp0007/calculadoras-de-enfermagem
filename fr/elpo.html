@@ -611,7 +611,239 @@
 
 
   <!-- Script Específico da Página ELPO (Traduzido) -->
-  
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      fetch("footer.html")
+        .then((response) => response.text())
+        .then((data) => {
+          document.getElementById("footer-placeholder").innerHTML = data;
+        });
+      // Carrega os elementos globais da pasta /fr/
+      fetch("/fr/global-body-elements.html")
+        .then((response) => response.text())
+        .then((html) => {
+          document.getElementById(
+            "global-body-elements-container",
+          ).innerHTML = html;
+          // Ativa o VLibras e outros scripts globais DEPOIS de carregar o conteúdo
+          if (typeof initVLibras === "function") {
+            initVLibras();
+          }
+          if (typeof setupGlobalElements === "function") {
+            setupGlobalElements();
+          }
+        });
+
+      const resultadoDiv = document.getElementById("resultado");
+      const conteudoDiv = document.getElementById("conteudo");
+      const btnCalcular = document.getElementById("btnCalcular");
+      const btnLimpar = document.getElementById("btnLimpar");
+      const btnGerarPDF = document.getElementById("btnGerarPDF");
+      const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
+
+      const elpoData = [
+        {
+          id: "item1",
+          title: "1. Position Chirurgicale",
+          options: [
+            { value: "5", text: "5 - Plus de risque" },
+            { value: "4", text: "4" },
+            { value: "3", text: "3" },
+            { value: "2", text: "2" },
+            { value: "1", text: "1 - Moins de risque" },
+          ],
+        },
+        {
+          id: "item2",
+          title: "2. Durée de la Chirurgie",
+          options: [
+            { value: "5", text: "5 - ≥ 5h" },
+            { value: "4", text: "4 - 4h à 4h59" },
+            { value: "3", text: "3 - 3h à 3h59" },
+            { value: "2", text: "2 - 2h à 2h59" },
+            { value: "1", text: "1 - ≤ 1h59" },
+          ],
+        },
+        {
+          id: "item3",
+          title: "3. Type d'Anesthésie",
+          options: [
+            { value: "5", text: "5 - Générale + bloc" },
+            { value: "4", text: "4 - Générale" },
+            { value: "3", text: "3 - Rachidienne" },
+            { value: "2", text: "2 - Péridurale" },
+            { value: "1", text: "1 - Locale" },
+          ],
+        },
+        {
+          id: "item4",
+          title: "4. Type de Support",
+          options: [
+            { value: "5", text: "5 - Aucun" },
+            { value: "4", text: "4 - Minimal" },
+            { value: "3", text: "3 - Partiel" },
+            { value: "2", text: "2 - Complet rigide" },
+            { value: "1", text: "1 - Complet anatomique" },
+          ],
+        },
+        {
+          id: "item5",
+          title: "5. État de la Peau",
+          options: [
+            { value: "5", text: "5 - Très fine, fragile" },
+            { value: "4", text: "4 - Fine" },
+            { value: "3", text: "3 - Normale" },
+            { value: "2", text: "2 - Épaisse" },
+            { value: "1", text: "1 - Intacte et résistante" },
+          ],
+        },
+        {
+          id: "item6",
+          title: "6. Comorbidités",
+          options: [
+            { value: "5", text: "5 - Multiples" },
+            { value: "4", text: "4 - 3 ou plus" },
+            { value: "3", text: "3 - 2" },
+            { value: "2", text: "2 - 1" },
+            { value: "1", text: "1 - Aucune" },
+          ],
+        },
+        {
+          id: "item7",
+          title: "7. État Nutritionnel",
+          options: [
+            { value: "5", text: "5 - Dénutrition sévère" },
+            { value: "4", text: "4 - Dénutri" },
+            { value: "3", text: "3 - Légère dénutrition" },
+            { value: "2", text: "2 - Normal" },
+            { value: "1", text: "1 - Bien nourri" },
+          ],
+        },
+      ];
+
+      function createForm() {
+        elpoData.forEach((item) => {
+          const section = document.createElement("div");
+          section.className = "criterion-section";
+
+          const title = document.createElement("h3");
+          title.className = "criterion-title";
+          title.textContent = item.title;
+          section.appendChild(title);
+
+          const select = document.createElement("select");
+          select.id = item.id;
+          select.className = "criterion-select";
+          select.innerHTML =
+            `<option value="">Sélectionnez une option</option>` +
+            item.options
+              .map(
+                (opt) => `<option value="${opt.value}">${opt.text}</option>`,
+              )
+              .join("");
+          section.appendChild(select);
+          conteudoDiv.appendChild(section);
+        });
+      }
+
+      function calculer() {
+        let total = 0;
+        let allSelected = true;
+
+        elpoData.forEach((item) => {
+          const select = document.getElementById(item.id);
+          if (select.value === "") {
+            allSelected = false;
+            select.classList.add("incomplete"); // Adiciona classe de erro
+          } else {
+            select.classList.remove("incomplete"); // Remove classe de erro
+          }
+          total += parseInt(select.value || 0);
+        });
+
+        if (!allSelected) {
+          resultadoDiv.innerHTML =
+            '⚠️ <strong class="font-bold">Veuillez sélectionner une option pour tous les articles.</strong>';
+          resultadoDiv.className = "resultado bg-info-orange-light";
+          resultadoDiv.style.display = "block";
+          delete resultadoDiv.dataset.score;
+          return;
+        }
+
+        let classificacao = "";
+        let resultadoClasse = "";
+
+        // Ponto de corte ELPO: ≥ 20 = Risco
+        if (total >= 20) {
+          classificacao = "Risque élevé d'escarre";
+          resultadoClasse = "bg-elpo-risco";
+        } else {
+          classificacao = "Faible risque d'escarre";
+          resultadoClasse = "bg-elpo-sem-risco";
+        }
+
+        resultadoDiv.innerHTML = `
+                <p>Score Total: <strong class="font-bold">${total}</strong></p>
+                <p>Classification: <strong class="font-bold">${classificacao}</strong></p>
+            `;
+        resultadoDiv.className = `resultado ${resultadoClasse}`;
+        resultadoDiv.style.display = "block";
+        resultadoDiv.dataset.score = `${total} (${classificacao})`;
+        resultadoDiv.dataset.scaleName = "Échelle ELPO";
+      }
+
+      function limpar() {
+        document.querySelectorAll(".criterion-select").forEach((select) => {
+          select.selectedIndex = 0;
+          select.classList.remove("incomplete"); // Remove classe de erro
+        });
+        resultadoDiv.innerHTML = "";
+        resultadoDiv.className = "resultado hidden";
+        delete resultadoDiv.dataset.score;
+        delete resultadoDiv.dataset.scaleName;
+      }
+
+      createForm();
+      btnCalcular?.addEventListener("click", calculer);
+      btnLimpar?.addEventListener("click", limpar);
+
+      btnGerarPDF?.addEventListener("click", () => {
+        if (!resultadoDiv.dataset.score) {
+          alert(
+            'Veuillez cliquer sur "Calculer" d\'abord pour générer le PDF.',
+          );
+          return;
+        }
+        if (typeof gerarPDFGlobal === "function") {
+          gerarPDFGlobal({
+            titulo: "Échelle ELPO",
+            subtitulo: "Rapport de Risque d'Escarre au Bloc Opératoire",
+            nomeArquivo: "rapport_echelle_elpo.pdf",
+            seletorConteudo: ".main-content-wrapper",
+          });
+        } else {
+          console.error("Fonction gerarPDFGlobal non définie.");
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener("click", () => {
+        const score = resultadoDiv.dataset.score;
+        const scaleName = resultadoDiv.dataset.scaleName;
+        if (!score) {
+          alert("Calculez le résultat pour rechercher la conduite à tenir.");
+          return;
+        }
+        // Traduzido para consulta em francês
+        const searchQuery = encodeURIComponent(
+          `${score} ${scaleName} générer taxonomie NANDA générer taxonomie NIC générer taxonomie NOC`,
+        );
+        window.open(
+          `https://www.google.com/search?q=${searchQuery}`,
+          "_blank",
+        );
+      });
+    });
+  </script>
 
   <!-- CHEMIN DU SCRIPT CORRIGÉ -->
   <script src="../lang-selector.js" defer=""></script>

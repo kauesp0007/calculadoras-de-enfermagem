@@ -648,7 +648,317 @@
 
 
 
-    
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const resultadoDiv = document.getElementById('resultado');
+            const btnCalcular = document.getElementById('btnCalcular');
+            const btnLimpar = document.getElementById('btnLimpar');
+            const btnGerarPDF = document.getElementById('btnGerarPDF');
+            const btnNandaNicNoc = document.getElementById('btnNandaNicNoc');
+            const conteudoDiv = document.getElementById('conteudo');
+
+            const pewsData = [
+                {
+                    parameter: "न्यूरोलॉजिकल स्थिति",
+                    nameAttr: "estadoNeurologico",
+                    options: [
+                        { description: "सक्रिय", score: 0 },
+                        { description: "नींद आना/अल्पसक्रिय", score: 1 },
+                        { description: "चिड़चिड़ा", score: 2 },
+                        { description: "सुस्त/मंदचेतना या दर्द की प्रतिक्रिया कम", score: 3 }
+                    ]
+                },
+                {
+                    parameter: "हृदय संबंधी",
+                    nameAttr: "cardiovascular",
+                    options: [
+                        { description: "गुलाबी या केशिका भरने का समय (टीईसी) 1-2 सेकंड", score: 0 },
+                        { description: "पीला या टीईसी 3 सेकंड या उम्र के लिए ऊपरी सीमा से ऊपर एफसी", score: 1 },
+                        { description: "धब्बेदार या टीईसी 4 सेकंड या उम्र के लिए ऊपरी सीमा से ≥ 20 बीपीएम ऊपर एफसी", score: 2 },
+                        { description: "धूसर/सायनोटिक या टीईसी ≥ 5 सेकंड या उम्र के लिए सीमा से ≥ 30 बीपीएम ऊपर एफसी या उम्र के लिए ब्रैडीकार्डिया", score: 3 }
+                    ]
+                },
+                {
+                    parameter: "श्वसन",
+                    nameAttr: "respiratorio",
+                    options: [
+                        { description: "उम्र के लिए सामान्य एफआर, कोई रिट्रैक्शन नहीं", score: 0 },
+                        { description: "उम्र के लिए ऊपरी सीमा से ऊपर एफआर, सहायक मांसपेशियों का उपयोग या FiO₂ ≥ 30% या 6 लीटर/मिनट O₂", score: 1 },
+                        { description: "उम्र के लिए ऊपरी सीमा से ≥ 20 आरपीएम ऊपर एफआर, सबकोस्टल, इंटरकोस्टल और स्टर्नल रिट्रैक्शन या FiO₂ ≥ 40% या 6 लीटर/मिनट O₂", score: 2 },
+                        { description: "उम्र के लिए निचली सीमा से ≤ 5 आरपीएम नीचे एफआर, सबकोस्टल, इंटरकोस्टल, स्टर्नल रिट्रैक्शन और ग्रन्टिंग या FiO₂ ≥ 50% या 8 लीटर/मिनट O₂", score: 3 }
+                    ]
+                }
+            ];
+
+            const pewsExtraPointsData = {
+                parameter: "अतिरिक्त अंक",
+                nameAttr: "pontosExtras",
+                options: [
+                    { description: "कोई अतिरिक्त अंक नहीं", score: 0 },
+                    { description: "दवा की आवश्यकता (साल्बुटामोल, आईप्राट्रोपियम, एड्रेनालाईन)", score: 1 },
+                    { description: "ऑक्सीजन की आवश्यकता (नाक कैनुला या मास्क)", score: 2 },
+                    { description: "अस्थायी पेसमेकर", score: 3 }
+                ]
+            };
+
+            function createPewsCriterionCard(criterionData) {
+                const card = document.createElement('div');
+                card.className = 'pews-criterion-card';
+
+                const header = document.createElement('div');
+                header.className = 'pews-criterion-header';
+
+                const title = document.createElement('div');
+                title.className = 'pews-criterion-title';
+                title.textContent = criterionData.parameter;
+
+                const scoreDisplay = document.createElement('div');
+                scoreDisplay.className = 'pews-score-display';
+                scoreDisplay.id = `${criterionData.nameAttr}ScoreDisplay`;
+                scoreDisplay.textContent = '0';
+
+                header.appendChild(title);
+                header.appendChild(scoreDisplay);
+
+                const select = document.createElement('select');
+                select.className = 'pews-select';
+                select.name = criterionData.nameAttr;
+                select.id = criterionData.nameAttr;
+                select.setAttribute('aria-label', `${criterionData.parameter} चुनें`);
+
+                const defaultOption = document.createElement('option');
+                defaultOption.value = '';
+                defaultOption.textContent = 'विकल्प चुनें';
+                defaultOption.disabled = true;
+                defaultOption.selected = true;
+                select.appendChild(defaultOption);
+
+                criterionData.options.forEach((option, index) => {
+                    const opt = document.createElement('option');
+                    opt.value = option.score;
+                    opt.textContent = `${option.description} (${option.score} अंक)`;
+                    select.appendChild(opt);
+                });
+
+                select.addEventListener('change', function () {
+                    const selectedScore = this.value;
+                    scoreDisplay.textContent = selectedScore !== '' ? selectedScore : '0';
+                    updateResult();
+                });
+
+                card.appendChild(header);
+                card.appendChild(select);
+
+                return card;
+            }
+
+            function initializePewsCalculator() {
+                pewsData.forEach(criterion => {
+                    const card = createPewsCriterionCard(criterion);
+                    conteudoDiv.appendChild(card);
+                });
+
+                const extraPointsSection = document.createElement('div');
+                extraPointsSection.className = 'pews-extra-points-section';
+
+                const extraPointsCard = createPewsCriterionCard(pewsExtraPointsData);
+                extraPointsSection.appendChild(extraPointsCard);
+
+                conteudoDiv.appendChild(extraPointsSection);
+            }
+
+            function updateResult() {
+                const estadoNeurologico = parseInt(document.getElementById('estadoNeurologico').value) || 0;
+                const cardiovascular = parseInt(document.getElementById('cardiovascular').value) || 0;
+                const respiratorio = parseInt(document.getElementById('respiratorio').value) || 0;
+                const pontosExtras = parseInt(document.getElementById('pontosExtras').value) || 0;
+
+                const totalScore = estadoNeurologico + cardiovascular + respiratorio + pontosExtras;
+
+                let resultClass = '';
+                let resultText = '';
+                let resultDetails = '';
+
+                if (totalScore === 0) {
+                    resultClass = 'bg-pews-0';
+                    resultText = 'कुल PEWS स्कोर: 0';
+                    resultDetails = 'सामान्य स्थिति। नियमित निगरानी जारी रखें।';
+                } else if (totalScore >= 1 && totalScore <= 2) {
+                    resultClass = 'bg-pews-1-2';
+                    resultText = `कुल PEWS स्कोर: ${totalScore}`;
+                    resultDetails = 'हल्की असामान्यता। नर्स द्वारा पुनर्मूल्यांकन की सिफारिश की जाती है।';
+                } else if (totalScore === 3) {
+                    resultClass = 'bg-pews-3';
+                    resultText = `कुल PEWS स्कोर: ${totalScore}`;
+                    resultDetails = 'मध्यम असामान्यता। नर्सिंग टीम लीडर और चिकित्सक से परामर्श करें।';
+                } else if (totalScore >= 4 && totalScore <= 6) {
+                    resultClass = 'bg-pews-4-6';
+                    resultText = `कुल PEWS स्कोर: ${totalScore}`;
+                    resultDetails = 'गंभीर असामान्यता। तत्काल चिकित्सकीय हस्तक्षेप और निगरानी की आवश्यकता है।';
+                } else if (totalScore >= 7) {
+                    resultClass = 'bg-pews-7-mais';
+                    resultText = `कुल PEWS स्कोर: ${totalScore}`;
+                    resultDetails = 'गंभीर स्थिति। तत्काल आपातकालीन टीम सक्रिय करें और आईसीयू स्थानांतरण पर विचार करें।';
+                }
+
+                resultadoDiv.innerHTML = `
+                    <div class="${resultClass} p-4 rounded-lg shadow-md">
+                        <h3 class="font-bold text-lg mb-2">${resultText}</h3>
+                        <p class="mb-2">${resultDetails}</p>
+                        <div class="mt-2">
+                            <strong>स्कोर विवरण:</strong><br>
+                            - न्यूरोलॉजिकल स्थिति: ${estadoNeurologico} अंक<br>
+                            - हृदय संबंधी: ${cardiovascular} अंक<br>
+                            - श्वसन: ${respiratorio} अंक<br>
+                            - अतिरिक्त अंक: ${pontosExtras} अंक
+                        </div>
+                    </div>
+                `;
+                resultadoDiv.classList.remove('hidden');
+            }
+
+            btnCalcular.addEventListener('click', updateResult);
+
+            btnLimpar.addEventListener('click', function () {
+                document.querySelectorAll('.pews-select').forEach(select => {
+                    select.value = '';
+                    const scoreDisplay = document.getElementById(`${select.name}ScoreDisplay`);
+                    if (scoreDisplay) {
+                        scoreDisplay.textContent = '0';
+                    }
+                });
+                resultadoDiv.classList.add('hidden');
+            });
+
+            btnGerarPDF.addEventListener('click', function () {
+                const element = document.getElementById('resultado');
+                if (element.classList.contains('hidden')) {
+                    alert('कृपया पहले PEWS स्कोर की गणना करें।');
+                    return;
+                }
+
+                const opt = {
+                    margin: 0.5,
+                    filename: 'pews-score.pdf',
+                    image: { type: 'jpeg', quality: 0.98 },
+                    html2canvas: { scale: 2 },
+                    jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
+                };
+
+                html2pdf().set(opt).from(element).save();
+            });
+
+            btnNandaNicNoc.addEventListener('click', function () {
+                const estadoNeurologico = parseInt(document.getElementById('estadoNeurologico').value) || 0;
+                const cardiovascular = parseInt(document.getElementById('cardiovascular').value) || 0;
+                const respiratorio = parseInt(document.getElementById('respiratorio').value) || 0;
+                const totalScore = estadoNeurologico + cardiovascular + respiratorio;
+
+                let nandaDiagnoses = [];
+                let nicInterventions = [];
+                let nocOutcomes = [];
+
+                if (totalScore >= 1) {
+                    nandaDiagnoses.push(
+                        "जोखिम में बिगड़ा हुआ गैस एक्सचेंज",
+                        "जोखिम में अप्रभावी श्वसन पैटर्न",
+                        "जोखिम में कम कार्डियक आउटपुट"
+                    );
+
+                    nicInterventions.push(
+                        "श्वसन निगरानी",
+                        "हृदय निगरानी",
+                        "ऑक्सीजन थेरेपी प्रबंधन",
+                        "महत्वपूर्ण संकेत निगरानी"
+                    );
+
+                    nocOutcomes.push(
+                        "श्वसन स्थिति: वेंटिलेशन",
+                        "कार्डियक पंप प्रभावशीलता",
+                        "वायुमार्ग पेटेंसी"
+                    );
+                }
+
+                if (totalScore >= 3) {
+                    nandaDiagnoses.push(
+                        "बिगड़ा हुआ गैस एक्सचेंज",
+                        "अप्रभावी श्वसन पैटर्न",
+                        "कम कार्डियक आउटपुट"
+                    );
+
+                    nicInterventions.push(
+                        "एयरवे मैनेजमेंट",
+                        "मैकेनिकल वेंटिलेशन",
+                        "कार्डियक केयर: एक्यूट"
+                    );
+
+                    nocOutcomes.push(
+                        "श्वसन स्थिति: गैस एक्सचेंज",
+                        "कार्डियक पंप प्रभावशीलता",
+                        "तंत्रिका संबंधी स्थिति"
+                    );
+                }
+
+                if (totalScore >= 7) {
+                    nandaDiagnoses.push(
+                        "अप्रभावी ऊतक पेरफ्यूजन",
+                        "गैस एक्सचेंज में बाधा",
+                        "जोखिम में कार्डियक अरेस्ट"
+                    );
+
+                    nicInterventions.push(
+                        "आपातकालीन केयर",
+                        "कार्डियक अरेस्ट मैनेजमेंट",
+                        "आईसीयू में मॉनिटरिंग"
+                    );
+
+                    nocOutcomes.push(
+                        "ऊतक पेरफ्यूजन: सेरेब्रल",
+                        "ऊतक पेरफ्यूजन: कार्डियोपल्मोनरी",
+                        "वेंटिलेटरी सपोर्ट वीविंग: नॉन-इनवेसिव"
+                    );
+                }
+
+                if (nandaDiagnoses.length === 0) {
+                    nandaDiagnoses.push("कोई NANDA निदान लागू नहीं होता है - सामान्य स्थिति");
+                    nicInterventions.push("नियमित निगरानी और निवारक देखभाल");
+                    nocOutcomes.push("स्थिर नैदानिक स्थिति");
+                }
+
+                const nandaNicNocContent = `
+                    <div class="bg-white p-6 rounded-lg shadow-md">
+                        <h3 class="font-bold text-xl mb-4 text-dark-blue">NANDA, NIC, NOC PEWS स्कोर ${totalScore} के लिए</h3>
+
+                        <div class="mb-4">
+                            <h4 class="font-bold text-lg mb-2 text-light-blue">NANDA निदान:</h4>
+                            <ul class="list-disc pl-5">
+                                ${nandaDiagnoses.map(diagnosis => `<li>${diagnosis}</li>`).join('')}
+                            </ul>
+                        </div>
+
+                        <div class="mb-4">
+                            <h4 class="font-bold text-lg mb-2 text-light-blue">NIC हस्तक्षेप:</h4>
+                            <ul class="list-disc pl-5">
+                                ${nicInterventions.map(intervention => `<li>${intervention}</li>`).join('')}
+                            </ul>
+                        </div>
+
+                        <div class="mb-4">
+                            <h4 class="font-bold text-lg mb-2 text-light-blue">NOC परिणाम:</h4>
+                            <ul class="list-disc pl-5">
+                                ${nocOutcomes.map(outcome => `<li>${outcome}</li>`).join('')}
+                            </ul>
+                        </div>
+                    </div>
+                `;
+
+                resultadoDiv.innerHTML = nandaNicNocContent;
+                resultadoDiv.classList.remove('hidden');
+            });
+
+            initializePewsCalculator();
+        });
+    </script>
 
 
 

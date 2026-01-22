@@ -573,7 +573,288 @@
 
 
 
-  
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const resultadoDiv = document.getElementById("resultado");
+      const btnCalcular = document.getElementById("btnCalcular");
+      const btnLimpar = document.getElementById("btnLimpar");
+      const btnGerarPDF = document.getElementById("btnGerarPDF");
+      const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
+      const conteudoDiv = document.getElementById("conteudo");
+      const introParagraph = document.getElementById("intro-paragraph");
+      const referenceSection = document.getElementById("reference-section");
+
+      const lawtonData = [
+        {
+          category: "Використання телефону",
+          nameAttr: "телефон",
+          options: [
+            {
+              description: "Користуйтеся телефоном за власною ініціативою",
+              score: 1
+            },
+            { description: "Відмітьте знайомі цифри", score: 1 },
+            {
+              description: "Відповідає на дзвінки, але не набирає номери",
+              score: 1
+            },
+            { description: "Ви взагалі не користуєтеся телефоном", score: 0 }]
+
+        },
+        {
+          category: "Шопінг",
+          nameAttr: "покупки",
+          options: [
+            {
+              description:
+                "Здійснюйте всі необхідні покупки самостійно",
+              score: 1
+            },
+            {
+              description: "Робіть невеликі покупки самостійно",
+              score: 0
+            },
+            {
+              description: "Необхідно супроводжувати для будь-якої покупки",
+              score: 0
+            },
+            { description: "Неможливо робити покупки", score: 0 }]
+
+        },
+        {
+          category: "Приготування їжі",
+          nameAttr: "харчування",
+          options: [
+            {
+              description: "Планує, готує та подає повноцінні обіди",
+              score: 1
+            },
+            {
+              description:
+                "Готує їжу, якщо надаються інгредієнти",
+              score: 0
+            },
+            { description: "Готуйте тільки легкі страви", score: 0 },
+            { description: "Неможливість готувати їжу", score: 0 }]
+
+        },
+        {
+          category: "Бережи будинок",
+          nameAttr: "cuidado_casa",
+          options: [
+            {
+              description: "Ведення домашнього господарства самотужки або з періодичною допомогою",
+              score: 1
+            },
+            { description: "Виконує лише легкі завдання", score: 1 },
+            {
+              description:
+                "Не бере активної участі в домашніх справах",
+              score: 0
+            },
+            {
+              description: "Потрібна повна допомога з прибиранням",
+              score: 0
+            }]
+
+        },
+        {
+          category: "Прання білизни",
+          nameAttr: "lavagem_roupa",
+          options: [
+            {
+              description: "Самостійно пере свій одяг",
+              score: 1
+            },
+            { description: "Пере лише дрібні предмети одягу", score: 1 },
+            {
+              description: "Потрібно, щоб хтось виправ одяг",
+              score: 0
+            }]
+
+        },
+        {
+          category: "Пересування/користування транспортом",
+          nameAttr: "пересування",
+          options: [
+            {
+              description:
+                "Самостійно подорожує громадським транспортом або керує власним автомобілем",
+              score: 1
+            },
+            {
+              description:
+                "Користуватися таксі або громадським транспортом з допомогою іншої людини",
+              score: 1
+            },
+            {
+              description:
+                "Подорожує лише власним автомобілем з допомогою іншої особи",
+              score: 1
+            },
+            { description: "Неможливість подорожувати", score: 0 }]
+
+        },
+        {
+          category: "Медикаментозне лікування",
+          nameAttr: "вимірювання",
+          options: [
+            { description: "Ви несете відповідальність за свої ліки", score: 1 },
+            {
+              description:
+                "Ліки приймає лише тоді, коли йому їх готують",
+              score: 0
+            },
+            { description: "Неможливо приймати ліки", score: 0 }]
+
+        },
+        {
+          category: "Фінанси/Управління грошима",
+          nameAttr: "фінанси",
+          options: [
+            {
+              description:
+                "Самостійно керуйте своїми фінансами (банки, рахунки тощо)",
+              score: 1
+            },
+            {
+              description:
+                "Робіть невеликі покупки, але потрібна допомога з банками",
+              score: 1
+            },
+            { description: "Не вміє розпоряджатися грошима", score: 0 }]
+
+        }];
+
+
+      // Preenche o formulário dinamicamente
+      lawtonData.forEach((item) => {
+        const sectionDiv = document.createElement("div");
+        sectionDiv.className = "lawton-criterion-section";
+        sectionDiv.id = `section-${item.nameAttr}`;
+
+        const titleH3 = document.createElement("h3");
+        titleH3.className = "lawton-criterion-title";
+        titleH3.innerHTML = item.category;
+        sectionDiv.appendChild(titleH3);
+
+        const selectElement = document.createElement("select");
+        selectElement.id = item.nameAttr;
+        selectElement.className = "lawton-criterion-select";
+
+        const defaultOption = document.createElement("option");
+        defaultOption.value = "";
+        defaultOption.text = "Виберіть...";
+        selectElement.appendChild(defaultOption);
+
+        item.options.forEach((option) => {
+          const optionElement = document.createElement("option");
+          optionElement.value = option.score;
+          optionElement.text = `${option.description} (бали: ${option.score})`;
+          selectElement.appendChild(optionElement);
+        });
+
+        sectionDiv.appendChild(selectElement);
+        conteudoDiv.appendChild(sectionDiv);
+      });
+
+      function calcularLawton() {
+        const selects = document.querySelectorAll("#conteudo select");
+        let allSelected = true;
+        let total = 0;
+
+        selects.forEach((select) => {
+          if (select.value === "") {
+            allSelected = false;
+            select.classList.add("неповний");
+          } else {
+            select.classList.remove("неповний");
+            total += Number(select.value);
+          }
+        });
+
+        resultadoDiv.style.display = "block";
+        if (!allSelected) {
+          resultadoDiv.innerHTML =
+            '⚠️ <strong class="font-bold">Por favor, selecione uma opção para todos os itens antes de calcular.</strong>';
+          resultadoDiv.classList.add("bg-red-100");
+          delete resultadoDiv.dataset.score;
+          return;
+        }
+
+        let recomendacao = "";
+        let resultadoClasse = "bg-blue-50";
+
+        if (total < 8) {
+          recomendacao =
+            "Цей бал показує на ступінь відмінності при виконанні інструментальної діяльності у повному житті (IADL). Рекомендована допомога.";
+        } else {
+          recomendacao =
+            "Цей показник показує на ступінь незалежності у виконанні інструментальних дій у повному житті (IADL).";
+        }
+
+        resultadoDiv.innerHTML = `
+                <p>Escore total: <strong class="font-bold">${total}</strong></p>
+                <p class="mt-4"><strong>Recomendação:</strong> ${recomendacao}</p>
+            `;
+        resultadoDiv.className = `результат ${resultClass}`;
+        resultadoDiv.style.display = "block";
+
+        resultadoDiv.dataset.score = total;
+        resultadoDiv.dataset.scaleName = "Шкала Лоутона";
+      }
+
+      function limparCampos() {
+        const selects = document.querySelectorAll("#conteudo select");
+        selects.forEach((select) => {
+          select.selectedIndex = 0;
+          select.classList.remove("неповний");
+        });
+        resultadoDiv.innerHTML = "";
+        resultadoDiv.className = "прихований результат";
+        delete resultadoDiv.dataset.score;
+        delete resultadoDiv.dataset.scaleName;
+      }
+
+      // Adiciona os event listeners aos botões
+      btnCalcular?.addEventListener("click", calcularLawton);
+      btnLimpar?.addEventListener("click", limparCampos);
+
+      btnGerarPDF?.addEventListener("click", () => {
+        if (!resultadoDiv.dataset.score) {
+          alert(
+            "Будь ласка, спочатку натисніть \"Розрахувати бал\", щоб згенерувати PDF-файл."
+          );
+          return;
+        }
+        if (typeof gerarPDFGlobal === "функція") {
+          gerarPDFGlobal({
+            titulo: "Шкала Лоутона",
+            subtitulo: "Натисніть тут для IADL",
+            nomeArquivo: "relatorio_escala_lawton.pdf",
+            seletorConteudo: ".main-content-wrapper"
+          });
+        } else {
+          console.error("Функція GeneratePDFGlobal не визначена.");
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener("click", () => {
+        const score = resultadoDiv.dataset.score;
+        const scaleName = resultadoDiv.dataset.scaleName;
+        if (!score) {
+          alert("Обчисліть результат для пошуку поведінки.");
+          return;
+        }
+        const searchQuery = encodeURIComponent(
+          `сестринський погляд за незалежністю людей похилого віку ${scaleName} оцінка ${score} NANDA NIC NOC`
+        );
+        window.open(
+          `https://www.google.com/search?q=${searchQuery}`,
+          "_blank"
+        );
+      });
+    });</script>
 
   <script src="/lang-selector.js" defer=""></script>
 

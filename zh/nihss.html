@@ -624,7 +624,312 @@
 
 
 
-    
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const resultadoDiv = document.getElementById('resultado');
+            const btnCalcular = document.getElementById('btnCalcular');
+            const btnLimpar = document.getElementById('btnLimpar');
+            const btnGerarPDF = document.getElementById('btnGerarPDF');
+            const btnNandaNicNoc = document.getElementById('btnNandaNicNoc');
+            const conteudoDiv = document.getElementById('conteudo');
+
+            // NIHSS量表数据
+            const nihssData = [
+                {
+                    domain: "1a - 意识水平",
+                    nameAttr: "nivelConsciencia",
+                    options: [
+                        { text: "清醒", score: 0 },
+                        { text: "不清醒，需要最小刺激才能回应或维持回应", score: 1 },
+                        { text: "不清醒，需要重复刺激才能回应或疼痛刺激", score: 2 },
+                        { text: "昏迷", score: 3 }
+                    ]
+                },
+                {
+                    domain: "1b - 意识水平：回答月份和年龄",
+                    nameAttr: "mesIdade",
+                    options: [
+                        { text: "两个都回答正确", score: 0 },
+                        { text: "一个回答正确", score: 1 },
+                        { text: "都没有回答正确", score: 2 }
+                    ]
+                },
+                {
+                    domain: "1c - 意识水平：执行运动指令",
+                    nameAttr: "comandoMotor",
+                    options: [
+                        { text: "两个任务都执行正确", score: 0 },
+                        { text: "一个任务执行正确", score: 1 },
+                        { text: "都没有执行正确", score: 2 }
+                    ]
+                },
+                {
+                    domain: "2 - 最佳共轭凝视",
+                    nameAttr: "olharConjugado",
+                    options: [
+                        { text: "正常", score: 0 },
+                        { text: "部分凝视麻痹（凝视固定在一个方向）", score: 1 },
+                        { text: "强迫性凝视偏斜", score: 2 }
+                    ]
+                },
+                {
+                    domain: "3 - 视野",
+                    nameAttr: "camposVisuais",
+                    options: [
+                        { text: "无缺失", score: 0 },
+                        { text: "部分偏盲（视野一部分失明）", score: 1 },
+                        { text: "完全偏盲（视野一半失明）", score: 2 },
+                        { text: "双侧失明（完全失明）", score: 3 }
+                    ]
+                },
+                {
+                    domain: "4 - 面瘫",
+                    nameAttr: "paralisiaFacial",
+                    options: [
+                        { text: "对称（无面瘫）", score: 0 },
+                        { text: "轻度面瘫（微笑时不对称）", score: 1 },
+                        { text: "部分面瘫（下脸受累）", score: 2 },
+                        { text: "完全面瘫（上下脸都受累）", score: 3 }
+                    ]
+                },
+                {
+                    domain: "5a - 左侧上肢运动力量",
+                    nameAttr: "msEsq",
+                    options: [
+                        { text: "10秒内不落下（正常）", score: 0 },
+                        { text: "10秒前落下（保持一定努力）", score: 1 },
+                        { text: "不能克服重力（只能对抗床面举起）", score: 2 },
+                        { text: "无运动（无对抗重力的努力）", score: 3 },
+                        { text: "截肢或关节融合（无法测试）", score: 4 }
+                    ]
+                },
+                {
+                    domain: "5b - 右侧上肢运动力量",
+                    nameAttr: "msDir",
+                    options: [
+                        { text: "10秒内不落下（正常）", score: 0 },
+                        { text: "10秒前落下（保持一定努力）", score: 1 },
+                        { text: "不能克服重力（只能对抗床面举起）", score: 2 },
+                        { text: "无运动（无对抗重力的努力）", score: 3 },
+                        { text: "截肢或关节融合（无法测试）", score: 4 }
+                    ]
+                },
+                {
+                    domain: "6a - 左侧下肢运动力量",
+                    nameAttr: "miEsq",
+                    options: [
+                        { text: "5秒内不落下（正常）", score: 0 },
+                        { text: "5秒前落下（保持一定努力）", score: 1 },
+                        { text: "不能克服重力（只能对抗床面举起）", score: 2 },
+                        { text: "无运动（无对抗重力的努力）", score: 3 },
+                        { text: "截肢或关节融合（无法测试）", score: 4 }
+                    ]
+                },
+                {
+                    domain: "6b - 右侧下肢运动力量",
+                    nameAttr: "miDir",
+                    options: [
+                        { text: "5秒内不落下（正常）", score: 0 },
+                        { text: "5秒前落下（保持一定努力）", score: 1 },
+                        { text: "不能克服重力（只能对抗床面举起）", score: 2 },
+                        { text: "无运动（无对抗重力的努力）", score: 3 },
+                        { text: "截肢或关节融合（无法测试）", score: 4 }
+                    ]
+                },
+                {
+                    domain: "7 - 肢体共济失调",
+                    nameAttr: "ataxia",
+                    options: [
+                        { text: "缺失", score: 0 },
+                        { text: "一个肢体存在", score: 1 },
+                        { text: "两个肢体存在", score: 2 }
+                    ]
+                },
+                {
+                    domain: "8 - 感觉",
+                    nameAttr: "sensibilidade",
+                    options: [
+                        { text: "正常", score: 0 },
+                        { text: "轻度缺失（疼痛或轻触）", score: 1 },
+                        { text: "重度缺失（感觉不到疼痛或轻触）", score: 2 }
+                    ]
+                },
+                {
+                    domain: "9 - 最佳语言（失语）",
+                    nameAttr: "afasia",
+                    options: [
+                        { text: "无失语", score: 0 },
+                        { text: "轻度至中度失语", score: 1 },
+                        { text: "重度失语", score: 2 }
+                    ]
+                },
+                {
+                    domain: "10 - 构音障碍",
+                    nameAttr: "disartria",
+                    options: [
+                        { text: "正常", score: 0 },
+                        { text: "轻度至中度", score: 1 },
+                        { text: "重度", score: 2 }
+                    ]
+                },
+                {
+                    domain: "11 - 忽略和忽视",
+                    nameAttr: "extincaoNegligencia",
+                    options: [
+                        { text: "无异常", score: 0 },
+                        { text: "轻度忽略（一个模态的忽视）", score: 1 },
+                        { text: "重度忽略（超过一个模态的忽视）", score: 2 }
+                    ]
+                }
+            ];
+
+            // --- NIHSS计算器功能 ---
+            function updateScoreDisplay(criterionId) {
+                const selectElement = document.getElementById(criterionId);
+                const scoreDisplayElement = document.getElementById(`${criterionId}_score_display`);
+                if (selectElement && scoreDisplayElement) {
+                    scoreDisplayElement.innerText = selectElement.value === "" ? "0" : selectElement.value;
+                }
+            }
+
+            function calcularPontuacao() {
+                let totalScore = 0;
+                let allItemsSelected = true;
+
+                nihssData.forEach(item => {
+                    const selectElement = document.getElementById(item.nameAttr);
+                    if (selectElement.value === "") {
+                        allItemsSelected = false;
+                    } else {
+                        totalScore += parseInt(selectElement.value, 10);
+                    }
+                });
+
+                resultadoDiv.style.display = 'block';
+                if (!allItemsSelected) {
+                    resultadoDiv.innerHTML = '⚠️ <strong class="font-bold">请在计算前为所有项目选择一个选项</strong>。';
+                    resultadoDiv.className = 'resultado bg-info-orange-light';
+                    delete resultadoDiv.dataset.score;
+                    return;
+                }
+
+                let conduta = "";
+                let resultadoClasses = '';
+
+                if (totalScore <= 4) {
+                    conduta = "严重并发症低风险。措施：临床监测和基本支持。";
+                    resultadoClasses = 'bg-success-green-light';
+                } else if (totalScore <= 14) {
+                    conduta = "中等并发症风险。措施：频繁神经评估并讨论转诊重症监护病房。";
+                    resultadoClasses = 'bg-warning-yellow-light';
+                } else { // total > 14
+                    conduta = "高并发症风险。措施：重症护理，可能需要溶栓或神经外科干预。";
+                    resultadoClasses = 'bg-danger-red-light';
+                }
+
+                resultadoDiv.innerHTML = `<p>NIHSS总评分：<strong class="font-bold">${totalScore}</strong></p><p>措施：<strong class="font-bold">${conduta}</strong></p>`;
+                resultadoDiv.className = `resultado ${resultadoClasses}`;
+
+                resultadoDiv.dataset.score = totalScore;
+                resultadoDiv.dataset.conduta = conduta;
+                resultadoDiv.dataset.scaleName = "NIHSS量表";
+            }
+
+            function limparCampos() {
+                nihssData.forEach(item => {
+                    const selectElement = document.getElementById(item.nameAttr);
+                    selectElement.selectedIndex = 0;
+                    document.getElementById(`${item.nameAttr}_score_display`).innerText = '0';
+                });
+                resultadoDiv.innerHTML = '';
+                resultadoDiv.className = 'resultado hidden';
+                delete resultadoDiv.dataset.score;
+                delete resultadoDiv.dataset.conduta;
+                delete resultadoDiv.dataset.scaleName;
+            }
+
+            // 动态填充表单
+            nihssData.forEach((item, index) => {
+                const sectionDiv = document.createElement('div');
+                sectionDiv.className = 'nihss-criterion-card';
+
+                const headerDiv = document.createElement('div');
+                headerDiv.className = 'nihss-criterion-header';
+
+                const titleH3 = document.createElement('h3');
+                titleH3.className = 'nihss-criterion-title';
+                titleH3.innerText = item.domain;
+                headerDiv.appendChild(titleH3);
+
+                const scoreSpan = document.createElement('span');
+                scoreSpan.className = 'nihss-score-display';
+                scoreSpan.id = `${item.nameAttr}_score_display`;
+                scoreSpan.innerText = '0';
+                headerDiv.appendChild(scoreSpan);
+
+                sectionDiv.appendChild(headerDiv);
+
+                const optionsDiv = document.createElement('div');
+                optionsDiv.className = 'nihss-criterion-options';
+
+                const selectElement = document.createElement('select');
+                selectElement.id = item.nameAttr;
+                selectElement.className = 'nihss-select';
+                selectElement.onchange = () => updateScoreDisplay(item.nameAttr);
+
+                const defaultOption = document.createElement('option');
+                defaultOption.value = "";
+                defaultOption.text = "请选择...";
+                defaultOption.disabled = true;
+                defaultOption.selected = true;
+                selectElement.appendChild(defaultOption);
+
+                item.options.forEach(option => {
+                    const optionElement = document.createElement('option');
+                    optionElement.value = option.score;
+                    optionElement.text = `${option.text} (${option.score})`;
+                    selectElement.appendChild(optionElement);
+                });
+
+                optionsDiv.appendChild(selectElement);
+                sectionDiv.appendChild(optionsDiv);
+                conteudoDiv.appendChild(sectionDiv);
+            });
+
+            // 为按钮添加事件监听器
+            btnCalcular?.addEventListener('click', calcularPontuacao);
+            btnLimpar?.addEventListener('click', limparCampos);
+
+            btnGerarPDF?.addEventListener('click', () => {
+                if (!resultadoDiv.dataset.score) {
+                    alert('请先点击"计算"生成PDF。');
+                    return;
+                }
+                if (typeof gerarPDFGlobal === 'function') {
+                    gerarPDFGlobal({
+                        titulo: 'NIHSS量表',
+                        subtitulo: '脑卒中评估报告',
+                        nomeArquivo: 'nihss_scale_report.pdf',
+                        seletorConteudo: '.main-content-wrapper'
+                    });
+                } else {
+                    console.error('gerarPDFGlobal函数未定义。');
+                }
+            });
+
+            btnNandaNicNoc?.addEventListener('click', () => {
+                const score = resultadoDiv.dataset.score;
+                const scaleName = resultadoDiv.dataset.scaleName;
+                const conduta = resultadoDiv.dataset.conduta;
+                if (!score || !conduta) {
+                    alert('请先计算结果以搜索措施。');
+                    return;
+                }
+                const searchQuery = encodeURIComponent(`${scaleName} 评分 ${score} 措施 ${conduta} 生成NADA分类法，生成NIC分类法，生成NOC分类法`);
+                window.open(`https://www.google.com/search?q=${searchQuery}`, '_blank');
+            });
+        });
+    </script>
 
 
 

@@ -569,7 +569,305 @@
 
 
 
-  
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const resultadoDiv = document.getElementById("resultado");
+      const btnCalcular = document.getElementById("btnCalcular");
+      const btnLimpar = document.getElementById("btnLimpar");
+      const btnGerarPDF = document.getElementById("btnGerarPDF");
+      const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
+      const conteudoDiv = document.getElementById("conteudo");
+      const introParagraph = document.getElementById("intro-paragraph");
+      const referenceSection = document.getElementById("reference-section");
+
+      // Fugulin ölçeği verileri
+      const fugulinData = [
+        {
+          category: "Zihinsel Durum",
+          nameAttr: "estado_mental",
+          options: [
+            { description: "Bilinçsiz", score: 4 },
+            { description: "Yönelim bozukluğu", score: 3 },
+            { description: "Konfüzyon", score: 2 },
+            { description: "Oryantasyonlu", score: 1 },
+          ],
+        },
+        {
+          category: "Oksijenlenme",
+          nameAttr: "oxigenacao",
+          options: [
+            { description: "Mekanik ventilasyon", score: 4 },
+            { description: "Oksijen maskesi", score: 3 },
+            { description: "Nazal kateter", score: 2 },
+            { description: "Oda havası", score: 1 },
+          ],
+        },
+        {
+          category: "Yaşam Belirtileri",
+          nameAttr: "sinais_vitais",
+          options: [
+            { description: "Çok kritik", score: 4 },
+            { description: "Kritik", score: 3 },
+            { description: "Dengesiz", score: 2 },
+            { description: "Stabil", score: 1 },
+          ],
+        },
+        {
+          category: "Hareketlilik",
+          nameAttr: "motilidade",
+          options: [
+            { description: "İmmobilize", score: 4 },
+            { description: "Yardımla mobilizasyon", score: 3 },
+            { description: "Gözetimle mobilizasyon", score: 2 },
+            { description: "Bağımsız", score: 1 },
+          ],
+        },
+        {
+          category: "Mobilizasyon",
+          nameAttr: "deambulacao",
+          options: [
+            { description: "Mobilizasyon yapmaz", score: 4 },
+            { description: "Yardımla mobilizasyon", score: 3 },
+            { description: "Gözetimle mobilizasyon", score: 2 },
+            { description: "Bağımsız", score: 1 },
+          ],
+        },
+        {
+          category: "Beslenme",
+          nameAttr: "alimentacao",
+          options: [
+            { description: "Açlık", score: 4 },
+            { description: "Parenteral", score: 3 },
+            { description: "Enteral", score: 2 },
+            { description: "Oral", score: 1 },
+          ],
+        },
+        {
+          category: "Vücut Bakımı",
+          nameAttr: "cuidado_corporal",
+          options: [
+            { description: "Tamamen bağımlı", score: 4 },
+            { description: "Bağımlı", score: 3 },
+            { description: "Kısmi yardım", score: 2 },
+            { description: "Bağımsız", score: 1 },
+          ],
+        },
+        {
+          category: "Boşaltım",
+          nameAttr: "eliminacao",
+          options: [
+            { description: "İnkontinent", score: 4 },
+            { description: "SVK", score: 3 },
+            { description: "Kısmi yardım", score: 2 },
+            { description: "Bağımsız", score: 1 },
+          ],
+        },
+        {
+          category: "Tedavi",
+          nameAttr: "terapeutica",
+          options: [
+            { description: "Vazoaktif ilaç kullanımı", score: 4 },
+            { description: "Kateter ile sürekli IV", score: 3 },
+            { description: "Aralıklı IV", score: 2 },
+            { description: "IM veya PO", score: 1 },
+          ],
+        },
+        {
+          category: "Pansuman Değişim Süresi",
+          nameAttr: "tempo_curativo",
+          options: [
+            { description: "15-30 dakika arası", score: 4 },
+            { description: "5-15 dakika arası", score: 3 },
+            { description: "5 dakikadan az", score: 2 },
+            { description: "Pansuman yok", score: 1 },
+          ],
+        },
+        {
+          category: "Pansuman",
+          nameAttr: "curativo",
+          options: [
+            { description: "Günde 3x değiştirme", score: 4 },
+            { description: "Günde 2x değiştirme", score: 3 },
+            { description: "Günde 1x değiştirme", score: 2 },
+            { description: "Pansuman yok", score: 1 },
+          ],
+        },
+        {
+          category: "Deri-Mukozal Bütünlük / Doku Hasarı",
+          nameAttr: "integridade",
+          options: [
+            { description: "Geniş", score: 4 },
+            { description: "Orta", score: 3 },
+            { description: "Hafif", score: 2 },
+            { description: "Yok", score: 1 },
+          ],
+        },
+      ];
+
+      // Formu dinamik olarak doldur
+      fugulinData.forEach((item, index) => {
+        const sectionDiv = document.createElement("div");
+        sectionDiv.className = "fugulin-criterion-section";
+        sectionDiv.id = `section-${item.nameAttr}`;
+
+        const titleH3 = document.createElement("h3");
+        titleH3.className = "fugulin-criterion-title";
+        titleH3.innerText = item.category;
+        sectionDiv.appendChild(titleH3);
+
+        const selectElement = document.createElement("select");
+        selectElement.id = item.nameAttr;
+        selectElement.className = "fugulin-criterion-select";
+
+        const defaultOption = document.createElement("option");
+        defaultOption.value = "";
+        defaultOption.text = "Seçiniz...";
+        selectElement.appendChild(defaultOption);
+
+        item.options.forEach((option) => {
+          const optionElement = document.createElement("option");
+          optionElement.value = option.score;
+          optionElement.text = `${option.description} (${option.score})`;
+          selectElement.appendChild(optionElement);
+        });
+
+        sectionDiv.appendChild(selectElement);
+        conteudoDiv.appendChild(sectionDiv);
+      });
+
+      function calcularFugulin() {
+        const selects = document.querySelectorAll("#conteudo select");
+        let allSelected = true;
+        let total = 0;
+
+        selects.forEach((select) => {
+          if (select.value === "") {
+            allSelected = false;
+          }
+          total += Number(select.value);
+        });
+
+        resultadoDiv.style.display = "block";
+        if (!allSelected) {
+          resultadoDiv.innerHTML =
+            '⚠️ <strong class="font-bold">Lütfen hesaplama yapmadan önce tüm öğeler için bir seçenek belirleyin.</strong>';
+          resultadoDiv.classList.add("bg-info-orange-light");
+          resultadoDiv.classList.remove("bg-red-100", "bg-blue-50");
+          delete resultadoDiv.dataset.score;
+          return;
+        }
+
+        let classificacao = "";
+        let resultadoClasse = "";
+
+        if (total >= 31) {
+          classificacao = "Çok Yüksek Karmaşıklık";
+          resultadoClasse = "bg-red-100";
+        } else if (total >= 24) {
+          classificacao = "Yüksek Karmaşıklık";
+          resultadoClasse = "bg-red-100";
+        } else if (total >= 17) {
+          classificacao = "Orta Karmaşıklık";
+          resultadoClasse = "bg-blue-50";
+        } else if (total >= 10) {
+          classificacao = "Düşük Karmaşıklık";
+          resultadoClasse = "bg-blue-50";
+        } else {
+          classificacao = "Minimal Karmaşıklık";
+          resultadoClasse = "bg-blue-50";
+        }
+
+        resultadoDiv.innerHTML = `<p>Toplam skor: <strong class="font-bold">${total}</strong></p><p>Sınıflandırma: <strong class="font-bold">${classificacao}</strong></p>`;
+        resultadoDiv.className = `resultado ${resultadoClasse}`;
+        resultadoDiv.style.display = "block";
+
+        resultadoDiv.dataset.score = total;
+        resultadoDiv.dataset.scaleName = "Fugulin Ölçeği";
+        resultadoDiv.dataset.classificacao = classificacao;
+      }
+
+      function limparCampos() {
+        const selects = document.querySelectorAll("#conteudo select");
+        selects.forEach((select) => {
+          select.selectedIndex = 0;
+        });
+        resultadoDiv.innerHTML = "";
+        resultadoDiv.className = "resultado hidden";
+        delete resultadoDiv.dataset.score;
+        delete resultadoDiv.dataset.scaleName;
+        delete resultadoDiv.dataset.classificacao;
+      }
+
+      // Butonlara event listener ekle
+      btnCalcular?.addEventListener("click", calcularFugulin);
+      btnLimpar?.addEventListener("click", limparCampos);
+
+      btnGerarPDF?.addEventListener("click", () => {
+        if (!resultadoDiv.dataset.score) {
+          alert(
+            'Lütfen PDF oluşturmak için önce "Skoru Hesapla" butonuna tıklayın.',
+          );
+          return;
+        }
+        if (typeof gerarPDFGlobal === "function") {
+          gerarPDFGlobal({
+            titulo: "Fugulin Ölçeği",
+            subtitulo: "Hemşirelik Bakım Karmaşıklığı Raporu",
+            nomeArquivo: "fugulin_olcegi_raporu.pdf",
+            seletorConteudo: ".main-content-wrapper",
+          });
+        } else {
+          console.error("gerarPDFGlobal fonksiyonu tanımlı değil.");
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener("click", () => {
+        const score = resultadoDiv.dataset.score;
+        const scaleName = resultadoDiv.dataset.scaleName;
+        const classificacao = resultadoDiv.dataset.classificacao;
+        if (!score || !classificacao) {
+          alert("Davranışı araştırmak için sonucu hesaplayın.");
+          return;
+        }
+        const searchQuery = encodeURIComponent(
+          `${scaleName} skor ${score} NANDA taksonomisi oluştur, NIC taksonomisi oluştur ve NOC taksonomisi oluştur`,
+        );
+        window.open(
+          `https://www.google.com/search?q=${searchQuery}`,
+          "_blank",
+        );
+      });
+      // "Favorilere ekle" butonu
+      const addFavoriteBtn = document.getElementById("addFavoriteBtn");
+      if (addFavoriteBtn) {
+        addFavoriteBtn.addEventListener("click", () => {
+          const url = window.location.href;
+          const title = "Fugulin Ölçeği";
+
+          try {
+            // IE/Edge Legacy
+            if (window.external && "AddFavorite" in window.external) {
+              window.external.AddFavorite(url, title);
+              return;
+            }
+            // Firefox eski
+            if (window.sidebar && window.sidebar.addPanel) {
+              window.sidebar.addPanel(title, url, "");
+              return;
+            }
+            // Chrome/Firefox modern: kısayol talimatı
+            alert(
+              "Bu sayfayı favorilere eklemek için Ctrl + D (veya Mac'te Cmd + D) tuşuna basın.",
+            );
+          } catch (e) {
+            alert(
+              "Bu sayfayı favorilere eklemek için Ctrl + D (veya Mac'te Cmd + D) tuşuna basın.",
+            );
+          }
+        });
+      }
+    });
+  </script>
 
   <script src="/lang-selector.js" defer=""></script>
 

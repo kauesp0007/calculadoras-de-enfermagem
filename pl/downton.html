@@ -539,7 +539,222 @@
 
 
 
-  
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const resultadoDiv = document.getElementById("resultado");
+      const btnCalcular = document.getElementById("btnCalcular");
+      const btnLimpar = document.getElementById("btnLimpar");
+      const btnGerarPDF = document.getElementById("btnGerarPDF");
+      const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
+      const conteudoDiv = document.getElementById("conteudo");
+
+      // Dados da escala de Downton
+      const downtonData = [
+        {
+          category: "Poprzednie spadki",
+          nameAttr: "quedas",
+          options: [
+            { description: "Nie", score: 0 },
+            { description: "Tak", score: 1 }],
+
+          explain: "Występowanie upadków w ciągu ostatnich 12 miesięcy."
+        },
+        {
+          category: "Medicamentos",
+          nameAttr: "medicamentos",
+          options: [
+            { description: "Brak stosowania ryzykownych leków", score: 0 },
+            {
+              description:
+                "Stosowanie ryzykownych leków (np. uspokajających, nasennych, moczopędnych)",
+              score: 1
+            }],
+
+          explain:
+            "Niektóre leki mogą powodować zawroty głowy i zaburzenia równowagi."
+        },
+        {
+          category: "Deficyty sensoryczne",
+          nameAttr: "deficits_sensoriais",
+          options: [
+            { description: "Brak niepełnosprawności", score: 0 },
+            { description: "Wszelkie upośledzenia wzroku lub słuchu", score: 1 }],
+
+          explain:
+            "Problemy ze wzrokiem lub słuchem, które mogą utrudniać dostrzeganie przeszkód."
+        },
+        {
+          category: "Estado Mental",
+          nameAttr: "estado_mental",
+          options: [
+            { description: "Orientado", score: 0 },
+            { description: "Desorientado", score: 1 }],
+
+          explain:
+            "Stan świadomości i zdolności poznawcze pacjenta."
+        },
+        {
+          category: "Chodzenie",
+          nameAttr: "deambulacao",
+          options: [
+            { description: "Normalne chodzenie", score: 0 },
+            {
+              description:
+                "Chodzenie z trudnościami lub korzystanie z urządzenia wspomagającego (laska, chodzik)",
+              score: 1
+            }],
+
+          explain:
+            "Ocena chodu, równowagi i korzystania z urządzeń wspomagających."
+        }];
+
+
+      // Preenche o formulário dinamicamente
+      downtonData.forEach((item) => {
+        const sectionDiv = document.createElement("div");
+        sectionDiv.className = "downton-criterion-section";
+        sectionDiv.id = `section-${item.nameAttr}`;
+
+        const titleH3 = document.createElement("h3");
+        titleH3.className = "downton-criterion-title";
+        titleH3.innerHTML =
+          item.category +
+          `
+              <div class="text-sm font-normal text-gray-500 mt-1">${item.explain}</div>`;
+        sectionDiv.appendChild(titleH3);
+
+        const selectElement = document.createElement("select");
+        selectElement.id = item.nameAttr;
+        selectElement.className = "downton-criterion-select";
+
+        const defaultOption = document.createElement("option");
+        defaultOption.value = "";
+        defaultOption.text = "Wybierz...";
+        selectElement.appendChild(defaultOption);
+
+        item.options.forEach((option) => {
+          const optionElement = document.createElement("option");
+          optionElement.value = option.score;
+          optionElement.text = `${option.description} (pontos: ${option.score})`;
+          selectElement.appendChild(optionElement);
+        });
+
+        sectionDiv.appendChild(selectElement);
+        conteudoDiv.appendChild(sectionDiv);
+      });
+
+      function calcularDownton() {
+        const selects = document.querySelectorAll("#conteudo select");
+        let allSelected = true;
+        let total = 0;
+
+        selects.forEach((select) => {
+          if (select.value === "") {
+            allSelected = false;
+            select.classList.add("incomplete");
+          } else {
+            select.classList.remove("incomplete");
+            total += Number(select.value);
+          }
+        });
+
+        if (!allSelected) {
+          resultadoDiv.innerHTML =
+            '⚠️ <strong class="font-bold">Por favor, selecione uma opção para todos os itens antes de calcular.</strong>';
+          resultadoDiv.style.display = "block";
+          delete resultadoDiv.dataset.score;
+          return;
+        }
+
+        let classificacao = "";
+        let recomendacao = "";
+
+        // Definições de pontuação da Escala de Downton
+        // 0-2 pontos: Baixo Risco
+        // 3-5 pontos: Médio Risco
+        // > 5 pontos: Alto Risco (6 ou mais)
+        if (total >= 0 && total <= 2) {
+          classificacao = "Baixo Risco";
+          recomendacao =
+            "U pacjenta występuje niskie ryzyko upadku. Należy kontynuować stosowanie standardowych środków zapobiegawczych i okresowo przeprowadzać ponowną ocenę.";
+        } else if (total >= 3 && total <= 5) {
+          classificacao = "Średnie ryzyko";
+          recomendacao =
+            "U pacjenta występuje średnie ryzyko upadku. Należy wdrożyć środki mające na celu zapobieganie upadkom i ich monitorowanie.";
+        } else if (total > 5) {
+          classificacao = "Alto Risco";
+          recomendacao =
+            "Pacjent jest narażony na wysokie ryzyko upadku. Należy natychmiast wdrożyć indywidualny plan zapobiegania upadkom.";
+        } else {
+          classificacao = "Wynik poza normą";
+          recomendacao =
+            "Obliczony wynik jest poza oczekiwanym zakresem klasyfikacji. Sprawdź wybrane wartości.";
+        }
+
+        resultadoDiv.innerHTML = `
+                <p>Escore total: <strong class="font-bold">${total}</strong></p>
+                <p>Classificação: <strong class="font-bold">${classificacao}</strong></p>
+                <p class="mt-4"><strong>Recomendação:</strong> ${recomendacao}</p>
+            `;
+        resultadoDiv.style.display = "block";
+
+        resultadoDiv.dataset.score = total;
+        resultadoDiv.dataset.scaleName = "Escala de Downton";
+        resultadoDiv.dataset.classificacao = classificacao;
+      }
+
+      function limparCampos() {
+        const selects = document.querySelectorAll("#conteudo select");
+        selects.forEach((select) => {
+          select.selectedIndex = 0;
+          select.classList.remove("incomplete");
+        });
+        resultadoDiv.innerHTML = "";
+        resultadoDiv.style.display = "none";
+        delete resultadoDiv.dataset.score;
+        delete resultadoDiv.dataset.scaleName;
+        delete resultadoDiv.dataset.classificacao;
+      }
+
+      btnCalcular?.addEventListener("click", calcularDownton);
+      btnLimpar?.addEventListener("click", limparCampos);
+
+      btnGerarPDF?.addEventListener("click", () => {
+        if (!resultadoDiv.dataset.score) {
+          alert(
+            "Kliknij najpierw \"Oblicz wynik\", aby wygenerować plik PDF."
+          );
+          return;
+        }
+        if (typeof gerarPDFGlobal === "function") {
+          gerarPDFGlobal({
+            titulo: "Escala de Downton",
+            subtitulo: "Raport z oceny ryzyka upadku",
+            nomeArquivo: "relatorio_escala_downton.pdf",
+            seletorConteudo: ".main-content-wrapper"
+          });
+        } else {
+          console.error("Funkcja GeneratePDFGlobal nie została zdefiniowana.");
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener("click", () => {
+        const score = resultadoDiv.dataset.score;
+        const scaleName = resultadoDiv.dataset.scaleName;
+        const classificacao = resultadoDiv.dataset.classificacao;
+        if (!score || !classificacao) {
+          alert("Oblicz wynik, aby wyszukać zachowanie.");
+          return;
+        }
+        const searchQuery = encodeURIComponent(
+          `${scaleName} wynik ${score} dorosły pacjent ${classificacao} gerar taxonomia NANDA, gerar taxonomia NIC e gerar taxonomia de NOC`
+        );
+        window.open(
+          `https://www.google.com/search?q=${searchQuery}`,
+          "_blank"
+        );
+      });
+    });</script>
 
   <script src="/lang-selector.js" defer=""></script>
 

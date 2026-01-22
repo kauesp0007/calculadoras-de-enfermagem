@@ -640,7 +640,251 @@
 
 
   <!-- 페이지별 스크립트 -->
-  
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const conteudoDiv = document.getElementById("conteudo");
+      const resultadoDiv = document.getElementById("resultado");
+      const btnCalcular = document.getElementById("btnCalcular");
+      const btnLimpar = document.getElementById("btnLimpar");
+      const btnGerarPDF = document.getElementById("btnGerarPDF");
+      const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
+      const statusMessageDiv = document.getElementById("statusMessage");
+
+      const silvermanData = [
+        {
+          parameter: "흉복부 움직임",
+          nameAttr: "movimento",
+          tooltip:
+            "호흡 중 가슴과 복부의 동시성을 평가합니다. '시소 운동'은 심각한 호흡 노력을 나타냅니다.",
+          options: [
+            { score: 0, description: "동시적" },
+            { score: 1, description: "가슴 고정" },
+            { score: 2, description: "시소 운동" },
+          ],
+        },
+        {
+          parameter: "늑간 함몰",
+          nameAttr: "tiragem",
+          tooltip: "흡기 시 늑골 사이의 근육 함몰로 호흡 노력을 나타냅니다.",
+          options: [
+            { score: 0, description: "없음" },
+            { score: 1, description: "경도" },
+            { score: 2, description: "중등도" },
+          ],
+        },
+        {
+          parameter: "검상돌기 함몰",
+          nameAttr: "retracao",
+          tooltip: "흡기 시 검상돌기(흉골 하단) 부위의 함몰.",
+          options: [
+            { score: 0, description: "없음" },
+            { score: 1, description: "경도" },
+            { score: 2, description: "중등도" },
+          ],
+        },
+        {
+          parameter: "비익 확장",
+          nameAttr: "batimento",
+          tooltip:
+            "흡기 시 콧구멍의 확장으로, 신생아가 더 많은 공기를 얻기 위해 노력하고 있음을 나타냅니다.",
+          options: [
+            { score: 0, description: "없음" },
+            { score: 1, description: "경도" },
+            { score: 2, description: "중등도" },
+          ],
+        },
+        {
+          parameter: "호기성 신음",
+          nameAttr: "gemido",
+          tooltip:
+            "호기 시 발생하는 소리로, 아기가 폐포를 열린 상태로 유지하려는 노력을 나타냅니다.",
+          options: [
+            { score: 0, description: "없음" },
+            { score: 1, description: "청진기로 들림" },
+            { score: 2, description: "청진기 없이 들림" },
+          ],
+        },
+      ];
+
+      function criarFormulario() {
+        silvermanData.forEach((item) => {
+          const accordionItem = document.createElement("div");
+          accordionItem.className = "accordion-item";
+
+          const header = document.createElement("div");
+          header.className = "accordion-header";
+          header.setAttribute("aria-expanded", "false");
+          header.setAttribute("tabindex", "0");
+          header.innerHTML = `
+                    <span>${item.parameter}
+                        <span class="tooltip-container">
+                            <button type="button" class="tooltip-icon-button" aria-label="${item.parameter}에 대한 정보">
+                                <i class="fas fa-info-circle" aria-hidden="true"></i>
+                            </button>
+                            <span class="tooltip-text">${item.tooltip}</span>
+                        </span>
+                    </span>
+                    <i class="fas fa-chevron-down accordion-toggle-icon" aria-hidden="true"></i>
+                `;
+          accordionItem.appendChild(header);
+
+          const content = document.createElement("div");
+          content.className = "accordion-content";
+          content.setAttribute("role", "region");
+
+          item.options.forEach((option) => {
+            const label = document.createElement("label");
+            label.className = "option-label";
+            const input = document.createElement("input");
+            input.type = "radio";
+            input.name = item.nameAttr;
+            input.value = option.score;
+
+            label.appendChild(input);
+            label.innerHTML += `<span>${option.description} (${option.score})</span>`;
+            content.appendChild(label);
+          });
+
+          accordionItem.appendChild(content);
+          conteudoDiv.appendChild(accordionItem);
+
+          header.addEventListener("click", function () {
+            const isExpanded = this.getAttribute("aria-expanded") === "true";
+            document.querySelectorAll(".accordion-header").forEach((h) => {
+              h.setAttribute("aria-expanded", "false");
+              h.nextElementSibling.classList.remove("is-open");
+            });
+            this.setAttribute("aria-expanded", !isExpanded);
+            if (!isExpanded) {
+              content.classList.add("is-open");
+            }
+          });
+        });
+      }
+
+      criarFormulario();
+
+      function calcular() {
+        let total = 0;
+        let allSelected = true;
+
+        silvermanData.forEach((item) => {
+          const selecionado = document.querySelector(
+            `input[name="${item.nameAttr}"]:checked`,
+          );
+          if (selecionado) {
+            total += parseInt(selecionado.value, 10);
+          } else {
+            allSelected = false;
+          }
+        });
+
+        resultadoDiv.classList.remove("hidden");
+        if (!allSelected) {
+          resultadoDiv.className =
+            "resultado p-4 mt-6 rounded-lg text-left bg-info-alerta flex items-start gap-4 visible";
+          resultadoDiv.innerHTML = `<i class="fas fa-exclamation-triangle mt-1" aria-hidden="true"></i><div><strong class="font-bold block">주의!</strong> 5개 매개변수 각각에 대해 옵션을 선택하세요.</div>`;
+          resultadoDiv.setAttribute("tabindex", "0");
+          resultadoDiv.focus();
+          resultadoDiv.scrollIntoView({
+            behavior: "smooth",
+            block: "center",
+          });
+          delete resultadoDiv.dataset.score;
+          return;
+        }
+
+        let classificacao = "";
+        let barClass = "";
+        let resultadoClass = "";
+
+        if (total <= 3) {
+          classificacao = "경도 호흡곤란";
+          barClass = "bar-low";
+          resultadoClass = "bg-success-green";
+        } else if (total <= 7) {
+          classificacao = "중등도 호흡곤란";
+          barClass = "bar-medium";
+          resultadoClass = "bg-info-alerta";
+        } else {
+          classificacao = "중증 호흡곤란";
+          barClass = "bar-high";
+          resultadoClass = "bg-danger-red";
+        }
+
+        const scorePercentage = (total / 10) * 100;
+
+        resultadoDiv.className = `resultado p-4 mt-6 rounded-lg text-left ${resultadoClass} visible`;
+        resultadoDiv.innerHTML = `
+                <p>총점: <strong class="font-bold">${total}</strong></p>
+                <p>분류: <strong class="font-bold">${classificacao}</strong></p>
+                <div class="score-summary-bar-container" role="progressbar" aria-valuenow="${total}" aria-valuemin="0" aria-valuemax="10" aria-label="점수 심각도 막대.">
+                    <div class="score-summary-bar ${barClass}" style="width: ${scorePercentage}%;"></div>
+                </div>
+            `;
+        resultadoDiv.setAttribute("tabindex", "0");
+        resultadoDiv.focus();
+        resultadoDiv.scrollIntoView({ behavior: "smooth", block: "center" });
+
+        resultadoDiv.dataset.score = total;
+        resultadoDiv.dataset.classificacao = classificacao;
+        resultadoDiv.dataset.scaleName = "실버만-앤더슨 점수";
+      }
+
+      function limpar() {
+        document
+          .querySelectorAll('input[type="radio"]')
+          .forEach((input) => (input.checked = false));
+        resultadoDiv.className = "resultado hidden";
+        resultadoDiv.innerHTML = "";
+        delete resultadoDiv.dataset.score;
+        delete resultadoDiv.dataset.classificacao;
+        // 모든 아코디언 닫기
+        document.querySelectorAll(".accordion-header").forEach((h) => {
+          h.setAttribute("aria-expanded", "false");
+        });
+        document.querySelectorAll(".accordion-content").forEach((c) => {
+          c.classList.remove("is-open");
+        });
+      }
+
+      btnCalcular?.addEventListener("click", calcular);
+      btnLimpar?.addEventListener("click", limpar);
+
+      btnGerarPDF?.addEventListener("click", () => {
+        if (!resultadoDiv || !resultadoDiv.dataset.score) {
+          alert('PDF를 생성하려면 먼저 "계산"을 클릭하세요.');
+          return;
+        }
+        if (typeof gerarPDFGlobal === "function") {
+          gerarPDFGlobal({
+            titulo: "실버만-앤더슨 점수",
+            subtitulo: "신생아 호흡곤란 평가",
+            nomeArquivo: "relatorio_silverman_anderson.pdf",
+            seletorConteudo: ".main-content-wrapper",
+          });
+        } else {
+          alert("오류: PDF 생성 기능을 찾을 수 없습니다.");
+          console.error("gerarPDFGlobal 함수가 정의되지 않았습니다.");
+        }
+      });
+
+      btnNandaNicNoc?.addEventListener("click", () => {
+        const classificacao = resultadoDiv.dataset.classificacao;
+        if (!classificacao) {
+          alert('해석을 얻으려면 먼저 "계산"을 클릭하세요.');
+          return;
+        }
+        const searchQuery = encodeURIComponent(
+          `"${classificacao}"를 가진 신생아에 대한 NANDA 간호 진단 및 해당 중재(NIC) 및 결과(NOC)`,
+        );
+        window.open(
+          `https://www.google.com/search?q=${searchQuery}`,
+          "_blank",
+        );
+      });
+    });
+  </script>
 
   <script src="/lang-selector.js" defer=""></script>
 

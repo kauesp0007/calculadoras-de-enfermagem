@@ -663,7 +663,212 @@
 
 
 
-    
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const resultadoDiv = document.getElementById('resultado');
+            const btnCalcular = document.getElementById('btnCalcular');
+            const btnLimpar = document.getElementById('btnLimpar');
+            const btnGerarPDF = document.getElementById('btnGerarPDF');
+            const btnNandaNicNoc = document.getElementById('btnNandaNicNoc');
+            const conteudoDiv = document.getElementById('conteudo');
+
+            const waterlowData = [
+                { category: "Hauttyp", nameAttr: "tipoPele", type: 'radio', options: [{ description: "Gesund", score: 0 }, { description: "Dünn - Papierhaut", score: 1 }, { description: "Trocken", score: 1 }, { description: "Ödematös", score: 1 }, { description: "Klebrig", score: 1 }, { description: "Verfärbt", score: 2 }, { description: "Brüchig", score: 3 }] },
+                { category: "Mobilität", nameAttr: "mobilidade", type: 'radio', options: [{ description: "Vollständig", score: 0 }, { description: "Unruhig", score: 1 }, { description: "Apathisch", score: 2 }, { description: "Eingeschränkt", score: 3 }, { description: "Immobil / Traktion", score: 4 }, { description: "Rollstuhlgebunden", score: 5 }] },
+                { category: "Neurologischer Status", nameAttr: "debitoNeurologico", type: 'radio', options: [{ description: "Normal", score: 0 }, { description: "MS. Paraplegie (z.B. Schlaganfall, Multiple Sklerose)", score: 6 }] },
+                { category: "Kontinenz", nameAttr: "continencia", type: 'radio', options: [{ description: "Normal", score: 0 }, { description: "Gelegentliche Inkontinenz (nur Urin)", score: 1 }, { description: "Inkontinenz (Urin oder Stuhl)", score: 2 }, { description: "Doppelte Inkontinenz (Urin und Stuhl)", score: 3 }] },
+                {
+                    category: "Besondere Risiken", type: 'checkbox', subCategories: [
+                        { name: "Mangelernährung des Gewebes", nameAttr: "nutricao", options: [{ description: "Terminale Kachexie", score: 8 }, { description: "Herzinsuffizienz", score: 5 }, { description: "Periphere arterielle Verschlusskrankheit", score: 5 }, { description: "Anämie", score: 2 }, { description: "Rauchen", score: 1 }] },
+                        { name: "Große Operation oder Trauma", nameAttr: "cirurgia", options: [{ description: "Orthopädisch unterhalb der Taille / Wirbelsäule", score: 5 }, { description: "Auf dem Operationstisch: > 2 Stunden", score: 5 }] },
+                        { name: "Medikation", nameAttr: "medicacao", options: [{ description: "Steroide", score: 4 }, { description: "Zytotoxika", score: 4 }, { description: "Entzündungshemmer", score: 4 }] }
+                    ]
+                }
+            ];
+
+            function updateScoreDisplay(criterionId) {
+                const selectElement = document.getElementById(criterionId);
+                const scoreDisplayElement = document.getElementById(`${criterionId}_score_display`);
+                if (selectElement && scoreDisplayElement) {
+                    scoreDisplayElement.innerText = selectElement.value === "" ? "0" : selectElement.value;
+                }
+            }
+
+            function berechnePunktzahl() {
+                let total = 0;
+                let allRadioSelected = true;
+
+                const radioGroups = ["tipoPele", "mobilidade", "continencia", "debitoNeurologico"];
+                radioGroups.forEach(name => {
+                    const selectElement = document.getElementById(name);
+                    if (selectElement.value === "") {
+                        allRadioSelected = false;
+                    } else {
+                        total += parseInt(selectElement.value, 10);
+                    }
+                });
+
+                const checkboxGroups = ["nutricao", "cirurgia", "medicacao"];
+                checkboxGroups.forEach(name => {
+                    const checkboxes = document.querySelectorAll(`input[name="${name}"]:checked`);
+                    checkboxes.forEach(checkbox => {
+                        total += parseInt(checkbox.value, 10);
+                    });
+                });
+
+                resultadoDiv.style.display = 'block';
+                if (!allRadioSelected) {
+                    resultadoDiv.innerHTML = '⚠️ <strong class="font-bold">Bitte wählen Sie eine Option für alle Pflichtkriterien aus</strong> (Hauttyp, Mobilität, neurologischer Status, Kontinenz), bevor Sie berechnen.';
+                    resultadoDiv.className = 'resultado bg-info-orange-light';
+                    delete resultadoDiv.dataset.score;
+                    return;
+                }
+
+                let klassifikation = "";
+                let ergebnisKlasse = '';
+
+                if (total >= 20) {
+                    klassifikation = "Sehr hohes Risiko";
+                    ergebnisKlasse = 'bg-very-high-risk';
+                } else if (total >= 15) {
+                    klassifikation = "Hohes Risiko";
+                    ergebnisKlasse = 'bg-high-risk';
+                } else if (total >= 10) {
+                    klassifikation = "Mittleres Risiko";
+                    ergebnisKlasse = 'bg-medium-risk';
+                } else {
+                    klassifikation = "Geringes Risiko";
+                    ergebnisKlasse = 'bg-low-risk';
+                }
+
+                resultadoDiv.innerHTML = `<p>Waterlow-Gesamtpunktzahl: <strong class="font-bold">${total}</strong></p><p>Einstufung: <strong class="font-bold">${klassifikation}</strong></p>`;
+                resultadoDiv.className = `resultado ${ergebnisKlasse}`;
+
+                resultadoDiv.dataset.score = total;
+                resultadoDiv.dataset.classificacao = klassifikation;
+                resultadoDiv.dataset.scaleName = "Waterlow-Skala";
+            }
+
+            function felderLeeren() {
+                document.querySelectorAll('select').forEach(select => select.selectedIndex = 0);
+                document.querySelectorAll('input[type="checkbox"]').forEach(checkbox => checkbox.checked = false);
+                document.querySelectorAll('.waterlow-score-display').forEach(span => span.innerText = '0');
+
+                resultadoDiv.innerHTML = '';
+                resultadoDiv.className = 'resultado hidden';
+                delete resultadoDiv.dataset.score;
+                delete resultadoDiv.dataset.classificacao;
+                delete resultadoDiv.dataset.scaleName;
+            }
+
+            waterlowData.forEach((item, index) => {
+                const sectionDiv = document.createElement('div');
+                sectionDiv.className = 'waterlow-criterion-card';
+
+                const headerDiv = document.createElement('div');
+                headerDiv.className = 'waterlow-criterion-header';
+
+                const titleH3 = document.createElement('h3');
+                titleH3.className = 'waterlow-criterion-title';
+                titleH3.innerText = item.category;
+                headerDiv.appendChild(titleH3);
+
+                if (item.type === 'radio') {
+                    const scoreSpan = document.createElement('span');
+                    scoreSpan.className = 'waterlow-score-display';
+                    scoreSpan.id = `${item.nameAttr}_score_display`;
+                    scoreSpan.innerText = '0';
+                    headerDiv.appendChild(scoreSpan);
+                }
+
+                sectionDiv.appendChild(headerDiv);
+
+                const optionsGroupDiv = document.createElement('div');
+                optionsGroupDiv.className = 'options-group';
+
+                if (item.type === "radio") {
+                    const selectElement = document.createElement('select');
+                    selectElement.id = item.nameAttr;
+                    selectElement.className = 'waterlow-select';
+                    selectElement.onchange = () => updateScoreDisplay(item.nameAttr);
+
+                    const defaultOption = document.createElement('option');
+                    defaultOption.value = "";
+                    defaultOption.text = "Auswählen...";
+                    defaultOption.disabled = true;
+                    defaultOption.selected = true;
+                    selectElement.appendChild(defaultOption);
+
+                    item.options.forEach(option => {
+                        const optionElement = document.createElement('option');
+                        optionElement.value = option.score;
+                        optionElement.text = `${option.description} (${option.score})`;
+                        selectElement.appendChild(optionElement);
+                    });
+                    optionsGroupDiv.appendChild(selectElement);
+                    sectionDiv.appendChild(optionsGroupDiv);
+                } else if (item.type === "checkbox") {
+                    item.subCategories.forEach(subCat => {
+                        const subCatTitle = document.createElement('p');
+                        subCatTitle.className = 'waterlow-sub-category';
+                        subCatTitle.innerText = subCat.name + ":";
+                        optionsGroupDiv.appendChild(subCatTitle);
+
+                        subCat.options.forEach(option => {
+                            const label = document.createElement('label');
+                            label.className = 'waterlow-option-label';
+                            const input = document.createElement('input');
+                            input.type = 'checkbox';
+                            input.name = subCat.nameAttr;
+                            input.value = option.score;
+
+                            const span = document.createElement('span');
+                            span.innerText = `${option.description} (${option.score})`;
+
+                            label.appendChild(input);
+                            label.appendChild(span);
+                            optionsGroupDiv.appendChild(label);
+                        });
+                    });
+                    sectionDiv.appendChild(optionsGroupDiv);
+                }
+
+                conteudoDiv.appendChild(sectionDiv);
+            });
+
+            btnCalcular?.addEventListener('click', berechnePunktzahl);
+            btnLimpar?.addEventListener('click', felderLeeren);
+
+            btnGerarPDF?.addEventListener('click', () => {
+                if (!resultadoDiv.dataset.score) {
+                    alert('Bitte klicken Sie zuerst auf "Berechnen", um das PDF zu generieren.');
+                    return;
+                }
+                if (typeof gerarPDFGlobal === 'function') {
+                    gerarPDFGlobal({
+                        titulo: 'Waterlow-Skala',
+                        subtitulo: 'Bericht zur Risikobewertung für Druckgeschwüre',
+                        nomeArquivo: 'bericht_waterlow_skala.pdf',
+                        seletorConteudo: '.main-content-wrapper'
+                    });
+                } else {
+                    console.error('Funktion gerarPDFGlobal nicht definiert.');
+                }
+            });
+
+            btnNandaNicNoc?.addEventListener('click', () => {
+                const score = resultadoDiv.dataset.score;
+                const scaleName = resultadoDiv.dataset.scaleName;
+                const klassifikation = resultadoDiv.dataset.classificacao;
+                if (!score || !klassifikation) {
+                    alert('Berechnen Sie das Ergebnis, um nach der Vorgehensweise zu suchen.');
+                    return;
+                }
+                const searchQuery = encodeURIComponent(`${scaleName} Punktzahl ${score} Einstufung ${klassifikation} NANDA, NIC und NOC Taxonomie generieren`);
+                window.open(`https://www.google.com/search?q=${searchQuery}`, '_blank');
+            });
+        });
+    </script>
 
 
 
