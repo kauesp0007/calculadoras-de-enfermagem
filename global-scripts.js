@@ -1,96 +1,265 @@
-// Registra o Service Worker (mantive só 1 registro; no seu arquivo estava duplicado)
-"serviceWorker" in navigator && window.addEventListener("load", () => {
-  navigator.serviceWorker.register("/sw.js").then(e => {
-    console.log("Service Worker registado com sucesso:", e.scope)
-  }, e => {
-    console.log("Registo do Service Worker falhou:", e)
-  })
-});
-
-function gerarPDFGlobal(e) {
-  const url = "https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js";
-  console.log("Verificando a biblioteca html2pdf...");
-
-  if (typeof html2pdf === "function") {
-    console.log("Biblioteca já carregada. Gerando PDF...");
-    executarLogicaDoHtml2Pdf(e);
-    return;
-  }
-
-  console.log("Biblioteca não encontrada. Carregando script...");
-  const script = document.createElement("script");
-  script.src = url;
-  document.head.appendChild(script);
-
-  script.onload = () => {
-    console.log("Biblioteca html2pdf carregada com sucesso. Gerando PDF...");
-    executarLogicaDoHtml2Pdf(e);
-  };
-
-  script.onerror = () => {
-    console.error("Falha ao carregar o script do html2pdf.");
-    alert("Erro ao carregar a biblioteca de PDF. Por favor, tente novamente.");
-  };
+// =========================================================
+// 1. SERVICE WORKER
+// =========================================================
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("/sw.js").then(e => {
+      console.log("Service Worker registado com sucesso:", e.scope);
+    }, e => {
+      console.log("Registo do Service Worker falhou:", e);
+    });
+  });
 }
 
-function executarLogicaDoHtml2Pdf(e) {
-  const {
-    titulo: o = "Relatório da Calculadora",
-    subtitulo: t = "Relatório de Cálculo Assistencial",
-    nomeArquivo: n = "relatorio.pdf",
-    seletorConteudo: l = ".main-content-wrapper"
-  } = e;
-  console.log(`Iniciando geração de PDF para: ${o}`);
-  const s = document.querySelector(l);
-  if (!s) return alert("Erro: Não foi possível encontrar o conteúdo principal para gerar o PDF."), void console.error(`Elemento com seletor "${l}" não encontrado.`);
-  const c = document.createElement("div");
-  c.style.padding = "20px", c.style.fontFamily = "Inter, sans-serif";
-  const d = document.createElement("div");
-  d.style.textAlign = "center", d.style.marginBottom = "25px", d.innerHTML = `<h1 style="font-family: 'Nunito Sans', sans-serif; font-size: 22px; font-weight: bold; color: #1A3E74; margin: 0;">${o}</h1><h2 style="font-size: 14px; color: #666; margin-top: 5px;">${t}</h2><p style="font-size: 10px; color: #999; margin-top: 10px;">Gerado em: ${new Date().toLocaleString("pt-BR")}</p>`, c.appendChild(d);
-  const r = s.querySelector("#conteudo");
-  if (r) {
-    const e = r.cloneNode(!0);
-    e.querySelectorAll('input[type="radio"]:not(:checked)').forEach(e => {
-      e.closest(".option-row, .option-label")?.remove()
-    }), e.querySelectorAll("tbody, .options-group").forEach(e => {
-      0 === e.children.length && e.closest(".criterion-section, .criterion-table")?.remove()
-    }), c.appendChild(e)
+// =========================================================
+// 2. FUNÇÃO AVANÇADA DE GERAÇÃO DE PDF (PASSO 2)
+// =========================================================
+function gerarPDFGlobal() {
+  // Carrega a biblioteca html2pdf sob demanda se não existir
+  if (typeof html2pdf !== "function") {
+    const script = document.createElement("script");
+    script.src = "https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js";
+    script.onload = () => executarGeracaoPDF();
+    script.onerror = () => alert("Erro ao carregar biblioteca de PDF. Verifique sua conexão.");
+    document.head.appendChild(script);
+  } else {
+    executarGeracaoPDF();
   }
-  const i = s.querySelector("#resultado");
-  i && !i.classList.contains("hidden") && ((e = i.cloneNode(!0)).style.marginTop = "20px", c.appendChild(e)), c.style.lineHeight = "1.5", c.style.fontSize = "12px", c.style.margin = "0", e = {
-    margin: [.5, .5, .5, .5],
-    filename: n,
-    image: {
-      type: "jpeg",
-      quality: .98
-    },
-    html2canvas: {
-      scale: 2,
-      scrollY: 0,
-      useCORS: !0
-    },
-    jsPDF: {
-      unit: "in",
-      format: "a4",
-      orientation: "portrait"
-    },
-    pagebreak: {
-      avoid: ["p", "h1", "h2", "h3", "div", "section"]
+}
+
+function executarGeracaoPDF() {
+  // A. Seleciona o conteúdo principal
+  const elementOriginal = document.querySelector(".main-content-wrapper") || document.querySelector("main") || document.body;
+
+  // B. Cria um clone para manipular (Sanitização) sem afetar a tela do usuário
+  const clone = elementOriginal.cloneNode(true);
+
+  // --- REMOÇÃO DE ELEMENTOS INDESEJADOS ---
+  const seletoresParaRemover = [
+    ".breadcrumb",
+    ".title-bar",
+    "#main-subtitle", // Remove subtítulo específico
+    "h2",             // Remove todos os H2 conforme solicitado
+    "button",         // Remove todos os botões
+    ".btn",           // Remove classes de botão
+    ".floating-btn",
+    ".no-print",
+    "#footer-placeholder",
+    "nav",
+    "header",
+    "#cookieConsentBanner",
+    "#addFavoriteBtn",
+    ".sidebar-toggle-btn",
+    ".scroll-to-calc-btn",
+    "#reference-section",
+    ".instruction-card",
+    ".sidebar-overlay",
+    "#sidebarOverlay",
+    "aside"
+  ];
+
+  seletoresParaRemover.forEach(seletor => {
+    clone.querySelectorAll(seletor).forEach(el => el.remove());
+  });
+
+  // --- TRATAMENTO DO TÍTULO (H1) ---
+  const h1 = clone.querySelector("h1");
+  if (h1) {
+    h1.style.textAlign = "center";
+    h1.style.marginBottom = "15px";
+    h1.style.color = "#000";
+    h1.style.fontSize = "22px";
+    h1.style.fontFamily = "Arial, sans-serif";
+  }
+
+  // --- CONVERSÃO DE INPUTS PARA TEXTO (Para aparecer no PDF) ---
+
+  // 1. Textos, Números, Datas (Input Fields)
+  clone.querySelectorAll("input[type='text'], input[type='number'], input[type='date'], input[type='time']").forEach(input => {
+    const originalInput = document.getElementById(input.id);
+    // Pega o valor do original se existir (garante dados mais recentes), senão do clone
+    const valor = originalInput ? originalInput.value : input.value;
+
+    const span = document.createElement("span");
+    span.innerText = valor;
+    span.style.fontWeight = "bold";
+    span.style.borderBottom = "1px solid #333";
+    span.style.padding = "0 5px";
+    span.style.display = "inline-block";
+    span.style.minWidth = "20px";
+
+    if(input.parentNode) input.parentNode.replaceChild(span, input);
+  });
+
+  // 2. Áreas de Texto (Textareas - ex: Observações SBAR)
+  clone.querySelectorAll("textarea").forEach(textarea => {
+    const originalTextarea = document.getElementById(textarea.id);
+    const valor = originalTextarea ? originalTextarea.value : textarea.value;
+
+    const div = document.createElement("div");
+    div.innerText = valor;
+    div.style.border = "1px solid #999";
+    div.style.padding = "8px";
+    div.style.marginTop = "4px";
+    div.style.marginBottom = "8px";
+    div.style.whiteSpace = "pre-wrap"; // Mantém quebra de linha
+    div.style.fontSize = "11px";
+    div.style.width = "98%";
+    div.style.backgroundColor = "#fff";
+
+    if(textarea.parentNode) textarea.parentNode.replaceChild(div, textarea);
+  });
+
+  // 3. Seletores (Dropdowns)
+  clone.querySelectorAll("select").forEach(select => {
+    const originalSelect = document.getElementById(select.id);
+    let valorTexto = "";
+
+    if (originalSelect && originalSelect.selectedIndex >= 0) {
+        valorTexto = originalSelect.options[originalSelect.selectedIndex].text;
+    } else if (select.selectedIndex >= 0) {
+        valorTexto = select.options[select.selectedIndex].text;
     }
-  }, html2pdf().set(e).from(c).save().catch(e => {
-    console.error("Erro ao gerar PDF: ", e)
-  })
+
+    // Se for o texto padrão "Selecione...", deixa vazio ou marca
+    if (valorTexto.includes("Selecione")) valorTexto = " - ";
+
+    const span = document.createElement("span");
+    span.innerText = valorTexto;
+    span.style.fontWeight = "bold";
+
+    if(select.parentNode) select.parentNode.replaceChild(span, select);
+  });
+
+  // 4. Checkboxes e Radios (Sincronização Visual)
+  // Precisamos iterar pelos originais para saber o estado real
+  const inputsOriginais = elementOriginal.querySelectorAll("input[type='checkbox'], input[type='radio']");
+  const inputsClone = clone.querySelectorAll("input[type='checkbox'], input[type='radio']");
+
+  // Assume paridade de ordem entre clone e original
+  for(let i=0; i < inputsOriginais.length; i++) {
+    const original = inputsOriginais[i];
+    const clonado = inputsClone[i];
+
+    if (!clonado) continue;
+
+    const spanIcon = document.createElement("span");
+    spanIcon.style.fontWeight = "bold";
+    spanIcon.style.fontSize = "14px";
+    spanIcon.style.marginRight = "5px";
+
+    if(original.checked) {
+      spanIcon.innerHTML = "&#9745;"; // ☑ (Checked Box)
+    } else {
+      spanIcon.innerHTML = "&#9744;"; // ☐ (Unchecked Box)
+    }
+
+    if(clonado.parentNode) clonado.parentNode.replaceChild(spanIcon, clonado);
+  }
+
+  // --- TRATAMENTO DO RESULTADO (Se houver) ---
+  const resultadoOriginal = document.getElementById("resultado");
+  if (resultadoOriginal && !resultadoOriginal.classList.contains("hidden") && resultadoOriginal.style.display !== "none") {
+    const resultadoClone = resultadoOriginal.cloneNode(true);
+    resultadoClone.style.marginTop = "20px";
+    resultadoClone.style.border = "2px solid #000";
+    resultadoClone.style.padding = "10px";
+    resultadoClone.style.backgroundColor = "#f0f0f0";
+    resultadoClone.style.pageBreakInside = "avoid"; // Evita quebrar o resultado
+    clone.appendChild(resultadoClone);
+  }
+
+  // --- PREPARAÇÃO DO CONTAINER FINAL (ESCALA 70%) ---
+  // Criamos um wrapper invisível temporário no body
+  const containerPDF = document.createElement("div");
+  containerPDF.id = "container-pdf-temp";
+  containerPDF.style.position = "absolute";
+  containerPDF.style.left = "-9999px";
+  containerPDF.style.top = "0";
+  containerPDF.style.width = "100%";
+
+  // Wrapper de Escala
+  const scaleWrapper = document.createElement("div");
+  // Para simular 70% de zoom visual, aumentamos a largura do container
+  // e aplicamos scale down. (100 / 0.7 = ~142.8%)
+  scaleWrapper.style.width = "142.8%";
+  scaleWrapper.style.transform = "scale(0.7)";
+  scaleWrapper.style.transformOrigin = "top left";
+
+  // Estilos de Tipografia para Impressão
+  scaleWrapper.style.fontFamily = "Arial, sans-serif";
+  scaleWrapper.style.fontSize = "12pt";
+  scaleWrapper.style.color = "#000";
+  scaleWrapper.style.lineHeight = "1.3";
+
+  // Injeta o clone limpo
+  scaleWrapper.appendChild(clone);
+  containerPDF.appendChild(scaleWrapper);
+  document.body.appendChild(containerPDF);
+
+  // --- GERAÇÃO (HTML2PDF) ---
+  const opt = {
+    margin:       [5, 5, 5, 5], // Margem mínima (5mm)
+    filename:     (document.title.split('-')[0].trim() || 'documento') + '.pdf',
+    image:        { type: 'jpeg', quality: 0.98 },
+    html2canvas:  {
+        scale: 2, // Alta resolução
+        useCORS: true,
+        letterRendering: true,
+        scrollY: 0
+    },
+    jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
+    pagebreak:    { mode: ['avoid-all', 'css', 'legacy'] } // Evita quebra de linhas dentro de elementos
+  };
+
+  html2pdf().set(opt).from(containerPDF).save().then(() => {
+    console.log("PDF gerado com sucesso.");
+    document.body.removeChild(containerPDF); // Limpeza
+  }).catch(err => {
+    console.error("Erro ao gerar PDF:", err);
+    alert("Ocorreu um erro ao gerar o PDF.");
+    if(document.body.contains(containerPDF)) {
+        document.body.removeChild(containerPDF);
+    }
+  });
 }
 
+// =========================================================
+// 3. INICIALIZAÇÃO E EVENT LISTENERS
+// =========================================================
 document.addEventListener("DOMContentLoaded", function () {
-  fetch("menu-global.html").then(e => e.ok ? e.text() : Promise.reject("Ficheiro menu-global.html não encontrado")).then(e => {
+
+  // Carrega Menu e Footer (Modularização)
+  fetch("menu-global.html").then(e => e.ok ? e.text() : Promise.reject("Menu não encontrado")).then(e => {
     const o = document.getElementById("global-header-container");
     o && (o.innerHTML = e, initializeNavigationMenu())
-  }).catch(e => console.warn("Não foi possível carregar o menu global:", e)),
-  fetch("global-body-elements.html").then(e => e.ok ? e.text() : Promise.reject("Ficheiro global-body-elements.html não encontrado")).then(e => {
+  }).catch(e => console.warn(e));
+
+  fetch("global-body-elements.html").then(e => e.ok ? e.text() : Promise.reject("Body elements não encontrado")).then(e => {
     document.body.insertAdjacentHTML("beforeend", e), initializeGlobalFunctions()
-  }).catch(e => console.warn("Não foi possível carregar os elementos globais do corpo:", e))
+  }).catch(e => console.warn(e));
+
+  // DETECÇÃO AUTOMÁTICA DO BOTÃO "GERAR PDF"
+  // Procura pelo botão e substitui sua função pela nova função global
+  const btnPDF = document.getElementById("btnGerarPDF");
+  if (btnPDF) {
+    // Remove listeners antigos clonando o botão
+    const newBtn = btnPDF.cloneNode(true);
+    if(btnPDF.parentNode) {
+        btnPDF.parentNode.replaceChild(newBtn, btnPDF);
+    }
+
+    newBtn.addEventListener("click", (e) => {
+      e.preventDefault();
+      gerarPDFGlobal();
+    });
+    console.log("🖨️ Botão de PDF configurado para usar o script global.");
+  }
 });
+
+// =========================================================
+// 4. FUNÇÕES AUXILIARES (Menu, Cookies, Acessibilidade)
+// =========================================================
 
 function initializeNavigationMenu() {
   const e = document.getElementById("hamburgerButton"),
@@ -133,7 +302,6 @@ function initializeCookieFunctionality() {
     r = document.getElementById("cookieMarketing"),
     d = document.getElementById("openGranularCookieModalBtn"),
     m = () => {
-      // ✅ NOVO: se já tem decisão salva, reaplica e não mostra banner
       const saved = localStorage.getItem("cookieConsent");
       if (saved === "accepted") {
         h({ analytics_storage: "granted", ad_storage: "granted" });
@@ -161,10 +329,7 @@ function initializeCookieFunctionality() {
       }, 300))
     },
     h = e => {
-      // ✅ PASSO 2 (completo): atualiza consent apenas (o carregamento do AdSense fica nos arquivos individuais)
       "function" == typeof gtag && gtag("consent", "update", e);
-
-      // (opcional) guardar granular também
       try {
         localStorage.setItem("analytics_storage", e.analytics_storage);
         localStorage.setItem("ad_storage", e.ad_storage);
@@ -237,7 +402,7 @@ function initializeGlobalFunctions() {
       t.textContent = e, setTimeout(() => t.textContent = "", 3e3)
     },
     // =========================================================
-    // ACESSIBILIDADE: ajustes (corrigido)
+    // ACESSIBILIDADE
     // =========================================================
     applyFontSize = (level, announce) => {
       const fontSizes = ["1em", "1.15em", "1.3em", "1.5em", "2em"];
@@ -413,9 +578,7 @@ function initializeGlobalFunctions() {
     c?.classList.remove("is-open"), m?.classList.contains("is-open") || d && (d.style.display = "none")
   });
   const z = document.getElementById("backToTopBtn");
-  // OTIMIZAÇÃO: Adicionado { passive: true } para não bloquear a thread principal durante o scroll
   z && (window.addEventListener("scroll", () => {
-    // Usa requestAnimationFrame para performance visual
     window.requestAnimationFrame(() => {
         z.style.display = window.scrollY > 200 ? "block" : "none";
     });

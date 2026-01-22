@@ -630,76 +630,7 @@
 
 
   <!-- Script Específico da Página ASA -->
-  <script>
-    document.addEventListener('DOMContentLoaded', function () {
-      const resultadoDiv = document.getElementById('resultado');
-      const btnCalcular = document.getElementById('btnCalcular');
-      const btnLimpar = document.getElementById('btnLimpar');
-      const btnGerarPDF = document.getElementById('btnGerarPDF');
-      const btnNandaNicNoc = document.getElementById('btnNandaNicNoc');
-
-      function calcular() {
-        const selectedRadio = document.querySelector('input[name="asa"]:checked');
-
-        if (!selectedRadio) {
-          resultadoDiv.innerHTML = '⚠️ <strong class="font-bold">请选择一个分类。</strong>';
-          resultadoDiv.className = 'resultado bg-info-orange-light';
-          resultadoDiv.style.display = 'block';
-          delete resultadoDiv.dataset.score;
-          return;
-        }
-
-        const selectedFullValue = selectedRadio.value;
-        const selectedClassification = selectedFullValue.split(':')[0]; // 提取 "ASA I", "ASA II", 等。
-
-        resultadoDiv.innerHTML = `<p>选择的分类： <strong class="font-bold">${selectedFullValue}</strong></p>`;
-        resultadoDiv.className = 'resultado'; // 重置为默认样式，如需要可添加特定颜色
-        resultadoDiv.style.display = 'block';
-
-        resultadoDiv.dataset.score = selectedClassification;
-        resultadoDiv.dataset.scaleName = "ASA分类";
-      }
-
-      function limpar() {
-        document.querySelectorAll('input[name="asa"]').forEach(radio => radio.checked = false);
-        resultadoDiv.innerHTML = '';
-        resultadoDiv.className = 'resultado hidden';
-        delete resultadoDiv.dataset.score;
-        delete resultadoDiv.dataset.scaleName;
-      }
-
-      btnCalcular?.addEventListener('click', calcular);
-      btnLimpar?.addEventListener('click', limpar);
-
-      btnGerarPDF?.addEventListener('click', () => {
-        if (!resultadoDiv.dataset.score) {
-          alert('请先点击"计算"以生成PDF。');
-          return;
-        }
-        if (typeof gerarPDFGlobal === 'function') {
-          gerarPDFGlobal({
-            titulo: '围手术期风险评估 - ASA',
-            subtitulo: '身体风险分类报告',
-            nomeArquivo: 'relatorio_asa.pdf',
-            seletorConteudo: '.main-content-wrapper'
-          });
-        } else {
-          console.error('Função gerarPDFGlobal não definida.');
-        }
-      });
-
-      btnNandaNicNoc?.addEventListener('click', () => {
-        const score = resultadoDiv.dataset.score;
-        const scaleName = resultadoDiv.dataset.scaleName;
-        if (!score) {
-          alert('计算结果以搜索护理方案。');
-          return;
-        }
-        const searchQuery = encodeURIComponent(`${score} ${scaleName} 护理诊断 NANDA NIC NOC`);
-        window.open(`https://www.google.com/search?q=${searchQuery}`, '_blank');
-      });
-    });
-  </script>
+  
 
 
 
