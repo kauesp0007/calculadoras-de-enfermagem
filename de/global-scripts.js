@@ -1,22 +1,3 @@
-// =====================================
-// ADSENSE GLOBAL (carrega após consent)
-// =====================================
-window.__adsenseLoaded = false;
-
-function loadAdSenseOnce() {
-  if (window.__adsenseLoaded) return;
-  window.__adsenseLoaded = true;
-
-  var script = document.createElement("script");
-  script.async = true;
-  script.src =
-    "https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6472730056006847";
-  script.crossOrigin = "anonymous";
-  document.head.appendChild(script);
-
-  console.log("🟢 AdSense carregado após consentimento (ad_storage=granted).");
-}
-
 // Registra o Service Worker (mantive só 1 registro; no seu arquivo estava duplicado)
 "serviceWorker" in navigator && window.addEventListener("load", () => {
   navigator.serviceWorker.register("/sw.js").then(e => {
@@ -180,12 +161,8 @@ function initializeCookieFunctionality() {
       }, 300))
     },
     h = e => {
-      // ✅ PASSO 2 (completo): atualiza consent + carrega AdSense quando ad_storage=granted
+      // ✅ PASSO 2 (completo): atualiza consent apenas (o carregamento do AdSense fica nos arquivos individuais)
       "function" == typeof gtag && gtag("consent", "update", e);
-
-      if (e && e.ad_storage === "granted") {
-        loadAdSenseOnce();
-      }
 
       // (opcional) guardar granular também
       try {
