@@ -12,11 +12,9 @@ self.addEventListener('install', event => {
     caches.open(CACHE_NAME)
       .then(cache => {
         console.log('Service Worker: Abrindo o cache e salvando os arquivos.', CACHE_NAME);
-
-        // Se a lista for muito grande, o addAll() pode falhar se UM arquivo falhar.
         return cache.addAll(urlsToCache.filter(url => !url.startsWith('/*')));
       })
-      .then(() => self.skipWaiting()) // Força o SW a ativar imediatamente
+      .then(() => self.skipWaiting())
       .catch(err => {
         console.error('Service Worker: Falha ao salvar arquivos no cache', err);
       })
@@ -26,7 +24,6 @@ self.addEventListener('install', event => {
 // 2. EVENTO DE ATIVAÇÃO (ACTIVATE)
 self.addEventListener('activate', event => {
   const cacheWhitelist = [CACHE_NAME];
-
   event.waitUntil(
     caches.keys()
       .then(cacheNames => Promise.all(
@@ -51,35 +48,25 @@ self.addEventListener('fetch', event => {
 
   const reqUrl = new URL(req.url);
 
-  // NÃO interceptar recursos cross-origin (ads, analytics, CDN). Deixa a rede tratar.
+  // CORREÇÃO: Ignorar requisições cross-origin (Google, Analytics, Ads)
+  // Retornar cedo permite que o navegador lide com elas nativamente, evitando erros CORS/404.
   if (reqUrl.origin !== self.location.origin) {
-    event.respondWith(
-      fetch(req).catch(err => {
-        console.warn('Service Worker: cross-origin fetch falhou:', req.url, err);
-        return new Response('', { status: 504, statusText: 'Gateway Timeout' });
-      })
-    );
     return;
   }
 
-  // Cache-first (igual ao seu padrão)
+  // Cache-first (apenas para arquivos do próprio site)
   event.respondWith((async () => {
     try {
       const cached = await caches.match(req);
       if (cached) return cached;
 
       const networkResponse = await fetch(req);
-
-      // (Opcional) Se quiser cachear novos arquivos visitados:
-      // const cache = await caches.open(CACHE_NAME);
-      // cache.put(req, networkResponse.clone());
-
       return networkResponse;
     } catch (err) {
       console.error('Service Worker fetch error for', req.url, err);
       const fallback = await caches.match('/offline.html');
       if (fallback) return fallback;
-      return new Response('', { status: 504, statusText: 'Gateway Timeout' });
+      return new Response('Offline', { status: 504, statusText: 'Gateway Timeout' });
     }
   })());
 });
