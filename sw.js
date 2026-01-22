@@ -1,5 +1,5 @@
 // Define o nome e a versão do cache (AUTOMÁTICO via gerar-sw.js)
-const CACHE_NAME = 'calculadoras-enfermagem-cache-20260122-054935-005';
+const CACHE_NAME = 'calculadoras-enfermagem-cache-20260122-064754-781';
 
 // O SCRIPT DE BUILD VAI INJETAR A LISTA DE ARQUIVOS AQUI
 const urlsToCache = [
@@ -440,6 +440,14 @@ const urlsToCache = [
   'biblioteca/lista-de-verificacao-de-dupla-e-tripla-checagem.html',
   'biblioteca/livroimagem.html',
   'biblioteca/livronanda.html',
+  'biblioteca/logo-anvisa.html',
+  'biblioteca/logo-cofen.html',
+  'biblioteca/logo-coren-sp.html',
+  'biblioteca/logo-fiocruz.html',
+  'biblioteca/logo-ibsp.html',
+  'biblioteca/logo-republica.html',
+  'biblioteca/logo-sbim.html',
+  'biblioteca/logo-sus.html',
   'biblioteca/madeleine-leininger-teoria-do-cuidado-transcultural.html',
   'biblioteca/maos-cuidados-de-enfermagem.html',
   'biblioteca/martelo-e-goiva.html',
@@ -1601,6 +1609,14 @@ const urlsToCache = [
   'img/KATZ SCALE NURSE.png',
   'img/LEITURA DESENHO.png',
   'img/LISTA DE VERIFICAÇÃO DE DUPLA E TRIPLA CHECAGEM.webp',
+  'img/LOGO-ANVISA.webp',
+  'img/LOGO-COFEN.webp',
+  'img/LOGO-COREN-SP.webp',
+  'img/LOGO-FIOCRUZ.webp',
+  'img/LOGO-IBSP.webp',
+  'img/LOGO-REPUBLICA.webp',
+  'img/LOGO-SBIM.webp',
+  'img/LOGO-SUS.webp',
   'img/LÂMINAS LARINCOSCÓPICAS.webp',
   'img/MAOS CUIDADOS DE ENFERMAGEM.png',
   'img/MARTELO E GOIVA.webp',
