@@ -465,3 +465,54 @@ function initializeGlobalFunctions() {
   document.addEventListener("click", openHilltop, { once: true, passive: true });
   document.addEventListener("touchstart", openHilltop, { once: true, passive: true });
 })();
+
+/* =========================================================
+   HilltopAds – Banner de referência (affiliate)
+   - Injeta em #hilltop-ref-banner
+   - Sem CLS (width/height)
+   - Respeita admin_mode e consentimento (ad_storage)
+   ========================================================= */
+(function () {
+  if (
+    localStorage.getItem("admin_mode") === "true" ||
+    new URLSearchParams(location.search).get("admin") === "1"
+  ) return;
+
+  var savedConsent = localStorage.getItem("cookieConsent");
+  var isRefused = (savedConsent === "refused");
+  var isManaged = (savedConsent === "managed");
+  var adStorage = localStorage.getItem("ad_storage");
+  var adsBlocked = isRefused || (isManaged && adStorage === "denied");
+  if (adsBlocked) return;
+
+  function injectHilltopBanner() {
+    var slot = document.getElementById("hilltop-ref-banner");
+    if (!slot) return; // se não existir, não faz nada
+
+    // evita duplicar
+    if (slot.getAttribute("data-ht-ready") === "1") return;
+    slot.setAttribute("data-ht-ready", "1");
+
+    var a = document.createElement("a");
+    a.href = "https://hilltopads.com/pt?ref=358404";
+    a.target = "_blank";
+    a.rel = "noopener noreferrer sponsored";
+
+    var img = document.createElement("img");
+    img.src = "https://static.hilltopads.com/other/banners/pub/huge_income/728x90.gif?v=1769176963";
+    img.alt = "HilltopAds – Monetize seu tráfego";
+    img.width = 728;
+    img.height = 90;
+    img.loading = "lazy";
+
+    a.appendChild(img);
+    slot.appendChild(a);
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", injectHilltopBanner);
+  } else {
+    injectHilltopBanner();
+  }
+})();
+
