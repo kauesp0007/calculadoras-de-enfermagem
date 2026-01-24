@@ -1,5 +1,5 @@
 // Define o nome e a versão do cache (AUTOMÁTICO via gerar-sw.js)
-const CACHE_NAME = 'calculadoras-enfermagem-cache-20260124-022600-428';
+const CACHE_NAME = 'calculadoras-enfermagem-cache-20260124-024215-638';
 
 // O SCRIPT DE BUILD VAI INJETAR A LISTA DE ARQUIVOS AQUI
 const urlsToCache = [
@@ -1750,6 +1750,7 @@ const urlsToCache = [
   'img/SAUDE DO CORAÇÃO ENFERMAGEM.png',
   'img/SAUDE DO CORAÇÃO.png',
   'img/SEGUNDA CHECAGEM DE MEDICAMENTO ENTRE ENFERMEIRO E TECNICO DE ENFERMAGEM.webp',
+  'img/SERINGA DE INSULINA.png',
   'img/SERINGA DESENHO.png',
   'img/SERINGA ENFERMAGEM ILUSTRAÇÃO.png',
   'img/SERRA DE GIGLI - VASCULAR E ORTOPEDIA.webp',
