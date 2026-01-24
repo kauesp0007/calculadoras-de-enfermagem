@@ -1,4 +1,11 @@
-// Registra o Service Worker (mantive só 1 registro; no seu arquivo estava duplicado)
+// Executar IMEDIATAMENTE para evitar flash de tamanho de fonte
+(function() {
+  const savedFontSize = parseInt(localStorage.getItem("fontSize") || "1", 10);
+  const fontSizes = ["1em", "1.15em", "1.3em", "1.5em", "2em"];
+  const idx = Math.min(Math.max(savedFontSize, 1), fontSizes.length);
+  document.documentElement.style.fontSize = fontSizes[idx - 1];
+})();
+// Registra o Service Worker
 "serviceWorker" in navigator && window.addEventListener("load", () => {
   navigator.serviceWorker.register("/sw.js").then(e => {
     console.log("Service Worker registado com sucesso:", e.scope)
@@ -121,19 +128,42 @@ function inicializarTooltips() {
 }
 
 function initializeCookieFunctionality() {
+  // Elementos do DOM (Banner e Modal)
   const e = document.getElementById("cookieConsentBanner"),
-    o = document.getElementById("acceptAllCookiesBtn"),
-    t = document.getElementById("refuseAllCookiesBtn"),
-    n = document.getElementById("manageCookiesBtn"),
     l = document.getElementById("granularCookieModal"),
-    s = document.getElementById("saveGranularPreferencesBtn"),
-    i = document.getElementById("granularModalCloseButton"),
-    a = document.getElementById("cancelGranularPreferencesBtn"),
     c = document.getElementById("cookieAnalytics"),
-    r = document.getElementById("cookieMarketing"),
-    d = document.getElementById("openGranularCookieModalBtn"),
+    r = document.getElementById("cookieMarketing");
+
+  // Funções Lógicas
+  const h = (param) => {
+      // Atualiza consentimento no GTM/GA4
+      if (typeof gtag === "function") {
+        gtag("consent", "update", param);
+      }
+      // Salva preferências granulares
+      try {
+        localStorage.setItem("analytics_storage", param.analytics_storage);
+        localStorage.setItem("ad_storage", param.ad_storage);
+      } catch (_) {}
+    },
+    u = () => {
+      e && e.classList.remove("show")
+    },
+    g = () => {
+      if (l) {
+        if (c) c.checked = "granted" === localStorage.getItem("analytics_storage");
+        if (r) r.checked = "granted" === localStorage.getItem("ad_storage");
+        l.classList.remove("hidden");
+        setTimeout(() => { l.classList.add("show") }, 10);
+      }
+    },
+    p = () => {
+      if (l) {
+        l.classList.remove("show");
+        setTimeout(() => { l.classList.add("hidden") }, 300);
+      }
+    },
     m = () => {
-      // ✅ NOVO: se já tem decisão salva, reaplica e não mostra banner
       const saved = localStorage.getItem("cookieConsent");
       if (saved === "accepted") {
         h({ analytics_storage: "granted", ad_storage: "granted" });
@@ -145,49 +175,44 @@ function initializeCookieFunctionality() {
         u();
         return;
       }
-      if (!localStorage.getItem("cookieConsent") && e) e.classList.add("show");
-    },
-    u = () => {
-      e && e.classList.remove("show")
-    },
-    g = () => {
-      l && (c && (c.checked = "granted" === localStorage.getItem("analytics_storage")), r && (r.checked = "granted" === localStorage.getItem("ad_storage")), l.classList.remove("hidden"), setTimeout(() => {
-        l.classList.add("show")
-      }, 10))
-    },
-    p = () => {
-      l && (l.classList.remove("show"), setTimeout(() => {
-        l.classList.add("hidden")
-      }, 300))
-    },
-    h = e => {
-      // ✅ PASSO 2 (completo): atualiza consent apenas (o carregamento do AdSense fica nos arquivos individuais)
-      "function" == typeof gtag && gtag("consent", "update", e);
-
-      // (opcional) guardar granular também
-      try {
-        localStorage.setItem("analytics_storage", e.analytics_storage);
-        localStorage.setItem("ad_storage", e.ad_storage);
-      } catch (_) {}
+      if (!saved && e) e.classList.add("show");
     };
 
-  o?.addEventListener("click", () => {
-    h({
-      analytics_storage: "granted",
-      ad_storage: "granted"
-    }), localStorage.setItem("cookieConsent", "accepted"), u()
-  }), t?.addEventListener("click", () => {
-    h({
-      analytics_storage: "denied",
-      ad_storage: "denied"
-    }), localStorage.setItem("cookieConsent", "refused"), u()
-  }), n?.addEventListener("click", g), d?.addEventListener("click", g), i?.addEventListener("click", p), a?.addEventListener("click", p), s?.addEventListener("click", () => {
-    const e = {
-      analytics_storage: c.checked ? "granted" : "denied",
-      ad_storage: r.checked ? "granted" : "denied"
-    };
-    h(e), localStorage.setItem("cookieConsent", "managed"), p(), u()
-  }), m()
+  // Delegação de Eventos (Resolve o problema de carregamento assíncrono do rodapé)
+  document.addEventListener("click", (event) => {
+    const target = event.target;
+    // Verifica se o clique foi em um dos botões de interesse ou dentro deles
+    const btn = target.closest("button");
+    const id = target.id || (btn ? btn.id : null);
+
+    if (!id) return;
+
+    if (id === "acceptAllCookiesBtn") {
+        h({ analytics_storage: "granted", ad_storage: "granted" });
+        localStorage.setItem("cookieConsent", "accepted");
+        u();
+    } else if (id === "refuseAllCookiesBtn") {
+        h({ analytics_storage: "denied", ad_storage: "denied" });
+        localStorage.setItem("cookieConsent", "refused");
+        u();
+    } else if (id === "manageCookiesBtn" || id === "openGranularCookieModalBtn") {
+        g(); // Abre o modal
+    } else if (id === "granularModalCloseButton" || id === "cancelGranularPreferencesBtn") {
+        p(); // Fecha o modal
+    } else if (id === "saveGranularPreferencesBtn") {
+        const prefs = {
+            analytics_storage: (c && c.checked) ? "granted" : "denied",
+            ad_storage: (r && r.checked) ? "granted" : "denied"
+        };
+        h(prefs);
+        localStorage.setItem("cookieConsent", "managed");
+        p();
+        u();
+    }
+  });
+
+  // Executa verificação inicial
+  m();
 }
 
 function initializeGlobalFunctions() {
@@ -413,9 +438,7 @@ function initializeGlobalFunctions() {
     c?.classList.remove("is-open"), m?.classList.contains("is-open") || d && (d.style.display = "none")
   });
   const z = document.getElementById("backToTopBtn");
-  // OTIMIZAÇÃO: Adicionado { passive: true } para não bloquear a thread principal durante o scroll
   z && (window.addEventListener("scroll", () => {
-    // Usa requestAnimationFrame para performance visual
     window.requestAnimationFrame(() => {
         z.style.display = window.scrollY > 200 ? "block" : "none";
     });
@@ -428,26 +451,19 @@ function initializeGlobalFunctions() {
 
 /* =========================================================
    HilltopAds – DirectLink / Popunder
-   - Respeita admin_mode
-   - Respeita consentimento (ad_storage)
-   - 1x por sessão
-   - CLS = 0
    ========================================================= */
 (function () {
-  // Admin block (igual ao seu padrão)
   if (
     localStorage.getItem("admin_mode") === "true" ||
     new URLSearchParams(location.search).get("admin") === "1"
   ) return;
 
-  // 1x por sessão
   if (sessionStorage.getItem("hilltop_opened") === "1") return;
 
-  // Respeita consentimento: se usuário recusou ou ad_storage denied → não abre
   var savedConsent = localStorage.getItem("cookieConsent");
   var isRefused = (savedConsent === "refused");
   var isManaged = (savedConsent === "managed");
-  var adStorage = localStorage.getItem("ad_storage"); // "granted" | "denied" | null
+  var adStorage = localStorage.getItem("ad_storage");
 
   var adsBlocked = isRefused || (isManaged && adStorage === "denied");
   if (adsBlocked) return;
@@ -461,15 +477,12 @@ function initializeGlobalFunctions() {
     );
   }
 
-  // abre no 1º clique/toque
   document.addEventListener("click", openHilltop, { once: true, passive: true });
   document.addEventListener("touchstart", openHilltop, { once: true, passive: true });
 })();
+
 /* =========================================================
    HilltopAds – Banner de referência (affiliate)
-   - Injeta em #hilltop-ref-banner
-   - Sem CLS (width/height)
-   - Respeita admin_mode e consentimento (ad_storage)
    ========================================================= */
 (function () {
   if (
@@ -486,9 +499,8 @@ function initializeGlobalFunctions() {
 
   function injectHilltopBanner() {
     var slot = document.getElementById("hilltop-ref-banner");
-    if (!slot) return; // se não existir, não faz nada
+    if (!slot) return;
 
-    // evita duplicar
     if (slot.getAttribute("data-ht-ready") === "1") return;
     slot.setAttribute("data-ht-ready", "1");
 
