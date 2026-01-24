@@ -359,7 +359,33 @@ function initializeGlobalFunctions() {
       b && T((b.textContent || b.ariaLabel || b.alt || b.value)?.trim())
     },
     P = () => {
-      v && v.cancel(), u = 1, g = 1, p = 1, h = 1, document.documentElement.style.fontSize = "", document.documentElement.style.setProperty("--espacamento-linha", "1.5"), document.documentElement.style.setProperty("--espacamento-letra", "0em"), o.classList.remove("contraste-alto", "dark-mode", "fonte-dislexia"), localStorage.clear(), L(!1), k(!1), C(!1), i && (i.textContent = "Normal"), S("yellow", !1), E("Configurações de acessibilidade redefinidas")
+      // 1. Cancela leitura de voz se houver
+      v && v.cancel();
+
+      // 2. Reseta as variáveis de controle para o índice 1 (Início)
+      u = 1; // Fonte (1 = Normal)
+      g = 1; // Linha (1 = Médio no array de labels)
+      p = 1; // Letra (1 = Normal)
+      h = 1; // Velocidade (1 = Normal)
+
+      // 3. APLICA FORÇADAMENTE OS VALORES PADRÃO (Isso corrige o texto e o visual)
+      // O 'false' no segundo parâmetro evita que o leitor de tela fale 4 vezes seguidas
+      applyFontSize(1, false);      // Força Fonte: Normal
+      applyLineHeight(1, false);    // Força Linha: Médio
+      applyLetterSpacing(1, false); // Força Letra: Normal
+      applyReadingSpeed(1, false);  // Força Velocidade: Normal
+
+      // 4. Limpa classes de alto contraste/dark mode
+      o.classList.remove("contraste-alto", "dark-mode", "fonte-dislexia");
+
+      // 5. Reseta cor de foco para amarelo
+      S("yellow", false);
+
+      // 6. Limpa memória
+      localStorage.clear();
+
+      // 7. Feedback visual único
+      E("Configurações redefinidas para o padrão");
     };
   [{
     ids: ["btnAlternarTamanhoFonte", "btnAlternarTamanhoFontePWA"],
