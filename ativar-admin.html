@@ -1,12 +1,6 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="dns-prefetch" href="//googleads.g.doubleclick.net">
-    <link rel="dns-prefetch" href="//pagead2.googlesyndication.com">
-    <link rel="preconnect" href="https://www.googletagmanager.com">
-
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Painel Admin - Calculadoras de Enfermagem</title>
@@ -36,7 +30,9 @@
             margin-bottom: 20px;
             border-radius: 6px;
             font-weight: bold;
+            transition: all 0.3s ease;
         }
+        /* Classes controladas pelo JS */
         .status.on { background-color: #d1fae5; color: #065f46; border: 1px solid #34d399; }
         .status.off { background-color: #fee2e2; color: #991b1b; border: 1px solid #f87171; }
 
@@ -62,10 +58,11 @@
     <div class="card">
         <h1>Painel de Controle 🛡️</h1>
         <p>Status atual do Modo Admin:</p>
+
         <div id="status-display" class="status off">Verificando...</div>
 
-        <button onclick="ativar()" class="btn-ativar">ATIVAR MODO ADMIN (Bloquear Ads)</button>
-        <button onclick="desativar()" class="btn-desativar">DESATIVAR (Voltar ao normal)</button>
+        <button onclick="ativarAdmin()" class="btn-ativar">ATIVAR MODO ADMIN (Bloquear Ads)</button>
+        <button onclick="desativarAdmin()" class="btn-desativar">DESATIVAR (Voltar ao normal)</button>
 
         <div class="footer">
             <p>Ative isso em todos os seus dispositivos (PC e Celular) para não gerar tráfego inválido no AdSense.</p>
@@ -73,123 +70,39 @@
         </div>
     </div>
 
-    <!-- SCRIPT 1: LÓGICA DOS BOTÕES DO PAINEL -->
     <script>
-  /* =========================================================
-     MODO ADMIN + GOOGLE TAG + CONSENT + ADSENSE (LAZY LOAD)
-     (VERSÃO: APENAS G-8FLJ59XXDK + ADS)
-     ========================================================= */
+        // 1. Função que roda ao carregar a página para mostrar o status real
+        function verificarStatus() {
+            const statusDiv = document.getElementById('status-display');
+            // Verifica se existe o item no LocalStorage
+            const isAdmin = localStorage.getItem('admin_mode') === 'true';
 
-  if (
-    localStorage.getItem('admin_mode') === 'true' ||
-    new URLSearchParams(window.location.search).get('admin') === '1'
-  ) {
-    console.log('🚧 Modo Admin: Bloqueado.');
-    if (new URLSearchParams(window.location.search).get('admin') === '1') {
-      localStorage.setItem('admin_mode','true');
-    }
-  } else {
-    var savedConsent = localStorage.getItem("cookieConsent");
-    var isRefused = (savedConsent === "refused");
-    var isManaged = (savedConsent === "managed");
-    var adsBlocked = isRefused || (isManaged && localStorage.getItem("ad_storage") === "denied");
+            if (isAdmin) {
+                statusDiv.innerText = "ATIVADO (Você está invisível)";
+                statusDiv.className = "status on";
+            } else {
+                statusDiv.innerText = "DESATIVADO (Rastreamento Normal)";
+                statusDiv.className = "status off";
+            }
+        }
 
-    window.__metricsLoaded = false;
-    window.__adsenseLoaded = false;
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){ dataLayer.push(arguments); }
-    window.gtag = gtag;
+        // 2. Função para o botão ATIVAR
+        function ativarAdmin() {
+            localStorage.setItem('admin_mode', 'true');
+            verificarStatus(); // Atualiza a cor na hora
+            alert("Modo Admin ATIVADO!\n\nAgora o Analytics e Adsense não carregarão para você neste navegador.");
+        }
 
-    function loadAnalytics() {
-      if (window.__metricsLoaded) return;
-      window.__metricsLoaded = true;
+        // 3. Função para o botão DESATIVAR
+        function desativarAdmin() {
+            localStorage.removeItem('admin_mode');
+            verificarStatus(); // Atualiza a cor na hora
+            alert("Modo Admin DESATIVADO!\n\nVocê voltou a ser um usuário comum.");
+        }
 
-      var aState = isRefused ? "denied" : (localStorage.getItem("analytics_storage") || "granted");
-      var adState = adsBlocked ? "denied" : "granted";
-
-      gtag("consent","default",{
-        analytics_storage: aState,
-        ad_storage: adState,
-        ad_user_data: adState,
-        ad_personalization: adState,
-        wait_for_update: 500
-      });
-
-      var s = document.createElement("script");
-      s.async = true;
-      s.src = "https://www.googletagmanager.com/gtag/js?id=G-8FLJ59XXDK";
-      document.head.appendChild(s);
-
-      gtag("js", new Date());
-      gtag("config","G-8FLJ59XXDK");
-      gtag("config","AW-952633102");
-    }
-
-    function loadAdSenseOnce() {
-      if (window.__adsenseLoaded || adsBlocked) return;
-      window.__adsenseLoaded = true;
-      var ad = document.createElement("script");
-      ad.async = true;
-      ad.src = "https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6472730056006847";
-      ad.crossOrigin = "anonymous";
-      document.head.appendChild(ad);
-    }
-
-    loadAnalytics();
-
-    function onUserInteraction(){
-      loadAdSenseOnce();
-      window.removeEventListener("scroll", onUserInteraction);
-      window.removeEventListener("mousemove", onUserInteraction);
-      window.removeEventListener("touchstart", onUserInteraction);
-    }
-
-    if (!adsBlocked){
-      window.addEventListener("scroll", onUserInteraction, {passive:true});
-      window.addEventListener("mousemove", onUserInteraction, {passive:true});
-      window.addEventListener("touchstart", onUserInteraction, {passive:true});
-      setTimeout(loadAdSenseOnce, 3500);
-    }
-
-    function applyConsent(consent){
-      gtag("consent","update", consent);
-      if (consent.ad_storage === "granted"){
-        adsBlocked = false;
-        loadAdSenseOnce();
-      } else {
-        adsBlocked = true;
-        document.querySelectorAll("ins.adsbygoogle, .google-auto-placed")
-          .forEach(ad => { ad.style.display="none"; ad.innerHTML=""; });
-      }
-      localStorage.setItem("analytics_storage", consent.analytics_storage);
-      localStorage.setItem("ad_storage", consent.ad_storage);
-    }
-
-    window.acceptAllCookies = function(){
-      localStorage.setItem("cookieConsent","accepted");
-      applyConsent({
-        analytics_storage:"granted",
-        ad_storage:"granted",
-        ad_user_data:"granted",
-        ad_personalization:"granted"
-      });
-    };
-
-    window.rejectAllCookies = function(){
-      localStorage.setItem("cookieConsent","refused");
-      applyConsent({
-        analytics_storage:"denied",
-        ad_storage:"denied",
-        ad_user_data:"denied",
-        ad_personalization:"denied"
-      });
-    };
-  }
-</script>
-
-
-
-
+        // Roda a verificação assim que a página abre
+        window.onload = verificarStatus;
+    </script>
 
 </body>
 </html>
