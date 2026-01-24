@@ -1,5 +1,5 @@
 // Define o nome e a versão do cache (AUTOMÁTICO via gerar-sw.js)
-const CACHE_NAME = 'calculadoras-enfermagem-cache-20260124-031740-575';
+const CACHE_NAME = 'calculadoras-enfermagem-cache-20260124-034308-223';
 
 // O SCRIPT DE BUILD VAI INJETAR A LISTA DE ARQUIVOS AQUI
 const urlsToCache = [
@@ -239,6 +239,7 @@ const urlsToCache = [
   'biblioteca/balanco-hidrico-icone.html',
   'biblioteca/balanco-hidrico-ilustrativo.html',
   'biblioteca/balanco-hidrico.html',
+  'biblioteca/bandeira-brasil.html',
   'biblioteca/bandeja-cirurgica.html',
   'biblioteca/bilancio-idrico-imagem.html',
   'biblioteca/bisturi-eletrico.html',
@@ -401,6 +402,7 @@ const urlsToCache = [
   'biblioteca/hipotermia-cuidados-pcr.html',
   'biblioteca/hipovolemia-cuidados-pcr.html',
   'biblioteca/hipoxia-cuidados-pcr.html',
+  'biblioteca/ic-launcher.html',
   'biblioteca/icon-192.html',
   'biblioteca/icon-512.html',
   'biblioteca/icone-bacanco-hidrico.html',
@@ -612,6 +614,7 @@ const urlsToCache = [
   'biblioteca/selolgpd-80.html',
   'biblioteca/selosustentabilidade-160.html',
   'biblioteca/selosustentabilidade-80.html',
+  'biblioteca/seringa-de-insulina.html',
   'biblioteca/seringa-desenho.html',
   'biblioteca/seringa-enfermagem-ilustracao.html',
   'biblioteca/serra-de-gigli-vascular-e-ortopedia.html',
@@ -944,6 +947,7 @@ const urlsToCache = [
   'en/silverman.html',
   'en/sofa.html',
   'en/tecnologiaverde.html',
+  'en/teorias-de-enfermagem.html',
   'en/termos.html',
   'en/tinetti.html',
   'en/vigilancia.html',
@@ -1809,6 +1813,7 @@ const urlsToCache = [
   'img/admin,+REP-2011-377 - Copia.webp',
   'img/admin,+REP-2011-377.webp',
   'img/balancohidrico.webp',
+  'img/bandeira-brasil.webp',
   'img/calculadorasimagem.webp',
   'img/capa-video.webp',
   'img/capa-word.webp',
