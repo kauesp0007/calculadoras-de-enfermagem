@@ -1,5 +1,5 @@
 // Define o nome e a versão do cache (AUTOMÁTICO via gerar-sw.js)
-const CACHE_NAME = 'calculadoras-enfermagem-cache-20260124-013524-549';
+const CACHE_NAME = 'calculadoras-enfermagem-cache-20260124-013745-547';
 
 // O SCRIPT DE BUILD VAI INJETAR A LISTA DE ARQUIVOS AQUI
 const urlsToCache = [
@@ -332,9 +332,12 @@ const urlsToCache = [
   'biblioteca/escala-de-apache.html',
   'biblioteca/escala-de-apgar.html',
   'biblioteca/escala-de-asa-centro-cirurgico.html',
+  'biblioteca/escala-de-asa.html',
   'biblioteca/escala-de-ballard.html',
   'biblioteca/escala-de-barthel.html',
   'biblioteca/escala-de-berg-bbs.html',
+  'biblioteca/escala-de-berg.html',
+  'biblioteca/escala-de-bps.html',
   'biblioteca/escala-de-braden.html',
   'biblioteca/escala-de-cam-icu.html',
   'biblioteca/escala-de-cincinnati.html',
@@ -1558,12 +1561,21 @@ const urlsToCache = [
   'img/ESCALA DE ALDRETE E KROULIK.jpg',
   'img/ESCALA DE APACHE.jpg',
   'img/ESCALA DE APACHE.png',
+  'img/ESCALA DE APACHE.webp',
+  'img/ESCALA DE APGAR.webp',
   'img/ESCALA DE ASA - CENTRO CIRURGICO.png',
+  'img/ESCALA DE ASA.webp',
   'img/ESCALA DE BALLARD.png',
+  'img/ESCALA DE BALLARD.webp',
   'img/ESCALA DE BARTHEL.png',
+  'img/ESCALA DE BARTHEL.webp',
   'img/ESCALA DE BERG (BBS).png',
+  'img/ESCALA DE BERG.webp',
+  'img/ESCALA DE BPS.webp',
   'img/ESCALA DE BRADEN.png',
+  'img/ESCALA DE BRADEN.webp',
   'img/ESCALA DE CAM-ICU.png',
+  'img/ESCALA DE CAM-ICU.webp',
   'img/ESCALA DE CINCINNATI.png',
   'img/ESCALA DE CORNELL ENFERMAGEM.png',
   'img/ESCALA DE CRIES.png',
