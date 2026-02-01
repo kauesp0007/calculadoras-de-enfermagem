@@ -26,19 +26,18 @@ const excludedFiles = [
 ];
 
 // ==============================================================================
-// BLOCOS DE CÓDIGO (LITERAIS)
+// BLOCOS DE CÓDIGO
 // ==============================================================================
 
-// REGEX PARA IDENTIFICAR O BLOCO ANTIGO (A versão G-VVDP5JGEX8)
-// Procura pela tag <script>, o cabeçalho específico da versão anterior
-// e vai até o fechamento </script> desse bloco.
-const oldCodeRegex = /<script>\s*\/\*\s*={10,}[\s\S]*?\(VERSÃO ATUALIZADA: G-VVDP5JGEX8 \+ OUTROS GA4 \+ ADS \+ ADSENSE\)[\s\S]*?={10,}\s*\*\/[\s\S]*?<\/script>/;
+// REGEX PARA IDENTIFICAR O BLOCO ANTIGO (Versão anterior do PFM06B7TS5)
+// Busca especificamente pelo cabeçalho: (VERSÃO ATUALIZADA: G-PFM06B7TS5 + OUTROS GA4 + ADS + ADSENSE)
+const oldCodeRegex = /<script>\s*\/\*\s*={10,}[\s\S]*?\(VERSÃO ATUALIZADA: G-PFM06B7TS5 \+ OUTROS GA4 \+ ADS \+ ADSENSE\)[\s\S]*?={10,}\s*\*\/[\s\S]*?<\/script>/;
 
-// O NOVO BLOCO DE CÓDIGO (Exatamente como fornecido, versão G-PFM06B7TS5)
+// O NOVO BLOCO DE CÓDIGO (Versão PRINCIPAL + 2 AW)
 const newCodeBlock = `<script>
 /* =========================================================
    MODO ADMIN + GOOGLE TAG + CONSENT + ADSENSE (LAZY LOAD)
-   (VERSÃO ATUALIZADA: G-PFM06B7TS5 + OUTROS GA4 + ADS + ADSENSE)
+   (VERSÃO ATUALIZADA: G-PFM06B7TS5 PRINCIPAL + OUTROS GA4 + 2 AW + ADSENSE)
    ========================================================= */
 
 if (
@@ -68,13 +67,13 @@ if (
     var aState = isRefused ? "denied" : (localStorage.getItem("analytics_storage") || "granted");
     var adState = adsBlocked ? "denied" : "granted";
 
-    /* ✅ Ajuste essencial: carrega o gtag.js o mais cedo possível */
+    /* ✅ Carrega o gtag.js do GA4 principal TS5 */
     var s = document.createElement("script");
     s.async = true;
     s.src = "https://www.googletagmanager.com/gtag/js?id=G-PFM06B7TS5";
     document.head.appendChild(s);
 
-    /* ✅ Consent default antes de qualquer config */
+    /* ✅ Configura consentimento default antes de qualquer config */
     gtag("consent","default",{
       analytics_storage: aState,
       ad_storage: adState,
@@ -86,10 +85,16 @@ if (
     gtag("js", new Date());
 
     /* GA4 (múltiplas propriedades/destinos) */
-    gtag("config","G-PFM06B7TS5");
+    gtag("config","G-PFM06B7TS5");    // TAG PRINCIPAL
+    gtag("config","G-MJDKPDPJ26");
+    gtag("config","G-M7DHHF38EJ");
+    gtag("config","G-8FLJ59XXDK");
+    gtag("config","G-VVDP5JGEX8");
+    gtag("config","G-EX8");
 
-    /* Google Ads */
+    /* Google Ads - mantém as duas tags */
     gtag("config","AW-952633102");
+    gtag("config","AW-9277197961");
   }
 
   function loadAdSenseOnce() {
@@ -169,7 +174,7 @@ let stats = {
 function processFile(filePath) {
     const fileName = path.basename(filePath);
 
-    // Verificações de exclusão de arquivo
+    // 1. Verificações de segurança (Extensão e Exclusões)
     if (!fileName.endsWith('.html')) return;
     if (excludedFiles.includes(fileName)) return;
 
@@ -178,18 +183,19 @@ function processFile(filePath) {
     try {
         let content = fs.readFileSync(filePath, 'utf8');
 
-        // Verifica se o arquivo tem o bloco antigo
+        // 2. Tenta encontrar o bloco antigo
         if (oldCodeRegex.test(content)) {
-            // Realiza a substituição exata
+            // 3. Realiza a substituição exata
             const newContent = content.replace(oldCodeRegex, newCodeBlock);
             fs.writeFileSync(filePath, newContent, 'utf8');
             stats.updated++;
         } else {
-            // Se não achou o antigo, verificamos o motivo para o log
-            if (content.includes('G-PFM06B7TS5')) {
-                stats.notModifiedList.push(`${filePath} (Já atualizado anteriormente)`);
+            // Se não encontrou o bloco antigo, verifica motivo para o log
+            // Verifica se JÁ TEM o novo (G-PFM06B7TS5 PRINCIPAL)
+            if (content.includes('G-PFM06B7TS5 PRINCIPAL')) {
+                stats.notModifiedList.push(`${filePath} (Já atualizado)`);
             } else {
-                stats.notModifiedList.push(`${filePath} (Bloco antigo não encontrado ou padrão diferente)`);
+                stats.notModifiedList.push(`${filePath} (Bloco antigo não compatível ou ausente)`);
             }
             stats.unchanged++;
         }
@@ -209,14 +215,12 @@ function traverseDirectory(dir) {
         const stat = fs.statSync(fullPath);
 
         if (stat.isDirectory()) {
-            // Se for diretório, verificar se é um dos idiomas alvo
-            // E garantir que NÃO é uma pasta excluída
+            // Processa apenas idiomas permitidos, ignorando pastas de sistema
             if (targetFolders.includes(item) && !excludedFolders.includes(item)) {
-                // Processa recursivamente a pasta do idioma
                 traverseLanguageFolder(fullPath);
             }
         } else {
-            // Se for arquivo na raiz
+            // Processa arquivos na raiz
             if (dir === '.' || dir === './') {
                 processFile(fullPath);
             }
@@ -230,8 +234,7 @@ function traverseLanguageFolder(dir) {
         const fullPath = path.join(dir, item);
         const stat = fs.statSync(fullPath);
 
-        // Não entra em subpastas dentro dos idiomas (ex: en/img ou en/downloads não devem ser tocadas se existirem)
-        // Apenas processa arquivos HTML na raiz da pasta do idioma
+        // Processa apenas arquivos na raiz da pasta do idioma
         if (!stat.isDirectory()) {
             processFile(fullPath);
         }
@@ -242,7 +245,7 @@ function traverseLanguageFolder(dir) {
 // EXECUÇÃO
 // ==============================================================================
 
-console.log('🚀 Iniciando atualização das Tags (Ads/Analytics/AdSense)...');
+console.log('🚀 Iniciando atualização das Tags (Versão GA4 PRINCIPAL + 2 AW)...');
 console.log('-------------------------------------------------------------');
 
 // 1. Processa a raiz
