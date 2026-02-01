@@ -29,16 +29,16 @@ const excludedFiles = [
 // BLOCOS DE CÓDIGO (LITERAIS)
 // ==============================================================================
 
-// REGEX PARA IDENTIFICAR O BLOCO ANTIGO
-// Procura pela tag <script>, o cabeçalho específico da versão antiga G-MJDKPDPJ26
+// REGEX PARA IDENTIFICAR O BLOCO ANTIGO (A versão G-VVDP5JGEX8)
+// Procura pela tag <script>, o cabeçalho específico da versão anterior
 // e vai até o fechamento </script> desse bloco.
-const oldCodeRegex = /<script>\s*\/\*\s*={10,}\s*[\r\n]+.*MODO ADMIN \+ GOOGLE TAG.*[\r\n]+.*\(VERSÃO ATUALIZADA: G-MJDKPDPJ26 \+ ADS \+ ADSENSE\).*[\r\n]+.*={10,}\s*\*\/[\s\S]*?<\/script>/;
+const oldCodeRegex = /<script>\s*\/\*\s*={10,}[\s\S]*?\(VERSÃO ATUALIZADA: G-VVDP5JGEX8 \+ OUTROS GA4 \+ ADS \+ ADSENSE\)[\s\S]*?={10,}\s*\*\/[\s\S]*?<\/script>/;
 
-// O NOVO BLOCO DE CÓDIGO (Exatamente como fornecido)
+// O NOVO BLOCO DE CÓDIGO (Exatamente como fornecido, versão G-PFM06B7TS5)
 const newCodeBlock = `<script>
 /* =========================================================
    MODO ADMIN + GOOGLE TAG + CONSENT + ADSENSE (LAZY LOAD)
-   (VERSÃO ATUALIZADA: G-VVDP5JGEX8 + OUTROS GA4 + ADS + ADSENSE)
+   (VERSÃO ATUALIZADA: G-PFM06B7TS5 + OUTROS GA4 + ADS + ADSENSE)
    ========================================================= */
 
 if (
@@ -71,7 +71,7 @@ if (
     /* ✅ Ajuste essencial: carrega o gtag.js o mais cedo possível */
     var s = document.createElement("script");
     s.async = true;
-    s.src = "https://www.googletagmanager.com/gtag/js?id=G-VVDP5JGEX8";
+    s.src = "https://www.googletagmanager.com/gtag/js?id=G-PFM06B7TS5";
     document.head.appendChild(s);
 
     /* ✅ Consent default antes de qualquer config */
@@ -86,9 +86,6 @@ if (
     gtag("js", new Date());
 
     /* GA4 (múltiplas propriedades/destinos) */
-    gtag("config","G-VVDP5JGEX8");
-    gtag("config","G-8FLJ59XXDK");
-    gtag("config","G-M7DHHF38EJ");
     gtag("config","G-PFM06B7TS5");
 
     /* Google Ads */
@@ -189,7 +186,7 @@ function processFile(filePath) {
             stats.updated++;
         } else {
             // Se não achou o antigo, verificamos o motivo para o log
-            if (content.includes('G-VVDP5JGEX8')) {
+            if (content.includes('G-PFM06B7TS5')) {
                 stats.notModifiedList.push(`${filePath} (Já atualizado anteriormente)`);
             } else {
                 stats.notModifiedList.push(`${filePath} (Bloco antigo não encontrado ou padrão diferente)`);
