@@ -1,5 +1,5 @@
 // Define o nome e a versão do cache (AUTOMÁTICO via gerar-sw.js)
-const CACHE_NAME = 'calculadoras-enfermagem-cache-20260205-214905-396';
+const CACHE_NAME = 'calculadoras-enfermagem-cache-20260205-223148-973';
 
 // O SCRIPT DE BUILD VAI INJETAR A LISTA DE ARQUIVOS AQUI
 const urlsToCache = [
@@ -223,6 +223,7 @@ const urlsToCache = [
   'biblioteca/aldrete-e-kroulik.html',
   'biblioteca/alicate-de-corte.html',
   'biblioteca/alimentacao-do-idoso-ilustracao.html',
+  'biblioteca/amiodarona-ritmos-chocaveis.html',
   'biblioteca/ampola-de-medicamento-ilustracao.html',
   'biblioteca/anatomia-e-fisiologia-humana.html',
   'biblioteca/anoscopio-proctoscopio.html',
@@ -594,6 +595,7 @@ const urlsToCache = [
   'biblioteca/regola-del-tre-illustrata-calcolo-dei-farmaci.html',
   'biblioteca/regra-de-3-calculo-de-medicamentos-enfermagem.html',
   'biblioteca/retrator-de-esternotomia.html',
+  'biblioteca/ritmos-chocaveis-lidocaina.html',
   'biblioteca/ritmos-chocaveis-rcp.html',
   'biblioteca/ritmos-nao-chocaveis-pcr.html',
   'biblioteca/saude-do-coracao-enfermagem.html',
@@ -697,6 +699,7 @@ const urlsToCache = [
   'biblioteca/trocarter-de-videocirurgia.html',
   'biblioteca/tubo-de-latex-para-aspiracao.html',
   'biblioteca/tubo-ponteira-de-aspiracao.html',
+  'biblioteca/tv-fv-ritmos-chocaveis.html',
   'biblioteca/urgencias-pediatricas.html',
   'biblioteca/vantagens-do-time-de-resposta-rapida-no-hospital.html',
   'biblioteca/verificacao-periodica-de-sinais-vitais.html',
@@ -1835,6 +1838,7 @@ const urlsToCache = [
   'img/admin,+GENOGRAMA+E+ECOMAPA.webp',
   'img/admin,+REP-2011-377 - Copia.webp',
   'img/admin,+REP-2011-377.webp',
+  'img/amiodarona-ritmos-chocaveis.webp',
   'img/avaliação-secundária-APH.webp',
   'img/balancohidrico.webp',
   'img/bandeira-brasil.webp',
@@ -1932,6 +1936,7 @@ const urlsToCache = [
   'img/pentagono_meem.jpg',
   'img/regle de trois - calcul des medicaments.webp',
   'img/ritmos-chocáveis-RCP.webp',
+  'img/ritmos-chocáveis-lidocaina.webp',
   'img/ritmos-nao-chocáveis-PCR.webp',
   'img/screen-5-hs-da-paradacardiorespiratoria.webp',
   'img/screen-5-ts-da-paradacardiorespiratoria.webp',
@@ -1992,6 +1997,7 @@ const urlsToCache = [
   'img/tratamento toxinas.webp',
   'img/tratamento tromboembolismo pulmonar.webp',
   'img/tratamento trombose coronariana.webp',
+  'img/tv-fv-ritmos-chocaveis.webp',
   'img/urgencias-pediatricas.webp',
   'img/wanda de aguiar horta - necessidades humanas básicas.jpg',
   'img/wanda de aguiar horta - necessidades humanas básicas.webp',
