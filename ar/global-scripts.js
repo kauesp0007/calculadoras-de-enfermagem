@@ -498,3 +498,48 @@ function initializeGlobalFunctions() {
   inicializarTooltips();
 }
 
+
+
+/* =========================
+   GA4 — Evento: clique no botão Calcular
+   ========================= */
+(function () {
+  // 1) Verifica se pode enviar analytics (respeita consentimento, se você usar)
+  function podeEnviarAnalytics() {
+    try {
+      const a = localStorage.getItem("analytics_storage");
+      return a !== "denied"; // se estiver denied, não envia
+    } catch (_) {
+      return true; // se não conseguir ler, permite
+    }
+  }
+
+  // 2) Envia o evento ao GA4
+  function enviarEventoGA(nomeEvento, parametros) {
+    if (typeof window.gtag === "function") {
+      window.gtag("event", nomeEvento, parametros);
+    }
+  }
+
+  // 3) “Escuta” qualquer clique no site inteiro
+  document.addEventListener("click", function (event) {
+    // pega o elemento clicado e procura o botão mais próximo
+    const botao = event.target.closest("button");
+    if (!botao) return;
+
+    // regra: só dispara se for o botão Calcular padrão
+    if (botao.id !== "btnCalcular") return;
+
+    // respeita consentimento (se existir)
+    if (!podeEnviarAnalytics()) return;
+
+    // parâmetros úteis para identificar a página
+    const parametros = {
+      page_path: window.location.pathname,
+      page_title: document.title
+    };
+
+    // envia o evento
+    enviarEventoGA("calcular_click", parametros);
+  });
+})();
