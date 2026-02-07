@@ -1,3 +1,26 @@
+/* =========================
+   Camada 4 — Anti-bot leve
+   ========================= */
+(function () {
+  try {
+    const ua = navigator.userAgent || "";
+    const isBotLike =
+      navigator.webdriver === true ||
+      ua.length < 10 ||
+      !navigator.language ||
+      (screen && (screen.width === 0 || screen.height === 0));
+
+    if (isBotLike) {
+      // Redireciona para home (não quebra SEO e evita loop)
+      if (location.pathname !== "/") {
+        location.replace("/");
+      }
+    }
+  } catch (e) {
+    // ignora erros
+  }
+})();
+
 // Executar IMEDIATAMENTE para evitar flash de tamanho de fonte
 (function() {
   const savedFontSize = parseInt(localStorage.getItem("fontSize") || "1", 10);
