@@ -289,31 +289,48 @@ if (
   </script>
 
   <style>
+    /* --- Visual Feedback Classes --- */
+    .resultado {
+        padding: 1.5rem;
+        border-radius: 12px;
+        margin-top: 1.5rem;
+        text-align: left;
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        border-left: 8px solid transparent; /* Side indicator */
+        animation: fadeIn 0.5s ease-out;
+    }
+
+    /* Animation */
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* High Independence (Green) */
     .resultado.bg-katz-total {
-      background-color: #D4EDDA;
-      color: #155724;
+      background-color: #ecfdf5; /* Light green */
+      color: #065f46; /* Dark green text */
+      border-left-color: #10b981; /* Bright green strip */
+      border: 1px solid #d1fae5;
     }
 
-    .resultado.bg-katz-ligeira {
-      background-color: #FFF3CD;
-      color: #856404;
-    }
-
+    /* Moderate (Yellow/Orange) */
     .resultado.bg-katz-moderada {
-      background-color: #F8D7DA;
-      color: #721C24;
+      background-color: #fffbeb; /* Light yellow */
+      color: #92400e; /* Brown/Orange text */
+      border-left-color: #f59e0b; /* Amber strip */
+      border: 1px solid #fde68a;
     }
 
-    .resultado.bg-katz-grave {
-      background-color: #fce2e2;
-      color: #cc0000;
-    }
-
+    /* Dependent (Red) */
     .resultado.bg-katz-dependente {
-      background-color: #c9302c;
-      color: #ffffff;
+      background-color: #fef2f2; /* Light red */
+      color: #991b1b; /* Dark red text */
+      border-left-color: #ef4444; /* Red strip */
+      border: 1px solid #fecaca;
     }
 
+    /* General Layout Styles */
     .bg-info-orange-light {
       background-color: #ffeeba;
       border-color: #ffb366;
@@ -737,6 +754,7 @@ if (
 
       <div id="conteudo" class="katz-criteria-container"></div>
 
+      <!-- Result with Visual Feedback -->
       <div id="resultado" class="resultado hidden" aria-live="polite"></div>
 
       <div class="flex flex-wrap justify-start gap-4 mt-6">
@@ -858,19 +876,30 @@ if (
 
         let classification = "";
         let resultClass = '';
+        let icon = '';
 
         if (totalScore === 6) {
-          classification = "High (Patient independent)";
+          classification = "High Independence";
           resultClass = 'bg-katz-total';
-        } else if (totalScore > 0) {
-          classification = "Moderate impairment";
+          icon = '<i class="fas fa-check-circle text-green-600 text-2xl mr-2"></i>';
+        } else if (totalScore > 2) {
+          classification = "Moderate Impairment";
           resultClass = 'bg-katz-moderada';
+          icon = '<i class="fas fa-exclamation-triangle text-orange-600 text-2xl mr-2"></i>';
         } else {
-          classification = "Severe functional impairment";
+          classification = "Severe Functional Impairment";
           resultClass = 'bg-katz-dependente';
+          icon = '<i class="fas fa-exclamation-circle text-red-600 text-2xl mr-2"></i>';
         }
 
-        resultadoDiv.innerHTML = `<p>Total Katz Score: <strong class="font-bold">${totalScore} / 6</strong></p><p>Interpretation: <strong class="font-bold">${classification}</strong></p>`;
+        resultadoDiv.innerHTML = `
+            <div class="flex items-center mb-2">
+                ${icon}
+                <h3 class="text-xl font-bold">Result: ${classification}</h3>
+            </div>
+            <p class="text-lg">Total Katz Score: <strong class="font-bold text-2xl">${totalScore} / 6</strong></p>
+            <p class="mt-2 text-sm text-gray-700">Scores of 6 indicate full function, 4 indicate moderate impairment, and 2 or less indicate severe functional impairment.</p>
+        `;
         resultadoDiv.className = `resultado ${resultClass}`;
 
         resultadoDiv.dataset.score = totalScore;

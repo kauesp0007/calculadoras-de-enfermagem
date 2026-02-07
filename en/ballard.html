@@ -289,19 +289,52 @@ if (
   </script>
 
   <style>
-    .resultado.text-red-600 {
-      background-color: #fee2e2;
-      color: #dc2626;
+    /* --- Visual Feedback Classes --- */
+    .resultado {
+        padding: 1.5rem;
+        border-radius: 12px;
+        margin-top: 1.5rem;
+        text-align: left;
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        border-left: 8px solid transparent; /* Side indicator */
+        animation: fadeIn 0.5s ease-out;
     }
 
+    /* Animation */
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Term (Green - Optimal) */
+    .resultado.bg-ballard-term {
+      background-color: #ecfdf5; /* Light green */
+      color: #065f46; /* Dark green text */
+      border-left-color: #10b981; /* Bright green strip */
+      border: 1px solid #d1fae5;
+    }
+
+    /* Preterm (Orange/Warning) */
+    .resultado.bg-ballard-preterm {
+      background-color: #fff7ed; /* Light orange */
+      color: #9a3412; /* Dark orange text */
+      border-left-color: #f97316; /* Orange strip */
+      border: 1px solid #ffedd5;
+    }
+
+    /* Post-term (Red/Alert) */
+    .resultado.bg-ballard-postterm {
+      background-color: #fef2f2; /* Light red */
+      color: #991b1b; /* Dark red text */
+      border-left-color: #ef4444; /* Red strip */
+      border: 1px solid #fecaca;
+    }
+
+    /* General Styles */
     .resultado.bg-red-100 {
       background-color: #fee2e2;
       color: #dc2626;
-    }
-
-    .resultado.bg-blue-50 {
-      background-color: #e0f2fe;
-      color: #1a3e74;
+      border: 1px solid #fca5a5;
     }
 
     .ballard-criterion-section {
@@ -1117,29 +1150,37 @@ if (
         const dias = Math.round((semanasFloat - semanas) * 7);
 
         let classificacao = "";
-        if (semanas < 37) classificacao = "Preterm";
-        else if (semanas >= 37 && semanas < 42) classificacao = "Term";
-        else classificacao = "Post-term";
-
+        let resultClass = "";
+        let icon = "";
         let conduta = "";
-        if (classificacao === "Preterm") {
-          conduta =
-            "Monitor thermoregulation, glucose, and respiratory status. Evaluate need for NICU admission.";
-        } else if (classificacao === "Term") {
-          conduta =
-            "Routine newborn care; monitor vitals and breastfeeding.";
+
+        if (semanas < 37) {
+            classificacao = "Preterm";
+            resultClass = "bg-ballard-preterm";
+            icon = '<i class="fas fa-exclamation-triangle text-orange-600 text-2xl mr-2"></i>';
+            conduta = "Monitor thermoregulation, glucose, and respiratory status. Evaluate need for NICU admission.";
+        } else if (semanas >= 37 && semanas < 42) {
+            classificacao = "Term";
+            resultClass = "bg-ballard-term";
+            icon = '<i class="fas fa-check-circle text-green-600 text-2xl mr-2"></i>';
+            conduta = "Routine newborn care; monitor vitals and breastfeeding.";
         } else {
-          conduta =
-            "Assess for post-maturity signs (hypoglycemia, meconium aspiration risk, skin condition).";
+            classificacao = "Post-term";
+            resultClass = "bg-ballard-postterm";
+            icon = '<i class="fas fa-exclamation-circle text-red-600 text-2xl mr-2"></i>';
+            conduta = "Assess for post-maturity signs (hypoglycemia, meconium aspiration risk, skin condition).";
         }
 
         resultadoDiv.innerHTML = `
+              <div class="flex items-center mb-2">
+                ${icon}
+                <h3 class="text-xl font-bold">Result: ${classificacao}</h3>
+              </div>
               <p>Total Score: <strong class="font-bold">${total}</strong></p>
               <p>Gestational Age: <strong class="font-bold">${semanas} weeks + ${dias} days</strong></p>
-              <p>Classification: <strong class="font-bold">${classificacao}</strong></p>
               <p class="mt-4"><strong>Clinical Note:</strong> ${conduta}</p>
             `;
-        resultadoDiv.className = `resultado bg-blue-50`;
+        resultadoDiv.className = `resultado ${resultClass}`;
         resultadoDiv.style.display = "block";
 
         resultadoDiv.dataset.score = total;

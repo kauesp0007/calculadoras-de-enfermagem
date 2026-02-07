@@ -289,16 +289,48 @@ if (
   </script>
 
   <style>
+    /* --- Visual Feedback Classes --- */
     .resultado {
-      background-color: #e0f2fe;
-      color: #1A3E74;
-      padding: 1.5rem;
-      border-radius: 12px;
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-      margin-top: 1.5rem;
-      border: 1px solid #93c5fd;
+        padding: 1.5rem;
+        border-radius: 12px;
+        margin-top: 1.5rem;
+        text-align: left;
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        border-left: 8px solid transparent; /* Side indicator */
+        animation: fadeIn 0.5s ease-out;
     }
 
+    /* Animation */
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Low Risk (Green) */
+    .resultado.bg-ofras-low {
+      background-color: #ecfdf5; /* Light green */
+      color: #065f46; /* Dark green text */
+      border-left-color: #10b981; /* Bright green strip */
+      border: 1px solid #d1fae5;
+    }
+
+    /* Moderate Risk (Orange/Warning) */
+    .resultado.bg-ofras-moderate {
+      background-color: #fff7ed; /* Light orange */
+      color: #9a3412; /* Dark orange text */
+      border-left-color: #f97316; /* Orange strip */
+      border: 1px solid #ffedd5;
+    }
+
+    /* High Risk (Red/Alert) */
+    .resultado.bg-ofras-high {
+      background-color: #fef2f2; /* Light red */
+      color: #991b1b; /* Dark red text */
+      border-left-color: #ef4444; /* Red strip */
+      border: 1px solid #fecaca;
+    }
+
+    /* General Styles */
     .ofras-criterion-section {
       background-color: #fff;
       border: 1px solid #d1d5db;
@@ -868,6 +900,7 @@ if (
 
         if (!allSelected) {
           resultadoDiv.innerHTML = '⚠️ <strong class="font-bold">Please select an option for all items before calculating.</strong>';
+          resultadoDiv.className = 'resultado bg-red-100'; // Added generic error style
           resultadoDiv.style.display = "block";
           delete resultadoDiv.dataset.score;
           return;
@@ -875,27 +908,39 @@ if (
 
         let classification = '';
         let recommendation = '';
+        let resultClass = '';
+        let icon = '';
 
         // OFRAS Scale scoring definitions (0 to 6 points)
         if (total >= 0 && total <= 2) {
           classification = 'Low Risk';
           recommendation = 'The obstetric patient has a low risk of falling. Continue with standard preventive measures.';
+          resultClass = 'bg-ofras-low';
+          icon = '<i class="fas fa-check-circle text-green-600 text-2xl mr-2"></i>';
         } else if (total >= 3 && total <= 4) {
           classification = 'Moderate Risk';
           recommendation = 'The obstetric patient has a moderate risk of falling. Implement fall prevention and monitoring measures.';
-        } else if (total >= 5 && total <= 6) {
+          resultClass = 'bg-ofras-moderate';
+          icon = '<i class="fas fa-exclamation-triangle text-orange-600 text-2xl mr-2"></i>';
+        } else if (total >= 5) {
           classification = 'High Risk';
           recommendation = 'The obstetric patient has a high risk of falling. Immediately implement an individualized fall prevention plan.';
+          resultClass = 'bg-ofras-high';
+          icon = '<i class="fas fa-exclamation-circle text-red-600 text-2xl mr-2"></i>';
         } else {
           classification = 'Score Out of Range';
           recommendation = 'The calculated score is outside the expected classification range. Check the selected values.';
         }
 
         resultadoDiv.innerHTML = `
+                <div class="flex items-center mb-2">
+                    ${icon}
+                    <h3 class="text-xl font-bold">Result: ${classification}</h3>
+                </div>
                 <p>Total score: <strong class="font-bold">${total}</strong></p>
-                <p>Classification: <strong class="font-bold">${classification}</strong></p>
                 <p class="mt-4"><strong>Recommendation:</strong> ${recommendation}</p>
             `;
+        resultadoDiv.className = `resultado ${resultClass}`;
         resultadoDiv.style.display = "block";
 
         resultadoDiv.dataset.score = total;
@@ -910,6 +955,7 @@ if (
           select.classList.remove('incomplete');
         });
         resultadoDiv.innerHTML = '';
+        resultadoDiv.className = 'resultado hidden'; // Reset class
         resultadoDiv.style.display = "none";
         delete resultadoDiv.dataset.score;
         delete resultadoDiv.dataset.scaleName;
@@ -944,7 +990,7 @@ if (
           alert('Calculate the result to search for management.');
           return;
         }
-        const searchQuery = encodeURIComponent(`nursing care plan for ${scaleName} score ${score} (${classification}) NANDA NIC NOC obstetric falls`);
+        const searchQuery = encodeURIComponent(`nursing care plan for ${scaleName} score ${score} obstetric patient ${classification} generate NANDA taxonomy, generate NIC taxonomy, generate NOC taxonomy`);
         window.open(`https://www.google.com/search?q=${searchQuery}`, '_blank');
       });
     });
