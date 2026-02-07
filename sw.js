@@ -1,5 +1,5 @@
 // Define o nome e a versão do cache (AUTOMÁTICO via gerar-sw.js)
-const CACHE_NAME = 'calculadoras-enfermagem-cache-20260206-211352-010';
+const CACHE_NAME = 'calculadoras-enfermagem-cache-20260206-212550-342';
 
 // O SCRIPT DE BUILD VAI INJETAR A LISTA DE ARQUIVOS AQUI
 const urlsToCache = [
@@ -252,6 +252,7 @@ const urlsToCache = [
   'biblioteca/bisturi-ultrasonico.html',
   'biblioteca/boletim-silverman-anderson-avalia-dificuldade-respiratoria-em-recem-nascidos.html',
   'biblioteca/bougie-guia-para-intubacao.html',
+  'biblioteca/brasao-brasil.html',
   'biblioteca/broca-cirurgica.html',
   'biblioteca/broca-de-hudson.html',
   'biblioteca/broca-de-steinmann.html',
@@ -512,6 +513,7 @@ const urlsToCache = [
   'biblioteca/nivel-de-consciencia-enfermagem.html',
   'biblioteca/notificacao-compulsoria.html',
   'biblioteca/nr1.html',
+  'biblioteca/nr10.html',
   'biblioteca/nr11.html',
   'biblioteca/nr12.html',
   'biblioteca/nr13.html',
@@ -1881,6 +1883,7 @@ const urlsToCache = [
   'img/avaliação-secundária-APH.webp',
   'img/balancohidrico.webp',
   'img/bandeira-brasil.webp',
+  'img/brasao-brasil.webp',
   'img/calculadorasimagem.webp',
   'img/capa-video.webp',
   'img/capa-word.webp',
@@ -1970,6 +1973,7 @@ const urlsToCache = [
   'img/mini_exame_do_estado_mental_formulario_rio.webp',
   'img/missao visao e valores calculadoras de enfermagem.webp',
   'img/nr1.webp',
+  'img/nr10.webp',
   'img/nr11.webp',
   'img/nr12.webp',
   'img/nr13.webp',
