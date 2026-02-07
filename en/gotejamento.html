@@ -292,25 +292,39 @@ if (
   </script>
 
   <style>
-    /* --- Enhanced Result Style --- */
+    /* --- Visual Feedback Classes --- */
     .resultado-container {
-      background-color: #ebf8ff;
-      border: 1px solid #1e40af;
-      border-radius: 1rem;
-      padding: 1.25rem;
+      padding: 1.5rem;
+      border-radius: 12px;
       margin-top: 1.5rem;
       width: 100%;
-      box-shadow: 0 10px 15px -3px rgba(26, 62, 116, 0.15),
-        0 4px 6px -2px rgba(26, 62, 116, 0.1);
-      color: #1a3e74;
       text-align: left;
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+      border-left: 8px solid transparent; /* Side indicator */
+      animation: fadeIn 0.5s ease-out;
       display: none;
     }
 
-    .resultado-container p {
-      margin: 0;
-      line-height: 1.5;
-      font-size: 1.05rem;
+    /* Animation */
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Success (Blue - Standard) */
+    .resultado-container.bg-result-success {
+      background-color: #eff6ff; /* Light blue */
+      color: #1e40af; /* Dark blue text */
+      border-left-color: #3b82f6; /* Blue strip */
+      border: 1px solid #dbeafe;
+    }
+
+    /* Error (Red/Orange) */
+    .resultado-container.bg-info-orange-light {
+      background-color: #fff7ed;
+      color: #9a3412;
+      border-left-color: #f97316;
+      border: 1px solid #ffedd5;
     }
 
     .bg-info-orange-light {
@@ -787,18 +801,26 @@ if (
         // Text to display hours or minutes in the result
         const unidadeTexto = unidadeTempo === "horas" ? "hours" : "minutes";
 
+        // Visual Feedback Logic
+        let resultClass = "bg-result-success";
+        let icon = '<i class="fas fa-check-circle text-blue-600 text-2xl mr-2"></i>';
+
         // Simple and Direct Formatting
         const resultadoTexto = `
-                <p>
-                    <strong>Flow Rate Result:</strong> ${volume} mL to infuse over ${tempo} ${unidadeTexto} requires: <br>
-                    <span style="font-size: 1.25rem; color: #1e40af; font-weight: 800;">${gotasArredondadas} drops/minute (gtt/min)</span>
-                </p>
-                <p style="font-size: 0.9rem; color: #666; margin-top: 5px;">Using ${equipoTexto}</p>
-            `;
+            <div class="flex items-center mb-2">
+                ${icon}
+                <span style="font-size: 1.1rem; font-weight: 800;">Flow Rate Result:</span>
+            </div>
+            <p>
+                ${volume} mL to infuse over ${tempo} ${unidadeTexto} requires: <br>
+                <span style="font-size: 1.5rem; color: #1e40af; font-weight: 800; display: block; margin-top: 0.5rem;">${gotasArredondadas} drops/minute (gtt/min)</span>
+            </p>
+            <p style="font-size: 0.9rem; color: #666; margin-top: 5px;">Using ${equipoTexto}</p>
+        `;
 
         resultadoDiv.innerHTML = resultadoTexto;
         // Remove old class if present and apply standard container
-        resultadoDiv.className = "resultado-container";
+        resultadoDiv.className = `resultado-container ${resultClass}`;
         resultadoDiv.style.display = "block";
 
         resultadoDiv.dataset.gotasPorMinuto = gotasArredondadas;

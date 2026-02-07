@@ -203,6 +203,48 @@ if (
   <!-- Schema.org -->
 
   <style>
+    /* --- Visual Feedback Classes --- */
+    .resultado {
+        padding: 1.5rem;
+        border-radius: 12px;
+        margin-top: 1.5rem;
+        text-align: left;
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        border-left: 8px solid transparent; /* Side indicator */
+        animation: fadeIn 0.5s ease-out;
+    }
+
+    /* Animation */
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Normal (Green) */
+    .resultado.bg-abg-normal {
+      background-color: #ecfdf5; /* Light green */
+      color: #065f46; /* Dark green text */
+      border-left-color: #10b981; /* Bright green strip */
+      border: 1px solid #d1fae5;
+    }
+
+    /* Warning/Compensated (Orange) */
+    .resultado.bg-abg-warning {
+      background-color: #fff7ed; /* Light orange */
+      color: #9a3412; /* Dark orange text */
+      border-left-color: #f97316; /* Orange strip */
+      border: 1px solid #ffedd5;
+    }
+
+    /* Critical/Acute (Red) */
+    .resultado.bg-abg-critical {
+      background-color: #fef2f2; /* Light red */
+      color: #991b1b; /* Dark red text */
+      border-left-color: #ef4444; /* Red strip */
+      border: 1px solid #fecaca;
+    }
+
+    /* General Layout */
     .bg-info-orange-light {
       background-color: #ffeeba;
       border-color: #ffb366;
@@ -313,17 +355,7 @@ if (
 
     /* --- Custom Style for Result (Compact) --- */
     #resultado {
-      background-color: #ebf8ff;
-      border: 1px solid #1e40af;
-      border-radius: 1rem;
-      padding: 1.25rem;
-      margin-top: 1.5rem;
-      width: 100%;
-      box-shadow: 0 10px 15px -3px rgba(26, 62, 116, 0.15),
-                  0 4px 6px -2px rgba(26, 62, 116, 0.1);
-      text-align: left;
       display: none;
-      color: #1a3e74;
     }
 
     #resultado p {
@@ -334,12 +366,10 @@ if (
 
     .res-titulo {
       font-weight: 800;
-      color: #1a3e74;
     }
 
     .res-conteudo {
       font-weight: 600;
-      color: #1e40af;
     }
 
     .section-divider {
@@ -1246,16 +1276,36 @@ if (
         // Final Formatting
         if (condutas.length === 0) condutas.push("Maintain monitoring.");
 
-        // Compact HTML Style
+        // Visual Feedback Logic
+        let resultClass = "";
+        let icon = "";
+
+        if (disturbio.includes("Normal")) {
+            resultClass = "bg-abg-normal";
+            icon = '<i class="fas fa-check-circle text-green-600 text-2xl mr-2"></i>';
+        } else if (disturbio.includes("Compensated")) {
+            resultClass = "bg-abg-warning";
+            icon = '<i class="fas fa-exclamation-triangle text-orange-600 text-2xl mr-2"></i>';
+        } else {
+            resultClass = "bg-abg-critical";
+            icon = '<i class="fas fa-exclamation-circle text-red-600 text-2xl mr-2"></i>';
+        }
+
+        // Compact HTML Style with Icon
         let htmlResultado = `
+            <div class="flex items-center mb-2">
+                ${icon}
+                <span class="res-titulo text-xl">Diagnosis:</span>
+            </div>
             <p>
-                <span class="res-titulo">Diagnosis:</span> <span class="res-conteudo">${diagnosticos.join(", ")}</span><br>
+                <span class="res-conteudo text-lg">${diagnosticos.join(", ")}</span><br>
                 ${detalhes.length > 0 ? `<span class="res-titulo">Findings:</span> <span class="res-conteudo">${detalhes.join(", ")}</span><br>` : ''}
                 <span class="res-titulo">Action:</span> <span class="res-conteudo">${condutas.join(". ")}</span>
             </p>
           `;
 
         resultadoDiv.innerHTML = htmlResultado;
+        resultadoDiv.className = `resultado ${resultClass}`;
         resultadoDiv.style.display = "block";
 
         resultadoDiv.dataset.resultado = disturbio;

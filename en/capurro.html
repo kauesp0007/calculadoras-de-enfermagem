@@ -289,7 +289,48 @@ if (
   </script>
 
   <style>
-    /* --- Card Styles --- */
+    /* --- Visual Feedback Classes --- */
+    .resultado {
+        padding: 1.5rem;
+        border-radius: 12px;
+        margin-top: 1.5rem;
+        text-align: left;
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        border-left: 8px solid transparent; /* Side indicator */
+        animation: fadeIn 0.5s ease-out;
+    }
+
+    /* Animation */
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Term (Green) */
+    .resultado.bg-capurro-term {
+      background-color: #ecfdf5; /* Light green */
+      color: #065f46; /* Dark green text */
+      border-left-color: #10b981; /* Bright green strip */
+      border: 1px solid #d1fae5;
+    }
+
+    /* Preterm (Orange) */
+    .resultado.bg-capurro-preterm {
+      background-color: #fff7ed; /* Light orange */
+      color: #9a3412; /* Dark orange text */
+      border-left-color: #f97316; /* Orange strip */
+      border: 1px solid #ffedd5;
+    }
+
+    /* Post-term (Red) */
+    .resultado.bg-capurro-postterm {
+      background-color: #fef2f2; /* Light red */
+      color: #991b1b; /* Dark red text */
+      border-left-color: #ef4444; /* Red strip */
+      border: 1px solid #fecaca;
+    }
+
+    /* Standard Card Styles */
     .criterion-section {
       background-color: #fff;
       border: 1px solid #94a3b8;
@@ -366,17 +407,8 @@ if (
 
     /* --- Result Box Style --- */
     #resultado {
-      background-color: #ebf8ff;
-      border: 1px solid #1e40af;
-      border-radius: 1rem;
-      padding: 1.25rem;
       margin-top: 1.5rem;
-      box-shadow: 0 10px 15px -3px rgba(26, 62, 116, 0.15),
-        0 4px 6px -2px rgba(26, 62, 116, 0.1);
-      color: #1a3e74;
-      font-weight: 600;
-      line-height: 1.5;
-      text-align: left;
+      display: none;
     }
 
     /* --- Instruction Card Style --- */
@@ -891,6 +923,7 @@ if (
         <div id="form-container"></div>
       </div>
 
+      <!-- Result with Visual Feedback -->
       <div id="resultado" class="resultado" aria-live="polite" style="display: none"></div>
 
       <!-- Reference section with American scientific article -->
@@ -1148,8 +1181,38 @@ if (
         const days = totalDays % 7;
         const gestationalAgeText = `<strong class="font-bold">${weeks} weeks and ${days} days</strong>`;
 
-        resultadoDiv.innerHTML = `<p>Total Score: <strong class="font-bold">${totalScore}</strong></p><p>Estimated Gestational Age: ${gestationalAgeText}</p>`;
-        resultadoDiv.className = `resultado`;
+        // Classification Logic for Visual Feedback
+        let classificacao = "";
+        let resultClass = "";
+        let icon = "";
+
+        // Standard classification:
+        // Preterm: < 37 weeks
+        // Term: 37 to 41 weeks (less than 42)
+        // Post-term: >= 42 weeks
+        if (weeks < 37) {
+            classificacao = "Preterm";
+            resultClass = "bg-capurro-preterm";
+            icon = '<i class="fas fa-exclamation-triangle text-orange-600 text-2xl mr-2"></i>';
+        } else if (weeks >= 37 && weeks < 42) {
+            classificacao = "Term";
+            resultClass = "bg-capurro-term";
+            icon = '<i class="fas fa-check-circle text-green-600 text-2xl mr-2"></i>';
+        } else {
+            classificacao = "Post-term";
+            resultClass = "bg-capurro-postterm";
+            icon = '<i class="fas fa-exclamation-circle text-red-600 text-2xl mr-2"></i>';
+        }
+
+        resultadoDiv.innerHTML = `
+            <div class="flex items-center mb-2">
+                ${icon}
+                <h3 class="text-xl font-bold">Result: ${classificacao}</h3>
+            </div>
+            <p>Total Score: <strong class="font-bold">${totalScore}</strong></p>
+            <p>Estimated Gestational Age: ${gestationalAgeText}</p>
+        `;
+        resultadoDiv.className = `resultado ${resultClass}`;
 
         resultadoDiv.dataset.score = totalScore;
         resultadoDiv.dataset.scaleName = "Capurro Method";
