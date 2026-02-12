@@ -412,18 +412,33 @@
   <script src="global-scripts.js" defer></script>
 
   <script>
-    // Carregamento dos módulos estruturais (Exatamente igual ao ferias.html)
+    // Carregamento dos módulos estruturais
     document.addEventListener("DOMContentLoaded", function() {
+      // Carregar Barra de Acessibilidade
       fetch("/global-body-elements.html")
         .then(response => response.ok ? response.text() : "")
-        .then(data => document.getElementById("global-body-elements-placeholder").innerHTML = data)
+        .then(data => {
+            document.getElementById("global-body-elements-placeholder").innerHTML = data;
+            // Correção: Inicializar funções de acessibilidade após injetar o HTML
+            if (typeof initializeGlobalFunctions === 'function') {
+                initializeGlobalFunctions();
+            }
+        })
         .catch(err => console.error("Erro ao carregar global-body-elements:", err));
 
+      // Carregar Menu Global
       fetch("/menu-global.html")
         .then(response => response.ok ? response.text() : "")
-        .then(data => document.getElementById("global-header-container").innerHTML = data)
+        .then(data => {
+            document.getElementById("global-header-container").innerHTML = data;
+            // Correção: Inicializar funções do menu após injetar o HTML
+            if (typeof initializeNavigationMenu === 'function') {
+                initializeNavigationMenu();
+            }
+        })
         .catch(err => console.error("Erro ao carregar menu global:", err));
 
+      // Carregar Footer
       fetch("footer.html")
         .then(response => response.ok ? response.text() : "")
         .then(data => document.getElementById("footer-placeholder").innerHTML = data)
