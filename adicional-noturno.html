@@ -767,15 +767,29 @@ if (
   <script>
     // Carregamento dos módulos estruturais
     document.addEventListener("DOMContentLoaded", function() {
+      const runWhenAvailable = (fnName, maxAttempts = 20, interval = 100) => {
+        let attempts = 0;
+        const tryRun = () => {
+          const fn = window[fnName];
+          if (typeof fn === "function") {
+            fn();
+            return;
+          }
+          attempts += 1;
+          if (attempts < maxAttempts) {
+            setTimeout(tryRun, interval);
+          }
+        };
+        tryRun();
+      };
+
       // Carregar Barra de Acessibilidade
       fetch("/global-body-elements.html")
         .then(response => response.ok ? response.text() : "")
         .then(data => {
             document.getElementById("global-body-elements-placeholder").innerHTML = data;
-            // Correção: Inicializar funções de acessibilidade após injetar o HTML
-            if (typeof initializeGlobalFunctions === 'function') {
-                initializeGlobalFunctions();
-            }
+            // Garante o binding dos botões após injeção e disponibilidade da função global.
+            runWhenAvailable("initializeGlobalFunctions");
         })
         .catch(err => console.error("Erro ao carregar global-body-elements:", err));
 
@@ -784,10 +798,8 @@ if (
         .then(response => response.ok ? response.text() : "")
         .then(data => {
             document.getElementById("global-header-container").innerHTML = data;
-            // Correção: Inicializar funções do menu após injetar o HTML
-            if (typeof initializeNavigationMenu === 'function') {
-                initializeNavigationMenu();
-            }
+            // Garante o binding do menu após injeção e disponibilidade da função global.
+            runWhenAvailable("initializeNavigationMenu");
         })
         .catch(err => console.error("Erro ao carregar menu global:", err));
 

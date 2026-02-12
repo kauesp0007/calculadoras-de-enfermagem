@@ -910,12 +910,24 @@ if (
     document.addEventListener("DOMContentLoaded", function() {
       fetch("/global-body-elements.html")
         .then(response => response.ok ? response.text() : "")
-        .then(data => document.getElementById("global-body-elements-placeholder").innerHTML = data)
+        .then(data => {
+          document.getElementById("global-body-elements-placeholder").innerHTML = data;
+          // Garante o binding dos botões da barra após o HTML ser injetado.
+          if (typeof initializeGlobalFunctions === "function") {
+            initializeGlobalFunctions();
+          }
+        })
         .catch(err => console.error("Erro ao carregar global-body-elements:", err));
 
       fetch("/menu-global.html")
         .then(response => response.ok ? response.text() : "")
-        .then(data => document.getElementById("global-header-container").innerHTML = data)
+        .then(data => {
+          document.getElementById("global-header-container").innerHTML = data;
+          // Garante o binding do menu após o HTML ser injetado.
+          if (typeof initializeNavigationMenu === "function") {
+            initializeNavigationMenu();
+          }
+        })
         .catch(err => console.error("Erro ao carregar menu global:", err));
 
       fetch("footer.html")
