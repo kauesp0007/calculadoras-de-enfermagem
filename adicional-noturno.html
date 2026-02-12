@@ -1,15 +1,16 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <!-- DNS Prefetch e Preconnect para Performance -->
+  <!-- DNS Prefetch e Preconnect -->
   <link rel="dns-prefetch" href="//googleads.g.doubleclick.net">
   <link rel="dns-prefetch" href="//pagead2.googlesyndication.com">
   <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin="">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
 
-  <!-- Preload de Recursos Críticos (Modularização) -->
+  <!-- Preload de Recursos Críticos -->
   <link rel="preload" href="/menu-global.html" as="fetch" crossorigin="">
   <link rel="preload" href="/global-body-elements.html" as="fetch" crossorigin="">
+  <link rel="preload" href="/footer.html" as="fetch" crossorigin="">
 
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -40,20 +41,29 @@
   <!-- Estilos Globais -->
   <style>
     body { font-family: 'Inter', sans-serif; background-color: #f8fafc; color: #1e293b; }
-    .card-shadow { box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); }
-    .input-focus:focus { ring: 2px; ring-color: #0ea5e9; border-color: #0ea5e9; outline: none; }
+    /* Garantir que o menu não quebre */
+    #menu-global-placeholder { width: 100%; display: block; }
   </style>
+
+  <!-- Google Tag Manager / Analytics (Igual ao berg.html) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-XXXXXXXXXX');
+  </script>
+  <!-- AdSense (Igual ao berg.html) -->
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXXXXXX" crossorigin="anonymous"></script>
+
 </head>
 <body class="flex flex-col min-h-screen">
 
-  <!-- Barra de Acessibilidade (Placeholder) -->
+  <!-- Barra de Acessibilidade -->
   <div id="global-body-elements-placeholder"></div>
 
-  <!-- Header Global (Placeholder) -->
-  <header id="header-placeholder"></header>
-
-  <!-- Menu Global (Placeholder) -->
-  <nav id="menu-global-placeholder"></nav>
+  <!-- Menu Global -->
+  <nav id="menu-global-placeholder" class="w-full z-50"></nav>
 
   <!-- Conteúdo Principal -->
   <main class="container mx-auto px-4 py-8 max-w-4xl flex-grow">
@@ -116,14 +126,22 @@
             <p class="text-xs text-gray-500 mt-1">Insira a soma das horas trabalhadas entre 22h e 05h.</p>
           </div>
 
-          <!-- Percentual Adicional -->
+          <!-- Percentual Adicional (Novo Select) -->
           <div>
             <label for="percentual" class="block text-sm font-semibold text-gray-700 mb-2">
               Percentual do Adicional (%)
             </label>
-            <input type="number" id="percentual" value="20" required
-              class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
-            <p class="text-xs text-gray-500 mt-1">Padrão CLT: 20%. Acordos coletivos podem ser maiores.</p>
+            <div class="relative">
+              <select id="percentual" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none bg-white appearance-none">
+                <option value="0.20">20% - Padrão CLT</option>
+                <option value="0.30">30% - Convenções/Acordos</option>
+                <option value="0.40">40% - Alguns hospitais</option>
+                <option value="0.50">50% - Hora extra noturna</option>
+              </select>
+              <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+                <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
+              </div>
+            </div>
           </div>
 
           <!-- Botões de Ação -->
@@ -205,40 +223,47 @@
   <!-- Rodapé Global (Placeholder) -->
   <div id="footer-placeholder"></div>
 
-  <!-- Scripts de Modularização e Lógica -->
+  <!-- Scripts de Modularização (Idêntico ao berg.html) -->
   <script>
-    // Carregar Menu, Header e Footer
-    document.addEventListener("DOMContentLoaded", function() {
-      // Função auxiliar para carregar HTML
-      function loadHTML(elementId, filePath) {
-        fetch(filePath)
-          .then(response => {
-            if (!response.ok) throw new Error(`Erro ao carregar ${filePath}`);
-            return response.text();
-          })
-          .then(data => {
-            document.getElementById(elementId).innerHTML = data;
-          })
-          .catch(error => console.error(error));
+    // Carregamento dos elementos globais
+    const loadGlobalElements = async () => {
+      try {
+        // Carrega Barra de Acessibilidade
+        const bodyResponse = await fetch('/global-body-elements.html');
+        if (bodyResponse.ok) {
+           document.getElementById('global-body-elements-placeholder').innerHTML = await bodyResponse.text();
+        }
+
+        // Carrega Menu Global
+        const menuResponse = await fetch('/menu-global.html');
+        if (menuResponse.ok) {
+           document.getElementById('menu-global-placeholder').innerHTML = await menuResponse.text();
+        }
+
+        // Carrega Footer
+        const footerResponse = await fetch('/footer.html');
+        if (footerResponse.ok) {
+           document.getElementById('footer-placeholder').innerHTML = await footerResponse.text();
+        }
+
+      } catch (error) {
+        console.error('Erro ao carregar elementos globais:', error);
       }
+    };
 
-      loadHTML("header-placeholder", "/header.html"); // Verifica se o nome correto é header.html ou outro no seu repo. Geralmente header global está no menu ou separado.
-      // Ajuste conforme seu padrão:
-      // Se "header-placeholder" é para o menu-global.html, ajuste aqui.
-      // Baseado no seu prompt: "menu-global.html" e "global-body-elements.html" e "footer.html"
+    // Iniciar carregamento
+    document.addEventListener('DOMContentLoaded', loadGlobalElements);
+  </script>
 
-      loadHTML("global-body-elements-placeholder", "/global-body-elements.html");
-      loadHTML("menu-global-placeholder", "/menu-global.html");
-      loadHTML("footer-placeholder", "/footer.html");
-
-      // Lógica da Calculadora
+  <!-- Lógica da Calculadora -->
+  <script>
+    document.addEventListener("DOMContentLoaded", function() {
       const form = document.getElementById('noturno-form');
       const categoriaSelect = document.getElementById('categoria');
       const horasContainer = document.getElementById('horas-container');
       const resultContainer = document.getElementById('result-container');
       const btnLimpar = document.getElementById('btn-limpar');
 
-      // Formatar Moeda
       const fmt = (v) => v.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
       // Alternar input de horas manuais
@@ -257,7 +282,9 @@
 
         // Obter valores
         const salario = parseFloat(document.getElementById('salario').value);
-        const percentual = parseFloat(document.getElementById('percentual').value) / 100;
+        // Pega valor direto do select (já está em decimal: 0.20, 0.30, etc)
+        const percentual = parseFloat(document.getElementById('percentual').value);
+
         let horasRelogio = 0;
 
         if (categoriaSelect.value === 'custom') {
@@ -268,22 +295,13 @@
 
         if (isNaN(salario) || isNaN(horasRelogio)) return;
 
-        // Divisor padrão mensal (geralmente 220h ou 180h, enfermagem 12x36 costuma usar divisor 180 ou 220 dependendo da convenção.
-        // Vou usar 220h como base padrão de cálculo hora, mas ajustável se necessário.
-        // Se for estritamente 12x36, o divisor comum é 220 ou 210 em alguns locais, mas para cálculo de hora avulsa usa-se 220h padrão CLT se não especificado.
-        // No entanto, para precisão, vamos calcular o valor da hora base.
         const divisor = 220;
         const valorHoraNormal = salario / divisor;
 
-        // Fator de redução da hora noturna (52m30s = 52.5 minutos)
-        // 60 / 52.5 = 1.142857
+        // Fator de redução
         const fatorNoturno = 1.142857;
-
-        // Horas Computadas (com a redução)
         const horasComputadas = horasRelogio * fatorNoturno;
 
-        // Valor do Adicional
-        // Fórmula: Valor Hora Normal * Percentual * Horas Computadas
         const valorAdicionalPorHora = valorHoraNormal * percentual;
         const totalAdicional = valorAdicionalPorHora * horasComputadas;
 
@@ -292,7 +310,7 @@
         document.getElementById('res-salario').textContent = fmt(salario);
         document.getElementById('res-hora-normal').textContent = fmt(valorHoraNormal);
         document.getElementById('res-perc-text').textContent = (percentual * 100).toFixed(0);
-        document.getElementById('res-adic-hora').textContent = fmt(valorAdicionalPorHora); // Valor SÓ do adicional por hora
+        document.getElementById('res-adic-hora').textContent = fmt(valorAdicionalPorHora);
         document.getElementById('res-horas-relogio').textContent = horasRelogio;
         document.getElementById('res-horas-comp').textContent = horasComputadas.toFixed(2).replace('.', ',');
 
@@ -314,17 +332,7 @@
         horasContainer.classList.add('hidden');
         document.getElementById('salario').focus();
       });
-
     });
-  </script>
-
-  <!-- Google Analytics e Consent Mode (Placeholder - Script Global) -->
-  <script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
-  <script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
-    gtag('config', 'G-XXXXXXXXXX');
   </script>
 
 </body>
