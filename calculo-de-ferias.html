@@ -265,14 +265,12 @@
   <!-- Componentes Globais Injetados via JS -->
   <div id="global-body-elements-placeholder"></div>
 
-  <!-- CORREÇÃO: Adicionado z-index alto e relative para o Menu Global ficar acima de tudo -->
-  <div id="global-header-container" style="min-height: 70px;" class="no-print relative z-[60] w-full"></div>
+  <!-- Container do Menu Global (Padrão) -->
+  <div id="global-header-container" style="min-height: 70px;"></div>
+  <div id="language-dropdown-wrapper" class="hidden absolute top-16 right-4 z-50 bg-white shadow-md rounded-md"></div>
 
-  <!-- CORREÇÃO: Dropdown de idiomas posicionado com margem de segurança para o topo -->
-  <div id="language-dropdown-wrapper" class="hidden absolute top-20 right-4 z-[70] bg-white shadow-md rounded-md no-print"></div>
-
-  <!-- CORREÇÃO: Padding Top (pt-28) e Margin Top (mt-8) adicionados para descer o conteúdo principal -->
-  <main id="main-content" class="flex-grow container mx-auto px-4 py-8 max-w-4xl pt-28 mt-8">
+  <!-- Conteúdo Principal - Mantendo pt-10 como no ballard.html -->
+  <main id="main-content" class="flex-grow container mx-auto px-4 py-8 max-w-4xl pt-10">
 
     <!-- Breadcrumbs -->
     <nav aria-label="Breadcrumb" class="mb-6 no-print">
@@ -285,8 +283,8 @@
       </ol>
     </nav>
 
-    <!-- Cabeçalho da Página -->
-    <header class="text-center mb-8">
+    <!-- Substituição da tag <header> por <div> para evitar conflito com o Menu Global -->
+    <div class="text-center mb-8">
       <h1 id="main-title" class="font-nunito font-bold text-[#1A3E74] text-3xl lg:text-4xl mb-2 flex items-center justify-center gap-3">
         Calculadora de Férias CLT 2026
         <span class="beta-tag">BETA</span>
@@ -298,7 +296,7 @@
       <p class="text-gray-500 max-w-2xl mx-auto text-sm lg:text-base leading-relaxed">
         Simule o seu descanso auditando as novas faixas de <strong>Isenção de IR (R$ 5.000,00)</strong> e a tabela progressiva de <strong>INSS 2026</strong>.
       </p>
-    </header>
+    </div>
 
     <!-- Formulário de Inputs (Layout BETA) -->
     <section id="conteudo" class="mb-10">
@@ -471,6 +469,13 @@
         .then(response => response.ok ? response.text() : "")
         .then(data => document.getElementById("footer-placeholder").innerHTML = data)
         .catch(err => console.error("Erro ao carregar footer:", err));
+    });
+
+    // Bloqueia a alteração do valor de inputs 'number' quando o usuário usar a roda do rato (scroll)
+    document.addEventListener("wheel", function(event) {
+      if (document.activeElement.type === "number") {
+        document.activeElement.blur();
+      }
     });
 
     // LÓGICA MATEMÁTICA E RENDERIZAÇÃO (Padrão BETA Fornecido)
