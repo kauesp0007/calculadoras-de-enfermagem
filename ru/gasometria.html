@@ -82,14 +82,15 @@
   </noscript>
   <script>
 /* =========================================================
-   РЕЖИМ АДМИНА + GOOGLE TAG + СОГЛАСИЕ + ADSENSE (LAZY LOAD)
+   MODO ADMIN + GOOGLE TAG + CONSENT + ADSENSE (LAZY LOAD TOTAL)
+   (VERSÃO ATUALIZADA: G-PFM06B7TS5 PRINCIPAL + OUTROS GA4 + 2 AW + ADSENSE)
    ========================================================= */
 
 if (
   localStorage.getItem('admin_mode') === 'true' ||
   new URLSearchParams(window.location.search).get('admin') === '1'
 ) {
-  console.log('🚧 Режим администратора: Заблокировано.');
+  console.log('🚧 Modo Admin: Bloqueado.');
   if (new URLSearchParams(window.location.search).get('admin') === '1') {
     localStorage.setItem('admin_mode','true');
   }
@@ -112,11 +113,13 @@ if (
     var aState = isRefused ? "denied" : (localStorage.getItem("analytics_storage") || "granted");
     var adState = adsBlocked ? "denied" : "granted";
 
+    /* ✅ Carrega o gtag.js do GA4 principal TS5 */
     var s = document.createElement("script");
     s.async = true;
     s.src = "https://www.googletagmanager.com/gtag/js?id=G-PFM06B7TS5";
     document.head.appendChild(s);
 
+    /* ✅ Configura consentimento default antes de qualquer config */
     gtag("consent","default",{
       analytics_storage: aState,
       ad_storage: adState,
@@ -127,15 +130,19 @@ if (
 
     gtag("js", new Date());
 
-    gtag("config","G-PFM06B7TS5");
+    /* GA4 (múltiplas propriedades/destinos) */
+    gtag("config","G-PFM06B7TS5");    // TAG PRINCIPAL
     gtag("config","G-MJDKPDPJ26");
     gtag("config","G-M7DHHF38EJ");
     gtag("config","G-8FLJ59XXDK");
     gtag("config","G-VVDP5JGEX8");
     gtag("config","G-EX8");
 
+    /* Google Ads - mantém as duas tags */
     gtag("config","AW-952633102");
     gtag("config","AW-9277197961");
+
+    console.log("📈 Analytics carregado via Lazy Load.");
   }
 
   function loadAdSenseOnce() {
@@ -146,29 +153,37 @@ if (
     ad.src = "https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6472730056006847";
     ad.crossOrigin = "anonymous";
     document.head.appendChild(ad);
+    console.log("💰 AdSense carregado via Lazy Load.");
   }
 
-  loadAnalytics();
-
+  // --- FUNÇÃO DE CARREGAMENTO UNIFICADO (LAZY LOAD TOTAL) ---
   function onUserInteraction(){
+    loadAnalytics(); // Agora o Analytics só carrega aqui
     loadAdSenseOnce();
+
+    // Remove os ouvintes para garantir execução única
     window.removeEventListener("scroll", onUserInteraction);
     window.removeEventListener("mousemove", onUserInteraction);
     window.removeEventListener("touchstart", onUserInteraction);
+    window.removeEventListener("keydown", onUserInteraction);
   }
 
+  // Se não estiver bloqueado, aguarda interação ou tempo limite (fallback)
   if (!adsBlocked){
     window.addEventListener("scroll", onUserInteraction, {passive:true});
     window.addEventListener("mousemove", onUserInteraction, {passive:true});
     window.addEventListener("touchstart", onUserInteraction, {passive:true});
-    setTimeout(loadAdSenseOnce, 3500);
+    window.addEventListener("keydown", onUserInteraction, {passive:true});
+
+    // Fallback: Se o usuário não interagir, carrega tudo após 4 segundos
+    setTimeout(onUserInteraction, 4000);
   }
 
   function applyConsent(consent){
     gtag("consent","update", consent);
     if (consent.ad_storage === "granted"){
       adsBlocked = false;
-      loadAdSenseOnce();
+      onUserInteraction(); // Tenta carregar tudo se o consentimento for dado
     } else {
       adsBlocked = true;
       document.querySelectorAll("ins.adsbygoogle, .google-auto-placed")

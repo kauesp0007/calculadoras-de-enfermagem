@@ -74,129 +74,139 @@
 
   <!-- Google Analytics & Consent Mode -->
   <script>
-    /* =========================================================
-       MODO ADMIN + GOOGLE TAG + CONSENT + ADSENSE (LAZY LOAD)
-       (VERSÃO ATUALIZADA: G-PFM06B7TS5 PRINCIPAL + OUTROS GA4 + 2 AW + ADSENSE)
-       ========================================================= */
+/* =========================================================
+   MODO ADMIN + GOOGLE TAG + CONSENT + ADSENSE (LAZY LOAD TOTAL)
+   (VERSÃO ATUALIZADA: G-PFM06B7TS5 PRINCIPAL + OUTROS GA4 + 2 AW + ADSENSE)
+   ========================================================= */
 
-    if (
-      localStorage.getItem('admin_mode') === 'true' ||
-      new URLSearchParams(window.location.search).get('admin') === '1'
-    ) {
-      console.log('🚧 Modo Admin: Bloqueado.');
-      if (new URLSearchParams(window.location.search).get('admin') === '1') {
-        localStorage.setItem('admin_mode', 'true');
-      }
+if (
+  localStorage.getItem('admin_mode') === 'true' ||
+  new URLSearchParams(window.location.search).get('admin') === '1'
+) {
+  console.log('🚧 Modo Admin: Bloqueado.');
+  if (new URLSearchParams(window.location.search).get('admin') === '1') {
+    localStorage.setItem('admin_mode','true');
+  }
+} else {
+  var savedConsent = localStorage.getItem("cookieConsent");
+  var isRefused = (savedConsent === "refused");
+  var isManaged = (savedConsent === "managed");
+  var adsBlocked = isRefused || (isManaged && localStorage.getItem("ad_storage") === "denied");
+
+  window.__metricsLoaded = false;
+  window.__adsenseLoaded = false;
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){ dataLayer.push(arguments); }
+  window.gtag = gtag;
+
+  function loadAnalytics() {
+    if (window.__metricsLoaded) return;
+    window.__metricsLoaded = true;
+
+    var aState = isRefused ? "denied" : (localStorage.getItem("analytics_storage") || "granted");
+    var adState = adsBlocked ? "denied" : "granted";
+
+    /* ✅ Carrega o gtag.js do GA4 principal TS5 */
+    var s = document.createElement("script");
+    s.async = true;
+    s.src = "https://www.googletagmanager.com/gtag/js?id=G-PFM06B7TS5";
+    document.head.appendChild(s);
+
+    /* ✅ Configura consentimento default antes de qualquer config */
+    gtag("consent","default",{
+      analytics_storage: aState,
+      ad_storage: adState,
+      ad_user_data: adState,
+      ad_personalization: adState,
+      wait_for_update: 500
+    });
+
+    gtag("js", new Date());
+
+    /* GA4 (múltiplas propriedades/destinos) */
+    gtag("config","G-PFM06B7TS5");    // TAG PRINCIPAL
+    gtag("config","G-MJDKPDPJ26");
+    gtag("config","G-M7DHHF38EJ");
+    gtag("config","G-8FLJ59XXDK");
+    gtag("config","G-VVDP5JGEX8");
+    gtag("config","G-EX8");
+
+    /* Google Ads - mantém as duas tags */
+    gtag("config","AW-952633102");
+    gtag("config","AW-9277197961");
+
+    console.log("📈 Analytics carregado via Lazy Load.");
+  }
+
+  function loadAdSenseOnce() {
+    if (window.__adsenseLoaded || adsBlocked) return;
+    window.__adsenseLoaded = true;
+    var ad = document.createElement("script");
+    ad.async = true;
+    ad.src = "https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6472730056006847";
+    ad.crossOrigin = "anonymous";
+    document.head.appendChild(ad);
+    console.log("💰 AdSense carregado via Lazy Load.");
+  }
+
+  // --- FUNÇÃO DE CARREGAMENTO UNIFICADO (LAZY LOAD TOTAL) ---
+  function onUserInteraction(){
+    loadAnalytics(); // Agora o Analytics só carrega aqui
+    loadAdSenseOnce();
+
+    // Remove os ouvintes para garantir execução única
+    window.removeEventListener("scroll", onUserInteraction);
+    window.removeEventListener("mousemove", onUserInteraction);
+    window.removeEventListener("touchstart", onUserInteraction);
+    window.removeEventListener("keydown", onUserInteraction);
+  }
+
+  // Se não estiver bloqueado, aguarda interação ou tempo limite (fallback)
+  if (!adsBlocked){
+    window.addEventListener("scroll", onUserInteraction, {passive:true});
+    window.addEventListener("mousemove", onUserInteraction, {passive:true});
+    window.addEventListener("touchstart", onUserInteraction, {passive:true});
+    window.addEventListener("keydown", onUserInteraction, {passive:true});
+
+    // Fallback: Se o usuário não interagir, carrega tudo após 4 segundos
+    setTimeout(onUserInteraction, 4000);
+  }
+
+  function applyConsent(consent){
+    gtag("consent","update", consent);
+    if (consent.ad_storage === "granted"){
+      adsBlocked = false;
+      onUserInteraction(); // Tenta carregar tudo se o consentimento for dado
     } else {
-      var savedConsent = localStorage.getItem("cookieConsent");
-      var isRefused = (savedConsent === "refused");
-      var isManaged = (savedConsent === "managed");
-      var adsBlocked = isRefused || (isManaged && localStorage.getItem("ad_storage") === "denied");
-
-      window.__metricsLoaded = false;
-      window.__adsenseLoaded = false;
-      window.dataLayer = window.dataLayer || [];
-      function gtag() { dataLayer.push(arguments); }
-      window.gtag = gtag;
-
-      function loadAnalytics() {
-        if (window.__metricsLoaded) return;
-        window.__metricsLoaded = true;
-
-        var aState = isRefused ? "denied" : (localStorage.getItem("analytics_storage") || "granted");
-        var adState = adsBlocked ? "denied" : "granted";
-
-        /* ✅ Carrega o gtag.js do GA4 principal TS5 */
-        var s = document.createElement("script");
-        s.async = true;
-        s.src = "https://www.googletagmanager.com/gtag/js?id=G-PFM06B7TS5";
-        document.head.appendChild(s);
-
-        /* ✅ Configura consentimento default antes de qualquer config */
-        gtag("consent", "default", {
-          analytics_storage: aState,
-          ad_storage: adState,
-          ad_user_data: adState,
-          ad_personalization: adState,
-          wait_for_update: 500
-        });
-
-        gtag("js", new Date());
-
-        /* GA4 (múltiplas propriedades/destinos) */
-        gtag("config", "G-PFM06B7TS5");    // TAG PRINCIPAL
-        gtag("config", "G-MJDKPDPJ26");
-        gtag("config", "G-M7DHHF38EJ");
-        gtag("config", "G-8FLJ59XXDK");
-        gtag("config", "G-VVDP5JGEX8");
-        gtag("config", "G-EX8");
-
-        /* Google Ads - mantém as duas tags */
-        gtag("config", "AW-952633102");
-        gtag("config", "AW-9277197961");
-      }
-
-      function loadAdSenseOnce() {
-        if (window.__adsenseLoaded || adsBlocked) return;
-        window.__adsenseLoaded = true;
-        var ad = document.createElement("script");
-        ad.async = true;
-        ad.src = "https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6472730056006847";
-        ad.crossOrigin = "anonymous";
-        document.head.appendChild(ad);
-      }
-
-      loadAnalytics();
-
-      function onUserInteraction() {
-        loadAdSenseOnce();
-        window.removeEventListener("scroll", onUserInteraction);
-        window.removeEventListener("mousemove", onUserInteraction);
-        window.removeEventListener("touchstart", onUserInteraction);
-      }
-
-      if (!adsBlocked) {
-        window.addEventListener("scroll", onUserInteraction, { passive: true });
-        window.addEventListener("mousemove", onUserInteraction, { passive: true });
-        window.addEventListener("touchstart", onUserInteraction, { passive: true });
-        setTimeout(loadAdSenseOnce, 3500);
-      }
-
-      function applyConsent(consent) {
-        gtag("consent", "update", consent);
-        if (consent.ad_storage === "granted") {
-          adsBlocked = false;
-          loadAdSenseOnce();
-        } else {
-          adsBlocked = true;
-          document.querySelectorAll("ins.adsbygoogle, .google-auto-placed")
-            .forEach(ad => { ad.style.display = "none"; ad.innerHTML = ""; });
-        }
-        localStorage.setItem("analytics_storage", consent.analytics_storage);
-        localStorage.setItem("ad_storage", consent.ad_storage);
-      }
-
-      window.acceptAllCookies = function () {
-        localStorage.setItem("cookieConsent", "accepted");
-        applyConsent({
-          analytics_storage: "granted",
-          ad_storage: "granted",
-          ad_user_data: "granted",
-          ad_personalization: "granted"
-        });
-      };
-
-      window.rejectAllCookies = function () {
-        localStorage.setItem("cookieConsent", "refused");
-        applyConsent({
-          analytics_storage: "denied",
-          ad_storage: "denied",
-          ad_user_data: "denied",
-          ad_personalization: "denied"
-        });
-      };
+      adsBlocked = true;
+      document.querySelectorAll("ins.adsbygoogle, .google-auto-placed")
+        .forEach(ad => { ad.style.display="none"; ad.innerHTML=""; });
     }
-  </script>
+    localStorage.setItem("analytics_storage", consent.analytics_storage);
+    localStorage.setItem("ad_storage", consent.ad_storage);
+  }
+
+  window.acceptAllCookies = function(){
+    localStorage.setItem("cookieConsent","accepted");
+    applyConsent({
+      analytics_storage:"granted",
+      ad_storage:"granted",
+      ad_user_data:"granted",
+      ad_personalization:"granted"
+    });
+  };
+
+  window.rejectAllCookies = function(){
+    localStorage.setItem("cookieConsent","refused");
+    applyConsent({
+      analytics_storage:"denied",
+      ad_storage:"denied",
+      ad_user_data:"denied",
+      ad_personalization:"denied"
+    });
+  };
+}
+</script>
 
 
 

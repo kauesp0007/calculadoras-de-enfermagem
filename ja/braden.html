@@ -58,7 +58,7 @@
     <!-- Google Analytics & Consent Mode -->
     <script>
 /* =========================================================
-   MODO ADMIN + GOOGLE TAG + CONSENT + ADSENSE (LAZY LOAD)
+   MODO ADMIN + GOOGLE TAG + CONSENT + ADSENSE (LAZY LOAD TOTAL)
    (VERSÃO ATUALIZADA: G-PFM06B7TS5 PRINCIPAL + OUTROS GA4 + 2 AW + ADSENSE)
    ========================================================= */
 
@@ -117,6 +117,8 @@ if (
     /* Google Ads - mantém as duas tags */
     gtag("config","AW-952633102");
     gtag("config","AW-9277197961");
+
+    console.log("📈 Analytics carregado via Lazy Load.");
   }
 
   function loadAdSenseOnce() {
@@ -127,29 +129,37 @@ if (
     ad.src = "https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6472730056006847";
     ad.crossOrigin = "anonymous";
     document.head.appendChild(ad);
+    console.log("💰 AdSense carregado via Lazy Load.");
   }
 
-  loadAnalytics();
-
+  // --- FUNÇÃO DE CARREGAMENTO UNIFICADO (LAZY LOAD TOTAL) ---
   function onUserInteraction(){
+    loadAnalytics(); // Agora o Analytics só carrega aqui
     loadAdSenseOnce();
+
+    // Remove os ouvintes para garantir execução única
     window.removeEventListener("scroll", onUserInteraction);
     window.removeEventListener("mousemove", onUserInteraction);
     window.removeEventListener("touchstart", onUserInteraction);
+    window.removeEventListener("keydown", onUserInteraction);
   }
 
+  // Se não estiver bloqueado, aguarda interação ou tempo limite (fallback)
   if (!adsBlocked){
     window.addEventListener("scroll", onUserInteraction, {passive:true});
     window.addEventListener("mousemove", onUserInteraction, {passive:true});
     window.addEventListener("touchstart", onUserInteraction, {passive:true});
-    setTimeout(loadAdSenseOnce, 3500);
+    window.addEventListener("keydown", onUserInteraction, {passive:true});
+
+    // Fallback: Se o usuário não interagir, carrega tudo após 4 segundos
+    setTimeout(onUserInteraction, 4000);
   }
 
   function applyConsent(consent){
     gtag("consent","update", consent);
     if (consent.ad_storage === "granted"){
       adsBlocked = false;
-      loadAdSenseOnce();
+      onUserInteraction(); // Tenta carregar tudo se o consentimento for dado
     } else {
       adsBlocked = true;
       document.querySelectorAll("ins.adsbygoogle, .google-auto-placed")
