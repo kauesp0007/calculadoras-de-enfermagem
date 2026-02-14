@@ -65,7 +65,130 @@
 
   <!-- Fontes Google -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=Nunito:wght@400;700;900&display=swap" rel="stylesheet">
+<script>
+    /* =========================================================
+       MODO ADMIN + GOOGLE TAG + CONSENT + ADSENSE (LAZY LOAD)
+       (VERSÃO ATUALIZADA: G-PFM06B7TS5 PRINCIPAL + OUTROS GA4 + 2 AW + ADSENSE)
+       ========================================================= */
 
+    if (
+      localStorage.getItem('admin_mode') === 'true' ||
+      new URLSearchParams(window.location.search).get('admin') === '1'
+    ) {
+      console.log('🚧 Modo Admin: Bloqueado.');
+      if (new URLSearchParams(window.location.search).get('admin') === '1') {
+        localStorage.setItem('admin_mode', 'true');
+      }
+    } else {
+      var savedConsent = localStorage.getItem("cookieConsent");
+      var isRefused = (savedConsent === "refused");
+      var isManaged = (savedConsent === "managed");
+      var adsBlocked = isRefused || (isManaged && localStorage.getItem("ad_storage") === "denied");
+
+      window.__metricsLoaded = false;
+      window.__adsenseLoaded = false;
+      window.dataLayer = window.dataLayer || [];
+      function gtag() { dataLayer.push(arguments); }
+      window.gtag = gtag;
+
+      function loadAnalytics() {
+        if (window.__metricsLoaded) return;
+        window.__metricsLoaded = true;
+
+        var aState = isRefused ? "denied" : (localStorage.getItem("analytics_storage") || "granted");
+        var adState = adsBlocked ? "denied" : "granted";
+
+        /* ✅ Carrega o gtag.js do GA4 principal TS5 */
+        var s = document.createElement("script");
+        s.async = true;
+        s.src = "https://www.googletagmanager.com/gtag/js?id=G-PFM06B7TS5";
+        document.head.appendChild(s);
+
+        /* ✅ Configura consentimento default antes de qualquer config */
+        gtag("consent", "default", {
+          analytics_storage: aState,
+          ad_storage: adState,
+          ad_user_data: adState,
+          ad_personalization: adState,
+          wait_for_update: 500
+        });
+
+        gtag("js", new Date());
+
+        /* GA4 (múltiplas propriedades/destinos) */
+        gtag("config", "G-PFM06B7TS5");    // TAG PRINCIPAL
+        gtag("config", "G-MJDKPDPJ26");
+        gtag("config", "G-M7DHHF38EJ");
+        gtag("config", "G-8FLJ59XXDK");
+        gtag("config", "G-VVDP5JGEX8");
+        gtag("config", "G-EX8");
+
+        /* Google Ads - mantém as duas tags */
+        gtag("config", "AW-952633102");
+        gtag("config", "AW-9277197961");
+      }
+
+      function loadAdSenseOnce() {
+        if (window.__adsenseLoaded || adsBlocked) return;
+        window.__adsenseLoaded = true;
+        var ad = document.createElement("script");
+        ad.async = true;
+        ad.src = "https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6472730056006847";
+        ad.crossOrigin = "anonymous";
+        document.head.appendChild(ad);
+      }
+
+      loadAnalytics();
+
+      function onUserInteraction() {
+        loadAdSenseOnce();
+        window.removeEventListener("scroll", onUserInteraction);
+        window.removeEventListener("mousemove", onUserInteraction);
+        window.removeEventListener("touchstart", onUserInteraction);
+      }
+
+      if (!adsBlocked) {
+        window.addEventListener("scroll", onUserInteraction, { passive: true });
+        window.addEventListener("mousemove", onUserInteraction, { passive: true });
+        window.addEventListener("touchstart", onUserInteraction, { passive: true });
+        setTimeout(loadAdSenseOnce, 3500);
+      }
+
+      function applyConsent(consent) {
+        gtag("consent", "update", consent);
+        if (consent.ad_storage === "granted") {
+          adsBlocked = false;
+          loadAdSenseOnce();
+        } else {
+          adsBlocked = true;
+          document.querySelectorAll("ins.adsbygoogle, .google-auto-placed")
+            .forEach(ad => { ad.style.display = "none"; ad.innerHTML = ""; });
+        }
+        localStorage.setItem("analytics_storage", consent.analytics_storage);
+        localStorage.setItem("ad_storage", consent.ad_storage);
+      }
+
+      window.acceptAllCookies = function () {
+        localStorage.setItem("cookieConsent", "accepted");
+        applyConsent({
+          analytics_storage: "granted",
+          ad_storage: "granted",
+          ad_user_data: "granted",
+          ad_personalization: "granted"
+        });
+      };
+
+      window.rejectAllCookies = function () {
+        localStorage.setItem("cookieConsent", "refused");
+        applyConsent({
+          analytics_storage: "denied",
+          ad_storage: "denied",
+          ad_user_data: "denied",
+          ad_personalization: "denied"
+        });
+      };
+    }
+  </script>
   <!-- Schema.org JSON-LD -->
   <script type="application/ld+json">
   {
@@ -98,40 +221,304 @@
   }
   </script>
 
-  <!-- Bibliotecas PDF & QR (Necessárias para o funcionamento) -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" defer></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" defer></script>
 </head>
 
 <body class="bg-slate-50 text-slate-900 font-inter antialiased selection:bg-blue-100 selection:text-blue-900">
 
-  <!-- Acessibilidade e Header (Injetados via script) -->
-  <div id="accessibility-container"></div>
+  <!-- Header (Injetado via script) -->
+
   <div id="global-header-container"></div>
 
-  <!-- Menu de Idiomas -->
-  <div id="language-dropdown-wrapper" class="hidden bg-white shadow-lg rounded-lg absolute z-50 mt-2 py-2 w-48 border border-gray-100">
-    <a href="/calculo-rescisao.html" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"><img src="/img/flags/br.svg" alt="Português" class="w-5 h-5"> Português</a>
-    <a href="/en/calculo-rescisao.html" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"><img src="/img/flags/us.svg" alt="English" class="w-5 h-5"> English</a>
-    <a href="/es/calculo-rescisao.html" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"><img src="/img/flags/es.svg" alt="Español" class="w-5 h-5"> Español</a>
-    <a href="/fr/calculo-rescisao.html" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"><img src="/img/flags/fr.svg" alt="Français" class="w-5 h-5"> Français</a>
-    <a href="/it/calculo-rescisao.html" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"><img src="/img/flags/it.svg" alt="Italiano" class="w-5 h-5"> Italiano</a>
-    <a href="/de/calculo-rescisao.html" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"><img src="/img/flags/de.svg" alt="Deutsch" class="w-5 h-5"> Deutsch</a>
-    <a href="/hi/calculo-rescisao.html" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"><img src="/img/flags/in.svg" alt="Hindi" class="w-5 h-5"> हिन्दी</a>
-    <a href="/zh/calculo-rescisao.html" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"><img src="/img/flags/cn.svg" alt="Chinese" class="w-5 h-5"> 中文</a>
-    <a href="/ja/calculo-rescisao.html" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"><img src="/img/flags/jp.svg" alt="Japanese" class="w-5 h-5"> 日本語</a>
-    <a href="/ru/calculo-rescisao.html" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"><img src="/img/flags/ru.svg" alt="Russian" class="w-5 h-5"> Русский</a>
-    <a href="/ko/calculo-rescisao.html" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"><img src="/img/flags/kr.svg" alt="Korean" class="w-5 h-5"> 한국어</a>
-    <a href="/tr/calculo-rescisao.html" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"><img src="/img/flags/tr.svg" alt="Turkish" class="w-5 h-5"> Türkçe</a>
-    <a href="/nl/calculo-rescisao.html" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"><img src="/img/flags/nl.svg" alt="Dutch" class="w-5 h-5"> Nederlands</a>
-    <a href="/pl/calculo-rescisao.html" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"><img src="/img/flags/pl.svg" alt="Polish" class="w-5 h-5"> Polski</a>
-    <a href="/sv/calculo-rescisao.html" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"><img src="/img/flags/se.svg" alt="Swedish" class="w-5 h-5"> Svenska</a>
-    <a href="/id/calculo-rescisao.html" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"><img src="/img/flags/id.svg" alt="Indonesian" class="w-5 h-5"> Bahasa Indonesia</a>
-    <a href="/vi/calculo-rescisao.html" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"><img src="/img/flags/vn.svg" alt="Vietnamese" class="w-5 h-5"> Tiếng Việt</a>
-    <a href="/uk/calculo-rescisao.html" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"><img src="/img/flags/ua.svg" alt="Ukrainian" class="w-5 h-5"> Українська</a>
-    <a href="/ar/calculo-rescisao.html" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"><img src="/img/flags/sa.svg" alt="Arabic" class="w-5 h-5"> العربية</a>
+  <div
+  id="language-dropdown-wrapper"
+  class="flex justify-end w-full"
+  style="position: relative; z-index: 100; padding-right: 2rem"
+>
+  <div class="relative inline-block text-left z-50">
+    <button
+      id="langButton"
+      class="flex items-center space-x-2 border px-3 py-1 rounded-lg shadow bg-gray-100"
+    >
+      <img loading="lazy"
+        id="langFlag"
+        width="20"
+        height="16"
+        src="bandeira-brasil.webp"
+        alt="PT"
+        class="w-5 h-4 rounded-sm"
+      />
+      <span id="langText" class="text-gray-700 font-medium">Português</span>
+      <svg
+        class="w-4 h-4 text-gray-500"
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+        aria-hidden="true"
+      >
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d="M19 9l-7 7-7-7"
+        />
+      </svg>
+    </button>
+
+    <div
+      id="langMenu"
+      class="hidden absolute right-0 mt-2 w-44 bg-white border rounded-lg shadow-lg"
+    >
+      <div
+        class="flex items-center px-3 py-2 hover:bg-gray-100 cursor-pointer space-x-2"
+        data-value="pt"
+        data-flag="bandeira-brasil.webp"
+      >
+        <img loading="lazy"
+          src="bandeira-brasil.webp"
+          class="w-5 h-4 rounded-sm"
+          alt="PT"
+          width="20"
+          height="16"
+        /><span>Português</span>
+      </div>
+      <div
+        class="flex items-center px-3 py-2 hover:bg-gray-100 cursor-pointer space-x-2"
+        data-value="en"
+        data-flag="bandeira-eua.webp"
+      >
+        <img loading="lazy"
+          src="bandeira-eua.webp"
+          class="w-5 h-4 rounded-sm"
+          alt="EN"
+          width="20"
+          height="16"
+        /><span>English</span>
+      </div>
+      <div
+        class="flex items-center px-3 py-2 hover:bg-gray-100 cursor-pointer space-x-2"
+        data-value="es"
+        data-flag="bandeira-espanha.webp"
+      >
+        <img loading="lazy"
+          src="bandeira-espanha.webp"
+          class="w-5 h-4 rounded-sm"
+          alt="ES"
+          width="20"
+          height="16"
+        /><span>Español</span>
+      </div>
+      <div
+        class="flex items-center px-3 py-2 hover:bg-gray-100 cursor-pointer space-x-2"
+        data-value="de"
+        data-flag="bandeira-alemanha.webp"
+      >
+        <img loading="lazy"
+          src="bandeira-alemanha.webp"
+          class="w-5 h-4 rounded-sm"
+          alt="DE"
+          width="20"
+          height="16"
+        /><span>Deutsch</span>
+      </div>
+      <div
+        class="flex items-center px-3 py-2 hover:bg-gray-100 cursor-pointer space-x-2"
+        data-value="it"
+        data-flag="bandeira-italia.webp"
+      >
+        <img loading="lazy"
+          src="bandeira-italia.webp"
+          class="w-5 h-4 rounded-sm"
+          alt="IT"
+          width="20"
+          height="16"
+        /><span>Italiano</span>
+      </div>
+      <div
+        class="flex items-center px-3 py-2 hover:bg-gray-100 cursor-pointer space-x-2"
+        data-value="fr"
+        data-flag="bandeira-franca.webp"
+      >
+        <img loading="lazy"
+          src="bandeira-franca.webp"
+          class="w-5 h-4 rounded-sm"
+          alt="FR"
+          width="20"
+          height="16"
+        /><span>Français</span>
+      </div>
+      <div
+        class="flex items-center px-3 py-2 hover:bg-gray-100 cursor-pointer space-x-2"
+        data-value="hi"
+        data-flag="bandeira-india.webp"
+      >
+        <img loading="lazy"
+          src="bandeira-india.webp"
+          class="w-5 h-4 rounded-sm"
+          alt="HI"
+          width="20"
+          height="16"
+        /><span>हिन्दी</span>
+      </div>
+      <div
+        class="flex items-center px-3 py-2 hover:bg-gray-100 cursor-pointer space-x-2"
+        data-value="zh"
+        data-flag="bandeira-china.webp"
+      >
+        <img loading="lazy"
+          src="bandeira-china.webp"
+          class="w-5 h-4 rounded-sm"
+          alt="ZH"
+          width="20"
+          height="16"
+        /><span>中文</span>
+      </div>
+      <div
+        class="flex items-center px-3 py-2 hover:bg-gray-100 cursor-pointer space-x-2"
+        data-value="ar"
+        data-flag="bandeira-arabia.webp"
+      >
+        <img loading="lazy"
+          src="bandeira-arabia.webp"
+          class="w-5 h-4 rounded-sm"
+          alt="AR"
+          width="20"
+          height="16"
+        /><span>العربية</span>
+      </div>
+      <div
+        class="flex items-center px-3 py-2 hover:bg-gray-100 cursor-pointer space-x-2"
+        data-value="ja"
+        data-flag="bandeira-japao.webp"
+      >
+        <img loading="lazy"
+          src="bandeira-japao.webp"
+          class="w-5 h-4 rounded-sm"
+          alt="JA"
+          width="20"
+          height="16"
+        /><span>日本語</span>
+      </div>
+      <div
+        class="flex items-center px-3 py-2 hover:bg-gray-100 cursor-pointer space-x-2"
+        data-value="ru"
+        data-flag="bandeira-russia.webp"
+      >
+        <img loading="lazy"
+          src="bandeira-russia.webp"
+          class="w-5 h-4 rounded-sm"
+          alt="RU"
+          width="20"
+          height="16"
+        /><span>Русский</span>
+      </div>
+      <div
+        class="flex items-center px-3 py-2 hover:bg-gray-100 cursor-pointer space-x-2"
+        data-value="ko"
+        data-flag="bandeira-coreia.webp"
+      >
+        <img loading="lazy"
+          src="bandeira-coreia.webp"
+          class="w-5 h-4 rounded-sm"
+          alt="KO"
+          width="20"
+          height="16"
+        /><span>한국어</span>
+      </div>
+      <div
+        class="flex items-center px-3 py-2 hover:bg-gray-100 cursor-pointer space-x-2"
+        data-value="tr"
+        data-flag="bandeira-turquia.webp"
+      >
+        <img loading="lazy"
+          src="bandeira-turquia.webp"
+          class="w-5 h-4 rounded-sm"
+          alt="TR"
+          width="20"
+          height="16"
+        /><span>Türkçe</span>
+      </div>
+      <div
+        class="flex items-center px-3 py-2 hover:bg-gray-100 cursor-pointer space-x-2"
+        data-value="nl"
+        data-flag="bandeira-holanda.webp"
+      >
+        <img loading="lazy"
+          src="bandeira-holanda.webp"
+          class="w-5 h-4 rounded-sm"
+          alt="NL"
+          width="20"
+          height="16"
+        /><span>Nederlands</span>
+      </div>
+      <div
+        class="flex items-center px-3 py-2 hover:bg-gray-100 cursor-pointer space-x-2"
+        data-value="pl"
+        data-flag="bandeira-polonia.webp"
+      >
+        <img loading="lazy"
+          src="bandeira-polonia.webp"
+          class="w-5 h-4 rounded-sm"
+          alt="PL"
+          width="20"
+          height="16"
+        /><span>Polski</span>
+      </div>
+      <div
+        class="flex items-center px-3 py-2 hover:bg-gray-100 cursor-pointer space-x-2"
+        data-value="sv"
+        data-flag="bandeira-suecia.webp"
+      >
+        <img loading="lazy"
+          src="bandeira-suecia.webp"
+          class="w-5 h-4 rounded-sm"
+          alt="SV"
+          width="20"
+          height="16"
+        /><span>Suédois</span>
+      </div>
+      <div
+        class="flex items-center px-3 py-2 hover:bg-gray-100 cursor-pointer space-x-2"
+        data-value="id"
+        data-flag="bandeira-indonesia.webp"
+      >
+        <img loading="lazy"
+          src="bandeira-indonesia.webp"
+          class="w-5 h-4 rounded-sm"
+          alt="ID"
+          width="20"
+          height="16"
+        /><span>Indonésien</span>
+      </div>
+      <div
+        class="flex items-center px-3 py-2 hover:bg-gray-100 cursor-pointer space-x-2"
+        data-value="vi"
+        data-flag="bandeira-vietna.webp"
+      >
+        <img loading="lazy"
+          src="bandeira-vietna.webp"
+          class="w-5 h-4 rounded-sm"
+          alt="VI"
+          width="20"
+          height="16"
+        /><span>Tiếng Việt</span>
+      </div>
+      <div
+        class="flex items-center px-3 py-2 hover:bg-gray-100 cursor-pointer space-x-2"
+        data-value="uk"
+        data-flag="bandeira-ucrania.webp"
+      >
+        <img loading="lazy"
+          src="bandeira-ucrania.webp"
+          class="w-5 h-4 rounded-sm"
+          alt="UK"
+          width="20"
+          height="16"
+        /><span>Українська</span>
+      </div>
+    </div>
   </div>
+</div>
+
 
   <!-- Conteúdo Principal -->
   <main class="flex-grow container mx-auto px-4 py-8 max-w-7xl mt-20">
@@ -140,7 +527,7 @@
     <nav class="flex items-center text-xs md:text-sm text-gray-500 mb-8 overflow-x-auto whitespace-nowrap" aria-label="Breadcrumb">
       <a href="/" class="hover:text-[#1A3E74] transition-colors"><i class="fa-solid fa-house mr-1"></i> Início</a>
       <span class="mx-2 text-gray-300">/</span>
-      <a href="#" class="hover:text-[#1A3E74] transition-colors">Carreiras</a>
+      <a href="#" class="hover:text-[#1A3E74] transition-colors">Calculadoras</a>
       <span class="mx-2 text-gray-300">/</span>
       <span class="text-[#1A3E74] font-bold">Calculadora de Rescisão</span>
     </nav>
@@ -148,7 +535,7 @@
     <!-- Header da Página -->
     <div class="mb-10">
       <span class="inline-block bg-blue-100 text-[#1A3E74] text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wider mb-3">Financeiro</span>
-      <h1 class="text-3xl md:text-4xl font-black text-[#1A3E74] mb-4 font-nunito tracking-tight leading-tight">Calculadora de Rescisão de Contrato</h1>
+      <h1 class="text-3xl md:text-4xl font-black text-[#1A3E74] mb-4 font-nunito tracking-tight leading-tight">Calculadora de Rescisão de Contrato para Trabalhadores de Enfermagem CLT</h1>
       <h2 class="text-lg text-gray-600 max-w-3xl font-light">Simule todos os valores e direitos devidos no encerramento do seu contrato de trabalho (Exercício 2026).</h2>
     </div>
 
@@ -292,23 +679,7 @@
              </div>
           </div>
 
-          <div class="mt-8 flex flex-wrap justify-center gap-4">
-             <button id="btn-pdf" class="bg-[#1A3E74] hover:bg-[#2E5A9C] text-white font-bold py-3 px-8 rounded-lg transition-colors flex items-center gap-2">
-                <i class="fa-solid fa-file-pdf"></i> Baixar PDF
-             </button>
-             <button id="btn-copy" class="bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 font-bold py-3 px-8 rounded-lg transition-colors flex items-center gap-2">
-                <i class="fa-regular fa-copy"></i> Copiar Resumo
-             </button>
-          </div>
-        </div>
 
-        <!-- Seção Autor -->
-        <div class="bg-white rounded-2xl p-6 border border-gray-100 flex items-center gap-6 mt-12">
-           <img src="/img/author-info.webp" alt="Calculadoras de Enfermagem" class="w-16 h-16 rounded-full object-cover border-2 border-gray-100">
-           <div>
-              <p class="text-sm font-bold text-[#1A3E74]">Calculadoras de Enfermagem</p>
-              <p class="text-xs text-gray-500 italic mt-1">"A precisão técnica é a expressão máxima do cuidado ético ao paciente."</p>
-           </div>
         </div>
 
         <!-- Referências -->
@@ -350,23 +721,9 @@
     </div>
   </main>
 
-  <!-- Rodapé (Injetado) -->
-  <div id="footer-placeholder"></div>
-
   <!-- Scripts Funcionais -->
   <script src="/global-scripts.js" defer></script>
   <script src="/lang-selector.js" defer></script>
-
-  <!-- Google Analytics & AdSense -->
-  <script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
-  <script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
-    gtag('config', 'G-XXXXXXXXXX');
-  </script>
-  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXXXXXX" crossorigin="anonymous"></script>
-
   <!-- Lógica da Calculadora -->
   <script>
     document.addEventListener('DOMContentLoaded', () => {
@@ -531,87 +888,10 @@
             window.__calc = { b, d1, d2, m, a, fv, dep, saldoS, v13, totalFerias, vAviso, dAviso, multaFGTS, inss: inssData.t, irrf: irrfData.t, inssH: inssData.h, irrfH: irrfData.h, liq, diasMesFim, mesesContrato };
         }
 
-        async function emitirPDF() {
-            if (!window.__calc) return;
-            const c = window.__calc;
-            const template = document.getElementById('pdf-render-template');
-            const body = document.getElementById('pdf-body');
-            const footer = document.getElementById('pdf-footer-text');
-            const qr = document.getElementById('pdf-qrcode-container');
 
-            // Re-render QR if needed
-            qr.innerHTML = '';
-            const now = new Date();
-            footer.innerText = `Gerado em ${now.toLocaleDateString('pt-BR')} - IP: ${window.__userIP || 'Local'}`;
-            const motivoNome = { semJustaCausa: 'Sem Justa Causa', pedidoDemissao: 'Pedido de Demissão', comJustaCausa: 'Com Justa Causa', acordo: 'Acordo Comum' };
-
-            body.innerHTML = `
-                <div style="margin-bottom: 12px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                  <div style="padding: 8px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px;">
-                    <p style="font-weight: 800; text-transform: uppercase; margin-bottom: 3px; color: #1A3E74; font-size: 7.5px;">Dados do Contrato</p>
-                    <table style="width: 100%; font-size: 8px;">
-                      <tr><td>Salário Base:</td><td style="text-align: right; font-weight: 700;">R$ ${formatNum(c.b)}</td></tr>
-                      <tr><td>Admissão:</td><td style="text-align: right; font-weight: 700;">${c.d1.toLocaleDateString()}</td></tr>
-                      <tr><td>Demissão:</td><td style="text-align: right; font-weight: 700;">${c.d2.toLocaleDateString()}</td></tr>
-                    </table>
-                  </div>
-                  <div style="padding: 8px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px;">
-                    <p style="font-weight: 800; text-transform: uppercase; margin-bottom: 3px; color: #1A3E74; font-size: 7.5px;">Motivo e Aviso</p>
-                    <table style="width: 100%; font-size: 8px;">
-                      <tr><td>Motivo:</td><td style="text-align: right; font-weight: 700;">${motivoNome[c.m]}</td></tr>
-                      <tr><td>Aviso:</td><td style="text-align: right; font-weight: 700;">${c.a}</td></tr>
-                      <tr><td>Tempo:</td><td style="text-align: right; font-weight: 700;">${c.mesesContrato} meses</td></tr>
-                    </table>
-                  </div>
-                </div>
-
-                <div style="background: #ffffff; padding: 12px; border: 2px solid #1A3E74; border-radius: 10px; margin-bottom: 15px;">
-                   <table style="width: 100%; font-size: 9px;">
-                     <tr style="border-bottom: 1px solid #cbd5e1; color: #64748b; font-size: 7.5px; text-transform: uppercase;"><th style="text-align: left;">Verba Rescisória</th><th style="text-align: right;">Valor (R$)</th></tr>
-                     <tr><td>Saldo de Salário (${c.diasMesFim} dias)</td><td style="text-align: right;">${formatNum(c.saldoS)}</td></tr>
-                     <tr><td>13º Salário Proporcional</td><td style="text-align: right;">${formatNum(c.v13)}</td></tr>
-                     <tr><td>Férias + 1/3 (Prop. e Venc.)</td><td style="text-align: right;">${formatNum(c.totalFerias)}</td></tr>
-                     ${c.vAviso > 0 ? `<tr><td>Aviso Prévio Indenizado</td><td style="text-align: right;">${formatNum(c.vAviso)}</td></tr>` : ''}
-                     ${c.multaFGTS > 0 ? `<tr style="color:#16a34a;"><td>Multa FGTS (Estimada)</td><td style="text-align: right;">${formatNum(c.multaFGTS)}</td></tr>` : ''}
-                     <tr style="color: #ef4444;"><td>(-) Impostos (INSS/IRRF)</td><td style="text-align: right;">${formatNeg(c.inss + c.irrf)}</td></tr>
-                     ${c.dAviso > 0 ? `<tr style="color: #ef4444;"><td>(-) Desconto Aviso Prévio</td><td style="text-align: right;">${formatNeg(c.dAviso)}</td></tr>` : ''}
-                     <tr style="font-weight: 900; font-size: 11px; color: #1A3E74; border-top: 1.5px solid #1A3E74;">
-                       <td style="padding-top: 5px;">LÍQUIDO A RECEBER</td><td style="text-align: right; padding-top: 5px;">R$ ${formatNum(c.liq)}</td>
-                     </tr>
-                   </table>
-                </div>
-
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; flex: 1;">
-                   <div style="border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px; position: relative;">
-                      <p style="font-weight: 800; font-size: 7.5px; color: #1A3E74; text-transform: uppercase; margin-bottom: 4px;">Memória INSS</p>
-                      <div style="font-size: 7px;">${c.inssH}</div>
-                      <div style="position: absolute; bottom: 8px; left: 10px; font-weight: 800; font-size: 8px; color: #ef4444;">Total Retido: R$ ${formatNum(c.inss)}</div>
-                   </div>
-                   <div style="border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px; position: relative;">
-                      <p style="font-weight: 800; font-size: 7.5px; color: #1A3E74; text-transform: uppercase; margin-bottom: 4px;">Memória IRRF</p>
-                      <div style="font-size: 7px;">${c.irrfH}</div>
-                      <div style="position: absolute; bottom: 8px; left: 10px; font-weight: 800; font-size: 8px; color: #ef4444;">Total Retido: R$ ${formatNum(c.irrf)}</div>
-                   </div>
-                </div>
-            `;
-
-            template.classList.remove('hidden'); // Show briefly for render
-            new QRCode(qr, { text: window.location.href, width: 50, height: 50, colorDark: "#1A3E74" });
-
-            // Delay for rendering
-            await new Promise(r => setTimeout(r, 600));
-
-            const canvas = await html2canvas(template, { scale: 2, useCORS: true });
-            template.classList.add('hidden'); // Hide again
-
-            const doc = new window.jspdf.jsPDF('p', 'pt', 'a4');
-            const pdfW = doc.internal.pageSize.getWidth();
-            doc.addImage(canvas.toDataURL('image/png'), 'PNG', 0, 0, pdfW, (canvas.height * pdfW) / canvas.width);
-            doc.save(`Demostrativo-Rescisao-2026.pdf`);
-        }
 
         document.getElementById('btn-calc').onclick = calcular;
-        document.getElementById('btn-pdf').onclick = emitirPDF;
+
         document.getElementById('btn-clear').onclick = () => {
             document.querySelectorAll('input').forEach(i => i.value = (i.id === 'dependentes' ? '0' : ''));
             document.querySelectorAll('select').forEach(s => s.selectedIndex = 0);
@@ -619,41 +899,19 @@
             window.__calc = null;
         };
 
-        // Copiar para área de transferência
-        document.getElementById('btn-copy').onclick = () => {
-           if(!window.__calc) return;
-           const c = window.__calc;
-           const text = `Rescisão Simulada:\nLíquido: R$ ${formatNum(c.liq)}\nSaldo Salário: ${formatNum(c.saldoS)}\n13º: ${formatNum(c.v13)}\nFérias: ${formatNum(c.totalFerias)}\nCalculado em: calculadorasdeenfermagem.com.br`;
-           navigator.clipboard.writeText(text).then(() => alert('Resumo copiado!'));
-        };
+
     });
   </script>
 
-  <!-- Template PDF (Oculto) -->
-  <div id="pdf-render-template" class="hidden" style="position: fixed; left: -9999px; top: 0; width: 794px; min-height: 1123px; background: white; padding: 35px; color: #0f172a; display: flex; flex-direction: column; justify-content: space-between; font-family: 'Inter', sans-serif;">
-    <div style="flex: 1; display: flex; flex-direction: column;">
-      <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2.5px solid #1A3E74; padding-bottom: 8px; margin-bottom: 15px;">
-        <img src="https://auditeduca.github.io/Calculadoras-de-Enfermagem/assets/images/author-info.webp" style="height: 40px;" alt="Logo"/>
-        <div style="text-align: right;">
-          <h1 style="font-family: 'Nunito', sans-serif; font-size: 16px; color: #1A3E74; margin: 0; font-weight: 900; text-transform: uppercase;">Demostrativo de Rescisão de Contrato</h1>
-          <p style="font-size: 8px; color: #64748b; margin: 0; font-weight: 600;">EXERCÍCIO 2026 - CALCULADORAS DE ENFERMAGEM</p>
-        </div>
-      </div>
-      <div id="pdf-body" style="font-size: 8.5px; flex: 1;"></div>
-    </div>
-    <div>
-      <div style="margin: 10px 0; padding: 10px; background: #eff6ff; border-radius: 8px; border: 1.5px solid #bfdbfe; text-align: center;">
-        <p style="font-size: 10px; color: #1e3a8a; margin: 0; font-weight: 700;">Simulados para Enfermagem: www.simulados-para-enfermagem.com.br</p>
-      </div>
-      <div style="display: flex; justify-content: space-between; align-items: flex-end; padding-top: 8px; border-top: 1px solid #e2e8f0;">
-        <div style="font-size: 7.5px; color: #94a3b8; line-height: 1.3;">
-          <p id="pdf-footer-text" style="margin: 0; font-weight: 700;"></p>
-          <p style="margin: 0;">Relatório técnico gerado para fins de simples simulação informativa.</p>
-        </div>
-        <div id="pdf-qrcode-container" style="width: 50px; height: 50px;"></div>
-      </div>
-    </div>
-  </div>
 
+<div id="footer-placeholder"></div>
+  <script>
+    fetch("footer.html") // 1. Busca o arquivo
+      .then((response) => response.text()) // 2. Converte a resposta para texto (HTML)
+      .then((data) => {
+        // 3. Insere o HTML dentro do seu placeholder
+        document.getElementById("footer-placeholder").innerHTML = data;
+      });
+  </script>
 </body>
 </html>
