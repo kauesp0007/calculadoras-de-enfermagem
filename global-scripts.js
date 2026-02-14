@@ -113,11 +113,11 @@ function executarLogicaDoHtml2Pdf(e) {
 }
 
 document.addEventListener("DOMContentLoaded", function () {
-  fetch("menu-global.html").then(e => e.ok ? e.text() : Promise.reject("Ficheiro menu-global.html não encontrado")).then(e => {
+  fetch("/menu-global.html").then(e => e.ok ? e.text() : Promise.reject("Ficheiro menu-global.html não encontrado")).then(e => {
     const o = document.getElementById("global-header-container");
     o && (o.innerHTML = e, initializeNavigationMenu())
   }).catch(e => console.warn("Não foi possível carregar o menu global:", e)),
-  fetch("global-body-elements.html").then(e => e.ok ? e.text() : Promise.reject("Ficheiro global-body-elements.html não encontrado")).then(e => {
+  fetch("/global-body-elements.html").then(e => e.ok ? e.text() : Promise.reject("Ficheiro global-body-elements.html não encontrado")).then(e => {
     document.body.insertAdjacentHTML("beforeend", e), initializeGlobalFunctions()
   }).catch(e => console.warn("Não foi possível carregar os elementos globais do corpo:", e))
 });
