@@ -266,7 +266,7 @@ if (
 
     /* Campos de input estilizados */
     .gaso-input-group {
-      margin-bottom: 1rem;
+      margin-bottom: 0;
       text-align: left;
     }
 
@@ -274,7 +274,7 @@ if (
       display: block;
       font-weight: 700;
       color: #1a3e74;
-      font-size: 1rem;
+      font-size: 0.9rem;
       margin-bottom: 0.1rem;
     }
 
@@ -288,7 +288,9 @@ if (
 
     .gaso-input-group input[type="number"] {
       width: 100%;
-      padding: 0.6rem;
+      max-width: 7ch;
+      padding: 0.5rem;
+      text-align: center;
       border: 1px solid #94a3b8;
       border-radius: 6px;
       font-size: 0.95rem;
@@ -296,6 +298,33 @@ if (
       background-color: #fff;
       transition: border-color 0.2s, box-shadow 0.2s;
     }
+
+    /* Ajustes para layout em grade (3 colunas no desktop) */
+    .gaso-input-grid {
+      align-items: start;
+    }
+
+    /* Inputs essenciais (pH, PaCO₂, HCO₃⁻) em destaque */
+    .gaso-input-essential label {
+      color: #b91c1c;
+    }
+    .gaso-input-essential input[type="number"] {
+      border: 1px solid rgba(220, 38, 38, 0.65);
+      background: rgba(248, 113, 113, 0.12);
+      backdrop-filter: blur(6px);
+    }
+    .gaso-input-essential input[type="number"]:focus {
+      border-color: rgba(220, 38, 38, 0.9);
+      box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.18);
+    }
+
+    /* No mobile, manter campo confortável (sem limitar largura) */
+    @media (max-width: 640px) {
+      .gaso-input-group input[type="number"] {
+        max-width: 100%;
+      }
+    }
+
 
     .gaso-input-group input[type="number"]:focus {
       outline: none;
@@ -890,12 +919,12 @@ if (
       </h2>
 
       <!-- Container Flex para os Cards -->
-      <div id="conteudo" class="w-full flex flex-col lg:flex-row gap-6 items-start">
+      <div id="conteudo" class="w-full flex flex-col lg:flex-row gap-6 items-stretch">
 
         <!-- COLUNA ESQUERDA: Calculadora -->
-        <div class="w-full lg:w-1/2 flex flex-col">
+        <div class="w-full lg:w-1/2 flex flex-col h-full">
           <!-- Card Calculadora -->
-          <div class="gasometria-card">
+          <div class="gasometria-card h-full">
             <!-- Título com Ícone Aumentado -->
             <div class="flex items-center justify-center gap-3 mb-2">
               <img height="1024" width="1024" src="/img/calculadorasimagem.webp" alt="Icono Calculadora" class="w-32 h-32 flex-shrink-0" loading="lazy">
@@ -906,28 +935,31 @@ if (
             <p class="instruction-text">Complete los campos a continuación (Al menos hasta Sat O2) y haga clic en calcular:</p>
 
             <!-- Parâmetros Básicos -->
-            <div class="gaso-input-group">
+            <div class="gaso-input-grid grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
+            <div class="gaso-input-group gaso-input-essential">
               <label for="ph">pH</label>
               <span class="gaso-input-ref">Ref: 7.35 - 7.45</span>
               <input type="number" id="ph" step="0.01" placeholder="7.40">
             </div>
 
-            <div class="gaso-input-group">
+            <div class="gaso-input-group gaso-input-essential">
               <label for="paco2">PaCO₂ (mmHg)</label>
               <span class="gaso-input-ref">Ref: 35 - 45</span>
               <input type="number" id="paco2" step="0.1" placeholder="40">
             </div>
 
+            <div class="gaso-input-group gaso-input-essential">
+              <label for="hco3">HCO₃⁻ (mEq/L)</label>
+              <span class="gaso-input-ref">Ref: 22 - 26</span>
+              <input type="number" id="hco3" step="0.1" placeholder="24">
+            </div>
+
+
+
             <div class="gaso-input-group">
               <label for="po2">pO₂ (mmHg)</label>
               <span class="gaso-input-ref">Ref: 80 - 100</span>
               <input type="number" id="po2" step="0.1" placeholder="90">
-            </div>
-
-            <div class="gaso-input-group">
-              <label for="hco3">HCO₃⁻ (mEq/L)</label>
-              <span class="gaso-input-ref">Ref: 22 - 26</span>
-              <input type="number" id="hco3" step="0.1" placeholder="24">
             </div>
 
             <div class="gaso-input-group">
@@ -948,9 +980,9 @@ if (
               <input type="number" id="sato2" step="0.1" placeholder="98">
             </div>
 
-            <div class="section-divider">Electrolitos y Metabolitos</div>
+            <div class="section-divider col-span-full">Electrolitos y Metabolitos</div>
 
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div class="col-span-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 <div class="gaso-input-group">
                   <label for="na">Na⁺ (mEq/L)</label>
                   <span class="gaso-input-ref">Ref: 135 - 145</span>
@@ -963,7 +995,7 @@ if (
                 </div>
             </div>
 
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div class="col-span-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 <div class="gaso-input-group">
                   <label for="ca">Ca⁺⁺ (mmol/L)</label>
                   <span class="gaso-input-ref">Ref: 1.1 - 1.35</span>
@@ -976,7 +1008,7 @@ if (
                 </div>
             </div>
 
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div class="col-span-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 <div class="gaso-input-group">
                     <label for="glu">Glucosa (mg/dL)</label>
                     <span class="gaso-input-ref">Ref: 70 - 110</span>
@@ -989,7 +1021,7 @@ if (
                 </div>
             </div>
 
-            <div class="section-divider">Hemoglobina y Fracciones</div>
+            <div class="section-divider col-span-full">Hemoglobina y Fracciones</div>
 
             <div class="gaso-input-group">
               <label for="thb">tHb (g/dL)</label>
@@ -997,7 +1029,7 @@ if (
               <input type="number" id="thb" step="0.1" placeholder="14">
             </div>
 
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div class="col-span-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 <div class="gaso-input-group">
                   <label for="fo2hb">FO₂Hb (%)</label>
                   <span class="gaso-input-ref">Ref: > 95%</span>
@@ -1010,7 +1042,7 @@ if (
                 </div>
             </div>
 
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div class="col-span-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 <div class="gaso-input-group">
                   <label for="fmethb">FMetHb (%)</label>
                   <span class="gaso-input-ref">Ref: < 1.5%</span>
@@ -1021,6 +1053,7 @@ if (
                   <span class="gaso-input-ref">Ref: < 5%</span>
                   <input type="number" id="fhhb" step="0.1" placeholder="1.0">
                 </div>
+            </div>
             </div>
 
             <span id="global-error" class="text-red-600 text-xs hidden text-center block mb-2">Complete al menos pH, pCO2 y HCO3 para el análisis básico.</span>
@@ -1066,6 +1099,20 @@ if (
               Lactato &gt; 2.0 indica hipoxia tisular/sepsis.</p>
           </div>
 
+
+          <!-- Imagen de referencia (Ampliar) -->
+          <div class="mt-6">
+            <button type="button" class="w-full relative group" aria-label="Abrir imagen de impresión de gasometría" onclick="openGasometriaImageModal()">
+              <img src="img/impresso-de-gasometria.webp" alt="Impreso de gasometría" class="w-full h-auto object-contain rounded-xl border border-gray-200 shadow-sm">
+              <div class="absolute inset-0 rounded-xl bg-black/0 group-hover:bg-black/10 transition"></div>
+              <div class="absolute bottom-3 right-3 bg-white/90 border border-gray-200 rounded-lg px-3 py-2 shadow-sm flex items-center gap-2">
+                <span class="text-xs font-bold text-gray-700">Lupa</span>
+                <span aria-hidden="true" class="text-gray-700">🔍</span>
+              </div>
+            </button>
+            <p class="text-xs text-gray-500 mt-2">Toque para ampliar. Puede cerrar con la X.</p>
+          </div>
+
           <!-- Botões (Agora na Coluna Direita) -->
           <div class="flex flex-wrap justify-start gap-4 mt-6">
             <button id="btnCalcular" class="btn-primary" aria-label="Calcular">Calcular</button>
@@ -1073,13 +1120,15 @@ if (
             <button id="btnGerarPDF" class="btn-secondary" aria-label="Gerar PDF">Generar PDF</button>
             <button id="btnNandaNicNoc" class="btn-primary" aria-label="NANDA, NIC, NOC">NANDA, NIC, NOC</button>
           </div>
-
-          <!-- Resultado Reformulado, Compacto e Estilizado -->
-          <div id="resultado" class="resultado hidden" aria-live="polite"></div>
-
         </div>
 
       </div>
+      <!-- Resultados (Ancho total) -->
+      <div class="w-full mt-8 space-y-6">
+        <!-- Resultado Reformulado, Hero + Resumen (se completa al calcular) -->
+        <div id="resultado" class="resultado hidden" aria-live="polite"></div>
+      </div>
+
 
       <!-- Referências -->
       <div class="ref-box" id="referencias">
@@ -1489,6 +1538,40 @@ if (
         document.getElementById("footer-placeholder").innerHTML = data;
       });
   </script>
+
+
+
+  <script>
+    function openGasometriaImageModal() {
+      var modal = document.getElementById('gasometria-image-modal');
+      if (!modal) return;
+      modal.classList.remove('hidden');
+    }
+
+    function closeGasometriaImageModal() {
+      var modal = document.getElementById('gasometria-image-modal');
+      if (!modal) return;
+      modal.classList.add('hidden');
+    }
+  </script>
+
+  <!-- Modal de imagen (lupa) -->
+  <div id="gasometria-image-modal" class="fixed inset-0 hidden" style="z-index: 9999;">
+    <div class="absolute inset-0 bg-black/70" onclick="closeGasometriaImageModal()" aria-hidden="true"></div>
+
+    <div class="relative w-full h-full flex items-start justify-center p-4">
+      <button type="button"
+        class="absolute top-4 left-4 bg-white/90 hover:bg-white text-[#1A3E74] font-black rounded-xl px-3 py-2 shadow-md border border-gray-200"
+        onclick="closeGasometriaImageModal()"
+        aria-label="Cerrar imagen">
+        ✕ Cerrar
+      </button>
+
+      <div class="relative mt-12 w-full max-w-4xl bg-white rounded-2xl shadow-2xl overflow-auto p-3">
+        <img src="/img/impresso-de-gasometria.webp" alt="Impreso de gasometría ampliado" class="w-full h-auto object-contain">
+      </div>
+    </div>
+  </div>
 
 </body>
 </html>
