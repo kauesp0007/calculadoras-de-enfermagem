@@ -355,28 +355,13 @@ if (
       font-weight: 700;
     }
 
-    /* --- Estilo Personalizado para el Resultado (Compacto) --- */
+    /* --- Resultado (renderizado en cards tipo "BETA") --- */
     #resultado {
-      background-color: #ebf8ff;
-      border: 1px solid #1e40af;
-      border-radius: 1rem;
-      padding: 1.25rem;
-      margin-top: 1.5rem;
       width: 100%;
-      box-shadow: 0 10px 15px -3px rgba(26, 62, 116, 0.15),
-                  0 4px 6px -2px rgba(26, 62, 116, 0.1);
-      text-align: left;
-      display: none;
-      color: #1a3e74;
+      margin-top: 2rem;
     }
-
-    #resultado p {
-      margin: 0;
-      line-height: 1.6;
-      font-size: 1.05rem;
-    }
-
-    .res-titulo {
+    #resultado.hidden { display: none; }
+.res-titulo {
       font-weight: 800;
       color: #1a3e74;
     }
@@ -932,7 +917,7 @@ if (
               <h3 class="text-xl font-semibold">Calculadora de Gasometría Arterial</h3>
             </div>
 
-            <p class="instruction-text">"Complete al menos los tres primeros ítems y luego haga clic en calcular."</p>
+            <p class="instruction-text">Complete los campos a continuación (Al menos hasta Sat O2) y haga clic en calcular:</p>
 
             <!-- Parâmetros Básicos -->
             <div class="gaso-input-grid grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
@@ -1203,7 +1188,7 @@ if (
         // Validação mínima
         if (valores.ph === null || valores.paco2 === null || valores.hco3 === null) {
             globalError.classList.remove("hidden");
-            resultadoDiv.style.display = "none";
+            resultadoDiv.classList.add("hidden");
             return;
         } else {
             globalError.classList.add("hidden");
@@ -1421,66 +1406,96 @@ if (
 
         let htmlResultado = `
           <div class="space-y-6">
-            <!-- HERO CARD -->
-            <div class="bg-[#1A3E74] rounded-2xl p-6 sm:p-8 text-white shadow-2xl flex flex-col md:flex-row justify-between items-start md:items-center gap-6 border-b-8 border-[#4A90E2]">
-              <div class="w-full md:w-2/3">
-                <h3 class="font-nunito font-black text-xs sm:text-sm uppercase tracking-[0.2em] opacity-80 mb-2">Resultado principal</h3>
-                <p class="font-nunito font-black text-2xl sm:text-3xl lg:text-4xl leading-tight">${disturbio || "Resultado no disponible"}</p>
-                <p class="text-xs sm:text-sm opacity-80 mt-3">Interpretación basada en pH, PaCO₂ y HCO₃⁻ (y BE cuando se informa), más oxigenación y electrólitos cuando estén disponibles.</p>
+            <!-- HERO CARD (mismo patrón del modelo) -->
+            <div class="bg-[#1A3E74] rounded-2xl p-8 text-white shadow-2xl flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 border-b-8 border-[#4A90E2]">
+              <div class="text-center lg:text-left flex-1">
+                <h3 class="font-nunito font-black text-xs uppercase tracking-[0.2em] opacity-80 mb-1">RESULTADO PRINCIPAL</h3>
+                <p class="text-xs opacity-50 font-medium italic">Interpretación ácido-base y oxigenación (gasometría arterial)</p>
+                <p class="mt-5 font-nunito font-black text-3xl sm:text-4xl lg:text-5xl leading-tight drop-shadow-lg">${disturbio || "Resultado no disponible"}</p>
               </div>
 
-              <div class="w-full md:w-1/3 bg-white/10 rounded-xl p-4">
-                <p class="text-[0.7rem] uppercase tracking-widest opacity-80">Valores clave</p>
-                <div class="mt-2 space-y-1 text-sm">
-                  <div>pH: <strong>${formatear(valores.ph, 2)}</strong></div>
-                  <div>PaCO₂: <strong>${formatear(valores.paco2, 0)}</strong> mmHg</div>
-                  <div>HCO₃⁻: <strong>${formatear(valores.hco3, 1)}</strong> mEq/L</div>
-                  <div>BE: <strong>${formatear(valores.be, 1)}</strong></div>
-                  ${valores.po2 !== null ? `<div>PaO₂: <strong>${formatear(valores.po2, 0)}</strong> mmHg</div>` : ``}
-                  ${valores.sato2 !== null ? `<div>Sat O₂: <strong>${formatear(valores.sato2, 0)}</strong> %</div>` : ``}
+              <div class="w-full lg:w-[380px] bg-white/10 rounded-xl p-5 border border-white/10">
+                <div class="flex items-center justify-between">
+                  <span class="font-black text-xs uppercase tracking-widest opacity-80">Valores clave</span>
+                  <span class="text-[10px] font-bold text-white/70 bg-white/10 px-2 py-1 rounded shadow-sm">ABG</span>
+                </div>
+
+                <div class="mt-4 grid grid-cols-2 gap-x-6 gap-y-3 text-sm">
+                  <div class="flex justify-between gap-3"><span class="opacity-80">pH</span><strong class="tabular-nums">${formatear(valores.ph, 2)}</strong></div>
+                  <div class="flex justify-between gap-3"><span class="opacity-80">PaCO₂</span><strong class="tabular-nums">${formatear(valores.paco2, 0)} mmHg</strong></div>
+                  <div class="flex justify-between gap-3"><span class="opacity-80">HCO₃⁻</span><strong class="tabular-nums">${formatear(valores.hco3, 1)} mEq/L</strong></div>
+                  <div class="flex justify-between gap-3"><span class="opacity-80">BE</span><strong class="tabular-nums">${formatear(valores.be, 1)}</strong></div>
+                  ${valores.po2 !== null ? `<div class="flex justify-between gap-3"><span class="opacity-80">PaO₂</span><strong class="tabular-nums">${formatear(valores.po2, 0)} mmHg</strong></div>` : ``}
+                  ${valores.sato2 !== null ? `<div class="flex justify-between gap-3"><span class="opacity-80">Sat O₂</span><strong class="tabular-nums">${formatear(valores.sato2, 0)} %</strong></div>` : ``}
                 </div>
               </div>
             </div>
 
-            <!-- CARD: RESUMEN -->
-            <div class="bg-white rounded-2xl p-6 sm:p-8 shadow-xl border border-gray-200">
-              <h3 class="font-nunito font-black text-lg sm:text-xl text-[#1A3E74] mb-4">Resumen del Resultado</h3>
+            <!-- CARD DETALLADO (mismo patrón del modelo) -->
+            <div class="bg-white border-2 border-[#1A3E74] rounded-2xl shadow-xl overflow-hidden">
+              <div class="bg-gray-100 px-6 py-4 border-b flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
+                <span class="font-black text-xs text-[#1A3E74] uppercase tracking-widest">Resumen del Resultado</span>
+                <span class="text-[10px] font-bold text-gray-400 bg-white px-2 py-1 rounded shadow-sm">AUDITORÍA CLÍNICO-MATEMÁTICA</span>
+              </div>
 
-              <div class="space-y-5">
-                <div>
-                  <h4 class="font-nunito font-extrabold text-base text-gray-800 mb-2">¿Por qué apareció este resultado?</h4>
-                  ${listaDetallada(razones)}
+              <div class="p-6 space-y-8">
+                <div class="grid lg:grid-cols-2 gap-8">
+                  <div class="space-y-3">
+                    <h4 class="text-[10px] font-black text-gray-400 uppercase border-b pb-1">¿Por qué apareció este resultado?</h4>
+                    ${listaDetallada(razones)}
+                    ${detalhes.length ? `
+                      <div class="mt-4 p-4 bg-blue-50 border-l-4 border-[#1A3E74] rounded-r-lg">
+                        <div class="font-black text-[#1A3E74] text-sm mb-2">Hallazgos adicionales</div>
+                        ${listaDetallada(detalhes)}
+                      </div>
+                    ` : ``}
+                  </div>
+
+                  <div class="space-y-3">
+                    <h4 class="text-[10px] font-black text-gray-400 uppercase border-b pb-1">Recomendaciones de cuidados de enfermería</h4>
+                    ${listaDetallada(recomendaciones)}
+                    <p class="text-[11px] text-gray-500 leading-relaxed mt-2">
+                      Nota: las acciones deben seguir protocolos locales y la prescripción del equipo responsable.
+                    </p>
+                  </div>
                 </div>
 
-                ${detalhes.length ? `
-                <div>
-                  <h4 class="font-nunito font-extrabold text-base text-gray-800 mb-2">Hallazgos adicionales</h4>
-                  ${listaDetallada(detalhes)}
-                </div>` : ``}
+                <div class="grid lg:grid-cols-2 gap-8">
+                  <div class="space-y-3">
+                    <h4 class="text-[10px] font-black text-gray-400 uppercase border-b pb-1">Diagnósticos de enfermería (NANDA-I)</h4>
+                    ${listaDetallada(diagnosticosNanda)}
+                  </div>
 
-                <div>
-                  <h4 class="font-nunito font-extrabold text-base text-gray-800 mb-2">Recomendaciones de cuidados de enfermería</h4>
-                  ${listaDetallada(recomendaciones)}
-                  <p class="text-xs text-gray-500 mt-2">Nota: las acciones deben seguir protocolos locales y prescripción del equipo responsable.</p>
+                  <div class="space-y-3">
+                    <h4 class="text-[10px] font-black text-gray-400 uppercase border-b pb-1">Auditoría del cálculo (método)</h4>
+                    <div class="bg-gray-50 p-5 rounded-xl border border-gray-200">
+                      <div class="audit-step">
+                        <strong>1. Clasificación del pH</strong>
+                        <p class="text-[11px] text-gray-500 leading-relaxed font-mono mt-1">Acidosis si pH &lt; 7,35; Alcalosis si pH &gt; 7,45; Normal si 7,35–7,45.</p>
+                      </div>
+                      <div class="audit-step">
+                        <strong>2. Componente respiratorio (PaCO₂)</strong>
+                        <p class="text-[11px] text-gray-500 leading-relaxed font-mono mt-1">PaCO₂ &gt; 45 sugiere acidosis respiratoria; PaCO₂ &lt; 35 sugiere alcalosis respiratoria.</p>
+                      </div>
+                      <div class="audit-step">
+                        <strong>3. Componente metabólico (HCO₃⁻ / BE)</strong>
+                        <p class="text-[11px] text-gray-500 leading-relaxed font-mono mt-1">HCO₃⁻ &lt; 22 o BE &lt; -3 sugiere acidosis metabólica; HCO₃⁻ &gt; 26 o BE &gt; +3 sugiere alcalosis metabólica.</p>
+                      </div>
+                      <div class="audit-step mb-0">
+                        <strong>4. Integración</strong>
+                        <p class="text-[11px] text-gray-500 leading-relaxed font-mono mt-1">Se combina la dirección del pH con el componente predominante y se infiere compensación cuando corresponde.</p>
+                      </div>
+                    </div>
+                  </div>
                 </div>
 
-                <div>
-                  <h4 class="font-nunito font-extrabold text-base text-gray-800 mb-2">Diagnósticos de enfermería (NANDA-I)</h4>
-                  ${listaDetallada(diagnosticosNanda)}
-                </div>
-
-                <div>
-                  <h4 class="font-nunito font-extrabold text-base text-gray-800 mb-2">Auditoría del cálculo (método matemático-científico)</h4>
-                  ${listaDetallada(auditoria)}
-                </div>
               </div>
             </div>
           </div>
         `;
-
-        resultadoDiv.innerHTML = htmlResultado;
-        resultadoDiv.style.display = "block";
-
+resultadoDiv.innerHTML = htmlResultado;
+        resultadoDiv.classList.remove("hidden");
+        resultadoDiv.scrollIntoView({ behavior: "smooth", block: "start" });
         resultadoDiv.dataset.resultado = disturbio;
       }
 
@@ -1490,8 +1505,8 @@ if (
         }
         globalError.classList.add("hidden");
         resultadoDiv.innerHTML = "";
-        resultadoDiv.style.display = "none";
-        delete resultadoDiv.dataset.resultado;
+        resultadoDiv.classList.add("hidden");
+            delete resultadoDiv.dataset.resultado;
       }
 
       btnCalcular?.addEventListener("click", interpretarGasometria);
@@ -1568,7 +1583,7 @@ if (
       </button>
 
       <div class="relative mt-12 w-full max-w-4xl bg-white rounded-2xl shadow-2xl overflow-auto p-3">
-        <img src="/img/impresso-de-gasometria.webp" alt="Impreso de gasometría ampliado" class="w-full h-auto object-contain">
+        <img src="img/impresso-de-gasometria.webp" alt="Impreso de gasometría ampliado" class="w-full h-auto object-contain">
       </div>
     </div>
   </div>
