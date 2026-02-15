@@ -546,7 +546,7 @@ if (
     }
 
     body {
-      
+
     }
 
     .table-responsive {
@@ -1288,13 +1288,146 @@ if (
         if (condutas.length === 0) condutas.push("Mantener monitoreo.");
 
         // HTML Compacto Estilo Gotejamento
+        // --- Construcción de la salida (estilo "Hero Card" + Card de Resumen) ---
+        const formatear = (v, dec = 2) => (v === null || v === undefined || Number.isNaN(v)) ? "—" : Number(v).toFixed(dec);
+
+        const recomendaciones = [];
+        const diagnosticosNanda = [];
+
+        // Recomendaciones basadas en el tipo de trastorno (NO usar el término "conducta")
+        const dist = (disturbio || "").toLowerCase();
+
+        if (dist.includes("respiratoria") && dist.includes("acidosis")) {
+          recomendaciones.push("Monitorear signos de depresión respiratoria.");
+          recomendaciones.push("Si aplica, aumentar la frecuencia respiratoria en la ventilación mecánica o estimular respiración profunda (según prescripción/protocolo).");
+        }
+        if (dist.includes("respiratoria") && dist.includes("alcalosis")) {
+          recomendaciones.push("Monitorear hiperventilación y taquipnea.");
+          recomendaciones.push("Si aplica, reducir la ventilación mecánica (según prescripción/protocolo).");
+        }
+        if (dist.includes("metab") && dist.includes("acidosis")) {
+          recomendaciones.push("Observar signos compatibles con shock, sepsis o cetoacidosis.");
+          recomendaciones.push("Administrar fluidos y reposición de bicarbonato si está prescrito.");
+        }
+        if (dist.includes("metab") && dist.includes("alcalosis")) {
+          recomendaciones.push("Monitorear vómitos, aspiración gástrica excesiva o uso de diuréticos.");
+          recomendaciones.push("Vigilar y revalorar potasio (K⁺) y otros electrólitos.");
+        }
+
+        // Oxigenación
+        const hayHipoxemia = (valores.po2 !== null && valores.po2 < 80) || (valores.sato2 !== null && valores.sato2 < 95);
+        if (hayHipoxemia) {
+          recomendaciones.push("Administrar oxigenoterapia según prescripción.");
+          recomendaciones.push("Mantener cabecera elevada (30–45°) y aspirar secreciones si es necesario.");
+        }
+
+        // Monitorización continua (siempre)
+        recomendaciones.push("Evaluar perfusión periférica en el sitio de la punción.");
+        recomendaciones.push("Interpretar los resultados junto con el equipo para ajustes terapéuticos.");
+        recomendaciones.push("Atender posibles trastornos electrolíticos asociados (K⁺, Na⁺, Cl⁻).");
+
+        // Diagnósticos NANDA-I sugeridos
+        if (hayHipoxemia || (valores.paco2 !== null && valores.paco2 > 45)) {
+          diagnosticosNanda.push("Intercambio gaseoso deteriorado (relacionado con desequilibrio ventilación-perfusión).");
+        }
+        if (dist.includes("respiratoria") || (valores.paco2 !== null && (valores.paco2 > 45 || valores.paco2 < 35))) {
+          diagnosticosNanda.push("Patrón respiratorio ineficaz (relacionado con fatiga de la musculatura respiratoria).");
+        }
+        if (dist.includes("metab") || (valores.hco3 !== null && (valores.hco3 < 22 || valores.hco3 > 26)) || (valores.be !== null && (valores.be < -3 || valores.be > 3))) {
+          diagnosticosNanda.push("Riesgo de desequilibrio electrolítico (asociado a trastornos metabólicos o pérdidas).");
+          diagnosticosNanda.push("Riesgo de volumen de líquidos deficitario/excesivo (impacto en perfusión y en intercambio gaseoso).");
+        }
+
+        // Explicación científico-matemática (resumen, en lenguaje claro)
+        const razones = [];
+        if (statusPH === "Acidosis") razones.push("El pH está por debajo del rango de referencia (pH < 7,35), indicando acidemia.");
+        else if (statusPH === "Alcalosis") razones.push("El pH está por encima del rango de referencia (pH > 7,45), indicando alcalemia.");
+        else razones.push("El pH está dentro del rango de referencia (7,35–7,45).");
+
+        if (valores.paco2 !== null) {
+          if (valores.paco2 > 45) razones.push("La PaCO₂ está elevada (> 45 mmHg), lo que empuja el pH hacia acidosis (componente respiratorio).");
+          else if (valores.paco2 < 35) razones.push("La PaCO₂ está baja (< 35 mmHg), lo que empuja el pH hacia alcalosis (componente respiratorio).");
+          else razones.push("La PaCO₂ está en rango (35–45 mmHg).");
+        }
+        if (valores.hco3 !== null) {
+          if (valores.hco3 < 22) razones.push("El HCO₃⁻ está bajo (< 22 mEq/L), compatible con componente metabólico acidótico.");
+          else if (valores.hco3 > 26) razones.push("El HCO₃⁻ está alto (> 26 mEq/L), compatible con componente metabólico alcalótico.");
+          else razones.push("El HCO₃⁻ está en rango (22–26 mEq/L).");
+        }
+        if (valores.be !== null) {
+          if (valores.be < -3) razones.push("El BE es negativo (< -3), reforzando déficit de base (tendencia a acidosis metabólica).");
+          else if (valores.be > 3) razones.push("El BE es positivo (> +3), reforzando exceso de base (tendencia a alcalosis metabólica).");
+          else razones.push("El BE está en rango aproximado (-3 a +3).");
+        }
+
+        // Auditoría del método (paso a paso y umbrales)
+        const auditoria = [
+          "1) Clasificación del pH: acidosis si pH < 7,35; alcalosis si pH > 7,45; normal si 7,35–7,45.",
+          "2) Componente respiratorio (PaCO₂): elevado > 45 mmHg sugiere acidosis respiratoria; bajo < 35 mmHg sugiere alcalosis respiratoria.",
+          "3) Componente metabólico (HCO₃⁻/BE): HCO₃⁻ < 22 o BE < -3 sugiere acidosis metabólica; HCO₃⁻ > 26 o BE > +3 sugiere alcalosis metabólica.",
+          "4) Integración: se combina la dirección del pH con el componente predominante (y, cuando corresponde, se infiere compensación)."
+        ];
+
+        const listaDetallada = (arr) => arr && arr.length ? `<ul class="list-disc pl-5 space-y-1">${arr.map(x => `<li>${x}</li>`).join("")}</ul>` : `<p class="text-sm text-gray-600">—</p>`;
+
         let htmlResultado = `
-            <p>
-                <span class="res-titulo">Diagnóstico:</span> <span class="res-conteudo">${diagnosticos.join(", ")}</span><br>
-                ${detalhes.length > 0 ? `<span class="res-titulo">Hallazgos:</span> <span class="res-conteudo">${detalhes.join(", ")}</span><br>` : ''}
-                <span class="res-titulo">Conducta:</span> <span class="res-conteudo">${condutas.join(". ")}</span>
-            </p>
-          `;
+          <div class="space-y-6">
+            <!-- HERO CARD -->
+            <div class="bg-[#1A3E74] rounded-2xl p-6 sm:p-8 text-white shadow-2xl flex flex-col md:flex-row justify-between items-start md:items-center gap-6 border-b-8 border-[#4A90E2]">
+              <div class="w-full md:w-2/3">
+                <h3 class="font-nunito font-black text-xs sm:text-sm uppercase tracking-[0.2em] opacity-80 mb-2">Resultado principal</h3>
+                <p class="font-nunito font-black text-2xl sm:text-3xl lg:text-4xl leading-tight">${disturbio || "Resultado no disponible"}</p>
+                <p class="text-xs sm:text-sm opacity-80 mt-3">Interpretación basada en pH, PaCO₂ y HCO₃⁻ (y BE cuando se informa), más oxigenación y electrólitos cuando estén disponibles.</p>
+              </div>
+
+              <div class="w-full md:w-1/3 bg-white/10 rounded-xl p-4">
+                <p class="text-[0.7rem] uppercase tracking-widest opacity-80">Valores clave</p>
+                <div class="mt-2 space-y-1 text-sm">
+                  <div>pH: <strong>${formatear(valores.ph, 2)}</strong></div>
+                  <div>PaCO₂: <strong>${formatear(valores.paco2, 0)}</strong> mmHg</div>
+                  <div>HCO₃⁻: <strong>${formatear(valores.hco3, 1)}</strong> mEq/L</div>
+                  <div>BE: <strong>${formatear(valores.be, 1)}</strong></div>
+                  ${valores.po2 !== null ? `<div>PaO₂: <strong>${formatear(valores.po2, 0)}</strong> mmHg</div>` : ``}
+                  ${valores.sato2 !== null ? `<div>Sat O₂: <strong>${formatear(valores.sato2, 0)}</strong> %</div>` : ``}
+                </div>
+              </div>
+            </div>
+
+            <!-- CARD: RESUMEN -->
+            <div class="bg-white rounded-2xl p-6 sm:p-8 shadow-xl border border-gray-200">
+              <h3 class="font-nunito font-black text-lg sm:text-xl text-[#1A3E74] mb-4">Resumen del Resultado</h3>
+
+              <div class="space-y-5">
+                <div>
+                  <h4 class="font-nunito font-extrabold text-base text-gray-800 mb-2">¿Por qué apareció este resultado?</h4>
+                  ${listaDetallada(razones)}
+                </div>
+
+                ${detalhes.length ? `
+                <div>
+                  <h4 class="font-nunito font-extrabold text-base text-gray-800 mb-2">Hallazgos adicionales</h4>
+                  ${listaDetallada(detalhes)}
+                </div>` : ``}
+
+                <div>
+                  <h4 class="font-nunito font-extrabold text-base text-gray-800 mb-2">Recomendaciones de cuidados de enfermería</h4>
+                  ${listaDetallada(recomendaciones)}
+                  <p class="text-xs text-gray-500 mt-2">Nota: las acciones deben seguir protocolos locales y prescripción del equipo responsable.</p>
+                </div>
+
+                <div>
+                  <h4 class="font-nunito font-extrabold text-base text-gray-800 mb-2">Diagnósticos de enfermería (NANDA-I)</h4>
+                  ${listaDetallada(diagnosticosNanda)}
+                </div>
+
+                <div>
+                  <h4 class="font-nunito font-extrabold text-base text-gray-800 mb-2">Auditoría del cálculo (método matemático-científico)</h4>
+                  ${listaDetallada(auditoria)}
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
 
         resultadoDiv.innerHTML = htmlResultado;
         resultadoDiv.style.display = "block";
