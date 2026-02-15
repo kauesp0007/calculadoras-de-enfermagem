@@ -1,9 +1,9 @@
 ---
-title: Guia Prático: Como Interpretar uma Gasometria Arterial
+title: Guia Prático: Como Ensinar a Interpretar uma Gasometria Arterial em 1 minuto
 description: Aprenda os passos fundamentais para interpretar resultados de gasometria arterial e identificar distúrbios ácido-base na prática de enfermagem.
 date: 15 de Fevereiro de 2026
 keywords: gasometria, acidose, alcalose, enfermagem, uti, exame de sangue
-image: https://www.calculadorasdeenfermagem.com.br/img/logo-do-site.webp
+image: /img/impresso-de-gasometria.webp
 ---
 
 # Introdução
@@ -27,3 +27,10 @@ Acidose Respiratória: pH baixo com PaCO₂ alta.
 Alcalose Metabólica: pH alto com HCO₃⁻ alto.
 
 Dica de Ouro: Sempre verifique se há compensação pelo sistema oposto ao que causou o distúrbio primário.
+
+![Aparece uma imagem aqui](/img/impresso-de-gasometria.webp)
+
+Clique aqui para ver a [Calculadora de Gasometria do Nosso Site](/gasometria.html).
+
+
+Até mais ver! Enfermeiro Cauê Marques.
