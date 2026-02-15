@@ -1,11 +1,15 @@
 const fs = require('fs');
 const path = require('path');
 
+// Configurações
 const paths = {
   posts: path.join(__dirname, '../posts-markdown'),
   templatePost: path.join(__dirname, '../blog-templates/post.template.html'),
   templateIndex: path.join(__dirname, '../blog-templates/index.template.html'),
   output: path.join(__dirname, '../blog'),
+  // Domínio base sem a barra final
+  domain: 'https://www.calculadorasdeenfermagem.com.br',
+  // URL base para links canônicos
   baseUrl: 'https://www.calculadorasdeenfermagem.com.br/blog/'
 };
 
@@ -13,10 +17,13 @@ if (!fs.existsSync(paths.output)) fs.mkdirSync(paths.output, { recursive: true }
 
 function simpleMarkdownToHtml(md) {
   return md
+    // Headers
     .replace(/^# (.*$)/gim, '<h1 class="text-3xl font-black text-[#1A3E74] mb-6">$1</h1>')
     .replace(/^## (.*$)/gim, '<h2 class="text-2xl md:text-3xl font-bold text-[#1A3E74] mt-12 mb-6 border-b pb-3">$1</h2>')
     .replace(/^### (.*$)/gim, '<h3 class="text-xl md:text-2xl font-bold text-[#4A90E2] mt-10 mb-4">$1</h3>')
+    // Imagens no corpo (Mantém caminho relativo, adiciona classes)
     .replace(/!\[(.*?)\]\((.*?)\)/gim, '<img src="$2" alt="$1" class="w-full h-auto rounded-xl shadow-lg my-10" loading="lazy">')
+    // Listas e Texto
     .replace(/^\* (.*$)/gim, '<li class="mb-3 text-lg">$1</li>')
     .replace(/\*\*(.*)\*\*/gim, '<strong>$1</strong>')
     .replace(/\n\n/g, '</p><p class="mb-6 text-base md:text-lg text-justify leading-8">')
@@ -30,7 +37,7 @@ function parsePost(fileContent, fileName) {
     description: 'Descrição indisponível.',
     date: 'Data não informada',
     keywords: 'enfermagem',
-    image: '/img/calculadorasimagem.webp', // Imagem padrão se não houver no MD
+    image: 'https://www.calculadorasdeenfermagem.com.br/iconpages.webp', // Padrão absoluto
     canonical: paths.baseUrl + fileName.replace('.md', '.html')
   };
 
@@ -43,7 +50,22 @@ function parsePost(fileContent, fileName) {
     else if (cleanLine.startsWith('description:')) meta.description = cleanLine.replace('description:', '').trim();
     else if (cleanLine.startsWith('date:')) meta.date = cleanLine.replace('date:', '').trim();
     else if (cleanLine.startsWith('keywords:')) meta.keywords = cleanLine.replace('keywords:', '').trim();
-    else if (cleanLine.startsWith('image:')) meta.image = cleanLine.replace('image:', '').trim();
+
+    // Lógica Inteligente para Imagem
+    else if (cleanLine.startsWith('image:')) {
+      let imgVal = cleanLine.replace('image:', '').trim();
+      // Se o usuário colocou apenas /img/foto.jpg, adicionamos o domínio
+      if (imgVal.startsWith('/')) {
+        meta.image = paths.domain + imgVal;
+      } else if (!imgVal.startsWith('http')) {
+        // Se esqueceu a barra inicial
+        meta.image = paths.domain + '/' + imgVal;
+      } else {
+        // Se já colocou a URL completa
+        meta.image = imgVal;
+      }
+    }
+
     else if (cleanLine.startsWith('---')) contentStartLine = index;
   });
 
@@ -72,18 +94,18 @@ files.forEach(file => {
     .replace(/{{date}}/g, post.date)
     .replace(/{{keywords}}/g, post.keywords)
     .replace(/{{canonical}}/g, post.canonical)
-    .replace(/{{image}}/g, post.image)
+    .replace(/{{image}}/g, post.image) // Aqui vai a URL completa para SEO
     .replace(/{{content}}/g, htmlBody);
 
   fs.writeFileSync(path.join(paths.output, post.slug), finalHtml);
   console.log(`✅ Gerado: ${post.slug}`);
 
-  // GERA O CARD ESTILO "WINDOWS EXPLORER ICON"
-  // Imagem quadrada, título embaixo, subtítulo (descrição)
+  // Card para o Índice
+  // Nota: Para o card visual (tag <img>), usamos a URL completa também, funciona perfeitamente.
   postsListHtml += `
     <a href="${post.slug}" class="group flex flex-col items-center text-center p-4 hover:bg-slate-50 rounded-xl transition-all duration-200 border border-transparent hover:border-slate-200">
 
-      <!-- Imagem Miniatura (Quadrada / Aspect Ratio) -->
+      <!-- Imagem Miniatura -->
       <div class="w-full aspect-square mb-3 overflow-hidden rounded-xl bg-slate-100 shadow-sm group-hover:shadow-md transition-all">
         <img src="${post.image}" alt="${post.title}" class="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-500" loading="lazy">
       </div>

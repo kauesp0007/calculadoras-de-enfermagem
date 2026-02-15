@@ -1,5 +1,5 @@
 // Define o nome e a versão do cache (AUTOMÁTICO via gerar-sw.js)
-const CACHE_NAME = 'calculadoras-enfermagem-cache-20260215-141857-989';
+const CACHE_NAME = 'calculadoras-enfermagem-cache-20260215-203446-808';
 
 // O SCRIPT DE BUILD VAI INJETAR A LISTA DE ARQUIVOS AQUI
 const urlsToCache = [
@@ -749,6 +749,10 @@ const urlsToCache = [
   'biblioteca/wanda-de-aguiar-horta-necessidades-humanas-basicas.html',
   'bishop.html',
   'blog-linkedin.webp',
+  'blog-templates/index.template.html',
+  'blog-templates/post.template.html',
+  'blog/index.html',
+  'blog/interpretacao-gasometria.html',
   'bps.html',
   'braden.html',
   'build-biblioteca.js',
@@ -1135,7 +1139,6 @@ const urlsToCache = [
   'favicon.ico',
   'filtro-index.js',
   'fix-cls.js',
-  'fix-hreflang.js',
   'flacc.html',
   'footer.html',
   'force-clear-capas.js',
@@ -1967,6 +1970,7 @@ const urlsToCache = [
   'img/lamparina enfermagem.webp',
   'img/livroimagem.webp',
   'img/livronanda.webp',
+  'img/logo-do-site.webp',
   'img/medicamentos.webp',
   'img/meemcapa.jpg',
   'img/meemimagem.webp',
@@ -2436,7 +2440,6 @@ const urlsToCache = [
   'manchester.html',
   'manifest.json',
   'mapa-do-site.html',
-  'mass-add-comments.js',
   'medicamentos.html',
   'meem.html',
   'menu-global.html',
@@ -2806,6 +2809,7 @@ const urlsToCache = [
   'scaffold-lang.js',
   'scan-biblioteca.js',
   'scanner-biblioteca.js',
+  'scripts/build-blog.js',
   'seloacessibilidade.webp',
   'selolgpd.webp',
   'selosustentabilidade.webp',
@@ -2936,7 +2940,6 @@ const urlsToCache = [
   'sv/waterlow.html',
   'sv/zarit.html',
   'tabelas-vacinas-crianca.html',
-  'tags-adsense-ads-analytics.js',
   'tecnologiaverde.html',
   'teorias-de-enfermagem.html',
   'terminologias-de-enfermagem.html',
@@ -3158,8 +3161,6 @@ const urlsToCache = [
   'uk/vagasdeemprego.html',
   'uk/waterlow.html',
   'uk/zarit.html',
-  'update-ads-id.js',
-  'update-tags.js',
   'vagasdeemprego.html',
   'vi/5-hs-da-paradacardiorespiratoria.html',
   'vi/_language_selector.html',
