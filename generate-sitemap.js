@@ -31,196 +31,95 @@ const IGNORE_FILES = [
   'avaliacaomeem.html',
   'testemeem.html',
   'site-de-vagas.html',
-  'downloads.template.html',
-  'googlefc0a17cdd552164b.html',
   'item.template.html',
-  'dowloads.template.html',
-  "ativar-admin.html",
-
+  'downloads.template.html',
+  // Novos templates do blog para ignorar
+  'post.template.html',
+  'index.template.html'
 ];
 
-// Caminho de saída para o sitemap
-const SITEMAP_PATH = path.join(ROOT_DIR, 'sitemap.xml');
-// --- Fim das Configurações ---
-
-/**
- * Mapeia os códigos de pasta para os códigos de idioma 'hreflang' corretos.
- * 'pt' é mapeado para 'pt-BR' como seu idioma principal.
- */
-const langCodeMap = {
-  'pt': 'pt-BR', // 'pt' é nossa chave interna para arquivos na raiz
-  'en': 'en',
-  'es': 'es',
-  'fr': 'fr',
-  'de': 'de',
-  'it': 'it',
-  'ja': 'ja',
-  'zh': 'zh',
-  'hi': 'hi',
-  'ar': 'ar',
-  'ru': 'ru',
-  'tr': 'tr',
-  'ko': 'ko',
-  'nl': 'nl',
-  'pl': 'pl',
-  'sv': 'sv',
-  'id': 'id',
-  'vi': 'vi',
-  'uk': 'uk',
-};
-
-/**
- * Encontra todos os arquivos .html em um diretório específico.
- * (Esta função está correta, não mudou)
- */
+// Função auxiliar para pegar arquivos HTML de um diretório
 function getHtmlFiles(dir) {
   try {
-    // Lê todos os arquivos no diretório
-    const files = fs.readdirSync(dir, { withFileTypes: true });
-    // Filtra para manter apenas arquivos .html
-    return files
-      .filter(file => file.isFile() && path.extname(file.name) === '.html')
-      .map(file => file.name);
-  } catch (error) {
-    // Se uma pasta de idioma ainda não existir, apenas retorna uma lista vazia.
-    if (error.code === 'ENOENT') {
-      console.warn(`Aviso: Pasta não encontrada ${dir}. Ignorando.`);
-      return [];
-    }
-    throw error;
+    if (!fs.existsSync(dir)) return [];
+    return fs.readdirSync(dir).filter(file => file.endsWith('.html'));
+  } catch (err) {
+    console.error(`Erro ao ler diretório ${dir}:`, err);
+    return [];
   }
 }
 
-/**
- * Gera o conteúdo XML completo do sitemap.
- * (Esta função está correta, não mudou)
- */
-function generateSitemapXml(sitemapEntries) {
-  let xml = `<?xml version="1.0" encoding="UTF-8"?>\n`;
-  xml += `<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"\n`;
-  xml += `        xmlns:xhtml="http://www.w3.org/1999/xhtml">\n\n`;
+// Objeto para armazenar as URLs (evita duplicatas e organiza por página/idioma)
+const sitemapEntries = {};
 
-  // Ordena as páginas por nome de arquivo para um sitemap consistente
-  const sortedPages = Object.keys(sitemapEntries).sort();
+// 1. Processa a RAIZ (Português - pt-BR)
+console.log('Processando raiz (pt-BR)...');
+const rootFiles = getHtmlFiles(ROOT_DIR);
 
-  for (const pageName of sortedPages) {
-    const versions = sitemapEntries[pageName];
-
-    // A URL principal (<loc>) e a x-default será a versão em português ('pt')
-    // Se não houver 'pt', usa a primeira que encontrar.
-    const mainUrl = versions['pt'] || Object.values(versions)[0];
-
-    // Se não houver versão em português, não podemos gerar uma entrada válida.
-    if (!mainUrl) {
-        console.warn(`Aviso: Página ${pageName} não tem versão 'pt' ou qualquer outra. Pulando.`);
-        continue;
-    }
-
-    const xDefaultUrl = versions['pt'] || mainUrl; // Prefere 'pt' para x-default
-
-    xml += `  <url>\n`;
-    xml += `    <loc>${mainUrl}</loc>\n`;
-
-    // Adiciona todas as versões de idioma alternativas
-    for (const langKey in versions) {
-      // Verifica se o langKey existe no nosso mapa
-      if (langCodeMap[langKey]) {
-        const hreflang = langCodeMap[langKey];
-        const url = versions[langKey];
-        xml += `    <xhtml:link rel="alternate" hreflang="${hreflang}" href="${url}" />\n`;
-      }
-    }
-
-    // Adiciona o link x-default
-    xml += `    <xhtml:link rel="alternate" hreflang="x-default" href="${xDefaultUrl}" />\n`;
-    xml += `  </url>\n`;
+for (const file of rootFiles) {
+  // Ignora arquivos da lista negra ou que começam com "_" ou "google" (verificação extra)
+  if (IGNORE_FILES.includes(file) || file.startsWith('_') || file.startsWith('google')) {
+    continue;
   }
 
-  xml += `\n</urlset>\n`;
-  return xml;
+  const pageKey = file; // A chave é o nome do arquivo (ex: 'gasometria.html')
+  let url = `${BASE_URL}/${file}`;
+
+  // Trata o index.html da raiz
+  if (file === 'index.html') {
+    url = `${BASE_URL}/`;
+  }
+
+  if (!sitemapEntries[pageKey]) {
+    sitemapEntries[pageKey] = {};
+  }
+  sitemapEntries[pageKey]['pt-br'] = url; // Define pt-br como padrão da raiz
 }
 
-
-// --- ATUALIZAÇÃO PRINCIPAL: LÓGICA SIMPLIFICADA E CORRIGIDA ---
-
-/**
- * Função principal que executa o script.
- */
-function main() {
-  console.log('Iniciando geração do sitemap...');
-
-  // Objeto para armazenar todas as páginas e suas versões
-  // Ex: { 'index.html': { 'pt': 'url', 'ja': 'url' }, 'aldrete.html': { ... } }
-  const sitemapEntries = {};
-
-  // 1. Processa os arquivos da raiz (Português)
-  const rootFiles = getHtmlFiles(ROOT_DIR);
-  for (const file of rootFiles) {
-
-    // Ignora arquivos parciais/de script
-    if (file === 'sitemap.html' ||
-        file === 'generate-sitemap.js' ||
-        IGNORE_FILES.includes(file) ||
-        file.startsWith('_')) {
-      continue; // Pula este arquivo
-    }
-
-    const pageKey = file; // A "chave" é o nome do arquivo, ex: 'index.html'
-    let url = `${BASE_URL}/${file}`; // URL padrão
-
-    // --- CORREÇÃO: Trata o index.html DA RAIZ aqui ---
-    if (pageKey === 'index.html') {
-      url = `${BASE_URL}/`;
-    }
-
-    // Cria a entrada para a página se for a primeira vez
-    if (!sitemapEntries[pageKey]) {
-      sitemapEntries[pageKey] = {};
-    }
-    sitemapEntries[pageKey]['pt'] = url; // Adiciona a versão 'pt'
-  }
-
-
-  // 2. Processa os arquivos das pastas de idioma
-  for (const langKey of LANG_FOLDERS) {
-    const langDir = path.join(ROOT_DIR, langKey);
-    const langFiles = getHtmlFiles(langDir);
-
-    for (const file of langFiles) {
-
-      // Ignora arquivos parciais
-      if (IGNORE_FILES.includes(file) || file.startsWith('_')) {
-        continue; // Pula este arquivo
-      }
-
-      const pageKey = file; // A chave é a mesma, ex: 'index.html'
-      let url = `${BASE_URL}/${langKey}/${file}`; // URL padrão
-
-      // --- CORREÇÃO: Trata o index.html DAS SUBPASTAS aqui ---
-      if (pageKey === 'index.html') {
-        url = `${BASE_URL}/${langKey}/`;
-      }
-
-      // Cria a entrada para a página se for a primeira vez (ex: um arquivo só existe em 'ja')
-      if (!sitemapEntries[pageKey]) {
-        sitemapEntries[pageKey] = {};
-      }
-      sitemapEntries[pageKey][langKey] = url; // Adiciona a versão do idioma
-    }
-  }
-  // 3. Processa PASTAS ESPECIAIS (downloads, biblioteca)
-const SPECIAL_FOLDERS = ['downloads', 'biblioteca'];
-
-for (const folder of SPECIAL_FOLDERS) {
-  const dirPath = path.join(ROOT_DIR, folder);
+// 2. Processa as PASTAS DE IDIOMA
+for (const langKey of LANG_FOLDERS) {
+  const dirPath = path.join(ROOT_DIR, langKey);
+  console.log(`Processando idioma: ${langKey}...`);
   const htmlFiles = getHtmlFiles(dirPath);
 
   for (const file of htmlFiles) {
-
     if (IGNORE_FILES.includes(file) || file.startsWith('_')) {
       continue;
     }
 
+    const pageKey = file; // A chave é a mesma, ex: 'index.html'
+    let url = `${BASE_URL}/${langKey}/${file}`; // URL padrão
+
+    // Trata o index.html DAS SUBPASTAS aqui
+    if (pageKey === 'index.html') {
+      url = `${BASE_URL}/${langKey}/`;
+    }
+
+    // Cria a entrada para a página se for a primeira vez (ex: um arquivo só existe em 'ja')
+    if (!sitemapEntries[pageKey]) {
+      sitemapEntries[pageKey] = {};
+    }
+    sitemapEntries[pageKey][langKey] = url; // Adiciona a versão do idioma
+  }
+}
+
+// 3. Processa PASTAS ESPECIAIS (downloads, biblioteca e agora BLOG)
+// ADICIONADO: 'blog' para ser escaneado na raiz
+const SPECIAL_FOLDERS = ['downloads', 'biblioteca', 'blog'];
+
+for (const folder of SPECIAL_FOLDERS) {
+  const dirPath = path.join(ROOT_DIR, folder);
+  console.log(`Processando pasta especial: ${folder}...`);
+  const htmlFiles = getHtmlFiles(dirPath);
+
+  for (const file of htmlFiles) {
+
+    // Ignora templates se estiverem misturados aqui
+    if (IGNORE_FILES.includes(file) || file.startsWith('_')) {
+      continue;
+    }
+
+    // A chave precisa incluir a pasta para não colidir com arquivos da raiz
     const pageKey = `${folder}/${file}`;
     const url = `${BASE_URL}/${folder}/${file}`;
 
@@ -228,22 +127,54 @@ for (const folder of SPECIAL_FOLDERS) {
       sitemapEntries[pageKey] = {};
     }
 
-    // Consideramos estas páginas como idioma padrão, pt-BR
-    sitemapEntries[pageKey]['pt'] = url;
+    // Consideramos estas páginas como conteúdo principal (geralmente pt-BR ou neutro)
+    sitemapEntries[pageKey]['pt-br'] = url;
   }
 }
 
+// --- GERA O XML ---
+console.log('Gerando XML...');
 
-  // 3. Gera o XML
-  const xmlContent = generateSitemapXml(sitemapEntries);
+let xml = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:xhtml="http://www.w3.org/1999/xhtml">
+`;
 
-  // 4. Salva o arquivo
-  fs.writeFileSync(SITEMAP_PATH, xmlContent);
+// Itera sobre as entradas agrupadas
+for (const pageKey in sitemapEntries) {
+  const versions = sitemapEntries[pageKey];
 
-  console.log(`Sitemap gerado com sucesso em ${SITEMAP_PATH}`);
+  // Pegamos a URL "principal". Preferência para pt-br, senão a primeira que achar.
+  const mainUrl = versions['pt-br'] || Object.values(versions)[0];
+
+  // Data de modificação (hoje)
+  const today = new Date().toISOString().split('T')[0];
+
+  xml += `  <url>
+    <loc>${mainUrl}</loc>
+    <lastmod>${today}</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>${pageKey === 'index.html' ? '1.0' : '0.8'}</priority>
+`;
+
+  // Adiciona as tags xhtml:link para TODOS os idiomas disponíveis desta página (incluindo o principal)
+  for (const lang in versions) {
+    xml += `    <xhtml:link rel="alternate" hreflang="${lang}" href="${versions[lang]}" />
+`;
+  }
+
+  // Adiciona o x-default apontando para pt-br (ou o principal que escolhemos)
+  xml += `    <xhtml:link rel="alternate" hreflang="x-default" href="${mainUrl}" />
+`;
+
+  xml += `  </url>
+`;
 }
-// --- FIM DA ATUALIZAÇÃO PRINCIPAL ---
 
+xml += `</urlset>`;
 
-// Executa a função principal
-main();
+// Salva o arquivo
+const outputPath = path.join(ROOT_DIR, 'sitemap.xml');
+fs.writeFileSync(outputPath, xml, 'utf8');
+
+console.log(`✅ Sitemap gerado com sucesso em: ${outputPath}`);
