@@ -14,20 +14,20 @@ const REGRA_REPLACE = [
 // 2. EXCLUSÃO DE LINHAS (DELETE)
 // Se achar a palavra no 'target', a linha inteira é removida do arquivo.
 const REGRA_DELETE = [
-    { target: 'https://fonts.googleapis.com?display=optional' },
+    { target: '' },
 ];
 
 // 3. UNIFICAÇÃO / LIMPEZA DE DUPLICADOS (UNIFY)
-// Se você colocar o mesmo termo em target1 e target2, o script manterá apenas
-// a primeira ocorrência (transformada na newTag) e apagará todas as outras duplicatas.
+// Mantém apenas a primeira ocorrência (transformada na newTag) e apaga as duplicatas.
 const REGRA_UNIFY = [
-    { target1: 'https://fonts.gstatic.com', target2: 'https://fonts.gstatic.com', newTag: '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">' }
+    { target1: '', target2: '', newTag: '' }
 ];
 
-// 4. MOVIMENTAÇÃO DE LUGAR (MOVE)
-// Recorta o 'moveTarget' de onde ele estiver e cola logo abaixo do 'anchorTarget'.
+// 4. MOVIMENTAÇÃO OU CRIAÇÃO ABAIXO DA ÂNCORA (MOVE / CREATE)
+// - Se 'moveTarget' tiver valor: Move a linha existente para baixo da âncora.
+// - Se 'moveTarget' estiver vazio e 'newTag' tiver valor: Cria uma linha nova abaixo da âncora.
 const REGRA_MOVE = [
-    { moveTarget: '', anchorTarget: '' }
+    { moveTarget: '', newTag: '<link rel="preconnect" href="https://fonts.googleapis.com">', anchorTarget: '<link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin="">' }
 ];
 
 // =============================================================================
@@ -49,12 +49,10 @@ let filesSkippedCount = 0;
  * Inicia a varredura na raiz e nas pastas de idiomas
  */
 function start() {
-    console.log('--- Iniciando Processamento com Inteligência de Unificação ---');
+    console.log('--- Iniciando Processamento Inteligente (Move & Create) ---');
 
-    // Processa arquivos na raiz
     processDirectory(ROOT_DIR, false);
 
-    // Processa pastas de idiomas
     LANGUAGES.forEach(lang => {
         const langPath = path.join(ROOT_DIR, lang);
         if (fs.existsSync(langPath)) processDirectory(langPath, true);
@@ -78,7 +76,7 @@ function processDirectory(currentPath, isLangFolder) {
         const stat = fs.statSync(fullPath);
 
         if (stat.isDirectory()) {
-            if (IGNORE_FOLDERS.includes(item)) return; // Ignora pastas bloqueadas
+            if (IGNORE_FOLDERS.includes(item)) return;
             if (isLangFolder) processDirectory(fullPath, true);
         } else if (path.extname(item) === '.html' && !IGNORE_FILES.includes(item)) {
             processFile(fullPath);
@@ -87,41 +85,33 @@ function processDirectory(currentPath, isLangFolder) {
 }
 
 /**
- * Aplica as 4 lógicas de edição ao conteúdo do arquivo
+ * Aplica as lógicas de edição ao conteúdo do arquivo
  */
 function processFile(filePath) {
     try {
         let content = fs.readFileSync(filePath, 'utf8');
         let lines = content.split('\n');
         let fileModified = false;
-
-        // "Set" para garantir que a unificação só ocorra uma vez por regra por arquivo
         let unificacoesExecutadas = new Set();
 
-        // PASSO 1: UNIFICAR, DELETAR E SUBSTITUIR (Linha por Linha)
+        // PASSO 1: UNIFICAR, DELETAR E SUBSTITUIR
         lines = lines.map((line) => {
-
-            // Lógica de Unificação (Trata duplicados idênticos ou diferentes)
             for (let i = 0; i < REGRA_UNIFY.length; i++) {
                 const r = REGRA_UNIFY[i];
                 if (!r.target1 || !r.target2) continue;
-
                 if (line.includes(r.target1) || line.includes(r.target2)) {
-                    // Se é a PRIMEIRA vez que achamos um alvo desta regra no arquivo
                     if (!unificacoesExecutadas.has(i)) {
                         unificacoesExecutadas.add(i);
                         fileModified = true;
                         const indent = line.match(/^(\s*)/)[0];
                         return `${indent}${r.newTag}`;
                     } else {
-                        // Se já achamos antes, esta linha é a duplicata: apaga.
                         fileModified = true;
                         return null;
                     }
                 }
             }
 
-            // Lógica de Exclusão Simples
             for (const r of REGRA_DELETE) {
                 if (r.target && line.includes(r.target)) {
                     fileModified = true;
@@ -129,7 +119,6 @@ function processFile(filePath) {
                 }
             }
 
-            // Lógica de Substituição Simples
             for (const r of REGRA_REPLACE) {
                 if (r.target && line.includes(r.target)) {
                     if (line.trim() !== r.newTag.trim()) {
@@ -140,26 +129,38 @@ function processFile(filePath) {
                 }
             }
             return line;
-        }).filter(line => line !== null); // Remove fisicamente as linhas marcadas como null
+        }).filter(line => line !== null);
 
-        // PASSO 2: LÓGICA DE MOVER (Reorganização de Ordem)
+        // PASSO 2: LÓGICA DE MOVER OU CRIAR (Ação Solicitada)
         for (const r of REGRA_MOVE) {
-            if (r.moveTarget && r.anchorTarget) {
-                let moveIdx = lines.findIndex(l => l.includes(r.moveTarget));
+            if (r.anchorTarget) {
                 let anchorIdx = lines.findIndex(l => l.includes(r.anchorTarget));
 
-                // Se achou ambos e eles NÃO estão na ordem certa (o alvo deve estar anchorIdx + 1)
-                if (moveIdx !== -1 && anchorIdx !== -1 && moveIdx !== anchorIdx + 1) {
-                    const lineToMove = lines.splice(moveIdx, 1)[0];
-                    // Recalcula o índice da âncora após a remoção da linha
-                    anchorIdx = lines.findIndex(l => l.includes(r.anchorTarget));
-                    lines.splice(anchorIdx + 1, 0, lineToMove);
-                    fileModified = true;
+                if (anchorIdx !== -1) {
+                    // AÇÃO A: Mover linha existente
+                    if (r.moveTarget) {
+                        let moveIdx = lines.findIndex(l => l.includes(r.moveTarget));
+                        if (moveIdx !== -1 && moveIdx !== anchorIdx + 1) {
+                            const lineToMove = lines.splice(moveIdx, 1)[0];
+                            anchorIdx = lines.findIndex(l => l.includes(r.anchorTarget));
+                            lines.splice(anchorIdx + 1, 0, lineToMove);
+                            fileModified = true;
+                        }
+                    }
+                    // AÇÃO B: Criar linha nova (apenas se moveTarget estiver vazio e newTag preenchido)
+                    else if (r.newTag) {
+                        // Verifica se a linha já existe para não criar duplicatas infinitas
+                        const jaExiste = lines.some(l => l.includes(r.newTag.trim()));
+                        if (!jaExiste) {
+                            const indent = lines[anchorIdx].match(/^(\s*)/)[0];
+                            lines.splice(anchorIdx + 1, 0, `${indent}${r.newTag}`);
+                            fileModified = true;
+                        }
+                    }
                 }
             }
         }
 
-        // SALVAMENTO FINAL
         if (fileModified) {
             fs.writeFileSync(filePath, lines.join('\n'), 'utf8');
             filesChangedCount++;
@@ -172,5 +173,4 @@ function processFile(filePath) {
     }
 }
 
-// Execução do script
 start();
