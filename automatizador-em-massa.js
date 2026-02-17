@@ -27,7 +27,7 @@ const REGRA_UNIFY = [
 // - Se 'moveTarget' tiver valor: Move a linha existente para baixo da âncora.
 // - Se 'moveTarget' estiver vazio e 'newTag' tiver valor: Cria uma linha nova abaixo da âncora.
 const REGRA_MOVE = [
-    { moveTarget: '', newTag: '<link rel="preconnect" href="https://fonts.googleapis.com">', anchorTarget: '<link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin="">' }
+    { moveTarget: '', newTag: '', anchorTarget: '' }
 ];
 
 // =============================================================================
