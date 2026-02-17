@@ -1,5 +1,5 @@
 // Define o nome e a versão do cache (AUTOMÁTICO via gerar-sw.js)
-const CACHE_NAME = 'calculadoras-enfermagem-cache-20260217-004251-218';
+const CACHE_NAME = 'calculadoras-enfermagem-cache-20260217-022311-135';
 
 // O SCRIPT DE BUILD VAI INJETAR A LISTA DE ARQUIVOS AQUI
 const urlsToCache = [
@@ -313,6 +313,7 @@ const urlsToCache = [
   'biblioteca/desenho-nomeacao-escala-de-moca.html',
   'biblioteca/desenho-oximetro-de-pulso-enfermagem.html',
   'biblioteca/desenho-saturacao-de-ocigenio.html',
+  'biblioteca/dever-profissional-enfermagem.html',
   'biblioteca/dezpassos.html',
   'biblioteca/diagnosticosnanda2018.html',
   'biblioteca/dimensionamento-da-equipe-de-enfermagem.html',
@@ -373,6 +374,7 @@ const urlsToCache = [
   'biblioteca/especulo-de-cusco.html',
   'biblioteca/especulo-de-sims.html',
   'biblioteca/especulo-nasal.html',
+  'biblioteca/essencia-e-proposito-enfermagem.html',
   'biblioteca/evento-sentinela-de-enfermagem.html',
   'biblioteca/farmaceutico-liberando-a-medicacao-de-alta-vigilancia-da-farmacia-para-o-tecnico-de-enfermagem.html',
   'biblioteca/ficha-escala-de-moca.html',
@@ -513,6 +515,7 @@ const urlsToCache = [
   'biblioteca/mini-exame-do-estado-mental-meem.html',
   'biblioteca/missao-visao-e-valores-calculadoras-de-enfermagem.html',
   'biblioteca/myra-estrin-levine-teoria-holistica.html',
+  'biblioteca/necessidade-enfermagem.html',
   'biblioteca/nivel-de-consciencia-enfermagem.html',
   'biblioteca/notificacao-compulsoria.html',
   'biblioteca/nr1.html',
@@ -754,6 +757,7 @@ const urlsToCache = [
   'blog-templates/post.template.html',
   'blog/index.html',
   'blog/interpretacao-gasometria.html',
+  'blog/proposito-enfermagem.html',
   'bps.html',
   'braden.html',
   'build-biblioteca.js',
@@ -1906,6 +1910,7 @@ const urlsToCache = [
   'img/cuidados-pos-pcr.webp',
   'img/cuidados_com_idoso.png',
   'img/desenhar-relogio-escala-de-moca.webp',
+  'img/dever-profissional-enfermagem.webp',
   'img/dezpassos.webp',
   'img/diagnosticosnanda2018.jpg',
   'img/diagnosticosnanda2018.webp',
@@ -1924,6 +1929,7 @@ const urlsToCache = [
   'img/escaladebps.webp',
   'img/escaladebraden.webp',
   'img/escalasimagem.webp',
+  'img/essencia-e-proposito-enfermagem.webp',
   'img/exemplo_controlehidrico.png',
   'img/florence  nightngale - teoria ambiental.webp',
   'img/florence-nightngale-enfermeira-patrona-da-enfermagem.png',
@@ -1984,6 +1990,7 @@ const urlsToCache = [
   'img/metasinternacionais.webp',
   'img/mini_exame_do_estado_mental_formulario_rio.webp',
   'img/missao visao e valores calculadoras de enfermagem.webp',
+  'img/necessidade-enfermagem.webp',
   'img/nr1.webp',
   'img/nr10.webp',
   'img/nr11.webp',
