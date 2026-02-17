@@ -20,7 +20,7 @@ const REGRA_DELETE = [
 // 3. UNIFICAÇÃO / LIMPEZA DE DUPLICADOS (UNIFY)
 // Mantém apenas a primeira ocorrência (transformada na newTag) e apaga as duplicatas.
 const REGRA_UNIFY = [
-    { target1: '', target2: '', newTag: '' }
+    { target1: '<link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@700;900&amp;family=Inter:wght@400;600;700&amp;display=optional&amp;display=optional" rel="stylesheet">', target2: '<link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;700&amp;family=Inter:wght@400;700&amp;display=optional" rel="stylesheet">', newTag: '<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Nunito+Sans:wght@400;700;900&display=swap" rel="stylesheet">' }
 ];
 
 // 4. MOVIMENTAÇÃO OU CRIAÇÃO ABAIXO DA ÂNCORA (MOVE / CREATE)
