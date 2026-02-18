@@ -15,15 +15,11 @@ Calma. O **Parecer Normativo nº 01/2024 do COFEN** veio, justamente, pra **orga
 
 A ideia aqui é te explicar **o que mudou na prática**, com linguagem de gente.
 
----
-
 ## Por que esse parecer apareceu?
 
 De forma bem direta: o COFEN precisou **manter uma orientação técnica nacional** para o dimensionamento e reforçar o papel do enfermeiro no planejamento do quadro de pessoal.
 
 E um ponto importante: o parecer deixa claro que estamos falando de **parâmetros mínimos** (tipo “o básico do básico” pra evitar improviso e risco).
-
----
 
 ## O que mudou (ou ficou mais amarrado) no dimensionamento?
 
@@ -36,15 +32,11 @@ E ele ainda detalha essa conta: **8,3% para férias** + **6,7% para ausências n
 
 **Na prática:** se você não coloca IST, a escala “parece fechar” no papel, mas explode na vida real (falta, atestado, troca, licença…).
 
----
-
 ### 2 Educação permanente entrou como acréscimo mínimo (5%)
 
 Outra mudança bem pé-no-chão: o parecer orienta que o RT (ou quem dimensiona) acrescente **no mínimo 5%** no quadro geral para cobrir **educação permanente** e também coisas como **rotatividade**.
 
 **Tradução:** treinamento, integração, atualização e capacitação **não podem ser tratados como “tempo livre”** de quem está na assistência.
-
----
 
 ### 3 Enfermeiro de gerência/coordenação: dimensiona “à parte”
 
@@ -53,8 +45,6 @@ Esse ponto é MUITO importante e vive sendo ignorado:
 O parecer orienta que o quantitativo de enfermeiros para **atividades gerenciais** (RT, coordenações, comissões, educação, pesquisa etc.) deve ser **dimensionado à parte**, conforme a necessidade do serviço, e ainda **acrescido do IST**.
 
 **Na prática:** não é pra “tirar” enfermeiro assistencial do plantão e fingir que não mudou nada. Se tem função gerencial fixa, isso precisa entrar no planejamento.
-
----
 
 ### 4 Quando não dá pra usar “leito-dia”, entra a tal da Unidade Funcional (UF)
 
@@ -67,8 +57,6 @@ O parecer orienta que nesses casos você use a **Unidade Funcional (UF)**, consi
 
 **Na prática:** dimensionamento por “achismo” fica bem mais difícil de defender. UF ajuda a transformar rotina em número.
 
----
-
 ### 5 Se a equipe tem muita gente com restrição, entra “gordurinha” extra (10%)
 
 Esse aqui é sensível e MUITO real:
@@ -76,15 +64,11 @@ Se a unidade tem **30% ou mais** de profissionais com **limitação/restrição*
 
 **Na prática:** não adianta ter número “bonito” se parte do time não consegue executar todas as tarefas do setor. Isso impacta carga de trabalho e segurança.
 
----
-
 ### 6 SCP ficou mais flexível (pode usar mais de um)
 
 O parecer define SCP (Sistema de Classificação de Pacientes) como a ferramenta para medir dependência e tempo de cuidado (direto e indireto) e orienta que a instituição pode usar o SCP que melhor atenda a realidade — inclusive **mais de um**.
 
 **Na prática:** você não fica “preso” a um modelo só. O foco é: o instrumento precisa fazer sentido pro seu serviço e ajudar a justificar o tempo de assistência.
-
----
 
 ## Um exemplo prático pra entender a lógica (sem virar calculadora humana)
 
@@ -92,8 +76,6 @@ O parecer traz anexos com parâmetros específicos por serviço.
 
 Um exemplo bem didático é em **Hemodiálise**, onde aparece referência de **4 horas de assistência de enfermagem por paciente/sessão** e uma proporção mínima de **25% enfermeiros** e **75% técnicos/auxiliares** para assistência direta (como regra mínima).
 Isso ajuda a defender escala e também a negociar com gestão quando a conta não fecha.
-
----
 
 ## O que isso muda pra quem faz escala/dimensionamento?
 
@@ -104,8 +86,6 @@ Isso ajuda a defender escala e também a negociar com gestão quando a conta nã
 ### Se você está na assistência:
 * dá pra entender melhor por que **equipe curta** aumenta risco e evento adverso
 * dá pra cobrar planejamento com base em critérios mínimos, não em “feeling”
-
----
 
 ## Checklist rápido (pra você não esquecer do essencial)
 
@@ -119,8 +99,6 @@ Antes de dizer que “está dimensionado”, confira se você considerou:
 * SCP adequado (e pode ser mais de um) para medir dependência e tempo de cuidado
 
 ![Aparece uma imagem aqui](/img/mudancas-dimensionamento-enfermagem.webp)
-
----
 
 ## Fechando: isso é “liberou geral” ou ficou mais sério?
 
