@@ -1,5 +1,5 @@
 // Define o nome e a versão do cache (AUTOMÁTICO via gerar-sw.js)
-const CACHE_NAME = 'calculadoras-enfermagem-cache-20260218-001414-053';
+const CACHE_NAME = 'calculadoras-enfermagem-cache-20260218-004458-308';
 
 // O SCRIPT DE BUILD VAI INJETAR A LISTA DE ARQUIVOS AQUI
 const urlsToCache = [
@@ -515,6 +515,7 @@ const urlsToCache = [
   'biblioteca/mini-exame-do-estado-mental-formulario-rio.html',
   'biblioteca/mini-exame-do-estado-mental-meem.html',
   'biblioteca/missao-visao-e-valores-calculadoras-de-enfermagem.html',
+  'biblioteca/mudancas-dimensionamento-enfermagem.html',
   'biblioteca/myra-estrin-levine-teoria-holistica.html',
   'biblioteca/necessidade-enfermagem.html',
   'biblioteca/nivel-de-consciencia-enfermagem.html',
@@ -557,6 +558,7 @@ const urlsToCache = [
   'biblioteca/nr9.html',
   'biblioteca/o-enfermeiro-em-hipotese-alguma-deve-sair-do-ambiente-onde-esta-acontecendo-a-pcr-se-precisar-de-algo-fora-do-ambiente-ele-pede-se.html',
   'biblioteca/o-enfermeiro-sempre-deve-designar-um-colaborador-para-providenciar-prontuario-puxar-exames-de-laboratorio-no-sistema-levar-tubos-de.html',
+  'biblioteca/o-que-mudou-no-dimensionamento.html',
   'biblioteca/o-responsavel-pelo-carrinho-de-emergencia-deve-ter-em-mente-as-5-causas-provaveis-h-de-uma-pcr-e-assim-organizar-o-carrinho-de-emerg.html',
   'biblioteca/o-responsavel-pelos-cuidados-na-assistencia-ventilatoria-deve-preparar-circuito-de-aspiracao-orotraqueal-montado-e-testado-lar.html',
   'biblioteca/otoscopio.html',
@@ -639,6 +641,7 @@ const urlsToCache = [
   'biblioteca/regle-de-trois-calcul-des-medicaments.html',
   'biblioteca/regola-del-tre-illustrata-calcolo-dei-farmaci.html',
   'biblioteca/regra-de-3-calculo-de-medicamentos-enfermagem.html',
+  'biblioteca/resolucao-cofen-1-2024.html',
   'biblioteca/retrator-de-esternotomia.html',
   'biblioteca/ritmos-chocaveis-lidocaina.html',
   'biblioteca/ritmos-chocaveis-rcp.html',
@@ -759,6 +762,7 @@ const urlsToCache = [
   'blog/index.html',
   'blog/interpretacao-gasometria.html',
   'blog/proposito-enfermagem.html',
+  'blog/resolucao-cofen-dimensionamento.html',
   'bps.html',
   'braden.html',
   'build-biblioteca.js',
@@ -910,6 +914,7 @@ const urlsToCache = [
   'downloads/page31.html',
   'downloads/page32.html',
   'downloads/page33.html',
+  'downloads/page34.html',
   'downloads/page4.html',
   'downloads/page5.html',
   'downloads/page6.html',
@@ -1991,6 +1996,7 @@ const urlsToCache = [
   'img/metasinternacionais.webp',
   'img/mini_exame_do_estado_mental_formulario_rio.webp',
   'img/missao visao e valores calculadoras de enfermagem.webp',
+  'img/mudancas-dimensionamento-enfermagem.webp',
   'img/necessidade-enfermagem.webp',
   'img/nr1.webp',
   'img/nr10.webp',
@@ -2030,9 +2036,11 @@ const urlsToCache = [
   'img/nr9.webp',
   'img/o responsavel pelos cuidados na assistencia ventilatoria deve preparar - circuito de aspiração orotraqueal montado e testado, lar.webp',
   'img/o responsável pelo carrinho de emergencia deve ter em mente as 5 causas prováveis H de uma PCR, e assim organizar o carrinho de emerg.webp',
+  'img/o-que-mudou-no-dimensionamento.webp',
   'img/parada-cardio-respiratoria.webp',
   'img/pentagono_meem.jpg',
   'img/regle de trois - calcul des medicaments.webp',
+  'img/resolucao-cofen-1-2024.webp',
   'img/ritmos-chocáveis-RCP.webp',
   'img/ritmos-chocáveis-lidocaina.webp',
   'img/ritmos-nao-chocáveis-PCR.webp',
