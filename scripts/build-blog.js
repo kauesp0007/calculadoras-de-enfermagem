@@ -15,6 +15,73 @@ const paths = {
 
 if (!fs.existsSync(paths.output)) fs.mkdirSync(paths.output, { recursive: true });
 
+/**
+ * Converte datas em português (pt-BR) do formato:
+ * "20 de Fevereiro de 2026" (com/sem acentos)
+ * para um objeto Date.
+ *
+ * Se não conseguir interpretar, tenta new Date(dateStr) como fallback.
+ */
+function parseDatePtBr(dateStr) {
+  if (!dateStr) return null;
+
+  const months = {
+    janeiro: 0,
+    fevereiro: 1,
+    marco: 2,
+    março: 2,
+    abril: 3,
+    maio: 4,
+    junho: 5,
+    julho: 6,
+    agosto: 7,
+    setembro: 8,
+    outubro: 9,
+    novembro: 10,
+    dezembro: 11
+  };
+
+  const clean = String(dateStr)
+    .toLowerCase()
+    .replace(/\./g, '')
+    // normaliza acentos (sem depender de libs)
+    .replace(/ç/g, 'c')
+    .replace(/ã/g, 'a')
+    .replace(/á/g, 'a')
+    .replace(/â/g, 'a')
+    .replace(/à/g, 'a')
+    .replace(/é/g, 'e')
+    .replace(/ê/g, 'e')
+    .replace(/è/g, 'e')
+    .replace(/í/g, 'i')
+    .replace(/ì/g, 'i')
+    .replace(/ó/g, 'o')
+    .replace(/ô/g, 'o')
+    .replace(/õ/g, 'o')
+    .replace(/ò/g, 'o')
+    .replace(/ú/g, 'u')
+    .replace(/ù/g, 'u')
+    .trim();
+
+  // Ex: "20 de fevereiro de 2026"
+  const m = clean.match(/^(\d{1,2})\s+de\s+([a-z]+)\s+de\s+(\d{4})$/);
+  if (m) {
+    const day = parseInt(m[1], 10);
+    const monthName = m[2];
+    const year = parseInt(m[3], 10);
+    const month = months[monthName];
+
+    if (month === undefined) return null;
+
+    const d = new Date(year, month, day);
+    return isNaN(d.getTime()) ? null : d;
+  }
+
+  // fallback: se um dia você usar "2026-02-20"
+  const d = new Date(dateStr);
+  return isNaN(d.getTime()) ? null : d;
+}
+
 function simpleMarkdownToHtml(md) {
   return md
     // Headers
@@ -75,6 +142,9 @@ function parsePost(fileContent, fileName) {
   meta.content = lines.slice(contentStartLine + 1).join('\n').trim();
   meta.slug = fileName.replace('.md', '.html');
 
+  // ✅ (Passo 1B) guarda um Date real para ordenar o índice por data
+  meta.dateObj = parseDatePtBr(meta.date);
+
   return meta;
 }
 
@@ -85,9 +155,21 @@ const files = fs.readdirSync(paths.posts).filter(file => file.endsWith('.md'));
 
 let postsListHtml = '';
 
-files.forEach(file => {
+// ✅ (Passo 1C) cria array de posts e ordena por data desc (mais novos primeiro)
+const posts = files.map(file => {
   const rawContent = fs.readFileSync(path.join(paths.posts, file), 'utf8');
   const post = parsePost(rawContent, file);
+  return post;
+});
+
+posts.sort((a, b) => {
+  // posts sem data válida vão para o final
+  const ad = a.dateObj ? a.dateObj.getTime() : -Infinity;
+  const bd = b.dateObj ? b.dateObj.getTime() : -Infinity;
+  return bd - ad;
+});
+
+posts.forEach(post => {
   const htmlBody = simpleMarkdownToHtml(post.content);
 
   // Gera Página Individual
