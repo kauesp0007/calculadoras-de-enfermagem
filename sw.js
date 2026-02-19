@@ -1,5 +1,5 @@
 // Define o nome e a versão do cache (AUTOMÁTICO via gerar-sw.js)
-const CACHE_NAME = 'calculadoras-enfermagem-cache-20260218-222856-624';
+const CACHE_NAME = 'calculadoras-enfermagem-cache-20260219-012550-512';
 
 // O SCRIPT DE BUILD VAI INJETAR A LISTA DE ARQUIVOS AQUI
 const urlsToCache = [
@@ -641,6 +641,7 @@ const urlsToCache = [
   'biblioteca/regle-de-trois-calcul-des-medicaments.html',
   'biblioteca/regola-del-tre-illustrata-calcolo-dei-farmaci.html',
   'biblioteca/regra-de-3-calculo-de-medicamentos-enfermagem.html',
+  'biblioteca/regras-de-calculo-de-gotejamento.html',
   'biblioteca/resolucao-cofen-1-2024.html',
   'biblioteca/retrator-de-esternotomia.html',
   'biblioteca/ritmos-chocaveis-lidocaina.html',
@@ -2041,6 +2042,7 @@ const urlsToCache = [
   'img/parada-cardio-respiratoria.webp',
   'img/pentagono_meem.jpg',
   'img/regle de trois - calcul des medicaments.webp',
+  'img/regras-de-calculo-de-gotejamento.webp',
   'img/resolucao-cofen-1-2024.webp',
   'img/ritmos-chocáveis-RCP.webp',
   'img/ritmos-chocáveis-lidocaina.webp',
