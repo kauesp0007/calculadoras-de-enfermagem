@@ -270,13 +270,13 @@ function initializeGlobalFunctions() {
   const v = window.speechSynthesis,
     w = [{
       rate: .8,
-      label: "Lenta"
+      label: "Slow"
     }, {
       rate: 1,
       label: "Normal"
     }, {
       rate: 1.5,
-      label: "Rápida"
+      label: "Fast"
     }];
   document.addEventListener("focusin", e => {
     b = e.target
@@ -289,7 +289,7 @@ function initializeGlobalFunctions() {
     // =========================================================
     applyFontSize = (level, announce) => {
       const fontSizes = ["1em", "1.15em", "1.3em", "1.5em", "2em"];
-      const labels = ["Normal", "Médio", "Grande", "Extra Grande", "Máximo"];
+      const labels = ["Normal", "Medium", "Large", "Extra Large", "Máximo"];
       const idx = Math.min(Math.max(parseInt(level || 1, 10), 1), fontSizes.length);
       u = idx;
       const iLevel = idx - 1;
@@ -300,7 +300,7 @@ function initializeGlobalFunctions() {
     },
     applyLineHeight = (level, announce) => {
       const values = ["1.5", "1.8", "2.2"];
-      const labels = ["Médio", "Grande", "Extra Grande"];
+      const labels = ["Medium", "Large", "Extra Large"];
       const idx = Math.min(Math.max(parseInt(level || 1, 10), 1), values.length);
       g = idx;
       const iLevel = idx - 1;
@@ -311,7 +311,7 @@ function initializeGlobalFunctions() {
     },
     applyLetterSpacing = (level, announce) => {
       const values = ["0em", ".05em", ".1em"];
-      const labels = ["Normal", "Médio", "Grande"];
+      const labels = ["Normal", "Medium", "Large"];
       const idx = Math.min(Math.max(parseInt(level || 1, 10), 1), values.length);
       p = idx;
       const iLevel = idx - 1;
@@ -320,7 +320,7 @@ function initializeGlobalFunctions() {
       localStorage.setItem("letterSpacing", String(p));
       (void 0 === announce || announce) && E(`Espaçamento de letra: ${labels[iLevel]}`);
     },
-    readingSpeeds = [{ rate: .8, label: "Lenta" }, { rate: 1, label: "Normal" }, { rate: 1.5, label: "Rápida" }],
+    readingSpeeds = [{ rate: .8, label: "Slow" }, { rate: 1, label: "Normal" }, { rate: 1.5, label: "Fast" }],
     applyReadingSpeed = (level, announce) => {
       const idx = Math.min(Math.max(parseInt(level || 1, 10), 1), readingSpeeds.length);
       h = idx;
@@ -387,14 +387,14 @@ function initializeGlobalFunctions() {
 
       // 2. Reseta as variáveis de controle para o índice 1 (Início)
       u = 1; // Fonte (1 = Normal)
-      g = 1; // Linha (1 = Médio no array de labels)
+      g = 1; // Linha (1 = Medium no array de labels)
       p = 1; // Letra (1 = Normal)
       h = 1; // Velocidade (1 = Normal)
 
       // 3. APLICA FORÇADAMENTE OS VALORES PADRÃO (Isso corrige o texto e o visual)
       // O 'false' no segundo parâmetro evita que o leitor de tela fale 4 vezes seguidas
       applyFontSize(1, false);      // Força Fonte: Normal
-      applyLineHeight(1, false);    // Força Linha: Médio
+      applyLineHeight(1, false);    // Força Linha: Medium
       applyLetterSpacing(1, false); // Força Letra: Normal
       applyReadingSpeed(1, false);  // Força Velocidade: Normal
 
