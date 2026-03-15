@@ -68,11 +68,24 @@ function writeIfChanged(filepath, content) {
    CRIA CARD HTML
 ================================ */
 
+/* ===============================
+   CRIA CARD HTML (OTIMIZADO PARA SEO DE IMAGENS)
+================================ */
+
 function criarCartaoHTML(item) {
   return `
-<a href="/biblioteca/${slugify(item.titulo)}.html" class="file-card">
-  <img src="${item.capa}" class="file-card-image" alt="Capa de ${item.titulo}">
-  <h4 class="file-card-title">${item.titulo}</h4>
+<a href="/biblioteca/${slugify(item.titulo)}.html" class="file-card" title="Acessar documento de enfermagem: ${item.titulo}">
+  <figure style="margin: 0; padding: 0; width: 100%; height: 100%;">
+    <img src="${item.capa}"
+         class="file-card-image"
+         alt="Material e documento de enfermagem sobre ${item.titulo}"
+         title="${item.titulo}"
+         loading="lazy"
+         width="400"
+         height="300"
+         style="object-fit: cover;">
+    <figcaption class="file-card-title">${item.titulo}</figcaption>
+  </figure>
 </a>`;
 }
 

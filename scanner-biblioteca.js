@@ -36,9 +36,16 @@ function slugFromTitulo(titulo) {
 }
 
 /**
- * Gera descrição automática para SEO
+ * Gera descrição automática enriquecida para SEO baseada na categoria
  */
-function descricaoAutomatica(titulo) {
+function descricaoAutomatica(titulo, categoria) {
+  if (categoria === 'fotos') {
+    return `Imagem ilustrativa, esquema visual e protocolo de enfermagem sobre ${titulo}. Excelente material para consulta rápida, estudos e prática clínica.`;
+  } else if (categoria === 'documentos') {
+    return `Documento completo e material em PDF de enfermagem abordando ${titulo} para apoio educacional, académico e clínico.`;
+  } else if (categoria === 'videos') {
+    return `Vídeo explicativo e demonstração prática de enfermagem sobre ${titulo}, detalhando procedimentos e conceitos clínicos fundamentais.`;
+  }
   return `Material de enfermagem sobre ${titulo} para apoio educacional e clínico.`;
 }
 
@@ -112,7 +119,7 @@ function executarScanner() {
       const novoItem = {
         titulo,
         slug: slugFromTitulo(titulo),
-        descricao: descricaoAutomatica(titulo),
+        descricao: descricaoAutomatica(titulo, pasta.categoria),
         categoria: pasta.categoria,
         ficheiro: caminho,
         capa: pasta.categoria === 'fotos' ? caminho : ''
