@@ -113,16 +113,17 @@ function executarLogicaDoHtml2Pdf(e) {
 }
 
 document.addEventListener("DOMContentLoaded", function () {
-  fetch("/menu-global.html").then(e => e.ok ? e.text() : Promise.reject("Ficheiro menu-global.html não encontrado")).then(e => {
-    const o = document.getElementById("global-header-container");
-    if (o) {
-      window.requestAnimationFrame(() => {
-        o.innerHTML = e;
-        initializeNavigationMenu();
-      });
-    }
-  }).catch(e => console.warn("Não foi possível carregar o menu global:", e));
 
+  // NOVA LÓGICA DO MENU GLOBAL:
+  // Verifica se o menu já foi injetado pelo script inline no HTML
+  if (document.getElementById("hamburgerButton")) {
+    initializeNavigationMenu();
+  } else {
+    // Se ainda não foi, aguarda um evento customizado vindo do HTML
+    document.addEventListener('menuGlobalCarregado', initializeNavigationMenu);
+  }
+
+  // O CARREGAMENTO DO ACESSIBILIDADE CONTINUA INTACTO:
   fetch("/global-body-elements.html").then(e => e.ok ? e.text() : Promise.reject("Ficheiro global-body-elements.html não encontrado")).then(e => {
     window.requestAnimationFrame(() => {
       document.body.insertAdjacentHTML("beforeend", e);
@@ -131,6 +132,7 @@ document.addEventListener("DOMContentLoaded", function () {
   }).catch(e => console.warn("Não foi possível carregar os elementos globais do corpo:", e));
 });
 
+// A sua função original continua EXATAMENTE IGUAL aqui embaixo
 function initializeNavigationMenu() {
   const e = document.getElementById("hamburgerButton"),
     o = document.getElementById("offCanvasMenu"),
