@@ -8,7 +8,7 @@ const path = require('path');
 // 1. SUBSTITUIÇÃO SIMPLES (REPLACE)
 // Se achar o 'target', substitui a linha toda pela 'newTag', mantendo o recuo.
 const REGRA_REPLACE = [
-    { target: '', newTag: '' },
+    { target: 'setTimeout(onUserInteraction, 4000)', newTag: 'setTimeout(onUserInteraction, 8500);' },
 ];
 
 // 2. EXCLUSÃO DE LINHAS (DELETE)
