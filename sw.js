@@ -1,5 +1,5 @@
 // Define o nome e a versão do cache (AUTOMÁTICO via gerar-sw.js)
-const CACHE_NAME = 'calculadoras-enfermagem-cache-20260522-041839-550';
+const CACHE_NAME = 'calculadoras-enfermagem-cache-20260522-043058-413';
 
 // O SCRIPT DE BUILD VAI INJETAR A LISTA DE ARQUIVOS AQUI
 const urlsToCache = [
@@ -523,6 +523,7 @@ const urlsToCache = [
   'biblioteca/mesa-cirurgica2.html',
   'biblioteca/mesa-cirurgica3.html',
   'biblioteca/mesa-cirurgica4.html',
+  'biblioteca/mesa-mayo.html',
   'biblioteca/meta-1-identificacao-correta-do-paciente.html',
   'biblioteca/meta-2-melhorar-a-comunicacao-entre-a-equipe-de-saude.html',
   'biblioteca/meta-3-melhorar-a-seguranca-na-prescricao-no-uso-e-na-administracao-de-medicamentos.html',
@@ -822,6 +823,7 @@ const urlsToCache = [
   'biblioteca/vantagens-do-time-de-resposta-rapida-no-hospital.html',
   'biblioteca/verificacao-periodica-de-sinais-vitais.html',
   'biblioteca/verificar-pressao-arterial.html',
+  'biblioteca/videolaparoscopia.html',
   'biblioteca/vigilancia-do-farmaco-caminho-do-medicamento-de-alta-vigilancia.html',
   'biblioteca/wanda-de-aguiar-horta-necessidades-humanas-basicas.html',
   'bishop.html',
@@ -2097,6 +2099,7 @@ const urlsToCache = [
   'img/mesa-cirurgica2.webp',
   'img/mesa-cirurgica3.webp',
   'img/mesa-cirurgica4.webp',
+  'img/mesa-mayo.webp',
   'img/meta1.webp',
   'img/meta2.webp',
   'img/meta3.webp',
@@ -2256,6 +2259,7 @@ const urlsToCache = [
   'img/tratamento trombose coronariana.webp',
   'img/tv-fv-ritmos-chocaveis.webp',
   'img/urgencias-pediatricas.webp',
+  'img/videolaparoscopia.webp',
   'img/wanda de aguiar horta - necessidades humanas básicas.jpg',
   'img/wanda de aguiar horta - necessidades humanas básicas.webp',
   'img/ÍCONE BAÇANÇO HÍDRICO.webp',
