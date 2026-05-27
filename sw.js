@@ -1,5 +1,5 @@
 // Define o nome e a versão do cache (AUTOMÁTICO via gerar-sw.js)
-const CACHE_NAME = 'calculadoras-enfermagem-cache-20260527-140505-654';
+const CACHE_NAME = 'calculadoras-enfermagem-cache-20260527-161515-252';
 
 // O SCRIPT DE BUILD VAI INJETAR A LISTA DE ARQUIVOS AQUI
 const urlsToCache = [
@@ -7,6 +7,7 @@ const urlsToCache = [
   '5-hs-da-paradacardiorespiratoria.html',
   '5-ts-da-paradacardiorespiratoria.html',
   '_language_selector.html',
+  'adequar-nr1.html',
   'adicional-noturno.html',
   'aldrete.html',
   'altavigilancia.webp',
@@ -709,6 +710,7 @@ const urlsToCache = [
   'biblioteca/porta-agulha-mayo-hegar-reta.html',
   'biblioteca/porta-clips.html',
   'biblioteca/porta-grafe-grapadora.html',
+  'biblioteca/portaria-mte-n-1-419-nr-01.html',
   'biblioteca/preparo-do-medicamento-de-alta-vigilancia-pelo-tecnico-e-enfermagem.html',
   'biblioteca/preparo-e-administracao-de-medicamento.html',
   'biblioteca/primeira-checagem-na-farmacia-com-o-farmaceutico.html',
@@ -729,6 +731,7 @@ const urlsToCache = [
   'biblioteca/regras-de-calculo-de-gotejamento.html',
   'biblioteca/resolucao-cofen-1-2024.html',
   'biblioteca/retrator-de-esternotomia.html',
+  'biblioteca/riscos-psicossociais-nr1.html',
   'biblioteca/ritmos-chocaveis-lidocaina.html',
   'biblioteca/ritmos-chocaveis-rcp.html',
   'biblioteca/ritmos-nao-chocaveis-pcr.html',
@@ -1932,6 +1935,7 @@ const urlsToCache = [
   'img/PUNÇÃO DE ARTROSCÓPIA.webp',
   'img/Pinça De Lahey Para Bócio.webp',
   'img/Pinça Extratora com Canal de Trabalho - Urologia.webp',
+  'img/Portaria MTE nº 1.419 (NR-01).webp',
   'img/REABILITAÇÃO DO PACIENTE.png',
   'img/RETRATOR DE ESTERNOTOMIA.webp',
   'img/Regla de 3 Calculo de medicamentos Enfermagem espanol.webp',
@@ -2227,6 +2231,7 @@ const urlsToCache = [
   'img/regle de trois - calcul des medicaments.webp',
   'img/regras-de-calculo-de-gotejamento.webp',
   'img/resolucao-cofen-1-2024.webp',
+  'img/riscos_psicossociais_nr1.webp',
   'img/ritmos-chocáveis-RCP.webp',
   'img/ritmos-chocáveis-lidocaina.webp',
   'img/ritmos-nao-chocáveis-PCR.webp',
