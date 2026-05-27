@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Calculadora de Matriz de Risco — Severidade - Probabilidade</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" crossorigin="anonymous">
+<style>
+:root{--brand-primary:#1A3E74;--brand-primary-light:#2563EB;--risk-baixo:#22C55E;--risk-baixo-bg:#DCFCE7;--risk-medio:#EAB308;--risk-medio-bg:#FEF9C3;--risk-alto:#F97316;--risk-alto-bg:#FFEDD5;--risk-critico:#EF4444;--risk-critico-bg:#FEE2E2;--neutral-50:#F9FAFB;--neutral-100:#F3F4F6;--neutral-200:#E5E7EB;--neutral-300:#D1D5DB;--neutral-400:#9CA3AF;--neutral-500:#6B7280;--neutral-600:#4B5563;--neutral-700:#374151;--neutral-800:#1F2937;--neutral-900:#111827;--font-primary:'Nunito Sans','Inter',system-ui,sans-serif;--font-secondary:'Inter',system-ui,sans-serif;--space-1:0.25rem;--space-2:0.5rem;--space-3:0.75rem;--space-4:1rem;--space-5:1.25rem;--space-6:1.5rem;--space-8:2rem;--space-10:2.5rem;--space-12:3rem;--radius-sm:0.375rem;--radius-md:0.5rem;--radius-lg:0.75rem;--radius-xl:1rem;--radius-card:14px;--radius-full:9999px;--shadow-sm:0 1px 2px rgba(0,0,0,0.05);--shadow-md:0 4px 6px -1px rgba(0,0,0,0.1);--shadow-lg:0 10px 15px -3px rgba(0,0,0,0.1);--shadow-xl:0 20px 25px -5px rgba(0,0,0,0.1);--shadow-card:0 6px 18px rgba(10,35,77,0.04);--shadow-card-hover:0 18px 40px rgba(10,35,77,0.10);--duration-fast:150ms;--duration-normal:300ms;--easing-default:cubic-bezier(0.4,0,0.2,1)}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;-webkit-font-smoothing:antialiased}
+body{font-family:var(--font-secondary);background:var(--neutral-50);color:var(--neutral-800);line-height:1.5;min-height:100vh}
+h1,h2,h3{font-family:var(--font-primary);font-weight:700;line-height:1.2;color:var(--brand-primary)}
+a{color:inherit;text-decoration:none}
+button{font-family:inherit;cursor:pointer;border:none;background:none}
+input,select,textarea{font-family:inherit;font-size:1rem}
+img{max-width:100%;height:auto;display:block}
+.container{width:100%;max-width:1280px;margin:0 auto;padding:0 var(--space-4)}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+.text-center{text-align:center}
+.flex{display:flex}.flex-col{flex-direction:column}.items-center{align-items:center}.justify-center{justify-content:center}.justify-between{justify-content:space-between}.gap-2{gap:var(--space-2)}.gap-3{gap:var(--space-3)}.gap-4{gap:var(--space-4)}.gap-6{gap:var(--space-6)}
+.grid{display:grid}.grid-cols-1{grid-template-columns:repeat(1,1fr)}
+@media(min-width:640px){.sm-grid-cols-2{grid-template-columns:repeat(2,1fr)}.sm-flex-row{flex-direction:row}}
+@media(min-width:768px){.md-grid-cols-3{grid-template-columns:repeat(3,1fr)}.md-flex-row{flex-direction:row}.md-text-left{text-align:left}}
+@media(min-width:1024px){.lg-grid-cols-4{grid-template-columns:repeat(4,1fr)}.lg-grid-cols-5{grid-template-columns:repeat(5,1fr)}}
+
+.page-header{background:linear-gradient(135deg,var(--brand-primary) 0%,#0f2a52 100%);color:white;padding:var(--space-8) 0;position:relative;overflow:hidden}
+.page-header::before{content:'';position:absolute;top:-50%;right:-10%;width:500px;height:500px;background:radial-gradient(circle,rgba(255,255,255,0.08) 0%,transparent 70%);border-radius:50%;pointer-events:none}
+.page-header-content{display:flex;flex-direction:column;align-items:center;text-align:center;gap:var(--space-4);position:relative;z-index:1}
+@media(min-width:768px){.page-header-content{flex-direction:row;text-align:left;gap:var(--space-6)}}
+.header-icon{width:96px;height:96px;background:rgba(255,255,255,0.15);border-radius:var(--radius-xl);display:flex;align-items:center;justify-content:center;font-size:2.5rem;backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.2);flex-shrink:0}
+.header-text h1{color:white;font-size:1.875rem;font-weight:800;margin-bottom:var(--space-2);line-height:1.15}
+.header-text p{color:rgba(255,255,255,0.85);font-size:1rem;max-width:600px;line-height:1.6}
+.header-badge{display:inline-flex;align-items:center;gap:var(--space-2);background:rgba(255,255,255,0.15);padding:var(--space-1) var(--space-3);border-radius:var(--radius-full);font-size:0.875rem;font-weight:600;margin-top:var(--space-3);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.2)}
+
+.card{background:white;border-radius:var(--radius-card);border:1px solid rgba(26,62,116,0.06);box-shadow:var(--shadow-card);transition:transform 220ms var(--easing-default),box-shadow 220ms,border-color 220ms;overflow:hidden}
+.card:hover{transform:translateY(-4px);box-shadow:var(--shadow-card-hover);border-color:rgba(26,62,116,0.12)}
+.card-body{padding:var(--space-6)}
+.card-title{font-family:var(--font-primary);font-size:1.25rem;font-weight:700;color:var(--brand-primary);margin-bottom:var(--space-2);display:flex;align-items:center;gap:var(--space-2)}
+.card-subtitle{color:var(--neutral-500);font-size:0.875rem;margin-bottom:var(--space-4)}
+
+.matrix-section{padding:var(--space-8) 0}
+.matrix-container{display:grid;grid-template-columns:auto repeat(5,1fr);grid-template-rows:auto repeat(5,1fr);gap:6px;max-width:700px;margin:0 auto;position:relative}
+.matrix-axis-label{font-family:var(--font-primary);font-weight:700;font-size:0.875rem;color:var(--brand-primary);text-align:center;display:flex;align-items:center;justify-content:center}
+.matrix-axis-label.probability{grid-column:2/-1;padding:var(--space-3) 0;font-size:1rem}
+.matrix-axis-label.severity{grid-row:2/-1;writing-mode:vertical-rl;transform:rotate(180deg);padding:0 var(--space-3)}
+.matrix-cell{aspect-ratio:1;border-radius:var(--radius-lg);display:flex;flex-direction:column;align-items:center;justify-content:center;font-weight:700;cursor:pointer;transition:all var(--duration-normal) var(--easing-default);position:relative;border:2px solid transparent;min-height:80px}
+.matrix-cell:hover{transform:scale(1.08);z-index:10;box-shadow:var(--shadow-lg)}
+.matrix-cell.selected{border-color:var(--brand-primary);box-shadow:0 0 0 4px rgba(26,62,116,0.15);transform:scale(1.05)}
+.matrix-cell .cell-score{font-size:1.5rem;font-family:var(--font-primary);line-height:1}
+.matrix-cell .cell-level{font-size:0.65rem;text-transform:uppercase;letter-spacing:0.05em;margin-top:2px;font-weight:800}
+.matrix-cell .cell-count{position:absolute;top:4px;right:4px;background:rgba(255,255,255,0.9);color:var(--neutral-800);font-size:0.65rem;width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;box-shadow:var(--shadow-sm)}
+.level-baixo{background:var(--risk-baixo);color:white}.level-baixo .cell-level{color:rgba(255,255,255,0.9)}
+.level-medio{background:var(--risk-medio);color:var(--neutral-900)}.level-medio .cell-level{color:rgba(0,0,0,0.7)}
+.level-alto{background:var(--risk-alto);color:white}.level-alto .cell-level{color:rgba(255,255,255,0.9)}
+.level-critico{background:var(--risk-critico);color:white}.level-critico .cell-level{color:rgba(255,255,255,0.9)}
+.axis-label-cell{font-size:0.75rem;font-weight:600;color:var(--neutral-500);display:flex;align-items:center;justify-content:center;text-align:center;padding:var(--space-1)}
+.axis-label-cell.prob-label{flex-direction:column;gap:2px}
+.axis-label-cell.prob-label .num{font-size:0.875rem;font-weight:800;color:var(--brand-primary)}
+.axis-label-cell.prob-label .txt{font-size:0.65rem;text-transform:uppercase;letter-spacing:0.03em}
+.axis-label-cell.sev-label{flex-direction:row;gap:4px;justify-content:flex-end;padding-right:var(--space-2)}
+.axis-label-cell.sev-label .num{font-size:0.875rem;font-weight:800;color:var(--brand-primary)}
+.axis-label-cell.sev-label .txt{font-size:0.65rem;text-transform:uppercase;letter-spacing:0.03em;text-align:right}
+
+.legend{display:flex;flex-wrap:wrap;justify-content:center;gap:var(--space-4);margin-top:var(--space-6)}
+.legend-item{display:flex;align-items:center;gap:var(--space-2);font-size:0.875rem;font-weight:600}
+.legend-dot{width:16px;height:16px;border-radius:var(--radius-sm)}
+.legend-dot.baixo{background:var(--risk-baixo)}.legend-dot.medio{background:var(--risk-medio)}.legend-dot.alto{background:var(--risk-alto)}.legend-dot.critico{background:var(--risk-critico)}
+
+.form-group{margin-bottom:var(--space-4)}
+.form-label{display:block;font-size:0.875rem;font-weight:600;color:var(--neutral-700);margin-bottom:var(--space-1)}
+.form-input,.form-select,.form-textarea{width:100%;padding:var(--space-3) var(--space-4);border:1.5px solid var(--neutral-200);border-radius:var(--radius-lg);font-size:0.95rem;transition:border-color var(--duration-fast),box-shadow var(--duration-fast);background:white;color:var(--neutral-800)}
+.form-input:focus,.form-select:focus,.form-textarea:focus{outline:none;border-color:var(--brand-primary-light);box-shadow:0 0 0 3px rgba(37,99,235,0.1)}
+.form-textarea{resize:vertical;min-height:80px}
+.form-row{display:grid;grid-template-columns:1fr;gap:var(--space-4)}
+@media(min-width:640px){.form-row{grid-template-columns:1fr 1fr}}
+.slider-container{margin-top:var(--space-2)}
+.slider-labels{display:flex;justify-content:space-between;font-size:0.75rem;color:var(--neutral-500);margin-bottom:var(--space-1)}
+.slider{-webkit-appearance:none;appearance:none;width:100%;height:8px;border-radius:var(--radius-full);background:linear-gradient(to right,var(--risk-baixo),var(--risk-medio),var(--risk-alto),var(--risk-critico));outline:none}
+.slider::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:24px;height:24px;border-radius:50%;background:white;border:3px solid var(--brand-primary);cursor:pointer;box-shadow:var(--shadow-md);transition:transform var(--duration-fast)}
+.slider::-webkit-slider-thumb:hover{transform:scale(1.15)}
+.slider::-moz-range-thumb{width:24px;height:24px;border-radius:50%;background:white;border:3px solid var(--brand-primary);cursor:pointer;box-shadow:var(--shadow-md)}
+
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:var(--space-2);padding:var(--space-3) var(--space-6);border-radius:var(--radius-lg);font-size:0.95rem;font-weight:600;transition:all var(--duration-fast) var(--easing-default);border:1.5px solid transparent}
+.btn-primary{background:var(--brand-primary);color:white;border-color:var(--brand-primary)}.btn-primary:hover{background:#0f2a52;transform:translateY(-1px);box-shadow:var(--shadow-md)}
+.btn-secondary{background:white;color:var(--brand-primary);border-color:var(--neutral-200)}.btn-secondary:hover{background:var(--neutral-50);border-color:var(--neutral-300)}
+.btn-danger{background:var(--risk-critico);color:white;border-color:var(--risk-critico)}.btn-danger:hover{background:#DC2626}
+.btn-sm{padding:var(--space-2) var(--space-3);font-size:0.875rem;border-radius:var(--radius-md)}
+
+.risk-list{display:flex;flex-direction:column;gap:var(--space-4)}
+.risk-item{background:white;border-radius:var(--radius-card);border:1px solid rgba(26,62,116,0.06);box-shadow:var(--shadow-card);overflow:hidden;transition:all var(--duration-normal) var(--easing-default);border-left:4px solid transparent}
+.risk-item:hover{box-shadow:var(--shadow-card-hover);transform:translateY(-2px)}
+.risk-item.risk-baixo{border-left-color:var(--risk-baixo)}.risk-item.risk-medio{border-left-color:var(--risk-medio)}.risk-item.risk-alto{border-left-color:var(--risk-alto)}.risk-item.risk-critico{border-left-color:var(--risk-critico)}
+.risk-item.critical-pulse{animation:pulse-critical 2s infinite}
+@keyframes pulse-critical{0%,100%{border-left-width:4px}50%{border-left-width:8px}}
+.risk-item-header{padding:var(--space-4) var(--space-5);display:flex;justify-content:space-between;align-items:flex-start;gap:var(--space-4);border-bottom:1px solid var(--neutral-100)}
+.risk-item-title{font-family:var(--font-primary);font-weight:700;font-size:1.1rem;color:var(--neutral-800);margin-bottom:var(--space-1)}
+.risk-item-meta{display:flex;flex-wrap:wrap;gap:var(--space-2);font-size:0.8rem;color:var(--neutral-500)}
+.risk-badge{display:inline-flex;align-items:center;gap:var(--space-1);padding:var(--space-1) var(--space-3);border-radius:var(--radius-full);font-size:0.75rem;font-weight:700;text-transform:uppercase;letter-spacing:0.03em}
+.risk-badge.baixo{background:var(--risk-baixo-bg);color:#166534}.risk-badge.medio{background:var(--risk-medio-bg);color:#854D0E}.risk-badge.alto{background:var(--risk-alto-bg);color:#9A3412}.risk-badge.critico{background:var(--risk-critico-bg);color:#991B1B}
+.risk-item-body{padding:var(--space-4) var(--space-5)}
+.risk-item-footer{padding:var(--space-3) var(--space-5);background:var(--neutral-50);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:var(--space-2)}
+.risk-score-display{display:flex;align-items:center;gap:var(--space-3)}
+.score-circle{width:48px;height:48px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--font-primary);font-size:1.25rem;font-weight:800;flex-shrink:0}
+.score-circle.baixo{background:var(--risk-baixo-bg);color:var(--risk-baixo)}.score-circle.medio{background:var(--risk-medio-bg);color:var(--risk-medio)}.score-circle.alto{background:var(--risk-alto-bg);color:var(--risk-alto)}.score-circle.critico{background:var(--risk-critico-bg);color:var(--risk-critico)}
+
+.stats-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:var(--space-4);margin-bottom:var(--space-8)}
+@media(min-width:640px){.stats-grid{grid-template-columns:repeat(4,1fr)}}
+.stat-card{background:white;border-radius:var(--radius-card);border:1px solid rgba(26,62,116,0.06);box-shadow:var(--shadow-card);padding:var(--space-5);text-align:center;transition:all var(--duration-normal)}
+.stat-card:hover{transform:translateY(-3px);box-shadow:var(--shadow-card-hover)}
+.stat-icon{width:48px;height:48px;border-radius:var(--radius-lg);display:flex;align-items:center;justify-content:center;margin:0 auto var(--space-3);font-size:1.25rem}
+.stat-icon.blue{background:#EFF6FF;color:var(--brand-primary-light)}.stat-icon.green{background:var(--risk-baixo-bg);color:var(--risk-baixo)}.stat-icon.orange{background:var(--risk-alto-bg);color:var(--risk-alto)}.stat-icon.red{background:var(--risk-critico-bg);color:var(--risk-critico)}
+.stat-value{font-family:var(--font-primary);font-size:2rem;font-weight:800;color:var(--neutral-800);line-height:1}
+.stat-label{font-size:0.875rem;color:var(--neutral-500);margin-top:var(--space-1);font-weight:600}
+
+.section-header{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:var(--space-4);margin-bottom:var(--space-8);margin-top:var(--space-12)}
+@media(min-width:768px){.section-header{flex-direction:row}}
+.section-icon{width:80px;height:80px;border-radius:var(--radius-xl);background:linear-gradient(135deg,var(--brand-primary) 0%,#2563EB 100%);display:flex;align-items:center;justify-content:center;color:white;font-size:2rem;flex-shrink:0;box-shadow:var(--shadow-md)}
+.section-title{font-size:1.75rem;font-weight:800;color:var(--brand-primary);text-align:center}
+@media(min-width:768px){.section-title{text-align:left;font-size:2rem}}
+
+.data-table{width:100%;border-collapse:separate;border-spacing:0;font-size:0.875rem}
+.data-table th{background:var(--neutral-100);color:var(--neutral-700);font-weight:700;text-align:left;padding:var(--space-3) var(--space-4);border-bottom:2px solid var(--neutral-200)}
+.data-table td{padding:var(--space-3) var(--space-4);border-bottom:1px solid var(--neutral-100);color:var(--neutral-700)}
+.data-table tr:hover td{background:var(--neutral-50)}
+.table-responsive{overflow-x:auto;border-radius:var(--radius-card);border:1px solid rgba(26,62,116,0.06)}
+
+.empty-state{text-align:center;padding:var(--space-12) var(--space-6);color:var(--neutral-400)}
+.empty-state-icon{font-size:3rem;margin-bottom:var(--space-4);opacity:0.5}
+.empty-state h3{color:var(--neutral-600);margin-bottom:var(--space-2)}
+
+.toast-container{position:fixed;top:var(--space-4);right:var(--space-4);z-index:1000;display:flex;flex-direction:column;gap:var(--space-3)}
+.toast{background:white;border-radius:var(--radius-lg);box-shadow:var(--shadow-xl);padding:var(--space-4) var(--space-5);display:flex;align-items:center;gap:var(--space-3);min-width:300px;max-width:400px;border-left:4px solid var(--brand-primary);animation:slideIn 300ms var(--easing-default)}
+.toast.success{border-left-color:var(--risk-baixo)}.toast.warning{border-left-color:var(--risk-medio)}.toast.error{border-left-color:var(--risk-critico)}
+@keyframes slideIn{from{transform:translateX(100%);opacity:0}to{transform:translateX(0);opacity:1}}
+@keyframes slideOut{from{transform:translateX(0);opacity:1}to{transform:translateX(100%);opacity:0}}
+.toast.hiding{animation:slideOut 300ms var(--easing-default) forwards}
+
+.modal-overlay{position:fixed;inset:0;background:rgba(15,23,42,0.5);backdrop-filter:blur(4px);z-index:900;display:flex;align-items:center;justify-content:center;padding:var(--space-4);opacity:0;visibility:hidden;transition:opacity var(--duration-normal),visibility var(--duration-normal)}
+.modal-overlay.active{opacity:1;visibility:visible}
+.modal{background:white;border-radius:var(--radius-xl);box-shadow:var(--shadow-xl);width:100%;max-width:600px;max-height:90vh;overflow-y:auto;transform:scale(0.95);transition:transform var(--duration-normal) var(--easing-default)}
+.modal-overlay.active .modal{transform:scale(1)}
+.modal-header{padding:var(--space-5) var(--space-6);border-bottom:1px solid var(--neutral-100);display:flex;justify-content:space-between;align-items:center}
+.modal-title{font-family:var(--font-primary);font-size:1.25rem;font-weight:700;color:var(--brand-primary)}
+.modal-close{width:36px;height:36px;border-radius:var(--radius-full);display:flex;align-items:center;justify-content:center;color:var(--neutral-400);transition:all var(--duration-fast)}.modal-close:hover{background:var(--neutral-100);color:var(--neutral-700)}
+.modal-body{padding:var(--space-6)}
+.modal-footer{padding:var(--space-4) var(--space-6);border-top:1px solid var(--neutral-100);display:flex;justify-content:flex-end;gap:var(--space-3)}
+
+.filter-bar{display:flex;flex-wrap:wrap;gap:var(--space-3);margin-bottom:var(--space-6);align-items:center}
+.filter-pill{padding:var(--space-1) var(--space-3);border-radius:var(--radius-full);font-size:0.875rem;font-weight:600;cursor:pointer;transition:all var(--duration-fast);border:1.5px solid var(--neutral-200);background:white;color:var(--neutral-600)}
+.filter-pill:hover{border-color:var(--neutral-300);background:var(--neutral-50)}
+.filter-pill.active{background:var(--brand-primary);color:white;border-color:var(--brand-primary)}
+
+.page-footer{background:var(--brand-primary);color:rgba(255,255,255,0.8);padding:var(--space-8) 0;margin-top:var(--space-12);text-align:center;font-size:0.875rem}
+
+@media print{.page-header{background:white!important;color:black!important}.page-header h1,.page-header p{color:black!important}.btn,.modal-overlay,.toast-container{display:none!important}.card{break-inside:avoid;box-shadow:none!important;border:1px solid #ddd!important}.risk-item{break-inside:avoid}}
+</style>
+</head>
+<body>
+<div class="toast-container" id="toastContainer"></div>
+
+<div class="modal-overlay" id="modalOverlay">
+<div class="modal">
+<div class="modal-header">
+<h3 class="modal-title" id="modalTitle">Adicionar Risco</h3>
+<button class="modal-close" id="modalCloseBtn" aria-label="Fechar"><i class="fas fa-times"></i></button>
+</div>
+<div class="modal-body" id="modalBody"></div>
+<div class="modal-footer">
+<button class="btn btn-secondary" id="modalCancelBtn">Cancelar</button>
+<button class="btn btn-primary" id="modalSaveBtn"><i class="fas fa-save"></i> Salvar Risco</button>
+</div>
+</div>
+</div>
+
+<header class="page-header">
+<div class="container">
+<div class="page-header-content">
+<div class="header-icon"><i class="fas fa-th"></i></div>
+<div class="header-text">
+<h1>Calculadora de Matriz de Risco</h1>
+<p>Avalie riscos clinicamente utilizando a matriz de severidade x probabilidade (5x5). Ferramenta essencial para gestao de riscos em saude.</p>
+<div class="header-badge"><i class="fas fa-shield-alt"></i><span>Matriz 5x5 — Severidade x Probabilidade</span></div>
+</div>
+</div>
+</div>
+</header>
+
+<main class="container" style="padding-top:var(--space-8);padding-bottom:var(--space-8)">
+
+<div class="stats-grid" id="statsGrid">
+<div class="stat-card"><div class="stat-icon blue"><i class="fas fa-clipboard-list"></i></div><div class="stat-value" id="statTotal">0</div><div class="stat-label">Total de Riscos</div></div>
+<div class="stat-card"><div class="stat-icon green"><i class="fas fa-check-circle"></i></div><div class="stat-value" id="statBaixo">0</div><div class="stat-label">Riscos Baixos</div></div>
+<div class="stat-card"><div class="stat-icon orange"><i class="fas fa-exclamation-triangle"></i></div><div class="stat-value" id="statAlto">0</div><div class="stat-label">Riscos Altos</div></div>
+<div class="stat-card"><div class="stat-icon red"><i class="fas fa-radiation"></i></div><div class="stat-value" id="statCritico">0</div><div class="stat-label">Riscos Criticos</div></div>
+</div>
+
+<section class="matrix-section">
+<div class="section-header">
+<div class="section-icon"><i class="fas fa-th"></i></div>
+<h2 class="section-title">Matriz de Avaliacao de Riscos 5x5</h2>
+</div>
+<div class="card" style="max-width:800px;margin:0 auto">
+<div class="card-body">
+<p class="card-subtitle text-center" style="margin-bottom:var(--space-6)">
+Clique em uma celula para filtrar os riscos correspondentes. <strong style="color:var(--brand-primary)">Score = Severidade x Probabilidade</strong>
+</p>
+<div class="matrix-container" id="matrixContainer" role="grid" aria-label="Matriz de avaliacao de risco"></div>
+<div class="legend">
+<div class="legend-item"><div class="legend-dot baixo"></div><span>Baixo (1-4)</span></div>
+<div class="legend-item"><div class="legend-dot medio"></div><span>Medio (5-9)</span></div>
+<div class="legend-item"><div class="legend-dot alto"></div><span>Alto (10-16)</span></div>
+<div class="legend-item"><div class="legend-dot critico"></div><span>Critico (17-25)</span></div>
+</div>
+</div>
+</div>
+</section>
+
+<div style="display:flex;justify-content:center;gap:var(--space-3);margin:var(--space-8) 0;flex-wrap:wrap">
+<button class="btn btn-primary" id="btnAddRisk"><i class="fas fa-plus"></i> Adicionar Risco</button>
+<button class="btn btn-secondary" id="btnExportJson"><i class="fas fa-file-code"></i> Exportar JSON</button>
+<button class="btn btn-secondary" id="btnExportCsv"><i class="fas fa-file-csv"></i> Exportar CSV</button>
+<button class="btn btn-danger" id="btnClearAll"><i class="fas fa-trash-alt"></i> Limpar Todos</button>
+</div>
+
+<section>
+<div class="section-header">
+<div class="section-icon"><i class="fas fa-list-ul"></i></div>
+<h2 class="section-title">Riscos Cadastrados</h2>
+</div>
+<div class="filter-bar" id="filterBar">
+<button class="filter-pill active" data-filter="all" id="filterAll">Todos</button>
+<button class="filter-pill" data-filter="baixo" id="filterBaixo">Baixo</button>
+<button class="filter-pill" data-filter="medio" id="filterMedio">Medio</button>
+<button class="filter-pill" data-filter="alto" id="filterAlto">Alto</button>
+<button class="filter-pill" data-filter="critico" id="filterCritico">Critico</button>
+</div>
+<div class="risk-list" id="riskList"></div>
+<div class="empty-state" id="emptyState" style="display:none">
+<div class="empty-state-icon"><i class="fas fa-clipboard-check"></i></div>
+<h3>Nenhum risco identificado</h3>
+<p>Comece adicionando o primeiro risco a sua matriz.</p>
+</div>
+</section>
+
+<section style="margin-top:var(--space-12)">
+<div class="section-header">
+<div class="section-icon"><i class="fas fa-table"></i></div>
+<h2 class="section-title">Resumo por Categoria</h2>
+</div>
+<div class="table-responsive">
+<table class="data-table" id="summaryTable">
+<thead><tr><th>Categoria</th><th>Total</th><th>Baixo</th><th>Medio</th><th>Alto</th><th>Critico</th><th>Maior Score</th></tr></thead>
+<tbody id="summaryTableBody"></tbody>
+</table>
+</div>
+</section>
+
+</main>
+
+<footer class="page-footer">
+<div class="container">
+<p>2026 Calculadoras de Enfermagem — Matriz de Risco 5x5</p>
+<p style="margin-top:var(--space-2);font-size:0.8rem;opacity:0.7">Ferramenta clinica para avaliacao de riscos. Resultados orientativos.</p>
+</div>
+</footer>
+
+<script>
+(function(){
+'use strict';
+
+var SEVERITY_LABELS=['Insignificante','Leve','Moderada','Grave','Catastrofica'];
+var PROBABILITY_LABELS=['Rara','Improvavel','Possivel','Provavel','Quase Certa'];
+var CATEGORIES=['Tecnico','Operacional','Financeiro','Legal','Reputacao','HSE','Estrategico','Clinico'];
+
+var MATRIX_DATA=[
+[{s:1,p:1,score:1,level:'baixo',action:'Aceitar'},{s:1,p:2,score:2,level:'baixo',action:'Aceitar'},{s:1,p:3,score:3,level:'baixo',action:'Monitorar'},{s:1,p:4,score:4,level:'medio',action:'Mitigar'},{s:1,p:5,score:5,level:'medio',action:'Mitigar'}],
+[{s:2,p:1,score:2,level:'baixo',action:'Aceitar'},{s:2,p:2,score:4,level:'baixo',action:'Monitorar'},{s:2,p:3,score:6,level:'medio',action:'Mitigar'},{s:2,p:4,score:8,level:'medio',action:'Mitigar'},{s:2,p:5,score:10,level:'medio',action:'Mitigar com prioridade'}],
+[{s:3,p:1,score:3,level:'baixo',action:'Monitorar'},{s:3,p:2,score:6,level:'medio',action:'Mitigar'},{s:3,p:3,score:9,level:'medio',action:'Mitigar'},{s:3,p:4,score:12,level:'alto',action:'Mitigar urgentemente'},{s:3,p:5,score:15,level:'alto',action:'Mitigar urgentemente'}],
+[{s:4,p:1,score:4,level:'medio',action:'Mitigar'},{s:4,p:2,score:8,level:'medio',action:'Mitigar'},{s:4,p:3,score:12,level:'alto',action:'Mitigar urgentemente'},{s:4,p:4,score:16,level:'alto',action:'Mitigar urgentemente'},{s:4,p:5,score:20,level:'critico',action:'Acao imediata'}],
+[{s:5,p:1,score:5,level:'medio',action:'Mitigar'},{s:5,p:2,score:10,level:'medio',action:'Mitigar com prioridade'},{s:5,p:3,score:15,level:'alto',action:'Mitigar urgentemente'},{s:5,p:4,score:20,level:'critico',action:'Acao imediata'},{s:5,p:5,score:25,level:'critico',action:'Acao imediata / Parar operacao'}]
+];
+
+var risks=[];
+var currentFilter='all';
+var selectedCell=null;
+var editingId=null;
+
+function generateId(){return 'rsk_'+Date.now().toString(36)+Math.random().toString(36).substr(2,5)}
+function getLevelInfo(score){if(score<=4)return{level:'baixo',label:'Baixo',color:'#22C55E'};if(score<=9)return{level:'medio',label:'Medio',color:'#EAB308'};if(score<=16)return{level:'alto',label:'Alto',color:'#F97316'};return{level:'critico',label:'Critico',color:'#EF4444'}}
+function getCellData(s,p){return MATRIX_DATA[s-1][p-1]}
+function saveToStorage(){try{localStorage.setItem('riskMatrixRisks',JSON.stringify(risks))}catch(e){}}
+function loadFromStorage(){try{var stored=localStorage.getItem('riskMatrixRisks');if(stored){risks=JSON.parse(stored);return true}}catch(e){}return false}
+
+function showToast(message,type){type=type||'success';var container=document.getElementById('toastContainer');var toast=document.createElement('div');toast.className='toast '+type;var icon=type==='success'?'check-circle':type==='error'?'times-circle':'exclamation-circle';var color=type==='success'?'var(--risk-baixo)':type==='error'?'var(--risk-critico)':'var(--risk-medio)';toast.innerHTML='<i class="fas fa-'+icon+'" style="font-size:1.25rem;color:'+color+'"></i><span>'+message+'</span>';container.appendChild(toast);setTimeout(function(){toast.classList.add('hiding');setTimeout(function(){toast.remove()},300)},3000)}
+function escapeHtml(text){if(!text)return'';var div=document.createElement('div');div.textContent=text;return div.innerHTML}
+
+function renderMatrix(){var container=document.getElementById('matrixContainer');container.innerHTML='';var cellCounts={};for(var i=0;i<risks.length;i++){var key=risks[i].severity+'-'+risks[i].probability;cellCounts[key]=(cellCounts[key]||0)+1}var probLabel=document.createElement('div');probLabel.className='matrix-axis-label probability';probLabel.textContent='Probabilidade de Ocorrencia';probLabel.style.gridColumn='2 / -1';container.appendChild(probLabel);var sevLabel=document.createElement('div');sevLabel.className='matrix-axis-label severity';sevLabel.textContent='Severidade do Impacto';sevLabel.style.gridRow='2 / -1';container.appendChild(sevLabel);for(var p=1;p<=5;p++){var header=document.createElement('div');header.className='axis-label-cell prob-label';header.innerHTML='<span class="num">'+p+'</span><span class="txt">'+PROBABILITY_LABELS[p-1]+'</span>';header.style.gridRow='2';header.style.gridColumn=(p+1).toString();container.appendChild(header)}for(var s=1;s<=5;s++){var sevHeader=document.createElement('div');sevHeader.className='axis-label-cell sev-label';sevHeader.innerHTML='<span class="txt">'+SEVERITY_LABELS[s-1]+'</span><span class="num">'+s+'</span>';sevHeader.style.gridRow=(7-s).toString();sevHeader.style.gridColumn='1';container.appendChild(sevHeader);for(var p=1;p<=5;p++){var cellData=MATRIX_DATA[s-1][p-1];var cell=document.createElement('div');cell.className='matrix-cell level-'+cellData.level;cell.setAttribute('role','gridcell');cell.setAttribute('tabindex','0');cell.setAttribute('aria-label','S'+s+' ('+SEVERITY_LABELS[s-1]+'), P'+p+' ('+PROBABILITY_LABELS[p-1]+'). Score '+cellData.score+'. Nivel '+cellData.level);cell.style.gridRow=(7-s).toString();cell.style.gridColumn=(p+1).toString();var count=cellCounts[s+'-'+p]||0;var countHtml=count>0?'<span class="cell-count">'+count+'</span>':'';cell.innerHTML=countHtml+'<span class="cell-score">'+cellData.score+'</span><span class="cell-level">'+cellData.level+'</span>';(function(sev,prob){cell.addEventListener('click',function(){selectCell(sev,prob)});cell.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();selectCell(sev,prob)}})})(s,p);if(selectedCell&&selectedCell.severity===s&&selectedCell.probability===p){cell.classList.add('selected')}container.appendChild(cell)}}}
+
+function selectCell(severity,probability){if(selectedCell&&selectedCell.severity===severity&&selectedCell.probability===probability){selectedCell=null;currentFilter='all'}else{selectedCell={severity:severity,probability:probability};var cellData=getCellData(severity,probability);currentFilter=cellData.level;showToast('Filtrando: S'+severity+' x P'+probability+' (Score '+cellData.score+')','success')}updateFilterPills();renderMatrix();renderRiskList()}
+
+function renderRiskList(){var list=document.getElementById('riskList');var emptyState=document.getElementById('emptyState');var filtered=[];for(var i=0;i<risks.length;i++){var r=risks[i];if(selectedCell){if(r.severity===selectedCell.severity&&r.probability===selectedCell.probability)filtered.push(r)}else if(currentFilter!=='all'){if(r.riskLevel===currentFilter)filtered.push(r)}else{filtered.push(r)}}filtered.sort(function(a,b){var order={critico:4,alto:3,medio:2,baixo:1};if(order[b.riskLevel]!==order[a.riskLevel])return order[b.riskLevel]-order[a.riskLevel];return b.riskScore-a.riskScore});if(filtered.length===0){list.innerHTML='';emptyState.style.display='block';return}emptyState.style.display='none';var html='';for(var i=0;i<filtered.length;i++){var risk=filtered[i];var isCritical=risk.riskLevel==='critico';var cellData=getCellData(risk.severity,risk.probability);var mitigationHtml=risk.mitigationPlan?'<div style="margin-top:var(--space-3);padding:var(--space-3);background:var(--neutral-50);border-radius:var(--radius-md);border-left:3px solid var(--brand-primary-light)"><div style="font-weight:700;color:var(--brand-primary);font-size:0.875rem;margin-bottom:var(--space-1)"><i class="fas fa-tasks"></i> Plano de Mitigacao</div><div style="color:var(--neutral-600);font-size:0.875rem">'+escapeHtml(risk.mitigationPlan)+'</div></div>':'';html+='<div class="risk-item risk-'+risk.riskLevel+(isCritical?' critical-pulse':'')+'"><div class="risk-item-header"><div><div class="risk-item-title">'+escapeHtml(risk.title)+'</div><div class="risk-item-meta"><span><i class="fas fa-tag" style="color:var(--brand-primary)"></i> '+risk.category+'</span><span><i class="fas fa-user" style="color:var(--brand-primary)"></i> '+escapeHtml(risk.responsible||'Nao definido')+'</span><span><i class="fas fa-calendar" style="color:var(--brand-primary)"></i> '+(risk.deadline||'Sem prazo')+'</span></div></div><span class="risk-badge '+risk.riskLevel+'">'+cellData.level.toUpperCase()+'</span></div><div class="risk-item-body"><p style="color:var(--neutral-600);margin-bottom:var(--space-3)">'+escapeHtml(risk.description)+'</p><div style="display:flex;gap:var(--space-4);flex-wrap:wrap;font-size:0.875rem"><div class="risk-score-display"><div class="score-circle '+risk.riskLevel+'">'+risk.riskScore+'</div><div style="text-align:left"><div style="font-weight:700;color:var(--neutral-800)">Score '+risk.riskScore+'</div><div style="color:var(--neutral-500);font-size:0.75rem">S'+risk.severity+' x P'+risk.probability+'</div></div></div><div style="flex:1;min-width:200px"><div style="font-weight:700;color:var(--neutral-700);margin-bottom:var(--space-1)"><i class="fas fa-shield-alt"></i> Acao Requerida:</div><div style="color:var(--neutral-600)">'+cellData.action+'</div></div></div>'+mitigationHtml+'</div><div class="risk-item-footer"><div style="display:flex;gap:var(--space-2);flex-wrap:wrap"><span class="risk-badge '+risk.riskLevel+'" style="text-transform:none;letter-spacing:0"><i class="fas fa-thermometer-half"></i> S'+risk.severity+': '+SEVERITY_LABELS[risk.severity-1]+'</span><span class="risk-badge '+risk.riskLevel+'" style="text-transform:none;letter-spacing:0"><i class="fas fa-percentage"></i> P'+risk.probability+': '+PROBABILITY_LABELS[risk.probability-1]+'</span></div><div style="display:flex;gap:var(--space-2)"><button class="btn btn-sm btn-secondary btn-edit" data-id="'+risk.id+'"><i class="fas fa-edit"></i> Editar</button><button class="btn btn-sm btn-danger btn-delete" data-id="'+risk.id+'"><i class="fas fa-trash"></i> Excluir</button></div></div></div>'}list.innerHTML=html;var editBtns=list.querySelectorAll('.btn-edit');for(var i=0;i<editBtns.length;i++){editBtns[i].addEventListener('click',function(e){e.stopPropagation();editRisk(this.getAttribute('data-id'))})}var deleteBtns=list.querySelectorAll('.btn-delete');for(var i=0;i<deleteBtns.length;i++){deleteBtns[i].addEventListener('click',function(e){e.stopPropagation();deleteRisk(this.getAttribute('data-id'))})}}
+
+function updateStats(){var total=risks.length;var baixo=0,medio=0,alto=0,critico=0;for(var i=0;i<risks.length;i++){if(risks[i].riskLevel==='baixo')baixo++;else if(risks[i].riskLevel==='medio')medio++;else if(risks[i].riskLevel==='alto')alto++;else if(risks[i].riskLevel==='critico')critico++}animateNumber('statTotal',total);animateNumber('statBaixo',baixo);animateNumber('statAlto',alto);animateNumber('statCritico',critico)}
+function animateNumber(id,target){var el=document.getElementById(id);var start=parseInt(el.textContent)||0;var duration=600;var startTime=performance.now();function update(currentTime){var elapsed=currentTime-startTime;var progress=Math.min(elapsed/duration,1);var ease=1-Math.pow(1-progress,3);el.textContent=Math.round(start+(target-start)*ease);if(progress<1)requestAnimationFrame(update)}requestAnimationFrame(update)}
+
+function updateSummaryTable(){var tbody=document.getElementById('summaryTableBody');var summary={};for(var i=0;i<CATEGORIES.length;i++){summary[CATEGORIES[i]]={total:0,baixo:0,medio:0,alto:0,critico:0,maxScore:0}}for(var i=0;i<risks.length;i++){var r=risks[i];if(!summary[r.category])summary[r.category]={total:0,baixo:0,medio:0,alto:0,critico:0,maxScore:0};summary[r.category].total++;summary[r.category][r.riskLevel]++;if(r.riskScore>summary[r.category].maxScore)summary[r.category].maxScore=r.riskScore}var rows=[];var keys=Object.keys(summary);for(var i=0;i<keys.length;i++){if(summary[keys[i]].total>0)rows.push({cat:keys[i],data:summary[keys[i]]})}rows.sort(function(a,b){return b.data.maxScore-a.data.maxScore});var html='';if(rows.length===0){html='<tr><td colspan="7" style="text-align:center;color:var(--neutral-400);padding:var(--space-8)">Nenhum dado para exibir</td></tr>'}else{for(var i=0;i<rows.length;i++){var r=rows[i];html+='<tr><td style="font-weight:600">'+r.cat+'</td><td>'+r.data.total+'</td><td style="color:var(--risk-baixo);font-weight:700">'+r.data.baixo+'</td><td style="color:var(--risk-medio);font-weight:700">'+r.data.medio+'</td><td style="color:var(--risk-alto);font-weight:700">'+r.data.alto+'</td><td style="color:var(--risk-critico);font-weight:700">'+r.data.critico+'</td><td style="font-weight:800;color:var(--brand-primary)">'+r.data.maxScore+'</td></tr>'}}tbody.innerHTML=html}
+
+function filterRisks(level){selectedCell=null;currentFilter=level;updateFilterPills();renderMatrix();renderRiskList()}
+function updateFilterPills(){var pills=document.querySelectorAll('.filter-pill');for(var i=0;i<pills.length;i++){pills[i].classList.toggle('active',pills[i].getAttribute('data-filter')===currentFilter)}}
+
+function openModal(id){editingId=id||null;var overlay=document.getElementById('modalOverlay');var title=document.getElementById('modalTitle');var body=document.getElementById('modalBody');var risk=null;if(id){for(var i=0;i<risks.length;i++){if(risks[i].id===id){risk=risks[i];break}}}title.textContent=risk?'Editar Risco':'Adicionar Novo Risco';var catOptions='';for(var i=0;i<CATEGORIES.length;i++){catOptions+='<option value="'+CATEGORIES[i]+'"'+(risk&&risk.category===CATEGORIES[i]?' selected':'')+'>'+CATEGORIES[i]+'</option>'}var sevVal=risk?risk.severity:3;var probVal=risk?risk.probability:3;var scorePrev=risk?risk.riskScore:(sevVal*probVal);var levelPrev=risk?getLevelInfo(risk.riskScore).label:getLevelInfo(scorePrev).label;var levelColor=risk?getLevelInfo(risk.riskScore).color:getLevelInfo(scorePrev).color;body.innerHTML='<div class="form-group"><label class="form-label" for="riskTitle">Titulo do Risco *</label><input type="text" class="form-input" id="riskTitle" value="'+(risk?escapeHtml(risk.title):'')+'" placeholder="Ex: Falha no servidor principal"></div><div class="form-group"><label class="form-label" for="riskDescription">Descricao *</label><textarea class="form-textarea" id="riskDescription" placeholder="Descreva o risco detalhadamente...">'+(risk?escapeHtml(risk.description):'')+'</textarea></div><div class="form-row"><div class="form-group"><label class="form-label" for="riskCategory">Categoria *</label><select class="form-select" id="riskCategory">'+catOptions+'</select></div><div class="form-group"><label class="form-label" for="riskResponsible">Responsavel</label><input type="text" class="form-input" id="riskResponsible" value="'+(risk?escapeHtml(risk.responsible):'')+'" placeholder="Nome do responsavel"></div></div><div class="form-row"><div class="form-group"><label class="form-label">Severidade do Impacto * <span id="sevValue" style="color:var(--brand-primary);font-weight:800">'+sevVal+'</span></label><div class="slider-container"><div class="slider-labels"><span>1 - Insignificante</span><span>5 - Catastrofica</span></div><input type="range" class="slider" id="riskSeverity" min="1" max="5" value="'+sevVal+'"></div></div><div class="form-group"><label class="form-label">Probabilidade de Ocorrencia * <span id="probValue" style="color:var(--brand-primary);font-weight:800">'+probVal+'</span></label><div class="slider-container"><div class="slider-labels"><span>1 - Rara</span><span>5 - Quase Certa</span></div><input type="range" class="slider" id="riskProbability" min="1" max="5" value="'+probVal+'"></div></div></div><div style="background:var(--neutral-50);border-radius:var(--radius-lg);padding:var(--space-4);margin-bottom:var(--space-4);text-align:center"><div style="font-size:0.875rem;color:var(--neutral-500);margin-bottom:var(--space-1)">Score Previsto</div><div id="scorePreview" style="font-family:var(--font-primary);font-size:2rem;font-weight:800;color:'+levelColor+'">'+scorePrev+'</div><div id="levelPreview" style="font-size:0.875rem;font-weight:700;color:'+levelColor+'">'+levelPrev+'</div></div><div class="form-group"><label class="form-label" for="riskMitigation">Plano de Mitigacao</label><textarea class="form-textarea" id="riskMitigation" placeholder="Descreva as acoes para mitigar este risco...">'+(risk?escapeHtml(risk.mitigationPlan):'')+'</textarea></div><div class="form-group"><label class="form-label" for="riskDeadline">Prazo para Mitigacao</label><input type="date" class="form-input" id="riskDeadline" value="'+(risk?risk.deadline:'')+'"></div></div>';var sevSlider=document.getElementById('riskSeverity');var probSlider=document.getElementById('riskProbability');function updatePreview(){var s=parseInt(sevSlider.value)||3;var p=parseInt(probSlider.value)||3;var score=s*p;var info=getLevelInfo(score);document.getElementById('sevValue').textContent=s;document.getElementById('probValue').textContent=p;document.getElementById('scorePreview').textContent=score;document.getElementById('scorePreview').style.color=info.color;document.getElementById('levelPreview').textContent=info.label;document.getElementById('levelPreview').style.color=info.color}sevSlider.addEventListener('input',updatePreview);probSlider.addEventListener('input',updatePreview);overlay.classList.add('active');document.body.style.overflow='hidden'}
+
+function closeModal(){document.getElementById('modalOverlay').classList.remove('active');document.body.style.overflow='';editingId=null}
+function saveRisk(){var title=document.getElementById('riskTitle').value.trim();var description=document.getElementById('riskDescription').value.trim();var category=document.getElementById('riskCategory').value;var severity=parseInt(document.getElementById('riskSeverity').value);var probability=parseInt(document.getElementById('riskProbability').value);var mitigationPlan=document.getElementById('riskMitigation').value.trim();var responsible=document.getElementById('riskResponsible').value.trim();var deadline=document.getElementById('riskDeadline').value;if(!title||!description){showToast('Preencha o titulo e a descricao do risco.','error');return}var riskScore=severity*probability;var levelInfo=getLevelInfo(riskScore);var riskData={id:editingId||generateId(),title:title,description:description,category:category,severity:severity,probability:probability,riskScore:riskScore,riskLevel:levelInfo.level,mitigationPlan:mitigationPlan,responsible:responsible,deadline:deadline,status:'Identificado',createdAt:editingId?(function(){for(var i=0;i<risks.length;i++){if(risks[i].id===editingId)return risks[i].createdAt}return new Date().toISOString()})():new Date().toISOString(),updatedAt:new Date().toISOString()};if(editingId){var idx=-1;for(var i=0;i<risks.length;i++){if(risks[i].id===editingId){idx=i;break}}if(idx>=0)risks[idx]=riskData;showToast('Risco atualizado com sucesso!','success')}else{risks.push(riskData);showToast('Risco adicionado com sucesso!','success');if(levelInfo.level==='critico')showToast('Alerta: Novo risco critico identificado!','error')}saveToStorage();closeModal();renderAll()}
+function editRisk(id){openModal(id)}
+function deleteRisk(id){if(!confirm('Tem certeza que deseja excluir este risco?'))return;var newRisks=[];for(var i=0;i<risks.length;i++){if(risks[i].id!==id)newRisks.push(risks[i])}risks=newRisks;saveToStorage();showToast('Risco removido.','success');renderAll()}
+function clearAllRisks(){if(!confirm('ATENCAO: Isso apagara TODOS os riscos cadastrados. Deseja continuar?'))return;risks=[];saveToStorage();selectedCell=null;currentFilter='all';updateFilterPills();showToast('Todos os riscos foram removidos.','success');renderAll()}
+
+function exportData(format){if(risks.length===0){showToast('Nenhum risco para exportar.','error');return}var timestamp=new Date().toISOString().split('T')[0];if(format==='json'){var data={exportDate:new Date().toISOString(),matrix:'5x5',totalRisks:risks.length,risks:risks};var blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});var url=URL.createObjectURL(blob);var a=document.createElement('a');a.href=url;a.download='matriz-risco-'+timestamp+'.json';a.click();URL.revokeObjectURL(url);showToast('Arquivo JSON exportado!','success')}else if(format==='csv'){var headers=['ID','Titulo','Descricao','Categoria','Severidade','Probabilidade','Score','Nivel','PlanoMitigacao','Responsavel','Prazo','Status','DataCriacao'];var rows=[];for(var i=0;i<risks.length;i++){var r=risks[i];rows.push(['"'+r.id+'"','"'+(r.title||'').replace(/"/g,'""')+'"','"'+(r.description||'').replace(/"/g,'""')+'"','"'+r.category+'"',r.severity,r.probability,r.riskScore,'"'+r.riskLevel+'"','"'+(r.mitigationPlan||'').replace(/"/g,'""')+'"','"'+(r.responsible||'').replace(/"/g,'""')+'"','"'+(r.deadline||'')+'"','"'+r.status+'"','"'+r.createdAt+'"'].join(','))}var csv='﻿'+headers.join(',')+'
+'+rows.join('
+');var blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});var url=URL.createObjectURL(blob);var a=document.createElement('a');a.href=url;a.download='matriz-risco-'+timestamp+'.csv';a.click();URL.revokeObjectURL(url);showToast('Arquivo CSV exportado!','success')}}
+
+function renderAll(){renderMatrix();renderRiskList();updateStats();updateSummaryTable()}
+
+function loadSampleData(){if(risks.length>0)return;var samples=[{id:generateId(),title:'Indisponibilidade do servidor de producao',description:'Falha no servidor principal causando parada total do sistema e impossibilitando acesso aos prontuarios eletronicos.',category:'Tecnico',severity:5,probability:2,mitigationPlan:'Implementar cluster de alta disponibilidade com failover automatico e backup em nuvem.',responsible:'Joao Silva',deadline:'2026-06-15',status:'Mitigando'},{id:generateId(),title:'Vazamento de dados de pacientes',description:'Exposicao nao autorizada de dados pessoais e historicos medicos devido a falha de seguranca cibernetica.',category:'Legal',severity:5,probability:3,mitigationPlan:'Auditoria de seguranca completa, criptografia em transito e repouso, treinamento de equipe.',responsible:'Maria Santos',deadline:'2026-05-30',status:'Em Analise'},{id:generateId(),title:'Atraso na entrega de medicamentos criticos',description:'Risco de nao administrar medicamentos em tempo habil devido a falha no processo logistico da farmacia.',category:'Operacional',severity:4,probability:3,mitigationPlan:'Revisao de processos logisticos, implementacao de checklist duplo e buffer de estoque.',responsible:'Pedro Costa',deadline:'2026-05-20',status:'Mitigando'},{id:generateId(),title:'Erro de dosagem em bomba de infusao',description:'Programacao incorreta de bomba de infusao levando a administracao de dose maior ou menor que a prescrita.',category:'Clinico',severity:4,probability:2,mitigationPlan:'Checklist de programacao dupla verificacao, calibracao periodica e treinamento continuo.',responsible:'Ana Lima',deadline:'2026-06-01',status:'Identificado'},{id:generateId(),title:'Queda de paciente idoso em unidade de internacao',description:'Pacientes geriatricos com risco elevado de queda durante deslocamento sem acompanhamento.',category:'HSE',severity:3,probability:4,mitigationPlan:'Avaliacao diaria com escala de Morse, sinalizacao de quarto, anteparos nas camas.',responsible:'Carlos Mendes',deadline:'2026-05-25',status:'Mitigando'}];for(var i=0;i<samples.length;i++){var s=samples[i];var score=s.severity*s.probability;var info=getLevelInfo(score);risks.push({id:s.id,title:s.title,description:s.description,category:s.category,severity:s.severity,probability:s.probability,riskScore:score,riskLevel:info.level,mitigationPlan:s.mitigationPlan,responsible:s.responsible,deadline:s.deadline,status:s.status,createdAt:new Date().toISOString(),updatedAt:new Date().toISOString()})}saveToStorage();showToast('Dados de exemplo carregados! Voce pode editar ou excluir.','success');renderAll()}
+
+// Event Listeners
+document.addEventListener('DOMContentLoaded',function(){
+if(!loadFromStorage()){loadSampleData()}else{renderAll()}
+document.getElementById('modalCloseBtn').addEventListener('click',closeModal);
+document.getElementById('modalCancelBtn').addEventListener('click',closeModal);
+document.getElementById('modalSaveBtn').addEventListener('click',saveRisk);
+document.getElementById('btnAddRisk').addEventListener('click',function(){openModal()});
+document.getElementById('btnExportJson').addEventListener('click',function(){exportData('json')});
+document.getElementById('btnExportCsv').addEventListener('click',function(){exportData('csv')});
+document.getElementById('btnClearAll').addEventListener('click',clearAllRisks);
+document.getElementById('filterAll').addEventListener('click',function(){filterRisks('all')});
+document.getElementById('filterBaixo').addEventListener('click',function(){filterRisks('baixo')});
+document.getElementById('filterMedio').addEventListener('click',function(){filterRisks('medio')});
+document.getElementById('filterAlto').addEventListener('click',function(){filterRisks('alto')});
+document.getElementById('filterCritico').addEventListener('click',function(){filterRisks('critico')});
+document.getElementById('modalOverlay').addEventListener('click',function(e){if(e.target.id==='modalOverlay')closeModal()});
+document.addEventListener('keydown',function(e){if(e.key==='Escape')closeModal()});
+});
+})();
+</script>
+</body>
+</html>
