@@ -8,13 +8,20 @@ const path = require('path');
 // 1. SUBSTITUIÇÃO SIMPLES (REPLACE)
 // Se achar o 'target', substitui a linha toda pela 'newTag', mantendo o recuo.
 const REGRA_REPLACE = [
-    { target: '', newTag: '' },
+    { target: '/* GA4 (múltiplas propriedades/destinos) */', newTag: '/* GA4 - APENAS A TAG PRINCIPAL OFICIAL */' },
+    { target: '/* Google Ads - mantém as duas tags */', newTag: '/* Google Ads */' },
+    { target: '(VERSÃO ATUALIZADA: G-PFM06B7TS5 PRINCIPAL + OUTROS GA4 + 2 AW + ADSENSE)', newTag: '(VERSÃO ATUALIZADA E LIMPA: G-PFM06B7TS5 PRINCIPAL + GOOGLE ADS + ADSENSE)' }
 ];
 
 // 2. EXCLUSÃO DE LINHAS (DELETE)
 // Se achar a palavra no 'target', a linha inteira é removida do arquivo.
 const REGRA_DELETE = [
-    { target: '' },
+    { target: 'G-MJDKPDPJ26' },
+    { target: 'G-M7DHHF38EJ' },
+    { target: 'G-8FLJ59XXDK' },
+    { target: 'G-VVDP5JGEX8' },
+    { target: 'G-EX8' },
+    { target: 'AW-952633102' }
 ];
 
 // 3. UNIFICAÇÃO / LIMPEZA DE DUPLICADOS (UNIFY)
