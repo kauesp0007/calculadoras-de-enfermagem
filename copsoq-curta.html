@@ -13,8 +13,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   <title>Questionário COPSOQ (Versão Curta) - Rastreio Psicossocial - Calculadoras de Enfermagem</title>
-  <meta name="description" content="Calcule o Questionário Psicossocial de Copenhagen II (COPSOQ) Versão Curta com 41 perguntas. Rastreio rápido para avaliação da organização do trabalho e riscos psicossociais (NR-1).">
-  <meta name="keywords" content="COPSOQ II curta, Copenhagen Psychosocial Questionnaire, 41 perguntas, riscos psicossociais, NR-1, enfermagem do trabalho, medicina do trabalho, questionario copsoq">
+  <meta name="description" content="Calcule o Questionário Psicossocial de Copenhagen (COPSOQ) Versão Curta com 41 perguntas. Rastreio rápido para avaliação da organização do trabalho e riscos psicossociais (NR-1).">
+  <meta name="keywords" content="COPSOQ curta, Copenhagen Psychosocial Questionnaire, 41 perguntas, riscos psicossociais, NR-1, enfermagem do trabalho, medicina do trabalho, questionario copsoq">
 
   <meta name="google-adsense-account" content="ca-pub-6472730056006847">
 
@@ -69,7 +69,7 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/open-dyslexic@1.0.3/open-dyslexic-regular.min.css" />
   </noscript>
 
-  <!-- REGRAS DE IMPRESSÃO PDF: Otimização para 1 Página e bloqueio de menus -->
+  <!-- REGRAS DE IMPRESSÃO PDF -->
   <style>
     @media print {
       @page {
@@ -83,7 +83,7 @@
         print-color-adjust: exact !important;
       }
 
-      /* BLOQUEIO EXTREMO: Oculta qualquer coisa fora do `<main>` */
+      /* BLOQUEIO EXTREMO: Oculta tudo fora do `<main>` */
       body > *:not(main) {
         display: none !important;
       }
@@ -362,7 +362,7 @@
       </ol>
     </nav>
 
-    <!-- Largura total da pagina para remover barras laterais -->
+    <!-- Largura total da pagina (w-full) -->
     <div class="w-full mb-6">
 
       <!-- Título principal: Hero Card style -->
@@ -397,7 +397,7 @@
 
       <form id="copsoqForm" class="w-full">
 
-        <!-- Dados Pessoais (Visível na impressão) alinhado com largura total -->
+        <!-- Dados Pessoais (Visível na impressão) -->
         <div id="dados-pessoais" class="bg-white rounded-2xl p-6 shadow-sm border-2 border-gray-200 mb-6 print-visible print-compact w-full">
           <h3 class="text-lg font-bold text-[#1A3E74] mb-4 border-b pb-1"><i class="fa-solid fa-user-check mr-2"></i> Dados Pessoais</h3>
           <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -421,8 +421,9 @@
             <p class="text-sm font-bold text-[#1A3E74]">Responda a todas as 41 perguntas abaixo escolhendo a opção que melhor reflete a sua realidade no trabalho.</p>
           </div>
 
-          <!-- Container das Perguntas COMPACTAS: As caixas de seleção ficarão ao lado no desktop -->
-          <div id="questions-container" class="space-y-1.5">
+          <!-- Container das Perguntas COMPACTAS EMPILHADAS IGUAL A VERSÃO ORIGINAL -->
+          <!-- O grid divide as questões em 2 colunas para ocupar a largura toda -->
+          <div id="questions-container" class="grid grid-cols-1 md:grid-cols-2 gap-3">
             <!-- Questions will be injected here via JS -->
           </div>
         </div>
@@ -553,7 +554,6 @@
   <script>
     document.addEventListener("DOMContentLoaded", function () {
 
-      // Banco de Dados estrutural das 41 perguntas exclusivas da Versão Curta
       const copsoqData = [
         "A sua carga de trabalho é desigualmente distribuída de forma que se acumula?",
         "Com que frequência não tem tempo para completar todas as tarefas do seu trabalho?",
@@ -601,12 +601,11 @@
       const container = document.getElementById("questions-container");
       let htmlContent = "";
 
-      // Layout compactado da esquerda (pergunta) e direita (select) na mesma div
+      // Layout compactado Verticalmente. Dividido em 2 colunas no Desktop (md:grid-cols-2)
       copsoqData.forEach((pergunta, index) => {
         const itemNumber = index + 1;
         let selectOptions = "";
 
-        // Regras baseadas nas perguntas de Intensidade, Satisfação e Saúde mapeadas
         if ([24, 25, 26, 30, 31].includes(itemNumber)) {
           selectOptions = `
             <option value="1">1 - Nada/Quase nada</option><option value="2">2 - Um pouco</option>
@@ -623,26 +622,21 @@
             <option value="3">3 - Boa</option><option value="4">4 - Razoável</option><option value="5">5 - Deficitária</option>
           `;
         } else {
-          // Padrão Frequência para as demais perguntas
           selectOptions = `
             <option value="1">1 - Nunca/Quase nunca</option><option value="2">2 - Raramente</option>
             <option value="3">3 - Às vezes</option><option value="4">4 - Frequentemente</option><option value="5">5 - Sempre</option>
           `;
         }
 
-        // Sem inversão na Versão Curta
-
         htmlContent += `
-          <div class="bg-white rounded-lg p-2 md:p-2.5 shadow-sm border border-gray-200 hover:border-gray-300 focus-within:border-[#1A3E74] transition-colors flex flex-col md:flex-row md:items-center justify-between gap-2 md:gap-4">
-            <label for="q_${itemNumber}" class="flex-1 text-sm font-bold text-gray-800 leading-snug cursor-pointer mb-0">
+          <div class="bg-white rounded-lg p-3 shadow-sm border border-gray-200 hover:border-gray-300 focus-within:border-[#1A3E74] transition-colors">
+            <label for="q_${itemNumber}" class="block text-sm font-bold text-gray-800 mb-2 leading-snug cursor-pointer">
               ${itemNumber}. ${pergunta}
             </label>
-            <div class="w-full md:w-[260px] lg:w-[300px] shrink-0">
-              <select id="q_${itemNumber}" class="w-full py-1.5 px-2 rounded-md border border-gray-300 focus:border-[#1A3E74] focus:ring-1 focus:ring-[#1A3E74] outline-none transition-all text-xs lg:text-sm font-medium text-gray-700 bg-gray-50 cursor-pointer">
-                <option value="" disabled selected>Selecione...</option>
-                ${selectOptions}
-              </select>
-            </div>
+            <select id="q_${itemNumber}" class="w-full py-2 px-3 rounded-md border border-gray-300 focus:border-[#1A3E74] focus:ring-1 focus:ring-[#1A3E74] outline-none transition-all text-sm font-medium text-gray-700 bg-gray-50 cursor-pointer">
+              <option value="" disabled selected>Selecione...</option>
+              ${selectOptions}
+            </select>
           </div>
         `;
       });
@@ -671,9 +665,8 @@
           }
         }
 
-        // Validação utilizando div oculta invés de alert() para melhor UX
         if (respondidas < 41) {
-          erroMensagem.innerHTML = `<i class="fa-solid fa-circle-exclamation mr-1"></i> Por favor, responda todas as 41 questões para gerar o laudo. Você respondeu ${respondidas} de 41.`;
+          erroMensagem.innerHTML = `<i class="fa-solid fa-circle-exclamation mr-1"></i> Por favor, responda todas as 41 questões para um resultado fidedigno. Faltam perguntas.`;
           erroMensagem.classList.remove("hidden");
           return;
         } else {
