@@ -72,7 +72,7 @@ function ensureTemplateHashMarker(html, templateHash) {
 }
 
 /* ===============================
-   PREV/NEXT ADAPTADO PARA IDIOMAS
+   PREV/NEXT ADAPTADO (CORRIGIDO ERRO 404)
 ================================ */
 function normalizarSlugParaArquivo(slug) {
   let s = String(slug || "").trim();
@@ -93,8 +93,10 @@ function buildPrevNext(data, idx) {
   const prev = idx > 0 ? data[idx - 1] : null;
   const next = idx < data.length - 1 ? data[idx + 1] : null;
 
-  const prevSlug = prev ? slugify(prev.titulo || "") : "";
-  const nextSlug = next ? slugify(next.titulo || "") : "";
+  // CORREÇÃO: Agora ele verifica primeiro se existe um "slug" exato gravado no banco (item.slug),
+  // caso contrário usa o slugify. Isso impede as rotas quebradas que levavam ao 404!
+  const prevSlug = prev ? (prev.slug || slugify(prev.titulo || "")) : "";
+  const nextSlug = next ? (next.slug || slugify(next.titulo || "")) : "";
 
   const prevUrl = montarUrlBiblioteca(prevSlug);
   const nextUrl = montarUrlBiblioteca(nextSlug);
@@ -110,7 +112,7 @@ function buildPrevNext(data, idx) {
 }
 
 /* ===============================
-   LIGHTBOX V2 (CORRIGIDO: BOTOES X, DOWNLOAD E SCROLL)
+   LIGHTBOX V2 (BOTÕES X, DOWNLOAD E SCROLL)
 ================================ */
 function montarBlocoLightbox(imagens) {
   return `
