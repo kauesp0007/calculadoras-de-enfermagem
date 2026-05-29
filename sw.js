@@ -1,5 +1,5 @@
 // Define o nome e a versão do cache (AUTOMÁTICO via gerar-sw.js)
-const CACHE_NAME = 'calculadoras-enfermagem-cache-20260528-211320-731';
+const CACHE_NAME = 'calculadoras-enfermagem-cache-20260528-215843-891';
 
 // O SCRIPT DE BUILD VAI INJETAR A LISTA DE ARQUIVOS AQUI
 const urlsToCache = [
@@ -314,11 +314,13 @@ const urlsToCache = [
   'biblioteca/cola-biologica.html',
   'biblioteca/colonoscopios-endoscopios-e-broncoscopios.html',
   'biblioteca/comite-multidisciplinar-nr1.html',
+  'biblioteca/como-calcular-o-copsoq.html',
   'biblioteca/comunicacao-humana-e-marketing-pessoal.html',
   'biblioteca/confianca-nr111.html',
   'biblioteca/consciencia-enfermagem.html',
   'biblioteca/controle-de-dor-enfermagem.html',
   'biblioteca/controle-hidrico-enfermagem.html',
+  'biblioteca/copsoq-logo.html',
   'biblioteca/coracao-desenho-saude.html',
   'biblioteca/criterios-para-o-acionamento-do-time-de-resposta-rapida.html',
   'biblioteca/cuba-redonda.html',
@@ -498,6 +500,7 @@ const urlsToCache = [
   'biblioteca/ilustracaogotejamentoitaliano.html',
   'biblioteca/ilustracion-sobre-balance-hidrico.html',
   'biblioteca/imogene-m-king-teoria-do-sistema-de-metas.html',
+  'biblioteca/importancia-copsoq-e-nr1.html',
   'biblioteca/impresso-de-balanco-hidrico.html',
   'biblioteca/impresso-de-gasometria.html',
   'biblioteca/indicacoes-prioritarias-para-tripla-checagem-na-enfermagem.html',
@@ -881,6 +884,7 @@ const urlsToCache = [
   'compulsoria4.webp',
   'copsoq-curta.html',
   'copsoq.html',
+  'copsoq3.html',
   'cornell.html',
   'cries.html',
   'curb-65.html',
@@ -2051,7 +2055,9 @@ const urlsToCache = [
   'img/ciclo-pdca-plan-do-check-act8.webp',
   'img/cilindro-oxido-nitroso.webp',
   'img/comite_multidisciplinar_nr1.webp',
+  'img/como_calcular_o_copsoq.webp',
   'img/confiança_nr111.webp',
+  'img/copsoq_logo.webp',
   'img/cuidados de enfermagem com idosos.png',
   'img/cuidados-pos-pcr.webp',
   'img/cuidados_com_idoso.png',
@@ -2127,6 +2133,7 @@ const urlsToCache = [
   'img/ilustraçãogotejamentoingles.webp',
   'img/ilustraçãogotejamentoitaliano.webp',
   'img/imc.webp',
+  'img/importancia_copsoq_e_nr1.webp',
   'img/impresso-de-gasometria.webp',
   'img/informe_mundial_de_saude_mental1.webp',
   'img/inventario_riscos_ocupacionais6.webp',

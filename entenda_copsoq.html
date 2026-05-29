@@ -56,105 +56,140 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/open-dyslexic@1.0.3/open-dyslexic-regular.min.css" />
   </noscript>
 
-  <!-- Script Ads & Analytics Lazy Load -->
   <script>
-    if (localStorage.getItem('admin_mode') === 'true' || new URLSearchParams(window.location.search).get('admin') === '1') {
-      console.log('🚧 Modo Admin: Bloqueado.');
-      if (new URLSearchParams(window.location.search).get('admin') === '1') {
-        localStorage.setItem('admin_mode','true');
-      }
+/* =========================================================
+   MODO ADMIN + GOOGLE TAG + CONSENT + ADSENSE (LAZY LOAD TOTAL)
+   (VERSÃO ATUALIZADA: G-PFM06B7TS5 PRINCIPAL + OUTROS GA4 + 2 AW + ADSENSE)
+   ========================================================= */
+
+if (
+  localStorage.getItem('admin_mode') === 'true' ||
+  new URLSearchParams(window.location.search).get('admin') === '1'
+) {
+  console.log('🚧 Modo Admin: Bloqueado.');
+  if (new URLSearchParams(window.location.search).get('admin') === '1') {
+    localStorage.setItem('admin_mode','true');
+  }
+} else {
+  var savedConsent = localStorage.getItem("cookieConsent");
+  var isRefused = (savedConsent === "refused");
+  var isManaged = (savedConsent === "managed");
+  var adsBlocked = isRefused || (isManaged && localStorage.getItem("ad_storage") === "denied");
+
+  window.__metricsLoaded = false;
+  window.__adsenseLoaded = false;
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){ dataLayer.push(arguments); }
+  window.gtag = gtag;
+
+  function loadAnalytics() {
+    if (window.__metricsLoaded) return;
+    window.__metricsLoaded = true;
+
+    var aState = isRefused ? "denied" : (localStorage.getItem("analytics_storage") || "granted");
+    var adState = adsBlocked ? "denied" : "granted";
+
+    /* ✅ Carrega o gtag.js do GA4 principal TS5 */
+    var s = document.createElement("script");
+    s.async = true;
+    s.src = "https://www.googletagmanager.com/gtag/js?id=G-PFM06B7TS5";
+    document.head.appendChild(s);
+
+    /* ✅ Configura consentimento default antes de qualquer config */
+    gtag("consent","default",{
+      analytics_storage: aState,
+      ad_storage: adState,
+      ad_user_data: adState,
+      ad_personalization: adState,
+      wait_for_update: 500
+    });
+
+    gtag("js", new Date());
+
+    /* GA4 (múltiplas propriedades/destinos) */
+    gtag("config","G-PFM06B7TS5");    // TAG PRINCIPAL
+    gtag("config","G-MJDKPDPJ26");
+    gtag("config","G-M7DHHF38EJ");
+    gtag("config","G-8FLJ59XXDK");
+    gtag("config","G-VVDP5JGEX8");
+    gtag("config","G-EX8");
+
+    /* Google Ads - mantém as duas tags */
+    gtag("config","AW-952633102");
+    gtag("config","AW-9277197961");
+
+    console.log("📈 Analytics carregado via Lazy Load.");
+  }
+
+  function loadAdSenseOnce() {
+    if (window.__adsenseLoaded || adsBlocked) return;
+    window.__adsenseLoaded = true;
+    var ad = document.createElement("script");
+    ad.async = true;
+    ad.src = "https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6472730056006847";
+    ad.crossOrigin = "anonymous";
+    document.head.appendChild(ad);
+    console.log("💰 AdSense carregado via Lazy Load.");
+  }
+
+  // --- FUNÇÃO DE CARREGAMENTO UNIFICADO (LAZY LOAD TOTAL) ---
+  function onUserInteraction(){
+    loadAnalytics(); // Agora o Analytics só carrega aqui
+    loadAdSenseOnce();
+
+    // Remove os ouvintes para garantir execução única
+    window.removeEventListener("scroll", onUserInteraction);
+    window.removeEventListener("mousemove", onUserInteraction);
+    window.removeEventListener("touchstart", onUserInteraction);
+    window.removeEventListener("keydown", onUserInteraction);
+  }
+
+  // Se não estiver bloqueado, aguarda interação ou tempo limite (fallback)
+  if (!adsBlocked){
+    window.addEventListener("scroll", onUserInteraction, {passive:true});
+    window.addEventListener("mousemove", onUserInteraction, {passive:true});
+    window.addEventListener("touchstart", onUserInteraction, {passive:true});
+    window.addEventListener("keydown", onUserInteraction, {passive:true});
+
+    // Fallback: Se o usuário não interagir, carrega tudo após 4 segundos
+    setTimeout(onUserInteraction, 8500);
+  }
+
+  function applyConsent(consent){
+    gtag("consent","update", consent);
+    if (consent.ad_storage === "granted"){
+      adsBlocked = false;
+      onUserInteraction(); // Tenta carregar tudo se o consentimento for dado
     } else {
-      var savedConsent = localStorage.getItem("cookieConsent");
-      var isRefused = (savedConsent === "refused");
-      var isManaged = (savedConsent === "managed");
-      var adsBlocked = isRefused || (isManaged && localStorage.getItem("ad_storage") === "denied");
-
-      window.__metricsLoaded = false;
-      window.__adsenseLoaded = false;
-      window.dataLayer = window.dataLayer || [];
-      function gtag(){ dataLayer.push(arguments); }
-      window.gtag = gtag;
-
-      function loadAnalytics() {
-        if (window.__metricsLoaded) return;
-        window.__metricsLoaded = true;
-        var aState = isRefused ? "denied" : (localStorage.getItem("analytics_storage") || "granted");
-        var adState = adsBlocked ? "denied" : "granted";
-
-        var s = document.createElement("script");
-        s.async = true;
-        s.src = "https://www.googletagmanager.com/gtag/js?id=G-PFM06B7TS5";
-        document.head.appendChild(s);
-
-        gtag("consent","default",{
-          analytics_storage: aState,
-          ad_storage: adState,
-          ad_user_data: adState,
-          ad_personalization: adState,
-          wait_for_update: 500
-        });
-
-        gtag("js", new Date());
-        gtag("config","G-PFM06B7TS5");
-        gtag("config","G-MJDKPDPJ26");
-        gtag("config","G-M7DHHF38EJ");
-        gtag("config","G-8FLJ59XXDK");
-        gtag("config","G-VVDP5JGEX8");
-        gtag("config","AW-952633102");
-        gtag("config","AW-9277197961");
-      }
-
-      function loadAdSenseOnce() {
-        if (window.__adsenseLoaded || adsBlocked) return;
-        window.__adsenseLoaded = true;
-        var ad = document.createElement("script");
-        ad.async = true;
-        ad.src = "https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6472730056006847";
-        ad.crossOrigin = "anonymous";
-        document.head.appendChild(ad);
-      }
-
-      function onUserInteraction(){
-        loadAnalytics();
-        loadAdSenseOnce();
-        window.removeEventListener("scroll", onUserInteraction);
-        window.removeEventListener("mousemove", onUserInteraction);
-        window.removeEventListener("touchstart", onUserInteraction);
-        window.removeEventListener("keydown", onUserInteraction);
-      }
-
-      if (!adsBlocked){
-        window.addEventListener("scroll", onUserInteraction, {passive:true});
-        window.addEventListener("mousemove", onUserInteraction, {passive:true});
-        window.addEventListener("touchstart", onUserInteraction, {passive:true});
-        window.addEventListener("keydown", onUserInteraction, {passive:true});
-        setTimeout(onUserInteraction, 8500);
-      }
-
-      function applyConsent(consent){
-        gtag("consent","update", consent);
-        if (consent.ad_storage === "granted"){
-          adsBlocked = false;
-          onUserInteraction();
-        } else {
-          adsBlocked = true;
-          document.querySelectorAll("ins.adsbygoogle, .google-auto-placed").forEach(ad => { ad.style.display="none"; ad.innerHTML=""; });
-        }
-        localStorage.setItem("analytics_storage", consent.analytics_storage);
-        localStorage.setItem("ad_storage", consent.ad_storage);
-      }
-
-      window.acceptAllCookies = function(){
-        localStorage.setItem("cookieConsent","accepted");
-        applyConsent({analytics_storage:"granted", ad_storage:"granted", ad_user_data:"granted", ad_personalization:"granted"});
-      };
-
-      window.rejectAllCookies = function(){
-        localStorage.setItem("cookieConsent","refused");
-        applyConsent({analytics_storage:"denied", ad_storage:"denied", ad_user_data:"denied", ad_personalization:"denied"});
-      };
+      adsBlocked = true;
+      document.querySelectorAll("ins.adsbygoogle, .google-auto-placed")
+        .forEach(ad => { ad.style.display="none"; ad.innerHTML=""; });
     }
-  </script>
+    localStorage.setItem("analytics_storage", consent.analytics_storage);
+    localStorage.setItem("ad_storage", consent.ad_storage);
+  }
+
+  window.acceptAllCookies = function(){
+    localStorage.setItem("cookieConsent","accepted");
+    applyConsent({
+      analytics_storage:"granted",
+      ad_storage:"granted",
+      ad_user_data:"granted",
+      ad_personalization:"granted"
+    });
+  };
+
+  window.rejectAllCookies = function(){
+    localStorage.setItem("cookieConsent","refused");
+    applyConsent({
+      analytics_storage:"denied",
+      ad_storage:"denied",
+      ad_user_data:"denied",
+      ad_personalization:"denied"
+    });
+  };
+}
+</script>
 
   <!-- Schema.org para Artigos -->
   <script type="application/ld+json">
@@ -308,7 +343,7 @@
         <p class="text-lg mb-6">
           O <strong>Copenhagen Psychosocial Questionnaire (COPSOQ)</strong> é um instrumento científico reconhecido mundialmente, fundamental para a avaliação da organização do trabalho e a gestão de riscos psicossociais. Ele afere a percepção dos trabalhadores sobre suas rotinas, exigências cognitivas e emocionais, relação com a chefia e possíveis sintomas de estresse e esgotamento.
         </p>
-        <img src="img/imagem.webp" alt="Imagem Ilustrativa COPSOQ" class="w-full h-auto rounded-xl shadow-md border border-gray-100 bg-gray-100 object-cover min-h-[150px]">
+        <img src="img/copsoq_logo.webp" alt="Imagem Ilustrativa COPSOQ" class="w-full h-auto rounded-xl shadow-md border border-gray-100 bg-gray-100 object-cover min-h-[150px]">
       </section>
 
       <!-- Seção 2: Importância NR-1 -->
@@ -320,26 +355,97 @@
         <p class="mb-6">
           Neste cenário, o COPSOQ desponta como a ferramenta clínica padrão-ouro adotada pelo mundo corporativo e por equipes de <a href="https://www.calculadorasdeenfermagem.com.br/normas-regulamentadoras.html" class="text-[#4A90E2] font-bold hover:underline">Saúde Ocupacional (PGR/PCMSO)</a> para a estrita implementação e <a href="https://www.calculadorasdeenfermagem.com.br/adequar-nr1.html" class="text-[#4A90E2] font-bold hover:underline">adequação à NR-1</a>. Utilizar este questionário permite que a empresa faça uma avaliação legal, documentada e fidedigna das métricas exigidas pelo <a href="https://www.calculadorasdeenfermagem.com.br/nr1.html" class="text-[#4A90E2] font-bold hover:underline">novo texto da NR-1</a>.
         </p>
-        <img src="img/imagem.webp" alt="Imagem Ilustrativa Adequação NR-1" class="w-full h-auto rounded-xl shadow-md border border-gray-100 bg-gray-100 object-cover min-h-[150px]">
+        <img src="img/importancia_copsoq_e_nr1.webp" alt="Imagem Ilustrativa Adequação NR-1" class="w-full h-auto rounded-xl shadow-md border border-gray-100 bg-gray-100 object-cover min-h-[150px]">
       </section>
 
       <!-- Seção 3: Versões e Evolução (COPSOQ II vs III) -->
-      <section>
-        <h3 class="text-2xl font-bold text-[#1A3E74] mb-4 border-b pb-2">As 3 Versões do Questionário e Suas Diferenças</h3>
-        <p class="mb-4">
-          O COPSOQ (atualmente em sua segunda e terceira iterações clínicas) foi estruturado de maneira versátil para se adaptar a diferentes necessidades. Ele possui <strong>três versões principais</strong>:
-        </p>
-        <ul class="list-disc pl-6 space-y-3 mb-6 marker:text-[#1A3E74]">
-          <li><strong>Versão Curta (41 Perguntas):</strong> Destinada a autoavaliações rápidas, rastreios em pequenos locais de trabalho e check-ups periódicos. Mede o panorama geral de estresse de forma ágil e objetiva.</li>
-          <li><strong>Versão Média (76 Perguntas):</strong> O padrão para uso de profissionais de saúde ocupacional. Avalia detalhadamente os riscos, auxiliando na planificação e nas auditorias de empresas.</li>
-          <li><strong>Versão Longa (119 a 148 Perguntas):</strong> A ferramenta mais exaustiva, desenhada majoritariamente para fins de pesquisa científica rigorosa, mapeamento profundo de liderança e diagnóstico de <em>burnout</em> clínico.</li>
-        </ul>
-        <div class="bg-[#F8FBFF] border-l-4 border-[#1A3E74] p-4 rounded-r-lg mb-6">
-          <p class="text-sm"><strong>E o que mudou na transição do COPSOQ II para o COPSOQ III?</strong><br>
-          A matemática e a espinha dorsal mantiveram-se as mesmas, mas o COPSOQ III foi modernizado para os desafios da década atual. Foram incluídos novos fatores psicossociais importantíssimos, como a avaliação do <em>Cyber Bullying</em> (Assédio virtual por tecnologias), Tarefas Ilegítimas (sensação de realizar trabalho inútil), o medo real sobre <em>Insegurança das Condições de Trabalho</em> e métricas de Engajamento Organizacional. Dimensões complexas como "Inclusão Social" foram removidas para melhorar a precisão.</p>
-        </div>
-        <img src="img/imagem.webp" alt="Imagem Ilustrativa Versões COPSOQ" class="w-full h-auto rounded-xl shadow-md border border-gray-100 bg-gray-100 object-cover min-h-[150px]">
-      </section>
+      <section class="w-full">
+
+  <h3 class="text-2xl font-bold text-[#1A3E74] mb-4 border-b pb-2 leading-tight">
+    As 3 Versões do Questionário e Suas Diferenças
+  </h3>
+
+  <p class="mb-4 text-base leading-relaxed">
+    O COPSOQ (atualmente em sua segunda e terceira iterações clínicas) foi estruturado de maneira versátil para se adaptar a diferentes necessidades. Ele possui <strong>três versões principais</strong>:
+  </p>
+
+  <ul class="list-disc pl-6 space-y-3 mb-6 marker:text-[#1A3E74] text-base leading-relaxed">
+
+    <li>
+      <strong>Versão Curta (41 Perguntas):</strong>
+      Destinada a autoavaliações rápidas, rastreios em pequenos locais de trabalho e check-ups periódicos. Mede o panorama geral de estresse de forma ágil e objetiva.
+    </li>
+
+    <li>
+      <strong>Versão Média (76 Perguntas):</strong>
+      O padrão para uso de profissionais de saúde ocupacional. Avalia detalhadamente os riscos, auxiliando na planificação e nas auditorias de empresas.
+    </li>
+
+    <li>
+      <strong>Versão Longa (119 a 148 Perguntas):</strong>
+      A ferramenta mais exaustiva, desenhada majoritariamente para fins de pesquisa científica rigorosa, mapeamento profundo de liderança e diagnóstico de <em>burnout</em> clínico.
+    </li>
+
+  </ul>
+
+  <div class="bg-[#F8FBFF] border-l-4 border-[#1A3E74] p-4 rounded-r-lg mb-6">
+    <p class="text-sm md:text-base leading-relaxed">
+      <strong>E o que mudou na transição do COPSOQ II para o COPSOQ III?</strong><br>
+      A matemática e a espinha dorsal mantiveram-se as mesmas, mas o COPSOQ III foi modernizado para os desafios da década atual. Foram incluídos novos fatores psicossociais importantíssimos, como a avaliação do <em>Cyber Bullying</em>, Tarefas Ilegítimas, insegurança das condições de trabalho e métricas de engajamento organizacional.
+    </p>
+  </div>
+
+  <!-- VISUALIZADOR PDF RESPONSIVO -->
+  <div class="w-full rounded-2xl overflow-hidden shadow-md border border-gray-200 bg-white">
+
+    <!-- Cabeçalho -->
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 px-4 py-3 bg-[#1A3E74]">
+
+      <div class="flex items-center gap-2">
+        <svg xmlns="http://www.w3.org/2000/svg"
+             class="w-5 h-5 text-white flex-shrink-0"
+             fill="none"
+             viewBox="0 0 24 24"
+             stroke="currentColor">
+          <path stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M12 10v6m0 0l-3-3m3 3l3-3M8 6h8a2 2 0 012 2v10a2 2 0 01-2 2H8a2 2 0 01-2-2V8a2 2 0 012-2z"/>
+        </svg>
+
+        <span class="text-white font-semibold text-sm md:text-base leading-tight">
+          Documento Oficial COPSOQ III
+        </span>
+      </div>
+
+      <a href="https://www.copsoq.de/assets/pdf/COPSOQ-3b_ENGLISH_German-version-yellow-draft-260226-v2.pdf"
+         target="_blank"
+         rel="noopener noreferrer"
+         class="inline-flex items-center justify-center px-4 py-2 rounded-lg bg-white text-[#1A3E74] text-sm font-semibold hover:bg-gray-100 transition">
+        Abrir em nova guia
+      </a>
+
+    </div>
+
+    <!-- IFRAME RESPONSIVO -->
+    <div class="w-full bg-gray-100">
+
+      <iframe
+        src="https://www.copsoq.de/assets/pdf/COPSOQ-3b_ENGLISH_German-version-yellow-draft-260226-v2.pdf"
+        title="PDF COPSOQ III"
+        loading="lazy"
+        class="w-full border-0
+               h-[420px]
+               sm:h-[550px]
+               md:h-[700px]
+               lg:h-[850px]">
+      </iframe>
+
+    </div>
+
+  </div>
+
+</section>
 
       <!-- Seção 4: Cálculo (Extremamente Didático) -->
       <section>
@@ -403,7 +509,7 @@
           </div>
         </div>
 
-        <img src="img/imagem.webp" alt="Imagem Ilustrativa Cálculo e Semáforo" class="w-full h-auto rounded-xl shadow-md border border-gray-100 bg-gray-100 object-cover min-h-[150px] mt-10">
+        <img src="img/como_calcular_o_copsoq.webp" alt="Imagem Ilustrativa Cálculo e Semáforo" class="w-full h-auto rounded-xl shadow-md border border-gray-100 bg-gray-100 object-cover min-h-[150px] mt-10">
       </section>
 
       <!-- Divulgação / Call To Action Automatizado -->
