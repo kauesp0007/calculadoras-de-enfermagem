@@ -4,20 +4,21 @@ const path = require("path");
 const crypto = require("crypto");
 
 /* ===============================
-   CONFIGURAÇÕES GERAIS E SEO
+   CONFIGURAÇÕES
 ================================ */
 const JSON_DATABASE_FILE = "biblioteca.json";
 const TEMPLATE_FILE = "item.template.html";
 const OUTPUT_DIR = "biblioteca";
-const BASE_URL = "https://www.calculadorasdeenfermagem.com.br";
 
 /**
  * Marker com hash do template.
+ * Ex.: <!-- BIBLIOTECA_ITEM_TEMPLATE_HASH:abc123... -->
  */
 const TEMPLATE_HASH_MARKER_PREFIX = "BIBLIOTECA_ITEM_TEMPLATE_HASH:";
 
 /**
  * Se true, remove arquivos órfãos (existem em /biblioteca mas não existem mais no biblioteca.json).
+ * Você NÃO pediu remoção, então deixei false.
  */
 const DELETE_ORPHANS = false;
 
@@ -59,20 +60,32 @@ function sha256(text) {
   return crypto.createHash("sha256").update(String(text), "utf8").digest("hex");
 }
 
+function extractTemplateHashFromHtml(html) {
+  const re = new RegExp(`${TEMPLATE_HASH_MARKER_PREFIX}([a-f0-9]{8,64})`, "i");
+  const m = String(html || "").match(re);
+  return m ? m[1].toLowerCase() : null;
+}
+
 function ensureTemplateHashMarker(html, templateHash) {
-  const marker = ``;
-  const re = new RegExp(``, "ig");
+  const marker = `<!-- ${TEMPLATE_HASH_MARKER_PREFIX}${templateHash} -->`;
+
+  // Se já tem marker, substitui pelo novo hash
+  const re = new RegExp(`<!--\\s*${TEMPLATE_HASH_MARKER_PREFIX}[a-f0-9]{8,64}\\s*-->`, "ig");
   if (re.test(html)) {
     return html.replace(re, marker);
   }
+
+  // Se não tem, injeta antes do </head>
   if (html.includes("</head>")) {
     return html.replace("</head>", `\n  ${marker}\n</head>`);
   }
+
+  // fallback (muito improvável)
   return `${marker}\n${html}`;
 }
 
 /* ===============================
-   PREV/NEXT ADAPTADO (CORRIGIDO ERRO 404)
+   PREV/NEXT (URLS SEMPRE /biblioteca/slug.html)
 ================================ */
 function normalizarSlugParaArquivo(slug) {
   let s = String(slug || "").trim();
@@ -93,11 +106,9 @@ function buildPrevNext(data, idx) {
   const prev = idx > 0 ? data[idx - 1] : null;
   const next = idx < data.length - 1 ? data[idx + 1] : null;
 
-  // CORREÇÃO CRÍTICA AQUI:
-  // Agora o script puxa o "slug" exato gerado pelo seu scanner (ex: balanco-hidrico-1),
-  // e só usa o slugify como última opção. Isso impede o Erro 404 de links quebrados!
-  const prevSlug = prev ? (prev.slug || slugify(prev.titulo || "")) : "";
-  const nextSlug = next ? (next.slug || slugify(next.titulo || "")) : "";
+  // Usar sempre slugify do titulo para garantir consistência
+  const prevSlug = prev ? slugify(prev.titulo || "") : "";
+  const nextSlug = next ? slugify(next.titulo || "") : "";
 
   const prevUrl = montarUrlBiblioteca(prevSlug);
   const nextUrl = montarUrlBiblioteca(nextSlug);
@@ -113,34 +124,26 @@ function buildPrevNext(data, idx) {
 }
 
 /* ===============================
-   LIGHTBOX V2 (BOTÕES X, DOWNLOAD E SCROLL)
+   LIGHTBOX (mantém funcionalidades já existentes)
 ================================ */
 function montarBlocoLightbox(imagens) {
   return `
-<div id="lightbox" class="fixed inset-0 bg-slate-900/95 hidden z-[999999] overflow-y-auto overflow-x-hidden animate-fade">
+<!-- LIGHTBOX -->
+<div id="lightbox" class="fixed inset-0 bg-black/90 hidden z-50 flex items-center justify-center animate-fade">
 
-  <div class="fixed top-4 right-4 z-[9999999] flex gap-3">
-    <a id="lightbox-download" href="#" download class="text-white text-xl bg-black/60 hover:bg-blue-600 w-12 h-12 flex items-center justify-center rounded-full backdrop-blur-md transition-all shadow-lg border border-white/10" title="Baixar Arquivo">
-      <i class="fa-solid fa-download"></i>
-    </a>
-    <button onclick="fecharLightbox()" class="text-white text-2xl bg-black/60 hover:bg-red-600 w-12 h-12 flex items-center justify-center rounded-full backdrop-blur-md transition-all shadow-lg border border-white/10" title="Fechar">
-      <i class="fa-solid fa-xmark"></i>
-    </button>
-  </div>
+  <button onclick="fecharLightbox()" class="absolute top-6 right-6 text-white text-3xl" aria-label="Fechar">✕</button>
+  <button onclick="toggleFullscreen()" class="absolute top-6 left-6 text-white text-xl" aria-label="Tela cheia">⛶</button>
 
-  <button onclick="prevImagem()" class="fixed left-4 top-1/2 -translate-y-1/2 text-white text-2xl bg-black/50 hover:bg-blue-600 w-12 h-12 rounded-full hidden md:flex items-center justify-center backdrop-blur-md transition-all z-[9999999] shadow-lg border border-white/10" title="Anterior">
-    <i class="fa-solid fa-chevron-left"></i>
-  </button>
-  <button onclick="nextImagem()" class="fixed right-4 top-1/2 -translate-y-1/2 text-white text-2xl bg-black/50 hover:bg-blue-600 w-12 h-12 rounded-full hidden md:flex items-center justify-center backdrop-blur-md transition-all z-[9999999] shadow-lg border border-white/10" title="Próxima">
-    <i class="fa-solid fa-chevron-right"></i>
-  </button>
+  <button onclick="prevImagem()" class="absolute left-6 text-white text-4xl" aria-label="Anterior">←</button>
+  <button onclick="nextImagem()" class="absolute right-6 text-white text-4xl" aria-label="Próxima">→</button>
 
-  <div class="min-h-screen w-full flex flex-col items-center justify-start pt-20 pb-12 px-4">
-    <img id="lightbox-img" class="w-auto max-w-full h-auto object-contain shadow-2xl rounded-md bg-white/5" />
-    <div class="mt-6 text-center max-w-3xl">
-      <p id="lightbox-legenda" class="text-white text-lg font-medium leading-relaxed"></p>
-      <p id="contador" class="text-gray-400 text-sm mt-2"></p>
-    </div>
+  <div class="text-center px-4">
+    <img id="lightbox-img"
+      class="max-w-full max-h-[85vh] mx-auto rounded-lg touch-pan-x touch-pan-y"
+      style="touch-action: pinch-zoom;" />
+
+    <p id="contador" class="text-gray-300 text-sm mt-2"></p>
+    <p id="lightbox-legenda" class="text-gray-400 text-sm mt-1"></p>
   </div>
 </div>
 
@@ -153,38 +156,51 @@ function montarBlocoLightbox(imagens) {
     indiceAtual = i;
     atualizar();
     document.getElementById("lightbox").classList.remove("hidden");
-    document.body.style.overflow = "hidden"; // Trava o scroll da página atrás do lightbox
+    document.body.style.overflow = "hidden";
   }
 
   function fecharLightbox() {
     document.getElementById("lightbox").classList.add("hidden");
-    document.body.style.overflow = ""; // Libera o scroll
+    document.body.style.overflow = "";
+    if (document.fullscreenElement) document.exitFullscreen();
   }
 
   function atualizar() {
     const item = imagens[indiceAtual];
-    const itemPath = '/' + item.ficheiro.replace(/^\\/+/, '');
-
-    document.getElementById("lightbox-img").src = itemPath;
-    document.getElementById("lightbox-download").href = itemPath;
-    document.getElementById("lightbox-legenda").textContent = item.titulo + (item.descricao ? " — " + item.descricao : "");
-    document.getElementById("contador").textContent = "Imagem " + (indiceAtual + 1) + " / " + imagens.length;
+    document.getElementById("lightbox-img").src = item.ficheiro;
+    document.getElementById("lightbox-legenda").textContent =
+      item.titulo + " — " + (item.descricao || "");
+    document.getElementById("contador").textContent =
+      "Imagem " + (indiceAtual + 1) + " / " + imagens.length;
     preload();
   }
 
   function preload() {
     [indiceAtual - 1, indiceAtual + 1].forEach(i => {
-      if (imagens[i]) {
-         const img = new Image();
-         img.src = '/' + imagens[i].ficheiro.replace(/^\\/+/, '');
-      }
+      if (imagens[i]) new Image().src = imagens[i].ficheiro;
     });
   }
 
-  function nextImagem() { indiceAtual = (indiceAtual + 1) % imagens.length; atualizar(); }
-  function prevImagem() { indiceAtual = (indiceAtual - 1 + imagens.length) % imagens.length; atualizar(); }
+  function nextImagem() {
+    indiceAtual = (indiceAtual + 1) % imagens.length;
+    atualizar();
+  }
 
-  document.getElementById("lightbox").addEventListener("touchstart", e => { startX = e.touches[0].clientX; });
+  function prevImagem() {
+    indiceAtual = (indiceAtual - 1 + imagens.length) % imagens.length;
+    atualizar();
+  }
+
+  function toggleFullscreen() {
+    const lb = document.getElementById("lightbox");
+    if (!document.fullscreenElement) lb.requestFullscreen();
+    else document.exitFullscreen();
+  }
+
+  document.getElementById("lightbox").addEventListener("touchstart", e => {
+    startX = e.touches[0].clientX;
+  });
+
   document.getElementById("lightbox").addEventListener("touchend", e => {
     const endX = e.changedTouches[0].clientX;
     if (startX - endX > 50) nextImagem();
@@ -192,23 +208,24 @@ function montarBlocoLightbox(imagens) {
   });
 
   document.addEventListener("keydown", e => {
-    const lb = document.getElementById("lightbox");
-    if (!lb.classList.contains("hidden")) {
-      if (e.key === "ArrowRight") nextImagem();
-      if (e.key === "ArrowLeft") prevImagem();
-      if (e.key === "Escape") fecharLightbox();
-    }
+    if (e.key === "ArrowRight") nextImagem();
+    if (e.key === "ArrowLeft") prevImagem();
+    if (e.key === "Escape") fecharLightbox();
   });
 </script>
+
 <style>
-@keyframes fade { from { opacity: 0 } to { opacity: 1 } }
+@keyframes fade {
+  from { opacity: 0 }
+  to { opacity: 1 }
+}
 .animate-fade { animation: fade .25s ease-in-out }
 </style>
 `;
 }
 
 /* ===============================
-   GERADOR DE HTML DE UM ITEM (APENAS IDIOMA PADRÃO)
+   GERADOR DE HTML DE UM ITEM
 ================================ */
 function gerarHtmlDoItem({ template, templateHash, data, imagens, item, idx }) {
   const slug = item.slug || slugify(item.titulo);
@@ -218,57 +235,12 @@ function gerarHtmlDoItem({ template, templateHash, data, imagens, item, idx }) {
   const nav = buildPrevNext(data, idx);
   const capa = item.capa || item.ficheiro;
 
-  // SEO VARIÁVEIS ABSOLUTAS
-  const canonicalUrl = `${BASE_URL}/biblioteca/${slug}.html`;
-  const seoTitle = `${escapeHtml(item.titulo)} – Biblioteca de Enfermagem`;
-  const seoDesc = escapeHtml(descricao);
-  const seoKeywords = escapeHtml(item.tags || item.titulo);
-  const ogImage = `${BASE_URL}/${escapeHtml(capa).replace(/^\/+/, "")}`;
-
-  // GERADOR DE HREFLANG (Apenas pt-br e x-default para a raiz)
-  let hreflangTags = `  <link rel="alternate" hreflang="pt-br" href="${canonicalUrl}">\n`;
-  hreflangTags += `  <link rel="alternate" hreflang="x-default" href="${canonicalUrl}">\n`;
-
-  // GERADOR DE BREADCRUMBS
-  const breadcrumbsHtml = `
-    <ol class="flex items-center space-x-2 w-full truncate">
-      <li><a href="/" class="hover:text-blue-600 transition-colors">Início</a></li>
-      <li><span class="text-gray-400">/</span></li>
-      <li><a href="/downloads.html" class="hover:text-blue-600 transition-colors">Biblioteca</a></li>
-      <li><span class="text-gray-400">/</span></li>
-      <li class="text-gray-800 font-semibold truncate" aria-current="page" title="${escapeHtml(item.titulo)}">${escapeHtml(item.titulo)}</li>
-    </ol>
-  `;
-
-  // SCHEMA.ORG (JSON-LD)
-  const schemaObj = {
-    "@context": "https://schema.org",
-    "@type": categoria === 'fotos' ? "ImageObject" : "Article",
-    "name": escapeHtml(item.titulo),
-    "headline": escapeHtml(item.titulo),
-    "description": seoDesc,
-    "image": ogImage,
-    "url": canonicalUrl,
-    "author": { "@type": "Organization", "name": "Calculadoras de Enfermagem", "url": BASE_URL },
-    "publisher": { "@type": "Organization", "name": "Calculadoras de Enfermagem", "logo": { "@type": "ImageObject", "url": `${BASE_URL}/iconpages.webp` } }
-  };
-  const schemaJson = JSON.stringify(schemaObj, null, 2);
-
   let html = template;
 
-  // SUBSTITUIÇÃO DAS VARIÁVEIS SEO E CONTEÚDO
   html = html
-    .replace(/{{SEO_TITLE}}/g, seoTitle)
-    .replace(/{{SEO_DESCRIPTION}}/g, seoDesc)
-    .replace(/{{SEO_KEYWORDS}}/g, seoKeywords)
-    .replace(/{{CANONICAL_URL}}/g, canonicalUrl)
-    .replace(/{{HREFLANG_TAGS}}/g, hreflangTags)
-    .replace(/{{OG_IMAGE}}/g, ogImage)
-    .replace(/{{SCHEMA_JSON}}/g, schemaJson)
-    .replace(/{{BREADCRUMBS_HTML}}/g, breadcrumbsHtml)
     .replace(/{{TITULO}}/g, escapeHtml(item.titulo))
-    .replace(/{{DESCRICAO}}/g, seoDesc)
-    .replace(/{{TAGS}}/g, seoKeywords)
+    .replace(/{{DESCRICAO}}/g, escapeHtml(descricao))
+    .replace(/{{TAGS}}/g, escapeHtml(item.tags || item.titulo))
     .replace(/{{SLUG}}/g, escapeHtml(slug))
     .replace(/{{CAPA}}/g, escapeHtml(capa).replace(/^\/+/, ""))
     .replace(/{{FICHEIRO}}/g, escapeHtml(item.ficheiro).replace(/^\/+/, ""))
@@ -281,17 +253,22 @@ function gerarHtmlDoItem({ template, templateHash, data, imagens, item, idx }) {
     .replace(/{{PREV_CLASS}}/g, escapeHtml(nav.prevClass))
     .replace(/{{NEXT_CLASS}}/g, escapeHtml(nav.nextClass));
 
+  // Fotos: transforma a hero em “clicável” e injeta lightbox
   if (categoria === "fotos") {
     const indiceImagem = imagens.findIndex((i) => i.slug === slug);
+
     html = html.replace(
       /<img[^>]*class="w-full[^"]*biblioteca-hero-img"[^>]*>/i,
       `<img src="${item.ficheiro}" alt="Capa de ${escapeHtml(item.titulo)}" class="w-full rounded-xl mb-6 biblioteca-hero-img cursor-zoom-in" loading="lazy" decoding="async" onclick="abrirLightbox(${indiceImagem})">`
     );
+
     const bloco = montarBlocoLightbox(imagens);
     html = html.replace("</body>", `\n${bloco}\n</body>`);
   }
 
+  // Marker com hash do template usado
   html = ensureTemplateHashMarker(html, templateHash);
+
   return { slug, html };
 }
 
@@ -320,10 +297,9 @@ function construirBiblioteca() {
     return;
   }
 
-  if (!fs.existsSync(OUTPUT_DIR)) {
-    fs.mkdirSync(OUTPUT_DIR, { recursive: true });
-  }
+  if (!fs.existsSync(OUTPUT_DIR)) fs.mkdirSync(OUTPUT_DIR);
 
+  // Lista de imagens (para lightbox)
   const imagens = data
     .filter((i) => i && i.categoria === "fotos")
     .map((i) => ({
@@ -334,6 +310,7 @@ function construirBiblioteca() {
     }));
 
   const expectedSlugs = new Set();
+
   let criados = 0;
   let atualizados = 0;
   let inalterados = 0;
@@ -345,55 +322,62 @@ function construirBiblioteca() {
       return;
     }
 
-    const itemSlug = item.slug || slugify(item.titulo);
-    expectedSlugs.add(itemSlug);
-
     const { slug, html } = gerarHtmlDoItem({
       template,
       templateHash,
       data,
       imagens,
       item,
-      idx
+      idx,
     });
+
+    expectedSlugs.add(slug);
 
     const outFile = path.join(OUTPUT_DIR, `${slug}.html`);
 
+    // Se existe, só reescreve se o CONTEÚDO mudou
     if (fs.existsSync(outFile)) {
       const current = fs.readFileSync(outFile, "utf8");
+
+      // comparação direta: se igual, não toca no arquivo
       if (current === html) {
         inalterados++;
         return;
       }
+
+      // (opcional) também dá pra usar hash do marker como “atalho”,
+      // mas a comparação total é mais segura porque inclui dados do item (prev/next, etc.)
       fs.writeFileSync(outFile, html, "utf8");
       atualizados++;
-    } else {
-      fs.writeFileSync(outFile, html, "utf8");
-      criados++;
+      return;
     }
+
+    // Não existe → cria
+    fs.writeFileSync(outFile, html, "utf8");
+    criados++;
   });
 
-  // Remover órfãos
+  // (Opcional) Remover órfãos
   if (DELETE_ORPHANS) {
-    if (fs.existsSync(OUTPUT_DIR)) {
-      const files = fs.readdirSync(OUTPUT_DIR).filter((f) => f.toLowerCase().endsWith(".html"));
-      let removidos = 0;
-      for (const f of files) {
-        const slug = f.replace(/\.html$/i, "");
-        if (!expectedSlugs.has(slug)) {
-          fs.unlinkSync(path.join(OUTPUT_DIR, f));
-          removidos++;
-        }
+    const files = fs.readdirSync(OUTPUT_DIR).filter((f) => f.toLowerCase().endsWith(".html"));
+    let removidos = 0;
+
+    for (const f of files) {
+      const slug = f.replace(/\.html$/i, "");
+      if (!expectedSlugs.has(slug)) {
+        fs.unlinkSync(path.join(OUTPUT_DIR, f));
+        removidos++;
       }
-      if (removidos > 0) console.log(`🧹 ${removidos} arquivos órfãos removidos em ${OUTPUT_DIR}.`);
     }
+
+    console.log(`🧹 ${removidos} arquivos órfãos removidos (DELETE_ORPHANS=true).`);
   }
 
-  console.log("✅ build-biblioteca concluído com Motor de SEO e Lightbox V2 Corrigido");
-  console.log(`➕ Ficheiros Criados: ${criados}`);
-  console.log(`♻️ Ficheiros Atualizados: ${atualizados}`);
-  console.log(`⏭️ Ficheiros Inalterados: ${inalterados}`);
-  if (puladosPorErro) console.log(`⚠️ Itens com erro na base (pulados): ${puladosPorErro}`);
+  console.log("✅ build-biblioteca concluído");
+  console.log(`➕ Criados: ${criados}`);
+  console.log(`♻️ Atualizados: ${atualizados}`);
+  console.log(`⏭️ Inalterados: ${inalterados}`);
+  if (puladosPorErro) console.log(`⚠️ Itens pulados (sem titulo/ficheiro): ${puladosPorErro}`);
   console.log(`🔖 Template hash atual: ${templateHash}`);
 }
 

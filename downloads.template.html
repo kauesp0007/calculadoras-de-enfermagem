@@ -29,7 +29,6 @@
   <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;700;900&amp;family=Inter:wght@400;700&amp;display=optional" rel="stylesheet">
 
   <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
-
   <noscript>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   </noscript>
@@ -67,13 +66,11 @@ if (
     var aState = isRefused ? "denied" : (localStorage.getItem("analytics_storage") || "granted");
     var adState = adsBlocked ? "denied" : "granted";
 
-    /* ✅ Carrega o gtag.js do GA4 principal TS5 */
     var s = document.createElement("script");
     s.async = true;
     s.src = "https://www.googletagmanager.com/gtag/js?id=G-PFM06B7TS5";
     document.head.appendChild(s);
 
-    /* ✅ Configura consentimento default antes de qualquer config */
     gtag("consent","default",{
       analytics_storage: aState,
       ad_storage: adState,
@@ -84,15 +81,12 @@ if (
 
     gtag("js", new Date());
 
-    /* GA4 (múltiplas propriedades/destinos) */
-    gtag("config","G-PFM06B7TS5");    // TAG PRINCIPAL
+    gtag("config","G-PFM06B7TS5");
     gtag("config","G-MJDKPDPJ26");
     gtag("config","G-M7DHHF38EJ");
     gtag("config","G-8FLJ59XXDK");
     gtag("config","G-VVDP5JGEX8");
     gtag("config","G-EX8");
-
-    /* Google Ads - mantém as duas tags */
     gtag("config","AW-952633102");
     gtag("config","AW-9277197961");
 
@@ -110,26 +104,20 @@ if (
     console.log("💰 AdSense carregado via Lazy Load.");
   }
 
-  // --- FUNÇÃO DE CARREGAMENTO UNIFICADO (LAZY LOAD TOTAL) ---
   function onUserInteraction(){
-    loadAnalytics(); // Agora o Analytics só carrega aqui
+    loadAnalytics();
     loadAdSenseOnce();
-
-    // Remove os ouvintes para garantir execução única
     window.removeEventListener("scroll", onUserInteraction);
     window.removeEventListener("mousemove", onUserInteraction);
     window.removeEventListener("touchstart", onUserInteraction);
     window.removeEventListener("keydown", onUserInteraction);
   }
 
-  // Se não estiver bloqueado, aguarda interação ou tempo limite (fallback)
   if (!adsBlocked){
     window.addEventListener("scroll", onUserInteraction, {passive:true});
     window.addEventListener("mousemove", onUserInteraction, {passive:true});
     window.addEventListener("touchstart", onUserInteraction, {passive:true});
     window.addEventListener("keydown", onUserInteraction, {passive:true});
-
-    // Fallback: Se o usuário não interagir, carrega tudo após 4 segundos
     setTimeout(onUserInteraction, 8500);
   }
 
@@ -137,7 +125,7 @@ if (
     gtag("consent","update", consent);
     if (consent.ad_storage === "granted"){
       adsBlocked = false;
-      onUserInteraction(); // Tenta carregar tudo se o consentimento for dado
+      onUserInteraction();
     } else {
       adsBlocked = true;
       document.querySelectorAll("ins.adsbygoogle, .google-auto-placed")
@@ -170,18 +158,18 @@ if (
   </script>
 
   <style>
-    /* Botões Filtro Efeito Vidro (Glassmorphism) */
+    /* Estilo dos Botões de Filtro - Efeito Vidro Azul Semi-transparente */
     .filter-btn {
       padding: 0.6rem 1.25rem;
       border-radius: 0.75rem;
       border: 1px solid rgba(255, 255, 255, 0.4);
-      background: rgba(30, 58, 138, 0.15);
-      backdrop-filter: blur(8px);
+      background: rgba(30, 58, 138, 0.15); /* Azul translúcido */
+      backdrop-filter: blur(8px); /* Efeito de vidro */
       -webkit-backdrop-filter: blur(8px);
       color: #1e3a8a;
       font-weight: 600;
       cursor: pointer;
-      box-shadow: 0 8px 24px rgba(30, 58, 138, 0.2);
+      box-shadow: 0 8px 24px rgba(30, 58, 138, 0.2); /* Sombreamento forte */
       transition: all 0.25s ease;
     }
 
@@ -199,7 +187,7 @@ if (
       box-shadow: 0 14px 32px rgba(30, 58, 138, 0.4);
     }
 
-    /* Grid Estilo Google Imagens Fluido */
+    /* Grid Estilo Google Imagens */
     .file-grid {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
@@ -256,7 +244,7 @@ if (
       display: block;
     }
 
-    /* Paginação Moderna */
+    /* Paginação Estilo Google Search */
     .pagination {
       width: 100%;
       display: flex;
@@ -264,6 +252,8 @@ if (
       justify-content: center;
       align-items: center;
       gap: 0.5rem;
+      margin-top: 2rem;
+      margin-bottom: 1rem;
     }
 
     .pagination a, .pagination span {
@@ -276,7 +266,7 @@ if (
       border-radius: 50%;
       font-size: 0.95rem;
       font-weight: 600;
-      color: #4285f4;
+      color: #4285f4; /* Azul padrão Google */
       background: transparent;
       text-decoration: none;
       transition: background 0.2s, color 0.2s;
@@ -289,6 +279,19 @@ if (
     .pagination a.active, .pagination span.active {
       background: #4285f4;
       color: #ffffff;
+    }
+
+    /* Botão "Mais" na paginação (se gerado) */
+    .pagination a.btn-mais {
+      border-radius: 20px;
+      padding: 0 1.25rem;
+      background: #f1f3f4;
+      color: #202124;
+      min-width: auto;
+    }
+
+    .pagination a.btn-mais:hover {
+      background: #e8eaed;
     }
   </style>
 
@@ -304,6 +307,7 @@ if (
   <meta name="twitter:title" content="">
   <meta name="twitter:description" content="">
   <meta name="twitter:image" content="https://www.calculadorasdeenfermagem.com.br//bandeira-brasil.webp">
+
   <script type="application/ld+json">
     {
       "@context": "https://schema.org",
@@ -390,23 +394,11 @@ if (
       ]
     }
   </script>
+
   <style id="otimizador-master-responsive">
-    /* OTIMIZADOR_MASTER_V3 - RESPONSIVE SAFE */
-    img,
-    video {
-      max-width: 100%;
-      height: auto;
-    }
-
-    iframe {
-      max-width: 100%;
-    }
-
-    .table-responsive {
-      width: 100%;
-      overflow-x: auto;
-      -webkit-overflow-scrolling: touch;
-    }
+    img, video { max-width: 100%; height: auto; }
+    iframe { max-width: 100%; }
+    .table-responsive { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
   </style>
 </head>
 
@@ -432,11 +424,7 @@ if (
         Materiais, Apostilas, Documentos e Recursos para Download.
       </h2>
       <p class="font-inter text-gray-700 text-base lg:text-lg mb-4 leading-relaxed">
-        A Biblioteca de Enfermagem reúne uma seleção atualizada de materiais essenciais para estudantes e profissionais da
-        saúde. Aqui você encontra apostilas, protocolos clínicos, manuais oficiais, infográficos, imagens educativas,
-        vídeos e outros conteúdos confiáveis para estudo e prática assistencial. Utilize os filtros por categoria para
-        localizar rapidamente o tipo de material que você precisa e faça o download diretamente pela página, com total
-        segurança e facilidade.
+        A Biblioteca de Enfermagem reúne uma seleção atualizada de materiais essenciais para estudantes e profissionais da saúde. Aqui você encontra apostilas, protocolos clínicos, manuais oficiais, infográficos, imagens educativas, vídeos e outros conteúdos confiáveis para estudo e prática assistencial. Utilize os filtros por categoria para localizar rapidamente o tipo de material que você precisa e faça o download diretamente pela página, com total segurança e facilidade.
       </p>
       <h3 class="text-lg font-semibold text-blue-600">
         Acesse gratuitamente documentos, imagens, vídeos, protocolos clínicos e apostilas organizados por categorias.
@@ -453,10 +441,7 @@ if (
       </div>
     </div>
 
-    <div class="pagination mt-1 mb-4 flex flex-wrap justify-center gap-1" style="display: none;">
-      </div>
-
-    <div class="bg-white p-6 rounded-lg shadow">
+    <div class="bg-white p-6 rounded-2xl shadow-md border border-gray-100">
 
       <div id="todos-container" class="category-container active">
         <div class="file-grid">
@@ -480,11 +465,10 @@ if (
 
     </div>
 
-    <div class="pagination mt-6 flex flex-wrap justify-center gap-1">
+    <div class="pagination">
       </div>
 
   </main>
-
 
   <div id="global-body-elements-container"></div>
 
@@ -510,27 +494,19 @@ if (
     }
 
     document.addEventListener("DOMContentLoaded", () => {
-
-      // 1️⃣ Barra de acessibilidade
       fetchHTML("/global-body-elements.html", "global-body-elements-container")
         .then(() => loadScript("/global-body-elements.js"))
         .then(() => console.log("Barra de acessibilidade carregada e funcional!"))
         .catch(err => console.error("Erro ao carregar a barra de acessibilidade:", err));
 
-
-      // 3️⃣ Outros elementos independentes
       fetchHTML("/menu-global.html", "global-header-container");
-
     });
-
-
   </script>
-
 
   <script src="/global-scripts.js" defer=""></script>
   <script src="/filtro-index.js" defer=""></script>
   <script>
-    /* Filtro de categorias (garante funcionamento em todas as páginas geradas) */
+    /* Filtro de categorias */
     document.addEventListener("DOMContentLoaded", () => {
       const buttons = document.querySelectorAll("#filter-buttons .filter-btn");
       const containers = document.querySelectorAll(".category-container");
@@ -554,12 +530,11 @@ if (
     });
   </script>
 
-<div id="footer-placeholder"></div>
-<script>
-    fetch("footer.html") // 1. Busca o arquivo
-      .then((response) => response.text()) // 2. Converte a resposta para texto (HTML)
+  <div id="footer-placeholder"></div>
+  <script>
+    fetch("footer.html")
+      .then((response) => response.text())
       .then((data) => {
-        // 3. Insere o HTML dentro do seu placeholder
         document.getElementById("footer-placeholder").innerHTML = data;
       });
   </script>
