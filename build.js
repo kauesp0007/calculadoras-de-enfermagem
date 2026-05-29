@@ -8,7 +8,15 @@ const TEMPLATE_FILE = "downloads.template.html";
 const ITEMS_PER_PAGE = 20;
 const OUTPUT_DIR = "downloads";
 
+/**
+ * Marker com hash do template.
+ * Ex.: <!-- DOWNLOADS_TEMPLATE_HASH:abc123... -->
+ */
 const TEMPLATE_HASH_MARKER_PREFIX = "DOWNLOADS_TEMPLATE_HASH:";
+
+/* ===============================
+   UTILIDADES
+================================ */
 
 function slugify(text) {
   return String(text || "")
@@ -24,18 +32,27 @@ function sha256(text) {
 }
 
 function ensureTemplateHashMarker(html, templateHash) {
-  const marker = "";
-  const re = new RegExp("", "ig");
+  const marker = `<!-- ${TEMPLATE_HASH_MARKER_PREFIX}${templateHash} -->`;
 
+  // Se já tem marker, substitui pelo novo hash
+  const re = new RegExp(`<!--\\s*${TEMPLATE_HASH_MARKER_PREFIX}[a-f0-9]{8,64}\\s*-->`, "ig");
   if (re.test(html)) {
     return html.replace(re, marker);
   }
+
+  // Se não tem, injeta antes do </head>
   if (html.includes("</head>")) {
-    return html.replace("</head>", "\n  " + marker + "\n</head>");
+    return html.replace("</head>", `\n  ${marker}\n</head>`);
   }
-  return marker + "\n" + html;
+
+  // fallback (muito improvável)
+  return `${marker}\n${html}`;
 }
 
+/**
+ * Escreve arquivo somente se o conteúdo mudou.
+ * Retorna: "created" | "updated" | "unchanged"
+ */
 function writeIfChanged(filepath, content) {
   if (fs.existsSync(filepath)) {
     const current = fs.readFileSync(filepath, "utf8");
@@ -47,35 +64,62 @@ function writeIfChanged(filepath, content) {
   return "created";
 }
 
+/* ===============================
+   CRIA CARD HTML
+================================ */
+
+/* ===============================
+   CRIA CARD HTML (OTIMIZADO PARA SEO DE IMAGENS)
+================================ */
+
 function criarCartaoHTML(item) {
-  const link = "/biblioteca/" + slugify(item.titulo) + ".html";
-  return '<a href="' + link + '" class="file-card" title="Acessar documento de enfermagem: ' + item.titulo + '">\n' +
-         '  <figure style="margin: 0; padding: 0; width: 100%; height: 100%;">\n' +
-         '    <img src="' + item.capa + '" class="file-card-image" alt="Material e documento de enfermagem sobre ' + item.titulo + '" title="' + item.titulo + '" loading="lazy" width="400" height="300" style="object-fit: cover;">\n' +
-         '    <figcaption class="file-card-title">' + item.titulo + '</figcaption>\n' +
-         '  </figure>\n' +
-         '</a>';
+  return `
+<a href="/biblioteca/${slugify(item.titulo)}.html" class="file-card" title="Acessar documento de enfermagem: ${item.titulo}">
+  <figure style="margin: 0; padding: 0; width: 100%; height: 100%;">
+    <img src="${item.capa}"
+         class="file-card-image"
+         alt="Material e documento de enfermagem sobre ${item.titulo}"
+         title="${item.titulo}"
+         loading="lazy"
+         width="400"
+         height="300"
+         style="object-fit: cover;">
+    <figcaption class="file-card-title">${item.titulo}</figcaption>
+  </figure>
+</a>`;
 }
 
+/* ===============================
+   PAGINAÇÃO (page 1 = /downloads.html)
+================================ */
+
 function linkPagina(pageNum) {
-  if (pageNum === 1) return "/downloads.html";
-  return "/downloads/page" + pageNum + ".html";
+  if (pageNum === 1) return `/downloads.html`;
+  return `/downloads/page${pageNum}.html`;
 }
 
 function gerarPaginacao(total, atual) {
   let html = "";
+
   if (atual > 1) {
-    html += '<a class="btn btn-mais" href="' + linkPagina(atual - 1) + '">« Anterior</a>';
+    html += `<a class="btn" href="${linkPagina(atual - 1)}">« Anterior</a>`;
   }
+
   for (let i = 1; i <= total; i++) {
-    const activeClass = i === atual ? "active" : "";
-    html += '<a class="btn ' + activeClass + '" href="' + linkPagina(i) + '">' + i + '</a>';
+    const link = linkPagina(i);
+    html += `<a class="btn ${i === atual ? "active" : ""}" href="${link}">${i}</a>`;
   }
+
   if (atual < total) {
-    html += '<a class="btn btn-mais" href="' + linkPagina(atual + 1) + '">Próxima »</a>';
+    html += `<a class="btn" href="${linkPagina(atual + 1)}">Próxima »</a>`;
   }
+
   return html;
 }
+
+/* ===============================
+   CONSTRUTOR PRINCIPAL
+================================ */
 
 function construirPaginas() {
   if (!fs.existsSync(JSON_DATABASE_FILE)) {
@@ -84,7 +128,7 @@ function construirPaginas() {
     return;
   }
   if (!fs.existsSync(TEMPLATE_FILE)) {
-    console.error("❌ " + TEMPLATE_FILE + " não encontrado");
+    console.error(`❌ ${TEMPLATE_FILE} não encontrado`);
     process.exitCode = 1;
     return;
   }
@@ -114,7 +158,9 @@ function construirPaginas() {
 
     items.forEach((item) => {
       const card = criarCartaoHTML(item);
+
       todos += card;
+
       if (item.categoria === "documentos") documentos += card;
       if (item.categoria === "fotos") fotos += card;
       if (item.categoria === "videos") videos += card;
@@ -122,59 +168,85 @@ function construirPaginas() {
 
     const pagination = gerarPaginacao(totalPages, page);
 
-    const seoTitle = "Biblioteca de Enfermagem — Página " + page;
-    const seoDescription = "Biblioteca de Enfermagem com materiais, apostilas e documentos para download — Página " + page + " de " + totalPages + ".";
-    const seoKeywords = "biblioteca de enfermagem, apostilas de enfermagem, protocolos clínicos, manuais oficiais, materiais para estudo, documentos para download, enfermagem";
+    // SEO
+    const seoTitle = `Biblioteca de Enfermagem — Página ${page}`;
+    const seoDescription = `Biblioteca de Enfermagem com materiais, apostilas e documentos para download — Página ${page} de ${totalPages}.`;
+    const seoKeywords =
+      `biblioteca de enfermagem, apostilas de enfermagem, protocolos clínicos, manuais oficiais, materiais para estudo, documentos para download, enfermagem`;
 
-    const canonicalUrl = page === 1
-        ? "https://www.calculadorasdeenfermagem.com.br/downloads.html"
-        : "https://www.calculadorasdeenfermagem.com.br/downloads/page" + page + ".html";
+    // Canonical: page 1 = /downloads.html (raiz), demais = /downloads/pageX.html
+    const canonicalUrl =
+      page === 1
+        ? `https://www.calculadorasdeenfermagem.com.br/downloads.html`
+        : `https://www.calculadorasdeenfermagem.com.br/downloads/page${page}.html`;
 
-    let html = template;
+    let html = template
+      .replace("<!-- [GERAR_TODOS] -->", todos)
+      .replace("<!-- [GERAR_DOCUMENTOS] -->", documentos)
+      .replace("<!-- [GERAR_FOTOS] -->", fotos)
+      .replace("<!-- [GERAR_VIDEOS] -->", videos)
+      // importante: seu template tem o placeholder 2x (topo e rodapé)
+      .replaceAll("<!-- [PAGINACAO] -->", pagination)
 
-    // SUBSTITUIÇÃO LINHA POR LINHA PARA EVITAR ERROS DE SINTAXE E ESPAÇAMENTOS
-    html = html.replace(//gi, todos);
-    html = html.replace(//gi, documentos);
-    html = html.replace(//gi, fotos);
-    html = html.replace(//gi, videos);
-    html = html.replace(//gi, pagination);
+      // SEO placeholders do template (alguns aparecem escapados)
+      .replace(/<!-- \[SEO_TITLE\] -->/g, seoTitle)
+      .replace(/&lt;!-- \[SEO_TITLE\] --&gt;/g, seoTitle)
+      .replace(/<!-- \[SEO_DESCRIPTION\] -->/g, seoDescription)
+      .replace(/&lt;!-- \[SEO_DESCRIPTION\] --&gt;/g, seoDescription)
+      .replace(/<!-- \[SEO_KEYWORDS\] -->/g, seoKeywords)
+      .replace(/&lt;!-- \[SEO_KEYWORDS\] --&gt;/g, seoKeywords)
 
-    html = html.replace(//gi, seoTitle);
-    html = html.replace(/&lt;!--\s*\[SEO_TITLE\]\s*--&gt;/gi, seoTitle);
+      // URL placeholders (canonical / og:url / schema)
+      .replace(/<!-- \[CANONICAL_URL\] -->/g, canonicalUrl)
+      .replace(/<!-- \[SEO_URL\] -->/g, canonicalUrl)
 
-    html = html.replace(//gi, seoDescription);
-    html = html.replace(/&lt;!--\s*\[SEO_DESCRIPTION\]\s*--&gt;/gi, seoDescription);
+      // Fallbacks (caso o template não tenha placeholders)
+      .replace(/<title>.*<\/title>/, `<title>${seoTitle}</title>`)
+      .replace(
+        /<meta name="description" content="[^"]*"\s*>/i,
+        `<meta name="description" content="${seoDescription}">`
+      )
+      .replace(
+        /<meta name="keywords" content="[^"]*"\s*>/i,
+        `<meta name="keywords" content="${seoKeywords}">`
+      )
+      .replace(
+        /<link rel="canonical" href="[^"]*"\s*>/i,
+        `<link rel="canonical" href="${canonicalUrl}">`
+      )
+      .replace(
+        /<meta property="og:url" content="[^"]*"\s*>/i,
+        `<meta property="og:url" content="${canonicalUrl}">`
+      )
+      .replace(
+        /https:\/\/www\.calculadorasdeenfermagem\.com\.br\/downloads\.template\.html/g,
+        canonicalUrl
+      )
+      .replace(
+        /https:\/\/www\.calculadorasdeenfermagem\.com\.br\/downloads\.html/g,
+        canonicalUrl
+      );
 
-    html = html.replace(//gi, seoKeywords);
-    html = html.replace(/&lt;!--\s*\[SEO_KEYWORDS\]\s*--&gt;/gi, seoKeywords);
-
-    html = html.replace(//gi, canonicalUrl);
-    html = html.replace(//gi, canonicalUrl);
-
-    // Fallbacks
-    html = html.replace(/<title>.*<\/title>/gi, "<title>" + seoTitle + "</title>");
-    html = html.replace(/<meta name="description" content="[^"]*"\s*>/gi, '<meta name="description" content="' + seoDescription + '">');
-    html = html.replace(/<meta name="keywords" content="[^"]*"\s*>/gi, '<meta name="keywords" content="' + seoKeywords + '">');
-    html = html.replace(/<link rel="canonical" href="[^"]*"\s*>/gi, '<link rel="canonical" href="' + canonicalUrl + '">');
-    html = html.replace(/<meta property="og:url" content="[^"]*"\s*>/gi, '<meta property="og:url" content="' + canonicalUrl + '">');
-    html = html.replace(/https:\/\/www\.calculadorasdeenfermagem\.com\.br\/downloads\.template\.html/gi, canonicalUrl);
-    html = html.replace(/https:\/\/www\.calculadorasdeenfermagem\.com\.br\/downloads\.html/gi, canonicalUrl);
-
+    // ✅ injeta marker com hash do template no <head>
     html = ensureTemplateHashMarker(html, templateHash);
 
+    // ✅ Saídas:
+    // - Página 1 também gera o arquivo raiz "downloads.html"
+    // - Páginas 2+ ficam em /downloads/pageX.html
     if (page === 1) {
       const r1 = writeIfChanged("downloads.html", html);
       if (r1 === "created") created++;
       else if (r1 === "updated") updated++;
       else unchanged++;
 
-      const outputLegacy = path.join(OUTPUT_DIR, "page1.html");
+      // (opcional e seguro) mantém /downloads/page1.html caso exista link antigo
+      const outputLegacy = path.join(OUTPUT_DIR, `page1.html`);
       const r2 = writeIfChanged(outputLegacy, html);
       if (r2 === "created") created++;
       else if (r2 === "updated") updated++;
       else unchanged++;
     } else {
-      const output = path.join(OUTPUT_DIR, "page" + page + ".html");
+      const output = path.join(OUTPUT_DIR, `page${page}.html`);
       const r = writeIfChanged(output, html);
       if (r === "created") created++;
       else if (r === "updated") updated++;
@@ -183,10 +255,10 @@ function construirPaginas() {
   }
 
   console.log("✅ Downloads gerados com atualização inteligente por template!");
-  console.log("➕ Criados: " + created);
-  console.log("♻️ Atualizados: " + updated);
-  console.log("⏭️ Inalterados: " + unchanged);
-  console.log("🔖 Template hash atual: " + templateHash);
+  console.log(`➕ Criados: ${created}`);
+  console.log(`♻️ Atualizados: ${updated}`);
+  console.log(`⏭️ Inalterados: ${unchanged}`);
+  console.log(`🔖 Template hash atual: ${templateHash}`);
 }
 
 construirPaginas();
