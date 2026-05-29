@@ -1,5 +1,5 @@
 // Define o nome e a versão do cache (AUTOMÁTICO via gerar-sw.js)
-const CACHE_NAME = 'calculadoras-enfermagem-cache-20260529-032315-656';
+const CACHE_NAME = 'calculadoras-enfermagem-cache-20260529-042750-055';
 
 // O SCRIPT DE BUILD VAI INJETAR A LISTA DE ARQUIVOS AQUI
 const urlsToCache = [
@@ -658,7 +658,9 @@ const urlsToCache = [
   'biblioteca/o-responsavel-pelos-cuidados-na-assistencia-ventilatoria-deve-preparar-circuito-de-aspiracao-orotraqueal-montado-e-testado-lar.html',
   'biblioteca/otoscopio.html',
   'biblioteca/outros-medicamentos-de-alta-vigilancia-mav.html',
+  'biblioteca/pagina-braden.html',
   'biblioteca/pagina-calculadoras-de-enfermagem-protocolo-de-news.html',
+  'biblioteca/pagina-site-escala-braden.html',
   'biblioteca/parada-cardio-respiratoria.html',
   'biblioteca/pentagonos-entrelacados-teste-meem.html',
   'biblioteca/perfil-elisabeth-marques.html',
@@ -861,6 +863,7 @@ const urlsToCache = [
   'blog-templates/post.template.html',
   'blog/index.html',
   'blog/interpretacao-gasometria.html',
+  'blog/os-bastidores-da-escala-de-braden.html',
   'blog/proposito-enfermagem.html',
   'blog/resolucao-cofen-dimensionamento.html',
   'bps.html',
@@ -2251,6 +2254,8 @@ const urlsToCache = [
   'img/o responsavel pelos cuidados na assistencia ventilatoria deve preparar - circuito de aspiração orotraqueal montado e testado, lar.webp',
   'img/o responsável pelo carrinho de emergencia deve ter em mente as 5 causas prováveis H de uma PCR, e assim organizar o carrinho de emerg.webp',
   'img/o-que-mudou-no-dimensionamento.webp',
+  'img/pagina_braden.webp',
+  'img/pagina_site_escala_braden.webp',
   'img/parada-cardio-respiratoria.webp',
   'img/pentagono_meem.jpg',
   'img/perfil_elisabeth_marques.webp',
