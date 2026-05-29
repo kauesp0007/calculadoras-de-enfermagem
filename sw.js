@@ -1,5 +1,5 @@
 // Define o nome e a versão do cache (AUTOMÁTICO via gerar-sw.js)
-const CACHE_NAME = 'calculadoras-enfermagem-cache-20260529-043740-741';
+const CACHE_NAME = 'calculadoras-enfermagem-cache-20260529-064459-887';
 
 // O SCRIPT DE BUILD VAI INJETAR A LISTA DE ARQUIVOS AQUI
 const urlsToCache = [
@@ -436,6 +436,7 @@ const urlsToCache = [
   'biblioteca/genograma-e-ecomapa-como-ferramentas-terapeuticas.html',
   'biblioteca/genograma-e-ecomapa.html',
   'biblioteca/genogramaeecomapa.html',
+  'biblioteca/gestao-do-tempo-prevencao-psicossocial.html',
   'biblioteca/gesto-1.html',
   'biblioteca/goiva-osteotomo-ortopedia.html',
   'biblioteca/gotejamento-france.html',
@@ -614,6 +615,7 @@ const urlsToCache = [
   'biblioteca/notificacao-compulsoria-virus-hepatite-b-gestantes-criancas.html',
   'biblioteca/notificacao-compulsoria-zica-virus-agudo.html',
   'biblioteca/notificacao-compulsoria.html',
+  'biblioteca/nr1-artigo-tecnico-completo.html',
   'biblioteca/nr1.html',
   'biblioteca/nr10.html',
   'biblioteca/nr11.html',
@@ -623,6 +625,7 @@ const urlsToCache = [
   'biblioteca/nr15.html',
   'biblioteca/nr16.html',
   'biblioteca/nr17-e-nr1-7.html',
+  'biblioteca/nr17-ergonomia-artigo-completo.html',
   'biblioteca/nr17.html',
   'biblioteca/nr18.html',
   'biblioteca/nr19.html',
@@ -992,6 +995,9 @@ const urlsToCache = [
   'dezpassos.webp',
   'diagnosticosnanda.html',
   'dimensionamento.html',
+  'docs/Gestao_do_Tempo_Prevenção_Psicossocial.html',
+  'docs/NR17_Ergonomia_Artigo_Completo.html',
+  'docs/NR1_Artigo_Tecnico_Completo.html',
   'downes.html',
   'downloads.html',
   'downloads.template.html',
