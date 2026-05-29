@@ -8,33 +8,24 @@ const path = require('path');
 // 1. SUBSTITUIÇÃO SIMPLES (REPLACE)
 // Se achar o 'target', substitui a linha toda pela 'newTag', mantendo o recuo.
 const REGRA_REPLACE = [
-    {
-        target: '<div id="footer-placeholder"></div>',
-        newTag: `<div class="max-w-7xl mx-auto px-4 my-10">
-    <ins class="adsbygoogle"
-         style="display:block"
-         data-ad-format="autorelaxed"
-         data-ad-client="ca-pub-6472730056006847"
-         data-ad-slot="5401011816"></ins>
-    <script>
-         (adsbygoogle = window.adsbygoogle || []).push({});
-    </script>
-</div>
-<div id="footer-placeholder"></div>`
-    },
+    { target: '', newTag: '' },
 ];
 
 // 2. EXCLUSÃO DE LINHAS (DELETE)
+// Se achar a palavra no 'target', a linha inteira é removida do arquivo.
 const REGRA_DELETE = [
     { target: '' },
 ];
 
 // 3. UNIFICAÇÃO / LIMPEZA DE DUPLICADOS (UNIFY)
+// Mantém apenas a primeira ocorrência (transformada na newTag) e apaga as duplicatas.
 const REGRA_UNIFY = [
     { target1: '', target2: '', newTag: '' }
 ];
 
 // 4. MOVIMENTAÇÃO OU CRIAÇÃO ABAIXO DA ÂNCORA (MOVE / CREATE)
+// - Se 'moveTarget' tiver valor: Move a linha existente para baixo da âncora.
+// - Se 'moveTarget' estiver vazio e 'newTag' tiver valor: Cria uma linha nova abaixo da âncora.
 const REGRA_MOVE = [
     { moveTarget: '', newTag: '', anchorTarget: '' }
 ];
@@ -58,7 +49,7 @@ let filesSkippedCount = 0;
  * Inicia a varredura na raiz e nas pastas de idiomas
  */
 function start() {
-    console.log('--- Iniciando Injeção de Anúncios Multiplex ---');
+    console.log('--- Iniciando Processamento Inteligente (Move & Create) ---');
 
     processDirectory(ROOT_DIR, false);
 
@@ -79,8 +70,6 @@ function start() {
  * Varre os diretórios buscando apenas arquivos .html
  */
 function processDirectory(currentPath, isLangFolder) {
-    if (!fs.existsSync(currentPath)) return;
-
     let items = fs.readdirSync(currentPath);
     items.forEach(item => {
         const fullPath = path.join(currentPath, item);
@@ -101,13 +90,6 @@ function processDirectory(currentPath, isLangFolder) {
 function processFile(filePath) {
     try {
         let content = fs.readFileSync(filePath, 'utf8');
-
-        // TRAVA DE SEGURANÇA: Se o slot do anúncio já estiver no arquivo, pula para evitar duplicidade.
-        if (content.includes('5401011816')) {
-            filesSkippedCount++;
-            return;
-        }
-
         let lines = content.split('\n');
         let fileModified = false;
         let unificacoesExecutadas = new Set();
@@ -141,8 +123,7 @@ function processFile(filePath) {
                 if (r.target && line.includes(r.target)) {
                     if (line.trim() !== r.newTag.trim()) {
                         fileModified = true;
-                        const indent = line.match(/^(\s*)/)[0] || '';
-                        // Aplica o recuo original apenas na primeira linha da nova tag para manter alinhamento
+                        const indent = line.match(/^(\s*)/)[0];
                         return `${indent}${r.newTag}`;
                     }
                 }
@@ -168,6 +149,7 @@ function processFile(filePath) {
                     }
                     // AÇÃO B: Criar linha nova (apenas se moveTarget estiver vazio e newTag preenchido)
                     else if (r.newTag) {
+                        // Verifica se a linha já existe para não criar duplicatas infinitas
                         const jaExiste = lines.some(l => l.includes(r.newTag.trim()));
                         if (!jaExiste) {
                             const indent = lines[anchorIdx].match(/^(\s*)/)[0];
