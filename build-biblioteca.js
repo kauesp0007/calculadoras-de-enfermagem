@@ -60,8 +60,8 @@ function sha256(text) {
 }
 
 function ensureTemplateHashMarker(html, templateHash) {
-  const marker = `<!-- ${TEMPLATE_HASH_MARKER_PREFIX}${templateHash} -->`;
-  const re = new RegExp(`<!--\\s*${TEMPLATE_HASH_MARKER_PREFIX}[a-f0-9]{8,64}\\s*-->`, "ig");
+  const marker = ``;
+  const re = new RegExp(``, "ig");
   if (re.test(html)) {
     return html.replace(re, marker);
   }
@@ -110,66 +110,91 @@ function buildPrevNext(data, idx) {
 }
 
 /* ===============================
-   LIGHTBOX
+   LIGHTBOX V2 (CORRIGIDO: BOTOES X, DOWNLOAD E SCROLL)
 ================================ */
 function montarBlocoLightbox(imagens) {
   return `
-<!-- LIGHTBOX -->
-<div id="lightbox" class="fixed inset-0 bg-black/90 hidden z-50 flex items-center justify-center animate-fade">
-  <button onclick="fecharLightbox()" class="absolute top-6 right-6 text-white text-3xl" aria-label="Fechar">✕</button>
-  <button onclick="toggleFullscreen()" class="absolute top-6 left-6 text-white text-xl" aria-label="Tela cheia">⛶</button>
-  <button onclick="prevImagem()" class="absolute left-6 text-white text-4xl" aria-label="Anterior">←</button>
-  <button onclick="nextImagem()" class="absolute right-6 text-white text-4xl" aria-label="Próxima">→</button>
-  <div class="text-center px-4">
-    <img id="lightbox-img" class="max-w-full max-h-[85vh] mx-auto rounded-lg touch-pan-x touch-pan-y" style="touch-action: pinch-zoom;" />
-    <p id="contador" class="text-gray-300 text-sm mt-2"></p>
-    <p id="lightbox-legenda" class="text-gray-400 text-sm mt-1"></p>
+<div id="lightbox" class="fixed inset-0 bg-slate-900/95 hidden z-[999999] overflow-y-auto overflow-x-hidden animate-fade">
+
+  <div class="fixed top-4 right-4 z-[9999999] flex gap-3">
+    <a id="lightbox-download" href="#" download class="text-white text-xl bg-black/60 hover:bg-blue-600 w-12 h-12 flex items-center justify-center rounded-full backdrop-blur-md transition-all shadow-lg border border-white/10" title="Baixar Arquivo">
+      <i class="fa-solid fa-download"></i>
+    </a>
+    <button onclick="fecharLightbox()" class="text-white text-2xl bg-black/60 hover:bg-red-600 w-12 h-12 flex items-center justify-center rounded-full backdrop-blur-md transition-all shadow-lg border border-white/10" title="Fechar">
+      <i class="fa-solid fa-xmark"></i>
+    </button>
+  </div>
+
+  <button onclick="prevImagem()" class="fixed left-4 top-1/2 -translate-y-1/2 text-white text-2xl bg-black/50 hover:bg-blue-600 w-12 h-12 rounded-full hidden md:flex items-center justify-center backdrop-blur-md transition-all z-[9999999] shadow-lg border border-white/10" title="Anterior">
+    <i class="fa-solid fa-chevron-left"></i>
+  </button>
+  <button onclick="nextImagem()" class="fixed right-4 top-1/2 -translate-y-1/2 text-white text-2xl bg-black/50 hover:bg-blue-600 w-12 h-12 rounded-full hidden md:flex items-center justify-center backdrop-blur-md transition-all z-[9999999] shadow-lg border border-white/10" title="Próxima">
+    <i class="fa-solid fa-chevron-right"></i>
+  </button>
+
+  <div class="min-h-screen w-full flex flex-col items-center justify-start pt-20 pb-12 px-4">
+    <img id="lightbox-img" class="w-auto max-w-full h-auto object-contain shadow-2xl rounded-md bg-white/5" />
+    <div class="mt-6 text-center max-w-3xl">
+      <p id="lightbox-legenda" class="text-white text-lg font-medium leading-relaxed"></p>
+      <p id="contador" class="text-gray-400 text-sm mt-2"></p>
+    </div>
   </div>
 </div>
+
 <script>
   const imagens = ${JSON.stringify(imagens)};
   let indiceAtual = 0;
   let startX = 0;
+
   function abrirLightbox(i) {
     indiceAtual = i;
     atualizar();
     document.getElementById("lightbox").classList.remove("hidden");
-    document.body.style.overflow = "hidden";
+    document.body.style.overflow = "hidden"; // Trava o scroll da página atrás do lightbox
   }
+
   function fecharLightbox() {
     document.getElementById("lightbox").classList.add("hidden");
-    document.body.style.overflow = "";
-    if (document.fullscreenElement) document.exitFullscreen();
+    document.body.style.overflow = ""; // Libera o scroll
   }
+
   function atualizar() {
     const item = imagens[indiceAtual];
-    document.getElementById("lightbox-img").src = item.ficheiro;
-    document.getElementById("lightbox-legenda").textContent = item.titulo + " — " + (item.descricao || "");
+    const itemPath = '/' + item.ficheiro.replace(/^\\/+/, '');
+
+    document.getElementById("lightbox-img").src = itemPath;
+    document.getElementById("lightbox-download").href = itemPath;
+    document.getElementById("lightbox-legenda").textContent = item.titulo + (item.descricao ? " — " + item.descricao : "");
     document.getElementById("contador").textContent = "Imagem " + (indiceAtual + 1) + " / " + imagens.length;
     preload();
   }
+
   function preload() {
     [indiceAtual - 1, indiceAtual + 1].forEach(i => {
-      if (imagens[i]) new Image().src = imagens[i].ficheiro;
+      if (imagens[i]) {
+         const img = new Image();
+         img.src = '/' + imagens[i].ficheiro.replace(/^\\/+/, '');
+      }
     });
   }
+
   function nextImagem() { indiceAtual = (indiceAtual + 1) % imagens.length; atualizar(); }
   function prevImagem() { indiceAtual = (indiceAtual - 1 + imagens.length) % imagens.length; atualizar(); }
-  function toggleFullscreen() {
-    const lb = document.getElementById("lightbox");
-    if (!document.fullscreenElement) lb.requestFullscreen();
-    else document.exitFullscreen();
-  }
+
   document.getElementById("lightbox").addEventListener("touchstart", e => { startX = e.touches[0].clientX; });
   document.getElementById("lightbox").addEventListener("touchend", e => {
     const endX = e.changedTouches[0].clientX;
     if (startX - endX > 50) nextImagem();
     if (endX - startX > 50) prevImagem();
   });
+
   document.addEventListener("keydown", e => {
-    if (e.key === "ArrowRight") nextImagem();
-    if (e.key === "ArrowLeft") prevImagem();
-    if (e.key === "Escape") fecharLightbox();
+    const lb = document.getElementById("lightbox");
+    if (!lb.classList.contains("hidden")) {
+      if (e.key === "ArrowRight") nextImagem();
+      if (e.key === "ArrowLeft") prevImagem();
+      if (e.key === "Escape") fecharLightbox();
+    }
   });
 </script>
 <style>
@@ -361,7 +386,7 @@ function construirBiblioteca() {
     }
   }
 
-  console.log("✅ build-biblioteca concluído com Motor de SEO (Apenas PT-BR)");
+  console.log("✅ build-biblioteca concluído com Motor de SEO e Lightbox V2 Corrigido");
   console.log(`➕ Ficheiros Criados: ${criados}`);
   console.log(`♻️ Ficheiros Atualizados: ${atualizados}`);
   console.log(`⏭️ Ficheiros Inalterados: ${inalterados}`);
