@@ -93,8 +93,9 @@ function buildPrevNext(data, idx) {
   const prev = idx > 0 ? data[idx - 1] : null;
   const next = idx < data.length - 1 ? data[idx + 1] : null;
 
-  // CORREÇÃO: Agora ele verifica primeiro se existe um "slug" exato gravado no banco (item.slug),
-  // caso contrário usa o slugify. Isso impede as rotas quebradas que levavam ao 404!
+  // CORREÇÃO CRÍTICA AQUI:
+  // Agora o script puxa o "slug" exato gerado pelo seu scanner (ex: balanco-hidrico-1),
+  // e só usa o slugify como última opção. Isso impede o Erro 404 de links quebrados!
   const prevSlug = prev ? (prev.slug || slugify(prev.titulo || "")) : "";
   const nextSlug = next ? (next.slug || slugify(next.titulo || "")) : "";
 
