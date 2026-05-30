@@ -1,9 +1,9 @@
 ---
-title: A Evolução da Vestimenta na Enfermagem: Da Tradição à Biossegurança
+title: A Evolução da Vestimenta na Enfermagem - Da Tradição à Biossegurança
 description: Explore a trajetória histórica das vestimentas da enfermagem, desde os hábitos religiosos até a tecnologia atual de proteção focada na segurança do paciente.
 date: 30 de Maio de 2026
 keywords: enfermagem, história da enfermagem, uniformes de enfermagem, biossegurança, segurança do paciente
-image: https://www.calculadorasdeenfermagem.com.br/img/enfermeira-pedindo-silencio_enfermagem_vestimenta_silencio.webp
+image: /img/enfermeira-pedindo-silencio_enfermagem_vestimenta_silencio.webp
 ---
 
 # A Evolução da Vestimenta na Enfermagem: Da Tradição à Biossegurança
