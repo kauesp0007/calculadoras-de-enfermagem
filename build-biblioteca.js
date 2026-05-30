@@ -31,7 +31,11 @@ function sha256(text) {
     return crypto.createHash("sha256").update(String(text), "utf8").digest("hex");
 }
 
+// Substituição literal, segura e sem erros de memória
 function injetar(html, marcador, conteudo) {
+    if (!html || !marcador) return html;
+    // Utiliza o replace com string literal (não Regex).
+    // O JavaScript substituirá a primeira ocorrência encontrada do marcador.
     return html.replace(marcador, conteudo);
 }
 
@@ -142,15 +146,22 @@ function gerarHtmlDoItem({ template, templateHash, item }) {
         ]
     };
 
-    // Injeções originais preservadas
-    html = injetar(html, /<!-- \[TITLE\] -->/g, titulo);
-    html = injetar(html, /<!-- \[DESCRIPTION\] -->/g, descricao);
-    html = injetar(html, /<!-- \[KEYWORDS\] -->/g, escapeHtml(keywords));
-    html = injetar(html, /<!-- \[CANONICAL_URL\] -->/g, canonicalUrl);
-    html = injetar(html, /<!-- \[IMAGE\] -->/g, imagePath);
-    html = injetar(html, /<!-- \[FILE\] -->/g, filePath);
-    html = injetar(html, /<!-- \[SCHEMA_ORG\] -->/g, JSON.stringify(schemaOrgObj));
-    html = injetar(html, /<!-- \[BREADCRUMBS\] -->/g, JSON.stringify(breadcrumbsObj));
+    // Dentro da função gerarHtmlDoItem, as chamadas ficam assim:
+// Injeções de SEO (Head)
+html = injetar(html, "<!-- SEO_TITLE -->", titulo);
+html = injetar(html, "<!-- SEO_DESCRIPTION -->", descricao);
+html = injetar(html, "<!-- SEO_KEYWORDS -->", escapeHtml(keywords));
+html = injetar(html, "<!-- CANONICAL_URL -->", canonicalUrl);
+
+// Injeções de Conteúdo (Body)
+html = injetar(html, "<!-- [TITLE] -->", titulo);
+html = injetar(html, "<!-- [DESCRIPTION] -->", descricaoRaw);
+html = injetar(html, "<!-- [IMAGE] -->", imagePath);
+html = injetar(html, "<!-- [FILE] -->", filePath);
+
+// Injeções de Script (JSON-LD)
+html = injetar(html, "<!-- SCHEMA_ORG -->", JSON.stringify(schemaOrgObj));
+html = injetar(html, "<!-- BREADCRUMBS -->", JSON.stringify(breadcrumbsObj));
 
     html = ensureTemplateHashMarker(html, templateHash);
     return { slug, html };

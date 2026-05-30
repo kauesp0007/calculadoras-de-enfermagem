@@ -31,9 +31,12 @@ function escapeHtml(str) {
     .replace(/'/g, "&#39;");
 }
 
-// Substitui marcador por conteúdo no HTML usando expressões regulares exatas
+// Substituição literal, segura e sem erros de memória
 function injetar(html, marcador, conteudo) {
-  return html.replace(marcador, conteudo);
+    if (!html || !marcador) return html;
+    // Utiliza o replace com string literal (não Regex).
+    // O JavaScript substituirá a primeira ocorrência encontrada do marcador.
+    return html.replace(marcador, conteudo);
 }
 
 function ensureTemplateHashMarker(html, templateHash) {
@@ -227,21 +230,21 @@ function construirPaginas() {
     };
     const breadcrumbs = JSON.stringify(breadcrumbsObj);
 
+    // Dentro da função construirPaginas, substitua o bloco de injeção por este:
     let html = template;
 
-    // Injeção com marcadores regex exatos (Regra rigorosa mantida)
-    html = injetar(html, /<!-- TODOS -->/g, todos);
-    html = injetar(html, /<!-- DOCUMENTOS -->/g, documentos);
-    html = injetar(html, /<!-- FOTOS -->/g, fotos);
-    html = injetar(html, /<!-- VIDEOS -->/g, videos);
-    html = injetar(html, /<!-- PAGINATION -->/g, pagination);
+    html = injetar(html, "<!-- TODOS -->", todos);
+    html = injetar(html, "<!-- DOCUMENTOS -->", documentos);
+    html = injetar(html, "<!-- FOTOS -->", fotos);
+    html = injetar(html, "<!-- VIDEOS -->", videos);
+    html = injetar(html, "<!-- PAGINATION -->", pagination);
 
-    html = injetar(html, /<!-- SEO_TITLE -->/g, seoTitle);
-    html = injetar(html, /<!-- SEO_DESCRIPTION -->/g, seoDescription);
-    html = injetar(html, /<!-- SEO_KEYWORDS -->/g, seoKeywords);
-    html = injetar(html, /<!-- CANONICAL_URL -->/g, canonicalUrl);
-    html = injetar(html, /<!-- SCHEMA_ORG -->/g, schemaOrg);
-    html = injetar(html, /<!-- BREADCRUMBS -->/g, breadcrumbs);
+    html = injetar(html, "<!-- SEO_TITLE -->", seoTitle);
+    html = injetar(html, "<!-- SEO_DESCRIPTION -->", seoDescription);
+    html = injetar(html, "<!-- SEO_KEYWORDS -->", seoKeywords);
+    html = injetar(html, "<!-- CANONICAL_URL -->", canonicalUrl);
+    html = injetar(html, "<!-- SCHEMA_ORG -->", schemaOrg);
+    html = injetar(html, "<!-- BREADCRUMBS -->", breadcrumbs);
 
     html = ensureTemplateHashMarker(html, templateHash);
 
