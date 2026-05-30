@@ -45,5 +45,3 @@ Assim como a vestimenta evoluiu para garantir a segurança biológica do pacient
 * Conheça também as [Teorias de Enfermagem](/teorias-de-enfermagem.html) e conheça mais da enfermagem.
 
 Até mais ver! Enfermeiro Cauê Marques.
-
----
