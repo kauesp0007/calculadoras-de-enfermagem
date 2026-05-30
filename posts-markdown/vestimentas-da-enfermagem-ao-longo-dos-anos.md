@@ -40,7 +40,7 @@ Hoje, a vestimenta é compreendida como um EPI (Equipamento de Proteção Indivi
 
 Assim como a vestimenta evoluiu para garantir a segurança biológica do paciente, a tecnologia clínica também avançou para garantir a precisão dos cuidados. O uso de ferramentas digitais é o próximo passo dessa evolução.
 
-![Escreva aqui a descrição para deficientes visuais](/img/nenfermeira-decada-1960.webp)
+![Escreva aqui a descrição para deficientes visuais](/img/enfermeira-decada-1960.webp)
 
 * Conheça também as [Teorias de Enfermagem](/teorias-de-enfermagem.html) e conheça mais da enfermagem.
 
