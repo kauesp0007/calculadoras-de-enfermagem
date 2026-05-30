@@ -31,12 +31,14 @@ function escapeHtml(str) {
     .replace(/'/g, "&#39;");
 }
 
-// Substituição literal, segura e sem erros de memória
+// Substituição segura: substitui TODAS as ocorrências sem Regex e sem split/join
 function injetar(html, marcador, conteudo) {
     if (!html || !marcador) return html;
-    // Utiliza o replace com string literal (não Regex).
-    // O JavaScript substituirá a primeira ocorrência encontrada do marcador.
-    return html.replace(marcador, conteudo);
+    let resultado = html;
+    while (resultado.includes(marcador)) {
+        resultado = resultado.replace(marcador, conteudo);
+    }
+    return resultado;
 }
 
 function ensureTemplateHashMarker(html, templateHash) {
