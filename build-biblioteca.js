@@ -31,7 +31,6 @@ function sha256(text) {
     return crypto.createHash("sha256").update(String(text), "utf8").digest("hex");
 }
 
-// Substitui marcador por conteúdo no HTML usando REPLACE de forma segura
 function injetar(html, marcador, conteudo) {
     return html.replace(marcador, conteudo);
 }
@@ -44,23 +43,77 @@ function ensureTemplateHashMarker(html, templateHash) {
     return `${marker}\n${html}`;
 }
 
+// Lógica de Geração Automática de SEO (Fallback)
+function gerarMetadataAutomatico(titulo) {
+    const t = String(titulo).toLowerCase();
+
+    let keywords = ["enfermagem", "material de estudo", "protocolos", "saúde"];
+    let descricao = `Faça o download do material sobre ${titulo} na nossa Biblioteca de Enfermagem. Conteúdo técnico especializado para profissionais e estudantes.`;
+
+    if (t.includes("escala")) {
+        keywords.push("escalas de avaliação", "prática clínica");
+        descricao = `Acesse a ${titulo} para avaliação clínica. Material essencial para a prática de enfermagem, facilitando o diagnóstico e monitoramento do paciente.`;
+    } else if (t.includes("protocolo")) {
+        keywords.push("normas técnicas", "procedimentos hospitalares");
+        descricao = `Protocolo completo sobre ${titulo}. Guia passo a passo essencial para a padronização de condutas no ambiente hospitalar e atendimento ao paciente.`;
+    } else if (t.includes("manual") || t.includes("guia")) {
+        keywords.push("manual técnico", "guia prático");
+        descricao = `Manual detalhado sobre ${titulo}. Obtenha orientações seguras e atualizadas para o suporte diário na assistência de enfermagem.`;
+    }
+
+    return {
+        descricao: descricao,
+        keywords: keywords
+    };
+}
+
+// Extração de dados via nome do ficheiro (Padrão: titulo_keywords_descricao.ext)
+function extrairDadosDoFicheiro(nomeFicheiro) {
+    if (!nomeFicheiro) return null;
+    const baseName = path.basename(nomeFicheiro, path.extname(nomeFicheiro));
+    const partes = baseName.split('_');
+    if (partes.length < 3) return null;
+
+    const formatar = (str) => {
+        const formatado = str.replace(/-/g, ' ');
+        return formatado.charAt(0).toUpperCase() + formatado.slice(1);
+    };
+
+    return {
+        titulo: formatar(partes[0]),
+        keywords: partes[1].replace(/-/g, ', '),
+        descricao: formatar(partes[2])
+    };
+}
+
 function gerarHtmlDoItem({ template, templateHash, item }) {
     let html = template;
 
-    const titulo = item.titulo || "Sem título";
+    // Prioridade: JSON > Nome do Ficheiro > Automático
+    const dadosArquivo = extrairDadosDoFicheiro(item.ficheiro);
+
+    const titulo = item.titulo || (dadosArquivo ? dadosArquivo.titulo : "Sem título");
     const slug = item.slug || slugify(titulo);
 
-    // Fallback inteligente para descrição caso não exista no JSON
-    const descricaoRaw = item.descricao && item.descricao.trim() !== ""
-        ? item.descricao
-        : `Faça o download do material completo sobre ${titulo} na nossa Biblioteca de Enfermagem. Documentos e protocolos para estudo e prática clínica.`;
+    const automatico = gerarMetadataAutomatico(titulo);
+
+    // Lógica de Descrição
+    const descricaoRaw = (item.meta_descricao && item.meta_descricao.trim() !== "")
+        ? item.meta_descricao
+        : (item.descricao && item.descricao.length > 50 ? item.descricao : (dadosArquivo ? dadosArquivo.descricao : automatico.descricao));
+
     const descricao = escapeHtml(descricaoRaw);
 
-    // Geração de keywords e URL
-    const keywords = `enfermagem, ${titulo.toLowerCase()}, material de estudo, pdf, biblioteca de enfermagem, protocolos`;
+    // Lógica de Keywords
+    const tagsDoJson = (item.keywords && Array.isArray(item.keywords)) ? item.keywords.join(", ") : "";
+    const keywords = tagsDoJson
+        ? `${tagsDoJson}, ${automatico.keywords.join(", ")}`
+        : (dadosArquivo
+            ? `${dadosArquivo.keywords}, ${automatico.keywords.join(", ")}`
+            : `${automatico.keywords.join(", ")}, ${titulo.toLowerCase()}, pdf, biblioteca de enfermagem`);
+
     const canonicalUrl = `https://www.calculadorasdeenfermagem.com.br/biblioteca/${slug}.html`;
 
-    // Tratamento rigoroso de caminhos (Imagens e Documentos)
     let imagePath = item.capa || item.ficheiro || "";
     if (imagePath && !imagePath.startsWith("/")) imagePath = "/" + imagePath;
 
@@ -69,7 +122,6 @@ function gerarHtmlDoItem({ template, templateHash, item }) {
 
     const imageUrlAbsolute = imagePath ? `https://www.calculadorasdeenfermagem.com.br${imagePath}` : "https://www.calculadorasdeenfermagem.com.br/iconpages.webp";
 
-    // Criação do Schema.org (ItemPage)
     const schemaOrgObj = {
         "@context": "https://schema.org",
         "@type": "ItemPage",
@@ -77,43 +129,20 @@ function gerarHtmlDoItem({ template, templateHash, item }) {
         "description": descricaoRaw,
         "url": canonicalUrl,
         "image": imageUrlAbsolute,
-        "publisher": {
-            "@type": "Organization",
-            "name": "Calculadoras de Enfermagem",
-            "logo": {
-                "@type": "ImageObject",
-                "url": "https://www.calculadorasdeenfermagem.com.br/iconpages.webp"
-            }
-        }
+        "publisher": { "@type": "Organization", "name": "Calculadoras de Enfermagem", "logo": { "@type": "ImageObject", "url": "https://www.calculadorasdeenfermagem.com.br/iconpages.webp" } }
     };
 
-    // Criação do Breadcrumbs (JSON-LD)
     const breadcrumbsObj = {
         "@context": "https://schema.org",
         "@type": "BreadcrumbList",
         "itemListElement": [
-            {
-                "@type": "ListItem",
-                "position": 1,
-                "name": "Início",
-                "item": "https://www.calculadorasdeenfermagem.com.br/"
-            },
-            {
-                "@type": "ListItem",
-                "position": 2,
-                "name": "Biblioteca de Enfermagem",
-                "item": "https://www.calculadorasdeenfermagem.com.br/downloads.html"
-            },
-            {
-                "@type": "ListItem",
-                "position": 3,
-                "name": titulo,
-                "item": canonicalUrl
-            }
+            { "@type": "ListItem", "position": 1, "name": "Início", "item": "https://www.calculadorasdeenfermagem.com.br/" },
+            { "@type": "ListItem", "position": 2, "name": "Biblioteca de Enfermagem", "item": "https://www.calculadorasdeenfermagem.com.br/downloads.html" },
+            { "@type": "ListItem", "position": 3, "name": titulo, "item": canonicalUrl }
         ]
     };
 
-    // Aplicação das injeções usando marcadores regex EXPLÍCITOS e SEGUROS
+    // Injeções originais preservadas
     html = injetar(html, /<!-- \[TITLE\] -->/g, titulo);
     html = injetar(html, /<!-- \[DESCRIPTION\] -->/g, descricao);
     html = injetar(html, /<!-- \[KEYWORDS\] -->/g, escapeHtml(keywords));
@@ -124,13 +153,11 @@ function gerarHtmlDoItem({ template, templateHash, item }) {
     html = injetar(html, /<!-- \[BREADCRUMBS\] -->/g, JSON.stringify(breadcrumbsObj));
 
     html = ensureTemplateHashMarker(html, templateHash);
-
     return { slug, html };
 }
 
 function construirBiblioteca() {
-    console.log("🚀 Iniciando build-biblioteca.js (Gerando itens individuais com Otimização SEO)...");
-
+    console.log("🚀 Iniciando build-biblioteca.js (Gerando itens com metadados SEO atualizados)...");
     if (!fs.existsSync(JSON_DATABASE_FILE)) return console.error("❌ biblioteca.json não encontrado");
     if (!fs.existsSync(TEMPLATE_FILE)) return console.error(`❌ ${TEMPLATE_FILE} não encontrado`);
 
@@ -140,32 +167,24 @@ function construirBiblioteca() {
 
     if (!fs.existsSync(OUTPUT_DIR)) fs.mkdirSync(OUTPUT_DIR);
 
-    let criados = 0;
-    let atualizados = 0;
-    let inalterados = 0;
+    let criados = 0, atualizados = 0, inalterados = 0;
 
     data.forEach((item) => {
         if (!item || !item.titulo || !item.ficheiro) return;
-
         const { slug, html } = gerarHtmlDoItem({ template, templateHash, item });
         const outFile = path.join(OUTPUT_DIR, `${slug}.html`);
 
         if (fs.existsSync(outFile)) {
             const current = fs.readFileSync(outFile, "utf8");
-            if (current === html) {
-                inalterados++;
-                return;
-            }
+            if (current === html) { inalterados++; return; }
             fs.writeFileSync(outFile, html, "utf8");
             atualizados++;
-            return;
+        } else {
+            fs.writeFileSync(outFile, html, "utf8");
+            criados++;
         }
-
-        fs.writeFileSync(outFile, html, "utf8");
-        criados++;
     });
-
-    console.log(`✅ build-biblioteca concluído! Criados: ${criados} | Atualizados: ${atualizados} | Inalterados: ${inalterados}`);
+    console.log(`✅ Concluído! Criados: ${criados} | Atualizados: ${atualizados} | Inalterados: ${inalterados}`);
 }
 
 construirBiblioteca();

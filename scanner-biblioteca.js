@@ -7,10 +7,18 @@ const BIBLIOTECA_JSON = "biblioteca.json";
 /**
  * Pastas monitoradas e suas categorias
  */
-const PASTAS = [
-  { dir: "img", categoria: "fotos" },
-  { dir: "docs", categoria: "documentos" },
-  { dir: "videos", categoria: "videos" }
+const PASTAS = [{
+    dir: "img",
+    categoria: "fotos"
+  },
+  {
+    dir: "docs",
+    categoria: "documentos"
+  },
+  {
+    dir: "videos",
+    categoria: "videos"
+  }
 ];
 
 /**
@@ -76,23 +84,23 @@ function salvarBiblioteca(data) {
 function executarScanner() {
   const biblioteca = carregarBiblioteca();
   for (const item of biblioteca) {
-  if (!item.slug && item.titulo) {
-    item.slug = slugFromTitulo(item.titulo);
-  }
+    if (!item.slug && item.titulo) {
+      item.slug = slugFromTitulo(item.titulo);
+    }
 
-  if (!item.descricao && item.titulo) {
-    item.descricao = descricaoAutomatica(item.titulo);
-  }
+    if (!item.descricao && item.titulo) {
+      item.descricao = descricaoAutomatica(item.titulo);
+    }
 
-  // Não forçar capa padrão para documentos; deixar em branco para que o gerador crie
-  if (!item.capa) {
-    if (item.categoria === 'fotos') {
-      item.capa = item.ficheiro;
-    } else {
-      item.capa = '';
+    // Não forçar capa padrão para documentos; deixar em branco para que o gerador crie
+    if (!item.capa) {
+      if (item.categoria === 'fotos') {
+        item.capa = item.ficheiro;
+      } else {
+        item.capa = '';
+      }
     }
   }
-}
 
 
   // Evita duplicação usando o campo ficheiro
@@ -120,6 +128,8 @@ function executarScanner() {
         titulo,
         slug: slugFromTitulo(titulo),
         descricao: descricaoAutomatica(titulo, pasta.categoria),
+        keywords: [], // Inicializamos um array vazio para suas palavras-chave
+        meta_descricao: "", // Inicializamos vazio para preenchimento manual ou IA
         categoria: pasta.categoria,
         ficheiro: caminho,
         capa: pasta.categoria === 'fotos' ? caminho : ''
