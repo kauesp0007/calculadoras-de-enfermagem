@@ -22,12 +22,19 @@ function sha256(text) {
   return crypto.createHash("sha256").update(String(text), "utf8").digest("hex");
 }
 
+function escapeHtml(str) {
+  return String(str || "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
 
 // Substitui marcador por conteúdo no HTML
 function injetar(html, marcador, conteudo) {
   return html.replace(marcador, conteudo);
 }
-
 
 function ensureTemplateHashMarker(html, templateHash) {
   const marker = `<!-- ${TEMPLATE_HASH_MARKER_PREFIX}${templateHash} -->`;
@@ -49,6 +56,12 @@ function criarCartaoHTML(item) {
   const titulo = item.titulo || "Sem título";
   const slug = slugify(titulo);
 
+  // Tratamento da descrição para o Lightbox. Caso não exista, gera um texto padrão.
+  const descricaoRaw = item.descricao && item.descricao.trim() !== "" ?
+    item.descricao :
+    `Baixe agora o material completo sobre ${titulo} na nossa Biblioteca de Enfermagem.`;
+  const descricaoSegura = escapeHtml(descricaoRaw);
+
   return `
 <a href="/biblioteca/${slug}.html" class="file-card" title="Acessar documento: ${titulo}">
   <figure style="margin: 0; padding: 0; width: 100%; height: 100%;">
@@ -59,6 +72,8 @@ function criarCartaoHTML(item) {
          loading="lazy"
          style="width: 100%; height: 200px; object-fit: cover; border-radius: 0.5rem; background-color: #f8fafc;">
     <figcaption class="file-card-title p-2 text-center text-sm font-bold text-gray-700">${titulo}</figcaption>
+    <!-- Div oculta com a descrição para o Lightbox -->
+    <div class="item-description-hidden hidden">${descricaoSegura}</div>
   </figure>
 </a>`;
 }
@@ -87,7 +102,7 @@ function gerarPaginacao(total, atual) {
 }
 
 function construirPaginas() {
-  console.log("🚀 Iniciando build.js (Modo Força Bruta de Escrita)...");
+  console.log("🚀 Iniciando build.js (Modo Força Bruta de Escrita com Otimização SEO)...");
 
   if (!fs.existsSync(JSON_DATABASE_FILE)) return console.error("❌ biblioteca.json não encontrado");
   if (!fs.existsSync(TEMPLATE_FILE)) return console.error(`❌ ${TEMPLATE_FILE} não encontrado`);
@@ -141,11 +156,50 @@ function construirPaginas() {
     const pagination = gerarPaginacao(totalPages, page);
     const seoTitle = `Biblioteca de Enfermagem — Página ${page}`;
     const seoDescription = `Biblioteca de Enfermagem com materiais, apostilas e documentos para download — Página ${page} de ${totalPages}.`;
+    const seoKeywords = "enfermagem, documentos de enfermagem, biblioteca de enfermagem, pdf enfermagem, escalas de enfermagem, materiais de estudo enfermagem";
     const canonicalUrl = page === 1 ? `https://www.calculadorasdeenfermagem.com.br/downloads.html` : `https://www.calculadorasdeenfermagem.com.br/downloads/page${page}.html`;
 
+    // Configuração do Schema.org para Coleção de Páginas
+    const schemaOrgObj = {
+      "@context": "https://schema.org",
+      "@type": "CollectionPage",
+      "name": seoTitle,
+      "description": seoDescription,
+      "url": canonicalUrl,
+      "publisher": {
+        "@type": "Organization",
+        "name": "Calculadoras de Enfermagem",
+        "logo": {
+          "@type": "ImageObject",
+          "url": "https://www.calculadorasdeenfermagem.com.br/iconpages.webp"
+        }
+      }
+    };
+    const schemaOrg = JSON.stringify(schemaOrgObj);
+
+    // Configuração do Breadcrumbs
+    const breadcrumbsObj = {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      "itemListElement": [{
+          "@type": "ListItem",
+          "position": 1,
+          "name": "Início",
+          "item": "https://www.calculadorasdeenfermagem.com.br/"
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": "Biblioteca de Enfermagem",
+          "item": "https://www.calculadorasdeenfermagem.com.br/downloads.html"
+        }
+      ]
+    };
+    const breadcrumbs = JSON.stringify(breadcrumbsObj);
 
     let html = template;
 
+    // Injeção com marcadores regex exatos (Regra rigorosa mantida)
     html = injetar(html, /<!-- TODOS -->/g, todos);
     html = injetar(html, /<!-- DOCUMENTOS -->/g, documentos);
     html = injetar(html, /<!-- FOTOS -->/g, fotos);
@@ -154,7 +208,10 @@ function construirPaginas() {
 
     html = injetar(html, /<!-- SEO_TITLE -->/g, seoTitle);
     html = injetar(html, /<!-- SEO_DESCRIPTION -->/g, seoDescription);
+    html = injetar(html, /<!-- SEO_KEYWORDS -->/g, seoKeywords);
     html = injetar(html, /<!-- CANONICAL_URL -->/g, canonicalUrl);
+    html = injetar(html, /<!-- SCHEMA_ORG -->/g, schemaOrg);
+    html = injetar(html, /<!-- BREADCRUMBS -->/g, breadcrumbs);
 
     html = ensureTemplateHashMarker(html, templateHash);
 
@@ -168,7 +225,7 @@ function construirPaginas() {
     }
   }
 
-  console.log("✅ Downloads gerados com sucesso e páginas limpas!");
+  console.log("✅ Downloads gerados com sucesso e metadados SEO injetados!");
   console.log(`📄 Total de páginas geradas: ${processados}`);
 }
 
