@@ -1,5 +1,5 @@
 // Define o nome e a versão do cache (AUTOMÁTICO via gerar-sw.js)
-const CACHE_NAME = 'calculadoras-enfermagem-cache-20260530-083928-500';
+const CACHE_NAME = 'calculadoras-enfermagem-cache-20260530-085213-102';
 
 // O SCRIPT DE BUILD VAI INJETAR A LISTA DE ARQUIVOS AQUI
 const urlsToCache = [
@@ -386,6 +386,7 @@ const urlsToCache = [
   'biblioteca/escala-de-berg-bbs.html',
   'biblioteca/escala-de-berg.html',
   'biblioteca/escala-de-bps.html',
+  'biblioteca/escala-de-braden-enfermagem-escalas-avalia-risco-de-lesao-por-pressao.html',
   'biblioteca/escala-de-braden.html',
   'biblioteca/escala-de-cam-icu.html',
   'biblioteca/escala-de-cincinnati.html',
@@ -2085,6 +2086,7 @@ const urlsToCache = [
   'img/dorothea orem - teoria do defict do auto cuidado.jpg',
   'img/dorothea orem - teoria do defict do auto cuidado.webp',
   'img/equipamento-videolaparoscopia.webp',
+  'img/escala-de-braden_enfermagem-escalas_avalia-risco-de-lesao-por-pressao.png',
   'img/escaladealdrete.webp',
   'img/escaladeapache.webp',
   'img/escaladeapgar.webp',
