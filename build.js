@@ -31,7 +31,7 @@ function escapeHtml(str) {
     .replace(/'/g, "&#39;");
 }
 
-// Substitui marcador por conteúdo no HTML
+// Substitui marcador por conteúdo no HTML usando expressões regulares exatas
 function injetar(html, marcador, conteudo) {
   return html.replace(marcador, conteudo);
 }
@@ -44,7 +44,7 @@ function ensureTemplateHashMarker(html, templateHash) {
   return `${marker}\n${html}`;
 }
 
-// 🔥 A SOLUÇÃO: Função que escreve por cima sem tentar ler o ficheiro gigante antigo!
+// Função que escreve por cima sem tentar ler o ficheiro gigante antigo (Evita memory leak)
 function forcarEscrita(filepath, content) {
   fs.writeFileSync(filepath, content, "utf8");
 }
@@ -57,9 +57,9 @@ function criarCartaoHTML(item) {
   const slug = slugify(titulo);
 
   // Tratamento da descrição para o Lightbox. Caso não exista, gera um texto padrão.
-  const descricaoRaw = item.descricao && item.descricao.trim() !== "" ?
-    item.descricao :
-    `Baixe agora o material completo sobre ${titulo} na nossa Biblioteca de Enfermagem.`;
+  const descricaoRaw = item.descricao && item.descricao.trim() !== ""
+    ? item.descricao
+    : `Baixe agora o material completo sobre ${titulo} na nossa Biblioteca de Enfermagem.`;
   const descricaoSegura = escapeHtml(descricaoRaw);
 
   return `
@@ -82,32 +82,66 @@ function linkPagina(pageNum) {
   return pageNum === 1 ? `/downloads.html` : `/downloads/page${pageNum}.html`;
 }
 
+// -------------------------------------------------------------------------
+// NOVA PAGINAÇÃO: ESTILO GOOGLE SEARCH (Moderna, limpa e funcional)
+// -------------------------------------------------------------------------
 function gerarPaginacao(total, atual) {
-  let html = "";
-  if (atual > 1) html += `<a class="btn" href="${linkPagina(atual - 1)}">« Anterior</a>`;
+  if (total <= 1) return "";
 
-  let startPage = Math.max(1, atual - 2);
-  let endPage = Math.min(total, atual + 2);
+  let html = '<nav class="flex items-center justify-center space-x-1 md:space-x-2 my-8">';
 
-  if (startPage > 1) html += `<a class="btn" href="${linkPagina(1)}">1</a><span class="px-2 text-gray-400">...</span>`;
-
-  for (let i = startPage; i <= endPage; i++) {
-    html += `<a class="btn ${i === atual ? "active" : ""}" href="${linkPagina(i)}">${i}</a>`;
+  // Botão "Anterior"
+  if (atual > 1) {
+    html += `<a href="${linkPagina(atual - 1)}" class="flex items-center px-3 py-2 md:px-4 md:py-2 text-sm md:text-base text-[#4A90E2] font-bold hover:underline transition-all" title="Página Anterior"><i class="fa-solid fa-chevron-left mr-1 md:mr-2 text-xs"></i> Anterior</a>`;
+  } else {
+    html += `<span class="flex items-center px-3 py-2 md:px-4 md:py-2 text-sm md:text-base text-gray-400 font-bold cursor-not-allowed"><i class="fa-solid fa-chevron-left mr-1 md:mr-2 text-xs"></i> Anterior</span>`;
   }
 
-  if (endPage < total) html += `<span class="px-2 text-gray-400">...</span><a class="btn" href="${linkPagina(total)}">${total}</a>`;
-  if (atual < total) html += `<a class="btn" href="${linkPagina(atual + 1)}">Próxima »</a>`;
+  // Números da Página (Janela deslizante de 10 páginas máximo)
+  let startPage = Math.max(1, atual - 4);
+  let endPage = Math.min(total, atual + 5);
 
+  // Ajuste fino para sempre mostrar um bom bloco de números
+  if (startPage === 1) endPage = Math.min(total, 10);
+  if (endPage === total) startPage = Math.max(1, total - 9);
+
+  if (startPage > 1) {
+    html += `<a href="${linkPagina(1)}" class="px-3 py-2 text-sm md:text-base text-[#4A90E2] hover:underline transition-all font-medium">1</a>`;
+    if (startPage > 2) html += `<span class="px-2 py-2 text-sm text-gray-500">...</span>`;
+  }
+
+  for (let i = startPage; i <= endPage; i++) {
+    if (i === atual) {
+      // Página atual: Negrito e sem link
+      html += `<span class="px-3 py-2 text-sm md:text-base text-gray-900 font-black cursor-default">${i}</span>`;
+    } else {
+      html += `<a href="${linkPagina(i)}" class="px-3 py-2 text-sm md:text-base text-[#4A90E2] hover:underline transition-all font-medium">${i}</a>`;
+    }
+  }
+
+  if (endPage < total) {
+    if (endPage < total - 1) html += `<span class="px-2 py-2 text-sm text-gray-500">...</span>`;
+    html += `<a href="${linkPagina(total)}" class="px-3 py-2 text-sm md:text-base text-[#4A90E2] hover:underline transition-all font-medium">${total}</a>`;
+  }
+
+  // Botão "Próxima"
+  if (atual < total) {
+    html += `<a href="${linkPagina(atual + 1)}" class="flex items-center px-3 py-2 md:px-4 md:py-2 text-sm md:text-base text-[#4A90E2] font-bold hover:underline transition-all" title="Próxima Página">Próxima <i class="fa-solid fa-chevron-right ml-1 md:ml-2 text-xs"></i></a>`;
+  } else {
+    html += `<span class="flex items-center px-3 py-2 md:px-4 md:py-2 text-sm md:text-base text-gray-400 font-bold cursor-not-allowed">Próxima <i class="fa-solid fa-chevron-right ml-1 md:ml-2 text-xs"></i></span>`;
+  }
+
+  html += '</nav>';
   return html;
 }
 
 function construirPaginas() {
-  console.log("🚀 Iniciando build.js (Modo Força Bruta de Escrita com Otimização SEO)...");
+  console.log("🚀 Iniciando build.js (Paginação Estilo Google & Otimização SEO)...");
 
   if (!fs.existsSync(JSON_DATABASE_FILE)) return console.error("❌ biblioteca.json não encontrado");
   if (!fs.existsSync(TEMPLATE_FILE)) return console.error(`❌ ${TEMPLATE_FILE} não encontrado`);
 
-  // 🔥 Sistema de segurança para identificar qual ficheiro está corrompido
+  // Sistema de segurança para identificar qual ficheiro está corrompido
   const statJson = fs.statSync(JSON_DATABASE_FILE);
   const statTemplate = fs.statSync(TEMPLATE_FILE);
   if (statJson.size > 20 * 1024 * 1024) return console.error("🚨 O seu ficheiro biblioteca.json está gigantesco/corrompido!");
@@ -119,18 +153,13 @@ function construirPaginas() {
 
   const totalPages = Math.ceil(data.length / ITEMS_PER_PAGE);
 
-  // 🔥 Se a pasta downloads existir, tentar apagá-la primeiro para evitar lixo
+  // Limpa o diretório de destino
   if (fs.existsSync(OUTPUT_DIR)) {
     try {
-      fs.rmSync(OUTPUT_DIR, {
-        recursive: true,
-        force: true
-      });
+      fs.rmSync(OUTPUT_DIR, { recursive: true, force: true });
     } catch (e) {}
   }
-  fs.mkdirSync(OUTPUT_DIR, {
-    recursive: true
-  });
+  fs.mkdirSync(OUTPUT_DIR, { recursive: true });
 
   let processados = 0;
 
@@ -181,7 +210,8 @@ function construirPaginas() {
     const breadcrumbsObj = {
       "@context": "https://schema.org",
       "@type": "BreadcrumbList",
-      "itemListElement": [{
+      "itemListElement": [
+        {
           "@type": "ListItem",
           "position": 1,
           "name": "Início",
@@ -225,7 +255,7 @@ function construirPaginas() {
     }
   }
 
-  console.log("✅ Downloads gerados com sucesso e metadados SEO injetados!");
+  console.log("✅ Downloads gerados com sucesso (Paginação estilo Google aplicada)!");
   console.log(`📄 Total de páginas geradas: ${processados}`);
 }
 
