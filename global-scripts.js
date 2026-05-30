@@ -579,11 +579,10 @@ document.addEventListener("DOMContentLoaded", function () {
          data-ad-slot="5401011816"></ins>
   `;
 
-  // 4. Injeta o anúncio apenas SE o footerPlaceholder existir
-var footerPlaceholder = document.getElementById('footer-container'); // Ajuste o ID se necessário
-if (footerPlaceholder && footerPlaceholder.parentNode) {
-    footerPlaceholder.parentNode.insertBefore(adContainer, footerPlaceholder);
+  // 4. Injeta o anúncio no DOM, exatamente ANTES da div do rodapé
+  footerPlaceholder.parentNode.insertBefore(adContainer, footerPlaceholder);
 
+<<<<<<< HEAD
     // 5. Solicita ao AdSense que preencha o bloco
     setTimeout(() => {
         try {
@@ -596,4 +595,16 @@ if (footerPlaceholder && footerPlaceholder.parentNode) {
   console.log("Footer não encontrado nesta página, anúncio pulado.");
 }
 
+=======
+  // 5. Solicita ao AdSense que preencha o bloco de forma segura
+  // Como você usa lazy load, o array window.adsbygoogle guardará o pedido
+  // até que o usuário interaja com a página e o AdSense seja ativado.
+  setTimeout(() => {
+    try {
+      (window.adsbygoogle = window.adsbygoogle || []).push({});
+    } catch (e) {
+      console.warn("Falha ao inicializar o AdSense Multiplex:", e);
+    }
+  }, 300);
+>>>>>>> parent of f0fcb535d (ARRU7MANDO A QUESTAO DO BLOG)
 });
