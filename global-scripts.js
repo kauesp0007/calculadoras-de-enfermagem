@@ -554,8 +554,8 @@ function initializeGlobalFunctions() {
 })();
 
 /* =========================
-   Injeção Dinâmica: Anúncio Multiplex (Antes do Rodapé)
-   ========================= */
+  /* Injeção Dinâmica: Anúncio Multiplex (Antes do Rodapé)
+    ========================= */
 document.addEventListener("DOMContentLoaded", function () {
   // 1. Localiza a âncora exata do rodapé na página atual
   const footerPlaceholder = document.getElementById("footer-placeholder");
@@ -593,5 +593,7 @@ if (footerPlaceholder && footerPlaceholder.parentNode) {
         }
     }, 300);
 } else {
-    console.log("Footer não encontrado nesta página, anúncio pulado.");
+  console.log("Footer não encontrado nesta página, anúncio pulado.");
 }
+
+});
