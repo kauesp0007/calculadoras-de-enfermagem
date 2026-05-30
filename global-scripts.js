@@ -554,8 +554,8 @@ function initializeGlobalFunctions() {
 })();
 
 /* =========================
-  /* Injeção Dinâmica: Anúncio Multiplex (Antes do Rodapé)
-    ========================= */
+   Injeção Dinâmica: Anúncio Multiplex (Antes do Rodapé)
+   ========================= */
 document.addEventListener("DOMContentLoaded", function () {
   // 1. Localiza a âncora exata do rodapé na página atual
   const footerPlaceholder = document.getElementById("footer-placeholder");
@@ -582,20 +582,6 @@ document.addEventListener("DOMContentLoaded", function () {
   // 4. Injeta o anúncio no DOM, exatamente ANTES da div do rodapé
   footerPlaceholder.parentNode.insertBefore(adContainer, footerPlaceholder);
 
-<<<<<<< HEAD
-    // 5. Solicita ao AdSense que preencha o bloco
-    setTimeout(() => {
-        try {
-            (window.adsbygoogle = window.adsbygoogle || []).push({});
-        } catch (e) {
-            console.warn("Falha ao inicializar o AdSense Multiplex:", e);
-        }
-    }, 300);
-} else {
-  console.log("Footer não encontrado nesta página, anúncio pulado.");
-}
-
-=======
   // 5. Solicita ao AdSense que preencha o bloco de forma segura
   // Como você usa lazy load, o array window.adsbygoogle guardará o pedido
   // até que o usuário interaja com a página e o AdSense seja ativado.
@@ -606,5 +592,4 @@ document.addEventListener("DOMContentLoaded", function () {
       console.warn("Falha ao inicializar o AdSense Multiplex:", e);
     }
   }, 300);
->>>>>>> parent of f0fcb535d (ARRU7MANDO A QUESTAO DO BLOG)
 });
