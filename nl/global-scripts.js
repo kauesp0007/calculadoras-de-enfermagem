@@ -583,7 +583,7 @@ document.addEventListener("DOMContentLoaded", function () {
       console.warn("Falha ao inicializar o AdSense Multiplex:", e);
     }
   }, 300);
-});\n
+});
 /* =========================================================
    MODO ADMIN + GOOGLE TAG + CONSENT + ADSENSE (OTIMIZADO PARA INP)
    ========================================================= */
