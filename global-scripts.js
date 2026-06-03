@@ -22,7 +22,7 @@
 })();
 
 // Executar IMEDIATAMENTE para evitar flash de tamanho de fonte
-(function() {
+(function () {
   const savedFontSize = parseInt(localStorage.getItem("fontSize") || "1", 10);
   const fontSizes = ["1em", "1.15em", "1.3em", "1.5em", "2em"];
   const idx = Math.min(Math.max(savedFontSize, 1), fontSizes.length);
@@ -186,24 +186,34 @@ function initializeCookieFunctionality() {
         if (c) c.checked = "granted" === localStorage.getItem("analytics_storage");
         if (r) r.checked = "granted" === localStorage.getItem("ad_storage");
         l.classList.remove("hidden");
-        setTimeout(() => { l.classList.add("show") }, 10);
+        setTimeout(() => {
+          l.classList.add("show")
+        }, 10);
       }
     },
     p = () => {
       if (l) {
         l.classList.remove("show");
-        setTimeout(() => { l.classList.add("hidden") }, 300);
+        setTimeout(() => {
+          l.classList.add("hidden")
+        }, 300);
       }
     },
     m = () => {
       const saved = localStorage.getItem("cookieConsent");
       if (saved === "accepted") {
-        h({ analytics_storage: "granted", ad_storage: "granted" });
+        h({
+          analytics_storage: "granted",
+          ad_storage: "granted"
+        });
         u();
         return;
       }
       if (saved === "refused") {
-        h({ analytics_storage: "denied", ad_storage: "denied" });
+        h({
+          analytics_storage: "denied",
+          ad_storage: "denied"
+        });
         u();
         return;
       }
@@ -220,26 +230,32 @@ function initializeCookieFunctionality() {
     if (!id) return;
 
     if (id === "acceptAllCookiesBtn") {
-        h({ analytics_storage: "granted", ad_storage: "granted" });
-        localStorage.setItem("cookieConsent", "accepted");
-        u();
+      h({
+        analytics_storage: "granted",
+        ad_storage: "granted"
+      });
+      localStorage.setItem("cookieConsent", "accepted");
+      u();
     } else if (id === "refuseAllCookiesBtn") {
-        h({ analytics_storage: "denied", ad_storage: "denied" });
-        localStorage.setItem("cookieConsent", "refused");
-        u();
+      h({
+        analytics_storage: "denied",
+        ad_storage: "denied"
+      });
+      localStorage.setItem("cookieConsent", "refused");
+      u();
     } else if (id === "manageCookiesBtn" || id === "openGranularCookieModalBtn") {
-        g(); // Abre o modal
+      g(); // Abre o modal
     } else if (id === "granularModalCloseButton" || id === "cancelGranularPreferencesBtn") {
-        p(); // Fecha o modal
+      p(); // Fecha o modal
     } else if (id === "saveGranularPreferencesBtn") {
-        const prefs = {
-            analytics_storage: (c && c.checked) ? "granted" : "denied",
-            ad_storage: (r && r.checked) ? "granted" : "denied"
-        };
-        h(prefs);
-        localStorage.setItem("cookieConsent", "managed");
-        p();
-        u();
+      const prefs = {
+        analytics_storage: (c && c.checked) ? "granted" : "denied",
+        ad_storage: (r && r.checked) ? "granted" : "denied"
+      };
+      h(prefs);
+      localStorage.setItem("cookieConsent", "managed");
+      p();
+      u();
     }
   });
 
@@ -329,7 +345,16 @@ function initializeGlobalFunctions() {
       localStorage.setItem("letterSpacing", String(p));
       (void 0 === announce || announce) && E(`Espaçamento de letra: ${labels[iLevel]}`);
     },
-    readingSpeeds = [{ rate: .8, label: "Lenta" }, { rate: 1, label: "Normal" }, { rate: 1.5, label: "Rápida" }],
+    readingSpeeds = [{
+      rate: .8,
+      label: "Lenta"
+    }, {
+      rate: 1,
+      label: "Normal"
+    }, {
+      rate: 1.5,
+      label: "Rápida"
+    }],
     applyReadingSpeed = (level, announce) => {
       const idx = Math.min(Math.max(parseInt(level || 1, 10), 1), readingSpeeds.length);
       h = idx;
@@ -402,10 +427,10 @@ function initializeGlobalFunctions() {
 
       // 3. APLICA FORÇADAMENTE OS VALORES PADRÃO (Isso corrige o texto e o visual)
       // O 'false' no segundo parâmetro evita que o leitor de tela fale 4 vezes seguidas
-      applyFontSize(1, false);      // Força Fonte: Normal
-      applyLineHeight(1, false);    // Força Linha: Médio
+      applyFontSize(1, false); // Força Fonte: Normal
+      applyLineHeight(1, false); // Força Linha: Médio
       applyLetterSpacing(1, false); // Força Letra: Normal
-      applyReadingSpeed(1, false);  // Força Velocidade: Normal
+      applyReadingSpeed(1, false); // Força Velocidade: Normal
 
       // 4. Limpa classes de alto contraste/dark mode
       o.classList.remove("contraste-alto", "dark-mode", "fonte-dislexia");
@@ -498,9 +523,11 @@ function initializeGlobalFunctions() {
   const z = document.getElementById("backToTopBtn");
   z && (window.addEventListener("scroll", () => {
     window.requestAnimationFrame(() => {
-        z.style.display = window.scrollY > 200 ? "block" : "none";
+      z.style.display = window.scrollY > 200 ? "block" : "none";
     });
-  }, { passive: true }), z.addEventListener("click", () => window.scrollTo({
+  }, {
+    passive: true
+  }), z.addEventListener("click", () => window.scrollTo({
     top: 0,
     behavior: "smooth"
   })));
@@ -593,3 +620,160 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   }, 300);
 });
+
+/* =========================================================
+   MODO ADMIN + GOOGLE TAG + CONSENT + ADSENSE (OTIMIZADO PARA INP)
+   ========================================================= */
+
+// Função que engloba toda a lógica que estava nos HTMLs
+function initLazyLoadServices() {
+  if (
+    localStorage.getItem('admin_mode') === 'true' ||
+    new URLSearchParams(window.location.search).get('admin') === '1'
+  ) {
+    console.log('🚧 Modo Admin: Bloqueado.');
+    if (new URLSearchParams(window.location.search).get('admin') === '1') {
+      localStorage.setItem('admin_mode', 'true');
+    }
+  } else {
+    var savedConsent = localStorage.getItem("cookieConsent");
+    var isRefused = (savedConsent === "refused");
+    var isManaged = (savedConsent === "managed");
+    var adsBlocked = isRefused || (isManaged && localStorage.getItem("ad_storage") === "denied");
+
+    window.__metricsLoaded = false;
+    window.__adsenseLoaded = false;
+    window.dataLayer = window.dataLayer || [];
+
+    function gtag() {
+      dataLayer.push(arguments);
+    }
+    window.gtag = gtag;
+
+    function loadAnalytics() {
+      if (window.__metricsLoaded) return;
+      window.__metricsLoaded = true;
+
+      var aState = isRefused ? "denied" : (localStorage.getItem("analytics_storage") || "granted");
+      var adState = adsBlocked ? "denied" : "granted";
+
+      var s = document.createElement("script");
+      s.async = true;
+      s.src = "https://www.googletagmanager.com/gtag/js?id=G-PFM06B7TS5";
+      document.head.appendChild(s);
+
+      gtag("consent", "default", {
+        analytics_storage: aState,
+        ad_storage: adState,
+        ad_user_data: adState,
+        ad_personalization: adState,
+        wait_for_update: 500
+      });
+
+      gtag("js", new Date());
+      gtag("config", "G-PFM06B7TS5");
+      gtag("config", "G-MJDKPDPJ26");
+      gtag("config", "G-M7DHHF38EJ");
+      gtag("config", "G-8FLJ59XXDK");
+      gtag("config", "G-VVDP5JGEX8");
+      gtag("config", "G-EX8");
+      gtag("config", "AW-952633102");
+      gtag("config", "AW-9277197961");
+
+      console.log("📈 Analytics carregado via Lazy Load (Otimizado).");
+    }
+
+    function loadAdSenseOnce() {
+      if (window.__adsenseLoaded || adsBlocked) return;
+      window.__adsenseLoaded = true;
+      var ad = document.createElement("script");
+      ad.async = true;
+      ad.src = "https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6472730056006847";
+      ad.crossOrigin = "anonymous";
+      document.head.appendChild(ad);
+      console.log("💰 AdSense carregado via Lazy Load (Otimizado).");
+    }
+
+    // --- A SOLUÇÃO DO INP ESTÁ AQUI ---
+    // Envolvemos o carregamento para não bloquear a Thread Principal
+    function executeServices() {
+      if ('requestIdleCallback' in window) {
+        requestIdleCallback(function () {
+          loadAnalytics();
+          loadAdSenseOnce();
+        });
+      } else {
+        setTimeout(function () {
+          loadAnalytics();
+          loadAdSenseOnce();
+        }, 100); // Pequeno atraso para liberar a interação
+      }
+    }
+
+    function onUserInteraction() {
+      executeServices();
+
+      window.removeEventListener("scroll", onUserInteraction);
+      window.removeEventListener("mousemove", onUserInteraction);
+      window.removeEventListener("touchstart", onUserInteraction);
+      window.removeEventListener("keydown", onUserInteraction);
+    }
+
+    if (!adsBlocked) {
+      window.addEventListener("scroll", onUserInteraction, {
+        passive: true
+      });
+      window.addEventListener("mousemove", onUserInteraction, {
+        passive: true
+      });
+      window.addEventListener("touchstart", onUserInteraction, {
+        passive: true
+      });
+      window.addEventListener("keydown", onUserInteraction, {
+        passive: true
+      });
+
+      setTimeout(onUserInteraction, 8500);
+    }
+
+    window.applyConsent = function (consent) {
+      gtag("consent", "update", consent);
+      if (consent.ad_storage === "granted") {
+        adsBlocked = false;
+        onUserInteraction();
+      } else {
+        adsBlocked = true;
+        document.querySelectorAll("ins.adsbygoogle, .google-auto-placed")
+          .forEach(ad => {
+            ad.style.display = "none";
+            ad.innerHTML = "";
+          });
+      }
+      localStorage.setItem("analytics_storage", consent.analytics_storage);
+      localStorage.setItem("ad_storage", consent.ad_storage);
+    }
+
+    window.acceptAllCookies = function () {
+      localStorage.setItem("cookieConsent", "accepted");
+      window.applyConsent({
+        analytics_storage: "granted",
+        ad_storage: "granted",
+        ad_user_data: "granted",
+        ad_personalization: "granted"
+      });
+    };
+
+    window.rejectAllCookies = function () {
+      localStorage.setItem("cookieConsent", "refused");
+      window.applyConsent({
+        analytics_storage: "denied",
+        ad_storage: "denied",
+        ad_user_data: "denied",
+        ad_personalization: "denied"
+      });
+    };
+  }
+}
+
+// Inicializa a função assim que o DOM estiver pronto
+document.addEventListener("DOMContentLoaded", initLazyLoadServices);
