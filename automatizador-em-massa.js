@@ -2,224 +2,174 @@ const fs = require('fs');
 const path = require('path');
 
 // =============================================================================
-// CONFIGURAÇÕES DO REPOSITÓRIO E IDIOMAS
+// PAINEL DE CONTROLE - REGRAS DE AUTOMAÇÃO
+// =============================================================================
+
+// 1. SUBSTITUIÇÃO SIMPLES (REPLACE)
+// Se achar o 'target', substitui a linha toda pela 'newTag', mantendo o recuo.
+const REGRA_REPLACE = [
+    { target: '', newTag: '' },
+];
+
+// 2. EXCLUSÃO DE LINHAS (DELETE)
+// Se achar a palavra no 'target', a linha inteira é removida do arquivo.
+const REGRA_DELETE = [
+    { target: '' },
+];
+
+// 3. UNIFICAÇÃO / LIMPEZA DE DUPLICADOS (UNIFY)
+// Mantém apenas a primeira ocorrência (transformada na newTag) e apaga as duplicatas.
+const REGRA_UNIFY = [
+    { target1: '', target2: '', newTag: '' }
+];
+
+// 4. MOVIMENTAÇÃO OU CRIAÇÃO ABAIXO DA ÂNCORA (MOVE / CREATE)
+// - Se 'moveTarget' tiver valor: Move a linha existente para baixo da âncora.
+// - Se 'moveTarget' estiver vazio e 'newTag' tiver valor: Cria uma linha nova abaixo da âncora.
+const REGRA_MOVE = [
+    { moveTarget: '', newTag: '', anchorTarget: '' }
+];
+
+// =============================================================================
+// CONFIGURAÇÕES DO REPOSITÓRIO (CALCULADORAS DE ENFERMAGEM)
 // =============================================================================
 const ROOT_DIR = '.';
 const LANGUAGES = ['en', 'es', 'de', 'it', 'fr', 'hi', 'zh', 'ar', 'ja', 'ru', 'ko', 'tr', 'nl', 'pl', 'sv', 'id', 'vi', 'uk'];
-const TARGET_FILE = 'global-scripts.js'; // Exceção ativada apenas para este arquivo
+const IGNORE_FOLDERS = ['downloads', 'biblioteca', 'blog', 'node_modules', '.git'];
+const IGNORE_FILES = [
+    'footer.html', 'menu-global.html', 'global-body-elements.html',
+    'downloads.html', 'menu-lateral.html', '_language_selector.html',
+    'googlefc0a17cdd552164b.html'
+];
 
 let filesChangedCount = 0;
 let filesSkippedCount = 0;
 
-// O bloco exato de código a ser injetado no final do arquivo
-const NOVO_BLOCO_CODIGO = `
-/* =========================================================
-   MODO ADMIN + GOOGLE TAG + CONSENT + ADSENSE (OTIMIZADO PARA INP)
-   ========================================================= */
-
-// Função que engloba toda a lógica que estava nos HTMLs
-function initLazyLoadServices() {
-  if (
-    localStorage.getItem('admin_mode') === 'true' ||
-    new URLSearchParams(window.location.search).get('admin') === '1'
-  ) {
-    console.log('🚧 Modo Admin: Bloqueado.');
-    if (new URLSearchParams(window.location.search).get('admin') === '1') {
-      localStorage.setItem('admin_mode', 'true');
-    }
-  } else {
-    var savedConsent = localStorage.getItem("cookieConsent");
-    var isRefused = (savedConsent === "refused");
-    var isManaged = (savedConsent === "managed");
-    var adsBlocked = isRefused || (isManaged && localStorage.getItem("ad_storage") === "denied");
-
-    window.__metricsLoaded = false;
-    window.__adsenseLoaded = false;
-    window.dataLayer = window.dataLayer || [];
-
-    function gtag() {
-      dataLayer.push(arguments);
-    }
-    window.gtag = gtag;
-
-    function loadAnalytics() {
-      if (window.__metricsLoaded) return;
-      window.__metricsLoaded = true;
-
-      var aState = isRefused ? "denied" : (localStorage.getItem("analytics_storage") || "granted");
-      var adState = adsBlocked ? "denied" : "granted";
-
-      var s = document.createElement("script");
-      s.async = true;
-      s.src = "https://www.googletagmanager.com/gtag/js?id=G-PFM06B7TS5";
-      document.head.appendChild(s);
-
-      gtag("consent", "default", {
-        analytics_storage: aState,
-        ad_storage: adState,
-        ad_user_data: adState,
-        ad_personalization: adState,
-        wait_for_update: 500
-      });
-
-      gtag("js", new Date());
-      gtag("config", "G-PFM06B7TS5");
-      gtag("config", "G-MJDKPDPJ26");
-      gtag("config", "G-M7DHHF38EJ");
-      gtag("config", "G-8FLJ59XXDK");
-      gtag("config", "G-VVDP5JGEX8");
-      gtag("config", "G-EX8");
-      gtag("config", "AW-952633102");
-      gtag("config", "AW-9277197961");
-
-      console.log("📈 Analytics carregado via Lazy Load (Otimizado).");
-    }
-
-    function loadAdSenseOnce() {
-      if (window.__adsenseLoaded || adsBlocked) return;
-      window.__adsenseLoaded = true;
-      var ad = document.createElement("script");
-      ad.async = true;
-      ad.src = "https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6472730056006847";
-      ad.crossOrigin = "anonymous";
-      document.head.appendChild(ad);
-      console.log("💰 AdSense carregado via Lazy Load (Otimizado).");
-    }
-
-    // --- A SOLUÇÃO DO INP ESTÁ AQUI ---
-    // Envolvemos o carregamento para não bloquear a Thread Principal
-    function executeServices() {
-      if ('requestIdleCallback' in window) {
-        requestIdleCallback(function () {
-          loadAnalytics();
-          loadAdSenseOnce();
-        });
-      } else {
-        setTimeout(function () {
-          loadAnalytics();
-          loadAdSenseOnce();
-        }, 100); // Pequeno atraso para liberar a interação
-      }
-    }
-
-    function onUserInteraction() {
-      executeServices();
-
-      window.removeEventListener("scroll", onUserInteraction);
-      window.removeEventListener("mousemove", onUserInteraction);
-      window.removeEventListener("touchstart", onUserInteraction);
-      window.removeEventListener("keydown", onUserInteraction);
-    }
-
-    if (!adsBlocked) {
-      window.addEventListener("scroll", onUserInteraction, {
-        passive: true
-      });
-      window.addEventListener("mousemove", onUserInteraction, {
-        passive: true
-      });
-      window.addEventListener("touchstart", onUserInteraction, {
-        passive: true
-      });
-      window.addEventListener("keydown", onUserInteraction, {
-        passive: true
-      });
-
-      setTimeout(onUserInteraction, 8500);
-    }
-
-    window.applyConsent = function (consent) {
-      gtag("consent", "update", consent);
-      if (consent.ad_storage === "granted") {
-        adsBlocked = false;
-        onUserInteraction();
-      } else {
-        adsBlocked = true;
-        document.querySelectorAll("ins.adsbygoogle, .google-auto-placed")
-          .forEach(ad => {
-            ad.style.display = "none";
-            ad.innerHTML = "";
-          });
-      }
-      localStorage.setItem("analytics_storage", consent.analytics_storage);
-      localStorage.setItem("ad_storage", consent.ad_storage);
-    }
-
-    window.acceptAllCookies = function () {
-      localStorage.setItem("cookieConsent", "accepted");
-      window.applyConsent({
-        analytics_storage: "granted",
-        ad_storage: "granted",
-        ad_user_data: "granted",
-        ad_personalization: "granted"
-      });
-    };
-
-    window.rejectAllCookies = function () {
-      localStorage.setItem("cookieConsent", "refused");
-      window.applyConsent({
-        analytics_storage: "denied",
-        ad_storage: "denied",
-        ad_user_data: "denied",
-        ad_personalization: "denied"
-      });
-    };
-  }
-}
-
-// Inicializa a função assim que o DOM estiver pronto
-document.addEventListener("DOMContentLoaded", initLazyLoadServices);
-`;
-
 /**
- * Inicia o processo de injeção
+ * Inicia a varredura na raiz e nas pastas de idiomas
  */
 function start() {
-    console.log('--- Iniciando Atualização do global-scripts.js ---');
+    console.log('--- Iniciando Processamento Inteligente (Move & Create) ---');
 
-    // 1. Processar arquivo na raiz
-    processarArquivo(ROOT_DIR);
+    processDirectory(ROOT_DIR, false);
 
-    // 2. Processar arquivo nas pastas de idioma
     LANGUAGES.forEach(lang => {
         const langPath = path.join(ROOT_DIR, lang);
-        if (fs.existsSync(langPath)) {
-            processarArquivo(langPath);
-        }
+        if (fs.existsSync(langPath)) processDirectory(langPath, true);
     });
 
-    console.log('\\n==================================================');
+    console.log('\n==================================================');
     console.log('               RELATÓRIO DE EXECUÇÃO');
     console.log('==================================================');
-    console.log(`Arquivos JS alterados: ${filesChangedCount}`);
-    console.log(`Arquivos JS ignorados (já atualizados): ${filesSkippedCount}`);
+    console.log(`Arquivos alterados: ${filesChangedCount}`);
+    console.log(`Arquivos verificados/sem mudança: ${filesSkippedCount}`);
     console.log('==================================================');
 }
 
 /**
- * Verifica o arquivo na pasta e injeta o código se necessário
+ * Varre os diretórios buscando apenas arquivos .html
  */
-function processarArquivo(pasta) {
-    const filePath = path.join(pasta, TARGET_FILE);
+function processDirectory(currentPath, isLangFolder) {
+    let items = fs.readdirSync(currentPath);
+    items.forEach(item => {
+        const fullPath = path.join(currentPath, item);
+        const stat = fs.statSync(fullPath);
 
-    if (fs.existsSync(filePath)) {
-        try {
-            let content = fs.readFileSync(filePath, 'utf8');
-
-            // Verifica se a função nova já existe no arquivo
-            if (!content.includes('function initLazyLoadServices()')) {
-                // Adiciona uma quebra de linha por segurança antes de injetar
-                content += '\\n' + NOVO_BLOCO_CODIGO;
-                fs.writeFileSync(filePath, content, 'utf8');
-                filesChangedCount++;
-                console.log(`[ATUALIZADO] ${filePath}`);
-            } else {
-                filesSkippedCount++;
-                console.log(`[IGNORADO - CÓDIGO JÁ PRESENTE] ${filePath}`);
-            }
-        } catch (err) {
-            console.error(`Erro ao processar ${filePath}: ${err.message}`);
+        if (stat.isDirectory()) {
+            if (IGNORE_FOLDERS.includes(item)) return;
+            if (isLangFolder) processDirectory(fullPath, true);
+        } else if (path.extname(item) === '.html' && !IGNORE_FILES.includes(item)) {
+            processFile(fullPath);
         }
+    });
+}
+
+/**
+ * Aplica as lógicas de edição ao conteúdo do arquivo
+ */
+function processFile(filePath) {
+    try {
+        let content = fs.readFileSync(filePath, 'utf8');
+        let lines = content.split('\n');
+        let fileModified = false;
+        let unificacoesExecutadas = new Set();
+
+        // PASSO 1: UNIFICAR, DELETAR E SUBSTITUIR
+        lines = lines.map((line) => {
+            for (let i = 0; i < REGRA_UNIFY.length; i++) {
+                const r = REGRA_UNIFY[i];
+                if (!r.target1 || !r.target2) continue;
+                if (line.includes(r.target1) || line.includes(r.target2)) {
+                    if (!unificacoesExecutadas.has(i)) {
+                        unificacoesExecutadas.add(i);
+                        fileModified = true;
+                        const indent = line.match(/^(\s*)/)[0];
+                        return `${indent}${r.newTag}`;
+                    } else {
+                        fileModified = true;
+                        return null;
+                    }
+                }
+            }
+
+            for (const r of REGRA_DELETE) {
+                if (r.target && line.includes(r.target)) {
+                    fileModified = true;
+                    return null;
+                }
+            }
+
+            for (const r of REGRA_REPLACE) {
+                if (r.target && line.includes(r.target)) {
+                    if (line.trim() !== r.newTag.trim()) {
+                        fileModified = true;
+                        const indent = line.match(/^(\s*)/)[0];
+                        return `${indent}${r.newTag}`;
+                    }
+                }
+            }
+            return line;
+        }).filter(line => line !== null);
+
+        // PASSO 2: LÓGICA DE MOVER OU CRIAR (Ação Solicitada)
+        for (const r of REGRA_MOVE) {
+            if (r.anchorTarget) {
+                let anchorIdx = lines.findIndex(l => l.includes(r.anchorTarget));
+
+                if (anchorIdx !== -1) {
+                    // AÇÃO A: Mover linha existente
+                    if (r.moveTarget) {
+                        let moveIdx = lines.findIndex(l => l.includes(r.moveTarget));
+                        if (moveIdx !== -1 && moveIdx !== anchorIdx + 1) {
+                            const lineToMove = lines.splice(moveIdx, 1)[0];
+                            anchorIdx = lines.findIndex(l => l.includes(r.anchorTarget));
+                            lines.splice(anchorIdx + 1, 0, lineToMove);
+                            fileModified = true;
+                        }
+                    }
+                    // AÇÃO B: Criar linha nova (apenas se moveTarget estiver vazio e newTag preenchido)
+                    else if (r.newTag) {
+                        // Verifica se a linha já existe para não criar duplicatas infinitas
+                        const jaExiste = lines.some(l => l.includes(r.newTag.trim()));
+                        if (!jaExiste) {
+                            const indent = lines[anchorIdx].match(/^(\s*)/)[0];
+                            lines.splice(anchorIdx + 1, 0, `${indent}${r.newTag}`);
+                            fileModified = true;
+                        }
+                    }
+                }
+            }
+        }
+
+        if (fileModified) {
+            fs.writeFileSync(filePath, lines.join('\n'), 'utf8');
+            filesChangedCount++;
+            console.log(`[ALTERADO] ${filePath}`);
+        } else {
+            filesSkippedCount++;
+        }
+    } catch (err) {
+        console.error(`Erro ao processar ${filePath}: ${err.message}`);
     }
 }
 
