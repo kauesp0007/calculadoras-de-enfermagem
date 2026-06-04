@@ -1,5 +1,5 @@
 // Define o nome e a versão do cache (AUTOMÁTICO via gerar-sw.js)
-const CACHE_NAME = 'calculadoras-enfermagem-cache-20260603-223336-033';
+const CACHE_NAME = 'calculadoras-enfermagem-cache-20260603-230749-220';
 
 // O SCRIPT DE BUILD VAI INJETAR A LISTA DE ARQUIVOS AQUI
 const urlsToCache = [
@@ -277,6 +277,7 @@ const urlsToCache = [
   'biblioteca/cabo-de-bisturi-n3.html',
   'biblioteca/cabodebisturidescartavel.html',
   'biblioteca/cabodebisturin4.html',
+  'biblioteca/calculadora-de-gasometria-arterial.html',
   'biblioteca/calculadora-de-medicamento.html',
   'biblioteca/calculadorasimagem.html',
   'biblioteca/calculo-de-dosagem-de-medicamentos-enfermagem.html',
@@ -401,6 +402,7 @@ const urlsToCache = [
   'biblioteca/escala-de-berg.html',
   'biblioteca/escala-de-bps.html',
   'biblioteca/escala-de-braden-enfermagem-escalas-avalia-risco-de-lesao-por-pressao.html',
+  'biblioteca/escala-de-braden-lesoes-por-pressao.html',
   'biblioteca/escala-de-braden.html',
   'biblioteca/escala-de-cam-icu.html',
   'biblioteca/escala-de-cincinnati.html',
@@ -806,6 +808,7 @@ const urlsToCache = [
   'biblioteca/seringa-enfermagem-ilustracao.html',
   'biblioteca/serra-de-gigli-vascular-e-ortopedia.html',
   'biblioteca/serra-oscilante-ortopedia.html',
+  'biblioteca/simulado-para-enfermeiros.html',
   'biblioteca/sistema-de-informacao-de-agravos-de-notificacao-sinan.html',
   'biblioteca/sistema-de-processamento-e-visualizacao-de-videocirurgia.html',
   'biblioteca/sistema-fechado.html',
@@ -2073,6 +2076,7 @@ const urlsToCache = [
   'img/bomba-de-infusão.webp',
   'img/bomba-de-seringa.webp',
   'img/brasao-brasil.webp',
+  'img/calculadora-de-gasometria-arterial.webp',
   'img/calculadorasimagem.webp',
   'img/calculo-gotejamento-tempo-em-horas.webp',
   'img/calculo-gotejamento-tempo-em-minutos.webp',
@@ -2103,6 +2107,7 @@ const urlsToCache = [
   'img/diagnostico_situacional_absenteismo.webp',
   'img/diagnosticosnanda2018.jpg',
   'img/diagnosticosnanda2018.webp',
+  'img/dimensionamento-da-equipe-de-enfermagem.webp',
   'img/diretrizesaha2020.jpg',
   'img/diretrizesaharcp2020.webp',
   'img/display-de-um-ventilador-mecanico.webp',
@@ -2126,6 +2131,7 @@ const urlsToCache = [
   'img/equidade_principios-sus-lei8080.webp',
   'img/equipamento-videolaparoscopia.webp',
   'img/escala-de-braden_enfermagem-escalas_avalia-risco-de-lesao-por-pressao.png',
+  'img/escala-de-braden_lesoes-por-pressao.webp',
   'img/escaladealdrete.webp',
   'img/escaladeapache.webp',
   'img/escaladeapgar.webp',
@@ -2345,6 +2351,7 @@ const urlsToCache = [
   'img/selolgpd-80.webp',
   'img/selosustentabilidade-160.webp',
   'img/selosustentabilidade-80.webp',
+  'img/simulado-para-enfermeiros.webp',
   'img/suportebasicodevida.jpg',
   'img/suportebasicodevida.webp',
   'img/tempodegotejamento.webp',
