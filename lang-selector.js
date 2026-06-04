@@ -1,57 +1,54 @@
-// A função de ajuste de espaço não depende do DOM completo, pode ficar fora.
-(function ajustarEspacoIdioma() {
-  // Variável de controle para não sobrecarregar o navegador no evento resize
+/**
+ * lang-selector.js
+ * Responsável por gerenciar o seletor de idiomas dinâmico.
+ */
+
+// A função de ajuste de espaço é definida globalmente para ser chamada após o carregamento dinâmico
+(function configurarAjusteEspaco() {
   let agendado = false;
 
-  function recalcular() {
+  window.recalcularEspacoIdioma = function() {
     var header = document.getElementById('global-header-container');
     var wrapper = document.getElementById('language-dropdown-wrapper');
 
     if (header && wrapper) {
-      // 1. LEITURA (Fazemos a leitura imediatamente)
       var h = header.offsetHeight || 0;
       var novaMargem = (h ? (h + 12) : 24) + 'px';
 
-      // Verifica se já existe uma mudança visual agendada
       if (!agendado) {
-        // 2. ESCRITA (Agendamos para o próximo quadro de animação)
         window.requestAnimationFrame(function() {
           wrapper.style.marginTop = novaMargem;
-          agendado = false; // Libera para a próxima atualização
+          agendado = false;
         });
-        
-        agendado = true; // Bloqueia novas chamadas até o navegador desenhar esta
+        agendado = true;
       }
     }
-  }
+  };
 
-  window.addEventListener('load', recalcular);
-  window.addEventListener('resize', recalcular);
+  window.addEventListener('resize', window.recalcularEspacoIdioma);
 })();
 
-// ... Mantenha o restante do código (DOMContentLoaded) igual ...
+// A lógica principal SÓ é executada após o evento de injeção ser disparado pelo global-scripts.js
+document.addEventListener("langSelectorLoaded", function() {
 
-// A lógica principal DEVE ser executada SOMENTE após o HTML estar carregado.
-document.addEventListener("DOMContentLoaded", function() {
+    // 1. Ajuste imediato do espaço, já que o elemento acabou de ser inserido
+    if (typeof window.recalcularEspacoIdioma === 'function') {
+        window.recalcularEspacoIdioma();
+    }
 
-    const button    = document.getElementById("langButton");
-    const menu      = document.getElementById("langMenu");
+    const button = document.getElementById("langButton");
+    const menu   = document.getElementById("langMenu");
     const langFlag = document.getElementById("langFlag");
     const langText = document.getElementById("langText");
 
-    // Encerra a execução se os elementos não existirem (evita o erro 'null')
-    if (!button || !menu) {
-        return; 
-    }
+    // Encerra a execução se os elementos não existirem
+    if (!button || !menu) return;
 
     // --- VARIÁVEL GLOBAL DE DETECÇÃO ---
-    // Encontra o nome do arquivo atual (ex: zarit.html)
-    // Se estiver na raiz, pathName é "/index.html", se estiver em /es/, é "/es/zarit.html"
     const pathName = window.location.pathname;
-    // Extrai o nome do arquivo (ex: index.html ou zarit.html)
-    const fileNameMatch = pathName.match(/[^/]*\.html$/i); 
+    const fileNameMatch = pathName.match(/[^/]*.html$/i);
     const currentFileName = fileNameMatch ? fileNameMatch[0] : '';
-    
+
     // Abrir/fechar menu
     button.addEventListener("click", () => {
       menu.classList.toggle("hidden");
@@ -66,7 +63,7 @@ document.addEventListener("DOMContentLoaded", function() {
       }
     });
 
-    // --- LÓGICA DE REDIRECIONAMENTO CORRIGIDA (Troca de idioma) ---
+    // --- LÓGICA DE REDIRECIONAMENTO ---
     document.querySelectorAll("#langMenu div").forEach(item => {
         item.addEventListener("click", () => {
             const value = item.dataset.value;
@@ -79,8 +76,7 @@ document.addEventListener("DOMContentLoaded", function() {
             button.setAttribute('aria-expanded', 'false');
 
             let newPath = '';
-            
-            // 1. Determina o novo caminho base
+
             switch (value) {
                 case 'en': newPath = "/en/"; break;
                 case 'es': newPath = "/es/"; break;
@@ -100,27 +96,22 @@ document.addEventListener("DOMContentLoaded", function() {
                 case 'id': newPath = "/id/"; break;
                 case 'vi': newPath = "/vi/"; break;
                 case 'uk': newPath = "/uk/"; break;
-                default:   newPath = "/";    // pt (raiz)
+                default:   newPath = "/";
             }
-            
-            // 2. Anexa o nome do arquivo, a menos que seja a página inicial
+
             if (currentFileName && currentFileName !== 'index.html' && newPath !== '/') {
-                // Para páginas como /es/zarit.html, anexa 'zarit.html'
                 newPath += currentFileName;
             } else if (currentFileName && currentFileName !== 'index.html' && newPath === '/') {
-                // Se a URL final é a raiz (PT), queremos ir para /zarit.html
                 newPath += currentFileName;
             }
-            
-            // Se for 'index.html', a lógica de newPath = "/en/" já está correta.
 
             window.location.href = newPath;
         });
     });
 
-    // --- DETECÇÃO DO IDIOMA ATUAL (Para mostrar a bandeira correta ao carregar) ---
+    // --- DETECÇÃO DO IDIOMA ATUAL ---
     const path = window.location.pathname;
-    let current = document.querySelector('[data-value="pt"]'); // Default Português
+    let current = document.querySelector('[data-value="pt"]');
 
     if (path.startsWith("/en/"))      current = document.querySelector('[data-value="en"]');
     else if (path.startsWith("/es/")) current = document.querySelector('[data-value="es"]');
@@ -140,7 +131,6 @@ document.addEventListener("DOMContentLoaded", function() {
     else if (path.startsWith("/id/")) current = document.querySelector('[data-value="id"]');
     else if (path.startsWith("/vi/")) current = document.querySelector('[data-value="vi"]');
     else if (path.startsWith("/uk/")) current = document.querySelector('[data-value="uk"]');
-    // Se for a raiz (/index.html ou /zarit.html), o default PT está correto
 
     if (current) {
       langFlag.src = current.dataset.flag;

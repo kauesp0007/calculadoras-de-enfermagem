@@ -119,7 +119,34 @@ document.addEventListener("DOMContentLoaded", function () {
   }).catch(e => console.warn("Não foi possível carregar o menu global:", e)),
   fetch("global-body-elements.html").then(e => e.ok ? e.text() : Promise.reject("Ficheiro global-body-elements.html não encontrado")).then(e => {
     document.body.insertAdjacentHTML("beforeend", e), initializeGlobalFunctions()
-  }).catch(e => console.warn("Não foi possível carregar os elementos globais do corpo:", e))
+  }).catch(e => console.warn("Não foi possível carregar os elementos globais do corpo:", e));
+
+// Função para carregar o Seletor de Idiomas
+fetch("/_language_selector.html")
+  .then(response => response.text())
+  .then(data => {
+    const container = document.getElementById("language-selector-placeholder");
+    if (container) {
+      container.innerHTML = data;
+
+      // DISPARAR EVENTO: Informa que o seletor foi carregado
+      const event = new CustomEvent("langSelectorLoaded");
+      document.dispatchEvent(event);
+    }
+  })
+  .catch(err => console.error("Erro ao carregar seletor de idiomas:", err));
+// Carregar Seletor de Idiomas
+fetch("/_language_selector.html")
+  .then(response => response.text())
+  .then(data => {
+    const container = document.getElementById("language-selector-placeholder");
+    if (container) {
+      container.innerHTML = data;
+      // Dispara o evento para o lang-selector.js saber que pode inicializar
+      document.dispatchEvent(new CustomEvent("langSelectorLoaded"));
+    }
+  })
+  .catch(err => console.error("Erro ao carregar seletor de idiomas:", err));
 });
 
 function initializeNavigationMenu() {
