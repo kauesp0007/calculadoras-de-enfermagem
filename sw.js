@@ -1,5 +1,5 @@
 // Define o nome e a versão do cache (AUTOMÁTICO via gerar-sw.js)
-const CACHE_NAME = 'calculadoras-enfermagem-cache-20260604-122107-484';
+const CACHE_NAME = 'calculadoras-enfermagem-cache-20260604-144008-215';
 
 // O SCRIPT DE BUILD VAI INJETAR A LISTA DE ARQUIVOS AQUI
 const urlsToCache = [
@@ -238,6 +238,7 @@ const urlsToCache = [
   'biblioteca/aparelho-de-scopia.html',
   'biblioteca/aquecimento-imediato-em-caso-de-hipotermia-mantas-aquecedor-portatil-manta-termica-solucao-fisiologica-aquecida.html',
   'biblioteca/armazenamento-de-medicamento-de-alta-vigilancia-mav.html',
+  'biblioteca/arterielle-blutgas-analysegerat.html',
   'biblioteca/artigos-utilizados-no-paciente-intubado.html',
   'biblioteca/artroscopio-ortopedia.html',
   'biblioteca/aspirador-cirurgico.html',
@@ -269,6 +270,7 @@ const urlsToCache = [
   'biblioteca/bomba-de-infusao.html',
   'biblioteca/bomba-de-seringa.html',
   'biblioteca/bougie-guia-para-intubacao.html',
+  'biblioteca/braden-skala.html',
   'biblioteca/brasao-brasil.html',
   'biblioteca/broca-cirurgica.html',
   'biblioteca/broca-de-hudson.html',
@@ -531,6 +533,7 @@ const urlsToCache = [
   'biblioteca/inventario-riscos-ocupacionais6.html',
   'biblioteca/jean-watson-teoria-do-cuidado-humano.html',
   'biblioteca/katz-scale-nurse.html',
+  'biblioteca/krankenplege-wettbewerb-simulator.html',
   'biblioteca/laminas-larincoscopicas.html',
   'biblioteca/lamparina-enfermagem.html',
   'biblioteca/leitura-desenho.html',
@@ -685,6 +688,7 @@ const urlsToCache = [
   'biblioteca/pagina-site-escala-braden.html',
   'biblioteca/parada-cardio-respiratoria.html',
   'biblioteca/participacao-da-comunidade-principio-sus-lei8080.html',
+  'biblioteca/patientenubersicht.html',
   'biblioteca/pentagonos-entrelacados-teste-meem.html',
   'biblioteca/perfil-elisabeth-marques.html',
   'biblioteca/perfurador-de-cornea-trephine.html',
@@ -1059,6 +1063,7 @@ const urlsToCache = [
   'downloads/page39.html',
   'downloads/page4.html',
   'downloads/page40.html',
+  'downloads/page41.html',
   'downloads/page5.html',
   'downloads/page6.html',
   'downloads/page7.html',
@@ -2063,6 +2068,7 @@ const urlsToCache = [
   'img/amiodarona-ritmos-chocaveis.webp',
   'img/ansiedade-trabalho-crise2.webp',
   'img/aparelho-de-scopia.webp',
+  'img/arterielle-blutgas-analysegerat.webp',
   'img/artigos-utilizados-no-paciente-intubado.webp',
   'img/aspirador-cirurgico.webp',
   'img/aspirador-cirurgico1.webp',
@@ -2075,6 +2081,7 @@ const urlsToCache = [
   'img/bandeira-brasil.webp',
   'img/bomba-de-infusão.webp',
   'img/bomba-de-seringa.webp',
+  'img/braden-skala.webp',
   'img/brasao-brasil.webp',
   'img/calculadora-de-gasometria-arterial.webp',
   'img/calculadorasimagem.webp',
@@ -2196,6 +2203,7 @@ const urlsToCache = [
   'img/inventario_riscos_ocupacionais6.webp',
   'img/jean watson - teoria do cuidado humano.jpg',
   'img/jean watson - teoria do cuidado humano.webp',
+  'img/krankenplege-wettbewerb-simulator.webp',
   'img/lamparina enfermagem.png',
   'img/lamparina enfermagem.webp',
   'img/livroimagem.webp',
@@ -2312,6 +2320,7 @@ const urlsToCache = [
   'img/pagina_site_escala_braden.webp',
   'img/parada-cardio-respiratoria.webp',
   'img/participacao-da-comunidade_principio_sus_lei8080.webp',
+  'img/patientenubersicht.webp',
   'img/pentagono_meem.jpg',
   'img/perfil_elisabeth_marques.webp',
   'img/regionalizacao_principios_sus_lei8080.webp',
