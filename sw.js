@@ -1,5 +1,5 @@
 // Define o nome e a versão do cache (AUTOMÁTICO via gerar-sw.js)
-const CACHE_NAME = 'calculadoras-enfermagem-cache-20260605-025615-727';
+const CACHE_NAME = 'calculadoras-enfermagem-cache-20260605-034319-058';
 
 // O SCRIPT DE BUILD VAI INJETAR A LISTA DE ARQUIVOS AQUI
 const urlsToCache = [
@@ -430,6 +430,11 @@ const urlsToCache = [
   'biblioteca/especulo-de-sims.html',
   'biblioteca/especulo-nasal.html',
   'biblioteca/essencia-e-proposito-enfermagem.html',
+  'biblioteca/estetoscopio-antigo-da-gravidez.html',
+  'biblioteca/estetoscopio-de-madeira-articulado.html',
+  'biblioteca/estetoscopio-digital.html',
+  'biblioteca/estetoscopio-moderno.html',
+  'biblioteca/estetoscopio-seculo19.html',
   'biblioteca/evento-sentinela-de-enfermagem.html',
   'biblioteca/farmaceutico-liberando-a-medicacao-de-alta-vigilancia-da-farmacia-para-o-tecnico-de-enfermagem.html',
   'biblioteca/fatores-psicosociais12.html',
@@ -561,6 +566,7 @@ const urlsToCache = [
   'biblioteca/materiais-de-intubacao.html',
   'biblioteca/medicacao-certa-na-enfermagem.html',
   'biblioteca/medication-calculation-rule-3.html',
+  'biblioteca/medicos-usando-estetoscopio.html',
   'biblioteca/meemcapa.html',
   'biblioteca/merle-mishel-teoria-da-incerteza-da-doenca.html',
   'biblioteca/mesa-auxiliar-centro-cirurgico.html',
@@ -892,6 +898,7 @@ const urlsToCache = [
   'blog-linkedin.webp',
   'blog-templates/index.template.html',
   'blog-templates/post.template.html',
+  'blog/historia_do_estetoscopio.html',
   'blog/index.html',
   'blog/interpretacao-gasometria.html',
   'blog/os-bastidores-da-escala-de-braden.html',
@@ -2153,6 +2160,11 @@ const urlsToCache = [
   'img/escaladebraden.webp',
   'img/escalasimagem.webp',
   'img/essencia-e-proposito-enfermagem.webp',
+  'img/estetoscopio-de-madeira_articulado.webp',
+  'img/estetoscopio-digital.webp',
+  'img/estetoscopio-moderno.webp',
+  'img/estetoscopio-seculo19.webp',
+  'img/estetoscópio-antigo-da-gravidez.webp',
   'img/exemplo_controlehidrico.png',
   'img/fatores_psicosociais12.webp',
   'img/florence  nightngale - teoria ambiental.webp',
@@ -2216,6 +2228,7 @@ const urlsToCache = [
   'img/materiais-de-intubacao-2.webp',
   'img/materiais-de-intubacao.webp',
   'img/medicamentos.webp',
+  'img/medicos-usando-estetoscopio.webp',
   'img/meemcapa.jpg',
   'img/meemimagem.webp',
   'img/mesa-auxiliar-centro-cirurgico.webp',
