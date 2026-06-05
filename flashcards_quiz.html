@@ -85,8 +85,9 @@
       transform: rotateY(180deg);
     }
 
+    /* REMOVIDO pointer-events: none que causava o travamento! */
     .flashcard.answered {
-      pointer-events: none;
+      cursor: default; /* Apenas muda o cursor para não parecer que vai virar de novo */
     }
 
     .card-front, .card-back {
@@ -481,6 +482,7 @@
         </div>
         <div>
           <label class="block text-sm font-bold text-gray-700 mb-2">Número de Questões</label>
+          <!-- Ajustado máximo para englobar todas as 24 questões -->
           <input type="number" id="qtyInput" class="w-full p-3 border-2 border-gray-200 rounded-xl focus:border-[#1A3E74] outline-none" min="3" max="30" value="10">
         </div>
       </div>
@@ -678,8 +680,9 @@
   <script src="/lang-selector.js" defer></script>
 
   <script>
-    // ==================== DATABASE DE QUESTÕES ====================
+    // ==================== DATABASE DE QUESTÕES (24 Questões) ====================
     const DB = [
+      // Questões Antigas
       { id:1, cat:'gotejamento', q:'500 ml de soro em 8 horas. Quantas GOTAS por minuto?', opts:['20 gotas/min','21 gotas/min','17 gotas/min','24 gotas/min'], ans:1, exp:'(500 × 20) ÷ (8×60) = 10000 ÷ 480 = 20,83 → 21 gotas/min.' },
       { id:2, cat:'gotejamento', q:'500 ml em 24 horas. Quantas MICROGOTAS por minuto?', opts:['20 microgotas/min','21 microgotas/min','24 microgotas/min','17 microgotas/min'], ans:1, exp:'500 ÷ 24 = 20,83 → 21 microgotas/min.' },
       { id:3, cat:'gotejamento', q:'100 ml em 30 minutos. Quantas GOTAS por minuto?', opts:['60','67','70','55'], ans:1, exp:'(100×20)÷30 = 66,6 → 67 gotas/min.' },
@@ -691,7 +694,20 @@
       { id:9, cat:'soro', q:'SF 0,9% 500ml: quantos gramas de NaCl?', opts:['3,5g','4,0g','4,5g','5,0g'], ans:2, exp:'0,9×5 = 4,5g.' },
       { id:10, cat:'regra3', q:'Amicacina 150mg. Ampola 500mg/2ml. Quantos ml?', opts:['0,4','0,5','0,6','0,8'], ans:2, exp:'(150×2)÷500 = 0,6ml.' },
       { id:11, cat:'regra3', q:'Prescrição: 45mg Furosemida. Ampola 20mg/2ml. Quantos ml?', opts:['3,5','4,0','4,5','5,0'], ans:2, exp:'(45×2)÷20 = 4,5ml.' },
-      { id:12, cat:'conversao', q:'0,5g equivale a quantos mg?', opts:['50mg','100mg','500mg','1000mg'], ans:2, exp:'1g = 1000mg → 0,5g = 500mg.' }
+      { id:12, cat:'conversao', q:'0,5g equivale a quantos mg?', opts:['50mg','100mg','500mg','1000mg'], ans:2, exp:'1g = 1000mg → 0,5g = 500mg.' },
+      // Novas Questões Adicionadas
+      { id:13, cat:'gotejamento', q:'Foi prescrita a infusão de 500 mL de soro fisiológico para correr em 5 horas utilizando equipo de microgotas (60 microgotas/mL). Qual o gotejamento correto?', opts:['80 microgotas/min','100 microgotas/min','120 microgotas/min','150 microgotas/min'], ans:1, exp:'(Volume ÷ Tempo em horas) -> 500 ÷ 5 = 100 microgotas/min.' },
+      { id:14, cat:'gotejamento', q:'Um paciente deverá receber 1.200 mL de solução em 10 horas por equipo de microgotas. Qual a velocidade de infusão?', opts:['100 microgotas/min','110 microgotas/min','120 microgotas/min','130 microgotas/min'], ans:2, exp:'1.200 ÷ 10 = 120 microgotas/min.' },
+      { id:15, cat:'gotejamento', q:'Administrar 1.000 mL de SG 5% em 8 horas utilizando equipo macrogotas (20 gotas/mL). A velocidade de infusão será:', opts:['38 gotas/min','40 gotas/min','42 gotas/min','45 gotas/min'], ans:2, exp:'(1000 × 20) ÷ (8 × 60) = 20000 ÷ 480 = 41,6 → arredonda para 42 gotas/min.' },
+      { id:16, cat:'gotejamento', q:'Foi prescrito 500 mL de solução para correr em 6 horas utilizando equipo macrogotas. Qual o gotejamento correto?', opts:['26 gotas/min','28 gotas/min','30 gotas/min','32 gotas/min'], ans:1, exp:'(500 × 20) ÷ (6 × 60) = 10000 ÷ 360 = 27,7 → arredonda para 28 gotas/min.' },
+      { id:17, cat:'penicilina', q:'Um frasco de Penicilina Benzatina contém 1.200.000 UI. Após reconstituição, o volume final ficou em 4 mL. Quantos mL devem ser administrados para fornecer 600.000 UI?', opts:['1 mL','2 mL','3 mL','4 mL'], ans:1, exp:'1.200.000 UI = 4 mL; logo, 600.000 UI = X. X = (600.000 × 4) ÷ 1.200.000 = 2 mL.' },
+      { id:18, cat:'penicilina', q:'Um frasco contém 5.000.000 UI de Penicilina Cristalina diluídos em 10 mL. Quantos mL correspondem a uma dose de 2.500.000 UI?', opts:['2 mL','4 mL','5 mL','6 mL'], ans:2, exp:'5.000.000 UI = 10 mL; 2.500.000 UI = X. X = (2.500.000 × 10) ÷ 5.000.000 = 5 mL.' },
+      { id:19, cat:'regra3', q:'Há disponível Ampicilina 500 mg em 5 mL. O médico prescreveu 250 mg. Quantos mL devem ser administrados?', opts:['1,5 mL','2,0 mL','2,5 mL','3,0 mL'], ans:2, exp:'500 mg = 5 mL; 250 mg = X. X = (250 × 5) ÷ 500 = 2,5 mL.' },
+      { id:20, cat:'regra3', q:'Disponível: Dipirona 1 g em 2 mL. Prescrição: 500 mg. Qual volume deve ser administrado?', opts:['0,5 mL','1,0 mL','1,5 mL','2,0 mL'], ans:1, exp:'1g equivale a 1000mg. 1000 mg = 2 mL; 500 mg = X. X = 1 mL.' },
+      { id:21, cat:'conversao', q:'Quantos miligramas existem em 2 gramas?', opts:['20 mg','200 mg','2.000 mg','20.000 mg'], ans:2, exp:'1 grama (g) equivale a 1.000 miligramas (mg). Logo, 2 g = 2.000 mg.' },
+      { id:22, cat:'conversao', q:'Uma ampola contém 0,5 g de medicamento. Esse valor corresponde a:', opts:['5 mg','50 mg','500 mg','5.000 mg'], ans:2, exp:'1 g = 1000 mg. Logo, 0,5 g × 1000 = 500 mg.' },
+      { id:23, cat:'insulina', q:'Foi prescrita Insulina Regular 12 UI. O frasco disponível é U-100 e a seringa de insulina é compatível. Qual marcação deve ser aspirada?', opts:['10 UI','11 UI','12 UI','20 UI'], ans:2, exp:'Sendo a seringa compatível (U-100) com o frasco (U-100), aspira-se diretamente a marcação correspondente à dose: 12 UI.' },
+      { id:24, cat:'insulina', q:'Um paciente deve receber 35 UI de insulina NPH. Em uma seringa U-100, o profissional deverá aspirar até:', opts:['25 UI','30 UI','35 UI','40 UI'], ans:2, exp:'Para frascos U-100 utilizando seringas de insulina U-100, a medida em UI na seringa corresponde exatamente à dose prescrita: 35 UI.' }
     ];
 
     const CAT_NAMES = { all:'Geral', gotejamento:'💧 Gotejamento', penicilina:'💊 Penicilina', soro:'🧪 Soros', insulina:'🩸 Insulina', regra3:'🔢 Regra de 3', conversao:'📏 Conversão' };
@@ -735,13 +751,20 @@
         const thumb = document.createElement('div');
         thumb.className = `thumb ${idx === currentIndex ? 'current' : ''} ${userAnswers[idx] !== null ? (userAnswers[idx] === currentDeck[idx].ans ? 'correct' : 'wrong') : ''}`;
         thumb.textContent = idx+1;
-        thumb.onclick = () => { if(!answered) { currentIndex = idx; loadCard(); renderThumbnails(); } };
+
+        // CORREÇÃO: Permite navegação livre mesmo que já esteja respondido.
+        thumb.onclick = () => {
+          currentIndex = idx;
+          loadCard();
+        };
         elements.thumbnailsContainer.appendChild(thumb);
       });
     }
 
     function loadCard() {
       const card = currentDeck[currentIndex];
+      const prevAns = userAnswers[currentIndex]; // Verifica se o usuário já havia respondido esta questão
+
       elements.frontTheme.textContent = CAT_NAMES[card.cat] || 'Geral';
       elements.frontCounter.textContent = `${currentIndex+1}/${totalQuestions}`;
       elements.backCat.textContent = CAT_NAMES[card.cat] || 'Categoria';
@@ -753,14 +776,39 @@
         const btn = document.createElement('button');
         btn.className = 'option-btn';
         btn.innerHTML = `<span class="font-bold mr-2">${letters[i]})</span> ${opt}`;
+
+        // Se a carta ainda não foi respondida, cria a função de clique.
         btn.onclick = () => handleAnswer(i);
+
+        // Se já havia sido respondida anteriormente (Navegação via Thumbnails) recria o estado
+        if (prevAns !== null) {
+            btn.disabled = true;
+            if (i === card.ans) btn.classList.add('correct'); // Pinta de verde a correta
+            if (i === prevAns && prevAns !== card.ans) btn.classList.add('wrong'); // Pinta de vermelho a que ele errou
+        }
+
         elements.optionsContainer.appendChild(btn);
       });
 
-      elements.feedbackArea.classList.add('hidden');
-      elements.nextCardBtn.classList.add('hidden');
-      elements.flashcard.classList.remove('flipped', 'answered');
-      answered = false;
+      // Lógica de restauração visual:
+      if (prevAns !== null) {
+          answered = true;
+          elements.flashcard.classList.add('flipped', 'answered'); // Mantém virada
+
+          const isCorrect = prevAns === card.ans;
+          elements.feedbackArea.classList.remove('hidden');
+          elements.feedbackArea.className = `feedback-area ${isCorrect ? 'correct' : 'wrong'}`;
+          elements.feedbackArea.innerHTML = isCorrect ? `✅ Correto! ${card.exp}` : `❌ Incorreto. Resposta correta: ${letters[card.ans]}. ${card.exp}`;
+
+          elements.nextCardBtn.classList.remove('hidden');
+          elements.nextCardBtn.innerHTML = currentIndex < totalQuestions - 1 ? '▶ Próximo Card' : '🏁 Ver Resultado Final';
+      } else {
+          answered = false;
+          elements.feedbackArea.classList.add('hidden');
+          elements.nextCardBtn.classList.add('hidden');
+          elements.flashcard.classList.remove('flipped', 'answered');
+      }
+
       renderThumbnails();
     }
 
@@ -781,7 +829,10 @@
       elements.feedbackArea.classList.remove('hidden');
       elements.feedbackArea.className = `feedback-area ${isCorrect ? 'correct' : 'wrong'}`;
       elements.feedbackArea.innerHTML = isCorrect ? `✅ Correto! ${card.exp}` : `❌ Incorreto. Resposta correta: ${letters[card.ans]}. ${card.exp}`;
+
       elements.nextCardBtn.classList.remove('hidden');
+      elements.nextCardBtn.innerHTML = currentIndex < totalQuestions - 1 ? '▶ Próximo Card' : '🏁 Ver Resultado Final';
+
       elements.flashcard.classList.add('answered');
       updateProgress();
       renderThumbnails();
@@ -815,7 +866,7 @@
       const theme = document.getElementById('themeSelect').value;
       let qty = parseInt(document.getElementById('qtyInput').value);
       if(qty < 3) qty = 3;
-      if(qty > 30) qty = 30;
+      if(qty > 30) qty = 30; // Permite rodar com a totalidade da Database tranquilamente
 
       let pool = theme === 'all' ? [...DB] : DB.filter(q => q.cat === theme);
       if(pool.length === 0) { alert('Nenhuma questão disponível para este tema'); return; }
