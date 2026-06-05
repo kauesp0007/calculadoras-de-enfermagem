@@ -187,6 +187,34 @@
             from { transform: translateX(100%); opacity: 0; }
             to { transform: translateX(0); opacity: 1; }
         }
+
+        /* Estilos para o Editor de Texto Rico e Conteúdo Renderizado */
+        #descricao-editor[placeholder]:empty:before {
+            content: attr(placeholder);
+            color: #9ca3af;
+            pointer-events: none;
+            display: block;
+        }
+
+        .text-editor-content h3, #descricao-editor h3 {
+            font-size: 1.125rem;
+            font-weight: 700;
+            color: #1A3E74;
+            margin-top: 0.75rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .text-editor-content b, .text-editor-content strong, #descricao-editor b, #descricao-editor strong {
+            font-weight: 700;
+        }
+
+        .text-editor-content i, .text-editor-content em, #descricao-editor i, #descricao-editor em {
+            font-style: italic;
+        }
+
+        .text-editor-content u, #descricao-editor u {
+            text-decoration: underline;
+        }
     </style>
 
     <!-- ============================================= -->
@@ -321,9 +349,29 @@
                         <input type="text" id="titulo" required class="w-full p-3 rounded-lg border-2 border-gray-300 focus:border-[#1A3E74] focus:ring-2 focus:ring-[#1A3E74]/20 outline-none transition-all" placeholder="Ex: Florence Nightingale no Hospital de Scutari">
                     </div>
 
+                    <!-- Editor de Texto Rico -->
                     <div>
                         <label class="block text-sm font-bold text-gray-800 mb-1">Descrição *</label>
-                        <textarea id="descricao" rows="3" required class="w-full p-3 rounded-lg border-2 border-gray-300 focus:border-[#1A3E74] focus:ring-2 focus:ring-[#1A3E74]/20 outline-none transition-all" placeholder="Descreva a história, o contexto ou a importância desta imagem..."></textarea>
+                        <div class="border-2 border-gray-300 rounded-lg overflow-hidden focus-within:border-[#1A3E74] focus-within:ring-2 focus-within:ring-[#1A3E74]/20 transition-all bg-white">
+                            <!-- Toolbar de Formatação -->
+                            <div class="flex items-center gap-1 p-2 bg-gray-50 border-b border-gray-200">
+                                <button type="button" onclick="formatText('bold'); return false;" class="w-8 h-8 flex items-center justify-center hover:bg-gray-200 rounded text-gray-700 transition-colors" title="Negrito">
+                                    <i class="fa-solid fa-bold"></i>
+                                </button>
+                                <button type="button" onclick="formatText('italic'); return false;" class="w-8 h-8 flex items-center justify-center hover:bg-gray-200 rounded text-gray-700 transition-colors" title="Itálico">
+                                    <i class="fa-solid fa-italic"></i>
+                                </button>
+                                <button type="button" onclick="formatText('underline'); return false;" class="w-8 h-8 flex items-center justify-center hover:bg-gray-200 rounded text-gray-700 transition-colors" title="Sublinhado">
+                                    <i class="fa-solid fa-underline"></i>
+                                </button>
+                                <div class="w-px h-5 bg-gray-300 mx-1"></div>
+                                <button type="button" onclick="formatText('formatBlock', 'H3'); return false;" class="h-8 px-2 flex items-center justify-center hover:bg-gray-200 rounded text-gray-700 font-bold text-sm transition-colors" title="Subtítulo">
+                                    H3
+                                </button>
+                            </div>
+                            <!-- Área de Edição -->
+                            <div id="descricao-editor" contenteditable="true" class="w-full p-3 min-h-[100px] max-h-[300px] overflow-y-auto outline-none" placeholder="Descreva a história, o contexto ou a importância desta imagem..."></div>
+                        </div>
                     </div>
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -509,6 +557,14 @@
         });
 
         // =============================================
+        // FUNÇÕES DO EDITOR DE TEXTO RICO
+        // =============================================
+        function formatText(command, value = null) {
+            document.execCommand(command, false, value);
+            document.getElementById('descricao-editor').focus();
+        }
+
+        // =============================================
         // FUNÇÃO TOAST
         // =============================================
         function showToast(message, type = 'success') {
@@ -526,11 +582,17 @@
             e.preventDefault();
 
             const titulo = document.getElementById('titulo').value.trim();
-            const descricao = document.getElementById('descricao').value.trim();
+            // Captura o HTML gerado pelo editor de texto rico
+            const descricaoHtml = document.getElementById('descricao-editor').innerHTML.trim();
             const ano = document.getElementById('ano').value;
             const instituicao = document.getElementById('instituicao').value.trim();
             const localizacao = document.getElementById('localizacao').value.trim();
             const consentimento = document.getElementById('consentimento').checked;
+
+            if (!descricaoHtml || descricaoHtml === '<br>') {
+                showToast('A descrição é obrigatória!', 'error');
+                return;
+            }
 
             if (!consentimento) {
                 showToast('Você deve aceitar o termo de consentimento!', 'error');
@@ -558,11 +620,11 @@
                 const { data: urlData } = supabaseClient.storage.from('forum-imagens-enfermagem').getPublicUrl(`uploads/${fileName}`);
                 const imagemUrl = urlData.publicUrl;
 
-                // Insere no banco de dados na tabela album_fotos
+                // Insere no banco de dados na tabela album_fotos salvando a formatação HTML
                 const { error: dbErr } = await supabaseClient.from('album_fotos').insert([{
                     imagem_url: imagemUrl,
                     titulo: titulo,
-                    descricao: descricao,
+                    descricao: descricaoHtml, // Salvando com formatação
                     ano: ano || null,
                     instituicao: instituicao || null,
                     localizacao: localizacao || null
@@ -571,8 +633,9 @@
 
                 showToast('Foto publicada com sucesso!');
 
-                // Reseta formulário e preview
+                // Reseta formulário, preview e editor
                 document.getElementById('uploadForm').reset();
+                document.getElementById('descricao-editor').innerHTML = '';
                 selectedFile = null;
                 previewContainer.classList.add('hidden');
                 imagePreview.src = '';
@@ -657,7 +720,8 @@
                     <div class="w-full md:w-1/2 flex flex-col justify-center">
                         <div class="bg-white rounded-2xl p-6 shadow-[0_8px_20px_rgba(0,0,0,0.12)] border border-gray-100 hover:shadow-[0_16px_34px_rgba(0,0,0,0.15)] transition-all">
                             <h3 class="text-xl md:text-2xl font-bold text-[#1A3E74] mb-3">${escapeHtml(foto.titulo)}</h3>
-                            <p class="text-gray-700 leading-relaxed mb-4">${escapeHtml(foto.descricao)}</p>
+                            <!-- Renderiza com as regras de segurança permitindo formatação -->
+                            <div class="text-gray-700 leading-relaxed mb-4 text-editor-content">${sanitizeRichText(foto.descricao)}</div>
                             <div class="flex flex-wrap gap-x-6 gap-y-2 text-sm text-gray-500 border-t pt-3 mt-2">
                                 ${foto.ano ? `<span><i class="fa-regular fa-calendar mr-1"></i> ${foto.ano}</span>` : ''}
                                 ${foto.instituicao ? `<span><i class="fa-regular fa-building mr-1"></i> ${escapeHtml(foto.instituicao)}</span>` : ''}
@@ -689,6 +753,40 @@
                     }
                 });
             });
+        }
+
+        // Sanitizador de texto que apenas remove tags maliciosas mas mantêm B, I, U, BR, P, DIV e H3
+        function sanitizeRichText(html) {
+            if (!html) return '';
+            // Garante as quebras de linha enviadas de texto comum/antigo antes do DOM parser.
+            const tempStr = html.replace(/\n/g, '<br>');
+            const doc = new DOMParser().parseFromString(tempStr, 'text/html');
+            const allowedTags = ['B', 'I', 'U', 'STRONG', 'EM', 'H3', 'BR', 'DIV', 'P'];
+
+            function cleanNode(node) {
+                if (node.nodeType === 3) return node.textContent; // Retorna texto puro
+                if (node.nodeType !== 1) return ''; // Ignora comentários, etc.
+
+                if (!allowedTags.includes(node.nodeName)) {
+                    return node.textContent; // Se usar tag proibida (ex: script), apenas extrai o texto.
+                }
+
+                let inner = '';
+                for (let child of node.childNodes) {
+                    inner += cleanNode(child);
+                }
+
+                if (node.nodeName === 'BR') return '<br>';
+
+                return `<${node.nodeName.toLowerCase()}>${inner}</${node.nodeName.toLowerCase()}>`;
+            }
+
+            let result = '';
+            for (let child of doc.body.childNodes) {
+                result += cleanNode(child);
+            }
+
+            return result;
         }
 
         function escapeHtml(text) {
