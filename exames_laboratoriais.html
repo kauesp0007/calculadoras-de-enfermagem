@@ -117,7 +117,7 @@
   </div>
 
   <!-- BARRA DE PESQUISA FLUTUANTE -->
-  <div class="fixed top-24 right-4 z-[100] md:right-8 group">
+  <div class="fixed bottom-20 right-4 z-[100] md:bottom-8 md:right-8 group">
     <div class="bg-white/95 backdrop-blur-md shadow-[0_8px_30px_rgb(0,0,0,0.15)] border border-gray-200 rounded-full flex items-center p-2 w-48 md:w-64 transition-all duration-300 focus-within:ring-2 focus-within:ring-[#1A3E74]/50 focus-within:border-[#1A3E74]">
       <i class="fa-solid fa-magnifying-glass text-[#1A3E74] text-lg ml-2"></i>
       <input type="text" id="buscarExame" placeholder="Buscar exame..." class="bg-transparent border-none outline-none w-full text-sm text-gray-700 px-3 placeholder-gray-400">
@@ -152,7 +152,7 @@
       </section>
 
       <div class="bg-white rounded-2xl px-6 py-4 shadow-[0_16px_34px_rgba(0,0,0,0.15)] border border-gray-100 mb-6">
-        <h3 class="text-lg font-bold text-[#1A3E74] mb-3">Quantos exames você realizou?</h3>
+        <h3 class="text-lg font-bold text-[#1A3E74] mb-3">Quantos exames foram realizados?</h3>
         <div class="flex flex-col sm:flex-row gap-4 items-end">
           <div class="flex-1">
             <input type="number" id="totalExames" class="w-full p-3 rounded-lg border-2 border-gray-300 focus:border-[#1A3E74] focus:ring-2 focus:ring-[#1A3E74]/20 outline-none transition-all" placeholder="Ex: 10" min="1" max="150">
@@ -163,13 +163,20 @@
         <div id="tempoInfo" class="mt-3 text-sm text-gray-600 hidden">
           <i class="fa-solid fa-clock mr-2 text-[#4A90E2]"></i>Tempo médio estimado para análise dos resultados: <span id="tempoMedio">0</span> minutos
         </div>
+
+        <!-- Aviso Pedagógico e Profissional -->
+        <div class="mt-4 p-4 bg-blue-50 border-l-4 border-[#1A3E74] rounded-r-lg">
+          <p class="text-sm text-gray-800 text-justify">
+            <i class="fa-solid fa-circle-info text-[#1A3E74] mr-1"></i> <strong>Aviso Pedagógico:</strong> Esta calculadora tem caráter pedagógico. Ela verifica se os valores dos exames estão dentro dos padrões de referência e <strong>não tem intenção diagnóstica</strong>. O diagnóstico de patologias e a avaliação clínica junto com achados laboratoriais é privativo do médico. À enfermagem cabe ter o conhecimento das alterações de exames laboratoriais para auxiliar na elaboração da Sistematização da Assistência de Enfermagem (SAE) e realizar a vigilância laboratorial para acionamento de protocolos, Time de Resposta Rápida (Código Amarelo) e comunicação efetiva com a equipe médica em caso de alterações.
+          </p>
+        </div>
       </div>
 
       <section class="my-8 md:my-12" aria-labelledby="calc-exames">
         <div class="bg-[#1A3E74]/85 backdrop-blur-md border border-white/15 rounded-2xl shadow-[0_16px_34px_rgba(0,0,0,0.45)] overflow-hidden">
           <div class="px-6 py-5 md:px-10 md:py-7 text-center">
             <h2 id="calc-exames" class="text-2xl md:text-4xl font-black text-white tracking-tight">Insira os Resultados dos Exames</h2>
-            <p class="text-blue-100 mt-2">Preencha apenas os exames que deseja ver o valor de referência e lembre-se: para diagnósticos procure um médico</p>
+            <p class="text-blue-100 mt-2">Preencha apenas os exames que deseja avaliar</p>
           </div>
         </div>
       </section>
@@ -186,41 +193,77 @@
         </button>
       </div>
 
-      <section id="resultadoGlobal-section" class="hidden my-12 opacity-0 transition-opacity duration-500 ease-in-out">
-        <div class="bg-[#1A3E74] rounded-xl p-8 shadow-inner relative overflow-hidden">
+      <!-- Container Global de Resultados -->
+      <section id="resultado-container" class="hidden my-12 opacity-0 transition-opacity duration-500 ease-in-out w-full">
+
+        <!-- Hero Card de Resultado -->
+        <div class="bg-[#1A3E74] rounded-2xl p-8 shadow-2xl relative overflow-hidden text-center w-full mb-6 border border-blue-900/50">
           <div class="absolute top-0 right-0 w-24 h-24 bg-white opacity-5 rounded-full blur-xl pointer-events-none"></div>
           <div class="absolute bottom-0 left-0 w-32 h-32 bg-[#4A90E2] opacity-10 rounded-full blur-xl pointer-events-none"></div>
-          <h3 class="text-2xl font-bold text-white text-center mb-6 relative z-10">📊 Relação de Alterações dos Exames</h3>
-          <div id="alteracoesList" class="relative z-10 bg-white/10 backdrop-blur-sm rounded-xl p-5 max-h-96 overflow-y-auto">
-            <p class="text-white text-center" id="nenhumaAlteracao">Nenhuma alteração registrada.</p>
-          </div>
-          <p class="text-xs text-blue-200 opacity-80 mt-4 relative z-10 text-center">* Esta ferramenta não realiza diagnóstico médico. Consulte sempre um profissional de saúde.</p>
-        </div>
-      </section>
 
-      <section id="correlacao-section" class="hidden my-8">
-        <div class="bg-white rounded-2xl p-6 shadow-[0_16px_34px_rgba(0,0,0,0.15)] border border-gray-100">
-          <h3 class="text-xl font-bold text-[#1A3E74] mb-4 border-b pb-2">🔗 Correlação dos Exames e Resumo</h3>
-          <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div>
-              <h4 class="font-bold text-gray-700 mb-2">Exames Alterados:</h4>
-              <div id="resumoAlteracoes" class="text-sm text-gray-600 space-y-1 max-h-60 overflow-y-auto bg-gray-50 p-3 rounded-lg">
-                <span class="text-gray-400">Nenhum exame alterado</span>
+          <h3 class="text-sm font-medium uppercase tracking-wider text-blue-100 mb-2 relative z-10">
+            Status Laboratorial
+          </h3>
+
+          <div class="relative z-10 mb-2">
+            <span id="score-valor" class="text-4xl md:text-5xl font-black text-white tracking-tight drop-shadow-md">
+              0
+            </span>
+            <span class="text-xl md:text-2xl font-bold text-blue-200 ml-1">alterações detectadas</span>
+          </div>
+
+          <div id="status-alerta" class="inline-block px-6 py-2 rounded-full text-sm md:text-base font-black uppercase tracking-wider mb-6 shadow-sm relative z-10">
+            Status
+          </div>
+
+          <div class="bg-white/10 backdrop-blur-sm rounded-xl p-5 border border-white/20 relative z-10 text-left max-w-4xl mx-auto">
+            <p id="resultado-mensagem" class="text-white md:text-lg font-medium leading-relaxed text-center">
+              <!-- Mensagem injetada via JS -->
+            </p>
+          </div>
+        </div>
+
+        <!-- Detalhamento da Avaliação -->
+        <div class="bg-white rounded-3xl shadow-2xl border border-gray-200 p-6 md:p-8 w-full">
+          <h4 class="text-xl font-bold text-[#1A3E74] border-b border-gray-200 pb-3 mb-5">Detalhamento da Avaliação</h4>
+
+          <!-- Grid dinâmico dos exames preenchidos -->
+          <div id="detalhamento-exames" class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-3 text-sm text-gray-700 mb-8 bg-gray-50 p-5 rounded-xl border border-gray-100">
+             <!-- preenchido via JS -->
+          </div>
+
+          <!-- Diagnósticos NANDA e SAE -->
+          <div id="container-nanda" class="mb-8 hidden">
+            <!-- Injetado via JS -->
+          </div>
+
+          <!-- IMC Calculator -->
+          <div class="bg-white rounded-xl p-6 border border-gray-200 mb-8 shadow-sm">
+              <h5 class="font-bold text-[#1A3E74] text-lg mb-4"><i class="fa-solid fa-weight-scale mr-2"></i>Cálculo de IMC (Opcional)</h5>
+              <div class="flex flex-col sm:flex-row gap-4 items-center">
+                  <input type="number" id="imcPeso" placeholder="Peso (kg)" class="w-full sm:w-1/3 p-3 rounded-lg border-2 border-gray-300 outline-none focus:border-[#1A3E74] focus:ring-2 focus:ring-[#1A3E74]/20 transition-all">
+                  <input type="number" id="imcAltura" placeholder="Altura (m)" class="w-full sm:w-1/3 p-3 rounded-lg border-2 border-gray-300 outline-none focus:border-[#1A3E74] focus:ring-2 focus:ring-[#1A3E74]/20 transition-all" step="0.01">
+                  <button id="btnCalcularIMC" class="bg-[#4A90E2] hover:bg-[#3570b0] text-white font-bold py-3 px-6 rounded-lg transition-colors w-full sm:w-auto shadow-md hover:shadow-lg">Calcular IMC</button>
               </div>
-            </div>
-            <div>
-              <h4 class="font-bold text-gray-700 mb-2">📏 Cálculo de IMC (opcional)</h4>
-              <div class="flex gap-3 mb-3">
-                <input type="number" id="imcPeso" placeholder="Peso (kg)" class="w-1/2 p-2 rounded-lg border-2 border-gray-300">
-                <input type="number" id="imcAltura" placeholder="Altura (m)" class="w-1/2 p-2 rounded-lg border-2 border-gray-300" step="0.01">
-              </div>
-              <button id="btnCalcularIMC" class="bg-[#4A90E2] hover:bg-[#3570b0] text-white font-bold py-2 px-4 rounded-lg transition-colors">Calcular IMC</button>
-              <div id="imcResultado" class="mt-3 text-sm font-medium hidden"></div>
+              <div id="imcResultado" class="mt-4 text-base font-medium p-4 bg-blue-50 rounded-lg text-[#1A3E74] hidden border border-blue-100"></div>
+          </div>
+
+          <!-- Links Recomendados -->
+          <div class="bg-gradient-to-r from-gray-50 to-white p-6 rounded-xl border border-gray-200 shadow-sm mt-6">
+            <h5 class="font-bold text-[#1A3E74] text-base mb-5"><i class="fa-solid fa-link mr-2"></i>Calculadoras e Protocolos Recomendados</h5>
+            <div class="flex flex-col sm:flex-row gap-3">
+              <a href="/gasometria.html" class="flex-1 text-sm font-bold text-white bg-[#1A3E74] hover:bg-[#153260] py-3 px-4 rounded-xl text-center transition-all shadow-sm transform hover:-translate-y-1">
+                <i class="fa-solid fa-lungs mr-1"></i> Gasometria Arterial
+              </a>
+              <a href="/diagnosticosnanda.html" class="flex-1 text-sm font-bold text-[#1A3E74] bg-blue-50 border border-blue-200 hover:bg-blue-100 py-3 px-4 rounded-xl text-center transition-all shadow-sm transform hover:-translate-y-1">
+                <i class="fa-solid fa-book-medical mr-1"></i> Diagnósticos NANDA
+              </a>
+              <a href="/sofa.html" class="flex-1 text-sm font-bold text-gray-700 bg-gray-100 border border-gray-200 hover:bg-gray-200 py-3 px-4 rounded-xl text-center transition-all shadow-sm transform hover:-translate-y-1">
+                <i class="fa-solid fa-bed-pulse mr-1"></i> Escala SOFA (Sepse)
+              </a>
             </div>
           </div>
-          <div class="mt-6 pt-4 border-t border-gray-200 text-center">
-            <div id="recomendacaoFinal" class="text-base font-semibold p-4 rounded-lg"></div>
-          </div>
+
         </div>
       </section>
 
@@ -648,35 +691,148 @@
     });
 
     document.getElementById("btnCalcularGeral")?.addEventListener("click", () => {
-      const alteracoes = [];
-      const resumoAlteracoesDiv = document.getElementById("resumoAlteracoes");
-      const alteracoesList = document.getElementById("alteracoesList");
+      let countAlteracoes = 0;
+      let temSangramento = false, temPerfusao = false, temTroca = false, temGlicemia = false, temEletrolito = false, temHepatica = false, temRenal = false, temUrinaria = false, temVolDeficiente = false, temVolExcessivo = false, temInfeccao = false, temRespiratorio = false;
 
-      alteracoesList.innerHTML = "";
+      const detContainer = document.getElementById("detalhamento-exames");
+      let detHtml = "";
+      const preenchidosObj = Object.keys(examesValores);
 
-      for (const exame of examesDatabase) {
-        if (examesValores[exame.id] !== undefined && exame.interpretacaoAtual && !exame.interpretacaoAtual.includes("dentro do padrão") && !exame.interpretacaoAtual.includes("Não Reagente") && !exame.interpretacaoAtual.includes("Ausente") && !exame.interpretacaoAtual.includes("Normal") && !exame.interpretacaoAtual.includes("Negativo")) {
-          alteracoes.push(exame.interpretacaoAtual);
-        }
-      }
-
-      if (alteracoes.length === 0) {
-        alteracoesList.innerHTML = '<p class="text-white text-center">✅ Nenhuma alteração significativa detectada.</p>';
-        resumoAlteracoesDiv.innerHTML = '<span class="text-green-600">Nenhum exame alterado</span>';
-        document.getElementById("recomendacaoFinal").innerHTML = '<span class="text-green-600">✅ Continue cuidando da sua saúde! Mantenha hábitos saudáveis.</span>';
-        document.getElementById("recomendacaoFinal").className = "text-base font-semibold p-4 rounded-lg bg-green-50";
+      if (preenchidosObj.length === 0) {
+          detHtml = "<p class='col-span-full text-center text-gray-500'>Nenhum exame foi preenchido.</p>";
       } else {
-        alteracoesList.innerHTML = `<ul class="text-white space-y-1">${alteracoes.map(a => `<li>• ${a}</li>`).join("")}</ul>`;
-        resumoAlteracoesDiv.innerHTML = alteracoes.map(a => `<div class="text-amber-600 text-sm py-1 border-b border-gray-200">⚠️ ${a}</div>`).join("");
-        document.getElementById("recomendacaoFinal").innerHTML = '<span class="text-amber-600">⚠️ Recomendo procurar seu médico para avaliação dos resultados alterados.</span>';
-        document.getElementById("recomendacaoFinal").className = "text-base font-semibold p-4 rounded-lg bg-amber-50";
+          preenchidosObj.forEach(key => {
+              const exame = examesDatabase.find(e => e.id === key);
+              const interp = exame.interpretacaoAtual || "";
+              const isAlterado = !interp.includes("dentro do padrão") && !interp.includes("Não Reagente") && !interp.includes("Ausente") && !interp.includes("Normal") && !interp.includes("Negativo");
+
+              if (isAlterado) countAlteracoes++;
+
+              const colorClass = isAlterado ? "text-red-600 font-bold" : "text-gray-900 font-medium";
+              const iconStatus = isAlterado ? '<i class="fa-solid fa-circle-exclamation text-red-500 mr-2"></i>' : '<i class="fa-solid fa-check text-green-500 mr-2"></i>';
+
+              detHtml += `
+              <div class="flex flex-col border-b border-gray-200 pb-2 mb-2 bg-white p-3 rounded shadow-sm">
+                  <span class="font-semibold text-gray-600 text-xs uppercase mb-1">${exame.categoria}</span>
+                  <div class="flex items-center">
+                    ${iconStatus}
+                    <span class="${colorClass} text-sm flex-1">${examesValores[key]} ${exame.referencia.unidade || ''} - ${interp}</span>
+                  </div>
+              </div>`;
+
+              // Lógica para NANDA
+              if (isAlterado) {
+                  // Sangramento
+                  if(['tap', 'ttpa'].includes(key) && interp.includes("elevado")) temSangramento = true;
+                  if(key === 'plaquetas' && interp.includes("baixo")) temSangramento = true;
+
+                  // Perfusão
+                  if(['hemoglobina', 'hematocrito'].includes(key) && interp.includes("baixo")) temPerfusao = true;
+                  if(['colesteroltotal', 'ldl', 'triglicerideos'].includes(key) && interp.includes("elevado")) temPerfusao = true;
+
+                  // Troca de gases / Respiratorio
+                  if(['ph', 'po2', 'pco2', 'so2', 'hco3'].includes(key)) {
+                      temTroca = true;
+                      temRespiratorio = true;
+                  }
+
+                  // Glicemia
+                  if(['glicemiajejum', 'glicemiapos', 'hba1c'].includes(key)) temGlicemia = true;
+
+                  // Eletrólitos
+                  if(['sodio', 'potassio', 'calciototal', 'calcioionizado', 'magnesio', 'cloro'].includes(key)) temEletrolito = true;
+
+                  // Hepática
+                  if(['tgo', 'tgp', 'ggt', 'fosfatasealcalina', 'bilirrubinatotal', 'bilirrubinadireta'].includes(key)) temHepatica = true;
+
+                  // Renal
+                  if(['creatinina', 'ureia'].includes(key) && interp.includes("elevado")) temRenal = true;
+                  if(['tfg', 'clearance'].includes(key) && interp.includes("baixo")) temRenal = true;
+
+                  // Urinária
+                  if(key.startsWith('urina_')) temUrinaria = true;
+
+                  // Volume Deficiente
+                  if(key === 'hematocrito' && interp.includes("elevado")) temVolDeficiente = true;
+                  if(['ureia', 'creatinina'].includes(key) && interp.includes("elevado")) temVolDeficiente = true;
+                  if(key === 'urina_densidade' && interp.includes("elevado")) temVolDeficiente = true;
+
+                  // Volume Excessivo
+                  if(key === 'hematocrito' && interp.includes("baixo")) temVolExcessivo = true;
+                  if(key === 'sodio' && interp.includes("baixo")) temVolExcessivo = true;
+
+                  // Infecção
+                  if(key === 'leucocitos' && (interp.includes("elevado") || interp.includes("baixo"))) temInfeccao = true;
+                  if(key === 'neutrofilos' && interp.includes("elevado")) temInfeccao = true;
+                  if(['pcr', 'procalcitonina', 'urina_nitrito', 'urina_leucocitos'].includes(key) && (interp.includes("elevado") || interp.includes("Positivo"))) temInfeccao = true;
+              }
+          });
+      }
+      detContainer.innerHTML = detHtml;
+
+      // Montando Hero Card
+      const scoreValor = document.getElementById("score-valor");
+      const statusAlerta = document.getElementById("status-alerta");
+      const resultadoMensagem = document.getElementById("resultado-mensagem");
+
+      scoreValor.textContent = countAlteracoes;
+
+      if (countAlteracoes === 0 && preenchidosObj.length > 0) {
+        statusAlerta.textContent = "Sem Alterações Signifcativas";
+        statusAlerta.className = "inline-block px-6 py-2 rounded-full text-sm md:text-base font-black uppercase tracking-wider mb-6 shadow-sm relative z-10 bg-green-500 text-white";
+        resultadoMensagem.innerHTML = "<i class='fa-solid fa-thumbs-up mr-2 text-green-300'></i>Os exames preenchidos encontram-se dentro dos valores de referência. Continue mantendo bons hábitos de saúde e acompanhamento regular.";
+      } else if (countAlteracoes > 0) {
+        statusAlerta.textContent = "Alterações Detectadas";
+        statusAlerta.className = "inline-block px-6 py-2 rounded-full text-sm md:text-base font-black uppercase tracking-wider mb-6 shadow-sm relative z-10 bg-orange-500 text-white";
+        resultadoMensagem.innerHTML = "<i class='fa-solid fa-circle-exclamation mr-2 text-orange-200'></i>Foram identificadas alterações nos exames informados. Recomendamos avaliação e acompanhamento médico para correlação clínica adequada e direcionamento de cuidados.";
+      } else {
+        statusAlerta.textContent = "Nenhum Exame";
+        statusAlerta.className = "inline-block px-6 py-2 rounded-full text-sm md:text-base font-black uppercase tracking-wider mb-6 shadow-sm relative z-10 bg-gray-500 text-white";
+        resultadoMensagem.innerHTML = "Preencha os resultados dos exames acima para realizar a avaliação.";
       }
 
-      document.getElementById("resultadoGlobal-section").classList.remove("hidden");
-      document.getElementById("correlacao-section").classList.remove("hidden");
+      // Montando NANDA
+      let nandaList = [];
+      if(temSangramento) nandaList.push({ area: "Hematologia e Oxigenação", diag: "Risco de sangramento", rel: "Alterações nos fatores de coagulação (ex: TTPA ou TP prolongados, plaquetopenia)." });
+      if(temPerfusao) nandaList.push({ area: "Hematologia e Oxigenação", diag: "Perfusão tissular periférica ineficaz", rel: "Diminuição da concentração de hemoglobina/hematócrito ou alteração no perfil lipídico." });
+      if(temTroca) nandaList.push({ area: "Eliminação e Troca", diag: "Troca de gases prejudicada (00030)", rel: "Alterações nos gases no sangue arterial (ex: PaO2 diminuída, PaCO2 aumentada, saturação de O2 baixa) ou desequilíbrio no pH (CO2, HCO3)." });
+      if(temGlicemia) nandaList.push({ area: "Metabólico e Endócrino", diag: "Risco de nível de glicemia instável (00179)", rel: "Monitorização inadequada da glicemia, hemoglobina glicada (HbA1c) alterada ou histórico de oscilações." });
+      if(temEletrolito) nandaList.push({ area: "Metabólico e Endócrino", diag: "Risco de desequilíbrio eletrolítico", rel: "Níveis anormais de sódio, potássio, cálcio ou magnésio séricos (ex: hipocalemia, hipernatremia)." });
+      if(temHepatica) nandaList.push({ area: "Metabólico e Endócrino", diag: "Risco de função hepática prejudicada", rel: "Níveis alterados de enzimas hepáticas (TGO, TGP, Fosfatase Alcalina) e bilirrubinas." });
+      if(temRenal) nandaList.push({ area: "Função Renal e Excreção", diag: "Função renal prejudicada", rel: "Taxa de Filtração Glomerular diminuída e concentrações anormais de uréia e creatinina plasmáticas." });
+      if(temUrinaria) nandaList.push({ area: "Função Renal e Excreção", diag: "Eliminação urinária prejudicada", rel: "Densidade urinária alterada, presença de proteinúria ou alterações evidentes nos eletrólitos renais." });
+      if(temVolDeficiente) nandaList.push({ area: "Nutrição e Metabolismo", diag: "Volume de líquidos deficiente (00027)", rel: "Alterações laboratoriais como aumento do hematócrito, ureia, creatinina e densidade urinária." });
+      if(temVolExcessivo) nandaList.push({ area: "Nutrição e Metabolismo", diag: "Volume de líquidos excessivo (00026)", rel: "Hemodiluição (diminuição do hematócrito) ou hiponatremia, geralmente associados a exames renais alterados." });
+      if(temRespiratorio) nandaList.push({ area: "Eliminação e Troca", diag: "Padrão respiratório ineficaz (00032)", rel: "Alterações na gasometria arterial, como hipoxemia ou hipercapnia." });
+      if(temInfeccao) nandaList.push({ area: "Segurança e Proteção", diag: "Risco de infecção (00004)", rel: "Resultados de leucograma alterado (leucocitose ou leucopenia com desvio à esquerda), PCR elevado ou exames de urina positivos." });
+
+      const nandaContainer = document.getElementById("container-nanda");
+      if (nandaList.length > 0) {
+          let nandaHtml = nandaList.map(n => `
+              <div class="bg-blue-50/50 rounded-xl p-5 border border-blue-100 shadow-sm">
+                <h5 class="font-bold text-[#1A3E74] text-sm mb-2"><i class="fa-solid fa-bookmark mr-2 opacity-70"></i>${n.area}</h5>
+                <p class="text-base text-gray-800 font-bold mb-2">${n.diag}</p>
+                <p class="text-sm text-gray-700 leading-snug"><span class="font-semibold">Relacionado a/Evidenciado por:</span> ${n.rel}</p>
+              </div>
+          `).join("");
+
+          nandaContainer.innerHTML = `
+              <h4 class="text-lg font-bold text-[#1A3E74] mb-4 border-b border-gray-200 pb-2"><i class="fa-solid fa-stethoscope mr-2"></i>Diagnósticos de Enfermagem (NANDA) Sugeridos</h4>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  ${nandaHtml}
+              </div>
+          `;
+          nandaContainer.classList.remove("hidden");
+      } else {
+          nandaContainer.innerHTML = "";
+          nandaContainer.classList.add("hidden");
+      }
+
+      // Exibir Container Principal
+      document.getElementById("resultado-container").classList.remove("hidden");
       setTimeout(() => {
-        document.getElementById("resultadoGlobal-section").classList.remove("opacity-0");
-        document.getElementById("resultadoGlobal-section").classList.add("opacity-100");
+        document.getElementById("resultado-container").classList.remove("opacity-0");
+        document.getElementById("resultado-container").classList.add("opacity-100");
       }, 50);
     });
 
@@ -691,8 +847,9 @@
 
       renderizarExames();
 
-      document.getElementById("resultadoGlobal-section").classList.add("hidden");
-      document.getElementById("correlacao-section").classList.add("hidden");
+      document.getElementById("resultado-container").classList.add("hidden");
+      document.getElementById("resultado-container").classList.remove("opacity-100");
+      document.getElementById("resultado-container").classList.add("opacity-0");
       atualizarProgresso();
     });
 
@@ -710,7 +867,7 @@
         else classificacao = "Obesidade grau III";
 
         const div = document.getElementById("imcResultado");
-        div.innerHTML = `<span class="font-bold">IMC: ${imc.toFixed(1)} kg/m²</span> - ${classificacao}`;
+        div.innerHTML = `<i class="fa-solid fa-chart-line mr-2"></i><span class="font-bold">IMC: ${imc.toFixed(1)} kg/m²</span> - ${classificacao}`;
         div.classList.remove("hidden");
       }
     });
@@ -724,8 +881,10 @@
     .then(response => response.text())
     .then((data) => {
       document.getElementById("footer-placeholder").innerHTML = data;
-      carregarTraducoes('pt', 'footer.json');
-      carregarTraducoes('pt', 'cookies.json');
+      if(typeof carregarTraducoes === 'function') {
+        carregarTraducoes('pt', 'footer.json');
+        carregarTraducoes('pt', 'cookies.json');
+      }
     });
 </script>
 </body>
