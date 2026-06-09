@@ -55,6 +55,7 @@
     }
     .exam-card {
       transition: all 0.2s ease;
+      height: 100%;
     }
     .exam-card.locked input {
       background-color: #f0f4f8;
@@ -73,7 +74,7 @@
   </style>
 
   <!-- Google Analytics & Consent Mode -->
-  
+
 
   <script type="application/ld+json">
     {
@@ -110,14 +111,18 @@
 
 <body class="bg-gray-50 text-gray-800 font-sans">
   <div id="global-header-container"></div>
-<div id="language-selector-placeholder"></div>
-    </div>
-  </div>
+  <div id="language-selector-placeholder"></div>
   <div class="progress-container">
     <div class="progress-bar" id="progressBar"></div>
   </div>
 
-
+  <!-- BARRA DE PESQUISA FLUTUANTE -->
+  <div class="fixed top-24 right-4 z-[100] md:right-8 group">
+    <div class="bg-white/95 backdrop-blur-md shadow-[0_8px_30px_rgb(0,0,0,0.15)] border border-gray-200 rounded-full flex items-center p-2 w-48 md:w-64 transition-all duration-300 focus-within:ring-2 focus-within:ring-[#1A3E74]/50 focus-within:border-[#1A3E74]">
+      <i class="fa-solid fa-magnifying-glass text-[#1A3E74] text-lg ml-2"></i>
+      <input type="text" id="buscarExame" placeholder="Buscar exame..." class="bg-transparent border-none outline-none w-full text-sm text-gray-700 px-3 placeholder-gray-400">
+    </div>
+  </div>
 
   <main class="container mx-auto px-4 py-6 max-w-7xl">
     <nav class="flex text-sm text-gray-500 mb-6" aria-label="Breadcrumb">
@@ -150,7 +155,7 @@
         <h3 class="text-lg font-bold text-[#1A3E74] mb-3">Quantos exames você realizou?</h3>
         <div class="flex flex-col sm:flex-row gap-4 items-end">
           <div class="flex-1">
-            <input type="number" id="totalExames" class="w-full p-3 rounded-lg border-2 border-gray-300 focus:border-[#1A3E74] focus:ring-2 focus:ring-[#1A3E74]/20 outline-none transition-all" placeholder="Ex: 10" min="1" max="117">
+            <input type="number" id="totalExames" class="w-full p-3 rounded-lg border-2 border-gray-300 focus:border-[#1A3E74] focus:ring-2 focus:ring-[#1A3E74]/20 outline-none transition-all" placeholder="Ex: 10" min="1" max="150">
             <p class="text-xs text-gray-500 mt-1">Informe quantos exames você realizou para calcular o tempo médio de leitura</p>
           </div>
           <button id="btnConfirmarQuantidade" class="bg-[#1A3E74] hover:bg-[#153260] text-white font-bold py-3 px-6 rounded-xl transition-all"><i class="fa-solid fa-check mr-2"></i>Confirmar</button>
@@ -169,7 +174,8 @@
         </div>
       </section>
 
-      <div id="examesContainer" class="space-y-4"></div>
+      <!-- Container para exames -->
+      <div id="examesContainer" class="space-y-8"></div>
 
       <div class="flex flex-col sm:flex-row gap-4 mt-8 justify-center">
         <button type="button" id="btnCalcularGeral" class="bg-[#1A3E74] hover:bg-[#153260] text-white text-lg font-bold py-4 px-10 rounded-xl shadow-[0_10px_20px_rgba(26,62,116,0.3)] hover:shadow-[0_15px_25px_rgba(26,62,116,0.5)] transition-all transform hover:-translate-y-1 flex items-center justify-center gap-3 w-full sm:w-auto">
@@ -223,18 +229,17 @@
         <ul class="text-sm text-gray-600 space-y-4 list-none">
           <li class="pl-4 border-l-4 border-[#1A3E74]">Sociedade Brasileira de Patologia Clínica/Medicina Laboratorial. (2023). <em>Valores de Referência para Exames Laboratoriais</em>. Disponível em: <a href="https://www.sbpc.org.br" target="_blank" rel="noopener noreferrer" class="text-[#4A90E2] hover:underline">https://www.sbpc.org.br</a></li>
           <li class="pl-4 border-l-4 border-[#1A3E74]">Henry, J. B. (2021). <em>Clinical Diagnosis and Management by Laboratory Methods</em> (24ª ed.). Elsevier.</li>
+          <li class="pl-4 border-l-4 border-[#1A3E74]">Hospital das Clínicas da UFTM. <em>Procedimentos e Rotinas Operacionais Padrão: Urina Tipo 1</em>. Disponível em: <a href="https://www.gov.br/hubrasil/pt-br/hospitais-universitarios/regiao-sudeste/hc-uftm/documentos/procedimentos-e-rotinas-operacionais-padrao/pops/copy_of_POP.HCUFTMUACAP.008UrinaTipo1Urinaliseversao3.pdf" target="_blank" rel="noopener noreferrer" class="text-[#4A90E2] hover:underline">Acesso ao POP HCUFTM</a></li>
         </ul>
       </section>
     </div>
   </main>
 
-
-
   <script src="global-scripts.js"></script>
   <script src="/lang-selector.js" defer></script>
 
   <script>
-    // DATABASE COMPLETO COM TODOS OS 117+ EXAMES
+    // DATABASE COMPLETO COM TODOS OS EXAMES
     const examesDatabase = [
       // ==================== HEMOGRAMA COMPLETO ====================
       { id: "hemacias", nome: "Hemácias", categoria: "Hemograma Completo", descricao: "Avalia a quantidade de glóbulos vermelhos no sangue, responsáveis pelo transporte de oxigênio.", referencia: { minHomem: 4.5, maxHomem: 5.9, minMulher: 4.0, maxMulher: 5.2, unidade: "milhões/mm³", genero: true } },
@@ -272,6 +277,18 @@
       { id: "cistatinac", nome: "Cistatina C", categoria: "Função Renal", descricao: "Marcador mais sensível de função renal.", referencia: { min: 0.6, max: 1.0, unidade: "mg/L", genero: false } },
       { id: "tfg", nome: "TFG Estimada", categoria: "Função Renal", descricao: "Taxa de Filtração Glomerular - avalia função renal.", referencia: { min: 90, unidade: "mL/min/1.73m²", genero: false, minOnly: true } },
       { id: "clearance", nome: "Clearance de Creatinina", categoria: "Função Renal", descricao: "Depuração da creatinina - avalia filtração renal.", referencia: { min: 90, max: 140, unidade: "mL/min", genero: false } },
+
+      // ==================== URINA TIPO 1 ====================
+      { id: "urina_densidade", nome: "Densidade", categoria: "Urina Tipo 1", descricao: "Avalia a capacidade de concentração renal.", referencia: { min: 1.005, max: 1.030, unidade: "", genero: false } },
+      { id: "urina_ph", nome: "pH", categoria: "Urina Tipo 1", descricao: "Avalia a acidez da urina.", referencia: { min: 5.0, max: 8.0, unidade: "", genero: false } },
+      { id: "urina_proteinas", nome: "Proteínas", categoria: "Urina Tipo 1", descricao: "Pode indicar lesão renal ou doença sistêmica se presente.", referencia: { min: 0, unidade: "", genero: false, sorologia: true, valorNormal: "Ausente" } },
+      { id: "urina_glicose", nome: "Glicose", categoria: "Urina Tipo 1", descricao: "Pode indicar diabetes mellitus ou lesão tubular se presente.", referencia: { min: 0, unidade: "", genero: false, sorologia: true, valorNormal: "Ausente" } },
+      { id: "urina_cetonas", nome: "Corpos Cetônicos", categoria: "Urina Tipo 1", descricao: "Produto da degradação de gorduras, comum em jejum ou diabetes descompensado.", referencia: { min: 0, unidade: "", genero: false, sorologia: true, valorNormal: "Ausente" } },
+      { id: "urina_bilirrubina", nome: "Bilirrubina", categoria: "Urina Tipo 1", descricao: "Pode indicar doença hepática ou obstrução biliar.", referencia: { min: 0, unidade: "", genero: false, sorologia: true, valorNormal: "Ausente" } },
+      { id: "urina_urobilinogenio", nome: "Urobilinogênio", categoria: "Urina Tipo 1", descricao: "Degradação da bilirrubina no intestino.", referencia: { min: 0, unidade: "", genero: false, sorologia: true, valorNormal: "Normal" } },
+      { id: "urina_nitrito", nome: "Nitrito", categoria: "Urina Tipo 1", descricao: "A positividade frequentemente indica infecção do trato urinário por bactérias.", referencia: { min: 0, unidade: "", genero: false, sorologia: true, valorNormal: "Negativo" } },
+      { id: "urina_leucocitos", nome: "Leucócitos (Piocitos)", categoria: "Urina Tipo 1", descricao: "Células de defesa. Valores elevados indicam inflamação/infecção.", referencia: { min: 0, max: 10000, unidade: "/mL", genero: false, maxOnly: true } },
+      { id: "urina_hemacias", nome: "Hemácias", categoria: "Urina Tipo 1", descricao: "Presença de sangue na urina (hematúria).", referencia: { min: 0, max: 10000, unidade: "/mL", genero: false, maxOnly: true } },
 
       // ==================== ELETRÓLITOS E MINERAIS ====================
       { id: "sodio", nome: "Sódio", categoria: "Eletrólitos e Minerais", descricao: "Principal eletrólito extracelular - regula pressão osmótica.", referencia: { min: 135, max: 145, unidade: "mEq/L", genero: false } },
@@ -467,16 +484,21 @@
       for (const categoria of categorias) {
         const categoriaExames = examesDatabase.filter(e => e.categoria === categoria);
 
-        const categoriaDiv = document.createElement("div");
-        categoriaDiv.className = "mb-6";
-        categoriaDiv.innerHTML = `<h3 class="text-xl font-bold text-[#1A3E74] mb-3 border-b pb-2">${categoria}</h3>`;
-        container.appendChild(categoriaDiv);
+        // Wrapper da categoria
+        const categoriaWrapper = document.createElement("div");
+        categoriaWrapper.className = "categoria-wrapper";
+        categoriaWrapper.innerHTML = `<h3 class="text-xl font-bold text-[#1A3E74] mb-4 border-b pb-2">${categoria}</h3>`;
+
+        // Div do Grid para formar 2 colunas
+        const gridDiv = document.createElement("div");
+        gridDiv.className = "grid grid-cols-1 lg:grid-cols-2 gap-6";
 
         for (const exame of categoriaExames) {
           const card = document.createElement("div");
-          card.className = `bg-white rounded-xl p-4 shadow-[0_8px_20px_rgba(0,0,0,0.12)] border-2 border-gray-100 mb-4 exam-card ${examesLocked[exame.id] ? 'locked' : ''}`;
+          let isLocked = examesLocked[exame.id];
+          card.className = `bg-white rounded-xl p-5 shadow-[0_8px_20px_rgba(0,0,0,0.12)] border-2 border-gray-100 exam-card ${isLocked ? 'locked border-gray-200' : 'hover:border-gray-200 focus-within:border-[#1A3E74]'}`;
 
-          const valorAtual = examesValores[exame.id] || "";
+          const valorAtual = examesValores[exame.id] !== undefined ? examesValores[exame.id] : "";
           const interpretacao = exame.interpretacaoAtual || "";
 
           let refTexto = "";
@@ -494,58 +516,129 @@
             refTexto = `${exame.referencia.min}–${exame.referencia.max} ${exame.referencia.unidade}`;
           }
 
+          let btnContent = isLocked ? '<i class="fa-solid fa-pen"></i>' : 'OK';
+          let btnClasses = isLocked ? 'bg-gray-500 hover:bg-gray-600' : 'bg-[#1A3E74] hover:bg-[#153260]';
+          let inputClasses = isLocked ? 'bg-gray-100 text-gray-500 border-gray-200' : 'border-gray-300 focus:border-[#1A3E74] focus:ring-[#1A3E74]/20';
+
           card.innerHTML = `
-            <div class="flex flex-col md:flex-row justify-between gap-4">
+            <div class="flex flex-col md:flex-row justify-between gap-4 h-full">
               <div class="flex-1">
                 <h4 class="text-lg font-bold text-gray-800">${exame.nome}</h4>
-                <p class="text-xs text-gray-500 mt-1">Valor referência: ${refTexto}</p>
+                <p class="text-xs text-gray-500 mt-1 font-medium">Ref: ${refTexto}</p>
                 <p class="text-xs text-gray-600 mt-2 leading-relaxed">${exame.descricao}</p>
                 <div id="interp-${exame.id}" class="interpretation-badge ${interpretacao ? (interpretacao.includes("elevado") ? 'badge-high' : (interpretacao.includes("baixo") ? 'badge-low' : 'badge-normal')) : 'hidden'}">${interpretacao || ""}</div>
               </div>
-              <div class="flex gap-2 items-start">
-                <input type="text" id="input-${exame.id}" value="${valorAtual}" placeholder="Ex: 13.5" class="w-32 p-2 rounded-lg border-2 border-gray-300 focus:border-[#1A3E74] focus:ring-2 focus:ring-[#1A3E74]/20 outline-none transition-all" ${examesLocked[exame.id] ? 'disabled' : ''}>
-                <button class="btn-ok-exame bg-[#1A3E74] hover:bg-[#153260] text-white font-bold py-2 px-4 rounded-lg transition-all" data-id="${exame.id}">OK</button>
+              <div class="flex gap-2 items-start mt-3 md:mt-0">
+                <input type="text" id="input-${exame.id}" value="${valorAtual}" placeholder="Ex: ${exame.referencia.sorologia ? 'Ausente' : '13.5'}" class="w-full md:w-32 p-3 rounded-lg border-2 outline-none focus:ring-2 transition-all ${inputClasses}" ${isLocked ? 'disabled' : ''}>
+                <button class="btn-ok-exame ${btnClasses} text-white font-bold py-3 px-4 rounded-lg transition-all min-w-[54px]" data-id="${exame.id}">${btnContent}</button>
               </div>
             </div>
           `;
-          container.appendChild(card);
+          gridDiv.appendChild(card);
         }
+
+        categoriaWrapper.appendChild(gridDiv);
+        container.appendChild(categoriaWrapper);
       }
 
+      // Adicionando evento nos botões OK/Editar
       document.querySelectorAll(".btn-ok-exame").forEach(btn => {
         btn.addEventListener("click", (e) => {
           const id = btn.dataset.id;
           const exame = examesDatabase.find(e => e.id === id);
           const input = document.getElementById(`input-${id}`);
-          let valor = input.value.replace(",", ".");
-          const numValor = exame.referencia.sorologia || exame.referencia.variabilidade ? valor : parseFloat(valor);
+          const badgeDiv = document.getElementById(`interp-${id}`);
+          const card = btn.closest('.exam-card');
 
-          if (exame.referencia.sorologia) {
-            examesValores[id] = valor;
-            examesLocked[id] = true;
-            input.disabled = true;
-            const avaliacao = { status: "normal", texto: `${exame.nome}: ${valor || exame.referencia.valorNormal}` };
-            exame.interpretacaoAtual = avaliacao.texto;
-            const badgeDiv = document.getElementById(`interp-${id}`);
-            badgeDiv.textContent = avaliacao.texto;
-            badgeDiv.className = `interpretation-badge badge-normal`;
-            badgeDiv.classList.remove("hidden");
-          } else if (exame.referencia.variabilidade || !isNaN(numValor)) {
+          if (examesLocked[id]) {
+            // Desbloquear (Modo Edição)
+            examesLocked[id] = false;
+            input.disabled = false;
+            input.classList.remove("bg-gray-100", "text-gray-500", "border-gray-200");
+            input.classList.add("border-gray-300", "focus:border-[#1A3E74]", "focus:ring-[#1A3E74]/20");
+            input.focus();
+
+            btn.innerHTML = "OK";
+            btn.classList.remove("bg-gray-500", "hover:bg-gray-600");
+            btn.classList.add("bg-[#1A3E74]", "hover:bg-[#153260]");
+
+            card.classList.remove("locked", "border-gray-200");
+            card.classList.add("hover:border-gray-200", "focus-within:border-[#1A3E74]");
+
+            badgeDiv.classList.add("hidden");
+            delete exame.interpretacaoAtual;
+            delete examesValores[id];
+
+            atualizarProgresso();
+          } else {
+            // Confirmar e Bloquear
+            let valor = input.value.replace(",", ".");
+            if(valor.trim() === "") return;
+
+            const numValor = exame.referencia.sorologia || exame.referencia.variabilidade ? valor : parseFloat(valor);
+
             examesValores[id] = numValor;
             examesLocked[id] = true;
             input.disabled = true;
-            const avaliacao = avaliarExame(exame, numValor, "mulher");
+
+            input.classList.remove("border-gray-300", "focus:border-[#1A3E74]", "focus:ring-[#1A3E74]/20");
+            input.classList.add("bg-gray-100", "text-gray-500", "border-gray-200");
+
+            let avaliacao;
+            if (exame.referencia.sorologia) {
+              avaliacao = { status: "normal", texto: `${exame.nome}: ${valor}` };
+            } else if (exame.referencia.variabilidade || !isNaN(numValor)) {
+              avaliacao = avaliarExame(exame, numValor, "mulher");
+            } else {
+              avaliacao = { status: "normal", texto: `Valor registrado` };
+            }
+
             exame.interpretacaoAtual = avaliacao.texto;
-            const badgeDiv = document.getElementById(`interp-${id}`);
             badgeDiv.textContent = avaliacao.texto;
             badgeDiv.className = `interpretation-badge ${avaliacao.status === 'high' ? 'badge-high' : (avaliacao.status === 'low' ? 'badge-low' : 'badge-normal')}`;
             badgeDiv.classList.remove("hidden");
+
+            btn.innerHTML = '<i class="fa-solid fa-pen"></i>';
+            btn.classList.remove("bg-[#1A3E74]", "hover:bg-[#153260]");
+            btn.classList.add("bg-gray-500", "hover:bg-gray-600");
+
+            card.classList.add("locked", "border-gray-200");
+            card.classList.remove("hover:border-gray-200", "focus-within:border-[#1A3E74]");
+
+            atualizarProgresso();
           }
-          atualizarProgresso();
         });
       });
       atualizarProgresso();
     }
+
+    // Lógica da Barra de Pesquisa
+    document.getElementById("buscarExame")?.addEventListener("input", (e) => {
+      const termo = e.target.value.toLowerCase().trim();
+      const wrappers = document.querySelectorAll('.categoria-wrapper');
+
+      wrappers.forEach(wrapper => {
+        let hasVisibleCard = false;
+        const cards = wrapper.querySelectorAll('.exam-card');
+
+        cards.forEach(card => {
+          const nomeExame = card.querySelector('h4').textContent.toLowerCase();
+          if (nomeExame.includes(termo)) {
+            card.style.display = 'block';
+            hasVisibleCard = true;
+          } else {
+            card.style.display = 'none';
+          }
+        });
+
+        // Mostra ou esconde a categoria inteira se não houver exames visíveis dentro dela
+        if (hasVisibleCard) {
+          wrapper.style.display = 'block';
+        } else {
+          wrapper.style.display = 'none';
+        }
+      });
+    });
 
     document.getElementById("btnConfirmarQuantidade")?.addEventListener("click", () => {
       totalExamesCount = parseInt(document.getElementById("totalExames").value) || 0;
@@ -562,7 +655,7 @@
       alteracoesList.innerHTML = "";
 
       for (const exame of examesDatabase) {
-        if (examesValores[exame.id] && exame.interpretacaoAtual && !exame.interpretacaoAtual.includes("dentro do padrão") && !exame.interpretacaoAtual.includes("Não Reagente")) {
+        if (examesValores[exame.id] !== undefined && exame.interpretacaoAtual && !exame.interpretacaoAtual.includes("dentro do padrão") && !exame.interpretacaoAtual.includes("Não Reagente") && !exame.interpretacaoAtual.includes("Ausente") && !exame.interpretacaoAtual.includes("Normal") && !exame.interpretacaoAtual.includes("Negativo")) {
           alteracoes.push(exame.interpretacaoAtual);
         }
       }
@@ -593,7 +686,11 @@
       for (const exame of examesDatabase) {
         delete exame.interpretacaoAtual;
       }
+      document.getElementById("buscarExame").value = "";
+      document.querySelectorAll('.categoria-wrapper').forEach(w => w.style.display = 'block');
+
       renderizarExames();
+
       document.getElementById("resultadoGlobal-section").classList.add("hidden");
       document.getElementById("correlacao-section").classList.add("hidden");
       atualizarProgresso();
@@ -620,7 +717,6 @@
 
     renderizarExames();
   </script>
-  
 
 <div id="footer-placeholder"></div>
 <script>
