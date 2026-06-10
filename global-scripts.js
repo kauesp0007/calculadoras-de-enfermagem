@@ -57,24 +57,6 @@ function registrarServiceWorker() {
     });
   }
 }
-/**
- * Detecta o prefixo do idioma atual com base na pasta da URL (ex: "/en", "/es")
- * Retorna uma string vazia se o usuário estiver na raiz (Português)
- */
-function obterPrefixoIdioma() {
-  const path = window.location.pathname;
-  const partes = path.split('/');
-  const IDIOMAS_SUPORTADOS = [
-    'en', 'es', 'de', 'it', 'fr', 'hi', 'zh', 'ar', 'ja', 'ru', 'ko', 'tr', 'nl', 'pl', 'sv', 'id', 'vi', 'uk'
-  ];
-
-  // Se a primeira subpasta após a barra corresponder a um idioma suportado
-  if (partes.length > 1 && IDIOMAS_SUPORTADOS.includes(partes[1].toLowerCase())) {
-    return '/' + partes[1].toLowerCase();
-  }
-  return ''; // Sem prefixo para o Português (raiz)
-}
-
 
 /**
  * Orquestra de forma sequencial o carregamento de templates HTML
@@ -82,22 +64,19 @@ function obterPrefixoIdioma() {
  */
 async function orquestrarComponentesModulares() {
   try {
-    // Detecta a pasta do idioma atual (ex: "/en" ou "")
-    const prefixo = obterPrefixoIdioma();
-
-    // 1. Carrega o cabeçalho global correspondente ao idioma (ex: /en/menu-global.html)
-    const headerCarregado = await carregarEInjetarTemplate(`${prefixo}/menu-global.html`, "global-header-container");
+    // 1. Carrega o cabeçalho global primeiro
+    const headerCarregado = await carregarEInjetarTemplate("/menu-global.html", "global-header-container");
 
     if (headerCarregado) {
       inicializarMenuNavegacao();
 
-      // 2. O seletor de idiomas pode ser unificado na raiz (pois o lang-selector traduz-se sozinho)
+      // 2. Com o cabeçalho no DOM, o placeholder do seletor de idiomas existe. Buscamos ele agora.
       await carregarEInjetarTemplate("/_language_selector.html", "language-selector-placeholder");
       document.dispatchEvent(new CustomEvent("langSelectorLoaded"));
     }
 
-    // 3. Carrega os elementos de acessibilidade correspondentes ao idioma (ex: /en/global-body-elements.html)
-    const bodyElementsCarregados = await carregarEInjetarTemplate(`${prefixo}/global-body-elements.html`, null, true);
+    // 3. Carrega concorrentemente os elementos do corpo (barra de acessibilidade, modals)
+    const bodyElementsCarregados = await carregarEInjetarTemplate("/global-body-elements.html", null, true);
     if (bodyElementsCarregados) {
       inicializarFuncoesGlobaisAcessibilidade();
     }
@@ -105,7 +84,6 @@ async function orquestrarComponentesModulares() {
     console.error("Erro crítico na orquestração de componentes do sistema:", erro);
   }
 }
-
 
 /**
  * Helper genérico para buscar e injetar conteúdo HTML de forma assíncrona
@@ -211,16 +189,10 @@ const GestorConsentimento = {
   verificarConsentimentoInicial() {
     const consentSalvo = this.getChave();
     if (consentSalvo === "accepted") {
-      this.atualizarConsentsGTM({
-        analytics_storage: "granted",
-        ad_storage: "granted"
-      });
+      this.atualizarConsentsGTM({ analytics_storage: "granted", ad_storage: "granted" });
       this.esconderBanner();
     } else if (consentSalvo === "refused") {
-      this.atualizarConsentsGTM({
-        analytics_storage: "denied",
-        ad_storage: "denied"
-      });
+      this.atualizarConsentsGTM({ analytics_storage: "denied", ad_storage: "denied" });
       this.esconderBanner();
     } else {
       setTimeout(() => this.exibirBanner(), 1000);
@@ -247,7 +219,8 @@ document.addEventListener("click", (evento) => {
     });
     if (typeof window.acceptAllCookies === "function") window.acceptAllCookies();
     GestorConsentimento.esconderBanner();
-  } else if (id === "refuseAllCookiesBtn") {
+  }
+  else if (id === "refuseAllCookiesBtn") {
     localStorage.setItem("cookieConsent", "refused");
     GestorConsentimento.atualizarConsentsGTM({
       analytics_storage: "denied",
@@ -257,18 +230,22 @@ document.addEventListener("click", (evento) => {
     });
     if (typeof window.rejectAllCookies === "function") window.rejectAllCookies();
     GestorConsentimento.esconderBanner();
-  } else if (id === "manageCookiesBtn" || id === "openGranularCookieModalBtn") {
+  }
+  else if (id === "manageCookiesBtn" || id === "openGranularCookieModalBtn") {
     GestorConsentimento.abrirConfiguradorGranular();
-  } else if (id === "granularModalCloseButton" || id === "cancelGranularPreferencesBtn") {
+  }
+  else if (id === "granularModalCloseButton" || id === "cancelGranularPreferencesBtn") {
     GestorConsentimento.fecharConfiguradorGranular();
-  } else if (id === "saveGranularPreferencesBtn") {
+  }
+  else if (id === "saveGranularPreferencesBtn") {
     GestorConsentimento.salvarPreferenciasGranulares();
   }
   // Sincronização de clique com o modal integrado do footer (cookie-modal)
   else if (id === "openGranularCookieModalBtn") {
     const modalIntegrado = document.getElementById("cookie-modal");
     if (modalIntegrado) modalIntegrado.classList.remove("hidden");
-  } else if (id === "save-cookies") {
+  }
+  else if (id === "save-cookies") {
     const modalIntegrado = document.getElementById("cookie-modal");
     if (modalIntegrado) modalIntegrado.classList.add("hidden");
   }
@@ -348,18 +325,10 @@ function inicializarFuncoesGlobaisAcessibilidade() {
   };
 
   const synth = window.speechSynthesis;
-  const readingSpeeds = [{
-      rate: 0.8,
-      label: "Lenta"
-    },
-    {
-      rate: 1.0,
-      label: "Normal"
-    },
-    {
-      rate: 1.5,
-      label: "Rápida"
-    }
+  const readingSpeeds = [
+    { rate: 0.8, label: "Lenta" },
+    { rate: 1.0, label: "Normal" },
+    { rate: 1.5, label: "Rápida" }
   ];
 
   document.addEventListener("focusin", e => {
@@ -368,9 +337,7 @@ function inicializarFuncoesGlobaisAcessibilidade() {
 
   const anunciarAcessibilidade = (msg) => {
     liveRegion.textContent = msg;
-    setTimeout(() => {
-      liveRegion.textContent = "";
-    }, 2500);
+    setTimeout(() => { liveRegion.textContent = ""; }, 2500);
   };
 
   // Funções de Aplicação de Estados Visuais
@@ -509,62 +476,33 @@ function inicializarFuncoesGlobaisAcessibilidade() {
   };
 
   // Mapeamento Direto dos Botões das duas barras (Desktop e Mobile PWA)
-  const acoesMapeadas = [{
-      ids: ["btnAlternarTamanhoFonte", "btnAlternarTamanhoFontePWA"],
-      run: () => applyFontSize((state.fontLevel % 5) + 1)
-    },
-    {
-      ids: ["btnAlternarEspacamentoLinha", "btnAlternarEspacamentoLinhaPWA"],
-      run: () => applyLineHeight((state.lineLevel % 3) + 1)
-    },
-    {
-      ids: ["btnAlternarEspacamentoLetra", "btnAlternarEspacamentoLetraPWA"],
-      run: () => applyLetterSpacing((state.stateLevel % 3) + 1)
-    },
-    {
-      ids: ["btnAlternarContraste", "btnAlternarContrastePWA"],
-      run: () => {
+  const acoesMapeadas = [
+    { ids: ["btnAlternarTamanhoFonte", "btnAlternarTamanhoFontePWA"], run: () => applyFontSize((state.fontLevel % 5) + 1) },
+    { ids: ["btnAlternarEspacamentoLinha", "btnAlternarEspacamentoLinhaPWA"], run: () => applyLineHeight((state.lineLevel % 3) + 1) },
+    { ids: ["btnAlternarEspacamentoLetra", "btnAlternarEspacamentoLetraPWA"], run: () => applyLetterSpacing((state.stateLevel % 3) + 1) },
+    { ids: ["btnAlternarContraste", "btnAlternarContrastePWA"], run: () => {
         body.classList.toggle("contraste-alto");
         anunciarAcessibilidade("Alto contraste " + (body.classList.contains("contraste-alto") ? "ativado" : "desativado"));
         localStorage.setItem("highContrast", body.classList.contains("contraste-alto"));
       }
     },
-    {
-      ids: ["btnAlternarModoEscuro", "btnAlternarModoEscuroPWA"],
-      run: () => {
+    { ids: ["btnAlternarModoEscuro", "btnAlternarModoEscuroPWA"], run: () => {
         body.classList.toggle("dark-mode");
         anunciarAcessibilidade("Modo escuro " + (body.classList.contains("dark-mode") ? "ativado" : "desativado"));
         localStorage.setItem("darkMode", body.classList.contains("dark-mode"));
       }
     },
-    {
-      ids: ["btnAlternarFonteDislexia", "btnAlternarFonteDislexiaPWA"],
-      run: () => {
+    { ids: ["btnAlternarFonteDislexia", "btnAlternarFonteDislexiaPWA"], run: () => {
         body.classList.toggle("fonte-dislexia");
         anunciarAcessibilidade("Fonte para dislexia " + (body.classList.contains("fonte-dislexia") ? "ativada" : "desativada"));
         localStorage.setItem("dyslexiaFont", body.classList.contains("fonte-dislexia"));
       }
     },
-    {
-      ids: ["btnResetarAcessibilidade", "btnResetarAcessibilidadePWA"],
-      run: redefinirTudoAcessibilidade
-    },
-    {
-      ids: ["btnToggleLeitura"],
-      run: alternarReproducaoLeitura
-    },
-    {
-      ids: ["btnReiniciarLeitura"],
-      run: reiniciarLeitura
-    },
-    {
-      ids: ["btnAlternarVelocidadeLeitura"],
-      run: () => applyReadingSpeed((state.speedLevel % readingSpeeds.length) + 1)
-    },
-    {
-      ids: ["btnReadFocused"],
-      run: falarElementoFocado
-    }
+    { ids: ["btnResetarAcessibilidade", "btnResetarAcessibilidadePWA"], run: redefinirTudoAcessibilidade },
+    { ids: ["btnToggleLeitura"], run: alternarReproducaoLeitura },
+    { ids: ["btnReiniciarLeitura"], run: reiniciarLeitura },
+    { ids: ["btnAlternarVelocidadeLeitura"], run: () => applyReadingSpeed((state.speedLevel % readingSpeeds.length) + 1) },
+    { ids: ["btnReadFocused"], run: falarElementoFocado }
   ];
 
   // Atribuição Dinâmica de Listeners
@@ -635,15 +573,10 @@ function inicializarFuncoesGlobaisAcessibilidade() {
         });
         scrollTicking = true;
       }
-    }, {
-      passive: true
-    });
+    }, { passive: true });
 
     backToTopBtn.addEventListener("click", () => {
-      window.scrollTo({
-        top: 0,
-        behavior: "smooth"
-      });
+      window.scrollTo({ top: 0, behavior: "smooth" });
     });
   }
 
@@ -667,21 +600,13 @@ function inicializarTooltips() {
     tooltip.innerText = texto;
     elemento.appendChild(tooltip);
 
-    const exibir = () => {
-      tooltip.style.opacity = "1";
-    };
-    const ocultar = () => {
-      tooltip.style.opacity = "0";
-    };
+    const exibir = () => { tooltip.style.opacity = "1"; };
+    const ocultar = () => { tooltip.style.opacity = "0"; };
 
     elemento.addEventListener("mouseenter", exibir);
     elemento.addEventListener("mouseleave", ocultar);
-    elemento.addEventListener("touchstart", exibir, {
-      passive: true
-    });
-    elemento.addEventListener("touchend", () => setTimeout(ocultar, 2000), {
-      passive: true
-    });
+    elemento.addEventListener("touchstart", exibir, { passive: true });
+    elemento.addEventListener("touchend", () => setTimeout(ocultar, 2000), { passive: true });
   });
 }
 
@@ -708,9 +633,9 @@ function gerarPDFGlobal(parametros) {
 function executarLogicaDoHtml2Pdf(parametros) {
   const {
     titulo = "Relatório da Calculadora",
-      subtitulo = "Relatório de Cálculo Assistencial",
-      nomeArquivo = "relatorio.pdf",
-      seletorConteudo = ".main-content-wrapper"
+    subtitulo = "Relatório de Cálculo Assistencial",
+    nomeArquivo = "relatorio.pdf",
+    seletorConteudo = ".main-content-wrapper"
   } = parametros;
 
   const wrapperElement = document.querySelector(seletorConteudo);
@@ -762,23 +687,10 @@ function executarLogicaDoHtml2Pdf(parametros) {
   const configuracoesPDF = {
     margin: [0.5, 0.5, 0.5, 0.5],
     filename: nomeArquivo,
-    image: {
-      type: "jpeg",
-      quality: 0.98
-    },
-    html2canvas: {
-      scale: 2,
-      scrollY: 0,
-      useCORS: true
-    },
-    jsPDF: {
-      unit: "in",
-      format: "a4",
-      orientation: "portrait"
-    },
-    pagebreak: {
-      avoid: ["p", "h1", "h2", "h3", "div", "section"]
-    }
+    image: { type: "jpeg", quality: 0.98 },
+    html2canvas: { scale: 2, scrollY: 0, useCORS: true },
+    jsPDF: { unit: "in", format: "a4", orientation: "portrait" },
+    pagebreak: { avoid: ["p", "h1", "h2", "h3", "div", "section"] }
   };
 
   window.html2pdf().set(configuracoesPDF).from(templatePDF).save().catch(err => {
@@ -857,9 +769,7 @@ function initLazyLoadServices() {
   window.__adsenseLoaded = false;
   window.dataLayer = window.dataLayer || [];
 
-  function gtag() {
-    window.dataLayer.push(arguments);
-  }
+  function gtag() { window.dataLayer.push(arguments); }
   window.gtag = gtag;
 
   function loadAnalytics() {
@@ -918,7 +828,6 @@ function initLazyLoadServices() {
   }
 
   let userInteracted = false;
-
   function onUserInteraction() {
     if (userInteracted) return;
     userInteracted = true;
@@ -932,18 +841,10 @@ function initLazyLoadServices() {
   }
 
   if (!adsBlocked) {
-    window.addEventListener("scroll", onUserInteraction, {
-      passive: true
-    });
-    window.addEventListener("mousemove", onUserInteraction, {
-      passive: true
-    });
-    window.addEventListener("touchstart", onUserInteraction, {
-      passive: true
-    });
-    window.addEventListener("keydown", onUserInteraction, {
-      passive: true
-    });
+    window.addEventListener("scroll", onUserInteraction, { passive: true });
+    window.addEventListener("mousemove", onUserInteraction, { passive: true });
+    window.addEventListener("touchstart", onUserInteraction, { passive: true });
+    window.addEventListener("keydown", onUserInteraction, { passive: true });
 
     // Fallback de segurança temporizada para garantir rastreamento
     setTimeout(onUserInteraction, 8500);
@@ -1031,10 +932,7 @@ async function carregarTraducoes(idioma, arquivoJson) {
     if (!resposta.ok) throw new Error();
     const novosDados = await resposta.json();
 
-    window.traducoes = {
-      ...window.traducoes,
-      ...novosDados
-    };
+    window.traducoes = { ...window.traducoes, ...novosDados };
     aplicarTraducoes();
   } catch (error) {
     console.warn(`Localização JSON de tradução não encontrada (${idioma}/${arquivoJson})`);
