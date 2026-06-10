@@ -8,7 +8,7 @@ const path = require('path');
 // 1. SUBSTITUIÇÃO SIMPLES (REPLACE)
 // Se achar o 'target', substitui a linha toda pela 'newTag', mantendo o recuo.
 const REGRA_REPLACE = [
-    { target: '', newTag: '' },
+    { target: '<script src="/global-scripts.js"></script>', newTag: '<script src="/global-scripts.js" defer=""></script>' },
 ];
 
 // 2. EXCLUSÃO DE LINHAS (DELETE)
