@@ -8,7 +8,7 @@ const path = require('path');
 // 1. SUBSTITUIÇÃO SIMPLES (REPLACE)
 // Se achar o 'target', substitui a linha toda pela 'newTag', mantendo o recuo.
 const REGRA_REPLACE = [
-    { target: '', newTag: '' },
+    { target: '<script src="/ce-calculadora-padrao.js"></script>', newTag: '<script src="/ce-calculadora-padrao.js" defer></script>' },
 ];
 
 // 2. EXCLUSÃO DE LINHAS (DELETE)
@@ -27,7 +27,7 @@ const REGRA_UNIFY = [
 // - Se 'moveTarget' tiver valor: Move a linha existente para baixo da âncora.
 // - Se 'moveTarget' estiver vazio e 'newTag' tiver valor: Cria uma linha nova abaixo da âncora.
 const REGRA_MOVE = [
-    { moveTarget: '"lang-selector.js"', newTag: '', anchorTarget: '"global-scripts.js"' }
+    { moveTarget: '', newTag: '', anchorTarget: '' }
 ];
 
 // =============================================================================
