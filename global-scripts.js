@@ -1,630 +1,733 @@
-/* =========================
-   Camada 4 — Anti-bot leve
-   ========================= */
-(function () {
+/**
+ * ==========================================================================
+ * CALCULADORAS DE ENFERMAGEM — ENGINE GLOBAL (V3.0.0)
+ * Totalmente otimizado para Core Web Vitals (INP, CLS, LCP)
+ * Livre de dependências (Zero jQuery) & Protegido contra Race Conditions
+ * ==========================================================================
+ */
+
+// --- FASE 0: EXECUÇÃO CRÍTICA IMEDIATA (Bloqueador de CLS de Fonte) ---
+(function aplicarTamanhoFonteImediato() {
+  try {
+    const savedFontSize = parseInt(localStorage.getItem("fontSize") || "1", 10);
+    const fontSizes = ["1em", "1.15em", "1.3em", "1.5em", "2em"];
+    const idx = Math.min(Math.max(savedFontSize, 1), fontSizes.length);
+    document.documentElement.style.fontSize = fontSizes[idx - 1];
+  } catch (e) {
+    console.warn("Falha ao carregar tamanho de fonte pré-render:", e);
+  }
+})();
+
+// --- FASE 1: CAMADA ANTI-BOT SILENCIOSA ---
+(function executarProtecaoAntiBot() {
   try {
     const ua = navigator.userAgent || "";
-    const isBotLike =
+    const isBot =
       navigator.webdriver === true ||
       ua.length < 10 ||
       !navigator.language ||
-      (screen && (screen.width === 0 || screen.height === 0));
+      (window.screen && (window.screen.width === 0 || window.screen.height === 0));
 
-    if (isBotLike) {
-      // Redireciona para home (não quebra SEO e evita loop)
-      if (location.pathname !== "/") {
-        location.replace("/");
-      }
+    if (isBot && location.pathname !== "/") {
+      location.replace("/");
     }
   } catch (e) {
-    // ignora erros
+    // Falha silenciosa para evitar quebra de fluxos normais
   }
 })();
 
-// Executar IMEDIATAMENTE para evitar flash de tamanho de fonte
-(function () {
-  const savedFontSize = parseInt(localStorage.getItem("fontSize") || "1", 10);
-  const fontSizes = ["1em", "1.15em", "1.3em", "1.5em", "2em"];
-  const idx = Math.min(Math.max(savedFontSize, 1), fontSizes.length);
-  document.documentElement.style.fontSize = fontSizes[idx - 1];
-})();
-// Registra o Service Worker
-"serviceWorker" in navigator && window.addEventListener("load", () => {
-  navigator.serviceWorker.register("/sw.js").then(e => {
-    console.log("Service Worker registado com sucesso:", e.scope)
-  }, e => {
-    console.log("Registo do Service Worker falhou:", e)
-  })
+// --- FASE 2: GESTÃO CENTRALIZADA DE ESTADO E INICIALIZAÇÃO ---
+document.addEventListener("DOMContentLoaded", () => {
+  // Inicialização do Service Worker para PWA
+  registrarServiceWorker();
+
+  // Orquestração de carregamento assíncrono sem concorrência de renderização
+  orquestrarComponentesModulares();
 });
 
-function gerarPDFGlobal(e) {
-  const url = "https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js";
-  console.log("Verificando a biblioteca html2pdf...");
+/**
+ * Registra o Service Worker de forma segura e assíncrona
+ */
+function registrarServiceWorker() {
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", () => {
+      navigator.serviceWorker.register("/sw.js")
+        .then(reg => console.log("SW registrado com sucesso na rota:", reg.scope))
+        .catch(err => console.warn("Registro do SW falhou:", err));
+    });
+  }
+}
+
+/**
+ * Orquestra de forma sequencial o carregamento de templates HTML
+ * para impedir colisões estruturais no DOM (Race Conditions)
+ */
+async function orquestrarComponentesModulares() {
+  try {
+    // 1. Carrega o cabeçalho global primeiro
+    const headerCarregado = await carregarEInjetarTemplate("/menu-global.html", "global-header-container");
+
+    if (headerCarregado) {
+      inicializarMenuNavegacao();
+
+      // 2. Com o cabeçalho no DOM, o placeholder do seletor de idiomas existe. Buscamos ele agora.
+      await carregarEInjetarTemplate("/_language_selector.html", "language-selector-placeholder");
+      document.dispatchEvent(new CustomEvent("langSelectorLoaded"));
+    }
+
+    // 3. Carrega concorrentemente os elementos do corpo (barra de acessibilidade, modals)
+    const bodyElementsCarregados = await carregarEInjetarTemplate("/global-body-elements.html", null, true);
+    if (bodyElementsCarregados) {
+      inicializarFuncoesGlobaisAcessibilidade();
+    }
+  } catch (erro) {
+    console.error("Erro crítico na orquestração de componentes do sistema:", erro);
+  }
+}
+
+/**
+ * Helper genérico para buscar e injetar conteúdo HTML de forma assíncrona
+ */
+async function carregarEInjetarTemplate(url, targetId, appendToBody = false) {
+  try {
+    const resposta = await fetch(url);
+    if (!resposta.ok) throw new Error(`HTTP ${resposta.status} ao buscar ${url}`);
+    const html = await resposta.text();
+
+    return new Promise((resolve) => {
+      window.requestAnimationFrame(() => {
+        if (appendToBody) {
+          document.body.insertAdjacentHTML("beforeend", html);
+        } else {
+          const container = document.getElementById(targetId);
+          if (container) {
+            container.innerHTML = html;
+          } else {
+            console.warn(`Elemento container #${targetId} não foi encontrado para injetar o template.`);
+            resolve(false);
+            return;
+          }
+        }
+        resolve(true);
+      });
+    });
+  } catch (err) {
+    console.warn(`Falha na ingestão do módulo dinâmico (${url}):`, err);
+    return false;
+  }
+}
+
+// --- FASE 3: MECANISMO DE CONFORMIDADE, LGPD E COOKIES ---
+const GestorConsentimento = {
+  getChave() {
+    return localStorage.getItem("cookieConsent");
+  },
+
+  atualizarConsentsGTM(consentiment) {
+    if (typeof window.gtag === "function") {
+      window.gtag("consent", "update", consentiment);
+    }
+    try {
+      localStorage.setItem("analytics_storage", consentiment.analytics_storage);
+      localStorage.setItem("ad_storage", consentiment.ad_storage);
+    } catch (e) {}
+  },
+
+  esconderBanner() {
+    const banner = document.getElementById("cookieConsentBanner");
+    if (banner) banner.classList.remove("show");
+  },
+
+  exibirBanner() {
+    const banner = document.getElementById("cookieConsentBanner");
+    if (banner) banner.classList.add("show");
+  },
+
+  abrirConfiguradorGranular() {
+    const modal = document.getElementById("granularCookieModal");
+    const checkAnalytics = document.getElementById("cookieAnalytics");
+    const checkMarketing = document.getElementById("cookieMarketing");
+
+    if (modal) {
+      if (checkAnalytics) checkAnalytics.checked = localStorage.getItem("analytics_storage") === "granted";
+      if (checkMarketing) checkMarketing.checked = localStorage.getItem("ad_storage") === "granted";
+
+      modal.classList.remove("hidden");
+      window.requestAnimationFrame(() => modal.classList.add("show"));
+    }
+  },
+
+  fecharConfiguradorGranular() {
+    const modal = document.getElementById("granularCookieModal");
+    if (modal) {
+      modal.classList.remove("show");
+      setTimeout(() => modal.classList.add("hidden"), 300);
+    }
+  },
+
+  salvarPreferenciasGranulares() {
+    const checkAnalytics = document.getElementById("cookieAnalytics");
+    const checkMarketing = document.getElementById("cookieMarketing");
+
+    const consent = {
+      analytics_storage: (checkAnalytics && checkAnalytics.checked) ? "granted" : "denied",
+      ad_storage: (checkMarketing && checkMarketing.checked) ? "granted" : "denied"
+    };
+
+    this.atualizarConsentsGTM(consent);
+    localStorage.setItem("cookieConsent", "managed");
+
+    // Sincroniza com as rotinas do Lazy Loader
+    if (typeof window.applyConsent === "function") {
+      window.applyConsent(consent);
+    }
+
+    this.fecharConfiguradorGranular();
+    this.esconderBanner();
+  },
+
+  verificarConsentimentoInicial() {
+    const consentSalvo = this.getChave();
+    if (consentSalvo === "accepted") {
+      this.atualizarConsentsGTM({ analytics_storage: "granted", ad_storage: "granted" });
+      this.esconderBanner();
+    } else if (consentSalvo === "refused") {
+      this.atualizarConsentsGTM({ analytics_storage: "denied", ad_storage: "denied" });
+      this.esconderBanner();
+    } else {
+      setTimeout(() => this.exibirBanner(), 1000);
+    }
+  }
+};
+
+// --- FASE 4: DELEGAÇÃO DE EVENTOS DE CLIQUE GLOBAL (EVITA MULTI-LISTENERS) ---
+document.addEventListener("click", (evento) => {
+  const elemento = evento.target;
+  const botao = elemento.closest("button, a");
+  if (!botao) return;
+
+  const id = botao.id;
+
+  // Gerenciamento de Cookies (Delegado)
+  if (id === "acceptAllCookiesBtn") {
+    localStorage.setItem("cookieConsent", "accepted");
+    GestorConsentimento.atualizarConsentsGTM({
+      analytics_storage: "granted",
+      ad_storage: "granted",
+      ad_user_data: "granted",
+      ad_personalization: "granted"
+    });
+    if (typeof window.acceptAllCookies === "function") window.acceptAllCookies();
+    GestorConsentimento.esconderBanner();
+  }
+  else if (id === "refuseAllCookiesBtn") {
+    localStorage.setItem("cookieConsent", "refused");
+    GestorConsentimento.atualizarConsentsGTM({
+      analytics_storage: "denied",
+      ad_storage: "denied",
+      ad_user_data: "denied",
+      ad_personalization: "denied"
+    });
+    if (typeof window.rejectAllCookies === "function") window.rejectAllCookies();
+    GestorConsentimento.esconderBanner();
+  }
+  else if (id === "manageCookiesBtn" || id === "openGranularCookieModalBtn") {
+    GestorConsentimento.abrirConfiguradorGranular();
+  }
+  else if (id === "granularModalCloseButton" || id === "cancelGranularPreferencesBtn") {
+    GestorConsentimento.fecharConfiguradorGranular();
+  }
+  else if (id === "saveGranularPreferencesBtn") {
+    GestorConsentimento.salvarPreferenciasGranulares();
+  }
+  // Sincronização de clique com o modal integrado do footer (cookie-modal)
+  else if (id === "openGranularCookieModalBtn") {
+    const modalIntegrado = document.getElementById("cookie-modal");
+    if (modalIntegrado) modalIntegrado.classList.remove("hidden");
+  }
+  else if (id === "save-cookies") {
+    const modalIntegrado = document.getElementById("cookie-modal");
+    if (modalIntegrado) modalIntegrado.classList.add("hidden");
+  }
+});
+
+// --- FASE 5: OPERAÇÃO DA BARRA DE NAVEGAÇÃO MOBILE & DESKTOP ---
+function inicializarMenuNavegacao() {
+  const hamburguer = document.getElementById("hamburgerButton");
+  const menuOffCanvas = document.getElementById("offCanvasMenu");
+  const overlay = document.getElementById("menuOverlay");
+  const closeBtn = document.getElementById("closeOffCanvasMenu") || document.getElementById("closeMenuButton");
+
+  const abrirMenu = () => {
+    if (menuOffCanvas) {
+      menuOffCanvas.classList.add("is-open");
+      menuOffCanvas.classList.remove("-translate-x-full");
+    }
+    if (overlay) {
+      overlay.style.display = "block";
+      overlay.classList.add("is-open");
+    }
+  };
+
+  const fecharMenu = () => {
+    if (menuOffCanvas) {
+      menuOffCanvas.classList.remove("is-open");
+      menuOffCanvas.classList.add("-translate-x-full");
+    }
+    if (overlay) {
+      overlay.style.display = "none";
+      overlay.classList.remove("is-open");
+    }
+  };
+
+  hamburguer?.addEventListener("click", abrirMenu);
+  overlay?.addEventListener("click", fecharMenu);
+  closeBtn?.addEventListener("click", fecharMenu);
+
+  // Submenus expansivos (Accordion no Mobile)
+  menuOffCanvas?.querySelectorAll(".has-submenu > a, .has-submenu > button").forEach(elem => {
+    elem.addEventListener("click", (e) => {
+      e.preventDefault();
+      const submenu = elem.nextElementSibling;
+      if (submenu && submenu.classList.contains("submenu")) {
+        submenu.classList.toggle("open");
+      }
+    });
+  });
+}
+
+// --- FASE 6: MOTOR DE ACESSIBILIDADE INTEGRADO E RESPONSIVO ---
+function inicializarFuncoesGlobaisAcessibilidade() {
+  const body = document.body;
+  const liveRegion = document.createElement("div");
+  liveRegion.setAttribute("aria-live", "polite");
+  liveRegion.className = "sr-only";
+  body.appendChild(liveRegion);
+
+  const fontSizeText = document.getElementById("fontSizeText");
+  const lineHeightText = document.getElementById("lineHeightText");
+  const letterSpacingText = document.getElementById("letterSpacingText");
+  const readingSpeedText = document.getElementById("readingSpeedText");
+
+  const pwaAcessibilidadeBar = document.getElementById("pwaAcessibilidadeBar");
+  const accessibilityToggleButton = document.getElementById("accessibilityToggleButton");
+  const pwaAcessibilidadeCloseBtn = document.getElementById("pwaAcessibilidadeCloseBtn");
+  const menuOverlay = document.getElementById("menuOverlay");
+
+  let state = {
+    fontLevel: parseInt(localStorage.getItem("fontSize") || "1", 10),
+    lineLevel: parseInt(localStorage.getItem("lineHeight") || "1", 10),
+    letterLevel: parseInt(localStorage.getItem("letterSpacing") || "1", 10),
+    speedLevel: parseInt(localStorage.getItem("readingSpeed") || "1", 10),
+    focusedElement: null,
+    isPlayingSpeech: false,
+    isPausedSpeech: false
+  };
+
+  const synth = window.speechSynthesis;
+  const readingSpeeds = [
+    { rate: 0.8, label: "Lenta" },
+    { rate: 1.0, label: "Normal" },
+    { rate: 1.5, label: "Rápida" }
+  ];
+
+  document.addEventListener("focusin", e => {
+    state.focusedElement = e.target;
+  });
+
+  const anunciarAcessibilidade = (msg) => {
+    liveRegion.textContent = msg;
+    setTimeout(() => { liveRegion.textContent = ""; }, 2500);
+  };
+
+  // Funções de Aplicação de Estados Visuais
+  const applyFontSize = (level, announce = true) => {
+    const fontSizes = ["1em", "1.15em", "1.3em", "1.5em", "2em"];
+    const labels = ["Normal", "Médio", "Grande", "Extra Grande", "Máximo"];
+    const idx = Math.min(Math.max(level, 1), fontSizes.length);
+    state.fontLevel = idx;
+
+    document.documentElement.style.fontSize = fontSizes[idx - 1];
+    if (fontSizeText) fontSizeText.textContent = labels[idx - 1];
+    localStorage.setItem("fontSize", String(idx));
+
+    if (announce) anunciarAcessibilidade(`Tamanho da fonte ajustado para: ${labels[idx - 1]}`);
+  };
+
+  const applyLineHeight = (level, announce = true) => {
+    const values = ["1.5", "1.8", "2.2"];
+    const labels = ["Médio", "Grande", "Extra Grande"];
+    const idx = Math.min(Math.max(level, 1), values.length);
+    state.lineLevel = idx;
+
+    document.documentElement.style.setProperty("--espacamento-linha", values[idx - 1]);
+    if (lineHeightText) lineHeightText.textContent = labels[idx - 1];
+    localStorage.setItem("lineHeight", String(idx));
+
+    if (announce) anunciarAcessibilidade(`Espaçamento de linha ajustado para: ${labels[idx - 1]}`);
+  };
+
+  const applyLetterSpacing = (level, announce = true) => {
+    const values = ["0em", ".05em", ".1em"];
+    const labels = ["Normal", "Médio", "Grande"];
+    const idx = Math.min(Math.max(level, 1), values.length);
+    state.letterLevel = idx;
+
+    document.documentElement.style.setProperty("--espacamento-letra", values[idx - 1]);
+    if (letterSpacingText) letterSpacingText.textContent = labels[idx - 1];
+    localStorage.setItem("letterSpacing", String(idx));
+
+    if (announce) anunciarAcessibilidade(`Espaçamento de letra ajustado para: ${labels[idx - 1]}`);
+  };
+
+  const applyReadingSpeed = (level, announce = true) => {
+    const idx = Math.min(Math.max(level, 1), readingSpeeds.length);
+    state.speedLevel = idx;
+
+    const sp = readingSpeeds[idx - 1];
+    if (readingSpeedText) readingSpeedText.textContent = sp.label;
+    localStorage.setItem("readingSpeed", String(idx));
+
+    if (announce) anunciarAcessibilidade(`Velocidade de leitura ajustada para: ${sp.label}`);
+  };
+
+  const setFocusColor = (color, announce = true) => {
+    if (!color) return;
+    document.documentElement.style.setProperty("--cor-foco-acessibilidade", color);
+    localStorage.setItem("focusColor", color);
+
+    document.querySelectorAll(".color-option").forEach(btn => {
+      btn.classList.toggle("selected", btn.dataset.color === color);
+    });
+
+    if (announce) anunciarAcessibilidade("Cor de foco alterada.");
+  };
+
+  // Leitor de Tela Integrado (Web Speech API)
+  const falarTexto = (texto) => {
+    if (texto && synth) {
+      if (synth.speaking) synth.cancel();
+
+      const utterance = new SpeechSynthesisUtterance(texto);
+      utterance.lang = "pt-BR";
+      utterance.rate = readingSpeeds[state.speedLevel - 1]?.rate || 1.0;
+
+      utterance.onstart = () => {
+        state.isPlayingSpeech = true;
+        state.isPausedSpeech = false;
+      };
+      utterance.onend = () => {
+        state.isPlayingSpeech = false;
+        state.isPausedSpeech = false;
+      };
+      utterance.onerror = (e) => {
+        state.isPlayingSpeech = false;
+        state.isPausedSpeech = false;
+        console.warn("Erro no sintetizador de voz:", e);
+      };
+      synth.speak(utterance);
+    }
+  };
+
+  const alternarReproducaoLeitura = () => {
+    if (state.isPlayingSpeech) {
+      if (state.isPausedSpeech) {
+        synth.resume();
+        state.isPausedSpeech = false;
+      } else {
+        synth.pause();
+        state.isPausedSpeech = true;
+      }
+    } else {
+      const conteudoLeitura = document.querySelector("main")?.innerText || "";
+      falarTexto(conteudoLeitura);
+    }
+  };
+
+  const reiniciarLeitura = () => {
+    state.isPlayingSpeech = false;
+    state.isPausedSpeech = false;
+    if (synth) synth.cancel();
+    setTimeout(() => {
+      const conteudoLeitura = document.querySelector("main")?.innerText || "";
+      falarTexto(conteudoLeitura);
+    }, 150);
+  };
+
+  const falarElementoFocado = () => {
+    if (state.focusedElement) {
+      const txt = (state.focusedElement.textContent || state.focusedElement.ariaLabel || state.focusedElement.alt || state.focusedElement.value || "").trim();
+      if (txt) falarTexto(txt);
+    }
+  };
+
+  const redefinirTudoAcessibilidade = () => {
+    if (synth) synth.cancel();
+
+    applyFontSize(1, false);
+    applyLineHeight(1, false);
+    applyLetterSpacing(1, false);
+    applyReadingSpeed(1, false);
+    setFocusColor("yellow", false);
+
+    body.classList.remove("contraste-alto", "dark-mode", "fonte-dislexia");
+    localStorage.clear();
+    anunciarAcessibilidade("Configurações de acessibilidade redefinidas para o padrão de fábrica.");
+  };
+
+  // Mapeamento Direto dos Botões das duas barras (Desktop e Mobile PWA)
+  const acoesMapeadas = [
+    { ids: ["btnAlternarTamanhoFonte", "btnAlternarTamanhoFontePWA"], run: () => applyFontSize((state.fontLevel % 5) + 1) },
+    { ids: ["btnAlternarEspacamentoLinha", "btnAlternarEspacamentoLinhaPWA"], run: () => applyLineHeight((state.lineLevel % 3) + 1) },
+    { ids: ["btnAlternarEspacamentoLetra", "btnAlternarEspacamentoLetraPWA"], run: () => applyLetterSpacing((state.stateLevel % 3) + 1) },
+    { ids: ["btnAlternarContraste", "btnAlternarContrastePWA"], run: () => {
+        body.classList.toggle("contraste-alto");
+        anunciarAcessibilidade("Alto contraste " + (body.classList.contains("contraste-alto") ? "ativado" : "desativado"));
+        localStorage.setItem("highContrast", body.classList.contains("contraste-alto"));
+      }
+    },
+    { ids: ["btnAlternarModoEscuro", "btnAlternarModoEscuroPWA"], run: () => {
+        body.classList.toggle("dark-mode");
+        anunciarAcessibilidade("Modo escuro " + (body.classList.contains("dark-mode") ? "ativado" : "desativado"));
+        localStorage.setItem("darkMode", body.classList.contains("dark-mode"));
+      }
+    },
+    { ids: ["btnAlternarFonteDislexia", "btnAlternarFonteDislexiaPWA"], run: () => {
+        body.classList.toggle("fonte-dislexia");
+        anunciarAcessibilidade("Fonte para dislexia " + (body.classList.contains("fonte-dislexia") ? "ativada" : "desativada"));
+        localStorage.setItem("dyslexiaFont", body.classList.contains("fonte-dislexia"));
+      }
+    },
+    { ids: ["btnResetarAcessibilidade", "btnResetarAcessibilidadePWA"], run: redefinirTudoAcessibilidade },
+    { ids: ["btnToggleLeitura"], run: alternarReproducaoLeitura },
+    { ids: ["btnReiniciarLeitura"], run: reiniciarLeitura },
+    { ids: ["btnAlternarVelocidadeLeitura"], run: () => applyReadingSpeed((state.speedLevel % readingSpeeds.length) + 1) },
+    { ids: ["btnReadFocused"], run: falarElementoFocado }
+  ];
+
+  // Atribuição Dinâmica de Listeners
+  acoesMapeadas.forEach(grupo => {
+    grupo.ids.forEach(btnId => {
+      const btn = document.getElementById(btnId);
+      if (btn) btn.addEventListener("click", grupo.run);
+    });
+  });
+
+  // Escuta de Cliques nas Paletas de Cores de Foco
+  document.querySelectorAll(".color-option").forEach(palette => {
+    palette.addEventListener("click", () => setFocusColor(palette.dataset.color));
+  });
+
+  // Operação do Modal de Atalhos de Teclado
+  const shortcutsModal = document.getElementById("keyboardShortcutsModal");
+  const btnShortcuts = document.getElementById("btnKeyboardShortcuts");
+  const btnShortcutsPWA = document.getElementById("btnKeyboardShortcutsPWA");
+  const shortcutsCloseBtn = document.getElementById("keyboardModalCloseButton");
+
+  const exibirShortcuts = () => shortcutsModal?.classList.remove("hidden");
+  const ocultarShortcuts = () => shortcutsModal?.classList.add("hidden");
+
+  btnShortcuts?.addEventListener("click", exibirShortcuts);
+  btnShortcutsPWA?.addEventListener("click", exibirShortcuts);
+  shortcutsCloseBtn?.addEventListener("click", ocultarShortcuts);
+
+  window.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") ocultarShortcuts();
+  });
+
+  // Restauração Segura do Estado do LocalStorage (Preservando Sessão)
+  const carregarSessaoAcessibilidade = () => {
+    applyFontSize(parseInt(localStorage.getItem("fontSize") || "1", 10), false);
+    applyLineHeight(parseInt(localStorage.getItem("lineHeight") || "1", 10), false);
+    applyLetterSpacing(parseInt(localStorage.getItem("letterSpacing") || "1", 10), false);
+    applyReadingSpeed(parseInt(localStorage.getItem("readingSpeed") || "1", 10), false);
+
+    if (localStorage.getItem("highContrast") === "true") body.classList.add("contraste-alto");
+    if (localStorage.getItem("darkMode") === "true") body.classList.add("dark-mode");
+    if (localStorage.getItem("dyslexiaFont") === "true") body.classList.add("fonte-dislexia");
+
+    setFocusColor(localStorage.getItem("focusColor") || "yellow", false);
+  };
+  carregarSessaoAcessibilidade();
+
+  // Controle de Visualização do Painel PWA Lateral (Mobile)
+  accessibilityToggleButton?.addEventListener("click", () => {
+    if (pwaAcessibilidadeBar) pwaAcessibilidadeBar.classList.add("is-open");
+    if (menuOverlay) menuOverlay.style.display = "block";
+  });
+
+  pwaAcessibilidadeCloseBtn?.addEventListener("click", () => {
+    if (pwaAcessibilidadeBar) pwaAcessibilidadeBar.classList.remove("is-open");
+    if (menuOverlay) menuOverlay.style.display = "none";
+  });
+
+  // Botão Voltar ao Topo (Otimizado com RequestAnimationFrame)
+  const backToTopBtn = document.getElementById("backToTopBtn");
+  if (backToTopBtn) {
+    let scrollTicking = false;
+    window.addEventListener("scroll", () => {
+      if (!scrollTicking) {
+        window.requestAnimationFrame(() => {
+          backToTopBtn.style.display = window.scrollY > 200 ? "block" : "none";
+          scrollTicking = false;
+        });
+        scrollTicking = true;
+      }
+    }, { passive: true });
+
+    backToTopBtn.addEventListener("click", () => {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    });
+  }
+
+  // Inicializa os Tooltips do DOM
+  inicializarTooltips();
+
+  // Valida cookies pós injeção de elementos globais
+  GestorConsentimento.verificarConsentimentoInicial();
+}
+
+/**
+ * Inicialização suave de tooltips dinâmicos
+ */
+function inicializarTooltips() {
+  document.querySelectorAll("[data-tooltip]").forEach(elemento => {
+    const texto = elemento.getAttribute("data-tooltip");
+    if (!texto) return;
+
+    const tooltip = document.createElement("div");
+    tooltip.className = "tooltip-dinamico";
+    tooltip.innerText = texto;
+    elemento.appendChild(tooltip);
+
+    const exibir = () => { tooltip.style.opacity = "1"; };
+    const ocultar = () => { tooltip.style.opacity = "0"; };
+
+    elemento.addEventListener("mouseenter", exibir);
+    elemento.addEventListener("mouseleave", ocultar);
+    elemento.addEventListener("touchstart", exibir, { passive: true });
+    elemento.addEventListener("touchend", () => setTimeout(ocultar, 2000), { passive: true });
+  });
+}
+
+// --- FASE 7: EXPORTAÇÃO DE RELATÓRIO PDF DINÂMICO ---
+function gerarPDFGlobal(parametros) {
+  const urlBiblioteca = "https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js";
 
   if (typeof html2pdf === "function") {
-    console.log("Biblioteca já carregada. Gerando PDF...");
-    executarLogicaDoHtml2Pdf(e);
+    executarLogicaDoHtml2Pdf(parametros);
     return;
   }
 
-  console.log("Biblioteca não encontrada. Carregando script...");
   const script = document.createElement("script");
-  script.src = url;
+  script.src = urlBiblioteca;
+  script.async = true;
   document.head.appendChild(script);
 
-  script.onload = () => {
-    console.log("Biblioteca html2pdf carregada com sucesso. Gerando PDF...");
-    executarLogicaDoHtml2Pdf(e);
-  };
-
+  script.onload = () => executarLogicaDoHtml2Pdf(parametros);
   script.onerror = () => {
-    console.error("Falha ao carregar o script do html2pdf.");
-    alert("Erro ao carregar a biblioteca de PDF. Por favor, tente novamente.");
+    console.error("Falha ao carregar a biblioteca externa html2pdf.");
   };
 }
 
-function executarLogicaDoHtml2Pdf(e) {
+function executarLogicaDoHtml2Pdf(parametros) {
   const {
-    titulo: o = "Relatório da Calculadora",
-    subtitulo: t = "Relatório de Cálculo Assistencial",
-    nomeArquivo: n = "relatorio.pdf",
-    seletorConteudo: l = ".main-content-wrapper"
-  } = e;
-  console.log(`Iniciando geração de PDF para: ${o}`);
-  const s = document.querySelector(l);
-  if (!s) return alert("Erro: Não foi possível encontrar o conteúdo principal para gerar o PDF."), void console.error(`Elemento com seletor "${l}" não encontrado.`);
-  const c = document.createElement("div");
-  c.style.padding = "20px", c.style.fontFamily = "Inter, sans-serif";
-  const d = document.createElement("div");
-  d.style.textAlign = "center", d.style.marginBottom = "25px", d.innerHTML = `<h1 style="font-family: 'Nunito Sans', sans-serif; font-size: 22px; font-weight: bold; color: #1A3E74; margin: 0;">${o}</h1><h2 style="font-size: 14px; color: #666; margin-top: 5px;">${t}</h2><p style="font-size: 10px; color: #999; margin-top: 10px;">Gerado em: ${new Date().toLocaleString("pt-BR")}</p>`, c.appendChild(d);
-  const r = s.querySelector("#conteudo");
-  if (r) {
-    const e = r.cloneNode(!0);
-    e.querySelectorAll('input[type="radio"]:not(:checked)').forEach(e => {
-      e.closest(".option-row, .option-label")?.remove()
-    }), e.querySelectorAll("tbody, .options-group").forEach(e => {
-      0 === e.children.length && e.closest(".criterion-section, .criterion-table")?.remove()
-    }), c.appendChild(e)
+    titulo = "Relatório da Calculadora",
+    subtitulo = "Relatório de Cálculo Assistencial",
+    nomeArquivo = "relatorio.pdf",
+    seletorConteudo = ".main-content-wrapper"
+  } = parametros;
+
+  const wrapperElement = document.querySelector(seletorConteudo);
+  if (!wrapperElement) {
+    console.error(`O seletor "${seletorConteudo}" não foi localizado no DOM.`);
+    return;
   }
-  const i = s.querySelector("#resultado");
-  i && !i.classList.contains("hidden") && ((e = i.cloneNode(!0)).style.marginTop = "20px", c.appendChild(e)), c.style.lineHeight = "1.5", c.style.fontSize = "12px", c.style.margin = "0", e = {
-    margin: [.5, .5, .5, .5],
-    filename: n,
-    image: {
-      type: "jpeg",
-      quality: .98
-    },
-    html2canvas: {
-      scale: 2,
-      scrollY: 0,
-      useCORS: !0
-    },
-    jsPDF: {
-      unit: "in",
-      format: "a4",
-      orientation: "portrait"
-    },
-    pagebreak: {
-      avoid: ["p", "h1", "h2", "h3", "div", "section"]
-    }
-  }, html2pdf().set(e).from(c).save().catch(e => {
-    console.error("Erro ao gerar PDF: ", e)
-  })
-}
 
-document.addEventListener("DOMContentLoaded", function () {
-  fetch("/menu-global.html").then(e => e.ok ? e.text() : Promise.reject("Ficheiro menu-global.html não encontrado")).then(e => {
-    const o = document.getElementById("global-header-container");
-    if (o) {
-      window.requestAnimationFrame(() => {
-        o.innerHTML = e;
-        initializeNavigationMenu();
-      });
-    }
-  }).catch(e => console.warn("Não foi possível carregar o menu global:", e));
+  const templatePDF = document.createElement("div");
+  templatePDF.style.padding = "20px";
+  templatePDF.style.fontFamily = "Inter, sans-serif";
+  templatePDF.style.lineHeight = "1.5";
+  templatePDF.style.fontSize = "12px";
 
-  fetch("/global-body-elements.html").then(e => e.ok ? e.text() : Promise.reject("Ficheiro global-body-elements.html não encontrado")).then(e => {
-    window.requestAnimationFrame(() => {
-      document.body.insertAdjacentHTML("beforeend", e);
-      initializeGlobalFunctions();
+  // Cabeçalho da página do PDF
+  const cabecalho = document.createElement("div");
+  cabecalho.style.textAlign = "center";
+  cabecalho.style.marginBottom = "25px";
+  cabecalho.innerHTML = `
+    <h1 style="font-family: 'Nunito Sans', sans-serif; font-size: 22px; font-weight: bold; color: #1A3E74; margin: 0;">${titulo}</h1>
+    <h2 style="font-size: 14px; color: #666; margin-top: 5px;">${subtitulo}</h2>
+    <p style="font-size: 10px; color: #999; margin-top: 10px;">Gerado em: ${new Date().toLocaleString("pt-BR")}</p>
+  `;
+  templatePDF.appendChild(cabecalho);
+
+  const conteudoOriginal = wrapperElement.querySelector("#conteudo");
+  if (conteudoOriginal) {
+    const cloneConteudo = conteudoOriginal.cloneNode(true);
+
+    // Limpeza de campos não selecionados no relatório final
+    cloneConteudo.querySelectorAll('input[type="radio"]:not(:checked)').forEach(el => {
+      el.closest(".option-row, .option-label")?.remove();
     });
-  }).catch(e => console.warn("Não foi possível carregar os elementos globais do corpo:", e));
-
-// Função para carregar o Seletor de Idiomas
-fetch("/_language_selector.html")
-  .then(response => response.text())
-  .then(data => {
-    const container = document.getElementById("language-selector-placeholder");
-    if (container) {
-      container.innerHTML = data;
-
-      // DISPARAR EVENTO: Informa que o seletor foi carregado
-      const event = new CustomEvent("langSelectorLoaded");
-      document.dispatchEvent(event);
-    }
-  })
-  .catch(err => console.error("Erro ao carregar seletor de idiomas:", err));
-// Carregar Seletor de Idiomas
-fetch("/_language_selector.html")
-  .then(response => response.text())
-  .then(data => {
-    const container = document.getElementById("language-selector-placeholder");
-    if (container) {
-      container.innerHTML = data;
-      // Dispara o evento para o lang-selector.js saber que pode inicializar
-      document.dispatchEvent(new CustomEvent("langSelectorLoaded"));
-    }
-  })
-  .catch(err => console.error("Erro ao carregar seletor de idiomas:", err));;
-});
-
-function initializeNavigationMenu() {
-  const e = document.getElementById("hamburgerButton"),
-    o = document.getElementById("offCanvasMenu"),
-    t = document.getElementById("menuOverlay"),
-    n = document.getElementById("closeOffCanvasMenu") || document.getElementById("closeMenuButton"),
-    l = () => {
-      o && (o.classList.add("is-open"), o.classList.remove("-translate-x-full")), t && (t.style.display = "block", t.classList.add("is-open"))
-    },
-    s = () => {
-      o && (o.classList.remove("is-open"), o.classList.add("-translate-x-full")), t && (t.style.display = "none", t.classList.remove("is-open"))
-    };
-  e?.addEventListener("click", l), t?.addEventListener("click", s), n?.addEventListener("click", s), o?.querySelectorAll(".has-submenu > a, .has-submenu > button")?.forEach(e => {
-    e.addEventListener("click", o => {
-      o.preventDefault();
-      const t = e.nextElementSibling;
-      t && t.classList.contains("submenu") && t.classList.toggle("open")
-    })
-  })
-}
-
-function inicializarTooltips() {
-  document.querySelectorAll("[data-tooltip]").forEach(e => {
-    const o = e.getAttribute("data-tooltip"),
-      t = document.createElement("div");
-    t.className = "tooltip-dinamico", t.innerText = o, e.appendChild(t), e.addEventListener("mouseenter", () => t.style.opacity = "1"), e.addEventListener("mouseleave", () => t.style.opacity = "0"), e.addEventListener("touchstart", () => t.style.opacity = "1"), e.addEventListener("touchend", () => setTimeout(() => t.style.opacity = "0", 2e3))
-  })
-}
-
-function initializeCookieFunctionality() {
-  // Elementos do DOM (Banner e Modal)
-  const e = document.getElementById("cookieConsentBanner"),
-    l = document.getElementById("granularCookieModal"),
-    c = document.getElementById("cookieAnalytics"),
-    r = document.getElementById("cookieMarketing");
-
-  // Funções Lógicas
-  const h = (param) => {
-      // Atualiza consentimento no GTM/GA4
-      if (typeof gtag === "function") {
-        gtag("consent", "update", param);
+    cloneConteudo.querySelectorAll("tbody, .options-group").forEach(el => {
+      if (el.children.length === 0) {
+        el.closest(".criterion-section, .criterion-table")?.remove();
       }
-      // Salva preferências granulares
-      try {
-        localStorage.setItem("analytics_storage", param.analytics_storage);
-        localStorage.setItem("ad_storage", param.ad_storage);
-      } catch (_) {}
-    },
-    u = () => {
-      e && e.classList.remove("show")
-    },
-    g = () => {
-      if (l) {
-        if (c) c.checked = "granted" === localStorage.getItem("analytics_storage");
-        if (r) r.checked = "granted" === localStorage.getItem("ad_storage");
-        l.classList.remove("hidden");
-        setTimeout(() => {
-          l.classList.add("show")
-        }, 10);
-      }
-    },
-    p = () => {
-      if (l) {
-        l.classList.remove("show");
-        setTimeout(() => {
-          l.classList.add("hidden")
-        }, 300);
-      }
-    },
-    m = () => {
-      const saved = localStorage.getItem("cookieConsent");
-      if (saved === "accepted") {
-        h({
-          analytics_storage: "granted",
-          ad_storage: "granted"
-        });
-        u();
-        return;
-      }
-      if (saved === "refused") {
-        h({
-          analytics_storage: "denied",
-          ad_storage: "denied"
-        });
-        u();
-        return;
-      }
-      if (!saved && e) e.classList.add("show");
-    };
-
-  // Delegação de Eventos (Resolve o problema de carregamento assíncrono do rodapé)
-  document.addEventListener("click", (event) => {
-    const target = event.target;
-    // Verifica se o clique foi em um dos botões de interesse ou dentro deles
-    const btn = target.closest("button");
-    const id = target.id || (btn ? btn.id : null);
-
-    if (!id) return;
-
-    if (id === "acceptAllCookiesBtn") {
-      h({
-        analytics_storage: "granted",
-        ad_storage: "granted"
-      });
-      localStorage.setItem("cookieConsent", "accepted");
-      u();
-    } else if (id === "refuseAllCookiesBtn") {
-      h({
-        analytics_storage: "denied",
-        ad_storage: "denied"
-      });
-      localStorage.setItem("cookieConsent", "refused");
-      u();
-    } else if (id === "manageCookiesBtn" || id === "openGranularCookieModalBtn") {
-      g(); // Abre o modal
-    } else if (id === "granularModalCloseButton" || id === "cancelGranularPreferencesBtn") {
-      p(); // Fecha o modal
-    } else if (id === "saveGranularPreferencesBtn") {
-      const prefs = {
-        analytics_storage: (c && c.checked) ? "granted" : "denied",
-        ad_storage: (r && r.checked) ? "granted" : "denied"
-      };
-      h(prefs);
-      localStorage.setItem("cookieConsent", "managed");
-      p();
-      u();
-    }
-  });
-
-  // Executa verificação inicial
-  m();
-}
-
-function initializeGlobalFunctions() {
-  function e() {
-    if (window.innerWidth > 1024) {
-      const e = document.getElementById("barraAcessibilidade");
-      e && (e.style.display = "flex");
-      const o = document.querySelector("nav.desktop-nav");
-      o && (o.style.display = "flex")
-    }
+    });
+    templatePDF.appendChild(cloneConteudo);
   }
-  e(), window.addEventListener("resize", e);
-  const o = document.body,
-    t = document.createElement("div");
-  t.setAttribute("aria-live", "polite"), t.className = "sr-only", o.appendChild(t);
-  const n = document.getElementById("fontSizeText"),
-    l = document.getElementById("lineHeightText"),
-    s = document.getElementById("letterSpacingText"),
-    i = document.getElementById("readingSpeedText"),
-    a = document.getElementById("accessibilityToggleButton"),
-    c = document.getElementById("pwaAcessibilidadeBar"),
-    r = document.getElementById("pwaAcessibilidadeCloseBtn"),
-    d = document.getElementById("menuOverlay"),
-    m = document.getElementById("offCanvasMenu");
-  let u = 1,
-    g = 1,
-    p = 1,
-    h = 1,
-    b = null,
-    y = !1,
-    f = !1;
-  const v = window.speechSynthesis,
-    w = [{
-      rate: .8,
-      label: "Lenta"
-    }, {
-      rate: 1,
-      label: "Normal"
-    }, {
-      rate: 1.5,
-      label: "Rápida"
-    }];
-  document.addEventListener("focusin", e => {
-    b = e.target
-  });
-  const E = e => {
-      t.textContent = e, setTimeout(() => t.textContent = "", 3e3)
-    },
-    // =========================================================
-    // ACESSIBILIDADE: ajustes (corrigido)
-    // =========================================================
-    applyFontSize = (level, announce) => {
-      const fontSizes = ["1em", "1.15em", "1.3em", "1.5em", "2em"];
-      const labels = ["Normal", "Médio", "Grande", "Extra Grande", "Máximo"];
-      const idx = Math.min(Math.max(parseInt(level || 1, 10), 1), fontSizes.length);
-      u = idx;
-      const iLevel = idx - 1;
-      document.documentElement.style.fontSize = fontSizes[iLevel];
-      n && (n.textContent = labels[iLevel]);
-      localStorage.setItem("fontSize", String(u));
-      (void 0 === announce || announce) && E(`Tamanho da fonte: ${labels[iLevel]}`);
-    },
-    applyLineHeight = (level, announce) => {
-      const values = ["1.5", "1.8", "2.2"];
-      const labels = ["Médio", "Grande", "Extra Grande"];
-      const idx = Math.min(Math.max(parseInt(level || 1, 10), 1), values.length);
-      g = idx;
-      const iLevel = idx - 1;
-      document.documentElement.style.setProperty("--espacamento-linha", values[iLevel]);
-      l && (l.textContent = labels[iLevel]);
-      localStorage.setItem("lineHeight", String(g));
-      (void 0 === announce || announce) && E(`Espaçamento de linha: ${labels[iLevel]}`);
-    },
-    applyLetterSpacing = (level, announce) => {
-      const values = ["0em", ".05em", ".1em"];
-      const labels = ["Normal", "Médio", "Grande"];
-      const idx = Math.min(Math.max(parseInt(level || 1, 10), 1), values.length);
-      p = idx;
-      const iLevel = idx - 1;
-      document.documentElement.style.setProperty("--espacamento-letra", values[iLevel]);
-      s && (s.textContent = labels[iLevel]);
-      localStorage.setItem("letterSpacing", String(p));
-      (void 0 === announce || announce) && E(`Espaçamento de letra: ${labels[iLevel]}`);
-    },
-    readingSpeeds = [{
-      rate: .8,
-      label: "Lenta"
-    }, {
-      rate: 1,
-      label: "Normal"
-    }, {
-      rate: 1.5,
-      label: "Rápida"
-    }],
-    applyReadingSpeed = (level, announce) => {
-      const idx = Math.min(Math.max(parseInt(level || 1, 10), 1), readingSpeeds.length);
-      h = idx;
-      const sp = readingSpeeds[h - 1];
-      i && (i.textContent = sp.label);
-      localStorage.setItem("readingSpeed", String(h));
-      (void 0 === announce || announce) && E(`Velocidade de leitura: ${sp.label}`);
-    },
-    L = e => {
-      u = u % 5 + 1;
-      applyFontSize(u, void 0 === e || e);
-    },
-    k = e => {
-      g = g % 3 + 1;
-      applyLineHeight(g, void 0 === e || e);
-    },
-    C = e => {
-      p = p % 3 + 1;
-      applyLetterSpacing(p, void 0 === e || e);
-    },
-    S = (e, o) => {
-      e && (document.documentElement.style.setProperty("--cor-foco-acessibilidade", e), localStorage.setItem("focusColor", e), document.querySelectorAll(".color-option").forEach(o => {
-        o.classList.toggle("selected", o.dataset.color === e)
-      }), void 0 === o || o) && E("Cor de foco alterada.")
-    },
-    x = () => {
-      o.classList.toggle("contraste-alto"), E("Alto contraste " + (o.classList.contains("contraste-alto") ? "ativado" : "desativado"))
-    },
-    A = () => {
-      o.classList.toggle("dark-mode"), E("Modo escuro " + (o.classList.contains("dark-mode") ? "ativado" : "desativado"))
-    },
-    D = () => {
-      o.classList.toggle("fonte-dislexia"), E("Fonte para dislexia " + (o.classList.contains("fonte-dislexia") ? "ativada" : "desativada"))
-    },
-    T = e => {
-      if (e && v) {
-        v.speaking && v.cancel();
-        const o = new SpeechSynthesisUtterance(e);
-        o.lang = "pt-BR", o.rate = readingSpeeds[h - 1]?.rate || 1, o.onstart = () => {
-          y = !0, f = !1
-        }, o.onend = () => {
-          y = !1, f = !1
-        }, o.onerror = e => {
-          y = !1, f = !1, console.error("Erro no leitor de tela:", e)
-        }, v.speak(o)
-      }
-    },
-    B = () => {
-      y ? f ? (v.resume(), f = !1) : v.pause() : T(document.querySelector("main")?.innerText, f = !0)
-    },
-    q = () => {
-      y = !1, f = !1, setTimeout(() => T(document.querySelector("main")?.innerText), 100)
-    },
-    N = () => {
-      h = h % readingSpeeds.length + 1;
-      applyReadingSpeed(h, !1);
-    },
-    F = () => {
-      b && T((b.textContent || b.ariaLabel || b.alt || b.value)?.trim())
-    },
-    P = () => {
-      // 1. Cancela leitura de voz se houver
-      v && v.cancel();
 
-      // 2. Reseta as variáveis de controle para o índice 1 (Início)
-      u = 1; // Fonte (1 = Normal)
-      g = 1; // Linha (1 = Médio no array de labels)
-      p = 1; // Letra (1 = Normal)
-      h = 1; // Velocidade (1 = Normal)
+  const resultadoOriginal = wrapperElement.querySelector("#resultado");
+  if (resultadoOriginal && !resultadoOriginal.classList.contains("hidden")) {
+    const cloneResultado = resultadoOriginal.cloneNode(true);
+    cloneResultado.style.marginTop = "20px";
+    templatePDF.appendChild(cloneResultado);
+  }
 
-      // 3. APLICA FORÇADAMENTE OS VALORES PADRÃO (Isso corrige o texto e o visual)
-      // O 'false' no segundo parâmetro evita que o leitor de tela fale 4 vezes seguidas
-      applyFontSize(1, false); // Força Fonte: Normal
-      applyLineHeight(1, false); // Força Linha: Médio
-      applyLetterSpacing(1, false); // Força Letra: Normal
-      applyReadingSpeed(1, false); // Força Velocidade: Normal
-
-      // 4. Limpa classes de alto contraste/dark mode
-      o.classList.remove("contraste-alto", "dark-mode", "fonte-dislexia");
-
-      // 5. Reseta cor de foco para amarelo
-      S("yellow", false);
-
-      // 6. Limpa memória
-      localStorage.clear();
-
-      // 7. Feedback visual único
-      E("Configurações redefinidas para o padrão");
-    };
-  [{
-    ids: ["btnAlternarTamanhoFonte", "btnAlternarTamanhoFontePWA"],
-    action: L
-  }, {
-    ids: ["btnAlternarEspacamentoLinha", "btnAlternarEspacamentoLinhaPWA"],
-    action: k
-  }, {
-    ids: ["btnAlternarEspacamentoLetra", "btnAlternarEspacamentoLetraPWA"],
-    action: C
-  }, {
-    ids: ["btnAlternarContraste", "btnAlternarContrastePWA"],
-    action: x
-  }, {
-    ids: ["btnAlternarModoEscuro", "btnAlternarModoEscuroPWA"],
-    action: A
-  }, {
-    ids: ["btnAlternarFonteDislexia", "btnAlternarFonteDislexiaPWA"],
-    action: D
-  }, {
-    ids: ["btnResetarAcessibilidade", "btnResetarAcessibilidadePWA"],
-    action: P
-  }, {
-    ids: ["btnToggleLeitura"],
-    action: B
-  }, {
-    ids: ["btnReiniciarLeitura"],
-    action: q
-  }, {
-    ids: ["btnAlternarVelocidadeLeitura"],
-    action: N
-  }, {
-    ids: ["btnReadFocused"],
-    action: F
-  }].forEach(e => {
-    e.ids.forEach(o => {
-      const t = document.getElementById(o);
-      t && t.addEventListener("click", e.action)
-    })
-  }), document.querySelectorAll(".color-option").forEach(e => {
-    e.addEventListener("click", () => S(e.dataset.color))
-  });
-  const M = document.getElementById("keyboardShortcutsModal"),
-    H = document.getElementById("btnKeyboardShortcuts"),
-    I = document.getElementById("btnKeyboardShortcutsPWA"),
-    O = document.getElementById("keyboardModalCloseButton"),
-    J = () => {
-      M && M.classList.remove("hidden")
-    },
-    K = () => {
-      M && M.classList.add("hidden")
-    };
-  H?.addEventListener("click", J), I?.addEventListener("click", J), O?.addEventListener("click", K), window.addEventListener("keydown", e => {
-    "Escape" === e.key && M && !M.classList.contains("hidden") && K()
-  }), initializeCookieFunctionality();
-  const R = () => {
-    const savedFontSize = parseInt(localStorage.getItem("fontSize") || "1", 10);
-    const savedLineHeight = parseInt(localStorage.getItem("lineHeight") || "1", 10);
-    const savedLetterSpacing = parseInt(localStorage.getItem("letterSpacing") || "1", 10);
-    const savedReadingSpeed = parseInt(localStorage.getItem("readingSpeed") || "1", 10);
-
-    applyFontSize(savedFontSize, !1);
-    applyLineHeight(savedLineHeight, !1);
-    applyLetterSpacing(savedLetterSpacing, !1);
-    applyReadingSpeed(savedReadingSpeed, !1);
-
-    "true" === localStorage.getItem("highContrast") && o.classList.add("contraste-alto");
-    "true" === localStorage.getItem("darkMode") && o.classList.add("dark-mode");
-    "true" === localStorage.getItem("dyslexiaFont") && o.classList.add("fonte-dislexia");
-
-    S(localStorage.getItem("focusColor") || "yellow", !1);
+  const configuracoesPDF = {
+    margin: [0.5, 0.5, 0.5, 0.5],
+    filename: nomeArquivo,
+    image: { type: "jpeg", quality: 0.98 },
+    html2canvas: { scale: 2, scrollY: 0, useCORS: true },
+    jsPDF: { unit: "in", format: "a4", orientation: "portrait" },
+    pagebreak: { avoid: ["p", "h1", "h2", "h3", "div", "section"] }
   };
-  R(), a?.addEventListener("click", () => {
-    m?.classList.contains("is-open") && (m.classList.remove("is-open"), m.classList.add("-translate-x-full")), c?.classList.add("is-open"), d && (d.style.display = "block")
-  }), r?.addEventListener("click", () => {
-    c?.classList.remove("is-open"), m?.classList.contains("is-open") || d && (d.style.display = "none")
+
+  window.html2pdf().set(configuracoesPDF).from(templatePDF).save().catch(err => {
+    console.error("Falha ao exportar PDF:", err);
   });
-  const z = document.getElementById("backToTopBtn");
-  z && (window.addEventListener("scroll", () => {
-    window.requestAnimationFrame(() => {
-      z.style.display = window.scrollY > 200 ? "block" : "none";
-    });
-  }, {
-    passive: true
-  }), z.addEventListener("click", () => window.scrollTo({
-    top: 0,
-    behavior: "smooth"
-  })));
-  inicializarTooltips();
 }
 
-
-
-/* =========================
-   GA4 — Evento: clique no botão Calcular
-   ========================= */
-(function () {
-  // 1) Verifica se pode enviar analytics (respeita consentimento, se você usar)
-  function podeEnviarAnalytics() {
+// --- FASE 8: RASTREAMENTO ANALYTICS DE CLIQUES EM CÁLCULOS (GA4) ---
+(function inicializarRastreamentoCalcular() {
+  function analyticsLiberado() {
     try {
-      const a = localStorage.getItem("analytics_storage");
-      return a !== "denied"; // se estiver denied, não envia
+      return localStorage.getItem("analytics_storage") !== "denied";
     } catch (_) {
-      return true; // se não conseguir ler, permite
+      return true;
     }
   }
 
-  // 2) Envia o evento ao GA4
-  function enviarEventoGA(nomeEvento, parametros) {
+  document.addEventListener("click", (e) => {
+    const btn = e.target.closest("button");
+    if (!btn || btn.id !== "btnCalcular" || !analyticsLiberado()) return;
+
     if (typeof window.gtag === "function") {
-      window.gtag("event", nomeEvento, parametros);
+      window.gtag("event", "calcular_click", {
+        page_path: window.location.pathname,
+        page_title: document.title
+      });
     }
-  }
-
-  // 3) “Escuta” qualquer clique no site inteiro
-  document.addEventListener("click", function (event) {
-    // pega o elemento clicado e procura o botão mais próximo
-    const botao = event.target.closest("button");
-    if (!botao) return;
-
-    // regra: só dispara se for o botão Calcular padrão
-    if (botao.id !== "btnCalcular") return;
-
-    // respeita consentimento (se existir)
-    if (!podeEnviarAnalytics()) return;
-
-    // parâmetros úteis para identificar a página
-    const parametros = {
-      page_path: window.location.pathname,
-      page_title: document.title
-    };
-
-    // envia o evento
-    enviarEventoGA("calcular_click", parametros);
   });
 })();
 
-/* =========================
-   Injeção Dinâmica: Anúncio Multiplex (Antes do Rodapé)
-   ========================= */
-document.addEventListener("DOMContentLoaded", function () {
-  // 1. Localiza a âncora exata do rodapé na página atual
+// --- FASE 9: INJEÇÃO DINÂMICA DE ANÚNCIO MULTIPLEX (ADSENSE) ---
+document.addEventListener("DOMContentLoaded", () => {
   const footerPlaceholder = document.getElementById("footer-placeholder");
-
-  // Se a página não tiver rodapé por algum motivo, aborta para evitar erros
   if (!footerPlaceholder) return;
 
-  // 2. Cria o container do anúncio
   const adContainer = document.createElement("div");
-
-  // Usamos exatamente as mesmas classes do seu footer.html para alinhar perfeitamente
-  // A classe my-10 adiciona margem superior e inferior para não colar no texto
   adContainer.className = "max-w-7xl mx-auto px-4 my-10";
-
-  // 3. Monta a tag do anúncio (sem a tag <script> que é bloqueada via innerHTML)
   adContainer.innerHTML = `
     <ins class="adsbygoogle"
          style="display:block"
@@ -633,266 +736,212 @@ document.addEventListener("DOMContentLoaded", function () {
          data-ad-slot="5401011816"></ins>
   `;
 
-  // 4. Injeta o anúncio no DOM, exatamente ANTES da div do rodapé
   footerPlaceholder.parentNode.insertBefore(adContainer, footerPlaceholder);
 
-  // 5. Solicita ao AdSense que preencha o bloco de forma segura
-  // Como você usa lazy load, o array window.adsbygoogle guardará o pedido
-  // até que o usuário interaja com a página e o AdSense seja ativado.
   setTimeout(() => {
     try {
       (window.adsbygoogle = window.adsbygoogle || []).push({});
     } catch (e) {
-      console.warn("Falha ao inicializar o AdSense Multiplex:", e);
+      console.warn("Bloqueio de rede ou adblocker impediu a inicialização do AdSense Multiplex.");
     }
-  }, 300);
+  }, 500);
 });
 
-/* =========================================================
-   MODO ADMIN + GOOGLE TAG + CONSENT + ADSENSE (OTIMIZADO PARA INP)
-   ========================================================= */
-
-// Função que engloba toda a lógica que estava nos HTMLs
+// --- FASE 10: LAZY LOAD SEGURO DE GOOGLE SERVICES (MÉTRICAS & ADSENSE) ---
 function initLazyLoadServices() {
   if (
-    localStorage.getItem('admin_mode') === 'true' ||
-    new URLSearchParams(window.location.search).get('admin') === '1'
+    localStorage.getItem("admin_mode") === "true" ||
+    new URLSearchParams(window.location.search).get("admin") === "1"
   ) {
-    console.log('🚧 Modo Admin: Bloqueado.');
-    if (new URLSearchParams(window.location.search).get('admin') === '1') {
-      localStorage.setItem('admin_mode', 'true');
+    console.log("🚧 Modo Admin detectado: Carregamento de anúncios bloqueado.");
+    if (new URLSearchParams(window.location.search).get("admin") === "1") {
+      localStorage.setItem("admin_mode", "true");
     }
-  } else {
-    var savedConsent = localStorage.getItem("cookieConsent");
-    var isRefused = (savedConsent === "refused");
-    var isManaged = (savedConsent === "managed");
-    var adsBlocked = isRefused || (isManaged && localStorage.getItem("ad_storage") === "denied");
+    return;
+  }
 
-    window.__metricsLoaded = false;
-    window.__adsenseLoaded = false;
-    window.dataLayer = window.dataLayer || [];
+  const savedConsent = localStorage.getItem("cookieConsent");
+  const isRefused = (savedConsent === "refused");
+  const isManaged = (savedConsent === "managed");
+  let adsBlocked = isRefused || (isManaged && localStorage.getItem("ad_storage") === "denied");
 
-    function gtag() {
-      dataLayer.push(arguments);
-    }
-    window.gtag = gtag;
+  window.__metricsLoaded = false;
+  window.__adsenseLoaded = false;
+  window.dataLayer = window.dataLayer || [];
 
-    function loadAnalytics() {
-      if (window.__metricsLoaded) return;
-      window.__metricsLoaded = true;
+  function gtag() { window.dataLayer.push(arguments); }
+  window.gtag = gtag;
 
-      var aState = isRefused ? "denied" : (localStorage.getItem("analytics_storage") || "granted");
-      var adState = adsBlocked ? "denied" : "granted";
+  function loadAnalytics() {
+    if (window.__metricsLoaded) return;
+    window.__metricsLoaded = true;
 
-      var s = document.createElement("script");
-      s.async = true;
-      s.src = "https://www.googletagmanager.com/gtag/js?id=G-PFM06B7TS5";
-      document.head.appendChild(s);
+    const aState = isRefused ? "denied" : (localStorage.getItem("analytics_storage") || "granted");
+    const adState = adsBlocked ? "denied" : "granted";
 
-      gtag("consent", "default", {
-        analytics_storage: aState,
-        ad_storage: adState,
-        ad_user_data: adState,
-        ad_personalization: adState,
-        wait_for_update: 500
+    const s = document.createElement("script");
+    s.async = true;
+    s.src = "https://www.googletagmanager.com/gtag/js?id=G-PFM06B7TS5";
+    document.head.appendChild(s);
+
+    gtag("consent", "default", {
+      analytics_storage: aState,
+      ad_storage: adState,
+      ad_user_data: adState,
+      ad_personalization: adState,
+      wait_for_update: 500
+    });
+
+    gtag("js", new Date());
+    gtag("config", "G-PFM06B7TS5");
+    gtag("config", "G-MJDKPDPJ26");
+    gtag("config", "G-M7DHHF38EJ");
+    gtag("config", "G-8FLJ59XXDK");
+    gtag("config", "G-VVDP5JGEX8");
+    gtag("config", "AW-952633102");
+    gtag("config", "AW-9277197961");
+  }
+
+  function loadAdSenseOnce() {
+    if (window.__adsenseLoaded || adsBlocked) return;
+    window.__adsenseLoaded = true;
+
+    const ad = document.createElement("script");
+    ad.async = true;
+    ad.src = "https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6472730056006847";
+    ad.crossOrigin = "anonymous";
+    document.head.appendChild(ad);
+  }
+
+  function executeServices() {
+    if ("requestIdleCallback" in window) {
+      window.requestIdleCallback(() => {
+        loadAnalytics();
+        loadAdSenseOnce();
       });
-
-      gtag("js", new Date());
-      gtag("config", "G-PFM06B7TS5");
-      gtag("config", "G-MJDKPDPJ26");
-      gtag("config", "G-M7DHHF38EJ");
-      gtag("config", "G-8FLJ59XXDK");
-      gtag("config", "G-VVDP5JGEX8");
-      gtag("config", "G-EX8");
-      gtag("config", "AW-952633102");
-      gtag("config", "AW-9277197961");
-
-      console.log("📈 Analytics carregado via Lazy Load (Otimizado).");
+    } else {
+      setTimeout(() => {
+        loadAnalytics();
+        loadAdSenseOnce();
+      }, 150);
     }
+  }
 
-    function loadAdSenseOnce() {
-      if (window.__adsenseLoaded || adsBlocked) return;
-      window.__adsenseLoaded = true;
-      var ad = document.createElement("script");
-      ad.async = true;
-      ad.src = "https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6472730056006847";
-      ad.crossOrigin = "anonymous";
-      document.head.appendChild(ad);
-      console.log("💰 AdSense carregado via Lazy Load (Otimizado).");
-    }
+  let userInteracted = false;
+  function onUserInteraction() {
+    if (userInteracted) return;
+    userInteracted = true;
 
-    // --- A SOLUÇÃO DO INP ESTÁ AQUI ---
-    // Envolvemos o carregamento para não bloquear a Thread Principal
-    function executeServices() {
-      if ('requestIdleCallback' in window) {
-        requestIdleCallback(function () {
-          loadAnalytics();
-          loadAdSenseOnce();
+    executeServices();
+
+    window.removeEventListener("scroll", onUserInteraction);
+    window.removeEventListener("mousemove", onUserInteraction);
+    window.removeEventListener("touchstart", onUserInteraction);
+    window.removeEventListener("keydown", onUserInteraction);
+  }
+
+  if (!adsBlocked) {
+    window.addEventListener("scroll", onUserInteraction, { passive: true });
+    window.addEventListener("mousemove", onUserInteraction, { passive: true });
+    window.addEventListener("touchstart", onUserInteraction, { passive: true });
+    window.addEventListener("keydown", onUserInteraction, { passive: true });
+
+    // Fallback de segurança temporizada para garantir rastreamento
+    setTimeout(onUserInteraction, 8500);
+  }
+
+  window.applyConsent = function (consent) {
+    gtag("consent", "update", consent);
+    if (consent.ad_storage === "granted") {
+      adsBlocked = false;
+      onUserInteraction();
+    } else {
+      adsBlocked = true;
+      document.querySelectorAll("ins.adsbygoogle, .google-auto-placed")
+        .forEach(ad => {
+          ad.style.display = "none";
+          ad.innerHTML = "";
         });
-      } else {
-        setTimeout(function () {
-          loadAnalytics();
-          loadAdSenseOnce();
-        }, 100); // Pequeno atraso para liberar a interação
-      }
     }
+    localStorage.setItem("analytics_storage", consent.analytics_storage);
+    localStorage.setItem("ad_storage", consent.ad_storage);
+  };
 
-    function onUserInteraction() {
-      executeServices();
+  window.acceptAllCookies = function () {
+    localStorage.setItem("cookieConsent", "accepted");
+    window.applyConsent({
+      analytics_storage: "granted",
+      ad_storage: "granted",
+      ad_user_data: "granted",
+      ad_personalization: "granted"
+    });
+  };
 
-      window.removeEventListener("scroll", onUserInteraction);
-      window.removeEventListener("mousemove", onUserInteraction);
-      window.removeEventListener("touchstart", onUserInteraction);
-      window.removeEventListener("keydown", onUserInteraction);
-    }
+  window.rejectAllCookies = function () {
+    localStorage.setItem("cookieConsent", "refused");
+    window.applyConsent({
+      analytics_storage: "denied",
+      ad_storage: "denied",
+      ad_user_data: "denied",
+      ad_personalization: "denied"
+    });
+  };
+}
+document.addEventListener("DOMContentLoaded", initLazyLoadServices);
 
-    if (!adsBlocked) {
-      window.addEventListener("scroll", onUserInteraction, {
-        passive: true
-      });
-      window.addEventListener("mousemove", onUserInteraction, {
-        passive: true
-      });
-      window.addEventListener("touchstart", onUserInteraction, {
-        passive: true
-      });
-      window.addEventListener("keydown", onUserInteraction, {
-        passive: true
-      });
+// --- FASE 11: ENGINE LOCAL DE INTERNACIONALIZAÇÃO (Traduções de locales) ---
+if (typeof window.traducoes === "undefined") {
+  window.traducoes = {};
+}
 
-      setTimeout(onUserInteraction, 8500);
-    }
+function aplicarTraducoes() {
+  // Tradução de texto padrão de marcação de atributos (data-i18n)
+  document.querySelectorAll("[data-i18n]").forEach(el => {
+    const chave = el.getAttribute("data-i18n");
+    const partes = chave.split(".");
+    let valor = window.traducoes;
 
-    window.applyConsent = function (consent) {
-      gtag("consent", "update", consent);
-      if (consent.ad_storage === "granted") {
-        adsBlocked = false;
-        onUserInteraction();
-      } else {
-        adsBlocked = true;
-        document.querySelectorAll("ins.adsbygoogle, .google-auto-placed")
-          .forEach(ad => {
-            ad.style.display = "none";
-            ad.innerHTML = "";
-          });
-      }
-      localStorage.setItem("analytics_storage", consent.analytics_storage);
-      localStorage.setItem("ad_storage", consent.ad_storage);
-    }
+    partes.forEach(p => {
+      if (valor && valor[p] !== undefined) valor = valor[p];
+      else valor = null;
+    });
 
-    window.acceptAllCookies = function () {
-      localStorage.setItem("cookieConsent", "accepted");
-      window.applyConsent({
-        analytics_storage: "granted",
-        ad_storage: "granted",
-        ad_user_data: "granted",
-        ad_personalization: "granted"
-      });
-    };
+    if (valor !== null) el.textContent = valor;
+  });
 
-    window.rejectAllCookies = function () {
-      localStorage.setItem("cookieConsent", "refused");
-      window.applyConsent({
-        analytics_storage: "denied",
-        ad_storage: "denied",
-        ad_user_data: "denied",
-        ad_personalization: "denied"
-      });
-    };
+  // Tradução para aria-labels de acessibilidade (data-i18n-aria-label)
+  document.querySelectorAll("[data-i18n-aria-label]").forEach(el => {
+    const chave = el.getAttribute("data-i18n-aria-label");
+    const partes = chave.split(".");
+    let valor = window.traducoes;
+
+    partes.forEach(p => {
+      if (valor && valor[p] !== undefined) valor = valor[p];
+      else valor = null;
+    });
+
+    if (valor !== null) el.setAttribute("aria-label", valor);
+  });
+
+  substituirAnoFooter();
+}
+
+async function carregarTraducoes(idioma, arquivoJson) {
+  try {
+    const resposta = await fetch(`/locales/${idioma}/${arquivoJson}`);
+    if (!resposta.ok) throw new Error();
+    const novosDados = await resposta.json();
+
+    window.traducoes = { ...window.traducoes, ...novosDados };
+    aplicarTraducoes();
+  } catch (error) {
+    console.warn(`Localização JSON de tradução não encontrada (${idioma}/${arquivoJson})`);
   }
 }
 
-// Inicializa a função assim que o DOM estiver pronto
-document.addEventListener("DOMContentLoaded", initLazyLoadServices);
-
-// Verifica se a variável já existe para evitar erro de declaração duplicada
-if (typeof traducoes === 'undefined') {
-    var traducoes = {};
-}
-
-/**
- * Aplica as traduções nos elementos da página
- */
-function aplicarTraducoes() {
-    // 1. Tradução para texto comum (data-i18n)
-    document.querySelectorAll("[data-i18n]").forEach(el => {
-        const chave = el.getAttribute("data-i18n");
-        const partes = chave.split('.');
-
-        let valor = traducoes;
-        partes.forEach(p => {
-            if (valor && valor[p] !== undefined) valor = valor[p];
-            else valor = null;
-        });
-
-        if (valor !== null) el.textContent = valor;
-    });
-
-    // 2. Tradução para aria-labels
-    document.querySelectorAll("[data-i18n-aria-label]").forEach(el => {
-        const chave = el.getAttribute("data-i18n-aria-label");
-        const partes = chave.split('.');
-
-        let valor = traducoes;
-        partes.forEach(p => {
-            if (valor && valor[p] !== undefined) valor = valor[p];
-            else valor = null;
-        });
-
-        if (valor !== null) el.setAttribute("aria-label", valor);
-    });
-
-    // Atualiza o ano após aplicar as traduções
-    substituirAno();
-}
-
-/**
- * Busca o arquivo JSON e inicia a tradução
- */
-async function carregarTraducoes(idioma, arquivoJson) {
-    try {
-        const resposta = await fetch(`/locales/${idioma}/${arquivoJson}`);
-        const novosDados = await resposta.json();
-
-        traducoes = { ...traducoes, ...novosDados };
-        aplicarTraducoes();
-    } catch (error) {
-        console.error("Erro ao carregar tradução:", error);
-    }
-}
-
-/**
- * Atualiza o marcador {{year}}
- */
-function substituirAno() {
-    const yearSpan = document.querySelector('[data-i18n="footer.copyright"]');
-    if (yearSpan && yearSpan.textContent.includes('{{year}}')) {
-        yearSpan.textContent = yearSpan.textContent.replace('{{year}}', new Date().getFullYear());
-    }
-}
-
-function initializeCookieFunctionality() {
-  // ... (mantenha todo o seu código original da função initializeCookieFunctionality)
-
-  document.addEventListener('click', function (e) {
-    // Identifica o botão clicado
-    const target = e.target.closest("button");
-    if (!target) return;
-
-    // Se clicar no botão de Gerenciar Cookies do novo rodapé
-    if (target.id === 'openGranularCookieModalBtn') {
-        const modal = document.getElementById('cookie-modal');
-        if (modal) {
-            modal.classList.remove('hidden');
-        } else {
-            console.error("Modal 'cookie-modal' não encontrado no DOM!");
-        }
-    }
-
-    // Se clicar no botão de Salvar do modal
-    if (target.id === 'save-cookies') {
-        const modal = document.getElementById('cookie-modal');
-        if (modal) modal.classList.add('hidden');
-    }
-});
+function substituirAnoFooter() {
+  const copyrightElement = document.querySelector('[data-i18n="footer.copyright"]');
+  if (copyrightElement && copyrightElement.textContent.includes("{{year}}")) {
+    copyrightElement.textContent = copyrightElement.textContent.replace("{{year}}", String(new Date().getFullYear()));
+  }
 }
