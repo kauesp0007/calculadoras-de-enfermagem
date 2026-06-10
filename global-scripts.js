@@ -804,3 +804,95 @@ function initLazyLoadServices() {
 
 // Inicializa a função assim que o DOM estiver pronto
 document.addEventListener("DOMContentLoaded", initLazyLoadServices);
+
+// Verifica se a variável já existe para evitar erro de declaração duplicada
+if (typeof traducoes === 'undefined') {
+    var traducoes = {};
+}
+
+/**
+ * Aplica as traduções nos elementos da página
+ */
+function aplicarTraducoes() {
+    // 1. Tradução para texto comum (data-i18n)
+    document.querySelectorAll("[data-i18n]").forEach(el => {
+        const chave = el.getAttribute("data-i18n");
+        const partes = chave.split('.');
+
+        let valor = traducoes;
+        partes.forEach(p => {
+            if (valor && valor[p] !== undefined) valor = valor[p];
+            else valor = null;
+        });
+
+        if (valor !== null) el.textContent = valor;
+    });
+
+    // 2. Tradução para aria-labels
+    document.querySelectorAll("[data-i18n-aria-label]").forEach(el => {
+        const chave = el.getAttribute("data-i18n-aria-label");
+        const partes = chave.split('.');
+
+        let valor = traducoes;
+        partes.forEach(p => {
+            if (valor && valor[p] !== undefined) valor = valor[p];
+            else valor = null;
+        });
+
+        if (valor !== null) el.setAttribute("aria-label", valor);
+    });
+
+    // Atualiza o ano após aplicar as traduções
+    substituirAno();
+}
+
+/**
+ * Busca o arquivo JSON e inicia a tradução
+ */
+async function carregarTraducoes(idioma, arquivoJson) {
+    try {
+        const resposta = await fetch(`/locales/${idioma}/${arquivoJson}`);
+        const novosDados = await resposta.json();
+
+        traducoes = { ...traducoes, ...novosDados };
+        aplicarTraducoes();
+    } catch (error) {
+        console.error("Erro ao carregar tradução:", error);
+    }
+}
+
+/**
+ * Atualiza o marcador {{year}}
+ */
+function substituirAno() {
+    const yearSpan = document.querySelector('[data-i18n="footer.copyright"]');
+    if (yearSpan && yearSpan.textContent.includes('{{year}}')) {
+        yearSpan.textContent = yearSpan.textContent.replace('{{year}}', new Date().getFullYear());
+    }
+}
+
+function initializeCookieFunctionality() {
+  // ... (mantenha todo o seu código original da função initializeCookieFunctionality)
+
+  document.addEventListener('click', function (e) {
+    // Identifica o botão clicado
+    const target = e.target.closest("button");
+    if (!target) return;
+
+    // Se clicar no botão de Gerenciar Cookies do novo rodapé
+    if (target.id === 'openGranularCookieModalBtn') {
+        const modal = document.getElementById('cookie-modal');
+        if (modal) {
+            modal.classList.remove('hidden');
+        } else {
+            console.error("Modal 'cookie-modal' não encontrado no DOM!");
+        }
+    }
+
+    // Se clicar no botão de Salvar do modal
+    if (target.id === 'save-cookies') {
+        const modal = document.getElementById('cookie-modal');
+        if (modal) modal.classList.add('hidden');
+    }
+});
+}

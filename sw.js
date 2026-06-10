@@ -1,9 +1,5 @@
 // Define o nome e a versão do cache (AUTOMÁTICO via gerar-sw.js)
-<<<<<<< HEAD
 const CACHE_NAME = 'calculadoras-enfermagem-cache-20260610-194915-839';
-=======
-const CACHE_NAME = 'calculadoras-enfermagem-cache-20260604-010646-214';
->>>>>>> parent of 1ad303a3e (alteração do rodapé moldal novo)
 
 // O SCRIPT DE BUILD VAI INJETAR A LISTA DE ARQUIVOS AQUI
 const urlsToCache = [
@@ -2762,7 +2758,6 @@ const urlsToCache = [
   'livronic.webp',
   'livronoc.webp',
   'livrosae.webp',
-<<<<<<< HEAD
   'locales/ar/cookies.json',
   'locales/ar/footer.json',
   'locales/bn/cookies.json',
@@ -2823,8 +2818,6 @@ const urlsToCache = [
   'locales/vi/footer.json',
   'locales/zh/cookies.json',
   'locales/zh/footer.json',
-=======
->>>>>>> parent of 1ad303a3e (alteração do rodapé moldal novo)
   'log-imagens.js',
   'main.js',
   'manchester.html',
