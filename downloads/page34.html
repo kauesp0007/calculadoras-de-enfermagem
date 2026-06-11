@@ -71,7 +71,7 @@
     </script>
 
 
-  <!-- DOWNLOADS_TEMPLATE_HASH:95b18eebf1a337afa9f2dfcb833e409c6dcd271630b0a6d134abafd45edf7e1c -->
+  <!-- DOWNLOADS_TEMPLATE_HASH:3fc7873e77e51ef2f796f016cf1907ed0c7b960166a01a7f970cb9c2d95164fb -->
 </head>
 
 <body class="bg-[#F4F7FB] font-sans antialiased text-[#333333] flex flex-col min-h-screen">
@@ -692,35 +692,49 @@
             else nextBtn.classList.add('hidden');
         }
 
-        // Abre o Lightbox encontrando o item correspondente no JSON Global
         document.body.addEventListener('click', (e) => {
-            const card = e.target.closest('.file-card');
-            if (card) {
-                e.preventDefault();
+    const card = e.target.closest('.file-card');
 
-                if (bibliotecaGlobal.length === 0) return; // Aguarda carregamento JSON
+    if (!card) return;
 
-                const titleElement = card.querySelector('figcaption');
-                if (!titleElement) return;
+    e.preventDefault();
 
-                const cardTitle = titleElement.textContent.trim();
-                const foundIndex = bibliotecaGlobal.findIndex(i => i.titulo === cardTitle);
+    if (bibliotecaGlobal.length === 0) return;
 
-                if (foundIndex !== -1) {
-                    currentGlobalIndex = foundIndex;
-                    updateLightboxUI();
-
-                    const lightbox = document.getElementById('global-lightbox');
-                    lightbox.classList.remove('hidden');
-                    document.body.style.overflow = "hidden"; // Desativa scroll da página de trás
-
-                    setTimeout(() => {
-                        lightbox.classList.remove('opacity-0');
-                        lightbox.classList.add('opacity-100');
-                    }, 10);
-                }
+    const slugFromCard =
+        card.dataset.slug ||
+        (() => {
+            try {
+                const href = card.getAttribute('href') || '';
+                const match = href.match(/\/biblioteca\/(.+)\.html$/i);
+                return match ? match[1] : null;
+            } catch {
+                return null;
             }
-        });
+        })();
+
+    if (!slugFromCard) return;
+
+    const foundIndex = bibliotecaGlobal.findIndex(item => {
+        const itemSlug = item.slug || slugifyJs(item.titulo || '');
+        return itemSlug === slugFromCard;
+    });
+
+    if (foundIndex === -1) return;
+
+    currentGlobalIndex = foundIndex;
+    updateLightboxUI();
+
+    const lightbox = document.getElementById('global-lightbox');
+
+    lightbox.classList.remove('hidden');
+    document.body.style.overflow = "hidden";
+
+    setTimeout(() => {
+        lightbox.classList.remove('opacity-0');
+        lightbox.classList.add('opacity-100');
+    }, 10);
+});
 
         // Ações das Setas de Navegação (Avanço Ilimitado)
         document.getElementById('lightbox-prev').addEventListener('click', (e) => {
