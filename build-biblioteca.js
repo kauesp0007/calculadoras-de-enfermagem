@@ -126,6 +126,25 @@ function gerarHtmlDoItem({ template, templateHash, item }) {
     let filePath = item.download || item.ficheiro || "";
     if (filePath && !filePath.startsWith("/")) filePath = "/" + filePath;
 
+    // --- NOVA LÓGICA DE MÍDIA (VÍDEO VS IMAGEM/DOCUMENTO) ---
+    const cat = String(item.categoria || "").toLowerCase().trim();
+    const isVideo = cat === "videos" || cat === "vídeos" || filePath.match(/\.(mp4|webm|ogg)$/i);
+
+    let mediaPlayerHtml = "";
+    if (isVideo) {
+        // Se for vídeo, gera o leitor nativo responsivo com controlos de volume, ecrã inteiro, etc.
+        mediaPlayerHtml = `
+        <video controls preload="metadata" class="w-full rounded-lg shadow-sm" style="max-height: 600px; background-color: #0f172a;">
+            <source src="${filePath}" type="video/mp4">
+            <source src="${filePath}" type="video/webm">
+            O seu navegador não suporta a reprodução de vídeo. Faça o download utilizando o botão abaixo.
+        </video>`;
+    } else {
+        // Se for PDF ou Foto, gera a imagem de capa (comportamento original mantido)
+        mediaPlayerHtml = `<img src="${imagePath}" alt="${titulo}" class="max-w-full h-auto object-contain rounded-lg shadow-sm" style="max-height: 600px;">`;
+    }
+    // --------------------------------------------------------
+
     const imageUrlAbsolute = imagePath ? `https://www.calculadorasdeenfermagem.com.br${imagePath}` : "https://www.calculadorasdeenfermagem.com.br/iconpages.webp";
 
     const schemaOrgObj = {
@@ -148,29 +167,29 @@ function gerarHtmlDoItem({ template, templateHash, item }) {
         ]
     };
 
-    // Dentro da função gerarHtmlDoItem, as chamadas ficam assim:
-// Injeções de SEO (Head)
-html = injetar(html, "<!-- SEO_TITLE -->", titulo);
-html = injetar(html, "<!-- SEO_DESCRIPTION -->", descricao);
-html = injetar(html, "<!-- SEO_KEYWORDS -->", escapeHtml(keywords));
-html = injetar(html, "<!-- CANONICAL_URL -->", canonicalUrl);
+    // Injeções de SEO (Head)
+    html = injetar(html, "<!-- SEO_TITLE -->", titulo);
+    html = injetar(html, "<!-- SEO_DESCRIPTION -->", descricao);
+    html = injetar(html, "<!-- SEO_KEYWORDS -->", escapeHtml(keywords));
+    html = injetar(html, "<!-- CANONICAL_URL -->", canonicalUrl);
 
-// Injeções de Conteúdo (Body)
-html = injetar(html, "<!-- [TITLE] -->", titulo);
-html = injetar(html, "<!-- [DESCRIPTION] -->", descricaoRaw);
-html = injetar(html, "<!-- [IMAGE] -->", imagePath);
-html = injetar(html, "<!-- [FILE] -->", filePath);
+    // Injeções de Conteúdo (Body)
+    html = injetar(html, "<!-- [TITLE] -->", titulo);
+    html = injetar(html, "<!-- [DESCRIPTION] -->", descricaoRaw);
+    html = injetar(html, "<!-- [FILE] -->", filePath);
+    // Injetamos a mídia correta de acordo com a verificação de tipo de ficheiro
+    html = injetar(html, "<!-- [MEDIA_PLAYER] -->", mediaPlayerHtml);
 
-// Injeções de Script (JSON-LD)
-html = injetar(html, "<!-- SCHEMA_ORG -->", JSON.stringify(schemaOrgObj));
-html = injetar(html, "<!-- BREADCRUMBS -->", JSON.stringify(breadcrumbsObj));
+    // Injeções de Script (JSON-LD)
+    html = injetar(html, "<!-- SCHEMA_ORG -->", JSON.stringify(schemaOrgObj));
+    html = injetar(html, "<!-- BREADCRUMBS -->", JSON.stringify(breadcrumbsObj));
 
     html = ensureTemplateHashMarker(html, templateHash);
     return { slug, html };
 }
 
 function construirBiblioteca() {
-    console.log("🚀 Iniciando build-biblioteca.js (Gerando itens com metadados SEO atualizados)...");
+    console.log("🚀 Iniciando build-biblioteca.js (Gerando itens com metadados SEO e suporte a Mídia/Vídeos)...");
     if (!fs.existsSync(JSON_DATABASE_FILE)) return console.error("❌ biblioteca.json não encontrado");
     if (!fs.existsSync(TEMPLATE_FILE)) return console.error(`❌ ${TEMPLATE_FILE} não encontrado`);
 
