@@ -126,6 +126,35 @@ function gerarHtmlDoItem({ template, templateHash, item }) {
     let filePath = item.download || item.ficheiro || "";
     if (filePath && !filePath.startsWith("/")) filePath = "/" + filePath;
 
+    // --- LÓGICA DO BADGE DE TIPO DE ARQUIVO ---
+    let ext = path.extname(filePath).toLowerCase().replace('.', '');
+    if (!ext && filePath.match(/\.(mp4|webm|ogg)$/i)) ext = 'mp4';
+    if (!ext && (item.categoria === 'fotos' || item.categoria === 'imagens')) ext = 'png';
+    if (!ext && (item.categoria === 'documentos' || item.categoria === 'pdf')) ext = 'pdf';
+
+    let fileTypeBadgeHtml = "";
+    if (ext) {
+        let label = ext.toUpperCase();
+        let bgColor = "bg-gray-100";
+        let textColor = "text-gray-700";
+        let icon = "fa-solid fa-file";
+
+        if (ext === 'pdf') {
+            bgColor = "bg-red-100"; textColor = "text-red-700"; icon = "fa-solid fa-file-pdf";
+        } else if (['doc', 'docx'].includes(ext)) {
+            label = "WORD"; bgColor = "bg-blue-100"; textColor = "text-blue-700"; icon = "fa-solid fa-file-word";
+        } else if (['xls', 'xlsx'].includes(ext)) {
+            label = "EXCEL"; bgColor = "bg-green-100"; textColor = "text-green-700"; icon = "fa-solid fa-file-excel";
+        } else if (['mp4', 'webm', 'ogg'].includes(ext)) {
+            bgColor = "bg-purple-100"; textColor = "text-purple-700"; icon = "fa-solid fa-video";
+        } else if (['png', 'jpg', 'jpeg', 'webp', 'gif'].includes(ext)) {
+            bgColor = "bg-emerald-100"; textColor = "text-emerald-700"; icon = "fa-solid fa-image";
+        }
+
+        fileTypeBadgeHtml = `<div class="inline-flex items-center gap-1.5 px-3 py-1 ${bgColor} ${textColor} text-[11px] font-black rounded uppercase tracking-wider w-fit shadow-sm"><i class="${icon}"></i> ARQUIVO ${label}</div>`;
+    }
+    // ------------------------------------------
+
     // --- NOVA LÓGICA DE MÍDIA (VÍDEO VS IMAGEM/DOCUMENTO) ---
     const cat = String(item.categoria || "").toLowerCase().trim();
     const isVideo = cat === "videos" || cat === "vídeos" || filePath.match(/\.(mp4|webm|ogg)$/i);
@@ -177,8 +206,8 @@ function gerarHtmlDoItem({ template, templateHash, item }) {
     html = injetar(html, "<!-- [TITLE] -->", titulo);
     html = injetar(html, "<!-- [DESCRIPTION] -->", descricaoRaw);
     html = injetar(html, "<!-- [FILE] -->", filePath);
-    // Injetamos a mídia correta de acordo com a verificação de tipo de ficheiro
     html = injetar(html, "<!-- [MEDIA_PLAYER] -->", mediaPlayerHtml);
+    html = injetar(html, "<!-- [FILE_TYPE] -->", fileTypeBadgeHtml);
 
     // Injeções de Script (JSON-LD)
     html = injetar(html, "<!-- SCHEMA_ORG -->", JSON.stringify(schemaOrgObj));
@@ -189,7 +218,7 @@ function gerarHtmlDoItem({ template, templateHash, item }) {
 }
 
 function construirBiblioteca() {
-    console.log("🚀 Iniciando build-biblioteca.js (Gerando itens com metadados SEO e suporte a Mídia/Vídeos)...");
+    console.log("🚀 Iniciando build-biblioteca.js (Gerando itens com metadados SEO, Mídia e Badges de Tipo de Arquivo)...");
     if (!fs.existsSync(JSON_DATABASE_FILE)) return console.error("❌ biblioteca.json não encontrado");
     if (!fs.existsSync(TEMPLATE_FILE)) return console.error(`❌ ${TEMPLATE_FILE} não encontrado`);
 
