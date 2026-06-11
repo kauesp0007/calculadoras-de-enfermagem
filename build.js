@@ -67,20 +67,52 @@ function criarCartaoHTML(item) {
     : `Baixe agora o material completo sobre ${titulo} na nossa Biblioteca de Enfermagem.`;
   const descricaoSegura = escapeHtml(descricaoRaw);
 
-  return `
-<a href="/biblioteca/${slug}.html" class="file-card" title="Acessar documento: ${titulo}">
+  // Verificamos se o item é um vídeo através da categoria ou extensão
+  const cat = String(item.categoria || "").toLowerCase().trim();
+  const isVideo = cat === "videos" || cat === "vídeos" || capa.match(/\.(mp4|webm|ogg)$/i);
+
+  if (isVideo) {
+    // ESTILO PARA VÍDEOS: Renderiza o player com miniatura e botão de play overlay
+    return `
+<div class="file-card group relative flex flex-col bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-all" title="Assistir ao vídeo: ${titulo}">
+  <!-- Área do vídeo com evento de clique para reproduzir -->
+  <div class="relative w-full h-[200px] bg-slate-900 cursor-pointer" onclick="const v = this.querySelector('video'); if(v.paused){v.play(); v.setAttribute('controls', 'controls'); this.querySelector('.play-overlay').classList.add('hidden');}else{v.pause();}">
+    <!-- O #t=0.1 obriga o navegador a extrair o primeiro quadro do vídeo como miniatura -->
+    <video src="${capa}#t=0.1" preload="metadata" class="w-full h-full object-cover opacity-90 group-hover:opacity-100 transition-opacity"></video>
+    
+    <!-- Overlay do botão Play -->
+    <div class="play-overlay absolute inset-0 flex items-center justify-center">
+      <div class="bg-black/60 rounded-full w-14 h-14 flex items-center justify-center backdrop-blur-sm group-hover:scale-110 transition-transform shadow-lg">
+        <i class="fa-solid fa-play text-white text-2xl ml-1"></i>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Título e link para a página específica do vídeo -->
+  <div class="p-2 flex-grow flex flex-col justify-between">
+    <a href="/biblioteca/${slug}.html" class="file-card-title text-center text-sm font-bold text-gray-700 hover:text-[#4A90E2] transition-colors block mb-1">
+      ${titulo}
+    </a>
+    <!-- Div oculta com a descrição para o Lightbox -->
+    <div class="item-description-hidden hidden">${descricaoSegura}</div>
+  </div>
+</div>`;
+  } else {
+    // ESTILO ORIGINAL: Para Documentos (PDFs) e Fotos
+    return `
+<a href="/biblioteca/${slug}.html" class="file-card group" title="Acessar documento: ${titulo}">
   <figure style="margin: 0; padding: 0; width: 100%; height: 100%;">
     <img src="${capa}"
-         class="file-card-image"
+         class="file-card-image w-full h-[200px] object-cover rounded-lg bg-[#f8fafc] group-hover:opacity-90 transition-opacity"
          alt="Material sobre ${titulo}"
          title="${titulo}"
-         loading="lazy"
-         style="width: 100%; height: 200px; object-fit: cover; border-radius: 0.5rem; background-color: #f8fafc;">
-    <figcaption class="file-card-title p-2 text-center text-sm font-bold text-gray-700">${titulo}</figcaption>
+         loading="lazy">
+    <figcaption class="file-card-title p-2 text-center text-sm font-bold text-gray-700 group-hover:text-[#4A90E2] transition-colors">${titulo}</figcaption>
     <!-- Div oculta com a descrição para o Lightbox -->
     <div class="item-description-hidden hidden">${descricaoSegura}</div>
   </figure>
 </a>`;
+  }
 }
 
 function linkPagina(pageNum) {
@@ -141,7 +173,7 @@ function gerarPaginacao(total, atual) {
 }
 
 function construirPaginas() {
-  console.log("🚀 Iniciando build.js (Paginação Estilo Google & Otimização SEO)...");
+  console.log("🚀 Iniciando build.js (Paginação Estilo Google & Otimização SEO com Vídeos)...");
 
   if (!fs.existsSync(JSON_DATABASE_FILE)) return console.error("❌ biblioteca.json não encontrado");
   if (!fs.existsSync(TEMPLATE_FILE)) return console.error(`❌ ${TEMPLATE_FILE} não encontrado`);
@@ -232,7 +264,6 @@ function construirPaginas() {
     };
     const breadcrumbs = JSON.stringify(breadcrumbsObj);
 
-    // Dentro da função construirPaginas, substitua o bloco de injeção por este:
     let html = template;
 
     html = injetar(html, "<!-- TODOS -->", todos);
@@ -260,7 +291,7 @@ function construirPaginas() {
     }
   }
 
-  console.log("✅ Downloads gerados com sucesso (Paginação estilo Google aplicada)!");
+  console.log("✅ Downloads gerados com sucesso (Vídeos reproduzíveis aplicados)!");
   console.log(`📄 Total de páginas geradas: ${processados}`);
 }
 
