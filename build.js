@@ -27,8 +27,8 @@ function injetar(html, marcador, conteudo) {
 }
 
 function ensureTemplateHashMarker(html, templateHash) {
-  const marker = ``;
-  const re = new RegExp(``, "ig");
+  const marker = `<!-- ${TEMPLATE_HASH_MARKER_PREFIX}${templateHash} -->`;
+  const re = new RegExp(`<!-- ${TEMPLATE_HASH_MARKER_PREFIX}.*? -->`, "ig");
   if (re.test(html)) return html.replace(re, marker);
   if (html.includes("</head>")) return html.replace("</head>", `\n  ${marker}\n</head>`);
   return `${marker}\n${html}`;
@@ -66,10 +66,9 @@ function criarCartaoHTML(item) {
   const cat = String(item.categoria || "").toLowerCase().trim();
   const isVideo = cat === "videos" || cat === "vídeos" || capa.match(/\.(mp4|webm|ogg)$/i);
 
-  // A MUDANÇA PRINCIPAL: Todo o cartão é um link <a>. Isso elimina qualquer problema de "clique" ou "trava".
-  // Removemos o onclick do div e deixamos o link navegar.
+  // CORREÇÃO: Todo o cartão é agora um link <a>. Isso garante que a área da imagem e o título sejam clicáveis.
   return `
-<a href="/biblioteca/${slug}.html" class="file-card group relative flex flex-col bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-all focus:outline-none focus:ring-0">
+<a href="/biblioteca/${slug}.html" class="file-card group relative flex flex-col bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-all block">
   <div class="relative w-full h-[200px] ${isVideo ? 'bg-slate-900' : 'bg-[#E2E8F0]'} flex items-center justify-center overflow-hidden">
     ${fileTypeBadgeHtml}
     ${isVideo ? `
@@ -85,6 +84,91 @@ function criarCartaoHTML(item) {
 </a>`;
 }
 
-// ... (O restante da estrutura do seu build.js permanece o mesmo para a paginação)
 function linkPagina(pageNum) { return pageNum === 1 ? `/downloads.html` : `/downloads/page${pageNum}.html`; }
-// ... (Copie o resto da estrutura do seu arquivo anterior aqui)
+function gerarPaginacao(total, atual) {
+  if (total <= 1) return "";
+  let html = '<nav class="flex items-center justify-center space-x-1 md:space-x-2 my-8">';
+  if (atual > 1) {
+    html += `<a href="${linkPagina(atual - 1)}" class="flex items-center px-3 py-2 md:px-4 md:py-2 text-sm md:text-base text-[#4A90E2] font-bold hover:underline transition-all" title="Página Anterior"><i class="fa-solid fa-chevron-left mr-1 md:mr-2 text-xs"></i> Anterior</a>`;
+  } else {
+    html += `<span class="flex items-center px-3 py-2 md:px-4 md:py-2 text-sm md:text-base text-gray-400 font-bold cursor-not-allowed"><i class="fa-solid fa-chevron-left mr-1 md:mr-2 text-xs"></i> Anterior</span>`;
+  }
+  let startPage = Math.max(1, atual - 4);
+  let endPage = Math.min(total, atual + 5);
+  if (startPage === 1) endPage = Math.min(total, 10);
+  if (endPage === total) startPage = Math.max(1, total - 9);
+  if (startPage > 1) {
+    html += `<a href="${linkPagina(1)}" class="px-3 py-2 text-sm md:text-base text-[#4A90E2] hover:underline transition-all font-medium">1</a>`;
+    if (startPage > 2) html += `<span class="px-2 py-2 text-sm text-gray-500">...</span>`;
+  }
+  for (let i = startPage; i <= endPage; i++) {
+    if (i === atual) {
+      html += `<span class="px-3 py-2 text-sm md:text-base text-gray-900 font-black cursor-default">${i}</span>`;
+    } else {
+      html += `<a href="${linkPagina(i)}" class="px-3 py-2 text-sm md:text-base text-[#4A90E2] hover:underline transition-all font-medium">${i}</a>`;
+    }
+  }
+  if (endPage < total) {
+    if (endPage < total - 1) html += `<span class="px-2 py-2 text-sm text-gray-500">...</span>`;
+    html += `<a href="${linkPagina(total)}" class="px-3 py-2 text-sm md:text-base text-[#4A90E2] hover:underline transition-all font-medium">${total}</a>`;
+  }
+  if (atual < total) {
+    html += `<a href="${linkPagina(atual + 1)}" class="flex items-center px-3 py-2 md:px-4 md:py-2 text-sm md:text-base text-[#4A90E2] font-bold hover:underline transition-all" title="Próxima Página">Próxima <i class="fa-solid fa-chevron-right ml-1 md:ml-2 text-xs"></i></a>`;
+  } else {
+    html += `<span class="flex items-center px-3 py-2 md:px-4 md:py-2 text-sm md:text-base text-gray-400 font-bold cursor-not-allowed">Próxima <i class="fa-solid fa-chevron-right ml-1 md:ml-2 text-xs"></i></span>`;
+  }
+  html += '</nav>';
+  return html;
+}
+
+function construirPaginas() {
+  console.log("🚀 Iniciando build.js...");
+  if (!fs.existsSync(JSON_DATABASE_FILE)) return console.error("❌ biblioteca.json não encontrado");
+  if (!fs.existsSync(TEMPLATE_FILE)) return console.error(`❌ ${TEMPLATE_FILE} não encontrado`);
+  const rawData = JSON.parse(fs.readFileSync(JSON_DATABASE_FILE, "utf8"));
+  const data = rawData.reverse();
+  const template = fs.readFileSync(TEMPLATE_FILE, "utf8");
+  const templateHash = sha256(template);
+  const totalPages = Math.ceil(data.length / ITEMS_PER_PAGE);
+  if (fs.existsSync(OUTPUT_DIR)) { try { fs.rmSync(OUTPUT_DIR, { recursive: true, force: true }); } catch (e) {} }
+  fs.mkdirSync(OUTPUT_DIR, { recursive: true });
+  let processados = 0;
+  for (let page = 1; page <= totalPages; page++) {
+    const start = (page - 1) * ITEMS_PER_PAGE;
+    const items = data.slice(start, start + ITEMS_PER_PAGE);
+    let todos = "", documentos = "", fotos = "", videos = "";
+    items.forEach((item) => {
+      const card = criarCartaoHTML(item);
+      todos += card;
+      const cat = String(item.categoria || "").toLowerCase().trim();
+      if (cat === "documentos" || cat === "pdf" || cat === "docs") documentos += card;
+      else if (cat === "fotos" || cat === "imagens" || cat === "img") fotos += card;
+      else if (cat === "videos" || cat === "vídeos") videos += card;
+    });
+    const pagination = gerarPaginacao(totalPages, page);
+    const seoTitle = `Biblioteca de Enfermagem — Página ${page}`;
+    const seoDescription = `Biblioteca de Enfermagem com materiais, apostilas e documentos para download — Página ${page} de ${totalPages}.`;
+    const seoKeywords = "enfermagem, documentos de enfermagem, biblioteca de enfermagem, pdf enfermagem, escalas de enfermagem, materiais de estudo enfermagem";
+    const canonicalUrl = page === 1 ? `https://www.calculadorasdeenfermagem.com.br/downloads.html` : `https://www.calculadorasdeenfermagem.com.br/downloads/page${page}.html`;
+    const schemaOrgObj = { "@context": "https://schema.org", "@type": "CollectionPage", "name": seoTitle, "description": seoDescription, "url": canonicalUrl, "publisher": { "@type": "Organization", "name": "Calculadoras de Enfermagem", "logo": { "@type": "ImageObject", "url": "https://www.calculadorasdeenfermagem.com.br/iconpages.webp" } } };
+    const schemaOrg = JSON.stringify(schemaOrgObj);
+    const breadcrumbsObj = { "@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [ { "@type": "ListItem", "position": 1, "name": "Início", "item": "https://www.calculadorasdeenfermagem.com.br/" }, { "@type": "ListItem", "position": 2, "name": "Biblioteca de Enfermagem", "item": "https://www.calculadorasdeenfermagem.com.br/downloads.html" } ] };
+    const breadcrumbs = JSON.stringify(breadcrumbsObj);
+    let html = template;
+    html = injetar(html, "<!-- TODOS -->", todos);
+    html = injetar(html, "<!-- DOCUMENTOS -->", documentos);
+    html = injetar(html, "<!-- FOTOS -->", fotos);
+    html = injetar(html, "<!-- VIDEOS -->", videos);
+    html = injetar(html, "<!-- PAGINATION -->", pagination);
+    html = injetar(html, "<!-- SEO_TITLE -->", seoTitle);
+    html = injetar(html, "<!-- SEO_DESCRIPTION -->", seoDescription);
+    html = injetar(html, "<!-- SEO_KEYWORDS -->", seoKeywords);
+    html = injetar(html, "<!-- CANONICAL_URL -->", canonicalUrl);
+    html = injetar(html, "<!-- SCHEMA_ORG -->", schemaOrg);
+    html = injetar(html, "<!-- BREADCRUMBS -->", breadcrumbs);
+    html = ensureTemplateHashMarker(html, templateHash);
+    if (page === 1) { forcarEscrita("downloads.html", html); processados++; } else { const output = path.join(OUTPUT_DIR, `page${page}.html`); forcarEscrita(output, html); processados++; }
+  }
+  console.log("✅ Downloads gerados com sucesso!");
+}
+construirPaginas();
