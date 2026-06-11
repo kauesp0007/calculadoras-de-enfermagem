@@ -31,14 +31,10 @@ function sha256(text) {
     return crypto.createHash("sha256").update(String(text), "utf8").digest("hex");
 }
 
-// Substituição segura: substitui TODAS as ocorrências sem Regex e sem split/join
+// CORREÇÃO CRÍTICA: Uso de split.join garante a substituição sem loops causados por caracteres especiais.
 function injetar(html, marcador, conteudo) {
     if (!html || !marcador) return html;
-    let resultado = html;
-    while (resultado.includes(marcador)) {
-        resultado = resultado.replace(marcador, conteudo);
-    }
-    return resultado;
+    return html.split(marcador).join(conteudo);
 }
 
 function ensureTemplateHashMarker(html, templateHash) {
@@ -219,7 +215,7 @@ function gerarHtmlDoItem({ template, templateHash, item }) {
 }
 
 function construirBiblioteca() {
-    console.log("🚀 Iniciando build-biblioteca.js (Gerando itens com metadados SEO, Mídia e Badges de Tipo de Arquivo corrigidos)...");
+    console.log("🚀 Iniciando build-biblioteca.js (Correção de injeção ativada)...");
     if (!fs.existsSync(JSON_DATABASE_FILE)) return console.error("❌ biblioteca.json não encontrado");
     if (!fs.existsSync(TEMPLATE_FILE)) return console.error(`❌ ${TEMPLATE_FILE} não encontrado`);
 
