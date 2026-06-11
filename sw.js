@@ -1,5 +1,5 @@
 // Define o nome e a versão do cache (AUTOMÁTICO via gerar-sw.js)
-const CACHE_NAME = 'calculadoras-enfermagem-cache-20260611-092340-491';
+const CACHE_NAME = 'calculadoras-enfermagem-cache-20260611-102516-653';
 
 // O SCRIPT DE BUILD VAI INJETAR A LISTA DE ARQUIVOS AQUI
 const urlsToCache = [
@@ -764,7 +764,15 @@ const urlsToCache = [
   'biblioteca/preparo-do-medicamento-de-alta-vigilancia-pelo-tecnico-e-enfermagem.html',
   'biblioteca/preparo-e-administracao-de-medicamento.html',
   'biblioteca/primeira-checagem-na-farmacia-com-o-farmaceutico.html',
+  'biblioteca/propedeutica-de-enfermagem-entrevista-clinica.html',
+  'biblioteca/propedeutica-de-enfermagem-exame-aparelho-cardiovascular.html',
+  'biblioteca/propedeutica-de-enfermagem-exame-de-torax-e-aparelho-respiratorio.html',
   'biblioteca/propedeutica-de-enfermagem-exame-do-abdome-parte-1.html',
+  'biblioteca/propedeutica-de-enfermagem-exame-do-abdome-parte1.html',
+  'biblioteca/propedeutica-de-enfermagem-exame-fisico-cabeca-e-pescoco.html',
+  'biblioteca/propedeutica-de-enfermagem-exame-fisico-geral.html',
+  'biblioteca/propedeutica-de-enfermagem-exame-musculoesqueletico.html',
+  'biblioteca/propedeutica-de-enfermagem-exame-neurologico.html',
   'biblioteca/protocolo-de-news-enfermagem-saude.html',
   'biblioteca/protocolo-de-news-horizontalizada.html',
   'biblioteca/protocolo-de-rcp-adulto-2020-aha.html',
