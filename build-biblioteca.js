@@ -126,7 +126,7 @@ function gerarHtmlDoItem({ template, templateHash, item }) {
     let filePath = item.download || item.ficheiro || "";
     if (filePath && !filePath.startsWith("/")) filePath = "/" + filePath;
 
-    // --- LÓGICA DO BADGE DE TIPO DE ARQUIVO (Correção Tailwind) ---
+    // --- LÓGICA DO BADGE DE TIPO DE ARQUIVO ---
     let ext = path.extname(filePath).toLowerCase().replace('.', '');
     if (!ext && filePath.match(/\.(mp4|webm|ogg)$/i)) ext = 'mp4';
     if (!ext && (item.categoria === 'fotos' || item.categoria === 'imagens')) ext = 'png';
@@ -135,24 +135,23 @@ function gerarHtmlDoItem({ template, templateHash, item }) {
     let fileTypeBadgeHtml = "";
     if (ext) {
         let label = ext.toUpperCase();
-        let bgHex = "#f3f4f6"; // gray-100 fallback
-        let textHex = "#374151"; // gray-700 fallback
+        let bgColor = "bg-gray-100";
+        let textColor = "text-gray-700";
         let icon = "fa-solid fa-file";
 
-        // Usando código hexadecimal (style="") direto para evitar que o Tailwind ignore as cores
         if (ext === 'pdf') {
-            bgHex = "#fee2e2"; textHex = "#b91c1c"; icon = "fa-solid fa-file-pdf";
+            bgColor = "bg-red-100"; textColor = "text-red-700"; icon = "fa-solid fa-file-pdf";
         } else if (['doc', 'docx'].includes(ext)) {
-            label = "WORD"; bgHex = "#dbeafe"; textHex = "#1d4ed8"; icon = "fa-solid fa-file-word";
+            label = "WORD"; bgColor = "bg-blue-100"; textColor = "text-blue-700"; icon = "fa-solid fa-file-word";
         } else if (['xls', 'xlsx'].includes(ext)) {
-            label = "EXCEL"; bgHex = "#dcfce3"; textHex = "#15803d"; icon = "fa-solid fa-file-excel";
+            label = "EXCEL"; bgColor = "bg-green-100"; textColor = "text-green-700"; icon = "fa-solid fa-file-excel";
         } else if (['mp4', 'webm', 'ogg'].includes(ext)) {
-            bgHex = "#f3e8ff"; textHex = "#7e22ce"; icon = "fa-solid fa-video";
+            bgColor = "bg-purple-100"; textColor = "text-purple-700"; icon = "fa-solid fa-video";
         } else if (['png', 'jpg', 'jpeg', 'webp', 'gif'].includes(ext)) {
-            bgHex = "#d1fae5"; textHex = "#047857"; icon = "fa-solid fa-image";
+            bgColor = "bg-emerald-100"; textColor = "text-emerald-700"; icon = "fa-solid fa-image";
         }
 
-        fileTypeBadgeHtml = `<div class="inline-flex items-center gap-1.5 px-3 py-1 text-[11px] font-black rounded uppercase tracking-wider w-fit shadow-sm" style="background-color: ${bgHex}; color: ${textHex};"><i class="${icon}"></i> ARQUIVO ${label}</div>`;
+        fileTypeBadgeHtml = `<div class="inline-flex items-center gap-1.5 px-3 py-1 ${bgColor} ${textColor} text-[11px] font-black rounded uppercase tracking-wider w-fit shadow-sm"><i class="${icon}"></i> ARQUIVO ${label}</div>`;
     }
     // ------------------------------------------
 
@@ -219,7 +218,7 @@ function gerarHtmlDoItem({ template, templateHash, item }) {
 }
 
 function construirBiblioteca() {
-    console.log("🚀 Iniciando build-biblioteca.js (Gerando itens com metadados SEO, Mídia e Badges de Tipo de Arquivo corrigidos)...");
+    console.log("🚀 Iniciando build-biblioteca.js (Gerando itens com metadados SEO, Mídia e Badges de Tipo de Arquivo)...");
     if (!fs.existsSync(JSON_DATABASE_FILE)) return console.error("❌ biblioteca.json não encontrado");
     if (!fs.existsSync(TEMPLATE_FILE)) return console.error(`❌ ${TEMPLATE_FILE} não encontrado`);
 
