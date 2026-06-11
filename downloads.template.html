@@ -175,12 +175,24 @@
             <div class="w-full max-w-6xl bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col md:flex-row relative mt-8 md:mt-0 my-auto"
                 style="z-index: 999995;">
 
-                <!-- Imagem (Esquerda) -->
+                <!-- Imagem / Vídeo (Esquerda) -->
                 <div
-                    class="w-full md:w-1/2 bg-gray-50 flex items-center justify-center p-4 md:p-8 border-b md:border-b-0 md:border-r border-gray-200">
+                    class="w-full md:w-1/2 bg-gray-50 flex items-center justify-center p-4 md:p-8 border-b md:border-b-0 md:border-r border-gray-200 relative">
+
                     <img id="lightbox-img"
                         class="max-w-full h-auto max-h-[50vh] md:max-h-[70vh] object-contain rounded-lg shadow-md"
                         src="" alt="">
+
+                    <video id="lightbox-video"
+                        class="hidden max-w-full h-auto max-h-[50vh] md:max-h-[70vh] rounded-lg shadow-md"
+                        controls preload="metadata"></video>
+
+                    <button id="lightbox-play-btn"
+                        class="hidden absolute flex items-center justify-center w-20 h-20 rounded-full bg-black/60 text-white hover:scale-110 transition"
+                        title="Reproduzir vídeo">
+                        <i class="fa-solid fa-play text-3xl"></i>
+                    </button>
+
                 </div>
 
                 <!-- Detalhes (Direita) -->
@@ -267,13 +279,31 @@
             const pageUrl = `/biblioteca/${slug}.html`;
             const desc = item.descricao && item.descricao.trim() !== "" ? item.descricao : `Faça o download do material completo sobre ${title} na nossa Biblioteca de Enfermagem.`;
 
-            document.getElementById('lightbox-img').src = imagePath;
+            const categoria = String(item.categoria || item.tipo || "").toLowerCase().trim();
+            const isVideo = categoria === "videos" || categoria === "vídeos" ||
+                imagePath.toLowerCase().endsWith(".mp4") ||
+                imagePath.toLowerCase().endsWith(".webm") ||
+                imagePath.toLowerCase().endsWith(".mov");
+
+            const img = document.getElementById('lightbox-img');
+            const video = document.getElementById('lightbox-video');
+            const playBtn = document.getElementById('lightbox-play-btn');
+
+            img.src = imagePath;
+            img.classList.remove('hidden');
+
+            video.pause();
+            video.src = "";
+            video.classList.add('hidden');
+
+            if (isVideo) playBtn.classList.remove('hidden');
+            else playBtn.classList.add('hidden');
+
             document.getElementById('lightbox-title').textContent = title;
             document.getElementById('lightbox-download').href = imagePath;
             document.getElementById('lightbox-page-link').href = pageUrl;
             document.getElementById('lightbox-desc').textContent = desc;
 
-            // Atualiza visibilidade das Setas para navegação ilimitada
             const prevBtn = document.getElementById('lightbox-prev');
             const nextBtn = document.getElementById('lightbox-next');
 
@@ -283,6 +313,26 @@
             if (currentGlobalIndex < bibliotecaGlobal.length - 1) nextBtn.classList.remove('hidden');
             else nextBtn.classList.add('hidden');
         }
+
+        document.getElementById('lightbox-play-btn').addEventListener('click', () => {
+            if (currentGlobalIndex === -1 || bibliotecaGlobal.length === 0) return;
+
+            const item = bibliotecaGlobal[currentGlobalIndex];
+
+            let videoPath = item.ficheiro || item.capa || "";
+            if (videoPath && !videoPath.startsWith("/")) videoPath = "/" + videoPath;
+
+            const img = document.getElementById('lightbox-img');
+            const video = document.getElementById('lightbox-video');
+            const playBtn = document.getElementById('lightbox-play-btn');
+
+            img.classList.add('hidden');
+            playBtn.classList.add('hidden');
+
+            video.src = videoPath;
+            video.classList.remove('hidden');
+            video.play();
+        });
 
         document.body.addEventListener('click', (e) => {
     const card = e.target.closest('.file-card');
@@ -347,12 +397,17 @@
 
         function fecharLightbox() {
             const lightbox = document.getElementById('global-lightbox');
+            const video = document.getElementById('lightbox-video');
+
+            video.pause();
+            video.src = "";
+
             lightbox.classList.remove('opacity-100');
             lightbox.classList.add('opacity-0');
 
             setTimeout(() => {
                 lightbox.classList.add('hidden');
-                document.body.style.overflow = ""; // Restaura o scroll normal da página
+                document.body.style.overflow = "";
                 document.getElementById('lightbox-img').src = "";
             }, 300);
         }
