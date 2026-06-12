@@ -6,18 +6,19 @@
 // A função de ajuste de espaço é definida globalmente para ser chamada após o carregamento dinâmico
 (function configurarAjusteEspaco() {
   let agendado = false;
+  let resizeTimer; // NOVO: Bloqueio de debounce
 
   window.recalcularEspacoIdioma = function() {
     var header = document.getElementById('global-header-container');
     var wrapper = document.getElementById('language-dropdown-wrapper');
 
     if (header && wrapper) {
-      var h = header.offsetHeight || 0;
+      var h = header.offsetHeight || 0; // LEITURA ISOLADA
       var novaMargem = (h ? (h + 12) : 24) + 'px';
 
       if (!agendado) {
         window.requestAnimationFrame(function() {
-          wrapper.style.marginTop = novaMargem;
+          wrapper.style.marginTop = novaMargem; // ESCRITA SEGURA NO FRAME
           agendado = false;
         });
         agendado = true;
@@ -25,7 +26,11 @@
     }
   };
 
-  window.addEventListener('resize', window.recalcularEspacoIdioma);
+  // Correção de Reflow: Evento de redimensionamento agora tem limite de disparo (100ms)
+  window.addEventListener('resize', function() {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(window.recalcularEspacoIdioma, 100);
+  });
 })();
 
 // A lógica principal SÓ é executada após o evento de injeção ser disparado pelo global-scripts.js
