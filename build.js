@@ -10,7 +10,12 @@ const OUTPUT_DIR = "downloads";
 const TEMPLATE_HASH_MARKER_PREFIX = "DOWNLOADS_TEMPLATE_HASH:";
 
 function slugify(text) {
-  return String(text || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+  return String(text || "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)/g, "");
 }
 
 function sha256(text) {
@@ -18,19 +23,25 @@ function sha256(text) {
 }
 
 function escapeHtml(str) {
-  return String(str || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+  return String(str || "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
 }
 
 function injetar(html, marcador, conteudo) {
-    if (!html || !marcador) return html;
-    return html.split(marcador).join(conteudo);
+  if (!html || !marcador) return html;
+  return html.split(marcador).join(conteudo);
 }
 
 function ensureTemplateHashMarker(html, templateHash) {
   const marker = `<!-- ${TEMPLATE_HASH_MARKER_PREFIX}${templateHash} -->`;
   const re = new RegExp(`<!-- ${TEMPLATE_HASH_MARKER_PREFIX}.*? -->`, "ig");
   if (re.test(html)) return html.replace(re, marker);
-  if (html.includes("</head>")) return html.replace("</head>", `\n  ${marker}\n</head>`);
+  if (html.includes("</head>"))
+    return html.replace("</head>", `\n  ${marker}\n</head>`);
   return `${marker}\n${html}`;
 }
 
@@ -43,40 +54,74 @@ function criarCartaoHTML(item) {
   if (capa && !capa.startsWith("/")) capa = "/" + capa;
   const titulo = item.titulo || "Sem título";
   const slug = slugify(titulo);
-  const descricaoRaw = item.descricao && item.descricao.trim() !== "" ? item.descricao : `Baixe agora o material completo sobre ${titulo}.`;
+  const descricaoRaw =
+    item.descricao && item.descricao.trim() !== ""
+      ? item.descricao
+      : `Baixe agora o material completo sobre ${titulo}.`;
   const descricaoSegura = escapeHtml(descricaoRaw);
 
   let filePath = item.download || item.ficheiro || "";
-  let ext = path.extname(filePath).toLowerCase().replace('.', '');
-  if (!ext && filePath.match(/\.(mp4|webm|ogg)$/i)) ext = 'mp4';
-  if (!ext && (item.categoria === 'fotos' || item.categoria === 'imagens')) ext = 'png';
-  if (!ext && (item.categoria === 'documentos' || item.categoria === 'pdf')) ext = 'pdf';
+  let ext = path.extname(filePath).toLowerCase().replace(".", "");
+  if (!ext && filePath.match(/\.(mp4|webm|ogg)$/i)) ext = "mp4";
+  if (!ext && (item.categoria === "fotos" || item.categoria === "imagens"))
+    ext = "png";
+  if (!ext && (item.categoria === "documentos" || item.categoria === "pdf"))
+    ext = "pdf";
 
   let fileTypeBadgeHtml = "";
   if (ext) {
-      let label = ext.toUpperCase();
-      let bgHex = "#f3f4f6"; let textHex = "#374151"; let icon = "fa-solid fa-file";
-      if (ext === 'pdf') { bgHex = "#fee2e2"; textHex = "#b91c1c"; icon = "fa-solid fa-file-pdf"; }
-      else if (['doc', 'docx'].includes(ext)) { label = "WORD"; bgHex = "#dbeafe"; textHex = "#1d4ed8"; icon = "fa-solid fa-file-word"; }
-      else if (['mp4', 'webm', 'ogg'].includes(ext)) { bgHex = "#f3e8ff"; textHex = "#7e22ce"; icon = "fa-solid fa-video"; }
-      else if (['png', 'jpg', 'jpeg', 'webp', 'gif'].includes(ext)) { bgHex = "#d1fae5"; textHex = "#047857"; icon = "fa-solid fa-image"; }
-      fileTypeBadgeHtml = `<div class="absolute top-2 right-2 text-[10px] font-black uppercase px-2 py-1 rounded shadow-sm z-20 flex items-center gap-1" style="background-color: ${bgHex}; color: ${textHex};"><i class="${icon}"></i> ${label}</div>`;
+    let label = ext.toUpperCase();
+    let bgHex = "#f3f4f6";
+    let textHex = "#374151";
+    let icon = "fa-solid fa-file";
+    if (ext === "pdf") {
+      bgHex = "#fee2e2";
+      textHex = "#b91c1c";
+      icon = "fa-solid fa-file-pdf";
+    } else if (["doc", "docx"].includes(ext)) {
+      label = "WORD";
+      bgHex = "#dbeafe";
+      textHex = "#1d4ed8";
+      icon = "fa-solid fa-file-word";
+    } else if (["mp4", "webm", "ogg"].includes(ext)) {
+      bgHex = "#f3e8ff";
+      textHex = "#7e22ce";
+      icon = "fa-solid fa-video";
+    } else if (["png", "jpg", "jpeg", "webp", "gif"].includes(ext)) {
+      bgHex = "#d1fae5";
+      textHex = "#047857";
+      icon = "fa-solid fa-image";
+    }
+    fileTypeBadgeHtml = `<div class="absolute top-2 right-2 text-[10px] font-black uppercase px-2 py-1 rounded shadow-sm z-20 flex items-center gap-1" style="background-color: ${bgHex}; color: ${textHex};"><i class="${icon}"></i> ${label}</div>`;
   }
 
-  const cat = String(item.categoria || "").toLowerCase().trim();
-  const isVideo = cat === "videos" || cat === "vídeos" || capa.match(/\.(mp4|webm|ogg)$/i);
+  const cat = String(item.categoria || "")
+    .toLowerCase()
+    .trim();
+  // Validamos se é vídeo avaliando o caminho original do ficheiro e não a capa
+  const isVideo =
+    cat === "videos" ||
+    cat === "vídeos" ||
+    filePath.match(/\.(mp4|webm|ogg)$/i);
 
-  // CORREÇÃO: Todo o cartão é agora um link <a>. Isso garante que a área da imagem e o título sejam clicáveis.
+  // Adicionamos data-slug para garantir que o Lightbox encontra o item exato
   return `
-<a href="/biblioteca/${slug}.html" class="file-card group relative flex flex-col bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-all block">
-  <div class="relative w-full h-[200px] ${isVideo ? 'bg-slate-900' : 'bg-[#E2E8F0]'} flex items-center justify-center overflow-hidden">
+<a href="/biblioteca/${slug}.html" data-slug="${slug}" class="file-card group relative flex flex-col bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-all block">
+  <div class="relative w-full h-[200px] ${isVideo ? "bg-slate-900" : "bg-[#E2E8F0]"} flex items-center justify-center overflow-hidden">
     ${fileTypeBadgeHtml}
-    ${isVideo ? `
-    <video src="${capa}#t=0.1" class="w-full h-full object-cover opacity-90 group-hover:opacity-100"></video>
-    <div class="absolute inset-0 flex items-center justify-center">
-      <div class="bg-black/60 rounded-full w-12 h-12 flex items-center justify-center backdrop-blur-sm"><i class="fa-solid fa-play text-white text-xl"></i></div>
-    </div>` : `
-    <img src="${capa}" class="max-w-full max-h-full object-contain" alt="${titulo}" loading="lazy">`}
+    
+    <img src="${capa}" class="max-w-full h-full object-cover opacity-90 group-hover:opacity-100 transition-opacity" alt="${titulo}" loading="lazy">
+    
+    ${
+      isVideo
+        ? `
+    <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
+      <div class="bg-black/60 rounded-full w-14 h-14 flex items-center justify-center backdrop-blur-md border border-white/20 shadow-lg group-hover:scale-110 transition-transform">
+        <i class="fa-solid fa-play text-white text-2xl translate-x-[2px]"></i>
+      </div>
+    </div>`
+        : ""
+    }
   </div>
   <div class="p-3 flex-grow flex flex-col justify-center">
     <span class="file-card-title text-center text-sm font-bold text-gray-700 group-hover:text-[#4A90E2] transition-colors line-clamp-2">${titulo}</span>
@@ -84,10 +129,13 @@ function criarCartaoHTML(item) {
 </a>`;
 }
 
-function linkPagina(pageNum) { return pageNum === 1 ? `/downloads.html` : `/downloads/page${pageNum}.html`; }
+function linkPagina(pageNum) {
+  return pageNum === 1 ? `/downloads.html` : `/downloads/page${pageNum}.html`;
+}
 function gerarPaginacao(total, atual) {
   if (total <= 1) return "";
-  let html = '<nav class="flex items-center justify-center space-x-1 md:space-x-2 my-8">';
+  let html =
+    '<nav class="flex items-center justify-center space-x-1 md:space-x-2 my-8">';
   if (atual > 1) {
     html += `<a href="${linkPagina(atual - 1)}" class="flex items-center px-3 py-2 md:px-4 md:py-2 text-sm md:text-base text-[#4A90E2] font-bold hover:underline transition-all" title="Página Anterior"><i class="fa-solid fa-chevron-left mr-1 md:mr-2 text-xs"></i> Anterior</a>`;
   } else {
@@ -99,7 +147,8 @@ function gerarPaginacao(total, atual) {
   if (endPage === total) startPage = Math.max(1, total - 9);
   if (startPage > 1) {
     html += `<a href="${linkPagina(1)}" class="px-3 py-2 text-sm md:text-base text-[#4A90E2] hover:underline transition-all font-medium">1</a>`;
-    if (startPage > 2) html += `<span class="px-2 py-2 text-sm text-gray-500">...</span>`;
+    if (startPage > 2)
+      html += `<span class="px-2 py-2 text-sm text-gray-500">...</span>`;
   }
   for (let i = startPage; i <= endPage; i++) {
     if (i === atual) {
@@ -109,7 +158,8 @@ function gerarPaginacao(total, atual) {
     }
   }
   if (endPage < total) {
-    if (endPage < total - 1) html += `<span class="px-2 py-2 text-sm text-gray-500">...</span>`;
+    if (endPage < total - 1)
+      html += `<span class="px-2 py-2 text-sm text-gray-500">...</span>`;
     html += `<a href="${linkPagina(total)}" class="px-3 py-2 text-sm md:text-base text-[#4A90E2] hover:underline transition-all font-medium">${total}</a>`;
   }
   if (atual < total) {
@@ -117,42 +167,90 @@ function gerarPaginacao(total, atual) {
   } else {
     html += `<span class="flex items-center px-3 py-2 md:px-4 md:py-2 text-sm md:text-base text-gray-400 font-bold cursor-not-allowed">Próxima <i class="fa-solid fa-chevron-right ml-1 md:ml-2 text-xs"></i></span>`;
   }
-  html += '</nav>';
+  html += "</nav>";
   return html;
 }
 
 function construirPaginas() {
   console.log("🚀 Iniciando build.js...");
-  if (!fs.existsSync(JSON_DATABASE_FILE)) return console.error("❌ biblioteca.json não encontrado");
-  if (!fs.existsSync(TEMPLATE_FILE)) return console.error(`❌ ${TEMPLATE_FILE} não encontrado`);
+  if (!fs.existsSync(JSON_DATABASE_FILE))
+    return console.error("❌ biblioteca.json não encontrado");
+  if (!fs.existsSync(TEMPLATE_FILE))
+    return console.error(`❌ ${TEMPLATE_FILE} não encontrado`);
   const rawData = JSON.parse(fs.readFileSync(JSON_DATABASE_FILE, "utf8"));
   const data = rawData.reverse();
   const template = fs.readFileSync(TEMPLATE_FILE, "utf8");
   const templateHash = sha256(template);
   const totalPages = Math.ceil(data.length / ITEMS_PER_PAGE);
-  if (fs.existsSync(OUTPUT_DIR)) { try { fs.rmSync(OUTPUT_DIR, { recursive: true, force: true }); } catch (e) {} }
+  if (fs.existsSync(OUTPUT_DIR)) {
+    try {
+      fs.rmSync(OUTPUT_DIR, { recursive: true, force: true });
+    } catch (e) {}
+  }
   fs.mkdirSync(OUTPUT_DIR, { recursive: true });
   let processados = 0;
   for (let page = 1; page <= totalPages; page++) {
     const start = (page - 1) * ITEMS_PER_PAGE;
     const items = data.slice(start, start + ITEMS_PER_PAGE);
-    let todos = "", documentos = "", fotos = "", videos = "";
+    let todos = "",
+      documentos = "",
+      fotos = "",
+      videos = "";
     items.forEach((item) => {
       const card = criarCartaoHTML(item);
       todos += card;
-      const cat = String(item.categoria || "").toLowerCase().trim();
-      if (cat === "documentos" || cat === "pdf" || cat === "docs") documentos += card;
-      else if (cat === "fotos" || cat === "imagens" || cat === "img") fotos += card;
+      const cat = String(item.categoria || "")
+        .toLowerCase()
+        .trim();
+      if (cat === "documentos" || cat === "pdf" || cat === "docs")
+        documentos += card;
+      else if (cat === "fotos" || cat === "imagens" || cat === "img")
+        fotos += card;
       else if (cat === "videos" || cat === "vídeos") videos += card;
     });
     const pagination = gerarPaginacao(totalPages, page);
     const seoTitle = `Biblioteca de Enfermagem — Página ${page}`;
     const seoDescription = `Biblioteca de Enfermagem com materiais, apostilas e documentos para download — Página ${page} de ${totalPages}.`;
-    const seoKeywords = "enfermagem, documentos de enfermagem, biblioteca de enfermagem, pdf enfermagem, escalas de enfermagem, materiais de estudo enfermagem";
-    const canonicalUrl = page === 1 ? `https://www.calculadorasdeenfermagem.com.br/downloads.html` : `https://www.calculadorasdeenfermagem.com.br/downloads/page${page}.html`;
-    const schemaOrgObj = { "@context": "https://schema.org", "@type": "CollectionPage", "name": seoTitle, "description": seoDescription, "url": canonicalUrl, "publisher": { "@type": "Organization", "name": "Calculadoras de Enfermagem", "logo": { "@type": "ImageObject", "url": "https://www.calculadorasdeenfermagem.com.br/iconpages.webp" } } };
+    const seoKeywords =
+      "enfermagem, documentos de enfermagem, biblioteca de enfermagem, pdf enfermagem, escalas de enfermagem, materiais de estudo enfermagem";
+    const canonicalUrl =
+      page === 1
+        ? `https://www.calculadorasdeenfermagem.com.br/downloads.html`
+        : `https://www.calculadorasdeenfermagem.com.br/downloads/page${page}.html`;
+    const schemaOrgObj = {
+      "@context": "https://schema.org",
+      "@type": "CollectionPage",
+      name: seoTitle,
+      description: seoDescription,
+      url: canonicalUrl,
+      publisher: {
+        "@type": "Organization",
+        name: "Calculadoras de Enfermagem",
+        logo: {
+          "@type": "ImageObject",
+          url: "https://www.calculadorasdeenfermagem.com.br/iconpages.webp",
+        },
+      },
+    };
     const schemaOrg = JSON.stringify(schemaOrgObj);
-    const breadcrumbsObj = { "@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [ { "@type": "ListItem", "position": 1, "name": "Início", "item": "https://www.calculadorasdeenfermagem.com.br/" }, { "@type": "ListItem", "position": 2, "name": "Biblioteca de Enfermagem", "item": "https://www.calculadorasdeenfermagem.com.br/downloads.html" } ] };
+    const breadcrumbsObj = {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      itemListElement: [
+        {
+          "@type": "ListItem",
+          position: 1,
+          name: "Início",
+          item: "https://www.calculadorasdeenfermagem.com.br/",
+        },
+        {
+          "@type": "ListItem",
+          position: 2,
+          name: "Biblioteca de Enfermagem",
+          item: "https://www.calculadorasdeenfermagem.com.br/downloads.html",
+        },
+      ],
+    };
     const breadcrumbs = JSON.stringify(breadcrumbsObj);
     let html = template;
     html = injetar(html, "<!-- TODOS -->", todos);
@@ -167,7 +265,14 @@ function construirPaginas() {
     html = injetar(html, "<!-- SCHEMA_ORG -->", schemaOrg);
     html = injetar(html, "<!-- BREADCRUMBS -->", breadcrumbs);
     html = ensureTemplateHashMarker(html, templateHash);
-    if (page === 1) { forcarEscrita("downloads.html", html); processados++; } else { const output = path.join(OUTPUT_DIR, `page${page}.html`); forcarEscrita(output, html); processados++; }
+    if (page === 1) {
+      forcarEscrita("downloads.html", html);
+      processados++;
+    } else {
+      const output = path.join(OUTPUT_DIR, `page${page}.html`);
+      forcarEscrita(output, html);
+      processados++;
+    }
   }
   console.log("✅ Downloads gerados com sucesso!");
 }

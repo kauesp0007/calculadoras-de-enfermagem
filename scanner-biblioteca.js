@@ -2,23 +2,27 @@
 const fs = require("fs");
 const path = require("path");
 
+// IMPORTAÇÃO NOVA: Trazendo o motor de extração de vídeos como uma ferramenta do scanner
+const processarVideos = require("./gerarCapasVideo.js");
+
 const BIBLIOTECA_JSON = "biblioteca.json";
 
 /**
  * Pastas monitoradas e suas categorias
  */
-const PASTAS = [{
+const PASTAS = [
+  {
     dir: "img",
-    categoria: "fotos"
+    categoria: "fotos",
   },
   {
     dir: "docs",
-    categoria: "documentos"
+    categoria: "documentos",
   },
   {
     dir: "videos",
-    categoria: "videos"
-  }
+    categoria: "videos",
+  },
 ];
 
 /**
@@ -28,7 +32,7 @@ function tituloFromFilename(filename) {
   return filename
     .replace(/\.[^/.]+$/, "")
     .replace(/[-_]/g, " ")
-    .replace(/\b\w/g, l => l.toUpperCase());
+    .replace(/\b\w/g, (l) => l.toUpperCase());
 }
 
 /**
@@ -47,11 +51,11 @@ function slugFromTitulo(titulo) {
  * Gera descrição automática enriquecida para SEO baseada na categoria
  */
 function descricaoAutomatica(titulo, categoria) {
-  if (categoria === 'fotos') {
+  if (categoria === "fotos") {
     return `Imagem ilustrativa, esquema visual e protocolo de enfermagem sobre ${titulo}. Excelente material para consulta rápida, estudos e prática clínica.`;
-  } else if (categoria === 'documentos') {
+  } else if (categoria === "documentos") {
     return `Documento completo e material em PDF de enfermagem abordando ${titulo} para apoio educacional, académico e clínico.`;
-  } else if (categoria === 'videos') {
+  } else if (categoria === "videos") {
     return `Vídeo explicativo e demonstração prática de enfermagem sobre ${titulo}, detalhando procedimentos e conceitos clínicos fundamentais.`;
   }
   return `Material de enfermagem sobre ${titulo} para apoio educacional e clínico.`;
@@ -71,17 +75,13 @@ function carregarBiblioteca() {
  * Salva biblioteca.json formatado
  */
 function salvarBiblioteca(data) {
-  fs.writeFileSync(
-    BIBLIOTECA_JSON,
-    JSON.stringify(data, null, 2),
-    "utf8"
-  );
+  fs.writeFileSync(BIBLIOTECA_JSON, JSON.stringify(data, null, 2), "utf8");
 }
 
 /**
- * Scanner principal
+ * Scanner principal - AGORA ASSÍNCRONO PARA SUPORTAR O MOTOR DE VÍDEOS
  */
-function executarScanner() {
+async function executarScanner() {
   const biblioteca = carregarBiblioteca();
   for (const item of biblioteca) {
     if (!item.slug && item.titulo) {
@@ -94,19 +94,16 @@ function executarScanner() {
 
     // Não forçar capa padrão para documentos; deixar em branco para que o gerador crie
     if (!item.capa) {
-      if (item.categoria === 'fotos') {
+      if (item.categoria === "fotos") {
         item.capa = item.ficheiro;
       } else {
-        item.capa = '';
+        item.capa = "";
       }
     }
   }
 
-
   // Evita duplicação usando o campo ficheiro
-  const ficheirosExistentes = new Set(
-    biblioteca.map(item => item.ficheiro)
-  );
+  const ficheirosExistentes = new Set(biblioteca.map((item) => item.ficheiro));
 
   let adicionados = 0;
 
@@ -132,7 +129,7 @@ function executarScanner() {
         meta_descricao: "", // Inicializamos vazio para preenchimento manual ou IA
         categoria: pasta.categoria,
         ficheiro: caminho,
-        capa: pasta.categoria === 'fotos' ? caminho : ''
+        capa: pasta.categoria === "fotos" ? caminho : "",
       };
 
       biblioteca.push(novoItem);
@@ -144,6 +141,10 @@ function executarScanner() {
 
   console.log("✅ Scanner concluído com sucesso");
   console.log(`➕ Itens adicionados: ${adicionados}`);
+
+  // GATILHO DE AUTOMAÇÃO: Logo após o scanner salvar o JSON, o motor de vídeos é acionado
+  console.log("\n🔄 Iniciando o motor automático de vídeos...");
+  await processarVideos();
 }
 
 executarScanner();
