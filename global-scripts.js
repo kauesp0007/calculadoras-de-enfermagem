@@ -291,15 +291,23 @@ function initializeCookieFunctionality() {
 }
 
 function initializeGlobalFunctions() {
-  function e() {
-    if (window.innerWidth > 1024) {
-      const e = document.getElementById("barraAcessibilidade");
-      e && (e.style.display = "flex");
-      const o = document.querySelector("nav.desktop-nav");
-      o && (o.style.display = "flex")
+  let _resizeTimer;
+  function _checkResize() {
+    const _w = window.innerWidth;
+    if (_w > 1024) {
+      window.requestAnimationFrame(() => {
+        const _b = document.getElementById("barraAcessibilidade");
+        _b && (_b.style.display = "flex");
+        const _n = document.querySelector("nav.desktop-nav");
+        _n && (_n.style.display = "flex");
+      });
     }
   }
-  e(), window.addEventListener("resize", e);
+  _checkResize();
+  window.addEventListener("resize", () => {
+    clearTimeout(_resizeTimer);
+    _resizeTimer = setTimeout(_checkResize, 100);
+  });
   const o = document.body,
     t = document.createElement("div");
   t.setAttribute("aria-live", "polite"), t.className = "sr-only", o.appendChild(t);
@@ -547,17 +555,21 @@ function initializeGlobalFunctions() {
   }), r?.addEventListener("click", () => {
     c?.classList.remove("is-open"), m?.classList.contains("is-open") || d && (d.style.display = "none")
   });
-  const z = document.getElementById("backToTopBtn");
-  z && (window.addEventListener("scroll", () => {
-    window.requestAnimationFrame(() => {
-      z.style.display = window.scrollY > 200 ? "block" : "none";
-    });
-  }, {
-    passive: true
-  }), z.addEventListener("click", () => window.scrollTo({
-    top: 0,
-    behavior: "smooth"
-  })));
+  const zTop = document.getElementById("backToTopBtn");
+  if (zTop) {
+    let _ticking = false;
+    window.addEventListener("scroll", () => {
+      const _lastScrollY = window.scrollY; // LEITURA ISOLADA
+      if (!_ticking) {
+        window.requestAnimationFrame(() => {
+          zTop.style.display = _lastScrollY > 200 ? "block" : "none"; // ESCRITA NO QUADRO
+          _ticking = false;
+        });
+        _ticking = true;
+      }
+    }, { passive: true });
+    zTop.addEventListener("click", () => window.scrollTo({ top: 0, behavior: "smooth" }));
+  }
   inicializarTooltips();
 }
 
