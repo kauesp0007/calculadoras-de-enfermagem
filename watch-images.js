@@ -1,49 +1,43 @@
 const chokidar = require("chokidar");
 const sharp = require("sharp");
 const path = require("path");
-const fs = require("fs");
 
 const imgFolder = path.join(__dirname, "img");
 
-// evita conversão duplicada
+// evita reprocessar mesma imagem
 const processed = new Set();
 
-function wait(ms) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
-async function convert(filePath) {
+function convert(filePath) {
   const ext = path.extname(filePath).toLowerCase();
+
   if (![".png", ".jpg", ".jpeg"].includes(ext)) return;
 
   const output = filePath.replace(ext, ".webp");
 
-  // evita duplicação
+  // se já existe webp, não faz nada
   if (processed.has(output)) return;
+
   processed.add(output);
 
-  // espera arquivo terminar de ser escrito
-  await wait(800);
-
-  try {
-    await sharp(filePath).webp({ quality: 85 }).toFile(output);
-
-    console.log("✔ WEBP criado:", output);
-  } catch (err) {
-    console.log("Erro conversão:", err.message);
-  }
+  sharp(filePath)
+    .webp({ quality: 85 })
+    .toFile(output)
+    .then(() => {
+      console.log("✔ convertido:", output);
+    })
+    .catch((err) => {
+      console.log("erro:", err.message);
+    });
 }
 
-console.log("🟢 Watcher ativo em /img");
+console.log("🟢 Watch incremental ativo");
 
 chokidar
   .watch(imgFolder, {
-    ignoreInitial: false,
+    ignoreInitial: true, // 🔥 ESSENCIAL
     awaitWriteFinish: {
-      stabilityThreshold: 1200,
+      stabilityThreshold: 1000,
       pollInterval: 200,
     },
   })
-  .on("add", convert)
-  .on("change", convert)
-  .on("error", (err) => console.log("Watcher error:", err.message));
+  .on("add", convert); // 🔥 só arquivos novos
