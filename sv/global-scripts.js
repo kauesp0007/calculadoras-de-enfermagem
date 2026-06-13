@@ -121,29 +121,27 @@ document.addEventListener("DOMContentLoaded", function () {
     document.body.insertAdjacentHTML("beforeend", e), initializeGlobalFunctions()
   }).catch(e => console.warn("Não foi possível carregar os elementos globais do corpo:", e));
 
-// Função para carregar o Seletor de Idiomas
+// Função para carregar o Seletor de Idiomas (consolidado e com fallback)
 fetch("/_language_selector.html")
-  .then(response => response.text())
+  .then(response => {
+    if (!response.ok) throw new Error("Ficheiro _language_selector.html não encontrado");
+    return response.text();
+  })
   .then(data => {
     const container = document.getElementById("language-selector-placeholder");
     if (container) {
       container.innerHTML = data;
 
-      // DISPARAR EVENTO: Informa que o seletor foi carregado
-      const event = new CustomEvent("langSelectorLoaded");
-      document.dispatchEvent(event);
-    }
-  })
-  .catch(err => console.error("Erro ao carregar seletor de idiomas:", err));
-// Carregar Seletor de Idiomas
-fetch("/_language_selector.html")
-  .then(response => response.text())
-  .then(data => {
-    const container = document.getElementById("language-selector-placeholder");
-    if (container) {
-      container.innerHTML = data;
-      // Dispara o evento para o lang-selector.js saber que pode inicializar
+      // Marca flag global para indicar que o HTML foi injetado
+      window._langSelectorInjected = true;
+
+      // Dispara evento para inicializar listeners já registrados
       document.dispatchEvent(new CustomEvent("langSelectorLoaded"));
+
+      // Backup: se o script do seletor expõe uma função init, chamamos diretamente
+      if (typeof window.langSelectorInit === 'function') {
+        try { window.langSelectorInit(); } catch (e) { console.error("Erro em langSelectorInit:", e); }
+      }
     }
   })
   .catch(err => console.error("Erro ao carregar seletor de idiomas:", err));
