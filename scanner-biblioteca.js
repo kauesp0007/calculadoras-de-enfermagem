@@ -2,14 +2,32 @@
 const fs = require("fs");
 const path = require("path");
 
+// IMPORTAÇÃO NOVA: Trazendo o motor de extração de vídeos como uma ferramenta do scanner
+const processarVideos = require("./gerarCapasVideo.js");
+
 const BIBLIOTECA_JSON = "biblioteca.json";
 
+/**
+ * Pastas monitoradas e suas categorias
+ */
 const PASTAS = [
-  { dir: "img", categoria: "fotos" },
-  { dir: "docs", categoria: "documentos" },
-  { dir: "videos", categoria: "videos" },
+  {
+    dir: "img",
+    categoria: "fotos",
+  },
+  {
+    dir: "docs",
+    categoria: "documentos",
+  },
+  {
+    dir: "videos",
+    categoria: "videos",
+  },
 ];
 
+/**
+ * Gera título legível a partir do nome do ficheiro
+ */
 function tituloFromFilename(filename) {
   return filename
     .replace(/\.[^/.]+$/, "")
@@ -17,6 +35,9 @@ function tituloFromFilename(filename) {
     .replace(/\b\w/g, (l) => l.toUpperCase());
 }
 
+/**
+ * Gera slug SEO-friendly a partir do título
+ */
 function slugFromTitulo(titulo) {
   return titulo
     .toLowerCase()
@@ -26,141 +47,69 @@ function slugFromTitulo(titulo) {
     .replace(/(^-|-$)/g, "");
 }
 
+/**
+ * Gera descrição automática enriquecida para SEO baseada na categoria
+ */
 function descricaoAutomatica(titulo, categoria) {
-  if (categoria === "fotos")
-    return `Imagem ilustrativa e material visual sobre ${titulo} para apoio educacional e clínico.`;
-  if (categoria === "documentos")
-    return `Documento completo e material de estudo em PDF sobre ${titulo} para consulta e prática de enfermagem.`;
-  if (categoria === "videos")
-    return `Vídeo explicativo e demonstração prática sobre ${titulo}, detalhando procedimentos e conceitos clínicos fundamentais.`;
+  if (categoria === "fotos") {
+    return `Imagem ilustrativa, esquema visual e protocolo de enfermagem sobre ${titulo}. Excelente material para consulta rápida, estudos e prática clínica.`;
+  } else if (categoria === "documentos") {
+    return `Documento completo e material em PDF de enfermagem abordando ${titulo} para apoio educacional, académico e clínico.`;
+  } else if (categoria === "videos") {
+    return `Vídeo explicativo e demonstração prática de enfermagem sobre ${titulo}, detalhando procedimentos e conceitos clínicos fundamentais.`;
+  }
   return `Material de enfermagem sobre ${titulo} para apoio educacional e clínico.`;
 }
 
-// ==========================================
-// NOVA FUNÇÃO: Motor de Palavras-Chave (SEO)
-// ==========================================
-function gerarKeywords(titulo) {
-  const t = titulo.toLowerCase();
-
-  // Palavras-chave padrão base garantidas em todos os itens
-  let keywords = new Set([
-    "enfermagem",
-    "saúde",
-    "estudo",
-    "clínica",
-    "material de apoio",
-  ]);
-
-  // Dicionário Inteligente de Sinónimos e Termos Relacionados
-  const dicionario = {
-    cranio: ["cabeça", "sistema ósseo", "anatomia", "neurologia", "cérebro"],
-    crânio: ["cabeça", "sistema ósseo", "anatomia", "neurologia", "cérebro"],
-    coracao: [
-      "sistema cardiovascular",
-      "cardiologia",
-      "anatomia",
-      "sangue",
-      "órgão vital",
-    ],
-    coração: [
-      "sistema cardiovascular",
-      "cardiologia",
-      "anatomia",
-      "sangue",
-      "órgão vital",
-    ],
-    ferida: ["curativo", "lesão", "pele", "cicatrização", "dermatologia"],
-    pressao: ["sinais vitais", "hipertensão", "hipotensão", "hemodinâmica"],
-    pressão: ["sinais vitais", "hipertensão", "hipotensão", "hemodinâmica"],
-    sangue: ["hematologia", "sistema circulatório", "exame", "coleta"],
-    respiracao: [
-      "sistema respiratório",
-      "pulmão",
-      "oxigenação",
-      "sinais vitais",
-    ],
-    respiração: [
-      "sistema respiratório",
-      "pulmão",
-      "oxigenação",
-      "sinais vitais",
-    ],
-    medicamento: [
-      "farmacologia",
-      "administração",
-      "terapia",
-      "remédio",
-      "prescrição",
-    ],
-    calculo: ["matemática", "dosagem", "fórmula", "administração"],
-    cálculo: ["matemática", "dosagem", "fórmula", "administração"],
-    idoso: ["geriatria", "envelhecimento", "cuidados", "gerontologia"],
-    crianca: ["pediatria", "infantil", "cuidados", "desenvolvimento"],
-    criança: ["pediatria", "infantil", "cuidados", "desenvolvimento"],
-    osso: ["sistema esquelético", "ortopedia", "anatomia", "fratura"],
-    musculo: ["sistema muscular", "anatomia", "força", "movimento"],
-    músculo: ["sistema muscular", "anatomia", "força", "movimento"],
-    utero: ["ginecologia", "obstetrícia", "anatomia feminina", "reprodução"],
-    útero: ["ginecologia", "obstetrícia", "anatomia feminina", "reprodução"],
-    pulmao: ["sistema respiratório", "respiração", "anatomia", "órgão"],
-    pulmão: ["sistema respiratório", "respiração", "anatomia", "órgão"],
-    rim: ["sistema excretor", "nefrologia", "anatomia", "urina"],
-    rins: ["sistema excretor", "nefrologia", "anatomia", "urina"],
-    figado: ["sistema digestório", "hepatologia", "anatomia", "metabolismo"],
-    fígado: ["sistema digestório", "hepatologia", "anatomia", "metabolismo"],
-    estomago: [
-      "sistema digestório",
-      "gastroenterologia",
-      "anatomia",
-      "digestão",
-    ],
-    estômago: [
-      "sistema digestório",
-      "gastroenterologia",
-      "anatomia",
-      "digestão",
-    ],
-  };
-
-  // Varre o dicionário e se a palavra existir no título, adiciona os sinónimos
-  for (const [chave, sinonimos] of Object.entries(dicionario)) {
-    if (t.includes(chave)) {
-      sinonimos.forEach((s) => keywords.add(s));
-    }
-  }
-
-  // Converte o Set (que impede palavras repetidas) novamente para um Array
-  return Array.from(keywords);
-}
-
-// ==========================================
-// NOVA FUNÇÃO: Gerar Data Formatada (PT-BR)
-// ==========================================
-function obterDataAtual() {
-  const hoje = new Date();
-  return `${String(hoje.getDate()).padStart(2, "0")}/${String(hoje.getMonth() + 1).padStart(2, "0")}/${hoje.getFullYear()}`;
-}
-
+/**
+ * Carrega biblioteca.json existente
+ */
 function carregarBiblioteca() {
-  if (!fs.existsSync(BIBLIOTECA_JSON)) return [];
+  if (!fs.existsSync(BIBLIOTECA_JSON)) {
+    return [];
+  }
   return JSON.parse(fs.readFileSync(BIBLIOTECA_JSON, "utf8"));
 }
 
-function salvarBiblioteca(dados) {
-  fs.writeFileSync(BIBLIOTECA_JSON, JSON.stringify(dados, null, 2));
+/**
+ * Salva biblioteca.json formatado
+ */
+function salvarBiblioteca(data) {
+  fs.writeFileSync(BIBLIOTECA_JSON, JSON.stringify(data, null, 2), "utf8");
 }
 
-function scan() {
-  console.log(
-    "🔍 A iniciar o scan da biblioteca à procura de novos ficheiros...",
-  );
+/**
+ * Scanner principal - AGORA ASSÍNCRONO PARA SUPORTAR O MOTOR DE VÍDEOS
+ */
+async function executarScanner() {
   const biblioteca = carregarBiblioteca();
+  for (const item of biblioteca) {
+    if (!item.slug && item.titulo) {
+      item.slug = slugFromTitulo(item.titulo);
+    }
 
+    if (!item.descricao && item.titulo) {
+      item.descricao = descricaoAutomatica(item.titulo);
+    }
+
+    // Não forçar capa padrão para documentos; deixar em branco para que o gerador crie
+    if (!item.capa) {
+      if (item.categoria === "fotos") {
+        item.capa = item.ficheiro;
+      } else {
+        item.capa = "";
+      }
+    }
+  }
+
+  // Evita duplicação usando o campo ficheiro
   const ficheirosExistentes = new Set(biblioteca.map((item) => item.ficheiro));
+
   let adicionados = 0;
 
   for (const pasta of PASTAS) {
     const pastaPath = path.join(process.cwd(), pasta.dir);
+
     if (!fs.existsSync(pastaPath)) continue;
 
     const arquivos = fs.readdirSync(pastaPath);
@@ -168,7 +117,6 @@ function scan() {
     for (const arquivo of arquivos) {
       const caminho = `/${pasta.dir}/${arquivo}`;
 
-      // Se o ficheiro já estiver na biblioteca, ignora para não subscrever dados
       if (ficheirosExistentes.has(caminho)) continue;
 
       const titulo = tituloFromFilename(arquivo);
@@ -177,12 +125,11 @@ function scan() {
         titulo,
         slug: slugFromTitulo(titulo),
         descricao: descricaoAutomatica(titulo, pasta.categoria),
-        keywords: gerarKeywords(titulo), // <--- INJEÇÃO DO ARRAY DINÂMICO
-        meta_descricao: "",
+        keywords: [], // Inicializamos um array vazio para suas palavras-chave
+        meta_descricao: "", // Inicializamos vazio para preenchimento manual ou IA
         categoria: pasta.categoria,
         ficheiro: caminho,
         capa: pasta.categoria === "fotos" ? caminho : "",
-        data_adicao: obterDataAtual(), // <--- INJEÇÃO DA DATA DO SISTEMA
       };
 
       biblioteca.push(novoItem);
@@ -190,14 +137,14 @@ function scan() {
     }
   }
 
-  if (adicionados > 0) {
-    salvarBiblioteca(biblioteca);
-    console.log(
-      `✅ Scanner concluído! ${adicionados} novo(s) arquivo(s) adicionado(s) com data e palavras-chave geradas no JSON.`,
-    );
-  } else {
-    console.log("✅ Scanner concluído. Nenhum arquivo novo encontrado.");
-  }
+  salvarBiblioteca(biblioteca);
+
+  console.log("✅ Scanner concluído com sucesso");
+  console.log(`➕ Itens adicionados: ${adicionados}`);
+
+  // GATILHO DE AUTOMAÇÃO: Logo após o scanner salvar o JSON, o motor de vídeos é acionado
+  console.log("\n🔄 Iniciando o motor automático de vídeos...");
+  await processarVideos();
 }
 
-scan();
+executarScanner();
