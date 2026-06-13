@@ -14,9 +14,7 @@ const IMG_DIR = path.join(__dirname, "img");
 const JSON_PATH = path.join(__dirname, "biblioteca.json");
 
 async function processarVideos() {
-  console.log(
-    "🎬 A iniciar a RECRIAÇÃO de capas para vídeos a 10% do tempo...",
-  );
+  console.log("🎬 A iniciar a verificação e geração de capas para vídeos...");
 
   let biblioteca = [];
   try {
@@ -52,6 +50,12 @@ async function processarVideos() {
 
     if (!item) continue;
 
+    // NOVA REGRA DE BLINDAGEM: Se a capa já existe e não está vazia, ignora e pula
+    if (item.capa && item.capa.trim() !== "") {
+      console.log(`⏭️ Pular ${videoFile} — capa já existente: ${item.capa}`);
+      continue;
+    }
+
     console.log(
       `⏳ A capturar fotograma a 10% da duração para ${videoFile}...`,
     );
@@ -72,18 +76,22 @@ async function processarVideos() {
       item.capa = caminhoCapaRelativo;
       atualizacoes++;
     } catch (err) {
-      console.error(`❌ Falha ao processar o vídeo ${videoFile}:`, err.message);
+      console.error(`❌ Falha ao processar o vídeo ${videoFile}:`, err);
     }
   }
 
+  // Só grava no JSON se houve alguma modificação para economizar disco
   if (atualizacoes > 0) {
     await fs.writeJSON(JSON_PATH, biblioteca, { spaces: 2 });
     console.log(
-      `💾 Sucesso! ${atualizacoes} imagens reais foram extraídas, sobrescritas e o JSON atualizado.`,
+      `✅ ${atualizacoes} nova(s) capa(s) de vídeo gerada(s) e salva(s) no biblioteca.json!`,
     );
   } else {
-    console.log("Nenhuma capa precisou ser atualizada.");
+    console.log(
+      "✅ Nenhuma nova capa de vídeo precisou ser gerada (todas já existem).",
+    );
   }
 }
 
+processarVideos();
 module.exports = processarVideos;

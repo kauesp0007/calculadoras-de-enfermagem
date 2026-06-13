@@ -16,69 +16,57 @@ async function gerarCapa(pdfFile) {
 
   // Configurações pdf2pic
   const options = {
-    density: 150,           // qualidade da imagem
+    density: 150, // qualidade da imagem
     saveFilename: baseName,
     savePath: path.resolve(IMG_DIR),
     format: "png",
     width: 1024,
-    height: 1448
+    height: 1448,
   };
 
   const storeAsImage = fromPath(path.join(PDF_DIR, pdfFile), options);
 
   // Gera a primeira página como PNG
   await storeAsImage(1);
+
   // O pdf2pic pode gerar nomes variados e em pastas diferentes (img/ ou no CWD).
   const candidateNames = [
     `${baseName}.1.png`,
     `${baseName}.01.png`,
-    `${baseName}-01.png`,
-    `${baseName}-1.png`,
-    `${baseName}.png`
+    `${baseName}.png`,
   ];
 
-  // Procura primeiro em IMG_DIR, depois na raiz do repo (CWD). Se encontrado na raiz, move para IMG_DIR.
   let actualPngPath = null;
   for (const name of candidateNames) {
-    const pImg = path.join(IMG_DIR, name);
-    if (await fs.pathExists(pImg)) { actualPngPath = pImg; break; }
-  }
-  if (!actualPngPath) {
-    for (const name of candidateNames) {
-      const pRoot = path.join(process.cwd(), name);
-      if (await fs.pathExists(pRoot)) {
-        // mover para IMG_DIR
-        const dest = path.join(IMG_DIR, name);
-        await fs.move(pRoot, dest, { overwrite: true });
-        actualPngPath = dest;
-        break;
-      }
+    const tempPath = path.join(IMG_DIR, name);
+    if (await fs.pathExists(tempPath)) {
+      actualPngPath = tempPath;
+      break;
     }
   }
 
   if (!actualPngPath) {
-    throw new Error(`Arquivo PNG de saída não encontrado para ${baseName} (tentados: ${candidateNames.join(', ')})`);
+    throw new Error(
+      "Não foi possível encontrar a imagem PNG gerada pelo pdf2pic.",
+    );
   }
 
-  // Converte PNG para WebP
+  // Converte para WEBP e redimensiona
   await sharp(actualPngPath)
-    .webp({ quality: 85 })
+    .resize({ width: 600, withoutEnlargement: true })
+    .webp({ quality: 80 })
     .toFile(webpPath);
 
-  // Remove PNG temporário (após converter para webp)
-  try {
-    await fs.remove(actualPngPath);
-  } catch (e) {
-    // não bloquear por falha na remoção
-  }
+  // Remove o PNG temporário
+  await fs.remove(actualPngPath);
 
-  // Retorna caminho com barra inicial para ficar consistente com o site
-  return ("/" + path.relative(__dirname, webpPath).replace(/\\/g, "/")).replace(/\/\//g, "/");
+  return `/img/${baseName}.webp`;
 }
 
-// Atualiza biblioteca.json
-async function atualizarBiblioteca() {
-  await fs.ensureFile(JSON_PATH);
+async function processarPDFs() {
+  console.log("📚 A iniciar a verificação e geração de capas para PDFs...");
+  await fs.ensureDir(IMG_DIR);
+
   let biblioteca = [];
   try {
     biblioteca = await fs.readJSON(JSON_PATH);
@@ -86,13 +74,24 @@ async function atualizarBiblioteca() {
     console.log("JSON vazio ou inválido, criando novo...");
   }
 
-  const pdfFiles = await fs.readdir(PDF_DIR);
+  let pdfFiles = [];
+  try {
+    pdfFiles = await fs.readdir(PDF_DIR);
+  } catch (e) {
+    console.error("Pasta 'docs' não encontrada.");
+    return;
+  }
 
-  for (const pdfFile of pdfFiles.filter(f => f.endsWith(".pdf"))) {
+  let atualizacoes = 0;
+
+  for (const pdfFile of pdfFiles.filter((f) => f.endsWith(".pdf"))) {
     const slug = path.parse(pdfFile).name;
 
     // Localiza o item no JSON usando apenas o nome do arquivo
-    let item = biblioteca.find(i => path.basename(i.ficheiro) === pdfFile);
+    let item = biblioteca.find(
+      (i) =>
+        path.basename(i.ficheiro) === pdfFile && i.categoria === "documentos",
+    );
 
     // Se não existir, adiciona novo item
     if (!item) {
@@ -103,30 +102,39 @@ async function atualizarBiblioteca() {
         categoria: "documentos",
         ficheiro: `/docs/${pdfFile}`,
         capa: "",
-        download: `/docs/${pdfFile}`
+        download: `/docs/${pdfFile}`,
       };
       biblioteca.push(item);
     }
 
-    // Se já existe capa, pula a geração
+    // NOVA REGRA DE BLINDAGEM: Se já existe capa, pula a geração
     if (item.capa && item.capa.trim() !== "") {
-      console.log(`Pular ${pdfFile} — capa já existente: ${item.capa}`);
+      console.log(`⏭️ Pular ${pdfFile} — capa já existente: ${item.capa}`);
       continue;
     }
 
     // Gera capa apenas para PDFs sem capa
-    console.log(`Gerando capa para ${pdfFile}...`);
+    console.log(`⏳ Gerando capa para ${pdfFile}...`);
     try {
       item.capa = await gerarCapa(pdfFile);
+      atualizacoes++;
     } catch (err) {
-      console.error(`Falha ao gerar capa para ${pdfFile}:`, err && err.message ? err.message : err);
+      console.error(`❌ Erro ao gerar capa para ${pdfFile}:`, err);
     }
   }
 
-  // Salvar JSON atualizado
-  await fs.writeJSON(JSON_PATH, biblioteca, { spaces: 2 });
-  console.log("✅ biblioteca.json atualizado com capas para todos os PDFs!");
+  // Só grava no JSON se houve alguma modificação para economizar disco
+  if (atualizacoes > 0) {
+    await fs.writeJSON(JSON_PATH, biblioteca, { spaces: 2 });
+    console.log(
+      `✅ ${atualizacoes} nova(s) capa(s) de PDF gerada(s) e salva(s) no biblioteca.json!`,
+    );
+  } else {
+    console.log(
+      "✅ Nenhuma nova capa de PDF precisou ser gerada (todas já existem).",
+    );
+  }
 }
 
-// Executa atualização
-atualizarBiblioteca().catch(console.error);
+processarPDFs();
+module.exports = processarPDFs;
