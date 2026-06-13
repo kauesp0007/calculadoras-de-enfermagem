@@ -1,5 +1,5 @@
-// Define o nome e a versão do cache (AUTOMÁTICO via gerar-sw.js)
-const CACHE_NAME = "calculadoras-enfermagem-cache-20260613-062624-644";
+Capas; // Define o nome e a versão do cache (AUTOMÁTICO via gerar-sw.js)
+const CACHE_NAME = "calculadoras-enfermagem-cache-20260613-064802-572";
 
 // O SCRIPT DE BUILD VAI INJETAR A LISTA DE ARQUIVOS AQUI
 const urlsToCache = [
@@ -354,6 +354,7 @@ const urlsToCache = [
   'biblioteca/dever-profissional-enfermagem.html',
   'biblioteca/dezpassos.html',
   'biblioteca/diagnostico-situacional-absenteismo.html',
+  'biblioteca/diagnosticos-da-nanda-internacional-diagnosticos-de-enfermagem.html',
   'biblioteca/diagnosticosnanda2018.html',
   'biblioteca/dimensionamento-da-equipe-de-enfermagem.html',
   'biblioteca/diretrizesaha2020.html',
@@ -1088,6 +1089,7 @@ const urlsToCache = [
   'downloads/page40.html',
   'downloads/page41.html',
   'downloads/page42.html',
+  'downloads/page43.html',
   'downloads/page5.html',
   'downloads/page6.html',
   'downloads/page7.html',
@@ -1766,6 +1768,7 @@ const urlsToCache = [
   'img/ALIMENTAÇÃO DO IDOSO ILUSTRAÇÃO.png',
   'img/ALÇA DE POLIPECTOMIA.webp',
   'img/AMPOLA DE MEDICAMENTO ILUSTRAÇÃO.png',
+  'img/ANATOMIA-E-FISIOLOGIA-HUMANA.webp',
   'img/ANOSCÓPIO PROCTOSCÓPIO.webp',
   'img/ARMAZENAMENTO DE MEDICAMENTO DE ALTA VIGILANCIA - MAV.webp',
   'img/ARTROSCÓPIO ORTOPEDIA.webp',
@@ -2144,6 +2147,7 @@ const urlsToCache = [
   'img/chapeuimagem.webp',
   'img/ciclo-pdca-plan-do-check-act8.webp',
   'img/cilindro-oxido-nitroso.webp',
+  'img/codigo-de-etica-dos-profissionais-de-enfermagem_cofen.webp',
   'img/coluna-vertebral_anatomia-sistema-osteomuscular.webp',
   'img/comite_multidisciplinar_nr1.webp',
   'img/como_calcular_o_copsoq.webp',
@@ -2159,6 +2163,7 @@ const urlsToCache = [
   'img/dever-profissional-enfermagem.webp',
   'img/dezpassos.webp',
   'img/diagnostico_situacional_absenteismo.webp',
+  'img/diagnosticos-da-nanda-internacional_diagnosticos-de-enfermagem.webp',
   'img/diagnosticosnanda2018.jpg',
   'img/diagnosticosnanda2018.webp',
   'img/dimensionamento-da-equipe-de-enfermagem.webp',
