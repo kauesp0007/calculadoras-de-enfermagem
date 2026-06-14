@@ -1,5 +1,5 @@
 Capas; // Define o nome e a versão do cache (AUTOMÁTICO via gerar-sw.js)
-const CACHE_NAME = "calculadoras-enfermagem-cache-20260614-095324-893";
+const CACHE_NAME = "calculadoras-enfermagem-cache-20260614-143334-796";
 
 // O SCRIPT DE BUILD VAI INJETAR A LISTA DE ARQUIVOS AQUI
 const urlsToCache = [
@@ -10,6 +10,7 @@ const urlsToCache = [
   '_language_selector.html',
   'adequar-nr1.html',
   'adicional-noturno.html',
+  'adicionar-provas.js',
   'album_enfermagem.html',
   'aldrete.html',
   'altavigilancia-calculadoras-de-enfermagem.webp',
@@ -128,6 +129,7 @@ const urlsToCache = [
   'autofillforms3-calculadoras-de-enfermagem.webp',
   'automation-guard.js',
   'automatizador-em-massa.js',
+  'baixar-pdf-provas.js',
   'balancohidrico.html',
   'ballard.html',
   'bandeira-alemanha-calculadoras-de-enfermagem.webp',
@@ -152,6 +154,8 @@ const urlsToCache = [
   'barthel.html',
   'berg.html',
   'biblioteca-automation.js',
+  'biblioteca-provas.html',
+  'biblioteca-provas.json',
   'biblioteca.json',
   'biblioteca/1-botulismo-doenca-de-notificacao-compulsoria.html',
   'biblioteca/10-anos-do-programa-nacional-de-seguranca-do-paciente.html',
@@ -938,6 +942,7 @@ const urlsToCache = [
   'bps.html',
   'braden.html',
   'build-biblioteca.js',
+  'build-pdf.js',
   'build.js',
   'calculadorasimagem-calculadoras-de-enfermagem.webp',
   'calculadoravacina.html',
