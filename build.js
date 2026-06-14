@@ -228,7 +228,7 @@ function construirPaginas() {
         name: "Calculadoras de Enfermagem",
         logo: {
           "@type": "ImageObject",
-          url: "https://www.calculadorasdeenfermagem.com.br/iconpages.webp",
+          url: "https://www.calculadorasdeenfermagem.com.br/iconpages-calculadoras-de-enfermagem.webp",
         },
       },
     };

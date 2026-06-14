@@ -147,8 +147,8 @@ function gerarHtmlDoItem({ template, templateHash, item }) {
         "name": titulo,
         "description": descricaoRaw,
         "url": canonicalUrl,
-        "image": imagePath ? `https://www.calculadorasdeenfermagem.com.br${imagePath}` : "https://www.calculadorasdeenfermagem.com.br/iconpages.webp",
-        "publisher": { "@type": "Organization", "name": "Calculadoras de Enfermagem", "logo": { "@type": "ImageObject", "url": "https://www.calculadorasdeenfermagem.com.br/iconpages.webp" } }
+        "image": imagePath ? `https://www.calculadorasdeenfermagem.com.br${imagePath}` : "https://www.calculadorasdeenfermagem.com.br/iconpages-calculadoras-de-enfermagem.webp",
+        "publisher": { "@type": "Organization", "name": "Calculadoras de Enfermagem", "logo": { "@type": "ImageObject", "url": "https://www.calculadorasdeenfermagem.com.br/iconpages-calculadoras-de-enfermagem.webp" } }
     };
 
     html = injetar(html, "<!-- SEO_TITLE -->", titulo);
