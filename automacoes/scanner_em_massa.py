@@ -1,13 +1,13 @@
 import os
 import re
 
-# 1. Whitelist Estrita: O script SÓ PODE abrir a raiz (.) e as exatas 18 pastas de idiomas.
-# Ele jamais entrará em node_modules, css, js, img, etc.
+# 1. Whitelist Estrita de Diretórios
 diretorios_permitidos = [
     ".", "en", "es", "de", "it", "fr", "hi", "zh", "ar", "ja", 
     "ru", "ko", "tr", "nl", "pl", "sv", "id", "vi", "uk"
 ]
 
+# Mapa para descobrir qual é o idioma "dono" da pasta atual
 mapa_idiomas_tags = {
     ".": "pt-BR", "en": "en", "es": "es", "de": "de", "it": "it", 
     "fr": "fr", "hi": "hi", "zh": "zh", "ar": "ar", "ja": "ja", 
@@ -15,7 +15,7 @@ mapa_idiomas_tags = {
     "sv": "sv", "id": "id", "vi": "vi", "uk": "uk"
 }
 
-# Bloqueio de arquivos modulares e templates
+# Bloqueio de arquivos modulares
 arquivos_ignoradas = [
     "footer.html", 
     "menu-global.html", 
@@ -30,120 +30,112 @@ arquivos_ignoradas = [
     "post.template.html"
 ]
 
-registro_global_paginas = {}
-
-print("Fase 1: Mapeamento estrito e exclusivo das pastas autorizadas...")
-
-# FASE 1: Varredura Plana (sem os.walk recursivo para evitar subpastas ocultas)
-for dir_permitido in diretorios_permitidos:
-    if not os.path.exists(dir_permitido):
-        continue
-        
-    tag_hreflang_atual = mapa_idiomas_tags[dir_permitido]
-    
-    for arquivo in os.listdir(dir_permitido):
-        if arquivo.endswith(".html") and arquivo not in arquivos_ignoradas:
-            caminho_completo = os.path.join(dir_permitido, arquivo)
-            if os.path.isfile(caminho_completo):
-                if arquivo not in registro_global_paginas:
-                    registro_global_paginas[arquivo] = []
-                registro_global_paginas[arquivo].append(tag_hreflang_atual)
-
-print("Fase 2: Leitura direta de texto bruto para preservação total do código...")
+print("Iniciando a reordenação cirúrgica das tags hreflang...")
 
 arquivos_alterados = 0
 arquivos_nao_alterados = 0
 log_detalhado = []
 
-# FASE 2: Modificação focada apenas nas linhas contendo "hreflang"
 for dir_permitido in diretorios_permitidos:
     if not os.path.exists(dir_permitido):
         continue
         
+    # Identifica o idioma alvo baseado na pasta em que o script está iterando
+    idioma_alvo = mapa_idiomas_tags[dir_permitido]
+    
     for arquivo in os.listdir(dir_permitido):
         if arquivo.endswith(".html") and arquivo not in arquivos_ignoradas:
             caminho_completo = os.path.join(dir_permitido, arquivo)
             if not os.path.isfile(caminho_completo):
                 continue
 
-            idiomas_validos = registro_global_paginas.get(arquivo, [])
-            idiomas_validos_lower = [idioma.lower() for idioma in idiomas_validos]
-            
             try:
-                # Leitura em formato de lista de texto (ignora o motor do BeautifulSoup)
+                # Leitura bruta linha a linha
                 with open(caminho_completo, "r", encoding="utf-8") as f:
                     linhas = f.readlines()
                 
-                novas_linhas = []
-                fez_alteracao = False
-                tags_removidas = []
+                linhas_sem_hreflang = []
+                bloco_hreflang = []
+                indice_insercao = -1
                 
                 for linha in linhas:
-                    # Isola estritamente a linha do HTML que contém a tag alternate
+                    # Captura apenas as linhas de hreflang
                     if '<link' in linha and 'rel="alternate"' in linha and 'hreflang=' in linha:
-                        # Extrai via Regex a sigla do idioma atual daquela linha
+                        # Guarda a posição exata de onde o bloco de hreflang começou no HTML
+                        if indice_insercao == -1:
+                            indice_insercao = len(linhas_sem_hreflang) 
+                        
+                        # Extrai a sigla do idioma para saber quem é quem
                         match = re.search(r'hreflang=["\']([^"\']+)["\']', linha, re.IGNORECASE)
-                        if match:
-                            val_original = match.group(1)
-                            val_lower = val_original.lower()
-                            
-                            # REGRA 1: Blindagem Absoluta do Português + Padronização W3C
-                            if val_lower in ['pt', 'pt-br']:
-                                if val_original != 'pt-BR':
-                                    # Se encontrar pt ou pt-br, transforma em pt-BR e mantém a linha intocável
-                                    linha = re.sub(r'(hreflang=["\'])[^"\']+([\'"])', r'\g<1>pt-BR\g<2>', linha, flags=re.IGNORECASE)
-                                    fez_alteracao = True
-                                    log_detalhado.append(f"[PADRONIZADO] {caminho_completo} | {val_original} corrigido para pt-BR")
-                                novas_linhas.append(linha)
-                                continue # Impede que passe pela regra de exclusão
-                            
-                            # REGRA 2: Preservar o x-default no final
-                            if val_lower == "x-default":
-                                novas_linhas.append(linha)
-                                continue
-                                
-                            # REGRA 3: Preservar a linha se o idioma possuir tradução mapeada
-                            if val_lower in idiomas_validos_lower:
-                                novas_linhas.append(linha)
-                                continue
-                            
-                            # REGRA 4: Se chegou aqui, é um idioma sem tradução. A exclusão é feita ignorando a linha (não adicionando à nova lista)
-                            tags_removidas.append(val_original)
-                            fez_alteracao = True
-                            continue # Pula a linha órfã, excluindo-a do arquivo final
-
-                    # Qualquer outra linha do documento (body, inputs, scripts) passa ilesa e idêntica
-                    novas_linhas.append(linha)
+                        idioma_linha = match.group(1).lower() if match else ""
+                        
+                        bloco_hreflang.append({
+                            'linha_completa': linha,
+                            'idioma': idioma_linha
+                        })
+                    else:
+                        # Tudo que não é hreflang vai para a lista de preservação intacta
+                        linhas_sem_hreflang.append(linha)
+                
+                # Só prossegue se encontrou tags suficientes para reordenar
+                if len(bloco_hreflang) > 1:
+                    ordem_original = [item['idioma'] for item in bloco_hreflang]
                     
-                if fez_alteracao:
-                    # Salva as linhas exatamente na mesma estrutura (espaçamento/indentação) original
-                    with open(caminho_completo, "w", encoding="utf-8") as f:
-                        f.writelines(novas_linhas)
-                    arquivos_alterados += 1
-                    if tags_removidas:
-                        log_detalhado.append(f"[REMOVIDO] {caminho_completo} | Órfãos excluídos: {', '.join(tags_removidas)}")
+                    linhas_alvo = []
+                    linhas_xdefault = []
+                    linhas_meio = []
+                    
+                    # Separa o dono da página, o x-default e o resto
+                    for item in bloco_hreflang:
+                        if item['idioma'] == idioma_alvo.lower():
+                            linhas_alvo.append(item)
+                        elif item['idioma'] == "x-default":
+                            linhas_xdefault.append(item)
+                        else:
+                            linhas_meio.append(item)
+                            
+                    # Constrói o novo bloco na ordem perfeita exigida
+                    bloco_hreflang_ordenado = linhas_alvo + linhas_meio + linhas_xdefault
+                    ordem_nova = [item['idioma'] for item in bloco_hreflang_ordenado]
+                    
+                    # Se a ordem precisou ser alterada, aplica e salva
+                    if ordem_original != ordem_nova:
+                        # Reinsere as linhas ordenadas exatamente no mesmo buraco de onde saíram
+                        for item in reversed(bloco_hreflang_ordenado):
+                            linhas_sem_hreflang.insert(indice_insercao, item['linha_completa'])
+                        
+                        with open(caminho_completo, "w", encoding="utf-8") as f:
+                            f.writelines(linhas_sem_hreflang)
+                            
+                        arquivos_alterados += 1
+                        log_detalhado.append(f"[REORDENADO] {caminho_completo} | Nova ordem: {', '.join(ordem_nova)}")
+                    else:
+                        arquivos_nao_alterados += 1
+                        log_detalhado.append(f"[OK] {caminho_completo} | A ordem já estava perfeita.")
                 else:
                     arquivos_nao_alterados += 1
                     
             except Exception as e:
                 log_detalhado.append(f"[ERRO] {caminho_completo} | Falha no processo: {e}")
 
-# GERAÇÃO DO LOG
-caminho_log = "log_limpeza_hreflang.txt"
+# Geração do log transparente
+caminho_log = "log_reordenacao_hreflang.txt"
 with open(caminho_log, "w", encoding="utf-8") as log:
     log.write("======================================================================\n")
-    log.write("      RELATÓRIO DE LIMPEZA E PADRONIZAÇÃO DE HREFLANG         \n")
+    log.write("         RELATÓRIO DE REORDENAÇÃO DE HREFLANG (SEO INTERNACIONAL)     \n")
     log.write("======================================================================\n\n")
-    log.write(f"Total de arquivos com intervenção: {arquivos_alterados}\n")
+    log.write(f"Total de arquivos com ordem corrigida: {arquivos_alterados}\n")
     log.write(f"Total de arquivos já corretos/intactos: {arquivos_nao_alterados}\n\n")
     log.write("Detalhamento por arquivo modificado:\n")
     log.write("----------------------------------------------------------------------\n")
     for linha in log_detalhado:
-        log.write(f"{linha}\n")
+        # Registra apenas os modificados ou com erro para facilitar a sua leitura
+        if "[REORDENADO]" in linha or "[ERRO]" in linha:
+            log.write(f"{linha}\n")
 
 print("\n==========================================")
-print("Correção das tags e padronização concluídas com segurança!")
-print(f"Arquivos que sofreram ajustes: {arquivos_alterados}")
+print("Reordenação das tags concluída com total segurança!")
+print(f"Arquivos que sofreram ajustes de ordem: {arquivos_alterados}")
 print(f"Arquivos perfeitamente intactos: {arquivos_nao_alterados}")
-print(f"O log seguro foi salvo em: {os.path.abspath(caminho_log)}")
+print(f"O log de alterações foi salvo em: {os.path.abspath(caminho_log)}")
 print("==========================================")
