@@ -11,7 +11,7 @@ def preparar_html_para_traducao(caminho_arquivo, idioma_alvo):
     with open(caminho_arquivo, 'r', encoding='utf-8') as f:
         html_conteudo = f.read()
 
-    soup = BeautifulSoup(html_conteudo, 'lxml')
+    soup = BeautifulSoup(html_conteudo, 'html.parser')
 
     # 1. AJUSTAR CAMINHOS DE IMAGENS PARA ABSOLUTO
     imagens_ajustadas = 0
