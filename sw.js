@@ -1,5 +1,5 @@
 Capas; // Define o nome e a versão do cache (AUTOMÁTICO via gerar-sw.js)
-const CACHE_NAME = "calculadoras-enfermagem-cache-20260614-063317-663";
+const CACHE_NAME = "calculadoras-enfermagem-cache-20260614-070125-169";
 
 // O SCRIPT DE BUILD VAI INJETAR A LISTA DE ARQUIVOS AQUI
 const urlsToCache = [
@@ -400,6 +400,7 @@ const urlsToCache = [
   'biblioteca/equipe-do-time-de-resposta-rapida-hospital.html',
   'biblioteca/erklarende-infografik-zu-tropfformeln.html',
   'biblioteca/escala-de-agitacao-e-sedacao-de-richmond-rass.html',
+  'biblioteca/escala-de-aldrete-e-kroulik-calculadoras-de-enfermagem.html',
   'biblioteca/escala-de-aldrete-e-kroulik-enfermagem-srpa.html',
   'biblioteca/escala-de-aldrete-e-kroulik.html',
   'biblioteca/escala-de-apache-ii.html',
@@ -501,6 +502,7 @@ const urlsToCache = [
   'biblioteca/icon-512.html',
   'biblioteca/icone-bacanco-hidrico.html',
   'biblioteca/icone-calculadora-de-vacinas.html',
+  'biblioteca/icone-calculo-de-gotejamento-calculadoras-de-enfermagem.html',
   'biblioteca/icone-calculo-de-gotejamento.html',
   'biblioteca/icone-calculo-de-heparina.html',
   'biblioteca/icone-calculo-de-imc.html',
@@ -509,6 +511,7 @@ const urlsToCache = [
   'biblioteca/icone-creatina.html',
   'biblioteca/icone-de-notificacoes-compulsorias.html',
   'biblioteca/icone-diagnostico-nanda.html',
+  'biblioteca/icone-dimensionamento-da-equipe-de-enfermagem-calculadoras-de-enfermagem.html',
   'biblioteca/icone-dimensionamento-da-equipe-de-enfermagem.html',
   'biblioteca/icone-dor-enfermagem.html',
   'biblioteca/icone-estado-nutricional.html',
@@ -619,6 +622,7 @@ const urlsToCache = [
   'biblioteca/mudancas-dimensionamento-enfermagem.html',
   'biblioteca/myra-estrin-levine-teoria-holistica.html',
   'biblioteca/necessidade-enfermagem.html',
+  'biblioteca/nivel-de-consciencia-enfermagem-calculadoras-de-enfermagem.html',
   'biblioteca/nivel-de-consciencia-enfermagem.html',
   'biblioteca/notificacacao-compulsoria-leishmaniose-tegumentar-americana.html',
   'biblioteca/notificacao-complusoria-leishmaniose-visceral.html',
@@ -803,6 +807,7 @@ const urlsToCache = [
   'biblioteca/regras-de-calculo-de-gotejamento.html',
   'biblioteca/resolucao-cofen-1-2024.html',
   'biblioteca/retrator-de-esternotomia.html',
+  'biblioteca/riscos-psicossociais-nr1-calculadoras-de-enfermagem.html',
   'biblioteca/riscos-psicossociais-nr1.html',
   'biblioteca/ritmos-chocaveis-lidocaina.html',
   'biblioteca/ritmos-chocaveis-rcp.html',
@@ -1106,6 +1111,7 @@ const urlsToCache = [
   'downloads/page46.html',
   'downloads/page47.html',
   'downloads/page48.html',
+  'downloads/page49.html',
   'downloads/page5.html',
   'downloads/page6.html',
   'downloads/page7.html',
@@ -2476,6 +2482,7 @@ const urlsToCache = [
   'img/resolucao-cofen-1-2024-calculadoras-de-enfermagem.webp',
   'img/retrator-de-esternotomia-calculadoras-de-enfermagem.webp',
   'img/riscos-psicossociais-nr1-calculadoras-de-enfermagem.webp',
+  'img/riscos_psicossociais_nr1.webp',
   'img/ritmos-chocaveis-lidocaina-calculadoras-de-enfermagem.webp',
   'img/ritmos-chocaveis-rcp-calculadoras-de-enfermagem.webp',
   'img/ritmos-nao-chocaveis-pcr-calculadoras-de-enfermagem.webp',
