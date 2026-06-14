@@ -346,10 +346,10 @@
                 <div id="resultado" class="hidden" aria-live="polite"></div>
 
                 <div class="flex flex-wrap justify-start gap-4 mt-6">
-                    <button id="btnCalcular" class="btn-primary">計算</button>
+                    <button id="btnCalcular" class="btn-primary">
+          計算する
+        </button>
                     <button id="btnLimpar" class="btn-primary">クリア</button>
-                    <button id="btnGerarPDF" class="btn-secondary">PDFを生成</button>
-                    <button id="btnNandaNicNoc" class="btn-primary">NANDA, NIC, NOC</button>
                 </div>
 
                 <div class="ref font-inter text-gray-custom text-left mt-8 border-t pt-4">
@@ -385,8 +385,6 @@
             const conteudoDiv = document.getElementById('conteudo');
             const btnCalcular = document.getElementById('btnCalcular');
             const btnLimpar = document.getElementById('btnLimpar');
-            const btnGerarPDF = document.getElementById('btnGerarPDF');
-            const btnNandaNicNoc = document.getElementById('btnNandaNicNoc');
 
             const flaccData = [
                 { id: "face", title: "Face (顔)", options: [{ score: 0, text: "表情なし、または笑顔" }, { score: 1, text: "顔をしかめる、眉をひそめる" }, { score: 2, text: "あごの震え、あごを食いしばる" }] },
@@ -466,37 +464,7 @@
             btnCalcular?.addEventListener('click', calcular);
             btnLimpar?.addEventListener('click', limpar);
 
-            btnGerarPDF?.addEventListener('click', () => {
-                if (!resultadoDiv.dataset.score) {
-                    alert('PDFを生成する前に、まず「計算」をクリックしてください。');
-                    return;
-                }
-                if (typeof gerarPDFGlobal === 'function') {
-                    gerarPDFGlobal({
-                        titulo: 'FLACCスケール - 小児の疼痛評価',
-                        subtitulo: '行動的疼痛評価レポート',
-                        nomeArquivo: 'reporte_flacc.pdf',
-                        seletorConteudo: '.main-content-wrapper'
-                    });
-                } else {
-                    console.error('gerarPDFGlobal 関数が定義されていません。');
-                }
-            });
 
-            btnNandaNicNoc?.addEventListener('click', () => {
-                const score = resultadoDiv.dataset.score;
-                const conduta = resultadoDiv.dataset.conduta; // This is the interpretation
-                const scaleName = resultadoDiv.dataset.scaleName;
-
-                if (!score || !conduta) {
-                    alert('行動を検索するために結果を計算してください。');
-                    return;
-                }
-
-                // Create a search query in Japanese
-                const searchQuery = encodeURIComponent(`FLACCスケール スコア ${score} ${conduta} 看護ケア NANDA NIC NOC`);
-                window.open(`https://www.google.com/search?q=${searchQuery}`, '_blank');
-            });
         });
     </script>
 

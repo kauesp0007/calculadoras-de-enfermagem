@@ -372,16 +372,10 @@
 
     <div class="flex flex-wrap justify-start gap-4 mt-6">
       <button id="btnCalcular" class="btn-primary" aria-label="Calcular">
-        计算
-      </button>
+          计算
+        </button>
       <button id="btnLimpar" class="btn-primary" aria-label="Limpar">
         清空
-      </button>
-      <button id="btnGerarPDF" class="btn-secondary" aria-label="Gerar PDF">
-        生成PDF
-      </button>
-      <button id="btnNandaNicNoc" class="btn-primary" aria-label="Pesquisar NANDA, NIC, NOC">
-        NANDA, NIC, NOC
       </button>
     </div>
 
@@ -407,8 +401,6 @@
       const resultadoDiv = document.getElementById('resultado');
       const btnCalcular = document.getElementById('btnCalcular');
       const btnLimpar = document.getElementById('btnLimpar');
-      const btnGerarPDF = document.getElementById('btnGerarPDF');
-      const btnNandaNicNoc = document.getElementById('btnNandaNicNoc');
       const conteudoDiv = document.getElementById('conteudo');
 
       const rlasData = [
@@ -524,51 +516,7 @@
       btnCalcular?.addEventListener('click', calcularRLAS);
       btnLimpar?.addEventListener('click', limparCampos);
 
-      btnGerarPDF?.addEventListener('click', () => {
-        const selectedRadio = document.querySelector('input[name="rlas_level"]:checked');
-        if (!selectedRadio) {
-          alert('请选择一个级别以生成PDF。');
-          return;
-        }
-        if (typeof gerarPDFGlobal === 'function') {
-          const selectedItem = rlasData.find(item => item.level == selectedRadio.value);
 
-          let contentToPrint = document.querySelector('.main-content-wrapper').cloneNode(true);
-          let contentContainer = contentToPrint.querySelector('#conteudo');
-
-          contentContainer.innerHTML = '';
-
-          let itemDiv = document.createElement('div');
-          itemDiv.className = 'mb-2 p-2 bg-gray-50 rounded';
-          itemDiv.innerHTML = `<strong>选择的级别：</strong> ${selectedItem.title}<br><strong>描述：</strong> ${selectedItem.description}`;
-          contentContainer.appendChild(itemDiv);
-
-          let resultadoHtml = resultadoDiv.cloneNode(true);
-          if (resultadoHtml.style.display !== 'none') {
-            contentContainer.appendChild(resultadoHtml);
-          }
-
-          gerarPDFGlobal({
-            titulo: '兰乔洛萨米戈斯量表',
-            subtitulo: '认知评估报告',
-            nomeArquivo: 'rancho_los_amigos_assessment_zh.pdf',
-            seletorConteudo: '.main-content-wrapper'
-          });
-        } else {
-          console.error('gerarPDFGlobal函数未定义。');
-        }
-      });
-
-      btnNandaNicNoc?.addEventListener('click', () => {
-        const selectedRadio = document.querySelector('input[name="rlas_level"]:checked');
-        if (!selectedRadio) {
-          alert('请选择一个级别以搜索处理方法。');
-          return;
-        }
-        const selectedItem = rlasData.find(item => item.level == selectedRadio.value);
-        const searchQuery = encodeURIComponent(`脑损伤患者护理 级别 ${selectedItem.level} NANDA NIC NOC`);
-        window.open(`https://www.google.com/search?q=${searchQuery}`, '_blank');
-      });
     });
   </script>
 

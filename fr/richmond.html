@@ -581,16 +581,10 @@
 
       <div class="flex flex-wrap justify-start gap-4 mt-6">
         <button id="btnCalcular" class="btn-primary" aria-label="Afficher le Score Sélectionné">
-          Afficher le Score
+          Calculer
         </button>
         <button id="btnLimpar" class="btn-primary" aria-label="Effacer la sélection">
           Effacer
-        </button>
-        <button id="btnGerarPDF" class="btn-secondary" aria-label="Générer PDF">
-          Générer PDF
-        </button>
-        <button id="btnNandaNicNoc" class="btn-primary" aria-label="Rechercher NANDA, NIC, NOC">
-          NANDA, NIC, NOC
         </button>
       </div>
 
@@ -644,8 +638,6 @@
       const resultadoDiv = document.getElementById("resultado");
       const btnCalcular = document.getElementById("btnCalcular"); // Renommé
       const btnLimpar = document.getElementById("btnLimpar");
-      const btnGerarPDF = document.getElementById("btnGerarPDF");
-      const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
       const tabelaRASS = document.getElementById("tabelaRASS");
       let scoreSelecionado = null;
       let termeSelectionne = null; // Ajout pour stocker le terme
@@ -735,66 +727,7 @@
       btnCalcular?.addEventListener("click", afficherScore);
       btnLimpar?.addEventListener("click", limparCampos);
 
-      btnGerarPDF?.addEventListener("click", () => {
-        if (scoreSelecionado === null || !resultadoDiv.dataset.score) {
-          // Vérifie score et dataset
-          alert(
-            'Veuillez sélectionner un niveau et cliquer sur "Afficher le Score" pour générer le PDF.',
-          ); // TRADUIT
-          return;
-        }
-        if (typeof gerarPDFGlobal === "function") {
-          // Utilise les données stockées dans dataset pour le PDF
-          const score = resultadoDiv.dataset.score;
-          const terme = resultadoDiv.dataset.terme;
-          const description = resultadoDiv.dataset.description;
 
-          // Crée un contenu HTML simple pour le PDF
-          const pdfContentHtml = `
-                        <div style="font-family: Inter, sans-serif; padding: 20px;">
-                            <h1 style="color: #1A3E74; border-bottom: 2px solid #1A3E74; padding-bottom: 5px;">Échelle de Richmond (RASS)</h1>
-                            <h2 style="color: #1FA4E5; margin-top: 15px;">Rapport d'Évaluation de l'Agitation et de la Sédation</h2>
-                            <div style="margin-top: 25px; background-color: #f3f4f6; border-radius: 8px; padding: 15px; border: 1px solid #e5e7eb;">
-                                <p style="font-size: 1.2em; color: #1A3E74; margin-bottom: 10px;"><strong>Score Sélectionné : ${score} (${terme})</strong></p>
-                                <p>${description}</p>
-                            </div>
-                        </div>
-                    `;
-
-          gerarPDFGlobal({
-            // Titres et nom de fichier TRADUITS
-            titulo: "Échelle de Richmond (RASS)",
-            subtitulo:
-              "Rapport d'Évaluation de l'Agitation et de la Sédation",
-            nomeArquivo: "rapport_echelle_richmond.pdf",
-            htmlConteudo: pdfContentHtml, // Utilise le HTML généré
-          });
-        } else {
-          console.error("Fonction gerarPDFGlobal non définie."); // TRADUIT
-        }
-      });
-
-      btnNandaNicNoc?.addEventListener("click", () => {
-        if (scoreSelecionado === null || !resultadoDiv.dataset.score) {
-          // Vérifie score et dataset
-          alert(
-            'Sélectionnez un niveau et cliquez sur "Afficher le Score" pour rechercher la conduite.',
-          ); // TRADUIT
-          return;
-        }
-        const score = resultadoDiv.dataset.score;
-        const scaleName = "Échelle RASS"; // Nom simplifié pour la recherche
-        const terme = resultadoDiv.dataset.terme; // Utilise le terme stocké
-
-        // TRADUIT la query de recherche
-        const searchQuery = encodeURIComponent(
-          `${scaleName} score ${score} (${terme}) générer taxonomie NANDA, générer taxonomie NIC et générer taxonomie NOC`,
-        );
-        window.open(
-          `https://www.google.com/search?q=${searchQuery}`,
-          "_blank",
-        );
-      });
 
       // --- Ajout pour accessibilité clavier sur table ---
       tabelaRASS?.querySelectorAll("tbody tr").forEach((row) => {

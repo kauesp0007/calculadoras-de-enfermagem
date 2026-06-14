@@ -346,12 +346,10 @@
         <div id="conteudo" role="form" aria-labelledby="main-title" class="space-y-4"></div>
         <div id="resultado" class="hidden" aria-live="polite"></div>
         <div class="flex flex-wrap justify-start gap-4 mt-6">
-          <button id="btnCalcular" class="btn-primary">계산</button>
+          <button id="btnCalcular" class="btn-primary">
+          계산하기
+        </button>
           <button id="btnLimpar" class="btn-primary">지우기</button>
-          <button id="btnGerarPDF" class="btn-secondary">PDF 생성</button>
-          <button id="btnNandaNicNoc" class="btn-primary">
-            NANDA, NIC, NOC
-          </button>
         </div>
         <div class="ref font-inter text-gray-custom text-left mt-8 border-t pt-4">
           <strong>참고문헌:</strong>
@@ -383,8 +381,6 @@
       const conteudoDiv = document.getElementById("conteudo");
       const btnCalcular = document.getElementById("btnCalcular");
       const btnLimpar = document.getElementById("btnLimpar");
-      const btnGerarPDF = document.getElementById("btnGerarPDF");
-      const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
 
       const bradenData = [
         {
@@ -533,83 +529,7 @@
       btnCalcular?.addEventListener("click", calcular);
       btnLimpar?.addEventListener("click", limpar);
 
-      btnGerarPDF?.addEventListener("click", () => {
-        if (resultadoDiv.dataset.score === undefined) {
-          alert('PDF를 생성하려면 먼저 "계산"을 클릭해 주세요.');
-          return;
-        }
-        const { jsPDF } = window.jspdf;
-        const doc = new jsPDF();
-        const primaryColor = "#1A3E74";
-        let y = 10;
-        const pageMargin = 14;
-        const rightMargin = doc.internal.pageSize.getWidth() - pageMargin;
 
-        doc.setDrawColor(primaryColor);
-        doc.setLineWidth(0.5);
-        doc.rect(5, 5, 200, 287);
-        doc.setFillColor(primaryColor);
-        doc.rect(5, 5, 200, 25, "F");
-        doc.setFont("helvetica", "bold");
-        doc.setFontSize(18);
-        doc.setTextColor(255, 255, 255);
-        doc.text("브라덴 척도", 105, 18, { align: "center" });
-        doc.setFontSize(12);
-        doc.text("욕창 위험 보고서", 105, 25, { align: "center" });
-
-        y = 45;
-        doc.setFont("helvetica", "bold");
-        doc.setFontSize(12);
-        doc.setTextColor(primaryColor);
-        doc.text("브라덴 척도 결과", pageMargin, y);
-        doc.setDrawColor(200);
-        doc.setLineWidth(0.2);
-        doc.line(pageMargin, y + 2, rightMargin, y + 2);
-        y += 10;
-        doc.setFont("helvetica", "normal");
-        doc.setFontSize(10);
-        doc.setTextColor(0, 0, 0);
-        doc.text(`총 점수: ${resultadoDiv.dataset.score}`, pageMargin, y);
-        doc.text(`위험 분류: ${resultadoDiv.dataset.risco}`, rightMargin, y, {
-          align: "right",
-        });
-
-        doc.setLineWidth(0.5);
-        doc.setDrawColor(primaryColor);
-        doc.line(5, 272, 205, 272);
-        doc.setFont("helvetica", "normal");
-        doc.setFontSize(8);
-        doc.setTextColor(150);
-        doc.text(
-          `간호 포털에서 ${new Date().toLocaleString("ko-KR")}에 생성됨.`,
-          105,
-          278,
-          { align: "center" },
-        );
-        doc.text(
-          `이 계산기는 지원 도구이며 임상 판단을 대체하지 않습니다. 외부 데이터의 정확성을 확인하세요.`,
-          105,
-          282,
-          { align: "center" },
-        );
-
-        doc.save("브라덴_척도_보고서.pdf");
-      });
-
-      btnNandaNicNoc?.addEventListener("click", () => {
-        const risco = resultadoDiv.dataset.risco;
-        if (!risco) {
-          alert(" conduta를 검색하려면 결과를 계산해 주세요.");
-          return;
-        }
-        const searchQuery = encodeURIComponent(
-          `브라덴 척도 ${risco} 위험의 환자 NANDA 택소노미, NIC 및 NOC`,
-        );
-        window.open(
-          `https://www.google.com/search?q=${searchQuery}`,
-          "_blank",
-        );
-      });
     });
   </script>
 

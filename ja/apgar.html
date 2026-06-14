@@ -341,10 +341,10 @@
                 <div id="resultado" class="hidden" aria-live="polite"></div>
 
                 <div class="flex flex-wrap justify-start gap-4 mt-6">
-                    <button id="btnCalcular" class="btn-primary">計算</button>
+                    <button id="btnCalcular" class="btn-primary">
+          計算する
+        </button>
                     <button id="btnLimpar" class="btn-primary">クリア</button>
-                    <button id="btnGerarPDF" class="btn-secondary">PDFを生成</button>
-                    <button id="btnNandaNicNoc" class="btn-primary">NANDA, NIC, NOC</button>
                 </div>
 
                 <div class="ref font-inter text-gray-custom text-left mt-8 border-t pt-4">参考文献： <a
@@ -396,8 +396,6 @@
             const conteudoDiv = document.getElementById('conteudo');
             const btnCalcular = document.getElementById('btnCalcular');
             const btnLimpar = document.getElementById('btnLimpar');
-            const btnGerarPDF = document.getElementById('btnGerarPDF');
-            const btnNandaNicNoc = document.getElementById('btnNandaNicNoc');
 
             const apgarData = [
                 { id: "fc", title: "心拍数", options: [{ score: 0, text: "なし" }, { score: 1, text: "< 100 bpm" }, { score: 2, text: "≥ 100 bpm" }] },
@@ -471,34 +469,7 @@
             btnCalcular?.addEventListener('click', calcular);
             btnLimpar?.addEventListener('click', limpar);
 
-            btnGerarPDF?.addEventListener('click', () => {
-                if (!resultadoDiv.dataset.score) {
-                    alert('PDFを生成する前に、まず「計算」をクリックしてください。');
-                    return;
-                }
-                if (typeof gerarPDFGlobal === 'function') {
-                    gerarPDFGlobal({
-                        titulo: 'アプガースコア',
-                        subtitulo: '新生児評価レポート',
-                        nomeArquivo: 'reporte_apgar.pdf',
-                        seletorConteudo: '.main-content-wrapper'
-                    });
-                } else {
-                    console.error('gerarPDFGlobal 関数が定義されていません。');
-                }
-            });
 
-            btnNandaNicNoc?.addEventListener('click', () => {
-                const score = resultadoDiv.dataset.score;
-                const conduta = resultadoDiv.dataset.conduta;
-                const scaleName = resultadoDiv.dataset.scaleName;
-                if (!score || !conduta) {
-                    alert('行動を検索するために結果を計算してください。');
-                    return;
-                }
-                const searchQuery = encodeURIComponent(`${scaleName} スコア ${score}, 対応: ${conduta} - NANDA看護診断を生成, NIC看護介入を生成, NOC看護成果の測定例を生成`);
-                window.open(`https://www.google.com/search?q=${searchQuery}`, '_blank');
-            });
         });
     </script>
 

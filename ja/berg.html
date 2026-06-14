@@ -403,16 +403,10 @@
 
             <div class="flex flex-wrap justify-start gap-4 mt-6">
                 <button id="btnCalcular" class="btn-primary" aria-label="スコアを計算">
-                    スコアを計算
-                </button>
+          計算する
+        </button>
                 <button id="btnLimpar" class="btn-primary" aria-label="フィールドをクリア">
                     クリア
-                </button>
-                <button id="btnGerarPDF" class="btn-secondary" aria-label="PDFを生成">
-                    PDFを生成
-                </button>
-                <button id="btnNandaNicNoc" class="btn-primary" aria-label="NANDA, NIC, NOCを検索">
-                    NANDA, NIC, NOC
                 </button>
             </div>
 
@@ -450,8 +444,6 @@
             const resultadoDiv = document.getElementById('resultado');
             const btnCalcular = document.getElementById('btnCalcular');
             const btnLimpar = document.getElementById('btnLimpar');
-            const btnGerarPDF = document.getElementById('btnGerarPDF');
-            const btnNandaNicNoc = document.getElementById('btnNandaNicNoc');
             const conteudoDiv = document.getElementById('conteudo');
 
             const bergData = [
@@ -703,67 +695,7 @@
             btnCalcular?.addEventListener('click', calcularBerg);
             btnLimpar?.addEventListener('click', limparCampos);
 
-            btnGerarPDF?.addEventListener('click', () => {
-                if (!resultadoDiv.dataset.score) {
-                    alert('PDFを生成する前に、まず「スコアを計算」をクリックしてください。');
-                    return;
-                }
-                if (typeof gerarPDFGlobal === 'function') {
-                    const selectedOptions = {};
-                    document.querySelectorAll('#conteudo select').forEach(select => {
-                        const selected = select.options[select.selectedIndex];
-                        if (selected.value !== "") {
-                            selectedOptions[select.id] = selected.text;
-                        }
-                    });
 
-                    let contentToPrint = document.querySelector('.main-content-wrapper').cloneNode(true);
-                    let contentContainer = contentToPrint.querySelector('#conteudo');
-
-                    contentContainer.innerHTML = '';
-
-                    bergData.forEach(item => {
-                        let selectedText = selectedOptions[item.nameAttr];
-                        if (selectedText) {
-                            let itemDiv = document.createElement('div');
-                            itemDiv.className = 'mb-2 p-2 bg-gray-50 rounded';
-                            itemDiv.innerHTML = `<strong>${item.title}:</strong> ${selectedText}`;
-                            contentContainer.appendChild(itemDiv);
-                        }
-                    });
-
-                    let resultadoHtml = resultadoDiv.cloneNode(true);
-                    if (resultadoHtml.style.display !== 'none') {
-                        contentContainer.appendChild(resultadoHtml);
-                    }
-
-                    gerarPDFGlobal({
-                        titulo: 'バーグバランススケール',
-                        subtitulo: '静的および動的バランス評価レポート',
-                        nomeArquivo: 'reporte_escala_berg.pdf',
-                        seletorConteudo: '.main-content-wrapper'
-                    });
-                } else {
-                    console.error('gerarPDFGlobal 関数が定義されていません。');
-                }
-            });
-
-            btnNandaNicNoc?.addEventListener('click', () => {
-                const score = resultadoDiv.dataset.score;
-                const scaleName = resultadoDiv.dataset.scaleName;
-                if (!score) {
-                    alert('行動を検索するために結果を計算してください。');
-                    return;
-                }
-                let recomendacaoRisco = '転倒リスク';
-                if (score <= 20) {
-                    recomendacaoRisco = '高い転倒リスク';
-                } else if (score >= 41) {
-                    recomendacaoRisco = '低い転倒リスク';
-                }
-                const searchQuery = encodeURIComponent(`高齢者 ${recomendacaoRisco} バーグスケール 看護ケア NANDA NIC NOC`);
-                window.open(`https://www.google.com/search?q=${searchQuery}`, '_blank');
-            });
         });
     </script>
 

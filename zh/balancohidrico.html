@@ -421,16 +421,10 @@
 
             <div class="flex flex-wrap justify-start gap-4 mt-6">
                 <button id="btnCalcular" class="btn-primary" aria-label="计算液体平衡">
-                    计算
-                </button>
+          计算
+        </button>
                 <button id="btnLimpar" class="btn-primary" aria-label="清除字段">
                     清除
-                </button>
-                <button id="btnGerarPDF" class="btn-secondary" aria-label="生成 PDF">
-                    生成 PDF
-                </button>
-                <button id="btnNandaNicNoc" class="btn-primary" aria-label="搜索 NANDA, NIC, NOC">
-                    NANDA, NIC, NOC
                 </button>
             </div>
 
@@ -478,8 +472,6 @@
             const resultadoDiv = document.getElementById('resultado');
             const btnCalcular = document.getElementById('btnCalcular');
             const btnLimpar = document.getElementById('btnLimpar');
-            const btnGerarPDF = document.getElementById('btnGerarPDF');
-            const btnNandaNicNoc = document.getElementById('btnNandaNicNoc');
 
             const CHINESE_MESSAGES = {
                 CALCULATE: "计算",
@@ -570,51 +562,7 @@
             btnCalcular?.addEventListener('click', calcularBalanco);
             btnLimpar?.addEventListener('click', limparCampos);
 
-            btnGerarPDF?.addEventListener('click', () => {
-                if (!resultadoDiv.dataset.score) {
-                    // Substituir alert() por manipulação de DOM para conformidade
-                    resultadoDiv.style.display = 'block';
-                    resultadoDiv.innerHTML = `⚠️ <strong class="font-bold">${CHINESE_MESSAGES.ALERT_CALCULATE_FIRST}</strong>`;
-                    resultadoDiv.className = 'resultado bg-info-orange-light mt-6 p-4 rounded-lg text-left';
-                    return;
-                }
-                if (typeof gerarPDFGlobal === 'function') {
-                    gerarPDFGlobal({
-                        titulo: CHINESE_MESSAGES.PDF_TITLE,
-                        subtitulo: CHINESE_MESSAGES.PDF_SUBTITLE,
-                        nomeArquivo: CHINESE_MESSAGES.PDF_FILENAME,
-                        seletorConteudo: '.main-content-wrapper'
-                    });
-                } else {
-                    console.error('Função gerarPDFGlobal não definida.');
-                }
-            });
 
-            btnNandaNicNoc?.addEventListener('click', () => {
-                const score = resultadoDiv.dataset.score;
-                const scaleName = resultadoDiv.dataset.scaleName;
-                const classificacao = resultadoDiv.dataset.classificacao;
-                if (!score || !classificacao) {
-                    // Substituir alert() por manipulação de DOM para conformidade
-                    resultadoDiv.style.display = 'block';
-                    resultadoDiv.innerHTML = `⚠️ <strong class="font-bold">${CHINESE_MESSAGES.ALERT_CALCULATE_CONDUCT}</strong>`;
-                    resultadoDiv.className = 'resultado bg-info-orange-light mt-6 p-4 rounded-lg text-left';
-                    return;
-                }
-
-                let termoPesquisaNANDA;
-                if (classificacao === CHINESE_MESSAGES.POSITIVE_BALANCE) {
-                    termoPesquisaNANDA = CHINESE_MESSAGES.NANDA_QUERY_POSITIVE; // 液体量过多
-                } else if (classificacao === CHINESE_MESSAGES.NEGATIVE_BALANCE) {
-                    termoPesquisaNANDA = CHINESE_MESSAGES.NANDA_QUERY_NEGATIVE; // 液体量缺乏风险
-                } else {
-                    termoPesquisaNANDA = "Fluid Balance Management"; // 液体平衡管理 (Neutro)
-                }
-
-                // Usando termo em inglês para melhor pesquisa do NANDA
-                const searchQuery = encodeURIComponent(`${scaleName} ${termoPesquisaNANDA} score ${score} ml classification ${classificacao} NANDA NIC NOC`);
-                window.open(`https://www.google.com/search?q=${searchQuery}`, '_blank');
-            });
         });
     </script>
 

@@ -381,16 +381,10 @@
 
       <div class="flex flex-wrap justify-start gap-4 mt-6">
         <button id="btnCalcular" class="btn-primary" aria-label="स्कोर की गणना करें">
-          स्कोर की गणना करें
+          गणना करें
         </button>
         <button id="btnLimpar" class="btn-primary" aria-label="फील्ड्स साफ़ करें">
           साफ़ करें
-        </button>
-        <button id="btnGerarPDF" class="btn-secondary" aria-label="पीडीएफ जनरेट करें">
-          पीडीएफ जनरेट करें
-        </button>
-        <button id="btnNandaNicNoc" class="btn-primary" aria-label="नंदा, निक, नोक खोजें">
-          नंदा, निक, नोक
         </button>
       </div>
 
@@ -427,8 +421,6 @@
       const resultadoDiv = document.getElementById('resultado');
       const btnCalcular = document.getElementById('btnCalcular');
       const btnLimpar = document.getElementById('btnLimpar');
-      const btnGerarPDF = document.getElementById('btnGerarPDF');
-      const btnNandaNicNoc = document.getElementById('btnNandaNicNoc');
       const conteudoDiv = document.getElementById('conteudo');
 
       const bergData = [
@@ -686,69 +678,7 @@
       btnCalcular?.addEventListener('click', calcularBerg);
       btnLimpar?.addEventListener('click', limparCampos);
 
-      btnGerarPDF?.addEventListener('click', () => {
-        if (!resultadoDiv.dataset.score) {
-          alert('पीडीएफ जनरेट करने के लिए, कृपया पहले "स्कोर की गणना करें" पर क्लिक करें।'); // Por favor, clique em "Calcular Escore" primeiro para gerar o PDF.
-          return;
-        }
-        if (typeof gerarPDFGlobal === 'function') {
-          const selectedOptions = {};
-          document.querySelectorAll('#conteudo select').forEach(select => {
-            const selected = select.options[select.selectedIndex];
-            if (selected.value !== "") {
-              selectedOptions[select.id] = selected.text;
-            }
-          });
 
-          let contentToPrint = document.querySelector('.main-content-wrapper').cloneNode(true);
-          let contentContainer = contentToPrint.querySelector('#conteudo');
-
-          // Remove os selects e substitui pela lista de itens/pontuações selecionadas
-          contentContainer.innerHTML = '';
-
-          bergData.forEach(item => {
-            let selectedText = selectedOptions[item.nameAttr];
-            if (selectedText) {
-              let itemDiv = document.createElement('div');
-              itemDiv.className = 'mb-2 p-2 bg-gray-50 rounded';
-              itemDiv.innerHTML = `<strong>${item.title}:</strong> ${selectedText}`;
-              contentContainer.appendChild(itemDiv);
-            }
-          });
-
-          let resultadoHtml = resultadoDiv.cloneNode(true);
-          if (resultadoHtml.style.display !== 'none') {
-            contentContainer.appendChild(resultadoHtml);
-          }
-
-          // Chama a função global de geração de PDF com os títulos em Hindi
-          gerarPDFGlobal({
-            titulo: 'बर्ग बैलेंस स्केल',
-            subtitulo: 'स्थैतिक और गतिशील संतुलन मूल्यांकन रिपोर्ट',
-            nomeArquivo: 'relatorio_escala_berg_hi.pdf',
-            seletorConteudo: '.main-content-wrapper'
-          });
-        } else {
-          console.error('Função gerarPDFGlobal नहीं मिली।'); // Função gerarPDFGlobal não definida.
-        }
-      });
-
-      btnNandaNicNoc?.addEventListener('click', () => {
-        const score = resultadoDiv.dataset.score;
-        const scaleName = resultadoDiv.dataset.scaleName;
-        if (!score) {
-          alert('आचरण की खोज के लिए परिणाम की गणना करें।'); // Calcule o resultado para pesquisar a conduta.
-          return;
-        }
-        let recomendacaoRisco = 'गिरने का जोखिम'; // risco de quedas
-        if (score <= 20) {
-          recomendacaoRisco = 'गिरने का उच्च जोखिम'; // alto risco de quedas
-        } else if (score >= 41) {
-          recomendacaoRisco = 'गिरने का कम जोखिम'; // baixo risco de quedas
-        }
-        const searchQuery = encodeURIComponent(`बर्ग स्केल में ${recomendacaoRisco} वाले बुजुर्ग रोगी के लिए NANDA, NIC, NOC नर्सिंग देखभाल`); // cuidados enfermagem para idoso com ${recomendacaoRisco} na Escala de Berg NANDA NIC NOC
-        window.open(`https://www.google.com/search?q=${searchQuery}`, '_blank');
-      });
     });
   </script>
 

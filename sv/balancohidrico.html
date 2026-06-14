@@ -573,10 +573,10 @@
       <div id="resultado" class="resultado hidden" aria-live="polite"></div>
 
       <div class="flex flex-wrap justify-start gap-4 mt-8">
-        <button id="btnCalcular" class="btn-primary" aria-label="Beräkna vattenbalansen">Kalkylera</button>
+        <button id="btnCalcular" class="btn-primary" aria-label="Beräkna vattenbalansen">
+          Beräkna
+        </button>
         <button id="btnLimpar" class="btn-primary" aria-label="Rensa fält">Att rengöra</button>
-        <button id="btnGerarPDF" class="btn-secondary" aria-label="Generera PDF">Generera PDF</button>
-        <button id="btnNandaNicNoc" class="btn-primary" aria-label="Sök efter NANDA, NIC, NOC">NANDA, NIC, NOC</button>
       </div>
 
       <div class="ref font-inter text-gray-custom text-left mt-8 border-t pt-4">
@@ -665,8 +665,6 @@
       const resultadoDiv = document.getElementById("resultado");
       const btnCalcular = document.getElementById("btnCalcular");
       const btnLimpar = document.getElementById("btnLimpar");
-      const btnGerarPDF = document.getElementById("btnGerarPDF");
-      const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
 
       function calcularBalanco() {
         const ingestaoOral =
@@ -741,42 +739,7 @@
       btnCalcular?.addEventListener("click", calcularBalanco);
       btnLimpar?.addEventListener("click", limparCampos);
 
-      btnGerarPDF?.addEventListener("click", () => {
-        if (!resultadoDiv.dataset.score) {
-          alert('Klicka först på "Beräkna" för att generera PDF-filen.');
-          return;
-        }
-        if (typeof gerarPDFGlobal === "function") {
-          gerarPDFGlobal({
-            titulo: "Vätskebalans",
-            subtitulo: "Rapport om vätskeintag och vätskeförlust",
-            nomeArquivo: "vatskebalans_rapport.pdf",
-            seletorConteudo: ".main-content-wrapper"
-          });
-        } else {
-          console.error("Funktionen gerarPDFGlobal är inte definierad.");
-        }
-      });
 
-      btnNandaNicNoc?.addEventListener("click", () => {
-        const score = resultadoDiv.dataset.score;
-        const scaleName = resultadoDiv.dataset.scaleName;
-        const classificacao = resultadoDiv.dataset.classificacao;
-
-        // Verifica se o score existe (considerando que 0 é falsy em JS, precisamos checar explicitamente)
-        if (score === undefined || score === "") {
-          alert("Beräkna resultatet för att undersöka åtgärder.");
-          return;
-        }
-
-        const searchQuery = encodeURIComponent(
-          `${scaleName}: ${score} ml, Klassificering: ${classificacao} - NANDA omvårdnadsdiagnos NIC NOC svenska`
-        );
-        window.open(
-          `https://www.google.com/search?q=${searchQuery}`,
-          "_blank"
-        );
-      });
     });</script>
 
   

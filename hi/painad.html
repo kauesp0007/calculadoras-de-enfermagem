@@ -364,16 +364,10 @@
 
       <div class="flex flex-wrap justify-start gap-4 mt-6">
         <button id="btnCalcular" class="btn-primary" aria-label="स्कोर की गणना करें">
-          स्कोर की गणना करें
+          गणना करें
         </button>
         <button id="btnLimpar" class="btn-primary" aria-label="फ़ील्ड साफ़ करें">
           साफ़ करें
-        </button>
-        <button id="btnGerarPDF" class="btn-secondary" aria-label="PDF जनरेट करें">
-          PDF जनरेट करें
-        </button>
-        <button id="btnNandaNicNoc" class="btn-primary" aria-label="NANDA, NIC, NOC खोजें">
-          NANDA, NIC, NOC
         </button>
       </div>
 
@@ -410,8 +404,6 @@
       const resultadoDiv = document.getElementById('resultado');
       const btnCalcular = document.getElementById('btnCalcular');
       const btnLimpar = document.getElementById('btnLimpar');
-      const btnGerarPDF = document.getElementById('btnGerarPDF');
-      const btnNandaNicNoc = document.getElementById('btnNandaNicNoc');
       const conteudoDiv = document.getElementById('conteudo');
 
       const painadData = [
@@ -564,108 +556,8 @@
       });
 
       // PDF जनरेट करें
-      btnGerarPDF.addEventListener('click', function () {
-        const element = document.createElement('div');
-        element.className = 'p-8 bg-white';
-
-        let content = `
-                <h1 class="text-2xl font-bold mb-4">PAINAD स्केल - उन्नत डिमेंशिया में दर्द मूल्यांकन</h1>
-                <p class="mb-4"><strong>मूल्यांकन तिथि:</strong> ${new Date().toLocaleDateString('hi-IN')}</p>
-                <table class="w-full border-collapse border border-gray-300 mb-4">
-                    <thead>
-                        <tr class="bg-gray-100">
-                            <th class="border border-gray-300 p-2 text-left">मानदंड</th>
-                            <th class="border border-gray-300 p-2 text-left">चयनित विकल्प</th>
-                            <th class="border border-gray-300 p-2 text-left">स्कोर</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-            `;
-
-        let totalScore = 0;
-        painadData.forEach(item => {
-          const selectElement = document.getElementById(item.nameAttr);
-          const selectedOption = selectElement.options[selectElement.selectedIndex];
-          const score = parseInt(selectElement.value) || 0;
-          totalScore += score;
-
-          content += `
-                    <tr>
-                        <td class="border border-gray-300 p-2">${item.title}</td>
-                        <td class="border border-gray-300 p-2">${selectedOption.text || 'नहीं चुना गया'}</td>
-                        <td class="border border-gray-300 p-2">${score}</td>
-                    </tr>
-                `;
-        });
-
-        content += `
-                    </tbody>
-                    <tfoot>
-                        <tr class="bg-gray-50">
-                            <td class="border border-gray-300 p-2 font-bold" colspan="2">कुल स्कोर</td>
-                            <td class="border border-gray-300 p-2 font-bold">${totalScore}</td>
-                        </tr>
-                    </tfoot>
-                </table>
-            `;
-
-        if (resultadoDiv.style.display !== 'none') {
-          content += `<p><strong>व्याख्या:</strong> ${resultadoDiv.querySelector('p:nth-child(2)').textContent.replace('व्याख्या:', '').trim()}</p>`;
-        }
-
-        element.innerHTML = content;
-
-        const opt = {
-          margin: 1,
-          filename: `PAINAD_स्केल_${new Date().toISOString().slice(0, 10)}.pdf`,
-          image: { type: 'jpeg', quality: 0.98 },
-          html2canvas: { scale: 2 },
-          jsPDF: { unit: 'cm', format: 'a4', orientation: 'portrait' }
-        };
-
-        html2pdf().set(opt).from(element).save();
-      });
 
       // NANDA, NIC, NOC बटन
-      btnNandaNicNoc.addEventListener('click', function () {
-        const nandaNicNocData = {
-          nanda: "दर्द, तीव्र या पुराना",
-          nic: [
-            "दर्द प्रबंधन",
-            "दर्द मूल्यांकन",
-            "सहायक देखभाल"
-          ],
-          noc: [
-            "दर्द नियंत्रण",
-            "आराम का स्तर"
-          ]
-        };
-
-        const nandaNicNocHTML = `
-                <div class="p-4 bg-white border border-gray-300 rounded-lg mt-4">
-                    <h3 class="font-bold text-lg mb-2">NANDA, NIC, NOC</h3>
-                    <p><strong>NANDA:</strong> ${nandaNicNocData.nanda}</p>
-                    <p class="mt-2"><strong>NIC:</strong></p>
-                    <ul class="list-disc list-inside ml-4">
-                        ${nandaNicNocData.nic.map(item => `<li>${item}</li>`).join('')}
-                    </ul>
-                    <p class="mt-2"><strong>NOC:</strong></p>
-                    <ul class="list-disc list-inside ml-4">
-                        ${nandaNicNocData.noc.map(item => `<li>${item}</li>`).join('')}
-                    </ul>
-                </div>
-            `;
-
-        if (resultadoDiv.style.display === 'none') {
-          resultadoDiv.innerHTML = nandaNicNocHTML;
-          resultadoDiv.className = 'resultado bg-blue-100';
-          resultadoDiv.style.display = 'block';
-        } else {
-          resultadoDiv.insertAdjacentHTML('beforeend', nandaNicNocHTML);
-        }
-
-        resultadoDiv.scrollIntoView({ behavior: 'smooth' });
-      });
     });
   </script>
 

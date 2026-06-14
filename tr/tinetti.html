@@ -627,16 +627,10 @@
 
     <div class="flex flex-wrap justify-start gap-4 mt-6">
       <button id="btnCalcular" class="btn-primary" aria-label="Skoru hesapla">
-        Skoru Hesapla
-      </button>
+          Hesapla
+        </button>
       <button id="btnLimpar" class="btn-primary" aria-label="Alanları temizle">
         Temizle
-      </button>
-      <button id="btnGerarPDF" class="btn-secondary" aria-label="PDF oluştur">
-        PDF Oluştur
-      </button>
-      <button id="btnNandaNicNoc" class="btn-primary" aria-label="NANDA, NIC, NOC araştır">
-        NANDA, NIC, NOC
       </button>
     </div>
   </main>
@@ -657,8 +651,6 @@
       const resultadoDiv = document.getElementById("resultado");
       const btnCalcular = document.getElementById("btnCalcular");
       const btnLimpar = document.getElementById("btnLimpar");
-      const btnGerarPDF = document.getElementById("btnGerarPDF");
-      const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
       const conteudoDiv = document.getElementById("conteudo");
 
       // Tinetti ölçeği verileri
@@ -967,92 +959,7 @@
       btnCalcular?.addEventListener("click", calcularTinetti);
       btnLimpar?.addEventListener("click", limparCampos);
 
-      btnGerarPDF?.addEventListener("click", () => {
-        if (!resultadoDiv.dataset.score) {
-          alert(
-            'Lütfen önce PDF oluşturmak için "Skoru Hesapla" ya tıklayın.',
-          );
-          return;
-        }
-        if (typeof gerarPDFGlobal === "function") {
-          const selectedOptions = {};
-          document.querySelectorAll("#conteudo select").forEach((select) => {
-            const selected = select.options[select.selectedIndex];
-            if (selected.value !== "") {
-              selectedOptions[select.id] = selected.text;
-            }
-          });
 
-          let contentToPrint = document
-            .querySelector(".main-content-wrapper")
-            .cloneNode(true);
-          let contentContainer = contentToPrint.querySelector("#conteudo");
-
-          contentContainer.innerHTML = "";
-
-          let balanceSectionTitle = document.createElement("h3");
-          balanceSectionTitle.className = "text-lg font-semibold mt-4 mb-2";
-          balanceSectionTitle.innerText = `Denge Bölümü (Maksimum Puan: 16)`;
-          contentContainer.appendChild(balanceSectionTitle);
-
-          tinettiData.slice(0, 9).forEach((item) => {
-            let selectedText = selectedOptions[item.nameAttr];
-            if (selectedText) {
-              let itemDiv = document.createElement("div");
-              itemDiv.className = "mb-2 p-2 bg-gray-50 rounded";
-              itemDiv.innerHTML = `<strong>${item.title}:</strong> ${selectedText}`;
-              contentContainer.appendChild(itemDiv);
-            }
-          });
-
-          let gaitSectionTitle = document.createElement("h3");
-          gaitSectionTitle.className = "text-lg font-semibold mt-4 mb-2";
-          gaitSectionTitle.innerText = `Yürüyüş Bölümü (Maksimum Puan: 12)`;
-          contentContainer.appendChild(gaitSectionTitle);
-
-          tinettiData.slice(9, 16).forEach((item) => {
-            let selectedText = selectedOptions[item.nameAttr];
-            if (selectedText) {
-              let itemDiv = document.createElement("div");
-              itemDiv.className = "mb-2 p-2 bg-gray-50 rounded";
-              itemDiv.innerHTML = `<strong>${item.title}:</strong> ${selectedText}`;
-              contentContainer.appendChild(itemDiv);
-            }
-          });
-
-          let resultadoHtml = resultadoDiv.cloneNode(true);
-          if (resultadoHtml.style.display !== "none") {
-            contentContainer.appendChild(resultadoHtml);
-          }
-
-          gerarPDFGlobal({
-            titulo: "Tinetti Ölçeği",
-            subtitulo: "Yürüyüş ve Denge Değerlendirmesi Raporu",
-            nomeArquivo: "tinetti_olcegi_raporu.pdf",
-            seletorConteudo: ".main-content-wrapper",
-          });
-        } else {
-          console.error("gerarPDFGlobal fonksiyonu tanımlı değil.");
-        }
-      });
-
-      btnNandaNicNoc?.addEventListener("click", () => {
-        const score = resultadoDiv.dataset.score;
-        const scaleName = resultadoDiv.dataset.scaleName;
-        if (!score) {
-          alert("Çareyi araştırmak için sonucu hesaplayın.");
-          return;
-        }
-        const recomendacaoRisco =
-          score <= 19 ? "yüksek düşme riski" : "düşük düşme riski";
-        const searchQuery = encodeURIComponent(
-          `Tinetti Ölçeğinde ${recomendacaoRisco} yaşlı hasta için hemşirelik bakımı NANDA NIC NOC`,
-        );
-        window.open(
-          `https://www.google.com/search?q=${searchQuery}`,
-          "_blank",
-        );
-      });
     });
   </script>
 

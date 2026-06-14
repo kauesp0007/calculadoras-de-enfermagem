@@ -368,16 +368,10 @@
 
             <div class="flex flex-wrap justify-start gap-4 mt-6">
                 <button id="btnCalcular" class="btn-primary" aria-label="计算分数">
-                    计算分数
-                </button>
+          计算
+        </button>
                 <button id="btnLimpar" class="btn-primary" aria-label="清除字段">
                     清除
-                </button>
-                <button id="btnGerarPDF" class="btn-secondary" aria-label="生成PDF">
-                    生成PDF
-                </button>
-                <button id="btnNandaNicNoc" class="btn-primary" aria-label="搜索NANDA、NIC、NOC">
-                    NANDA、NIC、NOC
                 </button>
             </div>
 
@@ -416,8 +410,6 @@
             const resultadoDiv = document.getElementById('resultado');
             const btnCalcular = document.getElementById('btnCalcular');
             const btnLimpar = document.getElementById('btnLimpar');
-            const btnGerarPDF = document.getElementById('btnGerarPDF');
-            const btnNandaNicNoc = document.getElementById('btnNandaNicNoc');
             const conteudoDiv = document.getElementById('conteudo');
 
             const zaritData = [
@@ -758,69 +750,7 @@
             btnCalcular?.addEventListener('click', calcularZarit);
             btnLimpar?.addEventListener('click', limparCampos);
 
-            btnGerarPDF?.addEventListener('click', () => {
-                if (!resultadoDiv.dataset.score) {
-                    alert('请先点击"计算分数"生成PDF。');
-                    return;
-                }
-                if (typeof gerarPDFGlobal === 'function') {
-                    const selectedOptions = {};
-                    document.querySelectorAll('#conteudo select').forEach(select => {
-                        const selected = select.options[select.selectedIndex];
-                        if (selected.value !== "") {
-                            selectedOptions[select.id] = selected.text;
-                        }
-                    });
 
-                    let contentToPrint = document.querySelector('.main-content-wrapper').cloneNode(true);
-                    let contentContainer = contentToPrint.querySelector('#conteudo');
-
-                    contentContainer.innerHTML = '';
-
-                    zaritData.forEach(item => {
-                        let selectedText = selectedOptions[item.nameAttr];
-                        if (selectedText) {
-                            let itemDiv = document.createElement('div');
-                            itemDiv.className = 'mb-2 p-2 bg-gray-50 rounded';
-                            itemDiv.innerHTML = `<strong>${item.title}:</strong> ${selectedText}`;
-                            contentContainer.appendChild(itemDiv);
-                        }
-                    });
-
-                    let resultadoHtml = resultadoDiv.cloneNode(true);
-                    if (resultadoHtml.style.display !== 'none') {
-                        contentContainer.appendChild(resultadoHtml);
-                    }
-
-                    gerarPDFGlobal({
-                        titulo: '扎里特量表',
-                        subtitulo: '照护者负担评估报告',
-                        nomeArquivo: '扎里特量表报告.pdf',
-                        seletorConteudo: '.main-content-wrapper'
-                    });
-                } else {
-                    console.error('生成PDF全局函数未定义。');
-                }
-            });
-
-            btnNandaNicNoc?.addEventListener('click', () => {
-                const score = resultadoDiv.dataset.score;
-                const scaleName = resultadoDiv.dataset.scaleName;
-                if (!score) {
-                    alert('请计算结果以搜索护理措施。');
-                    return;
-                }
-                let sobrecarga = '无负担';
-                if (score >= 22 && score <= 41) {
-                    sobrecarga = '轻度至中度负担';
-                } else if (score >= 42 && score <= 60) {
-                    sobrecarga = '中度至重度负担';
-                } else if (score >= 61) {
-                    sobrecarga = '重度负担';
-                }
-                const searchQuery = encodeURIComponent(`照护者${sobrecarga}扎里特量表 护理诊断 NANDA 护理干预措施(NIC) 护理结果(NOC)`);
-                window.open(`https://www.google.com/search?q=${searchQuery}`, '_blank');
-            });
         });
     </script>
 

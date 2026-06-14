@@ -372,16 +372,10 @@
 
     <div class="flex flex-wrap justify-start gap-4 mt-6">
       <button id="btnCalcular" class="btn-primary" aria-label="Рассчитать">
-        Рассчитать
-      </button>
+          Рассчитать
+        </button>
       <button id="btnLimpar" class="btn-primary" aria-label="Очистить">
         Очистить
-      </button>
-      <button id="btnGerarPDF" class="btn-secondary" aria-label="Создать PDF">
-        Создать PDF
-      </button>
-      <button id="btnNandaNicNoc" class="btn-primary" aria-label="Поиск NANDA, NIC, NOC">
-        NANDA, NIC, NOC
       </button>
     </div>
 
@@ -406,8 +400,6 @@
       const resultadoDiv = document.getElementById('resultado');
       const btnCalcular = document.getElementById('btnCalcular');
       const btnLimpar = document.getElementById('btnLimpar');
-      const btnGerarPDF = document.getElementById('btnGerarPDF');
-      const btnNandaNicNoc = document.getElementById('btnNandaNicNoc');
       const conteudoDiv = document.getElementById('conteudo');
 
       const rlasData = [
@@ -523,51 +515,7 @@
       btnCalcular?.addEventListener('click', calcularRLAS);
       btnLimpar?.addEventListener('click', limparCampos);
 
-      btnGerarPDF?.addEventListener('click', () => {
-        const selectedRadio = document.querySelector('input[name="rlas_level"]:checked');
-        if (!selectedRadio) {
-          alert('Пожалуйста, выберите уровень для создания PDF.');
-          return;
-        }
-        if (typeof gerarPDFGlobal === 'function') {
-          const selectedItem = rlasData.find(item => item.level == selectedRadio.value);
 
-          let contentToPrint = document.querySelector('.main-content-wrapper').cloneNode(true);
-          let contentContainer = contentToPrint.querySelector('#conteudo');
-
-          contentContainer.innerHTML = '';
-
-          let itemDiv = document.createElement('div');
-          itemDiv.className = 'mb-2 p-2 bg-gray-50 rounded';
-          itemDiv.innerHTML = `<strong>Выбранный уровень:</strong> ${selectedItem.title}<br><strong>Описание:</strong> ${selectedItem.description}`;
-          contentContainer.appendChild(itemDiv);
-
-          let resultadoHtml = resultadoDiv.cloneNode(true);
-          if (resultadoHtml.style.display !== 'none') {
-            contentContainer.appendChild(resultadoHtml);
-          }
-
-          gerarPDFGlobal({
-            titulo: 'Шкала Ранчо Лос Амигос',
-            subtitulo: 'Отчёт о когнитивной оценке',
-            nomeArquivo: 'raport_shkala_rancho.pdf',
-            seletorConteudo: '.main-content-wrapper'
-          });
-        } else {
-          console.error('Функция gerarPDFGlobal не определена.');
-        }
-      });
-
-      btnNandaNicNoc?.addEventListener('click', () => {
-        const selectedRadio = document.querySelector('input[name="rlas_level"]:checked');
-        if (!selectedRadio) {
-          alert('Выберите уровень для поиска тактики ведения.');
-          return;
-        }
-        const selectedItem = rlasData.find(item => item.level == selectedRadio.value);
-        const searchQuery = encodeURIComponent(`уход за пациентом с черепно-мозговой травмой Уровень ${selectedItem.level} NANDA NIC NOC`);
-        window.open(`https://www.google.com/search?q=${searchQuery}`, '_blank');
-      });
     });
   </script>
 

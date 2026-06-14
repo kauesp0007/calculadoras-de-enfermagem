@@ -559,10 +559,10 @@
     </div>
 
     <div class="flex flex-wrap justify-start gap-4 mt-6">
-      <button id="btnCalcular" class="btn-primary" aria-label="Calcular escore">Tính điểm</button>
+      <button id="btnCalcular" class="btn-primary" aria-label="Calcular escore">
+          Tính toán
+        </button>
       <button id="btnLimpar" class="btn-primary" aria-label="Limpar campos">Để làm sạch</button>
-      <button id="btnGerarPDF" class="btn-secondary" aria-label="Gerar PDF">Tạo PDF</button>
-      <button id="btnNandaNicNoc" class="btn-primary" aria-label="Pesquisar NANDA, NIC, NOC">NANDA, NIC, NOC</button>
     </div>
   </main>
 
@@ -582,8 +582,6 @@
       const resultadoDiv = document.getElementById("resultado");
       const btnCalcular = document.getElementById("btnCalcular");
       const btnLimpar = document.getElementById("btnLimpar");
-      const btnGerarPDF = document.getElementById("btnGerarPDF");
-      const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
       const conteudoDiv = document.getElementById("conteudo");
 
       // Dados da escala de Tinetti
@@ -900,92 +898,7 @@
       btnCalcular?.addEventListener("click", calcularTinetti);
       btnLimpar?.addEventListener("click", limparCampos);
 
-      btnGerarPDF?.addEventListener("click", () => {
-        if (!resultadoDiv.dataset.score) {
-          alert(
-            "Xem những gì bạn có thể thấy \"Tính điểm\" trước để tạo tệp PDF."
-          );
-          return;
-        }
-        if (typeof gerarPDFGlobal === "chức năng") {
-          const selectedOptions = {};
-          document.querySelectorAll("#conteudo select").forEach((select) => {
-            const selected = select.options[select.selectedIndex];
-            if (selected.value !== "") {
-              selectedOptions[select.id] = selected.text;
-            }
-          });
 
-          let contentToPrint = document.
-            querySelector(".main-content-wrapper").
-            cloneNode(true);
-          let contentContainer = contentToPrint.querySelector("#conteudo");
-
-          contentContainer.innerHTML = "";
-
-          let balanceSectionTitle = document.createElement("h3");
-          balanceSectionTitle.className = "text-lg font-semibold mt-4 mb-2";
-          balanceSectionTitle.innerText = `Phần cân bằng (Điểm tối đa: 16)`;
-          contentContainer.appendChild(balanceSectionTitle);
-
-          tinettiData.slice(0, 9).forEach((item) => {
-            let selectedText = selectedOptions[item.nameAttr];
-            if (selectedText) {
-              let itemDiv = document.createElement("div");
-              itemDiv.className = "mb-2 p-2 bg-gray-50 rounded";
-              itemDiv.innerHTML = `<strong>${item.title}:</strong> ${selectedText}`;
-              contentContainer.appendChild(itemDiv);
-            }
-          });
-
-          let gaitSectionTitle = document.createElement("h3");
-          gaitSectionTitle.className = "text-lg font-semibold mt-4 mb-2";
-          gaitSectionTitle.innerText = `Phần thi đi bộ (Điểm tối đa: 12)`;
-          contentContainer.appendChild(gaitSectionTitle);
-
-          tinettiData.slice(9, 16).forEach((item) => {
-            let selectedText = selectedOptions[item.nameAttr];
-            if (selectedText) {
-              let itemDiv = document.createElement("div");
-              itemDiv.className = "mb-2 p-2 bg-gray-50 rounded";
-              itemDiv.innerHTML = `<strong>${item.title}:</strong> ${selectedText}`;
-              contentContainer.appendChild(itemDiv);
-            }
-          });
-
-          let resultadoHtml = resultadoDiv.cloneNode(true);
-          if (resultadoHtml.style.display !== "none") {
-            contentContainer.appendChild(resultadoHtml);
-          }
-
-          gerarPDFGlobal({
-            titulo: "thang tinetti",
-            subtitulo: "Báo cao đánh giá khả năng đi lại và có thể sử dụng",
-            nomeArquivo: "relatorio_escala_tinetti.pdf",
-            seletorConteudo: ".main-content-wrapper"
-          });
-        } else {
-          console.error("Bạn không thể tạo PDFGlobal không được xác định.");
-        }
-      });
-
-      btnNandaNicNoc?.addEventListener("click", () => {
-        const score = resultadoDiv.dataset.score;
-        const scaleName = resultadoDiv.dataset.scaleName;
-        if (!score) {
-          alert("Tính toán kết quả để nghiên cứu hành động vi.");
-          return;
-        }
-        const recomendacaoRisco =
-          score <= 19 ? "nguy cơ té ngã cao" : "nguy cơ té ngã thấp";
-        const searchQuery = encodeURIComponent(
-          `chăm sóc điều dưỡng cho người cao tuổi với ${recommendationRisco} theo thang Tinetti NANDA NIC NOC`
-        );
-        window.open(
-          `https://www.google.com/search?q=${searchQuery}`,
-          "_blank"
-        );
-      });
     });</script>
 
   

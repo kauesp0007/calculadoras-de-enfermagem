@@ -341,10 +341,10 @@
                 <div id="conteudo" role="form" aria-labelledby="main-title" class="space-y-4"></div>
                 <div id="resultado" class="hidden" aria-live="polite"></div>
                 <div class="flex flex-wrap justify-start gap-4 mt-6">
-                    <button id="btnCalcular" class="btn-primary">計算</button>
+                    <button id="btnCalcular" class="btn-primary">
+          計算する
+        </button>
                     <button id="btnLimpar" class="btn-primary">クリア</button>
-                    <button id="btnGerarPDF" class="btn-secondary">PDF生成</button>
-                    <button id="btnNandaNicNoc" class="btn-primary">NANDA、NIC、NOC</button>
                 </div>
                 <div class="ref font-inter text-gray-custom text-left mt-8 border-t pt-4">
                     <strong>参考文献：</strong>
@@ -377,8 +377,6 @@
             const conteudoDiv = document.getElementById('conteudo');
             const btnCalcular = document.getElementById('btnCalcular');
             const btnLimpar = document.getElementById('btnLimpar');
-            const btnGerarPDF = document.getElementById('btnGerarPDF');
-            const btnNandaNicNoc = document.getElementById('btnNandaNicNoc');
 
             const bradenData = [
                 { id: "sensorial", title: "知覚認知", description: "圧迫による不快感に反応する能力", options: [{ score: 1, text: "完全に制限" }, { score: 2, text: "重度に制限" }, { score: 3, text: "軽度に制限" }, { score: 4, text: "制限なし" }] },
@@ -461,66 +459,7 @@
             btnCalcular?.addEventListener('click', calcular);
             btnLimpar?.addEventListener('click', limpar);
 
-            btnGerarPDF?.addEventListener('click', () => {
-                if (resultadoDiv.dataset.score === undefined) {
-                    alert('PDFを生成するにはまず「計算」をクリックしてください。');
-                    return;
-                }
-                const { jsPDF } = window.jspdf;
-                const doc = new jsPDF();
-                const primaryColor = '#1A3E74';
-                let y = 10;
-                const pageMargin = 14;
-                const rightMargin = doc.internal.pageSize.getWidth() - pageMargin;
 
-                doc.setDrawColor(primaryColor);
-                doc.setLineWidth(0.5);
-                doc.rect(5, 5, 200, 287);
-                doc.setFillColor(primaryColor);
-                doc.rect(5, 5, 200, 25, 'F');
-                doc.setFont('helvetica', 'bold');
-                doc.setFontSize(18);
-                doc.setTextColor(255, 255, 255);
-                doc.text('ブレーデンスケール', 105, 18, { align: 'center' });
-                doc.setFontSize(12);
-                doc.text('褥瘡リスク評価レポート', 105, 25, { align: 'center' });
-
-                y = 45;
-                doc.setFont('helvetica', 'bold');
-                doc.setFontSize(12);
-                doc.setTextColor(primaryColor);
-                doc.text('ブレーデンスケール結果', pageMargin, y);
-                doc.setDrawColor(200);
-                doc.setLineWidth(0.2);
-                doc.line(pageMargin, y + 2, rightMargin, y + 2);
-                y += 10;
-                doc.setFont('helvetica', 'normal');
-                doc.setFontSize(10);
-                doc.setTextColor(0, 0, 0);
-                doc.text(`合計スコア: ${resultadoDiv.dataset.score}`, pageMargin, y);
-                doc.text(`リスク分類: ${resultadoDiv.dataset.risco}`, rightMargin, y, { align: 'right' });
-
-                doc.setLineWidth(0.5);
-                doc.setDrawColor(primaryColor);
-                doc.line(5, 272, 205, 272);
-                doc.setFont('helvetica', 'normal');
-                doc.setFontSize(8);
-                doc.setTextColor(150);
-                doc.text(`看護計算ツールにより ${new Date().toLocaleString('ja-JP')} に生成`, 105, 278, { align: 'center' });
-                doc.text(`この計算ツールは支援ツールであり、臨床判断を代替するものではありません。外部ソースのデータを確認してください。`, 105, 282, { align: 'center' });
-
-                doc.save('ブレーデンスケールレポート.pdf');
-            });
-
-            btnNandaNicNoc?.addEventListener('click', () => {
-                const risco = resultadoDiv.dataset.risco;
-                if (!risco) {
-                    alert('ケア計画を検索するには結果を計算してください。');
-                    return;
-                }
-                const searchQuery = encodeURIComponent(`ブレーデンスケール ${risco} 褥瘡リスク NANDA NIC NOC 看護計画`);
-                window.open(`https://www.google.com/search?q=${searchQuery}`, '_blank');
-            });
         });
     </script>
 

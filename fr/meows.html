@@ -466,12 +466,6 @@
         <button id="btnLimpar" class="btn-primary" aria-label="Effacer les sélections de l'échelle">
           Effacer
         </button>
-        <button id="btnGerarPDF" class="btn-secondary" aria-label="Générer le PDF du résultat">
-          Générer PDF
-        </button>
-        <button id="btnNandaNicNoc" class="btn-primary" aria-label="Rechercher NANDA, NIC, NOC">
-          NANDA, NIC, NOC
-        </button>
       </div>
 
       <!-- Section Bibliographie (Mise à jour avec une source française pertinente si possible, sinon garder l'originale) -->
@@ -541,8 +535,6 @@
       const resultadoDiv = document.getElementById("resultado");
       const btnCalcular = document.getElementById("btnCalcular");
       const btnLimpar = document.getElementById("btnLimpar");
-      const btnGerarPDF = document.getElementById("btnGerarPDF");
-      const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
       const conteudoDiv = document.getElementById("conteudo");
 
       // Données MEOWS traduites
@@ -782,58 +774,8 @@
       btnLimpar?.addEventListener("click", limparCampos);
 
       // Fonctionnalité Générer PDF
-      btnGerarPDF?.addEventListener("click", () => {
-        if (resultadoDiv.dataset.score === undefined) {
-          // Vérifie si le score a été calculé
-          alert(
-            'Veuillez cliquer sur "Calculer" d\'abord pour générer le PDF.',
-          ); // Traduit
-          return;
-        }
-        // Vérifie si la fonction globale de PDF existe (depuis global-scripts.js)
-        if (typeof generatePDFWithAdjustedLayout === "function") {
-          generatePDFWithAdjustedLayout({
-            buttonElement: btnGerarPDF, // Passe le bouton pour le cacher/réafficher
-            contentSelector: "#main-content .main-content-wrapper", // Sélecteur du contenu à imprimer
-            pdfOptions: {
-              filename: "protocole_meows.pdf", // Nom du fichier traduit
-              margin: 15, // Marge en mm
-              image: { type: "jpeg", quality: 0.98 },
-              html2canvas: { scale: 2, useCORS: true, logging: false },
-              jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
-            },
-            pdfTitle: "Protocole MEOWS", // Titre pour l'en-tête du PDF
-            pdfSubtitle: "Rapport de Score d'Alerte Obstétrical Modifié", // Sous-titre
-          });
-        } else {
-          console.error(
-            "Fonction generatePDFWithAdjustedLayout non définie. Assurez-vous que global-scripts.js est chargé.",
-          );
-          alert(
-            "Erreur : La fonction de génération de PDF n'a pas pu être trouvée.",
-          ); // Traduit
-        }
-      });
 
       // Fonctionnalité Recherche NANDA/NIC/NOC
-      btnNandaNicNoc?.addEventListener("click", () => {
-        const score = resultadoDiv.dataset.score;
-        const scaleName = resultadoDiv.dataset.scaleName;
-        const classification = resultadoDiv.dataset.classification; // Utilise 'classification'
-        if (score === undefined || !classification) {
-          // Vérifie si les données existent
-          alert("Calculez le résultat pour rechercher la conduite à tenir."); // Traduit
-          return;
-        }
-        // Termes de recherche traduits
-        const searchQuery = encodeURIComponent(
-          `${scaleName} score ${score} classification ${classification} générer taxonomie NANDA générer taxonomie NIC générer taxonomie NOC`,
-        );
-        window.open(
-          `https://www.google.com/search?q=${searchQuery}`,
-          "_blank",
-        );
-      });
     });
   </script>
 

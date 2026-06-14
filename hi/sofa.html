@@ -353,16 +353,10 @@
 
             <div class="flex flex-wrap justify-start gap-4 mt-6">
                 <button id="btnCalcular" class="btn-primary" aria-label="SOFA स्कोर की गणना करें">
-                    गणना करें
-                </button>
+          गणना करें
+        </button>
                 <button id="btnLimpar" class="btn-primary" aria-label="फ़ील्ड साफ़ करें">
                     साफ़ करें
-                </button>
-                <button id="btnGerarPDF" class="btn-secondary" aria-label="PDF जनरेट करें">
-                    PDF जनरेट करें
-                </button>
-                <button id="btnNandaNicNoc" class="btn-primary" aria-label="NANDA, NIC, NOC खोजें">
-                    NANDA, NIC, NOC
                 </button>
             </div>
 
@@ -397,8 +391,6 @@
             const resultadoDiv = document.getElementById('resultado');
             const btnCalcular = document.getElementById('btnCalcular');
             const btnLimpar = document.getElementById('btnLimpar');
-            const btnGerarPDF = document.getElementById('btnGerarPDF');
-            const btnNandaNicNoc = document.getElementById('btnNandaNicNoc');
             const conteudoDiv = document.getElementById('conteudo');
 
             const sofaData = [
@@ -557,55 +549,7 @@
                 resultadoDiv.classList.add('hidden');
             });
 
-            btnGerarPDF.addEventListener('click', () => {
-                const element = document.getElementById('resultado');
-                if (element.classList.contains('hidden')) {
-                    alert('कृपया पहले स्कोर की गणना करें।');
-                    return;
-                }
 
-                const options = {
-                    margin: 1,
-                    filename: 'sofa-score-result.pdf',
-                    image: { type: 'jpeg', quality: 0.98 },
-                    html2canvas: { scale: 2 },
-                    jsPDF: { unit: 'cm', format: 'a4', orientation: 'portrait' }
-                };
-
-                html2pdf().set(options).from(element).save();
-            });
-
-            btnNandaNicNoc.addEventListener('click', () => {
-                const totalScore = Array.from(document.querySelectorAll('.sofa-select')).reduce((sum, select) => sum + (parseInt(select.value) || 0), 0);
-
-                let nandaDiagnoses = '';
-                let nicInterventions = '';
-                let nocOutcomes = '';
-
-                if (totalScore <= 4) {
-                    nandaDiagnoses = 'अंग dysfunction का जोखिम';
-                    nicInterventions = 'निगरानी, जोखिम कारकों का आकलन';
-                    nocOutcomes = 'अंग कार्य स्थिरता';
-                } else if (totalScore <= 8) {
-                    nandaDiagnoses = 'अंग dysfunction';
-                    nicInterventions = 'अंग समर्थन, दवा प्रबंधन';
-                    nocOutcomes = 'अंग कार्य में सुधार';
-                } else {
-                    nandaDiagnoses = 'बहु-अंग विफलता';
-                    nicInterventions = 'उन्नत जीवन समर्थन, निरंतर निगरानी';
-                    nocOutcomes = 'अंग कार्य स्थिरीकरण';
-                }
-
-                resultadoDiv.innerHTML = `
-                    <div class="resultado bg-info-orange-light p-4 rounded-lg shadow-md border border-orange-300">
-                        <h3 class="text-xl font-bold mb-2">NANDA, NIC, NOC SOFA स्कोर के लिए</h3>
-                        <p class="mb-2"><strong>NANDA निदान:</strong> ${nandaDiagnoses}</p>
-                        <p class="mb-2"><strong>NIC हस्तक्षेप:</strong> ${nicInterventions}</p>
-                        <p class="mb-2"><strong>NOC परिणाम:</strong> ${nocOutcomes}</p>
-                    </div>
-                `;
-                resultadoDiv.classList.remove('hidden');
-            });
         });
     </script>
 

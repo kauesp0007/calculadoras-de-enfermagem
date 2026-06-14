@@ -375,16 +375,10 @@
       <!-- बटन अनुभाग -->
       <div class="flex flex-wrap justify-start gap-4 mt-6">
         <button id="btnCalcular" class="btn-primary" aria-label="स्कोर की गणना करें">
-          स्कोर की गणना करें
+          गणना करें
         </button>
         <button id="btnLimpar" class="btn-primary" aria-label="फ़ील्ड साफ़ करें">
           साफ़ करें
-        </button>
-        <button id="btnGerarPDF" class="btn-secondary" aria-label="PDF जनरेट करें">
-          PDF जनरेट करें
-        </button>
-        <button id="btnNandaNicNoc" class="btn-primary" aria-label="NANDA, NIC, NOC खोजें">
-          NANDA, NIC, NOC
         </button>
       </div>
 
@@ -432,8 +426,6 @@
       const resultadoDiv = document.getElementById("resultado");
       const btnCalcular = document.getElementById("btnCalcular");
       const btnLimpar = document.getElementById("btnLimpar");
-      const btnGerarPDF = document.getElementById("btnGerarPDF");
-      const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
       const conteudoDiv = document.getElementById("conteudo");
 
       // CURB-65 डेटा - हिंदी में अनुवादित शीर्षक और स्पष्टीकरण
@@ -587,77 +579,7 @@
       btnCalcular?.addEventListener("click", calcularCurb);
       btnLimpar?.addEventListener("click", limparCampos);
 
-      btnGerarPDF?.addEventListener("click", () => {
-        if (!resultadoDiv.dataset.score) {
-          // कस्टम अलर्ट का उपयोग करें
-          console.log(
-            'PDF जनरेट करने से पहले कृपया "स्कोर की गणना करें" पर क्लिक करें।',
-          );
-          return;
-        }
-        if (typeof gerarPDFGlobal === "function") {
-          const selectedOptions = {};
-          document.querySelectorAll("#conteudo select").forEach((select) => {
-            const selected = select.options[select.selectedIndex];
-            if (selected.value !== "") {
-              selectedOptions[select.id] = selected.text;
-            }
-          });
 
-          let contentToPrint = document
-            .querySelector(".main-content-wrapper")
-            .cloneNode(true);
-          let contentContainer = contentToPrint.querySelector("#conteudo");
-
-          contentContainer.innerHTML = "";
-
-          curbData.forEach((item) => {
-            let selectedText = selectedOptions[item.nameAttr];
-            if (selectedText) {
-              let itemDiv = document.createElement("div");
-              itemDiv.className = "mb-2 p-2 bg-gray-50 rounded";
-              itemDiv.innerHTML = `<strong>${item.title}:</strong> ${selectedText}`;
-              contentContainer.appendChild(itemDiv);
-            }
-          });
-
-          let resultadoHtml = resultadoDiv.cloneNode(true);
-          if (resultadoHtml.style.display !== "none") {
-            contentContainer.appendChild(resultadoHtml);
-          }
-
-          gerarPDFGlobal({
-            titulo: "CURB-65 स्कोर",
-            subtitulo: "निमोनिया गंभीरता रिपोर्ट",
-            nomeArquivo: "curb-65_score_report.pdf",
-            seletorConteudo: ".main-content-wrapper",
-          });
-        } else {
-          console.error("Função gerarPDFGlobal अपरिभाषित है।");
-        }
-      });
-
-      btnNandaNicNoc?.addEventListener("click", () => {
-        const score = resultadoDiv.dataset.score;
-        if (!score) {
-          // कस्टम अलर्ट का उपयोग करें
-          console.log("आचरण खोजने के लिए परिणाम की गणना करें।");
-          return;
-        }
-        const recomendacaoRisco =
-          score <= 1
-            ? "कम जोखिम"
-            : score === 2
-              ? "मध्यम जोखिम"
-              : "उच्च जोखिम";
-        const searchQuery = encodeURIComponent(
-          `CURB-65 स्कोर NANDA NIC NOC के अनुसार ${recomendacaoRisco} वाले निमोनिया के लिए नर्सिंग देखभाल`,
-        );
-        window.open(
-          `https://www.google.com/search?q=${searchQuery}`,
-          "_blank",
-        );
-      });
 
       // hi/global-body-elements.html से वैश्विक तत्व लोड करें (lbiras, cookies, back to top)
       fetch("/hi/global-body-elements.html")

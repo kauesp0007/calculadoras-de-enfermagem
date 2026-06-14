@@ -342,10 +342,10 @@
         <div id="conteudo" role="form" aria-labelledby="main-title" class="space-y-4"></div>
         <div id="resultado" class="hidden" aria-live="polite"></div>
         <div class="flex flex-wrap justify-start gap-4 mt-6">
-          <button id="btnCalcular" class="btn-primary">गणना करें</button>
+          <button id="btnCalcular" class="btn-primary">
+          गणना करें
+        </button>
           <button id="btnLimpar" class="btn-primary">साफ़ करें</button>
-          <button id="btnGerarPDF" class="btn-secondary">पीडीएफ बनाएं</button>
-          <button id="btnNandaNicNoc" class="btn-primary">NANDA, NIC, NOC</button>
         </div>
         <div class="ref font-inter text-gray-custom text-left mt-8 border-t pt-4">
           <strong>ग्रंथ सूची संदर्भ:</strong>
@@ -377,8 +377,6 @@
       const conteudoDiv = document.getElementById('conteudo');
       const btnCalcular = document.getElementById('btnCalcular');
       const btnLimpar = document.getElementById('btnLimpar');
-      const btnGerarPDF = document.getElementById('btnGerarPDF');
-      const btnNandaNicNoc = document.getElementById('btnNandaNicNoc');
 
       const bradenData = [
         { id: "sensorial", title: "संवेदी धारणा (Percepção Sensorial)", description: "दबाव से संबंधित असुविधा पर प्रतिक्रिया करने की क्षमता।", options: [{ score: 1, text: "पूरी तरह से सीमित (Totalmente limitado)" }, { score: 2, text: "बहुत सीमित (Muito limitado)" }, { score: 3, text: "हल्का सीमित (Levemente limitado)" }, { score: 4, text: "कोई सीमा नहीं (Nenhuma limitação)" }] },
@@ -461,66 +459,7 @@
       btnCalcular?.addEventListener('click', calcular);
       btnLimpar?.addEventListener('click', limpar);
 
-      btnGerarPDF?.addEventListener('click', () => {
-        if (resultadoDiv.dataset.score === undefined) {
-          alert('पीडीएफ बनाने के लिए कृपया पहले "गणना करें" पर क्लिक करें।');
-          return;
-        }
-        const { jsPDF } = window.jspdf;
-        const doc = new jsPDF();
-        const primaryColor = '#1A3E74';
-        let y = 10;
-        const pageMargin = 14;
-        const rightMargin = doc.internal.pageSize.getWidth() - pageMargin;
 
-        doc.setDrawColor(primaryColor);
-        doc.setLineWidth(0.5);
-        doc.rect(5, 5, 200, 287);
-        doc.setFillColor(primaryColor);
-        doc.rect(5, 5, 200, 25, 'F');
-        doc.setFont('helvetica', 'bold');
-        doc.setFontSize(18);
-        doc.setTextColor(255, 255, 255);
-        doc.text('ब्रेडेन स्केल', 105, 18, { align: 'center' });
-        doc.setFontSize(12);
-        doc.text('दबाव घाव जोखिम रिपोर्ट', 105, 25, { align: 'center' });
-
-        y = 45;
-        doc.setFont('helvetica', 'bold');
-        doc.setFontSize(12);
-        doc.setTextColor(primaryColor);
-        doc.text('ब्रेडेन स्केल का परिणाम', pageMargin, y);
-        doc.setDrawColor(200);
-        doc.setLineWidth(0.2);
-        doc.line(pageMargin, y + 2, rightMargin, y + 2);
-        y += 10;
-        doc.setFont('helvetica', 'normal');
-        doc.setFontSize(10);
-        doc.setTextColor(0, 0, 0);
-        doc.text(`कुल स्कोर: ${resultadoDiv.dataset.score}`, pageMargin, y);
-        doc.text(`जोखिम वर्गीकरण: ${resultadoDiv.dataset.risco}`, rightMargin, y, { align: 'right' });
-
-        doc.setLineWidth(0.5);
-        doc.setDrawColor(primaryColor);
-        doc.line(5, 272, 205, 272);
-        doc.setFont('helvetica', 'normal');
-        doc.setFontSize(8);
-        doc.setTextColor(150);
-        doc.text(`नर्सिंग पोर्टल द्वारा ${new Date().toLocaleString('hi-IN')} पर जेनरेट किया गया।`, 105, 278, { align: 'center' });
-        doc.text(`यह कैलकुलेटर समर्थन का एक स्रोत है और नैदानिक ​​निर्णय की जगह नहीं लेता है। बाहरी स्रोतों से डेटा सत्यापित करें।`, 105, 282, { align: 'center' });
-
-        doc.save('relatorio_escala_braden.pdf');
-      });
-
-      btnNandaNicNoc?.addEventListener('click', () => {
-        const risco = resultadoDiv.dataset.risco;
-        if (!risco) {
-          alert('आचरण खोजने के लिए परिणाम की गणना करें।');
-          return;
-        }
-        const searchQuery = encodeURIComponent(`Paciente com ${risco} para lesão por pressão na Escala de Braden taxonomia NANDA, NIC e NOC`);
-        window.open(`https://www.google.com/search?q=${searchQuery}`, '_blank');
-      });
     });
   </script>
 

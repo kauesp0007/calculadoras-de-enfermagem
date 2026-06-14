@@ -358,12 +358,6 @@
         <button id="btnLimpar" class="btn-primary" aria-label="مسح الحقول">
           امسح
         </button>
-        <button id="btnGerarPDF" class="btn-secondary" aria-label="إنشاء PDF">
-          إنشاء PDF
-        </button>
-        <button id="btnNandaNicNoc" class="btn-primary" aria-label="البحث عن NANDA, NIC, NOC">
-          NANDA, NIC, NOC
-        </button>
       </div>
 
       <div class="ref font-inter text-gray-custom text-right mt-8 border-t pt-4">
@@ -395,8 +389,6 @@
       const resultadoDiv = document.getElementById('resultado');
       const btnCalcular = document.getElementById('btnCalcular');
       const btnLimpar = document.getElementById('btnLimpar');
-      const btnGerarPDF = document.getElementById('btnGerarPDF');
-      const btnNandaNicNoc = document.getElementById('btnNandaNicNoc');
       const conteudoDiv = document.getElementById('conteudo');
 
       // بيانات مقياس جونز هوبكنز
@@ -585,52 +577,7 @@
       btnCalcular?.addEventListener('click', calcular);
       btnLimpar?.addEventListener('click', limparCampos);
 
-      btnGerarPDF?.addEventListener('click', () => {
-        if (!resultadoDiv.dataset.score) {
-          alert('يرجى النقر على "احسب" أولاً لإنشاء ملف PDF.');
-          return;
-        }
-        if (typeof gerarPDFGlobal === 'function') {
-          gerarPDFGlobal({
-            titulo: 'مقياس جونز هوبكنز لمخاطر السقوط',
-            subtitulo: 'تقرير تقييم مخاطر السقوط',
-            nomeArquivo: 'relatorio_escala_johns_hopkins.pdf',
-            pontuacao: resultadoDiv.dataset.score,
-            classificacao: resultadoDiv.dataset.risco,
-            plano: resultadoDiv.dataset.plano,
-            nomeEscala: resultadoDiv.dataset.scaleName,
-            criterios: johnsData.map(item => {
-              const selectElement = document.getElementById(item.nameAttr);
-              const selectedOption = selectElement.options[selectElement.selectedIndex];
-              return {
-                nome: item.category,
-                valor: selectedOption.text.split(' (')[0],
-                pontuacao: selectElement.value
-              };
-            })
-          });
-        } else {
-          alert('وظيفة إنشاء PDF غير متوفرة حالياً.');
-        }
-      });
 
-      btnNandaNicNoc?.addEventListener('click', () => {
-        if (!resultadoDiv.dataset.score) {
-          alert('يرجى النقر على "احسب" أولاً للحصول على تصنيف المخاطر.');
-          return;
-        }
-        const score = parseInt(resultadoDiv.dataset.score, 10);
-        let nivelRisco = '';
-        if (score < 6) nivelRisco = 'منخفض';
-        else if (score <= 13) nivelRisco = 'متوسط';
-        else nivelRisco = 'مرتفع';
-
-        if (typeof abrirModalNandaNicNocGlobal === 'function') {
-          abrirModalNandaNicNocGlobal('مخاطر السقوط', nivelRisco);
-        } else {
-          alert('وظيفة NANDA/NIC/NOC غير متوفرة حالياً.');
-        }
-      });
     });
   </script>
 

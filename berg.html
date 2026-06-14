@@ -374,16 +374,10 @@
 
       <div class="flex flex-wrap justify-start gap-4 mt-6">
         <button id="btnCalcular" class="btn-primary" aria-label="Calcular escore">
-          Calcular Escore
+          Calcular
         </button>
         <button id="btnLimpar" class="btn-primary" aria-label="Limpar campos">
           Limpar
-        </button>
-        <button id="btnGerarPDF" class="btn-secondary" aria-label="Gerar PDF">
-          Gerar PDF
-        </button>
-        <button id="btnNandaNicNoc" class="btn-primary" aria-label="Pesquisar NANDA, NIC, NOC">
-          NANDA, NIC, NOC
         </button>
       </div>
 
@@ -588,8 +582,6 @@
       const resultadoDiv = document.getElementById("resultado");
       const btnCalcular = document.getElementById("btnCalcular");
       const btnLimpar = document.getElementById("btnLimpar");
-      const btnGerarPDF = document.getElementById("btnGerarPDF");
-      const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
       const conteudoDiv = document.getElementById("conteudo");
 
       const bergData = [
@@ -1042,77 +1034,7 @@
       btnCalcular?.addEventListener("click", calcularBerg);
       btnLimpar?.addEventListener("click", limparCampos);
 
-      btnGerarPDF?.addEventListener("click", () => {
-        if (!resultadoDiv.dataset.score) {
-          alert(
-            'Por favor, clique em "Calcular Escore" primeiro para gerar o PDF.',
-          );
-          return;
-        }
-        if (typeof gerarPDFGlobal === "function") {
-          const selectedOptions = {};
-          document.querySelectorAll("#conteudo select").forEach((select) => {
-            const selected = select.options[select.selectedIndex];
-            if (selected.value !== "") {
-              selectedOptions[select.id] = selected.text;
-            }
-          });
 
-          let contentToPrint = document
-            .querySelector(".main-content-wrapper")
-            .cloneNode(true);
-          let contentContainer = contentToPrint.querySelector("#conteudo");
-
-          contentContainer.innerHTML = "";
-
-          bergData.forEach((item) => {
-            let selectedText = selectedOptions[item.nameAttr];
-            if (selectedText) {
-              let itemDiv = document.createElement("div");
-              itemDiv.className = "mb-2 p-2 bg-gray-50 rounded";
-              itemDiv.innerHTML = `<strong>${item.title}:</strong> ${selectedText}`;
-              contentContainer.appendChild(itemDiv);
-            }
-          });
-
-          let resultadoHtml = resultadoDiv.cloneNode(true);
-          if (resultadoHtml.style.display !== "none") {
-            contentContainer.appendChild(resultadoHtml);
-          }
-
-          gerarPDFGlobal({
-            titulo: "Escala de Equilíbrio de Berg",
-            subtitulo:
-              "Relatório de Avaliação de Equilíbrio Estático e Dinâmico",
-            nomeArquivo: "relatorio_escala_berg.pdf",
-            seletorConteudo: ".main-content-wrapper",
-          });
-        } else {
-          console.error("Função gerarPDFGlobal não definida.");
-        }
-      });
-
-      btnNandaNicNoc?.addEventListener("click", () => {
-        const score = resultadoDiv.dataset.score;
-        const scaleName = resultadoDiv.dataset.scaleName;
-        if (!score) {
-          alert("Calcule o resultado para pesquisar a conduta.");
-          return;
-        }
-        let recomendacaoRisco = "risco de quedas";
-        if (score <= 20) {
-          recomendacaoRisco = "alto risco de quedas";
-        } else if (score >= 41) {
-          recomendacaoRisco = "baixo risco de quedas";
-        }
-        const searchQuery = encodeURIComponent(
-          `cuidados enfermagem para idoso com ${recomendacaoRisco} na Escala de Berg NANDA NIC NOC`,
-        );
-        window.open(
-          `https://www.google.com/search?q=${searchQuery}`,
-          "_blank",
-        );
-      });
     });
   </script>
 

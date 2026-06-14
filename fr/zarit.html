@@ -435,16 +435,10 @@
       <div class="flex flex-wrap justify-start gap-4 mt-8">
         <!-- Augmenté l'espace -->
         <button id="btnCalcular" class="btn-primary" aria-label="Calculer le score">
-          Calculer Score
+          Calculer
         </button>
         <button id="btnLimpar" class="btn-primary" aria-label="Effacer les champs">
           Effacer
-        </button>
-        <button id="btnGerarPDF" class="btn-secondary" aria-label="Générer PDF">
-          Générer PDF
-        </button>
-        <button id="btnNandaNicNoc" class="btn-primary" aria-label="Rechercher NANDA, NIC, NOC">
-          NANDA, NIC, NOC
         </button>
       </div>
 
@@ -502,8 +496,6 @@
       const resultadoDiv = document.getElementById("resultado");
       const btnCalcular = document.getElementById("btnCalcular");
       const btnLimpar = document.getElementById("btnLimpar");
-      const btnGerarPDF = document.getElementById("btnGerarPDF");
-      const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
       const conteudoDiv = document.getElementById("conteudo");
       const statusMessageDiv = document.getElementById("statusMessage"); // Pour lecteur d'écran
 
@@ -899,106 +891,7 @@
       btnCalcular?.addEventListener("click", calculerZarit);
       btnLimpar?.addEventListener("click", limparCampos);
 
-      btnGerarPDF?.addEventListener("click", () => {
-        // Vérifie si un score a été calculé
-        if (!resultadoDiv.dataset.score) {
-          alert(
-            'Veuillez cliquer sur "Calculer Score" d\'abord pour générer le PDF.',
-          ); // TRADUIT
-          return;
-        }
-        if (typeof gerarPDFGlobal === "function") {
-          // Récupère les données
-          const score = resultadoDiv.dataset.score;
-          const fardeau = resultadoDiv.dataset.fardeau;
-          const selectedOptions = {}; // Pour stocker les sélections détaillées
 
-          // Récupère les sélections de l'utilisateur
-          document
-            .querySelectorAll("#zarit-form select")
-            .forEach((select) => {
-              const selected = select.options[select.selectedIndex];
-              if (selected.value !== "") {
-                // Trouve le titre associé à l'ID du select
-                const itemData = zaritData.find(
-                  (item) => item.nameAttr === select.id,
-                );
-                const title = itemData ? itemData.title : select.id;
-                // Enlève le score entre parenthèses
-                selectedOptions[title] = selected.text.replace(
-                  / \(\d+\)$/,
-                  "",
-                );
-              }
-            });
-
-          // Construit la section des détails pour le PDF
-          let detailsHtml =
-            '<h3 style="color: #1A3E74; margin-top: 15px; margin-bottom: 10px;">Réponses détaillées :</h3>';
-          for (const [title, description] of Object.entries(
-            selectedOptions,
-          )) {
-            detailsHtml += `<p style="margin-bottom: 5px;"><strong>${title}:</strong> ${description}</p>`;
-          }
-
-          // Crée un contenu HTML simple pour le PDF
-          const pdfContentHtml = `
-                        <div style="font-family: Inter, sans-serif; padding: 20px;">
-                            <h1 style="color: #1A3E74; border-bottom: 2px solid #1A3E74; padding-bottom: 5px;">Échelle de Zarit</h1>
-                            <h2 style="color: #1FA4E5; margin-top: 15px;">Rapport d'Évaluation du Fardeau de l'Aidant</h2>
-
-                            ${detailsHtml}
-
-                            <div style="margin-top: 20px; background-color: #f3f4f6; border-radius: 8px; padding: 15px; border: 1px solid #e5e7eb;">
-                                <p style="font-size: 1.2em; color: #1A3E74; margin-bottom: 10px;"><strong>Score Total : ${score} / 88</strong></p>
-                                <p><strong>Interprétation :</strong> ${fardeau}</p>
-                            </div>
-                            <p style="margin-top: 20px; font-size: 0.9em; color: #6b7280;">Généré par Calculatrices de Soins Infirmiers</p>
-                        </div>
-                    `;
-
-          gerarPDFGlobal({
-            // Titres et nom de fichier TRADUITS
-            titulo: "Échelle de Zarit",
-            subtitulo: "Rapport d'Évaluation du Fardeau de l'Aidant",
-            nomeArquivo: "rapport_echelle_zarit.pdf",
-            htmlConteudo: pdfContentHtml, // Utilise le HTML généré
-          });
-        } else {
-          alert(
-            "Erreur : La fonction pour générer le PDF n'a pas été trouvée.",
-          ); // TRADUIT
-          console.error("Fonction gerarPDFGlobal non définie."); // TRADUIT
-        }
-      });
-
-      btnNandaNicNoc?.addEventListener("click", () => {
-        // Vérifie si un score a été calculé
-        if (!resultadoDiv.dataset.score) {
-          alert("Calculez le résultat pour rechercher la conduite à tenir."); // TRADUIT
-          return;
-        }
-        const score = resultadoDiv.dataset.score;
-        const scaleName = "Échelle de Zarit"; // TRADUIT
-        // Détermine le niveau de fardeau basé sur le score
-        let niveauFardeau = "absence de fardeau ou fardeau léger";
-        if (score >= 21 && score <= 40) {
-          niveauFardeau = "fardeau léger à modéré";
-        } else if (score >= 41 && score <= 60) {
-          niveauFardeau = "fardeau modéré à sévère";
-        } else if (score >= 61) {
-          niveauFardeau = "fardeau sévère";
-        }
-
-        // TRADUIT la query de recherche
-        const searchQuery = encodeURIComponent(
-          `plan de soins infirmiers pour aidant familial avec ${niveauFardeau} selon ${scaleName} NANDA NIC NOC`,
-        );
-        window.open(
-          `https://www.google.com/search?q=${searchQuery}`,
-          "_blank",
-        );
-      });
     });
   </script>
 

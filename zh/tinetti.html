@@ -548,16 +548,10 @@
 
         <div class="flex flex-wrap justify-start gap-4 mt-6">
             <button id="btnCalcular" class="btn-primary" aria-label="计算分数">
-                计算分数
-            </button>
+          计算
+        </button>
             <button id="btnLimpar" class="btn-primary" aria-label="清除字段">
                 清除
-            </button>
-            <button id="btnGerarPDF" class="btn-secondary" aria-label="生成PDF">
-                生成PDF
-            </button>
-            <button id="btnNandaNicNoc" class="btn-primary" aria-label="搜索NANDA、NIC、NOC">
-                NANDA、NIC、NOC
             </button>
         </div>
 
@@ -583,8 +577,6 @@
             const resultadoDiv = document.getElementById('resultado');
             const btnCalcular = document.getElementById('btnCalcular');
             const btnLimpar = document.getElementById('btnLimpar');
-            const btnGerarPDF = document.getElementById('btnGerarPDF');
-            const btnNandaNicNoc = document.getElementById('btnNandaNicNoc');
             const conteudoDiv = document.getElementById('conteudo');
 
             // 蒂内蒂量表数据
@@ -836,82 +828,7 @@
             btnCalcular?.addEventListener('click', calcularTinetti);
             btnLimpar?.addEventListener('click', limparCampos);
 
-            btnGerarPDF?.addEventListener('click', () => {
-                if (!resultadoDiv.dataset.score) {
-                    alert('请先点击"计算分数"生成PDF。');
-                    return;
-                }
-                if (typeof gerarPDFGlobal === 'function') {
-                    const selectedOptions = {};
-                    document.querySelectorAll('#conteudo select').forEach(select => {
-                        const selected = select.options[select.selectedIndex];
-                        if (selected.value !== "") {
-                            selectedOptions[select.id] = selected.text;
-                        }
-                    });
 
-                    let contentToPrint = document.querySelector('.main-content-wrapper').cloneNode(true);
-                    let contentContainer = contentToPrint.querySelector('#conteudo');
-
-                    contentContainer.innerHTML = '';
-
-                    let balanceSectionTitle = document.createElement('h3');
-                    balanceSectionTitle.className = 'text-lg font-semibold mt-4 mb-2';
-                    balanceSectionTitle.innerText = `平衡部分 (最高分: 16)`;
-                    contentContainer.appendChild(balanceSectionTitle);
-
-                    tinettiData.slice(0, 9).forEach(item => {
-                        let selectedText = selectedOptions[item.nameAttr];
-                        if (selectedText) {
-                            let itemDiv = document.createElement('div');
-                            itemDiv.className = 'mb-2 p-2 bg-gray-50 rounded';
-                            itemDiv.innerHTML = `<strong>${item.title}:</strong> ${selectedText}`;
-                            contentContainer.appendChild(itemDiv);
-                        }
-                    });
-
-                    let gaitSectionTitle = document.createElement('h3');
-                    gaitSectionTitle.className = 'text-lg font-semibold mt-4 mb-2';
-                    gaitSectionTitle.innerText = `步态部分 (最高分: 12)`;
-                    contentContainer.appendChild(gaitSectionTitle);
-
-                    tinettiData.slice(9, 16).forEach(item => {
-                        let selectedText = selectedOptions[item.nameAttr];
-                        if (selectedText) {
-                            let itemDiv = document.createElement('div');
-                            itemDiv.className = 'mb-2 p-2 bg-gray-50 rounded';
-                            itemDiv.innerHTML = `<strong>${item.title}:</strong> ${selectedText}`;
-                            contentContainer.appendChild(itemDiv);
-                        }
-                    });
-
-                    let resultadoHtml = resultadoDiv.cloneNode(true);
-                    if (resultadoHtml.style.display !== 'none') {
-                        contentContainer.appendChild(resultadoHtml);
-                    }
-
-                    gerarPDFGlobal({
-                        titulo: '蒂内蒂量表',
-                        subtitulo: '步态与平衡评估报告',
-                        nomeArquivo: '蒂内蒂量表报告.pdf',
-                        seletorConteudo: '.main-content-wrapper'
-                    });
-                } else {
-                    console.error('生成PDF全局函数未定义。');
-                }
-            });
-
-            btnNandaNicNoc?.addEventListener('click', () => {
-                const score = resultadoDiv.dataset.score;
-                const scaleName = resultadoDiv.dataset.scaleName;
-                if (!score) {
-                    alert('请计算结果以搜索护理措施。');
-                    return;
-                }
-                const recomendacaoRisco = score <= 19 ? '高跌倒风险' : '低跌倒风险';
-                const searchQuery = encodeURIComponent(`蒂内蒂量表${recomendacaoRisco}老年患者护理 NANDA NIC NOC`);
-                window.open(`https://www.google.com/search?q=${searchQuery}`, '_blank');
-            });
         });
     </script>
 

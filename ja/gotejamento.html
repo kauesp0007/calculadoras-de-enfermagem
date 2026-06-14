@@ -478,16 +478,10 @@
 
       <div class="flex flex-wrap justify-start gap-4 mt-6">
         <button id="btnCalcular" class="btn-primary" aria-label="点滴計算を実行">
-          計算
+          計算する
         </button>
         <button id="btnLimpar" class="btn-primary" aria-label="フィールドをクリア">
           クリア
-        </button>
-        <button id="btnGerarPDF" class="btn-secondary" aria-label="PDFを生成">
-          PDF生成
-        </button>
-        <button id="btnNandaNicNoc" class="btn-primary" aria-label="NANDA、NIC、NOCを検索">
-          NANDA、NIC、NOC
         </button>
       </div>
 
@@ -607,8 +601,6 @@
       const resultadoDiv = document.getElementById("resultado");
       const btnCalcular = document.getElementById("btnCalcular");
       const btnLimpar = document.getElementById("btnLimpar");
-      const btnGerarPDF = document.getElementById("btnGerarPDF");
-      const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
 
       function calcularGotejamento() {
         const volumeInput = document.getElementById("volume");
@@ -699,39 +691,7 @@
       btnCalcular?.addEventListener("click", calcularGotejamento);
       btnLimpar?.addEventListener("click", limparCampos);
 
-      btnGerarPDF?.addEventListener("click", () => {
-        if (!resultadoDiv.dataset.gotasPorMinuto) {
-          alert("PDFを生成するには、まず「計算」をクリックしてください。");
-          return;
-        }
-        if (typeof gerarPDFGlobal === "function") {
-          gerarPDFGlobal({
-            titulo: "点滴計算",
-            subtitulo: "点滴投与量レポート",
-            nomeArquivo: "relatorio_gotejamento.pdf",
-            seletorConteudo: ".main-content-wrapper",
-          });
-        } else {
-          console.error("gerarPDFGlobal関数が定義されていません。");
-        }
-      });
 
-      btnNandaNicNoc?.addEventListener("click", () => {
-        const gotasPorMinuto = resultadoDiv.dataset.gotasPorMinuto;
-        const equipo = resultadoDiv.dataset.equipo;
-        const scaleName = resultadoDiv.dataset.scaleName;
-        if (!gotasPorMinuto || !equipo) {
-          alert("結果を計算して処置を検索してください。");
-          return;
-        }
-        const searchQuery = encodeURIComponent(
-          `${scaleName} 結果 ${gotasPorMinuto} 滴/分, 器具 ${equipo} NANDA分類生成, NIC分類生成, NOC分類生成`,
-        );
-        window.open(
-          `https://www.google.com/search?q=${searchQuery}`,
-          "_blank",
-        );
-      });
     });
   </script>
 

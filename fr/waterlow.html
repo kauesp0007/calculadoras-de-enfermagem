@@ -480,12 +480,6 @@
         <button id="btnLimpar" class="btn-primary" aria-label="Effacer les champs">
           Effacer
         </button>
-        <button id="btnGerarPDF" class="btn-secondary" aria-label="Générer PDF">
-          Générer PDF
-        </button>
-        <button id="btnNandaNicNoc" class="btn-primary" aria-label="Rechercher NANDA, NIC, NOC">
-          NANDA, NIC, NOC
-        </button>
       </div>
 
       <div id="bibliografia" class="ref font-inter text-gray-custom text-left mt-8 border-t pt-4">
@@ -540,8 +534,6 @@
       const resultadoDiv = document.getElementById("resultado");
       const btnCalcular = document.getElementById("btnCalcular");
       const btnLimpar = document.getElementById("btnLimpar");
-      const btnGerarPDF = document.getElementById("btnGerarPDF");
-      const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
       const conteudoDiv = document.getElementById("conteudo");
       const statusMessageDiv = document.getElementById("statusMessage"); // Pour lecteur d'écran
 
@@ -909,134 +901,7 @@
       btnCalcular?.addEventListener("click", calculerPontuacao);
       btnLimpar?.addEventListener("click", limparCampos);
 
-      btnGerarPDF?.addEventListener("click", () => {
-        // Vérifie si un score a été calculé et stocké
-        if (!resultadoDiv.dataset.score) {
-          alert(
-            'Veuillez cliquer sur "Calculer" d\'abord pour générer le PDF.',
-          ); // TRADUIT
-          return;
-        }
-        if (typeof gerarPDFGlobal === "function") {
-          // Récupère les données
-          const score = resultadoDiv.dataset.score;
-          const classification = resultadoDiv.dataset.classification;
-          const selectedOptions = {}; // Pour stocker les sélections détaillées
 
-          // Récupère les sélections des selects
-          document
-            .querySelectorAll("#waterlow-form select")
-            .forEach((select) => {
-              const selected = select.options[select.selectedIndex];
-              if (selected.value !== "") {
-                const itemData = waterlowData.find(
-                  (item) => item.nameAttr === select.id,
-                );
-                const category = itemData ? itemData.category : select.id;
-                // Enlève le score entre parenthèses pour l'affichage
-                selectedOptions[category] = selected.text.replace(
-                  / \(\d+(-?(\d+)?)?\)$/,
-                  "",
-                );
-              }
-            });
-
-          // Récupère les sélections des checkboxes
-          document
-            .querySelectorAll('#waterlow-form input[type="checkbox"]:checked')
-            .forEach((checkbox) => {
-              const subCatNameAttr = checkbox.name;
-              const mainCategory = waterlowData.find((item) =>
-                item.subCategories?.some(
-                  (sub) => sub.nameAttr === subCatNameAttr,
-                ),
-              );
-              const subCategory = mainCategory?.subCategories.find(
-                (sub) => sub.nameAttr === subCatNameAttr,
-              );
-              const option = subCategory?.options.find(
-                (opt) =>
-                  opt.score.toString() === checkbox.value ||
-                  (opt.score === "4-6" && checkbox.value === "4-6"),
-              );
-
-              if (mainCategory && subCategory && option) {
-                const categoryKey = `${mainCategory.category} - ${subCategory.name}`;
-                if (!selectedOptions[categoryKey]) {
-                  selectedOptions[categoryKey] = [];
-                }
-                // Enlève le score entre parenthèses pour l'affichage
-                selectedOptions[categoryKey].push(
-                  option.description.replace(/ \(\d+(-?(\d+)?)?\)$/, ""),
-                );
-              }
-            });
-
-          // Construit la section des détails pour le PDF
-          let detailsHtml =
-            '<h3 style="color: #1A3E74; margin-top: 15px; margin-bottom: 10px;">Détails de l\'évaluation :</h3>';
-          for (const [category, value] of Object.entries(selectedOptions)) {
-            // Si c'est un array (checkboxes), joindre les valeurs
-            const displayValue = Array.isArray(value)
-              ? value.join(", ")
-              : value;
-            detailsHtml += `<p style="margin-bottom: 5px;"><strong>${category}:</strong> ${displayValue}</p>`;
-          }
-
-          // Crée un contenu HTML simple pour le PDF
-          const pdfContentHtml = `
-                        <div style="font-family: Inter, sans-serif; padding: 20px;">
-                            <h1 style="color: #1A3E74; border-bottom: 2px solid #1A3E74; padding-bottom: 5px;">Échelle de Waterlow</h1>
-                            <h2 style="color: #1FA4E5; margin-top: 15px;">Rapport d'Évaluation du Risque de Lésions de Pression</h2>
-
-                            ${detailsHtml}
-
-                            <div style="margin-top: 20px; background-color: #f3f4f6; border-radius: 8px; padding: 15px; border: 1px solid #e5e7eb;">
-                                <p style="font-size: 1.2em; color: #1A3E74; margin-bottom: 10px;"><strong>Score Total Waterlow : ${score}</strong></p>
-                                <p><strong>Classification du Risque :</strong> ${classification}</p>
-                            </div>
-                            <p style="margin-top: 20px; font-size: 0.9em; color: #6b7280;">Généré par Calculatrices de Soins Infirmiers</p>
-                        </div>
-                    `;
-
-          gerarPDFGlobal({
-            // Titres et nom de fichier TRADUITS
-            titulo: "Échelle de Waterlow",
-            subtitulo:
-              "Rapport d'Évaluation du Risque de Lésions de Pression",
-            nomeArquivo: "rapport_echelle_waterlow.pdf",
-            htmlConteudo: pdfContentHtml, // Utilise le HTML généré
-          });
-        } else {
-          alert(
-            "Erreur : La fonction pour générer le PDF n'a pas été trouvée.",
-          ); // TRADUIT
-          console.error("Fonction gerarPDFGlobal non définie."); // TRADUIT
-        }
-      });
-
-      btnNandaNicNoc?.addEventListener("click", () => {
-        // Vérifie si les données sont là
-        if (
-          !resultadoDiv.dataset.score ||
-          !resultadoDiv.dataset.classification
-        ) {
-          alert("Calculez le résultat pour rechercher la conduite à tenir."); // TRADUIT
-          return;
-        }
-        const score = resultadoDiv.dataset.score;
-        const scaleName = "Échelle de Waterlow"; // TRADUIT
-        const classification = resultadoDiv.dataset.classification; // Classification du risque
-
-        // TRADUIT la query de recherche
-        const searchQuery = encodeURIComponent(
-          `plan de soins infirmiers pour patient avec ${classification} de lésion de pression selon ${scaleName} NANDA NIC NOC`,
-        );
-        window.open(
-          `https://www.google.com/search?q=${searchQuery}`,
-          "_blank",
-        );
-      });
     });
   </script>
 

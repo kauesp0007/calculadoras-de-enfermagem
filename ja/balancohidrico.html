@@ -450,16 +450,10 @@
 
       <div class="flex flex-wrap justify-start gap-4 mt-6">
         <button id="btnCalcular" class="btn-primary" aria-label="水分出納バランスを計算">
-          計算
+          計算する
         </button>
         <button id="btnLimpar" class="btn-primary" aria-label="フィールドをクリア">
           クリア
-        </button>
-        <button id="btnGerarPDF" class="btn-secondary" aria-label="PDFを生成">
-          PDFを生成
-        </button>
-        <button id="btnNandaNicNoc" class="btn-primary" aria-label="NANDA, NIC, NOCを検索">
-          NANDA, NIC, NOC
         </button>
       </div>
 
@@ -509,8 +503,6 @@
       const resultadoDiv = document.getElementById('resultado');
       const btnCalcular = document.getElementById('btnCalcular');
       const btnLimpar = document.getElementById('btnLimpar');
-      const btnGerarPDF = document.getElementById('btnGerarPDF');
-      const btnNandaNicNoc = document.getElementById('btnNandaNicNoc');
 
       function calcularBalanco() {
         const ingestaoOral = parseFloat(document.getElementById('ingestaoOral').value) || 0;
@@ -573,35 +565,7 @@
       btnCalcular?.addEventListener('click', calcularBalanco);
       btnLimpar?.addEventListener('click', limparCampos);
 
-      btnGerarPDF?.addEventListener('click', () => {
-        if (!resultadoDiv.dataset.score) {
-          alert('PDFを生成する前に、まず「計算」をクリックしてください。'); // Please click "Calculate" first to generate the PDF.
-          return;
-        }
-        if (typeof gerarPDFGlobal === 'function') {
-          gerarPDFGlobal({
-            titulo: '水分出納バランス', // Water Balance
-            subtitulo: '水分摂取と排出の報告', // Report of Fluid Intake and Elimination
-            nomeArquivo: 'reporte_balanco_hidrico.pdf', // report_water_balance.pdf
-            seletorConteudo: '.main-content-wrapper'
-          });
-        } else {
-          console.error('gerarPDFGlobal 関数が定義されていません。'); // gerarPDFGlobal function not defined.
-        }
-      });
 
-      btnNandaNicNoc?.addEventListener('click', () => {
-        const score = resultadoDiv.dataset.score;
-        const scaleName = resultadoDiv.dataset.scaleName;
-        const classificacao = resultadoDiv.dataset.classificacao;
-        if (!score || !classificacao) {
-          alert('行動を検索するために結果を計算してください。'); // Please calculate the result to search for conduct.
-          return;
-        }
-        // Translated search query for Japanese
-        const searchQuery = encodeURIComponent(`${scaleName} 結果 ${score} ml, 分類 ${classificacao} NANDA分類を生成, NIC分類を生成, NOC分類を生成`);
-        window.open(`https://www.google.com/search?q=${searchQuery}`, '_blank');
-      });
     });
   </script>
 

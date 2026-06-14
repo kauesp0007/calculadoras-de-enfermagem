@@ -803,10 +803,10 @@
       <div id="resultado" class="resultado hidden" aria-live="polite"></div>
 
       <div class="flex flex-wrap justify-start gap-4 mt-6">
-        <button id="btnCalcular" class="btn-primary" aria-label="Beräkna MMSE-poäng">Kalkylera</button>
+        <button id="btnCalcular" class="btn-primary" aria-label="Beräkna MMSE-poäng">
+          Beräkna
+        </button>
         <button id="btnLimpar" class="btn-primary" aria-label="Rensa fält">Att rengöra</button>
-        <button id="btnGerarPDF" class="btn-secondary" aria-label="Generera PDF">Generera PDF</button>
-        <button id="btnNandaNicNoc" class="btn-primary" aria-label="Sök efter NANDA, NIC, NOC">NANDA, NIC, NOC</button>
         <button id="btnAvaliacaoEscore"
           class="btn-primary inline-block px-4 py-2 bg-blue-500 text-white font-semibold rounded-lg shadow-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-opacity-75"
           aria-label="Poängbedömning" onclick="window.location.href='/avaliacaomeem.html'">
@@ -904,8 +904,6 @@
       const resultadoDiv = document.getElementById("resultado");
       const btnCalcular = document.getElementById("btnCalcular");
       const btnLimpar = document.getElementById("btnLimpar");
-      const btnGerarPDF = document.getElementById("btnGerarPDF");
-      const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
       const conteudoDiv = document.getElementById("conteudo");
 
       const meemData = [
@@ -1224,44 +1222,7 @@
       btnCalcular?.addEventListener("click", calcularPontuacao);
       btnLimpar?.addEventListener("click", limparCampos);
 
-      btnGerarPDF?.addEventListener("click", () => {
-        if (!resultadoDiv.dataset.score) {
-          alert('Klicka först på "Beräkna" för att generera PDF-filen.');
-          return;
-        }
-        if (typeof gerarPDFGlobal === "function") {
-          gerarPDFGlobal({
-            titulo: "Mini-Mental State Examination (MMSE)",
-            subtitulo: "Kognitiv screeningsrapport",
-            nomeArquivo: "relatorio_escala_meem.pdf",
-            seletorConteudo: ".main-content-wrapper"
-          });
-        } else {
-          console.error(
-            "Funktionen generatePDFGlobal är inte definierad. Kontrollera att global-scripts.js laddas."
-          );
-          alert(
-            "Fel vid generering av PDF. Kontrollera konsolen för mer information."
-          );
-        }
-      });
 
-      btnNandaNicNoc?.addEventListener("click", () => {
-        const score = resultadoDiv.dataset.score;
-        const scaleName = resultadoDiv.dataset.scaleName;
-        const classificacao = resultadoDiv.dataset.classificacao;
-        if (!score || !classificacao) {
-          alert("Beräkna resultatet för att undersöka beteendet.");
-          return;
-        }
-        const searchQuery = encodeURIComponent(
-          `${scaleName} poäng ${score} Klassificering ${classificacao} gerar taxonomia NANDA, gerar taxonomia NIC e gerar taxonomia de NOC`
-        );
-        window.open(
-          `https://www.google.com/search?q=${searchQuery}`,
-          "_blank"
-        );
-      });
       // Botão "Adicionar aos favoritos"
       const addFavoriteBtn = document.getElementById("addFavoriteBtn");
       if (addFavoriteBtn) {

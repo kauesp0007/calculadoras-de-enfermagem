@@ -371,10 +371,10 @@
       <div id="resultado" class="resultado" aria-live="polite" style="display: none"></div>
 
       <div class="flex flex-wrap justify-start gap-4 mt-6">
-        <button id="btnCalcular" class="btn-primary" aria-label="Calcular escore">Tính điểm</button>
+        <button id="btnCalcular" class="btn-primary" aria-label="Calcular escore">
+          Tính toán
+        </button>
         <button id="btnLimpar" class="btn-primary" aria-label="Limpar campos">Để làm sạch</button>
-        <button id="btnGerarPDF" class="btn-secondary" aria-label="Gerar PDF">Tạo PDF</button>
-        <button id="btnNandaNicNoc" class="btn-primary" aria-label="Pesquisar NANDA, NIC, NOC">NANDA, NIC, NOC</button>
       </div>
 
       <div id="reference-section" class="ref font-inter text-gray-custom text-left mt-8 border-t pt-4">
@@ -411,8 +411,6 @@
       const resultadoDiv = document.getElementById("resultado");
       const btnCalcular = document.getElementById("btnCalcular");
       const btnLimpar = document.getElementById("btnLimpar");
-      const btnGerarPDF = document.getElementById("btnGerarPDF");
-      const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
       const conteudoDiv = document.getElementById("conteudo");
 
       const bpsData = [
@@ -554,70 +552,7 @@
       btnCalcular?.addEventListener("click", calcularBPS);
       btnLimpar?.addEventListener("click", limparCampos);
 
-      btnGerarPDF?.addEventListener("click", () => {
-        if (!resultadoDiv.dataset.score) {
-          alert(
-            "Xem những gì bạn có thể thấy \"Tính điểm\" trước để tạo tệp PDF."
-          );
-          return;
-        }
-        if (typeof gerarPDFGlobal === "chức năng") {
-          const selectedOptions = {};
-          document.querySelectorAll("#conteudo select").forEach((select) => {
-            const selected = select.options[select.selectedIndex];
-            if (selected.value !== "") {
-              selectedOptions[select.id] = selected.text;
-            }
-          });
 
-          let contentToPrint = document.
-            querySelector(".main-content-wrapper").
-            cloneNode(true);
-          let contentContainer = contentToPrint.querySelector("#conteudo");
-
-          contentContainer.innerHTML = "";
-
-          bpsData.forEach((item) => {
-            let selectedText = selectedOptions[item.nameAttr];
-            if (selectedText) {
-              let itemDiv = document.createElement("div");
-              itemDiv.className = "mb-2 p-2 bg-gray-50 rounded";
-              itemDiv.innerHTML = `<strong>${item.title}:</strong> ${selectedText}`;
-              contentContainer.appendChild(itemDiv);
-            }
-          });
-
-          let resultadoHtml = resultadoDiv.cloneNode(true);
-          if (resultadoHtml.style.display !== "none") {
-            contentContainer.appendChild(resultadoHtml);
-          }
-
-          gerarPDFGlobal({
-            titulo: "Cân BPS",
-            subtitulo: "Báo giá đau đớn ở bệnh nhân nặng",
-            nomeArquivo: "relatorio_escala_bps.pdf",
-            seletorConteudo: ".main-content-wrapper"
-          });
-        } else {
-          console.error("Bạn không thể tạo PDFGlobal không được xác định.");
-        }
-      });
-
-      btnNandaNicNoc?.addEventListener("click", () => {
-        const score = resultadoDiv.dataset.score;
-        const scaleName = resultadoDiv.dataset.scaleName;
-        if (!score) {
-          alert("Tính toán kết quả để nghiên cứu hành động vi.");
-          return;
-        }
-        const searchQuery = encodeURIComponent(
-          `${scaleName} có thể tạo phân loại NANDA, tạo phân loại NIC và tạo phân loại NOC`
-        );
-        window.open(
-          `https://www.google.com/search?q=${searchQuery}`,
-          "_blank"
-        );
-      });
     });</script>
 
   

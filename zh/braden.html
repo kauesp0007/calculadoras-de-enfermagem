@@ -341,10 +341,10 @@
         <div id="conteudo" role="form" aria-labelledby="main-title" class="space-y-4"></div>
         <div id="resultado" class="hidden" aria-live="polite"></div>
         <div class="flex flex-wrap justify-start gap-4 mt-6">
-          <button id="btnCalcular" class="btn-primary">计算</button>
+          <button id="btnCalcular" class="btn-primary">
+          计算
+        </button>
           <button id="btnLimpar" class="btn-primary">清空</button>
-          <button id="btnGerarPDF" class="btn-secondary">生成PDF</button>
-          <button id="btnNandaNicNoc" class="btn-primary">NANDA, NIC, NOC</button>
         </div>
         <div class="ref font-inter text-gray-custom text-left mt-8 border-t pt-4">
           <strong>参考文献：</strong>
@@ -377,8 +377,6 @@
       const conteudoDiv = document.getElementById('conteudo');
       const btnCalcular = document.getElementById('btnCalcular');
       const btnLimpar = document.getElementById('btnLimpar');
-      const btnGerarPDF = document.getElementById('btnGerarPDF');
-      const btnNandaNicNoc = document.getElementById('btnNandaNicNoc');
 
       const bradenData = [
         { id: "sensorial", title: "感觉感知", description: "对压力相关不适反应的能力。", options: [{ score: 1, text: "完全受限" }, { score: 2, text: "非常受限" }, { score: 3, text: "轻度受限" }, { score: 4, text: "无受限" }] },
@@ -461,66 +459,7 @@
       btnCalcular?.addEventListener('click', calcular);
       btnLimpar?.addEventListener('click', limpar);
 
-      btnGerarPDF?.addEventListener('click', () => {
-        if (resultadoDiv.dataset.score === undefined) {
-          alert('请先点击"计算"生成PDF。');
-          return;
-        }
-        const { jsPDF } = window.jspdf;
-        const doc = new jsPDF();
-        const primaryColor = '#1A3E74';
-        let y = 10;
-        const pageMargin = 14;
-        const rightMargin = doc.internal.pageSize.getWidth() - pageMargin;
 
-        doc.setDrawColor(primaryColor);
-        doc.setLineWidth(0.5);
-        doc.rect(5, 5, 200, 287);
-        doc.setFillColor(primaryColor);
-        doc.rect(5, 5, 200, 25, 'F');
-        doc.setFont('helvetica', 'bold');
-        doc.setFontSize(18);
-        doc.setTextColor(255, 255, 255);
-        doc.text('Braden量表', 105, 18, { align: 'center' });
-        doc.setFontSize(12);
-        doc.text('压疮风险报告', 105, 25, { align: 'center' });
-
-        y = 45;
-        doc.setFont('helvetica', 'bold');
-        doc.setFontSize(12);
-        doc.setTextColor(primaryColor);
-        doc.text('Braden量表结果', pageMargin, y);
-        doc.setDrawColor(200);
-        doc.setLineWidth(0.2);
-        doc.line(pageMargin, y + 2, rightMargin, y + 2);
-        y += 10;
-        doc.setFont('helvetica', 'normal');
-        doc.setFontSize(10);
-        doc.setTextColor(0, 0, 0);
-        doc.text(`总分: ${resultadoDiv.dataset.score}`, pageMargin, y);
-        doc.text(`风险分类: ${resultadoDiv.dataset.risco}`, rightMargin, y, { align: 'right' });
-
-        doc.setLineWidth(0.5);
-        doc.setDrawColor(primaryColor);
-        doc.line(5, 272, 205, 272);
-        doc.setFont('helvetica', 'normal');
-        doc.setFontSize(8);
-        doc.setTextColor(150);
-        doc.text(`护理门户于 ${new Date().toLocaleString('zh-CN')} 生成。`, 105, 278, { align: 'center' });
-        doc.text(`此计算器是辅助工具，不能替代临床判断。请检查外部数据源。`, 105, 282, { align: 'center' });
-
-        doc.save('braden_scale_report.pdf');
-      });
-
-      btnNandaNicNoc?.addEventListener('click', () => {
-        const risco = resultadoDiv.dataset.risco;
-        if (!risco) {
-          alert('请先计算结果以搜索护理措施。');
-          return;
-        }
-        const searchQuery = encodeURIComponent(`Braden量表 ${risco} 压疮风险 NANDA NIC NOC 护理诊断`);
-        window.open(`https://www.google.com/search?q=${searchQuery}`, '_blank');
-      });
     });
   </script>
 

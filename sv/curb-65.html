@@ -372,10 +372,10 @@
 
       <!-- Seção de botões movida para cima, antes da referência -->
       <div class="flex flex-wrap justify-start gap-4 mt-6">
-        <button id="btnCalcular" class="btn-primary" aria-label="Beräkna poäng">Beräkna poäng</button>
+        <button id="btnCalcular" class="btn-primary" aria-label="Beräkna poäng">
+          Beräkna
+        </button>
         <button id="btnLimpar" class="btn-primary" aria-label="Rensa fält">Att rengöra</button>
-        <button id="btnGerarPDF" class="btn-secondary" aria-label="Generera PDF">Generera PDF</button>
-        <button id="btnNandaNicNoc" class="btn-primary" aria-label="Sök efter NANDA, NIC, NOC">NANDA, NIC, NOC</button>
       </div>
 
       <div id="reference-section" class="ref font-inter text-gray-custom text-left mt-8 border-t pt-4">
@@ -407,8 +407,6 @@
       const resultadoDiv = document.getElementById("resultado");
       const btnCalcular = document.getElementById("btnCalcular");
       const btnLimpar = document.getElementById("btnLimpar");
-      const btnGerarPDF = document.getElementById("btnGerarPDF");
-      const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
       const conteudoDiv = document.getElementById("conteudo");
 
       const curbData = [
@@ -561,76 +559,7 @@
       btnCalcular?.addEventListener("click", calcularCurb);
       btnLimpar?.addEventListener("click", limparCampos);
 
-      btnGerarPDF?.addEventListener("click", () => {
-        if (!resultadoDiv.dataset.score) {
-          alert(
-            'Klicka först på "Beräkna poäng" för att generera PDF-filen.'
-          );
-          return;
-        }
-        if (typeof gerarPDFGlobal === "function") {
-          const selectedOptions = {};
-          document.querySelectorAll("#conteudo select").forEach((select) => {
-            const selected = select.options[select.selectedIndex];
-            if (selected.value !== "") {
-              selectedOptions[select.id] = selected.text;
-            }
-          });
 
-          let contentToPrint = document.
-            querySelector(".main-content-wrapper").
-            cloneNode(true);
-          let contentContainer = contentToPrint.querySelector("#conteudo");
-
-          contentContainer.innerHTML = "";
-
-          curbData.forEach((item) => {
-            let selectedText = selectedOptions[item.nameAttr];
-            if (selectedText) {
-              let itemDiv = document.createElement("div");
-              itemDiv.className = "mb-2 p-2 bg-gray-50 rounded";
-              itemDiv.innerHTML = `<strong>${item.title}:</strong> ${selectedText}`;
-              contentContainer.appendChild(itemDiv);
-            }
-          });
-
-          let resultadoHtml = resultadoDiv.cloneNode(true);
-          if (resultadoHtml.style.display !== "none") {
-            contentContainer.appendChild(resultadoHtml);
-          }
-
-          gerarPDFGlobal({
-            titulo: "CURB-65-poäng",
-            subtitulo: "Rapport om lunginflammations svårighetsgrad",
-            nomeArquivo: "relatorio_escore_curb-65.pdf",
-            seletorConteudo: ".main-content-wrapper"
-          });
-        } else {
-          console.error("Funktionen GeneratePDFGlobal är inte definierad.");
-        }
-      });
-
-      btnNandaNicNoc?.addEventListener("click", () => {
-        const score = resultadoDiv.dataset.score;
-        const scaleName = resultadoDiv.dataset.scaleName;
-        if (!score) {
-          alert("Beräkna resultatet för att undersöka beteendet.");
-          return;
-        }
-        const recomendacaoRisco =
-          score <= 1 ?
-            "baixo risco" :
-            score === 2 ?
-              "risco moderado" :
-              "alto risco";
-        const searchQuery = encodeURIComponent(
-          `cuidados enfermagem para pneumonia com ${recomendacaoRisco} segundo o Escore CURB-65 NANDA NIC NOC`
-        );
-        window.open(
-          `https://www.google.com/search?q=${searchQuery}`,
-          "_blank"
-        );
-      });
     });</script>
 
   

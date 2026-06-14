@@ -354,12 +354,10 @@
         <div id="conteudo" role="form" aria-labelledby="main-title" class="space-y-4"></div>
         <div id="resultado" class="hidden" aria-live="polite"></div>
         <div class="flex flex-wrap justify-start gap-4 mt-6">
-          <button id="btnCalcular" class="btn-primary">Hitung</button>
+          <button id="btnCalcular" class="btn-primary">
+          Hitung
+        </button>
           <button id="btnLimpar" class="btn-primary">Hapus</button>
-          <button id="btnGerarPDF" class="btn-secondary">Buat PDF</button>
-          <button id="btnNandaNicNoc" class="btn-primary">
-            NANDA, NIC, NOC
-          </button>
         </div>
         <div class="ref font-inter text-gray-custom text-left mt-8 border-t pt-4">
           <strong>Referensi Bibliografi:</strong>
@@ -390,8 +388,6 @@
       const conteudoDiv = document.getElementById("conteudo");
       const btnCalcular = document.getElementById("btnCalcular");
       const btnLimpar = document.getElementById("btnLimpar");
-      const btnGerarPDF = document.getElementById("btnGerarPDF");
-      const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
 
       const bradenData = [
         {
@@ -542,86 +538,7 @@
       btnCalcular?.addEventListener("click", calcular);
       btnLimpar?.addEventListener("click", limpar);
 
-      btnGerarPDF?.addEventListener("click", () => {
-        if (resultadoDiv.dataset.score === undefined) {
-          alert('Silakan klik "Hitung" terlebih dahulu untuk membuat PDF.');
-          return;
-        }
-        const { jsPDF } = window.jspdf;
-        const doc = new jsPDF();
-        const primaryColor = "#1A3E74";
-        let y = 10;
-        const pageMargin = 14;
-        const rightMargin = doc.internal.pageSize.getWidth() - pageMargin;
 
-        doc.setDrawColor(primaryColor);
-        doc.setLineWidth(0.5);
-        doc.rect(5, 5, 200, 287);
-        doc.setFillColor(primaryColor);
-        doc.rect(5, 5, 200, 25, "F");
-        doc.setFont("helvetica", "bold");
-        doc.setFontSize(18);
-        doc.setTextColor(255, 255, 255);
-        doc.text("Skala Braden", 105, 18, { align: "center" });
-        doc.setFontSize(12);
-        doc.text("Laporan Risiko Luka Tekanan", 105, 25, { align: "center" });
-
-        y = 45;
-        doc.setFont("helvetica", "bold");
-        doc.setFontSize(12);
-        doc.setTextColor(primaryColor);
-        doc.text("Hasil Skala Braden", pageMargin, y);
-        doc.setDrawColor(200);
-        doc.setLineWidth(0.2);
-        doc.line(pageMargin, y + 2, rightMargin, y + 2);
-        y += 10;
-        doc.setFont("helvetica", "normal");
-        doc.setFontSize(10);
-        doc.setTextColor(0, 0, 0);
-        doc.text(`Skor Total: ${resultadoDiv.dataset.score}`, pageMargin, y);
-        doc.text(
-          `Klasifikasi Risiko: ${resultadoDiv.dataset.risco}`,
-          rightMargin,
-          y,
-          { align: "right" },
-        );
-
-        doc.setLineWidth(0.5);
-        doc.setDrawColor(primaryColor);
-        doc.line(5, 272, 205, 272);
-        doc.setFont("helvetica", "normal");
-        doc.setFontSize(8);
-        doc.setTextColor(150);
-        doc.text(
-          `Dibuat oleh Portal Keperawatan pada ${new Date().toLocaleString("id-ID")}.`,
-          105,
-          278,
-          { align: "center" },
-        );
-        doc.text(
-          `Kalkulator ini adalah sumber pendukung dan tidak menggantikan penilaian klinis. Periksa data dari sumber eksternal.`,
-          105,
-          282,
-          { align: "center" },
-        );
-
-        doc.save("laporan_skala_braden.pdf");
-      });
-
-      btnNandaNicNoc?.addEventListener("click", () => {
-        const risco = resultadoDiv.dataset.risco;
-        if (!risco) {
-          alert("Hitung hasil untuk mencari tindakan.");
-          return;
-        }
-        const searchQuery = encodeURIComponent(
-          `Pasien dengan ${risco} untuk luka tekanan pada Skala Braden taksonomi NANDA, NIC dan NOC`,
-        );
-        window.open(
-          `https://www.google.com/search?q=${searchQuery}`,
-          "_blank",
-        );
-      });
     });
   </script>
 

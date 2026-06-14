@@ -573,10 +573,10 @@
       <div id="resultado" class="resultado hidden" aria-live="polite"></div>
 
       <div class="flex flex-wrap justify-start gap-4 mt-8">
-        <button id="btnCalcular" class="btn-primary" aria-label="Calcular balanço hídrico">Розрахувати</button>
+        <button id="btnCalcular" class="btn-primary" aria-label="Calcular balanço hídrico">
+          Розрахувати
+        </button>
         <button id="btnLimpar" class="btn-primary" aria-label="Limpar campos">Для очищення</button>
-        <button id="btnGerarPDF" class="btn-secondary" aria-label="Gerar PDF">Згенерувати PDF</button>
-        <button id="btnNandaNicNoc" class="btn-primary" aria-label="Pesquisar NANDA, NIC, NOC">NANDA, NIC, NOC</button>
       </div>
 
       <div class="ref font-inter text-gray-custom text-left mt-8 border-t pt-4">
@@ -665,8 +665,6 @@
       const resultadoDiv = document.getElementById("resultado");
       const btnCalcular = document.getElementById("btnCalcular");
       const btnLimpar = document.getElementById("btnLimpar");
-      const btnGerarPDF = document.getElementById("btnGerarPDF");
-      const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
 
       function calcularBalanco() {
         const ingestaoOral =
@@ -741,42 +739,7 @@
       btnCalcular?.addEventListener("click", calcularBalanco);
       btnLimpar?.addEventListener("click", limparCampos);
 
-      btnGerarPDF?.addEventListener("click", () => {
-        if (!resultadoDiv.dataset.score) {
-          alert("Будь ласка, спочатку натисніть 'Розрахувати', щоб згенерувати PDF-файл.");
-          return;
-        }
-        if (typeof gerarPDFGlobal === "function") {
-          gerarPDFGlobal({
-            titulo: "Водний баланс",
-            subtitulo: "Звіт про надходження та виділення рідини",
-            nomeArquivo: "zvit_vodnyi_balans.pdf",
-            seletorConteudo: ".main-content-wrapper",
-          });
-        } else {
-          console.error("Функція gerarPDFGlobal не визначена.");
-        }
-      });
 
-      btnNandaNicNoc?.addEventListener("click", () => {
-        const score = resultadoDiv.dataset.score;
-        const scaleName = resultadoDiv.dataset.scaleName;
-        const classificacao = resultadoDiv.dataset.classificacao;
-
-        // Перевіряє, чи було проведено розрахунок
-        if (!score && score !== 0) {
-          alert("Розрахуйте результат для пошуку дій.");
-          return;
-        }
-
-        const searchQuery = encodeURIComponent(
-          `${scaleName} результат ${score} мл, класифікація ${classificacao} генерувати таксономію NANDA, генерувати таксономію NIC та генерувати таксономію NOC`
-        );
-        window.open(
-          `https://www.google.com/search?q=${searchQuery}`,
-          "_blank"
-        );
-      });
     });
   </script>
 

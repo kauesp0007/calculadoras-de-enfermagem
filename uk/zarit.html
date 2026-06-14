@@ -372,10 +372,10 @@
       <div id="resultado" class="resultado" aria-live="polite" style="display: none"></div>
 
       <div class="flex flex-wrap justify-start gap-4 mt-6">
-        <button id="btnCalcular" class="btn-primary" aria-label="Calcular escore">Розрахувати бал</button>
+        <button id="btnCalcular" class="btn-primary" aria-label="Calcular escore">
+          Розрахувати
+        </button>
         <button id="btnLimpar" class="btn-primary" aria-label="Limpar campos">Для очищення</button>
-        <button id="btnGerarPDF" class="btn-secondary" aria-label="Gerar PDF">Згенерувати PDF</button>
-        <button id="btnNandaNicNoc" class="btn-primary" aria-label="Pesquisar NANDA, NIC, NOC">NANDA, NIC, NOC</button>
       </div>
 
       <div id="reference-section" class="ref font-inter text-gray-custom text-left mt-8 border-t pt-4">
@@ -408,8 +408,6 @@
       const resultadoDiv = document.getElementById("resultado");
       const btnCalcular = document.getElementById("btnCalcular");
       const btnLimpar = document.getElementById("btnLimpar");
-      const btnGerarPDF = document.getElementById("btnGerarPDF");
-      const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
       const conteudoDiv = document.getElementById("conteudo");
 
       const zaritData = [
@@ -770,78 +768,7 @@
       btnCalcular?.addEventListener("click", calcularZarit);
       btnLimpar?.addEventListener("click", limparCampos);
 
-      btnGerarPDF?.addEventListener("click", () => {
-        if (!resultadoDiv.dataset.score) {
-          alert(
-            "Будь ласка, спочатку натисніть \"Розрахувати бал\", щоб згенерувати PDF-файл."
-          );
-          return;
-        }
-        if (typeof gerarPDFGlobal === "функція") {
-          const selectedOptions = {};
-          document.querySelectorAll("#conteudo select").forEach((select) => {
-            const selected = select.options[select.selectedIndex];
-            if (selected.value !== "") {
-              selectedOptions[select.id] = selected.text;
-            }
-          });
 
-          let contentToPrint = document.
-            querySelector(".main-content-wrapper").
-            cloneNode(true);
-          let contentContainer = contentToPrint.querySelector("#conteudo");
-
-          contentContainer.innerHTML = "";
-
-          zaritData.forEach((item) => {
-            let selectedText = selectedOptions[item.nameAttr];
-            if (selectedText) {
-              let itemDiv = document.createElement("div");
-              itemDiv.className = "mb-2 p-2 bg-gray-50 rounded";
-              itemDiv.innerHTML = `<strong>${item.title}:</strong> ${selectedText}`;
-              contentContainer.appendChild(itemDiv);
-            }
-          });
-
-          let resultadoHtml = resultadoDiv.cloneNode(true);
-          if (resultadoHtml.style.display !== "none") {
-            contentContainer.appendChild(resultadoHtml);
-          }
-
-          gerarPDFGlobal({
-            titulo: "Шкала Заріта",
-            subtitulo: "Звіт про оцінку перевантаження опікунів",
-            nomeArquivo: "relatorio_escala_zarit.pdf",
-            seletorConteudo: ".main-content-wrapper"
-          });
-        } else {
-          console.error("Функція GeneratePDFGlobal не визначена.");
-        }
-      });
-
-      btnNandaNicNoc?.addEventListener("click", () => {
-        const score = resultadoDiv.dataset.score;
-        const scaleName = resultadoDiv.dataset.scaleName;
-        if (!score) {
-          alert("Обчисліть результат для пошуку поведінки.");
-          return;
-        }
-        let sobrecarga = "немає перевантаження";
-        if (score >= 22 && score <= 41) {
-          sobrecarga = "легке або помірне перевантаження";
-        } else if (score >= 42 && score <= 60) {
-          sobrecarga = "від середнього до сильного перевантаження";
-        } else if (score >= 61) {
-          sobrecarga = "сильне перевантаження";
-        }
-        const searchQuery = encodeURIComponent(
-          `сестринський догляд за опікунами з ${перевантаженням} за шкалою Zarit NANDA NIC NOC`
-        );
-        window.open(
-          `https://www.google.com/search?q=${searchQuery}`,
-          "_blank"
-        );
-      });
     });</script>
 
   

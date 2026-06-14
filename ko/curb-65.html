@@ -371,16 +371,10 @@
       <!-- 버튼 섹션이 위로 이동함, 참고 문헌之前 -->
       <div class="flex flex-wrap justify-start gap-4 mt-6">
         <button id="btnCalcular" class="btn-primary" aria-label="점수 계산하기">
-          점수 계산하기
+          계산하기
         </button>
         <button id="btnLimpar" class="btn-primary" aria-label="필드 지우기">
           지우기
-        </button>
-        <button id="btnGerarPDF" class="btn-secondary" aria-label="PDF 생성">
-          PDF 생성
-        </button>
-        <button id="btnNandaNicNoc" class="btn-primary" aria-label="NANDA, NIC, NOC 검색">
-          NANDA, NIC, NOC
         </button>
       </div>
 
@@ -420,8 +414,6 @@
       const resultadoDiv = document.getElementById("resultado");
       const btnCalcular = document.getElementById("btnCalcular");
       const btnLimpar = document.getElementById("btnLimpar");
-      const btnGerarPDF = document.getElementById("btnGerarPDF");
-      const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
       const conteudoDiv = document.getElementById("conteudo");
 
       const curbData = [
@@ -571,70 +563,7 @@
       btnCalcular?.addEventListener("click", calcularCurb);
       btnLimpar?.addEventListener("click", limparCampos);
 
-      btnGerarPDF?.addEventListener("click", () => {
-        if (!resultadoDiv.dataset.score) {
-          alert('PDF을 생성하려면 먼저 "점수 계산하기"를 클릭하세요.');
-          return;
-        }
-        if (typeof gerarPDFGlobal === "function") {
-          const selectedOptions = {};
-          document.querySelectorAll("#conteudo select").forEach((select) => {
-            const selected = select.options[select.selectedIndex];
-            if (selected.value !== "") {
-              selectedOptions[select.id] = selected.text;
-            }
-          });
 
-          let contentToPrint = document
-            .querySelector(".main-content-wrapper")
-            .cloneNode(true);
-          let contentContainer = contentToPrint.querySelector("#conteudo");
-
-          contentContainer.innerHTML = "";
-
-          curbData.forEach((item) => {
-            let selectedText = selectedOptions[item.nameAttr];
-            if (selectedText) {
-              let itemDiv = document.createElement("div");
-              itemDiv.className = "mb-2 p-2 bg-gray-50 rounded";
-              itemDiv.innerHTML = `<strong>${item.title}:</strong> ${selectedText}`;
-              contentContainer.appendChild(itemDiv);
-            }
-          });
-
-          let resultadoHtml = resultadoDiv.cloneNode(true);
-          if (resultadoHtml.style.display !== "none") {
-            contentContainer.appendChild(resultadoHtml);
-          }
-
-          gerarPDFGlobal({
-            titulo: "CURB-65 점수",
-            subtitulo: "폐렴 중증도 보고서",
-            nomeArquivo: "curb-65_점수_보고서.pdf",
-            seletorConteudo: ".main-content-wrapper",
-          });
-        } else {
-          console.error("gerarPDFGlobal 함수가 정의되지 않았습니다.");
-        }
-      });
-
-      btnNandaNicNoc?.addEventListener("click", () => {
-        const score = resultadoDiv.dataset.score;
-        const scaleName = resultadoDiv.dataset.scaleName;
-        if (!score) {
-          alert("행동을 조사하려면 결과를 계산하세요.");
-          return;
-        }
-        const recomendacaoRisco =
-          score <= 1 ? "낮은 위험" : score === 2 ? "중간 위험" : "높은 위험";
-        const searchQuery = encodeURIComponent(
-          `CURB-65 점수 ${recomendacaoRisco} 폐렴 간호 관리 NANDA NIC NOC`,
-        );
-        window.open(
-          `https://www.google.com/search?q=${searchQuery}`,
-          "_blank",
-        );
-      });
     });
   </script>
 

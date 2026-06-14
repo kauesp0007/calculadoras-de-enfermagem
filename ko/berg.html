@@ -369,16 +369,10 @@
 
       <div class="flex flex-wrap justify-start gap-4 mt-6">
         <button id="btnCalcular" class="btn-primary" aria-label="점수 계산">
-          점수 계산
+          계산하기
         </button>
         <button id="btnLimpar" class="btn-primary" aria-label="필드 초기화">
           초기화
-        </button>
-        <button id="btnGerarPDF" class="btn-secondary" aria-label="PDF 생성">
-          PDF 생성
-        </button>
-        <button id="btnNandaNicNoc" class="btn-primary" aria-label="NANDA, NIC, NOC 검색">
-          NANDA, NIC, NOC
         </button>
       </div>
 
@@ -417,8 +411,6 @@
       const resultadoDiv = document.getElementById('resultado');
       const btnCalcular = document.getElementById('btnCalcular');
       const btnLimpar = document.getElementById('btnLimpar');
-      const btnGerarPDF = document.getElementById('btnGerarPDF');
-      const btnNandaNicNoc = document.getElementById('btnNandaNicNoc');
       const conteudoDiv = document.getElementById('conteudo');
 
       const bergData = [
@@ -669,67 +661,7 @@
       btnCalcular?.addEventListener('click', calcularBerg);
       btnLimpar?.addEventListener('click', limparCampos);
 
-      btnGerarPDF?.addEventListener('click', () => {
-        if (!resultadoDiv.dataset.score) {
-          alert('PDF를 생성하려면 먼저 "점수 계산"을 클릭해주세요.');
-          return;
-        }
-        if (typeof gerarPDFGlobal === 'function') {
-          const selectedOptions = {};
-          document.querySelectorAll('#conteudo select').forEach(select => {
-            const selected = select.options[select.selectedIndex];
-            if (selected.value !== "") {
-              selectedOptions[select.id] = selected.text;
-            }
-          });
 
-          let contentToPrint = document.querySelector('.main-content-wrapper').cloneNode(true);
-          let contentContainer = contentToPrint.querySelector('#conteudo');
-
-          contentContainer.innerHTML = '';
-
-          bergData.forEach(item => {
-            let selectedText = selectedOptions[item.nameAttr];
-            if (selectedText) {
-              let itemDiv = document.createElement('div');
-              itemDiv.className = 'mb-2 p-2 bg-gray-50 rounded';
-              itemDiv.innerHTML = `<strong>${item.title}:</strong> ${selectedText}`;
-              contentContainer.appendChild(itemDiv);
-            }
-          });
-
-          let resultadoHtml = resultadoDiv.cloneNode(true);
-          if (resultadoHtml.style.display !== 'none') {
-            contentContainer.appendChild(resultadoHtml);
-          }
-
-          gerarPDFGlobal({
-            titulo: '버그 균형 척도',
-            subtitulo: '정적 및 동적 균형 평가 보고서',
-            nomeArquivo: 'relatorio_escala_berg.pdf',
-            seletorConteudo: '.main-content-wrapper'
-          });
-        } else {
-          console.error('함수 gerarPDFGlobal이 정의되지 않았습니다.');
-        }
-      });
-
-      btnNandaNicNoc?.addEventListener('click', () => {
-        const score = resultadoDiv.dataset.score;
-        const scaleName = resultadoDiv.dataset.scaleName;
-        if (!score) {
-          alert('조치를 검색하려면 결과를 계산해주세요.');
-          return;
-        }
-        let recomendacaoRisco = '낙상 위험';
-        if (score <= 20) {
-          recomendacaoRisco = '높은 낙상 위험';
-        } else if (score >= 41) {
-          recomendacaoRisco = '낮은 낙상 위험';
-        }
-        const searchQuery = encodeURIComponent(`노인에게 ${recomendacaoRisco}가 있는 간호 관리 NANDA NIC NOC 버그 척도`);
-        window.open(`https://www.google.com/search?q=${searchQuery}`, '_blank');
-      });
     });
   </script>
 

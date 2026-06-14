@@ -369,16 +369,10 @@
 
             <div class="flex flex-wrap justify-start gap-4 mt-6">
                 <button id="btnCalcular" class="btn-primary" aria-label="PEWS स्कोर की गणना करें">
-                    गणना करें
-                </button>
+          गणना करें
+        </button>
                 <button id="btnLimpar" class="btn-primary" aria-label="फ़ील्ड साफ़ करें">
                     साफ़ करें
-                </button>
-                <button id="btnGerarPDF" class="btn-secondary" aria-label="PDF जनरेट करें">
-                    PDF जनरेट करें
-                </button>
-                <button id="btnNandaNicNoc" class="btn-primary" aria-label="NANDA, NIC, NOC खोजें">
-                    NANDA, NIC, NOC
                 </button>
             </div>
 
@@ -422,8 +416,6 @@
             const resultadoDiv = document.getElementById('resultado');
             const btnCalcular = document.getElementById('btnCalcular');
             const btnLimpar = document.getElementById('btnLimpar');
-            const btnGerarPDF = document.getElementById('btnGerarPDF');
-            const btnNandaNicNoc = document.getElementById('btnNandaNicNoc');
             const conteudoDiv = document.getElementById('conteudo');
 
             const pewsData = [
@@ -599,131 +591,7 @@
                 resultadoDiv.classList.add('hidden');
             });
 
-            btnGerarPDF.addEventListener('click', function () {
-                const element = document.getElementById('resultado');
-                if (element.classList.contains('hidden')) {
-                    alert('कृपया पहले PEWS स्कोर की गणना करें।');
-                    return;
-                }
 
-                const opt = {
-                    margin: 0.5,
-                    filename: 'pews-score.pdf',
-                    image: { type: 'jpeg', quality: 0.98 },
-                    html2canvas: { scale: 2 },
-                    jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
-                };
-
-                html2pdf().set(opt).from(element).save();
-            });
-
-            btnNandaNicNoc.addEventListener('click', function () {
-                const estadoNeurologico = parseInt(document.getElementById('estadoNeurologico').value) || 0;
-                const cardiovascular = parseInt(document.getElementById('cardiovascular').value) || 0;
-                const respiratorio = parseInt(document.getElementById('respiratorio').value) || 0;
-                const totalScore = estadoNeurologico + cardiovascular + respiratorio;
-
-                let nandaDiagnoses = [];
-                let nicInterventions = [];
-                let nocOutcomes = [];
-
-                if (totalScore >= 1) {
-                    nandaDiagnoses.push(
-                        "जोखिम में बिगड़ा हुआ गैस एक्सचेंज",
-                        "जोखिम में अप्रभावी श्वसन पैटर्न",
-                        "जोखिम में कम कार्डियक आउटपुट"
-                    );
-
-                    nicInterventions.push(
-                        "श्वसन निगरानी",
-                        "हृदय निगरानी",
-                        "ऑक्सीजन थेरेपी प्रबंधन",
-                        "महत्वपूर्ण संकेत निगरानी"
-                    );
-
-                    nocOutcomes.push(
-                        "श्वसन स्थिति: वेंटिलेशन",
-                        "कार्डियक पंप प्रभावशीलता",
-                        "वायुमार्ग पेटेंसी"
-                    );
-                }
-
-                if (totalScore >= 3) {
-                    nandaDiagnoses.push(
-                        "बिगड़ा हुआ गैस एक्सचेंज",
-                        "अप्रभावी श्वसन पैटर्न",
-                        "कम कार्डियक आउटपुट"
-                    );
-
-                    nicInterventions.push(
-                        "एयरवे मैनेजमेंट",
-                        "मैकेनिकल वेंटिलेशन",
-                        "कार्डियक केयर: एक्यूट"
-                    );
-
-                    nocOutcomes.push(
-                        "श्वसन स्थिति: गैस एक्सचेंज",
-                        "कार्डियक पंप प्रभावशीलता",
-                        "तंत्रिका संबंधी स्थिति"
-                    );
-                }
-
-                if (totalScore >= 7) {
-                    nandaDiagnoses.push(
-                        "अप्रभावी ऊतक पेरफ्यूजन",
-                        "गैस एक्सचेंज में बाधा",
-                        "जोखिम में कार्डियक अरेस्ट"
-                    );
-
-                    nicInterventions.push(
-                        "आपातकालीन केयर",
-                        "कार्डियक अरेस्ट मैनेजमेंट",
-                        "आईसीयू में मॉनिटरिंग"
-                    );
-
-                    nocOutcomes.push(
-                        "ऊतक पेरफ्यूजन: सेरेब्रल",
-                        "ऊतक पेरफ्यूजन: कार्डियोपल्मोनरी",
-                        "वेंटिलेटरी सपोर्ट वीविंग: नॉन-इनवेसिव"
-                    );
-                }
-
-                if (nandaDiagnoses.length === 0) {
-                    nandaDiagnoses.push("कोई NANDA निदान लागू नहीं होता है - सामान्य स्थिति");
-                    nicInterventions.push("नियमित निगरानी और निवारक देखभाल");
-                    nocOutcomes.push("स्थिर नैदानिक स्थिति");
-                }
-
-                const nandaNicNocContent = `
-                    <div class="bg-white p-6 rounded-lg shadow-md">
-                        <h3 class="font-bold text-xl mb-4 text-dark-blue">NANDA, NIC, NOC PEWS स्कोर ${totalScore} के लिए</h3>
-
-                        <div class="mb-4">
-                            <h4 class="font-bold text-lg mb-2 text-light-blue">NANDA निदान:</h4>
-                            <ul class="list-disc pl-5">
-                                ${nandaDiagnoses.map(diagnosis => `<li>${diagnosis}</li>`).join('')}
-                            </ul>
-                        </div>
-
-                        <div class="mb-4">
-                            <h4 class="font-bold text-lg mb-2 text-light-blue">NIC हस्तक्षेप:</h4>
-                            <ul class="list-disc pl-5">
-                                ${nicInterventions.map(intervention => `<li>${intervention}</li>`).join('')}
-                            </ul>
-                        </div>
-
-                        <div class="mb-4">
-                            <h4 class="font-bold text-lg mb-2 text-light-blue">NOC परिणाम:</h4>
-                            <ul class="list-disc pl-5">
-                                ${nocOutcomes.map(outcome => `<li>${outcome}</li>`).join('')}
-                            </ul>
-                        </div>
-                    </div>
-                `;
-
-                resultadoDiv.innerHTML = nandaNicNocContent;
-                resultadoDiv.classList.remove('hidden');
-            });
 
             initializePewsCalculator();
         });

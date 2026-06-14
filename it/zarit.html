@@ -351,10 +351,10 @@
       <div id="resultado" class="resultado" aria-live="polite" style="display: none;"></div>
 
       <div class="flex flex-wrap justify-start gap-4 mt-6">
-        <button id="btnCalcular" class="btn-primary" aria-label="Calcolare punteggio">Calcola Punteggio</button>
+        <button id="btnCalcular" class="btn-primary" aria-label="Calcolare punteggio">
+          Calcola
+        </button>
         <button id="btnLimpar" class="btn-primary" aria-label="Pulire campi">Pulisci</button>
-        <button id="btnGerarPDF" class="btn-secondary" aria-label="Generare PDF">Genera PDF</button>
-        <button id="btnNandaNicNoc" class="btn-primary" aria-label="Cercare NANDA, NIC, NOC">NANDA, NIC, NOC</button>
       </div>
 
       <div id="reference-section" class="ref font-inter text-gray-custom text-left mt-8 border-t pt-4">
@@ -387,8 +387,6 @@
       const resultadoDiv = document.getElementById('resultado');
       const btnCalcular = document.getElementById('btnCalcular');
       const btnLimpar = document.getElementById('btnLimpar');
-      const btnGerarPDF = document.getElementById('btnGerarPDF');
-      const btnNandaNicNoc = document.getElementById('btnNandaNicNoc');
       const conteudoDiv = document.getElementById('conteudo');
 
       const zaritData = [
@@ -512,40 +510,7 @@
       btnCalcular?.addEventListener('click', calculateZarit);
       btnLimpar?.addEventListener('click', clearFields);
 
-      btnGerarPDF?.addEventListener('click', () => {
-        if (!resultadoDiv.dataset.score) {
-          alert('Per favore, clicca su "Calcola Punteggio" prima di generare il PDF.');
-          return;
-        }
-        if (typeof gerarPDFGlobal === 'function') {
-          gerarPDFGlobal({
-            titulo: 'Scala di Zarit',
-            subtitulo: 'Rapporto di Valutazione del Carico del Caregiver',
-            nomeArquivo: 'rapporto_scala_zarit.pdf',
-            seletorConteudo: '.main-content-wrapper'
-          });
-        } else {
-          console.error('Funzione gerarPDFGlobal non definita.');
-        }
-      });
 
-      btnNandaNicNoc?.addEventListener('click', () => {
-        const score = resultadoDiv.dataset.score;
-        if (!score) {
-          alert('Calcola il risultato per cercare la procedura.');
-          return;
-        }
-        let burden = 'nessun carico';
-        if (score >= 21 && score <= 40) {
-          burden = 'carico da lieve a moderato';
-        } else if (score >= 41 && score <= 60) {
-          burden = 'carico da moderato a severo';
-        } else if (score >= 61) {
-          burden = 'carico severo';
-        }
-        const searchQuery = encodeURIComponent(`piani di assistenza infermieristica per caregiver con ${burden} secondo la Scala di Zarit NANDA NIC NOC`);
-        window.open(`https://www.google.com/search?q=${searchQuery}`, '_blank');
-      });
     });
   </script>
 

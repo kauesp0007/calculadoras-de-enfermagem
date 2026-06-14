@@ -373,16 +373,10 @@
       <!-- Seção de botões movida para cima, antes da referência -->
       <div class="flex flex-wrap justify-start gap-4 mt-6">
         <button id="btnCalcular" class="btn-primary" aria-label="计算得分">
-          计算得分
+          计算
         </button>
         <button id="btnLimpar" class="btn-primary" aria-label="清除字段">
           清除
-        </button>
-        <button id="btnGerarPDF" class="btn-secondary" aria-label="生成PDF">
-          生成PDF
-        </button>
-        <button id="btnNandaNicNoc" class="btn-primary" aria-label="查找NANDA、NIC、NOC">
-          NANDA, NIC, NOC
         </button>
       </div>
 
@@ -422,8 +416,6 @@
       const resultadoDiv = document.getElementById('resultado');
       const btnCalcular = document.getElementById('btnCalcular');
       const btnLimpar = document.getElementById('btnLimpar');
-      const btnGerarPDF = document.getElementById('btnGerarPDF');
-      const btnNandaNicNoc = document.getElementById('btnNandaNicNoc');
       const conteudoDiv = document.getElementById('conteudo');
 
       const curbData = [
@@ -570,62 +562,7 @@
       btnCalcular?.addEventListener('click', calcularCurb);
       btnLimpar?.addEventListener('click', limparCampos);
 
-      btnGerarPDF?.addEventListener('click', () => {
-        if (!resultadoDiv.dataset.score) {
-          alert('请先点击"计算得分"来生成PDF。');
-          return;
-        }
-        if (typeof gerarPDFGlobal === 'function') {
-          const selectedOptions = {};
-          document.querySelectorAll('#conteudo select').forEach(select => {
-            const selected = select.options[select.selectedIndex];
-            if (selected.value !== "") {
-              selectedOptions[select.id] = selected.text;
-            }
-          });
 
-          let contentToPrint = document.querySelector('.main-content-wrapper').cloneNode(true);
-          let contentContainer = contentToPrint.querySelector('#conteudo');
-
-          contentContainer.innerHTML = '';
-
-          curbData.forEach(item => {
-            let selectedText = selectedOptions[item.nameAttr];
-            if (selectedText) {
-              let itemDiv = document.createElement('div');
-              itemDiv.className = 'mb-2 p-2 bg-gray-50 rounded';
-              itemDiv.innerHTML = `<strong>${item.title}:</strong> ${selectedText}`;
-              contentContainer.appendChild(itemDiv);
-            }
-          });
-
-          let resultadoHtml = resultadoDiv.cloneNode(true);
-          if (resultadoHtml.style.display !== 'none') {
-            contentContainer.appendChild(resultadoHtml);
-          }
-
-          gerarPDFGlobal({
-            titulo: 'CURB-65评分',
-            subtitulo: '肺炎严重程度报告',
-            nomeArquivo: 'CURB-65评分报告.pdf',
-            seletorConteudo: '.main-content-wrapper'
-          });
-        } else {
-          console.error('生成PDF功能未定义。');
-        }
-      });
-
-      btnNandaNicNoc?.addEventListener('click', () => {
-        const score = resultadoDiv.dataset.score;
-        const scaleName = resultadoDiv.dataset.scaleName;
-        if (!score) {
-          alert('请先计算结果以查找护理建议。');
-          return;
-        }
-        const recomendacaoRisco = score <= 1 ? '低风险' : score === 2 ? '中度风险' : '高风险';
-        const searchQuery = encodeURIComponent(`肺炎 ${recomendacaoRisco} 护理 CURB-65评分 NANDA NIC NOC`);
-        window.open(`https://www.google.com/search?q=${searchQuery}`, '_blank');
-      });
     });
   </script>
 

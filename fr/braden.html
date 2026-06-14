@@ -349,10 +349,10 @@
         <div id="conteudo" role="form" aria-labelledby="main-title" class="space-y-4"></div>
         <div id="resultado" class="hidden" aria-live="polite"></div>
         <div class="flex flex-wrap justify-start gap-4 mt-6">
-          <button id="btnCalcular" class="btn-primary">Calculer</button>
+          <button id="btnCalcular" class="btn-primary">
+          Calculer
+        </button>
           <button id="btnLimpar" class="btn-primary">Effacer</button>
-          <button id="btnGerarPDF" class="btn-secondary">Générer PDF</button>
-          <button id="btnNandaNicNoc" class="btn-primary">NANDA, NIC, NOC</button>
         </div>
         <div class="ref font-inter text-gray-custom text-left mt-8 border-t pt-4">
           <strong>Référence Bibliographique :</strong>
@@ -386,8 +386,6 @@
       const conteudoDiv = document.getElementById('conteudo');
       const btnCalcular = document.getElementById('btnCalcular');
       const btnLimpar = document.getElementById('btnLimpar');
-      const btnGerarPDF = document.getElementById('btnGerarPDF');
-      const btnNandaNicNoc = document.getElementById('btnNandaNicNoc');
 
       const bradenData = [
         { id: "sensorial", title: "Perception Sensorielle", description: "Capacité de réagir à l'inconfort lié à la pression.", options: [{ score: 1, text: "Totalement limité" }, { score: 2, text: "Très limité" }, { score: 3, text: "Légèrement limité" }, { score: 4, text: "Aucune limitation" }] },
@@ -470,76 +468,7 @@
       btnCalcular?.addEventListener('click', calcular);
       btnLimpar?.addEventListener('click', limpar);
 
-      btnGerarPDF?.addEventListener('click', () => {
-        if (resultadoDiv.dataset.score === undefined) {
-          // Substitui alert() por mensagem visível na tela
-          const msg = document.createElement('div');
-          msg.className = 'standard-result-box bg-info-orange-light mb-4';
-          msg.innerHTML = '⚠️ <strong class="font-bold">Veuillez cliquer sur "Calculer" pour générer le PDF.</strong>';
-          resultadoDiv.parentNode.insertBefore(msg, resultadoDiv);
-          setTimeout(() => msg.remove(), 5000);
-          return;
-        }
-        const { jsPDF } = window.jspdf;
-        const doc = new jsPDF();
-        const primaryColor = '#1A3E74';
-        let y = 10;
-        const pageMargin = 14;
-        const rightMargin = doc.internal.pageSize.getWidth() - pageMargin;
 
-        doc.setDrawColor(primaryColor);
-        doc.setLineWidth(0.5);
-        doc.rect(5, 5, 200, 287);
-        doc.setFillColor(primaryColor);
-        doc.rect(5, 5, 200, 25, 'F');
-        doc.setFont('helvetica', 'bold');
-        doc.setFontSize(18);
-        doc.setTextColor(255, 255, 255);
-        doc.text('Échelle de Braden', 105, 18, { align: 'center' });
-        doc.setFontSize(12);
-        doc.text('Rapport d\'Évaluation du Risque de Lésion par Pression', 105, 25, { align: 'center' });
-
-        y = 45;
-        doc.setFont('helvetica', 'bold');
-        doc.setFontSize(12);
-        doc.setTextColor(primaryColor);
-        doc.text('Résultat de l\'Échelle de Braden', pageMargin, y);
-        doc.setDrawColor(200);
-        doc.setLineWidth(0.2);
-        doc.line(pageMargin, y + 2, rightMargin, y + 2);
-        y += 10;
-        doc.setFont('helvetica', 'normal');
-        doc.setFontSize(10);
-        doc.setTextColor(0, 0, 0);
-        doc.text(`Score Total: ${resultadoDiv.dataset.score}`, pageMargin, y);
-        doc.text(`Classification du Risque: ${resultadoDiv.dataset.risco}`, rightMargin, y, { align: 'right' });
-
-        doc.setLineWidth(0.5);
-        doc.setDrawColor(primaryColor);
-        doc.line(5, 272, 205, 272);
-        doc.setFont('helvetica', 'normal');
-        doc.setFontSize(8);
-        doc.setTextColor(150);
-        doc.text(`Généré par le Portail Infirmier le ${new Date().toLocaleString('fr-FR')}.`, 105, 278, { align: 'center' });
-        doc.text(`Cette calculatrice est une source de soutien et ne remplace pas le jugement clinique. Vérifiez les données auprès de sources externes.`, 105, 282, { align: 'center' });
-
-        doc.save('rapport_echelle_braden.pdf');
-      });
-
-      btnNandaNicNoc?.addEventListener('click', () => {
-        const risco = resultadoDiv.dataset.risco;
-        if (!risco) {
-          // Substitui alert() por mensagem visível na tela
-          const msg = document.createElement('div');
-          msg.className = 'standard-result-box bg-info-orange-light mb-4';
-          msg.innerHTML = '⚠️ <strong class="font-bold">Veuillez calculer le score pour rechercher la conduite.</strong>';
-          resultadoDiv.parentNode.insertBefore(msg, resultadoDiv);
-          setTimeout(() => msg.remove(), 5000);
-          return;
-        }
-        const searchQuery = encodeURIComponent(`Patient avec ${risco} pour lésion par pression selon l'Échelle de Braden taxonomie NANDA, NIC et NOC`);
-        window.open(`https://www.google.com/search?q=${searchQuery}`, '_blank');
-      });
     });
   </script>
 

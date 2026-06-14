@@ -360,16 +360,10 @@
 
       <div class="flex flex-wrap justify-start gap-4 mt-6">
         <button id="btnCalcular" class="btn-primary" aria-label="在胎週数とEDDを計算">
-          計算
+          計算する
         </button>
         <button id="btnLimpar" class="btn-primary" aria-label="フィールドをクリア">
           クリア
-        </button>
-        <button id="btnGerarPDF" class="btn-secondary" aria-label="PDFを生成" disabled="">
-          PDFを生成
-        </button>
-        <button id="btnNandaNicNoc" class="btn-primary" aria-label="NANDA, NIC, NOCを検索">
-          <abbr title="北米看護診断協会">NANDA</abbr>, <abbr title="看護介入分類">NIC</abbr>, <abbr title="看護成果分類">NOC</abbr>
         </button>
       </div>
 
@@ -408,8 +402,6 @@
       const resultadoDiv = document.getElementById('resultado');
       const btnCalcular = document.getElementById('btnCalcular');
       const btnLimpar = document.getElementById('btnLimpar');
-      const btnGerarPDF = document.getElementById('btnGerarPDF');
-      const btnNandaNicNoc = document.getElementById('btnNandaNicNoc');
 
       function calcularGestacional() {
         const dumInput = document.getElementById('dum').value;
@@ -493,34 +485,7 @@
       btnCalcular?.addEventListener('click', calcularGestacional);
       btnLimpar?.addEventListener('click', limparCampos);
 
-      btnGerarPDF?.addEventListener('click', () => {
-        if (!resultadoDiv.dataset.idadeGestacional) {
-          alert('PDFを生成する前に、まず「計算」をクリックしてください。');
-          return;
-        }
-        if (typeof gerarPDFGlobal === 'function') {
-          gerarPDFGlobal({
-            titulo: '在胎週数とEDD計算機',
-            subtitulo: '妊娠計算レポート',
-            nomeArquivo: 'reporte_gestacional.pdf',
-            seletorConteudo: '.main-content-wrapper'
-          });
-        } else {
-          console.error('gerarPDFGlobal 関数が定義されていません。');
-        }
-      });
 
-      btnNandaNicNoc?.addEventListener('click', () => {
-        const idadeGestacional = resultadoDiv.dataset.idadeGestacional;
-        const dpp = resultadoDiv.dataset.dpp;
-        const scaleName = resultadoDiv.dataset.scaleName;
-        if (!idadeGestacional || !dpp) {
-          alert('行動を検索するために結果を計算してください。');
-          return;
-        }
-        const searchQuery = encodeURIComponent(`${scaleName} 在胎週数 ${idadeGestacional} EDD ${dpp} NANDA分類を生成, NIC分類を生成, NOC分類を生成`);
-        window.open(`https://www.google.com/search?q=${searchQuery}`, '_blank');
-      });
     });
   </script>
 

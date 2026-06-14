@@ -406,16 +406,10 @@
 
       <div class="flex flex-wrap justify-start gap-4 mt-6">
         <button id="btnCalcular" class="btn-primary" aria-label="Calcular escore">
-          Calculate Score
+          Calculate
         </button>
         <button id="btnLimpar" class="btn-primary" aria-label="Limpar campos">
           Clear
-        </button>
-        <button id="btnGerarPDF" class="btn-secondary" aria-label="Gerar PDF">
-          Generate PDF
-        </button>
-        <button id="btnNandaNicNoc" class="btn-primary" aria-label="Pesquisar NANDA, NIC, NOC">
-          NANDA, NIC, NOC
         </button>
       </div>
 
@@ -453,8 +447,6 @@
       const resultadoDiv = document.getElementById('resultado');
       const btnCalcular = document.getElementById('btnCalcular');
       const btnLimpar = document.getElementById('btnLimpar');
-      const btnGerarPDF = document.getElementById('btnGerarPDF');
-      const btnNandaNicNoc = document.getElementById('btnNandaNicNoc');
       const conteudoDiv = document.getElementById('conteudo');
 
       const painadData = [
@@ -599,47 +591,7 @@
         delete resultadoDiv.dataset.scaleName;
       });
 
-      btnGerarPDF?.addEventListener('click', () => {
-        if (typeof gerarPDFGlobal === 'function') {
-          const contentToPrint = document.querySelector('.main-content-wrapper').cloneNode(true);
-          let contentContainer = contentToPrint.querySelector('#conteudo');
-          contentContainer.innerHTML = '';
-          painadData.forEach(item => {
-            const select = document.getElementById(item.nameAttr);
-            const selectedOption = select.options[select.selectedIndex];
-            if (selectedOption && selectedOption.value !== "") {
-              let itemDiv = document.createElement('div');
-              itemDiv.className = 'mb-2 p-2 bg-gray-50 rounded';
-              itemDiv.innerHTML = `<strong>${item.title}:</strong> ${selectedOption.text}`;
-              contentContainer.appendChild(itemDiv);
-            }
-          });
-          let resultadoHtml = resultadoDiv.cloneNode(true);
-          if (resultadoHtml.style.display !== 'none') {
-            contentContainer.appendChild(resultadoHtml);
-          }
-          gerarPDFGlobal({
-            titulo: 'PAINAD Scale',
-            subtitulo: 'Advanced Dementia Pain Assessment Report',
-            nomeArquivo: 'painad_scale_report.pdf',
-            seletorConteudo: '.main-content-wrapper'
-          });
-        } else {
-          console.error('Função gerarPDFGlobal não definida.');
-        }
-      });
 
-      btnNandaNicNoc?.addEventListener('click', () => {
-        const score = resultadoDiv.dataset.score;
-        const scaleName = resultadoDiv.dataset.scaleName;
-        if (!score) {
-          alert('Calculate the result to search for management.');
-          return;
-        }
-        const riskRecommendation = score <= 3 ? 'no pain' : score <= 6 ? 'moderate pain' : 'severe pain';
-        const searchQuery = encodeURIComponent(`nursing care for patient with dementia and ${riskRecommendation} according to PAINAD Scale NANDA NIC NOC`);
-        window.open(`https://www.google.com/search?q=${searchQuery}`, '_blank');
-      });
     });
   </script>
 

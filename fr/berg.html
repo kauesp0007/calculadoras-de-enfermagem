@@ -360,16 +360,10 @@
 
       <div class="flex flex-wrap justify-start gap-4 mt-6">
         <button id="btnCalcular" class="btn-primary" aria-label="Calculer le score">
-          Calculer le Score
+          Calculer
         </button>
         <button id="btnLimpar" class="btn-primary" aria-label="Effacer les champs">
           Effacer
-        </button>
-        <button id="btnGerarPDF" class="btn-secondary" aria-label="Générer un PDF">
-          Générer PDF
-        </button>
-        <button id="btnNandaNicNoc" class="btn-primary" aria-label="Rechercher NANDA, NIC, NOC">
-          NANDA, NIC, NOC
         </button>
       </div>
 
@@ -406,8 +400,6 @@
       const resultadoDiv = document.getElementById('resultado');
       const btnCalcular = document.getElementById('btnCalcular');
       const btnLimpar = document.getElementById('btnLimpar');
-      const btnGerarPDF = document.getElementById('btnGerarPDF');
-      const btnNandaNicNoc = document.getElementById('btnNandaNicNoc');
       const conteudoDiv = document.getElementById('conteudo');
 
       // Dados da escala traduzidos
@@ -665,74 +657,7 @@
       btnCalcular?.addEventListener('click', calcularBerg);
       btnLimpar?.addEventListener('click', limparCampos);
 
-      btnGerarPDF?.addEventListener('click', () => {
-        if (!resultadoDiv.dataset.score) {
-          // Tradução: "Veuillez cliquer sur 'Calculer le Score' d'abord pour générer le PDF."
-          alert('Veuillez cliquer sur "Calculer le Score" d\'abord pour générer le PDF.');
-          return;
-        }
-        if (typeof gerarPDFGlobal === 'function') {
-          // A lógica para coletar os dados para o PDF
-          const selectedOptions = {};
-          document.querySelectorAll('#conteudo select').forEach(select => {
-            const selected = select.options[select.selectedIndex];
-            if (selected.value !== "") {
-              selectedOptions[select.id] = selected.text;
-            }
-          });
 
-          let contentToPrint = document.querySelector('.main-content-wrapper').cloneNode(true);
-          let contentContainer = contentToPrint.querySelector('#conteudo');
-
-          contentContainer.innerHTML = ''; // Limpa o formulário
-
-          // Adiciona os resultados selecionados
-          bergData.forEach(item => {
-            let selectedText = selectedOptions[item.nameAttr];
-            if (selectedText) {
-              let itemDiv = document.createElement('div');
-              itemDiv.className = 'mb-2 p-2 bg-gray-50 rounded';
-              itemDiv.innerHTML = `<strong>${item.title}:</strong> ${selectedText}`;
-              contentContainer.appendChild(itemDiv);
-            }
-          });
-
-          // Adiciona o resultado final
-          let resultadoHtml = resultadoDiv.cloneNode(true);
-          if (resultadoHtml.style.display !== 'none') {
-            contentContainer.appendChild(resultadoHtml);
-          }
-
-          gerarPDFGlobal({
-            // Tradução: Títulos para o PDF
-            titulo: "Échelle d'Équilibre de Berg",
-            subtitulo: "Rapport d'Évaluation de l'Équilibre Statique et Dynamique",
-            nomeArquivo: 'rapport_echelle_berg.pdf',
-            seletorConteudo: '.main-content-wrapper'
-          });
-        } else {
-          console.error('Fonction gerarPDFGlobal non définie.');
-        }
-      });
-
-      btnNandaNicNoc?.addEventListener('click', () => {
-        const score = resultadoDiv.dataset.score;
-        const scaleName = resultadoDiv.dataset.scaleName;
-        if (!score) {
-          // Tradução: "Calculez le résultat pour rechercher la conduite à tenir."
-          alert('Calculez le résultat pour rechercher la conduite à tenir.');
-          return;
-        }
-        let recomendacaoRisco = 'risque de chutes';
-        if (score <= 20) {
-          recomendacaoRisco = 'risque élevé de chutes';
-        } else if (score >= 41) {
-          recomendacaoRisco = 'faible risque de chutes';
-        }
-        // Tradução da string de busca
-        const searchQuery = encodeURIComponent(`soins infirmiers pour personne âgée avec ${recomendacaoRisco} sur l'Échelle de Berg NANDA NIC NOC`);
-        window.open(`https://www.google.com/search?q=${searchQuery}`, '_blank');
-      });
     });
   </script>
   

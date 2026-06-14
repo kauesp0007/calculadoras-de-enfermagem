@@ -371,16 +371,10 @@
 
       <div class="flex flex-wrap justify-start gap-4 mt-6">
         <button id="btnCalcular" class="btn-primary" aria-label="计算评分">
-          计算评分
+          计算
         </button>
         <button id="btnLimpar" class="btn-primary" aria-label="清空字段">
           清空
-        </button>
-        <button id="btnGerarPDF" class="btn-secondary" aria-label="生成PDF">
-          生成PDF
-        </button>
-        <button id="btnNandaNicNoc" class="btn-primary" aria-label="搜索NANDA, NIC, NOC">
-          NANDA, NIC, NOC
         </button>
       </div>
 
@@ -419,8 +413,6 @@
       const resultadoDiv = document.getElementById('resultado');
       const btnCalcular = document.getElementById('btnCalcular');
       const btnLimpar = document.getElementById('btnLimpar');
-      const btnGerarPDF = document.getElementById('btnGerarPDF');
-      const btnNandaNicNoc = document.getElementById('btnNandaNicNoc');
       const conteudoDiv = document.getElementById('conteudo');
 
       const perrocaData = [
@@ -662,61 +654,7 @@
       btnCalcular?.addEventListener('click', calcularPerroca);
       btnLimpar?.addEventListener('click', limparCampos);
 
-      btnGerarPDF?.addEventListener('click', () => {
-        if (!resultadoDiv.dataset.score) {
-          alert('请先点击"计算评分"按钮以生成PDF。');
-          return;
-        }
-        if (typeof gerarPDFGlobal === 'function') {
-          const selectedOptions = {};
-          document.querySelectorAll('#conteudo select').forEach(select => {
-            const selected = select.options[select.selectedIndex];
-            if (selected.value !== "") {
-              selectedOptions[select.id] = selected.text;
-            }
-          });
 
-          let contentToPrint = document.querySelector('.main-content-wrapper').cloneNode(true);
-          let contentContainer = contentToPrint.querySelector('#conteudo');
-
-          contentContainer.innerHTML = '';
-
-          perrocaData.forEach(item => {
-            let selectedText = selectedOptions[item.nameAttr];
-            if (selectedText) {
-              let itemDiv = document.createElement('div');
-              itemDiv.className = 'mb-2 p-2 bg-gray-50 rounded';
-              itemDiv.innerHTML = `<strong>${item.title}:</strong> ${selectedText}`;
-              contentContainer.appendChild(itemDiv);
-            }
-          });
-
-          let resultadoHtml = resultadoDiv.cloneNode(true);
-          if (resultadoHtml.style.display !== 'none') {
-            contentContainer.appendChild(resultadoHtml);
-          }
-
-          gerarPDFGlobal({
-            titulo: '佩罗卡量表 (SCP)',
-            subtitulo: '患者分类报告',
-            nomeArquivo: 'perroca_patient_classification_zh.pdf',
-            seletorConteudo: '.main-content-wrapper'
-          });
-        } else {
-          console.error('gerarPDFGlobal函数未定义。');
-        }
-      });
-
-      btnNandaNicNoc?.addEventListener('click', () => {
-        const score = resultadoDiv.dataset.score;
-        const scaleName = resultadoDiv.dataset.scaleName;
-        if (!score) {
-          alert('请计算结果以搜索处理方法。');
-          return;
-        }
-        const searchQuery = encodeURIComponent(`${scaleName} 评分 ${score} 生成 NANDA 分类, 生成 NIC 分类 和 生成 NOC 分类`);
-        window.open(`https://www.google.com/search?q=${searchQuery}`, '_blank');
-      });
     });
   </script>
 

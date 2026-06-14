@@ -579,16 +579,10 @@
 
         <div class="flex flex-wrap justify-start gap-4 mt-6">
             <button id="btnCalcular" class="btn-primary" aria-label="احسب النتيجة">
-                احسب النتيجة
-            </button>
+          احسب
+        </button>
             <button id="btnLimpar" class="btn-primary" aria-label="مسح الحقول">
                 مسح
-            </button>
-            <button id="btnGerarPDF" class="btn-secondary" aria-label="إنشاء PDF">
-                إنشاء PDF
-            </button>
-            <button id="btnNandaNicNoc" class="btn-primary" aria-label="ابحث في NANDA, NIC, NOC">
-                NANDA, NIC, NOC
             </button>
         </div>
 
@@ -612,8 +606,6 @@
             const resultadoDiv = document.getElementById('resultado');
             const btnCalcular = document.getElementById('btnCalcular');
             const btnLimpar = document.getElementById('btnLimpar');
-            const btnGerarPDF = document.getElementById('btnGerarPDF');
-            const btnNandaNicNoc = document.getElementById('btnNandaNicNoc');
             const conteudoDiv = document.getElementById('conteudo');
 
             // بيانات مقياس تينيتي
@@ -865,82 +857,7 @@
             btnCalcular?.addEventListener('click', calcularTinetti);
             btnLimpar?.addEventListener('click', limparCampos);
 
-            btnGerarPDF?.addEventListener('click', () => {
-                if (!resultadoDiv.dataset.score) {
-                    alert('يرجى النقر على "احسب النتيجة" أولاً لإنشاء PDF.');
-                    return;
-                }
-                if (typeof gerarPDFGlobal === 'function') {
-                    const selectedOptions = {};
-                    document.querySelectorAll('#conteudo select').forEach(select => {
-                        const selected = select.options[select.selectedIndex];
-                        if (selected.value !== "") {
-                            selectedOptions[select.id] = selected.text;
-                        }
-                    });
 
-                    let contentToPrint = document.querySelector('.main-content-wrapper').cloneNode(true);
-                    let contentContainer = contentToPrint.querySelector('#conteudo');
-
-                    contentContainer.innerHTML = '';
-
-                    let balanceSectionTitle = document.createElement('h3');
-                    balanceSectionTitle.className = 'text-lg font-semibold mt-4 mb-2';
-                    balanceSectionTitle.innerText = `قسم التوازن (الدرجة القصوى: ١٦)`;
-                    contentContainer.appendChild(balanceSectionTitle);
-
-                    tinettiData.slice(0, 9).forEach(item => {
-                        let selectedText = selectedOptions[item.nameAttr];
-                        if (selectedText) {
-                            let itemDiv = document.createElement('div');
-                            itemDiv.className = 'mb-2 p-2 bg-gray-50 rounded';
-                            itemDiv.innerHTML = `<strong>${item.title}:</strong> ${selectedText}`;
-                            contentContainer.appendChild(itemDiv);
-                        }
-                    });
-
-                    let gaitSectionTitle = document.createElement('h3');
-                    gaitSectionTitle.className = 'text-lg font-semibold mt-4 mb-2';
-                    gaitSectionTitle.innerText = `قسم المشي (الدرجة القصوى: ١٢)`;
-                    contentContainer.appendChild(gaitSectionTitle);
-
-                    tinettiData.slice(9, 16).forEach(item => {
-                        let selectedText = selectedOptions[item.nameAttr];
-                        if (selectedText) {
-                            let itemDiv = document.createElement('div');
-                            itemDiv.className = 'mb-2 p-2 bg-gray-50 rounded';
-                            itemDiv.innerHTML = `<strong>${item.title}:</strong> ${selectedText}`;
-                            contentContainer.appendChild(itemDiv);
-                        }
-                    });
-
-                    let resultadoHtml = resultadoDiv.cloneNode(true);
-                    if (resultadoHtml.style.display !== 'none') {
-                        contentContainer.appendChild(resultadoHtml);
-                    }
-
-                    gerarPDFGlobal({
-                        titulo: 'مقياس تينيتي',
-                        subtitulo: 'تقرير تقييم المشي والتوازن',
-                        nomeArquivo: 'تقرير_مقياس_تينيتي.pdf',
-                        seletorConteudo: '.main-content-wrapper'
-                    });
-                } else {
-                    console.error('الدالة gerarPDFGlobal غير محددة.');
-                }
-            });
-
-            btnNandaNicNoc?.addEventListener('click', () => {
-                const score = resultadoDiv.dataset.score;
-                const scaleName = resultadoDiv.dataset.scaleName;
-                if (!score) {
-                    alert('احسب النتيجة للبحث عن الإجراء.');
-                    return;
-                }
-                const recomendacaoRisco = score <= 19 ? 'ارتفاع خطر السقوط' : 'انخفاض خطر السقوط';
-                const searchQuery = encodeURIComponent(`رعاية التمريض لكبار السن مع ${recomendacaoRisco} في مقياس تينيتي NANDA NIC NOC`);
-                window.open(`https://www.google.com/search?q=${searchQuery}`, '_blank');
-            });
         });
     </script>
 

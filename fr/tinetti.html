@@ -446,16 +446,10 @@
       <div class="flex flex-wrap justify-start gap-4 mt-8">
         <!-- Augmenté mt-6 à mt-8 -->
         <button id="btnCalcular" class="btn-primary" aria-label="Calculer le score">
-          Calculer Score
+          Calculer
         </button>
         <button id="btnLimpar" class="btn-primary" aria-label="Effacer les champs">
           Effacer
-        </button>
-        <button id="btnGerarPDF" class="btn-secondary" aria-label="Générer PDF">
-          Générer PDF
-        </button>
-        <button id="btnNandaNicNoc" class="btn-primary" aria-label="Rechercher NANDA, NIC, NOC">
-          NANDA, NIC, NOC
         </button>
       </div>
 
@@ -511,8 +505,6 @@
       const resultadoDiv = document.getElementById("resultado");
       const btnCalcular = document.getElementById("btnCalcular");
       const btnLimpar = document.getElementById("btnLimpar");
-      const btnGerarPDF = document.getElementById("btnGerarPDF");
-      const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
       const conteudoEquilibrioDiv = document.getElementById(
         "conteudo-equilibrio",
       );
@@ -911,105 +903,7 @@
       btnCalcular?.addEventListener("click", calculerTinetti);
       btnLimpar?.addEventListener("click", limparCampos);
 
-      btnGerarPDF?.addEventListener("click", () => {
-        // Vérifie si un score total a été calculé et stocké
-        if (!resultadoDiv.dataset.scoreTotal) {
-          alert(
-            'Veuillez cliquer sur "Calculer Score" d\'abord pour générer le PDF.',
-          ); // TRADUIT
-          return;
-        }
-        if (typeof gerarPDFGlobal === "function") {
-          // Récupère les scores et l'interprétation
-          const scoreEq = resultadoDiv.dataset.scoreEquilibre;
-          const scoreMar = resultadoDiv.dataset.scoreMarcha;
-          const scoreTotal = resultadoDiv.dataset.scoreTotal;
-          const risque = resultadoDiv.dataset.risque;
-          const selectedOptions = {}; // Pour stocker les sélections
 
-          // Récupère les sélections de l'utilisateur pour le détail
-          document
-            .querySelectorAll("#tinetti-form select")
-            .forEach((select) => {
-              const selected = select.options[select.selectedIndex];
-              if (selected.value !== "") {
-                // Trouve le titre associé à l'ID du select
-                const itemData = [
-                  ...tinettiEquilibrioData,
-                  ...tinettiMarchaData,
-                ].find((item) => item.nameAttr === select.id);
-                const title = itemData ? itemData.title : select.id;
-                selectedOptions[title] = selected.text.replace(/ \(.*\)/, ""); // Enlève le score entre parenthèses
-              }
-            });
-
-          // Construit la section des détails pour le PDF
-          let detailsHtml =
-            '<h3 style="color: #1A3E74; margin-top: 15px; margin-bottom: 10px;">Détails de l\'évaluation :</h3>';
-          for (const [title, description] of Object.entries(
-            selectedOptions,
-          )) {
-            detailsHtml += `<p style="margin-bottom: 5px;"><strong>${title}:</strong> ${description}</p>`;
-          }
-
-          // Crée un contenu HTML simple pour le PDF
-          const pdfContentHtml = `
-                        <div style="font-family: Inter, sans-serif; padding: 20px;">
-                            <h1 style="color: #1A3E74; border-bottom: 2px solid #1A3E74; padding-bottom: 5px;">Échelle de Tinetti (POMA)</h1>
-                            <h2 style="color: #1FA4E5; margin-top: 15px;">Rapport d'Évaluation de la Marche et de l'Équilibre</h2>
-
-                            ${detailsHtml}
-
-                            <div style="margin-top: 20px; background-color: #f3f4f6; border-radius: 8px; padding: 15px; border: 1px solid #e5e7eb;">
-                                <p style="font-size: 1.1em; margin-bottom: 8px;">Score Équilibre : <strong>${scoreEq} / 16</strong></p>
-                                <p style="font-size: 1.1em; margin-bottom: 8px;">Score Marche : <strong>${scoreMar} / 12</strong></p>
-                                <p style="font-size: 1.2em; color: #1A3E74; margin-bottom: 10px;"><strong>Score Total : ${scoreTotal} / 28</strong></p>
-                                <p><strong>Interprétation du Risque :</strong> ${risque}</p>
-                            </div>
-                            <p style="margin-top: 20px; font-size: 0.9em; color: #6b7280;">Généré par Calculatrices de Soins Infirmiers</p>
-                        </div>
-                    `;
-
-          gerarPDFGlobal({
-            // Titres et nom de fichier TRADUITS
-            titulo: "Échelle de Tinetti",
-            subtitulo: "Rapport d'Évaluation de la Marche et de l'Équilibre",
-            nomeArquivo: "rapport_echelle_tinetti.pdf",
-            htmlConteudo: pdfContentHtml, // Utilise le HTML généré
-          });
-        } else {
-          alert(
-            "Erreur : La fonction pour générer le PDF n'a pas été trouvée.",
-          ); // TRADUIT
-          console.error("Fonction gerarPDFGlobal non définie."); // TRADUIT
-        }
-      });
-
-      btnNandaNicNoc?.addEventListener("click", () => {
-        // Vérifie si un score a été calculé
-        if (!resultadoDiv.dataset.scoreTotal) {
-          alert("Calculez le résultat pour rechercher la conduite à tenir."); // TRADUIT
-          return;
-        }
-        const score = resultadoDiv.dataset.scoreTotal;
-        // Détermine le niveau de risque basé sur le score
-        const risqueChute =
-          score < 19
-            ? "risque élevé de chute"
-            : score <= 24
-              ? "risque modéré de chute"
-              : "risque faible de chute";
-        const scaleName = "Échelle de Tinetti"; // TRADUIT
-
-        // TRADUIT la query de recherche
-        const searchQuery = encodeURIComponent(
-          `soins infirmiers pour personne âgée avec ${risqueChute} selon ${scaleName} NANDA NIC NOC`,
-        );
-        window.open(
-          `https://www.google.com/search?q=${searchQuery}`,
-          "_blank",
-        );
-      });
     });
   </script>
 

@@ -541,16 +541,10 @@
 
             <div class="flex flex-wrap justify-start gap-4 mt-6">
                 <button id="btnCalcular" class="btn-primary" aria-label="स्कोर की गणना करें">
-                    स्कोर की गणना करें
-                </button>
+          गणना करें
+        </button>
                 <button id="btnLimpar" class="btn-primary" aria-label="फ़ील्ड साफ़ करें">
                     साफ़ करें
-                </button>
-                <button id="btnGerarPDF" class="btn-secondary" aria-label="PDF जनरेट करें">
-                    PDF जनरेट करें
-                </button>
-                <button id="btnNandaNicNoc" class="btn-primary" aria-label="NANDA, NIC, NOC खोजें">
-                    NANDA, NIC, NOC
                 </button>
             </div>
 
@@ -587,8 +581,6 @@
             const resultadoDiv = document.getElementById('resultado');
             const btnCalcular = document.getElementById('btnCalcular');
             const btnLimpar = document.getElementById('btnLimpar');
-            const btnGerarPDF = document.getElementById('btnGerarPDF');
-            const btnNandaNicNoc = document.getElementById('btnNandaNicNoc');
             const conteudoDiv = document.getElementById('conteudo');
 
             // Dados da escala de Tinetti
@@ -840,82 +832,7 @@
             btnCalcular?.addEventListener('click', calcularTinetti);
             btnLimpar?.addEventListener('click', limparCampos);
 
-            btnGerarPDF?.addEventListener('click', () => {
-                if (!resultadoDiv.dataset.score) {
-                    alert('कृपया पहले "स्कोर की गणना करें" पर क्लिक करें।');
-                    return;
-                }
-                if (typeof gerarPDFGlobal === 'function') {
-                    const selectedOptions = {};
-                    document.querySelectorAll('#conteudo select').forEach(select => {
-                        const selected = select.options[select.selectedIndex];
-                        if (selected.value !== "") {
-                            selectedOptions[select.id] = selected.text;
-                        }
-                    });
 
-                    let contentToPrint = document.querySelector('.main-content-wrapper').cloneNode(true);
-                    let contentContainer = contentToPrint.querySelector('#conteudo');
-
-                    contentContainer.innerHTML = '';
-
-                    let balanceSectionTitle = document.createElement('h3');
-                    balanceSectionTitle.className = 'text-lg font-semibold mt-4 mb-2';
-                    balanceSectionTitle.innerText = `संतुलन अनुभाग (अधिकतम स्कोर: 16)`;
-                    contentContainer.appendChild(balanceSectionTitle);
-
-                    tinettiData.slice(0, 9).forEach(item => {
-                        let selectedText = selectedOptions[item.nameAttr];
-                        if (selectedText) {
-                            let itemDiv = document.createElement('div');
-                            itemDiv.className = 'mb-2 p-2 bg-gray-50 rounded';
-                            itemDiv.innerHTML = `<strong>${item.title}:</strong> ${selectedText}`;
-                            contentContainer.appendChild(itemDiv);
-                        }
-                    });
-
-                    let gaitSectionTitle = document.createElement('h3');
-                    gaitSectionTitle.className = 'text-lg font-semibold mt-4 mb-2';
-                    gaitSectionTitle.innerText = `गेट अनुभाग (अधिकतम स्कोर: 12)`;
-                    contentContainer.appendChild(gaitSectionTitle);
-
-                    tinettiData.slice(9, 16).forEach(item => {
-                        let selectedText = selectedOptions[item.nameAttr];
-                        if (selectedText) {
-                            let itemDiv = document.createElement('div');
-                            itemDiv.className = 'mb-2 p-2 bg-gray-50 rounded';
-                            itemDiv.innerHTML = `<strong>${item.title}:</strong> ${selectedText}`;
-                            contentContainer.appendChild(itemDiv);
-                        }
-                    });
-
-                    let resultadoHtml = resultadoDiv.cloneNode(true);
-                    if (resultadoHtml.style.display !== 'none') {
-                        contentContainer.appendChild(resultadoHtml);
-                    }
-
-                    gerarPDFGlobal({
-                        titulo: 'टिनेटी स्केल',
-                        subtitulo: 'गेट और संतुलन मूल्यांकन रिपोर्ट',
-                        nomeArquivo: 'टिनेटी_स्केल_रिपोर्ट.pdf',
-                        seletorConteudo: '.main-content-wrapper'
-                    });
-                } else {
-                    console.error('gerarPDFGlobal फ़ंक्शन परिभाषित नहीं है।');
-                }
-            });
-
-            btnNandaNicNoc?.addEventListener('click', () => {
-                const score = resultadoDiv.dataset.score;
-                const scaleName = resultadoDiv.dataset.scaleName;
-                if (!score) {
-                    alert('आचरण खोजने के लिए परिणाम की गणना करें।');
-                    return;
-                }
-                const recomendacaoRisco = score <= 19 ? 'गिरने का उच्च जोखिम' : 'गिरने का कम जोखिम';
-                const searchQuery = encodeURIComponent(`टिनेटी स्केल में ${recomendacaoRisco} वाले वरिष्ठ रोगी के लिए नर्सिंग देखभाल NANDA NIC NOC`);
-                window.open(`https://www.google.com/search?q=${searchQuery}`, '_blank');
-            });
         });
     </script>
 
