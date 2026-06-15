@@ -7,12 +7,7 @@ const path = require("path");
 
 // 1. SUBSTITUIÇÃO SIMPLES (REPLACE)
 // Se achar o 'target', substitui a linha toda pela 'newTag', mantendo o recuo.
-const REGRA_REPLACE = [
-  {
-    target: '<link rel="icon" href="/img/favicon.ico">',
-    newTag: '<link rel="icon" href="/favicon.ico">',
-  },
-];
+const REGRA_REPLACE = [{ target: "", newTag: "" }];
 
 // 2. EXCLUSÃO DE LINHAS (DELETE)
 // Se achar a palavra no 'target', a linha inteira é removida do arquivo.

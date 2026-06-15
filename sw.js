@@ -1,7 +1,8 @@
-const CACHE_NAME = "calculadoras-enfermagem-cache-20260614-215420-660";
+const CACHE_NAME = "calculadoras-enfermagem-cache-20260614-234632-530";
 
 // O SCRIPT DE BUILD VAI INJETAR A LISTA DE ARQUIVOS AQUI
 const urlsToCache = [
+  '.vscode/extensions.json',
   '.vscode/settings.json',
   '.vscode/tasks.json',
   '5-hs-da-paradacardiorespiratoria.html',
@@ -1348,6 +1349,7 @@ const urlsToCache = [
   'es/tecnologiaverde.html',
   'es/teorias-de-enfermagem.html',
   'es/termos.html',
+  'es/time-de-resposta-rapida.html',
   'es/tinetti.html',
   'es/waterlow.html',
   'es/zarit.html',
@@ -3544,6 +3546,7 @@ const urlsToCache = [
   'terminologias-de-enfermagem.html',
   'termos.html',
   'time-de-resposta-rapida.html',
+  'time-de-resposta-rapida_en.html',
   'tinetti.html',
   'tr/_language_selector.html',
   'tr/aldrete.html',
