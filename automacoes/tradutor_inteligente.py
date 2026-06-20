@@ -86,6 +86,36 @@ def preparar_html_para_traducao_texto(caminho_arquivo, idioma_alvo):
     for antigo, novo in regras_rotas.items():
         html = html.replace(antigo, novo)
 
+    # ==========================================
+    # 3. PADRONIZAÇÃO DO LOCALE NA TAG HTML (SEO)
+    # ==========================================
+    mapa_locales = {
+        "pt": "pt-BR",
+        "en": "en-US",
+        "es": "es-ES",
+        "fr": "fr-FR",
+        "it": "it-IT",
+        "de": "de-DE",
+        "hi": "hi-IN",
+        "zh": "zh-CN",
+        "ja": "ja-JP",
+        "ru": "ru-RU",
+        "ko": "ko-KR",
+        "tr": "tr-TR",
+        "nl": "nl-NL",
+        "pl": "pl-PL",
+        "sv": "sv-SE",
+        "id": "id-ID",
+        "vi": "vi-VN",
+        "uk": "uk-UA",
+        "ar": "ar-SA"
+    }
+    
+    locale_correto = mapa_locales.get(idioma_alvo, idioma_alvo)
+    
+    # Utiliza regex para localizar a tag <html ... lang="..."> e injeta o locale completo com a região
+    html = re.sub(r'(<html[^>]*?lang=")[^"]*(")', rf'\g<1>{locale_correto}\g<2>', html, flags=re.IGNORECASE)
+
     return html
 
 def extrair_seo_existente(caminho_destino):
