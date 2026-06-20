@@ -1,5 +1,6 @@
 import os
 import subprocess
+import re
 from dotenv import load_dotenv
 from google import genai
 from google.genai import types
@@ -54,22 +55,32 @@ def preparar_html_para_traducao_texto(caminho_arquivo, idioma_alvo):
         # --- Forçar Absolutos (iniciando com /) ---
         'href="global-styles.css"': 'href="/global-styles.css"',
         'href="./global-styles.css"': 'href="/global-styles.css"',
+        'href="global-styles.html"': 'href="/global-styles.html"',
+        'href="./global-styles.html"': 'href="/global-styles.html"',
         'src="lang-selector.js"': 'src="/lang-selector.js"',
         'src="./lang-selector.js"': 'src="/lang-selector.js"',
-        'href="_language_selector.html"': 'href="/_language_selector.html"',
-        'href="./_language_selector.html"': 'href="/_language_selector.html"',
         
-        # --- Forçar Relativos (pasta local, sem /) ---
+        # --- Imagens para Absoluto (Exceções definidas) ---
+        'href="favicon.ico"': 'href="/favicon.ico"',
+        'href="./favicon.ico"': 'href="/favicon.ico"',
+        'src="iconpages-calculadoras-de-enfermagem.webp"': 'src="/iconpages-calculadoras-de-enfermagem.webp"',
+        'src="img/calculadora-de-gasometria-arterial-calculadoras-de-enfermagem.webp"': 'src="/img/calculadora-de-gasometria-arterial-calculadoras-de-enfermagem.webp"',
+        'src="img/dimensionamento-da-equipe-de-enfermagem-calculadoras-de-enfermagem-1-calculadoras-de-enfermagem.webp"': 'src="/img/dimensionamento-da-equipe-de-enfermagem-calculadoras-de-enfermagem-1-calculadoras-de-enfermagem.webp"',
+        'src="img/escala-de-braden-lesoes-por-pressao-calculadoras-de-enfermagem.webp"': 'src="/img/escala-de-braden-lesoes-por-pressao-calculadoras-de-enfermagem.webp"',
+        'src="img/simulado-para-enfermeiros-calculadoras-de-enfermagem.webp"': 'src="/img/simulado-para-enfermeiros-calculadoras-de-enfermagem.webp"',
+
+        # --- Forçar Relativos (pasta local do idioma, sem /) ---
         'src="/global-scripts.js"': 'src="global-scripts.js"',
         'src="./global-scripts.js"': 'src="global-scripts.js"',
         'href="/global-body-elements.html"': 'href="global-body-elements.html"',
         'href="./global-body-elements.html"': 'href="global-body-elements.html"',
         'href="/menu-global.html"': 'href="menu-global.html"',
         'href="./menu-global.html"': 'href="menu-global.html"',
+        'src="/filtro-index.js"': 'src="filtro-index.js"',
+        'src="./filtro-index.js"': 'src="filtro-index.js"',
         
-        # --- Imagens para Absoluto ---
-        'src="img/': 'src="/img/',
-        'src="../img/': 'src="/img/'
+        # Demais caminhos de imagens em 'img/' são mantidos relativos de forma natural pelo HTML original 
+        # para que busquem na pasta interna do respectivo idioma (ex: en/img/...)
     }
 
     for antigo, novo in regras_rotas.items():
@@ -77,19 +88,40 @@ def preparar_html_para_traducao_texto(caminho_arquivo, idioma_alvo):
 
     return html
 
-def traduzir_html_com_gemini(html_preparado, idioma_alvo):
+def extrair_seo_existente(caminho_destino):
+    """
+    Lê o HTML antigo no idioma de destino (se existir) para extrair e proteger
+    SEO, schema e unidades de conversão configuradas anteriormente.
+    """
+    if not os.path.exists(caminho_destino):
+        return ""
+        
+    with open(caminho_destino, 'r', encoding='utf-8') as f:
+        html = f.read()
+        
+    # Extrai a tag head inteira como contexto crítico
+    match_head = re.search(r'<head>(.*?)</head>', html, re.IGNORECASE | re.DOTALL)
+    if match_head:
+        return f"\n\nATENÇÃO - DADOS DA PÁGINA ANTERIOR ENCONTRADOS: MANTENHA OBRIGATORIAMENTE o SEO (Title, Meta Description, Keywords, Schema.org) e as unidades de medidas (peso, temp, volume) que estão presentes neste bloco, corrigindo apenas se a descrição/título excederem os caracteres limite do Google para indexação:\n\n<head>{match_head.group(1)}</head>"
+    return ""
+
+def traduzir_html_com_gemini(html_preparado, idioma_alvo, contexto_seo):
     instrucoes_sistema = f"""
     Você é um especialista em desenvolvimento web, SEO internacional e tradução médica clínica avançada.
     Sua tarefa é traduzir o código HTML fornecido do português para o idioma correspondente ao código ISO '{idioma_alvo}'.
     
     REGRAS OBRIGATÓRIAS E INEGOCIÁVEIS:
-    1. A tradução NUNCA deve ser literal. Adapte para as expressões culturais, a forma de escrita do dia a dia e o jargão da enfermagem local.
-    2. Adapte OBRIGATORIAMENTE pesos, medidas e protocolos clínicos para a realidade do país alvo.
-    3. As tags estruturais de SEO (title, meta description, h1, h2, schema.org) devem ser cuidadosamente localizadas utilizando os termos de maior volume de busca na região para maximizar o engajamento orgânico, cliques e receita de AdSense.
-    4. Qualquer referência bibliográfica original em português presente no texto deve ser substituída por fontes científicas seguras, reconhecidas e publicadas em inglês.
-    5. O código traduzido deve ser entregue de forma COMPLETA e INTEGRAL. Não omita partes, não abrevie funções e não tente melhorar ou alterar a estrutura original não solicitada.
-    6. Reordene a lista de tags <link rel="alternate" hreflang="..."> dentro do <head> para que a tag correspondente ao idioma alvo ('{idioma_alvo}') seja a primeira da lista.
-    7. Retorne estritamente o código HTML puro, sem marcadores markdown (como ```html) e sem nenhum texto ou explicação adicional antes ou depois do código.
+    1. A tradução NUNCA deve ser literal. Adapte para as expressões culturais e jargão da enfermagem local. NÃO traduza nomes científicos.
+    2. Adapte OBRIGATORIAMENTE pesos, medidas, volume e temperatura para a realidade do país alvo, SALVO se o contexto da página antiga (fornecido abaixo) já os tiver definido.
+    3. LINKS: MANTENHA os links (href) para outras páginas do site exatamente como estão no original (como caminhos relativos). NUNCA adicione a pasta do idioma na frente do link. Exemplo: href="gasometria.html" DEVE CONTINUAR href="gasometria.html". Como o arquivo já será armazenado na pasta certa, o navegador do usuário fará o direcionamento local automaticamente.
+    4. PRESERVAÇÃO DE SEO E SCHEMA: Preserve rigorosamente todas as tags HTML, Schema.org e SEO. Se o bloco 'DADOS DA PÁGINA ANTERIOR' estiver presente no final deste prompt, REUTILIZE E MANTENHA os títulos, descrições e schema da página antiga para manter a indexação perfeita. Ajuste apenas se os caracteres excederem o limite recomendado pela Google.
+    5. HREFLANG: Analise a lista de <link rel="alternate" hreflang="...">. Respeite APENAS os idiomas que já estão declarados (não crie idiomas novos deliberadamente). Reordene para que o idioma alvo ('{idioma_alvo}') seja o primeiro. A tag 'x-default' deve apontar para a raiz do repositório.
+    6. CORE WEB VITALS: Respeite as boas práticas de responsividade, mobile e acessibilidade ao longo de toda a tradução, corrigindo inconsistências caso note.
+    7. Referências bibliográficas originais em português devem ser substituídas por fontes científicas seguras em inglês.
+    8. Entregue o código COMPLETO, sem omitir e sem abreviar.
+    9. Retorne estritamente o código HTML puro, sem marcadores markdown (como ```html).
+    
+    {contexto_seo}
     """
 
     try:
@@ -108,7 +140,6 @@ def traduzir_html_com_gemini(html_preparado, idioma_alvo):
         return None
 
 if __name__ == "__main__":
-    # Cores para o terminal do VS Code
     C_AMARELO = '\033[93m'
     C_VERDE   = '\033[92m'
     C_AZUL    = '\033[96m'
@@ -117,57 +148,70 @@ if __name__ == "__main__":
 
     # =========================================================================
     # 🟢 ÁREA DE CONFIGURAÇÃO DIÁRIA (ALTERE APENAS AQUI) 🟢
+    # Agora aceita múltiplos ficheiros e idiomas (separados por vírgula em lista)
     # =========================================================================
     
-    arquivo_original = "index.html" 
-    idioma_alvo      = "en" 
+    arquivos_originais = ["index.html"] # Ex: ["index.html", "imc.html", "glasgow.html"]
+    idiomas_alvo       = ["en"]         # Ex: ["en", "es", "fr", "ja"]
     
     # =========================================================================
 
-    print(f"\n{C_AMARELO}======================================================={RESET}")
-    print(f"{C_AZUL}▶ ARQUIVO DE ORIGEM: {C_AMARELO}{arquivo_original}{RESET}")
-    print(f"{C_AZUL}▶ IDIOMA ALVO:       {C_AMARELO}{idioma_alvo} {C_VERDE}(Será salvo na pasta: ./{idioma_alvo}/){RESET}")
-    print(f"{C_AMARELO}======================================================={RESET}\n")
+    arquivos_processados_com_sucesso = 0
 
-    if os.path.exists(arquivo_original):
-        print(f"{C_AZUL}[1/4]{RESET} Preparando rotas e estrutura do HTML...")
-        html_preparado = preparar_html_para_traducao_texto(arquivo_original, idioma_alvo)
-        
-        print(f"{C_AZUL}[2/4]{RESET} Enviando para o motor semântico Gemini...")
-        html_traduzido = traduzir_html_com_gemini(html_preparado, idioma_alvo)
-        
-        if html_traduzido:
-            print(f"{C_AZUL}[3/4]{RESET} Salvando arquivo (sobrescrevendo se existir)...")
-            pasta_destino = f"./{idioma_alvo}/"
-            os.makedirs(pasta_destino, exist_ok=True)
-            
-            nome_arquivo = os.path.basename(arquivo_original)
-            caminho_saida = os.path.join(pasta_destino, nome_arquivo)
-            
-            # O modo 'w' garante que o arquivo antigo seja substituído
-            with open(caminho_saida, 'w', encoding='utf-8') as f:
-                f.write(html_traduzido)
-                
-            print(f"{C_VERDE}✅ SUCESSO! Arquivo salvo em: {caminho_saida}{RESET}\n")
-
-            # Execução de comandos do Node e Tailwind na raiz do projeto
-            print(f"{C_AMARELO}======================================================={RESET}")
-            print(f"{C_ROXO}▶ INICIANDO PROCESSO DE BUILD E CACHE AUTOMÁTICO{RESET}")
+    for arquivo in arquivos_originais:
+        for idioma in idiomas_alvo:
+            print(f"\n{C_AMARELO}======================================================={RESET}")
+            print(f"{C_AZUL}▶ ARQUIVO DE ORIGEM: {C_AMARELO}{arquivo}{RESET}")
+            print(f"{C_AZUL}▶ IDIOMA ALVO:       {C_AMARELO}{idioma} {C_VERDE}(Será salvo na pasta: ./{idioma}/){RESET}")
             print(f"{C_AMARELO}======================================================={RESET}\n")
 
-            comandos_build = [
-                r".\node_modules\.bin\tailwindcss -i ./src/input.css -o ./public/output.css --minify",
-                "node gerar-sw.js",
-                "node aplicar-cache-buster.js"
-            ]
+            if os.path.exists(arquivo):
+                print(f"{C_AZUL}[1/5]{RESET} Preparando rotas e estrutura do HTML...")
+                html_preparado = preparar_html_para_traducao_texto(arquivo, idioma)
+                
+                # Definir caminho e extrair SEO existente
+                pasta_destino = f"./{idioma}/"
+                caminho_saida = os.path.join(pasta_destino, os.path.basename(arquivo))
+                
+                print(f"{C_AZUL}[2/5]{RESET} Escaneando SEO da página de destino existente (se houver)...")
+                contexto_seo = extrair_seo_existente(caminho_saida)
+                if contexto_seo:
+                    print(f"      {C_VERDE}↳ Dados de SEO antigos encontrados e injetados na memória.{RESET}")
+                else:
+                    print(f"      {C_AMARELO}↳ Nenhuma versão antiga encontrada. Tradução 100% nova.{RESET}")
 
-            for comando in comandos_build:
-                print(f"{C_AZUL}⚙️ Executando:{RESET} {comando}")
-                try:
-                    subprocess.run(comando, shell=True, check=True)
-                except subprocess.CalledProcessError as e:
-                    print(f"\n{C_AMARELO}⚠️ Aviso: O comando falhou: {comando}{RESET}")
-            
-            print(f"\n{C_VERDE}🚀 CICLO COMPLETO FINALIZADO!{RESET}")
-    else:
-        print(f"\n{C_AMARELO}Atenção: O arquivo '{arquivo_original}' não foi encontrado na raiz.{RESET}")
+                print(f"{C_AZUL}[3/5]{RESET} Enviando para o motor semântico Gemini...")
+                html_traduzido = traduzir_html_com_gemini(html_preparado, idioma, contexto_seo)
+                
+                if html_traduzido:
+                    print(f"{C_AZUL}[4/5]{RESET} Salvando arquivo (sobrescrevendo)...")
+                    os.makedirs(pasta_destino, exist_ok=True)
+                    
+                    with open(caminho_saida, 'w', encoding='utf-8') as f:
+                        f.write(html_traduzido)
+                        
+                    print(f"{C_VERDE}✅ SUCESSO! Arquivo atualizado em: {caminho_saida}{RESET}")
+                    arquivos_processados_com_sucesso += 1
+            else:
+                print(f"\n{C_AMARELO}Atenção: O arquivo '{arquivo}' não foi encontrado na raiz.{RESET}")
+
+    # Processo de build apenas se algum arquivo foi processado, e apenas 1 vez no final.
+    if arquivos_processados_com_sucesso > 0:
+        print(f"\n{C_AMARELO}======================================================={RESET}")
+        print(f"{C_ROXO}▶ INICIANDO PROCESSO GERAL DE BUILD E CACHE AUTOMÁTICO{RESET}")
+        print(f"{C_AMARELO}======================================================={RESET}\n")
+
+        comandos_build = [
+            r".\node_modules\.bin\tailwindcss -i ./src/input.css -o ./public/output.css --minify",
+            "node gerar-sw.js",
+            "node aplicar-cache-buster.js"
+        ]
+
+        for comando in comandos_build:
+            print(f"{C_AZUL}⚙️ Executando:{RESET} {comando}")
+            try:
+                subprocess.run(comando, shell=True, check=True)
+            except subprocess.CalledProcessError as e:
+                print(f"\n{C_AMARELO}⚠️ Aviso: O comando falhou: {comando}{RESET}")
+        
+        print(f"\n{C_VERDE}🚀 CICLO DE LOTE COMPLETO FINALIZADO! ({arquivos_processados_com_sucesso} arquivos processados){RESET}")
