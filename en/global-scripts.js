@@ -599,6 +599,11 @@ document.addEventListener("DOMContentLoaded", function () {
   // Usamos exatamente as mesmas classes do seu footer.html para alinhar perfeitamente
   // A classe my-10 adiciona margem superior e inferior para não colar no texto
   adContainer.className = "max-w-7xl mx-auto px-4 my-10";
+  
+  // ==========================================
+  // ANTI-CLS: Reserva de espaço dinâmica para o AdSense Multiplex
+  // ==========================================
+  adContainer.style.minHeight = window.innerWidth >= 768 ? "90px" : "250px";
 
   // 3. Monta a tag do anúncio (sem a tag <script> que é bloqueada via innerHTML)
   adContainer.innerHTML = `
