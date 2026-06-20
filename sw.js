@@ -1,4 +1,4 @@
-const CACHE_NAME = "calculadoras-enfermagem-cache-20260620-203110-390";
+const CACHE_NAME = "calculadoras-enfermagem-cache-20260620-205507-314";
 
 // O SCRIPT DE BUILD VAI INJETAR A LISTA DE ARQUIVOS AQUI
 const urlsToCache = [
@@ -965,7 +965,7 @@ const urlsToCache = [
   'copsoq.html',
   'copsoq3.html',
   'cornell.html',
-  'corrigir-adsense.js',
+  'corrigir-css-sync.js',
   'cries.html',
   'css-duplicates-report.json',
   'curb-65.html',
@@ -2632,7 +2632,6 @@ const urlsToCache = [
   'img/wanda-de-aguiar-horta-necessidades-humanas-basicas-calculadoras-de-enfermagem.webp',
   'impactodigital.html',
   'index.html',
-  'injetar-anti-cls.js',
   'instrumentais-cirurgicos.html',
   'insulina.html',
   'it/aldrete.html',
