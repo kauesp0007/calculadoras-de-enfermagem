@@ -1,4 +1,4 @@
-const CACHE_VERSION = "20260621-105636";
+const CACHE_VERSION = "20260621-110147";
 const CACHE_NAME = `calculadoras-enfermagem-cache-${CACHE_VERSION}`;
 
 // O SCRIPT DE BUILD VAI INJETAR A LISTA DE ARQUIVOS AQUI
@@ -298,8 +298,18 @@ self.addEventListener("fetch", (event) => {
           const cachedResponse = await caches.match(req);
           if (cachedResponse) return cachedResponse;
 
-          // Se não tiver no cache, entrega a página offline padrão (certifique-se de que offline.html existe)
-          return caches.match("/offline.html");
+          // Se não tiver no cache, tenta entregar a página offline padrão
+          const offlinePage = await caches.match("/offline.html");
+          if (offlinePage) return offlinePage;
+
+          // Se até o offline.html falhar (Fallback absoluto para evitar TypeError)
+          return new Response(
+            "<h1>Sem conexão</h1><p>Você está offline e esta página não foi salva no cache.</p>",
+            {
+              status: 503,
+              headers: { "Content-Type": "text/html; charset=utf-8" },
+            },
+          );
         }),
     );
     return;
@@ -312,8 +322,7 @@ self.addEventListener("fetch", (event) => {
         // Se estiver no cache ATUAL, entrega imediatamente!
         if (cachedResponse) return cachedResponse;
 
-        // Se NÃO estiver no cache (porque é uma versão nova e o cache foi limpo),
-        // vai buscar à rede e INJETA O CACHE BUSTER sob a forma de query string ?v=...
+        // Se NÃO estiver no cache, vai buscar à rede e INJETA O CACHE BUSTER
         const fetchUrl = new URL(req.url);
         fetchUrl.searchParams.set("v", CACHE_VERSION);
 
@@ -321,15 +330,22 @@ self.addEventListener("fetch", (event) => {
           .then((networkResponse) => {
             if (networkResponse && networkResponse.status === 200) {
               const responseToCache = networkResponse.clone();
-              // Guarda no cache utilizando o Request ORIGINAL (sem o ?v)
-              // para que da próxima vez o caches.match(req) encontre o ficheiro.
               caches
                 .open(CACHE_NAME)
                 .then((cache) => cache.put(req, responseToCache));
             }
             return networkResponse;
           })
-          .catch(() => caches.match(req)); // Proteção extra contra falhas de rede
+          .catch(() => {
+            // Em caso de falha de rede e não ter cache (Fallback absoluto)
+            return caches
+              .match(req)
+              .then(
+                (res) =>
+                  res ||
+                  new Response("", { status: 404, statusText: "Not Found" }),
+              );
+          });
       }),
     );
     return;
@@ -349,10 +365,14 @@ self.addEventListener("fetch", (event) => {
           return networkResponse;
         })
         .catch(() => {
-          /* Ignora erros em imagens de background se falhar */
+          // Falha de rede pura (ex: bloqueio de AdBlock ou offline sem cache)
+          // Precisamos retornar uma resposta válida vazia para evitar "Failed to convert value to Response"
+          return new Response("", {
+            status: 408,
+            statusText: "Request Timeout",
+          });
         });
 
-      // Retorna o cache imediatamente (Stale), mas atualiza em pano de fundo (Revalidate)
       return cachedResponse || fetchPromise;
     }),
   );
