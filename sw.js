@@ -1,4 +1,4 @@
-const CACHE_NAME = "calculadoras-enfermagem-cache-20260620-205507-314";
+const CACHE_NAME = "calculadoras-enfermagem-cache-20260620-213534-190";
 
 // O SCRIPT DE BUILD VAI INJETAR A LISTA DE ARQUIVOS AQUI
 const urlsToCache = [
@@ -120,10 +120,8 @@ const urlsToCache = [
   'ar/tinetti.html',
   'ar/waterlow.html',
   'ar/zarit.html',
-  'arrumando-posicao.js',
   'asa.html',
   'ativar-admin.html',
-  'atualizacao-google-tags.js',
   'atualizar-scripts.js',
   'autofillforms-calculadoras-de-enfermagem.webp',
   'autofillforms2-calculadoras-de-enfermagem.webp',
@@ -965,7 +963,7 @@ const urlsToCache = [
   'copsoq.html',
   'copsoq3.html',
   'cornell.html',
-  'corrigir-css-sync.js',
+  'corrigir-lcp-imagens.js',
   'cries.html',
   'css-duplicates-report.json',
   'curb-65.html',
@@ -1361,8 +1359,6 @@ const urlsToCache = [
   'fast.html',
   'favicon.ico',
   'filtro-index.js',
-  'fix-cls.js',
-  'fix-header-order.js',
   'flacc.html',
   'flashcards_quiz.html',
   'fonts/arabic/arabic-700.woff2',
@@ -3400,13 +3396,9 @@ const urlsToCache = [
   'sbar.html',
   'scaffold-lang.js',
   'scan-biblioteca.js',
-  'scanner-acessibilidade.js',
   'scanner-biblioteca.js',
-  'scanner-fontes-locais.js',
   'scanner-footer-chain.js',
-  'scanner-head-css.js',
   'scanner-lang-reflow.js',
-  'scanner-reflow.js',
   'scripts/build-blog.js',
   'scripts/find-css-duplicates.js',
   'seloacessibilidade-calculadoras-de-enfermagem.webp',
