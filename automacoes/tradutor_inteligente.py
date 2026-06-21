@@ -2,15 +2,21 @@ import os
 import subprocess
 import re
 from dotenv import load_dotenv
-from google import genai
-from google.genai import types
+from openai import OpenAI
 
 # Carrega a chave do arquivo .env silenciosamente
 load_dotenv()
 
-CHAVE_API = os.getenv("GEMINI_API_KEY")
+CHAVE_API = os.getenv("DEEPSEEK_API_KEY") # Ajuste aqui se o nome no seu .env for diferente
 if not CHAVE_API:
-    raise ValueError("Chave da API não encontrada. Verifique se o arquivo .env existe e contém a GEMINI_API_KEY.")
+    raise ValueError("Chave da API não encontrada. Verifique se o arquivo .env existe e contém a DEEPSEEK_API_KEY.")
+
+# Configuração de Cores para o Terminal (Movido para cima para uso global)
+C_AMARELO = '\033[93m'
+C_VERDE   = '\033[92m'
+C_AZUL    = '\033[96m'
+C_ROXO    = '\033[95m'
+RESET     = '\033[0m'
 
 def preparar_html_para_traducao_texto(caminho_arquivo, idioma_alvo):
     """
@@ -78,9 +84,6 @@ def preparar_html_para_traducao_texto(caminho_arquivo, idioma_alvo):
         'href="./menu-global.html"': 'href="menu-global.html"',
         'src="/filtro-index.js"': 'src="filtro-index.js"',
         'src="./filtro-index.js"': 'src="filtro-index.js"',
-        
-        # Demais caminhos de imagens em 'img/' são mantidos relativos de forma natural pelo HTML original 
-        # para que busquem na pasta interna do respectivo idioma (ex: en/img/...)
     }
 
     for antigo, novo in regras_rotas.items():
@@ -113,7 +116,6 @@ def preparar_html_para_traducao_texto(caminho_arquivo, idioma_alvo):
     
     locale_correto = mapa_locales.get(idioma_alvo, idioma_alvo)
     
-    # Utiliza regex para localizar a tag <html ... lang="..."> e injeta o locale completo com a região
     html = re.sub(r'(<html[^>]*?lang=")[^"]*(")', rf'\g<1>{locale_correto}\g<2>', html, flags=re.IGNORECASE)
 
     return html
@@ -129,13 +131,12 @@ def extrair_seo_existente(caminho_destino):
     with open(caminho_destino, 'r', encoding='utf-8') as f:
         html = f.read()
         
-    # Extrai a tag head inteira como contexto crítico
     match_head = re.search(r'<head>(.*?)</head>', html, re.IGNORECASE | re.DOTALL)
     if match_head:
         return f"\n\nATENÇÃO - DADOS DA PÁGINA ANTERIOR ENCONTRADOS: MANTENHA OBRIGATORIAMENTE o SEO (Title, Meta Description, Keywords, Schema.org) e as unidades de medidas (peso, temp, volume) que estão presentes neste bloco, corrigindo apenas se a descrição/título excederem os caracteres limite do Google para indexação:\n\n<head>{match_head.group(1)}</head>"
     return ""
 
-def traduzir_html_com_gemini(html_preparado, idioma_alvo, contexto_seo):
+def traduzir_html_com_deepseek(html_preparado, idioma_alvo, contexto_seo):
     instrucoes_sistema = f"""
     Você é um especialista em desenvolvimento web, SEO internacional e tradução médica clínica avançada.
     Sua tarefa é traduzir o código HTML fornecido do português para o idioma correspondente ao código ISO '{idioma_alvo}'.
@@ -155,34 +156,69 @@ def traduzir_html_com_gemini(html_preparado, idioma_alvo, contexto_seo):
     """
 
     try:
-        client = genai.Client(api_key=CHAVE_API)
-        resposta = client.models.generate_content(
-            model='gemini-3.5-flash',
-            contents=html_preparado,
-            config=types.GenerateContentConfig(
-                system_instruction=instrucoes_sistema,
-                temperature=0.2
-            )
+        client = OpenAI(
+            api_key=CHAVE_API,
+            base_url="https://api.deepseek.com" # URL LIMPA E CORRIGIDA
         )
-        return resposta.text.strip()
+        
+        mensagens = [
+            {"role": "system", "content": instrucoes_sistema},
+            {"role": "user", "content": html_preparado}
+        ]
+        
+        resultado_completo = ""
+        parte_num = 1
+        
+        # LOOP DE PAGINAÇÃO: Se o modelo cortar por limite, pedimos para continuar
+        while True:
+            response = client.chat.completions.create(
+                model="deepseek-chat",
+                messages=mensagens,
+                temperature=0.2,
+                max_tokens=8192, # Forçamos o limite máximo para diminuir quebras
+                stream=False
+            )
+            
+            texto_gerado = response.choices[0].message.content
+            resultado_completo += texto_gerado
+            
+            # Verifica o motivo do modelo ter parado
+            motivo_parada = response.choices[0].finish_reason
+            
+            if motivo_parada == "length":
+                print(f"      {C_AMARELO}↳ Arquivo longo (Parte {parte_num} atingiu o limite de tokens). Solicitando continuação automática...{RESET}")
+                # Adicionamos a resposta dele no histórico para ele saber onde parou
+                mensagens.append({"role": "assistant", "content": texto_gerado})
+                # Pedimos para continuar estritamente do ponto de corte
+                mensagens.append({"role": "user", "content": "Continue gerando o código HTML exatamente de onde você parou no último caractere. Não adicione nenhuma saudação inicial, não escreva 'Aqui está a continuação', e não use os marcadores ```html novos, apenas jogue o código bruto continuando o anterior."})
+                parte_num += 1
+            else:
+                # O modelo terminou naturalmente (finish_reason == "stop")
+                break
+                
+        resultado = resultado_completo.strip()
+        
+        # Limpeza caso o modelo retorne com marcadores markdown no início ou final do arquivo completo
+        if resultado.startswith("```html"):
+            resultado = resultado[7:]
+        if resultado.startswith("```"):
+            resultado = resultado[3:]
+        if resultado.endswith("```"):
+            resultado = resultado[:-3]
+            
+        return resultado.strip()
+        
     except Exception as e:
-        print(f"\n❌ Erro na comunicação com a API: {e}")
+        print(f"\n❌ Erro na comunicação com a API DeepSeek: {e}")
         return None
 
 if __name__ == "__main__":
-    C_AMARELO = '\033[93m'
-    C_VERDE   = '\033[92m'
-    C_AZUL    = '\033[96m'
-    C_ROXO    = '\033[95m'
-    RESET     = '\033[0m'
-
     # =========================================================================
     # 🟢 ÁREA DE CONFIGURAÇÃO DIÁRIA (ALTERE APENAS AQUI) 🟢
-    # Agora aceita múltiplos ficheiros e idiomas (separados por vírgula em lista)
     # =========================================================================
     
-    arquivos_originais = ["index.html"] # Ex: ["index.html", "imc.html", "glasgow.html"]
-    idiomas_alvo       = ["en"]         # Ex: ["en", "es", "fr", "ja"]
+    arquivos_originais = ["index.html"] 
+    idiomas_alvo       = ["es", "de", "fr", "hi", "it", "zh", "ja", "ru", "ko", "tr", "nl", "pl", "sv", "id", "vi", "uk", "ar"]         
     
     # =========================================================================
 
@@ -199,7 +235,6 @@ if __name__ == "__main__":
                 print(f"{C_AZUL}[1/5]{RESET} Preparando rotas e estrutura do HTML...")
                 html_preparado = preparar_html_para_traducao_texto(arquivo, idioma)
                 
-                # Definir caminho e extrair SEO existente
                 pasta_destino = f"./{idioma}/"
                 caminho_saida = os.path.join(pasta_destino, os.path.basename(arquivo))
                 
@@ -210,8 +245,8 @@ if __name__ == "__main__":
                 else:
                     print(f"      {C_AMARELO}↳ Nenhuma versão antiga encontrada. Tradução 100% nova.{RESET}")
 
-                print(f"{C_AZUL}[3/5]{RESET} Enviando para o motor semântico Gemini...")
-                html_traduzido = traduzir_html_com_gemini(html_preparado, idioma, contexto_seo)
+                print(f"{C_AZUL}[3/5]{RESET} Enviando para o motor semântico DeepSeek...")
+                html_traduzido = traduzir_html_com_deepseek(html_preparado, idioma, contexto_seo)
                 
                 if html_traduzido:
                     print(f"{C_AZUL}[4/5]{RESET} Salvando arquivo (sobrescrevendo)...")
@@ -225,7 +260,6 @@ if __name__ == "__main__":
             else:
                 print(f"\n{C_AMARELO}Atenção: O arquivo '{arquivo}' não foi encontrado na raiz.{RESET}")
 
-    # Processo de build apenas se algum arquivo foi processado, e apenas 1 vez no final.
     if arquivos_processados_com_sucesso > 0:
         print(f"\n{C_AMARELO}======================================================={RESET}")
         print(f"{C_ROXO}▶ INICIANDO PROCESSO GERAL DE BUILD E CACHE AUTOMÁTICO{RESET}")
