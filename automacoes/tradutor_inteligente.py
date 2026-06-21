@@ -58,6 +58,7 @@ def preparar_html_para_traducao_texto(caminho_arquivo, idioma_alvo):
         'src="./lang-selector.js"': 'src="/lang-selector.js"',
         'href="_language_selector.html"': 'href="/_language_selector.html"',
         'href="./_language_selector.html"': 'href="/_language_selector.html"',
+        'href="manifest.json"': 'href="/manifest.json"',
         
         # --- Forçar Relativos (pasta local, sem /) ---
         'src="/global-scripts.js"': 'src="global-scripts.js"',
