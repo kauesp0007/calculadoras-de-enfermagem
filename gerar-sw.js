@@ -1,17 +1,17 @@
 // Importa os módulos essenciais do Node.js para lidar com ficheiros e caminhos
-const fs = require('fs');
-const path = require('path');
+const fs = require("fs");
+const path = require("path");
 
 // --- Configuração ---
 const config = {
-  // Diretório base do projeto (onde o script vai começar a procurar)
-  baseDir: './',
+  // Diretório base do projeto
+  baseDir: "./",
 
   // O nosso ficheiro de "molde"
-  templateFile: 'sw-template.js',
+  templateFile: "sw-template.js",
 
-  // O nome do ficheiro final que o navegador vai usar
-  outputFile: 'sw.js',
+  // O nome do ficheiro final
+  outputFile: "sw.js",
 
   // Marcador exato no molde para a lista de arquivos
   markerFiles: "//INJETAR_ARQUIVOS_AQUI",
@@ -19,52 +19,48 @@ const config = {
   // Marcador exato no molde para a versão automática do cache
   markerCacheVersion: "__CACHE_VERSION__",
 
-  // Quais extensões de ficheiro queremos salvar no cache?
+  // QUAIS EXTENSÕES PRE-CACHEAR? (App Shell)
+  // Removemos .html, .jpg, .webp, etc. para não explodir o cache do utilizador.
+  // Ficheiros pesados e páginas serão cacheados dinamicamente durante a navegação.
   extensionsToCache: [
-    '.html',
-    '.css',
-    '.js',
-    '.json',
-    '.png',
-    '.jpg',
-    '.jpeg',
-    '.svg',
-    '.webp',
-    '.ico',
-    '.woff',
-    '.woff2'
+    ".css",
+    ".js",
+    ".json",
+    ".svg",
+    ".ico",
+    ".woff",
+    ".woff2",
   ],
 
-  // Quais pastas ou ficheiros devemos IGNORAR?
+  // Pastas e ficheiros a IGNORAR
   filesAndFoldersToIgnore: [
-    'node_modules',
-    '.git',
-    '.github',
-    'gerar-sw.js',
-    'sw-template.js',
-    'sw.js',
-    'tailwind.config.js',
-    'package.json',
-    'package-lock.json',
-    '.gitignore',
-    'README.md'
-  ]
+    "node_modules",
+    ".git",
+    ".github",
+    "gerar-sw.js",
+    "sw-template.js",
+    "sw.js",
+    "tailwind.config.js",
+    "package.json",
+    "package-lock.json",
+    ".gitignore",
+    "README.md",
+    "limpar-cache-buster.js",
+  ],
 };
 // --------------------
 
-/**
- * Função auxiliar que "anda" (walk) por todas as pastas recursivamente
- * e retorna uma lista de todos os ficheiros que encontra.
- */
 const walkSync = (dir, filelist = []) => {
   try {
     const files = fs.readdirSync(dir);
 
-    files.forEach(file => {
+    files.forEach((file) => {
       const filePath = path.join(dir, file);
       const fileStat = fs.statSync(filePath);
 
-      const isIgnored = config.filesAndFoldersToIgnore.includes(path.basename(filePath));
+      const isIgnored = config.filesAndFoldersToIgnore.includes(
+        path.basename(filePath),
+      );
       if (isIgnored) return;
 
       if (fileStat.isDirectory()) {
@@ -72,32 +68,23 @@ const walkSync = (dir, filelist = []) => {
       } else {
         const extension = path.extname(file);
         if (config.extensionsToCache.includes(extension)) {
-          const urlPath = filePath
-            .replace(/\\/g, '/')
-            .replace(/^\.\//, '/');
+          const urlPath = filePath.replace(/\\/g, "/").replace(/^\.\//, "/");
 
           filelist.push(urlPath);
         }
       }
     });
   } catch (error) {
-    // Ignora erros de permissão de leitura de pastas do sistema
-    if (error.code !== 'EPERM' && error.code !== 'EACCES') {
+    if (error.code !== "EPERM" && error.code !== "EACCES") {
       throw error;
     }
   }
   return filelist;
 };
 
-/**
- * Gera uma versão automática pro cache:
- * - muda a cada execução
- * - segura para usar em string
- */
 function gerarCacheVersion() {
-  // Exemplo: 20251227-142233-123 (data-hora-ms)
   const d = new Date();
-  const pad = (n, w = 2) => String(n).padStart(w, '0');
+  const pad = (n, w = 2) => String(n).padStart(w, "0");
 
   const yyyy = d.getFullYear();
   const mm = pad(d.getMonth() + 1);
@@ -105,52 +92,52 @@ function gerarCacheVersion() {
   const hh = pad(d.getHours());
   const mi = pad(d.getMinutes());
   const ss = pad(d.getSeconds());
-  const ms = pad(d.getMilliseconds(), 3);
 
-  return `${yyyy}${mm}${dd}-${hh}${mi}${ss}-${ms}`;
+  return `${yyyy}${mm}${dd}-${hh}${mi}${ss}`; // Versão limpa para servir de Cache Buster
 }
 
-// --- Execução Principal ---
 try {
-  console.log('🤖 Iniciando automação do Service Worker...');
+  console.log("🤖 Iniciando automação do Service Worker...");
 
-  // 1. Encontrar todos os ficheiros válidos para o cache
-  console.log('🔎 Procurando ficheiros...');
+  console.log("🔎 Procurando ficheiros essenciais (App Shell)...");
   const files = walkSync(config.baseDir);
 
-  // (Opcional) ordenar para manter o sw.js sempre “estável” na ordem
-  files.sort();
+  // Adiciona manualmente páginas cruciais que devem estar sempre offline
+  files.push("/offline.html");
+  files.push("/index.html");
 
-  // 2. Formatar a lista para array JS
-  const filesString = files.map(file => `'${file}'`).join(',\n  ');
+  // Remover duplicados caso existam
+  const uniqueFiles = [...new Set(files)];
+  uniqueFiles.sort();
 
-  // 3. Ler o molde
+  const filesString = uniqueFiles.map((file) => `'${file}'`).join(",\n  ");
+
   console.log(`📖 Lendo o molde ${config.templateFile}...`);
-  const templateContent = fs.readFileSync(config.templateFile, 'utf8');
+  const templateContent = fs.readFileSync(config.templateFile, "utf8");
 
-  // 4. Gerar versão automática do cache e injetar tudo
   const cacheVersion = gerarCacheVersion();
   console.log(`🏷️ Cache version: ${cacheVersion}`);
 
-  console.log('💉 Injetando lista de ficheiros e versão do cache...');
+  console.log("💉 Injetando lista de ficheiros e versão do cache...");
   let finalContent = templateContent.replace(config.markerFiles, filesString);
 
   if (!finalContent.includes(config.markerCacheVersion)) {
     throw new Error(
-      `Marker de versão do cache não encontrado no template: ${config.markerCacheVersion}`
+      `Marker não encontrado no template: ${config.markerCacheVersion}`,
     );
   }
-  finalContent = finalContent.replaceAll(config.markerCacheVersion, cacheVersion);
-
-  // 5. Escrever o sw.js final
-  console.log(`💾 Escrevendo o ficheiro final: ${config.outputFile}`);
-  fs.writeFileSync(config.outputFile, finalContent, 'utf8');
-
-  console.log(
-    `\n✅ Sucesso! '${config.outputFile}' atualizado com ${files.length} ficheiros cacheados.\n` +
-    `✅ Novo CACHE_NAME será: calculadoras-enfermagem-cache-${cacheVersion}`
+  finalContent = finalContent.replaceAll(
+    config.markerCacheVersion,
+    cacheVersion,
   );
 
+  console.log(`💾 Escrevendo o ficheiro final: ${config.outputFile}`);
+  fs.writeFileSync(config.outputFile, finalContent, "utf8");
+
+  console.log(
+    `\n✅ Sucesso! '${config.outputFile}' atualizado de forma otimizada com ${uniqueFiles.length} ficheiros essenciais.\n` +
+      `✅ Novo CACHE_NAME será: calculadoras-enfermagem-cache-${cacheVersion}`,
+  );
 } catch (error) {
-  console.error('\n❌ ERRO ao gerar o Service Worker:', error);
+  console.error("\n❌ ERRO ao gerar o Service Worker:", error);
 }

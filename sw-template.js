@@ -1,106 +1,146 @@
-const CACHE_NAME = "calculadoras-enfermagem-cache-__CACHE_VERSION__";
+const CACHE_VERSION = "__CACHE_VERSION__";
+const CACHE_NAME = `calculadoras-enfermagem-cache-${CACHE_VERSION}`;
 
 // O SCRIPT DE BUILD VAI INJETAR A LISTA DE ARQUIVOS AQUI
 const urlsToCache = [
   //INJETAR_ARQUIVOS_AQUI
 ];
 
-// 1. EVENTO DE INSTALAÇÃO (INSTALL)
+// 1. EVENTO DE INSTALAÇÃO (Precaching tolerante a falhas)
 self.addEventListener("install", (event) => {
   event.waitUntil(
     caches
       .open(CACHE_NAME)
-      .then((cache) => {
+      .then(async (cache) => {
         console.log(
-          "Service Worker: Abrindo o cache e salvando os arquivos.",
-          CACHE_NAME,
+          `[Service Worker] Instalando nova versão: ${CACHE_VERSION}`,
         );
-        return cache.addAll(urlsToCache.filter((url) => !url.startsWith("/*")));
+
+        // Adiciona os ficheiros ao cache 1 a 1.
+        // Se um ficheiro faltar, não impede a instalação do resto (fundamental para grandes repositórios)
+        await Promise.all(
+          urlsToCache
+            .filter((url) => !url.startsWith("/*"))
+            .map((url) => {
+              return cache
+                .add(new Request(url, { cache: "reload" }))
+                .catch((err) => {
+                  console.warn(
+                    `[Service Worker] Ficheiro não encontrado para cache: ${url}`,
+                  );
+                });
+            }),
+        );
       })
-      .then(() => self.skipWaiting()) // Força o SW a instalar imediatamente
-      .catch((err) => {
-        console.error("Service Worker: Falha ao salvar arquivos no cache", err);
-      }),
+      .then(() => self.skipWaiting()), // Força o SW a assumir o controlo
   );
 });
 
-// 2. EVENTO DE ATIVAÇÃO (ACTIVATE)
+// 2. EVENTO DE ATIVAÇÃO (Limpeza de caches antigos)
 self.addEventListener("activate", (event) => {
-  const cacheWhitelist = [CACHE_NAME];
   event.waitUntil(
-    (async () => {
-      try {
-        const cacheNames = await caches.keys();
-        await Promise.all(
+    caches
+      .keys()
+      .then((cacheNames) => {
+        return Promise.all(
           cacheNames.map((cacheName) => {
-            if (cacheWhitelist.indexOf(cacheName) === -1) {
-              console.log("Service Worker: Deletando cache antigo", cacheName);
-              return caches.delete(cacheName); // Exclui antigos
+            if (cacheName !== CACHE_NAME) {
+              console.log(
+                `[Service Worker] Apagando cache antigo: ${cacheName}`,
+              );
+              return caches.delete(cacheName);
             }
           }),
         );
-      } catch (err) {
-        console.error("Erro ao deletar caches antigos", err);
-      }
-
-      // Essencial: Força o novo Service Worker a assumir o controle da página imediatamente
-      return self.clients.claim();
-    })(),
+      })
+      .then(() => self.clients.claim()),
   );
 });
 
-// 3. EVENTO DE FETCH (INTERCEPTA REQUISIÇÕES)
+// 3. EVENTO DE FETCH (A Mágica da Interceção)
 self.addEventListener("fetch", (event) => {
   const req = event.request;
+  const url = new URL(req.url);
 
-  if (!req.url.startsWith("http")) return;
+  // Intercepta apenas requisições HTTP/HTTPS normais de GET
+  if (!url.protocol.startsWith("http") || req.method !== "GET") return;
 
-  // 1) Network-first para navegação de páginas (HTML)
-  if (req.mode === "navigate") {
+  // ESTRATÉGIA 1: PÁGINAS HTML (Network First -> Cache Fallback -> Offline Fallback)
+  if (
+    req.mode === "navigate" ||
+    req.headers.get("accept").includes("text/html")
+  ) {
     event.respondWith(
-      (async () => {
-        try {
-          const networkResponse = await fetch(req);
-          try {
-            const cache = await caches.open(CACHE_NAME);
-            cache.put(req, networkResponse.clone());
-          } catch (e) {}
+      fetch(req)
+        .then((networkResponse) => {
+          // Salva dinamicamente as páginas HTML que o utilizador visita (Runtime Cache)
+          const responseToCache = networkResponse.clone();
+          caches
+            .open(CACHE_NAME)
+            .then((cache) => cache.put(req, responseToCache));
           return networkResponse;
-        } catch (err) {
-          console.warn("Network falhou para HTML, tentando cache", err);
-          const cached = await caches.match(req);
-          if (cached) return cached;
-          const fallback = await caches.match("/offline.html");
-          if (fallback) return fallback;
-          return new Response("Offline", {
-            status: 504,
-            statusText: "Gateway Timeout",
-          });
-        }
-      })(),
+        })
+        .catch(async () => {
+          // Se estiver offline, tenta carregar o HTML da versão em cache
+          const cachedResponse = await caches.match(req);
+          if (cachedResponse) return cachedResponse;
+
+          // Se não tiver no cache, entrega a página offline padrão (certifique-se de que offline.html existe)
+          return caches.match("/offline.html");
+        }),
     );
     return;
   }
 
-  // 2) Stale-While-Revalidate para outros recursos (CSS/JS/images)
-  // Retorna o cache na mesma hora, mas atualiza ele no fundo chamando a rede
-  event.respondWith(
-    (async () => {
-      const cache = await caches.open(CACHE_NAME);
-      const cachedResponse = await cache.match(req);
+  // ESTRATÉGIA 2: CSS e JS (O "Cache Buster Invisível")
+  if (url.pathname.endsWith(".css") || url.pathname.endsWith(".js")) {
+    event.respondWith(
+      caches.match(req).then((cachedResponse) => {
+        // Se estiver no cache ATUAL, entrega imediatamente!
+        if (cachedResponse) return cachedResponse;
 
+        // Se NÃO estiver no cache (porque é uma versão nova e o cache foi limpo),
+        // vai buscar à rede e INJETA O CACHE BUSTER sob a forma de query string ?v=...
+        const fetchUrl = new URL(req.url);
+        fetchUrl.searchParams.set("v", CACHE_VERSION);
+
+        return fetch(fetchUrl)
+          .then((networkResponse) => {
+            if (networkResponse && networkResponse.status === 200) {
+              const responseToCache = networkResponse.clone();
+              // Guarda no cache utilizando o Request ORIGINAL (sem o ?v)
+              // para que da próxima vez o caches.match(req) encontre o ficheiro.
+              caches
+                .open(CACHE_NAME)
+                .then((cache) => cache.put(req, responseToCache));
+            }
+            return networkResponse;
+          })
+          .catch(() => caches.match(req)); // Proteção extra contra falhas de rede
+      }),
+    );
+    return;
+  }
+
+  // ESTRATÉGIA 3: IMAGENS E RESTANTES RECURSOS (Stale-While-Revalidate)
+  event.respondWith(
+    caches.match(req).then((cachedResponse) => {
       const fetchPromise = fetch(req)
         .then((networkResponse) => {
           if (networkResponse && networkResponse.status === 200) {
-            cache.put(req, networkResponse.clone());
+            const responseToCache = networkResponse.clone();
+            caches
+              .open(CACHE_NAME)
+              .then((cache) => cache.put(req, responseToCache));
           }
           return networkResponse;
         })
-        .catch((err) => {
-          console.error("Erro no Service Worker em background:", req.url, err);
+        .catch(() => {
+          /* Ignora erros em imagens de background se falhar */
         });
 
+      // Retorna o cache imediatamente (Stale), mas atualiza em pano de fundo (Revalidate)
       return cachedResponse || fetchPromise;
-    })(),
+    }),
   );
 });
