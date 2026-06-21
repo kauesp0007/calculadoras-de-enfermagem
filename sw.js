@@ -1,4 +1,4 @@
-const CACHE_NAME = "calculadoras-enfermagem-cache-20260620-213534-190";
+const CACHE_NAME = "calculadoras-enfermagem-cache-20260620-215002-297";
 
 // O SCRIPT DE BUILD VAI INJETAR A LISTA DE ARQUIVOS AQUI
 const urlsToCache = [
@@ -963,7 +963,6 @@ const urlsToCache = [
   'copsoq.html',
   'copsoq3.html',
   'cornell.html',
-  'corrigir-lcp-imagens.js',
   'cries.html',
   'css-duplicates-report.json',
   'curb-65.html',
@@ -3158,6 +3157,7 @@ const urlsToCache = [
   'objetivo.html',
   'offline.html',
   'ofras.html',
+  'otimizador-imagens.js',
   'otimizar-imagens.js',
   'painad.html',
   'pelod.html',

@@ -46,9 +46,10 @@ const ficheirosIgnorados = [
 
 let arquivosAlterados = 0;
 let arquivosNaoPrecisaram = 0;
+let totalImagensCorrigidas = 0;
 
 console.log(
-  "Iniciando Otimização Cirúrgica de Imagens (LCP - Core Web Vitals)...\n",
+  "Iniciando Otimização Cirúrgica de Imagens (LCP + CLS + Acessibilidade)...\n",
 );
 
 // 2. Função principal para varrer e processar
@@ -70,6 +71,7 @@ function processarFicheiros(diretorio) {
       let conteudoOriginal = fs.readFileSync(caminhoCompleto, "utf8");
       let conteudoModificado = conteudoOriginal;
       let imgCount = 0;
+      let modificouNesteArquivo = false;
 
       // Encontra todas as tags de imagem <img> de forma segura
       const imgRegex = /<img([^>]+)>/gi;
@@ -78,19 +80,48 @@ function processarFicheiros(diretorio) {
         imgRegex,
         (match, atributos) => {
           imgCount++;
+          let cleanAttrs = atributos;
+          let attrModificado = false;
 
-          // Limpa os atributos de carregamento antigos para evitar duplicações ou erros
-          let cleanAttrs = atributos
+          // --- 1. REGRA LCP (Core Web Vitals) ---
+          const attrsAntes = cleanAttrs;
+          cleanAttrs = cleanAttrs
             .replace(/\s+loading=["'][a-zA-Z]+["']/gi, "")
             .replace(/\s+fetchpriority=["'][a-zA-Z]+["']/gi, "");
 
-          // Aplica a regra cirúrgica
           if (imgCount === 1) {
-            // Imagem 1 (Topo/LCP): Máxima prioridade
             cleanAttrs += ' loading="eager" fetchpriority="high"';
           } else {
-            // Imagem 2 em diante (Abaixo da dobra): Lazy load
             cleanAttrs += ' loading="lazy"';
+          }
+          if (cleanAttrs !== attrsAntes) attrModificado = true;
+
+          // --- 2. REGRA DE ACESSIBILIDADE (SEO / Leitores de tela) ---
+          if (!/alt=["']/i.test(cleanAttrs)) {
+            cleanAttrs +=
+              ' alt="Imagem ilustrativa - Calculadoras de Enfermagem"';
+            attrModificado = true;
+          }
+
+          // --- 3. REGRA DE CLS (Width e Height em proporção 4:3 para o Mobile calcular) ---
+          if (!/width=["']/i.test(cleanAttrs)) {
+            cleanAttrs += ' width="800"';
+            attrModificado = true;
+          }
+          if (!/height=["']/i.test(cleanAttrs)) {
+            cleanAttrs += ' height="600"';
+            attrModificado = true;
+          }
+
+          // --- 4. REGRA DE DECODING ---
+          if (!/decoding=["']/i.test(cleanAttrs)) {
+            cleanAttrs += ' decoding="async"';
+            attrModificado = true;
+          }
+
+          if (attrModificado) {
+            modificouNesteArquivo = true;
+            totalImagensCorrigidas++;
           }
 
           // Remove espaços extras deixados no HTML e monta a tag de volta
@@ -99,12 +130,12 @@ function processarFicheiros(diretorio) {
         },
       );
 
-      // Só salva se houve alteração real para poupar o disco
-      if (conteudoOriginal !== conteudoModificado) {
+      // Só salva se houve alteração real para poupar o disco e recursos
+      if (modificouNesteArquivo && conteudoOriginal !== conteudoModificado) {
         fs.writeFileSync(caminhoCompleto, conteudoModificado, "utf8");
         arquivosAlterados++;
         console.log(
-          `[OTIMIZADO] ${caminhoCompleto} (${imgCount} imagens processadas)`,
+          `[OTIMIZADO] ${caminhoCompleto} (${imgCount} imagens escaneadas e adequadas)`,
         );
       } else {
         arquivosNaoPrecisaram++;
@@ -116,8 +147,11 @@ function processarFicheiros(diretorio) {
 processarFicheiros(".");
 
 console.log("\n=======================================");
-console.log("RELATÓRIO FINAL DE LCP (IMAGENS)");
+console.log("RELATÓRIO FINAL DE OTIMIZAÇÃO (IMAGENS)");
 console.log("=======================================");
 console.log(`Arquivos HTML atualizados com sucesso: ${arquivosAlterados}`);
-console.log(`Arquivos HTML intactos: ${arquivosNaoPrecisaram}`);
+console.log(`Arquivos HTML intactos (já adequados): ${arquivosNaoPrecisaram}`);
+console.log(
+  `Total de imagens processadas e corrigidas: ${totalImagensCorrigidas}`,
+);
 console.log("=======================================");
