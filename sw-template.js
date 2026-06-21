@@ -65,6 +65,18 @@ self.addEventListener("fetch", (event) => {
   // Intercepta apenas requisições HTTP/HTTPS normais de GET
   if (!url.protocol.startsWith("http") || req.method !== "GET") return;
 
+  // ESTRATÉGIA EXCEÇÃO: Bloqueadores de Anúncios (Ad Blockers)
+  // Evita o erro "Failed to convert value to 'Response'" interceptando as falhas do AdSense
+  if (req.url.includes("googlesyndication.com")) {
+    event.respondWith(
+      fetch(req).catch((error) => {
+        // Se a requisição falhar (ex: bloqueada pelo navegador), retorna uma resposta vazia inofensiva
+        return new Response("Ad blocked", { status: 204 });
+      }),
+    );
+    return;
+  }
+
   // ESTRATÉGIA 1: PÁGINAS HTML (Network First -> Cache Fallback -> Offline Fallback)
   if (
     req.mode === "navigate" ||

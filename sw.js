@@ -1,4 +1,4 @@
-const CACHE_VERSION = "20260621-110147";
+const CACHE_VERSION = "20260621-111254";
 const CACHE_NAME = `calculadoras-enfermagem-cache-${CACHE_VERSION}`;
 
 // O SCRIPT DE BUILD VAI INJETAR A LISTA DE ARQUIVOS AQUI
@@ -277,6 +277,18 @@ self.addEventListener("fetch", (event) => {
 
   // Intercepta apenas requisições HTTP/HTTPS normais de GET
   if (!url.protocol.startsWith("http") || req.method !== "GET") return;
+
+  // ESTRATÉGIA EXCEÇÃO: Bloqueadores de Anúncios (Ad Blockers)
+  // Evita o erro "Failed to convert value to 'Response'" interceptando as falhas do AdSense
+  if (req.url.includes("googlesyndication.com")) {
+    event.respondWith(
+      fetch(req).catch((error) => {
+        // Se a requisição falhar (ex: bloqueada pelo navegador), retorna uma resposta vazia inofensiva
+        return new Response("Ad blocked", { status: 204 });
+      }),
+    );
+    return;
+  }
 
   // ESTRATÉGIA 1: PÁGINAS HTML (Network First -> Cache Fallback -> Offline Fallback)
   if (
