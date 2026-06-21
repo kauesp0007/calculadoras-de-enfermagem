@@ -121,7 +121,7 @@ if __name__ == "__main__":
     # =========================================================================
     
     arquivo_original = "meem.html" 
-    idioma_alvo      = "es" 
+    idioma_alvo      = "en"      # Selecione o idioma alvo pelo índice (0 para inglês, 1 para espanhol, etc.)
     
     # =========================================================================
 
