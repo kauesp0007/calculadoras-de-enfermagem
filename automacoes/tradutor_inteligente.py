@@ -120,8 +120,8 @@ if __name__ == "__main__":
     # 🟢 ÁREA DE CONFIGURAÇÃO DIÁRIA (ALTERE APENAS AQUI) 🟢
     # =========================================================================
     
-    arquivo_original = "index.html" 
-    idioma_alvo      = "en" 
+    arquivo_original = "meem.html" 
+    idioma_alvo      = "es" 
     
     # =========================================================================
 
