@@ -1,4 +1,4 @@
-const CACHE_NAME = "calculadoras-enfermagem-cache-20260621-052438-720";
+const CACHE_NAME = "calculadoras-enfermagem-cache-20260621-052756-030";
 
 // O SCRIPT DE BUILD VAI INJETAR A LISTA DE ARQUIVOS AQUI
 const urlsToCache = [
