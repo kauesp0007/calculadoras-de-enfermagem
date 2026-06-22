@@ -60,6 +60,7 @@ def preparar_html_para_traducao_texto(caminho_arquivo, idioma_alvo):
         'href="_language_selector.html"': 'href="/_language_selector.html"',
         'href="./_language_selector.html"': 'href="/_language_selector.html"',
         'href="manifest.json"': 'href="/manifest.json"',
+        'src="ce-calculadora-padrao.js"': 'src="/ce-calculadora-padrao.js"',
         
         # --- Forçar Relativos (pasta local, sem /) ---
         'src="/global-scripts.js"': 'src="global-scripts.js"',
@@ -122,10 +123,10 @@ if __name__ == "__main__":
     # =========================================================================
     
     # Adicione os arquivos que deseja traduzir na lista abaixo, separados por vírgula.
-    arquivos_originais = ["meem.html"] 
+    arquivos_originais = ["gotejamento.html"] 
     
     # Adicione os idiomas alvo na lista abaixo, separados por vírgula.
-    idiomas_alvo = ["fr", "it", "de", "hi", "zh", "ja", "ko", "ru", "pl", "ar", "id", "nl", "sv", "tr", "uk", "vi"]  # Exemplo: francês, italiano, alemão, espanhol
+    idiomas_alvo = ["it", "de", "zh", "ja", "ko", "ru", "pl", "ar", "id", "sv", "tr", "uk", "vi"]  # Exemplo: francês, italiano, alemão, espanhol
     
     # =========================================================================
 
