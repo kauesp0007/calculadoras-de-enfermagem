@@ -1,5 +1,6 @@
 import os
 import subprocess
+from datetime import datetime
 from dotenv import load_dotenv
 from google import genai
 from google.genai import types
@@ -120,55 +121,72 @@ if __name__ == "__main__":
     # 🟢 ÁREA DE CONFIGURAÇÃO DIÁRIA (ALTERE APENAS AQUI) 🟢
     # =========================================================================
     
-    arquivo_original = "meem.html" 
-    idioma_alvo      = "en"      # Selecione o idioma alvo pelo índice (0 para inglês, 1 para espanhol, etc.)
+    # Adicione os arquivos que deseja traduzir na lista abaixo, separados por vírgula.
+    arquivos_originais = ["meem.html"] 
+    
+    # Adicione os idiomas alvo na lista abaixo, separados por vírgula.
+    idiomas_alvo = ["fr", "it", "de", "hi", "zh", "ja", "ko", "ru", "pl", "ar", "id", "nl", "sv", "tr", "uk", "vi"]  # Exemplo: francês, italiano, alemão, espanhol
     
     # =========================================================================
 
-    print(f"\n{C_AMARELO}======================================================={RESET}")
-    print(f"{C_AZUL}▶ ARQUIVO DE ORIGEM: {C_AMARELO}{arquivo_original}{RESET}")
-    print(f"{C_AZUL}▶ IDIOMA ALVO:       {C_AMARELO}{idioma_alvo} {C_VERDE}(Será salvo na pasta: ./{idioma_alvo}/){RESET}")
-    print(f"{C_AMARELO}======================================================={RESET}\n")
-
-    if os.path.exists(arquivo_original):
-        print(f"{C_AZUL}[1/4]{RESET} Preparando rotas e estrutura do HTML...")
-        html_preparado = preparar_html_para_traducao_texto(arquivo_original, idioma_alvo)
-        
-        print(f"{C_AZUL}[2/4]{RESET} Enviando para o motor semântico Gemini...")
-        html_traduzido = traduzir_html_com_gemini(html_preparado, idioma_alvo)
-        
-        if html_traduzido:
-            print(f"{C_AZUL}[3/4]{RESET} Salvando arquivo (sobrescrevendo se existir)...")
-            pasta_destino = f"./{idioma_alvo}/"
-            os.makedirs(pasta_destino, exist_ok=True)
-            
-            nome_arquivo = os.path.basename(arquivo_original)
-            caminho_saida = os.path.join(pasta_destino, nome_arquivo)
-            
-            # O modo 'w' garante que o arquivo antigo seja substituído
-            with open(caminho_saida, 'w', encoding='utf-8') as f:
-                f.write(html_traduzido)
-                
-            print(f"{C_VERDE}✅ SUCESSO! Arquivo salvo em: {caminho_saida}{RESET}\n")
-
-            # Execução de comandos do Node e Tailwind na raiz do projeto
-            print(f"{C_AMARELO}======================================================={RESET}")
-            print(f"{C_ROXO}▶ INICIANDO PROCESSO DE BUILD E CACHE AUTOMÁTICO{RESET}")
+    for arquivo_original in arquivos_originais:
+        for idioma_alvo in idiomas_alvo:
+            print(f"\n{C_AMARELO}======================================================={RESET}")
+            print(f"{C_AZUL}▶ ARQUIVO DE ORIGEM: {C_AMARELO}{arquivo_original}{RESET}")
+            print(f"{C_AZUL}▶ IDIOMA ALVO:       {C_AMARELO}{idioma_alvo} {C_VERDE}(Será salvo na pasta: ./{idioma_alvo}/){RESET}")
             print(f"{C_AMARELO}======================================================={RESET}\n")
 
-            comandos_build = [
-                r".\node_modules\.bin\tailwindcss -i ./src/input.css -o ./public/output.css --minify",
-                "node gerar-sw.js",
+            if os.path.exists(arquivo_original):
+                print(f"{C_AZUL}[1/4]{RESET} Preparando rotas e estrutura do HTML...")
+                html_preparado = preparar_html_para_traducao_texto(arquivo_original, idioma_alvo)
                 
-            ]
+                print(f"{C_AZUL}[2/4]{RESET} Enviando para o motor semântico Gemini...")
+                html_traduzido = traduzir_html_com_gemini(html_preparado, idioma_alvo)
+                
+                if html_traduzido:
+                    print(f"{C_AZUL}[3/4]{RESET} Salvando arquivo (sobrescrevendo se existir)...")
+                    pasta_destino = f"./{idioma_alvo}/"
+                    os.makedirs(pasta_destino, exist_ok=True)
+                    
+                    nome_arquivo = os.path.basename(arquivo_original)
+                    caminho_saida = os.path.join(pasta_destino, nome_arquivo)
+                    
+                    # O modo 'w' garante que o arquivo antigo seja substituído
+                    with open(caminho_saida, 'w', encoding='utf-8') as f:
+                        f.write(html_traduzido)
+                        
+                    print(f"{C_VERDE}✅ SUCESSO! Arquivo salvo em: {caminho_saida}{RESET}\n")
 
-            for comando in comandos_build:
-                print(f"{C_AZUL}⚙️ Executando:{RESET} {comando}")
-                try:
-                    subprocess.run(comando, shell=True, check=True)
-                except subprocess.CalledProcessError as e:
-                    print(f"\n{C_AMARELO}⚠️ Aviso: O comando falhou: {comando}{RESET}")
-            
-            print(f"\n{C_VERDE}🚀 CICLO COMPLETO FINALIZADO!{RESET}")
-    else:
-        print(f"\n{C_AMARELO}Atenção: O arquivo '{arquivo_original}' não foi encontrado na raiz.{RESET}")
+                    # Execução de comandos do Node e Tailwind na raiz do projeto
+                    print(f"{C_AMARELO}======================================================={RESET}")
+                    print(f"{C_ROXO}▶ INICIANDO PROCESSO DE BUILD E CACHE AUTOMÁTICO{RESET}")
+                    print(f"{C_AMARELO}======================================================={RESET}\n")
+
+                    comandos_build = [
+                        r".\node_modules\.bin\tailwindcss -i ./src/input.css -o ./public/output.css --minify",
+                        "node gerar-sw.js",
+                    ]
+
+                    for comando in comandos_build:
+                        print(f"{C_AZUL}⚙️ Executando:{RESET} {comando}")
+                        try:
+                            subprocess.run(comando, shell=True, check=True)
+                        except subprocess.CalledProcessError as e:
+                            print(f"\n{C_AMARELO}⚠️ Aviso: O comando falhou: {comando}{RESET}")
+                    
+                    # Gera e salva o log na raiz
+                    try:
+                        with open("log_traducoes.txt", "a", encoding="utf-8") as log_file:
+                            data_atual = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+                            log_file.write(f"[{data_atual}] HTML traduzido: '{arquivo_original}' | Idioma alvo: '{idioma_alvo}' | Destino: '{caminho_saida}'\n")
+                        print(f"{C_VERDE}📝 Log gerado/atualizado com sucesso em log_traducoes.txt.{RESET}")
+                    except Exception as e:
+                        print(f"{C_AMARELO}⚠️ Aviso: Erro ao escrever o log: {e}{RESET}")
+
+                    print(f"\n{C_VERDE}🚀 CICLO COMPLETO FINALIZADO PARA '{arquivo_original}' EM '{idioma_alvo}'!{RESET}")
+            else:
+                print(f"\n{C_AMARELO}Atenção: O arquivo '{arquivo_original}' não foi encontrado na raiz.{RESET}")
+
+    print(f"\n{C_AMARELO}======================================================={RESET}")
+    print(f"{C_VERDE}🎉 TODA A FILA DE TRADUÇÃO E BUILDS FOI CONCLUÍDA!{RESET}")
+    print(f"{C_AMARELO}======================================================={RESET}\n")
