@@ -123,10 +123,10 @@ if __name__ == "__main__":
     # =========================================================================
     
     # Adicione os arquivos que deseja traduzir na lista abaixo, separados por vírgula.
-    arquivos_originais = ["index.html"] 
+    arquivos_originais = ["en/index.html"] 
     
     # Adicione os idiomas alvo na lista abaixo, separados por vírgula.
-    idiomas_alvo = ["pl", "ar", "id"]  # Exemplo: francês, italiano, alemão, espanhol
+    idiomas_alvo = ["ja"]  # Exemplo: francês, italiano, alemão, espanhol
     
     # =========================================================================
 
