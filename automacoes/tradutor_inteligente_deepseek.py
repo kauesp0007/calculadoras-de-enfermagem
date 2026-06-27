@@ -80,7 +80,24 @@ def preparar_html_para_traducao_texto(caminho_arquivo, idioma_alvo):
 
     return html
 
-def traduzir_html_com_deepseek(html_preparado, idioma_alvo):
+def dividir_html_em_blocos(html, max_chars=12000):
+    """Divide o HTML em blocos respeitando quebras de linha, sem cortar tags."""
+    linhas = html.splitlines(keepends=True)  # mantém as quebras
+    blocos = []
+    bloco_atual = ""
+    for linha in linhas:
+        if len(bloco_atual) + len(linha) <= max_chars:
+            bloco_atual += linha
+        else:
+            if bloco_atual:
+                blocos.append(bloco_atual)
+            bloco_atual = linha
+    if bloco_atual:
+        blocos.append(bloco_atual)
+    return blocos
+
+def traduzir_bloco(bloco, idioma_alvo, contexto_anterior=""):
+    """Traduz um único bloco de HTML, com contexto opcional."""
     instrucoes_sistema = f"""
     Você é um especialista em desenvolvimento web, SEO internacional e tradução médica clínica avançada.
     Sua tarefa é traduzir o código HTML fornecido do português para o idioma correspondente ao código ISO '{idioma_alvo}'.
@@ -93,7 +110,16 @@ def traduzir_html_com_deepseek(html_preparado, idioma_alvo):
     5. O código traduzido deve ser entregue de forma COMPLETA e INTEGRAL. Não omita partes, não abrevie funções e não tente melhorar ou alterar a estrutura original não solicitada.
     6. Reordene a lista de tags <link rel="alternate" hreflang="..."> dentro do <head> para que a tag correspondente ao idioma alvo ('{idioma_alvo}') seja a primeira da lista.
     7. Retorne estritamente o código HTML puro, sem marcadores markdown (como ```html) e sem nenhum texto ou explicação adicional antes ou depois do código.
+    
+    REGRA ADICIONAL EXTREMAMENTE IMPORTANTE (8):
+    Você DEVE traduzir o conteúdo textual de TODAS as linhas deste bloco, sem omitir, resumir ou modificar a estrutura. Cada linha deve ser preservada exatamente como está, apenas substituindo os textos em português pelos equivalentes no idioma alvo. NENHUMA linha pode ser removida ou encurtada.
     """
+
+    # Monta o prompt do usuário com contexto
+    prompt_usuario = f"Traduza o HTML completo deste bloco, linha por linha, sem omitir nada.\n"
+    if contexto_anterior:
+        prompt_usuario += f"Contexto do bloco anterior (para consistência): {contexto_anterior}\n\n"
+    prompt_usuario += bloco
 
     try:
         url = "https://api.deepseek.com/v1/chat/completions"
@@ -105,7 +131,7 @@ def traduzir_html_com_deepseek(html_preparado, idioma_alvo):
             "model": "deepseek-chat",
             "messages": [
                 {"role": "system", "content": instrucoes_sistema},
-                {"role": "user", "content": html_preparado}
+                {"role": "user", "content": prompt_usuario}
             ],
             "temperature": 0.2
         }
@@ -114,8 +140,33 @@ def traduzir_html_com_deepseek(html_preparado, idioma_alvo):
         data = response.json()
         return data["choices"][0]["message"]["content"].strip()
     except Exception as e:
-        print(f"\n❌ Erro na comunicação com a API: {e}")
+        print(f"\n❌ Erro na comunicação com a API (bloco): {e}")
         return None
+
+def traduzir_html_com_deepseek(html_preparado, idioma_alvo):
+    """Traduz o HTML completo, dividindo em blocos se necessário."""
+    blocos = dividir_html_em_blocos(html_preparado)
+    print(f"   (HTML dividido em {len(blocos)} bloco(s) para tradução)")
+
+    partes_traduzidas = []
+    contexto = ""
+
+    for i, bloco in enumerate(blocos):
+        print(f"   Traduzindo bloco {i+1}/{len(blocos)}...")
+        # Pega as primeiras 200 palavras do bloco como contexto para o próximo
+        palavras = bloco[:500].split()[:200]
+        resumo_contexto = " ".join(palavras)
+
+        bloco_traduzido = traduzir_bloco(bloco, idioma_alvo, contexto)
+        if bloco_traduzido is None:
+            return None
+        partes_traduzidas.append(bloco_traduzido)
+        # Atualiza o contexto com o resumo do bloco atual (já traduzido? não, usamos o original para consistência)
+        contexto = resumo_contexto  # ou poderia ser o início do bloco traduzido, mas mantemos simples
+
+    # Concatena todos os blocos traduzidos
+    html_completo = "\n".join(partes_traduzidas)
+    return html_completo
 
 if __name__ == "__main__":
     # Cores para o terminal do VS Code
@@ -129,10 +180,7 @@ if __name__ == "__main__":
     # 🟢 ÁREA DE CONFIGURAÇÃO DIÁRIA (ALTERE APENAS AQUI) 🟢
     # =========================================================================
     
-    # Adicione os arquivos que deseja traduzir na lista abaixo, separados por vírgula.
     arquivos_originais = ["index.html"] 
-    
-    # Adicione os idiomas alvo na lista abaixo, separados por vírgula.
     idiomas_alvo = ["zh"]  # Exemplo: francês, italiano, alemão, espanhol
     
     # =========================================================================
@@ -148,7 +196,7 @@ if __name__ == "__main__":
                 print(f"{C_AZUL}[1/4]{RESET} Preparando rotas e estrutura do HTML...")
                 html_preparado = preparar_html_para_traducao_texto(arquivo_original, idioma_alvo)
                 
-                print(f"{C_AZUL}[2/4]{RESET} Enviando para o motor semântico Gemini...")
+                print(f"{C_AZUL}[2/4]{RESET} Enviando para o motor semântico DeepSeek (com chunking automático)...")
                 html_traduzido = traduzir_html_com_deepseek(html_preparado, idioma_alvo)
                 
                 if html_traduzido:
@@ -159,13 +207,11 @@ if __name__ == "__main__":
                     nome_arquivo = os.path.basename(arquivo_original)
                     caminho_saida = os.path.join(pasta_destino, nome_arquivo)
                     
-                    # O modo 'w' garante que o arquivo antigo seja substituído
                     with open(caminho_saida, 'w', encoding='utf-8') as f:
                         f.write(html_traduzido)
                         
                     print(f"{C_VERDE}✅ SUCESSO! Arquivo salvo em: {caminho_saida}{RESET}\n")
 
-                    # Execução de comandos do Node e Tailwind na raiz do projeto
                     print(f"{C_AMARELO}======================================================={RESET}")
                     print(f"{C_ROXO}▶ INICIANDO PROCESSO DE BUILD E CACHE AUTOMÁTICO{RESET}")
                     print(f"{C_AMARELO}======================================================={RESET}\n")
@@ -182,11 +228,10 @@ if __name__ == "__main__":
                         except subprocess.CalledProcessError as e:
                             print(f"\n{C_AMARELO}⚠️ Aviso: O comando falhou: {comando}{RESET}")
                     
-                    # Gera e salva o log na raiz
                     try:
                         with open("log_traducoes.txt", "a", encoding="utf-8") as log_file:
                             data_atual = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
-                            log_file.write(f"[{data_atual}] HTML traduzido: '{arquivo_original}' | Idioma alvo: '{idioma_alvo}' | Destino: '{caminho_saida}'\n")
+                            log_file.write(f"[{data_atual}] HTML traduzido: '{arquivo_original}' | Idioma: '{idioma_alvo}' | Destino: '{caminho_saida}'\n")
                         print(f"{C_VERDE}📝 Log gerado/atualizado com sucesso em log_traducoes.txt.{RESET}")
                     except Exception as e:
                         print(f"{C_AMARELO}⚠️ Aviso: Erro ao escrever o log: {e}{RESET}")

@@ -126,7 +126,7 @@ if __name__ == "__main__":
     arquivos_originais = ["index.html"] 
     
     # Adicione os idiomas alvo na lista abaixo, separados por vírgula.
-    idiomas_alvo = ["zh", "ko"]  # Exemplo: francês, italiano, alemão, espanhol
+    idiomas_alvo = ["pl", "ar", "id", "zh"]  # Exemplo: francês, italiano, alemão, espanhol
     
     # =========================================================================
 
