@@ -1,16 +1,16 @@
 import os
 import subprocess
+import requests
+import json
 from datetime import datetime
 from dotenv import load_dotenv
-from google import genai
-from google.genai import types
 
 # Carrega a chave do arquivo .env silenciosamente
 load_dotenv()
 
-CHAVE_API = os.getenv("GEMINI_API_KEY")
+CHAVE_API = os.getenv("DEEPSEEK_API_KEY")
 if not CHAVE_API:
-    raise ValueError("Chave da API não encontrada. Verifique se o arquivo .env existe e contém a GEMINI_API_KEY.")
+    raise ValueError("Chave da API DeepSeek não encontrada. Verifique se o arquivo .env existe e contém a DEEPSEEK_API_KEY.")
 
 def preparar_html_para_traducao_texto(caminho_arquivo, idioma_alvo):
     """
@@ -80,7 +80,7 @@ def preparar_html_para_traducao_texto(caminho_arquivo, idioma_alvo):
 
     return html
 
-def traduzir_html_com_gemini(html_preparado, idioma_alvo):
+def traduzir_html_com_deepseek(html_preparado, idioma_alvo):
     instrucoes_sistema = f"""
     Você é um especialista em desenvolvimento web, SEO internacional e tradução médica clínica avançada.
     Sua tarefa é traduzir o código HTML fornecido do português para o idioma correspondente ao código ISO '{idioma_alvo}'.
@@ -95,19 +95,34 @@ def traduzir_html_com_gemini(html_preparado, idioma_alvo):
     7. Retorne estritamente o código HTML puro, sem marcadores markdown (como ```html) e sem nenhum texto ou explicação adicional antes ou depois do código.
     """
 
+    url = "https://api.deepseek.com/v1/chat/completions"
+    headers = {
+        "Authorization": f"Bearer {CHAVE_API}",
+        "Content-Type": "application/json"
+    }
+    payload = {
+        "model": "deepseek-chat",
+        "messages": [
+            {"role": "system", "content": instrucoes_sistema},
+            {"role": "user", "content": html_preparado}
+        ],
+        "temperature": 0.2,
+        "max_tokens": 8192  # suficiente para páginas longas
+    }
+
     try:
-        client = genai.Client(api_key=CHAVE_API)
-        resposta = client.models.generate_content(
-            model='gemini-3.5-flash',
-            contents=html_preparado,
-            config=types.GenerateContentConfig(
-                system_instruction=instrucoes_sistema,
-                temperature=0.2
-            )
-        )
-        return resposta.text.strip()
-    except Exception as e:
-        print(f"\n❌ Erro na comunicação com a API: {e}")
+        response = requests.post(url, headers=headers, json=payload, timeout=120)
+        response.raise_for_status()
+        data = response.json()
+        if "choices" in data and len(data["choices"]) > 0:
+            return data["choices"][0]["message"]["content"].strip()
+        else:
+            print("\n❌ Resposta da API não contém 'choices'.")
+            return None
+    except requests.exceptions.RequestException as e:
+        print(f"\n❌ Erro na comunicação com a API DeepSeek: {e}")
+        if hasattr(e, 'response') and e.response:
+            print(f"Detalhes: {e.response.text}")
         return None
 
 if __name__ == "__main__":
@@ -123,10 +138,10 @@ if __name__ == "__main__":
     # =========================================================================
     
     # Adicione os arquivos que deseja traduzir na lista abaixo, separados por vírgula.
-    arquivos_originais = [".html"] 
+    arquivos_originais = ["gotejamento.html"] 
     
     # Adicione os idiomas alvo na lista abaixo, separados por vírgula.
-    idiomas_alvo = [""]  # Exemplo: francês, italiano, alemão, espanhol
+    idiomas_alvo = ["it", "de", "zh", "ja", "ko", "ru", "pl", "ar", "id", "sv", "tr", "uk", "vi"]  # Exemplo: francês, italiano, alemão, espanhol
     
     # =========================================================================
 
@@ -141,8 +156,8 @@ if __name__ == "__main__":
                 print(f"{C_AZUL}[1/4]{RESET} Preparando rotas e estrutura do HTML...")
                 html_preparado = preparar_html_para_traducao_texto(arquivo_original, idioma_alvo)
                 
-                print(f"{C_AZUL}[2/4]{RESET} Enviando para o motor semântico Gemini...")
-                html_traduzido = traduzir_html_com_gemini(html_preparado, idioma_alvo)
+                print(f"{C_AZUL}[2/4]{RESET} Enviando para o motor semântico DeepSeek...")
+                html_traduzido = traduzir_html_com_deepseek(html_preparado, idioma_alvo)
                 
                 if html_traduzido:
                     print(f"{C_AZUL}[3/4]{RESET} Salvando arquivo (sobrescrevendo se existir)...")
