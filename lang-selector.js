@@ -3,46 +3,11 @@
  * Responsável por gerenciar o seletor de idiomas dinâmico.
  */
 
-// A função de ajuste de espaço é definida globalmente para ser chamada após o carregamento dinâmico
-(function configurarAjusteEspaco() {
-  let agendado = false;
-  let resizeTimer; // NOVO: Bloqueio de debounce
-
-  window.recalcularEspacoIdioma = function () {
-    var header = document.getElementById("global-header-container");
-    var wrapper = document.getElementById("language-dropdown-wrapper");
-
-    if (header && wrapper) {
-      var h = header.offsetHeight || 0; // LEITURA ISOLADA
-      var novaMargem = (h ? h + 12 : 24) + "px";
-
-      if (!agendado) {
-        window.requestAnimationFrame(function () {
-          wrapper.style.marginTop = novaMargem; // ESCRITA SEGURA NO FRAME
-          agendado = false;
-        });
-        agendado = true;
-      }
-    }
-  };
-
-  // Correção de Reflow: Evento de redimensionamento agora tem limite de disparo (100ms)
-  window.addEventListener("resize", function () {
-    clearTimeout(resizeTimer);
-    resizeTimer = setTimeout(window.recalcularEspacoIdioma, 100);
-  });
-})();
-
 // A lógica principal SÓ é executada após o evento de injeção ser disparado pelo global-scripts.js
 function langSelectorInit() {
   // Proteção: evita anexar handlers múltiplas vezes (causa toggle duplo)
   if (window._langSelectorInitialized) return;
   window._langSelectorInitialized = true;
-
-  // 1. Ajuste imediato do espaço, já que o elemento acabou de ser inserido
-  if (typeof window.recalcularEspacoIdioma === "function") {
-    window.recalcularEspacoIdioma();
-  }
 
   const button = document.getElementById("langButton");
   const menu = document.getElementById("langMenu");
