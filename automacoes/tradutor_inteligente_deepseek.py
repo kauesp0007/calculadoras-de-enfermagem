@@ -10,7 +10,7 @@ load_dotenv()
 
 CHAVE_API = os.getenv("DEEPSEEK_API_KEY")
 if not CHAVE_API:
-    raise ValueError("Chave da API DeepSeek não encontrada. Verifique se o arquivo .env existe e contém a DEEPSEEK_API_KEY.")
+    raise ValueError("Chave da API não encontrada. Verifique se o arquivo .env existe e contém a DEEPSEEK_API_KEY.")
 
 def preparar_html_para_traducao_texto(caminho_arquivo, idioma_alvo):
     """
@@ -95,34 +95,26 @@ def traduzir_html_com_deepseek(html_preparado, idioma_alvo):
     7. Retorne estritamente o código HTML puro, sem marcadores markdown (como ```html) e sem nenhum texto ou explicação adicional antes ou depois do código.
     """
 
-    url = "https://api.deepseek.com/v1/chat/completions"
-    headers = {
-        "Authorization": f"Bearer {CHAVE_API}",
-        "Content-Type": "application/json"
-    }
-    payload = {
-        "model": "deepseek-chat",
-        "messages": [
-            {"role": "system", "content": instrucoes_sistema},
-            {"role": "user", "content": html_preparado}
-        ],
-        "temperature": 0.2,
-        "max_tokens": 8192  # suficiente para páginas longas
-    }
-
     try:
-        response = requests.post(url, headers=headers, json=payload, timeout=120)
+        url = "https://api.deepseek.com/v1/chat/completions"
+        headers = {
+            "Authorization": f"Bearer {CHAVE_API}",
+            "Content-Type": "application/json"
+        }
+        payload = {
+            "model": "deepseek-chat",
+            "messages": [
+                {"role": "system", "content": instrucoes_sistema},
+                {"role": "user", "content": html_preparado}
+            ],
+            "temperature": 0.2
+        }
+        response = requests.post(url, headers=headers, json=payload)
         response.raise_for_status()
         data = response.json()
-        if "choices" in data and len(data["choices"]) > 0:
-            return data["choices"][0]["message"]["content"].strip()
-        else:
-            print("\n❌ Resposta da API não contém 'choices'.")
-            return None
-    except requests.exceptions.RequestException as e:
-        print(f"\n❌ Erro na comunicação com a API DeepSeek: {e}")
-        if hasattr(e, 'response') and e.response:
-            print(f"Detalhes: {e.response.text}")
+        return data["choices"][0]["message"]["content"].strip()
+    except Exception as e:
+        print(f"\n❌ Erro na comunicação com a API: {e}")
         return None
 
 if __name__ == "__main__":
@@ -138,10 +130,10 @@ if __name__ == "__main__":
     # =========================================================================
     
     # Adicione os arquivos que deseja traduzir na lista abaixo, separados por vírgula.
-    arquivos_originais = ["gotejamento.html"] 
+    arquivos_originais = ["index.html"] 
     
     # Adicione os idiomas alvo na lista abaixo, separados por vírgula.
-    idiomas_alvo = ["it", "de", "zh", "ja", "ko", "ru", "pl", "ar", "id", "sv", "tr", "uk", "vi"]  # Exemplo: francês, italiano, alemão, espanhol
+    idiomas_alvo = ["zh"]  # Exemplo: francês, italiano, alemão, espanhol
     
     # =========================================================================
 
@@ -156,7 +148,7 @@ if __name__ == "__main__":
                 print(f"{C_AZUL}[1/4]{RESET} Preparando rotas e estrutura do HTML...")
                 html_preparado = preparar_html_para_traducao_texto(arquivo_original, idioma_alvo)
                 
-                print(f"{C_AZUL}[2/4]{RESET} Enviando para o motor semântico DeepSeek...")
+                print(f"{C_AZUL}[2/4]{RESET} Enviando para o motor semântico Gemini...")
                 html_traduzido = traduzir_html_com_deepseek(html_preparado, idioma_alvo)
                 
                 if html_traduzido:
