@@ -24,9 +24,12 @@
 // Executar IMEDIATAMENTE para evitar flash de tamanho de fonte
 (function () {
   const savedFontSize = parseInt(localStorage.getItem("fontSize") || "1", 10);
-  const fontSizes = ["1em", "1.15em", "1.3em", "1.5em", "2em"];
-  const idx = Math.min(Math.max(savedFontSize, 1), fontSizes.length);
-  document.documentElement.style.fontSize = fontSizes[idx - 1];
+  // PREVENÇÃO DE CLS: Só reescreve o tamanho da fonte se o usuário realmente tiver alterado o padrão
+  if (savedFontSize !== 1) {
+    const fontSizes = ["1em", "1.15em", "1.3em", "1.5em", "2em"];
+    const idx = Math.min(Math.max(savedFontSize, 1), fontSizes.length);
+    document.documentElement.style.fontSize = fontSizes[idx - 1];
+  }
 })();
 // Registra o Service Worker
 "serviceWorker" in navigator && window.addEventListener("load", () => {
@@ -295,9 +298,10 @@ function initializeGlobalFunctions() {
     if (_w > 1024) {
       window.requestAnimationFrame(() => {
         const _b = document.getElementById("barraAcessibilidade");
-        _b && (_b.style.display = "flex");
+        // PREVENÇÃO REFLOW: Só escreve no DOM se o estado estiver errado
+        if (_b && _b.style.display !== "flex") _b.style.display = "flex";
         const _n = document.querySelector("nav.desktop-nav");
-        _n && (_n.style.display = "flex");
+        if (_n && _n.style.display !== "flex") _n.style.display = "flex";
       });
     }
   }
@@ -557,10 +561,14 @@ function initializeGlobalFunctions() {
   if (zTop) {
     let _ticking = false;
     window.addEventListener("scroll", () => {
-      const _lastScrollY = window.scrollY; // LEITURA ISOLADA
       if (!_ticking) {
         window.requestAnimationFrame(() => {
-          zTop.style.display = _lastScrollY > 200 ? "block" : "none"; // ESCRITA NO QUADRO
+          const _lastScrollY = window.scrollY; 
+          const newDisplay = _lastScrollY > 200 ? "block" : "none";
+          // PREVENÇÃO REFLOW: Só escreve se o estilo realmente for mudar
+          if (zTop.style.display !== newDisplay) {
+            zTop.style.display = newDisplay; 
+          }
           _ticking = false;
         });
         _ticking = true;
