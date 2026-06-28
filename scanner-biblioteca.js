@@ -4,6 +4,7 @@ const path = require("path");
 
 // IMPORTAÇÃO NOVA: Trazendo o motor de extração de vídeos como uma ferramenta do scanner
 const processarVideos = require("./gerarCapasVideo.js");
+const processarPDFs = require("./gerarCapasPDF.js");
 
 const BIBLIOTECA_JSON = "biblioteca.json";
 
@@ -145,6 +146,10 @@ async function executarScanner() {
   // GATILHO DE AUTOMAÇÃO: Logo após o scanner salvar o JSON, o motor de vídeos é acionado
   console.log("\n🔄 Iniciando o motor automático de vídeos...");
   await processarVideos();
+
+  // GATILHO DE AUTOMAÇÃO: Geração de capas para PDFs
+  console.log("\n🔄 Iniciando a geração de capas para PDFs...");
+  await processarPDFs();
 }
 
 executarScanner();
