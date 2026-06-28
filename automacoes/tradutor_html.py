@@ -1,20 +1,19 @@
-# automacoes/tradutor_html.py
+# automacoes/traductor_html.py
 
 import os
 import re
 import sys
 import time
+import json
 import datetime
 import subprocess
 from pathlib import Path
-from typing import List, Optional
+from typing import List, Optional, Dict
 
 from dotenv import load_dotenv
 from openai import OpenAI
+from openai import RateLimitError, APIError, APIConnectionError, Timeout
 
-# ============================================================
-# 1. CONFIGURAÇÃO DA API
-# ============================================================
 load_dotenv()
 DEEPSEEK_API_KEY = os.getenv("DEEPSEEK_API_KEY")
 
@@ -22,34 +21,27 @@ if not DEEPSEEK_API_KEY:
     print("❌ ERRO: DEEPSEEK_API_KEY não encontrada no arquivo .env")
     sys.exit(1)
 
-# Inicializa o cliente compatível com OpenAI (DeepSeek)
 client = OpenAI(
     api_key=DEEPSEEK_API_KEY,
-    base_url="https://api.deepseek.com/v1"
+    base_url="https://api.deepseek.com/v1",
+    timeout=30.0,
+    max_retries=3
 )
 
 # ============================================================
-# 2. PARÂMETROS EDITÁVEIS PELO USUÁRIO
+# PARÂMETROS EDITÁVEIS
 # ============================================================
-
-# --- LISTA DE ARQUIVOS HTML PARA TRADUZIR ---
-# Coloque aqui o(s) nome(s) do(s) arquivo(s) que deseja traduzir.
-# Exemplo: ["balancohidrico.html", "outra-pagina.html"]
 FILES_TO_TRANSLATE = [
     "balancohidrico.html",
-    # "outro-arquivo.html",  # descomente e adicione mais
+    # "outra-pagina.html",
 ]
 
-# --- LISTA DE IDIOMAS DESTINO ---
-# Use os códigos ISO 639-1 (ex: "hi", "zh", "ar", "ja", "es", "en", "fr", "de"...)
-# O script criará/sobrescreverá os arquivos nas pastas correspondentes.
 TARGET_LANGUAGES = [
-    "ru",   
-    
+    "ru",  
 ]
 
 # ============================================================
-# 3. MAPEAMENTO DE IDIOMAS PARA CÓDIGOS DE REGIÃO
+# MAPEAMENTO
 # ============================================================
 LANG_REGION_MAP = {
     "hi": "hi-IN",
@@ -73,43 +65,30 @@ LANG_REGION_MAP = {
     "uk": "uk-UA",
 }
 
-# ============================================================
-# 4. CONFIGURAÇÕES GLOBAIS
-# ============================================================
-ROOT_DIR = Path(__file__).parent.parent          # raiz do repositório
-AUTOMACOES_DIR = ROOT_DIR / "automacoes"         # onde este script está
+ROOT_DIR = Path(__file__).parent.parent
 LOG_FILE = ROOT_DIR / "relatorio_de_traducao.txt"
+PROGRESS_DIR = ROOT_DIR / "progresso_traducao"
+PROGRESS_DIR.mkdir(exist_ok=True)
 
-# Comando de build (Tailwind + Service Worker)
 BUILD_COMMAND = (
-    '.\node_modules\.bin\tailwindcss -i ./src/input.css -o ./public/output.css --minify ; node gerar-sw.js ;'
+    '.\\node_modules\\.bin\\tailwindcss -i ./src/input.css -o ./public/output.css --minify ; '
     'node gerar-sw.js'
 )
 
-# Limite de caracteres para enviar o HTML inteiro sem chunking
-# DeepSeek tem 1M de contexto, mas definimos um limite seguro para ativar o fallback
-CHAR_LIMIT_FOR_FULL = 150000
-
 # ============================================================
-# 5. FUNÇÕES AUXILIARES
+# FUNÇÕES AUXILIARES
 # ============================================================
-
 def log_translation(filename: str, lang: str, status: str = "SUCESSO", details: str = ""):
-    """Registra cada tradução no arquivo de relatório (formato organizado)."""
     now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     entry = f"[{now}] - Arquivo: {filename} | Idioma: {lang} | Status: {status}"
     if details:
         entry += f" | Detalhes: {details}"
     entry += "\n"
-
     with open(LOG_FILE, "a", encoding="utf-8") as f:
         f.write(entry)
-
     print(f"📝 LOG: {entry.strip()}")
 
-
 def run_build():
-    """Executa os comandos de build (Tailwind + SW) após cada tradução."""
     print("⚙️  Executando build (Tailwind CSS e Service Worker)...")
     try:
         subprocess.run(
@@ -126,32 +105,63 @@ def run_build():
         print(f"STDERR: {e.stderr}")
         raise
 
+def get_progress_file(filename: str, lang: str) -> Path:
+    """Retorna o caminho do arquivo de progresso para uma tradução específica."""
+    return PROGRESS_DIR / f"{filename.replace('.html', '')}_{lang}.progress"
 
-def split_html_into_chunks(html: str, max_chars: int = 100000) -> List[str]:
+def save_progress(filename: str, lang: str, chunk_index: int, total_chunks: int, translated_chunks: List[str]):
+    """Salva o progresso da tradução de um arquivo."""
+    progress_file = get_progress_file(filename, lang)
+    data = {
+        "filename": filename,
+        "lang": lang,
+        "chunk_index": chunk_index,
+        "total_chunks": total_chunks,
+        "translated_chunks": translated_chunks
+    }
+    with open(progress_file, "w", encoding="utf-8") as f:
+        json.dump(data, f, ensure_ascii=False, indent=2)
+
+def load_progress(filename: str, lang: str) -> Optional[Dict]:
+    """Carrega o progresso salvo, se existir."""
+    progress_file = get_progress_file(filename, lang)
+    if progress_file.exists():
+        try:
+            with open(progress_file, "r", encoding="utf-8") as f:
+                data = json.load(f)
+            return data
+        except:
+            return None
+    return None
+
+def clear_progress(filename: str, lang: str):
+    """Remove o arquivo de progresso ao finalizar com sucesso."""
+    progress_file = get_progress_file(filename, lang)
+    if progress_file.exists():
+        progress_file.unlink()
+
+def split_html_into_chunks(html: str, max_chars: int = 5000) -> List[str]:
     """
-    Divide o HTML em partes seguras (sem cortar tags) para tradução parcial.
-    Retorna uma lista de chunks, cada um sendo um HTML parcialmente válido.
+    Divide o HTML em pedaços de, no máximo, max_chars caracteres,
+    respeitando o fechamento de tags para não quebrar a estrutura.
+    Agora com chunks menores (5.000 caracteres).
     """
     if len(html) <= max_chars:
         return [html]
 
-    # Tenta separar <head> e <body>
     head_end = html.find('</head>')
     if head_end == -1:
         head = ''
         body = html
     else:
-        head = html[:head_end + 7]  # inclui </head>
+        head = html[:head_end + 7]
         body = html[head_end + 7:]
 
     chunks = []
-
-    # Se o body for muito grande, divide em pedaços respeitando fechamento de tags
     if len(body) > max_chars:
         start = 0
         while start < len(body):
             end = min(start + max_chars, len(body))
-            # Tenta quebrar em um '>' ou '\n' para não cortar tags no meio
             if end < len(body):
                 end_candidate = body.rfind('>', start, end)
                 if end_candidate != -1:
@@ -167,27 +177,49 @@ def split_html_into_chunks(html: str, max_chars: int = 100000) -> List[str]:
     else:
         chunks.append(body)
 
-    # Monta os chunks com cabeçalho e rodapé para que o tradutor tenha contexto
     if len(chunks) == 1:
         return [head + chunks[0] + '</html>']
     else:
         first_chunk = head + chunks[0]
         last_chunk = chunks[-1] + '</html>'
         middle_chunks = chunks[1:-1]
-        # Adiciona marcadores comentados para ajudar o modelo a entender a ordem
         result = [first_chunk]
         for i, chunk in enumerate(middle_chunks, start=2):
-            result.append(
-                f"<!-- INÍCIO DO CHUNK {i} DE {len(chunks)} -->\n{chunk}\n<!-- FIM DO CHUNK {i} -->"
-            )
+            result.append(f"<!-- INÍCIO DO CHUNK {i} DE {len(chunks)} -->\n{chunk}\n<!-- FIM DO CHUNK {i} -->")
         result.append(last_chunk)
         return result
 
+def apply_post_translation_fixes(html_content: str, target_lang: str) -> str:
+    """Aplica as correções pós-tradução (caminhos e footer)."""
+    relative_files = [
+        "global-scripts.js",
+        "global-body-elements.html",
+        "menu-global.html",
+        "footer.html"
+    ]
+    for file in relative_files:
+        pattern = rf'(["\'])/{re.escape(file)}(["\'])'
+        replacement = rf'\1{file}\2'
+        html_content = re.sub(pattern, replacement, html_content)
 
-def translate_chunk(chunk: str, target_lang: str, lang_region: str, chunk_info: str = "") -> str:
-    """
-    Traduz um único chunk de HTML utilizando a API DeepSeek.
-    """
+    footer_pattern = r'<div\s+id="footer-placeholder"\s*>\s*</div>\s*<script>.*?fetch\s*\(\s*["\']/footer\.html["\']\s*\).*?carregarTraducoes\s*\(.*?\).*?</script>'
+    new_footer_block = '''<div id="footer-placeholder"></div>
+  <script>
+  document.addEventListener("DOMContentLoaded", () => {
+    setTimeout(() => {
+      fetch("footer.html")
+        .then((response) => response.text())
+        .then((data) => {
+          document.getElementById("footer-placeholder").innerHTML = data;
+        });
+    }, 150);
+  });
+</script>'''
+    html_content = re.sub(footer_pattern, new_footer_block, html_content, flags=re.DOTALL | re.IGNORECASE)
+    return html_content
+
+def translate_chunk_with_retry(chunk: str, target_lang: str, lang_region: str, chunk_info: str = "", max_retries: int = 5) -> str:
+    """Traduz um chunk com retry e backoff exponencial."""
     system_prompt = f"""
     Você é um tradutor profissional especializado em localização de sites de enfermagem e saúde.
     Você deve traduzir o código HTML a seguir do português brasileiro para o idioma: {target_lang} ({lang_region}).
@@ -202,130 +234,132 @@ def translate_chunk(chunk: str, target_lang: str, lang_region: str, chunk_info: 
     7. Retorne estritamente o código HTML puro, sem marcadores markdown (como ```html) e sem nenhum texto ou explicação adicional antes ou depois do código.
     8. No <html lang="pt-BR"> no inicio do html troque por <html lang="{lang_region}">. Além disso, se o idioma for árabe (ar), adicione dir="rtl" na tag <html>.
 
-    **REGRAS ADICIONAIS ESPECÍFICAS PARA CAMINHOS DE ARQUIVOS:**
-
-    A) Para os seguintes arquivos modulares, **ajuste o caminho para relativo** (sem barra inicial), pois eles estão dentro da pasta do idioma e já foram traduzidos:
-       - global-scripts.js  →  deve virar "global-scripts.js" (sem /)
-       - global-body-elements.html  →  deve virar "global-body-elements.html" (sem /)
-       - menu-global.html  →  deve virar "menu-global.html" (sem /)
-       - footer.html  →  deve virar "footer.html" (sem /)
-
-    B) Para os seguintes arquivos, **mantenha o caminho absoluto** (com /), pois eles ficam na raiz:
-       - /global-styles.css
-       - /lang-selector.js
-
-    C) **Para os demais recursos** (imagens, fontes, outros scripts, etc.), mantenha o caminho exatamente como está no HTML original.
-
-    D) **SUBSTITUIÇÃO DO BLOCO DE FOOTER** (regra específica para os 18 idiomas):
-       - No HTML original (em português), existe um bloco como este:
-         <div id="footer-placeholder"></div>
-         <script>
-           document.addEventListener("DOMContentLoaded", () => {
-             setTimeout(() => {
-               fetch("/footer.html")
-                 .then((response) => response.text())
-                 .then((data) => {
-                   document.getElementById("footer-placeholder").innerHTML = data;
-                   carregarTraducoes("pt", "footer.json");
-                   carregarTraducoes("pt", "cookies.json");
-                 });
-             }, 150);
-           });
-         </script>
-       - **Substitua este bloco inteiro** pelo seguinte bloco (padrão para os 18 idiomas), **sem duplicar** e sem adicionar mais nada:
-         <div id="footer-placeholder"></div>
-         <script>
-         document.addEventListener("DOMContentLoaded", () => {
-           setTimeout(() => {
-             fetch("footer.html")
-               .then((response) => response.text())
-               .then((data) => {
-                 document.getElementById("footer-placeholder").innerHTML = data;
-               });
-           }, 150);
-         });
-         </script>
-
-       - Atenção: não mantenha o código antigo; substitua completamente. Apenas este bloco deve ser alterado; todo o restante do HTML permanece intacto.
-
+    Atenção: Preserve todos os IDs, classes, caminhos de arquivos, scripts e estilos CSS intactos. Traduza APENAS o texto visível ao usuário e os metadados de SEO.
     {chunk_info}
     """
     user_prompt = f"Traduza o seguinte HTML para {target_lang}:\n\n{chunk}"
 
-    try:
-        response = client.chat.completions.create(
-            model="deepseek-chat",
-            messages=[
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": user_prompt}
-            ],
-            temperature=0.3,
-            max_tokens=8192,
-            response_format={"type": "text"}
-        )
-        translated = response.choices[0].message.content
-        return translated
-    except Exception as e:
-        print(f"❌ Erro na API para chunk: {e}")
-        raise
+    for attempt in range(max_retries):
+        try:
+            # Pausa progressiva: 3s, 6s, 12s, 24s, 48s...
+            if attempt > 0:
+                wait = 3 * (2 ** (attempt - 1))
+                print(f"   ⏳ Aguardando {wait}s antes da tentativa {attempt+1}...")
+                time.sleep(wait)
 
+            response = client.chat.completions.create(
+                model="deepseek-chat",
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": user_prompt}
+                ],
+                temperature=0.3,
+                max_tokens=8192,
+                response_format={"type": "text"}
+            )
+            translated = response.choices[0].message.content
+
+            # Verifica se o chunk está completo (contém </html>)
+            if '<html' in translated and '</html>' in translated:
+                translated = apply_post_translation_fixes(translated, target_lang)
+                return translated
+            else:
+                print(f"   ⚠️  Chunk incompleto (faltando </html>). Tentativa {attempt+1} de {max_retries}.")
+                if attempt == max_retries - 1:
+                    print("   ❌ Chunk ainda incompleto após todas as tentativas. Retornando parcial.")
+                    return translated
+
+        except (RateLimitError, APIError, APIConnectionError, Timeout) as e:
+            print(f"   ⚠️  Erro de API: {e}. Tentativa {attempt+1} de {max_retries}.")
+            if attempt == max_retries - 1:
+                raise  # se for a última, propaga a exceção
+            continue
+        except Exception as e:
+            print(f"   ❌ Erro inesperado: {e}. Tentativa {attempt+1} de {max_retries}.")
+            if attempt == max_retries - 1:
+                raise
+            continue
+
+    raise RuntimeError("Falha ao traduzir chunk após múltiplas tentativas.")
 
 def translate_html_full(content: str, target_lang: str, filename: str) -> str:
-    """
-    Tenta traduzir o HTML inteiro de uma só vez.
-    Se o conteúdo for muito grande, divide em chunks e traduz separadamente.
-    """
+    """Traduz o HTML completo, usando chunking e checkpoint."""
     lang_region = LANG_REGION_MAP.get(target_lang, f"{target_lang}-{target_lang.upper()}")
 
-    # Se for pequeno, traduz inteiro
-    if len(content) <= CHAR_LIMIT_FOR_FULL:
-        return translate_chunk(content, target_lang, lang_region, chunk_info="Este é o documento HTML completo.")
+    # Verifica se há progresso salvo
+    progress = load_progress(filename, target_lang)
+    if progress:
+        print(f"🔄 Retomando tradução de {filename} para {target_lang} a partir do chunk {progress['chunk_index']+1}...")
+        translated_chunks = progress["translated_chunks"]
+        start_index = progress["chunk_index"]
+    else:
+        # Divide em chunks
+        chunks = split_html_into_chunks(content, max_chars=5000)
+        total_chunks = len(chunks)
+        translated_chunks = []
+        start_index = 0
+        # Salva progresso inicial
+        save_progress(filename, target_lang, 0, total_chunks, [])
 
-    # Caso contrário, divide e traduz por partes
-    print(f"⚠️  HTML grande ({len(content)} caracteres). Dividindo em chunks...")
-    chunks = split_html_into_chunks(content, max_chars=80000)
-    translated_chunks = []
+    # Se já havia progresso, recupera os chunks originais (não temos como salvar os chunks originais,
+    # então vamos recriar a lista)
+    if 'chunks' not in locals():
+        chunks = split_html_into_chunks(content, max_chars=5000)
+        total_chunks = len(chunks)
 
-    for i, chunk in enumerate(chunks, start=1):
-        print(f"   Traduzindo chunk {i}/{len(chunks)}...")
-        chunk_info = f"Este é o chunk {i} de {len(chunks)} do documento HTML completo."
-        if i == 1:
+    for i in range(start_index, len(chunks)):
+        chunk = chunks[i]
+        print(f"   Traduzindo chunk {i+1}/{len(chunks)} (tamanho: {len(chunk)} caracteres)...")
+        chunk_info = f"Este é o chunk {i+1} de {len(chunks)} do documento HTML completo."
+        if i == 0:
             chunk_info += " Este chunk contém o <head> e o início do <body>."
-        elif i == len(chunks):
+        elif i == len(chunks)-1:
             chunk_info += " Este chunk contém o final do <body> e o fechamento </html>."
         else:
             chunk_info += " Este chunk é uma parte intermediária do <body>."
 
-        translated = translate_chunk(chunk, target_lang, lang_region, chunk_info)
-        translated_chunks.append(translated)
-        time.sleep(1)  # pequena pausa para evitar rate limit
+        try:
+            translated = translate_chunk_with_retry(chunk, target_lang, lang_region, chunk_info)
+            translated_chunks.append(translated)
+            # Salva progresso após cada chunk
+            save_progress(filename, target_lang, i+1, len(chunks), translated_chunks)
+            print(f"   ✅ Chunk {i+1} traduzido. Progresso salvo.")
+            # Pausa adicional entre chunks para evitar rate limit
+            time.sleep(2)
+        except Exception as e:
+            print(f"   ❌ Falha crítica no chunk {i+1}: {e}")
+            # Salva o progresso até o último chunk bem-sucedido
+            save_progress(filename, target_lang, i, len(chunks), translated_chunks)
+            raise
 
-    # Remove comentários de marcação de chunk que o modelo possa ter mantido
-    # e concatena tudo
+    # Junta todos os chunks
     final_html = "".join(translated_chunks)
-    # Limpa possíveis marcadores duplicados
+    # Remove marcadores de chunk
     final_html = re.sub(r'<!-- INÍCIO DO CHUNK.*?-->', '', final_html)
     final_html = re.sub(r'<!-- FIM DO CHUNK.*?-->', '', final_html)
+
+    # Remove marcadores que possam ter ficado
+    final_html = re.sub(r'<!-- INÍCIO DO CHUNK \d+ DE \d+ -->', '', final_html)
+    final_html = re.sub(r'<!-- FIM DO CHUNK \d+ -->', '', final_html)
+
+    # Limpa progresso após sucesso
+    clear_progress(filename, target_lang)
     return final_html
 
-
+# ============================================================
+# PROCESSO PRINCIPAL
+# ============================================================
 def process_translations():
-    """Função principal que orquestra todo o processo."""
     print("=" * 70)
     print("🚀 INICIANDO PROCESSO DE TRADUÇÃO AUTOMATIZADO")
     print(f"📂 Arquivos a traduzir: {FILES_TO_TRANSLATE}")
     print(f"🌍 Idiomas destino: {TARGET_LANGUAGES}")
     print("=" * 70)
 
-    if not FILES_TO_TRANSLATE:
-        print("❌ Nenhum arquivo definido em FILES_TO_TRANSLATE. Encerrando.")
+    if not FILES_TO_TRANSLATE or not TARGET_LANGUAGES:
+        print("❌ Lista de arquivos ou idiomas vazia. Encerrando.")
         return
 
-    if not TARGET_LANGUAGES:
-        print("❌ Nenhum idioma definido em TARGET_LANGUAGES. Encerrando.")
-        return
-
-    # Verifica se o relatório existe, se não, cria com cabeçalho
     if not LOG_FILE.exists():
         with open(LOG_FILE, "w", encoding="utf-8") as f:
             f.write("=== RELATÓRIO DE TRADUÇÕES ===\n")
@@ -335,7 +369,6 @@ def process_translations():
     for lang in TARGET_LANGUAGES:
         lang_folder = ROOT_DIR / lang
         lang_folder.mkdir(exist_ok=True)
-
         print(f"\n🌐 --- Processando idioma: {lang} ---")
 
         for filename in FILES_TO_TRANSLATE:
@@ -352,7 +385,6 @@ def process_translations():
 
                 translated_html = translate_html_full(html_content, lang, filename)
 
-                # Salva na pasta do idioma (sobrescreve se já existir)
                 target_path = lang_folder / filename
                 with open(target_path, "w", encoding="utf-8") as f:
                     f.write(translated_html)
@@ -360,31 +392,28 @@ def process_translations():
                 print(f"✅ Arquivo salvo em: {target_path}")
                 log_translation(filename, lang, "SUCESSO")
 
-                # ------------------------------------------------
-                # AGORA: executa o build APÓS CADA ARQUIVO traduzido
-                # ------------------------------------------------
+                # Build após cada arquivo
                 print(f"⚙️  Executando build após tradução de {filename} para {lang}...")
                 try:
                     run_build()
-                    log_translation(filename, lang, "BUILD_SUCESSO", "Build executado com sucesso")
+                    log_translation("BUILD", lang, "SUCESSO", f"Build executado após {filename}")
                 except Exception as e:
                     print(f"❌ Build falhou para {filename}->{lang}: {e}")
-                    log_translation(filename, lang, "BUILD_FALHA", str(e))
-                    # Interrompe o processo para evitar inconsistências
-                    print("🚨 Build falhou. Interrompendo processo.")
+                    log_translation("BUILD", lang, "FALHA", str(e))
+                    print("🚨 Build falhou. Interrompendo processo para evitar inconsistências.")
                     sys.exit(1)
 
             except Exception as e:
                 error_msg = str(e)
                 print(f"❌ Falha ao traduzir {filename} para {lang}: {error_msg}")
                 log_translation(filename, lang, "FALHA", error_msg)
+                # Não interrompe o processo; apenas continua para o próximo arquivo
                 continue
 
     print("\n" + "=" * 70)
     print("🎉 PROCESSO DE TRADUÇÃO CONCLUÍDO COM SUCESSO!")
     print(f"📋 Relatório completo salvo em: {LOG_FILE}")
     print("=" * 70)
-
 
 if __name__ == "__main__":
     process_translations()
