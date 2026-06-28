@@ -650,7 +650,7 @@
         function obterIntervencoesNIC(diag) {
           if (!bancoNic || bancoNic.length === 0) return [];
 
-          // 1. Extrair palavras-chave do diagnóstico e domínio (ignorando preposições comuns)
+          // 1. Extrair palavras-chave do diagnóstico e da definição (ignorando preposições comuns)
           const ignorar = ["de", "para", "com", "sem", "o", "a", "os", "as", "e", "ou", "em", "no", "na", "nos", "nas", "por", "pelo", "pela", "risco", "disposição", "melhorada", "melhorado", "prejudicada", "prejudicado"];
           const palavrasChave = (diag.diagnostico || "")
             .toLowerCase()
@@ -658,10 +658,11 @@
             .split(" ")
             .filter((p) => p.length > 3 && !ignorar.includes(p));
 
-          if (diag.dominio) {
+          if (diag.definicao) {
             palavrasChave.push(
-              ...diag.dominio
+              ...diag.definicao
                 .toLowerCase()
+                .replace(/[.,]/g, "")
                 .split(" ")
                 .filter((p) => p.length > 3 && !ignorar.includes(p)),
             );
