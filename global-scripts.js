@@ -485,23 +485,25 @@ function initializeGlobalFunctions() {
       E("Configurações redefinidas para o padrão");
     };
 
-  // === RESTAURA PREFERÊNCIAS IMEDIATAMENTE (evita flicker antes do LCP) ===
-  const _savedFontSize = parseInt(localStorage.getItem("fontSize") || "1", 10);
-  const _savedLineHeight = parseInt(localStorage.getItem("lineHeight") || "1", 10);
-  const _savedLetterSpacing = parseInt(localStorage.getItem("letterSpacing") || "1", 10);
-  const _savedReadingSpeed = parseInt(localStorage.getItem("readingSpeed") || "1", 10);
-  applyFontSize(_savedFontSize, !1);
-  applyLineHeight(_savedLineHeight, !1);
-  applyLetterSpacing(_savedLetterSpacing, !1);
-  applyReadingSpeed(_savedReadingSpeed, !1);
-  "true" === localStorage.getItem("highContrast") && o.classList.add("contraste-alto");
-  "true" === localStorage.getItem("darkMode") && o.classList.add("dark-mode");
-  "true" === localStorage.getItem("dyslexiaFont") && o.classList.add("fonte-dislexia");
-  S(localStorage.getItem("focusColor") || "yellow", !1);
+  // === RESTAURA PREFERÊNCIAS DE ACESSIBILIDADE (síncrono, antes do primeiro paint) ===
+  const R = () => {
+    const savedFontSize = parseInt(localStorage.getItem("fontSize") || "1", 10);
+    const savedLineHeight = parseInt(localStorage.getItem("lineHeight") || "1", 10);
+    const savedLetterSpacing = parseInt(localStorage.getItem("letterSpacing") || "1", 10);
+    const savedReadingSpeed = parseInt(localStorage.getItem("readingSpeed") || "1", 10);
 
-  // === NÃO-CRÍTICO: adiado 150ms para liberar a thread principal para o LCP ===
-  setTimeout(() => {
+    applyFontSize(savedFontSize, !1);
+    applyLineHeight(savedLineHeight, !1);
+    applyLetterSpacing(savedLetterSpacing, !1);
+    applyReadingSpeed(savedReadingSpeed, !1);
 
+    "true" === localStorage.getItem("highContrast") && o.classList.add("contraste-alto");
+    "true" === localStorage.getItem("darkMode") && o.classList.add("dark-mode");
+    "true" === localStorage.getItem("dyslexiaFont") && o.classList.add("fonte-dislexia");
+
+    S(localStorage.getItem("focusColor") || "yellow", !1);
+  };
+  R();
   [{
     ids: ["btnAlternarTamanhoFonte", "btnAlternarTamanhoFontePWA"],
     action: L
@@ -581,8 +583,6 @@ function initializeGlobalFunctions() {
     zTop.addEventListener("click", () => window.scrollTo({ top: 0, behavior: "smooth" }));
   }
   inicializarTooltips();
-
-  }, 150); // fim do setTimeout não-crítico
 }
 
 
