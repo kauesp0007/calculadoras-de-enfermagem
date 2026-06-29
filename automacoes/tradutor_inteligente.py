@@ -146,7 +146,29 @@ def preparar_html_para_traducao_texto(caminho_arquivo, idioma_alvo):
     # ==========================================
     # 2. ATUALIZAR A TAG LANG HTML
     # ==========================================
-    html = re.sub(r'<html\s+lang="pt-BR">', f'<html lang="{idioma_alvo}">', html, flags=re.IGNORECASE)
+    mapa_locales = {
+        "en": "en-US",
+        "es": "es-ES",
+        "fr": "fr-FR",
+        "it": "it-IT",
+        "de": "de-DE",
+        "hi": "hi-IN",
+        "zh": "zh-CN",
+        "ja": "ja-JP",
+        "ru": "ru-RU",
+        "ko": "ko-KR",
+        "tr": "tr-TR",
+        "nl": "nl-NL",
+        "pl": "pl-PL",
+        "sv": "sv-SE",
+        "id": "id-ID",
+        "vi": "vi-VN",
+        "uk": "uk-UA",
+        "ar": "ar-SA"
+    }
+    
+    locale_completo = mapa_locales.get(idioma_alvo, idioma_alvo)
+    html = re.sub(r'<html\s+lang="pt-BR">', f'<html lang="{locale_completo}">', html, flags=re.IGNORECASE)
 
     # ==========================================
     # 3. ATUALIZAR LINK CANONICAL CIRURGICAMENTE
@@ -324,8 +346,8 @@ if __name__ == "__main__":
     # 🟢 ÁREA DE CONFIGURAÇÃO DIÁRIA (ALTERE APENAS AQUI) 🟢
     # =========================================================================
     
-    arquivos_originais = ["balancohidrico.html"] 
-    idiomas_alvo = ["tr", "nl", "pl", "sv", "id", "vi", "uk"] 
+    arquivos_originais = ["braden.html"] 
+    idiomas_alvo = ["it"] 
     
     # =========================================================================
 
