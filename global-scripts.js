@@ -165,16 +165,19 @@ function initializeNavigationMenu() {
     t = document.getElementById("menuOverlay"),
     n = document.getElementById("closeOffCanvasMenu") || document.getElementById("closeMenuButton"),
     l = () => {
-      o && (o.classList.add("is-open"), o.classList.remove("-translate-x-full")), t && (t.style.display = "block", t.classList.add("is-open"))
+      o && (o.classList.add("is-open"), o.classList.remove("-translate-x-full")), t && (t.style.display = "block", t.classList.add("is-open")), e && e.setAttribute("aria-expanded", "true")
     },
     s = () => {
-      o && (o.classList.remove("is-open"), o.classList.add("-translate-x-full")), t && (t.style.display = "none", t.classList.remove("is-open"))
+      o && (o.classList.remove("is-open"), o.classList.add("-translate-x-full")), t && (t.style.display = "none", t.classList.remove("is-open")), e && e.setAttribute("aria-expanded", "false")
     };
   e?.addEventListener("click", l), t?.addEventListener("click", s), n?.addEventListener("click", s), o?.querySelectorAll(".has-submenu > a, .has-submenu > button")?.forEach(e => {
     e.addEventListener("click", o => {
       o.preventDefault();
       const t = e.nextElementSibling;
-      t && t.classList.contains("submenu") && t.classList.toggle("open")
+      if (t && t.classList.contains("submenu")) {
+        const isOpen = t.classList.toggle("open");
+        e.setAttribute("aria-expanded", isOpen);
+      }
     })
   })
 }

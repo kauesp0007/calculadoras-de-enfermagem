@@ -151,14 +151,3 @@ class AccessibilityManager {
 }
 
 new AccessibilityManager();
-
-// --- BOTÃO LIBRAS ---
-const librasBtn = document.getElementById('libras-btn');
-if(librasBtn) {
-    librasBtn.addEventListener('click', () => {
-        const vw_widget = document.querySelector('[vw-access-button]');
-        if (vw_widget) {
-            vw_widget.click();
-        }
-    });
-}
