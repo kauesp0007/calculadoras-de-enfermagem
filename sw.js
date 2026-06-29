@@ -1,4 +1,4 @@
-const CACHE_VERSION = "20260629-171103";
+const CACHE_VERSION = "20260629-191356";
 const CACHE_NAME = `calculadoras-enfermagem-cache-${CACHE_VERSION}`;
 
 // O SCRIPT DE BUILD VAI INJETAR A LISTA DE ARQUIVOS AQUI
@@ -197,6 +197,28 @@ const urlsToCache = [
   'vi/global-styles.css',
   'vi/lang-selector.js',
   'watch-images.js',
+  'website/css/bootstrap-grid.css',
+  'website/css/bootstrap-grid.min.css',
+  'website/css/bootstrap-grid.rtl.css',
+  'website/css/bootstrap-grid.rtl.min.css',
+  'website/css/bootstrap-reboot.css',
+  'website/css/bootstrap-reboot.min.css',
+  'website/css/bootstrap-reboot.rtl.css',
+  'website/css/bootstrap-reboot.rtl.min.css',
+  'website/css/bootstrap-utilities.css',
+  'website/css/bootstrap-utilities.min.css',
+  'website/css/bootstrap-utilities.rtl.css',
+  'website/css/bootstrap-utilities.rtl.min.css',
+  'website/css/bootstrap.css',
+  'website/css/bootstrap.min.css',
+  'website/css/bootstrap.rtl.css',
+  'website/css/bootstrap.rtl.min.css',
+  'website/js/bootstrap.bundle.js',
+  'website/js/bootstrap.bundle.min.js',
+  'website/js/bootstrap.esm.js',
+  'website/js/bootstrap.esm.min.js',
+  'website/js/bootstrap.js',
+  'website/js/bootstrap.min.js',
   'zh/favicon.ico',
   'zh/global-scripts.js',
   'zh/global-styles.css',
