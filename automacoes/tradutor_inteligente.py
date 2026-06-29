@@ -6,6 +6,7 @@ import deepl
 import re
 import requests
 import json
+import time
 
 # Carrega a chave do arquivo .env silenciosamente
 load_dotenv()
@@ -324,7 +325,7 @@ if __name__ == "__main__":
     # =========================================================================
     
     arquivos_originais = ["balancohidrico.html"] 
-    idiomas_alvo = ["ko"] 
+    idiomas_alvo = ["tr", "nl", "pl", "sv", "id", "vi", "uk"] 
     
     # =========================================================================
 
@@ -380,6 +381,16 @@ if __name__ == "__main__":
                         print(f"{C_AMARELO}⚠️ Aviso: Erro ao escrever o log: {e}{RESET}")
 
                     print(f"\n{C_VERDE}🚀 CICLO COMPLETO FINALIZADO PARA '{arquivo_original}' EM '{idioma_alvo}'!{RESET}")
+                    
+                    # === INÍCIO DA PAUSA DE SEGURANÇA (RATE LIMIT) ===
+                    # Verifica se este é o último idioma do último arquivo para não esperar à toa no final
+                    is_last_file = (arquivo_original == arquivos_originais[-1])
+                    is_last_lang = (idioma_alvo == idiomas_alvo[-1])
+                    
+                    if not (is_last_file and is_last_lang):
+                        print(f"\n{C_AMARELO}⏳ Pausa de segurança: Aguardando 60 segundos para evitar bloqueios da API...{RESET}")
+                        time.sleep(60)
+                    # === FIM DA PAUSA DE SEGURANÇA ===
             else:
                 print(f"\n{C_AMARELO}Atenção: O arquivo '{arquivo_original}' não foi encontrado na raiz.{RESET}")
 
