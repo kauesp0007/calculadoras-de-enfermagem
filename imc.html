@@ -441,7 +441,107 @@
 <script src="/lang-selector.js" defer=""></script>
 
   <!-- Script específico da página -->
-  
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+
+      /* BLOQUEIO DE SCROLL NOS INPUTS NUMÉRICOS
+       * Evita alteração acidental de valores ao rolar a página com o mouse sobre o input.
+       */
+      document.querySelectorAll('input[type=number]').forEach(input => {
+        input.addEventListener('wheel', function(e) {
+          e.preventDefault();
+          this.blur();
+        });
+      });
+
+      const resultadoDiv = document.getElementById("resultado");
+      const btnCalcular = document.getElementById("btnCalcular");
+      const btnLimpar = document.getElementById("btnLimpar");
+
+      function calcularIMC() {
+        const peso = parseFloat(document.getElementById("peso").value);
+        const altura = parseFloat(document.getElementById("altura").value);
+
+        // Limpa o conteúdo e classes anteriores
+        resultadoDiv.innerHTML = "";
+        resultadoDiv.className = "resultado-quadro hidden";
+
+        // Validação de entrada
+        if (isNaN(peso) || isNaN(altura) || peso <= 0 || altura <= 0) {
+          resultadoDiv.innerHTML = `<p>⚠️ <strong class="text-red-600">Por favor, insira valores numéricos válidos maiores que zero para peso e altura.</strong></p>`;
+          resultadoDiv.classList.remove("hidden");
+          resultadoDiv.classList.add("bg-danger-red");
+          return;
+        }
+
+        const imc = peso / (altura * altura);
+        let classificacao = "";
+        let conduta = "";
+        let resultadoBgClass = "";
+
+        if (imc < 18.5) {
+          classificacao = "Abaixo do peso";
+          conduta = "Risco de desnutrição. Recomenda-se avaliação e acompanhamento nutricional.";
+          resultadoBgClass = "bg-danger-red";
+        } else if (imc >= 18.5 && imc < 24.9) {
+          classificacao = "Peso normal";
+          conduta = "Mantenha hábitos de vida saudáveis. Bom estado nutricional.";
+          resultadoBgClass = "bg-success-green";
+        } else if (imc >= 25 && imc < 29.9) {
+          classificacao = "Sobrepeso";
+          conduta = "Atenção para mudanças no estilo de vida e alimentação. Pode ser recomendada uma avaliação nutricional.";
+          resultadoBgClass = "bg-info-orange-light";
+        } else {
+          // Obesidade
+          conduta = "Intervenção e acompanhamento multidisciplinar necessários. Alto risco de comorbidades graves.";
+          resultadoBgClass = "bg-danger-red";
+
+          if (imc >= 30 && imc < 34.9) {
+            classificacao = "Obesidade Grau I";
+          } else if (imc >= 35 && imc < 39.9) {
+            classificacao = "Obesidade Grau II";
+          } else {
+            classificacao = "Obesidade Grau III (mórbida)";
+          }
+        }
+
+        // Exibe o resultado formatado
+        resultadoDiv.innerHTML = `
+          <table class="w-full">
+            <tbody>
+              <tr>
+                <td class="font-bold pr-2">IMC Calculado:</td>
+                <td>${imc.toFixed(2)} <abbr title="quilogramas por metro quadrado">kg/m²</abbr></td>
+              </tr>
+              <tr>
+                <td class="font-bold pr-2">Classificação:</td>
+                <td>${classificacao}</td>
+              </tr>
+              <tr>
+                <td class="font-bold pr-2">Conduta de Enfermagem:</td>
+                <td>${conduta}</td>
+              </tr>
+            </tbody>
+          </table>
+        `;
+        resultadoDiv.classList.remove("hidden");
+        resultadoDiv.classList.add(resultadoBgClass);
+
+      }
+
+      function limparCampos() {
+        document.getElementById("peso").value = "";
+        document.getElementById("altura").value = "";
+        resultadoDiv.innerHTML = "";
+        resultadoDiv.className = "resultado-quadro hidden";
+      }
+
+      // Anexa os event listeners
+      btnCalcular?.addEventListener("click", calcularIMC);
+      btnLimpar?.addEventListener("click", limparCampos);
+    });
+  </script>
+
 </section>
 
 <div id="footer-placeholder"></div>
