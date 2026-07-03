@@ -130,8 +130,8 @@ def preparar_html_para_traducao_texto(caminho_arquivo, idioma_alvo):
         'href="./_language_selector.html"': 'href="/_language_selector.html"',
         'href="manifest.json"': 'href="/manifest.json"',
         'src="ce-calculadora-padrao.js"': 'src="/ce-calculadora-padrao.js"',
-        'src="/global-scripts.js"': 'src="/global-scripts.js"',
-        'src=".global-scripts.js"': 'src="/global-scripts.js"',
+        'src="/global-scripts.js"': 'src="global-scripts.js"',
+        'src="./global-scripts.js"': 'src="global-scripts.js"',
         'href="/global-body-elements.html"': 'href="global-body-elements.html"',
         'href="./global-body-elements.html"': 'href="global-body-elements.html"',
         'href="/menu-global.html"': 'href="menu-global.html"',
@@ -207,50 +207,7 @@ def preparar_html_para_traducao_texto(caminho_arquivo, idioma_alvo):
             html = html[:start_idx] + bloco_novo + html[end_idx:]
 
     # ==========================================
-    # 5. AJUSTE CIRÚRGICO DE FONTES ESPECÍFICAS
-    # ==========================================
-    fontes_especificas = {
-        "ar": {
-            "css": "@font-face { font-family: 'Arabic'; src: url('/fonts/arabic/arabic-regular.woff2') format('woff2'); font-weight: 400; font-display: optional; }\n    @font-face { font-family: 'Arabic'; src: url('/fonts/arabic/arabic-700.woff2') format('woff2'); font-weight: 700; font-display: optional; }",
-            "preload": '<link rel="preload" href="/fonts/arabic/arabic-regular.woff2" as="font" type="font/woff2" crossorigin>\n  <link rel="preload" href="/fonts/arabic/arabic-700.woff2" as="font" type="font/woff2" crossorigin>'
-        },
-        "zh": {
-            "css": "@font-face { font-family: 'Chinese'; src: url('/fonts/chinese/chinese-regular.woff2') format('woff2'); font-weight: 400; font-display: optional; }",
-            "preload": '<link rel="preload" href="/fonts/chinese/chinese-regular.woff2" as="font" type="font/woff2" crossorigin>'
-        },
-        "hi": {
-            "css": "@font-face { font-family: 'Devanagari'; src: url('/fonts/devanagari/devanagari-regular.woff2') format('woff2'); font-weight: 400; font-display: optional; }\n    @font-face { font-family: 'Devanagari'; src: url('/fonts/devanagari/devanagari-700.woff2') format('woff2'); font-weight: 700; font-display: optional; }",
-            "preload": '<link rel="preload" href="/fonts/devanagari/devanagari-regular.woff2" as="font" type="font/woff2" crossorigin>\n  <link rel="preload" href="/fonts/devanagari/devanagari-700.woff2" as="font" type="font/woff2" crossorigin>'
-        },
-        "ja": {
-            "css": "@font-face { font-family: 'Japanese'; src: url('/fonts/japanese/japanese-regular.woff2') format('woff2'); font-weight: 400; font-display: optional; }\n    @font-face { font-family: 'Japanese'; src: url('/fonts/japanese/japanese-700.woff2') format('woff2'); font-weight: 700; font-display: optional; }",
-            "preload": '<link rel="preload" href="/fonts/japanese/japanese-regular.woff2" as="font" type="font/woff2" crossorigin>\n  <link rel="preload" href="/fonts/japanese/japanese-700.woff2" as="font" type="font/woff2" crossorigin>'
-        },
-        "ko": {
-            "css": "@font-face { font-family: 'Korean'; src: url('/fonts/korean/korean-regular.woff2') format('woff2'); font-weight: 400; font-display: optional; }\n    @font-face { font-family: 'Korean'; src: url('/fonts/korean/korean-700.woff2') format('woff2'); font-weight: 700; font-display: optional; }",
-            "preload": '<link rel="preload" href="/fonts/korean/korean-regular.woff2" as="font" type="font/woff2" crossorigin>\n  <link rel="preload" href="/fonts/korean/korean-700.woff2" as="font" type="font/woff2" crossorigin>'
-        }
-    }
-
-    if idioma_alvo in fontes_especificas:
-        # Injeta o novo CSS logo após a abertura da tag <style id="critical-fonts">
-        tag_style = r'(<style\s+id="critical-fonts"[^>]*>\s*)'
-        if re.search(tag_style, html, re.IGNORECASE):
-            html = re.sub(tag_style, rf'\1{fontes_especificas[idioma_alvo]["css"]}\n    ', html, count=1, flags=re.IGNORECASE)
-        
-        # Remove APENAS os @font-face originais de Inter e Nunito
-        html = re.sub(r'@font-face\s*\{\s*font-family:\s*[\'"](?:Inter|Nunito Sans)[\'"][^\}]+\}\s*', '', html, flags=re.IGNORECASE)
-
-        # Injeta os preloads novos na posição do primeiro preload original a ser removido (para manter no mesmo bloco do head)
-        primeiro_preload = r'<link\s+rel="preload"\s+href="/fonts/(?:inter|nunito)/[^>]+>'
-        if re.search(primeiro_preload, html, re.IGNORECASE):
-            html = re.sub(primeiro_preload, fontes_especificas[idioma_alvo]["preload"], html, count=1, flags=re.IGNORECASE)
-            
-        # Remove todos os outros preloads originais de Inter e Nunito restantes
-        html = re.sub(r'<link\s+rel="preload"\s+href="/fonts/(?:inter|nunito)/[^>]+>\s*', '', html, flags=re.IGNORECASE)
-
-    # ==========================================
-    # 6. TRADUZIR META TAGS SEO CIRURGICAMENTE
+    # 5. TRADUZIR META TAGS SEO CIRURGICAMENTE
     # ==========================================
     html = traduzir_meta_seo_com_deepseek(html, idioma_alvo)
 
@@ -258,55 +215,25 @@ def preparar_html_para_traducao_texto(caminho_arquivo, idioma_alvo):
 
 def traduzir_lote_js_com_deepseek(dicionario_scripts, idioma_alvo):
     """
-    Função otimizada que extrai as strings do JS antes de enviar para a IA,
-    evitando que a IA corrompa a sintaxe do código (como template literals).
+    Função otimizada que recebe um dicionário de VÁRIOS scripts e faz uma ÚNICA
+    requisição ao DeepSeek, evitando erros de rate-limit e acelerando o processo.
     """
-    # 1. Extração cirúrgica de strings do JavaScript
-    strings_para_traduzir = {}
-    mapeamento_scripts = {}
-    contador_string = 0
-
-    for id_script, codigo_js in dicionario_scripts.items():
-        # Usa regex para encontrar strings entre aspas simples ('...') ou duplas ("...")
-        # Ignora strings vazias ou muito curtas (ex: chaves de objetos, IDs curtos)
-        # Ignora template literals (`...`) por enquanto, pois geralmente contém lógica
-        padrao_string = re.compile(r'(["\'])(.*?)\1')
-        
-        novo_codigo_js = codigo_js
-        mapeamento_scripts[id_script] = []
-
-        for match in padrao_string.finditer(codigo_js):
-            delimitador = match.group(1)
-            conteudo = match.group(2)
-            
-            # Filtro de segurança: só traduz se parecer texto legível (tem espaços, não é um caminho/ID)
-            if len(conteudo) > 3 and " " in conteudo and not conteudo.startswith(('/', '#', '.', 'data-')) and not conteudo.endswith('.html'):
-                id_string = f"STR_{contador_string}"
-                strings_para_traduzir[id_string] = conteudo
-                mapeamento_scripts[id_script].append({
-                    'original': match.group(0), # A string completa com as aspas
-                    'id': id_string,
-                    'delimitador': delimitador
-                })
-                contador_string += 1
-
-    if not strings_para_traduzir:
-        print("      ↳ Nenhuma string de texto legível encontrada no JS. Mantendo original.")
-        return dicionario_scripts
-
-    print(f"      ↳ Enviando {len(strings_para_traduzir)} fragmentos de texto do JS para o DeepSeek...")
-
-    # 2. Comunicação com o DeepSeek (Apenas as strings!)
     instrucoes_sistema = f"""
-    Você é um tradutor especializado em localização de interfaces para a área da saúde/enfermagem.
-    Traduza as mensagens/textos do Português para o idioma '{idioma_alvo}'.
+    Você é um cirurgião de código sênior e especialista em localização internacional.
+    Sua ÚNICA tarefa é traduzir as 'strings' (textos) legíveis por humanos do Português para o idioma '{idioma_alvo}'.
+    Você receberá um objeto JSON onde as chaves são identificadores e os valores são os blocos de código JavaScript.
     
-    REGRAS CRÍTICAS:
-    1. Retorne APENAS o JSON válido. Sem explicações, sem blocos markdown (```json).
-    2. As chaves do JSON (STR_0, STR_1...) DEVEM ser mantidas intactas.
-    3. Traduza o valor. Mantenha eventuais pontuações finais, mas NÃO adicione aspas extras.
+    ⚠️ REGRAS CRÍTICAS E INEGOCIÁVEIS:
+    1. TRADUZA APENAS o texto final lido pelo usuário (ex: mensagens, "POSITIVO", "NEGATIVO", "Conduta de Enfermagem").
+    2. NÃO ALTERE variáveis, constantes, nomes de funções, IDs de DOM, classes CSS, chaves de objeto ou lógica matemática.
+    3. PRESERVE rigorosamente a estrutura de interpolação. Tudo que estiver dentro de `${{...}}` NÃO DEVE ser tocado.
+    4. PRESERVE as aspas originais (simples, duplas ou crases).
+    5. Se houver código HTML dentro da string, traduza APENAS a palavra legível. Não traduza classes ou tags.
+    6. NÃO TRADUZA parâmetros de eventos do sistema (ex: 'click', 'DOMContentLoaded', 'smooth').
+    7. DEVOLVA EXCLUSIVAMENTE UM JSON VÁLIDO contendo as mesmas chaves do original e os códigos já traduzidos. SEM marcações markdown.
     """
     
+    # URL LIMPA CIRURGICAMENTE: sem formatação de colchetes!
     url = "https://api.deepseek.com/chat/completions"
     headers = {
         "Authorization": f"Bearer {CHAVE_DEEPSEEK}",
@@ -317,16 +244,17 @@ def traduzir_lote_js_com_deepseek(dicionario_scripts, idioma_alvo):
         "model": "deepseek-chat",
         "messages": [
             {"role": "system", "content": instrucoes_sistema},
-            {"role": "user", "content": json.dumps(strings_para_traduzir, ensure_ascii=False)}
+            {"role": "user", "content": json.dumps(dicionario_scripts, ensure_ascii=False)}
         ],
-        "temperature": 0.0,
+        "temperature": 0.0, # Temperatura ZERO absoluta para forçar precisão matemática
         "response_format": {"type": "json_object"}
     }
 
     try:
         response = requests.post(url, headers=headers, json=payload, timeout=90)
         response.raise_for_status()
-        resultado = response.json()["choices"][0]["message"]["content"].strip()
+        dados = response.json()
+        resultado = dados["choices"][0]["message"]["content"].strip()
         
         # Limpeza caso deepseek envie markdown
         if resultado.startswith("```"):
@@ -335,32 +263,14 @@ def traduzir_lote_js_com_deepseek(dicionario_scripts, idioma_alvo):
             
         traducoes = json.loads(resultado)
         
-        # 3. Reconstrução do JavaScript
+        # Reconstrói garantindo que caso a IA omita alguma chave, o código original é mantido
         retorno_seguro = {}
-        for id_script, codigo_js in dicionario_scripts.items():
-            codigo_reconstruido = codigo_js
-            # Substitui as strings traduzidas de volta no código
-            for item in mapeamento_scripts[id_script]:
-                id_str = item['id']
-                texto_traduzido = traducoes.get(id_str)
-                
-                if texto_traduzido:
-                    # Protege aspas dentro da string traduzida
-                    texto_traduzido = texto_traduzido.replace(item['delimitador'], f"\\{item['delimitador']}")
-                    string_traduzida_com_aspas = f"{item['delimitador']}{texto_traduzido}{item['delimitador']}"
-                    # Substitui a original pela traduzida (cuidado extra com replace para não trocar partes erradas)
-                    codigo_reconstruido = codigo_reconstruido.replace(item['original'], string_traduzida_com_aspas, 1)
-            
-            retorno_seguro[id_script] = codigo_reconstruido
+        for chave, codigo_original in dicionario_scripts.items():
+            retorno_seguro[chave] = traducoes.get(chave, codigo_original)
             
         return retorno_seguro
-
-    except json.JSONDecodeError as e:
-        print(f"\n❌ ERRO DE JSON DO DEEPSEEK: O modelo quebrou a formatação.")
-        print(f"Resposta bruta da IA: {resultado[:300]}...")
-        return dicionario_scripts
     except Exception as e:
-        print(f"\n⚠️ Erro geral ao traduzir scripts com DeepSeek: {e}")
+        print(f"\n⚠️ Erro ao traduzir scripts em LOTE com DeepSeek (Mantendo originais intactos por segurança): {e}")
         return dicionario_scripts
 
 def traduzir_html_com_deepl(html_preparado, idioma_alvo):
@@ -436,8 +346,8 @@ if __name__ == "__main__":
     # 🟢 ÁREA DE CONFIGURAÇÃO DIÁRIA (ALTERE APENAS AQUI) 🟢
     # =========================================================================
     
-    arquivos_originais = ["zarit.html"] 
-    idiomas_alvo = ["ar"] 
+    arquivos_originais = ["index.html"] 
+    idiomas_alvo = ["es", "de"] 
     
     # =========================================================================
 
@@ -449,7 +359,7 @@ if __name__ == "__main__":
             print(f"{C_AMARELO}======================================================={RESET}\n")
 
             if os.path.exists(arquivo_original):
-                print(f"{C_AZUL}[1/4]{RESET} Preparando HTML (Rotas, Canonical, Hreflang, Lang, Fontes e SEO)...")
+                print(f"{C_AZUL}[1/4]{RESET} Preparando HTML (Rotas, Canonical, Hreflang, Lang e SEO)...")
                 html_preparado = preparar_html_para_traducao_texto(arquivo_original, idioma_alvo)
                 
                 print(f"{C_AZUL}[2/4]{RESET} Processando APIs e traduzindo HTML...")
