@@ -307,7 +307,7 @@ def traduzir_lote_js_com_deepseek(dicionario_scripts, idioma_alvo):
     3. Traduza o valor. Mantenha eventuais pontuações finais, mas NÃO adicione aspas extras.
     """
     
-    url = "[https://api.deepseek.com/chat/completions](https://api.deepseek.com/chat/completions)"
+    url = "https://api.deepseek.com/chat/completions"
     headers = {
         "Authorization": f"Bearer {CHAVE_DEEPSEEK}",
         "Content-Type": "application/json"
@@ -436,8 +436,8 @@ if __name__ == "__main__":
     # 🟢 ÁREA DE CONFIGURAÇÃO DIÁRIA (ALTERE APENAS AQUI) 🟢
     # =========================================================================
     
-    arquivos_originais = ["zarit.html", "fugulin.html"] 
-    idiomas_alvo = ["en", "es", "de", "it", "fr", "zh", "ar", "ja", "ru", "ko", "tr", "nl", "pl", "sv", "id", "vi", "uk"] 
+    arquivos_originais = ["zarit.html"] 
+    idiomas_alvo = ["ar"] 
     
     # =========================================================================
 
