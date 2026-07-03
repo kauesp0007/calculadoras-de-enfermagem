@@ -131,7 +131,7 @@ def preparar_html_para_traducao_texto(caminho_arquivo, idioma_alvo):
         'href="manifest.json"': 'href="/manifest.json"',
         'src="ce-calculadora-padrao.js"': 'src="/ce-calculadora-padrao.js"',
         'src="/global-scripts.js"': 'src="global-scripts.js"',
-        'src="./global-scripts.js"': 'src="global-scripts.js"',
+        'src=".global-scripts.js"': 'src="/global-scripts.js"',
         'href="/global-body-elements.html"': 'href="global-body-elements.html"',
         'href="./global-body-elements.html"': 'href="global-body-elements.html"',
         'href="/menu-global.html"': 'href="menu-global.html"',
