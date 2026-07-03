@@ -336,8 +336,8 @@
       }
     </style>
 
-    <!-- Botões Flutuantes Glassmorphism Otimizados -->
-    <div style="position: fixed; bottom: 24px; right: 24px; display: flex; flex-direction: column; gap: 12px; z-index: 9999" class="no-print">
+    <!-- Botões Flutuantes Glassmorphism Otimizados - CANTO SUPERIOR DIREITO -->
+    <div style="position: fixed; top: 110px; right: 24px; display: flex; flex-direction: column; gap: 12px; z-index: 9999" class="no-print">
       <button type="button" id="btnSbarPDF" class="btn-flutuante-vidro" style="background: rgba(26, 62, 116, 0.7); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); border: 1px solid rgba(255, 255, 255, 0.2); box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2); color: white; padding: 12px 18px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; width: 230px; text-align: center; display: flex; align-items: center; justify-content: center; gap: 10px">
         <i class="fa-solid fa-file-pdf"></i>
         Baixar formulário em PDF
@@ -375,27 +375,6 @@
           <div class="title-bar mx-auto mt-2 no-print"></div>
 
           <h2 id="main-subtitle" class="font-inter font-semibold text-light-blue text-lg lg:text-xl mt-4 no-print">A ferramenta SBAR é uma estrutura de comunicação padronizada em saúde para transmitir informações do paciente de forma clara e concisa, usando as letras Situação, Breve Histórico, Avaliação e Recomendação, visando melhorar a segurança do paciente e a comunicação na passagem de plantão pela equipe de enfermagem.</h2>
-
-          <div
-            class="card-aviso no-print"
-            style="
-              background: rgba(220, 38, 38, 0.18);
-              border-radius: 12px;
-              box-shadow:
-                0 4px 24px 0 rgba(220, 38, 38, 0.35),
-                0 1.5px 8px 0 rgba(0, 0, 0, 0.15);
-              border: 2px solid rgba(220, 38, 38, 0.45);
-              backdrop-filter: blur(6px);
-              -webkit-backdrop-filter: blur(6px);
-              padding: 0.75rem 1.5rem;
-              margin: 0.5rem auto 1.5rem auto;
-              max-width: 600px;
-              display: flex;
-              align-items: center;
-              justify-content: center;
-            ">
-            <h3 class="font-inter font-bold text-red-700 text-xs md:text-sm" style="margin: 0">Preencha os dados abaixo. Ao clicar nos botões flutuantes para Gerar PDF ou Imprimir, o documento será ajustado e gerado em uma única página padronizada e otimizada, exatamente com os dados que você digitou.</h3>
-          </div>
         </div>
 
         <!-- INÍCIO DO FORMULÁRIO -->
@@ -1159,12 +1138,10 @@
             }
           }
 
-          // Remove margin bottons desnecessários do clone
-          clone.style.marginBottom = "0px";
           return clone;
         }
 
-        // 3. Gerador de PDF (Uma Página Sem Quebras)
+        // 3. Gerador de PDF (1 Página Exata e Largura Total)
         function gerarSbarPDF() {
           var btn = document.getElementById("btnSbarPDF");
           var textoOriginal = btn.innerHTML;
@@ -1178,9 +1155,15 @@
             pdfContainer.style.position = "absolute";
             pdfContainer.style.left = "-9999px";
             pdfContainer.style.top = "0";
-            pdfContainer.style.width = "900px";
+            // Utilizamos uma largura larga para que o conteúdo preencha horizontalmente sem empilhar muito
+            pdfContainer.style.width = "1100px";
             pdfContainer.style.background = "white";
-            pdfContainer.style.padding = "30px";
+
+            // Removemos paddings/margins extras que fariam o form ficar muito longo verticalmente
+            clone.style.padding = "0";
+            clone.style.margin = "0";
+            clone.style.border = "none";
+            clone.style.boxShadow = "none";
 
             // Cabeçalho H1 Injetado manualmente para a impressão/pdf
             var h1 = document.createElement("h1");
@@ -1189,7 +1172,8 @@
             h1.style.textAlign = "center";
             h1.style.fontFamily = "'Nunito Sans', Arial, sans-serif";
             h1.style.fontWeight = "900";
-            h1.style.marginBottom = "25px";
+            h1.style.marginBottom = "20px";
+            h1.style.marginTop = "20px";
             h1.innerText = "SBAR na Enfermagem: Passagem de Plantão e Transição de Cuidados";
 
             pdfContainer.appendChild(h1);
@@ -1202,19 +1186,19 @@
                 var jsPDF = window.jspdf.jsPDF;
                 var doc = new jsPDF("p", "mm", "a4");
 
+                // Ocupar 100% da largura nativa da folha sem margens nas laterais
                 var pdfWidth = doc.internal.pageSize.getWidth();
-                var pdfHeight = (canvas.height * pdfWidth) / canvas.width;
                 var pageHeight = doc.internal.pageSize.getHeight();
+                var pdfHeight = (canvas.height * pdfWidth) / canvas.width;
 
-                // Scale-Down para caber estritamente em uma página (sem quebras de linha)
-                if (pdfHeight > pageHeight - 15) {
-                  var scaleFactor = (pageHeight - 15) / pdfHeight;
-                  pdfWidth = pdfWidth * scaleFactor;
-                  pdfHeight = pdfHeight * scaleFactor;
+                // Se mesmo com a largura total a altura ainda exceder 1 página,
+                // limitamos estritamente ao tamanho da folha A4 (Compressão Vertical Suave)
+                if (pdfHeight > pageHeight) {
+                  pdfHeight = pageHeight;
                 }
 
-                var xOffset = (doc.internal.pageSize.getWidth() - pdfWidth) / 2;
-                doc.addImage(imgData, "JPEG", xOffset, 10, pdfWidth, pdfHeight);
+                // X e Y em 0 garantem 100% de preenchimento do topo até as pontas
+                doc.addImage(imgData, "JPEG", 0, 0, pdfWidth, pdfHeight);
 
                 var nomePac = document.getElementById("pacienteNome").value.trim().split(/\s+/).join("-").toLowerCase() || "paciente";
                 doc.save("sbar-" + nomePac + "-" + new Date().toISOString().slice(0, 10) + ".pdf");
@@ -1231,18 +1215,47 @@
           });
         }
 
-        // 4. Imprimir Formulario
+        // 4. Imprimir Formulário (1 Página Exata via CSS)
         function imprimirSbar() {
           var clone = prepararCloneParaDocumento();
 
-          // Coleta estilos para não desfigurar o clone na nova janela
           var estilos = "";
           document.querySelectorAll("style, link[rel='stylesheet']").forEach(function (node) {
             estilos += node.outerHTML;
           });
 
-          // Monta o layout HTML para a nova janela de Impressão (estritamente uma pág)
-          var html = '<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>Laudo SBAR de Transição de Cuidados</title>' + estilos + "<style>" + "body { background: white !important; padding: 0 !important; margin: 0 !important; }" + "@page { size: A4 portrait; margin: 8mm; }" + ".print-container { width: 100%; transform: scale(0.85); transform-origin: top center; margin: 0 auto; padding-top: 15px; }" + '.hdr h1 { color: #1A3E74; font-size: 26px; text-align: center; margin-bottom: 25px; font-family: "Nunito Sans", sans-serif; font-weight: 900; }' + ".no-print { display: none !important; }" + "</style></head><body>" + '<div class="print-container">' + '<div class="hdr"><h1>SBAR na Enfermagem: Passagem de Plantão e Transição de Cuidados</h1></div>' + clone.outerHTML + "</div>" + "<script>window.onload=function(){setTimeout(function(){window.print();}, 400);}<\/script>" + "</body></html>";
+          // Monta o layout HTML para a nova janela com CSS rigoroso para enquadrar na folha
+          var html =
+            '<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>Laudo SBAR de Transição de Cuidados</title>' +
+            estilos +
+            "<style>" +
+            /* Reset total para preenchimento de página (Zero Margens Nativas) */
+            "body { background: white !important; padding: 0 !important; margin: 0 !important; -webkit-print-color-adjust: exact; color: #000 !important; }" +
+            "@page { size: A4 portrait; margin: 0; }" +
+            /* Container principal 100% largo com margens finíssimas simuladas */
+            ".print-container { width: 100%; margin: 0; padding: 8mm; box-sizing: border-box; }" +
+            '.hdr h1 { color: #1A3E74; font-size: 22px; text-align: center; margin-bottom: 10px; font-family: "Nunito Sans", sans-serif; font-weight: 900; }' +
+            ".no-print { display: none !important; }" +
+            /* Compressão de paddings verticais do clone para não empurrar para 2ª página */
+            ".sbar-container { padding: 0 !important; border: none !important; box-shadow: none !important; margin-bottom: 0 !important; }" +
+            ".patient-id-box { padding: 8px !important; margin-bottom: 8px !important; border-color: #000 !important; }" +
+            ".sbar-section { margin-bottom: 8px !important; border-color: #000 !important; }" +
+            ".sbar-header { padding: 4px 8px !important; font-size: 11px !important; }" +
+            ".sbar-content { padding: 6px 8px !important; }" +
+            ".form-line { margin-bottom: 4px !important; }" +
+            ".observation-box { min-height: 35px !important; margin-top: 2px !important; }" +
+            ".grid-2-cols { gap: 8px !important; }" +
+            ".checkbox-group { gap: 8px !important; }" +
+            "label, .form-label, .subsection-title, .checkbox-item { font-size: 11px !important; color: #000 !important; }" +
+            ".form-input-line, .inline-input { font-size: 11px !important; height: auto !important; padding: 2px !important; color: #000 !important; }" +
+            "h3 { font-size: 12px !important; margin-bottom: 4px !important; color: #000 !important; }" +
+            "</style></head><body>" +
+            '<div class="print-container">' +
+            '<div class="hdr"><h1>SBAR na Enfermagem: Passagem de Plantão e Transição de Cuidados</h1></div>' +
+            clone.outerHTML +
+            "</div>" +
+            "<script>window.onload=function(){setTimeout(function(){window.print();}, 400);}<\/script>" +
+            "</body></html>";
 
           var janela = window.open("", "_blank");
           janela.document.write(html);
