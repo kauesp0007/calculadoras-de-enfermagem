@@ -1,4 +1,4 @@
-const CACHE_VERSION = "20260703-114047";
+const CACHE_VERSION = "20260703-132748";
 const CACHE_NAME = `calculadoras-enfermagem-cache-${CACHE_VERSION}`;
 
 // O SCRIPT DE BUILD VAI INJETAR A LISTA DE ARQUIVOS AQUI
@@ -70,6 +70,23 @@ const urlsToCache = [
   'id/favicon.ico',
   'id/global-styles.css',
   'id/lang-selector.js',
+  'institucionais/favicon - Copia.ico',
+  'institucionais/favicon.ico',
+  'institucionais/i18n - Copia.js',
+  'institucionais/i18n.js',
+  'institucionais/lang-selector.js',
+  'institucionais/layout - Copia.js',
+  'institucionais/layout.js',
+  'institucionais/main - Copia.css',
+  'institucionais/main.css',
+  'institucionais/mega-menu - Copia.js',
+  'institucionais/mega-menu.js',
+  'institucionais/site - Copia.js',
+  'institucionais/site-styles - Copia.css',
+  'institucionais/site-styles.css',
+  'institucionais/site-widgets - Copia.js',
+  'institucionais/site-widgets.js',
+  'institucionais/site.js',
   'it/favicon.ico',
   'it/global-styles.css',
   'ja/favicon.ico',
