@@ -346,8 +346,8 @@ if __name__ == "__main__":
     # 🟢 ÁREA DE CONFIGURAÇÃO DIÁRIA (ALTERE APENAS AQUI) 🟢
     # =========================================================================
     
-    arquivos_originais = ["index.html"] 
-    idiomas_alvo = ["es", "de"] 
+    arquivos_originais = ["gestacional.html"] 
+    idiomas_alvo = ["en", "es", "de", "it", "fr", "zh", "ar", "ja", "ru", "ko", "tr", "nl", "pl", "sv", "id", "vi", "uk"] 
     
     # =========================================================================
 
