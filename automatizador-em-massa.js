@@ -7,7 +7,10 @@ const path = require("path");
 
 // 1. SUBSTITUIÇÃO SIMPLES (REPLACE)
 // Se achar o 'target', substitui a linha toda pela 'newTag', mantendo o recuo.
-const REGRA_REPLACE = [{ target: "", newTag: "" }];
+const REGRA_REPLACE = [
+  { target: 'src="global-scripts.js"', newTag: '<script src="/global-scripts.js" defer=""></script>' },
+  { target: '/global-scripts.js"', newTag: '<script src="/global-scripts.js" defer=""></script>' }
+];
 
 // 2. EXCLUSÃO DE LINHAS (DELETE)
 // Se achar a palavra no 'target', a linha inteira é removida do arquivo.
@@ -50,6 +53,7 @@ const IGNORE_FOLDERS = [
   "downloads",
   "biblioteca",
   "blog",
+  "blog-templates",
   "node_modules",
   ".git",
 ];

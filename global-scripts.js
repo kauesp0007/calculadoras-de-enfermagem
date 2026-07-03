@@ -21,6 +21,23 @@
   }
 })();
 
+/* =========================
+   Detecção de Idioma (unificado)
+   ========================= */
+(function () {
+  var _path = window.location.pathname;
+  var _match = _path.match(/^\/(en|es|de|it|fr|hi|zh|ar|ja|ru|ko|tr|nl|pl|sv|id|vi|uk)\//);
+  window.__LANG = _match ? _match[1] : "pt";
+  window.__IS_LANG_FOLDER = !!_match;
+
+  // Mapa de idiomas TTS
+  var _ttsMap = { en:"en-US", es:"es-ES", de:"de-DE", it:"it-IT", fr:"fr-FR", hi:"hi-IN", zh:"zh-CN", ar:"ar-SA", ja:"ja-JP", ru:"ru-RU", ko:"ko-KR", tr:"tr-TR", nl:"nl-NL", pl:"pl-PL", sv:"sv-SE", id:"id-ID", vi:"vi-VN", uk:"uk-UA", pt:"pt-BR" };
+  window.__TTS_LANG = _ttsMap[window.__LANG] || "pt-BR";
+
+  // Prefixo para fetches (relativo na pasta de idioma, absoluto na raiz)
+  window.__FETCH_PREFIX = window.__IS_LANG_FOLDER ? "" : "/";
+})();
+
 // Executar IMEDIATAMENTE para evitar flash de tamanho de fonte
 (function () {
   const savedFontSize = parseInt(localStorage.getItem("fontSize") || "1", 10);
@@ -40,83 +57,8 @@
   })
 });
 
-function gerarPDFGlobal(e) {
-  const url = "https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js";
-  console.log("Verificando a biblioteca html2pdf...");
-
-  if (typeof html2pdf === "function") {
-    console.log("Biblioteca já carregada. Gerando PDF...");
-    executarLogicaDoHtml2Pdf(e);
-    return;
-  }
-
-  console.log("Biblioteca não encontrada. Carregando script...");
-  const script = document.createElement("script");
-  script.src = url;
-  document.head.appendChild(script);
-
-  script.onload = () => {
-    console.log("Biblioteca html2pdf carregada com sucesso. Gerando PDF...");
-    executarLogicaDoHtml2Pdf(e);
-  };
-
-  script.onerror = () => {
-    console.error("Falha ao carregar o script do html2pdf.");
-    alert("Erro ao carregar a biblioteca de PDF. Por favor, tente novamente.");
-  };
-}
-
-function executarLogicaDoHtml2Pdf(e) {
-  const {
-    titulo: o = "Relatório da Calculadora",
-    subtitulo: t = "Relatório de Cálculo Assistencial",
-    nomeArquivo: n = "relatorio.pdf",
-    seletorConteudo: l = ".main-content-wrapper"
-  } = e;
-  console.log(`Iniciando geração de PDF para: ${o}`);
-  const s = document.querySelector(l);
-  if (!s) return alert("Erro: Não foi possível encontrar o conteúdo principal para gerar o PDF."), void console.error(`Elemento com seletor "${l}" não encontrado.`);
-  const c = document.createElement("div");
-  c.style.padding = "20px", c.style.fontFamily = "Inter, sans-serif";
-  const d = document.createElement("div");
-  d.style.textAlign = "center", d.style.marginBottom = "25px", d.innerHTML = `<h1 style="font-family: 'Nunito Sans', sans-serif; font-size: 22px; font-weight: bold; color: #1A3E74; margin: 0;">${o}</h1><h2 style="font-size: 14px; color: #666; margin-top: 5px;">${t}</h2><p style="font-size: 10px; color: #999; margin-top: 10px;">Gerado em: ${new Date().toLocaleString("pt-BR")}</p>`, c.appendChild(d);
-  const r = s.querySelector("#conteudo");
-  if (r) {
-    const e = r.cloneNode(!0);
-    e.querySelectorAll('input[type="radio"]:not(:checked)').forEach(e => {
-      e.closest(".option-row, .option-label")?.remove()
-    }), e.querySelectorAll("tbody, .options-group").forEach(e => {
-      0 === e.children.length && e.closest(".criterion-section, .criterion-table")?.remove()
-    }), c.appendChild(e)
-  }
-  const i = s.querySelector("#resultado");
-  i && !i.classList.contains("hidden") && ((e = i.cloneNode(!0)).style.marginTop = "20px", c.appendChild(e)), c.style.lineHeight = "1.5", c.style.fontSize = "12px", c.style.margin = "0", e = {
-    margin: [.5, .5, .5, .5],
-    filename: n,
-    image: {
-      type: "jpeg",
-      quality: .98
-    },
-    html2canvas: {
-      scale: 2,
-      scrollY: 0,
-      useCORS: !0
-    },
-    jsPDF: {
-      unit: "in",
-      format: "a4",
-      orientation: "portrait"
-    },
-    pagebreak: {
-      avoid: ["p", "h1", "h2", "h3", "div", "section"]
-    }
-  }, html2pdf().set(e).from(c).save().catch(e => {
-    console.error("Erro ao gerar PDF: ", e)
-  })
-}
-
 document.addEventListener("DOMContentLoaded", function () {
-  fetch("/menu-global.html").then(e => e.ok ? e.text() : Promise.reject("Ficheiro menu-global.html não encontrado")).then(e => {
+  fetch(window.__FETCH_PREFIX + "menu-global.html").then(e => e.ok ? e.text() : Promise.reject("Ficheiro menu-global.html não encontrado")).then(e => {
     const o = document.getElementById("global-header-container");
     if (o) {
       window.requestAnimationFrame(() => {
@@ -126,7 +68,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   }).catch(e => console.warn("Não foi possível carregar o menu global:", e));
 
-  fetch("/global-body-elements.html").then(e => e.ok ? e.text() : Promise.reject("Ficheiro global-body-elements.html não encontrado")).then(e => {
+  fetch(window.__FETCH_PREFIX + "global-body-elements.html").then(e => e.ok ? e.text() : Promise.reject("Ficheiro global-body-elements.html não encontrado")).then(e => {
     window.requestAnimationFrame(() => {
       document.body.insertAdjacentHTML("beforeend", e);
       initializeGlobalFunctions();
@@ -333,16 +275,9 @@ function initializeGlobalFunctions() {
     y = !1,
     f = !1;
   const v = window.speechSynthesis,
-    w = [{
-      rate: .8,
-      label: "Lenta"
-    }, {
-      rate: 1,
-      label: "Normal"
-    }, {
-      rate: 1.5,
-      label: "Rápida"
-    }];
+    _isEN = window.__LANG === "en",
+    w = _isEN ? [{ rate: .8, label: "Slow" }, { rate: 1, label: "Normal" }, { rate: 1.5, label: "Fast" }]
+             : [{ rate: .8, label: "Lenta" }, { rate: 1, label: "Normal" }, { rate: 1.5, label: "Rápida" }];
   document.addEventListener("focusin", e => {
     b = e.target
   });
@@ -354,7 +289,8 @@ function initializeGlobalFunctions() {
     // =========================================================
     applyFontSize = (level, announce) => {
       const fontSizes = ["1em", "1.15em", "1.3em", "1.5em", "2em"];
-      const labels = ["Normal", "Médio", "Grande", "Extra Grande", "Máximo"];
+      const _isEN = window.__LANG === "en";
+      const labels = _isEN ? ["Normal", "Medium", "Large", "Extra Large", "Maximum"] : ["Normal", "Médio", "Grande", "Extra Grande", "Máximo"];
       const idx = Math.min(Math.max(parseInt(level || 1, 10), 1), fontSizes.length);
       u = idx;
       const iLevel = idx - 1;
@@ -365,7 +301,8 @@ function initializeGlobalFunctions() {
     },
     applyLineHeight = (level, announce) => {
       const values = ["1.5", "1.8", "2.2"];
-      const labels = ["Médio", "Grande", "Extra Grande"];
+      const _isEN = window.__LANG === "en";
+      const labels = _isEN ? ["Medium", "Large", "Extra Large"] : ["Médio", "Grande", "Extra Grande"];
       const idx = Math.min(Math.max(parseInt(level || 1, 10), 1), values.length);
       g = idx;
       const iLevel = idx - 1;
@@ -376,7 +313,8 @@ function initializeGlobalFunctions() {
     },
     applyLetterSpacing = (level, announce) => {
       const values = ["0em", ".05em", ".1em"];
-      const labels = ["Normal", "Médio", "Grande"];
+      const _isEN = window.__LANG === "en";
+      const labels = _isEN ? ["Normal", "Medium", "Large"] : ["Normal", "Médio", "Grande"];
       const idx = Math.min(Math.max(parseInt(level || 1, 10), 1), values.length);
       p = idx;
       const iLevel = idx - 1;
@@ -385,16 +323,8 @@ function initializeGlobalFunctions() {
       localStorage.setItem("letterSpacing", String(p));
       (void 0 === announce || announce) && E(`Espaçamento de letra: ${labels[iLevel]}`);
     },
-    readingSpeeds = [{
-      rate: .8,
-      label: "Lenta"
-    }, {
-      rate: 1,
-      label: "Normal"
-    }, {
-      rate: 1.5,
-      label: "Rápida"
-    }],
+    readingSpeeds = _isEN ? [{ rate: .8, label: "Slow" }, { rate: 1, label: "Normal" }, { rate: 1.5, label: "Fast" }]
+                          : [{ rate: .8, label: "Lenta" }, { rate: 1, label: "Normal" }, { rate: 1.5, label: "Rápida" }],
     applyReadingSpeed = (level, announce) => {
       const idx = Math.min(Math.max(parseInt(level || 1, 10), 1), readingSpeeds.length);
       h = idx;
@@ -433,7 +363,7 @@ function initializeGlobalFunctions() {
       if (e && v) {
         v.speaking && v.cancel();
         const o = new SpeechSynthesisUtterance(e);
-        o.lang = "pt-BR", o.rate = readingSpeeds[h - 1]?.rate || 1, o.onstart = () => {
+        o.lang = window.__TTS_LANG, o.rate = readingSpeeds[h - 1]?.rate || 1, o.onstart = () => {
           y = !0, f = !1
         }, o.onend = () => {
           y = !1, f = !1
@@ -898,31 +828,5 @@ function substituirAno() {
     if (yearSpan && yearSpan.textContent.includes('{{year}}')) {
         yearSpan.textContent = yearSpan.textContent.replace('{{year}}', new Date().getFullYear());
     }
-}
-
-function initializeCookieFunctionality() {
-  // ... (mantenha todo o seu código original da função initializeCookieFunctionality)
-
-  document.addEventListener('click', function (e) {
-    // Identifica o botão clicado
-    const target = e.target.closest("button");
-    if (!target) return;
-
-    // Se clicar no botão de Gerenciar Cookies do novo rodapé
-    if (target.id === 'openGranularCookieModalBtn') {
-        const modal = document.getElementById('cookie-modal');
-        if (modal) {
-            modal.classList.remove('hidden');
-        } else {
-            console.error("Modal 'cookie-modal' não encontrado no DOM!");
-        }
-    }
-
-    // Se clicar no botão de Salvar do modal
-    if (target.id === 'save-cookies') {
-        const modal = document.getElementById('cookie-modal');
-        if (modal) modal.classList.add('hidden');
-    }
-});
 }
 
