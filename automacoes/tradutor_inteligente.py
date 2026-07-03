@@ -130,7 +130,7 @@ def preparar_html_para_traducao_texto(caminho_arquivo, idioma_alvo):
         'href="./_language_selector.html"': 'href="/_language_selector.html"',
         'href="manifest.json"': 'href="/manifest.json"',
         'src="ce-calculadora-padrao.js"': 'src="/ce-calculadora-padrao.js"',
-        'src="/global-scripts.js"': 'src="global-scripts.js"',
+        'src="/global-scripts.js"': 'src="/global-scripts.js"',
         'src=".global-scripts.js"': 'src="/global-scripts.js"',
         'href="/global-body-elements.html"': 'href="global-body-elements.html"',
         'href="./global-body-elements.html"': 'href="global-body-elements.html"',
@@ -207,7 +207,50 @@ def preparar_html_para_traducao_texto(caminho_arquivo, idioma_alvo):
             html = html[:start_idx] + bloco_novo + html[end_idx:]
 
     # ==========================================
-    # 5. TRADUZIR META TAGS SEO CIRURGICAMENTE
+    # 5. AJUSTE CIRÚRGICO DE FONTES ESPECÍFICAS
+    # ==========================================
+    fontes_especificas = {
+        "ar": {
+            "css": "@font-face { font-family: 'Arabic'; src: url('/fonts/arabic/arabic-regular.woff2') format('woff2'); font-weight: 400; font-display: optional; }\n    @font-face { font-family: 'Arabic'; src: url('/fonts/arabic/arabic-700.woff2') format('woff2'); font-weight: 700; font-display: optional; }",
+            "preload": '<link rel="preload" href="/fonts/arabic/arabic-regular.woff2" as="font" type="font/woff2" crossorigin>\n  <link rel="preload" href="/fonts/arabic/arabic-700.woff2" as="font" type="font/woff2" crossorigin>'
+        },
+        "zh": {
+            "css": "@font-face { font-family: 'Chinese'; src: url('/fonts/chinese/chinese-regular.woff2') format('woff2'); font-weight: 400; font-display: optional; }",
+            "preload": '<link rel="preload" href="/fonts/chinese/chinese-regular.woff2" as="font" type="font/woff2" crossorigin>'
+        },
+        "hi": {
+            "css": "@font-face { font-family: 'Devanagari'; src: url('/fonts/devanagari/devanagari-regular.woff2') format('woff2'); font-weight: 400; font-display: optional; }\n    @font-face { font-family: 'Devanagari'; src: url('/fonts/devanagari/devanagari-700.woff2') format('woff2'); font-weight: 700; font-display: optional; }",
+            "preload": '<link rel="preload" href="/fonts/devanagari/devanagari-regular.woff2" as="font" type="font/woff2" crossorigin>\n  <link rel="preload" href="/fonts/devanagari/devanagari-700.woff2" as="font" type="font/woff2" crossorigin>'
+        },
+        "ja": {
+            "css": "@font-face { font-family: 'Japanese'; src: url('/fonts/japanese/japanese-regular.woff2') format('woff2'); font-weight: 400; font-display: optional; }\n    @font-face { font-family: 'Japanese'; src: url('/fonts/japanese/japanese-700.woff2') format('woff2'); font-weight: 700; font-display: optional; }",
+            "preload": '<link rel="preload" href="/fonts/japanese/japanese-regular.woff2" as="font" type="font/woff2" crossorigin>\n  <link rel="preload" href="/fonts/japanese/japanese-700.woff2" as="font" type="font/woff2" crossorigin>'
+        },
+        "ko": {
+            "css": "@font-face { font-family: 'Korean'; src: url('/fonts/korean/korean-regular.woff2') format('woff2'); font-weight: 400; font-display: optional; }\n    @font-face { font-family: 'Korean'; src: url('/fonts/korean/korean-700.woff2') format('woff2'); font-weight: 700; font-display: optional; }",
+            "preload": '<link rel="preload" href="/fonts/korean/korean-regular.woff2" as="font" type="font/woff2" crossorigin>\n  <link rel="preload" href="/fonts/korean/korean-700.woff2" as="font" type="font/woff2" crossorigin>'
+        }
+    }
+
+    if idioma_alvo in fontes_especificas:
+        # Injeta o novo CSS logo após a abertura da tag <style id="critical-fonts">
+        tag_style = r'(<style\s+id="critical-fonts"[^>]*>\s*)'
+        if re.search(tag_style, html, re.IGNORECASE):
+            html = re.sub(tag_style, rf'\1{fontes_especificas[idioma_alvo]["css"]}\n    ', html, count=1, flags=re.IGNORECASE)
+        
+        # Remove APENAS os @font-face originais de Inter e Nunito
+        html = re.sub(r'@font-face\s*\{\s*font-family:\s*[\'"](?:Inter|Nunito Sans)[\'"][^\}]+\}\s*', '', html, flags=re.IGNORECASE)
+
+        # Injeta os preloads novos na posição do primeiro preload original a ser removido (para manter no mesmo bloco do head)
+        primeiro_preload = r'<link\s+rel="preload"\s+href="/fonts/(?:inter|nunito)/[^>]+>'
+        if re.search(primeiro_preload, html, re.IGNORECASE):
+            html = re.sub(primeiro_preload, fontes_especificas[idioma_alvo]["preload"], html, count=1, flags=re.IGNORECASE)
+            
+        # Remove todos os outros preloads originais de Inter e Nunito restantes
+        html = re.sub(r'<link\s+rel="preload"\s+href="/fonts/(?:inter|nunito)/[^>]+>\s*', '', html, flags=re.IGNORECASE)
+
+    # ==========================================
+    # 6. TRADUZIR META TAGS SEO CIRURGICAMENTE
     # ==========================================
     html = traduzir_meta_seo_com_deepseek(html, idioma_alvo)
 
@@ -346,8 +389,8 @@ if __name__ == "__main__":
     # 🟢 ÁREA DE CONFIGURAÇÃO DIÁRIA (ALTERE APENAS AQUI) 🟢
     # =========================================================================
     
-    arquivos_originais = ["zarit.html", "fugulin.html"] 
-    idiomas_alvo = ["en", "es", "de", "it", "fr", "zh", "ar", "ja", "ru", "ko", "tr", "nl", "pl", "sv", "id", "vi", "hi", "uk"] 
+    arquivos_originais = ["zarit.html"] 
+    idiomas_alvo = ["zh"] 
     
     # =========================================================================
 
@@ -359,7 +402,7 @@ if __name__ == "__main__":
             print(f"{C_AMARELO}======================================================={RESET}\n")
 
             if os.path.exists(arquivo_original):
-                print(f"{C_AZUL}[1/4]{RESET} Preparando HTML (Rotas, Canonical, Hreflang, Lang e SEO)...")
+                print(f"{C_AZUL}[1/4]{RESET} Preparando HTML (Rotas, Canonical, Hreflang, Lang, Fontes e SEO)...")
                 html_preparado = preparar_html_para_traducao_texto(arquivo_original, idioma_alvo)
                 
                 print(f"{C_AZUL}[2/4]{RESET} Processando APIs e traduzindo HTML...")
