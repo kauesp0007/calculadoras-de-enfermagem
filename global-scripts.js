@@ -492,6 +492,20 @@ function initializeGlobalFunctions() {
   }
   inicializarTooltips();
 }
+function ativarModoDislexia() {
+  // 1. Verifica se o CSS já foi descarregado alguma vez
+  if (!document.getElementById('css-dyslexic')) {
+    const link = document.createElement('link');
+    link.id = 'css-dyslexic';
+    link.rel = 'stylesheet';
+    // Coloque aqui o link local ou CDN do seu Open Dyslexic
+    link.href = 'https://cdn.jsdelivr.net/npm/open-dyslexic@1.0.3/open-dyslexic-regular.min.css';
+    document.head.appendChild(link);
+  }
+  
+  // 2. Adiciona a classe ao body para ativar a fonte
+  document.body.classList.toggle('dyslexic');
+}
 
 
 
@@ -807,4 +821,26 @@ function substituirAno() {
         yearSpan.textContent = yearSpan.textContent.replace('{{year}}', new Date().getFullYear());
     }
 }
+// Função inteligente que aplica o Lazy Load e altera a fonte
+function alternarModoDislexia() {
+  // 1. Verifica se o CSS já foi descarregado alguma vez
+  if (!document.getElementById('css-dyslexic')) {
+    const link = document.createElement('link');
+    link.id = 'css-dyslexic';
+    link.rel = 'stylesheet';
+    link.href = 'https://cdn.jsdelivr.net/npm/open-dyslexic@1.0.3/open-dyslexic-regular.min.css';
+    document.head.appendChild(link);
+  }
+  
+  // 2. Ativa ou desativa a classe no body
+  document.body.classList.toggle('dyslexic');
+}
+
+// Conecta automaticamente o botão do seu HTML à função acima
+document.addEventListener('DOMContentLoaded', () => {
+  const btnDislexia = document.getElementById('btnAlternarFonteDislexia');
+  if (btnDislexia) {
+    btnDislexia.addEventListener('click', alternarModoDislexia);
+  }
+});
 
