@@ -1,6 +1,7 @@
 ﻿<!doctype html>
 <html lang="pt-BR">
   <head>
+  <style id="anti-cls-placeholders">#global-header-container{display:block;width:100%;min-height:96px;background-color:transparent}@media(max-width:768px){#global-header-container{min-height:60px}}#language-selector-placeholder{display:block;width:100%;min-height:48px;background-color:transparent}#footer-placeholder{display:block;min-height:520px;background-color:transparent}@media(min-width:768px){#footer-placeholder{min-height:277px}}</style>
     <meta charset="utf-8" />
     <meta content="width=device-width, initial-scale=1.0" name="viewport" />
     <meta content="#1A3E74" name="theme-color" />
@@ -100,7 +101,7 @@
     <link href="/public/output.css" rel="stylesheet" />
     <link href="/global-styles.css" rel="stylesheet" />
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin />
 
     <script type="application/ld+json">
       {
@@ -740,7 +741,24 @@
         `;
         }
 
-        function gerarPDF() {
+        async function gerarPDF() {
+          if (!window.html2pdf) {
+            try {
+              await new Promise((resolve, reject) => {
+                const s = document.createElement("script");
+                s.src = "https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js";
+                s.crossOrigin = "anonymous";
+                s.async = true;
+                s.onload = resolve;
+                s.onerror = () => reject(new Error("Falha ao carregar html2pdf"));
+                document.head.appendChild(s);
+              });
+            } catch (e) {
+              alert("Não foi possível carregar o recurso para gerar PDF. Tente novamente mais tarde.");
+              return;
+            }
+          }
+
           const htmlStr = getHTMLRelatorio(false);
           const tempDiv = document.createElement("div");
           tempDiv.innerHTML = htmlStr;
@@ -764,6 +782,10 @@
             .save()
             .then(() => {
               document.body.removeChild(tempDiv);
+            })
+            .catch(() => {
+              document.body.removeChild(tempDiv);
+              alert("Erro ao gerar PDF.");
             });
         }
 
@@ -787,7 +809,7 @@
 
     <!-- Rodapé Modularizado -->
     <div id="footer-placeholder"></div>
-    <script src="/global-scripts.js" defer></script>
+    <script src="/global-scripts.js" defer=""></script>
     <script>
       document.addEventListener("DOMContentLoaded", function () {
         setTimeout(function () {

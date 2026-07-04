@@ -23,7 +23,13 @@ const REGRA_UNIFY = [{ target1: "", target2: "", newTag: "" }];
 // 4. MOVIMENTAÇÃO OU CRIAÇÃO ABAIXO DA ÂNCORA (MOVE / CREATE)
 // - Se 'moveTarget' tiver valor: Move a linha existente para baixo da âncora.
 // - Se 'moveTarget' estiver vazio e 'newTag' tiver valor: Cria uma linha nova abaixo da âncora.
-const REGRA_MOVE = [{ moveTarget: "", newTag: "", anchorTarget: "" }];
+// Snippet anti-CLS: reserva espaço para header/footer e language selector sem alterar visual
+const ANTI_CLS_STYLE = '<style id="anti-cls-placeholders">#global-header-container{display:block;width:100%;min-height:96px;background-color:transparent}@media(max-width:768px){#global-header-container{min-height:60px}}#language-selector-placeholder{display:block;width:100%;min-height:48px;background-color:transparent}#footer-placeholder{display:block;min-height:520px;background-color:transparent}@media(min-width:768px){#footer-placeholder{min-height:277px}}</style>';
+
+const REGRA_MOVE = [
+  // Insere o snippet anti-CLS logo após a tag <head> quando ausente
+  { moveTarget: "", newTag: ANTI_CLS_STYLE, anchorTarget: "<head" },
+];
 
 // =============================================================================
 // CONFIGURAÇÕES DO REPOSITÓRIO (CALCULADORAS DE ENFERMAGEM)
