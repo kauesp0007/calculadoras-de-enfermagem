@@ -2,6 +2,7 @@ import os
 import glob
 import json
 import time
+import re
 from bs4 import BeautifulSoup
 import concurrent.futures
 
@@ -124,6 +125,59 @@ class AuditorHTML:
         elif len(h1_tags) > 1:
             self.avisos.append(f"Múltiplos <h1> detectados ({len(h1_tags)}). Recomendado apenas 1.")
 
+    def analisar_fontes(self):
+        if not self.soup: return
+        
+        # 1. Mapeamento de preloads (Quais fontes estão na prioridade máxima de download)
+        fontes_preload = []
+        for link in self.soup.find_all('link', rel='preload', as_='font'):
+            href = link.get('href', '')
+            if href: fontes_preload.append(href)
+            
+        self.dados['fontes_preload'] = fontes_preload
+        
+        # 2. Varredura de FontAwesome Local
+        # Procura link tag de CSS que carregue fontawesome localmente
+        has_fontawesome_css = bool(self.soup.find('link', href=lambda x: x and ('fontawesome' in x.lower() or 'fa-' in x.lower())))
+        # Conta uso real no corpo da página
+        icones_fa = self.soup.find_all(class_=re.compile(r'\bfa-.*\b'))
+        
+        self.dados['font_awesome_carregado'] = has_fontawesome_css
+        self.dados['qtd_icones_fa_usados'] = len(icones_fa)
+        
+        if has_fontawesome_css and len(icones_fa) == 0:
+            self.avisos.append("CRÍTICO PARA PERFORMANCE: FontAwesome carregado localmente via CSS, mas NENHUM ícone 'fa-' foi encontrado. Remova o link.")
+            
+        # 3. Varredura Open Dyslexic Local
+        has_dyslexic = bool(self.soup.find('link', href=lambda x: x and 'open-dyslexic' in x.lower()))
+        self.dados['open_dyslexic_carregado'] = has_dyslexic
+        if has_dyslexic:
+            # Apenas documentamos se existe uso de uma class dyslexic no body, opcionalmente
+            uso_dyslexic = bool(self.soup.find(class_=re.compile(r'dyslexic')))
+            if not uso_dyslexic:
+                self.avisos.append("INFO: Open Dyslexic CSS carregado, verificar se o JS de acessibilidade realmente ativa isso nesta página.")
+
+        # 4. Auditoria de Fontes @font-face vs Preload (LCP/Performance)
+        font_faces_declarados = set()
+        style_blocks = self.soup.find_all('style')
+        for style in style_blocks:
+            if style.string:
+                # Encontra urls de woff2, woff locais declarados no css inline
+                urls = re.findall(r"url\(['\"]?(.*?\.(?:woff2|woff|ttf))['\"]?\)", style.string, re.IGNORECASE)
+                for u in urls:
+                    font_faces_declarados.add(u)
+                    
+        self.dados['fontes_declaradas_css'] = list(font_faces_declarados)
+        
+        # Verifica se as fontes locais essenciais (Inter/Nunito) declaradas receberam preload
+        for font_url in font_faces_declarados:
+            font_lower = font_url.lower()
+            if 'inter' in font_lower or 'nunito' in font_lower:
+                # Verifica se o href do preload termina igual ou contém a mesma fonte
+                is_preloaded = any(font_lower in p.lower() or p.lower().endswith(font_lower.split('/')[-1]) for p in fontes_preload)
+                if not is_preloaded:
+                    self.avisos.append(f"Fonte essencial '{font_url}' declarada no @font-face, mas SEM preload. Isso prejudica o LCP.")
+
 class Orquestrador:
     def __init__(self):
         self.arquivos_html = []
@@ -140,12 +194,20 @@ class Orquestrador:
     def processar_arquivo(self, filepath):
         auditor = AuditorHTML(filepath)
         auditor.analisar_basico()
+        auditor.analisar_fontes() # Executa a nova função de auditoria de fontes locais
         
         resultado = {
             "arquivo": os.path.relpath(filepath, Config.BASE_DIR),
             "titulo": auditor.dados.get('titulo', ''),
             "erros": auditor.erros,
             "avisos": auditor.avisos,
+            "dados_fontes": {
+                "preloads": auditor.dados.get('fontes_preload', []),
+                "font_awesome_carregado": auditor.dados.get('font_awesome_carregado', False),
+                "qtd_icones_fa_usados": auditor.dados.get('qtd_icones_fa_usados', 0),
+                "open_dyslexic_carregado": auditor.dados.get('open_dyslexic_carregado', False),
+                "fontes_declaradas_css": auditor.dados.get('fontes_declaradas_css', [])
+            },
             "analise_ia": None
         }
         return resultado
@@ -153,7 +215,7 @@ class Orquestrador:
     def executar_auditoria(self):
         self.buscar_arquivos()
         
-        print("⚙️  Iniciando auditoria estrutural multithread...")
+        print("⚙️  Iniciando auditoria estrutural e de fontes multithread...")
         # Processa os arquivos em paralelo para ser muito mais rápido
         with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
             resultados = list(executor.map(self.processar_arquivo, self.arquivos_html))
@@ -181,13 +243,15 @@ class Orquestrador:
         # Resumo no terminal
         total_erros = sum(len(r['erros']) for r in self.relatorio)
         total_avisos = sum(len(r['avisos']) for r in self.relatorio)
+        paginas_fa_fantasma = sum(1 for r in self.relatorio if r.get('dados_fontes', {}).get('font_awesome_carregado') and r.get('dados_fontes', {}).get('qtd_icones_fa_usados') == 0)
         
         print("\n" + "="*40)
-        print("📈 RESUMO DA AUDITORIA")
+        print("📈 RESUMO DA AUDITORIA DE SEO E FONTES LOCAIS")
         print("="*40)
         print(f"Páginas analisadas: {len(self.relatorio)}")
-        print(f"Total de Erros Críticos: {total_erros}")
-        print(f"Total de Avisos: {total_avisos}")
+        print(f"Total de Erros Críticos (SEO): {total_erros}")
+        print(f"Total de Avisos (Desempenho/Tamanho): {total_avisos}")
+        print(f"⚠️ Páginas carregando FontAwesome inútil: {paginas_fa_fantasma}")
         print(f"Relatório completo salvo em: {output_file}")
         print("="*40)
 
