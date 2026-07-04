@@ -105,8 +105,8 @@ async function main() {
   execSync('node build-biblioteca.js', { stdio: 'inherit' });
 
   // 6) Páginas de downloads
-  console.log('🔧 Executando build.js...');
-  execSync('node build.js', { stdio: 'inherit' });
+  console.log('🔧 Executando build-downloads.js...');
+  execSync('node build-downloads.js', { stdio: 'inherit' });
 
   // 7) Build Tailwind
   console.log('🎨 Executando Tailwind CSS Build...');
