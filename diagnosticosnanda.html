@@ -569,7 +569,7 @@
               <p class="text-xs text-blue-200 mb-4 font-medium leading-relaxed">Ações clínicas recomendadas calculadas com base nas características deste diagnóstico.</p>
 
               <!-- Container Dinâmico da Lista do NIC -->
-              <div id="nicListContainer" class="space-y-3 mb-6 max-h-80 overflow-y-auto pr-2 custom-scrollbar">
+              <div id="nicListContainer" class="space-y-3 mb-6 overflow-y-auto pr-2 custom-scrollbar" style="max-height: 420px">
                 <!-- Conteúdo do NIC injetado aqui via JS -->
               </div>
 
@@ -635,22 +635,63 @@
         const btnVoltar = document.getElementById("btnVoltar");
 
         // --- MAPA DE ÍCONES PARA DOMÍNIOS ---
+        // Normaliza variações de texto do domínio para nomes canônicos do NANDA 2024
+        function normalizeDomain(domainStr) {
+          if (!domainStr) return "Domínio Não Especificado";
+          let d = String(domainStr).normalize("NFC").trim();
+          const low = d.toLowerCase();
+
+          if (low.includes("promo")) return "Promoção da saúde";
+          if (low.includes("nutri")) return "Nutrição";
+          if (low.includes("elimina") || low.includes("troca")) return "Eliminação e troca";
+          if (low.includes("atividade") || low.includes("repouso") || low.includes("descanso") || low.includes("sono")) return "Atividade/Repouso";
+          if (low.includes("percep") || low.includes("cogni")) return "Percepção / Cognição";
+          if (low.includes("autopercep") || (low.includes("auto") && low.includes("percep")) || low.includes("autoconceito")) return "Autopercepção";
+          if (low.includes("papel") || low.includes("rela") || low.includes("famili") || low.includes("funç") || low.includes("funao")) return "Papéis e Relações";
+          if (low.includes("sexual")) return "Sexualidade";
+          if (low.includes("enfrent") || low.includes("toler") || low.includes("estress")) return "Enfrentamento / Tolerância ao estresse";
+          if (low.includes("confort")) return "Conforto";
+          if (low.includes("cresci") || low.includes("desenvolv")) return "Crescimento / Desenvolvimento";
+          if (low.includes("princ") || low.includes("princípios")) return "Princípios de vida";
+          if (low.includes("seguran") || low.includes("prote")) return "Segurança / Proteção";
+
+          // Fallback: retorna o texto original, mas limpo
+          return d;
+        }
+
+        // Normaliza nomes de classes (formatação básica)
+        function normalizeClass(classStr) {
+          if (!classStr) return "";
+          let s = String(classStr).normalize("NFC").trim();
+          s = s.replace(/\s*\/\s*/g, " / ");
+          s = s.replace(/\s+/g, " ");
+          // Title case simples
+          s = s
+            .split(" ")
+            .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+            .join(" ");
+          return s;
+        }
+
+        // Mapa de ícones por domínio canônico
         function getDomainIcon(domainStr) {
-          const d = (domainStr || "").toLowerCase();
-          if (d.includes("promoção")) return "fa-heart-pulse";
-          if (d.includes("nutri")) return "fa-apple-whole";
-          if (d.includes("elimina")) return "fa-toilet";
-          if (d.includes("atividade") || d.includes("repouso")) return "fa-person-running";
-          if (d.includes("percep") && !d.includes("auto")) return "fa-brain";
-          if (d.includes("autopercep")) return "fa-user-check";
-          if (d.includes("papéis") || d.includes("relacionamento")) return "fa-people-arrows";
-          if (d.includes("sexual")) return "fa-venus-mars";
-          if (d.includes("enfrentamento") || d.includes("tolerância") || d.includes("estresse")) return "fa-shield-heart";
-          if (d.includes("princípio")) return "fa-scale-balanced";
-          if (d.includes("segurança") || d.includes("proteção")) return "fa-shield-halved";
-          if (d.includes("conforto")) return "fa-bed";
-          if (d.includes("crescimento") || d.includes("desenvolvimento")) return "fa-seedling";
-          return "fa-layer-group"; // Padrão
+          const d = normalizeDomain(domainStr);
+          const map = {
+            "Promoção da saúde": "fa-heart-pulse",
+            Nutrição: "fa-apple-whole",
+            "Eliminação e troca": "fa-toilet",
+            "Atividade/Repouso": "fa-person-running",
+            "Percepção / Cognição": "fa-brain",
+            Autopercepção: "fa-user-check",
+            "Papéis e Relações": "fa-people-arrows",
+            Sexualidade: "fa-venus-mars",
+            "Enfrentamento / Tolerância ao estresse": "fa-shield-heart",
+            "Princípios de vida": "fa-scale-balanced",
+            "Segurança / Proteção": "fa-shield-halved",
+            Conforto: "fa-bed",
+            "Crescimento / Desenvolvimento": "fa-seedling",
+          };
+          return map[d] || "fa-layer-group";
         }
 
         // --- INICIALIZAÇÃO (FETCH DOS JSONs BLINDADO) ---
@@ -734,13 +775,16 @@
             return { nic, score };
           });
 
-          // 3. Filtrar e ordernar pelo score, retornando o Top 4 intervenções mais relevantes
-          const resultados = pontuados
-            .filter((item) => item.score > 0)
-            .sort((a, b) => b.score - a.score)
-            .map((item) => item.nic);
+          // 3. Filtrar e ordernar pelo score, retornando o Top 6 intervenções mais relevantes
+          const filtrados = pontuados.filter((item) => item.score > 0).sort((a, b) => b.score - a.score);
+          const topItems = filtrados.slice(0, 6).map((item) => {
+            try {
+              item.nic._score = item.score; // anexa pontuação para uso posterior (UI/Gráfico)
+            } catch (e) {}
+            return item.nic;
+          });
 
-          return resultados.slice(0, 4);
+          return topItems;
         }
 
         // --- MOTOR DE BUSCA NANDA NA LISTA PRINCIPAL ---
@@ -775,37 +819,56 @@
 
           const dominiosAgrupados = {};
           dados.forEach((d) => {
-            const dom = d.dominio || "Domínio Não Especificado";
+            const raw = d.dominio || "Domínio Não Especificado";
+            const dom = normalizeDomain(raw);
             if (!dominiosAgrupados[dom]) dominiosAgrupados[dom] = [];
             dominiosAgrupados[dom].push(d);
           });
 
-          Object.keys(dominiosAgrupados)
-            .sort()
-            .forEach((nomeDominio) => {
-              const diags = dominiosAgrupados[nomeDominio];
-              const icone = getDomainIcon(nomeDominio);
-              const card = document.createElement("div");
-              card.className = "domain-card shadow-forte";
+          // Ordena domínios: usa numeração oficial quando presente em `bancoNanda`, senão ordem alfabética
+          const domainKeys = Object.keys(dominiosAgrupados);
+          const domainOrderMap = {};
+          bancoNanda.forEach((d) => {
+            const raw = d.dominio || "";
+            const m = raw.match(/dom[ií]nio\s*(\d+)/i);
+            if (m) {
+              const num = parseInt(m[1], 10);
+              const key = normalizeDomain(raw);
+              if (!domainOrderMap[key] || domainOrderMap[key] > num) domainOrderMap[key] = num;
+            }
+          });
 
-              const header = document.createElement("div");
-              header.className = "domain-header";
-              header.innerHTML = `
+          domainKeys.sort((a, b) => {
+            const ai = domainOrderMap[a] || 999;
+            const bi = domainOrderMap[b] || 999;
+            if (ai === bi) return a.localeCompare(b, "pt-BR");
+            return ai - bi;
+          });
+
+          domainKeys.forEach((nomeDominio) => {
+            const diags = dominiosAgrupados[nomeDominio];
+            const icone = getDomainIcon(nomeDominio);
+            const card = document.createElement("div");
+            card.className = "domain-card shadow-forte";
+
+            const header = document.createElement("div");
+            header.className = "domain-header";
+            header.innerHTML = `
               <span><i class="fa-solid ${icone} mr-3 opacity-60 text-[#1a3e74]" aria-hidden="true"></i>${nomeDominio}</span>
               <span class="text-xs bg-[#eff6ff] text-[#1a3e74] px-2 py-1 rounded-full">${diags.length}</span>
             `;
 
-              const content = document.createElement("div");
-              content.style.display = inputBusca.value.length >= 2 ? "block" : "none";
+            const content = document.createElement("div");
+            content.style.display = inputBusca.value.length >= 2 ? "block" : "none";
 
-              header.addEventListener("click", () => {
-                content.style.display = content.style.display === "none" ? "block" : "none";
-              });
+            header.addEventListener("click", () => {
+              content.style.display = content.style.display === "none" ? "block" : "none";
+            });
 
-              diags.forEach((diag) => {
-                const item = document.createElement("div");
-                item.className = "diagnosis-item";
-                item.innerHTML = `
+            diags.forEach((diag) => {
+              const item = document.createElement("div");
+              item.className = "diagnosis-item";
+              item.innerHTML = `
                 <div>
                   <span class="text-[10px] font-black text-gray-400 block mb-1">CÓDIGO: ${diag.codigo || "N/A"}</span>
                   <p class="text-sm font-bold text-gray-800 leading-tight">
@@ -815,14 +878,14 @@
                 </div>
                 <i class="fa-solid fa-chevron-right text-gray-300 text-xs"></i>
               `;
-                item.addEventListener("click", () => abrirDetalhesLaudo(diag, icone));
-                content.appendChild(item);
-              });
-
-              card.appendChild(header);
-              card.appendChild(content);
-              listaContainer.appendChild(card);
+              item.addEventListener("click", () => abrirDetalhesLaudo(diag, icone));
+              content.appendChild(item);
             });
+
+            card.appendChild(header);
+            card.appendChild(content);
+            listaContainer.appendChild(card);
+          });
         }
 
         // --- STREAMING_CHUNK:Renderização do Laudo e Correlação NIC... ---
@@ -852,7 +915,16 @@
           const rect = colDir.getBoundingClientRect();
           const header = document.getElementById("global-header-container");
           const headerRect = header ? header.getBoundingClientRect() : { bottom: 16 };
-          const topOffset = Math.round(Math.max(16, headerRect.bottom + 8));
+
+          // Se existir o hero card, garanta que o painel fique abaixo dele (evita sobreposição)
+          const hero = document.querySelector(".meem-card-navy");
+          const heroRect = hero ? hero.getBoundingClientRect() : null;
+          let topOffset;
+          if (heroRect && heroRect.bottom > (headerRect.bottom || 0)) {
+            topOffset = Math.round(heroRect.bottom + 16);
+          } else {
+            topOffset = Math.round(Math.max(16, (headerRect.bottom || 16) + 8));
+          }
 
           laudoEl.style.position = "fixed";
           laudoEl.style.top = topOffset + "px";
@@ -866,7 +938,10 @@
         window.addEventListener("resize", updateFloatingLaudo);
         window.addEventListener("orientationchange", updateFloatingLaudo);
         window.addEventListener("scroll", () => {
-          /* manter cálculo se o layout mudar */
+          // Recalcula posição do laudo ao rolar para evitar sobreposição com elementos dinâmicos
+          try {
+            updateFloatingLaudo();
+          } catch (e) {}
         });
 
         function abrirDetalhesLaudo(diag, iconeFa) {
@@ -878,7 +953,7 @@
 
           // Alimenta Resumo da Esquerda (NANDA)
           document.getElementById("resumoTitulo").textContent = diag.diagnostico;
-          document.getElementById("resumoDominio").textContent = diag.dominio;
+          document.getElementById("resumoDominio").textContent = normalizeDomain(diag.dominio);
           document.getElementById("resumoIcone").className = `fa-solid ${iconeFa || getDomainIcon(diag.dominio)}`;
 
           // Busca as Intervenções do NIC Baseadas no NANDA Selecionado
@@ -917,13 +992,17 @@
           const fatores = Array.isArray(diag.fatores_relacionados) ? diag.fatores_relacionados : [];
           const caracs = Array.isArray(diag.caracteristicas_definidoras) ? diag.caracteristicas_definidoras : [];
 
+          // Top intervenções e cálculo de pontuação máxima para normalização
+          const topInterv = Array.isArray(intervencoesNIC) ? intervencoesNIC.slice(0, 6) : [];
+          const maxScore = topInterv.length ? Math.max(...topInterv.map((i) => i._score || 0)) : 1;
+
           // HTML do Painel da Direita (Laudo Clínico NANDA)
           const html = `
             <div id="print-area">
               <div class="border-b-4 border-[#1a3e74] pb-4 mb-6">
                 <span class="bg-[#1a3e74] text-white text-xs font-black px-3 py-1 rounded-full">NANDA-I ${diag.codigo || ""}</span>
                 <h2 class="text-2xl lg:text-3xl font-black text-gray-800 mt-4 mb-2">${diag.diagnostico} ${diag.ano_inclusao ? `<span class="tag tag-amber ml-2">${diag.ano_inclusao}</span>` : ""}</h2>
-                <p class="text-sm text-gray-500 font-medium"><i class="fa-solid fa-folder-tree mr-1"></i> ${diag.dominio} > ${diag.classe || "Classe não especificada"}</p>
+                <p class="text-sm text-gray-500 font-medium"><i class="fa-solid fa-folder-tree mr-1"></i> ${normalizeDomain(diag.dominio)} > ${normalizeClass(diag.classe) || "Classe não especificada"}</p>
               </div>
               
               <div class="mb-6 bg-blue-50 p-5 rounded-xl border border-blue-100">
@@ -943,6 +1022,24 @@
               </div>
 
               <div class="mb-6 mt-4">
+                <h4 class="font-black text-gray-700 text-sm mb-3 uppercase tracking-wide">Intervenções Recomendadas (Avaliações)</h4>
+                <div id="avaliacoesNic" class="mb-3 space-y-3">
+                  ${
+                    topInterv.length > 0
+                      ? topInterv
+                          .map(
+                            (n) => `
+                            <div class="flex items-center justify-between bg-white/5 p-3 rounded-lg border border-gray-100">
+                              <div class="text-sm font-medium text-gray-700">${n.intervencao} <span class="opacity-60 font-normal ml-1">(${n.codigo})</span></div>
+                              <div class="text-sm font-bold text-[#1a3e74]">${Math.round(((n._score || 0) / maxScore) * 100)}%</div>
+                            </div>
+                          `,
+                          )
+                          .join("")
+                      : `<p class="text-xs text-gray-400 italic">Nenhuma avaliação disponível.</p>`
+                  }
+                </div>
+
                 <h4 class="font-black text-gray-700 text-sm mb-2 uppercase tracking-wide">Intervenções (Gráfico)</h4>
                 <div class="chart-container bg-white p-4 rounded-xl border border-gray-200">
                   <canvas id="nicChart"></canvas>
@@ -956,7 +1053,7 @@
           updateFloatingLaudo();
 
           // Anima gráfico (agora dentro do painel direito)
-          setTimeout(() => renderizarGraficoNIC(fatores, caracs, diag.dominio), 100);
+          setTimeout(() => renderizarGraficoNIC(fatores, caracs, normalizeDomain(diag.dominio)), 100);
 
           // Exibição e Scroll
           document.getElementById("col-direita").classList.remove("hidden");
@@ -995,21 +1092,33 @@
           const ctx = document.getElementById("nicChart");
           if (!ctx) return;
           if (chartInstancia) chartInstancia.destroy();
-
-          const domStr = (dominio || "").toLowerCase();
+          // Se tivermos intervenções calculadas para o diagnóstico, use-as para o gráfico
           let labels = [];
+          let dataVals = [];
+          let bgColors = [];
 
-          if (domStr.includes("respira")) {
-            labels = ["Monitorização Respiratória", "Posicionamento (Fowler)", "Oxigenoterapia", "Aspiração de Vias"];
-          } else if (domStr.includes("nutri")) {
-            labels = ["Controle Hídrico", "Terapia Nutricional", "Monitorização Vitais", "Educação em Saúde"];
-          } else if (domStr.includes("segurança") || domStr.includes("infec")) {
-            labels = ["Controle de Infecção", "Prevenção de Quedas", "Cuidados com Lesões", "Monitorização Vitais"];
+          const intervs = diagSelecionado && Array.isArray(diagSelecionado.intervencoesNIC) && diagSelecionado.intervencoesNIC.length ? diagSelecionado.intervencoesNIC.slice(0, 6) : null;
+
+          if (intervs) {
+            const maxScore = intervs.reduce((m, n) => Math.max(m, n._score || 0), 0) || 1;
+            labels = intervs.map((n) => (n.intervencao && n.intervencao.length > 36 ? n.intervencao.slice(0, 36) + "..." : n.intervencao));
+            dataVals = intervs.map((n) => Math.round(((n._score || 0) / maxScore) * 100));
+            const palette = ["#93c5fd", "#60a5fa", "#3b82f6", "#2563eb", "#1e40af", "#1e3a8a"];
+            bgColors = palette.slice(0, dataVals.length);
           } else {
-            labels = ["Monitorização Clínica", "Educação do Paciente", "Apoio Emocional", "Controle de Riscos"];
+            const domStr = (dominio || "").toLowerCase();
+            if (domStr.includes("respira")) {
+              labels = ["Monitorização Respiratória", "Posicionamento (Fowler)", "Oxigenoterapia", "Aspiração de Vias"];
+            } else if (domStr.includes("nutri")) {
+              labels = ["Controle Hídrico", "Terapia Nutricional", "Monitorização Vitais", "Educação em Saúde"];
+            } else if (domStr.includes("segurança") || domStr.includes("infec")) {
+              labels = ["Controle de Infecção", "Prevenção de Quedas", "Cuidados com Lesões", "Monitorização Vitais"];
+            } else {
+              labels = ["Monitorização Clínica", "Educação do Paciente", "Apoio Emocional", "Controle de Riscos"];
+            }
+            dataVals = [95, 82, 68, 50];
+            bgColors = ["#93c5fd", "#60a5fa", "#3b82f6", "#2563eb"].slice(0, labels.length);
           }
-
-          const dataVals = [95, 82, 68, 50];
 
           chartInstancia = new Chart(ctx, {
             type: "bar",
@@ -1019,8 +1128,8 @@
                 {
                   label: "Relevância Clínica NIC (%)",
                   data: dataVals,
-                  backgroundColor: ["#93c5fd", "#60a5fa", "#3b82f6", "#2563eb"],
-                  borderRadius: 4,
+                  backgroundColor: bgColors,
+                  borderRadius: 6,
                   borderSkipped: false,
                 },
               ],
@@ -1033,17 +1142,26 @@
                 x: {
                   beginAtZero: true,
                   max: 100,
-                  grid: { color: "rgba(255,255,255,0.1)" },
-                  ticks: { font: { family: "Inter", size: 10 }, color: "#bfdbfe" },
+                  grid: { color: "rgba(0,0,0,0.05)" },
+                  ticks: { font: { family: "Inter", size: 11 }, color: "#334155" },
                 },
                 y: {
                   grid: { display: false },
-                  ticks: { font: { family: "Inter", weight: "bold", size: 11 }, color: "#ffffff" },
+                  ticks: { font: { family: "Inter", weight: "600", size: 12 }, color: "#0f172a" },
                 },
               },
               plugins: {
                 legend: { display: false },
-                tooltip: { backgroundColor: "#1e293b", padding: 12, cornerRadius: 8 },
+                tooltip: {
+                  backgroundColor: "#111827",
+                  padding: 10,
+                  cornerRadius: 6,
+                  callbacks: {
+                    label: function (context) {
+                      return context.parsed.x + "%";
+                    },
+                  },
+                },
               },
             },
           });
@@ -1106,7 +1224,7 @@
 
             doc.setTextColor(...slate);
             doc.setFontSize(10);
-            doc.text(`NANDA-I: ${diagSelecionado.codigo || "N/A"}  |  Domínio: ${diagSelecionado.dominio}`, marginL, y);
+            doc.text(`NANDA-I: ${diagSelecionado.codigo || "N/A"}  |  Domínio: ${normalizeDomain(diagSelecionado.dominio)}`, marginL, y);
             y += 12;
 
             doc.setTextColor(30, 41, 59);
@@ -1247,7 +1365,7 @@
               </div>
               
               <h2>Diagnóstico: ${diagSelecionado.diagnostico}</h2>
-              <p><strong>NANDA-I:</strong> ${diagSelecionado.codigo || "N/A"} | <strong>Domínio:</strong> ${diagSelecionado.dominio} > ${diagSelecionado.classe || ""}</p>
+              <p><strong>NANDA-I:</strong> ${diagSelecionado.codigo || "N/A"} | <strong>Domínio:</strong> ${normalizeDomain(diagSelecionado.dominio)} > ${normalizeClass(diagSelecionado.classe) || ""}</p>
               
               <h3>Definição</h3>
               <div class="box">${diagSelecionado.definicao || "N/A"}</div>
