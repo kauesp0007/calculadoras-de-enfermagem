@@ -426,7 +426,10 @@
     });
   }
 
-  function init() {
+  let _searchUI = null;
+  let _indexData = null;
+
+  function setupSearch() {
     ensureStyles();
 
     const root = createUIIfMissing();
@@ -435,13 +438,47 @@
     const index = buildIndex();
     if (!index.length) return;
 
+    _indexData = index;
     const ui = renderUI(root);
+    _searchUI = ui;
     attachBehavior(index, ui);
   }
 
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", init);
-  } else {
-    init();
+  function tryInit() {
+    const terms = document.querySelectorAll(".term-container .term-title");
+    if (terms.length > 0) {
+      setupSearch();
+      return true;
+    }
+    return false;
+  }
+
+  // Tenta inicializar imediatamente (páginas com glossário estático)
+  if (!tryInit()) {
+    // Se não houver termos, aguarda carregamento dinâmico
+    // Estratégia 1: MutationObserver no glossary-wrapper
+    const wrapper = document.getElementById("glossary-wrapper");
+    if (wrapper) {
+      const observer = new MutationObserver(function(mutations, obs) {
+        if (tryInit()) {
+          obs.disconnect();
+        }
+      });
+      observer.observe(wrapper, { childList: true, subtree: true });
+    }
+
+    // Estratégia 2: evento customizado glossary:loaded
+    document.addEventListener("glossary:loaded", function() {
+      if (!_indexData) {
+        tryInit();
+      }
+    });
+
+    // Estratégia 3: fallback - tenta novamente após 3 segundos
+    setTimeout(function() {
+      if (!_indexData) {
+        tryInit();
+      }
+    }, 3000);
   }
 })();
