@@ -3,10 +3,16 @@
 
 from pathlib import Path
 
-# Diretório raiz (onde o script está)
-ROOT = Path(__file__).resolve().parent
+# ==========================
+# RAIZ DO PROJETO
+# ==========================
+# O script está em /automacoes
+# A raiz do projeto é a pasta pai.
+ROOT = Path(__file__).resolve().parent.parent
 
-# Pastas que NÃO devem ser percorridas
+# ==========================
+# PASTAS IGNORADAS
+# ==========================
 EXCLUDED_DIRS = {
     "downloads",
     "biblioteca",
@@ -16,7 +22,9 @@ EXCLUDED_DIRS = {
     ".git",
 }
 
-# Arquivos HTML que NÃO devem ser alterados
+# ==========================
+# ARQUIVOS IGNORADOS
+# ==========================
 EXCLUDED_FILES = {
     "footer.html",
     "menu-global.html",
@@ -29,12 +37,15 @@ EXCLUDED_FILES = {
 
 
 def should_skip(path: Path) -> bool:
-    """Verifica se o arquivo está dentro de uma pasta ignorada."""
+    """Retorna True se o arquivo estiver dentro de uma pasta ignorada."""
     return any(part in EXCLUDED_DIRS for part in path.parts)
 
 
-def process_file(file_path: Path):
-    """Remove apenas espaços e TABs do início de cada linha."""
+def process_file(file_path: Path) -> bool:
+    """
+    Remove SOMENTE espaços e TABs do início de cada linha.
+    Não altera mais nada.
+    """
 
     with open(file_path, "r", encoding="utf-8", newline="") as f:
         lines = f.readlines()
@@ -59,8 +70,13 @@ def process_file(file_path: Path):
 
 def main():
 
+    print(f"Raiz do projeto: {ROOT}")
+    print()
+
     total = 0
     modified = 0
+    unchanged = 0
+    errors = 0
 
     for html in ROOT.rglob("*.html"):
 
@@ -77,16 +93,21 @@ def main():
                 modified += 1
                 print(f"[ALTERADO] {html.relative_to(ROOT)}")
             else:
+                unchanged += 1
                 print(f"[OK]       {html.relative_to(ROOT)}")
 
         except Exception as e:
-            print(f"[ERRO] {html.relative_to(ROOT)} -> {e}")
+            errors += 1
+            print(f"[ERRO] {html.relative_to(ROOT)}")
+            print(f"       {e}")
 
-    print("\n==============================")
+    print()
+    print("=" * 40)
     print(f"Arquivos analisados : {total}")
     print(f"Arquivos alterados  : {modified}")
-    print(f"Arquivos sem alteração: {total - modified}")
-    print("==============================")
+    print(f"Sem alteração       : {unchanged}")
+    print(f"Erros               : {errors}")
+    print("=" * 40)
 
 
 if __name__ == "__main__":
