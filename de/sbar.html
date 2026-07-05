@@ -39,7 +39,6 @@
 <noscript><link href="/global-styles.css" rel="stylesheet"/></noscript>
 <noscript><link href="/css/fontawesome.min.css" rel="stylesheet"/></noscript>
 <noscript>
-<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet"/>
 </noscript>
 
 <!-- 7. Fontes Locais -->
@@ -98,7 +97,6 @@
 </script>
 
 <!-- 11. Outros Scripts/Tags -->
-<style id="anti-cls-placeholders">#global-header-container{display:block;width:100%;min-height:96px;background-color:transparent}@media(max-width:768px){#global-header-container{min-height:60px}}#language-selector-placeholder{display:block;width:100%;min-height:48px;background-color:transparent}#footer-placeholder{display:block;min-height:520px;background-color:transparent}@media(min-width:768px){#footer-placeholder{min-height:277px}}</style>
 <link href="/apple-touch-icon.png" rel="apple-touch-icon"/>
 <link as="script" crossorigin="" href="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" rel="preload"/>
 <link as="script" crossorigin="" href="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" rel="preload"/>
@@ -342,35 +340,6 @@ box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3) !important;
 </head>
 
 <body class="bg-gray-50 text-gray-800 font-inter">
-<style id="anti-cls-placeholders">
-#global-header-container {
-display: block;
-width: 100%;
-min-height: 96px;
-background-color: #fff;
-}
-@media (max-width: 768px) {
-#global-header-container {
-min-height: 60px;
-}
-}
-#language-selector-placeholder {
-display: block;
-width: 100%;
-min-height: 48px;
-background-color: #f9fafb;
-}
-#footer-placeholder {
-display: block;
-min-height: 520px;
-background-color: #1a3e74;
-}
-@media (min-width: 768px) {
-#footer-placeholder {
-min-height: 277px;
-}
-}
-</style>
 
 <!-- Botões Flutuantes Glassmorphism Otimizados - CANTO SUPERIOR DIREITO -->
 <div style="position: fixed; top: 110px; right: 24px; display: flex; flex-direction: column; gap: 12px; z-index: 9999" class="no-print">
@@ -393,10 +362,11 @@ Drucken
 </nav>
 
 <div id="statusMessage" class="sr-only" aria-live="polite" aria-atomic="true"></div>
-<div id="global-header-container"></div>
-<div id="language-selector-placeholder"></div>
 
 <!-- MAIN CONTENT -->
+<style id="anti-cls-placeholders">#global-header-container{display:block;width:100%;min-height:96px;background-color:transparent}@media(max-width:768px){#global-header-container{min-height:60px}}#language-selector-placeholder{display:block;width:100%;min-height:48px;background-color:transparent}#footer-placeholder{display:block;min-height:520px;background-color:transparent}@media(min-width:768px){#footer-placeholder{min-height:277px}}</style>
+<div id="global-header-container"></div>
+<div id="language-selector-placeholder"></div>
 <main id="main-content" class="flex-grow p-4 md:p-8">
 <div class="main-content-wrapper max-w-5xl mx-auto">
 <nav class="breadcrumb no-print" aria-label="breadcrumb">
@@ -1017,6 +987,8 @@ Externe Untersuchung:
 </div>
 </div>
 </main>
+<script src="/global-scripts.js" defer=""></script>
+<script src="/lang-selector.js" defer=""></script>
 
 <!-- Lógica PDF e Imprimir Ajustada com Aspect Ratio e Full Width -->
 <script>
@@ -1204,7 +1176,19 @@ estilos +
 clone.outerHTML +
 "</div>" +
 "<script>window.onload=function(){setTimeout(function(){window.print();}, 400);}<\/script>" +
-"</body></html>";
+"<div id="footer-placeholder"></div>
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+setTimeout(() => {
+fetch("footer.html")
+.then((response) => response.text())
+.then((data) => {
+document.getElementById("footer-placeholder").innerHTML = data;
+});
+}, 150);
+});
+</script>
+</body></html>";
 
 var janela = window.open("", "_blank");
 janela.document.write(html);
@@ -1217,20 +1201,14 @@ document.getElementById("btnSbarImprimir").addEventListener("click", imprimirSba
 </script>
 
 <!-- Scripts e Footers Globais -->
-<script src="/global-scripts.js" defer=""></script>
-<script src="/lang-selector.js" defer></script>
-<div id="footer-placeholder" class="no-print"></div>
+<div id="footer-placeholder"></div>
 <script>
 document.addEventListener("DOMContentLoaded", () => {
 setTimeout(() => {
-fetch("/footer.html")
+fetch("footer.html")
 .then((response) => response.text())
 .then((data) => {
 document.getElementById("footer-placeholder").innerHTML = data;
-if (typeof carregarTraducoes === "function") {
-carregarTraducoes("pt", "footer.json");
-carregarTraducoes("pt", "cookies.json");
-}
 });
 }, 150);
 });
