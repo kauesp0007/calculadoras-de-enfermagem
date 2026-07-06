@@ -14,7 +14,7 @@ jobs:
   deploy:
     environment:
       name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+      url: ${{ steps.deployment.outputs.page_url || steps.deployment-retry.outputs.page_url }}
     runs-on: ubuntu-latest
     steps:
       - name: 📥 Clonar repositório
@@ -31,3 +31,19 @@ jobs:
       - name: 🚀 Deploy no GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
+        continue-on-error: true
+
+      - name: ⏳ Aguardar antes de tentar novamente
+        if: steps.deployment.outcome == 'failure'
+        run: sleep 20
+
+      - name: 🔄 Retry do Deploy no GitHub Pages
+        id: deployment-retry
+        if: steps.deployment.outcome == 'failure'
+        uses: actions/deploy-pages@v4
+
+      - name: ❌ Falha após todas as tentativas
+        if: steps.deployment.outcome == 'failure' && failure()
+        run: |
+          echo "::error::O deploy falhou em ambas as tentativas. Verifique os logs acima para mais detalhes."
+          exit 1
