@@ -1,4 +1,4 @@
-const CACHE_VERSION = "20260706-041906";
+const CACHE_VERSION = "20260706-044210";
 const CACHE_NAME = `calculadoras-enfermagem-cache-${CACHE_VERSION}`;
 
 // O SCRIPT DE BUILD VAI INJETAR A LISTA DE ARQUIVOS AQUI
@@ -294,10 +294,14 @@ self.addEventListener("fetch", (event) => {
     req.mode === "navigate" ||
     req.headers.get("accept").includes("text/html")
   ) {
+    // 1. Cria uma URL temporária com o Cache Buster para forçar a rede a entregar o arquivo fresco
+    const bypassUrl = new URL(req.url);
+    bypassUrl.searchParams.set("v", CACHE_VERSION);
+
     event.respondWith(
-      fetch(req)
+      fetch(bypassUrl)
         .then((networkResponse) => {
-          // Salva dinamicamente as páginas HTML que o utilizador visita (Runtime Cache)
+          // 2. Salva dinamicamente a página HTML usando a requisição ORIGINAL 'req' como chave
           const responseToCache = networkResponse.clone();
           caches
             .open(CACHE_NAME)
