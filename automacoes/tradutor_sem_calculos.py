@@ -238,20 +238,29 @@ def preparar_html_para_traducao_texto(caminho_arquivo, idioma_alvo):
         )
 
     # ==========================================
-    # 3. ATUALIZAR LINK CANONICAL CIRURGICAMENTE (compatível XHTML e HTML)
+    # 3. ATUALIZAR LINK CANONICAL (ordem-independente, XHTML/HTML)
     # ==========================================
-    # O Regex captura o inicio (Grupo 1), o nome do arquivo html (Grupo 2) e o fechamento da tag (Grupo 3)
-    padrao_canonical = re.compile(
-        r'(<link\s+rel="canonical"\s+href="https://www\.calculadorasdeenfermagem\.com\.br)(/[a-z]{2}(?:-[A-Z]{2})?)?/([^"]+)("\s*/?>)',
-        re.IGNORECASE
+    # Lookaheads: encontra canonical com href="..." e rel="canonical" em qualquer ordem
+    match_canonical = re.search(
+        r'<link\s+'
+        r'(?=[^>]*\brel="canonical")'
+        r'(?=[^>]*\bhref="https://www\.calculadorasdeenfermagem\.com\.br(?:/[a-z]{2}(?:-[A-Z]{2})?)?/([^"]+)")'
+        r'[^>]*/?>',
+        html, re.IGNORECASE
     )
-    # Garante que o canonical aponte para a pasta do idioma alvo
-    html = padrao_canonical.sub(rf'\1/{idioma_alvo}/\3\4', html)
+    if match_canonical:
+        filename = match_canonical.group(1)
+        novo_canonical = f'<link href="https://www.calculadorasdeenfermagem.com.br/{idioma_alvo}/{filename}" rel="canonical"/>'
+        html = html[:match_canonical.start()] + novo_canonical + html[match_canonical.end():]
 
     # ==========================================
-    # 4. REORDENAR TAGS HREFLANG (compatível XHTML e HTML)
+    # 4. REORDENAR TAGS HREFLANG (ordem-independente, XHTML/HTML)
     # ==========================================
-    padrao_hreflang = re.compile(r'<link\s+rel="alternate"\s+hreflang="([^"]+)"\s+href="([^"]+)"\s*/?>', re.IGNORECASE)
+    # Regex ordem-independente: hreflang, href e rel="alternate" em qualquer ordem
+    padrao_hreflang = re.compile(
+        r'<link\s+[^>]*\bhreflang="([^"]+)"[^>]*\bhref="([^"]+)"[^>]*\brel="alternate"[^>]*/?>',
+        re.IGNORECASE
+    )
     hreflang_matches = list(padrao_hreflang.finditer(html))
     
     if hreflang_matches:
