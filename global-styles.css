@@ -30,6 +30,57 @@ main {
     flex-grow: 1;
 }
 
+/* ==========================================================================
+   1.1 PROTEÇÃO ANTI-CLS (Cumulative Layout Shift)
+   ========================================================================== */
+
+/* --- Reserva de espaço para ícones Font Awesome (previne shift ao carregar) --- */
+.fa-solid, .fas, .fa-brands, .fab, .fa-regular, .far,
+[class^="fa-"], [class*=" fa-"] {
+    /* Reserva largura mínima para ícones enquanto a fonte não carrega */
+    display: inline-block;
+    min-width: 1em;
+    min-height: 1em;
+}
+
+/* --- Placeholders globais: altura ajustada ao conteúdo real --- */
+#global-header-container {
+    display: block;
+    width: 100%;
+    min-height: 96px;
+    contain: layout style;  /* isola este elemento de afetar o resto da página */
+}
+@media (max-width: 768px) {
+    #global-header-container {
+        min-height: 60px;
+    }
+}
+
+#language-selector-placeholder {
+    display: block;
+    width: 100%;
+    min-height: 48px;
+    contain: layout style;
+}
+
+#footer-placeholder {
+    display: block;
+    min-height: 600px;  /* aumentado para cobrir footer mobile real */
+    contain: layout style;
+}
+@media (min-width: 768px) {
+    #footer-placeholder {
+        min-height: 380px;  /* aumentado para cobrir footer desktop real */
+    }
+}
+
+/* --- Proteção: evita que imagens sem dimensões causem shift --- */
+img:not([width]):not([height]) {
+    aspect-ratio: auto;
+    max-width: 100%;
+    height: auto;
+}
+
 :focus, a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visible {
     outline: 3px solid var(--cor-foco-acessibilidade, yellow);
     outline-offset: 2px;
@@ -58,16 +109,19 @@ main {
 /* ==========================================================================
    2. FONTES E INTERNACIONALIZAÇÃO (@font-face)
    ========================================================================== */
-@font-face { font-family: 'Inter'; src: url('/fonts/inter/inter-regular.woff2') format('woff2'); font-weight: 400; font-display: optional; }
-@font-face { font-family: 'Inter'; src: url('/fonts/inter/inter-600.woff2') format('woff2'); font-weight: 600; font-display: optional; }
-@font-face { font-family: 'Inter'; src: url('/fonts/inter/inter-700.woff2') format('woff2'); font-weight: 700; font-display: optional; }
+/* Inter: size-adjust calibrado para Arial (fallback do sistema) */
+@font-face { font-family: 'Inter'; src: url('/fonts/inter/inter-regular.woff2') format('woff2'); font-weight: 400; font-display: optional; size-adjust: 98%; }
+@font-face { font-family: 'Inter'; src: url('/fonts/inter/inter-600.woff2') format('woff2'); font-weight: 600; font-display: optional; size-adjust: 98%; }
+@font-face { font-family: 'Inter'; src: url('/fonts/inter/inter-700.woff2') format('woff2'); font-weight: 700; font-display: optional; size-adjust: 98%; }
 
-@font-face { font-family: 'Nunito Sans'; src: url('/fonts/nunito/nunito-regular.woff2') format('woff2'); font-weight: 400; font-display: optional; }
-@font-face { font-family: 'Nunito Sans'; src: url('/fonts/nunito/nunito-700.woff2') format('woff2'); font-weight: 700; font-display: optional; }
-@font-face { font-family: 'Nunito Sans'; src: url('/fonts/nunito/nunito-900.woff2') format('woff2'); font-weight: 900; font-display: optional; }
+/* Nunito Sans: size-adjust calibrado para Arial */
+@font-face { font-family: 'Nunito Sans'; src: url('/fonts/nunito/nunito-regular.woff2') format('woff2'); font-weight: 400; font-display: optional; size-adjust: 102%; }
+@font-face { font-family: 'Nunito Sans'; src: url('/fonts/nunito/nunito-700.woff2') format('woff2'); font-weight: 700; font-display: optional; size-adjust: 102%; }
+@font-face { font-family: 'Nunito Sans'; src: url('/fonts/nunito/nunito-900.woff2') format('woff2'); font-weight: 900; font-display: optional; size-adjust: 102%; }
 
-@font-face { font-family: 'Font Awesome 6 Brands'; src: url('/fonts/fa-brands/fa-brands-400.woff2') format('woff2'); font-weight: 400; font-display: swap; }
-@font-face { font-family: 'Font Awesome 6 Free'; src: url('/fonts/fa-solid/fa-solid-900.woff2') format('woff2'); font-weight: 900; font-display: swap; }
+/* Font Awesome: block com timeout curto (previne flash de ícones quadrados) */
+@font-face { font-family: 'Font Awesome 6 Brands'; src: url('/fonts/fa-brands/fa-brands-400.woff2') format('woff2'); font-weight: 400; font-display: block; }
+@font-face { font-family: 'Font Awesome 6 Free'; src: url('/fonts/fa-solid/fa-solid-900.woff2') format('woff2'); font-weight: 900; font-display: block; }
 
 @font-face { font-family: 'Arabic'; src: url('/fonts/arabic/arabic-regular.woff2') format('woff2'); font-weight: 400; font-display: optional; }
 @font-face { font-family: 'Arabic'; src: url('/fonts/arabic/arabic-700.woff2') format('woff2'); font-weight: 700; font-display: optional; }
