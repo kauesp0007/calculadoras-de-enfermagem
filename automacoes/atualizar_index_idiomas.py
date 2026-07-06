@@ -2,10 +2,10 @@ import os
 import re
 import time
 import subprocess
-import deepl
+import requests
 from dotenv import load_dotenv
 
-# Cores para o terminal (Inspirado no seu tradutor_inteligente.py)
+# Cores para o terminal
 C_AMARELO = '\033[93m'
 C_VERDE   = '\033[92m'
 C_AZUL    = '\033[96m'
@@ -15,12 +15,12 @@ RESET     = '\033[0m'
 # Muda o diretório de execução para a raiz do projeto (um nível acima de 'automacoes/')
 os.chdir(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-# Carrega a chave API do DeepL do arquivo .env (que está na raiz)
+# Carrega a chave API do DeepSeek do arquivo .env (que está na raiz)
 load_dotenv()
-DEEPL_API_KEY = os.getenv("DEEPL_API_KEY")
+DEEPSEEK_API_KEY = os.getenv("DEEPSEEK_API_KEY")
 
-if not DEEPL_API_KEY:
-    raise ValueError("Chave da API não encontrada. Verifique se o arquivo .env existe e contém a DEEPL_API_KEY.")
+if not DEEPSEEK_API_KEY:
+    raise ValueError("Chave da API não encontrada. Verifique se o arquivo .env existe e contém a DEEPSEEK_API_KEY.")
 
 # Lista de pastas de idiomas em ordem alfabética
 idiomas = sorted([
@@ -28,183 +28,91 @@ idiomas = sorted([
     "ko", "nl", "pl", "ru", "sv", "tr", "uk", "vi", "zh"
 ])
 
-# O Novo Bloco Base em Português
+# O Novo Bloco Base em Português (APENAS o Banner Hero Otimizado para LCP)
 NOVO_BLOCO_PT = """
-      <!-- INÍCIO: BANNER HERO OTIMIZADO -->
-      <section class="mt-2 mb-8" aria-label="Apresentação da Plataforma">
-        
-        <!-- Bloco Oculto para SEO e Acessibilidade -->
-        <div class="sr-only">
-          <h1>Calculadoras de Enfermagem, Simulados e Escalas Clínicas</h1>
-          <p>Plataforma completa com calculadoras de enfermagem, escalas clínicas, cálculo de dosagem de medicamentos e simulados de concursos públicos. Ideal para estudantes, técnicos e enfermeiros que buscam otimizar a prática diária, reforçar a segurança do paciente e se preparar para provas.</p>
-        </div>
+<!-- INÍCIO: BANNER HERO OTIMIZADO -->
+<section class="mt-2 mb-8" aria-label="Apresentação da Plataforma">
+  <!-- Bloco Oculto para SEO e Acessibilidade -->
+  <div class="sr-only">
+    <h1>Calculadoras de Enfermagem, Simulados e Escalas Clínicas</h1>
+    <p>Plataforma completa com calculadoras de enfermagem, escalas clínicas, cálculo de dosagem de medicamentos e simulados de concursos públicos. Ideal para estudantes, técnicos e enfermeiros que buscam otimizar a prática diária, reforçar a segurança do paciente e se preparar para provas.</p>
+  </div>
 
-        <!-- ATENÇÃO: Se diminuir a altura da imagem, altere o valor 397 no aspect-ratio e no height abaixo -->
-        <div class="w-full rounded-xl overflow-hidden shadow-xl bg-[#1A3E74]" style="aspect-ratio: 1280 / 397;">
-          <img 
-            src="/img/banner_index_h1_calculadoras-de-enfermagem-{LANG}.webp" 
-            alt="Profissional de enfermagem ao lado do título Calculadoras de Enfermagem" 
-            width="1280" 
-            height="397" 
-            fetchpriority="high" 
-            loading="eager" 
-            decoding="sync"
-            class="w-full h-auto object-cover block" 
-          />
-        </div>
-
-      </section>
-      <!-- FIM: BANNER HERO OTIMIZADO -->
-
-      <!-- INÍCIO: SEÇÃO DE APRESENTAÇÃO E MINICARDS -->
-      <section class="mb-12 -mt-4" aria-label="Sobre a Plataforma">
-        
-        <!-- Título e Texto (w-full e whitespace-nowrap garantem a linha única no Desktop) -->
-        <div class="mb-4 w-full">
-          <!-- Subtítulo colado ao texto (mb-1) e com fonte ajustada -->
-          <h2 class="text-lg md:text-xl xl:text-2xl font-bold text-[#1A3E74] font-nunito leading-tight mb-1 xl:whitespace-nowrap">
-            Tecnologia e conhecimento para uma enfermagem mais eficiente, com domínio e sustentável.
-          </h2>
-          <p class="text-gray-600 text-xs md:text-sm font-inter xl:whitespace-nowrap">
-            Ferramentas clínicas, protocolos, escalas e conteúdo educacional para estudantes, enfermeiros, gestores e instituições de saúde — com responsabilidade digital e impacto mensurável.
-          </p>
-        </div>
-
-        <!-- Grade de Minicards (Sombreamento Forte, Escuro e Profissional) -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4">
-          
-          <!-- Card 1 -->
-          <div class="bg-white rounded-xl p-4 shadow-[0_8px_20px_rgba(26,62,116,0.25)] border border-[#1A3E74]/30 flex flex-col hover:-translate-y-1 hover:shadow-[0_12px_28px_rgba(26,62,116,0.4)] transition-all duration-300">
-            <div class="text-[#1A3E74] text-xl mb-2" aria-hidden="true">
-              <i class="fa-solid fa-earth-americas"></i>
-            </div>
-            <h3 class="text-[#1A3E74] font-bold text-xs uppercase tracking-wide mb-1">Alcance Global</h3>
-            <p class="text-gray-600 text-[11px] leading-relaxed">Tradução para mais de 18 idiomas, abrangendo mais de 140 países.</p>
-          </div>
-
-          <!-- Card 2 -->
-          <div class="bg-white rounded-xl p-4 shadow-[0_8px_20px_rgba(26,62,116,0.25)] border border-[#1A3E74]/30 flex flex-col hover:-translate-y-1 hover:shadow-[0_12px_28px_rgba(26,62,116,0.4)] transition-all duration-300">
-            <div class="text-[#1A3E74] text-xl mb-2" aria-hidden="true">
-              <i class="fa-solid fa-notes-medical"></i>
-            </div>
-            <h3 class="text-[#1A3E74] font-bold text-xs uppercase tracking-wide mb-1">Escalas Clínicas</h3>
-            <p class="text-gray-600 text-[11px] leading-relaxed">Mais de 60 escalas clínicas e assistenciais automatizadas.</p>
-          </div>
-
-          <!-- Card 3 -->
-          <div class="bg-white rounded-xl p-4 shadow-[0_8px_20px_rgba(26,62,116,0.25)] border border-[#1A3E74]/30 flex flex-col hover:-translate-y-1 hover:shadow-[0_12px_28px_rgba(26,62,116,0.4)] transition-all duration-300">
-            <div class="text-[#1A3E74] text-xl mb-2" aria-hidden="true">
-              <i class="fa-solid fa-calculator"></i>
-            </div>
-            <h3 class="text-[#1A3E74] font-bold text-xs uppercase tracking-wide mb-1">Calculadoras</h3>
-            <p class="text-gray-600 text-[11px] leading-relaxed">Mais de 15 calculadoras assistenciais para resolver cálculos da rotina da profissão.</p>
-          </div>
-
-          <!-- Card 4 -->
-          <div class="bg-white rounded-xl p-4 shadow-[0_8px_20px_rgba(26,62,116,0.25)] border border-[#1A3E74]/30 flex flex-col hover:-translate-y-1 hover:shadow-[0_12px_28px_rgba(26,62,116,0.4)] transition-all duration-300">
-            <div class="text-[#1A3E74] text-xl mb-2" aria-hidden="true">
-              <i class="fa-solid fa-laptop-medical"></i>
-            </div>
-            <h3 class="text-[#1A3E74] font-bold text-xs uppercase tracking-wide mb-1">Simulados</h3>
-            <p class="text-gray-600 text-[11px] leading-relaxed">Simulados interativos das principais bancas, divididos por temas com avaliação de tempo e acertos.</p>
-          </div>
-
-          <!-- Card 5 -->
-          <div class="bg-white rounded-xl p-4 shadow-[0_8px_20px_rgba(26,62,116,0.25)] border border-[#1A3E74]/30 flex flex-col hover:-translate-y-1 hover:shadow-[0_12px_28px_rgba(26,62,116,0.4)] transition-all duration-300">
-            <div class="text-[#1A3E74] text-xl mb-2" aria-hidden="true">
-              <i class="fa-solid fa-book-open"></i>
-            </div>
-            <h3 class="text-[#1A3E74] font-bold text-xs uppercase tracking-wide mb-1">Biblioteca</h3>
-            <p class="text-gray-600 text-[11px] leading-relaxed">Acervo em construção para servir de base exclusiva de conteúdos literários em enfermagem.</p>
-          </div>
-
-          <!-- Card 6 -->
-          <div class="bg-white rounded-xl p-4 shadow-[0_8px_20px_rgba(26,62,116,0.25)] border border-[#1A3E74]/30 flex flex-col hover:-translate-y-1 hover:shadow-[0_12px_28px_rgba(26,62,116,0.4)] transition-all duration-300">
-            <div class="text-[#1A3E74] text-xl mb-2" aria-hidden="true">
-              <i class="fa-solid fa-user-graduate"></i>
-            </div>
-            <h3 class="text-[#1A3E74] font-bold text-xs uppercase tracking-wide mb-1">Ensino</h3>
-            <p class="text-gray-600 text-[11px] leading-relaxed">Compromisso com o ensino através do desenvolvimento de conteúdos literários exclusivos.</p>
-          </div>
-
-          <!-- Card 7 -->
-          <div class="bg-white rounded-xl p-4 shadow-[0_8px_20px_rgba(26,62,116,0.25)] border border-[#1A3E74]/30 flex flex-col hover:-translate-y-1 hover:shadow-[0_12px_28px_rgba(26,62,116,0.4)] transition-all duration-300">
-            <div class="text-[#1A3E74] text-xl mb-2" aria-hidden="true">
-              <i class="fa-solid fa-scale-balanced"></i>
-            </div>
-            <h3 class="text-[#1A3E74] font-bold text-xs uppercase tracking-wide mb-1">Responsabilidade</h3>
-            <p class="text-gray-600 text-[11px] leading-relaxed">Créditos à literaturas e uso de referências bibliográficas para direcionar escalas e conteúdos.</p>
-          </div>
-
-        </div>
-      </section>
-      <!-- FIM: SEÇÃO DE APRESENTAÇÃO E MINICARDS -->
+  <!-- Container com aspect-ratio fixo para blindar contra CLS -->
+  <div class="w-full rounded-xl overflow-hidden shadow-xl bg-[#1A3E74] aspect-[1280/397]">
+    <img 
+      src="/img/banner_index_h1_calculadoras-de-enfermagem-{LANG}.webp" 
+      alt="Profissional de enfermagem ao lado do título Calculadoras de Enfermagem" 
+      width="1280" 
+      height="397" 
+      fetchpriority="high" 
+      loading="eager" 
+      class="hero-banner w-full h-full object-cover block" 
+    />
+  </div>
+</section>
+<!-- FIM: BANNER HERO OTIMIZADO -->
 """
 
-# Regex para proteger e restaurar <script> e <style>
-SCRIPT_STYLE_PATTERN = re.compile(r'(<script.*?>.*?</script>|<style.*?>.*?</style>)', re.IGNORECASE | re.DOTALL)
-
-def sequestrar_scripts_styles(html):
-    """Extrai scripts e styles e os substitui por marcadores seguros."""
-    placeholders = {}
+def traduzir_bloco_deepseek(texto, idioma_alvo):
+    """Envia o texto para a API do DeepSeek mantendo as tags HTML seguras."""
+    print(f"{C_AZUL}[*]{RESET} Inicializando tradutor DeepSeek...")
     
-    def replacer(match):
-        chave = f"__PROTECTED_BLOCK_{len(placeholders)}__"
-        placeholders[chave] = match.group(1)
-        return chave
-        
-    html_protegido = SCRIPT_STYLE_PATTERN.sub(replacer, html)
-    return html_protegido, placeholders
-
-def restaurar_scripts_styles(html_protegido, placeholders):
-    """Devolve os scripts e styles originais para os marcadores."""
-    html_restaurado = html_protegido
-    for chave, conteudo in placeholders.items():
-        html_restaurado = html_restaurado.replace(chave, conteudo)
-    return html_restaurado
-
-def traduzir_bloco(texto, idioma_alvo):
-    """Envia o texto para a API do DeepL utilizando a biblioteca oficial deepl-python."""
-    print(f"{C_AZUL}[*]{RESET} Inicializando tradutor DeepL...")
+    url = "https://api.deepseek.com/chat/completions"
+    headers = {
+        "Authorization": f"Bearer {DEEPSEEK_API_KEY}",
+        "Content-Type": "application/json"
+    }
     
-    # === COMUNICAÇÃO COM DEEPL ===
-    translator = deepl.Translator(DEEPL_API_KEY)
+    # Mapeamento amigável para o prompt da IA
+    mapa_idiomas = {
+        "ar": "Árabe", "de": "Alemão", "en": "Inglês", "es": "Espanhol", 
+        "fr": "Francês", "hi": "Hindi", "id": "Indonésio", "it": "Italiano", 
+        "ja": "Japonês", "ko": "Coreano", "nl": "Holandês", "pl": "Polonês", 
+        "ru": "Russo", "sv": "Sueco", "tr": "Turco", "uk": "Ucraniano", 
+        "vi": "Vietnamita", "zh": "Chinês (Mandarim)"
+    }
+    nome_idioma = mapa_idiomas.get(idioma_alvo, idioma_alvo)
+    print(f"{C_AZUL}[*]{RESET} Traduzindo bloco de código para {C_AMARELO}{nome_idioma}{RESET}...")
     
-    idioma_deepl = idioma_alvo.upper()
-    if idioma_deepl == "EN":
-        idioma_deepl = "EN-US"
-    elif idioma_deepl == "PT":
-        idioma_deepl = "PT-BR"
-        
-    print(f"{C_AZUL}[*]{RESET} Traduzindo bloco de código para {C_AMARELO}{idioma_deepl}{RESET}...")
+    system_prompt = (
+        "Você é um especialista em desenvolvimento web e tradução de SEO. "
+        "Sua tarefa é traduzir o bloco HTML fornecido do português para o idioma solicitado. "
+        "REGRAS VITAIS E INEGOCIÁVEIS: "
+        "1. Traduza APENAS os textos puros visíveis (como dentro de <h1> e <p>) e atributos de acessibilidade (alt, aria-label). "
+        "2. NÃO altere absolutamente nenhuma tag HTML, classes (class do Tailwind), IDs, URLs (src, href) ou comentários. "
+        "3. NÃO adicione blocos de markdown (como ```html) na sua resposta. Retorne estritamente o código HTML puro e limpo pronto para uso."
+    )
     
-    # Sequestra as tags
-    texto_protegido, placeholders = sequestrar_scripts_styles(texto)
-    
-    # TRUQUE DE PROTEÇÃO: Envolvemos o código em uma div "pai" temporária.
-    # O DeepL falha com a mensagem 'text without parent' se receber múltiplas <section> 
-    # e comentários soltos sem uma única tag pai principal.
-    texto_protegido_envolvido = f'<div id="deepl-temp-wrapper">{texto_protegido}</div>'
+    payload = {
+        "model": "deepseek-chat",
+        "messages": [
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": f"Traduza este bloco HTML para {nome_idioma}:\n\n{texto}"}
+        ],
+        "temperature": 0.1 # Temperatura baixa para garantir tradução literal e sem criatividade quebrando o HTML
+    }
     
     try:
-        resultado = translator.translate_text(
-            texto_protegido_envolvido, 
-            target_lang=idioma_deepl,
-            tag_handling="html"
-        )
+        response = requests.post(url, headers=headers, json=payload, timeout=90)
+        response.raise_for_status()
         
-        texto_traduzido_protegido = resultado.text
+        resultado = response.json()['choices'][0]['message']['content'].strip()
         
-        # Remove a div "pai" temporária que criamos (usando regex para garantir a limpeza)
-        texto_traduzido_protegido = re.sub(r'^<div id=[\'"]deepl-temp-wrapper[\'"]>\s*', '', texto_traduzido_protegido)
-        texto_traduzido_protegido = re.sub(r'\s*</div>$', '', texto_traduzido_protegido)
+        # Remoção de segurança caso a IA insista em formatar com markdown
+        resultado = re.sub(r'^```html\s*', '', resultado, flags=re.IGNORECASE)
+        resultado = re.sub(r'^```\s*', '', resultado)
+        resultado = re.sub(r'\s*```$', '', resultado)
         
-        # Restaura as tags
-        texto_traduzido_final = restaurar_scripts_styles(texto_traduzido_protegido, placeholders)
-        return texto_traduzido_final
-    
+        return resultado
+        
+    except requests.exceptions.RequestException as e:
+        print(f"\n{C_AMARELO}⚠️ Erro de comunicação com a API do DeepSeek: {e}{RESET}")
+        if hasattr(e, 'response') and e.response is not None:
+             print(f"Detalhes: {e.response.text}")
+        return None
     except Exception as e:
-        print(f"\n{C_AMARELO}⚠️ Erro na comunicação com a API do DeepL: {e}{RESET}")
+        print(f"\n{C_AMARELO}⚠️ Erro inesperado: {e}{RESET}")
         return None
 
 def processar_arquivos():
@@ -212,7 +120,7 @@ def processar_arquivos():
     arquivos_ignorados = 0
 
     print(f"\n{C_ROXO}======================================================={RESET}")
-    print(f"{C_VERDE}Iniciando a atualização e tradução cirúrgica dos Index...{RESET}")
+    print(f"{C_VERDE}Iniciando a Injeção do Banner LCP (DeepSeek)...{RESET}")
     print(f"{C_ROXO}======================================================={RESET}\n")
     
     for idioma in idiomas:
@@ -232,32 +140,29 @@ def processar_arquivos():
         with open(caminho_arquivo, "r", encoding="utf-8") as f:
             conteudo = f.read()
 
-        # 1. Apagar os blocos antigos usando Regex (re.DOTALL para quebrar linhas)
-        # CORREÇÃO CRÍTICA: Os blocos originais podem ter o "aria-label" traduzido nos arquivos de destino.
-        # Por isso, usamos [^>]* para capturar atributos extras, focando apenas na identidade estrutural (classes CSS).
-        regex_bloco1 = re.compile(r'<section[^>]*class="pt-1 pb-1 header-with-logo mt-0 mb-1"[^>]*>.*?</section>', re.DOTALL | re.IGNORECASE)
-        regex_bloco2 = re.compile(r'<section[^>]*class="max-w-7xl mx-auto px-4 mt-6 mb-8"[^>]*>.*?</section>', re.DOTALL | re.IGNORECASE)
-        
-        conteudo_limpo = regex_bloco1.sub("", conteudo)
-        conteudo_limpo = regex_bloco2.sub("", conteudo_limpo)
-        
-        # 2. Configurar a imagem no Bloco Novo
-        # (Isso injeta a sigla correta ex: banner_index_h1_calculadoras-de-enfermagem-en.webp)
-        bloco_pronto_pt = NOVO_BLOCO_PT.replace("{LANG}", idioma)
-        
-        # 3. Traduzir o Novo Bloco
-        print(f"{C_AZUL}[2/4]{RESET} Traduzindo o novo bloco...")
-        bloco_traduzido = traduzir_bloco(bloco_pronto_pt, idioma)
-        
-        if bloco_traduzido is None:
-            print(f"{C_AMARELO}ERRO CRÍTICO na tradução. Pulando este arquivo.{RESET}\n")
-            arquivos_ignorados += 1
-            continue
-            
-        # 4. Injetar o Bloco Novo Traduzido no local correto
         ponto_insercao = '<main id="main-content" class="flex-grow px-4 md:px-8 py-2" style="margin-top: 0">'
         
-        if ponto_insercao in conteudo_limpo:
+        if ponto_insercao in conteudo:
+            # 1. Limpeza Segura (Idempotência)
+            # Remove blocos antigos legados (se existirem)
+            conteudo_limpo = re.sub(r'<section[^>]*class="pt-1 pb-1 header-with-logo mt-0 mb-1"[^>]*>.*?</section>', '', conteudo, flags=re.DOTALL|re.IGNORECASE)
+            conteudo_limpo = re.sub(r'<section[^>]*class="max-w-7xl mx-auto px-4 mt-6 mb-8"[^>]*>.*?</section>', '', conteudo_limpo, flags=re.DOTALL|re.IGNORECASE)
+            # Remove o bloco novo caso o script seja rodado duas vezes (evita duplicidade)
+            conteudo_limpo = re.sub(r'<!-- INÍCIO: BANNER HERO OTIMIZADO -->.*?<!-- FIM: BANNER HERO OTIMIZADO -->\n*', '', conteudo_limpo, flags=re.DOTALL|re.IGNORECASE)
+            
+            # 2. Configurar a imagem no Bloco Novo (Injeta a sigla ex: ...-en.webp) ANTES da tradução
+            bloco_pronto_pt = NOVO_BLOCO_PT.replace("{LANG}", idioma)
+            
+            # 3. Traduzir o Novo Bloco
+            print(f"{C_AZUL}[2/4]{RESET} Traduzindo o novo bloco...")
+            bloco_traduzido = traduzir_bloco_deepseek(bloco_pronto_pt, idioma)
+            
+            if bloco_traduzido is None:
+                print(f"{C_AMARELO}ERRO CRÍTICO na tradução. Pulando este arquivo.{RESET}\n")
+                arquivos_ignorados += 1
+                continue
+                
+            # 4. Injetar o Bloco Novo Traduzido logo após a tag main
             conteudo_final = conteudo_limpo.replace(
                 ponto_insercao, 
                 ponto_insercao + "\n" + bloco_traduzido
@@ -280,10 +185,10 @@ def processar_arquivos():
             
             arquivos_atualizados += 1
             
-            # 6. Aguardar 60 segundos se não for o último arquivo
+            # 6. Aguardar para evitar Rate Limit (DeepSeek é rápido, mas é boa prática manter uma pequena pausa)
             if idioma != idiomas[-1]:
-                print(f"\n{C_AMARELO}⏳ Pausa de segurança: Aguardando 60 segundos para evitar Rate Limit da API...{RESET}\n")
-                time.sleep(60)
+                print(f"\n{C_AMARELO}⏳ Pausa de segurança: Aguardando 10 segundos...{RESET}\n")
+                time.sleep(10)
         else:
             print(f"{C_AMARELO}AVISO: Tag <main id=\"main-content\"...> não encontrada. Arquivo não alterado.{RESET}\n")
             arquivos_ignorados += 1

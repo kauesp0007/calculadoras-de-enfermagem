@@ -667,8 +667,8 @@ if __name__ == "__main__":
     # 🟢 ÁREA DE CONFIGURAÇÃO DIÁRIA (ALTERE APENAS AQUI) 🟢
     # =========================================================================
     
-    arquivos_originais = ["tecnologiaverde.html"] 
-    idiomas_alvo = ["ar", "ja", "ru", "ko", "tr", "nl", "pl", "sv", "id", "vi", "uk"] 
+    arquivos_originais = ["index.html"] 
+    idiomas_alvo = ["pl"] 
     
     # =========================================================================
 
