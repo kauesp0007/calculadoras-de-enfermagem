@@ -667,8 +667,8 @@ if __name__ == "__main__":
     # 🟢 ÁREA DE CONFIGURAÇÃO DIÁRIA (ALTERE APENAS AQUI) 🟢
     # =========================================================================
     
-    arquivos_originais = ["index.html"] 
-    idiomas_alvo = ["pl"] 
+    arquivos_originais = ["diagnosticosnanda.html"] 
+    idiomas_alvo = ["en", "es"] 
     
     # =========================================================================
 
