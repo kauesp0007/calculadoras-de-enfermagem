@@ -323,34 +323,46 @@ def preparar_html_para_traducao_texto(caminho_arquivo, idioma_alvo):
         )
 
         # === PARTE 2: Preloads — SUBSTITUIÇÃO CIRÚRGICA NO LOCAL EXATO ===
-        # Encontra o BLOCO "Fontes Locais" com os preloads de Inter/Nunito
-        padrao_bloco_fontes = re.compile(
-            r'(<!--\s*7\.\s*Fontes\s+Locais\s*-->\s*\n\s*)'
-            r'((?:<link\s+rel="preload"\s+href="[^"]*/(?:inter|nunito)[^"]*"[^>]*>\s*\n?\s*)+)',
+        # Regex com lookaheads: encontra <link> com rel="preload" E href="...inter/nunito..."
+        # em QUALQUER ordem de atributos (compatível com todos os formatos HTML/XHTML)
+        padrao_fonte_preload = re.compile(
+            r'<link\s+'
+            r'(?=[^>]*\brel="preload")'           # lookahead: tem rel="preload"
+            r'(?=[^>]*\bhref="[^"]*/(?:inter|nunito)[^"]*")'  # lookahead: href aponta para Inter/Nunito
+            r'[^>]*/?>',                           # consome a tag inteira
             re.IGNORECASE
         )
         
-        match_bloco = padrao_bloco_fontes.search(html)
-        if match_bloco:
-            # Substitui o bloco de preloads antigos pelos novos, mantendo o comentário
-            bloco_novo = match_bloco.group(1) + font_info["preload"] + "\n"
-            html = html[:match_bloco.start()] + bloco_novo + html[match_bloco.end():]
+        # Encontra TODOS os preloads de fontes Inter/Nunito no HTML
+        matches_fontes = list(padrao_fonte_preload.finditer(html))
+        
+        if matches_fontes:
+            # Estratégia: substitui o PRIMEIRO match pelos novos preloads,
+            # depois remove TODOS os demais (incluindo o primeiro que já foi substituído)
+            
+            # 1. Substitui o primeiro preload antigo pelos novos
+            primeiro = matches_fontes[0]
+            html = html[:primeiro.start()] + font_info["preload"] + html[primeiro.end():]
+            
+            # 2. Re-escaneia e remove TODOS os preloads de Inter/Nunito restantes
+            # (o primeiro já foi substituído, então só os outros serão encontrados)
+            html = padrao_fonte_preload.sub('', html)
+            
+            # 3. Remove linhas em branco duplicadas que possam ter ficado
+            html = re.sub(r'\n\s*\n\s*\n', '\n\n', html)
         else:
-            # Fallback: se não encontrou o comentário "Fontes Locais", 
-            # substitui o PRIMEIRO preload de Inter/Nunito encontrado
-            padrao_primeira_fonte = re.compile(
-                r'<link\s+rel="preload"\s+href="[^"]*/(?:inter|nunito)[^"]*"[^>]*>',
+            # Fallback absoluto: se não encontrou por lookaheads, tenta regex simples
+            # que captura href="/fonts/inter/..." ou href="/fonts/nunito/..."
+            padrao_fallback = re.compile(
+                r'<link\s+[^>]*href="[^"]*/(?:inter|nunito)[^"]*"[^>]*/?>',
                 re.IGNORECASE
             )
-            match_primeira = padrao_primeira_fonte.search(html)
-            if match_primeira:
-                html = html[:match_primeira.start()] + font_info["preload"] + html[match_primeira.end():]
-        
-        # Limpeza final: remove quaisquer preloads de Inter/Nunito REMANESCENTES
-        html = re.sub(
-            r'\n?\s*<link\s+rel="preload"\s+href="[^"]*/(?:inter|nunito)[^"]*"[^>]*>',
-            '', html, flags=re.IGNORECASE
-        )
+            matches_fallback = list(padrao_fallback.finditer(html))
+            if matches_fallback:
+                primeiro = matches_fallback[0]
+                html = html[:primeiro.start()] + font_info["preload"] + html[primeiro.end():]
+                html = padrao_fallback.sub('', html)
+                html = re.sub(r'\n\s*\n\s*\n', '\n\n', html)
 
     # ==========================================
     # 6. TRADUZIR META TAGS SEO CIRURGICAMENTE
