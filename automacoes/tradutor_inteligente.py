@@ -426,7 +426,6 @@ def traduzir_lote_js_com_deepseek(dicionario_scripts, idioma_alvo):
     for id_script, codigo_js in dicionario_scripts.items():
         # Usa regex para encontrar strings entre aspas simples ('...') ou duplas ("...")
         # Ignora strings vazias ou muito curtas (ex: chaves de objetos, IDs curtos)
-        # Ignora template literals (`...`) por enquanto, pois geralmente contém lógica
         padrao_string = re.compile(r'(["\'])(.*?)\1')
         
         novo_codigo_js = codigo_js
@@ -443,9 +442,43 @@ def traduzir_lote_js_com_deepseek(dicionario_scripts, idioma_alvo):
                 mapeamento_scripts[id_script].append({
                     'original': match.group(0), # A string completa com as aspas
                     'id': id_string,
-                    'delimitador': delimitador
+                    'delimitador': delimitador,
+                    'tipo': 'string',
                 })
                 contador_string += 1
+
+        # === Extração de TEMPLATE LITERALS (crases `...`) ===
+        # Template literals contêm texto em português + ${interpolacoes}
+        # Extrai apenas o texto fora de ${...}, preservando interpolações
+        padrao_template = re.compile(r'`([^`]*)`')
+        for match_tmpl in padrao_template.finditer(codigo_js):
+            conteudo = match_tmpl.group(1)
+            if not conteudo.strip():
+                continue
+            
+            # Encontra todas as interpolações ${...}
+            interps = re.findall(r'\$\{[^}]+\}', conteudo)
+            
+            # Substitui cada interpolação por um placeholder único
+            texto_limpo = conteudo
+            for i, interp in enumerate(interps):
+                texto_limpo = texto_limpo.replace(interp, f'__INTERP_{i}__', 1)
+            
+            # Verifica se tem texto traduzível (letras + fora de interpolações)
+            tem_texto = bool(re.search(r'[a-zA-ZÀ-ÿ]', re.sub(r'__INTERP_\d+__', '', texto_limpo)))
+            if not tem_texto:
+                continue
+            
+            id_string = f"STR_{contador_string}"
+            strings_para_traduzir[id_string] = texto_limpo
+            mapeamento_scripts[id_script].append({
+                'original': match_tmpl.group(0),
+                'id': id_string,
+                'delimitador': '`',
+                'tipo': 'template',
+                'interpolacoes': interps,
+            })
+            contador_string += 1
 
     if not strings_para_traduzir:
         print("      ↳ Nenhuma string de texto legível encontrada no JS. Mantendo original.")
@@ -462,6 +495,9 @@ def traduzir_lote_js_com_deepseek(dicionario_scripts, idioma_alvo):
     1. Retorne APENAS o JSON válido. Sem explicações, sem blocos markdown (```json).
     2. As chaves do JSON (STR_0, STR_1...) DEVEM ser mantidas intactas.
     3. Traduza o valor. Mantenha eventuais pontuações finais, mas NÃO adicione aspas extras.
+    4. Placeholders como __INTERP_0__, __INTERP_1__ etc DEVEM ser mantidos EXATAMENTE como estão.
+       Eles representam variáveis JavaScript (${{...}}) e NÃO devem ser traduzidos ou alterados.
+    5. Preserve tags HTML dentro do texto (ex: <strong>, <em>, <br>). Traduza APENAS o texto ao redor.
     """
     
     url = "https://api.deepseek.com/chat/completions"
@@ -502,11 +538,18 @@ def traduzir_lote_js_com_deepseek(dicionario_scripts, idioma_alvo):
                 texto_traduzido = traducoes.get(id_str)
                 
                 if texto_traduzido:
-                    # Protege aspas dentro da string traduzida
-                    texto_traduzido = texto_traduzido.replace(item['delimitador'], f"\\{item['delimitador']}")
-                    string_traduzida_com_aspas = f"{item['delimitador']}{texto_traduzido}{item['delimitador']}"
-                    # Substitui a original pela traduzida (cuidado extra com replace para não trocar partes erradas)
-                    codigo_reconstruido = codigo_reconstruido.replace(item['original'], string_traduzida_com_aspas, 1)
+                    if item.get('tipo') == 'template':
+                        # Template literal: restaura interpolações ${...} nos placeholders
+                        texto_final = texto_traduzido
+                        for i, interp in enumerate(item.get('interpolacoes', [])):
+                            texto_final = texto_final.replace(f'__INTERP_{i}__', interp, 1)
+                        string_final = f"`{texto_final}`"
+                    else:
+                        # String normal: protege aspas e reconstrói
+                        texto_traduzido = texto_traduzido.replace(item['delimitador'], f"\\{item['delimitador']}")
+                        string_final = f"{item['delimitador']}{texto_traduzido}{item['delimitador']}"
+                    
+                    codigo_reconstruido = codigo_reconstruido.replace(item['original'], string_final, 1)
             
             retorno_seguro[id_script] = codigo_reconstruido
             
