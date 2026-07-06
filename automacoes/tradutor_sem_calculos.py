@@ -3,7 +3,18 @@ import subprocess
 from datetime import datetime
 from dotenv import load_dotenv
 import deepl
+from deepl.exceptions import QuotaExceededException, TooManyRequestsException
 import re
+import sys
+
+# Adiciona diretório atual ao path para importar o módulo IA
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+try:
+    from tradutor_html_ia import traduzir_html_completo as _traduzir_html_via_ia
+    _IA_DISPONIVEL = True
+except ImportError:
+    _IA_DISPONIVEL = False
+    print("⚠️ Módulo tradutor_html_ia.py não encontrado. Fallback IA indisponível.")
 import requests
 import json
 import time
@@ -13,6 +24,7 @@ load_dotenv()
 
 CHAVE_API = os.getenv("DEEPL_API_KEY")
 CHAVE_DEEPSEEK = os.getenv("DEEPSEEK_API_KEY")
+CHAVE_OPENAI = os.getenv("OPENAI_API_KEY")
 if not CHAVE_API:
     raise ValueError("Chave da API não encontrada. Verifique se o arquivo .env existe e contém a DEEPL_API_KEY.")
 if not CHAVE_DEEPSEEK:
@@ -353,7 +365,8 @@ def traduzir_html_com_deepl(html_preparado, idioma_alvo):
             blocos_codigo.update(scripts_traduzidos)
         
         # === 3. COMUNICAÇÃO COM DEEPL ===
-        translator = deepl.Translator(CHAVE_API)
+        translator = deepl.Translator(CHAVE_API, server_url="https://api-free.deepl.com")
+        print(f"      \033[96m↳ DeepL Endpoint: {translator.server_url}\033[0m")
         
         idioma_deepl = idioma_alvo.upper()
         if idioma_deepl == "EN":
@@ -361,11 +374,13 @@ def traduzir_html_com_deepl(html_preparado, idioma_alvo):
         elif idioma_deepl == "PT":
             idioma_deepl = "PT-BR"
 
+        print(f"      \033[96m↳ Enviando {len(html_protegido)} caracteres para tradução...\033[0m")
         resultado = translator.translate_text(
             html_protegido, 
             target_lang=idioma_deepl, 
             tag_handling="html"
         )
+        print(f"      \033[96m↳ Caracteres cobrados nesta chamada: {resultado.billed_characters}\033[0m")
         
         html_traduzido = resultado.text.strip()
         
@@ -374,8 +389,39 @@ def traduzir_html_com_deepl(html_preparado, idioma_alvo):
             html_traduzido = html_traduzido.replace(placeholder, codigo_restaurado)
             
         return html_traduzido
+    except QuotaExceededException as e:
+        print(f"\n❌ COTA EXCEDIDA (HTTP {e.http_status_code}): {e}")
+        print(f"   ⚠️  Verifique seu uso em: https://www.deepl.com/pt-br/pro-account/usage")
+        if _IA_DISPONIVEL:
+            print(f"      \033[93m↳ Acionando tradutor IA como fallback...\033[0m")
+            html_ia = _traduzir_html_via_ia(html_protegido, idioma_alvo, CHAVE_DEEPSEEK, CHAVE_OPENAI)
+            if html_ia:
+                for placeholder, codigo_restaurado in blocos_codigo.items():
+                    html_ia = html_ia.replace(placeholder, codigo_restaurado)
+                return html_ia
+        return None
+    except TooManyRequestsException as e:
+        print(f"\n⚠️  MUITAS REQUISIÇÕES (HTTP {e.http_status_code}): {e}")
+        if _IA_DISPONIVEL:
+            print(f"      \033[93m↳ Acionando tradutor IA como fallback...\033[0m")
+            html_ia = _traduzir_html_via_ia(html_protegido, idioma_alvo, CHAVE_DEEPSEEK, CHAVE_OPENAI)
+            if html_ia:
+                for placeholder, codigo_restaurado in blocos_codigo.items():
+                    html_ia = html_ia.replace(placeholder, codigo_restaurado)
+                return html_ia
+        return None
     except Exception as e:
-        print(f"\n❌ Erro na comunicação com a API do DeepL: {e}")
+        print(f"\n❌ Erro na comunicação com a API do DeepL: {type(e).__name__}: {e}")
+        if _IA_DISPONIVEL:
+            print(f"      \033[93m↳ Acionando tradutor IA como fallback...\033[0m")
+            try:
+                html_ia = _traduzir_html_via_ia(html_protegido, idioma_alvo, CHAVE_DEEPSEEK, CHAVE_OPENAI)
+                if html_ia:
+                    for placeholder, codigo_restaurado in blocos_codigo.items():
+                        html_ia = html_ia.replace(placeholder, codigo_restaurado)
+                    return html_ia
+            except Exception as e2:
+                print(f"\n❌ Fallback IA também falhou: {type(e2).__name__}: {e2}")
         return None
 
 if __name__ == "__main__":
@@ -389,8 +435,8 @@ if __name__ == "__main__":
     # 🟢 ÁREA DE CONFIGURAÇÃO DIÁRIA (ALTERE APENAS AQUI) 🟢
     # =========================================================================
     
-    arquivos_originais = ["tecnologiaverde.html", "politica.html", "termos.html"] 
-    idiomas_alvo = ["fr", "zh", "ar", "ja", "ru", "ko", "tr", "nl", "pl", "sv", "id", "vi", "hi", "uk"] 
+    arquivos_originais = ["tecnologiaverde.html"] 
+    idiomas_alvo = ["hi", "ar", "ja", "ru", "ko", "tr", "nl", "pl", "sv", "id", "vi", "uk"] 
     
     # =========================================================================
 
