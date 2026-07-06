@@ -1,9 +1,8 @@
-const CACHE_VERSION = "20260706-131915";
+const CACHE_VERSION = "20260706-143818";
 const CACHE_NAME = `calculadoras-enfermagem-cache-${CACHE_VERSION}`;
 
 // O SCRIPT DE BUILD VAI INJETAR A LISTA DE ARQUIVOS AQUI
 const urlsToCache = [
-  '.lighthouserc.json',
   '.vscode/extensions.json',
   '.vscode/settings.json',
   '.vscode/tasks.json',
@@ -111,6 +110,7 @@ const urlsToCache = [
   'ko/global-styles.css',
   'ko/lang-selector.js',
   'lang-selector.js',
+  'lighthouserc.js',
   'locales/ar/cookies.json',
   'locales/ar/footer.json',
   'locales/bn/cookies.json',
