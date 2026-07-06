@@ -35,7 +35,7 @@ O workflow `.github/workflows/lighthouse.yml` é disparado:
 ### Onde ver os resultados
 
 - **Na action do GitHub Actions**: acesse a aba *Actions* → selecione a execução → veja o log da etapa *🔦 Executar Lighthouse CI*.
-- **No link do relatório**: o próprio LHCI imprime no log um URL como `https://storage.googleapis.com/lighthouse-infrastructure.appspot.com/reports/...` — ele fica acessível por 13 dias.
+- **No link do relatório**: o próprio LHCI imprime no log um URL como `https://storage.googleapis.com/lighthouse-infrastructure.appspot.com/reports/...` — ele fica acessível por **13 dias** e expira após esse período; salve ou compartilhe o link antes que expire.
 - **Em PRs**: se o segredo `LHCI_GITHUB_APP_TOKEN` estiver configurado (veja abaixo), o LHCI posta automaticamente os resultados como comentário ou check no PR.
 
 ### Páginas auditadas

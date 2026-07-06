@@ -63,16 +63,20 @@
     }
   }
 
-  // Carrega web-vitals v5 via CDN (IIFE build — sem dependência de bundler)
+  // Carrega web-vitals v5.3.0 via CDN (IIFE build — sem dependência de bundler)
+  // Versão fixada para evitar atualizações inesperadas via CDN.
+  // Para máxima segurança, considere calcular e adicionar um atributo `integrity` (SRI)
+  // usando: https://www.srihash.org/?url=https://unpkg.com/web-vitals@5.3.0/dist/web-vitals.iife.js
   var script = document.createElement("script");
   script.src =
-    "https://unpkg.com/web-vitals@5/dist/web-vitals.iife.js";
+    "https://unpkg.com/web-vitals@5.3.0/dist/web-vitals.iife.js";
   script.async = true;
   script.onload = function () {
     if (typeof webVitals === "undefined") return;
-    webVitals.onLCP(reportMetric, { reportAllChanges: false });
-    webVitals.onINP(reportMetric, { reportAllChanges: false });
-    webVitals.onCLS(reportMetric, { reportAllChanges: false });
+    var opts = { reportAllChanges: false };
+    webVitals.onLCP(reportMetric, opts);
+    webVitals.onINP(reportMetric, opts);
+    webVitals.onCLS(reportMetric, opts);
     webVitals.onFCP(reportMetric);
     webVitals.onTTFB(reportMetric);
   };
