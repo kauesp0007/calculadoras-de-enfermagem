@@ -132,6 +132,112 @@ for (const folder of SPECIAL_FOLDERS) {
   }
 }
 
+// --- METADADOS DAS PÁGINAS ---
+
+// Retorna a data real de modificação do arquivo no disco
+function getLastmod(pageKey) {
+  try {
+    const filePath = path.join(ROOT_DIR, pageKey);
+    if (fs.existsSync(filePath)) {
+      const stats = fs.statSync(filePath);
+      return stats.mtime.toISOString().split('T')[0];
+    }
+  } catch (e) {
+    // fallback: usa a data de hoje se o arquivo não for encontrado
+  }
+  return new Date().toISOString().split('T')[0];
+}
+
+// Retorna a frequência de alteração com base no tipo de página
+function getChangefreq(pageKey) {
+  const name = pageKey.toLowerCase();
+
+  // Blog: posts novos ou atualizados com frequência
+  if (name.startsWith('blog/')) return 'daily';
+
+  // Homepage
+  if (name === 'index.html') return 'weekly';
+
+  // Páginas de conteúdo dinâmico
+  if (
+    name.includes('forum') ||
+    name.includes('flashcards') ||
+    name === 'downloads.html' ||
+    name === 'biblioteca-provas.html'
+  ) {
+    return 'weekly';
+  }
+
+  // Ferramentas trabalhistas (podem mudar com legislação)
+  const trabalhista = [
+    'calculo-de-ferias', 'calculo-hora-extra', 'calculo-rescisao',
+    'adicional-noturno', 'dimensionamento'
+  ];
+  for (const key of trabalhista) {
+    if (name.startsWith(key)) return 'monthly';
+  }
+
+  // Calculadoras e escalas clínicas consolidadas — raramente mudam
+  const estaticas = [
+    'apgar', 'braden', 'glasgow', 'ballard', 'capurro', 'bishop',
+    'aldrete', 'asa', 'barthel', 'berg', 'cam', 'cincinnati',
+    'cornell', 'cries', 'curb-65', 'downes', 'downton', 'elpo',
+    'fast', 'flacc', 'four', 'fugulin', 'gds', 'gosnell', 'hamilton',
+    'hendrich', 'humpty', 'imc', 'bps', 'apache', 'balancohidrico',
+    'escalanumerica', 'gasometria', 'genogramaeecomapa', 'gestacional',
+    'gotejamento', 'checklist-cirurgico-seguro', 'checagem',
+    'equipamentoscc', 'formulario-saep-enfermagem'
+  ];
+  for (const key of estaticas) {
+    if (name.startsWith(key)) return 'yearly';
+  }
+
+  // Default
+  return 'monthly';
+}
+
+// Retorna a prioridade relativa da página (0.0 a 1.0)
+function getPriority(pageKey) {
+  const name = pageKey.toLowerCase();
+
+  // Homepage — máxima prioridade
+  if (name === 'index.html') return '1.0';
+
+  // Blog — conteúdo fresco, alta prioridade
+  if (name.startsWith('blog/')) return '0.9';
+
+  // Páginas de alto valor para o usuário
+  const alta = [
+    'downloads.html', 'biblioteca-provas.html',
+    'diagnosticosnanda.html', 'dimensionamento.html',
+    'gotejamento.html', 'exames_laboratoriais.html',
+    'calculo-de-ferias.html', 'calculo-rescisao.html',
+    'calculo-hora-extra.html', 'adicional-noturno.html',
+    'calculadoravacina.html', 'flashcards_quiz.html'
+  ];
+  for (const key of alta) {
+    if (name === key) return '0.8';
+  }
+
+  // Páginas auxiliares — prioridade mais baixa
+  const baixa = [
+    'fale.html', 'ativar-admin.html',
+    'entenda_copsoq.html', 'elisabeth-marques-plataforma-completa.html',
+    'adequar-nr1.html'
+  ];
+  for (const key of baixa) {
+    if (name === key) return '0.5';
+  }
+
+  // Pastas especiais: downloads e biblioteca (páginas internas)
+  if (name.startsWith('downloads/') || name.startsWith('biblioteca/')) {
+    return '0.6';
+  }
+
+  // Default para calculadoras e escalas
+  return '0.7';
+}
+
 // --- GERA O XML ---
 console.log('Gerando XML...');
 
@@ -147,14 +253,16 @@ for (const pageKey in sitemapEntries) {
   // Pegamos a URL "principal". Preferência para pt-br, senão a primeira que achar.
   const mainUrl = versions['pt-br'] || Object.values(versions)[0];
 
-  // Data de modificação (hoje)
-  const today = new Date().toISOString().split('T')[0];
+  // Metadados calculados dinamicamente
+  const lastmod = getLastmod(pageKey);
+  const changefreq = getChangefreq(pageKey);
+  const priority = getPriority(pageKey);
 
   xml += `  <url>
     <loc>${mainUrl}</loc>
-    <lastmod>${today}</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>${pageKey === 'index.html' ? '1.0' : '0.8'}</priority>
+    <lastmod>${lastmod}</lastmod>
+    <changefreq>${changefreq}</changefreq>
+    <priority>${priority}</priority>
 `;
 
   // Adiciona as tags xhtml:link para TODOS os idiomas disponíveis desta página (incluindo o principal)
