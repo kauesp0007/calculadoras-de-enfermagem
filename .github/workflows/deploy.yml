@@ -3,7 +3,7 @@ name: 🚀 Deploy automático no GitHub Pages
 on:
   push:
     branches:
-      - main   # sempre que você der push na branch main
+      - main
 
 permissions:
   contents: read
@@ -23,6 +23,14 @@ jobs:
       - name: ⚙️ Configurar GitHub Pages
         uses: actions/configure-pages@v5
 
+      - name: ⚙️ Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: 🗺️ Gerar Sitemap
+        run: node generate-sitemap.js
+
       - name: 📤 Upload dos arquivos
         uses: actions/upload-pages-artifact@v3
         with:
@@ -32,5 +40,3 @@ jobs:
       - name: 🚀 Deploy no GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
-        with:
-          artifact_name: github-pages-${{ github.run_attempt }}
