@@ -254,11 +254,19 @@ def preparar_html_para_traducao_texto(caminho_arquivo, idioma_alvo):
         html = html[:match_canonical.start()] + novo_canonical + html[match_canonical.end():]
 
     # ==========================================
-    # 4. REORDENAR TAGS HREFLANG (ordem-independente, XHTML/HTML)
+    # 4. HREFLANG: SWAP INTELIGENTE + REORDENACAO (ordem-independente)
     # ==========================================
-    # Regex ordem-independente: hreflang, href e rel="alternate" em qualquer ordem
+    # Estrategia:
+    #   1. A tag pt-br (URL em portugues) vira o idioma alvo (URL traduzida)
+    #   2. A tag do idioma alvo (ja existente) vira pt-br (URL em portugues)
+    #   3. Resultado: idioma alvo primeiro, sem duplicidade
+    # Regex com lookaheads: hreflang, href e rel="alternate" em QUALQUER ordem
     padrao_hreflang = re.compile(
-        r'<link\s+[^>]*\bhreflang="([^"]+)"[^>]*\bhref="([^"]+)"[^>]*\brel="alternate"[^>]*/?>',
+        r'<link\s+'
+        r'(?=[^>]*\brel="alternate")'
+        r'(?=[^>]*\bhreflang="([^"]+)")'
+        r'(?=[^>]*\bhref="([^"]+)")'
+        r'[^>]*/?>',
         re.IGNORECASE
     )
     hreflang_matches = list(padrao_hreflang.finditer(html))
@@ -267,23 +275,48 @@ def preparar_html_para_traducao_texto(caminho_arquivo, idioma_alvo):
         start_idx = hreflang_matches[0].start()
         end_idx = hreflang_matches[-1].end()
         
-        tags = [m.group(0) for m in hreflang_matches]
+        # Parse todas as entradas: lang, url
+        entries = []
+        for m in hreflang_matches:
+            entries.append({'lang': m.group(1), 'url': m.group(2)})
         
-        tag_alvo = None
+        # Encontra pt-br e idioma alvo
+        idx_pt = None
+        idx_alvo = None
+        for i, e in enumerate(entries):
+            if e['lang'].lower() == 'pt-br':
+                idx_pt = i
+            if e['lang'].lower() == idioma_alvo.lower():
+                idx_alvo = i
+        
+        # SWAP: troca idiomas e URLs entre pt-br e idioma alvo
+        if idx_pt is not None and idx_alvo is not None:
+            url_pt = entries[idx_pt]['url']
+            url_alvo = entries[idx_alvo]['url']
+            entries[idx_pt]['lang'] = idioma_alvo
+            entries[idx_pt]['url'] = url_alvo
+            entries[idx_alvo]['lang'] = 'pt-br'
+            entries[idx_alvo]['url'] = url_pt
+        
+        # Reconstrói todas as tags com formato consistente
+        novas_tags = []
+        for e in entries:
+            novas_tags.append(
+                f'<link href="{e["url"]}" hreflang="{e["lang"]}" rel="alternate"/>'
+            )
+        
+        # Reordena: idioma alvo PRIMEIRO
+        tag_alvo_str = None
         tags_restantes = []
-        
-        for tag in tags:
-            # Captura exatamente a tag correspondente ao idioma alvo atual
+        for tag in novas_tags:
             if f'hreflang="{idioma_alvo}"' in tag.lower():
-                tag_alvo = tag
+                tag_alvo_str = tag
             else:
                 tags_restantes.append(tag)
-                
-        if tag_alvo:
-            # Coloca a tag do idioma alvo no topo
-            tags_reordenadas = [tag_alvo] + tags_restantes
-            bloco_novo = "\n    ".join(tags_reordenadas)
-            html = html[:start_idx] + bloco_novo + html[end_idx:]
+        
+        tags_finais = [tag_alvo_str] + tags_restantes if tag_alvo_str else novas_tags
+        bloco_novo = "\n    ".join(tags_finais)
+        html = html[:start_idx] + bloco_novo + html[end_idx:]
 
     # ==========================================
     # 5. AJUSTE CIRÚRGICO DE FONTES ESPECÍFICAS
