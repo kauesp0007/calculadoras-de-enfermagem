@@ -70,12 +70,19 @@ def extrair_textos_traduziveis(html):
         return " " * len(match.group(0))
     html_limpo = re.sub(r'<!--.*?-->', replace_comment, html, flags=re.DOTALL)
 
-    # 2. Encontra regiões a serem IGNORADAS (script, style, code, pre, svg, math)
-    tags_ignorar = r'<(script|style|code|pre|svg|math)\b[^>]*>.*?</\1>'
-    regioes_ignoradas = [
-        (m.start(), m.end())
-        for m in re.finditer(tags_ignorar, html_limpo, re.IGNORECASE | re.DOTALL)
-    ]
+    # 2. Encontra regiões a serem IGNORADAS (script, style, code, pre, svg, math, meta, link)
+    # Para tags container (script, style, etc.): captura todo o conteúdo interno
+    tags_container = r'<(script|style|code|pre|svg|math)\b[^>]*>.*?</\1>'
+    # Para tags self-closing (meta, link): captura a tag inteira
+    tags_self_closing = r'<(meta|link)\b[^>]*?/?>'
+    
+    regioes_ignoradas = []
+    for padrao in [tags_container, tags_self_closing]:
+        for m in re.finditer(padrao, html_limpo, re.IGNORECASE | re.DOTALL):
+            regioes_ignoradas.append((m.start(), m.end()))
+    
+    # Ordena por posição inicial
+    regioes_ignoradas.sort(key=lambda x: x[0])
 
     def is_ignorado(pos):
         """Verifica se uma posição está dentro de uma região ignorada."""

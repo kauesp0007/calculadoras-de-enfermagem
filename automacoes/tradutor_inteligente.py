@@ -34,15 +34,33 @@ def traduzir_meta_seo_com_deepseek(html, idioma_alvo):
     """
     Isola os conteúdos das tags de SEO e traduz de forma independente usando o DeepSeek,
     garantindo adaptação cultural e de palavras-chave.
+    Funciona com content="..." antes OU depois de name/property="..." (formato XHTML).
     """
-    padrao_meta = re.compile(r'(<meta\s+(?:name|property)="(?:description|keywords|og:title|og:description)"\s+content=")([^"]+)("\s*/?>)', re.IGNORECASE)
-    matches = list(padrao_meta.finditer(html))
+    campos = r'(?:description|keywords|og:title|og:description|og:site_name|twitter:title|twitter:description|author)'
     
-    if not matches:
+    # Padrão 1: content="..." ... name|property="campo" (formato XHTML mais comum)
+    p1 = re.compile(rf'(<meta\s+content=")([^"]+)("[^>]*?(?:name|property)="{campos}"[^>]*/?>)', re.IGNORECASE)
+    # Padrão 2: name|property="campo" ... content="..." (formato alternativo)
+    p2 = re.compile(rf'(<meta\s+(?:name|property)="{campos}"[^>]*?content=")([^"]+)("[^>]*/?>)', re.IGNORECASE)
+    
+    matches = []
+    for p in [p1, p2]:
+        for m in p.finditer(html):
+            matches.append(m)
+    
+    # Remove duplicatas (mesma posição no HTML)
+    seen = set()
+    unique_matches = []
+    for m in matches:
+        if m.start() not in seen:
+            seen.add(m.start())
+            unique_matches.append(m)
+    
+    if not unique_matches:
         return html
         
     # Extrai os textos em PT para um dicionário (JSON)
-    dict_textos = {f"t{i}": m.group(2) for i, m in enumerate(matches)}
+    dict_textos = {f"t{i}": m.group(2) for i, m in enumerate(unique_matches)}
     
     instrucoes = f"""
     Você é um especialista em SEO internacional e localização na área da saúde/enfermagem.
@@ -83,9 +101,9 @@ def traduzir_meta_seo_com_deepseek(html, idioma_alvo):
             
         traducoes = json.loads(resultado)
         
-        # Substitui no HTML original (de trás para frente para não afetar os índices dos matches anteriores)
+        # Substitui no HTML original (de trás para frente para não afetar os índices)
         html_modificado = html
-        for i, m in reversed(list(enumerate(matches))):
+        for i, m in reversed(list(enumerate(unique_matches))):
             chave = f"t{i}"
             if chave in traducoes:
                 novo_texto = traducoes[chave].replace('"', "'") # Proteção contra aspas acidentais no HTML
@@ -183,15 +201,55 @@ def preparar_html_para_traducao_texto(caminho_arquivo, idioma_alvo):
     html = re.sub(r'<html\s+lang="pt-BR">', f'<html lang="{locale_completo}">', html, flags=re.IGNORECASE)
 
     # ==========================================
-    # 3. ATUALIZAR LINK CANONICAL CIRURGICAMENTE
+    # 2.1 ATUALIZAR OG:LOCALE, OG:URL E OUTRAS METAS FIXAS
     # ==========================================
-    # O Regex captura o inicio (Grupo 1), o nome do arquivo html (Grupo 2) e o fechamento da tag (Grupo 3)
-    padrao_canonical = re.compile(r'(<link\s+rel="canonical"\s+href="https://www\.calculadorasdeenfermagem\.com\.br)/([^"]+)("\s*/?>)', re.IGNORECASE)
-    # E injeta a pasta do idioma_alvo entre a URL e o nome do arquivo
-    html = padrao_canonical.sub(rf'\1/{idioma_alvo}/\2\3', html)
+    og_locale = locale_completo.replace("-", "_")  # hi-IN → hi_IN
+    html = re.sub(
+        r'<meta\s+content="pt_BR"\s+property="og:locale"\s*/?>',
+        f'<meta content="{og_locale}" property="og:locale"/>',
+        html, flags=re.IGNORECASE
+    )
+    # Atualiza og:url com o caminho do idioma
+    html = re.sub(
+        r'(<meta\s+content="https://www\.calculadorasdeenfermagem\.com\.br)/([^"]+)("\s+property="og:url"\s*/?>)',
+        rf'\1/{idioma_alvo}/\2\3',
+        html, flags=re.IGNORECASE
+    )
+    # Atualiza twitter:url se existir
+    html = re.sub(
+        r'(<meta\s+content="https://www\.calculadorasdeenfermagem\.com\.br)/([^"]+)("\s+name="twitter:url"\s*/?>)',
+        rf'\1/{idioma_alvo}/\2\3',
+        html, flags=re.IGNORECASE
+    )
+    # Atualiza og:image para usar a bandeira correta do idioma
+    mapa_bandeiras = {
+        "en": "bandeira-eua", "es": "bandeira-espanha", "fr": "bandeira-franca",
+        "it": "bandeira-italia", "de": "bandeira-alemanha", "hi": "bandeira-india",
+        "zh": "bandeira-china", "ja": "bandeira-japao", "ru": "bandeira-russia",
+        "ko": "bandeira-coreia-sul", "tr": "bandeira-turquia", "nl": "bandeira-holanda",
+        "pl": "bandeira-polonia", "sv": "bandeira-suecia", "id": "bandeira-indonesia",
+        "vi": "bandeira-vietna", "uk": "bandeira-ucrania", "ar": "bandeira-arabia-saudita"
+    }
+    if idioma_alvo in mapa_bandeiras:
+        html = re.sub(
+            r'bandeira-[a-z-]+\.webp',
+            f'{mapa_bandeiras[idioma_alvo]}.webp',
+            html, flags=re.IGNORECASE
+        )
 
     # ==========================================
-    # 4. REORDENAR TAGS HREFLANG
+    # 3. ATUALIZAR LINK CANONICAL CIRURGICAMENTE (compatível XHTML e HTML)
+    # ==========================================
+    # O Regex captura o inicio (Grupo 1), o nome do arquivo html (Grupo 2) e o fechamento da tag (Grupo 3)
+    padrao_canonical = re.compile(
+        r'(<link\s+rel="canonical"\s+href="https://www\.calculadorasdeenfermagem\.com\.br)(/[a-z]{2}(?:-[A-Z]{2})?)?/([^"]+)("\s*/?>)',
+        re.IGNORECASE
+    )
+    # Garante que o canonical aponte para a pasta do idioma alvo
+    html = padrao_canonical.sub(rf'\1/{idioma_alvo}/\3\4', html)
+
+    # ==========================================
+    # 4. REORDENAR TAGS HREFLANG (compatível XHTML e HTML)
     # ==========================================
     padrao_hreflang = re.compile(r'<link\s+rel="alternate"\s+hreflang="([^"]+)"\s+href="([^"]+)"\s*/?>', re.IGNORECASE)
     hreflang_matches = list(padrao_hreflang.finditer(html))
@@ -245,21 +303,54 @@ def preparar_html_para_traducao_texto(caminho_arquivo, idioma_alvo):
     }
 
     if idioma_alvo in fontes_especificas:
-        # Injeta o novo CSS logo após a abertura da tag <style id="critical-fonts">
+        font_info = fontes_especificas[idioma_alvo]
+        
+        # === PARTE 1: CSS @font-face no <style id="critical-fonts"> ===
         tag_style = r'(<style\s+id="critical-fonts"[^>]*>\s*)'
         if re.search(tag_style, html, re.IGNORECASE):
-            html = re.sub(tag_style, rf'\1{fontes_especificas[idioma_alvo]["css"]}\n    ', html, count=1, flags=re.IGNORECASE)
+            html = re.sub(tag_style, rf'\1{font_info["css"]}\n    ', html, count=1, flags=re.IGNORECASE)
+        else:
+            html = re.sub(
+                r'(<style[^>]*>)',
+                rf'\1\n    {font_info["css"]}',
+                html, count=1, flags=re.IGNORECASE
+            )
         
-        # Remove APENAS os @font-face originais de Inter e Nunito
-        html = re.sub(r'@font-face\s*\{\s*font-family:\s*[\'"](?:Inter|Nunito Sans)[\'"][^\}]+\}\s*', '', html, flags=re.IGNORECASE)
+        # Remove @font-face originais de Inter e Nunito do CSS
+        html = re.sub(
+            r'@font-face\s*\{\s*font-family:\s*[\'"](?:Inter|Nunito Sans|Nunito)[\'"][^\}]+\}\s*',
+            '', html, flags=re.IGNORECASE
+        )
 
-        # Injeta os preloads novos na posição do primeiro preload original a ser removido (para manter no mesmo bloco do head)
-        primeiro_preload = r'<link\s+rel="preload"\s+href="/fonts/(?:inter|nunito)/[^>]+>'
-        if re.search(primeiro_preload, html, re.IGNORECASE):
-            html = re.sub(primeiro_preload, fontes_especificas[idioma_alvo]["preload"], html, count=1, flags=re.IGNORECASE)
-            
-        # Remove todos os outros preloads originais de Inter e Nunito restantes
-        html = re.sub(r'<link\s+rel="preload"\s+href="/fonts/(?:inter|nunito)/[^>]+>\s*', '', html, flags=re.IGNORECASE)
+        # === PARTE 2: Preloads — SUBSTITUIÇÃO CIRÚRGICA NO LOCAL EXATO ===
+        # Encontra o BLOCO "Fontes Locais" com os preloads de Inter/Nunito
+        padrao_bloco_fontes = re.compile(
+            r'(<!--\s*7\.\s*Fontes\s+Locais\s*-->\s*\n\s*)'
+            r'((?:<link\s+rel="preload"\s+href="[^"]*/(?:inter|nunito)[^"]*"[^>]*>\s*\n?\s*)+)',
+            re.IGNORECASE
+        )
+        
+        match_bloco = padrao_bloco_fontes.search(html)
+        if match_bloco:
+            # Substitui o bloco de preloads antigos pelos novos, mantendo o comentário
+            bloco_novo = match_bloco.group(1) + font_info["preload"] + "\n"
+            html = html[:match_bloco.start()] + bloco_novo + html[match_bloco.end():]
+        else:
+            # Fallback: se não encontrou o comentário "Fontes Locais", 
+            # substitui o PRIMEIRO preload de Inter/Nunito encontrado
+            padrao_primeira_fonte = re.compile(
+                r'<link\s+rel="preload"\s+href="[^"]*/(?:inter|nunito)[^"]*"[^>]*>',
+                re.IGNORECASE
+            )
+            match_primeira = padrao_primeira_fonte.search(html)
+            if match_primeira:
+                html = html[:match_primeira.start()] + font_info["preload"] + html[match_primeira.end():]
+        
+        # Limpeza final: remove quaisquer preloads de Inter/Nunito REMANESCENTES
+        html = re.sub(
+            r'\n?\s*<link\s+rel="preload"\s+href="[^"]*/(?:inter|nunito)[^"]*"[^>]*>',
+            '', html, flags=re.IGNORECASE
+        )
 
     # ==========================================
     # 6. TRADUZIR META TAGS SEO CIRURGICAMENTE
