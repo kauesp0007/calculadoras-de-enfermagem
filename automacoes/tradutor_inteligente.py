@@ -90,7 +90,7 @@ def traduzir_meta_seo_com_deepseek(html, idioma_alvo):
     }
 
     try:
-        response = requests.post(url, headers=headers, json=payload, timeout=120)
+        response = requests.post(url, headers=headers, json=payload, timeout=45)
         response.raise_for_status()
         resultado = response.json()["choices"][0]["message"]["content"].strip()
         
@@ -667,8 +667,8 @@ if __name__ == "__main__":
     # 🟢 ÁREA DE CONFIGURAÇÃO DIÁRIA (ALTERE APENAS AQUI) 🟢
     # =========================================================================
     
-    arquivos_originais = ["perroca.html"] 
-    idiomas_alvo = ["es", "de", "it", "fr", "hi", "zh", "ar", "ja", "ru", "ko", "tr", "nl", "pl", "sv", "id", "vi", "uk"] 
+    arquivos_originais = ["politica.html", "ballard.html"] 
+    idiomas_alvo = ["en", "es", "de", "it", "fr", "hi", "zh", "ar", "ja", "ru", "ko", "tr", "nl", "pl", "sv", "id", "vi", "uk"] 
     
     # =========================================================================
 
@@ -731,7 +731,7 @@ if __name__ == "__main__":
                     is_last_lang = (idioma_alvo == idiomas_alvo[-1])
                     
                     if not (is_last_file and is_last_lang):
-                        print(f"\n{C_AMARELO}⏳ Pausa de segurança: Aguardando 120 segundos para evitar bloqueios da API...{RESET}")
+                        print(f"\n{C_AMARELO}⏳ Pausa de segurança: Aguardando 45 segundos para evitar bloqueios da API...{RESET}")
                         time.sleep(45)
                     # === FIM DA PAUSA DE SEGURANÇA ===
             else:

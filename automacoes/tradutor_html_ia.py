@@ -8,7 +8,7 @@ Estratégia:
 2. Ignora <script>, <style>, <code>, <pre>, <svg>, <math>
 3. Divide em blocos de ~8000 caracteres (≈2000 tokens)
 4. Envia cada bloco como JSON para DeepSeek (fallback: OpenAI)
-5. Aguarda 120s entre blocos para respeitar rate limits
+5. Aguarda 45s entre blocos para respeitar rate limits
 6. Salva progresso a cada bloco (retomada segura)
 7. Reconstrói o HTML com os textos traduzidos
 """
@@ -23,7 +23,7 @@ import requests
 # CONFIGURAÇÃO
 # ============================================================
 MAX_CHARS_POR_BLOCO = 8000   # ~2000 tokens (1 token ≈ 4 chars em PT)
-PAUSA_ENTRE_BLOCOS = 120     # segundos entre blocos
+PAUSA_ENTRE_BLOCOS = 45     # segundos entre blocos
 ARQUIVO_PROGRESSO = "progresso_traducao_ia.json"
 
 NOME_IDIOMAS = {
@@ -222,7 +222,7 @@ def _traduzir_json_deepseek(dict_textos, idioma_alvo, chave_deepseek):
         "response_format": {"type": "json_object"},
     }
 
-    response = requests.post(url, headers=headers, json=payload, timeout=120)
+    response = requests.post(url, headers=headers, json=payload, timeout=45)
     response.raise_for_status()
     resultado = response.json()["choices"][0]["message"]["content"].strip()
 
@@ -261,7 +261,7 @@ def _traduzir_json_openai(dict_textos, idioma_alvo, chave_openai):
         "response_format": {"type": "json_object"},
     }
 
-    response = requests.post(url, headers=headers, json=payload, timeout=120)
+    response = requests.post(url, headers=headers, json=payload, timeout=45)
     response.raise_for_status()
     resultado = response.json()["choices"][0]["message"]["content"].strip()
 
@@ -325,7 +325,7 @@ def traduzir_html_completo(html, idioma_alvo, chave_deepseek, chave_openai=None)
     1. Extrai textos traduzíveis do HTML
     2. Divide em blocos (respeitando limite de tokens)
     3. Traduz cada bloco via DeepSeek (fallback: OpenAI)
-    4. Aguarda 120s entre blocos
+    4. Aguarda 45s entre blocos
     5. Salva progresso incremental (retomada segura)
     6. Reconstrói HTML com os textos traduzidos
 
