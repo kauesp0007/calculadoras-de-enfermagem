@@ -645,7 +645,7 @@ if __name__ == "__main__":
                     
                     if not (is_last_file and is_last_lang):
                         print(f"\n{C_AMARELO}⏳ Pausa de segurança: Aguardando 120 segundos para evitar bloqueios da API...{RESET}")
-                        time.sleep(120)
+                        time.sleep(45)
                     # === FIM DA PAUSA DE SEGURANÇA ===
             else:
                 print(f"\n{C_AMARELO}Atenção: O arquivo '{arquivo_original}' não foi encontrado na raiz.{RESET}")
