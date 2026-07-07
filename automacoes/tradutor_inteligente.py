@@ -413,6 +413,86 @@ def preparar_html_para_traducao_texto(caminho_arquivo, idioma_alvo):
 
     return html
 
+def _extrair_interpolacoes(texto):
+    """
+    Extrai TODAS as interpolações ${...} completas de um texto,
+    lidando corretamente com chaves aninhadas (ex: ${fn({a:1})}).
+    
+    Ao contrário da regex que para na primeira },
+    esta função rastreia a profundidade de chaves para capturar
+    a interpolação inteira.
+    """
+    interps = []
+    i = 0
+    while i < len(texto):
+        if texto[i:i+2] == '${':
+            inicio = i
+            depth = 1
+            j = i + 2
+            while j < len(texto) and depth > 0:
+                if texto[j] == '{':
+                    depth += 1
+                elif texto[j] == '}':
+                    depth -= 1
+                j += 1
+            interps.append(texto[inicio:j])
+            i = j
+        else:
+            i += 1
+    return interps
+
+
+def _extrair_template_literals(codigo_js):
+    """
+    Extrai template literals COMPLETOS do JavaScript, lidando corretamente
+    com backticks aninhados dentro de ${...} (ex: ${x ? `a` : `b`}).
+    
+    Ao contrário da regex `([^`]*)` que quebra no primeiro backtick,
+    esta função rastreia o aninhamento de chaves ${ } para determinar
+    se um backtick pertence a um template aninhado ou ao fechamento do
+    template externo.
+    
+    Retorna lista de tuplas (match_completo, conteudo) onde:
+    - match_completo: string completa incluindo os backticks delimitadores
+    - conteudo: apenas o texto entre os backticks
+    """
+    resultados = []
+    i = 0
+    while i < len(codigo_js):
+        # Encontra backtick de abertura (não escapado)
+        if codigo_js[i] == '`' and (i == 0 or codigo_js[i-1] != '\\'):
+            inicio = i
+            brace_depth = 0  # profundidade de ${...}
+            j = i + 1
+            while j < len(codigo_js):
+                c = codigo_js[j]
+                # Detecta abertura de interpolação ${
+                if c == '$' and j+1 < len(codigo_js) and codigo_js[j+1] == '{':
+                    brace_depth += 1
+                    j += 2
+                    continue
+                # Detecta abertura de chave dentro de interpolação (ex: objetos, funções)
+                elif c == '{' and brace_depth > 0:
+                    brace_depth += 1
+                # Detecta fechamento de chave dentro de interpolação
+                elif c == '}' and brace_depth > 0:
+                    brace_depth -= 1
+                # Backtick: só fecha o template externo se brace_depth == 0
+                elif c == '`' and brace_depth == 0:
+                    match_completo = codigo_js[inicio:j+1]
+                    conteudo = codigo_js[inicio+1:j]
+                    resultados.append((match_completo, conteudo))
+                    i = j + 1
+                    break
+                j += 1
+            else:
+                # Não encontrou fechamento — avança 1 char para não travar
+                i += 1
+        else:
+            i += 1
+    return resultados
+
+
 def traduzir_lote_js_com_deepseek(dicionario_scripts, idioma_alvo):
     """
     Função otimizada que extrai as strings do JS antes de enviar para a IA,
@@ -450,14 +530,14 @@ def traduzir_lote_js_com_deepseek(dicionario_scripts, idioma_alvo):
         # === Extração de TEMPLATE LITERALS (crases `...`) ===
         # Template literals contêm texto em português + ${interpolacoes}
         # Extrai apenas o texto fora de ${...}, preservando interpolações
-        padrao_template = re.compile(r'`([^`]*)`')
-        for match_tmpl in padrao_template.finditer(codigo_js):
-            conteudo = match_tmpl.group(1)
+        # Usa parser que rastreia aninhamento de ${...} para NÃO quebrar
+        # templates com backticks aninhados (ex: ${x ? `a` : `b`})
+        for match_completo, conteudo in _extrair_template_literals(codigo_js):
             if not conteudo.strip():
                 continue
             
-            # Encontra todas as interpolações ${...}
-            interps = re.findall(r'\$\{[^}]+\}', conteudo)
+            # Encontra todas as interpolações ${...} (com parser de aninhamento)
+            interps = _extrair_interpolacoes(conteudo)
             
             # Substitui cada interpolação por um placeholder único
             texto_limpo = conteudo
@@ -472,7 +552,7 @@ def traduzir_lote_js_com_deepseek(dicionario_scripts, idioma_alvo):
             id_string = f"STR_{contador_string}"
             strings_para_traduzir[id_string] = texto_limpo
             mapeamento_scripts[id_script].append({
-                'original': match_tmpl.group(0),
+                'original': match_completo,
                 'id': id_string,
                 'delimitador': '`',
                 'tipo': 'template',
