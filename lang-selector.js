@@ -52,7 +52,8 @@ function langSelectorInit() {
     item.addEventListener("click", () => {
       const value = item.dataset.value;
       const flag = item.dataset.flag;
-      const text = item.innerText.trim();
+      // Usa textContent em vez de innerText (evita reflow forçado)
+      const text = item.textContent.trim();
 
       langFlag.src = flag;
       langText.textContent = text;
@@ -103,7 +104,8 @@ function langSelectorInit() {
   }
 
   if (current) {
+    // Usa textContent em vez de innerText (evita reflow forçado)
     langFlag.src = current.dataset.flag;
-    langText.textContent = current.innerText.trim();
+    langText.textContent = current.textContent.trim();
   }
 }

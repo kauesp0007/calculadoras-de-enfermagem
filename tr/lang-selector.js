@@ -73,7 +73,7 @@ document.addEventListener("langSelectorLoaded", function() {
         item.addEventListener("click", () => {
             const value = item.dataset.value;
             const flag  = item.dataset.flag;
-            const text  = item.innerText.trim();
+            const text  = item.textContent.trim();
 
             langFlag.src = flag;
             langText.textContent = text;
@@ -139,6 +139,6 @@ document.addEventListener("langSelectorLoaded", function() {
 
     if (current) {
       langFlag.src = current.dataset.flag;
-      langText.textContent = current.innerText.trim();
+      langText.textContent = current.textContent.trim();
     }
 });

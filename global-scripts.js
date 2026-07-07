@@ -106,14 +106,14 @@ function inicializarTooltips() {
   document.querySelectorAll("[data-tooltip]").forEach(e => {
     const o = e.getAttribute("data-tooltip"),
       t = document.createElement("div");
-    t.className = "tooltip-dinamico", t.innerText = o, e.appendChild(t), e.addEventListener("mouseenter", () => t.style.opacity = "1"), e.addEventListener("mouseleave", () => t.style.opacity = "0"), e.addEventListener("touchstart", () => t.style.opacity = "1"), e.addEventListener("touchend", () => setTimeout(() => t.style.opacity = "0", 2e3))
+    t.className = "tooltip-dinamico", t.textContent = o, e.appendChild(t), e.addEventListener("mouseenter", () => t.style.opacity = "1"), e.addEventListener("mouseleave", () => t.style.opacity = "0"), e.addEventListener("touchstart", () => t.style.opacity = "1"), e.addEventListener("touchend", () => setTimeout(() => t.style.opacity = "0", 2e3))
   })
 }
 
 function initializeCookieFunctionality() {
-  // Elementos do DOM (Banner e Modal)
+  // Elementos do DOM (Banner e Modal) — suporta múltiplos IDs de modal
   const e = document.getElementById("cookieConsentBanner"),
-    l = document.getElementById("granularCookieModal"),
+    l = document.getElementById("granularCookieModal") || document.getElementById("cookie-modal"),
     c = document.getElementById("cookieAnalytics"),
     r = document.getElementById("cookieMarketing");
 
