@@ -564,23 +564,36 @@ const btnVoltar = document.getElementById("btnVoltar");
 // --- MAPA DE ÍCONES PARA DOMÍNIOS ---
 // Normaliza variações de texto do domínio para nomes canônicos do NANDA 2024
 function normalizeDomain(domainStr) {
-if (!domainStr) return "Domínio Não Especificado";
+if (!domainStr) return "Dominio No Especificado";
 let d = String(domainStr).normalize("NFC").trim();
 const low = d.toLowerCase();
 
-if (low.includes("promo")) return "Promoção da saúde";
-if (low.includes("nutri")) return "Nutrição";
-if (low.includes("elimina") || low.includes("troca")) return "Eliminação e troca";
-if (low.includes("atividade") || low.includes("repouso") || low.includes("descanso") || low.includes("sono")) return "Atividade/Repouso";
-if (low.includes("percep") || low.includes("cogni")) return "Percepção / Cognição";
-if (low.includes("autopercep") || (low.includes("auto") && low.includes("percep")) || low.includes("autoconceito")) return "Autopercepção";
-if (low.includes("papel") || low.includes("rela") || low.includes("famili") || low.includes("funç") || low.includes("funao")) return "Papéis e Relações";
-if (low.includes("sexual")) return "Sexualidade";
-if (low.includes("enfrent") || low.includes("toler") || low.includes("estress")) return "Enfrentamento / Tolerância ao estresse";
-if (low.includes("confort")) return "Conforto";
-if (low.includes("cresci") || low.includes("desenvolv")) return "Crescimento / Desenvolvimento";
-if (low.includes("princ") || low.includes("princípios")) return "Princípios de vida";
-if (low.includes("seguran") || low.includes("prote")) return "Segurança / Proteção";
+// Promoção / Promoción
+if (low.includes("promo")) return "Promoción de la salud";
+// Nutrição / Nutrición
+if (low.includes("nutri")) return "Nutrición";
+// Eliminação / Eliminación
+if (low.includes("elimina") || low.includes("troca") || low.includes("intercambio")) return "Eliminación e intercambio";
+// Atividade / Actividad, Repouso / Descanso
+if (low.includes("atividade") || low.includes("actividad") || low.includes("repouso") || low.includes("descanso") || low.includes("sono")) return "Actividad/Reposo";
+// Percepção / Percepción, Cognição / Cognición
+if (low.includes("percep") || low.includes("cogni")) return "Percepción / Cognición";
+// Autopercepção / Autopercepción
+if (low.includes("autopercep") || (low.includes("auto") && low.includes("percep"))) return "Autopercepción";
+// Papéis / Rol, Relações / Relación
+if (low.includes("papel") || low.includes("rol") || low.includes("rela") || low.includes("familia") || low.includes("funç")) return "Relación de rol";
+// Sexualidade / Sexualidad
+if (low.includes("sexual")) return "Sexualidad";
+// Enfrentamento / Afrontamiento, Tolerância / Tolerancia, Estresse / Estrés
+if (low.includes("enfrent") || low.includes("afrontamiento") || low.includes("toler") || low.includes("estress") || low.includes("estrés")) return "Afrontamiento / Tolerancia al estrés";
+// Conforto / Confort
+if (low.includes("confort")) return "Confort";
+// Crescimento / Crecimiento, Desenvolvimento / Desarrollo
+if (low.includes("cresci") || low.includes("crecimiento") || low.includes("desenvolv") || low.includes("desarrollo")) return "Crecimiento / Desarrollo";
+// Princípios / Principios
+if (low.includes("princ")) return "Principios vitales";
+// Segurança / Seguridad, Proteção / Protección
+if (low.includes("seguran") || low.includes("seguridad") || low.includes("prote")) return "Seguridad / Protección";
 
 // Fallback: retorna o texto original, mas limpo
 return d;
@@ -604,19 +617,19 @@ return s;
 function getDomainIcon(domainStr) {
 const d = normalizeDomain(domainStr);
 const map = {
-"Promoção da saúde": "fa-heart-pulse",
-Nutrição: "fa-apple-whole",
-"Eliminação e troca": "fa-toilet",
-"Atividade/Repouso": "fa-person-running",
-"Percepção / Cognição": "fa-brain",
-Autopercepção: "fa-user-check",
-"Papéis e Relações": "fa-people-arrows",
-Sexualidade: "fa-venus-mars",
-"Enfrentamento / Tolerância ao estresse": "fa-shield-heart",
-"Princípios de vida": "fa-scale-balanced",
-"Segurança / Proteção": "fa-shield-halved",
-Conforto: "fa-bed",
-"Crescimento / Desenvolvimento": "fa-seedling",
+"Promoción de la salud": "fa-heart-pulse",
+"Nutrición": "fa-apple-whole",
+"Eliminación e intercambio": "fa-toilet",
+"Actividad/Reposo": "fa-person-running",
+"Percepción / Cognición": "fa-brain",
+"Autopercepción": "fa-user-check",
+"Relación de rol": "fa-people-arrows",
+"Sexualidad": "fa-venus-mars",
+"Afrontamiento / Tolerancia al estrés": "fa-shield-heart",
+"Principios vitales": "fa-scale-balanced",
+"Seguridad / Protección": "fa-shield-halved",
+"Confort": "fa-bed",
+"Crecimiento / Desarrollo": "fa-seedling",
 };
 return map[d] || "fa-layer-group";
 }
@@ -670,8 +683,8 @@ listaContainer.innerHTML = `
 function obterIntervencoesNIC(diag) {
 if (!bancoNic || bancoNic.length === 0) return [];
 
-// 1. Extrair palavras-chave do diagnóstico e da definição (ignorando preposições comuns)
-const ignorar = ["de", "para", "com", "sem", "o", "a", "os", "as", "e", "ou", "em", "no", "na", "nos", "nas", "por", "pelo", "pela", "risco", "disposição", "melhorada", "melhorado", "prejudicada", "prejudicado"];
+// 1. Extrair palavras-chave do diagnóstico e da definição (ignorando preposições comuns em ES e PT)
+const ignorar = ["de", "para", "com", "sem", "o", "a", "os", "as", "e", "ou", "em", "no", "na", "nos", "nas", "por", "pelo", "pela", "risco", "disposição", "melhorada", "melhorado", "prejudicada", "prejudicado", "la", "el", "los", "las", "del", "en", "con", "sin", "una", "un", "al", "que", "como", "entre", "hacia", "desde", "sobre", "tras", "más", "menos", "riesgo", "deterioro", "disminución", "deteriorada", "deteriorado", "mejorada", "mejorado", "disposición", "relacionado", "relacionada", "relacionados", "relacionadas", "para", "susceptible", "caracterizado", "caracterizada", "incapacidad", "capacidad", "ineficaz", "exceso", "déficit", "crónica", "crónico", "aguda", "agudo"];
 const palavrasChave = (diag.diagnostico || "")
 .toLowerCase()
 .replace(/[.,]/g, "")
@@ -688,25 +701,64 @@ palavrasChave.push(
 );
 }
 
-// 2. Pontuar cada intervenção do NIC baseado nas palavras-chave do NANDA
+// 2. Pontuar cada intervenção do NIC baseado nas palavras-chave do NANDA (cross-language: ES→PT)
 const pontuados = bancoNic.map((nic) => {
 let score = 0;
 const intervencaoStr = (nic.intervencao || "").toLowerCase();
 const definicaoStr = (nic.definicao || "").toLowerCase();
 
 palavrasChave.forEach((palavra) => {
-if (intervencaoStr.includes(palavra)) score += 3; // Peso maior para título da intervenção
-if (definicaoStr.includes(palavra)) score += 1; // Peso menor para definição
+// Busca por similaridade de radical (4+ primeiras letras) entre ES e PT
+const radical = palavra.substring(0, Math.min(5, palavra.length));
+if (intervencaoStr.includes(radical)) score += 3;
+if (definicaoStr.includes(radical)) score += 1;
+// Também busca palavra completa
+if (intervencaoStr.includes(palavra)) score += 3;
+if (definicaoStr.includes(palavra)) score += 1;
 });
 
 return { nic, score };
 });
 
-// 3. Filtrar e ordernar pelo score, retornando o Top 6 intervenções mais relevantes
+// 3. Filtrar e ordenar pelo score, retornando o Top 6 intervenções mais relevantes
 const filtrados = pontuados.filter((item) => item.score > 0).sort((a, b) => b.score - a.score);
+
+// 4. FALLBACK: se nenhuma intervenção foi encontrada (cross-language mismatch),
+//    retorna intervenções comuns baseadas no domínio do diagnóstico
+if (filtrados.length === 0) {
+const dominio = normalizeDomain(diag.dominio || "").toLowerCase();
+const fallbackMap = {
+"promoción de la salud": ["5510", "5240", "5230", "5250", "4360", "5618"],
+"nutrición": ["1160", "1100", "1120", "1803", "5246", "5612"],
+"eliminación e intercambio": ["0590", "0430", "1804", "0580", "1876", "0450"],
+"actividad/reposo": ["0180", "0740", "1850", "4040", "0224", "0840"],
+"percepción / cognición": ["4720", "4760", "4860", "4820", "5520", "6040"],
+"autopercepción": ["5230", "5400", "4920", "5270", "4360", "5100"],
+"relación de rol": ["7110", "7140", "5100", "5230", "5270", "5440"],
+"sexualidad": ["5248", "5624", "7100", "5270", "5230", "5240"],
+"afrontamiento / tolerancia al estrés": ["5230", "5270", "6040", "5340", "4920", "5440"],
+"principios vitales": ["5230", "5250", "5420", "4470", "5422", "5440"],
+"seguridad / protección": ["6486", "6650", "6550", "6490", "3660", "2300"],
+"confort": ["1400", "6482", "5460", "5330", "1380", "1460"],
+"crecimiento / desarrollo": ["8272", "5568", "5240", "5250", "8274", "0180"]
+};
+
+const codigosFallback = fallbackMap[dominio] || ["5230", "5270", "5240", "5510", "6486", "1400"];
+
+const itensFallback = codigosFallback
+.map(cod => bancoNic.find(n => n.codigo === cod))
+.filter(Boolean)
+.map(n => { n._score = 50; return n; });
+
+if (itensFallback.length > 0) return itensFallback.slice(0, 6);
+
+// Fallback final: retorna as primeiras 6 intervenções do NIC
+return bancoNic.slice(0, 6).map(n => { n._score = 30; return n; });
+}
+
 const topItems = filtrados.slice(0, 6).map((item) => {
 try {
-item.nic._score = item.score; // anexa pontuação para uso posterior (UI/Gráfico)
+item.nic._score = item.score;
 } catch (e) {}
 return item.nic;
 });
