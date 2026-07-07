@@ -4,7 +4,7 @@ module.exports = {
       url: [
         'http://localhost:8080/diagnosticosnanda.html',
         'http://localhost:8080/zarit.html',
-        'http://localhost:8080/medicacoes.html',
+        'http://localhost:8080/medicamentos.html',
         'http://localhost:8080/instrumentais-cirurgicos.html',
         'http://localhost:8080/gasometria.html'
       ],
