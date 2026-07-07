@@ -1,4 +1,4 @@
-const CACHE_VERSION = "20260706-235529";
+const CACHE_VERSION = "20260707-003111";
 const CACHE_NAME = `calculadoras-enfermagem-cache-${CACHE_VERSION}`;
 
 // O SCRIPT DE BUILD VAI INJETAR A LISTA DE ARQUIVOS AQUI
@@ -9,7 +9,6 @@ const urlsToCache = [
   '/index.html',
   '/offline.html',
   'adicionar-provas.js',
-  'ar/lang-selector.js',
   'atualizar-scripts.js',
   'automacoes/banco_nanda_2024_extracted.json',
   'automacoes/banco_nanda_2024_merged_suggestion.json',
@@ -37,10 +36,8 @@ const urlsToCache = [
   'css-duplicates-report.json',
   'css/fontawesome.min.css',
   'de/favicon.ico',
-  'de/lang-selector.js',
   'en/favicon.ico',
   'es/favicon.ico',
-  'es/lang-selector.js',
   'favicon.ico',
   'fonts/arabic/arabic-700.woff2',
   'fonts/arabic/arabic-regular.woff2',
@@ -70,15 +67,12 @@ const urlsToCache = [
   'global-styles.css',
   'glossary-search.js',
   'hi/favicon.ico',
-  'hi/lang-selector.js',
   'id/favicon.ico',
-  'id/lang-selector.js',
   'img/education-svgrepo-com.svg',
   'institucionais/favicon - Copia.ico',
   'institucionais/favicon.ico',
   'institucionais/i18n - Copia.js',
   'institucionais/i18n.js',
-  'institucionais/lang-selector.js',
   'institucionais/layout - Copia.js',
   'institucionais/layout.js',
   'institucionais/main - Copia.css',
@@ -93,7 +87,6 @@ const urlsToCache = [
   'institucionais/site.js',
   'it/favicon.ico',
   'ja/favicon.ico',
-  'ja/lang-selector.js',
   'js/accessibility.js',
   'js/backToTop.js',
   'js/cookies.js',
@@ -101,7 +94,6 @@ const urlsToCache = [
   'js/menu.js',
   'js/web-vitals-reporter.js',
   'ko/favicon.ico',
-  'ko/lang-selector.js',
   'lang-selector.js',
   'lighthouserc.js',
   'locales/ar/cookies.json',
@@ -168,16 +160,13 @@ const urlsToCache = [
   'main.js',
   'manifest.json',
   'nl/favicon.ico',
-  'nl/lang-selector.js',
   'otimizador-imagens.js',
   'otimizar-imagens.js',
   'pl/favicon.ico',
-  'pl/lang-selector.js',
   'public/output.css',
   'relatorio_auditoria_seo.json',
   'relatorio_hreflang.json',
   'ru/favicon.ico',
-  'ru/lang-selector.js',
   'scaffold-lang.js',
   'scan-biblioteca.js',
   'scanner-biblioteca.js',
@@ -191,18 +180,13 @@ const urlsToCache = [
   'simpleRename.js',
   'src/input.css',
   'sv/favicon.ico',
-  'sv/lang-selector.js',
   'terminologias.json',
   'termos_medicos_parsed.json',
   'tr/favicon.ico',
-  'tr/lang-selector.js',
   'uk/favicon.ico',
-  'uk/lang-selector.js',
   'vi/favicon.ico',
-  'vi/lang-selector.js',
   'watch-images.js',
-  'zh/favicon.ico',
-  'zh/lang-selector.js'
+  'zh/favicon.ico'
 ];
 
 // 1. EVENTO DE INSTALAÇÃO (Precaching tolerante a falhas)
