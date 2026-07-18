@@ -135,411 +135,796 @@
 "@type": "MedicalSpecialty",
 "name": "Nursing"
 }
-},
-{
-"@type": "BreadcrumbList",
-"itemListElement": [
-{
-"@type": "ListItem",
-"position": 1,
-"name": "Início",
-"item": "https://www.calculadorasdeenfermagem.com.br/"
-},
-{
-"@type": "ListItem",
-"position": 2,
-"name": "Calculadoras",
-"item": "https://www.calculadorasdeenfermagem.com.br/"
-},
-{
-"@type": "ListItem",
-"position": 3,
-"name": "Escala de Aldrete – Avaliação da Recuperação Pós-Anestésica (SRPA)",
-"item": "https://www.calculadorasdeenfermagem.com.br/aldrete.html"
-}
-]
 }
 ]
 }
 </script>
 
-<!-- 11. Outros Scripts/Tags -->
+<!-- 11. Estilos, Fontes e Módulos -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" media="print" onload="this.media='all'" />
+<link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" as="script" crossorigin />
+<link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js" as="script" crossorigin />
 
 <style>
-.resultado.bg-aldrete-alta {
-background-color: #d4edda;
-color: #006400;
+:root {
+  --navy: #1a3e74;
+  --navy-light: #1e4d8c;
+  --navy-dark: #163269;
+  --slate-800: #1e293b;
+  --slate-600: #475569;
+  --slate-500: #64748b;
+  --slate-200: #e2e8f0;
+  --slate-100: #f1f5f9;
+  --slate-50: #f8fafc;
+  --green: #16a34a;
+  --yellow: #eab308;
+  --orange: #f97316;
+  --red: #e11d48;
+}
+* { box-sizing: border-box; }
+
+/* BARRA DE PROGRESSO FLUTUANTE */
+#progress-container {
+  position: fixed; top: 0; left: 0; width: 100%; height: 6px; background-color: var(--slate-200); z-index: 9999;
+}
+#progress-bar-global {
+  height: 100%; background: linear-gradient(90deg, #3B82F6, #1a3e74); width: 0%; transition: width 0.4s ease;
 }
 
-.resultado.bg-aldrete-observacao {
-background-color: #fff3cd;
-color: #856404;
+/* CARDS E HEROS */
+.aldrete-card { background: white; border-radius: 16px; border: 1px solid var(--slate-200); box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08); }
+.aldrete-card-navy {
+  background: linear-gradient(135deg, var(--navy) 0%, var(--navy-light) 60%, var(--navy-dark) 100%);
+  border-radius: 16px; box-shadow: 0 12px 32px rgba(26, 62, 116, 0.4); overflow: hidden; position: relative;
+}
+.aldrete-card-navy::before {
+  content: ""; position: absolute; top: 0; right: 0; width: 180px; height: 180px; background: white; opacity: 0.05; border-radius: 50%; filter: blur(40px); transform: translate(30%, -30%);
+}
+.aldrete-card-navy::after {
+  content: ""; position: absolute; bottom: 0; left: 0; width: 140px; height: 140px; background: #4a90e2; opacity: 0.2; border-radius: 50%; filter: blur(30px); transform: translate(-20%, 30%);
 }
 
-.resultado.bg-aldrete-instavel {
-background-color: #f8d7da;
-color: #8b0000;
+/* INPUTS E SELECTS FORTES */
+.item-card {
+  background: white; border-radius: 12px; border: 2px solid var(--slate-200); padding: 18px; box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08); transition: border-color 0.2s, box-shadow 0.2s;
+}
+.item-card:focus-within, .item-card:hover {
+  border-color: var(--navy-light); box-shadow: 0 8px 24px rgba(26, 62, 116, 0.15);
+}
+.item-badge {
+  font-size: 11px; font-weight: 800; padding: 3px 10px; border-radius: 20px; background: var(--slate-50); color: var(--navy); border: 1px solid var(--slate-200); white-space: nowrap; transition: all 0.3s;
+}
+.item-select, .input-strong {
+  width: 100%; padding: 12px 14px; border-radius: 8px; border: 2px solid var(--slate-200); color: var(--slate-800); background: white; font-size: 13px; font-weight: 600; outline: none; transition: border-color 0.2s, box-shadow 0.2s; box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);
+}
+.item-select {
+  appearance: none; cursor: pointer; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2364748B' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center;
+}
+.item-select:focus, .input-strong:focus { border-color: var(--navy); box-shadow: 0 0 0 3px rgba(26, 62, 116, 0.2); }
+
+/* BARRAS MENORES */
+.mini-bar-wrap { height: 6px; background: var(--slate-200); border-radius: 4px; overflow: hidden; margin-top: 12px; box-shadow: inset 0 1px 2px rgba(0,0,0,0.1); }
+.mini-bar-fill { height: 100%; border-radius: 4px; transition: width 0.4s ease, background-color 0.4s ease; background-color: transparent; }
+
+/* BOTÕES PROFISSIONAIS */
+.btn-primary {
+  background: linear-gradient(135deg, var(--navy) 0%, var(--navy-light) 100%); color: white; border: none; padding: 14px 36px; border-radius: 12px; font-size: 15px; font-weight: 800; cursor: pointer; text-transform: uppercase; letter-spacing: 0.5px; box-shadow: 0 6px 18px rgba(26, 62, 116, 0.35); transition: transform 0.15s, box-shadow 0.15s;
+}
+.btn-primary:hover { transform: translateY(-2px); box-shadow: 0 10px 24px rgba(26, 62, 116, 0.4); }
+.btn-secondary {
+  background: white; color: var(--slate-600); border: 2px solid var(--slate-200); padding: 14px 28px; border-radius: 12px; font-size: 14px; font-weight: 800; text-transform: uppercase; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.05); transition: background 0.15s, border-color 0.15s;
+}
+.btn-secondary:hover { background: var(--slate-50); border-color: var(--slate-300); }
+.btn-danger {
+  background: var(--red); color: white; border: none; padding: 14px 28px; border-radius: 12px; font-size: 14px; font-weight: 800; cursor: pointer; box-shadow: 0 6px 18px rgba(225, 29, 72, 0.35); transition: transform 0.15s;
+}
+.btn-danger:hover { transform: translateY(-2px); box-shadow: 0 10px 24px rgba(225, 29, 72, 0.45); }
+
+/* SEÇÃO DE DADOS */
+.dados-body { display: none; padding: 0 24px 20px; }
+.dados-body.open { display: block; animation: fadeIn 0.3s ease; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
+
+/* RESULTADOS E TABELAS */
+.score-big { font-size: 64px; font-weight: 900; line-height: 1; color: white; font-variant-numeric: tabular-nums; text-shadow: 0 4px 10px rgba(0, 0, 0, 0.2); }
+.status-pill { display: inline-block; padding: 8px 32px; border-radius: 30px; font-size: 15px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; color: white; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); }
+
+.dom-table { width: 100%; border-collapse: separate; border-spacing: 0; }
+.dom-table th {
+  background: var(--slate-50); color: var(--navy); font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; padding: 12px 16px; text-align: left; border-bottom: 2px solid var(--slate-200); border-top: 1px solid var(--slate-200);
+}
+.dom-table th:first-child { border-top-left-radius: 8px; border-left: 1px solid var(--slate-200); }
+.dom-table th:last-child { border-top-right-radius: 8px; border-right: 1px solid var(--slate-200); }
+.dom-table td { padding: 12px 16px; border-bottom: 1px solid var(--slate-100); font-size: 13px; font-weight: 500; color: var(--slate-800); }
+.dom-table td:first-child { border-left: 1px solid var(--slate-100); }
+.dom-table td:last-child { border-right: 1px solid var(--slate-100); }
+
+/* NANDA */
+.nanda-item { background: white; border: 2px solid var(--slate-100); border-radius: 10px; padding: 12px; margin-bottom: 8px; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03); transition: border-color 0.2s; }
+.nanda-item:hover { border-color: var(--blue-200); }
+
+#resultado-section { opacity: 0; transition: opacity 0.5s ease; display: none; }
+#resultado-section.visible { opacity: 1; display: block; }
+.grid-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+
+@media (max-width: 768px) {
+  .grid-2col { grid-template-columns: 1fr; }
+  .btn-primary, .btn-secondary, .btn-danger { width: 100%; text-align: center; }
+  .score-big { font-size: 48px; }
 }
 
-.bg-info-orange-light {
-background-color: #fff3cd;
-color: #856404;
-}
-
-/* Estilos baseados no modelo Downes */
-.aldrete-criteria-container {
-display: flex;
-flex-direction: column;
-gap: 1.5rem;
-}
-
-.aldrete-criterion-card {
-background-color: #fff;
-border: 1px solid #d1d5db;
-border-radius: 12px;
-padding: 1.5rem;
-box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-transition: box-shadow 0.3s ease;
-}
-
-.aldrete-criterion-card:hover {
-box-shadow: 0 10px 15px rgba(0, 0, 0, 0.15);
-}
-
-.aldrete-criterion-header {
-display: flex;
-justify-content: space-between;
-align-items: center;
-margin-bottom: 0.75rem;
-text-align: left;
-}
-
-.aldrete-criterion-title {
-font-size: 1.25rem;
-font-weight: 700;
-color: #1a3e74;
-}
-
-.aldrete-score-display {
-font-size: 1.25rem;
-font-weight: 700;
-color: #1fa4e5;
-}
-
-.aldrete-select {
-width: 100%;
-padding: 0.75rem;
-border: 1px solid #ccc;
-border-radius: 0.375rem;
-font-size: 1rem;
-color: #333;
-background-color: #fff;
-appearance: none;
-background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='currentColor'%3E%3Cpath fill-rule='evenodd' d='M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z' clip-rule='evenodd'/%3E%3C/svg%3E");
-background-repeat: no-repeat;
-background-position: right 0.75rem center;
-background-size: 1.5em 1.5em;
-}
-
-.aldrete-select:focus {
-outline: none;
-border-color: #1fa4e5;
-box-shadow: 0 0 0 3px rgba(31, 164, 229, 0.2);
+@media print { 
+  .no-print { display: none !important; } 
 }
 </style>
 <style id="otimizador-master-responsive">
-/* OTIMIZADOR_MASTER_V3 - RESPONSIVE SAFE */
-img,
-video {
-max-width: 100%;
-height: auto;
-}
-
-iframe {
-max-width: 100%;
-}
-
-body {
-
-}
-
-.table-responsive {
-width: 100%;
-overflow-x: auto;
--webkit-overflow-scrolling: touch;
-}
+img, video { max-width: 100%; height: auto; }
+iframe { max-width: 100%; }
+.table-responsive { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
 </style>
 </head>
 
 <body class="bg-gray-50 text-gray-800 font-inter">
-<!-- Skip Links -->
-<nav aria-label="Atalhos de Acessibilidade" class="sr-only focus-within:not-sr-only focus-within:absolute focus-within:top-0 focus-within:left-0 focus-within:z-50 focus-within:bg-white focus-within:text-blue-700 focus-within:p-4 focus-within:underline">
-<a href="/" accesskey="I" class="block mb-2">Ir para o Início [Alt + Shift + I]</a>
-<a href="#main-content" accesskey="C" class="block mb-2">Pular para o conteúdo principal [Alt + Shift + C]</a>
-<a href="#barraAcessibilidade" accesskey="A" class="block mb-2">Ativar barra de acessibilidade [Alt + Shift + A]</a>
-<a href="#backToTopBtn" class="block">Voltar ao Topo da Página [Alt + Shift + T]</a>
-</nav>
 
-<!-- ARIA Live Region -->
+<div id="progress-container"><div id="progress-bar-global"></div></div>
 <div id="statusMessage" class="sr-only" aria-live="polite" aria-atomic="true"></div>
 
-<!-- Container para o Menu Global -->
-</div>
-</div>
 <style id="anti-cls-placeholders">#global-header-container{display:block;width:100%;min-height:96px;background-color:transparent}@media(max-width:768px){#global-header-container{min-height:60px}}#language-selector-placeholder{display:block;width:100%;min-height:48px;background-color:transparent}#footer-placeholder{display:block;min-height:520px;background-color:transparent}@media(min-width:768px){#footer-placeholder{min-height:277px}}</style>
+
 <div id="global-header-container"></div>
 <div id="language-selector-placeholder"></div>
-<!-- INÍCIO DA REESTRUTURAÇÃO COM BARRA LATERAL -->
-<div class="max-w-7xl mx-auto flex flex-col lg:flex-row lg:space-x-8 px-4 md:px-8">
-<!-- Conteúdo Principal da Página (agora flex-grow) -->
-<main id="main-content" class="flex-grow w-full lg:w-3/4 py-4">
-<div class="main-content-wrapper">
-<nav class="breadcrumb" aria-label="breadcrumb">
-<ol>
-<li><a href="index.html">Início</a></li>
-<li><a href="#">Calculadoras</a></li>
-<li>Escala de Aldrete – Avaliação da Recuperação Pós-Anestésica (SRPA)</li>
-</ol>
-</nav>
 
-<div class="text-center mb-8">
-<h1 id="main-title" class="font-nunito font-extrabold text-dark-blue text-4xl lg:text-5xl">
-Escala de Aldrete – Avaliação da Recuperação Pós-Anestésica (SRPA)
-</h1>
-<div class="title-bar mx-auto mt-2"></div>
-<h2 id="main-subtitle" class="font-inter font-semibold text-light-blue text-xl lg:text-2xl mt-4">
-Avalia a recuperação pós-anestésica de pacientes em sala de SRPA
-</h2>
-</div>
+<main class="container mx-auto px-4 py-6 max-w-7xl" id="main-content">
+  
+  <nav class="flex text-sm mb-6 no-print" aria-label="Breadcrumb" style="color: #64748b">
+    <ol class="flex items-center gap-2">
+      <li><a href="/" style="color: #1a3e74; font-weight: 600" class="hover:underline"><i class="fa-solid fa-house mr-1"></i> Início</a></li>
+      <li style="color: #94a3b8">›</li>
+      <li style="color: #1e293b; font-weight: 600">Escala de Aldrete (SRPA)</li>
+    </ol>
+  </nav>
 
-<div class="bg-white p-6 rounded-lg shadow-md">
-<p class="font-inter text-black-custom text-base lg:text-lg mb-6 text-center sm:text-left">
-A escala é realizada pela equipe de enfermagem e a decisão final
-sobre a alta é avaliada pelo médico anestesista. Selecione a pontuação para cada parâmetro:
-</p>
+  <section class="mb-6 aldrete-card-navy no-print">
+    <div class="flex flex-col md:flex-row items-center justify-between px-8 md:px-12 py-6 md:py-8" style="position: relative; z-index: 1">
+      <div class="w-full md:w-2/3 text-center md:text-left">
+        <p style="color: #93c5fd; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.15em; margin-bottom: 6px">Avaliação Pós-Anestésica</p>
+        <h1 style="color: white; font-size: clamp(22px, 4vw, 36px); font-weight: 900; line-height: 1.2; margin-bottom: 8px">Escala de Aldrete e Kroulik</h1>
+        <p style="color: #bfdbfe; font-size: 15px; font-weight: 500">Avalia a recuperação fisiológica e consciência do paciente em Sala de Recuperação Pós-Anestésica (SRPA) para determinação de alta.</p>
+      </div>
+      <div class="w-full md:w-1/3 flex justify-center mt-4 md:mt-0">
+        <div class="w-24 h-24 md:w-28 md:h-28 flex items-center justify-center bg-white/10 rounded-full backdrop-blur-sm border border-white/20 shadow-[0_10px_20px_rgba(0,0,0,0.3)]">
+          <i class="fa-solid fa-bed-pulse text-5xl md:text-6xl text-white"></i>
+        </div>
+      </div>
+    </div>
+  </section>
 
-<div id="conteudo" role="form" aria-labelledby="main-title" class="aldrete-criteria-container">
-<!-- Os cards de critérios serão gerados aqui pelo JavaScript -->
-</div>
+  <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+    
+    <div class="lg:col-span-8 space-y-6">
+      
+      <div class="aldrete-card mb-2 no-print" style="overflow: hidden; border: 2px solid #cbd5e1;">
+        <button id="btnToggleDados" style="width: 100%; display: flex; align-items: center; justify-content: space-between; padding: 16px 24px; background: white; border: none; cursor: pointer; transition: background 0.15s" onmouseover="this.style.background='#EFF6FF'" onmouseout="this.style.background=document.getElementById('dadosBody').classList.contains('open')?'#EFF6FF':'white'">
+          <div style="display: flex; align-items: center; gap: 12px">
+            <div style="width: 38px; height: 38px; border-radius: 8px; background: var(--navy); display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: 0 4px 8px rgba(26,62,116,0.3);">
+              <i class="fa-solid fa-user-pen" style="color: white; font-size: 16px"></i>
+            </div>
+            <div style="text-align: left">
+              <p style="font-size: 15px; font-weight: 800; color: var(--navy); margin: 0">Dados do Paciente</p>
+              <p id="dadosSubtitle" style="font-size: 12px; font-weight: 500; color: #64748b; margin: 0">Preencher para o Prontuário/Laudo PDF</p>
+            </div>
+          </div>
+          <i id="dadosChevron" class="fa-solid fa-chevron-down" style="color: var(--navy); transition: transform 0.2s"></i>
+        </button>
+        <div id="dadosBody" class="dados-body">
+          <div class="grid-2col" style="margin-top: 8px">
+            <div>
+              <label style="display: block; font-size: 12px; font-weight: 800; color: var(--slate-600); margin-bottom: 6px; text-transform: uppercase;">Nome do Paciente</label>
+              <input type="text" id="pacNome" placeholder="Nome completo" class="input-strong" />
+            </div>
+            <div>
+              <label style="display: block; font-size: 12px; font-weight: 800; color: var(--slate-600); margin-bottom: 6px; text-transform: uppercase;">Idade</label>
+              <input type="number" id="pacIdade" placeholder="Anos" class="input-strong" />
+            </div>
+            <div>
+              <label style="display: block; font-size: 12px; font-weight: 800; color: var(--slate-600); margin-bottom: 6px; text-transform: uppercase;">Setor / Leito (SRPA)</label>
+              <input type="text" id="pacSetor" placeholder="Ex: SRPA - Leito 02" class="input-strong" />
+            </div>
+            <div>
+              <label style="display: block; font-size: 12px; font-weight: 800; color: var(--slate-600); margin-bottom: 6px; text-transform: uppercase;">Avaliador (Enfermeiro/Médico)</label>
+              <input type="text" id="pacProfissional" placeholder="Nome e registro" class="input-strong" />
+            </div>
+          </div>
+        </div>
+      </div>
 
-<div class="flex flex-wrap justify-start gap-4 mt-6">
-<button id="btnCalcular" class="btn-primary">
-Calcular
-</button>
-<button id="btnLimpar" class="btn-primary">Limpar</button>
-</div>
+      <div class="p-6 bg-white rounded-2xl shadow-xl border-2 border-gray-200 no-print">
+        <div class="mb-6 pb-4 border-b-2 border-slate-200 flex justify-between items-center">
+          <h2 class="text-lg md:text-xl font-black text-navy m-0"><i class="fa-solid fa-list-check mr-2"></i> Critérios de Avaliação</h2>
+          <div class="bg-blue-50 px-3 py-1.5 rounded-lg border-2 border-blue-200 text-xs font-bold text-navy shadow-sm">
+            Preenchido: <span id="contadorPreenchidos" class="text-blue-600">0</span>/5
+          </div>
+        </div>
 
-<div id="resultado" class="resultado hidden mt-6" aria-live="polite"></div>
+        <form id="aldreteForm" class="grid grid-cols-1 md:grid-cols-2 gap-5" onsubmit="return false;">
+          <!-- CARDS JS INJETADOS AQUI -->
+        </form>
 
-<div class="ref font-inter text-gray-custom text-left mt-8 border-t pt-4">
-<strong>Referência Bibliográfica:</strong>
-<p class="mt-2">
-CONSELHO FEDERAL DE MEDICINA. Parecer nº 28/2020. Assunto: Critérios para alta da sala de recuperação
-pós-anestésica. Brasília: CFM, 2020. Disponível em: <a href="https://sistemas.cfm.org.br/normas/arquivos/pareceres/PR/2020/2806_2020.pdf" target="_blank" rel="noopener noreferrer" class="text-light-blue hover:underline">https://sistemas.cfm.org.br/normas/arquivos/pareceres/PR/2020/2806_2020.pdf</a>.
-</p>
-</div>
-</div>
-</div>
+        <div class="mt-8 pt-6 border-t-2 border-slate-200 flex flex-col sm:flex-row gap-4 justify-center">
+          <button type="button" id="btnCalcular" class="btn-primary flex-1 max-w-sm flex justify-center items-center gap-2">
+            <i class="fa-solid fa-calculator"></i> Calcular Escore
+          </button>
+          <button type="button" id="btnLimpar" class="btn-secondary flex items-center justify-center gap-2">
+            <i class="fa-solid fa-eraser"></i> Limpar
+          </button>
+        </div>
+      </div>
+
+      <div id="resultado-section">
+        
+        <div class="aldrete-card-navy p-8 md:p-10 mb-6 text-center">
+          <div style="position: relative; z-index: 1">
+            <p class="text-blue-200 text-xs font-bold uppercase tracking-widest mb-3"><i class="fa-solid fa-clipboard-check"></i> Escore de Aldrete e Kroulik</p>
+            
+            <div class="flex items-end justify-center gap-3 mb-2">
+              <span id="scoreValor" class="score-big">0</span>
+              <span class="text-2xl font-bold text-blue-200 mb-3">/ 10</span>
+            </div>
+            
+            <div id="statusPill" class="status-pill mb-6">Apto para Alta</div>
+            
+            <div class="bg-white/10 border border-white/20 rounded-xl p-5 text-left max-w-2xl mx-auto backdrop-blur-sm shadow-lg">
+              <p id="resultadoMensagem" class="text-white text-[15px] font-medium leading-relaxed m-0 text-center"></p>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 gap-6 mb-6">
+          
+          <div class="aldrete-card overflow-hidden border-2 border-slate-300 shadow-md">
+            <div class="p-4 md:p-5 border-b-2 border-slate-300 bg-slate-50 flex items-center gap-3">
+              <i class="fa-solid fa-table-list text-navy text-lg"></i>
+              <h4 class="text-sm md:text-base font-bold text-navy m-0 uppercase tracking-wide">Memória da Avaliação</h4>
+            </div>
+            <div class="overflow-x-auto">
+              <table class="dom-table">
+                <thead>
+                  <tr>
+                    <th style="width: 40%">Critério (SRPA)</th>
+                    <th class="text-center" style="width: 15%">Obtido</th>
+                    <th class="text-center" style="width: 15%">Máximo</th>
+                    <th style="width: 30%">Nível de Normalidade</th>
+                  </tr>
+                </thead>
+                <tbody id="tabelaDominios"></tbody>
+                <tfoot>
+                  <tr>
+                    <td>Escore Total</td>
+                    <td id="somaObtida" class="text-center text-lg font-black">0</td>
+                    <td class="text-center text-slate-500">10</td>
+                    <td class="text-right"></td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+          </div>
+
+          <div class="aldrete-card overflow-hidden border-2 border-slate-300 shadow-md">
+            <div class="p-4 md:p-5 border-b-2 border-blue-200 bg-blue-50/80 flex items-center gap-3">
+              <i class="fa-solid fa-stethoscope text-navy text-lg"></i>
+              <div>
+                <h4 class="text-sm md:text-base font-bold text-navy m-0 uppercase tracking-wide">Diagnósticos NANDA Sugeridos (Top 6)</h4>
+                <p class="text-[11px] font-bold text-slate-500 m-0 mt-0.5">Cruzamento focado no período perioperatório e recuperação SRPA.</p>
+              </div>
+            </div>
+            <div class="p-5 bg-white">
+              <ul id="lista-nanda" class="space-y-0"></ul>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Botões PDF -->
+        <div class="flex flex-col sm:flex-row gap-4 justify-center no-print mt-8 pt-6 border-t-2 border-slate-200">
+          <button id="btnGerarPDF" class="btn-danger flex items-center justify-center gap-2">
+            <i class="fa-solid fa-file-pdf"></i> Salvar PDF Prontuário
+          </button>
+          <button id="btnImprimir" class="btn-secondary flex items-center justify-center gap-2">
+            <i class="fa-solid fa-print"></i> Imprimir Laudo
+          </button>
+        </div>
+
+      </div>
+    </div>
+
+    <aside class="lg:col-span-4 space-y-6 no-print">
+      
+      <div class="aldrete-card p-6 bg-white border-2 border-slate-200 shadow-md lg:sticky lg:top-6">
+        <h3 class="text-[15px] font-black text-navy mb-5 border-b-2 border-slate-200 pb-3 flex items-center gap-2">
+          <i class="fa-solid fa-link text-blue-500"></i> Escalas Relacionadas
+        </h3>
+        <ul class="space-y-3">
+          <li>
+            <a href="bps.html" class="flex items-start gap-3 p-3 rounded-xl border-2 border-slate-200 hover:bg-blue-50 hover:border-blue-300 transition-all group shadow-sm">
+              <div class="w-10 h-10 rounded-lg bg-slate-100 border border-slate-300 flex items-center justify-center flex-shrink-0 group-hover:bg-white group-hover:text-blue-600 transition-colors">
+                <i class="fa-solid fa-mask-face text-slate-500 group-hover:text-blue-600 text-lg"></i>
+              </div>
+              <div>
+                <h4 class="text-[13px] font-bold text-slate-800 group-hover:text-navy m-0 leading-tight mb-1">Escala de Dor BPS</h4>
+                <p class="text-[11px] font-medium text-slate-500 m-0 leading-snug">Avaliação de dor em ventilação mecânica.</p>
+              </div>
+            </a>
+          </li>
+          <li>
+            <a href="glasgow.html" class="flex items-start gap-3 p-3 rounded-xl border-2 border-slate-200 hover:bg-blue-50 hover:border-blue-300 transition-all group shadow-sm">
+              <div class="w-10 h-10 rounded-lg bg-slate-100 border border-slate-300 flex items-center justify-center flex-shrink-0 group-hover:bg-white group-hover:text-blue-600 transition-colors">
+                <i class="fa-solid fa-eye text-slate-500 group-hover:text-blue-600 text-lg"></i>
+              </div>
+              <div>
+                <h4 class="text-[13px] font-bold text-slate-800 group-hover:text-navy m-0 leading-tight mb-1">Escala de Glasgow</h4>
+                <p class="text-[11px] font-medium text-slate-500 m-0 leading-snug">Avaliação do nível de consciência.</p>
+              </div>
+            </a>
+          </li>
+          <li>
+            <a href="morse.html" class="flex items-start gap-3 p-3 rounded-xl border-2 border-slate-200 hover:bg-blue-50 hover:border-blue-300 transition-all group shadow-sm">
+              <div class="w-10 h-10 rounded-lg bg-slate-100 border border-slate-300 flex items-center justify-center flex-shrink-0 group-hover:bg-white group-hover:text-blue-600 transition-colors">
+                <i class="fa-solid fa-person-falling text-slate-500 group-hover:text-blue-600 text-lg"></i>
+              </div>
+              <div>
+                <h4 class="text-[13px] font-bold text-slate-800 group-hover:text-navy m-0 leading-tight mb-1">Escala de Morse</h4>
+                <p class="text-[11px] font-medium text-slate-500 m-0 leading-snug">Risco de queda pós-operatório.</p>
+              </div>
+            </a>
+          </li>
+        </ul>
+      </div>
+
+      <div class="bg-slate-50 rounded-xl p-5 border-2 border-slate-300 shadow-sm">
+        <h3 class="text-xs font-black text-slate-700 uppercase tracking-wider mb-2 flex items-center gap-2">
+          <i class="fa-solid fa-book text-slate-500"></i> Referência Bibliográfica
+        </h3>
+        <ul class="text-[11px] font-medium text-slate-600 leading-relaxed m-0 text-justify space-y-2 list-none p-0">
+          <li>CONSELHO FEDERAL DE MEDICINA. <strong>Parecer nº 28/2020. Assunto: Critérios para alta da sala de recuperação pós-anestésica.</strong> Brasília: CFM, 2020. Disponível em: <a href="https://sistemas.cfm.org.br/normas/arquivos/pareceres/PR/2020/2806_2020.pdf" target="_blank" class="text-blue-600 hover:underline">CFM</a>.</li>
+        </ul>
+      </div>
+
+    </aside>
+  </div>
 </main>
 <script src="/global-scripts.js" defer=""></script>
 <script src="/lang-selector.js" defer=""></script>
 
-<!-- FIM DA NOVA BARRA LATERAL -->
-</div>
-<!-- FIM DA REESTRUTURAÇÃO -->
-<!-- Scripts Globais e de Bibliotecas -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 
-
-<!-- Comentários da Página (Supabase) -->
-
-<!-- Script Específico da Página Aldrete -->
 <script>
-document.addEventListener("DOMContentLoaded", function () {
-const resultadoDiv = document.getElementById("resultado");
-const conteudoDiv = document.getElementById("conteudo");
-const btnCalcular = document.getElementById("btnCalcular");
-const btnLimpar = document.getElementById("btnLimpar");
+  (function () {
+    "use strict";
 
-const aldreteData = [
-{
-category: "Atividade",
-nameAttr: "atividade",
-options: [
-{ description: "Movimenta 4 extremidades voluntariamente ou sob comando", score: 2 },
-{ description: "Movimenta 2 extremidades voluntariamente ou sob comando", score: 1 },
-{ description: "Incapaz de mover extremidades voluntariamente ou sob comando", score: 0 },
-],
-},
-{
-category: "Respiração",
-nameAttr: "respiracao",
-options: [
-{ description: "Capaz de respirar profundamente e tossir", score: 2 },
-{ description: "Dispneia ou limitação à respiração", score: 1 },
-{ description: "Apneia", score: 0 },
-],
-},
-{
-category: "Circulação",
-nameAttr: "circulacao",
-options: [
-{ description: "Até 20% do nível pré-anestésico", score: 2 },
-{ description: "20-49% do nível pré-anestésico", score: 1 },
-{ description: "50% do nível pré-anestésico", score: 0 },
-],
-},
-{
-category: "Consciência",
-nameAttr: "consciencia",
-options: [
-{ description: "Completamente acordado", score: 2 },
-{ description: "Desperta ao chamado", score: 1 },
-{ description: "Não responde", score: 0 },
-],
-},
-{
-category: "Saturação de O₂",
-nameAttr: "saturacao",
-options: [
-{ description: "Mantém SpO₂ > 92% em ar ambiente", score: 2 },
-{ description: "Necessita de O₂ para manter SpO₂ > 90%", score: 1 },
-{ description: "SpO₂ < 90% com suplementação de O₂", score: 0 },
-],
-},
-];
+    // ESTRUTURA DE DADOS ALDRETE
+    const ITENS_ALDRETE = [
+      { id: "atividade", label: "1. Atividade (Motricidade)", max: 2, desc: "Capacidade de mover extremidades sob comando.",
+        opts: [{val: -1, text: "Selecione..."}, {val: 2, text: "Move 4 extremidades voluntariamente ou sob comando (2 pts)"}, {val: 1, text: "Move 2 extremidades voluntariamente ou sob comando (1 pt)"}, {val: 0, text: "Incapaz de mover extremidades (0 pts)"}] },
+      { id: "respiracao", label: "2. Respiração", max: 2, desc: "Avaliação do padrão respiratório e tosse.",
+        opts: [{val: -1, text: "Selecione..."}, {val: 2, text: "Capaz de respirar profundamente e tossir (2 pts)"}, {val: 1, text: "Dispneia ou limitação à respiração (1 pt)"}, {val: 0, text: "Apneia / Suporte ventilatório (0 pts)"}] },
+      { id: "circulacao", label: "3. Circulação (PA)", max: 2, desc: "Variação da Pressão Arterial (PA) em relação ao pré-operatório.",
+        opts: [{val: -1, text: "Selecione..."}, {val: 2, text: "PA varia até 20% do nível pré-anestésico (2 pts)"}, {val: 1, text: "PA varia entre 20% e 49% do nível pré-anestésico (1 pt)"}, {val: 0, text: "PA varia 50% ou mais do nível pré-anestésico (0 pts)"}] },
+      { id: "consciencia", label: "4. Nível de Consciência", max: 2, desc: "Avaliação do despertar pós-anestésico.",
+        opts: [{val: -1, text: "Selecione..."}, {val: 2, text: "Completamente acordado e lúcido (2 pts)"}, {val: 1, text: "Desperta ao chamado (1 pt)"}, {val: 0, text: "Não responde / Inconsciente (0 pts)"}] },
+      { id: "saturacao", label: "5. Saturação de O² (SpO₂)", max: 2, desc: "Necessidade de oxigênio suplementar.",
+        opts: [{val: -1, text: "Selecione..."}, {val: 2, text: "Mantém SpO₂ > 92% em ar ambiente (2 pts)"}, {val: 1, text: "Necessita de O₂ para manter SpO₂ > 90% (1 pt)"}, {val: 0, text: "SpO₂ < 90% com suplementação de O₂ (0 pts)"}] }
+    ];
 
-function updateScoreDisplay(criterionId) {
-const selectElement = document.getElementById(criterionId);
-const scoreDisplayElement = document.getElementById(
-`${criterionId}_score_display`,
-);
-if (selectElement && scoreDisplayElement) {
-scoreDisplayElement.innerText =
-selectElement.value === "" ? "0" : selectElement.value;
-}
-}
+    function renderizarForm() {
+      const container = document.getElementById("aldreteForm");
+      container.innerHTML = "";
+      
+      ITENS_ALDRETE.forEach(item => {
+        let optsHtml = item.opts.map(op => `<option value="${op.val}" ${op.val === -1 ? 'disabled selected' : ''}>${op.text}</option>`).join('');
+        const div = document.createElement("div");
+        div.className = "item-card";
+        div.innerHTML = `
+          <div class="flex items-center justify-between mb-2">
+            <label for="${item.id}" class="text-[13px] font-black text-slate-800">${item.label}</label>
+            <span id="badge_${item.id}" class="item-badge">--/${item.max}</span>
+          </div>
+          <p class="text-[11px] font-medium text-slate-500 mb-3 leading-snug h-8">${item.desc}</p>
+          <select id="${item.id}" class="item-select">${optsHtml}</select>
+          <div class="mini-bar-wrap">
+            <div id="bar_${item.id}" class="mini-bar-fill" style="width: 0%; background-color: transparent;"></div>
+          </div>
+        `;
+        container.appendChild(div);
+        document.getElementById(item.id).addEventListener("change", () => atualizarCard(item.id));
+      });
+    }
 
-function createCriteriaList() {
-conteudoDiv.innerHTML = "";
-aldreteData.forEach((paramGroup) => {
-const cardDiv = document.createElement("div");
-cardDiv.className = "aldrete-criterion-card";
+    function atualizarCard(id) {
+      const select = document.getElementById(id);
+      const val = parseInt(select.value);
+      if (isNaN(val) || val === -1) return;
 
-const headerDiv = document.createElement("div");
-headerDiv.className = "aldrete-criterion-header";
+      const max = ITENS_ALDRETE.find(i => i.id === id).max;
+      let pct = (val / max) * 100;
+      
+      const badge = document.getElementById(`badge_${id}`);
+      const bar = document.getElementById(`bar_${id}`);
+      
+      badge.textContent = `${val}/${max}`;
+      // Correção do visual: Na escala Aldrete, 2 é o máximo e 0 é o pior.
+      // Se val for 0, forçamos a barra visual a 100% para mostrar que está pintada de vermelho.
+      bar.style.width = val === 0 ? "100%" : `${pct}%`; 
+      
+      if (val === 2) {
+        bar.style.backgroundColor = "var(--green)"; badge.style.color = "var(--green)"; badge.style.borderColor = "var(--green)"; badge.style.background = "#ecfdf5";
+      } else if (val === 1) {
+        bar.style.backgroundColor = "var(--yellow)"; badge.style.color = "#a16207"; badge.style.borderColor = "var(--yellow)"; badge.style.background = "#fefce8";
+      } else {
+        bar.style.backgroundColor = "var(--red)"; badge.style.color = "var(--red)"; badge.style.borderColor = "var(--red)"; badge.style.background = "#fff1f2";
+      }
+      atualizarGlobais();
+    }
 
-const titleH3 = document.createElement("h3");
-titleH3.className = "aldrete-criterion-title";
-titleH3.innerText = paramGroup.category;
-headerDiv.appendChild(titleH3);
+    function atualizarGlobais() {
+      let preenchidos = 0;
+      ITENS_ALDRETE.forEach(i => { if (parseInt(document.getElementById(i.id).value) !== -1 && !isNaN(parseInt(document.getElementById(i.id).value))) preenchidos++; });
+      document.getElementById("progress-bar-global").style.width = `${(preenchidos / 5) * 100}%`;
+      document.getElementById("contadorPreenchidos").textContent = preenchidos;
+    }
 
-const scoreSpan = document.createElement("span");
-scoreSpan.className = "aldrete-score-display";
-scoreSpan.id = `${paramGroup.nameAttr}_score_display`;
-scoreSpan.innerText = "0";
-headerDiv.appendChild(scoreSpan);
+    document.getElementById("btnToggleDados").addEventListener("click", function() {
+      const body = document.getElementById("dadosBody");
+      const chevron = document.getElementById("dadosChevron");
+      body.classList.toggle("open");
+      chevron.style.transform = body.classList.contains("open") ? "rotate(180deg)" : "rotate(0deg)";
+      this.style.background = body.classList.contains("open") ? "#EFF6FF" : "white";
+    });
 
-cardDiv.appendChild(headerDiv);
+    // --- CALCULAR ALDRETE ---
+    const resSection = document.getElementById("resultado-section");
+    let calcScore = 0;
+    let calcClass = "";
+    let calcConduta = "";
 
-const optionsDiv = document.createElement("div");
-const selectElement = document.createElement("select");
-selectElement.id = paramGroup.nameAttr;
-selectElement.className = "aldrete-select";
-selectElement.onchange = () => updateScoreDisplay(paramGroup.nameAttr);
+    function calcular() {
+      let incompleto = false;
+      let somaScore = 0;
+      const vals = {};
+      
+      ITENS_ALDRETE.forEach(i => {
+        let val = parseInt(document.getElementById(i.id).value);
+        if (isNaN(val) || val === -1) incompleto = true;
+        somaScore += val;
+        vals[i.id] = val;
+      });
 
-const defaultOption = document.createElement("option");
-defaultOption.value = "";
-defaultOption.text = "Selecione...";
-defaultOption.disabled = true;
-defaultOption.selected = true;
-selectElement.appendChild(defaultOption);
+      if (incompleto) {
+        alert("Preencha todos os 5 critérios para gerar o Escore de Aldrete.");
+        return;
+      }
 
-paramGroup.options.forEach((option) => {
-const optionElement = document.createElement("option");
-optionElement.value = option.score;
-optionElement.text = `${option.description} (${option.score})`;
-selectElement.appendChild(optionElement);
-});
+      calcScore = somaScore;
+      let bg = "";
 
-optionsDiv.appendChild(selectElement);
-cardDiv.appendChild(optionsDiv);
-conteudoDiv.appendChild(cardDiv);
-});
-}
+      if (calcScore >= 9) { 
+        calcClass = "Apto para Alta da SRPA"; bg = "var(--green)"; 
+        calcConduta = "O paciente recuperou adequadamente as funções vitais, a consciência e a motricidade pós-anestesia. O enfermeiro deve comunicar o médico anestesista para a avaliação de alta da sala de recuperação.";
+      } else if (calcScore >= 7) { 
+        calcClass = "Manter em Observação"; bg = "var(--yellow)";
+        calcConduta = "O paciente ainda apresenta resquícios dos efeitos anestésicos (sedação, variação hemodinâmica ou restrição motora). Manter em monitorização na SRPA e reavaliar periodicamente.";
+      } else { 
+        calcClass = "Paciente Instável"; bg = "var(--red)";
+        calcConduta = "Recuperação insatisfatória ou complicação pós-operatória precoce. Comunicar o anestesiologista imediatamente. Manter suporte intensivo (oxigenoterapia, monitorização rigorosa, suporte circulatório se necessário).";
+      }
 
-function calcular() {
-let total = 0;
-let allSelected = true;
+      document.getElementById("scoreValor").textContent = calcScore;
+      
+      const pill = document.getElementById("statusPill");
+      const msg = document.getElementById("resultadoMensagem");
+      
+      pill.textContent = calcClass;
+      pill.style.backgroundColor = bg;
+      if (bg === "var(--yellow)") pill.style.color = "#854d0e"; else pill.style.color = "white";
+      
+      msg.innerHTML = `O paciente obteve um Escore de Aldrete e Kroulik de <strong>${calcScore} pontos</strong>, o que sugere que o estado atual é: <strong>${calcClass}</strong>.<br><br><strong>Conduta de Enfermagem:</strong> ${calcConduta}`;
+      document.getElementById("somaObtida").textContent = calcScore;
+      document.getElementById("somaObtida").style.color = bg;
 
-aldreteData.forEach((item) => {
-const selectElement = document.getElementById(item.nameAttr);
-if (selectElement.value === "") {
-allSelected = false;
-} else {
-total += parseInt(selectElement.value, 10);
-}
-});
+      // Memoria Tabela
+      const tbody = document.getElementById("tabelaDominios");
+      tbody.innerHTML = "";
+      ITENS_ALDRETE.forEach(i => {
+        let v = vals[i.id];
+        let color = "var(--green)";
+        if (v === 1) color = "var(--yellow)";
+        if (v === 0) color = "var(--red)";
+        
+        let pct = v === 0 ? 100 : Math.round((v / i.max) * 100);
+        
+        let tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td class="font-bold text-slate-700">${i.label}</td>
+          <td class="text-center font-black" style="color:${color}">${v}</td>
+          <td class="text-center font-bold text-slate-500">${i.max}</td>
+          <td>
+            <div style="display:flex;align-items:center;gap:8px;">
+              <div style="flex:1;height:6px;background:#e2e8f0;border-radius:4px;overflow:hidden;">
+                <div style="width:${pct}%;height:100%;background:${color};border-radius:4px;"></div>
+              </div>
+            </div>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
 
-resultadoDiv.innerHTML = "";
-resultadoDiv.className = "resultado p-4 mt-6 rounded-lg text-left";
+      resSection.classList.add("visible");
+      setTimeout(() => resSection.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
 
-if (!allSelected) {
-resultadoDiv.style.display = "block";
-resultadoDiv.innerHTML =
-'⚠️ <strong class="font-bold">Por favor, selecione uma opção para cada critério.</strong>';
-resultadoDiv.classList.add("bg-info-orange-light");
-delete resultadoDiv.dataset.score;
-return;
-}
+      chamarNanda(calcScore, vals);
+    }
 
-let conduta = "";
-if (total >= 9) {
-conduta =
-"Paciente apto para alta da recuperação anestésica, comunique o enfermeiro e o anestesista.";
-resultadoDiv.classList.add("bg-aldrete-alta");
-} else if (total >= 7) {
-conduta = "Manter em observação e reavaliar periodicamente.";
-resultadoDiv.classList.add("bg-aldrete-observacao");
-} else {
-conduta =
-"Paciente instável. Comunicar o enfermeiro e o anestesista, manter cuidados intensivos.";
-resultadoDiv.classList.add("bg-aldrete-instavel");
-}
+    // --- NANDA API ---
+    async function chamarNanda(score, vals) {
+      const lista = document.getElementById("lista-nanda");
+      if (score >= 9) {
+        lista.innerHTML = '<li class="text-xs font-bold text-slate-500 text-center py-4"><i class="fa-solid fa-check text-green-500 text-xl block mb-2"></i>Paciente estabilizado (SRPA). Manter vigilância padrão de alta e foco na prevenção de lesões (Braden/Morse) e Dor Aguda no leito de destino.</li>';
+        return;
+      }
 
-resultadoDiv.style.display = "block";
-resultadoDiv.innerHTML = `
-<p>Pontuação total: <strong class="font-bold">${total}/10</strong></p>
-<p>Conduta: <strong class="font-bold">${conduta}</strong></p>
-`;
-resultadoDiv.dataset.conduta = conduta;
-resultadoDiv.dataset.score = total;
-resultadoDiv.dataset.scaleName = "Escala de Aldrete e Kroulik";
-}
+      lista.innerHTML = '<li class="text-sm font-bold text-slate-500 text-center py-6"><i class="fa-solid fa-spinner fa-spin mr-2"></i> Processando raciocínio clínico perioperatório...</li>';
+      try {
+        const response = await fetch('/banco_nanda.json');
+        if (!response.ok) throw new Error("Erro");
+        const banco = await response.json();
+        
+        let keywords = ['anestesia', 'perioperatória', 'dor aguda', 'choque', 'hipotermia'];
+        if (vals.respiracao < 2 || vals.saturacao < 2) keywords.push('respiração', 'vias aéreas', 'ventilação', 'gases', 'aspiração');
+        if (vals.circulacao < 2) keywords.push('débito cardíaco', 'perfusão', 'pressão arterial');
+        if (vals.consciencia < 2 || vals.atividade < 2) keywords.push('consciência', 'mobilidade', 'queda', 'confusão', 'lesão');
 
-function limpar() {
-aldreteData.forEach((item) => {
-const selectElement = document.getElementById(item.nameAttr);
-if (selectElement) {
-selectElement.selectedIndex = 0;
-}
-const display = document.getElementById(`${item.nameAttr}_score_display`);
-if (display) {
-display.innerText = "0";
-}
-});
-resultadoDiv.innerHTML = "";
-resultadoDiv.style.display = "none";
-resultadoDiv.className = "resultado hidden mt-6";
-delete resultadoDiv.dataset.conduta;
-delete resultadoDiv.dataset.score;
-delete resultadoDiv.dataset.scaleName;
-}
+        let excludeWords = ['infantil', 'neonatal', 'criança', 'bebê', 'lactente', 'pediátrica', 'gestante', 'materna'];
 
-btnCalcular?.addEventListener("click", calcular);
-btnLimpar?.addEventListener("click", limpar);
+        let pontuados = banco.map(diag => {
+          let matchScore = 0;
+          let text = (diag.diagnostico + " " + diag.definicao).toLowerCase();
+          
+          let hasExclude = excludeWords.some(ew => text.includes(ew));
+          if (hasExclude) return { ...diag, matchScore: 0 }; 
 
-createCriteriaList();
-});
+          keywords.forEach(kw => { if (text.includes(kw)) matchScore++; });
+          return { ...diag, matchScore: matchScore };
+        }).filter(d => d.matchScore > 0);
+        
+        pontuados.sort((a, b) => b.matchScore - a.matchScore);
+        const top6 = pontuados.slice(0, 6);
+
+        if (top6.length === 0) {
+            lista.innerHTML = '<li class="text-xs font-bold text-slate-500 text-center py-4">Nenhum diagnóstico direto encontrado no banco resumido.</li>';
+            return;
+        }
+
+        lista.innerHTML = '';
+        top6.forEach(d => {
+          lista.innerHTML += `<li class="nanda-item flex items-start gap-3"><span class="bg-blue-100 text-blue-800 text-[10px] font-black px-2 py-1 rounded shadow-sm mt-0.5">${d.codigo}</span><div><h5 class="text-[13px] font-bold text-slate-800 leading-tight mb-1">${d.diagnostico}</h5><p class="text-[11px] font-medium text-slate-500 m-0">${d.definicao}</p></div></li>`;
+        });
+      } catch (e) {
+        lista.innerHTML = '<li class="text-xs font-bold text-red-500 text-center py-4">Banco NANDA indisponível.</li>';
+      }
+    }
+
+    function limpar() {
+      ITENS_ALDRETE.forEach(i => {
+        let el = document.getElementById(i.id);
+        el.selectedIndex = 0;
+        document.getElementById(`badge_${i.id}`).textContent = `--/${i.max}`;
+        document.getElementById(`badge_${i.id}`).style = "";
+        document.getElementById(`bar_${i.id}`).style.width = "0%";
+      });
+      document.getElementById('pacNome').value = '';
+      document.getElementById('pacIdade').value = '';
+      document.getElementById('pacSetor').value = '';
+      document.getElementById('pacProfissional').value = '';
+      atualizarGlobais();
+      resSection.classList.remove("visible");
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // --- IMPRESSAO / PDF JS ---
+    function gerarPDF() {
+      if(typeof window.jspdf === 'undefined') { alert("Aguarde o carregamento do PDF."); return; }
+      
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
+
+      const navy = [26, 62, 116];
+      const slate = [100, 116, 139];
+      const slateLight = [241, 245, 249];
+      const W = 210, marginL = 18, marginR = 18, usable = W - marginL - marginR;
+
+      // Cabecalho
+      doc.setFillColor(...navy);
+      doc.rect(0, 0, W, 32, "F");
+      doc.setTextColor(255, 255, 255);
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(14);
+      doc.text("Escala de Aldrete e Kroulik", marginL, 13);
+      doc.setFontSize(9);
+      doc.setFont("helvetica", "normal");
+      doc.text("Avaliação da Recuperação Pós-Anestésica (SRPA) - Calculadoras de Enfermagem", marginL, 20);
+      
+      const nome = document.getElementById("pacNome").value.trim();
+      const idade = document.getElementById("pacIdade").value.trim();
+      const setor = document.getElementById("pacSetor").value.trim();
+      const prof = document.getElementById("pacProfissional").value.trim();
+      const dataFormatada = new Date().toLocaleDateString("pt-BR");
+      
+      doc.text("Data: " + dataFormatada, W - marginR, 20, { align: "right" });
+      doc.setDrawColor(74, 144, 226); doc.setLineWidth(1); doc.line(0, 32, W, 32);
+
+      let y = 42;
+
+      // Identificacao
+      if (nome || idade || setor || prof) {
+        doc.setFillColor(...slateLight); doc.roundedRect(marginL, y, usable, 8, 2, 2, "F");
+        doc.setTextColor(...navy); doc.setFont("helvetica", "bold"); doc.text("IDENTIFICAÇÃO", marginL + 4, y + 5.5);
+        y += 12;
+
+        const campos = [];
+        if (nome) campos.push(["Paciente", nome]);
+        if (idade) campos.push(["Idade", idade]);
+        if (setor) campos.push(["Setor/SRPA", setor]);
+        if (prof) campos.push(["Avaliador", prof]);
+
+        campos.forEach(c => {
+          doc.setFont("helvetica", "bold"); doc.setTextColor(...navy); doc.text(c[0] + ":", marginL, y);
+          doc.setFont("helvetica", "normal"); doc.setTextColor(30, 41, 59); doc.text(c[1], marginL + 25, y);
+          y += 6;
+        });
+        y += 4;
+      }
+
+      // Pontuacao Total
+      doc.setFillColor(...navy); doc.roundedRect(marginL, y, usable, 22, 3, 3, "F");
+      doc.setTextColor(147, 197, 253); doc.setFont("helvetica", "bold"); doc.setFontSize(8);
+      doc.text("ESCORE FINAL (ALDRETE)", W / 2, y + 6, { align: "center" });
+      doc.setTextColor(255, 255, 255); doc.setFontSize(26);
+      doc.text(`${calcScore} / 10`, W / 2, y + 17, { align: "center" });
+      y += 28;
+
+      // Status
+      let corPill = [22, 163, 74]; 
+      if (calcScore < 9) corPill = [234, 179, 8]; 
+      if (calcScore < 7) corPill = [225, 29, 72];
+
+      doc.setFillColor(...corPill); doc.roundedRect(marginL, y, usable, 8, 2, 2, "F");
+      doc.setTextColor(255, 255, 255); doc.setFont("helvetica", "bold"); doc.setFontSize(9);
+      doc.text(calcClass.toUpperCase(), W / 2, y + 5.5, { align: "center" });
+      y += 12;
+
+      // Mensagem e Conduta
+      doc.setFillColor(248, 250, 252); doc.roundedRect(marginL, y, usable, 18, 2, 2, "F");
+      doc.setTextColor(30, 41, 59); doc.setFont("helvetica", "normal"); doc.setFontSize(9);
+      const msg = `Conduta Recomendada: ${calcConduta}`;
+      const linhas = doc.splitTextToSize(msg, usable - 8);
+      doc.text(linhas, marginL + 4, y + 6);
+      y += 22;
+
+      // Tabela de Dominios
+      doc.setFillColor(...slateLight); doc.roundedRect(marginL, y, usable, 8, 2, 2, "F");
+      doc.setTextColor(...navy); doc.setFont("helvetica", "bold"); doc.setFontSize(9);
+      doc.text("MEMÓRIA DE AVALIAÇÃO", marginL + 4, y + 5.5);
+      y += 11;
+
+      const domVals = ITENS_ALDRETE.map(i => parseInt(document.getElementById(i.id).value) || 0);
+
+      doc.autoTable({
+        startY: y,
+        margin: { left: marginL, right: marginR },
+        head: [["Critério SRPA", "Escore Obtido", "Máximo"]],
+        body: ITENS_ALDRETE.map((item, i) => [item.label.replace(/^\d+\.\s*/, ''), domVals[i], item.max]),
+        foot: [["ESCORE TOTAL", calcScore, 10]],
+        styles: { fontSize: 9, cellPadding: 3, lineColor: [226, 232, 240], lineWidth: 0.3 },
+        headStyles: { fillColor: navy, textColor: 255, fontStyle: "bold" },
+        footStyles: { fillColor: [239, 246, 255], textColor: navy, fontStyle: "bold" },
+        columnStyles: { 0: { cellWidth: 100 }, 1: { halign: "center" }, 2: { halign: "center" } },
+        alternateRowStyles: { fillColor: [248, 250, 252] },
+      });
+
+      y = doc.lastAutoTable.finalY + 8;
+
+      // Assinatura
+      if (y > 240) { doc.addPage(); y = 20; }
+      const colW = (usable - 10) / 2;
+      doc.setDrawColor(...navy); doc.setLineWidth(0.5);
+      doc.line(marginL, y + 14, marginL + colW, y + 14);
+      doc.line(marginL + colW + 10, y + 14, marginL + colW * 2 + 10, y + 14);
+      doc.setTextColor(...slate); doc.setFont("helvetica", "normal"); doc.setFontSize(8);
+      doc.text(prof || "Assinatura do Enfermeiro/Médico (SRPA)", marginL + colW / 2, y + 18, { align: "center" });
+      doc.text("Local e Data", marginL + colW + 10 + colW / 2, y + 18, { align: "center" });
+
+      // Rodape
+      y = 280;
+      doc.setDrawColor(...slateLight); doc.setLineWidth(0.3); doc.line(marginL, y, W - marginR, y);
+      doc.setTextColor(148, 163, 184); doc.setFontSize(7.5);
+      doc.text("CONSELHO FEDERAL DE MEDICINA. Parecer nº 28/2020. Critérios para alta da SRPA.", marginL, y + 5);
+      doc.text("Calculadoras de Enfermagem — www.calculadorasdeenfermagem.com.br", W - marginR, y + 5, { align: "right" });
+
+      const nomePac = nome ? nome.split(/\s+/).join("-").toLowerCase() : "paciente";
+      doc.save(`laudo-aldrete-${nomePac}-${new Date().toISOString().slice(0, 10)}.pdf`);
+    }
+
+    // ---- IMPRESSÃO HTML ----
+    function imprimirLaudo() {
+      const nome = document.getElementById("pacNome").value.trim();
+      const idade = document.getElementById("pacIdade").value.trim();
+      const setor = document.getElementById("pacSetor").value.trim();
+      const prof = document.getElementById("pacProfissional").value.trim();
+      const dataFormatada = new Date().toLocaleDateString("pt-BR");
+
+      const domVals = ITENS_ALDRETE.map(i => parseInt(document.getElementById(i.id).value) || 0);
+      const domMaxArr = ITENS_ALDRETE.map(i => i.max);
+
+      const linhasTabela = ITENS_ALDRETE.map((item, i) => {
+        let cor = "#e11d48";
+        if (domVals[i] === 1) cor = "#eab308";
+        if (domVals[i] === 2) cor = "#16a34a";
+        return `<tr><td>${item.label.replace(/^\d+\.\s*/, '')}</td><td style="text-align:center;font-weight:700;color:${cor};">${domVals[i]}</td><td style="text-align:center;color:#94A3B8;">${domMaxArr[i]}</td></tr>`;
+      }).join("");
+
+      const nandaHtml = document.getElementById("lista-nanda").innerHTML;
+
+      let corPill = "#16a34a"; 
+      if (calcScore < 9) corPill = "#eab308"; 
+      if (calcScore < 7) corPill = "#e11d48";
+
+      const html =
+        `<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>Laudo Escala de Aldrete</title>
+        <style>
+        *{margin:0;padding:0;box-sizing:border-box}
+        body{font-family:Arial,sans-serif;font-size:10pt;color:#1E293B;padding:24px 32px}
+        .hdr{background:#1A3E74;color:white;padding:14px 20px;border-radius:8px;display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+        .hdr h1{font-size:13pt;font-weight:900}
+        .hdr p{font-size:8pt;opacity:0.8;margin-top:3px}
+        .secao{margin-bottom:14px}
+        .sec-titulo{font-size:8pt;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:#1A3E74;background:#EFF6FF;padding:5px 10px;border-radius:4px;margin-bottom:8px}
+        .grid2{display:grid;grid-template-columns:1fr 1fr;gap:6px 20px;font-size:9.5pt}
+        .res-box{border:2px solid #1A3E74;border-radius:8px;padding:14px 18px;background:#F8FAFC;text-align:center;margin-bottom:14px}
+        .res-score{font-size:28pt;font-weight:900;color:#1A3E74;line-height:1}
+        .res-pill{display:inline-block;background:${corPill};color:white;font-size:8pt;font-weight:700;padding:3px 14px;border-radius:20px;text-transform:uppercase;margin:6px 0}
+        .res-msg{font-size:9.5pt;color:#1E293B;line-height:1.6;margin-top:8px}
+        table{width:100%;border-collapse:collapse}
+        th{background:#1A3E74;color:white;font-size:8pt;padding:6px 8px;text-align:left}
+        td{font-size:9pt;padding:5px 8px;border-bottom:1px solid #F1F5F9}
+        tfoot td{background:#EFF6FF;font-weight:700;color:#1A3E74;border-top:2px solid #1A3E74}
+        .nanda-box{border:1px solid #E2E8F0;border-radius:8px;padding:12px;font-size:9pt}
+        ul{list-style:none;} .nanda-item{border-bottom:1px solid #f1f5f9;padding:6px 0;} .nanda-item:last-child{border:none}
+        .sig{display:grid;grid-template-columns:1fr 1fr;gap:30px;margin-top:28px}
+        .sig-line{border-top:1px solid #1A3E74;padding-top:5px;font-size:8pt;color:#64748B;text-align:center}
+        .footer{text-align:center;font-size:7.5pt;color:#94A3B8;margin-top:20px;border-top:1px solid #E2E8F0;padding-top:8px}
+        </style></head><body>
+        <div class="hdr"><div><h1>Escala de Aldrete e Kroulik</h1><p>Avaliação de Recuperação Pós-Anestésica (SRPA)</p></div><div style="text-align:right;font-size:8.5pt;"><strong>Data:</strong> ${dataFormatada}</div></div>
+        ${(nome || idade || setor || prof ? `<div class="secao"><div class="sec-titulo">Identificação</div><div class="grid2">${nome ? `<p><strong>Paciente:</strong> ${nome}</p>` : ""}${idade ? `<p><strong>Idade:</strong> ${idade}</p>` : ""}${setor ? `<p><strong>Setor (SRPA):</strong> ${setor}</p>` : ""}${prof ? `<p><strong>Avaliador:</strong> ${prof}</p>` : ""}</div></div>` : "")}
+        <div class="secao"><div class="res-box"><div class="res-score">${calcScore} <span style="font-size:16px; color:#64748b">/ 10</span></div><div><span class="res-pill">${calcClass}</span></div><p class="res-msg"><strong>Conduta:</strong> ${calcConduta}</p></div></div>
+        <div class="secao"><div class="sec-titulo">Memória da Avaliação Fisiológica</div>
+        <table><thead><tr><th>Critério</th><th style="text-align:center">Obtido</th><th style="text-align:center">Máximo</th></tr></thead><tbody>${linhasTabela}</tbody>
+        <tfoot><tr><td>ESCORE TOTAL</td><td style="text-align:center">${calcScore}</td><td style="text-align:center">10</td></tr></tfoot></table></div>
+        <div class="secao"><div class="sec-titulo">Diagnósticos NANDA Sugeridos (Top 6)</div><div class="nanda-box"><ul>${nandaHtml}</ul></div></div>
+        <div class="sig"><div class="sig-line">${prof || "Assinatura do Enfermeiro(a) / Médico(a)"}</div><div class="sig-line">Local e Data</div></div>
+        <div class="footer">CONSELHO FEDERAL DE MEDICINA. Parecer nº 28/2020. | Calculadoras de Enfermagem — www.calculadorasdeenfermagem.com.br</div>
+        <script>window.onload=function(){window.print();}<\/script></body></html>`;
+
+      const janela = window.open("", "_blank");
+      janela.document.write(html);
+      janela.document.close();
+    }
+
+    document.getElementById("btnCalcular").addEventListener("click", calcular);
+    document.getElementById("btnLimpar").addEventListener("click", limpar);
+    document.getElementById("btnGerarPDF").addEventListener("click", gerarPDF);
+    document.getElementById("btnImprimir").addEventListener("click", imprimirLaudo);
+    renderizarForm();
+  });
 </script>
 
 <div id="footer-placeholder"></div>
@@ -556,4 +941,5 @@ carregarTraducoes('pt', 'cookies.json');
 }, 150);
 });
 </script>
-</body></html>
+</body>
+</html>
