@@ -8,7 +8,7 @@ const path = require('path');
 // 1. SUBSTITUIÇÃO SIMPLES (REPLACE)
 // Se achar o 'target', substitui a linha toda pela 'newTag', mantendo o recuo.
 const REGRA_REPLACE = [
-    { target: '<style id="anti-cls-placeholders">#global-header-container{display:block;width:100%;min-height:96px;background-color:transparent}@media(max-width:768px){#global-header-container{min-height:60px}}#language-selector-placeholder{display:block;width:100%;min-height:48px;background-color:transparent}#footer-placeholder{display:block;min-height:520px;background-color:transparent}@media(min-width:768px){#footer-placeholder{min-height:277px}}</style>', newTag: '<style id="anti-cls-placeholders">#global-header-container{display:block;width:100%;min-height:96px;background-color:transparent}@media(max-width:768px){#global-header-container{min-height:60px}}#language-selector-placeholder{display:block;width:100%;min-height:46px;background-color:transparent}#footer-placeholder{display:block;min-height:520px;background-color:transparent}@media(min-width:768px){#footer-placeholder{min-height:277px}}</style>' },
+    { target: '', newTag: '' },
 ];
 
 // 2. EXCLUSÃO DE LINHAS (DELETE)
