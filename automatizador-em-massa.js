@@ -8,7 +8,7 @@ const path = require('path');
 // 1. SUBSTITUIÇÃO SIMPLES (REPLACE)
 // Se achar o 'target', substitui a linha toda pela 'newTag', mantendo o recuo.
 const REGRA_REPLACE = [
-    { target: '', newTag: '' },
+    { target: '<style id="critical-fonts">@font-face{font-family:\'Inter\';src:url(\'/fonts/inter/inter-regular.woff2\') format(\'woff2\');font-weight:400;font-display:optional;}@font-face{font-family:\'Inter\';src:url(\'/fonts/inter/inter-600.woff2\') format(\'woff2\');font-weight:600;font-display:optional;}@font-face{font-family:\'Inter\';src:url(\'/fonts/inter/inter-700.woff2\') format(\'woff2\');font-weight:700;font-display:optional;}@font-face{font-family:\'Nunito Sans\';src:url(\'/fonts/nunito/nunito-regular.woff2\') format(\'woff2\');font-weight:400;font-display:optional;}@font-face{font-family:\'Nunito Sans\';src:url(\'/fonts/nunito/nunito-700.woff2\') format(\'woff2\');font-weight:700;font-display:optional;}@font-face{font-family:\'Nunito Sans\';src:url(\'/fonts/nunito/nunito-900.woff2\') format(\'woff2\');font-weight:900;font-display:optional;}@font-face{font-family:"Font Awesome 6 Brands";src:url("/fonts/fa-brands/fa-brands-400.woff2") format("woff2");font-weight:400;font-display:swap}@font-face{font-family:"Font Awesome 6 Free";src:url("/fonts/fa-solid/fa-solid-900.woff2") format("woff2");font-weight:900;font-display:swap}</style>', newTag: '' },
 ];
 
 // 2. EXCLUSÃO DE LINHAS (DELETE)
