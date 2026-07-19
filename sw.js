@@ -1,4 +1,4 @@
-const CACHE_VERSION = "20260719-095815";
+const CACHE_VERSION = "20260719-100830";
 const CACHE_NAME = `calculadoras-enfermagem-cache-${CACHE_VERSION}`;
 
 // O SCRIPT DE BUILD VAI INJETAR A LISTA DE ARQUIVOS AQUI
@@ -239,7 +239,7 @@ self.addEventListener("fetch", (event) => {
     event.respondWith(
       fetch(req).catch((error) => {
         // Se a requisição falhar (ex: bloqueada pelo navegador), retorna uma resposta vazia inofensiva
-        return new Response("Ad blocked", { status: 204 });
+        return new Response(null, { status: 204 });
       }),
     );
     return;

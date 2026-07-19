@@ -71,7 +71,7 @@ self.addEventListener("fetch", (event) => {
     event.respondWith(
       fetch(req).catch((error) => {
         // Se a requisição falhar (ex: bloqueada pelo navegador), retorna uma resposta vazia inofensiva
-        return new Response("Ad blocked", { status: 204 });
+        return new Response(null, { status: 204 });
       }),
     );
     return;
