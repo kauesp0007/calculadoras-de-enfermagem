@@ -747,7 +747,7 @@ if __name__ == "__main__":
     # 🟢 ÁREA DE CONFIGURAÇÃO DIÁRIA (ALTERE APENAS AQUI) 🟢
     # =========================================================================
     
-    arquivos_originais = ["apache.html", "aldrete.html", "pews.html", "meows.html", "news.html"]
+    arquivos_originais = ["apgar.html", "glasgow.html", "asa.html"]
     idiomas_alvo = ["en", "es", "de", "it", "fr", "hi", "zh", "ar", "ja", "ru", "ko", "tr", "nl", "pl", "sv", "id", "vi", "uk"] 
     
     # =========================================================================
