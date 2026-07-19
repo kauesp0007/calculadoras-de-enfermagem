@@ -474,12 +474,15 @@ function initializeGlobalFunctions() {
   const zTop = document.getElementById("backToTopBtn");
   if (zTop) {
     let _ticking = false;
+    let _lastScrollY = 0; // Criamos a variável fora
+
     window.addEventListener("scroll", () => {
+      _lastScrollY = window.scrollY; // LEITURA DO DOM (Fora da animação)
+
       if (!_ticking) {
         window.requestAnimationFrame(() => {
-          const _lastScrollY = window.scrollY; 
           const newDisplay = _lastScrollY > 200 ? "block" : "none";
-          // PREVENÇÃO REFLOW: Só escreve se o estilo realmente for mudar
+          // ESCRITA NO DOM (Dentro da animação)
           if (zTop.style.display !== newDisplay) {
             zTop.style.display = newDisplay; 
           }
