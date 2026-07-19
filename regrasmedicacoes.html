@@ -314,14 +314,48 @@ WHO. Medication Safety in High-Risk Situations. Geneva, 2018.
 
 <!-- Scripts Gerais -->
 
+<div id="global-body-elements-container"></div>
+
+<script>
+// Função auxiliar para carregar HTML modular
+function fetchHTML(url, containerId) {
+fetch(url)
+.then((response) => {
+if (!response.ok) {
+throw new Error(`Não foi possível carregar ${url}`);
+}
+return response.text();
+})
+.then((data) => {
+const container = document.getElementById(containerId);
+if (container) {
+container.innerHTML = data;
+} else {
+console.warn(`Container com ID '${containerId}' não encontrado.`);
+}
+})
+.catch((error) => console.error(`Erro ao buscar ${url}:`, error));
+}
+document.addEventListener("DOMContentLoaded", () => {
+fetchHTML("/menu-global.html", "global-header-container");
+fetchHTML("/global-body-elements.html", "global-body-elements-container");
+});
+</script>
+
 <div id="footer-placeholder"></div>
 <script>
+document.addEventListener("DOMContentLoaded", () => {
+setTimeout(() => {
 fetch("/footer.html")
-.then((response) => response.text())
+.then(response => response.text())
 .then((data) => {
 document.getElementById("footer-placeholder").innerHTML = data;
-carregarTraducoes("pt", "footer.json");
-carregarTraducoes("pt", "cookies.json");
+if (typeof carregarTraducoes === "function") {
+carregarTraducoes('pt', 'footer.json');
+carregarTraducoes('pt', 'cookies.json');
+}
+});
+}, 150);
 });
 </script>
 </body>
