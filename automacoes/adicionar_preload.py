@@ -38,7 +38,7 @@ ARQUIVOS_PROIBIDOS = {
 }
 
 # A tag que queremos injetar no mobile/desktop
-TAG_PRELOAD = '    <link rel="preload" href="https://www.calculadorasdeenfermagem.com.br/icontopbar1-calculadoras-de-enfermagem.webp" as="image" type="image/webp" fetchpriority="high">\n'
+TAG_PRELOAD = '    \n'
 
 def injetar_preload():
     arquivos_modificados = 0
