@@ -58,25 +58,36 @@
 });
 
 document.addEventListener("DOMContentLoaded", function () {
-  fetch(window.__FETCH_PREFIX + "menu-global.html").then(e => e.ok ? e.text() : Promise.reject("Ficheiro menu-global.html não encontrado")).then(e => {
-    const o = document.getElementById("global-header-container");
-    if (o) {
-      window.requestAnimationFrame(() => {
-        o.innerHTML = e;
-        initializeNavigationMenu();
-      });
-    }
-  }).catch(e => console.warn("Não foi possível carregar o menu global:", e));
+  // 1. Prioridade Máxima: Carrega o menu global o mais rápido possível
+  fetch(window.__FETCH_PREFIX + "menu-global.html")
+    .then(e => e.ok ? e.text() : Promise.reject("Ficheiro menu-global.html não encontrado"))
+    .then(e => {
+      const o = document.getElementById("global-header-container");
+      if (o) {
+        window.requestAnimationFrame(() => {
+          o.innerHTML = e;
+          initializeNavigationMenu();
+        });
+      }
+    }).catch(e => console.warn("Não foi possível carregar o menu global:", e));
 
-  fetch(window.__FETCH_PREFIX + "global-body-elements.html").then(e => e.ok ? e.text() : Promise.reject("Ficheiro global-body-elements.html não encontrado")).then(e => {
-    window.requestAnimationFrame(() => {
-      document.body.insertAdjacentHTML("beforeend", e);
-      initializeGlobalFunctions();
-    });
-  }).catch(e => console.warn("Não foi possível carregar os elementos globais do corpo:", e));
+  // 2. Adia o carregamento de modais e elementos não essenciais
+  const carregarElementosSecundarios = () => {
+    fetch(window.__FETCH_PREFIX + "global-body-elements.html")
+      .then(e => e.ok ? e.text() : Promise.reject("Ficheiro global-body-elements.html não encontrado"))
+      .then(e => {
+        window.requestAnimationFrame(() => {
+          document.body.insertAdjacentHTML("beforeend", e);
+          initializeGlobalFunctions();
+        });
+      }).catch(e => console.warn("Não foi possível carregar os elementos globais do corpo:", e));
+  };
 
-// Função para carregar o Seletor de Idiomas (consolidado e com fallback)
-
+  if ('requestIdleCallback' in window) {
+    requestIdleCallback(carregarElementosSecundarios, { timeout: 2000 });
+  } else {
+    setTimeout(carregarElementosSecundarios, 150);
+  }
 });
 
 function initializeNavigationMenu() {
