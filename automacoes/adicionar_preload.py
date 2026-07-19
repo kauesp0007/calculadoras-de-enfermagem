@@ -21,10 +21,9 @@ PASTAS_PROIBIDAS = {
     'images',
     'img',
     'downloads',
+    'biblioteca',
     'blog-templates',
-    'blog,',
-    'locales',
-    'biblioteca'
+    'blog'
 }
 
 # Ficheiros HTML modulares que NÃO devem receber a tag (fragmentos sem <head>)
@@ -34,11 +33,12 @@ ARQUIVOS_PROIBIDOS = {
     'footer-placeholder.html',
     'cookie-banner.html',
     'language-selector.html',
+    'footer.html',
     'downloads.html'
 }
 
 # A tag que queremos injetar no mobile/desktop
-TAG_PRELOAD = '    \n'
+TAG_PRELOAD = '    <link rel="preload" href="https://www.calculadorasdeenfermagem.com.br/icontopbar1-calculadoras-de-enfermagem.webp" as="image" type="image/webp" fetchpriority="high">\n'
 
 def injetar_preload():
     arquivos_modificados = 0
@@ -74,17 +74,17 @@ def injetar_preload():
                     arquivos_ignorados += 1
                     continue
 
-                # Verifica se o arquivo tem a tag <head> (essencial para injetar o preload)
-                if '<head' not in conteudo.lower():
-                    print(f"⚠️ Aviso: Nenhuma tag <head> encontrada em {caminho_completo}. Ignorando.")
+                # Verifica se o arquivo tem a tag </head> (essencial para injetar de forma segura)
+                if '</head' not in conteudo.lower():
+                    print(f"⚠️ Aviso: Nenhuma tag </head> encontrada em {caminho_completo}. Ignorando.")
                     arquivos_ignorados += 1
                     continue
 
-                # Expressão regular para encontrar a tag <head> (lidando com atributos como <head lang="pt">)
-                # O r'\1\n' mantém a tag <head> original e adiciona a nossa tag na linha de baixo
+                # Expressão regular para encontrar o FINAL do cabeçalho (</head>)
+                # Injeta a tag ANTES do fechamento, garantindo que o CSS e Fontes carreguem primeiro
                 novo_conteudo = re.sub(
-                    r'(<head[^>]*>)', 
-                    r'\1\n' + TAG_PRELOAD, 
+                    r'(</head>)', 
+                    TAG_PRELOAD + r'\1', 
                     conteudo, 
                     count=1, 
                     flags=re.IGNORECASE
