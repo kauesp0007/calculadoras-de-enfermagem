@@ -38,7 +38,7 @@ if os.path.exists(CACHE_FILE):
 else:
     MAPA_SVGS = {}
 
-# Dicionário de tradução FA5 -> FA6 para ícones que mudaram de nome no arquivo SVG
+# Dicionário de tradução FA5 -> FA6
 TRADUCAO_ICONES = {
     'hospital-alt': 'hospital',
     'users-cog': 'users-gear',
@@ -71,7 +71,11 @@ TRADUCAO_ICONES = {
     'sliders-h': 'sliders',
     'sign-out-alt': 'right-from-bracket',
     'sign-in-alt': 'right-to-bracket',
-    'edit': 'pen-to-square'
+    'edit': 'pen-to-square',
+    # Ícones atualizados:
+    'walking': 'person-walking',
+    'hand-holding-water': 'hand-holding-droplet',
+    'file-medical-alt': 'file-waveform'
 }
 
 # ==============================================================================
@@ -81,7 +85,6 @@ TRADUCAO_ICONES = {
 def baixar_svg_fontawesome(icon_class, style='solid'):
     icon_name = icon_class.replace('fa-', '', 1)
     
-    # Traduz o nome se for um ícone que mudou na versão 6
     if icon_name in TRADUCAO_ICONES:
         icon_name = TRADUCAO_ICONES[icon_name]
 
@@ -99,7 +102,6 @@ def baixar_svg_fontawesome(icon_class, style='solid'):
                 count=1
             )
             
-            # Minificação
             svg_data = re.sub(r'<!--.*?-->', '', svg_data, flags=re.DOTALL)
             svg_data = re.sub(r'[\r\n\t]+', ' ', svg_data)
             svg_data = re.sub(r'>\s+<', '><', svg_data)
@@ -167,7 +169,7 @@ def processar_arquivos():
     arquivos_scaneados = 0
     arquivos_modificados = 0
     
-    print("🚀 Iniciando conversão para buscar ícones pendentes/renomeados...")
+    print("🚀 Iniciando conversão para resgatar ícones antigos/faltantes...")
     print("-" * 60)
     inicio_tempo = time.time()
     
@@ -193,7 +195,7 @@ def processar_arquivos():
                         with open(caminho_completo, 'w', encoding='utf-8') as f:
                             f.write(conteudo)
                         arquivos_modificados += 1
-                        print(f"🔧 Modificado (Ícones Pendentes): {os.path.relpath(caminho_completo, BASE_DIR)}")
+                        print(f"🔧 Modificado: {os.path.relpath(caminho_completo, BASE_DIR)}")
                         
                 except Exception as e:
                     print(f"❌ Erro ao processar {arquivo}: {e}")
