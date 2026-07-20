@@ -38,16 +38,6 @@
   window.__FETCH_PREFIX = window.__IS_LANG_FOLDER ? "" : "/";
 })();
 
-// Executar IMEDIATAMENTE para evitar flash de tamanho de fonte
-(function () {
-  const savedFontSize = parseInt(localStorage.getItem("fontSize") || "1", 10);
-  // PREVENÇÃO DE CLS: Só reescreve o tamanho da fonte se o usuário realmente tiver alterado o padrão
-  if (savedFontSize !== 1) {
-    const fontSizes = ["1em", "1.15em", "1.3em", "1.5em", "2em"];
-    const idx = Math.min(Math.max(savedFontSize, 1), fontSizes.length);
-    document.documentElement.style.fontSize = fontSizes[idx - 1];
-  }
-})();
 // Registra o Service Worker
 "serviceWorker" in navigator && window.addEventListener("load", () => {
   navigator.serviceWorker.register("/sw.js").then(e => {
