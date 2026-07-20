@@ -747,7 +747,7 @@ if __name__ == "__main__":
     # 🟢 ÁREA DE CONFIGURAÇÃO DIÁRIA (ALTERE APENAS AQUI) 🟢
     # =========================================================================
     
-    arquivos_originais = ["humpty.html", "copsoq3.html", "copsoq.html"]
+    arquivos_originais = ["copsoq3.html", "copsoq.html"]
     idiomas_alvo = ["en", "es", "de", "it", "fr", "hi", "zh", "ar", "ja", "ru", "ko", "tr", "nl", "pl", "sv", "id", "vi", "uk"] 
     
     # =========================================================================
