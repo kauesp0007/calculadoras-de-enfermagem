@@ -8,10 +8,8 @@ import urllib.request
 # CONFIGURAÇÕES DO SCRIPT
 # ==============================================================================
 
-# Diretório base (como o script roda em /automacoes, a raiz é ../)
 BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 
-# Lista restrita de idiomas para varredura
 IDIOMAS = [
     'en', 'es', 'fr', 'it', 'de', 'hi', 'zh', 'ja', 'ru', 
     'ko', 'tr', 'nl', 'pl', 'sv', 'id', 'vi', 'uk', 'ar'
@@ -19,7 +17,6 @@ IDIOMAS = [
 
 PASTAS_PERMITIDAS = [BASE_DIR] + [os.path.join(BASE_DIR, lang) for lang in IDIOMAS]
 
-# Arquivos estruturais e dinâmicos preservados para não quebrar injeções
 ARQUIVOS_PROIBIDOS = [
     'menu-global.html',
     'footer.html',
@@ -41,12 +38,53 @@ if os.path.exists(CACHE_FILE):
 else:
     MAPA_SVGS = {}
 
+# Dicionário de tradução FA5 -> FA6 para ícones que mudaram de nome no arquivo SVG
+TRADUCAO_ICONES = {
+    'hospital-alt': 'hospital',
+    'users-cog': 'users-gear',
+    'tint': 'droplet',
+    'balance-scale': 'scale-balanced',
+    'weight': 'weight-scale',
+    'clock-o': 'clock',
+    'calendar-alt': 'calendar-days',
+    'file-alt': 'file-lines',
+    'file-text': 'file-lines',
+    'tachometer-alt': 'gauge',
+    'cogs': 'gears',
+    'cog': 'gear',
+    'vcard': 'address-card',
+    'glass': 'glass-water',
+    'user-md': 'user-doctor',
+    'heartbeat': 'heart-pulse',
+    'medkit': 'suitcase-medical',
+    'thermometer-half': 'temperature-half',
+    'list-alt': 'rectangle-list',
+    'plus-square': 'square-plus',
+    'minus-square': 'square-minus',
+    'info-circle': 'circle-info',
+    'question-circle': 'circle-question',
+    'exclamation-circle': 'circle-exclamation',
+    'exclamation-triangle': 'triangle-exclamation',
+    'check-circle': 'circle-check',
+    'times-circle': 'circle-xmark',
+    'times': 'xmark',
+    'sliders-h': 'sliders',
+    'sign-out-alt': 'right-from-bracket',
+    'sign-in-alt': 'right-to-bracket',
+    'edit': 'pen-to-square'
+}
+
 # ==============================================================================
 # FUNÇÕES DE REDE E SVG
 # ==============================================================================
 
 def baixar_svg_fontawesome(icon_class, style='solid'):
     icon_name = icon_class.replace('fa-', '', 1)
+    
+    # Traduz o nome se for um ícone que mudou na versão 6
+    if icon_name in TRADUCAO_ICONES:
+        icon_name = TRADUCAO_ICONES[icon_name]
+
     url = f"https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6/svgs/{style}/{icon_name}.svg"
     
     try:
@@ -54,7 +92,6 @@ def baixar_svg_fontawesome(icon_class, style='solid'):
         with urllib.request.urlopen(req) as response:
             svg_data = response.read().decode('utf-8')
             
-            # Prepara o SVG cru para receber os atributos originais da tag <i>
             svg_data = re.sub(
                 r'<svg([^>]*)>', 
                 r'<svg\1 {atributos_originais} fill="currentColor" width="1em" height="1em" aria-hidden="true">', 
@@ -62,22 +99,18 @@ def baixar_svg_fontawesome(icon_class, style='solid'):
                 count=1
             )
             
-            # --- PROCESSO DE MINIFICAÇÃO EXTREMA ---
-            # Remove comentários HTML/SVG
+            # Minificação
             svg_data = re.sub(r'<!--.*?-->', '', svg_data, flags=re.DOTALL)
-            # Remove quebras de linha e tabulações
             svg_data = re.sub(r'[\r\n\t]+', ' ', svg_data)
-            # Remove espaços inúteis entre as tags SVG ><
             svg_data = re.sub(r'>\s+<', '><', svg_data)
-            # Colapsa espaços duplos em espaços simples
             svg_data = re.sub(r'\s+', ' ', svg_data)
             
             return svg_data.strip()
-    except Exception:
+    except Exception as e:
         return None
 
 def substituir_i_por_svg(match):
-    atributos_completos = match.group(1) # Captura tudo: class="", id="", style=""
+    atributos_completos = match.group(1)
     
     class_match = re.search(r'class="([^"]*)"', atributos_completos)
     if not class_match:
@@ -85,7 +118,6 @@ def substituir_i_por_svg(match):
         
     classes_str = class_match.group(1)
     
-    # Define o estilo
     style = "solid"
     if "fa-brands" in classes_str or "fab " in classes_str:
         style = "brands"
@@ -95,7 +127,6 @@ def substituir_i_por_svg(match):
     ignore_list = ['fa-solid', 'fas', 'fa-regular', 'far', 'fa-brands', 'fab', 'fa-fw', 'fa-sm', 'fa-lg', 'fa-xs']
     icon_class = None
     
-    # Encontra qual é o ícone específico
     for cls in classes_str.split():
         if cls.startswith('fa-') and cls not in ignore_list:
             icon_class = cls
@@ -104,7 +135,6 @@ def substituir_i_por_svg(match):
     if not icon_class:
         return match.group(0)
         
-    # Baixa ou recupera do Cache
     if icon_class not in MAPA_SVGS:
         print(f"  [+] Baixando SVG para o ícone '{icon_class}' ({style})...")
         svg_code = baixar_svg_fontawesome(icon_class, style)
@@ -116,18 +146,15 @@ def substituir_i_por_svg(match):
             print(f"  [!] Falha ao baixar o ícone: {icon_class}")
             return match.group(0)
             
-    # Limpa APENAS as classes pertencentes ao FontAwesome
     classes_limpas = classes_str.replace(icon_class, '')
     for ignore in ignore_list:
         classes_limpas = re.sub(rf'\b{ignore}\b', '', classes_limpas)
         
     classes_limpas = re.sub(r'\s+', ' ', classes_limpas).strip()
     
-    # Remonta os atributos originais, substituindo a class suja pela limpa
     if classes_limpas:
         atributos_finais = atributos_completos.replace(f'class="{classes_str}"', f'class="{classes_limpas}"')
     else:
-        # Se o <i> só tinha classes do fontawesome, remove o atributo class
         atributos_finais = atributos_completos.replace(f' class="{classes_str}"', '').replace(f'class="{classes_str}"', '')
         
     return MAPA_SVGS[icon_class].format(atributos_originais=atributos_finais.strip())
@@ -140,7 +167,7 @@ def processar_arquivos():
     arquivos_scaneados = 0
     arquivos_modificados = 0
     
-    print("🚀 Iniciando conversão de ícones <i> para <svg> minificado...")
+    print("🚀 Iniciando conversão para buscar ícones pendentes/renomeados...")
     print("-" * 60)
     inicio_tempo = time.time()
     
@@ -159,7 +186,6 @@ def processar_arquivos():
                         
                     conteudo_original = conteudo
                     
-                    # Regex para capturar qualquer <i> que contenha a estrutura do FontAwesome
                     padrao_icone = r'<i\s+([^>]*\bfa-[a-zA-Z0-9-]+\b[^>]*)>\s*</i>'
                     conteudo = re.sub(padrao_icone, substituir_i_por_svg, conteudo, flags=re.IGNORECASE)
                     
@@ -167,7 +193,7 @@ def processar_arquivos():
                         with open(caminho_completo, 'w', encoding='utf-8') as f:
                             f.write(conteudo)
                         arquivos_modificados += 1
-                        print(f"🔧 Modificado: {os.path.relpath(caminho_completo, BASE_DIR)}")
+                        print(f"🔧 Modificado (Ícones Pendentes): {os.path.relpath(caminho_completo, BASE_DIR)}")
                         
                 except Exception as e:
                     print(f"❌ Erro ao processar {arquivo}: {e}")
@@ -177,7 +203,7 @@ def processar_arquivos():
     print("-" * 60)
     print("✅ Varredura Concluída!")
     print(f"📄 Arquivos Escaneados:   {arquivos_scaneados}")
-    print(f"✨ Arquivos Modificados:  {arquivos_modificados}")
+    print(f"✨ Arquivos Corrigidos:   {arquivos_modificados}")
     print(f"⏱️ Tempo de execução:     {tempo_total:.2f} segundos")
 
 if __name__ == "__main__":
