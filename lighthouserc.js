@@ -14,14 +14,14 @@ module.exports = {
     assert: {
       assertions: {
         // Core Web Vitals — todos com severidade "warn" para não bloquear o merge
-        'first-contentful-paint':    ['warn', { maxNumericValue: 1800 }],
-        'largest-contentful-paint':  ['warn', { maxNumericValue: 2500 }],
-        'total-blocking-time':       ['warn', { maxNumericValue: 200  }],
-        'cumulative-layout-shift':   ['warn', { maxNumericValue: 0.1  }],
-        'speed-index':               ['warn', { maxNumericValue: 3400 }],
-        'interactive':               ['warn', { maxNumericValue: 3800 }],
-        'categories:performance':    ['warn', { minScore: 0.75 }],
-        'categories:accessibility':  ['warn', { minScore: 0.90 }],
+        'first-contentful-paint': ['warn', { maxNumericValue: 1800 }],
+        'largest-contentful-paint': ['warn', { maxNumericValue: 2500 }],
+        'total-blocking-time': ['warn', { maxNumericValue: 200 }],
+        'cumulative-layout-shift': ['warn', { maxNumericValue: 0.1 }],
+        'speed-index': ['warn', { maxNumericValue: 3400 }],
+        'interactive': ['warn', { maxNumericValue: 3800 }],
+        'categories:performance': ['warn', { minScore: 0.75 }],
+        'categories:accessibility': ['warn', { minScore: 0.90 }],
       },
     },
     upload: {
