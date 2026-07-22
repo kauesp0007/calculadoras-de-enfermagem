@@ -8,7 +8,7 @@ const path = require('path');
 // 1. SUBSTITUIÇÃO SIMPLES (REPLACE)
 // Se achar o 'target', substitui a linha toda pela 'newTag', mantendo o recuo.
 const REGRA_REPLACE = [
-    { target: '<link rel="preload" href="https://www.calculadorasdeenfermagem.com.br/icontopbar1-calculadoras-de-enfermagem.webp" as="image" type="image/webp" fetchpriority="high">', newTag: '<link rel="preload" href="/img/icontopbar1-calculadoras-de-enfermagem.webp" as="image" type="image/webp" fetchpriority="high">'},
+    { target: '', newTag: '' },
 ];
 
 // 2. EXCLUSÃO DE LINHAS (DELETE)
