@@ -842,3 +842,13 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 });
 
+// Carregamento adiado (lazy load) do Manifest para otimização de Core Web Vitals
+window.addEventListener('load', function() {
+    setTimeout(function() {
+        const manifestLink = document.createElement('link');
+        manifestLink.rel = 'manifest';
+        manifestLink.href = '/manifest.json';
+        document.head.appendChild(manifestLink);
+    }, 1000); // Aguarda 1 segundo após o load completo da página
+});
+
