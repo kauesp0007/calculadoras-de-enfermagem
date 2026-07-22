@@ -14,7 +14,7 @@ const REGRA_REPLACE = [
 // 2. EXCLUSÃO DE LINHAS (DELETE)
 // Se achar a palavra no 'target', a linha inteira é removida do arquivo.
 const REGRA_DELETE = [
-    { target: 'manifest.json' },
+    { target: '' },
 ];
 
 // 3. UNIFICAÇÃO / LIMPEZA DE DUPLICADOS (UNIFY)
