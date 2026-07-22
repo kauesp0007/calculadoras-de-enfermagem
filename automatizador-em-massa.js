@@ -8,7 +8,7 @@ const path = require('path');
 // 1. SUBSTITUIÇÃO SIMPLES (REPLACE)
 // Se achar o 'target', substitui a linha toda pela 'newTag', mantendo o recuo.
 const REGRA_REPLACE = [
-    { target: '', newTag: '' },
+    { target: '<link rel="preload" href="https://www.calculadorasdeenfermagem.com.br/icontopbar1-calculadoras-de-enfermagem.webp" as="image" type="image/webp" fetchpriority="high">', newTag: '<link rel="preload" href="/img/icontopbar1-calculadoras-de-enfermagem.webp" as="image" type="image/webp" fetchpriority="high">'},
 ];
 
 // 2. EXCLUSÃO DE LINHAS (DELETE)
@@ -35,10 +35,10 @@ const REGRA_MOVE = [
 // =============================================================================
 const ROOT_DIR = '.';
 const LANGUAGES = ['en', 'es', 'de', 'it', 'fr', 'hi', 'zh', 'ar', 'ja', 'ru', 'ko', 'tr', 'nl', 'pl', 'sv', 'id', 'vi', 'uk'];
-const IGNORE_FOLDERS = ['downloads', 'biblioteca', 'blog', 'node_modules', '.git'];
+const IGNORE_FOLDERS = ['downloads', 'biblioteca', 'blog', 'blog-templates', 'node_modules', '.git'];
 const IGNORE_FILES = [
     'footer.html', 'menu-global.html', 'global-body-elements.html',
-    'downloads.html', 'menu-lateral.html', '_language_selector.html',
+    'downloads.html', 'menu-global.html', '_language_selector.html',
     'googlefc0a17cdd552164b.html'
 ];
 
