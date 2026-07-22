@@ -1,7 +1,7 @@
 ﻿<!doctype html>
 <html lang="pt-BR">
 <head>
-    
+
 
 <!-- 1. Charset e Viewport -->
 <meta charset="utf-8"/>
@@ -252,7 +252,7 @@ font-style: italic;
 text-decoration: underline;
 }
 </style>
-    <link rel="preload" href="/img/icontopbar1-calculadoras-de-enfermagem.webp" as="image" type="image/webp" fetchpriority="high">
+<link rel="preload" href="/img/icontopbar1-calculadoras-de-enfermagem.webp" as="image" type="image/webp" fetchpriority="high">
 <style id="anti-cls-placeholders">#global-header-container{display:block;width:100%;min-height:96px;background-color:transparent}@media(max-width:768px){#global-header-container{min-height:60px}}#language-selector-placeholder{display:block;width:100%;min-height:46px;background-color:transparent}#footer-placeholder{display:block;min-height:520px;background-color:transparent}@media(min-width:768px){#footer-placeholder{min-height:277px}}</style>
 <script src="/global-scripts.js" defer></script>
 <script src="/lang-selector.js" defer></script>
@@ -467,8 +467,8 @@ Carregar mais fotos
 
 <script>
 /* ============================================================
-   ÁLBUM DE ENFERMAGEM - Supabase Integration
-   ============================================================ */
+ÁLBUM DE ENFERMAGEM - Supabase Integration
+============================================================ */
 const SUPABASE_URL = 'https://asjkftjfbkuuhilnqonx.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFzamtmdGpmYmt1dWhpbG5xb254Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjcwODMxNjQsImV4cCI6MjA4MjY1OTE2NH0.mly76L5r2zoasonwta8aNND2mWWrkAoXirAAs99mDYo';
 const BUCKET_NAME = 'album-fotos-enfermagem';
@@ -482,254 +482,254 @@ let selectedFile = null;
 
 // ========== INICIALIZAÇÃO ==========
 document.addEventListener('DOMContentLoaded', async () => {
-  if (!window.supabase) {
-    document.getElementById('albumGrid').innerHTML = '<div class="text-center py-12"><p class="text-red-500">Erro ao carregar biblioteca Supabase.</p></div>';
-    return;
-  }
-  supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-  setupEventListeners();
-  await carregarFotos();
+if (!window.supabase) {
+document.getElementById('albumGrid').innerHTML = '<div class="text-center py-12"><p class="text-red-500">Erro ao carregar biblioteca Supabase.</p></div>';
+return;
+}
+supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+setupEventListeners();
+await carregarFotos();
 });
 
 // ========== EVENT LISTENERS ==========
 function setupEventListeners() {
-  // Upload de arquivo (drag & drop + click)
-  const dropzone = document.getElementById('dropzone');
-  const fileInput = document.getElementById('fileInput');
-  const removePreview = document.getElementById('removePreview');
+// Upload de arquivo (drag & drop + click)
+const dropzone = document.getElementById('dropzone');
+const fileInput = document.getElementById('fileInput');
+const removePreview = document.getElementById('removePreview');
 
-  dropzone?.addEventListener('click', () => fileInput?.click());
-  dropzone?.addEventListener('dragover', (e) => { e.preventDefault(); dropzone.classList.add('border-[#1A3E74]', 'bg-blue-50'); });
-  dropzone?.addEventListener('dragleave', () => { dropzone.classList.remove('border-[#1A3E74]', 'bg-blue-50'); });
-  dropzone?.addEventListener('drop', (e) => {
-    e.preventDefault();
-    dropzone.classList.remove('border-[#1A3E74]', 'bg-blue-50');
-    if (e.dataTransfer.files.length) handleFileSelect(e.dataTransfer.files[0]);
-  });
-  fileInput?.addEventListener('change', (e) => { if (e.target.files.length) handleFileSelect(e.target.files[0]); });
-  removePreview?.addEventListener('click', clearFileSelection);
+dropzone?.addEventListener('click', () => fileInput?.click());
+dropzone?.addEventListener('dragover', (e) => { e.preventDefault(); dropzone.classList.add('border-[#1A3E74]', 'bg-blue-50'); });
+dropzone?.addEventListener('dragleave', () => { dropzone.classList.remove('border-[#1A3E74]', 'bg-blue-50'); });
+dropzone?.addEventListener('drop', (e) => {
+e.preventDefault();
+dropzone.classList.remove('border-[#1A3E74]', 'bg-blue-50');
+if (e.dataTransfer.files.length) handleFileSelect(e.dataTransfer.files[0]);
+});
+fileInput?.addEventListener('change', (e) => { if (e.target.files.length) handleFileSelect(e.target.files[0]); });
+removePreview?.addEventListener('click', clearFileSelection);
 
-  // Geolocalização
-  document.getElementById('getGeolocation')?.addEventListener('click', getGeolocation);
+// Geolocalização
+document.getElementById('getGeolocation')?.addEventListener('click', getGeolocation);
 
-  // Upload form
-  document.getElementById('uploadForm')?.addEventListener('submit', handleUpload);
+// Upload form
+document.getElementById('uploadForm')?.addEventListener('submit', handleUpload);
 
-  // Carregar mais
-  document.getElementById('btnCarregarMais')?.addEventListener('click', carregarFotos);
+// Carregar mais
+document.getElementById('btnCarregarMais')?.addEventListener('click', carregarFotos);
 }
 
 // ========== SELEÇÃO DE ARQUIVO ==========
 function handleFileSelect(file) {
-  if (!file.type.match(/^image\/(jpeg|png|webp)$/)) {
-    showToast('Formato inválido. Use JPG, PNG ou WEBP.', 'error');
-    return;
-  }
-  if (file.size > 5 * 1024 * 1024) {
-    showToast('Arquivo muito grande. Máximo 5MB.', 'error');
-    return;
-  }
-  selectedFile = file;
-  const reader = new FileReader();
-  reader.onload = (e) => {
-    document.getElementById('imagePreview').src = e.target.result;
-    document.getElementById('previewContainer').classList.remove('hidden');
-  };
-  reader.readAsDataURL(file);
+if (!file.type.match(/^image\/(jpeg|png|webp)$/)) {
+showToast('Formato inválido. Use JPG, PNG ou WEBP.', 'error');
+return;
+}
+if (file.size > 5 * 1024 * 1024) {
+showToast('Arquivo muito grande. Máximo 5MB.', 'error');
+return;
+}
+selectedFile = file;
+const reader = new FileReader();
+reader.onload = (e) => {
+document.getElementById('imagePreview').src = e.target.result;
+document.getElementById('previewContainer').classList.remove('hidden');
+};
+reader.readAsDataURL(file);
 }
 
 function clearFileSelection() {
-  selectedFile = null;
-  document.getElementById('fileInput').value = '';
-  document.getElementById('previewContainer').classList.add('hidden');
+selectedFile = null;
+document.getElementById('fileInput').value = '';
+document.getElementById('previewContainer').classList.add('hidden');
 }
 
 // ========== GEOLOCALIZAÇÃO ==========
 function getGeolocation() {
-  const statusEl = document.getElementById('geoStatus');
-  if (!navigator.geolocation) {
-    statusEl.textContent = 'Geolocalização não suportada.';
-    statusEl.classList.remove('hidden');
-    return;
-  }
-  statusEl.textContent = 'Obtendo localização...';
-  statusEl.classList.remove('hidden');
-  navigator.geolocation.getCurrentPosition(
-    async (pos) => {
-      try {
-        const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${pos.coords.latitude}&lon=${pos.coords.longitude}`);
-        const data = await res.json();
-        const city = data.address?.city || data.address?.town || data.address?.village || '';
-        const state = data.address?.state || '';
-        const country = data.address?.country || '';
-        document.getElementById('localizacao').value = [city, state, country].filter(Boolean).join(', ');
-        statusEl.textContent = 'Localização obtida!';
-      } catch { statusEl.textContent = 'Erro ao obter endereço.'; }
-    },
-    () => { statusEl.textContent = 'Permissão de localização negada.'; }
-  );
+const statusEl = document.getElementById('geoStatus');
+if (!navigator.geolocation) {
+statusEl.textContent = 'Geolocalização não suportada.';
+statusEl.classList.remove('hidden');
+return;
+}
+statusEl.textContent = 'Obtendo localização...';
+statusEl.classList.remove('hidden');
+navigator.geolocation.getCurrentPosition(
+async (pos) => {
+try {
+const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${pos.coords.latitude}&lon=${pos.coords.longitude}`);
+const data = await res.json();
+const city = data.address?.city || data.address?.town || data.address?.village || '';
+const state = data.address?.state || '';
+const country = data.address?.country || '';
+document.getElementById('localizacao').value = [city, state, country].filter(Boolean).join(', ');
+statusEl.textContent = 'Localização obtida!';
+} catch { statusEl.textContent = 'Erro ao obter endereço.'; }
+},
+() => { statusEl.textContent = 'Permissão de localização negada.'; }
+);
 }
 
 // ========== UPLOAD DE FOTO ==========
 async function handleUpload(e) {
-  e.preventDefault();
-  const btn = document.getElementById('btnPublicar');
-  const originalText = btn.innerHTML;
+e.preventDefault();
+const btn = document.getElementById('btnPublicar');
+const originalText = btn.innerHTML;
 
-  if (!selectedFile) { showToast('Selecione uma foto.', 'error'); return; }
-  if (!document.getElementById('consentimento').checked) { showToast('Aceite o termo de consentimento.', 'error'); return; }
+if (!selectedFile) { showToast('Selecione uma foto.', 'error'); return; }
+if (!document.getElementById('consentimento').checked) { showToast('Aceite o termo de consentimento.', 'error'); return; }
 
-  btn.innerHTML = '<div class="loading-spinner"></div> Enviando...';
-  btn.disabled = true;
+btn.innerHTML = '<div class="loading-spinner"></div> Enviando...';
+btn.disabled = true;
 
-  try {
-    const titulo = document.getElementById('titulo').value.trim();
-    const descricao = document.getElementById('descricao-editor').innerHTML.trim();
-    const ano = document.getElementById('ano').value || null;
-    const instituicao = document.getElementById('instituicao').value.trim();
-    const localizacao = document.getElementById('localizacao').value.trim();
+try {
+const titulo = document.getElementById('titulo').value.trim();
+const descricao = document.getElementById('descricao-editor').innerHTML.trim();
+const ano = document.getElementById('ano').value || null;
+const instituicao = document.getElementById('instituicao').value.trim();
+const localizacao = document.getElementById('localizacao').value.trim();
 
-    if (!titulo || !descricao) { showToast('Preencha título e descrição.', 'error'); btn.innerHTML = originalText; btn.disabled = false; return; }
+if (!titulo || !descricao) { showToast('Preencha título e descrição.', 'error'); btn.innerHTML = originalText; btn.disabled = false; return; }
 
-    // Upload da imagem para Storage
-    const fileExt = selectedFile.name.split('.').pop();
-    const fileName = `album/${Date.now()}-${Math.random().toString(36).substring(2, 8)}.${fileExt}`;
-    const { error: uploadError } = await supabaseClient.storage.from(BUCKET_NAME).upload(fileName, selectedFile);
-    if (uploadError) throw uploadError;
+// Upload da imagem para Storage
+const fileExt = selectedFile.name.split('.').pop();
+const fileName = `album/${Date.now()}-${Math.random().toString(36).substring(2, 8)}.${fileExt}`;
+const { error: uploadError } = await supabaseClient.storage.from(BUCKET_NAME).upload(fileName, selectedFile);
+if (uploadError) throw uploadError;
 
-    const { data: urlData } = supabaseClient.storage.from(BUCKET_NAME).getPublicUrl(fileName);
-    const imagemUrl = urlData.publicUrl;
+const { data: urlData } = supabaseClient.storage.from(BUCKET_NAME).getPublicUrl(fileName);
+const imagemUrl = urlData.publicUrl;
 
-    // Inserir no banco
-    const { error: dbError } = await supabaseClient.from(TABLE_NAME).insert([{
-      titulo, descricao, ano, instituicao, localizacao, imagem_url: imagemUrl
-    }]);
-    if (dbError) throw dbError;
+// Inserir no banco
+const { error: dbError } = await supabaseClient.from(TABLE_NAME).insert([{
+titulo, descricao, ano, instituicao, localizacao, imagem_url: imagemUrl
+}]);
+if (dbError) throw dbError;
 
-    showToast('Foto publicada com sucesso!', 'success');
-    document.getElementById('uploadForm').reset();
-    document.getElementById('descricao-editor').innerHTML = '';
-    clearFileSelection();
+showToast('Foto publicada com sucesso!', 'success');
+document.getElementById('uploadForm').reset();
+document.getElementById('descricao-editor').innerHTML = '';
+clearFileSelection();
 
-    // Recarregar álbum
-    currentPage = 0;
-    hasMorePhotos = true;
-    document.getElementById('albumGrid').innerHTML = '<div class="text-center py-12"><div class="loading-spinner mx-auto mb-3"></div><p class="text-gray-500">Carregando álbum...</p></div>';
-    await carregarFotos();
-  } catch (err) {
-    console.error('Erro upload:', err);
-    showToast('Erro ao publicar: ' + (err.message || 'Tente novamente.'), 'error');
-  }
-  btn.innerHTML = originalText;
-  btn.disabled = false;
+// Recarregar álbum
+currentPage = 0;
+hasMorePhotos = true;
+document.getElementById('albumGrid').innerHTML = '<div class="text-center py-12"><div class="loading-spinner mx-auto mb-3"></div><p class="text-gray-500">Carregando álbum...</p></div>';
+await carregarFotos();
+} catch (err) {
+console.error('Erro upload:', err);
+showToast('Erro ao publicar: ' + (err.message || 'Tente novamente.'), 'error');
+}
+btn.innerHTML = originalText;
+btn.disabled = false;
 }
 
 // ========== CARREGAR FOTOS ==========
 async function carregarFotos() {
-  if (!supabaseClient || !hasMorePhotos) return;
+if (!supabaseClient || !hasMorePhotos) return;
 
-  const grid = document.getElementById('albumGrid');
-  const loadMoreBtn = document.getElementById('loadMoreContainer');
+const grid = document.getElementById('albumGrid');
+const loadMoreBtn = document.getElementById('loadMoreContainer');
 
-  if (currentPage === 0) {
-    grid.innerHTML = '<div class="text-center py-12"><div class="loading-spinner mx-auto mb-3"></div><p class="text-gray-500">Carregando álbum...</p></div>';
-  }
+if (currentPage === 0) {
+grid.innerHTML = '<div class="text-center py-12"><div class="loading-spinner mx-auto mb-3"></div><p class="text-gray-500">Carregando álbum...</p></div>';
+}
 
-  const from = currentPage * PAGE_SIZE;
-  const to = from + PAGE_SIZE - 1;
+const from = currentPage * PAGE_SIZE;
+const to = from + PAGE_SIZE - 1;
 
-  const { data, error, count } = await supabaseClient
-    .from(TABLE_NAME)
-    .select('*', { count: 'exact' })
-    .order('data_upload', { ascending: false })
-    .range(from, to);
+const { data, error, count } = await supabaseClient
+.from(TABLE_NAME)
+.select('*', { count: 'exact' })
+.order('data_upload', { ascending: false })
+.range(from, to);
 
-  if (error) {
-    grid.innerHTML = '<div class="text-center py-12"><p class="text-red-500">Erro ao carregar fotos.</p></div>';
-    return;
-  }
+if (error) {
+grid.innerHTML = '<div class="text-center py-12"><p class="text-red-500">Erro ao carregar fotos.</p></div>';
+return;
+}
 
-  if (!data || data.length === 0) {
-    if (currentPage === 0) {
-      grid.innerHTML = '<div class="text-center py-12"><p class="text-gray-500">Nenhuma foto publicada ainda. Seja o primeiro a compartilhar!</p></div>';
-    }
-    hasMorePhotos = false;
-    loadMoreBtn?.classList.add('hidden');
-    return;
-  }
+if (!data || data.length === 0) {
+if (currentPage === 0) {
+grid.innerHTML = '<div class="text-center py-12"><p class="text-gray-500">Nenhuma foto publicada ainda. Seja o primeiro a compartilhar!</p></div>';
+}
+hasMorePhotos = false;
+loadMoreBtn?.classList.add('hidden');
+return;
+}
 
-  if (currentPage === 0) grid.innerHTML = '';
+if (currentPage === 0) grid.innerHTML = '';
 
-  data.forEach(photo => {
-    const card = criarPhotoCard(photo);
-    grid.appendChild(card);
-  });
+data.forEach(photo => {
+const card = criarPhotoCard(photo);
+grid.appendChild(card);
+});
 
-  currentPage++;
-  hasMorePhotos = data.length === PAGE_SIZE;
-  if (hasMorePhotos) {
-    loadMoreBtn?.classList.remove('hidden');
-  } else {
-    loadMoreBtn?.classList.add('hidden');
-  }
+currentPage++;
+hasMorePhotos = data.length === PAGE_SIZE;
+if (hasMorePhotos) {
+loadMoreBtn?.classList.remove('hidden');
+} else {
+loadMoreBtn?.classList.add('hidden');
+}
 }
 
 // ========== RENDERIZAR CARD DE FOTO ==========
 function criarPhotoCard(photo) {
-  const wrapper = document.createElement('div');
-  wrapper.className = 'photo-item';
+const wrapper = document.createElement('div');
+wrapper.className = 'photo-item';
 
-  const anoDisplay = photo.ano ? `<span class="text-xs text-gray-500">📅 ${photo.ano}</span>` : '';
-  const instituicaoDisplay = photo.instituicao ? `<span class="text-xs text-gray-500">🏥 ${escapeHtml(photo.instituicao)}</span>` : '';
-  const localizacaoDisplay = photo.localizacao ? `<span class="text-xs text-gray-500">📍 ${escapeHtml(photo.localizacao)}</span>` : '';
+const anoDisplay = photo.ano ? `<span class="text-xs text-gray-500">📅 ${photo.ano}</span>` : '';
+const instituicaoDisplay = photo.instituicao ? `<span class="text-xs text-gray-500">🏥 ${escapeHtml(photo.instituicao)}</span>` : '';
+const localizacaoDisplay = photo.localizacao ? `<span class="text-xs text-gray-500">📍 ${escapeHtml(photo.localizacao)}</span>` : '';
 
-  wrapper.innerHTML = `
-    <div class="photo-card bg-white rounded-2xl shadow-lg overflow-hidden mb-8">
-      <div class="photo-content flex flex-col md:flex-row">
-        <div class="md:w-1/2">
-          <div class="image-container rounded-none md:rounded-l-2xl">
-            <img src="${escapeHtml(photo.imagem_url)}" alt="${escapeHtml(photo.titulo)}" loading="lazy" onerror="this.parentElement.innerHTML='<div class=\\'flex items-center justify-center h-full bg-gray-200 text-gray-400\\'>🖼️ Imagem indisponível</div>'">
-          </div>
-        </div>
-        <div class="md:w-1/2 p-6 flex flex-col justify-between">
-          <div>
-            <h3 class="text-xl font-bold text-[#1A3E74] mb-2">${escapeHtml(photo.titulo)}</h3>
-            <div class="text-editor-content text-gray-700 text-sm leading-relaxed mb-4">${photo.descricao || ''}</div>
-          </div>
-          <div class="flex flex-wrap gap-3 text-xs text-gray-500 border-t pt-3">
-            ${anoDisplay}
-            ${instituicaoDisplay}
-            ${localizacaoDisplay}
-          </div>
-        </div>
-      </div>
-    </div>
-  `;
-  return wrapper;
+wrapper.innerHTML = `
+<div class="photo-card bg-white rounded-2xl shadow-lg overflow-hidden mb-8">
+<div class="photo-content flex flex-col md:flex-row">
+<div class="md:w-1/2">
+<div class="image-container rounded-none md:rounded-l-2xl">
+<img src="${escapeHtml(photo.imagem_url)}" alt="${escapeHtml(photo.titulo)}" loading="lazy" onerror="this.parentElement.innerHTML='<div class=\\'flex items-center justify-center h-full bg-gray-200 text-gray-400\\'>🖼️ Imagem indisponível</div>'">
+</div>
+</div>
+<div class="md:w-1/2 p-6 flex flex-col justify-between">
+<div>
+<h3 class="text-xl font-bold text-[#1A3E74] mb-2">${escapeHtml(photo.titulo)}</h3>
+<div class="text-editor-content text-gray-700 text-sm leading-relaxed mb-4">${photo.descricao || ''}</div>
+</div>
+<div class="flex flex-wrap gap-3 text-xs text-gray-500 border-t pt-3">
+${anoDisplay}
+${instituicaoDisplay}
+${localizacaoDisplay}
+</div>
+</div>
+</div>
+</div>
+`;
+return wrapper;
 }
 
 // ========== EDITOR DE TEXTO RICO ==========
 window.formatText = function(command, value = null) {
-  document.execCommand(command, false, value);
-  document.getElementById('descricao-editor')?.focus();
+document.execCommand(command, false, value);
+document.getElementById('descricao-editor')?.focus();
 };
 
 // ========== UTILITÁRIOS ==========
 function escapeHtml(str) {
-  if (!str) return '';
-  return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
+if (!str) return '';
+return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
 }
 
 function showToast(message, type = 'info') {
-  const existing = document.querySelector('.toast');
-  if (existing) existing.remove();
+const existing = document.querySelector('.toast');
+if (existing) existing.remove();
 
-  const colors = { success: 'bg-green-600', error: 'bg-red-600', info: 'bg-[#1A3E74]' };
-  const toast = document.createElement('div');
-  toast.className = `toast ${colors[type] || colors.info} text-white px-6 py-3 rounded-xl shadow-lg text-sm font-medium`;
-  toast.textContent = message;
-  document.body.appendChild(toast);
-  setTimeout(() => toast.remove(), 4000);
+const colors = { success: 'bg-green-600', error: 'bg-red-600', info: 'bg-[#1A3E74]' };
+const toast = document.createElement('div');
+toast.className = `toast ${colors[type] || colors.info} text-white px-6 py-3 rounded-xl shadow-lg text-sm font-medium`;
+toast.textContent = message;
+document.body.appendChild(toast);
+setTimeout(() => toast.remove(), 4000);
 }
 </script>
 
