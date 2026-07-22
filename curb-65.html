@@ -1,7 +1,7 @@
 ﻿<!doctype html>
 <html lang="pt-BR">
 <head>
-
+    
 
 <!-- 1. Charset e Viewport -->
 <meta charset="utf-8"/>
@@ -173,101 +173,196 @@
 <link href="manifest.json" rel="manifest"/>
 
 <style>
-*,
-*::before,
-*::after {
-box-sizing: border-box;
+:root {
+  --navy: #1a3e74;
+  --navy-light: #1e4d8c;
+  --navy-dark: #163269;
+  --blue-100: #bfdbfe;
+  --blue-50: #eff6ff;
+  --slate-800: #1e293b;
+  --slate-600: #475569;
+  --slate-500: #64748b;
+  --slate-400: #94a3b8;
+  --slate-200: #e2e8f0;
+  --slate-100: #f1f5f9;
+  --slate-50: #f8fafc;
+  --green: #16a34a;
+  --red: #e11d48;
+  --amber: #d97706;
 }
 
-.curb-criterion-section {
-background-color: #fff;
-border: 1px solid #d1d5db;
-border-radius: 12px;
-padding: 1.5rem;
-margin-bottom: 1.5rem;
-box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-transition: box-shadow 0.3s ease;
-display: flex;
-flex-direction: column;
-gap: 0.75rem;
+*, *::before, *::after {
+  box-sizing: border-box;
 }
-.curb-criterion-section:hover {
-box-shadow: 0 10px 15px rgba(0, 0, 0, 0.15);
+
+/* BARRA FLUTUANTE DE PROGRESSO GLOBAL */
+#progress-container {
+  position: fixed; top: 0; left: 0; width: 100%; height: 6px;
+  background-color: var(--slate-200); z-index: 9999;
 }
-.curb-criterion-title {
-font-size: 1.25rem;
-font-weight: 700;
-color: #1a3e74;
-margin-bottom: 0.75rem;
-text-align: left;
+#progress-bar-global {
+  height: 100%; background: linear-gradient(90deg, #3b82f6, #1a3e74);
+  width: 0%; transition: width 0.4s ease;
 }
-.curb-criterion-select {
-width: 100%;
-padding: 0.75rem;
-border: 1px solid #ccc;
-border-radius: 0.375rem;
-font-size: 1rem;
-color: #333;
-background-color: #fff;
-appearance: none;
-background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='currentColor'%3E%3Cpath fill-rule='evenodd' d='M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z' clip-rule='evenodd'/%3E%3C/svg%3E");
-background-repeat: no-repeat;
-background-position: right 0.75rem center;
-background-size: 1.5em 1.5em;
+
+/* CARDS */
+.curb-card {
+  background: white; border-radius: 16px; border: 1px solid var(--slate-200);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
 }
-.curb-criterion-select:focus {
-outline: none;
-border-color: #1fa4e5;
-box-shadow: 0 0 0 3px rgba(31, 164, 229, 0.2);
+
+.curb-card-navy {
+  background: linear-gradient(135deg, var(--navy) 0%, var(--navy-light) 60%, var(--navy-dark) 100%);
+  border-radius: 16px; box-shadow: 0 12px 32px rgba(26, 62, 116, 0.4);
+  overflow: hidden; position: relative;
 }
-.curb-criterion-explain {
-font-size: 0.9rem;
-color: #6b7280;
-margin-top: 0.25rem;
+.curb-card-navy::before {
+  content: ""; position: absolute; top: 0; right: 0; width: 180px; height: 180px;
+  background: white; opacity: 0.05; border-radius: 50%; filter: blur(40px); transform: translate(30%, -30%);
 }
-.incomplete {
-border: 2px solid #ef4444 !important;
-box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.2);
+.curb-card-navy::after {
+  content: ""; position: absolute; bottom: 0; left: 0; width: 140px; height: 140px;
+  background: #4a90e2; opacity: 0.2; border-radius: 50%; filter: blur(30px); transform: translate(-20%, 30%);
 }
-.resultado {
-background-color: #e0f2fe;
-color: #1a3e74;
-border: 1px solid #bfdbfe;
-border-radius: 1rem;
-box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-padding: 1rem;
-margin-top: 1.5rem;
-display: none;
+
+/* ITENS INDIVIDUAIS (GRID) */
+.item-card {
+  background: white; border-radius: 12px; border: 2px solid var(--slate-200);
+  padding: 18px; box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+  transition: border-color 0.2s, box-shadow 0.2s;
+  display: flex; flex-direction: column; justify-content: space-between;
 }
-.resultado p {
-margin: 0;
-line-height: 1.5;
+.item-card.error {
+  border-color: var(--red); box-shadow: 0 0 0 4px rgba(225, 29, 72, 0.1);
 }
-.resultado strong {
-font-weight: 700;
+.item-card:focus-within, .item-card:hover {
+  border-color: var(--navy-light); box-shadow: 0 8px 24px rgba(26, 62, 116, 0.15);
 }
-.resultado.bg-red-100 {
-background-color: #fee2e2;
-color: #dc2626;
-border-color: #fca5a5;
+
+.item-badge {
+  font-size: 11px; font-weight: 800; padding: 3px 10px; border-radius: 20px;
+  background: var(--blue-50); color: var(--navy); border: 1px solid var(--blue-100); white-space: nowrap;
 }
-@media (min-width: 640px) {
-.curb-criterion-section {
-flex-direction: row;
-align-items: center;
-justify-content: space-between;
-gap: 1rem;
+
+.item-select {
+  width: 100%; padding: 12px 14px; border-radius: 8px; border: 2px solid var(--slate-200);
+  color: var(--slate-800); background: white; font-size: 13px; font-weight: 600;
+  outline: none; transition: border-color 0.2s, box-shadow 0.2s; appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2364748B' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 12px center;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.02); margin-top: auto;
 }
-.curb-criterion-title {
-flex-basis: 55%;
-margin-bottom: 0;
+.item-select:focus { border-color: var(--navy); box-shadow: 0 0 0 3px rgba(26, 62, 116, 0.2); }
+
+.input-strong {
+  width: 100%; padding: 10px 14px; border-radius: 8px; border: 2px solid var(--slate-200);
+  font-size: 13px; font-weight: 600; color: var(--slate-800); box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.02);
+  transition: border-color 0.2s, box-shadow 0.2s;
 }
-.curb-criterion-select {
-flex-basis: 40%;
+.input-strong:focus { outline: none; border-color: var(--navy); box-shadow: 0 0 0 3px rgba(26, 62, 116, 0.2); }
+
+.mini-bar-wrap {
+  height: 6px; background: var(--slate-200); border-radius: 4px; overflow: hidden;
+  margin-top: 12px; box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1);
 }
+.mini-bar-fill {
+  height: 100%; border-radius: 4px; transition: width 0.4s ease, background-color 0.4s ease;
+  background-color: var(--slate-300);
 }
+
+/* BOTÕES */
+.btn-primary {
+  background: linear-gradient(135deg, var(--navy) 0%, var(--navy-light) 100%);
+  color: white; border: none; padding: 14px 36px; border-radius: 12px;
+  font-size: 15px; font-weight: 800; cursor: pointer; text-transform: uppercase;
+  letter-spacing: 0.5px; box-shadow: 0 6px 18px rgba(26, 62, 116, 0.35);
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+.btn-primary:hover { transform: translateY(-2px); box-shadow: 0 10px 24px rgba(26, 62, 116, 0.4); }
+
+.btn-secondary {
+  background: white; color: var(--slate-600); border: 2px solid var(--slate-200);
+  padding: 14px 28px; border-radius: 12px; font-size: 14px; font-weight: 800;
+  text-transform: uppercase; cursor: pointer; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+  transition: background 0.15s, border-color 0.15s;
+}
+.btn-secondary:hover { background: var(--slate-50); border-color: var(--slate-300); }
+
+.btn-danger {
+  background: var(--red); color: white; border: none; padding: 14px 28px;
+  border-radius: 12px; font-size: 14px; font-weight: 800; cursor: pointer;
+  box-shadow: 0 6px 18px rgba(225, 29, 72, 0.35); transition: transform 0.15s;
+}
+.btn-danger:hover { transform: translateY(-2px); box-shadow: 0 10px 24px rgba(225, 29, 72, 0.45); }
+
+/* SEÇÃO DE DADOS */
+.dados-body { display: none; padding: 0 24px 20px; }
+.dados-body.open { display: block; animation: fadeIn 0.3s ease; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
+
+/* RESULTADO */
+.score-big {
+  font-size: 72px; font-weight: 900; line-height: 1; color: white;
+  font-variant-numeric: tabular-nums; text-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+.status-pill {
+  display: inline-block; padding: 6px 24px; border-radius: 30px; font-size: 14px;
+  font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em;
+  color: white; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* TABELA DE MEMÓRIA (DOMINIOS) */
+.dom-table { width: 100%; border-collapse: separate; border-spacing: 0; }
+.dom-table th {
+  background: var(--slate-50); color: var(--navy); font-size: 11px; font-weight: 800;
+  text-transform: uppercase; letter-spacing: 0.06em; padding: 12px 16px; text-align: left;
+  border-bottom: 2px solid var(--slate-200); border-top: 1px solid var(--slate-200);
+}
+.dom-table th:first-child { border-top-left-radius: 8px; border-left: 1px solid var(--slate-200); }
+.dom-table th:last-child { border-top-right-radius: 8px; border-right: 1px solid var(--slate-200); }
+.dom-table td {
+  padding: 12px 16px; border-bottom: 1px solid var(--slate-100);
+  font-size: 13px; font-weight: 500; color: var(--slate-800);
+}
+.dom-table td:first-child { border-left: 1px solid var(--slate-100); }
+.dom-table td:last-child { border-right: 1px solid var(--slate-100); }
+.dom-table tfoot td {
+  background: var(--blue-50); font-weight: 900; color: var(--navy); font-size: 15px;
+  border-top: 2px solid var(--navy); border-bottom: 1px solid var(--navy);
+}
+.dom-table tfoot td:first-child { border-bottom-left-radius: 8px; border-left: 1px solid var(--navy); }
+.dom-table tfoot td:last-child { border-bottom-right-radius: 8px; border-right: 1px solid var(--navy); }
+
+/* NANDA LIST */
+.nanda-item {
+  background: white; border: 2px solid var(--slate-100); border-radius: 10px;
+  padding: 12px; margin-bottom: 8px; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03); transition: border-color 0.2s;
+}
+.nanda-item:hover { border-color: var(--blue-200); }
+
+/* GRIDS */
+.grid-3col { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; }
+.grid-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+@media (max-width: 768px) {
+  .grid-2col, .grid-3col { grid-template-columns: 1fr; }
+  .score-big { font-size: 56px; }
+  .btn-primary, .btn-secondary, .btn-danger { width: 100%; text-align: center; }
+}
+
+#resultado-section { opacity: 0; transition: opacity 0.5s ease; display: none; }
+#resultado-section.visible { opacity: 1; display: block; }
+
+#msgValidacaoErro { display: none; animation: fadeIn 0.3s ease; }
+
+@media print { .no-print { display: none !important; } }
 </style>
-<link rel="preload" href="/img/icontopbar1-calculadoras-de-enfermagem.webp" as="image" type="image/webp" fetchpriority="high">
+<style id="otimizador-master-responsive">
+/* OTIMIZADOR_MASTER_V3 - RESPONSIVE SAFE */
+img, video { max-width: 100%; height: auto; }
+iframe { max-width: 100%; }
+.table-responsive { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+</style>
+    <link rel="preload" href="/img/icontopbar1-calculadoras-de-enfermagem.webp" as="image" type="image/webp" fetchpriority="high">
 <style id="anti-cls-placeholders">#global-header-container{display:block;width:100%;min-height:96px;background-color:transparent}@media(max-width:768px){#global-header-container{min-height:60px}}#language-selector-placeholder{display:block;width:100%;min-height:46px;background-color:transparent}#footer-placeholder{display:block;min-height:520px;background-color:transparent}@media(min-width:768px){#footer-placeholder{min-height:277px}}</style>
 <script src="/global-scripts.js" defer></script>
 <script src="/lang-selector.js" defer></script>
@@ -288,275 +383,854 @@ flex-basis: 40%;
 <a href="#backToTopBtn" class="block">Voltar ao Topo da Página [Alt + Shift + T]</a>
 </nav>
 
+<div id="progress-container"><div id="progress-bar-global"></div></div>
+
 <div id="global-header-container"></div>
 <div id="language-selector-placeholder"></div>
-<main id="main-content" class="flex-grow p-4 sm:p-8">
-<div class="main-content-wrapper max-w-4xl mx-auto px-4 py-8">
+<main id="main-content" class="container mx-auto px-4 py-6 max-w-7xl">
+<div class="main-content-wrapper">
 <!-- Breadcrumb -->
-<nav class="breadcrumb" aria-label="breadcrumb">
-<ol>
-<li><a href="index.html">Início</a></li>
-<li><a href="#">Escalas</a></li>
-<li>Escore CURB-65</li>
-</ol>
+<nav class="flex text-sm mb-6 no-print" aria-label="Breadcrumb" style="color: #64748b">
+  <ol class="flex items-center gap-2">
+    <li>
+      <a href="/" style="color: #1a3e74; font-weight: 600" class="hover:underline">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512" class="mr-1 inline-block" fill="currentColor" width="1em" height="1em" aria-hidden="true"><path d="M575.8 255.5c0 18-15 32.1-32 32.1l-32 0 .7 160.2c0 2.7-.2 5.4-.5 8.1l0 16.2c0 22.1-17.9 40-40 40l-16 0c-1.1 0-2.2 0-3.3-.1c-1.4 .1-2.8 .1-4.2 .1L416 512l-24 0c-22.1 0-40-17.9-40-40l0-24 0-64c0-17.7-14.3-32-32-32l-64 0c-17.7 0-32 14.3-32 32l0 64 0 24c0 22.1-17.9 40-40 40l-24 0-31.9 0c-1.5 0-3-.1-4.5-.2c-1.2 .1-2.4 .2-3.6 .2l-16 0c-22.1 0-40-17.9-40-40l0-112c0-.9 0-1.9 .1-2.8l0-69.7-32 0c-18 0-32-14-32-32.1c0-9 3-17 10-24L266.4 8c7-7 15-8 22-8s15 2 21 7L564.8 231.5c8 7 12 15 11 24z"/></svg>
+        Início
+      </a>
+    </li>
+    <li style="color: #94a3b8">›</li>
+    <li>
+      <a href="index.html" style="color: #1a3e74; font-weight: 600" class="hover:underline">
+        Escalas
+      </a>
+    </li>
+    <li style="color: #94a3b8">›</li>
+    <li style="color: #1e293b; font-weight: 600">Escore CURB-65</li>
+  </ol>
 </nav>
 
-<div class="flex flex-col items-center justify-center gap-4 mb-3 text-center">
-<h1 id="main-title" class="font-nunito font-extrabold text-dark-blue text-4xl lg:text-5xl">Escore CURB-65</h1>
-</div>
-<div class="title-bar w-full h-1 bg-dark-blue mx-auto mb-6"></div>
+<!-- HERO HEADER -->
+<section class="mb-6 curb-card-navy no-print">
+  <div class="flex flex-col md:flex-row items-center justify-between px-8 md:px-12 py-6 md:py-8" style="position: relative; z-index: 1">
+    <div class="w-full md:w-2/3 text-center md:text-left">
+      <p style="color: #93c5fd; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.15em; margin-bottom: 6px">Avaliação de Gravidade em Pneumonia</p>
+      <h1 style="color: white; font-size: clamp(22px, 4vw, 36px); font-weight: 900; line-height: 1.2; margin-bottom: 8px">Escore CURB-65</h1>
+      <p style="color: #bfdbfe; font-size: 15px; font-weight: 500">Avalia a gravidade da pneumonia adquirida na comunidade (PAC), orientando a decisão sobre o local ideal de tratamento.</p>
+    </div>
+    <div class="w-full md:w-1/3 flex justify-center mt-4 md:mt-0">
+      <div class="w-24 h-24 md:w-28 md:h-28 flex items-center justify-center bg-white/10 rounded-full backdrop-blur-sm border border-white/20 shadow-[0_10px_20px_rgba(0,0,0,0.3)]">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512" fill="currentColor" class="text-5xl md:text-6xl text-white" aria-hidden="true" width="1em" height="1em"><path d="M320 32c0-17.7-14.3-32-32-32s-32 14.3-32 32l0 141.9-32 19.2 0-116.7c0-24.5-19.9-44.4-44.4-44.4-12.5 0-24.4 5.3-32.8 14.5l-26.4 29C42.9 160.8 0 271.8 0 387l0 30.5c0 52.2 42.3 94.5 94.5 94.5 22 0 43.7-5.1 63.4-15l5-2.5c37.4-18.7 61-56.9 61-98.8l0-128 64-38.4 64 38.4 0 128c0 41.8 23.6 80.1 61 98.8l5 2.5c19.7 9.8 41.4 15 63.4 15 52.2 0 94.5-42.3 94.5-94.5l0-6.2c0-111.1-36.7-219-104.4-307L428.9 48.7c-8.1-10.6-20.7-16.7-34-16.7-23.7 0-42.9 19.2-42.9 42.9l0 118.2-32-19.2 0-141.9z"/></svg>
+      </div>
+    </div>
+  </div>
+</section>
 
-<h2 id="main-subtitle" class="font-inter font-semibold text-light-blue text-xl lg:text-2xl mb-3 text-center">Avaliação de Gravidade em Pneumonia Adquirida na Comunidade</h2>
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+  <!-- COLUNA PRINCIPAL -->
+  <div class="lg:col-span-8 space-y-6">
 
-<p id="intro-paragraph" class="font-inter font-normal text-black-custom text-base lg:text-lg mb-6 text-left">O Escore CURB-65 é uma ferramenta para avaliar a gravidade da pneumonia. Para cada critério presente, selecione "Sim" para adicionar um ponto à pontuação total.</p>
+    <!-- DADOS DO PACIENTE -->
+    <div class="curb-card mb-2 no-print" style="overflow: hidden">
+      <button id="btnToggleDados" style="width: 100%; display: flex; align-items: center; justify-content: space-between; padding: 16px 24px; background: white; border: none; cursor: pointer; transition: background 0.15s" onmouseover="this.style.background='#EFF6FF'" onmouseout="this.style.background=document.getElementById('dadosBody').classList.contains('open')?'#EFF6FF':'white'">
+        <div style="display: flex; align-items: center; gap: 12px">
+          <div style="width: 38px; height: 38px; border-radius: 8px; background: var(--navy); display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: 0 4px 8px rgba(26, 62, 116, 0.3)">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" fill="currentColor" style="color: white; font-size: 16px" width="1em" height="1em"><path d="M224 256A128 128 0 1 0 224 0a128 128 0 1 0 0 256zm-45.7 48C79.8 304 0 383.8 0 482.3C0 498.7 13.3 512 29.7 512H418.3c16.4 0 29.7-13.3 29.7-29.7C448 383.8 368.2 304 269.7 304H178.3z"/></svg>
+          </div>
+          <div style="text-align: left">
+            <p style="font-size: 15px; font-weight: 800; color: var(--navy); margin: 0">Dados do Paciente</p>
+            <p id="dadosSubtitle" style="font-size: 12px; font-weight: 500; color: #64748b; margin: 0">Preencher para o Prontuário/Laudo PDF</p>
+          </div>
+        </div>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" id="dadosChevron" style="color: var(--navy); transition: transform 0.2s" fill="currentColor" width="1em" height="1em"><path d="M233.4 406.6c12.5 12.5 32.8 12.5 45.3 0l192-192c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L256 338.7 86.6 169.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3l192 192z"/></svg>
+      </button>
+      <div id="dadosBody" class="dados-body">
+        <div class="grid-2col" style="margin-top: 8px">
+          <div>
+            <label style="display: block; font-size: 12px; font-weight: 700; color: var(--slate-600); margin-bottom: 6px">Nome do Paciente</label>
+            <input type="text" id="pacNome" placeholder="Nome completo" class="input-strong" />
+          </div>
+          <div>
+            <label style="display: block; font-size: 12px; font-weight: 700; color: var(--slate-600); margin-bottom: 6px">Idade</label>
+            <input type="number" id="pacIdade" placeholder="Anos" class="input-strong" />
+          </div>
+          <div>
+            <label style="display: block; font-size: 12px; font-weight: 700; color: var(--slate-600); margin-bottom: 6px">Setor / Leito</label>
+            <input type="text" id="pacSetor" placeholder="Ex: Emergência / PS" class="input-strong" />
+          </div>
+          <div>
+            <label style="display: block; font-size: 12px; font-weight: 700; color: var(--slate-600); margin-bottom: 6px">Data da Avaliação</label>
+            <input type="date" id="pacData" class="input-strong" />
+          </div>
+        </div>
+      </div>
+    </div>
 
-<div class="space-y-2 mb-8">
-<p class="font-inter text-black-custom text-base lg:text-lg text-center sm:text-left">
-<strong>Ano de Criação:</strong>
-2000
-</p>
-<p class="font-inter text-black-custom text-base lg:text-lg text-center sm:text-left">
-<strong>Autores:</strong>
-Pesquisadores da British Thoracic Society (BTS)
-</p>
-<p class="font-inter text-black-custom text-base lg:text-lg text-center sm:text-left">
-<strong>Área empregada:</strong>
-Atenção primária, UPA e internação.
-</p>
-<p class="font-inter text-black-custom text-base lg:text-lg text-center sm:text-left">
-<strong>Critérios:</strong>
-Confusão, Ureia, Respiração, Pressão, Idade.
-</p>
-</div>
+    <!-- FORMULÁRIO -->
+    <div class="p-6 bg-white rounded-2xl shadow-xl border border-gray-200 no-print">
+      <div class="mb-6 pb-4 border-b-2 border-slate-100 flex justify-between items-center flex-wrap gap-4">
+        <h2 class="text-lg md:text-xl font-black text-navy m-0">Critérios CURB-65</h2>
+        <div class="bg-blue-50 px-3 py-1.5 rounded-lg border border-blue-200 text-xs font-bold text-navy">
+          Preenchido:
+          <span id="contadorPreenchidos" class="text-blue-600">0</span>
+          /5
+        </div>
+      </div>
 
-<div id="conteudo">
-<!-- Critérios preenchidos via JS -->
-</div>
+      <div id="msgValidacaoErro" class="mb-6 p-4 bg-red-50 border-l-4 border-red-500 rounded-r-lg text-sm text-red-800 font-bold" style="display: none;">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="mr-2 inline-block" fill="currentColor" width="1em" height="1em"><path d="M256 32c14.2 0 27.3 7.5 34.5 19.8l216 368c7.3 12.4 7.3 27.7 .2 40.1S486.3 480 472 480L40 480c-14.3 0-27.6-7.7-34.7-20.1s-7-27.8 .2-40.1l216-368C228.7 39.5 241.8 32 256 32zm0 128c-13.3 0-24 10.7-24 24l0 112c0 13.3 10.7 24 24 24s24-10.7 24-24l0-112c0-13.3-10.7-24-24-24zm32 224a32 32 0 1 0 -64 0 32 32 0 1 0 64 0z"/></svg> 
+        Por favor, selecione uma opção para cada um dos 5 critérios antes de calcular.
+      </div>
 
-<div id="resultado" class="resultado" aria-live="polite" style="display: none"></div>
+      <!-- Formulário CURB-65 -->
+      <form id="curbForm" class="grid-2col" onsubmit="return false;">
+        <!-- Os cards dos 5 domínios serão injetados aqui pelo JavaScript -->
+      </form>
 
-<div class="flex flex-wrap justify-start gap-4 mt-6">
-<button id="btnCalcular" class="btn-primary" aria-label="Calcular escore">Calcular Escore</button>
-<button id="btnLimpar" class="btn-primary" aria-label="Limpar campos">Limpar</button>
-<button id="btnGerarPDF" class="btn-secondary" aria-label="Gerar PDF">Gerar PDF</button>
-<button id="btnNandaNicNoc" class="btn-primary" aria-label="Pesquisar NANDA, NIC, NOC">NANDA, NIC, NOC</button>
-</div>
+      <!-- Botões -->
+      <div class="mt-8 pt-6 border-t-2 border-slate-100 flex flex-col sm:flex-row gap-4 justify-center">
+        <button type="button" id="btnCalcular" class="btn-primary flex-1 max-w-sm flex justify-center items-center gap-2">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512" fill="currentColor" width="1em" height="1em"><path d="M64 0C28.7 0 0 28.7 0 64L0 448c0 35.3 28.7 64 64 64l256 0c35.3 0 64-28.7 64-64l0-384c0-35.3-28.7-64-64-64L64 0zM96 64l192 0c17.7 0 32 14.3 32 32l0 32c0 17.7-14.3 32-32 32L96 160c-17.7 0-32-14.3-32-32l0-32c0-17.7 14.3-32 32-32zm32 160a32 32 0 1 1 -64 0 32 32 0 1 1 64 0zM96 352a32 32 0 1 1 0-64 32 32 0 1 1 0 64zM64 416c0-17.7 14.3-32 32-32l96 0c17.7 0 32 14.3 32 32s-14.3 32-32 32l-96 0c-17.7 0-32-14.3-32-32zM192 256a32 32 0 1 1 0-64 32 32 0 1 1 0 64zm32 64a32 32 0 1 1 -64 0 32 32 0 1 1 64 0zm64-64a32 32 0 1 1 0-64 32 32 0 1 1 0 64zm32 64a32 32 0 1 1 -64 0 32 32 0 1 1 64 0zM288 448a32 32 0 1 1 0-64 32 32 0 1 1 0 64z"/></svg> 
+          Calcular Escore
+        </button>
+        <button type="button" id="btnLimpar" class="btn-secondary flex items-center justify-center gap-2">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512" fill="currentColor" width="1em" height="1em"><path d="M290.7 57.4L57.4 290.7c-25 25-25 65.5 0 90.5l80 80c12 12 28.3 18.7 45.3 18.7L288 480l9.4 0L512 480c17.7 0 32-14.3 32-32s-14.3-32-32-32l-124.1 0L518.6 285.3c25-25 25-65.5 0-90.5L381.3 57.4c-25-25-65.5-25-90.5 0zM297.4 416l-9.4 0-105.4 0-80-80L227.3 211.3 364.7 348.7 297.4 416z"/></svg> 
+          Limpar
+        </button>
+      </div>
+    </div>
 
-<div id="reference-section" class="ref font-inter text-gray-custom text-left mt-8 border-t pt-4">
-<strong>Referências:</strong>
-<br />
-<ul class="list-disc list-inside mt-2">
-<li>
-LIM, W. S. et al. Defining community acquired pneumonia severity on presentation to hospital.
-<em>Thorax</em>
-, v. 58, n. 5, p. 377-382, 2003.
-</li>
-<li>
-BRASIL. Ministério da Saúde.
-<strong>Pneumonia Adquirida na Comunidade</strong>
-. 2018. Disponível em:
-<a href="https://portalarquivos2.saude.gov.br/images/pdf/2018/junho/08/Nota-Tecnica-n--01-Pneumonia-Adquirida-na-Comunidade.pdf" target="_blank" rel="noopener noreferrer" class="text-light-blue hover:underline">Nota Técnica - Ministério da Saúde</a>
-.
-</li>
-</ul>
-</div>
+    <!-- RESULTADO (Oculto Inicialmente) -->
+    <div id="resultado-section">
+      <!-- Hero Card de Resultado -->
+      <div class="curb-card-navy p-8 md:p-10 mb-6 text-center">
+        <div style="position: relative; z-index: 1">
+          <p class="text-blue-200 text-xs font-bold uppercase tracking-widest mb-3">Pontuação CURB-65</p>
+
+          <div class="flex items-end justify-center gap-3 mb-5">
+            <span id="scoreValor" class="score-big">0</span>
+            <span class="text-2xl font-bold text-blue-200 mb-3">/ 5 pts</span>
+          </div>
+
+          <div id="statusPill" class="status-pill bg-amber-600 mb-6">Nível de Risco</div>
+
+          <div class="bg-white/10 border border-white/20 rounded-xl p-5 text-left max-w-2xl mx-auto backdrop-blur-sm">
+            <p id="resultadoMensagem" class="text-white text-[15px] font-medium leading-relaxed m-0 text-center"></p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Grid: Memória da Avaliação & Diagnósticos NANDA -->
+      <div class="grid grid-cols-1 gap-6 mb-6">
+        <!-- Tabela de Detalhamento por Domínio -->
+        <div class="curb-card overflow-hidden">
+          <div class="p-4 md:p-5 border-b-2 border-slate-200 bg-slate-50 flex items-center gap-3">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="currentColor" class="text-navy text-lg" width="1em" height="1em"><path d="M152.1 38.2c9.9 8.9 10.7 24 1.8 33.9l-72 80c-4.4 4.9-10.6 7.8-17.2 7.9s-12.9-2.4-17.6-7L7 113C-2.3 103.6-2.3 88.4 7 79s24.6-9.4 33.9 0l22.1 22.1 55.1-61.2c8.9-9.9 24-10.7 33.9-1.8zm0 160c9.9 8.9 10.7 24 1.8 33.9l-72 80c-4.4 4.9-10.6 7.8-17.2 7.9s-12.9-2.4-17.6-7L7 273c-9.4-9.4-9.4-24.6 0-33.9s24.6-9.4 33.9 0l22.1 22.1 55.1-61.2c8.9-9.9 24-10.7 33.9-1.8zM224 96c0-17.7 14.3-32 32-32H480c17.7 0 32 14.3 32 32s-14.3 32-32 32H256c-17.7 0-32-14.3-32-32zm0 160c0-17.7 14.3-32 32-32H480c17.7 0 32 14.3 32 32s-14.3 32-32 32H256c-17.7 0-32-14.3-32-32zM160 416c0-17.7 14.3-32 32-32H480c17.7 0 32 14.3 32 32s-14.3 32-32 32H192c-17.7 0-32-14.3-32-32zM48 368a48 48 0 1 1 0 96 48 48 0 1 1 0-96z"/></svg>
+            <h4 class="text-sm md:text-base font-bold text-navy m-0 uppercase tracking-wide">Memória da Avaliação</h4>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="dom-table">
+              <thead>
+                <tr>
+                  <th style="width: 50%">Critério (Sinal Clínico)</th>
+                  <th class="text-center" style="width: 10%">Pontos</th>
+                  <th class="text-center" style="width: 10%">Máx</th>
+                  <th style="width: 30%">Presença do Risco</th>
+                </tr>
+              </thead>
+              <tbody id="tabelaDominios">
+                <!-- Linhas Injetadas via JS -->
+              </tbody>
+              <tfoot>
+                <tr>
+                  <td>Escore Total</td>
+                  <td id="totalObtidoTd" class="text-center text-lg">—</td>
+                  <td class="text-center text-slate-500">5</td>
+                  <td id="corteTd" class="text-right">
+                    <span class="text-[11px] bg-white border border-navy text-navy px-3 py-1 rounded-full shadow-sm">Maior Risco: 5</span>
+                  </td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+        </div>
+
+        <!-- Diagnósticos NANDA Sugeridos -->
+        <div class="curb-card overflow-hidden">
+          <div class="p-4 md:p-5 border-b-2 border-blue-200 bg-blue-50/80 flex items-center gap-3">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" fill="currentColor" class="text-navy text-lg" width="1em" height="1em"><path d="M0 96C0 43 43 0 96 0L384 0l32 0c17.7 0 32 14.3 32 32l0 320c0 17.7-14.3 32-32 32l0 64c17.7 0 32 14.3 32 32s-14.3 32-32 32l-32 0L96 512c-53 0-96-43-96-96L0 96zM64 416c0 17.7 14.3 32 32 32l256 0 0-64L96 384c-17.7 0-32 14.3-32 32zM208 112l0 48-48 0c-8.8 0-16 7.2-16 16l0 32c0 8.8 7.2 16 16 16l48 0 0 48c0 8.8 7.2 16 16 16l32 0c8.8 0 16-7.2 16-16l0-48 48 0c8.8 0 16-7.2 16-16l0-32c0-8.8-7.2-16-16-16l-48 0 0-48c0-8.8-7.2-16-16-16l-32 0c-8.8 0-16 7.2-16 16z"/></svg>
+            <div>
+              <h4 class="text-sm md:text-base font-bold text-navy m-0 uppercase tracking-wide">Diagnósticos NANDA Sugeridos</h4>
+              <p class="text-[11px] font-medium text-slate-500 m-0 mt-0.5">Baseado nos sinais clínicos avaliados para pneumonia/infecção.</p>
+            </div>
+          </div>
+          <div class="p-5 bg-white">
+            <ul id="lista-nanda" class="space-y-0">
+              <li class="text-sm font-medium text-slate-500 text-center py-6">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="fa-spin mr-2 inline-block" fill="currentColor" width="1em" height="1em"><path d="M304 48a48 48 0 1 0 -96 0 48 48 0 1 0 96 0zm0 416a48 48 0 1 0 -96 0 48 48 0 1 0 96 0zM48 304a48 48 0 1 0 0-96 48 48 0 1 0 0 96zm464-48a48 48 0 1 0 -96 0 48 48 0 1 0 96 0zM142.9 437A48 48 0 1 0 75 369.1 48 48 0 1 0 142.9 437zm0-294.2A48 48 0 1 0 75 75a48 48 0 1 0 67.9 67.9zM369.1 437A48 48 0 1 0 437 369.1 48 48 0 1 0 369.1 437z"/></svg>
+                Processando raciocínio clínico...
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- Botões Ação Laudo (PDF / Print) -->
+      <div class="flex flex-col sm:flex-row gap-4 justify-center no-print mt-8 pt-6 border-t border-slate-200">
+        <button id="btnGerarPDF" class="btn-danger flex items-center justify-center gap-2">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="currentColor" width="1em" height="1em"><path d="M0 64C0 28.7 28.7 0 64 0L224 0l0 128c0 17.7 14.3 32 32 32l128 0 0 144-208 0c-35.3 0-64 28.7-64 64l0 144-48 0c-35.3 0-64-28.7-64-64L0 64zm384 64l-128 0L256 0 384 128zM176 352l32 0c30.9 0 56 25.1 56 56s-25.1 56-56 56l-16 0 0 32c0 8.8-7.2 16-16 16s-16-7.2-16-16l0-48 0-80c0-8.8 7.2-16 16-16zm32 80c13.3 0 24-10.7 24-24s-10.7-24-24-24l-16 0 0 48 16 0zm96-80l32 0c26.5 0 48 21.5 48 48l0 64c0 26.5-21.5 48-48 48l-32 0c-8.8 0-16-7.2-16-16l0-128c0-8.8 7.2-16 16-16zm32 128c8.8 0 16-7.2 16-16l0-64c0-8.8-7.2-16-16-16l-16 0 0 96 16 0zm80-112c0-8.8 7.2-16 16-16l48 0c8.8 0 16 7.2 16 16s-7.2 16-16 16l-32 0 0 32 32 0c8.8 0 16 7.2 16 16s-7.2 16-16 16l-32 0 0 48c0 8.8-7.2 16-16 16s-16-7.2-16-16l0-64 0-64z"/></svg> 
+          Salvar PDF Prontuário
+        </button>
+        <button id="btnImprimir" class="btn-secondary flex items-center justify-center gap-2">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="currentColor" width="1em" height="1em"><path d="M128 0C92.7 0 64 28.7 64 64l0 96 64 0 0-96 226.7 0L384 93.3l0 66.7 64 0 0-66.7c0-17-6.7-33.3-18.7-45.3L400 18.7C388 6.7 371.7 0 354.7 0L128 0zM384 352l0 32 0 64-256 0 0-64 0-16 0-16 256 0zm64 32l32 0c17.7 0 32-14.3 32-32l0-96c0-35.3-28.7-64-64-64L64 192c-35.3 0-64 28.7-64 64l0 96c0 17.7 14.3 32 32 32l32 0 0 64c0 35.3 28.7 64 64 64l256 0c35.3 0 64-28.7 64-64l0-64zM432 248a24 24 0 1 1 0 48 24 24 0 1 1 0-48z"/></svg> 
+          Imprimir Laudo
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- COLUNA LATERAL (Direita) -->
+  <aside class="lg:col-span-4 space-y-6 no-print">
+
+    <!-- Dúvidas Frequentes -->
+    <div class="bg-[#F8FBFF] rounded-xl p-6 border border-[#E2E8F0]">
+      <h4 class="font-bold text-[#1A3E74] mb-2 text-sm uppercase">Dúvidas Frequentes</h4>
+      <p class="text-xs text-gray-700 mb-4">Acompanhe mais informações de enfermagem no nosso Fórum de enfermagem.</p>
+      <a href="https://www.calculadorasdeenfermagem.com.br/forum-enfermagem.html" class="text-xs font-bold text-[#1A3E74] hover:text-[#1A3E74] uppercase flex items-center gap-1">
+        TIRE SUAS DÚVIDAS 
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" fill="currentColor" width="1em" height="1em" style="font-size: 10px"><path d="M438.6 278.6c12.5-12.5 12.5-32.8 0-45.3l-160-160c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L338.8 224 32 224c-17.7 0-32 14.3-32 32s14.3 32 32 32l306.7 0L233.4 393.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0l160-160z"/></svg>
+      </a>
+    </div>
+
+    <!-- Veja Também -->
+    <div class="curb-card p-6 bg-white/80 backdrop-blur-xl lg:sticky lg:top-6">
+      <h3 class="text-[15px] font-black text-navy mb-5 border-b-2 border-slate-100 pb-3 flex items-center gap-2">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512" fill="currentColor" width="1em" height="1em" class="text-blue-500"><path d="M579.8 267.7c56.5-56.5 56.5-148 0-204.5c-50-50-128.8-56.5-186.3-15.4l-1.6 1.1c-14.4 10.3-17.7 30.3-7.4 44.6s30.3 17.7 44.6 7.4l1.6-1.1c32.1-22.9 76-19.3 103.8 8.6c31.5 31.5 31.5 82.5 0 114L422.3 334.8c-31.5 31.5-82.5 31.5-114 0c-27.9-27.9-31.5-71.8-8.6-103.8l1.1-1.6c10.3-14.4 6.9-34.4-7.4-44.6s-34.4-6.9-44.6 7.4l-1.1 1.6C206.5 251.2 213 330 263 380c56.5 56.5 148 56.5 204.5 0L579.8 267.7zM60.2 244.3c-56.5 56.5-56.5 148 0 204.5c50 50 128.8 56.5 186.3 15.4l1.6-1.1c14.4-10.3 17.7-30.3 7.4-44.6s-30.3-17.7-44.6-7.4l-1.6 1.1c-32.1 22.9-76 19.3-103.8-8.6C74 372 74 321 105.5 289.5L217.7 177.2c31.5-31.5 82.5-31.5 114 0c27.9 27.9 31.5 71.8 8.6 103.9l-1.1 1.6c-10.3 14.4-6.9 34.4 7.4 44.6s34.4 6.9 44.6-7.4l1.1-1.6C433.5 260.8 427 182 377 132c-56.5-56.5-148-56.5-204.5 0L60.2 244.3z"/></svg>
+        Escalas Relacionadas
+      </h3>
+      <ul class="space-y-3">
+        <li>
+          <a href="qsofa.html" class="flex items-start gap-3 p-3 rounded-xl border border-slate-100 hover:bg-blue-50 hover:border-blue-200 transition-all group shadow-sm hover:shadow-md">
+            <div class="w-10 h-10 rounded-lg bg-slate-50 border border-slate-200 flex items-center justify-center flex-shrink-0 group-hover:bg-white group-hover:text-blue-600 transition-colors">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512" fill="currentColor" width="1em" height="1em" class="text-slate-400 group-hover:text-blue-600 text-lg"><path d="M320 0c17.7 0 32 14.3 32 32l0 132.1c0 16.4 8.4 31.7 22.2 40.5l9.8 6.2 0-45.5C384 127 415 96 453.3 96c21.7 0 42.8 10.2 55.8 28.8c15.4 22.1 44.3 65.4 71 116.9c26.5 50.9 52.4 112.5 59.6 170.3c.2 1.3 .2 2.6 .2 4l0 7c0 49.1-39.8 89-89 89c-7.3 0-14.5-.9-21.6-2.7l-72.7-18.2C414 480.5 384 442.1 384 398l0-73 90.5 57.6c7.5 4.7 17.3 2.5 22.1-4.9s2.5-17.3-4.9-22.1L384 287.1l0-.4-44.1-28.1c-7.3-4.6-13.9-10.1-19.9-16.1c-5.9 6-12.6 11.5-19.9 16.1L256 286.7 161.2 347l-13.5 8.6c0 0 0 0-.1 0c-7.4 4.8-9.6 14.6-4.8 22.1c4.7 7.5 14.6 9.7 22.1 4.9l91.1-58 0 73.4c0 44.1-30 82.5-72.7 93.1l-72.7 18.2c-7.1 1.8-14.3 2.7-21.6 2.7c-49.1 0-89-39.8-89-89l0-7c0-1.3 .1-2.7 .2-4c7.2-57.9 33.1-119.4 59.6-170.3c26.8-51.5 55.6-94.8 71-116.9c13-18.6 34-28.8 55.8-28.8C225 96 256 127 256 165.3l0 45.5 9.8-6.2c13.8-8.8 22.2-24.1 22.2-40.5L288 32c0-17.7 14.3-32 32-32z"/></svg>
+            </div>
+            <div>
+              <h4 class="text-[13px] font-bold text-slate-800 group-hover:text-navy m-0 leading-tight mb-1">Escala qSOFA</h4>
+              <p class="text-[11px] text-slate-500 m-0 leading-snug">Triagem rápida de sepse e risco de morte.</p>
+            </div>
+          </a>
+        </li>
+        <li>
+          <a href="news.html" class="flex items-start gap-3 p-3 rounded-xl border border-slate-100 hover:bg-blue-50 hover:border-blue-200 transition-all group shadow-sm hover:shadow-md">
+            <div class="w-10 h-10 rounded-lg bg-slate-50 border border-slate-200 flex items-center justify-center flex-shrink-0 group-hover:bg-white group-hover:text-blue-600 transition-colors">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="currentColor" width="1em" height="1em" class="text-slate-400 group-hover:text-blue-600 text-lg"><path d="M32 32c17.7 0 32 14.3 32 32l0 336c0 8.8 7.2 16 16 16l400 0c17.7 0 32 14.3 32 32s-14.3 32-32 32L80 480c-44.2 0-80-35.8-80-80L0 64C0 46.3 14.3 32 32 32zm96 96c0-17.7 14.3-32 32-32l32 0c17.7 0 32 14.3 32 32l0 224c0 17.7-14.3 32-32 32l-32 0c-17.7 0-32-14.3-32-32l0-224zm96-64c0-17.7 14.3-32 32-32l32 0c17.7 0 32 14.3 32 32l0 288c0 17.7-14.3 32-32 32l-32 0c-17.7 0-32-14.3-32-32l0-288zm96 128c0-17.7 14.3-32 32-32l32 0c17.7 0 32 14.3 32 32l0 160c0 17.7-14.3 32-32 32l-32 0c-17.7 0-32-14.3-32-32l0-160z"/></svg>
+            </div>
+            <div>
+              <h4 class="text-[13px] font-bold text-slate-800 group-hover:text-navy m-0 leading-tight mb-1">Escala de NEWS</h4>
+              <p class="text-[11px] text-slate-500 m-0 leading-snug">National Early Warning Score (Alerta Precoce).</p>
+            </div>
+          </a>
+        </li>
+      </ul>
+    </div>
+
+    <!-- Referência -->
+    <div class="bg-slate-50 rounded-xl p-5 border border-slate-200">
+      <h3 class="text-xs font-bold text-slate-700 uppercase tracking-wider mb-2 flex items-center gap-2">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" fill="currentColor" width="1em" height="1em" class="text-slate-400"><path d="M96 0C43 0 0 43 0 96L0 416c0 53 43 96 96 96l288 0 32 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l0-64c17.7 0 32-14.3 32-32l0-320c0-17.7-14.3-32-32-32L384 0 96 0zm0 384l256 0 0 64L96 448c-17.7 0-32-14.3-32-32s14.3-32 32-32zm32-240c0-8.8 7.2-16 16-16l192 0c8.8 0 16 7.2 16 16s-7.2 16-16 16l-192 0c-8.8 0-16-7.2-16-16zm16 48l192 0c8.8 0 16 7.2 16 16s-7.2 16-16 16l-192 0c-8.8 0-16-7.2-16-16s7.2-16 16-16z"/></svg> 
+        Referência Científica
+      </h3>
+      <p class="text-[11px] text-slate-500 leading-relaxed m-0 text-justify">
+        LIM, W. S. et al. Defining community acquired pneumonia severity on presentation to hospital. <a href="https://thorax.bmj.com/content/58/5/377" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:underline">Thorax</a>, v. 58, n. 5, p. 377-382, 2003.<br><br>
+        BRASIL. Ministério da Saúde. <a href="https://portalarquivos2.saude.gov.br/images/pdf/2018/junho/08/Nota-Tecnica-n--01-Pneumonia-Adquirida-na-Comunidade.pdf" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:underline">Pneumonia Adquirida na Comunidade.</a> 2018.
+      </p>
+    </div>
+  </aside>
 </div>
 </main>
-<!-- Lógica da Calculadora -->
-<script>
-document.addEventListener("DOMContentLoaded", function () {
-const resultadoDiv = document.getElementById("resultado");
-const btnCalcular = document.getElementById("btnCalcular");
-const btnLimpar = document.getElementById("btnLimpar");
-const btnGerarPDF = document.getElementById("btnGerarPDF");
-const btnNandaNicNoc = document.getElementById("btnNandaNicNoc");
-const conteudoDiv = document.getElementById("conteudo");
 
-const curbData = [
-{
-title: "Confusão Mental",
-nameAttr: "confusao",
-explain: "O paciente apresenta desorientação de tempo, pessoa ou lugar?",
-options: [
-{ description: "Sim", score: 1 },
-{ description: "Não", score: 0 },
-],
-},
-{
-title: "Ureia ≥ 50 mg/dL",
-nameAttr: "ureia",
-explain: "O nível de ureia no sangue do paciente é de 50 mg/dL ou mais?",
-options: [
-{ description: "Sim", score: 1 },
-{ description: "Não", score: 0 },
-],
-},
-{
-title: "Respiração ≥ 30/min",
-nameAttr: "respiracao",
-explain: "A frequência respiratória do paciente é de 30 respirações por minuto ou mais?",
-options: [
-{ description: "Sim", score: 1 },
-{ description: "Não", score: 0 },
-],
-},
-{
-title: "Pressão Arterial",
-nameAttr: "pressao_arterial",
-explain: "A pressão arterial sistólica é menor que 90 mmHg ou a diastólica é menor que 60 mmHg?",
-options: [
-{ description: "Sim", score: 1 },
-{ description: "Não", score: 0 },
-],
-},
-{
-title: "Idade ≥ 65 anos",
-nameAttr: "idade",
-explain: "O paciente tem 65 anos ou mais?",
-options: [
-{ description: "Sim", score: 1 },
-{ description: "Não", score: 0 },
-],
-},
+
+
+<script>
+(function () {
+"use strict";
+
+// --- ESTRUTURA DE DADOS DOS 5 CRITÉRIOS DE CURB-65 ---
+const ITENS_CURB = [
+  {
+    id: "confusao", label: "C - Confusão Mental", max: 1,
+    desc: "Desorientação de tempo, pessoa ou lugar.",
+    opts: [
+      { val: "", text: "Selecione..." },
+      { val: 0, text: "Não apresenta (0 pts)" },
+      { val: 1, text: "Apresenta confusão (1 pt)" }
+    ]
+  },
+  {
+    id: "ureia", label: "U - Ureia", max: 1,
+    desc: "Nível de ureia no sangue > 50 mg/dL (BUN > 19 mg/dL).",
+    opts: [
+      { val: "", text: "Selecione..." },
+      { val: 0, text: "Menor ou igual ao limite (0 pts)" },
+      { val: 1, text: "Ureia elevada (1 pt)" }
+    ]
+  },
+  {
+    id: "respiracao", label: "R - Frequência Respiratória", max: 1,
+    desc: "Frequência respiratória ≥ 30 incursões por minuto.",
+    opts: [
+      { val: "", text: "Selecione..." },
+      { val: 0, text: "< 30 irpm (0 pts)" },
+      { val: 1, text: "≥ 30 irpm (1 pt)" }
+    ]
+  },
+  {
+    id: "pressao", label: "B - Pressão Arterial (Blood Pressure)", max: 1,
+    desc: "PAS < 90 mmHg ou PAD ≤ 60 mmHg.",
+    opts: [
+      { val: "", text: "Selecione..." },
+      { val: 0, text: "PAS ≥ 90 e PAD > 60 (0 pts)" },
+      { val: 1, text: "Baixa pressão (1 pt)" }
+    ]
+  },
+  {
+    id: "idade", label: "65 - Idade", max: 1,
+    desc: "Paciente tem 65 anos ou mais.",
+    opts: [
+      { val: "", text: "Selecione..." },
+      { val: 0, text: "Menor que 65 anos (0 pts)" },
+      { val: 1, text: "≥ 65 anos (1 pt)" }
+    ]
+  }
 ];
 
-curbData.forEach((item) => {
-const sectionDiv = document.createElement("div");
-sectionDiv.className = "curb-criterion-section";
-sectionDiv.id = `section-${item.nameAttr}`;
+// --- Renderizando os cards dinâmicos ---
+function renderizarItens() {
+  const container = document.getElementById("curbForm");
+  container.innerHTML = "";
 
-const titleH3 = document.createElement("h3");
-titleH3.className = "curb-criterion-title";
-titleH3.innerHTML = item.title;
-sectionDiv.appendChild(titleH3);
+  ITENS_CURB.forEach((item) => {
+    let optsHtml = "";
+    item.opts.forEach((op) => {
+      optsHtml += `<option value="${op.val}" ${op.val === "" ? "disabled selected" : ""}>${op.text}</option>`;
+    });
 
-const explainP = document.createElement("p");
-explainP.className = "curb-criterion-explain";
-explainP.innerHTML = item.explain;
-sectionDiv.appendChild(explainP);
+    const div = document.createElement("div");
+    div.className = "item-card";
+    div.id = `card_${item.id}`;
+    div.innerHTML = `
+      <div class="flex items-start justify-between mb-2 gap-2">
+        <div>
+          <label for="${item.id}" class="text-[13px] font-bold text-slate-800 leading-snug">${item.label}</label>
+          <p class="text-[11px] text-slate-500 mt-1">${item.desc}</p>
+        </div>
+        <span id="badge_${item.id}" class="item-badge shrink-0">--/${item.max}</span>
+      </div>
+      <select id="${item.id}" class="item-select mt-2">${optsHtml}</select>
+      <div class="mini-bar-wrap">
+        <div id="bar_${item.id}" class="mini-bar-fill" style="width: 0%;"></div>
+      </div>
+    `;
+    container.appendChild(div);
 
-const selectElement = document.createElement("select");
-selectElement.id = item.nameAttr;
-selectElement.className = "curb-criterion-select mt-2";
-selectElement.ariaLabel = item.title; // Acessibilidade Fix
-
-const defaultOption = document.createElement("option");
-defaultOption.value = "";
-defaultOption.text = "Selecione...";
-selectElement.appendChild(defaultOption);
-
-item.options.forEach((option) => {
-const optionElement = document.createElement("option");
-optionElement.value = option.score;
-optionElement.text = `${option.description} (pontos: ${option.score})`;
-selectElement.appendChild(optionElement);
-});
-
-sectionDiv.appendChild(selectElement);
-conteudoDiv.appendChild(sectionDiv);
-});
-
-function calcularCurb() {
-const selects = document.querySelectorAll("#conteudo select");
-let allSelected = true;
-let total = 0;
-
-selects.forEach((select) => {
-if (select.value === "") {
-allSelected = false;
-select.classList.add("incomplete");
-} else {
-select.classList.remove("incomplete");
-total += Number(select.value);
-}
-});
-
-resultadoDiv.style.display = "block";
-if (!allSelected) {
-resultadoDiv.innerHTML = '⚠️ <strong class="font-bold">Por favor, selecione uma opção para todos os itens antes de calcular.</strong>';
-resultadoDiv.className = `resultado bg-red-100`;
-delete resultadoDiv.dataset.score;
-return;
+    document.getElementById(item.id).addEventListener("change", () => {
+      document.getElementById(`card_${item.id}`).classList.remove("error");
+      document.getElementById("msgValidacaoErro").style.display = "none";
+      atualizarCardIndividual(item.id, item.max);
+    });
+    // Evitar scroll acidental
+    document.getElementById(item.id).addEventListener("wheel", function(e) { e.preventDefault(); this.blur(); });
+  });
 }
 
-let recomendacao = "";
-if (total <= 1) {
-recomendacao = `A pontuação de ${total} indica um baixo risco de mortalidade. O tratamento domiciliar pode ser considerado.`;
-} else if (total === 2) {
-recomendacao = `A pontuação de ${total} indica um risco moderado de mortalidade. A internação em enfermaria é indicada.`;
-} else {
-recomendacao = `A pontuação de ${total} indica um alto risco de mortalidade. A internação hospitalar e UTI devem ser consideradas.`;
+// --- ATUALIZAR STATUS DE UM CARD ESPECÍFICO ---
+function atualizarCardIndividual(id, max) {
+  const select = document.getElementById(id);
+  const valStr = select.value;
+  if (valStr === "") return;
+  const val = parseInt(valStr);
+  const pct = 100; // Será 100% de qualquer forma por ser de 0 a 1
+
+  const badge = document.getElementById(`badge_${id}`);
+  const bar = document.getElementById(`bar_${id}`);
+
+  badge.textContent = `${val}/${max}`;
+  bar.style.width = `${pct}%`;
+
+  // Cores: 0 = Bom (Verde), 1 = Ruim (Vermelho)
+  if (val === 0) bar.style.backgroundColor = "#16a34a"; // Verde
+  else if (val === 1) bar.style.backgroundColor = "#e11d48"; // Vermelho
+
+  atualizarBarraGlobal();
 }
 
-resultadoDiv.innerHTML = `<p>Escore total: <strong class="font-bold">${total}</strong></p><p class="mt-4"><strong>Recomendação:</strong> ${recomendacao}</p>`;
-resultadoDiv.className = `resultado bg-blue-50`;
-resultadoDiv.dataset.score = total;
-resultadoDiv.dataset.scaleName = "Escore CURB-65";
+// --- BARRA FLUTUANTE GLOBAL E CONTADOR ---
+function atualizarBarraGlobal() {
+  let preenchidos = 0;
+  ITENS_CURB.forEach((i) => {
+    if (document.getElementById(i.id).value !== "") preenchidos++;
+  });
+
+  const pctGlobal = (preenchidos / 5) * 100;
+  document.getElementById("progress-bar-global").style.width = `${pctGlobal}%`;
+  document.getElementById("contadorPreenchidos").textContent = preenchidos;
 }
 
-function limparCampos() {
-const selects = document.querySelectorAll("#conteudo select");
-selects.forEach((select) => {
-select.selectedIndex = 0;
-select.classList.remove("incomplete");
+// --- LÓGICA DADOS DO PACIENTE (TOGGLE) ---
+document.getElementById("btnToggleDados").addEventListener("click", function () {
+  const body = document.getElementById("dadosBody");
+  const chevron = document.getElementById("dadosChevron");
+  const subtitle = document.getElementById("dadosSubtitle");
+
+  if (body.classList.contains("open")) {
+    body.classList.remove("open");
+    chevron.style.transform = "rotate(0deg)";
+    subtitle.textContent = "Preencher para o Prontuário/Laudo PDF";
+    this.style.background = "white";
+  } else {
+    body.classList.add("open");
+    chevron.style.transform = "rotate(180deg)";
+    subtitle.textContent = "Ocultar painel";
+    this.style.background = "#EFF6FF";
+  }
 });
-resultadoDiv.innerHTML = "";
-resultadoDiv.style.display = "none";
-delete resultadoDiv.dataset.score;
+document.getElementById("pacData").value = new Date().toISOString().split("T")[0];
+
+// --- Implementando lógica de cálculo principal... ---
+const resultadoSection = document.getElementById("resultado-section");
+
+function calcular() {
+  let incompleto = false;
+  let somaTotal = 0;
+  let dominiosValores = [];
+  let diagnosticosKeywords = ["infecção", "respiração"];
+  let primeiroErro = null;
+
+  ITENS_CURB.forEach((item) => {
+    const selectVal = document.getElementById(item.id).value;
+    if (selectVal === "") {
+      incompleto = true;
+      document.getElementById(`card_${item.id}`).classList.add("error");
+      if(!primeiroErro) primeiroErro = document.getElementById(`card_${item.id}`);
+      dominiosValores.push({ nome: item.label, obtido: 0, text: "Não preenchido" });
+    } else {
+      document.getElementById(`card_${item.id}`).classList.remove("error");
+      const val = parseInt(selectVal);
+      somaTotal += val;
+      const textoResp = val === 0 ? "Normal / Negativo" : "Presente (Anormal)";
+      dominiosValores.push({ nome: item.label, obtido: val, text: textoResp });
+
+      // Alimentando keywords NANDA baseado nas anormalidades
+      if (val === 1) {
+          if (item.id === "confusao") diagnosticosKeywords.push("confusão", "cognição");
+          if (item.id === "respiracao") diagnosticosKeywords.push("ventilação", "gases", "desobstrução");
+          if (item.id === "pressao") diagnosticosKeywords.push("débito", "perfusão", "choque");
+          if (item.id === "idade") diagnosticosKeywords.push("queda", "fragilidade");
+      }
+    }
+  });
+
+  if (incompleto) {
+    const msgErro = document.getElementById("msgValidacaoErro");
+    msgErro.style.display = "block";
+    if (primeiroErro) {
+      primeiroErro.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+    return;
+  }
+
+  document.getElementById("msgValidacaoErro").style.display = "none";
+
+  // Determinar Classificação CURB-65 (Range 0-5)
+  let classe = "", bgPill = "", recomendacao = "";
+  if (somaTotal <= 1) {
+    classe = "Baixo Risco (Mortalidade: ~1.5%)"; bgPill = "#16a34a"; // Verde
+    recomendacao = "Indica tratamento ambulatorial (em casa). O paciente tem baixo risco de mortalidade em 30 dias. Avalie as condições clínicas gerais e sociais antes da alta.";
+  } else if (somaTotal === 2) {
+    classe = "Risco Moderado (Mortalidade: ~9.2%)"; bgPill = "#eab308"; // Amarelo
+    recomendacao = "Atenção: O paciente apresenta risco intermediário. Sugere-se considerar tratamento hospitalar em enfermaria (internação curta ou observação).";
+  } else {
+    classe = "Alto Risco (Mortalidade: ~22% a 57%)"; bgPill = "#e11d48"; // Vermelho
+    recomendacao = "ALERTA CLÍNICO: Há indicação formal de internação hospitalar imediata. Se o escore for ≥ 4, considerar avaliação urgente para admissão em Unidade de Terapia Intensiva (UTI).";
+  }
+
+  // Exibir no Hero Card
+  document.getElementById("scoreValor").textContent = somaTotal;
+  const pill = document.getElementById("statusPill");
+  pill.textContent = classe;
+  pill.style.backgroundColor = bgPill;
+
+  document.getElementById("resultadoMensagem").innerHTML = `O escore obtido é de <strong>${somaTotal} pontos</strong>.<br><br><strong>Conduta:</strong> ${recomendacao}`;
+
+  // Gerar Tabela de Detalhamento
+  const tbody = document.getElementById("tabelaDominios");
+  tbody.innerHTML = "";
+  dominiosValores.forEach((dom) => {
+    let cor = dom.obtido === 0 ? "#16a34a" : "#e11d48"; // Verde (Normal) ou Vermelho (Anormal)
+
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td class="font-bold text-slate-700">${dom.nome}</td>
+      <td class="text-center font-black" style="color: ${cor}">${dom.obtido}</td>
+      <td class="text-center text-slate-400">1</td>
+      <td>
+        <span class="text-[12px] font-bold px-3 py-1 rounded-full" style="background-color: ${cor}15; color: ${cor}; border: 1px solid ${cor}30">${dom.text}</span>
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
+
+  // Mostrar Seção
+  resultadoSection.classList.add("visible");
+  setTimeout(() => {
+    resultadoSection.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, 100);
+
+  // Chamar NANDA
+  chamarNanda(diagnosticosKeywords);
 }
 
-btnCalcular?.addEventListener("click", calcularCurb);
-btnLimpar?.addEventListener("click", limparCampos);
+// --- Consultando Banco NANDA... ---
+async function chamarNanda(keywords) {
+  const lista = document.getElementById("lista-nanda");
+  lista.innerHTML = '<li class="text-sm text-slate-500 text-center py-4"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="fa-spin mr-2 inline-block" fill="currentColor" width="1em" height="1em"><path d="M304 48a48 48 0 1 0 -96 0 48 48 0 1 0 96 0zm0 416a48 48 0 1 0 -96 0 48 48 0 1 0 96 0zM48 304a48 48 0 1 0 0-96 48 48 0 1 0 0 96zm464-48a48 48 0 1 0 -96 0 48 48 0 1 0 96 0zM142.9 437A48 48 0 1 0 75 369.1 48 48 0 1 0 142.9 437zm0-294.2A48 48 0 1 0 75 75a48 48 0 1 0 67.9 67.9zM369.1 437A48 48 0 1 0 437 369.1 48 48 0 1 0 369.1 437z"/></svg> Processando raciocínio clínico...</li>';
 
-btnGerarPDF?.addEventListener("click", () => {
-if (!resultadoDiv.dataset.score) {
-alert('Por favor, clique em "Calcular Escore" primeiro para gerar o PDF.');
-return;
+  try {
+    const response = await fetch("/banco_nanda.json");
+    if (!response.ok) throw new Error("Erro fetch");
+    const banco = await response.json();
+
+    const pontuados = banco
+      .map((diag) => {
+        let matchScore = 0;
+        const texto = (diag.diagnostico + " " + diag.definicao).toLowerCase();
+        keywords.forEach((kw) => {
+          if (texto.includes(kw.toLowerCase())) matchScore++;
+        });
+        return { ...diag, matchScore };
+      })
+      .filter((d) => d.matchScore > 0);
+
+    pontuados.sort((a, b) => b.matchScore - a.matchScore);
+
+    const uniqueDiagnosticos = [];
+    const codigosVistos = new Set();
+    for (const d of pontuados) {
+      if (!codigosVistos.has(d.codigo)) {
+        uniqueDiagnosticos.push(d);
+        codigosVistos.add(d.codigo);
+      }
+      if (uniqueDiagnosticos.length >= 6) break;
+    }
+
+    if (uniqueDiagnosticos.length > 0) {
+      lista.innerHTML = "";
+      uniqueDiagnosticos.forEach((d) => {
+        lista.innerHTML += `
+          <li class="nanda-item flex items-start gap-3">
+            <span class="bg-blue-100 text-blue-800 text-[10px] font-black px-2 py-1 rounded shadow-sm mt-0.5">${d.codigo}</span>
+            <div>
+              <h5 class="text-[13px] font-bold text-slate-800 leading-tight mb-1">${d.diagnostico}</h5>
+              <p class="text-[11px] text-slate-500 leading-snug m-0">${d.definicao}</p>
+            </div>
+          </li>
+        `;
+      });
+    } else {
+      lista.innerHTML = '<li class="text-xs text-slate-500 text-center py-4">Nenhum diagnóstico associado às seleções atuais.</li>';
+    }
+  } catch (e) {
+    lista.innerHTML = '<li class="text-xs text-red-500 text-center py-4">Banco de dados NANDA temporariamente indisponível.</li>';
+  }
 }
-if (typeof gerarPDFGlobal === "function") {
-const selectedOptions = {};
-document.querySelectorAll("#conteudo select").forEach((select) => {
-const selected = select.options[select.selectedIndex];
-if (selected.value !== "") selectedOptions[select.id] = selected.text;
-});
 
-let contentToPrint = document.querySelector(".main-content-wrapper").cloneNode(true);
-let contentContainer = contentToPrint.querySelector("#conteudo");
-contentContainer.innerHTML = "";
+function limpar() {
+  ITENS_CURB.forEach((item) => {
+    document.getElementById(item.id).value = "";
+    document.getElementById(`card_${item.id}`).classList.remove("error");
 
-curbData.forEach((item) => {
-let selectedText = selectedOptions[item.nameAttr];
-if (selectedText) {
-let itemDiv = document.createElement("div");
-itemDiv.className = "mb-2 p-2 bg-gray-50 rounded";
-itemDiv.innerHTML = `<strong>${item.title}:</strong> ${selectedText}`;
-contentContainer.appendChild(itemDiv);
+    const badge = document.getElementById(`badge_${item.id}`);
+    const bar = document.getElementById(`bar_${item.id}`);
+    badge.textContent = `--/${item.max}`;
+    bar.style.width = `0%`;
+    bar.style.backgroundColor = "transparent";
+  });
+  document.getElementById("pacNome").value = "";
+  document.getElementById("pacIdade").value = "";
+  document.getElementById("pacSetor").value = "";
+  document.getElementById("msgValidacaoErro").style.display = "none";
+  atualizarBarraGlobal();
+
+  resultadoSection.classList.remove("visible");
+  window.scrollTo({ top: 0, behavior: "smooth" });
 }
-});
 
-let resultadoHtml = resultadoDiv.cloneNode(true);
-if (resultadoHtml.style.display !== "none") contentContainer.appendChild(resultadoHtml);
+// --- Funções de Exportação e Impressão (PDF)... ---
+function getDadosImpressao() {
+  let soma = 0;
+  ITENS_CURB.forEach((i) => {
+    const val = document.getElementById(i.id).value;
+    soma += val === "" ? 0 : parseInt(val);
+  });
 
-gerarPDFGlobal({
-titulo: "Escore CURB-65",
-subtitulo: "Relatório de Gravidade em Pneumonia",
-nomeArquivo: "relatorio_escore_curb-65.pdf",
-seletorConteudo: ".main-content-wrapper",
-});
+  let classe = "Baixo Risco";
+  if (soma === 2) classe = "Risco Moderado";
+  else if (soma >= 3) classe = "Alto Risco";
+
+  const dataVal = document.getElementById("pacData").value;
+  const dataFormatada = dataVal ? dataVal.split("-").reverse().join("/") : new Date().toLocaleDateString("pt-BR");
+
+  return {
+    nome: document.getElementById("pacNome").value.trim(),
+    idade: document.getElementById("pacIdade").value.trim(),
+    setor: document.getElementById("pacSetor").value.trim(),
+    data: dataFormatada,
+    soma: soma,
+    classe: classe,
+  };
 }
+
+function gerarPDF() {
+  
+
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
+  const data = getDadosImpressao();
+
+  const navy = [26, 62, 116];
+  const slateLight = [241, 245, 249];
+  const W = 210, marginL = 18, marginR = 18, usable = W - marginL - marginR;
+
+  // Cabeçalho
+  doc.setFillColor(...navy);
+  doc.rect(0, 0, W, 32, "F");
+  doc.setTextColor(255, 255, 255);
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(14);
+  doc.text("Escore CURB-65", marginL, 13);
+  doc.setFontSize(9);
+  doc.setFont("helvetica", "normal");
+  doc.text("Avaliação de Gravidade em Pneumonia Adquirida na Comunidade", marginL, 20);
+  doc.text("Data: " + data.data, W - marginR, 20, { align: "right" });
+
+  let y = 42;
+
+  // Identificação
+  if (data.nome || data.idade || data.setor) {
+    doc.setFillColor(...slateLight);
+    doc.roundedRect(marginL, y, usable, 8, 2, 2, "F");
+    doc.setTextColor(...navy);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(9);
+    doc.text("IDENTIFICAÇÃO DO PACIENTE", marginL + 4, y + 5.5);
+    y += 12;
+
+    if (data.nome) {
+      doc.text("Nome/RN:", marginL, y);
+      doc.setFont("helvetica", "normal");
+      doc.setTextColor(30, 41, 59);
+      doc.text(data.nome, marginL + 20, y);
+      y += 6;
+      doc.setFont("helvetica", "bold");
+      doc.setTextColor(...navy);
+    }
+    if (data.idade) {
+      doc.text("Idade:", marginL, y);
+      doc.setFont("helvetica", "normal");
+      doc.setTextColor(30, 41, 59);
+      doc.text(data.idade, marginL + 20, y);
+      y += 6;
+      doc.setFont("helvetica", "bold");
+      doc.setTextColor(...navy);
+    }
+    if (data.setor) {
+      doc.text("Setor/Leito:", marginL, y);
+      doc.setFont("helvetica", "normal");
+      doc.setTextColor(30, 41, 59);
+      doc.text(data.setor, marginL + 25, y);
+      y += 6;
+    }
+    y += 4;
+  }
+
+  // Pontuação Big
+  doc.setFillColor(...navy);
+  doc.roundedRect(marginL, y, usable, 22, 3, 3, "F");
+  doc.setTextColor(147, 197, 253);
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(8);
+  doc.text("ESCORE FINAL CURB-65", W / 2, y + 6, { align: "center" });
+  doc.setTextColor(255, 255, 255);
+  doc.setFontSize(26);
+  doc.text(String(data.soma) + " / 5", W / 2, y + 17, { align: "center" });
+  y += 28;
+
+  // Status Pill
+  let pillColor = [22, 163, 74]; // Verde
+  if (data.soma === 2) pillColor = [234, 179, 8]; // Amarelo
+  else if (data.soma >= 3) pillColor = [225, 29, 72]; // Vermelho
+
+  doc.setFillColor(...pillColor);
+  doc.roundedRect(marginL, y, usable, 8, 2, 2, "F");
+  doc.setTextColor(255, 255, 255);
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(9);
+  doc.text(data.classe.toUpperCase(), W / 2, y + 5.5, { align: "center" });
+  y += 16;
+
+  // Tabela AutoTable
+  doc.setFillColor(...slateLight);
+  doc.roundedRect(marginL, y, usable, 8, 2, 2, "F");
+  doc.setTextColor(...navy);
+  doc.text("MEMÓRIA DA AVALIAÇÃO", marginL + 4, y + 5.5);
+  y += 11;
+
+  const bodyData = ITENS_CURB.map((i) => {
+    const val = parseInt(document.getElementById(i.id).value) || 0;
+    const txt = val === 0 ? "Normal" : "Anormal (Presente)";
+    return [i.label.replace(/^\d+\.\s*/, ""), val, txt];
+  });
+
+  doc.autoTable({
+    startY: y,
+    margin: { left: marginL, right: marginR, bottom: 20 },
+    head: [["Sinal Clínico", "Obtido", "Status"]],
+    body: bodyData,
+    foot: [["TOTAL", data.soma, ""]],
+    styles: { fontSize: 8.5, cellPadding: 3, lineColor: [226, 232, 240], lineWidth: 0.3 },
+    headStyles: { fillColor: navy, textColor: 255, fontStyle: "bold" },
+    footStyles: { fillColor: [239, 246, 255], textColor: navy, fontStyle: "bold" },
+    columnStyles: { 0: { cellWidth: 100 }, 1: { halign: "center" }, 2: { halign: "center" } },
+    alternateRowStyles: { fillColor: [248, 250, 252] },
+  });
+
+  // Rodapé
+  const pageCount = doc.internal.getNumberOfPages();
+  for(let i = 1; i <= pageCount; i++) {
+    doc.setPage(i);
+    y = 280;
+    doc.setDrawColor(...slateLight);
+    doc.setLineWidth(0.3);
+    doc.line(marginL, y, W - marginR, y);
+    doc.setTextColor(148, 163, 184);
+    doc.setFontSize(7.5);
+    doc.setFont("helvetica", "normal");
+    doc.text("LIM, W. S. et al. Thorax (2003).", marginL, y + 5);
+    doc.text("www.calculadorasdeenfermagem.com.br", W - marginR, y + 5, { align: "right" });
+  }
+
+  const nomeArquivo = data.nome ? `laudo-curb65-${data.nome.replace(/\s+/g, "-").toLowerCase()}.pdf` : "laudo-curb65.pdf";
+  doc.save(nomeArquivo);
+}
+
+function imprimirLaudo() {
+  const data = getDadosImpressao();
+
+  let pillColor = "#16a34a"; // verde
+  if (data.soma === 2) pillColor = "#eab308"; // amarelo
+  else if (data.soma >= 3) pillColor = "#e11d48"; // vermelho
+
+  const linhasTabela = ITENS_CURB.map((i) => {
+    const val = parseInt(document.getElementById(i.id).value) || 0;
+    const txt = val === 0 ? "Normal" : "Anormal (Presente)";
+    let corVal = val === 0 ? "#16a34a" : "#e11d48"; // Verde (0) ou Vermelho (1)
+
+    return `<tr><td>${i.label.replace(/^\d+\.\s*/, "")}</td><td style="text-align:center;font-weight:bold;color:${corVal}">${val}</td><td style="text-align:center;font-weight:bold;color:${corVal}">${txt}</td></tr>`;
+  }).join("");
+
+  const nandaHtml = document.getElementById("lista-nanda").innerHTML;
+
+  const html = `<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>Laudo Escore CURB-65</title>
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{font-family:Arial,sans-serif;font-size:10pt;color:#1E293B;padding:24px 32px}
+    .hdr{background:#1A3E74;color:white;padding:14px 20px;border-radius:8px;display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+    .hdr h1{font-size:13pt;font-weight:900}
+    .hdr p{font-size:8pt;opacity:0.8;margin-top:3px}
+    .secao{margin-bottom:14px}
+    .sec-titulo{font-size:8pt;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:#1A3E74;background:#EFF6FF;padding:5px 10px;border-radius:4px;margin-bottom:8px}
+    .grid2{display:grid;grid-template-columns:1fr 1fr;gap:6px 20px;font-size:9.5pt}
+    .res-box{border:2px solid #1A3E74;border-radius:8px;padding:14px 18px;background:#F8FAFC;text-align:center;margin-bottom:14px}
+    .res-score{font-size:36pt;font-weight:900;color:#1A3E74;line-height:1}
+    .res-pill{display:inline-block;background:${pillColor};color:white;font-size:9pt;font-weight:bold;padding:4px 16px;border-radius:20px;text-transform:uppercase;margin:8px 0}
+    table{width:100%;border-collapse:collapse;margin-bottom:16px}
+    th{background:#1A3E74;color:white;font-size:8pt;padding:6px 8px;text-align:left}
+    td{font-size:9pt;padding:5px 8px;border-bottom:1px solid #F1F5F9}
+    tfoot td{background:#EFF6FF;font-weight:700;color:#1A3E74;border-top:2px solid #1A3E74}
+    .nanda-box{border:1px solid #E2E8F0;border-radius:8px;padding:12px;font-size:9pt}
+    ul{list-style:none;} .nanda-item{border-bottom:1px solid #f1f5f9;padding:6px 0;} .nanda-item:last-child{border:none}
+    .sig{display:grid;grid-template-columns:1fr 1fr;gap:30px;margin-top:28px}
+    .sig-line{border-top:1px solid #1A3E74;padding-top:5px;font-size:8pt;color:#64748B;text-align:center}
+    .footer{text-align:center;font-size:7.5pt;color:#94A3B8;margin-top:20px;border-top:1px solid #E2E8F0;padding-top:8px}
+  </style></head><body>
+  <div class="hdr"><div><h1>Escore CURB-65</h1><p>Avaliação de Gravidade em Pneumonia</p></div><div style="text-align:right;font-size:8.5pt;"><strong>Data:</strong> ${data.data}</div></div>
+  ${
+    data.nome || data.idade || data.setor
+      ? `<div class="secao"><div class="sec-titulo">Identificação do Paciente</div><div class="grid2">
+    ${data.nome ? `<p><strong>Nome:</strong> ${data.nome}</p>` : ""}
+    ${data.idade ? `<p><strong>Idade:</strong> ${data.idade}</p>` : ""}
+    ${data.setor ? `<p><strong>Setor/Leito:</strong> ${data.setor}</p>` : ""}
+  </div></div>`
+      : ""
+  }
+  <div class="secao"><div class="res-box"><div class="res-score">${data.soma} <span style="font-size:18pt;color:#64748B;font-weight:700;">/ 5</span></div><div><span class="res-pill">${data.classe}</span></div></div></div>
+  <div class="secao"><div class="sec-titulo">Memória da Avaliação Clínica</div>
+  <table><thead><tr><th>Sinal Clínico</th><th style="text-align:center">Obtido</th><th style="text-align:center">Status</th></tr></thead><tbody>${linhasTabela}</tbody>
+  <tfoot><tr><td>TOTAL</td><td style="text-align:center">${data.soma}</td><td style="text-align:center">—</td></tr></tfoot></table></div>
+  <div class="secao"><div class="sec-titulo">Diagnósticos NANDA Sugeridos</div><div class="nanda-box"><ul>${nandaHtml}</ul></div></div>
+  <div class="sig"><div class="sig-line">Assinatura do Profissional Enfermeiro(a)</div><div class="sig-line">Local e Data</div></div>
+  <div class="footer">LIM, W. S. et al. Thorax (2003) | Calculadoras de Enfermagem — www.calculadorasdeenfermagem.com.br</div>
+  <script>window.onload=function(){window.print();}<\/script></body></html>`;
+
+  const janela = window.open("", "_blank");
+  janela.document.write(html);
+  janela.document.close();
+}
+
+// --- Eventos Finais ---
+document.getElementById("btnCalcular").addEventListener("click", calcular);
+document.getElementById("btnLimpar").addEventListener("click", limpar);
+
+document.getElementById("btnImprimir").addEventListener("click", imprimirLaudo);
+document.getElementById("btnGerarPDF").addEventListener("click", function() {
+  const btn = this;
+  const textoOriginal = btn.innerHTML;
+
+  // Se a biblioteca já foi carregada nesta sessão, apenas gera o PDF
+  if (typeof window.jspdf !== 'undefined') {
+    gerarPDF();
+    return;
+  }
+
+  // Dá um feedback visual rápido para o usuário não clicar duas vezes
+  btn.innerHTML = "Carregando gerador...";
+  btn.style.opacity = "0.7";
+  btn.style.pointerEvents = "none";
+
+  // Cria e injeta o script principal do jsPDF
+  const scriptMain = document.createElement('script');
+  scriptMain.src = "https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js";
+  document.body.appendChild(scriptMain);
+
+  scriptMain.onload = function() {
+    // Assim que o principal carregar, injeta o plugin AutoTable
+    const scriptPlugin = document.createElement('script');
+    scriptPlugin.src = "https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js";
+    document.body.appendChild(scriptPlugin);
+
+    scriptPlugin.onload = function() {
+      // Quando ambos carregarem, restaura o botão e dispara a geração do PDF
+      btn.innerHTML = textoOriginal;
+      btn.style.opacity = "1";
+      btn.style.pointerEvents = "auto";
+      gerarPDF();
+    };
+  };
 });
 
-btnNandaNicNoc?.addEventListener("click", () => {
-const score = resultadoDiv.dataset.score;
-if (!score) {
-alert("Calcule o resultado para pesquisar a conduta.");
-return;
-}
-const recomendacaoRisco = score <= 1 ? "baixo risco" : score === 2 ? "risco moderado" : "alto risco";
-const searchQuery = encodeURIComponent(`cuidados enfermagem para pneumonia com ${recomendacaoRisco} segundo o Escore CURB-65 NANDA NIC NOC`);
-window.open(`https://www.google.com/search?q=${searchQuery}`, "_blank");
-});
-});
+// --- Iniciar ---
+renderizarItens();
+atualizarBarraGlobal();
+})();
 </script>
 
 <div id="footer-placeholder"></div>
@@ -567,9 +1241,12 @@ fetch("/footer.html")
 .then((response) => response.text())
 .then((data) => {
 document.getElementById("footer-placeholder").innerHTML = data;
-carregarTraducoes("pt", "footer.json");
-carregarTraducoes("pt", "cookies.json");
-});
+if (typeof carregarTraducoes === "function") {
+  carregarTraducoes("pt", "footer.json");
+  carregarTraducoes("pt", "cookies.json");
+}
+})
+.catch((e) => console.log("Footer indisponível"));
 }, 150);
 });
 </script>
