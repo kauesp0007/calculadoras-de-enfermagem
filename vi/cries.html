@@ -999,10 +999,6 @@ function getDadosImpressao() {
 }
 
 function gerarPDF() {
-  if (typeof window.jspdf === "undefined") {
-    console.warn("jsPDF đang tải. Vui lòng chờ.");
-    return;
-  }
 
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
@@ -1205,7 +1201,41 @@ function imprimirLaudo() {
 // --- Eventos Finais ---
 document.getElementById("btnCalcular").addEventListener("click", calcular);
 document.getElementById("btnLimpar").addEventListener("click", limpar);
-document.getElementById("btnGerarPDF").addEventListener("click", gerarPDF);
+document.getElementById("btnGerarPDF").addEventListener("click", function() {
+  const btn = this;
+  const textoOriginal = btn.innerHTML;
+
+  // Se a biblioteca já foi carregada nesta sessão, apenas gera o PDF
+  if (typeof window.jspdf !== 'undefined') {
+    gerarPDF();
+    return;
+  }
+
+  // Dá um feedback visual rápido para o usuário não clicar duas vezes
+  btn.innerHTML = "Carregando gerador...";
+  btn.style.opacity = "0.7";
+  btn.style.pointerEvents = "none";
+
+  // Cria e injeta o script principal do jsPDF
+  const scriptMain = document.createElement('script');
+  scriptMain.src = "https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js";
+  document.body.appendChild(scriptMain);
+
+  scriptMain.onload = function() {
+    // Assim que o principal carregar, injeta o plugin AutoTable
+    const scriptPlugin = document.createElement('script');
+    scriptPlugin.src = "https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js";
+    document.body.appendChild(scriptPlugin);
+
+    scriptPlugin.onload = function() {
+      // Quando ambos carregarem, restaura o botão e dispara a geração do PDF
+      btn.innerHTML = textoOriginal;
+      btn.style.opacity = "1";
+      btn.style.pointerEvents = "auto";
+      gerarPDF();
+    };
+  };
+});
 document.getElementById("btnImprimir").addEventListener("click", imprimirLaudo);
 
 // --- Iniciar ---
