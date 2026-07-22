@@ -490,6 +490,132 @@ class="hero-banner w-full h-full object-cover block"
 </div>
 </section>
 <!-- FIM: SEÇÃO DE APRESENTAÇÃO E MINICARDS -->
+ <!-- Dashboard de Analytics Interativo -->
+<section class="max-w-7xl mx-auto px-4 py-8 my-8">
+  <div class="mb-8">
+    <h2 class="text-3xl font-black text-[#1A3E74] tracking-tight mb-2">Monitor de Acessos</h2>
+    <p class="text-sm text-gray-500">Acompanhe as páginas mais lidas e a distribuição global de leitores nos últimos 7 dias.</p>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+    
+    <!-- Coluna Esquerda: Ranking de Páginas -->
+    <div class="lg:col-span-2 bg-white rounded-xl shadow-sm border border-gray-100 p-6 md:p-8">
+      <h3 class="font-bold text-gray-800 uppercase tracking-wider text-sm mb-6 flex items-center gap-2">
+        <i class="fa-solid fa-chart-bar text-[#4A90E2]"></i> Top Páginas
+      </h3>
+      
+      <!-- O min-h-[300px] garante o Zero CLS enquanto os dados carregam -->
+      <div id="analytics-ranking-container" class="relative min-h-[300px] flex flex-col gap-4">
+        <!-- O JavaScript vai injetar as barras animadas aqui dentro -->
+        <div class="flex items-center justify-center h-full text-gray-400 text-sm animate-pulse">
+          Carregando dados em tempo real...
+        </div>
+      </div>
+    </div>
+
+    <!-- Coluna Direita: Cards de Resumo e Países -->
+    <div class="flex flex-col gap-6">
+      
+      <!-- Card: Total de Visualizações (Reaproveitando o seu padrão de Hero Card adaptado) -->
+      <div class="relative overflow-hidden shadow-inner rounded-xl p-6 bg-[#1A3E74] text-center">
+        <!-- Decorativos -->
+        <div class="absolute -top-4 -right-4 w-20 h-20 bg-white opacity-5 blur-xl"></div>
+        <div class="absolute -bottom-4 -left-4 w-24 h-24 bg-[#4A90E2] opacity-10 blur-xl"></div>
+        
+        <h3 class="text-xs font-medium uppercase tracking-wider text-blue-100 mb-1">Visualizações no Top 7</h3>
+        <p id="analytics-total-views" class="text-4xl font-black text-white tracking-tight mb-1">-</p>
+        <p class="text-[10px] text-blue-200 opacity-80">Últimos 7 dias</p>
+      </div>
+
+      <!-- Card: Top Países -->
+      <div class="bg-[#F8FBFF] rounded-xl p-6 border border-[#E2E8F0]">
+        <h4 class="font-bold text-[#1A3E74] mb-4 text-sm uppercase flex items-center gap-2">
+          <i class="fa-solid fa-earth-americas"></i> Top Países
+        </h4>
+        
+        <div id="analytics-countries-container" class="flex flex-col gap-3 min-h-[150px]">
+           <!-- O JavaScript vai injetar a lista de países aqui -->
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+<script>
+  document.addEventListener('DOMContentLoaded', async () => {
+    try {
+      // 1. Busca o arquivo JSON gerado pelo seu script no Node
+      // Obs: Ajuste o caminho '/analytics-data.json' se necessário dependendo da estrutura de pastas
+      const response = await fetch('/analytics-data.json');
+      
+      if (!response.ok) throw new Error('Dados não encontrados');
+      
+      const data = await response.json();
+      
+      // 2. Pega os containers que criamos no HTML
+      const rankingContainer = document.getElementById('analytics-ranking-container');
+      const viewsContainer = document.getElementById('analytics-total-views');
+      const countriesContainer = document.getElementById('analytics-countries-container');
+
+      // 3. Atualiza o Card com o Total de Visualizações
+      viewsContainer.textContent = data.totalViewsRanking.toLocaleString('pt-BR');
+
+      // 4. Renderiza o Ranking de Páginas com animação das barras
+      if (data.topPages && data.topPages.length > 0) {
+        rankingContainer.innerHTML = ''; // Remove a mensagem de "Carregando..."
+        
+        // Pega a quantidade de acessos da página Top 1 para ser a nossa barra de 100% de largura
+        const maxViews = data.topPages[0].views;
+
+        data.topPages.forEach((page, index) => {
+          // Calcula a porcentagem da barra em relação ao primeiro lugar
+          const widthPercent = (page.views / maxViews) * 100;
+          
+          // Cria o HTML da barra dinamicamente
+          const pageEl = document.createElement('div');
+          pageEl.className = 'flex flex-col gap-1';
+          pageEl.innerHTML = `
+            <div class="flex justify-between items-end text-xs mb-1">
+              <span class="font-bold text-[#1A3E74] truncate pr-4">${index + 1}. ${page.title}</span>
+              <span class="text-gray-500 font-medium">${page.views.toLocaleString('pt-BR')}</span>
+            </div>
+            <div class="w-full bg-gray-100 rounded-full h-3 overflow-hidden">
+              <div class="bg-gradient-to-r from-[#1A3E74] to-[#4A90E2] h-full rounded-full transition-all duration-1000 ease-out" style="width: 0%;"></div>
+            </div>
+          `;
+          rankingContainer.appendChild(pageEl);
+
+          // Dispara a animação das barras com um atraso em cascata para um efeito visual elegante
+          setTimeout(() => {
+            pageEl.querySelector('.bg-gradient-to-r').style.width = `${widthPercent}%`;
+          }, 100 + (index * 150)); 
+        });
+      }
+
+      // 5. Renderiza a lista do Top Países
+      if (data.topCountries && data.topCountries.length > 0) {
+        countriesContainer.innerHTML = '';
+        data.topCountries.forEach((country, index) => {
+          const countryEl = document.createElement('div');
+          countryEl.className = 'flex justify-between items-center text-sm border-b border-gray-100 pb-2 last:border-0 last:pb-0';
+          countryEl.innerHTML = `
+            <span class="text-gray-700 flex items-center gap-2">
+              <span class="text-[#4A90E2] font-bold">${index + 1}.</span> ${country.country}
+            </span>
+            <span class="text-gray-500 text-xs font-bold">${country.users.toLocaleString('pt-BR')} usu.</span>
+          `;
+          countriesContainer.appendChild(countryEl);
+        });
+      }
+
+    } catch (error) {
+      console.error('Erro ao carregar o dashboard:', error);
+      document.getElementById('analytics-ranking-container').innerHTML = 
+        '<p class="text-red-500 text-sm">Não foi possível carregar os dados neste momento.</p>';
+    }
+  });
+</script>
 
 <section class="my-8">
 <div class="relative overflow-hidden bg-[#1A3E74] rounded-xl p-8 shadow-inner flex flex-col md:flex-row items-center justify-between gap-6">

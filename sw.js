@@ -1,4 +1,4 @@
-const CACHE_VERSION = "20260722-174824";
+const CACHE_VERSION = "20260722-203727";
 const CACHE_NAME = `calculadoras-enfermagem-cache-${CACHE_VERSION}`;
 
 // O SCRIPT DE BUILD VAI INJETAR A LISTA DE ARQUIVOS AQUI
@@ -9,6 +9,7 @@ const urlsToCache = [
   '/index.html',
   '/offline.html',
   'adicionar-provas.js',
+  'analytics-data.json',
   'atualizar-scripts.js',
   'automacoes/banco_nanda_2024_extracted.json',
   'automacoes/banco_nanda_2024_merged_suggestion.json',
@@ -39,6 +40,7 @@ const urlsToCache = [
   'en/favicon.ico',
   'es/favicon.ico',
   'favicon.ico',
+  'fetch-analytics.js',
   'fonts/arabic/arabic-700.woff2',
   'fonts/arabic/arabic-regular.woff2',
   'fonts/chinese/chinese-700.woff2',
@@ -59,6 +61,7 @@ const urlsToCache = [
   'force-clear-capas.js',
   'force-fix-lang-bar.js',
   'fr/favicon.ico',
+  'ga-credentials.json',
   'generate-sitemap.js',
   'gerarCapasPDF.js',
   'gerarCapasVideo.js',
