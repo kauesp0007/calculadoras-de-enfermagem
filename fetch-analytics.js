@@ -10,20 +10,24 @@ async function runAnalyticsReport() {
   console.log('Iniciando busca de dados do Google Analytics...');
 
   try {
-    // 1. Busca as Páginas mais acessadas (Hoje)
+    // Calcula o primeiro dia do mês atual dinamicamente (ex: "2026-07-01")
+    const agora = new Date();
+    const inicioDoMes = `${agora.getFullYear()}-${String(agora.getMonth() + 1).padStart(2, '0')}-01`;
+
+    // 1. Busca as Páginas mais acessadas (do dia 1º até hoje)
     const [pagesReport] = await analyticsDataClient.runReport({
       property: `properties/${propertyId}`,
-      dateRanges: [{ startDate: 'today', endDate: 'today' }],
+      dateRanges: [{ startDate: inicioDoMes, endDate: 'today' }],
       dimensions: [{ name: 'pageTitle' }, { name: 'pagePath' }],
       metrics: [{ name: 'screenPageViews' }],
       orderBys: [{ metric: { metricName: 'screenPageViews' }, desc: true }],
       limit: 7,
     });
 
-    // 2. Busca os Países que mais acessam (Hoje)
+    // 2. Busca os Países que mais acessam (do dia 1º até hoje)
     const [countriesReport] = await analyticsDataClient.runReport({
       property: `properties/${propertyId}`,
-      dateRanges: [{ startDate: 'today', endDate: 'today' }],
+      dateRanges: [{ startDate: inicioDoMes, endDate: 'today' }],
       dimensions: [{ name: 'country' }],
       metrics: [{ name: 'activeUsers' }],
       orderBys: [{ metric: { metricName: 'activeUsers' }, desc: true }],
@@ -42,20 +46,20 @@ async function runAnalyticsReport() {
       users: parseInt(row.metricValues[0].value, 10)
     }));
 
-    // ══════════════════════════════════
-    // Lógica de ACUMULAR (meio-dia) vs RESET (meia-noite)
-    // ══════════════════════════════════
-    const hoje = new Date().toISOString().slice(0, 10); // "2026-07-23"
+    // ═══════════════════════════════════════
+    // Lógica de ACÚMULO MENSAL (soma a cada 3h) vs RESET (virada do mês)
+    // ═══════════════════════════════════════
+    const mesAtual = new Date().toISOString().slice(0, 7); // "2026-07"
     let topPages = newPages;
     let topCountries = newCountries;
 
     if (fs.existsSync('analytics-data.json')) {
       const existente = JSON.parse(fs.readFileSync('analytics-data.json', 'utf-8'));
-      const dataExistente = existente.lastUpdate ? existente.lastUpdate.slice(0, 10) : '';
+      const mesExistente = existente.lastUpdate ? existente.lastUpdate.slice(0, 7) : '';
 
-      if (dataExistente === hoje) {
-        // ⏰ MEIO-DIA: mesmo dia → ACUMULAR com dados existentes
-        console.log('🔄 Mesmo dia detectado → acumulando dados...');
+      if (mesExistente === mesAtual) {
+        // 📊 MESMO MÊS: acumular (somar) com dados já computados
+        console.log('🔄 Mesmo mês detectado → acumulando dados...');
 
         // Acumula páginas
         const pageMap = {};
@@ -82,8 +86,8 @@ async function runAnalyticsReport() {
 
         console.log('✅ Dados acumulados com sucesso!');
       } else {
-        // 🌙 MEIA-NOITE: novo dia → RESET (usa apenas dados novos)
-        console.log('🌙 Novo dia detectado → resetando contadores...');
+        // 🌙 NOVO MÊS: reset → começa do zero com os dados frescos dos últimos 30 dias
+        console.log('🌙 Novo mês detectado → resetando contadores mensais...');
       }
     }
 
