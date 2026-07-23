@@ -30,6 +30,244 @@ if not CHAVE_API:
 if not CHAVE_DEEPSEEK:
     raise ValueError("Chave do DeepSeek não encontrada. Adicione DEEPSEEK_API_KEY no arquivo .env para traduzir os scripts dinâmicos.")
 
+# ============================================================
+# DICIONÁRIO DE STRINGS UI QUE PRECISAM SER TRADUZIDAS
+# Strings comuns em JavaScript/HTML que tradutores automáticos
+# frequentemente ignoram por estarem dentro de <script> ou
+# atributos HTML. Este dicionário serve como referência e
+# fallback para o processo de tradução.
+# ============================================================
+
+DICIONARIO_STRINGS_UI = {
+    # ── Status / Resultados ──
+    "POSITIVO": {
+        "ar": "إيجابي", "de": "POSITIV", "en": "POSITIVE", "es": "POSITIVO",
+        "fr": "POSITIF", "hi": "सकारात्मक", "id": "POSITIF", "it": "POSITIVO",
+        "ja": "陽性", "ko": "양성", "nl": "POSITIEF", "pl": "POZYTYWNY",
+        "ru": "ПОЛОЖИТЕЛЬНЫЙ", "sv": "POSITIV", "tr": "POZİTİF",
+        "uk": "ПОЗИТИВНИЙ", "vi": "DƯƠNG TÍNH", "zh": "阳性"
+    },
+    "NEGATIVO": {
+        "ar": "سلبي", "de": "NEGATIV", "en": "NEGATIVE", "es": "NEGATIVO",
+        "fr": "NÉGATIF", "hi": "नकारात्मक", "id": "NEGATIF", "it": "NEGATIVO",
+        "ja": "陰性", "ko": "음성", "nl": "NEGATIEF", "pl": "NEGATYWNY",
+        "ru": "ОТРИЦАТЕЛЬНЫЙ", "sv": "NEGATIV", "tr": "NEGATİF",
+        "uk": "НЕГАТИВНИЙ", "vi": "ÂM TÍNH", "zh": "阴性"
+    },
+    
+    # ── Presença / Ausência ──
+    "Presente": {
+        "ar": "موجود", "de": "Vorhanden", "en": "Present", "es": "Presente",
+        "fr": "Présent", "hi": "उपस्थित", "id": "Ada", "it": "Presente",
+        "ja": "あり", "ko": "있음", "nl": "Aanwezig", "pl": "Obecny",
+        "ru": "Присутствует", "sv": "Närvarande", "tr": "Mevcut",
+        "uk": "Присутній", "vi": "Có mặt", "zh": "存在"
+    },
+    "Ausente": {
+        "ar": "غائب", "de": "Abwesend", "en": "Absent", "es": "Ausente",
+        "fr": "Absent", "hi": "अनुपस्थित", "id": "Tidak Ada", "it": "Assente",
+        "ja": "なし", "ko": "없음", "nl": "Afwezig", "pl": "Nieobecny",
+        "ru": "Отсутствует", "sv": "Frånvarande", "tr": "Yok",
+        "uk": "Відсутній", "vi": "Vắng mặt", "zh": "不存在"
+    },
+    
+    # ── Sim / Não ──
+    "Sim": {
+        "ar": "نعم", "de": "Ja", "en": "Yes", "es": "Sí",
+        "fr": "Oui", "hi": "हाँ", "id": "Ya", "it": "Sì",
+        "ja": "はい", "ko": "예", "nl": "Ja", "pl": "Tak",
+        "ru": "Да", "sv": "Ja", "tr": "Evet",
+        "uk": "Так", "vi": "Có", "zh": "是"
+    },
+    "Não": {
+        "ar": "لا", "de": "Nein", "en": "No", "es": "No",
+        "fr": "Non", "hi": "नहीं", "id": "Tidak", "it": "No",
+        "ja": "いいえ", "ko": "아니요", "nl": "Nee", "pl": "Nie",
+        "ru": "Нет", "sv": "Nej", "tr": "Hayır",
+        "uk": "Ні", "vi": "Không", "zh": "否"
+    },
+    
+    # ── SIM / NÃO (maiúsculas para impressão/PDF) ──
+    "SIM": {
+        "ar": "نعم", "de": "JA", "en": "YES", "es": "SÍ",
+        "fr": "OUI", "hi": "हाँ", "id": "YA", "it": "SÌ",
+        "ja": "はい", "ko": "예", "nl": "JA", "pl": "TAK",
+        "ru": "ДА", "sv": "JA", "tr": "EVET",
+        "uk": "ТАК", "vi": "CÓ", "zh": "是"
+    },
+    "NÃO": {
+        "ar": "لا", "de": "NEIN", "en": "NO", "es": "NO",
+        "fr": "NON", "hi": "नहीं", "id": "TIDAK", "it": "NO",
+        "ja": "いいえ", "ko": "아니요", "nl": "NEE", "pl": "NIE",
+        "ru": "НЕТ", "sv": "NEJ", "tr": "HAYIR",
+        "uk": "НІ", "vi": "KHÔNG", "zh": "否"
+    },
+    
+    # ── Ações / Botões ──
+    "Calcular": {
+        "ar": "حساب", "de": "Berechnen", "en": "Calculate", "es": "Calcular",
+        "fr": "Calculer", "hi": "गणना करें", "id": "Hitung", "it": "Calcola",
+        "ja": "計算", "ko": "계산", "nl": "Berekenen", "pl": "Oblicz",
+        "ru": "Рассчитать", "sv": "Beräkna", "tr": "Hesapla",
+        "uk": "Розрахувати", "vi": "Tính toán", "zh": "计算"
+    },
+    "Limpar": {
+        "ar": "مسح", "de": "Löschen", "en": "Clear", "es": "Limpiar",
+        "fr": "Effacer", "hi": "साफ करें", "id": "Hapus", "it": "Cancella",
+        "ja": "クリア", "ko": "지우기", "nl": "Wissen", "pl": "Wyczyść",
+        "ru": "Очистить", "sv": "Rensa", "tr": "Temizle",
+        "uk": "Очистити", "vi": "Xóa", "zh": "清除"
+    },
+    "Imprimir": {
+        "ar": "طباعة", "de": "Drucken", "en": "Print", "es": "Imprimir",
+        "fr": "Imprimer", "hi": "प्रिंट", "id": "Cetak", "it": "Stampa",
+        "ja": "印刷", "ko": "인쇄", "nl": "Afdrukken", "pl": "Drukuj",
+        "ru": "Печать", "sv": "Skriv ut", "tr": "Yazdır",
+        "uk": "Друк", "vi": "In", "zh": "打印"
+    },
+    
+    # ── Alertas / Validação ──
+    "Preencha todos os campos": {
+        "ar": "املأ جميع الحقول", "de": "Bitte alle Felder ausfüllen",
+        "en": "Please fill in all fields", "es": "Complete todos los campos",
+        "fr": "Veuillez remplir tous les champs", "hi": "कृपया सभी फ़ील्ड भरें",
+        "id": "Harap isi semua kolom", "it": "Compila tutti i campi",
+        "ja": "すべての項目を入力してください", "ko": "모든 필드를 입력하세요",
+        "nl": "Vul alle velden in", "pl": "Wypełnij wszystkie pola",
+        "ru": "Заполните все поля", "sv": "Fyll i alla fält",
+        "tr": "Lütfen tüm alanları doldurun", "uk": "Заповніть усі поля",
+        "vi": "Vui lòng điền tất cả các trường", "zh": "请填写所有字段"
+    },
+    "Selecione uma opção": {
+        "ar": "حدد خياراً", "de": "Bitte eine Option wählen",
+        "en": "Select an option", "es": "Seleccione una opción",
+        "fr": "Sélectionnez une option", "hi": "एक विकल्प चुनें",
+        "id": "Pilih opsi", "it": "Seleziona un'opzione",
+        "ja": "オプションを選択", "ko": "옵션을 선택하세요",
+        "nl": "Selecteer een optie", "pl": "Wybierz opcję",
+        "ru": "Выберите вариант", "sv": "Välj ett alternativ",
+        "tr": "Bir seçenek seçin", "uk": "Виберіть варіант",
+        "vi": "Chọn một tùy chọn", "zh": "选择一个选项"
+    },
+    
+    # ── Placeholders de <select> / Comentários em dropdowns ──
+    # Strings que aparecem como primeira opção desabilitada em <select>
+    "Selecione...": {
+        "ar": "حدد...", "de": "Auswählen...", "en": "Select...",
+        "es": "Seleccionar...", "fr": "Sélectionner...",
+        "hi": "चुनें...", "id": "Pilih...", "it": "Seleziona...",
+        "ja": "選択...", "ko": "선택...", "nl": "Selecteren...",
+        "pl": "Wybierz...", "ru": "Выберите...", "sv": "Välj...",
+        "tr": "Seçiniz...", "uk": "Виберіть...",
+        "vi": "Chọn...", "zh": "请选择..."
+    },
+    "Selecione uma opção...": {
+        "ar": "حدد خياراً...", "de": "Option auswählen...",
+        "en": "Select an option...", "es": "Seleccione una opción...",
+        "fr": "Sélectionnez une option...", "hi": "एक विकल्प चुनें...",
+        "id": "Pilih opsi...", "it": "Seleziona un'opzione...",
+        "ja": "オプションを選択...", "ko": "옵션을 선택하세요...",
+        "nl": "Selecteer een optie...", "pl": "Wybierz opcję...",
+        "ru": "Выберите вариант...", "sv": "Välj ett alternativ...",
+        "tr": "Bir seçenek seçin...", "uk": "Виберіть варіант...",
+        "vi": "Chọn một tùy chọn...", "zh": "请选择一个选项..."
+    },
+    "Escolha...": {
+        "ar": "اختر...", "de": "Wählen...", "en": "Choose...",
+        "es": "Elegir...", "fr": "Choisir...",
+        "hi": "चुनें...", "id": "Pilih...", "it": "Scegli...",
+        "ja": "選ぶ...", "ko": "고르기...", "nl": "Kies...",
+        "pl": "Wybierz...", "ru": "Выбрать...", "sv": "Välj...",
+        "tr": "Seç...", "uk": "Обрати...",
+        "vi": "Chọn...", "zh": "选择..."
+    },
+    "Selecionar...": {
+        "ar": "تحديد...", "de": "Auswählen...", "en": "Select...",
+        "es": "Seleccionar...", "fr": "Sélectionner...",
+        "hi": "चयन करें...", "id": "Memilih...", "it": "Selezionare...",
+        "ja": "選択する...", "ko": "선택하기...", "nl": "Selecteren...",
+        "pl": "Wybieranie...", "ru": "Выбор...", "sv": "Välja...",
+        "tr": "Seçme...", "uk": "Вибір...",
+        "vi": "Lựa chọn...", "zh": "选择..."
+    },
+    "Selecione a classificação": {
+        "ar": "حدد التصنيف", "de": "Klassifizierung wählen",
+        "en": "Select classification", "es": "Seleccione la clasificación",
+        "fr": "Sélectionnez la classification", "hi": "वर्गीकरण चुनें",
+        "id": "Pilih klasifikasi", "it": "Seleziona la classificazione",
+        "ja": "分類を選択", "ko": "분류 선택",
+        "nl": "Selecteer classificatie", "pl": "Wybierz klasyfikację",
+        "ru": "Выберите классификацию", "sv": "Välj klassificering",
+        "tr": "Sınıflandırma seçin", "uk": "Виберіть класифікацію",
+        "vi": "Chọn phân loại", "zh": "选择分类"
+    },
+    
+    # ── Formulário / Dados do Paciente ──
+    "Paciente": {
+        "ar": "المريض", "de": "Patient", "en": "Patient", "es": "Paciente",
+        "fr": "Patient", "hi": "रोगी", "id": "Pasien", "it": "Paziente",
+        "ja": "患者", "ko": "환자", "nl": "Patiënt", "pl": "Pacjent",
+        "ru": "Пациент", "sv": "Patient", "tr": "Hasta",
+        "uk": "Пацієнт", "vi": "Bệnh nhân", "zh": "患者"
+    },
+    "Idade": {
+        "ar": "العمر", "de": "Alter", "en": "Age", "es": "Edad",
+        "fr": "Âge", "hi": "आयु", "id": "Usia", "it": "Età",
+        "ja": "年齢", "ko": "나이", "nl": "Leeftijd", "pl": "Wiek",
+        "ru": "Возраст", "sv": "Ålder", "tr": "Yaş",
+        "uk": "Вік", "vi": "Tuổi", "zh": "年龄"
+    },
+    "Data": {
+        "ar": "التاريخ", "de": "Datum", "en": "Date", "es": "Fecha",
+        "fr": "Date", "hi": "दिनांक", "id": "Tanggal", "it": "Data",
+        "ja": "日付", "ko": "날짜", "nl": "Datum", "pl": "Data",
+        "ru": "Дата", "sv": "Datum", "tr": "Tarih",
+        "uk": "Дата", "vi": "Ngày", "zh": "日期"
+    },
+    
+    # ── Resultado / Diagnóstico ──
+    "Resultado": {
+        "ar": "النتيجة", "de": "Ergebnis", "en": "Result", "es": "Resultado",
+        "fr": "Résultat", "hi": "परिणाम", "id": "Hasil", "it": "Risultato",
+        "ja": "結果", "ko": "결과", "nl": "Resultaat", "pl": "Wynik",
+        "ru": "Результат", "sv": "Resultat", "tr": "Sonuç",
+        "uk": "Результат", "vi": "Kết quả", "zh": "结果"
+    },
+    "Risco Baixo": {
+        "ar": "خطر منخفض", "de": "Niedriges Risiko", "en": "Low Risk",
+        "es": "Riesgo Bajo", "fr": "Risque Faible", "hi": "कम जोखिम",
+        "id": "Risiko Rendah", "it": "Rischio Basso", "ja": "低リスク",
+        "ko": "낮은 위험", "nl": "Laag Risico", "pl": "Niskie Ryzyko",
+        "ru": "Низкий риск", "sv": "Låg Risk", "tr": "Düşük Risk",
+        "uk": "Низький ризик", "vi": "Nguy cơ Thấp", "zh": "低风险"
+    },
+    "Risco Moderado": {
+        "ar": "خطر متوسط", "de": "Mittleres Risiko", "en": "Moderate Risk",
+        "es": "Riesgo Moderado", "fr": "Risque Modéré", "hi": "मध्यम जोखिम",
+        "id": "Risiko Sedang", "it": "Rischio Moderato", "ja": "中リスク",
+        "ko": "중간 위험", "nl": "Matig Risico", "pl": "Umiarkowane Ryzyko",
+        "ru": "Средний риск", "sv": "Måttlig Risk", "tr": "Orta Risk",
+        "uk": "Помірний ризик", "vi": "Nguy cơ Trung bình", "zh": "中等风险"
+    },
+    "Risco Alto": {
+        "ar": "خطر مرتفع", "de": "Hohes Risiko", "en": "High Risk",
+        "es": "Riesgo Alto", "fr": "Risque Élevé", "hi": "उच्च जोखिम",
+        "id": "Risiko Tinggi", "it": "Rischio Alto", "ja": "高リスク",
+        "ko": "높은 위험", "nl": "Hoog Risico", "pl": "Wysokie Ryzyko",
+        "ru": "Высокий риск", "sv": "Hög Risk", "tr": "Yüksek Risk",
+        "uk": "Високий ризик", "vi": "Nguy cơ Cao", "zh": "高风险"
+    },
+}
+
+def obter_traducao_ui(texto_original, idioma_alvo):
+    """
+    Consulta o dicionário de strings UI para obter uma tradução pré-definida.
+    Retorna None se a string não estiver no dicionário.
+    """
+    if texto_original in DICIONARIO_STRINGS_UI:
+        return DICIONARIO_STRINGS_UI[texto_original].get(idioma_alvo)
+    return None
+
 def traduzir_meta_seo_com_deepseek(html, idioma_alvo):
     """
     Isola os conteúdos das tags de SEO e traduz de forma independente usando o DeepSeek,
