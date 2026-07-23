@@ -111,6 +111,7 @@ function construirPaginas() {
   }
 
   const biblioteca = JSON.parse(fs.readFileSync(JSON_DATABASE, "utf8"));
+  biblioteca.reverse(); // Mais recentes primeiro na página 1
   const templateRaw = fs.readFileSync(TEMPLATE_FILE, "utf8");
 
   const totalPages = Math.ceil(biblioteca.length / ITEMS_PER_PAGE);
