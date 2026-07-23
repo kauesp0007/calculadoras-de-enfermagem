@@ -1,7 +1,7 @@
 // watch-pdfs.js — Monitora a pasta provas-pdf e atualiza o JSON automaticamente
 const chokidar = require("chokidar");
 const path = require("path");
-const { adicionarPDF } = require("./build-pdf.js");
+const { adicionarPDF } = require("./build-pdf_provas_de_concursos.js");
 
 const pdfFolder = path.join(__dirname, "provas-pdf");
 
