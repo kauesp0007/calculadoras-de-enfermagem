@@ -168,114 +168,186 @@ Escala de Lawton: Avaliação de Atividades Instrumentais da Vida Diária
 </script>
 
 <!-- 11. Outros Scripts/Tags -->
-
 <style>
-.lawton-criterion-section {
-background-color: #fff;
-border: 1px solid #d1d5db;
-border-radius: 12px;
-padding: 1.5rem;
-margin-bottom: 1.5rem;
-box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-transition: box-shadow 0.3s ease;
-display: flex;
-flex-direction: column;
-gap: 0.75rem;
+:root {
+  --navy: #1a3e74;
+  --navy-light: #1e4d8c;
+  --navy-dark: #163269;
+  --blue-100: #bfdbfe;
+  --blue-50: #eff6ff;
+  --slate-800: #1e293b;
+  --slate-600: #475569;
+  --slate-500: #64748b;
+  --slate-400: #94a3b8;
+  --slate-200: #e2e8f0;
+  --slate-100: #f1f5f9;
+  --slate-50: #f8fafc;
+  --green: #16a34a;
+  --red: #e11d48;
+  --amber: #d97706;
 }
 
-.lawton-criterion-section:hover {
-box-shadow: 0 10px 15px rgba(0, 0, 0, 0.15);
+* { box-sizing: border-box; }
+
+/* BARRA FLUTUANTE DE PROGRESSO GLOBAL */
+#progress-container {
+  position: fixed; top: 0; left: 0; width: 100%; height: 6px;
+  background-color: var(--slate-200); z-index: 9999;
+}
+#progress-bar-global {
+  height: 100%; background: linear-gradient(90deg, #3b82f6, #1a3e74);
+  width: 0%; transition: width 0.4s ease;
 }
 
-.lawton-criterion-title {
-font-size: 1.25rem;
-font-weight: 700;
-color: #1a3e74;
-margin-bottom: 0.75rem;
-text-align: left;
+/* CARDS */
+.lawton-card {
+  background: white; border-radius: 16px; border: 1px solid var(--slate-200);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
 }
 
-.lawton-criterion-select {
-width: 100%;
-padding: 0.75rem;
-border: 1px solid #ccc;
-border-radius: 0.375rem;
-font-size: 1rem;
-color: #333;
-background-color: #fff;
-appearance: none;
-background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='currentColor'%3E%3Cpath fill-rule='evenodd' d='M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z' clip-rule='evenodd'/%3E%3C/svg%3E");
-background-repeat: no-repeat;
-background-position: right 0.75rem center;
-background-size: 1.5em 1.5em;
+.lawton-card-navy {
+  background: linear-gradient(135deg, var(--navy) 0%, var(--navy-light) 60%, var(--navy-dark) 100%);
+  border-radius: 16px; box-shadow: 0 12px 32px rgba(26, 62, 116, 0.4);
+  overflow: hidden; position: relative;
+}
+.lawton-card-navy::before {
+  content: ""; position: absolute; top: 0; right: 0; width: 180px; height: 180px;
+  background: white; opacity: 0.05; border-radius: 50%; filter: blur(40px); transform: translate(30%, -30%);
+}
+.lawton-card-navy::after {
+  content: ""; position: absolute; bottom: 0; left: 0; width: 140px; height: 140px;
+  background: #4a90e2; opacity: 0.2; border-radius: 50%; filter: blur(30px); transform: translate(-20%, 30%);
 }
 
-.lawton-criterion-select:focus {
-outline: none;
-border-color: #1fa4e5;
-box-shadow: 0 0 0 3px rgba(31, 164, 229, 0.2);
+/* ITENS INDIVIDUAIS (GRID) */
+.item-card {
+  background: white; border-radius: 12px; border: 2px solid var(--slate-200);
+  padding: 18px; box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+  transition: border-color 0.2s, box-shadow 0.2s;
+  display: flex; flex-direction: column; justify-content: space-between;
+}
+.item-card.error {
+  border-color: var(--red); box-shadow: 0 0 0 4px rgba(225, 29, 72, 0.1);
+}
+.item-card:focus-within, .item-card:hover {
+  border-color: var(--navy-light); box-shadow: 0 8px 24px rgba(26, 62, 116, 0.15);
 }
 
-.lawton-criterion-explain {
-font-size: 0.9rem;
-color: #6b7280;
-margin-top: 0.25rem;
+.item-badge {
+  font-size: 11px; font-weight: 800; padding: 3px 10px; border-radius: 20px;
+  background: var(--blue-50); color: var(--navy); border: 1px solid var(--blue-100); white-space: nowrap;
 }
 
-.incomplete {
-border: 2px solid #ef4444 !important;
-box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.2);
+.item-select {
+  width: 100%; padding: 12px 14px; border-radius: 8px; border: 2px solid var(--slate-200);
+  color: var(--slate-800); background: white; font-size: 13px; font-weight: 600;
+  outline: none; transition: border-color 0.2s, box-shadow 0.2s; appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2364748B' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 12px center;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.02); margin-top: auto;
+}
+.item-select:focus { border-color: var(--navy); box-shadow: 0 0 0 3px rgba(26, 62, 116, 0.2); }
+
+.input-strong {
+  width: 100%; padding: 10px 14px; border-radius: 8px; border: 2px solid var(--slate-200);
+  font-size: 13px; font-weight: 600; color: var(--slate-800); box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.02);
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.input-strong:focus { outline: none; border-color: var(--navy); box-shadow: 0 0 0 3px rgba(26, 62, 116, 0.2); }
+
+.mini-bar-wrap {
+  height: 6px; background: var(--slate-200); border-radius: 4px; overflow: hidden;
+  margin-top: 12px; box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+.mini-bar-fill {
+  height: 100%; border-radius: 4px; transition: width 0.4s ease, background-color 0.4s ease;
+  background-color: var(--slate-300);
 }
 
-.resultado {
-background-color: #e0f2fe;
-/* Cor de fundo azul claro */
-color: #1a3e74;
-/* Cor da fonte azul escuro */
-border: 1px solid #bfdbfe;
-/* Borda azul */
-border-radius: 1rem;
-/* Borda arredondada */
-box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-/* Sombra */
-padding: 1rem;
-/* Espaçamento interno de 1cm */
-margin-top: 1.5rem;
-display: none;
+/* BOTÕES */
+.btn-primary {
+  background: linear-gradient(135deg, var(--navy) 0%, var(--navy-light) 100%);
+  color: white; border: none; padding: 14px 36px; border-radius: 12px;
+  font-size: 15px; font-weight: 800; cursor: pointer; text-transform: uppercase;
+  letter-spacing: 0.5px; box-shadow: 0 6px 18px rgba(26, 62, 116, 0.35);
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+.btn-primary:hover { transform: translateY(-2px); box-shadow: 0 10px 24px rgba(26, 62, 116, 0.4); }
+
+.btn-secondary {
+  background: white; color: var(--slate-600); border: 2px solid var(--slate-200);
+  padding: 14px 28px; border-radius: 12px; font-size: 14px; font-weight: 800;
+  text-transform: uppercase; cursor: pointer; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+  transition: background 0.15s, border-color 0.15s;
+}
+.btn-secondary:hover { background: var(--slate-50); border-color: var(--slate-300); }
+
+.btn-danger {
+  background: var(--red); color: white; border: none; padding: 14px 28px;
+  border-radius: 12px; font-size: 14px; font-weight: 800; cursor: pointer;
+  box-shadow: 0 6px 18px rgba(225, 29, 72, 0.35); transition: transform 0.15s;
+}
+.btn-danger:hover { transform: translateY(-2px); box-shadow: 0 10px 24px rgba(225, 29, 72, 0.45); }
+
+/* SEÇÃO DE DADOS */
+.dados-body { display: none; padding: 0 24px 20px; }
+.dados-body.open { display: block; animation: fadeIn 0.3s ease; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
+
+/* RESULTADO */
+.score-big {
+  font-size: 72px; font-weight: 900; line-height: 1; color: white;
+  font-variant-numeric: tabular-nums; text-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+.status-pill {
+  display: inline-block; padding: 6px 24px; border-radius: 30px; font-size: 14px;
+  font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em;
+  color: white; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
-.resultado p {
-margin: 0;
-line-height: 1.5;
+/* TABELA DE MEMÓRIA (DOMINIOS) */
+.dom-table { width: 100%; border-collapse: separate; border-spacing: 0; }
+.dom-table th {
+  background: var(--slate-50); color: var(--navy); font-size: 11px; font-weight: 800;
+  text-transform: uppercase; letter-spacing: 0.06em; padding: 12px 16px; text-align: left;
+  border-bottom: 2px solid var(--slate-200); border-top: 1px solid var(--slate-200);
+}
+.dom-table th:first-child { border-top-left-radius: 8px; border-left: 1px solid var(--slate-200); }
+.dom-table th:last-child { border-top-right-radius: 8px; border-right: 1px solid var(--slate-200); }
+.dom-table td {
+  padding: 12px 16px; border-bottom: 1px solid var(--slate-100);
+  font-size: 13px; font-weight: 500; color: var(--slate-800);
+}
+.dom-table td:first-child { border-left: 1px solid var(--slate-100); }
+.dom-table td:last-child { border-right: 1px solid var(--slate-100); }
+.dom-table tfoot td {
+  background: var(--blue-50); font-weight: 900; color: var(--navy); font-size: 15px;
+  border-top: 2px solid var(--navy); border-bottom: 1px solid var(--navy);
+}
+.dom-table tfoot td:first-child { border-bottom-left-radius: 8px; border-left: 1px solid var(--navy); }
+.dom-table tfoot td:last-child { border-bottom-right-radius: 8px; border-right: 1px solid var(--navy); }
+
+/* NANDA LIST */
+.nanda-item {
+  background: white; border: 2px solid var(--slate-100); border-radius: 10px;
+  padding: 12px; margin-bottom: 8px; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03); transition: border-color 0.2s;
+}
+.nanda-item:hover { border-color: var(--blue-200); }
+
+/* GRIDS */
+.grid-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+@media (max-width: 768px) {
+  .grid-2col { grid-template-columns: 1fr; }
+  .score-big { font-size: 56px; }
+  .btn-primary, .btn-secondary, .btn-danger { width: 100%; text-align: center; }
 }
 
-.resultado strong {
-font-weight: 700;
-}
+#resultado-section { opacity: 0; transition: opacity 0.5s ease; display: none; }
+#resultado-section.visible { opacity: 1; display: block; }
 
-.resultado.bg-red-100 {
-background-color: #fee2e2;
-color: #dc2626;
-border-color: #fca5a5;
-}
+#msgValidacaoErro { display: none; animation: fadeIn 0.3s ease; }
 
-@media (min-width: 640px) {
-.lawton-criterion-section {
-flex-direction: row;
-align-items: center;
-justify-content: space-between;
-gap: 1rem;
-}
-
-.lawton-criterion-title {
-flex-basis: 55%;
-margin-bottom: 0;
-}
-
-.lawton-criterion-select {
-flex-basis: 40%;
-}
-}
+@media print { .no-print { display: none !important; } }
 </style>
 <style id="otimizador-master-responsive">
 /* OTIMIZADOR_MASTER_V3 - RESPONSIVE SAFE */
@@ -309,6 +381,8 @@ overflow-x: auto;
 </head>
 
 <body class="bg-gray-50 text-gray-800 font-inter">
+<div id="progress-container"><div id="progress-bar-global"></div></div>
+
 <nav aria-label="Atalhos de Acessibilidade" class="sr-only focus-within:not-sr-only focus-within:absolute focus-within:top-0 focus-within:left-0 focus-within:z-50 focus-within:bg-white focus-within:text-blue-700 focus-within:p-4 focus-within:underline">
 <a href="/" accesskey="I" class="block mb-2">Ir para o Início [Alt + Shift + I]</a>
 <a href="#main-content" accesskey="C" class="block mb-2">Pular para o conteúdo principal [Alt + Shift + C]</a>
@@ -320,331 +394,861 @@ overflow-x: auto;
 
 <div id="global-header-container"></div>
 <div id="language-selector-placeholder"></div>
-<main id="main-content" class="flex-grow p-4 sm:p-8">
-<div class="main-content-wrapper max-w-4xl mx-auto px-4 py-8">
-<nav class="breadcrumb" aria-label="breadcrumb">
-<ol>
-<li><a href="index.html">Início</a></li>
-<li><a href="#">Escalas de Grau de Dependência</a></li>
-<li>Escala de Lawton</li>
-</ol>
+<main id="main-content" class="container mx-auto px-4 py-6 max-w-7xl">
+<!-- Breadcrumb -->
+<nav class="flex text-sm mb-6 no-print" aria-label="Breadcrumb" style="color: #64748b">
+  <ol class="flex items-center gap-2">
+    <li>
+      <a href="/" style="color: #1a3e74; font-weight: 600" class="hover:underline">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512" class="mr-1 inline-block" fill="currentColor" width="1em" height="1em" aria-hidden="true"><path d="M575.8 255.5c0 18-15 32.1-32 32.1l-32 0 .7 160.2c0 2.7-.2 5.4-.5 8.1l0 16.2c0 22.1-17.9 40-40 40l-16 0c-1.1 0-2.2 0-3.3-.1c-1.4 .1-2.8 .1-4.2 .1L416 512l-24 0c-22.1 0-40-17.9-40-40l0-24 0-64c0-17.7-14.3-32-32-32l-64 0c-17.7 0-32 14.3-32 32l0 64 0 24c0 22.1-17.9 40-40 40l-24 0-31.9 0c-1.5 0-3-.1-4.5-.2c-1.2 .1-2.4 .2-3.6 .2l-16 0c-22.1 0-40-17.9-40-40l0-112c0-.9 0-1.9 .1-2.8l0-69.7-32 0c-18 0-32-14-32-32.1c0-9 3-17 10-24L266.4 8c7-7 15-8 22-8s15 2 21 7L564.8 231.5c8 7 12 15 11 24z"/></svg>
+        Início
+      </a>
+    </li>
+    <li style="color: #94a3b8">›</li>
+    <li>
+      <a href="index.html" style="color: #1a3e74; font-weight: 600" class="hover:underline">
+        Escalas de Grau de Dependência
+      </a>
+    </li>
+    <li style="color: #94a3b8">›</li>
+    <li style="color: #1e293b; font-weight: 600">Escala de Lawton</li>
+  </ol>
 </nav>
 
-<div class="flex flex-col items-center justify-center gap-4 mb-3 text-center">
-<h1 id="main-title" class="font-nunito font-extrabold text-dark-blue text-4xl lg:text-5xl">
-Escala de Lawton
-</h1>
-</div>
-<div class="title-bar w-full h-1 bg-dark-blue mx-auto mb-6"></div>
-<h2 id="main-subtitle" class="font-inter font-semibold text-light-blue text-xl lg:text-2xl mb-3 text-center">
-Avaliação de Atividades Instrumentais da Vida Diária (AIVD)
-</h2>
+<!-- HERO HEADER -->
+<section class="mb-6 lawton-card-navy no-print">
+  <div class="flex flex-col md:flex-row items-center justify-between px-8 md:px-12 py-6 md:py-8" style="position: relative; z-index: 1">
+    <div class="w-full md:w-2/3 text-center md:text-left">
+      <p style="color: #93c5fd; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.15em; margin-bottom: 6px">Atividades Instrumentais da Vida Diária (AIVD)</p>
+      <h1 style="color: white; font-size: clamp(22px, 4vw, 36px); font-weight: 900; line-height: 1.2; margin-bottom: 8px">Escala de Lawton</h1>
+      <p style="color: #bfdbfe; font-size: 15px; font-weight: 500">Avalia a capacidade de um indivíduo em realizar atividades complexas e manter a independência, como uso do telefone, compras e finanças.</p>
+    </div>
+    <div class="w-full md:w-1/3 flex justify-center mt-4 md:mt-0">
+      <div class="w-24 h-24 md:w-28 md:h-28 flex items-center justify-center bg-white/10 rounded-full backdrop-blur-sm border border-white/20 shadow-[0_10px_20px_rgba(0,0,0,0.3)]">
+        <!-- Ícone fornecido -->
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="text-5xl md:text-6xl text-white" fill="currentColor" aria-hidden="true" width="1em" height="1em"><path d="M128 195.9C128 176.1 144.1 160 163.9 160C173.4 160 182.5 163.8 189.3 170.5L205.5 186.7C184.5 225.6 188.1 274.2 216.4 309.7L215 311C205.6 320.4 205.6 335.6 215 344.9C224.4 354.2 239.6 354.3 248.9 344.9L409 185C418.4 175.6 418.4 160.4 409 151.1C399.6 141.8 384.4 141.7 375.1 151.1L373.8 152.4C338.3 124.1 289.7 120.5 250.8 141.5L234.5 125.3C215.8 106.5 190.4 96 163.9 96C108.7 96 64 140.7 64 195.9L64 512C64 529.7 78.3 544 96 544C113.7 544 128 529.7 128 512L128 195.9zM320 416C337.7 416 352 401.7 352 384C352 366.3 337.7 352 320 352C302.3 352 288 366.3 288 384C288 401.7 302.3 416 320 416zM384 480C384 462.3 369.7 448 352 448C334.3 448 320 462.3 320 480C320 497.7 334.3 512 352 512C369.7 512 384 497.7 384 480zM384 352C401.7 352 416 337.7 416 320C416 302.3 401.7 288 384 288C366.3 288 352 302.3 352 320C352 337.7 366.3 352 384 352zM448 416C448 398.3 433.7 384 416 384C398.3 384 384 398.3 384 416C384 433.7 398.3 448 416 448C433.7 448 448 433.7 448 416zM448 288C465.7 288 480 273.7 480 256C480 238.3 465.7 224 448 224C430.3 224 416 238.3 416 256C416 273.7 430.3 288 448 288zM512 352C512 334.3 497.7 320 480 320C462.3 320 448 334.3 448 352C448 369.7 462.3 384 480 384C497.7 384 512 369.7 512 352zM544 320C561.7 320 576 305.7 576 288C576 270.3 561.7 256 544 256C526.3 256 512 270.3 512 288C512 305.7 526.3 320 544 320z"/></svg>
+      </div>
+    </div>
+  </div>
+</section>
 
-<p id="intro-paragraph" class="font-inter font-normal text-black-custom text-base lg:text-lg mb-6 text-left">
-Selecione uma opção para cada item da Escala de Lawton para avaliar o
-grau de independência do paciente em atividades instrumentais da vida
-diária (AIVDs).
-</p>
-<p class="font-inter text-black-custom text-base lg:text-lg text-center sm:text-left">
-<strong>Ano de Criação:</strong> 1969
-</p>
-<p class="font-inter text-black-custom text-base lg:text-lg text-center sm:text-left">
-<strong>Autores:</strong> Margaret M. Lawton e Elaine M. Brody
-</p>
-<p class="font-inter text-black-custom text-base lg:text-lg text-center sm:text-left">
-<strong>Área empregada:</strong> Clínicas de geriatria e gerontologia,
-clínicas de repouso e atendimento domiciliário.
-</p>
-<p class="font-inter text-black-custom text-base lg:text-lg text-center sm:text-left">
-<strong>Critérios avaliados:</strong> Uso do telefone, compras,
-preparo de refeições, cuidado com a casa, lavagem de roupa,
-locomoção/uso de transporte, medicação e finanças/administração do
-dinheiro.
-</p>
-<p class="font-inter text-black-custom text-base lg:text-lg text-center sm:text-left">
-<strong>Quem utiliza?:</strong> Médicos geriatras, enfermeiros de
-atendimento domiciliário, fisioterapeutas, terapeutas ocupacionais e
-Assistentes sociais.
-</p>
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+  <!-- COLUNA PRINCIPAL -->
+  <div class="lg:col-span-8 space-y-6">
 
-<div id="conteudo" style="min-height: 300px;"></div>
+    <!-- DADOS DO PACIENTE -->
+    <div class="lawton-card mb-2 no-print" style="overflow: hidden">
+      <button id="btnToggleDados" style="width: 100%; display: flex; align-items: center; justify-content: space-between; padding: 16px 24px; background: white; border: none; cursor: pointer; transition: background 0.15s" onmouseover="this.style.background='#EFF6FF'" onmouseout="this.style.background=document.getElementById('dadosBody').classList.contains('open')?'#EFF6FF':'white'">
+        <div style="display: flex; align-items: center; gap: 12px">
+          <div style="width: 38px; height: 38px; border-radius: 8px; background: var(--navy); display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: 0 4px 8px rgba(26, 62, 116, 0.3)">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" fill="currentColor" style="color: white; font-size: 16px" width="1em" height="1em"><path d="M224 256A128 128 0 1 0 224 0a128 128 0 1 0 0 256zm-45.7 48C79.8 304 0 383.8 0 482.3C0 498.7 13.3 512 29.7 512H418.3c16.4 0 29.7-13.3 29.7-29.7C448 383.8 368.2 304 269.7 304H178.3z"/></svg>
+          </div>
+          <div style="text-align: left">
+            <p style="font-size: 15px; font-weight: 800; color: var(--navy); margin: 0">Dados do Paciente</p>
+            <p id="dadosSubtitle" style="font-size: 12px; font-weight: 500; color: #64748b; margin: 0">Preencher para o Prontuário/Laudo PDF</p>
+          </div>
+        </div>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" id="dadosChevron" style="color: var(--navy); transition: transform 0.2s" fill="currentColor" width="1em" height="1em"><path d="M233.4 406.6c12.5 12.5 32.8 12.5 45.3 0l192-192c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L256 338.7 86.6 169.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3l192 192z"/></svg>
+      </button>
+      <div id="dadosBody" class="dados-body">
+        <div class="grid-2col" style="margin-top: 8px">
+          <div>
+            <label style="display: block; font-size: 12px; font-weight: 700; color: var(--slate-600); margin-bottom: 6px">Nome do Paciente</label>
+            <input type="text" id="pacNome" placeholder="Nome completo" class="input-strong" />
+          </div>
+          <div>
+            <label style="display: block; font-size: 12px; font-weight: 700; color: var(--slate-600); margin-bottom: 6px">Idade</label>
+            <input type="number" id="pacIdade" placeholder="Anos" class="input-strong" />
+          </div>
+          <div>
+            <label style="display: block; font-size: 12px; font-weight: 700; color: var(--slate-600); margin-bottom: 6px">Setor / Leito</label>
+            <input type="text" id="pacSetor" placeholder="Ex: Clínica Médica 04" class="input-strong" />
+          </div>
+          <div>
+            <label style="display: block; font-size: 12px; font-weight: 700; color: var(--slate-600); margin-bottom: 6px">Data da Avaliação</label>
+            <input type="date" id="pacData" class="input-strong" />
+          </div>
+        </div>
+      </div>
+    </div>
 
-<div id="resultado" class="resultado" aria-live="polite" style="display: none"></div>
+    <!-- FORMULÁRIO -->
+    <div class="p-6 bg-white rounded-2xl shadow-xl border border-gray-200 no-print">
+      <div class="mb-6 pb-4 border-b-2 border-slate-100 flex justify-between items-center flex-wrap gap-4">
+        <h2 class="text-lg md:text-xl font-black text-navy m-0">Atividades Avaliadas</h2>
+        <div class="bg-blue-50 px-3 py-1.5 rounded-lg border border-blue-200 text-xs font-bold text-navy">
+          Preenchido:
+          <span id="contadorPreenchidos" class="text-blue-600">0</span>
+          /8
+        </div>
+      </div>
 
-<div id="reference-section" class="ref font-inter text-gray-custom text-left mt-8 border-t pt-4">
-<strong>Referências:</strong><br>
-<ul class="list-disc list-inside mt-2">
-<li>
-BORGES, J. R. A. et al. Avaliação da capacidade funcional de
-idosos em Unidades Básicas de Saúde.
-<a href="https://dms.ufpel.edu.br/static/bib/escala_de_lawton.pdf" target="_blank" rel="noopener noreferrer" class="text-light-blue hover:underline">Revista Brasileira de Geriatria e Gerontologia</a>, v. 20, n. 4,
-p. 504-515, 2017.
-</li>
-<li>
-SANTOS, S. C. et al. Avaliação da capacidade funcional em idosos
-residentes em uma comunidade no interior de Minas Gerais.
-<a href="https://www.scielo.br/j/rbgg/a/bW4T7x6V9xX6j4Y9Y6kX9qQ/?lang=pt" target="_blank" rel="noopener noreferrer" class="text-light-blue hover:underline">Revista Brasileira de Geriatria e
-Gerontologia</a>, v. 14, n. 2, p. 257-268, 2011.
-</li>
-</ul>
-</div>
-</div>
+      <div id="msgValidacaoErro" class="mb-6 p-4 bg-red-50 border-l-4 border-red-500 rounded-r-lg text-sm text-red-800 font-bold" style="display: none;">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="mr-2 inline-block" fill="currentColor" width="1em" height="1em"><path d="M256 32c14.2 0 27.3 7.5 34.5 19.8l216 368c7.3 12.4 7.3 27.7 .2 40.1S486.3 480 472 480L40 480c-14.3 0-27.6-7.7-34.7-20.1s-7-27.8 .2-40.1l216-368C228.7 39.5 241.8 32 256 32zm0 128c-13.3 0-24 10.7-24 24l0 112c0 13.3 10.7 24 24 24s24-10.7 24-24l0-112c0-13.3-10.7-24-24-24zm32 224a32 32 0 1 0 -64 0 32 32 0 1 0 64 0z"/></svg> 
+        Por favor, responda aos 8 itens antes de calcular o escore.
+      </div>
 
-<div class="flex flex-wrap justify-start gap-4 mt-6">
-<button id="btnCalcular" class="btn-primary" aria-label="Calcular escore">
-Calcular
-</button>
-<button id="btnLimpar" class="btn-primary" aria-label="Limpar campos">
-Limpar
-</button>
+      <!-- Formulário Lawton -->
+      <form id="lawtonForm" class="grid-2col" onsubmit="return false;">
+        <!-- Os cards dos 8 domínios serão injetados aqui pelo JavaScript -->
+      </form>
+
+      <!-- Botões -->
+      <div class="mt-8 pt-6 border-t-2 border-slate-100 flex flex-col sm:flex-row gap-4 justify-center">
+        <button type="button" id="btnCalcular" class="btn-primary flex-1 max-w-sm flex justify-center items-center gap-2">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512" fill="currentColor" width="1em" height="1em"><path d="M64 0C28.7 0 0 28.7 0 64L0 448c0 35.3 28.7 64 64 64l256 0c35.3 0 64-28.7 64-64l0-384c0-35.3-28.7-64-64-64L64 0zM96 64l192 0c17.7 0 32 14.3 32 32l0 32c0 17.7-14.3 32-32 32L96 160c-17.7 0-32-14.3-32-32l0-32c0-17.7 14.3-32 32-32zm32 160a32 32 0 1 1 -64 0 32 32 0 1 1 64 0zM96 352a32 32 0 1 1 0-64 32 32 0 1 1 0 64zM64 416c0-17.7 14.3-32 32-32l96 0c17.7 0 32 14.3 32 32s-14.3 32-32 32l-96 0c-17.7 0-32-14.3-32-32zM192 256a32 32 0 1 1 0-64 32 32 0 1 1 0 64zm32 64a32 32 0 1 1 -64 0 32 32 0 1 1 64 0zm64-64a32 32 0 1 1 0-64 32 32 0 1 1 0 64zm32 64a32 32 0 1 1 -64 0 32 32 0 1 1 64 0zM288 448a32 32 0 1 1 0-64 32 32 0 1 1 0 64z"/></svg> 
+          Calcular Escore
+        </button>
+        <button type="button" id="btnLimpar" class="btn-secondary flex items-center justify-center gap-2">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512" fill="currentColor" width="1em" height="1em"><path d="M290.7 57.4L57.4 290.7c-25 25-25 65.5 0 90.5l80 80c12 12 28.3 18.7 45.3 18.7L288 480l9.4 0L512 480c17.7 0 32-14.3 32-32s-14.3-32-32-32l-124.1 0L518.6 285.3c25-25 25-65.5 0-90.5L381.3 57.4c-25-25-65.5-25-90.5 0zM297.4 416l-9.4 0-105.4 0-80-80L227.3 211.3 364.7 348.7 297.4 416z"/></svg> 
+          Limpar
+        </button>
+      </div>
+    </div>
+
+    <!-- RESULTADO (Oculto Inicialmente) -->
+    <div id="resultado-section">
+      <!-- Hero Card de Resultado -->
+      <div class="lawton-card-navy p-8 md:p-10 mb-6 text-center">
+        <div style="position: relative; z-index: 1">
+          <p class="text-blue-200 text-xs font-bold uppercase tracking-widest mb-3">Pontuação Final Lawton</p>
+
+          <div class="flex items-end justify-center gap-3 mb-5">
+            <span id="scoreValor" class="score-big">0</span>
+            <span class="text-2xl font-bold text-blue-200 mb-3">/ 8</span>
+          </div>
+
+          <div id="statusPill" class="status-pill bg-amber-600 mb-6">Nível de Autonomia</div>
+
+          <div class="bg-white/10 border border-white/20 rounded-xl p-5 text-left max-w-2xl mx-auto backdrop-blur-sm">
+            <p id="resultadoMensagem" class="text-white text-[15px] font-medium leading-relaxed m-0 text-center"></p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Grid: Memória da Avaliação & Diagnósticos NANDA -->
+      <div class="grid grid-cols-1 gap-6 mb-6">
+        <!-- Tabela de Detalhamento por Domínio -->
+        <div class="lawton-card overflow-hidden">
+          <div class="p-4 md:p-5 border-b-2 border-slate-200 bg-slate-50 flex items-center gap-3">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="currentColor" class="text-navy text-lg" width="1em" height="1em"><path d="M152.1 38.2c9.9 8.9 10.7 24 1.8 33.9l-72 80c-4.4 4.9-10.6 7.8-17.2 7.9s-12.9-2.4-17.6-7L7 113C-2.3 103.6-2.3 88.4 7 79s24.6-9.4 33.9 0l22.1 22.1 55.1-61.2c8.9-9.9 24-10.7 33.9-1.8zm0 160c9.9 8.9 10.7 24 1.8 33.9l-72 80c-4.4 4.9-10.6 7.8-17.2 7.9s-12.9-2.4-17.6-7L7 273c-9.4-9.4-9.4-24.6 0-33.9s24.6-9.4 33.9 0l22.1 22.1 55.1-61.2c8.9-9.9 24-10.7 33.9-1.8zM224 96c0-17.7 14.3-32 32-32H480c17.7 0 32 14.3 32 32s-14.3 32-32 32H256c-17.7 0-32-14.3-32-32zm0 160c0-17.7 14.3-32 32-32H480c17.7 0 32 14.3 32 32s-14.3 32-32 32H256c-17.7 0-32-14.3-32-32zM160 416c0-17.7 14.3-32 32-32H480c17.7 0 32 14.3 32 32s-14.3 32-32 32H192c-17.7 0-32-14.3-32-32zM48 368a48 48 0 1 1 0 96 48 48 0 1 1 0-96z"/></svg>
+            <h4 class="text-sm md:text-base font-bold text-navy m-0 uppercase tracking-wide">Memória da Avaliação</h4>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="dom-table">
+              <thead>
+                <tr>
+                  <th style="width: 50%">Atividade Instrumental (AIVD)</th>
+                  <th class="text-center" style="width: 10%">Obtido</th>
+                  <th class="text-center" style="width: 10%">Máx</th>
+                  <th style="width: 30%">Desempenho</th>
+                </tr>
+              </thead>
+              <tbody id="tabelaDominios">
+                <!-- Linhas Injetadas via JS -->
+              </tbody>
+              <tfoot>
+                <tr>
+                  <td>Escore Total</td>
+                  <td id="totalObtidoTd" class="text-center text-lg">—</td>
+                  <td class="text-center text-slate-500">8</td>
+                  <td id="corteTd" class="text-right">
+                    <span class="text-[11px] bg-white border border-navy text-navy px-3 py-1 rounded-full shadow-sm">Maior = Mais Independente</span>
+                  </td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+        </div>
+
+        <!-- Diagnósticos NANDA Sugeridos -->
+        <div class="lawton-card overflow-hidden">
+          <div class="p-4 md:p-5 border-b-2 border-blue-200 bg-blue-50/80 flex items-center gap-3">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" fill="currentColor" class="text-navy text-lg" width="1em" height="1em"><path d="M0 96C0 43 43 0 96 0L384 0l32 0c17.7 0 32 14.3 32 32l0 320c0 17.7-14.3 32-32 32l0 64c17.7 0 32 14.3 32 32s-14.3 32-32 32l-32 0L96 512c-53 0-96-43-96-96L0 96zM64 416c0 17.7 14.3 32 32 32l256 0 0-64L96 384c-17.7 0-32 14.3-32 32zM208 112l0 48-48 0c-8.8 0-16 7.2-16 16l0 32c0 8.8 7.2 16 16 16l48 0 0 48c0 8.8 7.2 16 16 16l32 0c8.8 0 16-7.2 16-16l0-48 48 0c8.8 0 16-7.2 16-16l0-32c0-8.8-7.2-16-16-16l-48 0 0-48c0-8.8-7.2-16-16-16l-32 0c-8.8 0-16 7.2-16 16z"/></svg>
+            <div>
+              <h4 class="text-sm md:text-base font-bold text-navy m-0 uppercase tracking-wide">Diagnósticos NANDA Sugeridos</h4>
+              <p class="text-[11px] font-medium text-slate-500 m-0 mt-0.5">Baseado nos itens onde o paciente apresentou dependência funcional.</p>
+            </div>
+          </div>
+          <div class="p-5 bg-white">
+            <ul id="lista-nanda" class="space-y-0">
+              <li class="text-sm font-medium text-slate-500 text-center py-6">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="fa-spin mr-2 inline-block" fill="currentColor" width="1em" height="1em"><path d="M304 48a48 48 0 1 0 -96 0 48 48 0 1 0 96 0zm0 416a48 48 0 1 0 -96 0 48 48 0 1 0 96 0zM48 304a48 48 0 1 0 0-96 48 48 0 1 0 0 96zm464-48a48 48 0 1 0 -96 0 48 48 0 1 0 96 0zM142.9 437A48 48 0 1 0 75 369.1 48 48 0 1 0 142.9 437zm0-294.2A48 48 0 1 0 75 75a48 48 0 1 0 67.9 67.9zM369.1 437A48 48 0 1 0 437 369.1 48 48 0 1 0 369.1 437z"/></svg>
+                Processando raciocínio clínico...
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- Botões Ação Laudo (PDF / Print) -->
+      <div class="flex flex-col sm:flex-row gap-4 justify-center no-print mt-8 pt-6 border-t border-slate-200">
+        <button id="btnGerarPDF" class="btn-danger flex items-center justify-center gap-2">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="currentColor" width="1em" height="1em"><path d="M0 64C0 28.7 28.7 0 64 0L224 0l0 128c0 17.7 14.3 32 32 32l128 0 0 144-208 0c-35.3 0-64 28.7-64 64l0 144-48 0c-35.3 0-64-28.7-64-64L0 64zm384 64l-128 0L256 0 384 128zM176 352l32 0c30.9 0 56 25.1 56 56s-25.1 56-56 56l-16 0 0 32c0 8.8-7.2 16-16 16s-16-7.2-16-16l0-48 0-80c0-8.8 7.2-16 16-16zm32 80c13.3 0 24-10.7 24-24s-10.7-24-24-24l-16 0 0 48 16 0zm96-80l32 0c26.5 0 48 21.5 48 48l0 64c0 26.5-21.5 48-48 48l-32 0c-8.8 0-16-7.2-16-16l0-128c0-8.8 7.2-16 16-16zm32 128c8.8 0 16-7.2 16-16l0-64c0-8.8-7.2-16-16-16l-16 0 0 96 16 0zm80-112c0-8.8 7.2-16 16-16l48 0c8.8 0 16 7.2 16 16s-7.2 16-16 16l-32 0 0 32 32 0c8.8 0 16 7.2 16 16s-7.2 16-16 16l-32 0 0 48c0 8.8-7.2 16-16 16s-16-7.2-16-16l0-64 0-64z"/></svg> 
+          Salvar PDF Prontuário
+        </button>
+        <button id="btnImprimir" class="btn-secondary flex items-center justify-center gap-2">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="currentColor" width="1em" height="1em"><path d="M128 0C92.7 0 64 28.7 64 64l0 96 64 0 0-96 226.7 0L384 93.3l0 66.7 64 0 0-66.7c0-17-6.7-33.3-18.7-45.3L400 18.7C388 6.7 371.7 0 354.7 0L128 0zM384 352l0 32 0 64-256 0 0-64 0-16 0-16 256 0zm64 32l32 0c17.7 0 32-14.3 32-32l0-96c0-35.3-28.7-64-64-64L64 192c-35.3 0-64 28.7-64 64l0 96c0 17.7 14.3 32 32 32l32 0 0 64c0 35.3 28.7 64 64 64l256 0c35.3 0 64-28.7 64-64l0-64zM432 248a24 24 0 1 1 0 48 24 24 0 1 1 0-48z"/></svg> 
+          Imprimir Laudo
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- COLUNA LATERAL (Direita) -->
+  <aside class="lg:col-span-4 space-y-6 no-print">
+
+    <!-- Dúvidas Frequentes -->
+    <div class="bg-[#F8FBFF] rounded-xl p-6 border border-[#E2E8F0]">
+      <h4 class="font-bold text-[#1A3E74] mb-2 text-sm uppercase">Dúvidas Frequentes</h4>
+      <p class="text-xs text-gray-700 mb-4">Acompanhe mais informações de enfermagem no nosso Fórum de enfermagem.</p>
+      <a href="https://www.calculadorasdeenfermagem.com.br/forum-enfermagem.html" class="text-xs font-bold text-[#1A3E74] hover:text-[#1A3E74] uppercase flex items-center gap-1">
+        TIRE SUAS DÚVIDAS 
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" fill="currentColor" width="1em" height="1em" style="font-size: 10px"><path d="M438.6 278.6c12.5-12.5 12.5-32.8 0-45.3l-160-160c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L338.8 224 32 224c-17.7 0-32 14.3-32 32s14.3 32 32 32l306.7 0L233.4 393.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0l160-160z"/></svg>
+      </a>
+    </div>
+
+    <!-- Veja Também -->
+    <div class="lawton-card p-6 bg-white/80 backdrop-blur-xl lg:sticky lg:top-6">
+      <h3 class="text-[15px] font-black text-navy mb-5 border-b-2 border-slate-100 pb-3 flex items-center gap-2">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512" fill="currentColor" width="1em" height="1em" class="text-blue-500"><path d="M579.8 267.7c56.5-56.5 56.5-148 0-204.5c-50-50-128.8-56.5-186.3-15.4l-1.6 1.1c-14.4 10.3-17.7 30.3-7.4 44.6s30.3 17.7 44.6 7.4l1.6-1.1c32.1-22.9 76-19.3 103.8 8.6c31.5 31.5 31.5 82.5 0 114L422.3 334.8c-31.5 31.5-82.5 31.5-114 0c-27.9-27.9-31.5-71.8-8.6-103.8l1.1-1.6c10.3-14.4 6.9-34.4-7.4-44.6s-34.4-6.9-44.6 7.4l-1.1 1.6C206.5 251.2 213 330 263 380c56.5 56.5 148 56.5 204.5 0L579.8 267.7zM60.2 244.3c-56.5 56.5-56.5 148 0 204.5c50 50 128.8 56.5 186.3 15.4l1.6-1.1c14.4-10.3 17.7-30.3 7.4-44.6s-30.3-17.7-44.6-7.4l-1.6 1.1c-32.1 22.9-76 19.3-103.8-8.6C74 372 74 321 105.5 289.5L217.7 177.2c31.5-31.5 82.5-31.5 114 0c27.9 27.9 31.5 71.8 8.6 103.9l-1.1 1.6c-10.3 14.4-6.9 34.4 7.4 44.6s34.4 6.9 44.6-7.4l1.1-1.6C433.5 260.8 427 182 377 132c-56.5-56.5-148-56.5-204.5 0L60.2 244.3z"/></svg>
+        Escalas Relacionadas
+      </h3>
+      <ul class="space-y-3">
+        <li>
+          <a href="katz.html" class="flex items-start gap-3 p-3 rounded-xl border border-slate-100 hover:bg-blue-50 hover:border-blue-200 transition-all group shadow-sm hover:shadow-md">
+            <div class="w-10 h-10 rounded-lg bg-slate-50 border border-slate-200 flex items-center justify-center flex-shrink-0 group-hover:bg-white group-hover:text-blue-600 transition-colors">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="currentColor" width="1em" height="1em" class="text-slate-400 group-hover:text-blue-600 text-lg"><path d="M96 77.3c0-7.3 5.9-13.3 13.3-13.3c3.5 0 6.9 1.4 9.4 3.9l14.9 14.9C130 91.8 128 101.7 128 112c0 19.9 7.2 38 19.2 52c-5.3 9.2-4 21.1 3.8 29c9.4 9.4 24.6 9.4 33.9 0L289 89c9.4-9.4 9.4-24.6 0-33.9c-7.9-7.9-19.8-9.1-29-3.8C246 39.2 227.9 32 208 32c-10.3 0-20.2 2-29.2 5.5L163.9 22.6C149.4 8.1 129.7 0 109.3 0C66.6 0 32 34.6 32 77.3L32 256c-17.7 0-32 14.3-32 32s14.3 32 32 32l448 0c17.7 0 32-14.3 32-32s-14.3-32-32-32L96 256 96 77.3zM32 352l0 16c0 28.4 12.4 54 32 71.6L64 480c0 17.7 14.3 32 32 32s32-14.3 32-32l0-16 256 0 0 16c0 17.7 14.3 32 32 32s32-14.3 32-32l0-40.4c19.6-17.6 32-43.1 32-71.6l0-16L32 352z"/></svg>
+            </div>
+            <div>
+              <h4 class="text-[13px] font-bold text-slate-800 group-hover:text-navy m-0 leading-tight mb-1">Escala de Katz</h4>
+              <p class="text-[11px] text-slate-500 m-0 leading-snug">Avalia independência nas ABVDs.</p>
+            </div>
+          </a>
+        </li>
+        <li>
+          <a href="barthel.html" class="flex items-start gap-3 p-3 rounded-xl border border-slate-100 hover:bg-blue-50 hover:border-blue-200 transition-all group shadow-sm hover:shadow-md">
+            <div class="w-10 h-10 rounded-lg bg-slate-50 border border-slate-200 flex items-center justify-center flex-shrink-0 group-hover:bg-white group-hover:text-blue-600 transition-colors">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512" fill="currentColor" width="1em" height="1em" class="text-slate-400 group-hover:text-blue-600 text-lg"><path d="M208 48a48 48 0 1 0 -96 0 48 48 0 1 0 96 0zM125.7 175.5c9.9-9.9 23.4-15.5 37.5-15.5c1.9 0 3.8 .1 5.6 .3L137.6 254c-9.3 28 1.7 58.8 26.8 74.5l86.2 53.9c9 5.6 20.9 2.8 26.5-6.2s2.8-20.9-6.2-26.5l-86.2-53.9c-3.8-2.4-6.2-6.5-7-11L143 150.3C136 122.3 110.3 103 80.9 103H72C32.2 103 0 135.2 0 175c0 9.7 5.8 18.2 14.8 21.9l69.9 29.1c11.7 4.9 25 1 31.8-10.2s2.9-25.5-8.7-30.4l-35.6-14.8c-2.4-1-3.9-3.5-3.8-6.1c.1-2.9 2.5-5.2 5.4-5.2h8.9c5 0 9.7 2 13.3 5.5l30 30.7zM169 321.4l-11.4 34.1L82.1 482.9c-7.5 12.9-23.7 17.3-36.6 9.8s-17.3-23.7-9.8-36.6l71.4-122.4L169 321.4z"/></svg>
+            </div>
+            <div>
+              <h4 class="text-[13px] font-bold text-slate-800 group-hover:text-navy m-0 leading-tight mb-1">Índice de Barthel</h4>
+              <p class="text-[11px] text-slate-500 m-0 leading-snug">Mede grau de dependência motora.</p>
+            </div>
+          </a>
+        </li>
+        <li>
+          <a href="zarit.html" class="flex items-start gap-3 p-3 rounded-xl border border-slate-100 hover:bg-blue-50 hover:border-blue-200 transition-all group shadow-sm hover:shadow-md">
+            <div class="w-10 h-10 rounded-lg bg-slate-50 border border-slate-200 flex items-center justify-center flex-shrink-0 group-hover:bg-white group-hover:text-blue-600 transition-colors">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512" fill="currentColor" width="1em" height="1em" class="text-slate-400 group-hover:text-blue-600 text-lg"><path d="M224 256A128 128 0 1 0 224 0a128 128 0 1 0 0 256zm-45.7 48C79.8 304 0 383.8 0 482.3C0 498.7 13.3 512 29.7 512H418.3c16.4 0 29.7-13.3 29.7-29.7C448 383.8 368.2 304 269.7 304H178.3z"/></svg>
+            </div>
+            <div>
+              <h4 class="text-[13px] font-bold text-slate-800 group-hover:text-navy m-0 leading-tight mb-1">Escala de Zarit</h4>
+              <p class="text-[11px] text-slate-500 m-0 leading-snug">Avalia a sobrecarga do cuidador.</p>
+            </div>
+          </a>
+        </li>
+      </ul>
+    </div>
+
+    <!-- Referência -->
+    <div class="bg-slate-50 rounded-xl p-5 border border-slate-200">
+      <h3 class="text-xs font-bold text-slate-700 uppercase tracking-wider mb-2 flex items-center gap-2">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" fill="currentColor" width="1em" height="1em" class="text-slate-400"><path d="M96 0C43 0 0 43 0 96L0 416c0 53 43 96 96 96l288 0 32 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l0-64c17.7 0 32-14.3 32-32l0-320c0-17.7-14.3-32-32-32L384 0 96 0zm0 384l256 0 0 64L96 448c-17.7 0-32-14.3-32-32s14.3-32 32-32zm32-240c0-8.8 7.2-16 16-16l192 0c8.8 0 16 7.2 16 16s-7.2 16-16 16l-192 0c-8.8 0-16-7.2-16-16zm16 48l192 0c8.8 0 16 7.2 16 16s-7.2 16-16 16l-192 0c-8.8 0-16-7.2-16-16s7.2-16 16-16z"/></svg> 
+        Referência Científica
+      </h3>
+      <p class="text-[11px] text-slate-500 leading-relaxed m-0 text-justify">
+        LAWTON, M. P.; BRODY, E. M. Assessment of older people: self-maintaining and instrumental activities of daily living. <a href="https://academic.oup.com/gerontologist/article-abstract/9/3_Part_1/179/574211" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:underline">The Gerontologist</a>, v. 9, n. 3_Part_1, p. 179-186, 1969.
+      </p>
+    </div>
+  </aside>
 </div>
 </main>
-<script>
-document.addEventListener("DOMContentLoaded", function () {
-const resultadoDiv = document.getElementById("resultado");
-const btnCalcular = document.getElementById("btnCalcular");
-const btnLimpar = document.getElementById("btnLimpar");
-const conteudoDiv = document.getElementById("conteudo");
-const introParagraph = document.getElementById("intro-paragraph");
-const referenceSection = document.getElementById("reference-section");
 
-const lawtonData = [
-{
-category: "Uso do telefone",
-nameAttr: "telefone",
-options: [
-{
-description: "Opera o telefone por iniciativa própria",
-score: 1,
-},
-{ description: "Marca alguns números familiares", score: 1 },
-{
-description: "Atende o telefone, mas não marca números",
-score: 1,
-},
-{ description: "Não usa o telefone de forma alguma", score: 0 },
-],
-},
-{
-category: "Compras",
-nameAttr: "compras",
-options: [
-{
-description:
-"Faz todas as compras necessárias de forma independente",
-score: 1,
-},
-{
-description: "Faz pequenas compras de forma independente",
-score: 0,
-},
-{
-description: "Precisa ser acompanhado para qualquer compra",
-score: 0,
-},
-{ description: "Incapaz de fazer compras", score: 0 },
-],
-},
-{
-category: "Preparo de refeições",
-nameAttr: "refeicoes",
-options: [
-{
-description: "Planeia, prepara e serve refeições completas",
-score: 1,
-},
-{
-description:
-"Prepara refeições se os ingredientes forem fornecidos",
-score: 0,
-},
-{ description: "Prepara apenas refeições ligeiras", score: 0 },
-{ description: "Incapaz de preparar refeições", score: 0 },
-],
-},
-{
-category: "Cuidado com a casa",
-nameAttr: "cuidado_casa",
-options: [
-{
-description: "Mantém a casa sozinha ou com ajuda ocasional",
-score: 1,
-},
-{ description: "Realiza apenas tarefas leves", score: 1 },
-{
-description:
-"Não participa ativamente nos trabalhos domésticos",
-score: 0,
-},
-{
-description: "Precisa de ajuda total para o cuidado da casa",
-score: 0,
-},
-],
-},
-{
-category: "Lavagem de roupa",
-nameAttr: "lavagem_roupa",
-options: [
-{
-description: "Lava a própria roupa de forma independente",
-score: 1,
-},
-{ description: "Lava apenas pequenas peças de roupa", score: 1 },
-{
-description: "Precisa que a roupa seja lavada por outra pessoa",
-score: 0,
-},
-],
-},
-{
-category: "Locomoção/Uso de transporte",
-nameAttr: "locomocao",
-options: [
-{
-description:
-"Viaja de forma independente em transporte público ou conduz o próprio carro",
-score: 1,
-},
-{
-description:
-"Usa táxi ou transporte público com ajuda de outra pessoa",
-score: 1,
-},
-{
-description:
-"Viaja apenas em carro particular com a ajuda de outra pessoa",
-score: 1,
-},
-{ description: "Incapaz de viajar", score: 0 },
-],
-},
-{
-category: "Medicação",
-nameAttr: "medicao",
-options: [
-{ description: "É responsável por sua medicação", score: 1 },
-{
-description:
-"Apenas toma os medicamentos quando os preparam para ele",
-score: 0,
-},
-{ description: "Incapaz de tomar medicamentos", score: 0 },
-],
-},
-{
-category: "Finanças/Administração do dinheiro",
-nameAttr: "financas",
-options: [
-{
-description:
-"Gere as finanças de forma independente (bancos, contas, etc.)",
-score: 1,
-},
-{
-description:
-"Gere pequenas compras, mas precisa de ajuda com bancos",
-score: 1,
-},
-{ description: "Incapaz de gerir o dinheiro", score: 0 },
-],
-},
+<script>
+(function () {
+"use strict";
+
+// --- ESTRUTURA DE DADOS DOS 8 CRITÉRIOS DE LAWTON ---
+const ITENS_LAWTON = [
+  {
+    id: "telefone", label: "1. Uso do Telefone", max: 1,
+    desc: "Capacidade de operar o telefone e fazer ligações.",
+    opts: [
+      { val: "", text: "Selecione..." },
+      { val: 1, text: "Opera por iniciativa ou marca números (1 pt)" },
+      { val: 0, text: "Atende, mas não disca ou não usa telefone (0 pts)" }
+    ]
+  },
+  {
+    id: "compras", label: "2. Compras", max: 1,
+    desc: "Realização de compras necessárias de forma independente.",
+    opts: [
+      { val: "", text: "Selecione..." },
+      { val: 1, text: "Faz todas as compras de forma independente (1 pt)" },
+      { val: 0, text: "Faz pequenas compras, acompanhado ou incapaz (0 pts)" }
+    ]
+  },
+  {
+    id: "refeicoes", label: "3. Preparo de Refeições", max: 1,
+    desc: "Planejamento, preparo e serviço de refeições.",
+    opts: [
+      { val: "", text: "Selecione..." },
+      { val: 1, text: "Planeja e prepara refeições completas (1 pt)" },
+      { val: 0, text: "Precisa de ingredientes, faz lanches ou incapaz (0 pts)" }
+    ]
+  },
+  {
+    id: "casa", label: "4. Cuidado com a Casa", max: 1,
+    desc: "Manutenção da casa e trabalhos domésticos.",
+    opts: [
+      { val: "", text: "Selecione..." },
+      { val: 1, text: "Mantém a casa (com ou sem ajuda pesada) (1 pt)" },
+      { val: 0, text: "Tarefas muito leves ou incapaz (0 pts)" }
+    ]
+  },
+  {
+    id: "roupa", label: "5. Lavagem de Roupa", max: 1,
+    desc: "Lavar as próprias roupas.",
+    opts: [
+      { val: "", text: "Selecione..." },
+      { val: 1, text: "Lava a própria roupa toda ou peças leves (1 pt)" },
+      { val: 0, text: "Precisa que a roupa seja lavada por outros (0 pts)" }
+    ]
+  },
+  {
+    id: "transporte", label: "6. Locomoção / Transporte", max: 1,
+    desc: "Uso de transportes públicos, táxi ou dirigir.",
+    opts: [
+      { val: "", text: "Selecione..." },
+      { val: 1, text: "Viaja independente ou táxi acompanhado (1 pt)" },
+      { val: 0, text: "Apenas carro acompanhado ou incapaz de viajar (0 pts)" }
+    ]
+  },
+  {
+    id: "medicacao", label: "7. Medicação", max: 1,
+    desc: "Controle sobre os próprios medicamentos.",
+    opts: [
+      { val: "", text: "Selecione..." },
+      { val: 1, text: "Responsável pela própria medicação (1 pt)" },
+      { val: 0, text: "Toma se preparados ou incapaz de tomar (0 pts)" }
+    ]
+  },
+  {
+    id: "financas", label: "8. Finanças", max: 1,
+    desc: "Administração do dinheiro e contas.",
+    opts: [
+      { val: "", text: "Selecione..." },
+      { val: 1, text: "Gerencia compras e finanças de forma independente (1 pt)" },
+      { val: 0, text: "Gerencia apenas compras leves ou incapaz (0 pts)" }
+    ]
+  }
 ];
 
-// Preenche o formulário dinamicamente
-lawtonData.forEach((item) => {
-const sectionDiv = document.createElement("div");
-sectionDiv.className = "lawton-criterion-section";
-sectionDiv.id = `section-${item.nameAttr}`;
+// --- Renderizando os cards dinâmicos ---
+function renderizarItens() {
+  const container = document.getElementById("lawtonForm");
+  container.innerHTML = "";
 
-const titleH3 = document.createElement("h3");
-titleH3.className = "lawton-criterion-title";
-titleH3.innerHTML = item.category;
-sectionDiv.appendChild(titleH3);
+  ITENS_LAWTON.forEach((item) => {
+    let optsHtml = "";
+    item.opts.forEach((op) => {
+      optsHtml += `<option value="${op.val}" ${op.val === "" ? "disabled selected" : ""}>${op.text}</option>`;
+    });
 
-const selectElement = document.createElement("select");
-selectElement.id = item.nameAttr;
-selectElement.className = "lawton-criterion-select";
+    const div = document.createElement("div");
+    div.className = "item-card";
+    div.id = `card_${item.id}`;
+    div.innerHTML = `
+      <div class="flex items-start justify-between mb-2 gap-2">
+        <div>
+          <label for="${item.id}" class="text-[13px] font-bold text-slate-800 leading-snug">${item.label}</label>
+          <p class="text-[11px] text-slate-500 mt-1">${item.desc}</p>
+        </div>
+        <span id="badge_${item.id}" class="item-badge shrink-0">--/${item.max}</span>
+      </div>
+      <select id="${item.id}" class="item-select mt-2">${optsHtml}</select>
+      <div class="mini-bar-wrap">
+        <div id="bar_${item.id}" class="mini-bar-fill" style="width: 0%;"></div>
+      </div>
+    `;
+    container.appendChild(div);
 
-const defaultOption = document.createElement("option");
-defaultOption.value = "";
-defaultOption.text = "Selecione...";
-selectElement.appendChild(defaultOption);
-
-item.options.forEach((option) => {
-const optionElement = document.createElement("option");
-optionElement.value = option.score;
-optionElement.text = `${option.description} (pontos: ${option.score})`;
-selectElement.appendChild(optionElement);
-});
-
-sectionDiv.appendChild(selectElement);
-conteudoDiv.appendChild(sectionDiv);
-});
-
-function calcularLawton() {
-const selects = document.querySelectorAll("#conteudo select");
-let allSelected = true;
-let total = 0;
-
-selects.forEach((select) => {
-if (select.value === "") {
-allSelected = false;
-select.classList.add("incomplete");
-} else {
-select.classList.remove("incomplete");
-total += Number(select.value);
-}
-});
-
-resultadoDiv.style.display = "block";
-if (!allSelected) {
-resultadoDiv.innerHTML =
-'⚠️ <strong class="font-bold">Por favor, selecione uma opção para todos os itens antes de calcular.</strong>';
-resultadoDiv.classList.add("bg-red-100");
-delete resultadoDiv.dataset.score;
-return;
+    document.getElementById(item.id).addEventListener("change", () => {
+      document.getElementById(`card_${item.id}`).classList.remove("error");
+      document.getElementById("msgValidacaoErro").style.display = "none";
+      atualizarCardIndividual(item.id, item.max);
+    });
+    // Evitar scroll acidental
+    document.getElementById(item.id).addEventListener("wheel", function(e) { e.preventDefault(); this.blur(); });
+  });
 }
 
-let recomendacao = "";
-let resultadoClasse = "bg-blue-50";
+// --- ATUALIZAR STATUS DE UM CARD ESPECÍFICO ---
+function atualizarCardIndividual(id, max) {
+  const select = document.getElementById(id);
+  const valStr = select.value;
+  if (valStr === "") return;
+  const val = parseInt(valStr);
+  const pct = (val / max) * 100; // Será 0 ou 100
 
-if (total < 8) {
-recomendacao =
-"O escore sugere um grau de dependência para a realização das atividades instrumentais da vida diária (AIVDs). É recomendada uma avaliação mais aprofundada para determinar as necessidades de assistência.";
-} else {
-recomendacao =
-"O escore sugere um grau de independência para a realização da maioria das atividades instrumentais da vida diária (AIVDs).";
+  const badge = document.getElementById(`badge_${id}`);
+  const bar = document.getElementById(`bar_${id}`);
+
+  badge.textContent = `${val}/${max}`;
+  bar.style.width = `100%`; // Para preencher a barra visualmente
+
+  // Cores: 1 (Independente) = Verde, 0 (Dependente) = Vermelho
+  if (val === 1) bar.style.backgroundColor = "#16a34a"; // Verde
+  else if (val === 0) bar.style.backgroundColor = "#e11d48"; // Vermelho
+
+  atualizarBarraGlobal();
 }
 
-resultadoDiv.innerHTML = `
-<p>Escore total: <strong class="font-bold">${total}</strong></p>
-<p class="mt-4"><strong>Recomendação:</strong> ${recomendacao}</p>
-`;
-resultadoDiv.className = `resultado ${resultadoClasse}`;
-resultadoDiv.style.display = "block";
+// --- BARRA FLUTUANTE GLOBAL E CONTADOR ---
+function atualizarBarraGlobal() {
+  let preenchidos = 0;
+  ITENS_LAWTON.forEach((i) => {
+    if (document.getElementById(i.id).value !== "") preenchidos++;
+  });
 
-resultadoDiv.dataset.score = total;
-resultadoDiv.dataset.scaleName = "Escala de Lawton";
+  const pctGlobal = (preenchidos / 8) * 100;
+  document.getElementById("progress-bar-global").style.width = `${pctGlobal}%`;
+  document.getElementById("contadorPreenchidos").textContent = preenchidos;
 }
 
-function limparCampos() {
-const selects = document.querySelectorAll("#conteudo select");
-selects.forEach((select) => {
-select.selectedIndex = 0;
-select.classList.remove("incomplete");
+// --- LÓGICA DADOS DO PACIENTE (TOGGLE) ---
+document.getElementById("btnToggleDados").addEventListener("click", function () {
+  const body = document.getElementById("dadosBody");
+  const chevron = document.getElementById("dadosChevron");
+  const subtitle = document.getElementById("dadosSubtitle");
+
+  if (body.classList.contains("open")) {
+    body.classList.remove("open");
+    chevron.style.transform = "rotate(0deg)";
+    subtitle.textContent = "Preencher para o Prontuário/Laudo PDF";
+    this.style.background = "white";
+  } else {
+    body.classList.add("open");
+    chevron.style.transform = "rotate(180deg)";
+    subtitle.textContent = "Ocultar painel";
+    this.style.background = "#EFF6FF";
+  }
 });
-resultadoDiv.innerHTML = "";
-resultadoDiv.className = "resultado hidden";
-delete resultadoDiv.dataset.score;
-delete resultadoDiv.dataset.scaleName;
+document.getElementById("pacData").value = new Date().toISOString().split("T")[0];
+
+// --- Implementando lógica de cálculo principal... ---
+const resultadoSection = document.getElementById("resultado-section");
+
+function calcular() {
+  let incompleto = false;
+  let somaTotal = 0;
+  let dominiosValores = [];
+  // Keywords base para a NANDA relativas à autonomia e AIVDs
+  let diagnosticosKeywords = ["autocuidado", "controle", "saúde"];
+  let primeiroErro = null;
+
+  ITENS_LAWTON.forEach((item) => {
+    const selectVal = document.getElementById(item.id).value;
+    if (selectVal === "") {
+      incompleto = true;
+      document.getElementById(`card_${item.id}`).classList.add("error");
+      if(!primeiroErro) primeiroErro = document.getElementById(`card_${item.id}`);
+      dominiosValores.push({ nome: item.label, obtido: 0, text: "Não preenchido" });
+    } else {
+      document.getElementById(`card_${item.id}`).classList.remove("error");
+      const val = parseInt(selectVal);
+      somaTotal += val;
+      const textoResp = val === 1 ? "Independente" : "Dependente";
+      dominiosValores.push({ nome: item.label, obtido: val, text: textoResp });
+
+      // Alimentando keywords NANDA baseado nas dependências (val === 0)
+      if (val === 0) {
+          if (item.id === "compras" || item.id === "refeicoes") diagnosticosKeywords.push("nutrição", "alimentação");
+          if (item.id === "medicacao") diagnosticosKeywords.push("adesão", "regime terapêutico");
+          if (item.id === "transporte") diagnosticosKeywords.push("mobilidade", "isolamento social");
+          if (item.id === "casa" || item.id === "roupa") diagnosticosKeywords.push("ambiente", "manutenção do lar");
+          if (item.id === "financas") diagnosticosKeywords.push("confusão", "cognição");
+      }
+    }
+  });
+
+  if (incompleto) {
+    const msgErro = document.getElementById("msgValidacaoErro");
+    msgErro.style.display = "block";
+    if (primeiroErro) {
+      primeiroErro.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+    return;
+  }
+
+  document.getElementById("msgValidacaoErro").style.display = "none";
+
+  // Determinar Classificação Lawton (0 a 8 pontos)
+  let classe = "", bgPill = "", recomendacao = "";
+  if (somaTotal === 8) {
+    classe = "Independência Total"; bgPill = "#16a34a"; // Verde
+    recomendacao = "Paciente possui autonomia completa nas atividades instrumentais da vida diária (AIVDs). Estimule a manutenção do estilo de vida ativo.";
+  } else if (somaTotal >= 6 && somaTotal <= 7) {
+    classe = "Dependência Leve / Parcial"; bgPill = "#84cc16"; // Verde Lima
+    recomendacao = "Paciente apresenta leve declínio em algumas tarefas instrumentais. Recomenda-se suporte familiar pontual e avaliação periódica.";
+  } else if (somaTotal >= 4 && somaTotal <= 5) {
+    classe = "Dependência Moderada"; bgPill = "#f97316"; // Laranja
+    recomendacao = "Paciente necessita de assistência significativa para a gestão da rotina (medicamentos, compras, finanças). Envolvimento da rede de apoio é essencial.";
+  } else {
+    classe = "Dependência Grave"; bgPill = "#e11d48"; // Vermelho
+    recomendacao = "Paciente altamente dependente para as atividades diárias instrumentais. É requerida assistência contínua ou institucionalização parcial/integral.";
+  }
+
+  // Exibir no Hero Card
+  document.getElementById("scoreValor").textContent = somaTotal;
+  const pill = document.getElementById("statusPill");
+  pill.textContent = classe;
+  pill.style.backgroundColor = bgPill;
+
+  document.getElementById("resultadoMensagem").innerHTML = `O escore obtido é de <strong>${somaTotal} pontos</strong> de 8 possíveis.<br><br><strong>Interpretação:</strong> ${recomendacao}`;
+
+  // Gerar Tabela de Detalhamento
+  const tbody = document.getElementById("tabelaDominios");
+  tbody.innerHTML = "";
+  dominiosValores.forEach((dom) => {
+    let cor = dom.obtido === 1 ? "#16a34a" : "#e11d48"; // Verde (Independente) ou Vermelho (Dependente)
+
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td class="font-bold text-slate-700">${dom.nome}</td>
+      <td class="text-center font-black" style="color: ${cor}">${dom.obtido}</td>
+      <td class="text-center text-slate-400">1</td>
+      <td>
+        <span class="text-[12px] font-bold px-3 py-1 rounded-full" style="background-color: ${cor}15; color: ${cor}; border: 1px solid ${cor}30">${dom.text}</span>
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
+
+  // Mostrar Seção
+  resultadoSection.classList.add("visible");
+  setTimeout(() => {
+    resultadoSection.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, 100);
+
+  // Chamar NANDA
+  chamarNanda(diagnosticosKeywords);
 }
 
-// Adiciona os event listeners aos botões
-btnCalcular?.addEventListener("click", calcularLawton);
-btnLimpar?.addEventListener("click", limparCampos);
+// --- Consultando Banco NANDA... ---
+async function chamarNanda(keywords) {
+  const lista = document.getElementById("lista-nanda");
+  lista.innerHTML = '<li class="text-sm text-slate-500 text-center py-4"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="fa-spin mr-2 inline-block" fill="currentColor" width="1em" height="1em"><path d="M304 48a48 48 0 1 0 -96 0 48 48 0 1 0 96 0zm0 416a48 48 0 1 0 -96 0 48 48 0 1 0 96 0zM48 304a48 48 0 1 0 0-96 48 48 0 1 0 0 96zm464-48a48 48 0 1 0 -96 0 48 48 0 1 0 96 0zM142.9 437A48 48 0 1 0 75 369.1 48 48 0 1 0 142.9 437zm0-294.2A48 48 0 1 0 75 75a48 48 0 1 0 67.9 67.9zM369.1 437A48 48 0 1 0 437 369.1 48 48 0 1 0 369.1 437z"/></svg> Processando raciocínio clínico...</li>';
 
-});
+  try {
+    const response = await fetch("/banco_nanda.json");
+    if (!response.ok) throw new Error("Erro fetch");
+    const banco = await response.json();
+
+    const pontuados = banco
+      .map((diag) => {
+        let matchScore = 0;
+        const texto = (diag.diagnostico + " " + diag.definicao).toLowerCase();
+        keywords.forEach((kw) => {
+          if (texto.includes(kw.toLowerCase())) matchScore++;
+        });
+        return { ...diag, matchScore };
+      })
+      .filter((d) => d.matchScore > 0);
+
+    pontuados.sort((a, b) => b.matchScore - a.matchScore);
+
+    const uniqueDiagnosticos = [];
+    const codigosVistos = new Set();
+    for (const d of pontuados) {
+      if (!codigosVistos.has(d.codigo)) {
+        uniqueDiagnosticos.push(d);
+        codigosVistos.add(d.codigo);
+      }
+      if (uniqueDiagnosticos.length >= 6) break;
+    }
+
+    if (uniqueDiagnosticos.length > 0) {
+      lista.innerHTML = "";
+      uniqueDiagnosticos.forEach((d) => {
+        lista.innerHTML += `
+          <li class="nanda-item flex items-start gap-3">
+            <span class="bg-blue-100 text-blue-800 text-[10px] font-black px-2 py-1 rounded shadow-sm mt-0.5">${d.codigo}</span>
+            <div>
+              <h5 class="text-[13px] font-bold text-slate-800 leading-tight mb-1">${d.diagnostico}</h5>
+              <p class="text-[11px] text-slate-500 leading-snug m-0">${d.definicao}</p>
+            </div>
+          </li>
+        `;
+      });
+    } else {
+      lista.innerHTML = '<li class="text-xs text-slate-500 text-center py-4">Nenhum diagnóstico associado às seleções atuais.</li>';
+    }
+  } catch (e) {
+    lista.innerHTML = '<li class="text-xs text-red-500 text-center py-4">Banco de dados NANDA temporariamente indisponível.</li>';
+  }
+}
+
+function limpar() {
+  ITENS_LAWTON.forEach((item) => {
+    document.getElementById(item.id).value = "";
+    document.getElementById(`card_${item.id}`).classList.remove("error");
+
+    const badge = document.getElementById(`badge_${item.id}`);
+    const bar = document.getElementById(`bar_${item.id}`);
+    badge.textContent = `--/${item.max}`;
+    bar.style.width = `0%`;
+    bar.style.backgroundColor = "transparent";
+  });
+  document.getElementById("pacNome").value = "";
+  document.getElementById("pacIdade").value = "";
+  document.getElementById("pacSetor").value = "";
+  document.getElementById("msgValidacaoErro").style.display = "none";
+  atualizarBarraGlobal();
+
+  resultadoSection.classList.remove("visible");
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+// --- Funções de Exportação e Impressão (PDF)... ---
+function getDadosImpressao() {
+  let soma = 0;
+  ITENS_LAWTON.forEach((i) => {
+    const val = document.getElementById(i.id).value;
+    soma += val === "" ? 0 : parseInt(val);
+  });
+
+  let classe = "Dependência Grave";
+  if (soma === 8) classe = "Independência Total";
+  else if (soma >= 6) classe = "Dependência Leve / Parcial";
+  else if (soma >= 4) classe = "Dependência Moderada";
+
+  const dataVal = document.getElementById("pacData").value;
+  const dataFormatada = dataVal ? dataVal.split("-").reverse().join("/") : new Date().toLocaleDateString("pt-BR");
+
+  return {
+    nome: document.getElementById("pacNome").value.trim(),
+    idade: document.getElementById("pacIdade").value.trim(),
+    setor: document.getElementById("pacSetor").value.trim(),
+    data: dataFormatada,
+    soma: soma,
+    classe: classe,
+  };
+}
+
+function gerarPDF() {
+  if (typeof window.jspdf === "undefined") {
+    console.warn("jsPDF carregando. Aguarde.");
+    return;
+  }
+
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
+  const data = getDadosImpressao();
+
+  const navy = [26, 62, 116];
+  const slateLight = [241, 245, 249];
+  const W = 210, marginL = 18, marginR = 18, usable = W - marginL - marginR;
+
+  // Cabeçalho
+  doc.setFillColor(...navy);
+  doc.rect(0, 0, W, 32, "F");
+  doc.setTextColor(255, 255, 255);
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(14);
+  doc.text("Escala de Lawton", marginL, 13);
+  doc.setFontSize(9);
+  doc.setFont("helvetica", "normal");
+  doc.text("Avaliação das Atividades Instrumentais da Vida Diária (AIVD)", marginL, 20);
+  doc.text("Data: " + data.data, W - marginR, 20, { align: "right" });
+
+  let y = 42;
+
+  // Identificação
+  if (data.nome || data.idade || data.setor) {
+    doc.setFillColor(...slateLight);
+    doc.roundedRect(marginL, y, usable, 8, 2, 2, "F");
+    doc.setTextColor(...navy);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(9);
+    doc.text("IDENTIFICAÇÃO DO PACIENTE", marginL + 4, y + 5.5);
+    y += 12;
+
+    if (data.nome) {
+      doc.text("Nome:", marginL, y);
+      doc.setFont("helvetica", "normal");
+      doc.setTextColor(30, 41, 59);
+      doc.text(data.nome, marginL + 20, y);
+      y += 6;
+      doc.setFont("helvetica", "bold");
+      doc.setTextColor(...navy);
+    }
+    if (data.idade) {
+      doc.text("Idade:", marginL, y);
+      doc.setFont("helvetica", "normal");
+      doc.setTextColor(30, 41, 59);
+      doc.text(data.idade + " anos", marginL + 20, y);
+      y += 6;
+      doc.setFont("helvetica", "bold");
+      doc.setTextColor(...navy);
+    }
+    if (data.setor) {
+      doc.text("Setor/Leito:", marginL, y);
+      doc.setFont("helvetica", "normal");
+      doc.setTextColor(30, 41, 59);
+      doc.text(data.setor, marginL + 25, y);
+      y += 6;
+    }
+    y += 4;
+  }
+
+  // Pontuação Big
+  doc.setFillColor(...navy);
+  doc.roundedRect(marginL, y, usable, 22, 3, 3, "F");
+  doc.setTextColor(147, 197, 253);
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(8);
+  doc.text("ESCORE FINAL DE LAWTON", W / 2, y + 6, { align: "center" });
+  doc.setTextColor(255, 255, 255);
+  doc.setFontSize(26);
+  doc.text(String(data.soma) + " / 8", W / 2, y + 17, { align: "center" });
+  y += 28;
+
+  // Status Pill
+  let pillColor = [225, 29, 72]; // Dependencia grave
+  if (data.soma === 8) pillColor = [22, 163, 74];
+  else if (data.soma >= 6) pillColor = [132, 204, 22];
+  else if (data.soma >= 4) pillColor = [249, 115, 22];
+
+  doc.setFillColor(...pillColor);
+  doc.roundedRect(marginL, y, usable, 8, 2, 2, "F");
+  doc.setTextColor(255, 255, 255);
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(9);
+  doc.text(data.classe.toUpperCase(), W / 2, y + 5.5, { align: "center" });
+  y += 16;
+
+  // Tabela AutoTable
+  doc.setFillColor(...slateLight);
+  doc.roundedRect(marginL, y, usable, 8, 2, 2, "F");
+  doc.setTextColor(...navy);
+  doc.text("MEMÓRIA DA AVALIAÇÃO", marginL + 4, y + 5.5);
+  y += 11;
+
+  const bodyData = ITENS_LAWTON.map((i) => {
+    const val = parseInt(document.getElementById(i.id).value) || 0;
+    const txt = val === 1 ? "Independente" : "Dependente";
+    return [i.label.replace(/^\d+\.\s*/, ""), val, txt];
+  });
+
+  doc.autoTable({
+    startY: y,
+    margin: { left: marginL, right: marginR, bottom: 20 },
+    head: [["Atividade Instrumental (AIVD)", "Obtido", "Desempenho"]],
+    body: bodyData,
+    foot: [["TOTAL", data.soma, ""]],
+    styles: { fontSize: 8.5, cellPadding: 3, lineColor: [226, 232, 240], lineWidth: 0.3 },
+    headStyles: { fillColor: navy, textColor: 255, fontStyle: "bold" },
+    footStyles: { fillColor: [239, 246, 255], textColor: navy, fontStyle: "bold" },
+    columnStyles: { 0: { cellWidth: 100 }, 1: { halign: "center" }, 2: { halign: "center" } },
+    alternateRowStyles: { fillColor: [248, 250, 252] },
+  });
+
+  // Rodapé
+  const pageCount = doc.internal.getNumberOfPages();
+  for(let i = 1; i <= pageCount; i++) {
+    doc.setPage(i);
+    y = 280;
+    doc.setDrawColor(...slateLight);
+    doc.setLineWidth(0.3);
+    doc.line(marginL, y, W - marginR, y);
+    doc.setTextColor(148, 163, 184);
+    doc.setFontSize(7.5);
+    doc.setFont("helvetica", "normal");
+    doc.text("LAWTON, M. P.; BRODY, E. M. The Gerontologist (1969).", marginL, y + 5);
+    doc.text("www.calculadorasdeenfermagem.com.br", W - marginR, y + 5, { align: "right" });
+  }
+
+  const nomeArquivo = data.nome ? `laudo-lawton-${data.nome.replace(/\s+/g, "-").toLowerCase()}.pdf` : "laudo-lawton.pdf";
+  doc.save(nomeArquivo);
+}
+
+function imprimirLaudo() {
+  const data = getDadosImpressao();
+
+  let pillColor = "#e11d48"; // vermelho
+  if (data.soma === 8) pillColor = "#16a34a"; // verde
+  else if (data.soma >= 6) pillColor = "#84cc16"; // verde lima
+  else if (data.soma >= 4) pillColor = "#f97316"; // laranja
+
+  const linhasTabela = ITENS_LAWTON.map((i) => {
+    const val = parseInt(document.getElementById(i.id).value) || 0;
+    const txt = val === 1 ? "Independente" : "Dependente";
+    let corVal = val === 1 ? "#16a34a" : "#e11d48"; // Verde (Independente) ou Vermelho (Dependente)
+
+    return `<tr><td>${i.label.replace(/^\d+\.\s*/, "")}</td><td style="text-align:center;font-weight:bold;color:${corVal}">${val}</td><td style="text-align:center;font-weight:bold;color:${corVal}">${txt}</td></tr>`;
+  }).join("");
+
+  const nandaHtml = document.getElementById("lista-nanda").innerHTML;
+
+  const html = `<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>Laudo Escala de Lawton</title>
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{font-family:Arial,sans-serif;font-size:10pt;color:#1E293B;padding:24px 32px}
+    .hdr{background:#1A3E74;color:white;padding:14px 20px;border-radius:8px;display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+    .hdr h1{font-size:13pt;font-weight:900}
+    .hdr p{font-size:8pt;opacity:0.8;margin-top:3px}
+    .secao{margin-bottom:14px}
+    .sec-titulo{font-size:8pt;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:#1A3E74;background:#EFF6FF;padding:5px 10px;border-radius:4px;margin-bottom:8px}
+    .grid2{display:grid;grid-template-columns:1fr 1fr;gap:6px 20px;font-size:9.5pt}
+    .res-box{border:2px solid #1A3E74;border-radius:8px;padding:14px 18px;background:#F8FAFC;text-align:center;margin-bottom:14px}
+    .res-score{font-size:36pt;font-weight:900;color:#1A3E74;line-height:1}
+    .res-pill{display:inline-block;background:${pillColor};color:white;font-size:9pt;font-weight:bold;padding:4px 16px;border-radius:20px;text-transform:uppercase;margin:8px 0}
+    table{width:100%;border-collapse:collapse;margin-bottom:16px}
+    th{background:#1A3E74;color:white;font-size:8pt;padding:6px 8px;text-align:left}
+    td{font-size:9pt;padding:5px 8px;border-bottom:1px solid #F1F5F9}
+    tfoot td{background:#EFF6FF;font-weight:700;color:#1A3E74;border-top:2px solid #1A3E74}
+    .nanda-box{border:1px solid #E2E8F0;border-radius:8px;padding:12px;font-size:9pt}
+    ul{list-style:none;} .nanda-item{border-bottom:1px solid #f1f5f9;padding:6px 0;} .nanda-item:last-child{border:none}
+    .sig{display:grid;grid-template-columns:1fr 1fr;gap:30px;margin-top:28px}
+    .sig-line{border-top:1px solid #1A3E74;padding-top:5px;font-size:8pt;color:#64748B;text-align:center}
+    .footer{text-align:center;font-size:7.5pt;color:#94A3B8;margin-top:20px;border-top:1px solid #E2E8F0;padding-top:8px}
+  </style></head><body>
+  <div class="hdr"><div><h1>Escala de Lawton</h1><p>Avaliação das Atividades Instrumentais da Vida Diária (AIVD)</p></div><div style="text-align:right;font-size:8.5pt;"><strong>Data:</strong> ${data.data}</div></div>
+  ${
+    data.nome || data.idade || data.setor
+      ? `<div class="secao"><div class="sec-titulo">Identificação do Paciente</div><div class="grid2">
+    ${data.nome ? `<p><strong>Nome:</strong> ${data.nome}</p>` : ""}
+    ${data.idade ? `<p><strong>Idade:</strong> ${data.idade} anos</p>` : ""}
+    ${data.setor ? `<p><strong>Setor/Leito:</strong> ${data.setor}</p>` : ""}
+  </div></div>`
+      : ""
+  }
+  <div class="secao"><div class="res-box"><div class="res-score">${data.soma} <span style="font-size:18pt;color:#64748B;font-weight:700;">/ 8</span></div><div><span class="res-pill">${data.classe}</span></div></div></div>
+  <div class="secao"><div class="sec-titulo">Memória da Avaliação Clínica</div>
+  <table><thead><tr><th>Atividade Instrumental</th><th style="text-align:center">Obtido</th><th style="text-align:center">Desempenho</th></tr></thead><tbody>${linhasTabela}</tbody>
+  <tfoot><tr><td>TOTAL</td><td style="text-align:center">${data.soma}</td><td style="text-align:center">—</td></tr></tfoot></table></div>
+  <div class="secao"><div class="sec-titulo">Diagnósticos NANDA Sugeridos</div><div class="nanda-box"><ul>${nandaHtml}</ul></div></div>
+  <div class="sig"><div class="sig-line">Assinatura do Profissional Enfermeiro(a)</div><div class="sig-line">Local e Data</div></div>
+  <div class="footer">LAWTON, M. P.; BRODY, E. M. The Gerontologist (1969) | Calculadoras de Enfermagem — www.calculadorasdeenfermagem.com.br</div>
+  <script>window.onload=function(){window.print();}<\/script></body></html>`;
+
+  const janela = window.open("", "_blank");
+  janela.document.write(html);
+  janela.document.close();
+}
+
+// --- Eventos Finais ---
+document.getElementById("btnCalcular").addEventListener("click", calcular);
+document.getElementById("btnLimpar").addEventListener("click", limpar);
+document.getElementById("btnGerarPDF").addEventListener("click", gerarPDF);
+document.getElementById("btnImprimir").addEventListener("click", imprimirLaudo);
+
+// --- Iniciar ---
+renderizarItens();
+atualizarBarraGlobal();
+})();
 </script>
 
 <div id="footer-placeholder"></div>
@@ -652,13 +1256,17 @@ btnLimpar?.addEventListener("click", limparCampos);
 document.addEventListener("DOMContentLoaded", () => {
 setTimeout(() => {
 fetch("/footer.html")
-.then(response => response.text())
+.then((response) => response.text())
 .then((data) => {
 document.getElementById("footer-placeholder").innerHTML = data;
-carregarTraducoes('pt', 'footer.json');
-carregarTraducoes('pt', 'cookies.json');
-});
+if (typeof carregarTraducoes === "function") {
+  carregarTraducoes("pt", "footer.json");
+  carregarTraducoes("pt", "cookies.json");
+}
+})
+.catch((e) => console.log("Footer indisponível"));
 }, 150);
 });
 </script>
-</body></html>
+</body>
+</html>
