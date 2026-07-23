@@ -427,10 +427,6 @@
         </div>
     </main>
 
-    <!-- Scripts para PDF -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
-    
     <!-- Lógica da Calculadora -->
     <script>
     document.addEventListener('DOMContentLoaded', () => {
@@ -609,17 +605,8 @@
         };
 
         // Funções de PDF e Impressão
-        document.getElementById("btnGerarPDF")?.addEventListener("click", function () {
-            if (!window.__calc) {
-                alert("Realize o cálculo antes de gerar o PDF.");
-                return;
-            }
-            
-            if (typeof window.jspdf === "undefined") {
-                console.warn("jsPDF carregando...");
-                return;
-            }
-
+        function gerarPDF() {
+            if (!window.__calc) { alert("Realize o cálculo antes de gerar o PDF."); return; }
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
             const calc = window.__calc;
@@ -730,6 +717,29 @@
             doc.text("www.calculadorasdeenfermagem.com.br", W - marginR, 285, { align: "right" });
 
             doc.save("resumo-rescisao-clt.pdf");
+        }
+
+        document.getElementById("btnGerarPDF")?.addEventListener("click", function () {
+            const btn = this;
+            const textoOriginal = btn.innerHTML;
+            if (typeof window.jspdf !== 'undefined') { gerarPDF(); return; }
+            btn.innerHTML = "Carregando gerador...";
+            btn.style.opacity = "0.7";
+            btn.style.pointerEvents = "none";
+            const scriptMain = document.createElement('script');
+            scriptMain.src = "https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js";
+            document.body.appendChild(scriptMain);
+            scriptMain.onload = function() {
+                const scriptPlugin = document.createElement('script');
+                scriptPlugin.src = "https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js";
+                document.body.appendChild(scriptPlugin);
+                scriptPlugin.onload = function() {
+                    btn.innerHTML = textoOriginal;
+                    btn.style.opacity = "1";
+                    btn.style.pointerEvents = "auto";
+                    gerarPDF();
+                };
+            };
         });
 
         document.getElementById("btnImprimir")?.addEventListener("click", function () {
