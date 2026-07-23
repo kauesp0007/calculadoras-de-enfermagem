@@ -1184,8 +1184,8 @@ if __name__ == "__main__":
     # 🟢 ÁREA DE CONFIGURAÇÃO DIÁRIA (ALTERE APENAS AQUI) 🟢
     # =========================================================================
     
-    arquivos_originais = ["morse.html"]
-    idiomas_alvo = ["en", "es", "de", "it", "fr", "hi"] 
+    arquivos_originais = ["morse.html", "instrumentais-cirurgicos.html"]
+    idiomas_alvo = ["en", "es", "de", "it", "fr", "hi", "zh", "ar", "ja", "ru", "ko", "tr", "nl", "pl", "sv", "id", "vi", "uk"] 
     
     # =========================================================================
 
