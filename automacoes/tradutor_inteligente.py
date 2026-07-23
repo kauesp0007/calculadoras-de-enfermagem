@@ -224,6 +224,205 @@ DICIONARIO_STRINGS_UI = {
         "ru": "Дата", "sv": "Datum", "tr": "Tarih",
         "uk": "Дата", "vi": "Ngày", "zh": "日期"
     },
+    "Identificação": {
+        "ar": "تحديد الهوية", "de": "Identifikation", "en": "Identification",
+        "es": "Identificación", "fr": "Identification", "hi": "पहचान",
+        "id": "Identifikasi", "it": "Identificazione",
+        "ja": "識別", "ko": "식별", "nl": "Identificatie",
+        "pl": "Identyfikacja", "ru": "Идентификация", "sv": "Identifiering",
+        "tr": "Kimlik", "uk": "Ідентифікація",
+        "vi": "Nhận dạng", "zh": "识别"
+    },
+    "Local": {
+        "ar": "الموقع", "de": "Ort", "en": "Location",
+        "es": "Lugar", "fr": "Lieu", "hi": "स्थान",
+        "id": "Lokasi", "it": "Luogo",
+        "ja": "場所", "ko": "위치", "nl": "Locatie",
+        "pl": "Miejsce", "ru": "Место", "sv": "Plats",
+        "tr": "Yer", "uk": "Місце",
+        "vi": "Địa điểm", "zh": "地点"
+    },
+    "Índice": {
+        "ar": "مؤشر", "de": "Index", "en": "Index",
+        "es": "Índice", "fr": "Indice", "hi": "सूचकांक",
+        "id": "Indeks", "it": "Indice",
+        "ja": "指数", "ko": "지수", "nl": "Index",
+        "pl": "Indeks", "ru": "Индекс", "sv": "Index",
+        "tr": "Endeks", "uk": "Індекс",
+        "vi": "Chỉ số", "zh": "指数"
+    },
+    "Data de Emissão": {
+        "ar": "تاريخ الإصدار", "de": "Ausstellungsdatum", "en": "Issue Date",
+        "es": "Fecha de emisión", "fr": "Date d'émission", "hi": "जारी करने की तिथि",
+        "id": "Tanggal Terbit", "it": "Data di emissione",
+        "ja": "発行日", "ko": "발행일", "nl": "Uitgiftedatum",
+        "pl": "Data wydania", "ru": "Дата выдачи", "sv": "Utfärdandedatum",
+        "tr": "Düzenleme Tarihi", "uk": "Дата видачі",
+        "vi": "Ngày phát hành", "zh": "签发日期"
+    },
+    "Sinais Clínicos": {
+        "ar": "العلامات السريرية", "de": "Klinische Anzeichen", "en": "Clinical Signs",
+        "es": "Signos Clínicos", "fr": "Signes Cliniques", "hi": "नैदानिक संकेत",
+        "id": "Tanda Klinis", "it": "Segni Clinici",
+        "ja": "臨床徴候", "ko": "임상 징후", "nl": "Klinische Tekenen",
+        "pl": "Objawy Kliniczne", "ru": "Клинические признаки", "sv": "Kliniska Tecken",
+        "tr": "Klinik Belirtiler", "uk": "Клінічні ознаки",
+        "vi": "Dấu hiệu Lâm sàng", "zh": "临床体征"
+    },
+    "Glicemia": {
+        "ar": "سكر الدم", "de": "Blutzucker", "en": "Blood Glucose",
+        "es": "Glucemia", "fr": "Glycémie", "hi": "रक्त शर्करा",
+        "id": "Gula Darah", "it": "Glicemia",
+        "ja": "血糖", "ko": "혈당", "nl": "Bloedglucose",
+        "pl": "Glikemia", "ru": "Гликемия", "sv": "Blodsocker",
+        "tr": "Kan Şekeri", "uk": "Глікемія",
+        "vi": "Đường huyết", "zh": "血糖"
+    },
+    "Aspiração": {
+        "ar": "شفط", "de": "Aspiration", "en": "Aspiration / Suction",
+        "es": "Aspiración", "fr": "Aspiration", "hi": "एस्पिरेशन",
+        "id": "Aspirasi", "it": "Aspirazione",
+        "ja": "吸引", "ko": "흡인", "nl": "Aspiratie",
+        "pl": "Aspiracja", "ru": "Аспирация", "sv": "Aspiration",
+        "tr": "Aspirasyon", "uk": "Аспірація",
+        "vi": "Hút", "zh": "抽吸"
+    },
+    "Profissional": {
+        "ar": "محترف", "de": "Fachkraft", "en": "Professional",
+        "es": "Profesional", "fr": "Professionnel", "hi": "पेशेवर",
+        "id": "Profesional", "it": "Professionista",
+        "ja": "専門家", "ko": "전문가", "nl": "Professional",
+        "pl": "Profesjonalista", "ru": "Специалист", "sv": "Yrkesverksam",
+        "tr": "Profesyonel", "uk": "Фахівець",
+        "vi": "Chuyên gia", "zh": "专业人员"
+    },
+    "Avaliação da Condição e Vitalidade Neonatal": {
+        "ar": "تقييم حالة وحيوية المولود", "de": "Bewertung des Neugeborenen-Zustands und der Vitalität",
+        "en": "Newborn Condition and Vitality Assessment",
+        "es": "Evaluación de la Condición y Vitalidad Neonatal",
+        "fr": "Évaluation de l'État et de la Vitalité Néonatale",
+        "hi": "नवजात स्थिति और जीवन शक्ति का आकलन",
+        "id": "Penilaian Kondisi dan Vitalitas Neonatal",
+        "it": "Valutazione delle Condizioni e Vitalità Neonatale",
+        "ja": "新生児の状態と活力の評価", "ko": "신생아 상태 및 활력 평가",
+        "nl": "Beoordeling van de Toestand en Vitaliteit van de Pasgeborene",
+        "pl": "Ocena Stanu i Witalności Noworodka",
+        "ru": "Оценка состояния и жизнеспособности новорожденного",
+        "sv": "Bedömning av Nyföddas Tillstånd och Vitalitet",
+        "tr": "Yenidoğan Durum ve Canlılık Değerlendirmesi",
+        "uk": "Оцінка стану та життєздатності новонародженого",
+        "vi": "Đánh giá Tình trạng và Sinh hiệu Sơ sinh",
+        "zh": "新生儿状况与活力评估"
+    },
+    
+    "Carregando gerador...": {
+        "ar": "جارٍ تحميل المُنشئ...", "de": "Generator wird geladen...",
+        "en": "Loading generator...", "es": "Cargando generador...",
+        "fr": "Chargement du générateur...", "hi": "जनरेटर लोड हो रहा है...",
+        "id": "Memuat generator...", "it": "Caricamento generatore...",
+        "ja": "ジェネレーターを読み込み中...", "ko": "생성기 로딩 중...",
+        "nl": "Generator laden...", "pl": "Ładowanie generatora...",
+        "ru": "Загрузка генератора...", "sv": "Laddar generator...",
+        "tr": "Oluşturucu yükleniyor...", "uk": "Завантаження генератора...",
+        "vi": "Đang tải trình tạo...", "zh": "正在加载生成器..."
+    },
+    
+    # ── Tabelas / Escores / Critérios ──
+    "Critério": {
+        "ar": "المعيار", "de": "Kriterium", "en": "Criterion",
+        "es": "Criterio", "fr": "Critère", "hi": "मानदंड",
+        "id": "Kriteria", "it": "Criterio",
+        "ja": "基準", "ko": "기준", "nl": "Criterium",
+        "pl": "Kryterium", "ru": "Критерий", "sv": "Kriterium",
+        "tr": "Kriter", "uk": "Критерій",
+        "vi": "Tiêu chí", "zh": "标准"
+    },
+    "Escore": {
+        "ar": "الدرجة", "de": "Punktzahl", "en": "Score",
+        "es": "Puntuación", "fr": "Score", "hi": "अंक",
+        "id": "Skor", "it": "Punteggio",
+        "ja": "スコア", "ko": "점수", "nl": "Score",
+        "pl": "Wynik", "ru": "Балл", "sv": "Poäng",
+        "tr": "Skor", "uk": "Бал",
+        "vi": "Điểm", "zh": "分数"
+    },
+    "Escore Total": {
+        "ar": "الدرجة الكلية", "de": "Gesamtpunktzahl", "en": "Total Score",
+        "es": "Puntuación Total", "fr": "Score Total", "hi": "कुल अंक",
+        "id": "Skor Total", "it": "Punteggio Totale",
+        "ja": "合計スコア", "ko": "총점", "nl": "Totale Score",
+        "pl": "Wynik Całkowity", "ru": "Общий балл", "sv": "Totalpoäng",
+        "tr": "Toplam Skor", "uk": "Загальний бал",
+        "vi": "Tổng Điểm", "zh": "总分"
+    },
+    "Máximo": {
+        "ar": "الحد الأقصى", "de": "Maximum", "en": "Maximum",
+        "es": "Máximo", "fr": "Maximum", "hi": "अधिकतम",
+        "id": "Maksimum", "it": "Massimo",
+        "ja": "最大", "ko": "최대", "nl": "Maximum",
+        "pl": "Maksimum", "ru": "Максимум", "sv": "Maximum",
+        "tr": "Maksimum", "uk": "Максимум",
+        "vi": "Tối đa", "zh": "最大"
+    },
+    "Mínimo": {
+        "ar": "الحد الأدنى", "de": "Minimum", "en": "Minimum",
+        "es": "Mínimo", "fr": "Minimum", "hi": "न्यूनतम",
+        "id": "Minimum", "it": "Minimo",
+        "ja": "最小", "ko": "최소", "nl": "Minimum",
+        "pl": "Minimum", "ru": "Минимум", "sv": "Minimum",
+        "tr": "Minimum", "uk": "Мінімум",
+        "vi": "Tối thiểu", "zh": "最小"
+    },
+    "Obtido": {
+        "ar": "تم الحصول", "de": "Erhalten", "en": "Obtained",
+        "es": "Obtenido", "fr": "Obtenu", "hi": "प्राप्त",
+        "id": "Diperoleh", "it": "Ottenuto",
+        "ja": "取得", "ko": "획득", "nl": "Verkregen",
+        "pl": "Uzyskany", "ru": "Получено", "sv": "Erhållen",
+        "tr": "Elde Edilen", "uk": "Отримано",
+        "vi": "Đạt được", "zh": "获得"
+    },
+    
+    # ── Diagnósticos / Conduta ──
+    "Diagnósticos": {
+        "ar": "التشخيصات", "de": "Diagnosen", "en": "Diagnoses",
+        "es": "Diagnósticos", "fr": "Diagnostics", "hi": "निदान",
+        "id": "Diagnosis", "it": "Diagnosi",
+        "ja": "診断", "ko": "진단", "nl": "Diagnoses",
+        "pl": "Diagnozy", "ru": "Диагнозы", "sv": "Diagnoser",
+        "tr": "Tanılar", "uk": "Діагнози",
+        "vi": "Chẩn đoán", "zh": "诊断"
+    },
+    "Sugeridos": {
+        "ar": "مقترحة", "de": "Vorgeschlagen", "en": "Suggested",
+        "es": "Sugeridos", "fr": "Suggérés", "hi": "सुझाए गए",
+        "id": "Disarankan", "it": "Suggeriti",
+        "ja": "推奨", "ko": "제안됨", "nl": "Voorgesteld",
+        "pl": "Sugerowane", "ru": "Предложенные", "sv": "Föreslagna",
+        "tr": "Önerilen", "uk": "Запропоновані",
+        "vi": "Đề xuất", "zh": "建议"
+    },
+    "Conduta": {
+        "ar": "التصرف", "de": "Vorgehen", "en": "Conduct / Management",
+        "es": "Conducta", "fr": "Conduite", "hi": "प्रबंधन",
+        "id": "Tatalaksana", "it": "Condotta",
+        "ja": "対応", "ko": "처치", "nl": "Behandeling",
+        "pl": "Postępowanie", "ru": "Тактика", "sv": "Åtgärd",
+        "tr": "Yaklaşım", "uk": "Тактика",
+        "vi": "Xử trí", "zh": "处理"
+    },
+    
+    # ── Documentos / Laudos ──
+    "Memória de Avaliação": {
+        "ar": "سجل التقييم", "de": "Bewertungsprotokoll", "en": "Assessment Record",
+        "es": "Registro de Evaluación", "fr": "Registre d'Évaluation",
+        "hi": "मूल्यांकन रिकॉर्ड", "id": "Catatan Penilaian",
+        "it": "Registro di Valutazione",
+        "ja": "評価記録", "ko": "평가 기록", "nl": "Beoordelingsdossier",
+        "pl": "Protokół Oceny", "ru": "Протокол оценки", "sv": "Bedömningsprotokoll",
+        "tr": "Değerlendirme Kaydı", "uk": "Протокол оцінки",
+        "vi": "Hồ sơ Đánh giá", "zh": "评估记录"
+    },
     
     # ── Resultado / Diagnóstico ──
     "Resultado": {
