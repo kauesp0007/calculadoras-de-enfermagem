@@ -366,9 +366,9 @@ Atualizar
 
 <div id="postsContainer" class="space-y-6 min-h-[400px]">
 <div id="adminRlsWarning" style="display:none;background:#FFF3CD;border:1px solid #FFC107;padding:12px 16px;border-radius:10px;margin-bottom:16px;font-size:13px;font-weight:600;color:#856404">
-  ⚠️ <b>Modo Admin:</b> Se os botões de editar/excluir aparecerem mas as operações falharem, 
-  o problema é o <b>RLS (Row Level Security) do Supabase</b> bloqueando operações de UPDATE/DELETE para usuários anônimos. 
-  Vá ao painel do Supabase → <b>Table Editor → posts → RLS Policies</b> e crie políticas de UPDATE e DELETE.
+⚠️ <b>Modo Admin:</b> Se os botões de editar/excluir aparecerem mas as operações falharem, 
+o problema é o <b>RLS (Row Level Security) do Supabase</b> bloqueando operações de UPDATE/DELETE para usuários anônimos. 
+Vá ao painel do Supabase → <b>Table Editor → posts → RLS Policies</b> e crie políticas de UPDATE e DELETE.
 </div>
 <div class="text-center py-16 text-gray-400">
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="fa-spin text-5xl mb-4 mx-auto" fill="currentColor" width="1em" height="1em" aria-hidden="true"><path d="M304 48a48 48 0 1 0 -96 0 48 48 0 1 0 96 0zm0 416a48 48 0 1 0 -96 0 48 48 0 1 0 96 0zM48 304a48 48 0 1 0 0-96 48 48 0 1 0 0 96zm464-48a48 48 0 1 0 -96 0 48 48 0 1 0 96 0zM142.9 437A48 48 0 1 0 75 369.1 48 48 0 1 0 142.9 437zm0-294.2A48 48 0 1 0 75 75a48 48 0 1 0 67.9 67.9zM369.1 437A48 48 0 1 0 437 369.1 48 48 0 1 0 369.1 437z"/></svg>
@@ -397,41 +397,41 @@ let supabaseClient;
 // ========== MODO ADMIN MELHORADO ==========
 // Ativar/desativar modo admin via URL (?admin=1 ou ?admin=0)
 (function() {
-  const adminParam = new URLSearchParams(window.location.search).get('admin');
-  if (adminParam === '1') {
-    localStorage.setItem('admin_mode', 'true');
-    sessionStorage.setItem('admin_mode', 'true');
-  } else if (adminParam === '0') {
-    localStorage.removeItem('admin_mode');
-    sessionStorage.removeItem('admin_mode');
-  }
-  // Força admin também via sessionStorage (sobrevive a recarregar sem o param)
-  if (sessionStorage.getItem('admin_mode') === 'true') {
-    localStorage.setItem('admin_mode', 'true');
-  }
+const adminParam = new URLSearchParams(window.location.search).get('admin');
+if (adminParam === '1') {
+localStorage.setItem('admin_mode', 'true');
+sessionStorage.setItem('admin_mode', 'true');
+} else if (adminParam === '0') {
+localStorage.removeItem('admin_mode');
+sessionStorage.removeItem('admin_mode');
+}
+// Força admin também via sessionStorage (sobrevive a recarregar sem o param)
+if (sessionStorage.getItem('admin_mode') === 'true') {
+localStorage.setItem('admin_mode', 'true');
+}
 })();
 
 const isAdmin = localStorage.getItem('admin_mode') === 'true';
 
 // Exibe badge de admin e prepara botão de toggle
 if (isAdmin) {
-  document.addEventListener('DOMContentLoaded', () => {
-    const adminBadge = document.createElement('div');
-    adminBadge.id = 'admin-badge';
-    adminBadge.innerHTML = `
-      <div style="position:fixed;bottom:20px;right:20px;z-index:99998;background:#1A3E74;color:white;padding:10px 16px;border-radius:12px;font-size:13px;font-weight:800;box-shadow:0 8px 24px rgba(26,62,116,0.4);display:flex;align-items:center;gap:8px;cursor:pointer" onclick="toggleAdminMode()" title="Clique para sair do modo admin">
-        🔧 Modo Admin ATIVO
-        <span style="font-size:10px;opacity:0.7">(clique para sair)</span>
-      </div>`;
-    document.body.appendChild(adminBadge);
-  });
+document.addEventListener('DOMContentLoaded', () => {
+const adminBadge = document.createElement('div');
+adminBadge.id = 'admin-badge';
+adminBadge.innerHTML = `
+<div style="position:fixed;bottom:20px;right:20px;z-index:99998;background:#1A3E74;color:white;padding:10px 16px;border-radius:12px;font-size:13px;font-weight:800;box-shadow:0 8px 24px rgba(26,62,116,0.4);display:flex;align-items:center;gap:8px;cursor:pointer" onclick="toggleAdminMode()" title="Clique para sair do modo admin">
+🔧 Modo Admin ATIVO
+<span style="font-size:10px;opacity:0.7">(clique para sair)</span>
+</div>`;
+document.body.appendChild(adminBadge);
+});
 }
 
 window.toggleAdminMode = function() {
-  localStorage.removeItem('admin_mode');
-  sessionStorage.removeItem('admin_mode');
-  alert('Modo Admin desativado. A página será recarregada.');
-  location.href = location.pathname; // recarrega sem query params
+localStorage.removeItem('admin_mode');
+sessionStorage.removeItem('admin_mode');
+alert('Modo Admin desativado. A página será recarregada.');
+location.href = location.pathname; // recarrega sem query params
 };
 // ==========================================
 
@@ -470,15 +470,15 @@ if (rlsWarn && isAdmin) rlsWarn.style.display = 'block';
 
 // Logs de diagnóstico no console
 console.log('%c🔍 Fórum - Diagnóstico %c' + new Date().toLocaleString(),
-  'font-weight:bold;font-size:14px;color:#1A3E74', 'color:gray');
+'font-weight:bold;font-size:14px;color:#1A3E74', 'color:gray');
 console.log('  Modo Admin:', isAdmin ? '✅ ATIVO' : '❌ Inativo');
 console.log('  localStorage admin_mode:', localStorage.getItem('admin_mode'));
 console.log('  sessionStorage admin_mode:', sessionStorage.getItem('admin_mode'));
 console.log('  Posts do usuário:', JSON.parse(localStorage.getItem('my_posts') || '[]').length, 'IDs salvos');
 
 if (!window.supabase) {
-  console.error('❌ Supabase não carregou! Verifique a CDN.');
-  return;
+console.error('❌ Supabase não carregou! Verifique a CDN.');
+return;
 }
 supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 console.log('  Supabase:', '✅ Conectado');
@@ -515,7 +515,7 @@ const myPosts = JSON.parse(localStorage.getItem('my_posts') || '[]');
 const owner = myPosts.includes(id) || isAdmin;
 // Log discreto para diagnóstico (visível no console F12)
 if (isAdmin) {
-  console.log(`🔧 Admin: isMyPost(${id.substring(0,8)}...) = ${owner} (admin=${isAdmin}, isOwnerPost=${myPosts.includes(id)})`);
+console.log(`🔧 Admin: isMyPost(${id.substring(0,8)}...) = ${owner} (admin=${isAdmin}, isOwnerPost=${myPosts.includes(id)})`);
 }
 return owner;
 }
@@ -535,18 +535,18 @@ closeModal();
 try {
 const { error } = await supabaseClient.from('posts').delete().eq('id', id);
 if (error) {
-  console.error('Erro Supabase (delete):', error);
-  if (error.code === '42501' || error.message.includes('policy') || error.message.includes('permission')) {
-    showModal("Erro de Permissão", 
-      "O Supabase está bloqueando a exclusão por questões de segurança (RLS - Row Level Security).<br><br>" +
-      "<b>Para corrigir:</b> Acesse o painel do Supabase → Table Editor → tabela <code>posts</code> → " +
-      "aba <b>RLS Policies</b> e crie uma política que permita DELETE para todos (ou para usuários autenticados).<br><br>" +
-      "<small>Código do erro: " + error.code + "</small>",
-      `<button onclick="closeModal()" class="btn-secondary">Ok</button>`);
-  } else {
-    showModal("Erro", `Falha ao deletar: ${error.message}`, `<button onclick="closeModal()" class="btn-secondary">Ok</button>`);
-  }
-  return;
+console.error('Erro Supabase (delete):', error);
+if (error.code === '42501' || error.message.includes('policy') || error.message.includes('permission')) {
+showModal("Erro de Permissão", 
+"O Supabase está bloqueando a exclusão por questões de segurança (RLS - Row Level Security).<br><br>" +
+"<b>Para corrigir:</b> Acesse o painel do Supabase → Table Editor → tabela <code>posts</code> → " +
+"aba <b>RLS Policies</b> e crie uma política que permita DELETE para todos (ou para usuários autenticados).<br><br>" +
+"<small>Código do erro: " + error.code + "</small>",
+`<button onclick="closeModal()" class="btn-secondary">Ok</button>`);
+} else {
+showModal("Erro", `Falha ao deletar: ${error.message}`, `<button onclick="closeModal()" class="btn-secondary">Ok</button>`);
+}
+return;
 }
 carregarPosts();
 } catch (e) {
@@ -557,23 +557,23 @@ showModal("Erro", `Falha ao deletar: ${e.message}`, `<button onclick="closeModal
 
 // Editar usando Modal - busca conteúdo do DOM ou Supabase
 function editarPost(id) {
-  // Tenta buscar o conteúdo do post no DOM
-  const postWrap = document.getElementById(`post-wrap-${id}`);
-  let conteudoOriginal = '';
-  if (postWrap) {
-    const contentEl = postWrap.querySelector('.post-content');
-    if (contentEl) conteudoOriginal = contentEl.innerHTML.replace(/<br>/g, '\n').replace(/<[^>]+>/g, '');
-  }
-  
-  const plainText = conteudoOriginal;
-  const textareaHtml = `<textarea id="editArea" rows="5" class="input-strong w-full">${plainText}</textarea>`;
+// Tenta buscar o conteúdo do post no DOM
+const postWrap = document.getElementById(`post-wrap-${id}`);
+let conteudoOriginal = '';
+if (postWrap) {
+const contentEl = postWrap.querySelector('.post-content');
+if (contentEl) conteudoOriginal = contentEl.innerHTML.replace(/<br>/g, '\n').replace(/<[^>]+>/g, '');
+}
 
-  showModal(
-    "Editar Publicação",
-    textareaHtml,
-    `<button onclick="closeModal()" class="btn-secondary">Cancelar</button>
-    <button onclick="confirmarEditar('${id}')" class="btn-primary">Salvar Edição</button>`
-  );
+const plainText = conteudoOriginal;
+const textareaHtml = `<textarea id="editArea" rows="5" class="input-strong w-full">${plainText}</textarea>`;
+
+showModal(
+"Editar Publicação",
+textareaHtml,
+`<button onclick="closeModal()" class="btn-secondary">Cancelar</button>
+<button onclick="confirmarEditar('${id}')" class="btn-primary">Salvar Edição</button>`
+);
 }
 
 async function confirmarEditar(id) {
@@ -583,18 +583,18 @@ if (novoTexto.trim() !== "") {
 try {
 const { error } = await supabaseClient.from('posts').update({ conteudo: novoTexto }).eq('id', id);
 if (error) {
-  console.error('Erro Supabase (update):', error);
-  if (error.code === '42501' || error.message.includes('policy') || error.message.includes('permission')) {
-    showModal("Erro de Permissão", 
-      "O Supabase está bloqueando a edição por questões de segurança (RLS - Row Level Security).<br><br>" +
-      "<b>Para corrigir:</b> Acesse o painel do Supabase → Table Editor → tabela <code>posts</code> → " +
-      "aba <b>RLS Policies</b> e crie uma política que permita UPDATE para todos (ou para usuários autenticados).<br><br>" +
-      "<small>Código do erro: " + error.code + "</small>",
-      `<button onclick="closeModal()" class="btn-secondary">Ok</button>`);
-  } else {
-    showModal("Erro", `Falha ao editar: ${error.message}`, `<button onclick="closeModal()" class="btn-secondary">Ok</button>`);
-  }
-  return;
+console.error('Erro Supabase (update):', error);
+if (error.code === '42501' || error.message.includes('policy') || error.message.includes('permission')) {
+showModal("Erro de Permissão", 
+"O Supabase está bloqueando a edição por questões de segurança (RLS - Row Level Security).<br><br>" +
+"<b>Para corrigir:</b> Acesse o painel do Supabase → Table Editor → tabela <code>posts</code> → " +
+"aba <b>RLS Policies</b> e crie uma política que permita UPDATE para todos (ou para usuários autenticados).<br><br>" +
+"<small>Código do erro: " + error.code + "</small>",
+`<button onclick="closeModal()" class="btn-secondary">Ok</button>`);
+} else {
+showModal("Erro", `Falha ao editar: ${error.message}`, `<button onclick="closeModal()" class="btn-secondary">Ok</button>`);
+}
+return;
 }
 carregarPosts();
 } catch (e) {
