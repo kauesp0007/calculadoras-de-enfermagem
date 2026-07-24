@@ -1,8 +1,14 @@
-const CACHE_VERSION = "20260724-002947";
+const CACHE_VERSION = "20260724-023951";
 const CACHE_NAME = `calculadoras-enfermagem-cache-${CACHE_VERSION}`;
 
 // O SCRIPT DE BUILD VAI INJETAR A LISTA DE ARQUIVOS AQUI
 const urlsToCache = [
+  '.chrome-perfil-pci/CertificateRevocation/10668/_metadata/verified_contents.json',
+  '.chrome-perfil-pci/CertificateRevocation/10668/manifest.json',
+  '.chrome-perfil-pci/Subresource Filter/Unindexed Rules/9.69.0/_metadata/verified_contents.json',
+  '.chrome-perfil-pci/Subresource Filter/Unindexed Rules/9.69.0/manifest.json',
+  '.chrome-perfil-pci/component_crx_cache/metadata.json',
+  '.chrome-perfil-pci/extensions_crx_cache/metadata.json',
   '.vscode/extensions.json',
   '.vscode/settings.json',
   '.vscode/tasks.json',
@@ -19,7 +25,6 @@ const urlsToCache = [
   'automacoes/svg_cache.json',
   'automation-guard.js',
   'automatizador-em-massa.js',
-  'baixar-pdf-provas.js',
   'banco_nanda.json',
   'banco_nanda.json.bak-20260704T061029.json',
   'banco_nanda_en.json',
