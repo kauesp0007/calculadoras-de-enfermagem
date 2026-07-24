@@ -654,7 +654,7 @@ Limpar
 </div>
 
 <!-- Grid: Memória da Avaliação & Diagnósticos NANDA -->
-<div class="grid grid-cols-1 gap-6 mb-6">
+<div class="grid grid-cols-1 gap-6 mb-6 hidden lg:grid">
 <!-- Tabela de Detalhamento por Domínio -->
 <div class="fugulin-card overflow-hidden">
 <div class="p-4 md:p-5 border-b-2 border-slate-200 bg-slate-50 flex items-center gap-3">
@@ -724,7 +724,7 @@ Imprimir Laudo
 </div>
 
 <!-- COLUNA LATERAL (Direita) -->
-<aside class="lg:col-span-4 space-y-6 no-print">
+<aside class="lg:col-span-4 space-y-6 no-print hidden lg:block">
 <!-- Veja Também (Estilo MEEM Compacto) -->
 <div class="fugulin-card p-6 bg-white/80 backdrop-blur-xl lg:sticky lg:top-6">
 <h3 class="text-[15px] font-black text-navy mb-5 border-b-2 border-slate-100 pb-3 flex items-center gap-2">
@@ -1222,11 +1222,35 @@ return { ...diag, matchScore };
 .filter((d) => d.matchScore > 0);
 
 pontuados.sort((a, b) => b.matchScore - a.matchScore);
-const top5 = pontuados.slice(0, 5);
 
-if (top5.length > 0) {
+// Dedup: evitar diagnósticos com temas repetidos (ex: "risco de lesão adulto", "risco de lesão neonatal")
+const prefixosIgnorar = ["risco de", "disposição para", "síndrome de", "tendência a", "disposicao para", "risco da"];
+const temasUsados = new Set();
+const topDiversos = [];
+
+function extrairTema(titulo) {
+  let t = titulo.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  // Remove prefixos comuns
+  for (const p of prefixosIgnorar) {
+    if (t.startsWith(p)) { t = t.slice(p.length).trim(); break; }
+  }
+  // Remove conectores e palavras muito curtas
+  const palavras = t.split(/\s+/).filter(w => w.length > 3 && !["para", "com", "sem", "como", "dos", "das", "que", "não", "nao", "melhorada", "melhorado", "prejudicada", "prejudicado", "adulto", "criança", "neonatal", "idoso", "lactente", "feminino", "masculino"].includes(w));
+  return palavras.slice(0, 4).join(" "); // até 4 palavras-chave como tema
+}
+
+for (const d of pontuados) {
+  const tema = extrairTema(d.diagnostico);
+  if (!temasUsados.has(tema)) {
+    temasUsados.add(tema);
+    topDiversos.push(d);
+  }
+  if (topDiversos.length >= 5) break;
+}
+
+if (topDiversos.length > 0) {
 lista.innerHTML = "";
-top5.forEach((d) => {
+topDiversos.forEach((d) => {
 lista.innerHTML += `
 <li class="nanda-item flex items-start gap-3">
 <span class="bg-blue-100 text-blue-800 text-[10px] font-black px-2 py-1 rounded shadow-sm mt-0.5">${d.codigo}</span>
