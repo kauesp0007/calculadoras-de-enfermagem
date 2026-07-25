@@ -1184,7 +1184,7 @@ if __name__ == "__main__":
     # 🟢 ÁREA DE CONFIGURAÇÃO DIÁRIA (ALTERE APENAS AQUI) 🟢
     # =========================================================================
     
-    arquivos_originais = ["pelod.html", "prism.html", "qsofa.html", "ramsay.html", "rancholosamigos.html"]
+    arquivos_originais = ["waterlow.html", "downes.html", "saps.html", "silverman.html", "sofa.html", "tinetti.html", "richmond.html", "manchester.html"]
     idiomas_alvo = ["en", "es", "de", "it", "fr", "hi", "zh", "ar", "ja", "ru", "ko", "tr", "nl", "pl", "sv", "id", "vi", "uk"] 
     
     # =========================================================================
