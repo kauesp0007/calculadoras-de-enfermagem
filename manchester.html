@@ -250,13 +250,7 @@ Início
 <div class="mb-6">
 <label for="selectFluxograma" class="block text-[15px] font-black text-navy mb-2">1. Selecione o Fluxograma de Apresentação</label>
 <select id="selectFluxograma" class="select-fluxograma">
-<option value="">-- Escolha a Queixa Principal / Fluxograma --</option>
-<option value="alergia">Alergia</option>
-<option value="asma">Asma</option>
-<option value="cefaleia">Cefaleia</option>
-<option value="desmaio">Desmaio</option>
-<option value="dor_abdominal_adulto">Dor Abdominal em Adulto</option>
-<option value="dor_toracica">Dor Torácica</option>
+<option value="">-- Carregando Fluxogramas Oficiais... --</option>
 </select>
 </div>
 
@@ -360,73 +354,40 @@ Início
 (function () {
 "use strict";
 
-// --- BANCO DE DADOS (JSON) DOS FLUXOGRAMAS OFICIAIS ---
-const FLUXOGRAMAS = {
-  alergia: {
-    nome: "Alergia",
-    keywords: ["alérgica", "hipersensibilidade", "choque anafilático", "pele", "respiração"],
-    discriminadores: [
-      { t: "Obstrução de vias aéreas", c: "vermelho", v: 4 }, { t: "Estridor", c: "vermelho", v: 4 }, { t: "Baba-se", c: "vermelho", v: 4 }, { t: "Respiração inadequada", c: "vermelho", v: 4 }, { t: "Choque", c: "vermelho", v: 4 }, { t: "Criança não reativa", c: "vermelho", v: 4 },
-      { t: "Edema de língua", c: "laranja", v: 3 }, { t: "Edema facial", c: "laranja", v: 3 }, { t: "Frases entrecortadas", c: "laranja", v: 3 }, { t: "Saturação de O2 muito baixa", c: "laranja", v: 3 }, { t: "Novo pulso anormal", c: "laranja", v: 3 }, { t: "Alteração do nível de consciência", c: "laranja", v: 3 }, { t: "História alérgica importante", c: "laranja", v: 3 }, { t: "Dor ou coceira intensa", c: "laranja", v: 3 },
-      { t: "Saturação de O2 baixa", c: "amarelo", v: 2 }, { t: "Erupção ou vesículas disseminadas", c: "amarelo", v: 2 }, { t: "Dor ou coceira moderada", c: "amarelo", v: 2 },
-      { t: "Inflamação local", c: "verde", v: 1 }, { t: "Dor ou coceira leve recente", c: "verde", v: 1 }, { t: "Evento recente", c: "verde", v: 1 }
-    ]
-  },
-  asma: {
-    nome: "Asma",
-    keywords: ["asma", "respiração", "ventilação", "brônquica", "gases"],
-    discriminadores: [
-      { t: "Obstrução de vias aéreas", c: "vermelho", v: 4 }, { t: "Respiração inadequada", c: "vermelho", v: 4 }, { t: "Choque", c: "vermelho", v: 4 }, { t: "Criança não reativa", c: "vermelho", v: 4 },
-      { t: "Frases entrecortadas", c: "laranja", v: 3 }, { t: "Saturação de O2 muito baixa", c: "laranja", v: 3 }, { t: "PFE muito baixo", c: "laranja", v: 3 }, { t: "Novo pulso anormal", c: "laranja", v: 3 }, { t: "Alteração de nível de consciência", c: "laranja", v: 3 }, { t: "História respiratória significativa", c: "laranja", v: 3 }, { t: "Bebê quente", c: "laranja", v: 3 }, { t: "Sepse possível", c: "laranja", v: 3 },
-      { t: "Saturação de O2 baixa", c: "amarelo", v: 2 }, { t: "PFE baixo", c: "amarelo", v: 2 }, { t: "Sem melhora com medicação habitual", c: "amarelo", v: 2 }, { t: "Criança quente", c: "amarelo", v: 2 }, { t: "Adulto quente", c: "amarelo", v: 2 },
-      { t: "Chieira", c: "verde", v: 1 }, { t: "Tosse produtiva", c: "verde", v: 1 }, { t: "Bebê febril", c: "verde", v: 1 }, { t: "Adulto febril", c: "verde", v: 1 }, { t: "Evento recente", c: "verde", v: 1 }
-    ]
-  },
-  cefaleia: {
-    nome: "Cefaleia",
-    keywords: ["dor", "conforto", "neurológico", "cognição", "perfusão tissular"],
-    discriminadores: [
-      { t: "Obstrução de vias aéreas", c: "vermelho", v: 4 }, { t: "Respiração inadequada", c: "vermelho", v: 4 }, { t: "Choque", c: "vermelho", v: 4 }, { t: "Criança não reativa", c: "vermelho", v: 4 }, { t: "Convulsionando", c: "vermelho", v: 4 },
-      { t: "Alteração de nível de consciência", c: "laranja", v: 3 }, { t: "Novo déficit neurológico < 24h", c: "laranja", v: 3 }, { t: "Sinais de meningismo", c: "laranja", v: 3 }, { t: "Púrpura", c: "laranja", v: 3 }, { t: "Erupção cutânea fixa", c: "laranja", v: 3 }, { t: "Início abrupto", c: "laranja", v: 3 }, { t: "Perda total da visão aguda", c: "laranja", v: 3 }, { t: "Criança/Adulto muito quente", c: "laranja", v: 3 }, { t: "Sepse possível", c: "laranja", v: 3 }, { t: "Dor intensa", c: "laranja", v: 3 },
-      { t: "Novo déficit neurológico > 24h", c: "amarelo", v: 2 }, { t: "Redução recente da acuidade visual", c: "amarelo", v: 2 }, { t: "Couro cabeludo temporal dolorido", c: "amarelo", v: 2 }, { t: "História de inconsciência", c: "amarelo", v: 2 }, { t: "Vômitos persistentes", c: "amarelo", v: 2 }, { t: "História discordante", c: "amarelo", v: 2 }, { t: "Criança/Adulto quente", c: "amarelo", v: 2 }, { t: "Dor moderada", c: "amarelo", v: 2 },
-      { t: "Vômito", c: "verde", v: 1 }, { t: "Criança/Adulto febril", c: "verde", v: 1 }, { t: "Dor leve recente", c: "verde", v: 1 }, { t: "Evento recente", c: "verde", v: 1 }
-    ]
-  },
-  dor_toracica: {
-    nome: "Dor Torácica",
-    keywords: ["dor", "conforto", "perfusão tissular", "cardíaco", "débito"],
-    discriminadores: [
-      { t: "Obstrução de vias aéreas", c: "vermelho", v: 4 }, { t: "Respiração inadequada", c: "vermelho", v: 4 }, { t: "Choque", c: "vermelho", v: 4 },
-      { t: "Dispneia aguda", c: "laranja", v: 3 }, { t: "Saturação de O2 muito baixa", c: "laranja", v: 3 }, { t: "Novo pulso anormal", c: "laranja", v: 3 }, { t: "Dor precordial ou cardíaca", c: "laranja", v: 3 }, { t: "Criança/Adulto muito quente", c: "laranja", v: 3 }, { t: "Dor intensa", c: "laranja", v: 3 },
-      { t: "Saturação de O2 baixa", c: "amarelo", v: 2 }, { t: "Vômitos persistentes", c: "amarelo", v: 2 }, { t: "História cardíaca importante", c: "amarelo", v: 2 }, { t: "Dor pleurítica", c: "amarelo", v: 2 }, { t: "Adulto quente", c: "amarelo", v: 2 }, { t: "Dor moderada", c: "amarelo", v: 2 },
-      { t: "Vômito", c: "verde", v: 1 }, { t: "Adulto febril", c: "verde", v: 1 }, { t: "Dor leve recente / Evento recente", c: "verde", v: 1 }
-    ]
-  },
-  dor_abdominal_adulto: {
-    nome: "Dor Abdominal em Adulto",
-    keywords: ["dor", "conforto", "nutrição", "líquidos", "volume", "eliminação"],
-    discriminadores: [
-      { t: "Obstrução de vias aéreas / Respiração inadequada / Choque", c: "vermelho", v: 4 },
-      { t: "Vômitos com sangue", c: "laranja", v: 3 }, { t: "Evacuação de sangue vivo/escuro", c: "laranja", v: 3 }, { t: "Sangramento vaginal (20sem+)", c: "laranja", v: 3 }, { t: "Adulto muito quente", c: "laranja", v: 3 }, { t: "Sepse possível", c: "laranja", v: 3 }, { t: "Dor epigástrica / Dor irradiada dorso", c: "laranja", v: 3 }, { t: "Dor intensa", c: "laranja", v: 3 },
-      { t: "História aguda vômitos de sangue", c: "amarelo", v: 2 }, { t: "Fezes pretas ou groselha", c: "amarelo", v: 2 }, { t: "Vômitos persistentes", c: "amarelo", v: 2 }, { t: "Gravidez possível", c: "amarelo", v: 2 }, { t: "Adulto quente", c: "amarelo", v: 2 }, { t: "Dor irradiada para ombro", c: "amarelo", v: 2 }, { t: "Dor moderada", c: "amarelo", v: 2 },
-      { t: "Vômito", c: "verde", v: 1 }, { t: "Dor leve recente / Evento recente", c: "verde", v: 1 }
-    ]
-  },
-  desmaio: {
-    nome: "Desmaio",
-    keywords: ["perfusão", "cerebral", "débito", "consciência", "glicemia"],
-    discriminadores: [
-      { t: "Obstrução de vias aéreas / Respiração inadequada / Choque", c: "vermelho", v: 4 }, { t: "Hipoglicemia / Convulsionando", c: "vermelho", v: 4 },
-      { t: "Dispneia aguda", c: "laranja", v: 3 }, { t: "Saturação de O2 muito baixa", c: "laranja", v: 3 }, { t: "Novo pulso anormal", c: "laranja", v: 3 }, { t: "Alteração de nível de consciência", c: "laranja", v: 3 }, { t: "Novo déficit neurológico < 24h", c: "laranja", v: 3 }, { t: "Hiperglicemia com cetose", c: "laranja", v: 3 }, { t: "Púrpura / Erupção cutânea fixa", c: "laranja", v: 3 }, { t: "História alérgica / Dor precordial", c: "laranja", v: 3 },
-      { t: "História de trauma cranioencefálico", c: "amarelo", v: 2 }, { t: "Saturação de O2 baixa", c: "amarelo", v: 2 }, { t: "História de inconsciência", c: "amarelo", v: 2 }, { t: "Hiperglicemia", c: "amarelo", v: 2 }, { t: "Criança/Adulto quente", c: "amarelo", v: 2 },
-      { t: "Criança/Adulto febril", c: "verde", v: 1 }, { t: "Dor leve recente / Evento recente", c: "verde", v: 1 }
-    ]
-  }
-};
-
+let FLUXOGRAMAS = {};
 let currentFluxograma = null;
 let timerInterval = null;
 let seconds = 0;
+
+// Inicializa e consome o arquivo JSON externo criado pelo Python
+async function carregarBancoFluxogramas() {
+  try {
+    const response = await fetch("/manchester_fluxogramas.json");
+    if (!response.ok) throw new Error("Falha ao carregar JSON");
+    FLUXOGRAMAS = await response.json();
+    
+    const select = document.getElementById("selectFluxograma");
+    select.innerHTML = '<option value="">-- Escolha a Queixa Principal / Fluxograma --</option>';
+    
+    // Organiza as queixas em ordem alfabética para facilitar a usabilidade do enfermeiro
+    const chavesOrdenadas = Object.keys(FLUXOGRAMAS).sort((a, b) => 
+      FLUXOGRAMAS[a].nome.localeCompare(FLUXOGRAMAS[b].nome)
+    );
+    
+    chavesOrdenadas.forEach(chave => {
+      const opt = document.createElement("option");
+      opt.value = chave;
+      opt.textContent = FLUXOGRAMAS[chave].nome;
+      select.appendChild(opt);
+    });
+  } catch (error) {
+    console.error("Erro na base de dados de Manchester:", error);
+    document.getElementById("selectFluxograma").innerHTML = '<option value="">Erro ao carregar os dados. Verifique a conexão.</option>';
+  }
+}
+
+// Executa o carregamento assim que a página renderizar
+carregarBancoFluxogramas();
 
 function startTimer() {
   if (!timerInterval) {

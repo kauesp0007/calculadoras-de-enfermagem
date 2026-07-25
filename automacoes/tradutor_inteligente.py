@@ -424,16 +424,22 @@ def traduzir_lote_js_com_deepseek(dicionario_scripts, idioma_alvo):
     contador_string = 0
 
     for id_script, codigo_js in dicionario_scripts.items():
+
         # Usa regex para encontrar strings entre aspas simples ('...') ou duplas ("...")
         # Ignora strings vazias ou muito curtas (ex: chaves de objetos, IDs curtos)
-        padrao_string = re.compile(r'(["\'])(.*?)\1')
+        padrao_string = re.compile(r'"([^"\\]*(?:\\.[^"\\]*)*)"|\'([^\'\\]*(?:\\.[^\'\\]*)*)\'')
         
         novo_codigo_js = codigo_js
         mapeamento_scripts[id_script] = []
 
         for match in padrao_string.finditer(codigo_js):
-            delimitador = match.group(1)
-            conteudo = match.group(2)
+            # Novo regex: grupo 1 = conteúdo entre aspas duplas, grupo 2 = conteúdo entre aspas simples
+            if match.group(1) is not None:
+                delimitador = '"'
+                conteudo = match.group(1)
+            else:
+                delimitador = "'"
+                conteudo = match.group(2)
             
             # Filtro de segurança: só traduz se parecer texto legível (tem espaços, não é um caminho/ID)
             if len(conteudo) > 3 and " " in conteudo and not conteudo.startswith(('/', '#', '.', 'data-')) and not conteudo.endswith('.html'):
@@ -481,7 +487,7 @@ def traduzir_lote_js_com_deepseek(dicionario_scripts, idioma_alvo):
             contador_string += 1
 
     if not strings_para_traduzir:
-        print("      ↳ Nenhuma string de texto legível encontrada no JS. Mantendo original.")
+        print(f"      ↳ Nenhuma string de texto legível encontrada no JS ({len(dicionario_scripts)} scripts). Mantendo original.")
         return dicionario_scripts
 
     print(f"      ↳ Enviando {len(strings_para_traduzir)} fragmentos de texto do JS para o DeepSeek...")
@@ -527,7 +533,6 @@ def traduzir_lote_js_com_deepseek(dicionario_scripts, idioma_alvo):
             resultado = re.sub(r'\n```$', '', resultado)
             
         traducoes = json.loads(resultado)
-        print(f"      ↳ DeepSeek JS traduziu {len(traducoes)} strings. Ex: {list(traducoes.values())[:2]}")
         
         # 3. Reconstrução do JavaScript
         retorno_seguro = {}
@@ -564,32 +569,77 @@ def traduzir_lote_js_com_deepseek(dicionario_scripts, idioma_alvo):
         print(f"\n⚠️ Erro geral ao traduzir scripts com DeepSeek: {e}")
         return dicionario_scripts
 
+def _extrair_blocos_script_style(html):
+    """Extrai blocos <script>...</script> e <style>...</style> usando busca posicional (sem regex).
+    Imune a <script>/</script> literais dentro de strings JavaScript.
+    Retorna lista de (inicio, fim, tag_name)."""
+    blocos = []
+    i = 0
+    while i < len(html):
+        pos_script = html.find('<script', i)
+        pos_style = html.find('<style', i)
+        
+        pos = -1
+        tag = ''
+        if pos_script != -1 and (pos_style == -1 or pos_script < pos_style):
+            pos = pos_script
+            tag = 'script'
+        elif pos_style != -1:
+            pos = pos_style
+            tag = 'style'
+        
+        if pos == -1:
+            break
+        
+        fim_abertura = html.find('>', pos)
+        if fim_abertura == -1:
+            i = pos + 1
+            continue
+        
+        tag_abertura = html[pos:fim_abertura + 1]
+        if '/>' in tag_abertura:
+            i = fim_abertura + 1
+            continue
+        
+        fechamento = f'</{tag}>'
+        fim_fechamento = html.find(fechamento, fim_abertura + 1)
+        if fim_fechamento == -1:
+            i = fim_abertura + 1
+            continue
+        
+        fim_total = fim_fechamento + len(fechamento)
+        blocos.append((pos, fim_total, tag))
+        i = fim_total
+    
+    return blocos
+
 def traduzir_html_com_deepl(html_preparado, idioma_alvo):
     try:
-        # === 1. PROTEÇÃO CIRÚRGICA DE SCRIPTS E STYLES ===
+        # === 1. PROTEÇÃO CIRÚRGICA DE SCRIPTS E STYLES (parser posicional, sem regex) ===
         blocos_codigo = {}
         scripts_para_traduzir = {}
-        contador = [0]
         
-        padrao = re.compile(r'(<(script|style)\b[^>]*>.*?</\2>)', re.IGNORECASE | re.DOTALL)
+        blocos_encontrados = _extrair_blocos_script_style(html_preparado)
         
-        def proteger_bloco(match):
-            codigo_original = match.group(1)
-            tag_name = match.group(2).lower()
+        # Processa de trás para frente para preservar índices
+        for idx_bloco, (inicio, fim, tag_name) in enumerate(reversed(blocos_encontrados)):
+            codigo_original = html_preparado[inicio:fim]
             
-            id_bloco = f"DEEPL_BLOCK_{contador[0]}"
-            contador[0] += 1
+            id_bloco = f"DEEPL_BLOCK_{len(blocos_encontrados) - 1 - idx_bloco}"
             placeholder = f'<div translate="no" id="{id_bloco}"></div>'
             
-            # Se for script inline (sem src), separa num dicionário à parte para envio em LOTE
-            if tag_name == 'script' and 'src=' not in codigo_original.lower():
+            # Extrai apenas a tag de abertura para verificar src=
+            fim_tag = codigo_original.find('>')
+            tag_abertura = codigo_original[:fim_tag + 1] if fim_tag != -1 else codigo_original
+            
+            if tag_name == 'script' and 'src=' not in tag_abertura.lower():
                 scripts_para_traduzir[placeholder] = codigo_original
             else:
                 blocos_codigo[placeholder] = codigo_original
-                
-            return placeholder
             
-        html_protegido = padrao.sub(proteger_bloco, html_preparado)
+            html_preparado = html_preparado[:inicio] + placeholder + html_preparado[fim:]
+        
+        html_protegido = html_preparado
         
         # === 2. PROCESSAMENTO DEEPSEEK EM LOTE (BATCH) ===
         if scripts_para_traduzir:
