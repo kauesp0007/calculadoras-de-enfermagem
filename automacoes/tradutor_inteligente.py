@@ -527,6 +527,7 @@ def traduzir_lote_js_com_deepseek(dicionario_scripts, idioma_alvo):
             resultado = re.sub(r'\n```$', '', resultado)
             
         traducoes = json.loads(resultado)
+        print(f"      ↳ DeepSeek JS traduziu {len(traducoes)} strings. Ex: {list(traducoes.values())[:2]}")
         
         # 3. Reconstrução do JavaScript
         retorno_seguro = {}
