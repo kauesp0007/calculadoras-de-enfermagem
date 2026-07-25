@@ -456,6 +456,176 @@ DICIONARIO_STRINGS_UI = {
         "ru": "Высокий риск", "sv": "Hög Risk", "tr": "Yüksek Risk",
         "uk": "Високий ризик", "vi": "Nguy cơ Cao", "zh": "高风险"
     },
+    
+    # ── Formulários: Comandos e Placeholders ──
+    "Selecione...": {
+        "ar": "اختر...", "de": "Auswählen...", "en": "Select...",
+        "es": "Seleccionar...", "fr": "Sélectionner...", "hi": "चुनें...",
+        "id": "Pilih...", "it": "Seleziona...", "ja": "選択...",
+        "ko": "선택...", "nl": "Selecteren...", "pl": "Wybierz...",
+        "ru": "Выбрать...", "sv": "Välj...", "tr": "Seçin...",
+        "uk": "Вибрати...", "vi": "Chọn...", "zh": "选择..."
+    },
+    "Selecione": {
+        "ar": "اختر", "de": "Auswählen", "en": "Select",
+        "es": "Seleccionar", "fr": "Sélectionner", "hi": "चुनें",
+        "id": "Pilih", "it": "Seleziona", "ja": "選択",
+        "ko": "선택", "nl": "Selecteren", "pl": "Wybierz",
+        "ru": "Выбрать", "sv": "Välj", "tr": "Seçin",
+        "uk": "Вибрати", "vi": "Chọn", "zh": "选择"
+    },
+    "Limpar": {
+        "ar": "مسح", "de": "Löschen", "en": "Clear",
+        "es": "Limpiar", "fr": "Effacer", "hi": "साफ़ करें",
+        "id": "Hapus", "it": "Cancella", "ja": "クリア",
+        "ko": "지우기", "nl": "Wissen", "pl": "Wyczyść",
+        "ru": "Очистить", "sv": "Rensa", "tr": "Temizle",
+        "uk": "Очистити", "vi": "Xóa", "zh": "清除"
+    },
+    "Calcular": {
+        "ar": "حساب", "de": "Berechnen", "en": "Calculate",
+        "es": "Calcular", "fr": "Calculer", "hi": "गणना करें",
+        "id": "Hitung", "it": "Calcola", "ja": "計算",
+        "ko": "계산", "nl": "Berekenen", "pl": "Oblicz",
+        "ru": "Рассчитать", "sv": "Beräkna", "tr": "Hesapla",
+        "uk": "Обчислити", "vi": "Tính toán", "zh": "计算"
+    },
+    "Calcular Escore": {
+        "ar": "حساب النتيجة", "de": "Score Berechnen", "en": "Calculate Score",
+        "es": "Calcular Puntuación", "fr": "Calculer le Score", "hi": "स्कोर की गणना करें",
+        "id": "Hitung Skor", "it": "Calcola Punteggio", "ja": "スコアを計算",
+        "ko": "점수 계산", "nl": "Score Berekenen", "pl": "Oblicz Wynik",
+        "ru": "Рассчитать балл", "sv": "Beräkna Poäng", "tr": "Skoru Hesapla",
+        "uk": "Обчислити бал", "vi": "Tính điểm", "zh": "计算分数"
+    },
+    "Salvar PDF": {
+        "ar": "حفظ PDF", "de": "PDF Speichern", "en": "Save PDF",
+        "es": "Guardar PDF", "fr": "Enregistrer PDF", "hi": "PDF सहेजें",
+        "id": "Simpan PDF", "it": "Salva PDF", "ja": "PDF保存",
+        "ko": "PDF 저장", "nl": "PDF Opslaan", "pl": "Zapisz PDF",
+        "ru": "Сохранить PDF", "sv": "Spara PDF", "tr": "PDF Kaydet",
+        "uk": "Зберегти PDF", "vi": "Lưu PDF", "zh": "保存PDF"
+    },
+    "Imprimir": {
+        "ar": "طباعة", "de": "Drucken", "en": "Print",
+        "es": "Imprimir", "fr": "Imprimer", "hi": "प्रिंट करें",
+        "id": "Cetak", "it": "Stampa", "ja": "印刷",
+        "ko": "인쇄", "nl": "Afdrukken", "pl": "Drukuj",
+        "ru": "Печать", "sv": "Skriv ut", "tr": "Yazdır",
+        "uk": "Друк", "vi": "In", "zh": "打印"
+    },
+    "Imprimir Laudo": {
+        "ar": "طباعة التقرير", "de": "Bericht Drucken", "en": "Print Report",
+        "es": "Imprimir Informe", "fr": "Imprimer le Rapport", "hi": "रिपोर्ट प्रिंट करें",
+        "id": "Cetak Laporan", "it": "Stampa Referto", "ja": "レポート印刷",
+        "ko": "보고서 인쇄", "nl": "Rapport Afdrukken", "pl": "Drukuj Raport",
+        "ru": "Печать отчета", "sv": "Skriv ut Rapport", "tr": "Rapor Yazdır",
+        "uk": "Друк звіту", "vi": "In Báo cáo", "zh": "打印报告"
+    },
+    
+    # ── Placeholders e Labels de Formulário ──
+    "Nome completo": {
+        "ar": "الاسم الكامل", "de": "Vollständiger Name", "en": "Full Name",
+        "es": "Nombre completo", "fr": "Nom complet", "hi": "पूरा नाम",
+        "id": "Nama lengkap", "it": "Nome completo", "ja": "氏名",
+        "ko": "성명", "nl": "Volledige naam", "pl": "Imię i nazwisko",
+        "ru": "Полное имя", "sv": "Fullständigt namn", "tr": "Tam Adı",
+        "uk": "Повне ім'я", "vi": "Họ và tên", "zh": "全名"
+    },
+    "Anos": {
+        "ar": "سنوات", "de": "Jahre", "en": "Years",
+        "es": "Años", "fr": "Ans", "hi": "वर्ष",
+        "id": "Tahun", "it": "Anni", "ja": "歳",
+        "ko": "세", "nl": "Jaar", "pl": "Lat",
+        "ru": "Лет", "sv": "År", "tr": "Yaş",
+        "uk": "Років", "vi": "Tuổi", "zh": "岁"
+    },
+    "Nome do Paciente": {
+        "ar": "اسم المريض", "de": "Patientenname", "en": "Patient Name",
+        "es": "Nombre del Paciente", "fr": "Nom du Patient", "hi": "रोगी का नाम",
+        "id": "Nama Pasien", "it": "Nome del Paziente", "ja": "患者名",
+        "ko": "환자 이름", "nl": "Patiëntnaam", "pl": "Imię Pacjenta",
+        "ru": "Имя пациента", "sv": "Patientens Namn", "tr": "Hasta Adı",
+        "uk": "Ім'я пацієнта", "vi": "Tên Bệnh nhân", "zh": "患者姓名"
+    },
+    "Setor / Leito": {
+        "ar": "القسم / السرير", "de": "Station / Bett", "en": "Unit / Bed",
+        "es": "Unidad / Cama", "fr": "Unité / Lit", "hi": "वार्ड / बिस्तर",
+        "id": "Unit / Tempat Tidur", "it": "Reparto / Letto", "ja": "病棟 / ベッド",
+        "ko": "병동 / 침대", "nl": "Afdeling / Bed", "pl": "Oddział / Łóżko",
+        "ru": "Отделение / Койка", "sv": "Avdelning / Säng", "tr": "Birim / Yatak",
+        "uk": "Відділення / Ліжко", "vi": "Khoa / Giường", "zh": "科室 / 床位"
+    },
+    "Data da Avaliação": {
+        "ar": "تاريخ التقييم", "de": "Bewertungsdatum", "en": "Assessment Date",
+        "es": "Fecha de Evaluación", "fr": "Date d'Évaluation", "hi": "मूल्यांकन तिथि",
+        "id": "Tanggal Penilaian", "it": "Data di Valutazione", "ja": "評価日",
+        "ko": "평가일", "nl": "Beoordelingsdatum", "pl": "Data Oceny",
+        "ru": "Дата оценки", "sv": "Bedömningsdatum", "tr": "Değerlendirme Tarihi",
+        "uk": "Дата оцінки", "vi": "Ngày Đánh giá", "zh": "评估日期"
+    },
+    "Dados do Paciente": {
+        "ar": "بيانات المريض", "de": "Patientendaten", "en": "Patient Data",
+        "es": "Datos del Paciente", "fr": "Données du Patient", "hi": "रोगी डेटा",
+        "id": "Data Pasien", "it": "Dati del Paziente", "ja": "患者データ",
+        "ko": "환자 데이터", "nl": "Patiëntgegevens", "pl": "Dane Pacjenta",
+        "ru": "Данные пациента", "sv": "Patientdata", "tr": "Hasta Verileri",
+        "uk": "Дані пацієнта", "vi": "Dữ liệu Bệnh nhân", "zh": "患者数据"
+    },
+    "Ocultar painel": {
+        "ar": "إخفاء اللوحة", "de": "Panel ausblenden", "en": "Hide Panel",
+        "es": "Ocultar panel", "fr": "Masquer le panneau", "hi": "पैनल छुपाएं",
+        "id": "Sembunyikan Panel", "it": "Nascondi pannello", "ja": "パネルを隠す",
+        "ko": "패널 숨기기", "nl": "Paneel Verbergen", "pl": "Ukryj Panel",
+        "ru": "Скрыть панель", "sv": "Dölj Panel", "tr": "Paneli Gizle",
+        "uk": "Приховати панель", "vi": "Ẩn Bảng", "zh": "隐藏面板"
+    },
+    
+    # ── Pontuação / Avaliação ──
+    "pontos": {
+        "ar": "نقاط", "de": "Punkte", "en": "points",
+        "es": "puntos", "fr": "points", "hi": "अंक",
+        "id": "poin", "it": "punti", "ja": "点",
+        "ko": "점", "nl": "punten", "pl": "punktów",
+        "ru": "баллов", "sv": "poäng", "tr": "puan",
+        "uk": "балів", "vi": "điểm", "zh": "分"
+    },
+    "Pontuação": {
+        "ar": "النتيجة", "de": "Punktzahl", "en": "Score",
+        "es": "Puntuación", "fr": "Score", "hi": "अंक",
+        "id": "Skor", "it": "Punteggio", "ja": "スコア",
+        "ko": "점수", "nl": "Score", "pl": "Wynik",
+        "ru": "Балл", "sv": "Poäng", "tr": "Skor",
+        "uk": "Бал", "vi": "Điểm số", "zh": "分数"
+    },
+    "pts": {
+        "ar": "نقاط", "de": "Pkt", "en": "pts",
+        "es": "pts", "fr": "pts", "hi": "अंक",
+        "id": "poin", "it": "pti", "ja": "点",
+        "ko": "점", "nl": "ptn", "pl": "pkt",
+        "ru": "балл", "sv": "p", "tr": "puan",
+        "uk": "бал", "vi": "đ", "zh": "分"
+    },
+    
+    # ── Tempo / Cronômetro ──
+    "Tempo da Avaliação": {
+        "ar": "وقت التقييم", "de": "Bewertungszeit", "en": "Assessment Time",
+        "es": "Tiempo de Evaluación", "fr": "Temps d'Évaluation", "hi": "मूल्यांकन समय",
+        "id": "Waktu Penilaian", "it": "Tempo di Valutazione", "ja": "評価時間",
+        "ko": "평가 시간", "nl": "Beoordelingstijd", "pl": "Czas Oceny",
+        "ru": "Время оценки", "sv": "Bedömningstid", "tr": "Değerlendirme Süresi",
+        "uk": "Час оцінки", "vi": "Thời gian Đánh giá", "zh": "评估时间"
+    },
+    
+    # ── Recomendações / Conduta ──
+    "Recomendação": {
+        "ar": "توصية", "de": "Empfehlung", "en": "Recommendation",
+        "es": "Recomendación", "fr": "Recommandation", "hi": "सिफारिश",
+        "id": "Rekomendasi", "it": "Raccomandazione", "ja": "推奨",
+        "ko": "권고", "nl": "Aanbeveling", "pl": "Zalecenie",
+        "ru": "Рекомендация", "sv": "Rekommendation", "tr": "Öneri",
+        "uk": "Рекомендація", "vi": "Khuyến nghị", "zh": "建议"
+    },
 }
 
 def obter_traducao_ui(texto_original, idioma_alvo):
@@ -466,6 +636,80 @@ def obter_traducao_ui(texto_original, idioma_alvo):
     if texto_original in DICIONARIO_STRINGS_UI:
         return DICIONARIO_STRINGS_UI[texto_original].get(idioma_alvo)
     return None
+
+def aplicar_dicionario_ui(html, idioma_alvo):
+    """
+    Pós-processamento: aplica o dicionário de strings UI no HTML final.
+    Substitui textos em português que escaparam da tradução pelas APIs.
+    Atua em:
+    - placeholder="..." (ex: "Nome completo")
+    - Texto dentro de <option>...</option>
+    - Texto em JavaScript (strings e template literals)
+    - Labels e headings que não foram traduzidos
+    - Texto de placeholders e exemplos em inputs
+    """
+    if idioma_alvo == 'pt':
+        return html  # Não traduzir para o próprio idioma
+    
+    html_corrigido = html
+    
+    # Ordena as chaves por tamanho decrescente para evitar substituições parciais
+    # (ex: "Alto Risco" antes de "Alto")
+    chaves_ordenadas = sorted(DICIONARIO_STRINGS_UI.keys(), key=len, reverse=True)
+    
+    for chave in chaves_ordenadas:
+        traducao = DICIONARIO_STRINGS_UI[chave].get(idioma_alvo)
+        if not traducao:
+            continue
+        
+        # Estratégia: substitui a chave APENAS em contextos de texto visível
+        # 1. placeholder="Chave" → placeholder="Tradução"
+        html_corrigido = re.sub(
+            rf'(placeholder="){re.escape(chave)}(")',
+            rf'\1{traducao}\2',
+            html_corrigido
+        )
+        
+        # 2. >Chave< (texto entre tags HTML) — apenas se for uma palavra completa
+        #    Ex: >Selecione...<  →  >Select...<
+        html_corrigido = re.sub(
+            rf'(>)\s*{re.escape(chave)}\s*(<)',
+            rf'\1{traducao}\2',
+            html_corrigido
+        )
+        
+        # 3. value="Chave" (para inputs com valor pré-definido)
+        html_corrigido = re.sub(
+            rf'(value="){re.escape(chave)}(")',
+            rf'\1{traducao}\2',
+            html_corrigido
+        )
+        
+        # 4. title="Chave"
+        html_corrigido = re.sub(
+            rf'(title="){re.escape(chave)}(")',
+            rf'\1{traducao}\2',
+            html_corrigido
+        )
+        
+        # 5. aria-label="Chave"
+        html_corrigido = re.sub(
+            rf'(aria-label="){re.escape(chave)}(")',
+            rf'\1{traducao}\2',
+            html_corrigido
+        )
+        
+        # 6. Strings JavaScript: "Chave" ou 'Chave' (texto entre aspas em JS)
+        #    Mas só se a chave for uma palavra/frase de UI (tem acentos ou espaços ou capitalização)
+        if re.search(r'[À-ÿ\s]', chave) or chave[0].isupper():
+            for delim in ['"', "'"]:
+                html_corrigido = re.sub(
+                    rf'({re.escape(delim)}){re.escape(chave)}({re.escape(delim)})',
+                    rf'\1{traducao}\2',
+                    html_corrigido
+                )
+    
+    return html_corrigido
 
 def traduzir_meta_seo_com_deepseek(html, idioma_alvo):
     """
@@ -952,8 +1196,29 @@ def traduzir_lote_js_com_deepseek(dicionario_scripts, idioma_alvo):
             delimitador = match.group(1)
             conteudo = match.group(2)
             
-            # Filtro de segurança: só traduz se parecer texto legível (tem espaços, não é um caminho/ID)
-            if len(conteudo) > 3 and " " in conteudo and not conteudo.startswith(('/', '#', '.', 'data-')) and not conteudo.endswith('.html'):
+            # Filtro: captura strings de UI (com ou sem espaços), ignora código/identificadores
+            # Palavras-chave e identificadores JS que NUNCA devem ser traduzidos
+            _BLACKLIST_JS = {
+                'val', 'max', 'min', 'pct', 'cor', 'dom', 'src', 'alt', 'let', 'var', 'const',
+                'function', 'return', 'true', 'false', 'null', 'undefined', 'if', 'else',
+                'for', 'while', 'break', 'id', 'key', 'type', 'text', 'name', 'value',
+                'class', 'style', 'data', 'href', 'ref', 'url', 'div', 'span', 'item',
+                'opts', 'json', 'obj', 'arr', 'idx', 'msg', 'err', 'btn', 'opt', 'get',
+                'set', 'new', 'map', 'el', 'cb', 'px', 'pt', 'pts', 'mm', 'cm', 'em',
+            }
+            
+            # Verifica se é texto de UI traduzível (tem letras, não é só número/código)
+            tem_letras = bool(re.search(r'[a-zA-ZÀ-ÿ]', conteudo))
+            eh_codigo = (
+                conteudo.lower() in _BLACKLIST_JS or
+                re.match(r'^[a-z_][a-z0-9_]*$', conteudo) or  # snake_case identifier
+                re.match(r'^[a-z][a-zA-Z0-9]*$', conteudo) or  # camelCase identifier  
+                conteudo.startswith(('/', '#', '.', 'data-', 'aria-', 'role-')) or
+                conteudo.endswith(('.html', '.css', '.js', '.json', '.webp', '.woff2', '.svg', '.png')) or
+                re.match(r'^\d+(\.\d+)?$', conteudo)  # puramente numérico
+            )
+            
+            if tem_letras and len(conteudo) > 1 and not eh_codigo:
                 id_string = f"STR_{contador_string}"
                 strings_para_traduzir[id_string] = conteudo
                 mapeamento_scripts[id_script].append({
@@ -1045,7 +1310,7 @@ def traduzir_lote_js_com_deepseek(dicionario_scripts, idioma_alvo):
             
         traducoes = json.loads(resultado)
         
-        # 3. Reconstrução do JavaScript
+        # 3. Reconstrução do JavaScript com fallback do dicionário
         retorno_seguro = {}
         for id_script, codigo_js in dicionario_scripts.items():
             codigo_reconstruido = codigo_js
@@ -1053,6 +1318,11 @@ def traduzir_lote_js_com_deepseek(dicionario_scripts, idioma_alvo):
             for item in mapeamento_scripts[id_script]:
                 id_str = item['id']
                 texto_traduzido = traducoes.get(id_str)
+                
+                if not texto_traduzido:
+                    # Fallback: tenta o dicionário de UI
+                    texto_original = strings_para_traduzir.get(id_str, '')
+                    texto_traduzido = obter_traducao_ui(texto_original, idioma_alvo)
                 
                 if texto_traduzido:
                     if item.get('tipo') == 'template':
@@ -1184,8 +1454,8 @@ if __name__ == "__main__":
     # 🟢 ÁREA DE CONFIGURAÇÃO DIÁRIA (ALTERE APENAS AQUI) 🟢
     # =========================================================================
     
-    arquivos_originais = ["waterlow.html", "downes.html", "saps.html", "silverman.html", "sofa.html", "tinetti.html", "richmond.html", "manchester.html"]
-    idiomas_alvo = ["en", "es", "de", "it", "fr", "hi", "zh", "ar", "ja", "ru", "ko", "tr", "nl", "pl", "sv", "id", "vi", "uk"] 
+    arquivos_originais = ["moca.html"]
+    idiomas_alvo = ["en"]
     
     # =========================================================================
 
@@ -1204,6 +1474,9 @@ if __name__ == "__main__":
                 html_traduzido = traduzir_html_com_deepl(html_preparado, idioma_alvo)
                 
                 if html_traduzido:
+                    print(f"{C_AZUL}[2.5/4]{RESET} Aplicando dicionário de UI (strings que escaparam da API)...")
+                    html_traduzido = aplicar_dicionario_ui(html_traduzido, idioma_alvo)
+                    
                     print(f"{C_AZUL}[3/4]{RESET} Salvando arquivo na pasta do idioma...")
                     pasta_destino = f"./{idioma_alvo}/"
                     os.makedirs(pasta_destino, exist_ok=True)
