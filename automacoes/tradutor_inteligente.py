@@ -85,7 +85,8 @@ def traduzir_meta_seo_com_deepseek(html, idioma_alvo):
             {"role": "system", "content": instrucoes},
             {"role": "user", "content": json.dumps(dict_textos, ensure_ascii=False)}
         ],
-        "temperature": 0.1
+        "temperature": 0.1,
+        "response_format": {"type": "json_object"}
     }
 
     try:
@@ -110,10 +111,6 @@ def traduzir_meta_seo_com_deepseek(html, idioma_alvo):
                 html_modificado = html_modificado[:m.start()] + bloco_novo + html_modificado[m.end():]
                 
         return html_modificado
-    except requests.HTTPError as e:
-        body = e.response.text[:500] if hasattr(e, 'response') and e.response is not None else 'N/A'
-        print(f"\n⚠️ [DeepSeek SEO] HTTP {e.response.status_code}: {body}")
-        return html
     except Exception as e:
         print(f"\n⚠️ Erro ao adaptar SEO com DeepSeek (mantendo SEO original): {e}")
         return html
@@ -515,7 +512,8 @@ def traduzir_lote_js_com_deepseek(dicionario_scripts, idioma_alvo):
             {"role": "system", "content": instrucoes_sistema},
             {"role": "user", "content": json.dumps(strings_para_traduzir, ensure_ascii=False)}
         ],
-        "temperature": 0.0
+        "temperature": 0.0,
+        "response_format": {"type": "json_object"}
     }
 
     try:
@@ -557,10 +555,6 @@ def traduzir_lote_js_com_deepseek(dicionario_scripts, idioma_alvo):
             
         return retorno_seguro
 
-    except requests.HTTPError as e:
-        body = e.response.text[:500] if hasattr(e, 'response') and e.response is not None else 'N/A'
-        print(f"\n⚠️ [DeepSeek JS] HTTP {e.response.status_code}: {body}")
-        return dicionario_scripts
     except json.JSONDecodeError as e:
         print(f"\n❌ ERRO DE JSON DO DEEPSEEK: O modelo quebrou a formatação.")
         print(f"Resposta bruta da IA: {resultado[:300]}...")
@@ -674,7 +668,7 @@ if __name__ == "__main__":
     # =========================================================================
     
     arquivos_originais = ["moca.html"] 
-    idiomas_alvo = ["en"] 
+    idiomas_alvo = ["es"] 
     
     # =========================================================================
 

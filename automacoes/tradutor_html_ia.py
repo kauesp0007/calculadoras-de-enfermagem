@@ -211,13 +211,12 @@ def _traduzir_json_deepseek(dict_textos, idioma_alvo, chave_deepseek):
             {"role": "user", "content": json.dumps(dict_textos, ensure_ascii=False)},
         ],
         "temperature": 0.0,
-        "max_tokens": 4096
+        "max_tokens": 4096,
+        "response_format": {"type": "json_object"},
     }
 
     response = requests.post(url, headers=headers, json=payload, timeout=120)
-    if not response.ok:
-        body = response.text[:500]
-        raise requests.HTTPError(f"{response.status_code}: {body}", response=response)
+    response.raise_for_status()
     resultado = response.json()["choices"][0]["message"]["content"].strip()
 
     # Limpeza de markdown (caso a IA insista em usar)
