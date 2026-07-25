@@ -94,7 +94,7 @@ def extrair_nanda_completo():
         try:
             # Chamada à API
             resposta = client.chat.completions.create(
-                model="deepseek-chat",
+                model="deepseek-v4-pro",
                 messages=[
                     {"role": "system", "content": prompt_sistema},
                     {"role": "user", "content": f"Extrai os dados deste texto:\n\n{texto_extraido}"}

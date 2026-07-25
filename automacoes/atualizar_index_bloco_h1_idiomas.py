@@ -85,7 +85,7 @@ def traduzir_bloco_deepseek(texto, idioma_alvo):
     )
     
     payload = {
-        "model": "deepseek-chat",
+        "model": "deepseek-v4-pro",
         "messages": [
             {"role": "system", "content": system_prompt},
             {"role": "user", "content": f"Traduza este bloco HTML para {nome_idioma}:\n\n{texto}"}

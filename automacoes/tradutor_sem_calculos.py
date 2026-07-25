@@ -80,13 +80,12 @@ def traduzir_meta_seo_com_deepseek(html, idioma_alvo):
     }
     
     payload = {
-        "model": "deepseek-chat",
+        "model": "deepseek-v4-pro",
         "messages": [
             {"role": "system", "content": instrucoes},
             {"role": "user", "content": json.dumps(dict_textos, ensure_ascii=False)}
         ],
-        "temperature": 0.1,
-        "response_format": {"type": "json_object"}
+        "temperature": 0.1
     }
 
     try:
@@ -441,13 +440,12 @@ def traduzir_lote_js_com_deepseek(dicionario_scripts, idioma_alvo):
     }
     
     payload = {
-        "model": "deepseek-chat",
+        "model": "deepseek-v4-pro",
         "messages": [
             {"role": "system", "content": instrucoes_sistema},
             {"role": "user", "content": json.dumps(dicionario_scripts, ensure_ascii=False)}
         ],
         "temperature": 0.0, # Temperatura ZERO absoluta para forçar precisão matemática
-        "response_format": {"type": "json_object"}
     }
 
     try:

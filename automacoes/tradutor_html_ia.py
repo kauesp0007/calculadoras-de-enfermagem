@@ -8,7 +8,7 @@ Estratégia:
 2. Ignora <script>, <style>, <code>, <pre>, <svg>, <math>
 3. Divide em blocos de ~8000 caracteres (≈2000 tokens)
 4. Envia cada bloco como JSON para DeepSeek (fallback: OpenAI)
-5. Aguarda 45s entre blocos para respeitar rate limits
+5. Aguarda 120s entre blocos para respeitar rate limits
 6. Salva progresso a cada bloco (retomada segura)
 7. Reconstrói o HTML com os textos traduzidos
 """
@@ -23,7 +23,7 @@ import requests
 # CONFIGURAÇÃO
 # ============================================================
 MAX_CHARS_POR_BLOCO = 8000   # ~2000 tokens (1 token ≈ 4 chars em PT)
-PAUSA_ENTRE_BLOCOS = 45     # segundos entre blocos
+PAUSA_ENTRE_BLOCOS = 120     # segundos entre blocos
 ARQUIVO_PROGRESSO = "progresso_traducao_ia.json"
 
 NOME_IDIOMAS = {
@@ -70,19 +70,12 @@ def extrair_textos_traduziveis(html):
         return " " * len(match.group(0))
     html_limpo = re.sub(r'<!--.*?-->', replace_comment, html, flags=re.DOTALL)
 
-    # 2. Encontra regiões a serem IGNORADAS (script, style, code, pre, svg, math, meta, link)
-    # Para tags container (script, style, etc.): captura todo o conteúdo interno
-    tags_container = r'<(script|style|code|pre|svg|math)\b[^>]*>.*?</\1>'
-    # Para tags self-closing (meta, link): captura a tag inteira
-    tags_self_closing = r'<(meta|link)\b[^>]*?/?>'
-    
-    regioes_ignoradas = []
-    for padrao in [tags_container, tags_self_closing]:
-        for m in re.finditer(padrao, html_limpo, re.IGNORECASE | re.DOTALL):
-            regioes_ignoradas.append((m.start(), m.end()))
-    
-    # Ordena por posição inicial
-    regioes_ignoradas.sort(key=lambda x: x[0])
+    # 2. Encontra regiões a serem IGNORADAS (script, style, code, pre, svg, math)
+    tags_ignorar = r'<(script|style|code|pre|svg|math)\b[^>]*>.*?</\1>'
+    regioes_ignoradas = [
+        (m.start(), m.end())
+        for m in re.finditer(tags_ignorar, html_limpo, re.IGNORECASE | re.DOTALL)
+    ]
 
     def is_ignorado(pos):
         """Verifica se uma posição está dentro de uma região ignorada."""
@@ -212,18 +205,19 @@ def _traduzir_json_deepseek(dict_textos, idioma_alvo, chave_deepseek):
     }
 
     payload = {
-        "model": "deepseek-chat",
+        "model": "deepseek-v4-pro",
         "messages": [
             {"role": "system", "content": sistema},
             {"role": "user", "content": json.dumps(dict_textos, ensure_ascii=False)},
         ],
         "temperature": 0.0,
-        "max_tokens": 4096,
-        "response_format": {"type": "json_object"},
+        "max_tokens": 4096
     }
 
-    response = requests.post(url, headers=headers, json=payload, timeout=45)
-    response.raise_for_status()
+    response = requests.post(url, headers=headers, json=payload, timeout=120)
+    if not response.ok:
+        body = response.text[:500]
+        raise requests.HTTPError(f"{response.status_code}: {body}", response=response)
     resultado = response.json()["choices"][0]["message"]["content"].strip()
 
     # Limpeza de markdown (caso a IA insista em usar)
@@ -261,7 +255,7 @@ def _traduzir_json_openai(dict_textos, idioma_alvo, chave_openai):
         "response_format": {"type": "json_object"},
     }
 
-    response = requests.post(url, headers=headers, json=payload, timeout=45)
+    response = requests.post(url, headers=headers, json=payload, timeout=120)
     response.raise_for_status()
     resultado = response.json()["choices"][0]["message"]["content"].strip()
 
@@ -325,7 +319,7 @@ def traduzir_html_completo(html, idioma_alvo, chave_deepseek, chave_openai=None)
     1. Extrai textos traduzíveis do HTML
     2. Divide em blocos (respeitando limite de tokens)
     3. Traduz cada bloco via DeepSeek (fallback: OpenAI)
-    4. Aguarda 45s entre blocos
+    4. Aguarda 120s entre blocos
     5. Salva progresso incremental (retomada segura)
     6. Reconstrói HTML com os textos traduzidos
 
