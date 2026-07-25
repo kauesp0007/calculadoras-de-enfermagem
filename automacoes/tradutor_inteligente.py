@@ -30,687 +30,6 @@ if not CHAVE_API:
 if not CHAVE_DEEPSEEK:
     raise ValueError("Chave do DeepSeek não encontrada. Adicione DEEPSEEK_API_KEY no arquivo .env para traduzir os scripts dinâmicos.")
 
-# ============================================================
-# DICIONÁRIO DE STRINGS UI QUE PRECISAM SER TRADUZIDAS
-# Strings comuns em JavaScript/HTML que tradutores automáticos
-# frequentemente ignoram por estarem dentro de <script> ou
-# atributos HTML. Este dicionário serve como referência e
-# fallback para o processo de tradução.
-# ============================================================
-
-DICIONARIO_STRINGS_UI = {
-    # ── Status / Resultados ──
-    "POSITIVO": {
-        "ar": "إيجابي", "de": "POSITIV", "en": "POSITIVE", "es": "POSITIVO",
-        "fr": "POSITIF", "hi": "सकारात्मक", "id": "POSITIF", "it": "POSITIVO",
-        "ja": "陽性", "ko": "양성", "nl": "POSITIEF", "pl": "POZYTYWNY",
-        "ru": "ПОЛОЖИТЕЛЬНЫЙ", "sv": "POSITIV", "tr": "POZİTİF",
-        "uk": "ПОЗИТИВНИЙ", "vi": "DƯƠNG TÍNH", "zh": "阳性"
-    },
-    "NEGATIVO": {
-        "ar": "سلبي", "de": "NEGATIV", "en": "NEGATIVE", "es": "NEGATIVO",
-        "fr": "NÉGATIF", "hi": "नकारात्मक", "id": "NEGATIF", "it": "NEGATIVO",
-        "ja": "陰性", "ko": "음성", "nl": "NEGATIEF", "pl": "NEGATYWNY",
-        "ru": "ОТРИЦАТЕЛЬНЫЙ", "sv": "NEGATIV", "tr": "NEGATİF",
-        "uk": "НЕГАТИВНИЙ", "vi": "ÂM TÍNH", "zh": "阴性"
-    },
-    
-    # ── Presença / Ausência ──
-    "Presente": {
-        "ar": "موجود", "de": "Vorhanden", "en": "Present", "es": "Presente",
-        "fr": "Présent", "hi": "उपस्थित", "id": "Ada", "it": "Presente",
-        "ja": "あり", "ko": "있음", "nl": "Aanwezig", "pl": "Obecny",
-        "ru": "Присутствует", "sv": "Närvarande", "tr": "Mevcut",
-        "uk": "Присутній", "vi": "Có mặt", "zh": "存在"
-    },
-    "Ausente": {
-        "ar": "غائب", "de": "Abwesend", "en": "Absent", "es": "Ausente",
-        "fr": "Absent", "hi": "अनुपस्थित", "id": "Tidak Ada", "it": "Assente",
-        "ja": "なし", "ko": "없음", "nl": "Afwezig", "pl": "Nieobecny",
-        "ru": "Отсутствует", "sv": "Frånvarande", "tr": "Yok",
-        "uk": "Відсутній", "vi": "Vắng mặt", "zh": "不存在"
-    },
-    
-    # ── Sim / Não ──
-    "Sim": {
-        "ar": "نعم", "de": "Ja", "en": "Yes", "es": "Sí",
-        "fr": "Oui", "hi": "हाँ", "id": "Ya", "it": "Sì",
-        "ja": "はい", "ko": "예", "nl": "Ja", "pl": "Tak",
-        "ru": "Да", "sv": "Ja", "tr": "Evet",
-        "uk": "Так", "vi": "Có", "zh": "是"
-    },
-    "Não": {
-        "ar": "لا", "de": "Nein", "en": "No", "es": "No",
-        "fr": "Non", "hi": "नहीं", "id": "Tidak", "it": "No",
-        "ja": "いいえ", "ko": "아니요", "nl": "Nee", "pl": "Nie",
-        "ru": "Нет", "sv": "Nej", "tr": "Hayır",
-        "uk": "Ні", "vi": "Không", "zh": "否"
-    },
-    
-    # ── SIM / NÃO (maiúsculas para impressão/PDF) ──
-    "SIM": {
-        "ar": "نعم", "de": "JA", "en": "YES", "es": "SÍ",
-        "fr": "OUI", "hi": "हाँ", "id": "YA", "it": "SÌ",
-        "ja": "はい", "ko": "예", "nl": "JA", "pl": "TAK",
-        "ru": "ДА", "sv": "JA", "tr": "EVET",
-        "uk": "ТАК", "vi": "CÓ", "zh": "是"
-    },
-    "NÃO": {
-        "ar": "لا", "de": "NEIN", "en": "NO", "es": "NO",
-        "fr": "NON", "hi": "नहीं", "id": "TIDAK", "it": "NO",
-        "ja": "いいえ", "ko": "아니요", "nl": "NEE", "pl": "NIE",
-        "ru": "НЕТ", "sv": "NEJ", "tr": "HAYIR",
-        "uk": "НІ", "vi": "KHÔNG", "zh": "否"
-    },
-    
-    # ── Ações / Botões ──
-    "Calcular": {
-        "ar": "حساب", "de": "Berechnen", "en": "Calculate", "es": "Calcular",
-        "fr": "Calculer", "hi": "गणना करें", "id": "Hitung", "it": "Calcola",
-        "ja": "計算", "ko": "계산", "nl": "Berekenen", "pl": "Oblicz",
-        "ru": "Рассчитать", "sv": "Beräkna", "tr": "Hesapla",
-        "uk": "Розрахувати", "vi": "Tính toán", "zh": "计算"
-    },
-    "Limpar": {
-        "ar": "مسح", "de": "Löschen", "en": "Clear", "es": "Limpiar",
-        "fr": "Effacer", "hi": "साफ करें", "id": "Hapus", "it": "Cancella",
-        "ja": "クリア", "ko": "지우기", "nl": "Wissen", "pl": "Wyczyść",
-        "ru": "Очистить", "sv": "Rensa", "tr": "Temizle",
-        "uk": "Очистити", "vi": "Xóa", "zh": "清除"
-    },
-    "Imprimir": {
-        "ar": "طباعة", "de": "Drucken", "en": "Print", "es": "Imprimir",
-        "fr": "Imprimer", "hi": "प्रिंट", "id": "Cetak", "it": "Stampa",
-        "ja": "印刷", "ko": "인쇄", "nl": "Afdrukken", "pl": "Drukuj",
-        "ru": "Печать", "sv": "Skriv ut", "tr": "Yazdır",
-        "uk": "Друк", "vi": "In", "zh": "打印"
-    },
-    
-    # ── Alertas / Validação ──
-    "Preencha todos os campos": {
-        "ar": "املأ جميع الحقول", "de": "Bitte alle Felder ausfüllen",
-        "en": "Please fill in all fields", "es": "Complete todos los campos",
-        "fr": "Veuillez remplir tous les champs", "hi": "कृपया सभी फ़ील्ड भरें",
-        "id": "Harap isi semua kolom", "it": "Compila tutti i campi",
-        "ja": "すべての項目を入力してください", "ko": "모든 필드를 입력하세요",
-        "nl": "Vul alle velden in", "pl": "Wypełnij wszystkie pola",
-        "ru": "Заполните все поля", "sv": "Fyll i alla fält",
-        "tr": "Lütfen tüm alanları doldurun", "uk": "Заповніть усі поля",
-        "vi": "Vui lòng điền tất cả các trường", "zh": "请填写所有字段"
-    },
-    "Selecione uma opção": {
-        "ar": "حدد خياراً", "de": "Bitte eine Option wählen",
-        "en": "Select an option", "es": "Seleccione una opción",
-        "fr": "Sélectionnez une option", "hi": "एक विकल्प चुनें",
-        "id": "Pilih opsi", "it": "Seleziona un'opzione",
-        "ja": "オプションを選択", "ko": "옵션을 선택하세요",
-        "nl": "Selecteer een optie", "pl": "Wybierz opcję",
-        "ru": "Выберите вариант", "sv": "Välj ett alternativ",
-        "tr": "Bir seçenek seçin", "uk": "Виберіть варіант",
-        "vi": "Chọn một tùy chọn", "zh": "选择一个选项"
-    },
-    
-    # ── Placeholders de <select> / Comentários em dropdowns ──
-    # Strings que aparecem como primeira opção desabilitada em <select>
-    "Selecione...": {
-        "ar": "حدد...", "de": "Auswählen...", "en": "Select...",
-        "es": "Seleccionar...", "fr": "Sélectionner...",
-        "hi": "चुनें...", "id": "Pilih...", "it": "Seleziona...",
-        "ja": "選択...", "ko": "선택...", "nl": "Selecteren...",
-        "pl": "Wybierz...", "ru": "Выберите...", "sv": "Välj...",
-        "tr": "Seçiniz...", "uk": "Виберіть...",
-        "vi": "Chọn...", "zh": "请选择..."
-    },
-    "Selecione uma opção...": {
-        "ar": "حدد خياراً...", "de": "Option auswählen...",
-        "en": "Select an option...", "es": "Seleccione una opción...",
-        "fr": "Sélectionnez une option...", "hi": "एक विकल्प चुनें...",
-        "id": "Pilih opsi...", "it": "Seleziona un'opzione...",
-        "ja": "オプションを選択...", "ko": "옵션을 선택하세요...",
-        "nl": "Selecteer een optie...", "pl": "Wybierz opcję...",
-        "ru": "Выберите вариант...", "sv": "Välj ett alternativ...",
-        "tr": "Bir seçenek seçin...", "uk": "Виберіть варіант...",
-        "vi": "Chọn một tùy chọn...", "zh": "请选择一个选项..."
-    },
-    "Escolha...": {
-        "ar": "اختر...", "de": "Wählen...", "en": "Choose...",
-        "es": "Elegir...", "fr": "Choisir...",
-        "hi": "चुनें...", "id": "Pilih...", "it": "Scegli...",
-        "ja": "選ぶ...", "ko": "고르기...", "nl": "Kies...",
-        "pl": "Wybierz...", "ru": "Выбрать...", "sv": "Välj...",
-        "tr": "Seç...", "uk": "Обрати...",
-        "vi": "Chọn...", "zh": "选择..."
-    },
-    "Selecionar...": {
-        "ar": "تحديد...", "de": "Auswählen...", "en": "Select...",
-        "es": "Seleccionar...", "fr": "Sélectionner...",
-        "hi": "चयन करें...", "id": "Memilih...", "it": "Selezionare...",
-        "ja": "選択する...", "ko": "선택하기...", "nl": "Selecteren...",
-        "pl": "Wybieranie...", "ru": "Выбор...", "sv": "Välja...",
-        "tr": "Seçme...", "uk": "Вибір...",
-        "vi": "Lựa chọn...", "zh": "选择..."
-    },
-    "Selecione a classificação": {
-        "ar": "حدد التصنيف", "de": "Klassifizierung wählen",
-        "en": "Select classification", "es": "Seleccione la clasificación",
-        "fr": "Sélectionnez la classification", "hi": "वर्गीकरण चुनें",
-        "id": "Pilih klasifikasi", "it": "Seleziona la classificazione",
-        "ja": "分類を選択", "ko": "분류 선택",
-        "nl": "Selecteer classificatie", "pl": "Wybierz klasyfikację",
-        "ru": "Выберите классификацию", "sv": "Välj klassificering",
-        "tr": "Sınıflandırma seçin", "uk": "Виберіть класифікацію",
-        "vi": "Chọn phân loại", "zh": "选择分类"
-    },
-    
-    # ── Formulário / Dados do Paciente ──
-    "Paciente": {
-        "ar": "المريض", "de": "Patient", "en": "Patient", "es": "Paciente",
-        "fr": "Patient", "hi": "रोगी", "id": "Pasien", "it": "Paziente",
-        "ja": "患者", "ko": "환자", "nl": "Patiënt", "pl": "Pacjent",
-        "ru": "Пациент", "sv": "Patient", "tr": "Hasta",
-        "uk": "Пацієнт", "vi": "Bệnh nhân", "zh": "患者"
-    },
-    "Idade": {
-        "ar": "العمر", "de": "Alter", "en": "Age", "es": "Edad",
-        "fr": "Âge", "hi": "आयु", "id": "Usia", "it": "Età",
-        "ja": "年齢", "ko": "나이", "nl": "Leeftijd", "pl": "Wiek",
-        "ru": "Возраст", "sv": "Ålder", "tr": "Yaş",
-        "uk": "Вік", "vi": "Tuổi", "zh": "年龄"
-    },
-    "Data": {
-        "ar": "التاريخ", "de": "Datum", "en": "Date", "es": "Fecha",
-        "fr": "Date", "hi": "दिनांक", "id": "Tanggal", "it": "Data",
-        "ja": "日付", "ko": "날짜", "nl": "Datum", "pl": "Data",
-        "ru": "Дата", "sv": "Datum", "tr": "Tarih",
-        "uk": "Дата", "vi": "Ngày", "zh": "日期"
-    },
-    "Identificação": {
-        "ar": "تحديد الهوية", "de": "Identifikation", "en": "Identification",
-        "es": "Identificación", "fr": "Identification", "hi": "पहचान",
-        "id": "Identifikasi", "it": "Identificazione",
-        "ja": "識別", "ko": "식별", "nl": "Identificatie",
-        "pl": "Identyfikacja", "ru": "Идентификация", "sv": "Identifiering",
-        "tr": "Kimlik", "uk": "Ідентифікація",
-        "vi": "Nhận dạng", "zh": "识别"
-    },
-    "Local": {
-        "ar": "الموقع", "de": "Ort", "en": "Location",
-        "es": "Lugar", "fr": "Lieu", "hi": "स्थान",
-        "id": "Lokasi", "it": "Luogo",
-        "ja": "場所", "ko": "위치", "nl": "Locatie",
-        "pl": "Miejsce", "ru": "Место", "sv": "Plats",
-        "tr": "Yer", "uk": "Місце",
-        "vi": "Địa điểm", "zh": "地点"
-    },
-    "Índice": {
-        "ar": "مؤشر", "de": "Index", "en": "Index",
-        "es": "Índice", "fr": "Indice", "hi": "सूचकांक",
-        "id": "Indeks", "it": "Indice",
-        "ja": "指数", "ko": "지수", "nl": "Index",
-        "pl": "Indeks", "ru": "Индекс", "sv": "Index",
-        "tr": "Endeks", "uk": "Індекс",
-        "vi": "Chỉ số", "zh": "指数"
-    },
-    "Data de Emissão": {
-        "ar": "تاريخ الإصدار", "de": "Ausstellungsdatum", "en": "Issue Date",
-        "es": "Fecha de emisión", "fr": "Date d'émission", "hi": "जारी करने की तिथि",
-        "id": "Tanggal Terbit", "it": "Data di emissione",
-        "ja": "発行日", "ko": "발행일", "nl": "Uitgiftedatum",
-        "pl": "Data wydania", "ru": "Дата выдачи", "sv": "Utfärdandedatum",
-        "tr": "Düzenleme Tarihi", "uk": "Дата видачі",
-        "vi": "Ngày phát hành", "zh": "签发日期"
-    },
-    "Sinais Clínicos": {
-        "ar": "العلامات السريرية", "de": "Klinische Anzeichen", "en": "Clinical Signs",
-        "es": "Signos Clínicos", "fr": "Signes Cliniques", "hi": "नैदानिक संकेत",
-        "id": "Tanda Klinis", "it": "Segni Clinici",
-        "ja": "臨床徴候", "ko": "임상 징후", "nl": "Klinische Tekenen",
-        "pl": "Objawy Kliniczne", "ru": "Клинические признаки", "sv": "Kliniska Tecken",
-        "tr": "Klinik Belirtiler", "uk": "Клінічні ознаки",
-        "vi": "Dấu hiệu Lâm sàng", "zh": "临床体征"
-    },
-    "Glicemia": {
-        "ar": "سكر الدم", "de": "Blutzucker", "en": "Blood Glucose",
-        "es": "Glucemia", "fr": "Glycémie", "hi": "रक्त शर्करा",
-        "id": "Gula Darah", "it": "Glicemia",
-        "ja": "血糖", "ko": "혈당", "nl": "Bloedglucose",
-        "pl": "Glikemia", "ru": "Гликемия", "sv": "Blodsocker",
-        "tr": "Kan Şekeri", "uk": "Глікемія",
-        "vi": "Đường huyết", "zh": "血糖"
-    },
-    "Aspiração": {
-        "ar": "شفط", "de": "Aspiration", "en": "Aspiration / Suction",
-        "es": "Aspiración", "fr": "Aspiration", "hi": "एस्पिरेशन",
-        "id": "Aspirasi", "it": "Aspirazione",
-        "ja": "吸引", "ko": "흡인", "nl": "Aspiratie",
-        "pl": "Aspiracja", "ru": "Аспирация", "sv": "Aspiration",
-        "tr": "Aspirasyon", "uk": "Аспірація",
-        "vi": "Hút", "zh": "抽吸"
-    },
-    "Profissional": {
-        "ar": "محترف", "de": "Fachkraft", "en": "Professional",
-        "es": "Profesional", "fr": "Professionnel", "hi": "पेशेवर",
-        "id": "Profesional", "it": "Professionista",
-        "ja": "専門家", "ko": "전문가", "nl": "Professional",
-        "pl": "Profesjonalista", "ru": "Специалист", "sv": "Yrkesverksam",
-        "tr": "Profesyonel", "uk": "Фахівець",
-        "vi": "Chuyên gia", "zh": "专业人员"
-    },
-    "Avaliação da Condição e Vitalidade Neonatal": {
-        "ar": "تقييم حالة وحيوية المولود", "de": "Bewertung des Neugeborenen-Zustands und der Vitalität",
-        "en": "Newborn Condition and Vitality Assessment",
-        "es": "Evaluación de la Condición y Vitalidad Neonatal",
-        "fr": "Évaluation de l'État et de la Vitalité Néonatale",
-        "hi": "नवजात स्थिति और जीवन शक्ति का आकलन",
-        "id": "Penilaian Kondisi dan Vitalitas Neonatal",
-        "it": "Valutazione delle Condizioni e Vitalità Neonatale",
-        "ja": "新生児の状態と活力の評価", "ko": "신생아 상태 및 활력 평가",
-        "nl": "Beoordeling van de Toestand en Vitaliteit van de Pasgeborene",
-        "pl": "Ocena Stanu i Witalności Noworodka",
-        "ru": "Оценка состояния и жизнеспособности новорожденного",
-        "sv": "Bedömning av Nyföddas Tillstånd och Vitalitet",
-        "tr": "Yenidoğan Durum ve Canlılık Değerlendirmesi",
-        "uk": "Оцінка стану та життєздатності новонародженого",
-        "vi": "Đánh giá Tình trạng và Sinh hiệu Sơ sinh",
-        "zh": "新生儿状况与活力评估"
-    },
-    
-    "Carregando gerador...": {
-        "ar": "جارٍ تحميل المُنشئ...", "de": "Generator wird geladen...",
-        "en": "Loading generator...", "es": "Cargando generador...",
-        "fr": "Chargement du générateur...", "hi": "जनरेटर लोड हो रहा है...",
-        "id": "Memuat generator...", "it": "Caricamento generatore...",
-        "ja": "ジェネレーターを読み込み中...", "ko": "생성기 로딩 중...",
-        "nl": "Generator laden...", "pl": "Ładowanie generatora...",
-        "ru": "Загрузка генератора...", "sv": "Laddar generator...",
-        "tr": "Oluşturucu yükleniyor...", "uk": "Завантаження генератора...",
-        "vi": "Đang tải trình tạo...", "zh": "正在加载生成器..."
-    },
-    
-    # ── Tabelas / Escores / Critérios ──
-    "Critério": {
-        "ar": "المعيار", "de": "Kriterium", "en": "Criterion",
-        "es": "Criterio", "fr": "Critère", "hi": "मानदंड",
-        "id": "Kriteria", "it": "Criterio",
-        "ja": "基準", "ko": "기준", "nl": "Criterium",
-        "pl": "Kryterium", "ru": "Критерий", "sv": "Kriterium",
-        "tr": "Kriter", "uk": "Критерій",
-        "vi": "Tiêu chí", "zh": "标准"
-    },
-    "Escore": {
-        "ar": "الدرجة", "de": "Punktzahl", "en": "Score",
-        "es": "Puntuación", "fr": "Score", "hi": "अंक",
-        "id": "Skor", "it": "Punteggio",
-        "ja": "スコア", "ko": "점수", "nl": "Score",
-        "pl": "Wynik", "ru": "Балл", "sv": "Poäng",
-        "tr": "Skor", "uk": "Бал",
-        "vi": "Điểm", "zh": "分数"
-    },
-    "Escore Total": {
-        "ar": "الدرجة الكلية", "de": "Gesamtpunktzahl", "en": "Total Score",
-        "es": "Puntuación Total", "fr": "Score Total", "hi": "कुल अंक",
-        "id": "Skor Total", "it": "Punteggio Totale",
-        "ja": "合計スコア", "ko": "총점", "nl": "Totale Score",
-        "pl": "Wynik Całkowity", "ru": "Общий балл", "sv": "Totalpoäng",
-        "tr": "Toplam Skor", "uk": "Загальний бал",
-        "vi": "Tổng Điểm", "zh": "总分"
-    },
-    "Máximo": {
-        "ar": "الحد الأقصى", "de": "Maximum", "en": "Maximum",
-        "es": "Máximo", "fr": "Maximum", "hi": "अधिकतम",
-        "id": "Maksimum", "it": "Massimo",
-        "ja": "最大", "ko": "최대", "nl": "Maximum",
-        "pl": "Maksimum", "ru": "Максимум", "sv": "Maximum",
-        "tr": "Maksimum", "uk": "Максимум",
-        "vi": "Tối đa", "zh": "最大"
-    },
-    "Mínimo": {
-        "ar": "الحد الأدنى", "de": "Minimum", "en": "Minimum",
-        "es": "Mínimo", "fr": "Minimum", "hi": "न्यूनतम",
-        "id": "Minimum", "it": "Minimo",
-        "ja": "最小", "ko": "최소", "nl": "Minimum",
-        "pl": "Minimum", "ru": "Минимум", "sv": "Minimum",
-        "tr": "Minimum", "uk": "Мінімум",
-        "vi": "Tối thiểu", "zh": "最小"
-    },
-    "Obtido": {
-        "ar": "تم الحصول", "de": "Erhalten", "en": "Obtained",
-        "es": "Obtenido", "fr": "Obtenu", "hi": "प्राप्त",
-        "id": "Diperoleh", "it": "Ottenuto",
-        "ja": "取得", "ko": "획득", "nl": "Verkregen",
-        "pl": "Uzyskany", "ru": "Получено", "sv": "Erhållen",
-        "tr": "Elde Edilen", "uk": "Отримано",
-        "vi": "Đạt được", "zh": "获得"
-    },
-    
-    # ── Diagnósticos / Conduta ──
-    "Diagnósticos": {
-        "ar": "التشخيصات", "de": "Diagnosen", "en": "Diagnoses",
-        "es": "Diagnósticos", "fr": "Diagnostics", "hi": "निदान",
-        "id": "Diagnosis", "it": "Diagnosi",
-        "ja": "診断", "ko": "진단", "nl": "Diagnoses",
-        "pl": "Diagnozy", "ru": "Диагнозы", "sv": "Diagnoser",
-        "tr": "Tanılar", "uk": "Діагнози",
-        "vi": "Chẩn đoán", "zh": "诊断"
-    },
-    "Sugeridos": {
-        "ar": "مقترحة", "de": "Vorgeschlagen", "en": "Suggested",
-        "es": "Sugeridos", "fr": "Suggérés", "hi": "सुझाए गए",
-        "id": "Disarankan", "it": "Suggeriti",
-        "ja": "推奨", "ko": "제안됨", "nl": "Voorgesteld",
-        "pl": "Sugerowane", "ru": "Предложенные", "sv": "Föreslagna",
-        "tr": "Önerilen", "uk": "Запропоновані",
-        "vi": "Đề xuất", "zh": "建议"
-    },
-    "Conduta": {
-        "ar": "التصرف", "de": "Vorgehen", "en": "Conduct / Management",
-        "es": "Conducta", "fr": "Conduite", "hi": "प्रबंधन",
-        "id": "Tatalaksana", "it": "Condotta",
-        "ja": "対応", "ko": "처치", "nl": "Behandeling",
-        "pl": "Postępowanie", "ru": "Тактика", "sv": "Åtgärd",
-        "tr": "Yaklaşım", "uk": "Тактика",
-        "vi": "Xử trí", "zh": "处理"
-    },
-    
-    # ── Documentos / Laudos ──
-    "Memória de Avaliação": {
-        "ar": "سجل التقييم", "de": "Bewertungsprotokoll", "en": "Assessment Record",
-        "es": "Registro de Evaluación", "fr": "Registre d'Évaluation",
-        "hi": "मूल्यांकन रिकॉर्ड", "id": "Catatan Penilaian",
-        "it": "Registro di Valutazione",
-        "ja": "評価記録", "ko": "평가 기록", "nl": "Beoordelingsdossier",
-        "pl": "Protokół Oceny", "ru": "Протокол оценки", "sv": "Bedömningsprotokoll",
-        "tr": "Değerlendirme Kaydı", "uk": "Протокол оцінки",
-        "vi": "Hồ sơ Đánh giá", "zh": "评估记录"
-    },
-    
-    # ── Resultado / Diagnóstico ──
-    "Resultado": {
-        "ar": "النتيجة", "de": "Ergebnis", "en": "Result", "es": "Resultado",
-        "fr": "Résultat", "hi": "परिणाम", "id": "Hasil", "it": "Risultato",
-        "ja": "結果", "ko": "결과", "nl": "Resultaat", "pl": "Wynik",
-        "ru": "Результат", "sv": "Resultat", "tr": "Sonuç",
-        "uk": "Результат", "vi": "Kết quả", "zh": "结果"
-    },
-    "Risco Baixo": {
-        "ar": "خطر منخفض", "de": "Niedriges Risiko", "en": "Low Risk",
-        "es": "Riesgo Bajo", "fr": "Risque Faible", "hi": "कम जोखिम",
-        "id": "Risiko Rendah", "it": "Rischio Basso", "ja": "低リスク",
-        "ko": "낮은 위험", "nl": "Laag Risico", "pl": "Niskie Ryzyko",
-        "ru": "Низкий риск", "sv": "Låg Risk", "tr": "Düşük Risk",
-        "uk": "Низький ризик", "vi": "Nguy cơ Thấp", "zh": "低风险"
-    },
-    "Risco Moderado": {
-        "ar": "خطر متوسط", "de": "Mittleres Risiko", "en": "Moderate Risk",
-        "es": "Riesgo Moderado", "fr": "Risque Modéré", "hi": "मध्यम जोखिम",
-        "id": "Risiko Sedang", "it": "Rischio Moderato", "ja": "中リスク",
-        "ko": "중간 위험", "nl": "Matig Risico", "pl": "Umiarkowane Ryzyko",
-        "ru": "Средний риск", "sv": "Måttlig Risk", "tr": "Orta Risk",
-        "uk": "Помірний ризик", "vi": "Nguy cơ Trung bình", "zh": "中等风险"
-    },
-    "Risco Alto": {
-        "ar": "خطر مرتفع", "de": "Hohes Risiko", "en": "High Risk",
-        "es": "Riesgo Alto", "fr": "Risque Élevé", "hi": "उच्च जोखिम",
-        "id": "Risiko Tinggi", "it": "Rischio Alto", "ja": "高リスク",
-        "ko": "높은 위험", "nl": "Hoog Risico", "pl": "Wysokie Ryzyko",
-        "ru": "Высокий риск", "sv": "Hög Risk", "tr": "Yüksek Risk",
-        "uk": "Високий ризик", "vi": "Nguy cơ Cao", "zh": "高风险"
-    },
-    
-    # ── Formulários: Comandos e Placeholders ──
-    "Selecione...": {
-        "ar": "اختر...", "de": "Auswählen...", "en": "Select...",
-        "es": "Seleccionar...", "fr": "Sélectionner...", "hi": "चुनें...",
-        "id": "Pilih...", "it": "Seleziona...", "ja": "選択...",
-        "ko": "선택...", "nl": "Selecteren...", "pl": "Wybierz...",
-        "ru": "Выбрать...", "sv": "Välj...", "tr": "Seçin...",
-        "uk": "Вибрати...", "vi": "Chọn...", "zh": "选择..."
-    },
-    "Selecione": {
-        "ar": "اختر", "de": "Auswählen", "en": "Select",
-        "es": "Seleccionar", "fr": "Sélectionner", "hi": "चुनें",
-        "id": "Pilih", "it": "Seleziona", "ja": "選択",
-        "ko": "선택", "nl": "Selecteren", "pl": "Wybierz",
-        "ru": "Выбрать", "sv": "Välj", "tr": "Seçin",
-        "uk": "Вибрати", "vi": "Chọn", "zh": "选择"
-    },
-    "Limpar": {
-        "ar": "مسح", "de": "Löschen", "en": "Clear",
-        "es": "Limpiar", "fr": "Effacer", "hi": "साफ़ करें",
-        "id": "Hapus", "it": "Cancella", "ja": "クリア",
-        "ko": "지우기", "nl": "Wissen", "pl": "Wyczyść",
-        "ru": "Очистить", "sv": "Rensa", "tr": "Temizle",
-        "uk": "Очистити", "vi": "Xóa", "zh": "清除"
-    },
-    "Calcular": {
-        "ar": "حساب", "de": "Berechnen", "en": "Calculate",
-        "es": "Calcular", "fr": "Calculer", "hi": "गणना करें",
-        "id": "Hitung", "it": "Calcola", "ja": "計算",
-        "ko": "계산", "nl": "Berekenen", "pl": "Oblicz",
-        "ru": "Рассчитать", "sv": "Beräkna", "tr": "Hesapla",
-        "uk": "Обчислити", "vi": "Tính toán", "zh": "计算"
-    },
-    "Calcular Escore": {
-        "ar": "حساب النتيجة", "de": "Score Berechnen", "en": "Calculate Score",
-        "es": "Calcular Puntuación", "fr": "Calculer le Score", "hi": "स्कोर की गणना करें",
-        "id": "Hitung Skor", "it": "Calcola Punteggio", "ja": "スコアを計算",
-        "ko": "점수 계산", "nl": "Score Berekenen", "pl": "Oblicz Wynik",
-        "ru": "Рассчитать балл", "sv": "Beräkna Poäng", "tr": "Skoru Hesapla",
-        "uk": "Обчислити бал", "vi": "Tính điểm", "zh": "计算分数"
-    },
-    "Salvar PDF": {
-        "ar": "حفظ PDF", "de": "PDF Speichern", "en": "Save PDF",
-        "es": "Guardar PDF", "fr": "Enregistrer PDF", "hi": "PDF सहेजें",
-        "id": "Simpan PDF", "it": "Salva PDF", "ja": "PDF保存",
-        "ko": "PDF 저장", "nl": "PDF Opslaan", "pl": "Zapisz PDF",
-        "ru": "Сохранить PDF", "sv": "Spara PDF", "tr": "PDF Kaydet",
-        "uk": "Зберегти PDF", "vi": "Lưu PDF", "zh": "保存PDF"
-    },
-    "Imprimir": {
-        "ar": "طباعة", "de": "Drucken", "en": "Print",
-        "es": "Imprimir", "fr": "Imprimer", "hi": "प्रिंट करें",
-        "id": "Cetak", "it": "Stampa", "ja": "印刷",
-        "ko": "인쇄", "nl": "Afdrukken", "pl": "Drukuj",
-        "ru": "Печать", "sv": "Skriv ut", "tr": "Yazdır",
-        "uk": "Друк", "vi": "In", "zh": "打印"
-    },
-    "Imprimir Laudo": {
-        "ar": "طباعة التقرير", "de": "Bericht Drucken", "en": "Print Report",
-        "es": "Imprimir Informe", "fr": "Imprimer le Rapport", "hi": "रिपोर्ट प्रिंट करें",
-        "id": "Cetak Laporan", "it": "Stampa Referto", "ja": "レポート印刷",
-        "ko": "보고서 인쇄", "nl": "Rapport Afdrukken", "pl": "Drukuj Raport",
-        "ru": "Печать отчета", "sv": "Skriv ut Rapport", "tr": "Rapor Yazdır",
-        "uk": "Друк звіту", "vi": "In Báo cáo", "zh": "打印报告"
-    },
-    
-    # ── Placeholders e Labels de Formulário ──
-    "Nome completo": {
-        "ar": "الاسم الكامل", "de": "Vollständiger Name", "en": "Full Name",
-        "es": "Nombre completo", "fr": "Nom complet", "hi": "पूरा नाम",
-        "id": "Nama lengkap", "it": "Nome completo", "ja": "氏名",
-        "ko": "성명", "nl": "Volledige naam", "pl": "Imię i nazwisko",
-        "ru": "Полное имя", "sv": "Fullständigt namn", "tr": "Tam Adı",
-        "uk": "Повне ім'я", "vi": "Họ và tên", "zh": "全名"
-    },
-    "Anos": {
-        "ar": "سنوات", "de": "Jahre", "en": "Years",
-        "es": "Años", "fr": "Ans", "hi": "वर्ष",
-        "id": "Tahun", "it": "Anni", "ja": "歳",
-        "ko": "세", "nl": "Jaar", "pl": "Lat",
-        "ru": "Лет", "sv": "År", "tr": "Yaş",
-        "uk": "Років", "vi": "Tuổi", "zh": "岁"
-    },
-    "Nome do Paciente": {
-        "ar": "اسم المريض", "de": "Patientenname", "en": "Patient Name",
-        "es": "Nombre del Paciente", "fr": "Nom du Patient", "hi": "रोगी का नाम",
-        "id": "Nama Pasien", "it": "Nome del Paziente", "ja": "患者名",
-        "ko": "환자 이름", "nl": "Patiëntnaam", "pl": "Imię Pacjenta",
-        "ru": "Имя пациента", "sv": "Patientens Namn", "tr": "Hasta Adı",
-        "uk": "Ім'я пацієнта", "vi": "Tên Bệnh nhân", "zh": "患者姓名"
-    },
-    "Setor / Leito": {
-        "ar": "القسم / السرير", "de": "Station / Bett", "en": "Unit / Bed",
-        "es": "Unidad / Cama", "fr": "Unité / Lit", "hi": "वार्ड / बिस्तर",
-        "id": "Unit / Tempat Tidur", "it": "Reparto / Letto", "ja": "病棟 / ベッド",
-        "ko": "병동 / 침대", "nl": "Afdeling / Bed", "pl": "Oddział / Łóżko",
-        "ru": "Отделение / Койка", "sv": "Avdelning / Säng", "tr": "Birim / Yatak",
-        "uk": "Відділення / Ліжко", "vi": "Khoa / Giường", "zh": "科室 / 床位"
-    },
-    "Data da Avaliação": {
-        "ar": "تاريخ التقييم", "de": "Bewertungsdatum", "en": "Assessment Date",
-        "es": "Fecha de Evaluación", "fr": "Date d'Évaluation", "hi": "मूल्यांकन तिथि",
-        "id": "Tanggal Penilaian", "it": "Data di Valutazione", "ja": "評価日",
-        "ko": "평가일", "nl": "Beoordelingsdatum", "pl": "Data Oceny",
-        "ru": "Дата оценки", "sv": "Bedömningsdatum", "tr": "Değerlendirme Tarihi",
-        "uk": "Дата оцінки", "vi": "Ngày Đánh giá", "zh": "评估日期"
-    },
-    "Dados do Paciente": {
-        "ar": "بيانات المريض", "de": "Patientendaten", "en": "Patient Data",
-        "es": "Datos del Paciente", "fr": "Données du Patient", "hi": "रोगी डेटा",
-        "id": "Data Pasien", "it": "Dati del Paziente", "ja": "患者データ",
-        "ko": "환자 데이터", "nl": "Patiëntgegevens", "pl": "Dane Pacjenta",
-        "ru": "Данные пациента", "sv": "Patientdata", "tr": "Hasta Verileri",
-        "uk": "Дані пацієнта", "vi": "Dữ liệu Bệnh nhân", "zh": "患者数据"
-    },
-    "Ocultar painel": {
-        "ar": "إخفاء اللوحة", "de": "Panel ausblenden", "en": "Hide Panel",
-        "es": "Ocultar panel", "fr": "Masquer le panneau", "hi": "पैनल छुपाएं",
-        "id": "Sembunyikan Panel", "it": "Nascondi pannello", "ja": "パネルを隠す",
-        "ko": "패널 숨기기", "nl": "Paneel Verbergen", "pl": "Ukryj Panel",
-        "ru": "Скрыть панель", "sv": "Dölj Panel", "tr": "Paneli Gizle",
-        "uk": "Приховати панель", "vi": "Ẩn Bảng", "zh": "隐藏面板"
-    },
-    
-    # ── Pontuação / Avaliação ──
-    "pontos": {
-        "ar": "نقاط", "de": "Punkte", "en": "points",
-        "es": "puntos", "fr": "points", "hi": "अंक",
-        "id": "poin", "it": "punti", "ja": "点",
-        "ko": "점", "nl": "punten", "pl": "punktów",
-        "ru": "баллов", "sv": "poäng", "tr": "puan",
-        "uk": "балів", "vi": "điểm", "zh": "分"
-    },
-    "Pontuação": {
-        "ar": "النتيجة", "de": "Punktzahl", "en": "Score",
-        "es": "Puntuación", "fr": "Score", "hi": "अंक",
-        "id": "Skor", "it": "Punteggio", "ja": "スコア",
-        "ko": "점수", "nl": "Score", "pl": "Wynik",
-        "ru": "Балл", "sv": "Poäng", "tr": "Skor",
-        "uk": "Бал", "vi": "Điểm số", "zh": "分数"
-    },
-    "pts": {
-        "ar": "نقاط", "de": "Pkt", "en": "pts",
-        "es": "pts", "fr": "pts", "hi": "अंक",
-        "id": "poin", "it": "pti", "ja": "点",
-        "ko": "점", "nl": "ptn", "pl": "pkt",
-        "ru": "балл", "sv": "p", "tr": "puan",
-        "uk": "бал", "vi": "đ", "zh": "分"
-    },
-    
-    # ── Tempo / Cronômetro ──
-    "Tempo da Avaliação": {
-        "ar": "وقت التقييم", "de": "Bewertungszeit", "en": "Assessment Time",
-        "es": "Tiempo de Evaluación", "fr": "Temps d'Évaluation", "hi": "मूल्यांकन समय",
-        "id": "Waktu Penilaian", "it": "Tempo di Valutazione", "ja": "評価時間",
-        "ko": "평가 시간", "nl": "Beoordelingstijd", "pl": "Czas Oceny",
-        "ru": "Время оценки", "sv": "Bedömningstid", "tr": "Değerlendirme Süresi",
-        "uk": "Час оцінки", "vi": "Thời gian Đánh giá", "zh": "评估时间"
-    },
-    
-    # ── Recomendações / Conduta ──
-    "Recomendação": {
-        "ar": "توصية", "de": "Empfehlung", "en": "Recommendation",
-        "es": "Recomendación", "fr": "Recommandation", "hi": "सिफारिश",
-        "id": "Rekomendasi", "it": "Raccomandazione", "ja": "推奨",
-        "ko": "권고", "nl": "Aanbeveling", "pl": "Zalecenie",
-        "ru": "Рекомендация", "sv": "Rekommendation", "tr": "Öneri",
-        "uk": "Рекомендація", "vi": "Khuyến nghị", "zh": "建议"
-    },
-}
-
-def obter_traducao_ui(texto_original, idioma_alvo):
-    """
-    Consulta o dicionário de strings UI para obter uma tradução pré-definida.
-    Retorna None se a string não estiver no dicionário.
-    """
-    if texto_original in DICIONARIO_STRINGS_UI:
-        return DICIONARIO_STRINGS_UI[texto_original].get(idioma_alvo)
-    return None
-
-def aplicar_dicionario_ui(html, idioma_alvo):
-    """
-    Pós-processamento: aplica o dicionário de strings UI no HTML final.
-    Substitui textos em português que escaparam da tradução pelas APIs.
-    Atua em:
-    - placeholder="..." (ex: "Nome completo")
-    - Texto dentro de <option>...</option>
-    - Texto em JavaScript (strings e template literals)
-    - Labels e headings que não foram traduzidos
-    - Texto de placeholders e exemplos em inputs
-    """
-    if idioma_alvo == 'pt':
-        return html  # Não traduzir para o próprio idioma
-    
-    html_corrigido = html
-    
-    # Ordena as chaves por tamanho decrescente para evitar substituições parciais
-    # (ex: "Alto Risco" antes de "Alto")
-    chaves_ordenadas = sorted(DICIONARIO_STRINGS_UI.keys(), key=len, reverse=True)
-    
-    for chave in chaves_ordenadas:
-        traducao = DICIONARIO_STRINGS_UI[chave].get(idioma_alvo)
-        if not traducao:
-            continue
-        
-        # Estratégia: substitui a chave APENAS em contextos de texto visível
-        # 1. placeholder="Chave" → placeholder="Tradução"
-        html_corrigido = re.sub(
-            rf'(placeholder="){re.escape(chave)}(")',
-            rf'\1{traducao}\2',
-            html_corrigido
-        )
-        
-        # 2. >Chave< (texto entre tags HTML) — apenas se for uma palavra completa
-        #    Ex: >Selecione...<  →  >Select...<
-        html_corrigido = re.sub(
-            rf'(>)\s*{re.escape(chave)}\s*(<)',
-            rf'\1{traducao}\2',
-            html_corrigido
-        )
-        
-        # 3. value="Chave" (para inputs com valor pré-definido)
-        html_corrigido = re.sub(
-            rf'(value="){re.escape(chave)}(")',
-            rf'\1{traducao}\2',
-            html_corrigido
-        )
-        
-        # 4. title="Chave"
-        html_corrigido = re.sub(
-            rf'(title="){re.escape(chave)}(")',
-            rf'\1{traducao}\2',
-            html_corrigido
-        )
-        
-        # 5. aria-label="Chave"
-        html_corrigido = re.sub(
-            rf'(aria-label="){re.escape(chave)}(")',
-            rf'\1{traducao}\2',
-            html_corrigido
-        )
-        
-        # 6. Strings JavaScript: "Chave" ou 'Chave' (texto entre aspas em JS)
-        #    Mas só se a chave for uma palavra/frase de UI (tem acentos ou espaços ou capitalização)
-        if re.search(r'[À-ÿ\s]', chave) or chave[0].isupper():
-            for delim in ['"', "'"]:
-                html_corrigido = re.sub(
-                    rf'({re.escape(delim)}){re.escape(chave)}({re.escape(delim)})',
-                    rf'\1{traducao}\2',
-                    html_corrigido
-                )
-    
-    return html_corrigido
-
 def traduzir_meta_seo_com_deepseek(html, idioma_alvo):
     """
     Isola os conteúdos das tags de SEO e traduz de forma independente usando o DeepSeek,
@@ -771,7 +90,7 @@ def traduzir_meta_seo_com_deepseek(html, idioma_alvo):
     }
 
     try:
-        response = requests.post(url, headers=headers, json=payload, timeout=25)
+        response = requests.post(url, headers=headers, json=payload, timeout=45)
         response.raise_for_status()
         resultado = response.json()["choices"][0]["message"]["content"].strip()
         
@@ -1094,86 +413,6 @@ def preparar_html_para_traducao_texto(caminho_arquivo, idioma_alvo):
 
     return html
 
-def _extrair_interpolacoes(texto):
-    """
-    Extrai TODAS as interpolações ${...} completas de um texto,
-    lidando corretamente com chaves aninhadas (ex: ${fn({a:1})}).
-    
-    Ao contrário da regex que para na primeira },
-    esta função rastreia a profundidade de chaves para capturar
-    a interpolação inteira.
-    """
-    interps = []
-    i = 0
-    while i < len(texto):
-        if texto[i:i+2] == '${':
-            inicio = i
-            depth = 1
-            j = i + 2
-            while j < len(texto) and depth > 0:
-                if texto[j] == '{':
-                    depth += 1
-                elif texto[j] == '}':
-                    depth -= 1
-                j += 1
-            interps.append(texto[inicio:j])
-            i = j
-        else:
-            i += 1
-    return interps
-
-
-def _extrair_template_literals(codigo_js):
-    """
-    Extrai template literals COMPLETOS do JavaScript, lidando corretamente
-    com backticks aninhados dentro de ${...} (ex: ${x ? `a` : `b`}).
-    
-    Ao contrário da regex `([^`]*)` que quebra no primeiro backtick,
-    esta função rastreia o aninhamento de chaves ${ } para determinar
-    se um backtick pertence a um template aninhado ou ao fechamento do
-    template externo.
-    
-    Retorna lista de tuplas (match_completo, conteudo) onde:
-    - match_completo: string completa incluindo os backticks delimitadores
-    - conteudo: apenas o texto entre os backticks
-    """
-    resultados = []
-    i = 0
-    while i < len(codigo_js):
-        # Encontra backtick de abertura (não escapado)
-        if codigo_js[i] == '`' and (i == 0 or codigo_js[i-1] != '\\'):
-            inicio = i
-            brace_depth = 0  # profundidade de ${...}
-            j = i + 1
-            while j < len(codigo_js):
-                c = codigo_js[j]
-                # Detecta abertura de interpolação ${
-                if c == '$' and j+1 < len(codigo_js) and codigo_js[j+1] == '{':
-                    brace_depth += 1
-                    j += 2
-                    continue
-                # Detecta abertura de chave dentro de interpolação (ex: objetos, funções)
-                elif c == '{' and brace_depth > 0:
-                    brace_depth += 1
-                # Detecta fechamento de chave dentro de interpolação
-                elif c == '}' and brace_depth > 0:
-                    brace_depth -= 1
-                # Backtick: só fecha o template externo se brace_depth == 0
-                elif c == '`' and brace_depth == 0:
-                    match_completo = codigo_js[inicio:j+1]
-                    conteudo = codigo_js[inicio+1:j]
-                    resultados.append((match_completo, conteudo))
-                    i = j + 1
-                    break
-                j += 1
-            else:
-                # Não encontrou fechamento — avança 1 char para não travar
-                i += 1
-        else:
-            i += 1
-    return resultados
-
-
 def traduzir_lote_js_com_deepseek(dicionario_scripts, idioma_alvo):
     """
     Função otimizada que extrai as strings do JS antes de enviar para a IA,
@@ -1196,29 +435,8 @@ def traduzir_lote_js_com_deepseek(dicionario_scripts, idioma_alvo):
             delimitador = match.group(1)
             conteudo = match.group(2)
             
-            # Filtro: captura strings de UI (com ou sem espaços), ignora código/identificadores
-            # Palavras-chave e identificadores JS que NUNCA devem ser traduzidos
-            _BLACKLIST_JS = {
-                'val', 'max', 'min', 'pct', 'cor', 'dom', 'src', 'alt', 'let', 'var', 'const',
-                'function', 'return', 'true', 'false', 'null', 'undefined', 'if', 'else',
-                'for', 'while', 'break', 'id', 'key', 'type', 'text', 'name', 'value',
-                'class', 'style', 'data', 'href', 'ref', 'url', 'div', 'span', 'item',
-                'opts', 'json', 'obj', 'arr', 'idx', 'msg', 'err', 'btn', 'opt', 'get',
-                'set', 'new', 'map', 'el', 'cb', 'px', 'pt', 'pts', 'mm', 'cm', 'em',
-            }
-            
-            # Verifica se é texto de UI traduzível (tem letras, não é só número/código)
-            tem_letras = bool(re.search(r'[a-zA-ZÀ-ÿ]', conteudo))
-            eh_codigo = (
-                conteudo.lower() in _BLACKLIST_JS or
-                re.match(r'^[a-z_][a-z0-9_]*$', conteudo) or  # snake_case identifier
-                re.match(r'^[a-z][a-zA-Z0-9]*$', conteudo) or  # camelCase identifier  
-                conteudo.startswith(('/', '#', '.', 'data-', 'aria-', 'role-')) or
-                conteudo.endswith(('.html', '.css', '.js', '.json', '.webp', '.woff2', '.svg', '.png')) or
-                re.match(r'^\d+(\.\d+)?$', conteudo)  # puramente numérico
-            )
-            
-            if tem_letras and len(conteudo) > 1 and not eh_codigo:
+            # Filtro de segurança: só traduz se parecer texto legível (tem espaços, não é um caminho/ID)
+            if len(conteudo) > 3 and " " in conteudo and not conteudo.startswith(('/', '#', '.', 'data-')) and not conteudo.endswith('.html'):
                 id_string = f"STR_{contador_string}"
                 strings_para_traduzir[id_string] = conteudo
                 mapeamento_scripts[id_script].append({
@@ -1232,14 +450,14 @@ def traduzir_lote_js_com_deepseek(dicionario_scripts, idioma_alvo):
         # === Extração de TEMPLATE LITERALS (crases `...`) ===
         # Template literals contêm texto em português + ${interpolacoes}
         # Extrai apenas o texto fora de ${...}, preservando interpolações
-        # Usa parser que rastreia aninhamento de ${...} para NÃO quebrar
-        # templates com backticks aninhados (ex: ${x ? `a` : `b`})
-        for match_completo, conteudo in _extrair_template_literals(codigo_js):
+        padrao_template = re.compile(r'`([^`]*)`')
+        for match_tmpl in padrao_template.finditer(codigo_js):
+            conteudo = match_tmpl.group(1)
             if not conteudo.strip():
                 continue
             
-            # Encontra todas as interpolações ${...} (com parser de aninhamento)
-            interps = _extrair_interpolacoes(conteudo)
+            # Encontra todas as interpolações ${...}
+            interps = re.findall(r'\$\{[^}]+\}', conteudo)
             
             # Substitui cada interpolação por um placeholder único
             texto_limpo = conteudo
@@ -1254,7 +472,7 @@ def traduzir_lote_js_com_deepseek(dicionario_scripts, idioma_alvo):
             id_string = f"STR_{contador_string}"
             strings_para_traduzir[id_string] = texto_limpo
             mapeamento_scripts[id_script].append({
-                'original': match_completo,
+                'original': match_tmpl.group(0),
                 'id': id_string,
                 'delimitador': '`',
                 'tipo': 'template',
@@ -1310,7 +528,7 @@ def traduzir_lote_js_com_deepseek(dicionario_scripts, idioma_alvo):
             
         traducoes = json.loads(resultado)
         
-        # 3. Reconstrução do JavaScript com fallback do dicionário
+        # 3. Reconstrução do JavaScript
         retorno_seguro = {}
         for id_script, codigo_js in dicionario_scripts.items():
             codigo_reconstruido = codigo_js
@@ -1318,11 +536,6 @@ def traduzir_lote_js_com_deepseek(dicionario_scripts, idioma_alvo):
             for item in mapeamento_scripts[id_script]:
                 id_str = item['id']
                 texto_traduzido = traducoes.get(id_str)
-                
-                if not texto_traduzido:
-                    # Fallback: tenta o dicionário de UI
-                    texto_original = strings_para_traduzir.get(id_str, '')
-                    texto_traduzido = obter_traducao_ui(texto_original, idioma_alvo)
                 
                 if texto_traduzido:
                     if item.get('tipo') == 'template':
@@ -1454,8 +667,8 @@ if __name__ == "__main__":
     # 🟢 ÁREA DE CONFIGURAÇÃO DIÁRIA (ALTERE APENAS AQUI) 🟢
     # =========================================================================
     
-    arquivos_originais = ["moca.html"]
-    idiomas_alvo = ["en"]
+    arquivos_originais = ["moca.html"] 
+    idiomas_alvo = ["en"] 
     
     # =========================================================================
 
@@ -1474,9 +687,6 @@ if __name__ == "__main__":
                 html_traduzido = traduzir_html_com_deepl(html_preparado, idioma_alvo)
                 
                 if html_traduzido:
-                    print(f"{C_AZUL}[2.5/4]{RESET} Aplicando dicionário de UI (strings que escaparam da API)...")
-                    html_traduzido = aplicar_dicionario_ui(html_traduzido, idioma_alvo)
-                    
                     print(f"{C_AZUL}[3/4]{RESET} Salvando arquivo na pasta do idioma...")
                     pasta_destino = f"./{idioma_alvo}/"
                     os.makedirs(pasta_destino, exist_ok=True)
@@ -1521,8 +731,8 @@ if __name__ == "__main__":
                     is_last_lang = (idioma_alvo == idiomas_alvo[-1])
                     
                     if not (is_last_file and is_last_lang):
-                        print(f"\n{C_AMARELO}⏳ Pausa de segurança: Aguardando 25 segundos para evitar bloqueios da API...{RESET}")
-                        time.sleep(25)
+                        print(f"\n{C_AMARELO}⏳ Pausa de segurança: Aguardando 45 segundos para evitar bloqueios da API...{RESET}")
+                        time.sleep(45)
                     # === FIM DA PAUSA DE SEGURANÇA ===
             else:
                 print(f"\n{C_AMARELO}Atenção: O arquivo '{arquivo_original}' não foi encontrado na raiz.{RESET}")
