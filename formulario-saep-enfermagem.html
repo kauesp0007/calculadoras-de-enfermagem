@@ -910,6 +910,7 @@ var jsPDFPronto = false;
 
 function garantirJSPDF() {
 if (jsPDFPronto && typeof window.jspdf !== "undefined" && typeof html2canvas !== "undefined") return Promise.resolve();
+return carregarScript("https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js")
 .then(function () {
 return carregarScript("https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js");
 })
@@ -1022,45 +1023,168 @@ alert("Houve um erro ao gerar o PDF. Tente novamente.");
 });
 }
 
-// 4. Imprimir Formulário (1 Página Exata via CSS)
+// 4. Imprimir Formulário (padrão meem.html — HTML construído do zero com CSS inline)
 function imprimirSaep() {
-var clone = prepararCloneParaDocumento();
+// --- Helpers ---
+function val(id) {
+var el = document.getElementById(id);
+if (!el) return "";
+if (el.type === "checkbox" || el.type === "radio") return el.checked;
+return el.value.trim();
+}
+function radioVal(name) {
+var rb = document.querySelector('input[name="' + name + '"]:checked');
+return rb ? rb.value : "";
+}
+function checkboxesTexto(selector) {
+var cbs = document.querySelectorAll(selector + ':checked');
+var result = [];
+cbs.forEach(function(cb) {
+var txt = cb.parentElement.textContent.trim().replace(/\s+/g, " ");
+if (txt) result.push(txt);
+});
+return result.join(", ") || "—";
+}
 
-var estilos = "";
-document.querySelectorAll("style, link[rel='stylesheet']").forEach(function (node) {
-estilos += node.outerHTML;
+// Coleta dados — Identificação
+var nome = val("pacienteNome");
+var idade = val("pacienteIdade");
+var nasc = val("pacienteNasc");
+var sexo = radioVal("sexo");
+var dataCirurgia = val("dataCirurgia");
+var setor = val("pacienteSetor");
+var quarto = val("pacienteQuarto");
+var prontuario = val("pacienteProntuario");
+var diagnostico = val("pacienteDiagnostico");
+var cirurgiaProposta = val("pacienteCirurgia");
+
+// Pré-operatório: Antecedentes
+var antecedentes = checkboxesTexto('.checklist-content input[type="checkbox"]');
+
+// Pré-operatório: SSVV
+var ssvvInputs = document.querySelectorAll('.checklist-content label.text-xs input.inline-text');
+var ssvvTexto = [];
+ssvvInputs.forEach(function(inp) {
+if (inp.value.trim()) ssvvTexto.push(inp.value.trim());
 });
 
+// Pré-operatório: Acesso e Riscos
+var acessoRiscosTextos = [];
+var acessoRiscosCbs = document.querySelectorAll('.checklist-content input[type="checkbox"]:checked');
+acessoRiscosCbs.forEach(function(cb) {
+var txt = cb.parentElement.textContent.trim().replace(/\s+/g, " ");
+if (txt && txt.length < 60) acessoRiscosTextos.push(txt);
+});
+
+// Intra-operatório: Checklist segurança
+var checklistSeg = checkboxesTexto('.checklist-section:nth-of-type(2) .checklist-content input[type="checkbox"]:checked');
+
+// Intra-operatório: Dados cirurgia (inline inputs)
+var dadosCirurgiaInputs = document.querySelectorAll('.checklist-section:nth-of-type(2) .checklist-content input.inline-text');
+var dadosCirurgiaTexto = [];
+dadosCirurgiaInputs.forEach(function(inp) {
+if (inp.value.trim()) dadosCirurgiaTexto.push(inp.value.trim());
+});
+
+// Intra-operatório: SSVV tabela
+var ssvvTableRows = document.querySelectorAll('.ssvv-table tbody tr');
+var ssvvTableData = [];
+ssvvTableRows.forEach(function(tr) {
+var label = tr.querySelector('td strong');
+var inputs = tr.querySelectorAll('input[type="text"]');
+var vals = [];
+inputs.forEach(function(inp) { vals.push(inp.value.trim() || "—"); });
+if (label) ssvvTableData.push({label: label.textContent, vals: vals});
+});
+
+// Pós-operatório: Contagem
+var contagemInputs = document.querySelectorAll('.checklist-section:nth-of-type(3) .checklist-content input.inline-text');
+var contagemTexto = [];
+contagemInputs.forEach(function(inp) {
+if (inp.value.trim()) contagemTexto.push(inp.value.trim());
+});
+
+// Pós-operatório: Condições saída
+var condSaida = checkboxesTexto('.checklist-section:nth-of-type(3) .checklist-content input[type="checkbox"]:checked');
+
+// Assinatura — último input do formulário
+var todosInputs = document.querySelectorAll('#saepForm input.header-input');
+var assinatura = "";
+if (todosInputs.length > 0) {
+assinatura = todosInputs[todosInputs.length-1].value.trim();
+}
+
+// Data
+var hoje = new Date().toLocaleDateString("pt-BR");
+var dataFormatada = dataCirurgia
+? (function() { var p = dataCirurgia.split("-"); return p[2] + "/" + p[1] + "/" + p[0]; })()
+: hoje;
+
+// Monta tabela SSVV intra
+var ssvvTableHtml = "";
+ssvvTableData.forEach(function(row) {
+ssvvTableHtml += "<tr><td><strong>" + row.label + "</strong></td>";
+row.vals.forEach(function(v) { ssvvTableHtml += '<td style="text-align:center">' + v + "</td>"; });
+ssvvTableHtml += "</tr>";
+});
+
+// Monta HTML
 var html =
-'<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>Laudo SAEP de Enfermagem</title>' +
-estilos +
+'<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>Laudo SAEP — Sistematização Perioperatória</title>' +
 "<style>" +
-/*! Reset violento para a Impressora usar toda a folha sem quebras e sem margens padrao da bandeja */
-"body { background: white !important; padding: 0 !important; margin: 0 !important; -webkit-print-color-adjust: exact; color: #000 !important; }" +
-"@page { size: A4 portrait; margin: 3mm; }" +
-".print-container { width: 100%; margin: 0; box-sizing: border-box; overflow: hidden; }" +
-'.hdr h1 { color: #1A3E74; font-size: 16px; text-align: center; margin-bottom: 4px; font-family: "Nunito Sans", sans-serif; font-weight: 900; }' +
-".no-print { display: none !important; }" +
-/*! Achatamento e Ajuste de Tamanhos forçado para garantir 1 folha */
-".checklist-container { padding: 0 !important; border: none !important; box-shadow: none !important; margin-bottom: 0 !important; }" +
-".patient-header-box { padding: 4px !important; margin-bottom: 4px !important; border-color: #333 !important; }" +
-".checklist-section { margin-bottom: 4px !important; border-color: #333 !important; }" +
-".checklist-header { padding: 2px 4px !important; font-size: 10px !important; background-color: #eee !important; color: #000 !important; }" +
-".checklist-content { padding: 4px !important; }" +
-".header-line { margin-bottom: 2px !important; }" +
-".ssvv-table { margin-top: 2px !important; }" +
-".ssvv-table th, .ssvv-table td { padding: 2px !important; font-size: 8px !important; }" +
-".flex { display: flex !important; }" +
-".flex-wrap { flex-wrap: wrap !important; }" +
-"label, .header-label, .form-title, .check-label { font-size: 9px !important; color: #000 !important; line-height: 1.1 !important; margin-bottom: 1px !important; }" +
-".header-input, .inline-text { font-size: 9px !important; height: 12px !important; padding: 0 !important; color: #000 !important; }" +
-"h3 { font-size: 11px !important; margin-bottom: 2px !important; color: #000 !important; }" +
-'input[type="checkbox"], input[type="radio"] { width: 10px !important; height: 10px !important; }' +
+"*{margin:0;padding:0;box-sizing:border-box}" +
+"body{font-family:Arial,sans-serif;font-size:9.5pt;color:#1E293B;padding:18px 26px}" +
+".hdr{background:#1A3E74;color:white;padding:12px 18px;border-radius:8px;display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}" +
+".hdr h1{font-size:12pt;font-weight:900}" +
+".hdr p{font-size:7pt;opacity:0.8;margin-top:2px}" +
+".secao{margin-bottom:12px}" +
+".sec-titulo{font-size:7pt;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:#1A3E74;background:#EFF6FF;padding:4px 8px;border-radius:4px;margin-bottom:6px}" +
+".grid2{display:grid;grid-template-columns:1fr 1fr;gap:4px 16px;font-size:9pt}" +
+".saep-box{border:2px solid #1A3E74;border-radius:8px;padding:10px 14px;margin-bottom:10px}" +
+".saep-box h3{font-size:10pt;font-weight:900;color:#1A3E74;margin-bottom:5px;border-bottom:2px solid #E2E8F0;padding-bottom:3px}" +
+".info-item{margin-bottom:2px;font-size:9pt}" +
+".info-item strong{color:#1A3E74}" +
+"table{width:100%;border-collapse:collapse;margin-top:4px}" +
+"th{background:#1A3E74;color:white;font-size:7pt;padding:4px 6px;text-align:left}" +
+"td{font-size:8pt;padding:3px 6px;border-bottom:1px solid #F1F5F9}" +
+".footer{text-align:center;font-size:7pt;color:#94A3B8;margin-top:16px;border-top:1px solid #E2E8F0;padding-top:6px}" +
+".sig{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:16px}" +
+".sig-line{border-top:1px solid #1A3E74;padding-top:4px;font-size:7pt;color:#64748B;text-align:center}" +
 "</style></head><body>" +
-'<div class="print-container">' +
-'<div class="hdr"><h1>Sistematização da Assistência de Enfermagem Perioperatória (SAEP)</h1></div>' +
-clone.outerHTML +
+'<div class="hdr"><div><h1>SAEP — Sistematização da Assistência de Enfermagem Perioperatória</h1><p>Planejamento e execução do cuidado cirúrgico</p></div><div style="text-align:right;font-size:8pt;"><strong>Data:</strong> ' + hoje + "</div></div>" +
+
+'<div class="secao"><div class="sec-titulo">Identificação do Paciente</div><div class="grid2">' +
+(nome ? "<p><strong>Nome:</strong> " + nome + "</p>" : "") +
+(idade ? "<p><strong>Idade:</strong> " + idade + "</p>" : "") +
+(nasc ? "<p><strong>Nascimento:</strong> " + nasc + "</p>" : "") +
+(sexo ? "<p><strong>Sexo:</strong> " + sexo + "</p>" : "") +
+(setor ? "<p><strong>Setor:</strong> " + setor + "</p>" : "") +
+(quarto ? "<p><strong>Quarto:</strong> " + quarto + "</p>" : "") +
+(prontuario ? "<p><strong>Prontuário:</strong> " + prontuario + "</p>" : "") +
+(diagnostico ? "<p><strong>Diagnóstico:</strong> " + diagnostico + "</p>" : "") +
+(cirurgiaProposta ? "<p><strong>Cirurgia Proposta:</strong> " + cirurgiaProposta + "</p>" : "") +
+(dataCirurgia ? "<p><strong>Data da Cirurgia:</strong> " + dataFormatada + "</p>" : "") +
+"</div></div>" +
+
+'<div class="saep-box"><h3>1. PRÉ-OPERATÓRIO IMEDIATO</h3>' +
+'<p class="info-item"><strong>Antecedentes / Exames / Preparo:</strong> ' + antecedentes + "</p>" +
+'<p class="info-item"><strong>SSVV de Entrada:</strong> ' + (ssvvTexto.slice(0, 6).join(" | ") || "—") + "</p>" +
+'<p class="info-item"><strong>Acesso e Riscos:</strong> ' + (acessoRiscosTextos.filter(function(t) { return t.length > 2; }).slice(-8).join(", ") || "—") + "</p>" +
 "</div>" +
+
+'<div class="saep-box"><h3>2. INTRAOPERATÓRIO</h3>' +
+'<p class="info-item"><strong>Checklist de Segurança:</strong> ' + checklistSeg + "</p>" +
+'<p class="info-item"><strong>Dados da Cirurgia:</strong> ' + (dadosCirurgiaTexto.join(" | ") || "—") + "</p>" +
+(ssvvTableHtml ? '<p class="info-item" style="margin-top:6px"><strong>Monitorização Intraoperatória:</strong></p><table><thead><tr><th>Sinal Vital</th><th>Início</th><th>15 min</th><th>30 min</th><th>45 min</th><th>60 min</th><th>Final</th></tr></thead><tbody>' + ssvvTableHtml + "</tbody></table>" : "") +
+"</div>" +
+
+'<div class="saep-box"><h3>3. PÓS-OPERATÓRIO IMEDIATO</h3>' +
+'<p class="info-item"><strong>Contagem / Balanço:</strong> ' + (contagemTexto.join(" | ") || "—") + "</p>" +
+'<p class="info-item"><strong>Condições de Saída:</strong> ' + condSaida + "</p>" +
+"</div>" +
+
+'<div class="sig"><div class="sig-line">' + (assinatura || "Enfermeiro(a) Responsável (Assinatura/Carimbo)") + '</div><div class="sig-line">Local e Data</div></div>' +
+'<div class="footer">SAEP — Sistematização da Assistência de Enfermagem Perioperatória | Calculadoras de Enfermagem — www.calculadorasdeenfermagem.com.br</div>' +
 "<script>window.onload=function(){setTimeout(function(){window.print();}, 400);}<\/script>" +
 "</body></html>";
 
@@ -1069,7 +1193,41 @@ janela.document.write(html);
 janela.document.close();
 }
 
-document.getElementById("btnSaepPDF").addEventListener("click", gerarSaepPDF);
+// ---- EVENT LISTENERS (padrão meem.html — jsPDF injetado dentro da função) ----
+document.getElementById("btnSaepPDF").addEventListener("click", function() {
+var btn = this;
+var textoOriginal = btn.innerHTML;
+
+// Se a biblioteca já foi carregada nesta sessão, apenas gera o PDF
+if (typeof window.jspdf !== 'undefined' && typeof html2canvas !== 'undefined') {
+gerarSaepPDF();
+return;
+}
+
+// Feedback visual
+btn.innerHTML = "Carregando gerador...";
+btn.style.opacity = "0.7";
+btn.style.pointerEvents = "none";
+
+// Injeta jsPDF principal
+var scriptMain = document.createElement('script');
+scriptMain.src = "https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js";
+document.body.appendChild(scriptMain);
+
+scriptMain.onload = function() {
+// Injeta html2canvas
+var scriptPlugin = document.createElement('script');
+scriptPlugin.src = "https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js";
+document.body.appendChild(scriptPlugin);
+
+scriptPlugin.onload = function() {
+btn.innerHTML = textoOriginal;
+btn.style.opacity = "1";
+btn.style.pointerEvents = "auto";
+gerarSaepPDF();
+};
+};
+});
 document.getElementById("btnSaepImprimir").addEventListener("click", imprimirSaep);
 })();
 </script>
