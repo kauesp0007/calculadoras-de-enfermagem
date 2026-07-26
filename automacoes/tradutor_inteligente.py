@@ -168,19 +168,43 @@ def traduzir_title_tag(html, idioma_alvo):
         return html
 
 
-def aplicar_head_traduzido(html_localizado, html_preparado):
-    """Mantém o HTML localizado e atualiza somente o conteúdo do <head>."""
-    head_preparado = re.search(r'<head\b[^>]*>.*?</head>', html_preparado, re.IGNORECASE | re.DOTALL)
-    head_localizado = re.search(r'<head\b[^>]*>.*?</head>', html_localizado, re.IGNORECASE | re.DOTALL)
-
-    if not head_preparado or not head_localizado:
+def mesclar_traducao(html_localizado, html_traduzido):
+    """
+    Mantém o body já traduzido do arquivo existente, mas:
+    1. Substitui o <head> pelo novo (SEO, title, canonical, hreflang atualizados)
+    2. Injeta os scripts inline traduzidos do html_traduzido no body existente
+    """
+    # --- Extrai <head> do html_traduzido ---
+    head_novo = re.search(r'<head\b[^>]*>.*?</head>', html_traduzido, re.IGNORECASE | re.DOTALL)
+    head_antigo = re.search(r'<head\b[^>]*>.*?</head>', html_localizado, re.IGNORECASE | re.DOTALL)
+    
+    if not head_novo or not head_antigo:
         return html_localizado
-
-    return (
-        html_localizado[:head_localizado.start()]
-        + head_preparado.group(0)
-        + html_localizado[head_localizado.end():]
+    
+    # 1. Substitui o <head>
+    resultado = (
+        html_localizado[:head_antigo.start()]
+        + head_novo.group(0)
+        + html_localizado[head_antigo.end():]
     )
+    
+    # 2. Encontra scripts inline (sem src) no html_traduzido e no html_localizado
+    padrao_script = re.compile(r'(<script\b(?!.*\bsrc=)[^>]*>)(.*?)(</script>)', re.IGNORECASE | re.DOTALL)
+    
+    scripts_traduzidos = list(padrao_script.finditer(html_traduzido))
+    scripts_localizados = list(padrao_script.finditer(resultado))
+    
+    # Substitui de trás para frente para preservar índices
+    for s_trad, s_loc in zip(reversed(scripts_traduzidos), reversed(scripts_localizados)):
+        if s_trad.group(2).strip() != s_loc.group(2).strip():
+            # Scripts diferentes → injeta a versão traduzida
+            resultado = (
+                resultado[:s_loc.start()]
+                + s_trad.group(0)
+                + resultado[s_loc.end():]
+            )
+    
+    return resultado
 
 def preparar_html_para_traducao_texto(caminho_arquivo, idioma_alvo):
     """
@@ -751,8 +775,8 @@ if __name__ == "__main__":
     # 🟢 ÁREA DE CONFIGURAÇÃO DIÁRIA (ALTERE APENAS AQUI) 🟢
     # =========================================================================
     
-    arquivos_originais = ["moca.html", "morse.html", "news.html", "nihss.html", "nips.html", "norton.html"] 
-    idiomas_alvo = ["en", "es", "de", "it", "fr", "hi", "zh", "ar", "ja", "ru", "ko", "tr", "nl", "pl", "sv", "id", "vi", "uk"] 
+    arquivos_originais = ["rancholosamigos.html"] 
+    idiomas_alvo = ["en"] 
     
     # =========================================================================
 
@@ -778,12 +802,11 @@ if __name__ == "__main__":
                     nome_arquivo = os.path.basename(arquivo_original)
                     caminho_saida = os.path.join(pasta_destino, nome_arquivo)
 
-                    # As páginas nas pastas de idioma já têm o conteúdo estático localizado.
-                    # Preserve o <body> existente e atualize somente o <head> processado.
+                    # Preserva body traduzido + atualiza head + injeta scripts inline traduzidos
                     if os.path.exists(caminho_saida):
                         with open(caminho_saida, 'r', encoding='utf-8') as f:
                             html_localizado = f.read()
-                        html_traduzido = aplicar_head_traduzido(html_localizado, html_traduzido)
+                        html_traduzido = mesclar_traducao(html_localizado, html_traduzido)
                     
                     with open(caminho_saida, 'w', encoding='utf-8') as f:
                         f.write(html_traduzido)
