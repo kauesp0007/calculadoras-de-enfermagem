@@ -11,6 +11,7 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 try:
     from tradutor_html_ia import traduzir_html_completo as _traduzir_html_via_ia
+    from tradutor_html_ia import extrair_textos_traduziveis
     _IA_DISPONIVEL = True
 except ImportError:
     _IA_DISPONIVEL = False
@@ -33,6 +34,7 @@ if not CHAVE_DEEPSEEK:
 def traduzir_meta_seo_com_deepl(html, idioma_alvo):
     """
     Isola os conteúdos das tags de SEO e traduz via DeepL.
+    Se DeepL falhar, usa DeepSeek como fallback.
     Funciona com content="..." antes OU depois de name/property="..." (formato XHTML).
     """
     campos = r'(?:description|keywords|og:title|og:description|og:site_name|twitter:title|twitter:description|author)'
@@ -58,6 +60,10 @@ def traduzir_meta_seo_com_deepl(html, idioma_alvo):
     if not unique_matches:
         return html
 
+    # Coleta todos os textos e traduz em lote via DeepL (ou DeepSeek fallback)
+    dict_textos = {f"t{i}": m.group(2) for i, m in enumerate(unique_matches)}
+    traducoes = {}
+
     try:
         translator = deepl.Translator(CHAVE_API, server_url="https://api-free.deepl.com")
         
@@ -67,22 +73,84 @@ def traduzir_meta_seo_com_deepl(html, idioma_alvo):
         elif idioma_deepl == "PT":
             idioma_deepl = "PT-BR"
         
-        # Substitui de trás para frente para não afetar os índices
-        html_modificado = html
-        for i, m in reversed(list(enumerate(unique_matches))):
-            texto_original = m.group(2)
+        for chave, texto in dict_textos.items():
             try:
-                resultado = translator.translate_text(texto_original, target_lang=idioma_deepl)
-                novo_texto = resultado.text.replace('"', "'")
+                resultado = translator.translate_text(texto, target_lang=idioma_deepl)
+                traducoes[chave] = resultado.text
             except Exception:
-                novo_texto = texto_original  # fallback: mantém original
+                traducoes[chave] = None  # marca como falha para fallback
+        
+        # Fallback DeepSeek para textos que o DeepL não conseguiu
+        pendentes = {k: v for k, v in dict_textos.items() if traducoes.get(k) is None}
+        if pendentes:
+            print(f"      ⚠️ DeepL falhou em {len(pendentes)} meta tags. Tentando DeepSeek...")
+            try:
+                fallback_traduzido = _traduzir_json_via_deepseek(pendentes, idioma_alvo)
+                traducoes.update(fallback_traduzido)
+            except Exception as e:
+                print(f"      ⚠️ DeepSeek também falhou no SEO: {e}")
+                for k in pendentes:
+                    traducoes[k] = dict_textos[k]  # mantém original
+        
+    except Exception as e:
+        print(f"\n⚠️ DeepL indisponível para SEO. Usando DeepSeek... ({e})")
+        try:
+            traducoes = _traduzir_json_via_deepseek(dict_textos, idioma_alvo)
+        except Exception as e2:
+            print(f"\n⚠️ DeepSeek também falhou no SEO: {e2}. Mantendo originais.")
+            return html
+
+    # Substitui no HTML (de trás para frente)
+    html_modificado = html
+    for i, m in reversed(list(enumerate(unique_matches))):
+        chave = f"t{i}"
+        if chave in traducoes and traducoes[chave]:
+            novo_texto = traducoes[chave].replace('"', "'")
             bloco_novo = m.group(1) + novo_texto + m.group(3)
             html_modificado = html_modificado[:m.start()] + bloco_novo + html_modificado[m.end():]
-                
-        return html_modificado
-    except Exception as e:
-        print(f"\n⚠️ Erro ao adaptar SEO com DeepL (mantendo SEO original): {e}")
-        return html
+            
+    return html_modificado
+
+
+def _traduzir_json_via_deepseek(dict_textos, idioma_alvo):
+    """
+    Envia um dicionário {id: texto} para o DeepSeek e retorna as traduções.
+    Função auxiliar usada como fallback do SEO.
+    """
+    instrucoes = f"""
+    Você é um especialista em SEO internacional e localização na área da saúde/enfermagem.
+    Traduza os valores num JSON do Português para o idioma com o código ISO '{idioma_alvo}'.
+    
+    REGRAS INEGOCIÁVEIS:
+    1. Adapte os termos para as palavras-chave com maior volume de busca na enfermagem neste idioma alvo.
+    2. NÃO modifique as chaves do JSON.
+    3. RETORNE EXCLUSIVAMENTE UM JSON VÁLIDO. Sem explicações e sem marcações markdown.
+    """
+    
+    url = "https://api.deepseek.com/chat/completions"
+    headers = {
+        "Authorization": f"Bearer {CHAVE_DEEPSEEK}",
+        "Content-Type": "application/json"
+    }
+    
+    payload = {
+        "model": "deepseek-v4-pro",
+        "messages": [
+            {"role": "system", "content": instrucoes},
+            {"role": "user", "content": json.dumps(dict_textos, ensure_ascii=False)}
+        ],
+        "temperature": 0.1
+    }
+
+    response = requests.post(url, headers=headers, json=payload, timeout=45)
+    response.raise_for_status()
+    resultado = response.json()["choices"][0]["message"]["content"].strip()
+    
+    if resultado.startswith("```"):
+        resultado = re.sub(r'^```(json)?\n', '', resultado, flags=re.IGNORECASE)
+        resultado = re.sub(r'\n```$', '', resultado)
+        
+    return json.loads(resultado)
 
 def preparar_html_para_traducao_texto(caminho_arquivo, idioma_alvo):
     """
@@ -378,7 +446,7 @@ def preparar_html_para_traducao_texto(caminho_arquivo, idioma_alvo):
     # ==========================================
     # 6. TRADUZIR META TAGS SEO CIRURGICAMENTE
     # ==========================================
-    html = traduzir_meta_seo_com_deepseek(html, idioma_alvo)
+    html = traduzir_meta_seo_com_deepl(html, idioma_alvo)
 
     return html
 
@@ -445,51 +513,80 @@ def _traduzir_js_via_openai(dicionario_scripts, idioma_alvo):
 
 def traduzir_lote_js_com_deepseek(dicionario_scripts, idioma_alvo):
     """
-    Divide os scripts em 4 BLOCOS e intercala DeepSeek ↔ OpenAI:
-      Bloco 1 → DeepSeek
-      Bloco 2 → OpenAI
-      Bloco 3 → DeepSeek
-      Bloco 4 → OpenAI
-    Isso reduz o risco de rate-limit em qualquer API individual e acelera
-    o processo ao paralelizar entre os dois provedores.
+    Divide os scripts em 10 BLOCOS e intercala DeepSeek ↔ OpenAI.
+    Se uma API falhar, a outra assume automaticamente (failover).
+    Aguarda 10 segundos entre cada bloco.
     """
     if not dicionario_scripts:
         return dicionario_scripts
 
     itens = list(dicionario_scripts.items())
     total = len(itens)
+    NUM_BLOCOS = 10
     
-    # Divide em 4 blocos de tamanhos aproximadamente iguais
-    tamanho_bloco = max(1, (total + 3) // 4)  # ceiling division
+    # Divide em 10 blocos de tamanhos aproximadamente iguais
+    tamanho_bloco = max(1, (total + NUM_BLOCOS - 1) // NUM_BLOCOS)
     blocos = []
     for i in range(0, total, tamanho_bloco):
         fatia = dict(itens[i:i + tamanho_bloco])
         blocos.append(fatia)
     
-    # Garante exatamente 4 blocos (preenche com vazios se necessário)
-    while len(blocos) < 4:
+    # Garante exatamente 10 blocos (preenche com vazios se necessário)
+    while len(blocos) < NUM_BLOCOS:
         blocos.append({})
     
-    modelos = ["OpenAI", "DeepSeek", "OpenAI", "DeepSeek"]
+    # Intercala: DeepSeek, OpenAI, DeepSeek, OpenAI...
     resultado_final = {}
+    MAX_TENTATIVAS = 10
     
     for idx, bloco in enumerate(blocos):
         if not bloco:
             continue
-            
-        modelo = modelos[idx]
-        print(f"      🧩 Bloco {idx+1}/4 ({len(bloco)} scripts) → {modelo}...")
         
-        if modelo == "DeepSeek":
-            traduzido = _traduzir_js_via_deepseek_interno(bloco, idioma_alvo)
+        print(f"      🧩 Bloco {idx+1}/{NUM_BLOCOS} ({len(bloco)} scripts)...")
+        
+        traduzido = bloco  # inicia com original como fallback
+        
+        for tentativa in range(MAX_TENTATIVAS):
+            # Alterna qual API tenta primeiro a cada ciclo de retry
+            alternar = (idx + tentativa) % 2 == 0
+            primario = "DeepSeek" if alternar else "OpenAI"
+            fallback = "OpenAI" if alternar else "DeepSeek"
+            
+            # Tenta API primária
+            if primario == "DeepSeek":
+                traduzido = _traduzir_js_via_deepseek_interno(bloco, idioma_alvo)
+            else:
+                traduzido = _traduzir_js_via_openai(bloco, idioma_alvo)
+            
+            if traduzido != bloco:
+                print(f"      ✅ Bloco {idx+1} → {primario} (tentativa {tentativa+1})")
+                break
+            
+            # Tenta fallback
+            print(f"      ⚠️ {primario} falhou. Tentando {fallback}...")
+            if fallback == "DeepSeek":
+                traduzido = _traduzir_js_via_deepseek_interno(bloco, idioma_alvo)
+            else:
+                traduzido = _traduzir_js_via_openai(bloco, idioma_alvo)
+            
+            if traduzido != bloco:
+                print(f"      ✅ Bloco {idx+1} → {fallback} (tentativa {tentativa+1})")
+                break
+            
+            # Ambas falharam neste ciclo
+            if tentativa < MAX_TENTATIVAS - 1:
+                print(f"      ❌ Ambas falharam ({tentativa+1}/{MAX_TENTATIVAS}). Aguardando 10s...")
+                time.sleep(10)
         else:
-            traduzido = _traduzir_js_via_openai(bloco, idioma_alvo)
+            print(f"      ❌❌ Todas as {MAX_TENTATIVAS} tentativas falharam. Mantendo originais.")
             
         resultado_final.update(traduzido)
         
-        # Pausa entre blocos para respeitar rate limits
+        # Pausa de 10 segundos entre blocos
         if idx < len(blocos) - 1:
-            time.sleep(1.5)
+            print(f"      ⏳ Aguardando 10s...")
+            time.sleep(10)
     
     return resultado_final
 
@@ -549,6 +646,186 @@ def _traduzir_js_via_deepseek_interno(dicionario_scripts, idioma_alvo):
         print(f"\n⚠️ Erro ao traduzir scripts com DeepSeek (mantendo originais): {e}")
         return dicionario_scripts
 
+def _traduzir_html_em_10_blocos(html_protegido, idioma_alvo):
+    """
+    Extrai textos do HTML, divide em 10 blocos e traduz intercalando
+    DeepSeek ↔ OpenAI com failover automático entre as APIs.
+    Aguarda 10 segundos entre blocos.
+    """
+    if not _IA_DISPONIVEL:
+        print(f"      ⚠️ Módulo tradutor_html_ia.py não disponível. Impossível extrair textos.")
+        return None
+
+    nome_idioma = {
+        "en": "Inglês", "es": "Espanhol", "fr": "Francês", "it": "Italiano",
+        "de": "Alemão", "hi": "Hindi", "zh": "Chinês", "ja": "Japonês",
+        "ru": "Russo", "ko": "Coreano", "tr": "Turco", "nl": "Holandês",
+        "pl": "Polonês", "sv": "Sueco", "id": "Indonésio", "vi": "Vietnamita",
+        "uk": "Ucraniano", "ar": "Árabe"
+    }.get(idioma_alvo, idioma_alvo)
+
+    # === 1. EXTRAIR TEXTOS DO HTML ===
+    print(f"      \033[96m↳ [HTML] Extraindo textos traduzíveis...\033[0m")
+    textos = extrair_textos_traduziveis(html_protegido)
+    
+    if not textos:
+        print(f"      ⚠️ [HTML] Nenhum texto encontrado. Retornando original.")
+        return html_protegido
+    
+    total_chars = sum(len(t['text']) for t in textos)
+    print(f"      \033[96m↳ [HTML] {len(textos)} textos extraídos ({total_chars} caracteres).\033[0m")
+    
+    # === 2. DIVIDIR EM 10 BLOCOS ===
+    NUM_BLOCOS = 10
+    blocos = _dividir_textos_em_n_blocos(textos, NUM_BLOCOS)
+    print(f"      \033[96m↳ [HTML] Dividido em {len(blocos)} blocos.\033[0m")
+    
+    # === 3. TRADUZIR CADA BLOCO (DEEPSEEK ↔ OPENAI + RETRY 10x) ===
+    todas_traducoes = {}
+    MAX_TENTATIVAS = 10
+    
+    for idx, bloco in enumerate(blocos):
+        if not bloco:
+            continue
+        
+        dict_bloco = {f"t{textos.index(t)}": t['text'] for t in bloco}
+        chars_bloco = sum(len(v) for v in dict_bloco.values())
+        
+        print(f"      🧩 [HTML] Bloco {idx+1}/{len(blocos)} ({len(dict_bloco)} textos, ~{chars_bloco} chars)...")
+        
+        traduzido = None
+        
+        for tentativa in range(MAX_TENTATIVAS):
+            # Alterna qual API tenta primeiro a cada ciclo de retry
+            alternar = (idx + tentativa) % 2 == 0
+            primario = "DeepSeek" if alternar else "OpenAI"
+            fallback = "OpenAI" if alternar else "DeepSeek"
+            
+            # Tenta API primária
+            traduzido = _traduzir_dict_textos(dict_bloco, idioma_alvo, primario, nome_idioma)
+            
+            if traduzido is not None:
+                print(f"      ✅ [HTML] Bloco {idx+1} → {primario} (tentativa {tentativa+1})")
+                break
+            
+            # Tenta fallback
+            print(f"      ⚠️ [HTML] {primario} falhou. Tentando {fallback}...")
+            traduzido = _traduzir_dict_textos(dict_bloco, idioma_alvo, fallback, nome_idioma)
+            
+            if traduzido is not None:
+                print(f"      ✅ [HTML] Bloco {idx+1} → {fallback} (tentativa {tentativa+1})")
+                break
+            
+            # Ambas falharam neste ciclo
+            if tentativa < MAX_TENTATIVAS - 1:
+                print(f"      ❌ [HTML] Ambas falharam ({tentativa+1}/{MAX_TENTATIVAS}). Aguardando 10s...")
+                time.sleep(10)
+        else:
+            print(f"      ❌❌ [HTML] Todas as {MAX_TENTATIVAS} tentativas falharam. Mantendo originais.")
+            traduzido = {k: v for k, v in dict_bloco.items()}
+        
+        todas_traducoes.update(traduzido)
+        
+        if idx < len(blocos) - 1:
+            print(f"      ⏳ Aguardando 10s...")
+            time.sleep(10)
+    
+    # === 4. RECONSTRUIR HTML ===
+    html_traduzido = html_protegido
+    for texto_info in reversed(textos):
+        idx_global = textos.index(texto_info)
+        chave = f"t{idx_global}"
+        if chave in todas_traducoes:
+            novo = todas_traducoes[chave]
+            html_traduzido = html_traduzido[:texto_info['start']] + novo + html_traduzido[texto_info['end']:]
+    
+    print(f"      \033[92m↳ [HTML] Reconstrução concluída ({len(html_traduzido)} caracteres).\033[0m")
+    return html_traduzido
+
+
+def _dividir_textos_em_n_blocos(textos, n):
+    """Divide uma lista de textos em N blocos com tamanhos balanceados por caracteres."""
+    if len(textos) <= n:
+        return [[t] for t in textos] + [[] for _ in range(n - len(textos))]
+    
+    total_chars = sum(len(t['text']) for t in textos)
+    chars_por_bloco = total_chars / n
+    
+    blocos = []
+    bloco_atual = []
+    chars_atual = 0
+    
+    for t in textos:
+        bloco_atual.append(t)
+        chars_atual += len(t['text'])
+        if chars_atual >= chars_por_bloco and len(blocos) < n - 1:
+            blocos.append(bloco_atual)
+            bloco_atual = []
+            chars_atual = 0
+    
+    if bloco_atual:
+        blocos.append(bloco_atual)
+    
+    while len(blocos) < n:
+        blocos.append([])
+    
+    return blocos[:n]
+
+
+def _traduzir_dict_textos(dict_textos, idioma_alvo, modelo, nome_idioma):
+    """
+    Traduz um dicionário {id: texto} via DeepSeek ou OpenAI.
+    Retorna None se falhar.
+    """
+    sistema = f"""Você é um tradutor profissional na área de enfermagem/saúde.
+Traduza APENAS os valores do JSON do Português para {nome_idioma} ({idioma_alvo}).
+NÃO altere as chaves. Retorne EXCLUSIVAMENTE um JSON válido, sem marcações markdown."""
+
+    if modelo == "DeepSeek":
+        if not CHAVE_DEEPSEEK:
+            return None
+        url = "https://api.deepseek.com/chat/completions"
+        headers = {"Authorization": f"Bearer {CHAVE_DEEPSEEK}", "Content-Type": "application/json"}
+        payload = {
+            "model": "deepseek-v4-pro",
+            "messages": [
+                {"role": "system", "content": sistema},
+                {"role": "user", "content": json.dumps(dict_textos, ensure_ascii=False)}
+            ],
+            "temperature": 0.1,
+        }
+        timeout = 90
+    else:  # OpenAI
+        if not CHAVE_OPENAI:
+            return None
+        url = "https://api.openai.com/v1/chat/completions"
+        headers = {"Authorization": f"Bearer {CHAVE_OPENAI}", "Content-Type": "application/json"}
+        payload = {
+            "model": "gpt-4o-mini",
+            "messages": [
+                {"role": "system", "content": sistema},
+                {"role": "user", "content": json.dumps(dict_textos, ensure_ascii=False)}
+            ],
+            "temperature": 0.1,
+            "max_tokens": 16000,
+        }
+        timeout = 120
+
+    try:
+        response = requests.post(url, headers=headers, json=payload, timeout=timeout)
+        response.raise_for_status()
+        resultado = response.json()["choices"][0]["message"]["content"].strip()
+        
+        if resultado.startswith("```"):
+            resultado = re.sub(r'^```(json)?\n?', '', resultado, flags=re.IGNORECASE)
+            resultado = re.sub(r'\n?```$', '', resultado)
+        
+        return json.loads(resultado)
+    except Exception as e:
+        print(f"      ⚠️ Erro {modelo}: {type(e).__name__}: {str(e)[:100]}")
+        return None
+
+
 def traduzir_html_com_deepl(html_preparado, idioma_alvo):
     try:
         # === 1. PROTEÇÃO CIRÚRGICA DE SCRIPTS E STYLES ===
@@ -576,17 +853,17 @@ def traduzir_html_com_deepl(html_preparado, idioma_alvo):
             
         html_protegido = padrao.sub(proteger_bloco, html_preparado)
         
-        # === 2. PROCESSAMENTO JS EM 4 BLOCOS (OpenAI ↔ DeepSeek) ===
+        # === 2. PROCESSAMENTO JS EM 10 BLOCOS (DeepSeek ↔ OpenAI + failover) ===
         if scripts_para_traduzir:
-            print(f"      \033[96m↳ Enviando JavaScript em 4 blocos intercalados (OpenAI → DeepSeek → OpenAI → DeepSeek)...\033[0m")
+            print(f"      \033[96m↳ Enviando JavaScript em 10 blocos intercalados (DeepSeek ↔ OpenAI)...\033[0m")
             scripts_traduzidos = traduzir_lote_js_com_deepseek(scripts_para_traduzir, idioma_alvo)
             blocos_codigo.update(scripts_traduzidos)
         
-        # === 3. TRADUÇÃO DO CORPO HTML VIA OPENAI ===
-        print(f"      \033[96m↳ Enviando corpo HTML ({len(html_protegido)} caracteres) para OpenAI...\033[0m")
-        html_traduzido = _traduzir_html_via_openai(html_protegido, idioma_alvo)
+        # === 3. TRADUÇÃO DO CORPO HTML EM 10 BLOCOS (DeepSeek ↔ OpenAI + failover) ===
+        print(f"      \033[96m↳ Traduzindo corpo HTML em 10 blocos intercalados...\033[0m")
+        html_traduzido = _traduzir_html_em_10_blocos(html_protegido, idioma_alvo)
         if html_traduzido is None:
-            print(f"      \033[91m↳ OpenAI falhou ao traduzir HTML.\033[0m")
+            print(f"      \033[91m↳ Falha total na tradução HTML.\033[0m")
             return None
         
         # === 4. RESTAURAÇÃO DE SCRIPTS E STYLES ===
@@ -594,29 +871,8 @@ def traduzir_html_com_deepl(html_preparado, idioma_alvo):
             html_traduzido = html_traduzido.replace(placeholder, codigo_restaurado)
             
         return html_traduzido
-    except QuotaExceededException as e:
-        print(f"\n❌ COTA EXCEDIDA (HTTP {e.http_status_code}): {e}")
-        print(f"   ⚠️  Verifique seu uso em: https://www.deepl.com/pt-br/pro-account/usage")
-        if _IA_DISPONIVEL:
-            print(f"      \033[93m↳ Acionando tradutor IA como fallback...\033[0m")
-            html_ia = _traduzir_html_via_ia(html_protegido, idioma_alvo, CHAVE_DEEPSEEK, CHAVE_OPENAI)
-            if html_ia:
-                for placeholder, codigo_restaurado in blocos_codigo.items():
-                    html_ia = html_ia.replace(placeholder, codigo_restaurado)
-                return html_ia
-        return None
-    except TooManyRequestsException as e:
-        print(f"\n⚠️  MUITAS REQUISIÇÕES (HTTP {e.http_status_code}): {e}")
-        if _IA_DISPONIVEL:
-            print(f"      \033[93m↳ Acionando tradutor IA como fallback...\033[0m")
-            html_ia = _traduzir_html_via_ia(html_protegido, idioma_alvo, CHAVE_DEEPSEEK, CHAVE_OPENAI)
-            if html_ia:
-                for placeholder, codigo_restaurado in blocos_codigo.items():
-                    html_ia = html_ia.replace(placeholder, codigo_restaurado)
-                return html_ia
-        return None
     except Exception as e:
-        print(f"\n❌ Erro na comunicação com a API do DeepL: {type(e).__name__}: {e}")
+        print(f"\n❌ Erro na tradução HTML/JS: {type(e).__name__}: {e}")
         if _IA_DISPONIVEL:
             print(f"      \033[93m↳ Acionando tradutor IA como fallback...\033[0m")
             try:
@@ -656,7 +912,7 @@ if __name__ == "__main__":
                 print(f"{C_AZUL}[1/4]{RESET} Preparando HTML (Rotas, Canonical, Hreflang, Lang, Fontes e SEO)...")
                 html_preparado = preparar_html_para_traducao_texto(arquivo_original, idioma_alvo)
                 
-                print(f"{C_AZUL}[2/4]{RESET} Processando APIs e traduzindo HTML...")
+                print(f"{C_AZUL}[2/4]{RESET} Processando APIs (JS + HTML em 10 blocos c/ failover)...")
                 html_traduzido = traduzir_html_com_deepl(html_preparado, idioma_alvo)
                 
                 if html_traduzido:
