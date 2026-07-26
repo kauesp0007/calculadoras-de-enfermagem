@@ -912,7 +912,8 @@ const select = document.getElementById(id);
 const valStr = select.value;
 if (valStr === "") return;
 const val = parseInt(valStr);
-const pct = (val / max) * 100;
+// Barra sempre visível: mínimo 8% para mostrar a cor
+const pct = Math.max((val / max) * 100, 8);
 
 const badge = document.getElementById(`badge_${id}`);
 const bar = document.getElementById(`bar_${id}`);
@@ -920,10 +921,10 @@ const bar = document.getElementById(`bar_${id}`);
 badge.textContent = `${val}/${max}`;
 bar.style.width = `${pct}%`;
 
-// Cores baseadas na pontuação (Tinetti: quanto maior, melhor/verde)
-let cor = "#e11d48"; // 0 pts = Vermelho
-if (val === max) cor = "#16a34a"; // Máximo = Verde
-else if (val === 1 && max === 2) cor = "#eab308"; // Intermediário = Amarelo
+// Cores baseadas na pontuação (Tinetti: quanto maior, melhor)
+let cor = "#e11d48"; // 0 pts = Vermelho (alto risco)
+if (val === max) cor = "#16a34a"; // Máximo = Verde (baixo risco)
+else if (val > 0 && val < max) cor = "#eab308"; // Intermediário = Amarelo
 
 bar.style.backgroundColor = cor;
 
@@ -1084,6 +1085,7 @@ document.getElementById("totalObtidoTd").style.color = bgPill;
 
 // Mostrar Seção
 resultadoSection.classList.add("visible");
+resultadoSection.style.display = "block";
 setTimeout(() => {
 resultadoSection.scrollIntoView({ behavior: "smooth", block: "start" });
 }, 100);

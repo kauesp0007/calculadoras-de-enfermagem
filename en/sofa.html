@@ -938,7 +938,8 @@ const valStr = select.value;
 if (valStr === "") return;
 const val = parseInt(valStr);
 const max = 4;
-const pct = (val / max) * 100;
+// Barra sempre visível: mínimo 6% para mostrar a cor
+const pct = Math.max((val / max) * 100, 6);
 
 const badge = document.getElementById(`badge_${id}`);
 const bar = document.getElementById(`bar_${id}`);
@@ -1046,13 +1047,13 @@ clearInterval(timerInterval);
 let class = "", bgPill = "", recomendacao = "";
 if (somaTotal <= 4) {
 classe = "Low Organ Dysfunction"; bgPill = "#16a34a"; // Verde
-recomendacao = "Prognóstico geralmente favorável. Manter monitoramento clínico e reavaliar conforme evolução.";
+recomendacao = "Generally favorable prognosis. Maintain clinical monitoring and reassess according to evolution.";
 } else if (somaTotal <= 9) {
 classe = "Moderate Organ Dysfunction"; bgPill = "#eab308"; // Amarelo
-recomendacao = "Risco aumentado de mortalidade (aprox. 15 a 33%). Avaliação e manejo intensivo requeridos. Considerar investigação de sepse e outras causas de disfunção.";
+recomendacao = "Increased mortality risk (approx. 15 to 33%). Intensive assessment and management required. Consider sepsis investigation and other causes of dysfunction.";
 } else {
 classe = "Severe Organ Dysfunction"; bgPill = "#e11d48"; // Vermelho
-recomendacao = "Alto risco de mortalidade (podendo chegar a 95% se >15). Exige suporte avançado de vida intensivo, manejo agressivo e discussão do prognóstico com a família.";
+recomendacao = "High mortality risk (can reach 95% if >15). Requires advanced intensive life support, aggressive management and prognosis discussion with the family.";
 }
 
 // Exibir no Hero Card
@@ -1083,7 +1084,7 @@ scpAlvo.style.boxShadow = "0 8px 25px rgba(0,0,0,0.25)";
 scpAlvo.classList.add("scp-highlight");
 }
 
-document.getElementById("resultadoMensagem").innerHTML = `O paciente obteve um escore de <strong>${somaTotal} pontos</strong> de um máximo de 24.<br><br><strong>Conduta:</strong> ${recomendacao}`;
+document.getElementById("resultadoMensagem").innerHTML = `The patient scored <strong>${somaTotal} points</strong> out of a maximum of 24.<br><br><strong>Management:</strong> ${recomendacao}`;
 
 // Gerar Tabela de Detalhamento
 const tbody = document.getElementById("tabelaDominios");
@@ -1112,6 +1113,7 @@ document.getElementById("totalObtidoTd").style.color = bgPill;
 
 // Show Section
 resultadoSection.classList.add("visible");
+resultadoSection.style.display = "block";
 setTimeout(() => {
 resultadoSection.scrollIntoView({ behavior: "smooth", block: "start" });
 }, 100);
