@@ -35,13 +35,13 @@ def traduzir_lote_em_blocos(textos_para_traduzir, idioma_alvo):
     5. Preserve tags HTML dentro do texto (ex: <strong>, <em>, <br>). Traduza APENAS o texto ao redor[cite: 2].
     """
     
-    url_ds = "[https://api.deepseek.com/chat/completions](https://api.deepseek.com/chat/completions)"
+    url_ds = "https://api.deepseek.com/chat/completions"
     headers_ds = {
         "Authorization": f"Bearer {CHAVE_DEEPSEEK}",
         "Content-Type": "application/json"
     }
 
-    url_oa = "[https://api.openai.com/v1/chat/completions](https://api.openai.com/v1/chat/completions)"
+    url_oa = "https://api.openai.com/v1/chat/completions"
     headers_oa = {
         "Authorization": f"Bearer {CHAVE_OPENAI}",
         "Content-Type": "application/json"
@@ -156,10 +156,10 @@ def main():
     # =========================================================================
     
     # Escreva aqui APENAS o nome do arquivo, sem a extensão .html
-    arquivos_originais = ["moca", "prism"] 
+    arquivos_originais = ["qsofa"] 
     
     # Escolha os idiomas que deseja processar nesta rodada
-    idiomas_alvo = ["es", "fr"] 
+    idiomas_alvo = ["en"] 
     
     # =========================================================================
 
