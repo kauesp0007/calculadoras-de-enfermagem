@@ -109,6 +109,29 @@ async def extrair_textos_visiveis(url_ou_arquivo, interagir=False):
                     });
                 });
                 
+                // 7. Strings traduziveis dentro de <script> (recomendacoes, classes, mensagens)
+                document.querySelectorAll('script:not([src])').forEach(script => {
+                    const code = script.textContent;
+                    // Captura strings entre aspas duplas com texto em portugues
+                    const strPattern = /"([^"{}\\[\\]]{20,})"/g;
+                    let m;
+                    while ((m = strPattern.exec(code)) !== null) {
+                        const s = m[1].trim();
+                        // Verifica se parece texto em portugues (tem acentos ou palavras comuns)
+                        if (/[áàãâéêíóôõúç]/.test(s) || /\b(?:paciente|risco|cuidados|enfermagem|avaliação|prevenção|tratamento|conduta|protocolo)\b/i.test(s)) {
+                            addTexto(s, 'script_string', {});
+                        }
+                    }
+                    // Template literals com texto longo
+                    const tmplPattern = /`([^`]{30,})`/g;
+                    while ((m = tmplPattern.exec(code)) !== null) {
+                        const s = m[1].replace(/\\$\\{[^}]+\\}/g, '').trim();
+                        if (s.length > 20 && /[áàãâéêíóôõúç]/.test(s)) {
+                            addTexto(s, 'script_template', {});
+                        }
+                    }
+                });
+                
                 return resultados;
             }
         """)
