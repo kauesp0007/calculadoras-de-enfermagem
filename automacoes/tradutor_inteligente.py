@@ -73,14 +73,14 @@ def traduzir_meta_seo_com_deepseek(html, idioma_alvo):
     """
     
     # URL LIMPA: sem formatação de colchetes!
-    url = "https://api.deepseek.com/chat/completions"
+    url = "https://api.openai.com/v1/chat/completions"
     headers = {
-        "Authorization": f"Bearer {CHAVE_DEEPSEEK}",
+        "Authorization": f"Bearer {CHAVE_OPENAI}",
         "Content-Type": "application/json"
     }
     
     payload = {
-        "model": "deepseek-v4-pro",
+        "model": "gpt-4o-mini",
         "messages": [
             {"role": "system", "content": instrucoes},
             {"role": "user", "content": json.dumps(dict_textos, ensure_ascii=False)}
@@ -89,31 +89,55 @@ def traduzir_meta_seo_com_deepseek(html, idioma_alvo):
         "response_format": {"type": "json_object"}
     }
 
+    # --- TENTATIVA 1: OpenAI ---
     try:
         response = requests.post(url, headers=headers, json=payload, timeout=25)
         response.raise_for_status()
         resultado = response.json()["choices"][0]["message"]["content"].strip()
+        print(f"      \033[92m↳ SEO traduzido via OpenAI\033[0m")
+    except Exception as e1:
+        print(f"      \033[93m↳ OpenAI falhou no SEO: {type(e1).__name__}. Tentando DeepSeek...\033[0m")
         
-        # Limpeza caso deepseek envie markdown
-        if resultado.startswith("```"):
-            resultado = re.sub(r'^```(json)?\n', '', resultado, flags=re.IGNORECASE)
-            resultado = re.sub(r'\n```$', '', resultado)
+        # --- TENTATIVA 2: DeepSeek (fallback) ---
+        try:
+            url_fb = "https://api.deepseek.com/chat/completions"
+            headers_fb = {
+                "Authorization": f"Bearer {CHAVE_DEEPSEEK}",
+                "Content-Type": "application/json"
+            }
+            payload_fb = {
+                "model": "deepseek-v4-pro",
+                "messages": [
+                    {"role": "system", "content": instrucoes},
+                    {"role": "user", "content": json.dumps(dict_textos, ensure_ascii=False)}
+                ],
+                "temperature": 0.1
+            }
+            response = requests.post(url_fb, headers=headers_fb, json=payload_fb, timeout=25)
+            response.raise_for_status()
+            resultado = response.json()["choices"][0]["message"]["content"].strip()
+            print(f"      \033[92m↳ SEO traduzido via DeepSeek (fallback)\033[0m")
+        except Exception as e2:
+            print(f"\n⚠️ Erro ao adaptar SEO (OpenAI e DeepSeek falharam): {e2}")
+            return html
+        
+    # Limpeza caso a IA envie markdown
+    if resultado.startswith("```"):
+        resultado = re.sub(r'^```(json)?\n', '', resultado, flags=re.IGNORECASE)
+        resultado = re.sub(r'\n```$', '', resultado)
+        
+    traducoes = json.loads(resultado)
+    
+    # Substitui no HTML original (de trás para frente para não afetar os índices)
+    html_modificado = html
+    for i, m in reversed(list(enumerate(unique_matches))):
+        chave = f"t{i}"
+        if chave in traducoes:
+            novo_texto = traducoes[chave].replace('"', "'") # Proteção contra aspas acidentais no HTML
+            bloco_novo = m.group(1) + novo_texto + m.group(3)
+            html_modificado = html_modificado[:m.start()] + bloco_novo + html_modificado[m.end():]
             
-        traducoes = json.loads(resultado)
-        
-        # Substitui no HTML original (de trás para frente para não afetar os índices)
-        html_modificado = html
-        for i, m in reversed(list(enumerate(unique_matches))):
-            chave = f"t{i}"
-            if chave in traducoes:
-                novo_texto = traducoes[chave].replace('"', "'") # Proteção contra aspas acidentais no HTML
-                bloco_novo = m.group(1) + novo_texto + m.group(3)
-                html_modificado = html_modificado[:m.start()] + bloco_novo + html_modificado[m.end():]
-                
-        return html_modificado
-    except Exception as e:
-        print(f"\n⚠️ Erro ao adaptar SEO com DeepSeek (mantendo SEO original): {e}")
-        return html
+    return html_modificado
 
 def preparar_html_para_traducao_texto(caminho_arquivo, idioma_alvo):
     """
@@ -614,6 +638,10 @@ def _extrair_blocos_script_style(html):
     return blocos
 
 def traduzir_html_com_deepl(html_preparado, idioma_alvo):
+    """
+    ⚡ MODO RÁPIDO: O HTML estático já está traduzido nas pastas de idioma.
+    Apenas traduz o JavaScript inline e restaura. NÃO chama DeepL nem fallback IA.
+    """
     try:
         # === 1. PROTEÇÃO CIRÚRGICA DE SCRIPTS E STYLES (parser posicional, sem regex) ===
         blocos_codigo = {}
@@ -639,72 +667,23 @@ def traduzir_html_com_deepl(html_preparado, idioma_alvo):
             
             html_preparado = html_preparado[:inicio] + placeholder + html_preparado[fim:]
         
-        html_protegido = html_preparado
-        
-        # === 2. PROCESSAMENTO DEEPSEEK EM LOTE (BATCH) ===
+        # === 2. PROCESSAMENTO DEEPSEEK EM LOTE (BATCH) - APENAS JS INLINE ===
         if scripts_para_traduzir:
-            # Substitui as chamadas sequenciais por uma única requisição
             print(f"      \033[96m↳ Enviando lógicas Javascript em LOTE único para o DeepSeek...\033[0m")
             scripts_traduzidos = traduzir_lote_js_com_deepseek(scripts_para_traduzir, idioma_alvo)
-            
-            # Reintegra os scripts traduzidos no repositório geral de blocos
             blocos_codigo.update(scripts_traduzidos)
         
-        # === 3. COMUNICAÇÃO COM DEEPL ===
-        translator = deepl.Translator(CHAVE_API, server_url="https://api-free.deepl.com")
-        
-        idioma_deepl = idioma_alvo.upper()
-        if idioma_deepl == "EN":
-            idioma_deepl = "EN-US"
-        elif idioma_deepl == "PT":
-            idioma_deepl = "PT-BR"
-
-        resultado = translator.translate_text(
-            html_protegido, 
-            target_lang=idioma_deepl, 
-            tag_handling="html"
-        )
-        
-        html_traduzido = resultado.text.strip()
+        # === 3. HTML ESTÁTICO JÁ TRADUZIDO - PULA DeepL/IA ===
+        print(f"      \033[92m↳ HTML estático já traduzido. Pulando DeepL/IA.\033[0m")
         
         # === 4. RESTAURAÇÃO DE SCRIPTS E STYLES ===
+        html_final = html_preparado
         for placeholder, codigo_restaurado in blocos_codigo.items():
-            html_traduzido = html_traduzido.replace(placeholder, codigo_restaurado)
+            html_final = html_final.replace(placeholder, codigo_restaurado)
             
-        return html_traduzido
-    except QuotaExceededException as e:
-        print(f"\n❌ COTA EXCEDIDA (HTTP {e.http_status_code}): {e}")
-        print(f"   ⚠️  Verifique seu uso em: https://www.deepl.com/pt-br/pro-account/usage")
-        if _IA_DISPONIVEL:
-            print(f"      \033[93m↳ Acionando tradutor IA como fallback...\033[0m")
-            html_ia = _traduzir_html_via_ia(html_protegido, idioma_alvo, CHAVE_DEEPSEEK, CHAVE_OPENAI)
-            if html_ia:
-                for placeholder, codigo_restaurado in blocos_codigo.items():
-                    html_ia = html_ia.replace(placeholder, codigo_restaurado)
-                return html_ia
-        return None
-    except TooManyRequestsException as e:
-        print(f"\n⚠️  MUITAS REQUISIÇÕES (HTTP {e.http_status_code}): {e}")
-        if _IA_DISPONIVEL:
-            print(f"      \033[93m↳ Acionando tradutor IA como fallback...\033[0m")
-            html_ia = _traduzir_html_via_ia(html_protegido, idioma_alvo, CHAVE_DEEPSEEK, CHAVE_OPENAI)
-            if html_ia:
-                for placeholder, codigo_restaurado in blocos_codigo.items():
-                    html_ia = html_ia.replace(placeholder, codigo_restaurado)
-                return html_ia
-        return None
+        return html_final
     except Exception as e:
-        print(f"\n❌ Erro na comunicação com a API do DeepL: {type(e).__name__}: {e}")
-        if _IA_DISPONIVEL:
-            print(f"      \033[93m↳ Acionando tradutor IA como fallback...\033[0m")
-            try:
-                html_ia = _traduzir_html_via_ia(html_protegido, idioma_alvo, CHAVE_DEEPSEEK, CHAVE_OPENAI)
-                if html_ia:
-                    for placeholder, codigo_restaurado in blocos_codigo.items():
-                        html_ia = html_ia.replace(placeholder, codigo_restaurado)
-                    return html_ia
-            except Exception as e2:
-                print(f"\n❌ Fallback IA também falhou: {type(e2).__name__}: {e2}")
+        print(f"\n❌ Erro no processamento: {type(e).__name__}: {e}")
         return None
 
 if __name__ == "__main__":
