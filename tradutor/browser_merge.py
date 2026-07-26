@@ -31,12 +31,12 @@ async def aplicar_traducoes_dom(arquivo_entrada, traducoes, arquivo_saida):
         caminho = "file:///" + os.path.abspath(arquivo_entrada).replace("\\", "/")
         await page.goto(caminho, wait_until="networkidle")
         
-        # Aplica traducoes em nos de texto + atributos
+        # Aplica traducoes em nos de texto + atributos + scripts inline
         substituicoes = await page.evaluate("""
             (traducoes) => {
                 let count = 0;
                 
-                // 1. Nos de texto
+                // 1. Nos de texto (exceto scripts - tratados separadamente)
                 const walker = document.createTreeWalker(
                     document.body, NodeFilter.SHOW_TEXT, null, false
                 );
@@ -45,6 +45,9 @@ async def aplicar_traducoes_dom(arquivo_entrada, traducoes, arquivo_saida):
                 while (node = walker.nextNode()) nodes.push(node);
                 
                 for (const node of nodes) {
+                    // Pula scripts no passo 1 (serao tratados no passo 4)
+                    if (node.parentElement && ['SCRIPT','STYLE'].includes(node.parentElement.tagName)) continue;
+                    
                     const texto = node.textContent.trim();
                     if (texto && traducoes[texto] && traducoes[texto] !== texto) {
                         if (node.textContent.trim() === texto) {
@@ -76,6 +79,28 @@ async def aplicar_traducoes_dom(arquivo_entrada, traducoes, arquivo_saida):
                         }
                     });
                 });
+                
+                // 4. Scripts inline: substitui strings exatas dentro do codigo-fonte
+                let scriptCount = 0;
+                document.querySelectorAll('script:not([src])').forEach(script => {
+                    let code = script.textContent;
+                    let changed = false;
+                    for (const [original, traduzido] of Object.entries(traducoes)) {
+                        if (original === traduzido) continue;
+                        if (original.length < 3) continue;
+                        // So substitui se o texto original aparece como string delimitada
+                        // (entre aspas, crases, ou apos : seguido de espaço)
+                        if (code.includes(original)) {
+                            code = code.split(original).join(traduzido);
+                            changed = true;
+                        }
+                    }
+                    if (changed) {
+                        script.textContent = code;
+                        scriptCount++;
+                    }
+                });
+                count += scriptCount;
                 
                 return count;
             }
