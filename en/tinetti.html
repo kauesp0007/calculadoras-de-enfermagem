@@ -1066,13 +1066,14 @@ el.addEventListener("wheel", function(e) { e.preventDefault(); this.blur(); });
 });
 }
 
-// --- ATUALIZAR STATUS DE UM CARD ESPECÍFICO ---
+// --- UPDATE INDIVIDUAL CARD STATUS ---
 function atualizarCardIndividual(id, max) {
 const select = document.getElementById(id);
 const valStr = select.value;
 if (valStr === "") return;
 const val = parseInt(valStr);
-const pct = (val / max) * 100;
+// Bar always visible: minimum 10% to show color
+const pct = Math.max((val / max) * 100, 10);
 
 const badge = document.getElementById(`badge_${id}`);
 const bar = document.getElementById(`bar_${id}`);
@@ -1080,11 +1081,15 @@ const bar = document.getElementById(`bar_${id}`);
 badge.textContent = `${val}/${max}`;
 bar.style.width = `${pct}%`;
 
-// Cores baseadas na pontuação (Tinetti: quanto maior, melhor/verde)
-let cor = "#e11d48"; // 0 pts = Vermelho
-if (val === max) cor = "#16a34a"; // Maximo = Verde
-else if (val === 1 && max === 2) cor = "#eab308"; // Maximum = Green
-else if (val === 1 && max === 2) color = "transparent" ? "" : `${cor}15`;
+// Tinetti scoring: higher is better (green), lower is worse (red)
+let cor = "#e11d48"; // 0 pts = Red
+if (val === max) cor = "#16a34a"; // Max = Green
+else if (val > 0) cor = "#eab308"; // Partial = Yellow
+
+bar.style.backgroundColor = cor;
+
+// Badge also changes color according to score
+badge.style.backgroundColor = cor === "transparent" ? "" : `${cor}15`;
 badge.style.color = cor === "transparent" ? "" : cor;
 badge.style.borderColor = cor === "transparent" ? "" : `${cor}30`;
 atualizarBarraGlobal();
@@ -1116,7 +1121,7 @@ this.style.background = "white";
 } else {
 body.classList.add("open");
 chevron.style.transform = "rotate(180deg)";
-subtitle.textContent = "Ocultar painel";
+subtitle.textContent = "Hide panel";
 this.style.background = "#EFF6FF";
 }
 });
@@ -1162,20 +1167,19 @@ primeiroErro.scrollIntoView({ behavior: 'smooth', block: 'center' });
 return;
 }
 
-document.getElementById("msgValidacaoErro").style.display = "none"; // Intermediate = Yellow
+document.getElementById("msgValidacaoErro").style.display = "none";
+clearInterval(timerInterval);
 
-bar.style.backgroundColor = color;
-
-// Badge also changes color according to score
-badge.style.backgroundColor = color === "", bgPill = "", recomendacao = "";
+// Determine Tinetti Classification (Max 28)
+let classe = "", bgPill = "", recomendacao = "";
 if (somaTotal <= 18) {
 classe = "Alto Fall Risk"; bgPill = "#e11d48"; // Vermelho
 recomendacao = "Indicates a severe fall risk. Immediate implementation of a fall prevention protocol is mandatory (bed rails, lighting, accessible call bell), mobility assistance and follow-up.";
 } else if (somaTotal <= 23) {
-classe = "Risco Moderado"; bgPill = "#eab308"; // Amarelo
+classe = "Moderate Risk"; bgPill = "#eab308"; // Yellow
 recomendacao = "Indicates a moderate risk. Environmental adaptations are suggested, use of gait assistive devices if indicated, and supervision during ambulation.";
 } else {
-classe = "Baixo Risco"; bgPill = "#16a34a"; // Verde
+classe = "Low Risk"; bgPill = "#16a34a"; // Green
 recomendacao = "Indicates low fall risk. The patient has good balance and functional gait. Maintain standard preventive care and encourage physical activities focused on strength and balance.";
 }
 
@@ -1217,8 +1221,9 @@ const pct = Math.round((dom.obtido / dom.max) * 100);
 
 let cor = "#e11d48"; // Vermelho (0)
 if (dom.obtido === dom.max) cor = "#16a34a"; // Verde (Maximo)
-else if (dom.obtido > 0 && dom.obtido < dom.max) cor = "#eab308"; // Green (Maximum)
-else if (dom.obtained > 0 && dom.obtained < dom.max) color ="tr");
+else if (dom.obtido > 0 && dom.obtido < dom.max) cor = "#eab308"; // Partial
+
+const tr = document.createElement("tr");
 tr.innerHTML = `
 <td class="font-bold text-slate-700">${dom.nome}</td>
 <td class="text-center font-black" style="color: ${cor}">${dom.obtido}</td>
@@ -1234,11 +1239,12 @@ tr.innerHTML = `
 `;
 tbody.appendChild(tr);
 });
-document.getElementById("totalObtainedTd").textContent = somaTotal;
-document.getElementById("totalObtainedTd").style.color = bgPill;
+document.getElementById("totalObtidoTd").textContent = somaTotal;
+document.getElementById("totalObtidoTd").style.color = bgPill;
 
 // Show Section
 resultadoSection.classList.add("visible");
+resultadoSection.style.display = "block";
 setTimeout(() => {
 resultadoSection.scrollIntoView({ behavior: "smooth", block: "start" });
 }, 100);
@@ -1251,7 +1257,7 @@ window.__calcData = { soma: somaTotal, classe, dominios: dominiosValores };
 
 async function chamarNanda(keywords) {
 const lista = document.getElementById("lista-nanda");
-lista.innerHTML = '<li class="text-sm text-slate-500 text-center py-4"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="fa-spin mr-2 inline-block" fill="currentColor" width="1em" height="1em" aria-hidden="true"><path d="M304 48a48 48 0 1 0 -96 0 48 48 0 1 0 96 0zm0 416a48 48 0 1 0 -96 0 48 48 0 1 0 96 0zM48 304a48 48 0 1 0 0-96 48 48 0 1 0 0 96zm464-48a48 48 0 1 0 -96 0 48 48 0 1 0 96 0zM142.9 437A48 48 0 1 0 75 369.1 48 48 0 1 0 142.9 437zm0-294.2A48 48 0 1 0 75 75a48 48 0 1 0 67.9 67.9zM369.1 437A48 48 0 1 0 437 369.1 48 48 0 1 0 369.1 437z"/></svg> Consultando banco de dados NANDA-I...</li>';
+lista.innerHTML = '<li class="text-sm text-slate-500 text-center py-4"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="fa-spin mr-2 inline-block" fill="currentColor" width="1em" height="1em" aria-hidden="true"><path d="M304 48a48 48 0 1 0 -96 0 48 48 0 1 0 96 0zm0 416a48 48 0 1 0 -96 0 48 48 0 1 0 96 0zM48 304a48 48 0 1 0 0-96 48 48 0 1 0 0 96zm464-48a48 48 0 1 0 -96 0 48 48 0 1 0 96 0zM142.9 437A48 48 0 1 0 75 369.1 48 48 0 1 0 142.9 437zm0-294.2A48 48 0 1 0 75 75a48 48 0 1 0 67.9 67.9zM369.1 437A48 48 0 1 0 437 369.1 48 48 0 1 0 369.1 437z"/></svg> Consulting NANDA-I database...</li>';
 
 try {
 const response = await fetch("/banco_nanda.json");
@@ -1429,7 +1435,7 @@ doc.roundedRect(marginL, y, usable, 8, 2, 2, "F");
 doc.setTextColor(...navy);
 doc.setFont("helvetica", "bold");
 doc.setFontSize(9);
-doc.text("IDENTIFICAÇÃO DO PACIENTE", marginL + 4, y + 5.5);
+doc.text("PATIENT IDENTIFICATION", marginL + 4, y + 5.5);
 y += 12;
 
 if (data.nome) {

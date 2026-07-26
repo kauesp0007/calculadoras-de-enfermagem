@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="zh-CN"><head>
+﻿<!DOCTYPE html><html lang="zh-CN"><head>
 
 <!-- 1. Charset e Viewport -->
 <meta charset="utf-8">
@@ -760,7 +760,7 @@ ROCHA, A. B. et al. 沃特洛量表的翻译与跨文化调适. <a href="https:/
 </div>
 
 <div class="space-y-3">
-<!-- Altíssimo Risco -->
+<!-- 极高风险 -->
 <div id="scp-altissimo" class="bg-[#ffebee] border-2 border-[#b71c1c] rounded-xl p-4 shadow-sm transition-all duration-300">
 <div class="flex items-center gap-3 mb-1">
 <div class="w-3 h-3 rounded-full bg-[#b71c1c] flex-shrink-0"></div>
@@ -769,7 +769,7 @@ ROCHA, A. B. et al. 沃特洛量表的翻译与跨文化调适. <a href="https:/
 <p class="text-[11px] text-[#b71c1c] font-medium ml-6">最高风险。需要采取积极的预防方案：使用专用床垫（如：动态空气床垫），严格执行每2小时翻身，并持续进行再评估。</p>
 </div>
 
-<!-- Alto Risco -->
+<!-- 高风险 -->
 <div id="scp-alto" class="bg-[#fff3e0] border-2 border-[#e65100] rounded-xl p-4 shadow-sm transition-all duration-300">
 <div class="flex items-center gap-3 mb-1">
 <div class="w-3 h-3 rounded-full bg-[#e65100] flex-shrink-0"></div>
@@ -778,7 +778,7 @@ ROCHA, A. B. et al. 沃特洛量表的翻译与跨文化调适. <a href="https:/
 <p class="text-[11px] text-[#bf360c] font-medium ml-6">发生压力性损伤的风险较高。需实施高级减压措施、强化皮肤保湿和营养管理。</p>
 </div>
 
-<!-- Em Risco -->
+<!-- 有风险 -->
 <div id="scp-emrisco" class="bg-[#fff8e1] border-2 border-[#fbc02d] rounded-xl p-4 shadow-sm transition-all duration-300">
 <div class="flex items-center gap-3 mb-1">
 <div class="w-3 h-3 rounded-full bg-[#fbc02d] flex-shrink-0"></div>
@@ -787,7 +787,7 @@ ROCHA, A. B. et al. 沃特洛量表的翻译与跨文化调适. <a href="https:/
 <p class="text-[11px] text-[#854d0e] font-medium ml-6">患者存在活动性风险因素。启动标准预防方案，包括皮肤检查和常规体位变换。</p>
 </div>
 
-<!-- Baixo Risco -->
+<!-- 低风险 -->
 <div id="scp-baixo" class="bg-[#e8f5e9] border-2 border-[#43a047] rounded-xl p-4 shadow-sm transition-all duration-300">
 <div class="flex items-center gap-3 mb-1">
 <div class="w-3 h-3 rounded-full bg-[#43a047] flex-shrink-0"></div>
@@ -979,7 +979,7 @@ const select = document.getElementById(id);
 const valStr = select.value;
 if (valStr === "") return;
 const val = parseInt(valStr);
-const pct = (val / max) * 100;
+const pct = Math.max((val / max) * 100, 8);
 
 const badge = document.getElementById(`badge_${id}`);
 const bar = document.getElementById(`bar_${id}`);
@@ -1030,7 +1030,7 @@ this.style.background = "white";
 } else {
 body.classList.add("open");
 chevron.style.transform = "rotate(180deg)";
-subtitle.textContent = "Ocultar painel";
+subtitle.textContent = "隐藏面板";
 this.style.background = "#EFF6FF";
 }
 });
@@ -1054,7 +1054,7 @@ if (selectVal === "") {
 incompleto = true;
 document.getElementById(`card_${item.id}`).classList.add("error");
 if(!primeiroErro) primeiroErro = document.getElementById(`card_${item.id}`);
-dominiosValores.push({ nome: item.label, obtido: 0, text: "Não preenchido" });
+dominiosValores.push({ nome: item.label, obtido: 0, text: "未填写" });
 } else {
 document.getElementById(`card_${item.id}`).classList.remove("error");
 const val = parseInt(selectVal);
@@ -1095,24 +1095,24 @@ diagnosticosKeywords.push("nutrição", "perfusão", "proteção"); // Adiciona 
 });
 
 if (textosExtras.length > 0) {
-dominiosValores.push({ nome: "Riscos Especiais Identificados", obtido: "+"+(somaTotal - dominiosValores.reduce((a,b)=>a+b.obtido,0)), text: textosExtras.join(", ") });
+dominiosValores.push({ nome: "已识别的特殊风险", obtido: "+"+(somaTotal - dominiosValores.reduce((a,b)=>a+b.obtido,0)), text: textosExtras.join(", ") });
 } else {
-dominiosValores.push({ nome: "Riscos Especiais Identificados", obtido: 0, text: "Nenhum" });
+dominiosValores.push({ nome: "已识别的特殊风险", obtido: 0, text: "无" });
 }
 
 // Determinar Classificação Waterlow
 let classe = "", bgPill = "", recomendacao = "";
 if (somaTotal < 10) {
-classe = "Baixo Risco"; bgPill = "#16a34a"; // Verde
+classe = "低风险"; bgPill = "#16a34a"; // Verde
 recomendacao = "Risco mínimo. Manter os cuidados rotineiros de higiene, mobilização básica e reavaliação periódica.";
 } else if (somaTotal <= 14) {
-classe = "Em Risco"; bgPill = "#eab308"; // Amarelo
+classe = "有风险"; bgPill = "#eab308"; // Amarelo
 recomendacao = "Paciente apresenta fatores de risco ativos. Iniciar protocolo básico de prevenção, inspeção diária da pele e mudança de decúbito padrão.";
 } else if (somaTotal <= 19) {
-classe = "Alto Risco"; bgPill = "#f97316"; // Laranja
+classe = "高风险"; bgPill = "#f97316"; // Laranja
 recomendacao = "Risco alto. Implementar medidas avançadas de alívio de pressão, hidratação intensa, controle nutricional e reposicionamento rigoroso.";
 } else {
-classe = "Altíssimo Risco"; bgPill = "#e11d48"; // Vermelho
+classe = "极高风险"; bgPill = "#e11d48"; // Vermelho
 recomendacao = "Risco máximo de LPP. Exige protocolo agressivo de prevenção: colchões especiais dinâmicos, reposicionamento a cada 2h rigorosamente e reavaliação contínua e multidisciplinar.";
 }
 
@@ -1145,7 +1145,7 @@ scpAlvo.style.boxShadow = "0 8px 25px rgba(0,0,0,0.25)";
 scpAlvo.classList.add("scp-highlight");
 }
 
-document.getElementById("resultadoMensagem").innerHTML = `O paciente obteve um escore total de <strong>${somaTotal} 分</strong>.<br><br><strong>Conduta:</strong> ${recomendacao}`;
+document.getElementById("resultadoMensagem").innerHTML = `患者总分为 <strong>${somaTotal} 分</strong>.<br><br><strong>处理:</strong> ${recomendacao}`;
 
 // Gerar Tabela de Detalhamento
 const tbody = document.getElementById("tabelaDominios");
@@ -1171,6 +1171,7 @@ document.getElementById("totalObtidoTd").style.color = bgPill;
 
 // Mostrar Seção
 resultadoSection.classList.add("visible");
+resultadoSection.style.display = "block";
 setTimeout(() => {
 resultadoSection.scrollIntoView({ behavior: "smooth", block: "start" });
 }, 100);
@@ -1183,7 +1184,7 @@ window.__calcData = { soma: somaTotal, classe, dominios: dominiosValores };
 
 async function chamarNanda(keywords) {
 const lista = document.getElementById("lista-nanda");
-lista.innerHTML = '<li class="text-sm text-slate-500 text-center py-4"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="fa-spin mr-2 inline-block" fill="currentColor" width="1em" height="1em" aria-hidden="true"><path d="M304 48a48 48 0 1 0 -96 0 48 48 0 1 0 96 0zm0 416a48 48 0 1 0 -96 0 48 48 0 1 0 96 0zM48 304a48 48 0 1 0 0-96 48 48 0 1 0 0 96zm464-48a48 48 0 1 0 -96 0 48 48 0 1 0 96 0zM142.9 437A48 48 0 1 0 75 369.1 48 48 0 1 0 142.9 437zm0-294.2A48 48 0 1 0 75 75a48 48 0 1 0 67.9 67.9zM369.1 437A48 48 0 1 0 437 369.1 48 48 0 1 0 369.1 437z"/></svg> Consultando banco de dados NANDA-I...</li>';
+lista.innerHTML = '<li class="text-sm text-slate-500 text-center py-4"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="fa-spin mr-2 inline-block" fill="currentColor" width="1em" height="1em" aria-hidden="true"><path d="M304 48a48 48 0 1 0 -96 0 48 48 0 1 0 96 0zm0 416a48 48 0 1 0 -96 0 48 48 0 1 0 96 0zM48 304a48 48 0 1 0 0-96 48 48 0 1 0 0 96zm464-48a48 48 0 1 0 -96 0 48 48 0 1 0 96 0zM142.9 437A48 48 0 1 0 75 369.1 48 48 0 1 0 142.9 437zm0-294.2A48 48 0 1 0 75 75a48 48 0 1 0 67.9 67.9zM369.1 437A48 48 0 1 0 437 369.1 48 48 0 1 0 369.1 437z"/></svg> 正在查询NANDA-I数据库...</li>';
 
 try {
 const response = await fetch("/banco_nanda.json");
@@ -1241,10 +1242,10 @@ lista.innerHTML += `
 `;
 });
 } else {
-lista.innerHTML = '<li class="text-xs text-slate-500 text-center py-4">Nenhum diagnóstico crítico primário associado às seleções atuais.</li>';
+lista.innerHTML = '<li class="text-xs text-slate-500 text-center py-4">当前选择无相关的主要诊断。</li>';
 }
 } catch (e) {
-lista.innerHTML = '<li class="text-xs text-red-500 text-center py-4">Banco de dados NANDA temporariamente indisponível.</li>';
+lista.innerHTML = '<li class="text-xs text-red-500 text-center py-4">NANDA数据库暂时不可用。</li>';
 }
 }
 

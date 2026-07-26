@@ -1072,7 +1072,8 @@ const select = document.getElementById(id);
 const valStr = select.value;
 if (valStr === "") return;
 const val = parseInt(valStr);
-const pct = (val / max) * 100;
+// Bar always visible: minimum 10% to show color
+const pct = Math.max((val / max) * 100, 10);
 
 const badge = document.getElementById(`badge_${id}`);
 const bar = document.getElementById(`bar_${id}`);
@@ -1118,7 +1119,7 @@ this.style.background = "white";
 } else {
 body.classList.add("open");
 chevron.style.transform = "rotate(180deg)";
-subtitle.textContent = "Ocultar painel";
+subtitle.textContent = "Ocultar panel";
 this.style.background = "#EFF6FF";
 }
 });
@@ -1173,10 +1174,10 @@ if (somaTotal <= 18) {
 classe = "Alto Riesgo de caída"; bgPill = "#e11d48"; // Vermelho
 recomendacao = "Indica un riesgo severo de caídas. Es obligatoria la implementación inmediata de un protocolo de prevención de caídas (barandillas, iluminación, timbre accesible), ayuda para la movilidad y seguimiento.";
 } else if (somaTotal <= 23) {
-classe = "Risco Moderado"; bgPill = "#eab308"; // Amarelo
+classe = "Riesgo Moderado"; bgPill = "#eab308"; // Amarillo
 recomendacao = "Indica un riesgo moderado. Se sugieren adaptaciones ambientales, uso de dispositivos de ayuda para la marcha si está indicado, y supervisión durante la deambulación.";
 } else {
-classe = "Baixo Risco"; bgPill = "#16a34a"; // Verde
+classe = "Riesgo Bajo"; bgPill = "#16a34a"; // Verde
 recomendacao = "Indica bajo riesgo de caídas. El paciente tiene buen equilibrio y marcha funcional. Mantenga los cuidados preventivos estándar y estimule actividades físicas enfocadas en fuerza y equilibrio.";
 }
 
@@ -1241,6 +1242,7 @@ document.getElementById("totalObtenidoTd").style.color = bgPill;
 
 // Mostrar Sección
 resultadoSection.classList.add("visible");
+resultadoSection.style.display = "block";
 setTimeout(() => {
 resultadoSection.scrollIntoView({ behavior: "smooth", block: "start" });
 }, 100);
@@ -1253,7 +1255,7 @@ window.__calcData = { soma: somaTotal, classe, dominios: dominiosValores };
 
 async function chamarNanda(keywords) {
 const lista = document.getElementById("lista-nanda");
-lista.innerHTML = '<li class="text-sm text-slate-500 text-center py-4"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="fa-spin mr-2 inline-block" fill="currentColor" width="1em" height="1em" aria-hidden="true"><path d="M304 48a48 48 0 1 0 -96 0 48 48 0 1 0 96 0zm0 416a48 48 0 1 0 -96 0 48 48 0 1 0 96 0zM48 304a48 48 0 1 0 0-96 48 48 0 1 0 0 96zm464-48a48 48 0 1 0 -96 0 48 48 0 1 0 96 0zM142.9 437A48 48 0 1 0 75 369.1 48 48 0 1 0 142.9 437zm0-294.2A48 48 0 1 0 75 75a48 48 0 1 0 67.9 67.9zM369.1 437A48 48 0 1 0 437 369.1 48 48 0 1 0 369.1 437z"/></svg> Consultando banco de dados NANDA-I...</li>';
+lista.innerHTML = '<li class="text-sm text-slate-500 text-center py-4"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="fa-spin mr-2 inline-block" fill="currentColor" width="1em" height="1em" aria-hidden="true"><path d="M304 48a48 48 0 1 0 -96 0 48 48 0 1 0 96 0zm0 416a48 48 0 1 0 -96 0 48 48 0 1 0 96 0zM48 304a48 48 0 1 0 0-96 48 48 0 1 0 0 96zm464-48a48 48 0 1 0 -96 0 48 48 0 1 0 96 0zM142.9 437A48 48 0 1 0 75 369.1 48 48 0 1 0 142.9 437zm0-294.2A48 48 0 1 0 75 75a48 48 0 1 0 67.9 67.9zM369.1 437A48 48 0 1 0 437 369.1 48 48 0 1 0 369.1 437z"/></svg> Consultando base de datos NANDA-I...</li>';
 
 try {
 const response = await fetch("/banco_nanda.json");
@@ -1431,7 +1433,7 @@ doc.roundedRect(marginL, y, usable, 8, 2, 2, "F");
 doc.setTextColor(...navy);
 doc.setFont("helvetica", "bold");
 doc.setFontSize(9);
-doc.text("IDENTIFICAÇÃO DO PACIENTE", marginL + 4, y + 5.5);
+doc.text("IDENTIFICACIÓN DEL PACIENTE", marginL + 4, y + 5.5);
 y += 12;
 
 if (data.nome) {

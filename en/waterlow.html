@@ -983,12 +983,13 @@ label.querySelector("input").addEventListener('change', startTimer, {once: true}
 }
 
 // --- UPDATE STATUS OF A SPECIFIC CARD (Selects) ---
-function updateIndividualCard(id, max) {
+function atualizarCardIndividual(id, max) {
 const select = document.getElementById(id);
 const valStr = select.value;
 if (valStr === "") return;
 const val = parseInt(valStr);
-const pct = (val / max) * 100;
+// Bar always visible: minimum 8% to show the color
+const pct = Math.max((val / max) * 100, 8);
 
 const badge = document.getElementById(`badge_${id}`);
 const bar = document.getElementById(`bar_${id}`);
@@ -996,31 +997,31 @@ const bar = document.getElementById(`bar_${id}`);
 badge.textContent = `${val}/${max}`;
 bar.style.width = `${pct}%`;
 
-// Cores baseadas na pontuação (Waterlow: 0 é verde, maior é pior/vermelho)
-let cor = "#16a34a"; // Verde (0)
-if (pct > 0 && pct <= 33) cor = "#eab308"; // Amarelo
-else if (pct > 33 && pct <= 66) cor = "#f97316"; // Laranja
+// Colors based on score (Waterlow: 0 is green, higher is worse/red)
+let cor = "#16a34a"; // Green (0)
+if (pct > 0 && pct <= 33) cor = "#eab308"; // Yellow
+else if (pct > 33 && pct <= 66) cor = "#f97316"; // Orange
 else if (pct > 66) cor = "#e11d48"; // Red
 
-bar.style.backgroundColor = color;
+bar.style.backgroundColor = cor;
 
 // Badge also changes color according to score
-badge.style.backgroundColor = color === "transparent" ? "" : `${cor}15`;
+badge.style.backgroundColor = cor === "transparent" ? "" : `${cor}15`;
 badge.style.color = cor === "transparent" ? "" : cor;
 badge.style.borderColor = cor === "transparent" ? "" : `${cor}30`;
 
-updateGlobalBar();
+atualizarBarraGlobal();
 }
 
 // --- GLOBAL FLOATING BAR AND COUNTER (Based on the 4 mandatory selects) ---
-function updateGlobalBar() {
-let filled = 0;
-const mandatory = document.querySelectorAll(".mandatory");
-mandatory.forEach((i) => {
-if (i.value !== "") filled++;
+function atualizarBarraGlobal() {
+let preenchidos = 0;
+const obrigatorios = document.querySelectorAll(".obrigatorio");
+obrigatorios.forEach((i) => {
+if (i.value !== "") preenchidos++;
 });
 
-const globalPct = (filled / 4) * 100;
+const pctGlobal = (preenchidos / 4) * 100;
 document.getElementById("progress-bar-global").style.width = `${pctGlobal}%`;
 document.getElementById("contadorPreenchidos").textContent = `${preenchidos}/4`;
 }
@@ -1039,7 +1040,7 @@ this.style.background = "white";
 } else {
 body.classList.add("open");
 chevron.style.transform = "rotate(180deg)";
-subtitle.textContent = "Ocultar painel";
+subtitle.textContent = "Hide panel";
 this.style.background = "#EFF6FF";
 }
 });
@@ -1126,13 +1127,13 @@ recommendation = "Maximum risk of pressure injury. Requires aggressive preventio
 }
 
 // Display in Hero Card
-document.getElementById("scoreValue").textContent = totalSum;
+document.getElementById("scoreValor").textContent = totalSum;
 const pill = document.getElementById("statusPill");
 pill.textContent = className;
 pill.style.backgroundColor = bgPill;
 
 // Highlight corresponding card in Sidebar
-const scpIds = ["scp-low", "scp-atRisk", "scp-high", "scp-veryHigh"];
+const scpIds = ["scp-baixo", "scp-emrisco", "scp-alto", "scp-altissimo"];
 scpIds.forEach(id => {
 const el = document.getElementById(id);
 if (el) {
@@ -1143,10 +1144,10 @@ el.classList.remove("scp-highlight");
 });
 
 let scpTarget = null;
-if (totalSum < 10) scpTarget = document.getElementById("scp-low");
-else if (totalSum <= 14) scpTarget = document.getElementById("scp-atRisk");
-else if (totalSum <= 19) scpTarget = document.getElementById("scp-high");
-else scpTarget = document.getElementById("scp-veryHigh");
+if (totalSum < 10) scpTarget = document.getElementById("scp-baixo");
+else if (totalSum <= 14) scpTarget = document.getElementById("scp-emrisco");
+else if (totalSum <= 19) scpTarget = document.getElementById("scp-alto");
+else scpTarget = document.getElementById("scp-altissimo");
 
 if (scpTarget) {
 scpTarget.style.transform = "scale(1.03)";
@@ -1154,7 +1155,7 @@ scpTarget.style.boxShadow = "0 8px 25px rgba(0,0,0,0.25)";
 scpTarget.classList.add("scp-highlight");
 }
 
-document.getElementById("resultMessage").innerHTML = `O paciente obteve um escore total de <strong>${somaTotal} points</strong>.<br><br><strong>Conduta:</strong> ${recomendacao}`;
+document.getElementById("resultadoMensagem").innerHTML = `The patient obtained a total score of <strong>${totalSum} points</strong>.<br><br><strong>Management:</strong> ${recommendation}`;
 
 // Gerar Tabela de Detalhamento
 const tbody = document.getElementById("tabelaDominios");
@@ -1180,6 +1181,7 @@ document.getElementById("totalObtidoTd").style.color = bgPill;
 
 // Show Section
 resultadoSection.classList.add("visible");
+resultadoSection.style.display = "block";
 setTimeout(() => {
 resultadoSection.scrollIntoView({ behavior: "smooth", block: "start" });
 }, 100);
@@ -1187,12 +1189,12 @@ resultadoSection.scrollIntoView({ behavior: "smooth", block: "start" });
 // Chamar NANDA
 chamarNanda(diagnosticosKeywords);
 
-window.__calcData = { soma: somaTotal, classe, dominios: dominiosValores };
+window.__calcData = { soma: totalSum, classe: className, dominios: domainValues };
 }
 
 async function chamarNanda(keywords) {
 const lista = document.getElementById("lista-nanda");
-lista.innerHTML = '<li class="text-sm text-slate-500 text-center py-4"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="fa-spin mr-2 inline-block" fill="currentColor" width="1em" height="1em" aria-hidden="true"><path d="M304 48a48 48 0 1 0 -96 0 48 48 0 1 0 96 0zm0 416a48 48 0 1 0 -96 0 48 48 0 1 0 96 0zM48 304a48 48 0 1 0 0-96 48 48 0 1 0 0 96zm464-48a48 48 0 1 0 -96 0 48 48 0 1 0 96 0zM142.9 437A48 48 0 1 0 75 369.1 48 48 0 1 0 142.9 437zm0-294.2A48 48 0 1 0 75 75a48 48 0 1 0 67.9 67.9zM369.1 437A48 48 0 1 0 437 369.1 48 48 0 1 0 369.1 437z"/></svg> Consultando banco de dados NANDA-I...</li>';
+lista.innerHTML = '<li class="text-sm text-slate-500 text-center py-4"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="fa-spin mr-2 inline-block" fill="currentColor" width="1em" height="1em" aria-hidden="true"><path d="M304 48a48 48 0 1 0 -96 0 48 48 0 1 0 96 0zm0 416a48 48 0 1 0 -96 0 48 48 0 1 0 96 0zM48 304a48 48 0 1 0 0-96 48 48 0 1 0 0 96zm464-48a48 48 0 1 0 -96 0 48 48 0 1 0 96 0zM142.9 437A48 48 0 1 0 75 369.1 48 48 0 1 0 142.9 437zm0-294.2A48 48 0 1 0 75 75a48 48 0 1 0 67.9 67.9zM369.1 437A48 48 0 1 0 437 369.1 48 48 0 1 0 369.1 437z"/></svg> Consulting NANDA-I database...</li>';
 
 try {
 const response = await fetch("/banco_nanda.json");

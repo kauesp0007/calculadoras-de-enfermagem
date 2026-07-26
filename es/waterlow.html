@@ -987,7 +987,7 @@ const select = document.getElementById(id);
 const valStr = select.value;
 if (valStr === "") return;
 const val = parseInt(valStr);
-const pct = (val / max) * 100;
+const pct = Math.max((val / max) * 100, 8);
 
 const badge = document.getElementById(`badge_${id}`);
 const bar = document.getElementById(`bar_${id}`);
@@ -1038,7 +1038,7 @@ this.style.background = "white";
 } else {
 body.classList.add("open");
 chevron.style.transform = "rotate(180deg)";
-subtitle.textContent = "Ocultar painel";
+subtitle.textContent = "Ocultar panel";
 this.style.background = "#EFF6FF";
 }
 });
@@ -1098,7 +1098,62 @@ let textosExtras = [];
 checkboxes.forEach((cb) => {
 const val = parseInt(cb.value);
 somaTotal += val;
-textosExtras.push(cb.getAttribute("data-text `O paciente obteve um escore total de <strong>${somaTotal} puntos</strong>.<br><br><strong>Conduta:</strong> ${recomendacao}`;
+textosExtras.push(cb.getAttribute("data-text"));
+diagnosticosKeywords.push("nutrición", "perfusión", "protección");
+});
+
+if (textosExtras.length > 0) {
+dominiosValores.push({ nome: "Riesgos Especiales Identificados", obtido: "+"+(somaTotal - dominiosValores.reduce((a,b)=>a+b.obtido,0)), text: textosExtras.join(", ") });
+} else {
+dominiosValores.push({ nome: "Riesgos Especiales Identificados", obtido: 0, text: "Ninguno" });
+}
+
+// Determinar Clasificación Waterlow
+let classe = "", bgPill = "", recomendacao = "";
+if (somaTotal < 10) {
+classe = "Riesgo Bajo"; bgPill = "#16a34a"; // Verde
+recomendacao = "Riesgo mínimo. Mantener los cuidados rutinarios de higiene, movilización básica y reevaluación periódica.";
+} else if (somaTotal <= 14) {
+classe = "En Riesgo"; bgPill = "#eab308"; // Amarillo
+recomendacao = "El paciente presenta factores de riesgo activos. Iniciar protocolo básico de prevención, inspección diaria de la piel y cambios posturales estándar.";
+} else if (somaTotal <= 19) {
+classe = "Riesgo Alto"; bgPill = "#f97316"; // Naranja
+recomendacao = "Riesgo alto. Implementar medidas avanzadas de alivio de presión, hidratación intensa, control nutricional y reposicionamiento riguroso.";
+} else {
+classe = "Riesgo Muy Alto"; bgPill = "#e11d48"; // Rojo
+recomendacao = "Riesgo máximo de LPP. Exige protocolo agresivo de prevención: colchones especiales dinámicos, reposicionamiento cada 2h rigurosamente y reevaluación continua y multidisciplinaria.";
+}
+
+// Mostrar en Hero Card
+document.getElementById("scoreValor").textContent = somaTotal;
+const pill = document.getElementById("statusPill");
+pill.textContent = classe;
+pill.style.backgroundColor = bgPill;
+
+// Destacar tarjeta correspondiente en el Sidebar
+const scpIds = ["scp-baixo", "scp-emrisco", "scp-alto", "scp-altissimo"];
+scpIds.forEach(id => {
+const el = document.getElementById(id);
+if (el) {
+el.style.transform = "scale(1)";
+el.style.boxShadow = "";
+el.classList.remove("scp-highlight");
+}
+});
+
+let scpAlvo = null;
+if (somaTotal < 10) scpAlvo = document.getElementById("scp-baixo");
+else if (somaTotal <= 14) scpAlvo = document.getElementById("scp-emrisco");
+else if (somaTotal <= 19) scpAlvo = document.getElementById("scp-alto");
+else scpAlvo = document.getElementById("scp-altissimo");
+
+if (scpAlvo) {
+scpAlvo.style.transform = "scale(1.03)";
+scpAlvo.style.boxShadow = "0 8px 25px rgba(0,0,0,0.25)";
+scpAlvo.classList.add("scp-highlight");
+}
+
+document.getElementById("resultadoMensagem").innerHTML = `El paciente obtuvo una puntuación total de <strong>${somaTotal} puntos</strong>.<br><br><strong>Conducta:</strong> ${recomendacao}`;
 
 // Gerar Tabela de Detalhamento
 const tbody = document.getElementById("tabelaDominios");
@@ -1124,6 +1179,7 @@ document.getElementById("totalObtidoTd").style.color = bgPill;
 
 // Mostrar Sección
 resultadoSection.classList.add("visible");
+resultadoSection.style.display = "block";
 setTimeout(() => {
 resultadoSection.scrollIntoView({ behavior: "smooth", block: "start" });
 }, 100);
@@ -1136,7 +1192,7 @@ window.__calcData = { soma: somaTotal, classe, dominios: dominiosValores };
 
 async function chamarNanda(keywords) {
 const lista = document.getElementById("lista-nanda");
-lista.innerHTML = '<li class="text-sm text-slate-500 text-center py-4"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="fa-spin mr-2 inline-block" fill="currentColor" width="1em" height="1em" aria-hidden="true"><path d="M304 48a48 48 0 1 0 -96 0 48 48 0 1 0 96 0zm0 416a48 48 0 1 0 -96 0 48 48 0 1 0 96 0zM48 304a48 48 0 1 0 0-96 48 48 0 1 0 0 96zm464-48a48 48 0 1 0 -96 0 48 48 0 1 0 96 0zM142.9 437A48 48 0 1 0 75 369.1 48 48 0 1 0 142.9 437zm0-294.2A48 48 0 1 0 75 75a48 48 0 1 0 67.9 67.9zM369.1 437A48 48 0 1 0 437 369.1 48 48 0 1 0 369.1 437z"/></svg> Consultando banco de dados NANDA-I...</li>';
+lista.innerHTML = '<li class="text-sm text-slate-500 text-center py-4"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="fa-spin mr-2 inline-block" fill="currentColor" width="1em" height="1em" aria-hidden="true"><path d="M304 48a48 48 0 1 0 -96 0 48 48 0 1 0 96 0zm0 416a48 48 0 1 0 -96 0 48 48 0 1 0 96 0zM48 304a48 48 0 1 0 0-96 48 48 0 1 0 0 96zm464-48a48 48 0 1 0 -96 0 48 48 0 1 0 96 0zM142.9 437A48 48 0 1 0 75 369.1 48 48 0 1 0 142.9 437zm0-294.2A48 48 0 1 0 75 75a48 48 0 1 0 67.9 67.9zM369.1 437A48 48 0 1 0 437 369.1 48 48 0 1 0 369.1 437z"/></svg> Consultando base de datos NANDA-I...</li>';
 
 try {
 const response = await fetch("/banco_nanda.json");
@@ -1194,10 +1250,10 @@ lista.innerHTML += `
 `;
 });
 } else {
-lista.innerHTML = '<li class="text-xs text-slate-500 text-center py-4">Nenhum diagnóstico crítico primário associado às seleções atuais.</li>';
+lista.innerHTML = '<li class="text-xs text-slate-500 text-center py-4">Ningún diagnóstico crítico primario asociado a las selecciones actuales.</li>';
 }
 } catch (e) {
-lista.innerHTML = '<li class="text-xs text-red-500 text-center py-4">Banco de dados NANDA temporariamente indisponível.</li>';
+lista.innerHTML = '<li class="text-xs text-red-500 text-center py-4">Base de datos NANDA temporalmente no disponible.</li>';
 }
 }
 
