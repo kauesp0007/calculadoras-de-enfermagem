@@ -1082,151 +1082,215 @@ alert("Houve um erro ao gerar o PDF. Tente novamente.");
 });
 }
 
-// 4. Imprimir Formulário (padrão meem.html — HTML construído do zero com CSS inline)
+// 4. Imprimir Formulário (clone DOM + CSS fiel — preserva TODOS os campos, cores e divisões)
 function imprimirSbar() {
-// --- Helpers ---
-function val(id) {
-var el = document.getElementById(id);
-if (!el) return "";
-if (el.type === "checkbox" || el.type === "radio") return el.checked;
-return el.value.trim();
-}
+var clone = prepararCloneParaDocumento();
 
-// Coleta dados
-var nome = val("pacienteNome");
-var qt = val("pacienteQT");
-var idade = val("pacienteIdade");
-var prontuario = val("pacienteProntuario");
-var diagnostico = val("pacienteDiagnostico");
-var motivoInternacao = val("motivoInternacao");
+// CSS autocontido que replica fielmente o layout e cores do formulário original
+// Inclui reset + estilos para todas as classes usadas no formulário SBAR
+var css =
+"*{margin:0;padding:0;box-sizing:border-box}" +
+"body{background:white!important;padding:12px 16px!important;margin:0!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;color:#000!important;font-family:Arial,sans-serif;font-size:9pt}" +
+"@page{size:A4 portrait;margin:5mm}" +
 
-// Consciência
-var conscienciaCheckboxes = document.querySelectorAll('.sbar-content input[name="consciencia"]:checked');
-var consciencia = [];
-conscienciaCheckboxes.forEach(function(cb) {
-var txt = cb.parentElement.textContent.trim().replace(/\s+/g, " ");
-if (txt) consciencia.push(txt);
+// Header do documento
+".hdr{background:#1A3E74;color:white;padding:12px 16px;border-radius:8px;display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}" +
+".hdr h1{font-size:13pt;font-weight:900}" +
+
+// Patient ID box
+".patient-id-box{border:2px solid #1A3E74;border-radius:8px;padding:8px;margin-bottom:8px;background-color:#f8fafc}" +
+".patient-id-box h3{font-size:9pt;font-weight:800;color:#1A3E74;margin-bottom:4px;border-bottom:2px solid #1A3E74;padding-bottom:3px;text-transform:uppercase}" +
+
+// Form labels & inputs
+".form-label{font-weight:700;color:#1A3E74;white-space:nowrap;font-size:8pt}" +
+".form-input-line{border:none;border-bottom:1px solid #4a5568;background:transparent;padding:1px 3px;flex-grow:1;font-size:8.5pt;color:#2d3748}" +
+".inline-input{border:none;border-bottom:1px solid #cbd5e0;margin-left:2px;padding:0 2px;font-size:8pt;width:60px;background:transparent}" +
+"input[type='text'],input[type='date'],input[type='time'],input[type='number']{font-size:8pt}" +
+
+// SBAR sections
+".sbar-section{border:1px solid #cbd5e0;border-radius:6px;margin-bottom:6px;overflow:hidden;background:#fff}" +
+".sbar-header{background-color:#1A3E74;color:white;padding:5px 8px;font-weight:800;text-transform:uppercase;font-size:8.5pt;display:flex;align-items:center}" +
+".sbar-content{padding:5px 8px}" +
+
+// Badges coloridos
+".sbar-badge{display:inline-block;width:18px;height:18px;color:white;text-align:center;border-radius:50%;font-weight:bold;margin-right:6px;line-height:18px;font-size:7pt}" +
+".badge-S{background-color:#e53e3e}" +
+".badge-B{background-color:#d69e2e}" +
+".badge-A{background-color:#3182ce}" +
+".badge-R{background-color:#38a169}" +
+
+// Checkboxes and labels
+".checkbox-item{display:inline-flex;align-items:center;font-size:7.5pt;color:#4a5568;white-space:nowrap}" +
+"input[type='checkbox'],input[type='radio']{margin-right:2px;accent-color:#1A3E74;width:10px;height:10px}" +
+
+// Textareas
+"textarea.observation-box{width:100%;border:1px solid #cbd5e0;border-radius:4px;padding:4px;margin-top:1px;font-size:8pt;min-height:35px;resize:none}" +
+
+// Observation grid
+"#obs-container{display:grid!important;grid-template-columns:repeat(3,1fr)!important;gap:8px!important}" +
+
+// Grid
+".grid{display:grid!important}" +
+".grid-cols-1{grid-template-columns:1fr!important}" +
+
+// Flex helpers
+".flex{display:flex!important}" +
+".flex-wrap{flex-wrap:wrap!important}" +
+".items-center{align-items:center!important}" +
+".gap-1{gap:4px!important}" +
+".gap-x-3{column-gap:12px!important}" +
+".gap-x-4{column-gap:16px!important}" +
+".gap-y-1{row-gap:4px!important}" +
+".gap-y-2{row-gap:8px!important}" +
+
+// Spacing
+".mt-1{margin-top:4px!important}" +
+".mt-2{margin-top:8px!important}" +
+".mb-1{margin-bottom:4px!important}" +
+".mr-2{margin-right:8px!important}" +
+".ml-1{margin-left:4px!important}" +
+".ml-2{margin-left:8px!important}" +
+".pb-1{padding-bottom:4px!important}" +
+".pt-1{padding-top:4px!important}" +
+".pt-2{padding-top:8px!important}" +
+".py-1{padding-top:4px!important;padding-bottom:4px!important}" +
+".py-2{padding-top:8px!important;padding-bottom:8px!important}" +
+".px-2{padding-left:8px!important;padding-right:8px!important}" +
+".p-2{padding:8px!important}" +
+
+// Borders
+".border-b{border-bottom-width:1px!important}" +
+".border-t{border-top-width:1px!important}" +
+".border-gray-100{border-color:#f1f5f9!important}" +
+".border-gray-200{border-color:#e2e8f0!important}" +
+".border-red-200{border-color:#fecaca!important}" +
+".border-l-2{border-left-width:2px!important}" +
+".border-blue-900{border-color:#1e3a8a!important}" +
+
+// Backgrounds
+".bg-gray-50\\/50{background-color:rgba(248,250,252,0.5)!important}" +
+".bg-gray-50{background-color:#f8fafc!important}" +
+
+// Text
+".text-xs{font-size:7.5pt!important}" +
+".text-\\[11px\\]{font-size:7.5pt!important}" +
+".text-\\[10px\\]{font-size:7pt!important}" +
+".font-bold{font-weight:700!important}" +
+".font-extrabold{font-weight:800!important}" +
+".text-\\[\\#1A3E74\\]{color:#1A3E74!important}" +
+".text-dark-blue{color:#1A3E74!important}" +
+".text-red-500{color:#ef4444!important}" +
+".text-red-600{color:#dc2626!important}" +
+".text-gray-300{color:#d1d5db!important}" +
+".text-green-600{color:#16a34a!important}" +
+
+// Widths
+".w-full{width:100%!important}" +
+".w-8{width:32px!important}" +
+".w-10{width:40px!important}" +
+".w-12{width:48px!important}" +
+".w-16{width:64px!important}" +
+".w-20{width:80px!important}" +
+".w-24{width:96px!important}" +
+".w-32{width:128px!important}" +
+".min-w-\\[200px\\]{min-width:200px!important}" +
+".flex-grow{flex-grow:1!important}" +
+
+// Rounded
+".rounded{border-radius:4px!important}" +
+
+// Utility
+".no-print{display:none!important}" +
+".pl-2{padding-left:8px!important}" +
+".mx-1{margin-left:4px!important;margin-right:4px!important}" +
+".uppercase{text-transform:uppercase!important}" +
+".text-sm{font-size:8pt!important}" +
+".text-base{font-size:9pt!important}" +
+".text-lg{font-size:10pt!important}" +
+".text-2xl{font-size:12pt!important}" +
+".text-3xl{font-size:14pt!important}" +
+".font-nunito{font-family:'Nunito Sans',Arial,sans-serif!important}" +
+".font-inter{font-family:'Inter',Arial,sans-serif!important}" +
+".text-center{text-align:center!important}" +
+".sr-only{display:none!important}" +
+".space-y-5>*+*{margin-top:20px!important}" +
+".md\\:grid-cols-3{grid-template-columns:repeat(3,1fr)!important}" +
+".max-w-5xl{max-width:100%!important}" +
+".mx-auto{margin-left:auto!important;margin-right:auto!important}" +
+".bg-gray-50{background-color:#f8fafc!important}" +
+".p-4{padding:16px!important}" +
+".sm\\:p-8{padding:16px!important}" +
+".flex-grow{flex-grow:1!important}" +
+".title-bar{display:none!important}" +
+".breadcrumb{display:none!important}" +
+".main-content-wrapper{max-width:100%!important;padding:0!important}" +
+".btn-flutuante-vidro{display:none!important}" +
+// Override Tailwind classes on common elements within the clone
+"#sbarForm{max-width:100%!important;padding:0!important}" +
+"#sbarForm .flex{display:flex!important}" +
+"#sbarForm .flex-wrap{flex-wrap:wrap!important}" +
+"#sbarForm .items-center{align-items:center!important}" +
+"#sbarForm .gap-x-3{column-gap:12px!important}" +
+"#sbarForm .gap-x-4{column-gap:16px!important}" +
+"#sbarForm .gap-y-1{row-gap:4px!important}" +
+"#sbarForm .gap-y-2{row-gap:8px!important}" +
+"#sbarForm .mt-1{margin-top:4px!important}" +
+"#sbarForm .mt-2{margin-top:8px!important}" +
+"#sbarForm .mb-1{margin-bottom:4px!important}" +
+"#sbarForm .mb-2{margin-bottom:8px!important}" +
+"#sbarForm .mr-2{margin-right:8px!important}" +
+"#sbarForm .ml-1{margin-left:4px!important}" +
+"#sbarForm .ml-2{margin-left:8px!important}" +
+"#sbarForm .pb-1{padding-bottom:4px!important}" +
+"#sbarForm .pt-1{padding-top:4px!important}" +
+"#sbarForm .pt-2{padding-top:8px!important}" +
+"#sbarForm .py-1{padding-top:4px!important;padding-bottom:4px!important}" +
+"#sbarForm .py-2{padding-top:8px!important;padding-bottom:8px!important}" +
+"#sbarForm .px-2{padding-left:8px!important;padding-right:8px!important}" +
+"#sbarForm .p-2{padding:8px!important}" +
+"#sbarForm .border-b{border-bottom-width:1px!important}" +
+"#sbarForm .border-t{border-top-width:1px!important}" +
+"#sbarForm .border-gray-100{border-color:#f1f5f9!important}" +
+"#sbarForm .border-gray-200{border-color:#e2e8f0!important}" +
+"#sbarForm .border-blue-900{border-color:#1e3a8a!important}" +
+"#sbarForm .border-red-200{border-color:#fecaca!important}" +
+"#sbarForm .border-l-2{border-left-width:2px!important}" +
+"#sbarForm .bg-gray-50{background-color:#f8fafc!important}" +
+"#sbarForm .bg-gray-50\\/50{background-color:rgba(248,250,252,0.5)!important}" +
+"#sbarForm .rounded{border-radius:4px!important}" +
+"#sbarForm .text-xs{font-size:7.5pt!important}" +
+"#sbarForm .text-\\[11px\\]{font-size:7.5pt!important}" +
+"#sbarForm .text-\\[10px\\]{font-size:7pt!important}" +
+"#sbarForm .font-bold{font-weight:700!important}" +
+"#sbarForm .text-\\[\\#1A3E74\\]{color:#1A3E74!important}" +
+"#sbarForm .text-red-500{color:#ef4444!important}" +
+"#sbarForm .text-red-600{color:#dc2626!important}" +
+"#sbarForm .text-gray-300{color:#d1d5db!important}" +
+"#sbarForm .w-full{width:100%!important}" +
+"#sbarForm .w-8{width:32px!important}" +
+"#sbarForm .w-10{width:40px!important}" +
+"#sbarForm .w-12{width:48px!important}" +
+"#sbarForm .w-16{width:64px!important}" +
+"#sbarForm .w-20{width:80px!important}" +
+"#sbarForm .w-24{width:96px!important}" +
+"#sbarForm .w-32{width:128px!important}" +
+"#sbarForm .min-w-\\[200px\\]{min-width:200px!important}" +
+"#sbarForm .flex-grow{flex-grow:1!important}" +
+"#sbarForm .inline-block{display:inline-block!important}" +
+"#sbarForm .sr-only{display:none!important}";
+
+// Remove atributos style inline que possam conter cores muito escuras no fundo
+var allEls = clone.querySelectorAll("[style]");
+allEls.forEach(function(el) {
+var bg = el.style.background || el.style.backgroundColor;
+// Ajusta apenas backgrounds transparentes/herdados, mantendo cores definidas
 });
 
-// Respiração
-var respCheckboxes = document.querySelectorAll('.sbar-content input[name="resp"]:checked');
-var resp = [];
-respCheckboxes.forEach(function(cb) {
-var txt = cb.parentElement.textContent.trim().replace(/\s+/g, " ").replace(/  +/g, " ");
-if (txt) resp.push(txt);
-});
-
-// Sinais vitais — busca os inputs de texto na linha de sinais vitais
-var sbarContents = document.querySelectorAll(".sbar-content");
-var sinaisVitaisInputs = [];
-sbarContents.forEach(function (sc) {
-var labels = sc.querySelectorAll("label.text-xs");
-labels.forEach(function (lb) {
-var txt = lb.textContent.replace(/\s+/g, " ").trim();
-var inp = lb.querySelector("input[type='text']:not(.inline-input)");
-if (inp && txt) {
-sinaisVitaisInputs.push(txt);
-} else if (lb.querySelector("input.inline-input")) {
-var inpInline = lb.querySelector("input.inline-input");
-sinaisVitaisInputs.push(txt + ": " + (inpInline.value || "—"));
-}
-});
-});
-
-// Comorbidades
-var comorbCheckboxes = document.querySelectorAll('.sbar-content input[name="comorb"]:checked');
-var comorb = [];
-comorbCheckboxes.forEach(function(cb) {
-var txt = cb.parentElement.textContent.trim().replace(/\s+/g, " ");
-if (txt) comorb.push(txt);
-});
-
-// Alergia
-var alergiaText = "—";
-var alergiaInputs = document.querySelectorAll('.sbar-content label.text-xs.text-red-600 input');
-if (alergiaInputs.length > 0 && alergiaInputs[alergiaInputs.length-1]) {
-alergiaText = alergiaInputs[alergiaInputs.length-1].value || "—";
-}
-
-// Observações
-var obsManha = "";
-var obsTarde = "";
-var obsNoite = "";
-var obsTextareas = document.querySelectorAll("#obs-container textarea");
-if (obsTextareas.length >= 3) {
-obsManha = obsTextareas[0].value.trim();
-obsTarde = obsTextareas[1].value.trim();
-obsNoite = obsTextareas[2].value.trim();
-}
-
-// Data
-var hoje = new Date().toLocaleDateString("pt-BR");
-
-// Monta HTML
 var html =
 '<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>Laudo SBAR — Passagem de Plantão</title>' +
-"<style>" +
-"*{margin:0;padding:0;box-sizing:border-box}" +
-"body{font-family:Arial,sans-serif;font-size:10pt;color:#1E293B;padding:20px 28px}" +
-".hdr{background:#1A3E74;color:white;padding:14px 20px;border-radius:8px;display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}" +
-".hdr h1{font-size:13pt;font-weight:900}" +
-".hdr p{font-size:8pt;opacity:0.8;margin-top:3px}" +
-".secao{margin-bottom:14px}" +
-".sec-titulo{font-size:8pt;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:#1A3E74;background:#EFF6FF;padding:5px 10px;border-radius:4px;margin-bottom:8px}" +
-".sbar-box{border:2px solid #1A3E74;border-radius:8px;padding:12px 16px;margin-bottom:10px}" +
-".sbar-box h3{font-size:11pt;font-weight:900;color:#1A3E74;margin-bottom:6px;border-bottom:2px solid #E2E8F0;padding-bottom:4px}" +
-".grid2{display:grid;grid-template-columns:1fr 1fr;gap:6px 20px;font-size:9.5pt}" +
-".grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px;margin-top:10px}" +
-"table{width:100%;border-collapse:collapse}" +
-"th{background:#1A3E74;color:white;font-size:8pt;padding:5px 8px;text-align:left}" +
-"td{font-size:9pt;padding:4px 8px;border-bottom:1px solid #F1F5F9}" +
-".info-item{margin-bottom:3px;font-size:9.5pt}" +
-".info-item strong{color:#1A3E74}" +
-".obs-col h4{font-size:9pt;font-weight:700;color:#1A3E74;margin-bottom:4px;border-bottom:1px solid #E2E8F0;padding-bottom:2px}" +
-".obs-col p{font-size:9pt;color:#1E293B;min-height:80px;border:1px solid #E2E8F0;border-radius:4px;padding:6px;background:#FAFAFA}" +
-".footer{text-align:center;font-size:7.5pt;color:#94A3B8;margin-top:20px;border-top:1px solid #E2E8F0;padding-top:8px}" +
-".sig{display:grid;grid-template-columns:1fr 1fr;gap:30px;margin-top:20px}" +
-".sig-line{border-top:1px solid #1A3E74;padding-top:5px;font-size:8pt;color:#64748B;text-align:center}" +
-"</style></head><body>" +
-'<div class="hdr"><div><h1>SBAR — Passagem de Plantão e Transição de Cuidados</h1><p>Ferramenta de comunicação padronizada em saúde</p></div><div style="text-align:right;font-size:8.5pt;"><strong>Data:</strong> ' + hoje + "</div></div>" +
-
-'<div class="secao"><div class="sec-titulo">Identificação do Paciente</div><div class="grid2">' +
-(nome ? "<p><strong>Nome:</strong> " + nome + "</p>" : "") +
-(qt ? "<p><strong>QT:</strong> " + qt + "</p>" : "") +
-(idade ? "<p><strong>Idade:</strong> " + idade + "</p>" : "") +
-(prontuario ? "<p><strong>Prontuário:</strong> " + prontuario + "</p>" : "") +
-(diagnostico ? "<p><strong>Diagnóstico:</strong> " + diagnostico + "</p>" : "") +
-"</div></div>" +
-
-'<div class="sbar-box"><h3>S — SITUATION (Situação)</h3>' +
-'<p class="info-item"><strong>Motivos da Internação:</strong> ' + (motivoInternacao || "—") + "</p>" +
-"</div>" +
-
-'<div class="sbar-box"><h3>B — BACKGROUND (Histórico)</h3>' +
-'<p class="info-item"><strong>1. Nível de Consciência:</strong> ' + (consciencia.join(", ") || "—") + "</p>" +
-'<p class="info-item"><strong>Padrão Respiratório:</strong> ' + (resp.join(", ") || "—") + "</p>" +
-'<p class="info-item"><strong>Sinais Vitais:</strong> ' + (sinaisVitaisInputs.join(" | ") || "—") + "</p>" +
-'<p class="info-item"><strong>2. Comorbidades:</strong> ' + (comorb.join(", ") || "—") + "</p>" +
-'<p class="info-item"><strong>Alergia:</strong> ' + alergiaText + "</p>" +
-"</div>" +
-
-'<div class="sbar-box"><h3>A — ASSESSMENT (Avaliação)</h3>' +
-'<p class="info-item">Itens marcados no formulário de avaliação clínica do paciente.</p>' +
-"</div>" +
-
-'<div class="sbar-box"><h3>R — RECOMMENDATION (Recomendação)</h3>' +
-'<p class="info-item">Recomendações e plano de cuidados conforme preenchido no formulário.</p>' +
-"</div>" +
-
-'<div class="secao"><div class="sec-titulo">Observações do Enfermeiro</div>' +
-'<div class="grid3">' +
-'<div class="obs-col"><h4>MANHÃ</h4><p>' + (obsManha || "—") + "</p></div>" +
-'<div class="obs-col"><h4>TARDE</h4><p>' + (obsTarde || "—") + "</p></div>" +
-'<div class="obs-col"><h4>NOITE</h4><p>' + (obsNoite || "—") + "</p></div>" +
-"</div></div>" +
-
-'<div class="sig"><div class="sig-line">Assinatura do Profissional</div><div class="sig-line">Local e Data</div></div>' +
-'<div class="footer">SBAR — Situação, Breve Histórico, Avaliação e Recomendação | Calculadoras de Enfermagem — www.calculadorasdeenfermagem.com.br</div>' +
+"<style>" + css + "</style></head><body>" +
+'<div class="hdr"><h1>SBAR na Enfermagem: Passagem de Plantão e Transição de Cuidados</h1></div>' +
+clone.outerHTML +
 "<script>window.onload=function(){setTimeout(function(){window.print();}, 400);}<\/script>" +
 "</body></html>";
 
@@ -1235,7 +1299,41 @@ janela.document.write(html);
 janela.document.close();
 }
 
-document.getElementById("btnSbarPDF").addEventListener("click", gerarSbarPDF);
+// ---- EVENT LISTENERS (padrão meem.html — jsPDF injetado dentro da função) ----
+document.getElementById("btnSbarPDF").addEventListener("click", function() {
+var btn = this;
+var textoOriginal = btn.innerHTML;
+
+// Se a biblioteca já foi carregada nesta sessão, apenas gera o PDF
+if (typeof window.jspdf !== 'undefined' && typeof html2canvas !== 'undefined') {
+gerarSbarPDF();
+return;
+}
+
+// Feedback visual
+btn.innerHTML = "Carregando gerador...";
+btn.style.opacity = "0.7";
+btn.style.pointerEvents = "none";
+
+// Injeta jsPDF principal
+var scriptMain = document.createElement('script');
+scriptMain.src = "https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js";
+document.body.appendChild(scriptMain);
+
+scriptMain.onload = function() {
+// Injeta html2canvas
+var scriptPlugin = document.createElement('script');
+scriptPlugin.src = "https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js";
+document.body.appendChild(scriptPlugin);
+
+scriptPlugin.onload = function() {
+btn.innerHTML = textoOriginal;
+btn.style.opacity = "1";
+btn.style.pointerEvents = "auto";
+gerarSbarPDF();
+};
+};
+});
 document.getElementById("btnSbarImprimir").addEventListener("click", imprimirSbar);
 })();
 </script>
