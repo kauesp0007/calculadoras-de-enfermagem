@@ -5,7 +5,7 @@ import re
 import time
 from dotenv import load_dotenv
 
-# Carrega as chaves do arquivo .env silenciosamente[cite: 2]
+# Carrega as chaves do arquivo .env silenciosamente
 load_dotenv()
 
 CHAVE_DEEPSEEK = os.getenv("DEEPSEEK_API_KEY")
@@ -17,22 +17,24 @@ if not CHAVE_DEEPSEEK or not CHAVE_OPENAI:
 def traduzir_lote_em_blocos(textos_para_traduzir, idioma_alvo):
     """
     Divide os textos em blocos e alterna entre DeepSeek e OpenAI. 
-    Se um falha, o outro assume como fallback[cite: 2].
+    Se um falha, o outro assume como fallback.
     """
     instrucoes_sistema = f"""
     Você é um tradutor especializado em localização de interfaces para a área da saúde/enfermagem.
-    Traduza as mensagens/textos do Português para o idioma '{idioma_alvo}'.
+    Traduza as mensagens/textos do Português para o idioma com o código ISO '{idioma_alvo}'.
     
-    REGRAS DE LOCALIZAÇÃO:
-    - Use linguagem natural e culturalmente apropriada para falantes nativos.
-    - Utilize nomenclatura médica, termos técnicos e siglas padronizadas no idioma alvo[cite: 2].
+    REGRAS DE LOCALIZAÇÃO INEGOCIÁVEIS:
+    - Traduza este conteúdo para o idioma de destino utilizando linguagem natural e culturalmente apropriada para falantes nativos, evitando traduções literais.
+    - Adapte expressões para a forma como são realmente utilizadas no país correspondente, preservando o significado original.
+    - Utilize obrigatoriamente a nomenclatura médica e as siglas do idioma a ser traduzido.
+    - ATENÇÃO: Unidades de medida, tempo, temperatura e peso DEVEM ser traduzidas e convertidas de acordo com as regras e o sistema métrico/imperial do país de destino da tradução.
     
-    REGRAS CRÍTICAS:
-    1. Retorne APENAS o JSON válido. Sem explicações, sem blocos markdown (```json)[cite: 2].
-    2. As chaves do JSON (STR_0, STR_1...) DEVEM ser mantidas intactas[cite: 2].
-    3. Traduza o valor mantendo pontuações finais, mas NÃO adicione aspas extras[cite: 2].
-    4. Placeholders como __INTERP_0__ DEVEM ser mantidos EXATAMENTE como estão[cite: 2].
-    5. Preserve tags HTML dentro do texto (ex: <strong>, <em>, <br>). Traduza APENAS o texto ao redor[cite: 2].
+    REGRAS CRÍTICAS DE PROGRAMAÇÃO:
+    1. Retorne APENAS o JSON válido. Sem explicações, sem blocos markdown (```json).
+    2. As chaves do JSON (STR_0, STR_1...) DEVEM ser mantidas intactas.
+    3. Traduza o valor mantendo pontuações finais, mas NÃO adicione aspas extras.
+    4. Placeholders como __INTERP_0__ DEVEM ser mantidos EXATAMENTE como estão.
+    5. Preserve tags HTML dentro do texto (ex: <strong>, <em>, <br>). Traduza APENAS o texto ao redor.
     """
     
     url_ds = "https://api.deepseek.com/chat/completions"
@@ -47,13 +49,13 @@ def traduzir_lote_em_blocos(textos_para_traduzir, idioma_alvo):
         "Content-Type": "application/json"
     }
 
-    # Divide em blocos de ~30 strings cada[cite: 2]
+    # Divide em blocos de ~30 strings cada
     MAX_POR_BLOCO = 30
     MAX_BLOCOS = 6
     chaves = list(textos_para_traduzir.keys())
     blocos_chaves = [chaves[i:i + MAX_POR_BLOCO] for i in range(0, len(chaves), MAX_POR_BLOCO)]
     
-    # Se tiver mais de 6 blocos, junta o excedente no último[cite: 2]
+    # Se tiver mais de 6 blocos, junta o excedente no último
     if len(blocos_chaves) > MAX_BLOCOS:
         excedente = []
         for b in blocos_chaves[MAX_BLOCOS - 1:]:
@@ -64,8 +66,11 @@ def traduzir_lote_em_blocos(textos_para_traduzir, idioma_alvo):
     todas_traducoes = {}
 
     def _tentar_api(url_api, headers_api, payload_api):
-        resp = requests.post(url_api, headers=headers_api, json=payload_api, timeout=25) # Timeout de 25s[cite: 2]
-        resp.raise_for_status()
+        resp = requests.post(url_api, headers=headers_api, json=payload_api, timeout=25)
+        if not resp.ok:
+            # Captura o erro exato do servidor da API
+            raise Exception(f"HTTP {resp.status_code} - {resp.text[:200]}")
+            
         raw = resp.json()["choices"][0]["message"]["content"].strip()
         if raw.startswith("```"):
             raw = re.sub(r'^```(json)?\n', '', raw, flags=re.IGNORECASE)
@@ -75,7 +80,6 @@ def traduzir_lote_em_blocos(textos_para_traduzir, idioma_alvo):
     for idx_bloco, chaves_bloco in enumerate(blocos_chaves, 1):
         dict_bloco = {k: textos_para_traduzir[k] for k in chaves_bloco}
         
-        # Ímpares → DeepSeek, Pares → OpenAI[cite: 2]
         usar_openai = (idx_bloco % 2 == 0)
         provedor = "OpenAI" if usar_openai else "DeepSeek"
         
@@ -95,12 +99,13 @@ def traduzir_lote_em_blocos(textos_para_traduzir, idioma_alvo):
             api_url = url_ds
             api_headers = headers_ds
             api_payload = {
-                "model": "deepseek-v4-flash", # Utilizando o modelo flash do DeepSeek[cite: 2]
+                "model": "deepseek-chat", 
                 "messages": [
                     {"role": "system", "content": instrucoes_sistema},
                     {"role": "user", "content": json.dumps(dict_bloco, ensure_ascii=False)}
                 ],
-                "temperature": 0.0
+                "temperature": 0.0,
+                "response_format": {"type": "json_object"}
             }
         
         try:
@@ -109,9 +114,9 @@ def traduzir_lote_em_blocos(textos_para_traduzir, idioma_alvo):
             todas_traducoes.update(traducoes_bloco)
             print("\033[92m✓\033[0m")
         except Exception as e:
-            # Fallback: tenta a OUTRA API[cite: 2]
             outro = "OpenAI" if not usar_openai else "DeepSeek"
-            print(f"\033[93m↻ {outro}...\033[0m", end=" ", flush=True)
+            print(f"\n        \033[93m[ERRO {provedor}: {e}]\033[0m")
+            print(f"        \033[93m↻ Tentando fallback com {outro}...\033[0m", end=" ", flush=True)
             try:
                 if not usar_openai:
                     payload_fb = {
@@ -126,18 +131,19 @@ def traduzir_lote_em_blocos(textos_para_traduzir, idioma_alvo):
                     traducoes_bloco = _tentar_api(url_oa, headers_oa, payload_fb)
                 else:
                     payload_fb = {
-                        "model": "deepseek-v4-flash",
+                        "model": "deepseek-chat",
                         "messages": [
                             {"role": "system", "content": instrucoes_sistema},
                             {"role": "user", "content": json.dumps(dict_bloco, ensure_ascii=False)}
                         ],
-                        "temperature": 0.0
+                        "temperature": 0.0,
+                        "response_format": {"type": "json_object"}
                     }
                     traducoes_bloco = _tentar_api(url_ds, headers_ds, payload_fb)
                 todas_traducoes.update(traducoes_bloco)
                 print("\033[92m✓\033[0m")
             except Exception as e2:
-                print("\033[91m✗\033[0m")
+                print(f"\n        \033[91m[ERRO FATAL {outro}: {e2}]\033[0m")
                 if not todas_traducoes and idx_bloco == total_blocos:
                     print(f"\n⚠️ Todos os blocos falharam. Mantendo JS original.")
                     return None
@@ -152,14 +158,14 @@ def main():
     RESET     = '\033[0m'
 
     # =========================================================================
-    # 🟢 ÁREA DE CONFIGURAÇÃO DIÁRIA (ALTERE APENAS AQUI) 🟢[cite: 2]
+    # 🟢 ÁREA DE CONFIGURAÇÃO DIÁRIA (ALTERE APENAS AQUI) 🟢
     # =========================================================================
     
     # Escreva aqui APENAS o nome do arquivo, sem a extensão .html
     arquivos_originais = ["qsofa"] 
     
     # Escolha os idiomas que deseja processar nesta rodada
-    idiomas_alvo = ["en"] 
+    idiomas_alvo = ["es"] 
     
     # =========================================================================
 
@@ -229,14 +235,14 @@ def main():
                 
             print(f"{C_VERDE}✅ SUCESSO! JS Inline traduzido e salvo em: {caminho_html_destino}{RESET}\n")
             
-            # === INÍCIO DA PAUSA DE SEGURANÇA (RATE LIMIT) ===[cite: 2]
+            # === INÍCIO DA PAUSA DE SEGURANÇA (RATE LIMIT) ===
             is_last_file = (arquivo_chave == arquivos_originais[-1])
             is_last_lang = (idioma == idiomas_alvo[-1])
             
             if not (is_last_file and is_last_lang):
                 print(f"{C_AMARELO}⏳ Pausa de segurança: Aguardando 25 segundos para evitar bloqueios da API...{RESET}")
-                time.sleep(25) # Pausa de segurança de 25 segundos[cite: 2]
-            # === FIM DA PAUSA DE SEGURANÇA ===[cite: 2]
+                time.sleep(25)
+            # === FIM DA PAUSA DE SEGURANÇA ===
 
     print(f"\n{C_AMARELO}======================================================={RESET}")
     print(f"{C_VERDE}🎉 TODA A FILA DE INJEÇÃO JS FOI CONCLUÍDA!{RESET}")
