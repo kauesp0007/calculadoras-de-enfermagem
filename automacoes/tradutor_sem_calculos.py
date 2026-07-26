@@ -578,8 +578,8 @@ if __name__ == "__main__":
     # 🟢 ÁREA DE CONFIGURAÇÃO DIÁRIA (ALTERE APENAS AQUI) 🟢
     # =========================================================================
     
-    arquivos_originais = ["tecnologiaverde.html"] 
-    idiomas_alvo = ["hi"] 
+    arquivos_originais = ["saps.html"] 
+    idiomas_alvo = ["en"] 
     
     # =========================================================================
 
