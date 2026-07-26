@@ -23,7 +23,7 @@ import requests
 # CONFIGURAÇÃO
 # ============================================================
 MAX_CHARS_POR_BLOCO = 8000   # ~2000 tokens (1 token ≈ 4 chars em PT)
-PAUSA_ENTRE_BLOCOS = 120     # segundos entre blocos
+PAUSA_ENTRE_BLOCOS = 25     # segundos entre blocos
 ARQUIVO_PROGRESSO = "progresso_traducao_ia.json"
 
 NOME_IDIOMAS = {
