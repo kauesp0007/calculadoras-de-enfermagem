@@ -718,7 +718,7 @@ if __name__ == "__main__":
     # 🟢 ÁREA DE CONFIGURAÇÃO DIÁRIA (ALTERE APENAS AQUI) 🟢
     # =========================================================================
     
-    arquivos_originais = ["moca.html"] 
+    arquivos_originais = ["pelod.html"] 
     idiomas_alvo = ["en"] 
     
     # =========================================================================
