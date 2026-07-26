@@ -615,17 +615,16 @@ def traduzir_lote_js_com_deepseek(dicionario_scripts, idioma_alvo):
     }
     
     payload = {
-        "model": "deepseek-v4-pro",
+        "model": "deepseek-v4-flash",
         "messages": [
             {"role": "system", "content": instrucoes_sistema},
             {"role": "user", "content": json.dumps(strings_para_traduzir, ensure_ascii=False)}
         ],
-        "temperature": 0.0,
-        "response_format": {"type": "json_object"}
+        "temperature": 0.0
     }
 
     try:
-        response = requests.post(url, headers=headers, json=payload, timeout=90)
+        response = requests.post(url, headers=headers, json=payload, timeout=45)
         response.raise_for_status()
         resultado = response.json()["choices"][0]["message"]["content"].strip()
         
@@ -776,7 +775,7 @@ if __name__ == "__main__":
     # =========================================================================
     
     arquivos_originais = ["rancholosamigos.html"] 
-    idiomas_alvo = ["en"] 
+    idiomas_alvo = ["es"] 
     
     # =========================================================================
 
