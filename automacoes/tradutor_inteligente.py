@@ -567,8 +567,14 @@ def traduzir_lote_js_com_deepseek(dicionario_scripts, idioma_alvo):
                 texto_limpo = texto_limpo.replace(interp, f'__INTERP_{i}__', 1)
             
             # Verifica se tem texto traduzível (letras + fora de interpolações)
-            tem_texto = bool(re.search(r'[a-zA-ZÀ-ÿ]', re.sub(r'__INTERP_\d+__', '', texto_limpo)))
+            texto_puro = re.sub(r'__INTERP_\d+__', '', texto_limpo).strip()
+            tem_texto = bool(re.search(r'[a-zA-ZÀ-ÿ]', texto_puro))
             if not tem_texto:
+                continue
+            
+            # Filtro anti-código: pula identificadores JS (ex: card_, bar_, badge_)
+            # Texto sem espaços e só com letras/números/underscore = identificador de código
+            if re.match(r'^[a-zA-Z0-9_\.\-\[\]\(\)\{\}\s]*$', texto_puro) and ' ' not in texto_puro and len(texto_puro) <= 15:
                 continue
             
             id_string = f"STR_{contador_string}"
@@ -846,7 +852,7 @@ if __name__ == "__main__":
     # =========================================================================
     
     arquivos_originais = ["rancholosamigos.html"] 
-    idiomas_alvo = ["fr"] 
+    idiomas_alvo = ["fr", "hi", "zh", "ar", "ja", "ru", "ko", "tr", "nl", "pl", "sv", "id", "vi", "uk"] 
     
     # =========================================================================
 
