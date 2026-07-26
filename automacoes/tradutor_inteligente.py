@@ -586,9 +586,9 @@ def traduzir_lote_js_com_deepseek(dicionario_scripts, idioma_alvo):
         print(f"      ↳ Nenhuma string de texto legível encontrada no JS ({len(dicionario_scripts)} scripts). Mantendo original.")
         return dicionario_scripts
 
-    print(f"      ↳ Enviando {len(strings_para_traduzir)} fragmentos de texto do JS para o DeepSeek...")
+    print(f"      ↳ Total de {len(strings_para_traduzir)} fragmentos. Dividindo em blocos...")
 
-    # 2. Comunicação com o DeepSeek (Apenas as strings!)
+    # 2. Comunicação com o DeepSeek — em BLOCOS para evitar timeouts
     instrucoes_sistema = f"""
     Você é um tradutor especializado em localização de interfaces para a área da saúde/enfermagem.
     Traduza as mensagens/textos do Português para o idioma '{idioma_alvo}'.
@@ -614,61 +614,132 @@ def traduzir_lote_js_com_deepseek(dicionario_scripts, idioma_alvo):
         "Content-Type": "application/json"
     }
     
-    payload = {
-        "model": "deepseek-v4-flash",
-        "messages": [
-            {"role": "system", "content": instrucoes_sistema},
-            {"role": "user", "content": json.dumps(strings_para_traduzir, ensure_ascii=False)}
-        ],
-        "temperature": 0.0
+    # Divide em até 6 blocos de ~30 strings cada
+    MAX_POR_BLOCO = 30
+    MAX_BLOCOS = 6
+    chaves = list(strings_para_traduzir.keys())
+    blocos_chaves = [chaves[i:i + MAX_POR_BLOCO] for i in range(0, len(chaves), MAX_POR_BLOCO)]
+    # Se tiver mais de 6 blocos, junta o excedente no último
+    if len(blocos_chaves) > MAX_BLOCOS:
+        excedente = []
+        for b in blocos_chaves[MAX_BLOCOS - 1:]:
+            excedente.extend(b)
+        blocos_chaves = blocos_chaves[:MAX_BLOCOS - 1] + [excedente]
+    total_blocos = len(blocos_chaves)
+    
+    todas_traducoes = {}
+    
+    # Prepara headers OpenAI (usado nos blocos pares e fallback)
+    url_oa = "https://api.openai.com/v1/chat/completions"
+    headers_oa = {
+        "Authorization": f"Bearer {CHAVE_OPENAI}",
+        "Content-Type": "application/json"
     }
-
-    try:
-        response = requests.post(url, headers=headers, json=payload, timeout=60)
-        response.raise_for_status()
-        resultado = response.json()["choices"][0]["message"]["content"].strip()
+    
+    for idx_bloco, chaves_bloco in enumerate(blocos_chaves, 1):
+        dict_bloco = {k: strings_para_traduzir[k] for k in chaves_bloco}
         
-        # Limpeza caso deepseek envie markdown
-        if resultado.startswith("```"):
-            resultado = re.sub(r'^```(json)?\n', '', resultado, flags=re.IGNORECASE)
-            resultado = re.sub(r'\n```$', '', resultado)
+        # Ímpares → DeepSeek, Pares → OpenAI
+        usar_openai = (idx_bloco % 2 == 0)
+        provedor = "OpenAI" if usar_openai else "DeepSeek"
+        
+        if usar_openai:
+            api_url = url_oa
+            api_headers = headers_oa
+            api_payload = {
+                "model": "gpt-4o-mini",
+                "messages": [
+                    {"role": "system", "content": instrucoes_sistema},
+                    {"role": "user", "content": json.dumps(dict_bloco, ensure_ascii=False)}
+                ],
+                "temperature": 0.0,
+                "response_format": {"type": "json_object"}
+            }
+        else:
+            api_url = url
+            api_headers = headers
+            api_payload = {
+                "model": "deepseek-v4-flash",
+                "messages": [
+                    {"role": "system", "content": instrucoes_sistema},
+                    {"role": "user", "content": json.dumps(dict_bloco, ensure_ascii=False)}
+                ],
+                "temperature": 0.0
+            }
+        
+        def _tentar_api(url_api, headers_api, payload_api):
+            resp = requests.post(url_api, headers=headers_api, json=payload_api, timeout=25)
+            resp.raise_for_status()
+            raw = resp.json()["choices"][0]["message"]["content"].strip()
+            if raw.startswith("```"):
+                raw = re.sub(r'^```(json)?\n', '', raw, flags=re.IGNORECASE)
+                raw = re.sub(r'\n```$', '', raw)
+            return json.loads(raw)
+        
+        try:
+            print(f"      ↳ Bloco {idx_bloco}/{total_blocos} [{provedor}]: {len(dict_bloco)} str...", end=" ", flush=True)
+            traducoes_bloco = _tentar_api(api_url, api_headers, api_payload)
+            todas_traducoes.update(traducoes_bloco)
+            print("\033[92m✓\033[0m")
+        except Exception as e:
+            # Fallback: tenta a OUTRA API
+            outro = "OpenAI" if not usar_openai else "DeepSeek"
+            print(f"\033[93m↻ {outro}...\033[0m", end=" ", flush=True)
+            try:
+                if not usar_openai:
+                    # DeepSeek falhou → OpenAI
+                    payload_fb = {
+                        "model": "gpt-4o-mini",
+                        "messages": [
+                            {"role": "system", "content": instrucoes_sistema},
+                            {"role": "user", "content": json.dumps(dict_bloco, ensure_ascii=False)}
+                        ],
+                        "temperature": 0.0,
+                        "response_format": {"type": "json_object"}
+                    }
+                    traducoes_bloco = _tentar_api(url_oa, headers_oa, payload_fb)
+                else:
+                    # OpenAI falhou → DeepSeek
+                    payload_fb = {
+                        "model": "deepseek-v4-flash",
+                        "messages": [
+                            {"role": "system", "content": instrucoes_sistema},
+                            {"role": "user", "content": json.dumps(dict_bloco, ensure_ascii=False)}
+                        ],
+                        "temperature": 0.0
+                    }
+                    traducoes_bloco = _tentar_api(url, headers, payload_fb)
+                todas_traducoes.update(traducoes_bloco)
+                print("\033[92m✓\033[0m")
+            except Exception:
+                print("\033[91m✗\033[0m")
+                if not todas_traducoes and idx_bloco == total_blocos:
+                    print(f"\n⚠️ Todos os blocos falharam. Mantendo JS original.")
+                    return dicionario_scripts
+    
+    # 3. Reconstrução do JavaScript com todas as traduções
+    retorno_seguro = {}
+    for id_script, codigo_js in dicionario_scripts.items():
+        codigo_reconstruido = codigo_js
+        for item in mapeamento_scripts[id_script]:
+            id_str = item['id']
+            texto_traduzido = todas_traducoes.get(id_str)
             
-        traducoes = json.loads(resultado)
-        
-        # 3. Reconstrução do JavaScript
-        retorno_seguro = {}
-        for id_script, codigo_js in dicionario_scripts.items():
-            codigo_reconstruido = codigo_js
-            # Substitui as strings traduzidas de volta no código
-            for item in mapeamento_scripts[id_script]:
-                id_str = item['id']
-                texto_traduzido = traducoes.get(id_str)
+            if texto_traduzido:
+                if item.get('tipo') == 'template':
+                    texto_final = texto_traduzido
+                    for i, interp in enumerate(item.get('interpolacoes', [])):
+                        texto_final = texto_final.replace(f'__INTERP_{i}__', interp, 1)
+                    string_final = f"`{texto_final}`"
+                else:
+                    texto_traduzido = texto_traduzido.replace(item['delimitador'], f"\\{item['delimitador']}")
+                    string_final = f"{item['delimitador']}{texto_traduzido}{item['delimitador']}"
                 
-                if texto_traduzido:
-                    if item.get('tipo') == 'template':
-                        # Template literal: restaura interpolações ${...} nos placeholders
-                        texto_final = texto_traduzido
-                        for i, interp in enumerate(item.get('interpolacoes', [])):
-                            texto_final = texto_final.replace(f'__INTERP_{i}__', interp, 1)
-                        string_final = f"`{texto_final}`"
-                    else:
-                        # String normal: protege aspas e reconstrói
-                        texto_traduzido = texto_traduzido.replace(item['delimitador'], f"\\{item['delimitador']}")
-                        string_final = f"{item['delimitador']}{texto_traduzido}{item['delimitador']}"
-                    
-                    codigo_reconstruido = codigo_reconstruido.replace(item['original'], string_final, 1)
-            
-            retorno_seguro[id_script] = codigo_reconstruido
-            
-        return retorno_seguro
-
-    except json.JSONDecodeError as e:
-        print(f"\n❌ ERRO DE JSON DO DEEPSEEK: O modelo quebrou a formatação.")
-        print(f"Resposta bruta da IA: {resultado[:300]}...")
-        return dicionario_scripts
-    except Exception as e:
-        print(f"\n⚠️ Erro geral ao traduzir scripts com DeepSeek: {e}")
-        return dicionario_scripts
+                codigo_reconstruido = codigo_reconstruido.replace(item['original'], string_final, 1)
+        
+        retorno_seguro[id_script] = codigo_reconstruido
+        
+    return retorno_seguro
 
 def _extrair_blocos_script_style(html):
     """Extrai blocos <script>...</script> e <style>...</style> usando busca posicional (sem regex).
@@ -775,7 +846,7 @@ if __name__ == "__main__":
     # =========================================================================
     
     arquivos_originais = ["rancholosamigos.html"] 
-    idiomas_alvo = ["es"] 
+    idiomas_alvo = ["de"] 
     
     # =========================================================================
 
