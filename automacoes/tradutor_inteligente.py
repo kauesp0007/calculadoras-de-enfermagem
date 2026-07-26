@@ -72,15 +72,14 @@ def traduzir_meta_seo_com_deepseek(html, idioma_alvo):
     3. RETORNE EXCLUSIVAMENTE UM JSON VÁLIDO. Sem explicações e sem marcações markdown.
     """
     
-    # URL LIMPA: sem formatação de colchetes!
-    url = "https://api.openai.com/v1/chat/completions"
+    url = "https://api.deepseek.com/chat/completions"
     headers = {
-        "Authorization": f"Bearer {CHAVE_OPENAI}",
+        "Authorization": f"Bearer {CHAVE_DEEPSEEK}",
         "Content-Type": "application/json"
     }
     
     payload = {
-        "model": "gpt-4o-mini",
+        "model": "deepseek-v4-pro",
         "messages": [
             {"role": "system", "content": instrucoes},
             {"role": "user", "content": json.dumps(dict_textos, ensure_ascii=False)}
@@ -89,55 +88,99 @@ def traduzir_meta_seo_com_deepseek(html, idioma_alvo):
         "response_format": {"type": "json_object"}
     }
 
-    # --- TENTATIVA 1: OpenAI ---
     try:
-        response = requests.post(url, headers=headers, json=payload, timeout=25)
+        response = requests.post(url, headers=headers, json=payload, timeout=45)
         response.raise_for_status()
         resultado = response.json()["choices"][0]["message"]["content"].strip()
-        print(f"      \033[92m↳ SEO traduzido via OpenAI\033[0m")
-    except Exception as e1:
-        print(f"      \033[93m↳ OpenAI falhou no SEO: {type(e1).__name__}. Tentando DeepSeek...\033[0m")
         
-        # --- TENTATIVA 2: DeepSeek (fallback) ---
-        try:
-            url_fb = "https://api.deepseek.com/chat/completions"
-            headers_fb = {
-                "Authorization": f"Bearer {CHAVE_DEEPSEEK}",
-                "Content-Type": "application/json"
-            }
-            payload_fb = {
-                "model": "deepseek-v4-pro",
-                "messages": [
-                    {"role": "system", "content": instrucoes},
-                    {"role": "user", "content": json.dumps(dict_textos, ensure_ascii=False)}
-                ],
-                "temperature": 0.1
-            }
-            response = requests.post(url_fb, headers=headers_fb, json=payload_fb, timeout=25)
-            response.raise_for_status()
-            resultado = response.json()["choices"][0]["message"]["content"].strip()
-            print(f"      \033[92m↳ SEO traduzido via DeepSeek (fallback)\033[0m")
-        except Exception as e2:
-            print(f"\n⚠️ Erro ao adaptar SEO (OpenAI e DeepSeek falharam): {e2}")
-            return html
-        
-    # Limpeza caso a IA envie markdown
-    if resultado.startswith("```"):
-        resultado = re.sub(r'^```(json)?\n', '', resultado, flags=re.IGNORECASE)
-        resultado = re.sub(r'\n```$', '', resultado)
-        
-    traducoes = json.loads(resultado)
-    
-    # Substitui no HTML original (de trás para frente para não afetar os índices)
-    html_modificado = html
-    for i, m in reversed(list(enumerate(unique_matches))):
-        chave = f"t{i}"
-        if chave in traducoes:
-            novo_texto = traducoes[chave].replace('"', "'") # Proteção contra aspas acidentais no HTML
-            bloco_novo = m.group(1) + novo_texto + m.group(3)
-            html_modificado = html_modificado[:m.start()] + bloco_novo + html_modificado[m.end():]
+        # Limpeza caso deepseek envie markdown
+        if resultado.startswith("```"):
+            resultado = re.sub(r'^```(json)?\n', '', resultado, flags=re.IGNORECASE)
+            resultado = re.sub(r'\n```$', '', resultado)
             
-    return html_modificado
+        traducoes = json.loads(resultado)
+        
+        # Substitui no HTML original (de trás para frente para não afetar os índices)
+        html_modificado = html
+        for i, m in reversed(list(enumerate(unique_matches))):
+            chave = f"t{i}"
+            if chave in traducoes:
+                novo_texto = traducoes[chave].replace('"', "'") # Proteção contra aspas acidentais no HTML
+                bloco_novo = m.group(1) + novo_texto + m.group(3)
+                html_modificado = html_modificado[:m.start()] + bloco_novo + html_modificado[m.end():]
+                
+        return html_modificado
+    except requests.HTTPError as e:
+        detalhe = e.response.text[:500] if e.response is not None else ""
+        print(f"\n⚠️ Erro ao adaptar SEO com DeepSeek (mantendo SEO original): {e}. {detalhe}")
+        return html
+    except Exception as e:
+        print(f"\n⚠️ Erro ao adaptar SEO com DeepSeek (mantendo SEO original): {e}")
+        return html
+
+
+def traduzir_title_tag(html, idioma_alvo):
+    """
+    Traduz APENAS a tag <title> do <head> usando DeepSeek.
+    Função isolada para não interferir na tradução dos meta tags SEO.
+    """
+    title_match = re.search(r'<title>([^<]+)</title>', html, re.IGNORECASE)
+    if not title_match:
+        return html
+    
+    texto_original = title_match.group(1)
+    
+    instrucoes = f"""
+    Traduza o seguinte título de página do Português para o idioma '{idioma_alvo}'.
+    Área: saúde/enfermagem. Use nomenclatura médica e siglas do idioma alvo.
+    RETORNE APENAS o texto traduzido, sem aspas, sem explicações.
+    """
+    
+    url = "https://api.deepseek.com/chat/completions"
+    headers = {
+        "Authorization": f"Bearer {CHAVE_DEEPSEEK}",
+        "Content-Type": "application/json"
+    }
+    
+    payload = {
+        "model": "deepseek-v4-pro",
+        "messages": [
+            {"role": "system", "content": instrucoes},
+            {"role": "user", "content": texto_original}
+        ],
+        "temperature": 0.1
+    }
+
+    try:
+        response = requests.post(url, headers=headers, json=payload, timeout=45)
+        response.raise_for_status()
+        texto_traduzido = response.json()["choices"][0]["message"]["content"].strip()
+        texto_traduzido = texto_traduzido.replace('"', "'")
+        
+        html_mod = html[:title_match.start()] + f"<title>{texto_traduzido}</title>" + html[title_match.end():]
+        return html_mod
+    except requests.HTTPError as e:
+        detalhe = e.response.text[:500] if e.response is not None else ""
+        print(f"      ⚠️ Title não traduzido (mantendo original): {e}. {detalhe}")
+        return html
+    except Exception as e:
+        print(f"      ⚠️ Title não traduzido (mantendo original): {e}")
+        return html
+
+
+def aplicar_head_traduzido(html_localizado, html_preparado):
+    """Mantém o HTML localizado e atualiza somente o conteúdo do <head>."""
+    head_preparado = re.search(r'<head\b[^>]*>.*?</head>', html_preparado, re.IGNORECASE | re.DOTALL)
+    head_localizado = re.search(r'<head\b[^>]*>.*?</head>', html_localizado, re.IGNORECASE | re.DOTALL)
+
+    if not head_preparado or not head_localizado:
+        return html_localizado
+
+    return (
+        html_localizado[:head_localizado.start()]
+        + head_preparado.group(0)
+        + html_localizado[head_localizado.end():]
+    )
 
 def preparar_html_para_traducao_texto(caminho_arquivo, idioma_alvo):
     """
@@ -435,6 +478,11 @@ def preparar_html_para_traducao_texto(caminho_arquivo, idioma_alvo):
     # ==========================================
     html = traduzir_meta_seo_com_deepseek(html, idioma_alvo)
 
+    # ==========================================
+    # 7. TRADUZIR TAG TITLE (isolado, sem interferir no SEO)
+    # ==========================================
+    html = traduzir_title_tag(html, idioma_alvo)
+
     return html
 
 def traduzir_lote_js_com_deepseek(dicionario_scripts, idioma_alvo):
@@ -520,6 +568,12 @@ def traduzir_lote_js_com_deepseek(dicionario_scripts, idioma_alvo):
     instrucoes_sistema = f"""
     Você é um tradutor especializado em localização de interfaces para a área da saúde/enfermagem.
     Traduza as mensagens/textos do Português para o idioma '{idioma_alvo}'.
+    
+    REGRAS DE LOCALIZAÇÃO:
+    - Use linguagem natural e culturalmente apropriada para falantes nativos do país de destino. Evite traduções literais.
+    - Adapte expressões para a forma como são realmente utilizadas por profissionais de saúde no país correspondente.
+    - Utilize nomenclatura médica, termos técnicos e siglas padronizadas no idioma alvo.
+    - Preserve o significado clínico original de cada termo.
     
     REGRAS CRÍTICAS:
     1. Retorne APENAS o JSON válido. Sem explicações, sem blocos markdown (```json).
@@ -697,7 +751,7 @@ if __name__ == "__main__":
     # 🟢 ÁREA DE CONFIGURAÇÃO DIÁRIA (ALTERE APENAS AQUI) 🟢
     # =========================================================================
     
-    arquivos_originais = ["meem.html", "moca.html", "morse.html", "news.html", "nihss.html", "nips.html", "norton.html"] 
+    arquivos_originais = ["moca.html", "morse.html", "news.html", "nihss.html", "nips.html", "norton.html"] 
     idiomas_alvo = ["en", "es", "de", "it", "fr", "hi", "zh", "ar", "ja", "ru", "ko", "tr", "nl", "pl", "sv", "id", "vi", "uk"] 
     
     # =========================================================================
@@ -723,6 +777,13 @@ if __name__ == "__main__":
                     
                     nome_arquivo = os.path.basename(arquivo_original)
                     caminho_saida = os.path.join(pasta_destino, nome_arquivo)
+
+                    # As páginas nas pastas de idioma já têm o conteúdo estático localizado.
+                    # Preserve o <body> existente e atualize somente o <head> processado.
+                    if os.path.exists(caminho_saida):
+                        with open(caminho_saida, 'r', encoding='utf-8') as f:
+                            html_localizado = f.read()
+                        html_traduzido = aplicar_head_traduzido(html_localizado, html_traduzido)
                     
                     with open(caminho_saida, 'w', encoding='utf-8') as f:
                         f.write(html_traduzido)
