@@ -624,7 +624,7 @@ def traduzir_lote_js_com_deepseek(dicionario_scripts, idioma_alvo):
     }
 
     try:
-        response = requests.post(url, headers=headers, json=payload, timeout=45)
+        response = requests.post(url, headers=headers, json=payload, timeout=60)
         response.raise_for_status()
         resultado = response.json()["choices"][0]["message"]["content"].strip()
         
