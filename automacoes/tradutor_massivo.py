@@ -18,12 +18,21 @@ ARQUIVOS_PARA_TRADUZIR = [
 
 # Idiomas de destino
 IDIOMAS_ALVO = [
-    "en"
+    "en", "es", "fr", "it", "de", "hi", "zh", "ar", 
+    "ja", "ru", "ko", "tr", "nl", "pl", "sv", "id", "vi", "uk"
 ]
 
 # Limites de Tokens / Blocos (Ajuste se necessário)
-LIMITE_CARACTERES_HTML = 12000  # Tamanho do bloco HTML para não estourar tokens
-LIMITE_ITENS_JSON = 75         # Quantas strings JS/SEO traduzir por vez
+LIMITE_ITENS_JSON = 30 # Quantas strings JS/HTML traduzir por vez no Lote
+
+# Dicionário para forçar a IA a entender o idioma corretamente
+NOMES_IDIOMAS = {
+    "en": "Inglês (Americano)", "es": "Espanhol", "fr": "Francês",
+    "it": "Italiano", "de": "Alemão", "hi": "Hindi", "zh": "Chinês (Mandarim)",
+    "ja": "Japonês", "ru": "Russo", "ko": "Coreano", "ar": "Árabe",
+    "tr": "Turco", "nl": "Holandês", "pl": "Polonês", "sv": "Sueco",
+    "id": "Indonésio", "vi": "Vietnamita", "uk": "Ucraniano"
+}
 
 # =========================================================================
 # 2. CONFIGURAÇÃO DE APIS E CORES
@@ -33,7 +42,7 @@ load_dotenv()
 client_openai = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 client_deepseek = OpenAI(
     api_key=os.getenv("DEEPSEEK_API_KEY"),
-    base_url="https://api.deepseek.com" # Sem o /v1 conforme doc oficial
+    base_url="https://api.deepseek.com" # Sem /v1 conforme doc oficial
 )
 
 C_AZUL = "\033[94m"
@@ -43,17 +52,16 @@ C_VERMELHO = "\033[91m"
 C_ROXO = "\033[95m"
 RESET = "\033[0m"
 
-# Variável global para controlar o balanceamento de carga (Round-Robin)
+# Load balancer (Round-Robin)
 _provedor_atual_idx = 0
 
 # =========================================================================
-# 3. SISTEMA DE BALANCEAMENTO DE CARGA E FALLBACK (OPENAI <-> DEEPSEEK)
+# 3. SISTEMA DE FALLBACK E LOAD BALANCER
 # =========================================================================
 def chamar_ia_com_fallback(instrucao_sistema, conteudo_usuario, is_json=False):
-    """Alterna entre APIs a CADA chamada (Balanceamento) e em caso de erro (Fallback)."""
     global _provedor_atual_idx
     tentativas = 10
-    espera_erro = 5
+    espera_erro = 10
     
     provedores = [
         {"nome": "OpenAI", "client": client_openai, "modelo": "gpt-4o"},
@@ -61,15 +69,10 @@ def chamar_ia_com_fallback(instrucao_sistema, conteudo_usuario, is_json=False):
     ]
 
     prompt_texto = json.dumps(conteudo_usuario, ensure_ascii=False) if is_json else conteudo_usuario
-
-    # Define qual provedor vai iniciar ESTA requisição para distribuir o trabalho
     idx_inicial = _provedor_atual_idx
-    
-    # Já atualiza a global para a próxima requisição cair na outra API
     _provedor_atual_idx = (_provedor_atual_idx + 1) % len(provedores)
 
     for tentativa in range(1, tentativas + 1):
-        # Calcula o provedor desta tentativa (se a tentativa 1 falhar, ele pega a outra API)
         idx_tentativa = (idx_inicial + tentativa - 1) % len(provedores)
         provedor_atual = provedores[idx_tentativa]
         
@@ -90,20 +93,16 @@ def chamar_ia_com_fallback(instrucao_sistema, conteudo_usuario, is_json=False):
             }
             if is_json: kwargs["response_format"] = {"type": "json_object"}
 
-            response = cliente.chat.completions.create(
-    **kwargs,
-    timeout=180
-)
+            response = cliente.chat.completions.create(**kwargs)
             resultado = response.choices[0].message.content.strip()
             
             print(f"        {C_VERDE}✓ Sucesso via {nome_api}!{RESET}                           ")
             
             if is_json:
+                resultado = re.sub(r'^```(json|html)?\s*', '', resultado, flags=re.IGNORECASE)
+                resultado = re.sub(r'\s*```$', '', resultado)
                 return json.loads(resultado)
             else:
-                # Remove marcações markdown que a IA possa enviar acidentalmente
-                resultado = re.sub(r'^```(?:html|json)?\s*', '', resultado)
-                resultado = re.sub(r'\s*```$', '', resultado)
                 return resultado
 
         except Exception as e:
@@ -116,96 +115,17 @@ def chamar_ia_com_fallback(instrucao_sistema, conteudo_usuario, is_json=False):
                 return conteudo_usuario
 
 # =========================================================================
-# 4. CHUNKING (DIVISÃO DE BLOCOS)
+# 4. CHUNKING
 # =========================================================================
 def dividir_dicionario(dicionario, tamanho_lote):
     itens = list(dicionario.items())
     return [dict(itens[i:i + tamanho_lote]) for i in range(0, len(itens), tamanho_lote)]
 
-def dividir_html_em_blocos(html, limite_chars):
-    linhas = html.splitlines(True)
-    blocos, bloco_atual = [], ""
-    for linha in linhas:
-        if len(bloco_atual) + len(linha) > limite_chars and bloco_atual:
-            blocos.append(bloco_atual)
-            bloco_atual = linha
-        else:
-            bloco_atual += linha
-    if bloco_atual: blocos.append(bloco_atual)
-    return blocos
-
 # =========================================================================
-# 5. REGRAS EXATAS DO USUÁRIO
+# 5. REGRAS E LÓGICAS (BLINDAGEM HTML)
 # =========================================================================
-
-def traduzir_meta_seo_com_deepseek(html, idioma_alvo):
-    """
-    Isola os conteúdos das tags de SEO e traduz de forma independente usando o DeepSeek,
-    garantindo adaptação cultural e de palavras-chave.
-    Funciona com content="..." antes OU depois de name/property="..." (formato XHTML).
-    """
-    campos = r'(?:description|keywords|og:title|og:description|og:site_name|twitter:title|twitter:description|author)'
-    
-    # Padrão 1: content="..." ... name|property="campo" (formato XHTML mais comum)
-    p1 = re.compile(rf'(<meta\s+content=")([^"]+)("[^>]*?(?:name|property)="{campos}"[^>]*/?>)', re.IGNORECASE)
-    # Padrão 2: name|property="campo" ... content="..." (formato alternativo)
-    p2 = re.compile(rf'(<meta\s+(?:name|property)="{campos}"[^>]*?content=")([^"]+)("[^>]*/?>)', re.IGNORECASE)
-    
-    matches = []
-    for p in [p1, p2]:
-        for m in p.finditer(html):
-            matches.append(m)
-    
-    # Remove duplicatas (mesma posição no HTML)
-    seen = set()
-    unique_matches = []
-    for m in matches:
-        if m.start() not in seen:
-            seen.add(m.start())
-            unique_matches.append(m)
-    
-    if not unique_matches:
-        return html
-        
-    # Extrai os textos em PT para um dicionário (JSON)
-    dict_textos = {f"t{i}": m.group(2) for i, m in enumerate(unique_matches)}
-    
-    # SEU PROMPT EXATO
-    instrucoes = f"""
-    Você é um especialista em SEO internacional e localização na área da saúde/enfermagem.
-    Traduza os valores num JSON do Português para o idioma com o código ISO '{idioma_alvo}'.
-    
-    REGRAS INEGOCIÁVEIS:
-    1. Adapte os termos para as palavras-chave com maior volume de busca na enfermagem neste idioma alvo.
-    2. NÃO modifique as chaves do JSON.
-    3. RETORNE EXCLUSIVAMENTE UM JSON VÁLIDO. Sem explicações e sem marcações markdown.
-    """
-    
-    lotes_seo = dividir_dicionario(dict_textos, LIMITE_ITENS_JSON)
-    dict_traduzido = {}
-    for lote in lotes_seo:
-        res = chamar_ia_com_fallback(instrucoes, lote, is_json=True)
-        if isinstance(res, dict): dict_traduzido.update(res)
-    
-    for i, m in reversed(list(enumerate(unique_matches))):
-        chave = f"t{i}"
-        if chave in dict_traduzido:
-            novo_content = dict_traduzido[chave].replace('"', "'")
-            nova_tag = f"{m.group(1)}{novo_content}{m.group(3)}"
-            html = html[:m.start()] + nova_tag + html[m.end():]
-            
-    return html
-
 def preparar_html_para_traducao_texto(html, idioma_alvo):
-    """
-    Trata o HTML puramente como texto, garantindo rotas, footer, SEO, hreflang,
-    canonical e tags principais sejam ajustados com alta precisão.
-    (Adaptado para receber a string html direto, evitando o erro de FileNotFoundError)
-    """
-
-    # ==========================================
-    # 1. SUBSTITUIÇÃO CIRÚRGICA DO FOOTER E ROTAS (INTACTO)
-    # ==========================================
+    # 1. SUBSTITUIÇÃO CIRÚRGICA DO FOOTER
     footer_novo = """<div id="footer-placeholder"></div>
 <script>
   document.addEventListener("DOMContentLoaded", () => {
@@ -219,17 +139,12 @@ def preparar_html_para_traducao_texto(html, idioma_alvo):
   });
 </script>"""
 
-    marcador_inicio = '<div id="footer-placeholder"></div>'
-    marcador_fim = '</script>'
-    
-    idx_inicio = html.rfind(marcador_inicio)
-    
+    idx_inicio = html.rfind('<div id="footer-placeholder"></div>')
     if idx_inicio != -1:
-        idx_fim = html.find(marcador_fim, idx_inicio)
+        idx_fim = html.find('</script>', idx_inicio)
         if idx_fim != -1:
-            idx_fim += len(marcador_fim) 
-            bloco_antigo = html[idx_inicio:idx_fim]
-            html = html.replace(bloco_antigo, footer_novo)
+            idx_fim += 9
+            html = html[:idx_inicio] + footer_novo + html[idx_fim:]
 
     regras_rotas = {
         'href="global-styles.css"': 'href="/global-styles.css"',
@@ -249,25 +164,18 @@ def preparar_html_para_traducao_texto(html, idioma_alvo):
         'src="img/': 'src="/img/',
         'src="../img/': 'src="/img/'
     }
+    for antigo, novo in regras_rotas.items(): html = html.replace(antigo, novo)
 
-    for antigo, novo in regras_rotas.items():
-        html = html.replace(antigo, novo)
-
-    # ==========================================
-    # 2. ATUALIZAR A TAG LANG HTML E LOCALES
-    # ==========================================
     mapa_locales = {
         "en": "en-US", "es": "es-ES", "fr": "fr-FR", "it": "it-IT", "de": "de-DE",
         "hi": "hi-IN", "zh": "zh-CN", "ja": "ja-JP", "ru": "ru-RU", "ko": "ko-KR",
         "tr": "tr-TR", "nl": "nl-NL", "pl": "pl-PL", "sv": "sv-SE", "id": "id-ID",
         "vi": "vi-VN", "uk": "uk-UA", "ar": "ar-SA"
     }
-    
     locale_completo = mapa_locales.get(idioma_alvo, idioma_alvo)
     html = re.sub(r'<html\s+lang="pt-BR">', f'<html lang="{locale_completo}">', html, flags=re.IGNORECASE)
     
-    if idioma_alvo == "ar": 
-        html = html.replace(f'<html lang="{locale_completo}">', f'<html lang="{locale_completo}" dir="rtl">')
+    if idioma_alvo == "ar": html = html.replace(f'<html lang="{locale_completo}">', f'<html lang="{locale_completo}" dir="rtl">')
 
     og_locale = locale_completo.replace("-", "_")
     html = re.sub(r'<meta\s+content="pt_BR"\s+property="og:locale"\s*/?>', f'<meta content="{og_locale}" property="og:locale"/>', html, flags=re.IGNORECASE)
@@ -285,18 +193,12 @@ def preparar_html_para_traducao_texto(html, idioma_alvo):
     if idioma_alvo in mapa_bandeiras:
         html = re.sub(r'bandeira-[a-z-]+\.webp', f'{mapa_bandeiras[idioma_alvo]}.webp', html, flags=re.IGNORECASE)
 
-    # ==========================================
-    # 3. ATUALIZAR LINK CANONICAL
-    # ==========================================
     match_canonical = re.search(r'<link\s+(?=[^>]*\brel="canonical")(?=[^>]*\bhref="https://www\.calculadorasdeenfermagem\.com\.br(?:/[a-z]{2}(?:-[A-Z]{2})?)?/([^"]+)")[^>]*/?>', html, re.IGNORECASE)
     if match_canonical:
         filename = match_canonical.group(1)
         novo_canonical = f'<link href="https://www.calculadorasdeenfermagem.com.br/{idioma_alvo}/{filename}" rel="canonical"/>'
         html = html[:match_canonical.start()] + novo_canonical + html[match_canonical.end():]
 
-    # ==========================================
-    # 4. HREFLANG SWAP INTELIGENTE
-    # ==========================================
     padrao_hreflang = re.compile(r'<link\s+(?=[^>]*\brel="alternate")(?=[^>]*\bhreflang="([^"]+)")(?=[^>]*\bhref="([^"]+)")[^>]*/?>', re.IGNORECASE)
     hreflang_matches = list(padrao_hreflang.finditer(html))
     
@@ -327,9 +229,6 @@ def preparar_html_para_traducao_texto(html, idioma_alvo):
         tags_finais = [tag_alvo_str] + tags_restantes if tag_alvo_str else novas_tags
         html = html[:start_idx] + "\n    ".join(tags_finais) + html[end_idx:]
 
-    # ==========================================
-    # 5. AJUSTE CIRÚRGICO DE FONTES ESPECÍFICAS
-    # ==========================================
     fontes_especificas = {
         "ar": {"css": "@font-face { font-family: 'Arabic'; src: url('/fonts/arabic/arabic-regular.woff2') format('woff2'); font-weight: 400; font-display: optional; }\n    @font-face { font-family: 'Arabic'; src: url('/fonts/arabic/arabic-700.woff2') format('woff2'); font-weight: 700; font-display: optional; }", "preload": '<link rel="preload" href="/fonts/arabic/arabic-regular.woff2" as="font" type="font/woff2" crossorigin>\n  <link rel="preload" href="/fonts/arabic/arabic-700.woff2" as="font" type="font/woff2" crossorigin>'},
         "zh": {"css": "@font-face { font-family: 'Chinese'; src: url('/fonts/chinese/chinese-regular.woff2') format('woff2'); font-weight: 400; font-display: optional; }", "preload": '<link rel="preload" href="/fonts/chinese/chinese-regular.woff2" as="font" type="font/woff2" crossorigin>'},
@@ -349,13 +248,53 @@ def preparar_html_para_traducao_texto(html, idioma_alvo):
         html = re.sub(r'@font-face\s*\{\s*font-family:\s*[\'"](?:Inter|Nunito Sans|Nunito)[\'"][^\}]+\}\s*', '', html, flags=re.IGNORECASE)
         padrao_fonte_preload = re.compile(r'<link\s+(?=[^>]*\brel="preload")(?=[^>]*\bhref="[^"]*/(?:inter|nunito)[^"]*")[^>]*/?>', re.IGNORECASE)
         matches_fontes = list(padrao_fonte_preload.finditer(html))
-        
         if matches_fontes:
             primeiro = matches_fontes[0]
             html = html[:primeiro.start()] + font_info["preload"] + html[primeiro.end():]
             html = padrao_fonte_preload.sub('', html)
             html = re.sub(r'\n\s*\n\s*\n', '\n\n', html)
 
+    return html
+
+def traduzir_meta_seo_com_deepseek(html, idioma_alvo):
+    campos = r'(?:description|keywords|og:title|og:description|og:site_name|twitter:title|twitter:description|author)'
+    p1 = re.compile(rf'(<meta\s+content=")([^"]+)("[^>]*?(?:name|property)="{campos}"[^>]*/?>)', re.IGNORECASE)
+    p2 = re.compile(rf'(<meta\s+(?:name|property)="{campos}"[^>]*?content=")([^"]+)("[^>]*/?>)', re.IGNORECASE)
+    
+    matches = []
+    for p in [p1, p2]: matches.extend(list(p.finditer(html)))
+    
+    seen = set()
+    unique_matches = []
+    for m in matches:
+        if m.start() not in seen:
+            seen.add(m.start())
+            unique_matches.append(m)
+    
+    if not unique_matches: return html
+        
+    dict_textos = {f"t{i}": m.group(2) for i, m in enumerate(unique_matches)}
+    
+    nome_idioma = NOMES_IDIOMAS.get(idioma_alvo, idioma_alvo)
+    instrucoes = f"""Você é especialista em SEO internacional na área da saúde. Traduza os valores do JSON do Português para '{nome_idioma}'.
+    REGRAS INEGOCIÁVEIS:
+    1. Adapte os termos para as palavras-chave da enfermagem/saúde local.
+    2. NÃO modifique as chaves do JSON.
+    3. RETORNE EXCLUSIVAMENTE UM JSON VÁLIDO. Sem marcações markdown."""
+    
+    lotes_seo = dividir_dicionario(dict_textos, LIMITE_ITENS_JSON)
+    dict_traduzido = {}
+    for lote in lotes_seo:
+        res = chamar_ia_com_fallback(instrucoes, lote, is_json=True)
+        if isinstance(res, dict): dict_traduzido.update(res)
+    
+    for i, m in reversed(list(enumerate(unique_matches))):
+        chave = f"t{i}"
+        if chave in dict_traduzido:
+            novo_content = dict_traduzido[chave].replace('"', "'")
+            nova_tag = f"{m.group(1)}{novo_content}{m.group(3)}"
+            html = html[:m.start()] + nova_tag + html[m.end():]
+            
     return html
 
 def traduzir_lote_js_com_deepseek(dicionario_scripts, idioma_alvo):
@@ -367,16 +306,14 @@ def traduzir_lote_js_com_deepseek(dicionario_scripts, idioma_alvo):
         padrao_string = re.compile(r'(["\'])(.*?)\1')
         mapeamento_scripts[id_script] = []
 
-        # Strings Padrão
         for match in padrao_string.finditer(codigo_js):
             conteudo = match.group(2)
             if len(conteudo) > 3 and " " in conteudo and not conteudo.startswith(('/', '#', '.', 'data-')) and not conteudo.endswith('.html'):
-                id_string = f"STR_{contador_string}"
+                id_string = f"STR_JS_{contador_string}"
                 strings_para_traduzir[id_string] = conteudo
                 mapeamento_scripts[id_script].append({'original': match.group(0), 'id': id_string, 'delimitador': match.group(1), 'tipo': 'string'})
                 contador_string += 1
 
-        # Template Literals
         padrao_template = re.compile(r'`([^`]*)`')
         for match_tmpl in padrao_template.finditer(codigo_js):
             conteudo = match_tmpl.group(1)
@@ -387,14 +324,15 @@ def traduzir_lote_js_com_deepseek(dicionario_scripts, idioma_alvo):
             tem_texto = bool(re.search(r'[a-zA-ZÀ-ÿ]', re.sub(r'__INTERP_\d+__', '', texto_limpo)))
             if not tem_texto: continue
             
-            id_string = f"STR_{contador_string}"
+            id_string = f"STR_JS_{contador_string}"
             strings_para_traduzir[id_string] = texto_limpo
             mapeamento_scripts[id_script].append({'original': match_tmpl.group(0), 'id': id_string, 'delimitador': '`', 'tipo': 'template', 'interpolacoes': interps})
             contador_string += 1
 
     if not strings_para_traduzir: return dicionario_scripts
 
-    instrucoes = f"""Você é tradutor de interfaces de saúde. Traduza as mensagens do Português para '{idioma_alvo}'.
+    nome_idioma = NOMES_IDIOMAS.get(idioma_alvo, idioma_alvo)
+    instrucoes = f"""Você é tradutor de interfaces médicas. Traduza os valores do JSON do Português para '{nome_idioma}'.
     REGRAS CRÍTICAS:
     1. Retorne APENAS o JSON válido.
     2. Chaves intactas.
@@ -408,7 +346,6 @@ def traduzir_lote_js_com_deepseek(dicionario_scripts, idioma_alvo):
         res = chamar_ia_com_fallback(instrucoes, lote, is_json=True)
         if isinstance(res, dict): dict_traduzido.update(res)
 
-    # Restaura
     for id_script, itens in mapeamento_scripts.items():
         codigo_atual = dicionario_scripts[id_script]
         for item in itens:
@@ -423,47 +360,103 @@ def traduzir_lote_js_com_deepseek(dicionario_scripts, idioma_alvo):
     return dicionario_scripts
 
 def proteger_e_traduzir_html(html, idioma_alvo):
-    blocos_codigo = {}
+    # 1. Proteção Cirúrgica de Blocos (Scripts, Styles, SVG)
+    blocos_protegidos = {}
     scripts_para_traduzir = {}
-    contador = [0]
+    contador_blocos = 0
     
-    padrao = re.compile(r'(<(script|style|svg)\b[^>]*>.*?</\2>)', re.IGNORECASE | re.DOTALL)
+    padrao_protecao = re.compile(r'(<(script|style|svg)\b[^>]*>.*?</\2>)', re.IGNORECASE | re.DOTALL)
     
-    def proteger_bloco(match):
+    def mascarar_bloco(match):
+        nonlocal contador_blocos
         codigo_original = match.group(1)
         tag_name = match.group(2).lower()
-        id_bloco = f"___BLOCO_{contador[0]}___"
-        contador[0] += 1
+        id_bloco = f"___BLOCO_{contador_blocos}___"
+        contador_blocos += 1
         
         if tag_name == 'script' and 'src=' not in codigo_original.lower():
             scripts_para_traduzir[id_bloco] = codigo_original
         else:
-            blocos_codigo[id_bloco] = codigo_original
+            blocos_protegidos[id_bloco] = codigo_original
         return id_bloco
         
-    html_protegido = padrao.sub(proteger_bloco, html)
-    
+    html_mascarado = padrao_protecao.sub(mascarar_bloco, html)
+
+    # 2. Traduzir Scripts JS
     if scripts_para_traduzir:
         print(f"    {C_AZUL}[+] Extraindo e traduzindo lógicas JS (com templates)...{RESET}")
         scripts_traduzidos = traduzir_lote_js_com_deepseek(scripts_para_traduzir, idioma_alvo)
-        blocos_codigo.update(scripts_traduzidos)
-    
-    print(f"    {C_AZUL}[+] Dividindo HTML puro em blocos e traduzindo via IA...{RESET}")
-    blocos_html = dividir_html_em_blocos(html_protegido, LIMITE_CARACTERES_HTML)
-    html_traduzido_final = ""
-    
-    instrucao_html = f"""Atue como parser. Traduza o texto visível deste HTML do Português para '{idioma_alvo}'.
-    Mantenha TODAS as tags HTML exatas e a indentação. NÃO traduza marcadores como ___BLOCO_0___. Retorne apenas o HTML."""
+        blocos_protegidos.update(scripts_traduzidos)
 
-    for i, bloco in enumerate(blocos_html):
-        print(f"      ↳ HTML Bloco {i+1}/{len(blocos_html)}")
-        bloco_trad = chamar_ia_com_fallback(instrucao_html, bloco, is_json=False)
-        html_traduzido_final += bloco_trad + "\n"
+    # 3. EXTRAIR TEXTOS DO HTML E ATRIBUTOS (A MÁGICA QUE PRESERVA O LAYOUT)
+    dict_textos_html = {}
+    contador_txt = 0
 
-    for placeholder, codigo_restaurado in blocos_codigo.items():
-        html_traduzido_final = html_traduzido_final.replace(placeholder, codigo_restaurado)
+    # 3.1 Extrair atributos traduzíveis (placeholder, title, alt)
+    padrao_atributos = re.compile(r'\b(placeholder|title|alt)="([^"]+)"', re.IGNORECASE)
+    def extrair_atributos(match):
+        nonlocal contador_txt
+        attr_name = match.group(1)
+        conteudo = match.group(2)
+        if len(conteudo.strip()) > 1 and re.search(r'[a-zA-ZÀ-ÿ]', conteudo):
+            id_txt = f"__TXT_HTML_{contador_txt}__"
+            dict_textos_html[id_txt] = conteudo
+            contador_txt += 1
+            return f'{attr_name}="{id_txt}"'
+        return match.group(0)
+    
+    html_mascarado = padrao_atributos.sub(extrair_atributos, html_mascarado)
+
+    # 3.2 Extrair textos entre tags >...<
+    padrao_texto = re.compile(r'>([^<]+)<')
+    def extrair_texto(match):
+        nonlocal contador_txt
+        conteudo = match.group(1)
+        conteudo_limpo = conteudo.strip()
+        # Filtro: só se tiver letras
+        if len(conteudo_limpo) >= 1 and re.search(r'[a-zA-ZÀ-ÿ]', conteudo_limpo):
+            id_txt = f"__TXT_HTML_{contador_txt}__"
+            dict_textos_html[id_txt] = conteudo_limpo
+            contador_txt += 1
+            
+            # Devolve preservando espaços laterais na tag do HTML
+            espaco_antes = conteudo[:len(conteudo) - len(conteudo.lstrip())]
+            espaco_depois = conteudo[len(conteudo.rstrip()):]
+            return f">{espaco_antes}{id_txt}{espaco_depois}<"
+        return match.group(0)
         
-    return html_traduzido_final
+    html_mascarado = padrao_texto.sub(extrair_texto, html_mascarado)
+
+    # 4. TRADUZIR OS TEXTOS DO HTML EM LOTES
+    if dict_textos_html:
+        print(f"    {C_AZUL}[+] Traduzindo {len(dict_textos_html)} textos do HTML em lotes...{RESET}")
+        lotes_html = dividir_dicionario(dict_textos_html, LIMITE_ITENS_JSON)
+        dict_html_traduzido = {}
+        
+        nome_idioma = NOMES_IDIOMAS.get(idioma_alvo, idioma_alvo)
+        instrucoes_html = f"""Você é um tradutor clínico de interfaces web. Traduza os valores deste JSON do Português para '{nome_idioma}'.
+        REGRAS INEGOCIÁVEIS:
+        1. Mantenha todas as chaves intactas (__TXT_HTML_0__ etc).
+        2. Retorne APENAS um JSON válido. Sem formatações markdown.
+        3. Traduza os termos com precisão médica."""
+        
+        for i, lote in enumerate(lotes_html):
+            print(f"      ↳ Lote HTML {i+1}/{len(lotes_html)}")
+            res = chamar_ia_com_fallback(instrucoes_html, lote, is_json=True)
+            if isinstance(res, dict):
+                dict_html_traduzido.update(res)
+
+        # 5. REINJETAR OS TEXTOS TRADUZIDOS NO HTML
+        for chave, texto_trad in dict_html_traduzido.items():
+            # Escapa aspas duplas da tradução para não quebrar os atributos HTML
+            texto_seguro = str(texto_trad).replace('"', "'")
+            html_mascarado = html_mascarado.replace(chave, texto_seguro)
+
+    # 6. DESMASCARAR (RESTAURAR SCRIPTS, STYLES, SVG)
+    for id_bloco, codigo_original in blocos_protegidos.items():
+        html_mascarado = html_mascarado.replace(id_bloco, codigo_original)
+
+    return html_mascarado
 
 # =========================================================================
 # 6. FUNÇÃO DE BUILD
@@ -485,13 +478,14 @@ def rodar_scripts_de_build():
 # 7. FLUXO PRINCIPAL
 # =========================================================================
 def main():
-    print(f"{C_ROXO}Iniciando Pipeline de Tradução (Tokens Seguros + Build Automático){RESET}")
+    print(f"{C_ROXO}Iniciando Pipeline de Tradução (Text Masking + Build Automático){RESET}")
     
     for arquivo in ARQUIVOS_PARA_TRADUZIR:
         if not os.path.exists(arquivo): 
             print(f"{C_VERMELHO}Arquivo {arquivo} não encontrado.{RESET}")
             continue
         
+        # Lê da raiz usando utf-8-sig para remover o BOM (\ufeff)
         with open(arquivo, 'r', encoding='utf-8-sig') as f:
             html_base = f.read()
 
@@ -499,10 +493,16 @@ def main():
             print(f"\n{C_AMARELO}======================================================={RESET}")
             print(f"{C_AZUL}▶ ARQUIVO: {arquivo} ➔ IDIOMA: {idioma.upper()}{RESET}")
             
+            # Passo 1: Preparar HTML (agora recebe o conteúdo direto da memória)
             html_preparado = preparar_html_para_traducao_texto(html_base, idioma)
+            
+            # Passo 2: SEO
             html_seo = traduzir_meta_seo_com_deepseek(html_preparado, idioma)
+            
+            # Passo 3: Corpo e JS (agora via Extração de Texto)
             html_final = proteger_e_traduzir_html(html_seo, idioma)
             
+            # Passo 4: Salvar (Sobrescrevendo na pasta do idioma)
             pasta_destino = f"./{idioma}/"
             os.makedirs(pasta_destino, exist_ok=True)
             caminho_saida = os.path.join(pasta_destino, arquivo)
@@ -512,11 +512,13 @@ def main():
                 
             print(f"\n{C_VERDE}✅ SUCESSO! Salvo em: {caminho_saida}{RESET}")
             
+            # Passo 5: Build
             rodar_scripts_de_build()
             
+            # Passo 6: Pausa 25s
             if not (arquivo == ARQUIVOS_PARA_TRADUZIR[-1] and idioma == IDIOMAS_ALVO[-1]):
                 print(f"  {C_AMARELO}⏳ Pausa de 25s para resfriar a API...{RESET}")
-                time.sleep(5)
+                time.sleep(25)
 
 if __name__ == "__main__":
     main()
