@@ -13,13 +13,12 @@ from openai import OpenAI
 
 # Arquivos que você quer traduzir (coloque um ou vários)
 ARQUIVOS_PARA_TRADUZIR = [
-    "fast.html"
+    "waterlow.html"
 ]
 
 # Idiomas de destino
 IDIOMAS_ALVO = [
-    "en", "es", "fr", "it", "de", "hi", "zh", "ar", 
-    "ja", "ru", "ko", "tr", "nl", "pl", "sv", "id", "vi", "uk"
+    "es"
 ]
 
 # Limites de Tokens / Blocos (Ajuste se necessário)
