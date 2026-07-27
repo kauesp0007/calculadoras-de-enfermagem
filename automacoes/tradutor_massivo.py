@@ -13,16 +13,16 @@ from openai import OpenAI
 
 # Arquivos que você quer traduzir (coloque um ou vários)
 ARQUIVOS_PARA_TRADUZIR = [
-    "waterlow.html"
+    "waterlow.html", "tinetti.html", "sofa.html", "silverman.html", "saps.html", "richmond.html"
 ]
 
 # Idiomas de destino
 IDIOMAS_ALVO = [
-    "es"
+    "es", "de", "it", "fr", "hi", "zh", "ar", "ja", "ru", "ko", "tr", "nl", "pl", "sv", "id", "vi", "uk"
 ]
 
 # Limites de Tokens / Blocos (Ajuste se necessário)
-LIMITE_ITENS_JSON = 30 # Quantas strings JS/HTML traduzir por vez no Lote
+LIMITE_ITENS_JSON = 20 # Quantas strings JS/HTML traduzir por vez no Lote
 
 # Dicionário para forçar a IA a entender o idioma corretamente
 NOMES_IDIOMAS = {
@@ -279,7 +279,9 @@ def traduzir_meta_seo_com_deepseek(html, idioma_alvo):
     REGRAS INEGOCIÁVEIS:
     1. Adapte os termos para as palavras-chave da enfermagem/saúde local.
     2. NÃO modifique as chaves do JSON.
-    3. RETORNE EXCLUSIVAMENTE UM JSON VÁLIDO. Sem marcações markdown."""
+    3. RETORNE EXCLUSIVAMENTE UM JSON VÁLIDO. Sem marcações markdown.
+    4. NÃO faça traduções literais. Utilize a terminologia médica e de enfermagem mais atualizada, regionalmente correta e de uso cotidiano no idioma de destino. Adapte siglas para o padrão local.
+    """
     
     lotes_seo = dividir_dicionario(dict_textos, LIMITE_ITENS_JSON)
     dict_traduzido = {}
@@ -337,7 +339,9 @@ def traduzir_lote_js_com_deepseek(dicionario_scripts, idioma_alvo):
     2. Chaves intactas.
     3. NÃO adicione aspas extras.
     4. Placeholders (__INTERP_0__) DEVEM ser mantidos EXATAMENTE como estão.
-    5. Preserve tags HTML internas."""
+    5. Preserve tags HTML internas.
+    6. NÃO faça traduções literais. Adapte jargões, siglas médicas e terminologias para o uso cotidiano e padrão clínico real da região do idioma '{nome_idioma}'.
+    """
     
     lotes_js = dividir_dicionario(strings_para_traduzir, LIMITE_ITENS_JSON)
     dict_traduzido = {}
@@ -437,7 +441,8 @@ def proteger_e_traduzir_html(html, idioma_alvo):
         REGRAS INEGOCIÁVEIS:
         1. Mantenha todas as chaves intactas (__TXT_HTML_0__ etc).
         2. Retorne APENAS um JSON válido. Sem formatações markdown.
-        3. Traduza os termos com precisão médica."""
+        3. NÃO faça traduções literais. Aplique terminologia médica de uso cotidiano, siglas locais e o padrão clínico exato utilizado por profissionais de saúde no idioma '{nome_idioma}'.
+        """
         
         for i, lote in enumerate(lotes_html):
             print(f"      ↳ Lote HTML {i+1}/{len(lotes_html)}")
@@ -516,8 +521,8 @@ def main():
             
             # Passo 6: Pausa 25s
             if not (arquivo == ARQUIVOS_PARA_TRADUZIR[-1] and idioma == IDIOMAS_ALVO[-1]):
-                print(f"  {C_AMARELO}⏳ Pausa de 25s para resfriar a API...{RESET}")
-                time.sleep(25)
+                print(f"  {C_AMARELO}⏳ Pausa de 45s para resfriar a API...{RESET}")
+                time.sleep(45)
 
 if __name__ == "__main__":
     main()

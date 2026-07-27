@@ -1,0 +1,151 @@
+{
+  "id": "calculadora-imc",
+  "knowledgeType": "Calculator",
+  "library": "calculadoras",
+  "version": "1.0.0",
+  "status": "published",
+  "identity": {
+    "name": "Calculadora de IMC",
+    "slug": "calculadora-imc",
+    "category": "Calculadoras",
+    "subcategory": "Antropometria",
+    "description": "Calcula o Índice de Massa Corporal e classifica conforme a OMS.",
+    "shortDescription": "IMC = peso / altura². Classificação OMS.",
+    "tags": [
+      "imc",
+      "antropometria",
+      "nutricao",
+      "obesidade",
+      "magreza"
+    ],
+    "language": "pt-BR"
+  },
+  "core": {
+    "runtime": {
+      "components": [
+        "KnowledgeHeader",
+        "InputForm",
+        "CalculatorEngine",
+        "ResultDisplay",
+        "ClinicalInterpretation",
+        "CalculationMemory",
+        "Limitations",
+        "FAQ",
+        "EvidenceLevel",
+        "KnowledgeGraph"
+      ]
+    },
+    "knowledgeGraph": {
+      "relatedObjects": [
+        "escala-braden",
+        "diabetes",
+        "hipertensao",
+        "calculadora-superficie-corporal"
+      ]
+    }
+  },
+  "domainPayload": {
+    "inputs": [
+      {
+        "id": "peso",
+        "label": "Peso (kg)",
+        "type": "number",
+        "min": 0.5,
+        "max": 500,
+        "step": 0.1,
+        "required": true,
+        "unit": "kg"
+      },
+      {
+        "id": "altura",
+        "label": "Altura (m)",
+        "type": "number",
+        "min": 0.3,
+        "max": 3,
+        "step": 0.01,
+        "required": true,
+        "unit": "m"
+      }
+    ],
+    "formula": "peso / (altura * altura)",
+    "validation": [
+      {
+        "condition": "peso > 0",
+        "message": "Peso deve ser maior que zero"
+      },
+      {
+        "condition": "altura > 0",
+        "message": "Altura deve ser maior que zero"
+      }
+    ],
+    "calculation": {
+      "steps": [
+        "Receber peso em kg",
+        "Receber altura em metros",
+        "Aplicar fórmula IMC = peso / altura²",
+        "Arredondar para 1 casa decimal"
+      ],
+      "precision": 1,
+      "unit": "kg/m²"
+    },
+    "interpretation": {
+      "ranges": [
+        {
+          "min": 0,
+          "max": 18.5,
+          "label": "Magreza",
+          "color": "#3b82f6",
+          "risk": "Aumentado para desnutrição"
+        },
+        {
+          "min": 18.5,
+          "max": 24.9,
+          "label": "Peso normal",
+          "color": "#22c55e",
+          "risk": "Baixo"
+        },
+        {
+          "min": 25,
+          "max": 29.9,
+          "label": "Sobrepeso",
+          "color": "#eab308",
+          "risk": "Aumentado"
+        },
+        {
+          "min": 30,
+          "max": 34.9,
+          "label": "Obesidade Grau I",
+          "color": "#f97316",
+          "risk": "Moderado"
+        },
+        {
+          "min": 35,
+          "max": 39.9,
+          "label": "Obesidade Grau II",
+          "color": "#ef4444",
+          "risk": "Grave"
+        },
+        {
+          "min": 40,
+          "max": 999,
+          "label": "Obesidade Grau III",
+          "color": "#b91c1c",
+          "risk": "Muito grave"
+        }
+      ],
+      "source": "OMS / Ministério da Saúde do Brasil"
+    },
+    "limitations": [
+      "Não diferencia massa muscular de gordura",
+      "Não se aplica a gestantes",
+      "Não se aplica a atletas de alta performance",
+      "Pode subestimar gordura em idosos",
+      "Pode superestimar gordura em pessoas muito altas"
+    ],
+    "memory": {
+      "enabled": true,
+      "historyLimit": 10,
+      "exportable": true
+    }
+  }
+}

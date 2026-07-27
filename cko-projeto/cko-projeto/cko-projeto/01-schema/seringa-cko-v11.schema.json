@@ -1,0 +1,4852 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://clinical.devices/schemas/seringa-cko-v11.schema.json",
+  "title": "CKO Seringa – Digital Twin Schema v11.0 (CKOS Consolidated + Runtime)",
+  "description": "Consolidação do v10: elimina sobreposição de blocos e fecha o ciclo de execução. (1) Grafo unificado: graph + knowledgeLineageGraph + semanticWeb passam a viver dentro de knowledgeGraph. (2) Evidência unificada: scientificCitationEngine e evidenceConflictResolution passam para dentro de evidence; fieldProvenance removido (provenance permanece como forma canônica). (3) Inferência unificada: engine.inferenceEngine e engine.reasoningGraph removidos (factInferenceEngine e explainability são canônicos). (4) Regras unificadas: clinicalRuleRepository legado e clinicalEngine removidos; ruleRepositories (com $defs/governedRule agora executável via conditions/actions) é a fonte canônica de runtime. (5) Explicabilidade unificada: explainableAI + explainabilityMetadata viram explainability. Breaking change de major — ver documentação de migração.",
+  "type": "object",
+  "required": [
+    "id",
+    "name",
+    "icon",
+    "description",
+    "category",
+    "subcategory",
+    "tags",
+    "catalog",
+    "semantic",
+    "regulatory",
+    "risk",
+    "anatomy",
+    "compatibility",
+    "relationships",
+    "clinicalKnowledge",
+    "evidence",
+    "nursingIntelligence",
+    "decisionIntelligence",
+    "clinicalPearls",
+    "errors",
+    "faq",
+    "troubleshooting",
+    "media",
+    "timeline",
+    "qualityIndicators",
+    "searchMetadata",
+    "comparisonEngine",
+    "patientSafety",
+    "education",
+    "aiMetadata",
+    "auditTrail",
+    "localization",
+    "knowledgeIdentity"
+  ],
+  "properties": {
+    "extends": {
+      "type": "string",
+      "default": "https://clinical.core/schemas/cko-core-v1.schema.json"
+    },
+    "extensions": {
+      "type": "object",
+      "properties": {
+        "deadSpace": {
+          "type": "string"
+        },
+        "luerType": {
+          "type": "string"
+        },
+        "graduation": {
+          "type": "string"
+        },
+        "plungerMaterial": {
+          "type": "string"
+        },
+        "siliconization": {
+          "type": "string"
+        }
+      }
+    },
+    "id": {
+      "type": "string",
+      "pattern": "^seringa-[a-z0-9-]+$"
+    },
+    "identifiers": {
+      "type": "object",
+      "properties": {
+        "uuid": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "slug": {
+          "type": "string"
+        },
+        "legacyId": {
+          "type": "string"
+        },
+        "barcode": {
+          "type": "string"
+        },
+        "gtin": {
+          "type": "string"
+        },
+        "udi": {
+          "type": "string"
+        }
+      }
+    },
+    "name": {
+      "type": "string",
+      "minLength": 5
+    },
+    "icon": {
+      "type": "string",
+      "enum": [
+        "💉",
+        "🛡️",
+        "🍼"
+      ]
+    },
+    "description": {
+      "type": "string",
+      "minLength": 20
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "Materiais e Dispositivos"
+      ]
+    },
+    "subcategory": {
+      "type": "string",
+      "enum": [
+        "Dispositivos de Administração"
+      ]
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 2
+      },
+      "minItems": 3
+    },
+    "version": {
+      "type": "object",
+      "required": [
+        "schema",
+        "content",
+        "status"
+      ],
+      "properties": {
+        "schema": {
+          "type": "string"
+        },
+        "content": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "draft",
+            "review",
+            "published",
+            "deprecated"
+          ]
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "publishedAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "compatibility": {
+          "type": "string"
+        },
+        "breakingChanges": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "migration": {
+          "type": "string"
+        }
+      }
+    },
+    "catalog": {
+      "type": "object",
+      "required": [
+        "manufacturers",
+        "models",
+        "productCodes",
+        "registration",
+        "technicalDocs"
+      ],
+      "properties": {
+        "manufacturers": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1
+        },
+        "models": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1
+        },
+        "productCodes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1
+        },
+        "registration": {
+          "type": "string"
+        },
+        "technicalDocs": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^/pdfs/.*\\.pdf$"
+          }
+        },
+        "specifications": {
+          "type": "object",
+          "properties": {
+            "volume": {
+              "type": "string"
+            },
+            "graduation": {
+              "type": "string"
+            },
+            "graduationStep": {
+              "type": "string"
+            },
+            "material": {
+              "type": "string"
+            },
+            "needleCompatibility": {
+              "type": "string"
+            },
+            "sterilization": {
+              "type": "string"
+            },
+            "latexFree": {
+              "type": "boolean"
+            },
+            "pyrogenFree": {
+              "type": "boolean"
+            },
+            "luerType": {
+              "type": "string"
+            },
+            "deadSpace": {
+              "type": "string"
+            },
+            "colorCoding": {
+              "type": "string"
+            },
+            "pumpCompatibility": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "safetyMechanism": {
+              "type": "string"
+            },
+            "activationForce": {
+              "type": "string"
+            },
+            "compliance": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    },
+    "semantic": {
+      "type": "object",
+      "required": [
+        "snomed",
+        "deviceCategory",
+        "clinicalDomain",
+        "fhirMapping"
+      ],
+      "properties": {
+        "snomed": {
+          "type": "string",
+          "pattern": "^[0-9]+$"
+        },
+        "loinc": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "deviceCategory": {
+          "type": "string",
+          "enum": [
+            "Injection Device"
+          ]
+        },
+        "clinicalDomain": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1
+        },
+        "fhirMapping": {
+          "type": "object",
+          "required": [
+            "resource",
+            "codeSystem"
+          ],
+          "properties": {
+            "resource": {
+              "type": "string"
+            },
+            "codeSystem": {
+              "type": "string"
+            },
+            "code": {
+              "type": "string"
+            }
+          }
+        },
+        "additionalCodes": {
+          "type": "object",
+          "properties": {
+            "rxnorm": {
+              "type": "string"
+            },
+            "icd10": {
+              "type": "string"
+            },
+            "icd11": {
+              "type": "string"
+            },
+            "umls": {
+              "type": "string"
+            },
+            "atc": {
+              "type": "string"
+            },
+            "mesh": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "regulatory": {
+      "type": "object",
+      "required": [
+        "anvisa",
+        "fda",
+        "eu"
+      ],
+      "properties": {
+        "anvisa": {
+          "type": "string"
+        },
+        "fda": {
+          "type": "string"
+        },
+        "eu": {
+          "type": "string"
+        },
+        "iso": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "risk": {
+      "type": "object",
+      "required": [
+        "anvisaClass",
+        "level",
+        "rationale"
+      ],
+      "properties": {
+        "anvisaClass": {
+          "type": "string",
+          "enum": [
+            "I",
+            "II",
+            "III",
+            "IV",
+            "I ou II"
+          ]
+        },
+        "fdaClass": {
+          "type": "string",
+          "enum": [
+            "I",
+            "II",
+            "III"
+          ]
+        },
+        "euClass": {
+          "type": "string"
+        },
+        "level": {
+          "type": "string",
+          "enum": [
+            "Baixo",
+            "Moderado",
+            "Alto",
+            "Crítico"
+          ]
+        },
+        "rationale": {
+          "type": "string",
+          "minLength": 10
+        }
+      }
+    },
+    "taxonomy": {
+      "type": "object",
+      "properties": {
+        "family": {
+          "type": "string"
+        },
+        "group": {
+          "type": "string"
+        },
+        "subgroup": {
+          "type": "string"
+        },
+        "specialty": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "capabilities": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "state": {
+      "type": "object",
+      "properties": {
+        "availability": {
+          "type": "string",
+          "enum": [
+            "available",
+            "unavailable",
+            "discontinued"
+          ]
+        },
+        "sterility": {
+          "type": "string",
+          "enum": [
+            "sterile",
+            "non-sterile"
+          ]
+        },
+        "integrity": {
+          "type": "string",
+          "enum": [
+            "intact",
+            "damaged"
+          ]
+        },
+        "lastInspection": {
+          "type": "string",
+          "format": "date"
+        },
+        "usable": {
+          "type": "boolean"
+        }
+      }
+    },
+    "anatomy": {
+      "type": "object",
+      "required": [
+        "relatedStructures",
+        "bodyRegions"
+      ],
+      "properties": {
+        "relatedStructures": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "bodyRegions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "illustrations": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "format": "uri"
+          }
+        },
+        "3dModels": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "format": "uri"
+          }
+        }
+      }
+    },
+    "compatibility": {
+      "type": "object",
+      "required": [
+        "needNeedle"
+      ],
+      "properties": {
+        "needNeedle": {
+          "type": "boolean"
+        },
+        "compatibleNeedles": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "id"
+            ],
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "required": {
+                "type": "boolean",
+                "default": false
+              },
+              "preferred": {
+                "type": "boolean",
+                "default": false
+              }
+            }
+          }
+        },
+        "compatibleCatheters": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "required": {
+                "type": "boolean"
+              }
+            }
+          }
+        },
+        "compatibleInfusionSets": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "compatibleFilters": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "compatibleDressings": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "compatibleMedications": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "drugId": {
+                "type": "string"
+              },
+              "notes": {
+                "type": "string"
+              },
+              "id": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    },
+    "relationships": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "targetId",
+          "relationship"
+        ],
+        "properties": {
+          "targetId": {
+            "type": "string"
+          },
+          "relationship": {
+            "type": "string",
+            "enum": [
+              "compatibleWith",
+              "usedIn",
+              "administers",
+              "referencedBy",
+              "canAdminister",
+              "requires",
+              "contraindicates"
+            ]
+          },
+          "strength": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1
+          },
+          "confidence": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1
+          },
+          "evidence": {
+            "type": "string"
+          },
+          "mandatory": {
+            "type": "boolean",
+            "default": false
+          },
+          "bidirectional": {
+            "type": "boolean",
+            "default": false
+          },
+          "reason": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "clinicalKnowledge": {
+      "type": "object",
+      "required": [
+        "clinicalPurpose",
+        "indications",
+        "contraindications",
+        "clinicalRules"
+      ],
+      "properties": {
+        "clinicalPurpose": {
+          "type": "object",
+          "required": [
+            "primary",
+            "secondary"
+          ],
+          "properties": {
+            "primary": {
+              "type": "string"
+            },
+            "secondary": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "indications": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "condition",
+              "recommended",
+              "rationale"
+            ],
+            "properties": {
+              "condition": {
+                "type": "string"
+              },
+              "recommended": {
+                "type": "boolean"
+              },
+              "rationale": {
+                "type": "string"
+              }
+            }
+          },
+          "minItems": 1
+        },
+        "contraindications": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "condition",
+              "risk"
+            ],
+            "properties": {
+              "condition": {
+                "type": "string"
+              },
+              "risk": {
+                "type": "string"
+              }
+            }
+          },
+          "minItems": 1
+        },
+        "clinicalRules": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "conditions",
+              "actions"
+            ],
+            "properties": {
+              "conditions": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/$defs/condition"
+                }
+              },
+              "actions": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/$defs/action"
+                }
+              },
+              "priority": {
+                "type": "integer"
+              },
+              "confidence": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1
+              },
+              "id": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "calculations": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "id",
+              "formula"
+            ],
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "formula": {
+                "type": "string"
+              },
+              "unit": {
+                "type": "string"
+              },
+              "description": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "constraints": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "field"
+            ],
+            "properties": {
+              "field": {
+                "type": "string"
+              },
+              "minimum": {
+                "type": "number"
+              },
+              "maximum": {
+                "type": "number"
+              },
+              "allowed": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "events": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "trigger",
+          "action"
+        ],
+        "properties": {
+          "trigger": {
+            "type": "string"
+          },
+          "action": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "clinicalScenarios": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "scenario",
+          "recommended",
+          "reason"
+        ],
+        "properties": {
+          "scenario": {
+            "type": "string"
+          },
+          "recommended": {
+            "type": "boolean"
+          },
+          "reason": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "evidence": {
+      "type": "object",
+      "required": [
+        "level",
+        "lastUpdated"
+      ],
+      "properties": {
+        "level": {
+          "type": "string",
+          "enum": [
+            "Baixa",
+            "Moderada",
+            "Alta",
+            "Muito Alta"
+          ]
+        },
+        "lastUpdated": {
+          "type": "string",
+          "format": "date"
+        },
+        "grade": {
+          "type": "string"
+        },
+        "oxfordLevel": {
+          "type": "string"
+        },
+        "signLevel": {
+          "type": "string"
+        },
+        "joannaBriggs": {
+          "type": "string"
+        },
+        "guidelines": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        },
+        "systematicReviews": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        },
+        "rcts": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        },
+        "metaAnalysis": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        },
+        "consensus": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        },
+        "who": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        },
+        "cdc": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        },
+        "anvisa": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        },
+        "cofen": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        },
+        "citations": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "type": {
+                "type": "string",
+                "enum": [
+                  "article",
+                  "guideline",
+                  "book"
+                ]
+              },
+              "authors": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "title": {
+                "type": "string"
+              },
+              "journal": {
+                "type": "string"
+              },
+              "year": {
+                "type": "integer"
+              },
+              "doi": {
+                "type": "string"
+              },
+              "url": {
+                "type": "string",
+                "format": "uri"
+              }
+            }
+          }
+        },
+        "conflictResolution": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "statement": {
+                "type": "string"
+              },
+              "conflictingSources": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "resolution": {
+                "type": "string"
+              },
+              "rationale": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    },
+    "nursingIntelligence": {
+      "type": "object",
+      "required": [
+        "nursingProcess"
+      ],
+      "properties": {
+        "nursingProcess": {
+          "type": "object",
+          "required": [
+            "assessment",
+            "diagnosis",
+            "interventions",
+            "outcomes"
+          ],
+          "properties": {
+            "assessment": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "minItems": 1
+            },
+            "diagnosis": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": [
+                  "nanda",
+                  "label"
+                ],
+                "properties": {
+                  "nanda": {
+                    "type": "string",
+                    "pattern": "^[0-9]+$"
+                  },
+                  "label": {
+                    "type": "string"
+                  }
+                }
+              }
+            },
+            "interventions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": [
+                  "nic",
+                  "label"
+                ],
+                "properties": {
+                  "nic": {
+                    "type": "string",
+                    "pattern": "^[0-9]+$"
+                  },
+                  "label": {
+                    "type": "string"
+                  }
+                }
+              }
+            },
+            "outcomes": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": [
+                  "noc",
+                  "label"
+                ],
+                "properties": {
+                  "noc": {
+                    "type": "string",
+                    "pattern": "^[0-9]+$"
+                  },
+                  "label": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "decisionIntelligence": {
+      "type": "object",
+      "required": [
+        "decisionSupport",
+        "decisionMatrix",
+        "clinicalAlerts"
+      ],
+      "properties": {
+        "decisionSupport": {
+          "type": "object",
+          "properties": {
+            "whenToUse": {
+              "type": "array"
+            },
+            "whenToAvoid": {
+              "type": "array"
+            }
+          }
+        },
+        "decisionMatrix": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "clinicalScenario",
+              "recommendedDevice",
+              "reason",
+              "evidenceLevel"
+            ],
+            "properties": {
+              "clinicalScenario": {
+                "type": "string"
+              },
+              "recommendedDevice": {
+                "type": "string"
+              },
+              "reason": {
+                "type": "string"
+              },
+              "evidenceLevel": {
+                "type": "string",
+                "enum": [
+                  "Baixa",
+                  "Moderada",
+                  "Alta",
+                  "Muito Alta"
+                ]
+              }
+            }
+          }
+        },
+        "clinicalAlerts": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "trigger",
+              "alert"
+            ],
+            "properties": {
+              "trigger": {
+                "type": "object",
+                "required": [
+                  "condition"
+                ],
+                "properties": {
+                  "condition": {
+                    "type": "string"
+                  }
+                }
+              },
+              "alert": {
+                "type": "object",
+                "required": [
+                  "level",
+                  "message"
+                ],
+                "properties": {
+                  "level": {
+                    "type": "string",
+                    "enum": [
+                      "Baixa",
+                      "Moderada",
+                      "Alta",
+                      "Crítica"
+                    ]
+                  },
+                  "message": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "recommendations": {
+      "type": "object",
+      "properties": {
+        "relatedDevices": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "alternativeDevices": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "betterOptions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "upgradePath": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "frequentlyUsedTogether": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "upgradeRecommendation": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "alternatives": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "clinicalPearls": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "errors": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "description",
+          "consequence"
+        ],
+        "properties": {
+          "description": {
+            "type": "string"
+          },
+          "consequence": {
+            "type": "string"
+          },
+          "prevention": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "faq": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "question",
+          "answer"
+        ],
+        "properties": {
+          "question": {
+            "type": "string"
+          },
+          "answer": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "troubleshooting": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "problem",
+          "possibleCause",
+          "solution"
+        ],
+        "properties": {
+          "problem": {
+            "type": "string"
+          },
+          "possibleCause": {
+            "type": "string"
+          },
+          "solution": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "media": {
+      "type": "object",
+      "properties": {
+        "images": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "format": "uri"
+          }
+        },
+        "3dModels": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "format": "uri"
+          }
+        },
+        "videos": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "format": "uri"
+          }
+        },
+        "animations": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "format": "uri"
+          }
+        },
+        "ar": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "format": "uri"
+          }
+        },
+        "printables": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "format": "uri"
+          }
+        },
+        "svg": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "format": "uri"
+          }
+        }
+      }
+    },
+    "timeline": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "year",
+          "event"
+        ],
+        "properties": {
+          "year": {
+            "type": "integer"
+          },
+          "event": {
+            "type": "string"
+          },
+          "reference": {
+            "type": "string",
+            "format": "uri"
+          }
+        }
+      }
+    },
+    "qualityIndicators": {
+      "type": "object",
+      "properties": {
+        "adverseEvents": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "errorRate": {
+          "type": "object",
+          "properties": {
+            "value": {
+              "type": "number"
+            },
+            "unit": {
+              "type": "string"
+            }
+          }
+        },
+        "usageFrequency": {
+          "type": "object",
+          "properties": {
+            "value": {
+              "type": "number"
+            },
+            "unit": {
+              "type": "string"
+            }
+          }
+        },
+        "replacementInterval": {
+          "type": "object",
+          "properties": {
+            "value": {
+              "type": "number"
+            },
+            "unit": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "searchMetadata": {
+      "type": "object",
+      "required": [
+        "synonyms"
+      ],
+      "properties": {
+        "synonyms": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "abbreviations": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "popularSearches": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "misspellings": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "seo": {
+      "type": "object",
+      "properties": {
+        "priority": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100
+        },
+        "featured": {
+          "type": "boolean"
+        },
+        "boostKeywords": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "traditional": {
+          "type": "object",
+          "properties": {
+            "title": {
+              "type": "string"
+            },
+            "metaDescription": {
+              "type": "string"
+            },
+            "canonical": {
+              "type": "string",
+              "format": "uri"
+            },
+            "robots": {
+              "type": "string"
+            },
+            "schemaOrg": {
+              "type": "object",
+              "properties": {
+                "@type": {
+                  "type": "string"
+                },
+                "name": {
+                  "type": "string"
+                },
+                "description": {
+                  "type": "string"
+                },
+                "image": {
+                  "type": "string"
+                },
+                "identifier": {
+                  "type": "string"
+                }
+              }
+            },
+            "openGraph": {
+              "type": "object",
+              "properties": {
+                "title": {
+                  "type": "string"
+                },
+                "description": {
+                  "type": "string"
+                },
+                "image": {
+                  "type": "string"
+                },
+                "type": {
+                  "type": "string"
+                }
+              }
+            },
+            "twitter": {
+              "type": "object",
+              "properties": {
+                "card": {
+                  "type": "string"
+                },
+                "title": {
+                  "type": "string"
+                },
+                "description": {
+                  "type": "string"
+                },
+                "image": {
+                  "type": "string"
+                }
+              }
+            },
+            "breadcrumbs": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": [
+                  "name",
+                  "url"
+                ],
+                "properties": {
+                  "name": {
+                    "type": "string"
+                  },
+                  "url": {
+                    "type": "string"
+                  }
+                }
+              }
+            },
+            "keywords": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "geo": {
+          "type": "object",
+          "properties": {
+            "generativePrompt": {
+              "type": "string"
+            },
+            "citations": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "entitySalience": {
+              "type": "object",
+              "properties": {
+                "mainEntity": {
+                  "type": "string"
+                },
+                "relatedEntities": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              }
+            },
+            "aiFriendlyContent": {
+              "type": "string"
+            }
+          }
+        },
+        "aeo": {
+          "type": "object",
+          "properties": {
+            "featuredSnippet": {
+              "type": "object",
+              "required": [
+                "question",
+                "answer"
+              ],
+              "properties": {
+                "question": {
+                  "type": "string"
+                },
+                "answer": {
+                  "type": "string"
+                }
+              }
+            },
+            "peopleAlsoAsk": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": [
+                  "question",
+                  "answer"
+                ],
+                "properties": {
+                  "question": {
+                    "type": "string"
+                  },
+                  "answer": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "comparisonEngine": {
+      "type": "object",
+      "required": [
+        "dimensions"
+      ],
+      "properties": {
+        "dimensions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "name",
+              "values"
+            ],
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "values": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "compare": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "device",
+              "values"
+            ],
+            "properties": {
+              "device": {
+                "type": "string"
+              },
+              "values": {
+                "type": "object"
+              }
+            }
+          }
+        }
+      }
+    },
+    "patientSafety": {
+      "type": "object",
+      "required": [
+        "highRisk",
+        "neverEvents",
+        "alerts"
+      ],
+      "properties": {
+        "highRisk": {
+          "type": "boolean"
+        },
+        "doubleCheckRequired": {
+          "type": "boolean"
+        },
+        "neverEvents": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1
+        },
+        "alerts": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "type",
+              "message"
+            ],
+            "properties": {
+              "type": {
+                "type": "string"
+              },
+              "message": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    },
+    "education": {
+      "type": "object",
+      "required": [
+        "difficulty",
+        "learningPath",
+        "resources"
+      ],
+      "properties": {
+        "difficulty": {
+          "type": "string",
+          "enum": [
+            "Básico",
+            "Intermediário",
+            "Avançado"
+          ]
+        },
+        "learningPath": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "step",
+              "title"
+            ],
+            "properties": {
+              "step": {
+                "type": "integer"
+              },
+              "title": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "resources": {
+          "type": "object",
+          "properties": {
+            "quiz": {
+              "type": "boolean"
+            },
+            "flashcards": {
+              "type": "boolean"
+            },
+            "simulationCase": {
+              "type": "boolean"
+            },
+            "videoTutorial": {
+              "type": "boolean"
+            },
+            "checklist": {
+              "type": "boolean"
+            }
+          }
+        }
+      }
+    },
+    "aiMetadata": {
+      "type": "object",
+      "required": [
+        "knowledgeType",
+        "aiCapabilities",
+        "reasoningRules",
+        "confidenceModel"
+      ],
+      "properties": {
+        "knowledgeType": {
+          "type": "string"
+        },
+        "aiCapabilities": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "reasoningRules": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "if",
+              "then"
+            ],
+            "properties": {
+              "if": {
+                "type": "string"
+              },
+              "then": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "confidenceModel": {
+          "type": "object",
+          "required": [
+            "minimumConfidence",
+            "requiresHumanValidation"
+          ],
+          "properties": {
+            "minimumConfidence": {
+              "type": "number"
+            },
+            "requiresHumanValidation": {
+              "type": "boolean"
+            }
+          }
+        },
+        "trainingData": {
+          "type": "object",
+          "properties": {
+            "queries": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "expectedOutputs": {
+              "type": "array"
+            }
+          }
+        }
+      }
+    },
+    "llm": {
+      "type": "object",
+      "properties": {
+        "embedding": {
+          "type": "object",
+          "properties": {
+            "version": {
+              "type": "string"
+            }
+          }
+        },
+        "chunks": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "vectorizable": {
+          "type": "boolean"
+        },
+        "ragPriority": {
+          "type": "integer"
+        },
+        "summary": {
+          "type": "string"
+        },
+        "keywords": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "embeddings": {
+          "type": "object",
+          "properties": {
+            "textVersion": {
+              "type": "string"
+            },
+            "chunkStrategy": {
+              "type": "string"
+            },
+            "embeddingModel": {
+              "type": "string"
+            },
+            "lastIndexed": {
+              "type": "string",
+              "format": "date"
+            },
+            "vectorIds": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "citation": {
+          "type": "object",
+          "properties": {
+            "preferredCitation": {
+              "type": "object",
+              "properties": {
+                "title": {
+                  "type": "string"
+                },
+                "organization": {
+                  "type": "string"
+                },
+                "version": {
+                  "type": "string"
+                },
+                "year": {
+                  "type": "integer"
+                },
+                "doi": {
+                  "type": "string"
+                }
+              }
+            },
+            "citeAs": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    },
+    "machineSummary": {
+      "type": "object",
+      "properties": {
+        "short": {
+          "type": "string"
+        },
+        "medium": {
+          "type": "string"
+        },
+        "keywords": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "auditTrail": {
+      "type": "object",
+      "required": [
+        "principles",
+        "knowledgeLifecycle"
+      ],
+      "properties": {
+        "principles": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1
+        },
+        "changes": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "date",
+              "user",
+              "fieldChanged",
+              "reason",
+              "previousVersion",
+              "newVersion"
+            ],
+            "properties": {
+              "date": {
+                "type": "string",
+                "format": "date"
+              },
+              "user": {
+                "type": "string"
+              },
+              "fieldChanged": {
+                "type": "string"
+              },
+              "reason": {
+                "type": "string"
+              },
+              "previousVersion": {
+                "type": "string"
+              },
+              "newVersion": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "knowledgeLifecycle": {
+          "type": "object",
+          "required": [
+            "status"
+          ],
+          "properties": {
+            "status": {
+              "type": "string",
+              "enum": [
+                "draft",
+                "review",
+                "validated",
+                "published",
+                "deprecated",
+                "retired"
+              ]
+            },
+            "reviewDate": {
+              "type": "string",
+              "format": "date"
+            },
+            "reviewFrequency": {
+              "type": "string"
+            },
+            "reviewer": {
+              "type": "string"
+            },
+            "committee": {
+              "type": "string"
+            }
+          }
+        },
+        "reviewWorkflow": {
+          "type": "object",
+          "properties": {
+            "author": {
+              "type": "string"
+            },
+            "reviewers": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "medicalApproval": {
+              "type": "object",
+              "properties": {
+                "approved": {
+                  "type": "boolean"
+                },
+                "date": {
+                  "type": "string",
+                  "format": "date"
+                }
+              }
+            },
+            "legalApproval": {
+              "type": "boolean"
+            },
+            "nextReview": {
+              "type": "string",
+              "format": "date"
+            }
+          }
+        },
+        "validation": {
+          "type": "object",
+          "properties": {
+            "clinicalValidated": {
+              "type": "boolean"
+            },
+            "technicalValidated": {
+              "type": "boolean"
+            },
+            "regulatoryValidated": {
+              "type": "boolean"
+            },
+            "lastValidation": {
+              "type": "string",
+              "format": "date"
+            }
+          }
+        }
+      }
+    },
+    "localization": {
+      "type": "object",
+      "required": [
+        "language",
+        "country",
+        "translationStatus"
+      ],
+      "properties": {
+        "language": {
+          "type": "string",
+          "enum": [
+            "pt-BR"
+          ]
+        },
+        "country": {
+          "type": "string",
+          "enum": [
+            "BR"
+          ]
+        },
+        "translationStatus": {
+          "type": "string",
+          "enum": [
+            "translated",
+            "pending",
+            "reviewed"
+          ]
+        }
+      }
+    },
+    "i18n": {
+      "type": "object",
+      "properties": {
+        "default": {
+          "type": "string"
+        },
+        "supported": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "fallback": {
+          "type": "string"
+        },
+        "measurementSystem": {
+          "type": "string"
+        },
+        "timezone": {
+          "type": "string"
+        },
+        "currency": {
+          "type": "string"
+        },
+        "dateFormat": {
+          "type": "string"
+        },
+        "unitSystem": {
+          "type": "string"
+        }
+      }
+    },
+    "usageContext": {
+      "type": "object",
+      "properties": {
+        "population": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "adult",
+              "pediatric",
+              "neonatal",
+              "geriatric"
+            ]
+          }
+        },
+        "careSettings": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "hospital",
+              "icu",
+              "ambulatory",
+              "homeCare",
+              "emergency"
+            ]
+          }
+        },
+        "professional": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "availability": {
+      "type": "object",
+      "properties": {
+        "countries": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "sus": {
+          "type": "boolean"
+        },
+        "private": {
+          "type": "boolean"
+        },
+        "marketStatus": {
+          "type": "string",
+          "enum": [
+            "Active",
+            "Discontinued",
+            "Restricted"
+          ]
+        }
+      }
+    },
+    "performance": {
+      "type": "object",
+      "properties": {
+        "precision": {
+          "type": "number"
+        },
+        "reliability": {
+          "type": "number"
+        },
+        "failureRate": {
+          "type": "number"
+        },
+        "averageLifetime": {
+          "type": "string"
+        },
+        "maximumPressure": {
+          "type": "string"
+        }
+      }
+    },
+    "economics": {
+      "type": "object",
+      "properties": {
+        "averagePrice": {
+          "type": "number"
+        },
+        "currency": {
+          "type": "string"
+        },
+        "costCategory": {
+          "type": "string",
+          "enum": [
+            "Low",
+            "Medium",
+            "High"
+          ]
+        },
+        "susAvailable": {
+          "type": "boolean"
+        },
+        "bulkPurchase": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "number"
+          }
+        }
+      }
+    },
+    "inventory": {
+      "type": "object",
+      "properties": {
+        "storage": {
+          "type": "object",
+          "properties": {
+            "temperature": {
+              "type": "string"
+            },
+            "humidity": {
+              "type": "string"
+            }
+          }
+        },
+        "expirationMonths": {
+          "type": "integer"
+        },
+        "transport": {
+          "type": "string"
+        },
+        "sterile": {
+          "type": "boolean"
+        }
+      }
+    },
+    "presentation": {
+      "type": "object",
+      "properties": {
+        "hero": {
+          "type": "boolean"
+        },
+        "showComparison": {
+          "type": "boolean"
+        },
+        "showTimeline": {
+          "type": "boolean"
+        },
+        "showClinicalPearls": {
+          "type": "boolean"
+        },
+        "showFAQ": {
+          "type": "boolean"
+        },
+        "tabOrder": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "provenance": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "field",
+          "source"
+        ],
+        "properties": {
+          "field": {
+            "type": "string"
+          },
+          "source": {
+            "type": "object",
+            "required": [
+              "type",
+              "organization"
+            ],
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": [
+                  "Guideline",
+                  "RCT",
+                  "Consensus",
+                  "Standard"
+                ]
+              },
+              "organization": {
+                "type": "string"
+              },
+              "document": {
+                "type": "string"
+              },
+              "edition": {
+                "type": "string"
+              },
+              "page": {
+                "type": "string"
+              },
+              "url": {
+                "type": "string",
+                "format": "uri"
+              }
+            }
+          },
+          "validatedBy": {
+            "type": "string"
+          },
+          "confidence": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1
+          }
+        }
+      }
+    },
+    "knowledgeConfidence": {
+      "type": "object",
+      "properties": {
+        "overall": {
+          "type": "number"
+        },
+        "clinical": {
+          "type": "number"
+        },
+        "technical": {
+          "type": "number"
+        },
+        "regulatory": {
+          "type": "number"
+        },
+        "education": {
+          "type": "number"
+        },
+        "explanation": {
+          "type": "array",
+          "description": "Justificativa por domínio do score de confiança.",
+          "items": {
+            "type": "object",
+            "required": [
+              "domain",
+              "score"
+            ],
+            "properties": {
+              "domain": {
+                "type": "string"
+              },
+              "score": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1
+              },
+              "reason": {
+                "type": "string"
+              },
+              "evidenceRefs": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "knowledgeMetrics": {
+      "type": "object",
+      "properties": {
+        "completeness": {
+          "type": "number"
+        },
+        "clinicalCoverage": {
+          "type": "number"
+        },
+        "evidenceCoverage": {
+          "type": "number"
+        },
+        "translationCoverage": {
+          "type": "number"
+        },
+        "reviewScore": {
+          "type": "number"
+        }
+      }
+    },
+    "contentQuality": {
+      "type": "object",
+      "properties": {
+        "completeness": {
+          "type": "number"
+        },
+        "scientificQuality": {
+          "type": "number"
+        },
+        "seoScore": {
+          "type": "number"
+        },
+        "geoScore": {
+          "type": "number"
+        },
+        "aeoScore": {
+          "type": "number"
+        },
+        "clinicalCoverage": {
+          "type": "number"
+        },
+        "editorialScore": {
+          "type": "number"
+        }
+      }
+    },
+    "analytics": {
+      "type": "object",
+      "properties": {
+        "views": {
+          "type": "integer"
+        },
+        "downloads": {
+          "type": "integer"
+        },
+        "favorites": {
+          "type": "integer"
+        },
+        "comparisons": {
+          "type": "integer"
+        },
+        "aiQueries": {
+          "type": "integer"
+        }
+      }
+    },
+    "changeImpact": {
+      "type": "object",
+      "properties": {
+        "breakingChange": {
+          "type": "boolean"
+        },
+        "requiresReindex": {
+          "type": "boolean"
+        },
+        "requiresTranslation": {
+          "type": "boolean"
+        },
+        "requiresMedicalReview": {
+          "type": "boolean"
+        }
+      }
+    },
+    "modules": {
+      "type": "object",
+      "properties": {
+        "clinicalKnowledge": {
+          "type": "string",
+          "pattern": "^\\d+\\.\\d+\\.\\d+$"
+        },
+        "education": {
+          "type": "string"
+        },
+        "compatibility": {
+          "type": "string"
+        },
+        "evidence": {
+          "type": "string"
+        },
+        "nursingIntelligence": {
+          "type": "string"
+        }
+      }
+    },
+    "knowledgeGraph": {
+      "type": "object",
+      "properties": {
+        "entityType": {
+          "type": "string"
+        },
+        "canonicalName": {
+          "type": "string"
+        },
+        "aliases": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "sameAs": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "format": "uri"
+          }
+        },
+        "parent": {
+          "type": "string"
+        },
+        "children": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "relatedEntities": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "id",
+              "relationship"
+            ],
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "relationship": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "nodes": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "id"
+            ],
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "label": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "edges": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "from",
+              "to",
+              "type"
+            ],
+            "properties": {
+              "from": {
+                "type": "string"
+              },
+              "to": {
+                "type": "string"
+              },
+              "type": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "lineage": {
+          "type": "object",
+          "properties": {
+            "nodes": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string"
+                  },
+                  "label": {
+                    "type": "string"
+                  }
+                }
+              }
+            },
+            "edges": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "from": {
+                    "type": "string"
+                  },
+                  "to": {
+                    "type": "string"
+                  },
+                  "type": {
+                    "type": "string",
+                    "enum": [
+                      "derivedFrom",
+                      "mergedFrom",
+                      "supersedes"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "semanticWeb": {
+          "type": "object",
+          "description": "Representação formal em Web Semântica: triplas RDF, classes/propriedades OWL e formas SHACL para validação.",
+          "properties": {
+            "baseIri": {
+              "type": "string",
+              "format": "uri"
+            },
+            "prefixes": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              }
+            },
+            "triples": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": [
+                  "subject",
+                  "predicate",
+                  "object"
+                ],
+                "properties": {
+                  "subject": {
+                    "type": "string"
+                  },
+                  "predicate": {
+                    "type": "string"
+                  },
+                  "object": {
+                    "type": "string"
+                  },
+                  "objectType": {
+                    "type": "string",
+                    "enum": [
+                      "iri",
+                      "literal"
+                    ]
+                  }
+                }
+              }
+            },
+            "owlClasses": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": [
+                  "iri"
+                ],
+                "properties": {
+                  "iri": {
+                    "type": "string"
+                  },
+                  "label": {
+                    "type": "string"
+                  },
+                  "subClassOf": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "equivalentClass": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            },
+            "owlObjectProperties": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "iri": {
+                    "type": "string"
+                  },
+                  "domain": {
+                    "type": "string"
+                  },
+                  "range": {
+                    "type": "string"
+                  },
+                  "characteristics": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "enum": [
+                        "functional",
+                        "transitive",
+                        "symmetric",
+                        "inverseFunctional"
+                      ]
+                    }
+                  }
+                }
+              }
+            },
+            "shaclShapes": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "targetClass": {
+                    "type": "string"
+                  },
+                  "constraints": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "path": {
+                          "type": "string"
+                        },
+                        "minCount": {
+                          "type": "integer"
+                        },
+                        "maxCount": {
+                          "type": "integer"
+                        },
+                        "datatype": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "serialization": {
+              "type": "object",
+              "properties": {
+                "turtle": {
+                  "type": "string"
+                },
+                "jsonld": {
+                  "type": "string",
+                  "format": "uri"
+                }
+              }
+            }
+          }
+        }
+      },
+      "description": "Grafo de conhecimento unificado: identidade, nós/arestas, linhagem e camada de Web Semântica (RDF/OWL/SHACL)."
+    },
+    "interoperability": {
+      "type": "object",
+      "properties": {
+        "fhir": {
+          "type": "object",
+          "properties": {
+            "resource": {
+              "type": "string"
+            }
+          }
+        },
+        "openEHR": {
+          "type": "object",
+          "properties": {
+            "archetype": {
+              "type": "string"
+            }
+          }
+        },
+        "dicom": {
+          "type": "boolean"
+        },
+        "omop": {
+          "type": "object",
+          "properties": {
+            "conceptId": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "mcp": {
+      "type": "object",
+      "properties": {
+        "resource": {
+          "type": "string",
+          "format": "uri"
+        },
+        "capabilities": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "tools": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "permissions": {
+          "type": "object",
+          "properties": {
+            "public": {
+              "type": "boolean"
+            },
+            "requiresAuthentication": {
+              "type": "boolean"
+            }
+          }
+        }
+      }
+    },
+    "digitalTwin": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string"
+        },
+        "lifecycle": {
+          "type": "string",
+          "enum": [
+            "Active",
+            "Inactive",
+            "Discontinued"
+          ]
+        },
+        "virtualRepresentation": {
+          "type": "object",
+          "properties": {
+            "3dModel": {
+              "type": "string",
+              "format": "uri"
+            },
+            "explodedView": {
+              "type": "string",
+              "format": "uri"
+            }
+          }
+        },
+        "simulation": {
+          "type": "object",
+          "properties": {
+            "supported": {
+              "type": "boolean"
+            },
+            "simulationTypes": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    },
+    "knowledgePackage": {
+      "type": "object",
+      "properties": {
+        "packageVersion": {
+          "type": "string"
+        },
+        "includes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "checksum": {
+          "type": "string"
+        }
+      }
+    },
+    "knowledgeLineage": {
+      "type": "object",
+      "properties": {
+        "previousVersions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "version": {
+                "type": "string"
+              },
+              "date": {
+                "type": "string",
+                "format": "date"
+              },
+              "changes": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "derivedFrom": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "sourceId": {
+                "type": "string"
+              },
+              "relationship": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "mergedKnowledge": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "clinicalWorkflowEngine": {
+      "type": "object",
+      "properties": {
+        "workflows": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "id",
+              "name",
+              "steps"
+            ],
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              },
+              "steps": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "id",
+                    "type"
+                  ],
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "type": {
+                      "type": "string",
+                      "enum": [
+                        "assessment",
+                        "decision",
+                        "action",
+                        "documentation"
+                      ]
+                    },
+                    "description": {
+                      "type": "string"
+                    },
+                    "condition": {
+                      "type": "string"
+                    },
+                    "next": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "clinicalSimulationEngine": {
+      "type": "object",
+      "properties": {
+        "supported": {
+          "type": "boolean"
+        },
+        "scenarios": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "name",
+              "steps"
+            ],
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "description": {
+                "type": "string"
+              },
+              "steps": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "expectedOutcome": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "physicsModel": {
+          "type": "string",
+          "format": "uri"
+        }
+      }
+    },
+    "featureFlags": {
+      "type": "object",
+      "properties": {
+        "enableAEO": {
+          "type": "boolean"
+        },
+        "enableGEO": {
+          "type": "boolean"
+        },
+        "enableSimulation": {
+          "type": "boolean"
+        },
+        "enableMCP": {
+          "type": "boolean"
+        },
+        "enableExplainability": {
+          "type": "boolean"
+        },
+        "enableFederation": {
+          "type": "boolean"
+        }
+      }
+    },
+    "rulePackages": {
+      "type": "object",
+      "properties": {
+        "packages": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "name",
+              "version",
+              "rules"
+            ],
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "version": {
+                "type": "string"
+              },
+              "rules": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/$defs/governedRule"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "pluginArchitecture": {
+      "type": "object",
+      "properties": {
+        "extensionPoints": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "name",
+              "description"
+            ],
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "description": {
+                "type": "string"
+              },
+              "interface": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "activePlugins": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "ontology": {
+      "type": "object",
+      "properties": {
+        "classes": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "label": {
+                "type": "string"
+              },
+              "subClassOf": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "objectProperties": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "label": {
+                "type": "string"
+              },
+              "domain": {
+                "type": "string"
+              },
+              "range": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    },
+    "eventSourcing": {
+      "type": "object",
+      "properties": {
+        "eventLog": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "eventId",
+              "timestamp",
+              "type"
+            ],
+            "properties": {
+              "eventId": {
+                "type": "string"
+              },
+              "timestamp": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "type": {
+                "type": "string",
+                "enum": [
+                  "created",
+                  "updated",
+                  "validated",
+                  "deprecated",
+                  "merged"
+                ]
+              },
+              "payload": {
+                "type": "object"
+              }
+            }
+          }
+        }
+      }
+    },
+    "dependencyInjection": {
+      "type": "object",
+      "properties": {
+        "dependencies": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "targetId",
+              "reason"
+            ],
+            "properties": {
+              "targetId": {
+                "type": "string"
+              },
+              "reason": {
+                "type": "string"
+              },
+              "type": {
+                "type": "string",
+                "enum": [
+                  "requires",
+                  "recommends",
+                  "conflicts"
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    "digitalSignature": {
+      "type": "object",
+      "properties": {
+        "algorithm": {
+          "type": "string",
+          "default": "SHA-256"
+        },
+        "signature": {
+          "type": "string"
+        },
+        "signer": {
+          "type": "string"
+        },
+        "timestamp": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    },
+    "trustFramework": {
+      "type": "object",
+      "properties": {
+        "trustLevel": {
+          "type": "string",
+          "enum": [
+            "low",
+            "medium",
+            "high",
+            "critical"
+          ]
+        },
+        "certifications": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "authority": {
+                "type": "string"
+              },
+              "standard": {
+                "type": "string"
+              },
+              "expiration": {
+                "type": "string",
+                "format": "date"
+              }
+            }
+          }
+        },
+        "verificationStatus": {
+          "type": "string",
+          "enum": [
+            "unverified",
+            "verified",
+            "revoked"
+          ]
+        }
+      }
+    },
+    "clinicalGovernance": {
+      "type": "object",
+      "properties": {
+        "board": {
+          "type": "string"
+        },
+        "policies": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "approvalHistory": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "date": {
+                "type": "string",
+                "format": "date"
+              },
+              "approvedBy": {
+                "type": "string"
+              },
+              "decision": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    },
+    "regulatoryIntelligence": {
+      "type": "object",
+      "properties": {
+        "relevantRegulations": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "regulation": {
+                "type": "string"
+              },
+              "jurisdiction": {
+                "type": "string"
+              },
+              "effectiveDate": {
+                "type": "string",
+                "format": "date"
+              },
+              "impact": {
+                "type": "string",
+                "enum": [
+                  "none",
+                  "minor",
+                  "major"
+                ]
+              }
+            }
+          }
+        },
+        "regulatoryUpdates": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "contentLifecycleAutomation": {
+      "type": "object",
+      "properties": {
+        "reviewSchedule": {
+          "type": "string"
+        },
+        "autoArchive": {
+          "type": "boolean"
+        },
+        "archiveDate": {
+          "type": "string",
+          "format": "date"
+        },
+        "deprecationPolicy": {
+          "type": "string"
+        }
+      }
+    },
+    "recommendationFeedbackLoop": {
+      "type": "object",
+      "properties": {
+        "feedbackEnabled": {
+          "type": "boolean"
+        },
+        "metrics": {
+          "type": "object",
+          "properties": {
+            "acceptanceRate": {
+              "type": "number"
+            },
+            "rejectionReasons": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "clinicalOutcomes": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "clinicalPerformanceBenchmark": {
+      "type": "object",
+      "properties": {
+        "doseAccuracy": {
+          "type": "number"
+        },
+        "adverseEventRate": {
+          "type": "number"
+        },
+        "userSatisfaction": {
+          "type": "number"
+        },
+        "comparators": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "deviceId": {
+                "type": "string"
+              },
+              "metric": {
+                "type": "string"
+              },
+              "value": {
+                "type": "number"
+              }
+            }
+          }
+        }
+      }
+    },
+    "temporalKnowledge": {
+      "type": "object",
+      "properties": {
+        "validFrom": {
+          "type": "string",
+          "format": "date"
+        },
+        "validUntil": {
+          "type": "string",
+          "format": "date"
+        },
+        "supersededBy": {
+          "type": "string"
+        },
+        "replaces": {
+          "type": "string"
+        }
+      }
+    },
+    "semanticVersionDependencies": {
+      "type": "object",
+      "properties": {
+        "requires": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "objectId": {
+                "type": "string"
+              },
+              "versionRange": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    },
+    "knowledgeFederation": {
+      "type": "object",
+      "properties": {
+        "federationId": {
+          "type": "string"
+        },
+        "remoteEndpoints": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "url": {
+                "type": "string",
+                "format": "uri"
+              },
+              "protocol": {
+                "type": "string",
+                "enum": [
+                  "FHIR",
+                  "GraphQL",
+                  "SPARQL"
+                ]
+              }
+            }
+          }
+        },
+        "syncPolicy": {
+          "type": "string"
+        }
+      }
+    },
+    "federatedSearchMetadata": {
+      "type": "object",
+      "properties": {
+        "searchIndices": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "federatedQueries": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "query": {
+                "type": "string"
+              },
+              "endpoint": {
+                "type": "string",
+                "format": "uri"
+              }
+            }
+          }
+        }
+      }
+    },
+    "engine": {
+      "type": "object",
+      "description": "Configuração estática de runtime (cache, DSL de validação, resolução de dependências, máquina de estados, personalização). A EXECUÇÃO do pipeline vive em ckosRuntimeLayer; a inferência de fatos em factInferenceEngine.",
+      "properties": {
+        "computedEngine": {
+          "type": "object",
+          "properties": {
+            "overallRiskScore": {
+              "$ref": "#/properties/engine/definitions/computedValue"
+            },
+            "knowledgeCompleteness": {
+              "$ref": "#/properties/engine/definitions/computedValue"
+            },
+            "clinicalConfidence": {
+              "$ref": "#/properties/engine/definitions/computedValue"
+            },
+            "seoScore": {
+              "type": "number"
+            },
+            "educationScore": {
+              "type": "number"
+            }
+          }
+        },
+        "semanticValidation": {
+          "type": "object",
+          "properties": {
+            "rules": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": [
+                  "id",
+                  "severity"
+                ],
+                "properties": {
+                  "id": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string"
+                  },
+                  "if": {
+                    "type": "object"
+                  },
+                  "expression": {
+                    "type": "string"
+                  },
+                  "severity": {
+                    "type": "string",
+                    "enum": [
+                      "error",
+                      "warning",
+                      "info"
+                    ]
+                  },
+                  "message": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "clinicalDSL": {
+          "type": "object",
+          "properties": {
+            "language": {
+              "type": "string",
+              "default": "CKO-DSL"
+            },
+            "rules": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": [
+                  "id",
+                  "script"
+                ],
+                "properties": {
+                  "id": {
+                    "type": "string"
+                  },
+                  "script": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "runtime": {
+          "type": "object",
+          "properties": {
+            "cacheTTL": {
+              "type": "string"
+            },
+            "priority": {
+              "type": "string"
+            },
+            "lazyLoading": {
+              "type": "boolean"
+            },
+            "preload": {
+              "type": "boolean"
+            },
+            "memoryCost": {
+              "type": "string"
+            },
+            "estimatedSizeKb": {
+              "type": "number"
+            }
+          }
+        },
+        "dependencyResolver": {
+          "type": "object",
+          "properties": {
+            "strategy": {
+              "type": "string",
+              "enum": [
+                "automatic",
+                "manual"
+              ]
+            },
+            "required": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "optional": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "loadOrder": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "capabilityRegistry": {
+          "type": "object",
+          "properties": {
+            "capabilities": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": [
+                  "name",
+                  "provider"
+                ],
+                "properties": {
+                  "name": {
+                    "type": "string"
+                  },
+                  "provider": {
+                    "type": "string"
+                  },
+                  "priority": {
+                    "type": "integer"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "queryLanguage": {
+          "type": "object",
+          "properties": {
+            "version": {
+              "type": "string"
+            },
+            "examples": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "query": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "compositionEngine": {
+          "type": "object",
+          "properties": {
+            "templates": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": [
+                  "name",
+                  "components"
+                ],
+                "properties": {
+                  "name": {
+                    "type": "string"
+                  },
+                  "components": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "stateMachine": {
+          "type": "object",
+          "properties": {
+            "states": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "transitions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": [
+                  "from",
+                  "to"
+                ],
+                "properties": {
+                  "from": {
+                    "type": "string"
+                  },
+                  "to": {
+                    "type": "string"
+                  },
+                  "condition": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "contextEngine": {
+          "type": "object",
+          "properties": {
+            "contexts": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": [
+                  "context",
+                  "recommendations"
+                ],
+                "properties": {
+                  "context": {
+                    "type": "string"
+                  },
+                  "recommendations": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "personalization": {
+          "type": "object",
+          "properties": {
+            "profiles": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "object",
+                "properties": {
+                  "showBasics": {
+                    "type": "boolean"
+                  },
+                  "showEvidence": {
+                    "type": "boolean"
+                  },
+                  "showTeachingResources": {
+                    "type": "boolean"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "eventBus": {
+          "type": "object",
+          "properties": {
+            "publishedEvents": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "subscribedEvents": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "temporalLogic": {
+          "type": "object",
+          "properties": {
+            "effectivePeriod": {
+              "type": "object",
+              "properties": {
+                "start": {
+                  "type": "string",
+                  "format": "date"
+                },
+                "end": {
+                  "type": "string",
+                  "format": "date"
+                }
+              }
+            },
+            "seasonalEffects": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "knowledgeDiff": {
+          "type": "object",
+          "properties": {
+            "compareWith": {
+              "type": "string"
+            },
+            "breakingChanges": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "minorChanges": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "capabilityModel": {
+          "type": "object",
+          "properties": {
+            "provides": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "requires": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "knowledgeContracts": {
+          "type": "object",
+          "properties": {
+            "input": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "output": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "guarantees": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      },
+      "definitions": {
+        "computedValue": {
+          "type": "object",
+          "properties": {
+            "value": {
+              "type": "number"
+            },
+            "calculatedAt": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "algorithm": {
+              "type": "string"
+            },
+            "unit": {
+              "type": "string"
+            },
+            "basedOn": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "missingSections": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    },
+    "factInferenceEngine": {
+      "type": "object",
+      "description": "Motor de inferência baseado em fatos (assertions) e regras.",
+      "properties": {
+        "assertions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "id",
+              "fact",
+              "confidence"
+            ],
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "fact": {
+                "type": "string"
+              },
+              "confidence": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1
+              },
+              "source": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "inferenceRules": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "if": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "then": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "decisionTreeRepository": {
+      "type": "object",
+      "description": "Repositório de árvores de decisão clínica executáveis.",
+      "properties": {
+        "trees": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "id",
+              "name",
+              "rootNode",
+              "nodes"
+            ],
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              },
+              "rootNode": {
+                "type": "string"
+              },
+              "nodes": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "id",
+                    "question",
+                    "type"
+                  ],
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "question": {
+                      "type": "string"
+                    },
+                    "type": {
+                      "type": "string",
+                      "enum": [
+                        "decision",
+                        "action",
+                        "terminal"
+                      ]
+                    },
+                    "yes": {
+                      "type": "string"
+                    },
+                    "no": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "ragMetadata": {
+      "type": "object",
+      "description": "Metadados otimizados para Retrieval-Augmented Generation (RAG).",
+      "properties": {
+        "embeddingText": {
+          "type": "string"
+        },
+        "embeddingVersion": {
+          "type": "string"
+        },
+        "chunkStrategy": {
+          "type": "string"
+        },
+        "recommendedChunkSize": {
+          "type": "integer"
+        },
+        "semanticSections": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "keywords": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "synonyms": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "knowledgeCoverage": {
+      "type": "object",
+      "description": "Métricas de cobertura do conhecimento para identificar lacunas.",
+      "properties": {
+        "requiredDomains": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "completedDomains": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "coverageScore": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 100
+        },
+        "missingDomains": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "generatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    },
+    "executableKnowledgeContracts": {
+      "type": "object",
+      "description": "Contratos de conhecimento executáveis com pré/pós-condições e invariantes.",
+      "properties": {
+        "contracts": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "id",
+              "inputSchema",
+              "outputSchema"
+            ],
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "inputSchema": {
+                "type": "string"
+              },
+              "outputSchema": {
+                "type": "string"
+              },
+              "preConditions": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "postConditions": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "invariants": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "validationScript": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    },
+    "knowledgeIdentity": {
+      "type": "object",
+      "description": "Identidade canônica do objeto de conhecimento (distinta dos identificadores físicos do produto em identifiers).",
+      "required": [
+        "knowledgeId",
+        "entityType",
+        "canonicalName"
+      ],
+      "properties": {
+        "knowledgeId": {
+          "type": "string",
+          "pattern": "^CKO-[A-Z]+-[A-Z0-9]+-[0-9]{3,}$",
+          "description": "Ex.: CKO-DEVICE-SYR-001"
+        },
+        "knowledgeType": {
+          "type": "string",
+          "enum": [
+            "MedicalDevice",
+            "Medication",
+            "ClinicalScale",
+            "Procedure",
+            "Concept",
+            "Protocol"
+          ]
+        },
+        "entityType": {
+          "type": "string",
+          "description": "Tipo semântico (ex.: MedicalDevice, schema.org/MedicalDevice)."
+        },
+        "canonicalName": {
+          "type": "string"
+        },
+        "canonicalIdentifier": {
+          "type": "string",
+          "format": "uri",
+          "description": "URI canônica global do objeto."
+        },
+        "entityVersion": {
+          "type": "string",
+          "description": "Versão do conteúdo de conhecimento, independente do schema."
+        },
+        "namespace": {
+          "type": "string"
+        },
+        "supersedes": {
+          "type": "string"
+        },
+        "supersededBy": {
+          "type": "string"
+        }
+      }
+    },
+    "ruleRepositories": {
+      "type": "object",
+      "description": "Fonte canônica de regras de runtime, segmentada por domínio. Cada regra é governável (logic/version/status) e executável (conditions/actions).",
+      "properties": {
+        "clinicalRules": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/governedRule"
+          }
+        },
+        "safetyRules": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/governedRule"
+          }
+        },
+        "inventoryRules": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/governedRule"
+          }
+        },
+        "educationRules": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/governedRule"
+          }
+        },
+        "operationalRules": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/governedRule"
+          }
+        }
+      }
+    },
+    "patientContextModel": {
+      "type": "object",
+      "description": "Modelo (template) de contexto do paciente para decisões personalizadas em runtime. Não armazena dados reais de paciente (LGPD): apenas define a forma esperada da entrada.",
+      "properties": {
+        "age": {
+          "type": "object",
+          "properties": {
+            "value": {
+              "type": "number"
+            },
+            "unit": {
+              "type": "string",
+              "enum": [
+                "years",
+                "months",
+                "days"
+              ]
+            }
+          }
+        },
+        "weight": {
+          "type": "object",
+          "properties": {
+            "value": {
+              "type": "number"
+            },
+            "unit": {
+              "type": "string",
+              "enum": [
+                "kg",
+                "g"
+              ]
+            }
+          }
+        },
+        "population": {
+          "type": "string",
+          "enum": [
+            "adult",
+            "pediatric",
+            "neonatal",
+            "geriatric"
+          ]
+        },
+        "renalFunction": {
+          "type": "string",
+          "enum": [
+            "normal",
+            "mild",
+            "moderate",
+            "severe",
+            "dialysis",
+            "unknown"
+          ]
+        },
+        "hepaticFunction": {
+          "type": "string",
+          "enum": [
+            "normal",
+            "impaired",
+            "unknown"
+          ]
+        },
+        "allergies": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "clinicalConditions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "riskFactors": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "careSetting": {
+          "type": "string",
+          "enum": [
+            "hospital",
+            "icu",
+            "ambulatory",
+            "homeCare",
+            "emergency"
+          ]
+        },
+        "dataHandling": {
+          "type": "object",
+          "properties": {
+            "containsPHI": {
+              "type": "boolean",
+              "default": false
+            },
+            "lgpdBasis": {
+              "type": "string"
+            },
+            "retentionPolicy": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "ckosRuntimeLayer": {
+      "type": "object",
+      "description": "Camada de orquestração que conecta objeto → regras → inferência → decisão → workflow → validação humana em um pipeline executável, auditável e com guardrails de segurança. É o que transforma o conjunto de 'órgãos' (engines) do v9 em um sistema que processa uma consulta de ponta a ponta.",
+      "required": [
+        "pipelineVersion",
+        "stages"
+      ],
+      "properties": {
+        "pipelineVersion": {
+          "type": "string"
+        },
+        "orchestrationMode": {
+          "type": "string",
+          "enum": [
+            "sequential",
+            "parallel",
+            "conditional"
+          ]
+        },
+        "stages": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": [
+              "id",
+              "stage",
+              "engineRef"
+            ],
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "stage": {
+                "type": "string",
+                "enum": [
+                  "ingest",
+                  "factAssertion",
+                  "ruleEvaluation",
+                  "inference",
+                  "decision",
+                  "workflow",
+                  "explanation",
+                  "humanValidation",
+                  "output"
+                ]
+              },
+              "engineRef": {
+                "type": "string",
+                "description": "JSON Pointer ou nome do engine acionado (ex.: #/factInferenceEngine, #/decisionTreeRepository)."
+              },
+              "inputs": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "outputs": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "guardrails": {
+                "type": "object",
+                "properties": {
+                  "minConfidence": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1
+                  },
+                  "requiresHumanValidation": {
+                    "type": "boolean"
+                  },
+                  "blockOnSafetyRule": {
+                    "type": "boolean"
+                  },
+                  "onFailure": {
+                    "type": "string",
+                    "enum": [
+                      "halt",
+                      "escalate",
+                      "fallback",
+                      "skip"
+                    ]
+                  }
+                }
+              },
+              "next": {
+                "type": "string"
+              },
+              "onError": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "globalGuardrails": {
+          "type": "object",
+          "properties": {
+            "minOverallConfidence": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            },
+            "mandatoryHumanValidationFor": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "neverEventBlocklist": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "humanInTheLoop": {
+          "type": "object",
+          "properties": {
+            "enabled": {
+              "type": "boolean"
+            },
+            "triggers": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "escalationPath": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "requiredRole": {
+              "type": "string"
+            }
+          }
+        },
+        "executionTrace": {
+          "type": "object",
+          "description": "Contrato do rastro de execução emitido pelo runtime (liga-se a explainableAI e auditTrail).",
+          "properties": {
+            "traceId": {
+              "type": "string"
+            },
+            "startedAt": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "completedAt": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "stagesExecuted": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "finalDecision": {
+              "type": "string"
+            },
+            "confidence": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            },
+            "humanValidated": {
+              "type": "boolean"
+            },
+            "explainabilityRef": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "conformanceProfile": {
+      "type": "object",
+      "description": "Declara qual perfil de conformidade o documento pretende cumprir, permitindo validação incremental (core → full) sem exigir todos os blocos de uma vez.",
+      "properties": {
+        "profile": {
+          "type": "string",
+          "enum": [
+            "core",
+            "clinical",
+            "runtime",
+            "full"
+          ]
+        },
+        "implementedBlocks": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "declaredButNotImplemented": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "explainability": {
+      "type": "object",
+      "description": "Explicabilidade unificada: rastro de raciocínio, explicação da decisão, alternativas, importância de features, contrafactuais e atribuições.",
+      "properties": {
+        "reasoningTrace": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "step": {
+                "type": "string"
+              },
+              "rule": {
+                "type": "string"
+              },
+              "weight": {
+                "type": "number"
+              },
+              "evidence": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "decisionExplanation": {
+          "type": "string"
+        },
+        "alternativeRecommendations": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "recommendation": {
+                "type": "string"
+              },
+              "score": {
+                "type": "number"
+              }
+            }
+          }
+        },
+        "featureImportance": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "feature": {
+                "type": "string"
+              },
+              "importance": {
+                "type": "number"
+              }
+            }
+          }
+        },
+        "counterfactuals": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "attributions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "governedRule": {
+      "type": "object",
+      "required": [
+        "id",
+        "name",
+        "version"
+      ],
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "version": {
+          "type": "string"
+        },
+        "domain": {
+          "type": "string",
+          "enum": [
+            "clinical",
+            "safety",
+            "inventory",
+            "education",
+            "operational"
+          ]
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "draft",
+            "validated",
+            "deprecated"
+          ]
+        },
+        "priority": {
+          "type": "integer"
+        },
+        "safetyCritical": {
+          "type": "boolean",
+          "default": false
+        },
+        "confidence": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "logic": {
+          "type": "string",
+          "description": "Forma humana/DSL da regra (governança)."
+        },
+        "conditions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/condition"
+          },
+          "description": "Forma executável avaliada pelo runtime."
+        },
+        "actions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/action"
+          }
+        },
+        "inputs": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "outputs": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "references": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "condition": {
+      "type": "object",
+      "required": [
+        "field",
+        "operator",
+        "value"
+      ],
+      "properties": {
+        "field": {
+          "type": "string"
+        },
+        "operator": {
+          "type": "string",
+          "enum": [
+            "equals",
+            "notEquals",
+            "greaterThan",
+            "lessThan",
+            "greaterOrEqual",
+            "lessOrEqual",
+            "in",
+            "notIn",
+            "exists"
+          ]
+        },
+        "value": {
+          "type": [
+            "string",
+            "number",
+            "boolean",
+            "array",
+            "null"
+          ]
+        }
+      }
+    },
+    "action": {
+      "type": "object",
+      "required": [
+        "type",
+        "target"
+      ],
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": [
+            "recommend",
+            "avoid",
+            "require",
+            "alert",
+            "block"
+          ]
+        },
+        "target": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}
