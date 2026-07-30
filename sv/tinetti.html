@@ -679,9 +679,826 @@ TINETTI, M. E. Performance-oriented assessment of mobility problems in elderly p
 </div>
 </main>
 
-___BLOCK_26___
+<script>
+(function () {
+"use strict";
 
+// --- LÓGICA DO CRONÔMETRO (TIDTAKARUR LOGIK) ---
+let timerInterval = null;
+let seconds = 0;
+
+function startTimer() {
+if (!timerInterval) {
+timerInterval = setInterval(() => {
+seconds++;
+const m = Math.floor(seconds / 60).toString().padStart(2, '0');
+const s = (seconds % 60).toString().padStart(2, '0');
+document.getElementById('crono-timer').textContent = `${m}:${s}`;
+}, 1000);
+}
+}
+
+// --- ESTRUTURA DE DADOS DA ESCALA DE TINETTI (28 PONTOS - PADRÃO INTERNACIONAL) ---
+// BALANS (16 POÄNG) OCH GÅNG (12 POÄNG)
+const ITENS_TINETTI = [
+{
+id: "eq1", type: "Balans", label: "1. Sittande balans", max: 1,
+opts: [
+{ val: "", text: "Välj..." },
+{ val: 0, text: "Glider ner i stolen (0 p)" },
+{ val: 1, text: "Stadig och säker (1 p)" }
+]
+},
+{
+id: "eq2", type: "Balans", label: "2. Uppresning", max: 2,
+opts: [
+{ val: "", text: "Välj..." },
+{ val: 0, text: "Klarar ej utan hjälp (0 p)" },
+{ val: 1, text: "Använder armarna till hjälp (1 p)" },
+{ val: 2, text: "Klarar det utan att använda armarna (2 p)" }
+]
+},
+{
+id: "eq3", type: "Balans", label: "3. Försök till uppresning", max: 2,
+opts: [
+{ val: "", text: "Välj..." },
+{ val: 0, text: "Klarar ej eller kräver mycket hjälp (0 p)" },
+{ val: 1, text: "Klarar det, men behöver mer än 1 försök (1 p)" },
+{ val: 2, text: "Klarar det på ett försök (2 p)" }
+]
+},
+{
+id: "eq4", type: "Balans", label: "4. Omedelbar stående balans (Första 5 sek)", max: 2,
+opts: [
+{ val: "", text: "Välj..." },
+{ val: 0, text: "Ostadig (vacklar, rör fötterna) (0 p)" },
+{ val: 1, text: "Stadig men använder stöd (käpp, etc.) (1 p)" },
+{ val: 2, text: "Stadig utan stöd (2 p)" }
+]
+},
+{
+id: "eq5", type: "Balans", label: "5. Stående balans", max: 2,
+opts: [
+{ val: "", text: "Välj..." },
+{ val: 0, text: "Ostadig (0 p)" },
+{ val: 1, text: "Stadig med bred bas eller använder stöd (1 p)" },
+{ val: 2, text: "Smal bas utan stöd (2 p)" }
+]
+},
+{
+id: "eq6", type: "Balans", label: "6. Knuff på bröstbenet", max: 2,
+opts: [
+{ val: "", text: "Välj..." },
+{ val: 0, text: "Börjar falla (0 p)" },
+{ val: 1, text: "Vacklar / Griper tag (1 p)" },
+{ val: 2, text: "Stadig / Stabil (2 p)" }
+]
+},
+{
+id: "eq7", type: "Balans", label: "7. Slutna ögon (Stående)", max: 1,
+opts: [
+{ val: "", text: "Välj..." },
+{ val: 0, text: "Ostadig (0 p)" },
+{ val: 1, text: "Stadig (1 p)" }
+]
+},
+{
+id: "eq8", type: "Balans", label: "8. Vändning 360º (Steg)", max: 1,
+opts: [
+{ val: "", text: "Välj..." },
+{ val: 0, text: "Diskontinuerliga steg (0 p)" },
+{ val: 1, text: "Kontinuerliga steg (1 p)" }
+]
+},
+{
+id: "eq9", type: "Balans", label: "9. Vändning 360º (Stabilitet)", max: 1,
+opts: [
+{ val: "", text: "Välj..." },
+{ val: 0, text: "Ostadig (0 p)" },
+{ val: 1, text: "Stadig (1 p)" }
+]
+},
+{
+id: "eq10", type: "Balans", label: "10. Sätta sig", max: 2,
+opts: [
+{ val: "", text: "Välj..." },
+{ val: 0, text: "Osäker / Faller ner i stolen (0 p)" },
+{ val: 1, text: "Använder armarna eller häftig rörelse (1 p)" },
+{ val: 2, text: "Säker, jämn rörelse (2 p)" }
+]
+},
+{
+id: "m1", type: "Gång", label: "11. Igångsättning av gång", max: 1,
+opts: [
+{ val: "", text: "Välj..." },
+{ val: 0, text: "Tvekan eller flera försök (0 p)" },
+{ val: 1, text: "Utan tvekan (1 p)" }
+]
+},
+{
+id: "m2", type: "Gång", label: "12. Steglängd/höjd - Höger steg", max: 2,
+opts: [
+{ val: "", text: "Välj..." },
+{ val: 0, text: "Passerar inte vänster fot / släpar (0 p)" },
+{ val: 1, text: "Passerar ELLER lyfter foten (1 p)" },
+{ val: 2, text: "Passerar vänster fot OCH lyfter foten (2 p)" }
+]
+},
+{
+id: "m3", type: "Gång", label: "13. Steglängd/höjd - Vänster steg", max: 2,
+opts: [
+{ val: "", text: "Välj..." },
+{ val: 0, text: "Passerar inte höger fot / släpar (0 p)" },
+{ val: 1, text: "Passerar ELLER lyfter foten (1 p)" },
+{ val: 2, text: "Passerar höger fot OCH lyfter foten (2 p)" }
+]
+},
+{
+id: "m4", type: "Gång", label: "14. Stegsymmetri", max: 1,
+opts: [
+{ val: "", text: "Välj..." },
+{ val: 0, text: "Olika steglängder (0 p)" },
+{ val: 1, text: "Lika steglängder (1 p)" }
+]
+},
+{
+id: "m5", type: "Gång", label: "15. Stegkontinuitet", max: 1,
+opts: [
+{ val: "", text: "Välj..." },
+{ val: 0, text: "Stopp eller diskontinuitet (0 p)" },
+{ val: 1, text: "Kontinuerliga steg (1 p)" }
+]
+},
+{
+id: "m6", type: "Gång", label: "16. Gångriktning", max: 2,
+opts: [
+{ val: "", text: "Välj..." },
+{ val: 0, text: "Markant avvikelse / använder stöd (0 p)" },
+{ val: 1, text: "Lätt / måttlig avvikelse utan stöd (1 p)" },
+{ val: 2, text: "Rak linje utan stöd (2 p)" }
+]
+},
+{
+id: "m7", type: "Gång", label: "17. Bålens stabilitet", max: 2,
+opts: [
+{ val: "", text: "Välj..." },
+{ val: 0, text: "Markant svajande eller använder stöd (0 p)" },
+{ val: 1, text: "Inget svajande, men böjer knän/rygg (1 p)" },
+{ val: 2, text: "Inget svajande och ingen böjning (2 p)" }
+]
+},
+{
+id: "m8", type: "Gång", label: "18. Gångbas", max: 1,
+opts: [
+{ val: "", text: "Välj..." },
+{ val: 0, text: "Hälarna isär (0 p)" },
+{ val: 1, text: "Hälarna nuddar nästan varandra vid gång (1 p)" }
+]
+}
+];
+
+// --- RENDERIZAÇÃO DOS CARDS (GRID) ---
+function renderizarItensTinetti() {
+const container = document.getElementById("tinettiForm");
+container.innerHTML = "";
+
+let currentSection = "";
+
+ITENS_TINETTI.forEach((item) => {
+// Criar divisória se mudar de seção
+if (item.type !== currentSection) {
+const secTitle = document.createElement("div");
+secTitle.className = "col-span-full text-[15px] font-bold text-navy border-b-2 border-slate-100 pb-1 mt-4 mb-2 uppercase tracking-wide";
+secTitle.textContent = `Bedömning av ${item.type.toLowerCase()}`;
+container.appendChild(secTitle);
+currentSection = item.type;
+}
+
+let optsHtml = "";
+item.opts.forEach((op) => {
+optsHtml += `<option value="${op.val}" ${op.val === "" ? "disabled selected" : ""}>${op.text}</option>`;
+});
+
+const div = document.createElement("div");
+div.className = "item-card";
+div.id = `card_${item.id}`;
+div.innerHTML = `
+<div class="flex items-center justify-between mb-2">
+<label for="${item.id}" class="text-[13px] font-bold text-slate-800">${item.label}</label>
+<span id="badge_${item.id}" class="item-badge">--/${item.max}</span>
+</div>
+<select id="${item.id}" class="item-select">${optsHtml}</select>
+<div class="mini-bar-wrap">
+<div id="bar_${item.id}" class="mini-bar-fill" style="width: 0%;"></div>
+</div>
+`;
+container.appendChild(div);
+
+const el = document.getElementById(item.id);
+el.addEventListener("change", () => {
+document.getElementById(`card_${item.id}`).classList.remove("error");
+document.getElementById("msgValidacaoErro").style.display = "none";
+atualizarCardIndividual(item.id, item.max);
+});
+
+el.addEventListener('change', startTimer, {once: true});
+el.addEventListener("wheel", function(e) { e.preventDefault(); this.blur(); });
+});
+}
+
+// --- ATUALIZAR STATUS DE UM CARD ESPECÍFICO ---
+function atualizarCardIndividual(id, max) {
+const select = document.getElementById(id);
+const valStr = select.value;
+if (valStr === "") return;
+const val = parseInt(valStr);
+// Barra sempre visível: mínimo 8% para mostrar a cor
+const pct = Math.max((val / max) * 100, 8);
+
+const badge = document.getElementById(`badge_${id}`);
+const bar = document.getElementById(`bar_${id}`);
+
+badge.textContent = `${val}/${max}`;
+bar.style.width = `${pct}%`;
+
+// Cores baseadas na pontuação (Tinetti: quanto maior, melhor)
+let cor = "#e11d48"; // 0 pts = Vermelho (alto risco)
+if (val === max) cor = "#16a34a"; // Máximo = Verde (baixo risco)
+else if (val > 0 && val < max) cor = "#eab308"; // Intermediário = Amarelo
+
+bar.style.backgroundColor = cor;
+
+// Badge também muda de cor conforme escore
+badge.style.backgroundColor = cor === "transparent" ? "" : `${cor}15`;
+badge.style.color = cor === "transparent" ? "" : cor;
+badge.style.borderColor = cor === "transparent" ? "" : `${cor}30`;
+atualizarBarraGlobal();
+}
+
+// --- BARRA FLUTUANTE GLOBAL E CONTADOR ---
+function atualizarBarraGlobal() {
+let preenchidos = 0;
+ITENS_TINETTI.forEach((i) => {
+if (document.getElementById(i.id).value !== "") preenchidos++;
+});
+
+const pctGlobal = (preenchidos / 18) * 100;
+document.getElementById("progress-bar-global").style.width = `${pctGlobal}%`;
+document.getElementById("contadorPreenchidos").textContent = `${preenchidos}/18`;
+}
+
+// --- LÓGICA DADOS DO PACIENTE (TOGGLE) ---
+document.getElementById("btnToggleDados").addEventListener("click", function () {
+const body = document.getElementById("dadosBody");
+const chevron = document.getElementById("dadosChevron");
+const subtitle = document.getElementById("dadosSubtitle");
+
+if (body.classList.contains("open")) {
+body.classList.remove("open");
+chevron.style.transform = "rotate(0deg)";
+subtitle.textContent = "Fyll i för journal/PDF-rapport";
+this.style.background = "white";
+} else {
+body.classList.add("open");
+chevron.style.transform = "rotate(180deg)";
+subtitle.textContent = "Dölj panelen";
+this.style.background = "#EFF6FF";
+}
+});
+document.getElementById("pacData").value = new Date().toISOString().split("T")[0];
+
+// --- CÁLCULO E RESULTADO ---
+const resultadoSection = document.getElementById("resultado-section");
+
+function calcular() {
+let incompleto = false;
+let somaTotal = 0;
+let dominiosValores = [];
+let diagnosticosKeywords = ["fall", "balans", "rörlighet", "fysisk", "risk"];
+let primeiroErro = null;
+
+ITENS_TINETTI.forEach((item) => {
+const selectVal = document.getElementById(item.id).value;
+if (selectVal === "") {
+incompleto = true;
+document.getElementById(`card_${item.id}`).classList.add("error");
+if(!primeiroErro) primeiroErro = document.getElementById(`card_${item.id}`);
+dominiosValores.push({ nome: item.label, obtido: 0, max: item.max });
+} else {
+document.getElementById(`card_${item.id}`).classList.remove("error");
+const val = parseInt(selectVal);
+somaTotal += val;
+dominiosValores.push({ nome: item.label, obtido: val, max: item.max });
+
+// Alimentando palavras-chave para o NANDA se a pontuação for perigosa
+if (val < item.max) {
+if (item.type === "Gång") diagnosticosKeywords.push("gång", "förflyttning");
+if (item.type === "Balans") diagnosticosKeywords.push("svaghet", "egenvård", "positionering");
+}
+}
+});
+
+if (incompleto) {
+const msgErro = document.getElementById("msgValidacaoErro");
+msgErro.style.display = "block";
+if (primeiroErro) {
+primeiroErro.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+return;
+}
+
+document.getElementById("msgValidacaoErro").style.display = "none";
+clearInterval(timerInterval);
+
+// Determinar Classificação Tinetti (Max 28)
+// Padrão clássico: <=18 Alto Risco, 19-23 Moderado, >=24 Baixo Risco
+let classe = "", bgPill = "", recomendacao = "";
+if (somaTotal <= 18) {
+classe = "Hög fallrisk"; bgPill = "#e11d48"; // Vermelho
+recomendacao = "Indikerar en allvarlig fallrisk. Omedelbar implementering av fallpreventionsprotokoll (sänggrindar, belysning, tillgänglig ringklocka), rörelsehjälp och övervakning är obligatoriskt.";
+} else if (somaTotal <= 23) {
+classe = "Måttlig risk"; bgPill = "#eab308"; // Amarelo
+recomendacao = "Indikerar en måttlig risk. Miljöanpassningar, användning av gånghjälpmedel om indicerat och övervakning under gång rekommenderas.";
+} else {
+classe = "Låg risk"; bgPill = "#16a34a"; // Verde
+recomendacao = "Indikerar låg fallrisk. Patienten har bra balans och funktionell gång. Upprätthåll standardiserade förebyggande åtgärder och uppmuntra fysiska aktiviteter med fokus på styrka och balans.";
+}
+
+// Exibir no Hero Card
+document.getElementById("scoreValor").textContent = somaTotal;
+const pill = document.getElementById("statusPill");
+pill.textContent = classe;
+pill.style.backgroundColor = bgPill;
+
+// Destacar card correspondente no Sidebar
+const scpIds = ["scp-baixo", "scp-moderado", "scp-alto"];
+scpIds.forEach(id => {
+const el = document.getElementById(id);
+if (el) {
+el.style.transform = "scale(1)";
+el.style.boxShadow = "";
+el.classList.remove("scp-highlight");
+}
+});
+
+let scpAlvo = null;
+if (somaTotal <= 18) scpAlvo = document.getElementById("scp-alto");
+else if (somaTotal <= 23) scpAlvo = document.getElementById("scp-moderado");
+else scpAlvo = document.getElementById("scp-baixo");
+
+if (scpAlvo) {
+scpAlvo.style.transform = "scale(1.03)";
+scpAlvo.style.boxShadow = "0 8px 25px rgba(0,0,0,0.25)";
+scpAlvo.classList.add("scp-highlight");
+}
+
+document.getElementById("resultadoMensagem").innerHTML = `Patienten fick en poäng på <strong>${somaTotal} poäng</strong> av 28 möjliga.<br><br><strong>Åtgärd:</strong> ${recomendacao}`;
+
+// Gerar Tabela de Detalhamento
+const tbody = document.getElementById("tabelaDominios");
+tbody.innerHTML = "";
+dominiosValores.forEach((dom) => {
+const pct = Math.round((dom.obtido / dom.max) * 100);
+
+let cor = "#e11d48"; // Vermelho (0)
+if (dom.obtido === dom.max) cor = "#16a34a"; // Verde (Máximo)
+else if (dom.obtido > 0 && dom.obtido < dom.max) cor = "#eab308"; // Amarelo (Intermediário)
+
+const tr = document.createElement("tr");
+tr.innerHTML = `
+<td class="font-bold text-slate-700">${dom.nome}</td>
+<td class="text-center font-black" style="color: ${cor}">${dom.obtido}</td>
+<td class="text-center text-slate-400">${dom.max}</td>
+<td>
+<div class="flex items-center gap-3">
+<div class="flex-1 h-[6px] bg-slate-200 rounded-full overflow-hidden">
+<div style="width: ${pct}%; background-color: ${cor};" class="h-full rounded-full"></div>
+</div>
+<span class="text-[11px] font-bold" style="color: ${cor}">${pct}%</span>
+</div>
+</td>
+`;
+tbody.appendChild(tr);
+});
+document.getElementById("totalObtidoTd").textContent = somaTotal;
+document.getElementById("totalObtidoTd").style.color = bgPill;
+
+// Mostrar Seção
+resultadoSection.classList.add("visible");
+resultadoSection.style.display = "block";
+setTimeout(() => {
+resultadoSection.scrollIntoView({ behavior: "smooth", block: "start" });
+}, 100);
+
+// Chamar NANDA
+chamarNanda(diagnosticosKeywords);
+
+window.__calcData = { soma: somaTotal, classe, dominios: dominiosValores };
+}
+
+async function chamarNanda(keywords) {
+const lista = document.getElementById("lista-nanda");
+lista.innerHTML = '<li class="text-sm text-slate-500 text-center py-4"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="fa-spin mr-2 inline-block" fill="currentColor" width="1em" height="1em" aria-hidden="true"><path d="M304 48a48 48 0 1 0 -96 0 48 48 0 1 0 96 0zm0 416a48 48 0 1 0 -96 0 48 48 0 1 0 96 0zM48 304a48 48 0 1 0 0-96 48 48 0 1 0 0 96zm464-48a48 48 0 1 0 -96 0 48 48 0 1 0 96 0zM142.9 437A48 48 0 1 0 75 369.1 48 48 0 1 0 142.9 437zm0-294.2A48 48 0 1 0 75 75a48 48 0 1 0 67.9 67.9zM369.1 437A48 48 0 1 0 437 369.1 48 48 0 1 0 369.1 437z"/></svg> Söker i NANDA-I databasen...</li>';
+
+try {
+const response = await fetch("/banco_nanda.json");
+if (!response.ok) throw new Error("Erro fetch");
+const banco = await response.json();
+
+const pontuados = banco
+.map((diag) => {
+let matchScore = 0;
+const texto = (diag.diagnostico + " " + diag.definicao).toLowerCase();
+keywords.forEach((kw) => {
+if (texto.includes(kw.toLowerCase())) matchScore++;
+});
+return { ...diag, matchScore };
+})
+.filter((d) => d.matchScore > 0);
+
+pontuados.sort((a, b) => b.matchScore - a.matchScore);
+
+// Dedup (Palavras de exclusão adaptadas estruturalmente para sueco se o banco permitir, mantendo a robustez)
+const prefixosIgnorar = ["risk för", "benägenhet för", "syndrom", "tendens till", "risk"];
+const temasUsados = new Set();
+const topDiversos = [];
+
+function extrairTema(titulo) {
+let t = titulo.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+for (const p of prefixosIgnorar) {
+if (t.startsWith(p)) { t = t.slice(p.length).trim(); break; }
+}
+const palavras = t.split(/\s+/).filter(w => w.length > 3 && !["för", "med", "utan", "som", "av", "att", "inte", "förbättrad", "förbättrat", "nedsatt", "vuxen", "barn", "neonatal", "äldre", "spädbarn", "kvinna", "man"].includes(w));
+return palavras.slice(0, 4).join(" ");
+}
+
+for (const d of pontuados) {
+const tema = extrairTema(d.diagnostico);
+if (!temasUsados.has(tema) && !temasUsados.has(d.codigo)) {
+temasUsados.add(tema);
+temasUsados.add(d.codigo);
+topDiversos.push(d);
+}
+if (topDiversos.length >= 6) break;
+}
+
+if (topDiversos.length > 0) {
+lista.innerHTML = "";
+topDiversos.forEach((d) => {
+lista.innerHTML += `
+<li class="nanda-item flex items-start gap-3">
+<span class="bg-blue-100 text-blue-800 text-[10px] font-black px-2 py-1 rounded shadow-sm mt-0.5">${d.codigo}</span>
+<div>
+<h5 class="text-[13px] font-bold text-slate-800 leading-tight mb-1">${d.diagnostico}</h5>
+<p class="text-[11px] text-slate-500 leading-snug m-0">${d.definicao}</p>
+</div>
+</li>
+`;
+});
+} else {
+lista.innerHTML = '<li class="text-xs text-slate-500 text-center py-4">Ingen primär kritisk diagnos associerad med aktuella val.</li>';
+}
+} catch (e) {
+lista.innerHTML = '<li class="text-xs text-red-500 text-center py-4">NANDA-databasen är tillfälligt otillgänglig.</li>';
+}
+}
+
+function limpar() {
+ITENS_TINETTI.forEach((item) => {
+document.getElementById(item.id).value = "";
+document.getElementById(`card_${item.id}`).classList.remove("error");
+
+const badge = document.getElementById(`badge_${item.id}`);
+const bar = document.getElementById(`bar_${item.id}`);
+badge.textContent = `--/${item.max}`;
+bar.style.width = `0%`;
+bar.style.backgroundColor = "transparent";
+});
+document.getElementById("pacNome").value = "";
+document.getElementById("pacIdade").value = "";
+document.getElementById("pacSetor").value = "";
+document.getElementById("msgValidacaoErro").style.display = "none";
+atualizarBarraGlobal();
+
+clearInterval(timerInterval);
+timerInterval = null;
+seconds = 0;
+document.getElementById('crono-timer').textContent = "00:00";
+
+const scpIds = ["scp-baixo", "scp-moderado", "scp-alto"];
+scpIds.forEach(id => {
+const el = document.getElementById(id);
+if (el) {
+el.style.transform = "scale(1)";
+el.style.boxShadow = "";
+el.classList.remove("scp-highlight");
+}
+});
+
+resultadoSection.classList.remove("visible");
+window.scrollTo({ top: 0, behavior: "smooth" });
+window.__calcData = null;
+}
+
+// --- EXPORTAÇÃO (PDF e PRINT) ---
+function getDadosImpressao() {
+const cData = window.__calcData;
+const dataVal = document.getElementById("pacData").value;
+const dataFormatada = dataVal ? dataVal.split("-").reverse().join("/") : new Date().toLocaleDateString("sv-SE");
+const tempo = document.getElementById("crono-timer").textContent;
+
+return {
+nome: document.getElementById("pacNome").value.trim(),
+idade: document.getElementById("pacIdade").value.trim(),
+setor: document.getElementById("pacSetor").value.trim(),
+data: dataFormatada,
+tempo: tempo,
+soma: cData.soma,
+classe: cData.classe,
+dominios: cData.dominios
+};
+}
+
+function gerarPDF() {
+if (typeof window.jspdf === "undefined") {
+const btn = document.getElementById("btnGerarPDF");
+const origText = btn.innerHTML;
+btn.innerHTML = "Laddar generator...";
+btn.style.opacity = "0.7"; btn.style.pointerEvents = "none";
+const s1 = document.createElement("script");
+s1.src = "https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js";
+document.body.appendChild(s1);
+s1.onload = () => {
+const s2 = document.createElement("script");
+s2.src = "https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js";
+document.body.appendChild(s2);
+s2.onload = () => {
+btn.innerHTML = origText;
+btn.style.opacity = "1"; btn.style.pointerEvents = "auto";
+executarPDF();
+};
+};
+return;
+}
+executarPDF();
+}
+
+function executarPDF() {
+const { jsPDF } = window.jspdf;
+const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
+const data = getDadosImpressao();
+
+const navy = [26, 62, 116];
+const slateLight = [241, 245, 249];
+const W = 210,
+marginL = 18,
+marginR = 18,
+usable = W - marginL - marginR;
+
+// Cabeçalho
+doc.setFillColor(...navy);
+doc.rect(0, 0, W, 32, "F");
+doc.setTextColor(255, 255, 255);
+doc.setFont("helvetica", "bold");
+doc.setFontSize(14);
+doc.text("Tinettis skala (POMA)", marginL, 13);
+doc.setFontSize(9);
+doc.setFont("helvetica", "normal");
+doc.text("Bedömning av gång och balans", marginL, 20);
+doc.text("Datum: " + data.data, W - marginR, 20, { align: "right" });
+
+let y = 42;
+
+// Identificação
+if (data.nome || data.idade || data.setor) {
+doc.setFillColor(...slateLight);
+doc.roundedRect(marginL, y, usable, 8, 2, 2, "F");
+doc.setTextColor(...navy);
+doc.setFont("helvetica", "bold");
+doc.setFontSize(9);
+doc.text("PATIENTIDENTIFIKATION", marginL + 4, y + 5.5);
+y += 12;
+
+if (data.nome) {
+doc.text("Namn:", marginL, y);
+doc.setFont("helvetica", "normal");
+doc.setTextColor(30, 41, 59);
+doc.text(data.nome, marginL + 20, y);
+y += 6;
+doc.setFont("helvetica", "bold");
+doc.setTextColor(...navy);
+}
+if (data.idade) {
+doc.text("Ålder:", marginL, y);
+doc.setFont("helvetica", "normal");
+doc.setTextColor(30, 41, 59);
+doc.text(data.idade, marginL + 20, y);
+y += 6;
+doc.setFont("helvetica", "bold");
+doc.setTextColor(...navy);
+}
+if (data.setor) {
+doc.text("Avdelning/Säng:", marginL, y);
+doc.setFont("helvetica", "normal");
+doc.setTextColor(30, 41, 59);
+doc.text(data.setor, marginL + 25, y);
+y += 6;
+}
+y += 4;
+}
+
+// Pontuação Big
+doc.setFillColor(...navy);
+doc.roundedRect(marginL, y, usable, 22, 3, 3, "F");
+doc.setTextColor(147, 197, 253);
+doc.setFont("helvetica", "bold");
+doc.setFontSize(8);
+doc.text(`UTVÄRDERINGSTID: ${data.tempo}`, W / 2, y + 6, { align: "center" });
+doc.setTextColor(255, 255, 255);
+doc.setFontSize(26);
+doc.text(String(data.soma) + " / 28", W / 2, y + 17, { align: "center" });
+y += 28;
+
+// Status Pill
+let pillColor = [22, 163, 74]; // Verde
+if (data.soma <= 18) pillColor = [225, 29, 72]; // Vermelho
+else if (data.soma <= 23) pillColor = [234, 179, 8]; // Amarelo
+
+doc.setFillColor(...pillColor);
+doc.roundedRect(marginL, y, usable, 8, 2, 2, "F");
+doc.setTextColor(255, 255, 255);
+doc.setFont("helvetica", "bold");
+doc.setFontSize(9);
+doc.text(data.classe.toUpperCase(), W / 2, y + 5.5, { align: "center" });
+y += 16;
+
+// Tabela AutoTable
+doc.setFillColor(...slateLight);
+doc.roundedRect(marginL, y, usable, 8, 2, 2, "F");
+doc.setTextColor(...navy);
+doc.text("MINNESANTECKNINGAR KLINISK BEDÖMNING", marginL + 4, y + 5.5);
+y += 11;
+
+const bodyData = data.dominios.map((d) => {
+return [d.nome.replace(/^\d+\.\s*/, ""), d.obtido, d.max, Math.round((d.obtido / d.max) * 100) + "%"];
+});
+
+doc.autoTable({
+startY: y,
+margin: { left: marginL, right: marginR },
+head: [["Utvärderad uppgift", "Poäng", "Max", "%"]],
+body: bodyData,
+foot: [["TINETTI TOTALT", data.soma, 28, Math.round((data.soma / 28) * 100) + "%"]],
+styles: { fontSize: 8.5, cellPadding: 2, lineColor: [226, 232, 240], lineWidth: 0.3 },
+headStyles: { fillColor: navy, textColor: 255, fontStyle: "bold" },
+footStyles: { fillColor: [239, 246, 255], textColor: navy, fontStyle: "bold" },
+columnStyles: { 0: { cellWidth: 100 }, 1: { halign: "center", cellWidth: 15 }, 2: { halign: "center" }, 3: { halign: "center" } },
+alternateRowStyles: { fillColor: [248, 250, 252] },
+});
+
+// Rodapé
+const pageCount = doc.internal.getNumberOfPages();
+for(let i = 1; i <= pageCount; i++) {
+doc.setPage(i);
+let py = 280;
+doc.setDrawColor(...slateLight);
+doc.setLineWidth(0.3);
+doc.line(marginL, py, W - marginR, py);
+doc.setTextColor(148, 163, 184);
+doc.setFontSize(7.5);
+doc.setFont("helvetica", "normal");
+doc.text("TINETTI, M. E. Journal of the American Geriatrics Society (1986).", marginL, py + 5);
+doc.text("www.calculadorasdeenfermagem.com.br", W - marginR, py + 5, { align: "right" });
+}
+
+const nomeArquivo = data.nome ? `rapport-tinetti-${data.nome.replace(/\s+/g, "-").toLowerCase()}.pdf` : "rapport-tinetti.pdf";
+doc.save(nomeArquivo);
+}
+
+function imprimirLaudo() {
+const data = getDadosImpressao();
+
+let pillColor = "#16a34a"; // Verde
+if (data.soma <= 18) pillColor = "#e11d48"; // Vermelho
+else if (data.soma <= 23) pillColor = "#eab308"; // Amarelo
+
+const linhasTabela = data.dominios.map((d) => {
+let corVal = "#16a34a";
+if (d.obtido === 0) corVal = "#e11d48";
+else if (d.obtido < d.max) corVal = "#eab308";
+const pct = Math.round((d.obtido / d.max) * 100);
+
+return `<tr><td>${d.nome.replace(/^\d+\.\s*/, "")}</td><td style="text-align:center;font-weight:bold;color:${corVal}">${d.obtido}</td><td style="text-align:center;color:#475569">${d.max}</td><td style="text-align:center;font-weight:bold;color:${corVal}">${pct}%</td></tr>`;
+}).join("");
+
+// Resgatando HTML do NANDA list gerado
+const nandaHtml = document.getElementById("lista-nanda").innerHTML;
+
+const html = `<!DOCTYPE html><html lang="sv-SE"><head><meta charset="UTF-8"><title>Tinetti Rapport</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:Arial,sans-serif;font-size:10pt;color:#1E293B;padding:24px 32px}
+.hdr{background:#1A3E74;color:white;padding:14px 20px;border-radius:8px;display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+.hdr h1{font-size:13pt;font-weight:900}
+.hdr p{font-size:8pt;opacity:0.8;margin-top:3px}
+.secao{margin-bottom:14px}
+.sec-titulo{font-size:8pt;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:#1A3E74;background:#EFF6FF;padding:5px 10px;border-radius:4px;margin-bottom:8px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px 20px;font-size:11pt;line-height:1.6;}
+.grid2 strong{font-size:11pt;font-weight:900;color:#1A3E74;}
+.res-box{border:2px solid #1A3E74;border-radius:8px;padding:14px 18px;background:#F8FAFC;text-align:center;margin-bottom:14px}
+.res-score{font-size:36pt;font-weight:900;color:#1A3E74;line-height:1}
+.res-pill{display:inline-block;background:${pillColor};color:white;font-size:9pt;font-weight:bold;padding:4px 16px;border-radius:20px;text-transform:uppercase;margin:8px 0}
+table{width:100%;border-collapse:collapse;margin-bottom:16px}
+th{background:#1A3E74;color:white;font-size:8pt;padding:6px 8px;text-align:left}
+td{font-size:8.5pt;padding:5px 8px;border-bottom:1px solid #F1F5F9}
+tfoot td{background:#EFF6FF;font-weight:700;color:#1A3E74;border-top:2px solid #1A3E74}
+.nanda-box{border:1px solid #E2E8F0;border-radius:8px;padding:12px;font-size:9pt}
+ul{list-style:none;} .nanda-item{border-bottom:1px solid #f1f5f9;padding:6px 0;} .nanda-item:last-child{border:none}
+.sig{display:grid;grid-template-columns:1fr 1fr;gap:30px;margin-top:28px}
+.sig-line{border-top:1px solid #1A3E74;padding-top:5px;font-size:8pt;color:#64748B;text-align:center}
+.footer{text-align:center;font-size:7.5pt;color:#94A3B8;margin-top:20px;border-top:1px solid #E2E8F0;padding-top:8px}
+.valor{font-size:11.5pt;font-weight:900;color:#000;text-transform:uppercase;letter-spacing:.03em;font-family:Arial,sans-serif;}
+</style></head><body>
+<div class="hdr"><div><h1>Tinettis skala</h1><p>Bedömning av gång och balans</p></div><div style="text-align:right;color:white;"><div style="font-size:10pt;font-weight:900;">DATUM: ${data.data}</div><div style="font-size:8pt;opacity:.85;margin-top:2px;">${new Date().toLocaleTimeString('sv-SE')}</div></div></div>
+${
+data.nome || data.idade || data.setor
+? `<div class="secao"><div class="sec-titulo">PATIENTIDENTIFIKATION</div><div class="grid2">
+${data.nome ? `<p><strong>NAMN:</strong> <span class="valor">${data.nome.toUpperCase()}</span></p>` : ""}
+${data.idade ? `<p><strong>ÅLDER:</strong> <span class="valor">${data.idade.toUpperCase()}</span></p>` : ""}
+${data.setor ? `<p><strong>AVDELNING/SÄNG:</strong> <span class="valor">${data.setor.toUpperCase()}</span></p>` : ""}
+</div></div>`
+: ""
+}
+<div class="secao"><div class="res-box"><div class="res-score">${data.soma} <span style="font-size:18pt;color:#64748B;font-weight:700;">/ 28</span></div><div><span class="res-pill">${data.classe}</span></div><p style="margin-top:8px; font-weight:bold; color:#1A3E74">Utvärderingstid: ${data.tempo}</p></div></div>
+<div class="secao"><div class="sec-titulo">Minnesanteckningar klinisk bedömning (18 Uppgifter)</div>
+<table><thead><tr><th>Utvärderad uppgift</th><th style="text-align:center">Poäng</th><th style="text-align:center">Max</th><th style="text-align:center">%</th></tr></thead><tbody>${linhasTabela}</tbody>
+<tfoot><tr><td>TOTALPOÄNG TINETTI</td><td style="text-align:center">${data.soma}</td><td style="text-align:center">28</td><td style="text-align:center">${Math.round((data.soma / 28) * 100)}%</td></tr></tfoot></table></div>
+<div class="secao"><div class="sec-titulo">Föreslagna NANDA-diagnoser</div><div class="nanda-box"><ul>${nandaHtml}</ul></div></div>
+<div class="sig"><div class="sig-line">Underskrift av vårdpersonal / sjuksköterska</div><div class="sig-line">Ort och datum</div></div>
+<div class="footer">TINETTI, M. E. Journal of the American Geriatrics Society (1986) | Calculadoras de Enfermagem — www.calculadorasdeenfermagem.com.br</div>
+<script>window.onload=function(){window.print();}<\/script></body></html>`;
+
+const janela = window.open("", "_blank");
+janela.document.write(html);
+janela.document.close();
+}
+
+// Eventos
+document.getElementById("btnCalcular").addEventListener("click", calcular);
+document.getElementById("btnLimpar").addEventListener("click", limpar);
+document.getElementById("btnGerarPDF").addEventListener("click", function() {
+const btn = this;
+const textoOriginal = btn.innerHTML;
+
+// Se a biblioteca já foi carregada nesta sessão, apenas gera o PDF
+if (typeof window.jspdf !== 'undefined') {
+gerarPDF();
+return;
+}
+
+// Dá um feedback visual rápido para o usuário não clicar duas vezes
+btn.innerHTML = "Laddar generator...";
+btn.style.opacity = "0.7";
+btn.style.pointerEvents = "none";
+
+// Cria e injeta o script principal do jsPDF
+const scriptMain = document.createElement('script');
+scriptMain.src = "https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js";
+document.body.appendChild(scriptMain);
+
+scriptMain.onload = function() {
+// Assim que o principal carregar, injeta o plugin AutoTable
+const scriptPlugin = document.createElement('script');
+scriptPlugin.src = "https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js";
+document.body.appendChild(scriptPlugin);
+
+scriptPlugin.onload = function() {
+// Quando ambos carregarem, restaura o botão e dispara a geração do PDF
+btn.innerHTML = textoOriginal;
+btn.style.opacity = "1";
+btn.style.pointerEvents = "auto";
+gerarPDF();
+};
+};
+});
+document.getElementById("btnImprimir").addEventListener("click", imprimirLaudo);
+
+// Iniciar
+renderizarItensTinetti();
+atualizarBarraGlobal();
+})();
+</script>
 <div id="footer-placeholder"></div>
-___BLOCK_27___
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+setTimeout(() => {
+fetch("footer.html")
+.then((response) => response.text())
+.then((data) => {
+document.getElementById("footer-placeholder").innerHTML = data;
+});
+}, 150);
+});
+</script>
 </body>
 </html>
