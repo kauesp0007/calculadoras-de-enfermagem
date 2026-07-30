@@ -829,19 +829,19 @@ container.innerHTML = "";
 ITENS_WATERLOW.forEach((item) => {
 let optsHtml = "";
 item.opts.forEach((op) => {
-optsHtml += `<option value="${op.val}" ${op.val === "" ? "deaktiviert ausgewählt" : ""}>${op.text}</option>`;
+optsHtml += `<option value="${op.val}" ${op.val === "" ? "disabled selected" : ""}>${op.text}</option>`;
 });
 
 const div = document.createElement("div");
 div.className = "item-card";
-div.id = `karte_${item.id}`;
+div.id = `card_${item.id}`;
 div.innerHTML = `
 <div class="flex items-center justify-between mb-2">
 <label for="${item.id}" class="text-[13px] font-bold text-slate-800">${item.label} <span class="text-red-500">*</span></label>
 <span id="badge_${item.id}" class="item-badge">--/${item.max}</span>
 </div>
 <p class="text-[11px] text-slate-500 mb-3 leading-snug h-8">${item.desc}</p>
-<select id="${item.id}" class="item-select Pflichtfeld">${optsHtml}</select>
+<select id="${item.id}" class="item-select obrigatorio">${optsHtml}</select>
 <div class="mini-bar-wrap">
 <div id="bar_${item.id}" class="mini-bar-fill" style="width: 0%;"></div>
 </div>
@@ -850,7 +850,7 @@ container.appendChild(div);
 
 const el = document.getElementById(item.id);
 el.addEventListener("change", () => {
-document.getElementById(`karte_${item.id}`).classList.remove("error");
+document.getElementById(`card_${item.id}`).classList.remove("error");
 document.getElementById("msgValidacaoErro").style.display = "none";
 atualizarCardIndividual(item.id, item.max);
 });
@@ -874,7 +874,7 @@ div.innerHTML = `
 `;
 container.appendChild(div);
 
-const groupContainer = document.getElementById(`gruppe_${grupo.id}`);
+const groupContainer = document.getElementById(`group_${grupo.id}`);
 grupo.opts.forEach((op) => {
 const label = document.createElement("label");
 label.className = "waterlow-checkbox-label";
@@ -899,8 +899,8 @@ const val = parseInt(valStr);
 // Barra sempre visível: mínimo 8% para mostrar a cor
 const pct = Math.max((val / max) * 100, 8);
 
-const badge = document.getElementById(`abzeichen_${id}`);
-const bar = document.getElementById(`balken_${id}`);
+const badge = document.getElementById(`badge_${id}`);
+const bar = document.getElementById(`bar_${id}`);
 
 badge.textContent = `${val}/${max}`;
 bar.style.width = `${pct}%`;
@@ -970,11 +970,11 @@ const selectElement = document.getElementById(item.id);
 const selectVal = selectElement.value;
 if (selectVal === "") {
 incompleto = true;
-document.getElementById(`karte_${item.id}`).classList.add("error");
-if(!primeiroErro) primeiroErro = document.getElementById(`karte_${item.id}`);
+document.getElementById(`card_${item.id}`).classList.add("error");
+if(!primeiroErro) primeiroErro = document.getElementById(`card_${item.id}`);
 dominiosValores.push({ nome: item.label, obtido: 0, text: "Nicht ausgefüllt" });
 } else {
-document.getElementById(`karte_${item.id}`).classList.remove("error");
+document.getElementById(`card_${item.id}`).classList.remove("error");
 const val = parseInt(selectVal);
 somaTotal += val;
 const textoSelect = selectElement.options[selectElement.selectedIndex].text.replace(/\s*\([^)]*\)$/, ""); // Remove "(x)"
@@ -1170,7 +1170,7 @@ lista.innerHTML = '<li class="text-xs text-red-500 text-center py-4">NANDA-Daten
 function limpar() {
 ITENS_WATERLOW.forEach((item) => {
 document.getElementById(item.id).value = "";
-document.getElementById(`karte_${item.id}`).classList.remove("error");
+document.getElementById(`card_${item.id}`).classList.remove("error");
 
 const badge = document.getElementById(`badge_${item.id}`);
 const bar = document.getElementById(`bar_${item.id}`);
