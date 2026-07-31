@@ -320,6 +320,19 @@ def traduzir_lote_js_com_deepseek(dicionario_scripts, idioma_alvo):
             conteudo = match_tmpl.group(1)
             if not conteudo.strip():
                 continue
+
+            # 🛡 PROTEÇÃO: PULAR template literals HTML gigantes com backticks aninhados.
+            # O regex `...` não suporta nesting. Templates que geram HTML de impressão
+            # (ex.: imprimirLaudo, executarPDF) contêm backticks internos como
+            # ? `<div>...</div>` que são fragmentados incorretamente.
+            # Detectamos pelo marcador <!DOCTYPE ou pela presença de múltiplos `<` HTML.
+            if conteudo.strip().startswith('<!DOCTYPE') or conteudo.strip().startswith('<html'):
+                continue
+            # Também pula templates que contêm atributos HTML com backticks aninhados
+            # (padrão: ? `<tag ...>). Detectamos pelo marcador "<div" após interps.
+            if re.search(r'\?\s*`\s*<', conteudo):
+                continue
+
             interps = re.findall(r'\$\{[^}]+\}', conteudo)
             texto_limpo = conteudo
             for i, interp in enumerate(interps):
