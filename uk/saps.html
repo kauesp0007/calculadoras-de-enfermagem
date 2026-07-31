@@ -1078,18 +1078,18 @@ opts: [
 
 // --- RENDERIZAÇÃO DOS CARDS (GRID) ---
 function renderizarItensSaps() {
-const container = document.getElementById("sapsForm");
+const container = document.getElementById(`sapsForm`);
 container.innerHTML = "";
 
 ITENS_SAPS.forEach((item) => {
 let optsHtml = "";
 item.opts.forEach((op) => {
-optsHtml += `<option value="${op.val}" ${op.val === "" ? "вимкнено вибрано" : ""}>${op.text}</option>`;
+optsHtml += `<option value="${op.val}" ${op.val === "" ? "disabled selected" : ""}>${op.text}</option>`;
 });
 
 const div = document.createElement("div");
 div.className = "item-card";
-div.id = `картка_${item.id}`;
+div.id = `card_${item.id}`;
 div.innerHTML = `
 <div class="flex items-center justify-between mb-2">
 <label for="${item.id}" class="text-[13px] font-bold text-slate-800">${item.label}</label>
@@ -1104,8 +1104,8 @@ container.appendChild(div);
 
 const el = document.getElementById(item.id);
 el.addEventListener("change", () => {
-document.getElementById(`картка_${item.id}`).classList.remove("error");
-document.getElementById("msgValidacaoErro").style.display = "none";
+document.getElementById(`card_${item.id}`).classList.remove("error");
+document.getElementById(`msgValidacaoErro`).style.display = "none";
 atualizarCardIndividual(item.id);
 });
 
@@ -1121,8 +1121,8 @@ const valStr = select.value;
 if (valStr === "") return;
 const val = parseFloat(valStr);
 
-const badge = document.getElementById(`бейдж_${id}`);
-const bar = document.getElementById(`смужка_${id}`);
+const badge = document.getElementById(`badge_${id}`);
+const bar = document.getElementById(`bar_${id}`);
 
 badge.textContent = `${val} бал.`;
 bar.style.width = `100%`;
@@ -1152,15 +1152,15 @@ if (document.getElementById(i.id).value !== "") preenchidos++;
 });
 
 const pctGlobal = (preenchidos / 20) * 100;
-document.getElementById("progress-bar-global").style.width = `${pctGlobal}%`;
-document.getElementById("contadorPreenchidos").textContent = `${preenchidos}/20`;
+document.getElementById(`progress-bar-global`).style.width = `${pctGlobal}%`;
+document.getElementById(`contadorPreenchidos`).textContent = `${preenchidos}/20`;
 }
 
 // --- LÓGICA DADOS DO PACIENTE (TOGGLE) ---
-document.getElementById("btnToggleDados").addEventListener("click", function () {
-const body = document.getElementById("dadosBody");
-const chevron = document.getElementById("dadosChevron");
-const subtitle = document.getElementById("dadosSubtitle");
+document.getElementById(`btnToggleDados`).addEventListener("click", function () {
+const body = document.getElementById(`dadosBody`);
+const chevron = document.getElementById(`dadosChevron`);
+const subtitle = document.getElementById(`dadosSubtitle`);
 
 if (body.classList.contains("open")) {
 body.classList.remove("open");
@@ -1174,10 +1174,10 @@ subtitle.textContent = "Приховати панель";
 this.style.background = "#EFF6FF";
 }
 });
-document.getElementById("pacData").value = new Date().toISOString().split("T")[0];
+document.getElementById(`pacData`).value = new Date().toISOString().split("T")[0];
 
 // --- CÁLCULO E RESULTADO ---
-const resultadoSection = document.getElementById("resultado-section");
+const resultadoSection = document.getElementById(`resultado-section`);
 
 function calcular() {
 let incompleto = false;
@@ -1192,11 +1192,11 @@ const selectVal = selectElement.value;
 
 if (selectVal === "") {
 incompleto = true;
-document.getElementById(`картка_${item.id}`).classList.add("error");
-if(!primeiroErro) primeiroErro = document.getElementById(`картка_${item.id}`);
+document.getElementById(`card_${item.id}`).classList.add("error");
+if(!primeiroErro) primeiroErro = document.getElementById(`card_${item.id}`);
 dominiosValores.push({ nome: item.label, obtido: 0, text: "Не заповнено" });
 } else {
-document.getElementById(`картка_${item.id}`).classList.remove("error");
+document.getElementById(`card_${item.id}`).classList.remove("error");
 const val = parseFloat(selectVal);
 somaTotal += val;
 
@@ -1215,7 +1215,7 @@ if (item.id === "bilirrubinaTotal" || item.id === "plaquetas") diagnosticosKeywo
 });
 
 if (incompleto) {
-const msgErro = document.getElementById("msgValidacaoErro");
+const msgErro = document.getElementById(`msgValidacaoErro`);
 msgErro.style.display = "block";
 if (primeiroErro) {
 primeiroErro.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -1223,7 +1223,7 @@ primeiroErro.scrollIntoView({ behavior: 'smooth', block: 'center' });
 return;
 }
 
-document.getElementById("msgValidacaoErro").style.display = "none";
+document.getElementById(`msgValidacaoErro`).style.display = "none";
 clearInterval(timerInterval);
 
 // Cálculos SAPS III Originais
@@ -1251,9 +1251,9 @@ recomendacao = "Критичний ризик. Стриманий прогноз
 }
 
 // Exibir no Hero Card
-document.getElementById("scoreProb").textContent = probabilidadeMorte.toFixed(1);
-document.getElementById("scorePts").textContent = somaTotal.toFixed(1);
-const pill = document.getElementById("statusPill");
+document.getElementById(`scoreProb`).textContent = probabilidadeMorte.toFixed(1);
+document.getElementById(`scorePts`).textContent = somaTotal.toFixed(1);
+const pill = document.getElementById(`statusPill`);
 pill.textContent = classe;
 pill.style.backgroundColor = bgPill;
 
@@ -1269,9 +1269,9 @@ el.classList.remove("scp-highlight");
 });
 
 let scpAlvo = null;
-if (probabilidadeMorte < 20) scpAlvo = document.getElementById("scp-baixo");
-else if (probabilidadeMorte >= 20 && probabilidadeMorte < 50) scpAlvo = document.getElementById("scp-moderado");
-else scpAlvo = document.getElementById("scp-alto");
+if (probabilidadeMorte < 20) scpAlvo = document.getElementById(`scp-baixo`);
+else if (probabilidadeMorte >= 20 && probabilidadeMorte < 50) scpAlvo = document.getElementById(`scp-moderado`);
+else scpAlvo = document.getElementById(`scp-alto`);
 
 if (scpAlvo) {
 scpAlvo.style.transform = "scale(1.03)";
@@ -1279,10 +1279,10 @@ scpAlvo.style.boxShadow = "0 8px 25px rgba(0,0,0,0.25)";
 scpAlvo.classList.add("scp-highlight");
 }
 
-document.getElementById("resultadoMensagem").innerHTML = `Пацієнт має оцінену ймовірність <strong>${probabilidadeMorte.toFixed(2)}%</strong> внутрішньолікарняної летальності на основі ${somaTotal.toFixed(2)} балів при надходженні.<br><br><strong>Тактика:</strong> ${recomendacao}`;
+document.getElementById(`resultadoMensagem`).innerHTML = `Пацієнт має оцінену ймовірність <strong>${probabilidadeMorte.toFixed(2)}%</strong> внутрішньолікарняної летальності на основі ${somaTotal.toFixed(2)} балів при надходженні.<br><br><strong>Тактика:</strong> ${recomendacao}`;
 
 // Gerar Tabela de Detalhamento
-const tbody = document.getElementById("tabelaDominios");
+const tbody = document.getElementById(`tabelaDominios`);
 tbody.innerHTML = "";
 dominiosValores.forEach((dom) => {
 
@@ -1301,7 +1301,7 @@ tr.innerHTML = `
 `;
 tbody.appendChild(tr);
 });
-document.getElementById("totalObtidoTd").textContent = somaTotal.toFixed(1);
+document.getElementById(`totalObtidoTd`).textContent = somaTotal.toFixed(1);
 
 // Mostrar Seção
 resultadoSection.classList.add("visible");
@@ -1317,7 +1317,7 @@ window.__calcData = { soma: somaTotal, probabilidade: probabilidadeMorte, classe
 }
 
 async function chamarNanda(keywords) {
-const lista = document.getElementById("lista-nanda");
+const lista = document.getElementById(`lista-nanda`);
 lista.innerHTML = '<li class="text-sm text-slate-500 text-center py-4"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="fa-spin mr-2 inline-block" fill="currentColor" width="1em" height="1em" aria-hidden="true"><path d="M304 48a48 48 0 1 0 -96 0 48 48 0 1 0 96 0zm0 416a48 48 0 1 0 -96 0 48 48 0 1 0 96 0zM48 304a48 48 0 1 0 0-96 48 48 0 1 0 0 96zm464-48a48 48 0 1 0 -96 0 48 48 0 1 0 96 0zM142.9 437A48 48 0 1 0 75 369.1 48 48 0 1 0 142.9 437zm0-294.2A48 48 0 1 0 75 75a48 48 0 1 0 67.9 67.9zM369.1 437A48 48 0 1 0 437 369.1 48 48 0 1 0 369.1 437z"/></svg> Запит до бази даних NANDA-I...</li>';
 
 try {
@@ -1376,7 +1376,7 @@ lista.innerHTML += `
 `;
 });
 } else {
-lista.innerHTML = '<li class="text-xs text-slate-500 text-center py-4">Жодного критичного первинного діагнозу, пов'язаного з поточними виборами.</li>';
+lista.innerHTML = '<li class="text-xs text-slate-500 text-center py-4">Жодного критичного первинного діагнозу, пов\u2019язаного з поточними виборами.</li>';
 }
 } catch (e) {
 lista.innerHTML = '<li class="text-xs text-red-500 text-center py-4">База даних NANDA тимчасово недоступна.</li>';
@@ -1386,18 +1386,18 @@ lista.innerHTML = '<li class="text-xs text-red-500 text-center py-4">База д
 function limpar() {
 ITENS_SAPS.forEach((item) => {
 document.getElementById(item.id).value = "";
-document.getElementById(`картка_${item.id}`).classList.remove("error");
+document.getElementById(`card_${item.id}`).classList.remove("error");
 
-const badge = document.getElementById(`бейдж_${item.id}`);
-const bar = document.getElementById(`смужка_${item.id}`);
+const badge = document.getElementById(`badge_${item.id}`);
+const bar = document.getElementById(`bar_${item.id}`);
 badge.textContent = `Бал.`;
 bar.style.width = `0%`;
 bar.style.backgroundColor = "transparent";
 });
-document.getElementById("pacNome").value = "";
-document.getElementById("pacIdade").value = "";
-document.getElementById("pacSetor").value = "";
-document.getElementById("msgValidacaoErro").style.display = "none";
+document.getElementById(`pacNome`).value = "";
+document.getElementById(`pacIdade`).value = "";
+document.getElementById(`pacSetor`).value = "";
+document.getElementById(`msgValidacaoErro`).style.display = "none";
 atualizarBarraGlobal();
 
 clearInterval(timerInterval);
@@ -1423,14 +1423,14 @@ window.__calcData = null;
 // --- EXPORTAÇÃO (PDF e PRINT) ---
 function getDadosImpressao() {
 const cData = window.__calcData;
-const dataVal = document.getElementById("pacData").value;
+const dataVal = document.getElementById(`pacData`).value;
 const dataFormatada = dataVal ? dataVal.split("-").reverse().join("/") : new Date().toLocaleDateString("pt-BR");
-const tempo = document.getElementById("crono-timer").textContent;
+const tempo = document.getElementById(`crono-timer`).textContent;
 
 return {
-nome: document.getElementById("pacNome").value.trim(),
-idade: document.getElementById("pacIdade").value.trim(),
-setor: document.getElementById("pacSetor").value.trim(),
+nome: document.getElementById(`pacNome`).value.trim(),
+idade: document.getElementById(`pacIdade`).value.trim(),
+setor: document.getElementById(`pacSetor`).value.trim(),
 data: dataFormatada,
 tempo: tempo,
 soma: cData.soma,
@@ -1442,7 +1442,7 @@ dominios: cData.dominios
 
 function gerarPDF() {
 if (typeof window.jspdf === "undefined") {
-const btn = document.getElementById("btnGerarPDF");
+const btn = document.getElementById(`btnGerarPDF`);
 const origText = btn.innerHTML;
 btn.innerHTML = "Завантаження генератора...";
 btn.style.opacity = "0.7"; btn.style.pointerEvents = "none";
@@ -1609,9 +1609,37 @@ return `<tr><td>${d.nome.replace(/^\d+\.\s*/, "")}</td><td style="text-align:cen
 }).join("");
 
 // Resgatando HTML do NANDA list gerado
-const nandaHtml = document.getElementById("lista-nanda").innerHTML;
+const nandaHtml = document.getElementById(`lista-nanda`).innerHTML;
 
-const html = `"<!DOCTYPE html><html lang=\"uk-UA\"><head><meta charset=\"UTF-8\"><title>Laudo SAPS III</title>\n<style>\n*{margin:0;padding:0;box-sizing:border-box}\nbody{font-family:Arial,sans-serif;font-size:10pt;color:#1E293B;padding:24px 32px}\n.hdr{background:#1A3E74;color:white;padding:14px 20px;border-radius:8px;display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}\n.hdr h1{font-size:13pt;font-weight:900}\n.hdr p{font-size:8pt;opacity:0.8;margin-top:3px}\n.secao{margin-bottom:14px}\n.sec-titulo{font-size:8pt;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:#1A3E74;background:#EFF6FF;padding:5px 10px;border-radius:4px;margin-bottom:8px}\n.grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px 20px;font-size:11pt;line-height:1.6;}\n.grid2 strong{font-size:11pt;font-weight:900;color:#1A3E74;}\n.res-box{border:2px solid #1A3E74;border-radius:8px;padding:14px 18px;background:#F8FAFC;text-align:center;margin-bottom:14px}\n.res-score{font-size:36pt;font-weight:900;color:#1A3E74;line-height:1}\n.res-pill{display:inline-block;background:${pillColor};color:white;font-size:9pt;font-weight:bold;padding:4px 16px;border-radius:20px;text-transform:uppercase;margin:8px 0}\ntable{width:100%;border-collapse:collapse;margin-bottom:16px}\nth{background:#1A3E74;color:white;font-size:8pt;padding:6px 8px;text-align:left}\ntd{font-size:8.5pt;padding:5px 8px;border-bottom:1px solid #F1F5F9}\ntfoot td{background:#EFF6FF;font-weight:700;color:#1A3E74;border-top:2px solid #1A3E74}\n.nanda-box{border:1px solid #E2E8F0;border-radius:8px;padding:12px;font-size:9pt}\nul{list-style:none;} .nanda-item{border-bottom:1px solid #f1f5f9;padding:6px 0;} .nanda-item:last-child{border:none}\n.sig{display:grid;grid-template-columns:1fr 1fr;gap:30px;margin-top:28px}\n.sig-line{border-top:1px solid #1A3E74;padding-top:5px;font-size:8pt;color:#64748B;text-align:center}\n.footer{text-align:center;font-size:7.5pt;color:#94A3B8;margin-top:20px;border-top:1px solid #E2E8F0;padding-top:8px}\n.valor{font-size:11.5pt;font-weight:900;color:#000;text-transform:uppercase;letter-spacing:.03em;font-family:Arial,sans-serif;}\n</style></head><body>\n<div class=\"hdr\"><div><h1>Оцінка SAPS III</h1><p>Прогнозування летальності при надходженні до ВІТ</p></div><div style=\"text-align:right;color:white;\"><div style=\"font-size:10pt;font-weight:900;\">ДАТА: ${data.data}</div><div style=\"font-size:8pt;opacity:.85;margin-top:2px;\">${new Date().toLocaleTimeString('pt-BR')}</div></div></div>\n${\ndata.nome || data.idade || data.setor\n? \""`<div class="secao"><div class="sec-titulo">Identificação do Paciente</div><div class="grid2">
+const html = `<!DOCTYPE html><html lang="uk-UA"><head><meta charset="UTF-8"><title>Laudo SAPS III</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:Arial,sans-serif;font-size:10pt;color:#1E293B;padding:24px 32px}
+.hdr{background:#1A3E74;color:white;padding:14px 20px;border-radius:8px;display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+.hdr h1{font-size:13pt;font-weight:900}
+.hdr p{font-size:8pt;opacity:0.8;margin-top:3px}
+.secao{margin-bottom:14px}
+.sec-titulo{font-size:8pt;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:#1A3E74;background:#EFF6FF;padding:5px 10px;border-radius:4px;margin-bottom:8px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px 20px;font-size:11pt;line-height:1.6;}
+.grid2 strong{font-size:11pt;font-weight:900;color:#1A3E74;}
+.res-box{border:2px solid #1A3E74;border-radius:8px;padding:14px 18px;background:#F8FAFC;text-align:center;margin-bottom:14px}
+.res-score{font-size:36pt;font-weight:900;color:#1A3E74;line-height:1}
+.res-pill{display:inline-block;background:${pillColor};color:white;font-size:9pt;font-weight:bold;padding:4px 16px;border-radius:20px;text-transform:uppercase;margin:8px 0}
+table{width:100%;border-collapse:collapse;margin-bottom:16px}
+th{background:#1A3E74;color:white;font-size:8pt;padding:6px 8px;text-align:left}
+td{font-size:8.5pt;padding:5px 8px;border-bottom:1px solid #F1F5F9}
+tfoot td{background:#EFF6FF;font-weight:700;color:#1A3E74;border-top:2px solid #1A3E74}
+.nanda-box{border:1px solid #E2E8F0;border-radius:8px;padding:12px;font-size:9pt}
+ul{list-style:none;} .nanda-item{border-bottom:1px solid #f1f5f9;padding:6px 0;} .nanda-item:last-child{border:none}
+.sig{display:grid;grid-template-columns:1fr 1fr;gap:30px;margin-top:28px}
+.sig-line{border-top:1px solid #1A3E74;padding-top:5px;font-size:8pt;color:#64748B;text-align:center}
+.footer{text-align:center;font-size:7.5pt;color:#94A3B8;margin-top:20px;border-top:1px solid #E2E8F0;padding-top:8px}
+.valor{font-size:11.5pt;font-weight:900;color:#000;text-transform:uppercase;letter-spacing:.03em;font-family:Arial,sans-serif;}
+</style></head><body>
+<div class="hdr"><div><h1>Оцінка SAPS III</h1><p>Прогнозування летальності при надходженні до ВІТ</p></div><div style="text-align:right;color:white;"><div style="font-size:10pt;font-weight:900;">ДАТА: ${data.data}</div><div style="font-size:8pt;opacity:.85;margin-top:2px;">${new Date().toLocaleTimeString('pt-BR')}</div></div></div>
+${
+data.nome || data.idade || data.setor
+? `<div class="secao"><div class="sec-titulo">Identificação do Paciente</div><div class="grid2">
 ${data.nome ? `<p><strong>ПІБ:</strong> <span class="valor">${data.nome.toUpperCase()}</span></p>` : ""}
 ${data.idade ? `<p><strong>ВІК:</strong> <span class="valor">${data.idade.toUpperCase()}</span></p>` : ""}
 ${data.setor ? `<p><strong>ВІДДІЛЕННЯ/ЛІЖКО:</strong> <span class="valor">${data.setor.toUpperCase()}</span></p>` : ""}
@@ -1633,9 +1661,9 @@ janela.document.close();
 }
 
 // Eventos
-document.getElementById("btnCalcular").addEventListener("click", calcular);
-document.getElementById("btnLimpar").addEventListener("click", limpar);
-document.getElementById("btnGerarPDF").addEventListener("click", function() {
+document.getElementById(`btnCalcular`).addEventListener("click", calcular);
+document.getElementById(`btnLimpar`).addEventListener("click", limpar);
+document.getElementById(`btnGerarPDF`).addEventListener("click", function() {
 const btn = this;
 const textoOriginal = btn.innerHTML;
 
@@ -1670,7 +1698,7 @@ gerarPDF();
 };
 };
 });
-document.getElementById("btnImprimir").addEventListener("click", imprimirLaudo);
+document.getElementById(`btnImprimir`).addEventListener("click", imprimirLaudo);
 
 // Iniciar
 renderizarItensSaps();
@@ -1685,7 +1713,7 @@ atualizarBarraGlobal();
       fetch("footer.html")
         .then((response) => response.text())
         .then((data) => {
-          document.getElementById("footer-placeholder").innerHTML = data;
+          document.getElementById(`footer-placeholder`).innerHTML = data;
         });
     }, 150);
   });

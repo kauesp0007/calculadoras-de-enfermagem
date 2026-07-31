@@ -751,21 +751,21 @@ const ITENS_SILVERMAN = [
 id: "mov",
 label: "1. Torakoabdominal Hareket",
 max: 2,
-desc: "Göğüs ve karın arasındaki uyum.",
+desc: "Göğüs ve karın arasındaki senkronizasyon.",
 opts: [
-{ val: "", text: "Selecione..." },
-{ val: 0, text: "Uyumlu (0)" },
-{ val: 1, text: "Göğüs sabit (1)" },
-{ val: 2, text: "Salınım (2)" }
+{ val: "", text: "Seçiniz..." },
+{ val: 0, text: "Senkronize (0)" },
+{ val: 1, text: "Göğüs hareketsiz (1)" },
+{ val: 2, text: "Paradoksal solunum (Tahterevalli) (2)" }
 ],
 },
 {
 id: "tiragem",
-label: "2. İnterkostal Çekilme",
+label: "2. İnterkostal Çekilmeler",
 max: 2,
-desc: "Kaburgalar arasındaki kasların çekilmesi.",
+desc: "Kaburgalar arası kasların içe çekilmesi.",
 opts: [
-{ val: "", text: "Selecione..." },
+{ val: "", text: "Seçiniz..." },
 { val: 0, text: "Yok (0)" },
 { val: 1, text: "Hafif (1)" },
 { val: 2, text: "Belirgin (2)" }
@@ -773,11 +773,11 @@ opts: [
 },
 {
 id: "retracao",
-label: "3. Ksifoid Çekilme",
+label: "3. Xiphoid Retraksiyonu",
 max: 2,
-desc: "Ksifoid çıkıntı bölgesinin çökmesi.",
+desc: "Ksifoid çıkıntısı bölgesinin (iman tahtası altı) çökmesi.",
 opts: [
-{ val: "", text: "Selecione..." },
+{ val: "", text: "Seçiniz..." },
 { val: 0, text: "Yok (0)" },
 { val: 1, text: "Hafif (1)" },
 { val: 2, text: "Belirgin (2)" }
@@ -787,9 +787,9 @@ opts: [
 id: "batimento",
 label: "4. Burun Kanadı Solunumu",
 max: 2,
-desc: "İnspirasyon sırasında burun deliklerinin açılması.",
+desc: "İlham (nefes alma) sırasında burun deliklerinin açılması.",
 opts: [
-{ val: "", text: "Selecione..." },
+{ val: "", text: "Seçiniz..." },
 { val: 0, text: "Yok (0)" },
 { val: 1, text: "Hafif (1)" },
 { val: 2, text: "Belirgin (2)" }
@@ -797,11 +797,11 @@ opts: [
 },
 {
 id: "gemido",
-label: "5. Ekspiratuvar İnleme",
+label: "5. Ekspiratuar İnleme",
 max: 2,
-desc: "Ekspirasyon sırasında çıkan ses.",
+desc: "Nefes verme (ekspirasyon) sırasında çıkan ses.",
 opts: [
-{ val: "", text: "Selecione..." },
+{ val: "", text: "Seçiniz..." },
 { val: 0, text: "Yok (0)" },
 { val: 1, text: "Stetoskopla duyulabilir (1)" },
 { val: 2, text: "Stetoskopsuz duyulabilir (2)" }
@@ -822,7 +822,7 @@ optsHtml += `<option value="${op.val}" ${op.val === "" ? "disabled selected" : "
 
 const div = document.createElement("div");
 div.className = "item-card";
-div.id = `kart_${item.id}`;
+div.id = `card_${item.id}`;
 div.innerHTML = `
 <div class="flex items-center justify-between mb-2">
 <label for="${item.id}" class="text-[13px] font-bold text-slate-800">${item.label}</label>
@@ -839,7 +839,7 @@ container.appendChild(div);
 const el = document.getElementById(item.id);
 // Listener para atualizar card individual
 el.addEventListener("change", () => {
-document.getElementById(`kart_${item.id}`).classList.remove("error");
+document.getElementById(`card_${item.id}`).classList.remove("error");
 document.getElementById("msgValidacaoErro").style.display = "none";
 atualizarCardIndividual(item.id);
 });
@@ -861,8 +861,8 @@ const max = 2;
 // Barra sempre visível: mínimo 10% para mostrar a cor
 const pct = Math.max((val / max) * 100, 10);
 
-const badge = document.getElementById(`rozet_${id}`);
-const bar = document.getElementById(`çubuk_${id}`);
+const badge = document.getElementById(`badge_${id}`);
+const bar = document.getElementById(`bar_${id}`);
 
 badge.textContent = `${val}/${max}`;
 bar.style.width = `${pct}%`;
@@ -904,12 +904,12 @@ const subtitle = document.getElementById("dadosSubtitle");
 if (body.classList.contains("open")) {
 body.classList.remove("open");
 chevron.style.transform = "rotate(0deg)";
-subtitle.textContent = "Tıbbi Kayıt/PDF Raporu için doldurun";
+subtitle.textContent = "Tıbbi Kayıt/PDF Raporu için Doldurun";
 this.style.background = "white";
 } else {
 body.classList.add("open");
 chevron.style.transform = "rotate(180deg)";
-subtitle.textContent = "Paneli Gizle";
+subtitle.textContent = "Paneli gizle";
 this.style.background = "#EFF6FF";
 }
 });
@@ -929,16 +929,16 @@ ITENS_SILVERMAN.forEach((item) => {
 const selectVal = document.getElementById(item.id).value;
 if (selectVal === "") {
 incompleto = true;
-document.getElementById(`kart_${item.id}`).classList.add("error");
-if(!primeiroErro) primeiroErro = document.getElementById(`kart_${item.id}`);
+document.getElementById(`card_${item.id}`).classList.add("error");
+if(!primeiroErro) primeiroErro = document.getElementById(`card_${item.id}`);
 dominiosValores.push({ nome: item.label, obtido: 0, max: item.max });
 } else {
-document.getElementById(`kart_${item.id}`).classList.remove("error");
+document.getElementById(`card_${item.id}`).classList.remove("error");
 const val = parseInt(selectVal);
 somaTotal += val;
 dominiosValores.push({ nome: item.label, obtido: val, max: item.max });
 
-// Alimentando palavras-chave para o NANDA se a pontuação for crítica
+// Alimentando palavras-chave para o NANDA se a pontuação for crítica (MANTIDO EM PORTUGUÊS)
 if (val > 0) diagnosticosKeywords.push("respiração", "ventilação", "gases", "oxigenação", "desobstrução");
 }
 });
@@ -955,7 +955,7 @@ return;
 document.getElementById("msgValidacaoErro").style.display = "none";
 clearInterval(timerInterval);
 
-// Determinar Classificação
+// Determinar Classificação (Traduzido para Turco)
 let classe = "",
 bgPill = "",
 recomendacao = "";
@@ -963,22 +963,22 @@ recomendacao = "";
 if (somaTotal === 0) {
 classe = "Solunum Sıkıntısı Yok";
 bgPill = "#16a34a"; // Verde
-recomendacao = "Yeni doğan, iyi solunum koşullarında. Rutin bakım.";
+recomendacao = "Yenidoğan iyi solunum koşullarında. Rutin bakım.";
 } 
 else if (somaTotal >= 1 && somaTotal <= 3) {
-classe = "Hafif Solunum Rahatsızlığı";
+classe = "Hafif Solunum Sıkıntısı";
 bgPill = "#eab308"; // Amarelo
-recomendacao = "Solunum zorluğunun başlangıç belirtileri. Sürekli gözlem ve hafif oksijen desteği gerekebilir.";
+recomendacao = "Erken solunum zorluğu belirtileri. Sürekli gözlem ve olası hafif oksijen desteği gerektirir.";
 } 
 else if (somaTotal >= 4 && somaTotal <= 7) {
-classe = "Orta Derecede Solunum Rahatsızlığı";
+classe = "Orta Dereceli Solunum Sıkıntısı";
 bgPill = "#ea580c"; // Laranja
-recomendacao = "Solunum durumu bozulmuş. Klinik stabilizasyon için müdahale (CPAP veya kontrollü oksijen tedavisi) gerekli.";
+recomendacao = "Bozulmuş solunum durumu. Klinik stabilizasyon için müdahale (CPAP veya kontrollü oksijen tedavisi) gereklidir.";
 } 
 else if (somaTotal >= 8) {
-classe = "Ağır Solunum Rahatsızlığı";
+classe = "Şiddetli Solunum Sıkıntısı";
 bgPill = "#e11d48"; // Vermelho
-recomendacao = "Yaklaşan solunum yetmezliği. İleri düzey ventilatör desteği (Mekanik Ventilasyon) ve Yenidoğan Yoğun Bakım Ünitesi'ne yatış değerlendirilmelidir.";
+recomendacao = "Yaklaşan solunum yetmezliği. Gelişmiş solunum desteği (Mekanik Ventilasyon) ve Yenidoğan Yoğun Bakım Ünitesine (YYBÜ) yatış düşünülmelidir.";
 } 
 
 // Exibir no Hero Card
@@ -1010,7 +1010,7 @@ scpAlvo.style.boxShadow = "0 8px 25px rgba(0,0,0,0.25)";
 scpAlvo.classList.add("scp-highlight");
 }
 
-document.getElementById("resultadoMensagem").innerHTML = `Yenidoğan <strong>${somaTotal} puan</strong> aldı, maksimum 10 üzerinden.<br><br><strong>Yönetim:</strong> ${recomendacao}`;
+document.getElementById("resultadoMensagem").innerHTML = `Yenidoğan 10 üzerinden <strong>${somaTotal} puan</strong> aldı.<br><br><strong>Müdahale:</strong> ${recomendacao}`;
 
 // Gerar Tabela de Detalhamento
 const tbody = document.getElementById("tabelaDominios");
@@ -1049,7 +1049,7 @@ setTimeout(() => {
 resultadoSection.scrollIntoView({ behavior: "smooth", block: "start" });
 }, 100);
 
-// Se a pontuação for 0, podemos adicionar "conforto" nas keywords para sugerir bem-estar
+// Se a pontuação for 0, podemos adicionar "conforto" nas keywords para sugerir bem-estar (MANTIDO EM PORTUGUÊS)
 if (somaTotal === 0) diagnosticosKeywords = ["conforto"];
 
 // Chamar NANDA
@@ -1058,11 +1058,11 @@ chamarNanda(diagnosticosKeywords);
 
 async function chamarNanda(keywords) {
 const lista = document.getElementById("lista-nanda");
-lista.innerHTML = '<li class="text-sm text-slate-500 text-center py-4"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="fa-spin mr-2 inline-block" fill="currentColor" width="1em" height="1em" aria-hidden="true"><path d="M304 48a48 48 0 1 0 -96 0 48 48 0 1 0 96 0zm0 416a48 48 0 1 0 -96 0 48 48 0 1 0 96 0zM48 304a48 48 0 1 0 0-96 48 48 0 1 0 0 96zm464-48a48 48 0 1 0 -96 0 48 48 0 1 0 96 0zM142.9 437A48 48 0 1 0 75 369.1 48 48 0 1 0 142.9 437zm0-294.2A48 48 0 1 0 75 75a48 48 0 1 0 67.9 67.9zM369.1 437A48 48 0 1 0 437 369.1 48 48 0 1 0 369.1 437z"/></svg> NANDA-I veri tabanı sorgulanıyor...</li>';
+lista.innerHTML = '<li class="text-sm text-slate-500 text-center py-4"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="fa-spin mr-2 inline-block" fill="currentColor" width="1em" height="1em" aria-hidden="true"><path d="M304 48a48 48 0 1 0 -96 0 48 48 0 1 0 96 0zm0 416a48 48 0 1 0 -96 0 48 48 0 1 0 96 0zM48 304a48 48 0 1 0 0-96 48 48 0 1 0 0 96zm464-48a48 48 0 1 0 -96 0 48 48 0 1 0 96 0zM142.9 437A48 48 0 1 0 75 369.1 48 48 0 1 0 142.9 437zm0-294.2A48 48 0 1 0 75 75a48 48 0 1 0 67.9 67.9zM369.1 437A48 48 0 1 0 437 369.1 48 48 0 1 0 369.1 437z"/></svg> NANDA-I veritabanı sorgulanıyor...</li>';
 
 try {
 const response = await fetch("/banco_nanda.json");
-if (!response.ok) throw new Error("Fetch hatası");
+if (!response.ok) throw new Error("Erro fetch");
 const banco = await response.json();
 
 const pontuados = banco
@@ -1078,8 +1078,8 @@ return { ...diag, matchScore };
 
 pontuados.sort((a, b) => b.matchScore - a.matchScore);
 
-// Dedup: evitar diagnósticos com temas repetidos
-const prefixosIgnorar = ["riski", "hazır oluş", "sendromu", "eğilimi", "hazır oluş", "riski"];
+// Dedup: evitar diagnósticos com temas repetidos (LÓGICA E PALAVRAS EM PORTUGUÊS MANTIDAS INTACTAS)
+const prefixosIgnorar = ["risco de", "disposição para", "síndrome de", "tendência a", "disposicao para", "risco da"];
 const temasUsados = new Set();
 const topDiversos = [];
 
@@ -1089,7 +1089,7 @@ let t = titulo.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
 for (const p of prefixosIgnorar) {
 if (t.startsWith(p)) { t = t.slice(p.length).trim(); break; }
 }
-// Remove conectores e palavras muito curtas
+// Remove conectores e palavras muito curtas (Stopwords em Português mantidas)
 const palavras = t.split(/\s+/).filter(w => w.length > 3 && !["para", "com", "sem", "como", "dos", "das", "que", "não", "nao", "melhorada", "melhorado", "prejudicada", "prejudicado", "adulto", "criança", "neonatal", "idoso", "lactente", "feminino", "masculino"].includes(w));
 return palavras.slice(0, 4).join(" "); // até 4 palavras-chave como tema
 }
@@ -1118,17 +1118,17 @@ lista.innerHTML += `
 `;
 });
 } else {
-lista.innerHTML = '<li class="text-xs text-slate-500 text-center py-4">Mevcut seçimlerle ilişkili birincil kritik tanı yok.</li>';
+lista.innerHTML = '<li class="text-xs text-slate-500 text-center py-4">Geçerli seçimlerle ilişkili kritik birincil tanı yok.</li>';
 }
 } catch (e) {
-lista.innerHTML = '<li class="text-xs text-red-500 text-center py-4">NANDA veri tabanı geçici olarak kullanılamıyor.</li>';
+lista.innerHTML = '<li class="text-xs text-red-500 text-center py-4">NANDA veritabanı geçici olarak kullanılamıyor.</li>';
 }
 }
 
 function limpar() {
 ITENS_SILVERMAN.forEach((item) => {
 document.getElementById(item.id).value = "";
-document.getElementById(`kart_${item.id}`).classList.remove("error");
+document.getElementById(`card_${item.id}`).classList.remove("error");
 
 const badge = document.getElementById(`badge_${item.id}`);
 const bar = document.getElementById(`bar_${item.id}`);
@@ -1171,11 +1171,11 @@ soma += val === "" ? 0 : parseInt(val);
 
 let classe = "Solunum Sıkıntısı Yok";
 if (soma >= 1 && soma <= 3) classe = "Hafif Sıkıntı";
-else if (soma >= 4 && soma <= 7) classe = "Orta Düzeyde Sıkıntı";
+else if (soma >= 4 && soma <= 7) classe = "Orta Dereceli Sıkıntı";
 else if (soma >= 8) classe = "Şiddetli Sıkıntı";
 
 const dataVal = document.getElementById("pacData").value;
-const dataFormatada = dataVal ? dataVal.split("-").reverse().join("/") : new Date().toLocaleDateString("pt-BR");
+const dataFormatada = dataVal ? dataVal.split("-").reverse().join(".") : new Date().toLocaleDateString("tr-TR");
 const tempo = document.getElementById("crono-timer").textContent;
 
 return {
@@ -1231,10 +1231,10 @@ doc.rect(0, 0, W, 32, "F");
 doc.setTextColor(255, 255, 255);
 doc.setFont("helvetica", "bold");
 doc.setFontSize(14);
-doc.text("Silverman-Anderson Değerlendirme Formu", marginL, 13);
+doc.text("Silverman-Andersen Skoru", marginL, 13);
 doc.setFontSize(9);
 doc.setFont("helvetica", "normal");
-doc.text("Neonatal Solunum Sıkıntısı Değerlendirmesi", marginL, 20);
+doc.text("Yenidoğan Solunum Sıkıntısı Değerlendirmesi", marginL, 20);
 doc.text("Tarih: " + data.data, W - marginR, 20, { align: "right" });
 
 let y = 42;
@@ -1246,29 +1246,29 @@ doc.roundedRect(marginL, y, usable, 8, 2, 2, "F");
 doc.setTextColor(...navy);
 doc.setFont("helvetica", "bold");
 doc.setFontSize(9);
-doc.text("HASTA TANIMLAMA", marginL + 4, y + 5.5);
+doc.text("HASTA KİMLİK BİLGİLERİ", marginL + 4, y + 5.5);
 y += 12;
 
 if (data.nome) {
-doc.text("Nome/RN:", marginL, y);
+doc.text("İsim/Yenidoğan:", marginL, y);
 doc.setFont("helvetica", "normal");
 doc.setTextColor(30, 41, 59);
-doc.text(data.nome, marginL + 20, y);
+doc.text(data.nome, marginL + 28, y);
 y += 6;
 doc.setFont("helvetica", "bold");
 doc.setTextColor(...navy);
 }
 if (data.idade) {
-doc.text("Idade/IG:", marginL, y);
+doc.text("Yaş/Gebelik H.:", marginL, y);
 doc.setFont("helvetica", "normal");
 doc.setTextColor(30, 41, 59);
-doc.text(data.idade, marginL + 20, y);
+doc.text(data.idade, marginL + 25, y);
 y += 6;
 doc.setFont("helvetica", "bold");
 doc.setTextColor(...navy);
 }
 if (data.setor) {
-doc.text("Setor/Leito:", marginL, y);
+doc.text("Bölüm/Yatak:", marginL, y);
 doc.setFont("helvetica", "normal");
 doc.setTextColor(30, 41, 59);
 doc.text(data.setor, marginL + 25, y);
@@ -1283,7 +1283,7 @@ doc.roundedRect(marginL, y, usable, 22, 3, 3, "F");
 doc.setTextColor(147, 197, 253);
 doc.setFont("helvetica", "bold");
 doc.setFontSize(8);
-doc.text(`DEĞERLENDİRME ZAMANI: ${data.tempo}`, W / 2, y + 6, { align: "center" });
+doc.text(`DEĞERLENDİRME SÜRESİ: ${data.tempo}`, W / 2, y + 6, { align: "center" });
 doc.setTextColor(255, 255, 255);
 doc.setFontSize(26);
 doc.text(String(data.soma) + " / 10", W / 2, y + 17, { align: "center" });
@@ -1307,7 +1307,7 @@ y += 16;
 doc.setFillColor(...slateLight);
 doc.roundedRect(marginL, y, usable, 8, 2, 2, "F");
 doc.setTextColor(...navy);
-doc.text("KLİNİK DEĞERLENDİRME HAFIZASI", marginL + 4, y + 5.5);
+doc.text("KLİNİK DEĞERLENDİRME KAYDI", marginL + 4, y + 5.5);
 y += 11;
 
 const bodyData = ITENS_SILVERMAN.map((i) => {
@@ -1318,9 +1318,9 @@ return [i.label.replace(/^\d+\.\s*/, ""), val, i.max, Math.round((val / i.max) *
 doc.autoTable({
 startY: y,
 margin: { left: marginL, right: marginR },
-head: [["Değerlendirilen Kriter", "Obtido", "Máximo", "%"]],
+head: [["Değerlendirilen Kriter", "Puan", "Maks", "%"]],
 body: bodyData,
-foot: [["TOTAL", data.soma, 10, Math.round((data.soma / 10) * 100) + "%"]],
+foot: [["TOPLAM", data.soma, 10, Math.round((data.soma / 10) * 100) + "%"]],
 styles: { fontSize: 9, cellPadding: 3, lineColor: [226, 232, 240], lineWidth: 0.3 },
 headStyles: { fillColor: navy, textColor: 255, fontStyle: "bold" },
 footStyles: { fillColor: [239, 246, 255], textColor: navy, fontStyle: "bold" },
@@ -1339,7 +1339,7 @@ doc.setFont("helvetica", "normal");
 doc.text("SILVERMAN, W. A.; ANDERSEN, D. H. Pediatrics (1956).", marginL, y + 5);
 doc.text("www.calculadorasdeenfermagem.com.br", W - marginR, y + 5, { align: "right" });
 
-const nomeArquivo = data.nome ? `rapor-silverman-${data.nome.replace(/\s+/g, "-").toLowerCase()}.pdf` : "laudo-silverman.pdf";
+const nomeArquivo = data.nome ? `rapor-silverman-${data.nome.replace(/\s+/g, "-").toLowerCase()}.pdf` : "rapor-silverman.pdf";
 doc.save(nomeArquivo);
 }
 
@@ -1363,7 +1363,7 @@ return `<tr><td>${i.label.replace(/^\d+\.\s*/, "")}</td><td style="text-align:ce
 // Resgatando HTML do NANDA list gerado
 const nandaHtml = document.getElementById("lista-nanda").innerHTML;
 
-const html = `<!DOCTYPE html><html lang="tr-TR"><head><meta charset="UTF-8"><title>Silverman-Anderson Raporu</title>
+const html = `<!DOCTYPE html><html lang="tr-TR"><head><meta charset="UTF-8"><title>Silverman-Andersen Skoru - Rapor</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:Arial,sans-serif;font-size:10pt;color:#1E293B;padding:24px 32px}
@@ -1388,23 +1388,23 @@ ul{list-style:none;} .nanda-item{border-bottom:1px solid #f1f5f9;padding:6px 0;}
 .footer{text-align:center;font-size:7.5pt;color:#94A3B8;margin-top:20px;border-top:1px solid #E2E8F0;padding-top:8px}
 .valor{font-size:11.5pt;font-weight:900;color:#000;text-transform:uppercase;letter-spacing:.03em;font-family:Arial,sans-serif;}
 </style></head><body>
-<div class="hdr"><div><h1>Silverman-Anderson Değerlendirme Raporu</h1><p>Yenidoğan Solunum Sıkıntısı Değerlendirmesi</p></div><div style="text-align:right;color:white;"><div style="font-size:10pt;font-weight:900;">TARİH: ${data.data}</div><div style="font-size:8pt;opacity:.85;margin-top:2px;">${new Date().toLocaleTimeString('pt-BR')}</div></div></div>
+<div class="hdr"><div><h1>Silverman-Andersen Skoru</h1><p>Yenidoğan Solunum Sıkıntısı Değerlendirmesi</p></div><div style="text-align:right;color:white;"><div style="font-size:10pt;font-weight:900;">TARİH: ${data.data}</div><div style="font-size:8pt;opacity:.85;margin-top:2px;">${new Date().toLocaleTimeString('tr-TR')}</div></div></div>
 ${
 data.nome || data.idade || data.setor
-? "`<div class="secao"><div class="sec-titulo">Identificação do Paciente</div><div class="grid2">
-${data.nome ? `<p><strong>AD/YENİDOĞAN:</strong> <span class="valor">${data.nome.toUpperCase()}</span></p>` : ""}
-${data.idade ? `<p><strong>YAŞ/GH:</strong> <span class="valor">${data.idade.toUpperCase()}</span></p>` : ""}
+? `<div class="secao"><div class="sec-titulo">Hasta Kimlik Bilgileri</div><div class="grid2">
+${data.nome ? `<p><strong>İSİM/YENİDOĞAN:</strong> <span class="valor">${data.nome.toUpperCase()}</span></p>` : ""}
+${data.idade ? `<p><strong>YAŞ/GEBELİK H.:</strong> <span class="valor">${data.idade.toUpperCase()}</span></p>` : ""}
 ${data.setor ? `<p><strong>BÖLÜM/YATAK:</strong> <span class="valor">${data.setor.toUpperCase()}</span></p>` : ""}
 </div></div>`
 : ""
 }
-<div class="secao"><div class="res-box"><div class="res-score">${data.soma} <span style="font-size:18pt;color:#64748B;font-weight:700;">/ 10</span></div><div><span class="res-pill">${data.classe}</span></div><p style="margin-top:8px; font-weight:bold; color:#1A3E74">DEĞERLENDİRME ZAMANI: ${data.tempo}</p></div></div>
-<div class="secao"><div class="sec-titulo">KLİNİK DEĞERLENDİRME KAYDI</div>
-<table><thead><tr><th>DEĞERLENDİRİLEN KRİTER</th><th style="text-align:center">ELDE EDİLEN</th><th style="text-align:center">MAKS</th><th style="text-align:center">%</th></tr></thead><tbody>${linhasTabela}</tbody>
+<div class="secao"><div class="res-box"><div class="res-score">${data.soma} <span style="font-size:18pt;color:#64748B;font-weight:700;">/ 10</span></div><div><span class="res-pill">${data.classe}</span></div><p style="margin-top:8px; font-weight:bold; color:#1A3E74">Değerlendirme Süresi: ${data.tempo}</p></div></div>
+<div class="secao"><div class="sec-titulo">Klinik Değerlendirme Kaydı</div>
+<table><thead><tr><th>Değerlendirilen Kriter</th><th style="text-align:center">Puan</th><th style="text-align:center">Maks</th><th style="text-align:center">%</th></tr></thead><tbody>${linhasTabela}</tbody>
 <tfoot><tr><td>TOPLAM</td><td style="text-align:center">${data.soma}</td><td style="text-align:center">10</td><td style="text-align:center">${Math.round((data.soma / 10) * 100)}%</td></tr></tfoot></table></div>
-<div class="secao"><div class="sec-titulo">ÖNERİLEN NANDA TANILARI</div><div class="nanda-box"><ul>${nandaHtml}</ul></div></div>
-<div class="sig"><div class="sig-line">PROFESYONEL / HEMŞİRE İMZASI</div><div class="sig-line">YER VE TARİH</div></div>
-<div class="footer">SILVERMAN, W. A.; ANDERSEN, D. H. Pediatrics (1956) | Hemşirelik Hesaplayıcıları — www.calculadorasdeenfermagem.com.br</div>
+<div class="secao"><div class="sec-titulo">Önerilen NANDA Tanıları</div><div class="nanda-box"><ul>${nandaHtml}</ul></div></div>
+<div class="sig"><div class="sig-line">Sağlık Uzmanı / Hemşire İmzası</div><div class="sig-line">Yer ve Tarih</div></div>
+<div class="footer">SILVERMAN, W. A.; ANDERSEN, D. H. Pediatrics (1956) | Calculadoras de Enfermagem — www.calculadorasdeenfermagem.com.br</div>
 <script>window.onload=function(){window.print();}<\/script></body></html>`;
 
 const janela = window.open("", "_blank");

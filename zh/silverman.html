@@ -741,62 +741,62 @@ document.getElementById('crono-timer').textContent = `${m}:${s}`;
 const ITENS_SILVERMAN = [
 {
 id: "mov",
-label: "1. 胸腹运动",
+label: "1. 胸腹运动 (Movimento Toracoabdominal)",
 max: 2,
-desc: "胸腹同步。",
+desc: "胸部和腹部运动同步。",
 opts: [
-{ val: "", text: "Selecione..." },
+{ val: "", text: "请选择..." },
 { val: 0, text: "同步 (0)" },
-{ val: 1, text: "胸部不动 (1)" },
-{ val: 2, text: "跷跷板样 (2)" }
+{ val: 1, text: "胸部无运动 (1)" },
+{ val: 2, text: "跷跷板样运动 (2)" }
 ],
 },
 {
 id: "tiragem",
-label: "2. 肋间凹陷",
+label: "2. 肋间凹陷 (Tiragem Intercostal)",
 max: 2,
-desc: "肋骨间肌肉凹陷。",
+desc: "肋骨间肌肉向内凹陷。",
 opts: [
-{ val: "", text: "Selecione..." },
+{ val: "", text: "请选择..." },
 { val: 0, text: "无 (0)" },
 { val: 1, text: "轻度 (1)" },
-{ val: 2, text: "显著 (2)" }
+{ val: 2, text: "重度 (2)" }
 ],
 },
 {
 id: "retracao",
-label: "3. 剑突凹陷",
+label: "3. 剑突凹陷 (Retração Xifoide)",
 max: 2,
-desc: "剑突区域凹陷。",
+desc: "剑突区域向内凹陷。",
 opts: [
-{ val: "", text: "Selecione..." },
+{ val: "", text: "请选择..." },
 { val: 0, text: "无 (0)" },
 { val: 1, text: "轻度 (1)" },
-{ val: 2, text: "显著 (2)" }
+{ val: 2, text: "重度 (2)" }
 ],
 },
 {
 id: "batimento",
-label: "4. 鼻翼煽动",
+label: "4. 鼻翼扇动 (Batimento de Asa de Nariz)",
 max: 2,
 desc: "吸气时鼻孔张开。",
 opts: [
-{ val: "", text: "Selecione..." },
+{ val: "", text: "请选择..." },
 { val: 0, text: "无 (0)" },
 { val: 1, text: "轻度 (1)" },
-{ val: 2, text: "明显 (2)" }
+{ val: 2, text: "重度 (2)" }
 ],
 },
 {
 id: "gemido",
-label: "5. 呼气呻吟",
+label: "5. 呼气呻吟 (Gemido Expiratório)",
 max: 2,
 desc: "呼气时发出的声音。",
 opts: [
-{ val: "", text: "Selecione..." },
+{ val: "", text: "请选择..." },
 { val: 0, text: "无 (0)" },
-{ val: 1, text: "用听诊器可听见 (1)" },
-{ val: 2, text: "不用听诊器可听见 (2)" }
+{ val: 1, text: "用听诊器可闻 (1)" },
+{ val: 2, text: "不用听诊器可闻 (2)" }
 ],
 }
 ];
@@ -809,7 +809,7 @@ container.innerHTML = "";
 ITENS_SILVERMAN.forEach((item) => {
 let optsHtml = "";
 item.opts.forEach((op) => {
-optsHtml += `<option value="${op.val}" ${op.val === "" ? "禁用 已选择" : ""}>${op.text}</option>`;
+optsHtml += `<option value="${op.val}" ${op.val === "" ? "disabled selected" : ""}>${op.text}</option>`;
 });
 
 const div = document.createElement("div");
@@ -896,7 +896,7 @@ const subtitle = document.getElementById("dadosSubtitle");
 if (body.classList.contains("open")) {
 body.classList.remove("open");
 chevron.style.transform = "rotate(0deg)";
-subtitle.textContent = "填写病历/报告 PDF";
+subtitle.textContent = "填写病历/PDF报告";
 this.style.background = "white";
 } else {
 body.classList.add("open");
@@ -930,7 +930,7 @@ const val = parseInt(selectVal);
 somaTotal += val;
 dominiosValores.push({ nome: item.label, obtido: val, max: item.max });
 
-// Alimentando palavras-chave para o NANDA se a pontuação for crítica
+// Alimentando palavras-chave para o NANDA se a pontuação for crítica (MANTIDO EM PT-BR)
 if (val > 0) diagnosticosKeywords.push("respiração", "ventilação", "gases", "oxigenação", "desobstrução");
 }
 });
@@ -947,30 +947,30 @@ return;
 document.getElementById("msgValidacaoErro").style.display = "none";
 clearInterval(timerInterval);
 
-// Determinar Classificação
+// Determinar Classificação (Traduzido para Chinês)
 let classe = "",
 bgPill = "",
 recomendacao = "";
 
 if (somaTotal === 0) {
-classe = "无呼吸困难";
+classe = "无呼吸窘迫"; // Sem Desconforto Respiratório
 bgPill = "#16a34a"; // Verde
-recomendacao = "新生儿呼吸状况良好。常规护理。";
+recomendacao = "新生儿呼吸状况良好。常规护理。"; 
 } 
 else if (somaTotal >= 1 && somaTotal <= 3) {
-classe = "轻度呼吸窘迫";
+classe = "轻度呼吸窘迫"; // Desconforto Respiratório Leve
 bgPill = "#eab308"; // Amarelo
-recomendacao = "呼吸困难早期征兆。需持续观察，可能需轻度氧气支持。";
+recomendacao = "呼吸困难的初步迹象。需要持续观察，可能需要轻度吸氧支持。";
 } 
 else if (somaTotal >= 4 && somaTotal <= 7) {
-classe = "中度呼吸窘迫";
+classe = "中度呼吸窘迫"; // Desconforto Respiratório Moderado
 bgPill = "#ea580c"; // Laranja
-recomendacao = "呼吸功能受损。需干预措施（CPAP或控制性氧疗）以稳定病情。";
+recomendacao = "呼吸状况受损。需要干预（CPAP或控制性氧疗）以维持临床稳定。";
 } 
 else if (somaTotal >= 8) {
-classe = "重度呼吸窘迫";
+classe = "重度呼吸窘迫"; // Desconforto Respiratório Grave
 bgPill = "#e11d48"; // Vermelho
-recomendacao = "即将发生呼吸衰竭。考虑高级通气支持（机械通气）并转入新生儿重症监护室。";
+recomendacao = "即将发生呼吸衰竭。评估高级通气支持（机械通气）并转入新生儿重症监护室（NICU）。";
 } 
 
 // Exibir no Hero Card
@@ -1002,7 +1002,7 @@ scpAlvo.style.boxShadow = "0 8px 25px rgba(0,0,0,0.25)";
 scpAlvo.classList.add("scp-highlight");
 }
 
-document.getElementById("resultadoMensagem").innerHTML = `新生儿获得了<strong>${somaTotal} 分</strong>（满分10分）。<br><br><strong>处理措施：</strong>${recomendacao}`;
+document.getElementById("resultadoMensagem").innerHTML = `该新生儿获得 <strong>${somaTotal} 分</strong>（满分 10 分）。<br><br><strong>医疗建议：</strong> ${recomendacao}`;
 
 // Gerar Tabela de Detalhamento
 const tbody = document.getElementById("tabelaDominios");
@@ -1041,7 +1041,7 @@ setTimeout(() => {
 resultadoSection.scrollIntoView({ behavior: "smooth", block: "start" });
 }, 100);
 
-// Se a pontuação for 0, podemos adicionar "conforto" nas keywords para sugerir bem-estar
+// Se a pontuação for 0, podemos adicionar "conforto" nas keywords (MANTIDO EM PT-BR PARA JSON)
 if (somaTotal === 0) diagnosticosKeywords = ["conforto"];
 
 // Chamar NANDA
@@ -1050,11 +1050,11 @@ chamarNanda(diagnosticosKeywords);
 
 async function chamarNanda(keywords) {
 const lista = document.getElementById("lista-nanda");
-lista.innerHTML = '<li class="text-sm text-slate-500 text-center py-4"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="fa-spin mr-2 inline-block" fill="currentColor" width="1em" height="1em" aria-hidden="true"><path d="M304 48a48 48 0 1 0 -96 0 48 48 0 1 0 96 0zm0 416a48 48 0 1 0 -96 0 48 48 0 1 0 96 0zM48 304a48 48 0 1 0 0-96 48 48 0 1 0 0 96zm464-48a48 48 0 1 0 -96 0 48 48 0 1 0 96 0zM142.9 437A48 48 0 1 0 75 369.1 48 48 0 1 0 142.9 437zm0-294.2A48 48 0 1 0 75 75a48 48 0 1 0 67.9 67.9zM369.1 437A48 48 0 1 0 437 369.1 48 48 0 1 0 369.1 437z"/></svg> 正在查询NANDA-I数据库...</li>';
+lista.innerHTML = '<li class="text-sm text-slate-500 text-center py-4"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="fa-spin mr-2 inline-block" fill="currentColor" width="1em" height="1em" aria-hidden="true"><path d="M304 48a48 48 0 1 0 -96 0 48 48 0 1 0 96 0zm0 416a48 48 0 1 0 -96 0 48 48 0 1 0 96 0zM48 304a48 48 0 1 0 0-96 48 48 0 1 0 0 96zm464-48a48 48 0 1 0 -96 0 48 48 0 1 0 96 0zM142.9 437A48 48 0 1 0 75 369.1 48 48 0 1 0 142.9 437zm0-294.2A48 48 0 1 0 75 75a48 48 0 1 0 67.9 67.9zM369.1 437A48 48 0 1 0 437 369.1 48 48 0 1 0 369.1 437z"/></svg> 正在查询 NANDA-I 数据库...</li>';
 
 try {
 const response = await fetch("/banco_nanda.json");
-if (!response.ok) throw new Error("获取失败");
+if (!response.ok) throw new Error("Erro fetch");
 const banco = await response.json();
 
 const pontuados = banco
@@ -1070,8 +1070,8 @@ return { ...diag, matchScore };
 
 pontuados.sort((a, b) => b.matchScore - a.matchScore);
 
-// Dedup: evitar diagnósticos com temas repetidos
-const prefixosIgnorar = ["风险", "倾向于", "综合征", "倾向", "倾向于", "风险"];
+// Dedup: evitar diagnósticos com temas repetidos (Lógica de strings MANTIDA EM PT-BR 100%)
+const prefixosIgnorar = ["risco de", "disposição para", "síndrome de", "tendência a", "disposicao para", "risco da"];
 const temasUsados = new Set();
 const topDiversos = [];
 
@@ -1081,7 +1081,7 @@ let t = titulo.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
 for (const p of prefixosIgnorar) {
 if (t.startsWith(p)) { t = t.slice(p.length).trim(); break; }
 }
-// Remove conectores e palavras muito curtas
+// Remove conectores e palavras muito curtas (Stopwords pt-br mantidas)
 const palavras = t.split(/\s+/).filter(w => w.length > 3 && !["para", "com", "sem", "como", "dos", "das", "que", "não", "nao", "melhorada", "melhorado", "prejudicada", "prejudicado", "adulto", "criança", "neonatal", "idoso", "lactente", "feminino", "masculino"].includes(w));
 return palavras.slice(0, 4).join(" "); // até 4 palavras-chave como tema
 }
@@ -1110,10 +1110,10 @@ lista.innerHTML += `
 `;
 });
 } else {
-lista.innerHTML = '<li class="text-xs text-slate-500 text-center py-4">当前选择没有关联的主要关键诊断。</li>';
+lista.innerHTML = '<li class="text-xs text-slate-500 text-center py-4">没有与当前选择相关的主要危重诊断。</li>';
 }
 } catch (e) {
-lista.innerHTML = '<li class="text-xs text-red-500 text-center py-4">NANDA数据库暂时不可用。</li>';
+lista.innerHTML = '<li class="text-xs text-red-500 text-center py-4">NANDA 数据库暂时不可用。</li>';
 }
 }
 
@@ -1122,8 +1122,8 @@ ITENS_SILVERMAN.forEach((item) => {
 document.getElementById(item.id).value = "";
 document.getElementById(`card_${item.id}`).classList.remove("error");
 
-const badge = document.getElementById(`徽章_${item.id}`);
-const bar = document.getElementById(`条形_${item.id}`);
+const badge = document.getElementById(`badge_${item.id}`);
+const bar = document.getElementById(`bar_${item.id}`);
 badge.textContent = `--/2`;
 bar.style.width = `0%`;
 bar.style.backgroundColor = "transparent";
@@ -1161,13 +1161,14 @@ const val = document.getElementById(i.id).value;
 soma += val === "" ? 0 : parseInt(val);
 });
 
-let classe = "无呼吸困难";
-if (soma >= 1 && soma <= 3) classe = "轻度呼吸窘迫";
-else if (soma >= 4 && soma <= 7) classe = "中度呼吸窘迫";
-else if (soma >= 8) classe = "重度呼吸窘迫";
+let classe = "无呼吸窘迫";
+if (soma >= 1 && soma <= 3) classe = "轻度窘迫";
+else if (soma >= 4 && soma <= 7) classe = "中度窘迫";
+else if (soma >= 8) classe = "重度窘迫";
 
 const dataVal = document.getElementById("pacData").value;
-const dataFormatada = dataVal ? dataVal.split("-").reverse().join("/") : new Date().toLocaleDateString("pt-BR");
+// Formatando a data com padrão chinês local (zh-CN)
+const dataFormatada = dataVal ? dataVal.split("-").reverse().join("/") : new Date().toLocaleDateString("zh-CN");
 const tempo = document.getElementById("crono-timer").textContent;
 
 return {
@@ -1185,7 +1186,7 @@ function gerarPDF() {
 if (typeof window.jspdf === "undefined") {
 const btn = document.getElementById("btnGerarPDF");
 const origText = btn.innerHTML;
-btn.innerHTML = "加载生成器...";
+btn.innerHTML = "正在加载生成器...";
 btn.style.opacity = "0.7"; btn.style.pointerEvents = "none";
 const s1 = document.createElement("script");
 s1.src = "https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js";
@@ -1223,11 +1224,11 @@ doc.rect(0, 0, W, 32, "F");
 doc.setTextColor(255, 255, 255);
 doc.setFont("helvetica", "bold");
 doc.setFontSize(14);
-doc.text("Silverman-Anderson评分", marginL, 13);
+doc.text("Silverman-Anderson 评分表", marginL, 13);
 doc.setFontSize(9);
 doc.setFont("helvetica", "normal");
 doc.text("新生儿呼吸窘迫评估", marginL, 20);
-doc.text("日期：" + data.data, W - marginR, 20, { align: "right" });
+doc.text("日期: " + data.data, W - marginR, 20, { align: "right" });
 
 let y = 42;
 
@@ -1238,29 +1239,29 @@ doc.roundedRect(marginL, y, usable, 8, 2, 2, "F");
 doc.setTextColor(...navy);
 doc.setFont("helvetica", "bold");
 doc.setFontSize(9);
-doc.text("患者识别", marginL + 4, y + 5.5);
+doc.text("患者信息", marginL + 4, y + 5.5);
 y += 12;
 
 if (data.nome) {
-doc.text("Nome/RN:", marginL, y);
+doc.text("姓名/新生儿:", marginL, y);
 doc.setFont("helvetica", "normal");
 doc.setTextColor(30, 41, 59);
-doc.text(data.nome, marginL + 20, y);
+doc.text(data.nome, marginL + 25, y);
 y += 6;
 doc.setFont("helvetica", "bold");
 doc.setTextColor(...navy);
 }
 if (data.idade) {
-doc.text("Idade/IG:", marginL, y);
+doc.text("年龄/胎龄:", marginL, y);
 doc.setFont("helvetica", "normal");
 doc.setTextColor(30, 41, 59);
-doc.text(data.idade, marginL + 20, y);
+doc.text(data.idade, marginL + 25, y);
 y += 6;
 doc.setFont("helvetica", "bold");
 doc.setTextColor(...navy);
 }
 if (data.setor) {
-doc.text("Setor/Leito:", marginL, y);
+doc.text("科室/床位:", marginL, y);
 doc.setFont("helvetica", "normal");
 doc.setTextColor(30, 41, 59);
 doc.text(data.setor, marginL + 25, y);
@@ -1275,7 +1276,7 @@ doc.roundedRect(marginL, y, usable, 22, 3, 3, "F");
 doc.setTextColor(147, 197, 253);
 doc.setFont("helvetica", "bold");
 doc.setFontSize(8);
-doc.text(`评估时间：${data.tempo}`, W / 2, y + 6, { align: "center" });
+doc.text(`评估时间: ${data.tempo}`, W / 2, y + 6, { align: "center" });
 doc.setTextColor(255, 255, 255);
 doc.setFontSize(26);
 doc.text(String(data.soma) + " / 10", W / 2, y + 17, { align: "center" });
@@ -1310,9 +1311,9 @@ return [i.label.replace(/^\d+\.\s*/, ""), val, i.max, Math.round((val / i.max) *
 doc.autoTable({
 startY: y,
 margin: { left: marginL, right: marginR },
-head: [["评估标准", "Obtido", "Máximo", "%"]],
+head: [["评估标准", "得分", "满分", "%"]],
 body: bodyData,
-foot: [["TOTAL", data.soma, 10, Math.round((data.soma / 10) * 100) + "%"]],
+foot: [["总计", data.soma, 10, Math.round((data.soma / 10) * 100) + "%"]],
 styles: { fontSize: 9, cellPadding: 3, lineColor: [226, 232, 240], lineWidth: 0.3 },
 headStyles: { fillColor: navy, textColor: 255, fontStyle: "bold" },
 footStyles: { fillColor: [239, 246, 255], textColor: navy, fontStyle: "bold" },
@@ -1331,7 +1332,7 @@ doc.setFont("helvetica", "normal");
 doc.text("SILVERMAN, W. A.; ANDERSEN, D. H. Pediatrics (1956).", marginL, y + 5);
 doc.text("www.calculadorasdeenfermagem.com.br", W - marginR, y + 5, { align: "right" });
 
-const nomeArquivo = data.nome ? `报告-silverman-${data.nome.replace(/\s+/g, "-").toLowerCase()}.pdf` : "laudo-silverman.pdf";
+const nomeArquivo = data.nome ? `laudo-silverman-${data.nome.replace(/\s+/g, "-").toLowerCase()}.pdf` : "laudo-silverman.pdf";
 doc.save(nomeArquivo);
 }
 
@@ -1355,7 +1356,7 @@ return `<tr><td>${i.label.replace(/^\d+\.\s*/, "")}</td><td style="text-align:ce
 // Resgatando HTML do NANDA list gerado
 const nandaHtml = document.getElementById("lista-nanda").innerHTML;
 
-const html = `<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><title>Silverman-Anderson 报告</title>
+const html = `<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><title>Silverman-Anderson 评分表</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:Arial,sans-serif;font-size:10pt;color:#1E293B;padding:24px 32px}
@@ -1380,23 +1381,23 @@ ul{list-style:none;} .nanda-item{border-bottom:1px solid #f1f5f9;padding:6px 0;}
 .footer{text-align:center;font-size:7.5pt;color:#94A3B8;margin-top:20px;border-top:1px solid #E2E8F0;padding-top:8px}
 .valor{font-size:11.5pt;font-weight:900;color:#000;text-transform:uppercase;letter-spacing:.03em;font-family:Arial,sans-serif;}
 </style></head><body>
-<div class="hdr"><div><h1>Silverman-Anderson 评分</h1><p>新生儿呼吸窘迫评估</p></div><div style="text-align:right;color:white;"><div style="font-size:10pt;font-weight:900;">日期：${data.data}</div><div style="font-size:8pt;opacity:.85;margin-top:2px;">${new Date().toLocaleTimeString('pt-BR')}</div></div></div>
+<div class="hdr"><div><h1>Silverman-Anderson 评分表</h1><p>新生儿呼吸窘迫评估</p></div><div style="text-align:right;color:white;"><div style="font-size:10pt;font-weight:900;">日期: ${data.data}</div><div style="font-size:8pt;opacity:.85;margin-top:2px;">${new Date().toLocaleTimeString('zh-CN')}</div></div></div>
 ${
 data.nome || data.idade || data.setor
-? `<div class="secao"><div class="sec-titulo">Identificação do Paciente</div><div class="grid2">
-${data.nome ? `<p><strong>姓名/新生儿：</strong> <span class="valor">${data.nome.toUpperCase()}</span></p>` : ""}
-${data.idade ? `<p><strong>年龄/胎龄：</strong> <span class="valor">${data.idade.toUpperCase()}</span></p>` : ""}
-${data.setor ? `<p><strong>科室/床位：</strong> <span class="valor">${data.setor.toUpperCase()}</span></p>` : ""}
+? `<div class="secao"><div class="sec-titulo">患者信息</div><div class="grid2">
+${data.nome ? `<p><strong>姓名/新生儿:</strong> <span class="valor">${data.nome.toUpperCase()}</span></p>` : ""}
+${data.idade ? `<p><strong>年龄/胎龄:</strong> <span class="valor">${data.idade.toUpperCase()}</span></p>` : ""}
+${data.setor ? `<p><strong>科室/床位:</strong> <span class="valor">${data.setor.toUpperCase()}</span></p>` : ""}
 </div></div>`
 : ""
 }
-<div class="secao"><div class="res-box"><div class="res-score">${data.soma} <span style="font-size:18pt;color:#64748B;font-weight:700;">/ 10</span></div><div><span class="res-pill">${data.classe}</span></div><p style="margin-top:8px; font-weight:bold; color:#1A3E74">评估时间：${data.tempo}</p></div></div>
+<div class="secao"><div class="res-box"><div class="res-score">${data.soma} <span style="font-size:18pt;color:#64748B;font-weight:700;">/ 10</span></div><div><span class="res-pill">${data.classe}</span></div><p style="margin-top:8px; font-weight:bold; color:#1A3E74">评估时间: ${data.tempo}</p></div></div>
 <div class="secao"><div class="sec-titulo">临床评估记录</div>
-<table><thead><tr><th>评估标准</th><th style="text-align:center">获得</th><th style="text-align:center">最大值</th><th style="text-align:center">%</th></tr></thead><tbody>${linhasTabela}</tbody>
+<table><thead><tr><th>评估标准</th><th style="text-align:center">得分</th><th style="text-align:center">满分</th><th style="text-align:center">%</th></tr></thead><tbody>${linhasTabela}</tbody>
 <tfoot><tr><td>总计</td><td style="text-align:center">${data.soma}</td><td style="text-align:center">10</td><td style="text-align:center">${Math.round((data.soma / 10) * 100)}%</td></tr></tfoot></table></div>
 <div class="secao"><div class="sec-titulo">建议的 NANDA 诊断</div><div class="nanda-box"><ul>${nandaHtml}</ul></div></div>
 <div class="sig"><div class="sig-line">专业人员/护士签名</div><div class="sig-line">地点和日期</div></div>
-<div class="footer">SILVERMAN, W. A.; ANDERSEN, D. H. Pediatrics (1956) | 护理计算器 — www.calculadorasdeenfermagem.com.br</div>
+<div class="footer">SILVERMAN, W. A.; ANDERSEN, D. H. Pediatrics (1956) | Calculadoras de Enfermagem — www.calculadorasdeenfermagem.com.br</div>
 <script>window.onload=function(){window.print();}<\/script></body></html>`;
 
 const janela = window.open("", "_blank");
@@ -1418,7 +1419,7 @@ return;
 }
 
 // Dá um feedback visual rápido para o usuário não clicar duas vezes
-btn.innerHTML = "加载生成器...";
+btn.innerHTML = "正在加载生成器...";
 btn.style.opacity = "0.7";
 btn.style.pointerEvents = "none";
 

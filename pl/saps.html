@@ -1078,18 +1078,18 @@ opts: [
 
 // --- RENDERIZAÇÃO DOS CARDS (GRID) ---
 function renderizarItensSaps() {
-const container = document.getElementById("sapsForm");
+const container = document.getElementById(`sapsForm`);
 container.innerHTML = "";
 
 ITENS_SAPS.forEach((item) => {
 let optsHtml = "";
 item.opts.forEach((op) => {
-optsHtml += `<option value="${op.val}" ${op.val === "" ? "wyłączone wybrane" : ""}>${op.text}</option>`;
+optsHtml += `<option value="${op.val}" ${op.val === "" ? "disabled selected" : ""}>${op.text}</option>`;
 });
 
 const div = document.createElement("div");
 div.className = "item-card";
-div.id = `karta_${item.id}`;
+div.id = `card_${item.id}`;
 div.innerHTML = `
 <div class="flex items-center justify-between mb-2">
 <label for="${item.id}" class="text-[13px] font-bold text-slate-800">${item.label}</label>
@@ -1104,8 +1104,8 @@ container.appendChild(div);
 
 const el = document.getElementById(item.id);
 el.addEventListener("change", () => {
-document.getElementById(`karta_${item.id}`).classList.remove("error");
-document.getElementById("msgValidacaoErro").style.display = "none";
+document.getElementById(`card_${item.id}`).classList.remove("error");
+document.getElementById(`msgValidacaoErro`).style.display = "none";
 atualizarCardIndividual(item.id);
 });
 
@@ -1121,8 +1121,8 @@ const valStr = select.value;
 if (valStr === "") return;
 const val = parseFloat(valStr);
 
-const badge = document.getElementById(`odznaka_${id}`);
-const bar = document.getElementById(`pasek_${id}`);
+const badge = document.getElementById(`badge_${id}`);
+const bar = document.getElementById(`bar_${id}`);
 
 badge.textContent = `${val} pkt`;
 bar.style.width = `100%`;
@@ -1152,15 +1152,15 @@ if (document.getElementById(i.id).value !== "") preenchidos++;
 });
 
 const pctGlobal = (preenchidos / 20) * 100;
-document.getElementById("progress-bar-global").style.width = `${pctGlobal}%`;
-document.getElementById("contadorPreenchidos").textContent = `${preenchidos}/20`;
+document.getElementById(`progress-bar-global`).style.width = `${pctGlobal}%`;
+document.getElementById(`contadorPreenchidos`).textContent = `${preenchidos}/20`;
 }
 
 // --- LÓGICA DADOS DO PACIENTE (TOGGLE) ---
-document.getElementById("btnToggleDados").addEventListener("click", function () {
-const body = document.getElementById("dadosBody");
-const chevron = document.getElementById("dadosChevron");
-const subtitle = document.getElementById("dadosSubtitle");
+document.getElementById(`btnToggleDados`).addEventListener("click", function () {
+const body = document.getElementById(`dadosBody`);
+const chevron = document.getElementById(`dadosChevron`);
+const subtitle = document.getElementById(`dadosSubtitle`);
 
 if (body.classList.contains("open")) {
 body.classList.remove("open");
@@ -1174,10 +1174,10 @@ subtitle.textContent = "Ukryj panel";
 this.style.background = "#EFF6FF";
 }
 });
-document.getElementById("pacData").value = new Date().toISOString().split("T")[0];
+document.getElementById(`pacData`).value = new Date().toISOString().split("T")[0];
 
 // --- CÁLCULO E RESULTADO ---
-const resultadoSection = document.getElementById("resultado-section");
+const resultadoSection = document.getElementById(`resultado-section`);
 
 function calcular() {
 let incompleto = false;
@@ -1192,11 +1192,11 @@ const selectVal = selectElement.value;
 
 if (selectVal === "") {
 incompleto = true;
-document.getElementById(`karta_${item.id}`).classList.add("error");
-if(!primeiroErro) primeiroErro = document.getElementById(`karta_${item.id}`);
+document.getElementById(`card_${item.id}`).classList.add("error");
+if(!primeiroErro) primeiroErro = document.getElementById(`card_${item.id}`);
 dominiosValores.push({ nome: item.label, obtido: 0, text: "Nie wypełniono" });
 } else {
-document.getElementById(`karta_${item.id}`).classList.remove("error");
+document.getElementById(`card_${item.id}`).classList.remove("error");
 const val = parseFloat(selectVal);
 somaTotal += val;
 
@@ -1215,7 +1215,7 @@ if (item.id === "bilirrubinaTotal" || item.id === "plaquetas") diagnosticosKeywo
 });
 
 if (incompleto) {
-const msgErro = document.getElementById("msgValidacaoErro");
+const msgErro = document.getElementById(`msgValidacaoErro`);
 msgErro.style.display = "block";
 if (primeiroErro) {
 primeiroErro.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -1223,7 +1223,7 @@ primeiroErro.scrollIntoView({ behavior: 'smooth', block: 'center' });
 return;
 }
 
-document.getElementById("msgValidacaoErro").style.display = "none";
+document.getElementById(`msgValidacaoErro`).style.display = "none";
 clearInterval(timerInterval);
 
 // Cálculos SAPS III Originais
@@ -1251,9 +1251,9 @@ recomendacao = "Krytyczne ryzyko. Prognoza ostrożna. Wymagane natychmiastowe in
 }
 
 // Exibir no Hero Card
-document.getElementById("scoreProb").textContent = probabilidadeMorte.toFixed(1);
-document.getElementById("scorePts").textContent = somaTotal.toFixed(1);
-const pill = document.getElementById("statusPill");
+document.getElementById(`scoreProb`).textContent = probabilidadeMorte.toFixed(1);
+document.getElementById(`scorePts`).textContent = somaTotal.toFixed(1);
+const pill = document.getElementById(`statusPill`);
 pill.textContent = classe;
 pill.style.backgroundColor = bgPill;
 
@@ -1269,9 +1269,9 @@ el.classList.remove("scp-highlight");
 });
 
 let scpAlvo = null;
-if (probabilidadeMorte < 20) scpAlvo = document.getElementById("scp-baixo");
-else if (probabilidadeMorte >= 20 && probabilidadeMorte < 50) scpAlvo = document.getElementById("scp-moderado");
-else scpAlvo = document.getElementById("scp-alto");
+if (probabilidadeMorte < 20) scpAlvo = document.getElementById(`scp-baixo`);
+else if (probabilidadeMorte >= 20 && probabilidadeMorte < 50) scpAlvo = document.getElementById(`scp-moderado`);
+else scpAlvo = document.getElementById(`scp-alto`);
 
 if (scpAlvo) {
 scpAlvo.style.transform = "scale(1.03)";
@@ -1279,10 +1279,10 @@ scpAlvo.style.boxShadow = "0 8px 25px rgba(0,0,0,0.25)";
 scpAlvo.classList.add("scp-highlight");
 }
 
-document.getElementById("resultadoMensagem").innerHTML = `Pacjent ma szacunkowe prawdopodobieństwo <strong>${probabilidadeMorte.toFixed(2)}%</strong> śmiertelności wewnątrzszpitalnej na podstawie ${somaTotal.toFixed(2)} punktów przy przyjęciu.<br><br><strong>Postępowanie:</strong> ${recomendacao}`;
+document.getElementById(`resultadoMensagem`).innerHTML = `Pacjent ma szacunkowe prawdopodobieństwo <strong>${probabilidadeMorte.toFixed(2)}%</strong> śmiertelności wewnątrzszpitalnej na podstawie ${somaTotal.toFixed(2)} punktów przy przyjęciu.<br><br><strong>Postępowanie:</strong> ${recomendacao}`;
 
 // Gerar Tabela de Detalhamento
-const tbody = document.getElementById("tabelaDominios");
+const tbody = document.getElementById(`tabelaDominios`);
 tbody.innerHTML = "";
 dominiosValores.forEach((dom) => {
 
@@ -1301,7 +1301,7 @@ tr.innerHTML = `
 `;
 tbody.appendChild(tr);
 });
-document.getElementById("totalObtidoTd").textContent = somaTotal.toFixed(1);
+document.getElementById(`totalObtidoTd`).textContent = somaTotal.toFixed(1);
 
 // Mostrar Seção
 resultadoSection.classList.add("visible");
@@ -1317,7 +1317,7 @@ window.__calcData = { soma: somaTotal, probabilidade: probabilidadeMorte, classe
 }
 
 async function chamarNanda(keywords) {
-const lista = document.getElementById("lista-nanda");
+const lista = document.getElementById(`lista-nanda`);
 lista.innerHTML = '<li class="text-sm text-slate-500 text-center py-4"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="fa-spin mr-2 inline-block" fill="currentColor" width="1em" height="1em" aria-hidden="true"><path d="M304 48a48 48 0 1 0 -96 0 48 48 0 1 0 96 0zm0 416a48 48 0 1 0 -96 0 48 48 0 1 0 96 0zM48 304a48 48 0 1 0 0-96 48 48 0 1 0 0 96zm464-48a48 48 0 1 0 -96 0 48 48 0 1 0 96 0zM142.9 437A48 48 0 1 0 75 369.1 48 48 0 1 0 142.9 437zm0-294.2A48 48 0 1 0 75 75a48 48 0 1 0 67.9 67.9zM369.1 437A48 48 0 1 0 437 369.1 48 48 0 1 0 369.1 437z"/></svg> Wyszukiwanie w bazie danych NANDA-I...</li>';
 
 try {
@@ -1386,18 +1386,18 @@ lista.innerHTML = '<li class="text-xs text-red-500 text-center py-4">Baza danych
 function limpar() {
 ITENS_SAPS.forEach((item) => {
 document.getElementById(item.id).value = "";
-document.getElementById(`karta_${item.id}`).classList.remove("error");
+document.getElementById(`card_${item.id}`).classList.remove("error");
 
-const badge = document.getElementById(`odznaka_${item.id}`);
-const bar = document.getElementById(`pasek_${item.id}`);
+const badge = document.getElementById(`badge_${item.id}`);
+const bar = document.getElementById(`bar_${item.id}`);
 badge.textContent = `Pkt`;
 bar.style.width = `0%`;
 bar.style.backgroundColor = "transparent";
 });
-document.getElementById("pacNome").value = "";
-document.getElementById("pacIdade").value = "";
-document.getElementById("pacSetor").value = "";
-document.getElementById("msgValidacaoErro").style.display = "none";
+document.getElementById(`pacNome`).value = "";
+document.getElementById(`pacIdade`).value = "";
+document.getElementById(`pacSetor`).value = "";
+document.getElementById(`msgValidacaoErro`).style.display = "none";
 atualizarBarraGlobal();
 
 clearInterval(timerInterval);
@@ -1423,14 +1423,14 @@ window.__calcData = null;
 // --- EXPORTAÇÃO (PDF e PRINT) ---
 function getDadosImpressao() {
 const cData = window.__calcData;
-const dataVal = document.getElementById("pacData").value;
+const dataVal = document.getElementById(`pacData`).value;
 const dataFormatada = dataVal ? dataVal.split("-").reverse().join("/") : new Date().toLocaleDateString("pt-BR");
-const tempo = document.getElementById("crono-timer").textContent;
+const tempo = document.getElementById(`crono-timer`).textContent;
 
 return {
-nome: document.getElementById("pacNome").value.trim(),
-idade: document.getElementById("pacIdade").value.trim(),
-setor: document.getElementById("pacSetor").value.trim(),
+nome: document.getElementById(`pacNome`).value.trim(),
+idade: document.getElementById(`pacIdade`).value.trim(),
+setor: document.getElementById(`pacSetor`).value.trim(),
 data: dataFormatada,
 tempo: tempo,
 soma: cData.soma,
@@ -1442,7 +1442,7 @@ dominios: cData.dominios
 
 function gerarPDF() {
 if (typeof window.jspdf === "undefined") {
-const btn = document.getElementById("btnGerarPDF");
+const btn = document.getElementById(`btnGerarPDF`);
 const origText = btn.innerHTML;
 btn.innerHTML = "Ładowanie generatora...";
 btn.style.opacity = "0.7"; btn.style.pointerEvents = "none";
@@ -1609,7 +1609,7 @@ return `<tr><td>${d.nome.replace(/^\d+\.\s*/, "")}</td><td style="text-align:cen
 }).join("");
 
 // Resgatando HTML do NANDA list gerado
-const nandaHtml = document.getElementById("lista-nanda").innerHTML;
+const nandaHtml = document.getElementById(`lista-nanda`).innerHTML;
 
 const html = `<!DOCTYPE html><html lang="pl-PL"><head><meta charset="UTF-8"><title>Raport SAPS III</title>
 <style>
@@ -1661,9 +1661,9 @@ janela.document.close();
 }
 
 // Eventos
-document.getElementById("btnCalcular").addEventListener("click", calcular);
-document.getElementById("btnLimpar").addEventListener("click", limpar);
-document.getElementById("btnGerarPDF").addEventListener("click", function() {
+document.getElementById(`btnCalcular`).addEventListener("click", calcular);
+document.getElementById(`btnLimpar`).addEventListener("click", limpar);
+document.getElementById(`btnGerarPDF`).addEventListener("click", function() {
 const btn = this;
 const textoOriginal = btn.innerHTML;
 
@@ -1698,7 +1698,7 @@ gerarPDF();
 };
 };
 });
-document.getElementById("btnImprimir").addEventListener("click", imprimirLaudo);
+document.getElementById(`btnImprimir`).addEventListener("click", imprimirLaudo);
 
 // Iniciar
 renderizarItensSaps();
@@ -1713,7 +1713,7 @@ atualizarBarraGlobal();
       fetch("footer.html")
         .then((response) => response.text())
         .then((data) => {
-          document.getElementById("footer-placeholder").innerHTML = data;
+          document.getElementById(`footer-placeholder`).innerHTML = data;
         });
     }, 150);
   });
