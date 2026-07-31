@@ -61,7 +61,7 @@ ARQUIVOS_PARA_TRADUZIR = [
 
 # Idiomas de destino (pastas existentes). NÃO inclui "pt" (a própria raiz).
 IDIOMAS_ALVO = [
-    "it"
+    "uk"
 ]
 
 # Limite de strings por chamada ao LLM.
