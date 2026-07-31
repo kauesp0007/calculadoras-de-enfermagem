@@ -18,7 +18,7 @@ ARQUIVOS_PARA_TRADUZIR = [
 
 # Idiomas de destino
 IDIOMAS_ALVO = [
-    "es"
+    "uk"
 ]
 
 # Limites de Tokens / Blocos (Ajuste se necessário)
