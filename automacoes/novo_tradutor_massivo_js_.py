@@ -131,46 +131,93 @@ def extrair_scripts_inline(html):
     padrao_script = re.compile(r'(<script\b(?![^>]*\bsrc=)[^>]*>)(.*?)(</script>)', re.IGNORECASE | re.DOTALL)
     
     scripts_extraidos = {}
-    for i, match in enumerate(padrao_script.finditer(html)):
-        scripts_extraidos[f"SCRIPT_INLINE_{i}"] = match.group(2) # Captura apenas o miolo do script
+    contador = 0
+    for match in padrao_script.finditer(html):
+        abertura = match.group(1)
+        conteudo = match.group(2)
+        
+        # 🟢 PROTEÇÃO 1: Ignorar completamente JSON-LD (Schema de SEO na Head)
+        if 'application/ld+json' in abertura.lower():
+            continue
+            
+        # 🟢 PROTEÇÃO 2: Ignorar o script do footer
+        if 'footer.html' in conteudo or 'footer-placeholder' in conteudo:
+            continue
+            
+        scripts_extraidos[f"SCRIPT_INLINE_{contador}"] = conteudo # Captura apenas o miolo do script
+        contador += 1
         
     return scripts_extraidos, padrao_script
 
 def traduzir_lote_js_com_ia(dicionario_scripts, idioma_alvo):
     strings_para_traduzir = {}
-    mapeamento_scripts = {}
+    scripts_mascarados = {} # Aqui fica o "cache" estrutural do seu código JS
+    mapa_delimitadores = {}
+    mapa_interpolacoes = {}
     contador_string = 0
 
-    # Mapear as strings e templates de todos os scripts
-    for id_script, codigo_js in dicionario_scripts.items():
-        mapeamento_scripts[id_script] = []
+    termos_nanda_protegidos = {
+        "risco de", "disposição para", "síndrome de", "tendência a", "disposicao para", "risco da"
+    }
 
-        # 1. Capturar aspas simples e duplas normais
-        padrao_string = re.compile(r'(["\'])(.*?)\1')
-        for match in padrao_string.finditer(codigo_js):
+    # 1. MASCARAMENTO: Substituir textos por variáveis temporárias mantendo o código intacto
+    for id_script, codigo_js in dicionario_scripts.items():
+        
+        # A) Mascarar aspas normais
+        def mascarar_string(match):
+            nonlocal contador_string
+            delimitador = match.group(1)
             conteudo = match.group(2)
-            # Ignora strings muito curtas, caminhos, seletores css, atributos de data
-            if len(conteudo) > 3 and " " in conteudo and not conteudo.startswith(('/', '#', '.', 'data-')) and not conteudo.endswith('.html'):
+            
+            # 🟢 PROTEÇÃO CONTRA CÓDIGO FONTE (CSS, HTML, TAILWIND E JS)
+            is_nanda = conteudo.lower().strip() in termos_nanda_protegidos
+            is_html_tag = bool(re.search(r'<[a-z/]+[^>]*>', conteudo, re.IGNORECASE))
+            is_tailwind = bool(re.search(r'\b(flex|grid|items-|justify-|text-|bg-|border-|mb-|mt-|col-|p[xy]-|w-|h-|font-)\b', conteudo))
+            is_css = bool(re.search(r'[a-z-]+\s*:\s*[^;]+;?', conteudo))
+            is_js_keyword = conteudo.strip() in ["disabled selected", "item-card", "item-select", "mini-bar-wrap", "mini-bar-fill", "item-badge", "error", "open", "visible", "scp-baixo", "scp-moderado", "scp-alto", "scp-highlight"]
+            
+            if len(conteudo) > 3 and " " in conteudo and not is_nanda and not is_html_tag and not is_tailwind and not is_css and not is_js_keyword and not conteudo.startswith(('/', '#', '.', 'data-')) and not conteudo.endswith('.html'):
                 id_string = f"STR_JS_{contador_string}"
                 strings_para_traduzir[id_string] = conteudo
-                mapeamento_scripts[id_script].append({'original': match.group(0), 'id': id_string, 'delimitador': match.group(1), 'tipo': 'string'})
+                mapa_delimitadores[id_string] = delimitador
                 contador_string += 1
+                return f"{delimitador}__MASK_{id_string}___{delimitador}"
+            return match.group(0)
+            
+        padrao_string = re.compile(r'(["\'])(.*?)\1')
+        codigo_mascarado = padrao_string.sub(mascarar_string, codigo_js)
 
-        # 2. Capturar Template Literals (Crasis `...`)
-        padrao_template = re.compile(r'`([^`]*)`')
-        for match_tmpl in padrao_template.finditer(codigo_js):
-            conteudo = match_tmpl.group(1)
-            if not conteudo.strip(): continue
+        # B) Mascarar Template Literals
+        def mascarar_template(match):
+            nonlocal contador_string
+            conteudo = match.group(1)
+            if not conteudo.strip(): return match.group(0)
+            
+            # 🟢 PROTEÇÃO PARA TEMPLATES (Evitar mascarar blocos HTML gerados dinamicamente)
+            is_html_tag = bool(re.search(r'<[a-z/]+[^>]*>', conteudo, re.IGNORECASE))
+            if is_html_tag: 
+                return match.group(0)
+            
             interps = re.findall(r'\$\{[^}]+\}', conteudo)
             texto_limpo = conteudo
-            for i, interp in enumerate(interps): texto_limpo = texto_limpo.replace(interp, f'__INTERP_{i}__', 1)
+            for i, interp in enumerate(interps): 
+                texto_limpo = texto_limpo.replace(interp, f'__INTERP_{i}__', 1)
+            
             tem_texto = bool(re.search(r'[a-zA-ZÀ-ÿ]', re.sub(r'__INTERP_\d+__', '', texto_limpo)))
-            if not tem_texto: continue
+            if not tem_texto: return match.group(0)
             
             id_string = f"STR_JS_{contador_string}"
             strings_para_traduzir[id_string] = texto_limpo
-            mapeamento_scripts[id_script].append({'original': match_tmpl.group(0), 'id': id_string, 'delimitador': '`', 'tipo': 'template', 'interpolacoes': interps})
+            mapa_delimitadores[id_string] = '`'
+            mapa_interpolacoes[id_string] = interps
             contador_string += 1
+            return f"`__MASK_{id_string}___`"
+            
+        padrao_template = re.compile(r'`([^`]*)`')
+        codigo_mascarado = padrao_template.sub(mascarar_template, codigo_mascarado)
+        
+        # Salva o script inteiro com as máscaras (o layout original do código é 100% preservado aqui)
+        scripts_mascarados[id_script] = codigo_mascarado
 
     if not strings_para_traduzir: return dicionario_scripts
 
@@ -193,19 +240,37 @@ def traduzir_lote_js_com_ia(dicionario_scripts, idioma_alvo):
         res = chamar_ia_com_fallback(instrucoes, lote, is_json=True)
         if isinstance(res, dict): dict_traduzido.update(res)
 
-    # Remontar os scripts com os textos traduzidos
-    for id_script, itens in mapeamento_scripts.items():
-        codigo_atual = dicionario_scripts[id_script]
-        for item in reversed(itens): # Reverso para evitar conflito de index na substituição se houver strings aninhadas
-            if item['id'] in dict_traduzido:
-                texto_trad = dict_traduzido[item['id']]
-                if item['tipo'] == 'template':
-                    for i, interp in enumerate(item.get('interpolacoes', [])):
-                        texto_trad = texto_trad.replace(f'__INTERP_{i}__', interp)
-                codigo_atual = codigo_atual.replace(item['original'], f"{item['delimitador']}{texto_trad}{item['delimitador']}")
-        dicionario_scripts[id_script] = codigo_atual
+    # 2. DESMASCARAR: Injetar traduções cirurgicamente no código
+    scripts_finais = {}
+    for id_script, codigo_final in scripts_mascarados.items():
+        
+        for chave_id, texto_original in strings_para_traduzir.items():
+            chave_mascara = f"__MASK_{chave_id}___"
             
-    return dicionario_scripts
+            if chave_mascara in codigo_final:
+                texto_novo = dict_traduzido.get(chave_id, texto_original)
+                delimitador = mapa_delimitadores[chave_id]
+                
+                # Restaura as interpolações dinâmicas (${...}) se for template
+                if delimitador == '`' and chave_id in mapa_interpolacoes:
+                    for i, interp in enumerate(mapa_interpolacoes[chave_id]):
+                        texto_novo = texto_novo.replace(f'__INTERP_{i}__', interp)
+                
+                # 🟢 PROTEÇÃO UNIVERSAL PARA TODOS OS IDIOMAS 🟢
+                # Escapa aspas e crases geradas na tradução para não quebrar a sintaxe do JS
+                if delimitador == "'":
+                    texto_novo = texto_novo.replace("'", r"\'")
+                elif delimitador == '"':
+                    texto_novo = texto_novo.replace('"', r'\"')
+                elif delimitador == '`':
+                    texto_novo = texto_novo.replace('`', r'\`')
+                    
+                # Injeção cirúrgica final
+                codigo_final = codigo_final.replace(chave_mascara, texto_novo)
+                
+        scripts_finais[id_script] = codigo_final
+            
+    return scripts_finais
 
 # =========================================================================
 # 6. FUNÇÃO DE BUILD
@@ -269,6 +334,17 @@ def main():
             contador_substituicao = 0
             def substituir_no_destino(match):
                 nonlocal contador_substituicao
+                abertura = match.group(1)
+                conteudo_destino = match.group(2)
+                
+                # 🟢 PROTEÇÃO 1: Ignorar JSON-LD (Schema SEO) no arquivo de destino
+                if 'application/ld+json' in abertura.lower():
+                    return match.group(0)
+                
+                # 🟢 PROTEÇÃO 2: Se for o script do footer no arquivo de destino, mantém intacto
+                if 'footer.html' in conteudo_destino or 'footer-placeholder' in conteudo_destino:
+                    return match.group(0)
+                    
                 chave = f"SCRIPT_INLINE_{contador_substituicao}"
                 contador_substituicao += 1
                 
