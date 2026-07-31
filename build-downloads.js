@@ -15,7 +15,7 @@ function slugify(text) {
     .replace(/(^-|-$)/g, "");
 }
 
-function gerarCardGoogleImages(item) {
+function gerarCardGoogleImages(item, index) {
   const titulo = item.titulo || "Sem título";
   const slug = item.slug || slugify(titulo);
   let imagePath = item.capa || item.ficheiro || "";
@@ -39,11 +39,15 @@ function gerarCardGoogleImages(item) {
   const isImagePathValidImage = /\.(jpg|jpeg|png|webp|gif|svg)$/i.test(imagePath);
   let mediaVisualHtml = "";
 
+  // Otimizações LCP/CLS: primeiras 6 imagens sem lazy, com fetchpriority high e dimensões explícitas
+  const isAboveFold = typeof index === 'number' && index < 6;
+  const imgAttrs = isAboveFold
+    ? 'width="300" height="200" fetchpriority="high" loading="eager"'
+    : 'width="300" height="200" loading="lazy" decoding="async"';
+
   if (isImagePathValidImage) {
-    // Se for formato válido de imagem, exibe a imagem de capa (Google Images original)
-    mediaVisualHtml = `<img src="${imagePath}" class="max-w-full h-full object-cover transition-opacity duration-300 group-hover:opacity-90" alt="${titulo}" loading="lazy">`;
+    mediaVisualHtml = `<img src="${imagePath}" ${imgAttrs} class="max-w-full h-full object-cover transition-opacity duration-300 group-hover:opacity-90" alt="${titulo}">`;
   } else {
-    // Fallback visual para Documentos e Vídeos que tentam carregar no img
     mediaVisualHtml = `
       <div class="w-full h-full flex flex-col items-center justify-center transition-colors bg-gray-50 group-hover:bg-gray-100">
         <i class="${badgeConfig.icon} text-5xl mb-2 transition-transform duration-300 group-hover:scale-110" style="color: ${badgeConfig.text}90;"></i>
@@ -125,8 +129,8 @@ function construirPaginas() {
 
     let htmlTodos = "", htmlDocs = "", htmlFotos = "", htmlVideos = "";
 
-    itemsDaPagina.forEach((item) => {
-      const card = gerarCardGoogleImages(item);
+    itemsDaPagina.forEach((item, idx) => {
+      const card = gerarCardGoogleImages(item, idx);
       htmlTodos += card;
       const cat = String(item.categoria || "").toLowerCase().trim();
       
