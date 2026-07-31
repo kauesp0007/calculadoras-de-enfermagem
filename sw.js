@@ -1,4 +1,4 @@
-const CACHE_VERSION = "20260731-083302";
+const CACHE_VERSION = "20260731-090821";
 const CACHE_NAME = `calculadoras-enfermagem-cache-${CACHE_VERSION}`;
 
 // O SCRIPT DE BUILD VAI INJETAR A LISTA DE ARQUIVOS AQUI
@@ -20,7 +20,14 @@ const urlsToCache = [
   '.tradutor_cache/sofa_it.json',
   '.tradutor_cache/sofa_uk.json',
   '.tradutor_cache/tinetti_uk.json',
+  '.tradutor_cache/waterlow_ar.json',
   '.tradutor_cache/waterlow_de.json',
+  '.tradutor_cache/waterlow_hi.json',
+  '.tradutor_cache/waterlow_ja.json',
+  '.tradutor_cache/waterlow_ko.json',
+  '.tradutor_cache/waterlow_nl.json',
+  '.tradutor_cache/waterlow_sv.json',
+  '.tradutor_cache/waterlow_uk.json',
   '.vscode/extensions.json',
   '.vscode/settings.json',
   '.vscode/tasks.json',
@@ -228,6 +235,7 @@ const urlsToCache = [
   'nl/favicon.ico',
   'otimizador-imagens.js',
   'otimizar-imagens.js',
+  'padronizar-largura.js',
   'pl/favicon.ico',
   'public/output.css',
   'relatorio_auditoria_seo.json',
