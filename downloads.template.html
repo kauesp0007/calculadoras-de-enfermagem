@@ -131,6 +131,14 @@ class="w-44 md:w-56 pl-9 pr-4 py-1.5 text-sm border border-gray-300 rounded-full
 <!-- VIDEOS -->
 </div>
 
+<!-- Botão "Carregar mais" (mobile) -->
+<div id="load-more-container" class="mt-6 flex justify-center hidden md:hidden">
+<button id="btn-load-more" class="bg-white hover:bg-gray-50 text-[#1A3E74] font-bold py-3 px-8 rounded-xl border-2 border-[#1A3E74] shadow-sm transition-all hover:shadow-md">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="mr-2" fill="currentColor" width="0.9em" height="0.9em" aria-hidden="true"><path d="M256 0a256 256 0 1 0 0 512A256 256 0 1 0 256 0zM232 344l0-64-64 0c-13.3 0-24-10.7-24-24s10.7-24 24-24l64 0 0-64c0-13.3 10.7-24 24-24s24 10.7 24 24l0 64 64 0c13.3 0 24 10.7 24 24s-10.7 24-24 24l-64 0 0 64c0 13.3-10.7 24-24 24s-24-10.7-24-24z"/></svg>
+Carregar mais itens
+</button>
+</div>
+
 <div class="mt-12 flex justify-center">
 <!-- PAGINATION -->
 </div>
@@ -261,8 +269,8 @@ var mediaHtml = '';
 // Otimizações LCP/CLS: primeiras 6 imagens sem lazy, com fetchpriority high e dimensões explícitas
 var isAboveFold = typeof index === 'number' && index < 6;
 var imgAttrs = isAboveFold
-  ? 'width="300" height="200" fetchpriority="high" loading="eager"'
-  : 'width="300" height="200" loading="lazy" decoding="async"';
+  ? 'width="300" height="200" sizes="(max-width:640px) 50vw,(max-width:1024px) 25vw,16vw" fetchpriority="high" loading="eager"'
+  : 'width="300" height="200" sizes="(max-width:640px) 50vw,(max-width:1024px) 25vw,16vw" loading="lazy" decoding="async"';
 if(isImage){
 mediaHtml = '<img src="'+imagePath+'" '+imgAttrs+' class="max-w-full h-full object-cover transition-opacity duration-300 group-hover:opacity-90" alt="'+titulo+'">';
 }else{
@@ -341,6 +349,93 @@ applyFilterAndSearch();
 searchInput.focus();
 });
 }
+})();
+
+// --- CARREGAMENTO PROGRESSIVO MOBILE ---
+(function(){
+var isMobile = window.innerWidth < 768;
+if(!isMobile) return;
+
+var ITEMS_PER_BATCH = 30;
+var btnContainer = document.getElementById('load-more-container');
+var btnLoadMore = document.getElementById('btn-load-more');
+if(!btnContainer || !btnLoadMore) return;
+
+// Aplica a todos os grids estáticos
+var allGrids = document.querySelectorAll('[id^="grid-"]');
+var currentVisible = ITEMS_PER_BATCH;
+
+function applyProgressiveLoading(grid){
+var cards = grid.querySelectorAll('.file-card');
+if(cards.length <= ITEMS_PER_BATCH) return;
+
+// Esconder cards além do batch inicial
+for(var i = ITEMS_PER_BATCH; i < cards.length; i++){
+cards[i].style.display = 'none';
+cards[i].classList.add('lazy-card');
+}
+// Mostrar botão
+btnContainer.classList.remove('hidden');
+}
+
+// Aplica no grid Todos (principal)
+var gridTodos = document.getElementById('grid-todos');
+if(gridTodos) applyProgressiveLoading(gridTodos);
+
+// Também nos outros grids quando ficarem visíveis
+btnLoadMore.addEventListener('click', function(){
+var anyRevealed = false;
+allGrids.forEach(function(grid){
+if(grid.classList.contains('hidden')) return;
+var hiddenCards = grid.querySelectorAll('.lazy-card');
+var toReveal = Math.min(ITEMS_PER_BATCH, hiddenCards.length);
+for(var i = 0; i < toReveal; i++){
+hiddenCards[i].style.display = '';
+hiddenCards[i].classList.remove('lazy-card');
+anyRevealed = true;
+}
+// Verificar se ainda há cartões escondidos neste grid
+var stillHidden = grid.querySelectorAll('.lazy-card').length;
+if(stillHidden === 0 && !grid.classList.contains('hidden')){
+// Todos revelados neste grid
+}
+});
+
+// Esconder botão se todos os grids visíveis não tiverem mais cartões
+var allRevealed = true;
+allGrids.forEach(function(grid){
+if(grid.classList.contains('hidden')) return;
+if(grid.querySelectorAll('.lazy-card').length > 0) allRevealed = false;
+});
+if(allRevealed){
+btnContainer.classList.add('hidden');
+}
+});
+
+// Re-aplicar quando filtros mudam (observar mudanças nos grids)
+var observer = new MutationObserver(function(){
+setTimeout(function(){
+var visibleGrid = document.querySelector('[id^="grid-"]:not(.hidden)');
+if(visibleGrid && visibleGrid.querySelectorAll('.lazy-card').length === 0){
+// Re-aplicar se o grid foi recém-preenchido (filtro global)
+var cards = visibleGrid.querySelectorAll('.file-card');
+if(cards.length > ITEMS_PER_BATCH){
+for(var i = ITEMS_PER_BATCH; i < cards.length; i++){
+if(cards[i].style.display !== 'none'){
+cards[i].style.display = 'none';
+cards[i].classList.add('lazy-card');
+}
+}
+btnContainer.classList.remove('hidden');
+currentVisible = ITEMS_PER_BATCH;
+}
+}
+}, 200);
+});
+
+allGrids.forEach(function(grid){
+observer.observe(grid, {childList: true, subtree: false});
+});
 })();
 
 // Lightbox Lógica

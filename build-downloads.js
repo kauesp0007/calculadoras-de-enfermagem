@@ -42,8 +42,8 @@ function gerarCardGoogleImages(item, index) {
   // Otimizações LCP/CLS: primeiras 6 imagens sem lazy, com fetchpriority high e dimensões explícitas
   const isAboveFold = typeof index === 'number' && index < 6;
   const imgAttrs = isAboveFold
-    ? 'width="300" height="200" fetchpriority="high" loading="eager"'
-    : 'width="300" height="200" loading="lazy" decoding="async"';
+    ? 'width="300" height="200" sizes="(max-width:640px) 50vw,(max-width:1024px) 25vw,16vw" fetchpriority="high" loading="eager"'
+    : 'width="300" height="200" sizes="(max-width:640px) 50vw,(max-width:1024px) 25vw,16vw" loading="lazy" decoding="async"';
 
   if (isImagePathValidImage) {
     mediaVisualHtml = `<img src="${imagePath}" ${imgAttrs} class="max-w-full h-full object-cover transition-opacity duration-300 group-hover:opacity-90" alt="${titulo}">`;
