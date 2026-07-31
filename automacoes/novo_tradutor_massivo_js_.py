@@ -55,13 +55,13 @@ except ImportError:
 
 # Arquivos HTML da RAIZ (pt-BR) cujo <script> inline você quer retraduzir.
 ARQUIVOS_PARA_TRADUZIR = [
-    "waterlow.html"
+    "index.html"
     
 ]
 
 # Idiomas de destino (pastas existentes). NÃO inclui "pt" (a própria raiz).
 IDIOMAS_ALVO = [
-    "hi", "ar", "ja", "ko", "nl", "sv", "uk"
+    "en"
 ]
 
 # Limite de strings por chamada ao LLM.
