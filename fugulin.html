@@ -761,7 +761,7 @@ Evidências
 <div class="bg-blue-50 px-3 py-1.5 rounded-lg border border-blue-200 text-xs font-bold text-navy">
 Preenchido:
 <span id="contadorPreenchidos" class="text-blue-600">0</span>
-/9
+/12
 </div>
 </div>
 
@@ -791,7 +791,7 @@ Limpar
 
 <div class="flex items-end justify-center gap-3 mb-5">
 <span id="scoreValor" class="score-big">0</span>
-<span class="text-2xl font-bold text-blue-200 mb-3">/ 36</span>
+<span class="text-2xl font-bold text-blue-200 mb-3">/ 48</span>
 </div>
 
 <div id="statusPill" class="status-pill bg-amber-600 mb-6">Grau de Dependência</div>
@@ -827,9 +827,9 @@ Limpar
 <tr>
 <td>Escore Total</td>
 <td id="totalObtidoTd" class="text-center text-lg">—</td>
-<td class="text-center text-slate-500">36</td>
+<td class="text-center text-slate-500">48</td>
 <td id="corteTd" class="text-right">
-<span class="text-[11px] bg-white border border-navy text-navy px-3 py-1 rounded-full shadow-sm">Min: 9 pts</span>
+<span class="text-[11px] bg-white border border-navy text-navy px-3 py-1 rounded-full shadow-sm">Min: 12 pts</span>
 </td>
 </tr>
 </tfoot>
@@ -1123,6 +1123,45 @@ opts: [
 { val: 4, text: "Drogas vasoativas / Terapia intensiva (4)" },
 ],
 },
+{
+id: "integridadeCutanea",
+label: "10. Integridade Cutâneomucosa",
+max: 4,
+desc: "Comprometimento tecidual e integridade da pele/mucosa.",
+opts: [
+{ val: 0, text: "Selecione uma opção..." },
+{ val: 1, text: "Pele íntegra / sem comprometimento (1)" },
+{ val: 2, text: "Lesão localizada sem exsudato (2)" },
+{ val: 3, text: "Lesão com exsudato moderado (3)" },
+{ val: 4, text: "Lesão extensa com exsudato abundante (4)" },
+],
+},
+{
+id: "curativo",
+label: "11. Curativo",
+max: 4,
+desc: "Tipo e complexidade do curativo necessário.",
+opts: [
+{ val: 0, text: "Selecione uma opção..." },
+{ val: 1, text: "Não necessita de curativo (1)" },
+{ val: 2, text: "Curativo simples/oclusivo a cada 24h ou mais (2)" },
+{ val: 3, text: "Curativo a cada 12h ou múltiplos simples (3)" },
+{ val: 4, text: "Curativos complexos/múltiplos a cada 6h ou menos (4)" },
+],
+},
+{
+id: "tempoCurativo",
+label: "12. Tempo na Realização de Curativos",
+max: 4,
+desc: "Tempo total gasto na realização dos curativos.",
+opts: [
+{ val: 0, text: "Selecione uma opção..." },
+{ val: 1, text: "Nenhum tempo / sem curativo (1)" },
+{ val: 2, text: "Até 15 minutos (2)" },
+{ val: 3, text: "15 a 30 minutos (3)" },
+{ val: 4, text: "Mais de 30 minutos (4)" },
+],
+},
 ];
 
 // --- RENDERIZAÇÃO DOS CARDS (GRID) ---
@@ -1193,7 +1232,7 @@ ITENS_FUGULIN.forEach((i) => {
 if (parseInt(document.getElementById(i.id).value) > 0) preenchidos++;
 });
 
-const pctGlobal = (preenchidos / 9) * 100;
+const pctGlobal = (preenchidos / 12) * 100;
 document.getElementById("progress-bar-global").style.width = `${pctGlobal}%`;
 document.getElementById("contadorPreenchidos").textContent = preenchidos;
 }
@@ -1243,11 +1282,14 @@ if (item.id === "alimentacao") diagnosticosKeywords.push("nutrição", "degluti�
 if (item.id === "cuidadoCorporal") diagnosticosKeywords.push("banho", "pele", "integridade");
 if (item.id === "eliminacao") diagnosticosKeywords.push("eliminação", "urinária", "intestino");
 if (item.id === "terapeutica") diagnosticosKeywords.push("infecção", "sangramento");
+if (item.id === "integridadeCutanea") diagnosticosKeywords.push("pele", "tecido", "integridade tissular", "lesão", "úlcera por pressão");
+if (item.id === "curativo") diagnosticosKeywords.push("curativo", "ferida", "infecção", "cicatrização");
+if (item.id === "tempoCurativo") diagnosticosKeywords.push("procedimento", "tempo", "curativo");
 }
 });
 
 if (incompleto) {
-alert("Por favor, selecione uma opção válida para as 9 áreas de cuidado antes de calcular.");
+alert("Por favor, selecione uma opção válida para as 12 áreas de cuidado antes de calcular.");
 return;
 }
 
@@ -1536,7 +1578,7 @@ doc.setFontSize(8);
 doc.text("PONTUAÇÃO FINAL FUGULIN", W / 2, y + 6, { align: "center" });
 doc.setTextColor(255, 255, 255);
 doc.setFontSize(26);
-doc.text(String(data.soma) + " / 36", W / 2, y + 17, { align: "center" });
+doc.text(String(data.soma) + " / 48", W / 2, y + 17, { align: "center" });
 y += 28;
 
 // Status Pill
@@ -1571,7 +1613,7 @@ startY: y,
 margin: { left: marginL, right: marginR },
 head: [["Área de Cuidado", "Obtido", "Máximo", "%"]],
 body: bodyData,
-foot: [["TOTAL", data.soma, 36, Math.round((data.soma / 36) * 100) + "%"]],
+foot: [["TOTAL", data.soma, 48, Math.round((data.soma / 48) * 100) + "%"]],
 styles: { fontSize: 9, cellPadding: 3, lineColor: [226, 232, 240], lineWidth: 0.3 },
 headStyles: { fillColor: navy, textColor: 255, fontStyle: "bold" },
 footStyles: { fillColor: [239, 246, 255], textColor: navy, fontStyle: "bold" },
@@ -1650,10 +1692,10 @@ ${data.setor ? `<p><strong>SETOR/LEITO:</strong> <span class="valor">${data.seto
 </div></div>`
 : ""
 }
-<div class="secao"><div class="res-box"><div class="res-score">${data.soma} <span style="font-size:18pt;color:#64748B;font-weight:700;">/ 36</span></div><div><span class="res-pill">${data.classe}</span></div></div></div>
+<div class="secao"><div class="res-box"><div class="res-score">${data.soma} <span style="font-size:18pt;color:#64748B;font-weight:700;">/ 48</span></div><div><span class="res-pill">${data.classe}</span></div></div></div>
 <div class="secao"><div class="sec-titulo">Memória da Avaliação</div>
 <table><thead><tr><th>Área de Cuidado</th><th style="text-align:center">Obtido</th><th style="text-align:center">Máx</th><th style="text-align:center">%</th></tr></thead><tbody>${linhasTabela}</tbody>
-<tfoot><tr><td>TOTAL</td><td style="text-align:center">${data.soma}</td><td style="text-align:center">36</td><td style="text-align:center">${Math.round((data.soma / 36) * 100)}%</td></tr></tfoot></table></div>
+<tfoot><tr><td>TOTAL</td><td style="text-align:center">${data.soma}</td><td style="text-align:center">48</td><td style="text-align:center">${Math.round((data.soma / 48) * 100)}%</td></tr></tfoot></table></div>
 <div class="secao"><div class="sec-titulo">Diagnósticos NANDA Sugeridos (Relacionados)</div><div class="nanda-box"><ul>${nandaHtml}</ul></div></div>
 <div class="sig"><div class="sig-line">Assinatura do Enfermeiro(a) responsável</div><div class="sig-line">Local e Data</div></div>
 <div class="footer">Resolução COFEN nº 543/2017 | Calculadoras de Enfermagem — www.calculadorasdeenfermagem.com.br</div>
