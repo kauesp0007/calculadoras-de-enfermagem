@@ -55,13 +55,13 @@ except ImportError:
 
 # Arquivos HTML da RAIZ (pt-BR) cujo <script> inline você quer retraduzir.
 ARQUIVOS_PARA_TRADUZIR = [
-    "tinetti.html"
+    "sofa.html"
     
 ]
 
 # Idiomas de destino (pastas existentes). NÃO inclui "pt" (a própria raiz).
 IDIOMAS_ALVO = [
-    "uk"
+    "it"
 ]
 
 # Limite de strings por chamada ao LLM.
