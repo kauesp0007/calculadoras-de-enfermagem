@@ -204,6 +204,9 @@ def _regex_extrair_scripts_inline(html):
         fecha = m.group(3)
         if 'src=' in abertura.lower():
             continue
+        # 🛡 PULAR bloco footer: igual em todos os idiomas, não precisa traduzir
+        if 'footer-placeholder' in conteudo or 'footer.html' in conteudo:
+            continue
         resultados.append({
             "idx_inicio": m.start(),
             "idx_fim": m.end(),
@@ -230,6 +233,9 @@ def extrair_scripts_inline(html):
             if src_attr:
                 continue
             conteudo = node.text() or ""
+            # 🛡 PULAR bloco footer: igual em todos os idiomas, não precisa traduzir
+            if 'footer-placeholder' in conteudo or 'footer.html' in conteudo:
+                continue
             # Reconstrói a abertura completa (com atributos):
             attrs_str = ""
             for k, v in node.attributes.items():
@@ -480,6 +486,40 @@ def corrigir_template_literals_corrompidos(codigo_js):
     return codigo_js
 
 
+def corrigir_codigo_orfao_apos_script(html_completo):
+    """
+    Pós-processamento no HTML final: detecta e remove código JavaScript
+    que vazou para fora da tag </script> devido à fragmentação de
+    template literals aninhados pelo padrao_template regex.
+
+    Sintoma: após o </script> que fecha o bloco principal, aparece
+    código JS órfão (event listeners, renderizarItensTinetti, etc.)
+    antes do <div id="footer-placeholder">.
+
+    Causa: o regex `([^`]*)` fragmenta o template literal gigante
+    do imprimirLaudo nos backticks internos (? `<div>...</div>`).
+    O fragmento final contém </script> NÃO escapado, que o parser
+    HTML trata como fechamento real da tag <script>.
+    """
+    # Detecta padrão: </script> seguido de código JS órfão até footer-placeholder
+    # Remove tudo entre o primeiro </script> (real) e <div id="footer-placeholder">
+    # desde que haja código JS visível (addEventListener, function, etc.)
+    padrao_orfao = re.compile(
+        r'(</script>)\s*'
+        r'(?:</body></html>`;\s*)?'    # fragmento do template literal
+        r'(?:const\s+janela\s*=.*?;\s*)?'  # código órfão do imprimirLaudo
+        r'(?:janela\.document\..*?;\s*)*'
+        r'(?:\}\s*)?'
+        r'(\s*//\s*Eventos.*?)'         # início do bloco de eventos duplicado
+        r'(?=<div\s+id="footer-placeholder")',
+        re.DOTALL
+    )
+    if padrao_orfao.search(html_completo):
+        html_completo = padrao_orfao.sub(r'\1\n', html_completo)
+        print(f"        {C_CIANO}🧹 Código órfão após </script> removido.{RESET}")
+    return html_completo
+
+
 # =========================================================================
 # 8. SUBSTITUIÇÃO CIRÚRGICA NO HTML DE DESTINO
 # =========================================================================
@@ -627,6 +667,9 @@ def processar_arquivo(arquivo, idioma):
     except RuntimeError as e:
         print(f"  {C_VERMELHO}✗ Erro na substituição: {e}{RESET}")
         return False
+
+    # Pós-processamento no HTML final: remove código órfão vazado
+    html_final = corrigir_codigo_orfao_apos_script(html_final)
 
     # Backup de segurança antes de salvar
     backup_path = caminho_destino + ".bak"
