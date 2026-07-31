@@ -12,7 +12,7 @@ const BANCAS = [
   "FUNCAB", "FUNRIO", "IBFC", "IDECAN", "IADES", "QUADRIX", "AOCP",
   "FUNDEP", "FUMARC", "UFMT", "UFPR", "UFSC", "UFRJ", "FUNCAMP",
   "INSTITUTO VERBENA", "VERBENA", "CEFET", "COMPERVE", "MS CONCURSOS",
-  "CONSULPLAN", "INSTITUTO AOCP", "SELECON", "UNIRV",
+  "CONSULPLAN", "INSTITUTO AOCP", "SELECON", "UNIRV", "IBAM",
 ];
 
 // Estados brasileiros (siglas)
@@ -93,7 +93,8 @@ function extrairCargo(partes) {
  */
 function extrairInfoDoNome(nomeArquivo) {
   const nomeSemExtensao = nomeArquivo.replace(/\.pdf$/i, "");
-  const partes = nomeSemExtensao.split("_");
+  // Suporta tanto underscore (_) quanto hífen (-) como separadores
+  const partes = nomeSemExtensao.split(/[_-]/);
 
   const ano = extrairAno(partes);
   const banca = extrairBanca(partes);
