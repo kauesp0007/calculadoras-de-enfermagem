@@ -96,8 +96,8 @@ async function salvarNoBancoDeDados(novoHospital) {
 // ==========================================
 
 async function buscarURLsNaWeb() {
-    const locais = ["São Paulo", "Campinas", "Santos", "ABC Paulista", "Guarulhos", "Osasco", "Interior SP", "Litoral SP"];
-    const termos = ['"trabalhe conosco" hospital enfermagem', '"trabalhe conosco" centro médico', '"processo seletivo" hospital', '"envie seu currículo" hospital'];
+    const locais = ["São Paulo", "Campinas", "Santos", "ABC Paulista", "Guarulhos", "Osasco", "Interior SP", "Litoral SP", "Guarujá", "Praia Grande", "Sorocaba", "Ribeirão Preto", "Piracicaba", "Jundiaí", "Bauru", "São José dos Campos", "Taubaté", "Mogi das Cruzes", "Araraquara", "Franca"];
+    const termos = ['"trabalhe conosco" hospital enfermagem', '"trabalhe conosco" centro médico', '"processo seletivo" hospital', '"envie seu currículo" hospital', '"oportunidade" hospital', '"vagas de emprego" hospital', '"trabalhe conosco" instituto médico', '"faça parte da nossa equipe" hospital', '"oportunidade" hospital', '"vagas de emprego" clínica médica'];
     
     const buscaFinal = `${termos[Math.floor(Math.random() * termos.length)]} ${locais[Math.floor(Math.random() * locais.length)]}`;
     
