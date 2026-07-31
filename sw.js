@@ -1,4 +1,4 @@
-const CACHE_VERSION = "20260731-064640";
+const CACHE_VERSION = "20260731-075730";
 const CACHE_NAME = `calculadoras-enfermagem-cache-${CACHE_VERSION}`;
 
 // O SCRIPT DE BUILD VAI INJETAR A LISTA DE ARQUIVOS AQUI
@@ -9,6 +9,7 @@ const urlsToCache = [
   '.chrome-perfil-pci/Subresource Filter/Unindexed Rules/9.69.0/manifest.json',
   '.chrome-perfil-pci/component_crx_cache/metadata.json',
   '.chrome-perfil-pci/extensions_crx_cache/metadata.json',
+  '.tradutor_cache/richmond_it.json',
   '.tradutor_cache/silverman_ar.json',
   '.tradutor_cache/silverman_en.json',
   '.tradutor_cache/silverman_es.json',
@@ -230,6 +231,7 @@ const urlsToCache = [
   'public/output.css',
   'relatorio_auditoria_seo.json',
   'relatorio_hreflang.json',
+  'remover-circulo-hero-card.js',
   'ru/favicon.ico',
   'scaffold-lang.js',
   'scan-biblioteca.js',
