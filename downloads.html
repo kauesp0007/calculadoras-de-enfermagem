@@ -94,14 +94,30 @@
 </div>
 </div>
 
-<!-- Filtros estilo Google (Alinhados à esquerda, apenas texto e linha inferior) -->
+<!-- Filtros estilo Google + Pesquisa -->
 <div class="mb-6 border-b border-gray-200 pt-2">
-<div class="flex flex-wrap gap-6 md:gap-8 justify-start px-2" id="filter-buttons">
+<div class="flex flex-wrap items-end gap-6 md:gap-8 justify-start px-2" id="filter-buttons">
 <button class="filter-btn active text-[#1A3E74] font-bold text-sm transition-all bg-transparent px-0 pb-3 border-b-4 border-[#1A3E74] shadow-none cursor-pointer" data-filter="todos">Todos</button>
 <button class="filter-btn text-gray-500 hover:text-[#1A3E74] font-medium text-sm transition-all bg-transparent px-0 pb-3 border-b-4 border-transparent hover:border-gray-300 shadow-none cursor-pointer" data-filter="documentos">Documentos / PDF</button>
 <button class="filter-btn text-gray-500 hover:text-[#1A3E74] font-medium text-sm transition-all bg-transparent px-0 pb-3 border-b-4 border-transparent hover:border-gray-300 shadow-none cursor-pointer" data-filter="fotos">Fotos / Imagens</button>
 <button class="filter-btn text-gray-500 hover:text-[#1A3E74] font-medium text-sm transition-all bg-transparent px-0 pb-3 border-b-4 border-transparent hover:border-gray-300 shadow-none cursor-pointer" data-filter="videos">Vídeos</button>
+<!-- Barra de Pesquisa Global -->
+<div class="ml-auto pb-1">
+<div class="relative">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" fill="currentColor" width="0.9em" height="0.9em" aria-hidden="true"><path d="M416 208c0 45.9-14.9 88.3-40 122.7L502.6 457.4c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L330.7 376c-34.4 25.2-76.8 40-122.7 40C93.1 416 0 322.9 0 208S93.1 0 208 0S416 93.1 416 208zM208 352a144 144 0 1 0 0-288 144 144 0 1 0 0 288z"/></svg>
+<input type="text" id="search-input" placeholder="Pesquisar na biblioteca..." 
+class="w-44 md:w-56 pl-9 pr-4 py-1.5 text-sm border border-gray-300 rounded-full focus:outline-none focus:border-[#1A3E74] focus:ring-2 focus:ring-[#1A3E74]/20 bg-white shadow-sm transition-all" />
+<button id="search-clear" class="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 hidden" type="button" title="Limpar pesquisa">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512" fill="currentColor" width="0.75em" height="0.75em"><path d="M342.6 150.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L192 210.7 86.6 105.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L146.7 256 41.4 361.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0L192 301.3 297.4 406.6c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L237.3 256 342.6 150.6z"/></svg>
+</button>
 </div>
+</div>
+</div>
+</div>
+
+<!-- Grid Dinâmico (para pesquisa e filtros globais) -->
+<div id="grid-dinamico" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 md:gap-4 hidden">
+<!-- Preenchido dinamicamente via JS -->
 </div>
 
 <!-- Grids de Exibição (6 imagens por linha em telas grandes) -->
@@ -5694,37 +5710,158 @@ carregarTraducoes("pt", "cookies.json");
 }
 });
 
-// Nova Lógica de Filtros (Estilo Google)
-const buttons = document.querySelectorAll(".filter-btn");
-buttons.forEach((btn) => {
-btn.addEventListener("click", () => {
-// Remove active state de todos
-buttons.forEach((b) => {
-b.classList.remove("text-[#1A3E74]", "font-bold", "border-[#1A3E74]", "active");
-b.classList.add("text-gray-500", "font-medium", "border-transparent");
-});
-// Adiciona active no clicado
-btn.classList.remove("text-gray-500", "font-medium", "border-transparent");
-btn.classList.add("text-[#1A3E74]", "font-bold", "border-[#1A3E74]", "active");
+// Variável global compartilhada entre filtros e lightbox
+var bibliotecaGlobal = [];
 
-const filter = btn.getAttribute("data-filter");
-["todos", "documentos", "fotos", "videos"].forEach((cat) => {
-const grid = document.getElementById(`grid-${cat}`);
-if (grid) grid.classList.toggle("hidden", cat !== filter);
-});
-});
-});
+// Nova Lógica de Filtros (Estilo Google) + Pesquisa Global
+(function(){
+var dynamicGrid = document.getElementById('grid-dinamico');
+var staticGrids = ['grid-todos','grid-documentos','grid-fotos','grid-videos'].map(function(id){return document.getElementById(id);}).filter(Boolean);
+var searchInput = document.getElementById('search-input');
+var searchClear = document.getElementById('search-clear');
+var currentFilter = 'todos';
 
-// Lightbox Lógica
-let bibliotecaGlobal = [];
-let currentGlobalIndex = -1;
-
-fetch("/biblioteca.json")
-.then((res) => res.json())
-.then((data) => {
+// Carregar JSON global
+fetch('/biblioteca.json')
+.then(function(r){return r.json();})
+.then(function(data){
 bibliotecaGlobal = data;
 })
-.catch((err) => console.error("Erro ao carregar acervo.", err));
+.catch(function(e){console.error('Erro ao carregar biblioteca:',e);});
+
+// Função de similaridade (contém todas as palavras da query?)
+function matchesSearch(item, query){
+var q = query.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+var words = q.split(/\s+/).filter(function(w){return w.length>0;});
+if(words.length===0) return true;
+var target = ((item.titulo||'') + ' ' + (item.descricao||'') + ' ' + (item.slug||'')).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+return words.every(function(w){return target.indexOf(w)!==-1;});
+}
+
+function getCategoria(item){
+var cat = String(item.categoria||'').toLowerCase().trim();
+if(cat.includes('doc')||cat.includes('pdf')) return 'documentos';
+if(cat.includes('video')||cat.includes('vídeo')||cat==='mp4') return 'videos';
+return 'fotos'; // default para fotos/imagens
+}
+
+// Renderizar cards no grid dinâmico
+function renderDynamicCards(items){
+if(!dynamicGrid) return;
+if(items.length===0){
+dynamicGrid.innerHTML = '<div class="col-span-full text-center py-12 text-gray-400"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="text-4xl mb-3 mx-auto opacity-30" fill="currentColor" width="1em" height="1em"><path d="M416 208c0 45.9-14.9 88.3-40 122.7L502.6 457.4c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L330.7 376c-34.4 25.2-76.8 40-122.7 40C93.1 416 0 322.9 0 208S93.1 0 208 0S416 93.1 416 208zM208 352a144 144 0 1 0 0-288 144 144 0 1 0 0 288z"/></svg><p class="font-bold">Nenhum item encontrado</p><p class="text-sm">Tente outro termo de pesquisa.</p></div>';
+return;
+}
+var html = '';
+items.forEach(function(item){
+html += gerarCardGoogleImagesJS(item);
+});
+dynamicGrid.innerHTML = html;
+}
+
+// Versão JS da função de card (igual à do build)
+function gerarCardGoogleImagesJS(item){
+var titulo = item.titulo || 'Sem título';
+var slug = item.slug || slugifyJs(titulo);
+var imagePath = item.capa || item.ficheiro || '';
+if(imagePath && !imagePath.startsWith('/')) imagePath = '/' + imagePath;
+var ext = ((item.ficheiro||'').split('.').pop()||'').toLowerCase();
+if(!ext && (item.categoria==='fotos'||item.categoria==='imagens')) ext='png';
+if(!ext && (item.categoria==='documentos'||item.categoria==='pdf')) ext='pdf';
+
+var badgeBg='#f3f4f6',badgeText='#374151',badgeIcon='fa-file',badgeLabel=ext.toUpperCase()||'ARQUIVO';
+if(ext==='pdf'){badgeBg='#fee2e2';badgeText='#b91c1c';badgeIcon='fa-file-pdf';badgeLabel='PDF';}
+else if(ext==='doc'||ext==='docx'){badgeBg='#dbeafe';badgeText='#1d4ed8';badgeIcon='fa-file-word';badgeLabel='WORD';}
+else if(ext==='xls'||ext==='xlsx'){badgeBg='#dcfce3';badgeText='#15803d';badgeIcon='fa-file-excel';badgeLabel='EXCEL';}
+else if(ext==='mp4'||ext==='webm'){badgeBg='#f3e8ff';badgeText='#7e22ce';badgeIcon='fa-video';badgeLabel='VÍDEO';}
+else if(ext==='png'||ext==='jpg'||ext==='jpeg'||ext==='webp'||ext==='svg'){badgeBg='#d1fae5';badgeText='#047857';badgeIcon='fa-image';badgeLabel=ext.toUpperCase();}
+
+var badgeHtml = '<div class="absolute top-2 right-2 text-[9px] font-black uppercase px-2 py-1 rounded shadow-sm z-20 flex items-center gap-1 backdrop-blur-md" style="background-color:'+badgeBg+';color:'+badgeText+';"><i class="fa-solid '+badgeIcon+'"></i> '+badgeLabel+'</div>';
+
+var isImage = /\.(jpg|jpeg|png|webp|gif|svg)$/i.test(imagePath);
+var mediaHtml = '';
+if(isImage){
+mediaHtml = '<img src="'+imagePath+'" class="max-w-full h-full object-cover transition-opacity duration-300 group-hover:opacity-90" alt="'+titulo+'" loading="lazy">';
+}else{
+mediaHtml = '<div class="w-full h-full flex flex-col items-center justify-center transition-colors bg-gray-50 group-hover:bg-gray-100"><i class="fa-solid '+badgeIcon+' text-5xl mb-2 transition-transform duration-300 group-hover:scale-110" style="color:'+badgeText+'90;"></i><span class="text-[9px] font-black uppercase tracking-widest text-gray-400">Ver Arquivo</span></div>';
+}
+
+return '<a href="/biblioteca/'+slug+'.html" data-slug="'+slug+'" class="file-card group relative flex flex-col bg-transparent rounded-xl overflow-hidden hover:scale-[1.02] transition-transform duration-300 block"><div class="relative w-full h-[160px] md:h-[180px] bg-gray-100 flex items-center justify-center overflow-hidden rounded-xl border border-gray-200">'+badgeHtml+mediaHtml+'</div><div class="pt-2 pb-1 flex flex-col justify-start"><span class="file-card-title text-left text-xs md:text-sm font-medium text-gray-800 group-hover:text-[#1A3E74] transition-colors line-clamp-2 leading-snug">'+titulo+'</span></div></a>';
+}
+
+// Aplicar filtro + pesquisa
+function applyFilterAndSearch(){
+var query = searchInput ? searchInput.value.trim() : '';
+var isSearching = query.length > 0;
+var isCategoryFilter = currentFilter !== 'todos';
+
+// Mostrar/ocultar botão limpar
+if(searchClear) searchClear.classList.toggle('hidden', !isSearching);
+
+if(!isSearching && !isCategoryFilter){
+// Modo "Todos" sem pesquisa = mostrar grids estáticos (paginação normal)
+if(dynamicGrid) dynamicGrid.classList.add('hidden');
+staticGrids.forEach(function(g){if(g)g.classList.toggle('hidden', g.id!=='grid-todos');});
+return;
+}
+
+// Modo pesquisa ou filtro de categoria = grid dinâmico
+staticGrids.forEach(function(g){if(g)g.classList.add('hidden');});
+if(dynamicGrid) dynamicGrid.classList.remove('hidden');
+
+var results = bibliotecaGlobal.slice();
+
+// Filtrar por categoria
+if(isCategoryFilter){
+results = results.filter(function(item){
+return getCategoria(item) === currentFilter;
+});
+}
+
+// Filtrar por pesquisa
+if(isSearching){
+results = results.filter(function(item){
+return matchesSearch(item, query);
+});
+}
+
+renderDynamicCards(results);
+}
+
+// Eventos dos botões de filtro
+var filterButtons = document.querySelectorAll('.filter-btn');
+filterButtons.forEach(function(btn){
+btn.addEventListener('click', function(){
+filterButtons.forEach(function(b){
+b.classList.remove('text-[#1A3E74]','font-bold','border-[#1A3E74]','active');
+b.classList.add('text-gray-500','font-medium','border-transparent');
+});
+btn.classList.remove('text-gray-500','font-medium','border-transparent');
+btn.classList.add('text-[#1A3E74]','font-bold','border-[#1A3E74]','active');
+currentFilter = btn.getAttribute('data-filter');
+applyFilterAndSearch();
+});
+});
+
+// Evento da barra de pesquisa
+if(searchInput){
+searchInput.addEventListener('input', function(){
+applyFilterAndSearch();
+});
+}
+
+// Botão limpar pesquisa
+if(searchClear){
+searchClear.addEventListener('click', function(){
+searchInput.value = '';
+applyFilterAndSearch();
+searchInput.focus();
+});
+}
+})();
+
+// Lightbox Lógica
+let currentGlobalIndex = -1;
 
 function slugifyJs(text) {
 return String(text || "")
