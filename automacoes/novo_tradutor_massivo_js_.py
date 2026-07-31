@@ -446,6 +446,27 @@ def garantir_traducao_termo_selecione(codigo_js_traduzido, idioma_alvo):
     return codigo_js_traduzido
 
 
+def corrigir_template_literals_corrompidos(codigo_js):
+    """
+    Pós-processamento: corrige corrupções conhecidas causadas pela IA
+    ao traduzir template literals que contêm HTML com atributos entre aspas.
+
+    A regex padrao_string captura strings como "secao", "grid2" etc. de
+    DENTRO de template literals (ex.: `<div class="secao">`). Quando a IA
+    traduz essas strings e o replace as recoloca, pode inserir aspas
+    duplas extras antes de backticks em expressões ternárias.
+
+    Padrões corrigidos:
+      1) ? "`  → ? `   (aspa dupla extra antes de template literal)
+      2) ? "}` ` → ? ` (caso extremo com lixo "}`)
+    """
+    # Corrige ? "` → ? `
+    codigo_js = re.sub(r'\?\s*"\s*`', '? `', codigo_js)
+    # Corrige ? "}` ` → ? ` (caso com lixo extra)
+    codigo_js = re.sub(r'\?\s*"[^`]*`\s*`', '? `', codigo_js)
+    return codigo_js
+
+
 # =========================================================================
 # 8. SUBSTITUIÇÃO CIRÚRGICA NO HTML DE DESTINO
 # =========================================================================
@@ -565,11 +586,12 @@ def processar_arquivo(arquivo, idioma):
     dict_scripts_traduzidos = traduzir_lote_js_com_deepseek(dict_scripts_pt, idioma)
 
     # Pós-processamento: restaura linhas protegidas
-    print(f"  {C_AZUL}[3/4] Restaurando linhas protegidas (bar/badge)...{RESET}")
+    print(f"  {C_AZUL}[3/4] Restaurando linhas protegidas e corrigindo artefatos...{RESET}")
     scripts_traduzidos_final = []
     for i, s_pt in enumerate(scripts_pt):
         cod_trad = dict_scripts_traduzidos[f"script_{i}"]
         cod_trad = restaurar_linhas_protegidas(s_pt["conteudo"], cod_trad)
+        cod_trad = corrigir_template_literals_corrompidos(cod_trad)
         cod_trad = garantir_traducao_termo_selecione(cod_trad, idioma)
         scripts_traduzidos_final.append({
             "abertura": s_pt["abertura"],
