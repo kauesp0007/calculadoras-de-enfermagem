@@ -1,245 +1,473 @@
 #!/usr/bin/env python3
-"""
-gerar-biblioteca.py — renderiza um objeto CKO de biblioteca (02-bibliotecas/*.json)
-em uma página HTML no shell de produção, idêntico ao padrão de biblioteca-seringa.html.
+"""Gera páginas HTML autônomas a partir das bibliotecas CKO.
+
+As páginas geradas dependem somente dos arquivos existentes em ``cko-projeto``:
+
+* ``css/pages/biblioteca.css``
+* ``cko-page.js``
 
 Uso:
-    python3 gerar-biblioteca.py ../02-bibliotecas/curativos.json ./paginas/
-    python3 gerar-biblioteca.py --all ../02-bibliotecas ./paginas/
+    python gerar-biblioteca.py ../02-bibliotecas/curativos.json ./paginas
+    python gerar-biblioteca.py --all ../02-bibliotecas ./paginas
 """
-import json, sys, os, html, glob
 
-BASE = "https://www.calculadorasdeenfermagem.com.br"
-def e(s): return html.escape(str(s), quote=True)
+from __future__ import annotations
 
-def chips(items, style):
-    return "".join(f'<span class="chip" style="{style}">{e(x)}</span>' for x in items if x)
+import argparse
+import html
+import json
+import re
+import sys
+from pathlib import Path
+from typing import Any
 
-def li(items, fmt=lambda x: e(x)):
-    return "".join(f"<li>{fmt(x)}</li>" for x in items)
 
-def render_characteristics(d):
-    ex = d.get("exclusiveModules", []); ch = d.get("characteristics", {})
-    out = []
-    for mod in ex:
-        val = ch.get(mod)
-        if val is None: continue
-        out.append(f'<h3 class="sub">{e(mod)}</h3>')
-        if isinstance(val, dict):
-            rows = "".join(f"<tr><td><strong>{e(k)}</strong></td><td>{e(v) if not isinstance(v,(dict,list)) else e(json.dumps(v,ensure_ascii=False))}</td></tr>" for k,v in val.items())
-            out.append(f'<div style="overflow-x:auto"><table class="data"><tbody>{rows}</tbody></table></div>')
-        elif isinstance(val, list):
-            out.append(f'<ul class="clean">{li(val)}</ul>')
+REQUIRED_LIBRARY_FIELDS = {
+    "id",
+    "name",
+    "description",
+    "category",
+    "clinicalKnowledge",
+    "patientSafety",
+    "nursingIntelligence",
+}
+SLUG_RE = re.compile(r"^[a-z0-9][a-z0-9-]*$")
+
+
+def e(value: Any) -> str:
+    """Escapa qualquer valor antes de inseri-lo no HTML."""
+    return html.escape(str(value), quote=True)
+
+
+def label(key: Any) -> str:
+    text = re.sub(r"([a-zà-ÿ0-9])([A-Z])", r"\1 \2", str(key))
+    text = text.replace("_", " ").replace("-", " ").strip()
+    return text[:1].upper() + text[1:]
+
+
+def present(value: Any) -> bool:
+    return value not in (None, "", [], {})
+
+
+def render_value(value: Any, depth: int = 0) -> str:
+    """Renderiza valores JSON sem expor JSON bruto na página."""
+    if not present(value):
+        return '<span class="empty-value">Não informado</span>'
+    if isinstance(value, bool):
+        return '<span class="status-value">Sim</span>' if value else '<span class="status-value">Não</span>'
+    if isinstance(value, list):
+        items = "".join(f"<li>{render_value(item, depth + 1)}</li>" for item in value if present(item))
+        return f'<ul class="clean">{items}</ul>' if items else '<span class="empty-value">Não informado</span>'
+    if isinstance(value, dict):
+        rows = []
+        for key, item in value.items():
+            if not present(item):
+                continue
+            rendered = render_value(item, depth + 1)
+            rows.append(f"<tr><th scope=\"row\">{e(label(key))}</th><td>{rendered}</td></tr>")
+        if not rows:
+            return '<span class="empty-value">Não informado</span>'
+        return '<div class="table-scroll"><table class="data"><tbody>' + "".join(rows) + "</tbody></table></div>"
+    return e(value)
+
+
+def render_section(title: str, value: Any, *, css_class: str = "") -> str:
+    if not present(value):
+        return ""
+    class_attr = f' {css_class}' if css_class else ""
+    return f'<section class="content-section{class_attr}"><h3>{e(title)}</h3>{render_value(value)}</section>'
+
+
+def render_characteristics(data: dict[str, Any]) -> str:
+    modules = data.get("exclusiveModules") or []
+    characteristics = data.get("characteristics") or {}
+    sections = []
+    for module in modules:
+        value = characteristics.get(module)
+        if present(value):
+            sections.append(render_section(label(module), value))
+    return "".join(sections) or '<p class="empty-value">Sem características específicas cadastradas.</p>'
+
+
+def render_specs(data: dict[str, Any]) -> str:
+    specifications = ((data.get("catalog") or {}).get("specifications") or {})
+    extensions = data.get("extensions") or {}
+    merged = {**specifications, **extensions}
+    return render_section("Ficha técnica", merged)
+
+
+def render_indications(items: list[Any]) -> str:
+    if not items:
+        return '<p class="empty-value">Nenhuma indicação cadastrada.</p>'
+    output = []
+    for item in items:
+        if isinstance(item, dict):
+            condition = item.get("condition") or item.get("name") or "Indicação"
+            rationale = item.get("rationale") or item.get("description") or ""
+            output.append(
+                f'<article class="info-item"><strong>{e(condition)}</strong>'
+                + (f"<p>{e(rationale)}</p>" if rationale else "")
+                + "</article>"
+            )
         else:
-            out.append(f'<p>{e(val)}</p>')
-    return "\n".join(out) or "<p>Sem características específicas cadastradas.</p>"
+            output.append(f'<article class="info-item">{e(item)}</article>')
+    return "".join(output)
 
 
-def render_specs(d):
-    spec=(d.get("catalog") or {}).get("specifications") or {}
-    ext=d.get("extensions") or {}
-    merged={**spec, **ext}
-    merged={k:v for k,v in merged.items() if v not in (None,"",[],{})}
-    if not merged: return ""
-    def cell(v):
-        if isinstance(v,list): return e(", ".join(map(str,v)))
-        if isinstance(v,dict): return e(json.dumps(v,ensure_ascii=False))
-        return e(v)
-    rows="".join(f"<tr><td><strong>{e(k)}</strong></td><td>{cell(v)}</td></tr>" for k,v in merged.items())
-    return f'<h3 class="sub">Ficha técnica</h3><div style="overflow-x:auto"><table class="data"><tbody>{rows}</tbody></table></div>'
+def render_contraindications(items: list[Any]) -> str:
+    if not items:
+        return '<p class="empty-value">Nenhuma contraindicação cadastrada.</p>'
+    output = []
+    for item in items:
+        if isinstance(item, dict):
+            condition = item.get("condition") or item.get("name") or "Contraindicação"
+            risk = item.get("risk") or item.get("rationale") or ""
+        else:
+            condition, risk = item, ""
+        output.append(
+            f'<article class="alert-item"><span aria-hidden="true">⚠</span><div><strong>{e(condition)}</strong>'
+            + (f"<p>{e(risk)}</p>" if risk else "")
+            + "</div></article>"
+        )
+    return "".join(output)
 
-def render_risk(rk):
-    if not rk: return ""
-    classes=[("ANVISA",rk.get("anvisaClass")),("FDA",rk.get("fdaClass")),("EU",rk.get("euClass"))]
-    ch="".join(f'<span class="chip" style="background:#eff6ff;color:#1a3e74">{n}: {e(v)}</span>' for n,v in classes if v)
-    lvl=rk.get("level"); lvlchip=f'<span class="chip" style="background:#fee2e2;color:#8b0000">Risco {e(lvl)}</span>' if lvl in("Alto","Crítico") else (f'<span class="chip" style="background:#E3FAF1;color:#006400">Risco {e(lvl)}</span>' if lvl else "")
-    return f'<div style="margin-bottom:.5rem">{lvlchip}{ch}</div><p style="font-size:13px;color:#4b5563">{e(rk.get("rationale",""))}</p>'
 
-def render_safety_head(ps):
-    b=[]
-    if ps.get("highRisk"): b.append('<span class="chip" style="background:#fee2e2;color:#8b0000">Alto risco</span>')
-    if ps.get("doubleCheckRequired"): b.append('<span class="chip" style="background:#fff3cd;color:#856404">Dupla checagem obrigatória</span>')
-    return ('<div style="margin-bottom:.75rem">'+"".join(b)+'</div>') if b else ""
+def render_resources(data: dict[str, Any]) -> str:
+    resources = ((data.get("catalog") or {}).get("technicalDocs") or [])
+    if isinstance(resources, str):
+        resources = [resources]
+    if not resources:
+        return '<p class="empty-value">Nenhum arquivo complementar cadastrado.</p>'
+    # Os arquivos declarados atualmente não fazem parte de cko-projeto. Mantemos a
+    # informação editorial sem criar links quebrados.
+    return '<ul class="resource-list">' + "".join(
+        f'<li><span aria-hidden="true">📄</span> {e(Path(str(resource)).name)}'
+        '<span class="resource-status">Arquivo ainda não incluído neste projeto</span></li>'
+        for resource in resources
+    ) + "</ul>"
 
-def render_page(d):
-    name=d.get("name",""); icon=d.get("icon",""); desc=d.get("description","")
-    cat=d.get("category",""); sub=d.get("subcategory",""); risk=d.get("risk",{})
-    slug=d.get("id","")
-    url=f"{BASE}/materiais/{slug}"
-    ck=d.get("clinicalKnowledge",{})
-    # indicações
-    ind=ck.get("indications",[])
-    ind_html=li([f'<strong>{e(i.get("condition",""))}</strong> — {e(i.get("rationale",""))}' for i in ind], fmt=lambda x:x) or "<li>—</li>"
-    # contraindicações (canônico)
-    contra=ck.get("contraindications",[])
-    contra_html="".join(f'<div class="err"><i class="fa-solid fa-ban" aria-hidden="true"></i><div><strong>{e(c.get("condition",""))}</strong><br><span style="font-size:12px">{e(c.get("risk",""))}</span></div></div>' for c in contra) or "<p>—</p>"
-    # segurança
-    ps=d.get("patientSafety",{})
-    never="".join(f'<div class="err"><i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i><div><strong>{e(n)}</strong></div></div>' for n in ps.get("neverEvents",[]))
-    alerts=li([f'<strong>{e(a.get("type",""))}:</strong> {e(a.get("message",""))}' for a in ps.get("alerts",[])], fmt=lambda x:x)
-    # NANDA/NIC/NOC
-    np_=d.get("nursingIntelligence",{}).get("nursingProcess",{})
-    def taxo(items,code): return li([f'{e(i.get("label",""))} ({e(i.get(code,""))})' for i in items])
-    # evidência
-    ev=ck.get("evidence",{})
-    ev_types=", ".join(ev.get("types",[])) if isinstance(ev.get("types"),list) else ""
-    # recursos
-    tdocs=d.get("catalog",{}).get("technicalDocs",[])
-    recursos=li([f'<a class="reslink" href="{e(t)}"><i class="fa-solid fa-file-pdf" aria-hidden="true"></i> {e(os.path.basename(t))}</a>' for t in tdocs], fmt=lambda x:x) or "<li>—</li>"
 
-    ldjson=json.dumps({"@context":"https://schema.org","@graph":[
-        {"@type":"MedicalWebPage","@id":f"{url}#webpage","name":name,"inLanguage":"pt-BR","url":url,
-         "description":desc,"reviewedBy":{"@type":"Person","name":"a nomear"},
-         "about":{"@type":"MedicalDevice" if cat=="Materiais e Dispositivos" else "MedicalEntity","name":name},
-         "isPartOf":{"@type":"WebSite","name":"Calculadoras de Enfermagem","url":BASE}},
-        {"@type":"BreadcrumbList","itemListElement":[
-            {"@type":"ListItem","position":1,"name":"Início","item":BASE},
-            {"@type":"ListItem","position":2,"name":cat,"item":f"{BASE}/materiais"},
-            {"@type":"ListItem","position":3,"name":name,"item":url}]}]}, ensure_ascii=False)
+def render_risk(data: dict[str, Any]) -> str:
+    if not data:
+        return ""
+    chips = []
+    if present(data.get("level")):
+        level = data["level"]
+        tone = "danger" if str(level).lower() in {"alto", "crítico", "critico"} else "success"
+        chips.append(f'<span class="chip chip-{tone}">Risco {e(level)}</span>')
+    for name, key in (("ANVISA", "anvisaClass"), ("FDA", "fdaClass"), ("UE", "euClass")):
+        if present(data.get(key)):
+            chips.append(f'<span class="chip chip-info">{name}: {e(data[key])}</span>')
+    rationale = f'<p class="muted">{e(data.get("rationale"))}</p>' if present(data.get("rationale")) else ""
+    return '<div class="risk-summary">' + "".join(chips) + rationale + "</div>"
 
-    STYLE = """.page-wrap{width:100%;max-width:1280px;margin:0 auto;padding:1.5rem 1rem;display:flex;flex-direction:column;gap:1.25rem}
-.chip{display:inline-block;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;border-radius:999px;padding:4px 10px;margin:0 4px 4px 0}
-.hero{background:radial-gradient(1200px 400px at 15% -20%,rgba(37,99,235,.35),transparent 60%),linear-gradient(135deg,#0a1c36,#1a3e74 55%,#1d4ed8 120%);color:#fff;border-radius:16px;padding:24px;box-shadow:0 8px 24px rgba(10,28,54,.25)}
-.hero h1{font-family:'Nunito Sans',sans-serif;font-weight:900;font-size:1.9rem;line-height:1.15;margin:.25rem 0;display:flex;align-items:center;gap:.6rem}
-.hero p{color:rgba(255,255,255,.88);max-width:64ch;margin:.5rem 0 0}
-.hero .facts{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:16px}
-@media(min-width:640px){.hero .facts{grid-template-columns:repeat(4,1fr)}}
-.hero .facts div{background:rgba(255,255,255,.1);border-radius:10px;padding:10px}
-.hero .facts dt{font-size:11px;opacity:.75;margin:0}.hero .facts dd{font-weight:700;margin:2px 0 0}
-.card{background:#fff;border:1px solid #e5e7eb;border-radius:16px;box-shadow:0 1px 2px rgba(0,0,0,.05)}
-.tabs{display:flex;flex-wrap:wrap;gap:2px;border-bottom:1px solid #e5e7eb;padding:8px 8px 0}
-.tab-btn{border:0;background:0;padding:8px 12px;font-weight:600;color:#64748b;border-bottom:2px solid transparent;cursor:pointer;font-size:.9rem}
-.tab-btn.active{color:#1a3e74;border-bottom-color:#1a3e74}.tab-btn:focus-visible{outline:3px solid #ff0;outline-offset:2px}
-.tab-content{display:none;padding:20px;font-size:14px;color:#334155;line-height:1.65}.tab-content.active{display:block}
-h2.sec{font-family:'Nunito Sans',sans-serif;font-size:1.05rem;font-weight:800;color:#0f2a50;margin:0 0 .5rem}
-h3.sub{font-weight:700;color:#1f2937;margin:1rem 0 .25rem;font-size:.9rem}
-table.data{width:100%;border-collapse:collapse;font-size:12px;border:1px solid #e5e7eb;border-radius:8px;overflow:hidden}
-table.data td{padding:8px;border-top:1px solid #eef2f7;vertical-align:top}
-ul.clean{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:.5rem}
-.err{display:flex;gap:.6rem;align-items:flex-start;padding:.6rem .8rem;border-radius:10px;background:#fee2e2;border:1px solid #fecaca;margin-bottom:.6rem}.err i{color:#b91c1c;margin-top:.15rem}.err strong{color:#7f1d1d}
-.box-blue{padding:1rem;border-radius:12px;background:#eff6ff;border:1px solid #bfdbfe}
-a.reslink{display:inline-flex;align-items:center;gap:.5rem;color:#1a3e74;font-weight:700;text-decoration:none}a.reslink:hover{text-decoration:underline}
-.draft-banner{background:#f59e0b;color:#111827;text-align:center;font-weight:700;padding:.5rem;font-size:.8rem}
-@media print{.tabs,.draft-banner{display:none!important}.tab-content{display:block!important}}"""
+
+def taxonomies(data: dict[str, Any]) -> str:
+    nursing_process = ((data.get("nursingIntelligence") or {}).get("nursingProcess") or {})
+    blocks = []
+    for title, key, code_key in (
+        ("Diagnósticos NANDA-I", "diagnosis", "nanda"),
+        ("Intervenções NIC", "interventions", "nic"),
+        ("Resultados NOC", "outcomes", "noc"),
+    ):
+        items = nursing_process.get(key) or []
+        formatted = []
+        for item in items:
+            if isinstance(item, dict):
+                text = item.get("label") or item.get("name") or "Item"
+                code = item.get(code_key) or item.get("code") or ""
+                formatted.append(f"{e(text)}" + (f" <span class=\"taxonomy-code\">{e(code)}</span>" if code else ""))
+            else:
+                formatted.append(e(item))
+        content = '<ul class="clean">' + "".join(f"<li>{item}</li>" for item in formatted) + "</ul>" if formatted else '<p class="empty-value">Não informado.</p>'
+        blocks.append(f'<section class="content-section"><h3>{title}</h3>{content}</section>')
+    return "".join(blocks)
+
+
+def tab_button(tab_id: str, title: str, active: bool = False) -> str:
+    selected = "true" if active else "false"
+    tabindex = "0" if active else "-1"
+    active_class = " active" if active else ""
+    return (
+        f'<button class="tab-btn{active_class}" id="tab-btn-{tab_id}" role="tab" '
+        f'aria-selected="{selected}" aria-controls="tab-{tab_id}" tabindex="{tabindex}" '
+        f'data-tab="{tab_id}">{e(title)}</button>'
+    )
+
+
+def tab_panel(tab_id: str, body: str, active: bool = False) -> str:
+    active_class = " active" if active else ""
+    hidden = "" if active else " hidden"
+    return (
+        f'<section class="tab-content{active_class}" id="tab-{tab_id}" role="tabpanel" '
+        f'aria-labelledby="tab-btn-{tab_id}"{hidden}>{body}</section>'
+    )
+
+
+def validate_library(data: Any, source: Path) -> dict[str, Any]:
+    if not isinstance(data, dict):
+        raise ValueError(f"{source.name}: a raiz do JSON deve ser um objeto")
+    missing = sorted(REQUIRED_LIBRARY_FIELDS - set(data))
+    if missing:
+        raise ValueError(f"{source.name}: campos obrigatórios ausentes: {', '.join(missing)}")
+    slug = data.get("id")
+    if not isinstance(slug, str) or not SLUG_RE.fullmatch(slug):
+        raise ValueError(f"{source.name}: id inválido para nome de arquivo: {slug!r}")
+    if not isinstance(data.get("clinicalKnowledge"), dict):
+        raise ValueError(f"{source.name}: clinicalKnowledge deve ser um objeto")
+    return data
+
+
+def load_library(source: Path) -> dict[str, Any]:
+    try:
+        data = json.loads(source.read_text(encoding="utf-8"))
+    except json.JSONDecodeError as exc:
+        raise ValueError(f"{source.name}: JSON inválido: {exc}") from exc
+    return validate_library(data, source)
+
+
+def render_page(data: dict[str, Any]) -> str:
+    name = data.get("name", "")
+    icon = data.get("icon") or "📘"
+    description = data.get("description", "")
+    category = data.get("category", "")
+    subcategory = data.get("subcategory", "")
+    slug = data["id"]
+    clinical = data.get("clinicalKnowledge") or {}
+    patient_safety = data.get("patientSafety") or {}
+    risk = data.get("risk") or {}
+
+    purpose = clinical.get("clinicalPurpose") or {}
+    overview = ""
+    if isinstance(purpose, dict):
+        overview += render_section("Finalidade principal", purpose.get("primary"))
+        overview += render_section("Finalidades secundárias", purpose.get("secondary"))
+    else:
+        overview += render_section("Finalidade clínica", purpose)
+    overview += render_section("Termos e classificação semântica", data.get("semantic"))
+    overview += render_section("Tags", data.get("tags"))
+
+    characteristics = render_specs(data) + render_risk(risk) + render_characteristics(data)
+    indications = render_indications(clinical.get("indications") or [])
+    contraindications = render_contraindications(clinical.get("contraindications") or [])
+
+    safety = ""
+    flags = []
+    if patient_safety.get("highRisk"):
+        flags.append('<span class="chip chip-danger">Alto risco</span>')
+    if patient_safety.get("doubleCheckRequired"):
+        flags.append('<span class="chip chip-warning">Dupla checagem</span>')
+    if flags:
+        safety += '<div class="risk-summary">' + "".join(flags) + "</div>"
+    safety += render_section("Nunca-eventos", patient_safety.get("neverEvents"), css_class="danger-section")
+    safety += render_section("Alertas", patient_safety.get("alerts"), css_class="danger-section")
+    safety += render_section("Riscos clínicos", clinical.get("clinicalRisks"))
+    safety += render_section("Regras clínicas", clinical.get("clinicalRules"))
+    safety += render_section("Cálculos clínicos", clinical.get("calculations"))
+    if not safety:
+        safety = '<p class="empty-value">Sem informações adicionais de segurança.</p>'
+
+    evidence = render_section("Evidência declarada", clinical.get("evidence"), css_class="evidence-section")
+    evidence += render_section("Regulatório", data.get("regulatory"))
+    evidence += render_section("Auditoria", data.get("auditTrail"))
+    evidence += f'<section class="content-section"><h3>Recursos</h3>{render_resources(data)}</section>'
+
+    metadata_sections = []
+    for title, key in (
+        ("Inteligência decisória", "decisionIntelligence"),
+        ("Comparação", "comparisonEngine"),
+        ("Educação", "education"),
+        ("Sustentabilidade", "sustainability"),
+        ("Integração de workflow", "workflowIntegration"),
+        ("Metadados de IA", "aiMetadata"),
+        ("Inteligência comercial", "commercialIntelligence"),
+        ("Localização", "localization"),
+        ("Identidade de conhecimento", "knowledgeIdentity"),
+    ):
+        section = render_section(title, data.get(key))
+        if section:
+            metadata_sections.append(section)
+    metadata = "".join(metadata_sections) or '<p class="empty-value">Sem metadados complementares.</p>'
+
+    ld_json = json.dumps(
+        {
+            "@context": "https://schema.org",
+            "@type": "MedicalWebPage",
+            "name": name,
+            "description": description,
+            "inLanguage": "pt-BR",
+            "isAccessibleForFree": True,
+            "about": {"@type": "MedicalEntity", "name": name},
+        },
+        ensure_ascii=False,
+    ).replace("</", "<\\/")
+
+    buttons = "".join(
+        tab_button(tab_id, title, active=index == 0)
+        for index, (tab_id, title) in enumerate(
+            (
+                ("visao", "Visão geral"),
+                ("caracteristicas", "Características"),
+                ("indicacoes", "Indicações"),
+                ("contraindicacoes", "Contraindicações"),
+                ("seguranca", "Segurança"),
+                ("processo", "NANDA/NIC/NOC"),
+                ("evidencia", "Evidência"),
+                ("metadados", "Dados complementares"),
+            )
+        )
+    )
+    panels = "".join(
+        (
+            tab_panel("visao", overview, True),
+            tab_panel("caracteristicas", characteristics),
+            tab_panel("indicacoes", indications),
+            tab_panel("contraindicacoes", contraindications),
+            tab_panel("seguranca", safety),
+            tab_panel("processo", taxonomies(data)),
+            tab_panel("evidencia", evidence),
+            tab_panel("metadados", metadata),
+        )
+    )
 
     return f"""<!DOCTYPE html>
-<html lang="pt-BR" dir="auto" data-draft="true" data-content-id="{e(slug)}">
+<html lang="pt-BR" data-draft="true" data-content-id="{e(slug)}">
 <head>
-  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>{e(name)} | Guia Clínico de Enfermagem</title>
-  <meta name="description" content="{e(desc)}">
-  <meta name="robots" id="robotsMeta" content="index,follow">
-  <link rel="canonical" href="{url}">
-  <link rel="alternate" hreflang="pt-BR" href="{url}"><link rel="alternate" hreflang="x-default" href="{url}">
-  <link rel="stylesheet" href="{BASE}/global-styles.css">
-  <link rel="stylesheet" href="{BASE}/public/output.css">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex,nofollow">
+  <title>{e(name)} | Biblioteca CKO</title>
+  <meta name="description" content="{e(description)}">
+  <link rel="icon" href="data:,">
   <link rel="stylesheet" href="../css/pages/biblioteca.css">
-  <script type="application/ld+json">{ldjson}</script>
+  <script type="application/ld+json">{ld_json}</script>
+  <script src="../cko-page.js" defer></script>
 </head>
 <body>
-  <a href="#conteudo" class="sr-only focus-within:not-sr-only" style="position:absolute;z-index:100002;left:8px;top:8px;background:#1a3e74;color:#fff;padding:8px 14px;border-radius:8px">Pular para o conteúdo</a>
-  <div id="statusMessage" class="sr-only" role="status" aria-live="polite"></div>
-  <div id="draftBanner" class="draft-banner" hidden>RASCUNHO — revisão clínica pendente (revisor a nomear). Não publicar. Use <code>?publish=1</code> só após a revisão.</div>
-  <div id="global-header-container"></div>
-  <div id="language-selector-placeholder"></div>
-  <main id="conteudo"><div class="page-wrap">
+  <a href="#conteudo" class="skip-link">Pular para o conteúdo</a>
+  <div id="statusMessage" class="sr-only" role="status" aria-live="polite" aria-atomic="true"></div>
+  <div class="draft-banner">PRÉVIA CKO — conteúdo pendente de revisão clínica; não publicar.</div>
+  <header class="cko-site-header">
+    <a class="cko-brand" href="index.html"><span aria-hidden="true">⚕</span><span>Bibliotecas CKO</span></a>
+    <span class="header-note">Ambiente autônomo de validação</span>
+  </header>
+  <main id="conteudo" class="page-wrap">
     <nav class="breadcrumb" aria-label="Trilha de navegação"><ol>
-      <li><a href="{BASE}">Início</a></li><li><a href="{BASE}/materiais">{e(cat)}</a></li><li>{e(name)}</li>
+      <li><a href="index.html">Bibliotecas</a></li>
+      <li>{e(category)}</li>
+      <li aria-current="page">{e(name)}</li>
     </ol></nav>
+
     <section class="cko-hero">
-      <div>{chips([cat, sub, ("Alto risco" if risk.get("level")=="Alto" else "")],"background:rgba(255,255,255,.15);color:#fff")}</div>
-      <h1><i class="{'fa-solid fa-notes-medical' if not icon else ''}" aria-hidden="true"></i>{e(icon)} {e(name)}</h1>
-      <p>{e(desc)}</p>
+      <div class="hero-chips"><span class="chip">{e(category)}</span>{f'<span class="chip">{e(subcategory)}</span>' if subcategory else ''}</div>
+      <h1><span aria-hidden="true">{e(icon)}</span> {e(name)}</h1>
+      <p>{e(description)}</p>
       <dl class="facts">
-        <div><dt>Categoria</dt><dd>{e(cat)}</dd></div>
-        <div><dt>Subcategoria</dt><dd>{e(sub)}</dd></div>
-        <div><dt>Risco</dt><dd>{e(risk.get("level","—"))}</dd></div>
-        <div><dt>Classe ANVISA</dt><dd>{e(risk.get("anvisaClass","—") or "—")}</dd></div>
+        <div><dt>Categoria</dt><dd>{e(category or 'Não informada')}</dd></div>
+        <div><dt>Subcategoria</dt><dd>{e(subcategory or 'Não informada')}</dd></div>
+        <div><dt>Risco</dt><dd>{e(risk.get('level') or 'Não informado')}</dd></div>
+        <div><dt>Classe ANVISA</dt><dd>{e(risk.get('anvisaClass') or 'Não informada')}</dd></div>
       </dl>
     </section>
-    <div class="action-bar">
-      <button id="favBtn" aria-pressed="false" onclick="toggleFav()"><i class="fa-regular fa-star" aria-hidden="true"></i> Favoritar</button>
-      <button onclick="sharePage()"><i class="fa-solid fa-share-nodes" aria-hidden="true"></i> Compartilhar</button>
-      <button onclick="window.print()"><i class="fa-solid fa-print" aria-hidden="true"></i> Imprimir</button>
-      <button onclick="window.print()"><i class="fa-solid fa-file-pdf" aria-hidden="true"></i> PDF</button>
-      <button onclick="reportErr()"><i class="fa-solid fa-flag" aria-hidden="true"></i> Reportar</button>
+
+    <div class="action-bar" aria-label="Ações da página">
+      <button type="button" data-action="favorite" aria-pressed="false"><span aria-hidden="true">☆</span> Favoritar</button>
+      <button type="button" data-action="share"><span aria-hidden="true">↗</span> Compartilhar</button>
+      <button type="button" data-action="print"><span aria-hidden="true">⎙</span> Imprimir/PDF</button>
+      <button type="button" data-action="report"><span aria-hidden="true">⚑</span> Reportar</button>
     </div>
-    <div class="cko-card">
-      <div class="cko-tabs" role="tablist">
-        <button class="tab-btn active" id="tab-btn-visao" role="tab" aria-selected="true" onclick="switchTab('visao')">Visão geral</button>
-        <button class="tab-btn" id="tab-btn-caract" role="tab" aria-selected="false" onclick="switchTab('caract')">Características</button>
-        <button class="tab-btn" id="tab-btn-usos" role="tab" aria-selected="false" onclick="switchTab('usos')">Usos &amp; indicações</button>
-        <button class="tab-btn" id="tab-btn-contra" role="tab" aria-selected="false" onclick="switchTab('contra')">Contraindicações</button>
-        <button class="tab-btn" id="tab-btn-seguranca" role="tab" aria-selected="false" onclick="switchTab('seguranca')">Segurança</button>
-        <button class="tab-btn" id="tab-btn-processo" role="tab" aria-selected="false" onclick="switchTab('processo')">NANDA/NIC/NOC</button>
-        <button class="tab-btn" id="tab-btn-evidencia" role="tab" aria-selected="false" onclick="switchTab('evidencia')">Evidência &amp; recursos</button>
-      </div>
-      <div class="tab-content active" id="tab-visao" role="tabpanel" aria-labelledby="tab-btn-visao">
-        <h2 class="sec">Finalidade clínica</h2><p>{e(ck.get('clinicalPurpose',{}).get('primary',''))}</p>
-        <ul class="clean" style="margin-top:.5rem">{li(ck.get('clinicalPurpose',{}).get('secondary',[]))}</ul>
-      </div>
-      <div class="tab-content" id="tab-caract" role="tabpanel" aria-labelledby="tab-btn-caract">
-        <h2 class="sec">Especificações & características</h2>{render_specs(d)}{render_risk(d.get("risk",{}))}{render_characteristics(d)}
-      </div>
-      <div class="tab-content" id="tab-usos" role="tabpanel" aria-labelledby="tab-btn-usos">
-        <h2 class="sec">Indicações</h2><ul class="clean">{ind_html}</ul>
-      </div>
-      <div class="tab-content" id="tab-contra" role="tabpanel" aria-labelledby="tab-btn-contra">
-        <h2 class="sec">Contraindicações</h2>{contra_html}
-      </div>
-      <div class="tab-content" id="tab-seguranca" role="tabpanel" aria-labelledby="tab-btn-seguranca">
-        <h2 class="sec">Segurança do paciente</h2>{render_safety_head(d.get("patientSafety",{}))}
-        <h3 class="sub">Nunca-eventos</h3>{never or '<p>—</p>'}
-        <h3 class="sub">Alertas</h3><ul class="clean">{alerts}</ul>
-      </div>
-      <div class="tab-content" id="tab-processo" role="tabpanel" aria-labelledby="tab-btn-processo">
-        <h2 class="sec">Processo de enfermagem</h2>
-        <h3 class="sub">Diagnósticos (NANDA-I)</h3><ul class="clean">{taxo(np_.get('diagnosis',[]),'nanda')}</ul>
-        <h3 class="sub">Intervenções (NIC)</h3><ul class="clean">{taxo(np_.get('interventions',[]),'nic')}</ul>
-        <h3 class="sub">Resultados (NOC)</h3><ul class="clean">{taxo(np_.get('outcomes',[]),'noc')}</ul>
-      </div>
-      <div class="tab-content" id="tab-evidencia" role="tabpanel" aria-labelledby="tab-btn-evidencia">
-        <h2 class="sec">Evidência</h2>
-        <div class="box-blue"><strong style="color:#0f2a50">Nível: {e(ev.get('level','—'))}</strong>
-          <p style="font-size:12px;color:#475569;margin:.25rem 0 0">{e(ev_types)}</p></div>
-        <h2 class="sec" style="margin-top:1rem">Recursos</h2><ul class="clean">{recursos}</ul>
-        <p style="font-size:12px;color:#64748b;margin-top:.75rem">Revisor clínico a nomear (página em rascunho).</p>
-      </div>
-    </div>
-    <p class="ref">Conteúdo educativo — não substitui protocolo institucional nem julgamento clínico.</p>
-  </div></main>
-  <div id="footer-placeholder"></div>
-  <script src="{BASE}/global-scripts.js" defer></script>
-  <script src="{BASE}/lang-selector.js" defer></script>
-  <script>
-    function cdeToast(t,d,ty){{if(window.CDE&&window.CDE.toast){{window.CDE.toast(t,d,ty);}}var s=document.getElementById('statusMessage');if(s)s.textContent=(t+' '+(d||'')).trim();}}
-    function cid(){{return document.documentElement.getAttribute('data-content-id');}}
-    function toggleFav(){{var b=document.getElementById('favBtn');var f=JSON.parse(localStorage.getItem('favorites')||'[]');var on=f.indexOf(cid())>-1;if(on){{f=f.filter(function(x){{return x!==cid();}});}}else{{f.push(cid());}}localStorage.setItem('favorites',JSON.stringify(f));var now=!on;b.setAttribute('aria-pressed',now);b.querySelector('i').className=now?'fa-solid fa-star':'fa-regular fa-star';cdeToast(now?'Adicionado aos favoritos':'Removido dos favoritos','','success');}}
-    function sharePage(){{var d={{title:document.title,url:location.href}};if(navigator.share){{navigator.share(d).catch(function(){{}});}}else if(navigator.clipboard){{navigator.clipboard.writeText(location.href).then(function(){{cdeToast('Link copiado','','success');}});}}else{{cdeToast('Copie o link',location.href,'info');}}}}
-    function reportErr(){{cdeToast('Obrigado','Reporte registrado para revisão.','info');}}
-    (function(){{var f=JSON.parse(localStorage.getItem('favorites')||'[]');if(f.indexOf(cid())>-1){{var b=document.getElementById('favBtn');if(b){{b.setAttribute('aria-pressed','true');b.querySelector('i').className='fa-solid fa-star';}}}}}})();
-    function switchTab(id){{document.querySelectorAll('.tab-btn').forEach(function(b){{b.classList.remove('active');b.setAttribute('aria-selected','false');}});document.querySelectorAll('.tab-content').forEach(function(c){{c.classList.remove('active');}});var b=document.getElementById('tab-btn-'+id),c=document.getElementById('tab-'+id);if(b){{b.classList.add('active');b.setAttribute('aria-selected','true');}}if(c)c.classList.add('active');var s=document.getElementById('statusMessage');if(s)s.textContent='Aba: '+(b?b.textContent.trim():id);}}
-    (function(){{var p=new URLSearchParams(location.search);var dr=document.documentElement.getAttribute('data-draft')==='true'&&p.get('publish')!=='1';var r=document.getElementById('robotsMeta'),ba=document.getElementById('draftBanner');if(r)r.setAttribute('content',dr?'noindex,nofollow':'index,follow');if(ba)ba.hidden=!dr;}})();
-  </script>
+
+    <article class="cko-card">
+      <div class="cko-tabs" role="tablist" aria-label="Conteúdo de {e(name)}">{buttons}</div>
+      {panels}
+    </article>
+
+    <aside class="clinical-disclaimer" role="note">
+      <strong>Aviso clínico:</strong> conteúdo educacional em revisão. Não substitui protocolos institucionais, avaliação profissional nem julgamento clínico.
+    </aside>
+  </main>
+  <footer class="cko-footer">
+    <p>Projeto CKO · prévia local das bibliotecas clínicas</p>
+  </footer>
 </body>
-</html>"""
+</html>
+"""
 
-def main():
-    args=sys.argv[1:]
-    if args and args[0]=="--all":
-        srcdir, outdir = args[1], args[2]
-        os.makedirs(outdir, exist_ok=True)
-        for f in sorted(glob.glob(f"{srcdir}/*.json")):
-            d=json.load(open(f,encoding="utf-8"))
-            open(f"{outdir}/{d['id']}.html","w",encoding="utf-8").write(render_page(d))
-            print("gerado:", d["id"]+".html")
-    else:
-        src, outdir = args[0], (args[1] if len(args)>1 else ".")
-        os.makedirs(outdir, exist_ok=True)
-        d=json.load(open(src,encoding="utf-8"))
-        open(f"{outdir}/{d['id']}.html","w",encoding="utf-8").write(render_page(d))
-        print("gerado:", d["id"]+".html")
 
-if __name__=="__main__":
-    main()
+def render_index(libraries: list[dict[str, Any]]) -> str:
+    cards = "".join(
+        f'''<li><a class="library-card" href="{e(item['id'])}.html">
+          <span class="library-icon" aria-hidden="true">{e(item.get('icon') or '📘')}</span>
+          <span><strong>{e(item.get('name'))}</strong><small>{e(item.get('category') or 'Sem categoria')}</small><span>{e(item.get('description') or '')}</span></span>
+        </a></li>'''
+        for item in sorted(libraries, key=lambda row: str(row.get("name", "")).casefold())
+    )
+    return f"""<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex,nofollow">
+  <title>Bibliotecas CKO | Índice local</title>
+  <meta name="description" content="Índice local das bibliotecas clínicas do Projeto CKO.">
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="../css/pages/biblioteca.css">
+  <script src="../cko-page.js" defer></script>
+</head>
+<body>
+  <a href="#conteudo" class="skip-link">Pular para o conteúdo</a>
+  <div id="statusMessage" class="sr-only" role="status" aria-live="polite"></div>
+  <header class="cko-site-header"><span class="cko-brand"><span aria-hidden="true">⚕</span><span>Bibliotecas CKO</span></span><span class="header-note">{len(libraries)} bibliotecas disponíveis</span></header>
+  <main id="conteudo" class="catalog-wrap">
+    <section class="catalog-hero"><p class="eyebrow">Projeto CKO</p><h1>Bibliotecas clínicas</h1><p>Selecione uma biblioteca para revisar seu conteúdo estruturado. Estas páginas são prévias locais e permanecem fora do índice de buscadores.</p></section>
+    <ul class="library-grid">{cards}</ul>
+  </main>
+  <footer class="cko-footer"><p>Projeto CKO · índice local</p></footer>
+</body>
+</html>
+"""
+
+
+def write_page(path: Path, content: str) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(content, encoding="utf-8", newline="\n")
+
+
+def generate_one(source: Path, output_dir: Path) -> dict[str, Any]:
+    library = load_library(source)
+    destination = output_dir / f"{library['id']}.html"
+    write_page(destination, render_page(library))
+    print(f"gerado: {destination.name}")
+    return library
+
+
+def parse_args(argv: list[str]) -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description="Gera páginas autônomas das bibliotecas CKO")
+    parser.add_argument("source", type=Path, help="JSON de origem ou diretório com --all")
+    parser.add_argument("output", nargs="?", type=Path, default=Path("."), help="diretório de saída")
+    parser.add_argument("--all", action="store_true", help="gera todos os JSONs de biblioteca, ignorando arquivos iniciados por _")
+    return parser.parse_args(argv)
+
+
+def main(argv: list[str] | None = None) -> int:
+    args = parse_args(argv or sys.argv[1:])
+    try:
+        if args.all:
+            if not args.source.is_dir():
+                raise ValueError(f"diretório não encontrado: {args.source}")
+            sources = sorted(path for path in args.source.glob("*.json") if not path.name.startswith("_"))
+            if not sources:
+                raise ValueError(f"nenhuma biblioteca encontrada em {args.source}")
+            libraries = [generate_one(source, args.output) for source in sources]
+            write_page(args.output / "index.html", render_index(libraries))
+            print(f"gerado: index.html ({len(libraries)} bibliotecas)")
+        else:
+            generate_one(args.source, args.output)
+    except (OSError, ValueError, KeyError) as exc:
+        print(f"erro: {exc}", file=sys.stderr)
+        return 1
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

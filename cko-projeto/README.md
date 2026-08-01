@@ -2,7 +2,46 @@
 
 Consolidação organizada das bibliotecas de materiais/dispositivos, dos templates de página, do runtime CKOS e das matrizes de correlação da plataforma **calculadorasdeenfermagem.com.br**.
 
-Estado: bibliotecas normalizadas e validadas · 11 páginas geradas no shell de produção · matriz de correlação limpa (77×22 = 811 arestas de grafo) · runtime v12 e schema v11 incluídos.
+Estado: bibliotecas normalizadas · **17 páginas de biblioteca + 1 índice autônomo** · validação local sem dependências · teste funcional em navegador · matriz de correlação (77×22 = 811 arestas de grafo) · runtime CKOS e schema v11 incluídos.
+
+## Execução autônoma dos HTMLs
+
+Os HTMLs de `03-templates/paginas/` funcionam apenas com recursos da própria pasta `cko-projeto`. Eles **não modificam nem dependem** dos HTMLs da raiz, das pastas de idioma, de `global-styles.css`, `global-scripts.js` ou `lang-selector.js`.
+
+Fluxo atual:
+
+```text
+02-bibliotecas/*.json
+        ↓ gerar-biblioteca.py (ignora _*.json)
+03-templates/paginas/*.html
+        ↓
+03-templates/css/pages/biblioteca.css + 03-templates/cko-page.js
+```
+
+Para regenerar, validar e visualizar no Windows:
+
+```powershell
+cd cko-projeto
+python -X utf8 .\03-templates\gerar-biblioteca.py --all .\02-bibliotecas .\03-templates\paginas
+python -X utf8 .\validar-projeto.py
+python -X utf8 .\executar-local.py
+```
+
+Depois, abra:
+
+```text
+http://localhost:8000/03-templates/paginas/index.html
+```
+
+As páginas também podem ser abertas diretamente pelo arquivo `03-templates/paginas/index.html`, mas o servidor local é recomendado para reproduzir o comportamento de um site.
+
+Teste funcional opcional, executado a partir da raiz do repositório (utiliza o Puppeteer já instalado no projeto principal):
+
+```powershell
+node .\cko-projeto\teste-funcional.cjs
+```
+
+O validador local verifica os 55 JSONs, os campos mínimos das 17 bibliotecas, as 18 páginas geradas, os dois aliases antigos, IDs duplicados, links locais, dependências externas, estilos inline e manipuladores JavaScript inline. Ele não substitui revisão clínica nem validação completa por JSON Schema.
 
 ## Estrutura
 
@@ -15,16 +54,20 @@ cko-projeto/
 │   ├── INVENTARIO-website.md      ← recuperação do inventário do site (30 tipos × 40 recursos)
 │   └── CKOS-v11-DOCUMENTACAO.md   ← doc do schema/runtime (turno anterior)
 ├── 01-schema/
-│   ├── biblioteca-cko-v1.schema.json   ← NOVO — schema formal das 11 bibliotecas
+│   ├── biblioteca-cko-v1.schema.json   ← schema formal das 17 bibliotecas
 │   └── seringa-cko-v11.schema.json     ← schema CKO runtime (dispositivo individual)
-├── 02-bibliotecas/               ← 11 objetos NORMALIZADOS (nomes limpos, sem timestamp)
+├── 02-bibliotecas/               ← 17 bibliotecas renderizáveis + objetos auxiliares `_*.json`
 │   ├── agulhas.json ... sondas.json
 ├── 03-templates/
-│   ├── biblioteca-seringa.html · seringa-10ml.html   ← páginas de referência (shell real)
-│   ├── gerar-biblioteca.py       ← gerador: objeto JSON → página no shell
-│   ├── paginas/                  ← 11 páginas geradas (agulhas.html … sondas.html)
+│   ├── biblioteca-seringa.html · seringa-10ml.html   ← aliases locais de compatibilidade
+│   ├── gerar-biblioteca.py       ← gerador: objeto JSON → página autônoma
+│   ├── cko-page.js               ← abas, favoritos, compartilhamento e impressão
+│   ├── paginas/                  ← índice + 17 páginas geradas
 │   ├── ckos-runtime.js · ckos_runtime.py · ckos-ci.mjs   ← runtime v12 + gate CI
 │   └── seringa-insulina-030.cko.json
+├── executar-local.py             ← servidor restrito a esta pasta
+├── validar-projeto.py            ← validação local sem dependências
+├── teste-funcional.cjs           ← teste em Chromium/Puppeteer
 └── 04-matrizes/
     ├── matriz-ferramentas-bibliotecas.xlsx  ← matriz limpa (Matriz · Arestas_Grafo · Resumo)
     └── grafo-arestas.csv                    ← edge-list do grafo (from → to, relação, peso)
@@ -33,19 +76,24 @@ cko-projeto/
 ## O que cada camada é
 
 - **02-bibliotecas** — a fonte de dados canônica (language-neutral). Cada objeto segue `01-schema/biblioteca-cko-v1.schema.json`.
-- **03-templates/gerar-biblioteca.py** — transforma qualquer objeto em página HTML no shell de produção (Inter/Nunito, `global-scripts.js` injeta header/barra/footer, `@graph`, rascunho). É o que faz "todas as bibliotecas seguirem a estrutura das páginas que criamos".
+- **03-templates/gerar-biblioteca.py** — transforma os 17 objetos de biblioteca em páginas autônomas, escapa o conteúdo, ignora JSONs auxiliares iniciados por `_` e cria um índice navegável.
+- **03-templates/cko-page.js** — comportamento compartilhado das páginas, sem JavaScript inline e sem dependência dos módulos globais do site.
+- **validar-projeto.py** — auditoria local dos JSONs, HTMLs e referências.
+- **executar-local.py** — servidor HTTP limitado à pasta `cko-projeto`.
 - **04-matrizes** — a matriz Ferramentas × Bibliotecas, agora também como **grafo** (edge-list `from --relação--> to`, peso DIRETO=3 / COMPLEMENTAR=2 / IA=1).
 
 ## Como regenerar as páginas
 
-```bash
-cd 03-templates
-python3 gerar-biblioteca.py --all ../02-bibliotecas ./paginas/
+```powershell
+cd cko-projeto
+python -X utf8 .\03-templates\gerar-biblioteca.py --all .\02-bibliotecas .\03-templates\paginas
 ```
 
 ## Pendências conhecidas (rastreadas, não bloqueiam)
 
-- Todas as páginas nascem em **rascunho** (`data-draft` → noindex + faixa); publicar com `?publish=1` após nomear revisor clínico.
+- Todas as páginas permanecem em **rascunho** com `noindex,nofollow` estático. Este modo é uma prévia local e não possui mecanismo de publicação.
+- Documentos técnicos declarados nos JSONs, mas ausentes da pasta, são exibidos como "arquivo ainda não incluído" em vez de gerar links quebrados.
+- `05-objetos-clinicos/`, matrizes e grafos continuam como dados estruturados; ainda não possuem renderer HTML neste modo.
 - `feridas` (Avaliação Clínica) e `antissepticos` (Produtos para Saúde) têm catálogo/estrutura próprios — o schema já os aceita.
 - O grafo-correlação que você mencionou ter enviado antes: não localizei upload distinto da matriz atual no histórico e não consigo recuperar bytes de conversas passadas — a matriz enviada agora foi consolidada como edge-list. Se houver outro arquivo, reenvie que eu incorporo.
 
@@ -54,7 +102,7 @@ python3 gerar-biblioteca.py --all ../02-bibliotecas ./paginas/
 - `00-docs/ESTRUTURA-SITE-modulares.md` — contrato real da casca modular (mount points, layout fixo, paleta, 4 camadas de CSS).
 - `00-docs/TEMPLATES-documentacao.md` — templates Calculadora/Escala e Biblioteca: anatomia, componentes, barra de ação, toaster, favoritos, acessibilidade, botões.
 - `00-docs/RECURSOS-por-template.md` — recursos que cada template contém + matriz de features + perfis de impressão.
-- `03-templates/css/pages/biblioteca.css` — 4ª camada de CSS (paleta de produção); as 11 páginas agora referenciam-na (zero CSS inline, zero cor fora da paleta) e trazem barra de ação (favoritar/compartilhar/imprimir/PDF/reportar) com toaster e Web Share.
+- `03-templates/css/pages/biblioteca.css` — folha autônoma das páginas CKO; as 17 bibliotecas e o índice usam o mesmo layout responsivo, impressão e componentes locais.
 
 ## Atualização — templates enriquecidos + correlações (este turno)
 

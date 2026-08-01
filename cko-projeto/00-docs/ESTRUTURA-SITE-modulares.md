@@ -1,6 +1,8 @@
 # Estrutura do Site — Módulos de Produção
 
-Contrato real da casca compartilhada de `calculadorasdeenfermagem.com.br`, extraído de `global-styles.css` e do histórico do projeto. **Toda página nova consome este shell; não recria header/barra/footer.**
+Contrato da casca compartilhada de `calculadorasdeenfermagem.com.br`, mantido aqui como referência para uma futura integração em produção.
+
+> **Modo autônomo atual:** os HTMLs em `03-templates/paginas/` são uma prévia isolada e usam somente `03-templates/css/pages/biblioteca.css` e `03-templates/cko-page.js`. Eles não carregam nem alteram a casca modular do repositório principal. As instruções abaixo descrevem o contrato de produção, não o preview local.
 
 ## Ativos modulares (via `<link>`/`<script>`)
 

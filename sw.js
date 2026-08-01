@@ -1,4 +1,4 @@
-const CACHE_VERSION = "20260801-191105";
+const CACHE_VERSION = "20260801-195537";
 const CACHE_NAME = `calculadoras-enfermagem-cache-${CACHE_VERSION}`;
 
 // O SCRIPT DE BUILD VAI INJETAR A LISTA DE ARQUIVOS AQUI
@@ -269,6 +269,7 @@ const urlsToCache = [
   'cko-projeto/02-bibliotecas/seringa-60ml-irrigation.json',
   'cko-projeto/02-bibliotecas/seringa-insulina-1ml.json',
   'cko-projeto/02-bibliotecas/sondas.json',
+  'cko-projeto/03-templates/cko-page.js',
   'cko-projeto/03-templates/ckos-runtime.js',
   'cko-projeto/03-templates/css/pages/biblioteca.css',
   'cko-projeto/03-templates/seringa-insulina-030.cko.json',

@@ -1,6 +1,8 @@
 # Documentação dos Templates
 
-Duas famílias de página, ambas no mesmo shell modular (ESTRUTURA-SITE-modulares.md).
+Duas famílias de página. A integração futura pode usar o shell modular descrito em `ESTRUTURA-SITE-modulares.md`; as bibliotecas atualmente geradas funcionam em modo autônomo dentro de `cko-projeto`.
+
+No modo autônomo, abas e ações são inicializadas por `03-templates/cko-page.js`. Não há `onclick`, CSS inline, dependências externas ou carregamento dos scripts globais do site.
 
 ## A. Calculadora / Escala — *CKO Tool Manifest v1.0*
 
