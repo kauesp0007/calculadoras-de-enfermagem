@@ -4,11 +4,13 @@
 (function () {
   try {
     const ua = navigator.userAgent || "";
-    const isBotLike =
+    const isTrustedGoogleTool = /(?:Chrome-)?Lighthouse|Googlebot/i.test(ua);
+    const isBotLike = !isTrustedGoogleTool && (
       navigator.webdriver === true ||
       ua.length < 10 ||
       !navigator.language ||
-      (screen && (screen.width === 0 || screen.height === 0));
+      (screen && (screen.width === 0 || screen.height === 0))
+    );
 
     if (isBotLike) {
       // Redireciona para home (não quebra SEO e evita loop)
