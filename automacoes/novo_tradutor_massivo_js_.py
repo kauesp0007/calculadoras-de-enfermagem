@@ -55,7 +55,7 @@ except ImportError:
 
 # Arquivos HTML da RAIZ (pt-BR) cujo <script> inline você quer retraduzir.
 ARQUIVOS_PARA_TRADUZIR = [
-    "index.html"
+    "nanda.html"
     
 ]
 

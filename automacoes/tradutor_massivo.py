@@ -13,12 +13,12 @@ from openai import OpenAI
 
 # Arquivos que você quer traduzir (coloque um ou vários)
 ARQUIVOS_PARA_TRADUZIR = [
-    "waterlow.html", "tinetti.html", "sofa.html", "silverman.html", "saps.html", "richmond.html"
+    "nanda.html"
 ]
 
 # Idiomas de destino
 IDIOMAS_ALVO = [
-    "es", "de", "it", "fr", "hi", "zh", "ar", "ja", "ru", "ko", "tr", "nl", "pl", "sv", "id", "vi", "uk"
+    "en"
 ]
 
 # Limites de Tokens / Blocos (Ajuste se necessário)
