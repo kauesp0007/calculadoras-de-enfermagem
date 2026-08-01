@@ -553,42 +553,18 @@ function ativarModoDislexia() {
    /* =========================
    Injeção Dinâmica: Anúncio Multiplex (Antes do Rodapé)
    ========================= */
-document.addEventListener("DOMContentLoaded", function () {
-  const footerPlaceholder = document.getElementById("footer-placeholder");
-
-  if (!footerPlaceholder) return;
-
-  // 1. LEITURA DO DOM: Lemos a largura da tela isoladamente
-  const isDesktop = window.innerWidth >= 768;
-
-  // 2. ESCRITA NO DOM: Movemos a criação e injeção para o requestAnimationFrame
-  window.requestAnimationFrame(() => {
-    const adContainer = document.createElement("div");
-    adContainer.className = "max-w-7xl mx-auto px-4 my-10";
-    
-    // Aplica a reserva de espaço (Anti-CLS) sem forçar reflow
-    adContainer.style.minHeight = isDesktop ? "90px" : "250px";
-
-    adContainer.innerHTML = `
-      <ins class="adsbygoogle"
-           style="display:block"
-           data-ad-format="autorelaxed"
-           data-ad-client="ca-pub-6472730056006847"
-           data-ad-slot="5401011816"></ins>
-    `;
-
-    footerPlaceholder.parentNode.insertBefore(adContainer, footerPlaceholder);
-  });
-
-  // 3. O carregamento do AdSense permanece assíncrono
-  setTimeout(() => {
+function initializeMultiplexAds() {
+  document.querySelectorAll('ins.adsbygoogle[data-ad-slot="3341197364"]').forEach(function (ad) {
+    if (ad.dataset.multiplexInitialized === "true" || ad.hasAttribute("data-adsbygoogle-status")) return;
+    ad.dataset.multiplexInitialized = "true";
     try {
       (window.adsbygoogle = window.adsbygoogle || []).push({});
-    } catch (e) {
-      console.warn("Falha ao inicializar o AdSense Multiplex:", e);
+    } catch (error) {
+      delete ad.dataset.multiplexInitialized;
+      console.warn("Falha ao inicializar o AdSense Multiplex:", error);
     }
-  }, 300);
-});
+  });
+}
 
 /* =========================================================
    MODO ADMIN + GOOGLE TAG + CONSENT + ADSENSE (OTIMIZADO PARA INP)
@@ -655,10 +631,22 @@ function initLazyLoadServices() {
     function loadAdSenseOnce() {
       if (window.__adsenseLoaded || adsBlocked) return;
       window.__adsenseLoaded = true;
+
+      var existingAdSense = document.querySelector('script[src*="pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"]');
+      if (existingAdSense) {
+        existingAdSense.addEventListener("load", initializeMultiplexAds, { once: true });
+        if (existingAdSense.dataset.loaded === "true") initializeMultiplexAds();
+        return;
+      }
+
       var ad = document.createElement("script");
       ad.async = true;
       ad.src = "https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6472730056006847";
       ad.crossOrigin = "anonymous";
+      ad.addEventListener("load", function () {
+        ad.dataset.loaded = "true";
+        initializeMultiplexAds();
+      }, { once: true });
       document.head.appendChild(ad);
       console.log("💰 AdSense carregado via Lazy Load (Otimizado).");
     }

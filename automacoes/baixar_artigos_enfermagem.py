@@ -32,7 +32,7 @@ except ImportError:
 
 API_URL = "https://www.ebi.ac.uk/europepmc/webservices/rest/search"
 DEFAULT_QUERY = (
-    '(TITLE_ABS:"enfermagem" OR KW:"enfermagem" OR KW:"nursing" '
+    '(TITLE_ABS:"enfermagem" OR KW:"enfermagem" OR KW:"nursing" OR BODY:"enfermagem" '
     'OR JOURNAL:"Revista Brasileira de Enfermagem" '
     'OR JOURNAL:"Texto & Contexto Enfermagem" '
     'OR JOURNAL:"Revista Latino-Americana de Enfermagem")'
@@ -65,7 +65,7 @@ def argumentos() -> argparse.Namespace:
     parser.add_argument("--limite", type=int, default=20, help="Maximo de artigos (padrao: 20).")
     parser.add_argument(
         "--saida", type=Path,
-        default=Path(__file__).resolve().parent.parent / "artigos-cientificos_escalas_e_calculadoras",
+        default=Path(__file__).resolve().parent.parent / "docs",
         help="Pasta para PDFs e manifestos.",
     )
     parser.add_argument("--email", help="E-mail de contato enviado no User-Agent (recomendado).")
@@ -87,7 +87,11 @@ def montar_consulta(args: argparse.Namespace) -> str:
     partes = [DEFAULT_QUERY, "LANG:por", BRAZIL_FILTER, "OPEN_ACCESS:Y"]
     if args.tema.strip():
         tema = args.tema.strip().replace('"', " ")
-        partes.append(f'(TITLE_ABS:"{tema}")')
+        alternativas = [f'TITLE_ABS:"{tema}"', f'BODY:"{tema}"']
+        nome_escala = re.sub(r"^escala\s+de\s+", "", tema, flags=re.IGNORECASE).strip()
+        if nome_escala != tema and nome_escala:
+            alternativas.extend((f'TITLE_ABS:"{nome_escala}"', f'BODY:"{nome_escala}"'))
+        partes.append("(" + " OR ".join(alternativas) + ")")
     if args.ano_inicio or args.ano_fim:
         inicio = args.ano_inicio or 1800
         fim = args.ano_fim or datetime.now().year
@@ -223,13 +227,19 @@ def main() -> int:
     anteriores = carregar_registros(manifesto)
     print(f"Buscando no Europe PMC: {consulta}")
     try:
-        artigos = buscar(consulta, args.limite, args.email)
+        # Busca tambem alem dos primeiros resultados ja presentes no manifesto.
+        # Assim, execucoes seguintes encontram artigos diferentes em vez de apenas
+        # reencontrar e ignorar sempre o mesmo conjunto inicial.
+        limite_busca = min(1000, args.limite + len(anteriores))
+        artigos = buscar(consulta, limite_busca, args.email)
     except (RuntimeError, ValueError) as exc:
         print(f"Erro na busca: {exc}", file=sys.stderr)
         return 1
 
     novos: list[dict[str, str]] = []
     for numero, artigo in enumerate(artigos, 1):
+        if len(novos) >= args.limite:
+            break
         item = registro(artigo)
         print(f"[{numero}/{len(artigos)}] {item['titulo']}")
         if item["id"] in anteriores:
@@ -256,6 +266,7 @@ def main() -> int:
                 item["status"] = "erro"
                 item["erro"] = str(exc)
             time.sleep(args.pausa)
+        anteriores.pop(item["id"], None)
         novos.append(item)
 
     registros = list(anteriores.values()) + novos
