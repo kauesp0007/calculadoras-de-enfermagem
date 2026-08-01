@@ -31,7 +31,7 @@ const head = `<!DOCTYPE html><html lang="pt-BR"><head>
 <meta content="https://www.calculadorasdeenfermagem.com.br/livronanda-calculadoras-de-enfermagem.webp" name="twitter:image"/>
 
 <!-- 6. CSS -->
-<style id="critical-fonts">@font-face{font-family:'Inter';src:url('/fonts/inter/inter-regular.woff2') format('woff2');font-weight:400;font-display:swap;size-adjust:98%}@font-face{font-family:'Inter';src:url('/fonts/inter/inter-600.woff2') format('woff2');font-weight:600;font-display:swap;size-adjust:98%}@font-face{font-family:'Inter';src:url('/fonts/inter/inter-700.woff2') format('woff2');font-weight:700;font-display:swap;size-adjust:98%}@font-face{font-family:'Inter';src:url('/fonts/inter/inter-900.woff2') format('woff2');font-weight:900;font-display:swap;size-adjust:98%}@font-face{font-family:'Nunito Sans';src:url('/fonts/nunito/nunito-regular.woff2') format('woff2');font-weight:400;font-display:swap;size-adjust:102%}@font-face{font-family:'Nunito Sans';src:url('/fonts/nunito/nunito-700.woff2') format('woff2');font-weight:700;font-display:swap;size-adjust:102%}@font-face{font-family:'Nunito Sans';src:url('/fonts/nunito/nunito-900.woff2') format('woff2');font-weight:900;font-display:swap;size-adjust:102%}</style>
+<style id="critical-fonts">@font-face{font-family:'Inter';src:url('/fonts/inter/inter-regular.woff2') format('woff2');font-weight:400;font-display:swap;size-adjust:98%}@font-face{font-family:'Inter';src:url('/fonts/inter/inter-600.woff2') format('woff2');font-weight:500;font-display:swap;size-adjust:98%}@font-face{font-family:'Inter';src:url('/fonts/inter/inter-700.woff2') format('woff2');font-weight:700;font-display:swap;size-adjust:98%}@font-face{font-family:'Inter';src:url('/fonts/inter/inter-900.woff2') format('woff2');font-weight:900;font-display:swap;size-adjust:98%}</style>
 <link as="style" href="/public/output.css" onload="this.onload=null;this.rel='stylesheet'" rel="preload"/>
 <link as="style" href="/global-styles.css" onload="this.onload=null;this.rel='stylesheet'" rel="preload"/>
 <noscript><link href="/public/output.css" rel="stylesheet"/></noscript>
@@ -40,9 +40,6 @@ const head = `<!DOCTYPE html><html lang="pt-BR"><head>
 <link as="font" crossorigin="" href="/fonts/inter/inter-600.woff2" rel="preload" type="font/woff2"/>
 <link as="font" crossorigin="" href="/fonts/inter/inter-700.woff2" rel="preload" type="font/woff2"/>
 <link as="font" crossorigin="" href="/fonts/inter/inter-900.woff2" rel="preload" type="font/woff2"/>
-<link as="font" crossorigin="" href="/fonts/nunito/nunito-regular.woff2" rel="preload" type="font/woff2"/>
-<link as="font" crossorigin="" href="/fonts/nunito/nunito-700.woff2" rel="preload" type="font/woff2"/>
-<link as="font" crossorigin="" href="/fonts/nunito/nunito-900.woff2" rel="preload" type="font/woff2"/>
 
 <link href="https://www.calculadorasdeenfermagem.com.br/nanda.html" rel="canonical"/>
 `;
@@ -86,10 +83,10 @@ transform: translate(-20%, -20%);
 
 /* Accordion */
 .domain-header {
-padding: 14px 20px; background: #f8fafc; cursor: pointer;
+padding: 12px 18px; background: #f8fafc; cursor: pointer;
 display: flex; justify-content: space-between; align-items: center;
-font-weight: 800; color: var(--navy); transition: background 0.2s;
-border-bottom: 1px solid #e2e8f0;
+font-weight: 700; color: var(--navy); transition: background 0.2s;
+border-bottom: 1px solid #e2e8f0; font-size: 14px;
 }
 .domain-header:hover { background: #eff6ff; }
 .domain-content { display: none; }
@@ -164,87 +161,118 @@ const bodyOpen = `
 </nav>
 
 <!-- Hero Card -->
-<section class="mb-8 meem-card-navy shadow-forte">
+<section class="mb-6 meem-card-navy shadow-forte">
 <div class="relative z-10 px-4 sm:px-8 py-8 md:py-10">
 <div class="text-center md:text-left">
 <p class="text-blue-300 text-xs font-bold uppercase tracking-[0.15em] mb-2">Sistematização da Assistência de Enfermagem</p>
 <h1 class="text-white text-3xl md:text-5xl font-black leading-tight mb-3">NANDA, NIC e NOC</h1>
-<p class="text-blue-100 text-base font-medium max-w-2xl">Guia completo sobre as taxonomias de enfermagem: Diagnósticos (NANDA), Intervenções (NIC) e Resultados (NOC). Aprenda a usar estas ferramentas essenciais para a SAE.</p>
+<p class="text-blue-100 text-base font-medium max-w-2xl">Guia completo sobre as taxonomias de enfermagem: diagnósticos (NANDA), intervenções (NIC) e resultados (NOC). Aprenda a usar estas ferramentas essenciais para a SAE.</p>
 </div>
 </div>
 </section>
 
 <!-- === CONTEÚDO PRINCIPAL === -->
-<div class="text-left font-inter text-black-custom text-base lg:text-lg space-y-6">
+<div class="text-left font-inter text-black-custom text-base space-y-4" style="font-weight:400">
+
+<!-- SEÇÃO HISTÓRIA -->
+<h2 class="font-inter font-medium text-dark-blue text-xl lg:text-2xl" style="color: var(--navy); font-weight:500">História da Criação da NANDA</h2>
+<div class="card-branco text-sm" style="padding:20px">
+<div class="flex flex-col md:flex-row gap-5">
+<div class="md:w-2/3">
+<p>A história da NANDA tem suas raízes no trabalho de enfermeiras pioneiras que reconheceram a necessidade de uma linguagem profissional compartilhada para descrever os julgamentos clínicos feitos por enfermeiras. As origens desse esforço remontam à <strong>Primeira Conferência Nacional sobre a Classificação de Diagnósticos de Enfermagem</strong>, realizada em St. Louis, Missouri, EUA, em 1973.</p>
+<p class="mt-2">Os resultados da conferência incluíram o estabelecimento do Centro de Informações sobre Diagnósticos de Enfermagem da Universidade de St. Louis, a adoção da sigla "NANDA" e a formação de capítulos regionais que ajudaram a organizar os primeiros trabalhos colaborativos nos Estados Unidos. Este trabalho representou o primeiro esforço sustentado para desenvolver, definir e classificar sistematicamente os diagnósticos de enfermagem como um corpo distinto de conhecimento profissional.</p>
+<p class="mt-2">Figuras-chave incluíram as Dras. <strong>Kristine Gebbie</strong> e <strong>Mary Ann Lavin</strong>, que ajudaram a estabelecer as bases para a classificação padronizada dos diagnósticos de enfermagem, agora amplamente reconhecida como parte da linguagem padronizada de enfermagem (LPE), apoiando a prática, a pesquisa e a educação internacionalmente.</p>
+<p class="mt-2">A Dra. <strong>Marjory Gordon</strong> foi eleita a primeira presidente da recém-criada organização NANDA em 1978 e desempenhou um papel de liderança fundamental no avanço do desenvolvimento de diagnósticos de enfermagem. Em <strong>1982</strong>, a associação foi formalmente estabelecida como <em>North American Nursing Diagnosis Association</em>, evoluindo posteriormente para a <strong>NANDA International</strong> (NANDA-I), que gerencia, pesquisa e atualiza a taxonomia dos diagnósticos de enfermagem globalmente.</p>
+<p class="mt-2">No Brasil, a padronização dos diagnósticos de enfermagem é respaldada pelo <strong>Conselho Federal de Enfermagem (Cofen)</strong>, que reconhece a NANDA-I como referência para a Sistematização da Assistência de Enfermagem (SAE) através da Resolução COFEN nº 358/2009.</p>
+</div>
+<div class="md:w-1/3 flex-shrink-0">
+<img src="/img/foto-das-enfermeiras-pioneiras-na-criação-da-nanda-internacional.webp" alt="Foto das enfermeiras pioneiras na criação da NANDA International" class="w-full max-w-[280px] mx-auto rounded-lg shadow-md" loading="lazy">
+</div>
+</div>
+
+<div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-4">
+<div class="bg-gray-50 rounded-xl p-3 text-center">
+<p class="text-xs font-bold uppercase text-gray-500 mb-1">Origem</p>
+<p class="text-2xl font-black" style="color: var(--navy)">1973</p>
+<p class="text-xs text-gray-600 mt-1">1ª Conferência Nacional em St. Louis, EUA — primeiros diagnósticos criados e classificados</p>
+</div>
+<div class="bg-gray-50 rounded-xl p-3 text-center">
+<p class="text-xs font-bold uppercase text-gray-500 mb-1">Fundação</p>
+<p class="text-2xl font-black" style="color: var(--navy)">1982</p>
+<p class="text-xs text-gray-600 mt-1">Estabelecida formalmente como North American Nursing Diagnosis Association</p>
+</div>
+<div class="bg-gray-50 rounded-xl p-3 text-center">
+<p class="text-xs font-bold uppercase text-gray-500 mb-1">1ª Presidente</p>
+<p class="text-lg font-black" style="color: var(--navy)">Marjory Gordon</p>
+<p class="text-xs text-gray-600 mt-1">Eleita em 1978, liderou o avanço dos diagnósticos de enfermagem</p>
+</div>
+</div>
+</div>
 
 <!-- SEÇÃO 1: O que são -->
-<h2 class="font-nunito font-extrabold text-dark-blue text-2xl lg:text-3xl" style="color: var(--navy)">📚 O que são NANDA, NIC e NOC?</h2>
+<h2 class="font-inter font-medium text-dark-blue text-xl lg:text-2xl" style="color: var(--navy); font-weight:500">O que são NANDA, NIC e NOC?</h2>
 <p>A Sistematização da Assistência de Enfermagem (SAE) é a ferramenta metodológica que organiza o cuidado do enfermeiro. <strong>NANDA, NIC e NOC</strong> são linguagens padronizadas essenciais para aplicar a SAE de forma eficaz, garantindo um cuidado baseado em evidências e uma comunicação clara entre os profissionais.</p>
-<p>Em nossas calculadoras, você verá o botão <strong>NANDA, NIC e NOC</strong> ao lado do botão calcular e gerar PDF. Esse botão gera uma busca personalizada no Google somando a pontuação da escala + gerar diagnóstico de enfermagem da NANDA, gerar implementação de intervenções de enfermagem do NIC e gerar observação de resultados das implementações da NOC. Estas três classificações são pilares fundamentais no processo de enfermagem, permitindo que os enfermeiros pensem criticamente e documentem seu raciocínio clínico de forma padronizada.</p>
+<p>Em nossas calculadoras, você verá o botão <strong>NANDA, NIC e NOC</strong> ao lado do botão calcular e gerar PDF. Esse botão gera uma busca personalizada no Google somando a pontuação da escala gerando diagnósticos de enfermagem da NANDA, intervenções do NIC e resultados da NOC. Estas três classificações são pilares fundamentais no processo de enfermagem, permitindo que os enfermeiros pensem criticamente e documentem seu raciocínio clínico de forma padronizada.</p>
 
 <!-- NANDA -->
-<div class="card-branco">
-<h3 class="font-nunito font-extrabold text-dark-blue text-xl lg:text-2xl" style="color: var(--navy)">🔍 NANDA International (NANDA-I)</h3>
-<div class="flex flex-col md:flex-row gap-6 mt-4">
-<div class="md:w-1/3 flex-shrink-0">
-<img height="405" width="330" src="/img/livronanda_diagnosticos-de-enfermagem.webp" alt="Livro NANDA International" class="w-full max-w-[240px] mx-auto rounded-lg shadow-md" loading="lazy">
+<div class="card-branco" style="padding:20px">
+<h3 class="font-inter font-bold text-dark-blue text-lg" style="color: var(--navy); font-weight:700">NANDA International (NANDA-I)</h3>
+<div class="flex flex-col md:flex-row gap-4 mt-3">
+<div class="md:w-1/4 flex-shrink-0">
+<img height="405" width="330" src="/img/livronanda_diagnosticos-de-enfermagem.webp" alt="Livro NANDA International" class="w-full max-w-[180px] mx-auto rounded-lg shadow-md" loading="lazy">
 </div>
-<div class="md:w-2/3">
-<p><strong>NANDA</strong> significa <strong>North American Nursing Diagnosis Association</strong> (Associação Norte-Americana de Diagnósticos de Enfermagem).</p>
-<p><strong>O que é:</strong> É a classificação padronizada dos <strong>Diagnósticos de Enfermagem</strong>. Um diagnóstico de enfermagem é um julgamento clínico sobre as respostas de um indivíduo, família ou comunidade a problemas de saúde/processos de vida reais ou potenciais. A NANDA-I fornece uma taxonomia completa organizada em <strong>13 domínios</strong> e <strong>47 classes</strong>.</p>
-<p><strong>Exemplo prático:</strong> Paciente com pneumonia apresenta dificuldade para respirar → Diagnóstico NANDA: "Padrão Respiratório Ineficaz". Paciente acamado com vermelhidão na região sacral → "Risco de Integridade da Pele Prejudicada".</p>
+<div class="md:w-3/4 text-sm">
+<p><strong>NANDA</strong> significa <strong>North American Nursing Diagnosis Association</strong> (Associação Norte-Americana de Diagnósticos de Enfermagem). É a classificação padronizada dos <strong>Diagnósticos de Enfermagem</strong> — um julgamento clínico sobre as respostas de um indivíduo, família ou comunidade a problemas de saúde reais ou potenciais. A NANDA-I fornece uma taxonomia organizada em <strong>13 domínios</strong> e <strong>47 classes</strong>.</p>
+<p class="mt-1"><strong>Exemplo:</strong> Paciente com pneumonia e dificuldade respiratória &rarr; "Padrão Respiratório Ineficaz". Paciente acamado com vermelhidão sacral &rarr; "Risco de Integridade da Pele Prejudicada".</p>
 </div>
 </div>
 </div>
 
 <!-- NIC -->
-<div class="card-branco">
-<h3 class="font-nunito font-extrabold text-dark-blue text-xl lg:text-2xl" style="color: var(--navy)">🩺 NIC (Nursing Interventions Classification)</h3>
-<div class="flex flex-col md:flex-row gap-6 mt-4">
-<div class="md:w-1/3 flex-shrink-0">
-<img height="376" width="264" src="img/capa-do-livro-nic-enfermagem.webp" alt="Livro NIC Classificação das Intervenções de Enfermagem" class="w-full max-w-[200px] mx-auto rounded-lg shadow-md" loading="lazy">
+<div class="card-branco" style="padding:20px">
+<h3 class="font-inter font-bold text-dark-blue text-lg" style="color: var(--navy); font-weight:700">NIC (Nursing Interventions Classification)</h3>
+<div class="flex flex-col md:flex-row gap-4 mt-3">
+<div class="md:w-1/4 flex-shrink-0">
+<img height="376" width="264" src="img/capa-do-livro-nic-enfermagem.webp" alt="Livro NIC Classificação das Intervenções de Enfermagem" class="w-full max-w-[150px] mx-auto rounded-lg shadow-md" loading="lazy">
 </div>
-<div class="md:w-2/3">
-<p><strong>NIC</strong> significa <strong>Classificação das Intervenções de Enfermagem</strong> (Nursing Interventions Classification).</p>
-<p><strong>O que é:</strong> É uma classificação abrangente e padronizada de <strong>intervenções de enfermagem</strong> — todas as ações que um enfermeiro realiza para atingir os resultados esperados para o paciente. Cada intervenção tem uma definição e uma lista de atividades específicas. A NIC está organizada em <strong>7 domínios</strong> e <strong>30 classes</strong>, com mais de 550 intervenções.</p>
-<p><strong>Exemplo prático:</strong> Para o diagnóstico "Padrão Respiratório Ineficaz" → Intervenção NIC: "Manejo das Vias Aéreas" (atividades: monitorar frequência respiratória, posicionar paciente, oxigenoterapia).</p>
+<div class="md:w-3/4 text-sm">
+<p><strong>NIC</strong> significa <strong>Classificação das Intervenções de Enfermagem</strong> (Nursing Interventions Classification). É uma classificação abrangente de intervenções — todas as ações que o enfermeiro realiza para atingir os resultados esperados. Cada intervenção tem uma definição e uma lista de atividades. A NIC tem <strong>7 domínios</strong>, <strong>30 classes</strong> e mais de 550 intervenções.</p>
+<p class="mt-1"><strong>Exemplo:</strong> Para "Padrão Respiratório Ineficaz" &rarr; Intervenção NIC: "Manejo das Vias Aéreas" (monitorar FR, posicionar paciente, oxigenoterapia).</p>
 </div>
 </div>
 </div>
 
 <!-- NOC -->
-<div class="card-branco">
-<h3 class="font-nunito font-extrabold text-dark-blue text-xl lg:text-2xl" style="color: var(--navy)">📊 NOC (Nursing Outcomes Classification)</h3>
-<div class="flex flex-col md:flex-row gap-6 mt-4">
-<div class="md:w-1/3 flex-shrink-0">
-<img height="376" width="263" src="img/capa-do-livro-noc-enfermagem.webp" alt="Livro NOC Classificação dos Resultados de Enfermagem" class="w-full max-w-[200px] mx-auto rounded-lg shadow-md" loading="lazy">
+<div class="card-branco" style="padding:20px">
+<h3 class="font-inter font-bold text-dark-blue text-lg" style="color: var(--navy); font-weight:700">NOC (Nursing Outcomes Classification)</h3>
+<div class="flex flex-col md:flex-row gap-4 mt-3">
+<div class="md:w-1/4 flex-shrink-0">
+<img height="376" width="263" src="img/capa-do-livro-noc-enfermagem.webp" alt="Livro NOC Classificação dos Resultados de Enfermagem" class="w-full max-w-[150px] mx-auto rounded-lg shadow-md" loading="lazy">
 </div>
-<div class="md:w-2/3">
-<p><strong>NOC</strong> significa <strong>Classificação dos Resultados de Enfermagem</strong> (Nursing Outcomes Classification).</p>
-<p><strong>O que é:</strong> É uma classificação de <strong>resultados do paciente</strong> — estados, comportamentos ou percepções mensuráveis que são influenciados pelas intervenções de enfermagem. Cada resultado possui indicadores e escalas de mensuração (ex: 1=grave a 5=nenhum). A NOC está organizada em <strong>7 domínios</strong> e <strong>32 classes</strong>.</p>
-<p><strong>Exemplo prático:</strong> Para "Padrão Respiratório Ineficaz" + "Manejo das Vias Aéreas" → Resultado NOC: "Estado Respiratório: Ventilação" (indicadores: frequência respiratória, profundidade, saturação O₂).</p>
+<div class="md:w-3/4 text-sm">
+<p><strong>NOC</strong> significa <strong>Classificação dos Resultados de Enfermagem</strong> (Nursing Outcomes Classification). É uma classificação de resultados do paciente — estados, comportamentos ou percepções mensuráveis influenciados pelas intervenções de enfermagem. Cada resultado possui indicadores e escalas de mensuração (1=grave a 5=nenhum). A NOC está organizada em <strong>7 domínios</strong> e <strong>32 classes</strong>.</p>
+<p class="mt-1"><strong>Exemplo:</strong> Para "Padrão Respiratório Ineficaz" + "Manejo das Vias Aéreas" &rarr; Resultado NOC: "Estado Respiratório: Ventilação" (indicadores: FR, profundidade, SpO₂).</p>
 </div>
 </div>
 </div>
 
 <!-- SEÇÃO 2: Imagem da Taxonomia -->
-<h2 class="font-nunito font-extrabold text-dark-blue text-2xl lg:text-3xl mt-8" style="color: var(--navy)">🏗️ Estrutura da Taxonomia NANDA Internacional</h2>
-<div class="card-branco text-center">
-<p class="text-sm text-gray-500 mb-3">Clique na imagem para ampliar</p>
-<img src="/img/taxonomia_da_nanda_internacional_estrutura.webp" alt="Estrutura da Taxonomia NANDA Internacional" class="img-zoom w-full max-w-4xl mx-auto rounded-lg shadow-md" onclick="document.getElementById('modal-taxonomia').classList.add('active')" loading="lazy">
+<h2 class="font-inter font-medium text-dark-blue text-xl lg:text-2xl mt-6" style="color: var(--navy); font-weight:500">Estrutura da Taxonomia NANDA Internacional</h2>
+<div class="card-branco text-center" style="padding:16px">
+<p class="text-xs text-gray-500 mb-2">Clique na imagem para ampliar</p>
+<img src="/img/taxonomia_da_nanda_internacional_estrutura.webp" alt="Estrutura da Taxonomia NANDA Internacional" class="img-zoom w-full max-w-lg mx-auto rounded-lg shadow-md" onclick="document.getElementById('modal-taxonomia').classList.add('active')" loading="lazy">
 </div>
 <div id="modal-taxonomia" class="modal-overlay" onclick="this.classList.remove('active')">
 <img src="/img/taxonomia_da_nanda_internacional_estrutura.webp" alt="Taxonomia NANDA ampliada" onclick="event.stopPropagation()">
 </div>
 
 <!-- SEÇÃO 3: Explorador Interativo NANDA -->
-<h2 class="font-nunito font-extrabold text-dark-blue text-2xl lg:text-3xl mt-8" style="color: var(--navy)">🔎 Explore a Taxonomia NANDA</h2>
-<p>Navegue pelos 13 domínios da taxonomia NANDA-I. Clique em um domínio para expandir, depois clique em um diagnóstico para ver detalhes, características definidoras e fatores relacionados.</p>
+<h2 class="font-inter font-medium text-dark-blue text-xl lg:text-2xl mt-6" style="color: var(--navy); font-weight:500">Explore a Taxonomia NANDA</h2>
+<p class="text-sm">Navegue pelos 13 domínios da taxonomia NANDA-I. Clique em um domínio para expandir e em um diagnóstico para ver definição, características definidoras e fatores relacionados.</p>
 
-<div class="flex flex-col lg:flex-row gap-6">
-<!-- Coluna esquerda: Accordion NANDA -->
+<div class="flex flex-col lg:flex-row gap-4 mt-3">
 <div class="lg:w-1/2">
-<div class="flex items-center gap-3 mb-4 flex-wrap">
+<div class="flex items-center gap-3 mb-3 flex-wrap">
 <span class="inline-flex items-center gap-1.5 text-xs font-bold text-gray-500 bg-gray-100 px-3 py-1.5 rounded-full" id="badge-dominios">Carregando...</span>
 <span class="text-gray-300 text-xs">|</span>
 <span class="inline-flex items-center gap-1.5 text-xs font-bold text-gray-500 bg-gray-100 px-3 py-1.5 rounded-full" id="badge-diagnosticos">Carregando...</span>
@@ -253,90 +281,88 @@ const bodyOpen = `
 <div class="text-center p-8 bg-white rounded-xl"><p class="font-bold text-gray-500">Carregando banco NANDA...</p></div>
 </div>
 </div>
-
-<!-- Coluna direita: Detalhes -->
 <div class="lg:w-1/2">
-<div id="nanda-detail" class="detail-panel">
-<div class="text-center opacity-50 py-12">
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512" class="text-4xl text-gray-300 mb-3 mx-auto" fill="currentColor" width="1em" height="1em"><path d="M64 0C28.7 0 0 28.7 0 64L0 448c0 35.3 28.7 64 64 64l256 0c35.3 0 64-28.7 64-64l0-288-128 0c-17.7 0-32-14.3-32-32L224 0 64 0zM256 0l0 128 128 0L256 0zM112 256l160 0c8.8 0 16 7.2 16 16s-7.2 16-16 16l-160 0c-8.8 0-16-7.2-16-16s7.2-16 16-16zm0 64l160 0c8.8 0 16 7.2 16 16s-7.2 16-16 16l-160 0c-8.8 0-16-7.2-16-16s7.2-16 16-16zm0 64l160 0c8.8 0 16 7.2 16 16s-7.2 16-16 16l-160 0c-8.8 0-16-7.2-16-16s7.2-16 16-16z"/></svg>
-<p class="font-bold text-gray-500">Selecione um diagnóstico</p>
-<p class="text-sm text-gray-400">As definições, características definidoras e fatores relacionados aparecerão aqui.</p>
+<div id="nanda-detail" class="detail-panel" style="padding:18px">
+<div class="text-center opacity-50 py-10">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512" class="text-3xl text-gray-300 mb-2 mx-auto" fill="currentColor" width="1em" height="1em"><path d="M64 0C28.7 0 0 28.7 0 64L0 448c0 35.3 28.7 64 64 64l256 0c35.3 0 64-28.7 64-64l0-288-128 0c-17.7 0-32-14.3-32-32L224 0 64 0zM256 0l0 128 128 0L256 0zM112 256l160 0c8.8 0 16 7.2 16 16s-7.2 16-16 16l-160 0c-8.8 0-16-7.2-16-16s7.2-16 16-16zm0 64l160 0c8.8 0 16 7.2 16 16s-7.2 16-16 16l-160 0c-8.8 0-16-7.2-16-16s7.2-16 16-16zm0 64l160 0c8.8 0 16 7.2 16 16s-7.2 16-16 16l-160 0c-8.8 0-16-7.2-16-16s7.2-16 16-16z"/></svg>
+<p class="font-bold text-gray-500 text-sm">Selecione um diagnóstico</p>
+<p class="text-xs text-gray-400">Definições, características definidoras e fatores relacionados aparecerão aqui.</p>
 </div>
 </div>
 </div>
 </div>
 
 <!-- SEÇÃO 4: Passo a passo -->
-<div class="mt-8">
-<h2 class="font-nunito font-extrabold text-dark-blue text-2xl lg:text-3xl mb-4" style="color: var(--navy)">📝 Passo a Passo: Como Usar a NANDA na Prática Clínica</h2>
-<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-<div class="step-card"><div class="step-num">1</div><div><strong>Coleta de Dados:</strong> Realize a anamnese e o exame físico do paciente. Colete sinais vitais, queixas, histórico e dados objetivos.</div></div>
-<div class="step-card"><div class="step-num">2</div><div><strong>Identifique Padrões:</strong> Agrupe os dados coletados por sistemas/domínios. Identifique alterações e riscos potenciais.</div></div>
-<div class="step-card"><div class="step-num">3</div><div><strong>Busque no Explorador:</strong> Utilize o explorador NANDA acima para encontrar diagnósticos que correspondam aos padrões identificados. Navegue pelos domínios ou use a busca.</div></div>
-<div class="step-card"><div class="step-num">4</div><div><strong>Selecione o Diagnóstico:</strong> Clique no diagnóstico mais adequado para ver sua definição completa, características definidoras e fatores relacionados.</div></div>
-<div class="step-card"><div class="step-num">5</div><div><strong>Confirme com Evidências:</strong> Compare as características definidoras do diagnóstico com os dados do seu paciente. O diagnóstico deve ser fundamentado em pelo menos 2-3 características presentes.</div></div>
-<div class="step-card"><div class="step-num">6</div><div><strong>Planeje Intervenções (NIC):</strong> Para cada diagnóstico, planeje intervenções de enfermagem usando a classificação NIC. Defina resultados esperados (NOC) com indicadores mensuráveis.</div></div>
-<div class="step-card"><div class="step-num">7</div><div><strong>Implemente e Avalie:</strong> Execute as intervenções planejadas e monitore os resultados. Reavalie periodicamente e ajuste o plano conforme necessário.</div></div>
+<div class="mt-6">
+<h2 class="font-inter font-medium text-dark-blue text-xl lg:text-2xl mb-3" style="color: var(--navy); font-weight:500">Passo a Passo: Como Usar a NANDA na Prática Clínica</h2>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+<div class="step-card" style="padding:12px"><div class="step-num" style="width:30px;height:30px;font-size:14px">1</div><div class="text-sm"><strong>Coleta de Dados:</strong> Realize anamnese e exame físico. Colete sinais vitais, queixas, histórico e dados objetivos.</div></div>
+<div class="step-card" style="padding:12px"><div class="step-num" style="width:30px;height:30px;font-size:14px">2</div><div class="text-sm"><strong>Identifique Padrões:</strong> Agrupe dados por sistemas/domínios. Identifique alterações e riscos potenciais.</div></div>
+<div class="step-card" style="padding:12px"><div class="step-num" style="width:30px;height:30px;font-size:14px">3</div><div class="text-sm"><strong>Busque no Explorador:</strong> Use o explorador NANDA acima para encontrar diagnósticos correspondentes aos padrões identificados.</div></div>
+<div class="step-card" style="padding:12px"><div class="step-num" style="width:30px;height:30px;font-size:14px">4</div><div class="text-sm"><strong>Selecione o Diagnóstico:</strong> Clique no diagnóstico para ver definição completa, características e fatores relacionados.</div></div>
+<div class="step-card" style="padding:12px"><div class="step-num" style="width:30px;height:30px;font-size:14px">5</div><div class="text-sm"><strong>Confirme com Evidências:</strong> Compare características definidoras com os dados do paciente. Fundamente em 2-3 características presentes.</div></div>
+<div class="step-card" style="padding:12px"><div class="step-num" style="width:30px;height:30px;font-size:14px">6</div><div class="text-sm"><strong>Planeje Intervenções (NIC):</strong> Para cada diagnóstico, planeje intervenções usando a NIC. Defina resultados (NOC) com indicadores mensuráveis.</div></div>
+<div class="step-card" style="padding:12px"><div class="step-num" style="width:30px;height:30px;font-size:14px">7</div><div class="text-sm"><strong>Implemente e Avalie:</strong> Execute as intervenções, monitore resultados. Reavalie periodicamente e ajuste o plano.</div></div>
 </div>
 </div>
 
 <!-- SEÇÃO 5: Explorador NIC -->
-<h2 class="font-nunito font-extrabold text-dark-blue text-2xl lg:text-3xl mt-8" style="color: var(--navy)">🩺 Explore as Intervenções NIC</h2>
-<p>Navegue pelas intervenções de enfermagem da classificação NIC. Cada intervenção possui código, definição e lista de atividades recomendadas.</p>
+<h2 class="font-inter font-medium text-dark-blue text-xl lg:text-2xl mt-6" style="color: var(--navy); font-weight:500">Explore as Intervenções NIC</h2>
+<p class="text-sm">Navegue pelas intervenções de enfermagem da classificação NIC. Cada intervenção possui código, definição e lista de atividades recomendadas.</p>
 
-<div class="flex flex-col lg:flex-row gap-6">
+<div class="flex flex-col lg:flex-row gap-4 mt-3">
 <div class="lg:w-1/2">
-<div class="flex items-center gap-3 mb-4 flex-wrap">
+<div class="flex items-center gap-3 mb-3 flex-wrap">
 <span class="inline-flex items-center gap-1.5 text-xs font-bold text-gray-500 bg-gray-100 px-3 py-1.5 rounded-full" id="badge-nic-total">Carregando...</span>
 </div>
-<div class="relative mb-4">
-<input type="text" id="nic-search" placeholder="Pesquisar intervenção NIC..." class="w-full h-11 rounded-xl border border-gray-200 bg-white pl-4 pr-4 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500" autocomplete="off">
+<div class="relative mb-3">
+<input type="text" id="nic-search" placeholder="Pesquisar intervenção NIC..." class="w-full h-10 rounded-xl border border-gray-200 bg-white pl-4 pr-4 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500" autocomplete="off">
 </div>
-<div id="nic-list" class="space-y-0 max-h-[500px] overflow-y-auto bg-white rounded-xl border border-gray-200">
+<div id="nic-list" class="space-y-0 max-h-[400px] overflow-y-auto bg-white rounded-xl border border-gray-200">
 <div class="text-center p-8"><p class="font-bold text-gray-500">Carregando banco NIC...</p></div>
 </div>
 </div>
 <div class="lg:w-1/2">
-<div id="nic-detail" class="detail-panel">
-<div class="text-center opacity-50 py-12">
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512" class="text-4xl text-gray-300 mb-3 mx-auto" fill="currentColor" width="1em" height="1em"><path d="M543.8 287.6c17 0 32-14 32-32.1c1-9-3-17-11-24L512 185l0-121c0-17.7-14.3-32-32-32l-32 0c-17.7 0-32 14.3-32 32l0 36.7L309.5 7c-6-5-14-7-21-7s-15 1-22 8L10 231.5c-7 7-10 15-10 24c0 18 14 32.1 32 32.1l32 0 0 69.7c-.1 .9-.1 1.9-.1 2.8l0 112c0 22.1 17.9 40 40 40l16 0c1.2 0 2.4-.1 3.6-.2c1.5 .1 3 .2 4.5 .2l31.9 0 24 0c22.1 0 40-17.9 40-40l0-24 0-64c0-17.7 14.3-32 32-32l64 0c17.7 0 32 14.3 32 32l0 64 0 24c0 22.1 17.9 40 40 40l24 0 32.5 0c1.4 0 2.8 0 4.2-.1c1.1 .1 2.2 .1 3.3 .1l16 0c22.1 0 40-17.9 40-40l0-16.2c.3-2.6 .5-5.3 .5-8.1l-.7-160.2 32 0z"/></svg>
-<p class="font-bold text-gray-500">Selecione uma intervenção</p>
-<p class="text-sm text-gray-400">O código, definição e atividades aparecerão aqui.</p>
+<div id="nic-detail" class="detail-panel" style="padding:18px">
+<div class="text-center opacity-50 py-10">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512" class="text-3xl text-gray-300 mb-2 mx-auto" fill="currentColor" width="1em" height="1em"><path d="M543.8 287.6c17 0 32-14 32-32.1c1-9-3-17-11-24L512 185l0-121c0-17.7-14.3-32-32-32l-32 0c-17.7 0-32 14.3-32 32l0 36.7L309.5 7c-6-5-14-7-21-7s-15 1-22 8L10 231.5c-7 7-10 15-10 24c0 18 14 32.1 32 32.1l32 0 0 69.7c-.1 .9-.1 1.9-.1 2.8l0 112c0 22.1 17.9 40 40 40l16 0c1.2 0 2.4-.1 3.6-.2c1.5 .1 3 .2 4.5 .2l31.9 0 24 0c22.1 0 40-17.9 40-40l0-24 0-64c0-17.7 14.3-32 32-32l64 0c17.7 0 32 14.3 32 32l0 64 0 24c0 22.1 17.9 40 40 40l24 0 32.5 0c1.4 0 2.8 0 4.2-.1c1.1 .1 2.2 .1 3.3 .1l16 0c22.1 0 40-17.9 40-40l0-16.2c.3-2.6 .5-5.3 .5-8.1l-.7-160.2 32 0z"/></svg>
+<p class="font-bold text-gray-500 text-sm">Selecione uma intervenção</p>
+<p class="text-xs text-gray-400">O código, definição e atividades aparecerão aqui.</p>
 </div>
 </div>
 </div>
 </div>
 
 <!-- SEÇÃO 6: Periodicidade -->
-<h2 class="font-nunito font-extrabold text-dark-blue text-2xl lg:text-3xl mt-8" style="color: var(--navy)">📅 Periodicidade de Atualização das Taxonomias</h2>
-<div class="card-branco">
+<h2 class="font-inter font-medium text-dark-blue text-xl lg:text-2xl mt-6" style="color: var(--navy); font-weight:500">Periodicidade de Atualização das Taxonomias</h2>
+<div class="card-branco text-sm" style="padding:20px">
 <p>As taxonomias NANDA-I, NIC e NOC são revisadas e atualizadas periodicamente por comitês internacionais de especialistas:</p>
-<ul class="list-disc list-inside space-y-3 ml-4 mt-3">
-<li><strong>NANDA-I:</strong> A cada <strong>3 anos</strong> (aproximadamente). A cada ciclo, novos diagnósticos são adicionados, diagnósticos existentes são revisados com base em evidências, e alguns podem ser aposentados. A edição atual é a <strong>NANDA-I 2024-2026</strong> (13ª edição), que contém 267 diagnósticos de enfermagem.</li>
-<li><strong>NIC:</strong> Atualizada a cada <strong>4-5 anos</strong>. A 7ª edição (2018) é a referência mais recente publicada em português, contendo 565 intervenções organizadas em 7 domínios e 30 classes.</li>
-<li><strong>NOC:</strong> Atualizada a cada <strong>4-5 anos</strong>, em sincronia com a NIC. A 6ª edição (2018) contém 540 resultados de enfermagem com indicadores e escalas de mensuração.</li>
+<ul class="list-disc list-inside space-y-2 ml-4 mt-2">
+<li><strong>NANDA-I:</strong> A cada <strong>3 anos</strong> (aproximadamente). A cada ciclo, novos diagnósticos são adicionados, existentes são revisados com base em evidências e alguns podem ser aposentados. Edição atual: <strong>NANDA-I 2024-2026</strong> (13ª ed.), com 267 diagnósticos.</li>
+<li><strong>NIC:</strong> A cada <strong>4-5 anos</strong>. A 7ª edição (2018) é a referência mais recente publicada em português, com 565 intervenções em 7 domínios e 30 classes.</li>
+<li><strong>NOC:</strong> A cada <strong>4-5 anos</strong>, em sincronia com a NIC. A 6ª edição (2018) contém 540 resultados com indicadores e escalas de mensuração.</li>
 </ul>
-<p class="mt-4"><strong>Taxonomia vigente em 2026:</strong> NANDA-I 2024-2026 (13ª edição), com 267 diagnósticos distribuídos em 13 domínios e 47 classes.</p>
+<p class="mt-3"><strong>Taxonomia vigente em 2026:</strong> NANDA-I 2024-2026 (13ª edição), 267 diagnósticos em 13 domínios e 47 classes.</p>
 </div>
 
 <!-- SEÇÃO 7: Importância para SAE -->
-<h2 class="font-nunito font-extrabold text-dark-blue text-2xl lg:text-3xl mt-8" style="color: var(--navy)">🏥 A Importância da NANDA, NIC e NOC na SAE</h2>
-<div class="card-branco">
-<p>A Sistematização da Assistência de Enfermagem (SAE) é um método científico que organiza o cuidado em etapas fundamentais. NANDA, NIC e NOC se encaixam perfeitamente nessas etapas:</p>
-<div class="overflow-x-auto mt-4">
+<h2 class="font-inter font-medium text-dark-blue text-xl lg:text-2xl mt-6" style="color: var(--navy); font-weight:500">A Importância da NANDA, NIC e NOC na SAE</h2>
+<div class="card-branco text-sm" style="padding:20px">
+<p>A Sistematização da Assistência de Enfermagem (SAE) é um método científico que organiza o cuidado em etapas. NANDA, NIC e NOC se encaixam nessas etapas:</p>
+<div class="overflow-x-auto mt-3">
 <table class="w-full text-sm border-collapse">
-<thead><tr class="bg-gray-50"><th class="p-3 text-left border-b-2 border-navy font-bold" style="color: var(--navy)">Etapa da SAE</th><th class="p-3 text-left border-b-2 border-navy font-bold" style="color: var(--navy)">Taxonomia</th><th class="p-3 text-left border-b-2 border-navy font-bold" style="color: var(--navy)">Ação do Enfermeiro</th></tr></thead>
+<thead><tr class="bg-gray-50"><th class="p-2 text-left border-b-2 font-bold" style="color: var(--navy); border-color: var(--navy)">Etapa da SAE</th><th class="p-2 text-left border-b-2 font-bold" style="color: var(--navy); border-color: var(--navy)">Taxonomia</th><th class="p-2 text-left border-b-2 font-bold" style="color: var(--navy); border-color: var(--navy)">Ação do Enfermeiro</th></tr></thead>
 <tbody>
-<tr class="border-b"><td class="p-3 font-bold">1. Coleta de Dados</td><td class="p-3">—</td><td class="p-3">Anamnese e exame físico completos</td></tr>
-<tr class="border-b"><td class="p-3 font-bold">2. Diagnóstico</td><td class="p-3"><span class="tag">NANDA</span></td><td class="p-3">Formula um diagnóstico de enfermagem (ex: "Dor Aguda")</td></tr>
-<tr class="border-b"><td class="p-3 font-bold">3. Planejamento</td><td class="p-3"><span class="tag">NOC</span> <span class="tag-amber">NIC</span></td><td class="p-3">Define resultados esperados (NOC) e intervenções (NIC)</td></tr>
-<tr class="border-b"><td class="p-3 font-bold">4. Implementação</td><td class="p-3"><span class="tag-amber">NIC</span></td><td class="p-3">Executa as intervenções planejadas</td></tr>
-<tr><td class="p-3 font-bold">5. Avaliação</td><td class="p-3"><span class="tag">NOC</span></td><td class="p-3">Avalia resultados através dos indicadores NOC</td></tr>
+<tr class="border-b"><td class="p-2 font-bold">1. Coleta de Dados</td><td class="p-2">&mdash;</td><td class="p-2">Anamnese e exame físico completos</td></tr>
+<tr class="border-b"><td class="p-2 font-bold">2. Diagnóstico</td><td class="p-2"><span class="tag">NANDA</span></td><td class="p-2">Formula um diagnóstico de enfermagem</td></tr>
+<tr class="border-b"><td class="p-2 font-bold">3. Planejamento</td><td class="p-2"><span class="tag">NOC</span> <span class="tag-amber">NIC</span></td><td class="p-2">Define resultados esperados (NOC) e intervenções (NIC)</td></tr>
+<tr class="border-b"><td class="p-2 font-bold">4. Implementação</td><td class="p-2"><span class="tag-amber">NIC</span></td><td class="p-2">Executa as intervenções planejadas</td></tr>
+<tr><td class="p-2 font-bold">5. Avaliação</td><td class="p-2"><span class="tag">NOC</span></td><td class="p-2">Avalia resultados através dos indicadores NOC</td></tr>
 </tbody>
 </table>
 </div>
-<p class="mt-4">Utilizar NANDA, NIC e NOC na SAE proporciona:</p>
-<ul class="list-disc list-inside space-y-2 ml-4 mt-2">
+<p class="mt-3">Benefícios de utilizar NANDA, NIC e NOC na SAE:</p>
+<ul class="list-disc list-inside space-y-1 ml-4 mt-1">
 <li><strong>Padronização:</strong> Linguagem universal compreendida por enfermeiros globalmente</li>
 <li><strong>Visibilidade:</strong> Torna o cuidado de enfermagem mais visível e mensurável</li>
 <li><strong>Qualidade:</strong> Melhora a qualidade e segurança do paciente com planejamento sistemático</li>
@@ -347,8 +373,8 @@ const bodyOpen = `
 </div>
 
 <!-- SEÇÃO 8: Referências -->
-<h2 class="font-nunito font-extrabold text-dark-blue text-2xl lg:text-3xl mt-8" style="color: var(--navy)">📖 Referências Bibliográficas</h2>
-<div class="card-branco text-left text-sm space-y-4" style="line-height: 1.6">
+<h2 class="font-inter font-medium text-dark-blue text-xl lg:text-2xl mt-6 mb-16" style="color: var(--navy); font-weight:500">Referências Bibliográficas</h2>
+<div class="card-branco text-left text-sm space-y-3" style="line-height: 1.6; padding:20px">
 <p>HERDMAN, T. H.; KAMITSURU, S. (Org.). <strong>Diagnósticos de enfermagem da NANDA-I: definições e classificação 2024-2026</strong>. 13. ed. Porto Alegre: Artmed, 2024.</p>
 <p>BULECHEK, G. M.; BUTCHER, H. K.; DOCHTERMAN, J. M.; WAGNER, C. M. (Eds.). <strong>Classificação das Intervenções de Enfermagem (NIC)</strong>. 7. ed. Rio de Janeiro: Elsevier, 2018.</p>
 <p>MOORHEAD, S.; JOHNSON, M.; MAAS, M. L.; SWANSON, E. (Eds.). <strong>Classificação dos Resultados de Enfermagem (NOC)</strong>. 6. ed. Rio de Janeiro: Elsevier, 2018.</p>
