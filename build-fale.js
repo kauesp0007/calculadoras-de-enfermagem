@@ -1,4 +1,8 @@
-<!DOCTYPE html><html lang="pt-BR"><head>
+// build-fale.js — Reconstrói fale.html no padrão mapa-do-site.html
+const fs = require('fs');
+const path = require('path');
+
+const head = `<!DOCTYPE html><html lang="pt-BR"><head>
 
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0, viewport-fit=cover" name="viewport"/>
@@ -28,7 +32,9 @@
 <link as="font" crossorigin="" href="/fonts/inter/inter-900.woff2" rel="preload" type="font/woff2"/>
 
 <link href="https://www.calculadorasdeenfermagem.com.br/fale.html" rel="canonical"/>
+`;
 
+const extraCSS = `
 <style>
 :root { --navy: #1a3e74; --navy-light: #1e4d8c; --navy-dark: #163269; }
 body { font-family: 'Inter', sans-serif; background-color: #f8fafc; color: #1e293b; }
@@ -85,7 +91,9 @@ transition: all 0.15s; margin-bottom: 6px; box-shadow: 0 2px 6px rgba(0,0,0,0.03
 .form-col { order: 1; }
 }
 </style>
+`;
 
+const headClose = `
 <link rel="preload" href="/img/icontopbar1-calculadoras-de-enfermagem.webp" as="image" type="image/webp" fetchpriority="high">
 <style id="anti-cls-placeholders">#global-header-container{display:block;width:100%;min-height:96px;background-color:transparent}@media(max-width:768px){#global-header-container{min-height:60px}}#language-selector-placeholder{display:block;width:100%;min-height:46px;background-color:transparent}#footer-placeholder{display:block;min-height:520px;background-color:transparent}@media(min-width:768px){#footer-placeholder{min-height:277px}}</style>
 <script src="/global-scripts.js" defer></script>
@@ -94,7 +102,9 @@ transition: all 0.15s; margin-bottom: 6px; box-shadow: 0 2px 6px rgba(0,0,0,0.03
 (function(){try{var f=localStorage.getItem("fontSize");if(f&&f!=="1"){var s=["1em","1.15em","1.3em","1.5em","2em"];var i=Math.min(Math.max(parseInt(f,10),1),s.length);document.documentElement.style.fontSize=s[i-1];}if(localStorage.getItem("darkMode")==="true"){document.documentElement.classList.add("dark-mode");}}catch(e){}})();
 </script>
 </head>
+`;
 
+const body = `
 <body class="bg-gray-50 text-gray-800 font-inter">
 <a href="#main-content" class="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:p-4 focus:bg-white focus:text-blue-600">Pular para o conteúdo principal</a>
 <div id="statusMessage" class="sr-only" aria-live="polite" aria-atomic="true"></div>
@@ -209,7 +219,9 @@ Fale Conosco
 </div>
 
 </main>
+`;
 
+const footer = `
 <div id="footer-placeholder"></div>
 <script>
 document.addEventListener("DOMContentLoaded",function(){
@@ -261,3 +273,8 @@ btn.style.opacity='1';
 });
 </script>
 </body></html>
+`;
+
+const html = head + extraCSS + headClose + body + footer;
+fs.writeFileSync(path.join(__dirname, 'fale.html'), html, 'utf8');
+console.log('fale.html gerado -', (html.length/1024).toFixed(1), 'KB');
