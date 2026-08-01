@@ -1,4 +1,4 @@
-const CACHE_VERSION = "20260801-195537";
+const CACHE_VERSION = "20260801-203212";
 const CACHE_NAME = `calculadoras-enfermagem-cache-${CACHE_VERSION}`;
 
 // O SCRIPT DE BUILD VAI INJETAR A LISTA DE ARQUIVOS AQUI
@@ -53,6 +53,13 @@ const urlsToCache = [
   '.chrome-perfil-pci/extensions_crx_cache/metadata.json',
   '.chrome-perfil-pci/hyphen-data/120.0.6050.0/_metadata/verified_contents.json',
   '.chrome-perfil-pci/hyphen-data/120.0.6050.0/manifest.json',
+  '.tradutor_cache/meem_id.json',
+  '.tradutor_cache/meem_nl.json',
+  '.tradutor_cache/meem_pl.json',
+  '.tradutor_cache/meem_sv.json',
+  '.tradutor_cache/meem_tr.json',
+  '.tradutor_cache/meem_uk.json',
+  '.tradutor_cache/meem_vi.json',
   '.tradutor_cache/moca_ar.json',
   '.tradutor_cache/moca_de.json',
   '.tradutor_cache/moca_fr.json',
