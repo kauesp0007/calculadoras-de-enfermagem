@@ -558,3 +558,5 @@ Design institucional
 Consistência absoluta
 
 Se existir qualquer dúvida entre duas soluções de design, estrutura ou organização, a IA deve sempre escolher aquela que mais se aproxima do padrão estabelecido pela página **mapa-do-site.html**.
+
+NAO USAR EMOJIS NA ELABORAÇÃO DAS PAGINAS HTML E DENTRO DO HEROCARD H1 NAO USAR ICONES SVG FONTAWESOME
