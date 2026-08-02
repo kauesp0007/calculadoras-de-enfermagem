@@ -1,4 +1,4 @@
-const CACHE_VERSION = "20260801-203212";
+const CACHE_VERSION = "20260801-221617";
 const CACHE_NAME = `calculadoras-enfermagem-cache-${CACHE_VERSION}`;
 
 // O SCRIPT DE BUILD VAI INJETAR A LISTA DE ARQUIVOS AQUI
@@ -53,6 +53,23 @@ const urlsToCache = [
   '.chrome-perfil-pci/extensions_crx_cache/metadata.json',
   '.chrome-perfil-pci/hyphen-data/120.0.6050.0/_metadata/verified_contents.json',
   '.chrome-perfil-pci/hyphen-data/120.0.6050.0/manifest.json',
+  '.tradutor_cache/downes_ar.json',
+  '.tradutor_cache/downes_de.json',
+  '.tradutor_cache/downes_es.json',
+  '.tradutor_cache/downes_fr.json',
+  '.tradutor_cache/downes_hi.json',
+  '.tradutor_cache/downes_id.json',
+  '.tradutor_cache/downes_it.json',
+  '.tradutor_cache/downes_ja.json',
+  '.tradutor_cache/downes_ko.json',
+  '.tradutor_cache/downes_nl.json',
+  '.tradutor_cache/downes_pl.json',
+  '.tradutor_cache/downes_ru.json',
+  '.tradutor_cache/downes_sv.json',
+  '.tradutor_cache/downes_tr.json',
+  '.tradutor_cache/downes_uk.json',
+  '.tradutor_cache/downes_vi.json',
+  '.tradutor_cache/downes_zh.json',
   '.tradutor_cache/meem_id.json',
   '.tradutor_cache/meem_nl.json',
   '.tradutor_cache/meem_pl.json',

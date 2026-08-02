@@ -55,13 +55,13 @@ except ImportError:
 
 # Arquivos HTML da RAIZ (pt-BR) cujo <script> inline você quer retraduzir.
 ARQUIVOS_PARA_TRADUZIR = [
-    "meem.html"
+    "downes.html"
     
 ]
 
 # Idiomas de destino (pastas existentes). NÃO inclui "pt" (a própria raiz).
 IDIOMAS_ALVO = [
-    "tr", "nl", "pl", "sv", "id", "vi", "uk"
+    "es", "de", "it", "fr", "hi", "zh", "ar", "ja", "ru", "ko", "tr", "nl", "pl", "sv", "id", "vi", "uk"
 ]
 
 # Limite de strings por chamada ao LLM.
