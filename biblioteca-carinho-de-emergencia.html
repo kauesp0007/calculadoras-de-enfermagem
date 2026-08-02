@@ -107,12 +107,15 @@ body { font-family: "Inter", -apple-system, BlinkMacSystemFont, 'Segoe UI', sans
 .bib-card {
 background: white;
 border-radius: 16px;
-border: 1px solid var(--slate-200);
-box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+border: 1px solid #cbd5e1;
+box-shadow: 0 2px 5px rgba(15, 23, 42, 0.12), 0 10px 28px rgba(15, 23, 42, 0.16);
 padding: 20px;
-transition: box-shadow 0.2s;
+transition: box-shadow 0.2s ease, border-color 0.2s ease;
 }
-.bib-card:hover { box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08); }
+.bib-card:hover {
+border-color: #94a3b8;
+box-shadow: 0 3px 7px rgba(15, 23, 42, 0.14), 0 14px 34px rgba(15, 23, 42, 0.2);
+}
 
 .hero-card-navy {
 background: linear-gradient(135deg, var(--navy) 0%, var(--navy-light) 60%, var(--navy-dark) 100%);
@@ -167,8 +170,8 @@ font-size: 14px; font-weight: 700; cursor: pointer; transition: background 0.15s
 }
 .btn-secondary:hover { background: var(--slate-50); border-color: var(--navy-light); color: var(--navy); }
 
-.med-card { border: 1px solid var(--slate-200); border-radius: 12px; background: white; padding: 14px; transition: all 0.2s; box-shadow: 0 2px 8px rgba(0,0,0,0.02); }
-.med-card:hover { border-color: var(--blue-100); box-shadow: 0 6px 16px rgba(26, 62, 116, 0.1); transform: translateY(-2px);}
+.med-card { border: 1px solid #cbd5e1; border-radius: 12px; background: white; padding: 14px; transition: all 0.2s ease; box-shadow: 0 1px 3px rgba(15, 23, 42, 0.12), 0 6px 16px rgba(15, 23, 42, 0.14); }
+.med-card:hover { border-color: #94a3b8; box-shadow: 0 3px 7px rgba(15, 23, 42, 0.14), 0 10px 24px rgba(15, 23, 42, 0.2); transform: translateY(-2px);}
 
 .alert-box-red { background: #fef2f2; border: 1px solid #fecaca; border-radius: 12px; padding: 16px; }
 .alert-box-blue { background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 12px; padding: 16px; }
@@ -196,7 +199,30 @@ padding: 12px; position: fixed; z-index: 1000; left: 50%; bottom: 30px; transfor
 font-size: 14px; font-weight: 600; box-shadow: 0 4px 12px rgba(0,0,0,0.2); opacity: 0; transition: opacity 0.3s, bottom 0.3s;
 }
 #toast-copy.show { visibility: visible; opacity: 1; bottom: 50px; }
-</style>
+
+/* Lightbox Zoom */
+.lightbox-overlay {
+display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.88);
+z-index: 9999; cursor: pointer;
+}
+.lightbox-overlay.open { display: block; }
+.lightbox-scroll {
+min-height: 100%; overflow-y: auto;
+display: flex; align-items: center; justify-content: center;
+padding: 40px; box-sizing: border-box;
+}
+.lightbox-scroll img {
+max-width: 90vw; max-height: 85vh; width: auto; height: auto; border-radius: 8px;
+box-shadow: 0 20px 60px rgba(0,0,0,0.5); cursor: default; flex-shrink: 0;
+object-fit: contain;
+}.lightbox-close {
+position: fixed; top: 16px; right: 20px; z-index: 10001;
+width: 40px; height: 40px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.5);
+background: rgba(0,0,0,0.5); color: #fff; font-size: 20px; font-weight: 700;
+cursor: pointer; display: flex; align-items: center; justify-content: center;
+transition: background 0.15s; line-height: 1;
+}
+.lightbox-close:hover { background: rgba(255,255,255,0.2); border-color: #fff; }</style>
 
 <link rel="preload" href="/img/icontopbar1-calculadoras-de-enfermagem.webp" as="image" type="image/webp" fetchpriority="high">
 <style id="anti-cls-placeholders">#global-header-container{display:block;width:100%;min-height:96px;background-color:transparent}@media(max-width:768px){#global-header-container{min-height:60px}}#language-selector-placeholder{display:block;width:100%;min-height:46px;background-color:transparent}#footer-placeholder{display:block;min-height:520px;background-color:transparent}@media(min-width:768px){#footer-placeholder{min-height:277px}}</style>
@@ -259,9 +285,10 @@ Guia completo sobre a estrutura, medicamentos, materiais e rotinas de conferênc
 <div class="bib-card text-center">
 <img src="img/cardioversor-desfibrilador-hospitalar-calculadoras-de-enfermagem.webp"
 alt="Cardioversor/Desfibrilador Hospitalar sobre o Carrinho de Emergência"
-class="w-full h-auto rounded-xl border border-slate-200 shadow-md"
-loading="lazy">
-<p class="text-[10px] text-slate-400 mt-2 mb-0">Cardioversor/Desfibrilador posicionado sobre o Carrinho de Emergência</p>
+class="w-full h-auto rounded-xl border border-slate-200 shadow-md cursor-pointer hover:opacity-90 transition-opacity"
+loading="lazy"
+onclick="openLightbox(this.src)" title="Clique para ampliar">
+<p class="text-[10px] text-slate-400 mt-2 mb-0">Cardioversor/Desfibrilador — clique na imagem para ampliar</p>
 </div>
 
 <!-- Informações à Direita -->
@@ -298,49 +325,24 @@ loading="lazy">
 </div>
 </div>
 
-<!-- Imagem do Carrinho + Card Informativo -->
+<!-- Imagem do Carrinho + Composição por Gavetas -->
 <div class="grid-2col">
 <div class="bib-card text-center">
 <img src="img/carrinho-de-emergencia-hospital-calculadoras-de-enfermagem.webp"
 alt="Carrinho de Emergência Hospitalar completo com gavetas identificadas"
-class="w-full h-auto rounded-xl border border-slate-200 shadow-md"
-loading="lazy">
-<p class="text-xs text-slate-400 mt-3 mb-0">Carrinho de Emergência — Gavetas organizadas por categoria.</p>
+class="w-full h-auto rounded-xl border border-slate-200 shadow-md cursor-pointer hover:opacity-90 transition-opacity"
+loading="lazy"
+onclick="openLightbox(this.src)" title="Clique para ampliar">
+<p class="text-[10px] text-slate-400 mt-2 mb-0">Carrinho de Emergência — clique na imagem para ampliar</p>
 </div>
 
-<div class="bib-card bg-slate-50 border-slate-200">
-<h4 class="text-xs font-bold uppercase tracking-wide text-navy mb-3">Como Identificar Cada Gaveta</h4>
-<div class="space-y-3">
-<div class="flex items-center gap-3 p-2 rounded-lg bg-white border border-slate-100">
-<div class="w-8 h-8 rounded-lg bg-red-100 flex items-center justify-center flex-shrink-0"><span class="text-xs font-black text-red-600">1</span></div>
-<div><p class="text-[11px] font-bold text-slate-800">Gaveta 1 (Topo)</p><p class="text-[10px] text-slate-500">Medicamentos — identificada com nomes, doses e validade visível em cada compartimento.</p></div>
-</div>
-<div class="flex items-center gap-3 p-2 rounded-lg bg-white border border-slate-100">
-<div class="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center flex-shrink-0"><span class="text-xs font-black text-blue-600">2</span></div>
-<div><p class="text-[11px] font-bold text-slate-800">Gaveta 2</p><p class="text-[10px] text-slate-500">Acesso vascular — Jelcos, agulhas, seringas, equipos, eletrodos e gel condutor.</p></div>
-</div>
-<div class="flex items-center gap-3 p-2 rounded-lg bg-white border border-slate-100">
-<div class="w-8 h-8 rounded-lg bg-green-100 flex items-center justify-center flex-shrink-0"><span class="text-xs font-black text-green-600">3</span></div>
-<div><p class="text-[11px] font-bold text-slate-800">Gaveta 3</p><p class="text-[10px] text-slate-500">Vias aéreas — TOT, Guedel, Ambú, sondas de aspiração, luvas estéreis e fixadores.</p></div>
-</div>
-<div class="flex items-center gap-3 p-2 rounded-lg bg-white border border-slate-100">
-<div class="w-8 h-8 rounded-lg bg-amber-100 flex items-center justify-center flex-shrink-0"><span class="text-xs font-black text-amber-600">4</span></div>
-<div><p class="text-[11px] font-bold text-slate-800">Gaveta 4 (Inferior)</p><p class="text-[10px] text-slate-500">Soluções e soros — SF, SG, Ringer, bicarbonato e expansores plasmáticos (Voluven).</p></div>
-</div>
-</div>
-</div>
-</div>
-
-<!-- GAVETAS DO CARRINHO (Conteúdo por Abas) -->
-<div class="bib-card">
-<h3 class="section-title">Composição por Gavetas</h3>
-<p class="text-xs text-slate-500 mb-4">Selecione a gaveta para visualizar seu conteúdo padronizado conforme POP institucional.</p>
-
-<div class="gaveta-nav">
-<button class="gaveta-tab active" onclick="switchGaveta('gav1')">Gaveta 1: Medicamentos</button>
-<button class="gaveta-tab" onclick="switchGaveta('gav2')">Gaveta 2: Acesso Vascular</button>
-<button class="gaveta-tab" onclick="switchGaveta('gav3')">Gaveta 3: Vias Aéreas</button>
-<button class="gaveta-tab" onclick="switchGaveta('gav4')">Gaveta 4: Soluções</button>
+<div class="bib-card" style="padding:14px;">
+<h3 class="section-title" style="font-size:13px;margin-bottom:10px;">Composição por Gavetas</h3>
+<div class="gaveta-nav" style="margin-bottom:10px;">
+<button class="gaveta-tab active" onclick="switchGaveta('gav1')" style="padding:6px 10px;font-size:10px;">Gaveta 1</button>
+<button class="gaveta-tab" onclick="switchGaveta('gav2')" style="padding:6px 10px;font-size:10px;">Gaveta 2</button>
+<button class="gaveta-tab" onclick="switchGaveta('gav3')" style="padding:6px 10px;font-size:10px;">Gaveta 3</button>
+<button class="gaveta-tab" onclick="switchGaveta('gav4')" style="padding:6px 10px;font-size:10px;">Gaveta 4</button>
 </div>
 
 <!-- Gaveta 1: Medicamentos -->
@@ -489,6 +491,30 @@ loading="lazy">
 <div class="med-card"><h4 class="font-bold text-slate-800 text-sm mb-1">Lidocaína Gel</h4><p class="text-xs text-slate-500">Lubrificante tópico</p><p class="text-[10px] text-slate-600"><span class="font-bold">Qtd:</span> 1 unidade</p></div>
 <div class="med-card"><h4 class="font-bold text-slate-800 text-sm mb-1">Gaze Estéril</h4><p class="text-xs text-slate-500">Curativo/procedimento</p><p class="text-[10px] text-slate-600"><span class="font-bold">Qtd:</span> 5 pacotes</p></div>
 <div class="med-card"><h4 class="font-bold text-slate-800 text-sm mb-1">Micropore</h4><p class="text-xs text-slate-500">Fita adesiva</p><p class="text-[10px] text-slate-600"><span class="font-bold">Qtd:</span> 1 unidade</p></div>
+</div>
+</div>
+</div>
+</div>
+
+<!-- Como Identificar Cada Gaveta -->
+<div class="bib-card bg-slate-50 border-slate-200">
+<h4 class="text-xs font-bold uppercase tracking-wide text-navy mb-3">Como Identificar Cada Gaveta</h4>
+<div class="grid-4col">
+<div class="flex items-center gap-2 p-2 rounded-lg bg-white border border-slate-100">
+<div class="w-7 h-7 rounded-lg bg-red-100 flex items-center justify-center flex-shrink-0"><span class="text-[10px] font-black text-red-600">1</span></div>
+<div><p class="text-[10px] font-bold text-slate-800">Gaveta 1 (Topo)</p><p class="text-[9px] text-slate-500">Medicamentos — com nomes, doses e validade visível.</p></div>
+</div>
+<div class="flex items-center gap-2 p-2 rounded-lg bg-white border border-slate-100">
+<div class="w-7 h-7 rounded-lg bg-blue-100 flex items-center justify-center flex-shrink-0"><span class="text-[10px] font-black text-blue-600">2</span></div>
+<div><p class="text-[10px] font-bold text-slate-800">Gaveta 2</p><p class="text-[9px] text-slate-500">Acesso vascular — Jelcos, agulhas, seringas, equipos.</p></div>
+</div>
+<div class="flex items-center gap-2 p-2 rounded-lg bg-white border border-slate-100">
+<div class="w-7 h-7 rounded-lg bg-green-100 flex items-center justify-center flex-shrink-0"><span class="text-[10px] font-black text-green-600">3</span></div>
+<div><p class="text-[10px] font-bold text-slate-800">Gaveta 3</p><p class="text-[9px] text-slate-500">Vias aéreas — TOT, Guedel, Ambú, sondas de aspiração.</p></div>
+</div>
+<div class="flex items-center gap-2 p-2 rounded-lg bg-white border border-slate-100">
+<div class="w-7 h-7 rounded-lg bg-amber-100 flex items-center justify-center flex-shrink-0"><span class="text-[10px] font-black text-amber-600">4</span></div>
+<div><p class="text-[10px] font-bold text-slate-800">Gaveta 4 (Inferior)</p><p class="text-[9px] text-slate-500">Soluções e soros — SF, SG, Ringer, bicarbonato, Voluven.</p></div>
 </div>
 </div>
 </div>
@@ -686,7 +712,7 @@ loading="lazy">
 <!-- PROTOCOLOS + VEJA TAMBÉM -->
 <div class="grid-2col">
 <div class="bib-card">
-<h3 class="section-title">Protocolos e Manuais</h3>
+<h3 class="section-title">Pareceres e Protocolos</h3>
 <p class="text-xs text-slate-500 mb-3">Documentos técnicos para download com a fundamentação legal e operacional completa:</p>
 <div class="space-y-3">
 <a href="docs/Parecer_010_2022-Carro-de-emergencia.pdf" class="flex items-center gap-3 p-3 rounded-xl border border-slate-200 hover:bg-blue-50 hover:border-blue-200 transition-all group shadow-sm" target="_blank" rel="noopener">
@@ -698,13 +724,13 @@ loading="lazy">
 <p class="text-[10px] text-slate-500 m-0">Carro de emergência: responsabilidade pela composição, montagem, conferência e reposição.</p>
 </div>
 </a>
-<a href="docs/pop-carro-urgencia-emergencia_v3.pdf" class="flex items-center gap-3 p-3 rounded-xl border border-slate-200 hover:bg-blue-50 hover:border-blue-200 transition-all group shadow-sm" target="_blank" rel="noopener">
+<a href="docs/Manual-de-conferencia-e-reposicao-do-carro-de-emergencia-MS-2024.pdf" class="flex items-center gap-3 p-3 rounded-xl border border-slate-200 hover:bg-blue-50 hover:border-blue-200 transition-all group shadow-sm" target="_blank" rel="noopener">
 <div class="w-10 h-10 rounded-lg bg-blue-50 border border-blue-200 flex items-center justify-center flex-shrink-0 group-hover:bg-white transition-colors">
 <svg class="w-4 h-4 text-blue-500" fill="currentColor" viewBox="0 0 512 512"><path d="M0 64C0 28.7 28.7 0 64 0L224 0l0 128c0 17.7 14.3 32 32 32l128 0 0 144-208 0c-35.3 0-64 28.7-64 64l0 144-48 0c-35.3 0-64-28.7-64-64L0 64zm384 64l-128 0L256 0 384 128z"/></svg>
 </div>
 <div>
-<h4 class="text-xs font-bold text-slate-800 group-hover:text-navy m-0">POP — Carro de Urgência e Emergência v.3</h4>
-<p class="text-[10px] text-slate-500 m-0">POP.DEA.006 — Procedimento Operacional Padrão completo (listas, formulários e rotinas).</p>
+<h4 class="text-xs font-bold text-slate-800 group-hover:text-navy m-0">Manual de Conferência e Reposição do Carro de Emergência — MS 2024</h4>
+<p class="text-[10px] text-slate-500 m-0">Manual técnico para conferência, organização e reposição dos itens do carro de emergência.</p>
 </div>
 </a>
 </div>
@@ -789,6 +815,14 @@ Copiar Link
 <!-- Toast -->
 <div id="toast-copy">Link copiado com sucesso!</div>
 
+<!-- Lightbox Overlay -->
+<div id="lightbox" class="lightbox-overlay" onclick="closeLightbox()">
+<button class="lightbox-close" onclick="closeLightbox()" title="Fechar">&times;</button>
+<div class="lightbox-scroll">
+<img id="lightbox-img" src="" alt="Imagem ampliada" />
+</div>
+</div>
+
 <script>
 // Abas das Gavetas
 function switchGaveta(gavId) {
@@ -796,6 +830,15 @@ document.querySelectorAll('.gaveta-content').forEach(el => el.classList.remove('
 document.querySelectorAll('.gaveta-tab').forEach(el => el.classList.remove('active'));
 document.getElementById(gavId).classList.add('active');
 event.target.classList.add('active');
+}
+
+// Lightbox Zoom
+function openLightbox(src) {
+document.getElementById('lightbox-img').src = src;
+document.getElementById('lightbox').classList.add('open');
+}
+function closeLightbox() {
+document.getElementById('lightbox').classList.remove('open');
 }
 
 // Toggle lista completa de medicamentos
