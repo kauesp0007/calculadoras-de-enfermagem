@@ -669,6 +669,17 @@ PNSP/ANVISA
 <p style="font-size:14px; line-height:1.7;">Os indicadores de segurança do paciente são ferramentas essenciais para a <strong>gestão da qualidade</strong> em saúde. Eles permitem que as instituições monitorem tendências, identifiquem áreas de risco e avaliem o impacto das intervenções implementadas. A utilização sistemática desses indicadores possibilita a <strong>comparação entre instituições</strong> (benchmarking), a identificação de <strong>melhores práticas</strong> e o direcionamento de recursos para as áreas mais críticas. A notificação de eventos adversos, combinada com a análise de indicadores, cria um ciclo de melhoria contínua que fortalece a cultura de segurança e reduz a ocorrência de danos evitáveis aos pacientes (GOUVÊA; TRAVASSOS, 2010).</p>
 </div>
 
+<!-- ===== GRAFICO: TIPOS DE INCIDENTES NOTIFICADOS (ANVISA/NOTIVISA) ===== -->
+<h2 class="font-nunito font-extrabold text-dark-blue text-2xl lg:text-3xl mt-8" style="color: var(--navy); font-weight:800">Tipos de Incidentes Notificados com Maior Frequencia</h2>
+<p>Dados do Sistema NOTIVISA (modulo assistencia a saude) referentes ao periodo de <strong>agosto de 2023 a julho de 2024</strong> no estado de Sao Paulo, totalizando <strong>52.803 notificacoes</strong> de incidentes relacionados a assistencia a saude (ANVISA, 2024).</p>
+
+<div class="card-branco" style="padding:20px; margin-top:16px;">
+<div class="meta-chart-wrap" style="max-height:480px;">
+<canvas id="chart-incidentes" aria-label="Grafico de tipos de incidentes notificados com maior frequencia - NOTIVISA Sao Paulo 2023-2024" role="img"></canvas>
+</div>
+<p style="font-size:11px; color:var(--slate-500); margin-top:12px; text-align:left;">Fonte: BRASIL. Agencia Nacional de Vigilancia Sanitaria (ANVISA). <strong>Relatorio de Incidentes Relacionados a Assistencia a Saude: Resultados das Notificacoes Realizadas no Notivisa — Sao Paulo, agosto de 2023 a julho de 2024</strong>. Brasilia: ANVISA/GGTES, 2024. Disponivel em: <a href="https://www.gov.br/anvisa/pt-br/centraisdeconteudo/publicacoes/servicosdesaude/relatorios-de-notificacao-dos-estados/eventos-adversos/2024/sao-paulo" target="_blank" rel="noopener" style="color:var(--navy); font-weight:600;">anvisa.gov.br/relatorios-notificacao</a>.</p>
+</div>
+
 <!-- ===== CONCLUSÃO ===== -->
 <h2 class="font-nunito font-extrabold text-dark-blue text-2xl lg:text-3xl mt-8" style="color: var(--navy); font-weight:800">Conclusão</h2>
 
@@ -963,8 +974,60 @@ var checkChart = setInterval(function(){
 if(typeof Chart !== 'undefined'){
 clearInterval(checkChart);
 Object.keys(dadosMetas).forEach(function(id){ renderChart(id); });
+renderChartIncidentes();
 }
 }, 100);
+
+// Grafico de incidentes NOTIVISA (ANVISA 2024 - SP)
+function renderChartIncidentes(){
+var ctx = document.getElementById('chart-incidentes');
+if(!ctx) return;
+new Chart(ctx, {
+type: 'bar',
+data: {
+labels: [
+'Falhas envolvendo cateter venoso',
+'Falhas durante a assistencia a saude',
+'Lesao por pressao',
+'Queda do paciente',
+'Falhas envolvendo sondas',
+'Acidentes do paciente',
+'Falha na identificacao do paciente',
+'Evasao do paciente',
+'Falhas na administracao de dietas',
+'Falha na documentacao',
+'Falhas nas atividades administrativas',
+'Extubacao endotraqueal acidental',
+'Broncoaspiracao',
+'Falhas em laboratorios clinicos',
+'Incidente relacionado a hemodialise'
+],
+datasets: [{
+label: 'Notificacoes (ago/2023 a jul/2024)',
+data: [10924, 10423, 9554, 6372, 5670, 2167, 1291, 1246, 901, 828, 757, 709, 542, 450, 376],
+backgroundColor: [
+'#dc2626','#e53935','#ef5350','#f44336','#e57373',
+'#1a3e74','#1e4d8c','#2563eb','#3b82f6','#60a5fa',
+'#93c5fd','#bfdbfe','#dbeafe','#eff6ff','#f8fafc'
+],
+borderRadius: 6,
+borderSkipped: false
+}]
+},
+options: {
+responsive: true,
+maintainAspectRatio: false,
+scales: {
+x: { grid: { display: false }, ticks: { font: { family: 'Inter', size: 10 }, color: '#334155', maxRotation: 60, minRotation: 0 } },
+y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.05)' }, ticks: { font: { family: 'Inter', size: 11 }, color: '#334155' } }
+},
+plugins: {
+legend: { display: true, labels: { font: { family: 'Inter', size: 12, weight: '700' }, color: '#1a3e74' } },
+tooltip: { backgroundColor: '#111827', padding: 10, cornerRadius: 6 }
+}
+}
+});
+}
 })();
 </script>
 
