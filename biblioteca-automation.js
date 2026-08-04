@@ -284,7 +284,11 @@ function enriquecerMetadados() {
         if (tituloCatalogado.length > 10) {
           item.titulo = tituloCatalogado;
         }
-        item.slug = slugify(tituloCatalogado);
+        // Mantém o slug existente (já garantido como único pelo scanner)
+        // Só gera novo slug se não tiver um ainda
+        if (!item.slug) {
+          item.slug = slugify(tituloCatalogado);
+        }
 
         // Descrição SEO enriquecida
         if (!item.meta_descricao || item.meta_descricao.length < 50) {
@@ -415,11 +419,5 @@ async function main() {
 
 main().catch(err => {
   console.error('❌ Erro no pipeline:', err && err.stack ? err.stack : err);
-  process.exit(1);
-});
-}
-
-main().catch(err => {
-  console.error('Erro no processo unificado:', err && err.stack ? err.stack : err);
   process.exit(1);
 });

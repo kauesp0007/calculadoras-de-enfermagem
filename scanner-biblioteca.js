@@ -84,7 +84,13 @@ function salvarBiblioteca(data) {
  */
 async function executarScanner() {
   const biblioteca = carregarBiblioteca();
+
+  // ── Garante slugs únicos para TODOS os itens ──────────────────────
+  const slugsUsados = new Set();
+  const slugCounters = {}; // slug base → próximo contador
+
   for (const item of biblioteca) {
+    // Gera slug se não tiver
     if (!item.slug && item.titulo) {
       item.slug = slugFromTitulo(item.titulo);
     }
@@ -93,13 +99,27 @@ async function executarScanner() {
       item.descricao = descricaoAutomatica(item.titulo);
     }
 
-    // Não forçar capa padrão para documentos; deixar em branco para que o gerador crie
+    // Não forçar capa padrão para documentos
     if (!item.capa) {
       if (item.categoria === "fotos") {
         item.capa = item.ficheiro;
       } else {
         item.capa = "";
       }
+    }
+
+    // ── Garante slug único (resolve duplicatas) ───────────────────
+    if (item.slug) {
+      let slugFinal = item.slug;
+      // Se o slug já foi usado, adiciona sufixo numérico
+      if (slugsUsados.has(slugFinal)) {
+        if (!slugCounters[item.slug]) slugCounters[item.slug] = 2;
+        while (slugsUsados.has(slugFinal)) {
+          slugFinal = item.slug + "-" + slugCounters[item.slug]++;
+        }
+        item.slug = slugFinal;
+      }
+      slugsUsados.add(slugFinal);
     }
   }
 
@@ -121,10 +141,21 @@ async function executarScanner() {
       if (ficheirosExistentes.has(caminho)) continue;
 
       const titulo = tituloFromFilename(arquivo);
+      let slugBase = slugFromTitulo(titulo);
+      let slugFinal = slugBase;
+
+      // Garante slug único para novos itens também
+      if (slugsUsados.has(slugFinal)) {
+        if (!slugCounters[slugBase]) slugCounters[slugBase] = 2;
+        while (slugsUsados.has(slugFinal)) {
+          slugFinal = slugBase + "-" + slugCounters[slugBase]++;
+        }
+      }
+      slugsUsados.add(slugFinal);
 
       const novoItem = {
         titulo,
-        slug: slugFromTitulo(titulo),
+        slug: slugFinal,
         descricao: descricaoAutomatica(titulo, pasta.categoria),
         keywords: [], // Inicializamos um array vazio para suas palavras-chave
         meta_descricao: "", // Inicializamos vazio para preenchimento manual ou IA
