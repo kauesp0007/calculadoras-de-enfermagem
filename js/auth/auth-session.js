@@ -24,6 +24,9 @@
 (function (window) {
   "use strict";
 
+  // ─── Garante que o namespace existe ───────────────────────────
+  window.AuthModules = window.AuthModules || {};
+
   // ─── Constantes ────────────────────────────────────────────────
   var STORAGE_PREFIX = "auth_";
   var PROFILE_KEY = STORAGE_PREFIX + "profile";

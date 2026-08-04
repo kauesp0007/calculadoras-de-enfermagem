@@ -22,6 +22,9 @@
 (function (window) {
   "use strict";
 
+  // ─── Garante que o namespace existe ───────────────────────────
+  window.AuthModules = window.AuthModules || {};
+
   // ─── Registro de provedores ────────────────────────────────────
   /** @type {Object<string, {signIn: Function, isAvailable: Function}>} */
   var _providers = {};

@@ -28,6 +28,9 @@
 (function (window) {
   "use strict";
 
+  // ─── Garante que o namespace existe ───────────────────────────
+  window.AuthModules = window.AuthModules || {};
+
   /**
    * Login com Apple.
    * 

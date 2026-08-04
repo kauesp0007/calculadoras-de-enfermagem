@@ -32,6 +32,9 @@
 (function (window) {
   "use strict";
 
+  // ─── Garante que o namespace existe ───────────────────────────
+  window.AuthModules = window.AuthModules || {};
+
   // ─── Mapa de permissões por plano ───────────────────────────────
 
   /**

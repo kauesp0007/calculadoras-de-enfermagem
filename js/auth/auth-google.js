@@ -24,6 +24,9 @@
 (function (window) {
   "use strict";
 
+  // ─── Garante que o namespace existe ───────────────────────────
+  window.AuthModules = window.AuthModules || {};
+
   /**
    * Executa o login com Google usando popup.
    * 

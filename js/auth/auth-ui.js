@@ -20,6 +20,9 @@
 (function (window) {
   "use strict";
 
+  // ─── Garante que o namespace existe ───────────────────────────
+  window.AuthModules = window.AuthModules || {};
+
   // ─── Constantes ────────────────────────────────────────────────
   var REDIRECT_AFTER_LOGIN = "/"; // Para onde redirecionar após login
 

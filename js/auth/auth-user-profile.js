@@ -38,6 +38,9 @@
 (function (window) {
   "use strict";
 
+  // ─── Garante que o namespace existe ───────────────────────────
+  window.AuthModules = window.AuthModules || {};
+
   // ─── Constantes ────────────────────────────────────────────────
   var COLLECTION = "users";
 
