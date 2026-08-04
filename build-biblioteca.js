@@ -65,16 +65,84 @@ function gerarMetadataAutomatico(titulo) {
 function extrairDadosDoFicheiro(nomeFicheiro) {
     if (!nomeFicheiro) return null;
     const baseName = path.basename(nomeFicheiro, path.extname(nomeFicheiro));
+
+    // Novo padrão catalogado: ANO_INSTITUICAO_CODIGO_TITULO
+    // Ex: 2024_Ministerio_da_Saude_Protocolo_AVC
     const partes = baseName.split('_');
-    if (partes.length < 3) return null;
-    const formatar = (str) => {
-        const formatado = str.replace(/-/g, ' ');
-        return formatado.charAt(0).toUpperCase() + formatado.slice(1);
-    };
+    if (partes.length < 2) return null;
+
+    const resultado = { ano: null, instituicao: '', titulo: '', tipo: '' };
+
+    // Detecta ano no início (4 dígitos)
+    if (/^\d{4}$/.test(partes[0])) {
+        resultado.ano = partes[0];
+        partes.shift();
+    } else if (partes[0] === 'XXXX') {
+        partes.shift(); // ano desconhecido
+    }
+
+    // Detecta código interno (POP.DEA.006, MA.DENF.001, etc.)
+    const codigoPattern = /^[A-Z]{2,}\.[A-Z]{2,}\.\d{3}$|^\d+\/\d{4}|^[A-Z]+\d*_\d+/;
+    const codigoIdx = partes.findIndex(p => codigoPattern.test(p));
+    if (codigoIdx > 0) {
+        resultado.instituicao = partes.slice(0, codigoIdx).join(' ');
+        resultado.codigo = partes[codigoIdx];
+        partes.splice(0, codigoIdx + 1);
+    } else if (partes.length >= 2) {
+        const instParts = [];
+        while (partes.length > 1 && /^[A-Z]/.test(partes[0])) {
+            instParts.push(partes.shift());
+        }
+        if (instParts.length === 0 && partes.length > 0) {
+            instParts.push(partes.shift());
+        }
+        resultado.instituicao = instParts.join(' ');
+    }
+
+    resultado.titulo = partes.join(' ').replace(/-/g, ' ');
+
+    // Detecta tipo documental
+    const tl = resultado.titulo.toLowerCase();
+    if (tl.includes('resolucao') || tl.includes('resolução')) resultado.tipo = 'Resolução';
+    else if (tl.includes('portaria')) resultado.tipo = 'Portaria';
+    else if (tl.includes('protocolo') || tl.includes('pop')) resultado.tipo = 'Protocolo';
+    else if (tl.includes('manual') || tl.includes('guia')) resultado.tipo = 'Manual';
+    else if (tl.includes('diretriz') || tl.includes('guideline')) resultado.tipo = 'Diretriz';
+    else if (tl.includes('artigo') || tl.includes('revisão')) resultado.tipo = 'Artigo Científico';
+    else if (tl.includes('prova') || tl.includes('concurso')) resultado.tipo = 'Prova';
+    else if (tl.includes('codigo') || tl.includes('ética')) resultado.tipo = 'Código de Ética';
+    else if (tl.includes('parecer')) resultado.tipo = 'Parecer Técnico';
+    else if (tl.includes('nota') && tl.includes('técnica')) resultado.tipo = 'Nota Técnica';
+    else if (tl.includes('formul') || tl.includes('ficha')) resultado.tipo = 'Formulário';
+    else resultado.tipo = 'Documento';
+
     return {
-        titulo: formatar(partes[0]),
-        keywords: partes[1].replace(/-/g, ', '),
-        descricao: formatar(partes[2])
+        ano: resultado.ano,
+        instituicao: resultado.instituicao,
+        titulo: resultado.titulo
+            .replace(/\b\w/g, l => l.toUpperCase())
+            .replace(/\bDe\b/g, 'de')
+            .replace(/\bDa\b/g, 'da')
+            .replace(/\bDo\b/g, 'do')
+            .replace(/\bEm\b/g, 'em')
+            .replace(/\bNo\b/g, 'no')
+            .replace(/\bNa\b/g, 'na')
+            .replace(/\bPara\b/g, 'para')
+            .replace(/\bCom\b/g, 'com')
+            .replace(/\bDos\b/g, 'dos')
+            .replace(/\bDas\b/g, 'das'),
+        tipo: resultado.tipo,
+        // Gera keywords a partir do título e metadados
+        keywords: [
+            ...resultado.titulo.toLowerCase().split(' ').filter(w => w.length > 3),
+            ...(resultado.instituicao ? resultado.instituicao.toLowerCase().split(' ') : []),
+            ...(resultado.tipo ? [resultado.tipo.toLowerCase()] : []),
+            ...(resultado.ano ? [resultado.ano] : []),
+            'enfermagem', 'download', 'pdf'
+        ].filter((v, i, a) => a.indexOf(v) === i).join(', '),
+        descricao: resultado.titulo
+            ? `${resultado.tipo} sobre ${resultado.titulo}${resultado.instituicao ? ', por ' + resultado.instituicao : ''}${resultado.ano ? ' (' + resultado.ano + ')' : ''}. Material de enfermagem para download gratuito.`
+            : null
     };
 }
 
