@@ -234,10 +234,10 @@ border-left: 4px solid var(--navy); border-radius: 12px; padding: 24px;
 
 /* Referências */
 .ref-list {
-font-size: 11px; line-height: 1.8; color: var(--slate-600);
+font-size: 9px; line-height: 1.5; color: var(--slate-600);
 list-style: none; padding: 0; text-align: left;
 }
-.ref-list li { margin-bottom: 10px; padding-left: 24px; text-indent: -24px; }
+.ref-list li { margin-bottom: 6px; padding-left: 16px; text-indent: -16px; }
 .ref-list a { color: var(--navy); font-weight: 600; text-decoration: underline; }
 
 .artigo-relacionado {
@@ -710,54 +710,7 @@ Gerar PDF
 <img id="lightboxImg" src="" alt="" />
 </div>
 
-<!-- MULTIPLEX_AD_RESERVED_START -->
-<style>
-.multiplex-ad-reserved {
-box-sizing: border-box;
-display: block;
-width: calc(100% - 32px);
-max-width: 1200px;
-min-height: 260px;
-margin: 32px auto;
-overflow: visible;
-}
-@media (max-width: 600px) {
-.multiplex-ad-reserved {
-width: calc(100% - 24px);
-min-height: 220px;
-margin: 24px auto;
-}
-}
-</style>
-<aside id="multiplex-ad-reserved" class="multiplex-ad-reserved" aria-label="Publicidade">
-<ins class="adsbygoogle"
-style="display:block;width:100%"
-data-ad-format="autorelaxed"
-data-ad-client="ca-pub-6472730056006847"
-data-ad-slot="3341197364"
-data-matched-content-rows-num="1,1"
-data-matched-content-columns-num="1,4"
-data-matched-content-ui-type="image_card_sidebyside,image_card_sidebyside"></ins>
-</aside>
-<!-- MULTIPLEX_AD_RESERVED_END -->
-
-<div id="footer-placeholder"></div>
 <script>
-document.addEventListener("DOMContentLoaded", () => {
-setTimeout(() => {
-fetch("/footer.html")
-.then((response) => response.text())
-.then((data) => {
-document.getElementById("footer-placeholder").innerHTML = data;
-if (typeof carregarTraducoes === "function") {
-carregarTraducoes("pt", "footer.json");
-carregarTraducoes("pt", "cookies.json");
-}
-})
-.catch((e) => console.log("Footer indisponivel"));
-}, 150);
-});
-
 // ===== LIGHTBOX: clique na imagem abre tela cheia =====
 (function(){
 var overlay = document.getElementById('lightboxOverlay');
@@ -888,63 +841,96 @@ doc.text('OMS (2021) | JCI (2021) | PNSP/ANVISA (2013) | www.calculadorasdeenfer
 doc.save('metas-internacionais-seguranca-paciente.pdf');
 }
 
-// ===== DIAGNOSTICOS NANDA POR META =====
+// ===== DIAGNOSTICOS NANDA POR META (dados fixos com taxonomia) =====
 (function(){
-var palavrasChave = {
-'nanda-meta1': ['identificacao','paciente','alergia','seguranca','identificar'],
-'nanda-meta2': ['comunicacao','cuidador','interacao social','transicao','relacionamento'],
-'nanda-meta3': ['medicamento','alergia','reacao','farmaco','administracao','latex'],
-'nanda-meta4': ['cirurgia','infeccao','sitio cirurgico','hipotermia','procedimento','perioperatorio'],
-'nanda-meta5': ['infeccao','higiene','contaminacao','maos','lavagem','controle'],
-'nanda-meta6': ['queda','lesao','pele','integridade','pressao','mobilidade','seguranca']
+var diagnosticos = {
+'nanda-meta1': [
+{codigo:'00217', nome:'Risco de reação alérgica'},
+{codigo:'00149', nome:'Risco de síndrome de estresse de realocação'},
+{codigo:'00148', nome:'Temer'}
+],
+'nanda-meta2': [
+{codigo:'00062', nome:'Risco de tensão na função de cuidador'},
+{codigo:'00260', nome:'Risco de transição de imigração complicada'},
+{codigo:'00052', nome:'Interação social prejudicada'}
+],
+'nanda-meta3': [
+{codigo:'00042', nome:'Risco de reação alérgica ao látex'},
+{codigo:'00217', nome:'Risco de reação alérgica'}
+],
+'nanda-meta4': [
+{codigo:'00266', nome:'Risco de infecção de sítio cirúrgico'},
+{codigo:'00254', nome:'Risco de hipotermia perioperatória'}
+],
+'nanda-meta5': [
+{codigo:'00004', nome:'Risco de infecção'},
+{codigo:'00181', nome:'Contaminação'}
+],
+'nanda-meta6': [
+{codigo:'00303', nome:'Risco de quedas em adultos'},
+{codigo:'00047', nome:'Risco de integridade da pele prejudicada'}
+]
 };
 
-fetch('/banco_nanda.json')
-.then(function(r){ return r.json(); })
-.then(function(banco){
-Object.keys(palavrasChave).forEach(function(containerId){
-var keywords = palavrasChave[containerId];
-var resultados = [];
-banco.forEach(function(d){
-var score = 0;
-var txt = ((d.diagnostico||'') + ' ' + (d.definicao||'')).toLowerCase();
-keywords.forEach(function(kw){
-if(txt.indexOf(kw.toLowerCase()) !== -1) score++;
-});
-if(score > 0) resultados.push({ diag: d, score: score });
-});
-resultados.sort(function(a,b){ return b.score - a.score; });
-
-// Dedup por similaridade
-var usados = new Set();
-var unicos = [];
-resultados.forEach(function(r){
-var tema = r.diag.diagnostico.toLowerCase().replace(/^(risco de |disposicao para |sindrome de |tendencia a )/,'').split(/\s+/).slice(0,4).join(' ');
-if(!usados.has(tema) && unicos.length < 5){
-usados.add(tema);
-unicos.push(r);
-}
-});
-
+Object.keys(diagnosticos).forEach(function(containerId){
 var container = document.getElementById(containerId);
 if(!container) return;
-if(unicos.length > 0){
 var html = '<h5>Sugestoes de Diagnosticos de Enfermagem Relacionados</h5>';
-unicos.forEach(function(r){
-html += '<div class="nanda-sugestao-item"><span class="nanda-codigo">' + (r.diag.codigo||'') + '</span><span>' + r.diag.diagnostico + '</span></div>';
+diagnosticos[containerId].forEach(function(d){
+html += '<div class="nanda-sugestao-item"><span class="nanda-codigo">' + d.codigo + '</span><span>' + d.nome + '</span></div>';
 });
 container.innerHTML = html;
-} else {
-container.innerHTML = '<h5>Sugestoes de Diagnosticos de Enfermagem Relacionados</h5><div class="nanda-sugestao-loading">Nenhum diagnostico especifico encontrado para esta meta.</div>';
-}
-});
-})
-.catch(function(){
-document.querySelectorAll('.nanda-sugestoes').forEach(function(el){
-el.innerHTML = '<h5>Sugestoes de Diagnosticos de Enfermagem Relacionados</h5><div class="nanda-sugestao-loading">Banco de dados NANDA temporariamente indisponivel.</div>';
-});
 });
 })();
+</script>
+
+<!-- MULTIPLEX_AD_RESERVED_START -->
+<style>
+.multiplex-ad-reserved {
+box-sizing: border-box;
+display: block;
+width: calc(100% - 32px);
+max-width: 1200px;
+min-height: 260px;
+margin: 32px auto;
+overflow: visible;
+}
+@media (max-width: 600px) {
+.multiplex-ad-reserved {
+width: calc(100% - 24px);
+min-height: 220px;
+margin: 24px auto;
+}
+}
+</style>
+<aside id="multiplex-ad-reserved" class="multiplex-ad-reserved" aria-label="Publicidade">
+<ins class="adsbygoogle"
+style="display:block;width:100%"
+data-ad-format="autorelaxed"
+data-ad-client="ca-pub-6472730056006847"
+data-ad-slot="3341197364"
+data-matched-content-rows-num="1,1"
+data-matched-content-columns-num="1,4"
+data-matched-content-ui-type="image_card_sidebyside,image_card_sidebyside"></ins>
+</aside>
+<!-- MULTIPLEX_AD_RESERVED_END -->
+
+<div id="footer-placeholder"></div>
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+setTimeout(() => {
+fetch("/footer.html")
+.then((response) => response.text())
+.then((data) => {
+document.getElementById("footer-placeholder").innerHTML = data;
+if (typeof carregarTraducoes === "function") {
+carregarTraducoes("pt", "footer.json");
+carregarTraducoes("pt", "cookies.json");
+}
+})
+.catch((e) => console.log("Footer indisponivel"));
+}, 150);
+});
 </script>
 
 </body>
