@@ -24,6 +24,9 @@ module.exports = {
     "./downloads/*.{html,js}", // Arquivos de Downloads
     "./blog/*.{html,js}", // Páginas do Blog
     "./blog-templates/*.{html,js}", // Arquivos modulares de Template do Blog
+    "./conta/*.{html,js}", // Sistema de Contas (login, perfil, etc.)
+    "./js/auth/*.js", // Módulos de autenticação
+    "./js/firebase/*.js", // Config Firebase
   ],
   theme: {
     extend: {},

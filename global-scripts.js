@@ -57,6 +57,8 @@ document.addEventListener("DOMContentLoaded", function () {
       window.requestAnimationFrame(() => {
         o.innerHTML = e;
         initializeNavigationMenu();
+        // Inicializa auth no menu (não bloqueante)
+        initializeAuthMenu();
       });
     }
   }).catch(e => console.warn("Não foi possível carregar o menu global:", e));
@@ -95,6 +97,175 @@ function initializeNavigationMenu() {
       }
     })
   })
+}
+
+/* =========================
+   Auth Menu — Integração com Sistema de Contas
+   ========================= */
+function initializeAuthMenu() {
+  // Só executa se os elementos do menu existirem no DOM
+  var desktopLink = document.getElementById("menu-auth-link-desktop");
+  var desktopItem = document.getElementById("menu-auth-desktop");
+  var mobileLink = document.getElementById("menu-auth-link-mobile");
+  var mobileItem = document.getElementById("menu-auth-mobile");
+
+  if (!desktopLink && !mobileLink) {
+    return;
+  }
+
+  // ── Função para atualizar UI baseada no estado de auth ──
+  function updateAuthUI(user) {
+    var displayName = "";
+    var photoURL = "";
+    var isLoggedIn = !!(user && user.uid);
+
+    if (isLoggedIn) {
+      displayName = (user.displayName || user.email || "Usuário").split(" ")[0];
+      photoURL = user.photoURL || "";
+    }
+
+    // ── Desktop ──
+    if (desktopLink && desktopItem) {
+      if (isLoggedIn) {
+        // Avatar + nome + dropdown
+        desktopItem.className = "relative group flex items-center";
+        desktopItem.innerHTML =
+          '<button type="button" class="flex items-center gap-2 text-gray-700 hover:text-[#1A3E74] font-medium" aria-haspopup="true" aria-expanded="false">' +
+          (photoURL
+            ? '<img src="' + photoURL + '" alt="' + displayName + '" class="w-7 h-7 rounded-full border-2 border-[#1A3E74]" referrerpolicy="no-referrer" onerror="this.style.display=\'none\'"/>'
+            : '<div class="w-7 h-7 rounded-full bg-[#1A3E74] flex items-center justify-center text-white font-bold text-xs">' + displayName.charAt(0).toUpperCase() + "</div>") +
+          "<span class='max-w-[100px] truncate'>" + displayName + "</span>" +
+          '<svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>' +
+          "</button>" +
+          '<ul class="absolute right-0 hidden group-hover:block bg-white shadow-lg rounded-md py-1 w-48 z-50 border border-gray-100">' +
+          '<li><a href="/conta/perfil.html" class="block px-4 !py-1.5 text-gray-700 hover:bg-gray-100 text-sm">Meu Perfil</a></li>' +
+          '<li><a href="/conta/favoritos.html" class="block px-4 !py-1.5 text-gray-700 hover:bg-gray-100 text-sm">Favoritos</a></li>' +
+          '<li><a href="/conta/historico.html" class="block px-4 !py-1.5 text-gray-700 hover:bg-gray-100 text-sm">Histórico</a></li>' +
+          '<li class="border-t border-gray-100 mt-1 pt-1"><a href="#" id="menu-auth-logout-desktop" class="block px-4 !py-1.5 text-red-600 hover:bg-red-50 text-sm font-medium">Sair</a></li>' +
+          "</ul>";
+
+        // Listener de logout (delegação)
+        setTimeout(function () {
+          var logoutBtn = document.getElementById("menu-auth-logout-desktop");
+          if (logoutBtn) {
+            logoutBtn.addEventListener("click", function (e) {
+              e.preventDefault();
+              if (window.Auth && window.Auth.signOut) {
+                window.Auth.signOut().then(function () {
+                  window.location.reload();
+                });
+              }
+            });
+          }
+        }, 100);
+      } else {
+        // Link "Entrar"
+        desktopItem.className = "flex items-center";
+        desktopItem.innerHTML =
+          '<a href="/conta/login.html" class="text-gray-700 hover:text-[#1A3E74] font-medium flex items-center gap-1.5">' +
+          '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" fill="currentColor" width="0.9em" height="0.9em" aria-hidden="true"><path d="M224 256A128 128 0 1 0 224 0a128 128 0 1 0 0 256zm-45.7 48C79.8 304 0 383.8 0 482.3 0 498.7 13.3 512 29.7 512l388.6 0c16.4 0 29.7-13.3 29.7-29.7 0-98.5-79.8-178.3-178.3-178.3l-91.4 0z"/></svg>' +
+          "Entrar" +
+          "</a>";
+      }
+    }
+
+    // ── Mobile ──
+    if (mobileLink && mobileItem) {
+      if (isLoggedIn) {
+        mobileItem.className = "border-t border-gray-200 mt-2 pt-2";
+        mobileItem.innerHTML =
+          '<div class="px-4 py-2 flex items-center gap-3">' +
+          (photoURL
+            ? '<img src="' + photoURL + '" alt="' + displayName + '" class="w-9 h-9 rounded-full border-2 border-[#1A3E74]" referrerpolicy="no-referrer" onerror="this.style.display=\'none\'"/>'
+            : '<div class="w-9 h-9 rounded-full bg-[#1A3E74] flex items-center justify-center text-white font-bold text-sm">' + displayName.charAt(0).toUpperCase() + "</div>") +
+          '<div><p class="font-bold text-sm text-gray-800 m-0">' + (user.displayName || "Usuário") + "</p>" +
+          '<p class="text-xs text-gray-500 m-0">' + (user.email || "") + "</p></div>" +
+          "</div>" +
+          '<a role="menuitem" href="/conta/perfil.html" class="block px-4 !py-1.5 text-gray-700 hover:bg-gray-100">Meu Perfil</a>' +
+          '<a role="menuitem" href="/conta/favoritos.html" class="block px-4 !py-1.5 text-gray-700 hover:bg-gray-100">Favoritos</a>' +
+          '<a role="menuitem" href="/conta/historico.html" class="block px-4 !py-1.5 text-gray-700 hover:bg-gray-100">Histórico</a>' +
+          '<a role="menuitem" href="/conta/configuracoes.html" class="block px-4 !py-1.5 text-gray-700 hover:bg-gray-100">Configurações</a>' +
+          '<a role="menuitem" href="#" id="menu-auth-logout-mobile" class="block px-4 !py-1.5 text-red-600 hover:bg-red-50 font-medium">Sair</a>';
+
+        setTimeout(function () {
+          var logoutBtn = document.getElementById("menu-auth-logout-mobile");
+          if (logoutBtn) {
+            logoutBtn.addEventListener("click", function (e) {
+              e.preventDefault();
+              if (window.Auth && window.Auth.signOut) {
+                window.Auth.signOut().then(function () {
+                  window.location.reload();
+                });
+              }
+            });
+          }
+        }, 100);
+      } else {
+        mobileItem.className = "border-t border-gray-200 mt-2 pt-2";
+        mobileItem.innerHTML =
+          '<a role="menuitem" href="/conta/login.html" class="block px-4 !py-1.5 text-[#1A3E74] font-bold hover:bg-blue-50 flex items-center gap-2">' +
+          '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" fill="currentColor" width="1em" height="1em" aria-hidden="true"><path d="M224 256A128 128 0 1 0 224 0a128 128 0 1 0 0 256zm-45.7 48C79.8 304 0 383.8 0 482.3 0 498.7 13.3 512 29.7 512l388.6 0c16.4 0 29.7-13.3 29.7-29.7 0-98.5-79.8-178.3-178.3-178.3l-91.4 0z"/></svg>' +
+          "Entrar" +
+          "</a>";
+      }
+    }
+  }
+
+  // ── Carrega scripts de auth sob demanda ──
+  function loadAuthScripts() {
+    // Verifica se já foram carregados (window.Auth já existe)
+    if (window.Auth && window.Auth.isInitialized && window.Auth.isInitialized()) {
+      updateAuthUI(window.Auth.currentUser());
+      return;
+    }
+
+    // Lista de scripts em ordem de dependência
+    var scripts = [
+      "/js/firebase/firebase-init.js",
+      "/js/auth/auth-session.js",
+      "/js/auth/auth-core.js"
+    ];
+
+    var loaded = 0;
+
+    function loadNext() {
+      if (loaded >= scripts.length) {
+        // Todos carregados — inicializa
+        if (window.Auth && window.Auth.init) {
+          window.Auth.init().then(function () {
+            updateAuthUI(window.Auth.currentUser());
+
+            // Listener para mudanças futuras (login/logout em outra aba)
+            window.Auth.onAuthChange(function (user) {
+              updateAuthUI(user);
+            });
+          }).catch(function () {
+            // Auth indisponível — mantém link "Entrar"
+          });
+        }
+        return;
+      }
+
+      var script = document.createElement("script");
+      script.src = scripts[loaded];
+      script.async = false; // Preserva ordem
+      script.onload = function () {
+        loaded++;
+        loadNext();
+      };
+      script.onerror = function () {
+        // Script não carregou — ignora e mantém link "Entrar"
+        loaded++;
+        loadNext();
+      };
+      document.head.appendChild(script);
+    }
+
+    loadNext();
+  }
+
+  // Inicia carregamento dos scripts de auth
+  loadAuthScripts();
 }
 
 function inicializarTooltips() {
