@@ -303,7 +303,14 @@ padding: 2px 8px; border-radius: 4px; white-space: nowrap; flex-shrink: 0;
 .nanda-sugestao-loading {
 font-size: 11px; color: #64748b; font-style: italic; padding: 8px 0;
 }
+
+/* Container do gráfico de medidas */
+.meta-chart-wrap { margin-top: 16px; }
+.meta-chart-wrap canvas { max-height: 260px; }
+@media print { .meta-chart-wrap { display: none !important; } }
 </style>
+
+<script defer src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <link rel="preload" href="/img/icontopbar1-calculadoras-de-enfermagem.webp" as="image" type="image/webp" fetchpriority="high">
 <style id="anti-cls-placeholders">#global-header-container{display:block;width:100%;min-height:96px;background-color:transparent}@media(max-width:768px){#global-header-container{min-height:60px}}#language-selector-placeholder{display:block;width:100%;min-height:46px;background-color:transparent}#footer-placeholder{display:block;min-height:520px;background-color:transparent}@media(min-width:768px){#footer-placeholder{min-height:277px}}</style>
@@ -417,6 +424,7 @@ PNSP/ANVISA
 <h5>Sugestoes de Diagnosticos de Enfermagem Relacionados</h5>
 <div class="nanda-sugestao-loading">Carregando diagnosticos...</div>
 </div>
+<div class="meta-chart-wrap"><canvas id="chart-meta1" aria-label="Grafico de medidas recomendadas - Meta 1" role="img"></canvas></div>
 </div>
 
 <!-- ===== META 2 ===== -->
@@ -452,6 +460,7 @@ PNSP/ANVISA
 <h5>Sugestoes de Diagnosticos de Enfermagem Relacionados</h5>
 <div class="nanda-sugestao-loading">Carregando diagnosticos...</div>
 </div>
+<div class="meta-chart-wrap"><canvas id="chart-meta2" aria-label="Grafico de medidas recomendadas - Meta 2" role="img"></canvas></div>
 </div>
 
 <!-- ===== META 3 ===== -->
@@ -486,6 +495,7 @@ PNSP/ANVISA
 <h5>Sugestoes de Diagnosticos de Enfermagem Relacionados</h5>
 <div class="nanda-sugestao-loading">Carregando diagnosticos...</div>
 </div>
+<div class="meta-chart-wrap"><canvas id="chart-meta3" aria-label="Grafico de medidas recomendadas - Meta 3" role="img"></canvas></div>
 </div>
 
 <!-- ===== META 4 ===== -->
@@ -519,6 +529,7 @@ PNSP/ANVISA
 <h5>Sugestoes de Diagnosticos de Enfermagem Relacionados</h5>
 <div class="nanda-sugestao-loading">Carregando diagnosticos...</div>
 </div>
+<div class="meta-chart-wrap"><canvas id="chart-meta4" aria-label="Grafico de medidas recomendadas - Meta 4" role="img"></canvas></div>
 </div>
 
 <!-- ===== META 5 ===== -->
@@ -553,6 +564,7 @@ PNSP/ANVISA
 <h5>Sugestoes de Diagnosticos de Enfermagem Relacionados</h5>
 <div class="nanda-sugestao-loading">Carregando diagnosticos...</div>
 </div>
+<div class="meta-chart-wrap"><canvas id="chart-meta5" aria-label="Grafico de medidas recomendadas - Meta 5" role="img"></canvas></div>
 </div>
 
 <!-- ===== META 6 ===== -->
@@ -590,6 +602,7 @@ PNSP/ANVISA
 <h5>Sugestoes de Diagnosticos de Enfermagem Relacionados</h5>
 <div class="nanda-sugestao-loading">Carregando diagnosticos...</div>
 </div>
+<div class="meta-chart-wrap"><canvas id="chart-meta6" aria-label="Grafico de medidas recomendadas - Meta 6" role="img"></canvas></div>
 </div>
 
 <!-- ===== TABELA DE INDICADORES ===== -->
@@ -881,6 +894,77 @@ html += '<div class="nanda-sugestao-item"><span class="nanda-codigo">' + d.codig
 });
 container.innerHTML = html;
 });
+})();
+</script>
+
+<script>
+// ===== GRAFICOS DE MEDIDAS RECOMENDADAS POR META (Chart.js) =====
+(function(){
+var paleta = ['#93c5fd','#60a5fa','#3b82f6','#2563eb','#1d4ed8','#1e40af','#1e3a8a','#1d4ed8','#2563eb'];
+var dadosMetas = {
+'chart-meta1': {
+labels: ['Pulseira de identificacao','Placa beira leito','Conferir dados nos documentos','Verificacao verbal','Pulseiras de alergias/risco','Perguntas abertas ao paciente','Pacientes mesmo nome'],
+valores: [100,95,90,85,80,75,70]
+},
+'chart-meta2': {
+labels: ['Passagem plantao SBAR','Admissao comunicacao completa','Comunicacao NIR','Pacientes cirurgicos','Dupla/tripla checagem MAV','Transferencia UTI','Reunioes multidisciplinares'],
+valores: [100,95,90,85,80,75,70]
+},
+'chart-meta3': {
+labels: ['Dupla checagem MAV','Tripla checagem MAV','Identificacao correta paciente','Registro no prontuario','Armazenamento seguro','Monitoramento reacoes'],
+valores: [100,95,90,85,80,75]
+},
+'chart-meta4': {
+labels: ['Checklist cirurgia segura','Marcacao sitio cirurgico','Confirmacao verbal','Verificacao alergias/exames','Contagem instrumentais'],
+valores: [100,95,90,85,80]
+},
+'chart-meta5': {
+labels: ['Higienizacao 5 momentos OMS','Preparacao alcoolica','Dispensadores estrategicos','Uso de EPI','Controle antimicrobianos','Higienizacao superficies'],
+valores: [100,95,90,85,80,75]
+},
+'chart-meta6': {
+labels: ['Escala de Morse','Escala de Braden','Cama baixa/grades','Piso seco/iluminacao','Campainha alcance','Identificacao visual risco','Mudanca decubito 2h','Colchao piramidal','Acompanhante'],
+valores: [100,97,94,90,86,82,78,74,70]
+}
+};
+
+function renderChart(id){
+var d = dadosMetas[id];
+if(!d) return;
+var ctx = document.getElementById(id);
+if(!ctx) return;
+new Chart(ctx, {
+type: 'bar',
+data: {
+labels: d.labels,
+datasets: [{
+label: 'Relevancia Clinica (%)',
+data: d.valores,
+backgroundColor: paleta.slice(0, d.labels.length),
+borderRadius: 6,
+borderSkipped: false
+}]
+},
+options: {
+indexAxis: 'y',
+responsive: true,
+maintainAspectRatio: false,
+scales: {
+x: { beginAtZero: true, max: 100, grid: { color: 'rgba(0,0,0,0.05)' }, ticks: { font: { family: 'Inter', size: 11 }, color: '#334155' } },
+y: { grid: { display: false }, ticks: { font: { family: 'Inter', weight: '600', size: 11 }, color: '#0f172a' } }
+},
+plugins: { legend: { display: false } }
+}
+});
+}
+
+// Espera Chart.js carregar e renderiza
+var checkChart = setInterval(function(){
+if(typeof Chart !== 'undefined'){
+clearInterval(checkChart);
+Object.keys(dadosMetas).forEach(function(id){ renderChart(id); });
+}
+}, 100);
 })();
 </script>
 
