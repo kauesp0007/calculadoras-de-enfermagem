@@ -38,20 +38,8 @@
    * @returns {Promise<object>} UserCredential.
    */
   async function signIn(options) {
-    var auth = window.FirebaseInit.getAuthSync();
-    if (!auth) {
-      throw new Error("Firebase Auth não inicializado.");
-    }
-
-    // TODO: Implementar quando o provedor Apple for habilitado
-    //
-    // var provider = new window.firebase.auth.OAuthProvider("apple.com");
-    // provider.addScope("email");
-    // provider.addScope("name");
-    // return auth.signInWithPopup(provider);
-
     throw new Error(
-      "Login com Apple será disponibilizado em breve. " +
+      "O login com Apple estar\u00e1 dispon\u00edvel em breve. " +
       "Por favor, utilize Google ou E-mail para entrar."
     );
   }
@@ -62,8 +50,8 @@
    * @returns {boolean}
    */
   function isAvailable() {
-    // TODO: Retornar true quando o provedor estiver configurado
-    return false;
+    // Placeholder: retorna true para mostrar mensagem "em breve"
+    return true;
   }
 
   // ─── Registro ────────────────────────────────────────────────────
