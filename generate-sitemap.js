@@ -286,3 +286,68 @@ const outputPath = path.join(ROOT_DIR, 'sitemap.xml');
 fs.writeFileSync(outputPath, xml, 'utf8');
 
 console.log(`✅ Sitemap gerado com sucesso em: ${outputPath}`);
+
+// ===== VIDEO SITEMAP =====
+console.log('Processando videos...');
+const VIDEO_DIR = path.join(ROOT_DIR, 'videos');
+const VIDEO_SITEMAP_OUTPUT = path.join(ROOT_DIR, 'video-sitemap.xml');
+
+if (fs.existsSync(VIDEO_DIR)) {
+const videoFiles = fs.readdirSync(VIDEO_DIR).filter(f => f.endsWith('.mp4'));
+
+if (videoFiles.length > 0) {
+let videoXml = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+xmlns:video="http://www.google.com/schemas/sitemap-video/1.1">
+`;
+
+videoFiles.forEach(videoFile => {
+const filePath = path.join(VIDEO_DIR, videoFile);
+const stats = fs.statSync(filePath);
+const lastmod = stats.mtime.toISOString().split('T')[0];
+const rawName = videoFile.replace(/\.mp4$/i, '');
+const title = rawName.replace(/[_-]/g, ' ').replace(/\s+/g, ' ').trim();
+const videoUrl = `${BASE_URL}/videos/${encodeURIComponent(videoFile)}`;
+const pageUrl = `${BASE_URL}/biblioteca.html`;
+const thumbUrl = `${BASE_URL}/img/thumb-video-enfermagem.webp`;
+
+videoXml += `  <url>
+<loc>${pageUrl}</loc>
+<lastmod>${lastmod}</lastmod>
+<video:video>
+<video:title>${title}</video:title>
+<video:description>Video educativo de enfermagem: ${title}. Assista gratuitamente no portal Calculadoras de Enfermagem.</video:description>
+<video:thumbnail_loc>${thumbUrl}</video:thumbnail_loc>
+<video:content_loc>${videoUrl}</video:content_loc>
+<video:family_friendly>yes</video:family_friendly>
+<video:publication_date>${lastmod}</video:publication_date>
+</video:video>
+</url>
+`;
+});
+
+videoXml += `</urlset>`;
+fs.writeFileSync(VIDEO_SITEMAP_OUTPUT, videoXml, 'utf8');
+console.log(`✅ Video sitemap gerado: ${VIDEO_SITEMAP_OUTPUT} (${videoFiles.length} videos)`);
+
+// Adiciona referencia ao video sitemap no sitemap.xml principal (sitemap index)
+const SITEMAP_INDEX = path.join(ROOT_DIR, 'sitemap-index.xml');
+let sitemapIndex = `<?xml version="1.0" encoding="UTF-8"?>
+<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+<sitemap>
+<loc>${BASE_URL}/sitemap.xml</loc>
+<lastmod>${new Date().toISOString().split('T')[0]}</lastmod>
+</sitemap>
+<sitemap>
+<loc>${BASE_URL}/video-sitemap.xml</loc>
+<lastmod>${new Date().toISOString().split('T')[0]}</lastmod>
+</sitemap>
+</sitemapindex>`;
+fs.writeFileSync(SITEMAP_INDEX, sitemapIndex, 'utf8');
+console.log(`✅ Sitemap index gerado: ${SITEMAP_INDEX}`);
+} else {
+console.log('Nenhum video .mp4 encontrado na pasta videos/');
+}
+} else {
+console.log('Pasta videos/ nao encontrada.');
+}
