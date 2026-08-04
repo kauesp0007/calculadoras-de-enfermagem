@@ -103,18 +103,19 @@ function initializeNavigationMenu() {
    Auth Menu — Integração com Sistema de Contas
    ========================= */
 function initializeAuthMenu() {
-  // Só executa se os elementos do menu existirem no DOM
-  var desktopLink = document.getElementById("menu-auth-link-desktop");
-  var desktopItem = document.getElementById("menu-auth-desktop");
-  var mobileLink = document.getElementById("menu-auth-link-mobile");
-  var mobileItem = document.getElementById("menu-auth-mobile");
-
-  if (!desktopLink && !mobileLink) {
-    return;
-  }
-
   // ── Função para atualizar UI baseada no estado de auth ──
+  // Re-consulta os elementos do DOM a cada chamada (evita race condition)
   function updateAuthUI(user) {
+    var desktopLink = document.getElementById("menu-auth-link-desktop");
+    var desktopItem = document.getElementById("menu-auth-desktop");
+    var mobileLink = document.getElementById("menu-auth-link-mobile");
+    var mobileItem = document.getElementById("menu-auth-mobile");
+
+    // Se nenhum elemento existe ainda, retorna (será tentado novamente)
+    if (!desktopLink && !desktopItem && !mobileLink && !mobileItem) {
+      return false;
+    }
+
     var displayName = "";
     var photoURL = "";
     var isLoggedIn = !!(user && user.uid);
@@ -125,7 +126,7 @@ function initializeAuthMenu() {
     }
 
     // ── Desktop ──
-    if (desktopLink && desktopItem) {
+    if (desktopItem) {
       if (isLoggedIn) {
         // Avatar + nome + dropdown
         desktopItem.className = "relative group flex items-center";
@@ -144,7 +145,6 @@ function initializeAuthMenu() {
           '<li class="border-t border-gray-100 mt-1 pt-1"><a href="#" id="menu-auth-logout-desktop" class="block px-4 !py-1.5 text-red-600 hover:bg-red-50 text-sm font-medium">Sair</a></li>' +
           "</ul>";
 
-        // Listener de logout (delegação)
         setTimeout(function () {
           var logoutBtn = document.getElementById("menu-auth-logout-desktop");
           if (logoutBtn) {
@@ -159,7 +159,6 @@ function initializeAuthMenu() {
           }
         }, 100);
       } else {
-        // Link "Entrar"
         desktopItem.className = "flex items-center";
         desktopItem.innerHTML =
           '<a href="/conta/login.html" class="text-gray-700 hover:text-[#1A3E74] font-medium flex items-center gap-1.5">' +
@@ -170,7 +169,7 @@ function initializeAuthMenu() {
     }
 
     // ── Mobile ──
-    if (mobileLink && mobileItem) {
+    if (mobileItem) {
       if (isLoggedIn) {
         mobileItem.className = "border-t border-gray-200 mt-2 pt-2";
         mobileItem.innerHTML =
@@ -209,18 +208,30 @@ function initializeAuthMenu() {
           "</a>";
       }
     }
+
+    return true;
+  }
+
+  // ── Wrapper com retry: tenta atualizar UI, repete se elementos não prontos ──
+  function safeUpdateUI(user, retries) {
+    retries = retries || 0;
+    if (updateAuthUI(user)) {
+      return; // Sucesso
+    }
+    if (retries < 10) {
+      setTimeout(function () {
+        safeUpdateUI(user, retries + 1);
+      }, 200);
+    }
   }
 
   // ── Carrega scripts de auth sob demanda ──
   function loadAuthScripts() {
-    // Se Auth JÁ existe (ex: login.html carrega scripts no HTML),
-    // apenas reutiliza — NÃO recarrega nada.
     if (window.Auth) {
       _useExistingAuth();
       return;
     }
 
-    // Lista de scripts em ordem de dependência
     var scripts = [
       "/js/firebase/firebase-init.js",
       "/js/auth/auth-session.js",
@@ -231,65 +242,48 @@ function initializeAuthMenu() {
 
     function loadNext() {
       if (loaded >= scripts.length) {
-        // Todos carregados — inicializa
         if (window.Auth && window.Auth.init) {
           window.Auth.init().then(function () {
-            updateAuthUI(window.Auth.currentUser());
-
-            // Listener para mudanças futuras (login/logout em outra aba)
+            safeUpdateUI(window.Auth.currentUser());
             window.Auth.onAuthChange(function (user) {
-              updateAuthUI(user);
+              safeUpdateUI(user);
             });
-          }).catch(function () {
-            // Auth indisponível — mantém link "Entrar"
-          });
+          }).catch(function () {});
         }
         return;
       }
 
       var script = document.createElement("script");
       script.src = scripts[loaded];
-      script.async = false; // Preserva ordem
-      script.onload = function () {
-        loaded++;
-        loadNext();
-      };
-      script.onerror = function () {
-        // Script não carregou — ignora e mantém link "Entrar"
-        loaded++;
-        loadNext();
-      };
+      script.async = false;
+      script.onload = function () { loaded++; loadNext(); };
+      script.onerror = function () { loaded++; loadNext(); };
       document.head.appendChild(script);
     }
 
     loadNext();
   }
 
-  // ── Reutiliza Auth já carregado na página (ex: login.html) ──
+  // ── Reutiliza Auth já carregado ──
   function _useExistingAuth() {
-    // Aguarda Auth estar inicializado (pode estar carregando Firebase CDN)
     function waitAndUpdate() {
       if (window.Auth.isInitialized()) {
-        updateAuthUI(window.Auth.currentUser());
+        safeUpdateUI(window.Auth.currentUser());
         window.Auth.onAuthChange(function (user) {
-          updateAuthUI(user);
+          safeUpdateUI(user);
         });
       } else {
-        // Tenta inicializar se ainda não foi
         window.Auth.init().then(function () {
-          updateAuthUI(window.Auth.currentUser());
+          safeUpdateUI(window.Auth.currentUser());
           window.Auth.onAuthChange(function (user) {
-            updateAuthUI(user);
+            safeUpdateUI(user);
           });
-        }).catch(function () {
-          // Se falhar, mantém link "Entrar"
-        });
+        }).catch(function () {});
       }
     }
     waitAndUpdate();
   }
 
-  // Inicia carregamento dos scripts de auth
   loadAuthScripts();
 }
 

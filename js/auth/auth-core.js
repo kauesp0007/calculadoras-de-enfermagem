@@ -97,6 +97,18 @@
         _notifyListeners(user);
       });
 
+      // 3. Captura resultado de redirect (ex: popup bloqueado -> signInWithRedirect)
+      auth.getRedirectResult().then(function (result) {
+        if (result && result.user) {
+          console.log("[Auth] Login via redirect bem-sucedido:", result.user.email || result.user.uid);
+        }
+      }).catch(function (error) {
+        // Ignora erros esperados (ex: auth/no-redirect-result)
+        if (error.code !== "auth/no-redirect-result") {
+          console.error("[Auth] Erro no redirect:", error.code, error.message);
+        }
+      });
+
       _initialized = true;
     } catch (error) {
       console.error("[Auth] Falha na inicialização:", error);
