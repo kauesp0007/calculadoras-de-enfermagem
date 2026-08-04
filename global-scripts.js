@@ -213,9 +213,10 @@ function initializeAuthMenu() {
 
   // ── Carrega scripts de auth sob demanda ──
   function loadAuthScripts() {
-    // Verifica se já foram carregados (window.Auth já existe)
-    if (window.Auth && window.Auth.isInitialized && window.Auth.isInitialized()) {
-      updateAuthUI(window.Auth.currentUser());
+    // Se Auth JÁ existe (ex: login.html carrega scripts no HTML),
+    // apenas reutiliza — NÃO recarrega nada.
+    if (window.Auth) {
+      _useExistingAuth();
       return;
     }
 
@@ -262,6 +263,30 @@ function initializeAuthMenu() {
     }
 
     loadNext();
+  }
+
+  // ── Reutiliza Auth já carregado na página (ex: login.html) ──
+  function _useExistingAuth() {
+    // Aguarda Auth estar inicializado (pode estar carregando Firebase CDN)
+    function waitAndUpdate() {
+      if (window.Auth.isInitialized()) {
+        updateAuthUI(window.Auth.currentUser());
+        window.Auth.onAuthChange(function (user) {
+          updateAuthUI(user);
+        });
+      } else {
+        // Tenta inicializar se ainda não foi
+        window.Auth.init().then(function () {
+          updateAuthUI(window.Auth.currentUser());
+          window.Auth.onAuthChange(function (user) {
+            updateAuthUI(user);
+          });
+        }).catch(function () {
+          // Se falhar, mantém link "Entrar"
+        });
+      }
+    }
+    waitAndUpdate();
   }
 
   // Inicia carregamento dos scripts de auth
