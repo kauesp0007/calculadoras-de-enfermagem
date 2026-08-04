@@ -248,7 +248,60 @@ padding: 16px 20px; margin-top: 20px;
 
 @media print {
 .no-print { display: none !important; }
-body { font-size: 12pt; color: #000; }
+#global-header-container, #language-selector-placeholder, #footer-placeholder,
+.ce-actionbar, .breadcrumb, nav[aria-label="breadcrumb"],
+#multiplex-ad-reserved, #backToTopBtn,
+.btn-imprimir, .btn-gerar-pdf,
+.artigo-relacionado { display: none !important; }
+body { font-size: 12pt; color: #000; background: #fff; }
+.meem-card-navy { background: #1a3e74 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+.card-branco { box-shadow: none; border: 1px solid #ddd; }
+img { max-width: 100%; page-break-inside: avoid; }
+h2, h3 { page-break-after: avoid; }
+}
+
+/* Botões padrão fugulin */
+.btn-imprimir {
+background: linear-gradient(135deg, #1a3e74 0%, #1e4d8c 100%); color: white; border: none;
+padding: 14px 36px; border-radius: 12px; font-size: 15px; font-weight: 800; cursor: pointer;
+text-transform: uppercase; letter-spacing: 0.5px;
+box-shadow: 0 6px 18px rgba(26,62,116,0.35); transition: transform 0.15s, box-shadow 0.15s;
+}
+.btn-imprimir:hover { transform: translateY(-2px); box-shadow: 0 10px 24px rgba(26,62,116,0.4); }
+
+.btn-gerar-pdf {
+background: #e11d48; color: white; border: none;
+padding: 14px 36px; border-radius: 12px; font-size: 15px; font-weight: 800; cursor: pointer;
+text-transform: uppercase; letter-spacing: 0.5px;
+box-shadow: 0 6px 18px rgba(225,29,72,0.35); transition: transform 0.15s, box-shadow 0.15s;
+}
+.btn-gerar-pdf:hover { transform: translateY(-2px); box-shadow: 0 10px 24px rgba(225,29,72,0.45); }
+
+/* Lightbox */
+.lightbox-overlay {
+display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85);
+z-index: 99999; cursor: pointer; align-items: center; justify-content: center;
+}
+.lightbox-overlay.open { display: flex; }
+.lightbox-overlay img { max-width: 95vw; max-height: 95vh; object-fit: contain; border-radius: 8px; cursor: default; }
+
+/* NANDA sugestões */
+.nanda-sugestoes { margin-top: 14px; }
+.nanda-sugestoes h5 {
+font-size: 12px; font-weight: 700; color: #1a3e74; margin-bottom: 8px;
+text-align: left;
+}
+.nanda-sugestao-item {
+display: flex; align-items: flex-start; gap: 8px; padding: 8px 12px;
+background: #f0f7ff; border: 1px solid #bfdbfe; border-radius: 8px;
+margin-bottom: 6px; font-size: 12px; line-height: 1.5;
+}
+.nanda-sugestao-item .nanda-codigo {
+background: #1a3e74; color: white; font-size: 10px; font-weight: 800;
+padding: 2px 8px; border-radius: 4px; white-space: nowrap; flex-shrink: 0;
+}
+.nanda-sugestao-loading {
+font-size: 11px; color: #64748b; font-style: italic; padding: 8px 0;
 }
 </style>
 
@@ -337,14 +390,14 @@ PNSP/ANVISA
 <!-- ===== META 1 ===== -->
 <div class="meta-grid">
 <div class="meta-img-card">
-<img src="img/meta-1-identificacao-correta-do-paciente-calculadoras-de-enfermagem.webp" alt="Meta 1: Identificar corretamente o paciente" loading="lazy" width="800" height="450">
+<img src="img/meta-1-identificacao-correta-do-paciente-calculadoras-de-enfermagem.webp" alt="Meta 1: Identificar corretamente o paciente" decoding="async" loading="lazy" width="800" height="450">
 </div>
 <div class="meta-text-card">
 <div class="meta-badge">Meta 1</div>
 <h3 class="font-nunito font-extrabold text-dark-blue text-xl" style="color: var(--navy); font-weight:800">Identificar Corretamente o Paciente</h3>
 <p class="mt-2" style="font-size:14px; line-height:1.7;">Garantir que o paciente receba o atendimento e procedimentos corretos, usando pelo menos <strong>dois identificadores</strong> (ex: nome completo e data de nascimento). A identificação correta é o primeiro passo para todos os cuidados subsequentes.</p>
 <div class="mt-3">
-<img src="img/meta1-calculadoras-de-enfermagem.webp" alt="Identificação correta do paciente" loading="lazy" width="400" height="300" style="width:100%; max-width:400px; border-radius:8px; display:block;">
+<img src="img/meta1-calculadoras-de-enfermagem.webp" alt="Identificação correta do paciente" decoding="async" loading="lazy" width="400" height="300" style="width:100%; max-width:400px; border-radius:8px; display:block;">
 </div>
 </div>
 </div>
@@ -360,6 +413,10 @@ PNSP/ANVISA
 <li>Nunca falar o nome completo do paciente para o próprio paciente confirmar — isso pode induzir ao erro. Faça perguntas abertas aguardando a resposta correta</li>
 <li>Não deixar dois pacientes com o mesmo nome no mesmo quarto; comunique ao enfermeiro e ao NIR para transferência</li>
 </ul>
+<div class="nanda-sugestoes" id="nanda-meta1">
+<h5>Sugestoes de Diagnosticos de Enfermagem Relacionados</h5>
+<div class="nanda-sugestao-loading">Carregando diagnosticos...</div>
+</div>
 </div>
 
 <!-- ===== META 2 ===== -->
@@ -369,11 +426,11 @@ PNSP/ANVISA
 <h3 class="font-nunito font-extrabold text-dark-blue text-xl" style="color: var(--navy); font-weight:800">Melhorar a Comunicação Efetiva</h3>
 <p class="mt-2" style="font-size:14px; line-height:1.7;">Assegurar que as informações importantes sobre o paciente sejam comunicadas de forma <strong>clara, completa e oportuna</strong>, especialmente entre as transições de cuidado. Falhas de comunicação estão entre as causas mais comuns de eventos adversos (IBSP, 2024).</p>
 <div class="mt-3">
-<img src="img/meta2-calculadoras-de-enfermagem.webp" alt="Comunicação efetiva entre profissionais" loading="lazy" width="400" height="300" style="width:100%; max-width:400px; border-radius:8px; display:block;">
+<img src="img/meta2-calculadoras-de-enfermagem.webp" alt="Comunicação efetiva entre profissionais" decoding="async" loading="lazy" width="400" height="300" style="width:100%; max-width:400px; border-radius:8px; display:block;">
 </div>
 </div>
 <div class="meta-img-card" style="direction:ltr;">
-<img src="img/meta-2-melhorar-a-comunicacao-entre-a-equipe-de-saude-calculadoras-de-enfermagem.webp" alt="Meta 2: Melhorar a comunicação entre a equipe" loading="lazy" width="800" height="450">
+<img src="img/meta-2-melhorar-a-comunicacao-entre-a-equipe-de-saude-calculadoras-de-enfermagem.webp" alt="Meta 2: Melhorar a comunicação entre a equipe" decoding="async" loading="lazy" width="800" height="450">
 </div>
 </div>
 
@@ -389,21 +446,25 @@ PNSP/ANVISA
 <li>Reuniões e visitas multidisciplinares</li>
 </ul>
 <div class="artigo-relacionado">
-<strong>📚 Artigo Relacionado:</strong> A técnica <a href="https://www.calculadorasdeenfermagem.com.br/sbar.html" target="_blank" rel="noopener">SBAR</a> (Situação, Background, Avaliação, Recomendação) é uma ferramenta padronizada de comunicação que reduz falhas nas transições de cuidado.
+<strong>Artigo Relacionado:</strong> A tecnica <a href="https://www.calculadorasdeenfermagem.com.br/sbar.html" target="_blank" rel="noopener">SBAR</a> (Situacao, Background, Avaliacao, Recomendacao) e uma ferramenta padronizada de comunicacao que reduz falhas nas transicoes de cuidado.
+</div>
+<div class="nanda-sugestoes" id="nanda-meta2">
+<h5>Sugestoes de Diagnosticos de Enfermagem Relacionados</h5>
+<div class="nanda-sugestao-loading">Carregando diagnosticos...</div>
 </div>
 </div>
 
 <!-- ===== META 3 ===== -->
 <div class="meta-grid">
 <div class="meta-img-card">
-<img src="img/meta-3-melhorar-a-seguranca-na-prescricao-no-uso-e-na-administracao-de-medicamentos-calculadoras-de-enfermagem.webp" alt="Meta 3: Segurança na prescrição, uso e administração de medicamentos" loading="lazy" width="800" height="450">
+<img src="img/meta-3-melhorar-a-seguranca-na-prescricao-no-uso-e-na-administracao-de-medicamentos-calculadoras-de-enfermagem.webp" alt="Meta 3: Segurança na prescrição, uso e administração de medicamentos" decoding="async" loading="lazy" width="800" height="450">
 </div>
 <div class="meta-text-card">
 <div class="meta-badge">Meta 3</div>
 <h3 class="font-nunito font-extrabold text-dark-blue text-xl" style="color: var(--navy); font-weight:800">Melhorar a Segurança na Prescrição, Uso e Administração de Medicamentos</h3>
 <p class="mt-2" style="font-size:14px; line-height:1.7;">Reduzir os riscos relacionados a medicamentos de alta vigilância, erros de prescrição, armazenamento e administração de fármacos. A OMS estima que <strong>erros de medicação causam pelo menos uma morte por dia</strong> e prejuízos de aproximadamente 42 bilhões de dólares anuais globalmente (WHO, 2017).</p>
 <div class="mt-3">
-<img src="img/meta3-calculadoras-de-enfermagem.webp" alt="Segurança na administração de medicamentos" loading="lazy" width="400" height="300" style="width:100%; max-width:400px; border-radius:8px; display:block;">
+<img src="img/meta3-calculadoras-de-enfermagem.webp" alt="Segurança na administração de medicamentos" decoding="async" loading="lazy" width="400" height="300" style="width:100%; max-width:400px; border-radius:8px; display:block;">
 </div>
 </div>
 </div>
@@ -419,7 +480,11 @@ PNSP/ANVISA
 <li>Monitoramento de reações adversas e comunicação imediata</li>
 </ul>
 <div class="artigo-relacionado">
-<strong>📚 Artigos Relacionados:</strong> <a href="https://www.calculadorasdeenfermagem.com.br/checagem.html" target="_blank" rel="noopener">Guia de Dupla Checagem de Medicamentos</a> e <a href="https://www.calculadorasdeenfermagem.com.br/vigilancia.html" target="_blank" rel="noopener">Vigilância em Saúde: Notificação de Eventos Adversos</a>.
+<strong>Artigos Relacionados:</strong> <a href="https://www.calculadorasdeenfermagem.com.br/checagem.html" target="_blank" rel="noopener">Guia de Dupla Checagem de Medicamentos</a> e <a href="https://www.calculadorasdeenfermagem.com.br/vigilancia.html" target="_blank" rel="noopener">Vigilancia em Saude: Notificacao de Eventos Adversos</a>.
+</div>
+<div class="nanda-sugestoes" id="nanda-meta3">
+<h5>Sugestoes de Diagnosticos de Enfermagem Relacionados</h5>
+<div class="nanda-sugestao-loading">Carregando diagnosticos...</div>
 </div>
 </div>
 
@@ -430,11 +495,11 @@ PNSP/ANVISA
 <h3 class="font-nunito font-extrabold text-dark-blue text-xl" style="color: var(--navy); font-weight:800">Assegurar Cirurgia em Local, Procedimento e Paciente Corretos</h3>
 <p class="mt-2" style="font-size:14px; line-height:1.7;">Implementar protocolos de verificação pré-operatória, marcação do local cirúrgico e <strong>"pausa cirúrgica"</strong> antes do início do procedimento. A Lista de Verificação de Cirurgia Segura da OMS reduziu a mortalidade cirúrgica em mais de 40% em hospitais que a implementaram (HAYNES et al., 2009).</p>
 <div class="mt-3">
-<img src="img/meta4-calculadoras-de-enfermagem.webp" alt="Cirurgia segura" loading="lazy" width="400" height="300" style="width:100%; max-width:400px; border-radius:8px; display:block;">
+<img src="img/meta4-calculadoras-de-enfermagem.webp" alt="Cirurgia segura" decoding="async" loading="lazy" width="400" height="300" style="width:100%; max-width:400px; border-radius:8px; display:block;">
 </div>
 </div>
 <div class="meta-img-card" style="direction:ltr;">
-<img src="img/meta-4-assegurar-cirurgia-em-local-de-intervencao-procedimento-e-paciente-correto-calculadoras-de-enfermagem.webp" alt="Meta 4: Cirurgia em local, procedimento e paciente corretos" loading="lazy" width="800" height="450">
+<img src="img/meta-4-assegurar-cirurgia-em-local-de-intervencao-procedimento-e-paciente-correto-calculadoras-de-enfermagem.webp" alt="Meta 4: Cirurgia em local, procedimento e paciente corretos" decoding="async" loading="lazy" width="800" height="450">
 </div>
 </div>
 
@@ -448,21 +513,25 @@ PNSP/ANVISA
 <li>Contagem de instrumentais e compressas antes e após o procedimento</li>
 </ul>
 <div class="artigo-relacionado">
-<strong>📚 Artigo Relacionado:</strong> <a href="https://www.calculadorasdeenfermagem.com.br/checklist-cirurgico-seguro.html" target="_blank" rel="noopener">Checklist Cirúrgico Seguro: Guia Completo para Enfermagem</a>.
+<strong>Artigo Relacionado:</strong> <a href="https://www.calculadorasdeenfermagem.com.br/checklist-cirurgico-seguro.html" target="_blank" rel="noopener">Checklist Cirurgico Seguro: Guia Completo para Enfermagem</a>.
+</div>
+<div class="nanda-sugestoes" id="nanda-meta4">
+<h5>Sugestoes de Diagnosticos de Enfermagem Relacionados</h5>
+<div class="nanda-sugestao-loading">Carregando diagnosticos...</div>
 </div>
 </div>
 
 <!-- ===== META 5 ===== -->
 <div class="meta-grid">
 <div class="meta-img-card">
-<img src="img/meta-5-higienizar-as-maos-para-evitar-infeccoes-calculadoras-de-enfermagem.webp" alt="Meta 5: Higienizar as mãos para prevenir infecções" loading="lazy" width="800" height="450">
+<img src="img/meta-5-higienizar-as-maos-para-evitar-infeccoes-calculadoras-de-enfermagem.webp" alt="Meta 5: Higienizar as mãos para prevenir infecções" decoding="async" loading="lazy" width="800" height="450">
 </div>
 <div class="meta-text-card">
 <div class="meta-badge">Meta 5</div>
 <h3 class="font-nunito font-extrabold text-dark-blue text-xl" style="color: var(--navy); font-weight:800">Higienizar as Mãos para Prevenir Infecções</h3>
 <p class="mt-2" style="font-size:14px; line-height:1.7;">Promover práticas de higiene das mãos, controle de antimicrobianos, uso de equipamentos estéreis e controle ambiental. As <strong>Infecções Relacionadas à Assistência à Saúde (IRAS)</strong> estão entre os eventos adversos mais frequentes, afetando centenas de milhões de pacientes no mundo (WHO, 2022).</p>
 <div class="mt-3">
-<img src="img/meta5-calculadoras-de-enfermagem.webp" alt="Higienização das mãos" loading="lazy" width="400" height="300" style="width:100%; max-width:400px; border-radius:8px; display:block;">
+<img src="img/meta5-calculadoras-de-enfermagem.webp" alt="Higienização das mãos" decoding="async" loading="lazy" width="400" height="300" style="width:100%; max-width:400px; border-radius:8px; display:block;">
 </div>
 </div>
 </div>
@@ -478,7 +547,11 @@ PNSP/ANVISA
 <li>Higienização de superfícies e desinfecção de equipamentos entre pacientes</li>
 </ul>
 <div class="artigo-relacionado">
-<strong>📚 Referência Técnica:</strong> <a href="https://www.gov.br/anvisa/pt-br/assuntos/servicosdesaude/prevencao-e-controle-de-infeccao-e-resistencia-microbiana/ManualdeRefernciaTcnica.pdf" target="_blank" rel="noopener">Manual de Referência Técnica para Prevenção e Controle de Infecção — ANVISA (PDF)</a>.
+<strong>Referencia Tecnica:</strong> <a href="https://www.gov.br/anvisa/pt-br/assuntos/servicosdesaude/prevencao-e-controle-de-infeccao-e-resistencia-microbiana/ManualdeRefernciaTcnica.pdf" target="_blank" rel="noopener">Manual de Referencia Tecnica para Prevencao e Controle de Infeccao — ANVISA (PDF)</a>.
+</div>
+<div class="nanda-sugestoes" id="nanda-meta5">
+<h5>Sugestoes de Diagnosticos de Enfermagem Relacionados</h5>
+<div class="nanda-sugestao-loading">Carregando diagnosticos...</div>
 </div>
 </div>
 
@@ -489,11 +562,11 @@ PNSP/ANVISA
 <h3 class="font-nunito font-extrabold text-dark-blue text-xl" style="color: var(--navy); font-weight:800">Reduzir o Risco de Danos por Quedas e Lesões por Pressão</h3>
 <p class="mt-2" style="font-size:14px; line-height:1.7;">Avaliar e monitorar pacientes com risco de queda e lesões por pressão, implementando medidas preventivas baseadas em evidências. <strong>Quedas hospitalares</strong> e <strong>lesões por pressão</strong> são eventos adversos preveníveis que aumentam o tempo de internação e os custos assistenciais.</p>
 <div class="mt-3">
-<img src="img/meta6-calculadoras-de-enfermagem.webp" alt="Prevenção de quedas e lesões por pressão" loading="lazy" width="400" height="300" style="width:100%; max-width:400px; border-radius:8px; display:block;">
+<img src="img/meta6-calculadoras-de-enfermagem.webp" alt="Prevenção de quedas e lesões por pressão" decoding="async" loading="lazy" width="400" height="300" style="width:100%; max-width:400px; border-radius:8px; display:block;">
 </div>
 </div>
 <div class="meta-img-card" style="direction:ltr;">
-<img src="img/meta-6-deduzir-os-riscos-de-quedas-e-de-lesoes-por-pressao-calculadoras-de-enfermagem.webp" alt="Meta 6: Reduzir riscos de quedas e lesões por pressão" loading="lazy" width="800" height="450">
+<img src="img/meta-6-deduzir-os-riscos-de-quedas-e-de-lesoes-por-pressao-calculadoras-de-enfermagem.webp" alt="Meta 6: Reduzir riscos de quedas e lesões por pressão" decoding="async" loading="lazy" width="800" height="450">
 </div>
 </div>
 
@@ -511,7 +584,11 @@ PNSP/ANVISA
 <li>Presença de acompanhante quando indicado</li>
 </ul>
 <div class="artigo-relacionado">
-<strong>📚 Artigos Relacionados:</strong> <a href="https://www.calculadorasdeenfermagem.com.br/braden.html" target="_blank" rel="noopener">Escala de Braden: Avaliação de Risco de Lesão por Pressão</a> e <a href="https://www.calculadorasdeenfermagem.com.br/morse.html" target="_blank" rel="noopener">Escala de Morse: Avaliação de Risco de Quedas</a>.
+<strong>Artigos Relacionados:</strong> <a href="https://www.calculadorasdeenfermagem.com.br/braden.html" target="_blank" rel="noopener">Escala de Braden: Avaliacao de Risco de Lesao por Pressao</a> e <a href="https://www.calculadorasdeenfermagem.com.br/morse.html" target="_blank" rel="noopener">Escala de Morse: Avaliacao de Risco de Quedas</a>.
+</div>
+<div class="nanda-sugestoes" id="nanda-meta6">
+<h5>Sugestoes de Diagnosticos de Enfermagem Relacionados</h5>
+<div class="nanda-sugestao-loading">Carregando diagnosticos...</div>
 </div>
 </div>
 
@@ -586,6 +663,13 @@ PNSP/ANVISA
 <p style="font-size:15px; line-height:1.8;">As <strong>6 Metas Internacionais de Segurança do Paciente</strong> representam um marco na evolução da qualidade assistencial em saúde. Estabelecidas pela OMS e JCI, essas diretrizes fornecem um <strong>framework estruturado</strong> para que instituições de saúde em todo o mundo possam reduzir riscos e prevenir eventos adversos.</p>
 <p style="font-size:15px; line-height:1.8; margin-top:12px;">A implementação efetiva dessas metas exige o <strong>comprometimento de toda a equipe multidisciplinar</strong>, com destaque para o papel do enfermeiro na liderança de protocolos de segurança, na aplicação de escalas validadas e na educação continuada da equipe. O Plano de Ação Global para a Segurança do Paciente 2021-2030 da OMS e o Programa Nacional de Segurança do Paciente (PNSP) no Brasil fornecem o arcabouço normativo e estratégico necessário (BRASIL, 2013; WHO, 2021).</p>
 <p style="font-size:15px; line-height:1.8; margin-top:12px;">A utilização de <strong>ferramentas tecnológicas</strong>, como as calculadoras e escalas disponíveis no portal Calculadoras de Enfermagem, complementa este esforço ao disponibilizar recursos baseados em evidências que auxiliam os profissionais na tomada de decisão clínica e na documentação adequada do processo de enfermagem. A segurança do paciente é, acima de tudo, uma <strong>responsabilidade compartilhada</strong> que se constrói a cada turno, a cada procedimento e a cada interação com o paciente.</p>
+
+<div class="flex justify-center mt-6 no-print">
+<a href="https://www.calculadorasdeenfermagem.com.br/simulado-de-enfermagem-nucleo-de-seguranca-do-paciente.html" class="btn-imprimir flex items-center justify-center gap-2 no-underline" style="display:inline-flex; text-decoration:none;">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" fill="currentColor" width="1.1em" height="1.1em" aria-hidden="true"><path d="M160 80c0-26.5 21.5-48 48-48l32 0c26.5 0 48 21.5 48 48l0 352c0 26.5-21.5 48-48 48l-32 0c-26.5 0-48-21.5-48-48l0-352zM0 272c0-26.5 21.5-48 48-48l32 0c26.5 0 48 21.5 48 48l0 160c0 26.5-21.5 48-48 48l-32 0c-26.5 0-48-21.5-48-48L0 272zM368 96l32 0c26.5 0 48 21.5 48 48l0 288c0 26.5-21.5 48-48 48l-32 0c-26.5 0-48-21.5-48-48l0-288c0-26.5 21.5-48 48-48z"/></svg>
+Teste seus conhecimentos sobre segurança do paciente
+</a>
+</div>
 </div>
 
 <!-- ===== REFERÊNCIAS ===== -->
@@ -605,17 +689,26 @@ PNSP/ANVISA
 </ul>
 </div>
 
-<!-- Botão Imprimir -->
-<div class="flex justify-center no-print mt-8 pt-6 border-t border-slate-200">
-<button onclick="window.print()" style="background: linear-gradient(135deg, #1a3e74 0%, #1e4d8c 100%); color: white; border: none; padding: 14px 36px; border-radius: 12px; font-size: 15px; font-weight: 800; cursor: pointer; text-transform: uppercase; letter-spacing: 0.5px; box-shadow: 0 6px 18px rgba(26,62,116,0.35); transition: transform 0.15s, box-shadow 0.15s;" onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 10px 24px rgba(26,62,116,0.4)';" onmouseout="this.style.transform='translateY(0)';this.style.boxShadow='0 6px 18px rgba(26,62,116,0.35)';">
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="currentColor" width="1.1em" height="1.1em" style="margin-right:8px;" aria-hidden="true"><path d="M128 0C92.7 0 64 28.7 64 64l0 96 64 0 0-96 226.7 0L384 93.3l0 66.7 64 0 0-66.7c0-17-6.7-33.3-18.7-45.3L400 18.7C388 6.7 371.7 0 354.7 0L128 0zM384 352l0 32 0 64-256 0 0-64 0-16 0-16 256 0zm64 32l32 0c17.7 0 32-14.3 32-32l0-96c0-35.3-28.7-64-64-64L64 192c-35.3 0-64 28.7-64 64l0 96c0 17.7 14.3 32 32 32l32 0 0 64c0 35.3 28.7 64 64 64l256 0c35.3 0 64-28.7 64-64l0-64zM432 248a24 24 0 1 1 0 48 24 24 0 1 1 0-48z"/></svg>
+<!-- Botões Imprimir e Gerar PDF -->
+<div class="flex flex-col sm:flex-row gap-4 justify-center no-print mt-8 pt-6 border-t border-slate-200">
+<button onclick="window.print()" class="btn-imprimir flex items-center justify-center gap-2">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="currentColor" width="1.1em" height="1.1em" aria-hidden="true"><path d="M128 0C92.7 0 64 28.7 64 64l0 96 64 0 0-96 226.7 0L384 93.3l0 66.7 64 0 0-66.7c0-17-6.7-33.3-18.7-45.3L400 18.7C388 6.7 371.7 0 354.7 0L128 0zM384 352l0 32 0 64-256 0 0-64 0-16 0-16 256 0zm64 32l32 0c17.7 0 32-14.3 32-32l0-96c0-35.3-28.7-64-64-64L64 192c-35.3 0-64 28.7-64 64l0 96c0 17.7 14.3 32 32 32l32 0 0 64c0 35.3 28.7 64 64 64l256 0c35.3 0 64-28.7 64-64l0-64zM432 248a24 24 0 1 1 0 48 24 24 0 1 1 0-48z"/></svg>
 Imprimir Página
+</button>
+<button id="btnGerarPDF" class="btn-gerar-pdf flex items-center justify-center gap-2">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="currentColor" width="1.1em" height="1.1em" aria-hidden="true"><path d="M0 64C0 28.7 28.7 0 64 0L224 0l0 128c0 17.7 14.3 32 32 32l128 0 0 144-208 0c-35.3 0-64 28.7-64 64l0 144-48 0c-35.3 0-64-28.7-64-64L0 64zm384 64l-128 0L256 0 384 128zM176 352l32 0c30.9 0 56 25.1 56 56s-25.1 56-56 56l-16 0 0 32c0 8.8-7.2 16-16 16s-16-7.2-16-16l0-48 0-80c0-8.8 7.2-16 16-16zm32 80c13.3 0 24-10.7 24-24s-10.7-24-24-24l-16 0 0 48 16 0zm96-80l32 0c26.5 0 48 21.5 48 48l0 64c0 26.5-21.5 48-48 48l-32 0c-8.8 0-16-7.2-16-16l0-128c0-8.8 7.2-16 16-16zm32 128c8.8 0 16-7.2 16-16l0-64c0-8.8-7.2-16-16-16l-16 0 0 96 16 0zm80-112c0-8.8 7.2-16 16-16l48 0c8.8 0 16 7.2 16 16s-7.2 16-16 16l-32 0 0 32 32 0c8.8 0 16 7.2 16 16s-7.2 16-16 16l-32 0 0 48c0 8.8-7.2 16-16 16s-16-7.2-16-16l0-64 0-64z"/></svg>
+Gerar PDF
 </button>
 </div>
 
 </div><!-- fecha text-left -->
 
 </main>
+
+<!-- Lightbox Overlay -->
+<div id="lightboxOverlay" class="lightbox-overlay" aria-label="Visualizador de imagem" role="dialog">
+<img id="lightboxImg" src="" alt="" />
+</div>
 
 <!-- MULTIPLEX_AD_RESERVED_START -->
 <style>
@@ -661,21 +754,196 @@ carregarTraducoes("pt", "footer.json");
 carregarTraducoes("pt", "cookies.json");
 }
 })
-.catch((e) => console.log("Footer indisponível"));
+.catch((e) => console.log("Footer indisponivel"));
 }, 150);
 });
-</script>
 
-<script>
+// ===== LIGHTBOX: clique na imagem abre tela cheia =====
+(function(){
+var overlay = document.getElementById('lightboxOverlay');
+var lightboxImg = document.getElementById('lightboxImg');
+document.querySelectorAll('main img').forEach(function(img){
+img.style.cursor = 'pointer';
+img.addEventListener('click', function(e){
+e.stopPropagation();
+lightboxImg.src = this.src;
+lightboxImg.alt = this.alt;
+overlay.classList.add('open');
+document.body.style.overflow = 'hidden';
+});
+});
+overlay.addEventListener('click', function(){
+overlay.classList.remove('open');
+document.body.style.overflow = '';
+});
+document.addEventListener('keydown', function(e){
+if(e.key === 'Escape' && overlay.classList.contains('open')){
+overlay.classList.remove('open');
+document.body.style.overflow = '';
+}
+});
+})();
+
+// ===== BOTAO VOLTAR AO TOPO (estilo fugulin) =====
 (function(){
 var btn = document.createElement('button');
-btn.textContent = 'Voltar ao Topo';
+btn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512" fill="currentColor" width="1em" height="1em" aria-hidden="true"><path d="M214.6 41.4c-12.5-12.5-32.8-12.5-45.3 0l-160 160c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0L160 141.2 160 448c0 17.7 14.3 32 32 32s32-14.3 32-32l0-306.7L329.4 246.6c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3l-160-160z"/></svg>';
 btn.id = 'backToTopBtn';
-btn.setAttribute('aria-label','Voltar ao topo da página');
-btn.style.cssText = 'display:none;position:fixed;bottom:25px;right:25px;z-index:9999;padding:10px 20px;background:#1a3e74;color:white;border:none;border-radius:8px;font-weight:800;font-size:13px;cursor:pointer;box-shadow:0 4px 12px rgba(0,0,0,0.25);transition:opacity 0.3s;';
+btn.setAttribute('aria-label','Voltar ao topo da pagina');
+btn.style.cssText = 'display:none;position:fixed;bottom:25px;right:25px;z-index:9999;padding:12px 18px;background:linear-gradient(135deg,#1a3e74 0%,#1e4d8c 100%);color:white;border:none;border-radius:12px;font-weight:800;font-size:14px;cursor:pointer;box-shadow:0 6px 18px rgba(26,62,116,0.35);transition:transform 0.15s,box-shadow 0.15s,opacity 0.3s;';
 document.body.appendChild(btn);
+btn.addEventListener('mouseenter',function(){this.style.transform='translateY(-2px)';this.style.boxShadow='0 10px 24px rgba(26,62,116,0.4)';});
+btn.addEventListener('mouseleave',function(){this.style.transform='translateY(0)';this.style.boxShadow='0 6px 18px rgba(26,62,116,0.35)';});
 window.addEventListener('scroll',function(){btn.style.display=window.scrollY>300?'block':'none';});
 btn.addEventListener('click',function(){window.scrollTo({top:0,behavior:'smooth'});});
+})();
+
+// ===== GERAR PDF (estilo fugulin com jsPDF) =====
+document.getElementById('btnGerarPDF').addEventListener('click', function(){
+var btn = this;
+var textoOriginal = btn.innerHTML;
+if (typeof window.jspdf !== 'undefined') { gerarPDFMeta(); return; }
+btn.innerHTML = 'Carregando gerador...';
+btn.style.opacity = '0.7';
+btn.style.pointerEvents = 'none';
+var scriptMain = document.createElement('script');
+scriptMain.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
+document.body.appendChild(scriptMain);
+scriptMain.onload = function(){
+var scriptPlugin = document.createElement('script');
+scriptPlugin.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js';
+document.body.appendChild(scriptPlugin);
+scriptPlugin.onload = function(){
+btn.innerHTML = textoOriginal;
+btn.style.opacity = '1';
+btn.style.pointerEvents = 'auto';
+gerarPDFMeta();
+};
+};
+});
+
+function gerarPDFMeta(){
+var { jsPDF } = window.jspdf;
+var doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+var navy = [26,62,116];
+var W = 210, marginL = 15, marginR = 15, usable = W - marginL - marginR;
+var y = 8;
+
+// Cabecalho
+doc.setFillColor.apply(doc, navy);
+doc.rect(0, 0, W, 28, 'F');
+doc.setTextColor(255,255,255);
+doc.setFont('helvetica','bold');
+doc.setFontSize(12);
+doc.text('Metas Internacionais de Seguranca do Paciente', marginL, 12);
+doc.setFontSize(8);
+doc.setFont('helvetica','normal');
+doc.text('Guia Completo OMS/JCI | calculadorasdeenfermagem.com.br', marginL, 19);
+doc.text('Data: ' + new Date().toLocaleDateString('pt-BR'), W - marginR, 19, { align: 'right' });
+y = 34;
+
+// Titulo
+doc.setTextColor.apply(doc, navy);
+doc.setFont('helvetica','bold');
+doc.setFontSize(14);
+doc.text('6 Metas Internacionais de Seguranca do Paciente', marginL, y);
+y += 8;
+
+// Conteudo das 6 metas
+var metas = [
+{num:'Meta 1', titulo:'Identificar Corretamente o Paciente', texto:'Garantir que o paciente receba o atendimento e procedimentos corretos, usando pelo menos dois identificadores (ex: nome completo e data de nascimento).'},
+{num:'Meta 2', titulo:'Melhorar a Comunicacao Efetiva', texto:'Assegurar que as informacoes importantes sobre o paciente sejam comunicadas de forma clara, completa e oportuna, especialmente entre as transicoes de cuidado.'},
+{num:'Meta 3', titulo:'Seguranca na Prescricao, Uso e Administracao de Medicamentos', texto:'Reduzir os riscos relacionados a medicamentos de alta vigilancia, erros de prescricao, armazenamento e administracao de farmacos.'},
+{num:'Meta 4', titulo:'Assegurar Cirurgia em Local, Procedimento e Paciente Corretos', texto:'Implementar protocolos de verificacao pre-operatoria, marcacao do local cirurgico e pausa cirurgica antes do inicio do procedimento.'},
+{num:'Meta 5', titulo:'Higienizar as Maos para Prevenir Infeccoes', texto:'Promover praticas de higiene das maos, controle de antimicrobianos, uso de equipamentos estereis e controle ambiental.'},
+{num:'Meta 6', titulo:'Reduzir o Risco de Danos por Quedas e Lesoes por Pressao', texto:'Avaliar e monitorar pacientes com risco de queda e lesoes por pressao, implementando medidas preventivas baseadas em evidencias.'}
+];
+
+metas.forEach(function(m){
+if(y > 252){ doc.addPage(); y = 15; }
+doc.setFillColor(239,246,255);
+doc.roundedRect(marginL, y, usable, 6, 1.5, 1.5, 'F');
+doc.setTextColor.apply(doc, navy);
+doc.setFont('helvetica','bold');
+doc.setFontSize(9);
+doc.text(m.num + ': ' + m.titulo, marginL + 3, y + 4.2);
+y += 9;
+
+doc.setTextColor(30,41,59);
+doc.setFont('helvetica','normal');
+doc.setFontSize(8);
+var lines = doc.splitTextToSize(m.texto, usable - 4);
+doc.text(lines, marginL + 2, y);
+y += lines.length * 4.5 + 4;
+});
+
+// Rodape
+doc.setDrawColor(226,232,240);
+doc.setLineWidth(0.3);
+doc.line(marginL, 278, W - marginR, 278);
+doc.setTextColor(148,163,184);
+doc.setFontSize(7);
+doc.setFont('helvetica','normal');
+doc.text('OMS (2021) | JCI (2021) | PNSP/ANVISA (2013) | www.calculadorasdeenfermagem.com.br', marginL, 283);
+doc.save('metas-internacionais-seguranca-paciente.pdf');
+}
+
+// ===== DIAGNOSTICOS NANDA POR META =====
+(function(){
+var palavrasChave = {
+'nanda-meta1': ['identificacao','paciente','alergia','seguranca','identificar'],
+'nanda-meta2': ['comunicacao','cuidador','interacao social','transicao','relacionamento'],
+'nanda-meta3': ['medicamento','alergia','reacao','farmaco','administracao','latex'],
+'nanda-meta4': ['cirurgia','infeccao','sitio cirurgico','hipotermia','procedimento','perioperatorio'],
+'nanda-meta5': ['infeccao','higiene','contaminacao','maos','lavagem','controle'],
+'nanda-meta6': ['queda','lesao','pele','integridade','pressao','mobilidade','seguranca']
+};
+
+fetch('/banco_nanda.json')
+.then(function(r){ return r.json(); })
+.then(function(banco){
+Object.keys(palavrasChave).forEach(function(containerId){
+var keywords = palavrasChave[containerId];
+var resultados = [];
+banco.forEach(function(d){
+var score = 0;
+var txt = ((d.diagnostico||'') + ' ' + (d.definicao||'')).toLowerCase();
+keywords.forEach(function(kw){
+if(txt.indexOf(kw.toLowerCase()) !== -1) score++;
+});
+if(score > 0) resultados.push({ diag: d, score: score });
+});
+resultados.sort(function(a,b){ return b.score - a.score; });
+
+// Dedup por similaridade
+var usados = new Set();
+var unicos = [];
+resultados.forEach(function(r){
+var tema = r.diag.diagnostico.toLowerCase().replace(/^(risco de |disposicao para |sindrome de |tendencia a )/,'').split(/\s+/).slice(0,4).join(' ');
+if(!usados.has(tema) && unicos.length < 5){
+usados.add(tema);
+unicos.push(r);
+}
+});
+
+var container = document.getElementById(containerId);
+if(!container) return;
+if(unicos.length > 0){
+var html = '<h5>Sugestoes de Diagnosticos de Enfermagem Relacionados</h5>';
+unicos.forEach(function(r){
+html += '<div class="nanda-sugestao-item"><span class="nanda-codigo">' + (r.diag.codigo||'') + '</span><span>' + r.diag.diagnostico + '</span></div>';
+});
+container.innerHTML = html;
+} else {
+container.innerHTML = '<h5>Sugestoes de Diagnosticos de Enfermagem Relacionados</h5><div class="nanda-sugestao-loading">Nenhum diagnostico especifico encontrado para esta meta.</div>';
+}
+});
+})
+.catch(function(){
+document.querySelectorAll('.nanda-sugestoes').forEach(function(el){
+el.innerHTML = '<h5>Sugestoes de Diagnosticos de Enfermagem Relacionados</h5><div class="nanda-sugestao-loading">Banco de dados NANDA temporariamente indisponivel.</div>';
+});
+});
 })();
 </script>
 
