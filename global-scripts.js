@@ -1037,33 +1037,4 @@ window.addEventListener('load', function() {
     }, 1000); // Aguarda 1 segundo após o load completo da página
 });
 
-// ===== PROTECAO ANTI-PLAGIO E ANTI-COPIA =====
-(function(){
-// 1. Anti-iframe: redireciona se carregado dentro de iframe externo
-if (window.top !== window.self) {
-  try {
-    if (window.top.location.hostname !== window.location.hostname) {
-      window.top.location.href = window.location.href;
-    }
-  } catch(e) {
-    window.top.location.href = window.location.href;
-  }
-}
 
-// 2. Marca d'agua invisivel
-document.addEventListener('DOMContentLoaded', function(){
-  document.body.setAttribute('data-site-original', 'calculadorasdeenfermagem.com.br');
-});
-
-// 3. Adiciona aviso de copyright ao copiar texto longo
-document.addEventListener('copy', function(e){
-  var sel = window.getSelection().toString();
-  if (sel.length > 100) {
-    var cr = '\n\n---\nFonte: Calculadoras de Enfermagem\ncalculadorasdeenfermagem.com.br\nConteudo protegido por direitos autorais. Plagio e crime.\n';
-    if (e.clipboardData && e.clipboardData.setData) {
-      e.clipboardData.setData('text/plain', sel + cr);
-      e.preventDefault();
-    }
-  }
-});
-})();
